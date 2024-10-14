@@ -1,0 +1,74 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+	id "java"
+	id "org.jetbrains.kotlin.jvm" version "2.0.0"
+	id "com.github.johnrengelman.shadow" version "8.1.1"
+}
+
+allprojects {
+	apply plugin: "java"
+	apply plugin: "org.jetbrains.kotlin.jvm"
+
+	java {
+		withSourcesJar()
+	}
+
+	repositories {
+		mavenCentral()
+		maven { url 'https://jitpack.io' }
+	}
+	
+	project.ext.jomlVersion = "1.10.1"
+	project.ext.lwjglVersion = "3.3.4"
+	project.ext.boilerVersion = "v4.0.0"
+	switch (OperatingSystem.current()) {
+		case OperatingSystem.LINUX:
+			project.ext.lwjglNatives = ["natives-linux", "natives-linux-arm32", "natives-linux-arm64"]
+			break
+		case OperatingSystem.WINDOWS:
+			project.ext.lwjglNatives = ["natives-windows", "natives-windows-x86", "natives-windows-arm64"]
+			break
+		case OperatingSystem.MAC_OS:
+			project.ext.lwjglNatives = ["natives-macos", "natives-macos-arm64"]
+			break
+	}
+
+	dependencies {
+		testImplementation platform("org.junit:junit-bom:5.10.3")
+		testImplementation "org.junit.jupiter:junit-jupiter:5.10.3"
+		testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+	}
+
+	test {
+		useJUnitPlatform()
+	}
+}
+
+
+project(":playground") {
+	apply plugin: "com.github.johnrengelman.shadow"
+	dependencies {
+		implementation "com.github.knokko:vk-boiler:$boilerVersion"
+
+		implementation "org.joml:joml:${jomlVersion}"
+		implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
+		implementation "org.lwjgl:lwjgl"
+		implementation "org.lwjgl:lwjgl-vma"
+		implementation "org.lwjgl:lwjgl-vulkan"
+		implementation "org.lwjgl:lwjgl-glfw"
+
+		for (natives in project.ext.lwjglNatives) {
+			runtimeOnly "org.lwjgl:lwjgl::$natives"
+			runtimeOnly "org.lwjgl:lwjgl-glfw::$natives"
+			runtimeOnly "org.lwjgl:lwjgl-vma::$natives"
+			if (natives.startsWith("natives-macos")) runtimeOnly "org.lwjgl:lwjgl-vulkan::$natives"
+		}
+	}
+	shadowJar {
+		manifest {
+			attributes ("Main-Class": "mardek.playground.TilesPlaygroundKt")
+		}
+	}
+}

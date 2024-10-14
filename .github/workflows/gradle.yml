@@ -1,0 +1,23 @@
+name: Testing on Linux
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test_ubuntu:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt update
+      - run: sudo apt install -y vulkan-validationlayers
+      - run: sudo apt install -y mesa-vulkan-drivers
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+      - name: Setup gradle
+        uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew test --no-daemon
