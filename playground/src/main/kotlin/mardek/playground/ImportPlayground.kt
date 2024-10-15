@@ -35,7 +35,7 @@ fun main() {
 		if (shapes != null) {
 			for (shape in shapes.shapes) {
 				val image = ImageIO.read(File("flash/shapes/${shape.id}.png"))
-				val jomlMatrix = Matrix3x2f()
+				var jomlMatrix = Matrix3x2f()
 				val (scaleX, scaleY) = if (part.matrix.hasScale) Pair(part.matrix.scaleX, part.matrix.scaleY) else Pair(
 					1f,
 					1f
@@ -45,14 +45,22 @@ fun main() {
 					(part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f,
 					(part.matrix.translateY + scaleY * shape.rect.Ymin) / 20f
 				)
+				jomlMatrix.scale(scaleX, scaleY)
+
+				jomlMatrix = Matrix3x2f(
+					scaleX, 0f, 0f, scaleY,
+					(part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f,
+					(part.matrix.translateY + scaleY * shape.rect.Ymin) / 20f)
 				// TODO Rotate?
 
+				val artificialScale = 4
+
 				val position = jomlMatrix.transformPosition(Vector2f())
-				//println("position is ${position.x}, ${position.y} and rect is ${part.sprites.rect} and rect2 is ${shape.rect}")
+				val endPosition = jomlMatrix.transformPosition(Vector2f(image.width.toFloat(), image.height.toFloat()))
 				graphics.drawImage(
-					image, position.x.toInt() + 600, position.y.toInt() + 600,
-					(image.width * scaleX).toInt(),
-					(image.height * scaleY).toInt(), null
+					image, artificialScale * position.x.toInt() + 600, artificialScale * position.y.toInt() + 600,
+					(endPosition.x - position.x).toInt(),
+					(endPosition.y - position.y).toInt(), null
 				)
 			}
 		} else println("no shapes?")
@@ -105,11 +113,19 @@ private fun parseShape(swf: SWF, id: Int, outShapes: MutableList<SingleShape>) {
 
 private fun parseCreature(creatureTag: DefineSpriteTag): BattleCreature {
 	val parts = mutableListOf<BodyPart>()
+	var showFrameCounter = 0
 	for (child in creatureTag.tags) {
-		if (child is ShowFrameTag) break
-		if (child is SoundStreamHead2Tag) continue
+		// TODO Try with rotations
+		if (child is ShowFrameTag) {
+			showFrameCounter += 1
+			//if (showFrameCounter < 10) continue
+			if (showFrameCounter > 1) break
+			continue
+		}
+		if (child is SoundStreamHead2Tag || child is RemoveObject2Tag || child is FrameLabelTag) continue
 
 		val placeTag = child as PlaceObject2Tag
+		println("looking for chid ${placeTag.characterId}")
 		val partTag = creatureTag.swf.tags.find { it.uniqueId == placeTag.characterId.toString() }!!
 		if (partTag is DefineSpriteTag) {
 			parts.add(BodyPart(
