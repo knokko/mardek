@@ -51,6 +51,7 @@ project(":playground") {
 	apply plugin: "com.github.johnrengelman.shadow"
 	dependencies {
 		implementation "com.github.knokko:vk-boiler:$boilerVersion"
+		implementation files("../flash/ffdec_lib.jar")
 
 		implementation "org.joml:joml:${jomlVersion}"
 		implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
