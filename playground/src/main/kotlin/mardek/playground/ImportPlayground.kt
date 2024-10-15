@@ -1,26 +1,17 @@
 package mardek.playground
 
 import com.jpexs.decompiler.flash.SWF
-import com.jpexs.decompiler.flash.tags.DefineShape2Tag
-import com.jpexs.decompiler.flash.tags.DefineShape3Tag
-import com.jpexs.decompiler.flash.tags.DefineShapeTag
-import com.jpexs.decompiler.flash.tags.DefineSpriteTag
-import com.jpexs.decompiler.flash.tags.FrameLabelTag
-import com.jpexs.decompiler.flash.tags.PlaceObject2Tag
-import com.jpexs.decompiler.flash.tags.ShowFrameTag
-import com.jpexs.decompiler.flash.tags.SoundStreamHead2Tag
+import com.jpexs.decompiler.flash.tags.*
 import com.jpexs.decompiler.flash.types.MATRIX
 import com.jpexs.decompiler.flash.types.RECT
-import org.joml.Matrix3f
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
+import java.lang.Integer.parseInt
 import java.nio.file.Files
 import javax.imageio.ImageIO
-import kotlin.math.max
-import kotlin.math.min
 
 fun main() {
 	// The next line will work after you copy MARDEK.swf from your steamgames to the flash directory of this repository
@@ -29,8 +20,8 @@ fun main() {
 	val swf = SWF(input, true)
 	input.close()
 
-	// deugan = 2427, emela = 2551
-	val monsterTag = swf.tags.find { it.uniqueId == "2551" }!! as DefineSpriteTag
+	// deugan = 2427, emela = 2551, sslenck is 3074, monster is 3173
+	val monsterTag = swf.tags.find { it.uniqueId == "3173" }!! as DefineSpriteTag
 	println("frame count is ${monsterTag.frameCount}")
 
 	val monster = parseCreature(monsterTag)
@@ -39,59 +30,77 @@ fun main() {
 	val graphics = targetImage.createGraphics()
 
 	for (part in monster.parts) {
-		println("shape names are ${part.sprites.shapes.map { it.name }}")
-		val shape = part.sprites.shapes.firstOrNull()
-		if (shape != null) {
-			val image = ImageIO.read(File("flash/shapes/${shape.shapeID}.png"))
-			val jomlMatrix = Matrix3x2f()
-			val (scaleX, scaleY) = if (part.matrix.hasScale) Pair(part.matrix.scaleX, part.matrix.scaleY) else Pair(1f, 1f)
+		//println("shape names are ${part.sprites.shapes.map { it.name }}")
+		val shapes = part.sprites.shapes.firstOrNull()
+		if (shapes != null) {
+			for (shape in shapes.shapes) {
+				val image = ImageIO.read(File("flash/shapes/${shape.id}.png"))
+				val jomlMatrix = Matrix3x2f()
+				val (scaleX, scaleY) = if (part.matrix.hasScale) Pair(part.matrix.scaleX, part.matrix.scaleY) else Pair(
+					1f,
+					1f
+				)
 
-			val rect = part.sprites.rect
+				jomlMatrix.translate(
+					(part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f,
+					(part.matrix.translateY + scaleY * shape.rect.Ymin) / 20f
+				)
+				// TODO Rotate?
 
-			//jomlMatrix.translate((part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f, (part.matrix.translateY + shape.rect.Ymin) / 20f)
-			jomlMatrix.translate((part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f, (part.matrix.translateY + shape.rect.Ymin) / 20f)
-
-
-
-			println("rotate? ${part.matrix.hasRotate}")
-			// TODO Rotate?
-
-			val position = jomlMatrix.transformPosition(Vector2f())
-			println("position is ${position.x}, ${position.y} and rect is ${part.sprites.rect} and rect2 is ${shape.rect}")
-			graphics.drawImage(
-				image, position.x.toInt() + 600, position.y.toInt() + 600,
-				(image.width * scaleX).toInt(),
-				(image.height * scaleY).toInt(), null
-			)
-		}
+				val position = jomlMatrix.transformPosition(Vector2f())
+				//println("position is ${position.x}, ${position.y} and rect is ${part.sprites.rect} and rect2 is ${shape.rect}")
+				graphics.drawImage(
+					image, position.x.toInt() + 600, position.y.toInt() + 600,
+					(image.width * scaleX).toInt(),
+					(image.height * scaleY).toInt(), null
+				)
+			}
+		} else println("no shapes?")
 	}
 
 	graphics.dispose()
 	ImageIO.write(targetImage, "PNG", File("test-target.png"))
 }
 
-class PartShape(val rect: RECT, val name: String, val shapeID: Int)
+class SingleShape(val rect: RECT, val id: Int)
 
-class PartSprites(val rect: RECT, val shapes: List<PartShape>)
+class PartShape(val name: String, val shapes: List<SingleShape>)
+
+class PartSprites(val shapes: List<PartShape>)
 
 private fun parsePartSprites(partTag: DefineSpriteTag): PartSprites {
-	println("offset is ${partTag.rect}")
 	val shapes = mutableListOf<PartShape>()
-	for (index in 2 until partTag.tags.size() - 2 step 3) {
-		val frameLabel = partTag.tags[index]
-		val placement = partTag.tags[index + 1]
-		val show = partTag.tags[index + 2]
 
-		if (!(frameLabel is FrameLabelTag && placement is PlaceObject2Tag && show is ShowFrameTag)) break
-		val shape = partTag.swf.tags.find { it.uniqueId == placement.characterId.toString() }!!
-		val rect = if (shape is DefineShape2Tag) shape.rect else if (shape is DefineShapeTag) shape.rect
-		else if (shape is DefineShape3Tag) shape.rect else null
-		if (rect != null) {
-			shapes.add(PartShape(rect, frameLabel.labelName, placement.characterId))
-		} else println("unexpected shape $shape")
+	var index = 0
+	var frameLabel: FrameLabelTag? = null
+	val singleShapes = mutableListOf<SingleShape>()
+	while (index < partTag.tags.size()) {
+		if (partTag.tags[index] is FrameLabelTag) frameLabel = partTag.tags[index] as FrameLabelTag?
+		if (partTag.tags[index] is PlaceObject2Tag) {
+			val placement = partTag.tags[index] as PlaceObject2Tag
+			parseShape(partTag.swf, placement.characterId, singleShapes)
+		}
+		if (partTag.tags[index] is ShowFrameTag) {
+			if (singleShapes.isNotEmpty()) {
+				shapes.add(PartShape(frameLabel?.labelName ?: "unknown", singleShapes.toList()))
+				frameLabel = null
+				singleShapes.clear()
+			}
+		}
+		index += 1
 	}
 
-	return PartSprites(partTag.rect, shapes)
+	if (shapes.isEmpty()) println("nothing for $partTag")
+	return PartSprites(shapes)
+}
+
+private fun parseShape(swf: SWF, id: Int, outShapes: MutableList<SingleShape>) {
+	val shape = swf.tags.find { it.uniqueId == id.toString() }!!
+	val rect = if (shape is DefineShape2Tag) shape.rect else if (shape is DefineShapeTag) shape.rect
+	else if (shape is DefineShape3Tag) shape.rect else if (shape is DefineShape4Tag) shape.rect else null
+	if (rect != null) {
+		outShapes.add(SingleShape(rect, id))
+	} else println("unexpected shape $shape") // check out 2281
 }
 
 private fun parseCreature(creatureTag: DefineSpriteTag): BattleCreature {
@@ -108,8 +117,16 @@ private fun parseCreature(creatureTag: DefineSpriteTag): BattleCreature {
 				matrix = placeTag.matrix,
 				sprites = parsePartSprites(partTag)
 			))
-			println("depth is ${placeTag.depth} and matrix is ${placeTag.matrix} and character ID is ${placeTag.characterId}")
-		}
+		} else if (partTag is DefineShapeTag || partTag is DefineShape3Tag) {
+			val singleShapes = mutableListOf<SingleShape>()
+			parseShape(placeTag.swf, parseInt(partTag.uniqueId), singleShapes)
+			parts.add(
+				BodyPart(
+				depth = placeTag.depth,
+				matrix = placeTag.matrix,
+				sprites = PartSprites(listOf(PartShape("ehm", singleShapes)))
+			))
+		} else println("no DefineSpriteTag? ${partTag::class.java} $partTag")
 	}
 
 	return BattleCreature(parts)
