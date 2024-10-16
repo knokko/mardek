@@ -1,11 +1,32 @@
 package mardek.playground
 
+import com.github.knokko.boiler.BoilerInstance
+import com.github.knokko.boiler.buffers.MappedVkbBuffer
+import com.github.knokko.boiler.buffers.VkbBuffer
+import com.github.knokko.boiler.builders.BoilerBuilder
+import com.github.knokko.boiler.builders.WindowBuilder
+import com.github.knokko.boiler.commands.CommandRecorder
+import com.github.knokko.boiler.descriptors.HomogeneousDescriptorPool
+import com.github.knokko.boiler.descriptors.VkbDescriptorSetLayout
+import com.github.knokko.boiler.images.VkbImage
+import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
+import com.github.knokko.boiler.synchronization.ResourceUsage
+import com.github.knokko.boiler.window.AcquiredImage
+import com.github.knokko.boiler.window.SimpleWindowRenderLoop
+import com.github.knokko.boiler.window.VkbWindow
+import com.github.knokko.boiler.window.WindowEventLoop
 import com.jpexs.decompiler.flash.SWF
 import com.jpexs.decompiler.flash.tags.*
 import com.jpexs.decompiler.flash.types.MATRIX
 import com.jpexs.decompiler.flash.types.RECT
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryUtil.memByteBuffer
+import org.lwjgl.system.MemoryUtil.memFloatBuffer
+import org.lwjgl.vulkan.*
+import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
+import org.lwjgl.vulkan.VK12.*
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
@@ -26,62 +47,76 @@ fun main() {
 
 	val monster = parseCreature(monsterTag)
 
-	val targetImage = BufferedImage(1024, 1024, TYPE_INT_ARGB)
-	val graphics = targetImage.createGraphics()
+	val boiler = BoilerBuilder(
+		VK_API_VERSION_1_2, "ImportPlayground", 1
+	)
+		.validation()
+		.enableDynamicRendering()
+		.requiredFeatures12 { it.shaderSampledImageArrayNonUniformIndexing() }
+		.featurePicker12 { _, _, toEnable -> toEnable.shaderSampledImageArrayNonUniformIndexing(true) }
+		.addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+		.build()
 
-	for (part in monster.parts) {
-		//println("shape names are ${part.sprites.shapes.map { it.name }}")
-		val shapes = part.sprites.shapes.firstOrNull()
-		if (shapes != null) {
-			for (shape in shapes.shapes) {
-				val image = ImageIO.read(File("flash/shapes/${shape.id}.png"))
-				var jomlMatrix = Matrix3x2f()
-				val (scaleX, scaleY) = if (part.matrix.hasScale) Pair(part.matrix.scaleX, part.matrix.scaleY) else Pair(
-					1f,
-					1f
-				)
+	val eventLoop = WindowEventLoop()
+	eventLoop.addWindow(CreatureRenderer(boiler.window(), monster))
+	eventLoop.runMain()
 
-				jomlMatrix.translate(
-					(part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f,
-					(part.matrix.translateY + scaleY * shape.rect.Ymin) / 20f
-				)
-				jomlMatrix.scale(scaleX, scaleY)
+	boiler.destroyInitialObjects()
 
-				jomlMatrix = Matrix3x2f(
-					scaleX, 0f, 0f, scaleY,
-					(part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f,
-					(part.matrix.translateY + scaleY * shape.rect.Ymin) / 20f)
-				// TODO Rotate?
-
-				val artificialScale = 4
-
-				val position = jomlMatrix.transformPosition(Vector2f())
-				val endPosition = jomlMatrix.transformPosition(Vector2f(image.width.toFloat(), image.height.toFloat()))
-				graphics.drawImage(
-					image, artificialScale * position.x.toInt() + 600, artificialScale * position.y.toInt() + 600,
-					(endPosition.x - position.x).toInt(),
-					(endPosition.y - position.y).toInt(), null
-				)
-			}
-		} else println("no shapes?")
-	}
-
-	graphics.dispose()
-	ImageIO.write(targetImage, "PNG", File("test-target.png"))
+//	val targetImage = BufferedImage(1024, 1024, TYPE_INT_ARGB)
+//	val graphics = targetImage.createGraphics()
+//
+//	for (part in monster.parts) {
+//		//println("shape names are ${part.sprites.shapes.map { it.name }}")
+//		val variation = part.variations.firstOrNull()
+//		if (variation != null) {
+//			for (shape in variation.entries) {
+//				val image = ImageIO.read(File("flash/shapes/${shape.id}.png"))
+//				var jomlMatrix = Matrix3x2f()
+//				val (scaleX, scaleY) = if (part.matrix.hasScale) Pair(part.matrix.scaleX, part.matrix.scaleY) else Pair(
+//					1f,
+//					1f
+//				)
+//
+//				jomlMatrix.translate(
+//					(part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f,
+//					(part.matrix.translateY + scaleY * shape.rect.Ymin) / 20f
+//				)
+//				jomlMatrix.scale(scaleX, scaleY)
+//
+//				jomlMatrix = Matrix3x2f(
+//					scaleX, 0f, 0f, scaleY,
+//					(part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f,
+//					(part.matrix.translateY + scaleY * shape.rect.Ymin) / 20f)
+//				// TODO Rotate?
+//
+//				val artificialScale = 4
+//
+//				val position = jomlMatrix.transformPosition(Vector2f())
+//				val endPosition = jomlMatrix.transformPosition(Vector2f(image.width.toFloat(), image.height.toFloat()))
+//				graphics.drawImage(
+//					image, artificialScale * position.x.toInt() + 600, artificialScale * position.y.toInt() + 600,
+//					(endPosition.x - position.x).toInt(),
+//					(endPosition.y - position.y).toInt(), null
+//				)
+//			}
+//		} else println("no shapes?")
+//	}
+//
+//	graphics.dispose()
+//	ImageIO.write(targetImage, "PNG", File("test-target.png"))
 }
 
-class SingleShape(val rect: RECT, val id: Int)
+class FlashShapeEntry(val rect: RECT, val id: Int)
 
-class PartShape(val name: String, val shapes: List<SingleShape>)
+class FlashShapeVariation(val name: String, val entries: List<FlashShapeEntry>)
 
-class PartSprites(val shapes: List<PartShape>)
-
-private fun parsePartSprites(partTag: DefineSpriteTag): PartSprites {
-	val shapes = mutableListOf<PartShape>()
+private fun parsePartSprites(partTag: DefineSpriteTag): List<FlashShapeVariation> {
+	val shapes = mutableListOf<FlashShapeVariation>()
 
 	var index = 0
 	var frameLabel: FrameLabelTag? = null
-	val singleShapes = mutableListOf<SingleShape>()
+	val singleShapes = mutableListOf<FlashShapeEntry>()
 	while (index < partTag.tags.size()) {
 		if (partTag.tags[index] is FrameLabelTag) frameLabel = partTag.tags[index] as FrameLabelTag?
 		if (partTag.tags[index] is PlaceObject2Tag) {
@@ -90,7 +125,7 @@ private fun parsePartSprites(partTag: DefineSpriteTag): PartSprites {
 		}
 		if (partTag.tags[index] is ShowFrameTag) {
 			if (singleShapes.isNotEmpty()) {
-				shapes.add(PartShape(frameLabel?.labelName ?: "unknown", singleShapes.toList()))
+				shapes.add(FlashShapeVariation(frameLabel?.labelName ?: "unknown", singleShapes.toList()))
 				frameLabel = null
 				singleShapes.clear()
 			}
@@ -99,15 +134,15 @@ private fun parsePartSprites(partTag: DefineSpriteTag): PartSprites {
 	}
 
 	if (shapes.isEmpty()) println("nothing for $partTag")
-	return PartSprites(shapes)
+	return shapes
 }
 
-private fun parseShape(swf: SWF, id: Int, outShapes: MutableList<SingleShape>) {
+private fun parseShape(swf: SWF, id: Int, outShapes: MutableList<FlashShapeEntry>) {
 	val shape = swf.tags.find { it.uniqueId == id.toString() }!!
 	val rect = if (shape is DefineShape2Tag) shape.rect else if (shape is DefineShapeTag) shape.rect
 	else if (shape is DefineShape3Tag) shape.rect else if (shape is DefineShape4Tag) shape.rect else null
 	if (rect != null) {
-		outShapes.add(SingleShape(rect, id))
+		outShapes.add(FlashShapeEntry(rect, id))
 	} else println("unexpected shape $shape") // check out 2281
 }
 
@@ -131,16 +166,15 @@ private fun parseCreature(creatureTag: DefineSpriteTag): BattleCreature {
 			parts.add(BodyPart(
 				depth = placeTag.depth,
 				matrix = placeTag.matrix,
-				sprites = parsePartSprites(partTag)
+				variations = parsePartSprites(partTag)
 			))
 		} else if (partTag is DefineShapeTag || partTag is DefineShape3Tag) {
-			val singleShapes = mutableListOf<SingleShape>()
+			val singleShapes = mutableListOf<FlashShapeEntry>()
 			parseShape(placeTag.swf, parseInt(partTag.uniqueId), singleShapes)
-			parts.add(
-				BodyPart(
+			parts.add(BodyPart(
 				depth = placeTag.depth,
 				matrix = placeTag.matrix,
-				sprites = PartSprites(listOf(PartShape("ehm", singleShapes)))
+				variations = listOf(FlashShapeVariation("ehm", singleShapes))
 			))
 		} else println("no DefineSpriteTag? ${partTag::class.java} $partTag")
 	}
@@ -148,10 +182,196 @@ private fun parseCreature(creatureTag: DefineSpriteTag): BattleCreature {
 	return BattleCreature(parts)
 }
 
-class BodyPart(val depth: Int, val matrix: MATRIX, val sprites: PartSprites) {
+class BodyPart(val depth: Int, val matrix: MATRIX, val variations: List<FlashShapeVariation>) {
 	// TODO Flags
 }
 
 class BattleCreature(val parts: List<BodyPart>) {
 
+}
+
+class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleWindowRenderLoop(
+	window, 1, true, VK_PRESENT_MODE_MAILBOX_KHR, // TODO Use frames-in-flight for vertex positions
+	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
+) {
+
+	private lateinit var descriptorSetLayout: VkbDescriptorSetLayout
+	private lateinit var descriptorPool: HomogeneousDescriptorPool
+	private lateinit var images: List<VkbImage>
+	private lateinit var shapeEntries: List<FlashShapeEntry>
+	private lateinit var vertexBuffer: MappedVkbBuffer
+
+	private var descriptorSet = 0L
+
+	private var pipelineLayout = 0L
+	private var graphicsPipeline = 0L
+	private var sampler = 0L
+
+	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
+		super.setup(boiler, stack)
+
+		val selectedShapes = mutableListOf<FlashShapeEntry>()
+		val preferredVariation = "punk"
+		for (bodyPart in monster.parts) {
+			if (bodyPart.variations.isEmpty()) continue
+			val variation = bodyPart.variations.find { it.name == preferredVariation } ?: bodyPart.variations[0]
+			selectedShapes.addAll(variation.entries)
+		}
+
+		val bufferedImages = selectedShapes.map { ImageIO.read(File("flash/shapes/${it.id}.png")) }
+		this.shapeEntries = selectedShapes.toList()
+		var numPixels = 0
+		for (image in bufferedImages) numPixels += image.width * image.height
+		this.images = bufferedImages.map { boiler.images.createSimple(
+			it.width, it.height, VK_FORMAT_R8G8B8A8_SRGB,
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
+			VK_IMAGE_ASPECT_COLOR_BIT, "Shape(${it.width},${it.height})"
+		) }
+
+		val stagingBuffer = boiler.buffers.createMapped(4L * numPixels, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "StagingBuffer")
+		val stagingPool = boiler.commands.createPool(0, boiler.queueFamilies().graphics.index, "StagingPool")
+		val stagingCommandBuffer = boiler.commands.createPrimaryBuffers(stagingPool, 1, "StagingCommandBuffers")[0]
+		val recorder = CommandRecorder.begin(stagingCommandBuffer, boiler, stack, "StagingCopy")
+
+		var stagingOffset = 0L
+		for ((index, bufferedImage) in bufferedImages.withIndex()) {
+			val image = this.images[index]
+			boiler.buffers.encodeBufferedImageRGBA(stagingBuffer, bufferedImage, stagingOffset)
+			recorder.transitionLayout(image, null, ResourceUsage.TRANSFER_DEST)
+			recorder.copyBufferToImage(image, stagingBuffer.range(stagingOffset, 4L * image.width * image.height))
+			recorder.transitionLayout(image, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+			)
+
+			stagingOffset += 4L * image.width * image.height
+		}
+
+		recorder.end()
+
+		val fence = boiler.sync.fenceBank.borrowFence(false, "StagingFence")
+		boiler.queueFamilies().graphics.first().submit(stagingCommandBuffer, "StagingCopy", null, fence)
+		fence.awaitSignal()
+		boiler.sync.fenceBank.returnFence(fence)
+
+		stagingBuffer.destroy(boiler)
+		vkDestroyCommandPool(boiler.vkDevice(), stagingPool, null)
+
+		this.vertexBuffer = boiler.buffers.createMapped(
+			6L * 8L * this.images.size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, "VertexPositions"
+		)
+
+		val descriptorBindings = VkDescriptorSetLayoutBinding.calloc(2, stack)
+		boiler.descriptors.binding(descriptorBindings, 0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_FRAGMENT_BIT)
+		descriptorBindings.get(0).descriptorCount(50) // TODO Sync with shader via spec constant?
+		boiler.descriptors.binding(descriptorBindings, 1, VK_DESCRIPTOR_TYPE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+
+		this.descriptorSetLayout = boiler.descriptors.createLayout(stack, descriptorBindings, "CreatureDescriptorSetLayout")
+		this.descriptorPool = descriptorSetLayout.createPool(1, 0, "CreatureDescriptorPool")
+		this.descriptorSet = descriptorPool.allocate(1)[0]
+
+		this.pipelineLayout = boiler.pipelines.createLayout(
+			null, "CreaturePipelineLayout", descriptorSetLayout.vkDescriptorSetLayout
+		)
+
+		val vertexBindings = VkVertexInputBindingDescription.calloc(1, stack)
+		vertexBindings.get(0).set(0, 8, VK_VERTEX_INPUT_RATE_VERTEX)
+
+		val vertexAttributes = VkVertexInputAttributeDescription.calloc(1, stack)
+		vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SFLOAT, 0)
+
+		val vertexInput = VkPipelineVertexInputStateCreateInfo.calloc(stack)
+		vertexInput.`sType$Default`()
+		vertexInput.pVertexBindingDescriptions(vertexBindings)
+		vertexInput.pVertexAttributeDescriptions(vertexAttributes)
+
+		val builder = GraphicsPipelineBuilder(boiler, stack)
+		builder.simpleShaderStages(
+			"CreatureShaders", "mardek/playground/shaders/creature.vert.spv",
+			"mardek/playground/shaders/creature.frag.spv"
+		)
+		builder.ciPipeline.pVertexInputState(vertexInput)
+		builder.simpleInputAssembly()
+		builder.dynamicViewports(1)
+		builder.simpleRasterization(VK_CULL_MODE_NONE)
+		builder.noMultisampling()
+		builder.noDepthStencil()
+		builder.simpleColorBlending(1)
+		builder.dynamicStates(VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR)
+		builder.ciPipeline.layout(pipelineLayout)
+		builder.dynamicRendering(0, VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, window.surfaceFormat)
+		this.graphicsPipeline = builder.build("CreaturePipeline")
+
+		this.sampler = boiler.images.createSimpleSampler(
+			VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST,
+			VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, "CreatureSampler"
+		)
+
+		val writeImages = VkDescriptorImageInfo.calloc(50, stack)
+		for (index in 0 until writeImages.capacity()) {
+			val imageView = if (index < this.images.size) this.images[index].vkImageView else this.images[0].vkImageView
+			writeImages.get(index).set(VK_NULL_HANDLE, imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		}
+		val writeSampler = VkDescriptorImageInfo.calloc(1, stack)
+		writeSampler.get(0).set(sampler, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+		val descriptorWrites = VkWriteDescriptorSet.calloc(2, stack)
+		boiler.descriptors.writeImage(descriptorWrites, descriptorSet, 0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, writeImages)
+		boiler.descriptors.writeImage(descriptorWrites, descriptorSet, 1, VK_DESCRIPTOR_TYPE_SAMPLER, writeSampler)
+		vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null)
+	}
+
+	override fun recordFrame(
+		stack: MemoryStack,
+		frameIndex: Int,
+		recorder: CommandRecorder,
+		acquiredImage: AcquiredImage,
+		boiler: BoilerInstance
+	) {
+		var offsetX = -0.9f
+		val offsetY = -0.3f
+		val sizeX = 0.1f
+		val endY = -0.1f
+		val hostVertexPositions = memByteBuffer(vertexBuffer.hostAddress, vertexBuffer.size.toInt())
+		for ((index, image) in images.withIndex()) {
+			val rect = shapeEntries[index].rect
+
+			hostVertexPositions.putFloat(offsetX).putFloat(offsetY)
+			hostVertexPositions.putFloat(offsetX + sizeX).putFloat(offsetY)
+			hostVertexPositions.putFloat(offsetX + sizeX).putFloat(endY)
+			hostVertexPositions.putFloat(offsetX + sizeX).putFloat(endY)
+			hostVertexPositions.putFloat(offsetX).putFloat(endY)
+			hostVertexPositions.putFloat(offsetX).putFloat(offsetY)
+			// TODO Render at the right positions
+			offsetX += sizeX
+		}
+
+		val colorAttachments = VkRenderingAttachmentInfo.calloc(1, stack)
+		recorder.simpleColorRenderingAttachment(
+			colorAttachments.get(0), acquiredImage.image().vkImageView, VK_ATTACHMENT_LOAD_OP_CLEAR,
+			VK_ATTACHMENT_STORE_OP_STORE, 0.1f, 0.3f, 0.9f, 1f
+		)
+		recorder.beginSimpleDynamicRendering(
+			acquiredImage.width(), acquiredImage.height(),
+			colorAttachments, null, null
+		)
+		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline)
+		recorder.dynamicViewportAndScissor(acquiredImage.width(), acquiredImage.height())
+		recorder.bindGraphicsDescriptors(pipelineLayout, descriptorSet)
+		vkCmdBindVertexBuffers(recorder.commandBuffer, 0, stack.longs(vertexBuffer.vkBuffer()), stack.longs(0))
+		vkCmdDraw(recorder.commandBuffer, 6 * this.images.size, 1, 0, 0)
+		recorder.endDynamicRendering()
+	}
+
+	override fun cleanUp(boiler: BoilerInstance) {
+		super.cleanUp(boiler)
+
+		vkDestroyPipeline(boiler.vkDevice(), graphicsPipeline, null)
+		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)
+		vkDestroySampler(boiler.vkDevice(), sampler, null)
+
+		vertexBuffer.destroy(boiler)
+		descriptorPool.destroy()
+		descriptorSetLayout.destroy()
+
+		for (image in images) image.destroy(boiler)
+	}
 }
