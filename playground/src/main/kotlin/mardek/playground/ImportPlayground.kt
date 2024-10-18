@@ -2,7 +2,6 @@ package mardek.playground
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.MappedVkbBuffer
-import com.github.knokko.boiler.buffers.VkbBuffer
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.WindowBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
@@ -23,12 +22,9 @@ import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil.memByteBuffer
-import org.lwjgl.system.MemoryUtil.memFloatBuffer
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
 import org.lwjgl.vulkan.VK12.*
-import java.awt.image.BufferedImage
-import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 import java.lang.Integer.parseInt
 import java.nio.file.Files
@@ -62,49 +58,6 @@ fun main() {
 	eventLoop.runMain()
 
 	boiler.destroyInitialObjects()
-
-//	val targetImage = BufferedImage(1024, 1024, TYPE_INT_ARGB)
-//	val graphics = targetImage.createGraphics()
-//
-//	for (part in monster.parts) {
-//		//println("shape names are ${part.sprites.shapes.map { it.name }}")
-//		val variation = part.variations.firstOrNull()
-//		if (variation != null) {
-//			for (shape in variation.entries) {
-//				val image = ImageIO.read(File("flash/shapes/${shape.id}.png"))
-//				var jomlMatrix = Matrix3x2f()
-//				val (scaleX, scaleY) = if (part.matrix.hasScale) Pair(part.matrix.scaleX, part.matrix.scaleY) else Pair(
-//					1f,
-//					1f
-//				)
-//
-//				jomlMatrix.translate(
-//					(part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f,
-//					(part.matrix.translateY + scaleY * shape.rect.Ymin) / 20f
-//				)
-//				jomlMatrix.scale(scaleX, scaleY)
-//
-//				jomlMatrix = Matrix3x2f(
-//					scaleX, 0f, 0f, scaleY,
-//					(part.matrix.translateX + scaleX * shape.rect.Xmin) / 20f,
-//					(part.matrix.translateY + scaleY * shape.rect.Ymin) / 20f)
-//				// TODO Rotate?
-//
-//				val artificialScale = 4
-//
-//				val position = jomlMatrix.transformPosition(Vector2f())
-//				val endPosition = jomlMatrix.transformPosition(Vector2f(image.width.toFloat(), image.height.toFloat()))
-//				graphics.drawImage(
-//					image, artificialScale * position.x.toInt() + 600, artificialScale * position.y.toInt() + 600,
-//					(endPosition.x - position.x).toInt(),
-//					(endPosition.y - position.y).toInt(), null
-//				)
-//			}
-//		} else println("no shapes?")
-//	}
-//
-//	graphics.dispose()
-//	ImageIO.write(targetImage, "PNG", File("test-target.png"))
 }
 
 class FlashShapeEntry(val rect: RECT, val id: Int)
@@ -160,7 +113,6 @@ private fun parseCreature(creatureTag: DefineSpriteTag): BattleCreature {
 		if (child is SoundStreamHead2Tag || child is RemoveObject2Tag || child is FrameLabelTag) continue
 
 		val placeTag = child as PlaceObject2Tag
-		println("looking for chid ${placeTag.characterId}")
 		val partTag = creatureTag.swf.tags.find { it.uniqueId == placeTag.characterId.toString() }!!
 		if (partTag is DefineSpriteTag) {
 			parts.add(BodyPart(
@@ -198,7 +150,7 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleW
 	private lateinit var descriptorSetLayout: VkbDescriptorSetLayout
 	private lateinit var descriptorPool: HomogeneousDescriptorPool
 	private lateinit var images: List<VkbImage>
-	private lateinit var shapeEntries: List<FlashShapeEntry>
+	private lateinit var shapeEntries: List<Pair<BodyPart, FlashShapeEntry>>
 	private lateinit var vertexBuffer: MappedVkbBuffer
 
 	private var descriptorSet = 0L
@@ -210,15 +162,15 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleW
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
 
-		val selectedShapes = mutableListOf<FlashShapeEntry>()
+		val selectedShapes = mutableListOf<Pair<BodyPart, FlashShapeEntry>>()
 		val preferredVariation = "punk"
 		for (bodyPart in monster.parts) {
 			if (bodyPart.variations.isEmpty()) continue
 			val variation = bodyPart.variations.find { it.name == preferredVariation } ?: bodyPart.variations[0]
-			selectedShapes.addAll(variation.entries)
+			for (entry in variation.entries) selectedShapes.add(Pair(bodyPart, entry))
 		}
 
-		val bufferedImages = selectedShapes.map { ImageIO.read(File("flash/shapes/${it.id}.png")) }
+		val bufferedImages = selectedShapes.map { ImageIO.read(File("flash/big shapes/${it.second.id}.png")) }
 		this.shapeEntries = selectedShapes.toList()
 		var numPixels = 0
 		for (image in bufferedImages) numPixels += image.width * image.height
@@ -326,22 +278,32 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleW
 		acquiredImage: AcquiredImage,
 		boiler: BoilerInstance
 	) {
-		var offsetX = -0.9f
-		val offsetY = -0.3f
-		val sizeX = 0.1f
-		val endY = -0.1f
 		val hostVertexPositions = memByteBuffer(vertexBuffer.hostAddress, vertexBuffer.size.toInt())
 		for ((index, image) in images.withIndex()) {
-			val rect = shapeEntries[index].rect
+			val (part, entry) = shapeEntries[index]
+			val (scaleX, scaleY) = if (part.matrix.hasScale) Pair(part.matrix.scaleX, part.matrix.scaleY) else Pair(
+				1f,
+				1f
+			)
+			val jomlMatrix = Matrix3x2f(
+				scaleX, 0f, 0f, scaleY,
+				(part.matrix.translateX + scaleX * entry.rect.Xmin) / 20f,
+				(part.matrix.translateY + scaleY * entry.rect.Ymin) / 20f)
+			// TODO Rotate?
 
-			hostVertexPositions.putFloat(offsetX).putFloat(offsetY)
-			hostVertexPositions.putFloat(offsetX + sizeX).putFloat(offsetY)
-			hostVertexPositions.putFloat(offsetX + sizeX).putFloat(endY)
-			hostVertexPositions.putFloat(offsetX + sizeX).putFloat(endY)
-			hostVertexPositions.putFloat(offsetX).putFloat(endY)
-			hostVertexPositions.putFloat(offsetX).putFloat(offsetY)
-			// TODO Render at the right positions
-			offsetX += sizeX
+			val artificialScale = 4
+
+			for (corner in arrayOf(Pair(0f, 0f), Pair(1f, 0f), Pair(1f, 1f), Pair(1f, 1f), Pair(0f, 1f), Pair(0f, 0f))) {
+				val position = jomlMatrix.transformPosition(Vector2f(
+					corner.first * image.width.toFloat() / artificialScale,
+					corner.second * image.height.toFloat() / artificialScale
+				))
+				hostVertexPositions.putFloat(
+					position.x * 0.01f * acquiredImage.height() / acquiredImage.width()
+				).putFloat(
+					position.y * 0.01f
+				)
+			}
 		}
 
 		val colorAttachments = VkRenderingAttachmentInfo.calloc(1, stack)
