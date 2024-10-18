@@ -16,6 +16,7 @@ import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.boiler.window.WindowEventLoop
 import com.jpexs.decompiler.flash.SWF
 import com.jpexs.decompiler.flash.tags.*
+import com.jpexs.decompiler.flash.types.ColorTransform
 import com.jpexs.decompiler.flash.types.MATRIX
 import com.jpexs.decompiler.flash.types.RECT
 import org.joml.Matrix3x2f
@@ -25,10 +26,14 @@ import org.lwjgl.system.MemoryUtil.memByteBuffer
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
 import org.lwjgl.vulkan.VK12.*
+import java.awt.Color
 import java.io.File
 import java.lang.Integer.parseInt
 import java.nio.file.Files
 import javax.imageio.ImageIO
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 fun main() {
 	// The next line will work after you copy MARDEK.swf from your steamgames to the flash directory of this repository
@@ -41,7 +46,7 @@ fun main() {
 	val monsterTag = swf.tags.find { it.uniqueId == "3173" }!! as DefineSpriteTag
 	println("frame count is ${monsterTag.frameCount}")
 
-	val monster = parseCreature(monsterTag)
+	val monster = parseCreature2(monsterTag)
 
 	val boiler = BoilerBuilder(
 		VK_API_VERSION_1_2, "ImportPlayground", 1
@@ -99,50 +104,116 @@ private fun parseShape(swf: SWF, id: Int, outShapes: MutableList<FlashShapeEntry
 	} else println("unexpected shape $shape") // check out 2281
 }
 
-private fun parseCreature(creatureTag: DefineSpriteTag): BattleCreature {
-	val parts = mutableListOf<BodyPart>()
-	var showFrameCounter = 0
-	for (child in creatureTag.tags) {
-		// TODO Try with rotations
-		if (child is ShowFrameTag) {
-			showFrameCounter += 1
-			//if (showFrameCounter < 10) continue
-			if (showFrameCounter > 1) break
-			continue
-		}
-		if (child is SoundStreamHead2Tag || child is RemoveObject2Tag || child is FrameLabelTag) continue
+private fun parseVariations(tag: Tag): List<FlashShapeVariation> {
+	return if (tag is DefineSpriteTag) {
+		parsePartSprites(tag)
+	} else if (tag is DefineShapeTag || tag is DefineShape3Tag) {
+		val singleShapes = mutableListOf<FlashShapeEntry>()
+		parseShape(tag.swf, parseInt(tag.uniqueId), singleShapes)
+		listOf(FlashShapeVariation("ehm", singleShapes))
+	} else {
+		println("no DefineSpriteTag? ${tag::class.java} $tag")
+		emptyList()
+	}
+}
 
-		val placeTag = child as PlaceObject2Tag
-		val partTag = creatureTag.swf.tags.find { it.uniqueId == placeTag.characterId.toString() }!!
-		if (partTag is DefineSpriteTag) {
-			parts.add(BodyPart(
-				depth = placeTag.depth,
-				matrix = placeTag.matrix,
-				variations = parsePartSprites(partTag)
-			))
-		} else if (partTag is DefineShapeTag || partTag is DefineShape3Tag) {
-			val singleShapes = mutableListOf<FlashShapeEntry>()
-			parseShape(placeTag.swf, parseInt(partTag.uniqueId), singleShapes)
-			parts.add(BodyPart(
-				depth = placeTag.depth,
-				matrix = placeTag.matrix,
-				variations = listOf(FlashShapeVariation("ehm", singleShapes))
-			))
-		} else println("no DefineSpriteTag? ${partTag::class.java} $partTag")
+private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
+	var minDepth = 1000
+	var maxDepth = 0
+	val bodyParts = mutableSetOf<BodyPart2>()
+	for (child in creatureTag.tags) {
+		if (child is PlaceObject2Tag) {
+			minDepth = min(minDepth, child.depth)
+			maxDepth = max(maxDepth, child.depth)
+			if (child.characterId != 0) bodyParts.add(BodyPart2(child.characterId, parseVariations(
+				creatureTag.swf.tags.find { it.uniqueId == child.characterId.toString() }!!
+			)))
+		}
 	}
 
-	return BattleCreature(parts)
+	val creature = BattleCreature2(bodyParts, minDepth, maxDepth)
+
+	val animationState = AnimationState(creature)
+	for (child in creatureTag.tags) {
+		if (child is FrameLabelTag) break
+		animationState.update(child)
+	}
+
+	creature.baseState = animationState.copy()
+
+	var currentLabel: String? = null
+	val currentFrames = mutableListOf<AnimationState>()
+	var hasChangedAnimation = false
+	for (child in creatureTag.tags) {
+		if (child is FrameLabelTag) {
+			if (currentLabel != null) creature.animations[currentLabel] = currentFrames.toList()
+			currentFrames.clear()
+			currentLabel = child.labelName
+		}
+
+		if (child is ShowFrameTag && hasChangedAnimation) {
+			hasChangedAnimation = false
+			currentFrames.add(animationState.copy())
+		}
+
+		if (currentLabel != null) {
+			hasChangedAnimation = animationState.update(child) || hasChangedAnimation
+		}
+	}
+
+	return creature
 }
 
-class BodyPart(val depth: Int, val matrix: MATRIX, val variations: List<FlashShapeVariation>) {
-	// TODO Flags
+class BodyPart2(val id: Int, val variations: List<FlashShapeVariation>)
+
+class BattleCreature2(val bodyParts: Set<BodyPart2>, val minDepth: Int, val maxDepth: Int) {
+	lateinit var baseState: AnimationState
+
+	val animations = mutableMapOf<String, List<AnimationState>>()
 }
 
-class BattleCreature(val parts: List<BodyPart>) {
+class AnimationPartState {
+	lateinit var part: BodyPart2
+	var matrix: MATRIX? = null
+	var color: ColorTransform? = null
 
+	override fun toString() = "AnimationPS($matrix)"
+}
+class AnimationState(private val creature: BattleCreature2) {
+	val parts = Array(1 + creature.maxDepth - creature.minDepth) { AnimationPartState() }
+
+	fun update(tag: Tag): Boolean {
+		if (tag is PlaceObject2Tag) {
+			val part = parts[tag.depth - creature.minDepth]
+			if (tag.characterId != 0) part.part = creature.bodyParts.find { it.id == tag.characterId }!!
+			part.matrix = tag.matrix
+			if (tag.placeFlagHasColorTransform) part.color = tag.colorTransform
+			return true
+		} else if (tag is RemoveObject2Tag) {
+			parts[tag.depth - creature.minDepth].matrix = null
+			parts[tag.depth - creature.minDepth].color = null
+			return true
+		}
+
+		return false
+	}
+
+	fun copy(): AnimationState {
+		val copied = AnimationState(creature)
+		for ((index, part) in parts.withIndex()) {
+			if (part.matrix != null) {
+				copied.parts[index].part = part.part
+				copied.parts[index].matrix = part.matrix // TODO Convert to JOML matrix?
+				copied.parts[index].color = part.color
+			}
+		}
+		return copied
+	}
+
+	override fun toString() = parts.contentToString()
 }
 
-class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleWindowRenderLoop(
+class CreatureRenderer(window: VkbWindow, val monster: BattleCreature2) : SimpleWindowRenderLoop(
 	window, 1, true, VK_PRESENT_MODE_MAILBOX_KHR, // TODO Use frames-in-flight for vertex positions
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
@@ -150,8 +221,9 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleW
 	private lateinit var descriptorSetLayout: VkbDescriptorSetLayout
 	private lateinit var descriptorPool: HomogeneousDescriptorPool
 	private lateinit var images: List<VkbImage>
-	private lateinit var shapeEntries: List<Pair<BodyPart, FlashShapeEntry>>
+	private lateinit var shapeEntries: List<Pair<BodyPart2, FlashShapeEntry>>
 	private lateinit var vertexBuffer: MappedVkbBuffer
+	private lateinit var colorBuffer: MappedVkbBuffer
 
 	private var descriptorSet = 0L
 
@@ -159,16 +231,24 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleW
 	private var graphicsPipeline = 0L
 	private var sampler = 0L
 
+	private val testAnimationState = monster.animations["idle"]!![0]
+	//private val testAnimationState = monster.baseState
+	private val preferredVariation = "punk"
+
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
 
-		val selectedShapes = mutableListOf<Pair<BodyPart, FlashShapeEntry>>()
-		val preferredVariation = "punk"
-		for (bodyPart in monster.parts) {
-			if (bodyPart.variations.isEmpty()) continue
-			val variation = bodyPart.variations.find { it.name == preferredVariation } ?: bodyPart.variations[0]
-			for (entry in variation.entries) selectedShapes.add(Pair(bodyPart, entry))
+		val selectedShapes = mutableListOf<Pair<BodyPart2, FlashShapeEntry>>()
+		for (bodyPart in testAnimationState.parts) {
+			if (bodyPart.matrix == null) continue
+			val variation = bodyPart.part.variations.find { it.name == preferredVariation } ?: bodyPart.part.variations[0]
+			for (entry in variation.entries) selectedShapes.add(Pair(bodyPart.part, entry))
 		}
+//		for (bodyPart in monster.bodyParts) {
+//			if (bodyPart.variations.isEmpty()) continue
+//			val variation = bodyPart.variations.find { it.name == preferredVariation } ?: bodyPart.variations[0]
+//			for (entry in variation.entries) selectedShapes.add(Pair(bodyPart, entry))
+//		}
 
 		val bufferedImages = selectedShapes.map { ImageIO.read(File("flash/big shapes/${it.second.id}.png")) }
 		this.shapeEntries = selectedShapes.toList()
@@ -211,11 +291,15 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleW
 		this.vertexBuffer = boiler.buffers.createMapped(
 			6L * 8L * this.images.size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, "VertexPositions"
 		)
+		this.colorBuffer = boiler.buffers.createMapped(
+			50L * 4 * 2, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "VertexColors"
+		)
 
-		val descriptorBindings = VkDescriptorSetLayoutBinding.calloc(2, stack)
+		val descriptorBindings = VkDescriptorSetLayoutBinding.calloc(3, stack)
 		boiler.descriptors.binding(descriptorBindings, 0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_FRAGMENT_BIT)
 		descriptorBindings.get(0).descriptorCount(50) // TODO Sync with shader via spec constant?
 		boiler.descriptors.binding(descriptorBindings, 1, VK_DESCRIPTOR_TYPE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+		boiler.descriptors.binding(descriptorBindings, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
 
 		this.descriptorSetLayout = boiler.descriptors.createLayout(stack, descriptorBindings, "CreatureDescriptorSetLayout")
 		this.descriptorPool = descriptorSetLayout.createPool(1, 0, "CreatureDescriptorPool")
@@ -265,9 +349,10 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleW
 		}
 		val writeSampler = VkDescriptorImageInfo.calloc(1, stack)
 		writeSampler.get(0).set(sampler, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		val descriptorWrites = VkWriteDescriptorSet.calloc(2, stack)
+		val descriptorWrites = VkWriteDescriptorSet.calloc(3, stack)
 		boiler.descriptors.writeImage(descriptorWrites, descriptorSet, 0, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, writeImages)
 		boiler.descriptors.writeImage(descriptorWrites, descriptorSet, 1, VK_DESCRIPTOR_TYPE_SAMPLER, writeSampler)
+		boiler.descriptors.writeBuffer(stack, descriptorWrites, descriptorSet, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, colorBuffer.fullRange())
 		vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null)
 	}
 
@@ -279,30 +364,52 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleW
 		boiler: BoilerInstance
 	) {
 		val hostVertexPositions = memByteBuffer(vertexBuffer.hostAddress, vertexBuffer.size.toInt())
-		for ((index, image) in images.withIndex()) {
-			val (part, entry) = shapeEntries[index]
-			val (scaleX, scaleY) = if (part.matrix.hasScale) Pair(part.matrix.scaleX, part.matrix.scaleY) else Pair(
+		val hostVertexColors = memByteBuffer(colorBuffer.hostAddress, colorBuffer.size.toInt())
+		var imageIndex = 0
+		for ((rawDepth, partState) in testAnimationState.parts.withIndex()) {
+			val matrix = partState.matrix ?: continue
+			val (scaleX, scaleY) = if (matrix.hasScale) Pair(matrix.scaleX, matrix.scaleY) else Pair(
 				1f,
 				1f
 			)
-			val jomlMatrix = Matrix3x2f(
-				scaleX, 0f, 0f, scaleY,
-				(part.matrix.translateX + scaleX * entry.rect.Xmin) / 20f,
-				(part.matrix.translateY + scaleY * entry.rect.Ymin) / 20f)
-			// TODO Rotate?
 
-			val artificialScale = 4
+			val variation = partState.part.variations.find { it.name == preferredVariation } ?: partState.part.variations.first()
+			for (entry in variation.entries) {
+				val jomlMatrix = Matrix3x2f(
+					scaleX, matrix.rotateSkew0, matrix.rotateSkew1, scaleY,
+					(matrix.translateX + 0 * scaleX * entry.rect.Xmin) / 20f,
+					(matrix.translateY + 0 * scaleY * entry.rect.Ymin) / 20f
+				).translate(entry.rect.Xmin / 20f, entry.rect.Ymin / 20f)
 
-			for (corner in arrayOf(Pair(0f, 0f), Pair(1f, 0f), Pair(1f, 1f), Pair(1f, 1f), Pair(0f, 1f), Pair(0f, 0f))) {
-				val position = jomlMatrix.transformPosition(Vector2f(
-					corner.first * image.width.toFloat() / artificialScale,
-					corner.second * image.height.toFloat() / artificialScale
-				))
-				hostVertexPositions.putFloat(
-					position.x * 0.01f * acquiredImage.height() / acquiredImage.width()
-				).putFloat(
-					position.y * 0.01f
-				)
+				val artificialScale = 4
+				val color = partState.color
+				if (color != null) {
+					fun transform(value: Int) = (255.0 * (value / 256.0)).roundToInt()
+					fun transform(values: IntArray): Int {
+						val red = transform(values[0])
+						val green = transform(values[1]) shl 8
+						val blue = transform(values[2]) shl 16
+						val alpha = transform(values[3]) shl 24
+						return red or green or blue or alpha
+					}
+
+					hostVertexColors.putInt(transform(intArrayOf(color.redMulti, color.greenMulti, color.blueMulti, color.alphaMulti)))
+					hostVertexColors.putInt(transform(intArrayOf(color.redAdd, color.greenAdd, color.blueAdd, color.alphaAdd)))
+				} else hostVertexColors.putInt(-1).putInt(0)
+
+				for (corner in arrayOf(Pair(0f, 0f), Pair(1f, 0f), Pair(1f, 1f), Pair(1f, 1f), Pair(0f, 1f), Pair(0f, 0f))) {
+					val image = this.images[imageIndex]
+					val position = jomlMatrix.transformPosition(Vector2f(
+						corner.first * image.width.toFloat() / artificialScale,
+						corner.second * image.height.toFloat() / artificialScale
+					))
+					hostVertexPositions.putFloat(
+						position.x * 0.01f * acquiredImage.height() / acquiredImage.width()
+					).putFloat(
+						position.y * 0.01f
+					)
+				}
+				imageIndex += 1 // TODO properly map this
 			}
 		}
 
@@ -331,6 +438,7 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature) : SimpleW
 		vkDestroySampler(boiler.vkDevice(), sampler, null)
 
 		vertexBuffer.destroy(boiler)
+		colorBuffer.destroy(boiler)
 		descriptorPool.destroy()
 		descriptorSetLayout.destroy()
 
