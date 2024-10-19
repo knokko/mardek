@@ -1,4 +1,4 @@
 package mardek.assets.area
 
-class Tile(val canMoveTo: Boolean, val sprites: List<TileSprite>) {
+class Tile(val canMoveTo: Boolean, val animations: List<TileAnimationFrame>) {
 }

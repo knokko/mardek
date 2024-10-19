@@ -2,7 +2,7 @@ package mardek.importer.area
 
 import mardek.assets.area.Area
 import mardek.assets.area.Tile
-import mardek.assets.area.TileSprite
+import mardek.assets.area.TileAnimationFrame
 import java.awt.Color
 import java.lang.Integer.parseInt
 import java.util.Scanner
@@ -69,13 +69,15 @@ fun importArea(areaName: String): Area {
 
 	var nextTileIndex = 0
 	for (tileSlice in idMapping.values) {
-		/// TODO Handle high tiles
-		val sprite = tilesheet.getSubimage(tileSize * tileSlice.x, tileSize * tileSlice.y, tileSize, tileSize)
+		val images = (0 until tileSlice.height).map { layer ->
+				tilesheet.getSubimage(tileSize * tileSlice.x, tileSize * (layer + tileSlice.y), tileSize, tileSize)
+		}
 
 		val canMoveTo = tileSlice.encoding == GREEN_ENCODING || tileSlice.encoding == DARK_GREEN_ENCODING
 				|| tileSlice.encoding == CYAN_ENCODING
 
-		val tile = Tile(canMoveTo, sprites = listOf(TileSprite(sprite, 1)))
+		// TODO Animation support
+		val tile = Tile(canMoveTo, animations = listOf(TileAnimationFrame(images)))
 		tileSlice.index = nextTileIndex
 		tileList.add(tile)
 		nextTileIndex += 1

@@ -8,7 +8,7 @@ import com.github.knokko.boiler.descriptors.VkbDescriptorSetLayout
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import com.github.knokko.boiler.pipelines.ShaderInfo
-import mardek.assets.area.TileSprite
+import mardek.assets.area.TileAnimationFrame
 import mardek.renderer.StateRenderer
 import mardek.state.area.AreaState
 import org.lwjgl.system.MemoryStack
@@ -34,11 +34,13 @@ class AreaRenderer(
 	private val descriptorPool: HomogeneousDescriptorPool
 	private val mapBuffer: MappedVkbBuffer
 
-	private val spriteIndices = mutableMapOf<TileSprite, Int>()
+	private val maxTileHeight = state.area.tileList.maxOf { tile -> tile.animations.maxOf { it.sprites.size } }
+	private val spriteIndices = mutableMapOf<TileAnimationFrame, Int>()
 
 	init {
+		println("max tile height is $maxTileHeight")
 		this.mapBuffer = boiler.buffers.createMapped(
-			4L * state.area.width * state.area.height,
+			maxTileHeight * 4L * state.area.width * state.area.height,
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 			"MapBuffer${state.area.name}"
 		)
@@ -66,7 +68,7 @@ class AreaRenderer(
 		this.descriptorSet = descriptorPool.allocate(1)[0]
 
 		val pushConstants = VkPushConstantRange.calloc(1, stack)
-		pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 0, 16)
+		pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 0, 20)
 
 		this.pipelineLayout = boiler.pipelines.createLayout(
 			pushConstants, "TilesPipelineLayout", descriptorSetLayout.vkDescriptorSetLayout
@@ -74,13 +76,15 @@ class AreaRenderer(
 
 		val builder = GraphicsPipelineBuilder(boiler, stack)
 
-		val specializationEntries = VkSpecializationMapEntry.calloc(2, stack)
+		val specializationEntries = VkSpecializationMapEntry.calloc(3, stack)
 		specializationEntries.get(0).set(0, 0, 4)
 		specializationEntries.get(1).set(1, 4, 4)
+		specializationEntries.get(2).set(2, 8, 4)
 
-		val specializationData = stack.calloc(8)
+		val specializationData = stack.calloc(12)
 		specializationData.putInt(0, state.area.width)
 		specializationData.putInt(4, state.area.height)
+		specializationData.putInt(8, maxTileHeight)
 
 		val specialization = VkSpecializationInfo.calloc(stack)
 		specialization.pMapEntries(specializationEntries)
@@ -109,7 +113,7 @@ class AreaRenderer(
 		vkDestroyShaderModule(boiler.vkDevice(), vertexModule, null)
 		vkDestroyShaderModule(boiler.vkDevice(), fragmentModule, null)
 
-		val numTileSprites = state.area.tileList.sumOf { it.sprites.size }
+		val numTileSprites = state.area.tileList.sumOf { tile -> tile.animations.sumOf { it.sprites.size }}
 		this.tileImages = boiler.images.create(
 			16, 16, VK_FORMAT_R8G8B8A8_SRGB,
 			VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -125,19 +129,29 @@ class AreaRenderer(
 
 		var imageIndex = 0
 		for (tile in state.area.tileList) {
-			for (sprite in tile.sprites) {
-				boiler.buffers.encodeBufferedImageRGBA(stagingBuffer, sprite.image, 4L * 16 * 16 * imageIndex)
-				spriteIndices[sprite] = imageIndex
-				imageIndex += 1
+			for (frame in tile.animations) {
+				spriteIndices[frame] = imageIndex
+				for (image in frame.sprites) {
+					boiler.buffers.encodeBufferedImageRGBA(stagingBuffer, image, 4L * 16 * 16 * imageIndex)
+					imageIndex += 1
+				}
 			}
 		}
 
-		val mapIntBuffer = memIntBuffer(mapBuffer.hostAddress, state.area.width * state.area.height)
+		val mapIntBuffer = memIntBuffer(mapBuffer.hostAddress, state.area.width * state.area.height * maxTileHeight)
+		for (index in 0 until mapIntBuffer.capacity()) mapIntBuffer.put(index, -1)
 		for (y in 0 until state.area.height) {
 			for (x in 0 until state.area.width) {
 				val tile = state.area.getTileAt(x, y)
+				val animation = tile.animations[0]
 				// TODO Track tiles that require animation
-				mapIntBuffer.put(x + y * state.area.width, spriteIndices[tile.sprites[0]]!!)
+				for (layer in 0 until animation.sprites.size) {
+					val rightY = y - layer
+					mapIntBuffer.put(
+						x + rightY * state.area.width + layer * state.area.width * state.area.height,
+						spriteIndices[animation]!! + animation.sprites.size - layer - 1
+					)
+				}
 			}
 		}
 
@@ -211,13 +225,15 @@ class AreaRenderer(
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage) {
 		// TODO Animate mapBuffer
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline)
-		recorder.bindGraphicsDescriptors(pipelineLayout, descriptorSet)
-		vkCmdPushConstants(
-			recorder.commandBuffer, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT,
-			0, recorder.stack.ints(targetImage.width, targetImage.height, 0, 0)
-		)
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
-		vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
+		recorder.bindGraphicsDescriptors(pipelineLayout, descriptorSet)
+		for (layer in 0 until maxTileHeight) {
+			vkCmdPushConstants(
+				recorder.commandBuffer, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT,
+				0, recorder.stack.ints(targetImage.width, targetImage.height, layer * state.area.width * state.area.height, 0, 0)
+			)
+			vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
+		}
 	}
 
 	override fun destroy() {

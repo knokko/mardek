@@ -2,16 +2,18 @@
 
 layout(constant_id = 0) const int MAP_WIDTH = 10;
 layout(constant_id = 1) const int MAP_HEIGHT = 10;
+layout(constant_id = 2) const int MAP_LAYERS = 1;
 
 layout(set = 0, binding = 0) uniform texture2DArray tileImages;
 layout(set = 0, binding = 1) uniform sampler tileSampler;
 layout(set = 0, binding = 2) readonly buffer MapBuffer {
-	int mapBuffer[MAP_WIDTH * MAP_HEIGHT];
+	int mapBuffer[MAP_WIDTH * MAP_HEIGHT * MAP_LAYERS];
 };
 
 layout(push_constant) uniform PushConstants {
 	int screenWidth;
 	int screenHeight;
+	int mapBufferOffset;
 	int offsetX;
 	int offsetY;
 };
@@ -31,6 +33,7 @@ void main() {
 
 	float u = (0.5 + tilePixelX) / 16.0;
 	float v = (0.5 + tilePixelY) / 16.0;
-	int layer = mapBuffer[tileX + MAP_WIDTH * tileY];
+	int layer = mapBuffer[mapBufferOffset + tileX + MAP_WIDTH * tileY];
+	if (layer == -1) discard;
 	outColor = texture(sampler2DArray(tileImages, tileSampler), vec3(u, v, layer));
 }
