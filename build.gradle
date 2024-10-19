@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
@@ -36,9 +35,23 @@ allprojects {
 	}
 
 	dependencies {
+		implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
 		testImplementation platform("org.junit:junit-bom:5.10.3")
 		testImplementation "org.junit.jupiter:junit-jupiter:5.10.3"
 		testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+	}
+
+	project.ext.vulkanImplementationDependencies = [
+			"com.github.knokko:vk-boiler:$boilerVersion",
+			"org.joml:joml:$jomlVersion",
+			"org.lwjgl:lwjgl",
+			"org.lwjgl:lwjgl-vma",
+			"org.lwjgl:lwjgl-vulkan",
+	]
+	project.ext.vulkanRuntimeDependencies = project.ext.lwjglNatives.collectMany {
+		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-vma::$it"]
+		if (it.startsWith("natives-macos")) result.add("org.lwjgl:lwjgl-vulkan::$it")
+		result
 	}
 
 	test {
@@ -46,30 +59,47 @@ allprojects {
 	}
 }
 
+project(":importer") {
+	dependencies {
+		implementation files("../flash/ffdec_lib.jar")
+		implementation project(":assets")
+	}
+}
 
 project(":playground") {
 	apply plugin: "com.github.johnrengelman.shadow"
 	dependencies {
-		implementation "com.github.knokko:vk-boiler:$boilerVersion"
 		implementation files("../flash/ffdec_lib.jar")
-
-		implementation "org.joml:joml:${jomlVersion}"
-		implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
-		implementation "org.lwjgl:lwjgl"
-		implementation "org.lwjgl:lwjgl-vma"
-		implementation "org.lwjgl:lwjgl-vulkan"
 		implementation "org.lwjgl:lwjgl-glfw"
+		implementation project(":assets")
+		implementation project(":importer")
+		implementation project(":renderer")
+		implementation project(":state")
 
-		for (natives in project.ext.lwjglNatives) {
-			runtimeOnly "org.lwjgl:lwjgl::$natives"
-			runtimeOnly "org.lwjgl:lwjgl-glfw::$natives"
-			runtimeOnly "org.lwjgl:lwjgl-vma::$natives"
-			if (natives.startsWith("natives-macos")) runtimeOnly "org.lwjgl:lwjgl-vulkan::$natives"
-		}
+		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+		for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
+
+		for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-glfw::$natives"
 	}
 	shadowJar {
 		manifest {
 			attributes ("Main-Class": "mardek.playground.TilesPlaygroundKt")
 		}
+	}
+}
+
+project(":renderer") {
+	dependencies {
+		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+		for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
+		implementation project(":assets")
+		implementation project(":state")
+	}
+}
+
+project(":state") {
+	dependencies {
+		implementation project(":assets")
+		implementation project(":input")
 	}
 }
