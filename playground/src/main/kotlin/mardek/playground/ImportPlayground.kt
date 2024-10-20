@@ -26,7 +26,6 @@ import org.lwjgl.system.MemoryUtil.memByteBuffer
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
 import org.lwjgl.vulkan.VK12.*
-import java.awt.Color
 import java.io.File
 import java.lang.Integer.parseInt
 import java.nio.file.Files
