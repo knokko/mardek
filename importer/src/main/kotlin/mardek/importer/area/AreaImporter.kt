@@ -12,14 +12,18 @@ private val CYAN_ENCODING = Color.CYAN.rgb
 private val GREEN_ENCODING = Color.GREEN.rgb
 private val DARK_GREEN_ENCODING = Color(0f, .6f, 0f).rgb
 
-class AreaImporter
+class TileSlice(val x: Int, val y: Int, val encoding: Int, val height: Int) {
+	var index = -1
+
+	override fun toString() = "TileSlice($x, $y, height=$height, encoding=$encoding, index=$index)"
+}
 
 fun importArea(areaName: String): Area {
 	var tilesheetName = ""
 	var tileIDs: IntArray? = null
 	var width = 0
 	var height = 0
-	val scanner = Scanner(AreaImporter::class.java.getResourceAsStream("data/$areaName.txt"))
+	val scanner = Scanner(TileSlice::class.java.getResourceAsStream("data/$areaName.txt"))
 	while (scanner.hasNextLine()) {
 		val line = scanner.nextLine().replace(" ", "")
 		if (line.startsWith("map=")) {
@@ -40,15 +44,11 @@ fun importArea(areaName: String): Area {
 	}
 	scanner.close()
 
-	val sheetInput = AreaImporter::class.java.getResourceAsStream("tilesheets/$tilesheetName.png")
+	val sheetInput = TileSlice::class.java.getResourceAsStream("tilesheets/$tilesheetName.png")
 	val tilesheet = ImageIO.read(sheetInput)
 	sheetInput.close()
 
-	fun toTileID(x: Int, y: Int) = parseInt("${1 + x / 10}${(y - 1) * 10 + x % 10}")
-
-	class TileSlice(val x: Int, val y: Int, val encoding: Int, val height: Int) {
-		var index = -1
-	}
+	fun toTileID(x: Int, y: Int, height: Int) = parseInt("${1 + x / 10}${((y - 1) / height) * 10 + x % 10}")
 
 	val idMapping = mutableMapOf<Int, TileSlice>()
 
@@ -56,11 +56,11 @@ fun importArea(areaName: String): Area {
 	for (x in 0 until tilesheet.width / tileSize) {
 		for (y in 1 until tilesheet.height / tileSize) {
 			val tileHeight = 1 + x / 10
-			val rectMinY = tilesheet.height - (1 + y * tileHeight) * tileSize
-			if (rectMinY < 0 || tileSize * tileHeight > tilesheet.height) continue
+			if ((y - 1) % tileHeight != 0) continue
+			if ((y + tileHeight) * tileSize > tilesheet.height) continue
 
 			val encodingColor = tilesheet.getRGB(x, y - 1)
-			val tileID = toTileID(x, y)
+			val tileID = toTileID(x, y, tileHeight)
 			idMapping[tileID] = TileSlice(x, y, encodingColor, tileHeight)
 		}
 	}

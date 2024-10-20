@@ -4,7 +4,7 @@ import mardek.assets.area.AreaCharacterModel
 import javax.imageio.ImageIO
 
 fun importAreaCharacterModel(name: String): AreaCharacterModel {
-	val imageInput = AreaImporter::class.java.getResourceAsStream("characters/$name.png")
+	val imageInput = TileSlice::class.java.getResourceAsStream("characters/$name.png")
 	val sheet = ImageIO.read(imageInput)
 	imageInput.close()
 

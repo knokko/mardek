@@ -45,7 +45,7 @@ class SharedAreaTileResources(
 		this.descriptorSet = descriptorPool.allocate(1)[0]
 
 		val pushConstants = VkPushConstantRange.calloc(1, stack)
-		pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 0, 24)
+		pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 0, 20)
 
 		this.pipelineLayout = boiler.pipelines.createLayout(
 			pushConstants, "TilesPipelineLayout", descriptorSetLayout.vkDescriptorSetLayout

@@ -37,7 +37,7 @@ fun main() {
 
 	val input = InputManager()
 	val state = GameStateManager(input, InGameState(
-		AreaState(area, AreaPosition(23, 0)),
+		AreaState(area, AreaPosition(23, 40)),
 		StoryState(PlayableCharacter(mardekModel), PlayableCharacter(deuganModal))
 	))
 	val renderer = GameRenderer(boiler)

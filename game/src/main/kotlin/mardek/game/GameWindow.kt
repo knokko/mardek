@@ -10,7 +10,7 @@ import mardek.renderer.GameRenderer
 import mardek.state.ExitState
 import mardek.state.GameStateManager
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
+import org.lwjgl.vulkan.KHRSurface.*
 
 class GameWindow(
 	window: VkbWindow,
@@ -18,7 +18,7 @@ class GameWindow(
 	private val renderer: GameRenderer
 ): SimpleWindowRenderLoop(
 	// TODO Add support for frames in flight after fixing (tile) renderer
-	window, 1, true, VK_PRESENT_MODE_MAILBOX_KHR,
+	window, 1, true, VK_PRESENT_MODE_FIFO_KHR,
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
 	override fun recordFrame(
