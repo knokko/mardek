@@ -14,6 +14,12 @@ class SharedAreaTileResources(
 ) {
 	val pipelineLayout: Long
 	val descriptorSet: Long
+	val waterDescriptorSet: Long
+
+	val waterImages = boiler.images.create(
+		16, 16, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
+		VK_IMAGE_ASPECT_COLOR_BIT, VK_SAMPLE_COUNT_1_BIT, 1, 5, true, "WaterImages"
+	)
 
 	val vertexModule = boiler.pipelines.createShaderModule(
 		"mardek/renderer/area/tiles.vert.spv", "TilesVertexShader"
@@ -21,9 +27,15 @@ class SharedAreaTileResources(
 	val fragmentModule = boiler.pipelines.createShaderModule(
 		"mardek/renderer/area/tiles.frag.spv", "TilesFragmentShader"
 	)
+	val waterModule = boiler.pipelines.createShaderModule(
+		"mardek/renderer/area/water.frag.spv", "WaterFragmentShader"
+	)
 
 	private val descriptorSetLayout: VkbDescriptorSetLayout
 	private val descriptorPool: HomogeneousDescriptorPool
+	val waterSampler = boiler.images.createSimpleSampler(
+		VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_SAMPLER_ADDRESS_MODE_REPEAT, "WaterSampler"
+	)
 
 	init {
 		val descriptorBindings = VkDescriptorSetLayoutBinding.calloc(3, stack)
@@ -41,8 +53,10 @@ class SharedAreaTileResources(
 		)
 
 		this.descriptorSetLayout = boiler.descriptors.createLayout(stack, descriptorBindings, "TilesDescriptorLayout")
-		this.descriptorPool = descriptorSetLayout.createPool(1, 0, "TilesDescriptorPool")
-		this.descriptorSet = descriptorPool.allocate(1)[0]
+		this.descriptorPool = descriptorSetLayout.createPool(2, 0, "TilesDescriptorPool")
+		val descriptorSets = descriptorPool.allocate(2)
+		this.descriptorSet = descriptorSets[0]
+		this.waterDescriptorSet = descriptorSets[1]
 
 		val pushConstants = VkPushConstantRange.calloc(1, stack)
 		pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 0, 20)
@@ -55,8 +69,11 @@ class SharedAreaTileResources(
 	fun destroy(boiler: BoilerInstance) {
 		vkDestroyShaderModule(boiler.vkDevice(), vertexModule, null)
 		vkDestroyShaderModule(boiler.vkDevice(), fragmentModule, null)
+		vkDestroyShaderModule(boiler.vkDevice(), waterModule, null)
 		descriptorPool.destroy()
 		descriptorSetLayout.destroy()
+		waterImages.destroy(boiler)
 		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)
+		vkDestroySampler(boiler.vkDevice(), waterSampler, null)
 	}
 }

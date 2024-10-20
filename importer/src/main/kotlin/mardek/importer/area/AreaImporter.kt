@@ -7,7 +7,10 @@ import java.lang.Integer.parseInt
 import java.util.Scanner
 import javax.imageio.ImageIO
 
+private val BLUE_ENCODING = Color(0, 221, 255).rgb
 private val CYAN_ENCODING = Color.CYAN.rgb
+private val DARK_BLUE_ENCODING = Color(0, 0, 200).rgb
+private val RED_ENCODING = Color(255, 0, 0).rgb
 private val GREEN_ENCODING = Color.GREEN.rgb
 private val DARK_GREEN_ENCODING = Color(0f, .6f, 0f).rgb
 
@@ -15,6 +18,15 @@ class TileSlice(val x: Int, val y: Int, val encoding: Int, val height: Int) {
 	var index = -1
 
 	override fun toString() = "TileSlice($x, $y, height=$height, encoding=$encoding, index=$index)"
+
+	fun getWaterType() = when (encoding) {
+		BLUE_ENCODING -> 2
+		CYAN_ENCODING -> 2
+		DARK_GREEN_ENCODING -> 2
+		RED_ENCODING -> 3
+		DARK_BLUE_ENCODING -> 4
+		else -> 0
+	}
 }
 
 fun importArea(areaName: String): Area {
@@ -60,6 +72,7 @@ fun importArea(areaName: String): Area {
 
 			val encodingColor = tilesheet.getRGB(x, y - 1)
 			val tileID = toTileID(x, y, tileHeight)
+
 			idMapping[tileID] = TileSlice(x, y, encodingColor, tileHeight)
 		}
 	}
@@ -83,5 +96,17 @@ fun importArea(areaName: String): Area {
 
 	val tileIndices = tileIDs!!.map { idMapping[it]!!.index }.toIntArray()
 
-	return Area(areaName, tilesheetName, width, height, tileIndices, tileList.toList())
+	val waterSprites = (0 until 5).map { rawX ->
+		val x = when (rawX) {
+			0 -> 176
+			1 -> 192
+			2 -> 160
+			else -> 160 + 16 * rawX
+		}
+		tilesheet.getSubimage(x, 0, tileSize, tileSize)
+	}
+
+	val waterGrid = IntArray(width * height) { index -> idMapping[tileIDs[index]]!!.getWaterType() }
+
+	return Area(areaName, tilesheetName, width, height, tileIndices, tileList.toList(), waterGrid, waterSprites)
 }

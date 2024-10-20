@@ -1,8 +1,11 @@
 package mardek.assets.area
 
+import java.awt.image.BufferedImage
+
 class Area(
 	val name: String, val tilesheetName: String, val width: Int, val height: Int,
-	private val tileGrid: IntArray, val tileList: List<Tile>
+	private val tileGrid: IntArray, val tileList: List<Tile>,
+	private val waterGrid: IntArray, val waterSprites: List<BufferedImage>
 ) {
 
 	private fun index(x: Int, y: Int): Int? {
@@ -16,4 +19,6 @@ class Area(
 	}
 
 	fun getTileAt(x: Int, y: Int) = tileList[tileGrid[index(x, y)!!]]
+
+	fun getWaterTypeAt(x: Int, y: Int) = waterGrid[index(x, y)!!]
 }
