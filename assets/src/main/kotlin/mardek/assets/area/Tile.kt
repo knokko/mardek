@@ -1,4 +1,6 @@
 package mardek.assets.area
 
-class Tile(val canMoveTo: Boolean, val animations: List<TileAnimationFrame>) {
+import java.awt.image.BufferedImage
+
+class Tile(val canMoveTo: Boolean, val sprites: List<BufferedImage>) {
 }

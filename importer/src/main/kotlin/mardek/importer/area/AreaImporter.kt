@@ -2,7 +2,6 @@ package mardek.importer.area
 
 import mardek.assets.area.Area
 import mardek.assets.area.Tile
-import mardek.assets.area.TileAnimationFrame
 import java.awt.Color
 import java.lang.Integer.parseInt
 import java.util.Scanner
@@ -76,8 +75,7 @@ fun importArea(areaName: String): Area {
 		val canMoveTo = tileSlice.encoding == GREEN_ENCODING || tileSlice.encoding == DARK_GREEN_ENCODING
 				|| tileSlice.encoding == CYAN_ENCODING
 
-		// TODO Animation support
-		val tile = Tile(canMoveTo, animations = listOf(TileAnimationFrame(images)))
+		val tile = Tile(canMoveTo, images)
 		tileSlice.index = nextTileIndex
 		tileList.add(tile)
 		nextTileIndex += 1

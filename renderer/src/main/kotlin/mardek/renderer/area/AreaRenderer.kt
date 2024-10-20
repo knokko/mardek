@@ -7,7 +7,7 @@ import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import com.github.knokko.boiler.pipelines.ShaderInfo
 import mardek.assets.area.AreaCharacterModel
-import mardek.assets.area.TileAnimationFrame
+import mardek.assets.area.Tile
 import mardek.state.area.AreaState
 import mardek.state.story.StoryState
 import org.lwjgl.system.MemoryStack
@@ -29,45 +29,40 @@ class AreaRenderer(
 	private val tilePipeline: Long
 
 	private val images: VkbImage
-	private val mapBuffer: MappedVkbBuffer
+	private val mapBuffer: MappedVkbBuffer = boiler.buffers.createMapped(
+		4L * state.area.width * state.area.height,
+		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+		"MapBuffer${state.area.name}"
+	)
 	private val entityBuffer: MappedVkbBuffer
 
-	private val tileSpriteIndices = mutableMapOf<TileAnimationFrame, Int>()
+	private val tileSpriteIndices = mutableMapOf<Tile, Int>()
 	private val entitySpriteIndices = mutableMapOf<AreaCharacterModel, Int>()
 
 	private class ExtraEntity(val tileX: Int, val tileY: Int, val spriteIndex: Int)
 	private val extraEntities = mutableListOf<ExtraEntity>()
 
 	init {
-		this.mapBuffer = boiler.buffers.createMapped(
-			4L * state.area.width * state.area.height,
-			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-			"MapBuffer${state.area.name}"
-		)
 		val mapIntBuffer = memIntBuffer(mapBuffer.hostAddress, state.area.width * state.area.height)
 		for (index in 0 until mapIntBuffer.capacity()) mapIntBuffer.put(index, -1)
 
 		var imageIndex = 0
 		for (tile in state.area.tileList) {
-			for (frame in tile.animations) {
-				tileSpriteIndices[frame] = imageIndex
-				imageIndex += frame.sprites.size
-			}
+			tileSpriteIndices[tile] = imageIndex
+			imageIndex += tile.sprites.size
 		}
 
 		for (y in 0 until state.area.height) {
 			for (x in 0 until state.area.width) {
 				val tile = state.area.getTileAt(x, y)
-				val animationFrame = tile.animations[0]
-				val baseSpriteIndex = tileSpriteIndices[animationFrame]!!
-				// TODO Track tiles that require animation
-				for (layer in 1 until animationFrame.sprites.size) {
+				val baseSpriteIndex = tileSpriteIndices[tile]!!
+				for (layer in 1 until tile.sprites.size) {
 					val rightY = y - layer
-					val extraIndex = animationFrame.sprites.size - layer - 1
+					val extraIndex = tile.sprites.size - layer - 1
 					extraEntities.add(ExtraEntity(x, rightY, baseSpriteIndex + extraIndex))
 				}
 
-				mapIntBuffer.put(x + y * state.area.width, baseSpriteIndex + animationFrame.sprites.size - 1)
+				mapIntBuffer.put(x + y * state.area.width, baseSpriteIndex + tile.sprites.size - 1)
 			}
 		}
 
@@ -106,7 +101,7 @@ class AreaRenderer(
 		builder.ciPipeline.layout(resources.tiles.pipelineLayout)
 		this.tilePipeline = builder.build("TilesPipeline ${state.area.name}")
 
-		val numTileSprites = state.area.tileList.sumOf { tile -> tile.animations.sumOf { it.sprites.size }}
+		val numTileSprites = state.area.tileList.sumOf { it.sprites.size }
 		val numEntitySprites = story.getPlayableCharacters().sumOf { it.areaModel.allSprites.size }
 		this.images = boiler.images.create(
 			16, 16, VK_FORMAT_R8G8B8A8_SRGB,
@@ -122,12 +117,10 @@ class AreaRenderer(
 		)
 
 		for (tile in state.area.tileList) {
-			for (frame in tile.animations) {
-				for ((layer, image) in frame.sprites.withIndex()) {
-					boiler.buffers.encodeBufferedImageRGBA(
-						stagingBuffer, image, 4L * 16 * 16 * (tileSpriteIndices[frame]!! + layer)
-					)
-				}
+			for ((layer, sprite) in tile.sprites.withIndex()) {
+				boiler.buffers.encodeBufferedImageRGBA(
+					stagingBuffer, sprite, 4L * 16 * 16 * (tileSpriteIndices[tile]!! + layer)
+				)
 			}
 		}
 		for (character in story.getPlayableCharacters()) {
@@ -219,20 +212,18 @@ class AreaRenderer(
 	}
 
 	fun render(recorder: CommandRecorder, targetImage: VkbImage) {
-		// TODO Animate mapBuffer
-
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
 		// The original MARDEK allow players to see at most 5 tiles above/below the player,
 		// and at most 7 tiles left/right from the player
 		val baseHorizontalTiles = targetImage.width / 16.0
 		val baseVerticalTiles = targetImage.height / 16.0
-		val guessScaleX = baseHorizontalTiles / 15.0
-		val guessScaleY = baseVerticalTiles / 11.0
-		val guessScale = max(guessScaleX, guessScaleY)
+		val floatScaleX = baseHorizontalTiles / 15.0
+		val floatScaleY = baseVerticalTiles / 11.0
+		val floatScale = max(floatScaleX, floatScaleY)
 
 		// Round the scale in favor of the player
-		val scale = max(1, guessScale.toInt())
+		val scale = max(1, floatScale.toInt())
 		val tileSize = 16 * scale
 
 		var cameraX = 0
