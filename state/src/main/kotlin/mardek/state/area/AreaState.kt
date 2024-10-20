@@ -3,23 +3,29 @@ package mardek.state.area
 import mardek.assets.area.Area
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.state.GameState
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-class AreaState(val area: Area, initialPlayerPosition: AreaPosition): GameState {
+class AreaState(val area: Area, initialPlayerPosition: AreaPosition) {
 
-	private var currentTime = Duration.ZERO
+	var currentTime = Duration.ZERO
+		private set
 
 	private val playerPositions = Array(4) { initialPlayerPosition }
-	private var nextPlayerPosition: NextAreaPosition? = null
+	var lastPlayerDirectionX = 0
+		private set
+	var lastPlayerDirectionY = 0
+		private set
+	var nextPlayerPosition: NextAreaPosition? = null
+		private set
 
-	override fun update(input: InputManager, timeStep: Duration): GameState {
+	fun update(input: InputManager, timeStep: Duration) {
 		updatePlayerPosition()
 		processInput(input)
 		currentTime += timeStep
-		return this
 	}
+
+	fun getPlayerPosition(index: Int) = playerPositions[index]
 
 	private fun updatePlayerPosition() {
 		val nextPlayerPosition = this.nextPlayerPosition
@@ -27,6 +33,8 @@ class AreaState(val area: Area, initialPlayerPosition: AreaPosition): GameState 
 			for (index in 1 until playerPositions.size) {
 				playerPositions[index] = playerPositions[index - 1]
 			}
+			lastPlayerDirectionX = nextPlayerPosition.position.x - playerPositions[0].x
+			lastPlayerDirectionY = nextPlayerPosition.position.y - playerPositions[0].y
 			playerPositions[0] = nextPlayerPosition.position
 			this.nextPlayerPosition = null
 		}
@@ -58,7 +66,12 @@ class AreaState(val area: Area, initialPlayerPosition: AreaPosition): GameState 
 				val nextX = playerPositions[0].x + moveX
 				val nextY = playerPositions[0].y + moveY
 				if (area.canWalkAt(nextX, nextY)) {
-					nextPlayerPosition = NextAreaPosition(AreaPosition(nextX, nextY), currentTime + 1.seconds)
+					nextPlayerPosition = NextAreaPosition(
+						AreaPosition(nextX, nextY), currentTime, currentTime + 0.2.seconds
+					)
+				} else {
+					lastPlayerDirectionX = moveX
+					lastPlayerDirectionY = moveY
 				}
 			}
 		}

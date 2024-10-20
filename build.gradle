@@ -59,6 +59,26 @@ allprojects {
 	}
 }
 
+project(":game") {
+	apply plugin: "com.github.johnrengelman.shadow"
+	dependencies {
+		implementation "com.github.knokko.update-loop:implementation:v2.0.0"
+		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+		implementation "org.lwjgl:lwjgl-glfw"
+		implementation project(":assets")
+		implementation project(":importer") // TODO Eventually get rid of this dependency
+		implementation project(":input")
+		implementation project(":renderer")
+		implementation project(":state")
+		for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-glfw::$natives"
+	}
+	shadowJar {
+		manifest {
+			attributes ("Main-Class": "mardek.game.MardekGameKt")
+		}
+	}
+}
+
 project(":importer") {
 	dependencies {
 		implementation files("../flash/ffdec_lib.jar")

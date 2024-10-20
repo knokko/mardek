@@ -1,11 +1,11 @@
 package mardek.renderer
 
 import com.github.knokko.boiler.BoilerInstance
+import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import mardek.renderer.area.AreaRenderer
 import mardek.state.GameState
-import mardek.state.area.AreaState
+import mardek.state.InGameState
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.VK_ATTACHMENT_LOAD_OP_CLEAR
 import org.lwjgl.vulkan.VK10.VK_ATTACHMENT_STORE_OP_STORE
@@ -39,12 +39,15 @@ class GameRenderer(private val boiler: BoilerInstance) {
 
 	fun destroy() {
 		if (this::currentRenderer.isInitialized) currentRenderer.destroy()
-		// TODO
 	}
 
 	private fun createRenderer(state: GameState, targetImageFormat: Int): StateRenderer = stackPush().use { stack ->
-		if (state is AreaState) return AreaRenderer(state, boiler, stack, targetImageFormat)
+		if (state is InGameState) return InGameRenderer(state, boiler, targetImageFormat)
 
 		throw UnsupportedOperationException("Unexpected state $state")
+	}
+
+	companion object {
+		fun addBoilerRequirements(builder: BoilerBuilder): BoilerBuilder = builder.enableDynamicRendering()
 	}
 }

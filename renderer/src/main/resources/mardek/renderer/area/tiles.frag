@@ -11,11 +11,10 @@ layout(set = 0, binding = 2) readonly buffer MapBuffer {
 };
 
 layout(push_constant) uniform PushConstants {
-	int screenWidth;
-	int screenHeight;
+	ivec2 screenSize;
+	int scale;
 	int mapBufferOffset;
-	int offsetX;
-	int offsetY;
+	ivec2 cameraPosition;
 };
 
 layout(location = 0) in vec2 floatPosition;
@@ -23,17 +22,17 @@ layout(location = 0) in vec2 floatPosition;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-	int screenPixelX = int(screenWidth * floatPosition.x) - offsetX;
-	int screenPixelY = int(screenHeight * floatPosition.y) - offsetY;
-	int tilePixelX = screenPixelX % 16;
-	int tilePixelY = screenPixelY % 16;
-	int tileX = screenPixelX / 16;
-	int tileY = screenPixelY / 16;
-	if (tileX >= MAP_WIDTH || tileY >= MAP_HEIGHT) discard;
+	ivec2 areaPixel = ivec2(screenSize * floatPosition) / 2 + cameraPosition;
+	if (areaPixel.x < 0 || areaPixel.y < 0) discard;
 
-	float u = (0.5 + tilePixelX) / 16.0;
-	float v = (0.5 + tilePixelY) / 16.0;
-	int layer = mapBuffer[mapBufferOffset + tileX + MAP_WIDTH * tileY];
+	int tileSize = 16 * scale;
+	ivec2 tilePixel = (areaPixel % tileSize) / scale;
+	ivec2 tile = areaPixel / tileSize;
+	if (tile.x >= MAP_WIDTH || tile.y >= MAP_HEIGHT) discard;
+
+	vec2 textureCoordinates = (tilePixel + vec2(0.5)) / 16.0;
+	int layer = mapBuffer[mapBufferOffset + tile.x + MAP_WIDTH * tile.y];
 	if (layer == -1) discard;
-	outColor = texture(sampler2DArray(tileImages, tileSampler), vec3(u, v, layer));
+
+	outColor = texture(sampler2DArray(tileImages, tileSampler), vec3(textureCoordinates, layer));
 }
