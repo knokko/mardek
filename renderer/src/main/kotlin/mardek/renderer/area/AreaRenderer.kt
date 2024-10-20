@@ -6,11 +6,13 @@ import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import com.github.knokko.boiler.pipelines.ShaderInfo
+import com.github.knokko.boiler.synchronization.ResourceUsage
 import mardek.assets.area.AreaCharacterModel
 import mardek.assets.area.Tile
 import mardek.state.area.AreaState
 import mardek.state.story.StoryState
 import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryUtil.memByteBuffer
 import org.lwjgl.system.MemoryUtil.memIntBuffer
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
@@ -29,10 +31,10 @@ class AreaRenderer(
 	private val tilePipeline: Long
 
 	private val images: VkbImage
-	private val mapBuffer: MappedVkbBuffer = boiler.buffers.createMapped(
+	private val mapBuffer = boiler.buffers.create(
 		4L * state.area.width * state.area.height,
-		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-		"MapBuffer${state.area.name}"
+		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		"MapBuffer ${state.area.name}"
 	)
 	private val entityBuffer: MappedVkbBuffer
 
@@ -43,8 +45,21 @@ class AreaRenderer(
 	private val extraEntities = mutableListOf<ExtraEntity>()
 
 	init {
-		val mapIntBuffer = memIntBuffer(mapBuffer.hostAddress, state.area.width * state.area.height)
-		for (index in 0 until mapIntBuffer.capacity()) mapIntBuffer.put(index, -1)
+		val numTileSprites = state.area.tileList.sumOf { it.sprites.size }
+		val numEntitySprites = story.getPlayableCharacters().sumOf { it.areaModel.allSprites.size }
+		this.images = boiler.images.create(
+			16, 16, VK_FORMAT_R8G8B8A8_SRGB,
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
+			VK_IMAGE_ASPECT_COLOR_BIT, VK_SAMPLE_COUNT_1_BIT,
+			1, numTileSprites + numEntitySprites, true, "AreaImages ${state.area.name}"
+		)
+
+		val stagingBuffer = boiler.buffers.createMapped(
+			4L * 16 * 16 * (numTileSprites + numEntitySprites) + mapBuffer.size,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			"StagingBuffer ${state.area.name}"
+		)
+		val stagingHostBuffer = memByteBuffer(stagingBuffer.hostAddress, stagingBuffer.size.toInt())
 
 		var imageIndex = 0
 		for (tile in state.area.tileList) {
@@ -53,6 +68,7 @@ class AreaRenderer(
 		}
 
 		for (y in 0 until state.area.height) {
+			val baseOffset = 4 * 16 * 16 * (numTileSprites + numEntitySprites)
 			for (x in 0 until state.area.width) {
 				val tile = state.area.getTileAt(x, y)
 				val baseSpriteIndex = tileSpriteIndices[tile]!!
@@ -62,7 +78,10 @@ class AreaRenderer(
 					extraEntities.add(ExtraEntity(x, rightY, baseSpriteIndex + extraIndex))
 				}
 
-				mapIntBuffer.put(x + y * state.area.width, baseSpriteIndex + tile.sprites.size - 1)
+				stagingHostBuffer.putInt(
+					baseOffset + 4 * (x + y * state.area.width),
+					baseSpriteIndex + tile.sprites.size - 1
+				)
 			}
 		}
 
@@ -100,21 +119,6 @@ class AreaRenderer(
 		builder.dynamicRendering(0, VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, resources.targetImageFormat)
 		builder.ciPipeline.layout(resources.tiles.pipelineLayout)
 		this.tilePipeline = builder.build("TilesPipeline ${state.area.name}")
-
-		val numTileSprites = state.area.tileList.sumOf { it.sprites.size }
-		val numEntitySprites = story.getPlayableCharacters().sumOf { it.areaModel.allSprites.size }
-		this.images = boiler.images.create(
-			16, 16, VK_FORMAT_R8G8B8A8_SRGB,
-			VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
-			VK_IMAGE_ASPECT_COLOR_BIT, VK_SAMPLE_COUNT_1_BIT,
-			1, numTileSprites + numEntitySprites, true, "AreaImages ${state.area.name}"
-		)
-
-		val stagingBuffer = boiler.buffers.createMapped(
-			4L * 16 * 16 * (numTileSprites + numEntitySprites),
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			"StagingBuffer${state.area.name}"
-		)
 
 		for (tile in state.area.tileList) {
 			for ((layer, sprite) in tile.sprites.withIndex()) {
@@ -175,6 +179,13 @@ class AreaRenderer(
 			recorder.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 			0, null, null, imageBarriers
 		)
+
+		recorder.copyBuffer(stagingBuffer.range(
+			4L * 16 * 16 * (numTileSprites + numEntitySprites), mapBuffer.size
+		), mapBuffer.vkBuffer, 0L)
+		recorder.bufferBarrier(mapBuffer.fullRange(), ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+		))
 		recorder.end()
 
 		val fence = boiler.sync.fenceBank.borrowFence(false, "StagingFence")
