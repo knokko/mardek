@@ -63,6 +63,7 @@ project(":game") {
 	apply plugin: "com.github.johnrengelman.shadow"
 	dependencies {
 		implementation "com.github.knokko.update-loop:implementation:v2.0.0"
+		implementation "com.github.knokko:sample-profiler:v1.0.0"
 		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
 		implementation "org.lwjgl:lwjgl-glfw"
 		implementation project(":assets")

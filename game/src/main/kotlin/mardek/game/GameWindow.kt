@@ -6,11 +6,14 @@ import com.github.knokko.boiler.synchronization.ResourceUsage
 import com.github.knokko.boiler.window.AcquiredImage
 import com.github.knokko.boiler.window.SimpleWindowRenderLoop
 import com.github.knokko.boiler.window.VkbWindow
+import com.github.knokko.profiler.SampleProfiler
+import com.github.knokko.profiler.storage.SampleStorage
+import com.github.knokko.update.UpdateCounter
 import mardek.renderer.GameRenderer
 import mardek.state.ExitState
 import mardek.state.GameStateManager
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.vulkan.KHRSurface.*
+import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
 
 class GameWindow(
 	window: VkbWindow,
@@ -18,9 +21,19 @@ class GameWindow(
 	private val renderer: GameRenderer
 ): SimpleWindowRenderLoop(
 	// TODO Add support for frames in flight after fixing (tile) renderer
-	window, 1, true, VK_PRESENT_MODE_FIFO_KHR,
+	window, 1, true, VK_PRESENT_MODE_MAILBOX_KHR,
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
+
+	private val updateCounter = UpdateCounter()
+	private var lastFps = -1L
+	private val profileStorage = SampleStorage.frequency()
+	private val profiler = SampleProfiler(profileStorage)
+
+//	init {
+//		profiler.start()
+//	}
+
 	override fun recordFrame(
 		stack: MemoryStack,
 		frameIndex: Int,
@@ -28,6 +41,12 @@ class GameWindow(
 		acquiredImage: AcquiredImage,
 		instance: BoilerInstance
 	) {
+		val currentFps = updateCounter.value
+		if (currentFps != lastFps) {
+			println("FPS is $currentFps")
+			lastFps = currentFps
+		}
+		updateCounter.increment()
 		synchronized(state.lock()) {
 			renderer.render(state.currentState, recorder, acquiredImage.image(), window.surfaceFormat)
 		}
@@ -39,5 +58,8 @@ class GameWindow(
 		synchronized(state.lock()) {
 			state.currentState = ExitState()
 		}
+
+//		profiler.stop()
+//		profileStorage.getThreadStorage(Thread.currentThread().id).print(System.out, 5, 1.0)
 	}
 }
