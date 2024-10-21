@@ -21,7 +21,7 @@ allprojects {
 	
 	project.ext.jomlVersion = "1.10.1"
 	project.ext.lwjglVersion = "3.3.4"
-	project.ext.boilerVersion = "v4.0.0"
+	project.ext.boilerVersion = "14abe6d3a0" // TODO Update to stable version
 	switch (OperatingSystem.current()) {
 		case OperatingSystem.LINUX:
 			project.ext.lwjglNatives = ["natives-linux", "natives-linux-arm32", "natives-linux-arm64"]

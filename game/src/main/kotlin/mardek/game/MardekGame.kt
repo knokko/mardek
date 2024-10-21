@@ -6,18 +6,14 @@ import com.github.knokko.boiler.window.WindowEventLoop
 import com.github.knokko.update.UpdateLoop
 import mardek.importer.area.importArea
 import mardek.importer.area.importAreaCharacterModel
-import mardek.input.InputKey
-import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.renderer.GameRenderer
-import mardek.state.ExitState
 import mardek.state.GameStateManager
 import mardek.state.InGameState
 import mardek.state.area.AreaPosition
 import mardek.state.area.AreaState
 import mardek.state.character.PlayableCharacter
 import mardek.state.story.StoryState
-import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 import org.lwjgl.vulkan.VK12.VK_API_VERSION_1_2
 import kotlin.time.Duration.Companion.milliseconds
@@ -42,45 +38,19 @@ fun main() {
 	))
 	val renderer = GameRenderer(boiler)
 
-	val updateLoop = UpdateLoop({ updateLoop ->
+	val updateLoop = UpdateLoop({ _ ->
 		synchronized(state.lock()) {
 			state.update(10.milliseconds)
-			if (state.currentState is ExitState) updateLoop.stop()
 		}
 	}, 10_000_000L)
 	val updateThread = Thread(updateLoop)
+	updateThread.isDaemon = true
 	updateThread.start()
 
-	val glfwWindow = boiler.window().glfwWindow
-	glfwSetKeyCallback(glfwWindow) { _, key, _, action, _ ->
-		val inputKey = when (key) {
-			GLFW_KEY_LEFT -> InputKey.MoveLeft
-			GLFW_KEY_A -> InputKey.MoveLeft
-			GLFW_KEY_UP -> InputKey.MoveUp
-			GLFW_KEY_W -> InputKey.MoveUp
-			GLFW_KEY_RIGHT -> InputKey.MoveRight
-			GLFW_KEY_D -> InputKey.MoveRight
-			GLFW_KEY_DOWN -> InputKey.MoveDown
-			GLFW_KEY_S -> InputKey.MoveDown
-			GLFW_KEY_X -> InputKey.Interact
-			GLFW_KEY_E -> InputKey.Interact
-			GLFW_KEY_Z -> InputKey.Cancel
-			GLFW_KEY_Q -> InputKey.Cancel
-			else -> null
-		}
+	val inputListener = MardekGlfwInput(boiler.window().glfwWindow, input)
+	inputListener.register()
 
-		if (inputKey != null) {
-			input.postEvent(InputKeyEvent(
-				inputKey,
-				didPress = action == GLFW_PRESS,
-				didRelease = action == GLFW_RELEASE,
-				didRepeat = action == GLFW_REPEAT
-			))
-		}
-	}
-
-	// TODO Add is-alive logic to the event loop
-	val eventLoop = WindowEventLoop()
+	val eventLoop = WindowEventLoop(0.01, inputListener::update)
 	eventLoop.addWindow(GameWindow(boiler.window(), state, renderer))
 	eventLoop.runMain()
 
