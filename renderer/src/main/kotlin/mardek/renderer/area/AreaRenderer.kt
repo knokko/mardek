@@ -162,6 +162,7 @@ class AreaRenderer(
 			}
 		}
 
+		// TODO Add nice StagingBuffer class to vk-boiler
 		val stagingCommandPool = boiler.commands.createPool(0, boiler.queueFamilies().graphics.index, "StagingPool")
 		val stagingCommandBuffer = boiler.commands.createPrimaryBuffers(stagingCommandPool, 1, "StagingCommands")[0]
 		val recorder = CommandRecorder.begin(stagingCommandBuffer, boiler, stack, "StagingCommands")

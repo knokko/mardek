@@ -48,6 +48,9 @@ class GameRenderer(private val boiler: BoilerInstance) {
 	}
 
 	companion object {
-		fun addBoilerRequirements(builder: BoilerBuilder): BoilerBuilder = builder.enableDynamicRendering()
+		fun addBoilerRequirements(builder: BoilerBuilder): BoilerBuilder = builder
+			.enableDynamicRendering()
+			.requiredFeatures12 { it.shaderSampledImageArrayNonUniformIndexing() }
+			.featurePicker12 { _, _, toEnable -> toEnable.shaderSampledImageArrayNonUniformIndexing(true) }
 	}
 }
