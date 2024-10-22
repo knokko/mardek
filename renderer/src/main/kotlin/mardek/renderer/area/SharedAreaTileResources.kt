@@ -1,7 +1,7 @@
 package mardek.renderer.area
 
 import com.github.knokko.boiler.BoilerInstance
-import com.github.knokko.boiler.descriptors.HomogeneousDescriptorPool
+import com.github.knokko.boiler.descriptors.GrowingDescriptorBank
 import com.github.knokko.boiler.descriptors.VkbDescriptorSetLayout
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10.*
@@ -13,10 +13,8 @@ class SharedAreaTileResources(
 	stack: MemoryStack
 ) {
 	val pipelineLayout: Long
-	val descriptorSet: Long
-	val waterDescriptorSet: Long
 
-	val waterImages = boiler.images.create(
+	val waterImages = boiler.images.create( // TODO Stop sharing this
 		16, 16, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
 		VK_IMAGE_ASPECT_COLOR_BIT, VK_SAMPLE_COUNT_1_BIT, 1, 5, true, "WaterImages"
 	)
@@ -32,7 +30,7 @@ class SharedAreaTileResources(
 	)
 
 	private val descriptorSetLayout: VkbDescriptorSetLayout
-	private val descriptorPool: HomogeneousDescriptorPool
+	val descriptorBank: GrowingDescriptorBank
 	val waterSampler = boiler.images.createSimpleSampler(
 		VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_SAMPLER_ADDRESS_MODE_REPEAT, "WaterSampler"
 	)
@@ -53,10 +51,7 @@ class SharedAreaTileResources(
 		)
 
 		this.descriptorSetLayout = boiler.descriptors.createLayout(stack, descriptorBindings, "TilesDescriptorLayout")
-		this.descriptorPool = descriptorSetLayout.createPool(2, 0, "TilesDescriptorPool")
-		val descriptorSets = descriptorPool.allocate(2)
-		this.descriptorSet = descriptorSets[0]
-		this.waterDescriptorSet = descriptorSets[1]
+		this.descriptorBank = GrowingDescriptorBank(descriptorSetLayout, 0)
 
 		val pushConstants = VkPushConstantRange.calloc(1, stack)
 		pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 0, 20)
@@ -70,7 +65,7 @@ class SharedAreaTileResources(
 		vkDestroyShaderModule(boiler.vkDevice(), vertexModule, null)
 		vkDestroyShaderModule(boiler.vkDevice(), fragmentModule, null)
 		vkDestroyShaderModule(boiler.vkDevice(), waterModule, null)
-		descriptorPool.destroy()
+		descriptorBank.destroy(true)
 		descriptorSetLayout.destroy()
 		waterImages.destroy(boiler)
 		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)

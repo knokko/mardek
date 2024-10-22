@@ -1,6 +1,7 @@
 package mardek.renderer.area
 
 import com.github.knokko.boiler.BoilerInstance
+import com.github.knokko.boiler.commands.SingleTimeCommands
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10.*
 
@@ -16,10 +17,12 @@ class SharedAreaResources(
 	)
 	val tiles = SharedAreaTileResources(boiler, stack)
 	val entities = SharedAreaEntityResources(boiler, stack, targetImageFormat)
+	val singleTimeCommands = SingleTimeCommands(boiler)
 
 	fun destroy() {
 		tiles.destroy(boiler)
 		entities.destroy(boiler)
 		vkDestroySampler(boiler.vkDevice(), imageSampler, null)
+		singleTimeCommands.destroy()
 	}
 }

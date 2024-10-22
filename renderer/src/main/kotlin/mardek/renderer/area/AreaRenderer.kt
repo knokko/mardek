@@ -1,8 +1,10 @@
 package mardek.renderer.area
 
 import com.github.knokko.boiler.BoilerInstance
-import com.github.knokko.boiler.buffers.DeviceVkbBuffer
 import com.github.knokko.boiler.buffers.MappedVkbBuffer
+import com.github.knokko.boiler.buffers.SharedDeviceBufferBuilder
+import com.github.knokko.boiler.buffers.SharedMappedBufferBuilder
+import com.github.knokko.boiler.buffers.VkbBufferRange
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
@@ -13,7 +15,6 @@ import mardek.assets.area.Tile
 import mardek.state.area.AreaState
 import mardek.state.story.StoryState
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.system.MemoryUtil.memByteBuffer
 import org.lwjgl.system.MemoryUtil.memIntBuffer
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
@@ -33,12 +34,16 @@ class AreaRenderer(
 	private val waterPipeline: Long
 
 	private val images: VkbImage
-	private val mapBuffer: DeviceVkbBuffer
-	private val waterBufferOffset: Long
+	private val mapBuffer: VkbBufferRange
+	private val waterBuffer: VkbBufferRange
 	private val entityBuffer: MappedVkbBuffer
 
 	private val tileSpriteIndices = mutableMapOf<Tile, Int>()
 	private val entitySpriteIndices = mutableMapOf<AreaCharacterModel, Int>()
+
+	private val entityDescriptorSet: Long
+	private val tileDescriptorSet: Long
+	private val waterDescriptorSet: Long
 
 	private class ExtraEntity(val tileX: Int, val tileY: Int, val spriteIndex: Int)
 	private val extraEntities = mutableListOf<ExtraEntity>()
@@ -50,14 +55,16 @@ class AreaRenderer(
 			props.limits().minStorageBufferOffsetAlignment()
 		}
 		val baseMapBufferSize = 4L * state.area.width * state.area.height
-		this.waterBufferOffset = if (baseMapBufferSize % storageAlignment == 0L) baseMapBufferSize
-		else storageAlignment * (1 + baseMapBufferSize / storageAlignment)
 
-		this.mapBuffer = boiler.buffers.create(
-			waterBufferOffset + baseMapBufferSize,
+		val bufferBuilder = SharedDeviceBufferBuilder(boiler)
+		val mapBuffer = bufferBuilder.add(baseMapBufferSize, storageAlignment)
+		val waterBuffer = bufferBuilder.add(baseMapBufferSize, storageAlignment)
+		bufferBuilder.build(
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 			"MapBuffer ${state.area.name}"
 		)
+		this.mapBuffer = mapBuffer.get()
+		this.waterBuffer = waterBuffer.get()
 
 		val numTileSprites = state.area.tileList.sumOf { it.sprites.size }
 		val numEntitySprites = story.getPlayableCharacters().sumOf { it.areaModel.allSprites.size }
@@ -68,12 +75,19 @@ class AreaRenderer(
 			1, numTileSprites + numEntitySprites, true, "AreaImages ${state.area.name}"
 		)
 
-		val stagingBuffer = boiler.buffers.createMapped(
-			4L * 16 * 16 * (numTileSprites + numEntitySprites + state.area.waterSprites.size) + mapBuffer.size,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			"StagingBuffer ${state.area.name}"
-		)
-		val stagingHostBuffer = memByteBuffer(stagingBuffer.hostAddress, stagingBuffer.size.toInt())
+		val spriteByteSize = 4L * 16 * 16
+
+		val stagingBuilder = SharedMappedBufferBuilder(boiler)
+		val getStagingTileEntitySprites = stagingBuilder.add((numTileSprites + numEntitySprites) * spriteByteSize, 4)
+		val getStagingWaterSprites = stagingBuilder.add(state.area.waterSprites.size * spriteByteSize, 4)
+		val getStagingMapBuffer = stagingBuilder.add(this.mapBuffer.size, storageAlignment)
+		val getStagingWaterBuffer = stagingBuilder.add(this.waterBuffer.size, storageAlignment)
+
+		val stagingBuffer = stagingBuilder.build(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "StagingBuffer ${state.area.name}")
+		val stagingSprites = getStagingTileEntitySprites.get()
+		val stagingWaterSprites = getStagingWaterSprites.get()
+		val stagingMapBuffer = getStagingMapBuffer.get()
+		val stagingWaterBuffer = getStagingWaterBuffer.get()
 
 		var imageIndex = 0
 		for (tile in state.area.tileList) {
@@ -82,9 +96,8 @@ class AreaRenderer(
 		}
 
 		for (y in 0 until state.area.height) {
-			val baseOffset = 4 * 16 * 16 * (numTileSprites + numEntitySprites + state.area.waterSprites.size)
-			val waterOffset = baseOffset + waterBufferOffset
 			for (x in 0 until state.area.width) {
+				val bufferIndex = x + y * state.area.width
 				val tile = state.area.getTileAt(x, y)
 				val baseSpriteIndex = tileSpriteIndices[tile]!!
 				for (layer in 1 until tile.sprites.size) {
@@ -93,14 +106,8 @@ class AreaRenderer(
 					extraEntities.add(ExtraEntity(x, rightY, baseSpriteIndex + extraIndex))
 				}
 
-				stagingHostBuffer.putInt(
-					baseOffset + 4 * (x + y * state.area.width),
-					baseSpriteIndex + tile.sprites.size - 1
-				)
-				stagingHostBuffer.putInt(
-					waterOffset.toInt() + 4 * (x + y * state.area.width),
-					state.area.getWaterTypeAt(x, y)
-				)
+				stagingMapBuffer.intBuffer().put(bufferIndex, baseSpriteIndex + tile.sprites.size - 1)
+				stagingWaterBuffer.intBuffer().put(bufferIndex, state.area.getWaterTypeAt(x, y))
 			}
 		}
 
@@ -144,108 +151,99 @@ class AreaRenderer(
 
 		for (tile in state.area.tileList) {
 			for ((layer, sprite) in tile.sprites.withIndex()) {
-				boiler.buffers.encodeBufferedImageRGBA(
-					stagingBuffer, sprite, 4L * 16 * 16 * (tileSpriteIndices[tile]!! + layer)
-				)
+				val stagingOffset = stagingSprites.offset + spriteByteSize * (tileSpriteIndices[tile]!! + layer)
+				boiler.buffers.encodeBufferedImageRGBA(stagingBuffer, sprite, stagingOffset)
 			}
 		}
 		for ((index, sprite) in state.area.waterSprites.withIndex()) {
-			boiler.buffers.encodeBufferedImageRGBA(
-				stagingBuffer, sprite, 4L * 16 * 16 * (numTileSprites + numEntitySprites + index)
-			)
+			val stagingOffset = stagingWaterSprites.offset + spriteByteSize * index
+			boiler.buffers.encodeBufferedImageRGBA(stagingBuffer, sprite, stagingOffset)
 		}
 		for (character in story.getPlayableCharacters()) {
 			entitySpriteIndices[character.areaModel] = imageIndex
 			for (sprite in character.areaModel.allSprites) {
-				boiler.buffers.encodeBufferedImageRGBA(stagingBuffer, sprite, 4L * 16 * 16 * imageIndex)
+				val stagingOffset = stagingSprites.offset + spriteByteSize * imageIndex
+				boiler.buffers.encodeBufferedImageRGBA(stagingBuffer, sprite, stagingOffset)
 				imageIndex += 1
 			}
 		}
 
-		// TODO Add nice StagingBuffer class to vk-boiler
-		val stagingCommandPool = boiler.commands.createPool(0, boiler.queueFamilies().graphics.index, "StagingPool")
-		val stagingCommandBuffer = boiler.commands.createPrimaryBuffers(stagingCommandPool, 1, "StagingCommands")[0]
-		val recorder = CommandRecorder.begin(stagingCommandBuffer, boiler, stack, "StagingCommands")
+		resources.singleTimeCommands.submit("Staging ${state.area.name}") { recorder ->
+			val imageBarriers = VkImageMemoryBarrier.calloc(1, stack)
+			val barrier = imageBarriers.get(0)
+			barrier.`sType$Default`()
+			barrier.srcAccessMask(0)
+			barrier.dstAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
+			barrier.oldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
+			barrier.newLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+			barrier.srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+			barrier.dstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+			barrier.image(images.vkImage)
+			barrier.subresourceRange().set(
+				VK_IMAGE_ASPECT_COLOR_BIT, 0, 1,
+				0, numTileSprites + numEntitySprites
+			)
+			vkCmdPipelineBarrier(
+				recorder.commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+				0, null, null, imageBarriers
+			)
 
-		val imageBarriers = VkImageMemoryBarrier.calloc(1, stack)
-		val barrier = imageBarriers.get(0)
-		barrier.`sType$Default`()
-		barrier.srcAccessMask(0)
-		barrier.dstAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
-		barrier.oldLayout(VK_IMAGE_LAYOUT_UNDEFINED)
-		barrier.newLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-		barrier.srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-		barrier.dstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-		barrier.image(images.vkImage)
-		barrier.subresourceRange().set(
-			VK_IMAGE_ASPECT_COLOR_BIT, 0, 1,
-			0, numTileSprites + numEntitySprites
-		)
-		vkCmdPipelineBarrier(
-			recorder.commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0, null, null, imageBarriers
-		)
+			barrier.image(resources.tiles.waterImages.vkImage)
+			barrier.subresourceRange().layerCount(state.area.waterSprites.size)
+			vkCmdPipelineBarrier(
+				recorder.commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+				0, null, null, imageBarriers
+			)
 
-		barrier.image(resources.tiles.waterImages.vkImage)
-		barrier.subresourceRange().layerCount(state.area.waterSprites.size)
-		vkCmdPipelineBarrier(
-			recorder.commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-			0, null, null, imageBarriers
-		)
+			val copyRegions = VkBufferImageCopy.calloc(1, stack)
+			val copy = copyRegions[0]
+			copy.bufferOffset(stagingSprites.offset)
+			copy.imageSubresource().set(VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, numTileSprites + numEntitySprites)
+			copy.imageExtent().set(16, 16, 1)
 
-		val copyRegions = VkBufferImageCopy.calloc(1, stack)
-		val copy = copyRegions[0]
-		copy.imageSubresource().set(VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, numTileSprites + numEntitySprites)
-		copy.imageExtent().set(16, 16, 1)
+			vkCmdCopyBufferToImage(
+				recorder.commandBuffer,
+				stagingBuffer.vkBuffer,
+				images.vkImage,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				copyRegions
+			)
 
-		vkCmdCopyBufferToImage(
-			recorder.commandBuffer,
-			stagingBuffer.vkBuffer,
-			images.vkImage,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			copyRegions
-		)
+			copy.bufferOffset(stagingWaterSprites.offset)
+			copy.imageSubresource().layerCount(state.area.waterSprites.size)
+			vkCmdCopyBufferToImage(
+				recorder.commandBuffer,
+				stagingBuffer.vkBuffer,
+				resources.tiles.waterImages.vkImage,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				copyRegions
+			)
 
-		copy.bufferOffset(4L * 16 * 16 * (numTileSprites + numEntitySprites))
-		copy.imageSubresource().layerCount(state.area.waterSprites.size)
-		vkCmdCopyBufferToImage(
-			recorder.commandBuffer,
-			stagingBuffer.vkBuffer,
-			resources.tiles.waterImages.vkImage,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			copyRegions
-		)
+			barrier.srcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
+			barrier.dstAccessMask(VK_ACCESS_SHADER_READ_BIT)
+			barrier.oldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+			barrier.newLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			vkCmdPipelineBarrier(
+				recorder.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				0, null, null, imageBarriers
+			)
 
-		barrier.srcAccessMask(VK_ACCESS_TRANSFER_WRITE_BIT)
-		barrier.dstAccessMask(VK_ACCESS_SHADER_READ_BIT)
-		barrier.oldLayout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-		barrier.newLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
-		vkCmdPipelineBarrier(
-			recorder.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			0, null, null, imageBarriers
-		)
+			barrier.image(images.vkImage)
+			barrier.subresourceRange().layerCount(numTileSprites + numEntitySprites)
+			vkCmdPipelineBarrier(
+				recorder.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				0, null, null, imageBarriers
+			)
 
-		barrier.image(images.vkImage)
-		barrier.subresourceRange().layerCount(numTileSprites + numEntitySprites)
-		vkCmdPipelineBarrier(
-			recorder.commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-			0, null, null, imageBarriers
-		)
-
-		recorder.copyBuffer(stagingBuffer.range(
-			4L * 16 * 16 * (numTileSprites + numEntitySprites + state.area.waterSprites.size), mapBuffer.size
-		), mapBuffer.vkBuffer, 0L)
-		recorder.bufferBarrier(mapBuffer.fullRange(), ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
-			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
-		))
-		recorder.end()
-
-		val fence = boiler.sync.fenceBank.borrowFence(false, "StagingFence")
-		boiler.queueFamilies().graphics.first().submit(recorder.commandBuffer, "Staging", null, fence)
-		fence.awaitSignal()
-		boiler.sync.fenceBank.returnFence(fence)
-
-		vkDestroyCommandPool(boiler.vkDevice(), stagingCommandPool, null)
+			recorder.copyBufferRanges(stagingMapBuffer.range(), this.mapBuffer)
+			recorder.copyBufferRanges(stagingWaterBuffer.range(), this.waterBuffer)
+			recorder.bufferBarrier(this.mapBuffer, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+			))
+			recorder.bufferBarrier(this.waterBuffer, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+			))
+		}.awaitCompletion()
 		stagingBuffer.destroy(boiler)
 
 		val imageWrites = VkDescriptorImageInfo.calloc(1, stack)
@@ -263,33 +261,36 @@ class AreaRenderer(
 		val waterSamplerWrites = VkDescriptorImageInfo.calloc(1, stack)
 		waterSamplerWrites.get(0).set(resources.tiles.waterSampler, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 
+		this.tileDescriptorSet = resources.tiles.descriptorBank.borrowDescriptorSet("AreaTiles ${state.area.name}")
+		this.waterDescriptorSet = resources.tiles.descriptorBank.borrowDescriptorSet("AreaWater ${state.area.name}")
+		this.entityDescriptorSet = resources.entities.descriptorBank.borrowDescriptorSet("AreaEntities ${state.area.name}")
+
 		val descriptorWrites = VkWriteDescriptorSet.calloc(8, stack)
-		boiler.descriptors.writeImage(descriptorWrites, resources.tiles.descriptorSet, 0,
+		boiler.descriptors.writeImage(descriptorWrites, tileDescriptorSet, 0,
 			VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, imageWrites)
-		boiler.descriptors.writeImage(descriptorWrites, resources.tiles.descriptorSet, 1, VK_DESCRIPTOR_TYPE_SAMPLER, samplerWrites)
-		boiler.descriptors.writeBuffer(stack, descriptorWrites, resources.tiles.descriptorSet, 2,
-			VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mapBuffer.range(0, baseMapBufferSize))
+		boiler.descriptors.writeImage(descriptorWrites, tileDescriptorSet, 1, VK_DESCRIPTOR_TYPE_SAMPLER, samplerWrites)
+		boiler.descriptors.writeBuffer(stack, descriptorWrites, tileDescriptorSet, 2,
+			VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, this.mapBuffer)
 
 		boiler.descriptors.writeImage(
-			descriptorWrites, resources.entities.descriptorSet, 3, VK_DESCRIPTOR_TYPE_SAMPLER, samplerWrites
+			descriptorWrites, entityDescriptorSet, 3, VK_DESCRIPTOR_TYPE_SAMPLER, samplerWrites
 		)
 		descriptorWrites.get(3).dstBinding(0)
 		boiler.descriptors.writeImage(
-			descriptorWrites, resources.entities.descriptorSet, 4, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, imageWrites
+			descriptorWrites, entityDescriptorSet, 4, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, imageWrites
 		)
 		descriptorWrites.get(4).dstBinding(1)
 
-		boiler.descriptors.writeImage(descriptorWrites, resources.tiles.waterDescriptorSet, 5,
-			VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, waterImageWrites)
+		boiler.descriptors.writeImage(
+			descriptorWrites, waterDescriptorSet, 5, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, waterImageWrites
+		)
 		descriptorWrites.get(5).dstBinding(0)
 		boiler.descriptors.writeImage(
-			descriptorWrites, resources.tiles.waterDescriptorSet,
-			6, VK_DESCRIPTOR_TYPE_SAMPLER, waterSamplerWrites
+			descriptorWrites, waterDescriptorSet, 6, VK_DESCRIPTOR_TYPE_SAMPLER, waterSamplerWrites
 		)
 		descriptorWrites.get(6).dstBinding(1)
 		boiler.descriptors.writeBuffer(
-			stack, descriptorWrites, resources.tiles.waterDescriptorSet, 7,
-			VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, mapBuffer.range(waterBufferOffset, baseMapBufferSize)
+			stack, descriptorWrites, waterDescriptorSet, 7, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, this.waterBuffer
 		)
 		descriptorWrites.get(7).dstBinding(2)
 		vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null)
@@ -394,7 +395,7 @@ class AreaRenderer(
 		}
 
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, waterPipeline)
-		recorder.bindGraphicsDescriptors(resources.tiles.pipelineLayout, resources.tiles.waterDescriptorSet)
+		recorder.bindGraphicsDescriptors(resources.tiles.pipelineLayout, waterDescriptorSet)
 		vkCmdPushConstants(
 			recorder.commandBuffer, resources.tiles.pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
 			recorder.stack.ints(targetImage.width, targetImage.height, cameraX, cameraY, scale)
@@ -402,7 +403,7 @@ class AreaRenderer(
 		vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
 
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, tilePipeline)
-		recorder.bindGraphicsDescriptors(resources.tiles.pipelineLayout, resources.tiles.descriptorSet)
+		recorder.bindGraphicsDescriptors(resources.tiles.pipelineLayout, tileDescriptorSet)
 		vkCmdPushConstants(
 			recorder.commandBuffer, resources.tiles.pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
 			recorder.stack.ints(targetImage.width, targetImage.height, cameraX, cameraY, scale)
@@ -422,7 +423,7 @@ class AreaRenderer(
 			recorder.stack.longs(entityBuffer.vkBuffer),
 			recorder.stack.longs(0)
 		)
-		recorder.bindGraphicsDescriptors(resources.entities.pipelineLayout, resources.entities.descriptorSet)
+		recorder.bindGraphicsDescriptors(resources.entities.pipelineLayout, entityDescriptorSet)
 		vkCmdPushConstants(
 			recorder.commandBuffer, resources.entities.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
 			recorder.stack.ints(targetImage.width, targetImage.height, cameraX, cameraY, scale)
@@ -432,9 +433,12 @@ class AreaRenderer(
 
 	fun destroy() {
 		images.destroy(boiler)
-		mapBuffer.destroy(boiler)
+		mapBuffer.buffer.destroy(boiler)
 		entityBuffer.destroy(boiler)
 		vkDestroyPipeline(boiler.vkDevice(), this.tilePipeline, null)
 		vkDestroyPipeline(boiler.vkDevice(), this.waterPipeline, null)
+		resources.tiles.descriptorBank.returnDescriptorSet(tileDescriptorSet)
+		resources.tiles.descriptorBank.returnDescriptorSet(waterDescriptorSet)
+		resources.entities.descriptorBank.returnDescriptorSet(entityDescriptorSet)
 	}
 }

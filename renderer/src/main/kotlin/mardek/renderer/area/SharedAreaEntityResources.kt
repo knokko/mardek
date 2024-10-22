@@ -1,7 +1,7 @@
 package mardek.renderer.area
 
 import com.github.knokko.boiler.BoilerInstance
-import com.github.knokko.boiler.descriptors.HomogeneousDescriptorPool
+import com.github.knokko.boiler.descriptors.GrowingDescriptorBank
 import com.github.knokko.boiler.descriptors.VkbDescriptorSetLayout
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import org.lwjgl.system.MemoryStack
@@ -18,9 +18,8 @@ class SharedAreaEntityResources(
 	targetImageFormat: Int
 ) {
 
-	val descriptorSetLayout: VkbDescriptorSetLayout
-	val descriptorPool: HomogeneousDescriptorPool
-	val descriptorSet: Long
+	private val descriptorSetLayout: VkbDescriptorSetLayout
+	val descriptorBank: GrowingDescriptorBank
 
 	val pipelineLayout: Long
 	val graphicsPipeline: Long
@@ -31,8 +30,7 @@ class SharedAreaEntityResources(
 		boiler.descriptors.binding(descriptorBindings, 1, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, VK_SHADER_STAGE_FRAGMENT_BIT)
 
 		this.descriptorSetLayout = boiler.descriptors.createLayout(stack, descriptorBindings, "AreaEntityDSLayout")
-		this.descriptorPool = descriptorSetLayout.createPool(1, 0, "AreaEntityDescriptorPool")
-		this.descriptorSet = descriptorPool.allocate(1)[0]
+		this.descriptorBank = GrowingDescriptorBank(descriptorSetLayout, 0)
 
 		val pushConstants = VkPushConstantRange.calloc(1, stack)
 		pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 20)
@@ -72,7 +70,7 @@ class SharedAreaEntityResources(
 	}
 
 	fun destroy(boiler: BoilerInstance) {
-		descriptorPool.destroy()
+		descriptorBank.destroy(true)
 		descriptorSetLayout.destroy()
 		vkDestroyPipeline(boiler.vkDevice(), graphicsPipeline, null)
 		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)
