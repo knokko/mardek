@@ -14,11 +14,6 @@ class SharedAreaTileResources(
 ) {
 	val pipelineLayout: Long
 
-	val waterImages = boiler.images.create( // TODO Stop sharing this
-		16, 16, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
-		VK_IMAGE_ASPECT_COLOR_BIT, VK_SAMPLE_COUNT_1_BIT, 1, 5, true, "WaterImages"
-	)
-
 	val vertexModule = boiler.pipelines.createShaderModule(
 		"mardek/renderer/area/tiles.vert.spv", "TilesVertexShader"
 	)
@@ -67,7 +62,6 @@ class SharedAreaTileResources(
 		vkDestroyShaderModule(boiler.vkDevice(), waterModule, null)
 		descriptorBank.destroy(true)
 		descriptorSetLayout.destroy()
-		waterImages.destroy(boiler)
 		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)
 		vkDestroySampler(boiler.vkDevice(), waterSampler, null)
 	}
