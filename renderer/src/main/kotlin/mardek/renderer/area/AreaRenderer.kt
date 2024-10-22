@@ -298,16 +298,33 @@ class AreaRenderer(
 	fun render(recorder: CommandRecorder, targetImage: VkbImage) {
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
-		// The original MARDEK allow players to see at most 5 tiles above/below the player,
-		// and at most 7 tiles left/right from the player
-		val baseHorizontalTiles = targetImage.width / 16.0
-		val baseVerticalTiles = targetImage.height / 16.0
-		val floatScaleX = baseHorizontalTiles / 15.0
-		val floatScaleY = baseVerticalTiles / 11.0
-		val floatScale = max(floatScaleX, floatScaleY)
+		val baseVisibleHorizontalTiles = targetImage.width / 16.0
+		val baseVisibleVerticalTiles = targetImage.height / 16.0
 
-		// Round the scale in favor of the player
-		val scale = max(1, floatScale.toInt())
+		// The original MARDEK allow players to see at most 5 tiles above/below the player,
+		// and at most 7 tiles left/right from the player.
+
+		// I will aim for 6 tiles above/below the player, and let the aspect ratio determine the number of tiles
+		// that can be seen left/right from the player, within reason.
+		val floatScale = baseVisibleVerticalTiles / 13.0
+
+		// Use integer scales to keep the tiles pretty
+		val scale = max(1, floatScale.roundToInt())
+
+		// Without restrictions, players with very wide screens/windows could see way too many tiles left/right
+		// from the player. I will enforce a maximum of 14.5 tiles left/right, which is already ridiculous.
+		val maxVisibleHorizontalTiles = 30.0
+		val visibleHorizontalTiles = baseVisibleHorizontalTiles / scale
+
+		var scissorLeft = 0
+		if (visibleHorizontalTiles > maxVisibleHorizontalTiles) {
+			scissorLeft = (targetImage.width * ((visibleHorizontalTiles - maxVisibleHorizontalTiles) / visibleHorizontalTiles) / 2.0).roundToInt()
+			val scissors = VkRect2D.calloc(1, recorder.stack)
+			scissors.get(0).offset().set(scissorLeft, 0)
+			scissors.get(0).extent().set(targetImage.width - 2 * scissorLeft, targetImage.height)
+			vkCmdSetScissor(recorder.commandBuffer, 0, scissors)
+		}
+
 		val tileSize = 16 * scale
 
 		var cameraX = 0
@@ -337,12 +354,12 @@ class AreaRenderer(
 				if (p >= 0.25 && p < 0.75) spriteIndex += 1
 			}
 
-			y -= 4 * scale
-
 			if (index == 0) {
-				cameraX = x
-				cameraY = y
+				cameraX = x + tileSize / 2
+				cameraY = y + tileSize / 2
 			}
+
+			y -= 4 * scale
 
 			var directionX: Int
 			var directionY: Int
@@ -369,8 +386,12 @@ class AreaRenderer(
 			numEntities += 1
 		}
 
-		cameraX = min(state.area.width * tileSize - targetImage.width / 2, max(targetImage.width / 2, cameraX))
-		cameraY = min(state.area.height * tileSize - targetImage.height / 2, max(targetImage.height / 2, cameraY))
+		val minCameraX = targetImage.width / 2 - scissorLeft
+		val maxCameraX = state.area.width * tileSize - targetImage.width / 2 + scissorLeft
+		if (state.area.width * tileSize > targetImage.width) cameraX = min(maxCameraX, max(minCameraX, cameraX))
+		if (state.area.height * tileSize > targetImage.height) {
+			cameraY = min(state.area.height * tileSize - targetImage.height / 2, max(targetImage.height / 2, cameraY))
+		}
 
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, waterPipeline)
 		recorder.bindGraphicsDescriptors(resources.tiles.pipelineLayout, resources.tiles.waterDescriptorSet)
