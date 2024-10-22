@@ -1,10 +1,7 @@
 package mardek.renderer.area
 
 import com.github.knokko.boiler.BoilerInstance
-import com.github.knokko.boiler.buffers.MappedVkbBuffer
-import com.github.knokko.boiler.buffers.SharedDeviceBufferBuilder
-import com.github.knokko.boiler.buffers.SharedMappedBufferBuilder
-import com.github.knokko.boiler.buffers.VkbBufferRange
+import com.github.knokko.boiler.buffers.*
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
@@ -15,7 +12,6 @@ import mardek.assets.area.Tile
 import mardek.state.area.AreaState
 import mardek.state.story.StoryState
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.system.MemoryUtil.memIntBuffer
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 import kotlin.math.max
@@ -27,7 +23,8 @@ class AreaRenderer(
 	private val story: StoryState,
 	private val boiler: BoilerInstance,
 	private val resources: SharedAreaResources,
-	stack: MemoryStack
+	stack: MemoryStack,
+	numFramesInFlight: Int
 ) {
 
 	private val tilePipeline: Long
@@ -36,7 +33,7 @@ class AreaRenderer(
 	private val images: VkbImage
 	private val mapBuffer: VkbBufferRange
 	private val waterBuffer: VkbBufferRange
-	private val entityBuffer: MappedVkbBuffer
+	private val entityBuffers: List<MappedVkbBufferRange>
 
 	private val tileSpriteIndices = mutableMapOf<Tile, Int>()
 	private val entitySpriteIndices = mutableMapOf<AreaCharacterModel, Int>()
@@ -113,9 +110,10 @@ class AreaRenderer(
 		}
 
 		val maxActiveEntities = 4 + extraEntities.size
-		this.entityBuffer = boiler.buffers.createMapped(
-			maxActiveEntities * 12L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, "AreaEntityBuffer ${state.area.name}"
-		)
+		val entityBuilder = SharedMappedBufferBuilder(boiler)
+		val entityBuffers = (0 until numFramesInFlight).map { entityBuilder.add(maxActiveEntities * 12L, 0) }
+		entityBuilder.build(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, "AreaEntityBuffers ${state.area.name}")
+		this.entityBuffers = entityBuffers.map { it.get() }
 
 		val builder = GraphicsPipelineBuilder(boiler, stack)
 
@@ -271,7 +269,7 @@ class AreaRenderer(
 		vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null)
 	}
 
-	fun render(recorder: CommandRecorder, targetImage: VkbImage) {
+	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
 		val baseVisibleHorizontalTiles = targetImage.width / 16.0
@@ -307,7 +305,7 @@ class AreaRenderer(
 		var cameraY = 0
 
 		var numEntities = 0
-		val hostEntityBuffer = memIntBuffer(entityBuffer.hostAddress, entityBuffer.size.toInt() / 4)
+		val hostEntityBuffer = entityBuffers[frameIndex].intBuffer()
 		val nextPlayerPosition = state.nextPlayerPosition
 		for ((index, character) in story.party.withIndex().reversed()) {
 			if (character == null) continue
@@ -395,8 +393,8 @@ class AreaRenderer(
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.entities.graphicsPipeline)
 		vkCmdBindVertexBuffers(
 			recorder.commandBuffer, 0,
-			recorder.stack.longs(entityBuffer.vkBuffer),
-			recorder.stack.longs(0)
+			recorder.stack.longs(entityBuffers[frameIndex].buffer.vkBuffer),
+			recorder.stack.longs(entityBuffers[frameIndex].offset)
 		)
 		recorder.bindGraphicsDescriptors(resources.entities.pipelineLayout, entityDescriptorSet)
 		vkCmdPushConstants(
@@ -409,7 +407,7 @@ class AreaRenderer(
 	fun destroy() {
 		images.destroy(boiler)
 		mapBuffer.buffer.destroy(boiler)
-		entityBuffer.destroy(boiler)
+		entityBuffers[0].buffer.destroy(boiler)
 		vkDestroyPipeline(boiler.vkDevice(), this.tilePipeline, null)
 		vkDestroyPipeline(boiler.vkDevice(), this.waterPipeline, null)
 		resources.tiles.descriptorBank.returnDescriptorSet(tileDescriptorSet)

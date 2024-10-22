@@ -20,8 +20,7 @@ class GameWindow(
 	private val state: GameStateManager,
 	private val renderer: GameRenderer
 ): SimpleWindowRenderLoop(
-	// TODO Add support for frames in flight after fixing (tile) renderer
-	window, 1, true, VK_PRESENT_MODE_MAILBOX_KHR,
+	window, 2, false, VK_PRESENT_MODE_MAILBOX_KHR,
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
 
@@ -48,7 +47,10 @@ class GameWindow(
 		}
 		updateCounter.increment()
 		synchronized(state.lock()) {
-			renderer.render(state.currentState, recorder, acquiredImage.image(), window.surfaceFormat)
+			renderer.render(
+				state.currentState, recorder, acquiredImage.image(),
+				window.surfaceFormat, numFramesInFlight, frameIndex
+			)
 		}
 	}
 

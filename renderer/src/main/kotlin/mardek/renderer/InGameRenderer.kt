@@ -11,20 +11,21 @@ import org.lwjgl.system.MemoryStack.stackPush
 class InGameRenderer(
 	private val state: InGameState,
 	boiler: BoilerInstance,
-	private val targetImageFormat: Int
+	private val targetImageFormat: Int,
+	private val framesInFlight: Int
 ): StateRenderer(boiler) {
 
 	private val areaResources = stackPush().use { stack -> SharedAreaResources(boiler, stack, targetImageFormat) }
 	private var lastArea = state.area
 	private var areaRenderer = createAreaRenderer()
 
-	override fun render(recorder: CommandRecorder, targetImage: VkbImage) {
+	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
 		if (state.area != lastArea) {
 			areaRenderer.destroy()
 			lastArea = state.area
 			areaRenderer = createAreaRenderer()
 		}
-		areaRenderer.render(recorder, targetImage)
+		areaRenderer.render(recorder, targetImage, frameIndex)
 	}
 
 	override fun destroy() {
@@ -33,6 +34,6 @@ class InGameRenderer(
 	}
 
 	private fun createAreaRenderer() = stackPush().use {
-		stack -> AreaRenderer(lastArea, state.story, boiler, areaResources, stack)
+		stack -> AreaRenderer(lastArea, state.story, boiler, areaResources, stack, framesInFlight)
 	}
 }

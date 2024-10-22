@@ -15,10 +15,14 @@ class GameRenderer(private val boiler: BoilerInstance) {
 	private var lastState: GameState? = null
 	private lateinit var currentRenderer: StateRenderer
 
-	fun render(state: GameState, recorder: CommandRecorder, targetImage: VkbImage, targetImageFormat: Int) {
+	fun render(
+		state: GameState, recorder: CommandRecorder,
+		targetImage: VkbImage, targetImageFormat: Int,
+		numFramesInFlight: Int, frameIndex: Int
+	) {
 		if (state != lastState) {
 			if (this::currentRenderer.isInitialized) currentRenderer.destroy()
-			currentRenderer = createRenderer(state, targetImageFormat)
+			currentRenderer = createRenderer(state, targetImageFormat, numFramesInFlight)
 			lastState = state
 		}
 
@@ -31,7 +35,7 @@ class GameRenderer(private val boiler: BoilerInstance) {
 			targetImage.width, targetImage.height, colorAttachments, null, null
 		)
 
-		currentRenderer.render(recorder, targetImage)
+		currentRenderer.render(recorder, targetImage, frameIndex)
 
 		recorder.endDynamicRendering()
 	}
@@ -40,8 +44,8 @@ class GameRenderer(private val boiler: BoilerInstance) {
 		if (this::currentRenderer.isInitialized) currentRenderer.destroy()
 	}
 
-	private fun createRenderer(state: GameState, targetImageFormat: Int): StateRenderer {
-		if (state is InGameState) return InGameRenderer(state, boiler, targetImageFormat)
+	private fun createRenderer(state: GameState, targetImageFormat: Int, numFramesInFlight: Int): StateRenderer {
+		if (state is InGameState) return InGameRenderer(state, boiler, targetImageFormat, numFramesInFlight)
 
 		throw UnsupportedOperationException("Unexpected state $state")
 	}
