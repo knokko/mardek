@@ -34,6 +34,7 @@ fun importArea(areaName: String): Area {
 	var tileIDs: IntArray? = null
 	var width = 0
 	var height = 0
+
 	val scanner = Scanner(TileSlice::class.java.getResourceAsStream("data/$areaName.txt"))
 	while (scanner.hasNextLine()) {
 		val line = scanner.nextLine().replace(" ", "")
