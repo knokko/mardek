@@ -163,7 +163,15 @@ A_sprites = [
 		model:"area_transition",
 		x:39,y:19,
 		dir:"n",
-		dest:["aeropolis_N_TYALORT",10,12]},{name:"House",model:"area_transition",x:33,y:8,dir:"n",dest:["aeropolis_N_house",3,5]},{name:"House",model:"area_transition",x:39,y:8,dir:"n",dest:["aeropolis_N_house2",4,8]},{name:"House",model:"area_transition",x:43,y:12,dir:"n",dest:["aeropolis_N_house3",3,5]},{name:"House",model:"area_transition",x:40,y:33,dir:"n",dest:["aeropolis_N_house4",4,8]},{name:"Item Shop",model:"area_transition",x:43,y:27,dir:"n",dest:["aeropolis_N_iShop",3,6]},{name:"North",model:"area_transition",x:23,y:5,dir:"n",dest:["aeropolis_PALACE",1,1],ARROW:"N"},{name:"West",model:"area_transition",x:8,y:29,dir:"w",dest:["aeropolis_W",30,8],ARROW:"W"},{name:"West",model:"area_transition",x:8,y:30,dir:"w",dest:["aeropolis_W",30,9],ARROW:"W"},{name:"South",model:"area_transition",x:22,y:36,dir:"s",dest:["aeropolis_S",22,7],ARROW:"S"},{name:"South",model:"area_transition",x:23,y:36,dir:"s",dest:["aeropolis_S",23,7],ARROW:"S"},{name:"South",model:"area_transition",x:24,y:36,dir:"s",dest:["aeropolis_S",24,7],ARROW:"S"},
+		dest:["aeropolis_N_TYALORT",10,12]
+	},
+	{
+		name:"House",
+		model:"area_transition",
+		x:33,y:8,
+		dir:"n",
+		dest:["aeropolis_N_house",3,5]
+	},{name:"House",model:"area_transition",x:39,y:8,dir:"n",dest:["aeropolis_N_house2",4,8]},{name:"House",model:"area_transition",x:43,y:12,dir:"n",dest:["aeropolis_N_house3",3,5]},{name:"House",model:"area_transition",x:40,y:33,dir:"n",dest:["aeropolis_N_house4",4,8]},{name:"Item Shop",model:"area_transition",x:43,y:27,dir:"n",dest:["aeropolis_N_iShop",3,6]},{name:"North",model:"area_transition",x:23,y:5,dir:"n",dest:["aeropolis_PALACE",1,1],ARROW:"N"},{name:"West",model:"area_transition",x:8,y:29,dir:"w",dest:["aeropolis_W",30,8],ARROW:"W"},{name:"West",model:"area_transition",x:8,y:30,dir:"w",dest:["aeropolis_W",30,9],ARROW:"W"},{name:"South",model:"area_transition",x:22,y:36,dir:"s",dest:["aeropolis_S",22,7],ARROW:"S"},{name:"South",model:"area_transition",x:23,y:36,dir:"s",dest:["aeropolis_S",23,7],ARROW:"S"},{name:"South",model:"area_transition",x:24,y:36,dir:"s",dest:["aeropolis_S",24,7],ARROW:"S"},
 	{
 		name:"WALK_TRIGGER",
 		model:"_trigger",

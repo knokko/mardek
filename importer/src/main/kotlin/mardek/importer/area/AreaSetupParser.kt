@@ -11,19 +11,22 @@ fun parseAreaSetup(rawParameters: String): Map<String, String> {
 	val keyStorage = StringBuilder()
 	val valueStorage = StringBuilder()
 
-	var state = State.Key
+	val STATE_KEY = 0
+	val STATE_VALUE = 1
+
+	var state = STATE_KEY
 	var depth = 0
 
 	for (character in content) {
 		if (depth == 1) {
 			if (character == ':'.code) {
-				parseAssert(state == State.Key, "Unexpected : in state $state at depth 0")
-				state = State.Value
+				parseAssert(state == STATE_KEY, "Unexpected : in state $state at depth 0")
+				state = STATE_VALUE
 				continue
 			}
 			if (character == ','.code || (character == '}'.code && keyStorage.isNotEmpty())) {
-				parseAssert(state == State.Value, "Unexpected , in state $state at depth 0")
-				state = State.Key
+				parseAssert(state == STATE_VALUE, "Unexpected , in state $state at depth 0")
+				state = STATE_KEY
 				entries[keyStorage.toString()] = valueStorage.toString()
 				keyStorage.clear()
 				valueStorage.clear()
@@ -33,7 +36,7 @@ fun parseAreaSetup(rawParameters: String): Map<String, String> {
 		}
 
 		if (depth > 0) {
-			if (state == State.Key) keyStorage.appendCodePoint(character)
+			if (state == STATE_KEY) keyStorage.appendCodePoint(character)
 			else valueStorage.appendCodePoint(character)
 		}
 
@@ -58,9 +61,4 @@ fun parseAreaFlags(entries: Map<String, String>): AreaFlags {
 		miasma = entries["MIASMA"] == "true" || entries["MIASMA"] == "1",
 		noStorage = entries["NoStorage"] == "true"
 	)
-}
-
-private enum class State {
-	Key,
-	Value
 }

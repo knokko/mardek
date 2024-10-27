@@ -1,0 +1,55 @@
+SWITCH_GEMS = {ruby:[1,"red"],amethyst:[2,"purple"],moonstone:[3,"white"],emerald:[4,"green"],topaz:[5,"yellow"],turquoise:[6,"turquoise"],sapphire:[7,"blue"]};
+_root.createEmptyMovieClip("_BlackBorder",1002);
+with(_BlackBorder)
+{
+   beginFill(0)
+   moveTo(-200,-200)
+   lineTo(STAGEW + 200,-200)
+   lineTo(STAGEW + 200,STAGEH + 200)
+   lineTo(-200,STAGEH + 200)
+   lineTo(-200,0)
+   lineTo(0,0)
+   lineTo(0,STAGEH)
+   lineTo(STAGEW,STAGEH)
+   lineTo(STAGEW,0)
+   lineTo(-200,0)
+   lineTo(-200,-200)
+   endFill()
+
+};
+MovieClip.prototype.GetCoords = function()
+{
+   return [Math.floor(this._x / _root.TILESIZE),Math.floor(this._y / _root.TILESIZE)];
+};
+// Ignore the first 0's in each hex code?
+HexTileObjects = {
+	Off0000:["torch",3,2,16,["deepred",12]],
+	O3b3349:["SkullBrazier",3,0,32,["deepred",-37]],
+	Off9900:["torch",3,0,16,[1,12]],
+	Offff71:["torch",3,1,16,["yellow",12]],
+	Obcaf71:["solakStatue",9,0,32],
+	Occ00:["YBrazier",3,0,32,["green",-37]],
+	O4f3e67:["torch",3,3,16,["purple2",12]],
+	O4aff66:["torch",3,4,16,["green",12]],
+	O66ff66:["GreenScreen",12,0,16],
+	O27de1a:["GreenCrystal",3,0,24,["green",0]],
+	Offed82:["YellowBrazier",3,0,32,["yellow",-37]],
+	Off:["torch",3,5,16,["blue3",12]],
+	Off9933:["fierybrazier",3,0,32,["brazier",-6]],
+	O264f4a:["CyanBrazier",3,0,32,["cyan",-37]]
+};
+TilesetGlowtiles = {
+	saucer2:{t118:128,t11:131,t12:132,t13:133,t14:134,t16:136,t17:137,t110:140,t111:141,t112:142,t113:143,t114:144,t115:145,t116:146,t117:147,t119:149,t120:150,t121:151,t122:152},
+	suntemple:{t123:126,t124:127,t125:128,t133:136,t134:137,t135:138,t143:146,t144:147,t145:148,t28:29},
+	temple_WATER:{t123:113},
+	citadel:{t20:21},
+	dreamshrine:{t20:21},
+	astral:{t12:13},
+	cave2_dream:{t113:113,t120:120,t121:121,t122:122,t123:123,t124:124,t125:125,t126:126,t127:127},
+	catacombs:{GLOWSPEED:10,t24:25}
+};
+TilesetLongGrass = {darkwood:[0,13],darkwood_dream:[1,13],lifewood:[2,14],lifewood_dream:[3,14],rural:[4,15]};
+TilesetExamineTiles = {aeropolis:{phrases:["It\'s a stall, containing various kinds of fruit."],t31:0,t32:0,t33:0},cave_aqua:{phrases:["Though exquisitely beautiful, this crystal formation is of no use to you."],t20:0},deadhouse:{phrases:["Here lie the grimy skeletal remains of a human. Whoever they once belonged to most probably did not die of natural causes.","This bookshelf is full of grim tomes about Necromancy, which really aren\'t worth looking twice at. What use would raising the dead ever be to you?","A dusty, cracked old pot, completely empty. Whoever owns this place obviously doesn\'t take care of it at all.","A human skull, placed inauspiciously on a table. It looks like it serves either as a morbid ornament, or was at one point studied scrutinously.","A large tome - about Necromancy, of course - is laid out on the table. You can\'t make sense of all the dark glyphs and runes, but they\'re surrounded by skulls and crossbones and it all looks rather pretentious.","A human skeleton is laid out on the table, its bones spread to make it appear much taller than it would have been in life. Whoever did this has zero respect for the dead... as if that\'s not obvious from everything else in the house."],t13:0,t14:0,t114:0,t115:0,t116:0,t117:0,t118:0,t119:0,t20:1,t21:2,t22:3,t23:4,t24:5,t25:5},goldfish:{phrases:[""],tx:0},interior1:{phrases:["A pile of sketches lies here, showing various different designs for clockwork automatons.","It\'s a book about engineering, specifically the construction of clockwork automatons. It\'s expert stuff; well above your comprehension level.","A spanner is strewn haphazardly on the table, along with a smattering of nuts and bolts."],t28:0,t212:1,t213:2},monastery:{phrases:["A large statue of YALORT, the Omnidragon, scuplted from pure onyx, with emeralds for eyes."],t31:0},monastery_lost:{phrases:["A large statue of YALORT, the Omnidragon, scuplted from pure onyx, with emeralds for eyes.","A large statue of YALORT... or at least, it used to be. The years have not been kind to it, and it is now crumbled and overgrown with vines."],t31:0,t34:1},saucer2:{phrases:["It appears to be some kind of computer console... Not that you have any idea what one of those is, since computers haven\'t been invented yet on Belfan. It doesn\'t seem to be doing anything other than just flashing pointlessly. But why?!?","This thing is an impassable forcefield. It blocks your path, obviously."],t18:0,t28:0,t21:1},suntemple:{phrases:["I bet you wish you could read this book, don\'t you? Well, you can\'t. You simply can\'t. Why not? Because it\'s too hard for you. That\'s why.","It\'s supposed to be a cactus of some description, with yellow flowers."],t24:0,t25:0,t214:0,t215:0,t26:1},temple_EARTH:{phrases:["It appears to be some kind of plant bud. It looks eager to flower, but not yet capable of it.","This bud has flowered, apparently. It\'s not really a very impressive flower though, is it? It should be all gloriously vibrant petals and everything, but it\'s simply not. How disappointing."],t20:0,t21:1},warport:{phrases:["It contains a strictly-written list of Rules of Conduct in this warport, and reminders about various things in case you forget. As if you\'re going to read it, though!","It\'s an advert for Potions. Ogling it instills within you the desire to purchase and then imbibe one. After all, they\'re only 30 gold pieces. What a bargain! The advert also claims that they enhance the splendour of one\'s manhood. Whatever that even means, it makes you want one all the more!","COMEING fOON TO A THEATRE NEARE YOU!! \"M\" THE PLAYE ~ A THRILLINGE ADVENTURE AWATEf! FIND OUT WHAT HAPPENEDE WHEN A KNITE FROM THE NORTH fAVED THE WORLDE FROM A fKY fAUCRE FROM THE fKYE! ~ AEROPOLIf THEATRE"],t16:0,t131:1,t132:1,t133:2,t134:2}};
+TilesetLighting = {dragonlair:16671073,catacombs:5729963};
+BIGDOORSHEET = flash.display.BitmapData.loadBitmap("BIGDOORSHEET");
+DOORSHEET = flash.display.BitmapData.loadBitmap("DOORSHEET");
