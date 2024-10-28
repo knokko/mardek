@@ -408,6 +408,10 @@ class TestAreaEntityParser {
 					"   _root.WarpTrans([\"canonia_woods\",23,61]);\n" +
 					"}}"
 		)
+		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
+			"canonia_woods", 23, 61, direction = null
+		))
+		assertEquals(expected, actual)
 	}
 
 	@Test
@@ -423,41 +427,67 @@ class TestAreaEntityParser {
 					"   _root.WarpTrans([\"canonia_woods_d\",23,61]);\n" +
 					"}}"
 		)
+		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
+			"canonia_woods_d", 23, 61, direction = null
+		))
+		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseDreamCircleSpecialEnter() {
+		val flashCode = "function()\n" +
+		"{\n" +
+				"   if(!_root.HasAlly(\"Gloria\") && !HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
+				"   {\n" +
+				"      return undefined;\n" +
+				"   }\n" +
+				"   if(!HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
+				"   {\n" +
+				"      MAKEPARTY([\"Mardek\",\"Gloria\",\"Elwyen\",\"Solaar\"],true);\n" +
+				"   }\n" +
+				"   _root.WarpTrans([\"canonia_dreamcave_d\",8,5]);\n" +
+				"}"
 		val actual = parseAreaEntityRaw(
-			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:true,ExecuteScript:function()\n" +
-					"{\n" +
-					"   if(!_root.HasAlly(\"Gloria\") && !HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
-					"   {\n" +
-					"      return undefined;\n" +
-					"   }\n" +
-					"   if(!HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
-					"   {\n" +
-					"      MAKEPARTY([\"Mardek\",\"Gloria\",\"Elwyen\",\"Solaar\"],true);\n" +
-					"   }\n" +
-					"   _root.WarpTrans([\"canonia_dreamcave_d\",8,5]);\n" +
-					"}}"
+			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:true,ExecuteScript:$flashCode}"
 		)
+		val expected = AreaTrigger(
+			name = "TRANSPORT_TRIGGER",
+			x = 8,
+			y = 5,
+			flashCode = flashCode,
+			oneTimeOnly = false,
+			oncePerAreaLoad = false,
+			walkOn = true
+		)
+		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseDreamCircleSpecialExit() {
+		val flashCode = "function()\n" +
+				"{\n" +
+				"   if(!GameData.plotVars.Mardek_itj_dreamcave1)\n" +
+				"   {\n" +
+				"      _root.Interjection(\"Mardek\",\"dreamcave1\",\"c_A_Gloria\");\n" +
+				"   }\n" +
+				"   else\n" +
+				"   {\n" +
+				"      _root.WarpTrans([\"canonia_dreamcave\",8,5]);\n" +
+				"   }\n" +
+				"}"
 		val actual = parseAreaEntityRaw(
-			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:Boolean(GameData.plotVars.Mardek_itj_dreamcave1),ExecuteScript:function()\n" +
-					"{\n" +
-					"   if(!GameData.plotVars.Mardek_itj_dreamcave1)\n" +
-					"   {\n" +
-					"      _root.Interjection(\"Mardek\",\"dreamcave1\",\"c_A_Gloria\");\n" +
-					"   }\n" +
-					"   else\n" +
-					"   {\n" +
-					"      _root.WarpTrans([\"canonia_dreamcave\",8,5]);\n" +
-					"   }\n" +
-					"}}"
+			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:Boolean(GameData.plotVars.Mardek_itj_dreamcave1),ExecuteScript:$flashCode}"
 		)
+		val expected = AreaTrigger(
+			name = "TRANSPORT_TRIGGER",
+			x = 8,
+			y = 5,
+			flashCode = flashCode,
+			oneTimeOnly = false,
+			oncePerAreaLoad = false,
+			walkOn = null
+		)
+		assertEquals(expected, actual)
 	}
 
 	@Test
@@ -466,23 +496,71 @@ class TestAreaEntityParser {
 			"{name:\"Portal\",model:\"o_portal\",x:36,y:4," +
 					"conv:[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]}"
 		)
+		val expected = AreaObject(
+			spritesheetName = "obj_portal",
+			firstFrameIndex = null,
+			numFrames = null,
+			x = 36,
+			y = 4,
+			conversationName = null,
+			rawConversion = "[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]",
+			signType = null
+		)
+		assertEquals(expected, actual)
+	}
+
+	@Test
+	fun testParseWarportExamine() {
+		val actual = parseAreaEntityRaw(
+			"{name:\"Portal\",model:\"o_portal\",x:6,y:6,walkable:true," +
+					"conv:[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]}"
+		)
+		val expected = AreaDecoration(
+			x = 6, y = 6, spritesheetName = "obj_portal",
+			rawConversation = "[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]"
+		)
+		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseValidWarportPortal() {
 		val actual = parseAreaEntityRaw(
-			"{name:\"Portal\",model:\"o_portal\",x:6,y:6,walkable:true," +
-					"conv:[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]}"
-		)
-		val actual2 = parseAreaEntityRaw(
 			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:6,y:6,triggers:-1,WALKON:true,ExecuteScript:function()\n" +
 					"{\n" +
 					"   _root.WarpTrans([\"warport1T2\",36,4]);\n" +
 					"}}"
 		)
+		val expected = AreaPortal(
+			x = 6, y = 6, destination = TransitionDestination("warport1T2", 36, 4, direction = null)
+		)
+		assertEquals(expected, actual)
 	}
 
-	// TODO Test portals and dream circles
+	@Test
+	fun testParseSwitchOrb() {
+		val actual = parseAreaEntityRaw(
+			"{name:\"Turquoise Keystone\",model:\"object\",x:3,y:2,type:\"switch_orb\"," +
+					"colour:\"turquoise\",base:\"gold\",conv_action:1}"
+		)
+		val expected = AreaSwitchOrb(x = 3, y = 2, color = "turquoise")
+		assertEquals(expected, actual)
+	}
 
-	// TODO Switches, platforms, gates
+	@Test
+	fun testParseSwitchGate() {
+		val actual = parseAreaEntityRaw(
+			"{name:\"Moonstone Gate\",model:\"object\",x:12,y:14,type:\"switch_gate\",colour:\"moonstone\"}"
+		)
+		val expected = AreaSwitchGate(x = 12, y = 14, color = "moonstone")
+		assertEquals(expected, actual)
+	}
+
+	@Test
+	fun testParseSwitchPlatform() {
+		val actual = parseAreaEntityRaw(
+			"{name:\"Turquoise Platform\",model:\"object\",x:31,y:8,type:\"switch_platform\",colour:\"turquoise\"}"
+		)
+		val expected = AreaSwitchPlatform(x = 31, y = 8, color = "turquoise")
+		assertEquals(expected, actual)
+	}
 }

@@ -21,9 +21,9 @@ class AreaTrigger(
 	val oncePerAreaLoad: Boolean,
 	/**
 	 * Seems to be true for most teleporting triggers. It means that it only triggers after the player
-	 * **reaches** the tile.
+	 * **reaches** the tile. When `walkOn == null`, it is... complicated
 	 */
-	val walkOn: Boolean
+	val walkOn: Boolean?
 ) {
 
 	override fun toString() = "Trigger(x=$x, y=$y, once=$oneTimeOnly, walkOn=$walkOn, code=$flashCode)"

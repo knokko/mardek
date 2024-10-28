@@ -67,6 +67,20 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 	val x = parseInt(rawEntity["x"])
 	val y = parseInt(rawEntity["y"])
 
+	if (model == "object") {
+		val rawType = rawEntity["type"]
+		val rawColor = rawEntity["colour"]
+		if (rawColor != null && rawType != null) {
+			val color = parseFlashString(rawColor, "colour")
+			val type = parseFlashString(rawType, "type")
+			if (color != null) {
+				if (type == "switch_orb") return AreaSwitchOrb(x = x, y = y, color = color)
+				if (type == "switch_gate") return AreaSwitchGate(x = x, y = y, color = color)
+				if (type == "switch_platform") return AreaSwitchPlatform(x = x, y = y, color = color)
+			}
+		}
+	}
+
 	if (model == "area_transition") return AreaTransition(
 		x = x,
 		y = y,
@@ -77,15 +91,37 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 	val name = parseFlashString(rawEntity["name"]!!, "name")!!
 	if (name == "Dream Circle") return "Examine Dream Circle"
 
-	if (model == "_trigger") return AreaTrigger(
-		name = name,
-		x = x,
-		y = y,
-		flashCode = rawEntity["ExecuteScript"]!!,
-		oneTimeOnly = rawEntity["triggers"] != "-1",
-		oncePerAreaLoad = rawEntity["recurring"] == "true",
-		walkOn = rawEntity["WALKON"] == "true"
-	)
+	if (model == "_trigger") {
+		val flashCode = rawEntity["ExecuteScript"]!!
+		val warpPrefix = "_root.WarpTrans("
+		if (flashCode.contains(warpPrefix)) {
+			val startIndex = flashCode.indexOf(warpPrefix) + warpPrefix.length
+			val endIndex = flashCode.indexOf(")", startIndex)
+			val destination = parseDestination(flashCode.substring(startIndex, endIndex), null)
+			val numSemicolons = flashCode.count { it == ';' }
+			var isSimplePortalOrDreamCircle = numSemicolons == 1
+			if (flashCode.contains("_root.ExitDreamrealm();") && numSemicolons == 2) {
+				isSimplePortalOrDreamCircle = true
+			}
+			if (flashCode.contains("_root.EnterDreamrealm();") && numSemicolons == 3) {
+				isSimplePortalOrDreamCircle = true
+			}
+
+			if (isSimplePortalOrDreamCircle) return AreaPortal(x = x, y = y, destination = destination)
+		}
+
+		val rawWalkOn = rawEntity["WALKON"]
+
+		return AreaTrigger(
+			name = name,
+			x = x,
+			y = y,
+			flashCode = flashCode,
+			oneTimeOnly = rawEntity["triggers"] != "-1",
+			oncePerAreaLoad = rawEntity["recurring"] == "true",
+			walkOn = if (rawWalkOn != null) { if (rawWalkOn == "true") true else null } else false
+		)
+	}
 
 	if (model == "talktrigger") return AreaTalkTrigger(
 		name = name,
@@ -103,8 +139,14 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 	val silent = rawEntity["silent"] == "true"
 
 	if (model.startsWith("o_")) {
-		return AreaObject(
-			spritesheetName = "obj_${model.substring(2)}",
+		val spritesheetName = "obj_${model.substring(2)}"
+		return if (rawEntity["walkable"] == "true") AreaDecoration(
+			x = x,
+			y = y,
+			spritesheetName = spritesheetName,
+			rawConversation = rawConversion
+		) else AreaObject(
+			spritesheetName = spritesheetName,
 			firstFrameIndex = null,
 			numFrames = null,
 			x = x,
