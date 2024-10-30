@@ -7,11 +7,21 @@ class ParsedArea(
 	val height: Int,
 	val tilesheetName: String,
 	private val tileGrid: IntArray,
-	// TODO Ambience, whatever that may be?
+	/**
+	 * Format is {ra:100,rb:0,ga:80,gb:0,ba:70,bb:0,aa:100,ab:0}, it looks like some foreground gradient between
+	 * colors (red=ra, green=ga, blue=ba, alpha=aa) to (red=rb, green=gb, blue=bb, alpha=ab).
+	 *
+	 * It's used in, among others, Goznor night, Goznor zombie outbreak, Sauls dungeon, and Goldfish
+	 */
+	val ambience: String?,
 	// TODO Entities (A_sprites)
 	// TODO Loot
 	val randomBattles: RandomAreaBattles?,
 	val musicTrack: String?,
+	/**
+	 * All areas with the same "dungeon" will share their switch gate/platform state
+	 */
+	val dungeon: String?,
 	val flags: AreaFlags,
 	/**
 	 * Upon visiting this area, the place with this name will be discovered in the encyclopedia
@@ -151,9 +161,20 @@ enum class AreaSnowType(val code: Int) {
 	Dreamwood(2)
 }
 
-enum class AreaDreamType(val code: String) {
+enum class AreaDreamType(
+	/**
+	 * Basically the hex code for the background color of the area
+	 */
+	val code: String
+) {
 	None(""),
-	DreamcaveAndDreamshrineAndEarthTemple("true"),
+	/**
+	 * Uses 4849778, or #4A0072
+	 */
+	DreamcaveAndDreamshrineAndGrottoAndEarthTemple("true"),
+	/**
+	 * No dream border
+	 */
 	DreamwoodAndCanoniaShaman("2"),
 	AstralTunnel("19000"),
 	DreamwoodCave("3342387")

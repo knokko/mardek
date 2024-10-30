@@ -1,9 +1,6 @@
 package mardek.importer.area
 
-import mardek.assets.area.AreaChestType
-import mardek.assets.area.AreaDreamType
-import mardek.assets.area.AreaSnowType
-import mardek.assets.area.ParsedArea
+import mardek.assets.area.*
 import java.lang.Integer.parseInt
 import java.util.*
 import kotlin.streams.toList
@@ -30,6 +27,13 @@ private fun parseArea2(parsing: ParsingArea1): ParsedArea {
 	val chestType = AreaChestType.entries.find { it.code == parseInt(areaSetupMap["LOOT"] ?: "0") }!!
 	val snowType = AreaSnowType.entries.find { it.code == parseInt(areaSetupMap["SNOW"] ?: "0") }!!
 
+	// TODO Test proper ambience
+	val rawDungeon = parsing.variableAssignments["dungeon"]
+	val dungeon = if (rawDungeon != null) parseFlashString(rawDungeon, "dungeon")!! else null
+
+	val rawAmbience = parsing.variableAssignments["ambience"]
+	val ambience = if (rawAmbience != null) parseFlashString(rawAmbience, "ambience") else null
+
 	var encyclopediaName: String? = null
 	val encyclopediaAdd = parsing.functionCalls.filter { it.first == "EN_ADD" }.map { it.second }
 	parseAssert(encyclopediaAdd.size <= 1, "Too many EN_ADDs: ${parsing.functionCalls}")
@@ -54,12 +58,31 @@ private fun parseArea2(parsing: ParsingArea1): ParsedArea {
 		tileGrid = tileGrid,
 		randomBattles = randomBattles,
 		musicTrack = musicTrack,
+		dungeon = dungeon,
+		ambience = ambience,
 		flags = flags,
 		encyclopediaName = encyclopediaName,
 		dreamType = dreamType,
 		chestType = chestType,
 		snowType = snowType
 	)
+}
+
+private fun parseAmbience(raw: String?): AreaAmbience? {
+	if (raw == null || raw == "null") return null
+	if (raw == "GenericExternalAmbience()") return AreaAmbience.GENERIC_EXTERNAL_AMBIENCE
+	if (raw.startsWith("{") && raw.endsWith("}")) {
+		val rawPairs = raw.substring(1, raw.length - 1).split(",")
+		val pairs = rawPairs.map { {
+			val rawSplit = it.split(":")
+			Pair(rawSplit[0], rawSplit[1])
+		} }
+
+		// TODO Use the color packer
+	}
+
+	println("can't deal with ambience $raw")
+	return null
 }
 
 private fun parseArea1(areaName: String): ParsingArea1 {

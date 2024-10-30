@@ -1,8 +1,7 @@
 package mardek.importer.area
 
 import mardek.assets.area.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class TestAreaParser {
@@ -19,6 +18,8 @@ class TestAreaParser {
 		assertEquals(12, parsed.getTileId(0, 41))
 		assertNull(parsed.randomBattles)
 		assertNull(parsed.musicTrack) // Special case because of Elwyen date
+		assertNull(parsed.dungeon)
+		assertSame(AreaAmbience.GENERIC_EXTERNAL_AMBIENCE, parsed.ambience)
 		assertEquals(AreaFlags(
 			canWarp = true,
 			hasClearMap = true,
@@ -57,6 +58,8 @@ class TestAreaParser {
 			specialBackground = null
 		), parsed.randomBattles)
 		assertEquals("MightyHeroes", parsed.musicTrack)
+		assertEquals("DragonLair", parsed.dungeon)
+		assertNull(parsed.ambience)
 		assertEquals(AreaFlags(
 			canWarp = false,
 			hasClearMap = true,
