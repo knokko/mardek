@@ -1,0 +1,33 @@
+map = [[10,13,10,10,10,10,13,13,13,13,13,13,13,13,13,13,13,10,10,10],[16,115,14,10,10,110,12,12,12,12,12,12,12,12,12,12,12,17,10,10],[16,112,14,10,110,152,20,11,11,11,136,142,142,142,142,142,138,151,17,10],[16,112,17,110,152,111,11,11,11,11,11,136,140,140,113,113,113,138,151,14],[16,112,151,152,11,11,11,11,11,11,20,11,11,11,136,113,113,113,138,14],[16,11,11,11,11,11,11,11,11,11,11,11,11,11,11,136,140,140,135,14],[10,15,15,19,11,111,11,11,11,11,11,11,11,11,11,11,11,11,20,14],[10,10,10,10,19,111,11,11,11,11,111,111,111,11,11,11,11,11,11,14],[10,10,10,10,16,111,11,111,111,111,111,111,11,111,11,18,15,15,162,10],[10,10,10,10,10,19,11,11,11,111,111,18,15,15,15,10,10,10,10,10],[10,10,10,10,10,16,11,11,11,11,18,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,15,15,19,112,14,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,16,112,14,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,16,11,14,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,15,10,10,10,10,10,10,10,10,10,10]];
+tileset = "cave4";
+area = "gemmine4";
+areaname = "Gem Mine";
+ambience = null;
+dungeon = "GemMine";
+A_sprites = [{name:"Secret Area",model:"area_transition",x:18,y:8,dest:["gemmine6",1,33]},{name:"W",model:"area_transition",x:1,y:1,dest:["gemmine5",19,5]},{name:"S",model:"area_transition",x:9,y:13,dest:["gemmine3",9,28],ARROW:"S"}];
+areaLoot = [];
+if(GameData.plotVars.BRIEFING == 2 && GameData.CHAPTER == 2)
+{
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:9,y:12,ExecuteScript:function()
+   {
+      if(GameData.plotVars.BRIEFING == 2)
+      {
+         GameData.plotVars.BRIEFING = 3;
+         _root.cont.Sharla._visible = false;
+         _root.cont.Donovan._visible = false;
+         DO_ACTIONS([["WALK",0,-2],["WALK",-1,0],["WALK",0,-1],["UNFREEZE"],["TALK","c_A_Muriance","Muriance"]],"PC",true);
+      }
+   }});
+   A_sprites.push({name:"Muriance",model:"muriance",x:10,y:5,walkspeed:-2,dir:"n",elem:"AIR",conv:"c_A_Muriance"});
+   A_sprites.push({name:"Wilhem",model:"bandit",x:9,y:5,walkspeed:-2,dir:"n",elem:"EARTH",conv:"none"});
+   A_sprites.push({name:"Donovan",model:"donovan_soldier",x:1,y:2,walkspeed:-2,dir:"e",elem:"FIRE",conv:"c_A_Donovan"});
+   A_sprites.push({name:"Sharla",model:"sharla_soldier",x:1,y:1,walkspeed:-2,dir:"e",elem:"AIR",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Emela",model:"emela_soldier",x:1,y:1,walkspeed:-2,dir:"s",elem:"WATER",conv:[["shok","ERROR!"]],PC_STATS:GameData.plotVars.Allies.Emela = GET_PC_STATS("Emela_Recruit",{UNSWITCHABLE:true})});
+   A_sprites.push({name:"Steele",model:"steele_soldier",x:1,y:1,walkspeed:-2,dir:"s",elem:"DARK",conv:[["shok","ERROR!"]],PC_STATS:GameData.plotVars.Allies.Steele = GET_PC_STATS("Steele_Recruit")});
+}
+foes = MONSTER_TABLES.GEM_MINE;
+btlChance = 3;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.GEM_MINE;
+musicTrack = GameData.plotVars.BRIEFING >= 4?"Dungeon2":"Muriance";
+AreaSetup({WARP:1,clearmap:1});

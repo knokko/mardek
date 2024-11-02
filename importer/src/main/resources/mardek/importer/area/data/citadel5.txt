@@ -1,0 +1,34 @@
+map = [[10,10,13,15,13,15,13,15,13,10,10],[10,10,113,115,113,115,113,115,113,10,10],[10,10,160,153,11,11,161,153,162,10,10],[10,10,11,11,154,155,156,11,11,10,10],[10,10,153,11,164,165,166,161,153,10,10],[10,10,161,162,174,175,176,11,11,10,10],[10,10,10,153,161,11,11,153,10,10,10],[10,10,10,10,10,112,10,10,10,10,10],[10,10,10,10,10,11,10,10,10,10,10],[10,10,13,15,13,11,13,15,13,10,10],[10,10,113,115,113,112,113,115,113,10,10],[10,10,136,153,160,11,11,153,136,10,10],[10,10,126,11,11,11,110,111,126,10,10],[10,10,126,136,11,110,121,136,126,10,10],[10,10,10,10,10,112,10,10,10,10,10],[10,10,10,10,10,11,10,10,10,10,10],[10,10,10,10,10,11,10,10,10,10,10],[10,10,13,15,13,11,13,15,13,10,10],[10,10,113,115,113,112,113,115,113,10,10],[10,10,153,136,154,155,156,136,153,10,10],[10,10,136,126,164,165,166,126,136,10,10],[10,10,126,126,174,175,176,126,126,10,10],[10,10,10,10,10,112,10,10,10,10,10],[10,10,10,10,10,11,10,10,10,10,10],[10,10,10,10,10,11,10,10,10,10,10],[10,10,10,10,13,11,13,10,10,10,10],[10,10,10,10,113,112,113,10,10,10,10],[10,10,10,10,122,123,124,10,10,10,10],[10,10,10,10,132,133,134,10,10,10,10],[10,10,10,10,142,143,144,10,10,10,10]];
+tileset = "citadel";
+area = "citadel5";
+areaname = "Miasmal Citadel";
+ambience = null;
+dungeon = "MiasmalCitadel";
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:5,y:20,walkspeed:-1,conv:"c_healingCrystal"},{name:"S Portal",model:"o_portal",x:5,y:28,walkable:true},{name:"TRANSPORT_TRIGGER",model:"_trigger",x:5,y:28,triggers:-1,WALKON:true,ExecuteScript:function()
+{
+   _root.WarpTrans(["citadel4",25,4]);
+}}];
+if(int(GameData.plotVars.GOPE) >= 2)
+{
+   A_sprites.push({name:"Gope",model:"gope",x:7,y:12,walkspeed:-1,dir:"w",elem:"EARTH",conv:"c_gope"});
+}
+if(!GameData.plotVars.KDESTRALAN)
+{
+   A_sprites.push({name:"Annihilator:Karnos",model:"ch3bosses",x:5,y:4,walkspeed:-2,dir:"s",FRAME:8,elem:"LIGHT",conv:[Do = function()
+   {
+      _root.playSFX("dragon_roar");
+      return true;
+   },["angr","Gggoooogggrrrttthh!!"],Do = function()
+   {
+      GameData.plotVars.KDESTRALAN = 1;
+      BATTLE([["Kdestralan",null,null,null],["Annihilator:Karnos",null,null,null],[50,null,null,null],"DRAGON"],"SecretBoss",true);
+      return true;
+   }]});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.MIASMAL_CITADEL;
+musicTrack = "SecretDungeon";
+AreaSetup({WARP:1,MIASMA:1});

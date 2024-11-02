@@ -1,0 +1,16 @@
+map = [[10,10,10,10,11,10,10,10,10],[10,10,10,11,11,11,10,10,10],[10,10,11,10,11,10,11,10,10],[10,11,10,11,11,11,10,11,10],[11,11,11,11,11,11,11,11,11],[10,11,10,11,11,11,10,11,10],[10,10,11,10,11,10,11,10,10],[10,10,10,11,11,11,10,10,10],[10,10,10,10,11,10,10,10,10]];
+tileset = "astral";
+area = "astral1";
+areaname = "Astral Tunnel";
+ambience = null;
+dungeon = "AstralTunnel";
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:4,y:7,walkspeed:-1,conv:"c_healingCrystal"},{name:"N",model:"area_transition",x:4,y:0,dest:["astral2",22,43],ARROW:"N"}];
+areaLoot = [];
+GameData.plotVars.NO_BATTLE_MUSIC = true;
+foes = MONSTER_TABLES.ASTRAL;
+btlChance = 2;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.ASTRAL;
+musicTrack = "Dungeon4";
+clearmap = 1;
+AreaSetup({DREAM:19000,NoSwitch:true,NO_MAP:true,clearmap:1,LOOT:3});

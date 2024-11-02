@@ -1,0 +1,13 @@
+map = [[12,12,12,27,17],[22,11,11,11,11],[11,11,24,25,23],[11,11,11,11,11],[11,11,11,11,11],[11,11,11,11,22]];
+tileset = "interior1";
+area = "heroes_house";
+areaname = "Heroes\' Den - Abandoned House";
+dungeon = null;
+ambience = {ra:66,rb:0,ga:70,gb:0,ba:63,bb:0,aa:100,ab:0};
+A_sprites = [{name:"Advenshers",model:"object",x:3,y:0,type:"examine",conv:[["","It\'s a scrapbook containing Mardek and Deugan\'s various adventures. What with its numerous spelling mistakes and rambling, puerile prose, it\'s not a thrilling read and is unlikely to ever be published."]]},{name:"EXIT",model:"DOOR4",x:2,y:6,dest:["heroes_den",14,4]}];
+areaLoot = [{x:0,y:2,type:"gold",amount:50}];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = "none";
+AreaSetup({clearmap:1});

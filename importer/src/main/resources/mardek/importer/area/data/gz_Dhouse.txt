@@ -1,0 +1,30 @@
+map = [[17,12,27,27,12,12,12],[11,11,11,11,11,22,22],[11,24,25,23,11,11,22],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11],[22,11,11,11,11,11,11]];
+tileset = "interior1";
+area = "gz_Dhouse";
+areaname = "Deugan\'s House";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Geography of Belfan",model:"object",x:2,y:0,type:"examine",conv:[["","There are four main continents on Belfan, as well as numerous smaller continents and archipelagos."],["","The continent of Hadris is the largest in the world, and most of the human cities and nations are here. Goznor is located at the southernmost point, on the northern shore of the gulf connecting Hadris and Fengue."],["","Fengue is south of Hadris, separated by only a small channel of water at the northernmost point. It is scarcely inhabited and the majority of its terrain is desert. Aeropolis is its capital."],["","Nole\'Oth is a continent to the north, known colloquially as the \'Northern Wastes\'. It is perpetually covered in snow and is largely unexplored."],["","The continent of Tharadia is said to exist across the oceans to the west, but to this date no expeditions have returned from there to verify its existence or detail its composition or population, if any."]]},{name:"The Crystals",model:"object",x:3,y:0,type:"examine",conv:[["","The elemental crystals were created by YALORT when He made the world, and they provide Belfan with all of its magical energy and keep it alive. They consist of pure elemental magical energy, and as such have the power to grant people extreme power; for this reason, they have been sought by Adventurers and Villains alike."],["","All of the crystals are located around the gulf separating Hadris and Fengue; it is said that this general area is where YALORT came down to the newly-crafted Belfan and breathed the gift of life into it."],["","The Fire Crystal possesses the power of heat and flames. It keeps the world warm so that things can grow and thrive, and its power is harnessed every time a flame burns, magical or natural. It is located in a temple in Fengue."],["","The Water Crystal keeps the waters pure and flowing and the rains pouring. It is vital for life on Belfan. It is also responsible for Man\'s rational thoughts, or so it has been said. It can be found in Hadris."],["","The Air Crystal keeps the winds blowing, and the air clean. The city of Aeropolis was built around the temple in which it can still be found."],["","The Earth Crystal is responsible for the lives of beasts and plants on Belfan. Its energy keeps them growing and breeding. It is held in a sacred temple within the Lifewood in Fengue."],["","The Light Crystal, being the physical manifestation of the Goodness in Man\'s heart, is the greatest treasure of Goznor, kept within the Castle of Goznor."],["","The location of the Dark Crystal is unknown; this is probably for the best, since it is the crystal most often sought by those who wish to inflict evil on the world."],Do = function()
+{
+   EN_ADD("Artefacts","Fire Crystal");
+   EN_ADD("Artefacts","Water Crystal");
+   EN_ADD("Artefacts","Air Crystal");
+   EN_ADD("Artefacts","Earth Crystal");
+   EN_ADD("Artefacts","Light Crystal");
+   EN_ADD("Artefacts","Dark Crystal");
+   return 1;
+}]},{name:"EXIT",model:"DOOR0",x:3,y:7,dest:["goznor",9,21]}];
+if(GameData.CHAPTER == 1)
+{
+   A_sprites.push({name:"Polly",model:"polly",x:1,y:2,walkspeed:-2,dir:"e",elem:"EARTH",EN:["People","Polly"],conv:"c_polly"});
+}
+if(GameData.CHAPTER == 3)
+{
+   A_sprites.push({name:"Polly",model:"polly",x:1,y:2,walkspeed:-2,dir:"e",elem:"EARTH",EN:["People","Polly"],conv:"c_polly"},{name:"Derek",model:"derek",x:3,y:2,walkspeed:-2,dir:"w",elem:"FIRE",EN:["People","Derek"],conv:"c_derek"});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = !GameData.plotVars.SUNSET?"Goznor":"none";
+AreaSetup({clearmap:1});

@@ -1,0 +1,24 @@
+map = [[12,12,17,12,12,12,12],[20,11,11,11,11,11,22],[21,11,11,24,25,23,11],[22,11,11,11,11,11,11],[11,11,11,11,11,11,11]];
+tileset = "interior1";
+area = "gz_house01";
+areaname = "Goznor - House";
+ambience = null;
+dungeon = null;
+if(GameData.CHAPTER == 1)
+{
+   A_sprites = [{name:"Woman",model:"woman2",x:5,y:2,walkspeed:-2,dir:"w",elem:"FIRE",conv:[["blah","Children are so rude these days! Walking into peoples\' houses uninvited, all willy-nilly! And talking to the people who live there, no less! Well I never! Who do you think you are, adventurers or something?"]]},{name:"Man",model:"man1",x:3,y:2,walkspeed:-2,dir:"e",elem:"AIR",conv:[["grin","Hello, boys! Welcome to our humble home! Make yourselves comfortable and stay as long as you like!"],["norm","I\'m afraid I don\'t have anything interesting to say, though. Everyone\'s talking about some weird star that fell from the sky... Of course, I didn\'t see it because apparently I never leave this chair!"]]},{name:"EXIT",model:"DOOR0",x:1,y:5,dest:["goznor",8,15]}];
+}
+else if(GameData.CHAPTER == 2)
+{
+   A_sprites = [{name:"Woman",model:"woman2",x:5,y:2,walkspeed:-2,dir:"w",elem:"FIRE",conv:[["blah","Soldiers are so rude these days! Walking into peoples\' houses uninvited, all willy-nilly! And talking to the people who live there, no less! Well I never! Who do you think you are, soldiers who people want in their houses or something?"]]},{name:"Man",model:"man1",x:3,y:2,walkspeed:-2,dir:"e",elem:"AIR",conv:[["grin","Hello, soldiers! Welcome to our humble home! Make yourselves comfortable and stay as long as you like!"],["norm","I\'m afraid I don\'t have anything interesting to say, though. Everyone\'s talking about the death of some small mammal that got along well with people, or something. It\'s weird."]]},{name:"EXIT",model:"DOOR0",x:1,y:5,dest:["goznor",8,15]}];
+}
+else if(GameData.CHAPTER == 3)
+{
+   A_sprites = [{name:"Woman",model:"woman2",x:5,y:2,walkspeed:-2,dir:"w",elem:"FIRE",conv:[["blah","Legendary Heroes who we owe our lives to are so rude these days! Walking into peoples\' houses uninvited, all willy-nilly! And talking to the people who live there, no less! Well I never! Who do you think you are? The only man I ever loved, who died long before you were born? Of course you aren\'t. I feel very bitter now. Stop reminding me of these things."],["sad","[[Man]]I wish YOU wouldn\'t remind ME that you don\'t even love me, but a dead man instead!"],["blah","[[Woman]]What did I tell you about interrupting me when I\'m talking to strangers?"],["susp","[[Man]]Uh... nothing?"],["blah","[[Woman]]That\'s right."]]},{name:"Man",model:"man1",x:3,y:2,walkspeed:-2,dir:"e",elem:"AIR",conv:[["grin","Hello, Sir Mardek! Welcome to our humble home! Make yourselves comfortable and stay as long as you like!"],["blah","I\'m afraid I don\'t have anything interesting to say, though. Everyone\'s talking about the King acting weird. And about this solitary canine thing which I\'ve always been confused by. You young people and your fads and loud language. You give me lines on my face, you do. LINES."]]},{name:"EXIT",model:"DOOR0",x:1,y:5,dest:["goznor",8,15]}];
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = !GameData.plotVars.SUNSET?"Goznor":"none";
+AreaSetup({clearmap:1});

@@ -1,0 +1,13 @@
+map = [[18,19,12,12,15,21,12,12,15],[11,11,22,23,11,11,20,113,114],[11,11,11,11,11,11,11,123,124],[11,11,11,11,11,11,11,133,134],[11,11,11,11,11,11,11,11,11],[11,11,11,11,11,11,11,11,20],[22,11,11,11,11,11,11,20,20],[10,10,10,10,11,10,10,10,10]];
+tileset = "interior6";
+area = "aeropolis_S_house";
+areaname = "Aeropolis - House";
+ambience = null;
+A_sprites = [{name:"Inhabitant",model:"arab1",x:5,y:3,walkspeed:10,dir:"e",elem:"AIR",conv:[["shok","You are in my house! Aah! Foreigners in my house! Whhhyyyy?! Don\'t kill me!!"]]},{name:"EXIT",model:"area_transition",x:4,y:7,dest:["aeropolis_S",14,28],ARROW:"S"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

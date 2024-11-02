@@ -1,0 +1,14 @@
+map = [[13,13,13,13,13,13,13,111,13],[12,12,12,12,12,12,20,12,12],[32,33,23,24,18,19,18,21,21],[11,17,19,19,18,19,18,11,11],[11,17,19,19,18,11,11,11,11],[11,17,19,19,18,11,11,11,11],[110,110,110,110,21,11,16,11,11]];
+tileset = "sandcave_interior";
+area = "xn_house1";
+areaname = "Xantusia - Dwelling";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Bookshelf",model:"object",x:6,y:1,type:"examine",conv:[["","There\'s a book here called \'Blacksmithery for Stupefyingly Dense Dolts And Intellectually-Deficient Ignorami\'. Hmm."]]},{name:"Reptoid Blacksmith",model:"reptoid_smith",x:2,y:3,walkspeed:-1,dir:"n",elem:"FIRE",conv:"c_ch3misc"},{name:"EXIT",model:"BIGDOOR1",x:6,y:7,dest:["xantusia",20,19]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "ReptoidVillage";
+AreaSetup({clearmap:1});

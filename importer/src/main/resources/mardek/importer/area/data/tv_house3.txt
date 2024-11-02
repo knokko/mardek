@@ -1,0 +1,14 @@
+map = [[12,12,12,12,128,12,20],[21,125,125,125,125,126,125],[125,125,125,125,125,125,125],[126,22,126,125,125,125,125],[125,125,125,125,125,125,125],[125,125,125,125,125,125,125],[10,10,10,112,10,10,10]];
+tileset = "cave6";
+area = "tv_house3";
+areaname = "Cambria - Dwelling";
+ambience = null;
+dungeon = "TrilobiteCave";
+A_sprites = [{name:"Bookshelf",model:"object",x:6,y:0,type:"examine",conv:[["","This one doesn\'t contain anything of any real interesting. Just a bunch of mathematical treatises, children\'s nursery rhyme anthologies, arthropod erotica, and lengthy dictionaries. Nothing at all worth looking at."]]},{name:"Trilobite",model:"trilobite1",x:5,y:2,walkspeed:50,dir:"s",elem:"WATER",conv:[["","REAL TRILOBITES DIDN\'T HAVE TWO ARMS AND TWO LEGS AND SENTIENCE, YOU KNOW?! I BET YOU DIDN\'T KNOW THAT, YOU MORON."]]},{name:"EXIT",model:"area_transition",x:3,y:6,dest:["trilobiteville",26,17]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "TrilobiteCave";
+AreaSetup({clearmap:1});

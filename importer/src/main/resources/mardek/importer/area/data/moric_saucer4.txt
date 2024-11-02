@@ -1,0 +1,142 @@
+map = [[10,10,10,10,10,18,18,119,18,18,10,10,10,10,10],[10,10,10,18,18,17,123,124,125,17,18,18,10,10,10],[10,10,18,17,17,118,118,118,118,118,17,17,18,10,10],[10,10,12,118,118,121,11,121,11,121,118,118,12,10,10],[10,18,118,11,11,15,15,14,15,15,11,11,118,18,10],[10,13,11,15,15,15,15,14,15,15,15,15,11,13,10],[10,11,15,15,15,15,14,14,14,15,15,15,15,11,10],[10,118,118,118,15,14,114,111,115,14,15,118,118,118,10],[10,11,14,14,14,14,110,16,112,14,14,14,14,11,10],[10,11,15,15,15,14,117,113,116,14,15,15,15,11,10],[10,11,15,15,15,15,14,14,14,15,15,15,15,11,10],[10,10,11,15,15,15,15,14,15,15,15,15,11,10,10],[10,10,11,15,15,15,15,14,15,15,15,15,11,10,10],[10,10,10,11,11,15,15,14,15,15,11,11,10,10,10],[10,10,10,10,10,11,11,17,11,11,10,10,10,10,10]];
+tileset = "saucer2";
+area = "moric_saucer4";
+areaname = "Moric\'s Battleship - Bridge";
+ambience = null;
+dungeon = "MoricSaucer";
+A_sprites = [{name:"Moric",model:"z_socialfox",x:7,y:3,walkspeed:-2,dir:"s",elem:"EARTH",conv:"c_GdM_Moric"},{name:"WALK_TRIGGER",model:"_trigger",x:7,y:8,triggers:-1,ExecuteScript:function()
+{
+   if(GameData.plotVars.BEATEN_MORIC == 99)
+   {
+      _root.WarpTrans(["moric_saucer3",4,4]);
+   }
+   else
+   {
+      DO_ACTIONS([["WALK",0,-3],["UNFREEZE"],["TALK","c_GdM_Moric","Moric"]],"PC",true);
+   }
+}},{name:"CUT_TRIGGER",model:"_trigger",x:7,y:5,triggers:-1,ExecuteScript:function()
+{
+   if(!TempVars.MSoulSeal)
+   {
+      return false;
+   }
+   _root.createEmptyMovieClip("MUFOCUT",14152);
+   _root.MUFOCUT.onEnterFrame = function()
+   {
+      if(TempVars.MPossessCut == 10)
+      {
+         TempVars.MSoulSeal = null;
+         _root.Speak(null,null,"c_GdM_Moric");
+         this.removeMovieClip();
+      }
+      else if(TempVars.MPossessCut != 10)
+      {
+         if(TempVars.MPossessCut == 4)
+         {
+            this.count = this.count + 1;
+            if(this.count >= 80)
+            {
+               TempVars.MPossessCut = 10;
+               _root.freeze = false;
+               _root.playMusic("none");
+               _root.Sky.setTransform({ra:100,ab:0,ga:100,gb:0,ba:100,rb:0,aa:100,ab:0});
+               _root.cont.PC.DrawFrame("n1");
+            }
+            else
+            {
+               _root.Sky.setTransform({ra:60 + this.count / 2,ab:0,ga:100,gb:0,ba:20 + this.count,rb:0,aa:100,ab:0});
+            }
+         }
+         else if(TempVars.MPossessCut == 3)
+         {
+            _root.SOULSEAL._xscale = _root.SOULSEAL._xscale - 1;
+            _root.SOULSEAL._yscale = _root.SOULSEAL._yscale - 1;
+            _root.SOULSEAL._rotation = _root.SOULSEAL._rotation + 1;
+            if(_root.SOULSEAL._alpha < 100)
+            {
+               _root.SOULSEAL._alpha = _root.SOULSEAL._alpha + 8;
+            }
+            if(_root.SOULSEAL._width < 40)
+            {
+               _root.playSFX("Slam");
+               this.count = 0;
+               _root.SOUL.gotoAndPlay("absorb");
+               _root.SOULSEAL.removeMovieClip();
+               _root.Flash(_root.cont.PC,[0,255,0]);
+               TempVars.MPossessCut = 4;
+            }
+         }
+         else if(TempVars.MPossessCut == 2)
+         {
+            _root.SOUL._y = _root.SOUL._y - 3;
+            if(_root.SOUL._y <= _root.cont.Moric.getBounds(_root).yMin - 90)
+            {
+               _root.playSFX("MPRestore");
+               this.count = 0;
+               _root.attachMovie("soul_seal_circle","SOULSEAL",14153);
+               _root.Flash(_root.cont.PC,[0,255,0]);
+               _root.SOULSEAL._x = _root.SOUL._x + 24;
+               _root.SOULSEAL._y = _root.SOUL._y + 24;
+               _root.SOULSEAL._alpha = 10;
+               _root.SOULSEAL._width = _root.SOULSEAL._height = 400;
+               TempVars.MPossessCut = 3;
+            }
+         }
+         else if(TempVars.MPossessCut == 1)
+         {
+            this.count = this.count + 1;
+            if(this.count > 40 && this.count < 65)
+            {
+               _root.cont.Moric._x = _root.cont.Moric.orig_x - 3 + random(7);
+               _root.cont.Moric._y = _root.cont.Moric.orig_y - 3 + random(7);
+            }
+            else
+            {
+               _root.cont.Moric._x = _root.cont.Moric.orig_x;
+               _root.cont.Moric._y = _root.cont.Moric.orig_y;
+            }
+            if(this.count == 70)
+            {
+               _root.Flash(_root,[0,255,0]);
+               _root.playSFX("Slam");
+               _root.attachMovie("s_soul2","SOUL",14151);
+               _root.SOUL.colour = new Color(_root.SOUL);
+               _root.SOUL.colour.setTransform({ra:20,rb:0,ga:100,gb:0,ba:0,bb:0,aa:100,ab:0});
+               _root.SOUL._x = _root.cont.Moric.getBounds(_root).xMin;
+               _root.SOUL._y = _root.cont.Moric.getBounds(_root).yMin;
+               _root.SOUL._width = _root.SOUL._height = _root.TILESIZE;
+               _root.SOUL._alpha = 0;
+            }
+            if(_root.SOUL != null && _root.SOUL._alpha < 100)
+            {
+               _root.SOUL._alpha = _root.SOUL._alpha + 20;
+            }
+            if(this.count == 120)
+            {
+               TempVars.MPossessCut = 2;
+            }
+         }
+         else if(TempVars.MPossessCut == null)
+         {
+            _root.cont.Moric.orig_x = 0 + _root.cont.Moric._x;
+            _root.cont.Moric.orig_y = 0 + _root.cont.Moric._y;
+            TempVars.MPossessCut = 1;
+            _root.freeze = true;
+            this.frozenrunning = true;
+            _root.Flash(_root,[0,255,0]);
+            _root.playSFX("Slam");
+            _root.Sky.setTransform({ra:60,ab:0,ga:100,gb:0,ba:20,rb:0,aa:100,ab:0});
+            _root.cont.PC.DrawFrame(10);
+            this.count = 0;
+         }
+      }
+   };
+}}];
+A_sprites.push();
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = DoomCounter == null?GameData.plotVars.BEATEN_MORIC != 99?"GdM":"none":"Flee";
+AreaSetup({clearmap:1});

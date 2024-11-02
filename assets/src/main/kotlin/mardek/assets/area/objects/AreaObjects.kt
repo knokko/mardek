@@ -7,7 +7,7 @@ class AreaObjects(
 	val decorations: List<AreaDecoration>, // TODO Hm... I'm afraid I need the tilesheet for this
 	val objects: List<AreaObject>,
 	val characters: List<AreaCharacter>,
-	// TODO Portals
+	val portals: List<AreaPortal>,
 	val doors: List<AreaDoor>,
 	val switchOrbs: List<AreaSwitchOrb>,
 	val switchPlatforms: List<AreaSwitchPlatform>,

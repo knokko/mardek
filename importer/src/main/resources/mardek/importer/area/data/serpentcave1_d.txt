@@ -1,0 +1,15 @@
+map = [[10,10,10,13,13,13,10,10,10,10,10],[10,10,16,12,12,12,17,10,10,10,10],[10,10,110,111,11,111,12,17,13,13,10],[10,16,12,11,11,11,11,12,12,12,14],[10,16,111,11,11,11,11,11,11,111,14],[10,16,11,11,11,11,111,11,11,11,14],[10,10,15,19,11,11,11,11,11,11,14],[10,10,10,16,11,11,11,11,11,11,14],[10,10,10,10,19,11,11,11,111,18,10],[10,10,10,10,16,11,18,15,15,10,10],[10,10,10,10,16,11,14,10,10,10,10],[10,10,10,10,10,117,10,10,10,10,10]];
+tileset = "cave2_dream";
+area = "serpentcave1_d";
+areaname = "Small Cave";
+ambience = null;
+dungeon = "SerpentCave";
+A_sprites = [{name:"EXIT",model:"area_transition",x:5,y:11,dest:["lifewoodN_d",6,28]}];
+areaLoot = [{x:4,y:2,amount:1,item:"Silver Cord"}];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.LIFEWOOD;
+musicTrack = "Dreamwood";
+AreaSetup({DREAM:1,LOOT:3,clearmap:1});
+EN_ADD("Places","Lifewood");

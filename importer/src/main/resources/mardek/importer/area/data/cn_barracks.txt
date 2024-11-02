@@ -1,0 +1,14 @@
+map = [[12,13,12,12,12,13,12],[25,11,11,25,11,18,25],[26,11,11,26,11,11,26],[11,15,14,14,14,16,11],[11,15,14,14,14,16,11],[25,15,14,14,14,16,25],[26,15,14,14,14,16,26],[11,15,14,14,14,16,11],[18,11,11,11,11,11,11],[10,10,11,11,11,10,10]];
+tileset = "interior4";
+area = "cn_barracks";
+areaname = "Canonia - Barracks";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:6,y:8,walkspeed:-1,conv:"c_healingCrystal"},{name:"Guard Captain",model:"captain2",x:3,y:4,walkspeed:-1,dir:"s",elem:"EARTH",conv:"c_captain2"},{name:"EXIT",model:"DOOR4",x:3,y:10,dest:["canonia",30,18]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Canonia";
+AreaSetup({clearmap:1});

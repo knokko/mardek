@@ -1,0 +1,18 @@
+map = [[12,12,12,12,128,12,20],[21,125,125,125,125,126,125],[125,125,125,125,125,125,125],[126,22,126,125,125,125,125],[125,125,125,125,125,125,125],[125,125,125,125,125,125,125],[10,10,10,112,10,10,10]];
+tileset = "cave6";
+area = "tv_house1";
+areaname = "Cambria - Dwelling";
+ambience = null;
+dungeon = "TrilobiteCave";
+A_sprites = [{name:"The Ethereal Crystal",model:"object",x:6,y:0,type:"examine",conv:[["","The Ether Crystal is the Heart of Belfan. A doorway through which souls can pass from the soulplanes into living, corporeal bodies in this world."],["","Without the Ethereal Crystal, all life would be soulless and emotionless. One who has power over the Ethereal Crystal has power over the world itself, and it is for this reason that it is highly sought by Heroes and Villains. However, its location is quite the mystery indeed!"],Do = function()
+{
+   EN_ADD("Artefacts","Ether Crystal");
+   return 1;
+}]},{name:"Trilobite",model:"trilobite2",x:2,y:3,walkspeed:-2,dir:"w",elem:"WATER",conv:[["","Dwelling deep in this cave as we do, we have little or no knowledge of the happenings in the world outside! And frankly, we don\'t CARE what happens out there either. This cave is our world! Why should we be concerned about things that aren\'t OURS?"]]},{name:"EXIT",model:"area_transition",x:3,y:6,dest:["trilobiteville",24,23]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "TrilobiteCave";
+AreaSetup({clearmap:1});

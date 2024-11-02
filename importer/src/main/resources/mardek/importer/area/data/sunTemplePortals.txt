@@ -1,0 +1,48 @@
+map = [[10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,112,112,112,10,10,10,10,10,112,112,112,10,10,10],[10,10,10,10,10,13,113,113,113,13,10,10,10,13,113,113,113,13,10,10],[10,10,10,10,10,12,11,11,11,12,10,10,10,12,11,11,11,12,10,10],[10,10,10,10,10,30,120,121,122,30,10,10,10,30,120,121,122,30,10,10],[10,10,10,10,10,11,130,131,132,11,10,10,10,11,130,131,132,11,10,10],[10,10,10,10,10,11,140,141,142,11,10,10,10,11,140,141,142,11,10,10],[10,10,10,10,10,30,11,11,11,30,10,10,10,30,11,11,11,30,10,10],[10,10,10,10,10,10,11,11,11,10,10,10,10,10,11,11,11,10,10,10],[10,10,10,10,10,10,10,19,10,10,10,10,10,10,10,19,10,10,10,10],[10,10,10,10,10,10,10,19,10,10,10,10,10,10,10,19,10,10,10,10],[10,10,10,10,10,10,10,19,12,110,12,12,12,110,12,19,10,10,10,10],[10,10,10,10,10,10,10,11,11,24,25,18,24,25,11,11,10,10,10,10],[10,12,12,12,110,12,12,11,11,11,11,11,11,11,11,11,10,10,10,10],[10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,10,10,10,10],[10,11,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10],[10,11,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]];
+tileset = "suntemple";
+area = "sunTemplePortals";
+areaname = "Sun Temple - Portal Room";
+dungeon = "SunTemple";
+var portals = [];
+A_sprites = [{name:"Solakian Priest",model:"solakian",x:10,y:14,walkspeed:-1,dir:"n",elem:"EARTH",conv:(!GameData.visited.citadel1?!(GameData.plotVars.REPTOIDS != null && GameData.plotVars.REPTOIDS >= 10)?[["blah","Usually these two portals here lead to places, but I think that the Dark Energy or whatever is interfering with their, uh, magic...ness. Yes. So they\'re broken."]]:[["deep","Hm... The portal on the left reactivated itself, but the one on the right\'s still down... I can\'t even remember where it leads, either."],["norm","Oh, the one on the left leads to some lizard village or something, though. It used to be used by the lizardmen for trading and talking with us priests, but we don\'t use it much anymore since they hate people now for some reason."],["blah","Which I really can\'t blame them for."],["norm","It\'s a two-way thing anyway, so if you have business in Lizardland, you can just pop there with the portal, then pop back using their portal when you\'re done. Right?"]]:[["shok","The portal on the RIGHT is active?! But... it\'s been off for centuries! Since that cataclysm! I daren\'t go near it, wherever it leads."]])},{name:"EXIT",model:"DOOR8",x:1,y:18,dest:["suntemple1",17,4]}];
+if(GameData.plotVars.REPTOIDS != null && GameData.plotVars.REPTOIDS >= 10)
+{
+   A_sprites.push({name:"Portal to Xantusia",model:"o_portal",x:7,y:6,walkable:true});
+   A_sprites.push({name:"TRANSPORT_TRIGGER",model:"_trigger",x:7,y:6,triggers:-1,WALKON:true,ExecuteScript:function()
+   {
+      _root.WarpTrans(["xn_house2",4,3]);
+   }});
+   portals.push([6,5]);
+}
+if(GameData.visited.citadel1)
+{
+   A_sprites.push({name:"Portal to Miasmal Citadel",model:"o_portal",x:15,y:6,walkable:true});
+   A_sprites.push({name:"TRANSPORT_TRIGGER",model:"_trigger",x:15,y:6,triggers:-1,WALKON:true,ExecuteScript:function()
+   {
+      _root.WarpTrans(["citadel1",2,19]);
+   }});
+   portals.push([14,5]);
+}
+var p = 0;
+while(p < portals.length)
+{
+   var y = 0;
+   while(y < 3)
+   {
+      var x = 0;
+      while(x < 3)
+      {
+         map[portals[p][1] + y][portals[p][0] + x] = map[portals[p][1] + y][portals[p][0] + x] + 3;
+         x++;
+      }
+      y++;
+   }
+   p++;
+}
+areaLoot = [];
+foes = [["monster",null,null,null,"SOLO"],["monster","monster",null,null,"DUO"],["monster","monster","monster",null,"TRIO"]];
+btlChance = 0;
+minSteps = 5;
+levelrange = [10,15];
+musicTrack = "SunTemple";
+AreaSetup({WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});

@@ -1,0 +1,32 @@
+map = [[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,20,20,20,20,20,134,133,133,133,133,133,133,133,133],[20,20,20,20,20,20,15,15,15,15,15,132,20,20,20,20,20,20,20,20],[20,20,20,20,20,117,15,15,15,15,15,132,15,15,20,20,20,20,20,20],[20,20,20,20,20,150,10,10,15,15,15,132,15,15,20,20,20,20,20,20],[20,20,20,20,10,10,116,116,116,116,15,132,15,15,20,20,20,20,20,20],[20,20,20,20,10,20,115,115,115,115,15,132,15,10,10,20,20,20,20,20],[20,20,20,20,21,21,113,112,114,113,21,132,21,21,21,21,20,20,20,20],[20,20,20,10,10,10,10,10,150,10,10,132,10,10,10,150,20,20,20,20],[133,133,133,133,133,133,133,133,133,133,133,136,10,10,10,10,20,20,20,20],[20,20,10,150,10,10,10,10,10,10,10,10,20,10,10,20,20,20,20,20],[20,20,20,20,20,20,10,10,10,10,10,117,10,10,20,20,20,20,20,20],[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20]];
+tileset = "rural";
+area = "guardpost";
+areaname = "Guardpost";
+ambience = null;
+dungeon = null;
+ambience = GenericExternalAmbience();
+var conv1;
+var conv2;
+if(GameData.CHAPTER == 3)
+{
+   conv1 = [["smile","Ayup there, Sir Mardek. You\'re free to pass through here whenever you like."],["deep","Of course, ANYONE is free to pass through here whenever they like, unless they\'re a monster... But you get an EXTRA SPECIAL privilege for free travel! You\'re great!"]];
+   conv2 = [["sad","Sigh... My girlfriend left me a while ago. Said I wasn\'t dashing or heroic enough. She kept fawning over this mysterious \'Lone Wolf\' fellow, saying I wasn\'t enough like him. I bet that guy gets all the girls, just like Social Fox did. I think their ginormous phallic Greatswords have something to do with it."]];
+}
+else if(GameData.plotVars.ZOMBIES != null)
+{
+   conv1 = [["susp","Some zombies passed through here a while ago. That was interesting. I\'ll have to write about it in my diary when I get home."]];
+   conv2 = [["susp","What? Zombies? No, I didn\'t see any zombies. Well, not MANY, anyway. Just a few. Well, a fair few, but I\'ve seen more before. Honestly, I have. Honest! Stop looking at me like that! I\'m doing my job! Gods, you\'re like my mother with those scathing eyes of withering judgement!"]];
+}
+else
+{
+   conv1 = [["grin","We guard this here road for the sake of protecting Goznor! See, without us here, monsters might get in or some such thing! And we wouldn\'t want that, now, would we?"]];
+   conv2 = [["deep","Sigh... I wonder how my girlfriend\'s doing? I don\'t even know why she sticks with me... I never get to see her since I\'m standing here, pointlessly, most of the time... Terrific lass, she is, to be so loyal..."]];
+}
+A_sprites = [{name:"Mercutio",model:"soldier",x:10,y:8,walkspeed:-1,dir:"s",elem:"FIRE",conv:conv1},{name:"Tybalt",model:"soldier",x:12,y:8,walkspeed:-1,dir:"s",elem:"EARTH",conv:conv2},{name:"Save Crystal",model:"o_Crystal",x:5,y:8,walkspeed:-1,conv:"c_healingCrystal"},{name:"House",model:"DOOR0",x:8,y:7,lock:"yes",dest:["heroes_house",2,5]},{name:"W",model:"area_transition",x:1,y:9,dest:["WORLDMAP",1,1],ARROW:"W"},{name:"E",model:"area_transition",x:14,y:1,dest:["WORLDMAP",1,1],ARROW:"E"}];
+areaLoot = [];
+musicTrack = !GameData.plotVars.SUNSET?"WorldMap":"crickets";
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+AreaSetup({clearmap:1});

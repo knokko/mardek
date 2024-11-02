@@ -1,6 +1,11 @@
 package mardek.importer.area
 
+import com.github.knokko.boiler.utilities.ColorPacker
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
+import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.area.*
+import mardek.assets.area.objects.AreaDecoration
+import java.io.File
 import java.lang.Integer.parseInt
 import java.util.*
 import kotlin.streams.toList
@@ -11,28 +16,72 @@ fun main() {
 	println(parsedArea)
 }
 
+fun enumerateAreas() = File("src/main/resources/mardek/importer/area/data").list().map {
+	if (!it.endsWith(".txt")) throw java.lang.RuntimeException("Unexpected file $it")
+	it.substring(0, it.length - 4)
+}
+
 fun parseArea(areaName: String) = parseArea2(parseArea1(areaName))
 
 private fun parseArea2(parsing: ParsingArea1): ParsedArea {
-	val rawName = parseFlashString(parsing.variableAssignments["area"]!!, "raw area name")!!
-	val displayName = parseFlashString(parsing.variableAssignments["areaname"]!!, "area display name")!!
-
-	val musicTrack = parseFlashString(parsing.variableAssignments["musicTrack"]!!, "music track")
-
 	val areaSetup = parsing.functionCalls.filter { it.first == "AreaSetup" }.map { it.second }
 	parseAssert(areaSetup.size == 1, "Expected exactly 1 AreaSetup call, but found ${parsing.functionCalls}")
 	val areaSetupMap = parseAreaSetup(areaSetup[0])
+	val properties = parseAreaProperties(parsing, areaSetupMap)
 	val flags = parseAreaFlags(areaSetupMap)
+
+	val randomBattles = parseRandomBattle(parsing)
+	val (width, height, tileGrid) = parseAreaMap(parsing.variableAssignments["map"]!!)
+
+	val tilesheetName = parseFlashString(parsing.variableAssignments["tileset"]!!, "tileset name")!!
+
+	val tilesheet = parseTilesheet(tilesheetName)
+	val extraDecorations = mutableListOf<AreaDecoration>()
+	for (y in 0 until height) {
+		for (x in 0 until width) {
+			val tile = tilesheet.tiles[tileGrid[x + y * width]]!!
+			if (tile.hexObjectColor != rgb(0, 0, 0)) {
+				val hexObject = HexObject.map[tile.hexObjectColor]
+					?: throw RuntimeException("unexpected hex color ${ColorPacker.toString(tile.hexObjectColor)}")
+				extraDecorations.add(
+					AreaDecoration(
+					x = x, y = y, spritesheetName = hexObject.sheetName,
+					spritesheetOffsetY = hexObject.height * hexObject.sheetRow,
+					spriteHeight = hexObject.height, light = hexObject.light,
+					rawConversation = null
+				)
+				)
+			}
+		}
+	}
+
+	if (!parsing.variableAssignments.containsKey("A_sprites")) println(parsing.variableAssignments)
+	return ParsedArea(
+		tilesheetName = tilesheetName,
+		width = width,
+		height = height,
+		tileGrid = tileGrid,
+		objects = parseAreaObjects(parsing.variableAssignments["A_sprites"]!!, extraDecorations),
+		randomBattles = randomBattles,
+		properties = properties,
+		flags = flags,
+	)
+}
+
+fun parseAreaProperties(parsing: ParsingArea1, areaSetupMap: Map<String, String>): AreaProperties {
+	val rawName = parseFlashString(parsing.variableAssignments["area"]!!, "raw area name")!!
+	val displayName = parseFlashString(parsing.variableAssignments["areaname"]!!, "area display name")
+
+	val musicTrack = parseFlashString(parsing.variableAssignments["musicTrack"]!!, "music track")
 	val dreamType = AreaDreamType.entries.find { it.code == (areaSetupMap["DREAM"] ?: "") }!!
 	val chestType = AreaChestType.entries.find { it.code == parseInt(areaSetupMap["LOOT"] ?: "0") }!!
 	val snowType = AreaSnowType.entries.find { it.code == parseInt(areaSetupMap["SNOW"] ?: "0") }!!
 
-	// TODO Test proper ambience
 	val rawDungeon = parsing.variableAssignments["dungeon"]
-	val dungeon = if (rawDungeon != null) parseFlashString(rawDungeon, "dungeon")!! else null
+	val dungeon = if (rawDungeon != null) parseFlashString(rawDungeon, "dungeon") else null
 
 	val rawAmbience = parsing.variableAssignments["ambience"]
-	val ambience = if (rawAmbience != null) parseFlashString(rawAmbience, "ambience") else null
+	val ambience = if (rawAmbience != null) parseAmbience(rawAmbience) else null
 
 	var encyclopediaName: String? = null
 	val encyclopediaAdd = parsing.functionCalls.filter { it.first == "EN_ADD" }.map { it.second }
@@ -45,22 +94,12 @@ private fun parseArea2(parsing: ParsingArea1): ParsedArea {
 		encyclopediaName = encyclopediaAdd[0].substring(prefix.length, encyclopediaAdd[0].length - 1)
 	}
 
-	val randomBattles = parseRandomBattle(parsing)
-	val (width, height, tileGrid) = parseAreaMap(parsing.variableAssignments["map"]!!)
-
-	return ParsedArea(
+	return AreaProperties(
 		rawName = rawName,
-		displayName = displayName,
-		tilesheetName = parseFlashString(parsing.variableAssignments["tileset"]!!, "tileset name")!!,
-		// TODO Test this
-		width = width,
-		height = height,
-		tileGrid = tileGrid,
-		randomBattles = randomBattles,
+		displayName = displayName ?: "unknown",
+		ambience = ambience,
 		musicTrack = musicTrack,
 		dungeon = dungeon,
-		ambience = ambience,
-		flags = flags,
 		encyclopediaName = encyclopediaName,
 		dreamType = dreamType,
 		chestType = chestType,
@@ -73,12 +112,15 @@ private fun parseAmbience(raw: String?): AreaAmbience? {
 	if (raw == "GenericExternalAmbience()") return AreaAmbience.GENERIC_EXTERNAL_AMBIENCE
 	if (raw.startsWith("{") && raw.endsWith("}")) {
 		val rawPairs = raw.substring(1, raw.length - 1).split(",")
-		val pairs = rawPairs.map { {
+		val pairs = rawPairs.map {
 			val rawSplit = it.split(":")
-			Pair(rawSplit[0], rawSplit[1])
-		} }
+			Pair(rawSplit[0], parseInt(rawSplit[1]))
+		}
+		val map = mutableMapOf(*pairs.toTypedArray())
 
-		// TODO Use the color packer
+		val colorA = rgba(map["ra"]!!, map["ga"]!!, map["ba"]!!, map["aa"]!!)
+		val colorB = rgba(map["rb"]!!, map["gb"]!!, map["bb"]!!, map["ab"]!!)
+		return AreaAmbience(colorA, colorB)
 	}
 
 	println("can't deal with ambience $raw")
@@ -104,16 +146,36 @@ private fun parseArea1(areaName: String): ParsingArea1 {
 	for (character in content) {
 		if (depth == 0) {
 			if (character == ' '.code && !state.isDeep) {
-				state = when (state) {
-					ParseState.Initial -> ParseState.Equals
-					ParseState.BeforeValue -> ParseState.Value
-					else -> throw AreaParseException("Unexpected whitespace at state $state at depth 0")
+				val mem1 = memory1.toString()
+				if (mem1 != "var" && mem1 != "else") {
+					state = when (state) {
+						ParseState.Initial -> ParseState.Equals
+						ParseState.BeforeValue -> ParseState.Value
+						ParseState.BeforeIfBody -> ParseState.BeforeIfBody
+						else -> throw AreaParseException("Unexpected whitespace at state $state at depth 0")
+					}
+					continue
 				}
-				continue
 			}
 			if (character == '('.code && !state.isDeep) {
 				parseAssert(state == ParseState.Initial, "Unexpected ( at state $state at depth 0")
-				state = ParseState.Parameters
+				val isControl = when (memory1.toString().trim()) {
+					"if" -> true
+					"else if" -> true
+					"else" -> true
+					"while" -> true
+					"for" -> true
+					else -> false
+				}
+				state = if (isControl) {
+					depth += 1
+					ParseState.IfCondition
+				} else ParseState.Parameters
+				continue
+			}
+			if (character == '{'.code && state == ParseState.BeforeIfBody) {
+				state = ParseState.InsideIfBody
+				depth += 1
 				continue
 			}
 			if (character == ')'.code && state == ParseState.Parameters) continue
@@ -137,11 +199,28 @@ private fun parseArea1(areaName: String): ParsingArea1 {
 
 		if (character == '['.code || character == '{'.code) depth += 1
 		if (character == ']'.code || character == '}'.code) depth -= 1
+		if (character == '('.code && state == ParseState.IfCondition) depth += 1
+		if (character == ')'.code && state == ParseState.IfCondition) {
+			depth -= 1
+			if (depth == 0) state = ParseState.BeforeIfBody
+		}
+		if (character == '}'.code && state == ParseState.InsideIfBody && depth == 0) {
+			state = ParseState.Initial
+			memory1.clear()
+			memory2.clear()
+			continue
+		}
 
+		if (state == ParseState.BeforeIfBody) continue
+
+//		println("memory1 is $memory1")
+//		println("memory2 is $memory2")
 		val memory = when (state) {
 			ParseState.Initial -> memory1
 			ParseState.Value -> memory2
 			ParseState.Parameters -> memory2
+			ParseState.IfCondition -> memory1
+			ParseState.InsideIfBody -> memory2
 			else -> throw AreaParseException("Unexpected state $state")
 		}
 		memory.appendCodePoint(character)
@@ -157,6 +236,9 @@ private enum class ParseState(val isDeep: Boolean) {
 	BeforeValue(false),
 	Value(true),
 	Parameters(true),
+	IfCondition(true),
+	BeforeIfBody(false),
+	InsideIfBody(true),
 }
 
 class AreaParseException(message: String): RuntimeException(message)

@@ -1,0 +1,122 @@
+map = [[10,10,10,10,10,12,12,12,10,10,10,10,10],[10,10,10,10,12,17,16,18,12,10,10,10,10],[10,10,10,12,20,17,16,18,20,12,10,10,10],[10,10,10,20,11,17,16,18,11,20,10,10,10],[12,14,12,11,11,17,16,18,11,11,12,14,12],[13,13,13,15,15,19,111,110,15,15,13,13,13],[11,11,11,11,11,17,16,18,11,11,11,11,11],[11,11,11,11,11,17,16,18,11,11,11,11,11],[11,30,11,11,11,17,16,18,11,11,11,30,11],[11,11,11,11,11,17,16,18,11,11,11,11,11],[11,11,11,11,11,17,16,18,11,11,11,11,11],[11,11,11,11,11,17,16,18,11,11,11,11,11],[11,30,11,11,11,17,16,18,11,11,11,30,11],[11,11,11,11,11,17,16,18,11,11,11,11,11],[11,11,11,11,11,17,16,18,11,11,11,11,11],[10,10,10,11,11,17,16,18,11,11,10,10,10],[10,10,10,10,11,17,16,18,11,10,10,10,10],[10,10,10,10,10,17,16,18,10,10,10,10,10],[10,10,10,10,10,17,16,18,10,10,10,10,10],[10,10,10,10,10,17,16,18,10,10,10,10,10]];
+tileset = "castle";
+area = "gc_ThroneRoom";
+areaname = "Castle Goznor - Throne Room";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Throne",model:"miscObj",x:6,y:3,walkspeed:-2,FRAME:0,w:48,silent:true},{name:"Rosencrantz",model:"soldier",x:4,y:3,walkspeed:-1,dir:"s",elem:"LIGHT",conv:[["",". . ."]]},{name:"Guildenstern",model:"soldier",x:8,y:3,walkspeed:-1,dir:"s",elem:"LIGHT",conv:[["",". . ."]]},{name:"Crystal Room",model:"DOOR5",x:6,y:0,lock:"magic",dest:["gc_CrystalRoom",1,1]},{name:"King\'s Room",model:"DOOR5",x:1,y:5,lock:"lock",dest:["gc_KingsRoom",8,1]},{name:"Room",model:"DOOR5",x:11,y:5,lock:"lock",dest:["gc_QueensRoom",8,1]},{name:"EXIT",model:"DOOR5",x:6,y:20,dest:["gc_hall",10,1],conv:(GameData.plotVars.CH3KING != 10?null:"c_A_Elwyen")}];
+if(GameData.plotVars.BRIEFING == 4)
+{
+   freeze = false;
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:6,y:10,ExecuteScript:function()
+   {
+      DO_ACTIONS([["SLOWWALK",0,-3],["UNFREEZE"],["TALK","c_king","King"]],"PC",true);
+      DO_ACTIONS([["SLOWWALK",0,-3],["UNFREEZE"]],"Deugan",true);
+      DO_ACTIONS([["SLOWWALK",0,-3],["UNFREEZE"]],"Emela",true);
+      DO_ACTIONS([["SLOWWALK",0,-3],["UNFREEZE"]],"Sharla",true);
+      DO_ACTIONS([["SLOWWALK",0,-3],["UNFREEZE"]],"Donovan",true);
+   }});
+   A_sprites.push({name:"King",model:"king",x:6,y:3,walkspeed:-2,dir:"s",FRAME:8,elem:"FIRE",conv:"c_king"});
+   A_sprites.push({name:"Jacques",model:"captain",x:5,y:3,walkspeed:-1,dir:"s",elem:"AIR",conv:"c_jacques"});
+   A_sprites.push({name:"Emela",model:"emela_soldier",x:4,y:10,walkspeed:-1,dir:"n",elem:"WATER",conv:[["susp","What\'s wrong with the King?\'\'"]]});
+   A_sprites.push({name:"Deugan",model:"deugan_soldier",x:5,y:10,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["susp","Uh, Mardek? You\'re not meant to be out of line?\' \'\'"]]});
+   A_sprites.push({name:"Donovan",model:"donovan_soldier",x:7,y:10,walkspeed:-1,dir:"n",elem:"FIRE",conv:[["sour","Sigh, looks like he\'s asleep again.\'"]]});
+   A_sprites.push({name:"Sharla",model:"sharla_soldier",x:8,y:10,walkspeed:-1,dir:"n",elem:"AIR",conv:[["norm","I don\'t know what\'s happening.\'\'"]]});
+}
+else if(GameData.plotVars.MORIC_BEATEN == 2 || GameData.plotVars.MORIC_BEATEN == 99)
+{
+   GameData.TRIGGERS.gc_ThroneRoom.T_6_10 = null;
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:6,y:10,ExecuteScript:function()
+   {
+      DO_ACTIONS([["SAUNTER",0,-3],["UNFREEZE"],["TALK","c_king","King"]],"PC",true);
+      DO_ACTIONS([["SAUNTER",0,-3],["UNFREEZE"]],"Deugan",true);
+      DO_ACTIONS([["SAUNTER",0,-3],["UNFREEZE"]],"Emela",true);
+      DO_ACTIONS([["SAUNTER",0,-3],["UNFREEZE"]],"Zach",true);
+      DO_ACTIONS([["SAUNTER",0,-3],["UNFREEZE"]],"Vehrn",true);
+   }});
+   A_sprites.push({name:"King",model:"king",x:6,y:3,walkspeed:-2,dir:"s",FRAME:8,elem:"FIRE",conv:"c_king"});
+   A_sprites.push({name:"Jacques",model:"captain",x:5,y:3,walkspeed:-1,dir:"s",elem:"AIR",conv:"c_jacques"});
+   A_sprites.push({name:"Emela",model:"emela_soldier",x:7,y:10,walkspeed:-1,dir:"n",elem:"WATER",conv:[["shok","ERROR!"]]});
+   if(GameData.plotVars.MORIC_BEATEN != 99)
+   {
+      A_sprites.push({name:"Deugan",model:"deugan_soldier",x:5,y:10,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["shok","ERROR!"]]});
+   }
+   if(GameData.plotVars.Allies.Vehrn != null)
+   {
+      A_sprites.push({name:"Vehrn",model:"vehrn",x:(GameData.plotVars.MORIC_BEATEN == 99?5:4),y:10,walkspeed:-1,dir:"n",elem:"LIGHT",conv:[["shok","ERROR!"]]});
+   }
+   if(GameData.plotVars.Allies.Zach != null)
+   {
+      A_sprites.push({name:"Zach",model:"zach",x:8,y:10,walkspeed:-1,dir:"n",elem:"AIR",conv:[["shok","ERROR!"]]});
+   }
+}
+else if(GameData.plotVars.EVIL_STEELE == 1)
+{
+   GameData.TRIGGERS.gc_ThroneRoom.T_6_10 = null;
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:6,y:10,ExecuteScript:function()
+   {
+      DO_ACTIONS([["WALK",0,-3],["UNFREEZE"],["TALK","c_king","King"]],"PC",true);
+      DO_ACTIONS([["RUN",1,0],["RUN",0,-3],["UNFREEZE"]],"Donovan",true);
+      DO_ACTIONS([["RUN",-1,0],["RUN",0,-3],["UNFREEZE"]],"Sharla",true);
+      DO_ACTIONS([["RUN",2,0],["RUN",0,-3],["UNFREEZE"]],"Sslen\'ck",true);
+      DO_ACTIONS([["RUN",-2,0],["RUN",0,-3],["UNFREEZE"]],"Solaar",true);
+   }});
+   A_sprites.push({name:"King",model:"king",x:6,y:3,walkspeed:-2,dir:"s",FRAME:7,elem:"FIRE",conv:"c_king"});
+   A_sprites.push({name:"Donovan",model:"donovan",x:6,y:10,walkspeed:-1,dir:"n",elem:"FIRE",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Sharla",model:"sharla",x:6,y:10,walkspeed:-1,dir:"n",elem:"AIR",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Sslen\'ck",model:"sslenck",x:6,y:10,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Solaar",model:"solaar",x:6,y:10,walkspeed:-1,dir:"n",elem:"LIGHT",conv:[["shok","ERROR!"]]});
+}
+else if(GameData.plotVars.CH3KING == 1)
+{
+   TempVars.DONT_DRAW_ALLIES = true;
+   GameData.TRIGGERS.gc_ThroneRoom.T_6_10 = null;
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:6,y:10,ExecuteScript:function()
+   {
+      DO_ACTIONS([["WALK",0,-3],["UNFREEZE"],["TALK","c_king","King"]],"PC",true);
+      var _loc2_ = ["Donovan","Sharla","Vehrn","Elwyen","Gloria","Meraeador","Legion","Sslen\'ck","Solaar","Zach"];
+      var _loc1_ = 0;
+      while(_loc1_ < _loc2_.length)
+      {
+         DO_ACTIONS([["WALK",0,-3]],_loc2_[_loc1_]);
+         _loc1_ = _loc1_ + 1;
+      }
+   }});
+   A_sprites.push({name:"King",model:"king",x:6,y:3,walkspeed:-2,dir:"s",FRAME:7,elem:"FIRE",conv:"c_king"});
+   A_sprites.push({name:"Donovan",model:"donovan",x:7,y:10,walkspeed:-1,dir:"n",elem:"FIRE",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Sharla",model:"sharla",x:5,y:10,walkspeed:-1,dir:"n",elem:"AIR",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Vehrn",model:"vehrn",x:4,y:11,walkspeed:-1,dir:"n",elem:"LIGHT",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Elwyen",model:"elwyen",x:5,y:11,walkspeed:-1,dir:"n",elem:"WATER",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Gloria",model:"gloria17",x:6,y:11,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Meraeador",model:"inventor",x:7,y:11,walkspeed:-1,dir:"n",elem:"FIRE",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Legion",model:"robot",x:8,y:11,walkspeed:-1,dir:"n",elem:"NONE",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Sslen\'ck",model:"sslenck",x:5,y:12,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Solaar",model:"solaar",x:6,y:12,walkspeed:-1,dir:"n",elem:"LIGHT",conv:[["shok","ERROR!"]]});
+   if(GameData.plotVars.ZACH == 4)
+   {
+      A_sprites.push({name:"Zach",model:"zach",x:7,y:12,walkspeed:-1,dir:"n",elem:"AIR",conv:[["shok","ERROR!"]]});
+   }
+   A_sprites.push({name:"Clavis",model:"clave",x:6,y:19,walkspeed:-1,dir:"n",elem:"ETHER",conv:"c_clavis"});
+}
+else if(GameData.plotVars.CH3KING == 10 || GameData.plotVars.ELWYEN_DATE)
+{
+   TempVars.DONT_DRAW_ALLIES = null;
+   A_sprites.push({name:"Jacques",model:"captain",x:5,y:3,walkspeed:-1,dir:"s",elem:"AIR",conv:"c_jacques"});
+   A_sprites.push({name:"Donovan",model:"donovan",x:6,y:3,walkspeed:-1,dir:"s",elem:"FIRE",conv:"c_A_Donovan"});
+   A_sprites.push({name:"Sharla",model:"sharla",x:7,y:3,walkspeed:-1,dir:"s",elem:"AIR",conv:[["smile","Um, I\'ll stay here with Donovan. You can go and rest."]]});
+   if(!GameData.plotVars.ELWYEN_DATE)
+   {
+      A_sprites.push({name:"Elwyen",model:"elwyen",x:5,y:6,walkspeed:-1,dir:"e",elem:"WATER",conv:"c_A_Elwyen"});
+      GameData.TRIGGERS.gc_ThroneRoom.T_6_6 = null;
+      A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:6,y:6,ExecuteScript:function()
+      {
+         DO_ACTIONS([["WAIT",20],["UNFREEZE"],["TALK","c_A_Donovan","Donovan"]],"PC",true);
+      }});
+   }
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = !GameData.plotVars.ELWYEN_DATE?!(GameData.plotVars.CH3KING == 2 || GameData.plotVars.CH3KING == 10)?GameData.plotVars.CH3KING != 1?"Castle":"GdM":"none":"SirenSong";
+AreaSetup({clearmap:1});

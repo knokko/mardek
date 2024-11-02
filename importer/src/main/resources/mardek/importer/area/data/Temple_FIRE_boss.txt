@@ -1,0 +1,38 @@
+map = [[10,10,10,10,10,10,142,142,142,10,10,10,10,10,10],[10,10,10,10,10,143,113,114,113,132,10,10,10,10,10],[10,10,10,10,10,143,123,124,123,132,10,10,10,10,10],[10,10,10,10,10,143,20,12,20,132,10,10,10,10,10],[10,10,10,10,10,143,11,12,11,132,10,10,10,10,10],[10,10,10,10,10,141,11,12,11,140,10,10,10,10,10],[10,10,10,10,141,112,11,12,11,112,140,10,10,10,10],[142,142,142,141,113,122,30,12,30,122,113,140,142,142,142],[110,139,110,112,123,20,12,12,12,20,123,112,110,139,110],[120,139,120,122,30,12,12,12,12,12,30,122,120,139,120],[129,119,129,11,20,12,157,158,159,12,20,11,129,119,129],[119,119,119,11,11,12,167,168,169,12,11,11,119,119,119],[119,119,119,20,11,12,177,178,179,12,11,20,119,119,119],[119,119,119,11,11,12,12,12,12,12,11,11,119,119,119],[119,119,119,11,11,11,12,12,12,11,11,11,119,119,119],[133,133,133,131,20,11,11,12,11,11,20,130,133,133,133],[10,10,10,10,131,11,20,12,20,11,130,10,10,10,10],[10,10,10,10,10,133,131,15,130,133,10,10,10,10,10],[10,10,10,10,10,10,143,15,132,10,10,10,10,10,10],[10,10,10,10,10,10,10,133,10,10,10,10,10,10,10]];
+tileset = "temple_FIRE";
+area = "Temple_FIRE_boss";
+areaname = "Fire Temple";
+ambience = null;
+dungeon = "FireTemple";
+A_sprites = [{name:"Crystal Room",model:"DOOR12",x:7,y:2,dest:["Temple_FIRE_CR",7,17]},{name:"Sealed Door",model:"DOOR12",x:7,y:19,lock:(!HASPLOTITEM("Fire Crystal of Belfan")?"magic":null),dest:["Temple_FIRE_hub",9,3]}];
+if(!GameData.plotVars.GUARD_F_DEFEATED)
+{
+   A_sprites.push({name:"Fire Guardian",model:"ch3bosses",x:7,y:8,walkspeed:-2,elem:"FIRE",FRAME:0,conv:"c_guardians"});
+}
+if(GameData.plotVars.SAVIOURS_CH3 === 1 && HASPLOTITEM("Fire Crystal of Belfan"))
+{
+   A_sprites.push({name:"Bartholio",model:"bartholio",x:7,y:14,walkspeed:-2,dir:"n",elem:"LIGHT",conv:"c_Saviours"});
+   A_sprites.push({name:"Vennie",model:"vennie",x:7,y:15,walkspeed:-2,dir:"n",elem:"AIR",conv:[["","AAAAAAAAAA"]]});
+   A_sprites.push({name:"Aalia",model:"aalia",x:7,y:16,walkspeed:-2,dir:"n",elem:"LIGHT",conv:[["","AAAAAAAAAA"]]});
+   A_sprites.push({name:"Bernard",model:"bernard",x:7,y:17,walkspeed:-2,dir:"n",elem:"DARK",conv:[["","AAAAAAAAAA"]]});
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:7,y:8,ExecuteScript:function()
+   {
+      _root.playMusic("Saviours");
+      _root.freeze = true;
+      TempVars.CUTSCENE = true;
+      DO_ACTIONS([["WALK",0,-5],["UNFREEZE"],["TALK","c_Saviours","Bartholio"]],"Bartholio",true);
+      DO_ACTIONS([["WALK",0,-5]],"Vennie",true);
+      DO_ACTIONS([["WALK",0,-5]],"Aalia",true);
+      DO_ACTIONS([["WALK",0,-5]],"Bernard",true);
+   }});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.FIRE_TEMPLE;
+musicTrack = "FireTemple";
+DeadTempleCheck();
+AreaSetup({clearmap:1});
+specBtlBG = "Temple_FIRE_2" + (musicTrack != "DeadTemple"?"":"_dead");
+EN_ADD("Places","Fire Temple");

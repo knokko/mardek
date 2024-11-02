@@ -1,0 +1,121 @@
+map = [[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20],[20,20,15,15,15,15,15,15,15,20,20,20,20,20,20,20,20,20,20,20,20,182,15,15,15,15,15,15,20,20,20,20,20,20,116,116,116,116,20,20],[20,15,15,116,116,116,116,116,15,15,20,20,20,20,20,122,119,119,123,20,20,122,119,119,123,20,20,15,15,15,15,15,15,15,115,115,115,115,20,20],[20,15,117,115,115,115,115,115,15,15,122,119,119,119,119,128,128,128,128,119,119,128,128,128,124,20,20,20,20,20,15,15,15,15,113,114,113,112,20,20],[20,15,15,115,115,115,115,115,10,15,118,128,128,121,121,121,121,121,128,128,128,128,128,120,20,20,20,20,20,20,20,15,15,15,150,10,150,15,20,20],[20,15,15,115,115,115,115,115,10,10,118,128,128,20,20,20,20,20,125,121,121,121,128,120,20,20,20,20,20,20,20,15,15,10,10,10,10,15,15,20],[20,15,15,113,112,114,112,113,10,10,118,128,124,20,20,20,20,20,20,20,20,20,125,120,20,20,20,20,20,20,20,21,21,21,10,21,21,21,21,20],[20,15,10,10,10,132,10,10,10,10,125,124,20,20,20,20,20,20,20,20,20,20,20,125,123,20,20,20,20,20,20,15,15,10,10,10,10,15,15,20],[20,20,10,10,10,132,10,10,10,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,130,20,20,20,20,20,116,116,116,10,10,10,116,116,116,20],[20,20,20,20,10,132,10,10,20,20,20,20,20,20,20,20,35,36,37,38,39,20,20,20,125,123,20,20,20,20,115,151,115,10,10,10,115,152,115,20],[20,20,20,20,10,132,10,20,20,20,20,20,20,20,20,20,35,36,37,38,39,20,20,20,20,130,20,20,20,20,113,114,112,10,10,10,112,114,113,20],[20,20,20,20,10,132,20,20,20,20,20,20,20,20,20,20,30,31,32,33,34,20,20,20,20,130,20,20,20,20,15,137,133,133,141,133,133,136,15,20],[20,20,20,20,15,132,20,116,116,116,116,20,20,20,20,15,146,145,142,145,147,15,20,20,20,130,20,116,116,116,116,10,10,10,132,10,10,10,150,20],[20,116,116,116,15,132,20,115,115,115,115,20,20,117,15,15,148,144,143,144,149,15,15,20,20,130,20,115,115,153,115,21,21,10,132,116,116,116,116,20],[20,115,156,115,15,132,15,112,114,113,112,15,15,15,15,10,150,10,10,10,150,10,15,15,15,130,15,112,113,114,112,117,10,10,132,115,155,115,115,20],[20,112,114,113,15,132,150,150,132,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,130,10,10,10,132,10,10,10,10,132,113,114,113,112,20],[20,15,132,15,15,140,133,133,139,133,133,133,133,133,133,133,133,133,141,133,133,133,133,133,133,110,133,133,133,139,133,133,141,133,139,133,136,15,20,20],[20,15,140,133,133,136,10,10,10,10,10,10,10,10,10,10,10,10,132,10,10,10,10,10,10,130,10,10,10,10,10,10,132,10,10,10,15,15,20,20],[20,122,111,123,116,116,116,10,116,116,116,20,20,20,20,20,21,10,132,10,21,20,20,20,20,130,20,20,20,10,10,10,132,10,116,116,116,116,20,20],[20,118,111,120,115,115,115,21,115,115,115,20,20,20,20,20,10,10,132,10,10,20,20,20,20,130,20,20,20,10,10,10,132,10,115,154,115,115,20,20],[20,125,111,124,113,114,112,15,113,114,112,20,20,20,20,20,10,10,132,10,10,20,20,20,20,130,20,20,20,20,21,21,132,21,112,114,112,113,20,20],[20,10,132,10,10,132,150,150,150,132,15,20,20,20,20,20,20,10,132,10,20,20,20,20,20,130,20,20,20,20,117,10,132,10,150,132,15,15,20,20],[20,15,137,133,133,139,133,133,133,136,10,20,20,20,20,20,20,20,132,20,20,20,20,20,20,130,20,20,20,20,20,10,137,133,133,136,150,15,20,20],[20,15,15,15,10,10,10,10,10,10,20,20,20,20,20,20,20,20,132,20,20,20,20,20,20,130,20,20,20,20,20,20,10,10,10,10,15,20,20,20],[20,20,20,15,15,15,15,15,20,20,20,20,20,20,20,20,20,20,132,20,20,20,20,20,20,130,20,20,20,20,20,20,20,20,15,15,15,20,20,20],[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,132,20,20,20,20,20,20,130,20,20,20,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,132,20,20,20,20,20,20,130,20,20,20,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,132,20,20,20,20,20,20,130,20,20,20,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,132,20,20,20,20,20,20,130,20,20,20,20,20,20,20,20,20,20,20,20,20,20]];
+tileset = "rural";
+area = "goznor";
+areaname = "Goznor";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Monastery",model:"BIGDOOR3",x:18,y:13,dest:["gz_monastery",3,9]},{name:"Barracks",model:"DOOR0",x:5,y:6,dest:["gz_barracks",3,11]},{name:"House",model:"DOOR0",x:8,y:14,dest:["gz_house01",1,4]},{name:"Accessory Shop",model:"DOOR0",x:2,y:15,dest:["gz_shop_Ac",2,6]},{name:"Mardek\'s House",model:"DOOR0",x:5,y:20,dest:["gz_Mhouse1",4,5]},{name:"Deugan\'s House",model:"DOOR0",x:9,y:20,dest:["gz_Dhouse",3,6]},{name:"Magic Shop",model:"DOOR0",x:35,y:20,dest:["gz_shop_M",2,6]},{name:"Item Shop",model:"DOOR0",x:29,y:14,dest:["gz_shop_I",2,6]},{name:"Inn",model:"DOOR0",x:36,y:15,dest:["gz_inn",3,6]},{name:"Weapon Shop",model:"DOOR0",x:31,y:10,dest:["gz_shop_W",2,6],lock:(GameData.CHAPTER != 3?null:"lock")},{name:"Armour Shop",model:"DOOR0",x:37,y:10,dest:["gz_shop_Ar",2,6]},{name:"House",model:"DOOR0",x:35,y:3,dest:["gz_house02",3,5]},{name:"Sewers",model:"area_transition",x:21,y:1,dir:"s",dest:["sewer1",14,9]},{name:"S",model:"area_transition",x:18,y:22,dest:["WORLDMAP",1,1],ARROW:"S"},{name:"Save Crystal",model:"o_Crystal",x:21,y:14,walkspeed:-1,conv:"c_healingCrystal"}];
+if(GameData.CHAPTER == 1)
+{
+   if(!GameData.plotVars.startedProperly || GameData.plotVars.ROHOPH != null)
+   {
+      ambience = {ra:100,rb:0,ga:80,gb:0,ba:70,bb:0,aa:100,ab:0};
+      A_sprites = A_sprites.concat([{name:"Bernardo",model:"soldier",x:4,y:7,walkspeed:-1,dir:"s",elem:"FIRE",conv:[["norm","Oy, it\'s like a lickle boy or summat. Shouldn\' you be goin\' \'ome, sonny?"]]},{name:"Marcellus",model:"soldier",x:6,y:7,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["blah","Everyone else is in bed (yes, before the sun\'s even set, I know!), and here WE are on the \'night shift\', protecting these barracks from monsters, supposedly."],["blah","Pfft. This place has been here for years though, and in all my time here it\'s only been \'attacked\' once, and that was by a drunken gruul that passed out after knocking on the door once anyway!"]]},{name:"George",model:"common",x:34,y:6,walkspeed:-1,dir:"s",elem:"EARTH",conv:(GameData.plotVars.ROHOPH == null?[["norm","You\'re out late there, boys! Shouldn\'t you be going back home to bed? Your parents are probably worried!"],["susp","You... do remember where you live, right? In those little houses in the south-west part of town...?"],["o_O","No, I, uh... I don\'t know why I thought you might\'ve forgotten! But it\'s useful to know anyway, innit?"]]:[["norm","Hello there, boys! Back from another adventure again? I\'m just, uh... just wandering the streets. Yes, there\'s nothing suspicious about THAT, is there?"]])}]);
+      for(var s in A_sprites)
+      {
+         if(A_sprites[s].name == "Mardek\'s House")
+         {
+            A_sprites[s].conv = !((!GameData.plotVars.startedProperly || GameData.plotVars.ROHOPH != null) && _root.PCstats[1].name == "Deugan")?null:"c_HeroBabble";
+         }
+         else if(A_sprites[s].model == "DOOR0")
+         {
+            A_sprites[s].lock = "lock";
+         }
+      }
+   }
+   else
+   {
+      A_sprites = A_sprites.concat([{name:"Bernardo",model:"soldier",x:4,y:7,walkspeed:-1,dir:"s",elem:"FIRE",conv:[["norm","Oy, it\'s like a lickle boy or summat. Buggroff."]]},{name:"Marcellus",model:"soldier",x:6,y:7,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["norm","Oh, hello there, sonny. The barracks are no place for children, but go in for all I care."]]},{name:"George",model:"common",x:34,y:11,walkspeed:40,dir:"s",elem:"EARTH",conv:[["deep","I, uh... I do believe I\'ve forgotten where I live! I can\'t find my house anywhere! I\'m sure I\'ll find it if I wander around this general area for a while longer though. Yes, I\'m sure things will turn out well!"]]},{name:"Bearded Man",model:"man2",x:5,y:12,walkspeed:40,dir:RDir(),elem:"FIRE",conv:[["norm","Hey look! I have a beard! You little kiddiwinks can\'t grow beards, so I WIN. HELL YEH!!"]]},{name:"Middle-aged Woman",model:"woman2",x:2,y:22,walkspeed:60,dir:RDir(),elem:"EARTH",conv:[["norm","Did you see that weird star that seemed to fall from the sky and into the ground over across the woods? In all my years, I\'ve never seen anything like THAT before!"]]},{name:"Jered",model:"boy",x:9,y:16,walkspeed:10,dir:RDir(),elem:"EARTH",conv:[["norm","\'Allo, Mardek and Deugan! I bet you\'re going adventuring today again... I never get to go adventuring because me mum won\'t let me!"]]},{name:"Adventurer",model:"woman4",x:15,y:15,walkspeed:40,dir:RDir(),elem:"AIR",conv:[["susp","Do all the children talk to strange adults in this little village? Scarper, chum. An Adventurer like me has nothing to say to you!"]]},{name:"Old Lady",model:"woman3",x:22,y:16,walkspeed:90,dir:RDir(),elem:"EARTH",conv:[["norm","Back in my day, we didn\'t have stars falling from the heavens! Lord no! Stars were much better behaved back in the good old days, not like these rowdy, rebellious stars you kids look at these days! They\'ll be the death of us all, I swear!"]]},{name:"Middle-aged Man",model:"man1",x:30,y:16,walkspeed:40,dir:RDir(),elem:"EARTH",conv:[["norm","I\'m so middle-aged that I don\'t care much for falling stars. I just don\'t get excited like you wee sprogs do, you see. You\'ll understand when you\'re older."]]},{name:"Woman",model:"woman",x:32,y:18,walkspeed:40,dir:RDir(),elem:"WATER",conv:[["norm","Yes? What do you want, boys? If you\'re after some more sweet, sweet cocoa biscuits, I\'m sorry but I\'ve got none to give to you today!"]]},{name:"Old Man",model:"man3",x:34,y:22,walkspeed:90,dir:RDir(),elem:"AIR",conv:[["norm","If I were any younger, I\'d go and look at where that star landed meself! I just knows it\'s somethin\' special! But since me old bones are too feeble, I\'d never survive the walk through them woods..."],["grin","You little whippersnappers look rip-rarin\' to go and explore, though! Tell me all about what you find when you get back!"]]}]);
+   }
+   musicTrack = !(GameData.plotVars.startedProperly && GameData.plotVars.ROHOPH == null)?"crickets":"Goznor";
+}
+else if(GameData.CHAPTER == 2)
+{
+   var A_sprites2 = [];
+   if(GameData.plotVars.ZOMBIES == "GOZNOR")
+   {
+      ambience = {ra:25,rb:0,ga:40,gb:0,ba:80,bb:0,aa:100,ab:0};
+      areafog = "DARK";
+      var ms = 0;
+      while(ms < 11)
+      {
+         var X = 0;
+         var Y = 0;
+         do
+         {
+            X = random(map[0].length);
+            Y = random(map.length - 7);
+         }
+         while(!IsValidTile(X,Y));
+         
+         A_sprites.push({name:"Zombie",model:"zombie",x:X,y:Y,walkspeed:10 + random(21),elem:"DARK",conv:[["zombie","Muuuuuhhhhhhggghh...!"],Do = function()
+         {
+            BATTLE([["Zombie",null,null,null],["Zombie",null,null,null],[4 + random(3),null,null,null],"SOLO"],"battle",true);
+            return true;
+         }]});
+         ms++;
+      }
+      var d = 0;
+      while(d < A_sprites.length)
+      {
+         if(A_sprites[d].model == "DOOR0")
+         {
+            A_sprites[d].lock = "tight";
+         }
+         d++;
+      }
+   }
+   else if(GameData.plotVars.ZOMBIES == "CANONIA")
+   {
+      ambience = {ra:25,rb:0,ga:40,gb:0,ba:80,bb:0,aa:100,ab:0};
+      A_sprites2 = [{name:"Bernardo",model:"soldier",x:4,y:7,walkspeed:-1,dir:"s",elem:"FIRE",conv:[["norm","Canonia looks like it\'s in trouble. We should be \'elpin\', but we\'re not because it\'s a long way away! Bah! And what could we soldiers do anyway? We can\'t defeat zombies! They have all blue skin an\' everythin\'!"]]},{name:"Marcellus",model:"soldier",x:6,y:7,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["grin","I\'m so glad the zombies left here and went to Canonia instead! Now they\'re their problem!"]]},{name:"George",model:"common",x:34,y:11,walkspeed:40,dir:"s",elem:"EARTH",conv:[["grin","You want magic to fly, eh?"],["susp","[[PC]]Well, I didn\'t say anything yet!"],["grin","I can cast a spell on you that can make you fly. Or I could, if I wasn\'t yanking your leg off. And by that, I mean shifting to a state of supinity and recumbence. Telling a porkie. But seriously, I don\'t think there are any such spells! The best magic user around here is the Shaman, so ask him! Maybe he\'ll be able to ask Mother Nature nicely to bend the law of gravity for you?"],["susp","[[PC]]What\'s the law of gravity?"],["grin","An anachronism."]]},{name:"Bearded Man",model:"man2",x:5,y:12,walkspeed:40,dir:RDir(),elem:"FIRE",conv:[["angr","Those zombies didn\'t eat my beard! By the GODS, am I relieved! Though if they\'d tried, I would\'ve sworn at them SO HARD their mothers would bleed!!"]]},{name:"Jered",model:"common",x:9,y:16,walkspeed:10,dir:RDir(),elem:"EARTH",conv:[["sad","A good adventurer I do not make, I\'ve found! I just hid like everyone else when the zombies were here, and now I\'m hiding from the ones in Canonia... I\'m such a coward. My dead mother would be ashamed of me!"]]}];
+   }
+   else if(GameData.plotVars.SUNSET && GameData.plotVars.SUNSET != "NIGHT")
+   {
+      ambience = {ra:100,rb:0,ga:80,gb:0,ba:70,bb:0,aa:100,ab:0};
+      A_sprites2 = [{name:"Bernardo",model:"soldier",x:4,y:7,walkspeed:-1,dir:"s",elem:"FIRE",conv:[["angr","I\'ve been doin\' this bleedin\' job fer nigh on ten years now!"],["smile","Just fote yeh should know that, kiddo. I\'m sure it\'ll enlighten yer life in some way or another."]]},{name:"Marcellus",model:"soldier",x:6,y:7,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["grin","Oh, hello there, fellow soldier! If you\'re looking for cheap prostitutes like most of us do at night, I\'m afraid you won\'t find any around here! Try that Lilanea woman\'s house. I heard she was pretty lonely; she might let you have a go for free!"],["o_O","[[PC]]Well, ew!"],["grin","A bit too old for you, eh? Well, how about you go and raid the girls\' dorms? Me and Bernie here used to do that all the time back when we were recruits!"],["grin","There used to be a secret passage from the Sewers that led right to underneath the girls\' dorms... Heh, maybe it\'s still there?"]]}];
+      var d = 0;
+      while(d < A_sprites.length)
+      {
+         if(A_sprites[d].model == "DOOR0")
+         {
+            A_sprites[d].lock = "lock";
+         }
+         d++;
+      }
+   }
+   else if(GameData.plotVars.SUNSET != "NIGHT")
+   {
+      A_sprites2 = [{name:"Bernardo",model:"soldier",x:4,y:7,walkspeed:-1,dir:"s",elem:"FIRE",conv:[["norm","I sure could eat some ham right now! But this job won\'t let me."]]},{name:"Marcellus",model:"soldier",x:6,y:7,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["norm","Hello there, fellow soldier! You\'re one of them ones from the castle, reyt? You won\'t find anything here... With Jacques gone to that better job of his, these barracks are as quiet as a grave! Uh, one that isn\'t haunted, anyway. By zombies or spectres. They tend to moan a lot. Usually about the weather and current political climate. Yes."]]},{name:"George",model:"common",x:34,y:11,walkspeed:40,dir:"s",elem:"EARTH",conv:[["grin","Hey, did you know that you can split stacks of items by holding the S key and then clicking them? I bet you totally didn\'t."]]},{name:"Bearded Man",model:"man2",x:5,y:12,walkspeed:40,dir:RDir(),elem:"FIRE",conv:[["norm","Hah! You call THAT a BEARD?! It\'s more like... like... a CRAPPY beard! HAHAHA! I\'m still totally far way better than you by loads because I have a better beard than you! HELL YEH!"]]},{name:"Middle-aged Woman",model:"woman2",x:2,y:22,walkspeed:60,dir:RDir(),elem:"EARTH",conv:[["norm","Why, if it isn\'t Mardek! My, you\'ve grown in these eight years that it\'s been since Chapter 1! Who\'d\'ve thought?!"]]},{name:"Jered",model:"common",x:9,y:16,walkspeed:10,dir:RDir(),elem:"EARTH",conv:[["norm","I may not have become an adventurer yet, but one day I most certainly will! Just you wait and see, Mardek and Deugan!"]]},{name:"Middle-aged Man",model:"man1",x:30,y:16,walkspeed:40,dir:RDir(),elem:"EARTH",conv:[["grin","There were two old people who used to wander around Goznor, but they\'re dead now."]]},{name:"Middle-aged Woman",model:"woman2",x:32,y:18,walkspeed:40,dir:RDir(),elem:"WATER",conv:[["norm","My, how middle-aged I\'ve become in the last eight years! Soon I\'ll probably middle-age off the mortal coil and then will be dead!"]]}];
+   }
+   else if(GameData.plotVars.SUNSET == "NIGHT")
+   {
+      ambience = {ra:25,rb:0,ga:40,gb:0,ba:80,bb:0,aa:100,ab:0};
+      var d = 0;
+      while(d < A_sprites.length)
+      {
+         if(!(A_sprites[d].name == "Inn" && GameData.plotVars.ZOMBIES == "CANONIA"))
+         {
+            if(A_sprites[d].model == "DOOR0")
+            {
+               A_sprites[d].lock = "tight";
+            }
+         }
+         d++;
+      }
+   }
+   A_sprites = A_sprites.concat(A_sprites2);
+   musicTrack = GameData.plotVars.ZOMBIES != "GOZNOR"?!!GameData.plotVars.SUNSET?"crickets":"Goznor":"EvilStirs";
+}
+else if(GameData.CHAPTER == 3)
+{
+   A_sprites = A_sprites.concat([{name:"Laddy",model:"zombie",x:22,y:1,walkspeed:-1,dir:"e",elem:"EARTH",conv:[["zombie","Muuuuuhhhhhhggghh...!"],["shok","[[PC]]Wah! A zombie!"],["smile","[[Laddy]]Oh, I sure got you there! I\'m not really a zombie though. I\'m just ROLE-PLAYING. Do you know what that is? I bet you don\'t know what that is. It\'s sort of like raising a flag, except completely different in every conceivable way. Y\'know."],["smile","Um, anyway, could you sort of stay out of the sewers now? Ever since some hero or another unlocked the door down there, we\'ve had access to the Catacombs, so we can finally have the realistic location our LARP sessions really need!"],["grin","My character is a zombie guy who woke up mysteriously on some boat with anmesia, with only a strange scroll in his possession, only he couldn\'t read it because he forgot how to read also, and he met a blind guy, and, and...!"],["susp","[[RM]]That sounds like the deepest story I\'ve ever heard."],["grin","[[Laddy]]Yeh, I know! Isn\'t it amazing?!"]]},{name:"Bernardo",model:"soldier",x:4,y:7,walkspeed:-1,dir:"s",elem:"FIRE",conv:[["grin","\'Ey, if it i\'n\'t lickle Sir Mardek, our amazin\' saviour! I remember back when you wuz still a lickle boy! Do you remember that? It were only two chapters ago!"],["susp","But the last chapter was released so bloody long ago that I\'d not be surprised at all if yeh\'d forgotten everythin\' that \'appened in it. Bloody useless developer. Waste o\' space, \'e is."]]},{name:"Marcellus",model:"soldier",x:6,y:7,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["blah","We\'ve been standing guarding these barracks for, what is it now, like 11 years? More? You\'d think we\'d have got better jobs, but no. Instead, we just watch the children grow into Heroes while wasting our lives like this."],["angr","It\'s not like there\'s even anything IN the barracks! Or anyone to attack them! Agh! Sometimes I just wonder whether to... to... I don\'t know!"],["smile","But at least I have my best buddy here to keep me company. He sure is a great man, you know? Yep. A great man. Uh... Go away now."]]},{name:"George",model:"common",x:34,y:11,walkspeed:40,dir:"s",elem:"EARTH",conv:[["susp","Crystals, eh? What about them?"],["deep","[[PC]]Well, I didn\'t say anything..."],["grin","Oh, you want to know where they are, do you? Probably to save the world or something? In that case, I just simply don\'t know! I don\'t! You can torture me all you like - go on, just try it! Whip me hard, young man! \'Til I bleed streams! - but I\'d still never tell you! Because I can\'t!"],["blah","I think the Goznor Shaman knows though. That damned curly-bearded old codger seems to know everything. Pfft."]]},{name:"Bearded Man",model:"man2",x:5,y:12,walkspeed:40,dir:RDir(),elem:"FIRE",conv:[["deep","Y\'know, I\'m thinking about shaving off my glorious facial hair..."],["deep",". . ."],["o_O","But then what\'d be the point in living?"]]},{name:"Middle-aged Woman",model:"woman2",x:2,y:22,walkspeed:60,dir:RDir(),elem:"EARTH",conv:[["norm","The King\'s been making some rather strange rules and commands and such lately!"],["susp","Or so I would assume, because I\'ve heard he\'s acting all iffy and off, but honestly, I don\'t even know what he DOES around here at the best of times. Goznor should just become an anarchy and we should all wear black and have neon green hair."]]},{name:"Jered",model:"common",x:9,y:16,walkspeed:10,dir:RDir(),elem:"EARTH",conv:[["grin","I\'m trying to think up a good adventurer name, for when I become an adventurer, which I will one of these days! Just you wait and see, Mardek and\nD-... uhm..."],["deep",". . ."],["deep","Uh, anyway, I\'m thinking of maybe calling myself \'Amiable Dingo\'? Has a nice ring to it, don\'t you think? And it follows the trends, y\'know? Social Fox, now this Lone Wolf fellow... It seems only logical!"]]},{name:"Adventurer",model:"woman4",x:15,y:15,walkspeed:40,dir:RDir(),elem:"AIR",conv:[["blah","And so my travels bring me back to this pissant hamlet... Wonderful. I bet no heroes ever called THIS their home!"]]},{name:"Middle-aged Man",model:"man1",x:30,y:16,walkspeed:40,dir:RDir(),elem:"EARTH",conv:[["grin","Sir Mardek, have you heard the rumours of that Lone Wolf fellow? You know, the new Grand Adventurer that\'s been waltzin\' around, slaying cats and saving dragons and all that mess? Surely you must have heard!"],["norm","It seems he\'s been everywhere but Goznor, though I can\'t imagine why. It could be because with you here, there\'s nothing much to do in the area."],["sad","Or it could be that the town is just a woeful dump that nobody of any stature would be seen dead in!"],["susp","Present company excluded, of course."],["grin","I mean, obviously a man of my incredible feats and splendourous charisma can call from here, so there must be something to the place!"]]},{name:"Middle-aged Woman",model:"woman2",x:32,y:18,walkspeed:40,dir:RDir(),elem:"WATER",conv:[["sad","Hello there, Sir Mardek... How are you feeling these days? Are you alright? Coping alright by yourself?"],["sad","Sir Deugan\'s passing affected us all, but you were surely heartbroken... I worry about you a lot. You\'re so brave."]]},{name:"Old Man",model:"man3",x:34,y:22,walkspeed:90,dir:RDir(),elem:"AIR",conv:[["norm","I heard the Queen\'s been actin\' a bit weird. Or do we have a King now? I do forget these things, for you see, I am an aged gentleman. The years I have lived are many. I am not a young person."],["grin","I am in my winter years. My time is fading. I\'m in the final Act of the play of Life. My teeth fell out a while ago. I get back pains. I forget my name. Then I remember it is \'Old Man\' by looking above the dialogue box. I am in my winter years. I heard that there was something to do with the King! Or do we have a Queen now?"],["deep","Back in MY day, we didn\'t have none o\' this monarchy palaver. We just had to make it by ourselves pressed between Life\'s hearty bosoms of harshness and strife, selling eggshells fer a livin\' and eating the moss out our toes! Give me a mossy toe these days, and I\'ll say \'Childs! They don\'t know what their mission! Is!\' I\'m old."]]}]);
+   musicTrack = "Goznor";
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+fishes = [{name:"Wetfish",type:"ITEM",chance:80,pull:5,whim:2,HP:100,wait:100},{name:"Brinary",type:"MON",chance:20,pull:5,whim:2,HP:100,wait:80}];
+AreaSetup({clearmap:1});
+EN_ADD("Places","Goznor");

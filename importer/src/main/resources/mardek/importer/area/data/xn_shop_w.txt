@@ -1,0 +1,14 @@
+map = [[10,10,10,10,10,13,13,13,13],[10,10,10,10,10,12,12,12,12],[13,13,13,13,13,30,11,21,30],[20,20,12,12,12,110,110,110,110],[17,19,22,18,11,11,11,11,11],[17,19,19,18,11,11,11,11,11],[17,19,19,18,11,11,16,11,11]];
+tileset = "sandcave_interior";
+area = "xn_shop_w";
+areaname = "Xantusia - Equipment Shop";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Bookshelf",model:"object",x:0,y:3,type:"examine",conv:[["","It\'s a bookshelf full of various magazines and annuals about weapons. It includes such eccentric models as a handheld paper fan, some kind of hairclip or headdress, a megaphone, and some kind of strange sword-combined-with-a-gun. Who\'d use such ridiculous things?!"]]},{name:"Bookshelf",model:"object",x:1,y:3,type:"examine",conv:[["","It\'s a bookshelf full of various magazines and annuals about armour. The \'Chainmail Bikini Special Edition\' catches your eye."]]},{name:"Equipment Shop",model:"shop",x:6,y:3,SHOP:{name:"Xantusia Equipment Shop",wares:DefaultShops.XANTUSIA_EQUIPMENT}},{name:"Shopkeeper",model:"reptoid_warrior",x:6,y:2,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["norm","WORDS."]]},{name:"EXIT",model:"BIGDOOR1",x:6,y:7,dest:["xantusia",9,24]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "ReptoidVillage";
+AreaSetup({clearmap:1});

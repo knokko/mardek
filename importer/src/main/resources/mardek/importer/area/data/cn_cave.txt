@@ -1,0 +1,37 @@
+map = [[10,10,10,10,13,13,13,13,13,13,13,13,13,13,10,10,10,10,10,10],[10,10,13,110,12,12,12,12,12,12,129,12,12,12,17,13,10,10,10,10],[10,16,12,129,11,11,11,11,11,11,11,11,11,11,12,12,17,13,10,10],[10,110,111,11,11,18,15,15,15,15,15,15,19,11,11,11,12,12,14,10],[16,12,11,11,18,10,10,10,10,10,10,10,16,11,11,111,11,11,17,10],[16,11,11,11,14,10,10,10,10,10,10,10,16,11,11,11,11,11,129,14],[10,15,15,15,10,10,10,10,10,10,10,10,110,11,11,11,11,11,11,14],[10,10,10,10,10,10,10,10,10,10,10,16,12,112,18,15,19,11,11,14],[10,10,10,10,10,10,10,13,13,13,13,110,11,11,14,10,16,11,11,14],[10,10,10,10,13,13,110,12,12,12,129,12,112,18,10,10,16,11,11,14],[10,10,10,110,12,129,12,120,121,111,11,11,11,14,10,10,10,19,11,14],[10,10,16,12,120,125,125,113,126,11,11,11,18,10,10,10,10,16,11,14],[10,10,16,120,113,127,127,127,122,11,11,11,17,10,10,10,10,16,11,14],[10,10,16,123,122,11,11,11,11,11,11,11,12,14,10,10,10,16,111,14],[10,10,16,111,11,11,11,11,11,11,11,11,118,14,10,10,10,10,15,10],[10,10,16,11,11,11,11,116,11,11,11,11,11,14,10,10,10,10,10,10],[10,10,16,11,11,11,11,11,11,11,11,11,111,14,10,10,10,10,10,10],[10,10,16,11,11,11,11,11,11,11,11,11,18,10,10,10,10,10,10,10],[10,10,10,15,19,11,11,11,11,11,18,15,10,10,10,10,10,10,10,10],[10,10,10,10,10,15,15,117,15,15,10,10,10,10,10,10,10,10,10,10]];
+tileset = "cave2";
+area = "cn_cave";
+areaname = "Canonia - " + (GameData.CHAPTER != 2?"Shaman Cave":"Zombieproof Cave");
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:3,y:17,walkspeed:-1,conv:"c_healingCrystal"},{name:"EXIT",model:"area_transition",x:7,y:19,dest:["canonia",29,3]}];
+if(GameData.CHAPTER == 3)
+{
+   if(GameData.plotVars.GET_GLORIA != 2)
+   {
+      A_sprites.push({name:"Gloria",model:"gloria17",x:7,y:15,walkspeed:-2,dir:"s",EN:["People","Gloria"],elem:"EARTH",conv:"c_A_Gloria",PC_STATS:GET_PC_STATS("Gloria")});
+   }
+   A_sprites.push({name:"Cauldron",model:"miscObj",x:7,y:13,walkspeed:-2,FRAME:3,y0:true,conv:[["","It\'s a magic cauldron, where Gloria makes magical brews out of various reagents."],Do = function()
+   {
+      if(_root.HasAlly("Gloria"))
+      {
+         _root.OpenWorkbench(_root.MIX_BREWS,"Cauldron","Recipes");
+      }
+      return 1;
+   }]});
+}
+else if(GameData.plotVars.ZOMBIES == "CANONIA")
+{
+   A_sprites = A_sprites.concat([{name:"Shaman",model:"shaman",x:7,y:15,walkspeed:-2,dir:"s",EN:["People","Goznor Shaman"],elem:"EARTH",conv:"c_shaman"},{name:"Soldier",model:"soldier",x:8,y:18,walkspeed:-1,dir:"w",elem:"EARTH",conv:[["grin","Come right in, non-zombies! You can take refuge in this here Zombieproof Cave that Canonia just happens to have! Don\'t you think it\'s useful and coincidental that this place exists!?"]]},{name:"Brother Beardbert",model:"man2",x:14,y:4,walkspeed:-1,dir:"e",elem:"AIR",conv:[["shok","Those zombies are really annoying! They\'re stopping me from being outside and breathing in the chilly, scented night air! Now how will I get my fix?!"]]},{name:"Brother Beardbert",model:"man2",x:15,y:3,walkspeed:-1,dir:"s",elem:"FIRE",conv:[["angr","Those zombies are really annoying! They\'re preventing me from punching trees in the night! Now people won\'t be able to get up in the morning, see the trees, and wonder who punched them! So this is really inconveniencing us all! I should report it to the mayor! If only Canonia HAD one!"]]},{name:"Brother Beardbert",model:"man2",x:16,y:4,walkspeed:-1,dir:"w",elem:"WATER",conv:[["blah","Those zombies are really annoying. They\'re offensive to all my senses. Even taste. And believe me, I know. Mainly because I licked one of them for a laugh. It wasn\'t as amusing as I thought it might be. I probably caught something. Like a disease. Maybe I\'ll die."]]},{name:"Fredley",model:"common",x:3,y:4,walkspeed:40,dir:"s",elem:"AIR",conv:[["shok","I would never have guessed that this would happen!!"]]},{name:"Woman",model:"woman",x:10,y:11,walkspeed:40,dir:RDir(),elem:"FIRE",conv:[["grin","Pseudolonewolf really does like Firequill, you know! So, so much! More than anything! How *romantic*!"]]},{name:"Adventurer",model:"woman4",x:4,y:17,walkspeed:40,dir:RDir(),elem:"AIR",conv:[["angr","I could be out there fighting those zombies, but I\'m not because I tried and they kept GROPING me! Even in death, men are perverted wretches who never respect us women as people! You\'re still looking at my chest!"]]},{name:"Middle-aged Woman",model:"woman2",x:5,y:13,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["susp","The zombies out there came from Goznor, or something? Or did they used to be villagers from here who were zombified? Or were they just SPAWNED out of nowhere, magically? None of those things really make much sense!"]]},{name:"Middle-aged Man",model:"man1",x:6,y:13,walkspeed:-2,dir:"w",elem:"EARTH",conv:[["blah","I think the village is meant to be covered in black smoke, but *I* don\'t see any except on the world map! Psht!"]]},{name:"Gloria",model:"gloria",x:10,y:15,walkspeed:30,dir:"s",elem:"EARTH",EN:["People","Gloria"],conv:[["deep","My parents are at home, but they told me and Elly to go to this cave because they said it would be safer here. I hope they\'ll be okay..."]]},{name:"Elwyen",model:"elwyen_child",x:10,y:16,walkspeed:30,dir:"n",elem:"WATER",conv:[["sad","Oh nooo! First my parents, and now this! This isn\'t faaaair! Save us again, Mardek!"]]}]);
+}
+else if(GameData.plotVars.SUNSET != "NIGHT")
+{
+   A_sprites.push({name:"Man",model:"man1",x:9,y:14,walkspeed:20,dir:"e",elem:"AIR",conv:[["grin","We sure are lucky to have this Zombieproof cave! I bet it\'d be really useful if ever the town were attacked by zombies, which would be a rather unexpected thing to happen, really!"]]});
+}
+areaLoot = [{x:1,y:5,amount:10,item:"HolyWater"}];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = GameData.CHAPTER <= 2?GameData.plotVars.ZOMBIES != "CANONIA"?GameData.plotVars.SUNSET != "NIGHT"?"Canonia":"crickets":"EvilStirs":"Gloria";
+AreaSetup({clearmap:1});

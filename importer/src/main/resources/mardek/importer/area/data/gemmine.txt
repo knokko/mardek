@@ -1,0 +1,60 @@
+map = [[10,10,10,10,10,10,10,13,10,10,10,10,10,10,10],[10,10,10,10,10,10,16,115,17,10,10,10,13,10,10],[10,10,13,10,10,10,16,155,151,14,10,16,115,17,10],[10,16,115,14,10,10,16,157,159,14,10,16,155,151,14],[10,110,155,14,10,10,10,19,155,14,10,16,157,159,14],[16,152,155,14,10,10,10,110,155,14,10,10,19,155,14],[16,158,160,14,10,10,16,152,155,14,10,10,16,155,14],[16,155,18,10,10,10,16,11,155,14,10,10,110,155,14],[16,155,17,10,10,10,16,158,160,14,10,16,152,155,14],[16,155,151,14,10,10,16,155,11,14,10,16,158,160,14],[16,157,159,14,10,13,110,155,18,10,10,110,155,11,14],[10,19,155,17,110,116,152,155,17,10,110,152,155,18,10],[10,16,155,151,152,11,11,155,151,116,152,11,155,14,10],[10,16,157,159,11,111,11,155,11,111,11,11,11,14,10],[10,10,19,157,156,11,11,11,11,11,11,11,18,10,10],[10,10,16,11,11,11,11,11,11,111,11,18,10,10,10],[10,10,16,111,11,11,11,11,11,11,111,14,10,10,10],[10,10,16,11,11,11,11,11,11,11,18,10,10,10,10],[10,10,10,19,11,111,11,11,11,18,10,10,10,10,10],[10,10,10,10,15,19,11,11,18,10,10,10,10,10,10],[10,10,10,10,10,10,19,11,14,10,10,10,10,10,10],[10,10,10,10,10,10,10,162,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]];
+tileset = "cave4";
+area = "gemmine";
+areaname = "Gem Mine";
+ambience = null;
+dungeon = "GemMine";
+A_sprites = [{name:"Sign",model:"sign",sign:"words2",x:3,y:12,walkspeed:-2,FRAME:9,conv:[["","TO WHERE THE BANDIT CHIEF PROBABLY IS."]]},{name:"Sign",model:"sign",sign:"words2",x:6,y:11,walkspeed:-2,FRAME:9,conv:[["","TO PROBABLY ALSO WHERE THE BANDIT CHIEF MAYBE COULD POSSIBLY BE, PERHAPS."]]},{name:"Sign",model:"sign",sign:"words2",x:11,y:11,walkspeed:-2,FRAME:9,conv:[["","POSSIBLY TO WHERE THE MINERS ARE BEING HELD PRISONER."]]},{name:"W",model:"area_transition",x:2,y:3,dest:["gemmine5",18,57]},{name:"N",model:"area_transition",x:7,y:1,dest:["gemmine2",18,47]},{name:"E",model:"area_transition",x:12,y:2,dest:["gemmine7",2,31]},{name:"EXIT",model:"area_transition",x:7,y:21,dest:["WORLDMAP",1,1],ARROW:"S"}];
+areaLoot = [];
+if(GameData.plotVars.BRIEFING == 1)
+{
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:7,y:20,ExecuteScript:function()
+   {
+      if(GameData.plotVars.BRIEFING == 1)
+      {
+         DO_ACTIONS([["WALK",0,-4],["UNFREEZE"],["TALK","c_A_Donovan","Donovan"]],"PC",true);
+      }
+   }});
+   A_sprites.push({name:"Donovan",model:"donovan_soldier",x:7,y:14,walkspeed:-1,dir:"s",elem:"FIRE",conv:"c_A_Donovan"});
+   A_sprites.push({name:"Emela",model:"emela_soldier",x:4,y:14,walkspeed:-1,dir:"s",elem:"WATER",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Sharla",model:"sharla_soldier",x:8,y:13,walkspeed:-1,dir:"s",elem:"AIR",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Steele",model:"steele_soldier",x:5,y:15,walkspeed:-1,dir:"s",elem:"DARK",conv:[["shok","ERROR!"]]});
+}
+if(GameData.plotVars.BRIEFING < 3)
+{
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:2,y:12,triggers:-1,ExecuteScript:function()
+   {
+      if(_root.freeze || _root.conv._visible)
+      {
+         return undefined;
+      }
+      _root.Speak(_root.PCstats[1],_root.cont.PC2,[["blah","Uh... Wrong way, Mardek."],Do = function()
+      {
+         DO_ACTIONS([["WALK",0,1],["UNFREEZE"]],"PC",true);
+         return 1;
+      }]);
+   }});
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:12,y:11,triggers:-1,ExecuteScript:function()
+   {
+      if(_root.freeze || _root.conv._visible)
+      {
+         return undefined;
+      }
+      _root.Speak(_root.PCstats[1],_root.cont.PC2,[["blah","Uh... Wrong way, Mardek."],Do = function()
+      {
+         DO_ACTIONS([["WALK",0,1],["UNFREEZE"]],"PC",true);
+         return 1;
+      }]);
+   }});
+}
+if(GameData.CHAPTER == 3)
+{
+   A_sprites.push({name:"Miner",model:"miner",x:12,y:11,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["grin","\'Allo there, I\'m a miner! I don\'t want to be a bother or anything, but could you not come down this path right now? Y\'see, me fellow miners finally managed to coax one o\' th\' girlies from Goznor into entering t\' mines, and now they\'re \'avin\' a bit o\' bukkake fun time in there. Not somethin\' you want to be seein\', t\'be honest."]]});
+}
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Dungeon2";
+AreaSetup({WARP:1,clearmap:1});
+EN_ADD("Places","Gem Mine");

@@ -1,0 +1,18 @@
+map = [[10,10,10,10,10,10,10,10,10,10,10,10,17,20,20,20,20,15,11,10],[11,11,11,11,11,15,11,11,11,11,11,11,21,12,12,12,12,22,23,10],[12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,110,111,10],[112,10,10,10,10,10,10,10,10,10,10,10,12,12,12,12,12,120,121,10],[112,10,10,10,10,10,10,10,10,10,10,10,115,115,12,113,12,130,131,10],[112,10,10,10,10,10,10,10,10,10,10,10,12,12,12,12,12,12,12,10],[112,10,10,10,10,10,10,10,10,10,10,10,12,12,12,12,12,12,114,10],[10,10,10,10,10,10,10,10,10,10,10,10,13,13,12,12,12,13,14,10],[10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,112,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,112,10,10,10,10]];
+tileset = "deadhouse";
+area = "DeadHouse5";
+areaname = "House in the Woods";
+dungeon = "SaulsHouse";
+ambience = {ra:66,rb:0,ga:70,gb:0,ba:63,bb:0,aa:100,ab:0};
+A_sprites = GameData.plotVars.SAUL == 2?[{name:"WALK_TRIGGER",model:"_trigger",x:15,y:9,triggers:1,ExecuteScript:function()
+{
+   DO_ACTIONS([["WALK",0,-3],["UNFREEZE"],["TALK","c_A_Saul","Saul"]],"PC",true);
+}},{name:"Saul",model:"saul",x:17,y:4,walkspeed:-2,dir:"s",elem:"DARK",conv:"c_A_Saul"},{name:"Dracelon",model:"ch2bosses",x:15,y:4,walkspeed:-2,dir:"n",Static:true,FRAME:5,elem:"DARK",conv:[["angr","..."]]}]:[];
+A_sprites.push({name:"Door",model:"DOOR4",x:15,y:10,dest:["DeadHouseDungeon",48,1]},{name:"Return Door",model:"DOOR4",x:0,y:7,dest:["DeadHouse2",9,14]});
+areaLoot = [];
+foes = [["Zombie",null,null,null,"SOLO"]];
+btlChance = 0;
+minSteps = 5;
+levelrange = [3,6];
+musicTrack = "Saul";
+AreaSetup({clearmap:1});

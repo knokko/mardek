@@ -1,0 +1,18 @@
+map = [[10,10,10,10,10,13,13,13,13],[10,10,10,10,10,12,12,12,12],[13,13,13,13,13,30,11,21,30],[20,20,12,12,12,110,110,110,110],[17,19,22,18,11,11,11,11,11],[17,19,19,18,11,11,11,11,11],[17,19,19,18,11,11,16,11,11]];
+tileset = "sandcave_interior";
+area = "xn_shop_i";
+areaname = "Xantusia - Item Shop";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Bookshelf",model:"object",x:0,y:3,type:"examine",conv:[["","There\'s a book here mentioning how Shamans are usually rather proficient when it comes to making special, unique potions, but that seems like rather a sweeping generalisation to you so you have doubts as to its veracity."]]},{name:"Bookshelf",model:"object",x:1,y:3,type:"examine",conv:[["","There are books about... items. Yes. Not very interesting, really."]]},{name:"TALKTRIGGER",model:"talktrigger",x:6,y:3,NPC:"Shopkeeper",dir:"s"},{name:"Shopkeeper",model:"reptoid_warrior",x:6,y:2,walkspeed:-1,dir:"s",elem:"EARTH",conv:"c_reptoids1"},{name:"EXIT",model:"BIGDOOR1",x:6,y:7,dest:["xantusia",27,23]}];
+if(int(GameData.plotVars.GOPE) >= 2)
+{
+   A_sprites.push({name:"Gope",model:"gope",x:3,y:4,walkspeed:-1,dir:"s",elem:"EARTH",conv:"c_gope"});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "ReptoidVillage";
+AreaSetup({clearmap:1});

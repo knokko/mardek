@@ -1,0 +1,22 @@
+map = [[10,10,10,10,10,10,10,10,10,14,14,14,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,14,15,15,15,14,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,15,11,11,11,15,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,14,11,30,31,32,11,14,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,15,17,11,16,11,17,15,10,10,10,10,10,10,10],[20,20,13,13,13,13,10,11,11,11,11,11,11,11,10,13,13,13,13,20,20],[11,11,11,11,11,11,10,11,11,11,11,11,11,11,10,11,11,11,11,11,11],[11,11,11,11,11,11,13,11,11,11,11,11,11,11,13,11,11,11,11,11,11],[17,11,16,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,16,11,17],[11,11,11,11,11,11,10,11,11,11,11,11,11,11,10,11,11,11,11,11,11],[11,11,11,11,11,11,10,11,11,11,11,11,11,11,10,11,11,11,11,11,11],[10,10,10,10,10,10,10,11,17,11,11,11,17,11,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,11,11,11,11,11,11,11,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,11,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]];
+tileset = "monastery";
+area = "aeropolis_N_TYALORT";
+areaname = "Aeropolis - Temple of YALORT";
+ambience = null;
+A_sprites = [{name:"High Priest Vudu",model:"YHighPriest",x:10,y:4,walkspeed:-2,dir:"s",EN:["People","Vudu"],elem:"DARK",conv:"c_vudu",EN:["People","Vudu"]},{name:"Cultling",model:"cultling",x:2,y:8,walkspeed:80,dir:"s",elem:"EARTH",conv:[["grin","All Hail YALORT, friend!"],["smile","That\'s what we devoted Yalortians say to greet people. And all the time, during many situations. Like during the climax of copulation. Not that we do that, since we\'re priests and all."]]},{name:"Cultling",model:"cultling",x:18,y:8,walkspeed:50,dir:"s",elem:"EARTH",conv:[["susp","You may get the impression that Yalortism is a little hazy in its details, a little fuzzy around the edges. Does it have a Holy Book? What kind of rules do we follow, if any? What are our specific beliefs?"],["shok","Oh, I\'m not going to ANSWER those questions for you! By the hells no! Please stop looking at me expectantly like that. It\'s making my knees shake, and you wouldn\'t want THAT sitting on your conscience forever and a day, would you?!"]]},{name:"EXIT",model:"area_transition",x:10,y:13,dest:["aeropolis_N",39,20],ARROW:"S"}];
+if(!GameData.plotVars.VEHRNCH3)
+{
+   var VEHRN_STATS = GameData.plotVars.Allies.Vehrn == null?GET_PC_STATS("Vehrn"):GameData.plotVars.Allies.Vehrn;
+   if(VEHRN_STATS.level < 15)
+   {
+      VEHRN_STATS.level = 15;
+   }
+   A_sprites.push({name:"Vehrn",model:"vehrn",x:10,y:5,walkspeed:-2,dir:"n",elem:"LIGHT",conv:"c_vudu",PC_STATS:VEHRN_STATS,EN:["People","Vehrn"]});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "HymnOfYalort";
+AreaSetup({clearmap:1});

@@ -1,0 +1,13 @@
+map = [[10,10,12,12,18,19,12,12,12,10,10],[10,10,118,119,17,17,17,118,119,10,10],[10,10,22,20,24,111,25,11,20,10,10],[12,12,20,11,120,121,122,11,23,12,12],[21,17,13,13,13,13,13,13,13,17,21],[13,13,13,115,116,116,116,117,13,13,13],[13,110,111,112,126,126,126,110,111,112,13],[13,120,121,122,126,126,126,120,121,122,13],[13,138,13,125,126,126,126,127,13,138,13],[13,29,138,135,110,111,112,137,138,29,13],[31,13,13,13,120,121,122,13,13,13,31],[10,10,10,10,10,14,10,10,10,10,10]];
+tileset = "interior6";
+area = "aeropolis_W_Shaman";
+areaname = "Aeropolis - Shaman\'s Residence";
+ambience = null;
+A_sprites = [{name:"Shaman",model:"arabShaman",x:5,y:2,walkspeed:-1,dir:"s",elem:"AIR",conv:"c_arabShaman",EN:["People","Aeropolis Shaman"]},{name:"Guard",model:"arabguard",x:2,y:4,walkspeed:-1,dir:"s",elem:"AIR",conv:[["grin","We are more loyal guards to the Shaman that the two men outside! *I* once saw the shaman with his turban and SHOES off, which is more than either of them have seen! This makes me the superior man all-round. I smile myself to sleep at night."]]},{name:"Guard",model:"arabguard",x:8,y:4,walkspeed:-1,dir:"s",elem:"AIR",conv:[["susp","If you try to harm the Shaman, I will kill you ten times before you hit the ground, foreign devil."]]},{name:"EXIT",model:"area_transition",x:5,y:11,dest:["aeropolis_W",11,11],ARROW:"S"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

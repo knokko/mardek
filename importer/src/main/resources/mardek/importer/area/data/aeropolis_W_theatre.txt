@@ -1,0 +1,33 @@
+map = [[170,170,171,171,171,171,171,171,171,171,171,171,171,170,170],[180,181,188,189,189,189,189,189,189,189,189,189,179,172,173],[190,191,174,1100,1101,1102,1103,1104,1105,1106,1107,1108,175,182,183],[196,197,184,1110,1111,1112,1113,1114,1115,1116,1117,1118,185,192,193],[12,186,194,1120,1121,1122,1123,1124,1125,1126,1126,1126,195,198,12],[12,186,187,187,187,187,187,187,187,187,187,187,187,198,12],[12,186,187,187,187,187,187,187,187,187,187,187,187,198,12],[12,186,35,187,187,187,187,187,187,187,187,187,36,198,12],[12,186,176,177,177,177,177,177,177,177,177,177,178,198,169],[37,38,11,11,11,11,11,11,11,11,11,11,11,11,11],[11,11,11,11,11,11,11,11,11,11,11,11,11,11,11],[13,13,212,212,212,212,212,212,212,212,212,212,212,13,13]];
+tileset = "interior6";
+area = "aeropolis_W_theatre";
+areaname = "Aeropolis - Theatre";
+ambience = null;
+if(GameData.plotVars.PLAY == null)
+{
+   var BARTHOLIO_STATS = GameData.plotVars.Allies.Bartholio = {name:"Bartholio",model:"bartholio",level:26,exp:0,hp:[120,120],mp:[20,20],BASE:{STR:24,VIT:21,SPR:8,AGL:11},STR:24,VIT:21,SPR:8,AGL:11,Class:"Fighter",spells:[],weapon:"Starmetal Blade",shield:"none",helmet:"Horned Helm",armour:"Steel Armour",accessory:"Gauntlet",accessory2:"Emerald Bangle",learned:{},reactions:{atk:{A:"DMG+30%",S:null,D:null},def:{A:"DMG-30%",S:null,D:null}},inventory:new Array(56),element:"LIGHT",nDef:0,nMDef:0,UNSWITCHABLE:true};
+   GameData.plotVars.Allies.Bartholio.learned["Power Attack"] = 99;
+   GameData.plotVars.Allies.Bartholio.inventory[0] = ["FigJuice",3];
+   var AALIA_STATS = GameData.plotVars.Allies.Aalia = {name:"Aalia",model:"aalia",level:26,exp:0,hp:[120,120],mp:[20,20],BASE:{STR:10,VIT:11,SPR:24,AGL:17},STR:10,VIT:11,SPR:24,AGL:17,Class:"Healer",spells:[],weapon:"Fire Staff",shield:"none",helmet:"Regal Crown",armour:"Dark Robe",accessory:"GoldRing",accessory2:"Sapphire Bangle",learned:{},reactions:{atk:{A:"M DMG+30%",S:null,D:null},def:{A:"DMG-20%",S:null,D:null}},inventory:new Array(56),element:"LIGHT",nDef:0,nMDef:0,UNSWITCHABLE:true};
+   GameData.plotVars.Allies.Aalia.learned.Cure = 99;
+   GameData.plotVars.Allies.Aalia.learned.Cura = 99;
+   GameData.plotVars.Allies.Aalia.learned.Shield = 99;
+   GameData.plotVars.Allies.Aalia.learned["M. Shield"] = 99;
+   GameData.plotVars.Allies.Aalia.learned.Regen = 99;
+   GameData.plotVars.Allies.Aalia.inventory[0] = ["Remedy",10];
+   GameData.plotVars.Allies.Aalia.inventory[1] = ["PhoenixDown",10];
+}
+A_sprites = [{name:"Pianist",model:"arab1",x:0,y:9,walkspeed:-1,dir:"n",elem:"AIR"},{name:"Lone Wolf",model:"deugan_lw",x:2,y:10,walkspeed:-2,dir:"n",elem:"EARTH"},{name:"Woman",model:"arabf2",x:3,y:10,walkspeed:-2,dir:"n",elem:"AIR"},{name:"Man",model:"arab1",x:4,y:10,walkspeed:-2,dir:"n",elem:"AIR"},{name:"Woman",model:"arabf1",x:5,y:10,walkspeed:-2,dir:"n",elem:"AIR"},{name:"Man",model:"arab2",x:6,y:10,walkspeed:-2,dir:"n",elem:"AIR"},{name:"Elwyen",model:"elwyen",x:8,y:10,walkspeed:-2,dir:"n",elem:"WATER"},{name:"Woman",model:"woman",x:9,y:10,walkspeed:-2,dir:"n",elem:"AIR"},{name:"Man",model:"man1",x:10,y:10,walkspeed:-2,dir:"n",elem:"AIR"},{name:"Man",model:"arabguard",x:11,y:10,walkspeed:-2,dir:"n",elem:"AIR"},{name:"Woman",model:"arabf1",x:12,y:10,walkspeed:-2,dir:"n",elem:"AIR"},{name:"Akhmed Wobblescimitare",model:"wobblescimitare",x:2,y:6,walkspeed:-2,dir:"w",elem:"AIR"},{name:"Bernard",model:"bernard",x:2,y:6,walkspeed:-2,dir:"e",elem:"DARK"},{name:"Maurice",model:"mugbert_adult",x:2,y:6,walkspeed:-2,dir:"w",elem:"EARTH"},{name:"Madrak",model:"bartholio_actor",x:12,y:6,walkspeed:-2,dir:"w",elem:"LIGHT",PC_STATS:BARTHOLIO_STATS},{name:"Dougal",model:"vennie_actor",x:12,y:6,walkspeed:-2,dir:"w",elem:"AIR"},{name:"Elma",model:"aalia_actor",x:2,y:6,walkspeed:-2,dir:"w",elem:"LIGHT",PC_STATS:AALIA_STATS},{name:"GALARIS",model:"arabShaman_GALARIS",x:2,y:6,walkspeed:-2,dir:"w",elem:"AIR"},{name:"The Witch",model:"witch",x:2,y:6,walkspeed:-2,dir:"w",elem:"EARTH"},{name:"Zombie",model:"zombie",x:2,y:6,walkspeed:-2,dir:"e",elem:"DARK"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "none";
+AreaSetup({noscroll:true,hideparty:true,clearmap:1});
+specBtlBG = "aeropolis_theatre";
+if(GameData.plotVars.PLAY == null)
+{
+   GameData.plotVars.PLAY = 1;
+   DO_ACTIONS([["WAIT",100],["WALK",5,0],["GOTO","s1"],["UNFREEZE"],["TALK","c_play"]],"Akhmed Wobblescimitare",true);
+}

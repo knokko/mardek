@@ -1,0 +1,25 @@
+map = [[10,10,10,10,10,151,132,132,132,152,10,10,10,10,10],[10,10,10,151,132,141,112,112,112,142,132,152,10,10,10],[10,10,151,141,112,112,122,122,122,112,112,142,152,10,10],[10,10,131,112,122,122,13,13,13,122,122,112,133,10,10],[10,10,131,122,13,31,127,128,129,31,13,122,133,10,10],[10,10,131,13,13,13,137,138,139,13,13,13,133,10,10],[10,10,131,31,13,13,147,148,149,13,13,31,133,10,10],[10,10,150,140,13,13,13,13,13,13,13,143,153,10,10],[151,132,132,150,140,31,17,18,19,31,143,153,132,132,152],[131,110,110,133,150,154,17,18,19,144,153,131,110,110,133],[131,120,120,133,131,15,117,118,119,15,133,131,120,120,133],[131,14,14,133,131,121,117,118,119,121,133,131,14,14,133],[131,114,114,133,141,11,17,18,19,11,142,131,114,114,133],[131,114,114,155,15,11,17,18,19,11,15,155,114,114,133],[131,114,114,110,121,30,17,18,19,30,121,110,114,114,133],[131,114,114,120,11,11,17,18,19,11,11,120,114,114,133],[131,114,114,14,14,145,117,118,119,145,14,14,114,114,133],[150,140,114,114,114,135,117,118,119,135,114,114,114,143,153],[10,150,140,114,114,133,140,115,143,131,114,114,143,153,10],[10,10,150,130,130,153,10,10,10,150,130,130,153,10,10]];
+tileset = "temple_DARK";
+area = "Temple_Dark_CR";
+areaname = "Dark Temple - Crystal Room";
+ambience = {ra:80,rb:0,ga:40,gb:0,ba:100,bb:0,aa:100,ab:0};
+dungeon = "DarkTemple";
+A_sprites = [{name:"EXIT",model:"area_transition",x:7,y:18,dir:"s",dest:["Temple_Dark_5",5,3],ARROW:"S"},{name:"WALK_TRIGGER",model:"_trigger",x:7,y:17,ExecuteScript:function()
+{
+   _root.cont["Mystery Man"].model.gotoAndStop("n1");
+   DO_ACTIONS([["WALK",0,-8],["UNFREEZE"],["TALK","c_A_Steele","PC","c_A_Steele"]],"PC",true);
+}}];
+if(GameData.plotVars.EVIL_STEELE == null)
+{
+   A_sprites.push({name:"Mystery Man",model:"steele",x:7,y:7,walkspeed:-1,dir:"n",elem:"DARK",conv:"c_A_Steele",EN:["People","Mystery Man"]});
+   A_sprites.push({name:"Dark Crystal",elem:"DARK",model:"ElementalCrystal",walkspeed:-2,FRAME:5,x:7,y:5,conv:[["","Ooooh!"]]});
+}
+areaLoot = !GameData.plotVars.DONE_CH3_INTRO?[]:[{x:7,y:5,amount:14,item:"Dreamstone"}];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = GameData.plotVars.EVIL_STEELE != null?"DarkTemple":"Steele";
+DeadTempleCheck();
+AreaSetup({LOOT:3,WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});
+specBtlBG = "Temple_DARK_2";

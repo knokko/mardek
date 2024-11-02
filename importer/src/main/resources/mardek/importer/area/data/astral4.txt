@@ -1,0 +1,143 @@
+map = [[10,10,10,11,10,10,11,10,10,11,10,10,10],[10,11,10,10,10,11,11,11,10,10,10,11,10],[10,10,11,10,11,10,11,10,11,10,11,10,10],[11,10,10,11,10,11,11,11,10,11,10,10,11],[10,10,11,10,11,11,10,11,11,10,11,10,10],[10,11,10,11,11,10,10,10,11,11,10,11,10],[11,11,11,11,10,10,11,10,10,11,11,11,11],[10,11,10,11,11,10,12,10,11,11,10,11,10],[10,10,11,10,11,11,12,11,11,10,11,10,10],[11,10,10,11,10,11,11,11,10,11,10,10,11],[10,10,11,10,11,10,11,10,11,10,11,10,10],[10,11,10,10,10,11,11,11,10,10,10,11,10],[10,10,10,11,10,10,11,10,10,11,10,10,10],[10,10,10,10,10,10,12,10,10,10,10,10,10],[10,10,10,10,10,10,12,10,10,10,10,10,10],[10,10,10,10,10,10,12,10,10,10,10,10,10],[10,10,10,11,10,10,11,10,10,11,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,11,12,11,12,11,10,10,10,10],[10,10,10,11,11,11,11,11,11,11,10,10,10],[10,10,10,10,11,12,11,12,11,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,11,10,10,11,10,10,11,10,10,10],[10,10,10,10,10,10,11,10,10,10,10,10,10],[10,10,10,10,10,10,11,10,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,11,10,11,11,11,11,11,10,11,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,10,11,10,10,10,10,10,10],[10,10,10,10,10,10,11,10,10,10,10,10,10]];
+tileset = "astral";
+area = "astral4";
+areaname = "Astral Tunnel";
+ambience = null;
+dungeon = "AstralTunnel";
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:6,y:19,walkspeed:-1,conv:"c_healingCrystal"},{name:"Qualna",model:"qualna",x:6,y:6,walkspeed:-2,FRAME:0,elem:"ETHER",conv:"c_clavis"},{name:"S",model:"area_transition",x:6,y:29,dest:["astral3",22,1],ARROW:"S"},{name:"CUT_TRIGGER",model:"_trigger",x:6,y:7,triggers:-1,ExecuteScript:function()
+{
+   if(!TempVars.MSoulSeal)
+   {
+      return false;
+   }
+   _root.createEmptyMovieClip("MUFOCUT",14152);
+   _root.MUFOCUT.onEnterFrame = function()
+   {
+      if(TempVars.MPossessCut == 10)
+      {
+         this.count = this.count + 1;
+         if(this.count > 30)
+         {
+            _root.freeze = false;
+            TempVars.MSoulSeal = null;
+            this.removeMovieClip();
+            _root.AreaTrans(["gc_ThroneRoom",6,6],100);
+            GIVEPLOTITEM("Qualna\'s Soul Jewel");
+         }
+      }
+      else if(TempVars.MPossessCut != 10)
+      {
+         if(TempVars.MPossessCut == 4)
+         {
+            this.count = this.count + 1;
+            _root.cont.Qualna.box._alpha = _root.cont.Qualna.box._alpha - 2;
+            if(_root.cont.Qualna.box._alpha <= 0)
+            {
+               _root.cont.Qualna.removeMovieClip();
+            }
+            if(this.count >= 80)
+            {
+               TempVars.MPossessCut = 10;
+               _root.playMusic("none");
+               _root.Sky.setTransform({ra:100,ab:0,ga:100,gb:0,ba:100,rb:0,aa:100,ab:0});
+               _root.cont.PC.DrawFrame("n1");
+               this.count = 0;
+            }
+            else
+            {
+               _root.Sky.setTransform({ra:20 + this.count,ab:0,ga:100,gb:0,ba:60 + this.count / 2,rb:0,aa:100,ab:0});
+            }
+         }
+         else if(TempVars.MPossessCut == 3)
+         {
+            _root.SOULSEAL._xscale = _root.SOULSEAL._xscale - 1;
+            _root.SOULSEAL._yscale = _root.SOULSEAL._yscale - 1;
+            _root.SOULSEAL._rotation = _root.SOULSEAL._rotation + 1;
+            if(_root.SOULSEAL._alpha < 100)
+            {
+               _root.SOULSEAL._alpha = _root.SOULSEAL._alpha + 8;
+            }
+            if(_root.SOULSEAL._width < 40)
+            {
+               _root.playSFX("Slam");
+               this.count = 0;
+               _root.SOUL.gotoAndPlay("absorb");
+               _root.SOULSEAL.removeMovieClip();
+               _root.Flash(_root.cont.PC,[0,255,170]);
+               TempVars.MPossessCut = 4;
+            }
+         }
+         else if(TempVars.MPossessCut == 2)
+         {
+            _root.SOUL._y = _root.SOUL._y - 3;
+            if(_root.SOUL._y <= _root.cont.Qualna.getBounds(_root).yMin - 90)
+            {
+               _root.playSFX("MPRestore");
+               this.count = 0;
+               _root.attachMovie("soul_seal_circle","SOULSEAL",14153);
+               _root.Flash(_root.cont.PC,[255,255,255]);
+               _root.SOULSEAL._x = _root.SOUL._x + 24;
+               _root.SOULSEAL._y = _root.SOUL._y + 24;
+               _root.SOULSEAL._alpha = 10;
+               _root.SOULSEAL._width = _root.SOULSEAL._height = 400;
+               TempVars.MPossessCut = 3;
+            }
+         }
+         else if(TempVars.MPossessCut == 1)
+         {
+            this.count = this.count + 1;
+            if(this.count > 40 && this.count < 65)
+            {
+               _root.cont.Qualna._x = _root.cont.Qualna.orig_x - 3 + random(7);
+               _root.cont.Qualna._y = _root.cont.Qualna.orig_y - 3 + random(7);
+            }
+            else
+            {
+               _root.cont.Qualna._x = _root.cont.Qualna.orig_x;
+               _root.cont.Qualna._y = _root.cont.Qualna.orig_y;
+            }
+            if(this.count == 70)
+            {
+               _root.cont.Qualna.DrawFrame(2);
+               _root.Flash(_root,[0,255,170]);
+               _root.playSFX("Slam");
+               _root.attachMovie("s_soul2","SOUL",14151);
+               _root.SOUL.colour = new Color(_root.SOUL);
+               _root.SOUL.colour.setTransform({ra:0,rb:0,ga:100,gb:0,ba:70,bb:0,aa:100,ab:0});
+               _root.SOUL._x = _root.cont.Qualna.getBounds(_root).xMin;
+               _root.SOUL._y = _root.cont.Qualna.getBounds(_root).yMin;
+               _root.SOUL._width = _root.SOUL._height = _root.TILESIZE;
+               _root.SOUL._alpha = 0;
+            }
+            if(_root.SOUL != null && _root.SOUL._alpha < 100)
+            {
+               _root.SOUL._alpha = _root.SOUL._alpha + 20;
+            }
+            if(this.count == 120)
+            {
+               TempVars.MPossessCut = 2;
+            }
+         }
+         else if(TempVars.MPossessCut == null)
+         {
+            _root.cont.Qualna.orig_x = 0 + _root.cont.Qualna._x;
+            _root.cont.Qualna.orig_y = 0 + _root.cont.Qualna._y;
+            TempVars.MPossessCut = 1;
+            _root.freeze = true;
+            this.frozenrunning = true;
+            _root.Flash(_root,[0,255,170]);
+            _root.playSFX("Slam");
+            _root.Sky.setTransform({ra:0,ab:0,ga:100,gb:0,ba:80,rb:0,aa:100,ab:0});
+            this.count = 0;
+         }
+      }
+   };
+}}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Dungeon4";
+clearmap = 1;
+AreaSetup({DREAM:19000,NoSwitch:true,NO_MAP:true,clearmap:1,LOOT:3});

@@ -1,0 +1,13 @@
+map = [[12,12,12,12,12,12,18,19,12],[118,119,17,17,17,17,17,17,17],[22,11,11,11,11,11,11,23,20],[11,11,11,11,11,11,11,11,11],[13,13,115,116,116,116,117,13,128],[13,13,125,126,126,126,127,128,28],[13,13,125,126,126,126,127,13,128],[13,13,135,136,136,136,137,13,13],[31,13,13,13,13,13,13,13,31],[10,10,10,10,14,10,10,10,10]];
+tileset = "interior6";
+area = "aeropolis_N_house4";
+areaname = "Aeropolis - House";
+ambience = null;
+A_sprites = [{name:"Inhabitant",model:"arab1",x:5,y:3,walkspeed:10,dir:"e",elem:"AIR",conv:[["susp","I heard that the King of Goznor in the north was acting very strange... Though I do not see how this is any different to usual. You northerners sure do act quite bizarrely! You don\'t even put decorative rugs everywhere!"]]},{name:"EXIT",model:"area_transition",x:4,y:9,dest:["aeropolis_N",40,34],ARROW:"S"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

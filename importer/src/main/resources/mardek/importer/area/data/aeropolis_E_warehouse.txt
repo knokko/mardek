@@ -1,0 +1,17 @@
+map = [[12,18,19,12,12,12,18,19,12],[17,16,16,17,17,118,119,17,16],[113,114,22,13,13,13,22,24,25],[123,124,11,13,13,13,11,123,124],[123,124,11,20,14,20,11,123,124],[133,134,30,11,11,11,30,133,134],[11,11,11,11,11,11,11,11,11],[30,11,11,11,11,11,11,11,30]];
+tileset = "interior6";
+area = "aeropolis_E_warehouse";
+areaname = "Aeropolis - Warehouse";
+ambience = null;
+A_sprites = [{name:"Shopkeeper",model:"arab1",x:4,y:2,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["evil","Greetings, my dear bandit friend. I assume you are a bandit; you had a key to get in. Can I interest you in some of these... *special* wares? I am sure you will find them most intoxicatingly sublime."],Do = function()
+{
+   _root.OpenShop({name:"Shady Merchant",wares:DefaultShops.FAIRY_SALESMAN});
+   return 1;
+}]},{name:"Exit",model:"DOOR5",x:4,y:8,lock:"key",key:"Bandit Key",dir:"s",dest:["aeropolis_E",13,20]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

@@ -1,0 +1,45 @@
+map = [[10,10,10,10,10,10,10,10,13,13,15,13,13,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,15,13,113,113,115,113,113,13,15,10,10,10,10,10,10],[10,10,10,10,10,13,115,113,12,130,130,130,12,113,115,13,10,10,10,10,10],[10,10,10,10,14,113,12,130,121,11,11,11,120,130,12,113,14,10,10,10,10],[10,10,10,10,114,12,121,11,11,11,11,11,11,11,120,12,114,10,10,10,10],[10,10,10,13,12,121,11,11,11,11,20,11,11,11,11,120,12,13,10,10,10],[10,10,10,113,141,11,11,20,11,11,11,11,11,125,11,11,140,113,10,10,10],[10,10,10,12,121,11,11,11,11,11,11,11,11,11,11,11,120,12,10,10,10],[10,10,10,141,11,11,11,11,11,122,123,124,11,11,11,11,161,140,10,10,10],[10,10,10,141,11,11,125,11,162,132,133,134,11,11,20,11,11,140,10,10,10],[10,10,10,141,11,11,11,160,11,142,143,144,11,11,11,161,11,140,10,10,10],[10,10,10,12,111,11,11,11,11,11,11,11,11,11,11,11,110,12,10,10,10],[10,10,10,10,141,11,11,20,11,11,11,11,11,125,11,11,140,10,10,10,10],[10,10,10,10,12,111,11,11,11,11,125,11,11,11,11,110,12,10,10,10,10],[10,10,10,10,10,12,111,11,11,11,11,11,11,11,110,12,10,10,10,10,10],[10,10,10,10,10,10,12,131,111,11,11,11,110,131,12,10,10,10,10,10,10],[10,13,15,13,10,10,10,10,12,111,11,110,12,10,10,10,10,13,15,13,10],[10,113,115,113,13,14,14,13,120,121,11,120,121,13,14,14,13,113,115,113,10],[10,122,123,124,113,114,114,113,153,11,11,11,153,113,114,114,113,154,155,156,10],[10,132,133,134,11,11,11,11,11,11,11,11,11,11,11,11,11,164,165,166,10],[10,142,143,144,10,10,10,10,11,11,11,11,11,10,10,10,10,174,175,176,10],[10,10,10,10,10,10,10,10,136,160,11,11,136,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,126,136,11,136,126,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,112,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,112,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,112,10,10,10,10,10,10,10,10,10,10]];
+tileset = "citadel";
+area = "citadel1";
+areaname = "Miasmal Citadel";
+ambience = null;
+dungeon = "MiasmalCitadel";
+var yes = 0;
+for(var o in GameData.plotVars.CITADEL_CHALICES)
+{
+   yes++;
+}
+A_sprites = [{name:"Pedestal of Sunlight",model:"object",x:10,y:5,elem:"LIGHT",type:"examine",conv:"c_ch3objects"},{name:"Pedestal of Flame",model:"object",x:13,y:6,elem:"FIRE",type:"examine",conv:"c_ch3objects"},{name:"Pedestal of Spirit",model:"object",x:14,y:9,elem:"ETHER",type:"examine",conv:"c_ch3objects"},{name:"Pedestal of Ocean",model:"object",x:13,y:12,elem:"WATER",type:"examine",conv:"c_ch3objects"},{name:"Pedestal of Abyss",model:"object",x:10,y:13,elem:"DARK",type:"examine",conv:"c_ch3objects"},{name:"Pedestal of Tempest",model:"object",x:7,y:12,elem:"AIR",type:"examine",conv:"c_ch3objects"},{name:"Pedestal of Mind",model:"object",x:6,y:9,elem:"FIG",type:"examine",conv:"c_ch3objects"},{name:"Pedestal of Forest",model:"object",x:7,y:6,elem:"EARTH",type:"examine",conv:"c_ch3objects"},{name:"Portal to the Sun Temple",model:"o_portal",x:2,y:19,walkable:true},{name:"TRANSPORT_TRIGGER",model:"_trigger",x:2,y:19,triggers:-1,WALKON:true,ExecuteScript:function()
+{
+   _root.WarpTrans(["sunTemplePortals",15,6]);
+}},{name:"Miasma-powered Portal",model:"o_portal",x:10,y:9,walkable:true,hidden:yes < 8},{name:"TRANSPORT_TRIGGER",model:"_trigger",x:10,y:9,triggers:-1,WALKON:true,ExecuteScript:function()
+{
+   var _loc2_ = 0;
+   for(var _loc3_ in GameData.plotVars.CITADEL_CHALICES)
+   {
+      _loc2_ = _loc2_ + 1;
+   }
+   if(_loc2_ == 8)
+   {
+      _root.WarpTrans(["citadel2",15,32]);
+   }
+}},{name:"Save Crystal",model:"o_Crystal",x:18,y:19,walkspeed:-1,conv:"c_healingCrystal"},{name:"S",model:"area_transition",x:10,y:25,dir:"s",dest:["sandcave_dtt",10,45],ARROW:"S"}];
+if(GameData.plotVars.CITADEL_CHALICES == null)
+{
+   GameData.plotVars.CITADEL_CHALICES = {AIR:true,LIGHT:true,ETHER:true,FIG:true};
+}
+var i = 0;
+while(i < 8)
+{
+   var S = A_sprites[i];
+   map[S.y][S.x] = !GameData.plotVars.CITADEL_CHALICES[S.elem]?125:20;
+   i++;
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.MIASMAL_CITADEL;
+musicTrack = "SecretDungeon";
+AreaSetup({WARP:1,clearmap:1,MIASMA:true});
+EN_ADD("Places","Miasmal Citadel");

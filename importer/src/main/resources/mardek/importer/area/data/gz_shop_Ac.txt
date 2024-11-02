@@ -1,0 +1,21 @@
+map = [[17,12,12,12,12],[24,11,11,11,22],[111,111,111,111,111],[11,11,11,11,11],[11,11,11,11,11],[11,11,11,11,11],[22,11,11,11,22]];
+tileset = "interior1";
+area = "gz_shop_Ac";
+areaname = "Goznor - Accessory Shop";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Shopkeeper",model:"man1",x:2,y:1,walkspeed:-1,dir:"s",elem:"AIR",EN:["People","Social Fox"],conv:[["grin","Lads! I know how much you like Social Fox and aspire to be like him and all, so did you hear about his latest deed? Apparently he saved Aeropolis from a dragon or something! Isn\'t that amazing!"],["norm","Oh, I love that mighty man... He\'s so heroic, so manly... I\'d love to one day just meet him and marry him and MEAT him and-"],["o_O","[[PC]]. . ."],["shok","Lads! You\'re still here!? Go away! Leave me alone to my fantasies for a few moments!"],["zzz","Ooh, yes, you foxy man! Swing that greatsword!"]]},{name:"EXIT",model:"DOOR0",x:2,y:7,dest:["goznor",2,16]}];
+if(GameData.CHAPTER == 1)
+{
+   A_sprites.push({name:"TALKTRIGGER",model:"talktrigger",x:2,y:2,NPC:"Shopkeeper",dir:"s"});
+}
+else
+{
+   A_sprites.push({name:"Item Shop",model:"shop",x:2,y:2,SHOP:{name:"Goznor Accessory Shop",wares:DefaultShops.ACCESSORY_L1}});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = !GameData.plotVars.SUNSET?"Goznor":"none";
+AreaSetup({clearmap:1});

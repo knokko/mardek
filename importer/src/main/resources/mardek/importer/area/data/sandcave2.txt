@@ -1,0 +1,22 @@
+map = [[10,10,10,13,10,10,10,10,10,10],[10,10,16,115,14,10,10,10,10,10],[10,10,16,11,18,10,10,10,10,10],[10,10,16,11,112,18,10,10,10,10],[10,10,16,11,113,112,18,13,10,10],[10,10,16,11,11,11,112,12,14,10],[10,10,10,110,11,11,113,113,14,10],[10,10,10,16,11,11,11,11,14,10],[10,10,10,17,11,11,11,113,14,10],[10,10,16,111,11,11,11,11,14,10],[10,10,16,113,11,11,11,19,10,10],[10,10,10,110,116,116,116,14,10,10],[10,10,10,10,110,116,19,10,10,10],[10,10,10,10,17,116,18,13,10,10],[10,10,10,16,111,116,112,12,14,10],[10,10,10,16,116,116,116,113,14,10],[10,10,13,17,116,116,116,20,18,10],[10,16,12,111,116,116,116,150,112,14],[10,16,113,150,11,11,11,150,113,14],[10,17,20,150,11,11,11,150,20,14],[16,111,150,11,11,11,150,150,150,14],[16,128,129,11,11,11,11,113,19,10],[16,135,127,129,11,11,11,20,14,10],[16,135,127,127,129,11,11,19,10,10],[16,135,127,127,133,114,19,10,10,10],[16,135,127,134,130,11,14,10,10,10],[16,131,130,19,110,114,14,10,10,10],[10,15,15,10,16,11,14,10,10,10],[10,10,10,10,16,114,14,10,10,10],[10,10,10,10,10,15,10,10,10,10]];
+tileset = "sandcave";
+area = "sandcave2";
+areaname = "Sandflow Caves";
+ambience = null;
+dungeon = "sandcave";
+A_sprites = [{name:"Reptoid Guard",model:"reptoid_warrior",x:4,y:15,walkspeed:-1,dir:"s",elem:"EARTH",conv:[!_root.HasAlly("Sslen\'ck")?!GameData.plotVars.DONE_CH3_INTRO?["angr","You may not passssss, human!"]:["norm","Hey, you\'re the one who helped the Chief! Go on through!"]:["norm","Hello there, Chieftain, sssir. How\'sss thingsss?"]]},{name:"Reptoid Guard",model:"reptoid_warrior",x:6,y:15,walkspeed:-1,dir:"s",elem:"EARTH",conv:[!_root.HasAlly("Sslen\'ck")?!GameData.plotVars.DONE_CH3_INTRO?["grin","Talk to my bessst friend in the whole wide world there for sssome valuable information!"]:["norm","Thanksss for your help, sssir!"]:["grin","Wow, the Chieftain! Going to sssacrifice some humansss out in the sssacred sssand cavesss or sssomething? I wish I could be doing that. It sssoundsss barbaric."]]},{name:"N",model:"area_transition",x:3,y:1,dest:["sandcave3",24,47]},{name:"S",model:"area_transition",x:5,y:28,dest:["xantusia",10,2],ARROW:"S"},{name:"WALK_TRIGGER",model:"_trigger",x:5,y:15,triggers:-1,ExecuteScript:function()
+{
+   if(_root.HasAlly("Sslen\'ck") || GameData.plotVars.DONE_CH3_INTRO)
+   {
+      return false;
+   }
+   _root.cont["Reptoid Guard"].Talk("c_reptoids1","s");
+}}];
+areaLoot = [];
+foes = MONSTER_TABLES.SANDCAVE;
+btlChance = 0;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.SANDCAVE;
+musicTrack = "SandflowCaves";
+AreaSetup({WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});
+EN_ADD("Places","Sandflow Caves");

@@ -1,0 +1,17 @@
+map = [[10,111,13,13,111,13,13,111,10],[10,12,12,12,12,12,12,12,10],[10,30,17,19,19,19,18,30,10],[10,11,17,19,19,19,18,11,10],[10,11,17,19,19,19,18,11,10],[10,11,17,19,19,19,18,11,10],[10,30,11,11,16,11,11,30,10]];
+tileset = "sandcave_interior";
+area = "xn_house2";
+areaname = "Xantusia - Dwelling";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Portal to the Sun Temple",model:"o_portal",x:4,y:3,walkable:true},{name:"TRANSPORT_TRIGGER",model:"_trigger",x:4,y:3,triggers:-1,WALKON:true,ExecuteScript:function()
+{
+   _root.WarpTrans(["sunTemplePortals",7,6]);
+}},{name:"EXIT",model:"BIGDOOR1",x:4,y:7,dest:["xantusia",26,15]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "ReptoidVillage";
+AreaSetup({clearmap:1});

@@ -1,0 +1,14 @@
+map = [[12,13,110,13,12],[18,15,14,16,11],[111,111,111,111,111],[11,15,14,16,11],[11,15,14,16,11],[11,15,14,16,11],[11,11,11,11,11]];
+tileset = "interior4";
+area = "cn_shop_I";
+areaname = "Canonia - Item Shop";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Item Shop",model:"shop",x:2,y:2,SHOP:{name:"Canonia Item Shop",wares:DefaultShops.ITEMS_L1}},{name:"Shopkeeper",model:"woman3",x:2,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["norm","WORDS."]]},{name:"EXIT",model:"DOOR4",x:2,y:7,dest:["canonia",13,17]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Canonia";
+AreaSetup({clearmap:1});

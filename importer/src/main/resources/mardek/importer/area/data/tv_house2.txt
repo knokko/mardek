@@ -1,0 +1,14 @@
+map = [[12,12,12,12,128,12,20],[21,125,125,125,125,126,125],[125,125,125,125,125,125,125],[126,22,126,125,125,125,125],[125,125,125,125,125,125,125],[125,125,125,125,125,125,125],[10,10,10,112,10,10,10]];
+tileset = "cave6";
+area = "tv_house2";
+areaname = "Cambria - Dwelling";
+ambience = null;
+dungeon = "TrilobiteCave";
+A_sprites = [{name:"The Enticing Adventures of Egg-Faced Harold",model:"object",x:6,y:0,type:"examine",conv:[["","This is some kind of fictional story book, but you don\'t want to read it. Really, you don\'t. It\'s not as exciting as the title makes it sound. Honestly."]]},{name:"Trilobite",model:"trilobite1",x:0,y:3,walkspeed:-2,dir:"e",elem:"WATER",conv:[["","You\'re here for the Arena Challenges, right? All the adventurers and wannabe Heroes always come down here to fight monsters and eachother for kicks, chicks and cash. Tsk. It\'s so... so... BARBARIC."],["","Also, I\'LL MEET YOU IN THE ARENA AND YOU GOIN\' DOOOOWN, PUNK!! HELLS YEAH!!!"]]},{name:"Trilobite",model:"trilobite3",x:2,y:3,walkspeed:-2,dir:"w",elem:"WATER",conv:[["","Yes? Do I know you, barbaric mammalian beasts from the surface? I didn\'t know I knew any barbaric mammalian beasts from the surface... I must be going senile. How annoying."]]},{name:"EXIT",model:"area_transition",x:3,y:6,dest:["trilobiteville",12,18]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "TrilobiteCave";
+AreaSetup({clearmap:1});

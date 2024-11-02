@@ -1,0 +1,17 @@
+map = [[17,11,11,15,11,11,11],[12,12,12,12,12,12,115],[114,12,12,12,12,12,12],[12,12,12,12,12,12,12],[12,12,12,12,12,114,12],[12,12,12,12,12,12,14],[10,10,10,12,10,10,10]];
+tileset = "deadhouse";
+area = "DeadHouse3";
+areaname = "House in the Woods";
+dungeon = "SaulsHouse";
+ambience = {ra:66,rb:0,ga:70,gb:0,ba:63,bb:0,aa:100,ab:0};
+A_sprites = [{name:"Portal",model:"o_portal",x:3,y:3,walkable:true},{name:"TRANSPORT_TRIGGER",model:"_trigger",x:3,y:3,triggers:-1,WALKON:true,ExecuteScript:function()
+{
+   _root.WarpTrans(["DeadHouseDungeon",20,46]);
+}},{name:"Door",model:"DOOR4",x:3,y:7,dest:["DeadHouse2",5,1]}];
+areaLoot = [];
+foes = [["Zombie",null,null,null,"SOLO"]];
+btlChance = 0;
+minSteps = 5;
+levelrange = [3,6];
+musicTrack = "Saul";
+AreaSetup({clearmap:1});

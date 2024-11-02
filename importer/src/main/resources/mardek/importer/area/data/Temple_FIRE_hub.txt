@@ -1,0 +1,49 @@
+map = [[10,10,10,10,10,134,142,142,142,142,142,142,142,135,10,10,10,10,10],[10,10,10,134,142,141,113,112,23,114,23,112,113,140,142,135,10,10,10],[10,10,134,141,23,113,123,122,22,124,22,122,123,113,23,140,135,10,10],[10,10,143,111,22,123,12,12,22,11,22,12,12,123,22,111,132,10,10],[10,10,143,121,22,12,12,21,11,11,11,21,12,12,22,121,132,10,10],[134,142,141,12,11,21,11,11,129,11,129,11,11,21,11,12,140,142,135],[143,124,14,11,11,11,129,129,119,11,119,129,129,11,11,11,14,124,132],[143,11,11,11,11,129,119,12,12,12,12,12,119,129,11,11,11,11,132],[144,133,131,11,11,119,12,12,11,11,11,12,12,119,11,11,130,133,145],[10,10,143,12,11,11,12,11,11,12,11,11,12,11,11,12,132,10,10],[134,142,141,12,11,129,12,12,11,11,11,12,12,129,11,12,140,142,135],[143,124,14,11,11,119,129,12,12,12,12,12,129,119,11,11,14,124,132],[143,11,11,11,11,11,119,129,129,11,129,129,119,11,11,11,11,11,132],[144,133,133,131,11,11,11,11,119,11,119,11,11,11,11,130,133,133,145],[10,10,10,144,133,131,11,11,119,11,119,11,11,130,133,145,10,10,10],[10,10,10,10,10,144,133,133,131,15,130,133,133,145,10,10,10,10,10],[10,10,10,10,10,10,10,10,143,15,132,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,143,15,132,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,144,133,145,10,10,10,10,10,10,10,10]];
+tileset = "temple_FIRE";
+area = "Temple_FIRE_hub";
+areaname = "Fire Temple";
+ambience = null;
+dungeon = "FireTemple";
+if(GameData.plotVars.FireTempleTest.current != null)
+{
+   GameData.plotVars.FireTempleTest[GameData.plotVars.FireTempleTest.current] = null;
+   GameData.plotVars.FireTempleTest.DONE.push(GameData.plotVars.FireTempleTest.current);
+   GameData.plotVars.FireTempleTest.current = null;
+   DoomCounter.removeMovieClip();
+   GameData.plotVars.NO_BATTLE_MUSIC = false;
+   TempVars.NO_SAVE = false;
+   playSFX("flame1");
+}
+var d = 0;
+while(d < GameData.plotVars.FireTempleTest.DONE.length)
+{
+   switch(GameData.plotVars.FireTempleTest.DONE[d].substr(12))
+   {
+      case "NW":
+         map[4][7] = 20;
+         break;
+      case "SW":
+         map[5][5] = 20;
+         break;
+      case "NE":
+         map[4][11] = 20;
+         break;
+      case "SE":
+         map[5][13] = 20;
+   }
+   d++;
+}
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:9,y:9,walkspeed:-1,conv:"c_healingCrystal"},{name:"NW",model:"DOOR12",x:1,y:6,dir:"s",dest:["Temple_FIRE_NW",37,36]},{name:"SW",model:"DOOR12",x:1,y:11,dir:"s",dest:["Temple_FIRE_SW",34,3]},{name:"NE",model:"DOOR12",x:17,y:6,dir:"s",dest:["Temple_FIRE_NE",3,35]},{name:"SE",model:"DOOR12",x:17,y:11,dir:"s",dest:["Temple_FIRE_SE",3,3]},{name:"Sealed Door",model:"DOOR12",x:9,y:2,lock:(GameData.plotVars.FireTempleTest.DONE.length != 4?"magic":null),dest:["Temple_FIRE_boss",7,18]},{name:"S",model:"area_transition",x:9,y:17,dest:["Temple_FIRE_ante",6,1],ARROW:"S"}];
+if(int(GameData.plotVars.GOPE) >= 2)
+{
+   A_sprites.push({name:"Gope",model:"gope",x:7,y:8,walkspeed:-1,dir:"s",elem:"EARTH",conv:"c_gope"});
+}
+areaLoot = [];
+foes = MONSTER_TABLES.FIRE_TEMPLE;
+btlChance = 1;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.FIRE_TEMPLE;
+musicTrack = "FireTemple";
+DeadTempleCheck();
+AreaSetup({WARP:1,clearmap:1});
+EN_ADD("Places","Fire Temple");

@@ -1,0 +1,32 @@
+map = [[10,10,10,10,10,10,12,10,10,10,10,10,10],[10,10,10,10,10,10,19,10,10,10,10,10,10],[10,10,10,118,111,13,19,13,111,118,10,10,10],[10,10,112,119,12,12,19,12,12,119,112,10,10],[10,111,113,116,116,30,11,30,116,116,113,111,10],[112,12,116,117,117,11,11,11,117,117,116,12,112],[113,116,117,117,117,11,11,11,117,117,117,116,113],[116,117,117,117,117,30,31,30,117,117,117,117,116],[117,117,117,117,117,11,11,11,117,117,117,117,117],[117,117,117,117,30,11,11,11,30,117,117,117,117],[117,117,117,30,11,30,31,30,11,30,117,117,117],[117,117,30,11,11,11,11,11,11,11,30,117,117],[117,117,11,11,11,14,16,15,11,11,11,117,117],[117,117,30,11,11,14,16,15,11,11,30,117,117],[117,117,11,11,11,14,16,15,11,11,11,117,117],[117,117,30,11,11,11,11,11,11,11,30,117,117],[117,117,116,30,11,11,11,11,11,30,116,117,117],[117,117,117,116,30,11,19,11,30,116,117,117,117],[117,117,117,117,116,116,19,116,116,117,117,117,117],[117,117,117,117,117,117,19,117,117,117,117,117,117],[10,117,117,117,117,117,19,117,117,117,117,117,10],[10,10,117,117,117,117,19,117,117,117,117,10,10],[10,10,10,10,117,117,19,117,117,10,10,10,10],[10,10,10,10,10,10,19,10,10,10,10,10,10],[10,10,10,10,10,10,19,10,10,10,10,10,10],[10,10,10,10,10,10,19,10,10,10,10,10,10]];
+tileset = "suntemple";
+area = "sunTemple5";
+areaname = "Sun Temple";
+dungeon = "SunTemple";
+A_sprites = [{name:"UP",model:"DOOR8",x:6,y:0,dir:"n",dest:["sunTemple4",59,55]},{name:"DOWN",model:"area_transition",x:6,y:25,dir:"s",dest:["sunTemple6",6,1],ARROW:"S"}];
+if(GameData.plotVars.ST_REPTOIDS_1 == 1)
+{
+   A_sprites.push({name:"Reptoid A",model:"reptoid_warrior",x:6,y:21,walkspeed:-2,dir:"n",elem:"EARTH",conv:[["zzz","Chief? Why are you just leaving us here to die?! Just because we were defeated in combat doesn\'t mean we\'re dead forever! Wah!"]],hidden:1});
+   A_sprites.push({name:"Reptoid B",model:"reptoid_warrior",x:6,y:19,walkspeed:-2,dir:"n",elem:"EARTH",conv:[["zzz",". . ."],["zzz","This floor tastes disgusting!"]],hidden:1});
+   A_sprites.push({name:"Sslen\'ck",model:"sslenck",x:6,y:20,walkspeed:-2,dir:"n",elem:"EARTH",conv:"c_reptoids1",hidden:1});
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:6,y:11,ExecuteScript:function()
+   {
+      GameData.plotVars.ST_REPTOIDS_1 = 2;
+      _root.cont["Reptoid A"]._visible = true;
+      _root.cont["Reptoid B"]._visible = true;
+      _root.cont["Sslen\'ck"]._visible = true;
+      _root.freeze = true;
+      _root.CUTSCENE = true;
+      DO_ACTIONS([["WALK",0,1]],"PC",true);
+      DO_ACTIONS([["WALK",0,-6],["UNFREEZE"],["UNFREEZE"],["TALK","c_reptoids1"]],"Sslen\'ck",true);
+      DO_ACTIONS([["WALK",0,-6],["WALK",-1,0],["WALK",0,-1],["GOTO","n1"]],"Reptoid A",true);
+      DO_ACTIONS([["WALK",0,-5],["WALK",1,0],["GOTO","n1"]],"Reptoid B",true);
+   }});
+}
+areaLoot = [];
+foes = MONSTER_TABLES.SUN_TEMPLE;
+btlChance = 0;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.SUN_TEMPLE;
+musicTrack = "SunTemple";
+AreaSetup({WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});

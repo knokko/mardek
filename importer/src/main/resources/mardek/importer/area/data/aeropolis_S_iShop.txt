@@ -1,0 +1,17 @@
+map = [[17,118,119,17,118,119,16],[22,20,24,111,25,26,23],[23,11,120,121,122,11,20],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11],[30,11,11,11,11,11,30],[10,10,10,14,10,10,10]];
+tileset = "interior6";
+area = "aeropolis_S_iShop";
+areaname = "Aeropolis - Item Shop";
+ambience = null;
+A_sprites = [{name:"Shopkeeper",model:"arabf2",x:3,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["grin","Greetings, foreign knight! It gladdens me to see you step into my humble establishment with bags of cash! Please, look around, tell me if you see anything that you would like to purchase!"],Do = function()
+{
+   _root.OpenShop({name:"Aeropolis Item Shop (S)",wares:DefaultShops.ITEMS_L2});
+   return 1;
+}]},{name:"EXIT",model:"area_transition",x:3,y:7,dest:["aeropolis_S",18,44],ARROW:"S"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

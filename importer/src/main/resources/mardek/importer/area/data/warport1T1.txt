@@ -1,0 +1,47 @@
+map = [[10,10,10,10,12,12,114,12,12,10,10,10,10],[10,10,10,12,13,13,13,13,13,12,10,10,10],[10,10,12,13,11,11,11,11,11,13,12,10,10],[10,12,13,11,30,11,30,11,30,11,13,12,10],[10,13,11,11,11,11,11,11,11,11,11,13,10],[10,11,30,11,11,11,11,11,11,11,30,11,10],[10,11,11,11,30,11,17,11,30,11,11,11,10],[10,11,30,11,11,11,11,11,11,11,30,11,10],[10,11,11,11,11,11,11,11,11,11,11,11,10],[10,11,30,11,11,11,11,11,11,11,30,11,10],[10,10,11,11,11,11,11,11,11,11,11,10,10],[10,10,10,11,30,11,11,11,30,11,10,10,10],[10,10,10,10,11,11,11,11,11,10,10,10,10],[10,10,10,10,10,111,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,20,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,111,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,20,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,111,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,20,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[14,14,118,14,114,11,11,11,114,14,118,14,14],[15,15,15,16,15,111,11,11,15,15,15,15,15],[30,11,11,11,11,11,11,20,11,11,11,11,30],[19,11,11,11,18,19,11,11,18,19,11,11,18],[19,11,11,11,31,19,11,11,18,31,11,11,18],[19,11,11,11,18,19,11,11,18,19,11,11,18],[19,11,11,11,18,19,11,11,18,19,11,11,18],[30,11,11,11,11,11,11,11,11,11,11,11,30],[10,10,10,10,10,111,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,20,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,111,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,20,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,111,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,20,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,111,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,20,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,11,10,10,10,10,10],[10,10,10,10,10,111,11,11,10,10,10,10,10],[10,10,10,10,10,11,11,20,10,10,10,10,10],[10,10,10,10,10,10,120,10,10,10,10,10,10]];
+tileset = "warport";
+area = "warport1T1";
+areaname = "GIW - Terminal 1";
+ambience = null;
+dungeon = "Warport";
+WarportSecurity = {};
+A_sprites = [{name:"Wanker",model:"common",x:0,y:28,walkspeed:-1,dir:"e",elem:"AIR",conv:[["grin","Waheeey! I\'m goin\' to Aeropolis to get me some forrin totty! You think those two birds over there will have a MEN-AGE O\' TROYSE wiv me? Heheh! Get it?! I\'m bein\' FORRIN! Them birds love it! I\'m gonna GET SOME so hard! BOOOO-YAH!!!"]]},{name:"Sister",model:"arabf1",x:4,y:28,walkspeed:-2,dir:"w",elem:"EARTH",conv:[["blah","Ugh. So many people in this world talk about sex, or sex-related things. I can\'t stand it. Don\'t they ever think of anything else?!"]]},{name:"Sister #2",model:"arabf1",x:4,y:29,walkspeed:-2,dir:"w",elem:"EARTH",conv:[["sad","There are an alarming number of siblings in this little room!"]]},{name:"Commoner",model:"common",x:5,y:26,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["norm","Ooh arr! I\'m glad that strange fellow is no longer sitting in this \'chair\' beside me! He was a dreadful bore, and besides, he looked at that mere peasant more than he looked at me. What am I, as ugly as sin on a stick or something horrendous like that?"]]},{name:"A Mere Peasant",model:"common",x:5,y:28,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["smile","My, my! The most fascinating man sat beside me for a while! We conversed, and oh! What tales he told! I will fantasise about them in excruciating detail while I farm my fields this night! If you know what I mean!"]]},{name:"Mr Hairchin",model:"man2",x:5,y:29,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["norm","I have hair growing out of my chin. This is normal."]]},{name:"Sister A",model:"woman",x:8,y:27,walkspeed:-2,dir:"w",elem:"AIR",conv:[["smile","My sister and I are sisters."]]},{name:"Sister #1",model:"woman",x:8,y:28,walkspeed:-2,dir:"w",elem:"AIR",conv:[["smile","My mother is my mother, and my father? He\'s my dad. We\'re all related, really."]]},{name:"Elderly Gentleman",model:"man3",x:12,y:28,walkspeed:-2,dir:"w",elem:"WATER",conv:[["grin","There\'s a volcano in the Southern Lands. It\'s big enough that, if it were to go off, all life on Belfan may very well be extinguished by the earthquakes, the tidal waves, and the ash and dust in the atomsphere! But don\'t let that nag away at your mind."],["grin","I mean, though the chances of it happening soon are staggeringly high, it\'ll only take a few minutes to die if it does. Let that comfort you on those lonely, restless nights, O Knight."]]},{name:"Other Brother",model:"man1",x:9,y:28,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["o_O","These chairs are just painted on the floor! You can walk right over the top of them!"]]},{name:"Brother",model:"man1",x:9,y:29,walkspeed:-1,dir:"e",elem:"EARTH",conv:[["blah","I really think that they overdo the security in these places. I really do. I get the feeling that you, strange knight in full armour who is talking to me for some baffling and possibly terrifying reason, don\'t disagree with me. Such is the world. Knights agreeing with commoners. What HAS it come to? What\'s next, women boating?"]]},{name:"Receptionist",model:"warpgirl",x:5,y:6,walkspeed:-2,dir:"s",elem:"LIGHT",conv:[["grin","Have a nice warp, sir. Please keep your arms and legs safely in the portal at all times, or you might find them missing when you arrive. If you experience any discomfort, then we really don\'t care. Thank you for warping with us!"]]},{name:"Portal",model:"o_portal",x:6,y:6,walkable:true},{name:"TRANSPORT_TRIGGER",model:"_trigger",x:6,y:6,triggers:-1,WALKON:true,ExecuteScript:function()
+{
+   _root.WarpTrans(["warport2T4",36,4]);
+}},{name:"Exit",model:"area_transition",x:6,y:49,dir:"s",dest:["warport1",8,2],ARROW:"S"}];
+var checkpoints = [47,43,39,35,31,24,20,16,13];
+var c = 0;
+while(c < checkpoints.length)
+{
+   A_sprites.push({name:"Security " + (c + 1),model:"warpman",x:7,y:checkpoints[c],walkspeed:-2,dir:"s",elem:"LIGHT",conv:"c_warportSecurity"});
+   if(!HASPLOTITEM("Gold Warport Pass"))
+   {
+      A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:6,y:checkpoints[c],checkID:c + 1,triggers:-1,WALKON:true,ExecuteScript:function()
+      {
+         if(_root.conv._visible || _root.WarportSecurity["Security " + this.checkID] || HASPLOTITEM("Gold Warport Pass"))
+         {
+            return false;
+         }
+         _root.cont["Security " + this.checkID].Talk("c_warportSecurity","w");
+         _root.cont.PC.DrawFrame("e1");
+      }});
+   }
+   c++;
+}
+if(GameData.plotVars.CLAVIS == 1)
+{
+   A_sprites.push({name:"Clavis",model:"clave",x:5,y:27,walkspeed:-2,dir:"e",elem:"ETHER",conv:"c_clavis"});
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:6,y:30,ExecuteScript:function()
+   {
+      _root.playMusic("Clave");
+      DO_ACTIONS([["WAIT",20],["GOTO","s1"],["ALERT"],["WAIT",50],["WALK",1,0],["WALK",0,2],["UNFREEZE"],["TALK","c_clavis"]],"Clavis",true);
+   }});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "PleasantAir";
+AreaSetup({WARP:0,clearmap:1});
+EN_ADD("Places","GoznorWarport");

@@ -1,0 +1,21 @@
+map = [[12,13,12,13,12,10,20,20,20],[11,11,11,11,11,10,11,11,11],[15,15,15,15,15,10,11,14,11],[11,11,11,11,11,10,11,11,11],[11,11,11,11,11,12,11,11,11],[11,11,11,11,11,11,11,11,11],[11,11,11,11,11,10,10,10,10]];
+tileset = "interior1_dream";
+area = "gz_shop_M_dream";
+areaname = "Secret Shop";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"TRANSPORT_TRIGGER",model:"_trigger",x:7,y:2,triggers:-1,WALKON:true,ExecuteScript:function()
+{
+   if(!CanEnterDreamrealm())
+   {
+      return undefined;
+   }
+   _root.EnterDreamrealm();
+   _root.WarpTrans(["gz_shop_M",7,2]);
+}},{name:"Shopkeeper",model:"ghost",x:2,y:1,walkspeed:-1,dir:"s",elem:"WATER",conv:[["grin","Heh, sorry lads, but I can\'t legally sell you any magic until you\'re a wee bit older! Come back in a few years maybe?"]]},{name:"Item Shop",model:"shop",x:2,y:2,SHOP:{name:"Secret Magic Shop",wares:DefaultShops.SECRET_SHOP}}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = "SecretDungeon";
+AreaSetup({clearmap:1,DREAM:true});

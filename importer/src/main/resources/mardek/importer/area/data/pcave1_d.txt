@@ -1,0 +1,14 @@
+map = [[10,10,10,10,13,13,13,13,13,10,10,10,10],[10,10,10,110,12,12,114,12,12,17,10,10,10],[10,10,110,12,11,11,11,11,11,12,17,10,10],[10,16,12,11,11,11,11,11,11,11,12,17,10],[10,110,11,111,11,120,125,121,11,111,11,12,14],[16,12,11,11,11,124,113,126,11,11,120,121,14],[16,120,121,11,11,123,127,122,11,11,124,126,14],[16,124,113,121,11,11,11,11,11,120,113,122,14],[16,123,127,113,121,11,11,11,120,113,122,18,10],[10,15,19,123,122,11,11,11,124,126,18,10,10],[10,10,10,15,19,11,11,11,123,122,14,10,10],[10,10,10,10,10,15,15,15,15,15,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,10]];
+tileset = "cave2_dream";
+area = "pcave1_d";
+areaname = "Dreamrealm - Tainted Grotto";
+ambience = null;
+dungeon = "Dreamcave";
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:3,y:3,walkspeed:-1,conv:"c_healingCrystal"},{name:"N",model:"area_transition",x:6,y:1,dest:["pcave2_d",24,21],dir:"s"}];
+areaLoot = [{x:6,y:9,amount:1,item:"EveningStar"}];
+foes = MONSTER_TABLES.DREAMWOOD;
+btlChance = 3;
+levelrange = MONSTER_LEVELS.LIFEWOOD;
+musicTrack = "Gloria_Dream";
+AreaSetup({DREAM:true,LOOT:3});
+EN_ADD("Places","Tainted Grotto");

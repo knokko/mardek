@@ -1,0 +1,20 @@
+map = [[10,10,14,14,14,10,10],[10,14,15,15,15,14,10],[10,15,11,11,11,15,10],[10,11,30,31,32,11,10],[13,17,11,16,11,17,13],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11],[11,11,11,16,11,11,11],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11]];
+tileset = "monastery";
+area = "gz_monastery";
+areaname = "Goznor - Monastery";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Medium Priest Gallovar",model:"Ypriest",x:3,y:5,walkspeed:-2,dir:"s",EN:["People","Gallovar"],elem:"WATER",conv:"c_Ypriest"},{name:"EXIT",model:"BIGDOOR3",x:3,y:10,dest:["goznor",18,14]}];
+if(GameData.plotVars.ZOMBIES == "GOZNOR")
+{
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:3,y:9,ExecuteScript:function()
+   {
+      DO_ACTIONS([["WALK",0,3],["UNFREEZE"],["TALK","c_Ypriest","Medium Priest Gallovar"]],"Medium Priest Gallovar",true);
+   }});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = "HymnOfYalort";
+AreaSetup({clearmap:1});

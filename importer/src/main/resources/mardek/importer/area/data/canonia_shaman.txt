@@ -1,0 +1,14 @@
+map = [[12,13,12,110,12,13,12],[18,23,11,11,11,23,18],[11,15,14,14,14,16,18],[11,15,14,14,14,16,11],[11,15,14,14,14,16,11],[11,18,11,11,11,11,11],[23,11,11,11,11,11,23]];
+tileset = "interior4";
+area = "canonia_shaman";
+areaname = "Canonia Woods - Shaman\'s Hut";
+ambience = null;
+dungeon = "CanoniaWoods";
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:0,y:6,walkspeed:-1,conv:"c_healingCrystal"},{name:"EXIT",model:"DOOR4",x:3,y:7,dest:["canonia_woods",29,73]}];
+areaLoot = [{x:3,y:2,type:"item",amount:1,item:"Fire Rod"}];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Woods";
+AreaSetup({clearmap:1});

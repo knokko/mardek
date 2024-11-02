@@ -1,0 +1,83 @@
+map = [[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,20,10,10,10,10,10,10,10,10,11,13,13,13,13,13,13,13,13,20,20,20,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,10,10,10,11,10,10,10,10,10,10,10,13,13,13,13,13,13,13,13,13,20,20,26,27,28,20,20,20,20,20,20,20],[20,20,20,13,10,10,10,10,10,10,10,10,10,10,10,20,20,20,20,20,13,13,13,13,13,10,10,11,146,147,148,10,20,20,20,20,20,20],[20,20,13,13,13,10,20,20,20,10,10,10,13,20,20,20,20,20,20,20,13,13,10,10,10,10,10,10,10,10,10,10,20,115,112,112,112,116],[20,13,13,13,13,20,20,20,20,10,10,13,13,20,20,20,20,20,20,20,20,13,10,10,10,10,10,10,10,10,11,115,112,110,110,110,110,113],[20,11,13,13,20,20,20,20,20,13,13,13,13,20,20,20,20,20,20,20,20,20,11,10,10,10,10,10,10,115,112,110,110,110,110,110,110,113],[20,13,13,20,20,20,20,20,20,13,13,13,20,20,20,20,20,20,115,112,112,112,112,112,112,112,112,112,112,110,110,110,110,110,110,110,110,113],[20,13,13,20,20,20,20,20,13,13,20,20,20,20,20,20,20,115,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,113],[20,13,13,20,20,20,20,20,13,20,20,20,20,20,20,115,112,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,113],[20,13,13,13,13,13,13,13,13,20,20,20,20,115,112,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,110,114,114,117],[20,13,13,13,13,13,13,124,124,124,115,112,112,110,110,110,110,110,110,110,110,110,110,110,110,114,114,114,114,114,114,114,114,114,117,20,20,20],[20,13,13,13,13,13,13,123,123,123,111,110,110,110,110,110,110,110,110,110,110,110,110,114,117,10,10,10,10,10,13,13,13,13,13,20,20,20],[20,20,124,124,124,13,13,120,122,120,111,110,114,114,114,110,110,110,110,110,110,114,117,10,10,10,10,10,124,124,124,124,124,13,13,13,20,20],[20,20,123,123,123,13,10,10,130,10,118,117,124,124,124,118,110,110,114,114,117,10,10,10,125,125,125,10,123,123,123,123,123,13,13,13,13,20],[20,20,120,122,120,10,10,10,130,10,10,10,123,143,123,10,118,117,10,10,10,10,10,10,125,20,125,10,123,123,123,123,123,13,13,13,11,20],[20,20,13,135,131,131,131,131,137,131,133,20,120,122,120,20,10,10,10,10,10,10,10,10,125,125,125,10,123,123,144,123,123,13,13,10,10,20],[20,20,20,20,124,124,124,124,124,10,130,10,125,126,125,10,10,10,10,10,10,10,10,10,10,10,10,10,120,120,122,120,120,13,10,10,10,20],[20,20,20,20,123,123,144,142,140,10,138,131,131,137,131,131,131,131,131,131,131,131,131,131,131,131,139,131,131,131,134,10,10,10,10,10,20,20],[20,20,20,20,120,120,120,122,120,10,130,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,130,10,10,10,10,10,10,10,10,11,20,20],[20,20,20,20,20,10,10,130,10,10,130,10,13,13,13,124,124,124,124,124,20,124,124,124,124,10,130,10,124,124,124,10,10,10,20,20,20,20],[20,20,20,20,20,20,20,130,10,10,130,10,13,13,13,123,123,123,123,123,20,123,123,123,123,10,130,10,123,123,123,10,20,20,20,20,20,20],[20,20,20,20,20,10,10,130,10,10,130,10,10,13,13,123,123,141,123,123,20,120,120,122,120,10,130,10,120,122,120,20,20,20,20,20,20,20],[20,20,20,20,10,10,10,130,10,10,130,10,10,10,10,120,120,122,120,120,20,20,11,135,131,131,137,131,131,134,13,20,20,20,20,20,20,20],[131,131,131,131,131,131,131,137,131,131,137,131,131,131,131,131,131,134,10,20,20,20,13,13,13,13,13,13,13,13,13,13,20,20,20,20,20,20],[20,20,20,20,20,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,20,20,20,13,13,20,13,13,13,13,20,13,20,20,20,20,20,20],[20,20,20,20,20,20,20,20,20,20,20,13,13,13,13,20,13,13,20,20,20,20,20,20,20,20,20,13,13,20,20,20,20,20,20,20,20,20]];
+tileset = "darkwood";
+area = "canonia";
+areaname = "Canonia";
+ambience = GenericExternalAmbience();
+dungeon = null;
+A_sprites = [{name:"House",model:"DOOR4",x:3,y:15,dest:["cn_house01",3,5]},{name:"House",model:"DOOR4",x:8,y:13,dest:["cn_house02",3,5]},{name:"Equipment Shop",model:"DOOR4",x:7,y:19,dest:["cn_shop_",2,6]},{name:"Item Shop",model:"DOOR4",x:13,y:16,dest:["cn_shop_I",2,6]},{name:"Inn",model:"DOOR4",x:17,y:23,dest:["cn_inn",3,8]},{name:"House",model:"DOOR4",x:23,y:22,dest:["cn_house03",3,5]},{name:"House",model:"DOOR4",x:29,y:22,dest:["cn_house04",3,5]},{name:"Barracks",model:"DOOR4",x:30,y:17,dest:["cn_barracks",3,9]},{name:"Forest Cave",model:"area_transition",x:29,y:2,dir:"n",dest:["cn_cave",7,18]},{name:"EXIT",model:"area_transition",x:0,y:24,dest:["WORLDMAP",1,1],ARROW:"W"},{name:"Save Crystal",model:"o_Crystal",x:11,y:17,walkspeed:-1,conv:"c_healingCrystal"}];
+if(GameData.CHAPTER == 3)
+{
+   A_sprites = A_sprites.concat([{name:"Brother Beardbert",model:"man2",x:18,y:15,walkspeed:-1,dir:"s",elem:"AIR",conv:[["blah","My brother here, beside me, is a filthy rotten liar. All he ever does is fib and decieve in order to lure people into yet more lies which he lies about ever telling because he\'s a liar. Makes me sick."]]},{name:"Brother Beardbert",model:"man2",x:19,y:15,walkspeed:-1,dir:"s",elem:"FIRE",conv:[["grin","My dear brother beside me here is the most honest person I know! He can\'t bend the truth even if he tries! It\'s almost as if to him, the truth is some giant metal bar, and he doesn\'t have the muscle strength to bend it! You know! You can be sure that everything he says is completely true."]]},{name:"Brother Beardbert",model:"man2",x:20,y:15,walkspeed:-1,dir:"s",elem:"WATER",conv:[["grin","I think that the new Shaman is hot!"]].concat(!HasAlly("Gloria")?null:[["blah","[[Gloria]]Oh, um, thanks."],["grin","Really, you are! You\'re so hot, you make the sun look like a snowball! I\'d do you in a heartbeat! I want to grab you right now! Too bad I\'m unattractive and you have absolutely no interest in me! Oh well! Maybe I\'ll drown myself later!"],["blah","[[Gloria]]Sigh... It\'s lovely to know that all the men in this village respect me as a person for all the right reasons."]])},{name:"Fredley",model:"common",x:26,y:21,walkspeed:40,dir:"s",elem:"AIR",conv:[["grin","I heard the King of Goznor has been acting weird lately. I hope that he\'s not possessed by some kind of demon! Or the Archfiend Cagnazzo. That would be too predictable."]]},{name:"Middle-aged Woman",model:"woman2",x:23,y:15,walkspeed:60,dir:RDir(),elem:"EARTH",conv:[["smile","That Lone Wolf chap came gallivanting through here the other day. I saw him up close! He had this amazing helmet shaped like a wolf\'s head, and spectacular emerald-hued armour! He was really quiet and brooding, and didn\'t speak to anyone. Just listened to their problems and solved them, not even requesting a reward."],["deep","It was sort of disconcerting though. I mean, he was obviously a good man, doing what he did for the good of others, but he just seemed so... soulless. Like something had broken him in his past, and he was trying to detach himself from who he was, to live a lie..."],["susp","Something about him even reminded me of those zombies from a few years ago..."]]},{name:"Woman",model:"woman",x:3,y:11,walkspeed:40,dir:RDir(),elem:"FIRE",conv:[["susp","There\'s a creepy bloke who lives in the Canonia woods somewhere. He comes up to the village sometimes, usually to buy really weird items, like dead badgers, and just glares smugly at people, hard as that might be to picture."],["susp","He has deathly pale skin, and this eerie green tattoo scrawled all over his pasty face. I heard him talking to himself once, as if he were narrating his life as a character in some book or something. He sounded like one of those terrible, pretentious writers of fan fiction or something. Y\'know the ones."]].concat(!HasAlly("Donovan")?null:[["susp","[[Donovan]](People SELL dead badgers...?)"]])},{name:"Adventurer",model:"woman4",x:18,y:18,walkspeed:40,dir:RDir(),elem:"AIR",conv:[["angr","This new Grand Adventurer, Lone Wolf, is yet another MAN! Gods! What a world this is! It should have been a WOMAN! This game is just sexist!"],["angr","Next there\'ll be books about how women want to be dominated by men! What utter tripe! I\'d beat any man in any arm-related contest! Then kick him in the groin, while spitting in his face! We women can do that, you know!"]]},{name:"Middle-aged Man",model:"man1",x:10,y:24,walkspeed:40,dir:RDir(),elem:"EARTH",conv:[["grin",!HasAlly("Gloria")?"Ooh, I found out something nice about the Elemental Crystals the other day! It turns out that the Shaman knows about them! Go and ask her!":"Hello there, Shaman! You\'re looking smashingly lovely today. Very grabbable."]]}]);
+}
+else if(GameData.plotVars.ZOMBIES == "CANONIA")
+{
+   var ms = 0;
+   while(ms < 11)
+   {
+      var X = 0;
+      var Y = 0;
+      do
+      {
+         X = random(map[0].length);
+         Y = random(map.length);
+      }
+      while(!IsValidTile(X,Y));
+      
+      A_sprites.push({name:"Zombie",model:"zombie",x:X,y:Y,walkspeed:10 + random(21),elem:"DARK",conv:[["zombie","Muuuuuhhhhhhggghh...!"],Do = function()
+      {
+         BATTLE([["Zombie",null,null,null],["Zombie",null,null,null],[4 + random(3),null,null,null],"SOLO"],"battle",true);
+         return true;
+      }]});
+      ms++;
+   }
+   var d = 0;
+   while(d < A_sprites.length)
+   {
+      if(A_sprites[d].model == "DOOR4")
+      {
+         A_sprites[d].lock = "tight";
+      }
+      d++;
+   }
+   A_sprites.push({name:"Bartholio",model:"bartholio",x:15,y:18,walkspeed:10,dir:"s",elem:"LIGHT",conv:[["angr","You soldiers! I remember you! Pah! Go away, you are not wanted here! The World\'s Saviours will handle these zombies like the Heroes we are! The world will thank US when we save it, not YOU! Now just run away back to your senile old mothers while we veterans handle this!"]]});
+   A_sprites.push({name:"Vennie",model:"vennie",x:18,y:16,walkspeed:10,dir:"s",elem:"AIR",conv:[["susp","We\'re meant to be fightin\' these \'ere zombies, eh? But all we seem tuh be doin\' is walkin\' around, ya know?"],["grin","But then again, so\'s they, so Oi s\'pose we\'re \'avin\' an\' ol\'-fashioned Walkin\' Competition! Oi\'ll outwalk them rottin\' buggers so \'ard they\'ll be mumblin\' all the way back to their graves!"]]});
+   A_sprites.push({name:"Aalia",model:"aalia",x:19,y:19,walkspeed:10,dir:"s",elem:"LIGHT",conv:[["sad","i dont liek these zombys tehy small bad adn r gross D:"]]});
+   A_sprites.push({name:"Bernard",model:"bernard",x:23,y:18,walkspeed:10,dir:"s",elem:"DARK",conv:[["deep","Eee, this takes me back... I used to do this sort o\' thing a lot, back in the day... Heh heh, zombies... They\'re just as generic an\' unoriginal as they ever were!"]]});
+}
+else if(GameData.plotVars.SUNSET != null)
+{
+   var d = 0;
+   while(d < A_sprites.length)
+   {
+      if(A_sprites[d].model == "DOOR4")
+      {
+         A_sprites[d].lock = "tight";
+      }
+      d++;
+   }
+}
+else
+{
+   A_sprites = A_sprites.concat([{name:"Soldier",model:"soldier",x:31,y:18,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["grin","Ah, fellow soldiers! It\'s good to see fellow soldiers! The Captain probably would like to see you too, so go right in!"]]},{name:"Brother Beardbert",model:"man2",x:35,y:15,walkspeed:-1,dir:"e",elem:"AIR",conv:[["shok","Where are my brothers?! They said to meet me at the mushrooms for a good ol\' fashioned swearing competition, but they\'re not here and I don\'t know where they are at all and I can\'t see them anywhere and I\'m too scared and lazy to look for them!!"],["susp","[[PC]]Maybe we can help?"],["o_O","Ew! What? No! No you can\'t! Stop meddling! I don\'t know you! Go away!"]]},{name:"Brother Beardbert",model:"man2",x:34,y:19,walkspeed:-1,dir:"e",elem:"FIRE",conv:[["angr","Where are my brothers?! They said to meet me at the mushrooms for a good ol\' chat about women and how we consider them to be objects, but they\'re not here and I can\'t be arsed looking for them. Oh well. There\'s MY day gone down the pondhole!"],["susp","[[PC]]Well, there\'s that other guy over there who looks just like you and is also looking for his brothers..."],["angr","That guy\'s probably an IMPOSTOR. That\'s not a very nice thing to do, impostoring. I hope he regrets it on his deathbed!"]]},{name:"Brother Beardbert",model:"man2",x:10,y:2,walkspeed:-1,dir:"w",elem:"WATER",conv:[["blah","Where are my brothers?! They said to meet me at the mushrooms for a good ol\' fashioned game of \'Let\'s take our clothes off and run around scaring children\', but they\'re not here and I\'m glad because that idea sounds stupid and illegal."]]},{name:"Fredley",model:"common",x:26,y:21,walkspeed:40,dir:"s",elem:"AIR",conv:[["grin","I sure do hope this town doesn\'t get overrun by zombies this week!! That would be unexpected!!"]]},{name:"Middle-aged Woman",model:"woman2",x:23,y:15,walkspeed:60,dir:RDir(),elem:"EARTH",conv:[["deep","I heard Social Fox was dead! That\'s unfortunate; I wanted to make sweet passionate love to him one day. But I suppose there\'s always his corpse in his tomb deep in the Goznor Catacombs..."]]},{name:"Woman",model:"woman",x:3,y:11,walkspeed:40,dir:RDir(),elem:"FIRE",conv:[["grin","Did you hear?!? Pseudolonewolf totally LIKES Firequill! Oooooh!!"]]},{name:"Adventurer",model:"woman4",x:18,y:18,walkspeed:40,dir:RDir(),elem:"AIR",conv:[["angr","I\'m an adventurer AND I\'m a woman! That does not make me a sex object! I\'m not wearing a chainmail bikini! We women can do everything you men can! We can climb mountains and get diseases! We can slay monsters and sleep on rocks! We sweat and we die! And we shouldn\'t have to wear skirts! Stop looking at my chest!"]]},{name:"Middle-aged Man",model:"man1",x:12,y:24,walkspeed:40,dir:RDir(),elem:"EARTH",conv:[["norm","Have you ever heard of the Elemental Crystals, Laddo-Laddy-Ladder-Boy? I bet you haven\'t. The water one\'s supposedly hidden around here, but nobody knows where! I checked in my bed AND my bookshelf AND under my table, and didn\'t find it at all! It\'s a really well-hidden mystery!"]]}]);
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = GameData.plotVars.ZOMBIES != "CANONIA"?GameData.plotVars.SUNSET != "NIGHT"?"Canonia":"crickets":"EvilStirs";
+if(GameData.plotVars.VEHRN == null && GameData.CHAPTER == 2)
+{
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:4,y:24,ExecuteScript:function()
+   {
+      if(GameData.plotVars.VEHRN == null)
+      {
+         GameData.plotVars.VEHRN = 1;
+         _root.freeze = true;
+         DO_ACTIONS([["WALK",0,2],["UNFREEZE"],["TALK","c_A_Vehrn","Vehrn"]],"Vehrn",true);
+      }
+   }});
+   A_sprites.push({name:"Vehrn",model:"vehrn",x:5,y:22,walkspeed:-1,dir:"s",elem:"LIGHT",conv:"c_A_Vehrn"});
+}
+AreaSetup({clearmap:1});
+EN_ADD("Places","Canonia");

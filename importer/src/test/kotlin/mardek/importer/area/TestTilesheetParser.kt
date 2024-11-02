@@ -1,5 +1,6 @@
 package mardek.importer.area
 
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.assets.area.WaterType
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -47,5 +48,25 @@ class TestTilesheetParser {
 
 		assertImageEquals(fullImage.getSubimage(336, 16, 16, 16), parsed.tiles[31]!!.sprites[0])
 		assertImageEquals(fullImage.getSubimage(336, 48, 16, 16), parsed.tiles[31]!!.sprites[2])
+	}
+
+	@Test
+	fun testDragonLair() {
+		val parsed = parseTilesheet("dragonlair")
+		val fullImageInput = TestTilesheetParser::class.java.getResourceAsStream("tilesheets/dragonlair.png")!!
+		val fullImage = ImageIO.read(fullImageInput)
+		fullImageInput.close()
+
+		assertImageEquals(fullImage.getSubimage(80, 16, 16, 16), parsed.tiles[15]!!.sprites[0])
+		assertEquals(rgb(255, 0, 0), parsed.tiles[16]!!.hexObjectColor)
+
+		assertImageEquals(fullImage.getSubimage(96, 16, 16, 16), parsed.tiles[16]!!.sprites[0])
+		assertEquals(rgb(59, 51, 73), parsed.tiles[17]!!.hexObjectColor)
+	}
+
+	@Test
+	fun testAstralTunnel1() {
+		val parsed = parseTilesheet("astral")
+		assertEquals(4, parsed.tiles.size)
 	}
 }

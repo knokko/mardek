@@ -1,0 +1,41 @@
+map = [[10,10,10,12,13,12,10,10,10],[10,10,12,14,14,14,12,10,10],[10,12,14,15,15,15,14,12,10],[10,14,15,114,111,115,15,14,10],[10,14,15,110,16,112,15,14,10],[10,14,15,117,113,116,15,14,10],[10,10,14,15,15,15,14,10,10],[10,10,10,14,14,14,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,12,14,12,10,10,10],[10,10,10,15,14,15,10,10,10],[10,10,119,15,14,15,119,10,10],[10,10,114,115,14,15,15,10,10],[10,12,117,116,14,15,15,12,10],[10,11,15,15,14,114,115,11,10],[10,11,15,15,14,117,116,11,10],[10,11,114,115,14,15,15,11,10],[10,11,117,116,14,15,15,11,10],[10,11,15,15,14,114,115,11,10],[10,11,15,15,14,117,116,11,10],[10,11,114,115,14,15,15,11,10],[10,11,117,116,14,15,15,11,10],[10,11,15,15,14,114,115,11,10],[10,11,15,15,14,117,116,11,10],[10,10,114,115,14,15,15,10,10],[10,10,117,116,14,15,15,10,10],[10,10,10,15,14,15,10,10,10],[10,10,10,15,14,15,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,10,14,10,10,10,10],[10,10,10,12,14,12,10,10,10],[10,10,12,14,14,14,12,10,10],[10,12,14,15,15,15,14,12,10],[10,14,15,114,111,115,15,14,10],[10,14,15,110,16,112,15,14,10],[10,14,15,117,113,116,15,14,10],[10,10,14,15,15,15,14,10,10],[10,10,10,14,14,14,10,10,10]];
+tileset = "saucer2";
+area = "moric_saucer3";
+areaname = "Moric\'s Battleship L2";
+ambience = null;
+dungeon = "MoricSaucer";
+A_sprites = [{name:"TRANSPORT_TRIGGER",model:"_trigger",x:4,y:46,triggers:-1,WALKON:true,ExecuteScript:function()
+{
+   _root.WarpTrans(["moric_saucer2",29,29]);
+}}];
+if(DoomCounter == null)
+{
+   if(GameData.plotVars.SLAIN_DRACELON != null)
+   {
+      A_sprites.push({name:"Dracelon",model:"ch2bosses",x:4,y:21,walkspeed:-1,FRAME:4,silent:true,Static:true,elem:"EARTH",conv:"c_A_Rohoph"});
+   }
+   else
+   {
+      A_sprites = A_sprites.concat([{name:"Dracelon",model:"ch2bosses",x:4,y:21,walkspeed:-1,dir:"n",Static:true,elem:"EARTH",conv:"c_A_Rohoph"},{name:"WALK_TRIGGER",model:"_trigger",x:4,y:33,ExecuteScript:function()
+      {
+         DO_ACTIONS([["WALK",0,-11],["UNFREEZE"],["TALK","c_A_Rohoph","Dracelon"]],"PC",true);
+      }}]);
+   }
+   A_sprites.push({name:"TRANSPORT_TRIGGER",model:"_trigger",x:4,y:4,WALKON:true,triggers:-1,ExecuteScript:function()
+   {
+      _root.WarpTrans(["moric_saucer4",7,8]);
+   }});
+}
+A_sprites.push({name:"Save Crystal",model:"o_Crystal",x:5,y:43,walkspeed:-1,conv:"c_healingCrystal"});
+areaLoot = [];
+foes = MONSTER_TABLES.MORIC_SAUCER;
+btlChance = 0;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.MORIC_SAUCER;
+musicTrack = DoomCounter == null?"Battleship":"Flee";
+AreaSetup({clearmap:1});
+if(GameData.plotVars.SLAIN_DRACELON == 1)
+{
+   _root.cont.Dracelon.DrawFrame(4);
+   _root.cont.Dracelon.noactions = true;
+}

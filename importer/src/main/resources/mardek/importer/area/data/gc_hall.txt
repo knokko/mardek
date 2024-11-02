@@ -1,0 +1,126 @@
+map = [[10,10,10,10,10,10,10,10,10,12,12,12,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,14,17,16,18,14,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,11,17,16,18,11,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,12,11,17,16,18,11,12,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,20,11,17,16,18,11,20,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,11,11,17,16,18,11,11,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,20,11,17,16,18,11,20,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,11,11,17,16,18,11,11,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,15,15,19,111,110,15,15,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,15,15,19,111,110,15,15,10,10,10,10,10,10,10],[13,13,13,10,10,10,10,15,15,19,111,110,15,15,10,10,10,10,13,13,13],[12,12,12,13,14,114,13,30,11,17,16,18,11,30,13,114,14,13,12,12,12],[30,11,30,12,12,12,12,11,11,17,16,18,11,11,12,12,12,12,30,11,30],[11,11,11,11,11,11,11,11,11,17,16,18,11,11,11,11,11,11,11,11,11],[11,11,11,11,11,11,11,11,11,17,16,18,11,11,11,11,11,11,11,11,11],[10,10,10,10,10,10,11,11,11,17,16,18,11,11,11,10,10,10,10,10,10],[10,10,10,10,10,10,11,11,11,17,16,18,11,11,11,10,10,10,10,10,10],[10,10,10,10,13,14,30,11,11,17,16,18,11,11,30,14,13,10,10,10,10],[10,10,14,13,12,12,11,11,11,17,16,18,11,11,11,12,12,13,14,10,10],[10,10,12,12,11,11,11,11,11,17,16,18,11,11,11,11,11,12,12,10,10],[10,10,11,11,11,11,11,11,11,17,16,18,11,11,11,11,11,11,11,10,10],[10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,10,10],[10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,10,10],[10,10,10,10,10,10,10,11,11,11,11,11,11,11,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,11,11,11,10,10,10,10,10,10,10,10,10]];
+tileset = "castle";
+area = "gc_hall";
+areaname = "Castle Goznor - Grand Hall";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Throne Room",model:"DOOR5",x:10,y:0,lock:(!GameData.plotVars.ELWYEN_DATE?"lock":null),dest:["gc_ThroneRoom",6,!(GameData.plotVars.CH3KING && !GameData.plotVars.ELWYEN_DATE)?19:10],conv:(!(GameData.plotVars.CH3KING && !GameData.plotVars.ELWYEN_DATE)?null:"c_doors"),keepTalking:true},{name:"Male Dorms",model:"DOOR5",x:19,y:11,dest:["gc_Mdorms",1,5]},{name:"Female Dorms",model:"DOOR5",x:1,y:11,lock:"lock",dest:["gc_hall",8,15]},{name:"EXIT",model:"DOOR5",x:10,y:25,dest:["WORLDMAP",8,15]}];
+areaLoot = [];
+if(GameData.plotVars.BRIEFING == null && GameData.CHAPTER == 2)
+{
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:19,y:12,ExecuteScript:function()
+   {
+      if(GameData.plotVars.BRIEFING == null)
+      {
+         DO_ACTIONS([["WALK",0,1],["WALK",-8,0],["UNFREEZE"],["TALK","c_jacques","Jacques"]],"PC",true);
+      }
+   }});
+   A_sprites.push({name:"Jacques",model:"captain",x:10,y:10,walkspeed:-1,dir:"s",elem:"AIR",conv:"c_jacques"});
+   A_sprites.push({name:"Donovan",model:"donovan_soldier",x:10,y:13,walkspeed:-1,dir:"n",elem:"FIRE",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Emela",model:"emela_soldier",x:8,y:13,walkspeed:-1,dir:"n",elem:"WATER",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Sharla",model:"sharla_soldier",x:9,y:13,walkspeed:-1,dir:"n",elem:"AIR",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Steele",model:"steele_soldier",x:7,y:12,walkspeed:-1,FRAME:8,dir:"leanE",elem:"DARK",conv:[["shok","ERROR!"]]});
+}
+else if(GameData.plotVars.BRIEFING == 3)
+{
+   A_sprites.push({name:"INTERJECTION",model:"_trigger",x:10,y:13,ExecuteScript:function()
+   {
+      _root.Interjection("Mardek","Briefing3","c_jacques");
+   }});
+   A_sprites.push({name:"Jacques",model:"captain",x:10,y:10,walkspeed:-1,dir:"s",elem:"AIR",conv:"c_jacques"});
+   A_sprites.push({name:"Deugan",model:"deugan_soldier",x:9,y:13,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Donovan",model:"donovan_soldier",x:11,y:13,walkspeed:-1,dir:"n",elem:"FIRE",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Emela",model:"emela_soldier",x:8,y:13,walkspeed:-1,dir:"n",elem:"WATER",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Sharla",model:"sharla_soldier",x:12,y:13,walkspeed:-1,dir:"n",elem:"AIR",conv:[["shok","ERROR!"]]});
+}
+else if(GameData.plotVars.BRIEFING == 4)
+{
+   A_sprites.push({name:"INTERJECTION",model:"_trigger",x:11,y:9,ExecuteScript:function()
+   {
+      _root.Interjection("Mardek","Briefing4b","c_A_Donovan");
+   }});
+   A_sprites.push({name:"Deugan",model:"deugan_soldier",x:12,y:9,walkspeed:-1,dir:"w",elem:"EARTH",conv:[["shok","ERROR!"]],PC_STATS:GameData.plotVars.Allies.Deugan});
+   A_sprites.push({name:"Donovan",model:"donovan_soldier",x:9,y:10,walkspeed:-1,dir:"s",elem:"FIRE",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Emela",model:"emela_soldier",x:8,y:11,walkspeed:-1,dir:"e",elem:"WATER",conv:[["shok","ERROR!"]]});
+   A_sprites.push({name:"Sharla",model:"sharla_soldier",x:8,y:10,walkspeed:-1,dir:"e",elem:"AIR",conv:[["shok","ERROR!"]]});
+}
+else if((GameData.plotVars.BRIEFING == 6 || GameData.plotVars.BRIEFING == 7) && !GameData.plotVars.MORIC_BEATEN)
+{
+   A_sprites.push({name:"Jacques",model:"captain",x:10,y:12,walkspeed:-1,dir:"s",elem:"AIR",conv:"c_jacques"});
+   if(GameData.plotVars.BRIEFING == 6)
+   {
+      GameData.TRIGGERS.gc_hall.T_19_12 = null;
+      A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:19,y:12,ExecuteScript:function()
+      {
+         if(GameData.plotVars.BRIEFING == 6)
+         {
+            DO_ACTIONS([["WALK",0,1],["WALK",-8,0],["UNFREEZE"],["GOTO","w1"],["TALK","c_jacques","Jacques"]],"PC",true);
+         }
+      }});
+      A_sprites.push({name:"Deugan",model:"deugan_soldier",x:10,y:13,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["shok","ERROR!"]],PC_STATS:GameData.plotVars.Allies.Deugan});
+      A_sprites.push({name:"Emela",model:"emela_soldier",x:3,y:13,walkspeed:-1,dir:"n",elem:"WATER",conv:[["shok","ERROR!"]],PC_STATS:GameData.plotVars.Allies.Emela});
+   }
+}
+else if(GameData.plotVars.MORIC_BEATEN == 3)
+{
+   A_sprites.push({name:"INTERJECTION",model:"_trigger",x:10,y:12,ExecuteScript:function()
+   {
+      _root.Interjection("Mardek","MB3inHall","c_A_Emela");
+   }});
+   A_sprites.push({name:"Deugan",model:"deugan_soldier",x:11,y:13,walkspeed:-1,dir:"w",elem:"EARTH",conv:[["shok","ERROR!"]],PC_STATS:GameData.plotVars.Allies.Deugan});
+   A_sprites.push({name:"Emela",model:"emela_soldier",x:9,y:13,walkspeed:-1,dir:"e",elem:"WATER",conv:[["shok","ERROR!"]]});
+   if(GameData.plotVars.Allies.Vehrn != null)
+   {
+      A_sprites.push({name:"Vehrn",model:"vehrn",x:10,y:15,walkspeed:-1,dir:"n",elem:"LIGHT",conv:[["shok","ERROR!"]]});
+   }
+   if(GameData.plotVars.Allies.Zach != null)
+   {
+      A_sprites.push({name:"Zach",model:"zach",x:9,y:16,walkspeed:-1,dir:"s",elem:"AIR",conv:[["shok","ERROR!"]]});
+   }
+}
+else if(GameData.plotVars.MORIC_BEATEN == 100)
+{
+   GameData.TRIGGERS.gc_hall.T_11_13 = null;
+   A_sprites.push({name:"INTERJECTION",model:"_trigger",x:11,y:13,ExecuteScript:function()
+   {
+      _root.Interjection("Mardek","ENDCH2inHall","c_A_Emela");
+   }});
+   A_sprites.push({name:"Emela",model:"emela_soldier",x:9,y:13,walkspeed:-1,dir:"e",elem:"WATER",conv:[["shok","ERROR!"]]});
+   if(GameData.plotVars.Allies.Vehrn != null)
+   {
+      A_sprites.push({name:"Vehrn",model:"vehrn",x:10,y:14,walkspeed:-1,dir:"n",elem:"LIGHT",conv:[["shok","ERROR!"]]});
+   }
+   if(GameData.plotVars.Allies.Zach != null)
+   {
+      A_sprites.push({name:"Zach",model:"zach",x:11,y:15,walkspeed:-1,dir:"s",elem:"AIR",conv:[["shok","ERROR!"]]});
+   }
+}
+else if(GameData.plotVars.EVIL_STEELE == 2)
+{
+   GameData.TRIGGERS.gc_hall.T_11_9 = null;
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:11,y:9,ExecuteScript:function()
+   {
+      DO_ACTIONS([["TALK","c_A_Donovan"]],"PC");
+   }});
+   A_sprites.push({name:"Solaar",model:"solaar",x:12,y:9,walkspeed:-1,dir:"w",elem:"LIGHT",conv:"c_A_Donovan",PC_STATS:GameData.plotVars.Allies.Solaar});
+   A_sprites.push({name:"Sslen\'ck",model:"sslenck",x:9,y:10,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["shok","ERROR!"]],PC_STATS:GameData.plotVars.Allies["Sslen\'ck"]});
+   A_sprites.push({name:"Donovan",model:"donovan",x:8,y:11,walkspeed:-1,dir:"e",elem:"FIRE",conv:[["shok","ERROR!"]],PC_STATS:GameData.plotVars.Allies.Donovan});
+   A_sprites.push({name:"Sharla",model:"sharla",x:8,y:10,walkspeed:-1,dir:"e",elem:"AIR",conv:[["shok","ERROR!"]],PC_STATS:GameData.plotVars.Allies.Sharla});
+}
+else if(GameData.plotVars.ELWYEN_DATE)
+{
+   A_sprites.push({name:"Vehrn",model:"vehrn",x:8,y:3,walkspeed:-1,dir:"e",elem:"LIGHT",conv:[["grin","\'Eeeeey! Lookin\' sharp there, Mardles! Looks like you saved the day and got the girl in the end! You must feel on top of the world."],["sad","[[PC]]. . ."],["smile","[[Vehrn]]Anyway, I\'ll be staying here for a while to help the new king out. He looks like he needs it, and I have no pressing need to return home at the moment. So you get to see loads more of me from now on! I bet you\'re salivating already!"]]});
+   A_sprites.push({name:"Gloria",model:"gloria17",x:8,y:12,walkspeed:-2,dir:"w",elem:"EARTH",conv:[["embr","Oh, um, hello Mardek. Elly. Where are you off to...?"],["cdgr","[[Elwyen]]We\'re off to see a play in Aeropolis about Mardek\'s exploits in Chapter 2! Maybe you and your inventor friend here could come along... but only if you follow a distance behind us."],["embr","[[Gloria]]No, um, it\'s fine... We\'re okay here by ourselves. Nice and quiet."],["cdgr","[[Elwyen]]Well, have fun, then! I\'m sure you will."]]});
+   A_sprites.push({name:"Meraeador",model:"inventor",x:7,y:12,walkspeed:-2,dir:"e",elem:"FIRE",conv:[["embr","M-M-M-M-Mardek! Hello there! Fancy seeing you and, err, Elwyen, err,\nw-w-walking around closely like that."],["norm","Err, I d-d-don\'t know if it\'s truly the best thing right now, a-a-after all this that\'s happened, but m-m-maybe a bit of light entertainment is what\'s b-best for us all? P-please try to enjoy yourself."],["cdgr","[[Elwyen]]You too, Big Boy!"]]});
+   A_sprites.push({name:"Legion",model:"robot",x:13,y:12,walkspeed:-1,dir:"s",elem:"NONE",conv:[["red","HA HA HA!! Look at you, with a WOMAN! What a joke! Not only are you surely LAUGHABLY incompetent around the dainty sex, Tinpants, but she\'s a minger to boot! Bwahahaha."],["angr","[[Elwyen]]What did you just say!?!"],["blue","[[Legion]]Oh, just ignore it. I think he\'s just looking to balance out the fact that he did good against his will today."],["purple","Sigh. An ugly bird is more than I ever had. I never had anything. Nobody loved me. I used to dress up as a woman sometimes and look at myself in the mirror and tell myself that at least I loved me, but all it did was make me cry for hours. Every time. I don\'t know why I kept doing it, but I did. Several times a day at some points."],["blah","[[Elwyen]]The play might start soon, Mardek. We don\'t want to be late."]]});
+   A_sprites.push({name:"Solaar",model:"solaar",x:11,y:19,walkspeed:50,dir:"n",elem:"LIGHT",conv:[["deep","The Dark Crystal... I never did get it back! O woe, O woe, O woe, woe, woe! Now I don\'t know what to do with myself."],["","I will stick with your little group here until we achieve successification in finding the missing crystal! I hope this is okie-ceptable with you."],["norm","Oh, and by the wayside; the reptoid told me to tell you that he needed to go back to his village in the sand place. He probably won\'t be back, but he wanted to thank us all for the adventuration, and commendify us for our braverousness and righteoury and all that fun stuff!"]]});
+}
+else if(GameData.CHAPTER == 3)
+{
+   A_sprites.push({name:"Jacques",model:"captain",x:10,y:12,walkspeed:-1,dir:"s",elem:"AIR",conv:"c_jacques"});
+}
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = !GameData.plotVars.ELWYEN_DATE?GameData.plotVars.EVIL_STEELE != 2?!(GameData.plotVars.BRIEFING == 4 && GameData.CHAPTER == 2 || GameData.plotVars.SUNSET)?GameData.plotVars.BRIEFING != 3?"Castle":"RoyalGuard":"none":"SomethingsAmiss":"SirenSong";
+AreaSetup({clearmap:1});

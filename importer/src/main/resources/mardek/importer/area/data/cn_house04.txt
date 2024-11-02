@@ -1,0 +1,14 @@
+map = [[110,12,13,12,12,13,110,24],[25,11,11,18,15,14,14,16],[26,11,11,11,15,14,14,16],[11,21,22,20,15,14,14,16],[11,11,11,11,15,14,14,16],[11,11,11,11,11,11,11,18]];
+tileset = "interior4";
+area = "cn_house04";
+areaname = "Canonia - House";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Defining Deities: SOLAK",model:"object",x:7,y:0,type:"examine",conv:[["","SOLAK is the deity of the sun and the stars, the glowing ball of fire in the sky that provides warmth and life. Though SOLAK did not create Belfan, It is said to have created the sun."]]},{name:"Old Woman",model:"woman3",x:1,y:3,walkspeed:-2,dir:"e",elem:"FIRE",conv:(GameData.CHAPTER != 3?[["angr","A monster came into our house yesterday and ate all our tables and chairs! Then we had to buy new ones! It also ate our son, probably! He\'s dead now! That\'s what happens when you live in the world! People die! It\'s annoying! I don\'t like soldiers! I\'m old!"]]:[["angr","I know where the elemental crystals are! All of \'em! I\'ve seen \'em, too, back when I was an adventurer! But I\'m not telling a whippersnapper like YOU anything! What have YOU ever done for this place? Probably NOWT except loitering around outside shops and eating mushrooms!"],["deep","[[PC]]Well, I saved the world last chapter..."],["angr","I don\'t care! Who HASN\'T saved the world?! You\'re lying! Go away!"]])},{name:"Old Man",model:"man3",x:3,y:3,walkspeed:-2,dir:"w",elem:"AIR",conv:(GameData.CHAPTER != 3?[["deep","Eee, my back\'s not what it used to be..."],["susp","[[PC]]Well, why are you telling me this?"],["susp","I don\'t know."]]:[["susp","Heard there\'s a new Shaman in town. Heard the old one died. Sounds arousing."]])},{name:"EXIT",model:"DOOR4",x:3,y:6,dest:["canonia",29,23]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Canonia";
+AreaSetup({clearmap:1});

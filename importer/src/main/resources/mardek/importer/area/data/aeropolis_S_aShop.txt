@@ -1,0 +1,17 @@
+map = [[17,118,119,17,118,119,16],[22,20,24,111,25,26,23],[23,11,120,121,122,11,20],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11],[30,11,11,11,11,11,30],[10,10,10,14,10,10,10]];
+tileset = "interior6";
+area = "aeropolis_S_aShop";
+areaname = "Aeropolis - Armour Shop";
+ambience = null;
+A_sprites = [{name:"Shopkeeper",model:"arab1",x:3,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["grin","Your clothes are sickeningly ugly, foreigners! Who DRESSES you in your strange alien countries?! Your slaves\' daughters? They\'re idiots!! You need to buy some of my trendier armours so then people don\'t throw rocks at you for looking so ridiculous! Even though your appearance would look the same whatever you have equipped! Buy some anyway!"],Do = function()
+{
+   _root.OpenShop({name:"Aeropolis Armour Shop",wares:DefaultShops.AERO_ARMOUR});
+   return 1;
+}]},{name:"EXIT",model:"area_transition",x:3,y:7,dest:["aeropolis_S",13,17],ARROW:"S"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

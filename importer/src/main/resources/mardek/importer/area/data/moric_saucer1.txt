@@ -1,0 +1,18 @@
+map = [[10,10,10,12,12,12,10,10,10],[10,10,12,14,14,14,12,10,10],[10,12,14,11,11,11,14,12,10],[12,14,11,11,15,11,11,14,12],[14,11,11,114,111,115,11,11,14],[14,11,15,110,16,112,15,11,14],[14,11,11,117,113,116,11,11,14],[10,14,11,11,15,11,11,14,10],[10,10,14,11,11,11,14,10,10],[10,10,10,14,14,14,10,10,10],[10,10,10,10,10,10,10,10,10]];
+tileset = "saucer2";
+area = "moric_saucer1";
+areaname = "Moric\'s Battleship - Arrival Room";
+ambience = null;
+dungeon = "MoricSaucer";
+A_sprites = [{name:"INTERJECTION",model:"_trigger",x:4,y:5,ExecuteScript:function()
+{
+   _root.Interjection("Mardek","moricBattleship1","c_A_Rohoph");
+}},{name:"UP1",model:"DOOR7",x:4,y:0,dest:["moric_saucer2",29,48],dir:"n"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = DoomCounter == null?"Battleship":"Flee";
+AreaSetup();
+EN_ADD("Places","Moric\'s Battleship");

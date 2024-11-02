@@ -1,0 +1,14 @@
+map = [[12,13,12,110,12,13,12],[18,11,11,11,11,11,18],[11,15,14,14,14,16,18],[11,15,14,14,14,16,11],[11,15,14,14,14,16,11],[11,18,11,11,11,11,11],[11,11,11,11,11,11,11]];
+tileset = "interior4";
+area = "canonia_shaman_d";
+areaname = "Dreamrealm - C. Woods - Shaman\'s Hut";
+ambience = {ra:-50,rb:0,ga:100,gb:0,ba:80,bb:0,aa:100,ab:0};
+dungeon = "Dreamcave";
+A_sprites = [{name:"Turquoise Keystone",model:"object",x:3,y:2,type:"switch_orb",colour:"turquoise",base:"gold",conv_action:1},{name:"Save Crystal",model:"o_Crystal",x:0,y:6,walkspeed:-1,conv:"c_healingCrystal"},{name:"EXIT",model:"DOOR4",x:3,y:7,dest:["canonia_woods_d",29,73]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Gloria_Dream";
+AreaSetup({DREAM:2,clearmap:1});

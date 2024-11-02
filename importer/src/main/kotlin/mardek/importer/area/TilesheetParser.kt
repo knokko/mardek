@@ -1,9 +1,12 @@
 package mardek.importer.area
 
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.assets.area.ParsedTile
 import mardek.assets.area.ParsedTilesheet
 import mardek.assets.area.WaterType
 import java.awt.Color
+import java.awt.image.BufferedImage
+import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import javax.imageio.ImageIO
 
 private val BLUE_ENCODING = Color(0, 221, 255).rgb
@@ -36,6 +39,9 @@ fun parseTilesheet(name: String): ParsedTilesheet {
 				tilesheet.getSubimage(tileSize * x, tileSize * (layer + y), tileSize, tileSize)
 			}
 
+			val decorationColor = if (tilesheet.width > 80) Color(tilesheet.getRGB(x + 80, y - 1)) else Color(0)
+			val decorationCode = rgb(decorationColor.red, decorationColor.green, decorationColor.blue)
+
 			val canWalkOn = encodingColor == GREEN_ENCODING || encodingColor == DARK_GREEN_ENCODING
 					|| encodingColor == CYAN_ENCODING
 
@@ -47,7 +53,7 @@ fun parseTilesheet(name: String): ParsedTilesheet {
 				DARK_BLUE_ENCODING -> WaterType.Waterfall
 				else -> WaterType.None
 			}
-			idMapping[tileID] = ParsedTile(tileID, canWalkOn, waterType, sprites)
+			idMapping[tileID] = ParsedTile(tileID, canWalkOn, waterType, sprites, decorationCode)
 		}
 	}
 
@@ -58,7 +64,8 @@ fun parseTilesheet(name: String): ParsedTilesheet {
 			2 -> 160
 			else -> 160 + 16 * rawX
 		}
-		tilesheet.getSubimage(x, 0, tileSize, tileSize)
+		if (x < tilesheet.width) tilesheet.getSubimage(x, 0, tileSize, tileSize)
+		else BufferedImage(16, 16, TYPE_INT_ARGB)
 	}
 
 	return ParsedTilesheet(name, idMapping, waterSprites)

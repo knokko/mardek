@@ -1,0 +1,107 @@
+map = [[120,121,122,123,124],[130,131,132,133,134],[140,141,142,143,144],[150,151,152,153,154],[160,161,162,163,164],[170,171,172,173,174],[10,10,182,10,10]];
+tileset = "saucer";
+area = "saucer";
+areaname = "Inside the Saucer";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Rohoph",model:"rohoph",x:2,y:2,walkspeed:-2,FRAME:1,dir:"dead",elem:"LIGHT",conv:"c_A_Rohoph"},{name:"S",model:"area_transition",x:2,y:6,dest:["crashsite",6,7],ARROW:"S"},{name:"CUT_TRIGGER",model:"_trigger",x:2,y:4,triggers:1,ExecuteScript:function()
+{
+   _root.createEmptyMovieClip("RUFOCUT",14152);
+   _root.RUFOCUT.onEnterFrame = function()
+   {
+      if(TempVars.PossessCut != 10)
+      {
+         if(TempVars.PossessCut == 3)
+         {
+            this.count = this.count + 1;
+            if(this.count >= 80)
+            {
+               TempVars.PossessCut = 10;
+               _root.freeze = false;
+               _root.playMusic("Rohoph");
+               _root.Sky.setTransform({ra:100,ab:0,ga:100,gb:0,ba:100,rb:0,aa:100,ab:0});
+               _root.cont.Rohoph.Talk();
+               this.removeMovieClip();
+               return undefined;
+            }
+            _root.Sky.setTransform({ra:20 + this.count,ab:0,ga:60 + this.count / 2,gb:0,ba:100,rb:0,aa:100,ab:0});
+         }
+         else if(TempVars.PossessCut == 2)
+         {
+            _root.SOUL._y = _root.SOUL._y + 3;
+            if(_root.SOUL._y >= _root.cont.PC.getBounds(_root).yMin)
+            {
+               _root.playSFX("Slam");
+               this.count = 0;
+               _root.SOUL.gotoAndPlay("absorb");
+               _root.Flash(_root.cont.PC,[255,255,255]);
+               TempVars.PossessCut = 3;
+            }
+         }
+         else if(TempVars.PossessCut == 1)
+         {
+            this.count = this.count + 1;
+            if(this.count > 40 && this.count < 65)
+            {
+               _root.cont.Rohoph._x = _root.cont.Rohoph.orig_x - 3 + random(7);
+               _root.cont.Rohoph._y = _root.cont.Rohoph.orig_y - 3 + random(7);
+            }
+            else
+            {
+               _root.cont.Rohoph._x = _root.cont.Rohoph.orig_x;
+               _root.cont.Rohoph._y = _root.cont.Rohoph.orig_y;
+            }
+            if(this.count == 70)
+            {
+               _root.Flash(_root,[255,255,255]);
+               _root.playSFX("Slam");
+               _root.attachMovie("s_soul2","SOUL",14151);
+               _root.SOUL._x = _root.cont.Rohoph.getBounds(_root).xMin;
+               _root.SOUL._y = _root.cont.Rohoph.getBounds(_root).yMin;
+               _root.SOUL._width = _root.SOUL._height = _root.TILESIZE;
+               _root.SOUL._alpha = 0;
+            }
+            if(_root.SOUL != null && _root.SOUL._alpha < 100)
+            {
+               _root.SOUL._alpha = _root.SOUL._alpha + 20;
+            }
+            if(this.count == 80)
+            {
+               _root.Flash(_root.SOUL,[255,0,0]);
+            }
+            if(this.count == 90)
+            {
+               _root.Flash(_root.SOUL,[0,255,0]);
+            }
+            if(this.count == 100)
+            {
+               _root.Flash(_root.SOUL,[0,0,255]);
+            }
+            if(this.count == 120)
+            {
+               TempVars.PossessCut = 2;
+            }
+         }
+         else if(TempVars.PossessCut == null)
+         {
+            _root.cont.Rohoph.orig_x = 0 + _root.cont.Rohoph._x;
+            _root.cont.Rohoph.orig_y = 0 + _root.cont.Rohoph._y;
+            TempVars.PossessCut = 1;
+            _root.freeze = true;
+            this.frozenrunning = true;
+            _root.Flash(_root,[255,255,255]);
+            _root.playSFX("Slam");
+            _root.Sky.setTransform({ra:20,ab:0,ga:60,gb:0,ba:100,rb:0,aa:100,ab:0});
+            _root.cont.PC2.DrawFrame("n1");
+            this.count = 0;
+            TempVars.NoRohophName = true;
+         }
+      }
+   };
+}}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = plotVars.PossessCut != 10?"none":"Rohoph";
+AreaSetup({clearmap:1});

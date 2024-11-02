@@ -1,28 +1,40 @@
 package mardek.assets.area
 
+import mardek.assets.area.objects.AreaObjects
+
 class ParsedArea(
-	val rawName: String,
-	val displayName: String,
 	val width: Int,
 	val height: Int,
 	val tilesheetName: String,
 	private val tileGrid: IntArray,
+	val objects: AreaObjects,
+	// TODO Loot
+	val randomBattles: RandomAreaBattles?,
+	val flags: AreaFlags,
+	val properties: AreaProperties,
+) {
+
+	fun getTileId(x: Int, y: Int): Int? {
+		if (x < 0 || y < 0 || x >= width || y >= height) return null
+		return tileGrid[x + y * width]
+	}
+}
+
+class AreaProperties(
+	val rawName: String,
+	val displayName: String,
 	/**
 	 * Format is {ra:100,rb:0,ga:80,gb:0,ba:70,bb:0,aa:100,ab:0}, it looks like some foreground gradient between
 	 * colors (red=ra, green=ga, blue=ba, alpha=aa) to (red=rb, green=gb, blue=bb, alpha=ab).
 	 *
 	 * It's used in, among others, Goznor night, Goznor zombie outbreak, Sauls dungeon, and Goldfish
 	 */
-	val ambience: String?,
-	// TODO Entities (A_sprites)
-	// TODO Loot
-	val randomBattles: RandomAreaBattles?,
+	val ambience: AreaAmbience?,
 	val musicTrack: String?,
 	/**
 	 * All areas with the same "dungeon" will share their switch gate/platform state
 	 */
 	val dungeon: String?,
-	val flags: AreaFlags,
 	/**
 	 * Upon visiting this area, the place with this name will be discovered in the encyclopedia
 	 */
@@ -31,13 +43,7 @@ class ParsedArea(
 	val chestType: AreaChestType,
 	val snowType: AreaSnowType,
 	// TODO Dreamshrine Entrance has some GlowTiles stuff
-) {
-
-	fun getTileId(x: Int, y: Int): Int? {
-		if (x < 0 || y < 0 || x >= width || y >= height) return null
-		return tileGrid[x + y * width]
-	}
-}
+)
 
 class BattleEnemySelection(val name: String, val enemyNames: List<String?>) {
 	init {

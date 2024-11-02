@@ -1,0 +1,18 @@
+map = [[110,12,13,12,12,13,110,24],[25,11,11,18,15,14,14,16],[26,11,11,11,15,14,14,16],[11,21,22,20,15,14,14,16],[11,11,11,11,15,14,14,16],[11,11,11,11,11,11,11,18]];
+tileset = "interior4";
+area = "cn_house01";
+areaname = "Canonia - House";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Defining Deities: YALORT",model:"object",x:7,y:0,type:"examine",conv:[["","YALORT, the Omnidragon, is a draconic deity widely worshipped throughout Belfan. The worship of YALORT is called \'Yalortism\', and followers of Yalortism are called \'Yalortians\'."],["","Yalortism is the most popular of religions in the world because of the widely-held belief that YALORT was the creator of Belfan, and many of the stars. It is believed that the Elemental Crystals were given to the newly-crafted world by YALORT directly, bestowing the world with the gift of life."],["","YALORT\'s name should always be fully capitalised; it\'s blasphemy to disobey this rule. Words derived from His name, however - like Yalortian or Yalortism - do not follow this rule, and it is taboo to capitalise them, as that would be suggesting that a Yalortian deserves as much respect as YALORT."],["","YALORT Himself is generally depicted as a large dragon with vast dark feathered wings textured like the cosmos, emerald green fur all over, black stripes, and piercing red eyes with which He sees all."]]},{name:"Chap",model:"common",x:6,y:2,walkspeed:-1,dir:"w",elem:"EARTH",conv:[GameData.CHAPTER != 3?["sad","I LIVE ALONE AND AM SO LONELY!!"]:["grin","I HAVE A WIFE NOW!"]]},{name:"EXIT",model:"DOOR4",x:3,y:6,dest:["canonia",3,16]}];
+if(GameData.CHAPTER == 3)
+{
+   A_sprites.push({name:"Chap\'s Wife",model:"woman",x:5,y:2,walkspeed:-1,dir:"e",elem:"WATER",conv:[["grin","I AM HIS WIFE!"]]});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Canonia";
+AreaSetup({clearmap:1});

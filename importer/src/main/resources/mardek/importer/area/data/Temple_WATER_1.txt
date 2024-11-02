@@ -1,0 +1,16 @@
+map = [[10,10,10,10,142,142,142,142,142,10,10,10,10],[10,10,10,141,110,111,112,111,110,140,10,10,10],[10,129,141,110,120,121,122,121,120,110,140,129,10],[143,129,13,120,30,116,117,118,30,120,13,129,132],[143,19,12,12,12,16,17,18,12,12,12,19,132],[143,19,12,13,13,117,117,117,13,13,12,19,132],[143,19,30,119,119,16,17,18,119,119,30,19,132],[143,129,13,19,19,16,17,18,19,19,13,129,132],[143,19,119,19,19,119,15,119,19,19,119,19,132],[143,19,19,19,19,19,15,19,19,19,19,19,132],[143,19,19,19,19,19,19,19,19,19,19,19,132],[143,19,19,19,19,19,19,19,19,19,19,19,132],[10,133,133,133,133,133,133,133,133,133,133,133,10]];
+tileset = "temple_WATER";
+area = "Temple_WATER_1";
+areaname = "Water Temple";
+ambience = null;
+dungeon = "WaterTemple";
+A_sprites = [{name:"Water",model:"examine",x:6,y:10,walkspeed:-1,conv:"c_lakeQur"},{name:"N",model:"DOOR13",x:6,y:2,dest:["Temple_WATER_2",4,37]}];
+areaLoot = [];
+foes = MONSTER_TABLES.WATER_TEMPLE;
+btlChance = 2;
+minSteps = 5;
+levelrange = MONSTER_LEVELS.WATER_TEMPLE;
+musicTrack = "WaterTemple";
+DeadTempleCheck();
+AreaSetup({WARP:1,clearmap:1});
+EN_ADD("Places","Water Temple");

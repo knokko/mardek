@@ -1,0 +1,42 @@
+map = [[10,111,13,13,111,10,111,13,13,111,10,111,13,13,111,10,10,10,10,10,10,10,10,12,10],[10,11,20,21,11,10,11,24,25,11,10,11,22,23,11,10,10,10,10,13,111,13,10,19,10],[10,11,11,11,11,10,11,11,11,11,10,11,11,11,11,10,10,10,10,116,116,116,10,19,10],[10,11,11,11,11,10,11,11,11,11,10,11,11,11,11,10,10,12,10,14,16,15,10,19,10],[10,10,11,10,10,10,10,11,10,10,10,10,11,10,10,10,10,11,10,14,16,15,13,19,13],[12,12,11,12,12,110,12,11,12,12,110,12,11,12,12,12,12,11,10,14,16,15,12,19,12],[11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,10,14,16,15,30,11,30],[11,11,11,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11],[31,11,11,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,31],[11,11,11,10,10,10,10,112,112,112,13,112,112,112,13,112,112,112,10,10,10,10,11,11,11],[11,11,11,12,110,12,12,113,113,113,12,113,113,113,12,113,113,113,12,12,110,12,11,11,11],[31,11,11,11,11,11,11,11,11,11,30,14,17,15,30,11,11,11,11,11,11,11,11,11,31],[11,11,11,11,11,11,11,11,11,31,11,14,16,15,11,31,11,11,11,11,11,11,11,11,11],[11,11,11,11,11,11,11,11,30,11,11,14,16,15,11,11,30,11,11,11,11,11,11,11,11],[10,10,11,10,10,10,10,11,11,11,11,14,16,15,11,11,11,11,10,10,10,10,11,10,10],[10,10,11,10,10,10,10,11,11,11,11,14,16,15,11,11,11,11,10,10,10,10,11,10,10],[110,12,11,12,110,10,10,11,11,11,11,14,16,15,11,11,11,11,10,10,110,12,11,12,110],[24,25,11,11,11,10,10,11,30,11,11,14,16,15,11,11,30,11,10,10,11,11,11,20,21],[11,11,11,11,11,10,10,11,11,31,11,14,16,15,11,31,11,11,10,10,11,11,11,11,11],[11,14,16,15,11,10,10,11,11,11,11,14,16,15,11,11,11,11,10,10,11,14,16,15,11],[11,14,16,15,11,10,10,11,11,11,11,14,16,15,11,11,11,11,10,10,11,14,16,15,11],[10,10,10,10,10,10,10,11,30,11,11,14,16,15,11,11,30,11,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,11,11,11,11,14,16,15,11,11,11,11,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,31,11,11,11,31,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,11,11,11,10,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,19,10,10,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,19,10,10,10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10,10,10,19,10,10,10,10,10,10,10,10,10,10,10,10]];
+tileset = "suntemple";
+area = "sunTemple1";
+areaname = "Sun Temple";
+dungeon = "SunTemple";
+ambience = null;
+if(GameData.plotVars.TRADEQUEST == 2)
+{
+   GameData.plotVars.TRADEQUEST = 3;
+}
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:1,y:1,walkspeed:-1,conv:"c_healingCrystal"},{name:"Solakian Priest",model:"solakian",x:0,y:18,walkspeed:-1,dir:"n",elem:"AIR",conv:[["susp","If you\'re going down deep into the temple, beware of the lizard people! They\'re right savage, you know! One once bit my leg off in one bite!"],["susp","[[PC]]But you have two legs now..."],["sad","[[Solakian Priest]]I thank you not to draw attention to the problem! It\'s hard enough to live with as it is, WITHOUT people like YOU, sir, mocking me endlessly for my crippling disability!"]]},{name:"Solakian Priest",model:(int(GameData.plotVars.TRADEQUEST) < 3?"solakian":"man2"),x:22,y:19,walkspeed:50,dir:"s",elem:"LIGHT",conv:"c_ch3misc"},{name:"Solakian Priest",model:"solakian",x:12,y:2,walkspeed:-1,dir:"n",elem:"AIR",conv:[["grin","I keep all the money I own in the world in an ornate treasure chest over there. I\'ve been saving up for years. I\'d probably consider suicide if it was stolen! Y\'know, because my life would be ruined! My girlfriend would leave me and so on!"],["deep","Or she WOULD if I HAD one... Being a Priest, I don\'t really see many girls at all. Y\'know, since we have to live in this remote temple and swear a vow of celibacy and so on."],["sad","A shame, too, what with MY stunning good looks."]]},{name:"Solakian Priest",model:"solakian",x:4,y:1,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["blah","Watching this flame burn reminds me of my life... Hot, yellow, flickering, constant yet chaotic within boundaries, and dull as hell."]]},{name:"Solakian Priest",model:"solakian",x:15,y:15,walkspeed:50,dir:"s",elem:"LIGHT",conv:[["grin","I am a Priest of SOLAK!"]]},{name:"Solakian Priest",model:"solakian",x:9,y:15,walkspeed:50,dir:"s",elem:"FIRE",conv:[!GameData.plotVars.SUN_WARDSTONE?["shok","There are monsters in the depths of the temple! BLEEDIN\' EVIL MONSTERS FULLA VILE AND SOOT! They\'re all CRAWLING down there... I left a PARCHMENT down there, and I bet they\'ve TOUCHED it and everything! Ewwww! I\'ll never write another book again! It\'s enough to drive a man MAD! MAAAAD!!"]:["grin","All the dark monsters are gone now! Hooray! Now I can run around naked like a lunatic down in the lower halls as much as I like!"]]},{name:"Solakian Priest",model:"solakian",x:7,y:2,walkspeed:-2,dir:"n",elem:"WATER",conv:[["blah","Hello. This is a book about shopping. Speaking of which, buy some items. From me. I sell them, you see. See!"],Do = function()
+{
+   _root.OpenShop({name:"Sun Temple Priest",wares:DefaultShops.SUN_TEMPLE_PRIEST});
+   return 1;
+}]},{name:"Solakian High Priest Shamash",model:"solhp",x:12,y:12,walkspeed:-2,dir:"s",elem:"LIGHT",EN:["People","Shamash"],conv:"c_shamash"},{name:"Sidequest Priest",model:"solakian",x:20,y:4,walkspeed:-1,dir:"s",elem:"LIGHT",conv:"c_ch3sq1"},{name:"PORTAL ROOM",model:"DOOR8",x:17,y:3,dest:["sunTemplePortals",1,17]},{name:"To L2",model:"DOOR8",x:23,y:0,dest:["sunTemple2",9,39],lock:(!!GameData.plotVars.SUNTEMPLE?null:"lock"),conv:(!!GameData.plotVars.SUNTEMPLE?null:[["norm","[[Donovan]]Let\'s talk to the priest first."]]),keepTalking:true},{name:"EXIT",model:"DOOR8",x:12,y:30,lock:(GameData.plotVars.EVIL_STEELE != null?null:"lock"),dest:["WORLDMAP",1,1],conv:(GameData.plotVars.EVIL_STEELE != null?null:[["norm","[[Donovan]]We\'ve still got work to do here, Mardek! We can\'t just run away or go shopping! People need our help, and we can\'t leave until we\'re sure everyone is safe and happy! EVERYONE!!1"]]),keepTalking:true},{name:"WALK_TRIGGER",model:"_trigger",x:12,y:29,ExecuteScript:function()
+{
+   DO_ACTIONS([["WALK",0,-5],["UNFREEZE"],["TALK","c_A_Donovan","PC","c_A_Donovan"]],"PC",true);
+}}];
+if(GameData.plotVars.CH3SQ1[1]["Solakian Priest Djhale"])
+{
+   A_sprites.push({name:"Solakian Priest Djhale",model:"solakian",x:19,y:5,walkspeed:-1,dir:"e",elem:"AIR",conv:[["grin","Wow! I sure am glad to be up here again with all my dear friends! Thought I was done for down there!"]]});
+}
+if(GameData.plotVars.CH3SQ1[1]["Solakian Priest Ellavar"])
+{
+   A_sprites.push({name:"Solakian Priest Ellavar",model:"solakian",x:19,y:6,walkspeed:-1,dir:"e",elem:"FIRE",conv:[["angr","I didn\'t need your help anyway! I could have taken those monsters on myself! I was just busy! And you took me from my work! Bah!"]]});
+}
+if(GameData.plotVars.CH3SQ1[1]["Solakian Priest Akhmell"])
+{
+   A_sprites.push({name:"Solakian Priest Akhmell",model:"solakian",x:21,y:5,walkspeed:-1,dir:"w",elem:"EARTH",conv:[["blah","I just get so involved in my... reading... that I didn\'t notice when the others were evacuating because of the monsters. It could have been the end of me, but you saw that it wasn\'t. Thank you again."]]});
+}
+if(GameData.plotVars.CH3SQ1[1]["Solakian Priest Mohmana"])
+{
+   A_sprites.push({name:"Solakian Priest Mohmana",model:"solakian",x:21,y:6,walkspeed:-1,dir:"w",elem:"WATER",conv:[["smile","Thanks again! I\'m okay now."]]});
+}
+areaLoot = [{x:14,y:1,amount:3000,type:"gold"}];
+foes = [["monster",null,null,null,"SOLO"],["monster","monster",null,null,"DUO"],["monster","monster","monster",null,"TRIO"]];
+btlChance = 0;
+minSteps = 5;
+levelrange = [10,15];
+musicTrack = "SunTemple";
+AreaSetup({WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});
+EN_ADD("Places","Sun Temple");

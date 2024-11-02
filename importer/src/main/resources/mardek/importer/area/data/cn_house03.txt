@@ -1,0 +1,26 @@
+map = [[110,12,13,12,12,13,110,24],[25,11,11,18,15,14,14,16],[26,11,11,11,15,14,14,16],[11,21,22,20,15,14,14,16],[11,11,11,11,15,14,14,16],[11,11,11,11,11,11,11,18]];
+tileset = "interior4";
+area = "cn_house03";
+areaname = "Canonia - House";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Concerning Sirens",model:"object",x:7,y:0,type:"examine",conv:[["","Sirens are a variety of monster that lure sailors to their deaths by tempting them with their beautiful Siren\'s Song and their deceptive appearance - that of a beautiful naked young woman."],["","I\'ve heard they\'re dead sexy. Sexier than the sexiest human woman ever! I wish I could see one! I\'d ogle it \'til the cows came home! Yowza! However, they\'re so dead sexy that they make you dead by being sexy. GET IT?! BWAHAHAH! ...It made ME laugh! I wonder if this book will get published?"],["","Also, included on the following pages are sketches of Sirens. I\'m sure THAT will get this book published!"],["grin","[[PC]]!"]].concat(GameData.CHAPTER != 2?!_root.HasAlly("Elwyen")?null:[["cdgr","[[Elwyen]]Like what you see, Mardek? I think I have a bit of Siren blood in me, y\'know. Don\'t you find that... interesting?"]]:[["angr","[[Emela]]!"]])},{name:"EXIT",model:"DOOR4",x:3,y:6,dest:["canonia",23,23]}];
+if(GameData.CHAPTER == 2)
+{
+   A_sprites = A_sprites.concat([{name:"Husbert",model:"man1",x:3,y:3,walkspeed:-2,dir:"w",elem:"EARTH",conv:[["deep","We heard from Elwyen about what happened to her parents... She came running to the door, crying, in a terrible state... All we could do is take her in as our own, and look after her as best we can as if she were our own."],["smile","She mentioned you, too, you soldiers... Mardek, is it? I thank you for what you did for her. Even if you didn\'t bring back her parents, you did all you could, and that\'s very noble of you. The world would be a better place if it had more nice, kind people such as yourselves."]]},{name:"Wifetta",model:"woman2",x:1,y:3,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["blah","Every house in this village is exactly the same inside. It\'s really rather irksome, because there\'s only one bed in each house! There\'s four of us now, so we have to take turns sleeping in the bed while the rest sleep on the floor!"]]},{name:"Gloria",model:"gloria",x:5,y:2,walkspeed:30,dir:"e",elem:"EARTH",EN:["People","Gloria"],conv:[["smile","Um, are you the people who helped Elly after her, um... after what happened? Thank you so much, people! Um... you\'re good people! And, um... I\'m so glad Elly is safe..."]]},{name:"Elwyen",model:"elwyen_child",x:6,y:2,walkspeed:30,dir:"w",elem:"WATER",conv:"c_A_Elwyen"}]);
+}
+else if(GameData.CHAPTER == 3)
+{
+   A_sprites = A_sprites.concat([{name:"Husbert",model:"man1",x:3,y:3,walkspeed:-2,dir:"w",elem:"EARTH",conv:"c_mrGloria"},{name:"Wifetta",model:"woman2",x:1,y:3,walkspeed:-2,dir:"e",elem:"EARTH",conv:"c_mrsGloria"}]);
+   if(GameData.plotVars.GET_ELWYEN == 2)
+   {
+      A_sprites.push({name:"Elwyen",model:"elwyen",x:6,y:2,walkspeed:-1,dir:"s",elem:"WATER",conv:"c_A_Elwyen",PC_STATS:GET_PC_STATS("Elwyen")});
+   }
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Canonia";
+AreaSetup({clearmap:1});

@@ -1,0 +1,52 @@
+map = [[20,20,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,10,10,10,10,10,10,10,20,20,20],[20,20,10,10,10,10,10,10,10,10,10,20,20],[20,20,10,10,157,158,159,160,161,10,10,10,20],[20,10,10,10,162,163,164,165,166,10,10,10,20],[20,10,10,10,167,168,169,170,171,10,10,10,20],[20,10,10,10,172,173,174,175,176,10,10,15,20],[20,10,10,10,177,178,179,180,181,10,10,15,20],[20,15,10,10,10,10,10,10,10,10,10,15,20],[20,15,10,10,10,10,10,10,10,10,10,15,20],[20,15,15,10,10,10,10,10,10,10,15,15,20],[20,20,15,15,10,10,10,10,10,10,15,15,20],[20,20,20,15,15,10,10,10,10,15,15,20,20],[20,20,20,20,15,10,10,10,10,20,20,20,20],[20,20,20,20,20,20,10,20,20,20,20,20,20],[20,20,20,20,20,20,10,20,20,20,20,20,20],[20,20,20,20,20,20,10,15,20,20,20,20,20],[20,20,20,20,20,10,10,10,15,20,20,20,20],[20,20,20,20,20,10,10,10,15,15,20,20,20],[20,20,20,20,20,20,10,15,15,20,20,20,20],[20,20,20,20,20,20,10,15,15,20,20,20,20],[20,20,20,20,20,20,15,15,20,20,20,20,20],[20,20,20,20,20,20,15,20,20,20,20,20,20],[20,20,20,20,20,20,15,20,20,20,20,20,20],[20,20,20,20,20,20,15,20,20,20,20,20,20],[20,20,20,20,20,20,15,20,20,20,20,20,20]];
+tileset = "rural";
+area = "crashsite";
+areaname = "Crash Site";
+ambience = null;
+dungeon = null;
+ambience = GenericExternalAmbience();
+if(GameData.CHAPTER == 1)
+{
+   A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:8,y:18,walkspeed:-1,conv:"c_healingCrystal"},{name:"Into The Saucer",model:"BIGDOOR2",x:6,y:6,dest:["saucer",2,5]},{name:"S",model:"area_transition",x:6,y:22,dest:["WORLDMAP",1,1],ARROW:"S"},{name:"WALK_TRIGGER",model:"_trigger",x:6,y:13,ExecuteScript:function()
+   {
+      DO_ACTIONS([["WALK",0,-3],["UNFREEZE"],["TALK","c_mugbert","Mugbert"]],"PC",true);
+   }}];
+   if(!GameData.plotVars.DEFEATED_MUGBERT)
+   {
+      A_sprites.push({name:"Mugbert",model:"mugbert",x:6,y:9,walkspeed:-1,dir:"s",elem:"EARTH",EN:["People","Mugbert"],conv:"c_mugbert"});
+   }
+}
+else
+{
+   if(GameData.plotVars.SUNSET)
+   {
+      A_sprites = [{name:"Sign",model:"sign",sign:"words",FRAME:7,x:6,y:14,walkspeed:-1,conv:[["","GO AWAYYE!!"]]}];
+   }
+   else if(GameData.CHAPTER == 3)
+   {
+      A_sprites = [{name:"Manfred",model:"saucerbrother",x:6,y:7,walkspeed:-1,dir:"s",elem:"DARK",conv:[["mad","Stop! When the world ends, this door will open, and the Saucer Gods will whisk us away to freedom! You cannot enter!"]]},{name:"Saucer Cultist",model:"saucerbrother",x:2,y:7,walkspeed:-1,dir:"e",elem:"AIR",conv:[["mad","Hear us, O Saucer Gods! We give ourselves up to you!"]]},{name:"Saucer Cultist",model:"saucerbrother",x:2,y:9,walkspeed:-1,dir:"e",elem:"AIR",conv:[["mad","The end is coming! THE END IS COMING!!"]]},{name:"Saucer Cultist",model:"saucerbrother",x:4,y:10,walkspeed:-1,dir:"n",elem:"AIR",conv:[["mad","Just you wait and see, you doubters and sceptics! Before the end of the eight chapters, the world WILL end! Then you\'ll see! YOU\'LL SEE THAT WE WERE RIGHT!!"]]},{name:"Saucer Cultist",model:"saucerbrother",x:6,y:11,walkspeed:-1,dir:"n",elem:"AIR",conv:[["mad","The signs! They are so obvious! First, this saucer, then the black saucer over Canonia! The second bigger, more deadly! We have upset the saucer gods, and need to appease them lest they destroy our world!"]]},{name:"Saucer Cultist",model:"saucerbrother",x:8,y:10,walkspeed:-1,dir:"n",elem:"AIR",conv:[["mad","DID YOU KNOW that there are tales - ANCIENT tales - of saucers just like this one and that black one dotting the skies, flying about as if at war? These saucers have been watching us since the dawn of time! They are probably our creators!!"]]},{name:"Saucer Cultist",model:"saucerbrother",x:10,y:9,walkspeed:-1,dir:"w",elem:"AIR",conv:[["mad","Just the other day, I was taken up into a saucer just like this one! Honest! I ascended out of my bed in a beam of light, and met with the saucer gods! They had big eyes and round heads! Honest!"]]},{name:"Saucer Cultist",model:"saucerbrother",x:10,y:7,walkspeed:-1,dir:"w",elem:"EARTH",conv:[["deep","Actually, I realise this whole silly cult thing is just a load of tosh. Still, it\'s just a bit o\' fun, eh?"]]}];
+   }
+   else
+   {
+      A_sprites = [{name:"Manfred",model:"man1",x:7,y:13,walkspeed:-1,dir:"w",elem:"DARK",conv:"c_manfred"},{name:"Soldier",model:"soldier",x:6,y:1,walkspeed:5,dir:"s",elem:"AIR",conv:[["mad","THIS REMINDS ME OF MY HAT."]]},{name:"Son",model:"man2",x:7,y:10,walkspeed:-2,dir:"n",elem:"AIR",conv:[["blah","I hate it when my mum drags me out of my dark, lonely room to see things like this! She says it\'ll be \'interesting\' but it never is!"]]},{name:"Mother",model:"woman2",x:8,y:10,walkspeed:-2,dir:"n",elem:"EARTH",conv:[["susp","[[Mother]]This is what you\'ll turn out lookin\' like when you grow up if you don\'t eat more food, son."],["shok","[[Son]]But muuuum! I\'m 35!"]]},{name:"Boy",model:"boy",x:2,y:7,walkspeed:-1,dir:"e",elem:"EARTH",conv:[["grin","[[Boy]]Ooh! Ooh! Daddy! Daddy! Can IIII get one of these when I grow up?!"],["smile","[[Man]]No, son! All you can get is a beard, and a good ol\' fashioned beating!"],["sad","[[Boy]]Awww..."]]},{name:"Man",model:"common",x:2,y:8,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["grin","My son is such an idiot! Hohoho!"]]},{name:"Young Woman",model:"woman",x:10,y:5,walkspeed:100,dir:RDir(),elem:"AIR",conv:[["blah","I travelled all the way from Canonia to see this, AND paid a whole solid gold piece to that shifty guy, but it\'s annoyingly disappointing! I mean, sure, it fell from the heavens, but... so what? How can we USE it? How will ogling it help me in later life? Psht."]]},{name:"WALK_TRIGGER",model:"_trigger",x:6,y:13,triggers:-1,ExecuteScript:function()
+      {
+         if(_root.conv._visible)
+         {
+            return undefined;
+         }
+         TempVars.LEAVING_CRASHSITE = true;
+         _root.cont.Manfred.Talk();
+         _root.cont.PC.DrawFrame("e1");
+      }}];
+   }
+   A_sprites.push({name:"Into The Saucer",model:"BIGDOOR2",x:6,y:6,lock:"rust",dest:["saucer",2,5]});
+   A_sprites.push({name:"S",model:"area_transition",x:6,y:22,dest:["WORLDMAP",1,1],ARROW:"S"});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = !GameData.plotVars.SUNSET?"WorldMap":"crickets";
+AreaSetup({clearmap:1});
+specBtlBG = "CRASHSITE";
+EN_ADD("Places","Crash Site");

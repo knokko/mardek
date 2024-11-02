@@ -1,0 +1,18 @@
+map = [[10,10,10,10,10,10,132,132,132,10,10,10,10,10,10],[10,10,10,10,132,130,142,142,142,130,132,10,10,10,10],[130,132,132,10,142,140,143,144,145,140,142,10,132,132,130],[140,142,142,10,131,139,143,144,145,139,131,10,142,142,140],[139,131,131,130,131,131,143,144,145,131,131,130,131,131,139],[131,131,131,140,130,131,143,144,145,131,130,140,131,131,131],[131,131,131,131,140,149,146,147,148,149,140,131,131,131,131],[139,131,131,131,131,149,146,147,148,149,131,131,131,131,139],[10,10,131,131,131,131,143,144,145,131,131,131,131,10,10],[10,10,131,131,131,131,143,144,145,131,131,131,131,10,10],[10,10,131,131,139,131,143,144,145,131,139,131,131,10,10],[10,10,131,131,131,131,131,131,131,131,131,131,131,10,10],[10,10,10,10,10,10,10,149,10,10,10,10,10,10,10]];
+tileset = "interior6";
+area = "aeropolis_N_TAIR";
+areaname = "Aeropolis - Temple of Air";
+ambience = null;
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:4,y:7,walkspeed:-1,conv:"c_healingCrystal"},{name:"Priestess Gail",model:"priestess",x:7,y:3,walkspeed:-1,dir:"s",elem:"AIR",conv:"c_priestess",EN:["People","Priestess Gail"]},{name:"EXIT",model:"area_transition",x:7,y:12,dest:["aeropolis_N",23,22],ARROW:"S"}];
+if(int(GameData.plotVars.CH3HASCRYSTALS) == 3)
+{
+   A_sprites.push({name:"Smalls",model:"royalknight",x:6,y:5,walkspeed:-1,dir:"n",elem:"LIGHT",conv:"c_royalknight"});
+   A_sprites.push({name:"Chunk",model:"soldier",x:8,y:5,walkspeed:-1,dir:"n",elem:"LIGHT",conv:[["norm","\'ello there, Mardek."]]});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

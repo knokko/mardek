@@ -1,0 +1,18 @@
+map = [[110,12,110,12,110,12,110],[20,11,20,11,20,22,20],[21,11,21,11,21,11,21],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11],[10,10,10,16,10,10,10],[10,12,110,11,110,12,10],[10,22,11,11,23,11,10],[10,11,11,11,11,11,10],[10,11,11,11,11,11,10],[10,11,11,11,11,11,10],[10,11,11,11,11,11,10]];
+tileset = "interior1";
+area = "gz_barracks";
+areaname = "Goznor - Barracks";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"EXIT",model:"DOOR0",x:3,y:12,dest:["goznor",5,7]}];
+if(GameData.CHAPTER == 1)
+{
+   A_sprites.push({name:"Injured Guard",model:"soldier",x:2,y:1,walkspeed:-2,dir:"s",elem:"DARK",conv:[["grin","I\'m not really injured, y\'know. Just lazy."],["angr","But don\'t tell anyone, or I\'ll rip yer bleedin\' \'ead off wi\' me bare \'ands, yeh little cretin!"]]});
+   A_sprites.push({name:"Jacques",model:"captain",x:3,y:8,walkspeed:-1,dir:"s",elem:"AIR",EN:["People","Jacques"],conv:"c_jacques"});
+}
+areaLoot = [{x:0,y:2,type:"item",amount:1,item:"Potion"},{x:2,y:2,type:"item",amount:1,item:"Potion"},{x:4,y:2,type:"item",amount:1,item:"Potion"},{x:6,y:2,type:"item",amount:1,item:"Potion"}];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = !GameData.plotVars.SUNSET?"Goznor":"none";
+AreaSetup({clearmap:1});

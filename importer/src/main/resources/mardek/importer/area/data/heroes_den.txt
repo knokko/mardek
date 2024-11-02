@@ -1,0 +1,33 @@
+map = [[20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20],[20,15,20,20,20,20,20,20,20,15,15,15,20,186,186,186,20,20],[20,15,20,20,20,20,20,10,10,10,10,15,20,185,185,185,20,20],[20,15,20,20,20,20,10,10,10,10,10,10,10,183,183,184,20,20],[20,15,20,20,20,10,117,10,10,10,10,10,10,10,10,10,20,20],[20,15,15,20,20,10,10,10,10,10,10,10,10,10,10,10,117,20],[20,20,15,15,15,10,10,10,10,10,10,10,10,10,10,15,15,20],[20,20,15,15,10,10,10,10,10,10,10,10,10,10,10,15,15,20],[20,20,20,10,10,10,10,10,10,10,10,10,10,10,15,15,15,20],[20,20,20,20,10,10,10,10,10,10,10,10,10,15,15,20,20,20],[20,20,20,20,20,20,15,10,10,10,10,10,10,20,20,20,20,20],[20,20,20,20,20,20,15,15,15,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,15,15,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,15,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,15,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,15,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,15,20,20,20,20,20,20,20,20,20,20,20],[20,20,20,20,20,20,15,20,20,20,20,20,20,20,20,20,20,20]];
+tileset = "rural";
+area = "heroes_den";
+areaname = "Heroes\' Den";
+ambience = null;
+dungeon = null;
+ambience = GenericExternalAmbience();
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:10,y:2,walkspeed:-1,conv:"c_healingCrystal"},{name:"House",model:"DOOR4",x:14,y:3,dest:["heroes_house",2,5]},{name:"S",model:"area_transition",x:6,y:14,dest:["WORLDMAP",1,1],ARROW:"S"}];
+if(GameData.CHAPTER == 1)
+{
+   A_sprites.push({name:"TALK_TRIGGER",model:"_trigger",x:10,y:6,ExecuteScript:function()
+   {
+      TempVars.DRAGON_SLAIN = null;
+      _root.cont.Deugan.Talk(null,"n");
+   }});
+   if(TempVars.DRAGON_SLAIN)
+   {
+      A_sprites.push({name:"Deugan",model:"deugan_child",x:10,y:7,walkspeed:-1,dir:"n",elem:"EARTH",conv:"c_HeroBabble",PC_STATS:GET_PC_STATS("Deugan_Child")});
+   }
+}
+if(GameData.CHAPTER == 3 && !GameData.plotVars.CH3TRILOBITES[1][_root.area])
+{
+   A_sprites.push({name:"Trilobite Warrior",model:"trilobite2",x:1,y:1,walkspeed:-1,dir:"s",elem:"WATER",conv:"c_ch3sq6"});
+}
+areaLoot = [];
+musicTrack = !GameData.plotVars.SUNSET?"WorldMap":"crickets";
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+AreaSetup({clearmap:1});
+EN_ADD("People","Mardek");
+EN_ADD("People","Deugan");
+EN_ADD("Places","Heroes\' Den");

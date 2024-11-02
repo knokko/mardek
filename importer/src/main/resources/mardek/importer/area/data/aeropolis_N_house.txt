@@ -1,0 +1,13 @@
+map = [[17,118,119,17,17,17,17,16],[20,20,11,110,111,111,112,22],[20,11,11,120,121,121,122,11],[11,11,11,11,11,11,11,11],[11,11,11,11,11,11,23,11],[11,11,11,11,11,11,11,11],[10,10,10,11,10,10,10,10]];
+tileset = "interior6";
+area = "aeropolis_N_house";
+areaname = "Aeropolis - House";
+ambience = null;
+A_sprites = [{name:"Inhabitant",model:"arabf1",x:2,y:3,walkspeed:100,dir:"e",elem:"AIR",conv:[["susp","In case you are distressingly unaware of this fact for some reason, foreign knight who is barging into our home, each \'Natural Region\' has a unique Shaman who embodies the Spirit of the Planet and serves as its voice, since it cannot communicate with sentients naturally; we\'re just too different."],["norm","For the planet IS alive, you see, and we often inflict much harm on it without being aware that we are. This is why it uses the shamans as... eh... \'puppets\'; to tell us what not to do and to look after itself."]]},{name:"Inhabitant",model:"arab1",x:3,y:3,walkspeed:90,dir:"w",elem:"AIR",conv:[["grin","The Shamans can live far longer than any other person because they\'re blessed by nature! Some live for hundreds of years! Wow!"]]},{name:"EXIT",model:"area_transition",x:3,y:6,dest:["aeropolis_N",33,9],ARROW:"S"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

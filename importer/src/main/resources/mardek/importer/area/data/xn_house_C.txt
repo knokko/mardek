@@ -1,0 +1,24 @@
+map = [[10,10,10,10,13,13,13,10,10,10,10],[10,10,10,111,12,12,12,111,10,10,10],[10,10,13,12,17,31,18,12,13,10,10],[10,10,12,17,17,19,18,18,12,10,10],[10,10,21,17,17,19,18,18,21,10,10],[13,111,11,17,17,19,18,18,11,111,13],[20,12,11,17,17,19,18,18,11,12,20],[11,11,11,11,17,19,18,11,11,11,11],[11,11,11,11,11,11,11,11,11,11,11],[11,11,11,11,11,11,11,11,11,11,11],[11,11,11,11,11,11,11,11,11,11,11],[10,10,11,30,11,11,11,30,11,10,10],[10,10,10,10,11,16,11,10,10,10,10]];
+tileset = "sandcave_interior";
+area = "xn_house_C";
+areaname = "Xantusia - Chieftain\'s Dwelling";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Bookshelf",model:"object",x:0,y:6,type:"examine",conv:[["","There seem to be records stored here about the village, and about its inhabitants. It seems that each reptoid has their own personal family file, containing the exploits and statistics of various warriors, young and old. There seems to be centuries of history here."]]},{name:"Bookshelf",model:"object",x:10,y:6,type:"examine",conv:[["","This bookshelf contains the personal journals of many chieftains, including Sslen\'ck. It\'d be an invasion of privacy to even read a word of them!"]]},{name:"EXIT",model:"BIGDOOR1",x:5,y:13,dest:["xantusia",11,13]}];
+if(GameData.plotVars.Allies["Sslen\'ck"] == null)
+{
+   A_sprites.push({name:"Sslen\'ck",model:"sslenck",x:5,y:3,walkspeed:-1,dir:"s",elem:"EARTH",EN:["People","Sslen\'ck"],conv:"c_reptoids1",PC_STATS:GET_PC_STATS("Sslen_ck",{UNSWITCHABLE:true})});
+   A_sprites.push({name:"Blatantly Evil Chancellor",model:"snaketongue",x:6,y:3,walkspeed:-1,dir:"s",elem:"DARK",EN:["People","Evil Chancellor"],conv:"c_snaketongue"});
+   musicTrack = "Sslenck";
+}
+else
+{
+   A_sprites.push({name:"Blatantly Evil Chancellor",model:"snaketongue",x:5,y:3,walkspeed:80,dir:"s",elem:"DARK",EN:["People","Evil Chancellor"],conv:"c_snaketongue"});
+   musicTrack = "ReptoidVillage";
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+AreaSetup({clearmap:1});

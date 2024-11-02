@@ -6,8 +6,34 @@ import mardek.assets.area.objects.*
 import java.lang.Integer.parseInt
 import kotlin.streams.toList
 
-fun parseAreaEntities(rawEntities: String): List<Any> {
-	return parseAreaEntities1(rawEntities).map(::parseAreaEntity2)
+private inline fun <reified T> extract(objectList: MutableList<Any>): List<T> {
+	val result = ArrayList<T>(objectList.count { it is T })
+	objectList.removeIf { candidate ->
+		if (candidate is T) {
+			result.add(candidate)
+			true
+		} else false
+	}
+	return result
+}
+
+fun parseAreaObjectsToList(rawEntities: String) = parseAreaEntities1(rawEntities).map(::parseAreaEntity2)
+
+fun parseAreaObjects(rawEntities: String, extraDecorations: List<AreaDecoration>): AreaObjects {
+	val objectList = parseAreaObjectsToList(rawEntities).toMutableList()
+	return AreaObjects(
+		transitions = extract(objectList),
+		walkTriggers = extract(objectList),
+		talkTriggers = extract(objectList),
+		decorations = extract<AreaDecoration>(objectList) + extraDecorations,
+		portals = extract(objectList),
+		objects = extract(objectList),
+		characters = extract(objectList),
+		doors = extract(objectList),
+		switchOrbs = extract(objectList),
+		switchGates = extract(objectList),
+		switchPlatforms = extract(objectList)
+	)
 }
 
 fun parseAreaEntities1(rawEntities: String): List<Map<String, String>> {
@@ -19,22 +45,26 @@ fun parseAreaEntities1(rawEntities: String): List<Map<String, String>> {
 	val STATE_VALUE = 1
 	var state = STATE_KEY
 
+	var insideString = false
+
 	val keyStorage = StringBuilder()
 	val valueStorage = StringBuilder()
 	val objectList = mutableListOf<Map<String, String>>()
 	val currentObject = mutableMapOf<String, String>()
 
 	for (character in content) {
-		if (depth == 1) {
+		if (character == '"'.code) insideString = !insideString
+
+		if (depth == 1 && !insideString) {
 			if (character == ','.code || character == ']'.code) {
 				objectList.add(HashMap(currentObject))
 				currentObject.clear()
 			}
 		}
 
-		if (depth == 2) {
+		if (depth == 2 && !insideString) {
 			if (character == ','.code || character == '}'.code) {
-				currentObject[keyStorage.toString()] = valueStorage.toString()
+				currentObject[keyStorage.toString().trim()] = valueStorage.toString().trim()
 				keyStorage.clear()
 				valueStorage.clear()
 				state = STATE_KEY
@@ -42,20 +72,20 @@ fun parseAreaEntities1(rawEntities: String): List<Map<String, String>> {
 			}
 
 			if (character == ':'.code) {
-				parseAssert(state == STATE_KEY, "Unexpected : at depth $depth")
+				//parseAssert(state == STATE_KEY, "Unexpected : at depth $depth with memory $keyStorage and $valueStorage")
 				state = STATE_VALUE
 				continue
 			}
 		}
 
-		if (character == '}'.code || character == ']'.code) depth -= 1
+		if ((character == '}'.code || character == ']'.code) && !insideString) depth -= 1
 
 		if (depth >= 2) {
 			if (state == STATE_KEY) keyStorage.appendCodePoint(character)
 			else valueStorage.appendCodePoint(character)
 		}
 
-		if (character == '{'.code || character == '['.code) depth += 1
+		if (!insideString && (character == '{'.code || character == '['.code)) depth += 1
 	}
 
 	parseAssert(depth == 0, "Expected to end with depth 0, but got $depth")
@@ -79,6 +109,12 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 				if (type == "switch_platform") return AreaSwitchPlatform(x = x, y = y, color = color)
 			}
 		}
+
+		println("type is ${rawEntity["type"]}")
+		if (rawType == "\"examine\"") return AreaDecoration(
+			x = x, y = y, spritesheetName = null, spritesheetOffsetY = null, spriteHeight = null,
+			light = null, rawConversation = rawEntity["conv"]
+		)
 	}
 
 	if (model == "area_transition") return AreaTransition(
@@ -144,6 +180,9 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 			x = x,
 			y = y,
 			spritesheetName = spritesheetName,
+			spritesheetOffsetY = null,
+			spriteHeight = null,
+			light = null,
 			rawConversation = rawConversion
 		) else AreaObject(
 			spritesheetName = spritesheetName,
@@ -220,6 +259,7 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 		rawPerson.substring(prefix.length, rawPerson.length - suffix.length)
 	} else null
 
+	if (!rawEntity.containsKey("walkspeed")) println("rawEntity is $rawEntity")
 	return AreaCharacter(
 		name = name,
 		spritesheetName = spritesheetName,
@@ -240,13 +280,19 @@ private fun parseDestination(rawDestination: String, dir: String?): TransitionDe
 	parseAssert(rawDestination.endsWith("]"), "Expected dest $rawDestination to end with ]")
 
 	val splitDestination = rawDestination.substring(1, rawDestination.length - 1).split(",")
-	parseAssert(splitDestination.size == 3, "Expected $rawDestination to have 2 ,s")
+	parseAssert(
+		splitDestination.size == 3 || splitDestination.size == 4,
+		"Expected $rawDestination to have 2 or 3 ','s"
+	)
 	return TransitionDestination(
 		areaName = parseFlashString(splitDestination[0], "transition destination")!!,
 		x = parseInt(splitDestination[1]),
 		y = parseInt(splitDestination[2]),
 		direction = if (dir != null) {
 			Direction.entries.find { it.abbreviation == parseFlashString(dir, "dir")!! }!!
-		} else null
+		} else null,
+		discoveredAreaName = if (splitDestination.size == 3) null else parseFlashString(
+			splitDestination[3], "discovered area"
+		)
 	)
 }

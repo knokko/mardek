@@ -1,0 +1,34 @@
+map = [[12,12,12,17],[20,11,11,23],[21,11,11,11],[22,11,11,11],[11,11,11,11],[10,10,10,16]];
+tileset = "interior1";
+area = "gz_Mhouse2";
+areaname = "Mardek\'s Room";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:0,y:4,walkspeed:-1,conv:"c_healingCrystal"},{name:"Stairs Down",model:"DOOR0",x:3,y:6,dest:["gz_Mhouse1",6,1]}];
+if(GameData.CHAPTER == 1)
+{
+   A_sprites.push({name:"SLEEP_TRIGGER",model:"_trigger",x:0,y:1,triggers:1,ExecuteScript:function()
+   {
+      if(GameData.plotVars.ROHOPH != null)
+      {
+         _root.Speak(_root.PCstats[0],_root.cont.PC,"c_A_Rohoph");
+         return undefined;
+      }
+      GameData.plotVars.startedProperly = 1;
+      _root.cont.PC.DrawFrame(8);
+      _root.freeze = true;
+      _root.PlayCutscene("CUTSCENE2");
+      _root.CUTSCENE1.AfterActions = function()
+      {
+         GameData.plotVars.startedProperly = 2;
+         _root.DrawSprite({name:"Deugan",model:"deugan_child",x:3,y:5,walkspeed:-1,dir:"n",elem:"EARTH",conv:"c_A_Deugan",PC_STATS:GameData.plotVars.Allies.Deugan});
+         DO_ACTIONS([["WALK",0,-4],["WALK",-2,0],["UNFREEZE"],["TALK","c_A_Deugan","Deugan"]],"Deugan",true);
+      };
+   }});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = !GameData.plotVars.SUNSET?"Goznor":"none";
+AreaSetup({clearmap:1});

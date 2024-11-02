@@ -1,0 +1,14 @@
+map = [[10,10,20,12,128,12,12,10,10,10],[10,10,125,125,125,125,21,10,10,10],[10,10,127,127,127,127,127,10,10,10],[10,10,125,125,125,125,125,10,10,10],[10,10,125,125,125,125,125,10,10,10],[10,10,125,125,125,125,125,10,10,10],[10,10,21,125,125,125,125,10,10,10],[10,10,10,10,112,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10],[10,10,10,10,10,10,10,10,10,10]];
+tileset = "cave6";
+area = "tv_shop_ar";
+areaname = "Cambria - Armour Shop";
+ambience = null;
+dungeon = "TrilobiteCave";
+A_sprites = [{name:"Armour Shop",model:"shop",x:4,y:2,SHOP:{name:"Cambria Armour Shop",wares:DefaultShops.TRILOBITE_ARMOUR}},{name:"Shopkeeper",model:"trilobite1",x:4,y:1,walkspeed:-1,dir:"s",elem:"WATER",conv:[["norm","WORDS."]]},{name:"EXIT",model:"area_transition",x:4,y:7,dest:["trilobiteville",14,23]}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "TrilobiteCave";
+AreaSetup({clearmap:1});

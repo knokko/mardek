@@ -1,0 +1,13 @@
+map = [[10,10,10,132,132,132,10,10,10],[10,132,130,142,142,142,130,132,10],[130,142,140,143,141,145,140,142,130],[140,131,139,143,144,145,139,131,140],[131,131,131,143,144,145,131,131,131],[131,131,131,143,144,145,131,131,131],[149,149,149,146,147,148,149,149,149],[149,149,149,146,147,148,149,149,149],[131,131,131,143,144,145,131,131,131],[131,131,131,143,144,145,131,131,131],[131,131,131,143,144,145,131,131,131],[131,131,131,143,144,145,131,131,131],[10,131,10,10,10,10,10,131,10],[10,131,10,10,10,10,10,131,10]];
+tileset = "interior6";
+area = "aeropolis_N_TSolak";
+areaname = "Aeropolis - Temple of SOLAK";
+ambience = null;
+A_sprites = [{name:"Solakian Priest",model:"solakian",x:4,y:3,walkspeed:-1,dir:"s",elem:"WATER",conv:[["blah","No, I\'m sorry, sir, this is not the Temple of YALORT, you must have taken a wrong path or something."],["shok","Unless you\'re actually here to... pay homage to SOLAK?! Egads!"],["blah","No? Didn\'t think so. People only ever come in here by accident. Often foreigners or drunkards. I hate my life."]]},{name:"W EXIT",model:"area_transition",x:1,y:13,dest:["aeropolis_N",10,17],ARROW:"S"},{name:"E EXIT",model:"area_transition",x:7,y:13,dest:["aeropolis_N",13,17],ARROW:"S"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

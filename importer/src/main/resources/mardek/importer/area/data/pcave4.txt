@@ -1,0 +1,33 @@
+map = [[10,10,10,10,10,10,10,10,10,13,13,13,13,13,13,13,10,10,10,10],[10,10,10,10,10,10,10,10,110,12,113,12,12,12,113,12,17,10,10,10],[10,10,10,10,10,10,10,16,113,123,124,128,127,128,123,124,113,14,10,10],[10,10,10,10,10,10,10,16,123,118,125,11,11,11,126,118,124,14,10,10],[10,10,10,10,10,10,10,16,119,121,128,11,114,11,128,119,121,14,10,10],[10,10,10,10,10,13,13,110,119,121,11,11,11,11,11,119,121,14,10,10],[10,10,10,10,16,12,12,116,119,121,11,11,11,11,11,119,121,14,10,10],[10,10,10,10,16,123,120,120,122,125,11,11,11,11,11,126,125,14,10,10],[10,10,10,10,16,119,18,19,128,11,11,11,11,11,11,11,128,14,10,10],[10,10,10,10,16,119,14,10,19,11,11,11,11,11,11,11,18,10,10,10],[10,10,10,10,16,119,14,10,10,19,128,11,11,11,128,18,10,10,10,10],[10,10,13,10,16,119,14,10,10,10,19,11,11,11,18,10,10,10,10,10],[10,16,112,14,16,119,17,10,10,10,10,19,11,18,10,10,10,10,10,10],[10,110,111,14,16,119,117,17,10,10,10,16,111,14,10,10,10,10,10,10],[16,116,111,17,110,119,124,117,14,10,10,16,111,14,10,10,10,10,10,10],[16,11,11,117,116,126,118,124,17,13,13,110,111,14,10,10,10,10,10,10],[16,128,11,11,11,128,126,125,117,113,12,116,11,14,10,10,10,10,10,10],[10,19,11,11,11,11,11,11,11,11,11,11,11,14,10,10,10,10,10,10],[10,10,19,128,11,11,11,18,15,15,15,15,15,10,10,10,10,10,10,10],[10,10,10,15,15,15,15,10,10,10,10,10,10,10,10,10,10,10,10,10]];
+tileset = "cave5";
+area = "pcave4";
+areaname = "Tainted Grotto - B3";
+ambience = null;
+dungeon = "TaintedGrotto";
+A_sprites = [{name:"TRANSPORT_TRIGGER",model:"_trigger",x:12,y:4,triggers:-1,WALKON:true,ExecuteScript:function()
+{
+   if(!HASPLOTITEM("Talisman of ONEIROS"))
+   {
+      return undefined;
+   }
+   _root.WarpTrans(["pcave4_d",12,4]);
+}},{name:"Dream Circle",model:"object",type:"examine",x:12,y:4,walkable:true,conv:[["","It\'s a Dream Circle."]]},{name:"Save Crystal",model:"o_Crystal",x:5,y:18,walkspeed:-1,conv:"c_healingCrystal"},{name:"EXIT",model:"area_transition",x:2,y:12,dir:"s",dest:["pcave3",42,2]}];
+if(GameData.plotVars.CANONIA_SHAMAN == null && GameData.CHAPTER == 2)
+{
+   A_sprites.push({name:"Shaman",model:"shaman2",x:12,y:4,walkspeed:-2,dir:"n",elem:"DARK",conv:"c_shaman"});
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:12,y:11,ExecuteScript:function()
+   {
+      DO_ACTIONS([["WALK",0,-6],["UNFREEZE"],["TALK","c_shaman","Shaman"]],"PC",true);
+   }});
+   musicTrack = "EvilStirs";
+}
+else
+{
+   musicTrack = "Dungeon1";
+}
+areaLoot = [{x:12,y:2,amount:1,item:"Geojacket",hidden:true}];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+AreaSetup({WARP:1,clearmap:1});

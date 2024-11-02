@@ -70,8 +70,9 @@ class TestAreaEntityParser {
 		assertEquals(expectedConversation, parsed1[0]["conv"])
 	}
 
+
 	private fun parseAreaEntityRaw(rawString: String): Any {
-		val parsedEntities = parseAreaEntities("[$rawString]")
+		val parsedEntities = parseAreaObjectsToList("[$rawString]")
 		assertEquals(1, parsedEntities.size)
 		return parsedEntities[0]
 	}
@@ -82,10 +83,7 @@ class TestAreaEntityParser {
 			"{name:\"EXIT\",model:\"area_transition\",x:3,y:7,dest:[\"aeropolis_E\",22,24],ARROW:\"S\"}"
 		)
 		val expected = AreaTransition(x = 3, y = 7, arrow = "S", destination = TransitionDestination(
-			areaName = "aeropolis_E",
-			x = 22,
-			y = 24,
-			direction = null
+			areaName = "aeropolis_E", x = 22, y = 24, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}
@@ -96,10 +94,7 @@ class TestAreaEntityParser {
 			"{name:\"Item Shop\",model:\"area_transition\",x:22,y:23,dir:\"n\",dest:[\"aeropolis_E_iShop\",3,6]}"
 		)
 		val expected = AreaTransition(x = 22, y = 23, arrow = null, destination = TransitionDestination(
-			areaName = "aeropolis_E_iShop",
-			x = 3,
-			y = 6,
-			direction = Direction.Up
+			areaName = "aeropolis_E_iShop", x = 3, y = 6, direction = Direction.Up, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}
@@ -343,10 +338,7 @@ class TestAreaEntityParser {
 			x = 19,
 			y = 13,
 			destination = TransitionDestination(
-				areaName = "crypt2",
-				x = 19,
-				y = 13,
-				direction = Direction.Down
+				areaName = "crypt2", x = 19, y = 13, direction = Direction.Down, discoveredAreaName = null
 			),
 			lockType = null,
 			keyName = null
@@ -365,7 +357,7 @@ class TestAreaEntityParser {
 			spriteRow = 5,
 			x = 4,
 			y = 8,
-			destination = TransitionDestination("aeropolis_E", 13, 20, Direction.Down),
+			destination = TransitionDestination("aeropolis_E", 13, 20, Direction.Down, null),
 			lockType = "key",
 			keyName = "Bandit Key"
 		)
@@ -409,7 +401,7 @@ class TestAreaEntityParser {
 					"}}"
 		)
 		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
-			"canonia_woods", 23, 61, direction = null
+			"canonia_woods", 23, 61, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}
@@ -428,7 +420,7 @@ class TestAreaEntityParser {
 					"}}"
 		)
 		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
-			"canonia_woods_d", 23, 61, direction = null
+			"canonia_woods_d", 23, 61, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}
@@ -516,7 +508,7 @@ class TestAreaEntityParser {
 					"conv:[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]}"
 		)
 		val expected = AreaDecoration(
-			x = 6, y = 6, spritesheetName = "obj_portal",
+			x = 6, y = 6, spritesheetName = "obj_portal", spritesheetOffsetY = null, spriteHeight = null, light = null,
 			rawConversation = "[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]"
 		)
 		assertEquals(expected, actual)
@@ -531,8 +523,61 @@ class TestAreaEntityParser {
 					"}}"
 		)
 		val expected = AreaPortal(
-			x = 6, y = 6, destination = TransitionDestination("warport1T2", 36, 4, direction = null)
+			x = 6, y = 6, destination = TransitionDestination(
+				"warport1T2", 36, 4, direction = null, discoveredAreaName = null
+			)
 		)
+		assertEquals(expected, actual)
+	}
+
+	@Test
+	fun testParseBook() {
+		val rawConversation = "[[\"\",\"Deities are entities on a higher level of existence than we mere mortals. " +
+				"They are the overseers of the universe; eternal benefactors who watch, maintain and create " +
+				"the world and creatures around us. They come in three major types.\"],[\"\",\"There are the " +
+				"Higher Creator Deities, such as YALORT, who design creatures and worlds, shaping the elements " +
+				"of the universe to their desires. They cannot cause anything to appear; they can merely mould " +
+				"what already exists.\"],[\"\",\"The Mid-Level Elemental Deities represent and have control over " +
+				"one single element in particular. They have supreme power over that element, so they are the " +
+				"ones that grant its use to the Creators. They are the makers of the crystals.\"],[\"\",\"The " +
+				"Lesser Archetype Deities are formed from minds, filling niches that society needs to be fulfilled. " +
+				"They represent standards of what people should be (and as such they are not omnipotent or perfect, " +
+				"\\'out of reach\\'), or they exist as things to worship to for certain specific needs" +
+				".\"],[\"\",\"The names of deities should always be fully capitalised. However, the words to " +
+				"refer to their followers do not follow this rule; YALORT\\'s followers are Yalortians, for " +
+				"example, not YALORTians or YALORTIANS. This is because the capitals show the power of the " +
+				"deity\\'s name; derived forms are no longer the name of the deity and lose their power" +
+				".\"],[\"\",\"Deities are non-physical entities, and are as such formless. However, when " +
+				"they interact, they tend to manifest as the same forms in order to be recognised. As most " +
+				"people have never seen a deity, though, any artwork depicting them is speculative; " +
+				"a way of putting such a floaty idea into something we can comprehend and recognise.\"]]"
+		val actual = parseAreaEntityRaw(
+			"{name:\"Deities: What ARE they?\",model:\"object\",x:1,y:1,type:\"examine\",conv:$rawConversation}"
+		)
+		val expected = AreaDecoration(
+			x = 1, y = 1, spritesheetName = null, spritesheetOffsetY = null,
+			spriteHeight = null, light = null, rawConversation = rawConversation
+		)
+		assertEquals(expected, actual)
+	}
+
+	@Test
+	fun testParseCanoniaWoodsTransition() {
+		val actual = parseAreaEntityRaw(
+			"{name:\"Cave\",model:\"area_transition\",x:13,y:73,dest:[\"WORLDMAP\",1,1,\"pcave1\"]}"
+		)
+		val expected = AreaTransition(x = 13, y = 73, arrow = null, destination = TransitionDestination(
+			areaName = "WORLDMAP", x = 1, y = 1, direction = null, discoveredAreaName = "pcave1"
+		))
+		assertEquals(expected, actual)
+	}
+
+	@Test
+	fun testParseCanoniaEquipmentShop() {
+		val actual = parseAreaEntityRaw(
+			"{name=\"Equipment Shop\", x=2, SHOP={name:\"Canonia Equipment Shop\",wares:DefaultShops.CANONIA_EQUIPMENT}, y=2, model=\"shop\"}"
+		)
+		val expected = ehm
 		assertEquals(expected, actual)
 	}
 

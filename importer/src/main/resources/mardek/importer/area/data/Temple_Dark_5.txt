@@ -1,0 +1,25 @@
+map = [[10,10,10,151,132,132,132,152,10,10,10],[10,10,10,131,112,113,112,133,10,10,10],[10,10,151,141,122,123,122,142,152,10,10],[151,132,141,112,17,18,19,112,142,132,152],[131,111,112,122,117,118,119,122,112,111,133],[131,121,122,13,17,18,19,13,122,121,133],[131,31,13,13,13,13,13,13,13,31,133],[131,13,13,13,127,128,129,13,13,13,133],[131,13,13,13,137,138,139,13,13,13,133],[131,13,13,13,147,148,149,13,13,13,133],[131,31,13,13,13,13,13,13,13,31,133],[150,130,140,13,17,18,19,13,143,130,153],[10,10,150,140,117,118,119,143,153,10,10],[10,10,10,131,117,118,119,133,10,10,10],[10,10,10,131,17,18,19,133,10,10,10],[10,10,10,131,17,18,19,133,10,10,10],[10,10,10,131,13,13,13,133,10,10,10],[10,10,10,150,140,115,143,153,10,10,10],[10,10,10,10,131,115,133,10,10,10,10],[10,10,10,10,150,130,153,10,10,10,10]];
+tileset = "temple_DARK";
+area = "Temple_Dark_5";
+areaname = "Dark Temple";
+ambience = {ra:90,rb:0,ga:60,gb:0,ba:100,bb:0,aa:100,ab:0};
+dungeon = "DarkTemple";
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:5,y:8,walkspeed:-1,conv:"c_healingCrystal"},{name:"EXIT",model:"area_transition",x:5,y:18,dir:"s",dest:["Temple_Dark_corridor",3,3],ARROW:"S"},{name:"Crystal Room",model:"DOOR10",x:5,y:2,dir:"n",dest:["Temple_Dark_CR",7,17],lock:(!(!HasAlly("Solaar") && !GameData.plotVars.DONE_CH3_INTRO)?null:"lock"),keepTalking:true,conv:(!(!HasAlly("Solaar") && !GameData.plotVars.DONE_CH3_INTRO)?null:[["susp","[[PC]]Well, I should look at that dog thing first!"]])}];
+if(GameData.plotVars.Allies.Solaar == null)
+{
+   var SOLAAR_STATS = {name:"Solaar",model:"solaar",level:18,exp:0,hp:[120,120],mp:[20,20],STR:14,VIT:12,SPR:20,AGL:17,Class:"Runare",spells:[],weapon:"Silver Claw",shield:"none",helmet:"none",armour:"Azure Stole +2",accessory:"GoldRing",accessory2:"Eclipse Amulet",learned:{},reactions:{atk:{A:"M DMG+20%",S:null,D:null},def:{A:"Locquacity",S:null,D:null}},inventory:new Array(56),BASE:{STR:14,VIT:12,SPR:20,AGL:17},element:"LIGHT",nDef:0,nMDef:0,UNSWITCHABLE:true};
+   SOLAAR_STATS.learned["Solar Flare"] = 99;
+   SOLAAR_STATS.learned["Pleasant Sunbeam"] = 99;
+   SOLAAR_STATS.inventory[2] = ["LiquidSound",5];
+   SOLAAR_STATS.inventory[1] = ["BalloonJuice",5];
+   SOLAAR_STATS.inventory[0] = ["Remedy",3];
+   A_sprites.push({name:"Solaar",model:"solaar",x:7,y:5,walkspeed:-2,FRAME:8,elem:"LIGHT",conv:"c_A_Solaar",EN:["People","Solaar"],PC_STATS:GET_PC_STATS("Solaar",{UNSWITCHABLE:true})});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "DarkTemple";
+DeadTempleCheck();
+AreaSetup({LOOT:2,WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});

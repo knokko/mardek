@@ -1,0 +1,28 @@
+map = [[17,12,110,12,12,10,13],[11,11,11,11,22,10,16],[11,24,25,23,11,10,16],[11,11,11,11,11,12,11],[11,11,11,11,11,11,11],[11,11,11,11,11,11,11]];
+tileset = "interior1";
+area = "gz_Mhouse1";
+areaname = "Mardek\'s House";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Stairs Up",model:"DOOR0",x:6,y:0,dest:["gz_Mhouse2",3,5]},{name:"EXIT",model:"DOOR0",x:4,y:6,dest:["goznor",5,21]}];
+if(GameData.CHAPTER == 1)
+{
+   A_sprites.push({name:"Lilanea",model:"lilanea",x:3,y:2,walkspeed:-2,dir:"w",elem:"AIR",EN:["People","Lilanea"],conv:"c_lilanea"},{name:"WALK_TRIGGER",model:"_trigger",x:4,y:5,triggers:1,ExecuteScript:function()
+   {
+      DO_ACTIONS([["WALK",-1,0],["WALK",0,-2],["UNFREEZE"],["TALK","c_lilanea","Lilanea"]],"PC",true);
+   }});
+}
+else
+{
+   if(GameData.CHAPTER == 2)
+   {
+      A_sprites.push({name:"Polly",model:"polly",x:1,y:2,walkspeed:-2,dir:"e",elem:"EARTH",EN:["People","Polly"],conv:"c_polly"});
+   }
+   A_sprites.push({name:"Lilanea",model:"lilanea",x:3,y:2,walkspeed:-2,dir:"w",elem:"AIR",EN:["People","Lilanea"],conv:"c_lilanea"});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = !GameData.plotVars.SUNSET?"Goznor":"none";
+AreaSetup({clearmap:1});

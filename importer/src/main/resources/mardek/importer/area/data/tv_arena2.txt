@@ -1,0 +1,34 @@
+map = [[10,10,10,10,110,125,17,10,10,10,10],[10,10,13,110,12,125,12,17,13,10,10],[10,110,12,128,122,125,122,128,12,17,10],[16,12,122,122,114,125,114,122,122,12,14],[16,122,114,114,125,125,125,114,114,122,14],[16,114,114,125,125,125,125,125,114,114,14],[16,114,114,125,125,125,125,125,114,114,14],[16,114,114,125,125,125,125,125,114,114,14],[16,114,114,125,125,125,125,125,114,114,14],[16,114,114,122,125,125,125,122,114,114,14],[10,19,114,114,122,125,122,114,114,18,10],[10,10,19,114,114,125,114,114,18,10,10],[10,10,10,15,19,112,18,15,10,10,10],[10,10,10,10,16,112,14,10,10,10,10],[10,10,10,10,16,112,14,10,10,10,10]];
+tileset = "cave6";
+area = "tv_arena2";
+areaname = "The Arena";
+ambience = null;
+dungeon = "TrilobiteCave";
+GameData.TRIGGERS.tv_arena2.T_5_14 = null;
+A_sprites = [{name:"Invisible Announcer",model:"trilobite1",x:60,y:0,conv:[["","It\'s a book."]]},{name:"WALK_TRIGGER",model:"_trigger",x:5,y:14,ExecuteScript:function()
+{
+   DO_ACTIONS([["WALK",0,-7],["UNFREEZE"],["TALK","c_arena"]],"PC",true);
+}}];
+if(GameData.CHAPTER == 2)
+{
+   A_sprites.push({name:"Bartholio",model:"bartholio",x:5,y:0,walkspeed:-2,dir:"s",elem:"LIGHT",conv:"c_Saviours"},{name:"Vennie",model:"vennie",x:5,y:0,walkspeed:-2,dir:"s",elem:"AIR",conv:[["","AAAAAAAAAA"]]},{name:"Aalia",model:"aalia",x:5,y:0,walkspeed:-2,dir:"s",elem:"LIGHT",conv:[["","AAAAAAAAAA"]]},{name:"Bernard",model:"bernard",x:5,y:0,walkspeed:-2,dir:"s",elem:"DARK",conv:[["","AAAAAAAAAA"]]});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = GameData.plotVars.ARENA[GameData.CHAPTER] <= (GameData.CHAPTER != 3?20:19)?"ArenaBattle":"VictoryFanfare2";
+if(TempVars.ARENA_SURVIVAL_MODE)
+{
+   if(TempVars.SURVIVAL_COMPETITOR == "Sslen\'ck")
+   {
+      musicTrack = "Sslenck";
+   }
+   else
+   {
+      musicTrack = {Mardek:"MightyHeroes",Donovan:"RoyalGuard",Sharla:"RoyalGuard",Solaar:"Solaar",Elwyen:"SirenSong",Gloria:"Gloria",Meraeador:"TheInventor",Legion:"Legion",Zach:"Zach",Vehrn:"Vehrn"}[TempVars.SURVIVAL_COMPETITOR];
+   }
+}
+AreaSetup({clearmap:1});
+specBtlBG = "arena";

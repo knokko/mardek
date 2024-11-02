@@ -1,0 +1,65 @@
+map = [[12,12,17,12,27,27,27,12,12],[20,11,11,24,124,11,125,28,29],[21,11,11,11,11,11,11,11,11],[212,11,11,11,123,11,11,11,126],[213,126,11,11,11,11,11,11,213],[22,11,11,11,11,25,23,11,211]];
+tileset = "interior1";
+area = "gz_house02";
+areaname = "Goznor - Meraeador\'s Lab";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"The Adventures of Social Fox, Vol. XVII",model:"object",x:4,y:0,type:"examine",EN:["People","Social Fox"],conv:[["","Lo! Heare these Tales of the Grand Adventurer Social Fox! The Greatest Adventurer alive in these Days that are Now! Of his deeds many Books have beene writ! He is Such a Great Guy!"],["","There was thise one tyme where he totally Slew this Mighty Dragonne! It was a Foule, Evile, Darke Beaste who had Capturede a Princesse - one of the Fineste in all the Landse - and only the Heroisme of Social Fox could Save her!"],["","We must all Sing Praises of this great Man amongst us, to whom we all owe Our Lives many Times!!!"]]},{name:"The Cogs Of The Mind",model:"object",x:5,y:0,type:"examine",conv:[["","It\'s a technical book that you\'d surely not understand or enjoy reading."]]},{name:"An Elementary Treatise on Determinants",model:"object",x:6,y:0,type:"examine",conv:[["","It\'s a book, apparently about maths. You don\'t need to read that."]]},{name:"Workbench",model:"object",x:8,y:1,type:"examine",conv:[["","This is Meraeador\'s Workbench, where he builds inventions."],Do = function()
+{
+   if(_root.HasAlly("Meraeador"))
+   {
+      _root.OpenWorkbench(_root.MIX_INVENTIONS,"Workbench","Blueprints");
+   }
+   return 1;
+}]},{name:"EXIT",model:"DOOR0",x:3,y:6,dest:["goznor",35,4]}];
+if(GameData.plotVars.Allies.Meraeador == null)
+{
+   A_sprites.push({name:"Meraeador",model:"inventor",x:3,y:2,walkspeed:30,dir:"s",elem:"FIRE",EN:["People","Meraeador"],conv:"c_inventor",PC_STATS:GET_PC_STATS("Meraeador")});
+}
+var ROBOT_STATS = null;
+if(GameData.CHAPTER == 3 && HASPLOTITEM("Necromantic Tome") && HasAlly("Meraeador") && !GameData.plotVars.LEGION)
+{
+   if(!HasAlly("Gloria") || GameData.plotVars.LEGION_BITS && !(HASPLOTITEM("Crystal Rose") && HASPLOTITEM("Wretched Skull") && HASPLOTITEM("Silver Cord")))
+   {
+      A_sprites.push({name:"TALK_TRIGGER",model:"_trigger",x:3,y:5,triggers:1,recurring:true,ExecuteScript:function()
+      {
+         DO_ACTIONS([["UNFREEZE"],["TALK","c_inventor"]],"PC",true);
+      }});
+   }
+   else
+   {
+      TempVars.DONT_DRAW_ALLIES = true;
+      var OtherAlly = null;
+      var p = 1;
+      while(p < 4)
+      {
+         if(PCstats[p].name != "Meraeador" && PCstats[p].name != "Gloria")
+         {
+            OtherAlly = PCstats[p];
+            break;
+         }
+         p++;
+      }
+      A_sprites.push({name:"Meraeador",model:"inventor",x:3,y:5,dir:"n",elem:"FIRE"});
+      A_sprites.push({name:"Gloria",model:"gloria17",x:3,y:5,dir:"n",elem:"EARTH"});
+      A_sprites.push({name:"OTHERALLY",model:OtherAlly.model,x:3,y:5,dir:"n",elem:OtherAlly.elem});
+      A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:3,y:5,triggers:1,recurring:true,ExecuteScript:function()
+      {
+         DO_ACTIONS([["WALK",0,-4],["WALK",3,0],["GOTO","s1"]],"Gloria",true);
+         DO_ACTIONS([["WAIT",8],["WALK",0,-4],["WALK",2,0],["GOTO","s1"]],"Meraeador",true);
+         DO_ACTIONS([["WAIT",16],["WALK",0,-3],["GOTO","e1"]],"OTHERALLY",true);
+         DO_ACTIONS([["WAIT",30],["WALK",0,-2],["GOTO","e1"],["UNFREEZE"],["TALK","c_inventor"]],"PC",true);
+      }});
+   }
+}
+if(GameData.CHAPTER != 1 && GameData.plotVars.Allies.Legion == null)
+{
+   A_sprites.push({name:"ROBOT",model:"robot",x:5,y:3,walkspeed:-2,FRAME:8,dir:"inactive",elem:"NONE",conv:[["","..."]],silent:true,PC_STATS:GET_PC_STATS("Legion")});
+   A_sprites.push({name:"Metal Man",model:"object",x:5,y:3,type:"examine",conv:[["","This is Meraeador\'s Metal Man - a project that he has been working on since you were a child. You\'re honestly surprised he\'s stuck with it for so long!" + (GameData.CHAPTER != 2?" It looks almost finished as it is, though it can\'t yet move because it doesn\'t have a soul.":" It doesn\'t look like it\'s close to completion yet; it seems to be lacking vital components. How you - a mere teenager with no knowledge of engineering - can come to this conclusion is perplexing and irrelevant.")]]});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+levelrange = [1,1];
+musicTrack = "TheInventor";
+AreaSetup({clearmap:1});

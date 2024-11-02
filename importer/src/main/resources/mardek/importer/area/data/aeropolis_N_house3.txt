@@ -1,0 +1,13 @@
+map = [[17,118,119,17,17,17,17,16],[20,20,11,110,111,111,112,22],[20,11,11,120,121,121,122,11],[11,11,11,11,11,11,11,11],[11,11,11,11,11,11,23,11],[11,11,11,11,11,11,11,11],[10,10,10,11,10,10,10,10]];
+tileset = "interior6";
+area = "aeropolis_N_house3";
+areaname = "Aeropolis - House";
+ambience = null;
+A_sprites = [{name:"Inhabitant",model:"arabf2",x:5,y:3,walkspeed:60,dir:"e",elem:"LIGHT",conv:[["smile","Gasp! A northern knight, in my house for some reason! What an honour! You remind me of some other northerner in heavy armour who passed through recently... Though his armour was green. \'Lone Wolf\', he said he was. He seemed nice, but... all mysterious-like, as if he didn\'t want anyone to know who he really was."],["susp","I bet he\'s nobody of any significance behind his masked persona."]]},{name:"EXIT",model:"area_transition",x:3,y:6,dest:["aeropolis_N",43,13],ARROW:"S"}];
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "Aeropolis";
+AreaSetup({clearmap:1});

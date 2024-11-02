@@ -2,7 +2,10 @@ package mardek.assets.area
 
 import java.awt.image.BufferedImage
 
-class ParsedTile(val id: Int, val canWalkOn: Boolean, val waterType: WaterType, val sprites: List<BufferedImage>) {
+class ParsedTile(
+	val id: Int, val canWalkOn: Boolean, val waterType: WaterType,
+	val sprites: List<BufferedImage>, val hexObjectColor: Int
+) {
 
 	override fun toString() = "Tile(id=$id, canWalkOn=$canWalkOn, water=$waterType, #sprites=${sprites.size})"
 

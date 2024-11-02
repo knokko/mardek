@@ -1,0 +1,30 @@
+map = [[13,13,13,10,13,13,13,13,13,10,13,13,13],[12,12,12,10,20,12,12,12,12,10,20,12,20],[17,31,18,111,11,11,11,21,21,111,17,31,18],[17,19,18,12,110,110,110,110,110,12,17,19,18],[17,19,18,11,11,11,11,11,11,11,17,19,18],[11,11,11,11,11,11,11,11,11,11,11,11,11],[11,11,11,11,11,11,11,11,11,11,11,11,11],[11,11,11,10,10,11,16,11,10,10,11,11,11],[11,11,11,10,10,10,16,10,10,10,11,11,11]];
+tileset = "sandcave_interior";
+area = "xn_inn";
+areaname = "Xantusia - Inn";
+ambience = null;
+dungeon = null;
+A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:1,y:7,walkspeed:-1,conv:"c_healingCrystal"},{name:"Bookshelf",model:"object",x:10,y:1,type:"examine",conv:[["","It\'s chock full of reptoid pornography. Oh yes. It really is the good stuff, too, not like the cheap stuff you usually see on bookshelves. Impressive."]]},{name:"Bookshelf",model:"object",x:12,y:1,type:"examine",conv:[["","There are fiction books on the shelf, all seeming to be about warriors and hunting and honour and so on."]]},{name:"Innkeeper",model:"reptoid_warrior",x:6,y:2,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["grin","My busssinessssss is booming! That Sssave Cryssstal over there can heal all ailmentsss in a flasssh of light, ssso I just did away with sssleeping roomsss entirely! And it\'sss free too, ssso loadsss of people come all the time! Wow! Thisss isss the high life for me! Sssurely I ssshall become a millionaire sssoon!"],["susp","[[RM]]But the save crystal is -free- to use. You aren\'t earning -any- money."],["deep","[[Innkeeper]]. . ."],["shok","WHAT?!?!?"]]},{name:"TALKTRIGGER",model:"talktrigger",x:6,y:3,NPC:"Innkeeper",dir:"s"},{name:"EXIT",model:"BIGDOOR1",x:6,y:9,dest:["xantusia",14,24]}];
+if(GameData.plotVars.CH3SQ3[1].Hessark)
+{
+   A_sprites.push({name:"Reptoid Warrior Hessark",model:"reptoid_warrior",x:1,y:4,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["susp","Are you sssure you\'ll be alright, Chief?"]]});
+}
+if(GameData.plotVars.CH3SQ3[1].Sserell)
+{
+   A_sprites.push({name:"Reptoid Warrior Sserell",model:"reptoid_warrior",x:2,y:4,walkspeed:-2,dir:"w",elem:"EARTH",conv:[["norm","\'Sssup? You found that guy yet?"]]});
+}
+if(GameData.plotVars.CH3SQ3[1].Ssossdj)
+{
+   A_sprites.push({name:"Reptoid Warrior Ssossdj",model:"reptoid_warrior",x:10,y:4,walkspeed:40,dir:"n",elem:"EARTH",conv:[["grin","I sssure am relieved to not be in those cavesss anymore! They\'re ssso irritatingly large and labyrinthian and dangerousss and... am I even cut out to be a Warrior?!?"]]});
+}
+if(GameData.plotVars.CH3SQ3[1].Moppo)
+{
+   A_sprites.push({name:"Reptoid Warrior Moppo",model:"reptoid_warrior",x:11,y:7,walkspeed:40,dir:"n",elem:"EARTH",conv:[["norm","Bessst of luck on your travelsss, Chief. We\'ll look after thingsss here, you can be sssure of that."]]});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "ReptoidVillage";
+AreaSetup({clearmap:1});

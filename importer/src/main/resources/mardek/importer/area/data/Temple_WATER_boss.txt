@@ -1,0 +1,27 @@
+map = [[10,10,10,10,10,10,142,142,142,10,10,10,10,10,10],[10,10,10,10,10,143,110,112,110,132,10,10,10,10,10],[10,10,10,10,10,143,120,122,120,132,10,10,10,10,10],[10,10,10,10,10,143,11,12,11,132,10,10,10,10,10],[10,10,10,10,10,143,11,12,11,132,10,10,10,10,10],[10,10,10,10,10,141,11,12,11,140,10,10,10,10,10],[10,10,10,10,141,111,11,12,11,111,140,10,10,10,10],[10,142,142,141,110,121,30,12,30,121,110,140,142,142,10],[143,110,129,111,120,30,12,12,12,30,120,111,129,110,132],[143,120,129,121,30,12,12,12,12,12,30,121,129,120,132],[143,119,19,119,11,12,154,155,156,12,11,119,19,119,132],[143,19,19,19,11,12,164,165,166,12,11,19,19,19,132],[143,19,19,19,11,12,174,175,176,12,11,19,19,19,132],[143,19,19,19,30,12,12,12,12,12,30,19,19,19,132],[143,19,19,19,119,11,12,12,12,11,119,19,19,19,132],[10,131,19,19,19,11,11,12,11,11,19,19,19,130,10],[10,10,131,19,19,119,11,12,11,119,19,19,130,10,10],[10,10,10,133,133,133,131,15,130,133,133,133,10,10,10],[10,10,10,10,10,10,143,15,132,10,10,10,10,10,10],[10,10,10,10,10,10,10,133,10,10,10,10,10,10,10]];
+tileset = "temple_WATER";
+area = "Temple_WATER_boss";
+areaname = "Water Temple";
+ambience = null;
+dungeon = "WaterTemple";
+A_sprites = [{name:"Crystal Room",model:"DOOR13",x:7,y:2,dest:["Temple_WATER_CR",7,17]},{name:"EXIT",model:"area_transition",x:7,y:18,dest:["Temple_WATER_3",10,3],ARROW:"S"}];
+A_sprites.push({name:"Water Guardian",model:"emela_guardian",x:(!GameData.plotVars.GUARD_W_DEFEATED?7:6),y:8,walkspeed:-1,dir:(!GameData.plotVars.GUARD_W_DEFEATED?"s":"e"),elem:"WATER",conv:"c_guardians"});
+if(GameData.plotVars.CLAVIS == 2 && HASPLOTITEM("Water Crystal of Belfan"))
+{
+   A_sprites.push({name:"Clavis",model:"clave",x:7,y:16,walkspeed:-2,dir:"e",elem:"ETHER",conv:"c_clavis"});
+   A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:7,y:8,ExecuteScript:function()
+   {
+      _root.playMusic("Clave");
+      DO_ACTIONS([["WALK",0,-7],["UNFREEZE"],["TALK","c_clavis"]],"Clavis",true);
+   }});
+}
+areaLoot = [];
+foes = [];
+btlChance = 0;
+minSteps = 5;
+levelrange = [1,1];
+musicTrack = "WaterTemple";
+DeadTempleCheck();
+AreaSetup({WARP:0,clearmap:1});
+specBtlBG = "Temple_WATER_2";
+EN_ADD("Places","Water Temple");
