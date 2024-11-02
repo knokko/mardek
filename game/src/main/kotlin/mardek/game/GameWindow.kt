@@ -18,17 +18,21 @@ import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
 class GameWindow(
 	window: VkbWindow,
 	private val state: GameStateManager,
-	private val renderer: GameRenderer
 ): SimpleWindowRenderLoop(
 	window, 2, false, VK_PRESENT_MODE_MAILBOX_KHR,
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
+	private lateinit var renderer: GameRenderer
 
 	private val updateCounter = UpdateCounter()
 	private var lastFps = -1L
 	private val profileStorage = SampleStorage.frequency()
 	private val profiler = SampleProfiler(profileStorage)
 
+	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
+		super.setup(boiler, stack)
+		renderer = GameRenderer(boiler, window.surfaceFormat, numFramesInFlight)
+	}
 //	init {
 //		profiler.start()
 //	}
@@ -48,8 +52,7 @@ class GameWindow(
 		updateCounter.increment()
 		synchronized(state.lock()) {
 			renderer.render(
-				state.currentState, recorder, acquiredImage.image(),
-				window.surfaceFormat, numFramesInFlight, frameIndex
+				state.currentState, recorder, acquiredImage.image(), frameIndex
 			)
 		}
 	}
@@ -62,6 +65,6 @@ class GameWindow(
 		}
 
 //		profiler.stop()
-//		profileStorage.getThreadStorage(Thread.currentThread().id).print(System.out, 5, 1.0)
+//		profileStorage.getThreadStorage(Thread.currentThread().id).print(System.out, 15, 1.0)
 	}
 }

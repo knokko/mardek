@@ -14,6 +14,7 @@ import mardek.state.area.AreaPosition
 import mardek.state.area.AreaState
 import mardek.state.character.PlayableCharacter
 import mardek.state.story.StoryState
+import mardek.state.title.TitleScreenState
 import org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 import org.lwjgl.vulkan.VK12.VK_API_VERSION_1_2
 import kotlin.time.Duration.Companion.milliseconds
@@ -32,11 +33,11 @@ fun main() {
 	val deuganModal = importAreaCharacterModel("deugan_hero")
 
 	val input = InputManager()
-	val state = GameStateManager(input, InGameState(
-		AreaState(area, AreaPosition(23, 40)),
-		StoryState(PlayableCharacter(mardekModel), PlayableCharacter(deuganModal))
-	))
-	val renderer = GameRenderer(boiler)
+	val state = GameStateManager(input, TitleScreenState())
+//	val state = GameStateManager(input, InGameState(
+//		AreaState(area, AreaPosition(23, 40)),
+//		StoryState(PlayableCharacter(mardekModel), PlayableCharacter(deuganModal))
+//	))
 
 	val updateLoop = UpdateLoop({ _ ->
 		synchronized(state.lock()) {
@@ -51,7 +52,7 @@ fun main() {
 	inputListener.register()
 
 	val eventLoop = WindowEventLoop(0.01, inputListener::update)
-	eventLoop.addWindow(GameWindow(boiler.window(), state, renderer))
+	eventLoop.addWindow(GameWindow(boiler.window(), state))
 	eventLoop.runMain()
 
 	boiler.destroyInitialObjects()
