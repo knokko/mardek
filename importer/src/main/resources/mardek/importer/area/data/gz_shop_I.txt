@@ -4,7 +4,13 @@ area = "gz_shop_I";
 areaname = "Goznor - Item Shop";
 ambience = null;
 dungeon = null;
-A_sprites = [{name:"Item Shop",model:"shop",x:2,y:2,SHOP:{name:"Goznor Item Shop",wares:DefaultShops.ITEMS_L1}},{name:"Shopkeeper",model:(GameData.CHAPTER != 2?"man1":"mugbertTeen"),x:2,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["norm","WORDS."]]},{name:"EXIT",model:"DOOR0",x:2,y:7,dest:["goznor",29,15]}];
+A_sprites = [{name:"Item Shop",model:"shop",x:2,y:2,SHOP:{name:"Goznor Item Shop",wares:DefaultShops.ITEMS_L1}},{name:"EXIT",model:"DOOR0",x:2,y:7,dest:["goznor",29,15]}];
+if(GameData.CHAPTER == 2) {
+  A_sprites.push({name:"Shopkeeper",model:"mugbertTeen",x:2,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["norm","WORDS."]]});
+}
+else {
+  A_sprites.push({name:"Shopkeeper",model:"man1",x:2,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["norm","WORDS."]]});
+}
 areaLoot = [];
 foes = [];
 btlChance = 0;

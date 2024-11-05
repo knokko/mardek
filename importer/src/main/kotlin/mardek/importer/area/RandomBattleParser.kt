@@ -5,7 +5,10 @@ import mardek.assets.area.RandomAreaBattles
 import java.lang.Integer.parseInt
 
 fun parseRandomBattle(parsing: ParsingArea1): RandomAreaBattles? {
-	val chance = parseInt(parsing.variableAssignments["btlChance"])
+	val chance = try { parseInt(parsing.variableAssignments["btlChance"]) } catch (complex: NumberFormatException) {
+		println("failed to parse btlChance ${parsing.variableAssignments["btlChance"]}")
+		0
+	}
 	if (chance == 0) return null
 
 	val minSteps = parseInt(parsing.variableAssignments["minSteps"] ?: "0")

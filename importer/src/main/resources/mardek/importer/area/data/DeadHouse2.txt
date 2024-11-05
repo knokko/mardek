@@ -4,12 +4,14 @@ area = "DeadHouse2";
 areaname = "House in the Woods";
 dungeon = "SaulsHouse";
 ambience = {ra:66,rb:0,ga:70,gb:0,ba:63,bb:0,aa:100,ab:0};
-A_sprites = GameData.plotVars.SAUL == null?[{name:"WALK_TRIGGER",model:"_trigger",x:5,y:7,triggers:1,ExecuteScript:function()
-{
-   DO_ACTIONS([["WALK",0,-2]],"PC",true);
-   DO_ACTIONS([["WAIT",30],["ALERT"],["UNFREEZE"],["TALK","c_A_Saul","Saul"]],"Saul",true);
-}},{name:"Saul",model:"saul",x:5,y:3,walkspeed:-2,dir:"n",elem:"DARK",conv:"c_A_Saul"},{name:"Zombie1",model:"zombie",x:4,y:3,walkspeed:-1,dir:"s",elem:"DARK"},{name:"Zombie2",model:"zombie",x:6,y:3,walkspeed:-1,dir:"s",elem:"DARK"}]:[];
-A_sprites.push({name:"Door1",model:"DOOR4",x:5,y:0,dest:["DeadHouse3",3,6]},{name:"Door",model:"DOOR4",x:9,y:13,lock:(int(GameData.plotVars.SAUL) <= 2?"magic":null),dest:["DeadHouse5",0,6]},{name:"SecretStairs",model:"area_transition",x:0,y:11,dest:["DeadHouse1",25,14],ARROW:"N"});
+A_sprites = [{name:"Door1",model:"DOOR4",x:5,y:0,dest:["DeadHouse3",3,6]},{name:"Door",model:"DOOR4",x:9,y:13,lock:(int(GameData.plotVars.SAUL) <= 2?"magic":null),dest:["DeadHouse5",0,6]},{name:"SecretStairs",model:"area_transition",x:0,y:11,dest:["DeadHouse1",25,14],ARROW:"N"}];
+if(GameData.plotVars.SAUL == null) {
+  A_sprites = A_sprites.concat([{name:"WALK_TRIGGER",model:"_trigger",x:5,y:7,triggers:1,ExecuteScript:function()
+  {
+     DO_ACTIONS([["WALK",0,-2]],"PC",true);
+     DO_ACTIONS([["WAIT",30],["ALERT"],["UNFREEZE"],["TALK","c_A_Saul","Saul"]],"Saul",true);
+  }},{name:"Saul",model:"saul",x:5,y:3,walkspeed:-2,dir:"n",elem:"DARK",conv:"c_A_Saul"},{name:"Zombie1",model:"zombie",x:4,y:3,walkspeed:-1,dir:"s",elem:"DARK"},{name:"Zombie2",model:"zombie",x:6,y:3,walkspeed:-1,dir:"s",elem:"DARK"}]);
+}
 areaLoot = [];
 foes = [["Zombie",null,null,null,"SOLO"]];
 btlChance = 0;

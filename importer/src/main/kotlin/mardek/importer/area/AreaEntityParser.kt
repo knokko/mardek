@@ -25,6 +25,7 @@ fun parseAreaObjects(rawEntities: String, extraDecorations: List<AreaDecoration>
 		transitions = extract(objectList),
 		walkTriggers = extract(objectList),
 		talkTriggers = extract(objectList),
+		shops = extract(objectList),
 		decorations = extract<AreaDecoration>(objectList) + extraDecorations,
 		portals = extract(objectList),
 		objects = extract(objectList),
@@ -52,8 +53,8 @@ fun parseAreaEntities1(rawEntities: String): List<Map<String, String>> {
 	val objectList = mutableListOf<Map<String, String>>()
 	val currentObject = mutableMapOf<String, String>()
 
-	for (character in content) {
-		if (character == '"'.code) insideString = !insideString
+	for ((index, character) in content.withIndex()) {
+		if (character == '"'.code && content[index - 1] != '\\'.code) insideString = !insideString
 
 		if (depth == 1 && !insideString) {
 			if (character == ','.code || character == ']'.code) {
@@ -97,6 +98,9 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 	val x = parseInt(rawEntity["x"])
 	val y = parseInt(rawEntity["y"])
 
+	val name = parseFlashString(rawEntity["name"]!!, "name")!!
+	if (name == "Dream Circle") return "Examine Dream Circle"
+
 	if (model == "object") {
 		val rawType = rawEntity["type"]
 		val rawColor = rawEntity["colour"]
@@ -110,11 +114,15 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 			}
 		}
 
-		println("type is ${rawEntity["type"]}")
 		if (rawType == "\"examine\"") return AreaDecoration(
 			x = x, y = y, spritesheetName = null, spritesheetOffsetY = null, spriteHeight = null,
 			light = null, rawConversation = rawEntity["conv"]
 		)
+	}
+
+	if (model == "shop") {
+		val (shopName, waresConstantName) = parseShop(rawEntity["SHOP"]!!)
+		return AreaShop(shopName = shopName, x = x, y = y, waresConstantName = waresConstantName)
 	}
 
 	if (model == "area_transition") return AreaTransition(
@@ -123,9 +131,6 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 		arrow = if (rawEntity["ARROW"] != null) parseFlashString(rawEntity["ARROW"]!!, "ARROW")!! else null,
 		destination = parseDestination(rawEntity["dest"]!!, rawEntity["dir"])
 	)
-
-	val name = parseFlashString(rawEntity["name"]!!, "name")!!
-	if (name == "Dream Circle") return "Examine Dream Circle"
 
 	if (model == "_trigger") {
 		val flashCode = rawEntity["ExecuteScript"]!!
@@ -207,7 +212,7 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 			Pair("BIGDOOR", parseInt(model.substring(7)))
 		} else Pair("DOOR", parseInt(model.substring(4)))
 		val destination = parseDestination(rawEntity["dest"]!!, rawEntity["dir"])
-		val lockType = if (rawEntity.containsKey("lock")) parseFlashString(rawEntity["lock"]!!, "lock")!! else null
+		val lockType = if (rawEntity.containsKey("lock")) parseFlashString(rawEntity["lock"]!!, "lock") else null
 		return AreaDoor(
 			spritesheetName = sheetName + "SHEET",
 			spriteRow = spriteRow,
@@ -259,7 +264,6 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 		rawPerson.substring(prefix.length, rawPerson.length - suffix.length)
 	} else null
 
-	if (!rawEntity.containsKey("walkspeed")) println("rawEntity is $rawEntity")
 	return AreaCharacter(
 		name = name,
 		spritesheetName = spritesheetName,
@@ -267,7 +271,7 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 		startY = y,
 		startDirection = direction,
 		silent = silent,
-		walkSpeed = parseInt(rawEntity["walkspeed"]),
+		walkSpeed = parseInt(rawEntity["walkspeed"] ?: "-2"),
 		element = element,
 		conversationName = conversationName,
 		rawConversation = rawConversion,
@@ -287,7 +291,8 @@ private fun parseDestination(rawDestination: String, dir: String?): TransitionDe
 	return TransitionDestination(
 		areaName = parseFlashString(splitDestination[0], "transition destination")!!,
 		x = parseInt(splitDestination[1]),
-		y = parseInt(splitDestination[2]),
+		y = try { parseInt(splitDestination[2]) } catch (complicated: NumberFormatException) {
+			println("weird split destination ${splitDestination[2]}"); -1 },
 		direction = if (dir != null) {
 			Direction.entries.find { it.abbreviation == parseFlashString(dir, "dir")!! }!!
 		} else null,
@@ -295,4 +300,17 @@ private fun parseDestination(rawDestination: String, dir: String?): TransitionDe
 			splitDestination[3], "discovered area"
 		)
 	)
+}
+
+private fun parseShop(rawShop: String): Pair<String, String> {
+	val separator = ",wares:DefaultShops."
+	val prefix = "{name:"
+	val index1 = rawShop.indexOf(separator)
+	parseAssert(index1 >= 0, "Expected $rawShop to contain $separator")
+	parseAssert(rawShop.startsWith(prefix), "Expected $rawShop to start with $prefix")
+	parseAssert(rawShop.endsWith('}'), "Expected $rawShop to end with }")
+
+	val name = parseFlashString(rawShop.substring(prefix.length, index1), "shop name")!!
+	val wares = rawShop.substring(index1 + separator.length, rawShop.length - 1)
+	return Pair(name, wares)
 }

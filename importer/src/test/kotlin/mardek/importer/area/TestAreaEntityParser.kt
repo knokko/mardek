@@ -575,9 +575,9 @@ class TestAreaEntityParser {
 	@Test
 	fun testParseCanoniaEquipmentShop() {
 		val actual = parseAreaEntityRaw(
-			"{name=\"Equipment Shop\", x=2, SHOP={name:\"Canonia Equipment Shop\",wares:DefaultShops.CANONIA_EQUIPMENT}, y=2, model=\"shop\"}"
+			"{name:\"Equipment Shop\",model:\"shop\",x:2,y:2,SHOP:{name:\"Canonia Equipment Shop\",wares:DefaultShops.CANONIA_EQUIPMENT}}"
 		)
-		val expected = ehm
+		val expected = AreaShop(shopName = "Canonia Equipment Shop", x = 2, y = 2, waresConstantName = "CANONIA_EQUIPMENT")
 		assertEquals(expected, actual)
 	}
 

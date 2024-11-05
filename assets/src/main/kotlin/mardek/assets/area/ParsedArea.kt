@@ -178,6 +178,8 @@ enum class AreaDreamType(
 	 * Uses 4849778, or #4A0072
 	 */
 	DreamcaveAndDreamshrineAndGrottoAndEarthTemple("true"),
+	// TODO Find color of serpent cave
+	SerpentCave("1"),
 	/**
 	 * No dream border
 	 */

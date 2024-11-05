@@ -4,11 +4,8 @@ area = "gz_house01";
 areaname = "Goznor - House";
 ambience = null;
 dungeon = null;
-if(GameData.CHAPTER == 1)
-{
-   A_sprites = [{name:"Woman",model:"woman2",x:5,y:2,walkspeed:-2,dir:"w",elem:"FIRE",conv:[["blah","Children are so rude these days! Walking into peoples\' houses uninvited, all willy-nilly! And talking to the people who live there, no less! Well I never! Who do you think you are, adventurers or something?"]]},{name:"Man",model:"man1",x:3,y:2,walkspeed:-2,dir:"e",elem:"AIR",conv:[["grin","Hello, boys! Welcome to our humble home! Make yourselves comfortable and stay as long as you like!"],["norm","I\'m afraid I don\'t have anything interesting to say, though. Everyone\'s talking about some weird star that fell from the sky... Of course, I didn\'t see it because apparently I never leave this chair!"]]},{name:"EXIT",model:"DOOR0",x:1,y:5,dest:["goznor",8,15]}];
-}
-else if(GameData.CHAPTER == 2)
+A_sprites = [{name:"Woman",model:"woman2",x:5,y:2,walkspeed:-2,dir:"w",elem:"FIRE",conv:[["blah","Children are so rude these days! Walking into peoples\' houses uninvited, all willy-nilly! And talking to the people who live there, no less! Well I never! Who do you think you are, adventurers or something?"]]},{name:"Man",model:"man1",x:3,y:2,walkspeed:-2,dir:"e",elem:"AIR",conv:[["grin","Hello, boys! Welcome to our humble home! Make yourselves comfortable and stay as long as you like!"],["norm","I\'m afraid I don\'t have anything interesting to say, though. Everyone\'s talking about some weird star that fell from the sky... Of course, I didn\'t see it because apparently I never leave this chair!"]]},{name:"EXIT",model:"DOOR0",x:1,y:5,dest:["goznor",8,15]}];
+if(GameData.CHAPTER == 2)
 {
    A_sprites = [{name:"Woman",model:"woman2",x:5,y:2,walkspeed:-2,dir:"w",elem:"FIRE",conv:[["blah","Soldiers are so rude these days! Walking into peoples\' houses uninvited, all willy-nilly! And talking to the people who live there, no less! Well I never! Who do you think you are, soldiers who people want in their houses or something?"]]},{name:"Man",model:"man1",x:3,y:2,walkspeed:-2,dir:"e",elem:"AIR",conv:[["grin","Hello, soldiers! Welcome to our humble home! Make yourselves comfortable and stay as long as you like!"],["norm","I\'m afraid I don\'t have anything interesting to say, though. Everyone\'s talking about the death of some small mammal that got along well with people, or something. It\'s weird."]]},{name:"EXIT",model:"DOOR0",x:1,y:5,dest:["goznor",8,15]}];
 }

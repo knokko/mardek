@@ -5,17 +5,20 @@ areaname = "Earth Temple";
 ambience = null;
 dungeon = "Temple_EARTH";
 ambience = GenericExternalAmbience({ra:80,rb:0,ga:100,gb:0,ba:60,bb:0,aa:100,ab:0});
-A_sprites = [{name:"TALKTRIGGER",model:"talktrigger",x:1,y:11,SecretSwitch:function()
-{
-   if(_root.map[10][12] == 169)
-   {
-      return undefined;
-   }
-   _root.playSFX("Open1");
-   _root.map[10][12] = 169;
-   _root.FREESPACE[10][12] = true;
-   _root.RedrawMap();
-}},{name:"Hidden Door",model:"area_transition",x:12,y:10,dest:["temple_EARTH_secret3",4,11]},{name:"S",model:"DOOR4",x:7,y:19,dest:["temple_EARTH_boss",7,3]}];
+A_sprites = [{name:"Hidden Door",model:"area_transition",x:12,y:10,dest:["temple_EARTH_secret3",4,11]},{name:"S",model:"DOOR4",x:7,y:19,dest:["temple_EARTH_boss",7,3]}];
+if(true) {
+  A_sprites.push({name:"TALKTRIGGER",model:"talktrigger",x:1,y:11,SecretSwitch:function()
+                 {
+                    if(_root.map[10][12] == 169)
+                    {
+                       return undefined;
+                    }
+                    _root.playSFX("Open1");
+                    _root.map[10][12] = 169;
+                    _root.FREESPACE[10][12] = true;
+                    _root.RedrawMap();
+                 }});
+}
 if(!HASPLOTITEM("Earth Crystal of Belfan"))
 {
    A_sprites.push({name:"Earth Crystal",elem:"EARTH",model:"ElementalCrystal",walkspeed:-2,FRAME:2,x:7,y:5,conv:"c_crystals"});

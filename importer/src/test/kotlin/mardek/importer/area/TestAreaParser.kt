@@ -110,6 +110,13 @@ class TestAreaParser {
 	}
 
 	@Test
+	fun testParseGuardPost() {
+		val parsed = parseArea("guardpost")
+		assertEquals(2, parsed.objects.characters.size)
+		assertEquals(2, parsed.objects.transitions.size)
+	}
+
+	@Test
 	fun testEnumerateAreas() {
 		assertEquals(258, enumerateAreas().size)
 	}
@@ -117,7 +124,6 @@ class TestAreaParser {
 	@Test
 	fun testParseAllAreasWithoutErrors() {
 		for (areaName in enumerateAreas()) {
-			println("parsing $areaName...")
 			val area = parseArea(areaName)
 			println("area size of $areaName is ${area.width} by ${area.height}")
 		}

@@ -32,7 +32,10 @@ A_sprites = [{name:"PUZZLE_START_TILE",model:"_trigger",x:7,y:6,triggers:-1,WALK
 }},{name:"PUZZLE_7",model:"_trigger",x:5,y:6,triggers:-1,WALKON:true,ExecuteScript:function()
 {
    _root._puzzle_TE.Tick(7);
-}},{name:"Sealed Door",model:"DOOR4",x:7,y:2,dir:"s",lock:"magic",dest:TempVars.EarthTemple_HubDoor}];
+}}];
+if(true) {
+  A_sprites.push({name:"Sealed Door",model:"DOOR4",x:7,y:2,dir:"s",lock:"magic",dest:TempVars.EarthTemple_HubDoor});
+}
 areaLoot = [];
 foes = MONSTER_TABLES.EARTH_TEMPLE;
 btlChance = 0;

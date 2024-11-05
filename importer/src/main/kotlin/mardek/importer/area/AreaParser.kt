@@ -55,7 +55,6 @@ private fun parseArea2(parsing: ParsingArea1): ParsedArea {
 		}
 	}
 
-	if (!parsing.variableAssignments.containsKey("A_sprites")) println(parsing.variableAssignments)
 	return ParsedArea(
 		tilesheetName = tilesheetName,
 		width = width,
@@ -72,7 +71,8 @@ fun parseAreaProperties(parsing: ParsingArea1, areaSetupMap: Map<String, String>
 	val rawName = parseFlashString(parsing.variableAssignments["area"]!!, "raw area name")!!
 	val displayName = parseFlashString(parsing.variableAssignments["areaname"]!!, "area display name")
 
-	val musicTrack = parseFlashString(parsing.variableAssignments["musicTrack"]!!, "music track")
+	val rawMusicTrack = parsing.variableAssignments["musicTrack"]
+	val musicTrack = if (rawMusicTrack != null) parseFlashString(rawMusicTrack, "music track") else null
 	val dreamType = AreaDreamType.entries.find { it.code == (areaSetupMap["DREAM"] ?: "") }!!
 	val chestType = AreaChestType.entries.find { it.code == parseInt(areaSetupMap["LOOT"] ?: "0") }!!
 	val snowType = AreaSnowType.entries.find { it.code == parseInt(areaSetupMap["SNOW"] ?: "0") }!!
@@ -162,7 +162,6 @@ private fun parseArea1(areaName: String): ParsingArea1 {
 				val isControl = when (memory1.toString().trim()) {
 					"if" -> true
 					"else if" -> true
-					"else" -> true
 					"while" -> true
 					"for" -> true
 					else -> false
@@ -173,7 +172,9 @@ private fun parseArea1(areaName: String): ParsingArea1 {
 				} else ParseState.Parameters
 				continue
 			}
-			if (character == '{'.code && state == ParseState.BeforeIfBody) {
+			if (character == '{'.code && (state == ParseState.BeforeIfBody ||
+						(state == ParseState.Initial && memory1.toString().trim() == "else"))
+			) {
 				state = ParseState.InsideIfBody
 				depth += 1
 				continue
@@ -188,6 +189,7 @@ private fun parseArea1(areaName: String): ParsingArea1 {
 				when (state) {
 					ParseState.Value -> variableAssignments[memory1.toString()] = memory2.toString()
 					ParseState.Parameters -> functionCalls.add(Pair(memory1.toString(), memory2.toString()))
+					ParseState.Initial -> parseAssert(memory1.startsWith("var "), "Unexpected ; at depth 0 after $memory1")
 					else -> throw AreaParseException("Unexpected ; at depth 0 at state $state")
 				}
 				memory1.clear()
@@ -213,15 +215,13 @@ private fun parseArea1(areaName: String): ParsingArea1 {
 
 		if (state == ParseState.BeforeIfBody) continue
 
-//		println("memory1 is $memory1")
-//		println("memory2 is $memory2")
 		val memory = when (state) {
 			ParseState.Initial -> memory1
 			ParseState.Value -> memory2
 			ParseState.Parameters -> memory2
 			ParseState.IfCondition -> memory1
 			ParseState.InsideIfBody -> memory2
-			else -> throw AreaParseException("Unexpected state $state")
+			else -> throw AreaParseException("Unexpected state $state with memory $memory1 and $memory2")
 		}
 		memory.appendCodePoint(character)
 	}
