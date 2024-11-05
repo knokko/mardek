@@ -1,10 +1,15 @@
 package mardek.assets.area.objects
 
+import mardek.assets.area.sprites.ObjectSpritesheet
+
 abstract class AreaSwitch(
 	val color: String,
 	val x: Int,
 	val y: Int,
 ) {
+
+	var spritesheet: ObjectSpritesheet? = null
+
 	override fun toString() = "${this::class.java.simpleName.substring(4)}($color, x=$x, y=$y)"
 
 	override fun equals(other: Any?) = other is AreaSwitch && this::class.java == other::class.java &&

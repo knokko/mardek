@@ -1,6 +1,7 @@
 package mardek.assets.area.objects
 
 import mardek.assets.area.Direction
+import mardek.assets.area.sprites.DirectionalSpritesheet
 
 class AreaCharacter(
 	val name: String,
@@ -23,6 +24,8 @@ class AreaCharacter(
 	val rawConversation: String?, // TODO Work this out later
 	val encyclopediaPerson: String?,
 ) {
+
+	var spritesheet: DirectionalSpritesheet? = null
 
 	override fun toString() = "Character($name, $spritesheetName, x=$startX, y=$startY, direction=$startDirection, " +
 			"silent=$silent, walkSpeed=$walkSpeed, element=$element, " +

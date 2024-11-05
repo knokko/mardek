@@ -4,7 +4,6 @@ package mardek.assets.area.objects
  * An object in an area that does not prevent the player from moving onto its tile.
  * - It may or may not have a sprite
  * - It may or may not give light
- * - It may or may not be a shop
  * - It may or may not have a conversation when the player interacts with it
  */
 class AreaDecoration(

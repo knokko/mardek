@@ -1,8 +1,11 @@
 package mardek.assets.area.objects
 
 import mardek.assets.area.TransitionDestination
+import mardek.assets.area.sprites.ObjectSpritesheet
 
 class AreaTransition(val x: Int, val y: Int, val destination: TransitionDestination, val arrow: String?) {
+
+	var arrowSprite: ObjectSpritesheet? = null
 
 	override fun toString() = "Transition(x=$x, y=$y, arrow=$arrow, destination=$destination)"
 

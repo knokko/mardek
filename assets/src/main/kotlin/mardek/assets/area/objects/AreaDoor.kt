@@ -1,6 +1,7 @@
 package mardek.assets.area.objects
 
 import mardek.assets.area.TransitionDestination
+import mardek.assets.area.sprites.ObjectSpritesheet
 
 class AreaDoor(
 	val spritesheetName: String,
@@ -14,6 +15,8 @@ class AreaDoor(
 	 */
 	val keyName: String?,
 ) {
+
+	var spritesheet: ObjectSpritesheet? = null
 
 	override fun toString() = "$spritesheetName$spriteRow(x=$x, y=$y, lockType=$lockType," +
 			"${if (keyName != null) " key=$keyName" else ""}, destination=$destination)"

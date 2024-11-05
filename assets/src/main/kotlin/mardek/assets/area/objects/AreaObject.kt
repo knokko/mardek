@@ -1,5 +1,7 @@
 package mardek.assets.area.objects
 
+import mardek.assets.area.sprites.ObjectSpritesheet
+
 class AreaObject(
 	val spritesheetName: String,
 	/**
@@ -15,6 +17,9 @@ class AreaObject(
 	val rawConversion: String?,
 	val signType: String?,
 ) {
+
+	var spritesheet: ObjectSpritesheet? = null
+
 	init {
 		if (conversationName != null && rawConversion != null) {
 			throw IllegalArgumentException("At most 1 of conversionName and rawConversation can be non-null")
