@@ -4,6 +4,8 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.area.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.io.File
+import java.nio.file.Files
 
 class TestAreaParser {
 
@@ -122,10 +124,16 @@ class TestAreaParser {
 	}
 
 	@Test
-	fun testParseAllAreasWithoutErrors() {
+	fun testParseAndRegisterAllAreasWithoutErrors() {
+		val sprites = AreaSprites()
 		for (areaName in enumerateAreas()) {
 			val area = parseArea(areaName)
 			println("area size of $areaName is ${area.width} by ${area.height}")
+			sprites.register(area)
 		}
+
+//		val output = Files.newOutputStream(File("area_sprites.bin").toPath())
+//		sprites.writeSprites(output)
+//		output.close()
 	}
 }

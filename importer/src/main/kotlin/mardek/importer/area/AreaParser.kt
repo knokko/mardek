@@ -43,14 +43,12 @@ private fun parseArea2(parsing: ParsingArea1): ParsedArea {
 			if (tile.hexObjectColor != rgb(0, 0, 0)) {
 				val hexObject = HexObject.map[tile.hexObjectColor]
 					?: throw RuntimeException("unexpected hex color ${ColorPacker.toString(tile.hexObjectColor)}")
-				extraDecorations.add(
-					AreaDecoration(
+				extraDecorations.add(AreaDecoration(
 					x = x, y = y, spritesheetName = hexObject.sheetName,
 					spritesheetOffsetY = hexObject.height * hexObject.sheetRow,
 					spriteHeight = hexObject.height, light = hexObject.light,
-					rawConversation = null
-				)
-				)
+					rawConversation = null, conversationName = null
+				))
 			}
 		}
 	}

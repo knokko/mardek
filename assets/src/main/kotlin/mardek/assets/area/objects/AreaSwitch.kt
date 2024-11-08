@@ -3,12 +3,17 @@ package mardek.assets.area.objects
 import mardek.assets.area.sprites.ObjectSpritesheet
 
 abstract class AreaSwitch(
-	val color: String,
+	val color: SwitchColor,
 	val x: Int,
 	val y: Int,
 ) {
 
-	var spritesheet: ObjectSpritesheet? = null
+	var offSpriteOffset = -1
+	var onSpriteOffset = -1
+
+	init {
+		if (color == SwitchColor.Off) throw IllegalArgumentException("Off switch is not allowed")
+	}
 
 	override fun toString() = "${this::class.java.simpleName.substring(4)}($color, x=$x, y=$y)"
 
@@ -23,8 +28,20 @@ abstract class AreaSwitch(
 	}
 }
 
-class AreaSwitchOrb(color: String, x: Int, y: Int): AreaSwitch(color, x, y)
+class AreaSwitchOrb(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y)
 
-class AreaSwitchGate(color: String, x: Int, y: Int): AreaSwitch(color, x, y)
+class AreaSwitchGate(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y)
 
-class AreaSwitchPlatform(color: String, x: Int, y: Int): AreaSwitch(color, x, y)
+class AreaSwitchPlatform(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y)
+
+enum class SwitchColor {
+	Off,
+	Ruby,
+	Amethyst,
+	Moonstone,
+	Emerald,
+	Topaz,
+	Turquoise,
+	Sapphire,
+	UnknownBlue
+}

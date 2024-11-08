@@ -55,7 +55,8 @@ allprojects {
 			"org.lwjgl:lwjgl-vulkan",
 	]
 	project.ext.vulkanRuntimeDependencies = project.ext.lwjglNatives.collectMany {
-		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-vma::$it"]
+		// TODO Figure out why I need to include freetype; this should be bundled by text-renderer!
+		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-vma::$it", "org.lwjgl:lwjgl-freetype::$it"]
 		if (it.startsWith("natives-macos")) result.add("org.lwjgl:lwjgl-vulkan::$it")
 		result
 	}
@@ -90,8 +91,6 @@ project(":importer") {
 	dependencies {
 		implementation files("../flash/ffdec_lib.jar")
 		implementation project(":assets")
-		implementation "org.lwjgl:lwjgl"
-		for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl::$natives"
 		implementation "com.github.knokko:vk-boiler:$boilerVersion"
 		implementation "com.github.knokko:vk-compressor:$compressorVersion"
 	}

@@ -4,6 +4,9 @@ import mardek.assets.area.Direction
 import mardek.assets.area.TransitionDestination
 import mardek.assets.area.objects.*
 import java.lang.Integer.parseInt
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 import kotlin.streams.toList
 
 private inline fun <reified T> extract(objectList: MutableList<Any>): List<T> {
@@ -101,11 +104,17 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 	val name = parseFlashString(rawEntity["name"]!!, "name")!!
 	if (name == "Dream Circle") return "Examine Dream Circle"
 
-	if (model == "object") {
+	val conversation = rawEntity["conv"]
+	val conversationName = if (conversation != null && conversation.startsWith('"')) {
+		parseFlashString(conversation, "conv")!!
+	} else null
+	val rawConversation = if (conversation != null && !conversation.startsWith('"')) conversation else null
+
+	if (model == "object" || model == "examine") {
 		val rawType = rawEntity["type"]
 		val rawColor = rawEntity["colour"]
 		if (rawColor != null && rawType != null) {
-			val color = parseFlashString(rawColor, "colour")
+			val color = SwitchColor.entries.find { it.name.lowercase(Locale.ROOT) == parseFlashString(rawColor, "colour") }
 			val type = parseFlashString(rawType, "type")
 			if (color != null) {
 				if (type == "switch_orb") return AreaSwitchOrb(x = x, y = y, color = color)
@@ -114,9 +123,9 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 			}
 		}
 
-		if (rawType == "\"examine\"") return AreaDecoration(
+		if (rawType == "\"examine\"" || model == "examine") return AreaDecoration(
 			x = x, y = y, spritesheetName = null, spritesheetOffsetY = null, spriteHeight = null,
-			light = null, rawConversation = rawEntity["conv"]
+			light = null, rawConversation = rawConversation, conversationName = conversationName
 		)
 	}
 
@@ -171,11 +180,6 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 		npcName = parseFlashString(rawEntity["NPC"]!!, "talktrigger NPC")!!
 	)
 
-	val conversation = rawEntity["conv"]
-	val conversationName = if (conversation != null && conversation.startsWith('"')) {
-		parseFlashString(conversation, "conv")!!
-	} else null
-	val rawConversion = if (conversation != null && !conversation.startsWith('"')) conversation else null
 
 	val silent = rawEntity["silent"] == "true"
 
@@ -188,7 +192,8 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 			spritesheetOffsetY = null,
 			spriteHeight = null,
 			light = null,
-			rawConversation = rawConversion
+			conversationName = conversationName,
+			rawConversation = rawConversation
 		) else AreaObject(
 			spritesheetName = spritesheetName,
 			firstFrameIndex = null,
@@ -196,7 +201,7 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 			x = x,
 			y = y,
 			conversationName = conversationName,
-			rawConversion = rawConversion,
+			rawConversion = rawConversation,
 			signType = null
 		)
 	}
@@ -232,7 +237,7 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 		var firstFrame = 0
 		var numFrames = 2
 
-		if (direction != null) firstFrame = direction.ordinal
+		if (direction != null) firstFrame = 2 * direction.ordinal
 
 		val rawFrame = rawEntity["FRAME"]
 		if (rawFrame != null) {
@@ -250,7 +255,7 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 			x = x,
 			y = y,
 			conversationName = conversationName,
-			rawConversion = rawConversion,
+			rawConversion = rawConversation,
 			signType = signType
 		)
 	}
@@ -274,7 +279,7 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 		walkSpeed = parseInt(rawEntity["walkspeed"] ?: "-2"),
 		element = element,
 		conversationName = conversationName,
-		rawConversation = rawConversion,
+		rawConversation = rawConversation,
 		encyclopediaPerson = encyclopediaPerson
 	)
 }

@@ -4,7 +4,7 @@ area = "moric_saucer4";
 areaname = "Moric\'s Battleship - Bridge";
 ambience = null;
 dungeon = "MoricSaucer";
-A_sprites = [{name:"Moric",model:"z_socialfox",x:7,y:3,walkspeed:-2,dir:"s",elem:"EARTH",conv:"c_GdM_Moric"},{name:"WALK_TRIGGER",model:"_trigger",x:7,y:8,triggers:-1,ExecuteScript:function()
+A_sprites = [{name:"Moric",model:"z_socialfox",x:7,y:3,walkspeed:-2,dir:"s",elem:"EARTH",Static:true,conv:"c_GdM_Moric"},{name:"WALK_TRIGGER",model:"_trigger",x:7,y:8,triggers:-1,ExecuteScript:function()
 {
    if(GameData.plotVars.BEATEN_MORIC == 99)
    {

@@ -5,7 +5,7 @@ areaname = "Moric\'s Battleship - Escape Pod Room";
 ambience = null;
 dungeon = "MoricSaucer";
 TempVars.DONT_DRAW_ALLIES = true;
-A_sprites = [{name:"Dracelon",model:"ch2bosses",x:7,y:19,walkspeed:-1,dir:"n",elem:"EARTH",conv:"c_A_Deugan"},{name:"Deugan",model:"deugan_soldier",x:7,y:29,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["shok","ERROR!"]]},{name:"Emela",model:"emela_soldier",x:7,y:29,walkspeed:-1,dir:"n",elem:"WATER",conv:[["shok","ERROR!"]]},{name:"WALK_TRIGGER",model:"_trigger",x:7,y:29,ExecuteScript:function()
+A_sprites = [{name:"Dracelon",model:"ch2bosses",x:7,y:19,walkspeed:-1,dir:"n",elem:"EARTH",Static:true,conv:"c_A_Deugan"},{name:"Deugan",model:"deugan_soldier",x:7,y:29,walkspeed:-1,dir:"n",elem:"EARTH",conv:[["shok","ERROR!"]]},{name:"Emela",model:"emela_soldier",x:7,y:29,walkspeed:-1,dir:"n",elem:"WATER",conv:[["shok","ERROR!"]]},{name:"WALK_TRIGGER",model:"_trigger",x:7,y:29,ExecuteScript:function()
 {
    _root.DoomCounter.removeMovieClip();
    _root.CUTSCENE = true;
