@@ -1,6 +1,7 @@
 package mardek.importer.area
 
 import mardek.assets.area.BattleEnemySelection
+import mardek.assets.area.LevelRange
 import mardek.assets.area.RandomAreaBattles
 import java.lang.Integer.parseInt
 
@@ -26,7 +27,7 @@ fun parseRandomBattle(parsing: ParsingArea1): RandomAreaBattles? {
 		val splitLevelRange = innerLevelRange.split(",")
 		parseAssert(splitLevelRange.size == 2, "Expected levelrange $rawLevelRange to be split in 2 parts by ,")
 
-		Pair(Pair(parseInt(splitLevelRange[0]), parseInt(splitLevelRange[1])), null)
+		Pair(LevelRange(parseInt(splitLevelRange[0]), parseInt(splitLevelRange[1])), null)
 	}
 
 	val (ownEnemies, monstersTableName) = run {
@@ -40,16 +41,16 @@ fun parseRandomBattle(parsing: ParsingArea1): RandomAreaBattles? {
 		val innerFoes = rawFoes.substring(2, rawFoes.length - 2)
 		val splitFoes = innerFoes.split("],[")
 
-		val ownEnemies = mutableListOf<BattleEnemySelection>()
+		val ownEnemies = ArrayList<BattleEnemySelection>(splitFoes.size)
 		for (rawSelection in splitFoes) {
 			val selectionSplit = rawSelection.split(",")
 			parseAssert(selectionSplit.size == 5, "Expected $selectionSplit to have a size of 5")
 
 			val selectionName = parseFlashString(selectionSplit[4], "random battle selection")
 
-			val enemyNames = selectionSplit.subList(0, 4).map {
+			val enemyNames = ArrayList(selectionSplit.subList(0, 4).map {
 				if (it == "null") null else parseFlashString(it, "monster name")
-			}
+			})
 
 			ownEnemies.add(BattleEnemySelection(selectionName!!, enemyNames))
 		}

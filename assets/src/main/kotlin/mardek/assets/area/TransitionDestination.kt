@@ -1,12 +1,31 @@
 package mardek.assets.area
 
+import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.IntegerField
+
+@BitStruct(backwardCompatible = false)
 class TransitionDestination(
+
+	@BitField(ordering = 0)
 	val areaName: String,
+
+	@BitField(ordering = 1)
+	@IntegerField(expectUniform = false, minValue = -1)
 	val x: Int,
+
+	@BitField(ordering = 2)
+	@IntegerField(expectUniform = false, minValue = -1)
 	val y: Int,
+
+	@BitField(ordering = 3, optional = true)
 	val direction: Direction?,
+
+	@BitField(ordering = 4, optional = true)
 	val discoveredAreaName: String?,
 ) {
+
+	internal constructor() : this("", 0, 0, null, null)
 	override fun toString() = "($areaName, x=$x, y=$y, direction=$direction)"
 
 	override fun equals(other: Any?) = other is TransitionDestination && areaName == other.areaName && x == other.x &&

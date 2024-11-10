@@ -1,9 +1,25 @@
 package mardek.assets.area
 
+import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.IntegerField
+
 /**
  * Use the `ColorPacker` of `vk-boiler` to extract the RGBA from `colorA` and `colorB`
  */
-class AreaAmbience(val colorA: Int, val colorB: Int) {
+@BitStruct(backwardCompatible = false)
+class AreaAmbience(
+	@BitField(ordering = 0)
+	@IntegerField(expectUniform = true)
+	val colorA: Int,
+
+	@BitField(ordering = 1)
+	@IntegerField(expectUniform = true)
+	val colorB: Int
+) {
+
+	@Suppress("unused")
+	private constructor() : this(0, 0)
 
 	override fun toString() = "Ambience(rawColorA=$colorA, rawColorB=$colorB)"
 
@@ -20,6 +36,6 @@ class AreaAmbience(val colorA: Int, val colorB: Int) {
 		 * {ra:100,rb:0,ga:80,gb:0,ba:70,bb:0,aa:100,ab:0}) : {ra:25,rb:0,ga:40,gb:0,ba:80,bb:0,aa:100,ab:0};
 		 * ```
 		 */
-		val GENERIC_EXTERNAL_AMBIENCE = AreaAmbience(1234, 5678)
+		val GENERIC_EXTERNAL_AMBIENCE = AreaAmbience(123456789, 123456789)
 	}
 }

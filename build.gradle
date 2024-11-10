@@ -24,6 +24,7 @@ allprojects {
 	project.ext.boilerVersion = "v4.2.0"
 	project.ext.textRenderVersion = "v0.1.0"
 	project.ext.compressorVersion = "v0.2.1"
+	project.ext.bitserVersion = "0a1f2b6904"
 	switch (OperatingSystem.current()) {
 		case OperatingSystem.LINUX:
 			project.ext.lwjglNatives = ["natives-linux", "natives-linux-arm32", "natives-linux-arm64"]
@@ -63,6 +64,12 @@ allprojects {
 
 	test {
 		useJUnitPlatform()
+	}
+}
+
+project(":assets") {
+	dependencies {
+		api "com.github.knokko:bitser:$bitserVersion"
 	}
 }
 

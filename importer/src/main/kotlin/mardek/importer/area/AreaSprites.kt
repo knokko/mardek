@@ -27,13 +27,26 @@ class AreaSprites {
 
 	private val kimSprites = ArrayList<KimImage>()
 	private val highTileSprites = ArrayList<KimImage>()
+	private val tileGrids = ArrayList<IntArray>()
+
 	private var kimOffset = 0
 	private var highTileOffset = 0
+	private var tileOffset = 0
 
 	fun register(area: ParsedArea): OptimizedArea {
 		val tiles = parseTilesheet(area.tilesheetName)
+
+		val lowTilesOffset = tileOffset
+		tileOffset += area.width * area.height
 		val lowTiles = IntArray(area.width * area.height)
+		tileGrids.add(lowTiles)
+
+		val highTilesOffset = tileOffset
+		tileOffset += area.width * area.height
 		val highTiles = IntArray(area.width * area.height)
+		tileGrids.add(highTiles)
+
+		val canWalkGrid = BooleanArray(area.width * area.height)
 
 		fun registerSprite(sprite: KimImage): Int {
 			val result = kimOffset
@@ -79,12 +92,12 @@ class AreaSprites {
 				val mainTileID = area.getTileId(x, y)!!
 				val tile = tiles.tiles[mainTileID]!!
 
-				var lowTile = tileSpriteOffsets[Pair(area.tilesheetName, mainTileID)]!!.last()
+				canWalkGrid[x + y * area.width] = tile.canWalkOn
+
+				val lowTile = tileSpriteOffsets[Pair(area.tilesheetName, mainTileID)]!!.last()
 				if (lowTile >= 1 shl 24) throw UnsupportedOperationException("Tile sprite index too large: $lowTile")
 
-				if (tile.canWalkOn) lowTile = lowTile or (1 shl 24)
-				lowTile = lowTile or (tile.waterType.ordinal shl 25)
-				lowTiles[x + y * area.width] = lowTile
+				lowTiles[x + y * area.width] = lowTile or (tile.waterType.ordinal shl 24)
 
 				val midTileId = area.getTileId(x, y + 1)
 				var midPart = -1
@@ -156,27 +169,33 @@ class AreaSprites {
 			transition.arrowSprite = registerSheet(sheet)
 		}
 
-		println("kimOffset is $kimOffset and high offset is $highTileOffset")
-
 		return OptimizedArea(
-			width = area.width, height = area.height,
-			lowTileGrid = lowTiles, highTileGrid = highTiles,
+			width = area.width, height = area.height, canWalkGrid = canWalkGrid,
 			objects = area.objects, randomBattles = area.randomBattles,
-			flags = area.flags, properties = area.properties
+			flags = area.flags, properties = area.properties,
+			renderLowTilesOffset = lowTilesOffset, renderHighTilesOffset = highTilesOffset
 		)
 	}
 
-	fun writeSprites(output: OutputStream) {
+	fun writeRenderData(output: OutputStream) {
 		val data = DataOutputStream(output)
+
 		data.writeInt(kimOffset)
+		data.writeInt(highTileOffset)
+		data.writeInt(tileOffset)
+
 		for (sprite in kimSprites) {
 			for (value in sprite.data) data.writeInt(value)
 		}
 
-		data.writeInt(highTileOffset)
 		for (sprite in highTileSprites) {
 			for (value in sprite.data) data.writeInt(value)
 		}
+
+		for (tileGrid in tileGrids) {
+			for (value in tileGrid) data.writeInt(value)
+		}
+
 		data.flush()
 	}
 

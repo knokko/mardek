@@ -9,7 +9,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.streams.toList
 
-private inline fun <reified T> extract(objectList: MutableList<Any>): List<T> {
+private inline fun <reified T> extract(objectList: MutableList<Any>): ArrayList<T> {
 	val result = ArrayList<T>(objectList.count { it is T })
 	objectList.removeIf { candidate ->
 		if (candidate is T) {
@@ -29,7 +29,7 @@ fun parseAreaObjects(rawEntities: String, extraDecorations: List<AreaDecoration>
 		walkTriggers = extract(objectList),
 		talkTriggers = extract(objectList),
 		shops = extract(objectList),
-		decorations = extract<AreaDecoration>(objectList) + extraDecorations,
+		decorations = ArrayList(extract<AreaDecoration>(objectList) + extraDecorations),
 		portals = extract(objectList),
 		objects = extract(objectList),
 		characters = extract(objectList),

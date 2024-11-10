@@ -76,7 +76,7 @@ fun parseAreaProperties(parsing: ParsingArea1, areaSetupMap: Map<String, String>
 	val snowType = AreaSnowType.entries.find { it.code == parseInt(areaSetupMap["SNOW"] ?: "0") }!!
 
 	val rawDungeon = parsing.variableAssignments["dungeon"]
-	val dungeon = if (rawDungeon != null) parseFlashString(rawDungeon, "dungeon") else null
+	val dungeon = if (rawDungeon != null && rawDungeon != "null") parseFlashString(rawDungeon, "dungeon") else null
 
 	val rawAmbience = parsing.variableAssignments["ambience"]
 	val ambience = if (rawAmbience != null) parseAmbience(rawAmbience) else null

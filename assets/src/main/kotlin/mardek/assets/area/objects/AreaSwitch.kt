@@ -1,10 +1,19 @@
 package mardek.assets.area.objects
 
-import mardek.assets.area.sprites.ObjectSpritesheet
+import com.github.knokko.bitser.BitEnum
+import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.IntegerField
 
 abstract class AreaSwitch(
+	@BitField(ordering = 0)
 	val color: SwitchColor,
+
+	@BitField(ordering = 1)
+	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
+
+	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
 ) {
 
@@ -28,12 +37,29 @@ abstract class AreaSwitch(
 	}
 }
 
-class AreaSwitchOrb(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y)
+@BitStruct(backwardCompatible = false)
+class AreaSwitchOrb(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
 
-class AreaSwitchGate(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y)
+	@Suppress("unused")
+	private constructor() : this(SwitchColor.UnusedBlue, 0, 0)
+}
 
-class AreaSwitchPlatform(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y)
+@BitStruct(backwardCompatible = false)
+class AreaSwitchGate(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
 
+	@Suppress("unused")
+	private constructor() : this(SwitchColor.UnusedBlue, 0, 0)
+}
+
+@BitStruct(backwardCompatible = false)
+class AreaSwitchPlatform(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
+
+	@Suppress("unused")
+	private constructor() : this(SwitchColor.UnusedBlue, 0, 0)
+}
+
+@Suppress("unused")
+@BitEnum(mode = BitEnum.Mode.VariableIntOrdinal)
 enum class SwitchColor {
 	Off,
 	Ruby,
@@ -43,5 +69,5 @@ enum class SwitchColor {
 	Topaz,
 	Turquoise,
 	Sapphire,
-	UnknownBlue
+	UnusedBlue
 }

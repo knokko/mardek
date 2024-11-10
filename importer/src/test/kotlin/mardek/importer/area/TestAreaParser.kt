@@ -1,9 +1,14 @@
 package mardek.importer.area
 
+import com.github.knokko.bitser.io.BitInputStream
+import com.github.knokko.bitser.io.BitOutputStream
+import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.area.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.File
 import java.nio.file.Files
 
@@ -52,10 +57,10 @@ class TestAreaParser {
 		assertEquals(15, parsed.width)
 		assertEquals(40, parsed.height)
 		assertEquals(RandomAreaBattles(
-			ownEnemies = listOf(
-				BattleEnemySelection("SOLO", listOf("monster", null, null, null)),
-				BattleEnemySelection("DUO", listOf("monster", "monster", null, null)),
-				BattleEnemySelection("TRIO", listOf("monster", "monster", "monster", null))
+			ownEnemies = arrayListOf(
+				BattleEnemySelection("SOLO", arrayListOf("monster", null, null, null)),
+				BattleEnemySelection("DUO", arrayListOf("monster", "monster", null, null)),
+				BattleEnemySelection("TRIO", arrayListOf("monster", "monster", "monster", null))
 			),
 			monstersTableName = null,
 			levelRangeName = "DRAGON_LAIR",
@@ -125,15 +130,42 @@ class TestAreaParser {
 
 	@Test
 	fun testParseAndRegisterAllAreasWithoutErrors() {
+		val container = AreaContainer()
+
 		val sprites = AreaSprites()
+		var totalArea = 0
 		for (areaName in enumerateAreas()) {
 			val area = parseArea(areaName)
-			println("area size of $areaName is ${area.width} by ${area.height}")
-			sprites.register(area)
+			totalArea += area.width * area.height
+			container.areas.add(sprites.register(area))
 		}
+		println("total area is $totalArea")
 
-//		val output = Files.newOutputStream(File("area_sprites.bin").toPath())
-//		sprites.writeSprites(output)
-//		output.close()
+		val startTime = System.nanoTime()
+
+		val bitOutput = BitOutputStream(BufferedOutputStream(Files.newOutputStream(File("areas.bin").toPath())))
+		val bitser = Bitser(false)
+		bitser.serialize(container, bitOutput)
+		bitOutput.finish()
+
+		val midTime1 = System.nanoTime()
+		println("encoding took ${(midTime1 - startTime) / 1000_000} ms")
+
+		val bitInput = BitInputStream(BufferedInputStream(Files.newInputStream(File("areas.bin").toPath())))
+		val loaded = bitser.deserialize(AreaContainer::class.java, bitInput)
+		bitInput.close()
+
+		assertEquals(container.areas.size, loaded.areas.size)
+		assertEquals(container.areas.sumOf { it.width }, loaded.areas.sumOf { it.width })
+
+		val midTime2 = System.nanoTime()
+		println("decoding took ${(midTime2 - midTime1) / 1000_000} ms")
+
+		val renderOutput = BufferedOutputStream(Files.newOutputStream(File("area-assets.bin").toPath()))
+		sprites.writeRenderData(renderOutput)
+		renderOutput.close()
+
+		val endTime = System.nanoTime()
+		println("saving render data took ${(endTime - midTime2) / 1000_000} ms")
 	}
 }
