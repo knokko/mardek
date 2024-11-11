@@ -1,43 +1,34 @@
 #version 450
 
-layout(constant_id = 0) const int GENERAL_SPRITES_SIZE = 12;
-layout(constant_id = 1) const int HIGH_TILE_SPRITES_SIZE = 34;
-layout(constant_id = 2) const int MAP_BUFFER_SIZE = 56;
+#include "tiles.glsl"
 
-layout(set = 0, binding = 0) readonly buffer MapBuffer {
-	uint mapAndSprites[GENERAL_SPRITES_SIZE + HIGH_TILE_SPRITES_SIZE + MAP_BUFFER_SIZE];
-};
+float linearToSrgb(float linear) {
+	if (linear <= 0.00313) return 12.92 * linear;
+	else return 1.055 * pow(linear, 1.0 / 2.4) - 0.055;
+}
 
-layout(push_constant) uniform PushConstants {
-	ivec2 mapSize;
-	ivec2 screenSize;
-	ivec2 cameraPosition;
-	int scale;
-	int mapOffset;
-};
+vec3 linearToSrgb(vec3 linear) {
+	return vec3(linearToSrgb(linear.r), linearToSrgb(linear.g), linearToSrgb(linear.b));
+}
 
-layout(location = 0) in vec2 floatPosition;
-
-layout(location = 0) out vec4 outColor;
-
-#include "kim1.glsl"
-
-defineReadInt(mapAndSprites)
-
-defineSampleKimInt(mapAndSprites)
-
-void main() {
-	ivec2 areaPixel = ivec2(screenSize * floatPosition) / 2 + cameraPosition;
-	if (areaPixel.x < 0 || areaPixel.y < 0) discard;
-
-	int tileSize = 16 * scale;
-	ivec2 tile = areaPixel / tileSize;
-	if (tile.x >= mapSize.x || tile.y >= mapSize.y) discard;
-
-	ivec2 tilePixel = (areaPixel % tileSize) / scale;
-	uint packedTile = mapAndSprites[GENERAL_SPRITES_SIZE + HIGH_TILE_SPRITES_SIZE + mapOffset + tile.x + mapSize.x * tile.y];
+vec4 computeColor(uint packedTile, ivec2 tilePixel) {
 	uint baseSpriteOffset = packedTile & 0xFFFFFFu;
+	uint waterType = (packedTile >> 24u) & 7u;
+	bool hasWaterAbove = ((packedTile >> 30u) & 1u) != 0u;
 
+	vec4 waterColor = vec4(0.0);
 	vec4 tileColor = sampleKim(baseSpriteOffset, tilePixel);
-	outColor = tileColor;
+
+	if (waterType > 0) {
+		vec4 waterBackgroundColor;
+		if (hasWaterAbove) waterBackgroundColor = sampleKim(waterSpriteOffsets[0], tilePixel);
+		else waterBackgroundColor = sampleKim(waterSpriteOffsets[1], tilePixel);
+
+		vec4 waterBaseColor = sampleKim(waterSpriteOffsets[waterType], tilePixel);
+		waterBaseColor.a = 0.3;
+		waterColor = vec4(waterBaseColor.a * linearToSrgb(waterBaseColor.rgb) + (1.0 - waterBaseColor.a) * linearToSrgb(waterBackgroundColor.rgb), 1.0);
+		waterColor = vec4(srgbToLinear(waterColor.rgb), 1.0);
+	}
+
+	return vec4(tileColor.a * tileColor.rgb + (1.0 - tileColor.a) * waterColor.rgb, max(tileColor.a, waterColor.a));
 }

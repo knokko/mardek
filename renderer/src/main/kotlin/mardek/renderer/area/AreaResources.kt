@@ -88,7 +88,7 @@ class AreaResources(boiler: BoilerInstance, resourcePath: String, targetImageFor
 			this.descriptorSet = descriptorPool.allocate(1)[0]
 
 			val pushConstants = VkPushConstantRange.calloc(1, stack)
-			pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 0, 32)
+			pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 0, 52)
 
 			this.pipelineLayout = boiler.pipelines.createLayout(
 				pushConstants, "AreaPipelineLayout", descriptorSetLayout.vkDescriptorSetLayout

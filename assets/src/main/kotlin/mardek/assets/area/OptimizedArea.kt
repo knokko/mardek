@@ -41,13 +41,18 @@ class OptimizedArea(
 
 	@BitField(ordering = 8)
 	@IntegerField(expectUniform = true)
-	val renderHighTilesOffset: Int
+	val renderHighTilesOffset: Int,
+
+	@BitField(ordering = 9)
+	@IntegerField(expectUniform = false)
+	@CollectionField(size = IntegerField(expectUniform = true, minValue = 5, maxValue = 5))
+	val waterSpriteOffsets: IntArray,
 ) {
 
 	@Suppress("unused")
 	internal constructor() : this(
 		0, 0, BooleanArray(0), AreaObjects(), null,
-		AreaFlags(), AreaProperties(), 0, 0
+		AreaFlags(), AreaProperties(), 0, 0, IntArray(0)
 	)
 
 	fun canWalkAt(x: Int, y: Int): Boolean {

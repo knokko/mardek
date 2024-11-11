@@ -124,23 +124,23 @@ class AreaRenderer(
 //		)
 //		vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
 
-		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.lowTilesPipeline)
-		recorder.bindGraphicsDescriptors(resources.pipelineLayout, resources.descriptorSet)
-		vkCmdPushConstants(recorder.commandBuffer, resources.pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, recorder.stack.ints(
+		fun renderTiles(pipeline: Long, mapOffset: Int) {
+			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline)
+			recorder.bindGraphicsDescriptors(resources.pipelineLayout, resources.descriptorSet)
+
+			val water = state.area.waterSpriteOffsets
+			vkCmdPushConstants(recorder.commandBuffer, resources.pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, recorder.stack.ints(
 				state.area.width, state.area.height,
 				targetImage.width, targetImage.height,
-				cameraX, cameraY, scale, state.area.renderLowTilesOffset
-		))
-		vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
+				cameraX, cameraY, scale, mapOffset,
+				water[0], water[1], water[2], water[3], water[4]
+			))
+			vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
+		}
 
-		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.highTilesPipeline)
-		recorder.bindGraphicsDescriptors(resources.pipelineLayout, resources.descriptorSet)
-		vkCmdPushConstants(recorder.commandBuffer, resources.pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, recorder.stack.ints(
-			state.area.width, state.area.height, // TODO Code reuse here?
-			targetImage.width, targetImage.height,
-			cameraX, cameraY, scale, state.area.renderHighTilesOffset
-		))
-		vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
+		renderTiles(resources.lowTilesPipeline, state.area.renderLowTilesOffset)
+		renderTiles(resources.highTilesPipeline, state.area.renderHighTilesOffset)
+
 //		for (entity in extraEntities) {
 //			hostEntityBuffer.put(tileSize * entity.tileX)
 //			hostEntityBuffer.put(tileSize * entity.tileY)

@@ -4,6 +4,7 @@ import com.github.knokko.compressor.Kim1Compressor
 import mardek.assets.area.Direction
 import mardek.assets.area.OptimizedArea
 import mardek.assets.area.ParsedArea
+import mardek.assets.area.WaterType
 import mardek.assets.area.objects.AreaSwitch
 import mardek.assets.area.objects.SwitchColor
 import mardek.assets.area.sprites.DirectionalSpritesheet
@@ -55,6 +56,8 @@ class AreaSprites {
 			return result
 		}
 
+		val waterSpriteOffsets = tiles.waterSprites.map(::compress).map(::registerSprite).toIntArray()
+
 		fun registerSheet(sheet: ObjectSpritesheet): ObjectSpritesheet {
 			if (sheet.indices == null) sheet.indices = sheet.frames!!.map(::registerSprite).toIntArray()
 			return sheet
@@ -97,8 +100,11 @@ class AreaSprites {
 
 				canWalkGrid[x + y * area.width] = tile.canWalkOn
 
-				val lowTile = tileSpriteOffsets[Pair(area.tilesheetName, mainTileID)]!![0]
+				var lowTile = tileSpriteOffsets[Pair(area.tilesheetName, mainTileID)]!![0]
 				if (lowTile >= 1 shl 24) throw UnsupportedOperationException("Tile sprite index too large: $lowTile")
+				if (y > 0 && tiles.tiles[area.getTileId(x, y - 1)!!]!!.waterType != WaterType.None) {
+					lowTile = lowTile or (1 shl 30)
+				}
 
 				lowTiles[x + y * area.width] = lowTile or (tile.waterType.ordinal shl 24)
 
@@ -176,7 +182,8 @@ class AreaSprites {
 			width = area.width, height = area.height, canWalkGrid = canWalkGrid,
 			objects = area.objects, randomBattles = area.randomBattles,
 			flags = area.flags, properties = area.properties,
-			renderLowTilesOffset = lowTilesOffset, renderHighTilesOffset = highTilesOffset
+			renderLowTilesOffset = lowTilesOffset, renderHighTilesOffset = highTilesOffset,
+			waterSpriteOffsets = waterSpriteOffsets
 		)
 	}
 
