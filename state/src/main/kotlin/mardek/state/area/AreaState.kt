@@ -1,12 +1,12 @@
 package mardek.state.area
 
-import mardek.assets.area.Area
+import mardek.assets.area.OptimizedArea
 import mardek.input.InputKey
 import mardek.input.InputManager
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-class AreaState(val area: Area, initialPlayerPosition: AreaPosition) {
+class AreaState(val area: OptimizedArea, initialPlayerPosition: AreaPosition) {
 
 	var currentTime = Duration.ZERO
 		private set

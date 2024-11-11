@@ -72,16 +72,19 @@ class AreaSprites {
 				val tile = tiles.tiles[area.getTileId(x, y)!!]!!
 				if (tile.sprites.size > 3) throw UnsupportedOperationException("Tile too high: ${tile.sprites.size}")
 				if (tileSpriteOffsets.containsKey(Pair(area.tilesheetName, tile.id))) continue
-				tileSpriteOffsets[Pair(area.tilesheetName, tile.id)] = IntArray(tile.sprites.size)
-				for ((index, image) in tile.sprites.withIndex()) {
+
+				val currentTileOffsets = IntArray(tile.sprites.size)
+				tileSpriteOffsets[Pair(area.tilesheetName, tile.id)] = currentTileOffsets
+				for ((sourceIndex, image) in tile.sprites.withIndex()) {
+					val destinationIndex = tile.sprites.size - 1 - sourceIndex
 					val sprite = compress(image)
-					if (index == 0) {
-						tileSpriteOffsets[Pair(area.tilesheetName, tile.id)]!![index] = registerSprite(sprite)
+					if (destinationIndex == 0) {
+						currentTileOffsets[destinationIndex] = registerSprite(sprite)
 					} else {
 						val spriteIndex = highTileOffset
 						highTileOffset += sprite.data.size
 						highTileSprites.add(sprite)
-						tileSpriteOffsets[Pair(area.tilesheetName, tile.id)]!![index] = spriteIndex
+						currentTileOffsets[destinationIndex] = spriteIndex
 					}
 				}
 			}
@@ -94,7 +97,7 @@ class AreaSprites {
 
 				canWalkGrid[x + y * area.width] = tile.canWalkOn
 
-				val lowTile = tileSpriteOffsets[Pair(area.tilesheetName, mainTileID)]!!.last()
+				val lowTile = tileSpriteOffsets[Pair(area.tilesheetName, mainTileID)]!![0]
 				if (lowTile >= 1 shl 24) throw UnsupportedOperationException("Tile sprite index too large: $lowTile")
 
 				lowTiles[x + y * area.width] = lowTile or (tile.waterType.ordinal shl 24)
@@ -119,11 +122,11 @@ class AreaSprites {
 						if (highOffsets[2] < 0 || highOffsets[2] > UShort.MAX_VALUE.toInt()) {
 							throw UnsupportedOperationException("Uh ooh: high tile sprite offset is {$highOffsets[2")
 						}
-						highPart = highOffsets[0]
+						highPart = highOffsets[2]
 					}
 				}
 
-				highTiles[x + y * area.width] = midPart or (highPart shl 16)
+				highTiles[x + y * area.width] = (midPart and 0xFFFF) or ((highPart and 0xFFFF) shl 16)
 			}
 		}
 

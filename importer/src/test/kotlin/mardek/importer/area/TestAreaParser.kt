@@ -4,6 +4,8 @@ import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
+import mardek.assets.GameAssets
+import mardek.assets.PlayableCharacter
 import mardek.assets.area.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -130,38 +132,42 @@ class TestAreaParser {
 
 	@Test
 	fun testParseAndRegisterAllAreasWithoutErrors() {
-		val container = AreaContainer()
-
+		val optimizedAreas = ArrayList<OptimizedArea>()
 		val sprites = AreaSprites()
 		var totalArea = 0
 		for (areaName in enumerateAreas()) {
 			val area = parseArea(areaName)
 			totalArea += area.width * area.height
-			container.areas.add(sprites.register(area))
+			optimizedAreas.add(sprites.register(area))
 		}
 		println("total area is $totalArea")
 
+		val assets = GameAssets(optimizedAreas, arrayListOf(
+			PlayableCharacter(sprites.getCharacter("mardek_hero")),
+			PlayableCharacter(sprites.getCharacter("deugan_hero"))
+		))
 		val startTime = System.nanoTime()
 
-		val bitOutput = BitOutputStream(BufferedOutputStream(Files.newOutputStream(File("areas.bin").toPath())))
+		val outputFolder = File("../game/src/main/resources/mardek/game/")
+		val bitOutput = BitOutputStream(BufferedOutputStream(Files.newOutputStream(File("$outputFolder/areas.bin").toPath())))
 		val bitser = Bitser(false)
-		bitser.serialize(container, bitOutput)
+		bitser.serialize(assets, bitOutput)
 		bitOutput.finish()
 
 		val midTime1 = System.nanoTime()
 		println("encoding took ${(midTime1 - startTime) / 1000_000} ms")
 
-		val bitInput = BitInputStream(BufferedInputStream(Files.newInputStream(File("areas.bin").toPath())))
-		val loaded = bitser.deserialize(AreaContainer::class.java, bitInput)
+		val bitInput = BitInputStream(BufferedInputStream(Files.newInputStream(File("$outputFolder/areas.bin").toPath())))
+		val loaded = bitser.deserialize(GameAssets::class.java, bitInput)
 		bitInput.close()
 
-		assertEquals(container.areas.size, loaded.areas.size)
-		assertEquals(container.areas.sumOf { it.width }, loaded.areas.sumOf { it.width })
+		assertEquals(assets.areas.size, loaded.areas.size)
+		assertEquals(assets.areas.sumOf { it.width }, loaded.areas.sumOf { it.width })
 
 		val midTime2 = System.nanoTime()
 		println("decoding took ${(midTime2 - midTime1) / 1000_000} ms")
 
-		val renderOutput = BufferedOutputStream(Files.newOutputStream(File("area-assets.bin").toPath()))
+		val renderOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/area-assets.bin").toPath()))
 		sprites.writeRenderData(renderOutput)
 		renderOutput.close()
 

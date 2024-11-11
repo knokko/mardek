@@ -19,6 +19,5 @@ class DirectionalSpritesheet(
 	@CollectionField(writeAsBytes = true)
 	var indices: IntArray? = null
 
-	@Suppress("unused")
-	private constructor() : this("")
+	internal constructor() : this("")
 }

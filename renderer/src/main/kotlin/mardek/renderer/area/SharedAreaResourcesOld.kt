@@ -5,7 +5,7 @@ import com.github.knokko.boiler.commands.SingleTimeCommands
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10.*
 
-class SharedAreaResources(
+class SharedAreaResourcesOld(
 	private val boiler: BoilerInstance,
 	stack: MemoryStack,
 	val targetImageFormat: Int

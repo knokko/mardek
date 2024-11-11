@@ -81,7 +81,6 @@ project(":game") {
 		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
 		implementation "org.lwjgl:lwjgl-glfw"
 		implementation project(":assets")
-		implementation project(":importer") // TODO Eventually get rid of this dependency
 		implementation project(":input")
 		implementation project(":renderer")
 		implementation project(":state")

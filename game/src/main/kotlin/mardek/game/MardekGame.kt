@@ -4,17 +4,14 @@ import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.WindowBuilder
 import com.github.knokko.boiler.window.WindowEventLoop
 import com.github.knokko.update.UpdateLoop
-import mardek.importer.area.importArea
-import mardek.importer.area.importAreaCharacterModel
+import mardek.assets.GameAssets
 import mardek.input.InputManager
 import mardek.renderer.GameRenderer
 import mardek.state.GameStateManager
 import mardek.state.InGameState
 import mardek.state.area.AreaPosition
 import mardek.state.area.AreaState
-import mardek.state.character.PlayableCharacter
 import mardek.state.story.StoryState
-import mardek.state.title.TitleScreenState
 import org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 import org.lwjgl.vulkan.VK12.VK_API_VERSION_1_2
 import kotlin.time.Duration.Companion.milliseconds
@@ -28,16 +25,15 @@ fun main() {
 		.addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
 	val boiler = GameRenderer.addBoilerRequirements(boilerBuilder).build()
 
-	val area = importArea("aeropolis_N") // TODO Stop hardcoding this
-	val mardekModel = importAreaCharacterModel("mardek_hero")
-	val deuganModal = importAreaCharacterModel("deugan_hero")
+	val assets = GameAssets.load("mardek/game/areas.bin")
+	val area = assets.areas.find { it.properties.rawName == "aeropolis_S" }!!
 
 	val input = InputManager()
-	val state = GameStateManager(input, TitleScreenState())
-//	val state = GameStateManager(input, InGameState(
-//		AreaState(area, AreaPosition(23, 40)),
-//		StoryState(PlayableCharacter(mardekModel), PlayableCharacter(deuganModal))
-//	))
+	//val state = GameStateManager(input, TitleScreenState())
+	val state = GameStateManager(input, InGameState(
+		AreaState(area, AreaPosition(23, 40)),
+		StoryState(assets.playableCharacters[0], assets.playableCharacters[1])
+	))
 
 	val updateLoop = UpdateLoop({ _ ->
 		synchronized(state.lock()) {

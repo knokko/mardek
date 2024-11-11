@@ -1,6 +1,6 @@
 package mardek.state.story
 
-import mardek.state.character.PlayableCharacter
+import mardek.assets.PlayableCharacter
 
 class StoryState(val heroMardek: PlayableCharacter, val heroDeugan: PlayableCharacter) {
 

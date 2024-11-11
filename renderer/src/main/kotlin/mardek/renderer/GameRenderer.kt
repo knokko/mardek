@@ -4,6 +4,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
+import mardek.renderer.area.AreaResources
 import mardek.renderer.ui.SharedUiResources
 import mardek.renderer.ui.TitleScreenRenderer
 import mardek.state.GameState
@@ -16,13 +17,15 @@ import org.lwjgl.vulkan.VkRenderingAttachmentInfo
 class GameRenderer(
 	private val boiler: BoilerInstance,
 	private val targetImageFormat: Int,
-	private val numFramesInFlight: Int
+	private val numFramesInFlight: Int,
+	areaAssetsPath: String,
 ) {
 
 	private var lastState: GameState? = null
 	private lateinit var currentRenderer: StateRenderer
 
 	private val ui = SharedUiResources(boiler, targetImageFormat, numFramesInFlight)
+	private val areas = AreaResources(boiler, areaAssetsPath, targetImageFormat)
 
 	fun render(
 		state: GameState, recorder: CommandRecorder,
@@ -51,10 +54,11 @@ class GameRenderer(
 	fun destroy() {
 		if (this::currentRenderer.isInitialized) currentRenderer.destroy()
 		ui.destroy()
+		areas.destroy(boiler)
 	}
 
 	private fun createRenderer(state: GameState, targetImageFormat: Int, numFramesInFlight: Int): StateRenderer {
-		if (state is InGameState) return InGameRenderer(state, boiler, targetImageFormat, numFramesInFlight)
+		if (state is InGameState) return InGameRenderer(state, boiler, areas)
 		if (state is TitleScreenState) return TitleScreenRenderer(boiler, ui)
 
 		throw UnsupportedOperationException("Unexpected state $state")
