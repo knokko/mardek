@@ -22,8 +22,8 @@ import kotlin.collections.ArrayList
 
 class AreaSprites {
 
-	val characters = mutableListOf<DirectionalSpritesheet>()
-	val objects = mutableListOf<ObjectSpritesheet>()
+	private val characters = mutableListOf<DirectionalSpritesheet>()
+	private val objects = mutableListOf<ObjectSpritesheet>()
 	private val tileSpriteOffsets = mutableMapOf<Pair<String, Int>, IntArray>()
 
 	private val kimSprites = ArrayList<KimImage>()
@@ -33,6 +33,23 @@ class AreaSprites {
 	private var kimOffset = 0
 	private var highTileOffset = 0
 	private var tileOffset = 0
+
+	private fun registerSprite(sprite: KimImage): Int {
+		val result = kimOffset
+		kimOffset += sprite.data.size
+		kimSprites.add(sprite)
+		return result
+	}
+
+	private fun registerSheet(sheet: ObjectSpritesheet): ObjectSpritesheet {
+		if (sheet.indices == null) sheet.indices = sheet.frames!!.map(::registerSprite).toIntArray()
+		return sheet
+	}
+
+	private fun registerSheet(sheet: DirectionalSpritesheet): DirectionalSpritesheet {
+		if (sheet.indices == null) sheet.indices = sheet.sprites!!.map(::registerSprite).toIntArray()
+		return sheet
+	}
 
 	fun register(area: ParsedArea): OptimizedArea {
 		val tiles = parseTilesheet(area.tilesheetName)
@@ -49,19 +66,7 @@ class AreaSprites {
 
 		val canWalkGrid = BooleanArray(area.width * area.height)
 
-		fun registerSprite(sprite: KimImage): Int {
-			val result = kimOffset
-			kimOffset += sprite.data.size
-			kimSprites.add(sprite)
-			return result
-		}
-
 		val waterSpriteOffsets = tiles.waterSprites.map(::compress).map(::registerSprite).toIntArray()
-
-		fun registerSheet(sheet: ObjectSpritesheet): ObjectSpritesheet {
-			if (sheet.indices == null) sheet.indices = sheet.frames!!.map(::registerSprite).toIntArray()
-			return sheet
-		}
 
 		fun registerSwitch(switchObject: AreaSwitch, sheetName: String) {
 			val offSheet = registerSheet(getObject(sheetName, frameIndex = SwitchColor.Off.ordinal, numFrames = 1))
@@ -138,9 +143,7 @@ class AreaSprites {
 
 		for (character in area.objects.characters) {
 			val sheet = getCharacter(character.spritesheetName.replace("spritesheet_", ""))
-			if (sheet.indices != null) continue
-			sheet.indices = sheet.sprites!!.map(::registerSprite).toIntArray()
-			character.spritesheet = sheet
+			character.spritesheet = registerSheet(sheet)
 		}
 		for (decoration in area.objects.decorations) {
 			if (decoration.spritesheetName == null) continue
@@ -188,6 +191,9 @@ class AreaSprites {
 	}
 
 	fun writeRenderData(output: OutputStream) {
+		for (sheet in characters) registerSheet(sheet)
+		for (sheet in objects) registerSheet(sheet)
+
 		val data = DataOutputStream(output)
 
 		data.writeInt(kimOffset)

@@ -146,16 +146,18 @@ class TestAreaParser {
 			PlayableCharacter(sprites.getCharacter("mardek_hero")),
 			PlayableCharacter(sprites.getCharacter("deugan_hero"))
 		))
-		val startTime = System.nanoTime()
 
 		val outputFolder = File("../game/src/main/resources/mardek/game/")
+		assertNull(assets.playableCharacters[0].areaSheet.indices)
+		val renderOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/area-assets.bin").toPath()))
+		sprites.writeRenderData(renderOutput)
+		renderOutput.close()
+		assertNotNull(assets.playableCharacters[0].areaSheet.indices)
+
 		val bitOutput = BitOutputStream(BufferedOutputStream(Files.newOutputStream(File("$outputFolder/areas.bin").toPath())))
 		val bitser = Bitser(false)
 		bitser.serialize(assets, bitOutput)
 		bitOutput.finish()
-
-		val midTime1 = System.nanoTime()
-		println("encoding took ${(midTime1 - startTime) / 1000_000} ms")
 
 		val bitInput = BitInputStream(BufferedInputStream(Files.newInputStream(File("$outputFolder/areas.bin").toPath())))
 		val loaded = bitser.deserialize(GameAssets::class.java, bitInput)
@@ -163,15 +165,5 @@ class TestAreaParser {
 
 		assertEquals(assets.areas.size, loaded.areas.size)
 		assertEquals(assets.areas.sumOf { it.width }, loaded.areas.sumOf { it.width })
-
-		val midTime2 = System.nanoTime()
-		println("decoding took ${(midTime2 - midTime1) / 1000_000} ms")
-
-		val renderOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/area-assets.bin").toPath()))
-		sprites.writeRenderData(renderOutput)
-		renderOutput.close()
-
-		val endTime = System.nanoTime()
-		println("saving render data took ${(endTime - midTime2) / 1000_000} ms")
 	}
 }

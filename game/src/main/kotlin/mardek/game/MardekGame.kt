@@ -26,7 +26,7 @@ fun main() {
 	val boiler = GameRenderer.addBoilerRequirements(boilerBuilder).build()
 
 	val assets = GameAssets.load("mardek/game/areas.bin")
-	val area = assets.areas.find { it.properties.rawName == "aeropolis_S" }!!
+	val area = assets.areas.find { it.properties.rawName == "aeropolis_N" }!!
 
 	val input = InputManager()
 	//val state = GameStateManager(input, TitleScreenState())

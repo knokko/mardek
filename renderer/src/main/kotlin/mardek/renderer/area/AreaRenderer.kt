@@ -2,6 +2,7 @@ package mardek.renderer.area
 
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
+import mardek.assets.area.Direction
 import mardek.state.area.AreaState
 import mardek.state.story.StoryState
 import org.lwjgl.vulkan.VK10.*
@@ -51,8 +52,10 @@ class AreaRenderer(
 		var cameraX = 0
 		var cameraY = 0
 
+		val animationSize = 2 // TODO Maybe stop hardcoding this
+
 		var numEntities = 0
-		//val hostEntityBuffer = entityBuffers[frameIndex].intBuffer()
+		val hostEntityBuffer = resources.entityBuffers[frameIndex].intBuffer()
 		val nextPlayerPosition = state.nextPlayerPosition
 		for ((index, character) in story.party.withIndex().reversed()) {
 			if (character == null) continue
@@ -61,7 +64,6 @@ class AreaRenderer(
 			//var spriteIndex = entitySpriteIndices[character.areaModel] ?: throw IllegalStateException("Unexpected character $character")
 			val oldPosition = state.getPlayerPosition(index)
 			//val animationSize = character.areaModel.downSprites.size
-			val animationSize = 2 // TODO Maybe stop hardcoding this
 
 			var x = tileSize * oldPosition.x
 			var y = tileSize * oldPosition.y
@@ -103,9 +105,20 @@ class AreaRenderer(
 			if (directionX == 1) spriteIndex += 2 * animationSize
 			if (directionX == -1) spriteIndex += 3 * animationSize
 
-//			hostEntityBuffer.put(x)
-//			hostEntityBuffer.put(y)
-//			hostEntityBuffer.put(spriteIndex)
+			hostEntityBuffer.put(x)
+			hostEntityBuffer.put(y)
+			hostEntityBuffer.put(character.areaSheet.indices!![spriteIndex])
+			numEntities += 1
+		}
+
+		for (character in state.area.objects.characters) {
+			hostEntityBuffer.put(tileSize * character.startX)
+			hostEntityBuffer.put(tileSize * character.startY - 4 * scale)
+
+			val direction = character.startDirection ?: Direction.Down
+			val spriteIndex = animationSize * direction.ordinal
+			hostEntityBuffer.put(character.spritesheet!!.indices!![spriteIndex])
+
 			numEntities += 1
 		}
 
@@ -116,20 +129,12 @@ class AreaRenderer(
 			cameraY = min(state.area.height * tileSize - targetImage.height / 2, max(targetImage.height / 2, cameraY))
 		}
 
-//		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, waterPipeline)
-//		recorder.bindGraphicsDescriptors(resources.tiles.pipelineLayout, waterDescriptorSet)
-//		vkCmdPushConstants(
-//			recorder.commandBuffer, resources.tiles.pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
-//			recorder.stack.ints(targetImage.width, targetImage.height, cameraX, cameraY, scale)
-//		)
-//		vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
-
 		fun renderTiles(pipeline: Long, mapOffset: Int) {
 			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline)
-			recorder.bindGraphicsDescriptors(resources.pipelineLayout, resources.descriptorSet)
+			recorder.bindGraphicsDescriptors(resources.tilesPipelineLayout, resources.descriptorSet)
 
 			val water = state.area.waterSpriteOffsets
-			vkCmdPushConstants(recorder.commandBuffer, resources.pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, recorder.stack.ints(
+			vkCmdPushConstants(recorder.commandBuffer, resources.tilesPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, recorder.stack.ints(
 				state.area.width, state.area.height,
 				targetImage.width, targetImage.height,
 				cameraX, cameraY, scale, mapOffset,
@@ -139,26 +144,20 @@ class AreaRenderer(
 		}
 
 		renderTiles(resources.lowTilesPipeline, state.area.renderLowTilesOffset)
-		renderTiles(resources.highTilesPipeline, state.area.renderHighTilesOffset)
 
-//		for (entity in extraEntities) {
-//			hostEntityBuffer.put(tileSize * entity.tileX)
-//			hostEntityBuffer.put(tileSize * entity.tileY)
-//			hostEntityBuffer.put(entity.spriteIndex)
-//			numEntities += 1
-//		}
-//
-//		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.entities.graphicsPipeline)
-//		vkCmdBindVertexBuffers(
-//			recorder.commandBuffer, 0,
-//			recorder.stack.longs(entityBuffers[frameIndex].buffer.vkBuffer),
-//			recorder.stack.longs(entityBuffers[frameIndex].offset)
-//		)
-//		recorder.bindGraphicsDescriptors(resources.entities.pipelineLayout, entityDescriptorSet)
-//		vkCmdPushConstants(
-//			recorder.commandBuffer, resources.entities.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-//			recorder.stack.ints(targetImage.width, targetImage.height, cameraX, cameraY, scale)
-//		)
-//		vkCmdDraw(recorder.commandBuffer, 6, numEntities, 0, 0)
+		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.entitiesPipeline)
+		vkCmdBindVertexBuffers(
+			recorder.commandBuffer, 0,
+			recorder.stack.longs(resources.entityBuffers[frameIndex].buffer.vkBuffer),
+			recorder.stack.longs(resources.entityBuffers[frameIndex].offset)
+		)
+		recorder.bindGraphicsDescriptors(resources.entitiesPipelineLayout, resources.descriptorSet)
+		vkCmdPushConstants(
+			recorder.commandBuffer, resources.entitiesPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+			recorder.stack.ints(targetImage.width, targetImage.height, cameraX, cameraY, scale)
+		)
+		vkCmdDraw(recorder.commandBuffer, 6, numEntities, 0, 0)
+
+		renderTiles(resources.highTilesPipeline, state.area.renderHighTilesOffset)
 	}
 }

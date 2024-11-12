@@ -25,7 +25,7 @@ class GameRenderer(
 	private lateinit var currentRenderer: StateRenderer
 
 	private val ui = SharedUiResources(boiler, targetImageFormat, numFramesInFlight)
-	private val areas = AreaResources(boiler, areaAssetsPath, targetImageFormat)
+	private val areas = AreaResources(boiler, areaAssetsPath, numFramesInFlight, targetImageFormat)
 
 	fun render(
 		state: GameState, recorder: CommandRecorder,
