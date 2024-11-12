@@ -82,7 +82,10 @@ private fun loadMapsAndSprites(
 
 private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
 	val descriptorBindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
-	boiler.descriptors.binding(descriptorBindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+	boiler.descriptors.binding(
+		descriptorBindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+		VK_SHADER_STAGE_VERTEX_BIT or VK_SHADER_STAGE_FRAGMENT_BIT
+	)
 
 	boiler.descriptors.createLayout(stack, descriptorBindings, "AreaDescriptorLayout")
 }
@@ -162,7 +165,7 @@ class SharedAreaResources(boiler: BoilerInstance, resourcePath: String, framesIn
 			val entitiesVertexModule = boiler.pipelines.createShaderModule(
 				"mardek/renderer/area/entities.vert.spv", "EntitiesVertexShader"
 			)
-			val entitiesVertexShader = ShaderInfo(VK_SHADER_STAGE_VERTEX_BIT, entitiesVertexModule, null)
+			val entitiesVertexShader = ShaderInfo(VK_SHADER_STAGE_VERTEX_BIT, entitiesVertexModule, specialization)
 
 			val lowTilesFragmentModule = boiler.pipelines.createShaderModule(
 				"mardek/renderer/area/tiles-low.frag.spv", "LowTilesFragmentShader"

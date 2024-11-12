@@ -174,10 +174,14 @@ class AreaSprites {
 		for (platform in area.objects.switchPlatforms) registerSwitch(platform, "switch_platform")
 		for (transition in area.objects.transitions) {
 			if (transition.arrow == null) continue
-			val sheet = getObject(
-				"trans_arrows", numFrames = 1,
-				frameIndex = Direction.entries.find { it.abbreviation.uppercase(Locale.ROOT) == transition.arrow}!!.ordinal
-			)
+			val frameIndex = when (transition.arrow) {
+				"N" -> 0
+				"E" -> 1
+				"S" -> 2
+				"W" -> 3
+				else -> throw IllegalArgumentException("Unexpected arrow ${transition.arrow}")
+			}
+			val sheet = getObject("trans_arrows", numFrames = 1, frameIndex = frameIndex)
 			transition.arrowSprite = registerSheet(sheet)
 		}
 

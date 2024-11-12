@@ -13,11 +13,17 @@ abstract class AreaSwitch(
 	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
 
+	@BitField(ordering = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
 ) {
 
+	@BitField(ordering = 3)
+	@IntegerField(expectUniform = false, minValue = -1)
 	var offSpriteOffset = -1
+
+	@BitField(ordering = 4)
+	@IntegerField(expectUniform = false, minValue = -1)
 	var onSpriteOffset = -1
 
 	init {

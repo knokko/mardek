@@ -54,8 +54,73 @@ class AreaRenderer(
 
 		val animationSize = 2 // TODO Maybe stop hardcoding this
 
-		var numEntities = 0
 		val hostEntityBuffer = resources.entityBuffers[frameIndex].intBuffer()
+
+		for (character in state.area.objects.characters) {
+			hostEntityBuffer.put(tileSize * character.startX)
+			hostEntityBuffer.put(tileSize * character.startY - 4 * scale)
+
+			val direction = character.startDirection ?: Direction.Down
+			val spriteIndex = animationSize * direction.ordinal
+			hostEntityBuffer.put(character.spritesheet!!.indices!![spriteIndex])
+		}
+
+		for (decoration in state.area.objects.decorations) {
+			val spritesheet = decoration.spritesheet ?: continue
+
+			hostEntityBuffer.put(tileSize * decoration.x)
+			hostEntityBuffer.put(tileSize * decoration.y)
+			hostEntityBuffer.put(spritesheet.indices!![0])
+		}
+
+		for (door in state.area.objects.doors) {
+			hostEntityBuffer.put(tileSize * door.x)
+			hostEntityBuffer.put(tileSize * door.y)
+			hostEntityBuffer.put(door.spritesheet!!.indices!![0])
+		}
+
+		for (areaObject in state.area.objects.objects) {
+			val spritesheet = areaObject.spritesheet ?: continue
+
+			hostEntityBuffer.put(tileSize * areaObject.x)
+			hostEntityBuffer.put(tileSize * areaObject.y - 4 * scale)
+			hostEntityBuffer.put(spritesheet.indices!![0])
+		}
+
+		for (portal in state.area.objects.portals) {
+			val spritesheet = portal.spritesheet ?: continue
+
+			hostEntityBuffer.put(tileSize * portal.x)
+			hostEntityBuffer.put(tileSize * portal.y)
+			hostEntityBuffer.put(spritesheet.indices!![0])
+		}
+
+		for (gate in state.area.objects.switchGates) {
+			hostEntityBuffer.put(tileSize * gate.x)
+			hostEntityBuffer.put(tileSize * gate.y)
+			hostEntityBuffer.put(gate.onSpriteOffset)
+		}
+
+		for (orb in state.area.objects.switchOrbs) {
+			hostEntityBuffer.put(tileSize * orb.x)
+			hostEntityBuffer.put(tileSize * orb.y)
+			hostEntityBuffer.put(orb.onSpriteOffset)
+		}
+
+		for (platform in state.area.objects.switchPlatforms) {
+			hostEntityBuffer.put(tileSize * platform.x)
+			hostEntityBuffer.put(tileSize * platform.y)
+			hostEntityBuffer.put(platform.onSpriteOffset)
+		}
+
+		for (transition in state.area.objects.transitions) {
+			val spritesheet = transition.arrowSprite ?: continue
+
+			hostEntityBuffer.put(tileSize * transition.x)
+			hostEntityBuffer.put(tileSize * transition.y)
+			hostEntityBuffer.put(spritesheet.indices!![0])
+		}
+
 		val nextPlayerPosition = state.nextPlayerPosition
 		for ((index, character) in characters.party.withIndex().reversed()) {
 			if (character == null) continue
@@ -99,18 +164,6 @@ class AreaRenderer(
 			hostEntityBuffer.put(x)
 			hostEntityBuffer.put(y)
 			hostEntityBuffer.put(character.areaSheet.indices!![spriteIndex])
-			numEntities += 1
-		}
-
-		for (character in state.area.objects.characters) {
-			hostEntityBuffer.put(tileSize * character.startX)
-			hostEntityBuffer.put(tileSize * character.startY - 4 * scale)
-
-			val direction = character.startDirection ?: Direction.Down
-			val spriteIndex = animationSize * direction.ordinal
-			hostEntityBuffer.put(character.spritesheet!!.indices!![spriteIndex])
-
-			numEntities += 1
 		}
 
 		val minCameraX = targetImage.width / 2 - scissorLeft
@@ -147,7 +200,7 @@ class AreaRenderer(
 			recorder.commandBuffer, resources.entitiesPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
 			recorder.stack.ints(targetImage.width, targetImage.height, cameraX, cameraY, scale)
 		)
-		vkCmdDraw(recorder.commandBuffer, 6, numEntities, 0, 0)
+		vkCmdDraw(recorder.commandBuffer, 6, hostEntityBuffer.position() / 3, 0, 0)
 
 		renderTiles(resources.highTilesPipeline, state.area.renderHighTilesOffset)
 	}
