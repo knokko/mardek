@@ -4,7 +4,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import mardek.renderer.area.AreaResources
+import mardek.renderer.area.SharedAreaResources
 import mardek.renderer.ui.SharedUiResources
 import mardek.renderer.ui.TitleScreenRenderer
 import mardek.state.GameState
@@ -16,49 +16,41 @@ import org.lwjgl.vulkan.VkRenderingAttachmentInfo
 
 class GameRenderer(
 	private val boiler: BoilerInstance,
-	private val targetImageFormat: Int,
-	private val numFramesInFlight: Int,
+	targetImageFormat: Int,
+	numFramesInFlight: Int,
 	areaAssetsPath: String,
 ) {
 
-	private var lastState: GameState? = null
-	private lateinit var currentRenderer: StateRenderer
-
 	private val ui = SharedUiResources(boiler, targetImageFormat, numFramesInFlight)
-	private val areas = AreaResources(boiler, areaAssetsPath, numFramesInFlight, targetImageFormat)
+	private val areas = SharedAreaResources(boiler, areaAssetsPath, numFramesInFlight, targetImageFormat)
 
 	fun render(
 		state: GameState, recorder: CommandRecorder,
 		targetImage: VkbImage, frameIndex: Int
 	) {
-		if (state != lastState) {
-			if (this::currentRenderer.isInitialized) currentRenderer.destroy()
-			currentRenderer = createRenderer(state, targetImageFormat, numFramesInFlight)
-			lastState = state
-		}
+		val renderer = createRenderer(state)
 
 		val colorAttachments = VkRenderingAttachmentInfo.calloc(1, recorder.stack)
 		recorder.simpleColorRenderingAttachment(
 			colorAttachments.get(0), targetImage.vkImageView, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE,
-			0f, 0f, 0f, 1f
+			0f, 0f, 0f, 1f // TODO Let renderer decide background color
 		)
 		recorder.beginSimpleDynamicRendering(
 			targetImage.width, targetImage.height, colorAttachments, null, null
 		)
 
-		currentRenderer.render(recorder, targetImage, frameIndex)
+		renderer.render(recorder, targetImage, frameIndex)
 
 		recorder.endDynamicRendering()
 	}
 
 	fun destroy() {
-		if (this::currentRenderer.isInitialized) currentRenderer.destroy()
 		ui.destroy()
 		areas.destroy(boiler)
 	}
 
-	private fun createRenderer(state: GameState, targetImageFormat: Int, numFramesInFlight: Int): StateRenderer {
-		if (state is InGameState) return InGameRenderer(state, boiler, areas)
+	private fun createRenderer(state: GameState): StateRenderer {
+		if (state is InGameState) return InGameRenderer(state.progress, boiler, areas)
 		if (state is TitleScreenState) return TitleScreenRenderer(boiler, ui)
 
 		throw UnsupportedOperationException("Unexpected state $state")

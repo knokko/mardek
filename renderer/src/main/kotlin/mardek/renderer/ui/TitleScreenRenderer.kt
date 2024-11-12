@@ -15,8 +15,4 @@ class TitleScreenRenderer(boiler: BoilerInstance, private val sharedUI: SharedUi
 		))
 		sharedUI.textRenderers[frameIndex].recordCommands(recorder, targetImage.width, targetImage.height, textRequests)
 	}
-
-	override fun destroy() {
-		println("hmm")
-	}
 }

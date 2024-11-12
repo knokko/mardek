@@ -42,7 +42,7 @@ private fun loadMapsAndSprites(
 	boiler: BoilerInstance, resourcePath: String,
 	specialization: VkSpecializationInfo, stack: MemoryStack
 ): DeviceVkbBuffer {
-	val input = DataInputStream(BufferedInputStream(AreaResources::class.java.classLoader.getResourceAsStream(resourcePath)))
+	val input = DataInputStream(BufferedInputStream(SharedAreaResources::class.java.classLoader.getResourceAsStream(resourcePath)))
 
 	val generalSpritesSize = input.readInt()
 	val highTileSpritesSize = input.readInt()
@@ -114,7 +114,7 @@ private fun entityVertexInput(builder: GraphicsPipelineBuilder, stack: MemorySta
 	builder.ciPipeline.pVertexInputState(vertexInput)
 }
 
-class AreaResources(boiler: BoilerInstance, resourcePath: String, framesInFlight: Int, targetImageFormat: Int) {
+class SharedAreaResources(boiler: BoilerInstance, resourcePath: String, framesInFlight: Int, targetImageFormat: Int) {
 
 	private val deviceBuffer: DeviceVkbBuffer
 	val entityBuffers = createEntityBuffers(boiler, framesInFlight)
@@ -187,7 +187,7 @@ class AreaResources(boiler: BoilerInstance, resourcePath: String, framesInFlight
 			this.highTilesPipeline = highTiles.build("HighTilesPipeline")
 
 			val entitiesFragmentModule = boiler.pipelines.createShaderModule(
-				"mardek/renderer/area/entity.frag.spv", "EntitiesFragmentShader"
+				"mardek/renderer/area/entities.frag.spv", "EntitiesFragmentShader"
 			)
 			val entitiesFragmentShader = ShaderInfo(VK_SHADER_STAGE_FRAGMENT_BIT, entitiesFragmentModule, specialization)
 

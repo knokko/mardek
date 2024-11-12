@@ -1,13 +1,12 @@
 package mardek.state
 
 import mardek.input.InputManager
-import mardek.state.area.AreaState
-import mardek.state.story.StoryState
+import mardek.state.ingame.GameProgression
 import kotlin.time.Duration
 
-class InGameState(val area: AreaState, val story: StoryState): GameState {
+class InGameState(val progress: GameProgression): GameState {
 	override fun update(input: InputManager, timeStep: Duration): GameState {
-		area.update(input, timeStep)
+		progress.update(input, timeStep)
 		return this
 	}
 }

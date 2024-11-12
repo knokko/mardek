@@ -7,6 +7,4 @@ import com.github.knokko.boiler.images.VkbImage
 abstract class StateRenderer(protected val boiler: BoilerInstance) {
 
 	abstract fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int)
-
-	abstract fun destroy()
 }

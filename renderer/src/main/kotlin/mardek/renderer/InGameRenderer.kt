@@ -4,39 +4,17 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import mardek.renderer.area.AreaRenderer
-import mardek.renderer.area.AreaResources
-import mardek.renderer.area.SharedAreaResourcesOld
-import mardek.state.InGameState
-import org.lwjgl.system.MemoryStack.stackPush
+import mardek.renderer.area.SharedAreaResources
+import mardek.state.ingame.GameProgression
 
 class InGameRenderer(
-	private val state: InGameState,
+	private val progress: GameProgression,
 	boiler: BoilerInstance,
-	private val resources: AreaResources,
-//	private val targetImageFormat: Int,
-//	private val framesInFlight: Int
+	private val resources: SharedAreaResources,
 ): StateRenderer(boiler) {
 
-	//private val areaResources = stackPush().use { stack -> SharedAreaResourcesOld(boiler, stack, targetImageFormat) }
-	private var lastArea = state.area
-	private var areaRenderer = createAreaRenderer()
-
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		if (state.area != lastArea) {
-			//areaRenderer.destroy()
-			lastArea = state.area
-			areaRenderer = createAreaRenderer()
-		}
-		areaRenderer.render(recorder, targetImage, frameIndex)
-	}
-
-	override fun destroy() {
-		//areaRenderer.destroy()
-		//areaResources.destroy()
-	}
-
-	private fun createAreaRenderer() = stackPush().use {
-		//stack -> AreaRendererOld(lastArea, state.story, boiler, areaResources, stack, framesInFlight)
-		stack -> AreaRenderer(lastArea, state.story, resources)
+		val area = progress.currentArea
+		if (area != null) AreaRenderer(area, progress.characters, resources).render(recorder, targetImage, frameIndex)
 	}
 }

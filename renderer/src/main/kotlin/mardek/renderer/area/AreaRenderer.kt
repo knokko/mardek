@@ -3,8 +3,8 @@ package mardek.renderer.area
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import mardek.assets.area.Direction
-import mardek.state.area.AreaState
-import mardek.state.story.StoryState
+import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.characters.CharactersState
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkRect2D
 import kotlin.math.max
@@ -13,8 +13,8 @@ import kotlin.math.roundToInt
 
 class AreaRenderer(
 	private val state: AreaState,
-	private val story: StoryState,
-	private val resources: AreaResources,
+	private val characters: CharactersState,
+	private val resources: SharedAreaResources,
 ) {
 
 	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
@@ -57,13 +57,11 @@ class AreaRenderer(
 		var numEntities = 0
 		val hostEntityBuffer = resources.entityBuffers[frameIndex].intBuffer()
 		val nextPlayerPosition = state.nextPlayerPosition
-		for ((index, character) in story.party.withIndex().reversed()) {
+		for ((index, character) in characters.party.withIndex().reversed()) {
 			if (character == null) continue
 
 			var spriteIndex = 0
-			//var spriteIndex = entitySpriteIndices[character.areaModel] ?: throw IllegalStateException("Unexpected character $character")
 			val oldPosition = state.getPlayerPosition(index)
-			//val animationSize = character.areaModel.downSprites.size
 
 			var x = tileSize * oldPosition.x
 			var y = tileSize * oldPosition.y
@@ -86,24 +84,17 @@ class AreaRenderer(
 
 			y -= 4 * scale
 
-			var directionX: Int
-			var directionY: Int
-			if (index == 0) {
-				if (nextPlayerPosition == null) {
-					directionX = state.lastPlayerDirectionX
-					directionY = state.lastPlayerDirectionY
-				} else {
-					directionX = nextPlayerPosition.position.x - oldPosition.x
-					directionY = nextPlayerPosition.position.y - oldPosition.y
-				}
-			} else {
-				directionX = state.getPlayerPosition(index - 1).x - oldPosition.x
-				directionY = state.getPlayerPosition(index - 1).y - oldPosition.y
-			}
+			val direction = if (index == 0) {
+				if (nextPlayerPosition == null) state.lastPlayerDirection else Direction.delta(
+					nextPlayerPosition.position.x - oldPosition.x,
+					nextPlayerPosition.position.y - oldPosition.y
+				)!!
+			} else Direction.delta(
+				state.getPlayerPosition(index - 1).x - oldPosition.x,
+				state.getPlayerPosition(index - 1).y - oldPosition.y
+			) ?: Direction.Down
 
-			if (directionY == -1) spriteIndex += animationSize
-			if (directionX == 1) spriteIndex += 2 * animationSize
-			if (directionX == -1) spriteIndex += 3 * animationSize
+			spriteIndex += animationSize * direction.ordinal
 
 			hostEntityBuffer.put(x)
 			hostEntityBuffer.put(y)
