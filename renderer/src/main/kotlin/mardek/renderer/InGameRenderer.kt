@@ -3,11 +3,13 @@ package mardek.renderer
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
+import mardek.assets.GameAssets
 import mardek.renderer.area.AreaRenderer
 import mardek.renderer.area.SharedAreaResources
 import mardek.state.ingame.GameProgression
 
 class InGameRenderer(
+	private val assets: GameAssets,
 	private val progress: GameProgression,
 	boiler: BoilerInstance,
 	private val resources: SharedAreaResources,
@@ -15,6 +17,6 @@ class InGameRenderer(
 
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
 		val area = progress.currentArea
-		if (area != null) AreaRenderer(area, progress.characters, resources).render(recorder, targetImage, frameIndex)
+		if (area != null) AreaRenderer(assets, area, progress.characters, resources).render(recorder, targetImage, frameIndex)
 	}
 }

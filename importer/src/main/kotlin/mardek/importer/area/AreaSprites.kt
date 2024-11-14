@@ -171,7 +171,10 @@ class AreaSprites {
 		}
 		for (gate in area.objects.switchGates) registerSwitch(gate, "switch_gate")
 		for (orb in area.objects.switchOrbs) registerSwitch(orb, "switch_orb")
-		for (platform in area.objects.switchPlatforms) registerSwitch(platform, "switch_platform")
+		for (platform in area.objects.switchPlatforms) {
+			registerSwitch(platform, "switch_platform")
+			canWalkGrid[platform.x + area.width * platform.y] = true
+		}
 		for (transition in area.objects.transitions) {
 			if (transition.arrow == null) continue
 			val frameIndex = when (transition.arrow) {

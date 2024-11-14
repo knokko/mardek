@@ -6,5 +6,8 @@ enum class InputKey {
 	MoveRight,
 	MoveDown,
 	Interact,
-	Cancel
+	Cancel,
+	Cheat,
+	ScrollUp,
+	ScrollDown
 }

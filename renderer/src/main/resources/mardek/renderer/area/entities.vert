@@ -26,7 +26,7 @@ void main() {
 	textureCoordinates = textureCoordinateMapping[gl_VertexIndex];
 
 	ivec2 extraOffset = ivec2(0, 0);
-	if (spriteSize.y > 16) extraOffset.y -= 16 * scale;
+	if (spriteSize.y >= 32) extraOffset.y -= 16 * scale;
 	vec2 relative = 2.0 * vec2(offset + extraOffset - cameraOffset) / vec2(screenSize);
 	gl_Position = vec4(relative + 2.0 * scale * spriteSize * textureCoordinates / vec2(screenSize), 0.0, 1.0);
 	propagateSpriteOffset = spriteOffset;

@@ -404,7 +404,7 @@ class TestAreaEntityParser {
 	}
 
 	@Test
-	fun testParseDreamCircleTriggerEnter() {
+	fun testParseDreamCircleEnterCanoniaWoods() {
 		val actual = parseAreaEntityRaw(
 			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:23,y:61,triggers:-1,WALKON:true,ExecuteScript:function()\n" +
 					"{\n" +
@@ -418,6 +418,24 @@ class TestAreaEntityParser {
 		)
 		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
 			"canonia_woods_d", 23, 61, direction = null, discoveredAreaName = null
+		))
+		assertEquals(expected, actual)
+	}
+
+	@Test
+	fun testParseDreamCircleEnterTaintedGrotto() {
+		val actual = parseAreaEntityRaw(
+				"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:33,y:24,triggers:-1,WALKON:true,ExecuteScript:function()\n" +
+						"{\n" +
+						"   if(!HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
+						"   {\n" +
+						"      return undefined;\n" +
+						"   }\n" +
+						"   _root.WarpTrans([\"pcave3_d\",33,24]);\n" +
+						"}}"
+		)
+		val expected = AreaPortal(x = 33, y = 24, destination = TransitionDestination(
+				"pcave3_d", 33, 24, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}

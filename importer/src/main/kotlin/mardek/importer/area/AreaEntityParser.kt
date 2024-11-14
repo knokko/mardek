@@ -156,6 +156,9 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 			if (flashCode.contains("_root.EnterDreamrealm();") && numSemicolons == 3) {
 				isSimplePortalOrDreamCircle = true
 			}
+			if (flashCode.contains("!HASPLOTITEM(\"Talisman of ONEIROS\")") && numSemicolons == 2) {
+				isSimplePortalOrDreamCircle = true
+			}
 
 			if (isSimplePortalOrDreamCircle) return AreaPortal(x = x, y = y, destination = destination)
 		}

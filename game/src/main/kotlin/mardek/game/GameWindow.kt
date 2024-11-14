@@ -9,6 +9,7 @@ import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.profiler.SampleProfiler
 import com.github.knokko.profiler.storage.SampleStorage
 import com.github.knokko.update.UpdateCounter
+import mardek.assets.GameAssets
 import mardek.renderer.GameRenderer
 import mardek.state.ExitState
 import mardek.state.GameStateManager
@@ -16,6 +17,7 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
 
 class GameWindow(
+	private val assets: GameAssets,
 	window: VkbWindow,
 	private val state: GameStateManager,
 ): SimpleWindowRenderLoop(
@@ -31,7 +33,7 @@ class GameWindow(
 
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
-		renderer = GameRenderer(boiler, window.surfaceFormat, numFramesInFlight, "mardek/game/area-assets.bin")
+		renderer = GameRenderer(assets, boiler, window.surfaceFormat, numFramesInFlight, "mardek/game/area-assets.bin")
 	}
 //	init {
 //		profiler.start()

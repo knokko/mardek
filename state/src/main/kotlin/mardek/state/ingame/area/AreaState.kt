@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.assets.area.Direction
 import mardek.assets.area.OptimizedArea
+import mardek.assets.area.TransitionDestination
 import mardek.input.InputKey
 import mardek.input.InputManager
 import kotlin.time.Duration
@@ -34,13 +35,74 @@ class AreaState(
 	var nextPlayerPosition: NextAreaPosition? = null
 		private set
 
-	fun update(input: InputManager, timeStep: Duration) {
+	var nextTransition: TransitionDestination? = null
+
+	fun update(input: InputManager, timeStep: Duration, shouldInteract: Boolean) {
 		updatePlayerPosition()
 		processInput(input)
+		if (shouldInteract) interact()
 		currentTime += timeStep
 	}
 
+	private fun interact() {
+		if (nextTransition != null || nextPlayerPosition != null) return
+
+		val x = playerPositions[0].x + lastPlayerDirection.deltaX
+		val y = playerPositions[0].y + lastPlayerDirection.deltaY
+
+		for (character in area.objects.characters) {
+			if (x == character.startX && y == character.startY) {
+				println("interact with $character")
+			}
+		}
+
+		for (door in area.objects.doors) {
+			if (x == door.x && y == door.y) {
+				nextPlayerPosition = NextAreaPosition(AreaPosition(x, y), currentTime, currentTime + 1.seconds)
+				return
+			}
+		}
+
+		for (areaObject in area.objects.objects) {
+			if (x == areaObject.x && y == areaObject.y) {
+				println("interact with $areaObject")
+			}
+		}
+
+		for (shop in area.objects.shops) {
+			if (x == shop.x && y == shop.y) println("open shop $shop")
+		}
+
+		for (orb in area.objects.switchOrbs) {
+			if (x == orb.x && y == orb.y) println("switch color " + orb.color)
+		}
+
+		for (trigger in area.objects.talkTriggers) {
+			if (x == trigger.x && y == trigger.y) println("trigger $trigger")
+		}
+	}
+
 	fun getPlayerPosition(index: Int) = playerPositions[index]
+
+	private fun checkTransitions() {
+		for (door in area.objects.doors) {
+			if (playerPositions[0].x == door.x && playerPositions[0].y == door.y) {
+				nextTransition = door.destination;
+			}
+		}
+
+		for (portal in area.objects.portals) {
+			if (playerPositions[0].x == portal.x && playerPositions[0].y == portal.y) {
+				nextTransition = portal.destination
+			}
+		}
+
+		for (transition in area.objects.transitions) {
+			if (playerPositions[0].x == transition.x && playerPositions[0].y == transition.y) {
+				nextTransition = transition.destination;
+			}
+		}
+	}
 
 	private fun updatePlayerPosition() {
 		val nextPlayerPosition = this.nextPlayerPosition
@@ -54,18 +116,11 @@ class AreaState(
 			)!!
 			playerPositions[0] = nextPlayerPosition.position
 			this.nextPlayerPosition = null
+			checkTransitions()
 		}
 	}
 
 	private fun processInput(input: InputManager) {
-		while (true) {
-			val event = input.consumeEvent() ?: break
-
-			if (event.key == InputKey.Interact && event.didPress) {
-				// TODO Interact
-			}
-		}
-
 		if (nextPlayerPosition == null) {
 			var moveDirection: Direction? = null
 			if (input.isPressed(InputKey.MoveLeft)) moveDirection = Direction.Left
@@ -76,7 +131,7 @@ class AreaState(
 			if (moveDirection != null) {
 				val nextX = playerPositions[0].x + moveDirection.deltaX
 				val nextY = playerPositions[0].y + moveDirection.deltaY
-				if (area.canWalkAt(nextX, nextY)) {
+				if (canWalkTo(input, nextX, nextY)) {
 					nextPlayerPosition = NextAreaPosition(
 						AreaPosition(nextX, nextY), currentTime, currentTime + 0.2.seconds
 					)
@@ -85,5 +140,30 @@ class AreaState(
 				}
 			}
 		}
+	}
+
+	private fun canWalkTo(input: InputManager, x: Int, y: Int): Boolean {
+		if (x < 0 || y < 0) return false
+		if (input.isPressed(InputKey.Cheat)) return true
+		if (!area.canWalkOnTime(x, y)) return false
+
+		// TODO Movable characters
+		for (character in area.objects.characters) {
+			if (x == character.startX && y == character.startY) return false
+		}
+
+		for (door in area.objects.doors) {
+			if (x == door.x && y == door.y) return false
+		}
+
+		for (areaObject in area.objects.objects) {
+			if (x == areaObject.x && y == areaObject.y) return false
+		}
+
+		for (orb in area.objects.switchOrbs) {
+			if (x == orb.x && y == orb.y) return false
+		}
+		// TODO Switch gates and platforms
+		return true
 	}
 }

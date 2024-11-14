@@ -55,7 +55,7 @@ class OptimizedArea(
 		AreaFlags(), AreaProperties(), 0, 0, IntArray(0)
 	)
 
-	fun canWalkAt(x: Int, y: Int): Boolean {
+	fun canWalkOnTime(x: Int, y: Int): Boolean {
 		return if (x < 0 || x >= width || y < 0 || y >= height) false
 		else canWalkGrid[x + y * width]
 	}

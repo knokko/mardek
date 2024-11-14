@@ -25,9 +25,11 @@ vec4 computeColor(uint packedTile, ivec2 tilePixel) {
 		else waterBackgroundColor = sampleKim(waterSpriteOffsets[1], tilePixel);
 
 		vec4 waterBaseColor = sampleKim(waterSpriteOffsets[waterType], tilePixel);
-		waterBaseColor.a = 0.3;
-		waterColor = vec4(waterBaseColor.a * linearToSrgb(waterBaseColor.rgb) + (1.0 - waterBaseColor.a) * linearToSrgb(waterBackgroundColor.rgb), 1.0);
-		waterColor = vec4(srgbToLinear(waterColor.rgb), 1.0);
+		if (waterType == 2) {
+			waterBaseColor.a = 0.3;
+			waterColor = vec4(waterBaseColor.a * linearToSrgb(waterBaseColor.rgb) + (1.0 - waterBaseColor.a) * linearToSrgb(waterBackgroundColor.rgb), 1.0);
+			waterColor = vec4(srgbToLinear(waterColor.rgb), 1.0);
+		} else waterColor = waterBaseColor;
 	}
 
 	return vec4(tileColor.a * tileColor.rgb + (1.0 - tileColor.a) * waterColor.rgb, max(tileColor.a, waterColor.a));

@@ -32,7 +32,7 @@ fun main() {
 	val input = InputManager()
 	//val state = GameStateManager(input, TitleScreenState())
 	val state = GameStateManager(input, InGameState(
-		GameProgression(AreaState(area, AreaPosition(23, 40)), CharactersState(
+		assets, GameProgression(AreaState(area, AreaPosition(3, 4)), CharactersState(
 			available = mutableSetOf(assets.playableCharacters[0], assets.playableCharacters[1]),
 			unavailable = mutableSetOf(),
 			party = arrayOf(assets.playableCharacters[0], assets.playableCharacters[1], null, null)
@@ -52,7 +52,7 @@ fun main() {
 	inputListener.register()
 
 	val eventLoop = WindowEventLoop(0.01, inputListener::update)
-	eventLoop.addWindow(GameWindow(boiler.window(), state))
+	eventLoop.addWindow(GameWindow(assets, boiler.window(), state))
 	eventLoop.runMain()
 
 	boiler.destroyInitialObjects()

@@ -2,6 +2,8 @@ package mardek.renderer.area
 
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
+import mardek.assets.GameAssets
+import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.characters.CharactersState
@@ -12,6 +14,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 class AreaRenderer(
+	private val assets: GameAssets,
 	private val state: AreaState,
 	private val characters: CharactersState,
 	private val resources: SharedAreaResources,
@@ -90,6 +93,13 @@ class AreaRenderer(
 		for (portal in state.area.objects.portals) {
 			val spritesheet = portal.spritesheet ?: continue
 
+			val isDream = state.area.properties.dreamType != AreaDreamType.None
+			val destination = assets.areas.find { it.properties.rawName == portal.destination.areaName } ?: continue
+
+			// When exactly 1 of the current area and destination is a dream area, the portal must be a dream circle
+			// Hence we should not render the portal texture
+			if (isDream != (destination.properties.dreamType != AreaDreamType.None)) continue
+
 			hostEntityBuffer.put(tileSize * portal.x)
 			hostEntityBuffer.put(tileSize * portal.y)
 			hostEntityBuffer.put(spritesheet.indices!![0])
@@ -166,11 +176,13 @@ class AreaRenderer(
 			hostEntityBuffer.put(character.areaSheet.indices!![spriteIndex])
 		}
 
-		val minCameraX = targetImage.width / 2 - scissorLeft
-		val maxCameraX = state.area.width * tileSize - targetImage.width / 2 + scissorLeft
-		if (state.area.width * tileSize > targetImage.width) cameraX = min(maxCameraX, max(minCameraX, cameraX))
-		if (state.area.height * tileSize > targetImage.height) {
-			cameraY = min(state.area.height * tileSize - targetImage.height / 2, max(targetImage.height / 2, cameraY))
+		if (state.area.flags.noMovingCamera) {
+			val minCameraX = targetImage.width / 2 - scissorLeft
+			val maxCameraX = state.area.width * tileSize - targetImage.width / 2 + scissorLeft
+			if (state.area.width * tileSize > targetImage.width) cameraX = min(maxCameraX, max(minCameraX, cameraX))
+			if (state.area.height * tileSize > targetImage.height) {
+				cameraY = min(state.area.height * tileSize - targetImage.height / 2, max(targetImage.height / 2, cameraY))
+			}
 		}
 
 		fun renderTiles(pipeline: Long, mapOffset: Int) {

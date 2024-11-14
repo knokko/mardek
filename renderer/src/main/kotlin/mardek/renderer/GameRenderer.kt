@@ -4,6 +4,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
+import mardek.assets.GameAssets
 import mardek.renderer.area.SharedAreaResources
 import mardek.renderer.ui.SharedUiResources
 import mardek.renderer.ui.TitleScreenRenderer
@@ -15,6 +16,7 @@ import org.lwjgl.vulkan.VK10.VK_ATTACHMENT_STORE_OP_STORE
 import org.lwjgl.vulkan.VkRenderingAttachmentInfo
 
 class GameRenderer(
+	private val assets: GameAssets,
 	private val boiler: BoilerInstance,
 	targetImageFormat: Int,
 	numFramesInFlight: Int,
@@ -50,7 +52,7 @@ class GameRenderer(
 	}
 
 	private fun createRenderer(state: GameState): StateRenderer {
-		if (state is InGameState) return InGameRenderer(state.progress, boiler, areas)
+		if (state is InGameState) return InGameRenderer(assets, state.progress, boiler, areas)
 		if (state is TitleScreenState) return TitleScreenRenderer(boiler, ui)
 
 		throw UnsupportedOperationException("Unexpected state $state")
