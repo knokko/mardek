@@ -126,7 +126,7 @@ private fun parseAmbience(raw: String?): AreaAmbience? {
 }
 
 private fun parseArea1(areaName: String): ParsingArea1 {
-	val scanner = Scanner(TileSlice::class.java.getResourceAsStream("data/$areaName.txt"))
+	val scanner = Scanner(HexObject::class.java.getResourceAsStream("data/$areaName.txt"))
 	val lines = mutableListOf<String>()
 	while (scanner.hasNextLine()) lines.add(scanner.nextLine())
 	scanner.close()

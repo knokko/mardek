@@ -17,7 +17,7 @@ private val GREEN_ENCODING = Color.GREEN.rgb
 private val DARK_GREEN_ENCODING = Color(0f, .6f, 0f).rgb
 
 fun parseTilesheet(name: String): ParsedTilesheet {
-	val sheetInput = TileSlice::class.java.getResourceAsStream("tilesheets/$name.png")
+	val sheetInput = HexObject::class.java.getResourceAsStream("tilesheets/$name.png")
 	val tilesheet = ImageIO.read(sheetInput)
 	sheetInput.close()
 
