@@ -17,13 +17,16 @@ import org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 import org.lwjgl.vulkan.VK12.VK_API_VERSION_1_2
 import kotlin.time.Duration.Companion.milliseconds
 
-fun main() {
+fun main(args: Array<String>) {
+	if (args.contains("self-test1")) {
+		selfTest1()
+		return
+	}
+
 	val boilerBuilder = BoilerBuilder(
 		VK_API_VERSION_1_2, "MardekKt", 1
-	)
-		.validation()
-		.forbidValidationErrors()
-		.addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+	).addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+	if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()
 	val boiler = GameRenderer.addBoilerRequirements(boilerBuilder).build()
 
 	val assets = GameAssets.load("mardek/game/areas.bin")
