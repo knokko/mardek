@@ -1,4 +1,4 @@
-name: Testing on Linux
+name: Testing and building releases
 
 on: [push, pull_request]
 

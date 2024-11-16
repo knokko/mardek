@@ -4,6 +4,7 @@ layout(location = 0) in ivec2 offset;
 layout(location = 1) in int spriteOffset;
 
 #include "base.glsl"
+#include "kim1.glsl"
 
 layout(push_constant) uniform PushConstants {
 	ivec2 screenSize;
@@ -20,9 +21,7 @@ vec2 textureCoordinateMapping[] = {
 };
 
 void main() {
-	uint kim1Header = mapAndSprites[spriteOffset];
-	uvec2 spriteSize = uvec2(kim1Header & 1023u, (kim1Header >> 10) & 1023u);
-
+	uvec2 spriteSize = getKimImageSize(mapAndSprites[spriteOffset]);
 	textureCoordinates = textureCoordinateMapping[gl_VertexIndex];
 
 	ivec2 extraOffset = ivec2(0, 0);

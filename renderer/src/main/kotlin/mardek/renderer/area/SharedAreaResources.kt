@@ -213,7 +213,7 @@ class SharedAreaResources(boiler: BoilerInstance, resourcePath: String, framesIn
 			)
 			vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null)
 		}
-		println("Took ${(System.nanoTime() - startTime) / 1_000_000} ms")
+		println("Preparing area resources took ${(System.nanoTime() - startTime) / 1_000_000} ms")
 	}
 
 	fun destroy(boiler: BoilerInstance) {

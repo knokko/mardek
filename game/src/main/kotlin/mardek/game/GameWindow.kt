@@ -33,7 +33,10 @@ class GameWindow(
 
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
-		renderer = GameRenderer(assets, boiler, window.surfaceFormat, numFramesInFlight, "mardek/game/area-assets.bin")
+		renderer = GameRenderer(
+			assets, boiler, window.surfaceFormat, numFramesInFlight,
+			"mardek/game/area-assets.bin", "mardek/game/ui-assets.bin"
+		)
 	}
 //	init {
 //		profiler.start()

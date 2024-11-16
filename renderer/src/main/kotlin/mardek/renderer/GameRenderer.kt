@@ -21,9 +21,10 @@ class GameRenderer(
 	targetImageFormat: Int,
 	numFramesInFlight: Int,
 	areaAssetsPath: String,
+	uiAssetsPath: String,
 ) {
 
-	private val ui = SharedUiResources(boiler, targetImageFormat, numFramesInFlight)
+	private val ui = SharedUiResources(boiler, uiAssetsPath, targetImageFormat, numFramesInFlight)
 	private val areas = SharedAreaResources(boiler, areaAssetsPath, numFramesInFlight, targetImageFormat)
 
 	fun render(
@@ -61,7 +62,9 @@ class GameRenderer(
 	companion object {
 		fun addBoilerRequirements(builder: BoilerBuilder): BoilerBuilder = builder
 			.enableDynamicRendering()
-			.requiredFeatures12 { it.shaderSampledImageArrayNonUniformIndexing() }
-			.featurePicker12 { _, _, toEnable -> toEnable.shaderSampledImageArrayNonUniformIndexing(true) }
+			.requiredFeatures10 { it.textureCompressionBC() }
+			.featurePicker10 { _, _, toEnable -> toEnable.textureCompressionBC(true) }
+//			.requiredFeatures12 { it.shaderSampledImageArrayNonUniformIndexing() }
+//			.featurePicker12 { _, _, toEnable -> toEnable.shaderSampledImageArrayNonUniformIndexing(true) }
 	}
 }

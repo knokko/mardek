@@ -1,12 +1,13 @@
 package mardek.assets.area.sprites
 
+import com.github.knokko.compressor.Kim1Decompressor
+
 @JvmInline
 value class KimImage(val data: IntArray) {
 
-	// TODO width and height should probably become part of vk-compressor
 	val width: Int
-		get() = data[0] and 1023
+		get() = Kim1Decompressor.width(data[0])
 
 	val height: Int
-		get() = (data[0] shr 10) and 1023
+		get() = Kim1Decompressor.height(data[0])
 }

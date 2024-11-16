@@ -1,6 +1,6 @@
 float srgbToLinear(float srgb) {
 	if (srgb <= 0.04) return srgb / 12.92;
-	else return pow((srgb + 0.044) / 1.055, 2.4);
+	else return pow((srgb + 0.055) / 1.055, 2.4);
 }
 
 vec3 srgbToLinear(vec3 srgb) {
@@ -28,6 +28,10 @@ uint computeBitsPerPixel(uint numColors) {
 	return 32 - leadingZeros(numColors - 1);
 }
 
+uvec2 getKimImageSize(uint header) {
+	return uvec2(unpack(header, 0, 10), unpack(header, 10, 10));
+}
+
 #define defineReadInt(kimBufferName) uint readInt(uint bitIndex, uint bitLength) {\
 	uint intIndex1 = bitIndex / 32;\
 	uint bitIndex1 = bitIndex % 32;\
@@ -42,14 +46,13 @@ uint computeBitsPerPixel(uint numColors) {
 	}\
 }
 
-#define	defineSampleKimFloat(kimBufferName) defineSampleKim(kimBufferName, vec2, clamp(int(textureCoordinates.x * width), 0, width - 1), clamp(int(textureCoordinates.y * height), 0, height - 1))
+#define	defineSampleKimFloat(kimBufferName) defineSampleKim(kimBufferName, vec2, clamp(int(textureCoordinates.x * size.x), 0, size.x - 1), clamp(int(textureCoordinates.y * size.y), 0, size.y - 1))
 
 #define	defineSampleKimInt(kimBufferName) defineSampleKim(kimBufferName, uvec2, textureCoordinates.x, textureCoordinates.y)
 
 #define defineSampleKim(kimBufferName, textureCoordinatesType, computeX, computeY) vec4 sampleKim(uint offset, textureCoordinatesType textureCoordinates) {\
 	uint header = kimBufferName[offset];\
-	uint width = unpack(header, 0, 10);\
-	uint height = unpack(header, 10, 10);\
+	uvec2 size = getKimImageSize(header);\
 	uint numColors = unpack(header, 20, 10);\
 	uint numChannels = 1 + unpack(header, 30, 2);\
 \
@@ -57,7 +60,7 @@ uint computeBitsPerPixel(uint numColors) {
 	uint y = computeY;\
 \
 	uint bitsPerPixel = computeBitsPerPixel(numColors);\
-	uint colorIndex = readInt(32 * offset + 32 + 8 * numColors * numChannels + bitsPerPixel * (x + y * width), bitsPerPixel);\
+	uint colorIndex = readInt(32 * offset + 32 + 8 * numColors * numChannels + bitsPerPixel * (x + y * size.x), bitsPerPixel);\
 \
 	uint color = readInt(32 * offset + 32 + colorIndex * 8 * numChannels, 8 * numChannels);\
 	uint ured = color & 255u;\

@@ -32,9 +32,9 @@ allprojects {
 	
 	project.ext.jomlVersion = "1.10.1"
 	project.ext.lwjglVersion = "3.3.4"
-	project.ext.boilerVersion = "v4.2.0"
+	project.ext.boilerVersion = "v4.3.0"
 	project.ext.textRenderVersion = "v0.1.0"
-	project.ext.compressorVersion = "v0.2.1"
+	project.ext.compressorVersion = "v0.2.2"
 	project.ext.bitserVersion = "0a1f2b6904"
 	switch (OperatingSystem.current()) {
 		case OperatingSystem.LINUX:
@@ -87,6 +87,7 @@ allprojects {
 project(":assets") {
 	dependencies {
 		api "com.github.knokko:bitser:$bitserVersion"
+		implementation "com.github.knokko:vk-compressor:$compressorVersion"
 	}
 }
 
@@ -149,10 +150,10 @@ project(":game") {
 
 project(":importer") {
 	dependencies {
+		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+		for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
 		implementation files("../flash/ffdec_lib.jar")
 		implementation project(":assets")
-		implementation "com.github.knokko:vk-boiler:$boilerVersion"
-		implementation "com.github.knokko:vk-compressor:$compressorVersion"
 	}
 }
 
@@ -184,6 +185,7 @@ project(":renderer") {
 		for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
 		implementation project(":assets")
 		implementation project(":state")
+		implementation project(":ui-renderer")
 	}
 }
 
@@ -191,5 +193,12 @@ project(":state") {
 	dependencies {
 		implementation project(":assets")
 		implementation project(":input")
+	}
+}
+
+project(":ui-renderer") {
+	dependencies {
+		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+		for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
 	}
 }
