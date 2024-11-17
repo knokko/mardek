@@ -56,7 +56,7 @@ class SharedUiResources(
 			var stagingOffset = 0L
 			for (image in bc1Images) {
 				val stagingSize = image.width * image.height / 2
-				input.read(propagationBuffer, 0, stagingSize)
+				input.readFully(propagationBuffer, 0, stagingSize)
 				stagingBuffer.mappedRange(
 					stagingOffset, stagingSize.toLong()).byteBuffer().put(propagationBuffer, 0, stagingSize
 				)
