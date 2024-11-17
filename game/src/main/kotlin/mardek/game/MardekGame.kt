@@ -27,6 +27,7 @@ fun main(args: Array<String>) {
 		VK_API_VERSION_1_2, "MardekKt", 1
 	).addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
 	if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()
+	if (args.contains("api-dump")) boilerBuilder.apiDump()
 	val boiler = GameRenderer.addBoilerRequirements(boilerBuilder).build()
 
 	val assets = GameAssets.load("mardek/game/areas.bin")
