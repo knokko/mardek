@@ -64,8 +64,7 @@ class SharedUiResources(
 				stagingOffset += stagingSize
 			}
 
-			//val destUsage = ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
-			val destUsage = ResourceUsage(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT)
+			val destUsage = ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
 			for (image in bc1Images) {
 				recorder.transitionLayout(image, ResourceUsage.TRANSFER_DEST, destUsage)
 			}

@@ -1,0 +1,10 @@
+lines 1440 - 1525: allocate render command buffers
+lines 2333 - 2700: create the problematic image, performs the copy & barriers, and awaits the fence
+lines 2564 - 2645: the layout transitions of the problematic image
+lines 3025 - 3340: samples the problematic image during a draw call
+lines 3639 - 3680: another problematic draw call for the same image
+
+line 3935: validation error about the first draw call
+line 3939: validation error about the second draw call
+
+(Since the validation error is reported asynchronously by vvl, it doesn't appear immediately.)
