@@ -52,10 +52,11 @@ public class UiRenderInstance {
 		);
 		try (var stack = stackPush()) {
 
-			var baseBindings = VkDescriptorSetLayoutBinding.calloc(3, stack);
+			var baseBindings = VkDescriptorSetLayoutBinding.calloc(4, stack);
 			boiler.descriptors.binding(baseBindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
 			boiler.descriptors.binding(baseBindings, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
-			boiler.descriptors.binding(baseBindings, 2, VK_DESCRIPTOR_TYPE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+			boiler.descriptors.binding(baseBindings, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
+			boiler.descriptors.binding(baseBindings, 3, VK_DESCRIPTOR_TYPE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
 			this.baseDescriptorSetLayout = boiler.descriptors.createLayout(stack, baseBindings, "UiBaseDsLayout");
 			this.baseDescriptorBank = new GrowingDescriptorBank(baseDescriptorSetLayout, 0);
 

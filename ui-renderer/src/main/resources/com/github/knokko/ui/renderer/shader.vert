@@ -14,9 +14,11 @@ layout(location = 2) out flat int bufferIndex;
 layout(location = 3) out flat int sectionWidth;
 layout(location = 4) out flat int scale;
 layout(location = 5) out flat int rawColor;
+layout(location = 6) out flat int outlineWidth;
+layout(location = 7) out flat int extraIndex;
 
 void main() {
-	int quadIndex = 8 * (gl_VertexIndex / 6);
+	int quadIndex = 10 * (gl_VertexIndex / 6);
 	int vertexIndex = gl_VertexIndex % 6;
 
 	corner = ivec2(quads[quadIndex], quads[quadIndex + 1]);
@@ -25,6 +27,8 @@ void main() {
 	sectionWidth = quads[quadIndex + 5];
 	scale = quads[quadIndex + 6];
 	rawColor = quads[quadIndex + 7];
+	outlineWidth = quads[quadIndex + 8];
+	extraIndex = quads[quadIndex + 9];
 
 	int x = corner.x;
 	int y = corner.y;

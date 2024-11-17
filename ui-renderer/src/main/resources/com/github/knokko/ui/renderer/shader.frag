@@ -10,8 +10,11 @@ layout(push_constant) uniform pc {
 layout(set = 0, binding = 1) readonly buffer sb {
 	uint[] intensities;
 };
+layout(set = 0, binding = 2) readonly buffer sb2 {
+	int[] extra;
+};
 
-layout(set = 0, binding = 2) uniform sampler pixelatedSampler;
+layout(set = 0, binding = 3) uniform sampler pixelatedSampler;
 
 layout(set = 1, binding = 0) uniform texture2D currentImage;
 
@@ -20,7 +23,9 @@ layout(location = 1) in flat ivec2 size;
 layout(location = 2) in flat int bufferIndex;
 layout(location = 3) in flat int sectionWidth;
 layout(location = 4) in flat int scale;
-layout(location = 5) in flat int rawColor;
+layout(location = 5) in flat int inputColor;
+layout(location = 6) in flat int outlineWidth;
+layout(location = 7) in flat int extraIndex;
 
 layout(location = 0) out vec4 outColor;
 
@@ -29,7 +34,6 @@ void drawImage(ivec2 offset) {
 }
 
 void drawText(ivec2 offset) {
-
 
 	// This should not happen, but I prefer explicitly checking over undefined behavior
 	if (offset.x < 0 || offset.y < 0 || offset.x >= size.x || offset.y >= size.y) {
@@ -42,6 +46,13 @@ void drawText(ivec2 offset) {
 	int byteIntensityIndex = intensityIndex % 4;
 	uint rawIntensity = intensities[rawIntensityIndex];
 	uint intensity = (rawIntensity >> (8 * byteIntensityIndex)) & 255u;
+
+	int rawColor = inputColor;
+	if (intensity > 255 - outlineWidth) {
+		rawColor = extra[extraIndex + 255 - intensity];
+	}
+
+	if (intensity == 255 - outlineWidth) intensity = 255;
 
 	int red = rawColor & 255;
 	int green = (rawColor >> 8) & 255;

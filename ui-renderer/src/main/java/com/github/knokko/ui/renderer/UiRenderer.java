@@ -12,7 +12,7 @@ import com.github.knokko.text.placement.TextPlacer;
 import org.lwjgl.vulkan.VkDescriptorImageInfo;
 import org.lwjgl.vulkan.VkWriteDescriptorSet;
 
-import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +23,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class UiRenderer {
 
-	private static final long QUAD_SIZE = 8 * Integer.BYTES;
+	private static final long QUAD_SIZE = 10 * Integer.BYTES;
 
 	private final BoilerInstance boiler;
 	private final GrowingDescriptorBank baseDescriptorBank, imageDescriptorBank;
@@ -34,7 +34,9 @@ public class UiRenderer {
 	private BitmapGlyphsBuffer glyphsBuffer;
 	private MappedVkbBuffer glyphsVkBuffer;
 	private MappedVkbBuffer quadBuffer;
+	private MappedVkbBuffer extraBuffer;
 	private int nextQuad;
+	private int nextExtra;
 
 	private CommandRecorder recorder;
 
@@ -52,13 +54,14 @@ public class UiRenderer {
 		this.glyphsVkBuffer = boiler.buffers.createMapped(100_000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "GlyphsBuffer");
 		this.glyphsBuffer = new BitmapGlyphsBuffer(glyphsVkBuffer.hostAddress(), (int) glyphsVkBuffer.size());
 		this.quadBuffer = boiler.buffers.createMapped(100_000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "UiQuadBuffer");
+		this.extraBuffer = boiler.buffers.createMapped(1000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "UiExtraBuffer");
 
 		try (var stack = stackPush()) {
 			var samplerWrite = VkDescriptorImageInfo.calloc(1, stack);
 			//noinspection resource
 			samplerWrite.get(0).set(imageSampler, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-			var descriptorWrites = VkWriteDescriptorSet.calloc(3, stack);
+			var descriptorWrites = VkWriteDescriptorSet.calloc(4, stack);
 			boiler.descriptors.writeBuffer(
 					stack, descriptorWrites, baseDescriptorSet, 0,
 					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, quadBuffer.fullRange()
@@ -67,7 +70,11 @@ public class UiRenderer {
 					stack, descriptorWrites, baseDescriptorSet, 1,
 					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, glyphsVkBuffer.fullRange()
 			);
-			boiler.descriptors.writeImage(descriptorWrites, baseDescriptorSet, 2, VK_DESCRIPTOR_TYPE_SAMPLER, samplerWrite);
+			boiler.descriptors.writeBuffer(
+					stack, descriptorWrites, baseDescriptorSet, 2,
+					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, extraBuffer.fullRange()
+			);
+			boiler.descriptors.writeImage(descriptorWrites, baseDescriptorSet, 3, VK_DESCRIPTOR_TYPE_SAMPLER, samplerWrite);
 			vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null);
 		}
 	}
@@ -79,6 +86,7 @@ public class UiRenderer {
 		imageDescriptorSets.values().forEach(imageDescriptorBank::returnDescriptorSet);
 		imageDescriptorSets.clear();
 		this.nextQuad = 0;
+		this.nextExtra = 0;
 
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 		recorder.bindGraphicsDescriptors(pipelineLayout, baseDescriptorSet);
@@ -89,12 +97,21 @@ public class UiRenderer {
 		);
 	}
 
-	private ByteBuffer reserveQuads(int amount) {
+	private IntBuffer reserveExtra(int amount) {
+		long bytesPerInt = 4L;
+		if ((nextExtra + amount) * bytesPerInt > extraBuffer.size()) throw new RuntimeException("TODO");
+
+		var range = extraBuffer.mappedRange(nextExtra * bytesPerInt, amount * bytesPerInt);
+		nextExtra += amount;
+		return range.intBuffer();
+	}
+
+	private IntBuffer reserveQuads(int amount) {
 		if ((nextQuad + amount) * QUAD_SIZE > quadBuffer.size()) throw new RuntimeException("TODO");
 
 		var range = quadBuffer.mappedRange(nextQuad * QUAD_SIZE, amount * QUAD_SIZE);
 		nextQuad += amount;
-		return range.byteBuffer();
+		return range.intBuffer();
 	}
 
 	private long getImageDescriptorSet(VkbImage image) {
@@ -124,14 +141,16 @@ public class UiRenderer {
 		flushImage();
 
 		var renderQuads = reserveQuads(1);
-		renderQuads.putInt(minX);
-		renderQuads.putInt(minY);
-		renderQuads.putInt(width);
-		renderQuads.putInt(height);
-		renderQuads.putInt(-1);
-		renderQuads.putInt(-1);
-		renderQuads.putInt(1);
-		renderQuads.putInt(-1);
+		renderQuads.put(minX);
+		renderQuads.put(minY);
+		renderQuads.put(width);
+		renderQuads.put(height);
+		renderQuads.put(-1);
+		renderQuads.put(-1);
+		renderQuads.put(1);
+		renderQuads.put(-1);
+		renderQuads.put(-1);
+		renderQuads.put(-1);
 
 		vkCmdBindDescriptorSets(
 				recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1,
@@ -140,12 +159,13 @@ public class UiRenderer {
 	}
 
 	public void drawString(
-			FontData fontData, String text, int color,
+			FontData fontData, String text, int color, int[] outlineColors,
 			int minX, int minY, int maxX, int maxY, int baseY, int heightA
 	) {
 		FontResources font = fonts.computeIfAbsent(fontData, f -> new FontResources(
-				f, new TextPlacer(f), new FreeTypeGlyphRasterizer(f))
+				f, new TextPlacer(f), new OutlineGlyphRasterizer(f))
 		);
+		((OutlineGlyphRasterizer) font.rasterizer).outlineWidth = outlineColors.length;
 		var requests = new ArrayList<TextPlaceRequest>(1);
 		requests.add(new TextPlaceRequest(text, minX, minY, maxX, maxY, baseY, heightA, color));
 		var placedGlyphs = font.placer.place(requests);
@@ -157,16 +177,22 @@ public class UiRenderer {
 			throw new RuntimeException("TODO");
 		}
 
+		int extraIndex = nextExtra;
+		IntBuffer extra = reserveExtra(outlineColors.length);
+		for (int oc : outlineColors) extra.put(oc);
+
 		var renderQuads = reserveQuads(glyphQuads.size());
 		for (var quad : glyphQuads) {
-			renderQuads.putInt(quad.minX);
-			renderQuads.putInt(quad.minY);
-			renderQuads.putInt(quad.getWidth());
-			renderQuads.putInt(quad.getHeight());
-			renderQuads.putInt(quad.bufferIndex);
-			renderQuads.putInt(quad.sectionWidth);
-			renderQuads.putInt(quad.scale);
-			renderQuads.putInt(color);
+			renderQuads.put(quad.minX);
+			renderQuads.put(quad.minY);
+			renderQuads.put(quad.getWidth());
+			renderQuads.put(quad.getHeight());
+			renderQuads.put(quad.bufferIndex);
+			renderQuads.put(quad.sectionWidth);
+			renderQuads.put(quad.scale);
+			renderQuads.put(color);
+			renderQuads.put(outlineColors.length);
+			renderQuads.put(extraIndex);
 		}
 	}
 
@@ -177,6 +203,7 @@ public class UiRenderer {
 	public void destroy() {
 		glyphsVkBuffer.destroy(boiler);
 		quadBuffer.destroy(boiler);
+		extraBuffer.destroy(boiler);
 		fonts.values().forEach(FontResources::destroy);
 		baseDescriptorBank.returnDescriptorSet(baseDescriptorSet);
 		imageDescriptorSets.values().forEach(imageDescriptorBank::returnDescriptorSet);
