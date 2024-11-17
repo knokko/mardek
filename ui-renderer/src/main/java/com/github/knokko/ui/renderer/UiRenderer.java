@@ -23,7 +23,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class UiRenderer {
 
-	private static final long QUAD_SIZE = 10 * Integer.BYTES;
+	private static final long QUAD_SIZE = 5 * Integer.BYTES;
 
 	private final BoilerInstance boiler;
 	private final GrowingDescriptorBank baseDescriptorBank, imageDescriptorBank;
@@ -54,7 +54,7 @@ public class UiRenderer {
 		this.glyphsVkBuffer = boiler.buffers.createMapped(100_000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "GlyphsBuffer");
 		this.glyphsBuffer = new BitmapGlyphsBuffer(glyphsVkBuffer.hostAddress(), (int) glyphsVkBuffer.size());
 		this.quadBuffer = boiler.buffers.createMapped(100_000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "UiQuadBuffer");
-		this.extraBuffer = boiler.buffers.createMapped(1000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "UiExtraBuffer");
+		this.extraBuffer = boiler.buffers.createMapped(20_000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "UiExtraBuffer");
 
 		try (var stack = stackPush()) {
 			var samplerWrite = VkDescriptorImageInfo.calloc(1, stack);
@@ -146,11 +146,6 @@ public class UiRenderer {
 		renderQuads.put(width);
 		renderQuads.put(height);
 		renderQuads.put(-1);
-		renderQuads.put(-1);
-		renderQuads.put(1);
-		renderQuads.put(-1);
-		renderQuads.put(-1);
-		renderQuads.put(-1);
 
 		vkCmdBindDescriptorSets(
 				recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1,
@@ -177,9 +172,11 @@ public class UiRenderer {
 			throw new RuntimeException("TODO");
 		}
 
-		int extraIndex = nextExtra;
-		IntBuffer extra = reserveExtra(outlineColors.length);
-		for (int oc : outlineColors) extra.put(oc);
+		int colorIndex = nextExtra;
+		IntBuffer colors = reserveExtra(2 + outlineColors.length);
+		colors.put(color);
+		colors.put(outlineColors.length);
+		for (int oc : outlineColors) colors.put(oc);
 
 		var renderQuads = reserveQuads(glyphQuads.size());
 		for (var quad : glyphQuads) {
@@ -187,11 +184,14 @@ public class UiRenderer {
 			renderQuads.put(quad.minY);
 			renderQuads.put(quad.getWidth());
 			renderQuads.put(quad.getHeight());
-			renderQuads.put(quad.bufferIndex);
-			renderQuads.put(quad.sectionWidth);
-			renderQuads.put(quad.scale);
-			renderQuads.put(color);
-			renderQuads.put(outlineColors.length);
+
+			int extraIndex = nextExtra;
+			IntBuffer extra = reserveExtra(4);
+			extra.put(quad.bufferIndex);
+			extra.put(quad.sectionWidth);
+			extra.put(quad.scale);
+			extra.put(colorIndex);
+
 			renderQuads.put(extraIndex);
 		}
 	}
