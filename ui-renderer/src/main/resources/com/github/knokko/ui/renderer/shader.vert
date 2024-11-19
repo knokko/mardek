@@ -30,12 +30,14 @@ void main() {
 	size = ivec2(quads[quadIndex + 2], quads[quadIndex + 3]);
 	extraIndex = quads[quadIndex + 4];
 
-	bufferIndex = extra[extraIndex];
-	sectionWidth = extra[extraIndex + 1];
-	scale = extra[extraIndex + 2];
-	colorIndex = extra[extraIndex + 3];
-	rawColor = extra[colorIndex];
-	outlineWidth = extra[colorIndex + 1];
+	if (extraIndex >= 0) {
+		bufferIndex = extra[extraIndex];
+		sectionWidth = extra[extraIndex + 1];
+		scale = extra[extraIndex + 2];
+		colorIndex = extra[extraIndex + 3];
+		rawColor = extra[colorIndex];
+		outlineWidth = extra[colorIndex + 1];
+	}
 
 	int x = corner.x;
 	int y = corner.y;
