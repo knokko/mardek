@@ -32,8 +32,21 @@ layout(location = 9) in flat int outlineWidth;
 
 layout(location = 0) out vec4 outColor;
 
+vec4 decodeColor(int rawColor) {
+	int red = rawColor & 255;
+	int green = (rawColor >> 8) & 255;
+	int blue = (rawColor >> 16) & 255;
+	int alpha = (rawColor >> 24) & 255;
+
+	return vec4(red / 255.0, green / 255.0, blue / 255.0, alpha / 255.0);
+}
+
 void drawImage(ivec2 offset) {
 	outColor = texture(sampler2D(currentImage, pixelatedSampler), vec2(offset) / size);
+}
+
+void fillColor(ivec2 offset) {
+	outColor = decodeColor(extra[extraIndex]);
 }
 
 void drawText(ivec2 offset) {
@@ -57,12 +70,8 @@ void drawText(ivec2 offset) {
 
 	if (intensity == 255 - outlineWidth) intensity = 255;
 
-	int red = rawColor & 255;
-	int green = (rawColor >> 8) & 255;
-	int blue = (rawColor >> 16) & 255;
-	int alpha = (rawColor >> 24) & 255;
-
-	outColor = vec4(red / 255.0, green / 255.0, blue / 255.0, (alpha / 255.0) * intensity / 255.0);
+	outColor = decodeColor(rawColor);
+	outColor.a *= (intensity / 255.0);
 }
 
 void main() {
@@ -72,4 +81,5 @@ void main() {
 
 	if (type == 1) drawImage(offset);
 	if (type == 2) drawText(offset);
+	if (type == 3) fillColor(offset);
 }

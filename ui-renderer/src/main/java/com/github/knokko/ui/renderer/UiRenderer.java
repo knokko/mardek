@@ -198,6 +198,22 @@ public class UiRenderer {
 		}
 	}
 
+	public void fillColor(int minX, int minY, int maxX, int maxY, int color) {
+		var renderQuad = reserveQuads(1);
+
+		int extraIndex = nextExtra;
+		var extra = reserveExtra(1);
+
+		renderQuad.put(minX);
+		renderQuad.put(minY);
+		renderQuad.put(1 + maxX - minX);
+		renderQuad.put(1 + maxY - minY);
+		renderQuad.put(3);
+		renderQuad.put(extraIndex);
+
+		extra.put(color);
+	}
+
 	public void end() {
 		vkCmdDraw(recorder.commandBuffer, 6 * nextQuad, 1, 0, 0);
 	}
