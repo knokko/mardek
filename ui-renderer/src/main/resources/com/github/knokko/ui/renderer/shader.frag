@@ -41,12 +41,33 @@ vec4 decodeColor(int rawColor) {
 	return vec4(red / 255.0, green / 255.0, blue / 255.0, alpha / 255.0);
 }
 
+vec4 applyGradient(vec4 oldColor, ivec2 offset, int gi) {
+	ivec2 gMin = ivec2(extra[gi], extra[gi + 1]);
+	ivec2 gSize = ivec2(extra[gi + 2], extra[gi + 3]);
+	ivec2 gOffset = offset - gMin;
+	if (gOffset.x >= 0 && gOffset.y >= 0 && gOffset.x < gSize.x && gOffset.y < gSize.y) {
+		vec2 factors = gOffset / vec2(gSize);
+		vec4 baseColor = decodeColor(extra[gi + 4]);
+		vec4 rightColor = decodeColor(extra[gi + 5]);
+		vec4 upColor = decodeColor(extra[gi + 6]);
+		vec4 deltaX = rightColor - baseColor;
+		vec4 deltaY = upColor - baseColor;
+		return baseColor + factors.x * deltaX + (1.0 - factors.y) * deltaY;
+	}
+	return oldColor;
+}
+
 void drawImage(ivec2 offset) {
 	outColor = texture(sampler2D(currentImage, pixelatedSampler), vec2(offset) / size);
 }
 
 void fillColor(ivec2 offset) {
 	outColor = decodeColor(extra[extraIndex]);
+
+	int numGradients = extra[extraIndex + 1];
+	for (int index = 0; index < numGradients; index++) {
+		outColor = applyGradient(outColor, offset, extraIndex + 2 + 7 * index);
+	}
 }
 
 void drawText(ivec2 offset) {

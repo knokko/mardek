@@ -198,11 +198,11 @@ public class UiRenderer {
 		}
 	}
 
-	public void fillColor(int minX, int minY, int maxX, int maxY, int color) {
+	public void fillColor(int minX, int minY, int maxX, int maxY, int color, Gradient... gradients) {
 		var renderQuad = reserveQuads(1);
 
 		int extraIndex = nextExtra;
-		var extra = reserveExtra(1);
+		var extra = reserveExtra(2 + 7 * gradients.length);
 
 		renderQuad.put(minX);
 		renderQuad.put(minY);
@@ -212,6 +212,16 @@ public class UiRenderer {
 		renderQuad.put(extraIndex);
 
 		extra.put(color);
+		extra.put(gradients.length);
+		for (var gradient : gradients) {
+			extra.put(gradient.minX());
+			extra.put(gradient.minY());
+			extra.put(gradient.width());
+			extra.put(gradient.height());
+			extra.put(gradient.baseColor());
+			extra.put(gradient.rightColor());
+			extra.put(gradient.upColor());
+		}
 	}
 
 	public void end() {
