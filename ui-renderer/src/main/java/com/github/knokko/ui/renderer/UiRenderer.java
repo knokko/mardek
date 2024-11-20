@@ -23,7 +23,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class UiRenderer {
 
-	private static final long QUAD_SIZE = 5 * Integer.BYTES;
+	private static final long QUAD_SIZE = 6 * Integer.BYTES;
 
 	private final BoilerInstance boiler;
 	private final GrowingDescriptorBank baseDescriptorBank, imageDescriptorBank;
@@ -145,6 +145,7 @@ public class UiRenderer {
 		renderQuads.put(minY);
 		renderQuads.put(width);
 		renderQuads.put(height);
+		renderQuads.put(1);
 		renderQuads.put(-1);
 
 		vkCmdBindDescriptorSets(
@@ -184,6 +185,7 @@ public class UiRenderer {
 			renderQuads.put(quad.minY);
 			renderQuads.put(quad.getWidth());
 			renderQuads.put(quad.getHeight());
+			renderQuads.put(2);
 
 			int extraIndex = nextExtra;
 			IntBuffer extra = reserveExtra(4);

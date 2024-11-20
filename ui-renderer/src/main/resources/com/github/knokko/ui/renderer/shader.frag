@@ -20,14 +20,15 @@ layout(set = 1, binding = 0) uniform texture2D currentImage;
 
 layout(location = 0) in flat ivec2 corner;
 layout(location = 1) in flat ivec2 size;
-layout(location = 2) in flat int extraIndex;
+layout(location = 2) in flat int type;
+layout(location = 3) in flat int extraIndex;
 
-layout(location = 3) in flat int bufferIndex;
-layout(location = 4) in flat int sectionWidth;
-layout(location = 5) in flat int scale;
-layout(location = 6) in flat int colorIndex;
-layout(location = 7) in flat int inputColor;
-layout(location = 8) in flat int outlineWidth;
+layout(location = 4) in flat int bufferIndex;
+layout(location = 5) in flat int sectionWidth;
+layout(location = 6) in flat int scale;
+layout(location = 7) in flat int colorIndex;
+layout(location = 8) in flat int inputColor;
+layout(location = 9) in flat int outlineWidth;
 
 layout(location = 0) out vec4 outColor;
 
@@ -69,10 +70,6 @@ void main() {
 	int framebufferY = int(gl_FragCoord.y);
 	ivec2 offset = ivec2(framebufferX, framebufferY) - corner;
 
-	if (extraIndex == -1) {
-		drawImage(offset);
-		return;
-	}
-
-	drawText(offset);
+	if (type == 1) drawImage(offset);
+	if (type == 2) drawText(offset);
 }

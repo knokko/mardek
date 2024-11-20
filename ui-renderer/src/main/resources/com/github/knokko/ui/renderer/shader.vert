@@ -13,24 +13,26 @@ layout(set = 0, binding = 2) readonly buffer sb2 {
 
 layout(location = 0) out flat ivec2 corner;
 layout(location = 1) out flat ivec2 size;
-layout(location = 2) out flat int extraIndex;
+layout(location = 2) out flat int type;
+layout(location = 3) out flat int extraIndex;
 
-layout(location = 3) out flat int bufferIndex;
-layout(location = 4) out flat int sectionWidth;
-layout(location = 5) out flat int scale;
-layout(location = 6) out flat int colorIndex;
-layout(location = 7) out flat int rawColor;
-layout(location = 8) out flat int outlineWidth;
+layout(location = 4) out flat int bufferIndex;
+layout(location = 5) out flat int sectionWidth;
+layout(location = 6) out flat int scale;
+layout(location = 7) out flat int colorIndex;
+layout(location = 8) out flat int rawColor;
+layout(location = 9) out flat int outlineWidth;
 
 void main() {
-	int quadIndex = 5 * (gl_VertexIndex / 6);
+	int quadIndex = 6 * (gl_VertexIndex / 6);
 	int vertexIndex = gl_VertexIndex % 6;
 
 	corner = ivec2(quads[quadIndex], quads[quadIndex + 1]);
 	size = ivec2(quads[quadIndex + 2], quads[quadIndex + 3]);
-	extraIndex = quads[quadIndex + 4];
+	type = quads[quadIndex + 4];
+	extraIndex = quads[quadIndex + 5];
 
-	if (extraIndex >= 0) {
+	if (type == 2) {
 		bufferIndex = extra[extraIndex];
 		sectionWidth = extra[extraIndex + 1];
 		scale = extra[extraIndex + 2];
