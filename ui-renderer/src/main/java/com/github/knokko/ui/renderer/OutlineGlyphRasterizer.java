@@ -1,5 +1,6 @@
 package com.github.knokko.ui.renderer;
 
+import com.github.knokko.text.SizedGlyph;
 import com.github.knokko.text.bitmap.GlyphRasterizer;
 import com.github.knokko.text.font.FontData;
 import org.lwjgl.util.freetype.FT_Bitmap;
@@ -19,8 +20,6 @@ class OutlineGlyphRasterizer implements GlyphRasterizer {
 	private int width, height;
 	private ByteBuffer buffer;
 
-	public int outlineWidth;
-
 	OutlineGlyphRasterizer(FontData font) {
 		this.font = font;
 	}
@@ -36,10 +35,11 @@ class OutlineGlyphRasterizer implements GlyphRasterizer {
 	}
 
 	@Override
-	public void set(int glyph, int faceIndex, int size) {
-		String context = "FreeTypeGlyphRasterizer.set(" + glyph + ", " + faceIndex + ", " + size + ")";
-		var face = font.borrowFaceWithSize(faceIndex, size, 1);
-		assertFtSuccess(FT_Load_Glyph(face.ftFace, glyph, FT_LOAD_RENDER), "Load_Glyph", context);
+	public void set(SizedGlyph glyph, Object userData) {
+		int outlineWidth = ((UserData) userData).outlineWidth();
+		String context = "FreeTypeGlyphRasterizer.set(" + glyph + ")";
+		var face = font.borrowFaceWithSize(glyph.faceIndex, glyph.size, 1);
+		assertFtSuccess(FT_Load_Glyph(face.ftFace, glyph.id, FT_LOAD_RENDER), "Load_Glyph", context);
 
 		FT_GlyphSlot slot = face.ftFace.glyph();
 		if (slot == null) throw new Error("Glyph slot must not be null at this point");
@@ -84,6 +84,11 @@ class OutlineGlyphRasterizer implements GlyphRasterizer {
 		}
 
 		font.returnFace(face);
+	}
+
+	@Override
+	public String getUserDataKey(Object userData) {
+		return Integer.toString(((UserData) userData).outlineWidth());
 	}
 
 	@Override

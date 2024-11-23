@@ -156,14 +156,16 @@ public class UiRenderer {
 
 	public void drawString(
 			FontData fontData, String text, int color, int[] outlineColors,
-			int minX, int minY, int maxX, int maxY, int baseY, int heightA, Gradient... gradients
+			int minX, int minY, int maxX, int maxY, int baseY, int heightA, int minScale, Gradient... gradients
 	) {
 		FontResources font = fonts.computeIfAbsent(fontData, f -> new FontResources(
 				f, new TextPlacer(f), new OutlineGlyphRasterizer(f))
 		);
-		((OutlineGlyphRasterizer) font.rasterizer).outlineWidth = outlineColors.length;
 		var requests = new ArrayList<TextPlaceRequest>(1);
-		requests.add(new TextPlaceRequest(text, minX, minY, maxX, maxY, baseY, heightA, color));
+		requests.add(new TextPlaceRequest(
+				text, minX, minY, maxX, maxY, baseY,
+				heightA, minScale, new UserData(color, outlineColors.length)
+		));
 		var placedGlyphs = font.placer.place(requests);
 
 		List<GlyphQuad> glyphQuads;
