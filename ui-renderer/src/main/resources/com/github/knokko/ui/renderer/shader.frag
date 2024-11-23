@@ -92,6 +92,20 @@ void drawText(ivec2 offset) {
 	if (intensity == 255 - outlineWidth) intensity = 255;
 
 	outColor = decodeColor(rawColor);
+
+	if (intensity > 0 && rawColor == inputColor) {
+		int gradientIndex = colorIndex + 2 + outlineWidth;
+		ivec2 gradientCorner = ivec2(extra[gradientIndex], extra[gradientIndex + 1]);
+		int framebufferX = int(gl_FragCoord.x);
+		int framebufferY = int(gl_FragCoord.y);
+		ivec2 gradientOffset = ivec2(framebufferX, framebufferY) - gradientCorner;
+
+		int numGradients = extra[gradientIndex + 2];
+		for (int index = 0; index < numGradients; index++) {
+			outColor = applyGradient(outColor, gradientOffset, gradientIndex + 3 + 7 * index);
+		}
+	}
+
 	outColor.a *= (intensity / 255.0);
 }
 

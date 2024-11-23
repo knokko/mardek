@@ -156,7 +156,7 @@ public class UiRenderer {
 
 	public void drawString(
 			FontData fontData, String text, int color, int[] outlineColors,
-			int minX, int minY, int maxX, int maxY, int baseY, int heightA
+			int minX, int minY, int maxX, int maxY, int baseY, int heightA, Gradient... gradients
 	) {
 		FontResources font = fonts.computeIfAbsent(fontData, f -> new FontResources(
 				f, new TextPlacer(f), new OutlineGlyphRasterizer(f))
@@ -173,11 +173,16 @@ public class UiRenderer {
 			throw new RuntimeException("TODO");
 		}
 
-		int colorIndex = nextExtra;
-		IntBuffer colors = reserveExtra(2 + outlineColors.length);
-		colors.put(color);
-		colors.put(outlineColors.length);
-		for (int oc : outlineColors) colors.put(oc);
+		int sharedExtraIndex = nextExtra;
+		IntBuffer sharedExtra = reserveExtra(5 + outlineColors.length + 7 * gradients.length);
+		sharedExtra.put(color);
+		sharedExtra.put(outlineColors.length);
+		for (int oc : outlineColors) sharedExtra.put(oc);
+
+		sharedExtra.put(minX);
+		sharedExtra.put(minY);
+		sharedExtra.put(gradients.length);
+		for (var gradient : gradients) putGradient(gradient, sharedExtra);
 
 		var renderQuads = reserveQuads(glyphQuads.size());
 		for (var quad : glyphQuads) {
@@ -192,10 +197,20 @@ public class UiRenderer {
 			extra.put(quad.bufferIndex);
 			extra.put(quad.sectionWidth);
 			extra.put(quad.scale);
-			extra.put(colorIndex);
+			extra.put(sharedExtraIndex);
 
 			renderQuads.put(extraIndex);
 		}
+	}
+
+	private void putGradient(Gradient gradient, IntBuffer extra) {
+		extra.put(gradient.minX());
+		extra.put(gradient.minY());
+		extra.put(gradient.width());
+		extra.put(gradient.height());
+		extra.put(gradient.baseColor());
+		extra.put(gradient.rightColor());
+		extra.put(gradient.upColor());
 	}
 
 	public void fillColor(int minX, int minY, int maxX, int maxY, int color, Gradient... gradients) {
@@ -213,15 +228,7 @@ public class UiRenderer {
 
 		extra.put(color);
 		extra.put(gradients.length);
-		for (var gradient : gradients) {
-			extra.put(gradient.minX());
-			extra.put(gradient.minY());
-			extra.put(gradient.width());
-			extra.put(gradient.height());
-			extra.put(gradient.baseColor());
-			extra.put(gradient.rightColor());
-			extra.put(gradient.upColor());
-		}
+		for (var gradient : gradients) putGradient(gradient, extra);
 	}
 
 	public void end() {
