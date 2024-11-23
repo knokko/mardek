@@ -13,6 +13,8 @@ import mardek.assets.GameAssets
 import mardek.renderer.GameRenderer
 import mardek.state.ExitState
 import mardek.state.GameStateManager
+import org.lwjgl.glfw.GLFW
+import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
 
@@ -56,7 +58,8 @@ class GameWindow(
 		}
 		updateCounter.increment()
 		synchronized(state.lock()) {
-			renderer.render(
+			if (state.currentState is ExitState) glfwSetWindowShouldClose(window.glfwWindow, true)
+			else renderer.render(
 				state.currentState, recorder, acquiredImage.image(), frameIndex
 			)
 		}

@@ -8,6 +8,7 @@ import mardek.assets.GameAssets
 import mardek.renderer.area.SharedAreaResources
 import mardek.renderer.ui.SharedUiResources
 import mardek.renderer.ui.TitleScreenRenderer
+import mardek.state.ExitState
 import mardek.state.GameState
 import mardek.state.InGameState
 import mardek.state.title.TitleScreenState
@@ -54,7 +55,7 @@ class GameRenderer(
 
 	private fun createRenderer(state: GameState): StateRenderer {
 		if (state is InGameState) return InGameRenderer(assets, state.progress, boiler, areas)
-		if (state is TitleScreenState) return TitleScreenRenderer(boiler, ui)
+		if (state is TitleScreenState) return TitleScreenRenderer(boiler, ui, state)
 
 		throw UnsupportedOperationException("Unexpected state $state")
 	}
