@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import mardek.assets.GameAssets
 import mardek.input.InputKey
+import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -27,6 +28,7 @@ class GameProgression(
 		var shouldInteract = false
 		while (true) {
 			val event = input.consumeEvent() ?: break
+			if (event !is InputKeyEvent) continue
 			if (!event.didPress) continue
 
 			val currentArea = this.currentArea ?: continue

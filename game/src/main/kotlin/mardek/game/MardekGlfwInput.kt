@@ -3,9 +3,11 @@ package mardek.game
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
+import mardek.input.MouseMoveEvent
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWGamepadState
 import org.lwjgl.system.MemoryStack.stackPush
+import kotlin.math.roundToInt
 
 class MardekGlfwInput(private val glfwWindow: Long, private val input: InputManager) {
 
@@ -47,6 +49,16 @@ class MardekGlfwInput(private val glfwWindow: Long, private val input: InputMana
 					)
 				)
 			}
+		}
+
+		glfwSetCursorPosCallback(glfwWindow) { _, x, y ->
+			input.postEvent(MouseMoveEvent(x.roundToInt(), y.roundToInt()))
+		}
+
+		glfwSetMouseButtonCallback(glfwWindow) { _, button, action, _ ->
+			if (button == GLFW_MOUSE_BUTTON_LEFT) input.postEvent(InputKeyEvent(
+				InputKey.Interact, action == GLFW_PRESS, false, action == GLFW_RELEASE
+			))
 		}
 
 		for (jid in GLFW_JOYSTICK_1 .. GLFW_JOYSTICK_16) {

@@ -5,11 +5,11 @@ import java.util.concurrent.atomic.AtomicIntegerArray
 
 class InputManager {
 
-	private val eventQueue = LinkedBlockingQueue<InputKeyEvent>()
+	private val eventQueue = LinkedBlockingQueue<Event>()
 	private val pressedKeys = AtomicIntegerArray(InputKey.entries.size)
 
-	fun postEvent(event: InputKeyEvent) {
-		pressedKeys.set(event.key.ordinal, if (event.didRelease) 0 else 1)
+	fun postEvent(event: Event) {
+		if (event is InputKeyEvent) pressedKeys.set(event.key.ordinal, if (event.didRelease) 0 else 1)
 		eventQueue.add(event)
 	}
 
