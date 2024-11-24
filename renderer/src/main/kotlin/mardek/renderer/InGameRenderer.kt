@@ -6,17 +6,21 @@ import com.github.knokko.boiler.images.VkbImage
 import mardek.assets.GameAssets
 import mardek.renderer.area.AreaRenderer
 import mardek.renderer.area.SharedAreaResources
-import mardek.state.ingame.GameProgression
+import mardek.renderer.ui.InGameMenuRenderer
+import mardek.renderer.ui.SharedUiResources
+import mardek.state.ingame.InGameState
 
 class InGameRenderer(
 	private val assets: GameAssets,
-	private val progress: GameProgression,
+	private val state: InGameState,
 	boiler: BoilerInstance,
 	private val resources: SharedAreaResources,
+	private val sharedUi: SharedUiResources,
 ): StateRenderer(boiler) {
 
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		val area = progress.currentArea
-		if (area != null) AreaRenderer(assets, area, progress.characters, resources).render(recorder, targetImage, frameIndex)
+		val area = state.progress.currentArea
+		if (area != null) AreaRenderer(assets, area, state.progress.characters, resources).render(recorder, targetImage, frameIndex)
+		if (state.menu.shown) InGameMenuRenderer(assets, sharedUi, state).render(recorder, targetImage, frameIndex)
 	}
 }

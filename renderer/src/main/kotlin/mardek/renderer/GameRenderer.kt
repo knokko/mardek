@@ -8,9 +8,8 @@ import mardek.assets.GameAssets
 import mardek.renderer.area.SharedAreaResources
 import mardek.renderer.ui.SharedUiResources
 import mardek.renderer.ui.TitleScreenRenderer
-import mardek.state.ExitState
 import mardek.state.GameState
-import mardek.state.InGameState
+import mardek.state.ingame.InGameState
 import mardek.state.title.TitleScreenState
 import org.lwjgl.vulkan.VK10.VK_ATTACHMENT_LOAD_OP_CLEAR
 import org.lwjgl.vulkan.VK10.VK_ATTACHMENT_STORE_OP_STORE
@@ -54,7 +53,7 @@ class GameRenderer(
 	}
 
 	private fun createRenderer(state: GameState): StateRenderer {
-		if (state is InGameState) return InGameRenderer(assets, state.progress, boiler, areas)
+		if (state is InGameState) return InGameRenderer(assets, state, boiler, areas, ui)
 		if (state is TitleScreenState) return TitleScreenRenderer(boiler, ui, state)
 
 		throw UnsupportedOperationException("Unexpected state $state")

@@ -25,6 +25,8 @@ class GameProgression(
 	@Suppress("unused")
 	private constructor() : this(null, CharactersState())
 
+	var shouldOpenMenu = false
+
 	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, assets: GameAssets) {
 		var shouldInteract = false
 		while (true) {
@@ -33,10 +35,17 @@ class GameProgression(
 			if (!event.didPress) continue
 
 			val currentArea = this.currentArea ?: continue
+			if (event.key == InputKey.ToggleMenu) {
+				shouldOpenMenu = true
+				soundQueue.insert("menu-open")
+				continue
+			}
+
 			if (event.key == InputKey.Interact) {
 				shouldInteract = true
 				continue
 			}
+
 			if (event.key == InputKey.ScrollUp || event.key == InputKey.ScrollDown) {
 				val currentIndex = assets.areas.indexOf(currentArea.area)
 

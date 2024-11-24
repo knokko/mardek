@@ -7,7 +7,7 @@ import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
 import mardek.state.ExitState
 import mardek.state.GameState
-import mardek.state.InGameState
+import mardek.state.ingame.InGameState
 import mardek.state.SoundQueue
 import mardek.state.ingame.GameProgression
 import mardek.state.ingame.area.AreaPosition

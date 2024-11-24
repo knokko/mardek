@@ -33,6 +33,8 @@ class MardekGlfwInput(private val glfwWindow: Long, private val input: InputMana
 				GLFW_KEY_E -> InputKey.Interact
 				GLFW_KEY_Z -> InputKey.Cancel
 				GLFW_KEY_Q -> InputKey.Cancel
+				GLFW_KEY_ENTER -> InputKey.ToggleMenu
+				GLFW_KEY_TAB -> InputKey.ToggleMenu
 				GLFW_KEY_SPACE -> InputKey.Cheat
 				GLFW_KEY_J -> InputKey.ScrollDown
 				GLFW_KEY_K -> InputKey.ScrollUp
