@@ -91,6 +91,23 @@ project(":assets") {
 	}
 }
 
+project(":audio") {
+	dependencies {
+		implementation project(":assets")
+		implementation project(":state")
+
+		implementation "org.lwjgl:lwjgl"
+		implementation "org.lwjgl:lwjgl-openal"
+		implementation "org.lwjgl:lwjgl-stb"
+
+		for (natives in project.ext.lwjglNatives) {
+			runtimeOnly "org.lwjgl:lwjgl::$natives"
+			runtimeOnly "org.lwjgl:lwjgl-openal::$natives"
+			runtimeOnly "org.lwjgl:lwjgl-stb::$natives"
+		}
+	}
+}
+
 project(":game") {
 	apply plugin: "com.github.johnrengelman.shadow"
 	dependencies {
@@ -99,6 +116,7 @@ project(":game") {
 		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
 		implementation "org.lwjgl:lwjgl-glfw"
 		implementation project(":assets")
+		implementation project(":audio")
 		implementation project(":input")
 		implementation project(":renderer")
 		implementation project(":state")

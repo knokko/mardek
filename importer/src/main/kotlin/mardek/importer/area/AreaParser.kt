@@ -70,7 +70,8 @@ fun parseAreaProperties(parsing: ParsingArea1, areaSetupMap: Map<String, String>
 	val displayName = parseFlashString(parsing.variableAssignments["areaname"]!!, "area display name")
 
 	val rawMusicTrack = parsing.variableAssignments["musicTrack"]
-	val musicTrack = if (rawMusicTrack != null) parseFlashString(rawMusicTrack, "music track") else null
+	var musicTrack = if (rawMusicTrack != null) parseFlashString(rawMusicTrack, "music track") else null
+	if (musicTrack == "none") musicTrack = null
 	val dreamType = AreaDreamType.entries.find { it.code == (areaSetupMap["DREAM"] ?: "") }!!
 	val chestType = AreaChestType.entries.find { it.code == parseInt(areaSetupMap["LOOT"] ?: "0") }!!
 	val snowType = AreaSnowType.entries.find { it.code == parseInt(areaSetupMap["SNOW"] ?: "0") }!!

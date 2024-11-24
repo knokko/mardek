@@ -5,5 +5,5 @@ import kotlin.time.Duration
 
 interface GameState {
 
-	fun update(input: InputManager, timeStep: Duration): GameState
+	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue): GameState
 }

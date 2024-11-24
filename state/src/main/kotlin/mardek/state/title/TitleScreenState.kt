@@ -8,6 +8,7 @@ import mardek.input.MouseMoveEvent
 import mardek.state.ExitState
 import mardek.state.GameState
 import mardek.state.InGameState
+import mardek.state.SoundQueue
 import mardek.state.ingame.GameProgression
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -25,7 +26,7 @@ class TitleScreenState(private val assets: GameAssets): GameState {
 
 	private val buttons = listOf(::newGameButton, ::loadGameButton, ::musicPlayerButton, ::quitButton)
 
-	override fun update(input: InputManager, timeStep: Duration): GameState {
+	override fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue): GameState {
 		while (true) {
 			val event = input.consumeEvent() ?: break
 
@@ -57,6 +58,7 @@ class TitleScreenState(private val assets: GameAssets): GameState {
 							party = arrayOf(mardek, deugan)
 						)
 						val progress = GameProgression(startArea, startCharacters)
+						soundQueue.insert("click-confirm")
 						return InGameState(assets, progress)
 					}
 					if (selectedButton == 3) return ExitState()

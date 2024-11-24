@@ -6,6 +6,7 @@ import mardek.assets.GameAssets
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
+import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.characters.CharactersState
@@ -24,7 +25,7 @@ class GameProgression(
 	@Suppress("unused")
 	private constructor() : this(null, CharactersState())
 
-	fun update(input: InputManager, timeStep: Duration, assets: GameAssets) {
+	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, assets: GameAssets) {
 		var shouldInteract = false
 		while (true) {
 			val event = input.consumeEvent() ?: break

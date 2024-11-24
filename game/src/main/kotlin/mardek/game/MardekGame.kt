@@ -5,6 +5,7 @@ import com.github.knokko.boiler.builders.WindowBuilder
 import com.github.knokko.boiler.window.WindowEventLoop
 import com.github.knokko.update.UpdateLoop
 import mardek.assets.GameAssets
+import mardek.audio.AudioUpdater
 import mardek.input.InputManager
 import mardek.renderer.GameRenderer
 import mardek.state.GameStateManager
@@ -39,6 +40,21 @@ fun main(args: Array<String>) {
 	val updateThread = Thread(updateLoop)
 	updateThread.isDaemon = true
 	updateThread.start()
+
+	val mainThread = Thread.currentThread()
+
+	Thread {
+		val audioUpdater = AudioUpdater(state)
+		val audioLoop = UpdateLoop({ loop ->
+			if (mainThread.isAlive) {
+				synchronized(state.lock()) {
+					audioUpdater.update()
+				}
+			} else loop.stop()
+		}, 10_000_000L)
+		audioLoop.run()
+		audioUpdater.destroy()
+	}.start()
 
 	val inputListener = MardekGlfwInput(boiler.window().glfwWindow, input)
 	inputListener.register()

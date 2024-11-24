@@ -6,8 +6,8 @@ import mardek.state.ingame.GameProgression
 import kotlin.time.Duration
 
 class InGameState(val assets: GameAssets, val progress: GameProgression): GameState {
-	override fun update(input: InputManager, timeStep: Duration): GameState {
-		progress.update(input, timeStep, assets)
+	override fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue): GameState {
+		progress.update(input, timeStep, soundQueue, assets)
 		return this
 	}
 }
