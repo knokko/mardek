@@ -10,6 +10,7 @@ import mardek.assets.area.TransitionDestination
 import mardek.input.InputKey
 import mardek.input.InputManager
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @BitStruct(backwardCompatible = false)
@@ -37,15 +38,24 @@ class AreaState(
 
 	var nextTransition: TransitionDestination? = null
 
+	var openingDoor: OpeningDoor? = null
+		private set
+
 	fun update(input: InputManager, timeStep: Duration, shouldInteract: Boolean) {
 		updatePlayerPosition()
 		processInput(input)
 		if (shouldInteract) interact()
+
+		val openingDoor = this.openingDoor
+		if (openingDoor != null && currentTime >= openingDoor.finishTime) {
+			nextTransition = openingDoor.door.destination
+			this.openingDoor = null
+		}
 		currentTime += timeStep
 	}
 
 	private fun interact() {
-		if (nextTransition != null || nextPlayerPosition != null) return
+		if (nextTransition != null || nextPlayerPosition != null || openingDoor != null) return
 
 		val x = playerPositions[0].x + lastPlayerDirection.deltaX
 		val y = playerPositions[0].y + lastPlayerDirection.deltaY
@@ -58,7 +68,7 @@ class AreaState(
 
 		for (door in area.objects.doors) {
 			if (x == door.x && y == door.y) {
-				nextPlayerPosition = NextAreaPosition(AreaPosition(x, y), currentTime, currentTime + 1.seconds)
+				openingDoor = OpeningDoor(door, currentTime + DOOR_OPEN_DURATION)
 				return
 			}
 		}
@@ -85,12 +95,6 @@ class AreaState(
 	fun getPlayerPosition(index: Int) = playerPositions[index]
 
 	private fun checkTransitions() {
-		for (door in area.objects.doors) {
-			if (playerPositions[0].x == door.x && playerPositions[0].y == door.y) {
-				nextTransition = door.destination;
-			}
-		}
-
 		for (portal in area.objects.portals) {
 			if (playerPositions[0].x == portal.x && playerPositions[0].y == portal.y) {
 				nextTransition = portal.destination
@@ -165,5 +169,9 @@ class AreaState(
 		}
 		// TODO Switch gates and platforms
 		return true
+	}
+
+	companion object {
+		val DOOR_OPEN_DURATION = 500.milliseconds
 	}
 }

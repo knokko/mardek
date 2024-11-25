@@ -124,8 +124,8 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 		}
 
 		if (rawType == "\"examine\"" || model == "examine") return AreaDecoration(
-			x = x, y = y, spritesheetName = null, spritesheetOffsetY = null, spriteHeight = null,
-			light = null, rawConversation = rawConversation, conversationName = conversationName
+			x = x, y = y, spritesheetName = null, spritesheetOffsetY = null, spriteHeight = null, light = null,
+			timePerFrame = 1, rawConversation = rawConversation, conversationName = conversationName
 		)
 	}
 
@@ -195,6 +195,7 @@ fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
 			spritesheetOffsetY = null,
 			spriteHeight = null,
 			light = null,
+			timePerFrame = 1,
 			conversationName = conversationName,
 			rawConversation = rawConversation
 		) else AreaObject(

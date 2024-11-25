@@ -523,7 +523,8 @@ class TestAreaEntityParser {
 					"conv:[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]}"
 		)
 		val expected = AreaDecoration(
-			x = 6, y = 6, spritesheetName = "obj_portal", spritesheetOffsetY = null, spriteHeight = null, light = null, conversationName = null,
+			x = 6, y = 6, spritesheetName = "obj_portal", spritesheetOffsetY = null, spriteHeight = null,
+			light = null, timePerFrame = 1, conversationName = null,
 			rawConversation = "[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]"
 		)
 		assertEquals(expected, actual)
@@ -570,8 +571,8 @@ class TestAreaEntityParser {
 			"{name:\"Deities: What ARE they?\",model:\"object\",x:1,y:1,type:\"examine\",conv:$rawConversation}"
 		)
 		val expected = AreaDecoration(
-			x = 1, y = 1, spritesheetName = null, spritesheetOffsetY = null,
-			spriteHeight = null, light = null, rawConversation = rawConversation, conversationName = null
+			x = 1, y = 1, spritesheetName = null, spritesheetOffsetY = null, spriteHeight = null,
+			light = null, timePerFrame = 1, rawConversation = rawConversation, conversationName = null
 		)
 		assertEquals(expected, actual)
 	}
@@ -603,7 +604,7 @@ class TestAreaEntityParser {
 		)
 		val expected = AreaDecoration(
 			x = 8, y = 30, spritesheetName = null, spritesheetOffsetY = null, spriteHeight = null,
-			light = null, rawConversation = null, conversationName = "c_lakeQur"
+			light = null, timePerFrame = 1, rawConversation = null, conversationName = "c_lakeQur"
 		)
 		assertEquals(expected, actual)
 	}

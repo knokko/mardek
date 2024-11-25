@@ -9,9 +9,7 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.characters.CharactersState
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkRect2D
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 class AreaRenderer(
 	private val assets: GameAssets,
@@ -55,39 +53,68 @@ class AreaRenderer(
 		var cameraX = 0
 		var cameraY = 0
 
-		val animationSize = 2 // TODO Maybe stop hardcoding this
+		val animationSize = 2
 
-		val hostEntityBuffer = resources.entityBuffers[frameIndex].intBuffer()
+		class EntityRenderJob(
+				val x: Int, val y: Int, val sprite: Int, val opacity: Int = 255
+		): Comparable<EntityRenderJob> {
+			override fun compareTo(other: EntityRenderJob) = this.y.compareTo(other.y)
+		}
+
+		val renderJobs = mutableListOf<EntityRenderJob>()
 
 		for (character in state.area.objects.characters) {
-			hostEntityBuffer.put(tileSize * character.startX)
-			hostEntityBuffer.put(tileSize * character.startY - 4 * scale)
-
 			val direction = character.startDirection ?: Direction.Down
-			val spriteIndex = animationSize * direction.ordinal
-			hostEntityBuffer.put(character.spritesheet!!.indices!![spriteIndex])
+			var spriteIndex = animationSize * direction.ordinal
+			if (character.walkSpeed == -1) {
+				if (state.currentTime.inWholeMilliseconds % 1000L >= 500L) spriteIndex += 1
+			}
+			renderJobs.add(EntityRenderJob(
+					x = tileSize * character.startX,
+					y = tileSize * character.startY - 4 * scale,
+					sprite = character.spritesheet!!.indices!![spriteIndex]
+			))
 		}
 
 		for (decoration in state.area.objects.decorations) {
 			val spritesheet = decoration.spritesheet ?: continue
+			val spriteIndices = spritesheet.indices!!
+			val spriteIndex = (state.currentTime.inWholeMilliseconds % (decoration.timePerFrame * spriteIndices.size)) / decoration.timePerFrame
 
-			hostEntityBuffer.put(tileSize * decoration.x)
-			hostEntityBuffer.put(tileSize * decoration.y)
-			hostEntityBuffer.put(spritesheet.indices!![0])
+			renderJobs.add(EntityRenderJob(
+					x = tileSize * decoration.x,
+					y = tileSize * decoration.y,
+					sprite = spriteIndices[spriteIndex.toInt()]
+			))
 		}
 
 		for (door in state.area.objects.doors) {
-			hostEntityBuffer.put(tileSize * door.x)
-			hostEntityBuffer.put(tileSize * door.y)
-			hostEntityBuffer.put(door.spritesheet!!.indices!![0])
+			var spriteIndex = 0
+			val openingDoor = state.openingDoor
+			val spriteIndices = door.spritesheet!!.indices!!
+
+			if (openingDoor != null && door == openingDoor.door) {
+				val startTime = openingDoor.finishTime - AreaState.DOOR_OPEN_DURATION
+				val progress = (state.currentTime - startTime) / AreaState.DOOR_OPEN_DURATION
+				spriteIndex = min((spriteIndices.size * progress).toInt(), spriteIndices.size - 1)
+			}
+			renderJobs.add(EntityRenderJob(
+					x = tileSize * door.x,
+					y = tileSize * door.y,
+					sprite = spriteIndices[spriteIndex]
+			))
 		}
 
 		for (areaObject in state.area.objects.objects) {
 			val spritesheet = areaObject.spritesheet ?: continue
+			val spriteIndices = spritesheet.indices!!
+			val spriteIndex = (state.currentTime.inWholeMilliseconds % (200L * spriteIndices.size)) / 200L
 
-			hostEntityBuffer.put(tileSize * areaObject.x)
-			hostEntityBuffer.put(tileSize * areaObject.y - 4 * scale)
-			hostEntityBuffer.put(spritesheet.indices!![0])
+			renderJobs.add(EntityRenderJob(
+					x = tileSize * areaObject.x,
+					y = tileSize * areaObject.y - 4 * scale,
+					sprite = spriteIndices[spriteIndex.toInt()]
+			))
 		}
 
 		for (portal in state.area.objects.portals) {
@@ -100,35 +127,51 @@ class AreaRenderer(
 			// Hence we should not render the portal texture
 			if (isDream != (destination.properties.dreamType != AreaDreamType.None)) continue
 
-			hostEntityBuffer.put(tileSize * portal.x)
-			hostEntityBuffer.put(tileSize * portal.y)
-			hostEntityBuffer.put(spritesheet.indices!![0])
+			val spriteIndices = spritesheet.indices!!
+			val spriteIndex = (state.currentTime.inWholeMilliseconds % (500L * spriteIndices.size)) / 500L
+			renderJobs.add(EntityRenderJob(
+					x = tileSize * portal.x,
+					y = tileSize * portal.y,
+					sprite = spriteIndices[spriteIndex.toInt()]
+			))
 		}
 
 		for (gate in state.area.objects.switchGates) {
-			hostEntityBuffer.put(tileSize * gate.x)
-			hostEntityBuffer.put(tileSize * gate.y)
-			hostEntityBuffer.put(gate.onSpriteOffset)
+			renderJobs.add(EntityRenderJob(
+					x = tileSize * gate.x,
+					y = tileSize * gate.y,
+					sprite = gate.onSpriteOffset
+			))
 		}
 
 		for (orb in state.area.objects.switchOrbs) {
-			hostEntityBuffer.put(tileSize * orb.x)
-			hostEntityBuffer.put(tileSize * orb.y)
-			hostEntityBuffer.put(orb.onSpriteOffset)
+			renderJobs.add(EntityRenderJob(
+					x = tileSize * orb.x,
+					y = tileSize * orb.y,
+					sprite = orb.onSpriteOffset
+			))
 		}
 
 		for (platform in state.area.objects.switchPlatforms) {
-			hostEntityBuffer.put(tileSize * platform.x)
-			hostEntityBuffer.put(tileSize * platform.y)
-			hostEntityBuffer.put(platform.onSpriteOffset)
+			renderJobs.add(EntityRenderJob(
+					x = tileSize * platform.x,
+					y = tileSize * platform.y,
+					sprite = platform.onSpriteOffset
+			))
 		}
 
 		for (transition in state.area.objects.transitions) {
 			val spritesheet = transition.arrowSprite ?: continue
 
-			hostEntityBuffer.put(tileSize * transition.x)
-			hostEntityBuffer.put(tileSize * transition.y)
-			hostEntityBuffer.put(spritesheet.indices!![0])
+			val period = 1000
+			val relativeTime = state.currentTime.inWholeMilliseconds % period
+			val opacity = 0.5 + 0.5 * sin(2 * PI * relativeTime / period)
+			renderJobs.add(EntityRenderJob(
+					x = tileSize * transition.x,
+					y = tileSize * transition.y,
+					sprite = spritesheet.indices!![0],
+					opacity = (255 * opacity).roundToInt()
+			))
 		}
 
 		val nextPlayerPosition = state.nextPlayerPosition
@@ -171,9 +214,19 @@ class AreaRenderer(
 
 			spriteIndex += animationSize * direction.ordinal
 
-			hostEntityBuffer.put(x)
-			hostEntityBuffer.put(y)
-			hostEntityBuffer.put(character.areaSheet.indices!![spriteIndex])
+			renderJobs.add(EntityRenderJob(
+					x = x, y = y, sprite = character.areaSheet.indices!![spriteIndex]
+			))
+		}
+
+		renderJobs.sort()
+
+		val hostEntityBuffer = resources.entityBuffers[frameIndex].intBuffer()
+		for (job in renderJobs) {
+			hostEntityBuffer.put(job.x)
+			hostEntityBuffer.put(job.y)
+			hostEntityBuffer.put(job.sprite)
+			hostEntityBuffer.put(job.opacity)
 		}
 
 		if (state.area.flags.noMovingCamera) {
@@ -212,7 +265,7 @@ class AreaRenderer(
 			recorder.commandBuffer, resources.entitiesPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
 			recorder.stack.ints(targetImage.width, targetImage.height, cameraX, cameraY, scale)
 		)
-		vkCmdDraw(recorder.commandBuffer, 6, hostEntityBuffer.position() / 3, 0, 0)
+		vkCmdDraw(recorder.commandBuffer, 6, hostEntityBuffer.position() / 4, 0, 0)
 
 		renderTiles(resources.highTilesPipeline, state.area.renderHighTilesOffset)
 	}

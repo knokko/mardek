@@ -2,6 +2,7 @@
 
 layout(location = 0) in ivec2 offset;
 layout(location = 1) in int spriteOffset;
+layout(location = 2) in int opacity;
 
 #include "base.glsl"
 #include "kim1.glsl"
@@ -14,6 +15,7 @@ layout(push_constant) uniform PushConstants {
 
 layout(location = 0) out vec2 textureCoordinates;
 layout(location = 1) out int propagateSpriteOffset;
+layout(location = 2) out float propagateOpacity;
 
 vec2 textureCoordinateMapping[] = {
 		vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.0),
@@ -29,4 +31,5 @@ void main() {
 	vec2 relative = 2.0 * vec2(offset + extraOffset - cameraOffset) / vec2(screenSize);
 	gl_Position = vec4(relative + 2.0 * scale * spriteSize * textureCoordinates / vec2(screenSize), 0.0, 1.0);
 	propagateSpriteOffset = spriteOffset;
+	propagateOpacity = opacity / 255.0;
 }

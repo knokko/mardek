@@ -39,20 +39,24 @@ class AreaDecoration(
 	@BitField(ordering = 5, optional = true)
 	val light: AreaLight?,
 
-	@BitField(ordering = 6, optional = true)
-	val rawConversation: String?,
+	@BitField(ordering = 6)
+	@IntegerField(minValue = 1, expectUniform = false)
+	val timePerFrame: Int,
 
 	@BitField(ordering = 7, optional = true)
+	val rawConversation: String?,
+
+	@BitField(ordering = 8, optional = true)
 	val conversationName: String?,
 ) {
 
-	@BitField(ordering = 8, optional = true)
+	@BitField(ordering = 9, optional = true)
 	var spritesheet: ObjectSpritesheet? = null
 
 	@Suppress("unused")
 	private constructor() : this(
 		0, 0, null, null,
-		null, null, null, null
+		null, null, 1, null, null
 	)
 
 	override fun toString() = "Decoration(x=$x, y=$y, sheet=$spritesheetName, conversation=$rawConversation)"

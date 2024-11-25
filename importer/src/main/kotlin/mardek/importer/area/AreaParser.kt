@@ -47,6 +47,7 @@ private fun parseArea2(parsing: ParsingArea1): ParsedArea {
 					x = x, y = y, spritesheetName = hexObject.sheetName,
 					spritesheetOffsetY = hexObject.height * hexObject.sheetRow,
 					spriteHeight = hexObject.height, light = hexObject.light,
+					timePerFrame = 50 * hexObject.timePerFrame,
 					rawConversation = null, conversationName = null
 				))
 			}

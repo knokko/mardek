@@ -103,11 +103,12 @@ private fun createEntityBuffers(boiler: BoilerInstance, framesInFlight: Int): Li
 
 private fun entityVertexInput(builder: GraphicsPipelineBuilder, stack: MemoryStack) {
 	val vertexBindings = VkVertexInputBindingDescription.calloc(1, stack)
-	vertexBindings.get(0).set(0, 12, VK_VERTEX_INPUT_RATE_INSTANCE)
+	vertexBindings.get(0).set(0, 16, VK_VERTEX_INPUT_RATE_INSTANCE)
 
-	val vertexAttributes = VkVertexInputAttributeDescription.calloc(2, stack)
+	val vertexAttributes = VkVertexInputAttributeDescription.calloc(3, stack)
 	vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SINT, 0)
 	vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32_SINT, 8)
+	vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_SINT, 12)
 
 	val vertexInput = VkPipelineVertexInputStateCreateInfo.calloc(stack)
 	vertexInput.`sType$Default`()
