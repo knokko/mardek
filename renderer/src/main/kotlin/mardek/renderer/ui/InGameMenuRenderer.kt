@@ -65,20 +65,28 @@ class InGameMenuRenderer(
 	private fun renderTabName(renderer: UiRenderer, transform: CoordinateTransform, text: String, index: Int) {
 		val rect = transform.transform(0.7f, 0.85f - index * 0.07f, 0.3f, 0.06f)
 
-		//val goldTint = srgbToLinear(rgba(215, 180, 43, 183))
-		val goldTint = srgbToLinear(rgba(111, 92, 53, 183))
+		var goldTint = srgbToLinear(rgba(111, 92, 53, 183))
+		if (text == state.menu.currentTab.getText()) {
+			goldTint = srgbToLinear(rgba(6, 81, 156, 182))
+		}
+
 		renderer.fillColor(
 			rect.minX, (rect.minY + rect.maxY) / 2, rect.maxX, rect.maxY, 0,
 			Gradient(0, 0, rect.width, rect.height / 2, 0, goldTint, 0)
 		)
 
-		val upperTextColor = srgbToLinear(rgb(239, 237, 210))
-		val lowerTextColor = srgbToLinear(rgb(214, 170, 98))
-		val outline = intArrayOf(srgbToLinear(rgb(108, 82, 47)))
+		var upperTextColor = srgbToLinear(rgb(239, 237, 210))
+		var lowerTextColor = srgbToLinear(rgb(214, 170, 98))
+
+		if (text == state.menu.currentTab.getText()) {
+			upperTextColor = srgbToLinear(rgb(231, 255, 255))
+			lowerTextColor = srgbToLinear(rgb(104, 180, 253))
+		}
 
 		renderer.drawString(
-			sharedUi.font, text, upperTextColor, outline, rect.minX, rect.minY, rect.maxX, rect.maxY,
-			rect.maxY - rect.height / 5, transform.transformHeight(0.04f), 1
+			sharedUi.font, text, lowerTextColor, IntArray(0), rect.minX, rect.minY, rect.maxX, rect.maxY,
+			rect.maxY - rect.height / 5, transform.transformHeight(0.04f), 1,
+			Gradient(0, 0, rect.width, 3 * rect.height / 5, upperTextColor, upperTextColor, upperTextColor)
 		)
 	}
 }

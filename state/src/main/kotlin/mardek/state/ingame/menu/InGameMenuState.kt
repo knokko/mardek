@@ -29,14 +29,18 @@ class InGameMenuState {
 
 					if (event.key == InputKey.MoveUp) {
 						val oldTab = currentTab
-						if (currentTab is InventoryTab) currentTab = PartyTab()
+						if (currentTab is SkillsTab) currentTab = PartyTab()
+						if (currentTab is InventoryTab) currentTab = SkillsTab()
+						if (currentTab is MapTab) currentTab = InventoryTab()
 
 						if (oldTab !== currentTab) soundQueue.insert("menu-scroll")
 					}
 
 					if (event.key == InputKey.MoveDown) {
 						val oldTab = currentTab
-						if (currentTab is PartyTab) currentTab = InventoryTab()
+						if (currentTab is InventoryTab) currentTab = MapTab()
+						if (currentTab is SkillsTab) currentTab = InventoryTab()
+						if (currentTab is PartyTab) currentTab = SkillsTab()
 
 						if (oldTab !== currentTab) soundQueue.insert("menu-scroll")
 					}
