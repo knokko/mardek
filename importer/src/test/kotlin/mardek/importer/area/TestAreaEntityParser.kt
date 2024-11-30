@@ -3,6 +3,7 @@ package mardek.importer.area
 import mardek.assets.area.Direction
 import mardek.assets.area.TransitionDestination
 import mardek.assets.area.objects.*
+import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -11,7 +12,7 @@ class TestAreaEntityParser {
 	@Test
 	fun testSingleEntitySingleKey() {
 		val rawEntities = "[{name:\"Guard\"}]"
-		val parsed1 = parseAreaEntities1(rawEntities)
+		val parsed1 = parseActionScriptObjectList(rawEntities)
 		assertEquals(1, parsed1.size)
 		assertEquals(1, parsed1[0].size)
 		assertEquals("\"Guard\"", parsed1[0]["name"])
@@ -20,7 +21,7 @@ class TestAreaEntityParser {
 	@Test
 	fun testSingleEntityTwoKeys() {
 		val rawEntities = "[{name:\"Guard\",x:22}]"
-		val parsed1 = parseAreaEntities1(rawEntities)
+		val parsed1 = parseActionScriptObjectList(rawEntities)
 		println(parsed1)
 		assertEquals(1, parsed1.size)
 		assertEquals(2, parsed1[0].size)
@@ -31,7 +32,7 @@ class TestAreaEntityParser {
 	@Test
 	fun testTwoEntitiesWithSingleKey() {
 		val rawEntities = "[{x:1},{y:2}]"
-		val parsed1 = parseAreaEntities1(rawEntities)
+		val parsed1 = parseActionScriptObjectList(rawEntities)
 		assertEquals(2, parsed1.size)
 		assertEquals(1, parsed1[0].size)
 		assertEquals("1", parsed1[0]["x"])
@@ -42,7 +43,7 @@ class TestAreaEntityParser {
 	@Test
 	fun testTwoEntitiesWithTwoKeys() {
 		val rawEntities = "[{x:1,y:2},{x:3,y:4}]"
-		val parsed1 = parseAreaEntities1(rawEntities)
+		val parsed1 = parseActionScriptObjectList(rawEntities)
 		assertEquals(2, parsed1.size)
 		assertEquals(2, parsed1[0].size)
 		assertEquals("1", parsed1[0]["x"])
@@ -59,7 +60,7 @@ class TestAreaEntityParser {
 				"conv:[[\"sour\",\"This is the Air Temple. You may enter to pay your respects to the Air Crystal " +
 				"or to receive blessings from the Priestess, but the deeper sections of the temple are off-limits " +
 				"to people of no significance such as yourself.\"]]}]"
-		val parsed1 = parseAreaEntities1(rawEntities)
+		val parsed1 = parseActionScriptObjectList(rawEntities)
 		assertEquals(1, parsed1.size)
 		assertEquals(8, parsed1[0].size)
 		assertEquals("\"AIR\"", parsed1[0]["elem"])

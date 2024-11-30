@@ -3,19 +3,20 @@ package mardek.importer.area
 import mardek.assets.area.BattleEnemySelection
 import mardek.assets.area.LevelRange
 import mardek.assets.area.RandomAreaBattles
+import mardek.importer.util.ActionScriptCode
 import java.lang.Integer.parseInt
 
-fun parseRandomBattle(parsing: ParsingArea1): RandomAreaBattles? {
-	val chance = try { parseInt(parsing.variableAssignments["btlChance"]) } catch (complex: NumberFormatException) {
-		println("failed to parse btlChance ${parsing.variableAssignments["btlChance"]}")
+fun parseRandomBattle(areaCode: ActionScriptCode): RandomAreaBattles? {
+	val chance = try { parseInt(areaCode.variableAssignments["btlChance"]) } catch (complex: NumberFormatException) {
+		println("failed to parse btlChance ${areaCode.variableAssignments["btlChance"]}")
 		0
 	}
 	if (chance == 0) return null
 
-	val minSteps = parseInt(parsing.variableAssignments["minSteps"] ?: "0")
+	val minSteps = parseInt(areaCode.variableAssignments["minSteps"] ?: "0")
 
 	val (ownLevelRange, levelRangeName) = run {
-		val rawLevelRange = parsing.variableAssignments["levelrange"]!!
+		val rawLevelRange = areaCode.variableAssignments["levelrange"]!!
 		val levelRangePrefix = "MONSTER_LEVELS."
 		if (rawLevelRange.startsWith(levelRangePrefix)) return@run Pair(null, rawLevelRange.substring(levelRangePrefix.length))
 
@@ -31,7 +32,7 @@ fun parseRandomBattle(parsing: ParsingArea1): RandomAreaBattles? {
 	}
 
 	val (ownEnemies, monstersTableName) = run {
-		val rawFoes = parsing.variableAssignments["foes"]!!
+		val rawFoes = areaCode.variableAssignments["foes"]!!
 		val monstersTablePrefix = "MONSTER_TABLES."
 		if (rawFoes.startsWith(monstersTablePrefix)) return@run Pair(null, rawFoes.substring(monstersTablePrefix.length))
 
@@ -58,7 +59,7 @@ fun parseRandomBattle(parsing: ParsingArea1): RandomAreaBattles? {
 		Pair(ownEnemies, null)
 	}
 
-	val rawBackground = parsing.variableAssignments["specBtlBG"]
+	val rawBackground = areaCode.variableAssignments["specBtlBG"]
 	val specialBackground = if (rawBackground != null) {
 		parseFlashString(rawBackground, "special battle background")
 	} else null

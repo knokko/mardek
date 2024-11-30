@@ -7,6 +7,8 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.GameAssets
 import mardek.assets.PlayableCharacter
 import mardek.assets.area.*
+import mardek.assets.combat.CombatAssets
+import mardek.assets.skill.SkillAssets
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.BufferedInputStream
@@ -142,7 +144,8 @@ class TestAreaParser {
 		}
 		println("total area is $totalArea")
 
-		val assets = GameAssets(optimizedAreas, arrayListOf(
+		// TODO Stop this hack
+		val assets = GameAssets(CombatAssets(), SkillAssets(), optimizedAreas, arrayListOf(
 			PlayableCharacter(sprites.getCharacter("mardek_hero")),
 			PlayableCharacter(sprites.getCharacter("deugan_hero"))
 		))

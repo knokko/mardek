@@ -4,6 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.compressor.Kim1Decompressor
 import mardek.assets.area.objects.AreaObject
 import mardek.assets.area.sprites.KimImage
+import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.awt.Color
@@ -136,7 +137,8 @@ class TestAreaSprites {
 
 	@Test
 	fun testGetMolestor() {
-		val rawMolester = parseAreaEntity2(parseAreaEntities1("[{name:\"Molestor\",model:\"ch3bosses\",x:16,y:37,walkspeed:-1,dir:\"e\",Static:true,elem:\"DARK\",BOSSCODE:\"Molestor2\",conv:[[\"norm\",\"<<demon>>Neeeeeeeheeheeheehee... Children... You do not belooooong heeeererererere...!\"],Do = function()\n" +
+		val rawMolester = parseAreaEntity(
+			parseActionScriptObjectList("[{name:\"Molestor\",model:\"ch3bosses\",x:16,y:37,walkspeed:-1,dir:\"e\",Static:true,elem:\"DARK\",BOSSCODE:\"Molestor2\",conv:[[\"norm\",\"<<demon>>Neeeeeeeheeheeheehee... Children... You do not belooooong heeeererererere...!\"],Do = function()\n" +
 				"{\n" +
 				"   BATTLE([[\"Molestor\",null,null,null],[\"Molestor\",null,null,null],[20,null,null,null],\"SOLO\"],\"battle\",true,true);\n" +
 				"   return 1;\n" +
