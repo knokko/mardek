@@ -6,21 +6,29 @@ import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.assets.area.OptimizedArea
+import mardek.assets.combat.CombatAssets
+import mardek.assets.skill.SkillAssets
 import java.io.BufferedInputStream
 
 @BitStruct(backwardCompatible = false)
 class GameAssets(
 	@BitField(ordering = 0)
+	val combat: CombatAssets,
+
+	@BitField(ordering = 1)
+	val skills: SkillAssets,
+
+	@BitField(ordering = 2)
 	@CollectionField
 	val areas: ArrayList<OptimizedArea>,
 
-	@BitField(ordering = 1)
+	@BitField(ordering = 3)
 	@CollectionField
 	val playableCharacters: ArrayList<PlayableCharacter>
 ) {
 
 	@Suppress("unused")
-	private constructor() : this(arrayListOf(), arrayListOf())
+	private constructor() : this(CombatAssets(), SkillAssets(), arrayListOf(), arrayListOf())
 
 	companion object {
 		fun load(resourcePath: String): GameAssets {

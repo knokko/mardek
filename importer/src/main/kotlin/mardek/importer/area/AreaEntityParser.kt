@@ -3,11 +3,10 @@ package mardek.importer.area
 import mardek.assets.area.Direction
 import mardek.assets.area.TransitionDestination
 import mardek.assets.area.objects.*
+import mardek.importer.util.parseActionScriptObjectList
 import java.lang.Integer.parseInt
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.streams.toList
 
 private inline fun <reified T> extract(objectList: MutableList<Any>): ArrayList<T> {
 	val result = ArrayList<T>(objectList.count { it is T })
@@ -20,7 +19,7 @@ private inline fun <reified T> extract(objectList: MutableList<Any>): ArrayList<
 	return result
 }
 
-fun parseAreaObjectsToList(rawEntities: String) = parseAreaEntities1(rawEntities).map(::parseAreaEntity2)
+fun parseAreaObjectsToList(rawEntities: String) = parseActionScriptObjectList(rawEntities).map(::parseAreaEntity)
 
 fun parseAreaObjects(rawEntities: String, extraDecorations: List<AreaDecoration>): AreaObjects {
 	val objectList = parseAreaObjectsToList(rawEntities).toMutableList()
@@ -40,63 +39,7 @@ fun parseAreaObjects(rawEntities: String, extraDecorations: List<AreaDecoration>
 	)
 }
 
-fun parseAreaEntities1(rawEntities: String): List<Map<String, String>> {
-
-	val content = rawEntities.codePoints().toList()
-	var depth = 0
-
-	val STATE_KEY = 0
-	val STATE_VALUE = 1
-	var state = STATE_KEY
-
-	var insideString = false
-
-	val keyStorage = StringBuilder()
-	val valueStorage = StringBuilder()
-	val objectList = mutableListOf<Map<String, String>>()
-	val currentObject = mutableMapOf<String, String>()
-
-	for ((index, character) in content.withIndex()) {
-		if (character == '"'.code && content[index - 1] != '\\'.code) insideString = !insideString
-
-		if (depth == 1 && !insideString) {
-			if (character == ','.code || character == ']'.code) {
-				objectList.add(HashMap(currentObject))
-				currentObject.clear()
-			}
-		}
-
-		if (depth == 2 && !insideString) {
-			if (character == ','.code || character == '}'.code) {
-				currentObject[keyStorage.toString().trim()] = valueStorage.toString().trim()
-				keyStorage.clear()
-				valueStorage.clear()
-				state = STATE_KEY
-				if (character == ','.code) continue
-			}
-
-			if (character == ':'.code) {
-				//parseAssert(state == STATE_KEY, "Unexpected : at depth $depth with memory $keyStorage and $valueStorage")
-				state = STATE_VALUE
-				continue
-			}
-		}
-
-		if ((character == '}'.code || character == ']'.code) && !insideString) depth -= 1
-
-		if (depth >= 2) {
-			if (state == STATE_KEY) keyStorage.appendCodePoint(character)
-			else valueStorage.appendCodePoint(character)
-		}
-
-		if (!insideString && (character == '{'.code || character == '['.code)) depth += 1
-	}
-
-	parseAssert(depth == 0, "Expected to end with depth 0, but got $depth")
-	return objectList.toList()
-}
-
-fun parseAreaEntity2(rawEntity: Map<String, String>): Any {
+fun parseAreaEntity(rawEntity: Map<String, String>): Any {
 	val model = parseFlashString(rawEntity["model"]!!, "model")!!
 	val x = parseInt(rawEntity["x"])
 	val y = parseInt(rawEntity["y"])
