@@ -73,4 +73,9 @@ fun addElements(assets: CombatAssets) {
 		bonusStat = null,
 		primaryChar = "T"
 	))
+	assets.elements.add(Element(
+		rawName = "DIVINE",
+		bonusStat = null,
+		primaryChar = "D"
+	))
 }

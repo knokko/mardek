@@ -12,9 +12,14 @@ fun importSkills(combatAssets: CombatAssets, resourcePath: String): SkillAssets 
 		skillsCode.variableAssignments["MONSTER_SKILLS"]!!,
 	))
 	val sirenSongs = ArrayList(parseSirenSongs(skillsCode.variableAssignments["SIREN_SONGS"]!!))
-	return SkillAssets(
-		classes = skillClasses, sirenSongs = ArrayList(sirenSongs), reactionSkills = ArrayList(), passiveSkills = ArrayList()
+	val skillAssets = SkillAssets(
+		classes = skillClasses, sirenSongs = ArrayList(sirenSongs),
+		reactionSkills = ArrayList(), passiveSkills = ArrayList()
 	)
+	parseReactionSkillsAndPassiveSkills(
+		combatAssets, skillAssets, rawSkills = skillsCode.variableAssignments["reactionInfo"]!!
+	)
+	return skillAssets
 }
 
 class SkillParseException(message: String): RuntimeException(message)

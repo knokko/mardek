@@ -2,9 +2,7 @@ package mardek.importer.skills
 
 import mardek.assets.combat.CombatAssets
 import mardek.assets.skill.*
-import mardek.importer.combat.addCombatStats
-import mardek.importer.combat.addElements
-import mardek.importer.combat.addStatusEffects
+import mardek.importer.combat.importCombatAssets
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -18,10 +16,7 @@ class TestSkillsImporter {
 
 	@BeforeAll
 	fun importSkills() {
-		combatAssets = CombatAssets()
-		addCombatStats(combatAssets)
-		addElements(combatAssets)
-		addStatusEffects(combatAssets)
+		combatAssets = importCombatAssets()
 		skillAssets = importSkills(combatAssets, "mardek/importer/combat/skills.txt")
 	}
 
@@ -420,4 +415,325 @@ class TestSkillsImporter {
 		assertNull(dirge.notes[1])
 		assertEquals(SirenNote(1, 1), dirge.notes[7])
 	}
+
+	private fun getReactionSkill(name: String, type: ReactionSkillType) = skillAssets.reactionSkills.find {
+		it.name == name && it.type == type
+	}!!
+
+	@Test
+	fun testStunstrike() {
+		val stunstrike = getReactionSkill("Stunstrike", ReactionSkillType.MeleeAttack)
+
+		assertEquals("Powers", stunstrike.skillClass!!.name)
+		assertEquals(1, stunstrike.addStatusEffects.size)
+		val stun = stunstrike.addStatusEffects[0]
+		assertEquals(50, stun.effect.skipTurnChance)
+		assertEquals(100, stun.chance)
+
+		assertEquals("This reaction has a 100% chance of inflicting Paralysis.", stunstrike.description)
+		assertEquals("AIR", stunstrike.element.properName)
+		assertEquals(20, stunstrike.masteryPoints)
+		assertEquals(5, stunstrike.enablePoints)
+
+		assertEquals(0f, stunstrike.drainHp, 1e-4f)
+		assertEquals(0f, stunstrike.absorbMp, 1e-4f)
+	}
+
+	@Test
+	fun testPoison20() {
+		val poisonAttack = getReactionSkill("P+Poison 20%", ReactionSkillType.MeleeAttack)
+
+		assertEquals(1, poisonAttack.addStatusEffects.size)
+		val addPoison = poisonAttack.addStatusEffects[0]
+		assertEquals("Poison", addPoison.effect.niceName)
+		assertEquals(20, addPoison.chance)
+
+		assertEquals(20, poisonAttack.masteryPoints)
+	}
+
+	@Test
+	fun testSmitePlus() {
+		val smitePlus = getReactionSkill("Smite +", ReactionSkillType.MeleeAttack)
+		assertTrue(smitePlus.smitePlus)
+		assertEquals("LIGHT", smitePlus.element.properName)
+		assertEquals("Holy Arts", smitePlus.skillClass!!.name)
+		assertEquals(5, smitePlus.enablePoints)
+	}
+
+	@Test
+	fun testDamagePlus1() {
+		val plusOne = getReactionSkill("DMG+1", ReactionSkillType.MeleeAttack)
+		assertEquals("Imagination", plusOne.skillClass!!.name)
+		assertEquals(1, plusOne.addFlatDamage)
+		assertEquals(1, plusOne.enablePoints)
+		assertEquals("PHYSICAL", plusOne.element.properName)
+		assertEquals("Adds an additional point of damage to your attack.", plusOne.description)
+	}
+
+	@Test
+	fun testDamagePlus10Percent() {
+		val plusTen = getReactionSkill("DMG+10%", ReactionSkillType.MeleeAttack)
+		assertEquals(0.1f, plusTen.addDamageFraction, 1e-4f)
+		assertEquals(10, plusTen.masteryPoints)
+		assertNull(plusTen.skillClass)
+	}
+
+	@Test
+	fun testCriticalPlus20() {
+		val critical = getReactionSkill("Critical+20%", ReactionSkillType.MeleeAttack)
+		assertEquals(20, critical.addCritChance)
+		assertEquals("AIR", critical.element.properName)
+	}
+
+	@Test
+	fun testAccuracyPlus50() {
+		val accuracy = getReactionSkill("Accuracy+50%", ReactionSkillType.MeleeAttack)
+		assertEquals(50, accuracy.addAccuracy)
+		assertEquals(0, accuracy.addCritChance)
+		assertEquals(4, accuracy.enablePoints)
+	}
+
+	@Test
+	fun testSoulstrike() {
+		val soulstrike = getReactionSkill("Soulstrike", ReactionSkillType.MeleeAttack)
+		assertTrue(soulstrike.soulStrike)
+		assertEquals("AETHER", soulstrike.element.properName)
+	}
+
+	@Test
+	fun testQuarryBeast() {
+		val quarry = getReactionSkill("Quarry: BEAST", ReactionSkillType.MeleeAttack)
+
+		assertEquals(1, quarry.effectiveAgainst.size)
+		val beast = quarry.effectiveAgainst[0]
+		assertEquals("BEAST", beast.race.flashName)
+		assertEquals(0.5f, beast.bonusFraction, 1e-4f)
+
+		assertEquals("DARK", quarry.element.properName)
+		assertFalse(quarry.soulStrike)
+	}
+
+	@Test
+	fun testShieldBreakTenPercent() {
+		val shieldBreak = getReactionSkill("Shield Break 10%", ReactionSkillType.MeleeAttack)
+
+		assertEquals(1, shieldBreak.removeStatusEffects.size)
+		val removeShield = shieldBreak.removeStatusEffects[0]
+		assertEquals(0.5f, removeShield.effect.meleeDamageReduction, 1e-4f)
+		assertEquals(10, removeShield.chance)
+
+		assertEquals(0, shieldBreak.effectiveAgainst.size)
+		assertEquals(8, shieldBreak.enablePoints)
+		assertEquals(0f, shieldBreak.drainHp, 1e-4f)
+	}
+
+	@Test
+	fun testDrainHp() {
+		val drainHp = getReactionSkill("Drain HP 10%", ReactionSkillType.MeleeAttack)
+
+		assertEquals(0.1f, drainHp.drainHp, 1e-4f)
+		assertEquals(0, drainHp.removeStatusEffects.size)
+	}
+
+	@Test
+	fun testNullifyPhysical() {
+		val nullify = getReactionSkill("Nullify Physical", ReactionSkillType.MeleeDefense)
+		assertEquals(-10f, nullify.addDamageFraction, 1e-4f)
+
+		assertEquals(10, nullify.enablePoints)
+		assertEquals("Powers", nullify.skillClass!!.name)
+	}
+
+	@Test
+	fun testBlock() {
+		val block = getReactionSkill("Block", ReactionSkillType.MeleeDefense)
+		assertEquals(-1, block.addFlatDamage)
+
+		assertEquals(5, block.masteryPoints)
+		assertEquals("Child", block.skillClass!!.key)
+		assertEquals("PHYSICAL", block.element.properName)
+	}
+
+	@Test
+	fun testMinusTenPercentMeleeDamage() {
+		val reduceDamage = getReactionSkill("DMG-10%", ReactionSkillType.MeleeDefense)
+		assertEquals(-0.1f, reduceDamage.addDamageFraction, 1e-4f)
+
+		assertEquals(10, reduceDamage.masteryPoints)
+		assertNull(reduceDamage.skillClass)
+	}
+
+	@Test
+	fun testMinusFiftyPercentMeleeFireDamage() {
+		val reduceDamage = getReactionSkill("FIRE-50%", ReactionSkillType.MeleeDefense)
+
+		assertEquals(1, reduceDamage.elementalBonuses.size)
+		val resistFire = reduceDamage.elementalBonuses[0]
+		assertEquals("FIRE", resistFire.element.properName)
+		assertEquals(-0.5f, resistFire.modifier, 1e-4f)
+
+		assertEquals(0f, reduceDamage.addDamageFraction, 1e-4f)
+		assertEquals("Increases FIRE resistance by 50%.", reduceDamage.description)
+	}
+
+	@Test
+	fun testTwentyPercentMeleeEvasion() {
+		val evasion = getReactionSkill("Evasion 20%", ReactionSkillType.MeleeDefense)
+		assertEquals(-20, evasion.addAccuracy)
+
+		assertEquals(0, evasion.elementalBonuses.size)
+		assertEquals("AIR", evasion.element.properName)
+	}
+
+	@Test
+	fun testMeleeSurvivor() {
+		val survivor = getReactionSkill("Survivor", ReactionSkillType.MeleeDefense)
+		assertTrue(survivor.survivor)
+		assertEquals("DIVINE", survivor.element.properName)
+
+		assertEquals(40, survivor.masteryPoints)
+		assertEquals(0, survivor.addAccuracy)
+	}
+
+	@Test
+	fun testMagicDamagePlusTenPercent() {
+		val increaseDamage = getReactionSkill("M DMG+10%", ReactionSkillType.RangedAttack)
+		assertEquals(0.1f, increaseDamage.addDamageFraction, 1e-4f)
+
+		assertEquals("THAUMA", increaseDamage.element.properName)
+		assertEquals(0, increaseDamage.addFlatDamage)
+	}
+
+	@Test
+	fun testMagicFireDamagePlusTwentyPercent() {
+		val increaseDamage = getReactionSkill("M FIRE+20%", ReactionSkillType.RangedAttack)
+
+		assertEquals(1, increaseDamage.elementalBonuses.size)
+		val increaseFireDamage = increaseDamage.elementalBonuses[0]
+		assertEquals("FIRE", increaseFireDamage.element.properName)
+		assertEquals(0.2f, increaseFireDamage.modifier, 1e-4f)
+
+		assertEquals(3, increaseDamage.enablePoints)
+		assertEquals(0f, increaseDamage.addDamageFraction, 1e-4f)
+	}
+
+	@Test
+	fun testMagicShieldBreak() {
+		val shieldBreak = getReactionSkill("M Shield Break 10%", ReactionSkillType.RangedAttack)
+
+		assertEquals(1, shieldBreak.removeStatusEffects.size)
+		val removeMagicShield = shieldBreak.removeStatusEffects[0]
+		assertEquals("M.Shield", removeMagicShield.effect.niceName)
+		assertEquals(10, removeMagicShield.chance)
+
+		assertEquals(40, shieldBreak.masteryPoints)
+		assertEquals(0, shieldBreak.elementalBonuses.size)
+	}
+
+	@Test
+	fun testMagicDrainHp() {
+		val drainHp = getReactionSkill("M Drain HP 10%", ReactionSkillType.RangedAttack)
+		assertEquals(0.1f, drainHp.drainHp, 1e-4f)
+
+		assertEquals("DARK", drainHp.element.properName)
+		assertEquals(0, drainHp.removeStatusEffects.size)
+	}
+
+	@Test
+	fun testMagicPoison() {
+		val magicPoison = getReactionSkill("M+Poison 20%", ReactionSkillType.RangedAttack)
+
+		assertEquals(1, magicPoison.addStatusEffects.size)
+		val addPoison = magicPoison.addStatusEffects[0]
+		assertEquals("Poison", addPoison.effect.niceName)
+		assertEquals(20, addPoison.chance)
+
+		assertEquals(0f, magicPoison.drainHp, 1e-4f)
+		assertEquals("This reaction has a 20% chance of inflicting Poison.", magicPoison.description)
+	}
+
+	@Test
+	fun testNullifyMagic() {
+		val nullify = getReactionSkill("Nullify Magic", ReactionSkillType.RangedDefense)
+		assertEquals(-1f, nullify.addDamageFraction, 1e-4f)
+		assertEquals("Hero", nullify.skillClass!!.key)
+
+		assertEquals(20, nullify.masteryPoints)
+		assertEquals("Resists magical damage completely.", nullify.description)
+	}
+
+	@Test
+	fun testMagicDamageMinusTenPercent() {
+		val reduceDamage = getReactionSkill("M DMG-10%", ReactionSkillType.RangedDefense)
+		assertEquals(-0.1f, reduceDamage.addDamageFraction, 1e-4f)
+
+		assertEquals(1, reduceDamage.enablePoints)
+		assertEquals(10, reduceDamage.masteryPoints)
+		assertNull(reduceDamage.skillClass)
+	}
+
+	@Test
+	fun testMagicDamageSoak() {
+		val soak = getReactionSkill("M DMG Soak 10", ReactionSkillType.RangedDefense)
+		assertEquals(-10, soak.addFlatDamage)
+
+		assertEquals(0f, soak.addDamageFraction)
+		assertEquals("THAUMA", soak.element.properName)
+	}
+
+	@Test
+	fun testRangedFireResistance() {
+		val fireResistance = getReactionSkill("M FIRE-50%", ReactionSkillType.RangedDefense)
+
+		assertEquals(1, fireResistance.elementalBonuses.size)
+		val reduceFire = fireResistance.elementalBonuses[0]
+		assertEquals("FIRE", reduceFire.element.properName)
+		assertEquals(-0.5f, reduceFire.modifier, 1e-4f)
+
+		assertEquals(0, fireResistance.addFlatDamage)
+		assertEquals(25, fireResistance.masteryPoints)
+	}
+
+	@Test
+	fun testRangedEvasion() {
+		val evasion = getReactionSkill("Spell Resist: 30%", ReactionSkillType.RangedDefense)
+		assertEquals(-30, evasion.addAccuracy)
+
+		assertEquals(0, evasion.elementalBonuses.size)
+		assertEquals("Adds a 30% chance of taking no damage at all from spells.", evasion.description)
+	}
+
+	@Test
+	fun testAbsorbMp() {
+		val absorb = getReactionSkill("Absorb MP", ReactionSkillType.RangedDefense)
+		assertEquals(1f, absorb.absorbMp, 1e-4f)
+
+		assertEquals(0, absorb.addAccuracy)
+		assertEquals(10, absorb.enablePoints)
+	}
+
+	@Test
+	fun testRangedSurvivor() {
+		val survivor = getReactionSkill("The One Who Lived", ReactionSkillType.RangedDefense)
+		assertTrue(survivor.survivor)
+		assertEquals("DIVINE", survivor.element.properName)
+
+		assertEquals(0f, survivor.absorbMp, 1e-4f)
+		assertNull(survivor.skillClass)
+	}
+
+	// Passive
+	// TODO {skill:"Nature\'s Favour",effect:{RESIST:{PSN:20,SIL:20,SLP:20,PAR:20}},AP:5,RP:1,elem:"EARTH",desc:"Nature\'s power grants a 20% resistance to Poison, Silence, Sleep and Paralysis.",only:{Shm:true}}
+	// TODO {skill:"HP+10%",effect:{hpmult:0.1},AP:10,RP:4,elem:"EARTH",desc:"Increases Max HP by 10%."}
+	// TODO {skill:"MP+10%",effect:{mpmult:0.1},AP:10,RP:4,elem:"THAUMA",desc:"Increases Max MP by 10%."}
+	// TODO {skill:"Antibody",effect:{RESIST:{PSN:100}},AP:20,RP:4,elem:"EARTH",desc:"Grants immunity to Poison."}
+	// TODO {skill:"STR+1",effect:{statmod:{STR:1}},AP:15,RP:2,elem:"FIRE",desc:"Increases Strength by 1 point."}
+	// TODO {skill:"Resist FIRE",effect:{RESIST:{FIRE:50}},AP:50,RP:8,elem:"FIRE",desc:"Increases FIRE resistance by 50%."}
+	// TODO {skill:"Rainbow Aura Lv.1",effect:{RESIST:{FIRE:20,WATER:20,AIR:20,EARTH:20,LIGHT:20,DARK:20,ETHER:20,FIG:20}},AP:50,RP:10,elem:"LIGHT",desc:"Increases resistance to the natural, moral and spiritual elements by 20%."}
+	// TODO {skill:"Auto-P.Shield",effect:{autoSTFX:{PSH:1}},AP:50,RP:10,elem:"LIGHT",desc:"Grants P.Shield at all times."}
+	// TODO {skill:"SOS Regen",effect:{SOS:{RGN:1}},AP:20,RP:6,elem:"LIGHT",desc:"The Regen status effect triggers when the character is at 20% HP or less."}
+	// TODO {skill:"EXP+20%",effect:{expmult:0.2},AP:40,RP:4,elem:"DIVINE",desc:"Increases all Experience earned by 20%."}
+	// TODO {skill:"Double AP",effect:{apmult:2},AP:200,RP:10,elem:"DIVINE",desc:"Doubles AP earned for all skills."}
+	// TODO {skill:"Double Gold",effect:{goldmult:1},AP:100,RP:10,elem:"DIVINE",desc:"Doubles gold earned from battle. If multiple characters have it, it adds +100% for each one; two characters gives 300% gold, for example."}
+	// TODO {skill:"Loot Finder Lv.1",effect:{lootmod:5},AP:25,RP:4,elem:"DIVINE",desc:"Adds 5% to the chance of acquiring any item after battle."}
 }
