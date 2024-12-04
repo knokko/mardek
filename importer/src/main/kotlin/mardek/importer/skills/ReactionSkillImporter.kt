@@ -25,6 +25,10 @@ fun parseReactionSkillsAndPassiveSkills(combatAssets: CombatAssets, skillAssets:
 			skillAssets.reactionSkills.add(parseReactionSkill(combatAssets, skillAssets, rawSkill, type))
 		}
 	}
+
+	for (rawSkill in parseActionScriptObjectList(reactionTypeMap["PASSIVE"]!!)) {
+		skillAssets.passiveSkills.add(parsePassiveSkill(combatAssets, skillAssets, rawSkill))
+	}
 }
 
 private fun parseReactionSkill(

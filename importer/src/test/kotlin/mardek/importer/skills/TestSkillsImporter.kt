@@ -11,6 +11,8 @@ import org.junit.jupiter.api.TestInstance
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestSkillsImporter {
 
+	private val margin = 1e-4f
+
 	private lateinit var combatAssets: CombatAssets
 	private lateinit var skillAssets: SkillAssets
 
@@ -34,11 +36,11 @@ class TestSkillsImporter {
 		val earthSlash = getAction("Magic Sword", "Earth Slash")
 		val damage = earthSlash.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(1.25f, damage.weaponModifier, 1e-4f)
+		assertEquals(1.25f, damage.weaponModifier, margin)
 		assertEquals(1, damage.bonusAgainstElements.size)
 		val waterBonus = damage.bonusAgainstElements[0]
 		assertEquals("WATER", waterBonus.element.properName)
-		assertEquals(1.5f, waterBonus.modifier, 1e-4f)
+		assertEquals(1.5f, waterBonus.modifier, margin)
 		assertNull(damage.critChance)
 		assertEquals(12, earthSlash.manaCost)
 		assertEquals(100, earthSlash.accuracy)
@@ -54,10 +56,10 @@ class TestSkillsImporter {
 	fun testImmortalInjustice() {
 		val ii = getAction("Techniques", "Immoral Injustice")
 		val damage = ii.damage!!
-		assertEquals(1f, damage.weaponModifier, 1e-4f)
+		assertEquals(1f, damage.weaponModifier, margin)
 		assertEquals(2, damage.bonusAgainstElements.size)
 		for (bonus in damage.bonusAgainstElements) {
-			assertEquals(2f, bonus.modifier, 1e-4f)
+			assertEquals(2f, bonus.modifier, margin)
 			if (bonus.element.properName != "DARK") assertEquals("LIGHT", bonus.element.properName)
 		}
 		assertEquals(10, ii.manaCost)
@@ -93,7 +95,7 @@ class TestSkillsImporter {
 		val barrierBreak = getAction("Spellbladery", "Barrier Break")
 		val damage = barrierBreak.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(1f, damage.weaponModifier, 1e-4f)
+		assertEquals(1f, damage.weaponModifier, margin)
 
 		assertEquals(10, barrierBreak.manaCost)
 		assertEquals(1, barrierBreak.removeStatusEffects.size)
@@ -107,7 +109,7 @@ class TestSkillsImporter {
 	fun testSpiritBlade() {
 		val spiritBlade = getAction("Spellbladery", "Spiritblade")
 		val damage = spiritBlade.damage!!
-		assertEquals(1f, damage.weaponModifier, 1e-4f)
+		assertEquals(1f, damage.weaponModifier, margin)
 		assertEquals(SkillSpiritModifier.SpiritBlade, damage.spiritModifier)
 		assertEquals("AETHER", spiritBlade.element.properName)
 		assertEquals(SkillTargetType.Single, spiritBlade.targetType)
@@ -136,7 +138,7 @@ class TestSkillsImporter {
 		val glory = getAction("Holy Arts", "Divine Glory")
 		val damage = glory.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
 		assertEquals(SkillSpiritModifier.DivineGlory, damage.spiritModifier)
 		assertTrue(damage.ignoresDefense)
 		assertFalse(damage.ignoresShield)
@@ -151,7 +153,7 @@ class TestSkillsImporter {
 		val hands = getAction("Holy Arts", "Lay on Hands")
 		val damage = hands.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
 		assertEquals(SkillSpiritModifier.LayOnHands, damage.spiritModifier)
 		assertTrue(damage.ignoresDefense)
 
@@ -200,7 +202,7 @@ class TestSkillsImporter {
 		val acid = getAction("Mimicry", "Acid")
 		val damage = acid.damage!!
 		assertEquals(30, damage.flatAttackValue)
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
 		assertEquals(0, damage.critChance)
 
 		assertEquals(2, acid.addStatusEffects.size)
@@ -228,7 +230,7 @@ class TestSkillsImporter {
 		val drill = getAction("Inventions", "Drill-O-Matic")
 		val damage = drill.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
 		assertEquals(2, damage.levelModifier)
 		assertTrue(damage.ignoresDefense)
 
@@ -250,9 +252,9 @@ class TestSkillsImporter {
 		val potionSpray = getAction("Inventions", "Potion Spray")
 		val damage = potionSpray.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
 		assertEquals(0, damage.levelModifier)
-		assertEquals(0.5f, damage.potionModifier, 1e-4f)
+		assertEquals(0.5f, damage.potionModifier, margin)
 		assertTrue(damage.ignoresShield)
 		assertFalse(damage.ignoresDefense)
 
@@ -267,7 +269,7 @@ class TestSkillsImporter {
 		val bloodDrain = getAction("Mimicry", "Blood Drain")
 		val damage = bloodDrain.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(0.8f, damage.weaponModifier, 1e-4f)
+		assertEquals(0.8f, damage.weaponModifier, margin)
 
 		assertEquals("DARK", bloodDrain.element.properName)
 		assertTrue(bloodDrain.drainsBlood)
@@ -278,7 +280,7 @@ class TestSkillsImporter {
 		val coupDeGrace = getAction("Techniques", "Coup de Grace")
 		val damage = coupDeGrace.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(1f, damage.weaponModifier, 1e-4f)
+		assertEquals(1f, damage.weaponModifier, margin)
 		assertEquals(1f, damage.statusEffectModifier)
 
 		assertEquals(0, coupDeGrace.manaCost)
@@ -292,7 +294,7 @@ class TestSkillsImporter {
 		assertEquals(ActiveSkillMode.Ranged, resurrect.mode)
 		assertEquals(SkillTargetType.Single, resurrect.targetType)
 		assertTrue(resurrect.isHealing)
-		assertEquals(0.5f, resurrect.revive, 1e-4f)
+		assertEquals(0.5f, resurrect.revive, margin)
 	}
 
 	@Test
@@ -300,8 +302,8 @@ class TestSkillsImporter {
 		val sinstrike = getAction("Techniques", "Sinstrike")
 		val damage = sinstrike.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
-		assertEquals(1f, damage.killCountModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
+		assertEquals(1f, damage.killCountModifier, margin)
 
 		assertEquals(0, sinstrike.manaCost)
 	}
@@ -311,14 +313,14 @@ class TestSkillsImporter {
 		val crescendoSlash = getAction("Techniques", "Crescendo Slash")
 		val damage = crescendoSlash.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(1f, damage.weaponModifier, 1e-4f)
-		assertEquals(0.25f, damage.crescendoModifier, 1e-4f)
+		assertEquals(1f, damage.weaponModifier, margin)
+		assertEquals(0.25f, damage.crescendoModifier, margin)
 	}
 
 	@Test
 	fun testSureSlash() {
 		val sureSlash = getAction("Techniques", "Sure Slash")
-		assertEquals(0.5f, sureSlash.damage!!.weaponModifier, 1e-4f)
+		assertEquals(0.5f, sureSlash.damage!!.weaponModifier, margin)
 		assertEquals(255, sureSlash.accuracy)
 	}
 
@@ -370,16 +372,16 @@ class TestSkillsImporter {
 		val revengeStrike = getAction("Mimicry", "Revenge Strike")
 		val damage = revengeStrike.damage!!
 		assertEquals(0, damage.flatAttackValue)
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
-		assertEquals(1f, damage.lostHealthModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
+		assertEquals(1f, damage.lostHealthModifier, margin)
 	}
 
 	@Test
 	fun testGemsplosion() {
 		val gems = getAction("Mimicry", "Gemsplosion")
 		val damage = gems.damage!!
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
-		assertEquals(1f, damage.gemModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
+		assertEquals(1f, damage.gemModifier, margin)
 
 		assertEquals("THAUMA", gems.element.properName)
 	}
@@ -388,15 +390,15 @@ class TestSkillsImporter {
 	fun testMoneyAttack() {
 		val money = getAction("Mimicry", "Money Attack!")
 		val damage = money.damage!!
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
-		assertEquals(1f, damage.moneyModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
+		assertEquals(1f, damage.moneyModifier, margin)
 	}
 
 	@Test
 	fun test1000needles() {
 		val needles = getAction("Mimicry", "1000 Needles")
 		val damage = needles.damage!!
-		assertEquals(0f, damage.weaponModifier, 1e-4f)
+		assertEquals(0f, damage.weaponModifier, margin)
 		assertEquals(1000, damage.hardcodedDamage)
 	}
 
@@ -435,8 +437,8 @@ class TestSkillsImporter {
 		assertEquals(20, stunstrike.masteryPoints)
 		assertEquals(5, stunstrike.enablePoints)
 
-		assertEquals(0f, stunstrike.drainHp, 1e-4f)
-		assertEquals(0f, stunstrike.absorbMp, 1e-4f)
+		assertEquals(0f, stunstrike.drainHp, margin)
+		assertEquals(0f, stunstrike.absorbMp, margin)
 	}
 
 	@Test
@@ -473,7 +475,7 @@ class TestSkillsImporter {
 	@Test
 	fun testDamagePlus10Percent() {
 		val plusTen = getReactionSkill("DMG+10%", ReactionSkillType.MeleeAttack)
-		assertEquals(0.1f, plusTen.addDamageFraction, 1e-4f)
+		assertEquals(0.1f, plusTen.addDamageFraction, margin)
 		assertEquals(10, plusTen.masteryPoints)
 		assertNull(plusTen.skillClass)
 	}
@@ -507,7 +509,7 @@ class TestSkillsImporter {
 		assertEquals(1, quarry.effectiveAgainst.size)
 		val beast = quarry.effectiveAgainst[0]
 		assertEquals("BEAST", beast.race.flashName)
-		assertEquals(0.5f, beast.bonusFraction, 1e-4f)
+		assertEquals(0.5f, beast.bonusFraction, margin)
 
 		assertEquals("DARK", quarry.element.properName)
 		assertFalse(quarry.soulStrike)
@@ -519,26 +521,26 @@ class TestSkillsImporter {
 
 		assertEquals(1, shieldBreak.removeStatusEffects.size)
 		val removeShield = shieldBreak.removeStatusEffects[0]
-		assertEquals(0.5f, removeShield.effect.meleeDamageReduction, 1e-4f)
+		assertEquals(0.5f, removeShield.effect.meleeDamageReduction, margin)
 		assertEquals(10, removeShield.chance)
 
 		assertEquals(0, shieldBreak.effectiveAgainst.size)
 		assertEquals(8, shieldBreak.enablePoints)
-		assertEquals(0f, shieldBreak.drainHp, 1e-4f)
+		assertEquals(0f, shieldBreak.drainHp, margin)
 	}
 
 	@Test
 	fun testDrainHp() {
 		val drainHp = getReactionSkill("Drain HP 10%", ReactionSkillType.MeleeAttack)
 
-		assertEquals(0.1f, drainHp.drainHp, 1e-4f)
+		assertEquals(0.1f, drainHp.drainHp, margin)
 		assertEquals(0, drainHp.removeStatusEffects.size)
 	}
 
 	@Test
 	fun testNullifyPhysical() {
 		val nullify = getReactionSkill("Nullify Physical", ReactionSkillType.MeleeDefense)
-		assertEquals(-10f, nullify.addDamageFraction, 1e-4f)
+		assertEquals(-10f, nullify.addDamageFraction, margin)
 
 		assertEquals(10, nullify.enablePoints)
 		assertEquals("Powers", nullify.skillClass!!.name)
@@ -557,7 +559,7 @@ class TestSkillsImporter {
 	@Test
 	fun testMinusTenPercentMeleeDamage() {
 		val reduceDamage = getReactionSkill("DMG-10%", ReactionSkillType.MeleeDefense)
-		assertEquals(-0.1f, reduceDamage.addDamageFraction, 1e-4f)
+		assertEquals(-0.1f, reduceDamage.addDamageFraction, margin)
 
 		assertEquals(10, reduceDamage.masteryPoints)
 		assertNull(reduceDamage.skillClass)
@@ -570,9 +572,9 @@ class TestSkillsImporter {
 		assertEquals(1, reduceDamage.elementalBonuses.size)
 		val resistFire = reduceDamage.elementalBonuses[0]
 		assertEquals("FIRE", resistFire.element.properName)
-		assertEquals(-0.5f, resistFire.modifier, 1e-4f)
+		assertEquals(-0.5f, resistFire.modifier, margin)
 
-		assertEquals(0f, reduceDamage.addDamageFraction, 1e-4f)
+		assertEquals(0f, reduceDamage.addDamageFraction, margin)
 		assertEquals("Increases FIRE resistance by 50%.", reduceDamage.description)
 	}
 
@@ -598,7 +600,7 @@ class TestSkillsImporter {
 	@Test
 	fun testMagicDamagePlusTenPercent() {
 		val increaseDamage = getReactionSkill("M DMG+10%", ReactionSkillType.RangedAttack)
-		assertEquals(0.1f, increaseDamage.addDamageFraction, 1e-4f)
+		assertEquals(0.1f, increaseDamage.addDamageFraction, margin)
 
 		assertEquals("THAUMA", increaseDamage.element.properName)
 		assertEquals(0, increaseDamage.addFlatDamage)
@@ -611,10 +613,10 @@ class TestSkillsImporter {
 		assertEquals(1, increaseDamage.elementalBonuses.size)
 		val increaseFireDamage = increaseDamage.elementalBonuses[0]
 		assertEquals("FIRE", increaseFireDamage.element.properName)
-		assertEquals(0.2f, increaseFireDamage.modifier, 1e-4f)
+		assertEquals(0.2f, increaseFireDamage.modifier, margin)
 
 		assertEquals(3, increaseDamage.enablePoints)
-		assertEquals(0f, increaseDamage.addDamageFraction, 1e-4f)
+		assertEquals(0f, increaseDamage.addDamageFraction, margin)
 	}
 
 	@Test
@@ -633,7 +635,7 @@ class TestSkillsImporter {
 	@Test
 	fun testMagicDrainHp() {
 		val drainHp = getReactionSkill("M Drain HP 10%", ReactionSkillType.RangedAttack)
-		assertEquals(0.1f, drainHp.drainHp, 1e-4f)
+		assertEquals(0.1f, drainHp.drainHp, margin)
 
 		assertEquals("DARK", drainHp.element.properName)
 		assertEquals(0, drainHp.removeStatusEffects.size)
@@ -648,14 +650,14 @@ class TestSkillsImporter {
 		assertEquals("Poison", addPoison.effect.niceName)
 		assertEquals(20, addPoison.chance)
 
-		assertEquals(0f, magicPoison.drainHp, 1e-4f)
+		assertEquals(0f, magicPoison.drainHp, margin)
 		assertEquals("This reaction has a 20% chance of inflicting Poison.", magicPoison.description)
 	}
 
 	@Test
 	fun testNullifyMagic() {
 		val nullify = getReactionSkill("Nullify Magic", ReactionSkillType.RangedDefense)
-		assertEquals(-1f, nullify.addDamageFraction, 1e-4f)
+		assertEquals(-1f, nullify.addDamageFraction, margin)
 		assertEquals("Hero", nullify.skillClass!!.key)
 
 		assertEquals(20, nullify.masteryPoints)
@@ -665,7 +667,7 @@ class TestSkillsImporter {
 	@Test
 	fun testMagicDamageMinusTenPercent() {
 		val reduceDamage = getReactionSkill("M DMG-10%", ReactionSkillType.RangedDefense)
-		assertEquals(-0.1f, reduceDamage.addDamageFraction, 1e-4f)
+		assertEquals(-0.1f, reduceDamage.addDamageFraction, margin)
 
 		assertEquals(1, reduceDamage.enablePoints)
 		assertEquals(10, reduceDamage.masteryPoints)
@@ -688,7 +690,7 @@ class TestSkillsImporter {
 		assertEquals(1, fireResistance.elementalBonuses.size)
 		val reduceFire = fireResistance.elementalBonuses[0]
 		assertEquals("FIRE", reduceFire.element.properName)
-		assertEquals(-0.5f, reduceFire.modifier, 1e-4f)
+		assertEquals(-0.5f, reduceFire.modifier, margin)
 
 		assertEquals(0, fireResistance.addFlatDamage)
 		assertEquals(25, fireResistance.masteryPoints)
@@ -706,7 +708,7 @@ class TestSkillsImporter {
 	@Test
 	fun testAbsorbMp() {
 		val absorb = getReactionSkill("Absorb MP", ReactionSkillType.RangedDefense)
-		assertEquals(1f, absorb.absorbMp, 1e-4f)
+		assertEquals(1f, absorb.absorbMp, margin)
 
 		assertEquals(0, absorb.addAccuracy)
 		assertEquals(10, absorb.enablePoints)
@@ -718,22 +720,131 @@ class TestSkillsImporter {
 		assertTrue(survivor.survivor)
 		assertEquals("DIVINE", survivor.element.properName)
 
-		assertEquals(0f, survivor.absorbMp, 1e-4f)
+		assertEquals(0f, survivor.absorbMp, margin)
 		assertNull(survivor.skillClass)
 	}
 
-	// Passive
-	// TODO {skill:"Nature\'s Favour",effect:{RESIST:{PSN:20,SIL:20,SLP:20,PAR:20}},AP:5,RP:1,elem:"EARTH",desc:"Nature\'s power grants a 20% resistance to Poison, Silence, Sleep and Paralysis.",only:{Shm:true}}
-	// TODO {skill:"HP+10%",effect:{hpmult:0.1},AP:10,RP:4,elem:"EARTH",desc:"Increases Max HP by 10%."}
-	// TODO {skill:"MP+10%",effect:{mpmult:0.1},AP:10,RP:4,elem:"THAUMA",desc:"Increases Max MP by 10%."}
-	// TODO {skill:"Antibody",effect:{RESIST:{PSN:100}},AP:20,RP:4,elem:"EARTH",desc:"Grants immunity to Poison."}
-	// TODO {skill:"STR+1",effect:{statmod:{STR:1}},AP:15,RP:2,elem:"FIRE",desc:"Increases Strength by 1 point."}
-	// TODO {skill:"Resist FIRE",effect:{RESIST:{FIRE:50}},AP:50,RP:8,elem:"FIRE",desc:"Increases FIRE resistance by 50%."}
-	// TODO {skill:"Rainbow Aura Lv.1",effect:{RESIST:{FIRE:20,WATER:20,AIR:20,EARTH:20,LIGHT:20,DARK:20,ETHER:20,FIG:20}},AP:50,RP:10,elem:"LIGHT",desc:"Increases resistance to the natural, moral and spiritual elements by 20%."}
-	// TODO {skill:"Auto-P.Shield",effect:{autoSTFX:{PSH:1}},AP:50,RP:10,elem:"LIGHT",desc:"Grants P.Shield at all times."}
-	// TODO {skill:"SOS Regen",effect:{SOS:{RGN:1}},AP:20,RP:6,elem:"LIGHT",desc:"The Regen status effect triggers when the character is at 20% HP or less."}
-	// TODO {skill:"EXP+20%",effect:{expmult:0.2},AP:40,RP:4,elem:"DIVINE",desc:"Increases all Experience earned by 20%."}
-	// TODO {skill:"Double AP",effect:{apmult:2},AP:200,RP:10,elem:"DIVINE",desc:"Doubles AP earned for all skills."}
-	// TODO {skill:"Double Gold",effect:{goldmult:1},AP:100,RP:10,elem:"DIVINE",desc:"Doubles gold earned from battle. If multiple characters have it, it adds +100% for each one; two characters gives 300% gold, for example."}
-	// TODO {skill:"Loot Finder Lv.1",effect:{lootmod:5},AP:25,RP:4,elem:"DIVINE",desc:"Adds 5% to the chance of acquiring any item after battle."}
+	private fun getPassive(name: String) = skillAssets.passiveSkills.find { it.name == name }!!
+
+	@Test
+	fun testNaturesFavour() {
+		val favour = getPassive("Nature's Favour")
+
+		assertEquals("Nature's power grants a 20% resistance to Poison, Silence, Sleep and Paralysis.", favour.description)
+		assertEquals("EARTH", favour.element.properName)
+		assertEquals(5, favour.masteryPoints)
+		assertEquals(1, favour.enablePoints)
+
+		assertEquals(0f, favour.hpModifier, margin)
+		assertEquals(0f, favour.mpModifier, margin)
+		assertEquals(0, favour.statModifiers.size)
+		assertEquals(0, favour.elementalResistances.size)
+		assertEquals(4, favour.statusResistances.size)
+		for (resistance in favour.statusResistances) assertEquals(20, resistance.chance)
+		for (effectName in arrayOf("Poison", "Silence", "Sleep", "Paralysis")) {
+			assertNotNull(favour.statusResistances.find { it.effect.niceName == effectName })
+		}
+		assertEquals(0, favour.autoEffects.size)
+		assertEquals(0, favour.sosEffects.size)
+		assertEquals(0f, favour.experienceModifier, margin)
+		assertEquals(0, favour.masteryModifier)
+		assertEquals(0, favour.goldModifier)
+		assertEquals(0, favour.addLootChance)
+		assertEquals("Nature Magic", favour.skillClass!!.name)
+	}
+
+	@Test
+	fun testHpPlusTenPercent() {
+		val increaseHp = getPassive("HP+10%")
+		assertEquals(0.1f, increaseHp.hpModifier, margin)
+		assertEquals(4, increaseHp.enablePoints)
+
+		assertEquals(0, increaseHp.statusResistances.size)
+	}
+
+	@Test
+	fun testMpPlusTenPercent() {
+		val increaseMp = getPassive("MP+10%")
+		assertEquals(0.1f, increaseMp.mpModifier, margin)
+		assertEquals(10, increaseMp.masteryPoints)
+
+		assertEquals(0f, increaseMp.hpModifier, margin)
+	}
+
+	@Test
+	fun testStrengthPlusOne() {
+		val increaseStrength = getPassive("STR+1")
+		assertEquals(1, increaseStrength.statModifiers.size)
+		val strengthModifier = increaseStrength.statModifiers[0]
+		assertEquals("STR", strengthModifier.stat.flashName)
+		assertEquals(1, strengthModifier.adder)
+
+		assertEquals(0f, increaseStrength.mpModifier, margin)
+	}
+
+	@Test
+	fun testRainbowAura() {
+		val aura = getPassive("Rainbow Aura Lv.1")
+		assertEquals(8, aura.elementalResistances.size)
+		for (resistance in aura.elementalResistances) assertEquals(0.2f, resistance.modifier, margin)
+		for (element in arrayOf("FIRE", "WATER", "LIGHT", "AETHER")) {
+			assertNotNull(aura.elementalResistances.find { it.element.properName == element })
+		}
+
+		assertEquals(0, aura.statModifiers.size)
+	}
+
+	@Test
+	fun testAutoShield() {
+		val autoShield = getPassive("Auto-P.Shield")
+		assertEquals(setOf(combatAssets.statusEffects.find { it.flashName == "PSH" }!!), autoShield.autoEffects)
+		assertEquals("LIGHT", autoShield.element.properName)
+
+		assertEquals(0, autoShield.elementalResistances.size)
+	}
+
+	@Test
+	fun testSosRegen() {
+		val sosRegen = getPassive("SOS Regen")
+		assertEquals(setOf(combatAssets.statusEffects.find { it.niceName == "Regen" }!!), sosRegen.sosEffects)
+		assertEquals("The Regen status effect triggers when the character is at 20% HP or less.", sosRegen.description)
+
+		assertEquals(0, sosRegen.autoEffects.size)
+	}
+
+	@Test
+	fun testExperiencePlusTwentyPercent() {
+		val exp = getPassive("EXP+20%")
+		assertEquals(0.2f, exp.experienceModifier, margin)
+		assertEquals("DIVINE", exp.element.properName)
+
+		assertEquals(0, exp.sosEffects.size)
+	}
+
+	@Test
+	fun testDoubleMasteryPoints() {
+		val doubleAp = getPassive("Double AP")
+		assertEquals(doubleAp.masteryModifier, 1)
+		assertEquals(200, doubleAp.masteryPoints)
+
+		assertEquals(0f, doubleAp.experienceModifier, margin)
+	}
+
+	@Test
+	fun testDoubleGold() {
+		val doubleGold = getPassive("Double Gold")
+		assertEquals(1, doubleGold.goldModifier)
+		assertEquals(10, doubleGold.enablePoints)
+
+		assertEquals(0, doubleGold.masteryModifier)
+	}
+
+	@Test
+	fun testLootFinder() {
+		val lootFinder = getPassive("Loot Finder Lv.1")
+		assertEquals(5, lootFinder.addLootChance)
+		assertEquals("DIVINE", lootFinder.element.rawName)
+
+		assertEquals(0, lootFinder.goldModifier)
+	}
 }
