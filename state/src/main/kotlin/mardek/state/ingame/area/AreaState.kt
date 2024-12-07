@@ -2,8 +2,8 @@ package mardek.state.ingame.area
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.assets.area.Direction
 import mardek.assets.area.OptimizedArea
 import mardek.assets.area.TransitionDestination
@@ -26,7 +26,7 @@ class AreaState(
 		private set
 
 	@BitField(ordering = 2)
-	@CollectionField(size = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
+	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	private val playerPositions = Array(4) { initialPlayerPosition }
 
 	@BitField(ordering = 3)

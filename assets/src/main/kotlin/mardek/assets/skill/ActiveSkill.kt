@@ -2,10 +2,8 @@ package mardek.assets.skill
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
-import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.combat.Element
 import mardek.assets.combat.PossibleStatusEffect
 import mardek.assets.combat.StatModifierRange
@@ -47,15 +45,12 @@ class ActiveSkill(
 	val drainsBlood: Boolean,
 
 	@BitField(ordering = 9)
-	@CollectionField
 	val statModifiers: ArrayList<StatModifierRange>,
 
 	@BitField(ordering = 10)
-	@CollectionField
 	val addStatusEffects: ArrayList<PossibleStatusEffect>,
 
 	@BitField(ordering = 11)
-	@CollectionField
 	val removeStatusEffects: ArrayList<PossibleStatusEffect>,
 
 	@BitField(ordering = 12)

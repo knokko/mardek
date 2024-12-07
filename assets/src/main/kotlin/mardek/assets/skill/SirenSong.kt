@@ -2,8 +2,8 @@ package mardek.assets.skill
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 
 @BitStruct(backwardCompatible = false)
 class SirenSong(
@@ -19,7 +19,7 @@ class SirenSong(
 	val tempo: Int,
 
 	@BitField(ordering = 3)
-	@CollectionField(optionalValues = true)
+	@NestedFieldSetting(path = "c", optional = true)
 	val notes: List<SirenNote?>,
 ) {
 }

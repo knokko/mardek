@@ -2,8 +2,8 @@ package mardek.assets.area.sprites
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 
 @BitStruct(backwardCompatible = false)
 class ObjectSpritesheet(
@@ -39,7 +39,7 @@ class ObjectSpritesheet(
 	var frames: Array<KimImage>? = null
 
 	@BitField(ordering = 4, optional = true)
-	@CollectionField(writeAsBytes = true)
+	@NestedFieldSetting(path = "", writeAsBytes = true)
 	var indices: IntArray? = null
 
 	@Suppress("unused")

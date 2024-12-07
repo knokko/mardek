@@ -2,7 +2,6 @@ package mardek.assets.skill
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 
@@ -51,7 +50,6 @@ class SkillDamage(
 	 * Bonus damage modifier against particular elements (like water slash)
 	 */
 	@BitField(ordering = 7)
-	@CollectionField
 	val bonusAgainstElements: ArrayList<ElementalDamageBonus>,
 
 	/**

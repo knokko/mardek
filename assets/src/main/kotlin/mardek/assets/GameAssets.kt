@@ -2,7 +2,6 @@ package mardek.assets
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.assets.area.OptimizedArea
@@ -19,11 +18,9 @@ class GameAssets(
 	val skills: SkillAssets,
 
 	@BitField(ordering = 2)
-	@CollectionField
 	val areas: ArrayList<OptimizedArea>,
 
 	@BitField(ordering = 3)
-	@CollectionField
 	val playableCharacters: ArrayList<PlayableCharacter>
 ) {
 
