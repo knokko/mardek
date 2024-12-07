@@ -34,7 +34,7 @@ allprojects {
 	project.ext.lwjglVersion = "3.3.4"
 	project.ext.boilerVersion = "v4.3.1"
 	project.ext.textRenderVersion = "3f9360cf4e"
-	project.ext.compressorVersion = "v0.2.2"
+	project.ext.compressorVersion = "v0.2.3"
 	project.ext.bitserVersion = "36cee7b6a0f6529ddb11b522fbbb889857c19690"
 	switch (OperatingSystem.current()) {
 		case OperatingSystem.LINUX:

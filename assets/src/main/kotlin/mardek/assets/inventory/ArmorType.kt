@@ -4,15 +4,15 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 
 @BitStruct(backwardCompatible = false)
-class WeaponType(
+class ArmorType(
 	@BitField(ordering = 0)
-	val flashName: String,
+	val key: String,
 
-	@BitField(ordering = 1, optional = true)
-	val soundEffect: String?,
+	@BitField(ordering = 1)
+	val name: String,
 ) {
 
-	internal constructor() : this("", null)
+	internal constructor() : this("", "")
 
-	override fun toString() = flashName
+	override fun toString() = "$name ($key)"
 }
