@@ -2,7 +2,6 @@ package mardek.assets.inventory
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 
@@ -25,7 +24,6 @@ class WeaponProperties(
 	val hitChance: Int,
 
 	@BitField(ordering = 4)
-	@CollectionField
 	val raceBonuses: ArrayList<WeaponRaceBonus>,
 
 	@BitField(ordering = 5, optional = true)

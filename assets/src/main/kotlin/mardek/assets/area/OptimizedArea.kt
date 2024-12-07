@@ -2,8 +2,8 @@ package mardek.assets.area
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.assets.area.objects.AreaObjects
 
 @BitStruct(backwardCompatible = false)
@@ -18,7 +18,7 @@ class OptimizedArea(
 	val height: Int,
 
 	@BitField(ordering = 2)
-	@CollectionField(writeAsBytes = true)
+	@NestedFieldSetting(path = "", writeAsBytes = true)
 	private val canWalkGrid: BooleanArray,
 
 	@BitField(ordering = 3)
@@ -45,7 +45,7 @@ class OptimizedArea(
 
 	@BitField(ordering = 9)
 	@IntegerField(expectUniform = false)
-	@CollectionField(size = IntegerField(expectUniform = true, minValue = 5, maxValue = 5))
+	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 5, maxValue = 5))
 	val waterSpriteOffsets: IntArray,
 ) {
 

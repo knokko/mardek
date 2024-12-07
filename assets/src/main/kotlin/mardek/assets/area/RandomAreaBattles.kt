@@ -2,14 +2,14 @@ package mardek.assets.area
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 
 @BitStruct(backwardCompatible = false)
 class RandomAreaBattles(
 
-	@CollectionField
-	@BitField(ordering = 0, optional = true)
+	@BitField(ordering = 0)
+	@NestedFieldSetting(path = "", optional = true)
 	val ownEnemies: ArrayList<BattleEnemySelection>?,
 
 	@BitField(ordering = 1, optional = true)
@@ -81,7 +81,8 @@ class BattleEnemySelection(
 	val name: String,
 
 	@BitField(ordering = 1)
-	@CollectionField(size = IntegerField(minValue = 4, maxValue = 4, expectUniform = true), optionalValues = true)
+	@NestedFieldSetting(path = "c", optional = true)
+	@NestedFieldSetting(path = "", sizeField = IntegerField(minValue = 4, maxValue = 4, expectUniform = true))
 	val enemyNames: ArrayList<String?>
 ) {
 

@@ -2,7 +2,7 @@ package mardek.assets.area.sprites
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
+import com.github.knokko.bitser.field.NestedFieldSetting
 
 @BitStruct(backwardCompatible = false)
 class DirectionalSpritesheet(
@@ -16,7 +16,7 @@ class DirectionalSpritesheet(
 	var sprites: Array<KimImage>? = null
 
 	@BitField(ordering = 1, optional = true)
-	@CollectionField(writeAsBytes = true)
+	@NestedFieldSetting(path = "", writeAsBytes = true)
 	var indices: IntArray? = null
 
 	internal constructor() : this("")

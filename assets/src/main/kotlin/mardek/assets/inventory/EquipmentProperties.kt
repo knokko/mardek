@@ -2,7 +2,6 @@ package mardek.assets.inventory
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.skill.Skill
 
@@ -12,7 +11,6 @@ class EquipmentProperties(
 	val onlyUser: String?, // TODO Use playable character reference
 
 	@BitField(ordering = 1)
-	@CollectionField
 	@ReferenceField(stable = false, label = "skills")
 	val skills: ArrayList<Skill>,
 	// TODO Skills and effects

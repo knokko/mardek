@@ -2,7 +2,6 @@ package mardek.assets.skill
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
@@ -31,24 +30,19 @@ class PassiveSkill(
 	val mpModifier: Float,
 
 	@BitField(ordering = 3)
-	@CollectionField
 	val statModifiers: ArrayList<StatModifier>,
 
 	@BitField(ordering = 4)
-	@CollectionField
 	val elementalResistances: ArrayList<ElementalDamageBonus>,
 
 	@BitField(ordering = 5)
-	@CollectionField
 	val statusResistances: ArrayList<PossibleStatusEffect>,
 
 	@BitField(ordering = 6)
-	@CollectionField
 	@ReferenceField(stable = false, label = "status effects")
 	val autoEffects: HashSet<StatusEffect>,
 
 	@BitField(ordering = 7)
-	@CollectionField
 	@ReferenceField(stable = false, label = "status effects")
 	val sosEffects: HashSet<StatusEffect>,
 

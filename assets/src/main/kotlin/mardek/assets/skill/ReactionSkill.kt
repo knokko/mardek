@@ -2,7 +2,6 @@ package mardek.assets.skill
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
@@ -52,19 +51,15 @@ class ReactionSkill(
 	val absorbMp: Float,
 
 	@BitField(ordering = 9)
-	@CollectionField
 	val elementalBonuses: ArrayList<ElementalDamageBonus>,
 
 	@BitField(ordering = 10)
-	@CollectionField
 	val addStatusEffects: ArrayList<PossibleStatusEffect>,
 
 	@BitField(ordering = 11)
-	@CollectionField
 	val removeStatusEffects: ArrayList<PossibleStatusEffect>,
 
 	@BitField(ordering = 12)
-	@CollectionField
 	val effectiveAgainst: ArrayList<RaceDamageBonus>,
 
 	@BitField(ordering = 13)
