@@ -6,7 +6,10 @@ import com.github.knokko.bitser.field.BitField
 @BitStruct(backwardCompatible = false)
 class ArmorType(
 	@BitField(ordering = 0)
-	val flashName: String,
+	val key: String,
+
+	@BitField(ordering = 1)
+	val name: String,
 ) {
-	override fun toString() = flashName
+	override fun toString() = "$name ($key)"
 }

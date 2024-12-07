@@ -5,11 +5,17 @@ import mardek.assets.inventory.InventoryAssets
 import mardek.assets.skill.SkillAssets
 import mardek.importer.util.parseActionScriptResource
 
-fun importInventoryAssets(combatAssets: CombatAssets, skillAssets: SkillAssets): InventoryAssets {
-	val itemData = parseActionScriptResource("mardek/importer/items/data.txt")
+fun importInventoryAssets(combatAssets: CombatAssets, skillAssets: SkillAssets, resourcePath: String): InventoryAssets {
+	val itemData = parseActionScriptResource(resourcePath)
 
 	val assets = InventoryAssets()
-	importItemTypes(assets, itemData.variableAssignments["sheetIDs"]!!, itemData.variableAssignments["STACKABLE_TYPES"]!!)
+	val typeSpriteMapping = importItemTypes(
+		assets, itemData.variableAssignments["sheetIDs"]!!, itemData.variableAssignments["STACKABLE_TYPES"]!!
+	)
+	importWeaponTypes(assets, itemData.variableAssignments["wpnIDs"]!!, itemData.variableAssignments["WeaponSFXType"]!!)
+	importArmorTypes(assets, itemData.variableAssignments["ARMOUR_TYPES"]!!)
 
 	return assets
 }
+
+class ItemParseException(message: String): RuntimeException(message)

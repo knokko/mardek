@@ -2,7 +2,6 @@ package mardek.assets.combat
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.CollectionField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.inventory.ArmorType
 import mardek.assets.inventory.WeaponType
@@ -25,7 +24,6 @@ class CharacterClass(
 	val weaponType: WeaponType,
 
 	@BitField(ordering = 4)
-	@CollectionField
 	@ReferenceField(stable = false, label = "armor types")
 	val armorTypes: ArrayList<ArmorType>,
 ) {
