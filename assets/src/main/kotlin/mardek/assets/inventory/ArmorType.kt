@@ -11,5 +11,8 @@ class ArmorType(
 	@BitField(ordering = 1)
 	val name: String,
 ) {
+
+	internal constructor() : this("", "")
+
 	override fun toString() = "$name ($key)"
 }

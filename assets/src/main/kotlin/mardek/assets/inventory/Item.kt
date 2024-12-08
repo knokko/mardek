@@ -5,41 +5,41 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.combat.Element
-import mardek.assets.skill.Skill
 
 @BitStruct(backwardCompatible = false)
 class Item(
 	@BitField(ordering = 0)
 	val flashName: String,
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 1)
 	val description: String,
 
-	@BitField(ordering = 1)
+	@BitField(ordering = 2)
 	@ReferenceField(stable = false, label = "item types")
 	val type: ItemType,
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 3, optional = true)
 	@ReferenceField(stable = false, label = "elements")
-	val element: Element,
+	val element: Element?,
 
-	@BitField(ordering = 3)
+	@BitField(ordering = 4)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val cost: Int,
 
-	@BitField(ordering = 0)
-	@ReferenceField(stable = false, label = "skills")
-	val skills: ArrayList<Skill>,
+	@BitField(ordering = 5, optional = true)
+	val equipment: EquipmentProperties?,
 
-	@BitField(ordering = 2, optional = true)
-	val weapon: WeaponProperties?,
-
-	// TODO Armor properties
-
-	@BitField(ordering = 0) // TODO Turn into reference
-	val onlyUser: String,
-
-	// TODO effects, HP_DRAIN, stfx
+	@BitField(ordering = 6, optional = true)
+	val consumable: ConsumableProperties?,
 ) {
 
+	// TODO sprite
+
+	@Suppress("unused")
+	private constructor() : this(
+			"", "", ItemType(), null,
+			0, null, null
+	)
+
+	override fun toString() = flashName
 }

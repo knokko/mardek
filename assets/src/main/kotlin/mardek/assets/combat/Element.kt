@@ -23,6 +23,8 @@ class Element(
 	val properName: String = rawName
 ) {
 
+	internal constructor() : this("", null, "")
+
 	@BitField(ordering = 4, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	var weakAgainst: Element? = null

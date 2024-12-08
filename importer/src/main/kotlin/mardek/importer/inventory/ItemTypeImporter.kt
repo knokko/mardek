@@ -16,6 +16,7 @@ private fun sheet(type: String): BufferedImage {
 	input.close()
 	return sheet
 }
+
 internal fun importItemTypes(
 	assets: InventoryAssets, rawSheetIDs: String, rawStackableTypes: String
 ): Map<ItemType, List<BufferedImage>> {

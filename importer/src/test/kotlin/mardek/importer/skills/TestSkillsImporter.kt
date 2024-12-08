@@ -847,4 +847,6 @@ class TestSkillsImporter {
 
 		assertEquals(0, lootFinder.goldModifier)
 	}
+
+	// TODO Test death
 }

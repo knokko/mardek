@@ -12,8 +12,7 @@ class ItemType(
 	val canStack: Boolean
 ) {
 
-	@Suppress("unused")
-	private constructor() : this("", false)
+	internal constructor() : this("", false)
 
 	override fun toString() = flashName
 }
