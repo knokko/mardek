@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.combat.PossibleStatusEffect
+import mardek.assets.skill.RaceDamageBonus
 
 @BitStruct(backwardCompatible = false)
 class WeaponProperties(
@@ -26,7 +27,7 @@ class WeaponProperties(
 	val hpDrain: Float,
 
 	@BitField(ordering = 4)
-	val raceBonuses: ArrayList<WeaponRaceBonus>,
+	val raceBonuses: ArrayList<RaceDamageBonus>,
 
 	@BitField(ordering = 5)
 	val addEffects: ArrayList<PossibleStatusEffect>,

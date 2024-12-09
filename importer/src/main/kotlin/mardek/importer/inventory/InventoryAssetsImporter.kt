@@ -14,6 +14,9 @@ fun importInventoryAssets(combatAssets: CombatAssets, skillAssets: SkillAssets, 
 	)
 	importWeaponTypes(assets, itemData.variableAssignments["wpnIDs"]!!, itemData.variableAssignments["WeaponSFXType"]!!)
 	importArmorTypes(assets, itemData.variableAssignments["ARMOUR_TYPES"]!!)
+	importItems(combatAssets, skillAssets, assets, itemData.variableAssignments["ItemList"]!!)
+
+	// TODO sprites
 
 	return assets
 }

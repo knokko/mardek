@@ -2,6 +2,7 @@ package mardek.assets.inventory
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 
 @BitStruct(backwardCompatible = false)
@@ -10,12 +11,15 @@ class GemProperties(
 		@IntegerField(expectUniform = false, minValue = 1)
 		val power: Int,
 
-		@BitField(ordering = 1)
-		val rawName: String, // TODO Figure out what this means
+		// TODO third effect
+
+		@BitField(ordering = 0)
+		@FloatField(expectMultipleOf = 0.25)
+		val drainHp: Float,
 ) {
 
 	@Suppress("unused")
-	private constructor() : this(0, "")
+	private constructor() : this(0, 0f)
 
-	override fun toString() = "Gem($power, $rawName)"
+	override fun toString() = "Gem($power, $drainHp)"
 }

@@ -12,4 +12,6 @@ fun importArmorTypes(assets: InventoryAssets, rawArmorTypes: String) {
 			name = parseFlashString(rawName, "armor type name")!!
 		))
 	}
+	assets.armorTypes.add(ArmorType(key = "ArS", name = "Stole"))
+	assets.armorTypes.add(ArmorType(key = "ArM", name = "Legion"))
 }

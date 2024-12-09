@@ -90,6 +90,8 @@ class TestInventoryImporter {
 		assertEquals(1, bleed.addStatusEffects.size)
 		assertEquals("Bleed", bleed.addStatusEffects[0].effect.niceName)
 		assertEquals(20, bleed.addStatusEffects[0].chance)
+
+		// {name:"Cursed Blade",type:"wepn",wpnType:"SWORD",atk:45,critical:10,hit:97,cost:3000,elem:"DARK",stfx:{CRS:100},HP_DRAIN:true,effects:[["STR",5],["VIT",-5],["SPR",-5],["AUTO_STFX","CRS"],["AUTO_STFX","BLD"]],desc:"An ancient blade, cursed by some powerful wizard. Whoever wields it is afflicted with the Curse status effect, but so are any enemies that it strikes. It also drains the energy of its victims, but causes its wielder to bleed constantly.",skills:[["R:P_ATK","P+Bleed 20%"]]}
 	}
 
 	@Test
@@ -123,9 +125,14 @@ class TestInventoryImporter {
 		assertEquals(0.2f, increaseDamage.addDamageFraction, margin)
 		val brightEyes = equipment.skills[1] as PassiveSkill
 		assertEquals(1, brightEyes.statusResistances.size)
-		assertEquals("Blind", brightEyes.statusResistances[0].effect.niceName)
+		assertEquals("Blindness", brightEyes.statusResistances[0].effect.niceName)
 		assertEquals(100, brightEyes.statusResistances[0].chance)
+
+		// {name:"Golden M Helm",type:"helm",def:6,mdef:3,cost:20000,amrType:"H2",elem:"LIGHT",effects:[["STR",1],["VIT",1],["SPR",1],["AGL",1],["R_ELEM","LIGHT",30],["EMPOWER","LIGHT",20]],only_user:"Mardek",desc:"A golden helmet fashioned specifically for Mardek. The M-shaped visor looks sort of silly, but Mardek insists on it because he doesn\'t take life too seriously anyway and thinks it\'s rather fitting. ON HIS HEAD!!! ...Get it?!?1 Never mind.",skills:[["R:M_ATK","M DMG+20%"],["R:PASSIVE","Bright Eyes"]]}
 	}
+
+	// TODO {name:"SilverPendant",type:"accs",def:0,mdef:3,cost:100,effects:[["R_ELEM","LIGHT",15]],elem:"LIGHT",desc:"A delicate silver piece of jewellery. Wear it around your neck.",skills:[]}
+	// TODO {name:"Silver Axe",type:"wepn",wpnType:"GREATAXE",atk:46,critical:4,hit:95,cost:12000,typeBonus:{UNDEAD:2},elem:"LIGHT",hit_sfx:"hit_2HSWORDS",desc:"A delicately ornate axe forged from the shiniest silver. Like all silver weapons, it\'s effective against undead.",skills:[["R:P_ATK","Quarry: UNDEAD"]]}
 
 	@Test
 	fun testAquamarine() {
@@ -144,7 +151,7 @@ class TestInventoryImporter {
 		assertEquals(aquamarine.element, equipment.elementalBonuses[0].element)
 		assertEquals(0.1f, equipment.elementalBonuses[0].modifier, margin)
 
-		assertEquals("_turquoise", gem.rawName)
+		//assertEquals("_turquoise", gem.rawName) TODO
 		assertEquals(30, gem.power)
 		assertEquals("Being a form of beryl, aquamarine is related to emeralds. However, whereas emeralds contain earth-elemental essence, aquamarine is brimming with the essence of the water element. It feels somehow wet...", aquamarine.description)
 		assertEquals(2, equipment.skills.size)
@@ -156,7 +163,12 @@ class TestInventoryImporter {
 		val spirit1 = equipment.skills[1] as PassiveSkill
 		assertEquals(1, spirit1.statModifiers.size)
 		assertEquals(1, spirit1.statModifiers.find { it.stat.flashName == "SPR" }!!.adder)
+
+		// {name:"Aquamarine",type:"gems",cost:800,elem:"WATER",effects:[["R_ELEM","WATER",10],["EMPOWER","WATER",10]],spell:["_turquoise",30],desc:"Being a form of beryl, aquamarine is related to emeralds. However, whereas emeralds contain earth-elemental essence, aquamarine is brimming with the essence of the water element. It feels somehow wet...",skills:[["Shm","Whirlpool"],["R:PASSIVE","SPR+1"]]}
 	}
+
+	// TODO {name:"Amethyst",type:"gems",cost:1400,elem:"AIR",effects:[["R_STATUS","CNF",30]],reagent:[["stfx","CNF",15]],spell:["_amethyst",40,{CNF:50}],desc:"A coloured variety of quartz, usually used to adorn jewellery or armour. It\'s superstitiously believed to protect from intoxication, but this has never been proven in the slightest.",skills:[["R:PASSIVE","Clarity"]]}
+	// TODO {name:"BloodOpal",type:"gems",def:1,cost:3000,elem:"DARK",effects:[["R_STATUS","BLD",50]],reagent:[["DRAIN"]],spell:["_ruby",30,null,{DRAIN:1}],desc:"A common but powerful gemstone that\'s said to be the crystallised blood of a warrior of some ancient race, slain in some horrendous bloody battle in the distant past.",skills:[["R:P_ATK","Drain HP 10%"]]}
 
 	@Test
 	fun testEveningStar() {
@@ -171,7 +183,7 @@ class TestInventoryImporter {
 		assertEquals(1, getStatModifier("MDEF", equipment))
 
 		val resistedEffects = arrayOf(
-				"Paralysis", "Sleep", "Confusion", "Poison", "Blind", "Curse", "Numbness", "Silence"
+				"Paralysis", "Sleep", "Confusion", "Poison", "Blindness", "Curse", "Numbness", "Silence"
 		)
 		assertEquals(resistedEffects.size, equipment.statusResistances.size)
 		for (effect in resistedEffects) {
@@ -180,10 +192,12 @@ class TestInventoryImporter {
 
 		val gem = equipment.gem!!
 		assertEquals(80, gem.power)
-		assertEquals("_sapphire", gem.rawName)
+		//assertEquals("_sapphire", gem.rawName) TODO
 
 		assertEquals(1, equipment.skills.size)
 		assertEquals(1, (equipment.skills[0] as PassiveSkill).masteryModifier)
+
+		// {name:"EveningStar",type:"gems",cost:40000,elem:"THAUMA",def:1,mdef:1,effects:[["R_STATUS","PAR",10],["R_STATUS","SLP",10],["R_STATUS","CNF",10],["R_STATUS","PSN",10],["R_STATUS","DRK",10],["R_STATUS","CRS",10],["R_STATUS","NUM",10],["R_STATUS","SIL",10]],spell:["_sapphire",80],desc:"A gem that\'s said to have come from a rock that fell from the sky.",skills:[["R:PASSIVE","Double AP"]]}
 	}
 
 	@Test
@@ -199,6 +213,8 @@ class TestInventoryImporter {
 		assertEquals(rgb(255, 220, 20), consumable.particleColor)
 
 		assertEquals("An amazing brew made from the tears of a goddess, or something astounding like that. It restores all HP and MP.", elixir.description)
+
+		// {name:"Elixir",type:"item",cost:9999,action:["fullcure"],pfx:"potion5",rgb:[255,220,20],pspray:{pfx:"sprayfall",DMG:["SPECIAL","fullcure"]},desc:"An amazing brew made from the tears of a goddess, or something astounding like that. It restores all HP and MP."}
 	}
 
 	@Test
@@ -212,6 +228,8 @@ class TestInventoryImporter {
 		assertEquals(0.5f, consumable.revive, margin)
 		assertEquals("phoenixdown", consumable.particleEffect)
 		assertEquals(rgb(255, 200, 50), consumable.particleColor)
+
+		// {name:"PhoenixDown",type:"item",cost:500,action:["life",0.5],pfx:"phoenixdown",rgb:[255,200,50],desc:"A soft, warm feather from the underbelly of a phoenix. It glows with a pleasant orange light. Pressing it to the forehead of a KO\'d ally will cause them to be revived with half HP."}
 	}
 
 	@Test
@@ -224,12 +242,14 @@ class TestInventoryImporter {
 		val consumable = mirrilixir.consumable!!
 		assertEquals(2, consumable.addStatusEffects.size)
 		for (effect in consumable.addStatusEffects) assertEquals(100, effect.chance)
-		assertEquals(-0.5f, consumable.addStatusEffects[0].effect.meleeDamageReduction)
-		assertEquals(-0.5f, consumable.addStatusEffects[1].effect.rangedDamageReduction)
+		assertEquals(0.5f, consumable.addStatusEffects[0].effect.meleeDamageReduction)
+		assertEquals(0.5f, consumable.addStatusEffects[1].effect.rangedDamageReduction)
 
-		assertEquals(rgb(220, 200, 200), consumable.particleColor)
+		assertEquals(rgb(220, 220, 220), consumable.particleColor)
 		assertEquals("shield", consumable.particleEffect)
 		assertEquals(0, consumable.restoreMana)
+
+		// {name:"Mirrilixir",type:"item",cost:5000,action:["spell",{pow:0,SPR:15,elem:"LIGHT",stfx:{PSH:100,MSH:100},pfx:"shield"}],rgb:[220,220,220],pspray:{pfx:"sprayfall",DMG:null,stfx:{PSH:100,MSH:100},lasts:3,special:null},desc:"A potent potion with a silvery, reflective texture, like liquid mercury. Drinking it gives the imbiber P.Shield and M.Shield status effects."}
 	}
 
 	@Test
@@ -240,12 +260,12 @@ class TestInventoryImporter {
 		assertNull(ether.element)
 
 		val consumable = ether.consumable!!
-		assertFalse(consumable.isNegative)
 		assertEquals(200, consumable.restoreMana)
 		assertEquals("potion_ether2", consumable.particleEffect)
 		assertEquals(rgb(100, 255, 255), consumable.particleColor)
 
 		assertEquals("A higher quality ether, infused with the blood of a fairy queen or something like that. It restores 200MP.", ether.description)
+		// {name:"Ether of Queens",type:"item",cost:3000,action:["r_MP",200],pfx:"potion_ether2",rgb:[100,255,255],pspray:{pfx:"sprayfall",DMG:["SPECIAL","set_dmg",-200],affectMP:true},desc:"A higher quality ether, infused with the blood of a fairy queen or something like that. It restores 200MP."}
 	}
 
 	@Test
@@ -256,7 +276,6 @@ class TestInventoryImporter {
 		assertEquals(500, alchemistsFire.cost)
 
 		val consumable = alchemistsFire.consumable!!
-		assertTrue(consumable.isNegative)
 		assertEquals("flame1", consumable.particleEffect)
 		assertEquals(rgb(255, 200, 0), consumable.particleColor)
 
@@ -264,6 +283,8 @@ class TestInventoryImporter {
 		assertEquals(50, damage.power)
 		assertEquals(20, damage.spirit)
 		assertEquals(alchemistsFire.element, damage.element)
+
+		// {name:"Alchemist\'s Fire",type:"item",elem:"FIRE",cost:500,hurtful:true,action:["spell",{pow:50,SPR:20,elem:"FIRE",pfx:"flame1"}],rgb:[255,200,0],desc:"A magical potion that explodes if under stress. Throwing it at an enemy will inflict fire damage."}
 	}
 
 	@Test
@@ -277,6 +298,8 @@ class TestInventoryImporter {
 		assertEquals(100, consumable.restoreHealth)
 		assertEquals("potion", consumable.particleEffect)
 		assertEquals(rgb(100, 160, 220), consumable.particleColor)
+
+		// {name:"Potion",type:"item",cost:30,action:["r_HP",100],pfx:"potion",rgb:[100,160,220],pspray:{pfx:"sprayfall",DMG:["SPECIAL","set_dmg",-100]},desc:"A concoction made from bleach, vinegar, urine, and a pinch of brown sugar. Its aroma alone can melt steel, but fortunately for you, all it does in this game is restore 100HP."}
 	}
 
 	@Test
@@ -296,7 +319,11 @@ class TestInventoryImporter {
 
 		assertEquals("boost", consumable.particleEffect)
 		assertEquals(rgb(255, 100, 0), consumable.particleColor)
+
+		// {name:"Power Drink",type:"item",cost:2000,action:["spell",{set_dmg:-1000,SPR:15,elem:"FIRE",stat_mod:{STR:10},special:{HEALING:1},pfx:"boost"}],rgb:[255,100,0],pspray:{pfx:"sprayfall",DMG:["SPECIAL","set_dmg",-500],stat_mod:{STR:5}},desc:"A special shaman\'s brew, which restores 1000 HP and increases STR by 10 for the duration of the battle."}
 	}
+
+	// TODO {name:"Magic Drink",type:"item",cost:2000,action:["spell",{set_dmg:-200,SPR:15,affectMP:true,elem:"WATER",stat_mod:{SPR:10},special:{HEALING:1},pfx:"boost_ETHER"}],rgb:[255,100,0],pspray:{pfx:"sprayfall",affectMP:true,DMG:["SPECIAL","set_dmg",-100],stat_mod:{SPR:5}},desc:"A special shaman\'s brew, which restores 200 MP and increases SPR by 10 for the duration of the battle."}
 
 	@Test
 	fun testLiquidSound() {
@@ -311,5 +338,7 @@ class TestInventoryImporter {
 
 		assertEquals("cleanse", consumable.particleEffect)
 		assertEquals(rgb(100, 0, 155), consumable.particleColor)
+
+		// {name:"LiquidSound",type:"item",cost:20,action:["h_status","SIL"],pfx:"cleanse",rgb:[100,0,155],pspray:{pfx:"sprayfall",DMG:null,stfx:{PSN:SIL}},desc:"This vial contains a vaguely liquid-like substance that cures silence when drunk. And even when sober! Wow!\nIf you put it to your ear, you can hear a neverending tune."}
 	}
 }
