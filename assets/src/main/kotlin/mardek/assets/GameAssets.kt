@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.assets.area.OptimizedArea
+import mardek.assets.characters.PlayableCharacter
 import mardek.assets.combat.CombatAssets
 import mardek.assets.skill.SkillAssets
 import java.io.BufferedInputStream

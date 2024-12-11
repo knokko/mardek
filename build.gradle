@@ -172,6 +172,7 @@ project(":importer") {
 		for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
 		implementation files("../flash/ffdec_lib.jar")
 		implementation project(":assets")
+		implementation project(":state")
 	}
 }
 

@@ -29,7 +29,7 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 		if (state is TitleScreenState) manager.playMusic(titleScreen)
 
 		if (state is InGameState) {
-			val area = state.progress.currentArea?.area
+			val area = state.campaign.currentArea?.area
 
 			if (area != null) {
 				val musicTrack = area.properties.musicTrack

@@ -27,5 +27,8 @@ class CharacterClass(
 	@ReferenceField(stable = false, label = "armor types")
 	val armorTypes: ArrayList<ArmorType>,
 ) {
+
+	internal constructor() : this("", "", SkillClass(), WeaponType(), ArrayList(0))
+
 	override fun toString() = displayName
 }

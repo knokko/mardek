@@ -2,28 +2,36 @@ package mardek.state.ingame
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.NestedFieldSetting
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.GameAssets
+import mardek.assets.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
-import mardek.state.ingame.characters.CharactersState
+import mardek.state.ingame.characters.CharacterSelectionState
+import mardek.state.ingame.characters.CharacterState
 import kotlin.time.Duration
 
 @BitStruct(backwardCompatible = false)
-class GameProgression(
+class CampaignState(
 
 	@BitField(ordering = 0, optional = true)
 	var currentArea: AreaState?,
 
 	@BitField(ordering = 1)
-	val characters: CharactersState,
+	val characterSelection: CharacterSelectionState,
+
+	@BitField(ordering = 2)
+	@NestedFieldSetting(path = "k", fieldName = "CHARACTER_STATES_KEY")
+	val characterStates: HashMap<PlayableCharacter, CharacterState>,
 ) {
 
 	@Suppress("unused")
-	private constructor() : this(null, CharactersState())
+	private constructor() : this(null, CharacterSelectionState(), HashMap())
 
 	var shouldOpenMenu = false
 
@@ -73,5 +81,12 @@ class GameProgression(
 				currentArea = AreaState(nextArea, AreaPosition(destination.x, destination.y))
 			} else currentArea!!.nextTransition = null
 		}
+	}
+
+	companion object {
+
+		@Suppress("unused")
+		@ReferenceField(stable = true, label = "playable characters")
+		private val CHARACTER_STATES_KEY = false
 	}
 }

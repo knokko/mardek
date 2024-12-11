@@ -9,10 +9,10 @@ import mardek.state.ExitState
 import mardek.state.GameState
 import mardek.state.ingame.InGameState
 import mardek.state.SoundQueue
-import mardek.state.ingame.GameProgression
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
-import mardek.state.ingame.characters.CharactersState
+import mardek.state.ingame.characters.CharacterSelectionState
 import kotlin.time.Duration
 
 class TitleScreenState(private val assets: GameAssets): GameState {
@@ -52,12 +52,12 @@ class TitleScreenState(private val assets: GameAssets): GameState {
 							assets.areas.find { it.properties.rawName == "DL_entr" }!!,
 							AreaPosition(3, 3)
 						)
-						val startCharacters = CharactersState(
+						val startCharacters = CharacterSelectionState(
 							available = mutableSetOf(mardek, deugan),
 							unavailable = mutableSetOf(),
 							party = arrayOf(mardek, deugan)
 						)
-						val progress = GameProgression(startArea, startCharacters)
+						val progress = CampaignState(startArea, startCharacters)
 						soundQueue.insert("click-confirm")
 						return InGameState(assets, progress)
 					}

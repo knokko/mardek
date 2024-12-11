@@ -5,7 +5,7 @@ import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.GameAssets
-import mardek.assets.PlayableCharacter
+import mardek.assets.characters.PlayableCharacter
 import mardek.assets.area.*
 import mardek.assets.combat.CombatAssets
 import mardek.assets.skill.SkillAssets

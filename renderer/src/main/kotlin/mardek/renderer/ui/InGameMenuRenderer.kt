@@ -39,7 +39,7 @@ class InGameMenuRenderer(
 			)
 		)
 
-		val area = state.progress.currentArea
+		val area = state.campaign.currentArea
 		if (area != null) {
 			renderer.drawString(
 				sharedUi.font, area.area.properties.displayName, srgbToLinear(rgb(238, 203, 127)),

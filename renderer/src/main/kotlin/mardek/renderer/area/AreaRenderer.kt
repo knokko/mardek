@@ -6,7 +6,7 @@ import mardek.assets.GameAssets
 import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
 import mardek.state.ingame.area.AreaState
-import mardek.state.ingame.characters.CharactersState
+import mardek.state.ingame.characters.CharacterSelectionState
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkRect2D
 import kotlin.math.*
@@ -14,7 +14,7 @@ import kotlin.math.*
 class AreaRenderer(
 	private val assets: GameAssets,
 	private val state: AreaState,
-	private val characters: CharactersState,
+	private val characters: CharacterSelectionState,
 	private val resources: SharedAreaResources,
 ) {
 

@@ -5,6 +5,8 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.StableReferenceFieldId
+import java.util.*
 
 @BitStruct(backwardCompatible = false)
 class StatusEffect(
@@ -90,6 +92,11 @@ class StatusEffect(
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val disappearChancePerTurn: Int = 0,
 ) {
+
+	@Suppress("unused")
+	@BitField(ordering = 24)
+	@StableReferenceFieldId
+	val id = UUID.randomUUID()!!
 
 	@Suppress("unused")
 	private constructor() : this("", null, false, false)

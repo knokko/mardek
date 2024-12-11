@@ -3,7 +3,9 @@ package mardek.assets.skill
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.assets.combat.Element
+import java.util.*
 
 abstract class Skill(
 	@BitField(ordering = 0)
@@ -20,6 +22,10 @@ abstract class Skill(
 	@IntegerField(expectUniform = false, minValue = -1)
 	val masteryPoints: Int,
 ) {
+
+	@BitField(ordering = 4)
+	@StableReferenceFieldId
+	val id = UUID.randomUUID()!!
 
 	override fun toString() = name
 }

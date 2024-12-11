@@ -18,5 +18,7 @@ class SkillClass(
 	val actions: ArrayList<ActiveSkill>,
 ) {
 
+	internal constructor() : this("", "", "", ArrayList(0))
+
 	override fun toString() = name
 }

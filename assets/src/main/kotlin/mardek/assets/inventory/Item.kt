@@ -5,7 +5,9 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.assets.combat.Element
+import java.util.*
 
 @BitStruct(backwardCompatible = false)
 class Item(
@@ -42,6 +44,10 @@ class Item(
 	@BitField(ordering = 8)
 	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
 	var sprite: IntArray? = null
+
+	@BitField(ordering = 9)
+	@StableReferenceFieldId
+	val id = UUID.randomUUID()!!
 
 	@Suppress("unused")
 	private constructor() : this(
