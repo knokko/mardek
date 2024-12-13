@@ -7,23 +7,17 @@ import mardek.assets.area.*
 import mardek.assets.area.objects.AreaDecoration
 import mardek.importer.util.ActionScriptCode
 import mardek.importer.util.parseActionScriptResource
-import java.io.File
 import java.lang.Integer.parseInt
 
-fun main() {
-	val parsingArea1 = parseArea1("aeropolis_N")
-	val parsedArea = parseArea2(parsingArea1)
-	println(parsedArea)
-}
+internal fun parseArea(
+		assets: AreaAssets, areaName: String, tilesheets: MutableList<ParsedTilesheet>,
+		transitions: MutableList<Pair<TransitionDestination, String>>
+) = parseArea2(assets, parseArea1(areaName), tilesheets, transitions)
 
-fun enumerateAreas() = File("src/main/resources/mardek/importer/area/data").list().map {
-	if (!it.endsWith(".txt")) throw java.lang.RuntimeException("Unexpected file $it")
-	it.substring(0, it.length - 4)
-}
-
-fun parseArea(areaName: String) = parseArea2(parseArea1(areaName))
-
-private fun parseArea2(areaCode: ActionScriptCode): ParsedArea {
+private fun parseArea2(
+		assets: AreaAssets, areaCode: ActionScriptCode, tilesheets: MutableList<ParsedTilesheet>,
+		transitions: MutableList<Pair<TransitionDestination, String>>
+): ParsedArea {
 	val areaSetup = areaCode.functionCalls.filter { it.first == "AreaSetup" }.map { it.second }
 	parseAssert(areaSetup.size == 1, "Expected exactly 1 AreaSetup call, but found ${areaCode.functionCalls}")
 	val areaSetupMap = parseAreaSetup(areaSetup[0])
@@ -34,8 +28,12 @@ private fun parseArea2(areaCode: ActionScriptCode): ParsedArea {
 	val (width, height, tileGrid) = parseAreaMap(areaCode.variableAssignments["map"]!!)
 
 	val tilesheetName = parseFlashString(areaCode.variableAssignments["tileset"]!!, "tileset name")!!
+	var tilesheet = tilesheets.find { it.name == tilesheetName }
+	if (tilesheet == null) {
+		tilesheet = parseTilesheet(tilesheetName)
+		tilesheets.add(tilesheet)
+	}
 
-	val tilesheet = parseTilesheet(tilesheetName)
 	val extraDecorations = mutableListOf<AreaDecoration>()
 	for (y in 0 until height) {
 		for (x in 0 until width) {
@@ -43,10 +41,19 @@ private fun parseArea2(areaCode: ActionScriptCode): ParsedArea {
 			if (tile.hexObjectColor != rgb(0, 0, 0)) {
 				val hexObject = HexObject.map[tile.hexObjectColor]
 					?: throw RuntimeException("unexpected hex color ${ColorPacker.toString(tile.hexObjectColor)}")
+
+				val spriteID = "${hexObject.sheetName}(${hexObject.sheetRow}, ${hexObject.height})"
+				var sprites = assets.objectSprites.find { it.flashName == spriteID }
+				if (sprites == null) {
+					sprites = importObjectSprites(
+							hexObject.sheetName, offsetY = hexObject.height * hexObject.sheetRow, height = hexObject.height
+					)
+					sprites.flashName = spriteID
+					assets.objectSprites.add(sprites)
+				}
+
 				extraDecorations.add(AreaDecoration(
-					x = x, y = y, spritesheetName = hexObject.sheetName,
-					spritesheetOffsetY = hexObject.height * hexObject.sheetRow,
-					spriteHeight = hexObject.height, light = hexObject.light,
+					x = x, y = y, sprites = sprites, light = hexObject.light,
 					timePerFrame = 50 * hexObject.timePerFrame,
 					rawConversation = null, conversationName = null
 				))
@@ -55,18 +62,18 @@ private fun parseArea2(areaCode: ActionScriptCode): ParsedArea {
 	}
 
 	return ParsedArea(
-		tilesheetName = tilesheetName,
+		tilesheet = tilesheet,
 		width = width,
 		height = height,
 		tileGrid = tileGrid,
-		objects = parseAreaObjects(areaCode.variableAssignments["A_sprites"]!!, extraDecorations),
+		objects = parseAreaObjects(assets, areaCode.variableAssignments["A_sprites"]!!, extraDecorations, transitions),
 		randomBattles = randomBattles,
 		properties = properties,
 		flags = flags,
 	)
 }
 
-fun parseAreaProperties(areaCode: ActionScriptCode, areaSetupMap: Map<String, String>): AreaProperties {
+internal fun parseAreaProperties(areaCode: ActionScriptCode, areaSetupMap: Map<String, String>): AreaProperties {
 	val rawName = parseFlashString(areaCode.variableAssignments["area"]!!, "raw area name")!!
 	val displayName = parseFlashString(areaCode.variableAssignments["areaname"]!!, "area display name")
 

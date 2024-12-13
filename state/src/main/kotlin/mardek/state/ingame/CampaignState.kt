@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.GameAssets
+import mardek.assets.Campaign
 import mardek.assets.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
@@ -35,7 +35,7 @@ class CampaignState(
 
 	var shouldOpenMenu = false
 
-	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, assets: GameAssets) {
+	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, assets: Campaign) {
 		var shouldInteract = false
 		while (true) {
 			val event = input.consumeEvent() ?: break
@@ -55,17 +55,17 @@ class CampaignState(
 			}
 
 			if (event.key == InputKey.ScrollUp || event.key == InputKey.ScrollDown) {
-				val currentIndex = assets.areas.indexOf(currentArea.area)
+				val currentIndex = assets.areas.areas.indexOf(currentArea.area)
 
 				var nextIndex = currentIndex
 				if (event.key == InputKey.ScrollUp) nextIndex -= 1
 				else nextIndex += 1
 
-				if (nextIndex < 0) nextIndex += assets.areas.size
-				if (nextIndex >= assets.areas.size) nextIndex -= assets.areas.size
+				if (nextIndex < 0) nextIndex += assets.areas.areas.size
+				if (nextIndex >= assets.areas.areas.size) nextIndex -= assets.areas.areas.size
 
 				var nextPosition = currentArea.getPlayerPosition(0)
-				val nextArea = assets.areas[nextIndex]
+				val nextArea = assets.areas.areas[nextIndex]
 				if (nextPosition.x > 5 + nextArea.width || nextPosition.y > 3 + nextArea.height) {
 					nextPosition = AreaPosition(3, 3)
 				}
@@ -76,9 +76,9 @@ class CampaignState(
 		currentArea?.update(input, timeStep, shouldInteract)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
-			val nextArea = assets.areas.find { it.properties.rawName == destination.areaName }
-			if (nextArea != null) {
-				currentArea = AreaState(nextArea, AreaPosition(destination.x, destination.y))
+			val destinationArea = destination.area
+			if (destinationArea != null) {
+				currentArea = AreaState(destinationArea, AreaPosition(destination.x, destination.y))
 			} else currentArea!!.nextTransition = null
 		}
 	}

@@ -3,7 +3,7 @@ package mardek.renderer
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import mardek.assets.GameAssets
+import mardek.assets.Campaign
 import mardek.renderer.area.AreaRenderer
 import mardek.renderer.area.SharedAreaResources
 import mardek.renderer.ui.InGameMenuRenderer
@@ -11,11 +11,11 @@ import mardek.renderer.ui.SharedUiResources
 import mardek.state.ingame.InGameState
 
 class InGameRenderer(
-	private val assets: GameAssets,
-	private val state: InGameState,
-	boiler: BoilerInstance,
-	private val resources: SharedAreaResources,
-	private val sharedUi: SharedUiResources,
+		private val assets: Campaign,
+		private val state: InGameState,
+		boiler: BoilerInstance,
+		private val resources: SharedAreaResources,
+		private val sharedUi: SharedUiResources,
 ): StateRenderer(boiler) {
 
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {

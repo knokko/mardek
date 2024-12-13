@@ -2,7 +2,7 @@ package mardek.renderer.area
 
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import mardek.assets.GameAssets
+import mardek.assets.Campaign
 import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
 import mardek.state.ingame.area.AreaState
@@ -12,10 +12,10 @@ import org.lwjgl.vulkan.VkRect2D
 import kotlin.math.*
 
 class AreaRenderer(
-	private val assets: GameAssets,
-	private val state: AreaState,
-	private val characters: CharacterSelectionState,
-	private val resources: SharedAreaResources,
+		private val assets: Campaign,
+		private val state: AreaState,
+		private val characters: CharacterSelectionState,
+		private val resources: SharedAreaResources,
 ) {
 
 	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
@@ -72,67 +72,64 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * character.startX,
 					y = tileSize * character.startY - 4 * scale,
-					sprite = character.spritesheet!!.indices!![spriteIndex]
+					sprite = character.sprites.sprites[spriteIndex].offset
 			))
 		}
 
 		for (decoration in state.area.objects.decorations) {
-			val spritesheet = decoration.spritesheet ?: continue
-			val spriteIndices = spritesheet.indices!!
-			val spriteIndex = (state.currentTime.inWholeMilliseconds % (decoration.timePerFrame * spriteIndices.size)) / decoration.timePerFrame
+			val spritesheet = decoration.sprites ?: continue
+			val spriteIndex = (state.currentTime.inWholeMilliseconds % (decoration.timePerFrame * spritesheet.frames.size)) / decoration.timePerFrame
 
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * decoration.x,
 					y = tileSize * decoration.y,
-					sprite = spriteIndices[spriteIndex.toInt()]
+					sprite = spritesheet.frames[spriteIndex.toInt()].offset
 			))
 		}
 
 		for (door in state.area.objects.doors) {
 			var spriteIndex = 0
 			val openingDoor = state.openingDoor
-			val spriteIndices = door.spritesheet!!.indices!!
 
 			if (openingDoor != null && door == openingDoor.door) {
 				val startTime = openingDoor.finishTime - AreaState.DOOR_OPEN_DURATION
 				val progress = (state.currentTime - startTime) / AreaState.DOOR_OPEN_DURATION
-				spriteIndex = min((spriteIndices.size * progress).toInt(), spriteIndices.size - 1)
+				spriteIndex = min((door.sprites.frames.size * progress).toInt(), door.sprites.frames.size - 1)
 			}
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * door.x,
 					y = tileSize * door.y,
-					sprite = spriteIndices[spriteIndex]
+					sprite = door.sprites.frames[spriteIndex].offset
 			))
 		}
 
 		for (areaObject in state.area.objects.objects) {
-			val spritesheet = areaObject.spritesheet ?: continue
-			val spriteIndices = spritesheet.indices!!
-			val spriteIndex = (state.currentTime.inWholeMilliseconds % (200L * spriteIndices.size)) / 200L
+			val spriteIndex = (state.currentTime.inWholeMilliseconds % (200L * areaObject.sprites.frames.size)) / 200L
 
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * areaObject.x,
 					y = tileSize * areaObject.y - 4 * scale,
-					sprite = spriteIndices[spriteIndex.toInt()]
+					sprite = areaObject.sprites.frames[spriteIndex.toInt()].offset
 			))
 		}
 
 		for (portal in state.area.objects.portals) {
-			val spritesheet = portal.spritesheet ?: continue
+			val spritesheet = portal.sprites ?: continue
 
 			val isDream = state.area.properties.dreamType != AreaDreamType.None
-			val destination = assets.areas.find { it.properties.rawName == portal.destination.areaName } ?: continue
+			val destinationArea = portal.destination.area
 
 			// When exactly 1 of the current area and destination is a dream area, the portal must be a dream circle
 			// Hence we should not render the portal texture
-			if (isDream != (destination.properties.dreamType != AreaDreamType.None)) continue
+			if (destinationArea != null && isDream != (destinationArea.properties.dreamType != AreaDreamType.None)) {
+				continue
+			}
 
-			val spriteIndices = spritesheet.indices!!
-			val spriteIndex = (state.currentTime.inWholeMilliseconds % (500L * spriteIndices.size)) / 500L
+			val spriteIndex = (state.currentTime.inWholeMilliseconds % (500L * spritesheet.frames.size)) / 500L
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * portal.x,
 					y = tileSize * portal.y,
-					sprite = spriteIndices[spriteIndex.toInt()]
+					sprite = spritesheet.frames[spriteIndex.toInt()].offset
 			))
 		}
 
@@ -169,7 +166,7 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * transition.x,
 					y = tileSize * transition.y,
-					sprite = spritesheet.indices!![0],
+					sprite = spritesheet.frames[0].offset,
 					opacity = (255 * opacity).roundToInt()
 			))
 		}
@@ -215,7 +212,7 @@ class AreaRenderer(
 			spriteIndex += animationSize * direction.ordinal
 
 			renderJobs.add(EntityRenderJob(
-					x = x, y = y, sprite = character.areaSheet.indices!![spriteIndex]
+					x = x, y = y, sprite = character.areaSprites.sprites[spriteIndex].offset
 			))
 		}
 
@@ -242,12 +239,12 @@ class AreaRenderer(
 			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline)
 			recorder.bindGraphicsDescriptors(resources.tilesPipelineLayout, resources.descriptorSet)
 
-			val water = state.area.waterSpriteOffsets
+			val water = state.area.tilesheet.waterSprites
 			vkCmdPushConstants(recorder.commandBuffer, resources.tilesPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, recorder.stack.ints(
 				state.area.width, state.area.height,
 				targetImage.width, targetImage.height,
 				cameraX, cameraY, scale, mapOffset,
-				water[0], water[1], water[2], water[3], water[4]
+				water[0].offset, water[1].offset, water[2].offset, water[3].offset, water[4].offset
 			))
 			vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
 		}

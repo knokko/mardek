@@ -15,5 +15,6 @@ class AreaLight(
 	val offsetY: Int
 ) {
 
+	@Suppress("unused")
 	private constructor() : this("", 0)
 }

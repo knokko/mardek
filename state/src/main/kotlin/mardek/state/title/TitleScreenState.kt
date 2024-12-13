@@ -1,21 +1,21 @@
 package mardek.state.title
 
-import mardek.assets.GameAssets
+import com.github.knokko.bitser.io.BitInputStream
+import mardek.assets.Campaign
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
 import mardek.state.ExitState
 import mardek.state.GameState
+import mardek.state.GameStateManager
 import mardek.state.ingame.InGameState
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
-import mardek.state.ingame.area.AreaPosition
-import mardek.state.ingame.area.AreaState
-import mardek.state.ingame.characters.CharacterSelectionState
+import java.io.ByteArrayInputStream
 import kotlin.time.Duration
 
-class TitleScreenState(private val assets: GameAssets): GameState {
+class TitleScreenState(private val assets: Campaign): GameState {
 
 	var newGameButton: AbsoluteRectangle? = null
 	var loadGameButton: AbsoluteRectangle? = null
@@ -46,20 +46,15 @@ class TitleScreenState(private val assets: GameAssets): GameState {
 
 				if (event.didPress && event.key == InputKey.Interact) {
 					if (selectedButton == 0) {
-						val mardek = assets.playableCharacters[0]
-						val deugan = assets.playableCharacters[1]
-						val startArea = AreaState(
-							assets.areas.find { it.properties.rawName == "DL_entr" }!!,
-							AreaPosition(3, 3)
+						val rawCheckpoint = assets.checkpoints["Chapter 1"]!!
+						val bitInput = BitInputStream(ByteArrayInputStream(rawCheckpoint))
+						val campaignState = GameStateManager.bitser.deserialize(
+								CampaignState::class.java, bitInput, assets
 						)
-						val startCharacters = CharacterSelectionState(
-							available = mutableSetOf(mardek, deugan),
-							unavailable = mutableSetOf(),
-							party = arrayOf(mardek, deugan)
-						)
-						val progress = CampaignState(startArea, startCharacters)
+						bitInput.close()
+
 						soundQueue.insert("click-confirm")
-						return InGameState(assets, progress)
+						return InGameState(assets, campaignState)
 					}
 					if (selectedButton == 3) return ExitState()
 				}

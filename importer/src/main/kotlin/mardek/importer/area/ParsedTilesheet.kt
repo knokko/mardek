@@ -1,11 +1,11 @@
-package mardek.assets.area
+package mardek.importer.area
 
 import java.awt.image.BufferedImage
 
 class ParsedTilesheet(
-	val name: String,
-	val tiles: Map<Int, ParsedTile>,
-	val waterSprites: List<BufferedImage>
+		val name: String,
+		val tiles: Map<Int, ParsedTile>,
+		val waterSprites: List<BufferedImage>
 ) {
 	init {
 		if (waterSprites.size != 5) throw IllegalArgumentException("There must be 5 water sprites")

@@ -3,8 +3,9 @@ package mardek.assets.area.objects
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.area.TransitionDestination
-import mardek.assets.area.sprites.ObjectSpritesheet
+import mardek.assets.sprite.ObjectSprites
 
 @BitStruct(backwardCompatible = false)
 class AreaTransition(
@@ -25,7 +26,8 @@ class AreaTransition(
 ) {
 
 	@BitField(ordering = 4, optional = true)
-	var arrowSprite: ObjectSpritesheet? = null
+	@ReferenceField(stable = false, label = "object sprites")
+	var arrowSprite: ObjectSprites? = null
 
 	@Suppress("unused")
 	private constructor() : this(0, 0, TransitionDestination(), null)

@@ -3,8 +3,9 @@ package mardek.assets.area.objects
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.area.TransitionDestination
-import mardek.assets.area.sprites.ObjectSpritesheet
+import mardek.assets.sprite.ObjectSprites
 
 @BitStruct(backwardCompatible = false)
 class AreaPortal(
@@ -22,7 +23,8 @@ class AreaPortal(
 ) {
 
 	@BitField(ordering = 3, optional = true)
-	var spritesheet: ObjectSpritesheet? = null
+	@ReferenceField(stable = false, label = "object sprites")
+	var sprites: ObjectSprites? = null
 
 	@Suppress("unused")
 	private constructor() : this(0, 0, TransitionDestination())
@@ -30,7 +32,7 @@ class AreaPortal(
 	override fun toString() = "Portal(x=$x, y=$y, destination=$destination)"
 
 	override fun equals(other: Any?) = other is AreaPortal && x == other.x && y == other.y &&
-			destination == other.destination
+			destination == other.destination && sprites == other.sprites
 
 	override fun hashCode() = destination.hashCode()
 }

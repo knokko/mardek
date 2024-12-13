@@ -4,10 +4,10 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
-import mardek.assets.area.sprites.DirectionalSpritesheet
 import mardek.assets.combat.CharacterClass
 import mardek.assets.combat.Element
 import mardek.assets.combat.StatModifier
+import mardek.assets.sprite.DirectionalSprites
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -28,7 +28,7 @@ class PlayableCharacter(
 	val baseStats: ArrayList<StatModifier>,
 
 	@BitField(ordering = 4)
-	val areaSheet: DirectionalSpritesheet,
+	val areaSprites: DirectionalSprites,
 ) {
 
 	@BitField(ordering = 5)
@@ -36,5 +36,5 @@ class PlayableCharacter(
 	val id = UUID.randomUUID()!!
 
 	@Suppress("unused")
-	private constructor() : this("", CharacterClass(), Element(), ArrayList(0), DirectionalSpritesheet())
+	private constructor() : this("", CharacterClass(), Element(), ArrayList(0), DirectionalSprites())
 }

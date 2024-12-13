@@ -3,8 +3,9 @@ package mardek.assets.area.objects
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.area.Direction
-import mardek.assets.area.sprites.DirectionalSpritesheet
+import mardek.assets.sprite.DirectionalSprites
 
 @BitStruct(backwardCompatible = false)
 class AreaCharacter(
@@ -13,7 +14,8 @@ class AreaCharacter(
 	val name: String,
 
 	@BitField(ordering = 1)
-	val spritesheetName: String,
+	@ReferenceField(stable = false, label = "character sprites")
+	val sprites: DirectionalSprites,
 
 	@BitField(ordering = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
@@ -54,24 +56,21 @@ class AreaCharacter(
 	val encyclopediaPerson: String?,
 ) {
 
-	@BitField(ordering = 11, optional = true)
-	var spritesheet: DirectionalSpritesheet? = null
-
 	@Suppress("unused")
 	private constructor() : this(
-		"", "", 0, 0, null, false, 0,
+		"", DirectionalSprites(), 0, 0, null, false, 0,
 		null, null, null, null
 	)
 
-	override fun toString() = "Character($name, $spritesheetName, x=$startX, y=$startY, direction=$startDirection, " +
+	override fun toString() = "Character($name, ${sprites.name}, x=$startX, y=$startY, direction=$startDirection, " +
 			"silent=$silent, walkSpeed=$walkSpeed, element=$element, " +
 			"conversation=${conversationName ?: rawConversation}, person=$encyclopediaPerson)"
 
 	override fun equals(other: Any?) = other is AreaCharacter && name == other.name &&
-			spritesheetName == other.spritesheetName && startX == other.startX && startY == other.startY &&
+			sprites == other.sprites && startX == other.startX && startY == other.startY &&
 			startDirection == other.startDirection && silent == other.silent && walkSpeed == other.walkSpeed &&
 			element == other.element && conversationName == other.conversationName &&
 			rawConversation == other.rawConversation && encyclopediaPerson == other.encyclopediaPerson
 
-	override fun hashCode() = name.hashCode() + spritesheetName.hashCode()
+	override fun hashCode() = name.hashCode() + sprites.hashCode()
 }

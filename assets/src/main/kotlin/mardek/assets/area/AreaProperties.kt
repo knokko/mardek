@@ -9,7 +9,7 @@ import com.github.knokko.bitser.field.IntegerField
 class AreaProperties(
 
 	@BitField(ordering = 0)
-	val rawName: String,
+	var rawName: String,
 
 	@BitField(ordering = 1)
 	val displayName: String,

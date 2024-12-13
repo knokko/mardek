@@ -1,8 +1,6 @@
 package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import mardek.assets.area.ParsedTile
-import mardek.assets.area.ParsedTilesheet
 import mardek.assets.area.WaterType
 import java.awt.Color
 import java.awt.image.BufferedImage

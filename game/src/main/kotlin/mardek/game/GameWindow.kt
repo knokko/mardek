@@ -9,19 +9,18 @@ import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.profiler.SampleProfiler
 import com.github.knokko.profiler.storage.SampleStorage
 import com.github.knokko.update.UpdateCounter
-import mardek.assets.GameAssets
+import mardek.assets.Campaign
 import mardek.renderer.GameRenderer
 import mardek.state.ExitState
 import mardek.state.GameStateManager
-import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
 
 class GameWindow(
-	private val assets: GameAssets,
-	window: VkbWindow,
-	private val state: GameStateManager,
+		private val assets: Campaign,
+		window: VkbWindow,
+		private val state: GameStateManager,
 ): SimpleWindowRenderLoop(
 	window, 2, false, VK_PRESENT_MODE_MAILBOX_KHR,
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE

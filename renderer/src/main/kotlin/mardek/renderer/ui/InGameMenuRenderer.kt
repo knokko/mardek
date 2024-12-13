@@ -5,13 +5,13 @@ import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
-import mardek.assets.GameAssets
+import mardek.assets.Campaign
 import mardek.state.ingame.InGameState
 
 class InGameMenuRenderer(
-	private val assets: GameAssets,
-	private val sharedUi: SharedUiResources,
-	private val state: InGameState,
+		private val assets: Campaign,
+		private val sharedUi: SharedUiResources,
+		private val state: InGameState,
 ) {
 
 	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {

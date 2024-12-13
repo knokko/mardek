@@ -1,13 +1,20 @@
 package mardek.importer.area
 
+import mardek.assets.area.Area
+import mardek.assets.area.AreaAssets
 import mardek.assets.area.Direction
 import mardek.assets.area.TransitionDestination
 import mardek.assets.area.objects.*
+import mardek.assets.sprite.DirectionalSprites
+import mardek.assets.sprite.KimSprite
+import mardek.assets.sprite.ObjectSprites
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class TestAreaEntityParser {
+
+	private val assets = AreaAssets()
 
 	@Test
 	fun testSingleEntitySingleKey() {
@@ -71,12 +78,21 @@ class TestAreaEntityParser {
 		assertEquals(expectedConversation, parsed1[0]["conv"])
 	}
 
-
 	private fun parseAreaEntityRaw(rawString: String): Any {
-		val parsedEntities = parseAreaObjectsToList("[$rawString]")
+		val transitions = ArrayList<Pair<TransitionDestination, String>>()
+		val parsedEntities = parseAreaObjectsToList(assets, "[$rawString]", transitions)
 		assertEquals(1, parsedEntities.size)
+
+		for ((transition, destination) in transitions) {
+			val area = Area()
+			area.properties.rawName = destination
+			transition.area = area
+			assets.areas.add(area)
+		}
 		return parsedEntities[0]
 	}
+
+	private fun assertArea(name: String) = assets.areas.find { it.properties.rawName == name }!!
 
 	@Test
 	fun testParseTransitionWithArrowWithoutDirection() {
@@ -84,7 +100,7 @@ class TestAreaEntityParser {
 			"{name:\"EXIT\",model:\"area_transition\",x:3,y:7,dest:[\"aeropolis_E\",22,24],ARROW:\"S\"}"
 		)
 		val expected = AreaTransition(x = 3, y = 7, arrow = "S", destination = TransitionDestination(
-			areaName = "aeropolis_E", x = 22, y = 24, direction = null, discoveredAreaName = null
+			area = assertArea("aeropolis_E"), x = 22, y = 24, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}
@@ -95,7 +111,8 @@ class TestAreaEntityParser {
 			"{name:\"Item Shop\",model:\"area_transition\",x:22,y:23,dir:\"n\",dest:[\"aeropolis_E_iShop\",3,6]}"
 		)
 		val expected = AreaTransition(x = 22, y = 23, arrow = null, destination = TransitionDestination(
-			areaName = "aeropolis_E_iShop", x = 3, y = 6, direction = Direction.Up, discoveredAreaName = null
+			area = assertArea("aeropolis_E_iShop"), x = 3, y = 6,
+			direction = Direction.Up, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}
@@ -182,39 +199,47 @@ class TestAreaEntityParser {
 		assertEquals(expected, actual)
 	}
 
+	private fun objectSprite(name: String): ObjectSprites {
+		val sprites = ObjectSprites(name, 0, 0, null, emptyArray())
+		assets.objectSprites.add(sprites)
+		return sprites
+	}
+
+	private fun characterSprite(name: String): DirectionalSprites {
+		val sprites = DirectionalSprites(name, emptyArray())
+		assets.characterSprites.add(sprites)
+		return sprites
+	}
+
 	@Test
 	fun testParseSaveCrystal() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Save Crystal\",model:\"o_Crystal\",x:4,y:7,walkspeed:-1,conv:\"c_healingCrystal\"}"
-		)
 		val expected = AreaObject(
 			x = 4,
 			y = 7,
-			firstFrameIndex = null,
-			numFrames = null,
-			spritesheetName = "obj_Crystal",
+			sprites = objectSprite("obj_Crystal"),
 			conversationName = "c_healingCrystal",
 			rawConversion = null,
 			signType = null
+		)
+		val actual = parseAreaEntityRaw(
+				"{name:\"Save Crystal\",model:\"o_Crystal\",x:4,y:7,walkspeed:-1,conv:\"c_healingCrystal\"}"
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseSlainDracelon() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Dracelon\",model:\"ch2bosses\",x:4,y:21,walkspeed:-1,FRAME:4,silent:true," +
-					"Static:true,elem:\"EARTH\",conv:\"c_A_Rohoph\"}"
-		)
 		val expected = AreaObject(
-			spritesheetName = "spritesheet_ch2bosses",
-			firstFrameIndex = 4,
-			numFrames = 1,
+			sprites = objectSprite("spritesheet_ch2bosses(4, 1)"),
 			x = 4,
 			y = 21,
 			conversationName = "c_A_Rohoph",
 			rawConversion = null,
 			signType = null
+		)
+		val actual = parseAreaEntityRaw(
+				"{name:\"Dracelon\",model:\"ch2bosses\",x:4,y:21,walkspeed:-1,FRAME:4,silent:true," +
+						"Static:true,elem:\"EARTH\",conv:\"c_A_Rohoph\"}"
 		)
 		assertEquals(expected, actual)
 	}
@@ -231,68 +256,58 @@ class TestAreaEntityParser {
 				"      BATTLE([[\"ZombieDragon\",null,null,null],[\"Zombie Dragon\",null,null,null],[18,null,null,null],\"DRAGON\"],\"BossBattle\",true);\n" +
 				"      return true;\n" +
 				"   }"
-		val actual = parseAreaEntityRaw(
-			"{name:\"Zombie Dragon\",model:\"dragon\",x:11,y:6,walkspeed:-1,dir:\"n\",Static:1,elem:\"DARK\",conv:[Do = $flashCode]}"
-		)
 		val expected = AreaObject(
-			spritesheetName = "spritesheet_dragon",
-			firstFrameIndex = 2,
-			numFrames = 2,
+			sprites = objectSprite("spritesheet_dragon(2, 2)"),
 			x = 11,
 			y = 6,
 			conversationName = null,
 			rawConversion = "[Do = $flashCode]",
 			signType = null
 		)
+		val actual = parseAreaEntityRaw(
+				"{name:\"Zombie Dragon\",model:\"dragon\",x:11,y:6,walkspeed:-1,dir:\"n\",Static:1,elem:\"DARK\",conv:[Do = $flashCode]}"
+		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseTheDragon() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"The Dragon\",model:\"dragon\",x:6,y:7,walkspeed:-1,dir:\"s\",Static:true,elem:\"DARK\"," +
-					"conv:[[\"\",\"You shouldn\\'t be able to talk to me! REPORT THIS BUG PLEASE!\"]]}"
-		)
 		val expected = AreaObject(
-			spritesheetName = "spritesheet_dragon",
-			firstFrameIndex = 0,
-			numFrames = 2,
+			sprites = objectSprite("spritesheet_dragon(0, 2)"),
 			x = 6,
 			y = 7,
 			conversationName = null,
 			rawConversion = "[[\"\",\"You shouldn\\'t be able to talk to me! REPORT THIS BUG PLEASE!\"]]",
 			signType = null
 		)
+		val actual = parseAreaEntityRaw(
+				"{name:\"The Dragon\",model:\"dragon\",x:6,y:7,walkspeed:-1,dir:\"s\",Static:true,elem:\"DARK\"," +
+						"conv:[[\"\",\"You shouldn\\'t be able to talk to me! REPORT THIS BUG PLEASE!\"]]}"
+		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseMoric() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Moric\",model:\"moric\",x:7,y:11,walkspeed:-2,FRAME:1,elem:\"EARTH\",conv:\"c_GdM_Moric\"}"
-		)
 		val expected = AreaObject(
-			spritesheetName = "spritesheet_moric",
-			firstFrameIndex = 1,
-			numFrames = 1,
+			sprites = objectSprite("spritesheet_moric(1, 1)"),
 			x = 7,
 			y = 11,
 			conversationName = "c_GdM_Moric",
 			rawConversion = null,
 			signType = null
 		)
+		val actual = parseAreaEntityRaw(
+				"{name:\"Moric\",model:\"moric\",x:7,y:11,walkspeed:-2,FRAME:1,elem:\"EARTH\",conv:\"c_GdM_Moric\"}"
+		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParsePriestessGail() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Priestess Gail\",model:\"priestess\",x:7,y:3,walkspeed:-1,dir:\"s\",elem:\"AIR\"," +
-					"conv:\"c_priestess\",EN:[\"People\",\"Priestess Gail\"]}"
-		)
 		val expected = AreaCharacter(
 			name = "Priestess Gail",
-			spritesheetName = "spritesheet_priestess",
+			sprites = characterSprite("priestess"),
 			startX = 7,
 			startY = 3,
 			startDirection = Direction.Down,
@@ -303,40 +318,43 @@ class TestAreaEntityParser {
 			rawConversation = null,
 			encyclopediaPerson = "Priestess Gail"
 		)
+		val actual = parseAreaEntityRaw(
+				"{name:\"Priestess Gail\",model:\"priestess\",x:7,y:3,walkspeed:-1,dir:\"s\",elem:\"AIR\"," +
+						"conv:\"c_priestess\",EN:[\"People\",\"Priestess Gail\"]}"
+		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseSign() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Sign\",model:\"sign\",sign:\"words\",FRAME:10,x:26,y:26,walkspeed:-2," +
-					"conv:[[\"\",\"CLOEST FORE THE NYHTE\"]]}"
-		)
 		val expected = AreaObject(
-			spritesheetName = "spritesheet_sign",
-			firstFrameIndex = 10,
-			numFrames = 1,
+			sprites = objectSprite("spritesheet_sign(10, 1)"),
 			x = 26,
 			y = 26,
 			conversationName = null,
 			rawConversion = "[[\"\",\"CLOEST FORE THE NYHTE\"]]",
 			signType = "words"
 		)
+		val actual = parseAreaEntityRaw(
+				"{name:\"Sign\",model:\"sign\",sign:\"words\",FRAME:10,x:26,y:26,walkspeed:-2," +
+						"conv:[[\"\",\"CLOEST FORE THE NYHTE\"]]}"
+		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseBigDoor() {
+		val sprite = objectSprite("BIGDOOR3")
 		val actual = parseAreaEntityRaw(
-			"{name:\"UP\",model:\"BIGDOOR3\",x:19,y:13,dest:[\"crypt2\",19,13],dir:\"s\"}"
+				"{name:\"UP\",model:\"BIGDOOR3\",x:19,y:13,dest:[\"crypt2\",19,13],dir:\"s\"}"
 		)
 		val expected = AreaDoor(
-			spritesheetName = "BIGDOORSHEET",
-			spriteRow = 3,
+			sprites = sprite,
 			x = 19,
 			y = 13,
 			destination = TransitionDestination(
-				areaName = "crypt2", x = 19, y = 13, direction = Direction.Down, discoveredAreaName = null
+				area = assertArea("crypt2"), x = 19, y = 13,
+				direction = Direction.Down, discoveredAreaName = null
 			),
 			lockType = null,
 			keyName = null
@@ -346,16 +364,18 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseLockedDoor() {
+		val sprite = objectSprite("DOOR5")
 		val actual = parseAreaEntityRaw(
-			"{name:\"Exit\",model:\"DOOR5\",x:4,y:8,lock:\"key\",key:\"Bandit Key\"," +
-					"dir:\"s\",dest:[\"aeropolis_E\",13,20]}"
+				"{name:\"Exit\",model:\"DOOR5\",x:4,y:8,lock:\"key\",key:\"Bandit Key\"," +
+						"dir:\"s\",dest:[\"aeropolis_E\",13,20]}"
 		)
 		val expected = AreaDoor(
-			spritesheetName = "DOORSHEET",
-			spriteRow = 5,
+			sprites = sprite,
 			x = 4,
 			y = 8,
-			destination = TransitionDestination("aeropolis_E", 13, 20, Direction.Down, null),
+			destination = TransitionDestination(
+					assertArea("aeropolis_E"), 13, 20, Direction.Down, null
+			),
 			lockType = "key",
 			keyName = "Bandit Key"
 		)
@@ -364,18 +384,16 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseStatue() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Statue\",model:\"statue\",x:25,y:3,walkspeed:-2,dir:\"m1\",FRAME:6,conv:[statueFlavour]}"
-		)
 		val expected = AreaObject(
-			spritesheetName = "spritesheet_statue",
-			firstFrameIndex = 6,
-			numFrames = 1,
+			sprites = objectSprite("spritesheet_statue(6, 1)"),
 			x = 25,
 			y = 3,
 			conversationName = null,
 			rawConversion = "[statueFlavour]",
 			signType = null
+		)
+		val actual = parseAreaEntityRaw(
+				"{name:\"Statue\",model:\"statue\",x:25,y:3,walkspeed:-2,dir:\"m1\",FRAME:6,conv:[statueFlavour]}"
 		)
 		assertEquals(expected, actual)
 	}
@@ -399,7 +417,7 @@ class TestAreaEntityParser {
 					"}}"
 		)
 		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
-			"canonia_woods", 23, 61, direction = null, discoveredAreaName = null
+			assertArea("canonia_woods"), 23, 61, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}
@@ -418,7 +436,7 @@ class TestAreaEntityParser {
 					"}}"
 		)
 		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
-			"canonia_woods_d", 23, 61, direction = null, discoveredAreaName = null
+			assertArea("canonia_woods_d"), 23, 61, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}
@@ -436,7 +454,7 @@ class TestAreaEntityParser {
 						"}}"
 		)
 		val expected = AreaPortal(x = 33, y = 24, destination = TransitionDestination(
-				"pcave3_d", 33, 24, direction = null, discoveredAreaName = null
+				assertArea("pcave3_d"), 33, 24, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
 	}
@@ -500,33 +518,30 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseInvalidWarportPortal() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Portal\",model:\"o_portal\",x:36,y:4," +
-					"conv:[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]}"
-		)
 		val expected = AreaObject(
-			spritesheetName = "obj_portal",
-			firstFrameIndex = null,
-			numFrames = null,
+			sprites = objectSprite("obj_portal"),
 			x = 36,
 			y = 4,
 			conversationName = null,
 			rawConversion = "[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]",
 			signType = null
 		)
+		val actual = parseAreaEntityRaw(
+				"{name:\"Portal\",model:\"o_portal\",x:36,y:4," +
+						"conv:[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]}"
+		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseWarportExamine() {
+		val expected = AreaDecoration(
+				x = 6, y = 6, sprites = objectSprite("obj_portal"), light = null, timePerFrame = 1, conversationName = null,
+				rawConversation = "[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]"
+		)
 		val actual = parseAreaEntityRaw(
 			"{name:\"Portal\",model:\"o_portal\",x:6,y:6,walkable:true," +
 					"conv:[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]}"
-		)
-		val expected = AreaDecoration(
-			x = 6, y = 6, spritesheetName = "obj_portal", spritesheetOffsetY = null, spriteHeight = null,
-			light = null, timePerFrame = 1, conversationName = null,
-			rawConversation = "[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]"
 		)
 		assertEquals(expected, actual)
 	}
@@ -541,7 +556,7 @@ class TestAreaEntityParser {
 		)
 		val expected = AreaPortal(
 			x = 6, y = 6, destination = TransitionDestination(
-				"warport1T2", 36, 4, direction = null, discoveredAreaName = null
+				assertArea("warport1T2"), 36, 4, direction = null, discoveredAreaName = null
 			)
 		)
 		assertEquals(expected, actual)
@@ -572,8 +587,8 @@ class TestAreaEntityParser {
 			"{name:\"Deities: What ARE they?\",model:\"object\",x:1,y:1,type:\"examine\",conv:$rawConversation}"
 		)
 		val expected = AreaDecoration(
-			x = 1, y = 1, spritesheetName = null, spritesheetOffsetY = null, spriteHeight = null,
-			light = null, timePerFrame = 1, rawConversation = rawConversation, conversationName = null
+			x = 1, y = 1, sprites = null, light = null, timePerFrame = 1,
+			rawConversation = rawConversation, conversationName = null
 		)
 		assertEquals(expected, actual)
 	}
@@ -584,7 +599,7 @@ class TestAreaEntityParser {
 			"{name:\"Cave\",model:\"area_transition\",x:13,y:73,dest:[\"WORLDMAP\",1,1,\"pcave1\"]}"
 		)
 		val expected = AreaTransition(x = 13, y = 73, arrow = null, destination = TransitionDestination(
-			areaName = "WORLDMAP", x = 1, y = 1, direction = null, discoveredAreaName = "pcave1"
+			assertArea("WORLDMAP"), x = 1, y = 1, direction = null, discoveredAreaName = "pcave1"
 		))
 		assertEquals(expected, actual)
 	}
@@ -604,37 +619,43 @@ class TestAreaEntityParser {
 			"{name:\"Water\",model:\"examine\",x:8,y:30,walkspeed:-1,conv:\"c_lakeQur\"}"
 		)
 		val expected = AreaDecoration(
-			x = 8, y = 30, spritesheetName = null, spritesheetOffsetY = null, spriteHeight = null,
-			light = null, timePerFrame = 1, rawConversation = null, conversationName = "c_lakeQur"
+			x = 8, y = 30, sprites = null, light = null, timePerFrame = 1,
+			rawConversation = null, conversationName = "c_lakeQur"
 		)
 		assertEquals(expected, actual)
 	}
 
+	private fun switchColor(name: String): SwitchColor {
+		val color = SwitchColor(name, KimSprite(null), KimSprite(null), KimSprite(null), KimSprite(null))
+		assets.switchColors.add(color)
+		return color
+	}
+
 	@Test
 	fun testParseSwitchOrb() {
+		val expected = AreaSwitchOrb(x = 3, y = 2, color = switchColor("turquoise"))
 		val actual = parseAreaEntityRaw(
 			"{name:\"Turquoise Keystone\",model:\"object\",x:3,y:2,type:\"switch_orb\"," +
 					"colour:\"turquoise\",base:\"gold\",conv_action:1}"
 		)
-		val expected = AreaSwitchOrb(x = 3, y = 2, color = SwitchColor.Turquoise)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseSwitchGate() {
+		val expected = AreaSwitchGate(x = 12, y = 14, color = switchColor("moonstone"))
 		val actual = parseAreaEntityRaw(
 			"{name:\"Moonstone Gate\",model:\"object\",x:12,y:14,type:\"switch_gate\",colour:\"moonstone\"}"
 		)
-		val expected = AreaSwitchGate(x = 12, y = 14, color = SwitchColor.Moonstone)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseSwitchPlatform() {
+		val expected = AreaSwitchPlatform(x = 31, y = 8, color = switchColor("turquoise"))
 		val actual = parseAreaEntityRaw(
 			"{name:\"Turquoise Platform\",model:\"object\",x:31,y:8,type:\"switch_platform\",colour:\"turquoise\"}"
 		)
-		val expected = AreaSwitchPlatform(x = 31, y = 8, color = SwitchColor.Turquoise)
 		assertEquals(expected, actual)
 	}
 }

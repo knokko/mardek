@@ -3,12 +3,14 @@ package mardek.assets.area
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.ReferenceField
 
 @BitStruct(backwardCompatible = false)
 class TransitionDestination(
-
-	@BitField(ordering = 0)
-	val areaName: String,
+	// TODO Optional worldMap
+	@BitField(ordering = 0, optional = true)
+	@ReferenceField(stable = false, label = "areas")
+	var area: Area?,
 
 	@BitField(ordering = 1)
 	@IntegerField(expectUniform = false, minValue = -1)
@@ -25,14 +27,14 @@ class TransitionDestination(
 	val discoveredAreaName: String?,
 ) {
 
-	internal constructor() : this("", 0, 0, null, null)
-	override fun toString() = "($areaName, x=$x, y=$y, direction=$direction)"
+	internal constructor() : this(null, 0, 0, null, null)
+	override fun toString() = "(${area?.properties?.displayName}, x=$x, y=$y, direction=$direction)"
 
-	override fun equals(other: Any?) = other is TransitionDestination && areaName == other.areaName && x == other.x &&
+	override fun equals(other: Any?) = other is TransitionDestination && area == other.area && x == other.x &&
 			y == other.y && direction == other.direction && discoveredAreaName == other.discoveredAreaName
 
 	override fun hashCode(): Int {
-		var result = areaName.hashCode()
+		var result = area.hashCode()
 		result = 31 * result + x
 		result = 31 * result + y
 		result = 31 * result + (direction?.hashCode() ?: 0)

@@ -4,8 +4,9 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.area.Direction
-import mardek.assets.area.OptimizedArea
+import mardek.assets.area.Area
 import mardek.assets.area.TransitionDestination
 import mardek.input.InputKey
 import mardek.input.InputManager
@@ -16,7 +17,8 @@ import kotlin.time.Duration.Companion.seconds
 @BitStruct(backwardCompatible = false)
 class AreaState(
 	@BitField(ordering = 0)
-	val area: OptimizedArea, // TODO Find a way to serialize this
+	@ReferenceField(stable = true, label = "areas")
+	val area: Area,
 	initialPlayerPosition: AreaPosition
 ) {
 
@@ -149,7 +151,7 @@ class AreaState(
 	private fun canWalkTo(input: InputManager, x: Int, y: Int): Boolean {
 		if (x < 0 || y < 0) return false
 		if (input.isPressed(InputKey.Cheat)) return true
-		if (!area.canWalkOnTime(x, y)) return false
+		if (!area.canWalkOnTile(x, y)) return false
 
 		// TODO Movable characters
 		for (character in area.objects.characters) {

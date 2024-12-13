@@ -4,7 +4,7 @@ import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.WindowBuilder
 import com.github.knokko.boiler.window.WindowEventLoop
 import com.github.knokko.update.UpdateLoop
-import mardek.assets.GameAssets
+import mardek.assets.Campaign
 import mardek.audio.AudioUpdater
 import mardek.input.InputManager
 import mardek.renderer.GameRenderer
@@ -27,10 +27,10 @@ fun main(args: Array<String>) {
 	if (args.contains("api-dump")) boilerBuilder.apiDump()
 	val boiler = GameRenderer.addBoilerRequirements(boilerBuilder).build()
 
-	val assets = GameAssets.load("mardek/game/areas.bin")
+	val campaign = Campaign.load("mardek/game/campaign.bin")
 
 	val input = InputManager()
-	val state = GameStateManager(input, TitleScreenState(assets))
+	val state = GameStateManager(input, TitleScreenState(campaign))
 
 	val updateLoop = UpdateLoop({ _ ->
 		synchronized(state.lock()) {
@@ -60,7 +60,7 @@ fun main(args: Array<String>) {
 	inputListener.register()
 
 	val eventLoop = WindowEventLoop(0.01, inputListener::update)
-	eventLoop.addWindow(GameWindow(assets, boiler.window(), state))
+	eventLoop.addWindow(GameWindow(campaign, boiler.window(), state))
 	eventLoop.runMain()
 
 	boiler.destroyInitialObjects()

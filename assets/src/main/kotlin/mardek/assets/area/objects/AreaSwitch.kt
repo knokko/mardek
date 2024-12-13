@@ -1,12 +1,13 @@
 package mardek.assets.area.objects
 
-import com.github.knokko.bitser.BitEnum
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.ReferenceField
 
 abstract class AreaSwitch(
 	@BitField(ordering = 0)
+	@ReferenceField(stable = false, label = "switch colors")
 	val color: SwitchColor,
 
 	@BitField(ordering = 1)
@@ -26,10 +27,6 @@ abstract class AreaSwitch(
 	@IntegerField(expectUniform = false, minValue = -1)
 	var onSpriteOffset = -1
 
-	init {
-		if (color == SwitchColor.Off) throw IllegalArgumentException("Off switch is not allowed")
-	}
-
 	override fun toString() = "${this::class.java.simpleName.substring(4)}($color, x=$x, y=$y)"
 
 	override fun equals(other: Any?) = other is AreaSwitch && this::class.java == other::class.java &&
@@ -47,33 +44,19 @@ abstract class AreaSwitch(
 class AreaSwitchOrb(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
 
 	@Suppress("unused")
-	private constructor() : this(SwitchColor.UnusedBlue, 0, 0)
+	private constructor() : this(SwitchColor(), 0, 0)
 }
 
 @BitStruct(backwardCompatible = false)
 class AreaSwitchGate(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
 
 	@Suppress("unused")
-	private constructor() : this(SwitchColor.UnusedBlue, 0, 0)
+	private constructor() : this(SwitchColor(), 0, 0)
 }
 
 @BitStruct(backwardCompatible = false)
 class AreaSwitchPlatform(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
 
 	@Suppress("unused")
-	private constructor() : this(SwitchColor.UnusedBlue, 0, 0)
-}
-
-@Suppress("unused")
-@BitEnum(mode = BitEnum.Mode.VariableIntOrdinal)
-enum class SwitchColor {
-	Off,
-	Ruby,
-	Amethyst,
-	Moonstone,
-	Emerald,
-	Topaz,
-	Turquoise,
-	Sapphire,
-	UnusedBlue
+	private constructor() : this(SwitchColor(), 0, 0)
 }

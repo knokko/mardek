@@ -1,15 +1,14 @@
-package mardek.assets.area.sprites
+package mardek.assets.sprite
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
-import com.github.knokko.bitser.field.NestedFieldSetting
 
 @BitStruct(backwardCompatible = false)
-class ObjectSpritesheet(
+class ObjectSprites(
 
 	@BitField(ordering = 0)
-	val flashName: String,
+	var flashName: String,
 
 	/**
 	 * The frame index into the flash spritesheet from which it was imported.
@@ -31,17 +30,10 @@ class ObjectSpritesheet(
 	@BitField(ordering = 3, optional = true)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val numFrames: Int?,
+
+	@BitField(ordering = 4)
+	val frames: Array<KimSprite>,
 ) {
 
-	// TODO Save this conditionally
-//	@BitField(ordering = 5, optional = true)
-//	@CollectionField(writeAsBytes = true)
-	var frames: Array<KimImage>? = null
-
-	@BitField(ordering = 4, optional = true)
-	@NestedFieldSetting(path = "", writeAsBytes = true)
-	var indices: IntArray? = null
-
-	@Suppress("unused")
-	private constructor() : this("", 0, 0, null)
+	internal constructor() : this("", 0, 0, null, emptyArray())
 }
