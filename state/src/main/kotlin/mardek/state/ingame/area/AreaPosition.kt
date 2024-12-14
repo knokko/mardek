@@ -16,5 +16,7 @@ class AreaPosition(
 	val y: Int
 ) {
 
+	internal constructor() : this(0, 0)
+
 	override fun toString() = "($x, $y)"
 }

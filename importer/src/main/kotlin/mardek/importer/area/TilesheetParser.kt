@@ -51,7 +51,7 @@ fun parseTilesheet(name: String): ParsedTilesheet {
 				DARK_BLUE_ENCODING -> WaterType.Waterfall
 				else -> WaterType.None
 			}
-			idMapping[tileID] = ParsedTile(tileID, canWalkOn, waterType, sprites, decorationCode)
+			idMapping[tileID] = ParsedTile(canWalkOn, waterType, sprites, decorationCode)
 		}
 	}
 

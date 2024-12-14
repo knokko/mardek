@@ -63,7 +63,14 @@ class PassiveSkill(
 	val addLootChance: Int,
 
 	@BitField(ordering = 12, optional = true)
-	@ReferenceField(stable = false, label = "classes")
+	@ReferenceField(stable = false, label = "skill classes")
 	val skillClass: SkillClass?,
 ): Skill(name, description, element, masteryPoints) {
+
+	@Suppress("unused")
+	private constructor() : this(
+		"", "", Element(), 0, 0, 0f, 0f,
+		ArrayList(), ArrayList(), ArrayList(), HashSet(), HashSet(), 0f,
+		0, 0, 0, null
+	)
 }

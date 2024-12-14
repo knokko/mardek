@@ -26,6 +26,6 @@ fun parseSirenSongs(rawSongs: String) = parseActionScriptObjectList(rawSongs).ma
 		name = parseFlashString(rawSong["tune"]!!, "song tune")!!,
 		time = parseInt(rawSong["time"]!!),
 		tempo = parseInt(rawSong["tempo"]!!),
-		notes = notes
+		notes = ArrayList(notes)
 	)
 }

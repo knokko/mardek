@@ -23,7 +23,7 @@ class ReactionSkill(
 	val enablePoints: Int,
 
 	@BitField(ordering = 2, optional = true)
-	@ReferenceField(stable = false, label = "classes")
+	@ReferenceField(stable = false, label = "skill classes")
 	val skillClass: SkillClass?,
 
 	@BitField(ordering = 3)
@@ -71,4 +71,11 @@ class ReactionSkill(
 	@BitField(ordering = 15)
 	val survivor: Boolean,
 ): Skill(name, description, element, masteryPoints) {
+
+	@Suppress("unused")
+	private constructor() : this(
+		"", "", Element(), 0, ReactionSkillType.RangedDefense, 0, null,
+		0, 0f, 0, 0, 0f, 0f, ArrayList(0),
+		ArrayList(0), ArrayList(0), ArrayList(0), false, false, false
+	)
 }

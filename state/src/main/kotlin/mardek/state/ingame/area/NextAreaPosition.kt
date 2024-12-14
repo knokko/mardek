@@ -20,5 +20,8 @@ class NextAreaPosition(
 	val arrivalTime: Duration,
 ) {
 
+	@Suppress("unused")
+	private constructor() : this(AreaPosition(), Duration.ZERO, Duration.ZERO)
+
 	override fun toString() = "($position at $arrivalTime)"
 }

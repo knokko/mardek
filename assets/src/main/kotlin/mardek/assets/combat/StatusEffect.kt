@@ -98,8 +98,7 @@ class StatusEffect(
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
-	@Suppress("unused")
-	private constructor() : this("", null, false, false)
+	internal constructor() : this("", null, false, false)
 
 	override fun toString() = niceName ?: flashName
 }

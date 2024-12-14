@@ -3,10 +3,10 @@ package mardek.assets.inventory
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
-import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.assets.combat.Element
+import mardek.assets.sprite.KimSprite
 import java.util.*
 
 @BitStruct(backwardCompatible = false)
@@ -25,9 +25,9 @@ class Item(
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element?,
 
-	@BitField(ordering = 4)
+	@BitField(ordering = 4, optional = true)
 	@IntegerField(expectUniform = false, minValue = 0)
-	val cost: Int,
+	val cost: Int?,
 
 	@BitField(ordering = 5, optional = true)
 	val equipment: EquipmentProperties?,
@@ -37,20 +37,13 @@ class Item(
 ) {
 
 	@BitField(ordering = 7)
-	@IntegerField(expectUniform = false, minValue = -1)
-	var spriteIndex = -1
+	lateinit var sprite: KimSprite
 
-	// TODO Save conditionally
 	@BitField(ordering = 8)
-	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
-	var sprite: IntArray? = null
-
-	@BitField(ordering = 9)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
-	@Suppress("unused")
-	private constructor() : this(
+	constructor() : this(
 			"", "", ItemType(), null,
 			0, null, null
 	)

@@ -7,8 +7,10 @@ import mardek.state.ingame.inventory.ItemStack
 
 class FatPlayableCharacter(
 	val wrapped: PlayableCharacter,
+	val initialLevel: Int,
 	val initialEquipment: List<Item?>,
 	val initialItems: List<ItemStack>,
 	val initialMasteredSkills: List<Skill>,
 ) {
+	override fun toString() = wrapped.toString()
 }

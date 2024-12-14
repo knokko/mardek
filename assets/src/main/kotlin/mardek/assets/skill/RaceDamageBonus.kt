@@ -16,5 +16,9 @@ class RaceDamageBonus(
 	@FloatField(expectMultipleOf = 0.1)
 	val bonusFraction: Float,
 ) {
+
+	@Suppress("unused")
+	private constructor() : this(CharacterRace(), 0f)
+
 	override fun toString() = "+ $bonusFraction * damage against $race"
 }

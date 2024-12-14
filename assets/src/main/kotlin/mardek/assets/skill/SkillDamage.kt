@@ -56,30 +56,35 @@ class SkillDamage(
 	 * Add damage based on money (money attack)
 	 */
 	@BitField(ordering = 8)
+	@FloatField(expectMultipleOf = 0.1)
 	val moneyModifier: Float,
 
 	/**
 	 * Attack bonus and element based on equipped gem (gemplosion)
 	 */
 	@BitField(ordering = 9)
+	@FloatField(expectMultipleOf = 0.1)
 	val gemModifier: Float,
 
 	/**
 	 * Adds `(hp lost by attacker) * modifier` damage (revenge strike)
 	 */
 	@BitField(ordering = 10)
+	@FloatField(expectMultipleOf = 0.1)
 	val lostHealthModifier: Float,
 
 	/**
 	 * Status effect count modifier (coup de grace), I don't know details yet
 	 */
 	@BitField(ordering = 11)
+	@FloatField(expectMultipleOf = 0.1)
 	val statusEffectModifier: Float,
 
 	/**
 	 * Kill count modifier (sin strike), I don't know details yet
 	 */
 	@BitField(ordering = 12)
+	@FloatField(expectMultipleOf = 0.1)
 	val killCountModifier: Float,
 
 	/**
@@ -117,4 +122,11 @@ class SkillDamage(
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val critChance: Int? = null,
 ) {
+
+	@Suppress("unused")
+	private constructor() : this(
+		0, 0f, 0, false, false, false,
+		SkillSpiritModifier.SpiritBlade, ArrayList(), 0f, 0f, 0f, 0f,
+		0f, 0, 0f, 0f, 0f, null
+	)
 }

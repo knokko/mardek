@@ -1,16 +1,36 @@
 package mardek.importer.area
 
 import mardek.assets.area.*
-import mardek.assets.sprite.KimSprite
+import mardek.assets.sprite.DirectionalSprites
 import mardek.importer.util.compressSprite
 import java.io.File
+import java.util.*
+import javax.imageio.ImageIO
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
-fun importAllAreas() {
+fun importAreaAssets(areaFolder: File): AreaAssets {
 	val assets = AreaAssets()
+
+	val charactersFolder = File("$areaFolder/sheets/character")
+	for (characterSprite in charactersFolder.listFiles()!!) {
+		val name = characterSprite.name
+		if (!name.endsWith(".png")) throw AreaParseException("Unexpected sprite $characterSprite")
+
+		val sheetImage = ImageIO.read(characterSprite)
+		val numSprites = sheetImage.width / 16
+
+		val sheet = DirectionalSprites(name.substring(0, name.length - 4), (0 until numSprites).map {
+			compressSprite(sheetImage.getSubimage(it * 16, 0, 16, sheetImage.height))
+		}.toTypedArray())
+		assets.characterSprites.add(sheet)
+	}
+
 	val parsedAreas = ArrayList<ParsedArea>()
 	val parsedTilesheets = ArrayList<ParsedTilesheet>()
 	val transitions = ArrayList<Pair<TransitionDestination, String>>()
-	for (areaName in enumerateAreas()) {
+	for (areaName in enumerateAreas(areaFolder)) {
 		parsedAreas.add(parseArea(assets, areaName, parsedTilesheets, transitions))
 	}
 
@@ -18,7 +38,7 @@ fun importAllAreas() {
 
 	for (parsed in parsedTilesheets) {
 		val tilesheet = Tilesheet(parsed.name)
-		tilesheet.waterSprites.addAll(parsed.waterSprites.map { KimSprite(compressSprite(it)) })
+		tilesheet.waterSprites.addAll(parsed.waterSprites.map(::compressSprite))
 		assets.tilesheets.add(tilesheet)
 
 		val usedTiles = HashSet<Int>()
@@ -31,7 +51,7 @@ fun importAllAreas() {
 		for (tileID in usedTiles) {
 			val parsedTile = parsed.tiles[tileID]!!
 			val tile = Tile(
-					sprites = parsedTile.sprites.map { KimSprite(compressSprite(it)) },
+					sprites = ArrayList(parsedTile.sprites.map(::compressSprite)),
 					canWalkOn = parsedTile.canWalkOn,
 					waterType = parsedTile.waterType
 			)
@@ -58,11 +78,15 @@ fun importAllAreas() {
 	}
 
 	for ((transition, destination) in transitions) {
-		transition.area = assets.areas.find { it.properties.rawName == destination }!!
+		if (destination == "WORLDMAP") continue // TODO Handle this
+		if (destination == "nowhere") continue
+		transition.area = assets.areas.find { it.properties.rawName.lowercase(Locale.ROOT) == destination.lowercase(Locale.ROOT) }!!
 	}
+
+	return assets
 }
 
-internal fun enumerateAreas() = File("src/main/resources/mardek/importer/area/data").list().map {
+internal fun enumerateAreas(areaFolder: File) = File("$areaFolder/data").list()!!.map {
 	if (!it.endsWith(".txt")) throw java.lang.RuntimeException("Unexpected file $it")
 	it.substring(0, it.length - 4)
 }

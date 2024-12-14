@@ -21,6 +21,7 @@ internal fun importItems(
 		val typeName = parseFlashString(rawItem["type"]!!, "item type")!!
 		if (typeName == "rods" || typeName == "bait" || typeName == "fish") continue
 		if (typeName == "gold" || typeName == "none") continue
+		val cost = parseInt(rawItem["cost"])
 		assets.items.add(Item(
 				flashName = parseFlashString(rawItem["name"]!!, "item name")!!,
 				description = parseFlashString(rawItem["desc"]!!, "item description")!!,
@@ -28,7 +29,7 @@ internal fun importItems(
 				element = if (rawElement != null) combatAssets.elements.find {
 					it.rawName == parseFlashString(rawElement, "item element")!!
 				}!! else null,
-				cost = parseInt(rawItem["cost"]),
+				cost = if (cost >= 0) cost else null,
 				equipment = parseEquipment(combatAssets, skillAssets, assets, rawItem),
 				consumable = parseConsumable(combatAssets, rawItem),
 		))
@@ -289,10 +290,12 @@ private fun parseConsumable(combatAssets: CombatAssets, rawItem: Map<String, Str
 		if (rawItem["hurtful"] == "true") {
 			val power = parseInt(rawSpell["pow"])
 			val spirit = parseInt(rawSpell["SPR"])
-			val element = combatAssets.elements.find {
-				it.rawName == parseFlashString(rawSpell["elem"]!!, "consumable damage element")
-			}!!
-			damage = ConsumableDamage(power, spirit, element)
+			if (power != 0) {
+				val element = combatAssets.elements.find {
+					it.rawName == parseFlashString(rawSpell["elem"]!!, "consumable damage element")
+				}!!
+				damage = ConsumableDamage(power, spirit, element)
+			}
 		}
 
 		val hardcodedDamage = rawSpell["set_dmg"]

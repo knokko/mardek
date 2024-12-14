@@ -46,7 +46,7 @@ class TitleScreenState(private val assets: Campaign): GameState {
 
 				if (event.didPress && event.key == InputKey.Interact) {
 					if (selectedButton == 0) {
-						val rawCheckpoint = assets.checkpoints["Chapter 1"]!!
+						val rawCheckpoint = assets.checkpoints["chapter1"]!!
 						val bitInput = BitInputStream(ByteArrayInputStream(rawCheckpoint))
 						val campaignState = GameStateManager.bitser.deserialize(
 								CampaignState::class.java, bitInput, assets

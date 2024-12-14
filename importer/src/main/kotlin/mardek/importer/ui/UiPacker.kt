@@ -4,6 +4,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.compressor.Bc1Compressor
 import com.github.knokko.compressor.Bc1Worker
+import mardek.assets.sprite.KimSprite
 import org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
 import java.awt.image.BufferedImage
 import java.io.DataOutputStream
@@ -13,6 +14,7 @@ import javax.imageio.ImageIO
 class UiPacker {
 
 	private val bc1Images = mutableListOf<BufferedImage>()
+	private val kim1Images = mutableListOf<KimSprite>()
 
 	fun addBc1(path: String): Int {
 		val input = UiPacker::class.java.getResourceAsStream(path) ?: throw IllegalArgumentException("Can't find $path")
@@ -24,6 +26,10 @@ class UiPacker {
 		}
 		bc1Images.add(image)
 		return bc1Images.size
+	}
+
+	fun addKim1(sprite: KimSprite) {
+		kim1Images.add(sprite)
 	}
 
 	fun writeDataAndDestroy(boiler: BoilerInstance, output: OutputStream) {
@@ -38,7 +44,6 @@ class UiPacker {
 
 		val pool = compressor.descriptorSetLayout.createPool(bc1Images.size, 0, "Bc1DescriptorPool")
 		val descriptorSets = pool.allocate(bc1Images.size)
-
 
 		val commands = SingleTimeCommands(boiler)
 		commands.submit("Bc1Compression") { recorder ->
@@ -75,6 +80,15 @@ class UiPacker {
 			destinationBuffer.mappedRange(dataOffset, bc1DataArray.size.toLong()).byteBuffer().get(bc1DataArray)
 			data.write(bc1DataArray)
 			dataOffset += bc1DataArray.size
+		}
+
+		data.writeInt(kim1Images.sumOf { it.data!!.size })
+		var nextKimOffset = 0
+		for (sprite in kim1Images) {
+			sprite.offset = nextKimOffset
+			for (value in sprite.data!!) data.writeInt(value)
+			nextKimOffset += sprite.data!!.size
+			sprite.data = null
 		}
 
 		destinationBuffer.destroy(boiler)

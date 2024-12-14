@@ -20,20 +20,27 @@ class SirenSong(
 
 	@BitField(ordering = 3)
 	@NestedFieldSetting(path = "c", optional = true)
-	val notes: List<SirenNote?>,
+	val notes: ArrayList<SirenNote?>,
 ) {
+
+	@Suppress("unused")
+	private constructor() : this("", 0, 0, ArrayList(0))
 }
 
 @BitStruct(backwardCompatible = false)
 class SirenNote(
 	@BitField(ordering = 0)
-	@IntegerField(expectUniform = true, minValue = 0, maxValue = 12)
+	@IntegerField(expectUniform = true, minValue = 0, maxValue = 16)
 	val value1: Int,
 
-	@BitField(ordering = 0)
-	@IntegerField(expectUniform = true, minValue = 0, maxValue = 12)
+	@BitField(ordering = 1)
+	@IntegerField(expectUniform = true, minValue = 0, maxValue = 16)
 	val value2: Int,
 ) {
+
+	@Suppress("unused")
+	private constructor() : this(0, 0)
+
 	override fun toString() = if (value1 == value2) value1.toString() else "[$value1, $value2]"
 
 	override fun equals(other: Any?) = other is SirenNote && value1 == other.value1 && value2 == other.value2

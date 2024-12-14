@@ -64,8 +64,10 @@ class TestAreaSprites {
 	}
 
 	@Test
-	fun testGetDeugan() {
-		val deugan = importCharacterSprites("deugan_hero")
+	fun testImportCharacterSprites() {
+		val assets = importAreaAssets(File("src/main/resources/mardek/importer/area"))
+
+		val deugan = assets.characterSprites.find { it.name == "deugan_hero" }!!
 		assertEquals("deugan_hero", deugan.name)
 		assertEquals(8, deugan.sprites.size)
 
@@ -73,11 +75,8 @@ class TestAreaSprites {
 			assertEquals(16, sprite.width)
 			assertEquals(16, sprite.height)
 		}
-	}
 
-	@Test
-	fun testGetSolaar() {
-		val solaar = importCharacterSprites("solaar")
+		val solaar = assets.characterSprites.find { it.name == "solaar" }!!
 		assertEquals("solaar", solaar.name)
 		assertEquals(9, solaar.sprites.size)
 

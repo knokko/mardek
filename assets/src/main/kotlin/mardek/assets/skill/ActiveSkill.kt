@@ -25,7 +25,7 @@ class ActiveSkill(
 	val damage: SkillDamage?,
 
 	@BitField(ordering = 3)
-	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
+	@IntegerField(expectUniform = true, minValue = 0, maxValue = 255)
 	val accuracy: Int,
 
 	@BitField(ordering = 4)
@@ -100,4 +100,12 @@ class ActiveSkill(
 	@BitField(ordering = 21, optional = true)
 	val rawSongPower: String?,
 ): Skill(name, description, element, masteryPoints) {
+
+	@Suppress("unused")
+	private constructor() : this(
+		"", "", Element(), 0, ActiveSkillMode.Melee, SkillTargetType.Single, null,
+		0, 0, false, false, false, false, ArrayList(), ArrayList(),
+		ArrayList(), 0f, null, null, null, SkillCombatRequirement.OutsideCombat,
+		0, false, false, false, null
+	)
 }

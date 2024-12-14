@@ -37,4 +37,6 @@ class PlayableCharacter(
 
 	@Suppress("unused")
 	private constructor() : this("", CharacterClass(), Element(), ArrayList(0), DirectionalSprites())
+
+	override fun toString() = name
 }

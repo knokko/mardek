@@ -6,7 +6,7 @@ import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptResource
 import java.lang.RuntimeException
 
-fun importRaces(combatAssets: CombatAssets) {
+internal fun importRaces(combatAssets: CombatAssets) {
 	val monsterData = parseActionScriptResource("mardek/importer/combat/monsters.txt")
 	var raceList = monsterData.variableAssignments["MonsterTypes"]!!
 	if (!raceList.startsWith("[") || !raceList.endsWith("]")) {

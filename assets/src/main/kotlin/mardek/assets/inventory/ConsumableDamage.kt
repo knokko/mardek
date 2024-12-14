@@ -21,8 +21,12 @@ class ConsumableDamage(
 		val element: Element,
 ) {
 
+	init {
+		if (power == 0 || spirit == 0) throw IllegalArgumentException("Invalid damage $this")
+	}
+
 	@Suppress("unused")
-	private constructor() : this(0, 0, Element())
+	private constructor() : this(-1, -1, Element())
 
 	override fun toString() = "Damage($power, $spirit, $element)"
 }

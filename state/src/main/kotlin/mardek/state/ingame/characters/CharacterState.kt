@@ -17,27 +17,33 @@ class CharacterState {
 	@IntegerField(expectUniform = false, minValue = 0)
 	var currentHealth = 0
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var currentMana = 0
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 2)
+	@IntegerField(expectUniform = false, minValue = 1)
+	var currentLevel = 0
+
+	@BitField(ordering = 3)
 	@ReferenceField(stable = true, label = "status effects")
 	val activeStatusEffects = HashSet<StatusEffect>()
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 4)
 	@ReferenceField(stable = true, label = "items")
+	@NestedFieldSetting(path = "c", optional = true)
 	val equipment = Array<Item?>(6) { null }
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 5)
+	@NestedFieldSetting(path = "c", optional = true)
 	val inventory = Array<ItemStack?>(64) { null }
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 6)
 	@NestedFieldSetting(path = "k", fieldName = "SKILL_MASTERY_KEY")
 	@NestedFieldSetting(path = "v", fieldName = "SKILL_MASTERY_VALUE")
 	val skillMastery = HashMap<Skill, Int>()
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 7)
 	@ReferenceField(stable = true, label = "skills")
 	val toggledSkills = HashSet<Skill>()
 

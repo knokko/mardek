@@ -16,4 +16,7 @@ class ElementalDamageBonus(
 	@FloatField(expectMultipleOf = 0.05)
 	val modifier: Float,
 ) {
+
+	@Suppress("unused")
+	private constructor() : this(Element(), 0f)
 }

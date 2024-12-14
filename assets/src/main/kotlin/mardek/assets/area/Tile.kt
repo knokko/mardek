@@ -7,7 +7,7 @@ import mardek.assets.sprite.KimSprite
 @BitStruct(backwardCompatible = false)
 class Tile(
 	@BitField(ordering = 0)
-	val sprites: List<KimSprite>,
+	val sprites: ArrayList<KimSprite>,
 
 	@BitField(ordering = 1)
 	val canWalkOn: Boolean,
@@ -15,4 +15,7 @@ class Tile(
 	@BitField(ordering = 2)
 	val waterType: WaterType
 ) {
+
+	@Suppress("unused")
+	private constructor() : this(ArrayList(0), false, WaterType.None)
 }

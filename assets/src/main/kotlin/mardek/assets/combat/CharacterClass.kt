@@ -19,9 +19,9 @@ class CharacterClass(
 	@ReferenceField(stable = false, label = "skill classes")
 	val skillClass: SkillClass,
 
-	@BitField(ordering = 3)
+	@BitField(ordering = 3, optional = true)
 	@ReferenceField(stable = false, label = "weapon types")
-	val weaponType: WeaponType,
+	val weaponType: WeaponType?,
 
 	@BitField(ordering = 4)
 	@ReferenceField(stable = false, label = "armor types")

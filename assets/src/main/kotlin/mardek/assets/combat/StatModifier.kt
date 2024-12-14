@@ -15,5 +15,9 @@ class StatModifier(
 	@IntegerField(expectUniform = false)
 	val adder: Int,
 ) {
+
+	@Suppress("unused")
+	private constructor() : this(CombatStat(), 0)
+
 	override fun toString() = "$stat+$adder"
 }

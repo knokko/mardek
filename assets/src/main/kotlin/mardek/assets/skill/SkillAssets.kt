@@ -14,11 +14,11 @@ class SkillAssets(
 	val sirenSongs: ArrayList<SirenSong>,
 
 	@BitField(ordering = 2)
-	@ReferenceFieldTarget(label = "reaction skills")
+	@ReferenceFieldTarget(label = "skills")
 	val reactionSkills: ArrayList<ReactionSkill>,
 
 	@BitField(ordering = 3)
-	@ReferenceFieldTarget(label = "passive skills")
+	@ReferenceFieldTarget(label = "skills")
 	val passiveSkills: ArrayList<PassiveSkill>,
 ) {
 

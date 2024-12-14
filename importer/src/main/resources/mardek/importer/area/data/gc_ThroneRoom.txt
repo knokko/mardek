@@ -4,7 +4,7 @@ area = "gc_ThroneRoom";
 areaname = "Castle Goznor - Throne Room";
 ambience = null;
 dungeon = null;
-A_sprites = [{name:"Throne",model:"miscObj",x:6,y:3,walkspeed:-2,FRAME:0,w:48,silent:true},{name:"Rosencrantz",model:"soldier",x:4,y:3,walkspeed:-1,dir:"s",elem:"LIGHT",conv:[["",". . ."]]},{name:"Guildenstern",model:"soldier",x:8,y:3,walkspeed:-1,dir:"s",elem:"LIGHT",conv:[["",". . ."]]},{name:"Crystal Room",model:"DOOR5",x:6,y:0,lock:"magic",dest:["gc_CrystalRoom",1,1]},{name:"King\'s Room",model:"DOOR5",x:1,y:5,lock:"lock",dest:["gc_KingsRoom",8,1]},{name:"Room",model:"DOOR5",x:11,y:5,lock:"lock",dest:["gc_QueensRoom",8,1]},{name:"EXIT",model:"DOOR5",x:6,y:20,dest:["gc_hall",10,1],conv:(GameData.plotVars.CH3KING != 10?null:"c_A_Elwyen")}];
+A_sprites = [{name:"Throne",model:"miscObj",x:6,y:3,walkspeed:-2,FRAME:0,w:48,silent:true},{name:"Rosencrantz",model:"soldier",x:4,y:3,walkspeed:-1,dir:"s",elem:"LIGHT",conv:[["",". . ."]]},{name:"Guildenstern",model:"soldier",x:8,y:3,walkspeed:-1,dir:"s",elem:"LIGHT",conv:[["",". . ."]]},{name:"Crystal Room",model:"DOOR5",x:6,y:0,lock:"magic",dest:["nowhere",1,1]},{name:"King\'s Room",model:"DOOR5",x:1,y:5,lock:"lock",dest:["nowhere",8,1]},{name:"Room",model:"DOOR5",x:11,y:5,lock:"lock",dest:["nowhere",8,1]},{name:"EXIT",model:"DOOR5",x:6,y:20,dest:["gc_hall",10,1],conv:(GameData.plotVars.CH3KING != 10?null:"c_A_Elwyen")}];
 if(GameData.plotVars.BRIEFING == 4)
 {
    freeze = false;

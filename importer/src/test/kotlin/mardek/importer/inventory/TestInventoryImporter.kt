@@ -20,7 +20,7 @@ import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 
 internal fun assertSpriteEquals(sheetName: String, x: Int, y: Int, compressedSprite: ByteBuffer) {
-	val sheetInput = TestInventoryImporter::class.java.getResourceAsStream("itemsheet_$sheetName.png")
+	val sheetInput = TestInventoryImporter::class.java.getResourceAsStream("itemsheet_$sheetName.png")!!
 	val sheet = ImageIO.read(sheetInput)
 	sheetInput.close()
 
@@ -92,8 +92,8 @@ class TestInventoryImporter {
 	}!!.adder
 
 	private fun assertSpriteEquals(sheetName: String, x: Int, y: Int, item: Item) {
-		val compressedData = memCalloc(4 * item.sprite!!.size)
-		for (value in item.sprite!!) compressedData.putInt(value)
+		val compressedData = memCalloc(4 * item.sprite.data!!.size)
+		for (value in item.sprite.data!!) compressedData.putInt(value)
 		compressedData.position(0)
 
 		assertSpriteEquals(sheetName, x, y, compressedData)
@@ -399,6 +399,23 @@ class TestInventoryImporter {
 		assertEquals(alchemistsFire.element, damage.element)
 
 		assertSpriteEquals("misc", 384, 32, alchemistsFire)
+	}
+
+	@Test
+	fun testNoxiousBomb() {
+		val bomb = getItem("Noxious Bomb")
+		assertEquals("DARK", bomb.element!!.properName)
+		assertEquals(1000, bomb.cost)
+
+		val consumable = bomb.consumable!!
+		val sfx = consumable.addStatusEffects
+		assertEquals(4, sfx.size)
+		assertEquals(50, sfx.find { it.effect.niceName == "Blindness" }!!.chance)
+		assertEquals(100, sfx.find { it.effect.niceName == "Confusion" }!!.chance)
+		assertEquals(50, sfx.find { it.effect.niceName== "Sleep" }!!.chance)
+		assertEquals(100, sfx.find { it.effect.niceName == "Poison" }!!.chance)
+
+		assertNull(consumable.damage)
 	}
 
 	@Test

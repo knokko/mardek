@@ -17,5 +17,8 @@ class PossibleStatusEffect(
 	val chance: Int
 ) {
 
+	@Suppress("unused")
+	private constructor() : this(StatusEffect(), 0)
+
 	override fun toString() = "$chance% $effect"
 }

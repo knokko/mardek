@@ -19,7 +19,7 @@ class WeaponProperties(
 	val critChance: Int,
 
 	@BitField(ordering = 2)
-	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
+	@IntegerField(expectUniform = true, minValue = 0, maxValue = 999)
 	val hitChance: Int,
 
 	@BitField(ordering = 3)

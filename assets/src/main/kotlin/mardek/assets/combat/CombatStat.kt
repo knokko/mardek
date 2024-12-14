@@ -9,5 +9,7 @@ class CombatStat(
 	val flashName: String,
 ) {
 
+	internal constructor() : this("")
+
 	override fun toString() = flashName
 }

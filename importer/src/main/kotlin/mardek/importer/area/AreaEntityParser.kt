@@ -4,8 +4,6 @@ import mardek.assets.area.AreaAssets
 import mardek.assets.area.Direction
 import mardek.assets.area.TransitionDestination
 import mardek.assets.area.objects.*
-import mardek.assets.sprite.DirectionalSprites
-import mardek.assets.sprite.KimSprite
 import mardek.assets.sprite.ObjectSprites
 import mardek.importer.util.compressSprite
 import mardek.importer.util.parseActionScriptObjectList
@@ -80,24 +78,8 @@ internal fun importObjectSprites(
 			frameIndex = frameIndex,
 			offsetY = offsetY,
 			numFrames = numFrames,
-			frames = images.map { image -> KimSprite(compressSprite(image)) }.toTypedArray()
+			frames = images.map(::compressSprite).toTypedArray()
 	)
-}
-
-fun importCharacterSprites(flashName: String): DirectionalSprites {
-	val spritePath = "sheets/character/$flashName.png"
-	val input = AreaSprites::class.java.getResourceAsStream(spritePath)
-		?: throw IllegalArgumentException("Can't find sprite at $spritePath")
-	val sheetImage = ImageIO.read(input)
-	input.close()
-
-	val numSprites = sheetImage.width / 16
-
-	val sheet = DirectionalSprites(flashName, (0 until numSprites).map {
-		KimSprite(compressSprite(sheetImage.getSubimage(it * 16, 0, 16, sheetImage.height)))
-	}.toTypedArray())
-
-	return sheet
 }
 
 private fun importSwitchColor(name: String): SwitchColor {
@@ -320,11 +302,7 @@ fun parseAreaEntity(
 	} else null
 
 	spritesheetName = spritesheetName.replace("spritesheet_", "")
-	var sprites = assets.characterSprites.find { it.name == spritesheetName }
-	if (sprites == null) {
-		sprites = importCharacterSprites(spritesheetName)
-		assets.characterSprites.add(sprites)
-	}
+	val sprites = assets.characterSprites.find { it.name == spritesheetName }!!
 	return AreaCharacter(
 		name = name,
 		sprites = sprites,

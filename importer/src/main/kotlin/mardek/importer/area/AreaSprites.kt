@@ -17,10 +17,9 @@ class AreaSprites {
 	private var tileOffset = 0
 
 	private fun registerSprite(sprite: KimSprite) {
-		if (sprite.offset != -1) return
+		if (sprite.offset != -1) throw Error("Encountered tile twice")
 		sprite.offset = kimOffset
 		kimOffset += sprite.data!!.size
-		sprite.data = null
 		kimSprites.add(sprite)
 	}
 
@@ -28,20 +27,18 @@ class AreaSprites {
 		for (tilesheet in assets.tilesheets) {
 			for (sprite in tilesheet.waterSprites) registerSprite(sprite)
 			for (tile in tilesheet.tiles) {
-				if (tile.sprites[0].offset != -1) continue
+				if (tile.sprites[0].offset != -1) throw Error("Shouldn't happen")
 				for ((sourceIndex, sprite) in tile.sprites.withIndex()) {
-					val destinationIndex = tile.sprites.size - 1 - sourceIndex
-					if (destinationIndex == 0) {
+					if (sourceIndex == tile.sprites.size - 1) {
 						registerSprite(sprite)
 					} else {
-						val spriteIndex = highTileOffset
+						sprite.offset = highTileOffset
 						highTileOffset += sprite.data!!.size
 						highTileSprites.add(sprite)
-						sprite.offset = spriteIndex
-						sprite.data = null
 					}
 				}
 			}
+			tilesheet.tiles.clear()
 		}
 
 		for (color in assets.switchColors) {
@@ -129,10 +126,12 @@ class AreaSprites {
 
 		for (sprite in kimSprites) {
 			for (value in sprite.data!!) data.writeInt(value)
+			sprite.data = null
 		}
 
 		for (sprite in highTileSprites) {
 			for (value in sprite.data!!) data.writeInt(value)
+			sprite.data = null
 		}
 
 		for (tileGrid in tileGrids) {

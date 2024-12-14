@@ -97,14 +97,14 @@ fun parseActionScriptObjectList(rawList: String): List<Map<String, String>> {
 			}
 		}
 
-		if ((character == '}'.code || character == ']'.code) && !insideString) depth -= 1
+		if ((character == '}'.code || character == ']'.code || character == ')'.code) && !insideString) depth -= 1
 
 		if (depth >= 2) {
 			if (state == STATE_KEY) keyStorage.appendCodePoint(character)
 			else valueStorage.appendCodePoint(character)
 		}
 
-		if (!insideString && (character == '{'.code || character == '['.code)) depth += 1
+		if (!insideString && (character == '{'.code || character == '['.code || character == '('.code)) depth += 1
 	}
 
 	parseAssert(depth == 0, "Expected to end with depth 0, but got $depth")

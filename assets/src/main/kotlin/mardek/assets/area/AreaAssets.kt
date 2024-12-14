@@ -14,19 +14,19 @@ class AreaAssets {
 	@ReferenceFieldTarget(label = "tilesheets")
 	val tilesheets = ArrayList<Tilesheet>()
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 1)
 	@ReferenceFieldTarget(label = "switch colors")
 	val switchColors = ArrayList<SwitchColor>()
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 2)
 	@ReferenceFieldTarget(label = "character sprites")
 	val characterSprites = ArrayList<DirectionalSprites>()
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 3)
 	@ReferenceFieldTarget(label = "object sprites")
 	val objectSprites = ArrayList<ObjectSprites>()
 
-	@BitField(ordering = 0)
+	@BitField(ordering = 4)
 	@ReferenceFieldTarget(label = "areas")
 	val areas = ArrayList<Area>()
 }

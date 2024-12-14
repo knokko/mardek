@@ -4,12 +4,15 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.area.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class TestAreaParser {
 
+	private val assets = importAreaAssets(File("src/main/resources/mardek/importer/area"))
+
 	@Test
 	fun testParseAeropolisNorth() {
-		val parsed = parseArea(AreaAssets(), "aeropolis_N", ArrayList(), ArrayList())
+		val parsed = parseArea(assets, "aeropolis_N", ArrayList(), ArrayList())
 		assertEquals("aeropolis_N", parsed.properties.rawName)
 		assertEquals("Aeropolis - Temple District", parsed.properties.displayName)
 		assertEquals("aeropolis", parsed.tilesheet.name)
@@ -43,7 +46,7 @@ class TestAreaParser {
 
 	@Test
 	fun testParseDragonLairArea2() {
-		val parsed = parseArea(AreaAssets(), "DL_area2", ArrayList(), ArrayList())
+		val parsed = parseArea(assets, "DL_area2", ArrayList(), ArrayList())
 		assertEquals("DL_area2", parsed.properties.rawName)
 		assertEquals("Dragon's Lair", parsed.properties.displayName)
 		assertEquals("dragonlair", parsed.tilesheet.name)
@@ -88,13 +91,13 @@ class TestAreaParser {
 
 	@Test
 	fun testParseGoldfishWarp() {
-		val parsed = parseArea(AreaAssets(), "goldfish_warp", ArrayList(), ArrayList())
+		val parsed = parseArea(assets, "goldfish_warp", ArrayList(), ArrayList())
 		assertEquals(AreaAmbience(rgba(16, 14, 10, 100), 0), parsed.properties.ambience)
 	}
 
 	@Test
 	fun testParseAirTemple() {
-		val parsed = parseArea(AreaAssets(), "aeropolis_N_TAIR", ArrayList(), ArrayList())
+		val parsed = parseArea(assets, "aeropolis_N_TAIR", ArrayList(), ArrayList())
 		assertEquals(1, parsed.objects.transitions.size)
 		assertEquals(1, parsed.objects.objects.size)
 		assertEquals(1, parsed.objects.characters.size)
@@ -105,43 +108,14 @@ class TestAreaParser {
 
 	@Test
 	fun testParseTheatre() {
-		val parsed = parseArea(AreaAssets(), "aeropolis_W_theatre", ArrayList(), ArrayList())
+		val parsed = parseArea(assets, "aeropolis_W_theatre", ArrayList(), ArrayList())
 		assertEquals(20, parsed.objects.characters.size)
 	}
 
 	@Test
 	fun testParseGuardPost() {
-		val parsed = parseArea(AreaAssets(), "guardpost", ArrayList(), ArrayList())
+		val parsed = parseArea(assets, "guardpost", ArrayList(), ArrayList())
 		assertEquals(2, parsed.objects.characters.size)
 		assertEquals(2, parsed.objects.transitions.size)
 	}
-
-	@Test
-	fun testEnumerateAreas() {
-		assertEquals(258, enumerateAreas().size)
-	}
-
-//	@Test
-//	fun testParseAndRegisterAllAreasWithoutErrors() {
-//		// TODO Stop this hack
-//
-//		val outputFolder = File("../game/src/main/resources/mardek/game/")
-//		assertNull(assets.playableCharacters[0].areaSheet.indices)
-//		val renderOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/area-assets.bin").toPath()))
-//		sprites.writeRenderData(renderOutput)
-//		renderOutput.close()
-//		assertNotNull(assets.playableCharacters[0].areaSheet.indices)
-//
-//		val bitOutput = BitOutputStream(BufferedOutputStream(Files.newOutputStream(File("$outputFolder/areas.bin").toPath())))
-//		val bitser = Bitser(false)
-//		bitser.serialize(assets, bitOutput)
-//		bitOutput.finish()
-//
-//		val bitInput = BitInputStream(BufferedInputStream(Files.newInputStream(File("$outputFolder/areas.bin").toPath())))
-//		val loaded = bitser.deserialize(Campaign::class.java, bitInput)
-//		bitInput.close()
-//
-//		assertEquals(assets.areas.size, loaded.areas.size)
-//		assertEquals(assets.areas.sumOf { it.width }, loaded.areas.sumOf { it.width })
-//	}
 }

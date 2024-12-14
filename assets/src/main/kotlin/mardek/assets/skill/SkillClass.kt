@@ -2,6 +2,7 @@ package mardek.assets.skill
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 
 @BitStruct(backwardCompatible = false)
 class SkillClass(
@@ -15,6 +16,7 @@ class SkillClass(
 	val description: String,
 
 	@BitField(ordering = 3)
+	@ReferenceFieldTarget(label = "skills")
 	val actions: ArrayList<ActiveSkill>,
 ) {
 

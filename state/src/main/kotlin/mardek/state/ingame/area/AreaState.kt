@@ -43,6 +43,9 @@ class AreaState(
 	var openingDoor: OpeningDoor? = null
 		private set
 
+	@Suppress("unused")
+	private constructor() : this(Area(), AreaPosition())
+
 	fun update(input: InputManager, timeStep: Duration, shouldInteract: Boolean) {
 		updatePlayerPosition()
 		processInput(input)
