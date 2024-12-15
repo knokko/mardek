@@ -15,14 +15,15 @@ import mardek.state.ExitState
 import mardek.state.GameStateManager
 import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
+import org.lwjgl.vulkan.KHRSurface.*
 
 class GameWindow(
 		private val assets: Campaign,
 		window: VkbWindow,
 		private val state: GameStateManager,
 ): SimpleWindowRenderLoop(
-	window, 2, false, VK_PRESENT_MODE_MAILBOX_KHR,
+	window, 2, false,
+	window.supportedPresentModes.find { it == VK_PRESENT_MODE_MAILBOX_KHR } ?: VK_PRESENT_MODE_FIFO_KHR,
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
 	private lateinit var renderer: GameRenderer
