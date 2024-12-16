@@ -163,6 +163,7 @@ public class UiRenderer {
 	}
 
 	public void drawImage(VkbImage image, int minX, int minY, int width, int height) {
+		if (height <= 0) return;
 		flushImage(image);
 
 		var renderQuads = reserveQuads(1);
@@ -183,6 +184,7 @@ public class UiRenderer {
 			FontData fontData, String text, int color, int[] outlineColors,
 			int minX, int minY, int maxX, int maxY, int baseY, int heightA, int minScale, Gradient... gradients
 	) {
+		if (heightA <= 0 || maxY < minY) return;
 		FontResources font = fonts.computeIfAbsent(fontData, f -> new FontResources(
 				f, new TextPlacer(f), new OutlineGlyphRasterizer(f))
 		);
@@ -241,7 +243,7 @@ public class UiRenderer {
 	}
 
 	public void fillColor(int minX, int minY, int maxX, int maxY, int color, Gradient... gradients) {
-		if (maxX < minX || maxY < minY) throw new IllegalArgumentException("Maximum (x,y) must be at least minimum (x, y)");
+		if (maxX < minX || maxY < minY) return;
 		var renderQuad = reserveQuads(1);
 
 		int extraIndex = nextExtra;
@@ -266,7 +268,7 @@ public class UiRenderer {
 					recorder.stack.longs(getImageDescriptorSet(dummyImage)), null
 			);
 		}
-		vkCmdDraw(recorder.commandBuffer, 6 * nextQuad, 1, 0, 0);
+		if (nextQuad > 0) vkCmdDraw(recorder.commandBuffer, 6 * nextQuad, 1, 0, 0);
 	}
 
 	public void destroy() {
