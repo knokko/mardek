@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
+import mardek.assets.sprite.KimSprite
 import java.util.*
 
 @BitStruct(backwardCompatible = false)
@@ -12,12 +13,12 @@ class StoredAreaRenderData(
 	val areaID: UUID,
 
 	@BitField(ordering = 1)
-	@NestedFieldSetting(path = "", writeAsBytes = true, sizeField = IntegerField(expectUniform = true, minValue = 1, maxValue = 1024))
-	val tileSpriteOffsets: IntArray,
+	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 1, maxValue = 1024))
+	val tileSprites: Array<KimSprite>,
 
 	@BitField(ordering = 2)
-	@NestedFieldSetting(path = "", writeAsBytes = true, sizeField = IntegerField(expectUniform = true, minValue = 5, maxValue = 5))
-	val waterSpriteOffsets: IntArray,
+	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 5, maxValue = 5))
+	val waterSprites: Array<KimSprite>,
 
 	@BitField(ordering = 3)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 1023)
@@ -49,5 +50,8 @@ class StoredAreaRenderData(
 	}
 
 	@Suppress("unused")
-	private constructor() : this(UUID.randomUUID(), IntArray(1), IntArray(1), IntArray(1), Array(2) { null }, IntArray(1), 1)
+	private constructor() : this(
+		UUID.randomUUID(), Array(1) { KimSprite(null) }, Array(1) { KimSprite(null) },
+		IntArray(1), Array(2) { null }, IntArray(1), 1
+	)
 }

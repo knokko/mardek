@@ -59,12 +59,12 @@ class AreaSprites {
 			}
 		}
 
-		fun water(index: Int) = area.tilesheet.waterSprites[index].offset
+		fun water(index: Int) = area.tilesheet.waterSprites[index]
 		val renderData = StoredAreaRenderData(
 			areaID = area.id,
 			width = area.width,
-			tileSpriteOffsets = tileSpriteMap.entries.sortedBy { it.value }.map { it.key.offset }.toIntArray(),
-			waterSpriteOffsets = intArrayOf(water(0), water(2), water(3), water(4), water(1)),
+			tileSprites = tileSpriteMap.entries.sortedBy { it.value }.map { it.key }.toTypedArray(),
+			waterSprites = arrayOf(water(0), water(2), water(3), water(4), water(1)),
 			indirectLowTiles = IntArray(area.width * area.height),
 			indirectHigherTiles = Array(2 * area.width * area.height) { null },
 			indirectWater = IntArray(area.width * area.height)

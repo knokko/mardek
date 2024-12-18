@@ -82,7 +82,7 @@ class SharedAreaResources(boiler: BoilerInstance, resourcePath: String, framesIn
 	private val deviceBuffer: DeviceVkbBuffer
 	private val descriptorSetLayout = createDescriptorSetLayout(boiler)
 	private val descriptorPool = descriptorSetLayout.createPool(1, 0, "AreaDescriptorPool")
-	val descriptorSet = descriptorPool.allocate(1)[0]
+	private val descriptorSet = descriptorPool.allocate(1)[0]
 	val kimRenderer: KimRenderer
 
 	init {

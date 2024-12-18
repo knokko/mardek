@@ -246,16 +246,16 @@ class AreaRenderer(
 
 				val waterType = renderData.getWaterType(tileX, tileY)
 				if (waterType != WaterType.None) {
-					var backgroundOffset = renderData.waterSpriteOffsets[0]
+					var backgroundSprite = renderData.waterSprites[0]
 					if (tileY > 0 && renderData.getWaterType(tileX, tileY - 1) == WaterType.None) {
-						backgroundOffset = renderData.waterSpriteOffsets[4]
+						backgroundSprite = renderData.waterSprites[4]
 					}
-					val waterOffset = renderData.waterSpriteOffsets[renderData.getWaterSpriteIndex(tileX, tileY)]
-					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = backgroundOffset, opacity = 1f))
-					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = waterOffset, opacity = 0.3f))
+					val waterSprite = renderData.waterSprites[renderData.getWaterSpriteIndex(tileX, tileY)]
+					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = backgroundSprite, opacity = 1f))
+					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = waterSprite, opacity = 0.3f))
 				}
-				val spriteOffset = renderData.tileSpriteOffsets[renderData.getTileSpriteIndex(tileX, tileY, 0)]
-				resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = spriteOffset, opacity = 1f))
+				val sprite = renderData.tileSprites[renderData.getTileSpriteIndex(tileX, tileY, 0)]
+				resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = sprite, opacity = 1f))
 			}
 		}
 
@@ -277,13 +277,13 @@ class AreaRenderer(
 
 				val midIndex = renderData.getTileSpriteIndex(tileX, tileY, 1)
 				if (midIndex != 1023) {
-					val spriteOffset = renderData.tileSpriteOffsets[midIndex]
-					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = spriteOffset, opacity = 1f))
+					val sprite = renderData.tileSprites[midIndex]
+					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = sprite, opacity = 1f))
 				}
 				val highIndex = renderData.getTileSpriteIndex(tileX, tileY, 2)
 				if (highIndex != 1023) {
-					val spriteOffset = renderData.tileSpriteOffsets[highIndex]
-					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = spriteOffset, opacity = 1f))
+					val sprite = renderData.tileSprites[highIndex]
+					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = sprite, opacity = 1f))
 				}
 			}
 		}

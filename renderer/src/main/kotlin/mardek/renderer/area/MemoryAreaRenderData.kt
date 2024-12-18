@@ -2,11 +2,12 @@ package mardek.renderer.area
 
 import mardek.assets.area.StoredAreaRenderData
 import mardek.assets.area.WaterType
+import mardek.assets.sprite.KimSprite
 
 class MemoryAreaRenderData(
 	private val width: Int,
-	val tileSpriteOffsets: IntArray,
-	val waterSpriteOffsets: IntArray,
+	val tileSprites: Array<KimSprite>,
+	val waterSprites: Array<KimSprite>,
 	private val packedTiles: IntArray
 ) {
 
@@ -37,8 +38,8 @@ class MemoryAreaRenderData(
 			}
 			return MemoryAreaRenderData(
 				width = compact.width,
-				tileSpriteOffsets = compact.tileSpriteOffsets,
-				waterSpriteOffsets = compact.waterSpriteOffsets,
+				tileSprites = compact.tileSprites,
+				waterSprites = compact.waterSprites,
 				packedTiles = packedTiles
 			)
 		}

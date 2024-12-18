@@ -1,9 +1,10 @@
 #version 450
 
 layout(location = 0) in ivec2 offset;
-layout(location = 1) in int scale;
-layout(location = 2) in int spriteOffset;
-layout(location = 3) in float opacity;
+layout(location = 1) in uvec2 spriteSize;
+layout(location = 2) in int scale;
+layout(location = 3) in int spriteOffset;
+layout(location = 4) in float opacity;
 
 layout(push_constant) uniform PushConstants {
 	ivec2 viewportSize;
@@ -19,7 +20,6 @@ vec2 textureCoordinateMapping[] = {
 };
 
 void main() {
-	uvec2 spriteSize = uvec2(16, 16); // TODO Stop hardcoding this
 	textureCoordinates = textureCoordinateMapping[gl_VertexIndex];
 
 	ivec2 extraOffset = ivec2(0, 0);

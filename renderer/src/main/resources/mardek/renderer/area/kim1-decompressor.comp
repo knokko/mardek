@@ -10,6 +10,11 @@ layout(set = 0, binding = 2) buffer OutputBuffer {
 	uint result[];
 };
 
+layout(push_constant) uniform PushConstants {
+	uvec2 spriteSize;
+	uint resultOffset;
+};
+
 #include "kim1.glsl"
 
 defineReadInt(kimSprites)
@@ -18,7 +23,8 @@ defineSampleKimInt(kimSprites)
 
 void main() {
     vec4 color = sampleKim(kimOffsets[gl_GlobalInvocationID.z], gl_GlobalInvocationID.xy);
-    uint resultIndex = 16 * 16 * gl_GlobalInvocationID.z + gl_GlobalInvocationID.x + 16 * gl_GlobalInvocationID.y;
+    uint resultIndex = resultOffset + spriteSize.x * spriteSize.y * gl_GlobalInvocationID.z +
+            spriteSize.x * gl_GlobalInvocationID.y + gl_GlobalInvocationID.x;
     uint red = uint(255 * color.r);
     uint green = uint(255 * color.g);
     uint blue = uint(255 * color.b);

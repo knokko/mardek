@@ -6,6 +6,7 @@ import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import com.github.knokko.boiler.synchronization.ResourceUsage
+import mardek.assets.sprite.KimSprite
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkDescriptorSetLayoutBinding
@@ -15,7 +16,7 @@ import org.lwjgl.vulkan.VkVertexInputAttributeDescription
 import org.lwjgl.vulkan.VkVertexInputBindingDescription
 import org.lwjgl.vulkan.VkWriteDescriptorSet
 
-private const val VERTEX_SIZE = 5 * 4
+private const val VERTEX_SIZE = 7 * 4
 
 private fun createComputeDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
 	val bindings = VkDescriptorSetLayoutBinding.calloc(3, stack)
@@ -66,11 +67,12 @@ class KimRenderer(
 			val vertexBindings = VkVertexInputBindingDescription.calloc(1, stack)
 			vertexBindings.get(0).set(0, VERTEX_SIZE, VK_VERTEX_INPUT_RATE_INSTANCE)
 
-			val vertexAttributes = VkVertexInputAttributeDescription.calloc(4, stack)
+			val vertexAttributes = VkVertexInputAttributeDescription.calloc(5, stack)
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SINT, 0)
-			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32_SINT, 8)
-			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_SINT, 12)
-			vertexAttributes.get(3).set(3, 0, VK_FORMAT_R32_SFLOAT, 16)
+			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_UINT, 8)
+			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_SINT, 16)
+			vertexAttributes.get(3).set(3, 0, VK_FORMAT_R32_SINT, 20)
+			vertexAttributes.get(4).set(4, 0, VK_FORMAT_R32_SFLOAT, 24)
 
 			val ciVertex = VkPipelineVertexInputStateCreateInfo.calloc(stack)
 			ciVertex.`sType$Default`()
@@ -92,13 +94,15 @@ class KimRenderer(
 			builder.dynamicStates(VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR)
 			builder.ciPipeline.layout(graphicsLayout)
 			builder.dynamicRendering(0, VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, targetImageFormat)
-			this.graphicsPipeline = builder.build("Kim1Pipeline")
+			this.graphicsPipeline = builder.build("Kim1GraphicsPipeline")
 
+			val computeConstants = VkPushConstantRange.calloc(1, stack)
+			computeConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 12)
 			this.computeLayout = boiler.pipelines.createLayout(
-				null, "KimComputeLayout", computeDescriptorLayout.vkDescriptorSetLayout
+				computeConstants, "Kim1ComputeLayout", computeDescriptorLayout.vkDescriptorSetLayout
 			)
 			this.computePipeline = boiler.pipelines.createComputePipeline(
-				computeLayout, "mardek/renderer/area/kim1-decompressor.comp.spv", "KimComputePipeline"
+				computeLayout, "mardek/renderer/area/kim1-decompressor.comp.spv", "Kim1ComputePipeline"
 			)
 
 			val descriptorWrites = VkWriteDescriptorSet.calloc(3, stack)
@@ -127,10 +131,11 @@ class KimRenderer(
 
 	private var isFirst = true
 	private val offsetMap = mutableMapOf<Int, Int>()
+	private val sizeMap = mutableMapOf<Pair<Int, Int>, MutableList<KimRequest>>()
 
 	fun recordBeforeRenderpass(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
 		if (requests.isEmpty()) return
-		if (offsetMap.isNotEmpty()) throw IllegalStateException("Bad call order")
+		if (offsetMap.isNotEmpty() || sizeMap.isNotEmpty()) throw IllegalStateException("Bad call order")
 
 		val readUsage = ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
 		val writeUsage = ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT)
@@ -143,13 +148,26 @@ class KimRenderer(
 		recorder.bindComputeDescriptors(computeLayout, computeDescriptorSets[frameIndex])
 
 		for (request in requests) {
-			if (!offsetMap.containsKey(request.spriteOffset)) offsetMap[request.spriteOffset] = offsetMap.size
+			val size = Pair(request.sprite.width, request.sprite.height)
+			sizeMap.computeIfAbsent(size) { ArrayList() }.add(request)
 		}
+
 		val offsetBuffer = offsetBuffers[frameIndex].fullMappedRange().byteBuffer()
-		for (entry in offsetMap) {
-			offsetBuffer.putInt(4 * entry.value, entry.key) // TODO Handle non-16x16 sprites
+		for ((size, requests) in sizeMap) {
+			vkCmdPushConstants(
+				recorder.commandBuffer, computeLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+				recorder.stack.ints(size.first, size.second, offsetBuffer.position() / 4)
+			)
+
+			var counter = 0
+			for (request in requests) {
+				if (offsetMap.containsKey(request.sprite.offset)) continue
+				offsetMap[request.sprite.offset] = offsetMap.size
+				offsetBuffer.putInt(4 * offsetMap[request.sprite.offset]!!, request.sprite.offset)
+				counter += 1
+			}
+			vkCmdDispatch(recorder.commandBuffer, size.first, size.second, counter)
 		}
-		vkCmdDispatch(recorder.commandBuffer, 16, 16, offsetMap.size)
 
 		recorder.bufferBarrier(middleBuffer.fullRange(), writeUsage, readUsage)
 	}
@@ -173,12 +191,14 @@ class KimRenderer(
 
 		val vertexBuffer = vertexBuffers[frameIndex].mappedRange(0L, VERTEX_SIZE.toLong() * requests.size).byteBuffer()
 		for (request in requests) {
-			vertexBuffer.putInt(request.x).putInt(request.y).putInt(request.scale)
-			vertexBuffer.putInt(offsetMap[request.spriteOffset]!!).putFloat(request.opacity)
+			vertexBuffer.putInt(request.x).putInt(request.y)
+			vertexBuffer.putInt(request.sprite.width).putInt(request.sprite.height).putInt(request.scale)
+			vertexBuffer.putInt(offsetMap[request.sprite.offset]!!).putFloat(request.opacity)
 		}
 		vkCmdDraw(recorder.commandBuffer, 6, requests.size, 0, 0)
 		requests.clear()
 		offsetMap.clear()
+		sizeMap.clear()
 	}
 
 	fun destroy() {
@@ -196,4 +216,4 @@ class KimRenderer(
 	}
 }
 
-class KimRequest(val x: Int, val y: Int, val scale: Int, val spriteOffset: Int, val opacity: Float)
+class KimRequest(val x: Int, val y: Int, val scale: Int, val sprite: KimSprite, val opacity: Float)
