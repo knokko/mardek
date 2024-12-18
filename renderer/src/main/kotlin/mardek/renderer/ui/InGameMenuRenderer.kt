@@ -5,19 +5,18 @@ import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
-import mardek.assets.Campaign
+import mardek.renderer.SharedResources
 import mardek.state.ingame.InGameState
 
 class InGameMenuRenderer(
-		private val assets: Campaign,
-		private val sharedUi: SharedUiResources,
+		private val resources: SharedResources,
 		private val state: InGameState,
 ) {
 
 	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
-		val renderer = sharedUi.uiRenderers[frameIndex]
+		val renderer = resources.uiRenderers[frameIndex]
 		renderer.begin(recorder, targetImage)
 
 		val transform = CoordinateTransform.create(SpaceLayout.Simple, targetImage.width, targetImage.height)
@@ -42,14 +41,14 @@ class InGameMenuRenderer(
 		val area = state.campaign.currentArea
 		if (area != null) {
 			renderer.drawString(
-				sharedUi.font, area.area.properties.displayName, srgbToLinear(rgb(238, 203, 127)),
+				resources.font, area.area.properties.displayName, srgbToLinear(rgb(238, 203, 127)),
 				IntArray(0), transform.transformX(0.025f), lowerBar.minY, lowerBar.maxX / 2, lowerBar.maxY,
 				transform.transformY(0.025f), transform.transformHeight(0.03f), 1
 			)
 		}
 
 		renderer.drawString(
-			sharedUi.font, state.menu.currentTab.getText(), srgbToLinear(rgb(132, 81, 37)),
+			resources.font, state.menu.currentTab.getText(), srgbToLinear(rgb(132, 81, 37)),
 			IntArray(0), transform.transformX(0.025f), upperBar.minY, upperBar.maxX / 2, upperBar.maxY,
 			transform.transformY(0.945f), transform.transformHeight(0.035f), 1
 		)
@@ -84,7 +83,7 @@ class InGameMenuRenderer(
 		}
 
 		renderer.drawString(
-			sharedUi.font, text, lowerTextColor, IntArray(0), rect.minX, rect.minY, rect.maxX, rect.maxY,
+			resources.font, text, lowerTextColor, IntArray(0), rect.minX, rect.minY, rect.maxX, rect.maxY,
 			rect.maxY - rect.height / 5, transform.transformHeight(0.04f), 1,
 			Gradient(0, 0, rect.width, 3 * rect.height / 5, upperTextColor, upperTextColor, upperTextColor)
 		)

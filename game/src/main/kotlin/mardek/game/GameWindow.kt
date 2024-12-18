@@ -9,21 +9,24 @@ import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.profiler.SampleProfiler
 import com.github.knokko.profiler.storage.SampleStorage
 import com.github.knokko.update.UpdateCounter
-import mardek.assets.Campaign
 import mardek.renderer.GameRenderer
+import mardek.renderer.SharedResources
 import mardek.state.ExitState
 import mardek.state.GameStateManager
 import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.KHRSurface.*
+import java.util.concurrent.CompletableFuture
 
 class GameWindow(
-		private val assets: Campaign,
-		window: VkbWindow,
-		private val state: GameStateManager,
+	window: VkbWindow,
+	framesInFlight: Int,
+	private val getResources: CompletableFuture<SharedResources>,
+	private val state: GameStateManager,
+	private val mainStartTime: Long
 ): SimpleWindowRenderLoop(
-	window, 2, false,
-	window.supportedPresentModes.find { it == VK_PRESENT_MODE_MAILBOX_KHR } ?: VK_PRESENT_MODE_FIFO_KHR,
+	window, framesInFlight, false,
+	window.supportedPresentModes.find { it == VK_PRESENT_MODE_MAILBOX_KHR } ?: VK_PRESENT_MODE_IMMEDIATE_KHR,
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
 	private lateinit var renderer: GameRenderer
@@ -35,14 +38,13 @@ class GameWindow(
 
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
-		renderer = GameRenderer(
-			assets, boiler, window.surfaceFormat, numFramesInFlight,
-			"mardek/game/area-assets.bin", "mardek/game/ui-assets.bin"
-		)
+		renderer = GameRenderer(boiler, getResources)
 	}
 //	init {
 //		profiler.start()
 //	}
+
+	var firstFrame = true
 
 	override fun recordFrame(
 		stack: MemoryStack,
@@ -51,6 +53,7 @@ class GameWindow(
 		acquiredImage: AcquiredImage,
 		instance: BoilerInstance
 	) {
+		val startTime = System.nanoTime()
 		val currentFps = updateCounter.value
 		if (currentFps != lastFps) {
 			println("FPS is $currentFps")
@@ -62,6 +65,11 @@ class GameWindow(
 			else renderer.render(
 				state.currentState, recorder, acquiredImage.image(), frameIndex
 			)
+		}
+
+		if (firstFrame) {
+			firstFrame = false
+			println("first frame took ${(System.nanoTime() - startTime) / 1000_000} ms and was submitted after ${(System.nanoTime() - mainStartTime) / 1000_000} ms")
 		}
 	}
 

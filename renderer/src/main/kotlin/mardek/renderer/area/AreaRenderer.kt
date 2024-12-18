@@ -239,7 +239,7 @@ class AreaRenderer(
 		val maxTileX = min(state.area.width - 1, 1 + (cameraX + targetImage.width / 2) / tileSize)
 		val maxTileY = min(state.area.height - 1, 1 + (cameraY + targetImage.height / 2) / tileSize)
 
-		val renderData = resources.areaMap[state.area.id]!!
+		val renderData = resources.areaMap[state.area.id]!!.data
 		for (tileX in minTileX .. maxTileX) {
 			for (tileY in minTileY .. maxTileY) {
 				val renderX = tileX * tileSize + targetImage.width / 2 - cameraX

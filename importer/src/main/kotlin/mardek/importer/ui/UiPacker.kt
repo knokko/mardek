@@ -82,15 +82,6 @@ class UiPacker {
 			dataOffset += bc1DataArray.size
 		}
 
-		data.writeInt(kim1Images.sumOf { it.data!!.size })
-		var nextKimOffset = 0
-		for (sprite in kim1Images) {
-			sprite.offset = nextKimOffset
-			for (value in sprite.data!!) data.writeInt(value)
-			nextKimOffset += sprite.data!!.size
-			sprite.data = null
-		}
-
 		destinationBuffer.destroy(boiler)
 	}
 }
