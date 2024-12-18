@@ -25,7 +25,8 @@ vec2 textureCoordinateMapping[] = {
 };
 
 void main() {
-	uvec2 spriteSize = getKimImageSize(sprites[spriteOffset]);
+	//uvec2 spriteSize = getKimImageSize(sprites[spriteOffset]);
+	uvec2 spriteSize = uvec2(16, 16); // TODO Stop hardcoding this
 	textureCoordinates = textureCoordinateMapping[gl_VertexIndex];
 
 	ivec2 extraOffset = ivec2(0, 0);

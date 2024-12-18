@@ -20,7 +20,11 @@ class AreaRenderer(
 ) {
 
 	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
+		resources.kimRenderer.recordDuringRenderpass(recorder, targetImage, frameIndex)
+	}
+
+	fun beforeRendering(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
+
 		resources.kimRenderer.begin()
 
 		val baseVisibleHorizontalTiles = targetImage.width / 16.0
@@ -260,9 +264,9 @@ class AreaRenderer(
 			val renderY = job.y + targetImage.height / 2 - cameraY
 			val margin = 2 * tileSize
 			if (renderX > -margin && renderY > -margin && renderX < targetImage.width + 2 * margin && renderY < targetImage.height + 2 * margin) {
-				resources.kimRenderer.render(KimRequest(
-					x = renderX, y = renderY, scale = scale, spriteOffset = job.sprite, opacity = job.opacity / 255f
-				))
+//				resources.kimRenderer.render(KimRequest(
+//					x = renderX, y = renderY, scale = scale, spriteOffset = job.sprite, opacity = job.opacity / 255f
+//				))
 			}
 		}
 
@@ -284,6 +288,6 @@ class AreaRenderer(
 			}
 		}
 
-		resources.kimRenderer.end(recorder, targetImage, frameIndex, resources.descriptorSet)
+		resources.kimRenderer.recordBeforeRenderpass(recorder, targetImage, frameIndex)
 	}
 }

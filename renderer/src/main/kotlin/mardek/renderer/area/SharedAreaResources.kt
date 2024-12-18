@@ -6,19 +6,12 @@ import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.DeviceVkbBuffer
-import com.github.knokko.boiler.buffers.MappedVkbBufferRange
-import com.github.knokko.boiler.buffers.SharedMappedBufferBuilder
 import com.github.knokko.boiler.commands.SingleTimeCommands
-import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import com.github.knokko.boiler.synchronization.ResourceUsage
 import mardek.assets.area.StoredAreaRenderData
-import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkDescriptorSetLayoutBinding
-import org.lwjgl.vulkan.VkPipelineVertexInputStateCreateInfo
-import org.lwjgl.vulkan.VkVertexInputAttributeDescription
-import org.lwjgl.vulkan.VkVertexInputBindingDescription
 import org.lwjgl.vulkan.VkWriteDescriptorSet
 import java.io.BufferedInputStream
 import java.io.DataInputStream
@@ -73,11 +66,12 @@ private fun loadMapsAndSprites(
 }
 
 private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
-	val descriptorBindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
+	val descriptorBindings = VkDescriptorSetLayoutBinding.calloc(2, stack)
 	boiler.descriptors.binding(
 		descriptorBindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 		VK_SHADER_STAGE_VERTEX_BIT or VK_SHADER_STAGE_FRAGMENT_BIT
 	)
+	boiler.descriptors.binding(descriptorBindings, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
 
 	boiler.descriptors.createLayout(stack, descriptorBindings, "AreaDescriptorLayout")
 }
@@ -89,7 +83,7 @@ class SharedAreaResources(boiler: BoilerInstance, resourcePath: String, framesIn
 	private val descriptorSetLayout = createDescriptorSetLayout(boiler)
 	private val descriptorPool = descriptorSetLayout.createPool(1, 0, "AreaDescriptorPool")
 	val descriptorSet = descriptorPool.allocate(1)[0]
-	val kimRenderer = KimRenderer(boiler, descriptorSetLayout.vkDescriptorSetLayout, framesInFlight, 1000, targetImageFormat)
+	val kimRenderer: KimRenderer
 
 	init {
 		val startTime = System.nanoTime()
@@ -97,13 +91,23 @@ class SharedAreaResources(boiler: BoilerInstance, resourcePath: String, framesIn
 		stackPush().use { stack ->
 			this.deviceBuffer = loadMapsAndSprites(boiler, resourcePath, areaMap)
 
-			val descriptorWrites = VkWriteDescriptorSet.calloc(1, stack)
+			this.kimRenderer = KimRenderer(
+				boiler, descriptorSetLayout.vkDescriptorSetLayout, descriptorSet, deviceBuffer.fullRange(),
+				framesInFlight, 10_000, targetImageFormat
+			)
+
+			val descriptorWrites = VkWriteDescriptorSet.calloc(2, stack)
 			boiler.descriptors.writeBuffer(
 				stack, descriptorWrites, descriptorSet, 0,
 				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, deviceBuffer.fullRange()
 			)
+			boiler.descriptors.writeBuffer(
+				stack, descriptorWrites, descriptorSet, 1,
+				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, kimRenderer.middleBuffer.fullRange()
+			)
 			vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null)
 		}
+
 		println("Preparing area resources took ${(System.nanoTime() - startTime) / 1_000_000} ms")
 	}
 
