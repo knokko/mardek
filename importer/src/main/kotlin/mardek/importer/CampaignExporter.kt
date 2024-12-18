@@ -9,6 +9,7 @@ import mardek.importer.ui.UiPacker
 import org.lwjgl.vulkan.VK10.VK_API_VERSION_1_0
 import java.io.BufferedOutputStream
 import java.io.File
+import java.io.OutputStream
 import java.nio.file.Files
 
 fun main() {
@@ -16,8 +17,11 @@ fun main() {
 	val campaign = importDefaultCampaign(bitser)
 
 	val outputFolder = File("game/src/main/resources/mardek/game/")
-	exportAreaAssets(campaign, outputFolder, bitser)
-	exportUiAssets(campaign, outputFolder)
+	val renderOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/render-assets.bin").toPath()))
+	exportUiAssets(campaign, renderOutput)
+	exportAreaAssets(campaign, renderOutput, bitser)
+	renderOutput.flush()
+	renderOutput.close()
 	exportCampaignData(campaign, outputFolder, bitser)
 }
 
@@ -27,28 +31,23 @@ private fun exportCampaignData(campaign: Campaign, outputFolder: File, bitser: B
 	output.finish()
 }
 
-private fun exportAreaAssets(campaign: Campaign, outputFolder: File, bitser: Bitser) {
+private fun exportAreaAssets(campaign: Campaign, renderOutput: OutputStream, bitser: Bitser) {
 	val areaSprites = AreaSprites()
+	for (item in campaign.inventory.items) areaSprites.registerSprite(item.sprite)
 	areaSprites.register(campaign.areas)
-
-	val renderOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/area-assets.bin").toPath()))
 	areaSprites.writeRenderData(renderOutput, bitser)
-	renderOutput.close()
+	// TODO Unify with UI assets
 }
 
-private fun exportUiAssets(campaign: Campaign, outputFolder: File) {
+private fun exportUiAssets(campaign: Campaign, output: OutputStream) {
 	val packer = UiPacker()
 	packer.addBc1("TitleScreenBackground.png")
-	for (item in campaign.inventory.items) packer.addKim1(item.sprite)
 
 	val boiler = BoilerBuilder(
 		VK_API_VERSION_1_0, "ExportUiResources", 1
 	).validation().forbidValidationErrors().build()
 
-	val output = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/ui-assets.bin").toPath()))
 	packer.writeDataAndDestroy(boiler, output)
-	output.flush()
-	output.close()
-
 	boiler.destroyInitialObjects()
+	output.flush()
 }

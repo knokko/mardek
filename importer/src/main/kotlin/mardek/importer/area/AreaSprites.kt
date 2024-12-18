@@ -17,7 +17,7 @@ class AreaSprites {
 
 	private var kimOffset = 0
 
-	private fun registerSprite(sprite: KimSprite) {
+	fun registerSprite(sprite: KimSprite) {
 		if (sprite.offset != -1) throw Error("Encountered tile twice")
 		sprite.offset = kimOffset
 		kimOffset += sprite.data!!.size

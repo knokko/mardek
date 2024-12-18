@@ -6,20 +6,21 @@ import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
+import mardek.renderer.SharedResources
 import mardek.renderer.StateRenderer
 import mardek.state.title.AbsoluteRectangle
 import mardek.state.title.TitleScreenState
 
 class TitleScreenRenderer(
 	boiler: BoilerInstance,
-	private val sharedUI: SharedUiResources,
+	private val resources: SharedResources,
 	private val state: TitleScreenState,
 ): StateRenderer(boiler) {
 
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		val renderer = sharedUI.uiRenderers[frameIndex]
+		val renderer = resources.uiRenderers[frameIndex]
 		renderer.begin(recorder, targetImage)
-		renderer.drawImage(sharedUI.bc1Images[0], 0, 0, targetImage.width, targetImage.height)
+		renderer.drawImage(resources.bc1Images[0], 0, 0, targetImage.width, targetImage.height)
 
 		val transform = CoordinateTransform.create(SpaceLayout.GrowRight, targetImage.width, targetImage.height)
 
@@ -39,7 +40,7 @@ class TitleScreenRenderer(
 			val lightHeight = heightA * 2 / 10
 			val gy = baseY - titleRect.minY - heightA + titleOutline.size
 			renderer.drawString(
-				sharedUI.font, "MARDEK", darkColor, titleOutline,
+				resources.font, "MARDEK", darkColor, titleOutline,
 				titleRect.minX, titleRect.minY, titleRect.maxX, titleRect.maxY, baseY, heightA, 2,
 				Gradient(0, gy, titleRect.width, darkHeight, mediumColor, mediumColor, darkColor),
 				Gradient(0, gy + darkHeight, titleRect.width, lightHeight, lightColor, lightColor, mediumColor),
@@ -54,7 +55,7 @@ class TitleScreenRenderer(
 			val baseY = transform.transformY(0.63f)
 			val darkTint = srgbToLinear(rgb(185, 131, 60))
 			renderer.drawString(
-				sharedUI.font, "Revival project", srgbToLinear(rgb(242, 183, 113)), IntArray(0),
+				resources.font, "Revival project", srgbToLinear(rgb(242, 183, 113)), IntArray(0),
 				subtitleRect.minX, subtitleRect.minY, subtitleRect.maxX, subtitleRect.maxY, baseY, heightA, 1,
 				Gradient(0, baseY - subtitleRect.minY - heightA / 3, 1000, heightA, darkTint, darkTint, darkTint)
 			)
@@ -106,7 +107,7 @@ class TitleScreenRenderer(
 		val textBaseY = rect.maxY - transform.transformHeight(0.02f)
 		val textHeight = transform.transformHeight(0.045f)
 		renderer.drawString(
-			sharedUI.font, text, lowerTextColor, outlineColors, textOffsetX, rect.minY, rect.maxX, rect.maxY,
+			resources.font, text, lowerTextColor, outlineColors, textOffsetX, rect.minY, rect.maxX, rect.maxY,
 			textBaseY, textHeight, 1,
 			Gradient(0, 0, rect.width, rect.height / 2, upperTextColor, upperTextColor, upperTextColor)
 		)

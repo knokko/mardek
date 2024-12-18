@@ -18,29 +18,28 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 	private val clickCancel = manager.add("5_sfx_menuBlip3.ogg")
 
 	fun update() {
-		val state = stateManager.currentState
-
 		val nextSound = stateManager.soundQueue.take()
+		var trackName: String? = null
+		var musicTrack: Int? = null
+
+		synchronized(stateManager.lock()) {
+			val state = stateManager.currentState
+
+			if (state is TitleScreenState) musicTrack = titleScreen
+			if (state is InGameState) {
+				val area = state.campaign.currentArea?.area
+				if (area != null) trackName = area.properties.musicTrack
+			}
+		}
+
+		if (trackName != null) {
+			musicTrack = musicMap.computeIfAbsent(trackName!!) { track -> manager.add("$track.ogg") }
+		}
+		if (musicTrack != null) manager.playMusic(musicTrack!!)
 		if (nextSound == "menu-scroll") manager.playSound(menuScroll)
 		if (nextSound == "menu-open") manager.playSound(menuOpen)
 		if (nextSound == "click-confirm") manager.playSound(clickConfirm)
 		if (nextSound == "click-cancel") manager.playSound(clickCancel)
-
-		if (state is TitleScreenState) manager.playMusic(titleScreen)
-
-		if (state is InGameState) {
-			val area = state.campaign.currentArea?.area
-
-			if (area != null) {
-				val musicTrack = area.properties.musicTrack
-				if (musicTrack != null) {
-					val audio = musicMap.computeIfAbsent(musicTrack) { track ->
-						manager.add("$track.ogg")
-					}
-					manager.playMusic(audio)
-				}
-			}
-		}
 	}
 
 	fun destroy() = manager.destroy()

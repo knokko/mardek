@@ -18,7 +18,6 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.KHRSurface.*
 
 class GameWindow(
-		private val assets: Campaign,
 		window: VkbWindow,
 		private val state: GameStateManager,
 ): SimpleWindowRenderLoop(
@@ -35,10 +34,7 @@ class GameWindow(
 
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
-		renderer = GameRenderer(
-			assets, boiler, window.surfaceFormat, numFramesInFlight,
-			"mardek/game/area-assets.bin", "mardek/game/ui-assets.bin"
-		)
+		renderer = GameRenderer(boiler, window.surfaceFormat, numFramesInFlight, "mardek/game/render-assets.bin")
 	}
 //	init {
 //		profiler.start()

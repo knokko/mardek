@@ -4,10 +4,9 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import mardek.assets.Campaign
-import mardek.renderer.ui.SharedUiResources
 import mardek.renderer.ui.TitleScreenRenderer
 import mardek.state.GameState
+import mardek.state.StartupState
 import mardek.state.ingame.InGameState
 import mardek.state.title.TitleScreenState
 import org.lwjgl.vulkan.VK10.VK_ATTACHMENT_LOAD_OP_CLEAR
@@ -15,21 +14,19 @@ import org.lwjgl.vulkan.VK10.VK_ATTACHMENT_STORE_OP_STORE
 import org.lwjgl.vulkan.VkRenderingAttachmentInfo
 
 class GameRenderer(
-		private val assets: Campaign,
-		private val boiler: BoilerInstance,
-		targetImageFormat: Int,
-		numFramesInFlight: Int,
-		areaAssetsPath: String,
-		uiAssetsPath: String,
+	private val boiler: BoilerInstance,
+	targetImageFormat: Int,
+	numFramesInFlight: Int,
+	assetsPath: String,
 ) {
 
-	private val ui = SharedUiResources(boiler, uiAssetsPath, targetImageFormat, numFramesInFlight)
-	private val resources = SharedResources(boiler, areaAssetsPath, numFramesInFlight, targetImageFormat)
+	private val resources = SharedResources(boiler, assetsPath, numFramesInFlight, targetImageFormat)
 
 	fun render(
 		state: GameState, recorder: CommandRecorder,
 		targetImage: VkbImage, frameIndex: Int
 	) {
+		if (state is StartupState) return
 		val renderer = createRenderer(state)
 		renderer.beforeRendering(recorder, targetImage, frameIndex)
 
@@ -48,13 +45,12 @@ class GameRenderer(
 	}
 
 	fun destroy() {
-		ui.destroy()
 		resources.destroy()
 	}
 
 	private fun createRenderer(state: GameState): StateRenderer {
-		if (state is InGameState) return InGameRenderer(assets, state, boiler, resources, ui)
-		if (state is TitleScreenState) return TitleScreenRenderer(boiler, ui, state)
+		if (state is InGameState) return InGameRenderer(state, boiler, resources)
+		if (state is TitleScreenState) return TitleScreenRenderer(boiler, resources, state)
 
 		throw UnsupportedOperationException("Unexpected state $state")
 	}

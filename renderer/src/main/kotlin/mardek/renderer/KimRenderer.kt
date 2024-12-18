@@ -66,7 +66,7 @@ class KimRenderer(
 	private val offsetBuffers = (0 until framesInFlight).map { boiler.buffers.createMapped(
 		4L * maxDistinctSpritesPerFrame, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Kim1OffsetBuffer"
 	) }
-	val middleBuffer = boiler.buffers.create(
+	private val middleBuffer = boiler.buffers.create(
 		4L * 16 * 16 * maxDistinctSpritesPerFrame, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Kim1MiddleBuffer"
 	)!!
 

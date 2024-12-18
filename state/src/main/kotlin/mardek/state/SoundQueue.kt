@@ -10,5 +10,5 @@ class SoundQueue {
 		internal.add(sound)
 	}
 
-	fun take() = internal.poll()
+	fun take(): String? = internal.poll()
 }
