@@ -5,7 +5,6 @@ import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import mardek.assets.Campaign
-import mardek.renderer.area.SharedAreaResources
 import mardek.renderer.ui.SharedUiResources
 import mardek.renderer.ui.TitleScreenRenderer
 import mardek.state.GameState
@@ -25,7 +24,7 @@ class GameRenderer(
 ) {
 
 	private val ui = SharedUiResources(boiler, uiAssetsPath, targetImageFormat, numFramesInFlight)
-	private val areas = SharedAreaResources(boiler, areaAssetsPath, numFramesInFlight, targetImageFormat)
+	private val resources = SharedResources(boiler, areaAssetsPath, numFramesInFlight, targetImageFormat)
 
 	fun render(
 		state: GameState, recorder: CommandRecorder,
@@ -50,11 +49,11 @@ class GameRenderer(
 
 	fun destroy() {
 		ui.destroy()
-		areas.destroy(boiler)
+		resources.destroy()
 	}
 
 	private fun createRenderer(state: GameState): StateRenderer {
-		if (state is InGameState) return InGameRenderer(assets, state, boiler, areas, ui)
+		if (state is InGameState) return InGameRenderer(assets, state, boiler, resources, ui)
 		if (state is TitleScreenState) return TitleScreenRenderer(boiler, ui, state)
 
 		throw UnsupportedOperationException("Unexpected state $state")
@@ -65,7 +64,5 @@ class GameRenderer(
 			.enableDynamicRendering()
 			.requiredFeatures10 { it.textureCompressionBC() }
 			.featurePicker10 { _, _, toEnable -> toEnable.textureCompressionBC(true) }
-//			.requiredFeatures12 { it.shaderSampledImageArrayNonUniformIndexing() }
-//			.featurePicker12 { _, _, toEnable -> toEnable.shaderSampledImageArrayNonUniformIndexing(true) }
 	}
 }
