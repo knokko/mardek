@@ -1,8 +1,9 @@
-package mardek.renderer.area
+package mardek.renderer
 
 import com.github.knokko.boiler.BoilerInstance
-import com.github.knokko.boiler.buffers.VkbBufferRange
+import com.github.knokko.boiler.buffers.DeviceVkbBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
+import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import com.github.knokko.boiler.synchronization.ResourceUsage
@@ -15,8 +16,15 @@ import org.lwjgl.vulkan.VkPushConstantRange
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription
 import org.lwjgl.vulkan.VkVertexInputBindingDescription
 import org.lwjgl.vulkan.VkWriteDescriptorSet
+import java.io.DataInputStream
 
 private const val VERTEX_SIZE = 7 * 4
+
+private fun createGraphicsDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
+	val bindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
+	boiler.descriptors.binding(bindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+	boiler.descriptors.createLayout(stack, bindings, "KimComputeDescriptorLayout")
+}
 
 private fun createComputeDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
 	val bindings = VkDescriptorSetLayoutBinding.calloc(3, stack)
@@ -27,42 +35,69 @@ private fun createComputeDescriptorSetLayout(boiler: BoilerInstance) = stackPush
 
 class KimRenderer(
 	private val boiler: BoilerInstance,
-	private val descriptorSetLayout: Long,
-	private val descriptorSet: Long,
-	private val kimSpritesBuffer: VkbBufferRange,
-	private val framesInFlight: Int,
-	private val maxRequestCount: Int,
 	private val targetImageFormat: Int,
+	spriteInput: DataInputStream,
+	framesInFlight: Int,
+	maxSpritesPerFrame: Int = 5000,
+	maxDistinctSpritesPerFrame: Int = 500,
 ) {
 
-	private val vertexBuffers = (0 until framesInFlight).map {
-		boiler.buffers.createMapped(VERTEX_SIZE.toLong() * maxRequestCount, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, "KimVertices$it")
-	}
+	private val spriteBuffer: DeviceVkbBuffer
+	private val vertexBuffers = (0 until framesInFlight).map { boiler.buffers.createMapped(
+		VERTEX_SIZE.toLong() * maxSpritesPerFrame, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, "Kim1Vertices$it"
+	) }
 
-	private val requests = ArrayList<KimRequest>()
+	private val requests = ArrayList<KimRequest>(maxSpritesPerFrame / 10)
+
+	private val graphicsDescriptorLayout = createGraphicsDescriptorSetLayout(boiler)
+	private val graphicsDescriptorPool = graphicsDescriptorLayout.createPool(1, 0, "Kim1GraphicsPool")
+	private val graphicsDescriptorSet = graphicsDescriptorPool.allocate(1)[0]
 
 	private val graphicsLayout: Long
 	private val graphicsPipeline: Long
 
 	private val computeDescriptorLayout = createComputeDescriptorSetLayout(boiler)
-	private val computeDescriptorPool = computeDescriptorLayout.createPool(framesInFlight, 0, "Kim1SamplePool")
+	private val computeDescriptorPool = computeDescriptorLayout.createPool(framesInFlight, 0, "Kim1ComputePool")
 	private val computeDescriptorSets = computeDescriptorPool.allocate(framesInFlight)
 
 	private val computeLayout: Long
 	private val computePipeline: Long
 
 	private val offsetBuffers = (0 until framesInFlight).map { boiler.buffers.createMapped(
-		4L * maxRequestCount, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "KimOffsetBuffer"
+		4L * maxDistinctSpritesPerFrame, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Kim1OffsetBuffer"
 	) }
-	val middleBuffer = boiler.buffers.create(
-		4L * 16 * 16 * maxRequestCount, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "KimMiddleBuffer"
+	private val middleBuffer = boiler.buffers.create(
+		4L * 16 * 16 * maxDistinctSpritesPerFrame, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Kim1MiddleBuffer"
 	)!!
 
 	init {
 		stackPush().use { stack ->
+			val spritesSize = spriteInput.readInt()
+
+			this.spriteBuffer = boiler.buffers.create(
+				4L * spritesSize,
+				VK_BUFFER_USAGE_TRANSFER_DST_BIT or VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Area Buffer"
+			)
+			val stagingBuffer = boiler.buffers.createMapped(
+				spriteBuffer.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "Area Staging Buffer"
+			)
+
+			val stagingInts = stagingBuffer.fullMappedRange().intBuffer()
+			for (counter in 0 until spritesSize) stagingInts.put(spriteInput.readInt())
+
+			val commands = SingleTimeCommands(boiler)
+			commands.submit("Area Staging Transfer") { recorder ->
+				recorder.copyBufferRanges(stagingBuffer.fullRange(), spriteBuffer.fullRange())
+				recorder.bufferBarrier(spriteBuffer.fullRange(), ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
+					VK_PIPELINE_STAGE_VERTEX_SHADER_BIT or VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
+				))
+			}
+
 			val pushConstants = VkPushConstantRange.calloc(1, stack)
 			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8)
-			this.graphicsLayout = boiler.pipelines.createLayout(pushConstants, "Kim1PipelineLayout", descriptorSetLayout)
+			this.graphicsLayout = boiler.pipelines.createLayout(
+				pushConstants, "Kim1GraphicsLayout", graphicsDescriptorLayout.vkDescriptorSetLayout
+			)
 
 			val vertexBindings = VkVertexInputBindingDescription.calloc(1, stack)
 			vertexBindings.get(0).set(0, VERTEX_SIZE, VK_VERTEX_INPUT_RATE_INSTANCE)
@@ -81,8 +116,8 @@ class KimRenderer(
 
 			val builder = GraphicsPipelineBuilder(boiler, stack)
 			builder.simpleShaderStages(
-				"Kim1", "mardek/renderer/area/basic.vert.spv",
-				"mardek/renderer/area/basic.frag.spv"
+				"Kim1", "mardek/renderer/fake-image.vert.spv",
+				"mardek/renderer/fake-image.frag.spv"
 			)
 			builder.ciPipeline.pVertexInputState(ciVertex)
 			builder.simpleInputAssembly()
@@ -102,22 +137,34 @@ class KimRenderer(
 				computeConstants, "Kim1ComputeLayout", computeDescriptorLayout.vkDescriptorSetLayout
 			)
 			this.computePipeline = boiler.pipelines.createComputePipeline(
-				computeLayout, "mardek/renderer/area/kim1-decompressor.comp.spv", "Kim1ComputePipeline"
+				computeLayout, "mardek/renderer/kim1-decompressor.comp.spv", "Kim1ComputePipeline"
 			)
 
-			val descriptorWrites = VkWriteDescriptorSet.calloc(3, stack)
+			val descriptorWrites = VkWriteDescriptorSet.calloc(3 * framesInFlight + 1, stack)
 			for (frame in 0 until framesInFlight) {
 				boiler.descriptors.writeBuffer(
-					stack, descriptorWrites, computeDescriptorSets[frame], 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, kimSpritesBuffer
+					stack, descriptorWrites, computeDescriptorSets[frame],
+					3 * frame, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, spriteBuffer.fullRange()
 				)
 				boiler.descriptors.writeBuffer(
-					stack, descriptorWrites, computeDescriptorSets[frame], 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, offsetBuffers[frame].fullRange()
+					stack, descriptorWrites, computeDescriptorSets[frame],
+					3 * frame + 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, offsetBuffers[frame].fullRange()
 				)
 				boiler.descriptors.writeBuffer(
-					stack, descriptorWrites, computeDescriptorSets[frame], 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, middleBuffer.fullRange()
+					stack, descriptorWrites, computeDescriptorSets[frame],
+					3 * frame + 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, middleBuffer.fullRange()
 				)
-				vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null)
+				for (index in 0 until 3) descriptorWrites[3 * frame + index].dstBinding(index)
 			}
+			boiler.descriptors.writeBuffer(
+				stack, descriptorWrites, graphicsDescriptorSet, 3 * framesInFlight, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, middleBuffer.fullRange()
+			)
+			descriptorWrites.get(3 * framesInFlight).dstBinding(0)
+
+			vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null)
+
+			commands.destroy()
+			stagingBuffer.destroy(boiler)
 		}
 	}
 
@@ -178,7 +225,7 @@ class KimRenderer(
 
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline)
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
-		recorder.bindGraphicsDescriptors(graphicsLayout, descriptorSet)
+		recorder.bindGraphicsDescriptors(graphicsLayout, graphicsDescriptorSet)
 		vkCmdBindVertexBuffers(
 			recorder.commandBuffer, 0,
 			recorder.stack.longs(vertexBuffers[frameIndex].vkBuffer),
@@ -209,8 +256,11 @@ class KimRenderer(
 		vkDestroyPipelineLayout(boiler.vkDevice(), computeLayout, null)
 		computeDescriptorPool.destroy()
 		computeDescriptorLayout.destroy()
+		graphicsDescriptorPool.destroy()
+		graphicsDescriptorLayout.destroy()
 		for (buffer in offsetBuffers) buffer.destroy(boiler)
 		middleBuffer.destroy(boiler)
+		spriteBuffer.destroy(boiler)
 
 		if (requests.isNotEmpty() || offsetMap.isNotEmpty()) throw IllegalStateException("Did you forget to call end() ?")
 	}

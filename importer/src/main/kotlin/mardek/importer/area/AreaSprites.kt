@@ -1,11 +1,10 @@
 package mardek.importer.area
 
-import com.github.knokko.bitser.BitStruct
-import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.assets.area.*
 import mardek.assets.sprite.*
+import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.OutputStream
 import kotlin.collections.ArrayList
@@ -17,7 +16,7 @@ class AreaSprites {
 
 	private var kimOffset = 0
 
-	private fun registerSprite(sprite: KimSprite) {
+	fun registerSprite(sprite: KimSprite) {
 		if (sprite.offset != -1) throw Error("Encountered tile twice")
 		sprite.offset = kimOffset
 		kimOffset += sprite.data!!.size
@@ -110,7 +109,7 @@ class AreaSprites {
 		area.canWalkGrid = canWalkGrid
 	}
 
-	fun writeRenderData(output: OutputStream, bitser: Bitser) {
+	fun writeKimSprites(output: OutputStream) {
 		val data = DataOutputStream(output)
 
 		data.writeInt(kimOffset)
@@ -119,19 +118,24 @@ class AreaSprites {
 			for (value in sprite.data!!) data.writeInt(value)
 			sprite.data = null
 		}
+	}
 
-		@BitStruct(backwardCompatible = false)
-		class StoredAreas(
-			@Suppress("unused")
-			@BitField(ordering = 0)
-			val list: ArrayList<StoredAreaRenderData>
-		) {
-			@Suppress("unused")
-			constructor() : this(ArrayList(0))
+	fun writeAreaOffsets(output: OutputStream, bitser: Bitser) {
+		val data = DataOutputStream(output)
+
+		data.writeInt(storedAreas.size)
+		for (stored in storedAreas) {
+			data.writeLong(stored.areaID.mostSignificantBits)
+			data.writeLong(stored.areaID.leastSignificantBits)
+
+			val byteOutput = ByteArrayOutputStream()
+			val bitOutput = BitOutputStream(byteOutput)
+			bitser.serialize(stored, bitOutput)
+			bitOutput.finish()
+
+			val compressed = byteOutput.toByteArray()
+			data.writeInt(compressed.size)
+			data.write(compressed)
 		}
-
-		val bitOutput = BitOutputStream(output)
-		bitser.serialize(StoredAreas(storedAreas), bitOutput)
-		bitOutput.finish()
 	}
 }

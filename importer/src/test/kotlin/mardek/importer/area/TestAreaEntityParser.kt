@@ -5,6 +5,7 @@ import mardek.assets.area.AreaAssets
 import mardek.assets.area.Direction
 import mardek.assets.area.TransitionDestination
 import mardek.assets.area.objects.*
+import mardek.assets.sprite.ArrowSprite
 import mardek.assets.sprite.DirectionalSprites
 import mardek.assets.sprite.KimSprite
 import mardek.assets.sprite.ObjectSprites
@@ -96,10 +97,12 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseTransitionWithArrowWithoutDirection() {
+		assets.arrowSprites.add(ArrowSprite("S", KimSprite(null)))
 		val actual = parseAreaEntityRaw(
 			"{name:\"EXIT\",model:\"area_transition\",x:3,y:7,dest:[\"aeropolis_E\",22,24],ARROW:\"S\"}"
 		)
-		val expected = AreaTransition(x = 3, y = 7, arrow = "S", destination = TransitionDestination(
+		val expected = AreaTransition(
+			x = 3, y = 7, arrow = assets.arrowSprites[0], destination = TransitionDestination(
 			area = assertArea("aeropolis_E"), x = 22, y = 24, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)

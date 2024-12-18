@@ -6,6 +6,8 @@ import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
 import mardek.assets.area.WaterType
 import mardek.assets.sprite.KimSprite
+import mardek.renderer.KimRequest
+import mardek.renderer.SharedResources
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.characters.CharacterSelectionState
 import org.lwjgl.vulkan.VK10.*
@@ -13,9 +15,9 @@ import org.lwjgl.vulkan.VkRect2D
 import kotlin.math.*
 
 class AreaRenderer(
-		private val state: AreaState,
-		private val characters: CharacterSelectionState,
-		private val resources: SharedAreaResources,
+	private val state: AreaState,
+	private val characters: CharacterSelectionState,
+	private val resources: SharedResources,
 ) {
 
 	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
@@ -237,7 +239,7 @@ class AreaRenderer(
 		val maxTileX = min(state.area.width - 1, 1 + (cameraX + targetImage.width / 2) / tileSize)
 		val maxTileY = min(state.area.height - 1, 1 + (cameraY + targetImage.height / 2) / tileSize)
 
-		val renderData = resources.areaMap[state.area.id]!!
+		val renderData = resources.areaMap[state.area.id]!!.data
 		for (tileX in minTileX .. maxTileX) {
 			for (tileY in minTileY .. maxTileY) {
 				val renderX = tileX * tileSize + targetImage.width / 2 - cameraX
@@ -263,9 +265,11 @@ class AreaRenderer(
 			val renderY = job.y + targetImage.height / 2 - cameraY
 			val margin = 2 * tileSize
 			if (renderX > -margin && renderY > -margin && renderX < targetImage.width + 2 * margin && renderY < targetImage.height + 2 * margin) {
-				resources.kimRenderer.render(KimRequest(
+				resources.kimRenderer.render(
+					KimRequest(
 					x = renderX, y = renderY, scale = scale, sprite = job.sprite, opacity = job.opacity / 255f
-				))
+				)
+				)
 			}
 		}
 

@@ -1,6 +1,6 @@
 #version 450
 
-layout(set = 0, binding = 1) readonly buffer MiddleBuffer {
+layout(set = 0, binding = 0) readonly buffer MiddleBuffer {
 	uint sprites[];
 };
 
