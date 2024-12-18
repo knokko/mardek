@@ -79,8 +79,8 @@ class KimRenderer(
 
 			val builder = GraphicsPipelineBuilder(boiler, stack)
 			builder.simpleShaderStages(
-				"Kim1", "mardek/renderer/area/kim1.vert.spv",
-				"mardek/renderer/area/post-sample.frag.spv"
+				"Kim1", "mardek/renderer/area/basic.vert.spv",
+				"mardek/renderer/area/basic.frag.spv"
 			)
 			builder.ciPipeline.pVertexInputState(ciVertex)
 			builder.simpleInputAssembly()
@@ -98,7 +98,7 @@ class KimRenderer(
 				null, "KimComputeLayout", computeDescriptorLayout.vkDescriptorSetLayout
 			)
 			this.computePipeline = boiler.pipelines.createComputePipeline(
-				computeLayout, "mardek/renderer/area/pre-sample.comp.spv", "KimComputePipeline"
+				computeLayout, "mardek/renderer/area/kim1-decompressor.comp.spv", "KimComputePipeline"
 			)
 
 			val descriptorWrites = VkWriteDescriptorSet.calloc(3, stack)
