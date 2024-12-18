@@ -5,6 +5,7 @@ import com.github.knokko.boiler.images.VkbImage
 import mardek.assets.Campaign
 import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
+import mardek.assets.area.WaterType
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.characters.CharacterSelectionState
 import org.lwjgl.vulkan.VK10.*
@@ -20,6 +21,7 @@ class AreaRenderer(
 
 	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
+		resources.kimRenderer.begin()
 
 		val baseVisibleHorizontalTiles = targetImage.width / 16.0
 		val baseVisibleVerticalTiles = targetImage.height / 16.0
@@ -218,14 +220,6 @@ class AreaRenderer(
 
 		renderJobs.sort()
 
-		val hostEntityBuffer = resources.entityBuffers[frameIndex].intBuffer()
-		for (job in renderJobs) {
-			hostEntityBuffer.put(job.x)
-			hostEntityBuffer.put(job.y)
-			hostEntityBuffer.put(job.sprite)
-			hostEntityBuffer.put(job.opacity)
-		}
-
 		if (state.area.flags.noMovingCamera) {
 			val minCameraX = targetImage.width / 2 - scissorLeft
 			val maxCameraX = state.area.width * tileSize - targetImage.width / 2 + scissorLeft
@@ -235,35 +229,61 @@ class AreaRenderer(
 			}
 		}
 
-		fun renderTiles(pipeline: Long, mapOffset: Int) {
-			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline)
-			recorder.bindGraphicsDescriptors(resources.tilesPipelineLayout, resources.descriptorSet)
+		val minTileX = max(0, (cameraX - targetImage.width / 2) / tileSize)
+		val minTileY = max(0, (cameraY - targetImage.height / 2) / tileSize)
+		val maxTileX = min(state.area.width - 1, 1 + (cameraX + targetImage.width / 2) / tileSize)
+		val maxTileY = min(state.area.height - 1, 1 + (cameraY + targetImage.height / 2) / tileSize)
 
-			val water = state.area.tilesheet.waterSprites
-			vkCmdPushConstants(recorder.commandBuffer, resources.tilesPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, recorder.stack.ints(
-				state.area.width, state.area.height,
-				targetImage.width, targetImage.height,
-				cameraX, cameraY, scale, mapOffset,
-				water[0].offset, water[1].offset, water[2].offset, water[3].offset, water[4].offset
-			))
-			vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
+		val renderData = resources.areaMap[state.area.id]!!
+		for (tileX in minTileX .. maxTileX) {
+			for (tileY in minTileY .. maxTileY) {
+				val renderX = tileX * tileSize + targetImage.width / 2 - cameraX
+				val renderY = tileY * tileSize + targetImage.height / 2 -cameraY
+
+				val waterType = renderData.getWaterType(tileX, tileY)
+				if (waterType != WaterType.None) {
+					var backgroundOffset = renderData.waterSpriteOffsets[0]
+					if (tileY > 0 && renderData.getWaterType(tileX, tileY - 1) == WaterType.None) {
+						backgroundOffset = renderData.waterSpriteOffsets[4]
+					}
+					val waterOffset = renderData.waterSpriteOffsets[renderData.getWaterSpriteIndex(tileX, tileY)]
+					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = backgroundOffset, opacity = 1f))
+					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = waterOffset, opacity = 0.3f))
+				}
+				val spriteOffset = renderData.tileSpriteOffsets[renderData.getTileSpriteIndex(tileX, tileY, 0)]
+				resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = spriteOffset, opacity = 1f))
+			}
 		}
 
-		renderTiles(resources.lowTilesPipeline, state.area.renderLowTilesOffset)
+		for (job in renderJobs) {
+			val renderX = job.x + targetImage.width / 2 - cameraX
+			val renderY = job.y + targetImage.height / 2 - cameraY
+			val margin = 2 * tileSize
+			if (renderX > -margin && renderY > -margin && renderX < targetImage.width + 2 * margin && renderY < targetImage.height + 2 * margin) {
+				resources.kimRenderer.render(KimRequest(
+					x = renderX, y = renderY, scale = scale, spriteOffset = job.sprite, opacity = job.opacity / 255f
+				))
+			}
+		}
 
-		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.entitiesPipeline)
-		vkCmdBindVertexBuffers(
-			recorder.commandBuffer, 0,
-			recorder.stack.longs(resources.entityBuffers[frameIndex].buffer.vkBuffer),
-			recorder.stack.longs(resources.entityBuffers[frameIndex].offset)
-		)
-		recorder.bindGraphicsDescriptors(resources.entitiesPipelineLayout, resources.descriptorSet)
-		vkCmdPushConstants(
-			recorder.commandBuffer, resources.entitiesPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-			recorder.stack.ints(targetImage.width, targetImage.height, cameraX, cameraY, scale)
-		)
-		vkCmdDraw(recorder.commandBuffer, 6, hostEntityBuffer.position() / 4, 0, 0)
+		for (tileX in minTileX .. maxTileX) {
+			for (tileY in minTileY .. maxTileY) {
+				val renderX = tileX * tileSize + targetImage.width / 2 - cameraX
+				val renderY = tileY * tileSize + targetImage.height / 2 -cameraY
 
-		renderTiles(resources.highTilesPipeline, state.area.renderHighTilesOffset)
+				val midIndex = renderData.getTileSpriteIndex(tileX, tileY, 1)
+				if (midIndex != 1023) {
+					val spriteOffset = renderData.tileSpriteOffsets[midIndex]
+					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = spriteOffset, opacity = 1f))
+				}
+				val highIndex = renderData.getTileSpriteIndex(tileX, tileY, 2)
+				if (highIndex != 1023) {
+					val spriteOffset = renderData.tileSpriteOffsets[highIndex]
+					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, spriteOffset = spriteOffset, opacity = 1f))
+				}
+			}
+		}
+
+		resources.kimRenderer.end(recorder, targetImage, frameIndex, resources.descriptorSet)
 	}
 }

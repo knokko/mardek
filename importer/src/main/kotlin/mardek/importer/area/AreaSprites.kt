@@ -1,5 +1,9 @@
 package mardek.importer.area
 
+import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.io.BitOutputStream
+import com.github.knokko.bitser.serialize.Bitser
 import mardek.assets.area.*
 import mardek.assets.sprite.*
 import java.io.DataOutputStream
@@ -9,12 +13,9 @@ import kotlin.collections.ArrayList
 class AreaSprites {
 
 	private val kimSprites = ArrayList<KimSprite>()
-	private val highTileSprites = ArrayList<KimSprite>()
-	private val tileGrids = ArrayList<IntArray>()
+	private val storedAreas = ArrayList<StoredAreaRenderData>()
 
 	private var kimOffset = 0
-	private var highTileOffset = 0
-	private var tileOffset = 0
 
 	private fun registerSprite(sprite: KimSprite) {
 		if (sprite.offset != -1) throw Error("Encountered tile twice")
@@ -28,15 +29,7 @@ class AreaSprites {
 			for (sprite in tilesheet.waterSprites) registerSprite(sprite)
 			for (tile in tilesheet.tiles) {
 				if (tile.sprites[0].offset != -1) throw Error("Shouldn't happen")
-				for ((sourceIndex, sprite) in tile.sprites.withIndex()) {
-					if (sourceIndex == tile.sprites.size - 1) {
-						registerSprite(sprite)
-					} else {
-						sprite.offset = highTileOffset
-						highTileOffset += sprite.data!!.size
-						highTileSprites.add(sprite)
-					}
-				}
+				for (sprite in tile.sprites) registerSprite(sprite)
 			}
 			tilesheet.tiles.clear()
 		}
@@ -59,15 +52,24 @@ class AreaSprites {
 	}
 
 	private fun register(area: Area) {
-		val lowTilesOffset = tileOffset
-		tileOffset += area.width * area.height
-		val lowTiles = IntArray(area.width * area.height)
-		tileGrids.add(lowTiles)
+		val tileSpriteMap = mutableMapOf<KimSprite, Int>()
+		for (tile in area.tileGrid!!) {
+			for (sprite in tile.sprites) {
+				if (!tileSpriteMap.containsKey(sprite)) tileSpriteMap[sprite] = tileSpriteMap.size
+			}
+		}
 
-		val highTilesOffset = tileOffset
-		tileOffset += area.width * area.height
-		val highTiles = IntArray(area.width * area.height)
-		tileGrids.add(highTiles)
+		fun water(index: Int) = area.tilesheet.waterSprites[index].offset
+		val renderData = StoredAreaRenderData(
+			areaID = area.id,
+			width = area.width,
+			tileSpriteOffsets = tileSpriteMap.entries.sortedBy { it.value }.map { it.key.offset }.toIntArray(),
+			waterSpriteOffsets = intArrayOf(water(0), water(2), water(3), water(4), water(1)),
+			indirectLowTiles = IntArray(area.width * area.height),
+			indirectHigherTiles = Array(2 * area.width * area.height) { null },
+			indirectWater = IntArray(area.width * area.height)
+		)
+		storedAreas.add(renderData)
 
 		val canWalkGrid = BooleanArray(area.width * area.height)
 
@@ -76,68 +78,58 @@ class AreaSprites {
 				val tile = area.getTile(x, y)
 
 				canWalkGrid[x + y * area.width] = tile.canWalkOn
+				renderData.indirectLowTiles[x + y * area.width] = tileSpriteMap[tile.sprites.last()]!!
 
-				var lowTile = tile.sprites.last().offset
-				if (lowTile >= 1 shl 24) throw UnsupportedOperationException("Tile sprite index too large: $lowTile")
-				if (y > 0 && area.getTile(x, y - 1).waterType != WaterType.None) {
-					lowTile = lowTile or (1 shl 30)
+				renderData.indirectWater[x + y * area.width] = when (tile.waterType) {
+					WaterType.None -> 0
+					WaterType.Water -> 1
+					WaterType.Lava -> 2
+					WaterType.Waterfall -> 3
+					else -> throw Error("Unexpected water type ${tile.waterType}")
 				}
 
-				lowTiles[x + y * area.width] = lowTile or (tile.waterType.ordinal shl 24)
-
-				var midPart = -1
 				if (y < area.height - 1) {
 					val midTile = area.getTile(x, y + 1)
 					if (midTile.sprites.size > 1) {
-						midPart = midTile.sprites[midTile.sprites.size - 2].offset
-						if (midPart < 0 || midPart > UShort.MAX_VALUE.toInt()) {
-							throw UnsupportedOperationException("Uh ooh: mid tile sprite offset is $midPart")
-						}
+						renderData.indirectHigherTiles[2 * (x + y * area.width)] = tileSpriteMap[midTile.sprites[midTile.sprites.size - 2]]
 					}
 				}
 
-				var highPart = -1
 				if (y < area.height - 2) {
 					val highTile = area.getTile(x, y + 2)
 					if (highTile.sprites.size > 2) {
-						highPart = highTile.sprites[0].offset
-						if (highPart < 0 || highPart > UShort.MAX_VALUE.toInt()) {
-							throw UnsupportedOperationException("Uh ooh: high tile sprite offset is $highPart")
-						}
+						renderData.indirectHigherTiles[1 + 2 * (x + y * area.width)] = tileSpriteMap[highTile.sprites[highTile.sprites.size - 3]]
 					}
 				}
-
-				highTiles[x + y * area.width] = (midPart and 0xFFFF) or ((highPart and 0xFFFF) shl 16)
 			}
 		}
 
-		area.renderLowTilesOffset = lowTilesOffset
-		area.renderHighTilesOffset = highTilesOffset
 		area.tileGrid = null
 		area.canWalkGrid = canWalkGrid
 	}
 
-	fun writeRenderData(output: OutputStream) {
+	fun writeRenderData(output: OutputStream, bitser: Bitser) {
 		val data = DataOutputStream(output)
 
 		data.writeInt(kimOffset)
-		data.writeInt(highTileOffset)
-		data.writeInt(tileOffset)
 
 		for (sprite in kimSprites) {
 			for (value in sprite.data!!) data.writeInt(value)
 			sprite.data = null
 		}
 
-		for (sprite in highTileSprites) {
-			for (value in sprite.data!!) data.writeInt(value)
-			sprite.data = null
+		@BitStruct(backwardCompatible = false)
+		class StoredAreas(
+			@Suppress("unused")
+			@BitField(ordering = 0)
+			val list: ArrayList<StoredAreaRenderData>
+		) {
+			@Suppress("unused")
+			constructor() : this(ArrayList(0))
 		}
 
-		for (tileGrid in tileGrids) {
-			for (value in tileGrid) data.writeInt(value)
-		}
-
-		data.flush()
+		val bitOutput = BitOutputStream(output)
+		bitser.serialize(StoredAreas(storedAreas), bitOutput)
+		bitOutput.finish()
 	}
 }

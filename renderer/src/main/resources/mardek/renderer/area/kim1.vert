@@ -1,16 +1,18 @@
 #version 450
 
 layout(location = 0) in ivec2 offset;
-layout(location = 1) in int spriteOffset;
-layout(location = 2) in int opacity;
+layout(location = 1) in int scale;
+layout(location = 2) in int spriteOffset;
+layout(location = 3) in float opacity;
 
-#include "base.glsl"
+layout(set = 0, binding = 0) readonly buffer MapBuffer {
+	uint sprites[];
+};
+
 #include "kim1.glsl"
 
 layout(push_constant) uniform PushConstants {
 	ivec2 screenSize;
-	ivec2 cameraOffset;
-	int scale;
 };
 
 layout(location = 0) out vec2 textureCoordinates;
@@ -23,13 +25,14 @@ vec2 textureCoordinateMapping[] = {
 };
 
 void main() {
-	uvec2 spriteSize = getKimImageSize(mapAndSprites[spriteOffset]);
+	uvec2 spriteSize = getKimImageSize(sprites[spriteOffset]);
 	textureCoordinates = textureCoordinateMapping[gl_VertexIndex];
 
 	ivec2 extraOffset = ivec2(0, 0);
+	if (spriteSize.x >= 32) extraOffset.x -= 16 * scale;
 	if (spriteSize.y >= 32) extraOffset.y -= 16 * scale;
-	vec2 relative = 2.0 * vec2(offset + extraOffset - cameraOffset) / vec2(screenSize);
-	gl_Position = vec4(relative + 2.0 * scale * spriteSize * textureCoordinates / vec2(screenSize), 0.0, 1.0);
+	vec2 relative = vec2(offset + extraOffset + scale * spriteSize * textureCoordinates) / vec2(screenSize);
+	gl_Position = vec4(2.0 * relative - vec2(1.0), 0.0, 1.0);
 	propagateSpriteOffset = spriteOffset;
-	propagateOpacity = opacity / 255.0;
+	propagateOpacity = opacity;
 }
