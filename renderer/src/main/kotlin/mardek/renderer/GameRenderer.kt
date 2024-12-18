@@ -32,6 +32,7 @@ class GameRenderer(
 		targetImage: VkbImage, frameIndex: Int
 	) {
 		val renderer = createRenderer(state)
+		renderer.beforeRendering(recorder, targetImage, frameIndex)
 
 		val colorAttachments = VkRenderingAttachmentInfo.calloc(1, recorder.stack)
 		recorder.simpleColorRenderingAttachment(

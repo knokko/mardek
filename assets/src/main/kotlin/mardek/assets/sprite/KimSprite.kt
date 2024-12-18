@@ -18,11 +18,15 @@ class KimSprite(
 	@IntegerField(minValue = -1, expectUniform = true)
 	var offset = -1
 
+	@BitField(ordering = 2)
+	@IntegerField(expectUniform = true)
+	val header = if (data == null) 0 else data!![0]
+
 	val width: Int
-		get() = Kim1Decompressor.width(data!![0])
+		get() = Kim1Decompressor.width(header)
 
 	val height: Int
-		get() = Kim1Decompressor.height(data!![0])
+		get() = Kim1Decompressor.height(header)
 
 	internal constructor() : this(null)
 }

@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.assets.area.objects.SwitchColor
+import mardek.assets.sprite.ArrowSprite
 import mardek.assets.sprite.DirectionalSprites
 import mardek.assets.sprite.ObjectSprites
 
@@ -27,6 +28,10 @@ class AreaAssets {
 	val objectSprites = ArrayList<ObjectSprites>()
 
 	@BitField(ordering = 4)
+	@ReferenceFieldTarget(label = "arrow sprites")
+	val arrowSprites = ArrayList<ArrowSprite>()
+
+	@BitField(ordering = 5)
 	@ReferenceFieldTarget(label = "areas")
 	val areas = ArrayList<Area>()
 }

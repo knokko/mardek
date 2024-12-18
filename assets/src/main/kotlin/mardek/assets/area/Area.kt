@@ -46,17 +46,9 @@ class Area(
 
 	@BitField(ordering = 8)
 	lateinit var canWalkGrid: BooleanArray
-
 	// TODO Save conditionally
+
 	@BitField(ordering = 9)
-	@IntegerField(expectUniform = true)
-	var renderLowTilesOffset = -1
-
-	@BitField(ordering = 10)
-	@IntegerField(expectUniform = true)
-	var renderHighTilesOffset = -1
-
-	@BitField(ordering = 11)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 

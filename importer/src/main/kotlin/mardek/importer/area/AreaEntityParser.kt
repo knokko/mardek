@@ -149,7 +149,9 @@ fun parseAreaEntity(
 	if (model == "area_transition") return AreaTransition(
 		x = x,
 		y = y,
-		arrow = if (rawEntity["ARROW"] != null) parseFlashString(rawEntity["ARROW"]!!, "ARROW")!! else null,
+		arrow = if (rawEntity["ARROW"] != null) assets.arrowSprites.find {
+			it.flashName == parseFlashString(rawEntity["ARROW"]!!, "ARROW")!!
+		}!! else null,
 		destination = parseDestination(rawEntity["dest"]!!, rawEntity["dir"], transitions)
 	)
 

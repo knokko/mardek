@@ -18,9 +18,14 @@ class InGameRenderer(
 		private val sharedUi: SharedUiResources,
 ): StateRenderer(boiler) {
 
+	override fun beforeRendering(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
+		val area = state.campaign.currentArea
+		if (area != null) AreaRenderer(area, state.campaign.characterSelection, resources).beforeRendering(recorder, targetImage, frameIndex)
+	}
+
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
 		val area = state.campaign.currentArea
-		if (area != null) AreaRenderer(assets, area, state.campaign.characterSelection, resources).render(recorder, targetImage, frameIndex)
+		if (area != null) AreaRenderer(area, state.campaign.characterSelection, resources).render(recorder, targetImage, frameIndex)
 		if (state.menu.shown) InGameMenuRenderer(assets, sharedUi, state).render(recorder, targetImage, frameIndex)
 	}
 }

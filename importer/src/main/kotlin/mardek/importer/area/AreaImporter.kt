@@ -1,6 +1,7 @@
 package mardek.importer.area
 
 import mardek.assets.area.*
+import mardek.assets.sprite.ArrowSprite
 import mardek.assets.sprite.DirectionalSprites
 import mardek.importer.util.compressSprite
 import java.io.File
@@ -12,6 +13,12 @@ import kotlin.collections.HashSet
 
 fun importAreaAssets(areaFolder: File): AreaAssets {
 	val assets = AreaAssets()
+
+	val rawArrowSprites = importObjectSprites("trans_arrows")
+	assets.arrowSprites.add(ArrowSprite("N", rawArrowSprites.frames[0]))
+	assets.arrowSprites.add(ArrowSprite("E", rawArrowSprites.frames[1]))
+	assets.arrowSprites.add(ArrowSprite("S", rawArrowSprites.frames[2]))
+	assets.arrowSprites.add(ArrowSprite("W", rawArrowSprites.frames[3]))
 
 	val charactersFolder = File("$areaFolder/sheets/character")
 	for (characterSprite in charactersFolder.listFiles()!!) {

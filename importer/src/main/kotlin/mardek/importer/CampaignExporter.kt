@@ -16,7 +16,7 @@ fun main() {
 	val campaign = importDefaultCampaign(bitser)
 
 	val outputFolder = File("game/src/main/resources/mardek/game/")
-	exportAreaAssets(campaign, outputFolder)
+	exportAreaAssets(campaign, outputFolder, bitser)
 	exportUiAssets(campaign, outputFolder)
 	exportCampaignData(campaign, outputFolder, bitser)
 }
@@ -27,12 +27,12 @@ private fun exportCampaignData(campaign: Campaign, outputFolder: File, bitser: B
 	output.finish()
 }
 
-private fun exportAreaAssets(campaign: Campaign, outputFolder: File) {
+private fun exportAreaAssets(campaign: Campaign, outputFolder: File, bitser: Bitser) {
 	val areaSprites = AreaSprites()
 	areaSprites.register(campaign.areas)
 
 	val renderOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/area-assets.bin").toPath()))
-	areaSprites.writeRenderData(renderOutput)
+	areaSprites.writeRenderData(renderOutput, bitser)
 	renderOutput.close()
 }
 

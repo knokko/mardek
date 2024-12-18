@@ -1,0 +1,34 @@
+#version 450
+
+layout(set = 0, binding = 0) readonly buffer SpriteBuffer {
+	uint kimSprites[];
+};
+layout(set = 0, binding = 1) readonly buffer OffsetBuffer {
+	uint kimOffsets[];
+};
+layout(set = 0, binding = 2) buffer OutputBuffer {
+	uint result[];
+};
+
+layout(push_constant) uniform PushConstants {
+	uvec2 spriteSize;
+	uint resultOffset;
+	uint offsetOffset;
+};
+
+#include "kim1.glsl"
+
+defineReadInt(kimSprites)
+
+defineSampleKimInt(kimSprites)
+
+void main() {
+    vec4 color = sampleKim(kimOffsets[offsetOffset + gl_GlobalInvocationID.z], gl_GlobalInvocationID.xy);
+    uint resultIndex = resultOffset + spriteSize.x * spriteSize.y * gl_GlobalInvocationID.z +
+            spriteSize.x * gl_GlobalInvocationID.y + gl_GlobalInvocationID.x;
+    uint red = uint(255 * color.r);
+    uint green = uint(255 * color.g);
+    uint blue = uint(255 * color.b);
+    uint alpha = uint(255 * color.a);
+    result[resultIndex] = red | (green << 8) | (blue << 16) | (alpha << 24);
+}

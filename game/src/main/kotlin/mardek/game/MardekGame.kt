@@ -2,6 +2,7 @@ package mardek.game
 
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.WindowBuilder
+import com.github.knokko.boiler.builders.device.SimpleDeviceSelector
 import com.github.knokko.boiler.window.WindowEventLoop
 import com.github.knokko.update.UpdateLoop
 import mardek.assets.Campaign
@@ -10,7 +11,7 @@ import mardek.input.InputManager
 import mardek.renderer.GameRenderer
 import mardek.state.GameStateManager
 import mardek.state.title.TitleScreenState
-import org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VK12.VK_API_VERSION_1_2
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -25,6 +26,8 @@ fun main(args: Array<String>) {
 	).addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
 	if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()
 	if (args.contains("api-dump")) boilerBuilder.apiDump()
+	if (args.contains("integrated")) boilerBuilder.physicalDeviceSelector(SimpleDeviceSelector(VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU))
+	if (args.contains("cpu")) boilerBuilder.physicalDeviceSelector(SimpleDeviceSelector(VK_PHYSICAL_DEVICE_TYPE_CPU))
 	val boiler = GameRenderer.addBoilerRequirements(boilerBuilder).build()
 
 	val campaign = Campaign.load("mardek/game/campaign.bin")
