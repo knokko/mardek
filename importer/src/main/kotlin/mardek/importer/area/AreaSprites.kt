@@ -48,6 +48,8 @@ class AreaSprites {
 			for (sprite in sheet.frames) registerSprite(sprite)
 		}
 
+		for (arrow in assets.arrowSprites) registerSprite(arrow.sprite)
+
 		for (area in assets.areas) register(area)
 	}
 

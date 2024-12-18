@@ -2,10 +2,10 @@ package mardek.renderer.area
 
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import mardek.assets.Campaign
 import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
 import mardek.assets.area.WaterType
+import mardek.assets.sprite.KimSprite
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.characters.CharacterSelectionState
 import org.lwjgl.vulkan.VK10.*
@@ -13,7 +13,6 @@ import org.lwjgl.vulkan.VkRect2D
 import kotlin.math.*
 
 class AreaRenderer(
-		private val assets: Campaign,
 		private val state: AreaState,
 		private val characters: CharacterSelectionState,
 		private val resources: SharedAreaResources,
@@ -62,7 +61,7 @@ class AreaRenderer(
 		val animationSize = 2
 
 		class EntityRenderJob(
-				val x: Int, val y: Int, val sprite: Int, val opacity: Int = 255
+				val x: Int, val y: Int, val sprite: KimSprite, val opacity: Int = 255
 		): Comparable<EntityRenderJob> {
 			override fun compareTo(other: EntityRenderJob) = this.y.compareTo(other.y)
 		}
@@ -78,7 +77,7 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * character.startX,
 					y = tileSize * character.startY - 4 * scale,
-					sprite = character.sprites.sprites[spriteIndex].offset
+					sprite = character.sprites.sprites[spriteIndex]
 			))
 		}
 
@@ -89,7 +88,7 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * decoration.x,
 					y = tileSize * decoration.y,
-					sprite = spritesheet.frames[spriteIndex.toInt()].offset
+					sprite = spritesheet.frames[spriteIndex.toInt()]
 			))
 		}
 
@@ -105,7 +104,7 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * door.x,
 					y = tileSize * door.y,
-					sprite = door.sprites.frames[spriteIndex].offset
+					sprite = door.sprites.frames[spriteIndex]
 			))
 		}
 
@@ -115,7 +114,7 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * areaObject.x,
 					y = tileSize * areaObject.y - 4 * scale,
-					sprite = areaObject.sprites.frames[spriteIndex.toInt()].offset
+					sprite = areaObject.sprites.frames[spriteIndex.toInt()]
 			))
 		}
 
@@ -131,11 +130,11 @@ class AreaRenderer(
 				continue
 			}
 
-			val spriteIndex = (state.currentTime.inWholeMilliseconds % (500L * spritesheet.frames.size)) / 500L
+			val spriteIndex = (state.currentTime.inWholeMilliseconds % (15000L * spritesheet.frames.size)) / 15000L
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * portal.x,
 					y = tileSize * portal.y,
-					sprite = spritesheet.frames[spriteIndex.toInt()].offset
+					sprite = spritesheet.frames[spriteIndex.toInt()]
 			))
 		}
 
@@ -143,7 +142,7 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * gate.x,
 					y = tileSize * gate.y,
-					sprite = gate.onSpriteOffset
+					sprite = gate.color.gateSprite
 			))
 		}
 
@@ -151,7 +150,7 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * orb.x,
 					y = tileSize * orb.y,
-					sprite = orb.onSpriteOffset
+					sprite = orb.color.onSprite
 			))
 		}
 
@@ -159,12 +158,12 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * platform.x,
 					y = tileSize * platform.y,
-					sprite = platform.onSpriteOffset
+					sprite = platform.color.platformSprite
 			))
 		}
 
 		for (transition in state.area.objects.transitions) {
-			val spritesheet = transition.arrowSprite ?: continue
+			val arrow = transition.arrow ?: continue
 
 			val period = 1000
 			val relativeTime = state.currentTime.inWholeMilliseconds % period
@@ -172,7 +171,7 @@ class AreaRenderer(
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * transition.x,
 					y = tileSize * transition.y,
-					sprite = spritesheet.frames[0].offset,
+					sprite = arrow.sprite,
 					opacity = (255 * opacity).roundToInt()
 			))
 		}
@@ -218,7 +217,7 @@ class AreaRenderer(
 			spriteIndex += animationSize * direction.ordinal
 
 			renderJobs.add(EntityRenderJob(
-					x = x, y = y, sprite = character.areaSprites.sprites[spriteIndex].offset
+					x = x, y = y, sprite = character.areaSprites.sprites[spriteIndex]
 			))
 		}
 
@@ -264,9 +263,9 @@ class AreaRenderer(
 			val renderY = job.y + targetImage.height / 2 - cameraY
 			val margin = 2 * tileSize
 			if (renderX > -margin && renderY > -margin && renderX < targetImage.width + 2 * margin && renderY < targetImage.height + 2 * margin) {
-//				resources.kimRenderer.render(KimRequest(
-//					x = renderX, y = renderY, scale = scale, spriteOffset = job.sprite, opacity = job.opacity / 255f
-//				))
+				resources.kimRenderer.render(KimRequest(
+					x = renderX, y = renderY, scale = scale, sprite = job.sprite, opacity = job.opacity / 255f
+				))
 			}
 		}
 
@@ -288,6 +287,6 @@ class AreaRenderer(
 			}
 		}
 
-		resources.kimRenderer.recordBeforeRenderpass(recorder, targetImage, frameIndex)
+		resources.kimRenderer.recordBeforeRenderpass(recorder, frameIndex)
 	}
 }

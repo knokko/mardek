@@ -5,7 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.area.TransitionDestination
-import mardek.assets.sprite.ObjectSprites
+import mardek.assets.sprite.ArrowSprite
 
 @BitStruct(backwardCompatible = false)
 class AreaTransition(
@@ -22,12 +22,9 @@ class AreaTransition(
 	val destination: TransitionDestination,
 
 	@BitField(ordering = 3, optional = true)
-	val arrow: String?
+	@ReferenceField(stable = false, label = "arrow sprites")
+	val arrow: ArrowSprite?,
 ) {
-
-	@BitField(ordering = 4, optional = true)
-	@ReferenceField(stable = false, label = "object sprites")
-	var arrowSprite: ObjectSprites? = null
 
 	@Suppress("unused")
 	private constructor() : this(0, 0, TransitionDestination(), null)

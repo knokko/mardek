@@ -19,14 +19,6 @@ abstract class AreaSwitch(
 	val y: Int,
 ) {
 
-	@BitField(ordering = 3)
-	@IntegerField(expectUniform = false, minValue = -1)
-	var offSpriteOffset = -1
-
-	@BitField(ordering = 4)
-	@IntegerField(expectUniform = false, minValue = -1)
-	var onSpriteOffset = -1
-
 	override fun toString() = "${this::class.java.simpleName.substring(4)}($color, x=$x, y=$y)"
 
 	override fun equals(other: Any?) = other is AreaSwitch && this::class.java == other::class.java &&

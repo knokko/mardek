@@ -5,14 +5,15 @@ layout(set = 0, binding = 1) readonly buffer MiddleBuffer {
 };
 
 layout(location = 0) in vec2 textureCoordinates;
-layout(location = 1) in flat int textureOffset;
-layout(location = 2) in float opacity;
+layout(location = 1) in flat uvec2 spriteSize;
+layout(location = 2) in flat int textureOffset;
+layout(location = 3) in float opacity;
 
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    uvec2 intCoords = uvec2(textureCoordinates * 15 + vec2(0.5));
-	uint color = sprites[16 * 16 * textureOffset + 16 * intCoords.y + intCoords.x];
+    uvec2 intCoords = uvec2(textureCoordinates * (spriteSize - uvec2(1)) + vec2(0.5));
+	uint color = sprites[textureOffset + spriteSize.x * intCoords.y + intCoords.x];
 	uint ured = color & 255u;
     uint ugreen = (color >> 8) & 255u;
     uint ublue = (color >> 16) & 255u;

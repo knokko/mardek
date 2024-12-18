@@ -97,7 +97,7 @@ class KimRenderer(
 			this.graphicsPipeline = builder.build("Kim1GraphicsPipeline")
 
 			val computeConstants = VkPushConstantRange.calloc(1, stack)
-			computeConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 12)
+			computeConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 16)
 			this.computeLayout = boiler.pipelines.createLayout(
 				computeConstants, "Kim1ComputeLayout", computeDescriptorLayout.vkDescriptorSetLayout
 			)
@@ -129,20 +129,16 @@ class KimRenderer(
 		requests.add(request)
 	}
 
-	private var isFirst = true
 	private val offsetMap = mutableMapOf<Int, Int>()
 	private val sizeMap = mutableMapOf<Pair<Int, Int>, MutableList<KimRequest>>()
 
-	fun recordBeforeRenderpass(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
+	fun recordBeforeRenderpass(recorder: CommandRecorder, frameIndex: Int) {
 		if (requests.isEmpty()) return
 		if (offsetMap.isNotEmpty() || sizeMap.isNotEmpty()) throw IllegalStateException("Bad call order")
 
 		val readUsage = ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
 		val writeUsage = ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT)
-		// TODO Stop using PRESENT
-		if (isFirst) recorder.bufferBarrier(middleBuffer.fullRange(), ResourceUsage.PRESENT, writeUsage)
-		else recorder.bufferBarrier(middleBuffer.fullRange(), readUsage, writeUsage)
-		isFirst = false
+		recorder.bufferBarrier(middleBuffer.fullRange(), readUsage, writeUsage)
 
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline)
 		recorder.bindComputeDescriptors(computeLayout, computeDescriptorSets[frameIndex])
@@ -153,19 +149,23 @@ class KimRenderer(
 		}
 
 		val offsetBuffer = offsetBuffers[frameIndex].fullMappedRange().byteBuffer()
+		var nextResultOffset = 0
+		var nextOffsetOffset = 0
 		for ((size, requests) in sizeMap) {
 			vkCmdPushConstants(
 				recorder.commandBuffer, computeLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-				recorder.stack.ints(size.first, size.second, offsetBuffer.position() / 4)
+				recorder.stack.ints(size.first, size.second, nextResultOffset, nextOffsetOffset)
 			)
 
 			var counter = 0
 			for (request in requests) {
 				if (offsetMap.containsKey(request.sprite.offset)) continue
-				offsetMap[request.sprite.offset] = offsetMap.size
-				offsetBuffer.putInt(4 * offsetMap[request.sprite.offset]!!, request.sprite.offset)
+				offsetMap[request.sprite.offset] = nextResultOffset
+				nextResultOffset += size.first * size.second
+				offsetBuffer.putInt(request.sprite.offset)
 				counter += 1
 			}
+			nextOffsetOffset += counter
 			vkCmdDispatch(recorder.commandBuffer, size.first, size.second, counter)
 		}
 
