@@ -35,6 +35,7 @@ class GameRenderer(
 		recorder.beginSimpleDynamicRendering(
 			targetImage.width, targetImage.height, colorAttachments, null, null
 		)
+		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
 		renderer.render(recorder, targetImage, frameIndex)
 

@@ -110,7 +110,6 @@ public class UiRenderer {
 
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 		recorder.bindGraphicsDescriptors(pipelineLayout, baseDescriptorSet);
-		recorder.dynamicViewportAndScissor(targetImage.width(), targetImage.height());
 		vkCmdPushConstants(
 				recorder.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 				0, recorder.stack.ints(targetImage.width(), targetImage.height())

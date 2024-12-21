@@ -6,6 +6,7 @@ import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
 import mardek.assets.area.WaterType
 import mardek.assets.sprite.KimSprite
+import mardek.renderer.KimBatch
 import mardek.renderer.KimRequest
 import mardek.renderer.SharedResources
 import mardek.state.ingame.area.AreaState
@@ -15,18 +16,22 @@ import org.lwjgl.vulkan.VkRect2D
 import kotlin.math.*
 
 class AreaRenderer(
+	private val recorder: CommandRecorder,
+	private val targetImage: VkbImage,
+	private val frameIndex: Int,
 	private val state: AreaState,
 	private val characters: CharacterSelectionState,
 	private val resources: SharedResources,
 ) {
 
-	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		resources.kimRenderer.recordDuringRenderpass(recorder, targetImage, frameIndex)
+	private lateinit var kimBatch: KimBatch
+
+	fun render() {
+		resources.kimRenderer.submit(kimBatch, recorder, targetImage, frameIndex)
 	}
 
-	fun beforeRendering(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-
-		resources.kimRenderer.begin()
+	fun beforeRendering() {
+		this.kimBatch = resources.kimRenderer.startBatch()
 
 		val baseVisibleHorizontalTiles = targetImage.width / 16.0
 		val baseVisibleVerticalTiles = targetImage.height / 16.0
@@ -63,7 +68,7 @@ class AreaRenderer(
 		val animationSize = 2
 
 		class EntityRenderJob(
-				val x: Int, val y: Int, val sprite: KimSprite, val opacity: Int = 255
+				val x: Int, val y: Int, val sprite: KimSprite, val opacity: Float = 1f
 		): Comparable<EntityRenderJob> {
 			override fun compareTo(other: EntityRenderJob) = this.y.compareTo(other.y)
 		}
@@ -174,7 +179,7 @@ class AreaRenderer(
 					x = tileSize * transition.x,
 					y = tileSize * transition.y,
 					sprite = arrow.sprite,
-					opacity = (255 * opacity).roundToInt()
+					opacity = opacity.toFloat()
 			))
 		}
 
@@ -252,11 +257,16 @@ class AreaRenderer(
 						backgroundSprite = renderData.waterSprites[4]
 					}
 					val waterSprite = renderData.waterSprites[renderData.getWaterSpriteIndex(tileX, tileY)]
-					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = backgroundSprite, opacity = 1f))
-					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = waterSprite, opacity = 0.3f))
+					kimBatch.requests.add(KimRequest(
+						x = renderX, y = renderY, scale = scale, sprite = backgroundSprite, opacity = 1f
+					))
+					val opacity = if (waterType == WaterType.Water) 0.3f else 1f
+					kimBatch.requests.add(KimRequest(
+						x = renderX, y = renderY, scale = scale, sprite = waterSprite, opacity = opacity
+					))
 				}
 				val sprite = renderData.tileSprites[renderData.getTileSpriteIndex(tileX, tileY, 0)]
-				resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = sprite, opacity = 1f))
+				kimBatch.requests.add(KimRequest(x = renderX, y = renderY, scale = scale, sprite = sprite, opacity = 1f))
 			}
 		}
 
@@ -265,11 +275,9 @@ class AreaRenderer(
 			val renderY = job.y + targetImage.height / 2 - cameraY
 			val margin = 2 * tileSize
 			if (renderX > -margin && renderY > -margin && renderX < targetImage.width + 2 * margin && renderY < targetImage.height + 2 * margin) {
-				resources.kimRenderer.render(
-					KimRequest(
-					x = renderX, y = renderY, scale = scale, sprite = job.sprite, opacity = job.opacity / 255f
-				)
-				)
+				kimBatch.requests.add(KimRequest(
+					x = renderX, y = renderY, scale = scale, sprite = job.sprite, opacity = job.opacity
+				))
 			}
 		}
 
@@ -281,16 +289,15 @@ class AreaRenderer(
 				val midIndex = renderData.getTileSpriteIndex(tileX, tileY, 1)
 				if (midIndex != 1023) {
 					val sprite = renderData.tileSprites[midIndex]
-					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = sprite, opacity = 1f))
+					kimBatch.requests.add(KimRequest(x = renderX, y = renderY, scale = scale, sprite = sprite, opacity = 1f))
 				}
 				val highIndex = renderData.getTileSpriteIndex(tileX, tileY, 2)
 				if (highIndex != 1023) {
 					val sprite = renderData.tileSprites[highIndex]
-					resources.kimRenderer.render(KimRequest(x = renderX, y = renderY, scale = scale, sprite = sprite, opacity = 1f))
+					kimBatch.requests.add(KimRequest(x = renderX, y = renderY, scale = scale, sprite = sprite, opacity = 1f))
 				}
 			}
 		}
 
-		resources.kimRenderer.recordBeforeRenderpass(recorder, frameIndex)
 	}
 }

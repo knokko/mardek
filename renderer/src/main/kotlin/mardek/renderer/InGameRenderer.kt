@@ -14,14 +14,30 @@ class InGameRenderer(
 		private val resources: SharedResources,
 ): StateRenderer(boiler) {
 
+	private var areaRenderer: AreaRenderer? = null
+	private var menuRenderer: InGameMenuRenderer? = null
+
 	override fun beforeRendering(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
+		resources.kimRenderer.begin()
+
 		val area = state.campaign.currentArea
-		if (area != null) AreaRenderer(area, state.campaign.characterSelection, resources).beforeRendering(recorder, targetImage, frameIndex)
+		areaRenderer = if (area != null) AreaRenderer(
+			recorder, targetImage, frameIndex, area, state.campaign.characterSelection, resources
+		) else null
+		menuRenderer = if (state.menu.shown) InGameMenuRenderer(
+			recorder, targetImage, frameIndex, resources, state
+		) else null
+
+		areaRenderer?.beforeRendering()
+		menuRenderer?.beforeRendering()
+
+		resources.kimRenderer.recordBeforeRenderpass(recorder, frameIndex)
 	}
 
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		val area = state.campaign.currentArea
-		if (area != null) AreaRenderer(area, state.campaign.characterSelection, resources).render(recorder, targetImage, frameIndex)
-		if (state.menu.shown) InGameMenuRenderer(resources, state).render(recorder, targetImage, frameIndex)
+		areaRenderer?.render()
+		menuRenderer?.render()
+
+		resources.kimRenderer.end()
 	}
 }

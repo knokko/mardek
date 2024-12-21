@@ -17,6 +17,7 @@ import org.lwjgl.vulkan.VkVertexInputAttributeDescription
 import org.lwjgl.vulkan.VkVertexInputBindingDescription
 import org.lwjgl.vulkan.VkWriteDescriptorSet
 import java.io.DataInputStream
+import java.lang.Math.toIntExact
 
 private const val VERTEX_SIZE = 7 * 4
 
@@ -47,7 +48,7 @@ class KimRenderer(
 		VERTEX_SIZE.toLong() * maxSpritesPerFrame, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, "Kim1Vertices$it"
 	) }
 
-	private val requests = ArrayList<KimRequest>(maxSpritesPerFrame / 10)
+	private val batches = HashSet<KimBatch>()
 
 	private val graphicsDescriptorLayout = createGraphicsDescriptorSetLayout(boiler)
 	private val graphicsDescriptorPool = graphicsDescriptorLayout.createPool(1, 0, "Kim1GraphicsPool")
@@ -169,19 +170,36 @@ class KimRenderer(
 	}
 
 	fun begin() {
-		if (requests.isNotEmpty()) throw IllegalStateException("Did you forget to call end() ?")
+		if (batches.isNotEmpty() || currentVertexOffset != 0L) {
+			throw IllegalStateException("Invalid call order: did you forget to call end() ?")
+		}
 	}
 
-	fun render(request: KimRequest) {
-		requests.add(request)
+	fun startBatch(): KimBatch {
+		val batch = KimBatch()
+		batches.add(batch)
+		return batch
 	}
 
+	/**
+	 * Maps `kimSprite.offset`s to the offset into `middleBuffer` that contains the decompressed `kimSprite`
+	 */
 	private val offsetMap = mutableMapOf<Int, Int>()
+
+	/**
+	 * Maps pairs `(width, height)` to a list containing all requests in this frame with the given size
+	 */
 	private val sizeMap = mutableMapOf<Pair<Int, Int>, MutableList<KimRequest>>()
 
 	fun recordBeforeRenderpass(recorder: CommandRecorder, frameIndex: Int) {
-		if (requests.isEmpty()) return
-		if (offsetMap.isNotEmpty() || sizeMap.isNotEmpty()) throw IllegalStateException("Bad call order")
+		if (currentVertexOffset != 0L) throw IllegalStateException(
+			"You must not call submit() before recordBeforeRenderpass()"
+		)
+		val allRequests = batches.flatMap { it.requests }
+		if (allRequests.isEmpty()) return
+		if (offsetMap.isNotEmpty() || sizeMap.isNotEmpty()) {
+			throw IllegalStateException("Invalid call order: you must call this exactly once before each call to end()")
+		}
 
 		val readUsage = ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
 		val writeUsage = ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT)
@@ -190,7 +208,7 @@ class KimRenderer(
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline)
 		recorder.bindComputeDescriptors(computeLayout, computeDescriptorSets[frameIndex])
 
-		for (request in requests) {
+		for (request in allRequests) {
 			val size = Pair(request.sprite.width, request.sprite.height)
 			sizeMap.computeIfAbsent(size) { ArrayList() }.add(request)
 		}
@@ -219,12 +237,15 @@ class KimRenderer(
 		recorder.bufferBarrier(middleBuffer.fullRange(), writeUsage, readUsage)
 	}
 
-	fun recordDuringRenderpass(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		if (requests.isEmpty()) return
-		if (offsetMap.isEmpty()) throw IllegalStateException("Bad call order")
+	private var currentVertexOffset = 0L
+
+	fun submit(batch: KimBatch, recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
+		if (batch.requests.isEmpty()) return
+		if (offsetMap.isEmpty()) throw IllegalStateException(
+			"Invalid call order: you must call submit() between recordBeforeRenderpass() and end()"
+		)
 
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline)
-		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 		recorder.bindGraphicsDescriptors(graphicsLayout, graphicsDescriptorSet)
 		vkCmdBindVertexBuffers(
 			recorder.commandBuffer, 0,
@@ -236,16 +257,32 @@ class KimRenderer(
 			0, recorder.stack.ints(targetImage.width, targetImage.height)
 		)
 
-		val vertexBuffer = vertexBuffers[frameIndex].mappedRange(0L, VERTEX_SIZE.toLong() * requests.size).byteBuffer()
-		for (request in requests) {
+		val vertexBuffer = vertexBuffers[frameIndex].mappedRange(
+			currentVertexOffset, VERTEX_SIZE.toLong() * batch.requests.size
+		).byteBuffer()
+		for (request in batch.requests) {
 			vertexBuffer.putInt(request.x).putInt(request.y)
 			vertexBuffer.putInt(request.sprite.width).putInt(request.sprite.height).putInt(request.scale)
 			vertexBuffer.putInt(offsetMap[request.sprite.offset]!!).putFloat(request.opacity)
 		}
-		vkCmdDraw(recorder.commandBuffer, 6, requests.size, 0, 0)
-		requests.clear()
+		vkCmdDraw(
+			recorder.commandBuffer, 6, batch.requests.size,
+			0, toIntExact(currentVertexOffset / VERTEX_SIZE)
+		)
+		currentVertexOffset += vertexBuffer.position()
+		batch.requests.clear()
+	}
+
+	fun end() {
+		for (batch in batches) {
+			if (batch.requests.isNotEmpty()) throw IllegalStateException(
+				"Invalid call order: you must call submit() after adding requests to batches and before calling end()"
+			)
+		}
+		batches.clear()
 		offsetMap.clear()
 		sizeMap.clear()
+		currentVertexOffset = 0L
 	}
 
 	fun destroy() {
@@ -262,8 +299,13 @@ class KimRenderer(
 		middleBuffer.destroy(boiler)
 		spriteBuffer.destroy(boiler)
 
-		if (requests.isNotEmpty() || offsetMap.isNotEmpty()) throw IllegalStateException("Did you forget to call end() ?")
+		if (batches.isNotEmpty() || offsetMap.isNotEmpty()) throw IllegalStateException(
+			"Invalid call order: you must call end() before calling destroy()")
 	}
 }
 
 class KimRequest(val x: Int, val y: Int, val scale: Int, val sprite: KimSprite, val opacity: Float)
+
+class KimBatch {
+	val requests = ArrayList<KimRequest>()
+}
