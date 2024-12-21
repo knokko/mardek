@@ -9,7 +9,7 @@ import kotlin.time.Duration
 
 class InGameState(val assets: Campaign, val campaign: CampaignState): GameState {
 
-	val menu = InGameMenuState()
+	val menu = InGameMenuState(campaign)
 
 	override fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue): GameState {
 		if (menu.shown) {

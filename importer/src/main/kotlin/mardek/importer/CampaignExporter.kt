@@ -17,9 +17,12 @@ fun main() {
 	val campaign = importDefaultCampaign(bitser)
 	val outputFolder = File("game/src/main/resources/mardek/game/")
 
-	val kimOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/kim1-sprites.bin").toPath()))
+	val kimOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/kim-sprites.bin").toPath()))
 	val areaSprites = AreaSprites()
+	for (element in campaign.combat.elements) areaSprites.registerSprite(element.sprite)
+	for (skillClass in campaign.skills.classes) areaSprites.registerSprite(skillClass.icon)
 	for (item in campaign.inventory.items) areaSprites.registerSprite(item.sprite)
+	for (sprite in campaign.ui.allKimSprites()) areaSprites.registerSprite(sprite)
 	areaSprites.register(campaign.areas)
 	areaSprites.writeKimSprites(kimOutput)
 	kimOutput.flush()
@@ -49,7 +52,7 @@ private fun exportBc1Sprites(output: OutputStream) {
 	packer.addBc1("TitleScreenBackground.png")
 
 	val boiler = BoilerBuilder(
-		VK_API_VERSION_1_0, "ExportUiResources", 1
+		VK_API_VERSION_1_0, "ExportBc1Sprites", 1
 	).validation().forbidValidationErrors().build()
 
 	packer.writeDataAndDestroy(boiler, output)

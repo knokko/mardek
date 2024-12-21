@@ -1,6 +1,6 @@
 package mardek.importer.combat
 
-import mardek.assets.combat.CharacterRace
+import mardek.assets.combat.CreatureType
 import mardek.assets.combat.CombatAssets
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptResource
@@ -15,6 +15,6 @@ internal fun importRaces(combatAssets: CombatAssets) {
 
 	raceList = raceList.substring(1 until raceList.length - 1)
 	for (race in raceList.split(",")) {
-		combatAssets.races.add(CharacterRace(parseFlashString(race, "race name")!!))
+		combatAssets.races.add(CreatureType(parseFlashString(race, "race name")!!))
 	}
 }

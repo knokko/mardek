@@ -4,6 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.compressor.Kim1Decompressor
 import mardek.assets.combat.CombatAssets
 import mardek.assets.inventory.EquipmentProperties
+import mardek.assets.inventory.EquipmentSlotType
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.inventory.Item
 import mardek.assets.skill.*
@@ -56,8 +57,8 @@ class TestInventoryImporter {
 	@BeforeAll
 	fun importItems() {
 		combatAssets = importCombatAssets()
-		skillAssets = importSkills(combatAssets, "mardek/importer/combat/skills.txt")
-		inventoryAssets = importInventoryAssets(combatAssets, skillAssets, "mardek/importer/inventory/data.txt")
+		skillAssets = importSkills(combatAssets)
+		inventoryAssets = importInventoryAssets(combatAssets, skillAssets)
 	}
 
 	@Test
@@ -142,7 +143,8 @@ class TestInventoryImporter {
 		assertEquals(6, getStatModifier("DEF", equipment))
 		assertEquals(3, getStatModifier("MDEF", equipment))
 		assertEquals(20000, helmet.cost)
-		assertEquals("FULL HELM", equipment.armor!!.type.name)
+		assertEquals("FULL HELM", equipment.armorType!!.name)
+		assertEquals(EquipmentSlotType.Head, equipment.getSlotType())
 
 		assertEquals(1, getStatModifier("STR", equipment))
 		assertEquals(1, getStatModifier("VIT", equipment))
@@ -175,9 +177,10 @@ class TestInventoryImporter {
 	fun testSilverPendant() {
 		val pendant = getItem("SilverPendant")
 		val equipment = pendant.equipment!!
-		assertNull(equipment.armor)
+		assertNull(equipment.armorType)
 		assertNull(equipment.weapon)
 		assertNull(pendant.consumable)
+		assertEquals(EquipmentSlotType.Accessory, equipment.getSlotType())
 
 		assertEquals(1, equipment.stats.size)
 		assertEquals(3, getStatModifier("MDEF", equipment))
@@ -194,6 +197,13 @@ class TestInventoryImporter {
 	}
 
 	@Test
+	fun testMinstrelsTiara() {
+		val tiara = getItem("Minstrel's Tiara")
+		val equipment = tiara.equipment!!
+		assertEquals(50, equipment.charismaticPerformanceChance)
+	}
+
+	@Test
 	fun testSilverAxe() {
 		val axe = getItem("Silver Axe")
 		val equipment = axe.equipment!!
@@ -206,9 +216,9 @@ class TestInventoryImporter {
 		assertEquals(95, weapon.hitChance)
 		assertEquals(12000, axe.cost)
 
-		assertEquals(1, weapon.raceBonuses.size)
-		assertEquals("UNDEAD", weapon.raceBonuses[0].race.flashName)
-		assertEquals(1f, weapon.raceBonuses[0].bonusFraction, margin)
+		assertEquals(1, weapon.effectiveAgainstCreatureTypes.size)
+		assertEquals("UNDEAD", weapon.effectiveAgainstCreatureTypes[0].type.flashName)
+		assertEquals(1f, weapon.effectiveAgainstCreatureTypes[0].bonusFraction, margin)
 		assertEquals("LIGHT", axe.element!!.properName)
 		assertEquals("hit_2HSWORDS", weapon.hitSound)
 
@@ -221,6 +231,17 @@ class TestInventoryImporter {
 	}
 
 	@Test
+	fun testFlametongue() {
+		val flametongue = getItem("Flametongue")
+		val weapon = flametongue.equipment!!.weapon!!
+
+		assertEquals(1, weapon.effectiveAgainstElements.size)
+		val air = weapon.effectiveAgainstElements[0]
+		assertEquals("AIR", air.element.properName)
+		assertEquals(0.5f, air.modifier)
+	}
+
+	@Test
 	fun testAquamarine() {
 		val aquamarine = getItem("Aquamarine")
 		val equipment = aquamarine.equipment!!
@@ -229,6 +250,7 @@ class TestInventoryImporter {
 		assertEquals("gems", aquamarine.type.flashName)
 		assertEquals(800, aquamarine.cost)
 		assertEquals("WATER", aquamarine.element!!.properName)
+		assertEquals(EquipmentSlotType.Accessory, equipment.getSlotType())
 
 		assertEquals(1, equipment.elementalResistances.size)
 		assertEquals(aquamarine.element, equipment.elementalResistances[0].element)

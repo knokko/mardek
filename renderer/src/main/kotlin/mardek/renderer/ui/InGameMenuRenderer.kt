@@ -6,18 +6,40 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.SharedResources
+import mardek.renderer.ui.tabs.*
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.menu.InventoryTab
+import mardek.state.ingame.menu.MapTab
+import mardek.state.ingame.menu.PartyTab
+import mardek.state.ingame.menu.SkillsTab
 
 class InGameMenuRenderer(
-		private val resources: SharedResources,
-		private val state: InGameState,
+	private val recorder: CommandRecorder,
+	private val targetImage: VkbImage,
+	private val frameIndex: Int,
+	private val resources: SharedResources,
+	private val state: InGameState,
 ) {
 
-	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
+	private lateinit var tabRenderer: TabRenderer
 
-		val renderer = resources.uiRenderers[frameIndex]
-		renderer.begin(recorder, targetImage)
+	fun beforeRendering() {
+		val transform = CoordinateTransform.create(SpaceLayout.Simple, targetImage.width, targetImage.height)
+		val tab = state.menu.currentTab
+		val tabRegion = transform.transform(0f, 0.08f, 0.78f, 0.84f)
+		if (tab is PartyTab) this.tabRenderer = PartyTabRenderer()
+		if (tab is SkillsTab) this.tabRenderer = SkillsTabRenderer()
+		if (tab is InventoryTab) this.tabRenderer = InventoryTabRenderer(
+			recorder, targetImage, frameIndex, tab, tabRegion, state.campaign, state.assets, resources
+		)
+		if (tab is MapTab) this.tabRenderer = MapTabRenderer()
+
+		tabRenderer.beforeRendering()
+	}
+
+	fun render() {
+		val uiRenderer = resources.uiRenderers[frameIndex]
+		uiRenderer.begin(recorder, targetImage)
 
 		val transform = CoordinateTransform.create(SpaceLayout.Simple, targetImage.width, targetImage.height)
 
@@ -25,12 +47,12 @@ class InGameMenuRenderer(
 		val upperBar = transform.transform(0f, 0.92f, 1f, 1f)
 		val lowerBar = transform.transform(0f, 0f, 1f, 0.08f)
 
-		renderer.fillColor(upperBar.minX, upperBar.minY, upperBar.maxX, upperBar.maxY, barColor)
-		renderer.fillColor(lowerBar.minX, lowerBar.minY, lowerBar.maxX, lowerBar.maxY, barColor)
+		uiRenderer.fillColor(upperBar.minX, upperBar.minY, upperBar.maxX, upperBar.maxY, barColor)
+		uiRenderer.fillColor(lowerBar.minX, lowerBar.minY, lowerBar.maxX, lowerBar.maxY, barColor)
 
 		val leftColor = srgbToLinear(rgba(54, 37, 21, 179))
 		val rightColor = srgbToLinear(rgba(132, 84, 53, 179))
-		renderer.fillColor(
+		uiRenderer.fillColor(
 			lowerBar.minX, upperBar.boundY, lowerBar.maxX, lowerBar.minY - 1, barColor,
 			Gradient(
 				0, 0, lowerBar.width, lowerBar.minY - upperBar.boundY,
@@ -40,29 +62,41 @@ class InGameMenuRenderer(
 
 		val area = state.campaign.currentArea
 		if (area != null) {
-			renderer.drawString(
+			uiRenderer.drawString(
 				resources.font, area.area.properties.displayName, srgbToLinear(rgb(238, 203, 127)),
 				IntArray(0), transform.transformX(0.025f), lowerBar.minY, lowerBar.maxX / 2, lowerBar.maxY,
 				transform.transformY(0.025f), transform.transformHeight(0.03f), 1
 			)
 		}
 
-		renderer.drawString(
+		uiRenderer.drawString(
 			resources.font, state.menu.currentTab.getText(), srgbToLinear(rgb(132, 81, 37)),
 			IntArray(0), transform.transformX(0.025f), upperBar.minY, upperBar.maxX / 2, upperBar.maxY,
 			transform.transformY(0.945f), transform.transformHeight(0.035f), 1
 		)
 
-		renderTabName(renderer, transform, "Party", 0)
-		renderTabName(renderer, transform, "Skills", 1)
-		renderTabName(renderer, transform, "Inventory", 2)
-		renderTabName(renderer, transform, "Map", 3)
+		renderTabName(uiRenderer, transform, "Party", 0)
+		renderTabName(uiRenderer, transform, "Skills", 1)
+		renderTabName(uiRenderer, transform, "Inventory", 2)
+		renderTabName(uiRenderer, transform, "Map", 3)
 
-		renderer.end()
+		if (state.menu.currentTab.inside) {
+			val tabNamesRegion = transform.transform(0.79f, 0.08f, 0.21f, 0.92f)
+			val cover = rgba(0, 0, 0, 150)
+			uiRenderer.fillColor(tabNamesRegion.minX, tabNamesRegion.minY, tabNamesRegion.maxX, tabNamesRegion.maxY, cover)
+		}
+
+		tabRenderer.render()
+
+		uiRenderer.endBatch()
+
+		tabRenderer.postUiRendering()
+
+		uiRenderer.end()
 	}
 
 	private fun renderTabName(renderer: UiRenderer, transform: CoordinateTransform, text: String, index: Int) {
-		val rect = transform.transform(0.7f, 0.85f - index * 0.07f, 0.3f, 0.06f)
+		val rect = transform.transform(0.8f, 0.85f - index * 0.07f, 0.3f, 0.06f)
 
 		var goldTint = srgbToLinear(rgba(111, 92, 53, 183))
 		if (text == state.menu.currentTab.getText()) {

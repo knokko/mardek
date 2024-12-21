@@ -24,6 +24,9 @@ class GameRenderer(
 		targetImage: VkbImage, frameIndex: Int
 	) {
 		if (state is StartupState) return
+
+		resources.join().perFrameBuffer.startFrame(frameIndex)
+
 		val renderer = createRenderer(state)
 		renderer.beforeRendering(recorder, targetImage, frameIndex)
 
@@ -35,6 +38,7 @@ class GameRenderer(
 		recorder.beginSimpleDynamicRendering(
 			targetImage.width, targetImage.height, colorAttachments, null, null
 		)
+		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
 		renderer.render(recorder, targetImage, frameIndex)
 

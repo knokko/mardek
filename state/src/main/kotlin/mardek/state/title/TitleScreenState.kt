@@ -44,7 +44,7 @@ class TitleScreenState(private val assets: Campaign): GameState {
 					if (event.key == InputKey.MoveDown && selectedButton < buttons.size) selectedButton += 1
 				}
 
-				if (event.didPress && event.key == InputKey.Interact) {
+				if (event.didPress && (event.key == InputKey.Interact || event.key == InputKey.Click)) {
 					if (selectedButton == 0) {
 						val rawCheckpoint = assets.checkpoints["chapter1"]!!
 						val bitInput = BitInputStream(ByteArrayInputStream(rawCheckpoint))

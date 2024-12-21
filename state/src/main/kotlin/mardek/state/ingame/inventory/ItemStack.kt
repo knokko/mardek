@@ -23,5 +23,9 @@ class ItemStack(
 	@Suppress("unused")
 	private constructor() : this(Item(), 1)
 
-	override fun toString() = if (amount == 1) item.toString() else "$item x $amount"
+	override fun toString() = if (amount == 1) item.toString() else "$item x$amount"
+
+	override fun equals(other: Any?) = other is ItemStack && item === other.item && amount == other.amount
+
+	override fun hashCode() = item.hashCode() - 17 * amount
 }

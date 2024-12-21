@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 
 @BitStruct(backwardCompatible = false)
-class CharacterRace(
+class CreatureType(
 	@BitField(ordering = 0)
 	val flashName: String
 ) {

@@ -5,10 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.combat.Element
-import mardek.assets.combat.PossibleStatusEffect
-import mardek.assets.combat.StatModifier
-import mardek.assets.combat.StatusEffect
+import mardek.assets.combat.*
 
 @BitStruct(backwardCompatible = false)
 class PassiveSkill(
@@ -73,4 +70,12 @@ class PassiveSkill(
 		ArrayList(), ArrayList(), ArrayList(), HashSet(), HashSet(), 0f,
 		0, 0, 0, null
 	)
+
+	fun getModifier(stat: CombatStat): Int {
+		var total = 0
+		for (modifier in statModifiers) {
+			if (modifier.stat == stat) total += modifier.adder
+		}
+		return total
+	}
 }

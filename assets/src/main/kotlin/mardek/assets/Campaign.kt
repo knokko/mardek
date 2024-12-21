@@ -11,6 +11,7 @@ import mardek.assets.characters.PlayableCharacter
 import mardek.assets.combat.CombatAssets
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.skill.SkillAssets
+import mardek.assets.ui.UiSprites
 import java.io.BufferedInputStream
 
 @BitStruct(backwardCompatible = false)
@@ -30,14 +31,17 @@ class Campaign(
 	@BitField(ordering = 4)
 	@ReferenceFieldTarget(label = "playable characters")
 	val playableCharacters: ArrayList<PlayableCharacter>,
-) {
 
 	@BitField(ordering = 5)
+	val ui: UiSprites,
+) {
+
+	@BitField(ordering = 6)
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	val checkpoints = HashMap<String, ByteArray>()
 
 	@Suppress("unused")
-	private constructor() : this(CombatAssets(), SkillAssets(), InventoryAssets(), AreaAssets(), arrayListOf())
+	private constructor() : this(CombatAssets(), SkillAssets(), InventoryAssets(), AreaAssets(), arrayListOf(), UiSprites())
 
 	companion object {
 		fun load(resourcePath: String): Campaign {

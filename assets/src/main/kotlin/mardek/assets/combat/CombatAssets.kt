@@ -20,7 +20,7 @@ class CombatAssets(
 
 	@BitField(ordering = 3)
 	@ReferenceFieldTarget(label = "races")
-	val races: ArrayList<CharacterRace>,
+	val races: ArrayList<CreatureType>,
 
 	@BitField(ordering = 4)
 	@ReferenceFieldTarget(label = "character classes")

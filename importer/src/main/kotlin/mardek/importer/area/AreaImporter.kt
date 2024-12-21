@@ -3,7 +3,7 @@ package mardek.importer.area
 import mardek.assets.area.*
 import mardek.assets.sprite.ArrowSprite
 import mardek.assets.sprite.DirectionalSprites
-import mardek.importer.util.compressSprite
+import mardek.importer.util.compressKimSprite1
 import java.io.File
 import java.util.*
 import javax.imageio.ImageIO
@@ -11,7 +11,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
-fun importAreaAssets(areaFolder: File): AreaAssets {
+fun importAreaAssets(): AreaAssets {
 	val assets = AreaAssets()
 
 	val rawArrowSprites = importObjectSprites("trans_arrows")
@@ -19,6 +19,10 @@ fun importAreaAssets(areaFolder: File): AreaAssets {
 	assets.arrowSprites.add(ArrowSprite("E", rawArrowSprites.frames[1]))
 	assets.arrowSprites.add(ArrowSprite("S", rawArrowSprites.frames[2]))
 	assets.arrowSprites.add(ArrowSprite("W", rawArrowSprites.frames[3]))
+
+	var areaFolder = File("importer")
+	areaFolder = if (areaFolder.isDirectory) File("importer/src/main/resources/mardek/importer/area")
+	else File("src/main/resources/mardek/importer/area")
 
 	val charactersFolder = File("$areaFolder/sheets/character")
 	for (characterSprite in charactersFolder.listFiles()!!) {
@@ -29,7 +33,7 @@ fun importAreaAssets(areaFolder: File): AreaAssets {
 		val numSprites = sheetImage.width / 16
 
 		val sheet = DirectionalSprites(name.substring(0, name.length - 4), (0 until numSprites).map {
-			compressSprite(sheetImage.getSubimage(it * 16, 0, 16, sheetImage.height))
+			compressKimSprite1(sheetImage.getSubimage(it * 16, 0, 16, sheetImage.height))
 		}.toTypedArray())
 		assets.characterSprites.add(sheet)
 	}
@@ -45,7 +49,7 @@ fun importAreaAssets(areaFolder: File): AreaAssets {
 
 	for (parsed in parsedTilesheets) {
 		val tilesheet = Tilesheet(parsed.name)
-		tilesheet.waterSprites.addAll(parsed.waterSprites.map(::compressSprite))
+		tilesheet.waterSprites.addAll(parsed.waterSprites.map(::compressKimSprite1))
 		assets.tilesheets.add(tilesheet)
 
 		val usedTiles = HashSet<Int>()
@@ -58,7 +62,7 @@ fun importAreaAssets(areaFolder: File): AreaAssets {
 		for (tileID in usedTiles) {
 			val parsedTile = parsed.tiles[tileID]!!
 			val tile = Tile(
-					sprites = ArrayList(parsedTile.sprites.map(::compressSprite)),
+					sprites = ArrayList(parsedTile.sprites.map(::compressKimSprite1)),
 					canWalkOn = parsedTile.canWalkOn,
 					waterType = parsedTile.waterType
 			)

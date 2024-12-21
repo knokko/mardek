@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.assets.combat.CombatStat
 import mardek.assets.combat.Element
 import mardek.assets.sprite.KimSprite
 import java.util.*
@@ -49,4 +50,14 @@ class Item(
 	)
 
 	override fun toString() = flashName
+
+	fun getModifier(stat: CombatStat): Int {
+		var total = 0
+		if (equipment != null) {
+			for (modifier in equipment.stats) {
+				if (modifier.stat == stat) total += modifier.adder
+			}
+		}
+		return total
+	}
 }

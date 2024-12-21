@@ -12,7 +12,7 @@ class WeaponType(
 	val soundEffect: String?,
 ) {
 
-	internal constructor() : this("", null)
+	constructor() : this("", null)
 
 	override fun toString() = flashName
 }

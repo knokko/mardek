@@ -4,7 +4,6 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.compressor.Bc1Compressor
 import com.github.knokko.compressor.Bc1Worker
-import mardek.assets.sprite.KimSprite
 import org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
 import java.awt.image.BufferedImage
 import java.io.DataOutputStream
@@ -14,7 +13,6 @@ import javax.imageio.ImageIO
 class UiPacker {
 
 	private val bc1Images = mutableListOf<BufferedImage>()
-	private val kim1Images = mutableListOf<KimSprite>()
 
 	fun addBc1(path: String): Int {
 		val input = UiPacker::class.java.getResourceAsStream(path) ?: throw IllegalArgumentException("Can't find $path")
@@ -26,10 +24,6 @@ class UiPacker {
 		}
 		bc1Images.add(image)
 		return bc1Images.size
-	}
-
-	fun addKim1(sprite: KimSprite) {
-		kim1Images.add(sprite)
 	}
 
 	fun writeDataAndDestroy(boiler: BoilerInstance, output: OutputStream) {

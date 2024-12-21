@@ -14,5 +14,5 @@ class DirectionalSprites(
 
 	override fun toString() = name
 
-	internal constructor() : this("", emptyArray())
+	constructor() : this("", emptyArray())
 }

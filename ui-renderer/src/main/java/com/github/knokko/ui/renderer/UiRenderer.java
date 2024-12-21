@@ -2,6 +2,8 @@ package com.github.knokko.ui.renderer;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.buffers.MappedVkbBuffer;
+import com.github.knokko.boiler.buffers.MappedVkbBufferRange;
+import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.commands.SingleTimeCommands;
 import com.github.knokko.boiler.descriptors.GrowingDescriptorBank;
@@ -20,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Math.toIntExact;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
@@ -35,19 +38,16 @@ public class UiRenderer {
 
 	private final VkbImage dummyImage;
 
+	private final PerFrameBuffer perFrame;
 	private BitmapGlyphsBuffer glyphsBuffer;
 	private MappedVkbBuffer glyphsVkBuffer;
-	private MappedVkbBuffer quadBuffer;
-	private MappedVkbBuffer extraBuffer;
-	private int nextQuad;
-	private int nextExtra;
 	private long currentDescriptorSet;
 
 	private CommandRecorder recorder;
 
 	UiRenderer(
 			BoilerInstance boiler, long imageSampler, long pipelineLayout, long graphicsPipeline,
-			GrowingDescriptorBank baseDescriptorBank, GrowingDescriptorBank imageDescriptorBank
+			GrowingDescriptorBank baseDescriptorBank, GrowingDescriptorBank imageDescriptorBank, PerFrameBuffer perFrame
 	) {
 		this.boiler = boiler;
 		this.pipelineLayout = pipelineLayout;
@@ -55,6 +55,7 @@ public class UiRenderer {
 		this.baseDescriptorBank = baseDescriptorBank;
 		this.baseDescriptorSet = baseDescriptorBank.borrowDescriptorSet("Ui");
 		this.imageDescriptorBank = imageDescriptorBank;
+		this.perFrame = perFrame;
 
 		this.dummyImage = boiler.images.createSimple(
 				1, 1, VK_FORMAT_R8_SRGB, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -70,8 +71,6 @@ public class UiRenderer {
 
 		this.glyphsVkBuffer = boiler.buffers.createMapped(100_000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "GlyphsBuffer");
 		this.glyphsBuffer = new BitmapGlyphsBuffer(glyphsVkBuffer.hostAddress(), (int) glyphsVkBuffer.size());
-		this.quadBuffer = boiler.buffers.createMapped(100_000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "UiQuadBuffer");
-		this.extraBuffer = boiler.buffers.createMapped(20_000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "UiExtraBuffer");
 
 		try (var stack = stackPush()) {
 			var samplerWrite = VkDescriptorImageInfo.calloc(1, stack);
@@ -81,7 +80,7 @@ public class UiRenderer {
 			var descriptorWrites = VkWriteDescriptorSet.calloc(4, stack);
 			boiler.descriptors.writeBuffer(
 					stack, descriptorWrites, baseDescriptorSet, 0,
-					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, quadBuffer.fullRange()
+					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, perFrame.range.range()
 			);
 			boiler.descriptors.writeBuffer(
 					stack, descriptorWrites, baseDescriptorSet, 1,
@@ -89,7 +88,7 @@ public class UiRenderer {
 			);
 			boiler.descriptors.writeBuffer(
 					stack, descriptorWrites, baseDescriptorSet, 2,
-					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, extraBuffer.fullRange()
+					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, perFrame.range.range()
 			);
 			boiler.descriptors.writeImage(descriptorWrites, baseDescriptorSet, 3, VK_DESCRIPTOR_TYPE_SAMPLER, samplerWrite);
 			vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null);
@@ -98,40 +97,23 @@ public class UiRenderer {
 		commands.destroy();
 	}
 
+	private VkbImage targetImage;
+
 	public void begin(CommandRecorder recorder, VkbImage targetImage) {
 		this.recorder = recorder;
 
 		if (glyphsBuffer != null) glyphsBuffer.startFrame();
 		imageDescriptorSets.values().forEach(imageDescriptorBank::returnDescriptorSet);
 		imageDescriptorSets.clear();
-		this.nextQuad = 0;
-		this.nextExtra = 0;
-		this.currentDescriptorSet = VK_NULL_HANDLE;
 
+		this.targetImage = targetImage;
+		this.beginBatch();
+	}
+
+	public void beginBatch() {
+		this.currentDescriptorSet = VK_NULL_HANDLE;
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 		recorder.bindGraphicsDescriptors(pipelineLayout, baseDescriptorSet);
-		recorder.dynamicViewportAndScissor(targetImage.width(), targetImage.height());
-		vkCmdPushConstants(
-				recorder.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-				0, recorder.stack.ints(targetImage.width(), targetImage.height())
-		);
-	}
-
-	private IntBuffer reserveExtra(int amount) {
-		long bytesPerInt = 4L;
-		if ((nextExtra + amount) * bytesPerInt > extraBuffer.size()) throw new RuntimeException("TODO");
-
-		var range = extraBuffer.mappedRange(nextExtra * bytesPerInt, amount * bytesPerInt);
-		nextExtra += amount;
-		return range.intBuffer();
-	}
-
-	private IntBuffer reserveQuads(int amount) {
-		if ((nextQuad + amount) * QUAD_SIZE > quadBuffer.size()) throw new RuntimeException("TODO");
-
-		var range = quadBuffer.mappedRange(nextQuad * QUAD_SIZE, amount * QUAD_SIZE);
-		nextQuad += amount;
-		return range.intBuffer();
 	}
 
 	private long getImageDescriptorSet(VkbImage image) {
@@ -166,7 +148,8 @@ public class UiRenderer {
 		if (height <= 0) return;
 		flushImage(image);
 
-		var renderQuads = reserveQuads(1);
+		var quadRange = perFrame.allocate(QUAD_SIZE, 4);
+		var renderQuads = quadRange.intBuffer();
 		renderQuads.put(minX);
 		renderQuads.put(minY);
 		renderQuads.put(width);
@@ -178,6 +161,7 @@ public class UiRenderer {
 				recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1,
 				recorder.stack.longs(currentDescriptorSet), null
 		);
+		draw(quadRange);
 	}
 
 	public void drawString(
@@ -202,8 +186,8 @@ public class UiRenderer {
 			throw new RuntimeException("TODO");
 		}
 
-		int sharedExtraIndex = nextExtra;
-		IntBuffer sharedExtra = reserveExtra(5 + outlineColors.length + 7 * gradients.length);
+		var sharedExtraRange = perFrame.allocate(4L * (5 + outlineColors.length + 7L * gradients.length), 4);
+		var sharedExtra = sharedExtraRange.intBuffer();
 		sharedExtra.put(color);
 		sharedExtra.put(outlineColors.length);
 		for (int oc : outlineColors) sharedExtra.put(oc);
@@ -213,7 +197,8 @@ public class UiRenderer {
 		sharedExtra.put(gradients.length);
 		for (var gradient : gradients) putGradient(gradient, sharedExtra);
 
-		var renderQuads = reserveQuads(glyphQuads.size());
+		var quadRange = perFrame.allocate(glyphQuads.size() * QUAD_SIZE, 4);
+		var renderQuads = quadRange.intBuffer();
 		for (var quad : glyphQuads) {
 			renderQuads.put(quad.minX);
 			renderQuads.put(quad.minY);
@@ -221,15 +206,16 @@ public class UiRenderer {
 			renderQuads.put(quad.getHeight());
 			renderQuads.put(2);
 
-			int extraIndex = nextExtra;
-			IntBuffer extra = reserveExtra(4);
+			var extraRange = perFrame.allocate(16L, 4L);
+			var extra = extraRange.intBuffer();
 			extra.put(quad.bufferIndex);
 			extra.put(quad.sectionWidth);
 			extra.put(quad.scale);
-			extra.put(sharedExtraIndex);
+			extra.put(toIntExact(sharedExtraRange.offset() / 4));
 
-			renderQuads.put(extraIndex);
+			renderQuads.put(toIntExact(extraRange.offset() / 4));
 		}
+		draw(quadRange);
 	}
 
 	private void putGradient(Gradient gradient, IntBuffer extra) {
@@ -244,37 +230,51 @@ public class UiRenderer {
 
 	public void fillColor(int minX, int minY, int maxX, int maxY, int color, Gradient... gradients) {
 		if (maxX < minX || maxY < minY) return;
-		var renderQuad = reserveQuads(1);
+		var quadRange = perFrame.allocate(QUAD_SIZE, 4);
+		var renderQuad = quadRange.intBuffer();
 
-		int extraIndex = nextExtra;
-		var extra = reserveExtra(2 + 7 * gradients.length);
+		var extraRange = perFrame.allocate(4L * (2 + 7L * gradients.length), 4L);
+		var extra = extraRange.intBuffer();
 
 		renderQuad.put(minX);
 		renderQuad.put(minY);
 		renderQuad.put(1 + maxX - minX);
 		renderQuad.put(1 + maxY - minY);
 		renderQuad.put(3);
-		renderQuad.put(extraIndex);
+		renderQuad.put(toIntExact(extraRange.offset() / 4));
 
 		extra.put(color);
 		extra.put(gradients.length);
 		for (var gradient : gradients) putGradient(gradient, extra);
+
+		draw(quadRange);
 	}
 
-	public void end() {
+	private void draw(MappedVkbBufferRange quads) {
+		// TODO Batch draws?
 		if (currentDescriptorSet == VK_NULL_HANDLE) {
 			vkCmdBindDescriptorSets(
 					recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1,
 					recorder.stack.longs(getImageDescriptorSet(dummyImage)), null
 			);
 		}
-		if (nextQuad > 0) vkCmdDraw(recorder.commandBuffer, 6 * nextQuad, 1, 0, 0);
+		vkCmdPushConstants(
+				recorder.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				0, recorder.stack.ints(toIntExact(quads.offset() / 4), targetImage.width(), targetImage.height())
+		);
+		vkCmdDraw(recorder.commandBuffer, 6 * toIntExact(quads.size() / QUAD_SIZE), 1, 0, 0);
+	}
+
+	public void endBatch() {
+
+	}
+
+	public void end() {
+
 	}
 
 	public void destroy() {
 		glyphsVkBuffer.destroy(boiler);
-		quadBuffer.destroy(boiler);
-		extraBuffer.destroy(boiler);
 		dummyImage.destroy(boiler);
 		fonts.values().forEach(FontResources::destroy);
 		baseDescriptorBank.returnDescriptorSet(baseDescriptorSet);

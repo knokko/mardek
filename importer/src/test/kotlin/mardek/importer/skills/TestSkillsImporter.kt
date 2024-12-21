@@ -19,7 +19,7 @@ class TestSkillsImporter {
 	@BeforeAll
 	fun importSkills() {
 		combatAssets = importCombatAssets()
-		skillAssets = importSkills(combatAssets, "mardek/importer/combat/skills.txt")
+		skillAssets = importSkills(combatAssets)
 	}
 
 	private fun getAction(className: String, skillName: String): ActiveSkill {
@@ -508,7 +508,7 @@ class TestSkillsImporter {
 
 		assertEquals(1, quarry.effectiveAgainst.size)
 		val beast = quarry.effectiveAgainst[0]
-		assertEquals("BEAST", beast.race.flashName)
+		assertEquals("BEAST", beast.type.flashName)
 		assertEquals(0.5f, beast.bonusFraction, margin)
 
 		assertEquals("DARK", quarry.element.properName)

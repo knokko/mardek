@@ -65,12 +65,12 @@ fun main(args: Array<String>) {
 		if (args.contains("cpu")) boilerBuilder.physicalDeviceSelector(SimpleDeviceSelector(VK_PHYSICAL_DEVICE_TYPE_CPU))
 		val boiler = GameRenderer.addBoilerRequirements(boilerBuilder).build()
 		getBoiler.complete(boiler)
+		getTargetImageFormat.complete(boiler.window().surfaceFormat)
 		boiler
 	} catch (failed: Throwable) {
 		getBoiler.completeExceptionally(failed)
 		throw failed
 	}
-	getTargetImageFormat.complete(boiler.window().surfaceFormat)
 	println("Created boiler after ${(System.nanoTime() - startTime) / 1_000_000} ms")
 
 	Thread {

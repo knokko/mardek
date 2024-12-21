@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StringField
+import mardek.assets.sprite.KimSprite
 
 @BitStruct(backwardCompatible = false)
 class Element(
@@ -20,12 +21,19 @@ class Element(
 	val primaryChar: String,
 
 	@BitField(ordering = 3)
-	val properName: String = rawName
+	val properName: String = rawName,
+
+	@BitField(ordering = 4)
+	@IntegerField(expectUniform = true)
+	val color: Int,
+
+	@BitField(ordering = 5)
+	val sprite: KimSprite,
 ) {
 
-	internal constructor() : this("", null, "")
+	constructor() : this("", null, "", "", 0, KimSprite())
 
-	@BitField(ordering = 4, optional = true)
+	@BitField(ordering = 6, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	var weakAgainst: Element? = null
 		private set

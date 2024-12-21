@@ -1,7 +1,6 @@
 package mardek.importer.skills
 
 import mardek.assets.combat.CombatAssets
-import mardek.assets.combat.Element
 import mardek.assets.combat.PossibleStatusEffect
 import mardek.assets.skill.*
 import mardek.importer.area.parseFlashString
@@ -74,7 +73,7 @@ private fun parseReactionSkill(
 	val elementalBonuses = ArrayList<ElementalDamageBonus>()
 	val addStatusEffects = ArrayList<PossibleStatusEffect>()
 	val removeStatusEffects = ArrayList<PossibleStatusEffect>()
-	val effectiveAgainst = ArrayList<RaceDamageBonus>()
+	val effectiveAgainst = ArrayList<CreatureTypeBonus>()
 
 	fun parseStatusEffects(raw: String?, dest: MutableList<PossibleStatusEffect>) {
 		if (raw != null) {
@@ -95,7 +94,7 @@ private fun parseReactionSkill(
 		val raceMap = parseActionScriptObject(rawRaceBonus)
 		for ((raceName, rawModifier) in raceMap) {
 			val race = combatAssets.races.find { it.flashName == raceName }!!
-			effectiveAgainst.add(RaceDamageBonus(race, parseFloat(rawModifier)))
+			effectiveAgainst.add(CreatureTypeBonus(race, parseFloat(rawModifier)))
 		}
 	}
 

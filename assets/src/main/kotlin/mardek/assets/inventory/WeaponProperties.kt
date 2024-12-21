@@ -6,7 +6,8 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.combat.PossibleStatusEffect
-import mardek.assets.skill.RaceDamageBonus
+import mardek.assets.skill.ElementalDamageBonus
+import mardek.assets.skill.CreatureTypeBonus
 
 @BitStruct(backwardCompatible = false)
 class WeaponProperties(
@@ -27,18 +28,21 @@ class WeaponProperties(
 	val hpDrain: Float,
 
 	@BitField(ordering = 4)
-	val raceBonuses: ArrayList<RaceDamageBonus>,
+	val effectiveAgainstCreatureTypes: ArrayList<CreatureTypeBonus>,
 
 	@BitField(ordering = 5)
+	val effectiveAgainstElements: ArrayList<ElementalDamageBonus>,
+
+	@BitField(ordering = 6)
 	val addEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 6, optional = true)
+	@BitField(ordering = 7, optional = true)
 	val hitSound: String?, // TODO Turn into reference
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(
-			WeaponType(), 0, 0, 0f,
+			WeaponType(), 0, 0, 0f, ArrayList(0),
 			ArrayList(0), ArrayList(0), ""
 	)
 }

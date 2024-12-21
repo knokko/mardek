@@ -59,7 +59,7 @@ class MardekGlfwInput(private val glfwWindow: Long, private val input: InputMana
 
 		glfwSetMouseButtonCallback(glfwWindow) { _, button, action, _ ->
 			if (button == GLFW_MOUSE_BUTTON_LEFT) input.postEvent(InputKeyEvent(
-				InputKey.Interact, action == GLFW_PRESS, false, action == GLFW_RELEASE
+				InputKey.Click, action == GLFW_PRESS, false, action == GLFW_RELEASE
 			))
 		}
 

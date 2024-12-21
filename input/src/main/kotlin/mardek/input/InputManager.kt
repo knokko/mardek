@@ -13,7 +13,7 @@ class InputManager {
 		eventQueue.add(event)
 	}
 
-	fun consumeEvent() = eventQueue.poll()
+	fun consumeEvent(): Event? = eventQueue.poll()
 
 	fun isPressed(key: InputKey) = pressedKeys.get(key.ordinal) == 1
 }

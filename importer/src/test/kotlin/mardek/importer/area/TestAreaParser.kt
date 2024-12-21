@@ -4,11 +4,10 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.area.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import java.io.File
 
 class TestAreaParser {
 
-	private val assets = importAreaAssets(File("src/main/resources/mardek/importer/area"))
+	private val assets = importAreaAssets()
 
 	@Test
 	fun testParseAeropolisNorth() {

@@ -97,7 +97,7 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseTransitionWithArrowWithoutDirection() {
-		assets.arrowSprites.add(ArrowSprite("S", KimSprite(null)))
+		assets.arrowSprites.add(ArrowSprite("S", KimSprite()))
 		val actual = parseAreaEntityRaw(
 			"{name:\"EXIT\",model:\"area_transition\",x:3,y:7,dest:[\"aeropolis_E\",22,24],ARROW:\"S\"}"
 		)
@@ -629,7 +629,7 @@ class TestAreaEntityParser {
 	}
 
 	private fun switchColor(name: String): SwitchColor {
-		val color = SwitchColor(name, KimSprite(null), KimSprite(null), KimSprite(null), KimSprite(null))
+		val color = SwitchColor(name, KimSprite(), KimSprite(), KimSprite(), KimSprite())
 		assets.switchColors.add(color)
 		return color
 	}

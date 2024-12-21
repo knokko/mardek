@@ -7,7 +7,7 @@ class SoundQueue {
 	private val internal = ArrayBlockingQueue<String>(1)
 
 	fun insert(sound: String) {
-		internal.add(sound)
+		internal.offer(sound)
 	}
 
 	fun take(): String? = internal.poll()

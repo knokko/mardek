@@ -60,7 +60,7 @@ class ReactionSkill(
 	val removeStatusEffects: ArrayList<PossibleStatusEffect>,
 
 	@BitField(ordering = 12)
-	val effectiveAgainst: ArrayList<RaceDamageBonus>,
+	val effectiveAgainst: ArrayList<CreatureTypeBonus>,
 
 	@BitField(ordering = 13)
 	val smitePlus: Boolean,

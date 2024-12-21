@@ -12,6 +12,7 @@ import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.math.roundToInt
 
 internal fun importItems(
 		combatAssets: CombatAssets, skillAssets: SkillAssets, assets: InventoryAssets, rawItems: String
@@ -50,6 +51,7 @@ private fun parseEquipment(
 	val elementalBonuses = ArrayList<ElementalDamageBonus>(0)
 	val elementalResistances = ArrayList<ElementalDamageBonus>(0)
 	val statusResistances = ArrayList<PossibleStatusEffect>(0)
+	var charismaticPerformanceChance = 0
 
 	val rawEffects = rawItem["effects"]
 	if (rawEffects != null) {
@@ -92,6 +94,11 @@ private fun parseEquipment(
 				val statusEffect = combatAssets.statusEffects.find { it.flashName == statusName }!!
 				statusResistances.add(PossibleStatusEffect(statusEffect, parseInt(effectPair[2] as String)))
 			}
+
+			if (rawName == "CHARISMATIC") {
+				val modifier = parseFloat(effectPair[1] as String)
+				charismaticPerformanceChance += (100f * modifier).roundToInt()
+			}
 		}
 	}
 
@@ -103,23 +110,24 @@ private fun parseEquipment(
 
 	var rawArmorType = rawItem["amrType"]
 	if (rawArmorType == "3") rawArmorType = "\"Ar3\""
-	val armor = if (rawArmorType != null) ArmorProperties(
-			type = assets.armorTypes.find { it.key == parseFlashString(rawArmorType, "armor type") }!!
-	) else null
+	val armorType = if (rawArmorType != null) assets.armorTypes.find {
+		it.key == parseFlashString(rawArmorType, "armor type")
+	}!! else null
 
 	val rawOnlyUser = rawItem["only_user"]
 
 	return EquipmentProperties(
-			skills = parseSkills(skillAssets, rawItem["skills"]),
-			stats = stats,
-			elementalBonuses = elementalBonuses,
-			elementalResistances = elementalResistances,
-			statusResistances = statusResistances,
-			autoEffects = autoEffects,
-			weapon = parseWeaponProperties(combatAssets, assets, rawItem),
-			armor = armor,
-			gem = parseGemProperties(combatAssets, rawItem),
-			onlyUser = if (rawOnlyUser != null) parseFlashString(rawOnlyUser, "only_user")!! else null
+		skills = parseSkills(skillAssets, rawItem["skills"]),
+		stats = stats,
+		elementalBonuses = elementalBonuses,
+		elementalResistances = elementalResistances,
+		statusResistances = statusResistances,
+		autoEffects = autoEffects,
+		weapon = parseWeaponProperties(combatAssets, assets, rawItem),
+		armorType = armorType,
+		gem = parseGemProperties(combatAssets, rawItem),
+		onlyUser = if (rawOnlyUser != null) parseFlashString(rawOnlyUser, "only_user")!! else null,
+		charismaticPerformanceChance = charismaticPerformanceChance,
 	)
 }
 
@@ -136,13 +144,7 @@ private fun parseSkills(skillAssets: SkillAssets, rawSkills: String?): ArrayList
 				if (skillName == "Absorb MP") skills.add(skillAssets.reactionSkills.find { it.name == skillName }!!)
 				else skills.add(skillAssets.passiveSkills.find { it.name == skillName }!!)
 			} else if (rawCategory.startsWith("R:")) {
-				val reactionType = when (rawCategory) {
-					"R:P_ATK" -> ReactionSkillType.MeleeAttack
-					"R:P_DEF" -> ReactionSkillType.MeleeDefense
-					"R:M_ATK" -> ReactionSkillType.RangedAttack
-					"R:M_DEF" -> ReactionSkillType.RangedDefense
-					else -> throw ItemParseException("Unknown skill category $rawCategory")
-				}
+				val reactionType = ReactionSkillType.fromString(rawCategory.substring(2))
 				skills.add(skillAssets.reactionSkills.find {
 					it.type == reactionType && it.name == skillName
 				}!!)
@@ -162,13 +164,23 @@ private fun parseWeaponProperties(
 	val rawWeaponType = rawItem["wpnType"] ?: return null
 	val weaponType = assets.weaponTypes.find { it.flashName == parseFlashString(rawWeaponType, "weapon type") }!!
 
-	val raceBonuses = ArrayList<RaceDamageBonus>(0)
+	val creatureBonuses = ArrayList<CreatureTypeBonus>(0)
 	val rawRaceBonuses = rawItem["typeBonus"]
 	if (rawRaceBonuses != null) {
 		for ((rawRace, rawBonus) in parseActionScriptObject(rawRaceBonuses)) {
 			val race = combatAssets.races.find { it.flashName == rawRace }!!
 			val bonusFraction = parseInt(rawBonus) - 1f
-			raceBonuses.add(RaceDamageBonus(race, bonusFraction))
+			creatureBonuses.add(CreatureTypeBonus(race, bonusFraction))
+		}
+	}
+
+	val elementalBonuses = ArrayList<ElementalDamageBonus>(0)
+	val rawElementalBonuses = rawItem["elemBonus"]
+	if (rawElementalBonuses != null) {
+		for ((rawElement, rawBonus) in parseActionScriptObject(rawElementalBonuses)) {
+			val element = combatAssets.elements.find { it.rawName == rawElement }!!
+			val modifier = parseFloat(rawBonus) - 1f
+			elementalBonuses.add(ElementalDamageBonus(element, modifier))
 		}
 	}
 
@@ -184,13 +196,14 @@ private fun parseWeaponProperties(
 	val rawSound = rawItem["hit_sfx"]
 
 	return WeaponProperties(
-			type = weaponType,
-			critChance = parseInt(rawItem["critical"]),
-			hitChance = parseInt(rawItem["hit"]),
-			hpDrain = if (rawItem["HP_DRAIN"] == "true") 1f else 0f,
-			raceBonuses = raceBonuses,
-			addEffects = addEffects,
-			hitSound = if (rawSound != null) parseFlashString(rawSound, "weapon hit sound")!! else null,
+		type = weaponType,
+		critChance = parseInt(rawItem["critical"]),
+		hitChance = parseInt(rawItem["hit"]),
+		hpDrain = if (rawItem["HP_DRAIN"] == "true") 1f else 0f,
+		effectiveAgainstCreatureTypes = creatureBonuses,
+		effectiveAgainstElements = elementalBonuses,
+		addEffects = addEffects,
+		hitSound = if (rawSound != null) parseFlashString(rawSound, "weapon hit sound")!! else null,
 	)
 }
 

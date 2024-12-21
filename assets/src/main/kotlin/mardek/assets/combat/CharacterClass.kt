@@ -28,7 +28,7 @@ class CharacterClass(
 	val armorTypes: ArrayList<ArmorType>,
 ) {
 
-	internal constructor() : this("", "", SkillClass(), WeaponType(), ArrayList(0))
+	constructor() : this("", "", SkillClass(), WeaponType(), ArrayList(0))
 
 	override fun toString() = displayName
 }

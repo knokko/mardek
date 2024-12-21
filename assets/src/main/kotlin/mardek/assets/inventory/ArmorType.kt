@@ -10,9 +10,12 @@ class ArmorType(
 
 	@BitField(ordering = 1)
 	val name: String,
+
+	@BitField(ordering = 2)
+	val slot: EquipmentSlotType,
 ) {
 
-	internal constructor() : this("", "")
+	constructor() : this("", "", EquipmentSlotType.Body)
 
 	override fun toString() = "$name ($key)"
 }

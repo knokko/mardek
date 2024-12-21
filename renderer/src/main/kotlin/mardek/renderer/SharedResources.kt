@@ -2,6 +2,7 @@ package mardek.renderer
 
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
+import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.synchronization.ResourceUsage
@@ -11,6 +12,9 @@ import com.github.knokko.text.font.UnicodeFonts
 import com.github.knokko.ui.renderer.UiRenderInstance
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.area.*
+import mardek.renderer.batch.Kim2Renderer
+import mardek.renderer.batch.Kim1Renderer
+import mardek.renderer.batch.SpriteManager
 import org.lwjgl.vulkan.VK10.*
 import java.io.BufferedInputStream
 import java.io.DataInputStream
@@ -23,12 +27,16 @@ class SharedResources(
 
 	private val boiler: BoilerInstance
 	val areaMap = mutableMapOf<UUID, AreaRenderPair>()
-	lateinit var kimRenderer: KimRenderer
+	lateinit var spriteManager: SpriteManager
+	lateinit var kim1Renderer: Kim1Renderer
+	lateinit var kim2Renderer: Kim2Renderer
 
 	private val textInstance: TextInstance
 	val font: FontData
 	private val uiInstance: UiRenderInstance
 	val uiRenderers: List<UiRenderer>
+
+	val perFrameBuffer: PerFrameBuffer
 
 	lateinit var bc1Images: List<VkbImage>
 
@@ -38,6 +46,9 @@ class SharedResources(
 		font = FontData(textInstance, UnicodeFonts.SOURCE)
 		println("Creating font took ${(System.nanoTime() - startTime) / 1000_000} ms")
 		boiler = getBoiler.join()
+		perFrameBuffer = PerFrameBuffer(boiler.buffers.createMapped(
+			1000_000L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT or VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "PerFrameBuffer"
+		).fullMappedRange())
 
 		val areaThread = Thread {
 			val areaInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
@@ -58,10 +69,23 @@ class SharedResources(
 
 		val kimThread = Thread {
 			val kimInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
-				"mardek/game/kim1-sprites.bin"
+				"mardek/game/kim-sprites.bin"
 			)!!))
-			this.kimRenderer = KimRenderer(
-				boiler, targetImageFormat = targetImageFormat.join(), framesInFlight = framesInFlight, spriteInput = kimInput
+			val spriteManager = SpriteManager(boiler, kimInput)
+			kimInput.close()
+			this.spriteManager = spriteManager
+			this.kim1Renderer = Kim1Renderer(
+				boiler,
+				perFrameBuffer = perFrameBuffer,
+				spriteBuffer = spriteManager.spriteBuffer,
+				targetImageFormat = targetImageFormat.join(),
+				framesInFlight = framesInFlight,
+			)
+			this.kim2Renderer = Kim2Renderer(
+				boiler,
+				perFrameBuffer = perFrameBuffer,
+				spriteBuffer = spriteManager.spriteBuffer,
+				targetImageFormat = targetImageFormat.join()
 			)
 		}
 		kimThread.start()
@@ -115,7 +139,7 @@ class SharedResources(
 		bcThread.start()
 
 		uiInstance = UiRenderInstance.withDynamicRendering(boiler, 0, targetImageFormat.join())
-		uiRenderers = (0 until framesInFlight).map { uiInstance.createRenderer() }
+		uiRenderers = (0 until framesInFlight).map { uiInstance.createRenderer(perFrameBuffer) }
 		kimThread.join()
 		bcThread.join()
 		areaThread.join()
@@ -124,11 +148,14 @@ class SharedResources(
 	}
 
 	fun destroy() {
-		kimRenderer.destroy()
+		kim1Renderer.destroy()
+		kim2Renderer.destroy()
 		for (renderer in uiRenderers) renderer.destroy()
 		for (image in bc1Images) image.destroy(boiler)
 		uiInstance.destroy()
 		font.destroy()
 		textInstance.destroy()
+		perFrameBuffer.range.buffer.destroy(boiler)
+		spriteManager.destroy(boiler)
 	}
 }

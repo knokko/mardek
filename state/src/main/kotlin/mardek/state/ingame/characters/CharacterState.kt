@@ -5,10 +5,14 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.assets.combat.CombatStat
+import mardek.assets.combat.StatModifier
 import mardek.assets.combat.StatusEffect
 import mardek.assets.inventory.Item
+import mardek.assets.skill.PassiveSkill
 import mardek.assets.skill.Skill
 import mardek.state.ingame.inventory.ItemStack
+import kotlin.math.roundToInt
 
 @BitStruct(backwardCompatible = false)
 class CharacterState {
@@ -46,6 +50,42 @@ class CharacterState {
 	@BitField(ordering = 7)
 	@ReferenceField(stable = true, label = "skills")
 	val toggledSkills = HashSet<Skill>()
+
+	fun determineValue(base: List<StatModifier>, stat: CombatStat): Int {
+		var total = 0
+		for (modifier in base) {
+			if (modifier.stat == stat) total += modifier.adder
+		}
+		for (item in equipment) {
+			if (item != null) total += item.getModifier(stat)
+		}
+		for (skill in toggledSkills) {
+			if (skill is PassiveSkill) total += skill.getModifier(stat)
+		}
+		// TODO Allow status effects to modify DEF
+
+		return total
+	}
+
+	fun determineMaxHealth(base: List<StatModifier>, allStats: List<CombatStat>): Int {
+		val vit = determineValue(base, allStats.find { it.flashName == "VIT" }!!)
+		val extra = determineValue(base, allStats.find { it.flashName == "hp" }!!)
+		var hpModifier = 0f
+		for (skill in toggledSkills) {
+			if (skill is PassiveSkill) hpModifier += skill.hpModifier
+		}
+		return ((1f + hpModifier) * (3 * vit + 2 * vit * currentLevel + extra)).roundToInt()
+	}
+
+	fun determineMaxMana(base: List<StatModifier>, allStats: List<CombatStat>): Int {
+		val spr = determineValue(base, allStats.find { it.flashName == "SPR" }!!)
+		val extra = determineValue(base, allStats.find { it.flashName == "mp" }!!)
+		var mpModifier = 0f
+		for (skill in toggledSkills) {
+			if (skill is PassiveSkill) mpModifier += skill.mpModifier
+		}
+		return ((1f + mpModifier) * (spr * 17 / 6 + spr * currentLevel / 6 + extra)).roundToInt()
+	}
 
 	companion object {
 
