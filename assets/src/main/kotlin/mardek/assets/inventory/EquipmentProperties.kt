@@ -36,7 +36,8 @@ class EquipmentProperties(
 	val weapon: WeaponProperties?,
 
 	@BitField(ordering = 7, optional = true)
-	val armor: ArmorProperties?,
+	@ReferenceField(stable = false, label = "armor types")
+	val armorType: ArmorType?,
 
 	@BitField(ordering = 8, optional = true)
 	val gem: GemProperties?,
@@ -44,6 +45,12 @@ class EquipmentProperties(
 	@BitField(ordering = 9, optional = true)
 	val onlyUser: String?, // TODO Use playable character reference
 ) {
+
+	fun getSlotType(): EquipmentSlotType {
+		if (weapon != null) return EquipmentSlotType.MainHand
+		if (armorType == null) return EquipmentSlotType.Accessory
+		return armorType.slot
+	}
 
 	@Suppress("unused")
 	private constructor() : this(

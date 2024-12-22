@@ -2,6 +2,7 @@ package mardek.state.ingame
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.Campaign
@@ -28,10 +29,14 @@ class CampaignState(
 	@BitField(ordering = 2)
 	@NestedFieldSetting(path = "k", fieldName = "CHARACTER_STATES_KEY")
 	val characterStates: HashMap<PlayableCharacter, CharacterState>,
+
+	@BitField(ordering = 3)
+	@IntegerField(expectUniform = false, minValue = 0)
+	var gold: Int,
 ) {
 
 	@Suppress("unused")
-	private constructor() : this(null, CharacterSelectionState(), HashMap())
+	private constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
 	var shouldOpenMenu = false
 

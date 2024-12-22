@@ -4,12 +4,13 @@ import mardek.assets.combat.CombatAssets
 import mardek.assets.skill.SkillAssets
 import mardek.importer.util.parseActionScriptResource
 
-fun importSkills(combatAssets: CombatAssets, resourcePath: String): SkillAssets {
-	val skillsCode = parseActionScriptResource(resourcePath)
+fun importSkills(combatAssets: CombatAssets): SkillAssets {
+	val skillsCode = parseActionScriptResource("mardek/importer/combat/skills.txt")
 
 	val skillClasses = ArrayList(parseSkillClasses(
 		combatAssets, skillsCode.variableAssignments["techInfo"]!!,
 		skillsCode.variableAssignments["MONSTER_SKILLS"]!!,
+		skillsCode.variableAssignments["TechSpriteMappings"]!!
 	))
 	val sirenSongs = ArrayList(parseSirenSongs(skillsCode.variableAssignments["SIREN_SONGS"]!!))
 	val skillAssets = SkillAssets(

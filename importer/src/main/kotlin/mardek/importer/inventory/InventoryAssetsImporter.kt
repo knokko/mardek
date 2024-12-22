@@ -6,10 +6,8 @@ import mardek.assets.skill.SkillAssets
 import mardek.importer.util.compressSprite
 import mardek.importer.util.parseActionScriptResource
 
-fun importInventoryAssets(
-	combatAssets: CombatAssets, skillAssets: SkillAssets, resourcePath: String
-): InventoryAssets {
-	val itemData = parseActionScriptResource(resourcePath)
+fun importInventoryAssets(combatAssets: CombatAssets, skillAssets: SkillAssets): InventoryAssets {
+	val itemData = parseActionScriptResource("mardek/importer/inventory/data.txt")
 	val weaponSheet = sheet("weapons")
 	val armorSheet = sheet("armour")
 	val miscSheet = sheet("misc")
@@ -26,7 +24,7 @@ fun importInventoryAssets(
 		}
 	}
 	for ((rowIndex, armorType) in arrayOf("Sh", "Ar0", "Ar1", "Ar2", "Ar3", "ArR", "ArM", "ArS").withIndex()) {
-		for ((columnIndex, item) in assets.items.filter { it.equipment?.armor?.type?.key == armorType }.withIndex()) {
+		for ((columnIndex, item) in assets.items.filter { it.equipment?.armorType?.key == armorType }.withIndex()) {
 			item.sprite = compressSprite(armorSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
 		}
 	}

@@ -11,7 +11,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
-fun importAreaAssets(areaFolder: File): AreaAssets {
+fun importAreaAssets(): AreaAssets {
 	val assets = AreaAssets()
 
 	val rawArrowSprites = importObjectSprites("trans_arrows")
@@ -19,6 +19,10 @@ fun importAreaAssets(areaFolder: File): AreaAssets {
 	assets.arrowSprites.add(ArrowSprite("E", rawArrowSprites.frames[1]))
 	assets.arrowSprites.add(ArrowSprite("S", rawArrowSprites.frames[2]))
 	assets.arrowSprites.add(ArrowSprite("W", rawArrowSprites.frames[3]))
+
+	var areaFolder = File("importer")
+	areaFolder = if (areaFolder.isDirectory) File("importer/src/main/resources/mardek/importer/area")
+	else File("src/main/resources/mardek/importer/area")
 
 	val charactersFolder = File("$areaFolder/sheets/character")
 	for (characterSprite in charactersFolder.listFiles()!!) {

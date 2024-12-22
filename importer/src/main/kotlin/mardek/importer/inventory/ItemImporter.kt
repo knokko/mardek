@@ -103,9 +103,9 @@ private fun parseEquipment(
 
 	var rawArmorType = rawItem["amrType"]
 	if (rawArmorType == "3") rawArmorType = "\"Ar3\""
-	val armor = if (rawArmorType != null) ArmorProperties(
-			type = assets.armorTypes.find { it.key == parseFlashString(rawArmorType, "armor type") }!!
-	) else null
+	val armorType = if (rawArmorType != null) assets.armorTypes.find {
+		it.key == parseFlashString(rawArmorType, "armor type")
+	}!! else null
 
 	val rawOnlyUser = rawItem["only_user"]
 
@@ -117,7 +117,7 @@ private fun parseEquipment(
 			statusResistances = statusResistances,
 			autoEffects = autoEffects,
 			weapon = parseWeaponProperties(combatAssets, assets, rawItem),
-			armor = armor,
+			armorType = armorType,
 			gem = parseGemProperties(combatAssets, rawItem),
 			onlyUser = if (rawOnlyUser != null) parseFlashString(rawOnlyUser, "only_user")!! else null
 	)
@@ -136,13 +136,7 @@ private fun parseSkills(skillAssets: SkillAssets, rawSkills: String?): ArrayList
 				if (skillName == "Absorb MP") skills.add(skillAssets.reactionSkills.find { it.name == skillName }!!)
 				else skills.add(skillAssets.passiveSkills.find { it.name == skillName }!!)
 			} else if (rawCategory.startsWith("R:")) {
-				val reactionType = when (rawCategory) {
-					"R:P_ATK" -> ReactionSkillType.MeleeAttack
-					"R:P_DEF" -> ReactionSkillType.MeleeDefense
-					"R:M_ATK" -> ReactionSkillType.RangedAttack
-					"R:M_DEF" -> ReactionSkillType.RangedDefense
-					else -> throw ItemParseException("Unknown skill category $rawCategory")
-				}
+				val reactionType = ReactionSkillType.fromString(rawCategory.substring(2))
 				skills.add(skillAssets.reactionSkills.find {
 					it.type == reactionType && it.name == skillName
 				}!!)

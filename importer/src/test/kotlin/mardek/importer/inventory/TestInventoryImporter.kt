@@ -4,6 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.compressor.Kim1Decompressor
 import mardek.assets.combat.CombatAssets
 import mardek.assets.inventory.EquipmentProperties
+import mardek.assets.inventory.EquipmentSlotType
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.inventory.Item
 import mardek.assets.skill.*
@@ -56,8 +57,8 @@ class TestInventoryImporter {
 	@BeforeAll
 	fun importItems() {
 		combatAssets = importCombatAssets()
-		skillAssets = importSkills(combatAssets, "mardek/importer/combat/skills.txt")
-		inventoryAssets = importInventoryAssets(combatAssets, skillAssets, "mardek/importer/inventory/data.txt")
+		skillAssets = importSkills(combatAssets)
+		inventoryAssets = importInventoryAssets(combatAssets, skillAssets)
 	}
 
 	@Test
@@ -142,7 +143,8 @@ class TestInventoryImporter {
 		assertEquals(6, getStatModifier("DEF", equipment))
 		assertEquals(3, getStatModifier("MDEF", equipment))
 		assertEquals(20000, helmet.cost)
-		assertEquals("FULL HELM", equipment.armor!!.type.name)
+		assertEquals("FULL HELM", equipment.armorType!!.name)
+		assertEquals(EquipmentSlotType.Head, equipment.getSlotType())
 
 		assertEquals(1, getStatModifier("STR", equipment))
 		assertEquals(1, getStatModifier("VIT", equipment))
@@ -175,9 +177,10 @@ class TestInventoryImporter {
 	fun testSilverPendant() {
 		val pendant = getItem("SilverPendant")
 		val equipment = pendant.equipment!!
-		assertNull(equipment.armor)
+		assertNull(equipment.armorType)
 		assertNull(equipment.weapon)
 		assertNull(pendant.consumable)
+		assertEquals(EquipmentSlotType.Accessory, equipment.getSlotType())
 
 		assertEquals(1, equipment.stats.size)
 		assertEquals(3, getStatModifier("MDEF", equipment))
@@ -229,6 +232,7 @@ class TestInventoryImporter {
 		assertEquals("gems", aquamarine.type.flashName)
 		assertEquals(800, aquamarine.cost)
 		assertEquals("WATER", aquamarine.element!!.properName)
+		assertEquals(EquipmentSlotType.Accessory, equipment.getSlotType())
 
 		assertEquals(1, equipment.elementalResistances.size)
 		assertEquals(aquamarine.element, equipment.elementalResistances[0].element)

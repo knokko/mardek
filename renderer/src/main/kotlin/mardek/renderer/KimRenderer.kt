@@ -106,7 +106,7 @@ class KimRenderer(
 			val vertexAttributes = VkVertexInputAttributeDescription.calloc(5, stack)
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SINT, 0)
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_UINT, 8)
-			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_SINT, 16)
+			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_SFLOAT, 16)
 			vertexAttributes.get(3).set(3, 0, VK_FORMAT_R32_SINT, 20)
 			vertexAttributes.get(4).set(4, 0, VK_FORMAT_R32_SFLOAT, 24)
 
@@ -262,7 +262,7 @@ class KimRenderer(
 		).byteBuffer()
 		for (request in batch.requests) {
 			vertexBuffer.putInt(request.x).putInt(request.y)
-			vertexBuffer.putInt(request.sprite.width).putInt(request.sprite.height).putInt(request.scale)
+			vertexBuffer.putInt(request.sprite.width).putInt(request.sprite.height).putFloat(request.scale)
 			vertexBuffer.putInt(offsetMap[request.sprite.offset]!!).putFloat(request.opacity)
 		}
 		vkCmdDraw(
@@ -304,7 +304,7 @@ class KimRenderer(
 	}
 }
 
-class KimRequest(val x: Int, val y: Int, val scale: Int, val sprite: KimSprite, val opacity: Float)
+class KimRequest(val x: Int, val y: Int, val scale: Float, val sprite: KimSprite, val opacity: Float)
 
 class KimBatch {
 	val requests = ArrayList<KimRequest>()

@@ -17,6 +17,7 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 	private val menuOpen = manager.add("3_sfx_menuOpen.ogg")
 	private val clickConfirm = manager.add("4_sfx_menuBlip4.ogg")
 	private val clickCancel = manager.add("5_sfx_menuBlip3.ogg")
+	private val clickReject = manager.add("5400_sfx_error.ogg")
 
 	fun update() {
 		val nextSound = stateManager.soundQueue.take()
@@ -42,6 +43,7 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 		if (nextSound == "menu-open") manager.playSound(menuOpen)
 		if (nextSound == "click-confirm") manager.playSound(clickConfirm)
 		if (nextSound == "click-cancel") manager.playSound(clickCancel)
+		if (nextSound == "click-reject") manager.playSound(clickReject)
 	}
 
 	fun destroy() = manager.destroy()

@@ -11,6 +11,7 @@ class FatPlayableCharacter(
 	val initialEquipment: List<Item?>,
 	val initialItems: List<ItemStack>,
 	val initialMasteredSkills: List<Skill>,
+	val initialToggledSkills: Set<Skill>,
 ) {
 	override fun toString() = wrapped.toString()
 }

@@ -19,7 +19,7 @@ class TestSkillsImporter {
 	@BeforeAll
 	fun importSkills() {
 		combatAssets = importCombatAssets()
-		skillAssets = importSkills(combatAssets, "mardek/importer/combat/skills.txt")
+		skillAssets = importSkills(combatAssets)
 	}
 
 	private fun getAction(className: String, skillName: String): ActiveSkill {

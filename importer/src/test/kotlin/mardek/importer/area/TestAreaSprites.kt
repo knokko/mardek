@@ -65,7 +65,7 @@ class TestAreaSprites {
 
 	@Test
 	fun testImportCharacterSprites() {
-		val assets = importAreaAssets(File("src/main/resources/mardek/importer/area"))
+		val assets = importAreaAssets()
 
 		val deugan = assets.characterSprites.find { it.name == "deugan_hero" }!!
 		assertEquals("deugan_hero", deugan.name)

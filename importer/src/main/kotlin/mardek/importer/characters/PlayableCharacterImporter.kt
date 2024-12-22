@@ -5,6 +5,8 @@ import mardek.assets.characters.PlayableCharacter
 import mardek.assets.combat.CombatAssets
 import mardek.assets.combat.StatModifier
 import mardek.assets.inventory.InventoryAssets
+import mardek.assets.skill.ReactionSkillType
+import mardek.assets.skill.Skill
 import mardek.assets.skill.SkillAssets
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptNestedList
@@ -19,20 +21,18 @@ internal fun importPlayableCharacters(
 	skillAssets: SkillAssets,
 	inventoryAssets: InventoryAssets,
 	areaAssets: AreaAssets,
-	resourcePath: String
 ): List<FatPlayableCharacter> {
 	val characters = ArrayList<FatPlayableCharacter>()
-	val flashCode = parseActionScriptResource(resourcePath)
+	val flashCode = parseActionScriptResource("mardek/importer/combat/playable-characters.txt")
 
 	val rawCharacters = flashCode.variableAssignments["PChatchery"]!!
-	for ((key, rawCharacter) in parseActionScriptObject(rawCharacters)) {
+	for (rawCharacter in parseActionScriptObject(rawCharacters).values) {
 		val prefix = "MakeCreatureStats("
 		if (!rawCharacter.startsWith(prefix) || !rawCharacter.endsWith(")")) {
 			throw CharacterParseException("Unexpected raw playable character $rawCharacter")
 		}
 
 		val nestedCharacter = parseActionScriptNestedList("[${rawCharacter.substring(prefix.length, rawCharacter.length - 1)}]") as ArrayList<*>
-		println("key is $key and nested is $nestedCharacter")
 
 		val statMods = ArrayList<StatModifier>()
 		val statList = nestedCharacter[5] as ArrayList<String>
@@ -55,6 +55,32 @@ internal fun importPlayableCharacters(
 			}!!
 		)
 
+		val masteredSkills: MutableList<Skill> = (nestedCharacter[8] as ArrayList<String>).map { rawActiveName ->
+			val activeName = parseFlashString(rawActiveName, "playable character action name")!!
+			playable.characterClass.skillClass.actions.find { it.name == activeName }!!
+		}.toMutableList()
+
+		val toggledSkills = mutableSetOf<Skill>()
+
+		for (otherSkill in nestedCharacter[9] as ArrayList<ArrayList<String>>) {
+			if (otherSkill.size != 4) throw CharacterParseException("Unexpected skill $otherSkill")
+			val rawSkillType = parseFlashString(otherSkill[0], "character initial skill type")!!
+			val skillName = parseFlashString(otherSkill[1], "character initial skill name")
+			if (otherSkill[2] != "true" && otherSkill[2] != "0") throw CharacterParseException("Unexpected skill $otherSkill")
+			val isMastered = otherSkill[2] == "true"
+			if (otherSkill[3] != "true") throw CharacterParseException("Unexpected skill $otherSkill")
+
+			val skill = if (rawSkillType == "PASSIVE") {
+				skillAssets.passiveSkills.find { it.name == skillName }!!
+			} else {
+				val skillType = ReactionSkillType.fromString(rawSkillType)
+				skillAssets.reactionSkills.find { it.type == skillType && it.name == skillName }!!
+			}
+
+			if (isMastered) masteredSkills.add(skill)
+			toggledSkills.add(skill)
+		}
+
 		characters.add(FatPlayableCharacter(
 			wrapped = playable,
 			initialLevel = parseInt(nestedCharacter[4] as String),
@@ -67,10 +93,8 @@ internal fun importPlayableCharacters(
 				val amount = parseInt(rawStack[1])
 				ItemStack(inventoryAssets.items.find { it.flashName == itemName }!!, amount)
 			},
-			initialMasteredSkills = (nestedCharacter[8] as ArrayList<String>).map { rawActiveName ->
-				val activeName = parseFlashString(rawActiveName, "playable character action name")!!
-				playable.characterClass.skillClass.actions.find { it.name == activeName }!!
-			} // TODO Passives and reactions
+			initialMasteredSkills = masteredSkills,
+			initialToggledSkills = toggledSkills,
 		))
 	}
 
