@@ -51,7 +51,7 @@ class StoredAreaRenderData(
 
 	@Suppress("unused")
 	private constructor() : this(
-		UUID.randomUUID(), Array(1) { KimSprite(null) }, Array(1) { KimSprite(null) },
+		UUID.randomUUID(), Array(1) { KimSprite() }, Array(1) { KimSprite() },
 		IntArray(1), Array(2) { null }, IntArray(1), 1
 	)
 }

@@ -3,7 +3,7 @@ package mardek.importer.inventory
 import mardek.assets.combat.CombatAssets
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.skill.SkillAssets
-import mardek.importer.util.compressSprite
+import mardek.importer.util.compressKimSprite1
 import mardek.importer.util.parseActionScriptResource
 
 fun importInventoryAssets(combatAssets: CombatAssets, skillAssets: SkillAssets): InventoryAssets {
@@ -20,22 +20,22 @@ fun importInventoryAssets(combatAssets: CombatAssets, skillAssets: SkillAssets):
 
 	for ((rowIndex, miscType) in arrayOf("accs", "invn", "item", "gems", "plot", "misc", "song").withIndex()) {
 		for ((columnIndex, item) in assets.items.filter { it.type.flashName == miscType }.withIndex()) {
-			item.sprite = compressSprite(miscSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
+			item.sprite = compressKimSprite1(miscSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
 		}
 	}
 	for ((rowIndex, armorType) in arrayOf("Sh", "Ar0", "Ar1", "Ar2", "Ar3", "ArR", "ArM", "ArS").withIndex()) {
 		for ((columnIndex, item) in assets.items.filter { it.equipment?.armorType?.key == armorType }.withIndex()) {
-			item.sprite = compressSprite(armorSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
+			item.sprite = compressKimSprite1(armorSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
 		}
 	}
 
 	for ((columnIndex, item) in assets.items.filter { it.type.flashName == "helm" }.withIndex()) {
-		item.sprite = compressSprite(armorSheet.getSubimage(16 * columnIndex, 16 * 8, 16, 16))
+		item.sprite = compressKimSprite1(armorSheet.getSubimage(16 * columnIndex, 16 * 8, 16, 16))
 	}
 
 	for ((rowIndex, weaponType) in assets.weaponTypes.withIndex()) {
 		for ((columnIndex, item) in assets.items.filter { it.equipment?.weapon?.type == weaponType }.withIndex()) {
-			item.sprite = compressSprite(weaponSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
+			item.sprite = compressKimSprite1(weaponSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
 		}
 	}
 

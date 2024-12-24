@@ -8,13 +8,12 @@ import com.github.knokko.ui.renderer.UiRenderer
 import mardek.assets.Campaign
 import mardek.assets.combat.CombatStat
 import mardek.assets.inventory.EquipmentSlotType
-import mardek.assets.skill.ActiveSkill
 import mardek.assets.skill.PassiveSkill
 import mardek.assets.skill.ReactionSkill
 import mardek.assets.skill.ReactionSkillType
-import mardek.renderer.KimBatch
-import mardek.renderer.KimRenderer
-import mardek.renderer.KimRequest
+import mardek.renderer.batch.KimBatch
+import mardek.renderer.batch.KimRenderer
+import mardek.renderer.batch.KimRequest
 import mardek.renderer.SharedResources
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.InventoryTab
@@ -82,7 +81,7 @@ class InventoryTabRenderer(
 	}
 
 	override fun postUiRendering() {
-		resources.kimRenderer.submit(kimBatch, recorder, targetImage, frameIndex)
+		resources.kimRenderer.submit(kimBatch, recorder, targetImage)
 	}
 
 	private fun getItemGridSize() = 8 * scale * SIMPLE_SLOT_SIZE + 2

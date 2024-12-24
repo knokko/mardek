@@ -5,7 +5,7 @@ import mardek.assets.combat.CombatAssets
 import mardek.assets.combat.Element
 import mardek.assets.sprite.KimSprite
 import mardek.importer.ui.UiPacker
-import mardek.importer.util.compressSprite
+import mardek.importer.util.compressKimSprite1
 import javax.imageio.ImageIO
 
 private fun getSprite(name: String): KimSprite {
@@ -13,7 +13,7 @@ private fun getSprite(name: String): KimSprite {
 	val image = ImageIO.read(input)
 	input.close()
 
-	return compressSprite(image)
+	return compressKimSprite1(image)
 }
 
 fun addElements(assets: CombatAssets) {

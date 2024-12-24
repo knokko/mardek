@@ -6,8 +6,8 @@ import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
 import mardek.assets.area.WaterType
 import mardek.assets.sprite.KimSprite
-import mardek.renderer.KimBatch
-import mardek.renderer.KimRequest
+import mardek.renderer.batch.KimBatch
+import mardek.renderer.batch.KimRequest
 import mardek.renderer.SharedResources
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.characters.CharacterSelectionState
@@ -18,7 +18,6 @@ import kotlin.math.*
 class AreaRenderer(
 	private val recorder: CommandRecorder,
 	private val targetImage: VkbImage,
-	private val frameIndex: Int,
 	private val state: AreaState,
 	private val characters: CharacterSelectionState,
 	private val resources: SharedResources,
@@ -27,7 +26,7 @@ class AreaRenderer(
 	private lateinit var kimBatch: KimBatch
 
 	fun render() {
-		resources.kimRenderer.submit(kimBatch, recorder, targetImage, frameIndex)
+		resources.kimRenderer.submit(kimBatch, recorder, targetImage)
 	}
 
 	fun beforeRendering() {

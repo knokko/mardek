@@ -1,4 +1,4 @@
-package mardek.renderer
+package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.DeviceVkbBuffer
@@ -44,9 +44,12 @@ class KimRenderer(
 ) {
 
 	private val spriteBuffer: DeviceVkbBuffer
-	private val vertexBuffers = (0 until framesInFlight).map { boiler.buffers.createMapped(
-		VERTEX_SIZE.toLong() * maxSpritesPerFrame, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, "Kim1Vertices$it"
-	) }
+	private val vertexBuffer = boiler.buffers.createMapped(
+		VERTEX_SIZE.toLong() * maxSpritesPerFrame + 4 * maxDistinctSpritesPerFrame,
+		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT or VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+		"per-frame vertex stuff"
+	)
+	private val perFrameVertices = PerFrameBuffer(vertexBuffer.fullMappedRange())
 
 	private val batches = HashSet<KimBatch>()
 
@@ -64,9 +67,6 @@ class KimRenderer(
 	private val computeLayout: Long
 	private val computePipeline: Long
 
-	private val offsetBuffers = (0 until framesInFlight).map { boiler.buffers.createMapped(
-		4L * maxDistinctSpritesPerFrame, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Kim1OffsetBuffer"
-	) }
 	private val middleBuffer = boiler.buffers.create(
 		4L * 16 * 16 * maxDistinctSpritesPerFrame, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Kim1MiddleBuffer"
 	)!!
@@ -149,7 +149,7 @@ class KimRenderer(
 				)
 				boiler.descriptors.writeBuffer(
 					stack, descriptorWrites, computeDescriptorSets[frame],
-					3 * frame + 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, offsetBuffers[frame].fullRange()
+					3 * frame + 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vertexBuffer.fullRange(),
 				)
 				boiler.descriptors.writeBuffer(
 					stack, descriptorWrites, computeDescriptorSets[frame],
@@ -169,10 +169,11 @@ class KimRenderer(
 		}
 	}
 
-	fun begin() {
-		if (batches.isNotEmpty() || currentVertexOffset != 0L) {
+	fun begin(frameIndex: Int) {
+		if (batches.isNotEmpty()) {
 			throw IllegalStateException("Invalid call order: did you forget to call end() ?")
 		}
+		perFrameVertices.startFrame(frameIndex)
 	}
 
 	fun startBatch(): KimBatch {
@@ -192,9 +193,6 @@ class KimRenderer(
 	private val sizeMap = mutableMapOf<Pair<Int, Int>, MutableList<KimRequest>>()
 
 	fun recordBeforeRenderpass(recorder: CommandRecorder, frameIndex: Int) {
-		if (currentVertexOffset != 0L) throw IllegalStateException(
-			"You must not call submit() before recordBeforeRenderpass()"
-		)
 		val allRequests = batches.flatMap { it.requests }
 		if (allRequests.isEmpty()) return
 		if (offsetMap.isNotEmpty() || sizeMap.isNotEmpty()) {
@@ -213,13 +211,14 @@ class KimRenderer(
 			sizeMap.computeIfAbsent(size) { ArrayList() }.add(request)
 		}
 
-		val offsetBuffer = offsetBuffers[frameIndex].fullMappedRange().byteBuffer()
+		val offsetRange = perFrameVertices.allocate(4L * sizeMap.values.sumOf { it.size }, 4)
+		val baseOffset = toIntExact(offsetRange.offset / 4)
+		val offsetIntBuffer = offsetRange.intBuffer()
 		var nextResultOffset = 0
-		var nextOffsetOffset = 0
 		for ((size, requests) in sizeMap) {
 			vkCmdPushConstants(
 				recorder.commandBuffer, computeLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-				recorder.stack.ints(size.first, size.second, nextResultOffset, nextOffsetOffset)
+				recorder.stack.ints(size.first, size.second, nextResultOffset, offsetIntBuffer.position() + baseOffset)
 			)
 
 			var counter = 0
@@ -227,19 +226,16 @@ class KimRenderer(
 				if (offsetMap.containsKey(request.sprite.offset)) continue
 				offsetMap[request.sprite.offset] = nextResultOffset
 				nextResultOffset += size.first * size.second
-				offsetBuffer.putInt(request.sprite.offset)
+				offsetIntBuffer.put(request.sprite.offset)
 				counter += 1
 			}
-			nextOffsetOffset += counter
 			vkCmdDispatch(recorder.commandBuffer, size.first, size.second, counter)
 		}
 
 		recorder.bufferBarrier(middleBuffer.fullRange(), writeUsage, readUsage)
 	}
 
-	private var currentVertexOffset = 0L
-
-	fun submit(batch: KimBatch, recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
+	fun submit(batch: KimBatch, recorder: CommandRecorder, targetImage: VkbImage) {
 		if (batch.requests.isEmpty()) return
 		if (offsetMap.isEmpty()) throw IllegalStateException(
 			"Invalid call order: you must call submit() between recordBeforeRenderpass() and end()"
@@ -247,29 +243,25 @@ class KimRenderer(
 
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline)
 		recorder.bindGraphicsDescriptors(graphicsLayout, graphicsDescriptorSet)
+
+		val vertexRange = perFrameVertices.allocate(VERTEX_SIZE.toLong() * batch.requests.size, 4)
+		val hostVertexRange = vertexRange.byteBuffer()
 		vkCmdBindVertexBuffers(
 			recorder.commandBuffer, 0,
-			recorder.stack.longs(vertexBuffers[frameIndex].vkBuffer),
-			recorder.stack.longs(0L)
+			recorder.stack.longs(vertexRange.buffer.vkBuffer),
+			recorder.stack.longs(vertexRange.offset)
 		)
 		vkCmdPushConstants(
 			recorder.commandBuffer, graphicsLayout, VK_SHADER_STAGE_VERTEX_BIT,
 			0, recorder.stack.ints(targetImage.width, targetImage.height)
 		)
 
-		val vertexBuffer = vertexBuffers[frameIndex].mappedRange(
-			currentVertexOffset, VERTEX_SIZE.toLong() * batch.requests.size
-		).byteBuffer()
 		for (request in batch.requests) {
-			vertexBuffer.putInt(request.x).putInt(request.y)
-			vertexBuffer.putInt(request.sprite.width).putInt(request.sprite.height).putFloat(request.scale)
-			vertexBuffer.putInt(offsetMap[request.sprite.offset]!!).putFloat(request.opacity)
+			hostVertexRange.putInt(request.x).putInt(request.y)
+			hostVertexRange.putInt(request.sprite.width).putInt(request.sprite.height).putFloat(request.scale)
+			hostVertexRange.putInt(offsetMap[request.sprite.offset]!!).putFloat(request.opacity)
 		}
-		vkCmdDraw(
-			recorder.commandBuffer, 6, batch.requests.size,
-			0, toIntExact(currentVertexOffset / VERTEX_SIZE)
-		)
-		currentVertexOffset += vertexBuffer.position()
+		vkCmdDraw(recorder.commandBuffer, 6, batch.requests.size, 0, 0)
 		batch.requests.clear()
 	}
 
@@ -282,11 +274,10 @@ class KimRenderer(
 		batches.clear()
 		offsetMap.clear()
 		sizeMap.clear()
-		currentVertexOffset = 0L
 	}
 
 	fun destroy() {
-		for (buffer in vertexBuffers) buffer.destroy(boiler)
+		vertexBuffer.destroy(boiler)
 		vkDestroyPipeline(boiler.vkDevice(), graphicsPipeline, null)
 		vkDestroyPipeline(boiler.vkDevice(), computePipeline, null)
 		vkDestroyPipelineLayout(boiler.vkDevice(), graphicsLayout, null)
@@ -295,7 +286,6 @@ class KimRenderer(
 		computeDescriptorLayout.destroy()
 		graphicsDescriptorPool.destroy()
 		graphicsDescriptorLayout.destroy()
-		for (buffer in offsetBuffers) buffer.destroy(boiler)
 		middleBuffer.destroy(boiler)
 		spriteBuffer.destroy(boiler)
 

@@ -2,7 +2,7 @@ package mardek.importer.ui
 
 import mardek.assets.sprite.KimSprite
 import mardek.assets.ui.UiSprites
-import mardek.importer.util.compressSprite
+import mardek.importer.util.compressKimSprite1
 import javax.imageio.ImageIO
 
 private fun importKimSprite(name: String): KimSprite {
@@ -12,7 +12,7 @@ private fun importKimSprite(name: String): KimSprite {
 	val image = ImageIO.read(input)
 	input.close()
 
-	return compressSprite(image)
+	return compressKimSprite1(image)
 }
 
 internal fun importUiSprites() = UiSprites(

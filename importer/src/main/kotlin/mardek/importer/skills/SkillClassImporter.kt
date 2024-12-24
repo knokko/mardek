@@ -4,7 +4,7 @@ import mardek.assets.combat.CombatAssets
 import mardek.assets.skill.SkillClass
 import mardek.importer.area.parseFlashString
 import mardek.importer.characters.FatPlayableCharacter
-import mardek.importer.util.compressSprite
+import mardek.importer.util.compressKimSprite1
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import mardek.importer.util.parseActionScriptObjectList
@@ -34,7 +34,7 @@ fun parseSkillClasses(
 			name = techName,
 			description = parseFlashString(tech["desc"]!!, "Tech desc")!!,
 			actions = ArrayList(parseActiveSkills(combatAssets, parseActionScriptObjectList(rawSkills))),
-			icon = compressSprite(icon)
+			icon = compressKimSprite1(icon)
 		)
 	}
 }

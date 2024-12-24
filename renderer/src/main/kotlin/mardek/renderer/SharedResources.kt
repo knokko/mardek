@@ -11,6 +11,7 @@ import com.github.knokko.text.font.UnicodeFonts
 import com.github.knokko.ui.renderer.UiRenderInstance
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.area.*
+import mardek.renderer.batch.KimRenderer
 import org.lwjgl.vulkan.VK10.*
 import java.io.BufferedInputStream
 import java.io.DataInputStream

@@ -3,7 +3,6 @@ package mardek.renderer
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import mardek.assets.Campaign
 import mardek.renderer.area.AreaRenderer
 import mardek.renderer.ui.InGameMenuRenderer
 import mardek.state.ingame.InGameState
@@ -18,11 +17,11 @@ class InGameRenderer(
 	private var menuRenderer: InGameMenuRenderer? = null
 
 	override fun beforeRendering(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		resources.kimRenderer.begin()
+		resources.kimRenderer.begin(frameIndex)
 
 		val area = state.campaign.currentArea
 		areaRenderer = if (area != null) AreaRenderer(
-			recorder, targetImage, frameIndex, area, state.campaign.characterSelection, resources
+			recorder, targetImage, area, state.campaign.characterSelection, resources
 		) else null
 		menuRenderer = if (state.menu.shown) InGameMenuRenderer(
 			recorder, targetImage, frameIndex, resources, state

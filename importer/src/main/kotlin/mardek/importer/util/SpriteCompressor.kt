@@ -1,13 +1,14 @@
 package mardek.importer.util
 
 import com.github.knokko.compressor.Kim1Compressor
-import mardek.assets.inventory.Item
+import com.github.knokko.compressor.Kim2Compressor
 import mardek.assets.sprite.KimSprite
 import org.lwjgl.system.MemoryStack.stackPush
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.nio.IntBuffer
 
-fun compressSprite(image: BufferedImage) = stackPush().use { stack ->
+fun compressKimSprite1(image: BufferedImage) = stackPush().use { stack ->
 	val pixelBuffer = stack.calloc(4 * image.width * image.height)
 	for (x in 0 until image.width) {
 		for (y in 0 until image.height) {
@@ -23,5 +24,11 @@ fun compressSprite(image: BufferedImage) = stackPush().use { stack ->
 	val compressor = Kim1Compressor(pixelBuffer, image.width, image.height, 4)
 	val spriteBuffer = stack.calloc(4 * compressor.intSize)
 	compressor.compress(spriteBuffer)
-	KimSprite(IntArray(compressor.intSize) { index -> spriteBuffer.getInt(4 * index) })
+	KimSprite(IntArray(compressor.intSize) { index -> spriteBuffer.getInt(4 * index) }, 1)
+}
+
+fun compressKimSprite2(image: BufferedImage, bitsPerPixel: Int): KimSprite {
+	val outputArray = IntArray(Kim2Compressor.predictIntSize(image.width, image.height, bitsPerPixel))
+	Kim2Compressor.compress(image, IntBuffer.wrap(outputArray), 4)
+	return KimSprite(outputArray, 2)
 }
