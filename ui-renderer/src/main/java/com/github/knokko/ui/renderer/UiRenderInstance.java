@@ -1,6 +1,7 @@
 package com.github.knokko.ui.renderer;
 
 import com.github.knokko.boiler.BoilerInstance;
+import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.descriptors.GrowingDescriptorBank;
 import com.github.knokko.boiler.descriptors.VkbDescriptorSetLayout;
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder;
@@ -67,7 +68,7 @@ public class UiRenderInstance {
 
 			var pushConstants = VkPushConstantRange.calloc(1, stack);
 			//noinspection resource
-			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 8);
+			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 12);
 
 			this.pipelineLayout = boiler.pipelines.createLayout(
 					pushConstants, "UiPipelineLayout", baseDescriptorSetLayout.vkDescriptorSetLayout,
@@ -84,10 +85,10 @@ public class UiRenderInstance {
 		}
 	}
 
-	public UiRenderer createRenderer() {
+	public UiRenderer createRenderer(PerFrameBuffer perFrame) {
 		return new UiRenderer(
 				boiler, imageSampler, pipelineLayout, graphicsPipeline,
-				baseDescriptorBank, imageDescriptorBank
+				baseDescriptorBank, imageDescriptorBank, perFrame
 		);
 	}
 

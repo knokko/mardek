@@ -17,7 +17,7 @@ class InGameRenderer(
 	private var menuRenderer: InGameMenuRenderer? = null
 
 	override fun beforeRendering(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		resources.kimRenderer.begin(frameIndex)
+		resources.kimRenderer.begin()
 
 		val area = state.campaign.currentArea
 		areaRenderer = if (area != null) AreaRenderer(

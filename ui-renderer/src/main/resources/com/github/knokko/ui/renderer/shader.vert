@@ -1,6 +1,7 @@
 #version 450
 
 layout(push_constant) uniform pc {
+    int quadBufferOffset;
 	int framebufferWidth;
 	int framebufferHeight;
 };
@@ -24,7 +25,7 @@ layout(location = 8) out flat int rawColor;
 layout(location = 9) out flat int outlineWidth;
 
 void main() {
-	int quadIndex = 6 * (gl_VertexIndex / 6);
+	int quadIndex = quadBufferOffset + 6 * (gl_VertexIndex / 6);
 	int vertexIndex = gl_VertexIndex % 6;
 
 	corner = ivec2(quads[quadIndex], quads[quadIndex + 1]);

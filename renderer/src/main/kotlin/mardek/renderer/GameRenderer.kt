@@ -24,6 +24,9 @@ class GameRenderer(
 		targetImage: VkbImage, frameIndex: Int
 	) {
 		if (state is StartupState) return
+
+		resources.join().perFrameBuffer.startFrame(frameIndex)
+
 		val renderer = createRenderer(state)
 		renderer.beforeRendering(recorder, targetImage, frameIndex)
 

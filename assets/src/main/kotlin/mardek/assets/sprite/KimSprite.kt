@@ -37,5 +37,5 @@ class KimSprite(
 		if (version != 1 && version != 2) throw IllegalArgumentException("Unknown KIM version $version")
 	}
 
-	internal constructor() : this(null, 1)
+	constructor() : this(null, 1)
 }

@@ -17,7 +17,7 @@ fun main() {
 	val campaign = importDefaultCampaign(bitser)
 	val outputFolder = File("game/src/main/resources/mardek/game/")
 
-	val kimOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/kim1-sprites.bin").toPath()))
+	val kimOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/kim-sprites.bin").toPath()))
 	val areaSprites = AreaSprites()
 	for (element in campaign.combat.elements) areaSprites.registerSprite(element.thickSprite)
 	for (skillClass in campaign.skills.classes) areaSprites.registerSprite(skillClass.icon)
