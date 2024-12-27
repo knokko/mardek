@@ -24,7 +24,7 @@ fun importDefaultCampaign(bitser: Bitser): Campaign {
 	val skillAssets = importSkills(combatAssets)
 	val inventoryAssets = importInventoryAssets(combatAssets, skillAssets)
 	importClasses(combatAssets, skillAssets, inventoryAssets)
-	val areaAssets = importAreaAssets()
+	val areaAssets = importAreaAssets(inventoryAssets)
 	val uiSprites = importUiSprites()
 
 	val fatCharacters = importPlayableCharacters(combatAssets, skillAssets, inventoryAssets, areaAssets,)

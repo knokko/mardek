@@ -11,7 +11,7 @@ import mardek.assets.combat.StatusEffect
 import mardek.assets.inventory.Item
 import mardek.assets.skill.PassiveSkill
 import mardek.assets.skill.Skill
-import mardek.state.ingame.inventory.ItemStack
+import mardek.assets.inventory.ItemStack
 import kotlin.math.roundToInt
 
 @BitStruct(backwardCompatible = false)

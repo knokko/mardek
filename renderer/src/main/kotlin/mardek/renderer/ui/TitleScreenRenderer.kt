@@ -4,6 +4,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
+import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.SharedResources
@@ -20,6 +21,7 @@ class TitleScreenRenderer(
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
 		val renderer = resources.uiRenderers[frameIndex]
 		renderer.begin(recorder, targetImage)
+		renderer.beginBatch()
 		renderer.drawImage(resources.bc1Images[0], 0, 0, targetImage.width, targetImage.height)
 
 		val transform = CoordinateTransform.create(SpaceLayout.GrowRight, targetImage.width, targetImage.height)
@@ -41,7 +43,7 @@ class TitleScreenRenderer(
 			val gy = baseY - titleRect.minY - heightA + titleOutline.size
 			renderer.drawString(
 				resources.font, "MARDEK", darkColor, titleOutline,
-				titleRect.minX, titleRect.minY, titleRect.maxX, titleRect.maxY, baseY, heightA, 2,
+				titleRect.minX, titleRect.minY, titleRect.maxX, titleRect.maxY, baseY, heightA, 2, TextAlignment.DEFAULT,
 				Gradient(0, gy, titleRect.width, darkHeight, mediumColor, mediumColor, darkColor),
 				Gradient(0, gy + darkHeight, titleRect.width, lightHeight, lightColor, lightColor, mediumColor),
 				Gradient(0, gy + darkHeight + lightHeight, titleRect.width, lightHeight, mediumColor, mediumColor, lightColor),
@@ -56,7 +58,7 @@ class TitleScreenRenderer(
 			val darkTint = srgbToLinear(rgb(185, 131, 60))
 			renderer.drawString(
 				resources.font, "Revival project", srgbToLinear(rgb(242, 183, 113)), IntArray(0),
-				subtitleRect.minX, subtitleRect.minY, subtitleRect.maxX, subtitleRect.maxY, baseY, heightA, 1,
+				subtitleRect.minX, subtitleRect.minY, subtitleRect.maxX, subtitleRect.maxY, baseY, heightA, 1, TextAlignment.DEFAULT,
 				Gradient(0, baseY - subtitleRect.minY - heightA / 3, 1000, heightA, darkTint, darkTint, darkTint)
 			)
 		}
@@ -66,6 +68,7 @@ class TitleScreenRenderer(
 		state.musicPlayerButton = renderButton(transform, renderer, "Music Player", 0.26f, 2)
 		state.quitButton = renderButton(transform, renderer, "Quit", 0.16f, 3)
 
+		renderer.endBatch()
 		renderer.end()
 	}
 
@@ -108,7 +111,7 @@ class TitleScreenRenderer(
 		val textHeight = transform.transformHeight(0.045f)
 		renderer.drawString(
 			resources.font, text, lowerTextColor, outlineColors, textOffsetX, rect.minY, rect.maxX, rect.maxY,
-			textBaseY, textHeight, 1,
+			textBaseY, textHeight, 1, TextAlignment.DEFAULT,
 			Gradient(0, 0, rect.width, rect.height / 2, upperTextColor, upperTextColor, upperTextColor)
 		)
 

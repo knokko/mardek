@@ -22,6 +22,11 @@ fun main() {
 	for (element in campaign.combat.elements) areaSprites.registerSprite(element.sprite)
 	for (skillClass in campaign.skills.classes) areaSprites.registerSprite(skillClass.icon)
 	for (item in campaign.inventory.items) areaSprites.registerSprite(item.sprite)
+	for (item in campaign.inventory.plotItems) areaSprites.registerSprite(item.sprite)
+	for (chestSprite in campaign.areas.chestSprites) {
+		areaSprites.registerSprite(chestSprite.baseSprite)
+		areaSprites.registerSprite(chestSprite.openedSprite)
+	}
 	for (sprite in campaign.ui.allKimSprites()) areaSprites.registerSprite(sprite)
 	areaSprites.register(campaign.areas)
 	areaSprites.writeKimSprites(kimOutput)

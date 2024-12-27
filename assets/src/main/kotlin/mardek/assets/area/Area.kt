@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.assets.area.objects.AreaObjects
 import java.util.*
@@ -32,29 +33,31 @@ class Area(
 	@BitField(ordering = 4)
 	val objects: AreaObjects,
 
-	// TODO Loot
+	@BitField(ordering = 5)
+	@ReferenceFieldTarget(label = "chests")
+	val chests: ArrayList<Chest>,
 
-	@BitField(ordering = 5, optional = true)
+	@BitField(ordering = 6, optional = true)
 	val randomBattles: RandomAreaBattles?,
 
-	@BitField(ordering = 6)
+	@BitField(ordering = 7)
 	val flags: AreaFlags,
 
-	@BitField(ordering = 7)
+	@BitField(ordering = 8)
 	val properties: AreaProperties,
 ) {
 
-	@BitField(ordering = 8)
+	@BitField(ordering = 9)
 	lateinit var canWalkGrid: BooleanArray
 	// TODO Save conditionally
 
-	@BitField(ordering = 9)
+	@BitField(ordering = 10)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
 	constructor() : this(
-		0, 0, Tilesheet(), emptyArray(), AreaObjects(), null,
-		AreaFlags(), AreaProperties()
+		0, 0, Tilesheet(), emptyArray(), AreaObjects(), ArrayList(),
+		null, AreaFlags(), AreaProperties()
 	)
 
 	override fun toString() = properties.displayName

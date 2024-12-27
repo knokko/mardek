@@ -3,6 +3,7 @@ package mardek.renderer.ui.tabs
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
+import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.assets.Campaign
@@ -17,10 +18,10 @@ import mardek.renderer.batch.Kim1Renderer
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.SharedResources
 import mardek.state.ingame.CampaignState
-import mardek.state.ingame.inventory.ItemStack
+import mardek.assets.inventory.ItemStack
+import mardek.renderer.ui.renderDescription
 import mardek.state.ingame.menu.InventoryTab
 import mardek.state.title.AbsoluteRectangle
-import java.lang.StringBuilder
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -85,7 +86,7 @@ class InventoryTabRenderer(
 		uiRenderer.drawString(
 			resources.font, state.gold.toString(), goldColor, intArrayOf(),
 			region.minX + region.width / 2 + 20 * scale, 0, region.maxX, region.minY,
-			18 * scale, 10 * scale, 1
+			18 * scale, 10 * scale, 1, TextAlignment.LEFT
 		)
 	}
 
@@ -150,7 +151,8 @@ class InventoryTabRenderer(
 			val titleColor = srgbToLinear(rgb(238, 203, 127))
 			uiRenderer?.drawString(
 				resources.font, hoverItem.toString(), titleColor, intArrayOf(),
-				region.minX + 5 * scale, startY, maxX, barY, startY + 11 * scale, 8 * scale, 1
+				region.minX + 5 * scale, startY, maxX - 5 * scale, barY,
+				startY + 11 * scale, 8 * scale, 1, TextAlignment.DEFAULT
 			)
 
 			val baseTextColor = srgbToLinear(rgb(207, 192, 141))
@@ -165,7 +167,8 @@ class InventoryTabRenderer(
 				} else baseStats.add(campaign.combat.stats.find { it.flashName == "ATK" }!!)
 			}
 
-			val textX = 5 * scale
+			val textMinX = 5 * scale
+			val textMaxX = maxX - 5 * scale
 			var textY = barY + 13 * scale
 			if (tab.descriptionIndex == 0) {
 				var highText = ""
@@ -184,7 +187,7 @@ class InventoryTabRenderer(
 
 				uiRenderer?.drawString(
 					resources.font, highText, baseTextColor, intArrayOf(),
-					textX, barY, maxX, tabsY, textY, 6 * scale, 1
+					textMinX, barY, textMaxX, tabsY, textY, 6 * scale, 1, TextAlignment.DEFAULT
 				)
 				textY += 20 * scale
 
@@ -193,30 +196,22 @@ class InventoryTabRenderer(
 					if (adder != 0) {
 						uiRenderer?.drawString(
 							resources.font, "${stat.flashName}: $adder", baseTextColor, intArrayOf(),
-							textX, barY, maxX, tabsY, textY, 6 * scale, 1
+							textMinX, barY, textMaxX, tabsY, textY, 6 * scale, 1, TextAlignment.DEFAULT
 						)
 						textY += 10 * scale
 					}
 				}
 				textY += 12 * scale
 
-				val splitDescription = hoverItem.item.description.split(" ")
-				val lineWidth = 35
-				val currentLine = StringBuilder(lineWidth)
-
-				fun drawLine() {
+				fun drawLine(currentLine: String) {
 					uiRenderer?.drawString(
-						resources.font, currentLine.toString(), baseTextColor, intArrayOf(),
-						textX, barY, maxX, tabsY, textY, 6 * scale, 1
+						resources.font, currentLine, baseTextColor, intArrayOf(),
+						textMinX, barY, textMaxX, tabsY, textY, 5 * scale, 1, TextAlignment.DEFAULT
 					)
 					textY += 8 * scale
-					currentLine.clear()
 				}
-				for (word in splitDescription) {
-					if (currentLine.isNotEmpty() && currentLine.length + word.length >= lineWidth) drawLine()
-					currentLine.append(word).append(' ')
-				}
-				if (currentLine.isNotEmpty()) drawLine()
+
+				renderDescription(hoverItem.item.description, 35, ::drawLine)
 			}
 
 			if (tab.descriptionIndex == 1 && equipment != null) {
@@ -229,7 +224,8 @@ class InventoryTabRenderer(
 					val nameColor = srgbToLinear(rgb(238, 203, 127))
 					uiRenderer?.drawString(
 						resources.font, skill.name, nameColor, intArrayOf(),
-						20 * scale, barY, maxX, tabsY, skillY + 10 * scale, 7 * scale, 1
+						20 * scale, barY, maxX, tabsY,
+						skillY + 10 * scale, 7 * scale, 1, TextAlignment.LEFT
 					)
 
 					val skillMastery = characterState.skillMastery[skill] ?: 0
@@ -243,11 +239,13 @@ class InventoryTabRenderer(
 						val textColor = srgbToLinear(rgb(253, 94, 94))
 						uiRenderer.drawString(
 							resources.font, skillMastery.toString(), textColor, intArrayOf(),
-							43 * scale, barY, 55 * scale, tabsY, skillY + 25 * scale, 10 * scale, 1
+							43 * scale, barY, 55 * scale, tabsY,
+							skillY + 25 * scale, 10 * scale, 1, TextAlignment.RIGHT
 						)
 						uiRenderer.drawString(
 							resources.font, skill.masteryPoints.toString(), textColor, intArrayOf(),
-							57 * scale, barY, maxX, tabsY, skillY + 24 * scale, 8 * scale, 1
+							57 * scale, barY, maxX, tabsY,
+							skillY + 24 * scale, 8 * scale, 1, TextAlignment.LEFT
 						)
 					}
 
@@ -295,7 +293,7 @@ class InventoryTabRenderer(
 				fun addLine(text: String, color: Int) {
 					uiRenderer.drawString(
 						resources.font, "${11089.toChar()} $text", srgbToLinear(color), intArrayOf(),
-						region.minX + 5 * scale, barY, maxX, tabsY, textY, 4 * scale, 1
+						textMinX, barY, textMaxX, tabsY, textY, 4 * scale, 1, TextAlignment.DEFAULT
 					)
 					textY += 7 * scale
 				}
@@ -397,10 +395,10 @@ class InventoryTabRenderer(
 			uiRenderer?.fillColor(x, tabsY, x, maxY, lineColor)
 			uiRenderer?.fillColor(x, maxY, x + tabWidth, maxY, lineColor)
 			uiRenderer?.fillColor(x + tabWidth, tabsY, x + tabWidth, maxY, lineColor)
-			// TODO Center?
 			uiRenderer?.drawString(
 				resources.font, text, textColor, intArrayOf(),
-				x + scale, tabsY, x + tabWidth, maxY, maxY - 4 * scale, 5 * scale, 1
+				x + scale, tabsY, x + tabWidth - scale, maxY,
+				maxY - 4 * scale, 4 * scale, 1, TextAlignment.CENTER
 			)
 		}
 
@@ -457,15 +455,20 @@ class InventoryTabRenderer(
 			if (amountRenderer == null || stack.amount == 1) return
 
 			val textColor = srgbToLinear(rgb(238, 203, 127))
-			amountRenderer.drawString(
-				resources.font, stack.amount.toString(), rgba(0, 0, 0, 150), intArrayOf(),
-				itemX + 11 * scale, itemY, itemX + 20 * scale, itemY + 20 * scale,
-				itemY + 17 * scale, 9 * scale, 1
-			)
+			val shadowColor = rgba(0, 0, 0, 200)
+			for (offsetX in arrayOf(-scale, 0, scale)) {
+				for (offsetY in arrayOf(-scale, 0, scale)) {
+					amountRenderer.drawString(
+						resources.font, stack.amount.toString(), shadowColor, intArrayOf(),
+						itemX + 5 * scale + offsetX, itemY, itemX + 19 * scale + offsetX, itemY + 20 * scale,
+						itemY + 15 * scale + offsetY, 6 * scale, 1, TextAlignment.CENTER
+					)
+				}
+			}
 			amountRenderer.drawString(
 				resources.font, stack.amount.toString(), textColor, intArrayOf(),
-				itemX + 12 * scale, itemY, itemX + 20 * scale, itemY + 20 * scale,
-				itemY + 15 * scale, 6 * scale, 1
+				itemX + 5 * scale, itemY, itemX + 19 * scale, itemY + 20 * scale,
+				itemY + 15 * scale, 6 * scale, 1, TextAlignment.CENTER
 			)
 		}
 
@@ -606,15 +609,18 @@ class InventoryTabRenderer(
 
 			uiRenderer.drawString(
 				resources.font, attack.toString(), statsColor, intArrayOf(),
-				x1 + 10 * scale, region.minY, x2, region.maxY, statsY, statsHeight, 1
+				x1 + 10 * scale, region.minY, x2, region.maxY, statsY, statsHeight,
+				1, TextAlignment.LEFT
 			)
 			uiRenderer.drawString(
 				resources.font, defense.toString(), statsColor, intArrayOf(),
-				x2 + 10 * scale, region.minY, x4, region.maxY, statsY, statsHeight, 1
+				x2 + 10 * scale, region.minY, x4, region.maxY, statsY, statsHeight,
+				1, TextAlignment.LEFT
 			)
 			uiRenderer.drawString(
 				resources.font, rangedDefense.toString(), statsColor, intArrayOf(),
-				x4 + 10 * scale, region.minY, barX, region.maxY, statsY, statsHeight, 1
+				x4 + 10 * scale, region.minY, barX, region.maxY, statsY, statsHeight,
+				1, TextAlignment.LEFT
 			)
 		}
 
@@ -622,11 +628,13 @@ class InventoryTabRenderer(
 		val textHeight = 5 * scale
 		uiRenderer?.drawString(
 			resources.font, assetCharacter.name, textColor, intArrayOf(),
-			x1 + margin / 2, region.minY, x3, region.maxY, startY + margin + 5 * scale, textHeight, 1
+			x1 + margin / 2, region.minY, x3, region.maxY,
+			startY + margin + 5 * scale, textHeight, 1, TextAlignment.LEFT
 		)
 		uiRenderer?.drawString(
 			resources.font, "Lv${characterState.currentLevel}", textColor, intArrayOf(),
-			x3, region.minY, barX, region.maxY, startY + margin + 5 * scale, textHeight, 1
+			x3, region.minY, barX, region.maxY,
+			startY + margin + 5 * scale, textHeight, 1, TextAlignment.LEFT
 		)
 
 		// TODO proper health & mana bar
@@ -646,8 +654,8 @@ class InventoryTabRenderer(
 		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats, campaign.combat.stats)
 		uiRenderer?.drawString(
 			resources.font, "${characterState.currentHealth}/$maxHealth", healthTextColor, intArrayOf(),
-			barX + 2 * margin, region.minY, barX + baseBarWidth, region.maxY,
-			startY + margin * 34 / 8, margin * 3 / 2, 1
+			barX, region.minY, barX + baseBarWidth, region.maxY,
+			startY + margin * 34 / 8, margin * 3 / 2, 1, TextAlignment.CENTER
 		)
 
 		val bottomManaColor = srgbToLinear(rgb(8, 122, 178))
@@ -664,8 +672,8 @@ class InventoryTabRenderer(
 		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats, campaign.combat.stats)
 		uiRenderer?.drawString(
 			resources.font, "${characterState.currentMana}/$maxMana", manaTextColor, intArrayOf(),
-			barX + 2 * margin, region.minY, barX + baseBarWidth, region.maxY,
-			startY + margin * 59 / 8, margin * 3 / 2, 1
+			barX, region.minY, barX + baseBarWidth, region.maxY,
+			startY + margin * 59 / 8, margin * 3 / 2, 1, TextAlignment.CENTER
 		)
 
 		renderEquipment(partyIndex, startY + margin - 1, uiRenderer, kim1Renderer)

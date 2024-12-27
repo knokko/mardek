@@ -8,7 +8,7 @@ A_sprites = [{name:"INTERJECTION",model:"_trigger",x:22,y:3,ExecuteScript:functi
 {
    _root.Interjection("Mardek","ch3darktemple1","c_ch3_interject");
 }},{name:"UP",model:"DOOR11",x:22,y:2,dest:["goldfish_exitbay",7,16]},{name:"EXIT",model:"DOOR10",x:22,y:27,dir:"s",dest:["Temple_Dark_hub",7,13]}];
-areaLoot = [{x:9,y:13,amount:1,item:"Liquid Lightning"},{x:7,y:28,amount:1,item:"Silver Spear"}];
+areaLoot = [{x:9,y:13,amount:3,item:"Alchemist\'s Fire"},{x:7,y:28,amount:1,item:"Ether"}];
 foes = MONSTER_TABLES.DARK_TEMPLE;
 btlChance = 3;
 minSteps = 5;

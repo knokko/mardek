@@ -1,6 +1,7 @@
 package mardek.importer.inventory
 
 import mardek.assets.combat.CombatAssets
+import mardek.assets.inventory.Dreamstone
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.skill.SkillAssets
 import mardek.importer.util.compressKimSprite1
@@ -23,6 +24,9 @@ fun importInventoryAssets(combatAssets: CombatAssets, skillAssets: SkillAssets):
 			item.sprite = compressKimSprite1(miscSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
 		}
 	}
+	for ((columnIndex, item) in assets.plotItems.withIndex()) {
+		item.sprite = compressKimSprite1(miscSheet.getSubimage(16 * columnIndex, 16 * 4, 16, 16))
+	}
 	for ((rowIndex, armorType) in arrayOf("Sh", "Ar0", "Ar1", "Ar2", "Ar3", "ArR", "ArM", "ArS").withIndex()) {
 		for ((columnIndex, item) in assets.items.filter { it.equipment?.armorType?.key == armorType }.withIndex()) {
 			item.sprite = compressKimSprite1(armorSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
@@ -38,6 +42,8 @@ fun importInventoryAssets(combatAssets: CombatAssets, skillAssets: SkillAssets):
 			item.sprite = compressKimSprite1(weaponSheet.getSubimage(16 * columnIndex, 16 * rowIndex, 16, 16))
 		}
 	}
+
+	for (index in 0 until 25) assets.dreamstones.add(Dreamstone(index))
 
 	return assets
 }

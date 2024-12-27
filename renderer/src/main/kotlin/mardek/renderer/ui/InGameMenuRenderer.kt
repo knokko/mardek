@@ -3,6 +3,7 @@ package mardek.renderer.ui
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
+import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.SharedResources
@@ -37,10 +38,8 @@ class InGameMenuRenderer(
 		tabRenderer.beforeRendering()
 	}
 
-	fun render() {
-		val uiRenderer = resources.uiRenderers[frameIndex]
-		uiRenderer.begin(recorder, targetImage)
-
+	fun render(uiRenderer: UiRenderer) {
+		uiRenderer.beginBatch()
 		val transform = CoordinateTransform.create(SpaceLayout.Simple, targetImage.width, targetImage.height)
 
 		val barColor = srgbToLinear(rgb(24, 14, 10))
@@ -50,8 +49,8 @@ class InGameMenuRenderer(
 		uiRenderer.fillColor(upperBar.minX, upperBar.minY, upperBar.maxX, upperBar.maxY, barColor)
 		uiRenderer.fillColor(lowerBar.minX, lowerBar.minY, lowerBar.maxX, lowerBar.maxY, barColor)
 
-		val leftColor = srgbToLinear(rgba(54, 37, 21, 179))
-		val rightColor = srgbToLinear(rgba(132, 84, 53, 179))
+		val leftColor = srgbToLinear(rgba(54, 37, 21, 240))
+		val rightColor = srgbToLinear(rgba(132, 84, 53, 240))
 		uiRenderer.fillColor(
 			lowerBar.minX, upperBar.boundY, lowerBar.maxX, lowerBar.minY - 1, barColor,
 			Gradient(
@@ -65,14 +64,14 @@ class InGameMenuRenderer(
 			uiRenderer.drawString(
 				resources.font, area.area.properties.displayName, srgbToLinear(rgb(238, 203, 127)),
 				IntArray(0), transform.transformX(0.025f), lowerBar.minY, lowerBar.maxX / 2, lowerBar.maxY,
-				transform.transformY(0.025f), transform.transformHeight(0.03f), 1
+				transform.transformY(0.025f), transform.transformHeight(0.03f), 1, TextAlignment.LEFT
 			)
 		}
 
 		uiRenderer.drawString(
 			resources.font, state.menu.currentTab.getText(), srgbToLinear(rgb(132, 81, 37)),
 			IntArray(0), transform.transformX(0.025f), upperBar.minY, upperBar.maxX / 2, upperBar.maxY,
-			transform.transformY(0.945f), transform.transformHeight(0.035f), 1
+			transform.transformY(0.945f), transform.transformHeight(0.035f), 1, TextAlignment.LEFT
 		)
 
 		renderTabName(uiRenderer, transform, "Party", 0)
@@ -91,12 +90,10 @@ class InGameMenuRenderer(
 		uiRenderer.endBatch()
 
 		tabRenderer.postUiRendering()
-
-		uiRenderer.end()
 	}
 
 	private fun renderTabName(renderer: UiRenderer, transform: CoordinateTransform, text: String, index: Int) {
-		val rect = transform.transform(0.8f, 0.85f - index * 0.07f, 0.3f, 0.06f)
+		val rect = transform.transform(0.8f, 0.85f - index * 0.07f, 0.2f, 0.06f)
 
 		var goldTint = srgbToLinear(rgba(111, 92, 53, 183))
 		if (text == state.menu.currentTab.getText()) {
@@ -117,8 +114,9 @@ class InGameMenuRenderer(
 		}
 
 		renderer.drawString(
-			resources.font, text, lowerTextColor, IntArray(0), rect.minX, rect.minY, rect.maxX, rect.maxY,
-			rect.maxY - rect.height / 5, transform.transformHeight(0.04f), 1,
+			resources.font, text, lowerTextColor, IntArray(0),
+			rect.minX, rect.minY, rect.maxX - transform.transformWidth(0.01f), rect.maxY,
+			rect.maxY - rect.height / 5, transform.transformHeight(0.04f), 1, TextAlignment.RIGHT,
 			Gradient(0, 0, rect.width, 3 * rect.height / 5, upperTextColor, upperTextColor, upperTextColor)
 		)
 	}

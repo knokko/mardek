@@ -10,7 +10,7 @@ import org.lwjgl.vulkan.VK10.*
 const val KIM2_VERTEX_SIZE = 5 * 4
 
 private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
-	val bindings = VkDescriptorSetLayoutBinding.calloc(1, stack);
+	val bindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
 	boiler.descriptors.binding(
 		bindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 		VK_SHADER_STAGE_VERTEX_BIT or VK_SHADER_STAGE_FRAGMENT_BIT
@@ -33,7 +33,7 @@ class Kim2Resources(
 
 	init {
 		stackPush().use { stack ->
-			val pushConstants = VkPushConstantRange.calloc(1, stack);
+			val pushConstants = VkPushConstantRange.calloc(1, stack)
 			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8)
 
 			this.pipelineLayout = boiler.pipelines.createLayout(

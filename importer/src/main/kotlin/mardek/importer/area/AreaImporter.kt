@@ -1,6 +1,7 @@
 package mardek.importer.area
 
 import mardek.assets.area.*
+import mardek.assets.inventory.InventoryAssets
 import mardek.assets.sprite.ArrowSprite
 import mardek.assets.sprite.DirectionalSprites
 import mardek.importer.util.compressKimSprite1
@@ -11,7 +12,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
-fun importAreaAssets(): AreaAssets {
+fun importAreaAssets(inventoryAssets: InventoryAssets): AreaAssets {
 	val assets = AreaAssets()
 
 	val rawArrowSprites = importObjectSprites("trans_arrows")
@@ -19,6 +20,16 @@ fun importAreaAssets(): AreaAssets {
 	assets.arrowSprites.add(ArrowSprite("E", rawArrowSprites.frames[1]))
 	assets.arrowSprites.add(ArrowSprite("S", rawArrowSprites.frames[2]))
 	assets.arrowSprites.add(ArrowSprite("W", rawArrowSprites.frames[3]))
+
+	val closedChestSprites = importObjectSprites("chests", offsetY = 0, height = 16)
+	val openedChestSprites = importObjectSprites("chests", offsetY = 16, height = 16)
+	for (chestID in 0 until 6) {
+		assets.chestSprites.add(ChestSprite(
+			flashID = chestID,
+			baseSprite = closedChestSprites.frames[chestID],
+			openedSprite = openedChestSprites.frames[chestID]
+		))
+	}
 
 	var areaFolder = File("importer")
 	areaFolder = if (areaFolder.isDirectory) File("importer/src/main/resources/mardek/importer/area")
@@ -42,7 +53,7 @@ fun importAreaAssets(): AreaAssets {
 	val parsedTilesheets = ArrayList<ParsedTilesheet>()
 	val transitions = ArrayList<Pair<TransitionDestination, String>>()
 	for (areaName in enumerateAreas(areaFolder)) {
-		parsedAreas.add(parseArea(assets, areaName, parsedTilesheets, transitions))
+		parsedAreas.add(parseArea(assets, areaName, parsedTilesheets, transitions, inventoryAssets))
 	}
 
 	val tileMapping = HashMap<ParsedTile, Tile>()
@@ -77,14 +88,15 @@ fun importAreaAssets(): AreaAssets {
 			tileMapping[parsedArea.tilesheet.tiles[parsedArea.tileGrid[index]]!!]!!
 		}
 		assets.areas.add(Area(
-				width = parsedArea.width,
-				height = parsedArea.height,
-				tilesheet = tilesheet,
-				tileGrid = tileGrid,
-				objects = parsedArea.objects,
-				randomBattles = parsedArea.randomBattles,
-				flags = parsedArea.flags,
-				properties = parsedArea.properties,
+			width = parsedArea.width,
+			height = parsedArea.height,
+			tilesheet = tilesheet,
+			tileGrid = tileGrid,
+			objects = parsedArea.objects,
+			chests = ArrayList(parsedArea.chests),
+			randomBattles = parsedArea.randomBattles,
+			flags = parsedArea.flags,
+			properties = parsedArea.properties,
 		))
 	}
 

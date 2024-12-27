@@ -510,4 +510,24 @@ class TestInventoryImporter {
 
 		assertSpriteEquals("misc", 192, 32, liquidSound)
 	}
+
+	@Test
+	fun testFireCrystal() {
+		val crystal = inventoryAssets.plotItems.find { it.name == "Fire Crystal of Belfan" }!!
+		assertEquals(
+			"An Artefact of the Gods. It is essentially crystalised elemental energy, and one of the " +
+					"planet's 'organs', of a sort. This particular crystal is the source of all heat and " +
+					"fire on Belfan, so handle it with care!", crystal.description
+		)
+		assertNull(crystal.cost)
+		assertEquals("FIRE", crystal.element!!.properName)
+	}
+
+	@Test
+	fun testTrilobiteKey() {
+		val key = inventoryAssets.plotItems.find { it.name == "Trilobite Key III" }!!
+		assertEquals("A key shaped like... a trilobite?", key.description)
+		assertNull(key.element)
+		assertEquals(1000, key.cost)
+	}
 }

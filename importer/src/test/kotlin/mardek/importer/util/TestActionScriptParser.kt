@@ -27,4 +27,9 @@ class TestActionScriptParser {
 			parseActionScriptNestedList("[hi, [a, b, [c], []],d, [[e], f]]")
 		)
 	}
+
+	@Test
+	fun testParseEmptyActionScriptList() {
+		assertEquals(0, parseActionScriptObjectList("[]").size)
+	}
 }

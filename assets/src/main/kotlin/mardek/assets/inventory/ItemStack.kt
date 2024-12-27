@@ -1,10 +1,9 @@
-package mardek.state.ingame.inventory
+package mardek.assets.inventory
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.inventory.Item
 
 @BitStruct(backwardCompatible = false)
 class ItemStack(

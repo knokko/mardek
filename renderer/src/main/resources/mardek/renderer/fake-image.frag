@@ -12,7 +12,7 @@ layout(location = 3) in float opacity;
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    uvec2 intCoords = uvec2(textureCoordinates * (spriteSize - uvec2(1)) + vec2(0.5));
+    uvec2 intCoords = uvec2(textureCoordinates * spriteSize);
 	uint color = sprites[textureOffset + spriteSize.x * intCoords.y + intCoords.x];
 	uint ured = color & 255u;
     uint ugreen = (color >> 8) & 255u;

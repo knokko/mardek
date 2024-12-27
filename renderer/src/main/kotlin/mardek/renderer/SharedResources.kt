@@ -12,6 +12,7 @@ import com.github.knokko.text.font.UnicodeFonts
 import com.github.knokko.ui.renderer.UiRenderInstance
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.area.*
+import mardek.renderer.batch.ColorGridRenderer
 import mardek.renderer.batch.Kim2Renderer
 import mardek.renderer.batch.Kim1Renderer
 import mardek.renderer.batch.SpriteManager
@@ -30,6 +31,7 @@ class SharedResources(
 	lateinit var spriteManager: SpriteManager
 	lateinit var kim1Renderer: Kim1Renderer
 	lateinit var kim2Renderer: Kim2Renderer
+	lateinit var colorGridRenderer: ColorGridRenderer
 
 	private val textInstance: TextInstance
 	val font: FontData
@@ -87,6 +89,7 @@ class SharedResources(
 				spriteBuffer = spriteManager.spriteBuffer,
 				targetImageFormat = targetImageFormat.join()
 			)
+			this.colorGridRenderer = ColorGridRenderer(boiler, perFrameBuffer, targetImageFormat.join())
 		}
 		kimThread.start()
 
@@ -150,6 +153,7 @@ class SharedResources(
 	fun destroy() {
 		kim1Renderer.destroy()
 		kim2Renderer.destroy()
+		colorGridRenderer.destroy()
 		for (renderer in uiRenderers) renderer.destroy()
 		for (image in bc1Images) image.destroy(boiler)
 		uiInstance.destroy()

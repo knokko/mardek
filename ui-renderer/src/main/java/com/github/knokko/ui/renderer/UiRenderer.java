@@ -11,6 +11,7 @@ import com.github.knokko.boiler.images.VkbImage;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.text.bitmap.*;
 import com.github.knokko.text.font.FontData;
+import com.github.knokko.text.placement.TextAlignment;
 import com.github.knokko.text.placement.TextPlaceRequest;
 import com.github.knokko.text.placement.TextPlacer;
 import org.lwjgl.vulkan.VkDescriptorImageInfo;
@@ -58,7 +59,7 @@ public class UiRenderer {
 		this.perFrame = perFrame;
 
 		this.dummyImage = boiler.images.createSimple(
-				1, 1, VK_FORMAT_R8_SRGB, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+				1, 1, VK_FORMAT_R8_UNORM, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 				VK_IMAGE_ASPECT_COLOR_BIT, "DummyUiImage"
 		);
 
@@ -107,7 +108,6 @@ public class UiRenderer {
 		imageDescriptorSets.clear();
 
 		this.targetImage = targetImage;
-		this.beginBatch();
 	}
 
 	public void beginBatch() {
@@ -166,7 +166,8 @@ public class UiRenderer {
 
 	public void drawString(
 			FontData fontData, String text, int color, int[] outlineColors,
-			int minX, int minY, int maxX, int maxY, int baseY, int heightA, int minScale, Gradient... gradients
+			int minX, int minY, int maxX, int maxY, int baseY, int heightA,
+			int minScale, TextAlignment alignment, Gradient... gradients
 	) {
 		if (heightA <= 0 || maxY < minY) return;
 		FontResources font = fonts.computeIfAbsent(fontData, f -> new FontResources(
@@ -175,7 +176,7 @@ public class UiRenderer {
 		var requests = new ArrayList<TextPlaceRequest>(1);
 		requests.add(new TextPlaceRequest(
 				text, minX, minY, maxX, maxY, baseY,
-				heightA, minScale, new UserData(color, outlineColors.length)
+				heightA, minScale, alignment, new UserData(color, outlineColors.length)
 		));
 		var placedGlyphs = font.placer.place(requests);
 

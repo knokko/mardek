@@ -12,7 +12,7 @@ A_sprites = [{name:"TRANSPORT_TRIGGER",model:"_trigger",x:33,y:24,triggers:-1,WA
    }
    _root.WarpTrans(["pcave3_d",33,24]);
 }},{name:"Dream Circle",model:"object",type:"examine",x:33,y:24,walkable:true,conv:[["","It\'s a Dream Circle."]]},{name:"Save Crystal",model:"o_Crystal",x:13,y:41,walkspeed:-1,conv:"c_healingCrystal"},{name:"UP",model:"area_transition",x:52,y:49,dest:["pcave2",25,2],dir:"s"},{name:"DOWN",model:"area_transition",x:42,y:1,dest:["pcave4",2,13],dir:"s"}];
-areaLoot = [{x:12,y:45,amount:1,item:"Trilobite Key I",type:"plot",hidden:true},{x:42,y:58,amount:1,item:"RingOfSPR+2"},{x:51,y:15,amount:5,item:"Coagulant"},{x:35,y:7,amount:443,type:"gold"},{x:18,y:23,amount:1,item:"Hempen Robe"},{x:2,y:30,amount:1,item:"Steel Greatsword"},{x:2,y:50,amount:1,item:"PhoenixDown"},{x:10,y:58,amount:6,item:"BalloonJuice"}];
+areaLoot = [{x:12,y:45,amount:1,item:"Trilobite Key I",type:"plot",hidden:true},{x:42,y:58,amount:3,item:"Potion"},{x:51,y:15,amount:1,item:"Iron Greatblade"},{x:35,y:7,amount:6,item:"LiquidLight"},{x:18,y:23,amount:143,type:"gold"},{x:2,y:30,amount:1,item:"BetterPotion"},{x:2,y:50,amount:1,item:"PhoenixDown"},{x:10,y:58,amount:1,item:"Hempen Robe"}];
 if(GameData.plotVars.SAVIOURS == null && GameData.CHAPTER == 2)
 {
    A_sprites.push({name:"Bartholio",model:"bartholio",x:10,y:23,walkspeed:-2,dir:"s",elem:"LIGHT",conv:"c_Saviours"});

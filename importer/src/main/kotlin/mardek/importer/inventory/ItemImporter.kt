@@ -22,17 +22,27 @@ internal fun importItems(
 		val typeName = parseFlashString(rawItem["type"]!!, "item type")!!
 		if (typeName == "rods" || typeName == "bait" || typeName == "fish") continue
 		if (typeName == "gold" || typeName == "none") continue
-		val cost = parseInt(rawItem["cost"])
+
+		val rawCost = parseInt(rawItem["cost"])
+		val cost = if (rawCost >= 0) rawCost else null
+		val flashName = parseFlashString(rawItem["name"]!!, "item name")!!
+		val description = parseFlashString(rawItem["desc"]!!, "item description")!!
+		val element = if (rawElement != null) combatAssets.elements.find {
+			it.rawName == parseFlashString(rawElement, "item element")!!
+		}!! else null
+
+		if (typeName == "plot") {
+			assets.plotItems.add(PlotItem(name = flashName, description = description, element = element, cost = cost))
+			continue
+		}
 		assets.items.add(Item(
-				flashName = parseFlashString(rawItem["name"]!!, "item name")!!,
-				description = parseFlashString(rawItem["desc"]!!, "item description")!!,
-				type = assets.itemTypes.find { it.flashName == typeName }!!,
-				element = if (rawElement != null) combatAssets.elements.find {
-					it.rawName == parseFlashString(rawElement, "item element")!!
-				}!! else null,
-				cost = if (cost >= 0) cost else null,
-				equipment = parseEquipment(combatAssets, skillAssets, assets, rawItem),
-				consumable = parseConsumable(combatAssets, rawItem),
+			flashName = flashName,
+			description = description,
+			type = assets.itemTypes.find { it.flashName == typeName }!!,
+			element = element,
+			cost = cost,
+			equipment = parseEquipment(combatAssets, skillAssets, assets, rawItem),
+			consumable = parseConsumable(combatAssets, rawItem),
 		))
 	}
 }

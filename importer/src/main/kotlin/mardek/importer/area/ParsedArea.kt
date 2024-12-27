@@ -1,20 +1,18 @@
 package mardek.importer.area
 
-import mardek.assets.area.AreaFlags
-import mardek.assets.area.AreaProperties
-import mardek.assets.area.RandomAreaBattles
+import mardek.assets.area.*
 import mardek.assets.area.objects.AreaObjects
 
 class ParsedArea(
-		val width: Int,
-		val height: Int,
-		val tilesheet: ParsedTilesheet,
-		val tileGrid: IntArray,
-		val objects: AreaObjects,
-	// TODO Loot
-		val randomBattles: RandomAreaBattles?,
-		val flags: AreaFlags,
-		val properties: AreaProperties,
+	val width: Int,
+	val height: Int,
+	val tilesheet: ParsedTilesheet,
+	val tileGrid: IntArray,
+	val objects: AreaObjects,
+	val chests: List<Chest>,
+	val randomBattles: RandomAreaBattles?,
+	val flags: AreaFlags,
+	val properties: AreaProperties,
 ) {
 
 	fun getTileId(x: Int, y: Int): Int? {

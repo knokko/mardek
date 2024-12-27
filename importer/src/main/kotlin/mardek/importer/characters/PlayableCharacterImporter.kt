@@ -12,7 +12,7 @@ import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import mardek.importer.util.parseActionScriptResource
-import mardek.state.ingame.inventory.ItemStack
+import mardek.assets.inventory.ItemStack
 import java.lang.Integer.parseInt
 
 @Suppress("UNCHECKED_CAST")

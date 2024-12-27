@@ -22,7 +22,7 @@ class InGameRenderer(
 
 		val area = state.campaign.currentArea
 		areaRenderer = if (area != null) AreaRenderer(
-			recorder, targetImage, area, state.campaign.characterSelection, resources
+			recorder, targetImage, area, state, resources
 		) else null
 		menuRenderer = if (state.menu.shown) InGameMenuRenderer(
 			recorder, targetImage, frameIndex, resources, state
@@ -35,9 +35,12 @@ class InGameRenderer(
 	}
 
 	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		areaRenderer?.render()
-		menuRenderer?.render()
+		val uiRenderer = resources.uiRenderers[frameIndex]
+		uiRenderer.begin(recorder, targetImage)
+		areaRenderer?.render(frameIndex)
+		menuRenderer?.render(uiRenderer)
 
+		uiRenderer.end()
 		resources.kim1Renderer.end()
 		resources.kim2Renderer.end()
 	}

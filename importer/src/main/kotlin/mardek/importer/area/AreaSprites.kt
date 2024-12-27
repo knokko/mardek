@@ -105,6 +105,14 @@ class AreaSprites {
 			}
 		}
 
+		for (chest in area.chests) canWalkGrid[chest.x + area.width * chest.y] = false
+		for (door in area.objects.doors) {
+			if (door.x >= 0 && door.y >= 0 && door.x < area.width && door.y < area.height) {
+				canWalkGrid[door.x + area.width * door.y] = false
+			}
+		}
+		for (orb in area.objects.switchOrbs) canWalkGrid[orb.x + area.width * orb.y] = false
+
 		area.tileGrid = null
 		area.canWalkGrid = canWalkGrid
 	}

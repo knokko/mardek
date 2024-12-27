@@ -2,6 +2,9 @@ package mardek.renderer.area
 
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
+import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.text.placement.TextAlignment
 import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
 import mardek.assets.area.WaterType
@@ -9,8 +12,8 @@ import mardek.assets.sprite.KimSprite
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.SharedResources
+import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaState
-import mardek.state.ingame.characters.CharacterSelectionState
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkRect2D
 import kotlin.math.*
@@ -19,14 +22,31 @@ class AreaRenderer(
 	private val recorder: CommandRecorder,
 	private val targetImage: VkbImage,
 	private val state: AreaState,
-	private val characters: CharacterSelectionState,
+	private val inGameState: InGameState,
 	private val resources: SharedResources,
 ) {
 
 	private lateinit var kimBatch: KimBatch
 
-	fun render() {
+	private var renderGold: RenderGold? = null
+	private var lootRenderer: AreaLootRenderer? = null
+
+	fun render(frameIndex: Int) {
 		resources.kim1Renderer.submit(kimBatch, recorder, targetImage)
+
+		val renderGold = this.renderGold
+		if (renderGold != null) {
+			val uiRenderer = resources.uiRenderers[frameIndex]
+			uiRenderer.beginBatch()
+			uiRenderer.drawString(
+				resources.font, "+${state.obtainedGold!!.amount}", srgbToLinear(rgb(255, 204, 51)), intArrayOf(),
+				renderGold.baseX, 0, targetImage.width, targetImage.height, renderGold.baseY - 2 * renderGold.scale,
+				6 * renderGold.scale, 1, TextAlignment.LEFT
+			)
+			uiRenderer.endBatch()
+		}
+
+		this.lootRenderer?.render(recorder, targetImage, frameIndex)
 	}
 
 	fun beforeRendering() {
@@ -67,12 +87,24 @@ class AreaRenderer(
 		val animationSize = 2
 
 		class EntityRenderJob(
-				val x: Int, val y: Int, val sprite: KimSprite, val opacity: Float = 1f
+				val x: Int, val y: Int, val sprite: KimSprite, val opacity: Float = 1f, val sortY: Int = y
 		): Comparable<EntityRenderJob> {
-			override fun compareTo(other: EntityRenderJob) = this.y.compareTo(other.y)
+			override fun compareTo(other: EntityRenderJob) = this.sortY.compareTo(other.sortY)
 		}
 
 		val renderJobs = mutableListOf<EntityRenderJob>()
+
+		for (chest in state.area.chests) {
+			if (chest.hidden) continue
+			val sprite = if (inGameState.campaign.openedChests.contains(chest)) {
+				chest.sprite.openedSprite
+			} else chest.sprite.baseSprite
+			renderJobs.add(EntityRenderJob(
+				x = tileSize * chest.x,
+				y = tileSize * chest.y,
+				sprite = sprite,
+			))
+		}
 
 		for (character in state.area.objects.characters) {
 			val direction = character.startDirection ?: Direction.Down
@@ -155,7 +187,7 @@ class AreaRenderer(
 		for (orb in state.area.objects.switchOrbs) {
 			renderJobs.add(EntityRenderJob(
 					x = tileSize * orb.x,
-					y = tileSize * orb.y,
+					y = tileSize * orb.y - 4 * scale,
 					sprite = orb.color.onSprite
 			))
 		}
@@ -183,7 +215,7 @@ class AreaRenderer(
 		}
 
 		val nextPlayerPosition = state.nextPlayerPosition
-		for ((index, character) in characters.party.withIndex().reversed()) {
+		for ((index, character) in inGameState.campaign.characterSelection.party.withIndex().reversed()) {
 			if (character == null) continue
 
 			var spriteIndex = 0
@@ -227,6 +259,31 @@ class AreaRenderer(
 			))
 		}
 
+		val renderData = resources.areaMap[state.area.id]!!.data
+		val minTileX = max(0, (cameraX - targetImage.width / 2) / tileSize)
+		val minTileY = max(0, (cameraY - targetImage.height / 2) / tileSize)
+		val maxTileX = min(state.area.width - 1, 1 + (cameraX + targetImage.width / 2) / tileSize)
+		val maxTileY = min(state.area.height - 1, 1 + (cameraY + targetImage.height / 2) / tileSize)
+		for (tileX in minTileX .. maxTileX) {
+			for (tileY in minTileY .. maxTileY) {
+				val renderX = tileX * tileSize
+				val renderY = tileY * tileSize
+
+				val midIndex = renderData.getTileSpriteIndex(tileX, tileY, 1)
+				if (midIndex != 1023) {
+					val sprite = renderData.tileSprites[midIndex]
+					renderJobs.add(EntityRenderJob(
+						x = renderX, y = renderY, sprite = sprite, sortY = renderY + tileSize / 2
+					))
+				}
+				val highIndex = renderData.getTileSpriteIndex(tileX, tileY, 2)
+				if (highIndex != 1023) {
+					val sprite = renderData.tileSprites[highIndex]
+					renderJobs.add(EntityRenderJob(x = renderX, y = renderY, sprite = sprite, sortY = renderY + 3 * tileSize / 2))
+				}
+			}
+		}
+
 		renderJobs.sort()
 
 		if (state.area.flags.noMovingCamera) {
@@ -238,12 +295,6 @@ class AreaRenderer(
 			}
 		}
 
-		val minTileX = max(0, (cameraX - targetImage.width / 2) / tileSize)
-		val minTileY = max(0, (cameraY - targetImage.height / 2) / tileSize)
-		val maxTileX = min(state.area.width - 1, 1 + (cameraX + targetImage.width / 2) / tileSize)
-		val maxTileY = min(state.area.height - 1, 1 + (cameraY + targetImage.height / 2) / tileSize)
-
-		val renderData = resources.areaMap[state.area.id]!!.data
 		for (tileX in minTileX .. maxTileX) {
 			for (tileY in minTileY .. maxTileY) {
 				val renderX = tileX * tileSize + targetImage.width / 2 - cameraX
@@ -282,22 +333,30 @@ class AreaRenderer(
 			}
 		}
 
-		for (tileX in minTileX .. maxTileX) {
-			for (tileY in minTileY .. maxTileY) {
-				val renderX = tileX * tileSize + targetImage.width / 2 - cameraX
-				val renderY = tileY * tileSize + targetImage.height / 2 -cameraY
+		val obtainedGold = state.obtainedGold
+		if (obtainedGold != null) {
+			this.renderGold = RenderGold(
+				baseX = tileSize * obtainedGold.chestX + targetImage.width / 2 - cameraX,
+				baseY = tileSize * obtainedGold.chestY + targetImage.height / 2 - cameraY,
+				scale = scale
+			)
+			kimBatch.requests.add(KimRequest(
+				x = renderGold!!.baseX - (tileSize * 19f / 32f).roundToInt(),
+				y = renderGold!!.baseY - (tileSize * 17f / 32f).roundToInt(),
+				scale = scale.toFloat() / 2f, sprite = inGameState.assets.ui.goldIcon, opacity = 1f
+			))
+		}
 
-				val midIndex = renderData.getTileSpriteIndex(tileX, tileY, 1)
-				if (midIndex != 1023) {
-					val sprite = renderData.tileSprites[midIndex]
-					kimBatch.requests.add(KimRequest(x = renderX, y = renderY, scale = scale.toFloat(), sprite = sprite, opacity = 1f))
-				}
-				val highIndex = renderData.getTileSpriteIndex(tileX, tileY, 2)
-				if (highIndex != 1023) {
-					val sprite = renderData.tileSprites[highIndex]
-					kimBatch.requests.add(KimRequest(x = renderX, y = renderY, scale = scale.toFloat(), sprite = sprite, opacity = 1f))
-				}
-			}
+		val obtainedItemStack = state.obtainedItemStack
+		if (obtainedItemStack != null) {
+			this.lootRenderer = AreaLootRenderer(inGameState.assets.ui, obtainedItemStack, resources, scale, targetImage)
+			this.lootRenderer!!.beforeRendering()
 		}
 	}
 }
+
+private class RenderGold(
+	val baseX: Int,
+	val baseY: Int,
+	val scale: Int
+)

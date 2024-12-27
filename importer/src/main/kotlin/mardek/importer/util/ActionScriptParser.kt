@@ -74,13 +74,6 @@ fun parseActionScriptObjectList(rawList: String): List<Map<String, String>> {
 	for ((index, character) in content.withIndex()) {
 		if (character == '"'.code && content[index - 1] != '\\'.code) insideString = !insideString
 
-		if (depth == 1 && !insideString) {
-			if (character == ','.code || character == ']'.code) {
-				objectList.add(HashMap(currentObject))
-				currentObject.clear()
-			}
-		}
-
 		if (depth == 2 && !insideString) {
 			if (character == ','.code || character == '}'.code) {
 				currentObject[keyStorage.toString().trim()] = valueStorage.toString().trim()
@@ -91,13 +84,18 @@ fun parseActionScriptObjectList(rawList: String): List<Map<String, String>> {
 			}
 
 			if (character == ':'.code) {
-				//parseAssert(state == STATE_KEY, "Unexpected : at depth $depth with memory $keyStorage and $valueStorage")
 				state = STATE_VALUE
 				continue
 			}
 		}
 
-		if ((character == '}'.code || character == ']'.code || character == ')'.code) && !insideString) depth -= 1
+		if ((character == '}'.code || character == ']'.code || character == ')'.code) && !insideString) {
+			depth -= 1
+			if (depth == 1) {
+				objectList.add(HashMap(currentObject))
+				currentObject.clear()
+			}
+		}
 
 		if (depth >= 2) {
 			if (state == STATE_KEY) keyStorage.appendCodePoint(character)

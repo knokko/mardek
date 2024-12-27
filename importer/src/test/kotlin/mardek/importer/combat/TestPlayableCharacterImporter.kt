@@ -5,7 +5,7 @@ import com.github.knokko.bitser.serialize.Bitser
 import mardek.assets.skill.ReactionSkillType
 import mardek.importer.importDefaultCampaign
 import mardek.state.ingame.CampaignState
-import mardek.state.ingame.inventory.ItemStack
+import mardek.assets.inventory.ItemStack
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance

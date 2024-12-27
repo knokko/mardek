@@ -5,6 +5,9 @@ import com.github.knokko.compressor.Kim1Decompressor
 import mardek.assets.area.AreaAssets
 import mardek.assets.area.objects.AreaObject
 import mardek.assets.sprite.KimSprite
+import mardek.importer.combat.importCombatAssets
+import mardek.importer.inventory.importInventoryAssets
+import mardek.importer.skills.importSkills
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -65,7 +68,8 @@ class TestAreaSprites {
 
 	@Test
 	fun testImportCharacterSprites() {
-		val assets = importAreaAssets()
+		val combatAssets = importCombatAssets()
+		val assets = importAreaAssets(importInventoryAssets(combatAssets, importSkills(combatAssets)))
 
 		val deugan = assets.characterSprites.find { it.name == "deugan_hero" }!!
 		assertEquals("deugan_hero", deugan.name)

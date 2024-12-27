@@ -4,6 +4,7 @@ area = "dreamshrine2";
 areaname = "Dreamshrine";
 ambience = null;
 dungeon = "Dreamshrine";
+ambience = null;
 A_sprites = [{name:"Turquoise Platform",model:"object",x:31,y:8,type:"switch_platform",colour:"turquoise"},{name:"Turquoise Platform",model:"object",x:31,y:9,type:"switch_platform",colour:"turquoise"},{name:"Turquoise Platform",model:"object",x:31,y:10,type:"switch_platform",colour:"turquoise"},{name:"Turquoise Platform",model:"object",x:31,y:11,type:"switch_platform",colour:"turquoise"},{name:"Portal",model:"o_portal",x:0,y:0,walkable:true},{name:"TRANSPORT_TRIGGER",model:"_trigger",x:0,y:0,triggers:-1,WALKON:true,ExecuteScript:function()
 {
    _root.WarpTrans(["dreamshrine3",0,29]);
@@ -23,7 +24,7 @@ A_sprites = [{name:"Turquoise Platform",model:"object",x:31,y:8,type:"switch_pla
 {
    _root.WarpTrans(["dreamshrine1",10,0]);
 }}];
-areaLoot = [{x:2,y:25,amount:1,item:"Wispstone"},{x:10,y:25,amount:1,item:"Mirrilixir"},{x:24,y:20,amount:4,item:"PhoenixDown"},{x:38,y:20,amount:1,item:"Turquoise Armour"},{x:51,y:27,amount:1,item:"Turquoise"},{x:59,y:27,amount:1,item:"Jade Stole +6"},{x:57,y:15,amount:1,item:"Elixir"}];
+areaLoot = [{x:2,y:25,amount:1,item:"Wispstone"},{x:10,y:25,amount:1,item:"Mirrilixir"},{x:24,y:20,amount:4,item:"PhoenixDown"},{x:38,y:20,amount:1,item:"Remedy"},{x:51,y:27,amount:1,item:"Turquoise"},{x:59,y:27,amount:1,item:"Green Stole +6"},{x:57,y:15,amount:1,item:"Elixir"}];
 foes = MONSTER_TABLES.DREAMSHRINE;
 btlChance = 3;
 minSteps = 5;

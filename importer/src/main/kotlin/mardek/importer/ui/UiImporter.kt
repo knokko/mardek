@@ -25,4 +25,6 @@ internal fun importUiSprites() = UiSprites(
 	passiveIcon = importKimSprite("PassiveIcon", 4),
 	goldIcon = importKimSprite("Gold", 0),
 	mastered = importKimSprite("Mastered", 0),
+	treasure = importKimSprite("TreasureText", 0),
+	plotItem = importKimSprite("PlotItemText", 0)
 )

@@ -6,16 +6,21 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.Campaign
+import mardek.assets.area.Chest
 import mardek.assets.characters.PlayableCharacter
+import mardek.assets.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.loot.ObtainedGold
+import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @BitStruct(backwardCompatible = false)
 class CampaignState(
@@ -35,27 +40,28 @@ class CampaignState(
 	var gold: Int,
 ) {
 
+	@BitField(ordering = 4)
+	@ReferenceField(stable = true, label = "chests")
+	val openedChests = HashSet<Chest>()
+
+	@BitField(ordering = 5)
+	@ReferenceField(stable = true, label = "plot items")
+	val collectedPlotItems = HashSet<PlotItem>()
+
 	@Suppress("unused")
 	private constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
 	var shouldOpenMenu = false
 
 	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, assets: Campaign) {
-		var shouldInteract = false
 		while (true) {
 			val event = input.consumeEvent() ?: break
-			if (event !is InputKeyEvent) continue
-			if (!event.didPress) continue
+			if (event !is InputKeyEvent || !event.didPress) continue
 
 			val currentArea = this.currentArea ?: continue
 			if (event.key == InputKey.ToggleMenu) {
 				shouldOpenMenu = true
 				soundQueue.insert("menu-open")
-				continue
-			}
-
-			if (event.key == InputKey.Interact) {
-				shouldInteract = true
 				continue
 			}
 
@@ -75,16 +81,68 @@ class CampaignState(
 					nextPosition = AreaPosition(3, 3)
 				}
 				this.currentArea = AreaState(nextArea, nextPosition)
+				continue
 			}
+
+			val obtainedItemStack = currentArea.obtainedItemStack
+			if (obtainedItemStack != null) {
+				obtainedItemStack.processKeyPress(event.key, soundQueue)
+				continue
+			}
+
+			currentArea.processKeyPress(event.key)
 		}
 
-		currentArea?.update(input, timeStep, shouldInteract)
+		currentArea?.update(input, timeStep)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area
 			if (destinationArea != null) {
 				currentArea = AreaState(destinationArea, AreaPosition(destination.x, destination.y))
 			} else currentArea!!.nextTransition = null
+		}
+
+		val currentArea = currentArea
+		val openedChest = currentArea?.openedChest
+		if (openedChest != null) {
+			currentArea.openedChest = null
+			if (!openedChests.contains(openedChest)) {
+				soundQueue.insert("open-chest")
+				if (openedChest.battle != null) {
+					// TODO chest battle
+					return
+				}
+
+				if (openedChest.gold > 0) {
+					openedChests.add(openedChest)
+					currentArea.obtainedGold = ObtainedGold(
+						openedChest.x, openedChest.y, openedChest.gold, currentArea.currentTime + 1.seconds
+					)
+					gold += openedChest.gold
+				}
+				if (openedChest.stack != null) {
+					currentArea.obtainedItemStack = ObtainedItemStack(
+						openedChest.stack!!, null, characterSelection.party, characterStates
+					) { didTake ->
+						currentArea.obtainedItemStack = null
+						soundQueue.insert("click-cancel")
+						if (didTake) openedChests.add(openedChest)
+					}
+				}
+				if (openedChest.plotItem != null) {
+					currentArea.obtainedItemStack = ObtainedItemStack(
+						null, openedChest.plotItem, characterSelection.party, characterStates
+					) { didTake ->
+						currentArea.obtainedItemStack = null
+						if (didTake) {
+							collectedPlotItems.add(openedChest.plotItem!!)
+							openedChests.add(openedChest)
+						}
+						soundQueue.insert("click-cancel")
+					}
+				}
+				// TODO dreamstone in chest
+			}
 		}
 	}
 

@@ -21,9 +21,18 @@ class InventoryAssets(
 	@BitField(ordering = 3)
 	@ReferenceFieldTarget(label = "items")
 	val items: ArrayList<Item>,
+
+	@BitField(ordering = 4)
+	@ReferenceFieldTarget(label = "plot items")
+	val plotItems: ArrayList<PlotItem>,
+
+	@BitField(ordering = 5)
+	@ReferenceFieldTarget(label = "dreamstones")
+	val dreamstones: ArrayList<Dreamstone>,
 ) {
 	constructor() : this(
-			ArrayList(0), ArrayList(0),
-			ArrayList(0), ArrayList(0)
+		ArrayList(0), ArrayList(0),
+		ArrayList(0), ArrayList(0),
+		ArrayList(0), ArrayList(0)
 	)
 }

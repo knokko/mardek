@@ -8,7 +8,7 @@ A_sprites = [{name:"Sapphire Gate",model:"object",x:15,y:12,type:"switch_gate",c
 {
    _root.WarpTrans(["citadel2",28,5]);
 }}];
-areaLoot = [{x:12,y:3,amount:1,item:"Sheet Music IX"},{x:12,y:7,amount:1,item:"Cursed Beret"},{x:18,y:7,amount:1,item:"Elixir"},{x:20,y:19,amount:1,item:"Dark Essence"}];
+areaLoot = [{x:12,y:3,amount:1,item:"FigJuice"},{x:12,y:7,amount:1,item:"Cursed Beret"},{x:18,y:7,amount:1,item:"Elixir"},{x:20,y:19,amount:1,item:"Dark Essence"}];
 foes = MONSTER_TABLES.MIASMAL_CITADEL;
 btlChance = 4;
 minSteps = 5;

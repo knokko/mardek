@@ -7,9 +7,12 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.area.Direction
 import mardek.assets.area.Area
+import mardek.assets.area.Chest
 import mardek.assets.area.TransitionDestination
 import mardek.input.InputKey
 import mardek.input.InputManager
+import mardek.state.ingame.area.loot.ObtainedGold
+import mardek.state.ingame.area.loot.ObtainedItemStack
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -40,21 +43,40 @@ class AreaState(
 
 	var nextTransition: TransitionDestination? = null
 
+	var openedChest: Chest? = null
+
 	var openingDoor: OpeningDoor? = null
 		private set
+
+	var obtainedGold: ObtainedGold? = null
+
+	var obtainedItemStack: ObtainedItemStack? = null
+
+	private var shouldInteract = false
 
 	@Suppress("unused")
 	private constructor() : this(Area(), AreaPosition())
 
-	fun update(input: InputManager, timeStep: Duration, shouldInteract: Boolean) {
+	fun processKeyPress(key: InputKey) {
+		if (key == InputKey.Interact) shouldInteract = true
+	}
+
+	fun update(input: InputManager, timeStep: Duration) {
+		if (obtainedItemStack != null) return
 		updatePlayerPosition()
 		processInput(input)
-		if (shouldInteract) interact()
+		if (shouldInteract) {
+			interact()
+			shouldInteract = false
+		}
 
 		val openingDoor = this.openingDoor
 		if (openingDoor != null && currentTime >= openingDoor.finishTime) {
 			nextTransition = openingDoor.door.destination
 			this.openingDoor = null
+		}
+		if (obtainedGold != null && currentTime >= obtainedGold!!.showUntil) {
+			this.obtainedGold = null
 		}
 		currentTime += timeStep
 	}
@@ -64,6 +86,13 @@ class AreaState(
 
 		val x = playerPositions[0].x + lastPlayerDirection.deltaX
 		val y = playerPositions[0].y + lastPlayerDirection.deltaY
+
+		for (chest in area.chests) {
+			if (x == chest.x && y == chest.y) {
+				openedChest = chest
+				return
+			}
+		}
 
 		for (character in area.objects.characters) {
 			if (x == character.startX && y == character.startY) {
@@ -161,17 +190,10 @@ class AreaState(
 			if (x == character.startX && y == character.startY) return false
 		}
 
-		for (door in area.objects.doors) {
-			if (x == door.x && y == door.y) return false
-		}
-
 		for (areaObject in area.objects.objects) {
 			if (x == areaObject.x && y == areaObject.y) return false
 		}
 
-		for (orb in area.objects.switchOrbs) {
-			if (x == orb.x && y == orb.y) return false
-		}
 		// TODO Switch gates and platforms
 		return true
 	}

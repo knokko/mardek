@@ -32,6 +32,10 @@ class AreaAssets {
 	val arrowSprites = ArrayList<ArrowSprite>()
 
 	@BitField(ordering = 5)
+	@ReferenceFieldTarget(label = "chest sprites")
+	val chestSprites = ArrayList<ChestSprite>()
+
+	@BitField(ordering = 6)
 	@ReferenceFieldTarget(label = "areas")
 	val areas = ArrayList<Area>()
 }

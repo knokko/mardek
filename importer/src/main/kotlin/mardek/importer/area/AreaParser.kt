@@ -5,18 +5,19 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.area.*
 import mardek.assets.area.objects.AreaDecoration
+import mardek.assets.inventory.InventoryAssets
 import mardek.importer.util.ActionScriptCode
 import mardek.importer.util.parseActionScriptResource
 import java.lang.Integer.parseInt
 
 internal fun parseArea(
 		assets: AreaAssets, areaName: String, tilesheets: MutableList<ParsedTilesheet>,
-		transitions: MutableList<Pair<TransitionDestination, String>>
-) = parseArea2(assets, parseArea1(areaName), tilesheets, transitions)
+		transitions: MutableList<Pair<TransitionDestination, String>>, inventoryAssets: InventoryAssets
+) = parseArea2(assets, parseArea1(areaName), tilesheets, transitions, inventoryAssets)
 
 private fun parseArea2(
 		assets: AreaAssets, areaCode: ActionScriptCode, tilesheets: MutableList<ParsedTilesheet>,
-		transitions: MutableList<Pair<TransitionDestination, String>>
+		transitions: MutableList<Pair<TransitionDestination, String>>, inventoryAssets: InventoryAssets
 ): ParsedArea {
 	val areaSetup = areaCode.functionCalls.filter { it.first == "AreaSetup" }.map { it.second }
 	parseAssert(areaSetup.size == 1, "Expected exactly 1 AreaSetup call, but found ${areaCode.functionCalls}")
@@ -61,12 +62,17 @@ private fun parseArea2(
 		}
 	}
 
+	val rawAreaLoot = areaCode.variableAssignments["areaLoot"]
+	val rawChestID = parseInt(areaSetupMap["LOOT"] ?: "0")
+	val chestType = assets.chestSprites.find { it.flashID == rawChestID }!!
+
 	return ParsedArea(
 		tilesheet = tilesheet,
 		width = width,
 		height = height,
 		tileGrid = tileGrid,
 		objects = parseAreaObjects(assets, areaCode.variableAssignments["A_sprites"]!!, extraDecorations, transitions),
+		chests = if (rawAreaLoot != null) parseAreaChests(inventoryAssets, rawAreaLoot, chestType) else ArrayList(0),
 		randomBattles = randomBattles,
 		properties = properties,
 		flags = flags,
@@ -81,7 +87,6 @@ internal fun parseAreaProperties(areaCode: ActionScriptCode, areaSetupMap: Map<S
 	var musicTrack = if (rawMusicTrack != null) parseFlashString(rawMusicTrack, "music track") else null
 	if (musicTrack == "none") musicTrack = null
 	val dreamType = AreaDreamType.entries.find { it.code == (areaSetupMap["DREAM"] ?: "") }!!
-	val chestType = AreaChestType.entries.find { it.code == parseInt(areaSetupMap["LOOT"] ?: "0") }!!
 	val snowType = AreaSnowType.entries.find { it.code == parseInt(areaSetupMap["SNOW"] ?: "0") }!!
 
 	val rawDungeon = areaCode.variableAssignments["dungeon"]
@@ -109,7 +114,6 @@ internal fun parseAreaProperties(areaCode: ActionScriptCode, areaSetupMap: Map<S
 		dungeon = dungeon,
 		encyclopediaName = encyclopediaName,
 		dreamType = dreamType,
-		chestType = chestType,
 		snowType = snowType
 	)
 }

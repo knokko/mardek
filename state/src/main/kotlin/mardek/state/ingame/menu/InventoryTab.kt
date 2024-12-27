@@ -8,7 +8,7 @@ import mardek.input.MouseMoveEvent
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.characters.CharacterState
-import mardek.state.ingame.inventory.ItemStack
+import mardek.assets.inventory.ItemStack
 
 class InventoryTab(private val state: CampaignState): InGameMenuTab(true) {
 
