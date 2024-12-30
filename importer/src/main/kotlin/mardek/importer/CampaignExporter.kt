@@ -55,6 +55,7 @@ private fun exportCampaignData(campaign: Campaign, outputFolder: File, bitser: B
 private fun exportBc1Sprites(output: OutputStream) {
 	val packer = UiPacker()
 	packer.addBc1("TitleScreenBackground.png")
+	packer.addBc1("TitleMARDEK.png")
 
 	val boiler = BoilerBuilder(
 		VK_API_VERSION_1_0, "ExportBc1Sprites", 1

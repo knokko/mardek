@@ -14,6 +14,7 @@ import mardek.input.InputManager
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -27,7 +28,7 @@ class AreaState(
 
 	@BitField(ordering = 1)
 	@IntegerField(expectUniform = true)
-	var currentTime = Duration.ZERO
+	var currentTime = ZERO
 		private set
 
 	@BitField(ordering = 2)
@@ -61,9 +62,13 @@ class AreaState(
 		if (key == InputKey.Interact) shouldInteract = true
 	}
 
-	fun update(input: InputManager, timeStep: Duration) {
+	fun update(input: InputManager, discovery: AreaDiscoveryMap, timeStep: Duration) {
 		if (obtainedItemStack != null) return
-		updatePlayerPosition()
+		if (currentTime == ZERO && !area.flags.hasClearMap) {
+			discovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
+		}
+
+		updatePlayerPosition(discovery)
 		processInput(input)
 		if (shouldInteract) {
 			interact()
@@ -142,7 +147,7 @@ class AreaState(
 		}
 	}
 
-	private fun updatePlayerPosition() {
+	private fun updatePlayerPosition(discovery: AreaDiscoveryMap) {
 		val nextPlayerPosition = this.nextPlayerPosition
 		if (nextPlayerPosition != null && nextPlayerPosition.arrivalTime <= currentTime) {
 			for (index in 1 until playerPositions.size) {
@@ -154,6 +159,9 @@ class AreaState(
 			)!!
 			playerPositions[0] = nextPlayerPosition.position
 			this.nextPlayerPosition = null
+			if (!area.flags.hasClearMap) {
+				discovery.readWrite(area).discover(nextPlayerPosition.position.x, nextPlayerPosition.position.y)
+			}
 			checkTransitions()
 		}
 	}

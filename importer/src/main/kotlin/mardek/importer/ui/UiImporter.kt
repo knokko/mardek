@@ -26,5 +26,8 @@ internal fun importUiSprites() = UiSprites(
 	goldIcon = importKimSprite("Gold", 0),
 	mastered = importKimSprite("Mastered", 0),
 	treasure = importKimSprite("TreasureText", 0),
-	plotItem = importKimSprite("PlotItemText", 0)
+	plotItem = importKimSprite("PlotItemText", 0),
+	mapChest = importKimSprite("MapChest", 0),
+	mapSaveCrystal = importKimSprite("MapSaveCrystal", 0),
+	mapDreamCircle = importKimSprite("MapDreamCircle", 0),
 )

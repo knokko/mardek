@@ -12,10 +12,7 @@ import com.github.knokko.text.font.UnicodeFonts
 import com.github.knokko.ui.renderer.UiRenderInstance
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.area.*
-import mardek.renderer.batch.ColorGridRenderer
-import mardek.renderer.batch.Kim2Renderer
-import mardek.renderer.batch.Kim1Renderer
-import mardek.renderer.batch.SpriteManager
+import mardek.renderer.batch.*
 import org.lwjgl.vulkan.VK10.*
 import java.io.BufferedInputStream
 import java.io.DataInputStream
@@ -28,10 +25,11 @@ class SharedResources(
 
 	private val boiler: BoilerInstance
 	val areaMap = mutableMapOf<UUID, AreaRenderPair>()
-	lateinit var spriteManager: SpriteManager
+	private lateinit var spriteManager: SpriteManager
 	lateinit var kim1Renderer: Kim1Renderer
 	lateinit var kim2Renderer: Kim2Renderer
 	lateinit var colorGridRenderer: ColorGridRenderer
+	val light: LightResources
 
 	private val textInstance: TextInstance
 	val font: FontData
@@ -143,6 +141,7 @@ class SharedResources(
 
 		uiInstance = UiRenderInstance.withDynamicRendering(boiler, 0, targetImageFormat.join())
 		uiRenderers = (0 until framesInFlight).map { uiInstance.createRenderer(perFrameBuffer) }
+		light = LightResources(boiler, targetImageFormat.join())
 		kimThread.join()
 		bcThread.join()
 		areaThread.join()
@@ -161,5 +160,6 @@ class SharedResources(
 		textInstance.destroy()
 		perFrameBuffer.range.buffer.destroy(boiler)
 		spriteManager.destroy(boiler)
+		light.destroy(boiler)
 	}
 }

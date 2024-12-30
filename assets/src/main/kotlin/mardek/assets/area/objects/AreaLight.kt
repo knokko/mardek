@@ -8,7 +8,8 @@ import com.github.knokko.bitser.field.IntegerField
 class AreaLight(
 
 	@BitField(ordering = 0)
-	val colorName: String,
+	@IntegerField(expectUniform = true)
+	val color: Int,
 
 	@BitField(ordering = 1)
 	@IntegerField(expectUniform = false)
@@ -16,5 +17,5 @@ class AreaLight(
 ) {
 
 	@Suppress("unused")
-	private constructor() : this("", 0)
+	private constructor() : this(0, 0)
 }

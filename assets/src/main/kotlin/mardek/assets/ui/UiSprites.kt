@@ -41,18 +41,29 @@ class UiSprites(
 
 	@BitField(ordering = 11)
 	val plotItem: KimSprite,
+
+	@BitField(ordering = 12)
+	val mapChest: KimSprite,
+
+	@BitField(ordering = 13)
+	val mapSaveCrystal: KimSprite,
+
+	@BitField(ordering = 14)
+	val mapDreamCircle: KimSprite,
 ) {
 
 	internal constructor() : this(
 		KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite()
+		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
+		KimSprite(), KimSprite(), KimSprite()
 	)
 
 	fun allKimSprites() = arrayOf(
 		attackIcon, defIcon, rangedDefIcon,
 		meleeAttackIcon, rangedAttackIcon,
 		meleeDefenseIcon, rangedDefenseIcon, passiveIcon,
-		goldIcon, mastered, treasure, plotItem
+		goldIcon, mastered, treasure, plotItem,
+		mapChest, mapSaveCrystal, mapDreamCircle
 	)
 }

@@ -13,6 +13,7 @@ import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.state.SoundQueue
+import mardek.state.ingame.area.AreaDiscoveryMap
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.loot.ObtainedGold
@@ -48,6 +49,9 @@ class CampaignState(
 	@ReferenceField(stable = true, label = "plot items")
 	val collectedPlotItems = HashSet<PlotItem>()
 
+	@BitField(ordering = 6)
+	val areaDiscovery = AreaDiscoveryMap()
+
 	@Suppress("unused")
 	private constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
@@ -59,6 +63,12 @@ class CampaignState(
 			if (event !is InputKeyEvent || !event.didPress) continue
 
 			val currentArea = this.currentArea ?: continue
+			val obtainedItemStack = currentArea.obtainedItemStack
+			if (obtainedItemStack != null) {
+				obtainedItemStack.processKeyPress(event.key, soundQueue)
+				continue
+			}
+
 			if (event.key == InputKey.ToggleMenu) {
 				shouldOpenMenu = true
 				soundQueue.insert("menu-open")
@@ -84,16 +94,10 @@ class CampaignState(
 				continue
 			}
 
-			val obtainedItemStack = currentArea.obtainedItemStack
-			if (obtainedItemStack != null) {
-				obtainedItemStack.processKeyPress(event.key, soundQueue)
-				continue
-			}
-
 			currentArea.processKeyPress(event.key)
 		}
 
-		currentArea?.update(input, timeStep)
+		currentArea?.update(input, areaDiscovery, timeStep)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area

@@ -136,12 +136,7 @@ public class UiRenderer {
 	}
 
 	private void flushImage(VkbImage image) {
-		long newDescriptorSet = getImageDescriptorSet(image);
-		if (currentDescriptorSet != VK_NULL_HANDLE && currentDescriptorSet != newDescriptorSet) {
-			throw new UnsupportedOperationException("TODO");
-		}
-
-		currentDescriptorSet = newDescriptorSet;
+		currentDescriptorSet = getImageDescriptorSet(image);
 	}
 
 	public void drawImage(VkbImage image, int minX, int minY, int width, int height) {

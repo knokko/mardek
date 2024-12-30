@@ -2,8 +2,7 @@ package mardek.renderer.area
 
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import mardek.assets.area.AreaDreamType
 import mardek.assets.area.Direction
@@ -12,6 +11,7 @@ import mardek.assets.sprite.KimSprite
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.SharedResources
+import mardek.renderer.batch.LIGHT_VERTEX_SIZE
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaState
 import org.lwjgl.vulkan.VK10.*
@@ -31,8 +31,62 @@ class AreaRenderer(
 	private var renderGold: RenderGold? = null
 	private var lootRenderer: AreaLootRenderer? = null
 
+	private val baseVisibleHorizontalTiles = targetImage.width / 16.0
+	private val baseVisibleVerticalTiles = targetImage.height / 16.0
+
+	// The original MARDEK allow players to see at most 5 tiles above/below the player,
+	// and at most 7 tiles left/right from the player.
+
+	// I will aim for 6 tiles above/below the player, and let the aspect ratio determine the number of tiles
+	// that can be seen left/right from the player, within reason.
+	private val floatScale = baseVisibleVerticalTiles / 13.0
+
+	// Use integer scales to keep the tiles pretty
+	private val scale = max(1, floatScale.roundToInt())
+
+	private var cameraX = 0
+	private var cameraY = 0
+
 	fun render(frameIndex: Int) {
 		resources.kim1Renderer.submit(kimBatch, recorder, targetImage)
+
+		class LightRequest(val x: Int, val y: Int, val color: Int)
+		val lightRequests = ArrayList<LightRequest>()
+		val lightRadius = 24 * scale
+
+		val minLightX = cameraX - targetImage.width / 2 - lightRadius
+		val maxLightX = cameraX + targetImage.width / 2 + lightRadius
+		val minLightY = cameraY - targetImage.height / 2 - lightRadius
+		val maxLightY = cameraY + targetImage.height / 2 + lightRadius
+		for (decoration in state.area.objects.decorations) {
+			val light = decoration.light ?: continue
+			val x = 16 * scale * decoration.x + 8 * scale
+			val y = 16 * scale * decoration.y + scale * light.offsetY
+			if (x in minLightX .. maxLightX && y in minLightY .. maxLightY) {
+				lightRequests.add(LightRequest(x, y, srgbToLinear(light.color)))
+			}
+		}
+
+		if (lightRequests.isNotEmpty()) {
+			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.light.graphicsPipeline)
+			vkCmdPushConstants(
+				recorder.commandBuffer, resources.light.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+				0, recorder.stack.ints(targetImage.width, targetImage.height)
+			)
+			val vertexRange = resources.perFrameBuffer.allocate(LIGHT_VERTEX_SIZE.toLong() * lightRequests.size, 4L)
+			val vertexBuffer = vertexRange.intBuffer()
+			for (request in lightRequests) {
+				vertexBuffer.put(request.x + targetImage.width / 2 - cameraX - lightRadius)
+				vertexBuffer.put(request.y + targetImage.height / 2 - cameraY - lightRadius)
+				vertexBuffer.put(lightRadius)
+				vertexBuffer.put(request.color)
+			}
+			vkCmdBindVertexBuffers(
+				recorder.commandBuffer, 0, recorder.stack.longs(vertexRange.buffer.vkBuffer),
+				recorder.stack.longs(vertexRange.offset)
+			)
+			vkCmdDraw(recorder.commandBuffer, 6, lightRequests.size, 0, 0)
+		}
 
 		val renderGold = this.renderGold
 		if (renderGold != null) {
@@ -52,19 +106,6 @@ class AreaRenderer(
 	fun beforeRendering() {
 		this.kimBatch = resources.kim1Renderer.startBatch()
 
-		val baseVisibleHorizontalTiles = targetImage.width / 16.0
-		val baseVisibleVerticalTiles = targetImage.height / 16.0
-
-		// The original MARDEK allow players to see at most 5 tiles above/below the player,
-		// and at most 7 tiles left/right from the player.
-
-		// I will aim for 6 tiles above/below the player, and let the aspect ratio determine the number of tiles
-		// that can be seen left/right from the player, within reason.
-		val floatScale = baseVisibleVerticalTiles / 13.0
-
-		// Use integer scales to keep the tiles pretty
-		val scale = max(1, floatScale.roundToInt())
-
 		// Without restrictions, players with very wide screens/windows could see way too many tiles left/right
 		// from the player. I will enforce a maximum of 14.5 tiles left/right, which is already ridiculous.
 		val maxVisibleHorizontalTiles = 30.0
@@ -80,9 +121,6 @@ class AreaRenderer(
 		}
 
 		val tileSize = 16 * scale
-
-		var cameraX = 0
-		var cameraY = 0
 
 		val animationSize = 2
 

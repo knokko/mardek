@@ -33,7 +33,9 @@ class InGameMenuRenderer(
 		if (tab is InventoryTab) this.tabRenderer = InventoryTabRenderer(
 			recorder, targetImage, frameIndex, tab, tabRegion, state.campaign, state.assets, resources
 		)
-		if (tab is MapTab) this.tabRenderer = MapTabRenderer()
+		if (tab is MapTab) this.tabRenderer = MapTabRenderer(
+			recorder, targetImage, frameIndex, tabRegion, state.campaign, resources, state.assets.ui
+		)
 
 		tabRenderer.beforeRendering()
 	}
