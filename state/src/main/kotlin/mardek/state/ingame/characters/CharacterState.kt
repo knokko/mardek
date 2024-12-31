@@ -87,6 +87,8 @@ class CharacterState {
 		return ((1f + mpModifier) * (spr * 17 / 6 + spr * currentLevel / 6 + extra)).roundToInt()
 	}
 
+	fun determineSkillEnablePoints() = 3 + (currentLevel / 2) + (currentLevel % 2)
+
 	companion object {
 
 		@Suppress("unused")

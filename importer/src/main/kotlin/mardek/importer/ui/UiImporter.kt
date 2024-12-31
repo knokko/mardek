@@ -18,6 +18,7 @@ internal fun importUiSprites() = UiSprites(
 	attackIcon = importKimSprite("AttackIcon", 2),
 	defIcon = importKimSprite("DefIcon", 2),
 	rangedDefIcon = importKimSprite("RangedDefIcon", 2),
+	activeStarIcon = importKimSprite("ActiveStarIcon", 0),
 	meleeAttackIcon = importKimSprite("MeleeAttackIcon", 2),
 	rangedAttackIcon = importKimSprite("RangedAttackIcon", 0),
 	meleeDefenseIcon = importKimSprite("MeleeDefenseIcon", 2),
@@ -30,4 +31,8 @@ internal fun importUiSprites() = UiSprites(
 	mapChest = importKimSprite("MapChest", 0),
 	mapSaveCrystal = importKimSprite("MapSaveCrystal", 0),
 	mapDreamCircle = importKimSprite("MapDreamCircle", 0),
+	skillToggled = importKimSprite("SkillToggled", 0),
+	skillNotToggled = importKimSprite("SkillNotToggled", 0),
+	horizontalPointer = importKimSprite("HorizontalPointer", 0),
+	diagonalPointer = importKimSprite("DiagonalPointer", 0),
 )
