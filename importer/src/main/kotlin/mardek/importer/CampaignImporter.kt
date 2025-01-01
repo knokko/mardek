@@ -3,8 +3,10 @@ package mardek.importer
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.assets.Campaign
+import mardek.assets.animations.BattleModel
 import mardek.assets.area.Direction
 import mardek.importer.area.importAreaAssets
+import mardek.importer.battle.importBattleAssets
 import mardek.importer.characters.FatPlayableCharacter
 import mardek.importer.characters.importPlayableCharacters
 import mardek.importer.combat.importClasses
@@ -19,15 +21,17 @@ import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
 import java.io.ByteArrayOutputStream
 
-fun importDefaultCampaign(bitser: Bitser): Campaign {
+fun importDefaultCampaign(bitser: Bitser, skipMonsters: Boolean = false): Campaign {
+	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, BattleModel>()
 	val combatAssets = importCombatAssets()
+	val battleAssets = importBattleAssets(playerModelMapping)
 	val skillAssets = importSkills(combatAssets)
 	val inventoryAssets = importInventoryAssets(combatAssets, skillAssets)
 	importClasses(combatAssets, skillAssets, inventoryAssets)
-	val areaAssets = importAreaAssets(inventoryAssets)
+	val areaAssets = importAreaAssets(inventoryAssets, battleAssets)
 	val uiSprites = importUiSprites()
 
-	val fatCharacters = importPlayableCharacters(combatAssets, skillAssets, inventoryAssets, areaAssets,)
+	val fatCharacters = importPlayableCharacters(combatAssets, skillAssets, inventoryAssets, areaAssets, playerModelMapping)
 	val heroMardek = fatCharacters.find { it.wrapped.areaSprites.name == "mardek_hero" }!!
 	val heroDeugan = fatCharacters.find { it.wrapped.areaSprites.name == "deugan_hero" }!!
 
@@ -61,7 +65,7 @@ fun importDefaultCampaign(bitser: Bitser): Campaign {
 	startChapter1.currentArea!!.lastPlayerDirection = Direction.Up
 
 	val campaign = Campaign(
-		combatAssets, skillAssets, inventoryAssets, areaAssets,
+		combatAssets, skillAssets, inventoryAssets, battleAssets, areaAssets,
 		ArrayList(fatCharacters.map { it.wrapped }), uiSprites
 	)
 

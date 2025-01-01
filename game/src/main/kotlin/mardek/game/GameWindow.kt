@@ -26,7 +26,7 @@ class GameWindow(
 	private val mainStartTime: Long
 ): SimpleWindowRenderLoop(
 	window, framesInFlight, false,
-	window.supportedPresentModes.find { it == VK_PRESENT_MODE_MAILBOX_KHR } ?: VK_PRESENT_MODE_IMMEDIATE_KHR,
+	window.supportedPresentModes.find { it == VK_PRESENT_MODE_FIFO_KHR } ?: VK_PRESENT_MODE_IMMEDIATE_KHR,
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
 	private lateinit var renderer: GameRenderer

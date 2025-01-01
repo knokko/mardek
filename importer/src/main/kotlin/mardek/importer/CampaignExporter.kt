@@ -2,15 +2,13 @@ package mardek.importer
 
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
-import com.github.knokko.boiler.builders.BoilerBuilder
 import mardek.assets.Campaign
 import mardek.importer.area.AreaSprites
-import mardek.importer.ui.UiPacker
-import org.lwjgl.vulkan.VK10.VK_API_VERSION_1_0
+import mardek.importer.ui.BcPacker
 import java.io.BufferedOutputStream
 import java.io.File
-import java.io.OutputStream
 import java.nio.file.Files
+import java.util.zip.DeflaterOutputStream
 
 fun main() {
 	val bitser = Bitser(false)
@@ -33,8 +31,23 @@ fun main() {
 	kimOutput.flush()
 	kimOutput.close()
 
-	val bcOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/bc1-sprites.bin").toPath()))
-	exportBc1Sprites(bcOutput)
+	val bcPacker = BcPacker()
+	for (sprite in campaign.ui.allBcSprites()) bcPacker.add(sprite)
+	for (background in campaign.battle.backgrounds) bcPacker.add(background.sprite)
+	for (skeleton in campaign.battle.skeletons) {
+		for (part in skeleton.parts) {
+			for (skin in part.skins) {
+				for (entry in skin.entries) bcPacker.add(entry.sprite)
+			}
+		}
+	}
+
+	val startTime = System.nanoTime()
+	bcPacker.compressImages()
+	println("BC took ${(System.nanoTime() - startTime) / 1000_000} ms")
+	val bcOutput = DeflaterOutputStream(Files.newOutputStream(File("$outputFolder/bc-sprites.bin").toPath()))
+	bcPacker.writeData(bcOutput)
+	bcOutput.finish()
 	bcOutput.flush()
 	bcOutput.close()
 
@@ -43,24 +56,13 @@ fun main() {
 	areasOutput.flush()
 	areasOutput.close()
 
+	println("exporting campaign...")
 	exportCampaignData(campaign, outputFolder, bitser)
+	println("exported campaign")
 }
 
 private fun exportCampaignData(campaign: Campaign, outputFolder: File, bitser: Bitser) {
 	val output = BitOutputStream(BufferedOutputStream(Files.newOutputStream(File("$outputFolder/campaign.bin").toPath())))
 	bitser.serialize(campaign, output)
 	output.finish()
-}
-
-private fun exportBc1Sprites(output: OutputStream) {
-	val packer = UiPacker()
-	packer.addBc1("TitleScreenBackground.png")
-	packer.addBc1("TitleMARDEK.png")
-
-	val boiler = BoilerBuilder(
-		VK_API_VERSION_1_0, "ExportBc1Sprites", 1
-	).validation().forbidValidationErrors().build()
-
-	packer.writeDataAndDestroy(boiler, output)
-	boiler.destroyInitialObjects()
 }

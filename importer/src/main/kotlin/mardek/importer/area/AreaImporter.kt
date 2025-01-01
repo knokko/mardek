@@ -1,10 +1,12 @@
 package mardek.importer.area
 
 import mardek.assets.area.*
+import mardek.assets.battle.BattleAssets
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.sprite.ArrowSprite
 import mardek.assets.sprite.DirectionalSprites
 import mardek.importer.util.compressKimSprite1
+import mardek.importer.util.resourcesFolder
 import java.io.File
 import java.util.*
 import javax.imageio.ImageIO
@@ -12,8 +14,8 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
-fun importAreaAssets(inventoryAssets: InventoryAssets): AreaAssets {
-	val assets = AreaAssets()
+fun importAreaAssets(inventoryAssets: InventoryAssets, battleAssets: BattleAssets, assets: AreaAssets = AreaAssets()): AreaAssets {
+	importAreaBattleAssets(battleAssets, assets)
 
 	val rawArrowSprites = importObjectSprites("trans_arrows")
 	assets.arrowSprites.add(ArrowSprite("N", rawArrowSprites.frames[0]))
@@ -31,10 +33,7 @@ fun importAreaAssets(inventoryAssets: InventoryAssets): AreaAssets {
 		))
 	}
 
-	var areaFolder = File("importer")
-	areaFolder = if (areaFolder.isDirectory) File("importer/src/main/resources/mardek/importer/area")
-	else File("src/main/resources/mardek/importer/area")
-
+	val areaFolder = File("$resourcesFolder/area")
 	val charactersFolder = File("$areaFolder/sheets/character")
 	for (characterSprite in charactersFolder.listFiles()!!) {
 		val name = characterSprite.name
@@ -53,7 +52,7 @@ fun importAreaAssets(inventoryAssets: InventoryAssets): AreaAssets {
 	val parsedTilesheets = ArrayList<ParsedTilesheet>()
 	val transitions = ArrayList<Pair<TransitionDestination, String>>()
 	for (areaName in enumerateAreas(areaFolder)) {
-		parsedAreas.add(parseArea(assets, areaName, parsedTilesheets, transitions, inventoryAssets))
+		parsedAreas.add(parseArea(assets, areaName, parsedTilesheets, transitions, inventoryAssets, battleAssets))
 	}
 
 	val tileMapping = HashMap<ParsedTile, Tile>()

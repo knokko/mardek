@@ -2,6 +2,7 @@ package mardek.assets.ui
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import mardek.assets.sprite.BcSprite
 import mardek.assets.sprite.KimSprite
 
 @BitStruct(backwardCompatible = false)
@@ -65,6 +66,18 @@ class UiSprites(
 
 	@BitField(ordering = 19)
 	val diagonalPointer: KimSprite,
+
+	@BitField(ordering = 20)
+	val titleScreenBackground: BcSprite,
+
+	@BitField(ordering = 21)
+	val titleScreenTitle: BcSprite,
+
+	@BitField(ordering = 22)
+	val blueAlertBalloon: KimSprite,
+
+	@BitField(ordering = 23)
+	val redAlertBalloon: KimSprite,
 ) {
 
 	internal constructor() : this(
@@ -72,7 +85,8 @@ class UiSprites(
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite()
+		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
+		BcSprite(), BcSprite(), KimSprite(), KimSprite()
 	)
 
 	fun allKimSprites() = arrayOf(
@@ -81,6 +95,9 @@ class UiSprites(
 		meleeDefenseIcon, rangedDefenseIcon, passiveIcon,
 		goldIcon, mastered, treasure, plotItem,
 		mapChest, mapSaveCrystal, mapDreamCircle,
-		skillToggled, skillNotToggled, horizontalPointer, diagonalPointer
+		skillToggled, skillNotToggled, horizontalPointer, diagonalPointer,
+		blueAlertBalloon, redAlertBalloon
 	)
+
+	fun allBcSprites() = arrayOf(titleScreenBackground, titleScreenTitle)
 }

@@ -358,6 +358,18 @@ class AreaRenderer(
 			}
 		}
 
+		val incomingRandomBattle = state.incomingRandomBattle
+		if (incomingRandomBattle != null) {
+			val playerPosition = state.getPlayerPosition(0)
+			renderJobs.add(EntityRenderJob(
+				x = tileSize * playerPosition.x,
+				y = tileSize * (playerPosition.y - 1),
+				sprite = if (incomingRandomBattle.canAvoid) {
+					inGameState.assets.ui.blueAlertBalloon
+				} else inGameState.assets.ui.redAlertBalloon
+			))
+		}
+
 		for (job in renderJobs) {
 			var renderX = job.x + targetImage.width / 2 - cameraX
 			var renderY = job.y + targetImage.height / 2 - cameraY
@@ -390,6 +402,8 @@ class AreaRenderer(
 			this.lootRenderer = AreaLootRenderer(inGameState.assets.ui, obtainedItemStack, resources, scale, targetImage)
 			this.lootRenderer!!.beforeRendering()
 		}
+
+
 	}
 }
 

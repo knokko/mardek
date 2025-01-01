@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.assets.animations.BattleModel
 import mardek.assets.combat.CharacterClass
 import mardek.assets.combat.Element
 import mardek.assets.combat.StatModifier
@@ -29,14 +30,19 @@ class PlayableCharacter(
 
 	@BitField(ordering = 4)
 	val areaSprites: DirectionalSprites,
-) {
 
 	@BitField(ordering = 5)
+	val battleModel: BattleModel,
+) {
+
+	@BitField(ordering = 6)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
 	@Suppress("unused")
-	private constructor() : this("", CharacterClass(), Element(), ArrayList(0), DirectionalSprites())
+	private constructor() : this(
+		"", CharacterClass(), Element(), ArrayList(0), DirectionalSprites(), BattleModel()
+	)
 
 	override fun toString() = name
 }

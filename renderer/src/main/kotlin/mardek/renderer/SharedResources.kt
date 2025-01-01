@@ -6,6 +6,7 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.synchronization.ResourceUsage
+import com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf
 import com.github.knokko.text.TextInstance
 import com.github.knokko.text.font.FontData
 import com.github.knokko.text.font.UnicodeFonts
@@ -14,10 +15,13 @@ import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.area.*
 import mardek.renderer.batch.*
 import org.lwjgl.vulkan.VK10.*
+import org.lwjgl.vulkan.VkBufferImageCopy
 import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.zip.InflaterInputStream
+import kotlin.math.max
 
 class SharedResources(
 	getBoiler: CompletableFuture<BoilerInstance>, framesInFlight: Int, targetImageFormat: CompletableFuture<Int>
@@ -29,6 +33,7 @@ class SharedResources(
 	lateinit var kim1Renderer: Kim1Renderer
 	lateinit var kim2Renderer: Kim2Renderer
 	lateinit var colorGridRenderer: ColorGridRenderer
+	lateinit var partRenderer: PartRenderer
 	val light: LightResources
 
 	private val textInstance: TextInstance
@@ -38,7 +43,7 @@ class SharedResources(
 
 	val perFrameBuffer: PerFrameBuffer
 
-	lateinit var bc1Images: List<VkbImage>
+	lateinit var bcImages: List<VkbImage>
 
 	init {
 		val startTime = System.nanoTime()
@@ -92,47 +97,79 @@ class SharedResources(
 		kimThread.start()
 
 		val bcThread = Thread {
-			val bcInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
-				"mardek/game/bc1-sprites.bin"
+			val bcInput = DataInputStream(InflaterInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
+				"mardek/game/bc-sprites.bin"
 			)!!))
 			val numImages = bcInput.readInt()
-			this.bc1Images = (0 until numImages).map {
-				val width = bcInput.readInt()
-				val height = bcInput.readInt()
-				boiler.images.createSimple(
-					width, height, VK_FORMAT_BC1_RGBA_SRGB_BLOCK,
-					VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
-					VK_IMAGE_ASPECT_COLOR_BIT, "Bc1Image$it"
-				)
+			var totalSize = 0L
+			var maxSize = 0
+			val isBc1 = BooleanArray(numImages)
+			val stagingOffsets = LongArray(numImages)
+
+			fun computeByteSize(width: Int, height: Int, version: Int): Int {
+				val baseSize = nextMultipleOf(width, 4) * nextMultipleOf(height, 4)
+				return if (version == 1) baseSize / 2 else baseSize
 			}
 
-			val totalSize = bc1Images.sumOf { it.width * it.height / 2L }
-			val maxSize = bc1Images.maxOf { it.width * it.height / 2 }
+			this.bcImages = (0 until numImages).map {
+				val width = bcInput.readInt()
+				val height = bcInput.readInt()
+				val version = bcInput.readInt()
+				isBc1[it] = version == 1
+				val byteSize = computeByteSize(width, height, version)
 
-			val stagingBuffer = boiler.buffers.createMapped(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "UiStagingBuffer")
+				// Ensure that offset is a multiple of texel block size
+				totalSize = nextMultipleOf(totalSize, if (version == 1) 8 else 16)
+
+				stagingOffsets[it] = totalSize
+				val format = when (version) {
+					1 -> VK_FORMAT_BC1_RGBA_SRGB_BLOCK
+					7 -> VK_FORMAT_BC7_SRGB_BLOCK
+					else -> throw UnsupportedOperationException("Unsupported BC version $version")
+				}
+				totalSize += byteSize
+				maxSize = max(byteSize, maxSize)
+				boiler.images.createSimple(
+					width, height, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
+					VK_IMAGE_ASPECT_COLOR_BIT, "Bc${version}Image$it"
+				)
+			}
+			this.partRenderer = PartRenderer(boiler, bcImages, targetImageFormat.join())
+
+			val stagingBuffer = boiler.buffers.createMapped(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "BcStagingBuffer")
 
 			val commands = SingleTimeCommands(boiler)
-			commands.submit("UiStagingTransfer") { recorder ->
-				for (image in bc1Images) {
-					recorder.transitionLayout(image, null, ResourceUsage.TRANSFER_DEST)
-				}
+			commands.submit("BcStagingTransfer") { recorder ->
+				recorder.bulkTransitionLayout(null, ResourceUsage.TRANSFER_DEST, *bcImages.toTypedArray())
 
 				val propagationBuffer = ByteArray(maxSize)
-				var stagingOffset = 0L
-				for (image in bc1Images) {
-					val stagingSize = image.width * image.height / 2
+				val bufferCopyRegions = VkBufferImageCopy.calloc(1, recorder.stack)
+				val copyRegion = bufferCopyRegions[0]
+				copyRegion.bufferRowLength(0)
+				copyRegion.bufferImageHeight(0)
+				boiler.images.subresourceLayers(copyRegion.imageSubresource(), VK_IMAGE_ASPECT_COLOR_BIT)
+				copyRegion.imageOffset()[0, 0] = 0
+				for ((index, image) in bcImages.withIndex()) {
+					val stagingSize = computeByteSize(image.width, image.height, if (isBc1[index]) 1 else 7)
 					bcInput.readFully(propagationBuffer, 0, stagingSize)
 					stagingBuffer.mappedRange(
-						stagingOffset, stagingSize.toLong()).byteBuffer().put(propagationBuffer, 0, stagingSize
+						stagingOffsets[index], stagingSize.toLong()
+					).byteBuffer().put(propagationBuffer, 0, stagingSize)
+
+					copyRegion.bufferOffset(stagingOffsets[index])
+					copyRegion.imageExtent()[image.width(), image.height()] = 1
+
+					vkCmdCopyBufferToImage(
+						recorder.commandBuffer,
+						stagingBuffer.vkBuffer(),
+						image.vkImage(),
+						VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+						bufferCopyRegions
 					)
-					recorder.copyBufferToImage(image, stagingBuffer.range(stagingOffset, stagingSize.toLong()))
-					stagingOffset += stagingSize
 				}
 
 				val destUsage = ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
-				for (image in bc1Images) {
-					recorder.transitionLayout(image, ResourceUsage.TRANSFER_DEST, destUsage)
-				}
+				recorder.bulkTransitionLayout(ResourceUsage.TRANSFER_DEST, destUsage, *bcImages.toTypedArray())
 			}
 			commands.destroy()
 			stagingBuffer.destroy(boiler)
@@ -153,8 +190,9 @@ class SharedResources(
 		kim1Renderer.destroy()
 		kim2Renderer.destroy()
 		colorGridRenderer.destroy()
+		partRenderer.destroy()
 		for (renderer in uiRenderers) renderer.destroy()
-		for (image in bc1Images) image.destroy(boiler)
+		for (image in bcImages) image.destroy(boiler)
 		uiInstance.destroy()
 		font.destroy()
 		textInstance.destroy()

@@ -1,5 +1,6 @@
 package mardek.state.ingame.inventory
 
+import mardek.assets.animations.BattleModel
 import mardek.assets.characters.PlayableCharacter
 import mardek.assets.combat.CharacterClass
 import mardek.assets.combat.Element
@@ -24,7 +25,7 @@ private fun createState(): CampaignState {
 		weaponType = WeaponType(),
 		armorTypes = arrayListOf(ArmorType("Sh", "Shield", EquipmentSlotType.OffHand))
 	)
-	val mardek = PlayableCharacter("Mardek", mardekClass, Element(), ArrayList(), DirectionalSprites())
+	val mardek = PlayableCharacter("Mardek", mardekClass, Element(), ArrayList(), DirectionalSprites(), BattleModel())
 	val mardekState = CharacterState()
 
 	return CampaignState(

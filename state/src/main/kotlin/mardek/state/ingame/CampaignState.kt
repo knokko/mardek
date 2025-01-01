@@ -63,6 +63,13 @@ class CampaignState(
 			if (event !is InputKeyEvent || !event.didPress) continue
 
 			val currentArea = this.currentArea ?: continue
+			val currentBattle = currentArea.activeBattle
+
+			if (currentBattle != null) {
+				currentBattle.processKeyPress(event.key)
+				continue
+			}
+
 			val obtainedItemStack = currentArea.obtainedItemStack
 			if (obtainedItemStack != null) {
 				obtainedItemStack.processKeyPress(event.key, soundQueue)
@@ -97,7 +104,7 @@ class CampaignState(
 			currentArea.processKeyPress(event.key)
 		}
 
-		currentArea?.update(input, areaDiscovery, timeStep)
+		currentArea?.update(input, areaDiscovery, characterSelection, timeStep)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area

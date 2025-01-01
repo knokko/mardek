@@ -4,6 +4,7 @@ import mardek.assets.area.Chest
 import mardek.assets.area.ChestBattle
 import mardek.assets.area.ChestMonster
 import mardek.assets.area.ChestSprite
+import mardek.assets.battle.BattleAssets
 import mardek.assets.inventory.Dreamstone
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.inventory.ItemStack
@@ -14,7 +15,7 @@ import java.lang.Integer.parseInt
 
 @Suppress("UNCHECKED_CAST")
 internal fun parseAreaChests(
-	inventoryAssets: InventoryAssets, rawLoot: String, sprite: ChestSprite
+	inventoryAssets: InventoryAssets, battleAssets: BattleAssets, rawLoot: String, sprite: ChestSprite
 ) = parseActionScriptObjectList(rawLoot).map { rawChest ->
 	val x = parseInt(rawChest["x"])
 	val y = parseInt(rawChest["y"])
@@ -70,12 +71,13 @@ internal fun parseAreaChests(
 			monsters[index] = ChestMonster(name1, name2, levels[index]!!)
 		}
 
-		val position = parseFlashString(nestedMonsters[3] as String, "chest battle position")!!
+		val layoutName = parseFlashString(nestedMonsters[3] as String, "chest battle position")!!
+		val layout = battleAssets.enemyPartyLayouts.find { it.name == layoutName }!!
 
 		val rawSpecialMusic = rawChest["specialMusic"]
 		val specialMusic = if (rawSpecialMusic == null) null else parseFlashString(rawSpecialMusic, "chest battle music")!!
 
-		battle = ChestBattle(monsters, position, specialMusic)
+		battle = ChestBattle(monsters, layout, specialMusic)
 	}
 
 	Chest(

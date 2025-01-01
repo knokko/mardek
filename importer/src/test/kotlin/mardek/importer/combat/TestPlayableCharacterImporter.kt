@@ -15,7 +15,7 @@ import java.io.ByteArrayInputStream
 class TestPlayableCharacterImporter {
 
 	private val bitser = Bitser(false)
-	private val campaign = importDefaultCampaign(bitser)
+	private val campaign = importDefaultCampaign(bitser, true)
 
 	@Test
 	fun testImportHeroMardek() {

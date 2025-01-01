@@ -32,10 +32,10 @@ allprojects {
 	
 	project.ext.jomlVersion = "1.10.1"
 	project.ext.lwjglVersion = "3.3.4"
-	project.ext.boilerVersion = "v4.4.0"
+	project.ext.boilerVersion = "v4.5.0"
 	project.ext.textRenderVersion = "v0.2.0"
-	project.ext.compressorVersion = "v0.3.1"
-	project.ext.bitserVersion = "36cee7b6a0f6529ddb11b522fbbb889857c19690"
+	project.ext.compressorVersion = "v0.4.0"
+	project.ext.bitserVersion = "0efc0df00f"
 	switch (OperatingSystem.current()) {
 		case OperatingSystem.LINUX:
 			project.ext.lwjglNatives = [
@@ -63,7 +63,6 @@ allprojects {
 
 	project.ext.vulkanImplementationDependencies = [
 			"com.github.knokko:vk-boiler:$boilerVersion",
-			"com.github.knokko:vk-compressor:$compressorVersion",
 			"com.github.knokko.text-renderer:core:$textRenderVersion",
 			"com.github.knokko.text-renderer:unicode-fonts:$textRenderVersion",
 			"com.github.knokko.text-renderer:vulkan:$textRenderVersion",
@@ -158,6 +157,8 @@ project(":game") {
 		// However, these classes won't be used in-game, so it doesn't matter.
 		dontwarn "com.github.knokko.text.renderer.cpu.BufferedImageTextRenderer"
 		dontwarn "com.github.knokko.compressor.Kim2**pressor"
+		// TODO Split vk-compressor to avoid shipping Bc7
+		dontwarn "com.github.knokko.compressor.Bc7**pressor"
 		dontwarn "mardek.assets.area.ParsedTile"
 		dontwarn "mardek.assets.area.ParsedTilesheet"
 
@@ -170,31 +171,10 @@ project(":importer") {
 	dependencies {
 		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
 		for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
+		implementation "com.github.knokko:vk-compressor:$compressorVersion"
 		implementation files("../flash/ffdec_lib.jar")
 		implementation project(":assets")
 		implementation project(":state")
-	}
-}
-
-project(":playground") {
-	apply plugin: "com.github.johnrengelman.shadow"
-	dependencies {
-		implementation files("../flash/ffdec_lib.jar")
-		implementation "org.lwjgl:lwjgl-glfw"
-		implementation project(":assets")
-		implementation project(":importer")
-		implementation project(":renderer")
-		implementation project(":state")
-
-		for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
-		for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
-
-		for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-glfw::$natives"
-	}
-	shadowJar {
-		manifest {
-			attributes ("Main-Class": "mardek.playground.TilesPlaygroundKt")
-		}
 	}
 }
 
@@ -205,6 +185,8 @@ project(":renderer") {
 		implementation project(":assets")
 		implementation project(":state")
 		implementation project(":ui-renderer")
+
+		testImplementation "com.github.knokko:vk-compressor:$compressorVersion"
 	}
 }
 

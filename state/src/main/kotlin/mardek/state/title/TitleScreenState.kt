@@ -15,7 +15,7 @@ import mardek.state.ingame.CampaignState
 import java.io.ByteArrayInputStream
 import kotlin.time.Duration
 
-class TitleScreenState(private val assets: Campaign): GameState {
+class TitleScreenState(val assets: Campaign): GameState {
 
 	var newGameButton: AbsoluteRectangle? = null
 	var loadGameButton: AbsoluteRectangle? = null

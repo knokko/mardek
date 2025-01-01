@@ -1,5 +1,6 @@
 package mardek.importer.characters
 
+import mardek.assets.animations.BattleModel
 import mardek.assets.area.AreaAssets
 import mardek.assets.characters.PlayableCharacter
 import mardek.assets.combat.CombatAssets
@@ -21,6 +22,7 @@ internal fun importPlayableCharacters(
 	skillAssets: SkillAssets,
 	inventoryAssets: InventoryAssets,
 	areaAssets: AreaAssets,
+	playerModelMapping: Map<String, BattleModel>?,
 ): List<FatPlayableCharacter> {
 	val characters = ArrayList<FatPlayableCharacter>()
 	val flashCode = parseActionScriptResource("mardek/importer/combat/playable-characters.txt")
@@ -41,18 +43,19 @@ internal fun importPlayableCharacters(
 		statMods.add(StatModifier(combatAssets.stats.find { it.flashName == "SPR" }!!, parseInt(statList[2])))
 		statMods.add(StatModifier(combatAssets.stats.find { it.flashName == "AGL" }!!, parseInt(statList[3])))
 
+		val name = parseFlashString(nestedCharacter[0] as String, "playable character name")!!
+		val className = parseFlashString(nestedCharacter[1] as String, "playable character class")!!
 		val playable = PlayableCharacter(
-			name = parseFlashString(nestedCharacter[0] as String, "playable character name")!!,
-			characterClass = combatAssets.classes.find {
-				it.rawName == parseFlashString(nestedCharacter[1] as String, "playable character class")!!
-			}!!,
+			name = name,
+			characterClass = combatAssets.classes.find { it.rawName == className }!!,
 			element = combatAssets.elements.find {
 				it.rawName == parseFlashString(nestedCharacter[3] as String, "playable character element")!!
 			}!!,
 			baseStats = statMods,
 			areaSprites = areaAssets.characterSprites.find {
 				it.name == parseFlashString(nestedCharacter[1] as String, "playable character area sprites")
-			}!!
+			}!!,
+			battleModel = if (playerModelMapping != null) playerModelMapping[className]!! else BattleModel()
 		)
 
 		val masteredSkills: MutableList<Skill> = (nestedCharacter[8] as ArrayList<String>).map { rawActiveName ->
