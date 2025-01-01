@@ -22,33 +22,17 @@ class TitleScreenRenderer(
 		val renderer = resources.uiRenderers[frameIndex]
 		renderer.begin(recorder, targetImage)
 		renderer.beginBatch()
-		renderer.drawImage(resources.bc1Images[0], 0, 0, targetImage.width, targetImage.height)
+
+		renderer.drawImage(resources.bcImages[state.assets.ui.titleScreenBackground.index], 0, 0, targetImage.width, targetImage.height)
 
 		val transform = CoordinateTransform.create(SpaceLayout.GrowRight, targetImage.width, targetImage.height)
 
 		run {
-			val titleRect = transform.transform(0.05f, 0.67f, 2f, 0.3f)
-			val darkColor = srgbToLinear(rgb(90, 51, 17))
-			val mediumColor = srgbToLinear(rgb(180, 90, 65))
-			val lightColor = srgbToLinear(rgb(233, 194, 186))
-			val outline1 = srgbToLinear(rgb(68, 51, 34))
-			val outline2 = srgbToLinear(rgb(190, 144, 95))
-			val titleOutline = intArrayOf(outline1, outline1, outline2, outline2)
-
-			val baseY = transform.transformY(0.77f)
-			val heightA = transform.transformHeight(0.18f)
-
-			val darkHeight = heightA * 3 / 10
-			val lightHeight = heightA * 2 / 10
-			val gy = baseY - titleRect.minY - heightA + titleOutline.size
-			renderer.drawString(
-				resources.font, "MARDEK", darkColor, titleOutline,
-				titleRect.minX, titleRect.minY, titleRect.maxX, titleRect.maxY, baseY, heightA, 2, TextAlignment.DEFAULT,
-				Gradient(0, gy, titleRect.width, darkHeight, mediumColor, mediumColor, darkColor),
-				Gradient(0, gy + darkHeight, titleRect.width, lightHeight, lightColor, lightColor, mediumColor),
-				Gradient(0, gy + darkHeight + lightHeight, titleRect.width, lightHeight, mediumColor, mediumColor, lightColor),
-				Gradient(0, gy + darkHeight + 2 * lightHeight, titleRect.width, darkHeight, darkColor, darkColor, mediumColor)
-			)
+			val height = 0.2f
+			// TODO Export title with higher quality
+			val image = resources.bcImages[state.assets.ui.titleScreenTitle.index]
+			val titleRect = transform.transform(0.05f, 0.77f, height * image.width / image.height, height)
+			renderer.drawImage(image, titleRect.minX, titleRect.minY, titleRect.maxX, titleRect.maxY)
 		}
 
 		run {

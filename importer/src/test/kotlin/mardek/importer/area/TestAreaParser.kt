@@ -3,6 +3,7 @@ package mardek.importer.area
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.area.*
 import mardek.assets.inventory.ItemStack
+import mardek.importer.battle.importBattleAssets
 import mardek.importer.combat.importCombatAssets
 import mardek.importer.inventory.importInventoryAssets
 import mardek.importer.skills.importSkills
@@ -15,11 +16,12 @@ class TestAreaParser {
 
 	private val combatAssets = importCombatAssets()
 	private val inventoryAssets = importInventoryAssets(combatAssets, importSkills(combatAssets))
-	private val assets = importAreaAssets(inventoryAssets)
+	private val battleAssets = importBattleAssets()
+	private val assets = importAreaAssets(inventoryAssets, battleAssets)
 
 	@Test
 	fun testParseAeropolisNorth() {
-		val parsed = parseArea(assets, "aeropolis_N", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "aeropolis_N", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals("aeropolis_N", parsed.properties.rawName)
 		assertEquals("Aeropolis - Temple District", parsed.properties.displayName)
 		assertEquals("aeropolis", parsed.tilesheet.name)
@@ -52,7 +54,7 @@ class TestAreaParser {
 
 	@Test
 	fun testParseDragonLairArea2() {
-		val parsed = parseArea(assets, "DL_area2", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "DL_area2", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals("DL_area2", parsed.properties.rawName)
 		assertEquals("Dragon's Lair", parsed.properties.displayName)
 		assertEquals("dragonlair", parsed.tilesheet.name)
@@ -69,6 +71,7 @@ class TestAreaParser {
 			ownLevelRange = null,
 			minSteps = 0,
 			chance = 10,
+			defaultBackground = battleAssets.backgrounds.find { it.name == "dragonlair" }!!,
 			specialBackground = null
 		), parsed.randomBattles)
 		assertEquals("MightyHeroes", parsed.properties.musicTrack)
@@ -96,13 +99,13 @@ class TestAreaParser {
 
 	@Test
 	fun testParseGoldfishWarp() {
-		val parsed = parseArea(assets, "goldfish_warp", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "goldfish_warp", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals(AreaAmbience(rgba(16, 14, 10, 100), 0), parsed.properties.ambience)
 	}
 
 	@Test
 	fun testParseAirTemple() {
-		val parsed = parseArea(assets, "aeropolis_N_TAIR", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "aeropolis_N_TAIR", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals(1, parsed.objects.transitions.size)
 		assertEquals(1, parsed.objects.objects.size)
 		assertEquals(1, parsed.objects.characters.size)
@@ -113,13 +116,13 @@ class TestAreaParser {
 
 	@Test
 	fun testParseTheatre() {
-		val parsed = parseArea(assets, "aeropolis_W_theatre", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "aeropolis_W_theatre", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals(20, parsed.objects.characters.size)
 	}
 
 	@Test
 	fun testParseGuardPost() {
-		val parsed = parseArea(assets, "guardpost", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "guardpost", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals(2, parsed.objects.characters.size)
 		assertEquals(2, parsed.objects.transitions.size)
 	}
@@ -127,7 +130,7 @@ class TestAreaParser {
 	@Test
 	fun testDesertCave() {
 		val yinYang = inventoryAssets.items.find { it.flashName == "Yin and Yang" }!!
-		val parsed = parseArea(assets, "desertcave", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "desertcave", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals(1, parsed.chests.size)
 
 		val chest = parsed.chests[0]
@@ -153,7 +156,7 @@ class TestAreaParser {
 
 	@Test
 	fun testParseSunTemple1() {
-		val parsed = parseArea(assets, "sunTemple1", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "sunTemple1", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals(1, parsed.chests.size)
 		assertNull(parsed.randomBattles)
 
@@ -171,7 +174,7 @@ class TestAreaParser {
 	@Test
 	fun testParseSunTemple4() {
 		val spear = inventoryAssets.items.find { it.flashName == "Iron Spear" }!!
-		val parsed = parseArea(assets, "sunTemple4", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "sunTemple4", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals(7, parsed.chests.size)
 
 		val chest = parsed.chests[1]
@@ -196,7 +199,7 @@ class TestAreaParser {
 
 	@Test
 	fun testTaintedGrotto() {
-		val parsed = parseArea(assets, "pcave3", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "pcave3", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 
 		val chest = parsed.chests[0]
 		assertEquals(12, chest.x)
@@ -211,7 +214,7 @@ class TestAreaParser {
 
 	@Test
 	fun testDreamcave() {
-		val parsed = parseArea(assets, "canonia_dreamcave_d2", ArrayList(), ArrayList(), inventoryAssets)
+		val parsed = parseArea(assets, "canonia_dreamcave_d2", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
 		assertEquals(3, parsed.chests.size)
 
 		val dreamstone = parsed.chests[0]

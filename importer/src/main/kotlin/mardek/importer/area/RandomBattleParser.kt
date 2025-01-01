@@ -3,10 +3,11 @@ package mardek.importer.area
 import mardek.assets.area.BattleEnemySelection
 import mardek.assets.area.LevelRange
 import mardek.assets.area.RandomAreaBattles
+import mardek.assets.battle.BattleAssets
 import mardek.importer.util.ActionScriptCode
 import java.lang.Integer.parseInt
 
-fun parseRandomBattle(areaCode: ActionScriptCode): RandomAreaBattles? {
+fun parseRandomBattle(areaCode: ActionScriptCode, battleAssets: BattleAssets): RandomAreaBattles? {
 	val chance = try { parseInt(areaCode.variableAssignments["btlChance"]) } catch (complex: NumberFormatException) {
 		println("failed to parse btlChance ${areaCode.variableAssignments["btlChance"]}")
 		0
@@ -61,9 +62,10 @@ fun parseRandomBattle(areaCode: ActionScriptCode): RandomAreaBattles? {
 
 	val rawBackground = areaCode.variableAssignments["specBtlBG"]
 	val specialBackground = if (rawBackground != null) {
-		parseFlashString(rawBackground, "special battle background")
+		battleAssets.backgrounds.find { it.name == parseFlashString(rawBackground, "special battle background") }!!
 	} else null
 
+	val tileset = parseFlashString(areaCode.variableAssignments["tileset"]!!, "area tileset")
 	return RandomAreaBattles(
 		ownEnemies = ownEnemies,
 		monstersTableName = monstersTableName,
@@ -71,6 +73,7 @@ fun parseRandomBattle(areaCode: ActionScriptCode): RandomAreaBattles? {
 		levelRangeName = levelRangeName,
 		minSteps = minSteps,
 		chance = chance,
+		defaultBackground = battleAssets.backgrounds.find { it.name == tileset }!!,
 		specialBackground = specialBackground
 	)
 }
