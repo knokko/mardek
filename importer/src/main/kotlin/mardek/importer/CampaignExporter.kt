@@ -5,7 +5,7 @@ import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.builders.BoilerBuilder
 import mardek.assets.Campaign
 import mardek.importer.area.AreaSprites
-import mardek.importer.ui.UiPacker
+import mardek.importer.ui.BcPacker
 import org.lwjgl.vulkan.VK10.VK_API_VERSION_1_0
 import java.io.BufferedOutputStream
 import java.io.File
@@ -53,7 +53,7 @@ private fun exportCampaignData(campaign: Campaign, outputFolder: File, bitser: B
 }
 
 private fun exportBc1Sprites(output: OutputStream) {
-	val packer = UiPacker()
+	val packer = BcPacker()
 	packer.addBc1("TitleScreenBackground.png")
 	packer.addBc1("TitleMARDEK.png")
 

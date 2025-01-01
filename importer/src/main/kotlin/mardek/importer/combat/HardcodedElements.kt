@@ -4,12 +4,12 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.assets.combat.CombatAssets
 import mardek.assets.combat.Element
 import mardek.assets.sprite.KimSprite
-import mardek.importer.ui.UiPacker
+import mardek.importer.ui.BcPacker
 import mardek.importer.util.compressKimSprite2
 import javax.imageio.ImageIO
 
 private fun getSprite2(name: String, bitsPerPixel: Int): KimSprite {
-	val resource = UiPacker::class.java.classLoader.getResource("mardek/importer/combat/elements/${name}.png")!!
+	val resource = BcPacker::class.java.classLoader.getResource("mardek/importer/combat/elements/${name}.png")!!
 	return compressKimSprite2(ImageIO.read(resource), bitsPerPixel)
 }
 

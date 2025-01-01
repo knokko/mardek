@@ -10,17 +10,17 @@ import java.io.DataOutputStream
 import java.io.OutputStream
 import javax.imageio.ImageIO
 
-class UiPacker {
+class BcPacker {
 
 	private val bc1Images = mutableListOf<BufferedImage>()
 
 	fun addBc1(path: String): Int {
-		val input = UiPacker::class.java.getResourceAsStream(path) ?: throw IllegalArgumentException("Can't find $path")
-		val image = ImageIO.read(input)
+		val input = BcPacker::class.java.getResourceAsStream(path) ?: throw IllegalArgumentException("Can't find $path")
+		var image = ImageIO.read(input)
 		input.close()
 
 		if (image.width % 4 != 0 || image.height % 4 != 0) {
-			throw IllegalArgumentException("Image dimensions ${image.width} x ${image.height} must be multiples of 4")
+			image = image.getSubimage(0, 0, 4 * (image.width / 4), 4 * (image.height / 2))
 		}
 		bc1Images.add(image)
 		return bc1Images.size
