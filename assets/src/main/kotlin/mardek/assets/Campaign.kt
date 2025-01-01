@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.assets.area.AreaAssets
+import mardek.assets.battle.BattleAssets
 import mardek.assets.characters.PlayableCharacter
 import mardek.assets.combat.CombatAssets
 import mardek.assets.inventory.InventoryAssets
@@ -26,22 +27,28 @@ class Campaign(
 	val inventory: InventoryAssets,
 
 	@BitField(ordering = 3)
-	val areas: AreaAssets,
+	val battle: BattleAssets,
 
 	@BitField(ordering = 4)
+	val areas: AreaAssets,
+
+	@BitField(ordering = 5)
 	@ReferenceFieldTarget(label = "playable characters")
 	val playableCharacters: ArrayList<PlayableCharacter>,
 
-	@BitField(ordering = 5)
+	@BitField(ordering = 6)
 	val ui: UiSprites,
 ) {
 
-	@BitField(ordering = 6)
+	@BitField(ordering = 7)
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	val checkpoints = HashMap<String, ByteArray>()
 
 	@Suppress("unused")
-	private constructor() : this(CombatAssets(), SkillAssets(), InventoryAssets(), AreaAssets(), arrayListOf(), UiSprites())
+	private constructor() : this(
+		CombatAssets(), SkillAssets(), InventoryAssets(),
+		BattleAssets(), AreaAssets(), arrayListOf(), UiSprites()
+	)
 
 	companion object {
 		fun load(resourcePath: String): Campaign {

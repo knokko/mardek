@@ -5,14 +5,15 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.area.Direction
-import mardek.assets.area.Area
-import mardek.assets.area.Chest
-import mardek.assets.area.TransitionDestination
+import mardek.assets.area.*
 import mardek.input.InputKey
 import mardek.input.InputManager
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
+import mardek.state.ingame.battle.Battle
+import mardek.state.ingame.battle.BattleState
+import mardek.state.ingame.battle.Enemy
+import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
@@ -41,6 +42,18 @@ class AreaState(
 	@BitField(ordering = 4, optional = true)
 	var nextPlayerPosition: NextAreaPosition? = null
 		private set
+
+	@BitField(ordering = 5, optional = true)
+	var incomingRandomBattle: IncomingRandomBattle? = null
+
+	@BitField(ordering = 6)
+	@IntegerField(expectUniform = false, minValue = 0)
+	private var stepsWithoutBattle = area.randomBattles?.minSteps ?: 0
+
+	@BitField(ordering = 7, optional = true)
+	var activeBattle: BattleState? = null
+
+	val rng = Random.Default
 
 	var nextTransition: TransitionDestination? = null
 
@@ -83,6 +96,12 @@ class AreaState(
 		if (obtainedGold != null && currentTime >= obtainedGold!!.showUntil) {
 			this.obtainedGold = null
 		}
+
+		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
+			activeBattle = BattleState(battle = incomingRandomBattle!!.battle)
+			incomingRandomBattle = null
+		}
+
 		currentTime += timeStep
 	}
 
@@ -163,11 +182,38 @@ class AreaState(
 				discovery.readWrite(area).discover(nextPlayerPosition.position.x, nextPlayerPosition.position.y)
 			}
 			checkTransitions()
+			if (nextTransition != null) return
+
+			maybeStartRandomBattle()
 		}
 	}
 
+	private fun maybeStartRandomBattle() {
+		val randomBattles = area.randomBattles ?: return
+		if (stepsWithoutBattle == 0) {
+			if (rng.nextInt(100) < randomBattles.chance) {
+				val canAvoid = rng.nextBoolean() // TODO Find the right rule for this
+
+				fun chooseLevel(range: LevelRange) = range.min + rng.nextInt(1 + range.max - range.min)
+
+				val possibleEnemySelections = randomBattles.getEnemySelections()
+				val selection = possibleEnemySelections[rng.nextInt(possibleEnemySelections.size)]
+				val enemies = selection.enemyNames.map {
+					if (it != null) Enemy(it, chooseLevel(randomBattles.getLevelRange())) else null
+				}.toTypedArray()
+
+				val battle = Battle(
+					enemies, selection.enemyLayout, "battle",
+					randomBattles.specialBackground ?: randomBattles.defaultBackground
+				)
+				incomingRandomBattle = IncomingRandomBattle(battle, currentTime + 1.seconds, canAvoid)
+				stepsWithoutBattle = randomBattles.minSteps
+			}
+		} else stepsWithoutBattle -= 1
+	}
+
 	private fun processInput(input: InputManager) {
-		if (nextPlayerPosition == null) {
+		if (nextPlayerPosition == null && incomingRandomBattle == null) {
 			var moveDirection: Direction? = null
 			if (input.isPressed(InputKey.MoveLeft)) moveDirection = Direction.Left
 			if (input.isPressed(InputKey.MoveDown)) moveDirection = Direction.Down
@@ -185,6 +231,11 @@ class AreaState(
 					lastPlayerDirection = moveDirection
 				}
 			}
+		}
+
+		if (incomingRandomBattle != null) {
+			if (input.isPressed(InputKey.Cheat)) incomingRandomBattle = null
+			else if (incomingRandomBattle!!.canAvoid && input.isPressed(InputKey.Cancel)) incomingRandomBattle = null
 		}
 	}
 

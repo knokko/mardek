@@ -24,7 +24,7 @@ import org.joml.Vector2f
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil.memByteBuffer
 import org.lwjgl.vulkan.*
-import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR
+import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_FIFO_KHR
 import org.lwjgl.vulkan.VK12.*
 import java.io.File
 import java.lang.Integer.parseInt
@@ -213,7 +213,7 @@ class AnimationState(private val creature: BattleCreature2) {
 }
 
 class CreatureRenderer(window: VkbWindow, val monster: BattleCreature2) : SimpleWindowRenderLoop(
-	window, 1, true, VK_PRESENT_MODE_MAILBOX_KHR, // TODO Use frames-in-flight for vertex positions
+	window, 1, true, VK_PRESENT_MODE_FIFO_KHR, // TODO Use frames-in-flight for vertex positions
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
 
@@ -249,7 +249,7 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature2) : Simple
 //			for (entry in variation.entries) selectedShapes.add(Pair(bodyPart, entry))
 //		}
 
-		val bufferedImages = selectedShapes.map { ImageIO.read(File("flash/big shapes/${it.second.id}.png")) }
+		val bufferedImages = selectedShapes.map { ImageIO.read(File("flash/shapes/${it.second.id}.png")) }
 		this.shapeEntries = selectedShapes.toList()
 		var numPixels = 0
 		for (image in bufferedImages) numPixels += image.width * image.height
@@ -374,13 +374,14 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature2) : Simple
 
 			val variation = partState.part.variations.find { it.name == preferredVariation } ?: partState.part.variations.first()
 			for (entry in variation.entries) {
+				val magicScale = 20f // I have no clue why, but I need to divide all translations by this
 				val jomlMatrix = Matrix3x2f(
 					scaleX, matrix.rotateSkew0, matrix.rotateSkew1, scaleY,
-					(matrix.translateX + 0 * scaleX * entry.rect.Xmin) / 20f,
-					(matrix.translateY + 0 * scaleY * entry.rect.Ymin) / 20f
-				).translate(entry.rect.Xmin / 20f, entry.rect.Ymin / 20f)
+					matrix.translateX / magicScale,
+					matrix.translateY / magicScale
+				).translate(entry.rect.Xmin / magicScale, entry.rect.Ymin / magicScale)
 
-				val artificialScale = 4
+				val jpexExportScale = 1
 				val color = partState.color
 				if (color != null) {
 					fun transform(value: Int) = (255.0 * (value / 256.0)).roundToInt()
@@ -399,8 +400,8 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature2) : Simple
 				for (corner in arrayOf(Pair(0f, 0f), Pair(1f, 0f), Pair(1f, 1f), Pair(1f, 1f), Pair(0f, 1f), Pair(0f, 0f))) {
 					val image = this.images[imageIndex]
 					val position = jomlMatrix.transformPosition(Vector2f(
-						corner.first * image.width.toFloat() / artificialScale,
-						corner.second * image.height.toFloat() / artificialScale
+						corner.first * image.width.toFloat() / jpexExportScale,
+						corner.second * image.height.toFloat() / jpexExportScale
 					))
 					hostVertexPositions.putFloat(
 						position.x * 0.01f * acquiredImage.height() / acquiredImage.width()

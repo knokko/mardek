@@ -5,6 +5,7 @@ import com.github.knokko.compressor.Kim1Decompressor
 import mardek.assets.area.AreaAssets
 import mardek.assets.area.objects.AreaObject
 import mardek.assets.sprite.KimSprite
+import mardek.importer.battle.importBattleAssets
 import mardek.importer.combat.importCombatAssets
 import mardek.importer.inventory.importInventoryAssets
 import mardek.importer.skills.importSkills
@@ -69,7 +70,7 @@ class TestAreaSprites {
 	@Test
 	fun testImportCharacterSprites() {
 		val combatAssets = importCombatAssets()
-		val assets = importAreaAssets(importInventoryAssets(combatAssets, importSkills(combatAssets)))
+		val assets = importAreaAssets(importInventoryAssets(combatAssets, importSkills(combatAssets)), importBattleAssets())
 
 		val deugan = assets.characterSprites.find { it.name == "deugan_hero" }!!
 		assertEquals("deugan_hero", deugan.name)

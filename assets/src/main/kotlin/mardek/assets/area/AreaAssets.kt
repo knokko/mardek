@@ -36,6 +36,14 @@ class AreaAssets {
 	val chestSprites = ArrayList<ChestSprite>()
 
 	@BitField(ordering = 6)
+	@ReferenceFieldTarget(label = "level ranges")
+	val levelRanges = ArrayList<SharedLevelRange>()
+
+	@BitField(ordering = 7)
+	@ReferenceFieldTarget(label = "enemy selections")
+	val enemySelections = ArrayList<SharedEnemySelections>()
+
+	@BitField(ordering = 8)
 	@ReferenceFieldTarget(label = "areas")
 	val areas = ArrayList<Area>()
 }

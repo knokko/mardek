@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.assets.battle.PartyLayout
 import mardek.assets.inventory.Dreamstone
 import mardek.assets.inventory.ItemStack
 import mardek.assets.inventory.PlotItem
@@ -66,13 +67,14 @@ class ChestBattle(
 	val monsters: Array<ChestMonster?>,
 
 	@BitField(ordering = 1)
-	val position: String,
+	@ReferenceField(stable = false, label = "enemy party layouts")
+	val enemyLayout: PartyLayout,
 
 	@BitField(ordering = 2, optional = true)
 	val specialMusic: String?,
 ) {
 	@Suppress("unused")
-	private constructor() : this(arrayOf(null, null, null, null), "", null)
+	private constructor() : this(arrayOf(null, null, null, null), PartyLayout(), null)
 
 	override fun toString() = "ChestBattle$monsters"
 }

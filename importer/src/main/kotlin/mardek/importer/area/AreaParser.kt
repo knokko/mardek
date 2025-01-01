@@ -5,6 +5,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.area.*
 import mardek.assets.area.objects.AreaDecoration
+import mardek.assets.battle.BattleAssets
 import mardek.assets.inventory.InventoryAssets
 import mardek.importer.util.ActionScriptCode
 import mardek.importer.util.parseActionScriptResource
@@ -12,12 +13,14 @@ import java.lang.Integer.parseInt
 
 internal fun parseArea(
 		assets: AreaAssets, areaName: String, tilesheets: MutableList<ParsedTilesheet>,
-		transitions: MutableList<Pair<TransitionDestination, String>>, inventoryAssets: InventoryAssets
-) = parseArea2(assets, parseArea1(areaName), tilesheets, transitions, inventoryAssets)
+		transitions: MutableList<Pair<TransitionDestination, String>>,
+		inventoryAssets: InventoryAssets, battleAssets: BattleAssets
+) = parseArea2(assets, parseArea1(areaName), tilesheets, transitions, inventoryAssets, battleAssets)
 
 private fun parseArea2(
 		assets: AreaAssets, areaCode: ActionScriptCode, tilesheets: MutableList<ParsedTilesheet>,
-		transitions: MutableList<Pair<TransitionDestination, String>>, inventoryAssets: InventoryAssets
+		transitions: MutableList<Pair<TransitionDestination, String>>,
+		inventoryAssets: InventoryAssets, battleAssets: BattleAssets,
 ): ParsedArea {
 	val areaSetup = areaCode.functionCalls.filter { it.first == "AreaSetup" }.map { it.second }
 	parseAssert(areaSetup.size == 1, "Expected exactly 1 AreaSetup call, but found ${areaCode.functionCalls}")
@@ -25,7 +28,7 @@ private fun parseArea2(
 	val properties = parseAreaProperties(areaCode, areaSetupMap)
 	val flags = parseAreaFlags(areaSetupMap)
 
-	val randomBattles = parseRandomBattle(areaCode)
+	val randomBattles = parseRandomBattle(areaCode, battleAssets, assets)
 	val (width, height, tileGrid) = parseAreaMap(areaCode.variableAssignments["map"]!!)
 
 	val tilesheetName = parseFlashString(areaCode.variableAssignments["tileset"]!!, "tileset name")!!
@@ -72,7 +75,7 @@ private fun parseArea2(
 		height = height,
 		tileGrid = tileGrid,
 		objects = parseAreaObjects(assets, areaCode.variableAssignments["A_sprites"]!!, extraDecorations, transitions),
-		chests = if (rawAreaLoot != null) parseAreaChests(inventoryAssets, rawAreaLoot, chestType) else ArrayList(0),
+		chests = if (rawAreaLoot != null) parseAreaChests(inventoryAssets, battleAssets, rawAreaLoot, chestType) else ArrayList(0),
 		randomBattles = randomBattles,
 		properties = properties,
 		flags = flags,
@@ -114,7 +117,7 @@ internal fun parseAreaProperties(areaCode: ActionScriptCode, areaSetupMap: Map<S
 		dungeon = dungeon,
 		encyclopediaName = encyclopediaName,
 		dreamType = dreamType,
-		snowType = snowType
+		snowType = snowType,
 	)
 }
 
