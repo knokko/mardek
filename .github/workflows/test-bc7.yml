@@ -13,3 +13,11 @@ jobs:
       - run: mkdir bc7
       - run: cp importer/src/main/resources/mardek/importer/bc7/* bc7
       - run: ls bc7
+      - run: cp importer/src/main/resources/mardek/importer/ui/TitleScreenBackground.png bc7
+      - run: cd bc7
+      - run: unzip bc7/ispc-linux.zip
+      - run: ./ispc TitleScreenBackground.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TitleScreenBackground
+          path: ./TitleScreenBackground.dds
