@@ -1,0 +1,15 @@
+name: Testing BC7 compression
+
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  bc7:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir bc7
+      - run: cp importer/src/main/resources/mardek/importer/bc7/* bc7
+      - run: ls bc7

@@ -18,6 +18,7 @@ import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import kotlin.math.max
 
 class SharedResources(
 	getBoiler: CompletableFuture<BoilerInstance>, framesInFlight: Int, targetImageFormat: CompletableFuture<Int>
@@ -38,7 +39,7 @@ class SharedResources(
 
 	val perFrameBuffer: PerFrameBuffer
 
-	lateinit var bc1Images: List<VkbImage>
+	lateinit var bcImages: List<VkbImage>
 
 	init {
 		val startTime = System.nanoTime()
@@ -96,31 +97,42 @@ class SharedResources(
 				"mardek/game/bc1-sprites.bin"
 			)!!))
 			val numImages = bcInput.readInt()
-			this.bc1Images = (0 until numImages).map {
+			var totalSize = 0L
+			var maxSize = 0
+			val isBc1 = BooleanArray(numImages)
+			this.bcImages = (0 until numImages).map {
 				val width = bcInput.readInt()
 				val height = bcInput.readInt()
+				val version = bcInput.readInt()
+				isBc1[it] = version == 1
+				var byteSize = width * height
+				if (version == 1) byteSize /= 2
+				val format = when (version) {
+					1 -> VK_FORMAT_BC1_RGBA_SRGB_BLOCK
+					7 -> VK_FORMAT_BC7_SRGB_BLOCK
+					else -> throw UnsupportedOperationException("Unsupported BC version $version")
+				}
+				totalSize += byteSize
+				maxSize = max(byteSize, maxSize)
 				boiler.images.createSimple(
-					width, height, VK_FORMAT_BC1_RGBA_SRGB_BLOCK,
-					VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
-					VK_IMAGE_ASPECT_COLOR_BIT, "Bc1Image$it"
+					width, height, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
+					VK_IMAGE_ASPECT_COLOR_BIT, "Bc${version}Image$it"
 				)
 			}
 
-			val totalSize = bc1Images.sumOf { it.width * it.height / 2L }
-			val maxSize = bc1Images.maxOf { it.width * it.height / 2 }
-
-			val stagingBuffer = boiler.buffers.createMapped(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "UiStagingBuffer")
+			val stagingBuffer = boiler.buffers.createMapped(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "BcStagingBuffer")
 
 			val commands = SingleTimeCommands(boiler)
-			commands.submit("UiStagingTransfer") { recorder ->
-				for (image in bc1Images) {
+			commands.submit("BcStagingTransfer") { recorder ->
+				for (image in bcImages) {
 					recorder.transitionLayout(image, null, ResourceUsage.TRANSFER_DEST)
 				}
 
 				val propagationBuffer = ByteArray(maxSize)
 				var stagingOffset = 0L
-				for (image in bc1Images) {
-					val stagingSize = image.width * image.height / 2
+				for ((index, image) in bcImages.withIndex()) {
+					var stagingSize = image.width * image.height
+					if (isBc1[index]) stagingSize /= 2
 					bcInput.readFully(propagationBuffer, 0, stagingSize)
 					stagingBuffer.mappedRange(
 						stagingOffset, stagingSize.toLong()).byteBuffer().put(propagationBuffer, 0, stagingSize
@@ -130,7 +142,7 @@ class SharedResources(
 				}
 
 				val destUsage = ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
-				for (image in bc1Images) {
+				for (image in bcImages) {
 					recorder.transitionLayout(image, ResourceUsage.TRANSFER_DEST, destUsage)
 				}
 			}
@@ -154,7 +166,7 @@ class SharedResources(
 		kim2Renderer.destroy()
 		colorGridRenderer.destroy()
 		for (renderer in uiRenderers) renderer.destroy()
-		for (image in bc1Images) image.destroy(boiler)
+		for (image in bcImages) image.destroy(boiler)
 		uiInstance.destroy()
 		font.destroy()
 		textInstance.destroy()

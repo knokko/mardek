@@ -22,7 +22,7 @@ class TitleScreenRenderer(
 		val renderer = resources.uiRenderers[frameIndex]
 		renderer.begin(recorder, targetImage)
 		renderer.beginBatch()
-		renderer.drawImage(resources.bc1Images[0], 0, 0, targetImage.width, targetImage.height)
+		renderer.drawImage(resources.bcImages[1], 0, 0, targetImage.width, targetImage.height)
 
 		val transform = CoordinateTransform.create(SpaceLayout.GrowRight, targetImage.width, targetImage.height)
 

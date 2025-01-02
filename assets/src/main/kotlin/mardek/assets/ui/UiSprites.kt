@@ -2,6 +2,7 @@ package mardek.assets.ui
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import mardek.assets.sprite.BcSprite
 import mardek.assets.sprite.KimSprite
 
 @BitStruct(backwardCompatible = false)
@@ -65,6 +66,12 @@ class UiSprites(
 
 	@BitField(ordering = 19)
 	val diagonalPointer: KimSprite,
+
+	@BitField(ordering = 20)
+	val titleScreenBackground: BcSprite,
+
+	@BitField(ordering = 21)
+	val titleScreenTitle: BcSprite,
 ) {
 
 	internal constructor() : this(
@@ -72,7 +79,8 @@ class UiSprites(
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite()
+		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
+		BcSprite(), BcSprite()
 	)
 
 	fun allKimSprites() = arrayOf(
@@ -83,4 +91,6 @@ class UiSprites(
 		mapChest, mapSaveCrystal, mapDreamCircle,
 		skillToggled, skillNotToggled, horizontalPointer, diagonalPointer
 	)
+
+	fun allBcSprites() = arrayOf(titleScreenBackground, titleScreenTitle)
 }

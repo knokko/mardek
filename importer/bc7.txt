@@ -1,0 +1,9 @@
+1. Ripped binaries from: npm install @gpu-tex-enc/bc
+    - I put them in src/main/resources
+2. Install OpenMP: sudo apt install libomp-dev
+3. Download Intel ISPC from https://ispc.github.io/downloads.html
+    - For Linux, curl -L https://ci.appveyor.com/api/projects/ispc/ispc/artifacts/build%2Fispc-trunk-linux.tar.gz?job=Environment%3A%20APPVEYOR_BUILD_WORKER_IMAGE%3DUbuntu2204%2C%20LLVM_VERSION%3Dlatest > ispc.tar.gz
+    - Extract it, and add its bin directory to path
+    - For convenience, I added the zipped version to src/main/resources
+4. Run the binary from step 1 to create a DDS file for the source image
+5. Extract its payload by skipping the first 148 bytes, and taking the rest

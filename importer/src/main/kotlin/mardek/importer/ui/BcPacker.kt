@@ -1,9 +1,11 @@
 package mardek.importer.ui
 
 import com.github.knokko.boiler.BoilerInstance
+import com.github.knokko.boiler.buffers.MappedVkbBuffer
 import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.compressor.Bc1Compressor
 import com.github.knokko.compressor.Bc1Worker
+import mardek.assets.sprite.BcSprite
 import org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
 import java.awt.image.BufferedImage
 import java.io.DataOutputStream
@@ -12,23 +14,17 @@ import javax.imageio.ImageIO
 
 class BcPacker {
 
-	private val bc1Images = mutableListOf<BufferedImage>()
+	private val images = mutableListOf<BcSprite>()
 
-	fun addBc1(path: String): Int {
-		val input = BcPacker::class.java.getResourceAsStream(path) ?: throw IllegalArgumentException("Can't find $path")
-		var image = ImageIO.read(input)
-		input.close()
-
-		if (image.width % 4 != 0 || image.height % 4 != 0) {
-			image = image.getSubimage(0, 0, 4 * (image.width / 4), 4 * (image.height / 2))
-		}
-		bc1Images.add(image)
-		return bc1Images.size
+	fun add(sprite: BcSprite) {
+		images.add(sprite)
 	}
 
-	fun writeDataAndDestroy(boiler: BoilerInstance, output: OutputStream) {
+	private fun compressBc1Images(boiler: BoilerInstance): MappedVkbBuffer {
 		val compressor = Bc1Compressor(boiler)
 		val worker = Bc1Worker(compressor)
+
+		val bc1Images = images.filter { it.version == 1 }
 
 		val totalSourceSize = 4L * bc1Images.sumOf { it.width * it.height }
 		val sourceBuffer = boiler.buffers.createMapped(totalSourceSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Bc1SourceBuffer")
@@ -43,8 +39,12 @@ class BcPacker {
 		commands.submit("Bc1Compression") { recorder ->
 			var sourceOffset = 0L
 			for ((index, sourceImage) in bc1Images.withIndex()) {
+				val bufferedImage = sourceImage.bufferedImage as BufferedImage
+				if (bufferedImage.width % 4 != 0 || bufferedImage.height % 4 != 0) {
+					throw Error("Image dimensions must be multiples of 4 at this point")
+				}
 				val sourceSize = 4L * sourceImage.width * sourceImage.height
-				boiler.buffers.encodeBufferedImageIntoRangeRGBA(sourceBuffer.mappedRange(sourceOffset, sourceSize), sourceImage)
+				boiler.buffers.encodeBufferedImageIntoRangeRGBA(sourceBuffer.mappedRange(sourceOffset, sourceSize), bufferedImage)
 				val destinationOffset = sourceOffset / 8
 				worker.compress(
 					recorder, descriptorSets[index], sourceBuffer.range(sourceOffset, sourceSize),
@@ -59,23 +59,46 @@ class BcPacker {
 		compressor.destroy(true)
 
 		sourceBuffer.destroy(boiler)
+		return destinationBuffer
+	}
 
-		val data = DataOutputStream(output)
-		data.writeInt(bc1Images.size)
-
-		for (image in bc1Images) {
-			data.writeInt(image.width)
-			data.writeInt(image.height)
-		}
+	fun compressImages(boiler: BoilerInstance) {
+		images.sortBy { it.version }
+		val destinationBuffer = compressBc1Images(boiler)
 
 		var dataOffset = 0L
-		for (image in bc1Images) {
-			val bc1DataArray = ByteArray(image.width * image.height / 2)
-			destinationBuffer.mappedRange(dataOffset, bc1DataArray.size.toLong()).byteBuffer().get(bc1DataArray)
-			data.write(bc1DataArray)
-			dataOffset += bc1DataArray.size
+		for (image in images) {
+			if (image.version != 1 || image.bufferedImage == null) continue
+			val compressedDataSize = image.width * image.height / 2
+			val compressedDataArray = ByteArray(compressedDataSize)
+			destinationBuffer.mappedRange(dataOffset, compressedDataSize.toLong()).byteBuffer().get(compressedDataArray)
+			image.data = compressedDataArray
+			image.bufferedImage = null
+			dataOffset += compressedDataSize
 		}
 
 		destinationBuffer.destroy(boiler)
+
+		for (image in images) {
+			if (image.bufferedImage == null) continue
+			if (image.version == 7) throw UnsupportedOperationException("BC7 support isn't implemented yet")
+		}
+	}
+
+	fun writeData(output: OutputStream) {
+		val data = DataOutputStream(output)
+		data.writeInt(images.size)
+
+		for (image in images) {
+			data.writeInt(image.width)
+			data.writeInt(image.height)
+			data.writeInt(image.version)
+		}
+
+		for ((index, image) in images.withIndex()) {
+			image.index = index
+			output.write(image.data!!)
+			image.data = null
+		}
 	}
 }
