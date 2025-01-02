@@ -10,12 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir bc7
-      - run: cp importer/src/main/resources/mardek/importer/bc7/* bc7
-      - run: ls bc7
-      - run: cp importer/src/main/resources/mardek/importer/ui/TitleScreenBackground.png bc7/TitleScreenBackground.png
-      - run: cd bc7
-      - run: unzip bc7/ispc-linux.zip
+      - run: cp importer/src/main/resources/mardek/importer/bc7/* ./
+      - run: cp importer/src/main/resources/mardek/importer/ui/TitleScreenBackground.png ./TitleScreenBackground.png
+      - run: unzip ispc-linux.zip
       - run: ls
       - run: ./ispc TitleScreenBackground.png
       - uses: actions/upload-artifact@v4
