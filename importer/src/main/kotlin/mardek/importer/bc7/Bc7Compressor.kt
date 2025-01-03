@@ -19,7 +19,7 @@ private fun copyToTempDirectory(): File {
 
 	val fileNames = when (Platform.get()) {
 		Platform.WINDOWS -> arrayOf("bc7enc.exe")
-		Platform.LINUX -> arrayOf("bc7enc-linux", "libomp.so")
+		Platform.LINUX -> arrayOf("bc7enc-linux", "libomp.so", "libomp.so.5")
 		else -> throw UnsupportedOperationException("Unsupported OS ${Platform.get()}")
 	}
 
