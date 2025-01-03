@@ -7,6 +7,6 @@ class TestBattleBackgrounds {
 
 	@Test
 	fun testBattleBackgrounds() {
-		assertEquals(20, importBattleAssets().backgrounds.size)
+		assertEquals(43, importBattleAssets().backgrounds.size)
 	}
 }
