@@ -70,7 +70,7 @@ internal fun importBattleBackgrounds(assets: BattleAssets) {
 	val backgroundsFolder = File("$resourcesFolder/battle/backgrounds")
 	for (backgroundImageFile in backgroundsFolder.listFiles()!!) {
 		var bufferedImage = ImageIO.read(backgroundImageFile)
-		val useBc7 = countTranslucentPixels(bufferedImage) > 0
+		val useBc7 = countTranslucentPixels(bufferedImage) > 10_000
 		println("use Bc7 for $backgroundImageFile? $useBc7")
 		if (!useBc7 && (bufferedImage.width % 4 != 0 || bufferedImage.height % 4 != 0)) {
 			bufferedImage = bufferedImage.getSubimage(
