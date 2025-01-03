@@ -14,6 +14,8 @@ jobs:
       - run: cp importer/src/main/resources/mardek/importer/ui/TitleScreenBackground.png ./TitleScreenBackground.png
       - run: unzip ispc-linux.zip
       - run: ls
+      - run: PATH="$PWD/:$PATH"
+      - run: echo $PATH
       - run: ./bc7enc-linux TitleScreenBackground.png
       - uses: actions/upload-artifact@v4
         with:
