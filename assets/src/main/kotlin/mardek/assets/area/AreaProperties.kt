@@ -3,6 +3,8 @@ package mardek.assets.area
 import com.github.knokko.bitser.BitEnum
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ReferenceField
+import mardek.assets.battle.BattleBackground
 
 @BitStruct(backwardCompatible = false)
 class AreaProperties(

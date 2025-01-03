@@ -6,6 +6,7 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.synchronization.ResourceUsage
+import com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf
 import com.github.knokko.text.TextInstance
 import com.github.knokko.text.font.FontData
 import com.github.knokko.text.font.UnicodeFonts
@@ -14,6 +15,7 @@ import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.area.*
 import mardek.renderer.batch.*
 import org.lwjgl.vulkan.VK10.*
+import org.lwjgl.vulkan.VkBufferImageCopy
 import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.util.*
@@ -94,19 +96,32 @@ class SharedResources(
 
 		val bcThread = Thread {
 			val bcInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
-				"mardek/game/bc1-sprites.bin"
+				"mardek/game/bc-sprites.bin"
 			)!!))
 			val numImages = bcInput.readInt()
 			var totalSize = 0L
 			var maxSize = 0
 			val isBc1 = BooleanArray(numImages)
+			val stagingOffsets = LongArray(numImages)
+
+			fun computeByteSize(width: Int, height: Int, version: Int): Int {
+				val baseSize = nextMultipleOf(width, 4) * nextMultipleOf(height, 4)
+				return if (version == 1) baseSize / 2 else baseSize
+			}
 			this.bcImages = (0 until numImages).map {
 				val width = bcInput.readInt()
 				val height = bcInput.readInt()
 				val version = bcInput.readInt()
 				isBc1[it] = version == 1
-				var byteSize = width * height
-				if (version == 1) byteSize /= 2
+				val byteSize = computeByteSize(width, height, version)
+				if (version == 1) {
+					// Ensure that offset is a multiple of texel block size (8)
+					totalSize = nextMultipleOf(totalSize, 8)
+				} else {
+					// Ensure that offset is a multiple of texel block size (16)
+					totalSize = nextMultipleOf(totalSize, 16)
+				}
+				stagingOffsets[it] = totalSize
 				val format = when (version) {
 					1 -> VK_FORMAT_BC1_RGBA_SRGB_BLOCK
 					7 -> VK_FORMAT_BC7_SRGB_BLOCK
@@ -120,6 +135,8 @@ class SharedResources(
 				)
 			}
 
+			println("total size is $totalSize and offsets are ${stagingOffsets.contentToString()}")
+
 			val stagingBuffer = boiler.buffers.createMapped(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "BcStagingBuffer")
 
 			val commands = SingleTimeCommands(boiler)
@@ -129,16 +146,31 @@ class SharedResources(
 				}
 
 				val propagationBuffer = ByteArray(maxSize)
-				var stagingOffset = 0L
+				val bufferCopyRegions = VkBufferImageCopy.calloc(1, recorder.stack)
+				val copyRegion = bufferCopyRegions[0]
 				for ((index, image) in bcImages.withIndex()) {
-					var stagingSize = image.width * image.height
-					if (isBc1[index]) stagingSize /= 2
+					val stagingSize = computeByteSize(image.width, image.height, if (isBc1[index]) 1 else 7)
 					bcInput.readFully(propagationBuffer, 0, stagingSize)
 					stagingBuffer.mappedRange(
-						stagingOffset, stagingSize.toLong()).byteBuffer().put(propagationBuffer, 0, stagingSize
+						stagingOffsets[index], stagingSize.toLong()
+					).byteBuffer().put(propagationBuffer, 0, stagingSize)
+
+					// TODO Port fix to vk-boiler
+					copyRegion.bufferOffset(stagingOffsets[index])
+					copyRegion.bufferRowLength(0)
+					copyRegion.bufferImageHeight(0)
+					boiler.images.subresourceLayers(copyRegion.imageSubresource(), image.aspectMask())
+					copyRegion.imageOffset()[0, 0] = 0
+					copyRegion.imageExtent()[image.width(), image.height()] = 1
+
+					vkCmdCopyBufferToImage(
+						recorder.commandBuffer,
+						stagingBuffer.vkBuffer(),
+						image.vkImage(),
+						VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+						bufferCopyRegions
 					)
-					recorder.copyBufferToImage(image, stagingBuffer.range(stagingOffset, stagingSize.toLong()))
-					stagingOffset += stagingSize
+					//recorder.copyBufferToImage(image, stagingBuffer.range(stagingOffset, stagingSize.toLong()))
 				}
 
 				val destUsage = ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)

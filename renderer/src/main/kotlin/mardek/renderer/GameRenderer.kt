@@ -46,7 +46,11 @@ class GameRenderer(
 	}
 
 	fun destroy() {
-		resources.join().destroy()
+		try {
+			resources.join().destroy()
+		} catch (failed: Throwable) {
+			failed.printStackTrace()
+		}
 	}
 
 	private fun createRenderer(state: GameState): StateRenderer {

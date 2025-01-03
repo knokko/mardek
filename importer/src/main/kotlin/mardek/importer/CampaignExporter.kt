@@ -34,11 +34,12 @@ fun main() {
 
 	val bcPacker = BcPacker()
 	for (sprite in campaign.ui.allBcSprites()) bcPacker.add(sprite)
+	for (background in campaign.battle.backgrounds) bcPacker.add(background.sprite)
 	val boiler = BoilerBuilder(
 		VK_API_VERSION_1_0, "ExportBc1Sprites", 1
 	).validation().forbidValidationErrors().build()
 	bcPacker.compressImages(boiler)
-	val bcOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/bc1-sprites.bin").toPath()))
+	val bcOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/bc-sprites.bin").toPath()))
 	bcPacker.writeData(bcOutput)
 	boiler.destroyInitialObjects()
 	bcOutput.flush()

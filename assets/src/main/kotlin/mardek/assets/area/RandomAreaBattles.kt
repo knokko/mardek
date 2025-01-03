@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
+import mardek.assets.battle.BattleBackground
 
 @BitStruct(backwardCompatible = false)
 class RandomAreaBattles(
@@ -29,14 +30,17 @@ class RandomAreaBattles(
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 100)
 	val chance: Int, // Percentage after taking 1 step?
 
-	@BitField(ordering = 6, optional = true)
-	val specialBackground: String?
+	@BitField(ordering = 6)
+	val defaultBackground: BattleBackground,
+
+	@BitField(ordering = 7, optional = true)
+	val specialBackground: BattleBackground?
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(
 		null, "", null, "",
-		0, 0, null
+		0, 0, BattleBackground(), null
 	)
 
 	init {

@@ -3,14 +3,19 @@ package mardek.importer.ui
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.MappedVkbBuffer
 import com.github.knokko.boiler.commands.SingleTimeCommands
+import com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf
 import com.github.knokko.compressor.Bc1Compressor
 import com.github.knokko.compressor.Bc1Worker
 import mardek.assets.sprite.BcSprite
+import mardek.importer.bc7.compressBc7
+import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+import org.lwjgl.vulkan.VK10.vkGetPhysicalDeviceProperties
+import org.lwjgl.vulkan.VkPhysicalDeviceLimits
+import org.lwjgl.vulkan.VkPhysicalDeviceProperties
 import java.awt.image.BufferedImage
 import java.io.DataOutputStream
 import java.io.OutputStream
-import javax.imageio.ImageIO
 
 class BcPacker {
 
@@ -29,7 +34,18 @@ class BcPacker {
 		val totalSourceSize = 4L * bc1Images.sumOf { it.width * it.height }
 		val sourceBuffer = boiler.buffers.createMapped(totalSourceSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Bc1SourceBuffer")
 
-		val destinationSize = totalSourceSize / 8
+		var destinationSize = 0L
+		val destinationOffsets = LongArray(images.size)
+		stackPush().use { stack ->
+			val deviceProperties = VkPhysicalDeviceProperties.calloc(stack)
+			vkGetPhysicalDeviceProperties(boiler.vkPhysicalDevice(), deviceProperties)
+			for ((index, image) in bc1Images.withIndex()) {
+				destinationSize = nextMultipleOf(destinationSize, deviceProperties.limits().minStorageBufferOffsetAlignment())
+				destinationOffsets[index] = destinationSize
+				destinationSize += image.width * image.height / 2
+			}
+		}
+
 		val destinationBuffer = boiler.buffers.createMapped(destinationSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Bc1DestinationBuffer")
 
 		val pool = compressor.descriptorSetLayout.createPool(bc1Images.size, 0, "Bc1DescriptorPool")
@@ -37,6 +53,7 @@ class BcPacker {
 
 		val commands = SingleTimeCommands(boiler)
 		commands.submit("Bc1Compression") { recorder ->
+
 			var sourceOffset = 0L
 			for ((index, sourceImage) in bc1Images.withIndex()) {
 				val bufferedImage = sourceImage.bufferedImage as BufferedImage
@@ -45,7 +62,8 @@ class BcPacker {
 				}
 				val sourceSize = 4L * sourceImage.width * sourceImage.height
 				boiler.buffers.encodeBufferedImageIntoRangeRGBA(sourceBuffer.mappedRange(sourceOffset, sourceSize), bufferedImage)
-				val destinationOffset = sourceOffset / 8
+				val destinationOffset = destinationOffsets[index]
+				println("destination offset is $destinationOffset")
 				worker.compress(
 					recorder, descriptorSets[index], sourceBuffer.range(sourceOffset, sourceSize),
 					destinationBuffer.range(destinationOffset, sourceSize / 8), sourceImage.width, sourceImage.height
@@ -80,8 +98,9 @@ class BcPacker {
 		destinationBuffer.destroy(boiler)
 
 		for (image in images) {
-			if (image.bufferedImage == null) continue
-			if (image.version == 7) throw UnsupportedOperationException("BC7 support isn't implemented yet")
+			if (image.version != 7 || image.bufferedImage == null) continue
+			image.data = compressBc7(image.bufferedImage as BufferedImage)
+			image.bufferedImage = null
 		}
 	}
 

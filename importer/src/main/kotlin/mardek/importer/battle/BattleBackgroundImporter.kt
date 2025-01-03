@@ -4,8 +4,16 @@ import com.jpexs.decompiler.flash.SWF
 import com.jpexs.decompiler.flash.tags.DefineSpriteTag
 import com.jpexs.decompiler.flash.tags.FrameLabelTag
 import com.jpexs.decompiler.flash.tags.PlaceObject2Tag
+import mardek.assets.battle.BattleAssets
+import mardek.assets.battle.BattleBackground
+import mardek.assets.sprite.BcSprite
+import mardek.importer.bc7.compressBc7
+import mardek.importer.util.resourcesFolder
+import java.awt.Color
+import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.file.Files
+import javax.imageio.ImageIO
 
 private fun extractFromFlash(swfFile: File) {
 	val input = Files.newInputStream(swfFile.toPath())
@@ -44,4 +52,35 @@ private fun extractFromFlash(swfFile: File) {
 fun main() {
 	// Copy MARDEK.swf from Steam to ./flash/MARDEK.swf to make this work
 	extractFromFlash(File("flash/MARDEK.swf"))
+}
+
+internal fun countTranslucentPixels(image: BufferedImage): Int {
+	var translucentPixels = 0
+	for (y in 0 until image.height) {
+		for (x in 0 until image.width) {
+			val alpha = Color(image.getRGB(x, y), true).alpha
+			if (alpha in 30..200) translucentPixels += 1
+		}
+	}
+	println(translucentPixels)
+	return translucentPixels
+}
+
+internal fun importBattleBackgrounds(assets: BattleAssets) {
+	val backgroundsFolder = File("$resourcesFolder/battle/backgrounds")
+	for (backgroundImageFile in backgroundsFolder.listFiles()!!) {
+		var bufferedImage = ImageIO.read(backgroundImageFile)
+		val useBc7 = countTranslucentPixels(bufferedImage) > 0
+		println("use Bc7 for $backgroundImageFile? $useBc7")
+		if (!useBc7 && (bufferedImage.width % 4 != 0 || bufferedImage.height % 4 != 0)) {
+			bufferedImage = bufferedImage.getSubimage(
+				0, 0, 4 * (bufferedImage.width / 4), 4 * (bufferedImage.height / 4)
+			)
+		}
+
+		val sprite = BcSprite(bufferedImage.width, bufferedImage.height, if (useBc7) 7 else 1)
+		sprite.bufferedImage = bufferedImage
+
+		assets.backgrounds.add(BattleBackground(backgroundImageFile.nameWithoutExtension, sprite))
+	}
 }

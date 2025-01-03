@@ -15,32 +15,17 @@ private fun importKimSprite(name: String, bitsPerPixel: Int): KimSprite {
 	return if (bitsPerPixel == 0) compressKimSprite1(image) else compressKimSprite2(image, bitsPerPixel)
 }
 
-private fun importBc1Sprite(name: String): BcSprite {
+private fun importBcSprite(name: String, version: Int): BcSprite {
 	val path = "mardek/importer/ui/$name.png"
 	val resource = BcPacker::class.java.classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
 	var image = ImageIO.read(resource)
 
-	if (image.width % 4 != 0 || image.height % 4 != 0) {
+	if (version == 1 && (image.width % 4 != 0 || image.height % 4 != 0)) {
 		image = image.getSubimage(0, 0,  4 * (image.width / 4), 4 * (image.height / 4))
 	}
 
-	val sprite = BcSprite(image.width, image.height, 1)
+	val sprite = BcSprite(image.width, image.height, version)
 	sprite.bufferedImage = image
-	return sprite
-}
-
-private fun importBc7Sprite(name: String): BcSprite {
-	val path = "mardek/importer/ui/$name.dds"
-	val input = BcPacker::class.java.classLoader.getResourceAsStream(path) ?: throw IllegalArgumentException("Can't load $path")
-
-	val width = 720
-	val height = 528
-
-	input.skipNBytes(148)
-	val data = input.readNBytes(width * height)
-
-	val sprite = BcSprite(width, height, 7)
-	sprite.data = data
 	return sprite
 }
 
@@ -65,6 +50,6 @@ internal fun importUiSprites() = UiSprites(
 	skillNotToggled = importKimSprite("SkillNotToggled", 0),
 	horizontalPointer = importKimSprite("HorizontalPointer", 0),
 	diagonalPointer = importKimSprite("DiagonalPointer", 0),
-	titleScreenBackground = importBc7Sprite("TitleScreenBackground"),
-	titleScreenTitle = importBc1Sprite("TitleScreenTitle"),
+	titleScreenBackground = importBcSprite("TitleScreenBackground", 1),
+	titleScreenTitle = importBcSprite("TitleScreenTitle", 7),
 )

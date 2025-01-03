@@ -98,7 +98,7 @@ fun main(args: Array<String>) {
 	val eventLoop = WindowEventLoop(0.01, inputListener::update)
 	eventLoop.addWindow(GameWindow(boiler.window(), framesInFlight, sharedResources, state, startTime))
 	println("Started event loop after ${(System.nanoTime() - startTime) / 1000_000} ms")
-	eventLoop.runMain()
+	eventLoop.runMain() // TODO Add some keep-alive logic to this
 
 	boiler.destroyInitialObjects()
 }
