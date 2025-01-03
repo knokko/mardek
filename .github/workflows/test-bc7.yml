@@ -16,7 +16,8 @@ jobs:
       - run: ls
       - run: PATH="$PWD/:$PATH"
       - run: echo $PATH
-      - run: ./bc7enc-linux TitleScreenBackground.png
+      - run: echo $PWD
+      - run: PATH="$PWD/:$PATH" ./bc7enc-linux TitleScreenBackground.png
       - uses: actions/upload-artifact@v4
         with:
           name: TitleScreenBackground
