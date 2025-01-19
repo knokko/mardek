@@ -19,6 +19,8 @@ import com.jpexs.decompiler.flash.tags.*
 import com.jpexs.decompiler.flash.types.ColorTransform
 import com.jpexs.decompiler.flash.types.MATRIX
 import com.jpexs.decompiler.flash.types.RECT
+import mardek.assets.animations.*
+import mardek.assets.sprite.BcSprite
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import org.lwjgl.system.MemoryStack
@@ -46,6 +48,7 @@ fun main() {
 	println("frame count is ${monsterTag.frameCount}")
 
 	val monster = parseCreature2(monsterTag)
+	val skeleton = convertFlashCreature(monster)
 
 	val boiler = BoilerBuilder(
 		VK_API_VERSION_1_2, "ImportPlayground", 1
@@ -58,15 +61,97 @@ fun main() {
 		.build()
 
 	val eventLoop = WindowEventLoop()
-	eventLoop.addWindow(CreatureRenderer(boiler.window(), monster))
+	eventLoop.addWindow(CreatureRenderer(boiler.window(), monster, skeleton))
 	eventLoop.runMain()
 
 	boiler.destroyInitialObjects()
 }
 
+fun convertFlashCreature(creature: BattleCreature2): Skeleton {
+	val partMapping = mutableMapOf<Int, SkeletonPart>()
+	val parts = creature.bodyParts.map { rawBodyPart ->
+		val skins = rawBodyPart.variations.map { BodyPart(name = it.name, entries = it.entries.map { rawEntry ->
+			val image = ImageIO.read(File("flash/shapes/${rawEntry.id}.png"))
+			val sprite = BcSprite(image.width, image.height, 7)
+			BodyPartEntry(sprite = sprite, offsetX = rawEntry.rect.Xmin / 20, offsetY = rawEntry.rect.Ymin / 20)
+		}.toTypedArray()) }.toTypedArray()
+		val skeletonPart = SkeletonPart(skins = skins)
+		partMapping[rawBodyPart.id] = skeletonPart
+		skeletonPart
+	}
+	val animations = creature.animations.mapValues { rawAnimation -> Animation(frames = rawAnimation.value.map { frame ->
+		AnimationFrame(parts = frame.parts.filter { part -> part.matrix != null }.map { part ->
+			val matrix = part.matrix!!
+			AnimationPart(
+				part = partMapping[part.part.id]!!,
+				matrix = AnimationMatrix(
+					translateX = matrix.translateX / 20,
+					translateY = matrix.translateY / 20,
+					rotateSkew0 = matrix.rotateSkew0,
+					rotateSkew1 = matrix.rotateSkew1,
+					hasScale = matrix.hasScale,
+					scaleX = matrix.scaleX,
+					scaleY = matrix.scaleY
+				)
+			)
+		}.toTypedArray())
+	}.toTypedArray()) }
+	return Skeleton(animations = HashMap(animations), parts = parts.toTypedArray())
+}
+
 class FlashShapeEntry(val rect: RECT, val id: Int)
 
 class FlashShapeVariation(val name: String, val entries: List<FlashShapeEntry>)
+
+class BodyPart2(val id: Int, val variations: List<FlashShapeVariation>)
+
+class BattleCreature2(val bodyParts: Set<BodyPart2>, val minDepth: Int, val maxDepth: Int) {
+	lateinit var baseState: AnimationState
+
+	val animations = mutableMapOf<String, List<AnimationState>>()
+}
+
+class AnimationPartState {
+	lateinit var part: BodyPart2
+	var matrix: MATRIX? = null
+	var color: ColorTransform? = null
+
+	override fun toString() = "AnimationPS($matrix)"
+}
+
+class AnimationState(private val creature: BattleCreature2) {
+	val parts = Array(1 + creature.maxDepth - creature.minDepth) { AnimationPartState() }
+
+	fun update(tag: Tag): Boolean {
+		if (tag is PlaceObject2Tag) {
+			val part = parts[tag.depth - creature.minDepth]
+			if (tag.characterId != 0) part.part = creature.bodyParts.find { it.id == tag.characterId }!!
+			part.matrix = tag.matrix
+			if (tag.placeFlagHasColorTransform) part.color = tag.colorTransform
+			return true
+		} else if (tag is RemoveObject2Tag) {
+			parts[tag.depth - creature.minDepth].matrix = null
+			parts[tag.depth - creature.minDepth].color = null
+			return true
+		}
+
+		return false
+	}
+
+	fun copy(): AnimationState {
+		val copied = AnimationState(creature)
+		for ((index, part) in parts.withIndex()) {
+			if (part.matrix != null) {
+				copied.parts[index].part = part.part
+				copied.parts[index].matrix = part.matrix
+				copied.parts[index].color = part.color
+			}
+		}
+		return copied
+	}
+
+	override fun toString() = parts.contentToString()
+}
 
 private fun parsePartSprites(partTag: DefineSpriteTag): List<FlashShapeVariation> {
 	val shapes = mutableListOf<FlashShapeVariation>()
@@ -163,56 +248,8 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 	return creature
 }
 
-class BodyPart2(val id: Int, val variations: List<FlashShapeVariation>)
 
-class BattleCreature2(val bodyParts: Set<BodyPart2>, val minDepth: Int, val maxDepth: Int) {
-	lateinit var baseState: AnimationState
-
-	val animations = mutableMapOf<String, List<AnimationState>>()
-}
-
-class AnimationPartState {
-	lateinit var part: BodyPart2
-	var matrix: MATRIX? = null
-	var color: ColorTransform? = null
-
-	override fun toString() = "AnimationPS($matrix)"
-}
-class AnimationState(private val creature: BattleCreature2) {
-	val parts = Array(1 + creature.maxDepth - creature.minDepth) { AnimationPartState() }
-
-	fun update(tag: Tag): Boolean {
-		if (tag is PlaceObject2Tag) {
-			val part = parts[tag.depth - creature.minDepth]
-			if (tag.characterId != 0) part.part = creature.bodyParts.find { it.id == tag.characterId }!!
-			part.matrix = tag.matrix
-			if (tag.placeFlagHasColorTransform) part.color = tag.colorTransform
-			return true
-		} else if (tag is RemoveObject2Tag) {
-			parts[tag.depth - creature.minDepth].matrix = null
-			parts[tag.depth - creature.minDepth].color = null
-			return true
-		}
-
-		return false
-	}
-
-	fun copy(): AnimationState {
-		val copied = AnimationState(creature)
-		for ((index, part) in parts.withIndex()) {
-			if (part.matrix != null) {
-				copied.parts[index].part = part.part
-				copied.parts[index].matrix = part.matrix // TODO Convert to JOML matrix?
-				copied.parts[index].color = part.color
-			}
-		}
-		return copied
-	}
-
-	override fun toString() = parts.contentToString()
-}
-
-class CreatureRenderer(window: VkbWindow, val monster: BattleCreature2) : SimpleWindowRenderLoop(
+class CreatureRenderer(window: VkbWindow, monster: BattleCreature2, skeleton: Skeleton) : SimpleWindowRenderLoop(
 	window, 1, true, VK_PRESENT_MODE_FIFO_KHR, // TODO Use frames-in-flight for vertex positions
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
@@ -230,24 +267,19 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature2) : Simple
 	private var graphicsPipeline = 0L
 	private var sampler = 0L
 
-	private val testAnimationState = monster.animations["idle"]!![0]
-	//private val testAnimationState = monster.baseState
+	private val testAnimationState1 = monster.animations["idle"]!![0]
+	private val testAnimationState2 = skeleton.animations["idle"]!!.frames[0]
 	private val preferredVariation = "punk"
 
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
 
 		val selectedShapes = mutableListOf<Pair<BodyPart2, FlashShapeEntry>>()
-		for (bodyPart in testAnimationState.parts) {
+		for (bodyPart in testAnimationState1.parts) {
 			if (bodyPart.matrix == null) continue
 			val variation = bodyPart.part.variations.find { it.name == preferredVariation } ?: bodyPart.part.variations[0]
 			for (entry in variation.entries) selectedShapes.add(Pair(bodyPart.part, entry))
 		}
-//		for (bodyPart in monster.bodyParts) {
-//			if (bodyPart.variations.isEmpty()) continue
-//			val variation = bodyPart.variations.find { it.name == preferredVariation } ?: bodyPart.variations[0]
-//			for (entry in variation.entries) selectedShapes.add(Pair(bodyPart, entry))
-//		}
 
 		val bufferedImages = selectedShapes.map { ImageIO.read(File("flash/shapes/${it.second.id}.png")) }
 		this.shapeEntries = selectedShapes.toList()
@@ -365,7 +397,7 @@ class CreatureRenderer(window: VkbWindow, val monster: BattleCreature2) : Simple
 		val hostVertexPositions = memByteBuffer(vertexBuffer.hostAddress, vertexBuffer.size.toInt())
 		val hostVertexColors = memByteBuffer(colorBuffer.hostAddress, colorBuffer.size.toInt())
 		var imageIndex = 0
-		for ((rawDepth, partState) in testAnimationState.parts.withIndex()) {
+		for ((rawDepth, partState) in testAnimationState1.parts.withIndex()) { // TODO use state2
 			val matrix = partState.matrix ?: continue
 			val (scaleX, scaleY) = if (matrix.hasScale) Pair(matrix.scaleX, matrix.scaleY) else Pair(
 				1f,

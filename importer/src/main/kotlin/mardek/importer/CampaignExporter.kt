@@ -33,6 +33,13 @@ fun main() {
 	val bcPacker = BcPacker()
 	for (sprite in campaign.ui.allBcSprites()) bcPacker.add(sprite)
 	for (background in campaign.battle.backgrounds) bcPacker.add(background.sprite)
+	for (skeleton in campaign.battle.skeletons) {
+		for (part in skeleton.parts) {
+			for (skin in part.skins) {
+				for (entry in skin.entries) bcPacker.add(entry.sprite)
+			}
+		}
+	}
 
 	val startTime = System.nanoTime()
 	bcPacker.compressImages()
