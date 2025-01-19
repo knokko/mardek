@@ -158,6 +158,7 @@ project(":game") {
 		// However, these classes won't be used in-game, so it doesn't matter.
 		dontwarn "com.github.knokko.text.renderer.cpu.BufferedImageTextRenderer"
 		dontwarn "com.github.knokko.compressor.Kim2**pressor"
+		dontwarn "com.github.knokko.compressor.Bc7**pressor"
 		dontwarn "mardek.assets.area.ParsedTile"
 		dontwarn "mardek.assets.area.ParsedTilesheet"
 
