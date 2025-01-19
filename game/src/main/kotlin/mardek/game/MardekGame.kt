@@ -55,7 +55,7 @@ fun main(args: Array<String>) {
 
 	val boiler = try {
 		val boilerBuilder = BoilerBuilder(
-			VK_API_VERSION_1_2, "MardekKt", 1
+			VK_API_VERSION_1_0, "MardekKt", 1
 		).addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
 		if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()
 		if (args.contains("api-dump")) boilerBuilder.apiDump()
