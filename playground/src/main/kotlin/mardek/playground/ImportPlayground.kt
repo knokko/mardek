@@ -397,24 +397,27 @@ class CreatureRenderer(window: VkbWindow, monster: BattleCreature2, skeleton: Sk
 		val hostVertexPositions = memByteBuffer(vertexBuffer.hostAddress, vertexBuffer.size.toInt())
 		val hostVertexColors = memByteBuffer(colorBuffer.hostAddress, colorBuffer.size.toInt())
 		var imageIndex = 0
-		for ((rawDepth, partState) in testAnimationState1.parts.withIndex()) { // TODO use state2
-			val matrix = partState.matrix ?: continue
-			val (scaleX, scaleY) = if (matrix.hasScale) Pair(matrix.scaleX, matrix.scaleY) else Pair(
+		for ((partIndex, partState1) in testAnimationState1.parts.filter { it.matrix != null }.withIndex()) { // TODO use state2
+			val partState2 = testAnimationState2.parts[partIndex]
+			val matrix1 = partState1.matrix!!
+			val matrix2 = partState2.matrix
+			val (scaleX, scaleY) = if (matrix2.hasScale) Pair(matrix2.scaleX, matrix2.scaleY) else Pair(
 				1f,
 				1f
 			)
 
-			val variation = partState.part.variations.find { it.name == preferredVariation } ?: partState.part.variations.first()
+			val variation = partState1.part.variations.find { it.name == preferredVariation } ?: partState1.part.variations.first()
 			for (entry in variation.entries) {
-				val magicScale = 20f // I have no clue why, but I need to divide all translations by this
+				//val magicScale = 20f // I have no clue why, but I need to divide all translations by this
+				val magicScale = 1f
 				val jomlMatrix = Matrix3x2f(
-					scaleX, matrix.rotateSkew0, matrix.rotateSkew1, scaleY,
-					matrix.translateX / magicScale,
-					matrix.translateY / magicScale
-				).translate(entry.rect.Xmin / magicScale, entry.rect.Ymin / magicScale)
+					scaleX, matrix2.rotateSkew0, matrix2.rotateSkew1, scaleY,
+					matrix2.translateX / magicScale,
+					matrix2.translateY / magicScale
+				).translate(entry.rect.Xmin / 20f, entry.rect.Ymin / 20f)
 
 				val jpexExportScale = 1
-				val color = partState.color
+				val color = partState1.color
 				if (color != null) {
 					fun transform(value: Int) = (255.0 * (value / 256.0)).roundToInt()
 					fun transform(values: IntArray): Int {
