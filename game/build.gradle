@@ -1,0 +1,78 @@
+import proguard.gradle.ProGuardTask
+
+apply plugin: "com.github.johnrengelman.shadow"
+
+dependencies {
+    implementation "com.github.knokko.update-loop:implementation:v2.0.0"
+    implementation "com.github.knokko:sample-profiler:v1.0.0"
+    for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+    implementation "org.lwjgl:lwjgl-glfw"
+    implementation project(":assets")
+    implementation project(":audio")
+    implementation project(":input")
+    implementation project(":renderer")
+    implementation project(":state")
+    for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-glfw::$natives"
+}
+
+shadowJar {
+    manifest {
+        attributes ("Main-Class": "mardek.game.MardekGameKt")
+    }
+}
+
+tasks.register("proguard", ProGuardTask) {
+    dependsOn "shadowJar"
+    injars "build/libs/game-all.jar"
+    outjars "build/libs/mardek.jar"
+
+    // I need java.base, and LWJGL needs jdk.unsupported (Unsafe)
+    libraryjars "${System.getProperty("java.home")}/jmods/java.base.jmod"
+    libraryjars "${System.getProperty("java.home")}/jmods/jdk.unsupported.jmod"
+
+    // I just want to remove unused LWJGL classes and Kotlin std classes;
+    // I do NOT want to obfuscate the game, since that will ruin stacktraces
+    dontobfuscate()
+    dontoptimize()
+
+    // LWJGL system is magical, and will segfault if we remove its stuff
+    keep "class org.lwjgl.system.** {*;}"
+
+    // Due to some bitser reflection magic, proguard could remove important stuff
+    keep "class mardek.** {*;}"
+    keep "class com.github.knokko.bitser.** {*;}"
+
+    // These suggestive annotations are not interesting
+    dontwarn "javax.annotation.**"
+
+    // This game doesn't use OpenXR (virtual reality)
+    dontwarn "com.github.knokko.boiler**.xr**"
+    dontwarn "com.github.knokko.boiler.exceptions.OpenXrFailureException"
+
+    // These classes use java.awt.BufferedImage, which won't be present in the final game jar.
+    // However, these classes won't be used in-game, so it doesn't matter.
+    dontwarn "com.github.knokko.text.renderer.cpu.BufferedImageTextRenderer"
+    dontwarn "com.github.knokko.compressor.Kim2**pressor"
+    dontwarn "mardek.assets.area.ParsedTile"
+    dontwarn "mardek.assets.area.ParsedTilesheet"
+
+    // Some methods of BoilerBuffers use java.awt.BufferedImage, but it's fine since I don't call them
+    dontwarn "com.github.knokko.boiler.buffers.BoilerBuffers"
+}
+
+tasks.register("run", JavaExec) {
+    group = "Run"
+    description = "Runs the game without validation layer"
+
+    classpath sourceSets.main.runtimeClasspath
+    main = "mardek.game.MardekGameKt"
+}
+
+tasks.register("runValidation", JavaExec) {
+    group = "Run"
+    description = "Runs the game with the validation layer"
+
+    classpath sourceSets.main.runtimeClasspath
+    main = "mardek.game.MardekGameKt"
+    args "validation"
+}

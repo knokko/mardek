@@ -1,0 +1,4 @@
+dependencies {
+    api "com.github.knokko:bitser:$bitserVersion"
+    for (format in ["kim1", "kim2"]) implementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
+}
