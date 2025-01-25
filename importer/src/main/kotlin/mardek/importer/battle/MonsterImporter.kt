@@ -24,6 +24,31 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+const val OVERRIDE_SKELETON_STATS = """
+mdlStats = {names:["Skeleton"],model:"skeleton",sprite:"skeleton",Class:"Undead",TYPE:"UNDEAD",cElem:"DARK",wpnType:"none",armrTypes:[],baseStats:{hp:6,mp:36,STR:13,VIT:8,SPR:5,AGL:10},nAtk:20,nDef:10,nMDef:0,critical:3,hpGrowth:16,atkGrowth:[0,0],equip:{weapon:["none","Mace"],shield:["none","Wooden Shield","Bronze Shield"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},resist:{LIGHT:-100,DARK:200,FIRE:-50,EARTH:50,ETHER:-50,PSN:100,PAR:100,CRS:100,DRK:100,NUM:100,SIL:100,SLP:100,CNF:100,ZOM:100,BLD:100,BSK:100},EXP:120};
+Techs = [_root.GetMONSTER_SKILL("Morbid Fondle")];
+Gambits = [{command:"Morbid Fondle",target:"ANY_PC",criteria:["random",10]},{command:"Attack",target:"ANY_PC",criteria:null}];
+loot = [["Old Bone",20],["Human Skull",10],["Mace",5]];
+DetermineStats();
+"""
+
+const val OVERRIDE_BERNARD_CHAPTER2 = """
+mdlStats = {names:["Bernard"],model:"bernard",unique_sprite:"bernard",Class:"Warlock",TYPE:"HUMAN",cElem:"DARK",wpnType:"WALKINGSTICK",armrTypes:[],baseStats:{hp:20,mp:240,STR:12,VIT:8,SPR:26,AGL:13},FAIR_STATS:2,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:8,atkGrowth:[0,0],equip:{weapon:["WalkingStick"],shield:["none"],helmet:["none"],armour:["Hempen Robe"],accs:["SilverRing"],accs2:["FirePendant"]},resist:{CNF:100,SIL:100,CRS:100,ZOM:100,BSK:100},EXP:1000};
+Techs = [{skill:"Heh.",type:"ACT",DMG:100,MP:0,critical:0,accuracy:100,stfx:{CRS:100},AP:0,MODE:"M",elem:"DARK",TT:"SINGLE",pfx:"darkbolt",special:{DRAIN:1},desc:"Standard elemental magic attack."},{skill:"Thunderstorm",type:"ACT",DMG:16,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"AIR",TT:"ALL_p",pfx:"thunderstorm",ALL_PFX:true,CENTRED:true,ARENA:false,desc:"Standard elemental magic attack."},{skill:"Immolate",type:"ACT",DMG:16,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"FIRE",TT:"SINGLE",pfx:"pyromagia",desc:"Standard elemental magic attack."},{skill:"Glaciate",type:"ACT",DMG:16,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"WATER",TT:"SINGLE",pfx:"frostasia",desc:"Standard elemental magic attack."}];
+Gambits = [{command:"Heh.",target:"ANY_PC",criteria:["random",0]},{command:"Thunderstorm",target:"ALL_p",criteria:["random",30]},{command:"Immolate",target:"ANY_PC",criteria:["random",50]},{command:"Glaciate",target:"ANY_PC",criteria:["random",100]},{command:"Heh.",target:"ANY_PC",criteria:null}];
+loot = [["SilverRing",30]];
+DetermineStats();
+"""
+
+const val OVERRIDE_BERNARD_CHAPTER3 = """
+mdlStats = {names:["Bernard"],model:"bernard",unique_sprite:"bernard",Class:"Warlock",TYPE:"HUMAN",cElem:"DARK",wpnType:"WALKINGSTICK",armrTypes:[],baseStats:{hp:20,mp:240,STR:12,VIT:8,SPR:26,AGL:13},FAIR_STATS:4,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:8,atkGrowth:[0,0],equip:{weapon:["WalkingStick"],shield:["none"],helmet:["Black Hat"],armour:["Dark Robe"],accs:["Emerald Bangle"],accs2:["Sapphire Bangle"]},resist:{CNF:100,SIL:100,CRS:100,ZOM:100,BSK:100},EXP:1000};
+Techs = [{skill:"Heh.",type:"ACT",DMG:100,MP:0,critical:0,accuracy:100,stfx:{CRS:100},AP:0,MODE:"M",elem:"DARK",TT:"SINGLE",pfx:"darkbolt",special:{DRAIN:1},desc:"Standard elemental magic attack."},{skill:"Thunderstorm",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"AIR",TT:"ALL_p",pfx:"thunderstorm",ALL_PFX:true,CENTRED:true,ARENA:false,desc:"Standard elemental magic attack."},{skill:"Immolate",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"FIRE",TT:"SINGLE",pfx:"pyromagia",desc:"Standard elemental magic attack."},{skill:"Glaciate",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"WATER",TT:"SINGLE",pfx:"frostasia",desc:"Standard elemental magic attack."}];
+Gambits = [{command:"Heh.",target:"ANY_PC",criteria:["random",0]},{command:"Thunderstorm",target:"ALL_p",criteria:["random",30]},{command:"Immolate",target:"ANY_PC",criteria:["random",50]},{command:"Glaciate",target:"ANY_PC",criteria:["random",100]},{command:"Heh.",target:"ANY_PC",criteria:null}];
+Counters = {M:null,P:[["Heh.",100]]};
+loot = [["Ether of Kings",100]];
+DetermineStats();
+"""
+
 private fun importSkeleton(swf: SWF, id: Int, spriteIdMapping: MutableMap<Int, BcSprite>): Skeleton {
 	val monsterTag = swf.tags.find { it.uniqueId == id.toString() }!! as DefineSpriteTag
 	val monster = parseCreature2(monsterTag)
@@ -130,7 +155,9 @@ internal fun importMonsters(assets: BattleAssets, playerModelMapping: MutableMap
 
 		if (monster.exportedScripts.isEmpty()) {
 			playerModelMapping[monster.label] = BattleModel(skeleton, skin)
-		} else assets.monsters.add(Monster(name = monster.label, model = BattleModel(skeleton, skin)))
+		} else assets.monsters.add(importMonsterStats(
+			name = monster.label, model = BattleModel(skeleton, skin), raw = monster.exportedScripts.iterator().next()
+		))
 	}
 
 	for (skeleton in skeletons.values) assets.skeletons.add(skeleton)
@@ -364,4 +391,8 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 	}
 
 	return creature
+}
+
+fun importMonsterStats(name: String, model: BattleModel, raw: String): Monster {
+
 }

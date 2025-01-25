@@ -52,8 +52,7 @@ class CampaignState(
 	@BitField(ordering = 6)
 	val areaDiscovery = AreaDiscoveryMap()
 
-	@Suppress("unused")
-	private constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
+	constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
 	var shouldOpenMenu = false
 

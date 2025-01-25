@@ -44,8 +44,7 @@ class Campaign(
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	val checkpoints = HashMap<String, ByteArray>()
 
-	@Suppress("unused")
-	private constructor() : this(
+	constructor() : this(
 		CombatAssets(), SkillAssets(), InventoryAssets(),
 		BattleAssets(), AreaAssets(), arrayListOf(), UiSprites()
 	)
