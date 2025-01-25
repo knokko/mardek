@@ -103,7 +103,8 @@ class CampaignState(
 			currentArea.processKeyPress(event.key)
 		}
 
-		currentArea?.update(input, areaDiscovery, characterSelection, timeStep)
+		// TODO Don't update currentArea during battles!!
+		currentArea?.update(input, this, assets, timeStep)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area

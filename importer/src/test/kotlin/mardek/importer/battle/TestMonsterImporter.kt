@@ -2,7 +2,11 @@ package mardek.importer.battle
 
 import mardek.assets.animations.BattleModel
 import mardek.assets.battle.Monster
+import mardek.assets.battle.PotentialEquipment
+import mardek.assets.battle.PotentialItem
 import mardek.importer.combat.importCombatAssets
+import mardek.importer.inventory.importInventoryAssets
+import mardek.importer.skills.importSkills
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
@@ -34,6 +38,10 @@ DetermineStats();
 class TestMonsterImporter {
 
 	private val combatAssets = importCombatAssets()
+	private val skillAssets = importSkills(combatAssets)
+	private val itemAssets = importInventoryAssets(combatAssets, skillAssets)
+
+	private fun getItem(name: String) = itemAssets.items.find { it.flashName == name }!!
 
 	private fun getStatValue(monster: Monster, name: String) = monster.baseStats[combatAssets.stats.find { it.flashName == name }!!] ?: 0
 
@@ -41,7 +49,7 @@ class TestMonsterImporter {
 
 	@Test
 	fun testParseForestFish() {
-		val forestFish = importMonsterStats("Forest Fish", BattleModel(), FOREST_FISH_PROPERTIES)
+		val forestFish = importMonsterStats("Forest Fish", BattleModel(), FOREST_FISH_PROPERTIES, combatAssets, itemAssets)
 
 		assertEquals("Flying Fish", forestFish.className)
 		assertSame(combatAssets.races.find { it.flashName == "ICHTHYD" }!!, forestFish.type)
@@ -55,8 +63,8 @@ class TestMonsterImporter {
 		assertEquals(4, getStatValue(forestFish, "ATK"))
 		assertEquals(0, getStatValue(forestFish, "DEF"))
 		assertEquals(0, getStatValue(forestFish, "MDEF"))
+		assertEquals(0, getStatValue(forestFish, "evasion"))
 		assertEquals(3, forestFish.critChance)
-		assertEquals(0, forestFish.evasionChance)
 		assertEquals(6, forestFish.hpPerLevel)
 		assertEquals(3, forestFish.attackPerLevelNumerator)
 		assertEquals(2, forestFish.attackPerLevelDenominator)
@@ -65,7 +73,18 @@ class TestMonsterImporter {
 		assertEquals(0.4f, getElementalResistance(forestFish, "EARTH"), 0.01f)
 		assertEquals(-0.5f, getElementalResistance(forestFish, "AIR"), 0.01f)
 		assertEquals(0, forestFish.statusResistances.size)
-		// TODO Equipment and loot
+		assertEquals(0, forestFish.attackEffects.size)
+
+		assertEquals(PotentialEquipment.EMPTY, forestFish.weapon)
+		assertEquals(PotentialEquipment.EMPTY, forestFish.shield)
+		assertEquals(PotentialEquipment.EMPTY, forestFish.helmet)
+		assertEquals(PotentialEquipment.EMPTY, forestFish.armor)
+		assertEquals(PotentialEquipment.EMPTY, forestFish.accessory1)
+		assertEquals(PotentialEquipment.EMPTY, forestFish.accessory2)
+
+		assertEquals(2, forestFish.loot.size)
+		assertEquals(PotentialItem(getItem("Fish Scales"), 10), forestFish.loot[0])
+		assertEquals(PotentialItem(getItem("Potion"), 10), forestFish.loot[1])
 	}
 
 	@Test

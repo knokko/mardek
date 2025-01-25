@@ -24,9 +24,9 @@ import java.io.ByteArrayOutputStream
 fun importDefaultCampaign(bitser: Bitser, skipMonsters: Boolean = false): Campaign {
 	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, BattleModel>()
 	val combatAssets = importCombatAssets()
-	val battleAssets = importBattleAssets(playerModelMapping)
 	val skillAssets = importSkills(combatAssets)
 	val inventoryAssets = importInventoryAssets(combatAssets, skillAssets)
+	val battleAssets = importBattleAssets(combatAssets, inventoryAssets, playerModelMapping)
 	importClasses(combatAssets, skillAssets, inventoryAssets)
 	val areaAssets = importAreaAssets(inventoryAssets, battleAssets)
 	val uiSprites = importUiSprites()

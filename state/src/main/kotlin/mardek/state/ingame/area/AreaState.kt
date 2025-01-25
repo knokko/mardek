@@ -5,9 +5,11 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.assets.Campaign
 import mardek.assets.area.*
 import mardek.input.InputKey
 import mardek.input.InputManager
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.battle.Battle
@@ -76,13 +78,13 @@ class AreaState(
 		if (key == InputKey.Interact) shouldInteract = true
 	}
 
-	fun update(input: InputManager, discovery: AreaDiscoveryMap, selectionState: CharacterSelectionState, timeStep: Duration) {
+	fun update(input: InputManager, state: CampaignState, campaign: Campaign, timeStep: Duration) {
 		if (obtainedItemStack != null) return
 		if (currentTime == ZERO && !area.flags.hasClearMap) {
-			discovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
+			state.areaDiscovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
 		}
 
-		updatePlayerPosition(discovery)
+		updatePlayerPosition(state.areaDiscovery)
 		processInput(input)
 		if (shouldInteract) {
 			interact()
@@ -99,7 +101,10 @@ class AreaState(
 		}
 
 		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
-			activeBattle = BattleState(battle = incomingRandomBattle!!.battle, players = selectionState.party)
+			activeBattle = BattleState(
+				battle = incomingRandomBattle!!.battle, players = state.characterSelection.party,
+				campaign = campaign, campaignState = state
+			)
 			incomingRandomBattle = null
 		}
 

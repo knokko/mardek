@@ -54,10 +54,6 @@ class Monster(
 	val critChance: Int,
 
 	@BitField(ordering = 10)
-	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
-	val evasionChance: Int,
-
-	@BitField(ordering = 10)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val experience: Int,
 
@@ -88,6 +84,9 @@ class Monster(
 	@BitField(ordering = 19)
 	val statusResistances: ArrayList<PossibleStatusEffect>,
 
+	@BitField(ordering = 20)
+	val attackEffects: ArrayList<PossibleStatusEffect>,
+
 	// TODO Actions/gambits
 	// TODO counter attacks
 ) {
@@ -103,7 +102,6 @@ class Monster(
 		attackPerLevelNumerator = 0,
 		attackPerLevelDenominator = 0,
 		critChance = 0,
-		evasionChance = 0,
 		experience = 0,
 		loot = ArrayList(),
 		weapon = PotentialEquipment(),
@@ -113,7 +111,8 @@ class Monster(
 		accessory1 = PotentialEquipment(),
 		accessory2 = PotentialEquipment(),
 		elementalResistances = ArrayList(),
-		statusResistances = ArrayList()
+		statusResistances = ArrayList(),
+		attackEffects = ArrayList(),
 	)
 
 	override fun toString() = name

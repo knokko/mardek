@@ -110,7 +110,7 @@ fun parseActionScriptObjectList(rawList: String): List<Map<String, String>> {
 }
 
 fun parseActionScriptCode(lines: List<String>): ActionScriptCode {
-	val content = lines.flatMap { it.codePoints().toList() }
+	val content = lines.flatMap { it.replace("\r", "").replace("\n", "").codePoints().toList() }
 	var depth = 0
 
 	val variableAssignments = mutableMapOf<String, String>()

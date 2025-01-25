@@ -44,9 +44,9 @@ class CombatantState private constructor(
 	 */
 	val statModifiers = HashMap<CombatStat, Int>()
 
-	constructor(enemy: Enemy) : this(
-		ehm, ehm, ehm, ehm, ehm, ehm, ehm
-	)
+//	constructor(enemy: Enemy) : this(
+//		ehm, ehm, ehm, ehm, ehm, ehm, ehm
+//	)
 
 	constructor(player: PlayableCharacter, state: CharacterState, campaign: Campaign) : this(
 		maxHealth = determinePlayerMaxHealth(player, state)(campaign, 0),

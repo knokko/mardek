@@ -70,10 +70,8 @@ class TestAreaSprites {
 	@Test
 	fun testImportCharacterSprites() {
 		val combatAssets = importCombatAssets()
-		val assets = importAreaAssets(
-			importInventoryAssets(combatAssets, importSkills(combatAssets)),
-			importBattleAssets(null)
-		)
+		val itemAssets = importInventoryAssets(combatAssets, importSkills(combatAssets))
+		val assets = importAreaAssets(itemAssets, importBattleAssets(combatAssets, itemAssets, null))
 
 		val deugan = assets.characterSprites.find { it.name == "deugan_hero" }!!
 		assertEquals("deugan_hero", deugan.name)

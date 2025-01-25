@@ -3,10 +3,10 @@ package mardek.importer.area
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.assets.animations.BattleModel
 import mardek.assets.area.*
-import mardek.assets.battle.Monster
 import mardek.assets.battle.PartyLayoutPosition
 import mardek.assets.inventory.ItemStack
 import mardek.importer.battle.importBattleAssets
+import mardek.importer.battle.importMonsterStats
 import mardek.importer.combat.importCombatAssets
 import mardek.importer.inventory.importInventoryAssets
 import mardek.importer.skills.importSkills
@@ -14,16 +14,27 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 
+private const val MONSTER_PROPERTIES_TEXT = """
+mdlStats = {names:["Monster"],model:"monster",sprite:"monster",Class:"Monster",TYPE:"BEAST",cElem:"DARK",baseStats:{hp:1200,mp:10,STR:30,VIT:24,SPR:2,AGL:8},nAtk:50,nDef:0,nMDef:0,critical:3,evasion:0,hpGrowth:28,atkGrowth:[0,0],equip:{weapon:["none"],shield:["none"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},resist:{DARK:30,LIGHT:-100,PSN:0,PAR:0,DRK:0,CNF:0,NUM:0,SIL:0,CRS:0,SLP:0,ZOM:0,BSK:0,BLD:0},EXP:300};
+Techs = [{skill:"Dark Claw",type:"ACT",DMG:["m",1.5],MP:10,critical:10,accuracy:100,stfx:{DRK:10},AP:0,MODE:"P",elem:"DARK",TT:"SINGLE",pfx:"darkclaw"}];
+Gambits = [{command:"Dark Claw",target:"ANY_PC",criteria:["random",30]},{command:"Attack",target:"ANY_PC",criteria:null}];
+loot = [["Monster Fang",20]];
+DetermineStats();
+"""
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestAreaParser {
 
 	private val combatAssets = importCombatAssets()
 	private val inventoryAssets = importInventoryAssets(combatAssets, importSkills(combatAssets))
-	private val battleAssets = importBattleAssets(null)
+	private val battleAssets = importBattleAssets(combatAssets, inventoryAssets, null)
 	private val assets = AreaAssets()
 
 	init {
-		battleAssets.monsters.add(Monster(name = "monster", model = BattleModel()))
+		battleAssets.monsters.add(importMonsterStats(
+			name = "monster", model = BattleModel(), propertiesText = MONSTER_PROPERTIES_TEXT,
+			combatAssets = combatAssets, itemAssets = inventoryAssets
+		))
 		assets.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
 		importAreaAssets(inventoryAssets, battleAssets, assets)
 	}

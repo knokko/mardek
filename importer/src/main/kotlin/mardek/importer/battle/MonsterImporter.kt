@@ -11,8 +11,20 @@ import com.jpexs.decompiler.flash.types.RECT
 import mardek.assets.animations.*
 import mardek.assets.battle.BattleAssets
 import mardek.assets.battle.Monster
+import mardek.assets.battle.PotentialEquipment
+import mardek.assets.battle.PotentialItem
+import mardek.assets.combat.CombatAssets
+import mardek.assets.combat.CombatStat
+import mardek.assets.combat.PossibleStatusEffect
+import mardek.assets.inventory.InventoryAssets
+import mardek.assets.inventory.Item
+import mardek.assets.skill.ElementalDamageBonus
 import mardek.assets.sprite.BcSprite
 import mardek.importer.area.FLASH
+import mardek.importer.area.parseFlashString
+import mardek.importer.util.parseActionScriptCode
+import mardek.importer.util.parseActionScriptNestedList
+import mardek.importer.util.parseActionScriptObject
 import mardek.importer.util.resourcesFolder
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -55,7 +67,10 @@ private fun importSkeleton(swf: SWF, id: Int, spriteIdMapping: MutableMap<Int, B
 	return convertFlashCreature(monster, spriteIdMapping)
 }
 
-internal fun importMonsters(assets: BattleAssets, playerModelMapping: MutableMap<String, BattleModel>) {
+internal fun importMonsters(
+	combatAssets: CombatAssets, itemAssets: InventoryAssets, assets: BattleAssets,
+	playerModelMapping: MutableMap<String, BattleModel>
+) {
 	val battleTag = FLASH.tags.find { it.uniqueId == "5118" }!! as DefineSpriteTag
 	println("battle tag is $battleTag")
 
@@ -156,7 +171,9 @@ internal fun importMonsters(assets: BattleAssets, playerModelMapping: MutableMap
 		if (monster.exportedScripts.isEmpty()) {
 			playerModelMapping[monster.label] = BattleModel(skeleton, skin)
 		} else assets.monsters.add(importMonsterStats(
-			name = monster.label, model = BattleModel(skeleton, skin), raw = monster.exportedScripts.iterator().next()
+			name = monster.label, model = BattleModel(skeleton, skin),
+			propertiesText = monster.exportedScripts.iterator().next(),
+			combatAssets = combatAssets, itemAssets = itemAssets
 		))
 	}
 
@@ -393,6 +410,121 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 	return creature
 }
 
-fun importMonsterStats(name: String, model: BattleModel, raw: String): Monster {
+private fun parsePotentialEquipment(equipmentText: String, itemAssets: InventoryAssets): PotentialEquipment {
+	val rawEquipmentList = parseActionScriptNestedList(equipmentText)
+	if (rawEquipmentList !is ArrayList<*>) throw IllegalArgumentException("Unexpected equipment $equipmentText")
 
+	val itemCounter = HashMap<Item?, Int>()
+	for (rawEntry in rawEquipmentList) {
+		val itemName = parseFlashString(rawEntry.toString(), "monster equipment entry")!!
+		val item = if (itemName == "none") null else itemAssets.items.find { it.flashName == itemName }!!
+		itemCounter[item] = (itemCounter[item] ?: 0) + 1
+	}
+
+	val chances = IntArray(itemCounter.size)
+	val total = itemCounter.values.sum()
+	for ((index, value) in itemCounter.values.withIndex()) chances[index] = 100 * value / total
+
+	val newTotal = chances.sum()
+	chances[chances.size - 1] += 100 - newTotal
+
+	return PotentialEquipment(ArrayList(itemCounter.entries.mapIndexed { index, entry ->
+		PotentialItem(entry.key, chances[index])
+	}))
+}
+
+fun importMonsterStats(
+	name: String, model: BattleModel, propertiesText: String,
+	combatAssets: CombatAssets, itemAssets: InventoryAssets
+): Monster {
+	val propertiesCode = parseActionScriptCode(listOf(propertiesText))
+	val mdlMap = parseActionScriptObject(propertiesCode.variableAssignments["mdlStats"]!!)
+	val typeName = parseFlashString(mdlMap["TYPE"]!!, "monster type")!!
+	val elementName = parseFlashString(mdlMap["cElem"]!!, "monster element")!!
+
+	val baseStats = HashMap<CombatStat, Int>()
+	val rawBaseStats = parseActionScriptObject(mdlMap["baseStats"]!!)
+	for ((statName, statValue) in rawBaseStats) {
+		val stat = combatAssets.stats.find { it.flashName == statName }!!
+		baseStats[stat] = parseInt(statValue)
+	}
+
+	val rawAttack = mdlMap["nAtk"]
+	val rawMeleeDef = mdlMap["nDef"]
+	val rawMagicDef = mdlMap["nMDef"]
+	val rawEvasion = mdlMap["evasion"]
+	for ((statName, statValue) in arrayOf(
+		Pair("ATK", rawAttack), Pair("DEF", rawMeleeDef), Pair("MDEF", rawMagicDef), Pair("evasion", rawEvasion)
+	)) {
+		if (statValue == null) continue
+		val stat = combatAssets.stats.find { it.flashName == statName }!!
+		baseStats[stat] = parseInt(statValue)
+	}
+
+	var attackPerLevelNumerator = 0
+	var attackPerLevelDenominator = 0
+	val rawAttackGrowth = mdlMap["atkGrowth"]
+	if (rawAttackGrowth != null) {
+		val attackList = parseActionScriptNestedList(rawAttackGrowth)
+		if (attackList !is ArrayList<*> || attackList.size != 2) {
+			throw IllegalArgumentException("Unexpected attack growth $rawAttackGrowth")
+		}
+		attackPerLevelNumerator = parseInt(attackList[0].toString())
+		attackPerLevelDenominator = parseInt(attackList[1].toString())
+	}
+
+	val rawLootList = parseActionScriptNestedList(propertiesCode.variableAssignments["loot"]!!)
+	if (rawLootList !is ArrayList<*>) throw IllegalArgumentException("Unexpected loot $rawLootList")
+	val loot = ArrayList<PotentialItem>(rawLootList.size)
+	for (lootPair in rawLootList) {
+		if (lootPair !is ArrayList<*> || lootPair.size != 2) throw IllegalArgumentException("Unexpected loot $rawLootList")
+		val itemName = parseFlashString(lootPair[0].toString(), "loot item")!!
+		val item = itemAssets.items.find { it.flashName == itemName }!!
+		loot.add(PotentialItem(item, parseInt(lootPair[1].toString())))
+	}
+
+	val rawEquipmentMap = parseActionScriptObject(mdlMap["equip"]!!)
+
+	val rawResistanceMap = parseActionScriptObject(mdlMap["resist"]!!)
+	val elementalResistances = ArrayList<ElementalDamageBonus>()
+	val statusResistances = ArrayList<PossibleStatusEffect>()
+	for ((source, rawResistance) in rawResistanceMap) {
+		if (rawResistance == "0") continue
+		val element = combatAssets.elements.find { it.rawName == source }
+		if (element != null) elementalResistances.add(ElementalDamageBonus(element, parseInt(rawResistance) / 100f))
+		else statusResistances.add(PossibleStatusEffect(combatAssets.statusEffects.find { it.flashName == source }!!, parseInt(rawResistance)))
+	}
+
+	val attackEffects = ArrayList<PossibleStatusEffect>()
+	val rawAttackEffects = mdlMap["stfx_onhit"]
+	if (rawAttackEffects != null) {
+		for ((effectName, chance) in parseActionScriptObject(rawAttackEffects)) {
+			val effect = combatAssets.statusEffects.find { it.flashName == effectName }!!
+			attackEffects.add(PossibleStatusEffect(effect, parseInt(chance)))
+		}
+	}
+
+	return Monster(
+		name = name,
+		model = model,
+		className = parseFlashString(mdlMap["Class"]!!, "monster class")!!,
+		type = combatAssets.races.find { it.flashName == typeName }!!,
+		element = combatAssets.elements.find { it.rawName == elementName }!!,
+		baseStats = baseStats,
+		hpPerLevel = parseInt(mdlMap["hpGrowth"]!!),
+		attackPerLevelNumerator = attackPerLevelNumerator,
+		attackPerLevelDenominator = attackPerLevelDenominator,
+		critChance = parseInt(mdlMap["critical"]!!),
+		experience = parseInt(mdlMap["EXP"]!!),
+		loot = loot,
+		weapon = parsePotentialEquipment(rawEquipmentMap["weapon"]!!, itemAssets),
+		shield = parsePotentialEquipment(rawEquipmentMap["shield"]!!, itemAssets),
+		helmet = parsePotentialEquipment(rawEquipmentMap["helmet"]!!, itemAssets),
+		armor = parsePotentialEquipment(rawEquipmentMap["armour"]!!, itemAssets),
+		accessory1 = parsePotentialEquipment(rawEquipmentMap["accs"]!!, itemAssets),
+		accessory2 = parsePotentialEquipment(rawEquipmentMap["accs2"]!!, itemAssets),
+		elementalResistances = elementalResistances,
+		statusResistances = statusResistances,
+		attackEffects = attackEffects,
+	)
 }
