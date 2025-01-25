@@ -42,7 +42,7 @@ class PotentialEquipment(
 
 	constructor() : this(arrayListOf(PotentialItem()))
 
-	override fun equals(other: Any?) = other is PotentialEquipment && this.entries == other.entries
+	override fun equals(other: Any?) = other is PotentialEquipment && this.entries.toSet() == other.entries.toSet()
 
 	override fun hashCode() = entries.hashCode()
 

@@ -5,11 +5,13 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.assets.animations.BattleModel
 import mardek.assets.combat.CombatStat
 import mardek.assets.combat.CreatureType
 import mardek.assets.combat.Element
 import mardek.assets.combat.PossibleStatusEffect
+import mardek.assets.skill.ActiveSkill
 import mardek.assets.skill.ElementalDamageBonus
 
 @BitStruct(backwardCompatible = false)
@@ -87,6 +89,10 @@ class Monster(
 	@BitField(ordering = 20)
 	val attackEffects: ArrayList<PossibleStatusEffect>,
 
+	@BitField(ordering = 21)
+	@ReferenceFieldTarget(label = "monster skills")
+	val actions: ArrayList<ActiveSkill>,
+
 	// TODO Actions/gambits
 	// TODO counter attacks
 ) {
@@ -113,6 +119,7 @@ class Monster(
 		elementalResistances = ArrayList(),
 		statusResistances = ArrayList(),
 		attackEffects = ArrayList(),
+		actions = ArrayList(),
 	)
 
 	override fun toString() = name

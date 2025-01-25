@@ -18,14 +18,14 @@ import mardek.assets.combat.CombatStat
 import mardek.assets.combat.PossibleStatusEffect
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.inventory.Item
+import mardek.assets.skill.ActiveSkill
 import mardek.assets.skill.ElementalDamageBonus
 import mardek.assets.sprite.BcSprite
 import mardek.importer.area.FLASH
 import mardek.importer.area.parseFlashString
-import mardek.importer.util.parseActionScriptCode
-import mardek.importer.util.parseActionScriptNestedList
-import mardek.importer.util.parseActionScriptObject
-import mardek.importer.util.resourcesFolder
+import mardek.importer.skills.importSkills
+import mardek.importer.skills.parseActiveSkills
+import mardek.importer.util.*
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
@@ -504,6 +504,24 @@ fun importMonsterStats(
 		}
 	}
 
+	var rawTechList = propertiesCode.variableAssignments["Techs"]!!
+	println("old is $rawTechList")
+	rawTechList = rawTechList.replace(Regex("_root.GetMONSTER_SKILL\\(\"Morbid Fondle\"\\)"), "{legion:true}")
+	println("new is $rawTechList")
+
+	val rawTechMap = parseActionScriptObjectList(rawTechList)
+
+	val actions = ArrayList<ActiveSkill>()
+	val rawActionList = ArrayList<Map<String, String>>(actions.size)
+	for (rawTechObject in rawTechMap) {
+		if (rawTechObject.containsKey("legion")) continue
+		if (rawTechObject["MODE"] == "\"I\"") {
+			// TODO Do something
+			continue
+		}
+		rawActionList.add(rawTechObject)
+	}
+
 	return Monster(
 		name = name,
 		model = model,
@@ -526,5 +544,6 @@ fun importMonsterStats(
 		elementalResistances = elementalResistances,
 		statusResistances = statusResistances,
 		attackEffects = attackEffects,
+		actions = ArrayList(parseActiveSkills(combatAssets, rawActionList))
 	)
 }
