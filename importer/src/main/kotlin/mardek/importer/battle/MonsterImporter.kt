@@ -9,10 +9,7 @@ import com.jpexs.decompiler.flash.types.ColorTransform
 import com.jpexs.decompiler.flash.types.MATRIX
 import com.jpexs.decompiler.flash.types.RECT
 import mardek.assets.animations.*
-import mardek.assets.battle.BattleAssets
-import mardek.assets.battle.Monster
-import mardek.assets.battle.PotentialEquipment
-import mardek.assets.battle.PotentialItem
+import mardek.assets.battle.*
 import mardek.assets.combat.CombatAssets
 import mardek.assets.combat.CombatStat
 import mardek.assets.combat.PossibleStatusEffect
@@ -20,6 +17,7 @@ import mardek.assets.inventory.InventoryAssets
 import mardek.assets.inventory.Item
 import mardek.assets.skill.ActiveSkill
 import mardek.assets.skill.ElementalDamageBonus
+import mardek.assets.skill.SkillAssets
 import mardek.assets.sprite.BcSprite
 import mardek.importer.area.FLASH
 import mardek.importer.area.parseFlashString
@@ -68,7 +66,7 @@ private fun importSkeleton(swf: SWF, id: Int, spriteIdMapping: MutableMap<Int, B
 }
 
 internal fun importMonsters(
-	combatAssets: CombatAssets, itemAssets: InventoryAssets, assets: BattleAssets,
+	combatAssets: CombatAssets, itemAssets: InventoryAssets, skillAssets: SkillAssets, assets: BattleAssets,
 	playerModelMapping: MutableMap<String, BattleModel>
 ) {
 	val battleTag = FLASH.tags.find { it.uniqueId == "5118" }!! as DefineSpriteTag
@@ -173,7 +171,7 @@ internal fun importMonsters(
 		} else assets.monsters.add(importMonsterStats(
 			name = monster.label, model = BattleModel(skeleton, skin),
 			propertiesText = monster.exportedScripts.iterator().next(),
-			combatAssets = combatAssets, itemAssets = itemAssets
+			combatAssets = combatAssets, itemAssets = itemAssets, skillAssets = skillAssets
 		))
 	}
 
@@ -435,7 +433,7 @@ private fun parsePotentialEquipment(equipmentText: String, itemAssets: Inventory
 
 fun importMonsterStats(
 	name: String, model: BattleModel, propertiesText: String,
-	combatAssets: CombatAssets, itemAssets: InventoryAssets
+	combatAssets: CombatAssets, itemAssets: InventoryAssets, skillAssets: SkillAssets
 ): Monster {
 	val propertiesCode = parseActionScriptCode(listOf(propertiesText))
 	val mdlMap = parseActionScriptObject(propertiesCode.variableAssignments["mdlStats"]!!)
@@ -504,15 +502,12 @@ fun importMonsterStats(
 		}
 	}
 
-	var rawTechList = propertiesCode.variableAssignments["Techs"]!!
-	println("old is $rawTechList")
-	rawTechList = rawTechList.replace(Regex("_root.GetMONSTER_SKILL\\(\"Morbid Fondle\"\\)"), "{legion:true}")
-	println("new is $rawTechList")
-
+	val rawTechList = propertiesCode.variableAssignments["Techs"]!!.replace(
+		Regex("_root.GetMONSTER_SKILL\\(\"[\\w, ]*\"\\)"), "{legion:true}"
+	)
 	val rawTechMap = parseActionScriptObjectList(rawTechList)
 
-	val actions = ArrayList<ActiveSkill>()
-	val rawActionList = ArrayList<Map<String, String>>(actions.size)
+	val rawActionList = ArrayList<Map<String, String>>(rawTechMap.size)
 	for (rawTechObject in rawTechMap) {
 		if (rawTechObject.containsKey("legion")) continue
 		if (rawTechObject["MODE"] == "\"I\"") {
@@ -520,6 +515,23 @@ fun importMonsterStats(
 			continue
 		}
 		rawActionList.add(rawTechObject)
+	}
+
+	val actions = parseActiveSkills(combatAssets, rawActionList)
+	val targetMap = mutableMapOf<ActiveSkill, StrategyTarget>()
+	val strategies = importMonsterStrategies(propertiesCode.variableAssignments["Gambits"]!!, actions, skillAssets, targetMap)
+	var meleeCounterAttacks = ArrayList<CounterAttack>(0)
+	var rangedCounterAttacks = ArrayList<CounterAttack>(0)
+	val rawCounterAttacks = propertiesCode.variableAssignments["Counters"]
+	if (rawCounterAttacks != null) {
+		val counterMap = parseActionScriptObject(rawCounterAttacks)
+		meleeCounterAttacks = importCounterAttacks(counterMap["P"]!!, actions, targetMap)
+		rangedCounterAttacks = importCounterAttacks(counterMap["M"]!!, actions, targetMap)
+	}
+	val usedActions = actions.filter {
+		candidate -> strategies.any { pool -> pool.entries.any { it.skill === candidate } } ||
+			meleeCounterAttacks.any { it.action === candidate } ||
+			rangedCounterAttacks.any { it.action === candidate }
 	}
 
 	return Monster(
@@ -544,6 +556,9 @@ fun importMonsterStats(
 		elementalResistances = elementalResistances,
 		statusResistances = statusResistances,
 		attackEffects = attackEffects,
-		actions = ArrayList(parseActiveSkills(combatAssets, rawActionList))
+		actions = ArrayList(usedActions),
+		strategies = strategies,
+		meleeCounterAttacks = meleeCounterAttacks,
+		rangedCounterAttacks = rangedCounterAttacks
 	)
 }

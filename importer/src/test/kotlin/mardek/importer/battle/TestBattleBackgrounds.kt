@@ -11,7 +11,8 @@ class TestBattleBackgrounds {
 	@Test
 	fun testBattleBackgrounds() {
 		val combatAssets = importCombatAssets()
-		val itemAssets = importInventoryAssets(combatAssets, importSkills(combatAssets))
-		assertEquals(43, importBattleAssets(combatAssets, itemAssets, null).backgrounds.size)
+		val skillAssets = importSkills(combatAssets)
+		val itemAssets = importInventoryAssets(combatAssets, skillAssets)
+		assertEquals(43, importBattleAssets(combatAssets, itemAssets, skillAssets, null).backgrounds.size)
 	}
 }

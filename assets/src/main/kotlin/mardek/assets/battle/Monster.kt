@@ -90,11 +90,17 @@ class Monster(
 	val attackEffects: ArrayList<PossibleStatusEffect>,
 
 	@BitField(ordering = 21)
-	@ReferenceFieldTarget(label = "monster skills")
+	@ReferenceFieldTarget(label = "skills")
 	val actions: ArrayList<ActiveSkill>,
 
-	// TODO Actions/gambits
-	// TODO counter attacks
+	@BitField(ordering = 22)
+	val strategies: ArrayList<StrategyPool>,
+
+	@BitField(ordering = 23)
+	val meleeCounterAttacks: ArrayList<CounterAttack>,
+
+	@BitField(ordering = 24)
+	val rangedCounterAttacks: ArrayList<CounterAttack>,
 ) {
 
 	constructor() : this(
@@ -120,9 +126,20 @@ class Monster(
 		statusResistances = ArrayList(),
 		attackEffects = ArrayList(),
 		actions = ArrayList(),
+		strategies = ArrayList(),
+		meleeCounterAttacks = ArrayList(),
+		rangedCounterAttacks = ArrayList(),
 	)
 
 	override fun toString() = name
+
+	companion object {
+
+		@Suppress("unused")
+		@JvmStatic
+		@ReferenceField(stable = false, label = "stats")
+		val BASE_STATS_KEY_PROPERTIES = false
+	}
 }
 
 /**

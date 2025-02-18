@@ -44,7 +44,7 @@ fun parseActiveSkills(
 	val rawDelay = rawSkill["dmgdelay"]
 	ActiveSkill(
 		name = parseFlashString(rawSkill["skill"]!!, "skill name")!!,
-		description = parseFlashString(rawSkill["desc"]!!, "skill description")!!,
+		description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else "",
 		mode = mode,
 		targetType = targetType,
 		element = combatAssets.elements.find { it.rawName == parseFlashString(rawSkill["elem"]!!, "element") }!!,
@@ -154,22 +154,27 @@ private fun parseSkillDamage(combatAssets: CombatAssets, rawSkill: Map<String, S
 			else if (nestedDamage[0] == "\"c\"") flatAttackValue = parseInt(nestedDamage[1] as String)
 			else throw SkillParseException("Unexpected first DMG $rawDamage")
 
-			if (nestedDamage.size >= 3 && nestedDamage[2] is String) {
-				var rawLevelModifier = nestedDamage[2] as String
-				if (rawLevelModifier != "null") {
-					if (!rawLevelModifier.contains("L")) throw SkillParseException("Unexpected level DMG $rawDamage")
-					if (!rawLevelModifier.startsWith("\"") || !rawLevelModifier.endsWith("\"")) {
-						throw SkillParseException("Expected level modifier to be surrounded by double quotes, but got $rawDamage")
-					}
-					rawLevelModifier = rawLevelModifier.substring(1 until rawLevelModifier.length - 1)
-
-					levelModifier = if (rawLevelModifier == "L") 1
-					else {
-						if (!rawLevelModifier.startsWith("L*")) {
-							throw SkillParseException("Unexpected level DMG expression $rawDamage")
+			if (nestedDamage.size >= 3 && nestedDamage[2] is String && nestedDamage[2] != "null") {
+				if (nestedDamage[0] == "\"c\"") {
+					var rawLevelModifier = nestedDamage[2] as String
+					if (rawLevelModifier != "null") {
+						if (!rawLevelModifier.contains("L")) throw SkillParseException("Unexpected level DMG $rawDamage")
+						if (!rawLevelModifier.startsWith("\"") || !rawLevelModifier.endsWith("\"")) {
+							throw SkillParseException("Expected level modifier to be surrounded by double quotes, but got $rawDamage")
 						}
-						parseInt(rawLevelModifier.substring(2))
+						rawLevelModifier = rawLevelModifier.substring(1 until rawLevelModifier.length - 1)
+
+						levelModifier = if (rawLevelModifier == "L") 1
+						else {
+							if (!rawLevelModifier.startsWith("L*")) {
+								throw SkillParseException("Unexpected level DMG expression $rawDamage")
+							}
+							parseInt(rawLevelModifier.substring(2))
+						}
 					}
+				}
+				if (nestedDamage[0] == "\"m\"") {
+					flatAttackValue += parseInt(nestedDamage[2].toString())
 				}
 			}
 

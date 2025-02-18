@@ -26,14 +26,15 @@ DetermineStats();
 class TestAreaParser {
 
 	private val combatAssets = importCombatAssets()
-	private val inventoryAssets = importInventoryAssets(combatAssets, importSkills(combatAssets))
-	private val battleAssets = importBattleAssets(combatAssets, inventoryAssets, null)
+	val skillAssets = importSkills(combatAssets)
+	private val inventoryAssets = importInventoryAssets(combatAssets, skillAssets)
+	private val battleAssets = importBattleAssets(combatAssets, inventoryAssets, skillAssets, null)
 	private val assets = AreaAssets()
 
 	init {
 		battleAssets.monsters.add(importMonsterStats(
 			name = "monster", model = BattleModel(), propertiesText = MONSTER_PROPERTIES_TEXT,
-			combatAssets = combatAssets, itemAssets = inventoryAssets
+			combatAssets = combatAssets, skillAssets = skillAssets, itemAssets = inventoryAssets
 		))
 		assets.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
 		importAreaAssets(inventoryAssets, battleAssets, assets)

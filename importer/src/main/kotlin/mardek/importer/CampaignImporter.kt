@@ -26,7 +26,7 @@ fun importDefaultCampaign(bitser: Bitser, skipMonsters: Boolean = false): Campai
 	val combatAssets = importCombatAssets()
 	val skillAssets = importSkills(combatAssets)
 	val inventoryAssets = importInventoryAssets(combatAssets, skillAssets)
-	val battleAssets = importBattleAssets(combatAssets, inventoryAssets, playerModelMapping)
+	val battleAssets = importBattleAssets(combatAssets, inventoryAssets, skillAssets, playerModelMapping)
 	importClasses(combatAssets, skillAssets, inventoryAssets)
 	val areaAssets = importAreaAssets(inventoryAssets, battleAssets)
 	val uiSprites = importUiSprites()
