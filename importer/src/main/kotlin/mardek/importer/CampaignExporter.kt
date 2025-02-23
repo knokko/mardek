@@ -64,6 +64,8 @@ fun main() {
 		exportCampaignData(campaign, outputFolder, bitser)
 		println("exported campaign")
 		succeeded = true
+	} catch (failure: Throwable) {
+		failure.printStackTrace()
 	} finally {
 		// For some reason, the process is not terminated by default
 		exitProcess(if (succeeded) 0 else -1)

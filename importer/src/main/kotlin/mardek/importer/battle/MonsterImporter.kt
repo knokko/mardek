@@ -431,7 +431,7 @@ private fun parsePotentialEquipment(equipmentText: String, itemAssets: Inventory
 	}))
 }
 
-fun importMonsterStats(
+internal fun importMonsterStats(
 	name: String, model: BattleModel, propertiesText: String,
 	combatAssets: CombatAssets, itemAssets: InventoryAssets, skillAssets: SkillAssets
 ): Monster {
