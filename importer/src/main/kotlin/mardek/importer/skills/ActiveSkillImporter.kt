@@ -7,6 +7,7 @@ import mardek.assets.skill.*
 import mardek.importer.area.parseFlashString
 import mardek.importer.area.parseOptionalFlashString
 import mardek.importer.util.parseActionScriptNestedList
+import mardek.importer.util.parseActionScriptObject
 import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
 
@@ -42,6 +43,7 @@ fun parseActiveSkills(
 	if (!isBuff && !isHealing) statModifiers = ArrayList(statModifiers.map { -it })
 
 	val rawDelay = rawSkill["dmgdelay"]
+	val rawAP = rawSkill["AP"]
 	ActiveSkill(
 		name = parseFlashString(rawSkill["skill"]!!, "skill name")!!,
 		description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else "",
@@ -49,7 +51,7 @@ fun parseActiveSkills(
 		targetType = targetType,
 		element = combatAssets.elements.find { it.rawName == parseFlashString(rawSkill["elem"]!!, "element") }!!,
 		damage = parseSkillDamage(combatAssets, rawSkill),
-		masteryPoints = parseInt(rawSkill["AP"]),
+		masteryPoints = if (rawAP != null) parseInt(rawAP) else 0,
 		accuracy = if (rawSkill.containsKey("cannot_miss")) 255 else parseInt(rawSkill["accuracy"] ?: "255"),
 		manaCost = parseInt(rawSkill["MP"]),
 		isHealing = isHealing,
@@ -112,25 +114,15 @@ private fun parseStatusEffectList(combatAssets: CombatAssets, rawEffects: String
 
 private fun parseStatModifiers(combatAssets: CombatAssets, rawModifiers: String?): ArrayList<StatModifierRange> {
 	if (rawModifiers == null) return ArrayList(0)
-	if (!rawModifiers.startsWith("{") || !rawModifiers.endsWith("}")) {
-		throw SkillParseException("Unexpected rawModifiers $rawModifiers")
-	}
-	val rawParts = rawModifiers.substring(1 until rawModifiers.length - 1).split("],")
-	return ArrayList(rawParts.map { rawModifier ->
-		val modifierPair = rawModifier.split(":[")
-		if (modifierPair.size == 1) {
-			val pair = rawModifier.split(":")
-			val stat = combatAssets.stats.find { it.flashName == pair[0] }!!
-			val adder = parseInt(pair[1])
+	val modifierMap = parseActionScriptObject(rawModifiers)
+	return ArrayList(modifierMap.entries.map { modifierEntry ->
+		val stat = combatAssets.stats.find { it.flashName == modifierEntry.key }!!
+		val valueList = parseActionScriptNestedList(modifierEntry.value)
+		if (valueList is ArrayList<*>) {
+			StatModifierRange(stat, parseInt(valueList[0].toString()), parseInt(valueList[1].toString()))
+		} else {
+			val adder = parseInt(valueList.toString())
 			StatModifierRange(stat, adder, adder)
-		} else if (modifierPair.size != 2) throw SkillParseException("Expected $rawModifier to have exactly 1 \":[\"")
-		else {
-			val stat = combatAssets.stats.find { it.flashName == modifierPair[0] }!!
-			val rangePair = modifierPair[1].split(",")
-			if (rangePair.size != 2) throw SkillParseException("Expected ${modifierPair[1]} to have exactly 1 comma")
-			var rawMax = rangePair[1]
-			if (rawMax.endsWith("]")) rawMax = rawMax.substring(0 until rawMax.length - 1)
-			StatModifierRange(stat, parseInt(rangePair[0]), parseInt(rawMax))
 		}
 	})
 }

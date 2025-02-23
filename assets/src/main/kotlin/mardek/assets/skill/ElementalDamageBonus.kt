@@ -19,4 +19,9 @@ class ElementalDamageBonus(
 
 	@Suppress("unused")
 	private constructor() : this(Element(), 0f)
+
+	override fun equals(other: Any?) = other is ElementalDamageBonus &&
+			this.element === other.element && this.modifier == other.modifier
+
+	override fun hashCode() = element.hashCode() + modifier.hashCode()
 }

@@ -2,6 +2,9 @@ package mardek.importer.battle
 
 import mardek.assets.animations.BattleModel
 import mardek.assets.battle.*
+import mardek.assets.combat.Element
+import mardek.assets.skill.ActiveSkill
+import mardek.assets.skill.ElementalDamageBonus
 import mardek.assets.skill.SkillTargetType
 import mardek.importer.combat.importCombatAssets
 import mardek.importer.inventory.importInventoryAssets
@@ -201,16 +204,16 @@ class TestMonsterImporter {
 		assertSame(combatAssets.statusEffects.find { it.flashName == "CRS" }!!, curse.addStatusEffects[0].effect)
 		assertEquals(60, curse.addStatusEffects[0].chance)
 		assertEquals(1, abomination.strategies.size)
+
 		val pool = abomination.strategies[0]
 		assertEquals(StrategyCriteria.NONE, pool.criteria)
 		assertEquals(2, pool.entries.size)
-		val curseStrategy = pool.entries[0]
-		assertSame(curse, curseStrategy.skill)
-		assertEquals(StrategyTarget.AnyPlayer, curseStrategy.target)
-		assertEquals(25, curseStrategy.chance)
-		val attackStrategy = pool.entries[1]
-		assertBasicAttack(attackStrategy)
-		assertEquals(75, attackStrategy.chance)
+		assertEquals(StrategyEntry(
+			skill = curse, item = null, target = StrategyTarget.AnyPlayer, chance = 25
+		), pool.entries[0])
+		assertEquals(StrategyEntry(
+			skill = null, item = null, target = StrategyTarget.AnyPlayer, chance = 75
+		), pool.entries[1])
 
 		assertEquals(0, abomination.meleeCounterAttacks.size)
 		assertEquals(0, abomination.rangedCounterAttacks.size)
@@ -274,17 +277,15 @@ class TestMonsterImporter {
 		val pool = ghoul.strategies[0]
 		assertEquals(StrategyCriteria.NONE, pool.criteria)
 		assertEquals(3, pool.entries.size)
-		val drainStrategy = pool.entries[0]
-		assertSame(getLegionSkill("Blood Drain"), drainStrategy.skill)
-		assertEquals(StrategyTarget.AnyPlayer, drainStrategy.target)
-		assertEquals(30, drainStrategy.chance)
-		val morbidStrategy = pool.entries[1]
-		assertSame(getLegionSkill("Morbid Fondle"), morbidStrategy.skill)
-		assertEquals(StrategyTarget.AnyPlayer, morbidStrategy.target)
-		assertEquals(21, morbidStrategy.chance)
-		val attackStrategy = pool.entries[2]
-		assertBasicAttack(attackStrategy)
-		assertEquals(49, attackStrategy.chance)
+		assertEquals(StrategyEntry(
+			skill = getLegionSkill("Blood Drain"), item = null, target = StrategyTarget.AnyPlayer, chance = 30
+		), pool.entries[0])
+		assertEquals(StrategyEntry(
+			skill = getLegionSkill("Morbid Fondle"), item = null, target = StrategyTarget.AnyPlayer, chance = 21
+		), pool.entries[1])
+		assertEquals(StrategyEntry(
+			skill = null, item = null, target = StrategyTarget.AnyPlayer, chance = 49
+		), pool.entries[2])
 
 		assertEquals(0, ghoul.meleeCounterAttacks.size)
 		assertEquals(0, ghoul.rangedCounterAttacks.size)
@@ -311,27 +312,22 @@ class TestMonsterImporter {
 		val boostPool = paladin.strategies[0]
 		assertEquals(StrategyCriteria(maxUses = 1, hpPercentageAtMost = 25), boostPool.criteria)
 		assertEquals(1, boostPool.entries.size)
-		val boostStrategy = boostPool.entries[0]
-		assertSame(boost, boostStrategy.skill)
-		assertEquals(StrategyTarget.Self, boostStrategy.target)
-		assertEquals(100, boostStrategy.chance)
+		assertEquals(StrategyEntry(
+			skill = boost, item = null, target = StrategyTarget.Self, chance = 100
+		), boostPool.entries[0])
 
 		val attackPool = paladin.strategies[1]
 		assertEquals(StrategyCriteria.NONE, attackPool.criteria)
 		assertEquals(1, attackPool.entries.size)
-		val attackStrategy = attackPool.entries[0]
-		assertNull(attackStrategy.skill)
-		assertEquals(StrategyTarget.AnyPlayer, attackStrategy.target)
-		assertEquals(100, attackStrategy.chance)
+		assertEquals(StrategyEntry(
+			skill = null, item = null, target = StrategyTarget.AnyPlayer, chance = 100
+		), attackPool.entries[0])
 
 		assertEquals(1, paladin.meleeCounterAttacks.size)
-		assertSame(counterAttack, paladin.meleeCounterAttacks[0].action)
-		assertEquals(100, paladin.meleeCounterAttacks[0].chance)
-		assertEquals(StrategyTarget.AnyPlayer, paladin.meleeCounterAttacks[0].target)
-		assertEquals(1, paladin.rangedCounterAttacks.size)
-		assertSame(counterAttack, paladin.rangedCounterAttacks[0].action)
-		assertEquals(100, paladin.rangedCounterAttacks[0].chance)
-		assertEquals(StrategyTarget.AnyPlayer, paladin.rangedCounterAttacks[0].target)
+		assertEquals(CounterAttack(
+			action = counterAttack, chance = 100, target = StrategyTarget.AnyPlayer
+		), paladin.meleeCounterAttacks[0])
+		assertEquals(paladin.meleeCounterAttacks, paladin.rangedCounterAttacks)
 	}
 
 	@Test
@@ -361,24 +357,24 @@ class TestMonsterImporter {
 		val pool = bernard.strategies[0]
 		assertEquals(StrategyCriteria.NONE, pool.criteria)
 		assertEquals(4, pool.entries.size)
-		val stormStrategy = pool.entries[0]
-		assertSame(storm, stormStrategy.skill)
-		assertEquals(30, stormStrategy.chance)
-		val immolateStrategy = pool.entries[1]
-		assertSame(immolate, immolateStrategy.skill)
-		assertEquals(35, immolateStrategy.chance)
-		val glaciateStrategy = pool.entries[2]
-		assertSame(glaciate, glaciateStrategy.skill)
-		assertEquals(35, glaciateStrategy.chance)
-		val hehStrategy = pool.entries[3]
-		assertSame(heh, hehStrategy.skill)
-		assertEquals(0, hehStrategy.chance) // Will only be used when Bernard runs out of mana
+		assertEquals(StrategyEntry(
+			skill = storm, item = null, target = StrategyTarget.AllPlayers, chance = 30
+		), pool.entries[0])
+		assertEquals(StrategyEntry(
+			skill = immolate, item = null, target = StrategyTarget.AnyPlayer, chance = 35
+		), pool.entries[1])
+		assertEquals(StrategyEntry(
+			skill = glaciate, item = null, target = StrategyTarget.AnyPlayer, chance = 35
+		), pool.entries[2])
+		assertEquals(StrategyEntry(
+			skill = heh, item = null, target = StrategyTarget.AnyPlayer, chance = 0
+		), pool.entries[3]) // Will only be used when Bernard runs out of mana
 
 		assertEquals(0, bernard.rangedCounterAttacks.size)
 		assertEquals(1, bernard.meleeCounterAttacks.size)
-		assertSame(heh, bernard.meleeCounterAttacks[0].action)
-		assertEquals(100, bernard.meleeCounterAttacks[0].chance)
-		assertEquals(StrategyTarget.AnyPlayer, bernard.meleeCounterAttacks[0].target)
+		assertEquals(CounterAttack(
+			action = heh, chance = 100, target = StrategyTarget.AnyPlayer
+		), bernard.meleeCounterAttacks[0])
 	}
 
 	@Test
@@ -408,84 +404,202 @@ class TestMonsterImporter {
 		assertEquals("Chakra", chakra.name)
 
 		assertEquals(5, mystery.strategies.size)
+
 		val mirrilixirPool = mystery.strategies[0]
-		assertEquals(1, mirrilixirPool.entries.size)
-		assertEquals(100, mirrilixirPool.entries[0].chance)
-		assertSame(getItem("Mirrilixir"), mirrilixirPool.entries[0].item)
-		assertEquals(StrategyTarget.Self, mirrilixirPool.entries[0].target)
 		assertEquals(StrategyCriteria(maxUses = 1), mirrilixirPool.criteria)
+		assertEquals(1, mirrilixirPool.entries.size)
+		assertEquals(StrategyEntry(
+			skill = null, item = getItem("Mirrilixir"), target = StrategyTarget.Self, chance = 100
+		), mirrilixirPool.entries[0])
 
 		val chakraPool = mystery.strategies[1]
-		assertEquals(1, chakraPool.entries.size)
-		assertSame(chakra, chakraPool.entries[0].skill)
-		assertEquals(60, chakraPool.entries[0].chance)
-		assertEquals(StrategyTarget.Self, chakraPool.entries[0].target)
 		assertEquals(StrategyCriteria(hpPercentageAtMost = 20), chakraPool.criteria)
+		assertEquals(1, chakraPool.entries.size)
+		assertEquals(StrategyEntry(
+			skill = chakra, item = null, target = StrategyTarget.Self, chance = 60
+		), chakraPool.entries[0])
 
 		val normalPool = mystery.strategies[2]
 		assertEquals(StrategyCriteria.NONE, normalPool.criteria)
 		assertEquals(5, normalPool.entries.size)
-		val noxiousEntry = normalPool.entries[0]
-		assertSame(getItem("Noxious Bomb"), noxiousEntry.item)
-		assertEquals(10, noxiousEntry.chance)
-		assertEquals(StrategyTarget.AnyPlayer, noxiousEntry.target)
-		val catastrophicEntry = normalPool.entries[1]
-		assertSame(catastrophicPunch, catastrophicEntry.skill)
-		assertEquals(23, catastrophicEntry.chance)
-		assertEquals(StrategyTarget.AnyPlayer, catastrophicEntry.target)
-		val stunnerEntry = normalPool.entries[2]
-		assertSame(stunner, stunnerEntry.skill)
-		assertEquals(7, stunnerEntry.chance)
-		assertEquals(StrategyTarget.AnyPlayer, stunnerEntry.target)
-		val shutUpEntry = normalPool.entries[3]
-		assertSame(shutUp, shutUpEntry.skill)
-		assertEquals(6, shutUpEntry.chance)
-		assertEquals(StrategyTarget.AnyPlayer, shutUpEntry.target)
-		val armBreakerEntry = normalPool.entries[4]
-		assertSame(armBreaker, armBreakerEntry.skill)
-		assertEquals(5, armBreakerEntry.chance)
-		assertEquals(StrategyTarget.AnyPlayer, armBreakerEntry.target)
+		assertEquals(StrategyEntry(
+			skill = null, item = getItem("Noxious Bomb"), target = StrategyTarget.AnyPlayer, chance = 10
+		), normalPool.entries[0])
+		assertEquals(StrategyEntry(
+			skill = catastrophicPunch, item = null, target = StrategyTarget.AnyPlayer, chance = 23
+		), normalPool.entries[1])
+		assertEquals(StrategyEntry(
+			skill = stunner, item = null, target = StrategyTarget.AnyPlayer, chance = 7
+		), normalPool.entries[2])
+		assertEquals(StrategyEntry(
+			skill = shutUp, item = null, target = StrategyTarget.AnyPlayer, chance = 6
+		), normalPool.entries[3])
+		assertEquals(StrategyEntry(
+			skill = armBreaker, item = null, target = StrategyTarget.AnyPlayer, chance = 5
+		), normalPool.entries[4])
 
 		val maybeChakraPool = mystery.strategies[3]
 		assertEquals(StrategyCriteria(hpPercentageAtMost = 30), maybeChakraPool.criteria)
 		assertEquals(1, maybeChakraPool.entries.size)
-		assertSame(chakra, maybeChakraPool.entries[0].skill)
-		assertEquals(100, maybeChakraPool.entries[0].chance)
-		assertEquals(StrategyTarget.Self, maybeChakraPool.entries[0].target)
+		assertEquals(StrategyEntry(
+			skill = chakra, item = null, target = StrategyTarget.Self, chance = 100
+		), maybeChakraPool.entries[0])
 
 		val fiercePool = mystery.strategies[4]
 		assertEquals(StrategyCriteria.NONE, fiercePool.criteria)
 		assertEquals(2, fiercePool.entries.size)
-		assertSame(fierceStrike, fiercePool.entries[0].skill)
-		assertEquals(100, fiercePool.entries[0].chance)
-		assertEquals(StrategyTarget.AnyPlayer, fiercePool.entries[0].target)
-		assertNull(fiercePool.entries[1].skill)
-		assertEquals(0, fiercePool.entries[1].chance)
-		assertEquals(StrategyTarget.AnyPlayer, fiercePool.entries[1].target)
+		assertEquals(StrategyEntry(
+			skill = fierceStrike, item = null, target = StrategyTarget.AnyPlayer, chance = 100
+		), fiercePool.entries[0])
+		assertEquals(StrategyEntry(
+			skill = null, item = null, target = StrategyTarget.AnyPlayer, chance = 0
+		), fiercePool.entries[1])
 
 		assertEquals(1, mystery.rangedCounterAttacks.size)
-		val shutUpCounter = mystery.rangedCounterAttacks[0]
-		assertSame(shutUp, shutUpCounter.action)
-		assertEquals(25, shutUpCounter.chance)
-		assertEquals(StrategyTarget.AnyPlayer, shutUpCounter.target)
+		assertEquals(CounterAttack(
+			action = shutUp, chance = 25, target = StrategyTarget.AnyPlayer
+		), mystery.rangedCounterAttacks[0])
 
 		assertEquals(4, mystery.meleeCounterAttacks.size)
-		val armBreakCounter = mystery.meleeCounterAttacks[0]
-		assertSame(armBreaker, armBreakCounter.action)
-		assertEquals(10, armBreakCounter.chance)
-		assertEquals(StrategyTarget.AnyPlayer, armBreakCounter.target)
-		val stunnerCounter = mystery.meleeCounterAttacks[1]
-		assertSame(stunner, stunnerCounter.action)
-		assertEquals(9, stunnerCounter.chance)
-		assertEquals(StrategyTarget.AnyPlayer, stunnerCounter.target)
-		val fierceCounter = mystery.meleeCounterAttacks[2]
-		assertSame(fierceStrike, fierceCounter.action)
-		assertEquals(8, fierceCounter.chance)
-		assertEquals(StrategyTarget.AnyPlayer, fierceCounter.target)
-		val basicCounter = mystery.meleeCounterAttacks[3]
-		assertSame(counterAttack, basicCounter.action)
-		assertEquals(73, basicCounter.chance)
-		assertEquals(StrategyTarget.AnyPlayer, basicCounter.target)
+		assertEquals(CounterAttack(
+			action = armBreaker, chance = 10, target = StrategyTarget.AnyPlayer
+		), mystery.meleeCounterAttacks[0])
+		assertEquals(CounterAttack(
+			action = stunner, chance = 9, target = StrategyTarget.AnyPlayer
+		), mystery.meleeCounterAttacks[1])
+		assertEquals(CounterAttack(
+			action = fierceStrike, chance = 8, target = StrategyTarget.AnyPlayer
+		), mystery.meleeCounterAttacks[2])
+		assertEquals(CounterAttack(
+			action = counterAttack, chance = 73, target = StrategyTarget.AnyPlayer
+		), mystery.meleeCounterAttacks[3])
 	}
-	// TODO Test animus
+
+	@Test
+	fun testAnimus() {
+		val animus = importMonsterStats(
+			"A. Animus", BattleModel(), ANIMUS_PROPERTIES, combatAssets, itemAssets, skillAssets
+		)
+
+		assertEquals(17, animus.actions.size)
+		val rainbowGuard = animus.actions[0]
+		assertEquals("Rainbow Guard", rainbowGuard.name)
+		assertEquals(8, rainbowGuard.addStatusEffects.size)
+		val delayBuster = animus.actions[1]
+		assertEquals("Delay Buster", delayBuster.name)
+		assertEquals(1, delayBuster.removeStatusEffects.size)
+		val shieldBreak = animus.actions[2]
+		assertEquals("Shield Breaker: Annihilation", shieldBreak.name)
+		assertEquals(200, shieldBreak.damage!!.flatAttackValue)
+		val megaBarrier = animus.actions[3]
+		assertEquals("Mega Barrier", megaBarrier.name)
+		assertEquals(2, megaBarrier.addStatusEffects.size)
+		val alpha = animus.actions[4]
+		assertEquals("Soulstorm Alpha", alpha.name)
+		assertEquals(0.5f, alpha.damage!!.remainingTargetHpModifier)
+		val gamma = animus.actions[5]
+		assertEquals("Soulstorm Gamma", gamma.name)
+		val omega = animus.actions[6]
+		assertEquals("Soulstorm Omega", omega.name)
+		val ionStorm = animus.actions[7]
+		assertEquals("Ion Storm", ionStorm.name)
+		assertEquals(1, ionStorm.addStatusEffects.size)
+
+		val vortexMap = mutableMapOf<Element, ActiveSkill>()
+		for (index in 8 until 17) {
+			assertTrue(animus.actions[index].name.contains("Energy Vortex"))
+			assertFalse(vortexMap.containsKey(animus.actions[index].element))
+			vortexMap[animus.actions[index].element] = animus.actions[index]
+		}
+
+		assertEquals(18, animus.strategies.size)
+
+		val barrierPool = animus.strategies[0]
+		assertEquals(StrategyCriteria(maxUses = 1, hpPercentageAtMost = 25), barrierPool.criteria)
+		assertEquals(1, barrierPool.entries.size)
+		assertEquals(StrategyEntry(
+			skill = megaBarrier, item = null, target = StrategyTarget.Self, chance = 100
+		), barrierPool.entries[0])
+
+		val guardPool = animus.strategies[1]
+		assertEquals(StrategyCriteria.NONE, guardPool.criteria)
+		assertEquals(1, guardPool.entries.size)
+		assertEquals(StrategyEntry(
+			skill = rainbowGuard, item = null, target = StrategyTarget.Self, chance = 5
+		), guardPool.entries[0])
+
+		val shieldPool1 = animus.strategies[2]
+		assertEquals(StrategyCriteria(
+			targetHasEffect = combatAssets.statusEffects.find { it.flashName == "PSH" }!!,
+			canUseOnEvenTurns = false
+		), shieldPool1.criteria)
+		assertEquals(1, shieldPool1.entries.size)
+		assertEquals(StrategyEntry(
+			skill = shieldBreak, item = null, target = StrategyTarget.AllPlayers, chance = 60
+		), shieldPool1.entries[0])
+
+		val shieldPool2 = animus.strategies[3]
+		assertEquals(StrategyCriteria(
+			targetHasEffect = combatAssets.statusEffects.find { it.flashName == "MSH" }!!,
+			canUseOnEvenTurns = false
+		), shieldPool2.criteria)
+		assertEquals(shieldPool1.entries, shieldPool2.entries)
+
+		val delayPool = animus.strategies[4]
+		assertEquals(StrategyCriteria(
+			targetHasEffect = combatAssets.statusEffects.find { it.niceName == "Haste" }!!,
+			canUseOnEvenTurns = false
+		), delayPool.criteria)
+		assertEquals(1, delayPool.entries.size)
+		assertEquals(StrategyEntry(
+			skill = delayBuster, item = null, target = StrategyTarget.AllPlayers, chance = 60
+		), delayPool.entries[0])
+
+		for (index in 5 until 14) {
+			val vortexPool = animus.strategies[index]
+			val element = vortexPool.entries[0].skill!!.element
+			assertEquals(StrategyCriteria(
+				resistanceAtMost = ElementalDamageBonus(element, 0.5f), // TODO Maybe create ElementalResistance class
+				canUseOnOddTurns = false
+			), vortexPool.criteria)
+			assertEquals(1, vortexPool.entries.size)
+			assertEquals(StrategyEntry(
+				skill = vortexMap.remove(element)!!, item = null, target = StrategyTarget.AnyPlayer, chance = 12
+			), vortexPool.entries[0])
+		}
+
+		val ionPool = animus.strategies[14]
+		assertEquals(StrategyCriteria(canUseOnEvenTurns = false), ionPool.criteria)
+		assertEquals(1, ionPool.entries.size)
+		assertEquals(StrategyEntry(
+			skill = ionStorm, item = null, target = StrategyTarget.AllPlayers, chance = 30
+		), ionPool.entries[0])
+
+		val omegaPool = animus.strategies[15]
+		assertEquals(StrategyCriteria(hpPercentageAtMost = 40), omegaPool.criteria)
+		assertEquals(1, omegaPool.entries.size)
+		assertEquals(StrategyEntry(
+			skill = omega, item = null, target = StrategyTarget.AllPlayers, chance = 100
+		), omegaPool.entries[0])
+
+		val gammaPool = animus.strategies[16]
+		assertEquals(StrategyCriteria(hpPercentageAtMost = 70), gammaPool.criteria)
+		assertEquals(1, gammaPool.entries.size)
+		assertEquals(StrategyEntry(
+			skill = gamma, item = null, target = StrategyTarget.AllPlayers, chance = 100
+		), gammaPool.entries[0])
+
+		val alphaPool = animus.strategies[17]
+		assertEquals(StrategyCriteria.NONE, alphaPool.criteria)
+		assertEquals(2, alphaPool.entries.size)
+		assertEquals(StrategyEntry(
+			skill = alpha, item = null, target = StrategyTarget.AllPlayers, chance = 100
+		), alphaPool.entries[0])
+		assertEquals(StrategyEntry(
+			skill = ionStorm, item = null, target = StrategyTarget.AllPlayers, chance = 0
+		), alphaPool.entries[1])
+
+		assertEquals(0, animus.meleeCounterAttacks.size)
+		assertEquals(0, animus.rangedCounterAttacks.size)
+	}
 }

@@ -1,9 +1,11 @@
 package mardek.importer.battle
 
 import mardek.assets.battle.*
+import mardek.assets.combat.CombatAssets
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.inventory.Item
 import mardek.assets.skill.ActiveSkill
+import mardek.assets.skill.ElementalDamageBonus
 import mardek.assets.skill.SkillAssets
 import mardek.importer.area.parseFlashString
 import mardek.importer.skills.SkillParseException
@@ -15,12 +17,12 @@ import kotlin.math.roundToInt
 
 internal fun importMonsterStrategies(
 	rawGambits: String, actions: List<ActiveSkill>,
-	skillAssets: SkillAssets, itemAssets: InventoryAssets,
+	combatAssets: CombatAssets, skillAssets: SkillAssets, itemAssets: InventoryAssets,
 	targetMap: MutableMap<ActiveSkill, StrategyTarget>
 ): ArrayList<StrategyPool> {
 	val jsonList = parseActionScriptObjectList(rawGambits)
 	var rawStrategies = jsonList.map {
-		rawProperties -> importRawMonsterStrategy(rawProperties, actions, skillAssets, itemAssets)
+		rawProperties -> importRawMonsterStrategy(rawProperties, actions, combatAssets, skillAssets, itemAssets)
 	}
 	for (raw in rawStrategies) {
 		if (raw.action != null && !targetMap.containsKey(raw.action)) targetMap[raw.action] = raw.target
@@ -60,7 +62,7 @@ private class RawMonsterStrategy(
 
 private fun importRawMonsterStrategy(
 	rawProperties: Map<String, String>, actions: List<ActiveSkill>,
-	skillAssets: SkillAssets, itemAssets: InventoryAssets
+	combatAssets: CombatAssets, skillAssets: SkillAssets, itemAssets: InventoryAssets
 ): RawMonsterStrategy {
 	val skillName = parseFlashString(rawProperties["command"]!!, "gambit command")!!
 	val (action, item) = if (skillName == "Attack") Pair(null, null) else {
@@ -82,29 +84,52 @@ private fun importRawMonsterStrategy(
 		else -> throw SkillParseException("Unexpected gambit target in $rawProperties")
 	}
 
+	var criteria = StrategyCriteria.NONE
 	val rawUses = rawProperties["uses"]
-	val maxUses = if (rawUses != null) parseInt(rawUses) else null
+	if (rawUses != null) criteria = criteria.merge(StrategyCriteria(maxUses = parseInt(rawUses)))
+
+	val rawOtherTurn = rawProperties["OtherTurn"]
+	if (rawOtherTurn == "0") criteria = criteria.merge(StrategyCriteria(canUseOnOddTurns = false))
+	if (rawOtherTurn == "1") criteria = criteria.merge(StrategyCriteria(canUseOnEvenTurns = false))
 
 	val rawCriteria = parseActionScriptNestedList(rawProperties["criteria"]!!)
 	val rawChance = rawProperties["random"]
 	var chance = if (rawChance != null) parseInt(rawChance) else 100
-	val criteria: StrategyCriteria
 
-	if (rawCriteria is ArrayList<*> && rawCriteria.size == 2) {
-		val type = parseFlashString(rawCriteria[0].toString(), "gambit criteria type")!!
+	if (rawCriteria is ArrayList<*> && rawCriteria.size >= 2) {
+		var type = parseFlashString(rawCriteria[0].toString(), "gambit criteria type")!!
 		if (type == "random") {
 			chance = parseInt(rawCriteria[1].toString())
-			criteria = StrategyCriteria(maxUses = maxUses)
 		} else {
-			criteria = when (type) {
-				"HP<" -> StrategyCriteria(maxUses = maxUses, hpPercentageAtMost = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt())
-				"HP>" -> StrategyCriteria(maxUses = maxUses, hpPercentageAtLeast = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt())
+			@Suppress("SpellCheckingInspection")
+			if (type == "MYHP<") type = "HP<"
+			criteria = criteria.merge(when (type) {
+				"HP<" -> StrategyCriteria(
+					hpPercentageAtMost = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt()
+				)
+
+				"HP>" -> StrategyCriteria(
+					hpPercentageAtLeast = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt()
+				)
+
+				"has_status" -> StrategyCriteria(
+					targetHasEffect = combatAssets.statusEffects.find {
+						it.flashName == parseFlashString(rawCriteria[1].toString(), "has_status effect")!!
+					}!!
+				)
+
+				"resist<" -> StrategyCriteria(
+					resistanceAtMost = ElementalDamageBonus(
+						combatAssets.elements.find { it.rawName == parseFlashString(rawCriteria[1].toString(), "resist element") }!!,
+						parseInt(rawCriteria[2].toString()) / 100f
+					)
+				)
+
 				else -> throw SkillParseException("Unexpected gambit criteria $rawCriteria")
-			}
+			})
 		}
 	} else {
 		if (rawCriteria != "null") throw SkillParseException("Unexpected raw criteria $rawCriteria")
-		criteria = StrategyCriteria(maxUses = maxUses)
 	}
 
 	return RawMonsterStrategy(action = action, item = item, target = target, criteria = criteria, chance = chance)
