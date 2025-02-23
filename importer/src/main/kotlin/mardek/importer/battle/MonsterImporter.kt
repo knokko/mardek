@@ -509,17 +509,15 @@ fun importMonsterStats(
 
 	val rawActionList = ArrayList<Map<String, String>>(rawTechMap.size)
 	for (rawTechObject in rawTechMap) {
-		if (rawTechObject.containsKey("legion")) continue
-		if (rawTechObject["MODE"] == "\"I\"") {
-			// TODO Do something
-			continue
-		}
+		if (rawTechObject.containsKey("legion") || rawTechObject["MODE"] == "\"I\"") continue
 		rawActionList.add(rawTechObject)
 	}
 
 	val actions = parseActiveSkills(combatAssets, rawActionList)
 	val targetMap = mutableMapOf<ActiveSkill, StrategyTarget>()
-	val strategies = importMonsterStrategies(propertiesCode.variableAssignments["Gambits"]!!, actions, skillAssets, targetMap)
+	val strategies = importMonsterStrategies(
+		propertiesCode.variableAssignments["Gambits"]!!, actions, skillAssets, itemAssets, targetMap
+	)
 	var meleeCounterAttacks = ArrayList<CounterAttack>(0)
 	var rangedCounterAttacks = ArrayList<CounterAttack>(0)
 	val rawCounterAttacks = propertiesCode.variableAssignments["Counters"]

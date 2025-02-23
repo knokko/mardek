@@ -200,7 +200,6 @@ class TestMonsterImporter {
 		assertEquals(1, curse.addStatusEffects.size)
 		assertSame(combatAssets.statusEffects.find { it.flashName == "CRS" }!!, curse.addStatusEffects[0].effect)
 		assertEquals(60, curse.addStatusEffects[0].chance)
-		// TODO Potion actions
 		assertEquals(1, abomination.strategies.size)
 		val pool = abomination.strategies[0]
 		assertEquals(StrategyCriteria.NONE, pool.criteria)
@@ -382,5 +381,111 @@ class TestMonsterImporter {
 		assertEquals(StrategyTarget.AnyPlayer, bernard.meleeCounterAttacks[0].target)
 	}
 
-	// TODO Test mystery man and animus
+	@Test
+	fun testMysteryMan() {
+		val mystery = importMonsterStats(
+			"Mystery Man", BattleModel(), MYSTERY_MAN_PROPERTIES, combatAssets, itemAssets, skillAssets
+		)
+
+		assertEquals(7, mystery.actions.size)
+		val counterAttack = mystery.actions[0]
+		assertEquals("Counterattack", counterAttack.name)
+		val fierceStrike = mystery.actions[1]
+		assertEquals("Fierce Strike", fierceStrike.name)
+		val catastrophicPunch = mystery.actions[2]
+		assertEquals("Catastrophic Punch", catastrophicPunch.name)
+		assertEquals(1, catastrophicPunch.statModifiers.size)
+		assertEquals("VIT", catastrophicPunch.statModifiers[0].stat.flashName)
+		assertEquals(-2, catastrophicPunch.statModifiers[0].minAdder)
+		assertEquals(-2, catastrophicPunch.statModifiers[0].maxAdder)
+		val shutUp = mystery.actions[3]
+		assertEquals("Shut The Hell Up!", shutUp.name)
+		val armBreaker = mystery.actions[4]
+		assertEquals("Arm Breaker", armBreaker.name)
+		val stunner = mystery.actions[5]
+		assertEquals("Stunner!", stunner.name)
+		val chakra = mystery.actions[6]
+		assertEquals("Chakra", chakra.name)
+
+		assertEquals(5, mystery.strategies.size)
+		val mirrilixirPool = mystery.strategies[0]
+		assertEquals(1, mirrilixirPool.entries.size)
+		assertEquals(100, mirrilixirPool.entries[0].chance)
+		assertSame(getItem("Mirrilixir"), mirrilixirPool.entries[0].item)
+		assertEquals(StrategyTarget.Self, mirrilixirPool.entries[0].target)
+		assertEquals(StrategyCriteria(maxUses = 1), mirrilixirPool.criteria)
+
+		val chakraPool = mystery.strategies[1]
+		assertEquals(1, chakraPool.entries.size)
+		assertSame(chakra, chakraPool.entries[0].skill)
+		assertEquals(60, chakraPool.entries[0].chance)
+		assertEquals(StrategyTarget.Self, chakraPool.entries[0].target)
+		assertEquals(StrategyCriteria(hpPercentageAtMost = 20), chakraPool.criteria)
+
+		val normalPool = mystery.strategies[2]
+		assertEquals(StrategyCriteria.NONE, normalPool.criteria)
+		assertEquals(5, normalPool.entries.size)
+		val noxiousEntry = normalPool.entries[0]
+		assertSame(getItem("Noxious Bomb"), noxiousEntry.item)
+		assertEquals(10, noxiousEntry.chance)
+		assertEquals(StrategyTarget.AnyPlayer, noxiousEntry.target)
+		val catastrophicEntry = normalPool.entries[1]
+		assertSame(catastrophicPunch, catastrophicEntry.skill)
+		assertEquals(23, catastrophicEntry.chance)
+		assertEquals(StrategyTarget.AnyPlayer, catastrophicEntry.target)
+		val stunnerEntry = normalPool.entries[2]
+		assertSame(stunner, stunnerEntry.skill)
+		assertEquals(7, stunnerEntry.chance)
+		assertEquals(StrategyTarget.AnyPlayer, stunnerEntry.target)
+		val shutUpEntry = normalPool.entries[3]
+		assertSame(shutUp, shutUpEntry.skill)
+		assertEquals(6, shutUpEntry.chance)
+		assertEquals(StrategyTarget.AnyPlayer, shutUpEntry.target)
+		val armBreakerEntry = normalPool.entries[4]
+		assertSame(armBreaker, armBreakerEntry.skill)
+		assertEquals(5, armBreakerEntry.chance)
+		assertEquals(StrategyTarget.AnyPlayer, armBreakerEntry.target)
+
+		val maybeChakraPool = mystery.strategies[3]
+		assertEquals(StrategyCriteria(hpPercentageAtMost = 30), maybeChakraPool.criteria)
+		assertEquals(1, maybeChakraPool.entries.size)
+		assertSame(chakra, maybeChakraPool.entries[0].skill)
+		assertEquals(100, maybeChakraPool.entries[0].chance)
+		assertEquals(StrategyTarget.Self, maybeChakraPool.entries[0].target)
+
+		val fiercePool = mystery.strategies[4]
+		assertEquals(StrategyCriteria.NONE, fiercePool.criteria)
+		assertEquals(2, fiercePool.entries.size)
+		assertSame(fierceStrike, fiercePool.entries[0].skill)
+		assertEquals(100, fiercePool.entries[0].chance)
+		assertEquals(StrategyTarget.AnyPlayer, fiercePool.entries[0].target)
+		assertNull(fiercePool.entries[1].skill)
+		assertEquals(0, fiercePool.entries[1].chance)
+		assertEquals(StrategyTarget.AnyPlayer, fiercePool.entries[1].target)
+
+		assertEquals(1, mystery.rangedCounterAttacks.size)
+		val shutUpCounter = mystery.rangedCounterAttacks[0]
+		assertSame(shutUp, shutUpCounter.action)
+		assertEquals(25, shutUpCounter.chance)
+		assertEquals(StrategyTarget.AnyPlayer, shutUpCounter.target)
+
+		assertEquals(4, mystery.meleeCounterAttacks.size)
+		val armBreakCounter = mystery.meleeCounterAttacks[0]
+		assertSame(armBreaker, armBreakCounter.action)
+		assertEquals(10, armBreakCounter.chance)
+		assertEquals(StrategyTarget.AnyPlayer, armBreakCounter.target)
+		val stunnerCounter = mystery.meleeCounterAttacks[1]
+		assertSame(stunner, stunnerCounter.action)
+		assertEquals(9, stunnerCounter.chance)
+		assertEquals(StrategyTarget.AnyPlayer, stunnerCounter.target)
+		val fierceCounter = mystery.meleeCounterAttacks[2]
+		assertSame(fierceStrike, fierceCounter.action)
+		assertEquals(8, fierceCounter.chance)
+		assertEquals(StrategyTarget.AnyPlayer, fierceCounter.target)
+		val basicCounter = mystery.meleeCounterAttacks[3]
+		assertSame(counterAttack, basicCounter.action)
+		assertEquals(73, basicCounter.chance)
+		assertEquals(StrategyTarget.AnyPlayer, basicCounter.target)
+	}
+	// TODO Test animus
 }

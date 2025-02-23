@@ -5,6 +5,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.assets.inventory.Item
 import mardek.assets.skill.ActiveSkill
 
 @BitStruct(backwardCompatible = false)
@@ -26,17 +27,26 @@ class StrategyEntry(
 	@ReferenceField(stable = false, label = "skills")
 	val skill: ActiveSkill?,
 
-	@BitField(ordering = 1)
-	val target: StrategyTarget,
+	@BitField(ordering = 1, optional = true)
+	@ReferenceField(stable = false, label = "items")
+	val item: Item?,
 
 	@BitField(ordering = 2)
+	val target: StrategyTarget,
+
+	@BitField(ordering = 3)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val chance: Int,
 ) {
-	@Suppress("unused")
-	private constructor() : this(null, StrategyTarget.Self, 0)
+	init {
+		if (skill != null && item != null) throw IllegalArgumentException("Skill ($skill) or item ($item) must be null")
+		if (item != null && item.consumable == null) throw IllegalArgumentException("Item ($item) must be consumable")
+	}
 
-	override fun toString() = "$chance% ${skill?.name ?: "Attack"}"
+	@Suppress("unused")
+	private constructor() : this(null, null, StrategyTarget.Self, 0)
+
+	override fun toString() = "$chance% ${skill?.name ?: item?.flashName ?: "Attack"}"
 }
 
 @BitEnum(mode = BitEnum.Mode.VariableIntOrdinal)
@@ -67,6 +77,15 @@ class StrategyCriteria(
 			this.hpPercentageAtLeast == other.hpPercentageAtLeast
 
 	override fun hashCode() = (maxUses ?: 0) + 5 * hpPercentageAtMost - 13 * hpPercentageAtLeast
+
+	override fun toString(): String {
+		val builder = StringBuilder("Criteria(")
+		if (maxUses != NONE.maxUses) builder.append("maxUses == $maxUses,")
+		if (hpPercentageAtMost != NONE.hpPercentageAtMost) builder.append("hp% <= $hpPercentageAtMost,")
+		if (hpPercentageAtLeast != NONE.hpPercentageAtLeast) builder.append("hp% >= $hpPercentageAtLeast,")
+		return if (builder.endsWith(",")) "${builder.substring(0 until builder.lastIndex)})"
+		else "NONE"
+	}
 
 	companion object {
 		val NONE = StrategyCriteria()

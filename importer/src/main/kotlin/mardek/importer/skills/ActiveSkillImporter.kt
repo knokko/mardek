@@ -118,13 +118,20 @@ private fun parseStatModifiers(combatAssets: CombatAssets, rawModifiers: String?
 	val rawParts = rawModifiers.substring(1 until rawModifiers.length - 1).split("],")
 	return ArrayList(rawParts.map { rawModifier ->
 		val modifierPair = rawModifier.split(":[")
-		if (modifierPair.size != 2) throw SkillParseException("Expected $rawModifier to have exactly 1 \":[\"")
-		val stat = combatAssets.stats.find { it.flashName == modifierPair[0] }!!
-		val rangePair = modifierPair[1].split(",")
-		if (rangePair.size != 2) throw SkillParseException("Expected ${modifierPair[1]} to have exactly 1 comma")
-		var rawMax = rangePair[1]
-		if (rawMax.endsWith("]")) rawMax = rawMax.substring(0 until rawMax.length - 1)
-		StatModifierRange(stat, parseInt(rangePair[0]), parseInt(rawMax))
+		if (modifierPair.size == 1) {
+			val pair = rawModifier.split(":")
+			val stat = combatAssets.stats.find { it.flashName == pair[0] }!!
+			val adder = parseInt(pair[1])
+			StatModifierRange(stat, adder, adder)
+		} else if (modifierPair.size != 2) throw SkillParseException("Expected $rawModifier to have exactly 1 \":[\"")
+		else {
+			val stat = combatAssets.stats.find { it.flashName == modifierPair[0] }!!
+			val rangePair = modifierPair[1].split(",")
+			if (rangePair.size != 2) throw SkillParseException("Expected ${modifierPair[1]} to have exactly 1 comma")
+			var rawMax = rangePair[1]
+			if (rawMax.endsWith("]")) rawMax = rawMax.substring(0 until rawMax.length - 1)
+			StatModifierRange(stat, parseInt(rangePair[0]), parseInt(rawMax))
+		}
 	})
 }
 
