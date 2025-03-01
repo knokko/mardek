@@ -11,6 +11,7 @@ import com.jpexs.decompiler.flash.types.RECT
 import mardek.assets.animations.*
 import mardek.assets.battle.*
 import mardek.assets.combat.*
+import mardek.assets.inventory.Dreamstone
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.inventory.Item
 import mardek.assets.skill.ActiveSkill
@@ -38,6 +39,55 @@ loot = [["Old Bone",20],["Human Skull",10],["Mace",5]];
 DetermineStats();
 """
 
+const val OVERRIDE_BARTHOLIO_CHAPTER2 = """
+mdlStats = {names:["Bartholio"],model:"bartholio",unique_sprite:"bartholio",Class:"Fighter",TYPE:"HUMAN",cElem:"LIGHT",wpnType:"GREATSWORD",armrTypes:[],baseStats:{hp:45,mp:30,STR:20,VIT:18,SPR:8,AGL:11},FAIR_STATS:2,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:18,atkGrowth:[0,0],equip:{weapon:["MythrilGreatblade"],shield:["none"],helmet:["none"],armour:["Bronze Armour"],accs:["Gauntlet"],accs2:["GreenBeads"]},resist:{ZOM:100},EXP:1000};
+Techs = [{skill:"Counterattack",type:"ACT",DMG:["m",1],MP:0,accuracy:100,AP:20,MODE:"P",elem:"NONE",TT:"SINGLE",pfx:"dmgplus",sfx:"hit_2HSWORDS"},{skill:"Power Attack",type:"ACT",DMG:["m",1.5,10],MP:0,accuracy:46,AP:20,MODE:"P",elem:"NONE",TT:"SINGLE",sfx:"hit_2HSWORDS",pfx:"powerhit"},{skill:"Avengance!",type:"ACT",MP:20,accuracy:100,AP:20,stfx:{BSK:100},MODE:"M",elem:"FIRE",TT:"SINGLE",pfx:"chakra"}];
+Gambits = [{command:"Counterattack",target:"ANY_PC",criteria:["random",0]},{command:"Avengance!",target:"SELF",criteria:["alone"],uses:1},{command:"Power Attack",target:"ANY_PC",criteria:["random",30]},{command:"Attack",target:"ANY_PC",criteria:null}];
+loot = [["PhoenixDown",100]];
+DetermineStats();
+"""
+
+const val OVERRIDE_BARTHOLIO_CHAPTER3 = """
+mdlStats = {names:["Bartholio"],model:"bartholio",unique_sprite:"bartholio",Class:"Fighter",TYPE:"HUMAN",cElem:"LIGHT",wpnType:"GREATSWORD",armrTypes:[],baseStats:{hp:45,mp:30,STR:20,VIT:18,SPR:8,AGL:11},FAIR_STATS:4,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:18,atkGrowth:[0,0],equip:{weapon:["Starmetal Blade"],shield:["none"],helmet:["Horned Helm"],armour:["Iron Armour"],accs:["Gauntlet"],accs2:["Emerald Bangle"]},resist:{ZOM:100},EXP:1000};
+Techs = [{skill:"Counterattack",type:"ACT",DMG:["m",1],MP:0,accuracy:100,AP:20,MODE:"P",elem:"NONE",TT:"SINGLE",pfx:"dmgplus",sfx:"hit_2HSWORDS"},{skill:"Power Attack",type:"ACT",DMG:["m",1.5,10],MP:0,accuracy:72,AP:20,MODE:"P",elem:"NONE",TT:"SINGLE",sfx:"hit_2HSWORDS",pfx:"powerhit"},{skill:"Avengance!",type:"ACT",MP:20,accuracy:100,AP:20,stfx:{BSK:100},MODE:"M",elem:"FIRE",TT:"SINGLE",pfx:"chakra"}];
+Gambits = [{command:"Counterattack",target:"ANY_PC",criteria:["random",0]},{command:"Avengance!",target:"SELF",criteria:["alone"],uses:1},{command:"Power Attack",target:"ANY_PC",criteria:["random",30]},{command:"Attack",target:"ANY_PC",criteria:null}];
+Counters = {M:null,P:[["Counterattack",100]]};
+loot = [["Elixir",100]];
+DetermineStats();
+"""
+
+const val OVERRIDE_VENNIE_CHAPTER2 = """
+mdlStats = {names:["Vennie"],model:"vennie",unique_sprite:"vennie",Class:"Thief",TYPE:"HUMAN",cElem:"AIR",wpnType:"DAGGER",armrTypes:[],baseStats:{hp:35,mp:50,STR:12,VIT:14,SPR:10,AGL:20},FAIR_STATS:2,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:14,atkGrowth:[0,0],equip:{weapon:["Dagger"],shield:["none"],helmet:["none"],armour:["Bandit Leather"],accs:["RingOfAGL"],accs2:["AirPendant"]},resist:{ZOM:100},EXP:1000};
+Techs = [{skill:"Mass Haste",type:"ACT",MP:6,accuracy:100,stfx:{HST:100},lasts:30,AP:0,MODE:"M",elem:"AIR",TT:"ALL_p",pfx:"haste",desc:"Inflicts haste."},{skill:"Potion",MODE:"I",item:"Potion",ID:-1,uses:3},{skill:"MugwortJuice",MODE:"I",item:"MugwortJuice",ID:-1,uses:3},{skill:"Eye Gouge",type:"ACT",DMG:["m",1.3,5],MP:2,accuracy:90,stfx:{DRK:80},AP:0,MODE:"P",elem:"DARK",TT:"SINGLE",pfx:"sting_drk",desc:"Inflicts darkness."},{skill:"Viperfang",type:"ACT",DMG:["m",1.3,5],MP:2,accuracy:90,stfx:{PSN:80},AP:0,MODE:"P",elem:"EARTH",TT:"SINGLE",pfx:"sting_psn",desc:"Inflicts darkness."},{skill:"Slumberstab",type:"ACT",DMG:["m",1.3,5],MP:2,accuracy:90,stfx:{SLP:80},AP:0,MODE:"P",elem:"AIR",TT:"SINGLE",pfx:"sting_slp",desc:"Inflicts darkness."}];
+Gambits = [{command:"Potion",target:"ANY_ALLY",criteria:["HP<",0.2],uses:3},{command:"Eye Gouge",target:"ANY_PC",criteria:["random",40]},{command:"Viperfang",target:"ANY_PC",criteria:["random",40]},{command:"Slumberstab",target:"ANY_PC",criteria:["random",70]},{command:"Attack",target:"ANY_PC",criteria:null}];
+loot = [["Remedy",100]];
+DetermineStats();
+"""
+
+const val OVERRIDE_VENNIE_CHAPTER3 = """
+mdlStats = {names:["Vennie"],model:"vennie",unique_sprite:"vennie",Class:"Thief",TYPE:"HUMAN",cElem:"AIR",wpnType:"DAGGER",armrTypes:[],baseStats:{hp:35,mp:50,STR:12,VIT:14,SPR:10,AGL:20},FAIR_STATS:4,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:14,atkGrowth:[0,0],equip:{weapon:["Curved Dagger"],shield:["Rune Shield"],helmet:["Black Hat"],armour:["Bandit Leather"],accs:["Emerald Bangle"],accs2:["Snakestone"]},resist:{ZOM:100},EXP:1000};
+Techs = [{skill:"Mass Haste",type:"ACT",MP:6,accuracy:100,stfx:{HST:100},lasts:30,AP:0,MODE:"M",elem:"AIR",TT:"ALL_p",pfx:"haste",desc:"Inflicts haste."},{skill:"Potion",MODE:"I",item:"Potion",ID:-1,uses:3},{skill:"MugwortJuice",MODE:"I",item:"MugwortJuice",ID:-1,uses:3},{skill:"Eye Gouge",type:"ACT",DMG:["m",1.3,5],MP:2,accuracy:90,stfx:{DRK:80},AP:0,MODE:"P",elem:"DARK",TT:"SINGLE",pfx:"sting_drk",desc:"Inflicts darkness."},{skill:"Viperfang",type:"ACT",DMG:["m",1.3,5],MP:2,accuracy:90,stfx:{PSN:80},AP:0,MODE:"P",elem:"EARTH",TT:"SINGLE",pfx:"sting_psn",desc:"Inflicts darkness."},{skill:"Slumberstab",type:"ACT",DMG:["m",1.3,5],MP:2,accuracy:90,stfx:{SLP:80},AP:0,MODE:"P",elem:"AIR",TT:"SINGLE",pfx:"sting_slp",desc:"Inflicts darkness."}];
+Gambits = [{command:"MugwortJuice",target:"ANY_ALLY",criteria:["HP<",0.2],uses:3},{command:"Eye Gouge",target:"ANY_PC",criteria:["random",40]},{command:"Viperfang",target:"ANY_PC",criteria:["random",40]},{command:"Slumberstab",target:"ANY_PC",criteria:["random",70]},{command:"Attack",target:"ANY_PC",criteria:null}];
+loot = [["Speedy Juice",100]];
+DetermineStats();
+"""
+
+const val OVERRIDE_AALIA_CHAPTER2 = """
+mdlStats = {names:["Aalia"],model:"aalia",unique_sprite:"aalia",Class:"Healer",TYPE:"HUMAN",cElem:"LIGHT",wpnType:"STAFF",armrTypes:[],baseStats:{hp:25,mp:140,STR:9,VIT:10,SPR:19,AGL:16},FAIR_STATS:2,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:10,atkGrowth:[0,0],equip:{weapon:["HeartStaff"],shield:["none"],helmet:["none"],armour:["Mage Robe"],accs:["SilverRing"],accs2:["WaterPendant"]},resist:{CNF:50,SIL:50,CRS:100,ZOM:100,BSK:100},EXP:1000};
+Techs = [{skill:"Regen",type:"ACT",MP:6,AP:20,stfx:{RGN:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"regen",desc:""},{skill:"M. Shield",type:"ACT",MP:6,AP:20,stfx:{MSH:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"mshield",desc:""},{skill:"Shield",type:"ACT",MP:6,AP:20,stfx:{PSH:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"shield",desc:""},{skill:"Cure",type:"ACT",DMG:30,MP:4,AP:20,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"cure1",desc:"10+d6/L",special:{HEALING:1},menuse:1},{skill:"Cura",type:"ACT",DMG:100,MP:4,AP:20,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"cure2",desc:"10+d6/L",special:{HEALING:1},menuse:1}];
+Gambits = [{command:"Cure",target:"ANY_ALLY",criteria:["HP<",0.4]},{command:"Shield",target:"ANY_ALLY",criteria:["no_status","PSH"]},{command:"M. Shield",target:"ANY_ALLY",criteria:["no_status","MSH"]},{command:"Regen",target:"ANY_ALLY",criteria:["no_status","RGN"]},{command:"Attack",target:"ANY_PC",criteria:null}];
+loot = [["MugwortJuice",100]];
+DetermineStats();
+"""
+
+const val OVERRIDE_AALIA_CHAPTER3 = """
+mdlStats = {names:["Aalia"],model:"aalia",unique_sprite:"aalia",Class:"Healer",TYPE:"HUMAN",cElem:"LIGHT",wpnType:"STAFF",armrTypes:[],baseStats:{hp:25,mp:140,STR:9,VIT:10,SPR:19,AGL:16},FAIR_STATS:4,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:10,atkGrowth:[0,0],equip:{weapon:["Fire Staff"],shield:["none"],helmet:["Regal Crown"],armour:["Dark Robe"],accs:["GoldRing"],accs2:["Mind Crystal"]},resist:{CNF:50,SIL:50,CRS:100,ZOM:100,BSK:100},EXP:1000};
+Techs = [{skill:"Regen",type:"ACT",MP:6,AP:20,stfx:{RGN:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"regen",desc:""},{skill:"M. Shield",type:"ACT",MP:6,AP:20,stfx:{MSH:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"mshield",desc:""},{skill:"Shield",type:"ACT",MP:6,AP:20,stfx:{PSH:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"shield",desc:""},{skill:"Cure",type:"ACT",DMG:30,MP:4,AP:20,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"cure1",desc:"10+d6/L",special:{HEALING:1},menuse:1},{skill:"Cura",type:"ACT",DMG:100,MP:4,AP:20,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"cure2",desc:"10+d6/L",special:{HEALING:1},menuse:1}];
+Gambits = [{command:"Cure",target:"ANY_ALLY",criteria:["HP<",0.4]},{command:"Shield",target:"ALL_e",criteria:["no_status","PSH"]},{command:"M. Shield",target:"ALL_e",criteria:["no_status","MSH"]},{command:"Regen",target:"ALL_e",criteria:["no_status","RGN"]},{command:"Attack",target:"ANY_PC",criteria:null}];
+loot = [["GoldRing",100]];
+DetermineStats();
+"""
+
 const val OVERRIDE_BERNARD_CHAPTER2 = """
 mdlStats = {names:["Bernard"],model:"bernard",unique_sprite:"bernard",Class:"Warlock",TYPE:"HUMAN",cElem:"DARK",wpnType:"WALKINGSTICK",armrTypes:[],baseStats:{hp:20,mp:240,STR:12,VIT:8,SPR:26,AGL:13},FAIR_STATS:2,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:8,atkGrowth:[0,0],equip:{weapon:["WalkingStick"],shield:["none"],helmet:["none"],armour:["Hempen Robe"],accs:["SilverRing"],accs2:["FirePendant"]},resist:{CNF:100,SIL:100,CRS:100,ZOM:100,BSK:100},EXP:1000};
 Techs = [{skill:"Heh.",type:"ACT",DMG:100,MP:0,critical:0,accuracy:100,stfx:{CRS:100},AP:0,MODE:"M",elem:"DARK",TT:"SINGLE",pfx:"darkbolt",special:{DRAIN:1},desc:"Standard elemental magic attack."},{skill:"Thunderstorm",type:"ACT",DMG:16,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"AIR",TT:"ALL_p",pfx:"thunderstorm",ALL_PFX:true,CENTRED:true,ARENA:false,desc:"Standard elemental magic attack."},{skill:"Immolate",type:"ACT",DMG:16,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"FIRE",TT:"SINGLE",pfx:"pyromagia",desc:"Standard elemental magic attack."},{skill:"Glaciate",type:"ACT",DMG:16,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"WATER",TT:"SINGLE",pfx:"frostasia",desc:"Standard elemental magic attack."}];
@@ -52,6 +102,22 @@ Techs = [{skill:"Heh.",type:"ACT",DMG:100,MP:0,critical:0,accuracy:100,stfx:{CRS
 Gambits = [{command:"Heh.",target:"ANY_PC",criteria:["random",0]},{command:"Thunderstorm",target:"ALL_p",criteria:["random",30]},{command:"Immolate",target:"ANY_PC",criteria:["random",50]},{command:"Glaciate",target:"ANY_PC",criteria:["random",100]},{command:"Heh.",target:"ANY_PC",criteria:null}];
 Counters = {M:null,P:[["Heh.",100]]};
 loot = [["Ether of Kings",100]];
+DetermineStats();
+"""
+
+const val OVERRIDE_TEMPERANCE = """
+mdlStats = {names:["Temperance"],model:"temperance",sprite:"temperance",Class:"Totem",TYPE:"CONSTRUCT",wpnType:"none",cElem:"FIRE",armrTypes:[],baseStats:{hp:800,mp:400,STR:20,VIT:10,SPR:10,AGL:10},nAtk:30,nDef:0,nMDef:0,critical:3,hpGrowth:0,atkGrowth:[0,0],equip:{weapon:["none"],shield:["none"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},resist:{FIRE:100,AIR:50,WATER:-100,PSN:100,PAR:100,CRS:100,DRK:100,NUM:100,SIL:100,SLP:100,CNF:100,ZOM:100,BSK:100,BLD:100},EXP:400};
+Techs = [_root.GetMONSTER_SKILL("Rage Chord"),{skill:"Flame",type:"ACT",DMG:26,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"FIRE",TT:"SINGLE",pfx:"flame1",desc:"Standard elemental magic attack."}];
+Gambits = [{command:"Rage Chord",target:"ANY_PC",criteria:["random",10]},{command:"Flame",target:"ANY_PC",criteria:["random",30]},{command:"Attack",target:"ANY_PC"}];
+loot = [["BetterPotion",20]];
+DetermineStats();
+"""
+
+const val OVERRIDE_MOLESTOR = """
+mdlStats = {names:["Molestor"],model:"Molestor",sprite:"Molestor",Class:"Demon",TYPE:"DEMON",cElem:"DARK",wpnType:"none",armrTypes:[],baseStats:{hp:3333,mp:80,STR:25,VIT:22,SPR:25,AGL:15},nAtk:30,nDef:10,nMDef:10,critical:3,hpGrowth:0,atkGrowth:[0,0],equip:{weapon:["none"],shield:["none"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},resist:{DARK:200,LIGHT:-100,ETHER:-50,FIG:-100,PSN:0,PAR:0,DRK:100,CNF:0,NUM:0,SIL:0,CRS:100,SLP:0,ZOM:100,BSK:10,BLD:0},EXP:1333};
+Techs = [{skill:"Darkside",type:"ACT",DMG:50,MP:16,critical:0,accuracy:100,stfx:{DRK:5,CRS:5},AP:0,MODE:"M",elem:"DARK",TT:"ALL",pfx:"darkside",ALL_PFX:true,desc:"Standard elemental magic attack."},{skill:"Curse",type:"ACT",MP:2,accuracy:100,critical:0,stfx:{CRS:100},AP:0,MODE:"M",elem:"DARK",TT:"ALL_p",pfx:"curse",desc:"Magic attack."},{skill:"Dark Claw",type:"ACT",DMG:["m",1.5],MP:10,critical:10,accuracy:100,stfx:{DRK:10},AP:0,MODE:"P",elem:"DARK",TT:"SINGLE",pfx:"darkclaw",desc:"Dark attack. More powerful than normal attack."}];
+Gambits = [{command:"Darkside",target:"ALL_p",criteria:["random",50]},{command:"Dark Claw",target:"ANY_PC",criteria:["random",30]},{command:"Curse",target:"ANY_PC",criteria:["random",30]},{command:"Attack",target:"ANY_PC",criteria:null}];
+loot = [["Dark Essence",100]];
 DetermineStats();
 """
 
@@ -164,11 +230,41 @@ internal fun importMonsters(
 
 		if (monster.exportedScripts.isEmpty()) {
 			playerModelMapping[monster.label] = BattleModel(skeleton, skin)
-		} else assets.monsters.add(importMonsterStats(
-			name = monster.label, model = BattleModel(skeleton, skin),
-			propertiesText = monster.exportedScripts.iterator().next(),
-			combatAssets = combatAssets, itemAssets = itemAssets, skillAssets = skillAssets
-		))
+		} else {
+			fun addMonster(name: String, propertiesText: String) {
+				assets.monsters.add(importMonsterStats(
+					name = name, model = BattleModel(skeleton, skin), propertiesText = propertiesText,
+					combatAssets = combatAssets, itemAssets = itemAssets, skillAssets = skillAssets
+				))
+			}
+
+			var propertiesText = monster.exportedScripts.iterator().next()
+			println("label is ${monster.label}")
+			if (monster.label == "Temperance") propertiesText = OVERRIDE_TEMPERANCE
+			if (monster.label == "Molestor") propertiesText = OVERRIDE_MOLESTOR
+
+			if (monster.label == "bartholio_e") {
+				addMonster("BartholioChapter2", OVERRIDE_BARTHOLIO_CHAPTER2)
+				addMonster("BartholioChapter3", OVERRIDE_BARTHOLIO_CHAPTER3)
+				continue
+			}
+			if (monster.label == "vennie_e") {
+				addMonster("VennieChapter2", OVERRIDE_VENNIE_CHAPTER2)
+				addMonster("VennieChapter3", OVERRIDE_VENNIE_CHAPTER3)
+				continue
+			}
+			if (monster.label == "aalia_e") {
+				addMonster("AaliaChapter2", OVERRIDE_AALIA_CHAPTER2)
+				addMonster("AalieChapter3", OVERRIDE_AALIA_CHAPTER3)
+				continue
+			}
+			if (monster.label == "bernard_e") {
+				addMonster("BernardChapter2", OVERRIDE_BERNARD_CHAPTER2)
+				addMonster("BernardChapter3", OVERRIDE_BERNARD_CHAPTER3)
+				continue
+			}
+			addMonster(monster.label, propertiesText)
+		}
 	}
 
 	for (skeleton in skeletons.values) assets.skeletons.add(skeleton)
@@ -404,7 +500,8 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 	return creature
 }
 
-private fun parsePotentialEquipment(equipmentText: String, itemAssets: InventoryAssets): PotentialEquipment {
+private fun parsePotentialEquipment(equipmentText: String?, itemAssets: InventoryAssets): PotentialEquipment {
+	if (equipmentText == null) return PotentialEquipment.EMPTY
 	val rawEquipmentList = parseActionScriptNestedList(equipmentText)
 	if (rawEquipmentList !is ArrayList<*>) throw IllegalArgumentException("Unexpected equipment $equipmentText")
 
@@ -431,6 +528,8 @@ internal fun importMonsterStats(
 	name: String, model: BattleModel, propertiesText: String,
 	combatAssets: CombatAssets, itemAssets: InventoryAssets, skillAssets: SkillAssets
 ): Monster {
+	println("properties text is $propertiesText")
+	val mimicry = skillAssets.classes.find { it.name == "Mimicry" }!!
 	val propertiesCode = parseActionScriptCode(listOf(propertiesText))
 	val mdlMap = parseActionScriptObject(propertiesCode.variableAssignments["mdlStats"]!!)
 	val typeName = parseFlashString(mdlMap["TYPE"]!!, "monster type")!!
@@ -470,11 +569,31 @@ internal fun importMonsterStats(
 	val rawLootList = parseActionScriptNestedList(propertiesCode.variableAssignments["loot"]!!)
 	if (rawLootList !is ArrayList<*>) throw IllegalArgumentException("Unexpected loot $rawLootList")
 	val loot = ArrayList<PotentialItem>(rawLootList.size)
-	for (lootPair in rawLootList) {
-		if (lootPair !is ArrayList<*> || lootPair.size != 2) throw IllegalArgumentException("Unexpected loot $rawLootList")
-		val itemName = parseFlashString(lootPair[0].toString(), "loot item")!!
-		val item = itemAssets.items.find { it.flashName == itemName }!!
-		loot.add(PotentialItem(item, parseInt(lootPair[1].toString())))
+	val plotLoot = ArrayList<PotentialPlotItem>(1)
+	val dreamLoot = ArrayList<Dreamstone>(1)
+	if (propertiesCode.variableAssignments["loot"]!!.contains(" ? ")) {
+		println("Skipping annoying raw loot $rawLootList")
+	} else {
+		for (lootPair in rawLootList) {
+			if (lootPair !is ArrayList<*> || lootPair.size < 2 || lootPair.size > 3) {
+				throw IllegalArgumentException("Unexpected loot $rawLootList")
+			}
+			val chance = parseInt(lootPair[1].toString())
+			val itemName = parseFlashString(lootPair[0].toString(), "loot item")!!
+			if (itemName == "Dreamstone") {
+				val index = parseInt(lootPair[2].toString())
+				dreamLoot.add(itemAssets.dreamstones.find { it.index == index }!!)
+			} else {
+				val item = itemAssets.items.find { it.flashName == itemName }
+				if (item != null) {
+					val amount = if (lootPair.size == 2) 1 else parseInt(lootPair[2].toString())
+					repeat(amount) { loot.add(PotentialItem(item, chance)) }
+				} else {
+					val plotItem = itemAssets.plotItems.find { it.name == itemName }!!
+					plotLoot.add(PotentialPlotItem(plotItem, chance))
+				}
+			}
+		}
 	}
 
 	val rawEquipmentMap = parseActionScriptObject(mdlMap["equip"]!!)
@@ -482,7 +601,6 @@ internal fun importMonsterStats(
 	val rawResistanceMap = parseActionScriptObject(mdlMap["resist"]!!)
 	val elementalResistances = ArrayList<ElementalResistance>()
 	val statusResistances = ArrayList<EffectResistance>()
-	println("raw resistance map is $rawResistanceMap and properties is $propertiesText")
 	for ((source, rawResistance) in rawResistanceMap) {
 		if (rawResistance == "0") continue
 		val element = combatAssets.elements.find { it.rawName == source }
@@ -520,8 +638,14 @@ internal fun importMonsterStats(
 	val rawCounterAttacks = propertiesCode.variableAssignments["Counters"]
 	if (rawCounterAttacks != null) {
 		val counterMap = parseActionScriptObject(rawCounterAttacks)
-		meleeCounterAttacks = importCounterAttacks(counterMap["P"]!!, actions, targetMap)
-		rangedCounterAttacks = importCounterAttacks(counterMap["M"]!!, actions, targetMap)
+		val rawMeleeCounters = counterMap["P"]
+		if (rawMeleeCounters != null) meleeCounterAttacks = importCounterAttacks(
+			rawMeleeCounters, actions, targetMap, mimicry.actions
+		)
+		val rawRangedCounters = counterMap["M"]
+		if (rawRangedCounters != null) rangedCounterAttacks = importCounterAttacks(
+			rawRangedCounters, actions, targetMap, mimicry.actions
+		)
 	}
 	val usedActions = actions.filter {
 		candidate -> strategies.any { pool -> pool.entries.any { it.skill === candidate } } ||
@@ -530,7 +654,7 @@ internal fun importMonsterStats(
 	}
 
 	val rawShiftResistances = propertiesCode.variableAssignments["ShiftResistances"]
-	val shiftResistances = mutableMapOf<Element, Resistances>()
+	val shiftResistances = HashMap<Element, Resistances>()
 	if (rawShiftResistances != null) {
 		val myMap = parseActionScriptObject(rawShiftResistances)
 		for ((myRawElement, rawResistances) in myMap) {
@@ -563,12 +687,14 @@ internal fun importMonsterStats(
 		critChance = parseInt(mdlMap["critical"]!!),
 		experience = parseInt(mdlMap["EXP"]!!),
 		loot = loot,
-		weapon = parsePotentialEquipment(rawEquipmentMap["weapon"]!!, itemAssets),
-		shield = parsePotentialEquipment(rawEquipmentMap["shield"]!!, itemAssets),
-		helmet = parsePotentialEquipment(rawEquipmentMap["helmet"]!!, itemAssets),
-		armor = parsePotentialEquipment(rawEquipmentMap["armour"]!!, itemAssets),
-		accessory1 = parsePotentialEquipment(rawEquipmentMap["accs"]!!, itemAssets),
-		accessory2 = parsePotentialEquipment(rawEquipmentMap["accs2"]!!, itemAssets),
+		plotLoot = plotLoot,
+		dreamLoot = dreamLoot,
+		weapon = parsePotentialEquipment(rawEquipmentMap["weapon"], itemAssets),
+		shield = parsePotentialEquipment(rawEquipmentMap["shield"], itemAssets),
+		helmet = parsePotentialEquipment(rawEquipmentMap["helmet"], itemAssets),
+		armor = parsePotentialEquipment(rawEquipmentMap["armour"], itemAssets),
+		accessory1 = parsePotentialEquipment(rawEquipmentMap["accs"], itemAssets),
+		accessory2 = parsePotentialEquipment(rawEquipmentMap["accs2"], itemAssets),
 		resistances = Resistances(elementalResistances, statusResistances),
 		elementalShiftResistances = shiftResistances,
 		attackEffects = attackEffects,

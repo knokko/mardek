@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.inventory.Item
+import mardek.assets.inventory.PlotItem
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -51,4 +52,24 @@ class PotentialEquipment(
 	companion object {
 		val EMPTY = PotentialEquipment(arrayListOf(PotentialItem(null, 100)))
 	}
+}
+
+@BitStruct(backwardCompatible = false)
+class PotentialPlotItem(
+	@BitField(ordering = 0)
+	@ReferenceField(stable = false, label = "plot items")
+	val item: PlotItem,
+
+	@BitField(ordering = 1)
+	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
+	val chance: Int,
+) {
+	@Suppress("unused")
+	private constructor() : this(PlotItem(), 0)
+
+	override fun equals(other: Any?) = other is PotentialPlotItem && this.item === other.item && this.chance == other.chance
+
+	override fun hashCode() = 13 * item.hashCode() - 29 * chance
+
+	override fun toString() = "$chance% $item"
 }

@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.assets.animations.BattleModel
 import mardek.assets.combat.*
+import mardek.assets.inventory.Dreamstone
 import mardek.assets.skill.ActiveSkill
 
 @BitStruct(backwardCompatible = false)
@@ -58,6 +59,13 @@ class Monster(
 	@BitField(ordering = 11)
 	val loot: ArrayList<PotentialItem>,
 
+	@BitField(ordering = 11)
+	val plotLoot: ArrayList<PotentialPlotItem>,
+
+	@BitField(ordering = 12)
+	@ReferenceField(stable = false, label = "dreamstones")
+	val dreamLoot: ArrayList<Dreamstone>,
+
 	@BitField(ordering = 12)
 	val weapon: PotentialEquipment,
 
@@ -81,7 +89,7 @@ class Monster(
 
 	@BitField(ordering = 19)
 	@NestedFieldSetting(path = "k", fieldName = "SHIFT_RESISTANCES_KEY_PROPERTIES")
-	val elementalShiftResistances: Map<Element, Resistances>,
+	val elementalShiftResistances: HashMap<Element, Resistances>,
 
 	@BitField(ordering = 20)
 	val attackEffects: ArrayList<PossibleStatusEffect>,
@@ -113,6 +121,8 @@ class Monster(
 		critChance = 0,
 		experience = 0,
 		loot = ArrayList(),
+		plotLoot = ArrayList(),
+		dreamLoot = ArrayList(),
 		weapon = PotentialEquipment(),
 		shield = PotentialEquipment(),
 		helmet = PotentialEquipment(),

@@ -176,4 +176,11 @@ fun addStatusEffects(assets: CombatAssets) {
 		disappearsAfterCombat = true,
 		elementShell = assets.elements.find { it.rawName == "AIR" }!!
 	))
+
+	assets.statusEffects.add(StatusEffect(
+		flashName = "BRN",
+		niceName = "Burn?",
+		isPositive = false,
+		disappearsAfterCombat = true
+	))
 }

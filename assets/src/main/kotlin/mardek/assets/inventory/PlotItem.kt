@@ -33,6 +33,7 @@ class PlotItem(
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
-	@Suppress("unused")
-	private constructor() : this("", "", null, null)
+	constructor() : this("", "", null, null)
+
+	override fun toString() = name
 }

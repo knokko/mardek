@@ -98,6 +98,7 @@ private fun importRawMonsterStrategy(
 		if (type == "random") {
 			chance = parseInt(rawCriteria[1].toString())
 		} else {
+			println("rawCriteria is $rawCriteria")
 			@Suppress("SpellCheckingInspection")
 			if (type == "MYHP<") type = "HP<"
 			criteria = criteria.merge(when (type) {
@@ -128,9 +129,21 @@ private fun importRawMonsterStrategy(
 					)
 				)
 
+				"resist>" -> StrategyCriteria(
+					resistanceAtLeast = ElementalResistance(
+						combatAssets.elements.find { it.rawName == parseFlashString(rawCriteria[1].toString(), "resist element") }!!,
+						parseInt(rawCriteria[2].toString()) / 100f
+					)
+				)
+
 				"elem=" -> StrategyCriteria(myElement = combatAssets.elements.find {
 					it.rawName == parseFlashString(rawCriteria[1].toString(), "Element strategy criteria")!!
 				}!!)
+
+				"FreeSlots" -> StrategyCriteria(freeAllySlots = parseInt(rawCriteria[1].toString()))
+
+				"corpse" -> StrategyCriteria(targetFainted = if (rawCriteria[1] == "\"p\"") true
+						else throw SkillParseException("Unexpected $rawCriteria"))
 
 				else -> throw SkillParseException("Unexpected gambit criteria $rawCriteria")
 			})
@@ -138,6 +151,7 @@ private fun importRawMonsterStrategy(
 	} else if (rawCriteria is ArrayList<*> && rawCriteria.size == 1) {
 		val criteriaName = parseFlashString(rawCriteria[0].toString(), "criteria")!!
 		if (criteriaName == "NotLastTech") criteria = criteria.merge(StrategyCriteria(canRepeat = false))
+		else if (criteriaName == "alone") criteria = criteria.merge(StrategyCriteria(freeAllySlots = 3))
 		else throw SkillParseException("Unexpected raw criteria $rawCriteria")
 	} else {
 		if (rawCriteria != "null") throw SkillParseException("Unexpected raw criteria $rawCriteria")

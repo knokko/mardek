@@ -93,6 +93,9 @@ class StrategyCriteria(
 	@BitField(ordering = 5, optional = true)
 	val resistanceAtMost: ElementalResistance? = null,
 
+	@BitField(ordering = 6, optional = true)
+	val resistanceAtLeast: ElementalResistance? = null,
+
 	@BitField(ordering = 6)
 	val canUseOnOddTurns: Boolean = true,
 
@@ -105,6 +108,13 @@ class StrategyCriteria(
 	@BitField(ordering = 9, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	val myElement: Element? = null,
+
+	@BitField(ordering = 10)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val freeAllySlots: Int = 0,
+
+	@BitField(ordering = 11)
+	val targetFainted: Boolean = false,
 ) {
 
 	// TODO Maybe let Bitser handle this
@@ -114,16 +124,19 @@ class StrategyCriteria(
 			this.targetHasEffect === other.targetHasEffect &&
 			this.targetMissesEffect === other.targetMissesEffect &&
 			this.resistanceAtMost == other.resistanceAtMost &&
+			this.resistanceAtLeast == other.resistanceAtLeast &&
 			this.canUseOnOddTurns == other.canUseOnOddTurns &&
 			this.canUseOnEvenTurns == other.canUseOnEvenTurns &&
 			this.canRepeat == other.canRepeat &&
-			this.myElement === other.myElement
+			this.myElement === other.myElement &&
+			this.freeAllySlots == other.freeAllySlots &&
+			this.targetFainted == other.targetFainted
 
 	override fun hashCode() = (maxUses ?: 0) + 5 * hpPercentageAtMost - 13 * hpPercentageAtLeast +
 			31 * Objects.hashCode(targetHasEffect) - 251 * Objects.hashCode(targetMissesEffect) +
-			37 * Objects.hashCode(resistanceAtMost) -
+			37 * Objects.hashCode(resistanceAtMost) + 41 * Objects.hashCode(resistanceAtLeast) -
 			47 * canUseOnOddTurns.hashCode() + 93 * canUseOnEvenTurns.hashCode() - 113 * canRepeat.hashCode() +
-			147 * Objects.hashCode(myElement)
+			147 * Objects.hashCode(myElement) - 151 * freeAllySlots + 179 * targetFainted.hashCode()
 
 	override fun toString(): String {
 		val builder = StringBuilder("Criteria(")
@@ -132,11 +145,14 @@ class StrategyCriteria(
 		if (hpPercentageAtLeast != NONE.hpPercentageAtLeast) builder.append("hp% >= $hpPercentageAtLeast,")
 		if (targetHasEffect != null) builder.append("target has ${targetHasEffect.niceName},")
 		if (targetMissesEffect != null) builder.append("target misses ${targetMissesEffect.niceName},")
-		if (resistanceAtMost != null) builder.append("target ${resistanceAtMost.element} resistance < ${resistanceAtMost.modifier},")
+		if (resistanceAtMost != null) builder.append("target ${resistanceAtMost.element} resistance <= ${resistanceAtMost.modifier},")
+		if (resistanceAtLeast != null) builder.append("target ${resistanceAtLeast.element} resistance >= ${resistanceAtLeast.modifier}")
 		if (canUseOnOddTurns != NONE.canUseOnOddTurns) builder.append("oddTurn == $canUseOnOddTurns,")
 		if (canUseOnEvenTurns != NONE.canUseOnEvenTurns) builder.append("evenTurn == $canUseOnEvenTurns,")
 		if (canRepeat != NONE.canRepeat) builder.append("canRepeat == $canRepeat,")
 		if (myElement != NONE.myElement) builder.append("myElement == $myElement,")
+		if (freeAllySlots != NONE.freeAllySlots) builder.append("#freeAllySlots >= $freeAllySlots,")
+		if (targetFainted != NONE.targetFainted) builder.append("target fainted,")
 		return if (builder.endsWith(",")) "${builder.substring(0 until builder.lastIndex)})"
 		else "NONE"
 	}
@@ -154,10 +170,13 @@ class StrategyCriteria(
 		targetHasEffect = merge(NONE.targetHasEffect, this.targetHasEffect, other.targetHasEffect),
 		targetMissesEffect = merge(NONE.targetMissesEffect, this.targetMissesEffect, other.targetMissesEffect),
 		resistanceAtMost = merge(NONE.resistanceAtMost, this.resistanceAtMost, other.resistanceAtMost),
+		resistanceAtLeast = merge(NONE.resistanceAtLeast, this.resistanceAtLeast, other.resistanceAtLeast),
 		canUseOnOddTurns = merge(NONE.canUseOnOddTurns, this.canUseOnOddTurns, other.canUseOnOddTurns),
 		canUseOnEvenTurns = merge(NONE.canUseOnEvenTurns, this.canUseOnEvenTurns, other.canUseOnEvenTurns),
 		canRepeat = merge(NONE.canRepeat, this.canRepeat, other.canRepeat),
 		myElement = merge(NONE.myElement, this.myElement, other.myElement),
+		freeAllySlots = merge(NONE.freeAllySlots, this.freeAllySlots, other.freeAllySlots),
+		targetFainted = merge(NONE.targetFainted, this.targetFainted, other.targetFainted)
 	)
 
 	companion object {

@@ -25,6 +25,7 @@ fun parseActiveSkills(
 		"\"SINGLE\"" -> SkillTargetType.Single
 		"\"ANY\"" -> SkillTargetType.Any
 		"\"ALL_e\"" -> SkillTargetType.AllEnemies
+		"\"ALL\"" -> SkillTargetType.AllEnemies
 		"\"SELF\"" -> SkillTargetType.Self
 		"\"ALL_p\"" -> SkillTargetType.AllAllies
 		else -> throw SkillParseException("Unknown skill TT ${rawSkill["TT"]}")
