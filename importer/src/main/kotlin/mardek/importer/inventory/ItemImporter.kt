@@ -59,8 +59,8 @@ private fun parseEquipment(
 	val stats = ArrayList<StatModifier>(0)
 	val autoEffects = ArrayList<StatusEffect>(0)
 	val elementalBonuses = ArrayList<ElementalDamageBonus>(0)
-	val elementalResistances = ArrayList<ElementalDamageBonus>(0)
-	val statusResistances = ArrayList<PossibleStatusEffect>(0)
+	val elementalResistances = ArrayList<ElementalResistance>(0)
+	val statusResistances = ArrayList<EffectResistance>(0)
 	var charismaticPerformanceChance = 0
 
 	val rawEffects = rawItem["effects"]
@@ -92,7 +92,7 @@ private fun parseEquipment(
 				val modifier = parseInt(effectPair[2] as String) / 100f
 
 				if (rawName == "R_ELEM") {
-					elementalResistances.add(ElementalDamageBonus(element, -modifier))
+					elementalResistances.add(ElementalResistance(element, -modifier))
 				} else {
 					elementalBonuses.add(ElementalDamageBonus(element, modifier))
 				}
@@ -102,7 +102,7 @@ private fun parseEquipment(
 			if (rawName == "R_STATUS") {
 				val statusName = parseFlashString(effectPair[1] as String, "status resist name")!!
 				val statusEffect = combatAssets.statusEffects.find { it.flashName == statusName }!!
-				statusResistances.add(PossibleStatusEffect(statusEffect, parseInt(effectPair[2] as String)))
+				statusResistances.add(EffectResistance(statusEffect, parseInt(effectPair[2] as String)))
 			}
 
 			if (rawName == "CHARISMATIC") {
@@ -130,8 +130,7 @@ private fun parseEquipment(
 		skills = parseSkills(skillAssets, rawItem["skills"]),
 		stats = stats,
 		elementalBonuses = elementalBonuses,
-		elementalResistances = elementalResistances,
-		statusResistances = statusResistances,
+		resistances = Resistances(elementalResistances, statusResistances),
 		autoEffects = autoEffects,
 		weapon = parseWeaponProperties(combatAssets, assets, rawItem),
 		armorType = armorType,

@@ -5,7 +5,7 @@ import mardek.assets.combat.CombatAssets
 import mardek.assets.inventory.InventoryAssets
 import mardek.assets.inventory.Item
 import mardek.assets.skill.ActiveSkill
-import mardek.assets.skill.ElementalDamageBonus
+import mardek.assets.combat.ElementalResistance
 import mardek.assets.skill.SkillAssets
 import mardek.importer.area.parseFlashString
 import mardek.importer.skills.SkillParseException
@@ -77,12 +77,9 @@ private fun importRawMonsterStrategy(
 			}
 		}
 	}
-	val target = when (parseFlashString(rawProperties["target"]!!, "gambit target")!!) {
-		"ANY_PC" -> StrategyTarget.AnyPlayer
-		"SELF" -> StrategyTarget.Self
-		"ALL_p" -> StrategyTarget.AllPlayers
-		else -> throw SkillParseException("Unexpected gambit target in $rawProperties")
-	}
+	val rawTarget = parseFlashString(rawProperties["target"]!!, "gambit target")!!
+	val target = StrategyTarget.entries.find { it.raw == rawTarget } ?:
+			throw SkillParseException("Unexpected gambit target in $rawProperties")
 
 	var criteria = StrategyCriteria.NONE
 	val rawUses = rawProperties["uses"]
@@ -92,7 +89,7 @@ private fun importRawMonsterStrategy(
 	if (rawOtherTurn == "0") criteria = criteria.merge(StrategyCriteria(canUseOnOddTurns = false))
 	if (rawOtherTurn == "1") criteria = criteria.merge(StrategyCriteria(canUseOnEvenTurns = false))
 
-	val rawCriteria = parseActionScriptNestedList(rawProperties["criteria"]!!)
+	val rawCriteria = parseActionScriptNestedList(rawProperties["criteria"] ?: "null")
 	val rawChance = rawProperties["random"]
 	var chance = if (rawChance != null) parseInt(rawChance) else 100
 
@@ -118,16 +115,30 @@ private fun importRawMonsterStrategy(
 					}!!
 				)
 
+				"no_status" -> StrategyCriteria(
+					targetMissesEffect = combatAssets.statusEffects.find {
+						it.flashName == parseFlashString(rawCriteria[1].toString(), "no_status effect")!!
+					}!!
+				)
+
 				"resist<" -> StrategyCriteria(
-					resistanceAtMost = ElementalDamageBonus(
+					resistanceAtMost = ElementalResistance(
 						combatAssets.elements.find { it.rawName == parseFlashString(rawCriteria[1].toString(), "resist element") }!!,
 						parseInt(rawCriteria[2].toString()) / 100f
 					)
 				)
 
+				"elem=" -> StrategyCriteria(myElement = combatAssets.elements.find {
+					it.rawName == parseFlashString(rawCriteria[1].toString(), "Element strategy criteria")!!
+				}!!)
+
 				else -> throw SkillParseException("Unexpected gambit criteria $rawCriteria")
 			})
 		}
+	} else if (rawCriteria is ArrayList<*> && rawCriteria.size == 1) {
+		val criteriaName = parseFlashString(rawCriteria[0].toString(), "criteria")!!
+		if (criteriaName == "NotLastTech") criteria = criteria.merge(StrategyCriteria(canRepeat = false))
+		else throw SkillParseException("Unexpected raw criteria $rawCriteria")
 	} else {
 		if (rawCriteria != "null") throw SkillParseException("Unexpected raw criteria $rawCriteria")
 	}

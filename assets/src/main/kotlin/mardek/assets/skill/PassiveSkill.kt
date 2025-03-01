@@ -30,7 +30,7 @@ class PassiveSkill(
 	val statModifiers: ArrayList<StatModifier>,
 
 	@BitField(ordering = 4)
-	val elementalResistances: ArrayList<ElementalDamageBonus>,
+	val elementalResistances: ArrayList<ElementalResistance>,
 
 	@BitField(ordering = 5)
 	val statusResistances: ArrayList<PossibleStatusEffect>,

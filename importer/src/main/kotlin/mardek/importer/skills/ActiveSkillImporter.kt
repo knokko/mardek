@@ -1,6 +1,7 @@
 package mardek.importer.skills
 
 import mardek.assets.combat.CombatAssets
+import mardek.assets.combat.ElementalDamageBonus
 import mardek.assets.combat.PossibleStatusEffect
 import mardek.assets.combat.StatModifierRange
 import mardek.assets.skill.*
@@ -44,6 +45,14 @@ fun parseActiveSkills(
 
 	val rawDelay = rawSkill["dmgdelay"]
 	val rawAP = rawSkill["AP"]
+	val rawElementalShift = rawSkill["elementalShift"]
+
+	var isElementalShift = false
+	if (rawElementalShift != null) {
+		val elementList = parseActionScriptNestedList(rawElementalShift)
+		isElementalShift = elementList is ArrayList<*> && elementList.isNotEmpty()
+	}
+
 	ActiveSkill(
 		name = parseFlashString(rawSkill["skill"]!!, "skill name")!!,
 		description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else "",
@@ -71,6 +80,7 @@ fun parseActiveSkills(
 		centered = rawSkill.containsKey("CENTRED"),
 		arena = !rawSkill.containsKey("ARENA"),
 		rawSongPower = rawSkill["Song"],
+		changeElement = isElementalShift,
 	)
 }
 

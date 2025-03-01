@@ -1,10 +1,9 @@
-package mardek.assets.skill
+package mardek.assets.combat
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.combat.CreatureType
 
 @BitStruct(backwardCompatible = false)
 class CreatureTypeBonus(

@@ -7,12 +7,8 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.assets.animations.BattleModel
-import mardek.assets.combat.CombatStat
-import mardek.assets.combat.CreatureType
-import mardek.assets.combat.Element
-import mardek.assets.combat.PossibleStatusEffect
+import mardek.assets.combat.*
 import mardek.assets.skill.ActiveSkill
-import mardek.assets.skill.ElementalDamageBonus
 
 @BitStruct(backwardCompatible = false)
 class Monster(
@@ -81,10 +77,11 @@ class Monster(
 	val accessory2: PotentialEquipment,
 
 	@BitField(ordering = 18)
-	val elementalResistances: ArrayList<ElementalDamageBonus>,
+	val resistances: Resistances,
 
 	@BitField(ordering = 19)
-	val statusResistances: ArrayList<PossibleStatusEffect>,
+	@NestedFieldSetting(path = "k", fieldName = "SHIFT_RESISTANCES_KEY_PROPERTIES")
+	val elementalShiftResistances: Map<Element, Resistances>,
 
 	@BitField(ordering = 20)
 	val attackEffects: ArrayList<PossibleStatusEffect>,
@@ -122,8 +119,8 @@ class Monster(
 		armor = PotentialEquipment(),
 		accessory1 = PotentialEquipment(),
 		accessory2 = PotentialEquipment(),
-		elementalResistances = ArrayList(),
-		statusResistances = ArrayList(),
+		resistances = Resistances(),
+		elementalShiftResistances = HashMap(0),
 		attackEffects = ArrayList(),
 		actions = ArrayList(),
 		strategies = ArrayList(),
@@ -138,7 +135,12 @@ class Monster(
 		@Suppress("unused")
 		@JvmStatic
 		@ReferenceField(stable = false, label = "stats")
-		val BASE_STATS_KEY_PROPERTIES = false
+		private val BASE_STATS_KEY_PROPERTIES = false
+
+		@Suppress("unused")
+		@JvmStatic
+		@ReferenceField(stable = false, label = "elements")
+		private val SHIFT_RESISTANCES_KEY_PROPERTIES = false
 	}
 }
 

@@ -6,8 +6,8 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.combat.PossibleStatusEffect
-import mardek.assets.skill.ElementalDamageBonus
-import mardek.assets.skill.CreatureTypeBonus
+import mardek.assets.combat.ElementalDamageBonus
+import mardek.assets.combat.CreatureTypeBonus
 
 @BitStruct(backwardCompatible = false)
 class WeaponProperties(

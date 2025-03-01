@@ -32,4 +32,9 @@ class TestActionScriptParser {
 	fun testParseEmptyActionScriptList() {
 		assertEquals(0, parseActionScriptObjectList("[]").size)
 	}
+
+	@Test
+	fun testParseEmptyObject() {
+		assertEquals(0, parseActionScriptObject("{}").size)
+	}
 }

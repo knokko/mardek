@@ -151,9 +151,9 @@ class TestInventoryImporter {
 		assertEquals(1, getStatModifier("SPR", equipment))
 		assertEquals(1, getStatModifier("AGL", equipment))
 
-		assertEquals(1, equipment.elementalResistances.size)
-		assertEquals("LIGHT", equipment.elementalResistances[0].element.properName)
-		assertEquals(-0.3f, equipment.elementalResistances[0].modifier, margin)
+		assertEquals(1, equipment.resistances.elements.size)
+		assertEquals("LIGHT", equipment.resistances.elements[0].element.properName)
+		assertEquals(0.3f, equipment.resistances.elements[0].modifier, margin)
 		assertEquals(1, equipment.elementalBonuses.size)
 		assertEquals("LIGHT", equipment.elementalBonuses[0].element.properName)
 		assertEquals(0.2f, equipment.elementalBonuses[0].modifier, margin)
@@ -189,9 +189,9 @@ class TestInventoryImporter {
 		assertEquals("accs", pendant.type.flashName)
 		assertEquals("LIGHT", pendant.element!!.properName)
 
-		assertEquals(1, equipment.elementalResistances.size)
-		assertEquals("LIGHT", equipment.elementalResistances[0].element.properName)
-		assertEquals(-0.15f, equipment.elementalResistances[0].modifier, margin)
+		assertEquals(1, equipment.resistances.elements.size)
+		assertEquals("LIGHT", equipment.resistances.elements[0].element.properName)
+		assertEquals(0.15f, equipment.resistances.elements[0].modifier, margin)
 
 		assertSpriteEquals("misc", 32, 0, pendant)
 	}
@@ -252,9 +252,9 @@ class TestInventoryImporter {
 		assertEquals("WATER", aquamarine.element!!.properName)
 		assertEquals(EquipmentSlotType.Accessory, equipment.getSlotType())
 
-		assertEquals(1, equipment.elementalResistances.size)
-		assertEquals(aquamarine.element, equipment.elementalResistances[0].element)
-		assertEquals(-0.1f, equipment.elementalResistances[0].modifier, margin)
+		assertEquals(1, equipment.resistances.elements.size)
+		assertSame(aquamarine.element, equipment.resistances.elements[0].element)
+		assertEquals(0.1f, equipment.resistances.elements[0].modifier, margin)
 		assertEquals(1, equipment.elementalBonuses.size)
 		assertEquals(aquamarine.element, equipment.elementalBonuses[0].element)
 		assertEquals(0.1f, equipment.elementalBonuses[0].modifier, margin)
@@ -320,9 +320,9 @@ class TestInventoryImporter {
 		val resistedEffects = arrayOf(
 				"Paralysis", "Sleep", "Confusion", "Poison", "Blindness", "Curse", "Numbness", "Silence"
 		)
-		assertEquals(resistedEffects.size, equipment.statusResistances.size)
+		assertEquals(resistedEffects.size, equipment.resistances.effects.size)
 		for (effect in resistedEffects) {
-			assertEquals(10, equipment.statusResistances.find { it.effect.niceName == effect }!!.chance)
+			assertEquals(10, equipment.resistances.effects.find { it.effect.niceName == effect }!!.percentage)
 		}
 
 		val gem = equipment.gem!!

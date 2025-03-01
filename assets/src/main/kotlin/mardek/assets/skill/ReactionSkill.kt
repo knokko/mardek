@@ -5,7 +5,9 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.assets.combat.CreatureTypeBonus
 import mardek.assets.combat.Element
+import mardek.assets.combat.ElementalDamageBonus
 import mardek.assets.combat.PossibleStatusEffect
 
 @BitStruct(backwardCompatible = false)

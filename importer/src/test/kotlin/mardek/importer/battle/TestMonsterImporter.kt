@@ -4,7 +4,7 @@ import mardek.assets.animations.BattleModel
 import mardek.assets.battle.*
 import mardek.assets.combat.Element
 import mardek.assets.skill.ActiveSkill
-import mardek.assets.skill.ElementalDamageBonus
+import mardek.assets.combat.ElementalResistance
 import mardek.assets.skill.SkillTargetType
 import mardek.importer.combat.importCombatAssets
 import mardek.importer.inventory.importInventoryAssets
@@ -63,6 +63,15 @@ loot = [["Sorcerer\'s Soul",100],["Scarab of Protection",100],["Elixir",100],["P
 DetermineStats();
 """
 
+private const val MASTER_STONE_PROPERTIES = """
+mdlStats = {names:["Master Stone"],model:"gemstone",Class:"Gemstone",TYPE:"CRYSTAL",wpnType:"none",cElem:"ETHER",armrTypes:[],baseStats:{hp:5000,mp:600,STR:30,VIT:30,SPR:30,AGL:30},nAtk:30,nDef:20,nMDef:10,critical:3,hpGrowth:0,atkGrowth:[0,0],equip:{weapon:["none"],shield:["none"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},initialSTFX:{HST:1},resist:{NONE:100,FIRE:100,AIR:100,EARTH:100,WATER:100,DARK:100,LIGHT:100,ETHER:100,FIG:100,PSN:100,PAR:100,CRS:100,DRK:100,NUM:100,SIL:100,SLP:100,CNF:100,ZOM:100,BLD:100,BSK:100},EXP:5000};
+ShiftResistances = {FIRE:{NONE:100,FIRE:200,AIR:100,EARTH:100,WATER:-100,DARK:100,LIGHT:100,ETHER:100,FIG:100},WATER:{NONE:100,FIRE:100,AIR:100,EARTH:-100,WATER:200,DARK:100,LIGHT:100,ETHER:100,FIG:100},AIR:{NONE:100,FIRE:-100,AIR:200,EARTH:100,WATER:100,DARK:100,LIGHT:100,ETHER:100,FIG:100},EARTH:{NONE:100,FIRE:100,AIR:-100,EARTH:200,WATER:100,DARK:100,LIGHT:100,ETHER:100,FIG:100},LIGHT:{NONE:100,FIRE:100,AIR:100,EARTH:100,WATER:100,DARK:-100,LIGHT:200,ETHER:100,FIG:100},DARK:{NONE:100,FIRE:100,AIR:100,EARTH:100,WATER:100,DARK:200,LIGHT:-100,ETHER:100,FIG:100},ETHER:{NONE:100,FIRE:90,AIR:90,EARTH:90,WATER:90,DARK:80,LIGHT:80,ETHER:200,FIG:-100}};
+Techs = [{skill:"Elemental Shift",type:"ACT",MP:0,MODE:"M",elem:"FIG",elementalShift:["FIRE","WATER","AIR","EARTH","LIGHT","DARK","ETHER"],TT:"SELF",pfx:"elementalshift"},{skill:"Gemsplosion: Fire Opal",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"FIRE",TT:"ALL_p",pfx:"gemsplosion_fire",desc:"Gem attack."},{skill:"Gemsplosion: Topaz",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"AIR",TT:"ALL_p",pfx:"gemsplosion_topaz",desc:"Gem attack."},{skill:"Gemsplosion: Onyx",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"DARK",TT:"ALL_p",pfx:"gemsplosion_onyx",desc:"Gem attack."},{skill:"Gemsplosion: Moonstone",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"LIGHT",TT:"ALL_p",pfx:"gemsplosion_moonstone",desc:"Gem attack."},{skill:"Gemsplosion: Emerald",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"EARTH",TT:"ALL_p",pfx:"gemsplosion_emerald",desc:"Gem attack."},{skill:"Gemsplosion: Aquamarine",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"WATER",TT:"ALL_p",pfx:"gemsplosion_turquoise",desc:"Gem attack."},{skill:"Gemsplosion: Turquoise",type:"ACT",DMG:50,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"ETHER",TT:"ALL_p",pfx:"gemsplosion_turquoise",desc:"Gem attack."}];
+Gambits = [{command:"Elemental Shift",target:"SELF",criteria:null,uses:1},{command:"Elemental Shift",target:"SELF",criteria:["NotLastTech"]},{command:"Gemsplosion: Fire Opal",target:"ALL_p",criteria:["elem=","FIRE"]},{command:"Gemsplosion: Topaz",target:"ALL_p",criteria:["elem=","AIR"]},{command:"Gemsplosion: Onyx",target:"ALL_p",criteria:["elem=","DARK"]},{command:"Gemsplosion: Moonstone",target:"ALL_p",criteria:["elem=","LIGHT"]},{command:"Gemsplosion: Emerald",target:"ALL_p",criteria:["elem=","EARTH"]},{command:"Gemsplosion: Aquamarine",target:"ALL_p",criteria:["elem=","WATER"]},{command:"Gemsplosion: Turquoise",target:"ALL_p",criteria:null},{command:"Attack",target:"ANY_PC"}];
+loot = [["Candriathope",100]];
+DetermineStats();
+"""
+
 class TestMonsterImporter {
 
 	private val combatAssets = importCombatAssets()
@@ -73,9 +82,9 @@ class TestMonsterImporter {
 
 	private fun getStatValue(monster: Monster, name: String) = monster.baseStats[combatAssets.stats.find { it.flashName == name }!!] ?: 0
 
-	private fun getElementalResistance(monster: Monster, element: String) = monster.elementalResistances.find { it.element.rawName == element }?.modifier ?: 0f
+	private fun getElementalResistance(monster: Monster, element: String) = monster.resistances.elements.find { it.element.rawName == element }?.modifier ?: 0f
 
-	private fun getStatusResistance(monster: Monster, rawName: String) = monster.statusResistances.find { it.effect.flashName == rawName }?.chance ?: 0
+	private fun getStatusResistance(monster: Monster, rawName: String) = monster.resistances.effects.find { it.effect.flashName == rawName }?.percentage ?: 0
 
 	private fun assertBasicAttack(strategy: StrategyEntry) {
 		assertNull(strategy.skill)
@@ -115,10 +124,10 @@ class TestMonsterImporter {
 		assertEquals(3, forestFish.attackPerLevelNumerator)
 		assertEquals(2, forestFish.attackPerLevelDenominator)
 		assertEquals(100, forestFish.experience)
-		assertEquals(2, forestFish.elementalResistances.size)
+		assertEquals(2, forestFish.resistances.elements.size)
 		assertEquals(0.4f, getElementalResistance(forestFish, "EARTH"), 0.01f)
 		assertEquals(-0.5f, getElementalResistance(forestFish, "AIR"), 0.01f)
-		assertEquals(0, forestFish.statusResistances.size)
+		assertEquals(0, forestFish.resistances.effects.size)
 		assertEquals(0, forestFish.attackEffects.size)
 
 		assertEquals(PotentialEquipment.EMPTY, forestFish.weapon)
@@ -165,12 +174,12 @@ class TestMonsterImporter {
 		assertEquals(0, abomination.attackPerLevelDenominator)
 		assertEquals(160, abomination.experience)
 
-		assertEquals(4, abomination.elementalResistances.size)
+		assertEquals(4, abomination.resistances.elements.size)
 		assertEquals(-1f, getElementalResistance(abomination, "LIGHT"), 0.01f)
 		assertEquals(2f, getElementalResistance(abomination, "DARK"), 0.01f)
 		assertEquals(-0.5f, getElementalResistance(abomination, "FIRE"), 0.01f)
 		assertEquals(-0.5f, getElementalResistance(abomination, "ETHER"), 0.01f)
-		assertEquals(11, abomination.statusResistances.size)
+		assertEquals(11, abomination.resistances.effects.size)
 		for (name in arrayOf("PSN", "PAR", "CRS", "DRK", "NUM", "SIL", "SLP", "CNF", "ZOM", "BLD", "BSK")) {
 			assertEquals(100, getStatusResistance(abomination, name))
 		}
@@ -244,12 +253,12 @@ class TestMonsterImporter {
 		assertEquals(0, ghoul.attackPerLevelDenominator)
 		assertEquals(150, ghoul.experience)
 
-		assertEquals(4, ghoul.elementalResistances.size)
+		assertEquals(4, ghoul.resistances.elements.size)
 		assertEquals(-1f, getElementalResistance(ghoul, "LIGHT"), 0.01f)
 		assertEquals(2f, getElementalResistance(ghoul, "DARK"), 0.01f)
 		assertEquals(-0.5f, getElementalResistance(ghoul, "FIRE"), 0.01f)
 		assertEquals(-0.5f, getElementalResistance(ghoul, "ETHER"), 0.01f)
-		assertEquals(11, ghoul.statusResistances.size)
+		assertEquals(11, ghoul.resistances.effects.size)
 		for (name in arrayOf("PSN", "PAR", "CRS", "DRK", "NUM", "SIL", "SLP", "CNF", "ZOM", "BLD", "BSK")) {
 			assertEquals(100, getStatusResistance(ghoul, name))
 		}
@@ -559,7 +568,7 @@ class TestMonsterImporter {
 			val vortexPool = animus.strategies[index]
 			val element = vortexPool.entries[0].skill!!.element
 			assertEquals(StrategyCriteria(
-				resistanceAtMost = ElementalDamageBonus(element, 0.5f), // TODO Maybe create ElementalResistance class
+				resistanceAtMost = ElementalResistance(element, 0.5f),
 				canUseOnOddTurns = false
 			), vortexPool.criteria)
 			assertEquals(1, vortexPool.entries.size)
@@ -601,5 +610,50 @@ class TestMonsterImporter {
 
 		assertEquals(0, animus.meleeCounterAttacks.size)
 		assertEquals(0, animus.rangedCounterAttacks.size)
+	}
+
+	@Test
+	fun testMasterStone() {
+		val stone = importMonsterStats(
+			"Master Stone", BattleModel(), MASTER_STONE_PROPERTIES, combatAssets, itemAssets, skillAssets
+		)
+
+		val fire = combatAssets.elements.find { it.rawName == "FIRE" }!!
+		val fireResistances = stone.elementalShiftResistances[fire]!!
+		for (name in arrayOf("NONE", "AIR", "EARTH", "DARK", "LIGHT", "ETHER", "FIG")) {
+			assertEquals(1f, fireResistances.elements.find { it.element.rawName == name }!!.modifier)
+		}
+		assertEquals(2f, fireResistances.elements.find { it.element === fire }!!.modifier)
+		assertEquals(-1f, fireResistances.elements.find { it.element.properName == "WATER" }!!.modifier)
+
+		assertEquals(8, stone.actions.size)
+		val elementalShift = stone.actions[0]
+		assertEquals("Elemental Shift", elementalShift.name)
+		assertEquals(SkillTargetType.Self, elementalShift.targetType)
+		assertTrue(elementalShift.changeElement)
+		val gemsplosionFire = stone.actions[1]
+		assertEquals("Gemsplosion: Fire Opal", gemsplosionFire.name)
+		assertSame(fire, gemsplosionFire.element)
+		assertEquals(50, gemsplosionFire.damage!!.flatAttackValue)
+
+		val shiftStrategy = stone.strategies[1]
+		assertEquals(StrategyCriteria(canRepeat = false), shiftStrategy.criteria)
+		assertEquals(1, shiftStrategy.entries.size)
+		assertEquals(StrategyEntry(
+			skill = elementalShift,
+			item = null,
+			target = StrategyTarget.Self,
+			chance = 100
+		), shiftStrategy.entries[0])
+
+		val fireStrategy = stone.strategies[2]
+		assertEquals(StrategyCriteria(myElement = fire), fireStrategy.criteria)
+		assertEquals(1, fireStrategy.entries.size)
+		assertEquals(StrategyEntry(
+			skill = gemsplosionFire,
+			item = null,
+			target = StrategyTarget.AllPlayers,
+			chance = 100
+		), fireStrategy.entries[0])
 	}
 }

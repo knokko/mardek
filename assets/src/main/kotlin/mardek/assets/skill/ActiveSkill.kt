@@ -99,12 +99,15 @@ class ActiveSkill(
 
 	@BitField(ordering = 21, optional = true)
 	val rawSongPower: String?,
+
+	@BitField(ordering = 22)
+	val changeElement: Boolean,
 ): Skill(name, description, element, masteryPoints) {
 
 	internal constructor() : this(
 		"", "", Element(), 0, ActiveSkillMode.Melee, SkillTargetType.Single, null,
 		0, 0, false, false, false, false, ArrayList(), ArrayList(),
 		ArrayList(), 0f, null, null, null, SkillCombatRequirement.OutsideCombat,
-		0, false, false, false, null
+		0, false, false, false, null, false
 	)
 }

@@ -5,10 +5,11 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.assets.combat.Element
 import mardek.assets.combat.StatusEffect
 import mardek.assets.inventory.Item
 import mardek.assets.skill.ActiveSkill
-import mardek.assets.skill.ElementalDamageBonus
+import mardek.assets.combat.ElementalResistance
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -62,7 +63,9 @@ class StrategyEntry(
 enum class StrategyTarget(val raw: String) {
 	AnyPlayer("ANY_PC"),
 	AllPlayers("ALL_p"),
-	Self("SELF")
+	Self("SELF"),
+	AnyAlly("ANY_ALLY"),
+	AllAllies("ALL_e")
 }
 
 @BitStruct(backwardCompatible = false)
@@ -84,13 +87,24 @@ class StrategyCriteria(
 	val targetHasEffect: StatusEffect? = null,
 
 	@BitField(ordering = 4, optional = true)
-	val resistanceAtMost: ElementalDamageBonus? = null,
+	@ReferenceField(stable = false, label = "status effects")
+	val targetMissesEffect: StatusEffect? = null,
 
-	@BitField(ordering = 5)
-	val canUseOnOddTurns: Boolean = true,
+	@BitField(ordering = 5, optional = true)
+	val resistanceAtMost: ElementalResistance? = null,
 
 	@BitField(ordering = 6)
+	val canUseOnOddTurns: Boolean = true,
+
+	@BitField(ordering = 7)
 	val canUseOnEvenTurns: Boolean = true,
+
+	@BitField(ordering = 8)
+	val canRepeat: Boolean = true,
+
+	@BitField(ordering = 9, optional = true)
+	@ReferenceField(stable = false, label = "elements")
+	val myElement: Element? = null,
 ) {
 
 	// TODO Maybe let Bitser handle this
@@ -98,13 +112,18 @@ class StrategyCriteria(
 			this.hpPercentageAtMost == other.hpPercentageAtMost &&
 			this.hpPercentageAtLeast == other.hpPercentageAtLeast &&
 			this.targetHasEffect === other.targetHasEffect &&
+			this.targetMissesEffect === other.targetMissesEffect &&
 			this.resistanceAtMost == other.resistanceAtMost &&
 			this.canUseOnOddTurns == other.canUseOnOddTurns &&
-			this.canUseOnEvenTurns == other.canUseOnEvenTurns
+			this.canUseOnEvenTurns == other.canUseOnEvenTurns &&
+			this.canRepeat == other.canRepeat &&
+			this.myElement === other.myElement
 
 	override fun hashCode() = (maxUses ?: 0) + 5 * hpPercentageAtMost - 13 * hpPercentageAtLeast +
-			31 * Objects.hashCode(targetHasEffect) + 37 * Objects.hashCode(resistanceAtMost) -
-			47 * canUseOnOddTurns.hashCode() + 93 * canUseOnEvenTurns.hashCode()
+			31 * Objects.hashCode(targetHasEffect) - 251 * Objects.hashCode(targetMissesEffect) +
+			37 * Objects.hashCode(resistanceAtMost) -
+			47 * canUseOnOddTurns.hashCode() + 93 * canUseOnEvenTurns.hashCode() - 113 * canRepeat.hashCode() +
+			147 * Objects.hashCode(myElement)
 
 	override fun toString(): String {
 		val builder = StringBuilder("Criteria(")
@@ -112,9 +131,12 @@ class StrategyCriteria(
 		if (hpPercentageAtMost != NONE.hpPercentageAtMost) builder.append("hp% <= $hpPercentageAtMost,")
 		if (hpPercentageAtLeast != NONE.hpPercentageAtLeast) builder.append("hp% >= $hpPercentageAtLeast,")
 		if (targetHasEffect != null) builder.append("target has ${targetHasEffect.niceName},")
+		if (targetMissesEffect != null) builder.append("target misses ${targetMissesEffect.niceName},")
 		if (resistanceAtMost != null) builder.append("target ${resistanceAtMost.element} resistance < ${resistanceAtMost.modifier},")
 		if (canUseOnOddTurns != NONE.canUseOnOddTurns) builder.append("oddTurn == $canUseOnOddTurns,")
 		if (canUseOnEvenTurns != NONE.canUseOnEvenTurns) builder.append("evenTurn == $canUseOnEvenTurns,")
+		if (canRepeat != NONE.canRepeat) builder.append("canRepeat == $canRepeat,")
+		if (myElement != NONE.myElement) builder.append("myElement == $myElement,")
 		return if (builder.endsWith(",")) "${builder.substring(0 until builder.lastIndex)})"
 		else "NONE"
 	}
@@ -130,9 +152,12 @@ class StrategyCriteria(
 		hpPercentageAtMost = merge(NONE.hpPercentageAtMost, this.hpPercentageAtMost, other.hpPercentageAtMost),
 		hpPercentageAtLeast = merge(NONE.hpPercentageAtLeast, this.hpPercentageAtLeast, other.hpPercentageAtLeast),
 		targetHasEffect = merge(NONE.targetHasEffect, this.targetHasEffect, other.targetHasEffect),
+		targetMissesEffect = merge(NONE.targetMissesEffect, this.targetMissesEffect, other.targetMissesEffect),
 		resistanceAtMost = merge(NONE.resistanceAtMost, this.resistanceAtMost, other.resistanceAtMost),
 		canUseOnOddTurns = merge(NONE.canUseOnOddTurns, this.canUseOnOddTurns, other.canUseOnOddTurns),
-		canUseOnEvenTurns = merge(NONE.canUseOnEvenTurns, this.canUseOnEvenTurns, other.canUseOnEvenTurns)
+		canUseOnEvenTurns = merge(NONE.canUseOnEvenTurns, this.canUseOnEvenTurns, other.canUseOnEvenTurns),
+		canRepeat = merge(NONE.canRepeat, this.canRepeat, other.canRepeat),
+		myElement = merge(NONE.myElement, this.myElement, other.myElement),
 	)
 
 	companion object {

@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
+import mardek.assets.combat.ElementalDamageBonus
 
 @BitStruct(backwardCompatible = false)
 class SkillDamage(

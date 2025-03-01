@@ -76,9 +76,12 @@ fun parseActionScriptObjectList(rawList: String): List<Map<String, String>> {
 
 		if (depth == 2 && !insideString) {
 			if (character == ','.code || character == '}'.code) {
-				currentObject[keyStorage.toString().trim()] = valueStorage.toString().trim()
-				keyStorage.clear()
-				valueStorage.clear()
+				val key = keyStorage.toString().trim()
+				if (key.isNotEmpty()) {
+					currentObject[key] = valueStorage.toString().trim()
+					keyStorage.clear()
+					valueStorage.clear()
+				}
 				state = STATE_KEY
 				if (character == ','.code) continue
 			}

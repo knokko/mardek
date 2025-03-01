@@ -4,10 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.combat.PossibleStatusEffect
-import mardek.assets.combat.StatModifier
-import mardek.assets.combat.StatusEffect
-import mardek.assets.skill.ElementalDamageBonus
+import mardek.assets.combat.*
 import mardek.assets.skill.Skill
 
 @BitStruct(backwardCompatible = false)
@@ -24,10 +21,7 @@ class EquipmentProperties(
 	val elementalBonuses: ArrayList<ElementalDamageBonus>,
 
 	@BitField(ordering = 3)
-	val elementalResistances: ArrayList<ElementalDamageBonus>,
-
-	@BitField(ordering = 4)
-	val statusResistances: ArrayList<PossibleStatusEffect>,
+	val resistances: Resistances,
 
 	@BitField(ordering = 5)
 	@ReferenceField(stable = false, label = "status effects")
@@ -59,8 +53,7 @@ class EquipmentProperties(
 
 	@Suppress("unused")
 	private constructor() : this(
-			ArrayList(0), ArrayList(0), ArrayList(0),
-			ArrayList(0), ArrayList(0), ArrayList(0),
-			null, null, null, null, 0
+		ArrayList(0), ArrayList(0), ArrayList(0), Resistances(), ArrayList(0),
+		null, null, null, null, 0
 	)
 }

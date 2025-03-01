@@ -1,10 +1,6 @@
 package mardek.importer.skills
 
-import mardek.assets.combat.CombatAssets
-import mardek.assets.combat.PossibleStatusEffect
-import mardek.assets.combat.StatModifier
-import mardek.assets.combat.StatusEffect
-import mardek.assets.skill.ElementalDamageBonus
+import mardek.assets.combat.*
 import mardek.assets.skill.PassiveSkill
 import mardek.assets.skill.SkillAssets
 import mardek.assets.skill.SkillClass
@@ -31,7 +27,7 @@ fun parsePassiveSkill(
 	}
 
 	val statModifiers = ArrayList<StatModifier>()
-	val elementalResistances = ArrayList<ElementalDamageBonus>()
+	val elementalResistances = ArrayList<ElementalResistance>()
 	val statusResistances = ArrayList<PossibleStatusEffect>()
 	val autoEffects = HashSet<StatusEffect>()
 	val sosEffects = HashSet<StatusEffect>()
@@ -50,7 +46,7 @@ fun parsePassiveSkill(
 			for ((resistName, rawModifier) in parseActionScriptObject(rawResistances)) {
 				val element = combatAssets.elements.find { it.rawName == resistName }
 				if (element != null) {
-					elementalResistances.add(ElementalDamageBonus(element, parseInt(rawModifier) / 100f))
+					elementalResistances.add(ElementalResistance(element, parseInt(rawModifier) / 100f))
 				} else {
 					val statusEffect = combatAssets.statusEffects.find { it.flashName == resistName }!!
 					statusResistances.add(PossibleStatusEffect(statusEffect, parseInt(rawModifier)))
