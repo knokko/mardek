@@ -2,7 +2,7 @@ package mardek.assets.combat
 
 import com.github.knokko.bitser.BitStruct
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Resistances(
 	val elements: ArrayList<ElementalResistance>,
 	val effects: ArrayList<EffectResistance>

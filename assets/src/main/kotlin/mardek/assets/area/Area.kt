@@ -10,48 +10,48 @@ import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.assets.area.objects.AreaObjects
 import java.util.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Area(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val width: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val height: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@ReferenceField(stable = false, label = "tilesheets")
 	val tilesheet: Tilesheet,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@ReferenceField(stable = false, label = "tiles")
 	@NestedFieldSetting(path = "", optional = true)
 	var tileGrid: Array<Tile>?,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	val objects: AreaObjects,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@ReferenceFieldTarget(label = "chests")
 	val chests: ArrayList<Chest>,
 
-	@BitField(ordering = 6, optional = true)
+	@BitField(id = 6, optional = true)
 	val randomBattles: RandomAreaBattles?,
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	val flags: AreaFlags,
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	val properties: AreaProperties,
 ) {
 
-	@BitField(ordering = 9)
+	@BitField(id = 9)
 	lateinit var canWalkGrid: BooleanArray
 	// TODO Save conditionally
 
-	@BitField(ordering = 10)
+	@BitField(id = 10)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 

@@ -10,37 +10,37 @@ import mardek.assets.combat.Element
 import mardek.assets.sprite.KimSprite
 import java.util.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Item(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val flashName: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val description: String,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@ReferenceField(stable = false, label = "item types")
 	val type: ItemType,
 
-	@BitField(ordering = 3, optional = true)
+	@BitField(id = 3, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element?,
 
-	@BitField(ordering = 4, optional = true)
+	@BitField(id = 4, optional = true)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val cost: Int?,
 
-	@BitField(ordering = 5, optional = true)
+	@BitField(id = 5, optional = true)
 	val equipment: EquipmentProperties?,
 
-	@BitField(ordering = 6, optional = true)
+	@BitField(id = 6, optional = true)
 	val consumable: ConsumableProperties?,
 ) {
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	lateinit var sprite: KimSprite
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 

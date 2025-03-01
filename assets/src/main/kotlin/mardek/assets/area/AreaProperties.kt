@@ -6,13 +6,13 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.battle.BattleBackground
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaProperties(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	var rawName: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val displayName: String,
 
 	/**
@@ -21,28 +21,28 @@ class AreaProperties(
 	 *
 	 * It's used in, among others, Goznor night, Goznor zombie outbreak, Sauls dungeon, and Goldfish
 	 */
-	@BitField(ordering = 2, optional = true)
+	@BitField(id = 2, optional = true)
 	val ambience: AreaAmbience?,
 
-	@BitField(ordering = 3, optional = true)
+	@BitField(id = 3, optional = true)
 	val musicTrack: String?,
 
 	/**
 	 * All areas with the same "dungeon" will share their switch gate/platform state
 	 */
-	@BitField(ordering = 4, optional = true)
+	@BitField(id = 4, optional = true)
 	val dungeon: String?,
 
 	/**
 	 * Upon visiting this area, the place with this name will be discovered in the encyclopedia
 	 */
-	@BitField(ordering = 5, optional = true)
+	@BitField(id = 5, optional = true)
 	val encyclopediaName: String?,
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	val dreamType: AreaDreamType,
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	val snowType: AreaSnowType,
 	// TODO Dreamshrine Entrance has some GlowTiles stuff
 ) {
@@ -53,14 +53,14 @@ class AreaProperties(
 	)
 }
 
-@BitEnum(mode = BitEnum.Mode.UniformOrdinal)
+@BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class AreaSnowType(val code: Int) {
 	None(0),
 	Lifewood(1),
 	Dreamwood(2)
 }
 
-@BitEnum(mode = BitEnum.Mode.UniformOrdinal)
+@BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class AreaDreamType(
 	/**
 	 * Basically the hex code for the background color of the area

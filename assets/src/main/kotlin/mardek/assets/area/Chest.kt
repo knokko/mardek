@@ -12,41 +12,41 @@ import mardek.assets.inventory.ItemStack
 import mardek.assets.inventory.PlotItem
 import java.util.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Chest(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@ReferenceField(stable = false, label = "chest sprites")
 	val sprite: ChestSprite,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val gold: Int,
 
-	@BitField(ordering = 4, optional = true)
+	@BitField(id = 4, optional = true)
 	val stack: ItemStack?,
 
-	@BitField(ordering = 5, optional = true)
+	@BitField(id = 5, optional = true)
 	val plotItem: PlotItem?,
 
-	@BitField(ordering = 6, optional = true)
+	@BitField(id = 6, optional = true)
 	val dreamstone: Dreamstone?,
 
-	@BitField(ordering = 7, optional = true)
+	@BitField(id = 7, optional = true)
 	val battle: ChestBattle?,
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	val hidden: Boolean,
 ) {
 
-	@BitField(ordering = 9)
+	@BitField(id = 9)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
@@ -59,18 +59,18 @@ class Chest(
 	override fun toString() = "Chest(x=$x, y=$y, gold=$gold, item=${stack ?: plotItem ?: dreamstone})"
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class ChestBattle(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	@NestedFieldSetting(path = "c", optional = true)
 	val monsters: Array<ChestMonster?>,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@ReferenceField(stable = false, label = "enemy party layouts")
 	val enemyLayout: PartyLayout,
 
-	@BitField(ordering = 2, optional = true)
+	@BitField(id = 2, optional = true)
 	val specialMusic: String?,
 ) {
 	@Suppress("unused")
@@ -79,15 +79,15 @@ class ChestBattle(
 	override fun toString() = "ChestBattle$monsters"
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class ChestMonster(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name1: String,
 
-	@BitField(ordering = 1, optional = true)
+	@BitField(id = 1, optional = true)
 	val name2: String?,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val level: Int,
 ) {

@@ -5,20 +5,20 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class SirenSong(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 2)
 	val time: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 2)
 	val tempo: Int,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@NestedFieldSetting(path = "c", optional = true)
 	val notes: ArrayList<SirenNote?>,
 ) {
@@ -27,13 +27,13 @@ class SirenSong(
 	private constructor() : this("", 0, 0, ArrayList(0))
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class SirenNote(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 16)
 	val value1: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 16)
 	val value2: Int,
 ) {

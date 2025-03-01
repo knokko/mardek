@@ -5,17 +5,17 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class BcSprite(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val width: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val height: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 7)
 	val version: Int,
 ) {
@@ -23,11 +23,11 @@ class BcSprite(
 
 	var postEncodeCallback: (() -> Unit)? = null
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
 	var data: ByteArray? = null
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@IntegerField(minValue = -1, expectUniform = true)
 	var index = -1
 

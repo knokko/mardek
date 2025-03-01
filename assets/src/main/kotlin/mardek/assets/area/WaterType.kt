@@ -2,7 +2,7 @@ package mardek.assets.area
 
 import com.github.knokko.bitser.BitEnum
 
-@BitEnum(mode = BitEnum.Mode.UniformOrdinal)
+@BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class WaterType {
 	None,
 	Skipped,

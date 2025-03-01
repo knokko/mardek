@@ -8,22 +8,22 @@ import com.github.knokko.compressor.Kim1Decompressor
 import com.github.knokko.compressor.Kim2Decompressor
 
 // TODO Save conditionally
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class KimSprite(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
 	var data: IntArray?,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 2)
 	val version: Int,
 ) {
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(minValue = -1, expectUniform = true)
 	var offset = -1
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = true)
 	val header = if (data == null) 0 else data!![0]
 

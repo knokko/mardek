@@ -6,15 +6,15 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 
 abstract class AreaSwitch(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "switch colors")
 	val color: SwitchColor,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
 ) {
@@ -32,21 +32,21 @@ abstract class AreaSwitch(
 	}
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaSwitchOrb(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
 
 	@Suppress("unused")
 	private constructor() : this(SwitchColor(), 0, 0)
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaSwitchGate(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
 
 	@Suppress("unused")
 	private constructor() : this(SwitchColor(), 0, 0)
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaSwitchPlatform(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
 
 	@Suppress("unused")

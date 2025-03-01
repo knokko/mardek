@@ -10,67 +10,67 @@ import mardek.assets.combat.Element
 import mardek.assets.combat.ElementalDamageBonus
 import mardek.assets.combat.PossibleStatusEffect
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class ReactionSkill(
 	name: String,
 	description: String,
 	element: Element,
 	masteryPoints: Int,
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val type: ReactionSkillType,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val enablePoints: Int,
 
-	@BitField(ordering = 2, optional = true)
+	@BitField(id = 2, optional = true)
 	@ReferenceField(stable = false, label = "skill classes")
 	val skillClass: SkillClass?,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = false)
 	val addFlatDamage: Int,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@FloatField(expectMultipleOf = 0.1)
 	val addDamageFraction: Float,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val addCritChance: Int,
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	@IntegerField(expectUniform = false)
 	val addAccuracy: Int,
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	@FloatField(expectMultipleOf = 0.1)
 	val drainHp: Float,
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	@FloatField(expectMultipleOf = 0.1)
 	val absorbMp: Float,
 
-	@BitField(ordering = 9)
+	@BitField(id = 9)
 	val elementalBonuses: ArrayList<ElementalDamageBonus>,
 
-	@BitField(ordering = 10)
+	@BitField(id = 10)
 	val addStatusEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 11)
+	@BitField(id = 11)
 	val removeStatusEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 12)
+	@BitField(id = 12)
 	val effectiveAgainst: ArrayList<CreatureTypeBonus>,
 
-	@BitField(ordering = 13)
+	@BitField(id = 13)
 	val smitePlus: Boolean,
 
-	@BitField(ordering = 14)
+	@BitField(id = 14)
 	val soulStrike: Boolean,
 
-	@BitField(ordering = 15)
+	@BitField(id = 15)
 	val survivor: Boolean,
 ): Skill(name, description, element, masteryPoints) {
 

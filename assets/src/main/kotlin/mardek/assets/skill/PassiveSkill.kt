@@ -7,59 +7,59 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.combat.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class PassiveSkill(
 	name: String,
 	description: String,
 	element: Element,
 	masteryPoints: Int,
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val enablePoints: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@FloatField(expectMultipleOf = 0.05)
 	val hpModifier: Float,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@FloatField(expectMultipleOf = 0.05)
 	val mpModifier: Float,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	val statModifiers: ArrayList<StatModifier>,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	val elementalResistances: ArrayList<ElementalResistance>,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	val statusResistances: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	@ReferenceField(stable = false, label = "status effects")
 	val autoEffects: HashSet<StatusEffect>,
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	@ReferenceField(stable = false, label = "status effects")
 	val sosEffects: HashSet<StatusEffect>,
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	@FloatField(expectMultipleOf = 0.05)
 	val experienceModifier: Float,
 
-	@BitField(ordering = 9)
+	@BitField(id = 9)
 	@IntegerField(expectUniform = false)
 	val masteryModifier: Int,
 
-	@BitField(ordering = 10)
+	@BitField(id = 10)
 	@IntegerField(expectUniform = false)
 	val goldModifier: Int,
 
-	@BitField(ordering = 11)
+	@BitField(id = 11)
 	@IntegerField(expectUniform = false)
 	val addLootChance: Int,
 
-	@BitField(ordering = 12, optional = true)
+	@BitField(id = 12, optional = true)
 	@ReferenceField(stable = false, label = "skill classes")
 	val skillClass: SkillClass?,
 ): Skill(name, description, element, masteryPoints) {

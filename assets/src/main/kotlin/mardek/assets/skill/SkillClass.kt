@@ -5,22 +5,22 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.assets.sprite.KimSprite
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class SkillClass(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val key: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val name: String,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val description: String,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@ReferenceFieldTarget(label = "skills")
 	val actions: ArrayList<ActiveSkill>,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	val icon: KimSprite,
 ) {
 

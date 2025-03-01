@@ -4,17 +4,17 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AnimationPart(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "skeleton parts")
 	val part: SkeletonPart,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val matrix: AnimationMatrix,
 
-	@BitField(ordering = 2, optional = true)
+	@BitField(id = 2, optional = true)
 	val color: ColorTransform?,
 ) {
 

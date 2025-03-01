@@ -7,23 +7,23 @@ import mardek.assets.inventory.ArmorType
 import mardek.assets.inventory.WeaponType
 import mardek.assets.skill.SkillClass
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class CharacterClass(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val rawName: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val displayName: String,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@ReferenceField(stable = false, label = "skill classes")
 	val skillClass: SkillClass,
 
-	@BitField(ordering = 3, optional = true)
+	@BitField(id = 3, optional = true)
 	@ReferenceField(stable = false, label = "weapon types")
 	val weaponType: WeaponType?,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@ReferenceField(stable = false, label = "armor types")
 	val armorTypes: ArrayList<ArmorType>,
 ) {

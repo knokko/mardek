@@ -6,120 +6,120 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.assets.combat.ElementalDamageBonus
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class SkillDamage(
 	/**
 	 * Increases attack value by flat amount, independent of weapon
 	 */
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val flatAttackValue: Int,
 
 	/**
 	 * Increases attack value by weapon attack value * modifier
 	 */
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@FloatField(expectMultipleOf = 0.1)
 	val weaponModifier: Float,
 
 	/**
 	 * Increases attack value by attacker level * modifier
 	 */
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val levelModifier: Int,
 
 	/**
 	 * Whether damage should be divided by 2 when targeting multiple characters
 	 */
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	val splitDamage: Boolean,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	val ignoresDefense: Boolean,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	val ignoresShield: Boolean,
 
 	/**
 	 * Lay on hands, divine glory, and spirit blade are... different
 	 */
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	val spiritModifier: SkillSpiritModifier,
 
 	/**
 	 * Bonus damage modifier against particular elements (like water slash)
 	 */
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	val bonusAgainstElements: ArrayList<ElementalDamageBonus>,
 
 	/**
 	 * Add damage based on money (money attack)
 	 */
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	@FloatField(expectMultipleOf = 0.1)
 	val moneyModifier: Float,
 
 	/**
 	 * Attack bonus and element based on equipped gem (gemplosion)
 	 */
-	@BitField(ordering = 9)
+	@BitField(id = 9)
 	@FloatField(expectMultipleOf = 0.1)
 	val gemModifier: Float,
 
 	/**
 	 * Adds `(hp lost by attacker) * modifier` damage (revenge strike)
 	 */
-	@BitField(ordering = 10)
+	@BitField(id = 10)
 	@FloatField(expectMultipleOf = 0.1)
 	val lostHealthModifier: Float,
 
 	/**
 	 * Status effect count modifier (coup de grace), I don't know details yet
 	 */
-	@BitField(ordering = 11)
+	@BitField(id = 11)
 	@FloatField(expectMultipleOf = 0.1)
 	val statusEffectModifier: Float,
 
 	/**
 	 * Kill count modifier (sin strike), I don't know details yet
 	 */
-	@BitField(ordering = 12)
+	@BitField(id = 12)
 	@FloatField(expectMultipleOf = 0.1)
 	val killCountModifier: Float,
 
 	/**
 	 * Hardcoded extra damage (1000 needles)
 	 */
-	@BitField(ordering = 13)
+	@BitField(id = 13)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val hardcodedDamage: Int,
 
 	/**
 	 * Adds `(current target HP) * modifier` extra damage (spirit nova)
 	 */
-	@BitField(ordering = 14)
+	@BitField(id = 14)
 	@FloatField(expectMultipleOf = 0.1)
 	val remainingTargetHpModifier: Float,
 
 	/**
 	 * 'Damage' is a fraction of the 'damage' of the consumed potion (potion spray)
 	 */
-	@BitField(ordering = 15)
+	@BitField(id = 15)
 	@FloatField(expectMultipleOf = 0.25)
 	val potionModifier: Float,
 
 	/**
 	 * Crescendo strike modifier, Zachs Crescendo strike has a modifier of 0.25
 	 */
-	@BitField(ordering = 16)
+	@BitField(id = 16)
 	@FloatField(expectMultipleOf = 0.05)
 	val crescendoModifier: Float,
 
 	/**
 	 * Use weapon crit chance when this is null
 	 */
-	@BitField(ordering = 17, optional = true)
+	@BitField(id = 17, optional = true)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val critChance: Int? = null,
 ) {

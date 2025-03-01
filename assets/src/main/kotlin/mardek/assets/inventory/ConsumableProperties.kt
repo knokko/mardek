@@ -7,43 +7,43 @@ import com.github.knokko.bitser.field.IntegerField
 import mardek.assets.combat.PossibleStatusEffect
 import mardek.assets.combat.StatModifierRange
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class ConsumableProperties(
-		@BitField(ordering = 0, optional = true)
+		@BitField(id = 0, optional = true)
 		val particleEffect: String?, // TODO Make reference?
 
-		@BitField(ordering = 1)
+		@BitField(id = 1)
 		@IntegerField(expectUniform = true)
 		val particleColor: Int,
 
-		@BitField(ordering = 2)
+		@BitField(id = 2)
 		val isFullCure: Boolean,
 
-		@BitField(ordering = 3)
+		@BitField(id = 3)
 		@IntegerField(expectUniform = false, minValue = 0)
 		val restoreHealth: Int,
 
-		@BitField(ordering = 4)
+		@BitField(id = 4)
 		@IntegerField(expectUniform = false, minValue = 0)
 		val restoreMana: Int,
 
-		@BitField(ordering = 5)
+		@BitField(id = 5)
 		@FloatField(expectMultipleOf = 0.5)
 		val revive: Float,
 
-		@BitField(ordering = 6)
+		@BitField(id = 6)
 		val addStatusEffects: ArrayList<PossibleStatusEffect>,
 
-		@BitField(ordering = 7)
+		@BitField(id = 7)
 		val removeStatusEffects: ArrayList<PossibleStatusEffect>,
 
-		@BitField(ordering = 8)
+		@BitField(id = 8)
 		val removeNegativeStatusEffects: Boolean,
 
-		@BitField(ordering = 9)
+		@BitField(id = 9)
 		val statModifiers: ArrayList<StatModifierRange>,
 
-		@BitField(ordering = 10, optional = true)
+		@BitField(id = 10, optional = true)
 		val damage: ConsumableDamage?,
 ) {
 

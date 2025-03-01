@@ -6,28 +6,28 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.sprite.ObjectSprites
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaObject(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "object sprites")
 	val sprites: ObjectSprites,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
 
-	@BitField(ordering = 3, optional = true)
+	@BitField(id = 3, optional = true)
 	val conversationName: String?,
 
-	@BitField(ordering = 4, optional = true)
+	@BitField(id = 4, optional = true)
 	val rawConversion: String?,
 
-	@BitField(ordering = 5, optional = true)
+	@BitField(id = 5, optional = true)
 	val signType: String?,
 ) {
 

@@ -6,17 +6,17 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.combat.Element
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class ConsumableDamage(
-		@BitField(ordering = 0)
+		@BitField(id = 0)
 		@IntegerField(expectUniform = false, minValue = 1)
 		val power: Int,
 
-		@BitField(ordering = 1)
+		@BitField(id = 1)
 		@IntegerField(expectUniform = false, minValue = 1)
 		val spirit: Int,
 
-		@BitField(ordering = 2)
+		@BitField(id = 2)
 		@ReferenceField(stable = false, label = "elements")
 		val element: Element,
 ) {

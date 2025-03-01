@@ -6,26 +6,26 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.characters.PlayableCharacter
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class CharacterSelectionState(
 	/**
 	 * The characters that the player can put in the party
 	 */
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "playable characters")
 	val available: HashSet<PlayableCharacter>,
 
 	/**
 	 * The characters that the player can't put in the party, but whose items can be managed from item storage.
 	 */
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@ReferenceField(stable = true, label = "playable characters")
 	val unavailable: HashSet<PlayableCharacter>,
 
 	/**
 	 * The characters currently in the party, must all be a member of `available`
 	 */
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@NestedFieldSetting(path = "c", optional = true)
 	@ReferenceField(stable = true, label = "playable characters")
 	val party: Array<PlayableCharacter?>,

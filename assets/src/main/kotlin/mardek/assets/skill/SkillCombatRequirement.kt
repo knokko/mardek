@@ -2,7 +2,7 @@ package mardek.assets.skill
 
 import com.github.knokko.bitser.BitEnum
 
-@BitEnum(mode = BitEnum.Mode.VariableIntOrdinal)
+@BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class SkillCombatRequirement {
 	/**
 	 * Skill can be used both outside combat and during combat

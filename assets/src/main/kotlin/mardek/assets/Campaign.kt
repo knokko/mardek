@@ -15,32 +15,32 @@ import mardek.assets.skill.SkillAssets
 import mardek.assets.ui.UiSprites
 import java.io.BufferedInputStream
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Campaign(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val combat: CombatAssets,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val skills: SkillAssets,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val inventory: InventoryAssets,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	val battle: BattleAssets,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	val areas: AreaAssets,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@ReferenceFieldTarget(label = "playable characters")
 	val playableCharacters: ArrayList<PlayableCharacter>,
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	val ui: UiSprites,
 ) {
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	val checkpoints = HashMap<String, ByteArray>()
 

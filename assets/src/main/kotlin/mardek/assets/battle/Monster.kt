@@ -11,107 +11,107 @@ import mardek.assets.combat.*
 import mardek.assets.inventory.Dreamstone
 import mardek.assets.skill.ActiveSkill
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Monster(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val model: BattleModel,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val className: String,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@ReferenceField(stable = false, label = "creature types")
 	val type: CreatureType,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@NestedFieldSetting(path = "k", fieldName = "BASE_STATS_KEY_PROPERTIES")
 	@IntegerField(expectUniform = false, minValue = 0)
 	val baseStats: HashMap<CombatStat, Int>,
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val playerStatModifier: Int,
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val hpPerLevel: Int,
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val attackPerLevelNumerator: Int,
 
-	@BitField(ordering = 9)
+	@BitField(id = 9)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val attackPerLevelDenominator: Int,
 
-	@BitField(ordering = 10)
+	@BitField(id = 10)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val critChance: Int,
 
-	@BitField(ordering = 11)
+	@BitField(id = 11)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val experience: Int,
 
-	@BitField(ordering = 12)
+	@BitField(id = 12)
 	val loot: ArrayList<PotentialItem>,
 
-	@BitField(ordering = 13)
+	@BitField(id = 13)
 	val plotLoot: ArrayList<PotentialPlotItem>,
 
-	@BitField(ordering = 14)
+	@BitField(id = 14)
 	@ReferenceField(stable = false, label = "dreamstones")
 	val dreamLoot: ArrayList<Dreamstone>,
 
-	@BitField(ordering = 15)
+	@BitField(id = 15)
 	val weapon: PotentialEquipment,
 
-	@BitField(ordering = 16)
+	@BitField(id = 16)
 	val shield: PotentialEquipment,
 
-	@BitField(ordering = 17)
+	@BitField(id = 17)
 	val helmet: PotentialEquipment,
 
-	@BitField(ordering = 18)
+	@BitField(id = 18)
 	val armor: PotentialEquipment,
 
-	@BitField(ordering = 19)
+	@BitField(id = 19)
 	val accessory1: PotentialEquipment,
 
-	@BitField(ordering = 20)
+	@BitField(id = 20)
 	val accessory2: PotentialEquipment,
 
-	@BitField(ordering = 21)
+	@BitField(id = 21)
 	val resistances: Resistances,
 
-	@BitField(ordering = 22)
+	@BitField(id = 22)
 	@NestedFieldSetting(path = "k", fieldName = "SHIFT_RESISTANCES_KEY_PROPERTIES")
 	val elementalShiftResistances: HashMap<Element, Resistances>,
 
-	@BitField(ordering = 23)
+	@BitField(id = 23)
 	val attackEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 24)
+	@BitField(id = 24)
 	val initialEffects: ArrayList<StatusEffect>,
 
-	@BitField(ordering = 25)
+	@BitField(id = 25)
 	@ReferenceFieldTarget(label = "skills")
 	val actions: ArrayList<ActiveSkill>,
 
-	@BitField(ordering = 26)
+	@BitField(id = 26)
 	val strategies: ArrayList<StrategyPool>,
 
-	@BitField(ordering = 27)
+	@BitField(id = 27)
 	val meleeCounterAttacks: ArrayList<CounterAttack>,
 
-	@BitField(ordering = 28)
+	@BitField(id = 28)
 	val rangedCounterAttacks: ArrayList<CounterAttack>,
 ) {
 

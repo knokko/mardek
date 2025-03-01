@@ -7,33 +7,33 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StringField
 import mardek.assets.sprite.KimSprite
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Element(
-	@BitField(ordering = 0, optional = true)
+	@BitField(id = 0, optional = true)
 	val rawName: String,
 
-	@BitField(ordering = 1, optional = true)
+	@BitField(id = 1, optional = true)
 	@ReferenceField(stable = false, label = "stats")
 	val bonusStat: CombatStat?,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@StringField(length = IntegerField(expectUniform = true, minValue = 1, maxValue = 1))
 	val primaryChar: String,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	val properName: String = rawName,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@IntegerField(expectUniform = true)
 	val color: Int,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	val sprite: KimSprite,
 ) {
 
 	constructor() : this("", null, "", "", 0, KimSprite())
 
-	@BitField(ordering = 6, optional = true)
+	@BitField(id = 6, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	var weakAgainst: Element? = null
 		private set

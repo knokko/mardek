@@ -7,16 +7,16 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import java.util.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class PartyLayout(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@NestedFieldSetting(path = "c", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	val positions: Array<PartyLayoutPosition>,
 ) {
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
@@ -25,13 +25,13 @@ class PartyLayout(
 	override fun toString() = "Layout($name)"
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class PartyLayoutPosition(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
 ) {

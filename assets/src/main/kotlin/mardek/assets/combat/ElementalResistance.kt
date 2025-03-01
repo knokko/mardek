@@ -5,13 +5,13 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.ReferenceField
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class ElementalResistance(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@FloatField(expectMultipleOf = 0.05)
 	val modifier: Float
 ) {

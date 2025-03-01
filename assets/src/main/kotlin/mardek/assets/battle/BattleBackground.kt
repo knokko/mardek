@@ -6,16 +6,16 @@ import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.assets.sprite.BcSprite
 import java.util.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class BattleBackground(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val sprite: BcSprite,
 ) {
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 

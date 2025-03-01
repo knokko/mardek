@@ -6,25 +6,25 @@ import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.assets.sprite.KimSprite
 import java.util.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class SwitchColor(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val offSprite: KimSprite,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val onSprite: KimSprite,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	val gateSprite: KimSprite,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	val platformSprite: KimSprite,
 ) {
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 

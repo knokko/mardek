@@ -9,34 +9,34 @@ import mardek.assets.combat.PossibleStatusEffect
 import mardek.assets.combat.ElementalDamageBonus
 import mardek.assets.combat.CreatureTypeBonus
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class WeaponProperties(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "weapon types")
 	val type: WeaponType,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val critChance: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 999)
 	val hitChance: Int,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@FloatField(expectMultipleOf = 0.1)
 	val hpDrain: Float,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	val effectiveAgainstCreatureTypes: ArrayList<CreatureTypeBonus>,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	val effectiveAgainstElements: ArrayList<ElementalDamageBonus>,
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	val addEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 7, optional = true)
+	@BitField(id = 7, optional = true)
 	val hitSound: String?, // TODO Turn into reference
 ) {
 

@@ -8,13 +8,14 @@ import mardek.assets.area.Area
 import kotlin.math.max
 import kotlin.math.min
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaDiscovery(area: Area) {
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 1)
 	private val width = area.width
 
+	@BitField(id = 1)
 	@NestedFieldSetting(path = "", writeAsBytes = true)
 	private val raw = BooleanArray(area.width * area.height)
 

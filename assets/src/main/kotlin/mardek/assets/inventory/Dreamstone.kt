@@ -6,14 +6,14 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import java.util.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Dreamstone(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(minValue = 0, expectUniform = false)
 	val index: Int
 ) {
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 

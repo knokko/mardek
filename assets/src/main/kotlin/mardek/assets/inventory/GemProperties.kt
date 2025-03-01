@@ -6,19 +6,19 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.assets.combat.PossibleStatusEffect
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class GemProperties(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val power: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val particleEffect: String, // TODO Turn into reference
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val inflictStatusEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@FloatField(expectMultipleOf = 0.25)
 	val drainHp: Float,
 ) {

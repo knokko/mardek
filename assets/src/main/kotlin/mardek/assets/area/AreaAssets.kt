@@ -8,42 +8,42 @@ import mardek.assets.sprite.ArrowSprite
 import mardek.assets.sprite.DirectionalSprites
 import mardek.assets.sprite.ObjectSprites
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaAssets {
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceFieldTarget(label = "tilesheets")
 	val tilesheets = ArrayList<Tilesheet>()
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@ReferenceFieldTarget(label = "switch colors")
 	val switchColors = ArrayList<SwitchColor>()
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@ReferenceFieldTarget(label = "character sprites")
 	val characterSprites = ArrayList<DirectionalSprites>()
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@ReferenceFieldTarget(label = "object sprites")
 	val objectSprites = ArrayList<ObjectSprites>()
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@ReferenceFieldTarget(label = "arrow sprites")
 	val arrowSprites = ArrayList<ArrowSprite>()
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@ReferenceFieldTarget(label = "chest sprites")
 	val chestSprites = ArrayList<ChestSprite>()
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	@ReferenceFieldTarget(label = "level ranges")
 	val levelRanges = ArrayList<SharedLevelRange>()
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	@ReferenceFieldTarget(label = "enemy selections")
 	val enemySelections = ArrayList<SharedEnemySelections>()
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	@ReferenceFieldTarget(label = "areas")
 	val areas = ArrayList<Area>()
 }

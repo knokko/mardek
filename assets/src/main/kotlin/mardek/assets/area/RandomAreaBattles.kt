@@ -9,36 +9,36 @@ import mardek.assets.battle.BattleBackground
 import mardek.assets.battle.Monster
 import mardek.assets.battle.PartyLayout
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class RandomAreaBattles(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@NestedFieldSetting(path = "", optional = true)
 	val ownEnemies: ArrayList<BattleEnemySelection>?,
 
-	@BitField(ordering = 1, optional = true)
+	@BitField(id = 1, optional = true)
 	@ReferenceField(stable = false, label = "enemy selections")
 	val sharedEnemies: SharedEnemySelections?,
 
-	@BitField(ordering = 2, optional = true)
+	@BitField(id = 2, optional = true)
 	val ownLevelRange: LevelRange?,
 
-	@BitField(ordering = 3, optional = true)
+	@BitField(id = 3, optional = true)
 	@ReferenceField(stable = false, label = "level ranges")
 	val sharedLevelRange: SharedLevelRange?,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val minSteps: Int,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 100)
 	val chance: Int, // Percentage after taking 1 step?
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	val defaultBackground: BattleBackground,
 
-	@BitField(ordering = 7, optional = true)
+	@BitField(id = 7, optional = true)
 	val specialBackground: BattleBackground?
 ) {
 
@@ -87,16 +87,16 @@ class RandomAreaBattles(
 	}
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class BattleEnemySelection(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "monsters")
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(minValue = 4, maxValue = 4, expectUniform = true))
 	val enemies: ArrayList<Monster?>,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@ReferenceField(stable = false, label = "enemy party layouts")
 	val enemyLayout: PartyLayout,
 ) {
@@ -115,13 +115,13 @@ class BattleEnemySelection(
 	override fun hashCode() = enemyLayout.hashCode() + 31 * enemies.hashCode()
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class LevelRange(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val min: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val max: Int
 ) {
@@ -134,13 +134,13 @@ class LevelRange(
 	override fun hashCode() = min - 127 * max
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class SharedLevelRange(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val range: LevelRange,
 ) {
 	@Suppress("unused")
@@ -149,13 +149,13 @@ class SharedLevelRange(
 	override fun toString() = "$range($name)"
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class SharedEnemySelections(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val selections: ArrayList<BattleEnemySelection>,
 ) {
 	constructor() : this("", ArrayList(0))

@@ -5,13 +5,13 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.ReferenceField
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class CreatureTypeBonus(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "creature types")
 	val type: CreatureType,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@FloatField(expectMultipleOf = 0.1)
 	val bonusFraction: Float,
 ) {

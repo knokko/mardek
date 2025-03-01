@@ -2,7 +2,7 @@ package mardek.assets.area
 
 import com.github.knokko.bitser.BitEnum
 
-@BitEnum(mode = BitEnum.Mode.UniformOrdinal)
+@BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class Direction(val deltaX: Int, val deltaY: Int, val abbreviation: String) {
 	Down(0, 1, "s"),
 	Up(0, -1, "n"),

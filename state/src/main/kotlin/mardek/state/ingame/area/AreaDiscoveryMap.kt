@@ -1,13 +1,15 @@
 package mardek.state.ingame.area
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.area.Area
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaDiscoveryMap {
 
+	@BitField(id = 0)
 	@NestedFieldSetting(path = "k", fieldName = "MAP_KEY")
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	private val map = HashMap<Area, AreaDiscovery>()

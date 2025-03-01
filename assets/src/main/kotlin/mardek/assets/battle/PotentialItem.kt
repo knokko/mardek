@@ -9,14 +9,14 @@ import mardek.assets.inventory.PlotItem
 import java.util.*
 import kotlin.collections.ArrayList
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class PotentialItem(
 
-	@BitField(ordering = 0, optional = true)
+	@BitField(id = 0, optional = true)
 	@ReferenceField(stable = false, label = "items")
 	val item: Item?,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 100)
 	val chance: Int,
 ) {
@@ -30,10 +30,10 @@ class PotentialItem(
 	override fun toString() = "$chance% $item"
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class PotentialEquipment(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val entries: ArrayList<PotentialItem>
 ) {
 
@@ -54,13 +54,13 @@ class PotentialEquipment(
 	}
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class PotentialPlotItem(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "plot items")
 	val item: PlotItem,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val chance: Int,
 ) {

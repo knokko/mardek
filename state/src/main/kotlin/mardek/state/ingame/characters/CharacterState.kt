@@ -14,40 +14,40 @@ import mardek.assets.skill.Skill
 import mardek.assets.inventory.ItemStack
 import kotlin.math.roundToInt
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class CharacterState {
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var currentHealth = 0
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var currentMana = 0
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 1)
 	var currentLevel = 0
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@ReferenceField(stable = true, label = "status effects")
 	val activeStatusEffects = HashSet<StatusEffect>()
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@ReferenceField(stable = true, label = "items")
 	@NestedFieldSetting(path = "c", optional = true)
 	val equipment = Array<Item?>(6) { null }
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@NestedFieldSetting(path = "c", optional = true)
 	val inventory = Array<ItemStack?>(64) { null }
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	@NestedFieldSetting(path = "k", fieldName = "SKILL_MASTERY_KEY")
 	@NestedFieldSetting(path = "v", fieldName = "SKILL_MASTERY_VALUE")
 	val skillMastery = HashMap<Skill, Int>()
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	@ReferenceField(stable = true, label = "skills")
 	val toggledSkills = HashSet<Skill>()
 

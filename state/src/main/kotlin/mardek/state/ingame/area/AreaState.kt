@@ -22,38 +22,38 @@ import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaState(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "areas")
 	val area: Area,
 	initialPlayerPosition: AreaPosition
 ) {
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = true)
 	var currentTime = ZERO
 		private set
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	private val playerPositions = Array(4) { initialPlayerPosition }
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	var lastPlayerDirection = Direction.Down
 
-	@BitField(ordering = 4, optional = true)
+	@BitField(id = 4, optional = true)
 	var nextPlayerPosition: NextAreaPosition? = null
 		private set
 
-	@BitField(ordering = 5, optional = true)
+	@BitField(id = 5, optional = true)
 	var incomingRandomBattle: IncomingRandomBattle? = null
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	@IntegerField(expectUniform = false, minValue = 0)
 	private var stepsWithoutBattle = area.randomBattles?.minSteps ?: 0
 
-	@BitField(ordering = 7, optional = true)
+	@BitField(id = 7, optional = true)
 	var activeBattle: BattleState? = null
 
 	val rng = Random.Default

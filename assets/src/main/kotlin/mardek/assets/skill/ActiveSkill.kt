@@ -8,71 +8,71 @@ import mardek.assets.combat.Element
 import mardek.assets.combat.PossibleStatusEffect
 import mardek.assets.combat.StatModifierRange
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class ActiveSkill(
 	name: String,
 	description: String,
 	element: Element,
 	masteryPoints: Int,
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val mode: ActiveSkillMode,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val targetType: SkillTargetType,
 
-	@BitField(ordering = 2, optional = true)
+	@BitField(id = 2, optional = true)
 	val damage: SkillDamage?,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 255)
 	val accuracy: Int,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 1000)
 	val manaCost: Int,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	val isHealing: Boolean,
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	val isBreath: Boolean,
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	val isBuff: Boolean,
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	val drainsBlood: Boolean,
 
-	@BitField(ordering = 9)
+	@BitField(id = 9)
 	val statModifiers: ArrayList<StatModifierRange>,
 
-	@BitField(ordering = 10)
+	@BitField(id = 10)
 	val addStatusEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 11)
+	@BitField(id = 11)
 	val removeStatusEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 12)
+	@BitField(id = 12)
 	@FloatField(expectMultipleOf = 0.25)
 	val revive: Float,
 
-	@BitField(ordering = 13, optional = true)
+	@BitField(id = 13, optional = true)
 	val particleEffect: String?,
 
-	@BitField(ordering = 14, optional = true)
+	@BitField(id = 14, optional = true)
 	val soundEffect: String?,
 
-	@BitField(ordering = 15, optional = true)
+	@BitField(id = 15, optional = true)
 	val animation: String?,
 
-	@BitField(ordering = 16)
+	@BitField(id = 16)
 	val combatRequirement: SkillCombatRequirement,
 
 	/**
 	 * Damage/sound delay, only used by needleflare (it's 20). I have no clue what the time unit is.
 	 */
-	@BitField(ordering = 17)
+	@BitField(id = 17)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val delay: Int,
 
@@ -80,27 +80,27 @@ class ActiveSkill(
 	 * I'm not completely sure what this does. It's true for inferno, thunderstorm, earthquake,
 	 * tsunami, galaxy burst, and bloodmoon
 	 */
-	@BitField(ordering = 18)
+	@BitField(id = 18)
 	val allParticleEffects: Boolean,
 
 	/**
 	 * I'm not completely sure what this does. It's true for inferno, thunderstorm, earthquake,
 	 * tsunami, and bloodmoon
 	 */
-	@BitField(ordering = 19)
+	@BitField(id = 19)
 	val centered: Boolean,
 
 	/**
 	 * I'm not completely sure what this does. It's only **false** for inferno, thunderstorm,
 	 * earthquake, and tsunami.
 	 */
-	@BitField(ordering = 20)
+	@BitField(id = 20)
 	val arena: Boolean,
 
-	@BitField(ordering = 21, optional = true)
+	@BitField(id = 21, optional = true)
 	val rawSongPower: String?,
 
-	@BitField(ordering = 22)
+	@BitField(id = 22)
 	val changeElement: Boolean,
 ): Skill(name, description, element, masteryPoints) {
 

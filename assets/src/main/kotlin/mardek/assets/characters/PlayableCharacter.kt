@@ -12,30 +12,30 @@ import mardek.assets.sprite.DirectionalSprites
 import java.util.*
 import kotlin.collections.ArrayList
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class PlayableCharacter(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@ReferenceField(stable = false, label = "character classes")
 	val characterClass: CharacterClass,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	val baseStats: ArrayList<StatModifier>,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	val areaSprites: DirectionalSprites,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	val battleModel: BattleModel,
 ) {
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 

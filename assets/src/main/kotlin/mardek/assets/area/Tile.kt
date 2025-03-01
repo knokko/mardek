@@ -4,15 +4,15 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import mardek.assets.sprite.KimSprite
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Tile(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val sprites: ArrayList<KimSprite>,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val canWalkOn: Boolean,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val waterType: WaterType
 ) {
 

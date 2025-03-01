@@ -7,13 +7,13 @@ import com.github.knokko.bitser.field.IntegerField
 /**
  * Use the `ColorPacker` of `vk-boiler` to extract the RGBA from `colorA` and `colorB`
  */
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaAmbience(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = true)
 	val colorA: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = true)
 	val colorB: Int
 ) {

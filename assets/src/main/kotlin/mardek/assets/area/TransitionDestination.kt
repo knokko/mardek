@@ -5,25 +5,25 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class TransitionDestination(
 	// TODO Optional worldMap
-	@BitField(ordering = 0, optional = true)
+	@BitField(id = 0, optional = true)
 	@ReferenceField(stable = false, label = "areas")
 	var area: Area?,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = -1)
 	val x: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = -1)
 	val y: Int,
 
-	@BitField(ordering = 3, optional = true)
+	@BitField(id = 3, optional = true)
 	val direction: Direction?,
 
-	@BitField(ordering = 4, optional = true)
+	@BitField(id = 4, optional = true)
 	val discoveredAreaName: String?,
 ) {
 

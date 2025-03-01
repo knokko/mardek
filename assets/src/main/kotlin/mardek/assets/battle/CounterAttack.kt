@@ -7,17 +7,17 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.skill.ActiveSkill
 import java.util.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class CounterAttack(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "skills")
 	val action: ActiveSkill,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val chance: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val target: StrategyTarget,
 ) {
 

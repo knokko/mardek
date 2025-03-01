@@ -11,34 +11,34 @@ import mardek.assets.battle.PartyLayout
 import mardek.assets.combat.CombatStat
 import mardek.state.ingame.characters.CharacterState
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Battle(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	val enemies: Array<Enemy?>,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@ReferenceField(stable = true, label = "enemy party layouts")
 	val enemyPositions: PartyLayout,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val music: String,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@ReferenceField(stable = true, label = "battle backgrounds")
 	val background: BattleBackground,
 ) {
 	internal constructor() : this(emptyArray(), PartyLayout(), "", BattleBackground())
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class Enemy(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val monster: Monster,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val level: Int
 ) {

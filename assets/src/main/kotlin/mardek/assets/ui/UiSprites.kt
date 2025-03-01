@@ -5,78 +5,78 @@ import com.github.knokko.bitser.field.BitField
 import mardek.assets.sprite.BcSprite
 import mardek.assets.sprite.KimSprite
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class UiSprites(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val attackIcon: KimSprite,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val defIcon: KimSprite,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val rangedDefIcon: KimSprite,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	val activeStarIcon: KimSprite,
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	val meleeAttackIcon: KimSprite,
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	val rangedAttackIcon: KimSprite,
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	val meleeDefenseIcon: KimSprite,
 
-	@BitField(ordering = 7)
+	@BitField(id = 7)
 	val rangedDefenseIcon: KimSprite,
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	val passiveIcon: KimSprite,
 
-	@BitField(ordering = 9)
+	@BitField(id = 9)
 	val goldIcon: KimSprite,
 
-	@BitField(ordering = 10)
+	@BitField(id = 10)
 	val mastered: KimSprite,
 
-	@BitField(ordering = 11)
+	@BitField(id = 11)
 	val treasure: KimSprite,
 
-	@BitField(ordering = 12)
+	@BitField(id = 12)
 	val plotItem: KimSprite,
 
-	@BitField(ordering = 13)
+	@BitField(id = 13)
 	val mapChest: KimSprite,
 
-	@BitField(ordering = 14)
+	@BitField(id = 14)
 	val mapSaveCrystal: KimSprite,
 
-	@BitField(ordering = 15)
+	@BitField(id = 15)
 	val mapDreamCircle: KimSprite,
 
-	@BitField(ordering = 16)
+	@BitField(id = 16)
 	val skillToggled: KimSprite,
 
-	@BitField(ordering = 17)
+	@BitField(id = 17)
 	val skillNotToggled: KimSprite,
 
-	@BitField(ordering = 18)
+	@BitField(id = 18)
 	val horizontalPointer: KimSprite,
 
-	@BitField(ordering = 19)
+	@BitField(id = 19)
 	val diagonalPointer: KimSprite,
 
-	@BitField(ordering = 20)
+	@BitField(id = 20)
 	val titleScreenBackground: BcSprite,
 
-	@BitField(ordering = 21)
+	@BitField(id = 21)
 	val titleScreenTitle: BcSprite,
 
-	@BitField(ordering = 22)
+	@BitField(id = 22)
 	val blueAlertBalloon: KimSprite,
 
-	@BitField(ordering = 23)
+	@BitField(id = 23)
 	val redAlertBalloon: KimSprite,
 ) {
 

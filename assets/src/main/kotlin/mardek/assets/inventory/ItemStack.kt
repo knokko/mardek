@@ -5,13 +5,13 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class ItemStack(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "items")
 	val item: Item,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val amount: Int
 ) {

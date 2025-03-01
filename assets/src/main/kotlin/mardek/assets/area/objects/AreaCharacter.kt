@@ -7,31 +7,31 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.area.Direction
 import mardek.assets.sprite.DirectionalSprites
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaCharacter(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@ReferenceField(stable = false, label = "character sprites")
 	val sprites: DirectionalSprites,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val startX: Int,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val startY: Int,
 
-	@BitField(ordering = 4, optional = true)
+	@BitField(id = 4, optional = true)
 	val startDirection: Direction?,
 
 	/**
 	 * Not sure what this means. It is used by the throne, unactivated Legion, and dead Dracelon
 	 */
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	val silent: Boolean,
 
 	/**
@@ -39,20 +39,20 @@ class AreaCharacter(
 	 * position, but still shows the walking animation. When it's -2, the character doesn't move, nor does it show any
 	 * walking animation.
 	 */
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	@IntegerField(expectUniform = false, minValue = -2)
 	val walkSpeed: Int,
 
-	@BitField(ordering = 7, optional = true)
+	@BitField(id = 7, optional = true)
 	val element: String?,
 
-	@BitField(ordering = 8, optional = true)
+	@BitField(id = 8, optional = true)
 	val conversationName: String?,
 
-	@BitField(ordering = 9, optional = true)
+	@BitField(id = 9, optional = true)
 	val rawConversation: String?, // TODO Work this out later
 
-	@BitField(ordering = 10, optional = true)
+	@BitField(id = 10, optional = true)
 	val encyclopediaPerson: String?,
 ) {
 

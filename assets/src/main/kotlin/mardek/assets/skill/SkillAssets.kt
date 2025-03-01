@@ -4,20 +4,20 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class SkillAssets(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@ReferenceFieldTarget(label = "skill classes")
 	val classes: ArrayList<SkillClass>,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val sirenSongs: ArrayList<SirenSong>,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@ReferenceFieldTarget(label = "skills")
 	val reactionSkills: ArrayList<ReactionSkill>,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@ReferenceFieldTarget(label = "skills")
 	val passiveSkills: ArrayList<PassiveSkill>,
 ) {

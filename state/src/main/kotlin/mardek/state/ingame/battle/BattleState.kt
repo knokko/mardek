@@ -10,12 +10,12 @@ import mardek.assets.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.state.ingame.CampaignState
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class BattleState(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val battle: Battle,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	@ReferenceField(stable = true, label = "playable characters")
 	val players: Array<PlayableCharacter?>,
@@ -24,13 +24,13 @@ class BattleState(
 	campaignState: CampaignState,
 ) {
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val enemyStates = Array(4) { index ->
 		val enemy = battle.enemies[index] ?: return@Array null
 		CombatantState(enemy, campaign)
 	}
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	val playerStates = Array(4) { index ->
 		val player = players[index] ?: return@Array null
 		CombatantState(player, campaignState.characterStates[player]!!, campaign)

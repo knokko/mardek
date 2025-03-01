@@ -13,12 +13,12 @@ import mardek.assets.combat.ElementalResistance
 import java.util.*
 import kotlin.collections.ArrayList
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class StrategyPool(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val criteria: StrategyCriteria,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val entries: ArrayList<StrategyEntry>,
 ) {
 
@@ -26,20 +26,20 @@ class StrategyPool(
 	private constructor() : this(StrategyCriteria.NONE, ArrayList(0))
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class StrategyEntry(
-	@BitField(ordering = 0, optional = true)
+	@BitField(id = 0, optional = true)
 	@ReferenceField(stable = false, label = "skills")
 	val skill: ActiveSkill?,
 
-	@BitField(ordering = 1, optional = true)
+	@BitField(id = 1, optional = true)
 	@ReferenceField(stable = false, label = "items")
 	val item: Item?,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val target: StrategyTarget,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val chance: Int,
 ) {
@@ -59,7 +59,7 @@ class StrategyEntry(
 	override fun hashCode() = 13 * Objects.hashCode(skill) - 31 * Objects.hashCode(item) + 97 * target.hashCode() - chance
 }
 
-@BitEnum(mode = BitEnum.Mode.VariableIntOrdinal)
+@BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class StrategyTarget(val raw: String) {
 	AnyPlayer("ANY_PC"),
 	AllPlayers("ALL_p"),
@@ -68,52 +68,52 @@ enum class StrategyTarget(val raw: String) {
 	AllAllies("ALL_e")
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class StrategyCriteria(
-	@BitField(ordering = 0, optional = true)
+	@BitField(id = 0, optional = true)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val maxUses: Int? = null,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val hpPercentageAtMost: Int = 100,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val hpPercentageAtLeast: Int = 0,
 
-	@BitField(ordering = 3, optional = true)
+	@BitField(id = 3, optional = true)
 	@ReferenceField(stable = false, label = "status effects")
 	val targetHasEffect: StatusEffect? = null,
 
-	@BitField(ordering = 4, optional = true)
+	@BitField(id = 4, optional = true)
 	@ReferenceField(stable = false, label = "status effects")
 	val targetMissesEffect: StatusEffect? = null,
 
-	@BitField(ordering = 5, optional = true)
+	@BitField(id = 5, optional = true)
 	val resistanceAtMost: ElementalResistance? = null,
 
-	@BitField(ordering = 6, optional = true)
+	@BitField(id = 6, optional = true)
 	val resistanceAtLeast: ElementalResistance? = null,
 
-	@BitField(ordering = 7, optional = true)
+	@BitField(id = 7, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	val myElement: Element? = null,
 
-	@BitField(ordering = 8)
+	@BitField(id = 8)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val freeAllySlots: Int = 0,
 
-	@BitField(ordering = 9)
+	@BitField(id = 9)
 	val targetFainted: Boolean = false,
 
-	@BitField(ordering = 10)
+	@BitField(id = 10)
 	val canUseOnOddTurns: Boolean = true,
 
-	@BitField(ordering = 11)
+	@BitField(id = 11)
 	val canUseOnEvenTurns: Boolean = true,
 
-	@BitField(ordering = 12)
+	@BitField(id = 12)
 	val canRepeat: Boolean = true,
 ) {
 

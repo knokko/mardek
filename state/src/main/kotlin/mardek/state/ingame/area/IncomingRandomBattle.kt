@@ -6,17 +6,17 @@ import com.github.knokko.bitser.field.IntegerField
 import mardek.state.ingame.battle.Battle
 import kotlin.time.Duration
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class IncomingRandomBattle(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val battle: Battle,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = true)
 	val startAt: Duration,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val canAvoid: Boolean,
 ) {
 	@Suppress("unused")

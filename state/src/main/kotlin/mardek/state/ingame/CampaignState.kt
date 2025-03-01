@@ -23,33 +23,33 @@ import mardek.state.ingame.characters.CharacterState
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class CampaignState(
 
-	@BitField(ordering = 0, optional = true)
+	@BitField(id = 0, optional = true)
 	var currentArea: AreaState?,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val characterSelection: CharacterSelectionState,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	@NestedFieldSetting(path = "k", fieldName = "CHARACTER_STATES_KEY")
 	val characterStates: HashMap<PlayableCharacter, CharacterState>,
 
-	@BitField(ordering = 3)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var gold: Int,
 ) {
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	@ReferenceField(stable = true, label = "chests")
 	val openedChests = HashSet<Chest>()
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@ReferenceField(stable = true, label = "plot items")
 	val collectedPlotItems = HashSet<PlotItem>()
 
-	@BitField(ordering = 6)
+	@BitField(id = 6)
 	val areaDiscovery = AreaDiscoveryMap()
 
 	constructor() : this(null, CharacterSelectionState(), HashMap(), 0)

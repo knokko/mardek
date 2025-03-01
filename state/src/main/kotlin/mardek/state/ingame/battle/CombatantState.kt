@@ -20,7 +20,7 @@ private fun determinePlayerMaxMana(player: PlayableCharacter, state: CharacterSt
 	state.determineMaxMana(stats, campaign.combat.stats)
 }
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class CombatantState private constructor( // TODO Use BitField's
 	var maxHealth: Int,
 	var maxMana: Int,

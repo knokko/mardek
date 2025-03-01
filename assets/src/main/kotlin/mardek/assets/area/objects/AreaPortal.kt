@@ -7,22 +7,22 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.area.TransitionDestination
 import mardek.assets.sprite.ObjectSprites
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class AreaPortal(
 
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
 
-	@BitField(ordering = 2)
+	@BitField(id = 2)
 	val destination: TransitionDestination
 ) {
 
-	@BitField(ordering = 3, optional = true)
+	@BitField(id = 3, optional = true)
 	@ReferenceField(stable = false, label = "object sprites")
 	var sprites: ObjectSprites? = null
 

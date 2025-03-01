@@ -9,27 +9,27 @@ import mardek.assets.combat.Element
 import mardek.assets.sprite.KimSprite
 import java.util.*
 
-@BitStruct(backwardCompatible = false)
+@BitStruct(backwardCompatible = true)
 class PlotItem(
-	@BitField(ordering = 0)
+	@BitField(id = 0)
 	val name: String,
 
-	@BitField(ordering = 1)
+	@BitField(id = 1)
 	val description: String,
 
-	@BitField(ordering = 2, optional = true)
+	@BitField(id = 2, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element?,
 
-	@BitField(ordering = 3, optional = true)
+	@BitField(id = 3, optional = true)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val cost: Int?,
 ) {
 
-	@BitField(ordering = 4)
+	@BitField(id = 4)
 	lateinit var sprite: KimSprite
 
-	@BitField(ordering = 5)
+	@BitField(id = 5)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
