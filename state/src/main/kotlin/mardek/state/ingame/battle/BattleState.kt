@@ -24,11 +24,11 @@ class BattleState(
 	campaignState: CampaignState,
 ) {
 
-//	@BitField(ordering = 2)
-//	val enemyStates = Array(4) { index ->
-//		val enemy = battle.enemies[index] ?: return@Array null
-//		CombatantState(enemy)
-//	}
+	@BitField(ordering = 2)
+	val enemyStates = Array(4) { index ->
+		val enemy = battle.enemies[index] ?: return@Array null
+		CombatantState(enemy, campaign)
+	}
 
 	@BitField(ordering = 3)
 	val playerStates = Array(4) { index ->

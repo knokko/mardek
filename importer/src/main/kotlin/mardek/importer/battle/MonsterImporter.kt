@@ -19,6 +19,7 @@ import mardek.assets.skill.SkillAssets
 import mardek.assets.sprite.BcSprite
 import mardek.importer.area.FLASH
 import mardek.importer.area.parseFlashString
+import mardek.importer.skills.SkillParseException
 import mardek.importer.skills.parseActiveSkills
 import mardek.importer.util.*
 import java.io.DataInputStream
@@ -30,14 +31,6 @@ import javax.imageio.ImageIO
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-
-const val OVERRIDE_SKELETON_STATS = """
-mdlStats = {names:["Skeleton"],model:"skeleton",sprite:"skeleton",Class:"Undead",TYPE:"UNDEAD",cElem:"DARK",wpnType:"none",armrTypes:[],baseStats:{hp:6,mp:36,STR:13,VIT:8,SPR:5,AGL:10},nAtk:20,nDef:10,nMDef:0,critical:3,hpGrowth:16,atkGrowth:[0,0],equip:{weapon:["none","Mace"],shield:["none","Wooden Shield","Bronze Shield"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},resist:{LIGHT:-100,DARK:200,FIRE:-50,EARTH:50,ETHER:-50,PSN:100,PAR:100,CRS:100,DRK:100,NUM:100,SIL:100,SLP:100,CNF:100,ZOM:100,BLD:100,BSK:100},EXP:120};
-Techs = [_root.GetMONSTER_SKILL("Morbid Fondle")];
-Gambits = [{command:"Morbid Fondle",target:"ANY_PC",criteria:["random",10]},{command:"Attack",target:"ANY_PC",criteria:null}];
-loot = [["Old Bone",20],["Human Skull",10],["Mace",5]];
-DetermineStats();
-"""
 
 const val OVERRIDE_BARTHOLIO_CHAPTER2 = """
 mdlStats = {names:["Bartholio"],model:"bartholio",unique_sprite:"bartholio",Class:"Fighter",TYPE:"HUMAN",cElem:"LIGHT",wpnType:"GREATSWORD",armrTypes:[],baseStats:{hp:45,mp:30,STR:20,VIT:18,SPR:8,AGL:11},FAIR_STATS:2,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:18,atkGrowth:[0,0],equip:{weapon:["MythrilGreatblade"],shield:["none"],helmet:["none"],armour:["Bronze Armour"],accs:["Gauntlet"],accs2:["GreenBeads"]},resist:{ZOM:100},EXP:1000};
@@ -239,7 +232,6 @@ internal fun importMonsters(
 			}
 
 			var propertiesText = monster.exportedScripts.iterator().next()
-			println("label is ${monster.label}")
 			if (monster.label == "Temperance") propertiesText = OVERRIDE_TEMPERANCE
 			if (monster.label == "Molestor") propertiesText = OVERRIDE_MOLESTOR
 
@@ -528,7 +520,6 @@ internal fun importMonsterStats(
 	name: String, model: BattleModel, propertiesText: String,
 	combatAssets: CombatAssets, itemAssets: InventoryAssets, skillAssets: SkillAssets
 ): Monster {
-	println("properties text is $propertiesText")
 	val mimicry = skillAssets.classes.find { it.name == "Mimicry" }!!
 	val propertiesCode = parseActionScriptCode(listOf(propertiesText))
 	val mdlMap = parseActionScriptObject(propertiesCode.variableAssignments["mdlStats"]!!)
@@ -541,6 +532,11 @@ internal fun importMonsterStats(
 		val stat = combatAssets.stats.find { it.flashName == statName }!!
 		baseStats[stat] = parseInt(statValue)
 	}
+
+	var playerStatModifier = 0
+	var rawFairStats = mdlMap["FAIR_STATS"]
+	if (rawFairStats == "true") rawFairStats = "1"
+	if (rawFairStats != null) playerStatModifier = parseInt(rawFairStats)
 
 	val rawAttack = mdlMap["nAtk"]
 	val rawMeleeDef = mdlMap["nDef"]
@@ -617,6 +613,16 @@ internal fun importMonsterStats(
 		}
 	}
 
+	val initialEffects = ArrayList<StatusEffect>()
+	val rawInitialEffects = mdlMap["initialSTFX"]
+	if (rawInitialEffects != null) {
+		val initialMap = parseActionScriptObject(rawInitialEffects)
+		for ((effectName, one) in initialMap) {
+			if (one != "1") throw SkillParseException("Unexpected initial effects $rawInitialEffects")
+			initialEffects.add(combatAssets.statusEffects.find { it.flashName == effectName }!!)
+		}
+	}
+
 	val rawTechList = propertiesCode.variableAssignments["Techs"]!!.replace(
 		Regex("_root.GetMONSTER_SKILL\\(\"[\\w, ]*\"\\)"), "{legion:true}"
 	)
@@ -681,6 +687,7 @@ internal fun importMonsterStats(
 		type = combatAssets.races.find { it.flashName == typeName }!!,
 		element = combatAssets.elements.find { it.rawName == elementName }!!,
 		baseStats = baseStats,
+		playerStatModifier = playerStatModifier,
 		hpPerLevel = parseInt(mdlMap["hpGrowth"]!!),
 		attackPerLevelNumerator = attackPerLevelNumerator,
 		attackPerLevelDenominator = attackPerLevelDenominator,
@@ -698,6 +705,7 @@ internal fun importMonsterStats(
 		resistances = Resistances(elementalResistances, statusResistances),
 		elementalShiftResistances = shiftResistances,
 		attackEffects = attackEffects,
+		initialEffects = initialEffects,
 		actions = ArrayList(usedActions),
 		strategies = strategies,
 		meleeCounterAttacks = meleeCounterAttacks,

@@ -74,7 +74,7 @@ class CharacterState {
 		for (skill in toggledSkills) {
 			if (skill is PassiveSkill) hpModifier += skill.hpModifier
 		}
-		return ((1f + hpModifier) * (3 * vit + 2 * vit * currentLevel + extra)).roundToInt()
+		return determineMaxHealth(currentLevel, vit, hpModifier, extra)
 	}
 
 	fun determineMaxMana(base: List<StatModifier>, allStats: List<CombatStat>): Int {
@@ -84,10 +84,23 @@ class CharacterState {
 		for (skill in toggledSkills) {
 			if (skill is PassiveSkill) mpModifier += skill.mpModifier
 		}
-		return ((1f + mpModifier) * (spr * 17 / 6 + spr * currentLevel / 6 + extra)).roundToInt()
+		return determineMaxMana(currentLevel, spr, mpModifier, extra)
 	}
 
 	fun determineSkillEnablePoints() = 3 + (currentLevel / 2) + (currentLevel % 2)
+
+	fun determineAutoEffects(): Set<StatusEffect> {
+		val effects = HashSet<StatusEffect>()
+		for (item in equipment) {
+			val equipment = item?.equipment ?: continue
+			effects.addAll(equipment.autoEffects)
+		}
+		for (skill in toggledSkills) {
+			if (skill !is PassiveSkill) continue
+			effects.addAll(skill.autoEffects)
+		}
+		return effects
+	}
 
 	companion object {
 
@@ -100,5 +113,13 @@ class CharacterState {
 		@JvmStatic
 		@IntegerField(expectUniform = false, minValue = 1)
 		val SKILL_MASTERY_VALUE = false
+
+		fun determineMaxHealth(
+			level: Int, vitality: Int, modifier: Float, extra: Int
+		) = ((1f + modifier) * (3 * vitality + 2 * vitality * level + extra)).roundToInt()
+
+		fun determineMaxMana(
+			level: Int, spirit: Int, modifier: Float, extra: Int
+		) = ((1f + modifier) * (spirit * 17 / 6 + spirit * level / 6 + extra)).roundToInt()
 	}
 }

@@ -8,7 +8,7 @@ import com.github.knokko.bitser.field.ReferenceField
 @BitStruct(backwardCompatible = false)
 class CreatureTypeBonus(
 	@BitField(ordering = 0)
-	@ReferenceField(stable = false, label = "races")
+	@ReferenceField(stable = false, label = "creature types")
 	val type: CreatureType,
 
 	@BitField(ordering = 1)

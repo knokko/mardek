@@ -98,7 +98,6 @@ private fun importRawMonsterStrategy(
 		if (type == "random") {
 			chance = parseInt(rawCriteria[1].toString())
 		} else {
-			println("rawCriteria is $rawCriteria")
 			@Suppress("SpellCheckingInspection")
 			if (type == "MYHP<") type = "HP<"
 			criteria = criteria.merge(when (type) {

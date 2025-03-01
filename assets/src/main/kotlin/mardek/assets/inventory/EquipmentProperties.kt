@@ -23,37 +23,37 @@ class EquipmentProperties(
 	@BitField(ordering = 3)
 	val resistances: Resistances,
 
-	@BitField(ordering = 5)
+	@BitField(ordering = 4)
 	@ReferenceField(stable = false, label = "status effects")
 	val autoEffects: ArrayList<StatusEffect>,
 
-	@BitField(ordering = 6, optional = true)
+	@BitField(ordering = 5, optional = true)
 	val weapon: WeaponProperties?,
 
-	@BitField(ordering = 7, optional = true)
+	@BitField(ordering = 6, optional = true)
 	@ReferenceField(stable = false, label = "armor types")
 	val armorType: ArmorType?,
 
-	@BitField(ordering = 8, optional = true)
+	@BitField(ordering = 7, optional = true)
 	val gem: GemProperties?,
 
-	@BitField(ordering = 9, optional = true)
+	@BitField(ordering = 8, optional = true)
 	val onlyUser: String?,
 
-	@BitField(ordering = 10)
+	@BitField(ordering = 9)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val charismaticPerformanceChance: Int,
 ) {
-
-	fun getSlotType(): EquipmentSlotType {
-		if (weapon != null) return EquipmentSlotType.MainHand
-		if (armorType == null) return EquipmentSlotType.Accessory
-		return armorType.slot
-	}
 
 	@Suppress("unused")
 	private constructor() : this(
 		ArrayList(0), ArrayList(0), ArrayList(0), Resistances(), ArrayList(0),
 		null, null, null, null, 0
 	)
+
+	fun getSlotType(): EquipmentSlotType {
+		if (weapon != null) return EquipmentSlotType.MainHand
+		if (armorType == null) return EquipmentSlotType.Accessory
+		return armorType.slot
+	}
 }

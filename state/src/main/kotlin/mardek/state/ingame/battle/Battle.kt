@@ -8,6 +8,8 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.assets.battle.BattleBackground
 import mardek.assets.battle.Monster
 import mardek.assets.battle.PartyLayout
+import mardek.assets.combat.CombatStat
+import mardek.state.ingame.characters.CharacterState
 
 @BitStruct(backwardCompatible = false)
 class Battle(
@@ -42,4 +44,21 @@ class Enemy(
 ) {
 	@Suppress("unused")
 	private constructor() : this(Monster(), 0)
+
+	fun determineMaxHealth(allStats: ArrayList<CombatStat>, bonusVitality: Int): Int { // TODO Maybe turn CombatStat into enum
+		if (monster.playerStatModifier == 0) {
+			return monster.baseStats[allStats.find { it.flashName == "hp" }!!]!! + level * monster.hpPerLevel
+		} else {
+			TODO()
+		}
+	}
+
+	fun determineMaxMana(allStats: ArrayList<CombatStat>, bonusSpirit: Int): Int {
+		if (monster.playerStatModifier == 0) {
+			return monster.baseStats[allStats.find { it.flashName == "mp" }!!]!!
+		} else {
+			TODO()
+			//return CharacterState.determineMaxMana(level, spirit, modifier, extra)
+		}
+	}
 }

@@ -21,7 +21,7 @@ private fun determinePlayerMaxMana(player: PlayableCharacter, state: CharacterSt
 }
 
 @BitStruct(backwardCompatible = false)
-class CombatantState private constructor(
+class CombatantState private constructor( // TODO Use BitField's
 	var maxHealth: Int,
 	var maxMana: Int,
 	var currentHealth: Int,
@@ -44,9 +44,22 @@ class CombatantState private constructor(
 	 */
 	val statModifiers = HashMap<CombatStat, Int>()
 
-//	constructor(enemy: Enemy) : this(
-//		ehm, ehm, ehm, ehm, ehm, ehm, ehm
-//	)
+	@Suppress("unused")
+	private constructor() : this(
+		0, 0, 0, 0, { _, _ -> 0 }, { _, _ -> 0 }, HashSet()
+	)
+
+	constructor(enemy: Enemy, campaign: Campaign) : this(
+		maxHealth = enemy.determineMaxHealth(campaign.combat.stats, 0),
+		recomputeMaxHealth = { _, bonusVitality -> enemy.determineMaxHealth(campaign.combat.stats, bonusVitality) },
+		currentHealth = enemy.determineMaxHealth(campaign.combat.stats, 0),
+
+		maxMana = enemy.determineMaxMana(campaign.combat.stats, 0),
+		recomputeMaxMana = { _, bonusSpirit -> enemy.determineMaxMana(campaign.combat.stats, bonusSpirit) },
+		currentMana = enemy.determineMaxMana(campaign.combat.stats, 0),
+
+		statusEffects = HashSet(enemy.monster.initialEffects)
+	)
 
 	constructor(player: PlayableCharacter, state: CharacterState, campaign: Campaign) : this(
 		maxHealth = determinePlayerMaxHealth(player, state)(campaign, 0),
@@ -57,6 +70,6 @@ class CombatantState private constructor(
 		recomputeMaxMana = determinePlayerMaxMana(player, state),
 		currentMana = state.currentMana,
 
-		statusEffects = state.activeStatusEffects
+		statusEffects = HashSet(state.activeStatusEffects + state.determineAutoEffects())
 	)
 }

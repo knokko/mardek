@@ -96,25 +96,25 @@ class StrategyCriteria(
 	@BitField(ordering = 6, optional = true)
 	val resistanceAtLeast: ElementalResistance? = null,
 
-	@BitField(ordering = 6)
-	val canUseOnOddTurns: Boolean = true,
-
-	@BitField(ordering = 7)
-	val canUseOnEvenTurns: Boolean = true,
-
-	@BitField(ordering = 8)
-	val canRepeat: Boolean = true,
-
-	@BitField(ordering = 9, optional = true)
+	@BitField(ordering = 7, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	val myElement: Element? = null,
 
-	@BitField(ordering = 10)
+	@BitField(ordering = 8)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val freeAllySlots: Int = 0,
 
-	@BitField(ordering = 11)
+	@BitField(ordering = 9)
 	val targetFainted: Boolean = false,
+
+	@BitField(ordering = 10)
+	val canUseOnOddTurns: Boolean = true,
+
+	@BitField(ordering = 11)
+	val canUseOnEvenTurns: Boolean = true,
+
+	@BitField(ordering = 12)
+	val canRepeat: Boolean = true,
 ) {
 
 	// TODO Maybe let Bitser handle this

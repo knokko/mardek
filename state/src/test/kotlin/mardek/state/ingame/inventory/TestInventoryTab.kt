@@ -4,6 +4,7 @@ import mardek.assets.animations.BattleModel
 import mardek.assets.characters.PlayableCharacter
 import mardek.assets.combat.CharacterClass
 import mardek.assets.combat.Element
+import mardek.assets.combat.Resistances
 import mardek.assets.inventory.*
 import mardek.assets.skill.SkillClass
 import mardek.assets.sprite.DirectionalSprites
@@ -80,8 +81,7 @@ class TestInventoryTab {
 		skills = ArrayList(0),
 		stats = ArrayList(0),
 		elementalBonuses = ArrayList(0),
-		elementalResistances = ArrayList(0),
-		statusResistances = ArrayList(0),
+		resistances = Resistances(),
 		autoEffects = ArrayList(0),
 		weapon = weapon,
 		armorType = armorType,

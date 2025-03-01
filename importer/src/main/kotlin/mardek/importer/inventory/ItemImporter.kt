@@ -92,7 +92,7 @@ private fun parseEquipment(
 				val modifier = parseInt(effectPair[2] as String) / 100f
 
 				if (rawName == "R_ELEM") {
-					elementalResistances.add(ElementalResistance(element, -modifier))
+					elementalResistances.add(ElementalResistance(element, modifier))
 				} else {
 					elementalBonuses.add(ElementalDamageBonus(element, modifier))
 				}

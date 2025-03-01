@@ -19,7 +19,7 @@ class CombatAssets(
 	val statusEffects: ArrayList<StatusEffect>,
 
 	@BitField(ordering = 3)
-	@ReferenceFieldTarget(label = "races")
+	@ReferenceFieldTarget(label = "creature types")
 	val races: ArrayList<CreatureType>,
 
 	@BitField(ordering = 4)

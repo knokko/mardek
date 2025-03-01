@@ -21,7 +21,6 @@ internal fun importCounterAttacks(
 	return ArrayList(nestedList.map { rawPair ->
 		if (rawPair !is ArrayList<*>) throw SkillParseException("Unexpected counter attacks $rawList")
 		val actionName = parseFlashString(rawPair[0].toString(), "counter attack skill")!!
-		println("action name is $actionName")
 		val action = actions.find { it.name == actionName } ?: legionSkills.find { it.name == actionName }!!
 		val rawChance = parseInt(rawPair[1].toString())
 		val chance = (rawChance * remainingChance / 100.0).roundToInt()

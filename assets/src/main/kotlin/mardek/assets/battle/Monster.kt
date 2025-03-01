@@ -38,73 +38,80 @@ class Monster(
 
 	@BitField(ordering = 6)
 	@IntegerField(expectUniform = false, minValue = 0)
-	val hpPerLevel: Int,
+	val playerStatModifier: Int,
 
 	@BitField(ordering = 7)
 	@IntegerField(expectUniform = false, minValue = 0)
-	val attackPerLevelNumerator: Int,
+	val hpPerLevel: Int,
 
 	@BitField(ordering = 8)
 	@IntegerField(expectUniform = false, minValue = 0)
-	val attackPerLevelDenominator: Int,
+	val attackPerLevelNumerator: Int,
 
 	@BitField(ordering = 9)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val attackPerLevelDenominator: Int,
+
+	@BitField(ordering = 10)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val critChance: Int,
 
-	@BitField(ordering = 10)
+	@BitField(ordering = 11)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val experience: Int,
 
-	@BitField(ordering = 11)
+	@BitField(ordering = 12)
 	val loot: ArrayList<PotentialItem>,
 
-	@BitField(ordering = 11)
+	@BitField(ordering = 13)
 	val plotLoot: ArrayList<PotentialPlotItem>,
 
-	@BitField(ordering = 12)
+	@BitField(ordering = 14)
 	@ReferenceField(stable = false, label = "dreamstones")
 	val dreamLoot: ArrayList<Dreamstone>,
 
-	@BitField(ordering = 12)
+	@BitField(ordering = 15)
 	val weapon: PotentialEquipment,
 
-	@BitField(ordering = 13)
+	@BitField(ordering = 16)
 	val shield: PotentialEquipment,
 
-	@BitField(ordering = 14)
+	@BitField(ordering = 17)
 	val helmet: PotentialEquipment,
 
-	@BitField(ordering = 15)
+	@BitField(ordering = 18)
 	val armor: PotentialEquipment,
 
-	@BitField(ordering = 16)
+	@BitField(ordering = 19)
 	val accessory1: PotentialEquipment,
 
-	@BitField(ordering = 17)
+	@BitField(ordering = 20)
 	val accessory2: PotentialEquipment,
 
-	@BitField(ordering = 18)
+	@BitField(ordering = 21)
 	val resistances: Resistances,
 
-	@BitField(ordering = 19)
+	@BitField(ordering = 22)
 	@NestedFieldSetting(path = "k", fieldName = "SHIFT_RESISTANCES_KEY_PROPERTIES")
 	val elementalShiftResistances: HashMap<Element, Resistances>,
 
-	@BitField(ordering = 20)
+	@BitField(ordering = 23)
 	val attackEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(ordering = 21)
+	@BitField(ordering = 24)
+	val initialEffects: ArrayList<StatusEffect>,
+
+	@BitField(ordering = 25)
 	@ReferenceFieldTarget(label = "skills")
 	val actions: ArrayList<ActiveSkill>,
 
-	@BitField(ordering = 22)
+	@BitField(ordering = 26)
 	val strategies: ArrayList<StrategyPool>,
 
-	@BitField(ordering = 23)
+	@BitField(ordering = 27)
 	val meleeCounterAttacks: ArrayList<CounterAttack>,
 
-	@BitField(ordering = 24)
+	@BitField(ordering = 28)
 	val rangedCounterAttacks: ArrayList<CounterAttack>,
 ) {
 
@@ -115,6 +122,7 @@ class Monster(
 		type = CreatureType(),
 		element = Element(),
 		baseStats = HashMap(),
+		playerStatModifier = 0,
 		hpPerLevel = 0,
 		attackPerLevelNumerator = 0,
 		attackPerLevelDenominator = 0,
@@ -132,6 +140,7 @@ class Monster(
 		resistances = Resistances(),
 		elementalShiftResistances = HashMap(0),
 		attackEffects = ArrayList(),
+		initialEffects = ArrayList(),
 		actions = ArrayList(),
 		strategies = ArrayList(),
 		meleeCounterAttacks = ArrayList(),

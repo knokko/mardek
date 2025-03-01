@@ -347,19 +347,19 @@ class InventoryTabRenderer(
 						addLine("Empowers ${bonus.element.properName} (${percentageString(bonus.modifier)})", goodTextColor)
 					}
 
-					for (resistance in equipment.elementalResistances) {
-						if (resistance.modifier < -1f) {
-							addLine("Absorb ${resistance.element.properName} (${percentageString(-1f - resistance.modifier)})", goodTextColor)
-						} else if (resistance.modifier < 0f) {
-							addLine("Resist ${resistance.element.properName} (${percentageString(-resistance.modifier)})", goodTextColor)
+					for (resistance in equipment.resistances.elements) {
+						if (resistance.modifier > 1f) {
+							addLine("Absorb ${resistance.element.properName} (${percentageString(resistance.modifier - 1f)})", goodTextColor)
+						} else if (resistance.modifier > 0f) {
+							addLine("Resist ${resistance.element.properName} (${percentageString(resistance.modifier)})", goodTextColor)
 						}
-						if (resistance.modifier > 0f) {
+						if (resistance.modifier < 0f) {
 							addLine("Vulnerable to ${resistance.element.properName} (${percentageString(-resistance.modifier)})", badTextColor)
 						}
 					}
 
-					for (resistance in equipment.statusResistances) {
-						addLine("Resist ${resistance.effect.niceName} (${resistance.chance}%)", goodTextColor)
+					for (resistance in equipment.resistances.effects) {
+						addLine("Resist ${resistance.effect.niceName} (${resistance.percentage}%)", goodTextColor)
 					}
 
 					if (equipment.charismaticPerformanceChance != 0) {

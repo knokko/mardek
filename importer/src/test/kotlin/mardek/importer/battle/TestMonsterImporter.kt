@@ -344,6 +344,7 @@ class TestMonsterImporter {
 		val bernard = importMonsterStats(
 			"Bernard", BattleModel(), OVERRIDE_BERNARD_CHAPTER3, combatAssets, itemAssets, skillAssets
 		)
+		assertEquals(4, bernard.playerStatModifier)
 
 		assertEquals(4, bernard.actions.size)
 		val heh = bernard.actions[0]
@@ -617,6 +618,9 @@ class TestMonsterImporter {
 		val stone = importMonsterStats(
 			"Master Stone", BattleModel(), MASTER_STONE_PROPERTIES, combatAssets, itemAssets, skillAssets
 		)
+
+		assertEquals(0, stone.playerStatModifier)
+		assertEquals(arrayListOf(combatAssets.statusEffects.find { it.niceName == "Haste" }!!), stone.initialEffects)
 
 		val fire = combatAssets.elements.find { it.rawName == "FIRE" }!!
 		val fireResistances = stone.elementalShiftResistances[fire]!!

@@ -91,6 +91,7 @@ class RandomAreaBattles(
 class BattleEnemySelection(
 
 	@BitField(ordering = 0)
+	@ReferenceField(stable = false, label = "monsters")
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(minValue = 4, maxValue = 4, expectUniform = true))
 	val enemies: ArrayList<Monster?>,
