@@ -74,6 +74,6 @@ fun main() {
 
 private fun exportCampaignData(campaign: Campaign, outputFolder: File, bitser: Bitser) {
 	val output = BitOutputStream(BufferedOutputStream(Files.newOutputStream(File("$outputFolder/campaign.bin").toPath())))
-	bitser.serialize(campaign, output)
+	bitser.serialize(campaign, output, Bitser.BACKWARD_COMPATIBLE)
 	output.finish()
 }

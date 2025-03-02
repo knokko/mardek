@@ -46,7 +46,7 @@ class TestPlayableCharacterImporter {
 		activeSkill("Smite Evil")
 
 		val input1 = BitInputStream(ByteArrayInputStream(campaign.checkpoints["chapter1"]!!))
-		val chapter1 = bitser.deserialize(CampaignState::class.java, input1, campaign)
+		val chapter1 = bitser.deserialize(CampaignState::class.java, input1, campaign, Bitser.BACKWARD_COMPATIBLE)
 
 		val state = chapter1.characterStates[mardek]!!
 		assertEquals(50, state.currentLevel)

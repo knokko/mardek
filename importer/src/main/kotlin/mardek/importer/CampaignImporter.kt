@@ -72,7 +72,7 @@ fun importDefaultCampaign(bitser: Bitser, skipMonsters: Boolean = false): Campai
 	fun addCheckpoint(name: String, state: CampaignState) {
 		val byteOutput = ByteArrayOutputStream()
 		val bitOutput = BitOutputStream(byteOutput)
-		bitser.serialize(state, bitOutput, campaign)
+		bitser.serialize(state, bitOutput, campaign, Bitser.BACKWARD_COMPATIBLE)
 		bitOutput.finish()
 		campaign.checkpoints[name] = byteOutput.toByteArray()
 	}

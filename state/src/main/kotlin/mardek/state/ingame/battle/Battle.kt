@@ -9,7 +9,6 @@ import mardek.assets.battle.BattleBackground
 import mardek.assets.battle.Monster
 import mardek.assets.battle.PartyLayout
 import mardek.assets.combat.CombatStat
-import mardek.state.ingame.characters.CharacterState
 
 @BitStruct(backwardCompatible = true)
 class Battle(
@@ -36,6 +35,7 @@ class Battle(
 @BitStruct(backwardCompatible = true)
 class Enemy(
 	@BitField(id = 0)
+	@ReferenceField(stable = true, label = "monsters")
 	val monster: Monster,
 
 	@BitField(id = 1)

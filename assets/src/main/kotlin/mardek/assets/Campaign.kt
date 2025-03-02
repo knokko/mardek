@@ -52,7 +52,7 @@ class Campaign(
 	companion object {
 		fun load(resourcePath: String): Campaign {
 			val input = BitInputStream(BufferedInputStream(Campaign::class.java.classLoader.getResourceAsStream(resourcePath)!!))
-			val assets = Bitser(false).deserialize(Campaign::class.java, input)
+			val assets = Bitser(false).deserialize(Campaign::class.java, input, Bitser.BACKWARD_COMPATIBLE)
 			input.close()
 
 			return assets

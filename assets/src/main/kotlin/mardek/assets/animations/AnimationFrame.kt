@@ -10,5 +10,6 @@ class AnimationFrame(
 	val parts: Array<AnimationPart>,
 ) {
 
-	constructor() : this(emptyArray())
+	@Suppress("unused")
+	private constructor() : this(emptyArray())
 }

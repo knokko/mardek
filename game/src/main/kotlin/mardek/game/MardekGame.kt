@@ -14,7 +14,6 @@ import mardek.renderer.SharedResources
 import mardek.state.GameStateManager
 import mardek.state.StartupState
 import org.lwjgl.vulkan.VK10.*
-import org.lwjgl.vulkan.VK12.VK_API_VERSION_1_2
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 

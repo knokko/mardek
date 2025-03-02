@@ -1,6 +1,7 @@
 package mardek.state.title
 
 import com.github.knokko.bitser.io.BitInputStream
+import com.github.knokko.bitser.serialize.Bitser
 import mardek.assets.Campaign
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
@@ -49,7 +50,7 @@ class TitleScreenState(val assets: Campaign): GameState {
 						val rawCheckpoint = assets.checkpoints["chapter1"]!!
 						val bitInput = BitInputStream(ByteArrayInputStream(rawCheckpoint))
 						val campaignState = GameStateManager.bitser.deserialize(
-								CampaignState::class.java, bitInput, assets
+								CampaignState::class.java, bitInput, assets, Bitser.BACKWARD_COMPATIBLE
 						)
 						bitInput.close()
 

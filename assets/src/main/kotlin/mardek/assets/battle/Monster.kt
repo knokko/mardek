@@ -6,10 +6,12 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.assets.animations.BattleModel
 import mardek.assets.combat.*
 import mardek.assets.inventory.Dreamstone
 import mardek.assets.skill.ActiveSkill
+import java.util.UUID
 
 @BitStruct(backwardCompatible = true)
 class Monster(
@@ -114,6 +116,10 @@ class Monster(
 	@BitField(id = 28)
 	val rangedCounterAttacks: ArrayList<CounterAttack>,
 ) {
+
+	@BitField(id = 29)
+	@StableReferenceFieldId
+	val id = UUID.randomUUID()!!
 
 	constructor() : this(
 		name = "",
