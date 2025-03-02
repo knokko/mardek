@@ -14,6 +14,7 @@ import mardek.renderer.SharedResources
 import mardek.state.GameStateManager
 import mardek.state.StartupState
 import org.lwjgl.vulkan.VK10.*
+import java.io.File
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -24,6 +25,8 @@ fun main(args: Array<String>) {
 		return
 	}
 
+	System.setOut(Logger(File("mardek-stdout.txt"), System.out))
+	System.setErr(Logger(File("mardek-stderr.txt"), System.err))
 	val mainThread = Thread.currentThread()
 	val campaign = CompletableFuture<Campaign>()
 	val input = InputManager()

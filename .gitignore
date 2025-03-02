@@ -1,3 +1,5 @@
 /.gradle
 /.idea
 **/build/
+/mardek-stdout.txt
+/mardek-stderr.txt
