@@ -8,10 +8,7 @@ import org.lwjgl.vulkan.VK10.*
 
 const val LIGHT_VERTEX_SIZE = 4 * 4
 
-class LightResources(
-	boiler: BoilerInstance,
-	targetImageFormat: Int,
-) {
+class LightResources(boiler: BoilerInstance, renderPass: Long) {
 
 	val pipelineLayout: Long
 	val graphicsPipeline: Long
@@ -50,7 +47,8 @@ class LightResources(
 			builder.simpleColorBlending(1)
 			builder.dynamicStates(VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR)
 			builder.ciPipeline.layout(pipelineLayout)
-			builder.dynamicRendering(0, VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, targetImageFormat)
+			builder.ciPipeline.renderPass(renderPass)
+			builder.ciPipeline.subpass(0)
 			this.graphicsPipeline = builder.build("LightGraphicsPipeline")
 		}
 	}

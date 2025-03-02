@@ -9,11 +9,13 @@ import com.github.knokko.compressor.Kim1Compressor
 import com.github.knokko.compressor.Kim2Compressor
 import com.github.knokko.ui.renderer.UiRenderInstance
 import mardek.assets.sprite.KimSprite
+import mardek.renderer.createRenderPass
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.lwjgl.BufferUtils
 import org.lwjgl.vulkan.VK10.*
-import org.lwjgl.vulkan.VkRenderingAttachmentInfo
+import org.lwjgl.vulkan.VkClearValue
+import org.lwjgl.vulkan.VkRenderPassBeginInfo
 import java.awt.Color
 import javax.imageio.ImageIO
 
@@ -53,6 +55,8 @@ class TestBatchRendering {
 			VK_API_VERSION_1_0, "TestBatchRendering", 1
 		).enableDynamicRendering().validation().forbidValidationErrors().build()
 
+		val renderPass = createRenderPass(boiler, VK_FORMAT_R8G8B8A8_SRGB)
+
 		val kimBuffer = boiler.buffers.createMapped(
 			4L * (redCompressor.intSize + orangeCompressor.intSize + greenIntSize + cyanIntSize),
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "KimBuffer"
@@ -91,18 +95,22 @@ class TestBatchRendering {
 			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
 			VK_IMAGE_ASPECT_COLOR_BIT, "TargetImage"
 		)
+		val framebuffer = boiler.images.createFramebuffer(
+			renderPass, targetImage.width, targetImage.height,
+			"TestBatchFramebuffer", targetImage.vkImageView
+		)
 		val perFrameBuffer = PerFrameBuffer(perFrameRange)
 		perFrameBuffer.startFrame(0)
 
-		val kim1Renderer = Kim1Renderer(boiler, perFrameBuffer, kimBuffer.fullRange(), VK_FORMAT_R8G8B8A8_SRGB, 1)
-		val kim2Renderer = Kim2Renderer(boiler, perFrameBuffer, kimBuffer.fullRange(), VK_FORMAT_R8G8B8A8_SRGB)
+		val kim1Renderer = Kim1Renderer(boiler, perFrameBuffer, kimBuffer.fullRange(), renderPass, 1)
+		val kim2Renderer = Kim2Renderer(boiler, perFrameBuffer, kimBuffer.fullRange(), renderPass)
 
 		val targetBuffer = boiler.buffers.createMapped(
 			4L * targetImage.width * targetImage.height,
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT, "TargetBuffer"
 		)
 
-		val uiInstance = UiRenderInstance.withDynamicRendering(boiler, 0, VK_FORMAT_R8G8B8A8_SRGB)
+		val uiInstance = UiRenderInstance.withRenderPass(boiler, renderPass, 0)
 		val uiRenderer = uiInstance.createRenderer(perFrameBuffer)
 
 		val commands = SingleTimeCommands(boiler)
@@ -122,15 +130,19 @@ class TestBatchRendering {
 
 			kim1Renderer.recordBeforeRenderpass(recorder, 0)
 
-			val colorAttachments = VkRenderingAttachmentInfo.calloc(1, recorder.stack)
-			recorder.simpleColorRenderingAttachment(
-				colorAttachments.get(0), targetImage.vkImageView, VK_ATTACHMENT_LOAD_OP_CLEAR,
-				VK_ATTACHMENT_STORE_OP_STORE, 1f, 0f, 1f, 1f
-			)
-			recorder.beginSimpleDynamicRendering(
-				targetImage.width, targetImage.height,
-				colorAttachments, null, null
-			)
+			val clearValues = VkClearValue.calloc(1, recorder.stack)
+			clearValues.get(0).color().float32(recorder.stack.floats(1f, 0f, 1f, 1f))
+
+			val biRenderPass = VkRenderPassBeginInfo.calloc(recorder.stack)
+			biRenderPass.`sType$Default`()
+			biRenderPass.renderPass(renderPass)
+			biRenderPass.framebuffer(framebuffer)
+			biRenderPass.renderArea().offset().set(0, 0)
+			biRenderPass.renderArea().extent().set(targetImage.width, targetImage.height)
+			biRenderPass.pClearValues(clearValues)
+			biRenderPass.clearValueCount(1)
+
+			vkCmdBeginRenderPass(recorder.commandBuffer, biRenderPass, VK_SUBPASS_CONTENTS_INLINE)
 			recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
 			uiRenderer.begin(recorder, targetImage)
@@ -148,7 +160,7 @@ class TestBatchRendering {
 			uiRenderer.end()
 			kim1Renderer.end()
 			kim2Renderer.end()
-			recorder.endDynamicRendering()
+			vkCmdEndRenderPass(recorder.commandBuffer)
 
 			recorder.transitionLayout(targetImage, ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.TRANSFER_SOURCE)
 			recorder.copyImageToBuffer(targetImage, targetBuffer.fullRange())
@@ -171,8 +183,10 @@ class TestBatchRendering {
 		kim2Renderer.destroy()
 		kim1Renderer.destroy()
 		perFrameRange.buffer.destroy(boiler)
+		vkDestroyFramebuffer(boiler.vkDevice(), framebuffer, null)
 		targetImage.destroy(boiler)
 		kimBuffer.destroy(boiler)
+		vkDestroyRenderPass(boiler.vkDevice(), renderPass, null)
 		boiler.destroyInitialObjects()
 	}
 }

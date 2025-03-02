@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
 
 	Thread {
 		try {
-			sharedResources.complete(SharedResources(getBoiler, framesInFlight, getTargetImageFormat))
+			sharedResources.complete(SharedResources(getBoiler, framesInFlight))
 		} catch (failed: Throwable) {
 			sharedResources.completeExceptionally(failed)
 		}
@@ -56,6 +56,7 @@ fun main(args: Array<String>) {
 		val boilerBuilder = BoilerBuilder(
 			VK_API_VERSION_1_0, "MardekKt", 1
 		).addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+		boilerBuilder.printDeviceRejectionInfo()
 		if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()
 		if (args.contains("api-dump")) boilerBuilder.apiDump()
 		if (args.contains("integrated")) boilerBuilder.physicalDeviceSelector(SimpleDeviceSelector(

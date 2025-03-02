@@ -11,11 +11,11 @@ class Kim2Renderer(
 	private val boiler: BoilerInstance,
 	private val perFrameBuffer: PerFrameBuffer,
 	spriteBuffer: VkbBufferRange,
-	targetImageFormat: Int,
+	renderPass: Long
 ) {
 	private val batches = HashSet<KimBatch>()
 
-	private val resources = Kim2Resources(boiler, targetImageFormat, spriteBuffer)
+	private val resources = Kim2Resources(boiler, renderPass, spriteBuffer)
 
 	fun begin() {
 		if (batches.isNotEmpty()) {

@@ -26,7 +26,7 @@ private fun createComputeDescriptorSetLayout(boiler: BoilerInstance) = stackPush
 class Kim1Resources(
 	boiler: BoilerInstance,
 	framesInFlight: Int,
-	targetImageFormat: Int,
+	renderPass: Long,
 
 	spriteBuffer: VkbBufferRange,
 	perFrameBuffer: PerFrameBuffer,
@@ -87,7 +87,8 @@ class Kim1Resources(
 			builder.simpleColorBlending(1)
 			builder.dynamicStates(VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR)
 			builder.ciPipeline.layout(graphicsLayout)
-			builder.dynamicRendering(0, VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, targetImageFormat)
+			builder.ciPipeline.renderPass(renderPass)
+			builder.ciPipeline.subpass(0)
 			this.graphicsPipeline = builder.build("Kim1GraphicsPipeline")
 
 			val computeConstants = VkPushConstantRange.calloc(1, stack)

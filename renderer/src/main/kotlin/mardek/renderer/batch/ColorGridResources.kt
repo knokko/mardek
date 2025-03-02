@@ -3,23 +3,18 @@ package mardek.renderer.batch
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
-import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 
-private fun createDescriptorSetLayout(boiler: BoilerInstance) = MemoryStack.stackPush().use { stack ->
+private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
 	val bindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
 	boiler.descriptors.binding(bindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
 	boiler.descriptors.createLayout(stack, bindings, "ColorGridDescriptorLayout")
 }
 
 // TODO Add CombinedDescriptorPool to vk-boiler
-class ColorGridResources(
-	boiler: BoilerInstance,
-	targetImageFormat: Int,
-	perFrame: PerFrameBuffer,
-) {
+class ColorGridResources(boiler: BoilerInstance, renderPass: Long, perFrame: PerFrameBuffer) {
 
 	private val descriptorLayout = createDescriptorSetLayout(boiler)
 	private val descriptorPool = descriptorLayout.createPool(1, 0, "Kim2DescriptorPool")
@@ -51,7 +46,8 @@ class ColorGridResources(
 			builder.noColorBlending(1)
 			builder.dynamicStates(VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR)
 			builder.ciPipeline.layout(pipelineLayout)
-			builder.dynamicRendering(0, VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, targetImageFormat)
+			builder.ciPipeline.renderPass(renderPass)
+			builder.ciPipeline.subpass(0)
 			this.graphicsPipeline = builder.build("ColorGridPipeline")
 
 			val writes = VkWriteDescriptorSet.calloc(1, stack)

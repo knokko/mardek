@@ -5,6 +5,7 @@ import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.synchronization.ResourceUsage
 import com.github.knokko.boiler.window.AcquiredImage
 import com.github.knokko.boiler.window.SimpleWindowRenderLoop
+import com.github.knokko.boiler.window.SwapchainResourceManager
 import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.profiler.SampleProfiler
 import com.github.knokko.profiler.storage.SampleStorage
@@ -16,6 +17,7 @@ import mardek.state.GameStateManager
 import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.KHRSurface.*
+import org.lwjgl.vulkan.VK10.vkDestroyFramebuffer
 import java.util.concurrent.CompletableFuture
 
 class GameWindow(
@@ -30,6 +32,7 @@ class GameWindow(
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
 	private lateinit var renderer: GameRenderer
+	private lateinit var framebuffers: SwapchainResourceManager<Long>
 
 	private val updateCounter = UpdateCounter()
 	private var lastFps = -1L
@@ -39,12 +42,18 @@ class GameWindow(
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
 		renderer = GameRenderer(boiler, getResources)
+		framebuffers = SwapchainResourceManager({ swapchainImage: AcquiredImage ->
+				boiler.images.createFramebuffer(
+					getResources.join().renderPass, swapchainImage.width(), swapchainImage.height(),
+					"SwapchainFrameBuffer", swapchainImage.image().vkImageView()
+				)
+		}, { framebuffer: Long -> vkDestroyFramebuffer(boiler.vkDevice(), framebuffer, null) })
 	}
 //	init {
 //		profiler.start()
 //	}
 
-	var firstFrame = true
+	private var firstFrame = true
 
 	override fun recordFrame(
 		stack: MemoryStack,
@@ -60,11 +69,11 @@ class GameWindow(
 			lastFps = currentFps
 		}
 		updateCounter.increment()
+
+		val framebuffer = framebuffers.get(acquiredImage)
 		synchronized(state.lock()) {
 			if (state.currentState is ExitState) glfwSetWindowShouldClose(window.glfwWindow, true)
-			else renderer.render(
-				state.currentState, recorder, acquiredImage.image(), frameIndex
-			)
+			else renderer.render(state.currentState, recorder, acquiredImage.image(), framebuffer, frameIndex)
 		}
 
 		if (firstFrame) {

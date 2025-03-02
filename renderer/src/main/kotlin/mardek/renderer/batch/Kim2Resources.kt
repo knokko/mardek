@@ -18,11 +18,7 @@ private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use 
 	boiler.descriptors.createLayout(stack, bindings, "Kim2DescriptorLayout")
 }
 
-class Kim2Resources(
-	boiler: BoilerInstance,
-	targetImageFormat: Int,
-	spriteBuffer: VkbBufferRange,
-) {
+class Kim2Resources(boiler: BoilerInstance, renderPass: Long, spriteBuffer: VkbBufferRange) {
 
 	private val descriptorLayout = createDescriptorSetLayout(boiler)
 	private val descriptorPool = descriptorLayout.createPool(1, 0, "Kim2DescriptorPool")
@@ -68,7 +64,8 @@ class Kim2Resources(
 			builder.simpleColorBlending(1)
 			builder.dynamicStates(VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR)
 			builder.ciPipeline.layout(pipelineLayout)
-			builder.dynamicRendering(0, VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, targetImageFormat)
+			builder.ciPipeline.renderPass(renderPass)
+			builder.ciPipeline.subpass(0)
 			this.graphicsPipeline = builder.build("Kim2GraphicsPipeline")
 
 			val writes = VkWriteDescriptorSet.calloc(1, stack)

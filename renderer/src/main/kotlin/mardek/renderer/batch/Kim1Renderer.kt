@@ -13,12 +13,12 @@ class Kim1Renderer(
 	private val boiler: BoilerInstance,
 	private val perFrameBuffer: PerFrameBuffer,
 	spriteBuffer: VkbBufferRange,
-	targetImageFormat: Int,
+	renderPass: Long,
 	framesInFlight: Int,
 ) {
 	private val batches = HashSet<KimBatch>()
 
-	private val resources = Kim1Resources(boiler, framesInFlight, targetImageFormat, spriteBuffer, perFrameBuffer)
+	private val resources = Kim1Resources(boiler, framesInFlight, renderPass, spriteBuffer, perFrameBuffer)
 
 	fun begin() {
 		if (batches.isNotEmpty()) {

@@ -14,11 +14,7 @@ import org.lwjgl.vulkan.VkDescriptorSetLayoutBinding
 import org.lwjgl.vulkan.VkPushConstantRange
 import org.lwjgl.vulkan.VkWriteDescriptorSet
 
-class PartRenderer(
-	private val boiler: BoilerInstance,
-	bcImages: List<VkbImage>,
-	targetImageFormat: Int,
-) {
+class PartRenderer(private val boiler: BoilerInstance, bcImages: List<VkbImage>, renderPass: Long) {
 
 	private val descriptorSetLayout = stackPush().use { stack ->
 		val bindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
@@ -50,7 +46,8 @@ class PartRenderer(
 		builder.simpleColorBlending(1)
 		builder.dynamicStates(VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR)
 		builder.ciPipeline.layout(pipelineLayout)
-		builder.dynamicRendering(0, VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, targetImageFormat)
+		builder.ciPipeline.renderPass(renderPass)
+		builder.ciPipeline.subpass(0)
 		builder.build("PartRenderPipeline")
 	}
 	private val sampler = boiler.images.createSimpleSampler(

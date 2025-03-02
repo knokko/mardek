@@ -10,11 +10,11 @@ import java.nio.IntBuffer
 
 class ColorGridRenderer(
 	private val boiler: BoilerInstance,
+	renderPass: Long,
 	private val perFrameBuffer: PerFrameBuffer,
-	targetImageFormat: Int,
 ) {
 
-	private val resources = ColorGridResources(boiler, targetImageFormat, perFrameBuffer)
+	private val resources = ColorGridResources(boiler, renderPass, perFrameBuffer)
 
 	fun startBatch(recorder: CommandRecorder) {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.graphicsPipeline)

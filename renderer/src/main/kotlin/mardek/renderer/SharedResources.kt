@@ -4,6 +4,7 @@ import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.SingleTimeCommands
+import com.github.knokko.boiler.exceptions.VulkanFailureException.assertVkSuccess
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.synchronization.ResourceUsage
 import com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf
@@ -14,8 +15,9 @@ import com.github.knokko.ui.renderer.UiRenderInstance
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.renderer.area.*
 import mardek.renderer.batch.*
+import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
-import org.lwjgl.vulkan.VkBufferImageCopy
 import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.util.*
@@ -24,10 +26,11 @@ import java.util.zip.InflaterInputStream
 import kotlin.math.max
 
 class SharedResources(
-	getBoiler: CompletableFuture<BoilerInstance>, framesInFlight: Int, targetImageFormat: CompletableFuture<Int>
+	getBoiler: CompletableFuture<BoilerInstance>, framesInFlight: Int
 ) {
 
 	private val boiler: BoilerInstance
+	val renderPass: Long
 	val areaMap = mutableMapOf<UUID, AreaRenderPair>()
 	private lateinit var spriteManager: SpriteManager
 	lateinit var kim1Renderer: Kim1Renderer
@@ -54,6 +57,8 @@ class SharedResources(
 		perFrameBuffer = PerFrameBuffer(boiler.buffers.createMapped(
 			1000_000L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT or VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "PerFrameBuffer"
 		).fullMappedRange())
+
+		renderPass = createRenderPass(boiler)
 
 		val areaThread = Thread {
 			val areaInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
@@ -83,16 +88,16 @@ class SharedResources(
 				boiler,
 				perFrameBuffer = perFrameBuffer,
 				spriteBuffer = spriteManager.spriteBuffer,
-				targetImageFormat = targetImageFormat.join(),
+				renderPass = renderPass,
 				framesInFlight = framesInFlight,
 			)
 			this.kim2Renderer = Kim2Renderer(
 				boiler,
 				perFrameBuffer = perFrameBuffer,
 				spriteBuffer = spriteManager.spriteBuffer,
-				targetImageFormat = targetImageFormat.join()
+				renderPass = renderPass
 			)
-			this.colorGridRenderer = ColorGridRenderer(boiler, perFrameBuffer, targetImageFormat.join())
+			this.colorGridRenderer = ColorGridRenderer(boiler, renderPass, perFrameBuffer)
 		}
 		kimThread.start()
 
@@ -134,7 +139,7 @@ class SharedResources(
 					VK_IMAGE_ASPECT_COLOR_BIT, "Bc${version}Image$it"
 				)
 			}
-			this.partRenderer = PartRenderer(boiler, bcImages, targetImageFormat.join())
+			this.partRenderer = PartRenderer(boiler, bcImages, renderPass)
 
 			val stagingBuffer = boiler.buffers.createMapped(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "BcStagingBuffer")
 
@@ -176,9 +181,9 @@ class SharedResources(
 		}
 		bcThread.start()
 
-		uiInstance = UiRenderInstance.withDynamicRendering(boiler, 0, targetImageFormat.join())
+		uiInstance = UiRenderInstance.withRenderPass(boiler, renderPass, 0)
 		uiRenderers = (0 until framesInFlight).map { uiInstance.createRenderer(perFrameBuffer) }
-		light = LightResources(boiler, targetImageFormat.join())
+		light = LightResources(boiler, renderPass)
 		kimThread.join()
 		bcThread.join()
 		areaThread.join()
@@ -199,5 +204,47 @@ class SharedResources(
 		perFrameBuffer.range.buffer.destroy(boiler)
 		spriteManager.destroy(boiler)
 		light.destroy(boiler)
+		vkDestroyRenderPass(boiler.vkDevice(), renderPass, null)
 	}
+}
+
+fun createRenderPass(
+	boiler: BoilerInstance, surfaceFormat: Int = boiler.window().surfaceFormat
+) = stackPush().use { stack ->
+	val attachments = VkAttachmentDescription.calloc(1, stack)
+	val colorAttachment = attachments[0]
+	colorAttachment.format(surfaceFormat)
+	colorAttachment.samples(VK_SAMPLE_COUNT_1_BIT)
+	colorAttachment.loadOp(VK_ATTACHMENT_LOAD_OP_CLEAR)
+	colorAttachment.storeOp(VK_ATTACHMENT_STORE_OP_STORE)
+	colorAttachment.stencilLoadOp(VK_ATTACHMENT_LOAD_OP_DONT_CARE)
+	colorAttachment.stencilStoreOp(VK_ATTACHMENT_STORE_OP_DONT_CARE)
+	colorAttachment.initialLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+	colorAttachment.finalLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+
+	val colorReference = VkAttachmentReference.calloc(1, stack)
+	colorReference.attachment(0)
+	colorReference.layout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+
+	val subpass = VkSubpassDescription.calloc(1, stack)
+	subpass.pipelineBindPoint(VK_PIPELINE_BIND_POINT_GRAPHICS)
+	subpass.pInputAttachments(null)
+	subpass.colorAttachmentCount(1)
+	subpass.pColorAttachments(colorReference)
+	subpass.pResolveAttachments(null)
+	subpass.pDepthStencilAttachment(null)
+	subpass.pPreserveAttachments(null)
+
+	val ciRenderPass = VkRenderPassCreateInfo.calloc(stack)
+	ciRenderPass.`sType$Default`()
+	ciRenderPass.pAttachments(attachments)
+	ciRenderPass.pSubpasses(subpass)
+
+	val pRenderPass = stack.callocLong(1)
+	assertVkSuccess(
+		vkCreateRenderPass(
+			boiler.vkDevice(), ciRenderPass, null, pRenderPass
+		), "CreateRenderPass", "MainRenderPass"
+	)
+	pRenderPass.get(0)
 }

@@ -9,9 +9,9 @@ import mardek.state.GameState
 import mardek.state.StartupState
 import mardek.state.ingame.InGameState
 import mardek.state.title.TitleScreenState
-import org.lwjgl.vulkan.VK10.VK_ATTACHMENT_LOAD_OP_CLEAR
-import org.lwjgl.vulkan.VK10.VK_ATTACHMENT_STORE_OP_STORE
-import org.lwjgl.vulkan.VkRenderingAttachmentInfo
+import org.lwjgl.vulkan.VK10.*
+import org.lwjgl.vulkan.VkClearValue
+import org.lwjgl.vulkan.VkRenderPassBeginInfo
 import java.util.concurrent.CompletableFuture
 
 class GameRenderer(
@@ -21,7 +21,7 @@ class GameRenderer(
 
 	fun render(
 		state: GameState, recorder: CommandRecorder,
-		targetImage: VkbImage, frameIndex: Int
+		targetImage: VkbImage, framebuffer: Long, frameIndex: Int
 	) {
 		if (state is StartupState) return
 
@@ -30,19 +30,24 @@ class GameRenderer(
 		val renderer = createRenderer(state)
 		renderer.beforeRendering(recorder, targetImage, frameIndex)
 
-		val colorAttachments = VkRenderingAttachmentInfo.calloc(1, recorder.stack)
-		recorder.simpleColorRenderingAttachment(
-			colorAttachments.get(0), targetImage.vkImageView, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE,
-			0f, 0f, 0f, 1f // TODO Let renderer decide background color
-		)
-		recorder.beginSimpleDynamicRendering(
-			targetImage.width, targetImage.height, colorAttachments, null, null
-		)
+		val clearValues = VkClearValue.calloc(1, recorder.stack)
+		clearValues.get(0).color().float32(recorder.stack.floats(0f, 0f, 0f, 1f)) // TODO Let renderer decide background color
+
+		val biRenderPass = VkRenderPassBeginInfo.calloc(recorder.stack)
+		biRenderPass.`sType$Default`()
+		biRenderPass.renderPass(resources.join().renderPass)
+		biRenderPass.framebuffer(framebuffer)
+		biRenderPass.renderArea().offset().set(0, 0)
+		biRenderPass.renderArea().extent().set(targetImage.width, targetImage.height)
+		biRenderPass.pClearValues(clearValues)
+		biRenderPass.clearValueCount(1)
+
+		vkCmdBeginRenderPass(recorder.commandBuffer, biRenderPass, VK_SUBPASS_CONTENTS_INLINE)
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
 		renderer.render(recorder, targetImage, frameIndex)
 
-		recorder.endDynamicRendering()
+		vkCmdEndRenderPass(recorder.commandBuffer)
 	}
 
 	fun destroy() {
@@ -58,7 +63,6 @@ class GameRenderer(
 
 	companion object {
 		fun addBoilerRequirements(builder: BoilerBuilder): BoilerBuilder = builder
-			.enableDynamicRendering()
 			.requiredFeatures10 { it.textureCompressionBC() }
 			.featurePicker10 { _, _, toEnable -> toEnable.textureCompressionBC(true) }
 	}
