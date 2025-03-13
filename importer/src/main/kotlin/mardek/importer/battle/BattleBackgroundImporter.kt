@@ -4,9 +4,9 @@ import com.jpexs.decompiler.flash.SWF
 import com.jpexs.decompiler.flash.tags.DefineSpriteTag
 import com.jpexs.decompiler.flash.tags.FrameLabelTag
 import com.jpexs.decompiler.flash.tags.PlaceObject2Tag
-import mardek.assets.battle.BattleAssets
-import mardek.assets.battle.BattleBackground
-import mardek.assets.sprite.BcSprite
+import mardek.content.battle.BattleContent
+import mardek.content.battle.BattleBackground
+import mardek.content.sprite.BcSprite
 import mardek.importer.util.resourcesFolder
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -66,7 +66,7 @@ internal fun countTranslucentPixels(image: BufferedImage): Int {
 	return translucentPixels
 }
 
-internal fun importBattleBackgrounds(assets: BattleAssets) {
+internal fun importBattleBackgrounds(assets: BattleContent) {
 	val backgroundsFolder = File("$resourcesFolder/battle/backgrounds")
 	val threadPool = Executors.newFixedThreadPool(4)
 	for (backgroundImageFile in backgroundsFolder.listFiles()!!) {

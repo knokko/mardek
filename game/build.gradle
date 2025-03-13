@@ -7,7 +7,7 @@ dependencies {
     implementation "com.github.knokko:sample-profiler:v1.0.0"
     for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
     implementation "org.lwjgl:lwjgl-glfw"
-    implementation project(":assets")
+    implementation project(":content")
     implementation project(":audio")
     implementation project(":input")
     implementation project(":renderer")

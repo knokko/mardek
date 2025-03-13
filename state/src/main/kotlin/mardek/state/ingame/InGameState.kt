@@ -1,13 +1,13 @@
 package mardek.state.ingame
 
-import mardek.assets.Campaign
+import mardek.content.Content
 import mardek.input.InputManager
 import mardek.state.GameState
 import mardek.state.SoundQueue
 import mardek.state.ingame.menu.InGameMenuState
 import kotlin.time.Duration
 
-class InGameState(val assets: Campaign, val campaign: CampaignState): GameState {
+class InGameState(val assets: Content, val campaign: CampaignState): GameState {
 
 	val menu = InGameMenuState(campaign)
 

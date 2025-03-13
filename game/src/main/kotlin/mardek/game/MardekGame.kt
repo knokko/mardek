@@ -6,7 +6,7 @@ import com.github.knokko.boiler.builders.WindowBuilder
 import com.github.knokko.boiler.builders.device.SimpleDeviceSelector
 import com.github.knokko.boiler.window.WindowEventLoop
 import com.github.knokko.update.UpdateLoop
-import mardek.assets.Campaign
+import mardek.content.Content
 import mardek.audio.AudioUpdater
 import mardek.input.InputManager
 import mardek.renderer.GameRenderer
@@ -28,9 +28,9 @@ fun main(args: Array<String>) {
 	System.setOut(Logger(File("mardek-stdout.txt"), System.out))
 	System.setErr(Logger(File("mardek-stderr.txt"), System.err))
 	val mainThread = Thread.currentThread()
-	val campaign = CompletableFuture<Campaign>()
+	val content = CompletableFuture<Content>()
 	val input = InputManager()
-	val state = GameStateManager(input, StartupState(campaign))
+	val state = GameStateManager(input, StartupState(content))
 	val getBoiler = CompletableFuture<BoilerInstance>()
 	val getTargetImageFormat = CompletableFuture<Int>()
 	val sharedResources = CompletableFuture<SharedResources>()
@@ -47,9 +47,9 @@ fun main(args: Array<String>) {
 
 	Thread {
 		try {
-			campaign.complete(Campaign.load("mardek/game/campaign.bin"))
+			content.complete(Content.load("mardek/game/content.bin"))
 		} catch (failed: Throwable) {
-			campaign.completeExceptionally(failed)
+			content.completeExceptionally(failed)
 			throw failed
 		}
 		println("Loaded campaign after ${(System.nanoTime() - startTime) / 1_000_000} ms")

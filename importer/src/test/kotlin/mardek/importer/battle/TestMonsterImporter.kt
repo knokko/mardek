@@ -1,14 +1,15 @@
 package mardek.importer.battle
 
-import mardek.assets.animations.BattleModel
-import mardek.assets.battle.*
-import mardek.assets.combat.Element
-import mardek.assets.skill.ActiveSkill
-import mardek.assets.combat.ElementalResistance
-import mardek.assets.skill.SkillTargetType
-import mardek.importer.combat.importCombatAssets
-import mardek.importer.inventory.importInventoryAssets
-import mardek.importer.skills.importSkills
+import mardek.content.Content
+import mardek.content.animations.BattleModel
+import mardek.content.battle.*
+import mardek.content.combat.Element
+import mardek.content.skill.ActiveSkill
+import mardek.content.combat.ElementalResistance
+import mardek.content.skill.SkillTargetType
+import mardek.importer.stats.importStatsContent
+import mardek.importer.inventory.importItemsContent
+import mardek.importer.skills.importSkillsContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -74,13 +75,17 @@ DetermineStats();
 
 class TestMonsterImporter {
 
-	private val combatAssets = importCombatAssets()
-	private val skillAssets = importSkills(combatAssets)
-	private val itemAssets = importInventoryAssets(combatAssets, skillAssets)
+	private val content = Content()
 
-	private fun getItem(name: String) = itemAssets.items.find { it.flashName == name }!!
+	init {
+		importStatsContent(content)
+		importSkillsContent(content)
+		importItemsContent(content)
+	}
 
-	private fun getStatValue(monster: Monster, name: String) = monster.baseStats[combatAssets.stats.find { it.flashName == name }!!] ?: 0
+	private fun getItem(name: String) = content.items.items.find { it.flashName == name }!!
+
+	private fun getStatValue(monster: Monster, name: String) = monster.baseStats[content.stats.stats.find { it.flashName == name }!!] ?: 0
 
 	private fun getElementalResistance(monster: Monster, element: String) = monster.resistances.elements.find { it.element.rawName == element }?.modifier ?: 0f
 
@@ -98,17 +103,17 @@ class TestMonsterImporter {
 		assertEquals(StrategyCriteria.NONE, pool.criteria)
 	}
 
-	private fun getLegionSkill(name: String) = skillAssets.classes.find { it.name == "Mimicry" }!!.actions.find { it.name == name }!!
+	private fun getLegionSkill(name: String) = content.skills.classes.find { it.name == "Mimicry" }!!.actions.find { it.name == name }!!
 
 	@Test
 	fun testParseForestFish() {
 		val forestFish = importMonsterStats(
-			"Forest Fish", BattleModel(), FOREST_FISH_PROPERTIES, combatAssets, itemAssets, skillAssets
+			"Forest Fish", BattleModel(), FOREST_FISH_PROPERTIES, content
 		)
 
 		assertEquals("Flying Fish", forestFish.className)
-		assertSame(combatAssets.races.find { it.flashName == "ICHTHYD" }!!, forestFish.type)
-		assertSame(combatAssets.elements.find { it.rawName == "WATER" }!!, forestFish.element)
+		assertSame(content.stats.creatureTypes.find { it.flashName == "ICHTHYD" }!!, forestFish.type)
+		assertSame(content.stats.elements.find { it.rawName == "WATER" }!!, forestFish.element)
 		assertEquals(6, getStatValue(forestFish, "hp"))
 		assertEquals(10, getStatValue(forestFish, "mp"))
 		assertEquals(12, getStatValue(forestFish, "STR"))
@@ -152,12 +157,12 @@ class TestMonsterImporter {
 	@Test
 	fun testParseAbomination() {
 		val abomination = importMonsterStats(
-			"Abomination", BattleModel(), ABOMINATION_PROPERTIES, combatAssets, itemAssets, skillAssets
+			"Abomination", BattleModel(), ABOMINATION_PROPERTIES, content
 		)
 
 		assertEquals("Undead", abomination.className)
-		assertSame(combatAssets.races.find { it.flashName == "UNDEAD" }!!, abomination.type)
-		assertSame(combatAssets.elements.find { it.rawName == "DARK" }!!, abomination.element)
+		assertSame(content.stats.creatureTypes.find { it.flashName == "UNDEAD" }!!, abomination.type)
+		assertSame(content.stats.elements.find { it.rawName == "DARK" }!!, abomination.element)
 		assertEquals(50, getStatValue(abomination, "hp"))
 		assertEquals(36, getStatValue(abomination, "mp"))
 		assertEquals(13, getStatValue(abomination, "STR"))
@@ -210,7 +215,7 @@ class TestMonsterImporter {
 		assertEquals(1, abomination.actions.size)
 		val curse = abomination.actions[0]
 		assertEquals(1, curse.addStatusEffects.size)
-		assertSame(combatAssets.statusEffects.find { it.flashName == "CRS" }!!, curse.addStatusEffects[0].effect)
+		assertSame(content.stats.statusEffects.find { it.flashName == "CRS" }!!, curse.addStatusEffects[0].effect)
 		assertEquals(60, curse.addStatusEffects[0].chance)
 		assertEquals(1, abomination.strategies.size)
 
@@ -231,12 +236,12 @@ class TestMonsterImporter {
 	@Test
 	fun testParseGhoul() {
 		val ghoul = importMonsterStats(
-			"Ghoul", BattleModel(), GHOUL_PROPERTIES, combatAssets, itemAssets, skillAssets
+			"Ghoul", BattleModel(), GHOUL_PROPERTIES, content
 		)
 
 		assertEquals("Undead", ghoul.className)
-		assertSame(combatAssets.races.find { it.flashName == "UNDEAD" }!!, ghoul.type)
-		assertSame(combatAssets.elements.find { it.rawName == "DARK" }!!, ghoul.element)
+		assertSame(content.stats.creatureTypes.find { it.flashName == "UNDEAD" }!!, ghoul.type)
+		assertSame(content.stats.elements.find { it.rawName == "DARK" }!!, ghoul.element)
 		assertEquals(84, getStatValue(ghoul, "hp"))
 		assertEquals(132, getStatValue(ghoul, "mp"))
 		assertEquals(20, getStatValue(ghoul, "STR"))
@@ -264,7 +269,7 @@ class TestMonsterImporter {
 		}
 		assertEquals(1, ghoul.attackEffects.size)
 		assertEquals(10, ghoul.attackEffects[0].chance)
-		assertSame(combatAssets.statusEffects.find { it.flashName == "PAR" }!!, ghoul.attackEffects[0].effect)
+		assertSame(content.stats.statusEffects.find { it.flashName == "PAR" }!!, ghoul.attackEffects[0].effect)
 
 		assertEquals(PotentialEquipment.EMPTY, ghoul.weapon)
 		assertEquals(PotentialEquipment.EMPTY, ghoul.shield)
@@ -303,7 +308,7 @@ class TestMonsterImporter {
 	@Test
 	fun testFallenPaladin() {
 		val paladin = importMonsterStats(
-			"Fallen Paladin", BattleModel(), FALLEN_PALADIN_PROPERTIES, combatAssets, itemAssets, skillAssets
+			"Fallen Paladin", BattleModel(), FALLEN_PALADIN_PROPERTIES, content
 		)
 		assertEquals(2, paladin.actions.size)
 		val counterAttack = paladin.actions[0]
@@ -342,7 +347,7 @@ class TestMonsterImporter {
 	@Test
 	fun testBernardChapter3() {
 		val bernard = importMonsterStats(
-			"Bernard", BattleModel(), OVERRIDE_BERNARD_CHAPTER3, combatAssets, itemAssets, skillAssets
+			"Bernard", BattleModel(), OVERRIDE_BERNARD_CHAPTER3, content
 		)
 		assertEquals(4, bernard.playerStatModifier)
 
@@ -390,7 +395,7 @@ class TestMonsterImporter {
 	@Test
 	fun testMysteryMan() {
 		val mystery = importMonsterStats(
-			"Mystery Man", BattleModel(), MYSTERY_MAN_PROPERTIES, combatAssets, itemAssets, skillAssets
+			"Mystery Man", BattleModel(), MYSTERY_MAN_PROPERTIES, content
 		)
 
 		assertEquals(7, mystery.actions.size)
@@ -488,7 +493,7 @@ class TestMonsterImporter {
 	@Test
 	fun testAnimus() {
 		val animus = importMonsterStats(
-			"A. Animus", BattleModel(), ANIMUS_PROPERTIES, combatAssets, itemAssets, skillAssets
+			"A. Animus", BattleModel(), ANIMUS_PROPERTIES, content
 		)
 
 		assertEquals(17, animus.actions.size)
@@ -540,7 +545,7 @@ class TestMonsterImporter {
 
 		val shieldPool1 = animus.strategies[2]
 		assertEquals(StrategyCriteria(
-			targetHasEffect = combatAssets.statusEffects.find { it.flashName == "PSH" }!!,
+			targetHasEffect = content.stats.statusEffects.find { it.flashName == "PSH" }!!,
 			canUseOnEvenTurns = false
 		), shieldPool1.criteria)
 		assertEquals(1, shieldPool1.entries.size)
@@ -550,14 +555,14 @@ class TestMonsterImporter {
 
 		val shieldPool2 = animus.strategies[3]
 		assertEquals(StrategyCriteria(
-			targetHasEffect = combatAssets.statusEffects.find { it.flashName == "MSH" }!!,
+			targetHasEffect = content.stats.statusEffects.find { it.flashName == "MSH" }!!,
 			canUseOnEvenTurns = false
 		), shieldPool2.criteria)
 		assertEquals(shieldPool1.entries, shieldPool2.entries)
 
 		val delayPool = animus.strategies[4]
 		assertEquals(StrategyCriteria(
-			targetHasEffect = combatAssets.statusEffects.find { it.niceName == "Haste" }!!,
+			targetHasEffect = content.stats.statusEffects.find { it.niceName == "Haste" }!!,
 			canUseOnEvenTurns = false
 		), delayPool.criteria)
 		assertEquals(1, delayPool.entries.size)
@@ -616,13 +621,13 @@ class TestMonsterImporter {
 	@Test
 	fun testMasterStone() {
 		val stone = importMonsterStats(
-			"Master Stone", BattleModel(), MASTER_STONE_PROPERTIES, combatAssets, itemAssets, skillAssets
+			"Master Stone", BattleModel(), MASTER_STONE_PROPERTIES, content
 		)
 
 		assertEquals(0, stone.playerStatModifier)
-		assertEquals(arrayListOf(combatAssets.statusEffects.find { it.niceName == "Haste" }!!), stone.initialEffects)
+		assertEquals(arrayListOf(content.stats.statusEffects.find { it.niceName == "Haste" }!!), stone.initialEffects)
 
-		val fire = combatAssets.elements.find { it.rawName == "FIRE" }!!
+		val fire = content.stats.elements.find { it.rawName == "FIRE" }!!
 		val fireResistances = stone.elementalShiftResistances[fire]!!
 		for (name in arrayOf("NONE", "AIR", "EARTH", "DARK", "LIGHT", "ETHER", "FIG")) {
 			assertEquals(1f, fireResistances.elements.find { it.element.rawName == name }!!.modifier)

@@ -1,7 +1,7 @@
 package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import mardek.assets.area.WaterType
+import mardek.content.area.WaterType
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.awt.image.BufferedImage

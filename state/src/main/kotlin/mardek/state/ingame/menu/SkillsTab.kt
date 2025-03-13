@@ -1,7 +1,7 @@
 package mardek.state.ingame.menu
 
-import mardek.assets.Campaign
-import mardek.assets.skill.*
+import mardek.content.Content
+import mardek.content.skill.*
 import mardek.input.InputKey
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
@@ -9,7 +9,7 @@ import kotlin.math.max
 
 class VisibleSkill(val skill: Skill, val mastery: Int, val canToggle: Boolean, val isToggled: Boolean)
 
-class SkillsTab(private val campaign: Campaign, private val state: CampaignState): InGameMenuTab(true) {
+class SkillsTab(private val content: Content, private val state: CampaignState): InGameMenuTab(true) {
 
 	var partyIndex = state.characterSelection.party.indexOfFirst { it != null }
 	var skillTypeIndex = 0
@@ -143,7 +143,7 @@ class SkillsTab(private val campaign: Campaign, private val state: CampaignState
 			return assetCharacter.characterClass.skillClass.actions.filter(::filterVisibleSkill).map(::mapVisibleSkill)
 		}
 		if (skillTypeIndex == 5) {
-			return campaign.skills.passiveSkills.filter(::filterVisibleSkill).map(::mapVisibleSkill)
+			return content.skills.passiveSkills.filter(::filterVisibleSkill).map(::mapVisibleSkill)
 		}
 
 		val reactionType = when (skillTypeIndex) {
@@ -153,6 +153,6 @@ class SkillsTab(private val campaign: Campaign, private val state: CampaignState
 			4 -> ReactionSkillType.RangedDefense
 			else -> throw IllegalStateException("Unexpected skill type index $skillTypeIndex")
 		}
-		return campaign.skills.reactionSkills.filter { it.type == reactionType && filterVisibleSkill(it) }.map(::mapVisibleSkill)
+		return content.skills.reactionSkills.filter { it.type == reactionType && filterVisibleSkill(it) }.map(::mapVisibleSkill)
 	}
 }

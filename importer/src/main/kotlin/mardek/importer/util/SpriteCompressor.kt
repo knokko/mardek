@@ -2,7 +2,7 @@ package mardek.importer.util
 
 import com.github.knokko.compressor.Kim1Compressor
 import com.github.knokko.compressor.Kim2Compressor
-import mardek.assets.sprite.KimSprite
+import mardek.content.sprite.KimSprite
 import org.lwjgl.BufferUtils
 import java.awt.Color
 import java.awt.image.BufferedImage

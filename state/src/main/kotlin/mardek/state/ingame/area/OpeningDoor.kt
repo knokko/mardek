@@ -1,6 +1,6 @@
 package mardek.state.ingame.area
 
-import mardek.assets.area.objects.AreaDoor
+import mardek.content.area.objects.AreaDoor
 import kotlin.time.Duration
 
 class OpeningDoor(

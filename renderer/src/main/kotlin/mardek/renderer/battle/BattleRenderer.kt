@@ -2,9 +2,9 @@ package mardek.renderer.battle
 
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import mardek.assets.animations.BattleModel
-import mardek.assets.battle.PartyLayout
-import mardek.assets.battle.PartyLayoutPosition
+import mardek.content.animations.BattleModel
+import mardek.content.battle.PartyLayout
+import mardek.content.battle.PartyLayoutPosition
 import mardek.renderer.SharedResources
 import mardek.state.ingame.battle.BattleState
 import org.joml.Matrix3x2f

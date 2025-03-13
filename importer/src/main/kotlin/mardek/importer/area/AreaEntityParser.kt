@@ -1,10 +1,10 @@
 package mardek.importer.area
 
-import mardek.assets.area.AreaAssets
-import mardek.assets.area.Direction
-import mardek.assets.area.TransitionDestination
-import mardek.assets.area.objects.*
-import mardek.assets.sprite.ObjectSprites
+import mardek.content.area.AreaContent
+import mardek.content.area.Direction
+import mardek.content.area.TransitionDestination
+import mardek.content.area.objects.*
+import mardek.content.sprite.ObjectSprites
 import mardek.importer.util.compressKimSprite1
 import mardek.importer.util.parseActionScriptObjectList
 import java.lang.Integer.parseInt
@@ -23,15 +23,15 @@ private inline fun <reified T> extract(objectList: MutableList<Any>): ArrayList<
 }
 
 fun parseAreaObjectsToList(
-		assets: AreaAssets, rawEntities: String,
-		transitions: MutableList<Pair<TransitionDestination, String>>
+	assets: AreaContent, rawEntities: String,
+	transitions: MutableList<Pair<TransitionDestination, String>>
 ) = parseActionScriptObjectList(rawEntities).map {
 	rawEntity -> parseAreaEntity(assets, rawEntity, transitions)
 }
 
 internal fun parseAreaObjects(
-		assets: AreaAssets, rawEntities: String, extraDecorations: List<AreaDecoration>,
-		transitions: MutableList<Pair<TransitionDestination, String>>
+	assets: AreaContent, rawEntities: String, extraDecorations: List<AreaDecoration>,
+	transitions: MutableList<Pair<TransitionDestination, String>>
 ): AreaObjects {
 	val objectList = parseAreaObjectsToList(assets, rawEntities, transitions).toMutableList()
 	return AreaObjects(
@@ -101,8 +101,8 @@ private fun importSwitchColor(name: String): SwitchColor {
 }
 
 fun parseAreaEntity(
-		assets: AreaAssets, rawEntity: Map<String, String>,
-		transitions: MutableList<Pair<TransitionDestination, String>>
+	assets: AreaContent, rawEntity: Map<String, String>,
+	transitions: MutableList<Pair<TransitionDestination, String>>
 ): Any {
 	val model = parseFlashString(rawEntity["model"]!!, "model")!!
 	val x = parseInt(rawEntity["x"])

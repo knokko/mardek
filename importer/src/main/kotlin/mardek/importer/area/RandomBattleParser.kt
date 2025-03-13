@@ -1,13 +1,12 @@
 package mardek.importer.area
 
-import mardek.assets.area.AreaAssets
-import mardek.assets.area.RandomAreaBattles
-import mardek.assets.area.SharedEnemySelections
-import mardek.assets.battle.BattleAssets
+import mardek.content.Content
+import mardek.content.area.RandomAreaBattles
+import mardek.content.area.SharedEnemySelections
 import mardek.importer.util.ActionScriptCode
 import java.lang.Integer.parseInt
 
-fun parseRandomBattle(areaCode: ActionScriptCode, battleAssets: BattleAssets, assets: AreaAssets): RandomAreaBattles? {
+fun parseRandomBattle(areaCode: ActionScriptCode, content: Content): RandomAreaBattles? {
 	val chance = try { parseInt(areaCode.variableAssignments["btlChance"]) } catch (complex: NumberFormatException) {
 		println("failed to parse btlChance ${areaCode.variableAssignments["btlChance"]}")
 		0
@@ -21,7 +20,7 @@ fun parseRandomBattle(areaCode: ActionScriptCode, battleAssets: BattleAssets, as
 		val levelRangePrefix = "MONSTER_LEVELS."
 		if (rawLevelRange.startsWith(levelRangePrefix)) {
 			val rangeName = rawLevelRange.substring(levelRangePrefix.length)
-			Pair(null, assets.levelRanges.find { it.name == rangeName }!!)
+			Pair(null, content.areas.levelRanges.find { it.name == rangeName }!!)
 		} else Pair(parseLevelRange(rawLevelRange), null)
 	}
 
@@ -30,15 +29,15 @@ fun parseRandomBattle(areaCode: ActionScriptCode, battleAssets: BattleAssets, as
 		val monstersTablePrefix = "MONSTER_TABLES."
 		if (rawFoes.startsWith(monstersTablePrefix)) {
 			val tableName = rawFoes.substring(monstersTablePrefix.length)
-			val selection = assets.enemySelections.find { it.name == tableName }
-			if (selection == null && battleAssets.monsters.size <= 1) Pair(null, SharedEnemySelections())
+			val selection = content.areas.enemySelections.find { it.name == tableName }
+			if (selection == null && content.battle.monsters.size <= 1) Pair(null, SharedEnemySelections())
 			else Pair(null, selection!!)
-		} else Pair(parseSelections(battleAssets, rawFoes), null)
+		} else Pair(parseSelections(content.battle, rawFoes), null)
 	}
 
 	val rawBackground = areaCode.variableAssignments["specBtlBG"]
 	val specialBackground = if (rawBackground != null) {
-		battleAssets.backgrounds.find { it.name == parseFlashString(rawBackground, "special battle background") }!!
+		content.battle.backgrounds.find { it.name == parseFlashString(rawBackground, "special battle background") }!!
 	} else null
 
 	val tileset = parseFlashString(areaCode.variableAssignments["tileset"]!!, "area tileset")
@@ -49,7 +48,7 @@ fun parseRandomBattle(areaCode: ActionScriptCode, battleAssets: BattleAssets, as
 		sharedLevelRange = sharedLevelRange,
 		minSteps = minSteps,
 		chance = chance,
-		defaultBackground = battleAssets.backgrounds.find { it.name == tileset }!!,
+		defaultBackground = content.battle.backgrounds.find { it.name == tileset }!!,
 		specialBackground = specialBackground
 	)
 }

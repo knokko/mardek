@@ -2,7 +2,7 @@ package mardek.state.title
 
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
-import mardek.assets.Campaign
+import mardek.content.Content
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -16,7 +16,7 @@ import mardek.state.ingame.CampaignState
 import java.io.ByteArrayInputStream
 import kotlin.time.Duration
 
-class TitleScreenState(val assets: Campaign): GameState {
+class TitleScreenState(val assets: Content): GameState {
 
 	var newGameButton: AbsoluteRectangle? = null
 	var loadGameButton: AbsoluteRectangle? = null

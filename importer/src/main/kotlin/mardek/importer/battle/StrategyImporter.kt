@@ -1,12 +1,10 @@
 package mardek.importer.battle
 
-import mardek.assets.battle.*
-import mardek.assets.combat.CombatAssets
-import mardek.assets.inventory.InventoryAssets
-import mardek.assets.inventory.Item
-import mardek.assets.skill.ActiveSkill
-import mardek.assets.combat.ElementalResistance
-import mardek.assets.skill.SkillAssets
+import mardek.content.Content
+import mardek.content.battle.*
+import mardek.content.inventory.Item
+import mardek.content.skill.ActiveSkill
+import mardek.content.combat.ElementalResistance
 import mardek.importer.area.parseFlashString
 import mardek.importer.skills.SkillParseException
 import mardek.importer.util.parseActionScriptNestedList
@@ -16,13 +14,12 @@ import java.lang.Integer.parseInt
 import kotlin.math.roundToInt
 
 internal fun importMonsterStrategies(
-	rawGambits: String, actions: List<ActiveSkill>,
-	combatAssets: CombatAssets, skillAssets: SkillAssets, itemAssets: InventoryAssets,
+	rawGambits: String, actions: List<ActiveSkill>, content: Content,
 	targetMap: MutableMap<ActiveSkill, StrategyTarget>
 ): ArrayList<StrategyPool> {
 	val jsonList = parseActionScriptObjectList(rawGambits)
 	var rawStrategies = jsonList.map {
-		rawProperties -> importRawMonsterStrategy(rawProperties, actions, combatAssets, skillAssets, itemAssets)
+		rawProperties -> importRawMonsterStrategy(rawProperties, actions, content)
 	}
 	for (raw in rawStrategies) {
 		if (raw.action != null && !targetMap.containsKey(raw.action)) targetMap[raw.action] = raw.target
@@ -61,17 +58,16 @@ private class RawMonsterStrategy(
 }
 
 private fun importRawMonsterStrategy(
-	rawProperties: Map<String, String>, actions: List<ActiveSkill>,
-	combatAssets: CombatAssets, skillAssets: SkillAssets, itemAssets: InventoryAssets
+	rawProperties: Map<String, String>, actions: List<ActiveSkill>, content: Content
 ): RawMonsterStrategy {
 	val skillName = parseFlashString(rawProperties["command"]!!, "gambit command")!!
 	val (action, item) = if (skillName == "Attack") Pair(null, null) else {
 		val myAction = actions.find { it.name == skillName }
 		if (myAction != null) Pair(myAction, null) else {
-			val mimicry = skillAssets.classes.find { it.name == "Mimicry" }!!
+			val mimicry = content.skills.classes.find { it.name == "Mimicry" }!!
 			val legionAction = mimicry.actions.find { it.name == skillName }
 			if (legionAction != null) Pair(legionAction, null) else {
-				val item = itemAssets.items.find { it.flashName == skillName } ?:
+				val item = content.items.items.find { it.flashName == skillName } ?:
 						throw SkillParseException("Can't find skill $skillName")
 				Pair(null, item)
 			}
@@ -110,32 +106,32 @@ private fun importRawMonsterStrategy(
 				)
 
 				"has_status" -> StrategyCriteria(
-					targetHasEffect = combatAssets.statusEffects.find {
+					targetHasEffect = content.stats.statusEffects.find {
 						it.flashName == parseFlashString(rawCriteria[1].toString(), "has_status effect")!!
 					}!!
 				)
 
 				"no_status" -> StrategyCriteria(
-					targetMissesEffect = combatAssets.statusEffects.find {
+					targetMissesEffect = content.stats.statusEffects.find {
 						it.flashName == parseFlashString(rawCriteria[1].toString(), "no_status effect")!!
 					}!!
 				)
 
 				"resist<" -> StrategyCriteria(
 					resistanceAtMost = ElementalResistance(
-						combatAssets.elements.find { it.rawName == parseFlashString(rawCriteria[1].toString(), "resist element") }!!,
+						content.stats.elements.find { it.rawName == parseFlashString(rawCriteria[1].toString(), "resist element") }!!,
 						parseInt(rawCriteria[2].toString()) / 100f
 					)
 				)
 
 				"resist>" -> StrategyCriteria(
 					resistanceAtLeast = ElementalResistance(
-						combatAssets.elements.find { it.rawName == parseFlashString(rawCriteria[1].toString(), "resist element") }!!,
+						content.stats.elements.find { it.rawName == parseFlashString(rawCriteria[1].toString(), "resist element") }!!,
 						parseInt(rawCriteria[2].toString()) / 100f
 					)
 				)
 
-				"elem=" -> StrategyCriteria(myElement = combatAssets.elements.find {
+				"elem=" -> StrategyCriteria(myElement = content.stats.elements.find {
 					it.rawName == parseFlashString(rawCriteria[1].toString(), "Element strategy criteria")!!
 				}!!)
 

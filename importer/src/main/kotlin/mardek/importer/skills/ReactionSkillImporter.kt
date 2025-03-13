@@ -1,10 +1,10 @@
 package mardek.importer.skills
 
-import mardek.assets.combat.CombatAssets
-import mardek.assets.combat.CreatureTypeBonus
-import mardek.assets.combat.ElementalDamageBonus
-import mardek.assets.combat.PossibleStatusEffect
-import mardek.assets.skill.*
+import mardek.content.Content
+import mardek.content.combat.CreatureTypeBonus
+import mardek.content.combat.ElementalDamageBonus
+import mardek.content.combat.PossibleStatusEffect
+import mardek.content.skill.*
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptObject
 import mardek.importer.util.parseActionScriptObjectList
@@ -13,7 +13,7 @@ import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
 import kotlin.math.roundToInt
 
-fun parseReactionSkillsAndPassiveSkills(combatAssets: CombatAssets, skillAssets: SkillAssets, rawSkills: String) {
+fun parseReactionSkillsAndPassiveSkills(content: Content, rawSkills: String) {
 	val reactionTypeMap = parseActionScriptObject(rawSkills)
 	for ((key, type) in arrayOf(
 		Pair("P_ATK", ReactionSkillType.MeleeAttack),
@@ -23,17 +23,17 @@ fun parseReactionSkillsAndPassiveSkills(combatAssets: CombatAssets, skillAssets:
 	)) {
 		val rawTypeSkills = parseActionScriptObjectList(reactionTypeMap[key]!!)
 		for (rawSkill in rawTypeSkills) {
-			skillAssets.reactionSkills.add(parseReactionSkill(combatAssets, skillAssets, rawSkill, type))
+			content.skills.reactionSkills.add(parseReactionSkill(content, rawSkill, type))
 		}
 	}
 
 	for (rawSkill in parseActionScriptObjectList(reactionTypeMap["PASSIVE"]!!)) {
-		skillAssets.passiveSkills.add(parsePassiveSkill(combatAssets, skillAssets, rawSkill))
+		content.skills.passiveSkills.add(parsePassiveSkill(content.stats, content.skills, rawSkill))
 	}
 }
 
 private fun parseReactionSkill(
-	combatAssets: CombatAssets, skillAssets: SkillAssets, rawSkill: Map<String, String>, type: ReactionSkillType
+	content: Content, rawSkill: Map<String, String>, type: ReactionSkillType
 ): ReactionSkill {
 
 	var skillClass: SkillClass? = null
@@ -44,13 +44,13 @@ private fun parseReactionSkill(
 
 		val classKey = onlyMap.keys.first()
 		if (onlyMap[classKey]!! != "true") throw SkillParseException("Unexpected only: $onlyMap in $rawSkill")
-		skillClass = skillAssets.classes.find { it.key == classKey}!!
+		skillClass = content.skills.classes.find { it.key == classKey}!!
 	}
 
 	val soulstrike = rawSkill["elem"] == "\"_USERS\""
-	val element = if (soulstrike) combatAssets.elements.find {
+	val element = if (soulstrike) content.stats.elements.find {
 		it.properName == "AETHER"
-	}!! else combatAssets.elements.find {
+	}!! else content.stats.elements.find {
 		it.rawName == parseFlashString(rawSkill["elem"]!!, "reaction skill element")
 	}!!
 
@@ -81,7 +81,7 @@ private fun parseReactionSkill(
 		if (raw != null) {
 			val statusMap = parseActionScriptObject(raw)
 			for ((name, rawChance) in statusMap) {
-				val statusEffect = combatAssets.statusEffects.find { it.flashName == name }!!
+				val statusEffect = content.stats.statusEffects.find { it.flashName == name }!!
 				val chance = clamp(-100, 100, (100 * parseFloat(rawChance)).roundToInt())
 				dest.add(PossibleStatusEffect(statusEffect, chance))
 			}
@@ -95,7 +95,7 @@ private fun parseReactionSkill(
 	if (rawRaceBonus != null) {
 		val raceMap = parseActionScriptObject(rawRaceBonus)
 		for ((raceName, rawModifier) in raceMap) {
-			val race = combatAssets.races.find { it.flashName == raceName }!!
+			val race = content.stats.creatureTypes.find { it.flashName == raceName }!!
 			effectiveAgainst.add(CreatureTypeBonus(race, parseFloat(rawModifier)))
 		}
 	}
@@ -104,7 +104,7 @@ private fun parseReactionSkill(
 	if (rawElementalResistances != null) {
 		val resistanceMap = parseActionScriptObject(rawElementalResistances)
 		for ((elementName, resistance) in resistanceMap) {
-			val resistedElement = combatAssets.elements.find { it.rawName == elementName }!!
+			val resistedElement = content.stats.elements.find { it.rawName == elementName }!!
 			elementalBonuses.add(ElementalDamageBonus(resistedElement, parseInt(resistance) / -100f))
 		}
 	}
@@ -113,7 +113,7 @@ private fun parseReactionSkill(
 	if (rawElementalBoosts != null) {
 		val boostMap = parseActionScriptObject(rawElementalBoosts)
 		for ((elementName, boost) in boostMap) {
-			val resistedElement = combatAssets.elements.find { it.rawName == elementName }!!
+			val resistedElement = content.stats.elements.find { it.rawName == elementName }!!
 			elementalBonuses.add(ElementalDamageBonus(resistedElement, parseInt(boost) / 100f))
 		}
 	}

@@ -5,10 +5,10 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.Campaign
-import mardek.assets.area.Chest
-import mardek.assets.characters.PlayableCharacter
-import mardek.assets.inventory.PlotItem
+import mardek.content.Content
+import mardek.content.area.Chest
+import mardek.content.characters.PlayableCharacter
+import mardek.content.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -56,7 +56,7 @@ class CampaignState(
 
 	var shouldOpenMenu = false
 
-	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, assets: Campaign) {
+	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, assets: Content) {
 		while (true) {
 			val event = input.consumeEvent() ?: break
 			if (event !is InputKeyEvent || !event.didPress) continue

@@ -1,14 +1,14 @@
 package mardek.state.ingame.menu
 
-import mardek.assets.characters.PlayableCharacter
-import mardek.assets.inventory.EquipmentSlotType
-import mardek.assets.inventory.Item
+import mardek.content.characters.PlayableCharacter
+import mardek.content.inventory.EquipmentSlotType
+import mardek.content.inventory.Item
 import mardek.input.InputKey
 import mardek.input.MouseMoveEvent
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.characters.CharacterState
-import mardek.assets.inventory.ItemStack
+import mardek.content.inventory.ItemStack
 
 class InventoryTab(private val state: CampaignState): InGameMenuTab(true) {
 

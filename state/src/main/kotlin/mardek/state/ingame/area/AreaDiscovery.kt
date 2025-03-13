@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
-import mardek.assets.area.Area
+import mardek.content.area.Area
 import kotlin.math.max
 import kotlin.math.min
 

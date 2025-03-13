@@ -3,24 +3,21 @@ package mardek.importer.area
 import com.github.knokko.boiler.utilities.ColorPacker
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
-import mardek.assets.area.*
-import mardek.assets.area.objects.AreaDecoration
-import mardek.assets.battle.BattleAssets
-import mardek.assets.inventory.InventoryAssets
+import mardek.content.Content
+import mardek.content.area.*
+import mardek.content.area.objects.AreaDecoration
 import mardek.importer.util.ActionScriptCode
 import mardek.importer.util.parseActionScriptResource
 import java.lang.Integer.parseInt
 
 internal fun parseArea(
-		assets: AreaAssets, areaName: String, tilesheets: MutableList<ParsedTilesheet>,
-		transitions: MutableList<Pair<TransitionDestination, String>>,
-		inventoryAssets: InventoryAssets, battleAssets: BattleAssets
-) = parseArea2(assets, parseArea1(areaName), tilesheets, transitions, inventoryAssets, battleAssets)
+	content: Content, areaName: String, tilesheets: MutableList<ParsedTilesheet>,
+	transitions: MutableList<Pair<TransitionDestination, String>>
+) = parseArea2(content, parseArea1(areaName), tilesheets, transitions)
 
 private fun parseArea2(
-		assets: AreaAssets, areaCode: ActionScriptCode, tilesheets: MutableList<ParsedTilesheet>,
-		transitions: MutableList<Pair<TransitionDestination, String>>,
-		inventoryAssets: InventoryAssets, battleAssets: BattleAssets,
+	content: Content, areaCode: ActionScriptCode, tilesheets: MutableList<ParsedTilesheet>,
+	transitions: MutableList<Pair<TransitionDestination, String>>
 ): ParsedArea {
 	val areaSetup = areaCode.functionCalls.filter { it.first == "AreaSetup" }.map { it.second }
 	parseAssert(areaSetup.size == 1, "Expected exactly 1 AreaSetup call, but found ${areaCode.functionCalls}")
@@ -28,7 +25,7 @@ private fun parseArea2(
 	val properties = parseAreaProperties(areaCode, areaSetupMap)
 	val flags = parseAreaFlags(areaSetupMap)
 
-	val randomBattles = parseRandomBattle(areaCode, battleAssets, assets)
+	val randomBattles = parseRandomBattle(areaCode, content)
 	val (width, height, tileGrid) = parseAreaMap(areaCode.variableAssignments["map"]!!)
 
 	val tilesheetName = parseFlashString(areaCode.variableAssignments["tileset"]!!, "tileset name")!!
@@ -47,13 +44,13 @@ private fun parseArea2(
 					?: throw RuntimeException("unexpected hex color ${ColorPacker.toString(tile.hexObjectColor)}")
 
 				val spriteID = "${hexObject.sheetName}(${hexObject.sheetRow}, ${hexObject.height})"
-				var sprites = assets.objectSprites.find { it.flashName == spriteID }
+				var sprites = content.areas.objectSprites.find { it.flashName == spriteID }
 				if (sprites == null) {
 					sprites = importObjectSprites(
 							hexObject.sheetName, offsetY = hexObject.height * hexObject.sheetRow, height = hexObject.height
 					)
 					sprites.flashName = spriteID
-					assets.objectSprites.add(sprites)
+					content.areas.objectSprites.add(sprites)
 				}
 
 				extraDecorations.add(AreaDecoration(
@@ -67,15 +64,15 @@ private fun parseArea2(
 
 	val rawAreaLoot = areaCode.variableAssignments["areaLoot"]
 	val rawChestID = parseInt(areaSetupMap["LOOT"] ?: "0")
-	val chestType = assets.chestSprites.find { it.flashID == rawChestID }!!
+	val chestType = content.areas.chestSprites.find { it.flashID == rawChestID }!!
 
 	return ParsedArea(
 		tilesheet = tilesheet,
 		width = width,
 		height = height,
 		tileGrid = tileGrid,
-		objects = parseAreaObjects(assets, areaCode.variableAssignments["A_sprites"]!!, extraDecorations, transitions),
-		chests = if (rawAreaLoot != null) parseAreaChests(inventoryAssets, battleAssets, rawAreaLoot, chestType) else ArrayList(0),
+		objects = parseAreaObjects(content.areas, areaCode.variableAssignments["A_sprites"]!!, extraDecorations, transitions),
+		chests = if (rawAreaLoot != null) parseAreaChests(content, rawAreaLoot, chestType) else ArrayList(0),
 		randomBattles = randomBattles,
 		properties = properties,
 		flags = flags,

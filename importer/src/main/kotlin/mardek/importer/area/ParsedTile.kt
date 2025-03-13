@@ -1,6 +1,6 @@
 package mardek.importer.area
 
-import mardek.assets.area.WaterType
+import mardek.content.area.WaterType
 import java.awt.image.BufferedImage
 
 class ParsedTile(

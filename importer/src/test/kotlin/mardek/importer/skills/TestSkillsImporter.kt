@@ -1,8 +1,8 @@
 package mardek.importer.skills
 
-import mardek.assets.combat.CombatAssets
-import mardek.assets.skill.*
-import mardek.importer.combat.importCombatAssets
+import mardek.content.Content
+import mardek.content.skill.*
+import mardek.importer.stats.importStatsContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -12,18 +12,16 @@ import org.junit.jupiter.api.TestInstance
 class TestSkillsImporter {
 
 	private val margin = 1e-4f
-
-	private lateinit var combatAssets: CombatAssets
-	private lateinit var skillAssets: SkillAssets
+	private val content = Content()
 
 	@BeforeAll
 	fun importSkills() {
-		combatAssets = importCombatAssets()
-		skillAssets = importSkills(combatAssets)
+		importStatsContent(content)
+		importSkillsContent(content)
 	}
 
 	private fun getAction(className: String, skillName: String): ActiveSkill {
-		val skillClass = skillAssets.classes.find { it.name == className } ?: throw IllegalArgumentException(
+		val skillClass = content.skills.classes.find { it.name == className } ?: throw IllegalArgumentException(
 				"Can't find class with name $className"
 		)
 		return skillClass.actions.find { it.name == skillName } ?: throw IllegalArgumentException(
@@ -410,7 +408,7 @@ class TestSkillsImporter {
 
 	@Test
 	fun testDolorousDirge() {
-		val dirge = skillAssets.sirenSongs.find { it.name == "Dolorous Dirge" }!!
+		val dirge = content.skills.sirenSongs.find { it.name == "Dolorous Dirge" }!!
 		assertEquals(1, dirge.time)
 		assertEquals(0, dirge.tempo)
 		assertEquals(SirenNote(0, 5), dirge.notes[0])
@@ -418,7 +416,7 @@ class TestSkillsImporter {
 		assertEquals(SirenNote(1, 1), dirge.notes[7])
 	}
 
-	private fun getReactionSkill(name: String, type: ReactionSkillType) = skillAssets.reactionSkills.find {
+	private fun getReactionSkill(name: String, type: ReactionSkillType) = content.skills.reactionSkills.find {
 		it.name == name && it.type == type
 	}!!
 
@@ -724,7 +722,7 @@ class TestSkillsImporter {
 		assertNull(survivor.skillClass)
 	}
 
-	private fun getPassive(name: String) = skillAssets.passiveSkills.find { it.name == name }!!
+	private fun getPassive(name: String) = content.skills.passiveSkills.find { it.name == name }!!
 
 	@Test
 	fun testNaturesFavour() {
@@ -797,7 +795,7 @@ class TestSkillsImporter {
 	@Test
 	fun testAutoShield() {
 		val autoShield = getPassive("Auto-P.Shield")
-		assertEquals(setOf(combatAssets.statusEffects.find { it.flashName == "PSH" }!!), autoShield.autoEffects)
+		assertEquals(setOf(content.stats.statusEffects.find { it.flashName == "PSH" }!!), autoShield.autoEffects)
 		assertEquals("LIGHT", autoShield.element.properName)
 
 		assertEquals(0, autoShield.elementalResistances.size)
@@ -806,7 +804,7 @@ class TestSkillsImporter {
 	@Test
 	fun testSosRegen() {
 		val sosRegen = getPassive("SOS Regen")
-		assertEquals(setOf(combatAssets.statusEffects.find { it.niceName == "Regen" }!!), sosRegen.sosEffects)
+		assertEquals(setOf(content.stats.statusEffects.find { it.niceName == "Regen" }!!), sosRegen.sosEffects)
 		assertEquals("The Regen status effect triggers when the character is at 20% HP or less.", sosRegen.description)
 
 		assertEquals(0, sosRegen.autoEffects.size)

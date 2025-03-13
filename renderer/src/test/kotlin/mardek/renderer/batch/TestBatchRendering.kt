@@ -8,7 +8,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.compressor.Kim1Compressor
 import com.github.knokko.compressor.Kim2Compressor
 import com.github.knokko.ui.renderer.UiRenderInstance
-import mardek.assets.sprite.KimSprite
+import mardek.content.sprite.KimSprite
 import mardek.renderer.createRenderPass
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

@@ -1,10 +1,10 @@
 package mardek.importer.skills
 
-import mardek.assets.combat.CombatAssets
-import mardek.assets.combat.ElementalDamageBonus
-import mardek.assets.combat.PossibleStatusEffect
-import mardek.assets.combat.StatModifierRange
-import mardek.assets.skill.*
+import mardek.content.combat.StatsContent
+import mardek.content.combat.ElementalDamageBonus
+import mardek.content.combat.PossibleStatusEffect
+import mardek.content.combat.StatModifierRange
+import mardek.content.skill.*
 import mardek.importer.area.parseFlashString
 import mardek.importer.area.parseOptionalFlashString
 import mardek.importer.util.parseActionScriptNestedList
@@ -13,7 +13,7 @@ import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
 
 fun parseActiveSkills(
-	combatAssets: CombatAssets, rawSkills: List<Map<String, String>>
+	statsContent: StatsContent, rawSkills: List<Map<String, String>>
 ) = rawSkills.map { rawSkill ->
 	val mode = when (rawSkill["MODE"]!!) {
 		"\"P\"" -> ActiveSkillMode.Melee
@@ -40,7 +40,7 @@ fun parseActiveSkills(
 		addEffects = null
 	}
 
-	var statModifiers = parseStatModifiers(combatAssets, rawSkill["stat_mod"])
+	var statModifiers = parseStatModifiers(statsContent, rawSkill["stat_mod"])
 	val isBuff = rawSkill.containsKey("buff")
 	if (!isBuff && !isHealing) statModifiers = ArrayList(statModifiers.map { -it })
 
@@ -59,8 +59,8 @@ fun parseActiveSkills(
 		description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else "",
 		mode = mode,
 		targetType = targetType,
-		element = combatAssets.elements.find { it.rawName == parseFlashString(rawSkill["elem"]!!, "element") }!!,
-		damage = parseSkillDamage(combatAssets, rawSkill),
+		element = statsContent.elements.find { it.rawName == parseFlashString(rawSkill["elem"]!!, "element") }!!,
+		damage = parseSkillDamage(statsContent, rawSkill),
 		masteryPoints = if (rawAP != null) parseInt(rawAP) else 0,
 		accuracy = if (rawSkill.containsKey("cannot_miss")) 255 else parseInt(rawSkill["accuracy"] ?: "255"),
 		manaCost = parseInt(rawSkill["MP"]),
@@ -69,8 +69,8 @@ fun parseActiveSkills(
 		isBuff = isBuff,
 		drainsBlood = rawSpecial != null && rawSpecial.contains("DRAIN"),
 		statModifiers = statModifiers,
-		addStatusEffects = parseStatusEffectList(combatAssets, addEffects),
-		removeStatusEffects = parseStatusEffectList(combatAssets, removeEffects),
+		addStatusEffects = parseStatusEffectList(statsContent, addEffects),
+		removeStatusEffects = parseStatusEffectList(statsContent, removeEffects),
 		revive = parseRevive(rawSkill["special"]),
 		particleEffect = parseOptionalFlashString(rawSkill["pfx"], "skill particle effect"),
 		soundEffect = parseOptionalFlashString(rawSkill["sfx"] ?: rawSkill["delayedSfx"], "skill sound effect"),
@@ -108,7 +108,7 @@ private fun parseRevive(rawSpecial: String?): Float {
 	return parseFloat(rawSpecial.substring(startIndex, endIndex))
 }
 
-private fun parseStatusEffectList(combatAssets: CombatAssets, rawEffects: String?): ArrayList<PossibleStatusEffect> {
+private fun parseStatusEffectList(statsContent: StatsContent, rawEffects: String?): ArrayList<PossibleStatusEffect> {
 	if (rawEffects == null) return ArrayList(0)
 	if (!rawEffects.startsWith("{") || !rawEffects.endsWith("}")) {
 		throw SkillParseException("Expected $rawEffects to start with { and end with }")
@@ -117,17 +117,17 @@ private fun parseStatusEffectList(combatAssets: CombatAssets, rawEffects: String
 	return ArrayList(rawEffects.substring(1 until rawEffects.length - 1).split(",").map { rawEffect ->
 		val possiblePair = rawEffect.split(":")
 		if (possiblePair.size != 2) throw SkillParseException("Expected $rawEffect to have exactly 1 colon")
-		val effect = combatAssets.statusEffects.find { it.flashName == possiblePair[0] }!!
+		val effect = statsContent.statusEffects.find { it.flashName == possiblePair[0] }!!
 		val chance = parseInt(possiblePair[1])
 		PossibleStatusEffect(effect, chance)
 	})
 }
 
-private fun parseStatModifiers(combatAssets: CombatAssets, rawModifiers: String?): ArrayList<StatModifierRange> {
+private fun parseStatModifiers(statsContent: StatsContent, rawModifiers: String?): ArrayList<StatModifierRange> {
 	if (rawModifiers == null) return ArrayList(0)
 	val modifierMap = parseActionScriptObject(rawModifiers)
 	return ArrayList(modifierMap.entries.map { modifierEntry ->
-		val stat = combatAssets.stats.find { it.flashName == modifierEntry.key }!!
+		val stat = statsContent.stats.find { it.flashName == modifierEntry.key }!!
 		val valueList = parseActionScriptNestedList(modifierEntry.value)
 		if (valueList is ArrayList<*>) {
 			StatModifierRange(stat, parseInt(valueList[0].toString()), parseInt(valueList[1].toString()))
@@ -138,7 +138,7 @@ private fun parseStatModifiers(combatAssets: CombatAssets, rawModifiers: String?
 	})
 }
 
-private fun parseSkillDamage(combatAssets: CombatAssets, rawSkill: Map<String, String>): SkillDamage? {
+private fun parseSkillDamage(statsContent: StatsContent, rawSkill: Map<String, String>): SkillDamage? {
 	val rawDamage = rawSkill["DMG"] ?: return null
 
 	var flatAttackValue = 0
@@ -206,7 +206,7 @@ private fun parseSkillDamage(combatAssets: CombatAssets, rawSkill: Map<String, S
 		for (rawBonus in nestedBonus as ArrayList<*>) {
 			val rawBonusList = rawBonus as ArrayList<*>
 			if (rawBonusList.size != 2) throw SkillParseException("Unexpected raw bonus in $nestedBonus")
-			val element = combatAssets.elements.find {
+			val element = statsContent.elements.find {
 				it.rawName == parseFlashString(rawBonusList[0] as String, "bonus element")
 			}!!
 			val damageList = rawBonusList[1] as ArrayList<*>

@@ -1,7 +1,7 @@
 package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import mardek.assets.area.WaterType
+import mardek.content.area.WaterType
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB

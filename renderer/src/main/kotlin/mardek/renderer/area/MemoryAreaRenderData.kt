@@ -1,8 +1,8 @@
 package mardek.renderer.area
 
-import mardek.assets.area.StoredAreaRenderData
-import mardek.assets.area.WaterType
-import mardek.assets.sprite.KimSprite
+import mardek.content.area.StoredAreaRenderData
+import mardek.content.area.WaterType
+import mardek.content.sprite.KimSprite
 
 class MemoryAreaRenderData(
 	private val width: Int,

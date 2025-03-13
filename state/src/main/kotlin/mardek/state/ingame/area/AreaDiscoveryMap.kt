@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.area.Area
+import mardek.content.area.Area
 
 @BitStruct(backwardCompatible = true)
 class AreaDiscoveryMap {

@@ -5,10 +5,10 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.battle.BattleBackground
-import mardek.assets.battle.Monster
-import mardek.assets.battle.PartyLayout
-import mardek.assets.combat.CombatStat
+import mardek.content.battle.BattleBackground
+import mardek.content.battle.Monster
+import mardek.content.battle.PartyLayout
+import mardek.content.combat.CombatStat
 
 @BitStruct(backwardCompatible = true)
 class Battle(

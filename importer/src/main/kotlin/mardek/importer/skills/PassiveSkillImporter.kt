@@ -1,16 +1,16 @@
 package mardek.importer.skills
 
-import mardek.assets.combat.*
-import mardek.assets.skill.PassiveSkill
-import mardek.assets.skill.SkillAssets
-import mardek.assets.skill.SkillClass
+import mardek.content.combat.*
+import mardek.content.skill.PassiveSkill
+import mardek.content.skill.SkillsContent
+import mardek.content.skill.SkillClass
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptObject
 import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
 
 fun parsePassiveSkill(
-		combatAssets: CombatAssets, skillAssets: SkillAssets, rawSkill: Map<String, String>
+	statsContent: StatsContent, skillsContent: SkillsContent, rawSkill: Map<String, String>
 ): PassiveSkill {
 
 	val rawEffect = rawSkill["effect"]
@@ -36,7 +36,7 @@ fun parsePassiveSkill(
 		val rawStatModifiers = effect["statmod"]
 		if (rawStatModifiers != null) {
 			for ((statName, rawAdder) in parseActionScriptObject(rawStatModifiers)) {
-				val stat = combatAssets.stats.find { it.flashName == statName }!!
+				val stat = statsContent.stats.find { it.flashName == statName }!!
 				statModifiers.add(StatModifier(stat, parseInt(rawAdder)))
 			}
 		}
@@ -44,11 +44,11 @@ fun parsePassiveSkill(
 		val rawResistances = effect["RESIST"]
 		if (rawResistances != null) {
 			for ((resistName, rawModifier) in parseActionScriptObject(rawResistances)) {
-				val element = combatAssets.elements.find { it.rawName == resistName }
+				val element = statsContent.elements.find { it.rawName == resistName }
 				if (element != null) {
 					elementalResistances.add(ElementalResistance(element, parseInt(rawModifier) / 100f))
 				} else {
-					val statusEffect = combatAssets.statusEffects.find { it.flashName == resistName }!!
+					val statusEffect = statsContent.statusEffects.find { it.flashName == resistName }!!
 					statusResistances.add(PossibleStatusEffect(statusEffect, parseInt(rawModifier)))
 				}
 			}
@@ -57,14 +57,14 @@ fun parsePassiveSkill(
 		val rawAutoEffects = effect["autoSTFX"]
 		if (rawAutoEffects != null) {
 			for (effectName in parseActionScriptObject(rawAutoEffects).keys) {
-				autoEffects.add(combatAssets.statusEffects.find { it.flashName == effectName }!!)
+				autoEffects.add(statsContent.statusEffects.find { it.flashName == effectName }!!)
 			}
 		}
 
 		val rawSosEffects = effect["SOS"]
 		if (rawSosEffects != null) {
 			for (effectName in parseActionScriptObject(rawSosEffects).keys) {
-				sosEffects.add(combatAssets.statusEffects.find { it.flashName == effectName }!!)
+				sosEffects.add(statsContent.statusEffects.find { it.flashName == effectName }!!)
 			}
 		}
 	}
@@ -93,13 +93,13 @@ fun parsePassiveSkill(
 		if (onlyMap.size != 1) throw SkillParseException("Unexpected only: $onlyMap")
 		val key = onlyMap.keys.first()
 		if (onlyMap[key] != "true") throw SkillParseException("Unexpected only: $onlyMap")
-		skillClass = skillAssets.classes.find { it.key == key }!!
+		skillClass = skillsContent.classes.find { it.key == key }!!
 	}
 
 	return PassiveSkill(
 			name = parseFlashString(rawSkill["skill"]!!, "passive skill name")!!,
 			description = parseFlashString(rawSkill["desc"]!!, "passive skill description")!!,
-			element = combatAssets.elements.find {
+			element = statsContent.elements.find {
 				it.rawName == parseFlashString(rawSkill["elem"]!!, "passive skill element")
 			}!!,
 			masteryPoints = parseInt(rawSkill["AP"]),

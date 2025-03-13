@@ -5,7 +5,7 @@ import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
-import mardek.assets.ui.UiSprites
+import mardek.content.ui.UiSprites
 import mardek.renderer.SharedResources
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.ui.renderDescription

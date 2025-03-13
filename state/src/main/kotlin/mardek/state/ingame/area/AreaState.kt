@@ -5,8 +5,8 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.Campaign
-import mardek.assets.area.*
+import mardek.content.Content
+import mardek.content.area.*
 import mardek.input.InputKey
 import mardek.input.InputManager
 import mardek.state.ingame.CampaignState
@@ -15,7 +15,6 @@ import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.battle.Battle
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.Enemy
-import mardek.state.ingame.characters.CharacterSelectionState
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
@@ -78,7 +77,7 @@ class AreaState(
 		if (key == InputKey.Interact) shouldInteract = true
 	}
 
-	fun update(input: InputManager, state: CampaignState, campaign: Campaign, timeStep: Duration) {
+	fun update(input: InputManager, state: CampaignState, content: Content, timeStep: Duration) {
 		if (obtainedItemStack != null) return
 		if (currentTime == ZERO && !area.flags.hasClearMap) {
 			state.areaDiscovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
@@ -103,7 +102,7 @@ class AreaState(
 		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
 			activeBattle = BattleState(
 				battle = incomingRandomBattle!!.battle, players = state.characterSelection.party,
-				campaign = campaign, campaignState = state
+				content = content, campaignState = state
 			)
 			incomingRandomBattle = null
 		}

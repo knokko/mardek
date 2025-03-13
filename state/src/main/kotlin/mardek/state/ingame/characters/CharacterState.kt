@@ -5,13 +5,13 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.combat.CombatStat
-import mardek.assets.combat.StatModifier
-import mardek.assets.combat.StatusEffect
-import mardek.assets.inventory.Item
-import mardek.assets.skill.PassiveSkill
-import mardek.assets.skill.Skill
-import mardek.assets.inventory.ItemStack
+import mardek.content.combat.CombatStat
+import mardek.content.combat.StatModifier
+import mardek.content.combat.StatusEffect
+import mardek.content.inventory.Item
+import mardek.content.skill.PassiveSkill
+import mardek.content.skill.Skill
+import mardek.content.inventory.ItemStack
 import kotlin.math.roundToInt
 
 @BitStruct(backwardCompatible = true)

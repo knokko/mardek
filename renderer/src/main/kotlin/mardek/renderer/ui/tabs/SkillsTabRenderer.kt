@@ -5,10 +5,10 @@ import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
-import mardek.assets.Campaign
-import mardek.assets.skill.ActiveSkill
-import mardek.assets.skill.PassiveSkill
-import mardek.assets.skill.ReactionSkill
+import mardek.content.Content
+import mardek.content.skill.ActiveSkill
+import mardek.content.skill.PassiveSkill
+import mardek.content.skill.ReactionSkill
 import mardek.renderer.SharedResources
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
@@ -29,7 +29,7 @@ class SkillsTabRenderer(
 	private val tab: SkillsTab,
 	private val region: AbsoluteRectangle,
 	private val state: CampaignState,
-	private val campaign: Campaign,
+	private val content: Content,
 	private val resources: SharedResources,
 ) : TabRenderer() {
 
@@ -78,7 +78,7 @@ class SkillsTabRenderer(
 			if (skill is ActiveSkill) addKimRequest(KimRequest(
 				x = skillsMinX, y = baseY, scale = region.height / 3000f, sprite = skill.element.sprite, opacity = 1f
 			)) else {
-				val icon = if (skillEntry.isToggled) campaign.ui.skillToggled else campaign.ui.skillNotToggled
+				val icon = if (skillEntry.isToggled) content.ui.skillToggled else content.ui.skillNotToggled
 				addKimRequest(KimRequest(
 					x = skillsMinX, y = baseY, scale = region.height / 3000f, sprite = icon, opacity = 1f
 				))
@@ -87,14 +87,14 @@ class SkillsTabRenderer(
 			if (tab.inside && row == tab.skillIndex) addKimRequest(
 				KimRequest(
 				x = skillsMinX - region.height / 20, y = baseY, scale = region.height / 3000f,
-				sprite = campaign.ui.horizontalPointer, opacity = 1f
+				sprite = content.ui.horizontalPointer, opacity = 1f
 			)
 			)
 
 			if (skillEntry.mastery >= skill.masteryPoints) addKimRequest(
 				KimRequest(
 				x = skillsMasteryPointsX, y = baseY, scale = region.height / 500f,
-				sprite = campaign.ui.mastered, opacity = 1f
+				sprite = content.ui.mastered, opacity = 1f
 			)
 			)
 		}
@@ -127,15 +127,15 @@ class SkillsTabRenderer(
 		))
 
 		for ((column, icon) in arrayOf(
-			campaign.ui.activeStarIcon, campaign.ui.meleeAttackIcon, campaign.ui.meleeDefenseIcon,
-			campaign.ui.rangedAttackIcon, campaign.ui.rangedDefenseIcon, campaign.ui.passiveIcon
+			content.ui.activeStarIcon, content.ui.meleeAttackIcon, content.ui.meleeDefenseIcon,
+			content.ui.rangedAttackIcon, content.ui.rangedDefenseIcon, content.ui.passiveIcon
 		).withIndex()) {
 			val x = region.minX + region.width / 7 + column * 12 * characterScale
 			addKimRequest(KimRequest(x = x, y = iconY, scale = characterScale / 32f, sprite = icon, opacity = 1f))
 
 			if (column == tab.skillTypeIndex && tab.inside) addKimRequest(KimRequest(
 				x = x - 4 * characterScale, y = iconY - 4 * characterScale,
-				scale = characterScale / 16f, sprite = campaign.ui.diagonalPointer, opacity = 1f
+				scale = characterScale / 16f, sprite = content.ui.diagonalPointer, opacity = 1f
 			))
 		}
 
@@ -245,7 +245,7 @@ class SkillsTabRenderer(
 		val resourceSplitX = region.minX + (descriptionMaxX - region.minX) * 3 / 5
 
 		val characterState = state.characterStates[assetCharacter]!!
-		val maxResourceValue = if (tab.skillTypeIndex == 0) characterState.determineMaxMana(assetCharacter.baseStats, campaign.combat.stats)
+		val maxResourceValue = if (tab.skillTypeIndex == 0) characterState.determineMaxMana(assetCharacter.baseStats, content.stats.stats)
 		else characterState.determineSkillEnablePoints()
 		val currentResourceValue = if (tab.skillTypeIndex == 0) characterState.currentMana
 		else maxResourceValue - visibleSkills.sumOf { skillEntry ->

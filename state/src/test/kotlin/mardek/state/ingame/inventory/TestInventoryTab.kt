@@ -1,13 +1,13 @@
 package mardek.state.ingame.inventory
 
-import mardek.assets.animations.BattleModel
-import mardek.assets.characters.PlayableCharacter
-import mardek.assets.combat.CharacterClass
-import mardek.assets.combat.Element
-import mardek.assets.combat.Resistances
-import mardek.assets.inventory.*
-import mardek.assets.skill.SkillClass
-import mardek.assets.sprite.DirectionalSprites
+import mardek.content.animations.BattleModel
+import mardek.content.characters.PlayableCharacter
+import mardek.content.combat.CharacterClass
+import mardek.content.combat.Element
+import mardek.content.combat.Resistances
+import mardek.content.inventory.*
+import mardek.content.skill.SkillClass
+import mardek.content.sprite.DirectionalSprites
 import mardek.input.InputKey
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState

@@ -4,8 +4,8 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
-import mardek.assets.animations.ColorTransform
-import mardek.assets.sprite.BcSprite
+import mardek.content.animations.ColorTransform
+import mardek.content.sprite.BcSprite
 import org.joml.Vector2f
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.*

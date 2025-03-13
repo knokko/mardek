@@ -1,8 +1,8 @@
 package mardek.importer.ui
 
-import mardek.assets.sprite.BcSprite
-import mardek.assets.sprite.KimSprite
-import mardek.assets.ui.UiSprites
+import mardek.content.sprite.BcSprite
+import mardek.content.sprite.KimSprite
+import mardek.content.ui.UiSprites
 import mardek.importer.util.compressKimSprite1
 import mardek.importer.util.compressKimSprite2
 import javax.imageio.ImageIO

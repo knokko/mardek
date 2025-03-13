@@ -6,19 +6,19 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
-import mardek.assets.Campaign
-import mardek.assets.combat.CombatStat
-import mardek.assets.inventory.EquipmentSlotType
-import mardek.assets.skill.ActiveSkill
-import mardek.assets.skill.PassiveSkill
-import mardek.assets.skill.ReactionSkill
-import mardek.assets.skill.ReactionSkillType
+import mardek.content.Content
+import mardek.content.combat.CombatStat
+import mardek.content.inventory.EquipmentSlotType
+import mardek.content.skill.ActiveSkill
+import mardek.content.skill.PassiveSkill
+import mardek.content.skill.ReactionSkill
+import mardek.content.skill.ReactionSkillType
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.Kim1Renderer
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.SharedResources
 import mardek.state.ingame.CampaignState
-import mardek.assets.inventory.ItemStack
+import mardek.content.inventory.ItemStack
 import mardek.renderer.ui.renderDescription
 import mardek.state.ingame.menu.InventoryTab
 import mardek.state.title.AbsoluteRectangle
@@ -48,7 +48,7 @@ class InventoryTabRenderer(
 	private val tab: InventoryTab,
 	private val region: AbsoluteRectangle,
 	private val state: CampaignState,
-	private val campaign: Campaign,
+	private val content: Content,
 	private val resources: SharedResources,
 ) : TabRenderer() {
 
@@ -72,7 +72,7 @@ class InventoryTabRenderer(
 		kim1Batch.requests.add(KimRequest(
 			x = region.minX + region.width / 2,
 			y = 4 * scale, scale = scale.toFloat(),
-			sprite = campaign.ui.goldIcon, opacity = 1f
+			sprite = content.ui.goldIcon, opacity = 1f
 		))
 	}
 
@@ -162,9 +162,9 @@ class InventoryTabRenderer(
 			val baseStats = mutableListOf<CombatStat>()
 			if (equipment != null) {
 				if (equipment.weapon == null) {
-					baseStats.add(campaign.combat.stats.find { it.flashName == "DEF" }!!)
-					baseStats.add(campaign.combat.stats.find { it.flashName == "MDEF" }!!)
-				} else baseStats.add(campaign.combat.stats.find { it.flashName == "ATK" }!!)
+					baseStats.add(content.stats.stats.find { it.flashName == "DEF" }!!)
+					baseStats.add(content.stats.stats.find { it.flashName == "MDEF" }!!)
+				} else baseStats.add(content.stats.stats.find { it.flashName == "ATK" }!!)
 			}
 
 			val textMinX = 5 * scale
@@ -258,19 +258,19 @@ class InventoryTabRenderer(
 						if (skillMastery >= skill.masteryPoints) {
 							kim1Batch.requests.add(KimRequest(
 								x = 25 * scale, y = skillY + 16 * scale, scale = scale / 2f,
-								sprite = campaign.ui.mastered, opacity = 1f
+								sprite = content.ui.mastered, opacity = 1f
 							))
 						}
 
 						val skillSprite = if (skill is ReactionSkill) {
 							when (skill.type) {
-								ReactionSkillType.MeleeAttack -> campaign.ui.meleeAttackIcon
-								ReactionSkillType.RangedAttack -> campaign.ui.rangedAttackIcon
-								ReactionSkillType.MeleeDefense -> campaign.ui.meleeDefenseIcon
-								ReactionSkillType.RangedDefense -> campaign.ui.rangedDefenseIcon
+								ReactionSkillType.MeleeAttack -> content.ui.meleeAttackIcon
+								ReactionSkillType.RangedAttack -> content.ui.rangedAttackIcon
+								ReactionSkillType.MeleeDefense -> content.ui.meleeDefenseIcon
+								ReactionSkillType.RangedDefense -> content.ui.rangedDefenseIcon
 							}
-						} else if (skill is PassiveSkill) campaign.ui.passiveIcon else {
-							val skillClass = campaign.skills.classes.find { it.actions.contains(skill) }!!
+						} else if (skill is PassiveSkill) content.ui.passiveIcon else {
+							val skillClass = content.skills.classes.find { it.actions.contains(skill) }!!
 							skillClass.icon
 						}
 
@@ -580,13 +580,13 @@ class InventoryTabRenderer(
 			val iconY = startY + barHeight / 2 + margin / 2
 			val iconScale = scale / 8f
 			addKimRequest(KimRequest(
-				x = x1, y = iconY, scale = iconScale, sprite = campaign.ui.attackIcon, opacity = 1f
+				x = x1, y = iconY, scale = iconScale, sprite = content.ui.attackIcon, opacity = 1f
 			))
 			addKimRequest(KimRequest(
-				x = x2, y = iconY, scale = iconScale, sprite = campaign.ui.defIcon, opacity = 1f
+				x = x2, y = iconY, scale = iconScale, sprite = content.ui.defIcon, opacity = 1f
 			))
 			addKimRequest(KimRequest(
-				x = x4, y = iconY, scale = iconScale, sprite = campaign.ui.rangedDefIcon, opacity = 1f
+				x = x4, y = iconY, scale = iconScale, sprite = content.ui.rangedDefIcon, opacity = 1f
 			))
 		}
 
@@ -598,13 +598,13 @@ class InventoryTabRenderer(
 			val statsHeight = 5 * scale
 
 			val attack = characterState.determineValue(
-				assetCharacter.baseStats, campaign.combat.stats.find { it.flashName == "ATK" }!!
+				assetCharacter.baseStats, content.stats.stats.find { it.flashName == "ATK" }!!
 			)
 			val defense = characterState.determineValue(
-				assetCharacter.baseStats, campaign.combat.stats.find { it.flashName == "DEF" }!!
+				assetCharacter.baseStats, content.stats.stats.find { it.flashName == "DEF" }!!
 			)
 			val rangedDefense = characterState.determineValue(
-				assetCharacter.baseStats, campaign.combat.stats.find { it.flashName == "MDEF" }!!
+				assetCharacter.baseStats, content.stats.stats.find { it.flashName == "MDEF" }!!
 			)
 
 			uiRenderer.drawString(
@@ -651,7 +651,7 @@ class InventoryTabRenderer(
 		)
 
 		val healthTextColor = srgbToLinear(rgb(122, 217, 62))
-		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats, campaign.combat.stats)
+		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats, content.stats.stats)
 		uiRenderer?.drawString(
 			resources.font, "${characterState.currentHealth}/$maxHealth", healthTextColor, intArrayOf(),
 			barX, region.minY, barX + baseBarWidth, region.maxY,
@@ -669,7 +669,7 @@ class InventoryTabRenderer(
 		)
 
 		val manaTextColor = srgbToLinear(rgb(35, 227, 240))
-		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats, campaign.combat.stats)
+		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats, content.stats.stats)
 		uiRenderer?.drawString(
 			resources.font, "${characterState.currentMana}/$maxMana", manaTextColor, intArrayOf(),
 			barX, region.minY, barX + baseBarWidth, region.maxY,

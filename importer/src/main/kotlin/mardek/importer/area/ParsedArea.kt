@@ -1,7 +1,7 @@
 package mardek.importer.area
 
-import mardek.assets.area.*
-import mardek.assets.area.objects.AreaObjects
+import mardek.content.area.*
+import mardek.content.area.objects.AreaObjects
 
 class ParsedArea(
 	val width: Int,

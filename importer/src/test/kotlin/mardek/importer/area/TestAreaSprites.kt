@@ -2,13 +2,14 @@ package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.compressor.Kim1Decompressor
-import mardek.assets.area.AreaAssets
-import mardek.assets.area.objects.AreaObject
-import mardek.assets.sprite.KimSprite
-import mardek.importer.battle.importBattleAssets
-import mardek.importer.combat.importCombatAssets
-import mardek.importer.inventory.importInventoryAssets
-import mardek.importer.skills.importSkills
+import mardek.content.Content
+import mardek.content.area.AreaContent
+import mardek.content.area.objects.AreaObject
+import mardek.content.sprite.KimSprite
+import mardek.importer.battle.importBattleContent
+import mardek.importer.inventory.importItemsContent
+import mardek.importer.stats.importStatsContent
+import mardek.importer.skills.importSkillsContent
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -69,12 +70,14 @@ class TestAreaSprites {
 
 	@Test
 	fun testImportCharacterSprites() {
-		val combatAssets = importCombatAssets()
-		val skillAssets = importSkills(combatAssets)
-		val itemAssets = importInventoryAssets(combatAssets, skillAssets)
-		val assets = importAreaAssets(itemAssets, importBattleAssets(combatAssets, itemAssets, skillAssets, null))
+		val content = Content()
+		importStatsContent(content)
+		importSkillsContent(content)
+		importItemsContent(content)
+		importBattleContent(content, null)
+		importAreaContent(content)
 
-		val deugan = assets.characterSprites.find { it.name == "deugan_hero" }!!
+		val deugan = content.areas.characterSprites.find { it.name == "deugan_hero" }!!
 		assertEquals("deugan_hero", deugan.name)
 		assertEquals(8, deugan.sprites.size)
 
@@ -83,7 +86,7 @@ class TestAreaSprites {
 			assertEquals(16, sprite.height)
 		}
 
-		val solaar = assets.characterSprites.find { it.name == "solaar" }!!
+		val solaar = content.areas.characterSprites.find { it.name == "solaar" }!!
 		assertEquals("solaar", solaar.name)
 		assertEquals(9, solaar.sprites.size)
 
@@ -137,7 +140,7 @@ class TestAreaSprites {
 
 	@Test
 	fun testGetMolestor() {
-		val rawMolester = parseAreaEntity(AreaAssets(),
+		val rawMolester = parseAreaEntity(AreaContent(),
 			parseActionScriptObjectList("[{name:\"Molestor\",model:\"ch3bosses\",x:16,y:37,walkspeed:-1,dir:\"e\",Static:true,elem:\"DARK\",BOSSCODE:\"Molestor2\",conv:[[\"norm\",\"<<demon>>Neeeeeeeheeheeheehee... Children... You do not belooooong heeeererererere...!\"],Do = function()\n" +
 				"{\n" +
 				"   BATTLE([[\"Molestor\",null,null,null],[\"Molestor\",null,null,null],[20,null,null,null],\"SOLO\"],\"battle\",true,true);\n" +

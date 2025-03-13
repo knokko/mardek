@@ -1,7 +1,7 @@
 package mardek.importer.skills
 
-import mardek.assets.skill.SirenNote
-import mardek.assets.skill.SirenSong
+import mardek.content.skill.SirenNote
+import mardek.content.skill.SirenSong
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObjectList

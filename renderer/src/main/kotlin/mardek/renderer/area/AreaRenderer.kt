@@ -4,10 +4,10 @@ import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
-import mardek.assets.area.AreaDreamType
-import mardek.assets.area.Direction
-import mardek.assets.area.WaterType
-import mardek.assets.sprite.KimSprite
+import mardek.content.area.AreaDreamType
+import mardek.content.area.Direction
+import mardek.content.area.WaterType
+import mardek.content.sprite.KimSprite
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.SharedResources

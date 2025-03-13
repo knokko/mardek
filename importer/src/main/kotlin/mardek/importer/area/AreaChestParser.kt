@@ -1,21 +1,20 @@
 package mardek.importer.area
 
-import mardek.assets.area.Chest
-import mardek.assets.area.ChestBattle
-import mardek.assets.area.ChestMonster
-import mardek.assets.area.ChestSprite
-import mardek.assets.battle.BattleAssets
-import mardek.assets.inventory.Dreamstone
-import mardek.assets.inventory.InventoryAssets
-import mardek.assets.inventory.ItemStack
-import mardek.assets.inventory.PlotItem
+import mardek.content.Content
+import mardek.content.area.Chest
+import mardek.content.area.ChestBattle
+import mardek.content.area.ChestMonster
+import mardek.content.area.ChestSprite
+import mardek.content.inventory.Dreamstone
+import mardek.content.inventory.ItemStack
+import mardek.content.inventory.PlotItem
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObjectList
 import java.lang.Integer.parseInt
 
 @Suppress("UNCHECKED_CAST")
 internal fun parseAreaChests(
-	inventoryAssets: InventoryAssets, battleAssets: BattleAssets, rawLoot: String, sprite: ChestSprite
+	content: Content, rawLoot: String, sprite: ChestSprite
 ) = parseActionScriptObjectList(rawLoot).map { rawChest ->
 	val x = parseInt(rawChest["x"])
 	val y = parseInt(rawChest["y"])
@@ -36,11 +35,11 @@ internal fun parseAreaChests(
 	if (rawItem == "gold") {
 		gold = amount
 	} else if (rawItem == "Dreamstone") {
-		dreamstone = inventoryAssets.dreamstones.find { it.index == amount }!!
+		dreamstone = content.items.dreamstones.find { it.index == amount }!!
 	} else {
-		val item = inventoryAssets.items.find { it.flashName == rawItem }
+		val item = content.items.items.find { it.flashName == rawItem }
 		if (item == null || rawChest["type"] == "\"plot\"") {
-			plotItem = inventoryAssets.plotItems.find { it.name == rawItem }!!
+			plotItem = content.items.plotItems.find { it.name == rawItem }!!
 		} else stack = ItemStack(item, amount)
 	}
 
@@ -72,7 +71,7 @@ internal fun parseAreaChests(
 		}
 
 		val layoutName = parseFlashString(nestedMonsters[3] as String, "chest battle position")!!
-		val layout = battleAssets.enemyPartyLayouts.find { it.name == layoutName }!!
+		val layout = content.battle.enemyPartyLayouts.find { it.name == layoutName }!!
 
 		val rawSpecialMusic = rawChest["specialMusic"]
 		val specialMusic = if (rawSpecialMusic == null) null else parseFlashString(rawSpecialMusic, "chest battle music")!!

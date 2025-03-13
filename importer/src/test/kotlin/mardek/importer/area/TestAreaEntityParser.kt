@@ -1,21 +1,21 @@
 package mardek.importer.area
 
-import mardek.assets.area.Area
-import mardek.assets.area.AreaAssets
-import mardek.assets.area.Direction
-import mardek.assets.area.TransitionDestination
-import mardek.assets.area.objects.*
-import mardek.assets.sprite.ArrowSprite
-import mardek.assets.sprite.DirectionalSprites
-import mardek.assets.sprite.KimSprite
-import mardek.assets.sprite.ObjectSprites
+import mardek.content.area.Area
+import mardek.content.area.AreaContent
+import mardek.content.area.Direction
+import mardek.content.area.TransitionDestination
+import mardek.content.area.objects.*
+import mardek.content.sprite.ArrowSprite
+import mardek.content.sprite.DirectionalSprites
+import mardek.content.sprite.KimSprite
+import mardek.content.sprite.ObjectSprites
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class TestAreaEntityParser {
 
-	private val assets = AreaAssets()
+	private val assets = AreaContent()
 
 	@Test
 	fun testSingleEntitySingleKey() {

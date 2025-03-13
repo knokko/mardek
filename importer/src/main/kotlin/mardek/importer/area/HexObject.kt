@@ -2,7 +2,7 @@ package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
-import mardek.assets.area.objects.AreaLight
+import mardek.content.area.objects.AreaLight
 
 class HexObject(
 	val sheetName: String,

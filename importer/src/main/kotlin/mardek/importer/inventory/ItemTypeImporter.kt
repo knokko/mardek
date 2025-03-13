@@ -1,7 +1,7 @@
 package mardek.importer.inventory
 
-import mardek.assets.inventory.InventoryAssets
-import mardek.assets.inventory.ItemType
+import mardek.content.inventory.ItemsContent
+import mardek.content.inventory.ItemType
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import java.awt.image.BufferedImage
@@ -16,7 +16,7 @@ internal fun sheet(type: String): BufferedImage {
 }
 
 internal fun importItemTypes(
-	assets: InventoryAssets, rawSheetIDs: String, rawStackableTypes: String
+	assets: ItemsContent, rawSheetIDs: String, rawStackableTypes: String
 ) {
 	val stackableTypes = parseActionScriptObject(rawStackableTypes)
 	for ((typeName, rawSheetLocation) in parseActionScriptObject(rawSheetIDs)) {

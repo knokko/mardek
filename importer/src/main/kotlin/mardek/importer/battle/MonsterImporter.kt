@@ -8,15 +8,15 @@ import com.jpexs.decompiler.flash.tags.*
 import com.jpexs.decompiler.flash.types.ColorTransform
 import com.jpexs.decompiler.flash.types.MATRIX
 import com.jpexs.decompiler.flash.types.RECT
-import mardek.assets.animations.*
-import mardek.assets.battle.*
-import mardek.assets.combat.*
-import mardek.assets.inventory.Dreamstone
-import mardek.assets.inventory.InventoryAssets
-import mardek.assets.inventory.Item
-import mardek.assets.skill.ActiveSkill
-import mardek.assets.skill.SkillAssets
-import mardek.assets.sprite.BcSprite
+import mardek.content.Content
+import mardek.content.animations.*
+import mardek.content.battle.*
+import mardek.content.combat.*
+import mardek.content.inventory.Dreamstone
+import mardek.content.inventory.ItemsContent
+import mardek.content.inventory.Item
+import mardek.content.skill.ActiveSkill
+import mardek.content.sprite.BcSprite
 import mardek.importer.area.FLASH
 import mardek.importer.area.parseFlashString
 import mardek.importer.skills.SkillParseException
@@ -120,10 +120,7 @@ private fun importSkeleton(swf: SWF, id: Int, spriteIdMapping: MutableMap<Int, B
 	return convertFlashCreature(monster, spriteIdMapping)
 }
 
-internal fun importMonsters(
-	combatAssets: CombatAssets, itemAssets: InventoryAssets, skillAssets: SkillAssets, assets: BattleAssets,
-	playerModelMapping: MutableMap<String, BattleModel>
-) {
+internal fun importMonsters(content: Content, playerModelMapping: MutableMap<String, BattleModel>) {
 	val battleTag = FLASH.tags.find { it.uniqueId == "5118" }!! as DefineSpriteTag
 	println("battle tag is $battleTag")
 
@@ -225,9 +222,8 @@ internal fun importMonsters(
 			playerModelMapping[monster.label] = BattleModel(skeleton, skin)
 		} else {
 			fun addMonster(name: String, propertiesText: String) {
-				assets.monsters.add(importMonsterStats(
-					name = name, model = BattleModel(skeleton, skin), propertiesText = propertiesText,
-					combatAssets = combatAssets, itemAssets = itemAssets, skillAssets = skillAssets
+				content.battle.monsters.add(importMonsterStats(
+					name = name, model = BattleModel(skeleton, skin), propertiesText = propertiesText, content
 				))
 			}
 
@@ -259,7 +255,7 @@ internal fun importMonsters(
 		}
 	}
 
-	for (skeleton in skeletons.values) assets.skeletons.add(skeleton)
+	for (skeleton in skeletons.values) content.battle.skeletons.add(skeleton)
 }
 
 private fun convertFlashCreature(creature: BattleCreature2, spriteIdMapping: MutableMap<Int, BcSprite>): Skeleton {
@@ -492,7 +488,7 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 	return creature
 }
 
-private fun parsePotentialEquipment(equipmentText: String?, itemAssets: InventoryAssets): PotentialEquipment {
+private fun parsePotentialEquipment(equipmentText: String?, itemAssets: ItemsContent): PotentialEquipment {
 	if (equipmentText == null) return PotentialEquipment.EMPTY
 	val rawEquipmentList = parseActionScriptNestedList(equipmentText)
 	if (rawEquipmentList !is ArrayList<*>) throw IllegalArgumentException("Unexpected equipment $equipmentText")
@@ -516,11 +512,8 @@ private fun parsePotentialEquipment(equipmentText: String?, itemAssets: Inventor
 	}))
 }
 
-internal fun importMonsterStats(
-	name: String, model: BattleModel, propertiesText: String,
-	combatAssets: CombatAssets, itemAssets: InventoryAssets, skillAssets: SkillAssets
-): Monster {
-	val mimicry = skillAssets.classes.find { it.name == "Mimicry" }!!
+internal fun importMonsterStats(name: String, model: BattleModel, propertiesText: String, content: Content): Monster {
+	val mimicry = content.skills.classes.find { it.name == "Mimicry" }!!
 	val propertiesCode = parseActionScriptCode(listOf(propertiesText))
 	val mdlMap = parseActionScriptObject(propertiesCode.variableAssignments["mdlStats"]!!)
 	val typeName = parseFlashString(mdlMap["TYPE"]!!, "monster type")!!
@@ -529,7 +522,7 @@ internal fun importMonsterStats(
 	val baseStats = HashMap<CombatStat, Int>()
 	val rawBaseStats = parseActionScriptObject(mdlMap["baseStats"]!!)
 	for ((statName, statValue) in rawBaseStats) {
-		val stat = combatAssets.stats.find { it.flashName == statName }!!
+		val stat = content.stats.stats.find { it.flashName == statName }!!
 		baseStats[stat] = parseInt(statValue)
 	}
 
@@ -546,7 +539,7 @@ internal fun importMonsterStats(
 		Pair("ATK", rawAttack), Pair("DEF", rawMeleeDef), Pair("MDEF", rawMagicDef), Pair("evasion", rawEvasion)
 	)) {
 		if (statValue == null) continue
-		val stat = combatAssets.stats.find { it.flashName == statName }!!
+		val stat = content.stats.stats.find { it.flashName == statName }!!
 		baseStats[stat] = parseInt(statValue)
 	}
 
@@ -578,14 +571,14 @@ internal fun importMonsterStats(
 			val itemName = parseFlashString(lootPair[0].toString(), "loot item")!!
 			if (itemName == "Dreamstone") {
 				val index = parseInt(lootPair[2].toString())
-				dreamLoot.add(itemAssets.dreamstones.find { it.index == index }!!)
+				dreamLoot.add(content.items.dreamstones.find { it.index == index }!!)
 			} else {
-				val item = itemAssets.items.find { it.flashName == itemName }
+				val item = content.items.items.find { it.flashName == itemName }
 				if (item != null) {
 					val amount = if (lootPair.size == 2) 1 else parseInt(lootPair[2].toString())
 					repeat(amount) { loot.add(PotentialItem(item, chance)) }
 				} else {
-					val plotItem = itemAssets.plotItems.find { it.name == itemName }!!
+					val plotItem = content.items.plotItems.find { it.name == itemName }!!
 					plotLoot.add(PotentialPlotItem(plotItem, chance))
 				}
 			}
@@ -599,16 +592,16 @@ internal fun importMonsterStats(
 	val statusResistances = ArrayList<EffectResistance>()
 	for ((source, rawResistance) in rawResistanceMap) {
 		if (rawResistance == "0") continue
-		val element = combatAssets.elements.find { it.rawName == source }
+		val element = content.stats.elements.find { it.rawName == source }
 		if (element != null) elementalResistances.add(ElementalResistance(element, parseInt(rawResistance) / 100f))
-		else statusResistances.add(EffectResistance(combatAssets.statusEffects.find { it.flashName == source }!!, parseInt(rawResistance)))
+		else statusResistances.add(EffectResistance(content.stats.statusEffects.find { it.flashName == source }!!, parseInt(rawResistance)))
 	}
 
 	val attackEffects = ArrayList<PossibleStatusEffect>()
 	val rawAttackEffects = mdlMap["stfx_onhit"]
 	if (rawAttackEffects != null) {
 		for ((effectName, chance) in parseActionScriptObject(rawAttackEffects)) {
-			val effect = combatAssets.statusEffects.find { it.flashName == effectName }!!
+			val effect = content.stats.statusEffects.find { it.flashName == effectName }!!
 			attackEffects.add(PossibleStatusEffect(effect, parseInt(chance)))
 		}
 	}
@@ -619,7 +612,7 @@ internal fun importMonsterStats(
 		val initialMap = parseActionScriptObject(rawInitialEffects)
 		for ((effectName, one) in initialMap) {
 			if (one != "1") throw SkillParseException("Unexpected initial effects $rawInitialEffects")
-			initialEffects.add(combatAssets.statusEffects.find { it.flashName == effectName }!!)
+			initialEffects.add(content.stats.statusEffects.find { it.flashName == effectName }!!)
 		}
 	}
 
@@ -634,10 +627,10 @@ internal fun importMonsterStats(
 		rawActionList.add(rawTechObject)
 	}
 
-	val actions = parseActiveSkills(combatAssets, rawActionList)
+	val actions = parseActiveSkills(content.stats, rawActionList)
 	val targetMap = mutableMapOf<ActiveSkill, StrategyTarget>()
 	val strategies = importMonsterStrategies(
-		propertiesCode.variableAssignments["Gambits"]!!, actions, combatAssets, skillAssets, itemAssets, targetMap
+		propertiesCode.variableAssignments["Gambits"]!!, actions, content, targetMap
 	)
 	var meleeCounterAttacks = ArrayList<CounterAttack>(0)
 	var rangedCounterAttacks = ArrayList<CounterAttack>(0)
@@ -664,16 +657,16 @@ internal fun importMonsterStats(
 	if (rawShiftResistances != null) {
 		val myMap = parseActionScriptObject(rawShiftResistances)
 		for ((myRawElement, rawResistances) in myMap) {
-			val myElement = combatAssets.elements.find { it.rawName == myRawElement }!!
+			val myElement = content.stats.elements.find { it.rawName == myRawElement }!!
 			shiftResistances[myElement] = Resistances()
 			val resistanceMap = parseActionScriptObject(rawResistances)
 			for ((rawResistedObject, rawPercentage) in resistanceMap) {
 				val percentage = parseInt(rawPercentage)
-				val resistedElement = combatAssets.elements.find { it.rawName == rawResistedObject }
+				val resistedElement = content.stats.elements.find { it.rawName == rawResistedObject }
 				if (resistedElement != null) {
 					shiftResistances[myElement]!!.elements.add(ElementalResistance(resistedElement, percentage / 100f))
 				} else {
-					val resistedEffect = combatAssets.statusEffects.find { it.flashName == rawResistedObject }!!
+					val resistedEffect = content.stats.statusEffects.find { it.flashName == rawResistedObject }!!
 					shiftResistances[myElement]!!.effects.add(EffectResistance(resistedEffect, percentage))
 				}
 			}
@@ -684,8 +677,8 @@ internal fun importMonsterStats(
 		name = name,
 		model = model,
 		className = parseFlashString(mdlMap["Class"]!!, "monster class")!!,
-		type = combatAssets.races.find { it.flashName == typeName }!!,
-		element = combatAssets.elements.find { it.rawName == elementName }!!,
+		type = content.stats.creatureTypes.find { it.flashName == typeName }!!,
+		element = content.stats.elements.find { it.rawName == elementName }!!,
 		baseStats = baseStats,
 		playerStatModifier = playerStatModifier,
 		hpPerLevel = parseInt(mdlMap["hpGrowth"]!!),
@@ -696,12 +689,12 @@ internal fun importMonsterStats(
 		loot = loot,
 		plotLoot = plotLoot,
 		dreamLoot = dreamLoot,
-		weapon = parsePotentialEquipment(rawEquipmentMap["weapon"], itemAssets),
-		shield = parsePotentialEquipment(rawEquipmentMap["shield"], itemAssets),
-		helmet = parsePotentialEquipment(rawEquipmentMap["helmet"], itemAssets),
-		armor = parsePotentialEquipment(rawEquipmentMap["armour"], itemAssets),
-		accessory1 = parsePotentialEquipment(rawEquipmentMap["accs"], itemAssets),
-		accessory2 = parsePotentialEquipment(rawEquipmentMap["accs2"], itemAssets),
+		weapon = parsePotentialEquipment(rawEquipmentMap["weapon"], content.items),
+		shield = parsePotentialEquipment(rawEquipmentMap["shield"], content.items),
+		helmet = parsePotentialEquipment(rawEquipmentMap["helmet"], content.items),
+		armor = parsePotentialEquipment(rawEquipmentMap["armour"], content.items),
+		accessory1 = parsePotentialEquipment(rawEquipmentMap["accs"], content.items),
+		accessory2 = parsePotentialEquipment(rawEquipmentMap["accs2"], content.items),
 		resistances = Resistances(elementalResistances, statusResistances),
 		elementalShiftResistances = shiftResistances,
 		attackEffects = attackEffects,

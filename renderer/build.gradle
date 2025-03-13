@@ -1,7 +1,7 @@
 dependencies {
     for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
     for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
-    implementation project(":assets")
+    implementation project(":content")
     implementation project(":state")
     implementation project(":ui-renderer")
 

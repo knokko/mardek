@@ -1,8 +1,8 @@
 package mardek.importer.battle
 
-import mardek.assets.battle.CounterAttack
-import mardek.assets.battle.StrategyTarget
-import mardek.assets.skill.ActiveSkill
+import mardek.content.battle.CounterAttack
+import mardek.content.battle.StrategyTarget
+import mardek.content.skill.ActiveSkill
 import mardek.importer.area.parseFlashString
 import mardek.importer.skills.SkillParseException
 import mardek.importer.util.parseActionScriptNestedList

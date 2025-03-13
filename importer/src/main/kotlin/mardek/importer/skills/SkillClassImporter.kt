@@ -1,7 +1,7 @@
 package mardek.importer.skills
 
-import mardek.assets.combat.CombatAssets
-import mardek.assets.skill.SkillClass
+import mardek.content.combat.StatsContent
+import mardek.content.skill.SkillClass
 import mardek.importer.area.parseFlashString
 import mardek.importer.characters.FatPlayableCharacter
 import mardek.importer.util.compressKimSprite1
@@ -11,14 +11,14 @@ import mardek.importer.util.parseActionScriptObjectList
 import javax.imageio.ImageIO
 
 fun parseSkillClasses(
-	combatAssets: CombatAssets, rawTechs: String,
+	statsContent: StatsContent, rawTechs: String,
 	rawMonsterSkills: String,
 	rawTechSpriteMappings: String
 ): List<SkillClass> {
 	val rawTechsMap = parseActionScriptObject(rawTechs)
 	val techSpriteMappings = parseActionScriptNestedList(rawTechSpriteMappings) as ArrayList<*>
 	val techIconsInput = FatPlayableCharacter::class.java.classLoader.getResourceAsStream(
-		"mardek/importer/combat/tech-icons.png"
+		"mardek/importer/stats/tech-icons.png"
 	)
 	val techIcons = ImageIO.read(techIconsInput)
 	techIconsInput.close()
@@ -33,7 +33,7 @@ fun parseSkillClasses(
 			key = entry.key,
 			name = techName,
 			description = parseFlashString(tech["desc"]!!, "Tech desc")!!,
-			actions = ArrayList(parseActiveSkills(combatAssets, parseActionScriptObjectList(rawSkills))),
+			actions = ArrayList(parseActiveSkills(statsContent, parseActionScriptObjectList(rawSkills))),
 			icon = compressKimSprite1(icon)
 		)
 	}

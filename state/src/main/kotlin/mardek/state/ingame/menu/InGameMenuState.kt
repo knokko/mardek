@@ -1,6 +1,6 @@
 package mardek.state.ingame.menu
 
-import mardek.assets.Campaign
+import mardek.content.Content
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -13,7 +13,7 @@ class InGameMenuState(private val state: CampaignState) {
 	var shown = false
 	var currentTab: InGameMenuTab = PartyTab()
 
-	fun update(input: InputManager, soundQueue: SoundQueue, assets: Campaign) {
+	fun update(input: InputManager, soundQueue: SoundQueue, assets: Content) {
 		while (true) {
 			val event = input.consumeEvent() ?: break
 

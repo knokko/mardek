@@ -6,9 +6,9 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
-import mardek.assets.area.WaterType
-import mardek.assets.sprite.KimSprite
-import mardek.assets.ui.UiSprites
+import mardek.content.area.WaterType
+import mardek.content.sprite.KimSprite
+import mardek.content.ui.UiSprites
 import mardek.renderer.SharedResources
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest

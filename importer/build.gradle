@@ -3,14 +3,14 @@ dependencies {
     for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
     for (format in ["kim1", "kim2", "bc1", "bc7"]) implementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
     implementation files("../flash/ffdec_lib.jar")
-    implementation project(":assets")
+    implementation project(":content")
     implementation project(":state")
 }
 
-tasks.register("exportCampaign", JavaExec) {
+tasks.register("exportContent", JavaExec) {
     group = "Export"
-    description = "Imports the default campaign, and exports it to game/src/main/resources/mardek/game"
+    description = "Imports the vanilla content, and exports it to game/src/main/resources/mardek/game"
 
     classpath sourceSets.main.runtimeClasspath
-    main = "mardek.importer.CampaignExporterKt"
+    main = "mardek.importer.ContentExporterKt"
 }

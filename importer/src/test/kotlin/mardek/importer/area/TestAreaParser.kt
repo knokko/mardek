@@ -1,15 +1,16 @@
 package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
-import mardek.assets.animations.BattleModel
-import mardek.assets.area.*
-import mardek.assets.battle.PartyLayoutPosition
-import mardek.assets.inventory.ItemStack
-import mardek.importer.battle.importBattleAssets
+import mardek.content.Content
+import mardek.content.animations.BattleModel
+import mardek.content.area.*
+import mardek.content.battle.PartyLayoutPosition
+import mardek.content.inventory.ItemStack
+import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
-import mardek.importer.combat.importCombatAssets
-import mardek.importer.inventory.importInventoryAssets
-import mardek.importer.skills.importSkills
+import mardek.importer.stats.importStatsContent
+import mardek.importer.inventory.importItemsContent
+import mardek.importer.skills.importSkillsContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -25,24 +26,26 @@ DetermineStats();
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestAreaParser {
 
-	private val combatAssets = importCombatAssets()
-	val skillAssets = importSkills(combatAssets)
-	private val inventoryAssets = importInventoryAssets(combatAssets, skillAssets)
-	private val battleAssets = importBattleAssets(combatAssets, inventoryAssets, skillAssets, null)
-	private val assets = AreaAssets()
+	private val content = Content()
 
 	init {
-		battleAssets.monsters.add(importMonsterStats(
-			name = "monster", model = BattleModel(), propertiesText = MONSTER_PROPERTIES_TEXT,
-			combatAssets = combatAssets, skillAssets = skillAssets, itemAssets = inventoryAssets
+		importStatsContent(content)
+		importSkillsContent(content)
+		importItemsContent(content)
+		importBattleContent(content, null)
+	}
+
+	init {
+		content.battle.monsters.add(importMonsterStats(
+			name = "monster", model = BattleModel(), propertiesText = MONSTER_PROPERTIES_TEXT, content
 		))
-		assets.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
-		importAreaAssets(inventoryAssets, battleAssets, assets)
+		content.areas.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
+		importAreaContent(content)
 	}
 
 	@Test
 	fun testParseAeropolisNorth() {
-		val parsed = parseArea(assets, "aeropolis_N", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val parsed = parseArea(content, "aeropolis_N", ArrayList(), ArrayList())
 		assertEquals("aeropolis_N", parsed.properties.rawName)
 		assertEquals("Aeropolis - Temple District", parsed.properties.displayName)
 		assertEquals("aeropolis", parsed.tilesheet.name)
@@ -75,9 +78,9 @@ class TestAreaParser {
 
 	@Test
 	fun testParseDragonLairArea2() {
-		val solo = battleAssets.enemyPartyLayouts.find { it.name == "SOLO" }!!
-		val duo = battleAssets.enemyPartyLayouts.find { it.name == "DUO" }!!
-		val trio = battleAssets.enemyPartyLayouts.find { it.name == "TRIO" }!!
+		val solo = content.battle.enemyPartyLayouts.find { it.name == "SOLO" }!!
+		val duo = content.battle.enemyPartyLayouts.find { it.name == "DUO" }!!
+		val trio = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!
 		val empty = PartyLayoutPosition(0, 0)
 		assertArrayEquals(arrayOf(PartyLayoutPosition(60, 80), empty, empty, empty), solo.positions)
 		assertArrayEquals(arrayOf(
@@ -87,12 +90,12 @@ class TestAreaParser {
 			PartyLayoutPosition(52, 90), PartyLayoutPosition(22, 154), PartyLayoutPosition(30, 18), empty
 		), trio.positions)
 
-		val levelRange = assets.levelRanges.find { it.name == "DRAGON_LAIR" }!!
+		val levelRange = content.areas.levelRanges.find { it.name == "DRAGON_LAIR" }!!
 		assertEquals(LevelRange(30, 36), levelRange.range)
 
-		val monster = battleAssets.monsters.find { it.name == "monster" }!!
+		val monster = content.battle.monsters.find { it.name == "monster" }!!
 
-		val parsed = parseArea(assets, "DL_area2", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val parsed = parseArea(content, "DL_area2", ArrayList(), ArrayList())
 		assertEquals("DL_area2", parsed.properties.rawName)
 		assertEquals("Dragon's Lair", parsed.properties.displayName)
 		assertEquals("dragonlair", parsed.tilesheet.name)
@@ -109,7 +112,7 @@ class TestAreaParser {
 			ownLevelRange = null,
 			minSteps = 0,
 			chance = 10,
-			defaultBackground = battleAssets.backgrounds.find { it.name == "dragonlair" }!!,
+			defaultBackground = content.battle.backgrounds.find { it.name == "dragonlair" }!!,
 			specialBackground = null
 		), parsed.randomBattles)
 		assertEquals("MightyHeroes", parsed.properties.musicTrack)
@@ -137,13 +140,13 @@ class TestAreaParser {
 
 	@Test
 	fun testParseGoldfishWarp() {
-		val parsed = parseArea(assets, "goldfish_warp", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val parsed = parseArea(content, "goldfish_warp", ArrayList(), ArrayList())
 		assertEquals(AreaAmbience(rgba(16, 14, 10, 100), 0), parsed.properties.ambience)
 	}
 
 	@Test
 	fun testParseAirTemple() {
-		val parsed = parseArea(assets, "aeropolis_N_TAIR", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val parsed = parseArea(content, "aeropolis_N_TAIR", ArrayList(), ArrayList())
 		assertEquals(1, parsed.objects.transitions.size)
 		assertEquals(1, parsed.objects.objects.size)
 		assertEquals(1, parsed.objects.characters.size)
@@ -154,21 +157,21 @@ class TestAreaParser {
 
 	@Test
 	fun testParseTheatre() {
-		val parsed = parseArea(assets, "aeropolis_W_theatre", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val parsed = parseArea(content, "aeropolis_W_theatre", ArrayList(), ArrayList())
 		assertEquals(20, parsed.objects.characters.size)
 	}
 
 	@Test
 	fun testParseGuardPost() {
-		val parsed = parseArea(assets, "guardpost", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val parsed = parseArea(content, "guardpost", ArrayList(), ArrayList())
 		assertEquals(2, parsed.objects.characters.size)
 		assertEquals(2, parsed.objects.transitions.size)
 	}
 
 	@Test
 	fun testDesertCave() {
-		val yinYang = inventoryAssets.items.find { it.flashName == "Yin and Yang" }!!
-		val parsed = parseArea(assets, "desertcave", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val yinYang = content.items.items.find { it.flashName == "Yin and Yang" }!!
+		val parsed = parseArea(content, "desertcave", ArrayList(), ArrayList())
 		assertEquals(1, parsed.chests.size)
 
 		val chest = parsed.chests[0]
@@ -179,7 +182,7 @@ class TestAreaParser {
 		assertFalse(chest.hidden)
 
 		val battle = chest.battle!!
-		assertSame(battleAssets.enemyPartyLayouts.find { it.name == "DRAGON" }, battle.enemyLayout)
+		assertSame(content.battle.enemyPartyLayouts.find { it.name == "DRAGON" }, battle.enemyLayout)
 		assertEquals("BossBattle", battle.specialMusic)
 
 		val monsters = battle.monsters
@@ -194,7 +197,7 @@ class TestAreaParser {
 
 	@Test
 	fun testParseSunTemple1() {
-		val parsed = parseArea(assets, "sunTemple1", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val parsed = parseArea(content, "sunTemple1", ArrayList(), ArrayList())
 		assertEquals(1, parsed.chests.size)
 		assertNull(parsed.randomBattles)
 
@@ -211,8 +214,8 @@ class TestAreaParser {
 
 	@Test
 	fun testParseSunTemple4() {
-		val spear = inventoryAssets.items.find { it.flashName == "Iron Spear" }!!
-		val parsed = parseArea(assets, "sunTemple4", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val spear = content.items.items.find { it.flashName == "Iron Spear" }!!
+		val parsed = parseArea(content, "sunTemple4", ArrayList(), ArrayList())
 		assertEquals(7, parsed.chests.size)
 
 		val chest = parsed.chests[1]
@@ -237,17 +240,17 @@ class TestAreaParser {
 
 	@Test
 	fun testTaintedGrotto() {
-		val parsed = parseArea(assets, "pcave3", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val parsed = parseArea(content, "pcave3", ArrayList(), ArrayList())
 
 		val randomBattles = parsed.randomBattles!!
-		assertSame(assets.enemySelections.find { it.name == "TAINTED_GROTTO" }!!, randomBattles.sharedEnemies!!)
+		assertSame(content.areas.enemySelections.find { it.name == "TAINTED_GROTTO" }!!, randomBattles.sharedEnemies!!)
 
 		val chest = parsed.chests[0]
 		assertEquals(12, chest.x)
 		assertEquals(45, chest.y)
 		assertNull(chest.stack)
 		assertEquals(0, chest.gold)
-		assertSame(inventoryAssets.plotItems.find { it.name == "Trilobite Key I" }!!, chest.plotItem)
+		assertSame(content.items.plotItems.find { it.name == "Trilobite Key I" }!!, chest.plotItem)
 		assertTrue(chest.hidden)
 		assertNull(chest.dreamstone)
 		assertNull(chest.battle)
@@ -255,7 +258,7 @@ class TestAreaParser {
 
 	@Test
 	fun testDreamcave() {
-		val parsed = parseArea(assets, "canonia_dreamcave_d2", ArrayList(), ArrayList(), inventoryAssets, battleAssets)
+		val parsed = parseArea(content, "canonia_dreamcave_d2", ArrayList(), ArrayList())
 		assertEquals(3, parsed.chests.size)
 
 		val dreamstone = parsed.chests[0]
@@ -264,7 +267,7 @@ class TestAreaParser {
 		assertEquals(0, dreamstone.gold)
 		assertNull(dreamstone.stack)
 		assertNull(dreamstone.plotItem)
-		assertSame(inventoryAssets.dreamstones.find { it.index == 11 }!!, dreamstone.dreamstone)
+		assertSame(content.items.dreamstones.find { it.index == 11 }!!, dreamstone.dreamstone)
 		assertNull(dreamstone.battle)
 		assertFalse(dreamstone.hidden)
 
@@ -272,7 +275,7 @@ class TestAreaParser {
 		assertEquals(4, finger.x)
 		assertEquals(19, finger.y)
 		assertEquals(0, finger.gold)
-		assertEquals(ItemStack(inventoryAssets.items.find { it.flashName == "Yggdrasil's Finger" }!!, 1), finger.stack)
+		assertEquals(ItemStack(content.items.items.find { it.flashName == "Yggdrasil's Finger" }!!, 1), finger.stack)
 		assertNull(finger.plotItem)
 		assertNull(finger.dreamstone)
 		assertNull(finger.battle)
@@ -283,7 +286,7 @@ class TestAreaParser {
 		assertEquals(2, talisman.y)
 		assertEquals(0, talisman.gold)
 		assertNull(talisman.stack)
-		assertSame(inventoryAssets.plotItems.find { it.name == "Talisman of ONEIROS" }!!, talisman.plotItem)
+		assertSame(content.items.plotItems.find { it.name == "Talisman of ONEIROS" }!!, talisman.plotItem)
 		assertNull(talisman.dreamstone)
 		assertNull(talisman.battle)
 		assertFalse(talisman.hidden)

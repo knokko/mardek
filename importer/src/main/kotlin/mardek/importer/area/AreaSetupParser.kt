@@ -1,6 +1,6 @@
 package mardek.importer.area
 
-import mardek.assets.area.AreaFlags
+import mardek.content.area.AreaFlags
 import kotlin.streams.toList
 
 fun parseAreaSetup(rawParameters: String): Map<String, String> {

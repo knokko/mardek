@@ -1,8 +1,8 @@
 package mardek.state.ingame.area.loot
 
-import mardek.assets.characters.PlayableCharacter
-import mardek.assets.inventory.ItemStack
-import mardek.assets.inventory.PlotItem
+import mardek.content.characters.PlayableCharacter
+import mardek.content.inventory.ItemStack
+import mardek.content.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.state.SoundQueue
 import mardek.state.ingame.characters.CharacterState

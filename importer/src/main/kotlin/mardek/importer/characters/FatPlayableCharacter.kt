@@ -1,9 +1,9 @@
 package mardek.importer.characters
 
-import mardek.assets.characters.PlayableCharacter
-import mardek.assets.inventory.Item
-import mardek.assets.skill.Skill
-import mardek.assets.inventory.ItemStack
+import mardek.content.characters.PlayableCharacter
+import mardek.content.inventory.Item
+import mardek.content.skill.Skill
+import mardek.content.inventory.ItemStack
 
 class FatPlayableCharacter(
 	val wrapped: PlayableCharacter,

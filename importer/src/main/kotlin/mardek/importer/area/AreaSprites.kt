@@ -2,8 +2,8 @@ package mardek.importer.area
 
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
-import mardek.assets.area.*
-import mardek.assets.sprite.*
+import mardek.content.area.*
+import mardek.content.sprite.*
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.OutputStream
@@ -23,7 +23,7 @@ class AreaSprites {
 		kimSprites.add(sprite)
 	}
 
-	fun register(assets: AreaAssets) {
+	fun register(assets: AreaContent) {
 		for (tilesheet in assets.tilesheets) {
 			for (sprite in tilesheet.waterSprites) registerSprite(sprite)
 			for (tile in tilesheet.tiles) {

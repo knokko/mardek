@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.assets.characters.PlayableCharacter
+import mardek.content.characters.PlayableCharacter
 
 @BitStruct(backwardCompatible = true)
 class CharacterSelectionState(

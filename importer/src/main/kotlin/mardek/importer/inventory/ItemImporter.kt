@@ -1,9 +1,10 @@
 package mardek.importer.inventory
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import mardek.assets.combat.*
-import mardek.assets.inventory.*
-import mardek.assets.skill.*
+import mardek.content.Content
+import mardek.content.combat.*
+import mardek.content.inventory.*
+import mardek.content.skill.*
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
@@ -14,9 +15,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
-internal fun importItems(
-		combatAssets: CombatAssets, skillAssets: SkillAssets, assets: InventoryAssets, rawItems: String
-) {
+internal fun importItems(content: Content, rawItems: String) {
 	for (rawItem in parseActionScriptObjectList(rawItems)) {
 		val rawElement = rawItem["elem"]
 		val typeName = parseFlashString(rawItem["type"]!!, "item type")!!
@@ -27,30 +26,29 @@ internal fun importItems(
 		val cost = if (rawCost >= 0) rawCost else null
 		val flashName = parseFlashString(rawItem["name"]!!, "item name")!!
 		val description = parseFlashString(rawItem["desc"]!!, "item description")!!
-		val element = if (rawElement != null) combatAssets.elements.find {
+		val element = if (rawElement != null) content.stats.elements.find {
 			it.rawName == parseFlashString(rawElement, "item element")!!
 		}!! else null
 
 		if (typeName == "plot") {
-			assets.plotItems.add(PlotItem(name = flashName, description = description, element = element, cost = cost))
+			content.items.plotItems.add(PlotItem(
+				name = flashName, description = description, element = element, cost = cost
+			))
 			continue
 		}
-		assets.items.add(Item(
+		content.items.items.add(Item(
 			flashName = flashName,
 			description = description,
-			type = assets.itemTypes.find { it.flashName == typeName }!!,
+			type = content.items.itemTypes.find { it.flashName == typeName }!!,
 			element = element,
 			cost = cost,
-			equipment = parseEquipment(combatAssets, skillAssets, assets, rawItem),
-			consumable = parseConsumable(combatAssets, rawItem),
+			equipment = parseEquipment(content, rawItem),
+			consumable = parseConsumable(content.stats, rawItem),
 		))
 	}
 }
 
-private fun parseEquipment(
-		combatAssets: CombatAssets, skillAssets: SkillAssets,
-		assets: InventoryAssets, rawItem: Map<String, String>
-): EquipmentProperties? {
+private fun parseEquipment(content: Content, rawItem: Map<String, String>): EquipmentProperties? {
 	val type = rawItem["type"]
 	if (!rawItem.containsKey("wpnType") && !rawItem.containsKey("amrType") && type != "\"gems\"" && type != "\"accs\"") {
 		return null
@@ -74,7 +72,7 @@ private fun parseEquipment(
 
 			val rawName = parseFlashString(effectPair[0] as String, "effect key")!!
 
-			val stat = combatAssets.stats.find { it.flashName == rawName }
+			val stat = content.stats.stats.find { it.flashName == rawName }
 			if (stat != null) {
 				stats.add(StatModifier(stat, parseInt(effectPair[1] as String)))
 				continue
@@ -82,13 +80,13 @@ private fun parseEquipment(
 
 			if (rawName == "AUTO_STFX") {
 				val effectName = parseFlashString(effectPair[1] as String, "auto-effect name")!!
-				autoEffects.add(combatAssets.statusEffects.find { it.flashName == effectName }!!)
+				autoEffects.add(content.stats.statusEffects.find { it.flashName == effectName }!!)
 				continue
 			}
 
 			if (rawName == "R_ELEM" || rawName == "EMPOWER") {
 				val elementName = parseFlashString(effectPair[1] as String, "element name")!!
-				val element = combatAssets.elements.find { it.rawName == elementName }!!
+				val element = content.stats.elements.find { it.rawName == elementName }!!
 				val modifier = parseInt(effectPair[2] as String) / 100f
 
 				if (rawName == "R_ELEM") {
@@ -101,7 +99,7 @@ private fun parseEquipment(
 
 			if (rawName == "R_STATUS") {
 				val statusName = parseFlashString(effectPair[1] as String, "status resist name")!!
-				val statusEffect = combatAssets.statusEffects.find { it.flashName == statusName }!!
+				val statusEffect = content.stats.statusEffects.find { it.flashName == statusName }!!
 				statusResistances.add(EffectResistance(statusEffect, parseInt(effectPair[2] as String)))
 			}
 
@@ -114,33 +112,33 @@ private fun parseEquipment(
 
 	for (candidate in arrayOf("atk", "def", "mdef")) {
 		val rawValue = rawItem[candidate]
-		val stat = combatAssets.stats.find { it.flashName == candidate.uppercase(Locale.ROOT) }!!
+		val stat = content.stats.stats.find { it.flashName == candidate.uppercase(Locale.ROOT) }!!
 		if (rawValue != null && rawValue != "0") stats.add(StatModifier(stat, parseInt(rawValue)))
 	}
 
 	var rawArmorType = rawItem["amrType"]
 	if (rawArmorType == "3") rawArmorType = "\"Ar3\""
-	val armorType = if (rawArmorType != null) assets.armorTypes.find {
+	val armorType = if (rawArmorType != null) content.items.armorTypes.find {
 		it.key == parseFlashString(rawArmorType, "armor type")
 	}!! else null
 
 	val rawOnlyUser = rawItem["only_user"]
 
 	return EquipmentProperties(
-		skills = parseSkills(skillAssets, rawItem["skills"]),
+		skills = parseSkills(content.skills, rawItem["skills"]),
 		stats = stats,
 		elementalBonuses = elementalBonuses,
 		resistances = Resistances(elementalResistances, statusResistances),
 		autoEffects = autoEffects,
-		weapon = parseWeaponProperties(combatAssets, assets, rawItem),
+		weapon = parseWeaponProperties(content, rawItem),
 		armorType = armorType,
-		gem = parseGemProperties(combatAssets, rawItem),
+		gem = parseGemProperties(content.stats, rawItem),
 		onlyUser = if (rawOnlyUser != null) parseFlashString(rawOnlyUser, "only_user")!! else null,
 		charismaticPerformanceChance = charismaticPerformanceChance,
 	)
 }
 
-private fun parseSkills(skillAssets: SkillAssets, rawSkills: String?): ArrayList<Skill> {
+private fun parseSkills(skillsContent: SkillsContent, rawSkills: String?): ArrayList<Skill> {
 	val skills = ArrayList<Skill>(0)
 	if (rawSkills != null) {
 		val nestedSkills = parseActionScriptNestedList(rawSkills)
@@ -150,15 +148,15 @@ private fun parseSkills(skillAssets: SkillAssets, rawSkills: String?): ArrayList
 			val rawCategory = parseFlashString(skillPair[0] as String, "skill category")!!
 			val skillName = parseFlashString(skillPair[1] as String, "skill name")!!
 			if (rawCategory == "R:PASSIVE") {
-				if (skillName == "Absorb MP") skills.add(skillAssets.reactionSkills.find { it.name == skillName }!!)
-				else skills.add(skillAssets.passiveSkills.find { it.name == skillName }!!)
+				if (skillName == "Absorb MP") skills.add(skillsContent.reactionSkills.find { it.name == skillName }!!)
+				else skills.add(skillsContent.passiveSkills.find { it.name == skillName }!!)
 			} else if (rawCategory.startsWith("R:")) {
 				val reactionType = ReactionSkillType.fromString(rawCategory.substring(2))
-				skills.add(skillAssets.reactionSkills.find {
+				skills.add(skillsContent.reactionSkills.find {
 					it.type == reactionType && it.name == skillName
 				}!!)
 			} else {
-				skills.add(skillAssets.classes.find {
+				skills.add(skillsContent.classes.find {
 					it.key == rawCategory
 				}!!.actions.find { it.name == skillName }!!)
 			}
@@ -167,17 +165,15 @@ private fun parseSkills(skillAssets: SkillAssets, rawSkills: String?): ArrayList
 	return skills
 }
 
-private fun parseWeaponProperties(
-		combatAssets: CombatAssets, assets: InventoryAssets, rawItem: Map<String, String>
-): WeaponProperties? {
+private fun parseWeaponProperties(content: Content, rawItem: Map<String, String>): WeaponProperties? {
 	val rawWeaponType = rawItem["wpnType"] ?: return null
-	val weaponType = assets.weaponTypes.find { it.flashName == parseFlashString(rawWeaponType, "weapon type") }!!
+	val weaponType = content.items.weaponTypes.find { it.flashName == parseFlashString(rawWeaponType, "weapon type") }!!
 
 	val creatureBonuses = ArrayList<CreatureTypeBonus>(0)
 	val rawRaceBonuses = rawItem["typeBonus"]
 	if (rawRaceBonuses != null) {
 		for ((rawRace, rawBonus) in parseActionScriptObject(rawRaceBonuses)) {
-			val race = combatAssets.races.find { it.flashName == rawRace }!!
+			val race = content.stats.creatureTypes.find { it.flashName == rawRace }!!
 			val bonusFraction = parseInt(rawBonus) - 1f
 			creatureBonuses.add(CreatureTypeBonus(race, bonusFraction))
 		}
@@ -187,7 +183,7 @@ private fun parseWeaponProperties(
 	val rawElementalBonuses = rawItem["elemBonus"]
 	if (rawElementalBonuses != null) {
 		for ((rawElement, rawBonus) in parseActionScriptObject(rawElementalBonuses)) {
-			val element = combatAssets.elements.find { it.rawName == rawElement }!!
+			val element = content.stats.elements.find { it.rawName == rawElement }!!
 			val modifier = parseFloat(rawBonus) - 1f
 			elementalBonuses.add(ElementalDamageBonus(element, modifier))
 		}
@@ -197,7 +193,7 @@ private fun parseWeaponProperties(
 	val rawEffects = rawItem["stfx"]
 	if (rawEffects != null) {
 		for ((rawEffect, rawChance) in parseActionScriptObject(rawEffects)) {
-			val effect = combatAssets.statusEffects.find { it.flashName == rawEffect }!!
+			val effect = content.stats.statusEffects.find { it.flashName == rawEffect }!!
 			addEffects.add(PossibleStatusEffect(effect, parseInt(rawChance)))
 		}
 	}
@@ -216,7 +212,7 @@ private fun parseWeaponProperties(
 	)
 }
 
-private fun parseGemProperties(combatAssets: CombatAssets, rawItem: Map<String, String>): GemProperties? {
+private fun parseGemProperties(statsContent: StatsContent, rawItem: Map<String, String>): GemProperties? {
 	if (rawItem["type"] != "\"gems\"") return null
 
 	val rawGem = parseActionScriptNestedList(rawItem["spell"]!!)
@@ -227,7 +223,7 @@ private fun parseGemProperties(combatAssets: CombatAssets, rawItem: Map<String, 
 		val rawEffects = rawGem[2]
 		if (rawEffects is String && rawEffects != "null") {
 			for ((effectName, rawChance) in parseActionScriptObject(rawEffects)) {
-				val effect = combatAssets.statusEffects.find { it.flashName == effectName }!!
+				val effect = statsContent.statusEffects.find { it.flashName == effectName }!!
 				inflictStatusEffects.add(PossibleStatusEffect(effect, parseInt(rawChance)))
 			}
 		}
@@ -241,7 +237,7 @@ private fun parseGemProperties(combatAssets: CombatAssets, rawItem: Map<String, 
 	)
 }
 
-private fun parseConsumable(combatAssets: CombatAssets, rawItem: Map<String, String>): ConsumableProperties? {
+private fun parseConsumable(statsContent: StatsContent, rawItem: Map<String, String>): ConsumableProperties? {
 	val rawAction = rawItem["action"]
 	val rawRgb = rawItem["rgb"]
 	if (rawAction == null && rawRgb == null) return null
@@ -280,7 +276,7 @@ private fun parseConsumable(combatAssets: CombatAssets, rawItem: Map<String, Str
 		for (name in nameList) {
 			if (name == "\"ALL_BAD\"") removeNegativeStatusEffects = true
 			else {
-				val effect = combatAssets.statusEffects.find {
+				val effect = statsContent.statusEffects.find {
 					it.flashName == parseFlashString(name, "heal status name")
 				}!!
 				removeStatusEffects.add(PossibleStatusEffect(effect, 100))
@@ -295,7 +291,7 @@ private fun parseConsumable(combatAssets: CombatAssets, rawItem: Map<String, Str
 		val rawStatusEffects = rawSpell["stfx"]
 		if (rawStatusEffects != null) {
 			for ((rawEffect, rawChance) in parseActionScriptObject(rawStatusEffects)) {
-				val effect = combatAssets.statusEffects.find { it.flashName == rawEffect }!!
+				val effect = statsContent.statusEffects.find { it.flashName == rawEffect }!!
 				addStatusEffects.add(PossibleStatusEffect(effect, parseInt(rawChance)))
 			}
 		}
@@ -303,7 +299,7 @@ private fun parseConsumable(combatAssets: CombatAssets, rawItem: Map<String, Str
 		val rawStatModifiers = rawSpell["stat_mod"]
 		if (rawStatModifiers != null) {
 			for ((statName, rawAdder) in parseActionScriptObject(rawStatModifiers)) {
-				val stat = combatAssets.stats.find { it.flashName == statName }!!
+				val stat = statsContent.stats.find { it.flashName == statName }!!
 				val adder = parseInt(rawAdder)
 				statModifiers.add(StatModifierRange(stat, adder, adder))
 			}
@@ -313,7 +309,7 @@ private fun parseConsumable(combatAssets: CombatAssets, rawItem: Map<String, Str
 			val power = parseInt(rawSpell["pow"])
 			val spirit = parseInt(rawSpell["SPR"])
 			if (power != 0) {
-				val element = combatAssets.elements.find {
+				val element = statsContent.elements.find {
 					it.rawName == parseFlashString(rawSpell["elem"]!!, "consumable damage element")
 				}!!
 				damage = ConsumableDamage(power, spirit, element)

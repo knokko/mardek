@@ -8,7 +8,7 @@ import com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf
 import com.github.knokko.compressor.Bc1Compressor
 import com.github.knokko.compressor.Bc1Worker
 import com.github.knokko.compressor.Bc7Compressor.compressBc7
-import mardek.assets.sprite.BcSprite
+import mardek.content.sprite.BcSprite
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkPhysicalDeviceProperties

@@ -1,8 +1,9 @@
 package mardek.importer.battle
 
-import mardek.importer.combat.importCombatAssets
-import mardek.importer.inventory.importInventoryAssets
-import mardek.importer.skills.importSkills
+import mardek.content.Content
+import mardek.importer.inventory.importItemsContent
+import mardek.importer.stats.importStatsContent
+import mardek.importer.skills.importSkillsContent
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -10,9 +11,11 @@ class TestBattleBackgrounds {
 
 	@Test
 	fun testBattleBackgrounds() {
-		val combatAssets = importCombatAssets()
-		val skillAssets = importSkills(combatAssets)
-		val itemAssets = importInventoryAssets(combatAssets, skillAssets)
-		assertEquals(43, importBattleAssets(combatAssets, itemAssets, skillAssets, null).backgrounds.size)
+		val content = Content()
+		importStatsContent(content)
+		importSkillsContent(content)
+		importItemsContent(content)
+		importBattleContent(content, null)
+		assertEquals(43, content.battle.backgrounds.size)
 	}
 }

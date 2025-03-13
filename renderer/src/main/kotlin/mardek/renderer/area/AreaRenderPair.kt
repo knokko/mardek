@@ -2,7 +2,7 @@ package mardek.renderer.area
 
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
-import mardek.assets.area.StoredAreaRenderData
+import mardek.content.area.StoredAreaRenderData
 import java.io.ByteArrayInputStream
 
 class AreaRenderPair(
