@@ -28,7 +28,7 @@ class InGameRenderer(
 		) else null
 		battleRenderer = if (area?.activeBattle != null) BattleRenderer(
 			recorder, targetImage, area.activeBattle!!, resources,
-			state.assets.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!
+			state.content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!
 		) else null
 		menuRenderer = if (state.menu.shown) InGameMenuRenderer(
 			recorder, targetImage, frameIndex, resources, state

@@ -45,20 +45,10 @@ fun main(args: Array<String>) {
 		println("Loaded shared resources after ${(System.nanoTime() - startTime) / 1000_000} ms")
 	}.start()
 
-	Thread {
-		try {
-			content.complete(Content.load("mardek/game/content.bin"))
-		} catch (failed: Throwable) {
-			content.completeExceptionally(failed)
-			throw failed
-		}
-		println("Loaded campaign after ${(System.nanoTime() - startTime) / 1_000_000} ms")
-	}.start()
-
 	val boiler = try {
 		val boilerBuilder = BoilerBuilder(
 			VK_API_VERSION_1_0, "MardekKt", 1
-		).addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT))
+		).addWindow(WindowBuilder(800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT).hideUntilFirstFrame())
 		boilerBuilder.printDeviceRejectionInfo()
 		if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()
 		if (args.contains("api-dump")) boilerBuilder.apiDump()
@@ -75,6 +65,16 @@ fun main(args: Array<String>) {
 		throw failed
 	}
 	println("Created boiler after ${(System.nanoTime() - startTime) / 1_000_000} ms")
+
+	Thread {
+		try {
+			content.complete(Content.load("mardek/game/content.bin"))
+		} catch (failed: Throwable) {
+			content.completeExceptionally(failed)
+			throw failed
+		}
+		println("Loaded campaign after ${(System.nanoTime() - startTime) / 1_000_000} ms")
+	}.start()
 
 	Thread {
 		val updateLoop = UpdateLoop({ _ ->

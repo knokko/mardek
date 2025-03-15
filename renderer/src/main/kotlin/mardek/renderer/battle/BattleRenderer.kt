@@ -54,7 +54,7 @@ class BattleRenderer(
 		val rawX = -flipX * (-1f + (rawPosition.x + 38) * magicScaleX)
 		val rawRelativeY = rawPosition.y + 78 - 176
 		val rawY = rawRelativeY * magicScaleY2
-		val animation = model.skeleton.animations["idle"]!!
+		val animation = model.skeleton.getAnimation("idle")
 
 		val frameLength = 33_000_000L
 		val animationLength = animation.frames.size * frameLength

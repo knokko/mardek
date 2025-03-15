@@ -365,8 +365,8 @@ class AreaRenderer(
 				x = tileSize * playerPosition.x,
 				y = tileSize * (playerPosition.y - 1),
 				sprite = if (incomingRandomBattle.canAvoid) {
-					inGameState.assets.ui.blueAlertBalloon
-				} else inGameState.assets.ui.redAlertBalloon
+					inGameState.content.ui.blueAlertBalloon
+				} else inGameState.content.ui.redAlertBalloon
 			))
 		}
 
@@ -393,13 +393,13 @@ class AreaRenderer(
 			kimBatch.requests.add(KimRequest(
 				x = renderGold!!.baseX - (tileSize * 19f / 32f).roundToInt(),
 				y = renderGold!!.baseY - (tileSize * 17f / 32f).roundToInt(),
-				scale = scale.toFloat() / 2f, sprite = inGameState.assets.ui.goldIcon, opacity = 1f
+				scale = scale.toFloat() / 2f, sprite = inGameState.content.ui.goldIcon, opacity = 1f
 			))
 		}
 
 		val obtainedItemStack = state.obtainedItemStack
 		if (obtainedItemStack != null) {
-			this.lootRenderer = AreaLootRenderer(inGameState.assets.ui, obtainedItemStack, resources, scale, targetImage)
+			this.lootRenderer = AreaLootRenderer(inGameState.content.ui, obtainedItemStack, resources, scale, targetImage)
 			this.lootRenderer!!.beforeRendering()
 		}
 

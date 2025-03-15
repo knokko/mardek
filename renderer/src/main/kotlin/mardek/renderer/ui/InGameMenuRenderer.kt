@@ -30,13 +30,13 @@ class InGameMenuRenderer(
 		val tabRegion = transform.transform(0f, 0.08f, 0.78f, 0.84f)
 		if (tab is PartyTab) this.tabRenderer = PartyTabRenderer()
 		if (tab is SkillsTab) this.tabRenderer = SkillsTabRenderer(
-			recorder, targetImage, frameIndex, tab, tabRegion, state.campaign, state.assets, resources
+			recorder, targetImage, frameIndex, tab, tabRegion, state.campaign, state.content, resources
 		)
 		if (tab is InventoryTab) this.tabRenderer = InventoryTabRenderer(
-			recorder, targetImage, frameIndex, tab, tabRegion, state.campaign, state.assets, resources
+			recorder, targetImage, frameIndex, tab, tabRegion, state.campaign, state.content, resources
 		)
 		if (tab is MapTab) this.tabRenderer = MapTabRenderer(
-			recorder, targetImage, frameIndex, tabRegion, state.campaign, resources, state.assets.ui
+			recorder, targetImage, frameIndex, tabRegion, state.campaign, resources, state.content.ui
 		)
 
 		tabRenderer.beforeRendering()

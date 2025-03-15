@@ -7,15 +7,15 @@ import mardek.state.SoundQueue
 import mardek.state.ingame.menu.InGameMenuState
 import kotlin.time.Duration
 
-class InGameState(val assets: Content, val campaign: CampaignState): GameState {
+class InGameState(val content: Content, val campaign: CampaignState): GameState {
 
 	val menu = InGameMenuState(campaign)
 
 	override fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue): GameState {
 		if (menu.shown) {
-			menu.update(input, soundQueue, assets)
+			menu.update(input, soundQueue, content)
 		} else {
-			campaign.update(input, timeStep, soundQueue, assets)
+			campaign.update(input, timeStep, soundQueue, content)
 			if (campaign.shouldOpenMenu) {
 				menu.shown = true
 				campaign.shouldOpenMenu = false
