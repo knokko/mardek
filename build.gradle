@@ -1,5 +1,3 @@
-import org.gradle.internal.os.OperatingSystem
-
 buildscript {
 	repositories {
 		mavenCentral()
@@ -35,23 +33,12 @@ allprojects {
 	project.ext.textRenderVersion = "v0.2.0"
 	project.ext.compressorVersion = "v0.5.0"
 	project.ext.bitserVersion = "v0.1.0"
-	switch (OperatingSystem.current()) {
-		case OperatingSystem.LINUX:
-			project.ext.lwjglNatives = [
-					"natives-linux", "natives-linux-arm32", "natives-linux-arm64",
-					"natives-linux-ppc64le", "natives-linux-riscv64"
-			]
-			break
-		case OperatingSystem.WINDOWS:
-			project.ext.lwjglNatives = ["natives-windows", "natives-windows-x86", "natives-windows-arm64"]
-			break
-		case OperatingSystem.MAC_OS:
-			project.ext.lwjglNatives = ["natives-macos", "natives-macos-arm64"]
-			break
-		case OperatingSystem.FREE_BSD:
-			project.ext.lwjglNatives = ["natives-freebsd"]
-			break
-	}
+	project.ext.lwjglNatives = [
+			"natives-linux", "natives-linux-arm32", "natives-linux-arm64",
+			"natives-linux-ppc64le", "natives-linux-riscv64", "natives-freebsd",
+			"natives-windows", "natives-windows-x86", "natives-windows-arm64",
+			"natives-macos", "natives-macos-arm64"
+	]
 
 	dependencies {
 		implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
