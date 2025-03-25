@@ -1,7 +1,7 @@
 package mardek.importer.stats
 
-import mardek.content.combat.CreatureType
-import mardek.content.combat.StatsContent
+import mardek.content.stats.CreatureType
+import mardek.content.stats.StatsContent
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptResource
 import java.lang.RuntimeException

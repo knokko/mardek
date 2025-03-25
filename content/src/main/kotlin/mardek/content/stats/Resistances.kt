@@ -1,4 +1,4 @@
-package mardek.content.combat
+package mardek.content.stats
 
 import com.github.knokko.bitser.BitStruct
 

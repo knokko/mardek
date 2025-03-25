@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.combat.*
+import mardek.content.stats.*
 import mardek.content.skill.Skill
 
 @BitStruct(backwardCompatible = true)

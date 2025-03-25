@@ -8,7 +8,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.battle.BattleBackground
 import mardek.content.battle.Monster
 import mardek.content.battle.PartyLayout
-import mardek.content.combat.CombatStat
+import mardek.content.stats.CombatStat
 
 @BitStruct(backwardCompatible = true)
 class Battle(

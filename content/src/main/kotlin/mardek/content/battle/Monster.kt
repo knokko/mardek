@@ -8,7 +8,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.animations.BattleModel
-import mardek.content.combat.*
+import mardek.content.stats.*
 import mardek.content.inventory.Dreamstone
 import mardek.content.skill.ActiveSkill
 import java.util.UUID

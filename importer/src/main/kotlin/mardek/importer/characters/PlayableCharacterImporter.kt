@@ -3,7 +3,7 @@ package mardek.importer.characters
 import mardek.content.Content
 import mardek.content.animations.BattleModel
 import mardek.content.characters.PlayableCharacter
-import mardek.content.combat.StatModifier
+import mardek.content.stats.StatModifier
 import mardek.content.skill.ReactionSkillType
 import mardek.content.skill.Skill
 import mardek.importer.area.parseFlashString

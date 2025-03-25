@@ -5,7 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.combat.*
+import mardek.content.stats.*
 
 @BitStruct(backwardCompatible = true)
 class PassiveSkill(

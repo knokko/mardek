@@ -1,6 +1,6 @@
 package mardek.importer.skills
 
-import mardek.content.combat.StatsContent
+import mardek.content.stats.StatsContent
 import mardek.content.skill.SkillClass
 import mardek.importer.area.parseFlashString
 import mardek.importer.characters.FatPlayableCharacter

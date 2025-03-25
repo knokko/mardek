@@ -1,7 +1,7 @@
 package mardek.importer.stats
 
-import mardek.content.combat.StatsContent
-import mardek.content.combat.CombatStat
+import mardek.content.stats.StatsContent
+import mardek.content.stats.CombatStat
 
 fun addCombatStats(assets: StatsContent) {
 	val stats = arrayOf(

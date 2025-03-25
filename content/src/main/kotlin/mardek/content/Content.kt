@@ -9,7 +9,7 @@ import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.area.AreaContent
 import mardek.content.battle.BattleContent
 import mardek.content.characters.PlayableCharacter
-import mardek.content.combat.StatsContent
+import mardek.content.stats.StatsContent
 import mardek.content.inventory.ItemsContent
 import mardek.content.skill.SkillsContent
 import mardek.content.ui.UiSprites

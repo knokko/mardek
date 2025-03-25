@@ -5,11 +5,11 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.combat.Element
-import mardek.content.combat.StatusEffect
+import mardek.content.stats.Element
+import mardek.content.stats.StatusEffect
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
-import mardek.content.combat.ElementalResistance
+import mardek.content.stats.ElementalResistance
 import java.util.*
 import kotlin.collections.ArrayList
 

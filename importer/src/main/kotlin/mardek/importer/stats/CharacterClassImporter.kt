@@ -1,7 +1,7 @@
 package mardek.importer.stats
 
 import mardek.content.Content
-import mardek.content.combat.CharacterClass
+import mardek.content.stats.CharacterClass
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptObject
 import mardek.importer.util.parseActionScriptResource

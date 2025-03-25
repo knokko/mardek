@@ -7,7 +7,7 @@ import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
 import mardek.content.Content
-import mardek.content.combat.CombatStat
+import mardek.content.stats.CombatStat
 import mardek.content.inventory.EquipmentSlotType
 import mardek.content.skill.ActiveSkill
 import mardek.content.skill.PassiveSkill

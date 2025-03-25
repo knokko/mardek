@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
-import mardek.content.combat.PossibleStatusEffect
+import mardek.content.stats.PossibleStatusEffect
 
 @BitStruct(backwardCompatible = true)
 class GemProperties(

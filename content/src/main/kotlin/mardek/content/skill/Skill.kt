@@ -4,7 +4,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
-import mardek.content.combat.Element
+import mardek.content.stats.Element
 import java.util.*
 
 abstract class Skill(

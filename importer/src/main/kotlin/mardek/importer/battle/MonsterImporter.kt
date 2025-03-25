@@ -11,7 +11,7 @@ import com.jpexs.decompiler.flash.types.RECT
 import mardek.content.Content
 import mardek.content.animations.*
 import mardek.content.battle.*
-import mardek.content.combat.*
+import mardek.content.stats.*
 import mardek.content.inventory.Dreamstone
 import mardek.content.inventory.ItemsContent
 import mardek.content.inventory.Item

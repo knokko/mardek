@@ -5,9 +5,9 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.combat.CombatStat
-import mardek.content.combat.StatModifier
-import mardek.content.combat.StatusEffect
+import mardek.content.stats.CombatStat
+import mardek.content.stats.StatModifier
+import mardek.content.stats.StatusEffect
 import mardek.content.inventory.Item
 import mardek.content.skill.PassiveSkill
 import mardek.content.skill.Skill

@@ -5,9 +5,9 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.animations.BattleModel
-import mardek.content.combat.CharacterClass
-import mardek.content.combat.Element
-import mardek.content.combat.StatModifier
+import mardek.content.stats.CharacterClass
+import mardek.content.stats.Element
+import mardek.content.stats.StatModifier
 import mardek.content.sprite.DirectionalSprites
 import java.util.*
 import kotlin.collections.ArrayList

@@ -1,8 +1,8 @@
 package mardek.importer.stats
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import mardek.content.combat.StatsContent
-import mardek.content.combat.Element
+import mardek.content.stats.StatsContent
+import mardek.content.stats.Element
 import mardek.content.sprite.KimSprite
 import mardek.importer.ui.BcPacker
 import mardek.importer.util.compressKimSprite2

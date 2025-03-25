@@ -1,9 +1,9 @@
 package mardek.importer.skills
 
-import mardek.content.combat.StatsContent
-import mardek.content.combat.ElementalDamageBonus
-import mardek.content.combat.PossibleStatusEffect
-import mardek.content.combat.StatModifierRange
+import mardek.content.stats.StatsContent
+import mardek.content.stats.ElementalDamageBonus
+import mardek.content.stats.PossibleStatusEffect
+import mardek.content.stats.StatModifierRange
 import mardek.content.skill.*
 import mardek.importer.area.parseFlashString
 import mardek.importer.area.parseOptionalFlashString

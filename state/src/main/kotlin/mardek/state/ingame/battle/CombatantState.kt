@@ -3,9 +3,9 @@ package mardek.state.ingame.battle
 import com.github.knokko.bitser.BitStruct
 import mardek.content.Content
 import mardek.content.characters.PlayableCharacter
-import mardek.content.combat.CombatStat
-import mardek.content.combat.StatModifier
-import mardek.content.combat.StatusEffect
+import mardek.content.stats.CombatStat
+import mardek.content.stats.StatModifier
+import mardek.content.stats.StatusEffect
 import mardek.state.ingame.characters.CharacterState
 
 private fun determinePlayerMaxHealth(player: PlayableCharacter, state: CharacterState) = { content: Content, bonusVitality: Int ->

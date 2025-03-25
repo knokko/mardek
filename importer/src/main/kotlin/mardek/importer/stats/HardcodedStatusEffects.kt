@@ -1,7 +1,7 @@
 package mardek.importer.stats
 
-import mardek.content.combat.StatsContent
-import mardek.content.combat.StatusEffect
+import mardek.content.stats.StatsContent
+import mardek.content.stats.StatusEffect
 import java.util.*
 
 fun addStatusEffects(assets: StatsContent) {

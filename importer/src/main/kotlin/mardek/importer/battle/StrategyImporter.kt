@@ -4,7 +4,7 @@ import mardek.content.Content
 import mardek.content.battle.*
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
-import mardek.content.combat.ElementalResistance
+import mardek.content.stats.ElementalResistance
 import mardek.importer.area.parseFlashString
 import mardek.importer.skills.SkillParseException
 import mardek.importer.util.parseActionScriptNestedList

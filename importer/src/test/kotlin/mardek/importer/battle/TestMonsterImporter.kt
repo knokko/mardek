@@ -3,9 +3,9 @@ package mardek.importer.battle
 import mardek.content.Content
 import mardek.content.animations.BattleModel
 import mardek.content.battle.*
-import mardek.content.combat.Element
+import mardek.content.stats.Element
 import mardek.content.skill.ActiveSkill
-import mardek.content.combat.ElementalResistance
+import mardek.content.stats.ElementalResistance
 import mardek.content.skill.SkillTargetType
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent

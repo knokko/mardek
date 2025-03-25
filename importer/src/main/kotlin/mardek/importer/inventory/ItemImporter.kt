@@ -2,7 +2,7 @@ package mardek.importer.inventory
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.Content
-import mardek.content.combat.*
+import mardek.content.stats.*
 import mardek.content.inventory.*
 import mardek.content.skill.*
 import mardek.importer.area.parseFlashString

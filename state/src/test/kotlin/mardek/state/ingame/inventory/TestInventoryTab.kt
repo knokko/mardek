@@ -2,9 +2,9 @@ package mardek.state.ingame.inventory
 
 import mardek.content.animations.BattleModel
 import mardek.content.characters.PlayableCharacter
-import mardek.content.combat.CharacterClass
-import mardek.content.combat.Element
-import mardek.content.combat.Resistances
+import mardek.content.stats.CharacterClass
+import mardek.content.stats.Element
+import mardek.content.stats.Resistances
 import mardek.content.inventory.*
 import mardek.content.skill.SkillClass
 import mardek.content.sprite.DirectionalSprites

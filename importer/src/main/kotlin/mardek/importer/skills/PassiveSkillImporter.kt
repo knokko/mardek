@@ -1,6 +1,6 @@
 package mardek.importer.skills
 
-import mardek.content.combat.*
+import mardek.content.stats.*
 import mardek.content.skill.PassiveSkill
 import mardek.content.skill.SkillsContent
 import mardek.content.skill.SkillClass

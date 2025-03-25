@@ -1,9 +1,9 @@
 package mardek.importer.skills
 
 import mardek.content.Content
-import mardek.content.combat.CreatureTypeBonus
-import mardek.content.combat.ElementalDamageBonus
-import mardek.content.combat.PossibleStatusEffect
+import mardek.content.stats.CreatureTypeBonus
+import mardek.content.stats.ElementalDamageBonus
+import mardek.content.stats.PossibleStatusEffect
 import mardek.content.skill.*
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptObject
