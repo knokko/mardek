@@ -245,7 +245,7 @@ class SkillsTabRenderer(
 		val resourceSplitX = region.minX + (descriptionMaxX - region.minX) * 3 / 5
 
 		val characterState = state.characterStates[assetCharacter]!!
-		val maxResourceValue = if (tab.skillTypeIndex == 0) characterState.determineMaxMana(assetCharacter.baseStats, content.stats.stats)
+		val maxResourceValue = if (tab.skillTypeIndex == 0) characterState.determineMaxMana(assetCharacter.baseStats)
 		else characterState.determineSkillEnablePoints()
 		val currentResourceValue = if (tab.skillTypeIndex == 0) characterState.currentMana
 		else maxResourceValue - visibleSkills.sumOf { skillEntry ->

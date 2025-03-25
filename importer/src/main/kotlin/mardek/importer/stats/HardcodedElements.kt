@@ -4,6 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.stats.StatsContent
 import mardek.content.stats.Element
 import mardek.content.sprite.KimSprite
+import mardek.content.stats.CombatStat
 import mardek.importer.ui.BcPacker
 import mardek.importer.util.compressKimSprite2
 import javax.imageio.ImageIO
@@ -16,28 +17,28 @@ private fun getSprite2(name: String, bitsPerPixel: Int): KimSprite {
 fun addElements(assets: StatsContent) {
 	val fire = Element(
 		rawName = "FIRE",
-		bonusStat = assets.stats.find { it.flashName == "STR" }!!,
+		bonusStat = CombatStat.Strength,
 		primaryChar = "F",
 		color = rgb(255, 204, 0),
 		sprite = getSprite2("Fire", 4),
 	)
 	val water = Element(
 		rawName = "WATER",
-		bonusStat = assets.stats.find { it.flashName == "SPR" }!!,
+		bonusStat = CombatStat.Spirit,
 		primaryChar = "W",
 		color = rgb(0, 204, 255),
 		sprite = getSprite2("Water", 4),
 	)
 	val earth = Element(
 		rawName = "EARTH",
-		bonusStat = assets.stats.find { it.flashName == "VIT" }!!,
+		bonusStat = CombatStat.Vitality,
 		primaryChar = "E",
 		color = rgb(0, 255, 0),
 		sprite = getSprite2("Earth",4),
 	)
 	val air = Element(
 		rawName = "AIR",
-		bonusStat = assets.stats.find { it.flashName == "AGL" }!!,
+		bonusStat = CombatStat.Agility,
 		primaryChar = "A",
 		color = rgb(255, 255, 204),
 		sprite = getSprite2("Air", 4),
@@ -51,14 +52,14 @@ fun addElements(assets: StatsContent) {
 
 	val dark = Element(
 		rawName = "DARK",
-		bonusStat = assets.stats.find { it.flashName == "DEF" }!!,
+		bonusStat = CombatStat.MeleeDefense,
 		primaryChar = "D",
 		color = rgb(0, 0, 0),
 		sprite = getSprite2("Dark", 4)
 	)
 	val light = Element(
 		rawName = "LIGHT",
-		bonusStat = assets.stats.find { it.flashName == "MDEF" }!!,
+		bonusStat = CombatStat.RangedDefense,
 		primaryChar = "L",
 		color = rgb(255, 255, 255),
 		sprite = getSprite2("Light", 4)
@@ -70,14 +71,14 @@ fun addElements(assets: StatsContent) {
 
 	val fig = Element(
 		rawName = "FIG",
-		bonusStat = assets.stats.find { it.flashName == "hp" }!!,
+		bonusStat = CombatStat.MaxHealth,
 		primaryChar = "M",
 		color = rgb(191, 68, 205),
 		sprite = getSprite2("Fig", 4)
 	)
 	val aether = Element(
 		rawName = "ETHER",
-		bonusStat = assets.stats.find { it.flashName == "mp" }!!,
+		bonusStat = CombatStat.MaxMana,
 		primaryChar = "S",
 		properName = "AETHER",
 		color = rgb(0, 255, 204),

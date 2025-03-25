@@ -36,7 +36,7 @@ fun parsePassiveSkill(
 		val rawStatModifiers = effect["statmod"]
 		if (rawStatModifiers != null) {
 			for ((statName, rawAdder) in parseActionScriptObject(rawStatModifiers)) {
-				val stat = statsContent.stats.find { it.flashName == statName }!!
+				val stat = CombatStat.entries.find { it.flashName == statName }!!
 				statModifiers.add(StatModifier(stat, parseInt(rawAdder)))
 			}
 		}

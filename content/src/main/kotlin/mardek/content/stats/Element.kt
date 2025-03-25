@@ -13,7 +13,6 @@ class Element(
 	val rawName: String,
 
 	@BitField(id = 1, optional = true)
-	@ReferenceField(stable = false, label = "stats")
 	val bonusStat: CombatStat?,
 
 	@BitField(id = 2)

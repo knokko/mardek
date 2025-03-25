@@ -45,8 +45,8 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 			state.skillMastery[skill] = skill.masteryPoints
 		}
 		state.toggledSkills.addAll(fat.initialToggledSkills)
-		state.currentHealth = state.determineMaxHealth(fat.wrapped.baseStats, content.stats.stats)
-		state.currentMana = state.determineMaxMana(fat.wrapped.baseStats, content.stats.stats)
+		state.currentHealth = state.determineMaxHealth(fat.wrapped.baseStats)
+		state.currentMana = state.determineMaxMana(fat.wrapped.baseStats)
 		return state
 	}
 

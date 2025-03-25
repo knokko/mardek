@@ -522,7 +522,7 @@ internal fun importMonsterStats(name: String, model: BattleModel, propertiesText
 	val baseStats = HashMap<CombatStat, Int>()
 	val rawBaseStats = parseActionScriptObject(mdlMap["baseStats"]!!)
 	for ((statName, statValue) in rawBaseStats) {
-		val stat = content.stats.stats.find { it.flashName == statName }!!
+		val stat = CombatStat.entries.find { it.flashName == statName }!!
 		baseStats[stat] = parseInt(statValue)
 	}
 
@@ -539,7 +539,7 @@ internal fun importMonsterStats(name: String, model: BattleModel, propertiesText
 		Pair("ATK", rawAttack), Pair("DEF", rawMeleeDef), Pair("MDEF", rawMagicDef), Pair("evasion", rawEvasion)
 	)) {
 		if (statValue == null) continue
-		val stat = content.stats.stats.find { it.flashName == statName }!!
+		val stat = CombatStat.entries.find { it.flashName == statName }!!
 		baseStats[stat] = parseInt(statValue)
 	}
 

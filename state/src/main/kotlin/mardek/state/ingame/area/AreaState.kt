@@ -5,7 +5,6 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.Content
 import mardek.content.area.*
 import mardek.input.InputKey
 import mardek.input.InputManager
@@ -77,7 +76,7 @@ class AreaState(
 		if (key == InputKey.Interact) shouldInteract = true
 	}
 
-	fun update(input: InputManager, state: CampaignState, content: Content, timeStep: Duration) {
+	fun update(input: InputManager, state: CampaignState, timeStep: Duration) {
 		if (obtainedItemStack != null) return
 		if (currentTime == ZERO && !area.flags.hasClearMap) {
 			state.areaDiscovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
@@ -101,8 +100,9 @@ class AreaState(
 
 		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
 			activeBattle = BattleState(
-				battle = incomingRandomBattle!!.battle, players = state.characterSelection.party,
-				content = content, campaignState = state
+				battle = incomingRandomBattle!!.battle,
+				players = state.characterSelection.party,
+				campaignState = state
 			)
 			incomingRandomBattle = null
 		}

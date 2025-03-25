@@ -162,9 +162,9 @@ class InventoryTabRenderer(
 			val baseStats = mutableListOf<CombatStat>()
 			if (equipment != null) {
 				if (equipment.weapon == null) {
-					baseStats.add(content.stats.stats.find { it.flashName == "DEF" }!!)
-					baseStats.add(content.stats.stats.find { it.flashName == "MDEF" }!!)
-				} else baseStats.add(content.stats.stats.find { it.flashName == "ATK" }!!)
+					baseStats.add(CombatStat.MeleeDefense)
+					baseStats.add(CombatStat.RangedDefense)
+				} else baseStats.add(CombatStat.Attack)
 			}
 
 			val textMinX = 5 * scale
@@ -597,15 +597,9 @@ class InventoryTabRenderer(
 			val statsColor = srgbToLinear(rgb(238, 203, 127))
 			val statsHeight = 5 * scale
 
-			val attack = characterState.determineValue(
-				assetCharacter.baseStats, content.stats.stats.find { it.flashName == "ATK" }!!
-			)
-			val defense = characterState.determineValue(
-				assetCharacter.baseStats, content.stats.stats.find { it.flashName == "DEF" }!!
-			)
-			val rangedDefense = characterState.determineValue(
-				assetCharacter.baseStats, content.stats.stats.find { it.flashName == "MDEF" }!!
-			)
+			val attack = characterState.determineValue(assetCharacter.baseStats, CombatStat.Attack)
+			val defense = characterState.determineValue(assetCharacter.baseStats, CombatStat.MeleeDefense)
+			val rangedDefense = characterState.determineValue(assetCharacter.baseStats, CombatStat.RangedDefense)
 
 			uiRenderer.drawString(
 				resources.font, attack.toString(), statsColor, intArrayOf(),
@@ -651,7 +645,7 @@ class InventoryTabRenderer(
 		)
 
 		val healthTextColor = srgbToLinear(rgb(122, 217, 62))
-		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats, content.stats.stats)
+		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats)
 		uiRenderer?.drawString(
 			resources.font, "${characterState.currentHealth}/$maxHealth", healthTextColor, intArrayOf(),
 			barX, region.minY, barX + baseBarWidth, region.maxY,
@@ -669,7 +663,7 @@ class InventoryTabRenderer(
 		)
 
 		val manaTextColor = srgbToLinear(rgb(35, 227, 240))
-		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats, content.stats.stats)
+		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats)
 		uiRenderer?.drawString(
 			resources.font, "${characterState.currentMana}/$maxMana", manaTextColor, intArrayOf(),
 			barX, region.minY, barX + baseBarWidth, region.maxY,

@@ -45,17 +45,17 @@ class Enemy(
 	@Suppress("unused")
 	private constructor() : this(Monster(), 0)
 
-	fun determineMaxHealth(allStats: ArrayList<CombatStat>, bonusVitality: Int): Int { // TODO Maybe turn CombatStat into enum
+	fun determineMaxHealth(bonusVitality: Int): Int {
 		if (monster.playerStatModifier == 0) {
-			return monster.baseStats[allStats.find { it.flashName == "hp" }!!]!! + level * monster.hpPerLevel
+			return monster.baseStats[CombatStat.MaxHealth]!! + level * monster.hpPerLevel
 		} else {
 			TODO()
 		}
 	}
 
-	fun determineMaxMana(allStats: ArrayList<CombatStat>, bonusSpirit: Int): Int {
+	fun determineMaxMana(bonusSpirit: Int): Int {
 		if (monster.playerStatModifier == 0) {
-			return monster.baseStats[allStats.find { it.flashName == "mp" }!!]!!
+			return monster.baseStats[CombatStat.MaxMana]!!
 		} else {
 			TODO()
 			//return CharacterState.determineMaxMana(level, spirit, modifier, extra)

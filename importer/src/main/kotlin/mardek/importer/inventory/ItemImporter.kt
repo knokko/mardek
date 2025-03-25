@@ -72,7 +72,7 @@ private fun parseEquipment(content: Content, rawItem: Map<String, String>): Equi
 
 			val rawName = parseFlashString(effectPair[0] as String, "effect key")!!
 
-			val stat = content.stats.stats.find { it.flashName == rawName }
+			val stat = CombatStat.entries.find { it.flashName == rawName }
 			if (stat != null) {
 				stats.add(StatModifier(stat, parseInt(effectPair[1] as String)))
 				continue
@@ -112,7 +112,7 @@ private fun parseEquipment(content: Content, rawItem: Map<String, String>): Equi
 
 	for (candidate in arrayOf("atk", "def", "mdef")) {
 		val rawValue = rawItem[candidate]
-		val stat = content.stats.stats.find { it.flashName == candidate.uppercase(Locale.ROOT) }!!
+		val stat = CombatStat.entries.find { it.flashName == candidate.uppercase(Locale.ROOT) }!!
 		if (rawValue != null && rawValue != "0") stats.add(StatModifier(stat, parseInt(rawValue)))
 	}
 
@@ -299,7 +299,7 @@ private fun parseConsumable(statsContent: StatsContent, rawItem: Map<String, Str
 		val rawStatModifiers = rawSpell["stat_mod"]
 		if (rawStatModifiers != null) {
 			for ((statName, rawAdder) in parseActionScriptObject(rawStatModifiers)) {
-				val stat = statsContent.stats.find { it.flashName == statName }!!
+				val stat = CombatStat.entries.find { it.flashName == statName }!!
 				val adder = parseInt(rawAdder)
 				statModifiers.add(StatModifierRange(stat, adder, adder))
 			}

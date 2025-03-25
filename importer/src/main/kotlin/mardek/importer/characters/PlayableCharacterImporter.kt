@@ -11,6 +11,7 @@ import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import mardek.importer.util.parseActionScriptResource
 import mardek.content.inventory.ItemStack
+import mardek.content.stats.CombatStat
 import java.lang.Integer.parseInt
 
 @Suppress("UNCHECKED_CAST")
@@ -31,10 +32,10 @@ internal fun importPlayableCharacters(
 
 		val statMods = ArrayList<StatModifier>()
 		val statList = nestedCharacter[5] as ArrayList<String>
-		statMods.add(StatModifier(content.stats.stats.find { it.flashName == "STR" }!!, parseInt(statList[0])))
-		statMods.add(StatModifier(content.stats.stats.find { it.flashName == "VIT" }!!, parseInt(statList[1])))
-		statMods.add(StatModifier(content.stats.stats.find { it.flashName == "SPR" }!!, parseInt(statList[2])))
-		statMods.add(StatModifier(content.stats.stats.find { it.flashName == "AGL" }!!, parseInt(statList[3])))
+		statMods.add(StatModifier(CombatStat.Strength, parseInt(statList[0])))
+		statMods.add(StatModifier(CombatStat.Vitality, parseInt(statList[1])))
+		statMods.add(StatModifier(CombatStat.Spirit, parseInt(statList[2])))
+		statMods.add(StatModifier(CombatStat.Agility, parseInt(statList[3])))
 
 		val name = parseFlashString(nestedCharacter[0] as String, "playable character name")!!
 		val className = parseFlashString(nestedCharacter[1] as String, "playable character class")!!

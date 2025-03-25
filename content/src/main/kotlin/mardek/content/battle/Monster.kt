@@ -34,7 +34,6 @@ class Monster(
 	val element: Element,
 
 	@BitField(id = 5)
-	@NestedFieldSetting(path = "k", fieldName = "BASE_STATS_KEY_PROPERTIES")
 	@IntegerField(expectUniform = false, minValue = 0)
 	val baseStats: HashMap<CombatStat, Int>,
 
@@ -127,7 +126,7 @@ class Monster(
 		className = "",
 		type = CreatureType(),
 		element = Element(),
-		baseStats = HashMap(),
+		baseStats = HashMap(), // TODO Add EnumMap support to Bitser?
 		playerStatModifier = 0,
 		hpPerLevel = 0,
 		attackPerLevelNumerator = 0,
@@ -156,11 +155,6 @@ class Monster(
 	override fun toString() = name
 
 	companion object {
-
-		@Suppress("unused")
-		@JvmStatic
-		@ReferenceField(stable = false, label = "stats")
-		private val BASE_STATS_KEY_PROPERTIES = false
 
 		@Suppress("unused")
 		@JvmStatic

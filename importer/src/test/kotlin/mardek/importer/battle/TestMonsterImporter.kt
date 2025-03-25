@@ -7,6 +7,7 @@ import mardek.content.stats.Element
 import mardek.content.skill.ActiveSkill
 import mardek.content.stats.ElementalResistance
 import mardek.content.skill.SkillTargetType
+import mardek.content.stats.CombatStat
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.skills.importSkillsContent
@@ -85,7 +86,7 @@ class TestMonsterImporter {
 
 	private fun getItem(name: String) = content.items.items.find { it.flashName == name }!!
 
-	private fun getStatValue(monster: Monster, name: String) = monster.baseStats[content.stats.stats.find { it.flashName == name }!!] ?: 0
+	private fun getStatValue(monster: Monster, name: String) = monster.baseStats[CombatStat.entries.find { it.flashName == name }!!] ?: 0
 
 	private fun getElementalResistance(monster: Monster, element: String) = monster.resistances.elements.find { it.element.rawName == element }?.modifier ?: 0f
 

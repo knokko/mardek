@@ -1,15 +1,19 @@
 package mardek.content.stats
 
-import com.github.knokko.bitser.BitStruct
-import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.BitEnum
 
-@BitStruct(backwardCompatible = true)
-class CombatStat(
-	@BitField(id = 0)
-	val flashName: String,
-) {
+@BitEnum(mode = BitEnum.Mode.Ordinal)
+enum class CombatStat(val flashName: String) {
+	Strength("STR"),
+	Vitality("VIT"),
+	Spirit("SPR"),
+	Agility("AGL"),
 
-	internal constructor() : this("")
+	Attack("ATK"),
+	MeleeDefense("DEF"),
+	RangedDefense("MDEF"),
+	Evasion("evasion"),
 
-	override fun toString() = flashName
+	MaxHealth("hp"),
+	MaxMana("mp")
 }

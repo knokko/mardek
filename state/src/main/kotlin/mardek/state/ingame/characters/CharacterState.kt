@@ -67,9 +67,9 @@ class CharacterState {
 		return total
 	}
 
-	fun determineMaxHealth(base: List<StatModifier>, allStats: List<CombatStat>): Int {
-		val vit = determineValue(base, allStats.find { it.flashName == "VIT" }!!)
-		val extra = determineValue(base, allStats.find { it.flashName == "hp" }!!)
+	fun determineMaxHealth(base: List<StatModifier>): Int {
+		val vit = determineValue(base, CombatStat.Vitality)
+		val extra = determineValue(base, CombatStat.MaxHealth)
 		var hpModifier = 0f
 		for (skill in toggledSkills) {
 			if (skill is PassiveSkill) hpModifier += skill.hpModifier
@@ -77,9 +77,9 @@ class CharacterState {
 		return determineMaxHealth(currentLevel, vit, hpModifier, extra)
 	}
 
-	fun determineMaxMana(base: List<StatModifier>, allStats: List<CombatStat>): Int {
-		val spr = determineValue(base, allStats.find { it.flashName == "SPR" }!!)
-		val extra = determineValue(base, allStats.find { it.flashName == "mp" }!!)
+	fun determineMaxMana(base: List<StatModifier>): Int {
+		val spr = determineValue(base, CombatStat.Spirit)
+		val extra = determineValue(base, CombatStat.MaxMana)
 		var mpModifier = 0f
 		for (skill in toggledSkills) {
 			if (skill is PassiveSkill) mpModifier += skill.mpModifier

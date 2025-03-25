@@ -56,7 +56,7 @@ class CampaignState(
 
 	var shouldOpenMenu = false
 
-	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, assets: Content) {
+	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, content: Content) {
 		while (true) {
 			val event = input.consumeEvent() ?: break
 			if (event !is InputKeyEvent || !event.didPress) continue
@@ -82,17 +82,17 @@ class CampaignState(
 			}
 
 			if (event.key == InputKey.ScrollUp || event.key == InputKey.ScrollDown) {
-				val currentIndex = assets.areas.areas.indexOf(currentArea.area)
+				val currentIndex = content.areas.areas.indexOf(currentArea.area)
 
 				var nextIndex = currentIndex
 				if (event.key == InputKey.ScrollUp) nextIndex -= 1
 				else nextIndex += 1
 
-				if (nextIndex < 0) nextIndex += assets.areas.areas.size
-				if (nextIndex >= assets.areas.areas.size) nextIndex -= assets.areas.areas.size
+				if (nextIndex < 0) nextIndex += content.areas.areas.size
+				if (nextIndex >= content.areas.areas.size) nextIndex -= content.areas.areas.size
 
 				var nextPosition = currentArea.getPlayerPosition(0)
-				val nextArea = assets.areas.areas[nextIndex]
+				val nextArea = content.areas.areas[nextIndex]
 				if (nextPosition.x > 5 + nextArea.width || nextPosition.y > 3 + nextArea.height) {
 					nextPosition = AreaPosition(3, 3)
 				}
@@ -105,7 +105,7 @@ class CampaignState(
 
 		// Don't update currentArea during battles!!
 		if (currentArea?.activeBattle != null) return
-		currentArea?.update(input, this, assets, timeStep)
+		currentArea?.update(input, this, timeStep)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area

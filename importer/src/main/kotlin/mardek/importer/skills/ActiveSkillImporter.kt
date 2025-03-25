@@ -1,10 +1,7 @@
 package mardek.importer.skills
 
-import mardek.content.stats.StatsContent
-import mardek.content.stats.ElementalDamageBonus
-import mardek.content.stats.PossibleStatusEffect
-import mardek.content.stats.StatModifierRange
 import mardek.content.skill.*
+import mardek.content.stats.*
 import mardek.importer.area.parseFlashString
 import mardek.importer.area.parseOptionalFlashString
 import mardek.importer.util.parseActionScriptNestedList
@@ -40,7 +37,7 @@ fun parseActiveSkills(
 		addEffects = null
 	}
 
-	var statModifiers = parseStatModifiers(statsContent, rawSkill["stat_mod"])
+	var statModifiers = parseStatModifiers(rawSkill["stat_mod"])
 	val isBuff = rawSkill.containsKey("buff")
 	if (!isBuff && !isHealing) statModifiers = ArrayList(statModifiers.map { -it })
 
@@ -123,11 +120,11 @@ private fun parseStatusEffectList(statsContent: StatsContent, rawEffects: String
 	})
 }
 
-private fun parseStatModifiers(statsContent: StatsContent, rawModifiers: String?): ArrayList<StatModifierRange> {
+private fun parseStatModifiers(rawModifiers: String?): ArrayList<StatModifierRange> {
 	if (rawModifiers == null) return ArrayList(0)
 	val modifierMap = parseActionScriptObject(rawModifiers)
 	return ArrayList(modifierMap.entries.map { modifierEntry ->
-		val stat = statsContent.stats.find { it.flashName == modifierEntry.key }!!
+		val stat = CombatStat.entries.find { it.flashName == modifierEntry.key }!!
 		val valueList = parseActionScriptNestedList(modifierEntry.value)
 		if (valueList is ArrayList<*>) {
 			StatModifierRange(stat, parseInt(valueList[0].toString()), parseInt(valueList[1].toString()))
