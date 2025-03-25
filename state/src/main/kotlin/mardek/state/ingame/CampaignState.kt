@@ -104,7 +104,14 @@ class CampaignState(
 		}
 
 		// Don't update currentArea during battles!!
-		if (currentArea?.activeBattle != null) return
+		val activeBattle = currentArea?.activeBattle
+		if (activeBattle != null) {
+			// TODO Add loot menu
+			if (activeBattle.isFinished()) currentArea!!.activeBattle = null
+			else activeBattle.update()
+			return
+		}
+
 		currentArea?.update(input, this, timeStep)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {

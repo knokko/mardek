@@ -104,7 +104,7 @@ class ActiveSkill(
 	val changeElement: Boolean,
 ): Skill(name, description, element, masteryPoints) {
 
-	internal constructor() : this(
+	constructor() : this(
 		"", "", Element(), 0, ActiveSkillMode.Melee, SkillTargetType.Single, null,
 		0, 0, false, false, false, false, ArrayList(), ArrayList(),
 		ArrayList(), 0f, null, null, null, SkillCombatRequirement.OutsideCombat,

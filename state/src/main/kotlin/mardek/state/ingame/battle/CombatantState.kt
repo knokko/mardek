@@ -43,8 +43,7 @@ class CombatantState private constructor( // TODO Use BitField's
 	 */
 	val statModifiers = HashMap<CombatStat, Int>()
 
-	@Suppress("unused")
-	private constructor() : this(
+	constructor() : this(
 		0, 0, 0, 0, { _ -> 0 }, { _ -> 0 }, HashSet()
 	)
 
