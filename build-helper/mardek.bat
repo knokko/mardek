@@ -1,1 +1,0 @@
-%~dp0/bin/java.exe -jar %~dp0/mardek.jar %*
