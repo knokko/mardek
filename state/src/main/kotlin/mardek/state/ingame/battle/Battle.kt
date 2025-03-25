@@ -29,7 +29,7 @@ class Battle(
 	@ReferenceField(stable = true, label = "battle backgrounds")
 	val background: BattleBackground,
 ) {
-	internal constructor() : this(emptyArray(), PartyLayout(), "", BattleBackground())
+	internal constructor() : this(arrayOf(null, null, null, null), PartyLayout(), "", BattleBackground())
 }
 
 @BitStruct(backwardCompatible = true)

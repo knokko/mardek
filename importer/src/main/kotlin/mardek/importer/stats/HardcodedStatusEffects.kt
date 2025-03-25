@@ -99,7 +99,7 @@ fun addStatusEffects(assets: StatsContent) {
 		niceName = "Haste",
 		isPositive = true,
 		disappearsAfterCombat = true,
-		hasHaste = true
+		extraTurns = 1
 	))
 	assets.statusEffects.add(StatusEffect(
 		flashName = "UWB",

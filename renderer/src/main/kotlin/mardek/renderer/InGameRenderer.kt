@@ -27,7 +27,7 @@ class InGameRenderer(
 			recorder, targetImage, area, state, resources
 		) else null
 		battleRenderer = if (area?.activeBattle != null) BattleRenderer(
-			recorder, targetImage, area.activeBattle!!, resources,
+			recorder, targetImage, frameIndex, area.activeBattle!!, resources,
 			state.content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!
 		) else null
 		menuRenderer = if (state.menu.shown) InGameMenuRenderer(
@@ -36,6 +36,7 @@ class InGameRenderer(
 
 		areaRenderer?.beforeRendering()
 		menuRenderer?.beforeRendering()
+		battleRenderer?.beforeRendering()
 
 		resources.kim1Renderer.recordBeforeRenderpass(recorder, frameIndex)
 	}
@@ -44,7 +45,7 @@ class InGameRenderer(
 		val uiRenderer = resources.uiRenderers[frameIndex]
 		uiRenderer.begin(recorder, targetImage)
 		areaRenderer?.render(frameIndex)
-		battleRenderer?.render(frameIndex)
+		battleRenderer?.render()
 		menuRenderer?.render(uiRenderer)
 
 		uiRenderer.end()

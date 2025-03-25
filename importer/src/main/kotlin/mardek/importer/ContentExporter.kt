@@ -3,7 +3,7 @@ package mardek.importer
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.Content
-import mardek.importer.area.AreaSprites
+import mardek.importer.area.SpritesAndAreas
 import mardek.importer.ui.BcPacker
 import mardek.importer.util.projectFolder
 import java.io.BufferedOutputStream
@@ -16,29 +16,30 @@ fun main() {
 	var succeeded = false
 	try {
 		val bitser = Bitser(false)
-		val campaign = importVanillaContent(bitser)
+		val content = importVanillaContent(bitser)
 		val outputFolder = File("$projectFolder/game/src/main/resources/mardek/game/")
 
 		val kimOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/kim-sprites.bin").toPath()))
-		val areaSprites = AreaSprites()
-		for (element in campaign.stats.elements) areaSprites.registerSprite(element.sprite)
-		for (skillClass in campaign.skills.classes) areaSprites.registerSprite(skillClass.icon)
-		for (item in campaign.items.items) areaSprites.registerSprite(item.sprite)
-		for (item in campaign.items.plotItems) areaSprites.registerSprite(item.sprite)
-		for (chestSprite in campaign.areas.chestSprites) {
-			areaSprites.registerSprite(chestSprite.baseSprite)
-			areaSprites.registerSprite(chestSprite.openedSprite)
+		val spritesAndAreas = SpritesAndAreas()
+		for (creatureType in content.stats.creatureTypes) spritesAndAreas.registerSprite(creatureType.icon)
+		for (element in content.stats.elements) spritesAndAreas.registerSprite(element.sprite)
+		for (skillClass in content.skills.classes) spritesAndAreas.registerSprite(skillClass.icon)
+		for (item in content.items.items) spritesAndAreas.registerSprite(item.sprite)
+		for (item in content.items.plotItems) spritesAndAreas.registerSprite(item.sprite)
+		for (chestSprite in content.areas.chestSprites) {
+			spritesAndAreas.registerSprite(chestSprite.baseSprite)
+			spritesAndAreas.registerSprite(chestSprite.openedSprite)
 		}
-		for (sprite in campaign.ui.allKimSprites()) areaSprites.registerSprite(sprite)
-		areaSprites.register(campaign.areas)
-		areaSprites.writeKimSprites(kimOutput)
+		for (sprite in content.ui.allKimSprites()) spritesAndAreas.registerSprite(sprite)
+		spritesAndAreas.register(content.areas)
+		spritesAndAreas.writeKimSprites(kimOutput)
 		kimOutput.flush()
 		kimOutput.close()
 
 		val bcPacker = BcPacker()
-		for (sprite in campaign.ui.allBcSprites()) bcPacker.add(sprite)
-		for (background in campaign.battle.backgrounds) bcPacker.add(background.sprite)
-		for (skeleton in campaign.battle.skeletons) {
+		for (sprite in content.ui.allBcSprites()) bcPacker.add(sprite)
+		for (background in content.battle.backgrounds) bcPacker.add(background.sprite)
+		for (skeleton in content.battle.skeletons) {
 			for (part in skeleton.parts) {
 				for (skin in part.skins) {
 					for (entry in skin.entries) bcPacker.add(entry.sprite)
@@ -56,12 +57,12 @@ fun main() {
 		bcOutput.close()
 
 		val areasOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/area-offsets.bin").toPath()))
-		areaSprites.writeAreaOffsets(areasOutput, bitser)
+		spritesAndAreas.writeAreaOffsets(areasOutput, bitser)
 		areasOutput.flush()
 		areasOutput.close()
 
 		println("exporting campaign...")
-		exportCampaignData(campaign, outputFolder, bitser)
+		exportCampaignData(content, outputFolder, bitser)
 		println("exported campaign")
 		succeeded = true
 	} catch (failure: Throwable) {

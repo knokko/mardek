@@ -70,7 +70,8 @@ class StatusEffect(
 	val isZombie: Boolean = false,
 
 	@BitField(id = 17)
-	val hasHaste: Boolean = false,
+	@IntegerField(expectUniform = false, minValue = 0)
+	val extraTurns: Int = 0,
 
 	@BitField(id = 18)
 	val isReckless: Boolean = false,

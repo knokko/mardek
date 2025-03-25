@@ -26,12 +26,28 @@ layout(location = 9) out flat int outlineWidth;
 
 void main() {
 	int quadIndex = quadBufferOffset + 6 * (gl_VertexIndex / 6);
-	int vertexIndex = gl_VertexIndex % 6;
+	int rawVertexIndex = gl_VertexIndex % 6;
+	int vertexIndex = rawVertexIndex;
+	if (rawVertexIndex == 3) vertexIndex = 2;
+	if (rawVertexIndex == 4) vertexIndex = 3;
+	if (rawVertexIndex == 5) vertexIndex = 0;
 
 	corner = ivec2(quads[quadIndex], quads[quadIndex + 1]);
 	size = ivec2(quads[quadIndex + 2], quads[quadIndex + 3]);
 	type = quads[quadIndex + 4];
 	extraIndex = quads[quadIndex + 5];
+
+    int x = corner.x;
+	int y = corner.y;
+	if (vertexIndex == 1 || vertexIndex == 2) x += size.x;
+	if (vertexIndex >= 2) y += size.y;
+
+	if (type > 1000) {
+		type -= 1000;
+		x = extra[extraIndex + 2 * vertexIndex];
+		y = extra[extraIndex + 2 * vertexIndex + 1];
+		extraIndex += 8;
+    }
 
 	if (type == 2) {
 		bufferIndex = extra[extraIndex];
@@ -42,9 +58,5 @@ void main() {
 		outlineWidth = extra[colorIndex + 1];
 	}
 
-	int x = corner.x;
-	int y = corner.y;
-	if (vertexIndex >= 1 && vertexIndex <= 3) x += size.x;
-	if (vertexIndex >= 2 && vertexIndex <= 4) y += size.y;
 	gl_Position = vec4(2.0 * float(x) / framebufferWidth - 1.0, 2.0 * float(y) / framebufferHeight - 1.0, 0.0, 1.0);
 }

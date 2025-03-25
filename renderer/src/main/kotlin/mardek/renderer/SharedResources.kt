@@ -26,7 +26,7 @@ import java.util.zip.InflaterInputStream
 import kotlin.math.max
 
 class SharedResources(
-	getBoiler: CompletableFuture<BoilerInstance>, framesInFlight: Int
+	getBoiler: CompletableFuture<BoilerInstance>, framesInFlight: Int, skipWindow: Boolean = false
 ) {
 
 	private val boiler: BoilerInstance
@@ -58,7 +58,7 @@ class SharedResources(
 			1000_000L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT or VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "PerFrameBuffer"
 		).fullMappedRange())
 
-		renderPass = createRenderPass(boiler)
+		renderPass = if (skipWindow) createRenderPass(boiler, VK_FORMAT_R8G8B8A8_SRGB) else createRenderPass(boiler)
 
 		val areaThread = Thread {
 			val areaInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(

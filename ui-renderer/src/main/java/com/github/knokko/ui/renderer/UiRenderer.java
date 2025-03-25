@@ -246,6 +246,34 @@ public class UiRenderer {
 		draw(quadRange);
 	}
 
+	public void fillColorUnaligned(
+			int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4,
+			int color, Gradient... gradients
+	) {
+		var quadRange = perFrame.allocate(QUAD_SIZE, 4);
+		var renderQuad = quadRange.intBuffer();
+
+		var extraRange = perFrame.allocate(4L * (10 + 7L * gradients.length), 4L);
+		var extra = extraRange.intBuffer();
+
+		renderQuad.put(0);
+		renderQuad.put(0);
+		renderQuad.put(0);
+		renderQuad.put(0);
+		renderQuad.put(1003);
+		renderQuad.put(toIntExact(extraRange.offset() / 4));
+
+		extra.put(x1).put(y1);
+		extra.put(x2).put(y2);
+		extra.put(x3).put(y3);
+		extra.put(x4).put(y4);
+		extra.put(color);
+		extra.put(gradients.length);
+		for (var gradient : gradients) putGradient(gradient, extra);
+
+		draw(quadRange);
+	}
+
 	private void draw(MappedVkbBufferRange quads) {
 		// TODO Batch draws?
 		if (currentDescriptorSet == VK_NULL_HANDLE) {

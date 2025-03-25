@@ -7,6 +7,7 @@ import mardek.content.battle.PartyLayout
 import mardek.content.battle.PartyLayoutPosition
 import mardek.renderer.SharedResources
 import mardek.state.ingame.battle.BattleState
+import mardek.state.title.AbsoluteRectangle
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.lang.Math.toIntExact
@@ -15,12 +16,21 @@ import kotlin.math.min
 class BattleRenderer(
 	private val recorder: CommandRecorder,
 	private val targetImage: VkbImage,
+	private val frameIndex: Int,
 	private val state: BattleState,
 	private val resources: SharedResources,
 	private val playerLayout: PartyLayout
 ) {
 
-	fun render(frameIndex: Int) {
+	private val turnOrderRenderer = TurnOrderRenderer(state, resources, recorder, targetImage, frameIndex, AbsoluteRectangle(
+		minX = 0, minY = targetImage.height / 12, width = targetImage.width, height = targetImage.height / 12
+	))
+
+	fun beforeRendering() {
+		turnOrderRenderer.beforeRendering()
+	}
+
+	fun render() {
 		val relativeTime = System.nanoTime() - state.startTime
 		resources.partRenderer.startBatch(recorder)
 		resources.partRenderer.render(state.battle.background.sprite, arrayOf(
@@ -41,6 +51,8 @@ class BattleRenderer(
 		}
 
 		resources.partRenderer.endBatch()
+
+		turnOrderRenderer.render()
 	}
 
 	private fun renderCreature(rawPosition: PartyLayoutPosition, model: BattleModel, flipX: Float, relativeTime: Long) {

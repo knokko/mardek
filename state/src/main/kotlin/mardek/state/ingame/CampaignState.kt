@@ -18,6 +18,7 @@ import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
+import mardek.state.ingame.battle.BattleOutcome
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
 import kotlin.time.Duration
@@ -65,7 +66,7 @@ class CampaignState(
 			val currentBattle = currentArea.activeBattle
 
 			if (currentBattle != null) {
-				currentBattle.processKeyPress(event.key)
+				currentBattle.processKeyPress(event.key, soundQueue)
 				continue
 			}
 
@@ -104,7 +105,20 @@ class CampaignState(
 		}
 
 		// Don't update currentArea during battles!!
-		if (currentArea?.activeBattle != null) return
+		val activeBattle = currentArea?.activeBattle
+		if (activeBattle != null) {
+			when (activeBattle.outcome) {
+				BattleOutcome.GameOver -> TODO("Game over")
+				BattleOutcome.Busy -> activeBattle.update(soundQueue, timeStep)
+				BattleOutcome.RanAway -> {
+					currentArea!!.activeBattle = null
+					soundQueue.insert("flee-battle")
+				}
+				BattleOutcome.Victory -> TODO("Open loot menu")
+			}
+			return
+		}
+
 		currentArea?.update(input, this, timeStep)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {

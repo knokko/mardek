@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.area.*
 import mardek.input.InputKey
 import mardek.input.InputManager
@@ -52,9 +53,10 @@ class AreaState(
 	private var stepsWithoutBattle = area.randomBattles?.minSteps ?: 0
 
 	@BitField(id = 7, optional = true)
+	@ReferenceFieldTarget(label = "battle state")
 	var activeBattle: BattleState? = null
 
-	val rng = Random.Default
+	private val rng = Random.Default
 
 	var nextTransition: TransitionDestination? = null
 
@@ -166,7 +168,7 @@ class AreaState(
 
 		for (transition in area.objects.transitions) {
 			if (playerPositions[0].x == transition.x && playerPositions[0].y == transition.y) {
-				nextTransition = transition.destination;
+				nextTransition = transition.destination
 			}
 		}
 	}
