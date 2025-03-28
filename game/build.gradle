@@ -43,7 +43,7 @@ tasks.register("proguard", ProGuardTask) {
     keep "class com.github.knokko.bitser.** {*;}"
 
     // These suggestive annotations are not interesting
-    dontwarn "javax.annotation.**"
+    dontwarn "org.jspecify.annotations.**"
 
     // This game doesn't use OpenXR (virtual reality)
     dontwarn "com.github.knokko.boiler**.xr**"
