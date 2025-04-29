@@ -52,6 +52,8 @@ class BattleState(
 	@ClassField(root = BattleMove::class)
 	var currentMove: BattleMove = BattleMoveThinking
 
+	var selectedMove: BattleMoveSelection = BattleMoveSelectionAttack(target = null)
+
 	@BitField(id = 6)
 	var outcome = BattleOutcome.Busy
 		private set
@@ -66,10 +68,60 @@ class BattleState(
 
 	fun processKeyPress(key: InputKey, soundQueue: SoundQueue) {
 		if (onTurn != null && currentMove == BattleMoveThinking) {
+			val selectedMove = this.selectedMove
 			if (key == InputKey.Cancel) {
-				currentMove = BattleMoveWait
-				moveDecisionTime = updatedTime
+				if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) {
+					this.selectedMove = BattleMoveSelectionAttack(target = null)
+				} else if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) {
+					this.selectedMove = BattleMoveSelectionSkill(skill = null, target = null)
+				} else if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) {
+					this.selectedMove = BattleMoveSelectionItem(item = null, target = null)
+				} else {
+					this.currentMove = BattleMoveWait
+					moveDecisionTime = updatedTime
+				}
+
 				soundQueue.insert("click-cancel")
+			}
+
+			if (key == InputKey.Interact) {
+				if (selectedMove is BattleMoveSelectionWait) {
+					this.currentMove = BattleMoveWait
+					moveDecisionTime = updatedTime
+					soundQueue.insert("click-cancel")
+				}
+				if (selectedMove is BattleMoveSelectionFlee) {
+					outcome = BattleOutcome.RanAway
+					moveDecisionTime = updatedTime
+				}
+			}
+
+			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) {
+				if (selectedMove is BattleMoveSelectionAttack && selectedMove.target == null) {
+					if (key == InputKey.MoveLeft) this.selectedMove = BattleMoveSelectionSkill(skill = null, target = null)
+					else this.selectedMove = BattleMoveSelectionFlee
+					soundQueue.insert("menu-scroll")
+				}
+				if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill == null) {
+					if (key == InputKey.MoveLeft) this.selectedMove = BattleMoveSelectionItem(item = null, target = null)
+					else this.selectedMove = BattleMoveSelectionAttack(target = null)
+					soundQueue.insert("menu-scroll")
+				}
+				if (selectedMove is BattleMoveSelectionItem && selectedMove.item == null) {
+					if (key == InputKey.MoveLeft) this.selectedMove = BattleMoveSelectionWait
+					else this.selectedMove = BattleMoveSelectionSkill(skill = null, target = null)
+					soundQueue.insert("menu-scroll")
+				}
+				if (selectedMove is BattleMoveSelectionWait) {
+					if (key == InputKey.MoveLeft) this.selectedMove = BattleMoveSelectionFlee
+					else this.selectedMove = BattleMoveSelectionItem(item = null, target = null)
+					soundQueue.insert("menu-scroll")
+				}
+				if (selectedMove is BattleMoveSelectionFlee) {
+					if (key == InputKey.MoveLeft) this.selectedMove = BattleMoveSelectionAttack(target = null)
+					else this.selectedMove = BattleMoveSelectionWait
+					soundQueue.insert("menu-scroll")
+				}
 			}
 		}
 	}
@@ -110,6 +162,7 @@ class BattleState(
 
 		currentMove = if (combatant.isPlayer) {
 			soundQueue.insert("menu-party-scroll")
+			selectedMove = BattleMoveSelectionAttack(target = null)
 			BattleMoveThinking
 		} else {
 			moveDecisionTime = updatedTime

@@ -49,6 +49,13 @@ void main() {
 		extraIndex += 8;
     }
 
+    if (type == 4) {
+		if (vertexIndex == 1 || vertexIndex == 2) x += size.x / 10;
+		else x -= size.x / 10;
+		if (vertexIndex >= 2) y += size.y / 10;
+		else y -= size.y / 10;
+    }
+
 	if (type == 2) {
 		bufferIndex = extra[extraIndex];
 		sectionWidth = extra[extraIndex + 1];

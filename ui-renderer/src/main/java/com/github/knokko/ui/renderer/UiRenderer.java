@@ -224,6 +224,13 @@ public class UiRenderer {
 		extra.put(gradient.upColor());
 	}
 
+	private void putGradient(CircleGradient gradient, IntBuffer extra) {
+		extra.put((int) (gradient.minRadius() * 1000));
+		extra.put((int) (gradient.maxRadius() * 1000));
+		extra.put(gradient.minColor());
+		extra.put(gradient.maxColor());
+	}
+
 	public void fillColor(int minX, int minY, int maxX, int maxY, int color, Gradient... gradients) {
 		if (maxX < minX || maxY < minY) return;
 		var quadRange = perFrame.allocate(QUAD_SIZE, 4);
@@ -267,6 +274,28 @@ public class UiRenderer {
 		extra.put(x2).put(y2);
 		extra.put(x3).put(y3);
 		extra.put(x4).put(y4);
+		extra.put(color);
+		extra.put(gradients.length);
+		for (var gradient : gradients) putGradient(gradient, extra);
+
+		draw(quadRange);
+	}
+
+	public void fillCircle(int minX, int minY, int maxX, int maxY, int color, CircleGradient... gradients) {
+		if (maxX < minX || maxY < minY) return;
+		var quadRange = perFrame.allocate(QUAD_SIZE, 4);
+		var renderQuad = quadRange.intBuffer();
+
+		var extraRange = perFrame.allocate(4L * (2 + 4L * gradients.length), 4L);
+		var extra = extraRange.intBuffer();
+
+		renderQuad.put(minX);
+		renderQuad.put(minY);
+		renderQuad.put(1 + maxX - minX);
+		renderQuad.put(1 + maxY - minY);
+		renderQuad.put(4);
+		renderQuad.put(toIntExact(extraRange.offset() / 4));
+
 		extra.put(color);
 		extra.put(gradients.length);
 		for (var gradient : gradients) putGradient(gradient, extra);

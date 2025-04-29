@@ -20,7 +20,7 @@ class TurnOrderRenderer(
 	private val resources: SharedResources,
 	private val recorder: CommandRecorder,
 	private val targetImage: VkbImage,
-	private val frameIndex: Int,
+	frameIndex: Int,
 	private val region: AbsoluteRectangle,
 ) {
 	private val slotWidth = region.height

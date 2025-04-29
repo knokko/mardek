@@ -58,6 +58,18 @@ vec4 applyGradient(vec4 oldColor, ivec2 offset, int gi) {
 	return oldColor;
 }
 
+vec4 applyCircleGradient(vec4 oldColor, float distance, int gi) {
+	float minDistance = extra[gi] * 0.001;
+	float maxDistance = extra[gi + 1] * 0.001;
+	if (distance >= minDistance && distance <= maxDistance) {
+		float relative = (distance - minDistance) / (maxDistance - minDistance);
+		vec4 minColor = decodeColor(extra[gi + 2]);
+		vec4 maxColor = decodeColor(extra[gi + 3]);
+		return relative * maxColor + (1.0 - relative) * minColor;
+	}
+	return oldColor;
+}
+
 void drawImage(ivec2 offset) {
 	outColor = texture(sampler2D(currentImage, pixelatedSampler), vec2(offset) / size);
 }
@@ -68,6 +80,28 @@ void fillColor(ivec2 offset) {
 	int numGradients = extra[extraIndex + 1];
 	for (int index = 0; index < numGradients; index++) {
 		outColor = applyGradient(outColor, offset, extraIndex + 2 + 7 * index);
+	}
+}
+
+void fillCircle(ivec2 absoluteOffset) {
+	vec2 offset = 2.0 * vec2(absoluteOffset) / vec2(size) - vec2(1.0, 1.0);
+	float distance = sqrt(offset.x * offset.x + offset.y * offset.y);
+	if (distance > 1.05) {
+		outColor = vec4(0.0);
+		return;
+	}
+
+	if (distance > 1.0) {
+		float relative = (distance - 1.0) / 0.05;
+		outColor = (1.0 - relative) * decodeColor(extra[extraIndex]);
+		return;
+	}
+
+	outColor = decodeColor(extra[extraIndex]);
+
+	int numGradients = extra[extraIndex + 1];
+	for (int index = 0; index < numGradients; index++) {
+		outColor = applyCircleGradient(outColor, distance, extraIndex + 2 + 4 * index);
 	}
 }
 
@@ -118,4 +152,5 @@ void main() {
 	if (type == 1) drawImage(offset);
 	if (type == 2) drawText(offset);
 	if (type == 3) fillColor(offset);
+	if (type == 4) fillCircle(offset);
 }

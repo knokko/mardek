@@ -74,3 +74,15 @@ class BattleSkillTargetSingle(
 data object BattleSkillTargetAllEnemies : BattleSkillTarget()
 
 data object BattleSkillTargetAllAllies : BattleSkillTarget()
+
+sealed class BattleMoveSelection
+
+class BattleMoveSelectionAttack(val target: BattleSkillTarget?) : BattleMoveSelection()
+
+class BattleMoveSelectionSkill(val skill: ActiveSkill?, val target: BattleSkillTarget?) : BattleMoveSelection()
+
+class BattleMoveSelectionItem(val item: Item?, val target: CombatantReference?) : BattleMoveSelection()
+
+data object BattleMoveSelectionWait : BattleMoveSelection()
+
+data object BattleMoveSelectionFlee : BattleMoveSelection()

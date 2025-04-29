@@ -49,9 +49,13 @@ internal fun importUiSprites() = UiSprites(
 	skillToggled = importKimSprite("SkillToggled", 0),
 	skillNotToggled = importKimSprite("SkillNotToggled", 0),
 	horizontalPointer = importKimSprite("HorizontalPointer", 0),
+	verticalPointer = importKimSprite("VerticalPointer", 0),
 	diagonalPointer = importKimSprite("DiagonalPointer", 0),
 	titleScreenBackground = importBcSprite("TitleScreenBackground", 1),
 	titleScreenTitle = importBcSprite("TitleScreenTitle", 7),
 	blueAlertBalloon = importKimSprite("BlueAlertBalloon", 0),
 	redAlertBalloon = importKimSprite("RedAlertBalloon", 0),
+	consumableIcon = importKimSprite("Consumable", 0),
+	waitIcon = importKimSprite("Wait", 0),
+	fleeIcon = importKimSprite("Flee", 0),
 )
