@@ -221,11 +221,16 @@ class AreaState(
 
 	private fun processInput(input: InputManager) {
 		if (nextPlayerPosition == null && incomingRandomBattle == null) {
-			var moveDirection: Direction? = null
-			if (input.isPressed(InputKey.MoveLeft)) moveDirection = Direction.Left
-			if (input.isPressed(InputKey.MoveDown)) moveDirection = Direction.Down
-			if (input.isPressed(InputKey.MoveRight)) moveDirection = Direction.Right
-			if (input.isPressed(InputKey.MoveUp)) moveDirection = Direction.Up
+			val lastPressed = input.mostRecentlyPressed(arrayOf(
+				InputKey.MoveLeft, InputKey.MoveDown, InputKey.MoveRight, InputKey.MoveUp
+			))
+			val moveDirection = when (lastPressed) {
+				InputKey.MoveLeft -> Direction.Left
+				InputKey.MoveDown -> Direction.Down
+				InputKey.MoveRight -> Direction.Right
+				InputKey.MoveUp -> Direction.Up
+				else -> null
+			}
 
 			if (moveDirection != null) {
 				val nextX = playerPositions[0].x + moveDirection.deltaX
