@@ -21,7 +21,8 @@ class MemoryAreaRenderData(
 		else -> throw Error("Invalid tile")
 	}
 
-	fun getWaterSpriteIndex(x: Int, y: Int) = packedTiles[index(x, y)] and 3
+	fun getWaterSpriteIndex(x: Int, y: Int) = if (x < 0 || y < 0 || x >= width || y >= packedTiles.size / width) 0
+	else packedTiles[index(x, y)] and 3
 
 	fun getTileSpriteIndex(x: Int, y: Int, height: Int) = (packedTiles[index(x, y)] shr (2 + 10 * height)) and 1023
 

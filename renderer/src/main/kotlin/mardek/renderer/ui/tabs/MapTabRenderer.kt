@@ -126,7 +126,7 @@ class MapTabRenderer(
 		resources.colorGridRenderer.startBatch(recorder)
 
 		val mapBuffer = resources.colorGridRenderer.drawGrid(
-			recorder, targetImage, minX, minY, area.width, area.height, 1, scale
+			recorder, targetImage, minX, minY, area.width, area.height + 1, 1, scale
 		)
 
 		fun put(x: Int, y: Int, mask: Int) {
@@ -138,7 +138,7 @@ class MapTabRenderer(
 
 		val discovery = state.areaDiscovery.readOnly(area)
 		val renderData = resources.areaMap[area.id]!!.data
-		for (y in 0 until area.height) {
+		for (y in 0 .. area.height) {
 			for (x in 0 until area.width) {
 				val newMask = if ((discovery.isDiscovered(x, y) || area.flags.hasClearMap) && !area.flags.noMap) {
 					val waterType = renderData.getWaterType(x, y)

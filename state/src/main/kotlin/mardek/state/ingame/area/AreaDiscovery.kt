@@ -17,7 +17,7 @@ class AreaDiscovery(area: Area) {
 
 	@BitField(id = 1)
 	@NestedFieldSetting(path = "", writeAsBytes = true)
-	private val raw = BooleanArray(area.width * area.height)
+	private val raw = BooleanArray(area.width * (area.height + 1))
 
 	@Suppress("unused")
 	private constructor() : this(Area())
@@ -28,7 +28,7 @@ class AreaDiscovery(area: Area) {
 		val range = 9
 		val height = raw.size / width
 		for (x in max(0, playerX - range) .. min(width - 1, playerX + range)) {
-			for (y in max(0, playerY - range) .. min(height - 1, playerY + range)) {
+			for (y in max(0, playerY - range) .. min(height, playerY + range)) {
 				raw[x + y * width] = true
 			}
 		}
