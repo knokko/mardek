@@ -19,7 +19,7 @@ import kotlin.math.min
 
 class BattleRenderer(
 	content: Content,
-	campaign: CampaignState,
+	private val campaign: CampaignState,
 	private val recorder: CommandRecorder,
 	private val targetImage: VkbImage,
 	private val frameIndex: Int,
@@ -32,9 +32,11 @@ class BattleRenderer(
 		minX = 0, minY = targetImage.height / 12, width = targetImage.width, height = targetImage.height / 12
 	))
 	private val actionBarRenderer = ActionBarRenderer(content, campaign, state, resources, recorder, targetImage, frameIndex, AbsoluteRectangle(
-		minX = 0, minY = targetImage.height - targetImage.height / 6, width = targetImage.width, height = targetImage.height / 12
+		minX = 0, minY = targetImage.height - targetImage.height / 12 - targetImage.height / 8,
+		width = targetImage.width, height = targetImage.height / 12
 	))
 	private val enemyBlockRenderers = mutableListOf<EnemyBlockRenderer>()
+	private val playerBlockRenderers = mutableListOf<PlayerBlockRenderer>()
 
 	fun beforeRendering() {
 		turnOrderRenderer.beforeRendering()
@@ -51,7 +53,20 @@ class BattleRenderer(
 			))
 		}
 
+		for ((index, player) in state.players.withIndex()) {
+			if (player == null) continue
+			val region = AbsoluteRectangle(
+				minX = index * targetImage.width / 4, minY = targetImage.height - targetImage.height / 8,
+				width = targetImage.width / 4, height = targetImage.height / 8
+			)
+			playerBlockRenderers.add(PlayerBlockRenderer(
+				resources, frameIndex, player, state.playerStates[index]!!, campaign.characterStates[player]!!,
+				state.startTime, region, recorder, targetImage
+			))
+		}
+
 		for (blockRenderer in enemyBlockRenderers) blockRenderer.beforeRendering()
+		for (blockRenderer in playerBlockRenderers) blockRenderer.beforeRendering()
 	}
 
 	fun render() {
@@ -83,11 +98,17 @@ class BattleRenderer(
 				0, 0, targetImage.width, targetImage.height, leftColor, rightColor, leftColor
 			)
 		)
+		resources.uiRenderers[frameIndex].fillColor(
+			0, targetImage.height - targetImage.height / 8, targetImage.width, targetImage.height, 0, Gradient(
+				0, 0, targetImage.width, targetImage.height, rightColor, leftColor, rightColor
+			)
+		)
 		resources.uiRenderers[frameIndex].endBatch()
 
 		turnOrderRenderer.render()
 		actionBarRenderer.render()
 		for (blockRenderer in enemyBlockRenderers) blockRenderer.render()
+		for (blockRenderer in playerBlockRenderers) blockRenderer.render()
 	}
 
 	private fun renderCreature(rawPosition: PartyLayoutPosition, model: BattleModel, flipX: Float, relativeTime: Long) {

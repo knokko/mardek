@@ -62,7 +62,7 @@ fun addElements(assets: StatsContent) {
 		bonusStat = CombatStat.RangedDefense,
 		primaryChar = "L",
 		color = rgb(255, 255, 255),
-		sprite = getSprite2("Light", 4)
+		sprite = getSprite2("Light", 8)
 	)
 	dark.setWeakAgainst(light)
 	light.setWeakAgainst(dark)

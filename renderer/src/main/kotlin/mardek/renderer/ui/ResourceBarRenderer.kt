@@ -44,19 +44,19 @@ class ResourceBarRenderer(
 
 	fun renderTextOverBar(currentValue: Int, maxValue: Int) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
-		val splitX = barRegion.minX + barRegion.width * 3 / 5
+		val splitX = barRegion.minX + barRegion.width * 5 / 9
 		val marginX = barRegion.width / 30
 		uiRenderer.drawString(
 			font, currentValue.toString(), entry.textColor, IntArray(0),
 			barRegion.minX, barRegion.minY - 2 * barRegion.height,
 			splitX - marginX, barRegion.maxY + barRegion.height,
-			barRegion.maxY + barRegion.height / 3, 2 * barRegion.height, 1, TextAlignment.RIGHT
+			barRegion.maxY + barRegion.height / 3, 7 * barRegion.height / 4, 1, TextAlignment.RIGHT
 		)
 		uiRenderer.drawString(
 			font, maxValue.toString(), entry.textColor, IntArray(0),
 			splitX + marginX, barRegion.minY - barRegion.height,
 			barRegion.maxX, barRegion.maxY + barRegion.height / 2,
-			barRegion.maxY + barRegion.height / 5, 3 * barRegion.height / 2, 1, TextAlignment.LEFT
+			barRegion.maxY + barRegion.height / 5, 4 * barRegion.height / 3, 1, TextAlignment.LEFT
 		)
 	}
 

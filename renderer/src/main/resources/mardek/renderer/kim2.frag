@@ -16,5 +16,5 @@ defineSampleKim2Float(kimBuffer)
 
 void main() {
 	vec4 baseColor = sampleKim2(spriteOffset, textureCoordinates);
-	outColor = vec4(baseColor.rgb, opacity * baseColor.a);
+	outColor = vec4(baseColor.rgb, opacity * srgbToLinear(baseColor.a));
 }
