@@ -1,5 +1,6 @@
 /.gradle
 /.idea
+/screenshots
 **/build/
 **/mardek-stdout.txt
 **/mardek-stderr.txt

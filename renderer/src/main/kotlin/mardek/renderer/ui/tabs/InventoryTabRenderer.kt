@@ -19,6 +19,8 @@ import mardek.renderer.batch.KimRequest
 import mardek.renderer.SharedResources
 import mardek.state.ingame.CampaignState
 import mardek.content.inventory.ItemStack
+import mardek.renderer.ui.ResourceBarRenderer
+import mardek.renderer.ui.ResourceType
 import mardek.renderer.ui.renderDescription
 import mardek.state.ingame.menu.InventoryTab
 import mardek.state.title.AbsoluteRectangle
@@ -631,44 +633,24 @@ class InventoryTabRenderer(
 			startY + margin + 5 * scale, textHeight, 1, TextAlignment.LEFT
 		)
 
-		// TODO proper health & mana bar
-		val baseBarWidth = 40 * scale
-		val barsHeight = margin
-		val bottomHealthColor = srgbToLinear(rgb(75, 179, 42))
-		val topHealthColor = srgbToLinear(rgb(182, 229, 163))
-		val rightHealthColor = srgbToLinear(rgb(26, 89, 45))
-		uiRenderer?.fillColor(
-			barX, startY + margin * 13 / 8, barX + baseBarWidth,
-			startY + margin * 13 / 8 + barsHeight, bottomHealthColor, Gradient(
-				0, 0, baseBarWidth, barsHeight, bottomHealthColor, rightHealthColor, topHealthColor
-			)
-		)
+		if (uiRenderer != null) {
+			val baseBarWidth = 40 * scale
+			val barsHeight = margin
 
-		val healthTextColor = srgbToLinear(rgb(122, 217, 62))
-		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats)
-		uiRenderer?.drawString(
-			resources.font, "${characterState.currentHealth}/$maxHealth", healthTextColor, intArrayOf(),
-			barX, region.minY, barX + baseBarWidth, region.maxY,
-			startY + margin * 34 / 8, margin * 3 / 2, 1, TextAlignment.CENTER
-		)
+			val healthRenderer = ResourceBarRenderer(resources.font, uiRenderer, ResourceType.Health, AbsoluteRectangle(
+				barX, startY + margin * 13 / 9, baseBarWidth, barsHeight
+			))
+			val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats)
+			healthRenderer.renderBar(characterState.currentHealth, maxHealth)
+			healthRenderer.renderTextBelowBar(characterState.currentHealth, maxHealth)
 
-		val bottomManaColor = srgbToLinear(rgb(8, 122, 178))
-		val topManaColor = srgbToLinear(rgb(152, 204, 230))
-		val rightManaColor = srgbToLinear(rgb(12, 207, 159))
-		uiRenderer?.fillColor(
-			barX, startY + margin * 37 / 8, barX + baseBarWidth,
-			startY + margin * 37 / 8 + barsHeight, bottomManaColor, Gradient(
-				0, 0, baseBarWidth, barsHeight, bottomManaColor, rightManaColor, topManaColor
-			)
-		)
-
-		val manaTextColor = srgbToLinear(rgb(35, 227, 240))
-		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats)
-		uiRenderer?.drawString(
-			resources.font, "${characterState.currentMana}/$maxMana", manaTextColor, intArrayOf(),
-			barX, region.minY, barX + baseBarWidth, region.maxY,
-			startY + margin * 59 / 8, margin * 3 / 2, 1, TextAlignment.CENTER
-		)
+			val manaRenderer = ResourceBarRenderer(resources.font, uiRenderer, ResourceType.Mana, AbsoluteRectangle(
+				barX, startY + margin * 37 / 8, baseBarWidth, barsHeight
+			))
+			val maxMana = characterState.determineMaxMana(assetCharacter.baseStats)
+			manaRenderer.renderBar(characterState.currentMana, maxMana)
+			manaRenderer.renderTextBelowBar(characterState.currentMana, maxMana)
+		}
 
 		renderEquipment(partyIndex, startY + margin - 1, uiRenderer, kim1Renderer)
 	}

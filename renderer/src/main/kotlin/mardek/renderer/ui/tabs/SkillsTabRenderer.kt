@@ -12,6 +12,8 @@ import mardek.content.skill.ReactionSkill
 import mardek.renderer.SharedResources
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
+import mardek.renderer.ui.ResourceBarRenderer
+import mardek.renderer.ui.ResourceType
 import mardek.renderer.ui.renderDescription
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.SkillsTab
@@ -242,7 +244,6 @@ class SkillsTabRenderer(
 			region.minX, headerMaxY, resourceX - 2, region.maxY,
 			resourceMaxY, resourceMaxY - resourceMinY, 1, TextAlignment.RIGHT
 		)
-		val resourceSplitX = region.minX + (descriptionMaxX - region.minX) * 3 / 5
 
 		val characterState = state.characterStates[assetCharacter]!!
 		val maxResourceValue = if (tab.skillTypeIndex == 0) characterState.determineMaxMana(assetCharacter.baseStats)
@@ -255,43 +256,13 @@ class SkillsTabRenderer(
 			} else 0
 		}
 
-		if (tab.skillTypeIndex == 0) {
-			val leftManaColor = srgbToLinear(rgb(17, 127, 168))
-			val rightManaColor = srgbToLinear(rgb(15, 204, 144))
-			uiRenderer.fillColor(
-				resourceX, resourceMinY, descriptionMaxX, resourceMaxY, 0,
-				Gradient(
-					0,
-					0,
-					descriptionMaxX - resourceX,
-					resourceMaxY - resourceMinY,
-					leftManaColor,
-					rightManaColor,
-					leftManaColor
-				)
-			)
-		} else {
-			val barColor = srgbToLinear(rgb(66, 48, 34))
-			val barFilledColor = srgbToLinear(rgb(17, 151, 36))
-			val filledX = resourceX + ((descriptionMaxX - resourceX) * (currentResourceValue.toFloat() / maxResourceValue)).roundToInt()
-			uiRenderer.fillColor(resourceX, resourceMinY, filledX - 1, resourceMaxY, barFilledColor)
-			uiRenderer.fillColor(filledX, resourceMinY, descriptionMaxX, resourceMaxY, barColor)
-		}
+		val resourceType = if (tab.skillTypeIndex == 0) ResourceType.Mana else ResourceType.SkillEnable
+		val resourceRenderer = ResourceBarRenderer(resources.font, uiRenderer, resourceType, AbsoluteRectangle(
+			resourceX, resourceMinY, descriptionMaxX - resourceX, resourceMaxY - resourceMinY
+		))
 
-		val resourceTextColor = srgbToLinear(
-			if (tab.skillTypeIndex == 0) rgb(35, 246, 254) else rgb(19, 241, 70)
-		)
-
-		uiRenderer.drawString(
-			resources.font, currentResourceValue.toString(), resourceTextColor, intArrayOf(),
-			resourceX, headerMaxY, resourceSplitX - region.width / 100, region.maxY,
-			resourceMaxY + region.height / 100, region.height / 20, 1, TextAlignment.RIGHT
-		)
-		uiRenderer.drawString(
-			resources.font, maxResourceValue.toString(), resourceTextColor, intArrayOf(),
-			resourceSplitX, headerMaxY, descriptionMaxX, region.maxY,
-			resourceMaxY + region.height / 200, region.height / 28, 1, TextAlignment.LEFT
-		)
+		resourceRenderer.renderBar(currentResourceValue, maxResourceValue)
+		resourceRenderer.renderTextOverBar(currentResourceValue, maxResourceValue)
 
 		for ((row, skillEntry) in visibleSkills.withIndex()) {
 			val baseY = skillsMinY + row * skillsSpacing
@@ -306,9 +277,11 @@ class SkillsTabRenderer(
 				baseY + region.height / 33, region.height / 35, 1, TextAlignment.LEFT
 			)
 
-			val rp = if (skill is ActiveSkill) skill.manaCost
-			else if (skill is PassiveSkill) skill.enablePoints
-			else (skill as ReactionSkill).enablePoints
+			val rp = when (skill) {
+				is ActiveSkill -> skill.manaCost
+				is PassiveSkill -> skill.enablePoints
+				else -> (skill as ReactionSkill).enablePoints
+			}
 			uiRenderer.drawString(
 				resources.font, rp.toString(), titleTextColor, intArrayOf(),
 				skillsMinX + region.height / 20, headerMaxY, skillsEnablePointsX - region.height / 100, region.maxY,

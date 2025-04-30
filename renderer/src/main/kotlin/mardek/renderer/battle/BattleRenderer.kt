@@ -2,6 +2,8 @@ package mardek.renderer.battle
 
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
+import com.github.knokko.boiler.utilities.ColorPacker.*
+import com.github.knokko.ui.renderer.Gradient
 import mardek.content.Content
 import mardek.content.animations.BattleModel
 import mardek.content.battle.PartyLayout
@@ -20,7 +22,7 @@ class BattleRenderer(
 	campaign: CampaignState,
 	private val recorder: CommandRecorder,
 	private val targetImage: VkbImage,
-	frameIndex: Int,
+	private val frameIndex: Int,
 	private val state: BattleState,
 	private val resources: SharedResources,
 	private val playerLayout: PartyLayout
@@ -32,10 +34,24 @@ class BattleRenderer(
 	private val actionBarRenderer = ActionBarRenderer(content, campaign, state, resources, recorder, targetImage, frameIndex, AbsoluteRectangle(
 		minX = 0, minY = targetImage.height - targetImage.height / 6, width = targetImage.width, height = targetImage.height / 12
 	))
+	private val enemyBlockRenderers = mutableListOf<EnemyBlockRenderer>()
 
 	fun beforeRendering() {
 		turnOrderRenderer.beforeRendering()
 		actionBarRenderer.beforeRendering()
+
+		for ((index, enemy) in state.battle.enemies.withIndex()) {
+			if (enemy == null) continue
+			val region = AbsoluteRectangle(
+				minX = index * targetImage.width / 4, minY = 0,
+				width = targetImage.width / 4, height = targetImage.height / 12
+			)
+			enemyBlockRenderers.add(EnemyBlockRenderer(
+				resources, frameIndex, enemy, state.enemyStates[index]!!, region, recorder, targetImage
+			))
+		}
+
+		for (blockRenderer in enemyBlockRenderers) blockRenderer.beforeRendering()
 	}
 
 	fun render() {
@@ -59,9 +75,19 @@ class BattleRenderer(
 		}
 
 		resources.partRenderer.endBatch()
+		resources.uiRenderers[frameIndex].beginBatch()
+		val leftColor = srgbToLinear(rgba(90, 76, 44, 200))
+		val rightColor = srgbToLinear(rgba(38, 28, 17, 200))
+		resources.uiRenderers[frameIndex].fillColor(
+			0, 0, targetImage.width, targetImage.height / 12, 0, Gradient(
+				0, 0, targetImage.width, targetImage.height, leftColor, rightColor, leftColor
+			)
+		)
+		resources.uiRenderers[frameIndex].endBatch()
 
 		turnOrderRenderer.render()
 		actionBarRenderer.render()
+		for (blockRenderer in enemyBlockRenderers) blockRenderer.render()
 	}
 
 	private fun renderCreature(rawPosition: PartyLayoutPosition, model: BattleModel, flipX: Float, relativeTime: Long) {
