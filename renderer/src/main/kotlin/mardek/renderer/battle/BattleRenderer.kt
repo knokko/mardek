@@ -35,12 +35,25 @@ class BattleRenderer(
 		minX = 0, minY = targetImage.height - targetImage.height / 12 - targetImage.height / 8,
 		width = targetImage.width, height = targetImage.height / 12
 	))
+	private val skillOrItemSelectionRenderer = SkillOrItemSelectionRenderer(
+		content, resources, frameIndex, state, campaign.characterStates, AbsoluteRectangle(
+			minX = targetImage.width / 3, minY = targetImage.height / 5,
+			width = targetImage.width / 3, height = 4 * targetImage.height / 7
+		), recorder, targetImage
+	)
+	private val skillOrItemDescriptionRenderer = SkillOrItemDescriptionRenderer(
+		content, resources, frameIndex, campaign, state, AbsoluteRectangle(
+			minX = 0, minY = targetImage.height / 12, width = targetImage.width, height = targetImage.height / 9
+		), recorder, targetImage
+	)
 	private val enemyBlockRenderers = mutableListOf<EnemyBlockRenderer>()
 	private val playerBlockRenderers = mutableListOf<PlayerBlockRenderer>()
 
 	fun beforeRendering() {
 		turnOrderRenderer.beforeRendering()
 		actionBarRenderer.beforeRendering()
+		skillOrItemSelectionRenderer.beforeRendering()
+		skillOrItemDescriptionRenderer.beforeRendering()
 
 		for ((index, enemy) in state.battle.enemies.withIndex()) {
 			if (enemy == null) continue
@@ -107,6 +120,8 @@ class BattleRenderer(
 
 		turnOrderRenderer.render()
 		actionBarRenderer.render()
+		skillOrItemSelectionRenderer.render()
+		skillOrItemDescriptionRenderer.render()
 		for (blockRenderer in enemyBlockRenderers) blockRenderer.render()
 		for (blockRenderer in playerBlockRenderers) blockRenderer.render()
 	}

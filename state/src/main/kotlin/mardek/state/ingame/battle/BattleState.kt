@@ -7,6 +7,7 @@ import mardek.content.stats.CombatStat
 import mardek.input.InputKey
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
+import mardek.state.ingame.characters.CharacterState
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -66,7 +67,10 @@ class BattleState(
 	@Suppress("unused")
 	internal constructor() : this(Battle(), arrayOf(null, null, null, null), CampaignState())
 
-	fun processKeyPress(key: InputKey, soundQueue: SoundQueue) {
+	fun processKeyPress(
+		key: InputKey, characterStates: HashMap<PlayableCharacter, CharacterState>, soundQueue: SoundQueue
+	) {
+		val onTurn = this.onTurn
 		if (onTurn != null && currentMove == BattleMoveThinking) {
 			val selectedMove = this.selectedMove
 			if (key == InputKey.Cancel) {
@@ -85,6 +89,24 @@ class BattleState(
 			}
 
 			if (key == InputKey.Interact) {
+				if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill == null) {
+					val player = players[onTurn.index]!!
+					val playerState = characterStates[player]!!
+					val skill = player.characterClass.skillClass.actions.firstOrNull { playerState.canCastSkill(it) }
+					if (skill != null) {
+						this.selectedMove = BattleMoveSelectionSkill(skill = skill, target = null)
+						soundQueue.insert("click-confirm")
+					} else soundQueue.insert("click-reject")
+				}
+				if (selectedMove is BattleMoveSelectionItem && selectedMove.item == null) {
+					val player = players[onTurn.index]!!
+					val playerState = characterStates[player]!!
+					val item = playerState.inventory.firstOrNull { it != null && it.item.consumable != null }
+					if (item != null) {
+						this.selectedMove = BattleMoveSelectionItem(item = item.item, target = null)
+						soundQueue.insert("click-confirm")
+					} else soundQueue.insert("click-reject")
+				}
 				if (selectedMove is BattleMoveSelectionWait) {
 					this.currentMove = BattleMoveWait
 					moveDecisionTime = updatedTime
@@ -121,6 +143,44 @@ class BattleState(
 					if (key == InputKey.MoveLeft) this.selectedMove = BattleMoveSelectionAttack(target = null)
 					else this.selectedMove = BattleMoveSelectionWait
 					soundQueue.insert("menu-scroll")
+				}
+			}
+
+			if (key == InputKey.MoveUp || key == InputKey.MoveDown) {
+				val player = players[onTurn.index]!!
+				val playerState = characterStates[player]!!
+				if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null && selectedMove.target == null) {
+					val skills = player.characterClass.skillClass.actions.filter { playerState.canCastSkill(it) }
+					if (skills.size > 1) {
+						var index = skills.indexOf(selectedMove.skill)
+						if (key == InputKey.MoveUp) {
+							index -= 1
+							if (index < 0) index = skills.size - 1
+						} else {
+							index += 1
+							if (index >= skills.size) index = 0
+						}
+						this.selectedMove = BattleMoveSelectionSkill(skill = skills[index], target = null)
+						soundQueue.insert("menu-scroll")
+					}
+				}
+
+				if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null && selectedMove.target == null) {
+					val items = playerState.inventory.filter {
+						it != null && it.item.consumable != null
+					}.mapNotNull { it!!.item }.toSet().toList()
+					if (items.size > 1) {
+						var index = items.indexOf(selectedMove.item)
+						if (key == InputKey.MoveUp) {
+							index -= 1
+							if (index < 0) index = items.size - 1
+						} else {
+							index += 1
+							if (index >= items.size) index = 0
+						}
+						this.selectedMove = BattleMoveSelectionItem(item = items[index], target = null)
+						soundQueue.insert("menu-scroll")
+					}
 				}
 			}
 		}
@@ -170,7 +230,10 @@ class BattleState(
 		}
 	}
 
-	fun update(soundQueue: SoundQueue, timeStep: Duration) {
+	fun update(
+		characterStates: HashMap<PlayableCharacter, CharacterState>,
+		soundQueue: SoundQueue, timeStep: Duration
+	) {
 		updatedTime += timeStep
 		while (onTurn == null && outcome == BattleOutcome.Busy) updateOnTurn(soundQueue)
 		if (outcome != BattleOutcome.Busy) return

@@ -12,6 +12,7 @@ import mardek.content.inventory.Item
 import mardek.content.skill.PassiveSkill
 import mardek.content.skill.Skill
 import mardek.content.inventory.ItemStack
+import mardek.content.skill.ActiveSkill
 import kotlin.math.roundToInt
 
 @BitStruct(backwardCompatible = true)
@@ -100,6 +101,12 @@ class CharacterState {
 			effects.addAll(skill.autoEffects)
 		}
 		return effects
+	}
+
+	fun canCastSkill(skill: ActiveSkill): Boolean {
+		val mastery = skillMastery[skill]
+		if (mastery != null && mastery >= skill.masteryPoints) return true
+		return equipment.any { it?.equipment != null && it.equipment!!.skills.contains(skill) }
 	}
 
 	companion object {

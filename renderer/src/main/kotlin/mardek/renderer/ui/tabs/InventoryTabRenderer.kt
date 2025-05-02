@@ -233,22 +233,13 @@ class InventoryTabRenderer(
 					val skillMastery = characterState.skillMastery[skill] ?: 0
 
 					if (skillMastery < skill.masteryPoints && uiRenderer != null) {
-						val darkColor = srgbToLinear(rgb(67, 51, 36))
-						uiRenderer.fillColor(
-							23 * scale, skillY + 17 * scale, 80 * scale, skillY + 23 * scale, darkColor
+						val masteryRenderer = ResourceBarRenderer(
+							resources.font, uiRenderer, ResourceType.SkillMastery, AbsoluteRectangle(
+								23 * scale, skillY + 17 * scale, 57 * scale, 6 * scale
+							)
 						)
-
-						val textColor = srgbToLinear(rgb(253, 94, 94))
-						uiRenderer.drawString(
-							resources.font, skillMastery.toString(), textColor, intArrayOf(),
-							43 * scale, barY, 55 * scale, tabsY,
-							skillY + 25 * scale, 10 * scale, 1, TextAlignment.RIGHT
-						)
-						uiRenderer.drawString(
-							resources.font, skill.masteryPoints.toString(), textColor, intArrayOf(),
-							57 * scale, barY, maxX, tabsY,
-							skillY + 24 * scale, 8 * scale, 1, TextAlignment.LEFT
-						)
+						masteryRenderer.renderBar(skillMastery, skill.masteryPoints)
+						masteryRenderer.renderTextOverBar(skillMastery, skill.masteryPoints)
 					}
 
 					if (kim1Renderer != null) {
@@ -264,16 +255,15 @@ class InventoryTabRenderer(
 							))
 						}
 
-						val skillSprite = if (skill is ReactionSkill) {
-							when (skill.type) {
+						val skillSprite = when (skill) {
+							is ReactionSkill -> when (skill.type) {
 								ReactionSkillType.MeleeAttack -> content.ui.meleeAttackIcon
 								ReactionSkillType.RangedAttack -> content.ui.rangedAttackIcon
 								ReactionSkillType.MeleeDefense -> content.ui.meleeDefenseIcon
 								ReactionSkillType.RangedDefense -> content.ui.rangedDefenseIcon
 							}
-						} else if (skill is PassiveSkill) content.ui.passiveIcon else {
-							val skillClass = content.skills.classes.find { it.actions.contains(skill) }!!
-							skillClass.icon
+							is PassiveSkill -> content.ui.passiveIcon
+							else -> content.skills.classes.find { it.actions.contains(skill) }!!.icon
 						}
 
 						var x = maxX - 20 * scale

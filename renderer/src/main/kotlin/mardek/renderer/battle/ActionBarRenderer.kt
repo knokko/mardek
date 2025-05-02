@@ -86,11 +86,22 @@ class ActionBarRenderer(
 			renderIcon(content.ui.fleeIcon, iconPositions[4])
 		}
 
-		val pointerScale = region.height.toFloat() / content.ui.verticalPointer.height
-		batch1.requests.add(KimRequest(
-			x = iconPositions[selectedIndex] + region.height / 2 - marginY - (pointerScale * content.ui.verticalPointer.width / 2).roundToInt(),
-			y = region.minY - 4 * region.height / 5, scale = pointerScale, sprite = content.ui.verticalPointer, opacity = 1f
-		))
+		var showPointer = true
+		val selectedMove = battle.selectedMove
+		if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) showPointer = false
+		if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) showPointer = false
+		if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) showPointer = false
+
+		if (showPointer) {
+			val pointerScale = region.height.toFloat() / content.ui.verticalPointer.height
+			batch1.requests.add(KimRequest(
+				x = iconPositions[selectedIndex] + region.height / 2 - marginY - (pointerScale * content.ui.verticalPointer.width / 2).roundToInt(),
+				y = region.minY - 4 * region.height / 5,
+				scale = pointerScale,
+				sprite = content.ui.verticalPointer,
+				opacity = 1f
+			))
+		}
 	}
 
 	fun render() {

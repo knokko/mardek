@@ -26,9 +26,12 @@ class ResourceBarRenderer(
 				0, 0, remainingWidth, barRegion.height,
 				entry.bottomLeftColor, entry.bottomRightColor, entry.bottomLeftColor
 			),
-			Gradient(
-				0, 0, remainingWidth, barRegion.height / 2,
+			if (entry.topGradient) Gradient(
+				0, barRegion.height / 7, remainingWidth, 3 * barRegion.height / 7,
 				changeAlpha(entry.topLeftColor, 100), changeAlpha(entry.topRightColor, 100), entry.topLeftColor
+			) else Gradient(
+				0, barRegion.height / 7, remainingWidth, 3 * barRegion.height / 7,
+				entry.topLeftColor, entry.topRightColor, entry.topLeftColor
 			)
 		)
 	}
@@ -73,7 +76,7 @@ class ResourceBarRenderer(
 
 class ResourceColorEntry(
 	val belowThreshold: Float, val bottomLeftColor: Int, val bottomRightColor: Int,
-	val topLeftColor: Int, val topRightColor: Int, val textColor: Int
+	val topGradient: Boolean, val topLeftColor: Int, val topRightColor: Int, val textColor: Int
 )
 
 enum class ResourceType(private val entries: List<ResourceColorEntry>) {
@@ -82,6 +85,7 @@ enum class ResourceType(private val entries: List<ResourceColorEntry>) {
 			belowThreshold = 1f,
 			bottomLeftColor = srgbToLinear(rgb(70, 133, 25)),
 			bottomRightColor = srgbToLinear(rgb(44, 76, 31)),
+			topGradient = true,
 			topLeftColor = srgbToLinear(rgb(151, 191, 122)),
 			topRightColor = srgbToLinear(rgb(137, 162, 125)),
 			textColor = srgbToLinear(rgb(127, 231, 57))
@@ -90,6 +94,7 @@ enum class ResourceType(private val entries: List<ResourceColorEntry>) {
 			belowThreshold = 0.4f,
 			bottomLeftColor = srgbToLinear(rgb(134, 97, 32)),
 			bottomRightColor = srgbToLinear(rgb(124, 88, 31)),
+			topGradient = true,
 			topLeftColor = srgbToLinear(rgb(172, 153, 100)),
 			topRightColor = srgbToLinear(rgb(164, 147, 100)),
 			textColor = srgbToLinear(rgb(207, 230, 57))
@@ -100,6 +105,7 @@ enum class ResourceType(private val entries: List<ResourceColorEntry>) {
 			belowThreshold = 1f,
 			bottomLeftColor = srgbToLinear(rgb(40, 109, 129)),
 			bottomRightColor = srgbToLinear(rgb(45, 170, 115)),
+			topGradient = true,
 			topLeftColor = srgbToLinear(rgb(127, 171, 187)),
 			topRightColor = srgbToLinear(rgb(130, 204, 181)),
 			textColor = srgbToLinear(rgb(35, 247, 255))
@@ -110,6 +116,7 @@ enum class ResourceType(private val entries: List<ResourceColorEntry>) {
 			belowThreshold = 1f,
 			bottomLeftColor = srgbToLinear(rgb(186, 152, 76)),
 			bottomRightColor = srgbToLinear(rgb(154, 111, 38)),
+			topGradient = true,
 			topLeftColor = srgbToLinear(rgb(219, 199, 147)),
 			topRightColor = srgbToLinear(rgb(187, 161, 112)),
 			textColor = srgbToLinear(rgb(250, 217, 93))
@@ -120,9 +127,21 @@ enum class ResourceType(private val entries: List<ResourceColorEntry>) {
 			belowThreshold = 1f,
 			bottomLeftColor = srgbToLinear(rgb(17, 154, 35)),
 			bottomRightColor = srgbToLinear(rgb(19, 107, 27)),
+			topGradient = true,
 			topLeftColor = srgbToLinear(rgb(170, 223, 167)),
 			topRightColor = srgbToLinear(rgb(170, 209, 165)),
 			textColor = srgbToLinear(rgb(19, 241, 70))
+		)
+	)),
+	SkillMastery(listOf(
+		ResourceColorEntry(
+			belowThreshold = 1f,
+			bottomLeftColor = srgbToLinear(rgb(173, 46, 32)),
+			bottomRightColor = srgbToLinear(rgb(150, 35, 27)),
+			topGradient = false,
+			topLeftColor = srgbToLinear(rgb(174, 84, 70)),
+			topRightColor = srgbToLinear(rgb(140, 55, 45)),
+			textColor = srgbToLinear(rgb(254, 94, 94))
 		)
 	));
 

@@ -7,8 +7,7 @@ import com.github.knokko.text.placement.TextAlignment
 import mardek.renderer.SharedResources
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
-import mardek.state.ingame.battle.BattleState
-import mardek.state.ingame.battle.TurnOrderSimulator
+import mardek.state.ingame.battle.*
 import mardek.state.title.AbsoluteRectangle
 import kotlin.math.PI
 import kotlin.math.cos
@@ -31,8 +30,15 @@ class TurnOrderRenderer(
 	private val renderer = resources.uiRenderers[frameIndex]
 	private lateinit var kimBatch: KimBatch
 
+	private fun shouldRender(selectedMove: BattleMoveSelection): Boolean {
+		if (slotWidth < 5) return false
+		if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) return false
+		if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) return false
+		return true
+	}
+
 	fun beforeRendering() {
-		if (slotWidth < 5) return
+		if (!shouldRender(battle.selectedMove)) return
 		kimBatch = resources.kim1Renderer.startBatch()
 
 		val scale = region.height / 24f
@@ -64,7 +70,7 @@ class TurnOrderRenderer(
 	}
 
 	fun render() {
-		if (slotWidth < 5) return
+		if (!shouldRender(battle.selectedMove)) return
 
 		renderer.beginBatch()
 

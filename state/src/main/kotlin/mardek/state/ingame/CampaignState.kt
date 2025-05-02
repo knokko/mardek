@@ -66,7 +66,7 @@ class CampaignState(
 			val currentBattle = currentArea.activeBattle
 
 			if (currentBattle != null) {
-				currentBattle.processKeyPress(event.key, soundQueue)
+				currentBattle.processKeyPress(event.key, characterStates, soundQueue)
 				continue
 			}
 
@@ -109,7 +109,7 @@ class CampaignState(
 		if (activeBattle != null) {
 			when (activeBattle.outcome) {
 				BattleOutcome.GameOver -> TODO("Game over")
-				BattleOutcome.Busy -> activeBattle.update(soundQueue, timeStep)
+				BattleOutcome.Busy -> activeBattle.update(characterStates, soundQueue, timeStep)
 				BattleOutcome.RanAway -> {
 					currentArea!!.activeBattle = null
 					soundQueue.insert("flee-battle")
