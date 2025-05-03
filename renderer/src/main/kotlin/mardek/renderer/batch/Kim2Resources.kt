@@ -2,6 +2,8 @@ package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.VkbBufferRange
+import com.github.knokko.boiler.descriptors.SharedDescriptorPool
+import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
@@ -18,16 +20,22 @@ private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use 
 	boiler.descriptors.createLayout(stack, bindings, "Kim2DescriptorLayout")
 }
 
-class Kim2Resources(boiler: BoilerInstance, renderPass: Long, spriteBuffer: VkbBufferRange) {
+class Kim2Resources(
+	private val boiler: BoilerInstance,
+	renderPass: Long,
+	private val spriteBuffer: VkbBufferRange,
+	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
+) {
 
 	private val descriptorLayout = createDescriptorSetLayout(boiler)
-	private val descriptorPool = descriptorLayout.createPool(1, 0, "Kim2DescriptorPool")
-	val descriptorSet = descriptorPool.allocate(1)[0]
+	var descriptorSet = 0L
+		private set
 
 	val pipelineLayout: Long
 	val graphicsPipeline: Long
 
 	init {
+		sharedDescriptorPoolBuilder.request(descriptorLayout, 1)
 		stackPush().use { stack ->
 			val pushConstants = VkPushConstantRange.calloc(1, stack)
 			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8)
@@ -67,7 +75,13 @@ class Kim2Resources(boiler: BoilerInstance, renderPass: Long, spriteBuffer: VkbB
 			builder.ciPipeline.renderPass(renderPass)
 			builder.ciPipeline.subpass(0)
 			this.graphicsPipeline = builder.build("Kim2GraphicsPipeline")
+		}
+	}
 
+	fun initDescriptors(pool: SharedDescriptorPool) {
+		this.descriptorSet = pool.allocate(descriptorLayout, 1)[0]
+
+		stackPush().use { stack ->
 			val writes = VkWriteDescriptorSet.calloc(1, stack)
 			boiler.descriptors.writeBuffer(stack, writes, descriptorSet, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, spriteBuffer)
 
@@ -78,7 +92,6 @@ class Kim2Resources(boiler: BoilerInstance, renderPass: Long, spriteBuffer: VkbB
 	fun destroy(boiler: BoilerInstance) {
 		vkDestroyPipeline(boiler.vkDevice(), graphicsPipeline, null)
 		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)
-		descriptorPool.destroy()
 		descriptorLayout.destroy()
 	}
 }

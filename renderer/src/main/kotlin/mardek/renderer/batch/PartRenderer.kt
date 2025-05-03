@@ -2,6 +2,8 @@ package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
+import com.github.knokko.boiler.descriptors.SharedDescriptorPool
+import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import mardek.content.animations.ColorTransform
@@ -14,15 +16,19 @@ import org.lwjgl.vulkan.VkDescriptorSetLayoutBinding
 import org.lwjgl.vulkan.VkPushConstantRange
 import org.lwjgl.vulkan.VkWriteDescriptorSet
 
-class PartRenderer(private val boiler: BoilerInstance, bcImages: List<VkbImage>, renderPass: Long) {
+class PartRenderer(
+	private val boiler: BoilerInstance,
+	private val bcImages: List<VkbImage>,
+	renderPass: Long,
+	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
+) {
 
 	private val descriptorSetLayout = stackPush().use { stack ->
 		val bindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
 		boiler.descriptors.binding(bindings, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
 		boiler.descriptors.createLayout(stack, bindings, "PartRenderDescriptorSetLayout")
 	}
-	private val descriptorPool = descriptorSetLayout.createPool(bcImages.size, 0, "PartRenderDescriptorPool")
-	private val descriptorSets = descriptorPool.allocate(bcImages.size)
+	private lateinit var descriptorSets: LongArray
 
 	private val pipelineLayout = stackPush().use { stack ->
 		val pushConstants = VkPushConstantRange.calloc(2, stack)
@@ -56,6 +62,12 @@ class PartRenderer(private val boiler: BoilerInstance, bcImages: List<VkbImage>,
 	)
 
 	init {
+		sharedDescriptorPoolBuilder.request(descriptorSetLayout, bcImages.size)
+	}
+
+	fun initDescriptors(pool: SharedDescriptorPool) {
+		this.descriptorSets = pool.allocate(descriptorSetLayout, bcImages.size)
+
 		stackPush().use { stack ->
 			val writes = VkWriteDescriptorSet.calloc(1, stack)
 			val imageInfo = VkDescriptorImageInfo.calloc(1, stack)
@@ -107,7 +119,6 @@ class PartRenderer(private val boiler: BoilerInstance, bcImages: List<VkbImage>,
 		vkDestroySampler(boiler.vkDevice(), sampler, null)
 		vkDestroyPipeline(boiler.vkDevice(), graphicsPipeline, null)
 		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)
-		descriptorPool.destroy()
 		descriptorSetLayout.destroy()
 	}
 }

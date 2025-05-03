@@ -3,6 +3,8 @@ package mardek.renderer.batch
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
+import com.github.knokko.boiler.descriptors.SharedDescriptorPool
+import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
 import com.github.knokko.boiler.images.VkbImage
 import org.lwjgl.vulkan.VK10.*
 import java.lang.Math.toIntExact
@@ -12,9 +14,14 @@ class ColorGridRenderer(
 	private val boiler: BoilerInstance,
 	renderPass: Long,
 	private val perFrameBuffer: PerFrameBuffer,
+	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
 ) {
 
-	private val resources = ColorGridResources(boiler, renderPass, perFrameBuffer)
+	private val resources = ColorGridResources(boiler, renderPass, perFrameBuffer, sharedDescriptorPoolBuilder)
+
+	fun initDescriptors(pool: SharedDescriptorPool) {
+		resources.initDescriptors(pool)
+	}
 
 	fun startBatch(recorder: CommandRecorder) {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.graphicsPipeline)

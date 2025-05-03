@@ -4,6 +4,8 @@ import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.SingleTimeCommands
+import com.github.knokko.boiler.descriptors.SharedDescriptorPool
+import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
 import com.github.knokko.boiler.exceptions.VulkanFailureException.assertVkSuccess
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.synchronization.ResourceUsage
@@ -33,6 +35,7 @@ class SharedResources(
 	val renderPass: Long
 	val areaMap = mutableMapOf<UUID, AreaRenderPair>()
 	private lateinit var spriteManager: SpriteManager
+	private val descriptorPool: SharedDescriptorPool
 	lateinit var kim1Renderer: Kim1Renderer
 	lateinit var kim2Renderer: Kim2Renderer
 	lateinit var colorGridRenderer: ColorGridRenderer
@@ -59,6 +62,8 @@ class SharedResources(
 		).fullMappedRange())
 
 		renderPass = if (skipWindow) createRenderPass(boiler, VK_FORMAT_R8G8B8A8_SRGB) else createRenderPass(boiler)
+
+		val sharedDescriptorBuilder = SharedDescriptorPoolBuilder(boiler)
 
 		val areaThread = Thread {
 			val areaInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
@@ -90,14 +95,16 @@ class SharedResources(
 				spriteBuffer = spriteManager.spriteBuffer,
 				renderPass = renderPass,
 				framesInFlight = framesInFlight,
+				sharedDescriptorPoolBuilder = sharedDescriptorBuilder,
 			)
 			this.kim2Renderer = Kim2Renderer(
 				boiler,
 				perFrameBuffer = perFrameBuffer,
 				spriteBuffer = spriteManager.spriteBuffer,
-				renderPass = renderPass
+				renderPass = renderPass,
+				sharedDescriptorPoolBuilder = sharedDescriptorBuilder,
 			)
-			this.colorGridRenderer = ColorGridRenderer(boiler, renderPass, perFrameBuffer)
+			this.colorGridRenderer = ColorGridRenderer(boiler, renderPass, perFrameBuffer, sharedDescriptorBuilder)
 		}
 		kimThread.start()
 
@@ -139,7 +146,7 @@ class SharedResources(
 					VK_IMAGE_ASPECT_COLOR_BIT, "Bc${version}Image$it"
 				)
 			}
-			this.partRenderer = PartRenderer(boiler, bcImages, renderPass)
+			this.partRenderer = PartRenderer(boiler, bcImages, renderPass, sharedDescriptorBuilder)
 
 			val stagingBuffer = boiler.buffers.createMapped(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "BcStagingBuffer")
 
@@ -188,10 +195,17 @@ class SharedResources(
 		bcThread.join()
 		areaThread.join()
 
+		descriptorPool = sharedDescriptorBuilder.build("SharedDescriptorPool")
+		kim1Renderer.initDescriptors(descriptorPool)
+		kim2Renderer.initDescriptors(descriptorPool)
+		colorGridRenderer.initDescriptors(descriptorPool)
+		partRenderer.initDescriptors(descriptorPool)
+
 		println("Preparing render resources took ${(System.nanoTime() - startTime) / 1_000_000} ms")
 	}
 
 	fun destroy() {
+		descriptorPool.destroy(boiler)
 		kim1Renderer.destroy()
 		kim2Renderer.destroy()
 		colorGridRenderer.destroy()

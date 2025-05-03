@@ -4,6 +4,8 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.buffers.VkbBufferRange
 import com.github.knokko.boiler.commands.CommandRecorder
+import com.github.knokko.boiler.descriptors.SharedDescriptorPool
+import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
 import com.github.knokko.boiler.images.VkbImage
 import org.lwjgl.vulkan.VK10.*
 
@@ -11,11 +13,16 @@ class Kim2Renderer(
 	private val boiler: BoilerInstance,
 	private val perFrameBuffer: PerFrameBuffer,
 	spriteBuffer: VkbBufferRange,
-	renderPass: Long
+	renderPass: Long,
+	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
 ) {
 	private val batches = HashSet<KimBatch>()
 
-	private val resources = Kim2Resources(boiler, renderPass, spriteBuffer)
+	private val resources = Kim2Resources(boiler, renderPass, spriteBuffer, sharedDescriptorPoolBuilder)
+
+	fun initDescriptors(pool: SharedDescriptorPool) {
+		resources.initDescriptors(pool)
+	}
 
 	fun begin() {
 		if (batches.isNotEmpty()) {

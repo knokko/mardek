@@ -2,6 +2,8 @@ package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
+import com.github.knokko.boiler.descriptors.SharedDescriptorPool
+import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
@@ -13,17 +15,22 @@ private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use 
 	boiler.descriptors.createLayout(stack, bindings, "ColorGridDescriptorLayout")
 }
 
-// TODO Add CombinedDescriptorPool to vk-boiler
-class ColorGridResources(boiler: BoilerInstance, renderPass: Long, perFrame: PerFrameBuffer) {
+class ColorGridResources(
+	private val boiler: BoilerInstance,
+	renderPass: Long,
+	private val perFrame: PerFrameBuffer,
+	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
+) {
 
 	private val descriptorLayout = createDescriptorSetLayout(boiler)
-	private val descriptorPool = descriptorLayout.createPool(1, 0, "Kim2DescriptorPool")
-	val descriptorSet = descriptorPool.allocate(1)[0]
+	var descriptorSet = 0L
+		private set
 
 	val pipelineLayout: Long
 	val graphicsPipeline: Long
 
 	init {
+		sharedDescriptorPoolBuilder.request(descriptorLayout, 1)
 		stackPush().use { stack ->
 			val pushConstants = VkPushConstantRange.calloc(1, stack)
 			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT or VK_SHADER_STAGE_FRAGMENT_BIT, 0, 36)
@@ -49,7 +56,13 @@ class ColorGridResources(boiler: BoilerInstance, renderPass: Long, perFrame: Per
 			builder.ciPipeline.renderPass(renderPass)
 			builder.ciPipeline.subpass(0)
 			this.graphicsPipeline = builder.build("ColorGridPipeline")
+		}
+	}
 
+	fun initDescriptors(pool: SharedDescriptorPool) {
+		this.descriptorSet = pool.allocate(descriptorLayout, 1)[0]
+
+		stackPush().use { stack ->
 			val writes = VkWriteDescriptorSet.calloc(1, stack)
 			boiler.descriptors.writeBuffer(
 				stack, writes, descriptorSet, 0,
@@ -63,7 +76,6 @@ class ColorGridResources(boiler: BoilerInstance, renderPass: Long, perFrame: Per
 	fun destroy(boiler: BoilerInstance) {
 		vkDestroyPipeline(boiler.vkDevice(), graphicsPipeline, null)
 		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)
-		descriptorPool.destroy()
 		descriptorLayout.destroy()
 	}
 }
