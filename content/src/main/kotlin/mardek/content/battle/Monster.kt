@@ -162,18 +162,3 @@ class Monster(
 		private val SHIFT_RESISTANCES_KEY_PROPERTIES = false
 	}
 }
-
-/**
-if(stats.name == "Steele")
-{
-stats.ATK = 3 + 3 * stats.level;
-}
-else if(stats.monStats != null && (stats.weapon == "none" || stats.weapon == null))
-{
-stats.ATK = stats.monStats.nAtk + (!(stats.monStats.atkGrowth[1] && stats.level) ? 0 : stats.monStats.atkGrowth[0] * Math.floor(stats.level / stats.monStats.atkGrowth[1]));
-}
-else
-{
-stats.ATK = GetItemInfo(stats.weapon).atk;
-}
- */

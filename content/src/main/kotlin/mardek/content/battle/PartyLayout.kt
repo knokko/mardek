@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.BITSER
 import java.util.*
 
 @BitStruct(backwardCompatible = true)
@@ -40,7 +41,7 @@ class PartyLayoutPosition(
 
 	override fun toString() = "($x, $y)"
 
-	override fun equals(other: Any?) = other is PartyLayoutPosition && x == other.x && y == other.y
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = x + 127 * y
+	override fun hashCode() = BITSER.hashCode(this)
 }

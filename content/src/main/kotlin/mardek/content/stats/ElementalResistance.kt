@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class ElementalResistance(
@@ -19,8 +20,7 @@ class ElementalResistance(
 	@Suppress("unused")
 	private constructor() : this(Element(), 0f)
 
-	override fun equals(other: Any?) = other is ElementalResistance &&
-			this.element === other.element && this.modifier == other.modifier
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = element.hashCode() + modifier.hashCode()
+	override fun hashCode() = BITSER.hashCode(this)
 }

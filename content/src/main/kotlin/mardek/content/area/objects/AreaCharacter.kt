@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.area.Direction
 import mardek.content.sprite.DirectionalSprites
 
@@ -66,11 +67,7 @@ class AreaCharacter(
 			"silent=$silent, walkSpeed=$walkSpeed, element=$element, " +
 			"conversation=${conversationName ?: rawConversation}, person=$encyclopediaPerson)"
 
-	override fun equals(other: Any?) = other is AreaCharacter && name == other.name &&
-			sprites == other.sprites && startX == other.startX && startY == other.startY &&
-			startDirection == other.startDirection && silent == other.silent && walkSpeed == other.walkSpeed &&
-			element == other.element && conversationName == other.conversationName &&
-			rawConversation == other.rawConversation && encyclopediaPerson == other.encyclopediaPerson
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = name.hashCode() + sprites.hashCode()
+	override fun hashCode() = BITSER.hashCode(this)
 }

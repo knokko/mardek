@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class ItemStack(
@@ -24,7 +25,7 @@ class ItemStack(
 
 	override fun toString() = if (amount == 1) item.toString() else "$item x$amount"
 
-	override fun equals(other: Any?) = other is ItemStack && item === other.item && amount == other.amount
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = item.hashCode() - 17 * amount
+	override fun hashCode() = BITSER.hashCode(this)
 }

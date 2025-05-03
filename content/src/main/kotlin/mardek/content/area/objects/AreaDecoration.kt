@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.sprite.ObjectSprites
 
 /**
@@ -48,14 +49,7 @@ class AreaDecoration(
 
 	override fun toString() = "Decoration(x=$x, y=$y, sheet=${sprites?.flashName}, conversation=$rawConversation)"
 
-	override fun equals(other: Any?) = other is AreaDecoration && x == other.x && y == other.y &&
-			sprites == other.sprites && light == other.light && rawConversation == other.rawConversation &&
-			conversationName == other.conversationName
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode(): Int {
-		var result = x
-		result = 31 * result + y
-		result = 31 * result + sprites.hashCode()
-		return result
-	}
+	override fun hashCode() = BITSER.hashCode(this)
 }

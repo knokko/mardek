@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.inventory.Item
 import mardek.content.inventory.PlotItem
 import java.util.*
@@ -23,9 +24,9 @@ class PotentialItem(
 
 	constructor() : this(null, 100)
 
-	override fun equals(other: Any?) = other is PotentialItem && this.item === other.item && this.chance == other.chance
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = chance + 31 * Objects.hashCode(item)
+	override fun hashCode() = BITSER.hashCode(this)
 
 	override fun toString() = "$chance% $item"
 }
@@ -43,9 +44,9 @@ class PotentialEquipment(
 
 	constructor() : this(arrayListOf(PotentialItem()))
 
-	override fun equals(other: Any?) = other is PotentialEquipment && this.entries.toSet() == other.entries.toSet()
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = entries.hashCode()
+	override fun hashCode() = BITSER.hashCode(this)
 
 	override fun toString() = "Equipment($entries)"
 
@@ -67,9 +68,9 @@ class PotentialPlotItem(
 	@Suppress("unused")
 	private constructor() : this(PlotItem(), 0)
 
-	override fun equals(other: Any?) = other is PotentialPlotItem && this.item === other.item && this.chance == other.chance
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = 13 * item.hashCode() - 29 * chance
+	override fun hashCode() = BITSER.hashCode(this)
 
 	override fun toString() = "$chance% $item"
 }

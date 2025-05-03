@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.area.TransitionDestination
 import mardek.content.sprite.ObjectSprites
 
@@ -31,8 +32,7 @@ class AreaPortal(
 
 	override fun toString() = "Portal(x=$x, y=$y, destination=$destination)"
 
-	override fun equals(other: Any?) = other is AreaPortal && x == other.x && y == other.y &&
-			destination == other.destination && sprites == other.sprites
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = destination.hashCode()
+	override fun hashCode() = BITSER.hashCode(this)
 }

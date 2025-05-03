@@ -3,6 +3,7 @@ package mardek.content.area.objects
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class AreaTrigger(
@@ -52,14 +53,7 @@ class AreaTrigger(
 
 	override fun toString() = "Trigger(x=$x, y=$y, once=$oneTimeOnly, walkOn=$walkOn, code=$flashCode)"
 
-	override fun equals(other: Any?) = other is AreaTrigger && name == other.name && x == other.x && y == other.y &&
-			flashCode == other.flashCode && oneTimeOnly == other.oneTimeOnly &&
-			oncePerAreaLoad == other.oncePerAreaLoad && walkOn == other.walkOn
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode(): Int {
-		var result = x
-		result = 31 * result + y
-		result = 31 * result + flashCode.hashCode()
-		return result
-	}
+	override fun hashCode() = BITSER.hashCode(this)
 }

@@ -3,6 +3,7 @@ package mardek.content.area.objects
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class AreaTalkTrigger(
@@ -27,14 +28,7 @@ class AreaTalkTrigger(
 
 	override fun toString() = "TalkTrigger($name, x=$x, y=$y, npc=$npcName)"
 
-	override fun equals(other: Any?) = other is AreaTalkTrigger && name == other.name && x == other.x &&
-			y == other.y && npcName == other.npcName
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode(): Int {
-		var result = name.hashCode()
-		result = 31 * result + x
-		result = 31 * result + y
-		result = 31 * result + npcName.hashCode()
-		return result
-	}
+	override fun hashCode() = BITSER.hashCode(this)
 }

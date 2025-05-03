@@ -3,6 +3,7 @@ package mardek.content.area
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import mardek.content.BITSER
 
 /**
  * Use the `ColorPacker` of `vk-boiler` to extract the RGBA from `colorA` and `colorB`
@@ -23,9 +24,9 @@ class AreaAmbience(
 
 	override fun toString() = "Ambience(rawColorA=$colorA, rawColorB=$colorB)"
 
-	override fun equals(other: Any?) = other is AreaAmbience && colorA == other.colorA && colorB == other.colorB
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = colorA + colorB
+	override fun hashCode() = BITSER.hashCode(this)
 
 	companion object {
 		/**

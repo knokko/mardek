@@ -3,6 +3,7 @@ package mardek.content.area.objects
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class AreaShop(
@@ -27,8 +28,7 @@ class AreaShop(
 
 	override fun toString() = "AreaShop($shopName, x=$x, y=$y, wares=DefaultShops.$waresConstantName)"
 
-	override fun equals(other: Any?) = other is AreaShop && shopName == other.shopName && x == other.x &&
-			y == other.y && waresConstantName == other.waresConstantName
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = waresConstantName.hashCode()
+	override fun hashCode() = BITSER.hashCode(this)
 }

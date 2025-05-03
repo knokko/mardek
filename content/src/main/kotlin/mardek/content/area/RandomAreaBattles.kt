@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.battle.BattleBackground
 import mardek.content.battle.Monster
 import mardek.content.battle.PartyLayout
@@ -70,21 +71,9 @@ class RandomAreaBattles(
 				"minSteps=$minSteps, chance=$chance%, specialBackground=$specialBackground"
 	}
 
-	override fun equals(other: Any?) = other is RandomAreaBattles && sharedEnemies == other.sharedEnemies &&
-			ownEnemies == other.ownEnemies && sharedLevelRange == other.sharedLevelRange &&
-			ownLevelRange == other.ownLevelRange && minSteps == other.minSteps && chance == other.chance &&
-			specialBackground == other.specialBackground
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode(): Int {
-		var result = ownEnemies?.hashCode() ?: 0
-		result = 31 * result + (sharedEnemies?.hashCode() ?: 0)
-		result = 31 * result + (ownLevelRange?.hashCode() ?: 0)
-		result = 31 * result + (sharedLevelRange?.hashCode() ?: 0)
-		result = 31 * result + minSteps
-		result = 31 * result + chance
-		result = 31 * result + (specialBackground?.hashCode() ?: 0)
-		return result
-	}
+	override fun hashCode() = BITSER.hashCode(this)
 }
 
 @BitStruct(backwardCompatible = true)
@@ -109,10 +98,9 @@ class BattleEnemySelection(
 
 	override fun toString() = "EnemySelection(layout=$enemyLayout, enemies=$enemies)"
 
-	override fun equals(other: Any?) = other is BattleEnemySelection && enemyLayout == other.enemyLayout &&
-			enemies == other.enemies
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = enemyLayout.hashCode() + 31 * enemies.hashCode()
+	override fun hashCode() = BITSER.hashCode(this)
 }
 
 @BitStruct(backwardCompatible = true)
@@ -129,9 +117,9 @@ class LevelRange(
 
 	override fun toString() = "LevelRange($min, $max)"
 
-	override fun equals(other: Any?) = other is LevelRange && min == other.min && max == other.max
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = min - 127 * max
+	override fun hashCode() = BITSER.hashCode(this)
 }
 
 @BitStruct(backwardCompatible = true)

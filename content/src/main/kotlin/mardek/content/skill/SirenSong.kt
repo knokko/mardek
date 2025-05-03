@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
+import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class SirenSong(
@@ -43,7 +44,7 @@ class SirenNote(
 
 	override fun toString() = if (value1 == value2) value1.toString() else "[$value1, $value2]"
 
-	override fun equals(other: Any?) = other is SirenNote && value1 == other.value1 && value2 == other.value2
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = 123 * value1 + value2
+	override fun hashCode() = BITSER.hashCode(this)
 }

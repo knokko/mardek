@@ -193,18 +193,18 @@ class TestMonsterImporter {
 
 		assertEquals(PotentialEquipment(arrayListOf(PotentialItem(getItem("Shadowblade"), 100))), abomination.weapon)
 		assertEquals(PotentialEquipment(arrayListOf(
+			PotentialItem(null, 75),
 			PotentialItem(getItem("Bronze Shield"), 25),
-			PotentialItem(null, 75)
 		)), abomination.shield)
 		assertEquals(PotentialEquipment.EMPTY, abomination.helmet)
 		assertEquals(PotentialEquipment.EMPTY, abomination.armor)
 		assertEquals(PotentialEquipment(arrayListOf(
+			PotentialItem(null, 50),
 			PotentialItem(getItem("OnyxRing"), 50),
-			PotentialItem(null, 50)
 		)), abomination.accessory1)
 		assertEquals(PotentialEquipment(arrayListOf(
+			PotentialItem(null, 50),
 			PotentialItem(getItem("SilverRing"), 50),
-			PotentialItem(null, 50)
 		)), abomination.accessory2)
 
 		assertEquals(4, abomination.loot.size)

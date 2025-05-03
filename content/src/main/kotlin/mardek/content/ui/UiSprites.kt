@@ -92,7 +92,8 @@ class UiSprites(
 	val fleeIcon: KimSprite,
 ) {
 
-	internal constructor() : this(
+	@Suppress("unused")
+	private constructor() : this(
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),

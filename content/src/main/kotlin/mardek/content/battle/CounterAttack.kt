@@ -4,8 +4,8 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.skill.ActiveSkill
-import java.util.*
 
 @BitStruct(backwardCompatible = true)
 class CounterAttack(
@@ -26,8 +26,7 @@ class CounterAttack(
 
 	override fun toString() = "Counter($chance% $action at $target)"
 
-	override fun equals(other: Any?) = other is CounterAttack && this.action === other.action &&
-			this.chance == other.chance && this.target == other.target
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = Objects.hashCode(action) + 127 * chance - 927 * target.hashCode()
+	override fun hashCode() = BITSER.hashCode(this)
 }

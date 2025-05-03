@@ -5,12 +5,12 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.stats.Element
 import mardek.content.stats.StatusEffect
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
 import mardek.content.stats.ElementalResistance
-import java.util.*
 import kotlin.collections.ArrayList
 
 @BitStruct(backwardCompatible = true)
@@ -53,10 +53,9 @@ class StrategyEntry(
 
 	override fun toString() = "$chance% ${skill?.name ?: item?.flashName ?: "Attack"}"
 
-	override fun equals(other: Any?) = other is StrategyEntry && this.skill === other.skill &&
-			this.item === other.item && this.target == other.target && this.chance == other.chance
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = 13 * Objects.hashCode(skill) - 31 * Objects.hashCode(item) + 97 * target.hashCode() - chance
+	override fun hashCode() = BITSER.hashCode(this)
 }
 
 @BitEnum(mode = BitEnum.Mode.Ordinal)
@@ -117,26 +116,9 @@ class StrategyCriteria(
 	val canRepeat: Boolean = true,
 ) {
 
-	// TODO Maybe let Bitser handle this
-	override fun equals(other: Any?) = other is StrategyCriteria && this.maxUses == other.maxUses &&
-			this.hpPercentageAtMost == other.hpPercentageAtMost &&
-			this.hpPercentageAtLeast == other.hpPercentageAtLeast &&
-			this.targetHasEffect === other.targetHasEffect &&
-			this.targetMissesEffect === other.targetMissesEffect &&
-			this.resistanceAtMost == other.resistanceAtMost &&
-			this.resistanceAtLeast == other.resistanceAtLeast &&
-			this.canUseOnOddTurns == other.canUseOnOddTurns &&
-			this.canUseOnEvenTurns == other.canUseOnEvenTurns &&
-			this.canRepeat == other.canRepeat &&
-			this.myElement === other.myElement &&
-			this.freeAllySlots == other.freeAllySlots &&
-			this.targetFainted == other.targetFainted
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = (maxUses ?: 0) + 5 * hpPercentageAtMost - 13 * hpPercentageAtLeast +
-			31 * Objects.hashCode(targetHasEffect) - 251 * Objects.hashCode(targetMissesEffect) +
-			37 * Objects.hashCode(resistanceAtMost) + 41 * Objects.hashCode(resistanceAtLeast) -
-			47 * canUseOnOddTurns.hashCode() + 93 * canUseOnEvenTurns.hashCode() - 113 * canRepeat.hashCode() +
-			147 * Objects.hashCode(myElement) - 151 * freeAllySlots + 179 * targetFainted.hashCode()
+	override fun hashCode() = BITSER.hashCode(this)
 
 	override fun toString(): String {
 		val builder = StringBuilder("Criteria(")

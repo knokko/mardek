@@ -2,6 +2,7 @@ package mardek.content.area
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class AreaFlags(
@@ -65,12 +66,7 @@ class AreaFlags(
 	override fun toString() = "AreaFlags(canWarp=$canWarp, clearMap=$hasClearMap, noMovingCamera=$noMovingCamera, " +
 			"hideParty=$hideParty, noSwitch=$noSwitch, noMap=$noMap, miasma=$miasma, noStorage=$noStorage"
 
-	override fun equals(other: Any?) = other is AreaFlags && canWarp == other.canWarp &&
-			hasClearMap == other.hasClearMap && noMovingCamera == other.noMovingCamera &&
-			hideParty == other.hideParty && noSwitch == other.noSwitch && noMap == other.noMap &&
-			miasma == other.miasma && noStorage == other.noStorage
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = canWarp.hashCode() + 2 * hasClearMap.hashCode() + 4 * noMovingCamera.hashCode() +
-			8 * hideParty.hashCode() + 16 * noSwitch.hashCode() + 32 * noMap.hashCode() + 64 * miasma.hashCode() +
-			128 * noStorage.hashCode()
+	override fun hashCode() = BITSER.hashCode(this)
 }

@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 
 abstract class AreaSwitch(
 	@BitField(id = 0)
@@ -21,15 +22,9 @@ abstract class AreaSwitch(
 
 	override fun toString() = "${this::class.java.simpleName.substring(4)}($color, x=$x, y=$y)"
 
-	override fun equals(other: Any?) = other is AreaSwitch && this::class.java == other::class.java &&
-			color == other.color && x == other.x && y == other.y
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode(): Int {
-		var result = x
-		result = 31 * result + y
-		result = 31 * result + color.hashCode()
-		return result
-	}
+	override fun hashCode() = BITSER.hashCode(this)
 }
 
 @BitStruct(backwardCompatible = true)

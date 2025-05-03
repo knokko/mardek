@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class TransitionDestination(
@@ -28,16 +29,10 @@ class TransitionDestination(
 ) {
 
 	internal constructor() : this(null, 0, 0, null, null)
+
 	override fun toString() = "(${area?.properties?.displayName}, x=$x, y=$y, direction=$direction)"
 
-	override fun equals(other: Any?) = other is TransitionDestination && area == other.area && x == other.x &&
-			y == other.y && direction == other.direction && discoveredAreaName == other.discoveredAreaName
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode(): Int {
-		var result = area.hashCode()
-		result = 31 * result + x
-		result = 31 * result + y
-		result = 31 * result + (direction?.hashCode() ?: 0)
-		return result
-	}
+	override fun hashCode() = BITSER.hashCode(this)
 }
