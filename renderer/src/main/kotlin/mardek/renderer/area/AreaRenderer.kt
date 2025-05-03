@@ -81,10 +81,7 @@ class AreaRenderer(
 				vertexBuffer.put(lightRadius)
 				vertexBuffer.put(request.color)
 			}
-			vkCmdBindVertexBuffers(
-				recorder.commandBuffer, 0, recorder.stack.longs(vertexRange.buffer.vkBuffer),
-				recorder.stack.longs(vertexRange.offset)
-			)
+			recorder.bindVertexBuffers(0, vertexRange.range())
 			vkCmdDraw(recorder.commandBuffer, 6, lightRequests.size, 0, 0)
 		}
 

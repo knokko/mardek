@@ -44,11 +44,7 @@ class Kim2Renderer(
 
 		val vertexRange = perFrameBuffer.allocate(KIM2_VERTEX_SIZE.toLong() * batch.requests.size, 4)
 		val hostVertexRange = vertexRange.byteBuffer()
-		vkCmdBindVertexBuffers(
-			recorder.commandBuffer, 0,
-			recorder.stack.longs(vertexRange.buffer.vkBuffer),
-			recorder.stack.longs(vertexRange.offset)
-		)
+		recorder.bindVertexBuffers(0, vertexRange.range())
 		vkCmdPushConstants(
 			recorder.commandBuffer, resources.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 			0, recorder.stack.ints(targetImage.width, targetImage.height)
