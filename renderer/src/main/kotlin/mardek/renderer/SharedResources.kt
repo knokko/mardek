@@ -3,13 +3,15 @@ package mardek.renderer
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
-import com.github.knokko.boiler.commands.SingleTimeCommands
+import com.github.knokko.boiler.buffers.SharedDeviceBufferBuilder
+import com.github.knokko.boiler.buffers.SharedMappedBufferBuilder
 import com.github.knokko.boiler.descriptors.SharedDescriptorPool
 import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
 import com.github.knokko.boiler.exceptions.VulkanFailureException.assertVkSuccess
 import com.github.knokko.boiler.images.VkbImage
-import com.github.knokko.boiler.synchronization.ResourceUsage
-import com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf
+import com.github.knokko.boiler.memory.SharedMemoryAllocations
+import com.github.knokko.boiler.memory.SharedMemoryBuilder
+import com.github.knokko.boiler.utilities.BoilerMath.leastCommonMultiple
 import com.github.knokko.text.TextInstance
 import com.github.knokko.text.font.FontData
 import com.github.knokko.text.font.UnicodeFonts
@@ -24,8 +26,6 @@ import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.zip.InflaterInputStream
-import kotlin.math.max
 
 class SharedResources(
 	getBoiler: CompletableFuture<BoilerInstance>, framesInFlight: Int, skipWindow: Boolean = false
@@ -34,10 +34,10 @@ class SharedResources(
 	private val boiler: BoilerInstance
 	val renderPass: Long
 	val areaMap = mutableMapOf<UUID, AreaRenderPair>()
-	private lateinit var spriteManager: SpriteManager
+	private val spriteManager: SpriteManager
 	private val descriptorPool: SharedDescriptorPool
-	lateinit var kim1Renderer: Kim1Renderer
-	lateinit var kim2Renderer: Kim2Renderer
+	val kim1Renderer: Kim1Renderer
+	val kim2Renderer: Kim2Renderer
 	lateinit var colorGridRenderer: ColorGridRenderer
 	lateinit var partRenderer: PartRenderer
 	val light: LightResources
@@ -47,6 +47,7 @@ class SharedResources(
 	private val uiInstance: UiRenderInstance
 	val uiRenderers: List<UiRenderer>
 
+	private val sharedAllocations: SharedMemoryAllocations
 	val perFrameBuffer: PerFrameBuffer
 
 	lateinit var bcImages: List<VkbImage>
@@ -57,13 +58,56 @@ class SharedResources(
 		font = FontData(textInstance, UnicodeFonts.SOURCE)
 		println("Creating font took ${(System.nanoTime() - startTime) / 1000_000} ms")
 		boiler = getBoiler.join()
-		perFrameBuffer = PerFrameBuffer(boiler.buffers.createMapped(
-			1000_000L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT or VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "PerFrameBuffer"
-		).fullMappedRange())
 
 		renderPass = if (skipWindow) createRenderPass(boiler, VK_FORMAT_R8G8B8A8_SRGB) else createRenderPass(boiler)
 
 		val sharedDescriptorBuilder = SharedDescriptorPoolBuilder(boiler)
+
+		val sharedStorageBufferBuilder = SharedDeviceBufferBuilder(boiler)
+		val sharedSpriteBufferBuilder = SharedDeviceBufferBuilder(boiler)
+		val sharedStagingBufferBuilder = SharedMappedBufferBuilder(boiler)
+
+		val kimInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
+			"mardek/game/kim-sprites.bin"
+		)!!))
+
+		val storageIntAlignment = stackPush().use { stack ->
+			val deviceProperties = VkPhysicalDeviceProperties.calloc(stack)
+			vkGetPhysicalDeviceProperties(boiler.vkPhysicalDevice(), deviceProperties)
+			leastCommonMultiple(setOf(4L, deviceProperties.limits().minStorageBufferOffsetAlignment()))
+		}
+
+		spriteManager = SpriteManager(boiler, kimInput, sharedSpriteBufferBuilder, sharedStagingBufferBuilder, storageIntAlignment)
+		kim1Renderer = Kim1Renderer(
+			boiler,
+			renderPass = renderPass,
+			framesInFlight = framesInFlight,
+			sharedDescriptorPoolBuilder = sharedDescriptorBuilder,
+			sharedStorageBuilder = sharedStorageBufferBuilder,
+			storageIntAlignment = storageIntAlignment
+		)
+		kim2Renderer = Kim2Renderer(
+			boiler,
+			renderPass = renderPass,
+			sharedDescriptorPoolBuilder = sharedDescriptorBuilder,
+		)
+
+		val sharedMemoryAllocator = SharedMemoryBuilder(boiler)
+		val bcImageLoader = BcImageLoader(boiler, sharedStagingBufferBuilder, sharedMemoryAllocator)
+		sharedMemoryAllocator.add(sharedSpriteBufferBuilder.doNotBindMemory().build(
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT or VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "SpriteBuffer"
+		))
+		sharedMemoryAllocator.add(sharedStorageBufferBuilder.doNotBindMemory().build(
+				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Kim1MiddleBuffer"
+		))
+		sharedMemoryAllocator.add(
+			sharedStagingBufferBuilder,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT or VK_BUFFER_USAGE_VERTEX_BUFFER_BIT or VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+			"SharedStagingBuffer"
+		)
+
+		uiInstance = UiRenderInstance.withRenderPass(boiler, sharedMemoryAllocator, renderPass, 0)
+		sharedAllocations = sharedMemoryAllocator.allocate("SharedMemory", false)
 
 		val areaThread = Thread {
 			val areaInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
@@ -83,122 +127,42 @@ class SharedResources(
 		areaThread.start()
 
 		val kimThread = Thread {
-			val kimInput = DataInputStream(BufferedInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
-				"mardek/game/kim-sprites.bin"
-			)!!))
-			val spriteManager = SpriteManager(boiler, kimInput)
+			spriteManager.initBuffers()
 			kimInput.close()
-			this.spriteManager = spriteManager
-			this.kim1Renderer = Kim1Renderer(
-				boiler,
-				perFrameBuffer = perFrameBuffer,
-				spriteBuffer = spriteManager.spriteBuffer,
-				renderPass = renderPass,
-				framesInFlight = framesInFlight,
-				sharedDescriptorPoolBuilder = sharedDescriptorBuilder,
-			)
-			this.kim2Renderer = Kim2Renderer(
-				boiler,
-				perFrameBuffer = perFrameBuffer,
-				spriteBuffer = spriteManager.spriteBuffer,
-				renderPass = renderPass,
-				sharedDescriptorPoolBuilder = sharedDescriptorBuilder,
-			)
-			this.colorGridRenderer = ColorGridRenderer(boiler, renderPass, perFrameBuffer, sharedDescriptorBuilder)
+			kim1Renderer.initBuffers()
+			this.colorGridRenderer = ColorGridRenderer(boiler, renderPass, sharedDescriptorBuilder)
 		}
 		kimThread.start()
 
+		bcImageLoader.fetchImages()
 		val bcThread = Thread {
-			val bcInput = DataInputStream(InflaterInputStream(SharedResources::class.java.classLoader.getResourceAsStream(
-				"mardek/game/bc-sprites.bin"
-			)!!))
-			val numImages = bcInput.readInt()
-			var totalSize = 0L
-			var maxSize = 0
-			val isBc1 = BooleanArray(numImages)
-			val stagingOffsets = LongArray(numImages)
-
-			fun computeByteSize(width: Int, height: Int, version: Int): Int {
-				val baseSize = nextMultipleOf(width, 4) * nextMultipleOf(height, 4)
-				return if (version == 1) baseSize / 2 else baseSize
-			}
-
-			this.bcImages = (0 until numImages).map {
-				val width = bcInput.readInt()
-				val height = bcInput.readInt()
-				val version = bcInput.readInt()
-				isBc1[it] = version == 1
-				val byteSize = computeByteSize(width, height, version)
-
-				// Ensure that offset is a multiple of texel block size
-				totalSize = nextMultipleOf(totalSize, if (version == 1) 8 else 16)
-
-				stagingOffsets[it] = totalSize
-				val format = when (version) {
-					1 -> VK_FORMAT_BC1_RGBA_SRGB_BLOCK
-					7 -> VK_FORMAT_BC7_SRGB_BLOCK
-					else -> throw UnsupportedOperationException("Unsupported BC version $version")
-				}
-				totalSize += byteSize
-				maxSize = max(byteSize, maxSize)
-				boiler.images.createSimple(
-					width, height, format, VK_IMAGE_USAGE_TRANSFER_DST_BIT or VK_IMAGE_USAGE_SAMPLED_BIT,
-					VK_IMAGE_ASPECT_COLOR_BIT, "Bc${version}Image$it"
-				)
-			}
+			bcImageLoader.transfer()
+			this.bcImages = bcImageLoader.bcImages
 			this.partRenderer = PartRenderer(boiler, bcImages, renderPass, sharedDescriptorBuilder)
-
-			val stagingBuffer = boiler.buffers.createMapped(totalSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, "BcStagingBuffer")
-
-			val commands = SingleTimeCommands(boiler)
-			commands.submit("BcStagingTransfer") { recorder ->
-				recorder.bulkTransitionLayout(null, ResourceUsage.TRANSFER_DEST, *bcImages.toTypedArray())
-
-				val propagationBuffer = ByteArray(maxSize)
-				val bufferCopyRegions = VkBufferImageCopy.calloc(1, recorder.stack)
-				val copyRegion = bufferCopyRegions[0]
-				copyRegion.bufferRowLength(0)
-				copyRegion.bufferImageHeight(0)
-				boiler.images.subresourceLayers(copyRegion.imageSubresource(), VK_IMAGE_ASPECT_COLOR_BIT)
-				copyRegion.imageOffset()[0, 0] = 0
-				for ((index, image) in bcImages.withIndex()) {
-					val stagingSize = computeByteSize(image.width, image.height, if (isBc1[index]) 1 else 7)
-					bcInput.readFully(propagationBuffer, 0, stagingSize)
-					stagingBuffer.mappedRange(
-						stagingOffsets[index], stagingSize.toLong()
-					).byteBuffer().put(propagationBuffer, 0, stagingSize)
-
-					copyRegion.bufferOffset(stagingOffsets[index])
-					copyRegion.imageExtent()[image.width(), image.height()] = 1
-
-					vkCmdCopyBufferToImage(
-						recorder.commandBuffer,
-						stagingBuffer.vkBuffer(),
-						image.vkImage(),
-						VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-						bufferCopyRegions
-					)
-				}
-
-				val destUsage = ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
-				recorder.bulkTransitionLayout(ResourceUsage.TRANSFER_DEST, destUsage, *bcImages.toTypedArray())
-			}
-			commands.destroy()
-			stagingBuffer.destroy(boiler)
 		}
 		bcThread.start()
 
-		uiInstance = UiRenderInstance.withRenderPass(boiler, renderPass, 0)
-		uiRenderers = (0 until framesInFlight).map { uiInstance.createRenderer(perFrameBuffer) }
+		sharedDescriptorBuilder.request(uiInstance.baseDescriptorSetLayout, framesInFlight)
+		sharedDescriptorBuilder.request(uiInstance.imageDescriptorSetLayout, bcImageLoader.bcImages.size)
+
 		light = LightResources(boiler, renderPass)
 		kimThread.join()
 		bcThread.join()
 		areaThread.join()
-
 		descriptorPool = sharedDescriptorBuilder.build("SharedDescriptorPool")
-		kim1Renderer.initDescriptors(descriptorPool)
-		kim2Renderer.initDescriptors(descriptorPool)
-		colorGridRenderer.initDescriptors(descriptorPool)
+
+		// Since the BC transfer is complete, its staging memory can be reused
+		val mappedRange = bcImageLoader.getStagingBuffer.get()
+		perFrameBuffer = PerFrameBuffer(mappedRange.childRange(0L, 1_000_000L))
+		uiRenderers = (0 until framesInFlight).map {
+			val glyphRangeSize = 500_000L
+			val glyphRange = mappedRange.childRange(perFrameBuffer.range.size + it * glyphRangeSize, glyphRangeSize)
+			uiInstance.createRenderer(perFrameBuffer, glyphRange, descriptorPool)
+		}
+
+		kim1Renderer.initDescriptors(descriptorPool, spriteManager.spriteBuffer, perFrameBuffer)
+		kim2Renderer.initDescriptors(descriptorPool, spriteManager.spriteBuffer, perFrameBuffer)
+		colorGridRenderer.initDescriptors(descriptorPool, perFrameBuffer)
 		partRenderer.initDescriptors(descriptorPool)
 
 		println("Preparing render resources took ${(System.nanoTime() - startTime) / 1_000_000} ms")
@@ -211,14 +175,12 @@ class SharedResources(
 		colorGridRenderer.destroy()
 		partRenderer.destroy()
 		for (renderer in uiRenderers) renderer.destroy()
-		for (image in bcImages) image.destroy(boiler)
 		uiInstance.destroy()
 		font.destroy()
 		textInstance.destroy()
-		perFrameBuffer.range.buffer.destroy(boiler)
-		spriteManager.destroy(boiler)
 		light.destroy(boiler)
 		vkDestroyRenderPass(boiler.vkDevice(), renderPass, null)
+		sharedAllocations.free(boiler)
 	}
 }
 

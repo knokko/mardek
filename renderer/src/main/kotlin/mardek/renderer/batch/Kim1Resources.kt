@@ -2,6 +2,7 @@ package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
+import com.github.knokko.boiler.buffers.SharedDeviceBufferBuilder
 import com.github.knokko.boiler.buffers.VkbBufferRange
 import com.github.knokko.boiler.descriptors.SharedDescriptorPool
 import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
@@ -30,9 +31,9 @@ class Kim1Resources(
 	private val framesInFlight: Int,
 	renderPass: Long,
 
-	private val spriteBuffer: VkbBufferRange,
-	private val perFrameBuffer: PerFrameBuffer,
 	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
+	sharedStorageBuilder: SharedDeviceBufferBuilder,
+	storageIntAlignment: Long,
 ) {
 
 	private val graphicsDescriptorLayout = createGraphicsDescriptorSetLayout(boiler)
@@ -49,9 +50,9 @@ class Kim1Resources(
 	val computeLayout: Long
 	val computePipeline: Long
 
-	val middleBuffer = boiler.buffers.create(
-		1000_000L, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "Kim1MiddleBuffer"
-	)!!
+	private val getMiddleBuffer = sharedStorageBuilder.add(1_000_000L, storageIntAlignment)
+	lateinit var middleBuffer: VkbBufferRange
+		private set
 
 	init {
 		sharedDescriptorPoolBuilder.request(graphicsDescriptorLayout, 1)
@@ -107,7 +108,11 @@ class Kim1Resources(
 		}
 	}
 
-	fun initDescriptors(pool: SharedDescriptorPool) {
+	fun initBuffers() {
+		middleBuffer = getMiddleBuffer.get()
+	}
+
+	fun initDescriptors(pool: SharedDescriptorPool, spriteBuffer: VkbBufferRange, perFrameBuffer: PerFrameBuffer) {
 		this.graphicsDescriptorSet = pool.allocate(graphicsDescriptorLayout, 1)[0]
 		this.computeDescriptorSets = pool.allocate(computeDescriptorLayout, framesInFlight)
 
@@ -124,12 +129,12 @@ class Kim1Resources(
 				)
 				boiler.descriptors.writeBuffer(
 					stack, descriptorWrites, computeDescriptorSets[frame],
-					3 * frame + 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, middleBuffer.fullRange()
+					3 * frame + 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, middleBuffer
 				)
 				for (index in 0 until 3) descriptorWrites[3 * frame + index].dstBinding(index)
 			}
 			boiler.descriptors.writeBuffer(
-				stack, descriptorWrites, graphicsDescriptorSet, 3 * framesInFlight, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, middleBuffer.fullRange()
+				stack, descriptorWrites, graphicsDescriptorSet, 3 * framesInFlight, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, middleBuffer
 			)
 			descriptorWrites.get(3 * framesInFlight).dstBinding(0)
 
@@ -144,6 +149,5 @@ class Kim1Resources(
 		vkDestroyPipelineLayout(boiler.vkDevice(), computeLayout, null)
 		computeDescriptorLayout.destroy()
 		graphicsDescriptorLayout.destroy()
-		middleBuffer.destroy(boiler)
 	}
 }

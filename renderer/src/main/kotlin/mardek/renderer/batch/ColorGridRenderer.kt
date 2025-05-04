@@ -13,14 +13,13 @@ import java.nio.IntBuffer
 class ColorGridRenderer(
 	private val boiler: BoilerInstance,
 	renderPass: Long,
-	private val perFrameBuffer: PerFrameBuffer,
 	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
 ) {
 
-	private val resources = ColorGridResources(boiler, renderPass, perFrameBuffer, sharedDescriptorPoolBuilder)
+	private val resources = ColorGridResources(boiler, renderPass, sharedDescriptorPoolBuilder)
 
-	fun initDescriptors(pool: SharedDescriptorPool) {
-		resources.initDescriptors(pool)
+	fun initDescriptors(pool: SharedDescriptorPool, perFrameBuffer: PerFrameBuffer) {
+		resources.initDescriptors(pool, perFrameBuffer)
 	}
 
 	fun startBatch(recorder: CommandRecorder) {
@@ -36,9 +35,10 @@ class ColorGridRenderer(
 		val numTableEntries = width * height
 		var numTableInts = numTableEntries / 8
 		if (numTableEntries % 8 != 0) numTableInts += 1
-		val tableRange = perFrameBuffer.allocate(4L * numTableInts, 4L)
+		val tableRange = resources.perFrame.allocate(4L * numTableInts, 4L)
 		vkCmdPushConstants(recorder.commandBuffer, resources.pipelineLayout, stages, 0, recorder.stack.ints(
-			targetImage.width, targetImage.height, minX, minY, width, height, toIntExact(tableRange.offset / 4), table, scale
+			targetImage.width, targetImage.height, minX, minY, width, height,
+			toIntExact((tableRange.offset - resources.perFrame.range.offset) / 4), table, scale
 		))
 		vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
 		return tableRange.intBuffer()

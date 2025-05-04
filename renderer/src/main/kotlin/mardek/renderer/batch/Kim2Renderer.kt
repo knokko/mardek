@@ -11,17 +11,17 @@ import org.lwjgl.vulkan.VK10.*
 
 class Kim2Renderer(
 	private val boiler: BoilerInstance,
-	private val perFrameBuffer: PerFrameBuffer,
-	spriteBuffer: VkbBufferRange,
 	renderPass: Long,
 	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
 ) {
 	private val batches = HashSet<KimBatch>()
+	private lateinit var perFrameBuffer: PerFrameBuffer
 
-	private val resources = Kim2Resources(boiler, renderPass, spriteBuffer, sharedDescriptorPoolBuilder)
+	private val resources = Kim2Resources(boiler, renderPass, sharedDescriptorPoolBuilder)
 
-	fun initDescriptors(pool: SharedDescriptorPool) {
-		resources.initDescriptors(pool)
+	fun initDescriptors(pool: SharedDescriptorPool, spriteBuffer: VkbBufferRange, perFrameBuffer: PerFrameBuffer) {
+		resources.initDescriptors(pool, spriteBuffer)
+		this.perFrameBuffer = perFrameBuffer
 	}
 
 	fun begin() {

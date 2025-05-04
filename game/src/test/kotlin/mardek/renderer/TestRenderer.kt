@@ -3,6 +3,7 @@ package mardek.renderer
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.SingleTimeCommands
+import com.github.knokko.boiler.images.ImageBuilder
 import com.github.knokko.boiler.synchronization.ResourceUsage
 import mardek.content.Content
 import mardek.state.ingame.CampaignState
@@ -80,11 +81,10 @@ class TestRenderer {
 
 		val renderer = GameRenderer(boiler, getResources)
 
-		val targetImage = boiler.images.createSimple(
-			1000, 800, VK_FORMAT_R8G8B8A8_SRGB,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-			VK_IMAGE_ASPECT_COLOR_BIT, "TargetImage"
-		)
+		val targetImage = ImageBuilder("TargetImage", 1000, 800)
+			.format(VK_FORMAT_R8G8B8A8_SRGB)
+			.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+			.build(boiler)
 		val framebuffer = boiler.images.createFramebuffer(
 			resources.renderPass, targetImage.width, targetImage.height, "Framebuffer", targetImage.vkImageView
 		)
@@ -156,11 +156,10 @@ class TestRenderer {
 
 		val renderer = GameRenderer(boiler, getResources)
 
-		val targetImage = boiler.images.createSimple(
-			1000, 800, VK_FORMAT_R8G8B8A8_SRGB,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-			VK_IMAGE_ASPECT_COLOR_BIT, "TargetImage"
-		)
+		val targetImage = ImageBuilder("TargetImage", 1000, 800)
+			.format(VK_FORMAT_R8G8B8A8_SRGB)
+			.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+			.build(boiler)
 		val framebuffer = boiler.images.createFramebuffer(
 			resources.renderPass, targetImage.width, targetImage.height, "Framebuffer", targetImage.vkImageView
 		)

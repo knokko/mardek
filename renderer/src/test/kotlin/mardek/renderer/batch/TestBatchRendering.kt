@@ -1,9 +1,14 @@
 package mardek.renderer.batch
 
 import com.github.knokko.boiler.buffers.PerFrameBuffer
+import com.github.knokko.boiler.buffers.SharedDeviceBufferBuilder
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.SingleTimeCommands
+import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
+import com.github.knokko.boiler.images.ImageBuilder
+import com.github.knokko.boiler.memory.SharedMemoryBuilder
 import com.github.knokko.boiler.synchronization.ResourceUsage
+import com.github.knokko.boiler.utilities.BoilerMath.leastCommonMultiple
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.compressor.Kim1Compressor
 import com.github.knokko.compressor.Kim2Compressor
@@ -13,8 +18,10 @@ import mardek.renderer.createRenderPass
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.lwjgl.BufferUtils
+import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkClearValue
+import org.lwjgl.vulkan.VkPhysicalDeviceProperties
 import org.lwjgl.vulkan.VkRenderPassBeginInfo
 import java.awt.Color
 import javax.imageio.ImageIO
@@ -86,15 +93,20 @@ class TestBatchRendering {
 			).intBuffer(), 2)
 		}
 
+		val storageIntAlignment = stackPush().use { stack ->
+			val deviceProperties = VkPhysicalDeviceProperties.calloc(stack)
+			vkGetPhysicalDeviceProperties(boiler.vkPhysicalDevice(), deviceProperties)
+			leastCommonMultiple(setOf(4L, deviceProperties.limits().minStorageBufferOffsetAlignment()))
+		}
+
 		val perFrameRange = boiler.buffers.createMapped(
 			200L, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, "PerFrameBuffer"
 		).fullMappedRange()
 
-		val targetImage = boiler.images.createSimple(
-			10, 10, VK_FORMAT_R8G8B8A8_SRGB,
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-			VK_IMAGE_ASPECT_COLOR_BIT, "TargetImage"
-		)
+		val targetImage = ImageBuilder("TargetImage", 10, 10)
+			.format(VK_FORMAT_R8G8B8A8_SRGB)
+			.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+			.build(boiler)
 		val framebuffer = boiler.images.createFramebuffer(
 			renderPass, targetImage.width, targetImage.height,
 			"TestBatchFramebuffer", targetImage.vkImageView
@@ -102,16 +114,34 @@ class TestBatchRendering {
 		val perFrameBuffer = PerFrameBuffer(perFrameRange)
 		perFrameBuffer.startFrame(0)
 
-		val kim1Renderer = Kim1Renderer(boiler, perFrameBuffer, kimBuffer.fullRange(), renderPass, 1)
-		val kim2Renderer = Kim2Renderer(boiler, perFrameBuffer, kimBuffer.fullRange(), renderPass)
+		val sharedMemoryBuilder = SharedMemoryBuilder(boiler)
+		val kimMiddleBuffer = SharedDeviceBufferBuilder(boiler)
+		val uiInstance = UiRenderInstance.withRenderPass(boiler, sharedMemoryBuilder, renderPass, 0)
+		val sharedDescriptorBuilder = SharedDescriptorPoolBuilder(boiler)
+		val kim1Renderer = Kim1Renderer(
+			boiler, renderPass, 1,
+			sharedDescriptorBuilder, kimMiddleBuffer, storageIntAlignment
+		)
+		val kim2Renderer = Kim2Renderer(boiler, renderPass, sharedDescriptorBuilder)
+		sharedDescriptorBuilder.request(uiInstance.baseDescriptorSetLayout, 1)
+		sharedDescriptorBuilder.request(uiInstance.imageDescriptorSetLayout, 4)
+		val descriptorPool = sharedDescriptorBuilder.build("SharedDescriptorPool")
+		sharedMemoryBuilder.add(kimMiddleBuffer.doNotBindMemory().build(
+			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "SharedStorageBuffer"
+		))
+		val sharedAllocations = sharedMemoryBuilder.allocate("SharedAllocations", true)
+
+		kim1Renderer.initBuffers()
+		kim1Renderer.initDescriptors(descriptorPool, kimBuffer.fullRange(), perFrameBuffer)
+		kim2Renderer.initDescriptors(descriptorPool, kimBuffer.fullRange(), perFrameBuffer)
 
 		val targetBuffer = boiler.buffers.createMapped(
 			4L * targetImage.width * targetImage.height,
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT, "TargetBuffer"
 		)
 
-		val uiInstance = UiRenderInstance.withRenderPass(boiler, renderPass, 0)
-		val uiRenderer = uiInstance.createRenderer(perFrameBuffer)
+		val glyphsBuffer = boiler.buffers.createMapped(100_000L, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "GlyphsBuffer")
+		val uiRenderer = uiInstance.createRenderer(perFrameBuffer, glyphsBuffer.fullMappedRange(), descriptorPool)
 
 		val commands = SingleTimeCommands(boiler)
 		commands.submit("TestBatchRendering") { recorder ->
@@ -177,6 +207,7 @@ class TestBatchRendering {
 		}
 
 		commands.destroy()
+		glyphsBuffer.destroy(boiler)
 		uiRenderer.destroy()
 		uiInstance.destroy()
 		targetBuffer.destroy(boiler)
@@ -187,6 +218,8 @@ class TestBatchRendering {
 		targetImage.destroy(boiler)
 		kimBuffer.destroy(boiler)
 		vkDestroyRenderPass(boiler.vkDevice(), renderPass, null)
+		descriptorPool.destroy(boiler)
+		sharedAllocations.free(boiler)
 		boiler.destroyInitialObjects()
 	}
 }

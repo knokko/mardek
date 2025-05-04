@@ -18,11 +18,12 @@ private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use 
 class ColorGridResources(
 	private val boiler: BoilerInstance,
 	renderPass: Long,
-	private val perFrame: PerFrameBuffer,
 	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
 ) {
 
 	private val descriptorLayout = createDescriptorSetLayout(boiler)
+	lateinit var perFrame: PerFrameBuffer
+		private set
 	var descriptorSet = 0L
 		private set
 
@@ -59,7 +60,8 @@ class ColorGridResources(
 		}
 	}
 
-	fun initDescriptors(pool: SharedDescriptorPool) {
+	fun initDescriptors(pool: SharedDescriptorPool, perFrameBuffer: PerFrameBuffer) {
+		this.perFrame = perFrameBuffer
 		this.descriptorSet = pool.allocate(descriptorLayout, 1)[0]
 
 		stackPush().use { stack ->

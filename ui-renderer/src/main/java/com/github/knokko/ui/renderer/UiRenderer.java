@@ -1,14 +1,12 @@
 package com.github.knokko.ui.renderer;
 
 import com.github.knokko.boiler.BoilerInstance;
-import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.MappedVkbBufferRange;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.boiler.commands.SingleTimeCommands;
-import com.github.knokko.boiler.descriptors.GrowingDescriptorBank;
+import com.github.knokko.boiler.descriptors.SharedDescriptorPool;
+import com.github.knokko.boiler.descriptors.VkbDescriptorSetLayout;
 import com.github.knokko.boiler.images.VkbImage;
-import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.text.bitmap.*;
 import com.github.knokko.text.font.FontData;
 import com.github.knokko.text.placement.TextAlignment;
@@ -32,46 +30,34 @@ public class UiRenderer {
 	private static final long QUAD_SIZE = 6 * Integer.BYTES;
 
 	private final BoilerInstance boiler;
-	private final GrowingDescriptorBank baseDescriptorBank, imageDescriptorBank;
 	private final long pipelineLayout, graphicsPipeline, baseDescriptorSet;
+	private final SharedDescriptorPool descriptorPool;
+	private final VkbDescriptorSetLayout imageLayout;
 	private final Map<FontData, FontResources> fonts = new HashMap<>();
 	private final Map<VkbImage, Long> imageDescriptorSets = new HashMap<>();
 
-	private final VkbImage dummyImage;
-
 	private final PerFrameBuffer perFrame;
-	private BitmapGlyphsBuffer glyphsBuffer;
-	private MappedVkbBuffer glyphsVkBuffer;
+	private final BitmapGlyphsBuffer glyphsBuffer;
+	private final VkbImage dummyImage;
 	private long currentDescriptorSet;
 
 	private CommandRecorder recorder;
 
 	UiRenderer(
 			BoilerInstance boiler, long imageSampler, long pipelineLayout, long graphicsPipeline,
-			GrowingDescriptorBank baseDescriptorBank, GrowingDescriptorBank imageDescriptorBank, PerFrameBuffer perFrame
+			VkbDescriptorSetLayout baseLayout, VkbDescriptorSetLayout imageLayout, SharedDescriptorPool descriptorPool,
+			PerFrameBuffer perFrame, MappedVkbBufferRange glyphsRange, VkbImage dummyImage
 	) {
 		this.boiler = boiler;
 		this.pipelineLayout = pipelineLayout;
 		this.graphicsPipeline = graphicsPipeline;
-		this.baseDescriptorBank = baseDescriptorBank;
-		this.baseDescriptorSet = baseDescriptorBank.borrowDescriptorSet("Ui");
-		this.imageDescriptorBank = imageDescriptorBank;
+		this.descriptorPool = descriptorPool;
+		this.imageLayout = imageLayout;
+		this.baseDescriptorSet = descriptorPool.allocate(baseLayout, 1)[0];
+		this.dummyImage = dummyImage;
 		this.perFrame = perFrame;
 
-		this.dummyImage = boiler.images.createSimple(
-				1, 1, VK_FORMAT_R8_UNORM, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-				VK_IMAGE_ASPECT_COLOR_BIT, "DummyUiImage"
-		);
-
-		var commands = new SingleTimeCommands(boiler);
-		commands.submit("DummyUiImageTransition", recorder -> {
-			recorder.transitionLayout(dummyImage, null, ResourceUsage.TRANSFER_DEST);
-			recorder.clearColorImage(dummyImage.vkImage(), 1f, 0.1f, 0.8f, 1f);
-			recorder.transitionLayout(dummyImage, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT));
-		});
-
-		this.glyphsVkBuffer = boiler.buffers.createMapped(100_000, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, "GlyphsBuffer");
-		this.glyphsBuffer = new BitmapGlyphsBuffer(glyphsVkBuffer.hostAddress(), (int) glyphsVkBuffer.size());
+		this.glyphsBuffer = new BitmapGlyphsBuffer(glyphsRange.hostAddress(), (int) glyphsRange.size());
 
 		try (var stack = stackPush()) {
 			var samplerWrite = VkDescriptorImageInfo.calloc(1, stack);
@@ -85,7 +71,7 @@ public class UiRenderer {
 			);
 			boiler.descriptors.writeBuffer(
 					stack, descriptorWrites, baseDescriptorSet, 1,
-					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, glyphsVkBuffer.fullRange()
+					VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, glyphsRange.range()
 			);
 			boiler.descriptors.writeBuffer(
 					stack, descriptorWrites, baseDescriptorSet, 2,
@@ -94,19 +80,13 @@ public class UiRenderer {
 			boiler.descriptors.writeImage(descriptorWrites, baseDescriptorSet, 3, VK_DESCRIPTOR_TYPE_SAMPLER, samplerWrite);
 			vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null);
 		}
-
-		commands.destroy();
 	}
 
 	private VkbImage targetImage;
 
 	public void begin(CommandRecorder recorder, VkbImage targetImage) {
 		this.recorder = recorder;
-
 		if (glyphsBuffer != null) glyphsBuffer.startFrame();
-		imageDescriptorSets.values().forEach(imageDescriptorBank::returnDescriptorSet);
-		imageDescriptorSets.clear();
-
 		this.targetImage = targetImage;
 	}
 
@@ -118,7 +98,7 @@ public class UiRenderer {
 
 	private long getImageDescriptorSet(VkbImage image) {
 		return imageDescriptorSets.computeIfAbsent(image, i -> {
-			long descriptorSet = imageDescriptorBank.borrowDescriptorSet("Image");
+			long descriptorSet = descriptorPool.allocate(imageLayout, 1)[0];
 			try (var stack = stackPush()) {
 				// TODO Check if this can be combined with other images
 				var imageWrite = VkDescriptorImageInfo.calloc(1, stack);
@@ -157,6 +137,10 @@ public class UiRenderer {
 				recorder.stack.longs(currentDescriptorSet), null
 		);
 		draw(quadRange);
+	}
+
+	private int offsetTo(MappedVkbBufferRange destination) {
+		return toIntExact((destination.offset() - perFrame.range.offset()) / 4L);
 	}
 
 	public void drawString(
@@ -207,9 +191,9 @@ public class UiRenderer {
 			extra.put(quad.bufferIndex);
 			extra.put(quad.sectionWidth);
 			extra.put(quad.scale);
-			extra.put(toIntExact(sharedExtraRange.offset() / 4));
+			extra.put(offsetTo(sharedExtraRange));
 
-			renderQuads.put(toIntExact(extraRange.offset() / 4));
+			renderQuads.put(offsetTo(extraRange));
 		}
 		draw(quadRange);
 	}
@@ -244,7 +228,7 @@ public class UiRenderer {
 		renderQuad.put(1 + maxX - minX);
 		renderQuad.put(1 + maxY - minY);
 		renderQuad.put(3);
-		renderQuad.put(toIntExact(extraRange.offset() / 4));
+		renderQuad.put(offsetTo(extraRange));
 
 		extra.put(color);
 		extra.put(gradients.length);
@@ -268,7 +252,7 @@ public class UiRenderer {
 		renderQuad.put(0);
 		renderQuad.put(0);
 		renderQuad.put(1003);
-		renderQuad.put(toIntExact(extraRange.offset() / 4));
+		renderQuad.put(offsetTo(extraRange));
 
 		extra.put(x1).put(y1);
 		extra.put(x2).put(y2);
@@ -294,7 +278,7 @@ public class UiRenderer {
 		renderQuad.put(1 + maxX - minX);
 		renderQuad.put(1 + maxY - minY);
 		renderQuad.put(4);
-		renderQuad.put(toIntExact(extraRange.offset() / 4));
+		renderQuad.put(offsetTo(extraRange));
 
 		extra.put(color);
 		extra.put(gradients.length);
@@ -313,7 +297,7 @@ public class UiRenderer {
 		}
 		vkCmdPushConstants(
 				recorder.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-				0, recorder.stack.ints(toIntExact(quads.offset() / 4), targetImage.width(), targetImage.height())
+				0, recorder.stack.ints(offsetTo(quads), targetImage.width(), targetImage.height())
 		);
 		vkCmdDraw(recorder.commandBuffer, 6 * toIntExact(quads.size() / QUAD_SIZE), 1, 0, 0);
 	}
@@ -327,11 +311,7 @@ public class UiRenderer {
 	}
 
 	public void destroy() {
-		glyphsVkBuffer.destroy(boiler);
-		dummyImage.destroy(boiler);
 		fonts.values().forEach(FontResources::destroy);
-		baseDescriptorBank.returnDescriptorSet(baseDescriptorSet);
-		imageDescriptorSets.values().forEach(imageDescriptorBank::returnDescriptorSet);
 		imageDescriptorSets.clear();
 	}
 

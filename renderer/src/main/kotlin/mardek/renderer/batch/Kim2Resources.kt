@@ -23,7 +23,6 @@ private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use 
 class Kim2Resources(
 	private val boiler: BoilerInstance,
 	renderPass: Long,
-	private val spriteBuffer: VkbBufferRange,
 	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
 ) {
 
@@ -78,7 +77,7 @@ class Kim2Resources(
 		}
 	}
 
-	fun initDescriptors(pool: SharedDescriptorPool) {
+	fun initDescriptors(pool: SharedDescriptorPool, spriteBuffer: VkbBufferRange) {
 		this.descriptorSet = pool.allocate(descriptorLayout, 1)[0]
 
 		stackPush().use { stack ->
