@@ -154,11 +154,12 @@ class SharedResources(
 
 		// Since the BC transfer is complete, its staging memory can be reused
 		val mappedRange = bcImageLoader.getStagingBuffer.get()
-		perFrameBuffer = PerFrameBuffer(mappedRange.childRange(0L, 1_000_000L))
+		val perFrameOffset = nextMultipleOf(mappedRange.offset, storageIntAlignment)
+		perFrameBuffer = PerFrameBuffer(mappedRange.buffer.mappedRange(perFrameOffset, 1_000_000L))
 		uiRenderers = (0 until framesInFlight).map {
 			val glyphRangeSize = 500_000L
-			val glyphRange = mappedRange.childRange(nextMultipleOf(
-				perFrameBuffer.range.size + it * glyphRangeSize, storageIntAlignment
+			val glyphRange = mappedRange.buffer.mappedRange(nextMultipleOf(
+				perFrameOffset + perFrameBuffer.range.size + it * glyphRangeSize, storageIntAlignment
 			), glyphRangeSize)
 			uiInstance.createRenderer(perFrameBuffer, glyphRange, descriptorPool)
 		}
