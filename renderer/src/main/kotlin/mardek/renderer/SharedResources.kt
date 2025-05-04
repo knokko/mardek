@@ -12,6 +12,7 @@ import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.memory.SharedMemoryAllocations
 import com.github.knokko.boiler.memory.SharedMemoryBuilder
 import com.github.knokko.boiler.utilities.BoilerMath.leastCommonMultiple
+import com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf
 import com.github.knokko.text.TextInstance
 import com.github.knokko.text.font.FontData
 import com.github.knokko.text.font.UnicodeFonts
@@ -156,7 +157,9 @@ class SharedResources(
 		perFrameBuffer = PerFrameBuffer(mappedRange.childRange(0L, 1_000_000L))
 		uiRenderers = (0 until framesInFlight).map {
 			val glyphRangeSize = 500_000L
-			val glyphRange = mappedRange.childRange(perFrameBuffer.range.size + it * glyphRangeSize, glyphRangeSize)
+			val glyphRange = mappedRange.childRange(nextMultipleOf(
+				perFrameBuffer.range.size + it * glyphRangeSize, storageIntAlignment
+			), glyphRangeSize)
 			uiInstance.createRenderer(perFrameBuffer, glyphRange, descriptorPool)
 		}
 
