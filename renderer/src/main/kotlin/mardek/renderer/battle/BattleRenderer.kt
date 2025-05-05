@@ -6,16 +6,16 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.ui.renderer.Gradient
 import mardek.content.Content
 import mardek.content.animations.BattleModel
-import mardek.content.battle.PartyLayout
+import mardek.content.animations.ColorTransform
 import mardek.content.battle.PartyLayoutPosition
 import mardek.renderer.SharedResources
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.battle.BattleState
+import mardek.state.ingame.battle.CombatantState
 import mardek.state.title.AbsoluteRectangle
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.lang.Math.toIntExact
-import kotlin.math.min
 
 class BattleRenderer(
 	content: Content,
@@ -25,7 +25,6 @@ class BattleRenderer(
 	private val frameIndex: Int,
 	private val state: BattleState,
 	private val resources: SharedResources,
-	private val playerLayout: PartyLayout
 ) {
 
 	private val turnOrderRenderer = TurnOrderRenderer(state, resources, recorder, targetImage, frameIndex, AbsoluteRectangle(
@@ -46,14 +45,55 @@ class BattleRenderer(
 			minX = 0, minY = targetImage.height / 12, width = targetImage.width, height = targetImage.height / 9
 		), recorder, targetImage
 	)
+	private val targetSelectionRenderer = TargetSelectionRenderer(
+		content, state, campaign.characterStates, resources, recorder, targetImage, frameIndex, AbsoluteRectangle(
+			minX = 0, minY = targetImage.height / 12, width = targetImage.width,
+			height = targetImage.height - targetImage.height / 8 - targetImage.height / 12
+		)
+	)
 	private val enemyBlockRenderers = mutableListOf<EnemyBlockRenderer>()
 	private val playerBlockRenderers = mutableListOf<PlayerBlockRenderer>()
+
+	private fun selectedColorTransform(intensity: Float) = ColorTransform(
+		addColor = rgba(0f, 0f, 0.5f * intensity, 0f),
+		multiplyColor = rgb(1f - 0.5f * intensity, 1f - 0.5f * intensity, 1f - 0.5f * intensity)
+	)
+
+	private fun selectedColorTransform(state: CombatantState): ColorTransform? {
+		if (state.lastPointedTo == 0L) return null
+
+		val blinkTime = 500_000_000L
+		val passedTime = System.nanoTime() - state.lastPointedTo
+		if (passedTime >= blinkTime) return null
+
+		return selectedColorTransform(1f - passedTime.toFloat() / blinkTime)
+	}
+
+	private fun mergeColorTransforms(base: ColorTransform?, top: ColorTransform?): ColorTransform? {
+		if (base == null) return top
+		if (top == null) return base
+
+		val addColor = rgba(
+			normalize(red(base.addColor)) * normalize(red(top.multiplyColor)) + normalize(red(top.addColor)),
+			normalize(green(base.addColor)) * normalize(green(top.multiplyColor)) + normalize(green(top.addColor)),
+			normalize(blue(base.addColor)) * normalize(blue(top.multiplyColor)) + normalize(blue(top.addColor)),
+			normalize(alpha(base.addColor)) * normalize(alpha(top.multiplyColor)) + normalize(alpha(top.addColor)),
+		)
+		val multipleColor = rgba(
+			normalize(red(base.multiplyColor)) * normalize(red(top.multiplyColor)),
+			normalize(green(base.multiplyColor)) * normalize(green(top.multiplyColor)),
+			normalize(blue(base.multiplyColor)) * normalize(blue(top.multiplyColor)),
+			normalize(alpha(base.multiplyColor)) * normalize(alpha(top.multiplyColor)),
+		)
+		return ColorTransform(addColor = addColor, multiplyColor = multipleColor)
+	}
 
 	fun beforeRendering() {
 		turnOrderRenderer.beforeRendering()
 		actionBarRenderer.beforeRendering()
 		skillOrItemSelectionRenderer.beforeRendering()
 		skillOrItemDescriptionRenderer.beforeRendering()
+		targetSelectionRenderer.beforeRendering()
 
 		for ((index, enemy) in state.battle.enemies.withIndex()) {
 			if (enemy == null) continue
@@ -92,14 +132,17 @@ class BattleRenderer(
 		for ((index, enemy) in state.battle.enemies.withIndex()) {
 			if (enemy == null) continue
 
-			val rawPosition = state.battle.enemyPositions.positions[index]
-			renderCreature(rawPosition, enemy.monster.model, -1f, relativeTime)
+			val rawPosition = state.battle.enemyLayout.positions[index]
+			val colorTransform = selectedColorTransform(state.enemyStates[index]!!)
+			renderCreature(rawPosition, enemy.monster.model, -1f, relativeTime, colorTransform)
 		}
 
 		for ((index, player) in state.players.withIndex()) {
 			if (player == null) continue
 
-			renderCreature(playerLayout.positions[index], player.battleModel, 1f, relativeTime)
+			val rawPosition = state.playerLayout.positions[index]
+			val colorTransform = selectedColorTransform(state.playerStates[index]!!)
+			renderCreature(rawPosition, player.battleModel, 1f, relativeTime, colorTransform)
 		}
 
 		resources.partRenderer.endBatch()
@@ -122,21 +165,16 @@ class BattleRenderer(
 		actionBarRenderer.render()
 		skillOrItemSelectionRenderer.render()
 		skillOrItemDescriptionRenderer.render()
+		targetSelectionRenderer.render()
 		for (blockRenderer in enemyBlockRenderers) blockRenderer.render()
 		for (blockRenderer in playerBlockRenderers) blockRenderer.render()
 	}
 
-	private fun renderCreature(rawPosition: PartyLayoutPosition, model: BattleModel, flipX: Float, relativeTime: Long) {
-
-		// Original resolution is 240x176
-		var magicScaleX = 1f / 240f
-		val magicScaleY2 = 1f / 176f
-		val magicScaleY1 = min(magicScaleY2, magicScaleX * targetImage.width / targetImage.height)
-		magicScaleX = min(magicScaleX, magicScaleY1 * targetImage.height / targetImage.width)
-
-		val rawX = -flipX * (-1f + (rawPosition.x + 38) * magicScaleX)
-		val rawRelativeY = rawPosition.y + 78 - 176
-		val rawY = rawRelativeY * magicScaleY2
+	private fun renderCreature(
+		rawPosition: PartyLayoutPosition, model: BattleModel, flipX: Float,
+		relativeTime: Long, effectColorTransform: ColorTransform?
+	) {
+		val coordinates = transformBattleCoordinates(rawPosition, flipX, targetImage)
 		val animation = model.skeleton.getAnimation("idle")
 
 		val frameLength = 33_000_000L
@@ -171,9 +209,14 @@ class BattleRenderer(
 						rawCorner.second * entry.sprite.height.toFloat() / entry.scale
 					))
 
-					Vector2f(rawX + position.x * magicScaleX, rawY + position.y * magicScaleY1)
+					Vector2f(
+						coordinates.x + position.x * coordinates.scaleX,
+						coordinates.y + position.y * coordinates.scaleY
+					)
 				}.toTypedArray()
-				resources.partRenderer.render(entry.sprite, corners, animationPart.color)
+
+				val colorTransform = mergeColorTransforms(animationPart.color, effectColorTransform)
+				resources.partRenderer.render(entry.sprite, corners, colorTransform)
 			}
 		}
 	}

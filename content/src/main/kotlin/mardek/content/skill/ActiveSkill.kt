@@ -110,4 +110,6 @@ class ActiveSkill(
 		ArrayList(), 0f, null, null, null, SkillCombatRequirement.OutsideCombat,
 		0, false, false, false, null, false
 	)
+
+	fun isPositive() = isHealing || isBuff
 }

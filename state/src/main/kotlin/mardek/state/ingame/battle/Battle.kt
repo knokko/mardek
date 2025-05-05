@@ -20,7 +20,7 @@ class Battle(
 
 	@BitField(id = 1)
 	@ReferenceField(stable = true, label = "enemy party layouts")
-	val enemyPositions: PartyLayout,
+	val enemyLayout: PartyLayout,
 
 	@BitField(id = 2)
 	val music: String,

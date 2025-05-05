@@ -119,7 +119,7 @@ class CampaignState(
 			return
 		}
 
-		currentArea?.update(input, this, timeStep)
+		currentArea?.update(input, this, timeStep, content)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area

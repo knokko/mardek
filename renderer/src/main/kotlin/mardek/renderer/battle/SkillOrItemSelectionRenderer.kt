@@ -36,7 +36,7 @@ class SkillOrItemSelectionRenderer(
 	private val entryHeight = region.height / 15
 
 	private val entries = run {
-		if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) {
+		if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null && selectedMove.target == null) {
 			val player = battle.players[battle.onTurn!!.index]!!
 			val playerState = characterStates[player]!!
 			val skills = player.characterClass.skillClass.actions.filter { playerState.canCastSkill(it) }
@@ -45,7 +45,7 @@ class SkillOrItemSelectionRenderer(
 				rightNumber = if (skill.manaCost > 0) skill.manaCost else null,
 				isSelected = selectedMove.skill === skill
 			) }
-		} else if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) {
+		} else if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null && selectedMove.target == null) {
 			val player = battle.players[battle.onTurn!!.index]!!
 			val playerState = characterStates[player]!!
 			val itemSet = playerState.inventory.filter {

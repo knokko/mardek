@@ -109,6 +109,17 @@ class CharacterState {
 		return equipment.any { it?.equipment != null && it.equipment!!.skills.contains(skill) }
 	}
 
+	fun removeItem(item: Item): Boolean {
+		for ((index, stack) in inventory.withIndex()) {
+			if (stack != null && stack.item === item) {
+				inventory[index] = ItemStack(item, stack.amount - 1)
+				return true
+			}
+		}
+
+		return false
+	}
+
 	companion object {
 
 		@Suppress("unused")

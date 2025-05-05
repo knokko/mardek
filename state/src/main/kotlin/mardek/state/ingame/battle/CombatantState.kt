@@ -32,6 +32,8 @@ class CombatantState private constructor( // TODO Use BitField's
 	val statusEffects: HashSet<StatusEffect>,
 ) {
 
+	var lastPointedTo = 0L
+
 	/**
 	 * Incremented whenever the combatant spends a turn (e.g. by casting a spell), and reset at the end of every
 	 * battle round.

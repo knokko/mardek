@@ -146,11 +146,12 @@ class TestRenderer {
 				enemies = arrayOf(null, Enemy(monster = content.battle.monsters.find {
 					it.name == "Killer Cod"
 				}!!, level = 10), null, null),
-				enemyPositions = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!,
+				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!,
 				music = "peak",
 				background = content.battle.backgrounds.find { it.name == "volcano" }!!
 			),
 			players = arrayOf(mardek, null, deugan, null),
+			playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
 			campaignState = state.campaign
 		)
 

@@ -47,58 +47,65 @@ class UiSprites(
 	val plotItem: KimSprite,
 
 	@BitField(id = 13)
-	val mapChest: KimSprite,
+	val targetingMode: KimSprite,
 
 	@BitField(id = 14)
-	val mapSaveCrystal: KimSprite,
+	val mapChest: KimSprite,
 
 	@BitField(id = 15)
-	val mapDreamCircle: KimSprite,
+	val mapSaveCrystal: KimSprite,
 
 	@BitField(id = 16)
-	val skillToggled: KimSprite,
+	val mapDreamCircle: KimSprite,
 
 	@BitField(id = 17)
-	val skillNotToggled: KimSprite,
+	val skillToggled: KimSprite,
 
 	@BitField(id = 18)
-	val horizontalPointer: KimSprite,
+	val skillNotToggled: KimSprite,
 
 	@BitField(id = 19)
-	val verticalPointer: KimSprite,
+	val horizontalPointer: KimSprite,
 
 	@BitField(id = 20)
-	val diagonalPointer: KimSprite,
+	val flippedPointer: KimSprite,
 
 	@BitField(id = 21)
-	val titleScreenBackground: BcSprite,
+	val verticalPointer: KimSprite,
 
 	@BitField(id = 22)
-	val titleScreenTitle: BcSprite,
+	val diagonalPointer: KimSprite,
 
 	@BitField(id = 23)
-	val blueAlertBalloon: KimSprite,
+	val titleScreenBackground: BcSprite,
 
 	@BitField(id = 24)
-	val redAlertBalloon: KimSprite,
+	val titleScreenTitle: BcSprite,
 
 	@BitField(id = 25)
-	val consumableIcon: KimSprite,
+	val blueAlertBalloon: KimSprite,
 
 	@BitField(id = 26)
-	val waitIcon: KimSprite,
+	val redAlertBalloon: KimSprite,
 
 	@BitField(id = 27)
+	val consumableIcon: KimSprite,
+
+	@BitField(id = 28)
+	val waitIcon: KimSprite,
+
+	@BitField(id = 29)
 	val fleeIcon: KimSprite,
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
+		KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
+		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
+		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		BcSprite(), BcSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite()
 	)
@@ -107,9 +114,9 @@ class UiSprites(
 		attackIcon, defIcon, rangedDefIcon, activeStarIcon,
 		meleeAttackIcon, rangedAttackIcon,
 		meleeDefenseIcon, rangedDefenseIcon, passiveIcon,
-		goldIcon, mastered, treasure, plotItem,
-		mapChest, mapSaveCrystal, mapDreamCircle,
-		skillToggled, skillNotToggled, horizontalPointer, verticalPointer, diagonalPointer,
+		goldIcon, mastered, treasure, plotItem, targetingMode,
+		mapChest, mapSaveCrystal, mapDreamCircle, skillToggled, skillNotToggled,
+		horizontalPointer, flippedPointer, verticalPointer, diagonalPointer,
 		blueAlertBalloon, redAlertBalloon,
 		consumableIcon, waitIcon, fleeIcon
 	)

@@ -122,5 +122,7 @@ class PlayerBlockRenderer(
 
 		resources.kim2Renderer.submit(batch2, recorder, targetImage)
 		resources.kim1Renderer.submit(batch1, recorder, targetImage)
+
+		maybeRenderSelectionBlink(playerState, uiRenderer, region)
 	}
 }

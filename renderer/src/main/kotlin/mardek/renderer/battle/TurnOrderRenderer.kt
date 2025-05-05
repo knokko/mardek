@@ -32,6 +32,7 @@ class TurnOrderRenderer(
 
 	private fun shouldRender(selectedMove: BattleMoveSelection): Boolean {
 		if (slotWidth < 5) return false
+		if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) return false
 		if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) return false
 		if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) return false
 		return true

@@ -95,5 +95,7 @@ class EnemyBlockRenderer(
 		uiRenderer.endBatch()
 
 		resources.kim2Renderer.submit(kimBatch, recorder, targetImage)
+
+		maybeRenderSelectionBlink(enemyState, uiRenderer, region)
 	}
 }

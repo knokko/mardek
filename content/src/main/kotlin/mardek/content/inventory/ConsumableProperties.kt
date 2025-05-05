@@ -52,4 +52,6 @@ class ConsumableProperties(
 			"", 0, false, 0, 0, 0f, ArrayList(0),
 			ArrayList(0), false, ArrayList(0), null
 	)
+
+	fun isPositive() = damage == null && addStatusEffects.all { it.effect.isPositive }
 }

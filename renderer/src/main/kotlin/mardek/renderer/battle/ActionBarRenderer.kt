@@ -47,7 +47,17 @@ class ActionBarRenderer(
 		BattleMoveSelectionFlee -> 4
 	}
 
-	private fun shouldRender() = onTurn != null && onTurn.isPlayer && battle.currentMove == BattleMoveThinking
+	private fun isTargeting(): Boolean {
+		if (battle.currentMove !is BattleMoveThinking) return false
+		val selectedMove = battle.selectedMove
+		if (selectedMove is BattleMoveSelectionAttack) return selectedMove.target != null
+		if (selectedMove is BattleMoveSelectionSkill) return selectedMove.target != null
+		if (selectedMove is BattleMoveSelectionItem) return selectedMove.target != null
+		return false
+	}
+
+	private fun shouldRender() = onTurn != null && onTurn.isPlayer &&
+			battle.currentMove == BattleMoveThinking && !isTargeting()
 
 	private fun renderIcon(icon: KimSprite, x: Int) {
 		val request = KimRequest(

@@ -23,6 +23,11 @@ class CombatantReference(
 
 	internal constructor() : this(false, 0, BattleState())
 
+	override fun equals(other: Any?) = other is CombatantReference && this.isPlayer == other.isPlayer &&
+			this.index == other.index && this.battleState === other.battleState
+
+	override fun hashCode() = 13 * isPlayer.hashCode() + index
+
 	// TODO Properly distinguish missing combatants from dead combatants
 	fun isAlive() = if (isPlayer) battleState.playerStates[index] != null
 	else battleState.enemyStates[index] != null

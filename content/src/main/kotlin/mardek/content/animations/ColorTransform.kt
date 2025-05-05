@@ -16,5 +16,6 @@ class ColorTransform(
 	val multiplyColor: Int,
 ) {
 
-	constructor() : this(0, 0)
+	@Suppress("unused")
+	private constructor() : this(0, 0)
 }
