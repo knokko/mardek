@@ -28,6 +28,8 @@ class CombatantReference(
 
 	override fun hashCode() = 13 * isPlayer.hashCode() + index
 
+	override fun toString() = "CombatantReference(${if (isPlayer) "player" else "enemy"} $index)"
+
 	// TODO Properly distinguish missing combatants from dead combatants
 	fun isAlive() = if (isPlayer) battleState.playerStates[index] != null
 	else battleState.enemyStates[index] != null

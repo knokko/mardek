@@ -108,12 +108,14 @@ class BattleState(
 						changeSelectedMove(BattleMoveSelectionSkill(skill = selectedMove.skill, target = null), soundQueue)
 					} else {
 						changeSelectedMove(BattleMoveSelectionSkill(skill = null, target = null), soundQueue)
+						soundQueue.insert("click-cancel")
 					}
 				} else if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) {
 					if (selectedMove.target != null) {
 						changeSelectedMove(BattleMoveSelectionItem(item = selectedMove.item, target = null), soundQueue)
 					} else {
 						changeSelectedMove(BattleMoveSelectionItem(item = null, target = null), soundQueue)
+						soundQueue.insert("click-cancel")
 					}
 				} else {
 					this.currentMove = BattleMoveWait
@@ -126,7 +128,7 @@ class BattleState(
 				isPlayer = false, index = enemyStates.indexOfFirst { it != null }, this
 			)
 			val firstPlayerTarget = CombatantReference(
-				isPlayer = true, index = playerStates.indexOfFirst { it != null }, this
+				isPlayer = true, index = onTurn.index, this
 			)
 			if (key == InputKey.Interact) {
 				if (selectedMove is BattleMoveSelectionAttack) {
@@ -181,7 +183,6 @@ class BattleState(
 					} else soundQueue.insert("click-reject")
 				}
 				if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) {
-					soundQueue.insert("click-confirm")
 					if (selectedMove.target == null) {
 						val target = if (selectedMove.item.consumable!!.isPositive()) firstPlayerTarget else firstEnemyTarget
 						changeSelectedMove(BattleMoveSelectionItem(selectedMove.item, target), soundQueue)
