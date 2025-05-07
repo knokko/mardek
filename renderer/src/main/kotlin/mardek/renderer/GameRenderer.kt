@@ -1,6 +1,5 @@
 package mardek.renderer
 
-import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
@@ -15,7 +14,6 @@ import org.lwjgl.vulkan.VkRenderPassBeginInfo
 import java.util.concurrent.CompletableFuture
 
 class GameRenderer(
-	private val boiler: BoilerInstance,
 	private val resources: CompletableFuture<SharedResources>,
 ) {
 
@@ -25,17 +23,19 @@ class GameRenderer(
 	) {
 		if (state is StartupState) return
 
-		resources.join().perFrameBuffer.startFrame(frameIndex)
+		val resources = resources.join()
+		resources.perFrameBuffer.startFrame(frameIndex)
 
 		val renderer = createRenderer(state)
-		renderer.beforeRendering(recorder, targetImage, frameIndex)
+		val context = RenderContext(resources, state, recorder, targetImage, frameIndex)
+		renderer.beforeRendering(context)
 
 		val clearValues = VkClearValue.calloc(1, recorder.stack)
 		clearValues.get(0).color().float32(recorder.stack.floats(0f, 0f, 0f, 1f)) // TODO Let renderer decide background color
 
 		val biRenderPass = VkRenderPassBeginInfo.calloc(recorder.stack)
 		biRenderPass.`sType$Default`()
-		biRenderPass.renderPass(resources.join().renderPass)
+		biRenderPass.renderPass(resources.renderPass)
 		biRenderPass.framebuffer(framebuffer)
 		biRenderPass.renderArea().offset().set(0, 0)
 		biRenderPass.renderArea().extent().set(targetImage.width, targetImage.height)
@@ -45,7 +45,7 @@ class GameRenderer(
 		vkCmdBeginRenderPass(recorder.commandBuffer, biRenderPass, VK_SUBPASS_CONTENTS_INLINE)
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
-		renderer.render(recorder, targetImage, frameIndex)
+		renderer.render(context)
 
 		vkCmdEndRenderPass(recorder.commandBuffer)
 	}
@@ -55,8 +55,8 @@ class GameRenderer(
 	}
 
 	private fun createRenderer(state: GameState): StateRenderer {
-		if (state is InGameState) return InGameRenderer(state, boiler, resources.join())
-		if (state is TitleScreenState) return TitleScreenRenderer(boiler, resources.join(), state)
+		if (state is InGameState) return InGameRenderer(state)
+		if (state is TitleScreenState) return TitleScreenRenderer(state)
 
 		throw UnsupportedOperationException("Unexpected state $state")
 	}

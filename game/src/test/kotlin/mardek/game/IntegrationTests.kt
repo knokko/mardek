@@ -122,7 +122,7 @@ class IntegrationTests {
 		state: InGameState, width: Int, height: Int, name: String,
 		expectedColors: Array<Color>, forbiddenColors: Array<Color>,
 	) {
-		val renderer = GameRenderer(boiler, getResources)
+		val renderer = GameRenderer(getResources)
 
 		val targetImage = ImageBuilder("TargetImage($name)", width, height)
 			.format(VK_FORMAT_R8G8B8A8_SRGB)

@@ -1,38 +1,36 @@
 package mardek.renderer.ui
 
-import com.github.knokko.boiler.BoilerInstance
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
-import com.github.knokko.ui.renderer.UiRenderer
-import mardek.renderer.SharedResources
+import mardek.renderer.RenderContext
 import mardek.renderer.StateRenderer
 import mardek.state.title.AbsoluteRectangle
 import mardek.state.title.TitleScreenState
 
 class TitleScreenRenderer(
-	boiler: BoilerInstance,
-	private val resources: SharedResources,
 	private val state: TitleScreenState,
-): StateRenderer(boiler) {
+): StateRenderer() {
 
-	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		val renderer = resources.uiRenderers[frameIndex]
-		renderer.begin(recorder, targetImage)
-		renderer.beginBatch()
+	override fun render(context: RenderContext) {
+		context.uiRenderer.begin(context.recorder, context.targetImage)
+		context.uiRenderer.beginBatch()
 
-		renderer.drawImage(resources.bcImages[state.assets.ui.titleScreenBackground.index], 0, 0, targetImage.width, targetImage.height)
+		context.uiRenderer.drawImage(
+			context.resources.bcImages[state.assets.ui.titleScreenBackground.index],
+			0, 0, context.targetImage.width, context.targetImage.height
+		)
 
-		val transform = CoordinateTransform.create(SpaceLayout.GrowRight, targetImage.width, targetImage.height)
+		val transform = CoordinateTransform.create(
+			SpaceLayout.GrowRight, context.targetImage.width, context.targetImage.height
+		)
 
 		run {
 			val height = 0.2f
 			// TODO Export title with higher quality
-			val image = resources.bcImages[state.assets.ui.titleScreenTitle.index]
+			val image = context.resources.bcImages[state.assets.ui.titleScreenTitle.index]
 			val titleRect = transform.transform(0.05f, 0.77f, height * image.width / image.height, height)
-			renderer.drawImage(image, titleRect.minX, titleRect.minY, titleRect.maxX, titleRect.maxY)
+			context.uiRenderer.drawImage(image, titleRect.minX, titleRect.minY, titleRect.maxX, titleRect.maxY)
 		}
 
 		run {
@@ -40,24 +38,24 @@ class TitleScreenRenderer(
 			val heightA = transform.transformHeight(0.07f)
 			val baseY = transform.transformY(0.63f)
 			val darkTint = srgbToLinear(rgb(185, 131, 60))
-			renderer.drawString(
-				resources.font, "Revival project", srgbToLinear(rgb(242, 183, 113)), IntArray(0),
+			context.uiRenderer.drawString(
+				context.resources.font, "Revival project", srgbToLinear(rgb(242, 183, 113)), IntArray(0),
 				subtitleRect.minX, subtitleRect.minY, subtitleRect.maxX, subtitleRect.maxY, baseY, heightA, 1, TextAlignment.DEFAULT,
 				Gradient(0, baseY - subtitleRect.minY - heightA / 3, 1000, heightA, darkTint, darkTint, darkTint)
 			)
 		}
 
-		state.newGameButton = renderButton(transform, renderer, "New Game", 0.46f, 0)
-		state.loadGameButton = renderButton(transform, renderer, "Load Game", 0.36f, 1)
-		state.musicPlayerButton = renderButton(transform, renderer, "Music Player", 0.26f, 2)
-		state.quitButton = renderButton(transform, renderer, "Quit", 0.16f, 3)
+		state.newGameButton = renderButton(transform, context, "New Game", 0.46f, 0)
+		state.loadGameButton = renderButton(transform, context, "Load Game", 0.36f, 1)
+		state.musicPlayerButton = renderButton(transform, context, "Music Player", 0.26f, 2)
+		state.quitButton = renderButton(transform, context, "Quit", 0.16f, 3)
 
-		renderer.endBatch()
-		renderer.end()
+		context.uiRenderer.endBatch()
+		context.uiRenderer.end()
 	}
 
 	private fun renderButton(
-		transform: CoordinateTransform, renderer: UiRenderer, text: String, minY: Float, buttonIndex: Int
+		transform: CoordinateTransform, context: RenderContext, text: String, minY: Float, buttonIndex: Int
 	): AbsoluteRectangle {
 		val rect = transform.transform(0.3f, minY, 0.5f, 0.08f)
 		val outlineWidth = transform.transformHeight(0.005f)
@@ -77,9 +75,9 @@ class TitleScreenRenderer(
 		val rightAlpha = 200
 
 		fun fillColors(borderTopLeft: Int, borderBottomRight: Int, left: Int, right: Int) {
-			renderer.fillColor(rect.minX, rect.minY, rect.maxX, rect.minY + outlineWidth - 1, borderTopLeft)
-			renderer.fillColor(rect.minX, rect.minY, rect.minX + outlineWidth - 1, rect.maxY, borderTopLeft)
-			renderer.fillColor(
+			context.uiRenderer.fillColor(rect.minX, rect.minY, rect.maxX, rect.minY + outlineWidth - 1, borderTopLeft)
+			context.uiRenderer.fillColor(rect.minX, rect.minY, rect.minX + outlineWidth - 1, rect.maxY, borderTopLeft)
+			context.uiRenderer.fillColor(
 				rect.minX + outlineWidth, rect.minY + outlineWidth, rect.maxX, rect.maxY, borderBottomRight,
 				Gradient(0, 0, rect.width - 2 * outlineWidth, rect.height - 2 * outlineWidth, left, right, left)
 			)
@@ -93,8 +91,8 @@ class TitleScreenRenderer(
 		val textOffsetX = rect.minX + transform.transformWidth(0.05f)
 		val textBaseY = rect.maxY - transform.transformHeight(0.02f)
 		val textHeight = transform.transformHeight(0.045f)
-		renderer.drawString(
-			resources.font, text, lowerTextColor, outlineColors, textOffsetX, rect.minY, rect.maxX, rect.maxY,
+		context.uiRenderer.drawString(
+			context.resources.font, text, lowerTextColor, outlineColors, textOffsetX, rect.minY, rect.maxX, rect.maxY,
 			textBaseY, textHeight, 1, TextAlignment.DEFAULT,
 			Gradient(0, 0, rect.width, rect.height / 2, upperTextColor, upperTextColor, upperTextColor)
 		)

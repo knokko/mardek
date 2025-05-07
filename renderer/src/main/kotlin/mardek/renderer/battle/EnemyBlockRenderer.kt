@@ -1,11 +1,8 @@
 package mardek.renderer.battle
 
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
-import mardek.renderer.SharedResources
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.ui.ResourceBarRenderer
@@ -16,21 +13,17 @@ import mardek.state.title.AbsoluteRectangle
 import kotlin.math.roundToInt
 
 class EnemyBlockRenderer(
-	private val resources: SharedResources,
-	frameIndex: Int,
+	private val context: BattleRenderContext,
 	private val enemy: Enemy,
 	private val enemyState: CombatantState,
 	private val region: AbsoluteRectangle,
-	private val recorder: CommandRecorder,
-	private val targetImage: VkbImage,
 ) {
 
-	private val uiRenderer = resources.uiRenderers[frameIndex]
 	private var nameX = 0
 	private lateinit var kimBatch: KimBatch
 
 	fun beforeRendering() {
-		kimBatch = resources.kim2Renderer.startBatch()
+		kimBatch = context.resources.kim2Renderer.startBatch()
 		val sprite = enemy.monster.element.sprite
 		val marginY = region.height / 20
 		val scale = (region.height - 2 * marginY) / sprite.height.toFloat()
@@ -42,7 +35,7 @@ class EnemyBlockRenderer(
 
 	fun render() {
 		val element = enemy.monster.element
-		uiRenderer.beginBatch()
+		context.uiRenderer.beginBatch()
 		run {
 			val marginY = region.height / 10
 			val minX = region.minX + region.height / 2
@@ -50,21 +43,21 @@ class EnemyBlockRenderer(
 			val maxX = minX + 3 * region.width / 4
 			val maxY = region.minY + region.height / 2
 			val weakColor = rgba(red(element.color), green(element.color), blue(element.color), 150.toByte())
-			uiRenderer.fillColorUnaligned(
+			context.uiRenderer.fillColorUnaligned(
 				minX, maxY, maxX, maxY, maxX - region.height / 2, minY, minX, minY, 0,
 				Gradient(minX, minY, region.width, region.height, weakColor, 0, weakColor)
 			)
 
 			val textColor = srgbToLinear(rgb(238, 203, 127))
-			uiRenderer.drawString(
-				resources.font, enemy.monster.name, textColor, IntArray(0),
+			context.uiRenderer.drawString(
+				context.resources.font, enemy.monster.name, textColor, IntArray(0),
 				nameX, region.minY, region.maxX, maxY, maxY - marginY,
 				3 * region.height / 10, 1, TextAlignment.LEFT
 			)
 		}
 
 		run {
-			val healthBar = ResourceBarRenderer(resources.font, uiRenderer, ResourceType.Health, AbsoluteRectangle(
+			val healthBar = ResourceBarRenderer(context, ResourceType.Health, AbsoluteRectangle(
 				region.minX + region.height / 2, region.minY + 6 * region.height / 10,
 				78 * region.width / 100 - region.height / 2, 2 * region.height / 10
 			))
@@ -75,8 +68,8 @@ class EnemyBlockRenderer(
 		run {
 			val minX = region.minX + 80 * region.width / 100
 			val color = srgbToLinear(rgb(239, 214, 95))
-			uiRenderer.drawString(
-				resources.font, "Lv${enemy.level}", color, IntArray(0),
+			context.uiRenderer.drawString(
+				context.resources.font, "Lv${enemy.level}", color, IntArray(0),
 				minX, region.minY, region.maxX, region.maxY,
 				region.maxY - region.height / 6, region.height / 4, 1, TextAlignment.LEFT
 			)
@@ -87,15 +80,15 @@ class EnemyBlockRenderer(
 			val minY = region.minY + region.height / 20
 			val color = srgbToLinear(rgb(86, 63, 31))
 			val margin = region.height / 10
-			uiRenderer.fillCircle(
+			context.uiRenderer.fillCircle(
 				region.minX + margin, minY + margin,
 				region.minX + diameter - 1 - margin, minY + diameter - 1 - margin, color
 			)
 		}
-		uiRenderer.endBatch()
+		context.uiRenderer.endBatch()
 
-		resources.kim2Renderer.submit(kimBatch, recorder, targetImage)
+		context.resources.kim2Renderer.submit(kimBatch, context.recorder, context.targetImage)
 
-		maybeRenderSelectionBlink(enemyState, uiRenderer, region)
+		maybeRenderSelectionBlink(enemyState, context.uiRenderer, region)
 	}
 }

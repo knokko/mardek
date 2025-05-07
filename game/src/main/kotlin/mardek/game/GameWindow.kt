@@ -41,7 +41,7 @@ class GameWindow(
 
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
-		renderer = GameRenderer(boiler, getResources)
+		renderer = GameRenderer(getResources)
 		framebuffers = SwapchainResourceManager({ swapchainImage: AcquiredImage ->
 				boiler.images.createFramebuffer(
 					getResources.join().renderPass, swapchainImage.width(), swapchainImage.height(),

@@ -1,12 +1,9 @@
 package mardek.renderer.area
 
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
-import mardek.content.ui.UiSprites
-import mardek.renderer.SharedResources
+import mardek.renderer.InGameRenderContext
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.ui.renderDescription
 import mardek.state.ingame.area.loot.ObtainedItemStack
@@ -14,19 +11,17 @@ import mardek.state.ingame.area.loot.ObtainedItemStack
 private val referenceTime = System.nanoTime()
 
 class AreaLootRenderer(
-	private val ui: UiSprites,
+	private val context: InGameRenderContext,
 	private val obtainedItemStack: ObtainedItemStack,
-	private val resources: SharedResources,
 	private val scale: Int,
-	targetImage: VkbImage,
 ) {
 
-	private val kimBatch = resources.kim1Renderer.startBatch()
+	private val kimBatch = context.resources.kim1Renderer.startBatch()
 
 	private val rectWidth = 120 * scale
 	private val rectHeight = 90 * scale
-	private val rectMinX = (targetImage.width - rectWidth) / 2
-	private val rectMinY = (targetImage.height - rectHeight) / 3
+	private val rectMinX = (context.targetImage.width - rectWidth) / 2
+	private val rectMinY = (context.targetImage.height - rectHeight) / 3
 	private val rectMaxX = rectMinX + rectWidth - 1
 	private val rectMaxY = rectMinY + rectHeight - 1
 
@@ -43,7 +38,7 @@ class AreaLootRenderer(
 		if (obtainedItemStack.itemStack != null) {
 			kimBatch.requests.add(KimRequest(
 				x = rectMinX, y = rectMinY - 10 * scale, scale = scale / 2.5f,
-				sprite = ui.treasure, opacity = 1f
+				sprite = context.content.ui.treasure, opacity = 1f
 			))
 
 			for ((column, character) in obtainedItemStack.party.withIndex()) {
@@ -62,22 +57,22 @@ class AreaLootRenderer(
 		} else {
 			kimBatch.requests.add(KimRequest(
 				x = rectMinX, y = rectMinY - 13 * scale, scale = scale / 2.5f,
-				sprite = ui.plotItem, opacity = 1f
+				sprite = context.content.ui.plotItem, opacity = 1f
 			))
 		}
 	}
 
-	fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		val uiRenderer = resources.uiRenderers[frameIndex]
-		uiRenderer.beginBatch()
-		uiRenderer.fillColor(
-			0, 0, targetImage.width, targetImage.height, srgbToLinear(rgba(37, 26, 17, 254))
+	fun render() {
+		context.uiRenderer.beginBatch()
+		context.uiRenderer.fillColor(
+			0, 0, context.targetImage.width, context.targetImage.height,
+			srgbToLinear(rgba(37, 26, 17, 254))
 		)
 
 		val leftColor = srgbToLinear(rgb(25, 15, 11))
 		val rightColor = srgbToLinear(rgb(107, 88, 50))
 		val upColor = srgbToLinear(rgb(58, 48, 43))
-		uiRenderer.fillColor(
+		context.uiRenderer.fillColor(
 			rectMinX, rectMinY, rectMaxX, rectMaxY, srgbToLinear(rgb(155, 138, 95)),
 			Gradient(1, 1, rectWidth - 2, rectHeight - 2, leftColor, rightColor, leftColor),
 			Gradient(
@@ -89,16 +84,16 @@ class AreaLootRenderer(
 		val goldColor = srgbToLinear(rgb(255, 204, 0))
 		if (obtainedItemStack.plotItem != null) {
 			val margin = 2 * scale
-			uiRenderer.fillColor(
+			context.uiRenderer.fillColor(
 				rectMinX - margin, rectMinY - margin, rectMaxX + margin, rectMinY - margin, goldColor
 			)
-			uiRenderer.fillColor(
+			context.uiRenderer.fillColor(
 				rectMinX - margin, rectMaxY + margin, rectMaxX + margin, rectMaxY + margin, goldColor
 			)
-			uiRenderer.fillColor(
+			context.uiRenderer.fillColor(
 				rectMinX - margin, rectMinY - margin, rectMinX - margin, rectMaxY + margin, goldColor
 			)
-			uiRenderer.fillColor(
+			context.uiRenderer.fillColor(
 				rectMaxX + margin, rectMinY - margin, rectMaxX + margin, rectMaxY + margin, goldColor
 			)
 		}
@@ -110,18 +105,18 @@ class AreaLootRenderer(
 		val (itemName, description) = if (obtainedItemStack.itemStack != null) {
 			Pair(obtainedItemStack.itemStack!!.item.flashName, obtainedItemStack.itemStack!!.item.description)
 		} else Pair(obtainedItemStack.plotItem!!.name, obtainedItemStack.plotItem!!.description)
-		uiRenderer.drawString(
-			resources.font, itemName, brightTextColor, intArrayOf(),
-			minTextX, 0, maxTextX, targetImage.height, rectMinY + 9 * scale, 5 * scale,
+		context.uiRenderer.drawString(
+			context.resources.font, itemName, brightTextColor, intArrayOf(),
+			minTextX, 0, maxTextX, context.targetImage.height, rectMinY + 9 * scale, 5 * scale,
 			1, TextAlignment.DEFAULT
 		)
 
 		var textY = rectMinY + 20 * scale
 
 		fun drawLine(currentLine: String) {
-			uiRenderer.drawString(
-				resources.font, currentLine, srgbToLinear(rgb(197, 183, 134)), intArrayOf(),
-				minTextX, 0, maxTextX, targetImage.height, textY, 4 * scale, 1, TextAlignment.DEFAULT
+			context.uiRenderer.drawString(
+				context.resources.font, currentLine, srgbToLinear(rgb(197, 183, 134)), intArrayOf(),
+				minTextX, 0, maxTextX, context.targetImage.height, textY, 4 * scale, 1, TextAlignment.DEFAULT
 			)
 			textY += 8 * scale
 		}
@@ -129,9 +124,9 @@ class AreaLootRenderer(
 		renderDescription(description, 45, ::drawLine)
 
 		if (obtainedItemStack.itemStack != null) {
-			uiRenderer.drawString(
-				resources.font, "x ${obtainedItemStack.itemStack!!.amount}", brightTextColor, intArrayOf(),
-				rectMaxX + 4 * scale, 0, targetImage.width, targetImage.height,
+			context.uiRenderer.drawString(
+				context.resources.font, "x ${obtainedItemStack.itemStack!!.amount}", brightTextColor, intArrayOf(),
+				rectMaxX + 4 * scale, 0, context.targetImage.width, context.targetImage.height,
 				rectMaxY - scale, 8 * scale, 1, TextAlignment.LEFT
 			)
 
@@ -142,7 +137,7 @@ class AreaLootRenderer(
 				if (column == obtainedItemStack.partyIndex) {
 					val borderColor = srgbToLinear(rgb(99, 128, 177))
 					val lowColor = srgbToLinear(rgb(19, 65, 114))
-					uiRenderer.fillColor(
+					context.uiRenderer.fillColor(
 						minX, rectMaxY + 3 * scale, minX + 18 * scale + 1, rectMaxY + 21 * scale + 1, borderColor,
 						Gradient(1, 1, 18 * scale, 18 * scale, lowColor, lowColor, 0)
 					)
@@ -158,37 +153,37 @@ class AreaLootRenderer(
 						alreadyHas += itemStack.amount
 					}
 				}
-				uiRenderer.drawString(
-					resources.font, alreadyHas.toString(), brightTextColor, intArrayOf(),
-					minX, rectMaxY, minX + 18 * scale, targetImage.height,
+				context.uiRenderer.drawString(
+					context.resources.font, alreadyHas.toString(), brightTextColor, intArrayOf(),
+					minX, rectMaxY, minX + 18 * scale, context.targetImage.height,
 					rectMaxY + 32 * scale, 6 * scale, 1, TextAlignment.CENTER
 				)
 			}
 
-			uiRenderer.drawString(
-				resources.font, "Already has:", brightTextColor, intArrayOf(),
-				0, rectMaxY, rectMinX - 2 * scale, targetImage.height,
+			context.uiRenderer.drawString(
+				context.resources.font, "Already has:", brightTextColor, intArrayOf(),
+				0, rectMaxY, rectMinX - 2 * scale, context.targetImage.height,
 				rectMaxY + 32 * scale, 4 * scale, 1, TextAlignment.RIGHT
 			)
-			uiRenderer.drawString(
-				resources.font, "Space:", brightTextColor, intArrayOf(),
-				0, rectMaxY, rectMinX - 2 * scale, targetImage.height,
+			context.uiRenderer.drawString(
+				context.resources.font, "Space:", brightTextColor, intArrayOf(),
+				0, rectMaxY, rectMinX - 2 * scale, context.targetImage.height,
 				rectMaxY + 43 * scale, 4 * scale, 1, TextAlignment.RIGHT
 			)
 		}
 
-		uiRenderer.endBatch()
+		context.uiRenderer.endBatch()
 
 		if (obtainedItemStack.itemStack != null) {
-			resources.colorGridRenderer.startBatch(recorder)
+			context.resources.colorGridRenderer.startBatch(context.recorder)
 			for ((column, character) in obtainedItemStack.party.withIndex()) {
 				if (character == null) continue
 				val inventory = obtainedItemStack.characters[character]!!.inventory
 				if (inventory.size % 8 != 0) throw Error("Huh? inventory size is ${inventory.size}")
 
 				val minX = rectMinX + columnWidth * column + scale
-				val colorIndexBuffer = resources.colorGridRenderer.drawGrid(
-					recorder, targetImage, minX, rectMaxY + 40 * scale,
+				val colorIndexBuffer = context.resources.colorGridRenderer.drawGrid(
+					context.recorder, context.targetImage, minX, rectMaxY + 40 * scale,
 					8, inventory.size / 8, 0, 2 * scale
 				)
 
@@ -214,9 +209,9 @@ class AreaLootRenderer(
 					colorIndexBuffer.put(indices.toInt())
 				}
 			}
-			resources.colorGridRenderer.endBatch()
+			context.resources.colorGridRenderer.endBatch()
 		}
 
-		resources.kim1Renderer.submit(kimBatch, recorder, targetImage)
+		context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)
 	}
 }

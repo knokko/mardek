@@ -1,35 +1,23 @@
 package mardek.renderer.battle
 
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.CircleGradient
 import com.github.knokko.ui.renderer.Gradient
-import mardek.content.Content
 import mardek.content.sprite.KimSprite
-import mardek.renderer.SharedResources
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
-import mardek.state.ingame.CampaignState
 import mardek.state.ingame.battle.*
 import mardek.state.title.AbsoluteRectangle
 import kotlin.math.max
 import kotlin.math.roundToInt
 
 class ActionBarRenderer(
-	private val content: Content,
-	private val campaign: CampaignState,
-	private val battle: BattleState,
-	private val resources: SharedResources,
-	private val recorder: CommandRecorder,
-	private val targetImage: VkbImage,
-	frameIndex: Int,
+	private val context: BattleRenderContext,
 	private val region: AbsoluteRectangle,
 ) {
 
-	private val onTurn = battle.onTurn
-	private val uiRenderer = resources.uiRenderers[frameIndex]
+	private val onTurn = context.battle.onTurn
 	private lateinit var batch1: KimBatch
 	private lateinit var batch2: KimBatch
 
@@ -39,7 +27,7 @@ class ActionBarRenderer(
 	private val highDashX = region.minX + 2 * region.width / 3
 	private val lowDashX = highDashX - region.height
 
-	private val selectedIndex = when (battle.selectedMove) {
+	private val selectedIndex = when (context.battle.selectedMove) {
 		is BattleMoveSelectionAttack -> 0
 		is BattleMoveSelectionSkill -> 1
 		is BattleMoveSelectionItem -> 2
@@ -48,8 +36,8 @@ class ActionBarRenderer(
 	}
 
 	private fun isTargeting(): Boolean {
-		if (battle.currentMove !is BattleMoveThinking) return false
-		val selectedMove = battle.selectedMove
+		if (context.battle.currentMove !is BattleMoveThinking) return false
+		val selectedMove = context.battle.selectedMove
 		if (selectedMove is BattleMoveSelectionAttack) return selectedMove.target != null
 		if (selectedMove is BattleMoveSelectionSkill) return selectedMove.target != null
 		if (selectedMove is BattleMoveSelectionItem) return selectedMove.target != null
@@ -57,7 +45,7 @@ class ActionBarRenderer(
 	}
 
 	private fun shouldRender() = onTurn != null && onTurn.isPlayer &&
-			battle.currentMove == BattleMoveThinking && !isTargeting()
+			context.battle.currentMove == BattleMoveThinking && !isTargeting()
 
 	private fun renderIcon(icon: KimSprite, x: Int) {
 		val request = KimRequest(
@@ -74,11 +62,11 @@ class ActionBarRenderer(
 	fun beforeRendering() {
 		if (!shouldRender()) return
 
-		batch1 = resources.kim1Renderer.startBatch()
-		batch2 = resources.kim2Renderer.startBatch()
+		batch1 = context.resources.kim1Renderer.startBatch()
+		batch2 = context.resources.kim2Renderer.startBatch()
 
-		val player = battle.players[onTurn!!.index]!!
-		val state = campaign.characterStates[player]!!
+		val player = context.battle.players[onTurn!!.index]!!
+		val state = context.campaign.characterStates[player]!!
 		renderIcon(player.element.sprite, region.maxX - region.height - marginX)
 
 		run {
@@ -91,24 +79,24 @@ class ActionBarRenderer(
 
 			renderIcon(state.equipment[0]!!.sprite, iconPositions[0])
 			renderIcon(player.characterClass.skillClass.icon, iconPositions[1])
-			renderIcon(content.ui.consumableIcon, iconPositions[2])
-			renderIcon(content.ui.waitIcon, iconPositions[3])
-			renderIcon(content.ui.fleeIcon, iconPositions[4])
+			renderIcon(context.content.ui.consumableIcon, iconPositions[2])
+			renderIcon(context.content.ui.waitIcon, iconPositions[3])
+			renderIcon(context.content.ui.fleeIcon, iconPositions[4])
 		}
 
 		var showPointer = true
-		val selectedMove = battle.selectedMove
+		val selectedMove = context.battle.selectedMove
 		if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) showPointer = false
 		if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) showPointer = false
 		if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) showPointer = false
 
 		if (showPointer) {
-			val pointerScale = region.height.toFloat() / content.ui.verticalPointer.height
+			val pointerScale = region.height.toFloat() / context.content.ui.verticalPointer.height
 			batch1.requests.add(KimRequest(
-				x = iconPositions[selectedIndex] + region.height / 2 - marginY - (pointerScale * content.ui.verticalPointer.width / 2).roundToInt(),
+				x = iconPositions[selectedIndex] + region.height / 2 - marginY - (pointerScale * context.content.ui.verticalPointer.width / 2).roundToInt(),
 				y = region.minY - 4 * region.height / 5,
 				scale = pointerScale,
-				sprite = content.ui.verticalPointer,
+				sprite = context.content.ui.verticalPointer,
 				opacity = 1f
 			))
 		}
@@ -116,14 +104,14 @@ class ActionBarRenderer(
 
 	fun render() {
 		if (!shouldRender()) return
-		val player = battle.players[onTurn!!.index]!!
+		val player = context.battle.players[onTurn!!.index]!!
 
 		val lineWidth = max(1, region.height / 30)
 		val lineColor = srgbToLinear(rgb(208, 193, 142))
 		val textColor = srgbToLinear(rgb(238, 203, 117))
 		val textOutline = intArrayOf(textColor, rgba(0, 0, 0, 200))
-		uiRenderer.beginBatch()
-		uiRenderer.fillColorUnaligned(
+		context.uiRenderer.beginBatch()
+		context.uiRenderer.fillColorUnaligned(
 			region.minX, region.maxY, lowDashX, region.maxY,
 			highDashX, region.minY, region.minX, region.minY,
 			rgba(0, 0, 0, 100)
@@ -135,18 +123,18 @@ class ActionBarRenderer(
 				val minX = x + region.height / 2
 				val width = region.width / 3
 				val gradientColor = rgba(red(lineColor), green(lineColor), blue(lineColor), 35.toByte())
-				uiRenderer.fillColor(
+				context.uiRenderer.fillColor(
 					minX, region.minY + marginY, minX + width, region.maxY - marginY, 0,
 					Gradient(0, 0, width, region.height, gradientColor, 0, gradientColor)
 				)
 			}
-			uiRenderer.fillCircle(
+			context.uiRenderer.fillCircle(
 				x, region.minY + marginY, x + region.height - 2 * marginY, region.maxY - marginY,
 				circleColor, CircleGradient(0.85f, 1f, circleColor, lineColor)
 			)
 
 			if (x == iconPositions[selectedIndex]) {
-				uiRenderer.fillCircle(
+				context.uiRenderer.fillCircle(
 					x, region.minY + marginY, x + region.height - 2 * marginY, region.maxY - marginY,
 					rgba(0, 50, 255, 100)
 				)
@@ -158,38 +146,38 @@ class ActionBarRenderer(
 					4 -> "Flee"
 					else -> throw Error("Unexpected selectedIndex $selectedIndex")
 				}
-				uiRenderer.drawString(
-					resources.font, text, textColor, IntArray(0),
+				context.uiRenderer.drawString(
+					context.resources.font, text, textColor, IntArray(0),
 					x + region.height, region.minY, x + region.height + region.width / 5, region.maxY,
 					region.maxY - region.height / 4, 4 * region.height / 9, 1, TextAlignment.LEFT
 				)
 			}
 		}
 
-		uiRenderer.fillColorUnaligned(
+		context.uiRenderer.fillColorUnaligned(
 			lowDashX, region.maxY, region.maxX, region.maxY,
 			region.maxX, region.minY, highDashX, region.minY,
 			srgbToLinear(rgb(82, 62, 37))
 		)
-		uiRenderer.fillColorUnaligned(
+		context.uiRenderer.fillColorUnaligned(
 			lowDashX, region.maxY - marginY, region.maxX, region.maxY - marginY,
 			region.maxX, region.minY + marginY, highDashX + marginX - 2 * marginY, region.minY + marginY,
 			0, Gradient(region.minX + region.width / 2, region.minY, region.width, region.height, 0, player.element.color, 0)
 		)
-		uiRenderer.drawString(
-			resources.font, player.name, textColor, textOutline,
+		context.uiRenderer.drawString(
+			context.resources.font, player.name, textColor, textOutline,
 			highDashX, region.minY, region.maxX - region.height - 3 * marginX, region.maxY,
 			region.maxY - region.height / 3, region.height / 2, 1, TextAlignment.RIGHT
 		)
-		uiRenderer.fillColor(region.minX, region.minY, region.maxX, region.minY + lineWidth - 1, lineColor)
-		uiRenderer.fillColor(region.minX, 1 + region.maxY - lineWidth, region.maxX, region.maxY, lineColor)
-		uiRenderer.fillColorUnaligned(
+		context.uiRenderer.fillColor(region.minX, region.minY, region.maxX, region.minY + lineWidth - 1, lineColor)
+		context.uiRenderer.fillColor(region.minX, 1 + region.maxY - lineWidth, region.maxX, region.maxY, lineColor)
+		context.uiRenderer.fillColorUnaligned(
 			lowDashX, region.maxY, lowDashX + 3 * lineWidth - 1, region.maxY,
 			highDashX + 3 * lineWidth - 1, region.minY, highDashX, region.minY, lineColor
 		)
-		uiRenderer.endBatch()
+		context.uiRenderer.endBatch()
 
-		resources.kim1Renderer.submit(batch1, recorder, targetImage)
-		resources.kim2Renderer.submit(batch2, recorder, targetImage)
+		context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)
+		context.resources.kim2Renderer.submit(batch2, context.recorder, context.targetImage)
 	}
 }

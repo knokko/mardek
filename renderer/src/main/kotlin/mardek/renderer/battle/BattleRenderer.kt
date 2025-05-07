@@ -8,6 +8,7 @@ import mardek.content.Content
 import mardek.content.animations.BattleModel
 import mardek.content.animations.ColorTransform
 import mardek.content.battle.PartyLayoutPosition
+import mardek.renderer.InGameRenderContext
 import mardek.renderer.SharedResources
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.battle.BattleState
@@ -17,40 +18,30 @@ import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.lang.Math.toIntExact
 
-class BattleRenderer(
-	content: Content,
-	private val campaign: CampaignState,
-	private val recorder: CommandRecorder,
-	private val targetImage: VkbImage,
-	private val frameIndex: Int,
-	private val state: BattleState,
-	private val resources: SharedResources,
-) {
+class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 
-	private val turnOrderRenderer = TurnOrderRenderer(state, resources, recorder, targetImage, frameIndex, AbsoluteRectangle(
-		minX = 0, minY = targetImage.height / 12, width = targetImage.width, height = targetImage.height / 12
+	private val context = BattleRenderContext(battleState, context)
+
+	private val turnOrderRenderer = TurnOrderRenderer(this.context, AbsoluteRectangle(
+		minX = 0, minY = context.targetImage.height / 12,
+		width = context.targetImage.width, height = context.targetImage.height / 12
 	))
-	private val actionBarRenderer = ActionBarRenderer(content, campaign, state, resources, recorder, targetImage, frameIndex, AbsoluteRectangle(
-		minX = 0, minY = targetImage.height - targetImage.height / 12 - targetImage.height / 8,
-		width = targetImage.width, height = targetImage.height / 12
+	private val actionBarRenderer = ActionBarRenderer(this.context, AbsoluteRectangle(
+		minX = 0, minY = context.targetImage.height - context.targetImage.height / 12 - context.targetImage.height / 8,
+		width = context.targetImage.width, height = context.targetImage.height / 12
 	))
-	private val skillOrItemSelectionRenderer = SkillOrItemSelectionRenderer(
-		content, resources, frameIndex, state, campaign.characterStates, AbsoluteRectangle(
-			minX = targetImage.width / 3, minY = targetImage.height / 5,
-			width = targetImage.width / 3, height = 4 * targetImage.height / 7
-		), recorder, targetImage
-	)
-	private val skillOrItemDescriptionRenderer = SkillOrItemDescriptionRenderer(
-		content, resources, frameIndex, campaign, state, AbsoluteRectangle(
-			minX = 0, minY = targetImage.height / 12, width = targetImage.width, height = targetImage.height / 9
-		), recorder, targetImage
-	)
-	private val targetSelectionRenderer = TargetSelectionRenderer(
-		content, state, campaign.characterStates, resources, recorder, targetImage, frameIndex, AbsoluteRectangle(
-			minX = 0, minY = targetImage.height / 12, width = targetImage.width,
-			height = targetImage.height - targetImage.height / 8 - targetImage.height / 12
-		)
-	)
+	private val skillOrItemSelectionRenderer = SkillOrItemSelectionRenderer(this.context, AbsoluteRectangle(
+		minX = context.targetImage.width / 3, minY = context.targetImage.height / 5,
+		width = context.targetImage.width / 3, height = 4 * context.targetImage.height / 7
+	))
+	private val skillOrItemDescriptionRenderer = SkillOrItemDescriptionRenderer(this.context, AbsoluteRectangle(
+		minX = 0, minY = context.targetImage.height / 12,
+		width = context.targetImage.width, height = context.targetImage.height / 9
+	))
+	private val targetSelectionRenderer = TargetSelectionRenderer(this.context, AbsoluteRectangle(
+		minX = 0, minY = context.targetImage.height / 12, width = context.targetImage.width,
+		height = context.targetImage.height - context.targetImage.height / 8 - context.targetImage.height / 12
+	))
 	private val enemyBlockRenderers = mutableListOf<EnemyBlockRenderer>()
 	private val playerBlockRenderers = mutableListOf<PlayerBlockRenderer>()
 
@@ -95,26 +86,25 @@ class BattleRenderer(
 		skillOrItemDescriptionRenderer.beforeRendering()
 		targetSelectionRenderer.beforeRendering()
 
-		for ((index, enemy) in state.battle.enemies.withIndex()) {
+		for ((index, enemy) in context.battle.battle.enemies.withIndex()) {
 			if (enemy == null) continue
 			val region = AbsoluteRectangle(
-				minX = index * targetImage.width / 4, minY = 0,
-				width = targetImage.width / 4, height = targetImage.height / 12
+				minX = index * context.targetImage.width / 4, minY = 0,
+				width = context.targetImage.width / 4, height = context.targetImage.height / 12
 			)
-			enemyBlockRenderers.add(EnemyBlockRenderer(
-				resources, frameIndex, enemy, state.enemyStates[index]!!, region, recorder, targetImage
-			))
+			enemyBlockRenderers.add(EnemyBlockRenderer(context, enemy, context.battle.enemyStates[index]!!, region))
 		}
 
-		for ((index, player) in state.players.withIndex()) {
+		for ((index, player) in context.battle.players.withIndex()) {
 			if (player == null) continue
 			val region = AbsoluteRectangle(
-				minX = index * targetImage.width / 4, minY = targetImage.height - targetImage.height / 8,
-				width = targetImage.width / 4, height = targetImage.height / 8
+				minX = index * context.targetImage.width / 4,
+				minY = context.targetImage.height - context.targetImage.height / 8,
+				width = context.targetImage.width / 4, height = context.targetImage.height / 8
 			)
 			playerBlockRenderers.add(PlayerBlockRenderer(
-				resources, frameIndex, player, state.playerStates[index]!!, campaign.characterStates[player]!!,
-				state.startTime, region, recorder, targetImage
+				context, player, context.battle.playerStates[index]!!,
+				context.campaign.characterStates[player]!!, region
 			))
 		}
 
@@ -123,43 +113,44 @@ class BattleRenderer(
 	}
 
 	fun render() {
-		val relativeTime = System.nanoTime() - state.startTime
-		resources.partRenderer.startBatch(recorder)
-		resources.partRenderer.render(state.battle.background.sprite, arrayOf(
+		val relativeTime = System.nanoTime() - context.battle.startTime
+		context.resources.partRenderer.startBatch(context.recorder)
+		context.resources.partRenderer.render(context.battle.battle.background.sprite, arrayOf(
 			Vector2f(-1f, -1f), Vector2f(1f, -1f), Vector2f(1f, 1f), Vector2f(-1f, 1f)
 		), null)
 
-		for ((index, enemy) in state.battle.enemies.withIndex()) {
+		for ((index, enemy) in context.battle.battle.enemies.withIndex()) {
 			if (enemy == null) continue
 
-			val rawPosition = state.battle.enemyLayout.positions[index]
-			val colorTransform = selectedColorTransform(state.enemyStates[index]!!)
+			val rawPosition = context.battle.battle.enemyLayout.positions[index]
+			val colorTransform = selectedColorTransform(context.battle.enemyStates[index]!!)
 			renderCreature(rawPosition, enemy.monster.model, -1f, relativeTime, colorTransform)
 		}
 
-		for ((index, player) in state.players.withIndex()) {
+		for ((index, player) in context.battle.players.withIndex()) {
 			if (player == null) continue
 
-			val rawPosition = state.playerLayout.positions[index]
-			val colorTransform = selectedColorTransform(state.playerStates[index]!!)
+			val rawPosition = context.battle.playerLayout.positions[index]
+			val colorTransform = selectedColorTransform(context.battle.playerStates[index]!!)
 			renderCreature(rawPosition, player.battleModel, 1f, relativeTime, colorTransform)
 		}
 
-		resources.partRenderer.endBatch()
-		resources.uiRenderers[frameIndex].beginBatch()
+		context.resources.partRenderer.endBatch()
+		context.uiRenderer.beginBatch()
 		val leftColor = srgbToLinear(rgba(90, 76, 44, 200))
 		val rightColor = srgbToLinear(rgba(38, 28, 17, 200))
-		resources.uiRenderers[frameIndex].fillColor(
-			0, 0, targetImage.width, targetImage.height / 12, 0, Gradient(
-				0, 0, targetImage.width, targetImage.height, leftColor, rightColor, leftColor
+		context.uiRenderer.fillColor(
+			0, 0, context.targetImage.width, context.targetImage.height / 12, 0, Gradient(
+				0, 0, context.targetImage.width, context.targetImage.height, leftColor, rightColor, leftColor
 			)
 		)
-		resources.uiRenderers[frameIndex].fillColor(
-			0, targetImage.height - targetImage.height / 8, targetImage.width, targetImage.height, 0, Gradient(
-				0, 0, targetImage.width, targetImage.height, rightColor, leftColor, rightColor
+		context.uiRenderer.fillColor(
+			0, context.targetImage.height - context.targetImage.height / 8,
+			context.targetImage.width, context.targetImage.height, 0, Gradient(
+				0, 0, context.targetImage.width, context.targetImage.height, rightColor, leftColor, rightColor
 			)
 		)
-		resources.uiRenderers[frameIndex].endBatch()
+		context.uiRenderer.endBatch()
 
 		turnOrderRenderer.render()
 		actionBarRenderer.render()
@@ -174,7 +165,7 @@ class BattleRenderer(
 		rawPosition: PartyLayoutPosition, model: BattleModel, flipX: Float,
 		relativeTime: Long, effectColorTransform: ColorTransform?
 	) {
-		val coordinates = transformBattleCoordinates(rawPosition, flipX, targetImage)
+		val coordinates = transformBattleCoordinates(rawPosition, flipX, context.targetImage)
 		val animation = model.skeleton.getAnimation("idle")
 
 		val frameLength = 33_000_000L
@@ -216,7 +207,7 @@ class BattleRenderer(
 				}.toTypedArray()
 
 				val colorTransform = mergeColorTransforms(animationPart.color, effectColorTransform)
-				resources.partRenderer.render(entry.sprite, corners, colorTransform)
+				context.resources.partRenderer.render(entry.sprite, corners, colorTransform)
 			}
 		}
 	}

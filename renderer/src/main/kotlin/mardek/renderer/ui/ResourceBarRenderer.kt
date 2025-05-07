@@ -1,17 +1,15 @@
 package mardek.renderer.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
-import com.github.knokko.text.font.FontData
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
-import com.github.knokko.ui.renderer.UiRenderer
+import mardek.renderer.InGameRenderContext
 import mardek.state.title.AbsoluteRectangle
 
 private fun changeAlpha(color: Int, alpha: Int) = rgba(red(color), green(color), blue(color), alpha.toByte())
 
 class ResourceBarRenderer(
-	private val font: FontData,
-	private val uiRenderer: UiRenderer,
+	private val context: InGameRenderContext,
 	private val resourceType: ResourceType,
 	private val barRegion: AbsoluteRectangle
 ) {
@@ -20,7 +18,7 @@ class ResourceBarRenderer(
 		val backgroundColor = srgbToLinear(rgb(58, 43, 31))
 		val remainingWidth = currentValue * barRegion.width / maxValue
 		val entry = resourceType.chooseColor(currentValue, maxValue)
-		uiRenderer.fillColor(
+		context.uiRenderer.fillColor(
 			barRegion.minX, barRegion.minY, barRegion.maxX, barRegion.maxY, backgroundColor,
 			Gradient(
 				0, 0, remainingWidth, barRegion.height,
@@ -38,8 +36,8 @@ class ResourceBarRenderer(
 
 	fun renderTextBelowBar(currentValue: Int, maxValue: Int) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
-		uiRenderer.drawString(
-			font, "$currentValue/$maxValue", entry.textColor, IntArray(0),
+		context.uiRenderer.drawString(
+			context.resources.font, "$currentValue/$maxValue", entry.textColor, IntArray(0),
 			barRegion.minX, barRegion.minY, barRegion.maxX, barRegion.maxY + 2 * barRegion.height,
 			barRegion.maxY + 9 * barRegion.height / 5, 3 * barRegion.height / 2, 1, TextAlignment.CENTER
 		)
@@ -49,14 +47,14 @@ class ResourceBarRenderer(
 		val entry = resourceType.chooseColor(currentValue, maxValue)
 		val splitX = barRegion.minX + barRegion.width * 5 / 9
 		val marginX = barRegion.width / 30
-		uiRenderer.drawString(
-			font, currentValue.toString(), entry.textColor, IntArray(0),
+		context.uiRenderer.drawString(
+			context.resources.font, currentValue.toString(), entry.textColor, IntArray(0),
 			barRegion.minX, barRegion.minY - 2 * barRegion.height,
 			splitX - marginX, barRegion.maxY + barRegion.height,
 			barRegion.maxY + barRegion.height / 3, 7 * barRegion.height / 4, 1, TextAlignment.RIGHT
 		)
-		uiRenderer.drawString(
-			font, maxValue.toString(), entry.textColor, IntArray(0),
+		context.uiRenderer.drawString(
+			context.resources.font, maxValue.toString(), entry.textColor, IntArray(0),
 			splitX + marginX, barRegion.minY - barRegion.height,
 			barRegion.maxX, barRegion.maxY + barRegion.height / 2,
 			barRegion.maxY + barRegion.height / 5, 4 * barRegion.height / 3, 1, TextAlignment.LEFT
@@ -65,8 +63,8 @@ class ResourceBarRenderer(
 
 	fun renderCurrentOverBar(currentValue: Int, maxValue: Int) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
-		uiRenderer.drawString(
-			font, currentValue.toString(), entry.textColor, IntArray(0),
+		context.uiRenderer.drawString(
+			context.resources.font, currentValue.toString(), entry.textColor, IntArray(0),
 			barRegion.minX, barRegion.minY - barRegion.height,
 			barRegion.maxX - barRegion.width / 10, barRegion.maxY + barRegion.height / 2,
 			barRegion.maxY + barRegion.height / 3, 3 * barRegion.height / 2, 1, TextAlignment.RIGHT

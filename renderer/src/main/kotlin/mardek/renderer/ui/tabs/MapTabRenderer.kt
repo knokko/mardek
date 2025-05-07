@@ -1,18 +1,14 @@
 package mardek.renderer.ui.tabs
 
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import mardek.content.area.WaterType
 import mardek.content.sprite.KimSprite
-import mardek.content.ui.UiSprites
-import mardek.renderer.SharedResources
+import mardek.renderer.InGameRenderContext
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
-import mardek.state.ingame.CampaignState
 import mardek.state.title.AbsoluteRectangle
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -21,34 +17,28 @@ private const val BLINK_PERIOD = 750_000_000L
 private val referenceTime = System.nanoTime()
 
 class MapTabRenderer(
-	private val recorder: CommandRecorder,
-	private val targetImage: VkbImage,
-	private val frameIndex: Int,
-
+	private val context: InGameRenderContext,
 	private val region: AbsoluteRectangle,
-	private val state: CampaignState,
-	private val resources: SharedResources,
-	private val ui: UiSprites,
 ) : TabRenderer() {
 
 	private val shouldBlink = ((System.nanoTime() - referenceTime) % BLINK_PERIOD) >= BLINK_PERIOD / 2
 	private lateinit var kimBatch: KimBatch
 
 	private val scale = min(region.width, region.height) / 70
-	private val renderWidth = scale * (state.currentArea?.area?.width ?: 0)
-	private val renderHeight = scale * (state.currentArea?.area?.height ?: 0)
+	private val renderWidth = scale * (context.campaign.currentArea?.area?.width ?: 0)
+	private val renderHeight = scale * (context.campaign.currentArea?.area?.height ?: 0)
 	private val minX = region.minX + (region.width - renderWidth) / 2
 	private val minY = region.minY + (region.height - renderHeight) / 2
 
 	override fun beforeRendering() {
-		val area = state.currentArea?.area ?: return
+		val area = context.campaign.currentArea?.area ?: return
 		if (area.chests.isEmpty() && !shouldBlink) return
-		kimBatch = resources.kim1Renderer.startBatch()
+		kimBatch = context.resources.kim1Renderer.startBatch()
 
 		if (shouldBlink) {
 
 			fun renderSpriteAtMap(x: Int, y: Int, sprite: KimSprite) {
-				if (!area.flags.hasClearMap && !state.areaDiscovery.readOnly(area).isDiscovered(x, y)) return
+				if (!area.flags.hasClearMap && !context.campaign.areaDiscovery.readOnly(area).isDiscovered(x, y)) return
 				val spriteScale = scale / 16f
 				kimBatch.requests.add(KimRequest(
 					x = minX + x * scale + scale / 2 - (spriteScale * sprite.width / 2).roundToInt(),
@@ -58,31 +48,30 @@ class MapTabRenderer(
 			}
 			for (element in area.objects.objects) {
 				if (element.conversationName == "c_healingCrystal") {
-					renderSpriteAtMap(element.x, element.y, ui.mapSaveCrystal)
+					renderSpriteAtMap(element.x, element.y, context.content.ui.mapSaveCrystal)
 				}
 			}
 			for (portal in area.objects.portals) {
 				val destination = portal.destination.area ?: continue
 				if (destination.properties.dreamType != area.properties.dreamType) {
-					renderSpriteAtMap(portal.x, portal.y, ui.mapDreamCircle)
+					renderSpriteAtMap(portal.x, portal.y, context.content.ui.mapDreamCircle)
 				}
 			}
 		}
 		if (area.chests.isNotEmpty()) kimBatch.requests.add(KimRequest(
 			x = region.width * 95 / 100, y = region.minY + region.height / 150,
-			scale = region.height / 1200f, sprite = ui.mapChest, opacity = 1f
+			scale = region.height / 1200f, sprite = context.content.ui.mapChest, opacity = 1f
 		))
 	}
 
 	override fun render() {
-		val area = state.currentArea?.area ?: return
+		val area = context.campaign.currentArea?.area ?: return
 
 		if (area.chests.isNotEmpty()) {
-			val uiRenderer = resources.uiRenderers[frameIndex]
 			val textColor = srgbToLinear(rgb(225, 185, 93))
-			val openedChests = area.chests.count { state.openedChests.contains(it) }
-			uiRenderer.drawString(
-				resources.font, "$openedChests/${area.chests.size}", textColor, intArrayOf(),
+			val openedChests = area.chests.count { context.campaign.openedChests.contains(it) }
+			context.uiRenderer.drawString(
+				context.resources.font, "$openedChests/${area.chests.size}", textColor, intArrayOf(),
 				region.maxX - region.width / 2, region.minY, region.maxX - region.width / 3, region.maxY,
 				region.minY + region.height / 20, region.height / 25, 1, TextAlignment.RIGHT
 			)
@@ -107,7 +96,7 @@ class MapTabRenderer(
 			val barY1 = barHeight / 5
 			val barY2 = barY1 + barHeight / 2
 
-			uiRenderer.fillColor(
+			context.uiRenderer.fillColor(
 				barX1, barMinY, barX2, barMaxY, backgroundColor,
 				Gradient(0, 0, filledBarWidth, barY1, darkLeftColor, darkRightColor, darkLeftColor),
 				Gradient(0, barY1, filledBarWidth, barY2 - barY1, lightLeftColor, lightRightColor, lightUpColor),
@@ -118,15 +107,15 @@ class MapTabRenderer(
 
 	override fun postUiRendering() {
 		super.postUiRendering()
-		val areaState = state.currentArea ?: return
+		val areaState = context.campaign.currentArea ?: return
 		val area = areaState.area
 
 		if (scale <= 0) return
 
-		resources.colorGridRenderer.startBatch(recorder)
+		context.resources.colorGridRenderer.startBatch(context.recorder)
 
-		val mapBuffer = resources.colorGridRenderer.drawGrid(
-			recorder, targetImage, minX, minY, area.width, area.height + 1, 1, scale
+		val mapBuffer = context.resources.colorGridRenderer.drawGrid(
+			context.recorder, context.targetImage, minX, minY, area.width, area.height + 1, 1, scale
 		)
 
 		fun put(x: Int, y: Int, mask: Int) {
@@ -136,8 +125,8 @@ class MapTabRenderer(
 			mapBuffer.put(intIndex, (mapBuffer.get(intIndex) and (15 shl shift).inv()) or (mask shl shift))
 		}
 
-		val discovery = state.areaDiscovery.readOnly(area)
-		val renderData = resources.areaMap[area.id]!!.data
+		val discovery = context.campaign.areaDiscovery.readOnly(area)
+		val renderData = context.resources.areaMap[area.id]!!.data
 		for (y in 0 .. area.height) {
 			for (x in 0 until area.width) {
 				val newMask = if ((discovery.isDiscovered(x, y) || area.flags.hasClearMap) && !area.flags.noMap) {
@@ -174,7 +163,7 @@ class MapTabRenderer(
 			}
 
 			for (chest in area.chests) {
-				if (state.openedChests.contains(chest)) continue
+				if (context.campaign.openedChests.contains(chest)) continue
 				putIfDiscovered(chest.x, chest.y, 7)
 			}
 
@@ -182,10 +171,10 @@ class MapTabRenderer(
 			for (transition in area.objects.transitions) putIfDiscovered(transition.x, transition.y, 8)
 		}
 
-		resources.colorGridRenderer.endBatch()
+		context.resources.colorGridRenderer.endBatch()
 
 		if (shouldBlink || area.chests.isNotEmpty()) {
-			resources.kim1Renderer.submit(kimBatch, recorder, targetImage)
+			context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)
 		}
 	}
 }

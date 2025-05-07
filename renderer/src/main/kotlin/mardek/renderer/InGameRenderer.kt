@@ -1,8 +1,5 @@
 package mardek.renderer
 
-import com.github.knokko.boiler.BoilerInstance
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import mardek.renderer.area.AreaRenderer
 import mardek.renderer.battle.BattleRenderer
 import mardek.renderer.ui.InGameMenuRenderer
@@ -10,45 +7,37 @@ import mardek.state.ingame.InGameState
 
 class InGameRenderer(
 		private val state: InGameState,
-		boiler: BoilerInstance,
-		private val resources: SharedResources,
-): StateRenderer(boiler) {
+): StateRenderer() {
 
 	private var areaRenderer: AreaRenderer? = null
 	private var battleRenderer: BattleRenderer? = null
 	private var menuRenderer: InGameMenuRenderer? = null
 
-	override fun beforeRendering(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		resources.kim1Renderer.begin()
-		resources.kim2Renderer.begin()
+	override fun beforeRendering(context: RenderContext) {
+		context.resources.kim1Renderer.begin()
+		context.resources.kim2Renderer.begin()
 
+		val inGameContext = InGameRenderContext(state.content, state.campaign, context)
 		val area = state.campaign.currentArea
-		areaRenderer = if (area != null && area.activeBattle == null) AreaRenderer(
-			recorder, targetImage, area, state, resources
-		) else null
-		battleRenderer = if (area?.activeBattle != null) BattleRenderer(
-			state.content, state.campaign, recorder, targetImage, frameIndex, area.activeBattle!!, resources,
-		) else null
-		menuRenderer = if (state.menu.shown) InGameMenuRenderer(
-			recorder, targetImage, frameIndex, resources, state
-		) else null
+		areaRenderer = if (area != null && area.activeBattle == null) AreaRenderer(inGameContext, area) else null
+		battleRenderer = if (area?.activeBattle != null) BattleRenderer(inGameContext, area.activeBattle!!) else null
+		menuRenderer = if (state.menu.shown) InGameMenuRenderer(inGameContext, state.menu) else null
 
 		areaRenderer?.beforeRendering()
 		menuRenderer?.beforeRendering()
 		battleRenderer?.beforeRendering()
 
-		resources.kim1Renderer.recordBeforeRenderpass(recorder, frameIndex)
+		context.resources.kim1Renderer.recordBeforeRenderpass(context.recorder, context.frameIndex)
 	}
 
-	override fun render(recorder: CommandRecorder, targetImage: VkbImage, frameIndex: Int) {
-		val uiRenderer = resources.uiRenderers[frameIndex]
-		uiRenderer.begin(recorder, targetImage)
-		areaRenderer?.render(frameIndex)
+	override fun render(context: RenderContext) {
+		context.uiRenderer.begin(context.recorder, context.targetImage)
+		areaRenderer?.render()
 		battleRenderer?.render()
-		menuRenderer?.render(uiRenderer)
+		menuRenderer?.render()
 
-		uiRenderer.end()
-		resources.kim1Renderer.end()
-		resources.kim2Renderer.end()
+		context.uiRenderer.end()
+		context.resources.kim1Renderer.end()
+		context.resources.kim2Renderer.end()
 	}
 }

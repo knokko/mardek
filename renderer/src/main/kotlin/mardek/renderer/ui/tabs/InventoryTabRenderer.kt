@@ -1,12 +1,9 @@
 package mardek.renderer.ui.tabs
 
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import com.github.knokko.ui.renderer.UiRenderer
-import mardek.content.Content
 import mardek.content.stats.CombatStat
 import mardek.content.inventory.EquipmentSlotType
 import mardek.content.skill.ActiveSkill
@@ -16,9 +13,8 @@ import mardek.content.skill.ReactionSkillType
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.Kim1Renderer
 import mardek.renderer.batch.KimRequest
-import mardek.renderer.SharedResources
-import mardek.state.ingame.CampaignState
 import mardek.content.inventory.ItemStack
+import mardek.renderer.InGameRenderContext
 import mardek.renderer.ui.ResourceBarRenderer
 import mardek.renderer.ui.ResourceType
 import mardek.renderer.ui.renderDescription
@@ -43,15 +39,9 @@ private val DARK_SLOT_COLOR = srgbToLinear(rgb(74, 48, 30))
 private val referenceTime = System.nanoTime()
 
 class InventoryTabRenderer(
-	private val recorder: CommandRecorder,
-	private val targetImage: VkbImage,
-	private val frameIndex: Int,
-
+	private val context: InGameRenderContext,
 	private val tab: InventoryTab,
 	private val region: AbsoluteRectangle,
-	private val state: CampaignState,
-	private val content: Content,
-	private val resources: SharedResources,
 ) : TabRenderer() {
 
 	private val scale = max(1, min(region.width / BASE_WIDTH, region.height / BASE_HEIGHT))
@@ -65,41 +55,39 @@ class InventoryTabRenderer(
 	}
 
 	override fun beforeRendering() {
-		this.kim1Batch = resources.kim1Renderer.startBatch()
-		this.kim2Batch = resources.kim2Renderer.startBatch()
-		renderHoverItemProperties(null, resources.kim1Renderer)
-		renderItemGrid(null, resources.kim1Renderer, null)
-		renderCharacterBars(null, resources.kim1Renderer)
+		this.kim1Batch = context.resources.kim1Renderer.startBatch()
+		this.kim2Batch = context.resources.kim2Renderer.startBatch()
+		renderHoverItemProperties(null, context.resources.kim1Renderer)
+		renderItemGrid(null, context.resources.kim1Renderer, null)
+		renderCharacterBars(null, context.resources.kim1Renderer)
 
 		kim1Batch.requests.add(KimRequest(
 			x = region.minX + region.width / 2,
 			y = 4 * scale, scale = scale.toFloat(),
-			sprite = content.ui.goldIcon, opacity = 1f
+			sprite = context.content.ui.goldIcon, opacity = 1f
 		))
 	}
 
 	override fun render() {
-		val uiRenderer = resources.uiRenderers[frameIndex]
-		renderHoverItemProperties(uiRenderer, null)
-		renderItemGrid(uiRenderer, null, null)
-		renderCharacterBars(uiRenderer, null)
+		renderHoverItemProperties(context.uiRenderer, null)
+		renderItemGrid(context.uiRenderer, null, null)
+		renderCharacterBars(context.uiRenderer, null)
 
 		val goldColor = srgbToLinear(rgb(254, 225, 123))
-		uiRenderer.drawString(
-			resources.font, state.gold.toString(), goldColor, intArrayOf(),
+		context.uiRenderer.drawString(
+			context.resources.font, context.campaign.gold.toString(), goldColor, intArrayOf(),
 			region.minX + region.width / 2 + 20 * scale, 0, region.maxX, region.minY,
 			18 * scale, 10 * scale, 1, TextAlignment.LEFT
 		)
 	}
 
 	override fun postUiRendering() {
-		resources.kim1Renderer.submit(kim1Batch, recorder, targetImage)
-		resources.kim2Renderer.submit(kim2Batch, recorder, targetImage)
+		context.resources.kim1Renderer.submit(kim1Batch, context.recorder, context.targetImage)
+		context.resources.kim2Renderer.submit(kim2Batch, context.recorder, context.targetImage)
 
-		val uiRenderer = resources.uiRenderers[frameIndex]
-		uiRenderer.beginBatch()
-		renderItemGrid(null, null, uiRenderer)
-		uiRenderer.endBatch()
+		context.uiRenderer.beginBatch()
+		renderItemGrid(null, null, context.uiRenderer)
+		context.uiRenderer.endBatch()
 	}
 
 	private fun getItemGridSize() = 8 * scale * SIMPLE_SLOT_SIZE + 2
@@ -152,7 +140,7 @@ class InventoryTabRenderer(
 
 			val titleColor = srgbToLinear(rgb(238, 203, 127))
 			uiRenderer?.drawString(
-				resources.font, hoverItem.toString(), titleColor, intArrayOf(),
+				context.resources.font, hoverItem.toString(), titleColor, intArrayOf(),
 				region.minX + 5 * scale, startY, maxX - 5 * scale, barY,
 				startY + 11 * scale, 8 * scale, 1, TextAlignment.DEFAULT
 			)
@@ -188,7 +176,7 @@ class InventoryTabRenderer(
 				if (highText.isEmpty()) highText = "MISCELLANEOUS ITEM"
 
 				uiRenderer?.drawString(
-					resources.font, highText, baseTextColor, intArrayOf(),
+					context.resources.font, highText, baseTextColor, intArrayOf(),
 					textMinX, barY, textMaxX, tabsY, textY, 6 * scale, 1, TextAlignment.DEFAULT
 				)
 				textY += 20 * scale
@@ -197,7 +185,7 @@ class InventoryTabRenderer(
 					val adder = hoverItem.item.getModifier(stat)
 					if (adder != 0) {
 						uiRenderer?.drawString(
-							resources.font, "${stat.flashName}: $adder", baseTextColor, intArrayOf(),
+							context.resources.font, "${stat.flashName}: $adder", baseTextColor, intArrayOf(),
 							textMinX, barY, textMaxX, tabsY, textY, 6 * scale, 1, TextAlignment.DEFAULT
 						)
 						textY += 10 * scale
@@ -207,7 +195,7 @@ class InventoryTabRenderer(
 
 				fun drawLine(currentLine: String) {
 					uiRenderer?.drawString(
-						resources.font, currentLine, baseTextColor, intArrayOf(),
+						context.resources.font, currentLine, baseTextColor, intArrayOf(),
 						textMinX, barY, textMaxX, tabsY, textY, 5 * scale, 1, TextAlignment.DEFAULT
 					)
 					textY += 8 * scale
@@ -217,15 +205,15 @@ class InventoryTabRenderer(
 			}
 
 			if (tab.descriptionIndex == 1 && equipment != null) {
-				val assetCharacter = state.characterSelection.party[tab.partyIndex]
-				val characterState = state.characterStates[assetCharacter]!!
+				val assetCharacter = context.campaign.characterSelection.party[tab.partyIndex]
+				val characterState = context.campaign.characterStates[assetCharacter]!!
 
 				for ((row, skill) in equipment.skills.withIndex()) {
 					val skillY = barY + 2 * scale + 28 * row * scale
 
 					val nameColor = srgbToLinear(rgb(238, 203, 127))
 					uiRenderer?.drawString(
-						resources.font, skill.name, nameColor, intArrayOf(),
+						context.resources.font, skill.name, nameColor, intArrayOf(),
 						20 * scale, barY, maxX, tabsY,
 						skillY + 10 * scale, 7 * scale, 1, TextAlignment.LEFT
 					)
@@ -234,7 +222,7 @@ class InventoryTabRenderer(
 
 					if (skillMastery < skill.masteryPoints && uiRenderer != null) {
 						val masteryRenderer = ResourceBarRenderer(
-							resources.font, uiRenderer, ResourceType.SkillMastery, AbsoluteRectangle(
+							context, ResourceType.SkillMastery, AbsoluteRectangle(
 								23 * scale, skillY + 17 * scale, 57 * scale, 6 * scale
 							)
 						)
@@ -251,19 +239,19 @@ class InventoryTabRenderer(
 						if (skillMastery >= skill.masteryPoints) {
 							kim1Batch.requests.add(KimRequest(
 								x = 25 * scale, y = skillY + 16 * scale, scale = scale / 2f,
-								sprite = content.ui.mastered, opacity = 1f
+								sprite = context.content.ui.mastered, opacity = 1f
 							))
 						}
 
 						val skillSprite = when (skill) {
 							is ReactionSkill -> when (skill.type) {
-								ReactionSkillType.MeleeAttack -> content.ui.meleeAttackIcon
-								ReactionSkillType.RangedAttack -> content.ui.rangedAttackIcon
-								ReactionSkillType.MeleeDefense -> content.ui.meleeDefenseIcon
-								ReactionSkillType.RangedDefense -> content.ui.rangedDefenseIcon
+								ReactionSkillType.MeleeAttack -> context.content.ui.meleeAttackIcon
+								ReactionSkillType.RangedAttack -> context.content.ui.rangedAttackIcon
+								ReactionSkillType.MeleeDefense -> context.content.ui.meleeDefenseIcon
+								ReactionSkillType.RangedDefense -> context.content.ui.rangedDefenseIcon
 							}
-							is PassiveSkill -> content.ui.passiveIcon
-							else -> content.skills.classes.find { it.actions.contains(skill) }!!.icon
+							is PassiveSkill -> context.content.ui.passiveIcon
+							else -> context.content.skills.classes.find { it.actions.contains(skill) }!!.icon
 						}
 
 						var x = maxX - 20 * scale
@@ -284,7 +272,7 @@ class InventoryTabRenderer(
 				val basePropertiesColor = rgb(220, 220, 220)
 				fun addLine(text: String, color: Int) {
 					uiRenderer.drawString(
-						resources.font, "${11089.toChar()} $text", srgbToLinear(color), intArrayOf(),
+						context.resources.font, "${11089.toChar()} $text", srgbToLinear(color), intArrayOf(),
 						textMinX, barY, textMaxX, tabsY, textY, 4 * scale, 1, TextAlignment.DEFAULT
 					)
 					textY += 7 * scale
@@ -388,7 +376,7 @@ class InventoryTabRenderer(
 			uiRenderer?.fillColor(x, maxY, x + tabWidth, maxY, lineColor)
 			uiRenderer?.fillColor(x + tabWidth, tabsY, x + tabWidth, maxY, lineColor)
 			uiRenderer?.drawString(
-				resources.font, text, textColor, intArrayOf(),
+				context.resources.font, text, textColor, intArrayOf(),
 				x + scale, tabsY, x + tabWidth - scale, maxY,
 				maxY - 4 * scale, 4 * scale, 1, TextAlignment.CENTER
 			)
@@ -451,14 +439,14 @@ class InventoryTabRenderer(
 			for (offsetX in arrayOf(-scale, 0, scale)) {
 				for (offsetY in arrayOf(-scale, 0, scale)) {
 					amountRenderer.drawString(
-						resources.font, stack.amount.toString(), shadowColor, intArrayOf(),
+						context.resources.font, stack.amount.toString(), shadowColor, intArrayOf(),
 						itemX + 5 * scale + offsetX, itemY, itemX + 19 * scale + offsetX, itemY + 20 * scale,
 						itemY + 15 * scale + offsetY, 6 * scale, 1, TextAlignment.CENTER
 					)
 				}
 			}
 			amountRenderer.drawString(
-				resources.font, stack.amount.toString(), textColor, intArrayOf(),
+				context.resources.font, stack.amount.toString(), textColor, intArrayOf(),
 				itemX + 5 * scale, itemY, itemX + 19 * scale, itemY + 20 * scale,
 				itemY + 15 * scale, 6 * scale, 1, TextAlignment.CENTER
 			)
@@ -466,10 +454,10 @@ class InventoryTabRenderer(
 
 		val pickedItem = tab.pickedUpItem
 
-		val party = state.characterSelection.party
+		val party = context.campaign.characterSelection.party
 		val selectedCharacter = party[tab.partyIndex]
 		if (selectedCharacter != null) {
-			val inventory = state.characterStates[selectedCharacter]!!.inventory
+			val inventory = context.campaign.characterStates[selectedCharacter]!!.inventory
 			for (y in 0 until 8) {
 				for (x in 0 until 8) {
 					val itemStack = inventory[x + 8 * y] ?: continue
@@ -502,14 +490,14 @@ class InventoryTabRenderer(
 	}
 
 	private fun renderCharacterBars(uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?) {
-		for (index in state.characterSelection.party.indices) {
+		for (index in context.campaign.characterSelection.party.indices) {
 			renderCharacterBar(index, uiRenderer, kim1Renderer)
 		}
 	}
 
 	private fun renderCharacterBar(partyIndex: Int, uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?) {
-		val assetCharacter = state.characterSelection.party[partyIndex] ?: return
-		val characterState = state.characterStates[assetCharacter] ?: throw IllegalStateException("Missing state for $assetCharacter")
+		val assetCharacter = context.campaign.characterSelection.party[partyIndex] ?: return
+		val characterState = context.campaign.characterStates[assetCharacter] ?: throw IllegalStateException("Missing state for $assetCharacter")
 		val barHeight = scale * CHARACTER_BAR_HEIGHT
 		val startX = region.minX + 5 * scale
 		val startY = region.minY + 3 * scale + partyIndex * barHeight
@@ -572,13 +560,13 @@ class InventoryTabRenderer(
 			val iconY = startY + barHeight / 2 + margin / 2
 			val iconScale = scale / 8f
 			addKimRequest(KimRequest(
-				x = x1, y = iconY, scale = iconScale, sprite = content.ui.attackIcon, opacity = 1f
+				x = x1, y = iconY, scale = iconScale, sprite = context.content.ui.attackIcon, opacity = 1f
 			))
 			addKimRequest(KimRequest(
-				x = x2, y = iconY, scale = iconScale, sprite = content.ui.defIcon, opacity = 1f
+				x = x2, y = iconY, scale = iconScale, sprite = context.content.ui.defIcon, opacity = 1f
 			))
 			addKimRequest(KimRequest(
-				x = x4, y = iconY, scale = iconScale, sprite = content.ui.rangedDefIcon, opacity = 1f
+				x = x4, y = iconY, scale = iconScale, sprite = context.content.ui.rangedDefIcon, opacity = 1f
 			))
 		}
 
@@ -594,17 +582,17 @@ class InventoryTabRenderer(
 			val rangedDefense = characterState.determineValue(assetCharacter.baseStats, CombatStat.RangedDefense)
 
 			uiRenderer.drawString(
-				resources.font, attack.toString(), statsColor, intArrayOf(),
+				context.resources.font, attack.toString(), statsColor, intArrayOf(),
 				x1 + 10 * scale, region.minY, x2, region.maxY, statsY, statsHeight,
 				1, TextAlignment.LEFT
 			)
 			uiRenderer.drawString(
-				resources.font, defense.toString(), statsColor, intArrayOf(),
+				context.resources.font, defense.toString(), statsColor, intArrayOf(),
 				x2 + 10 * scale, region.minY, x4, region.maxY, statsY, statsHeight,
 				1, TextAlignment.LEFT
 			)
 			uiRenderer.drawString(
-				resources.font, rangedDefense.toString(), statsColor, intArrayOf(),
+				context.resources.font, rangedDefense.toString(), statsColor, intArrayOf(),
 				x4 + 10 * scale, region.minY, barX, region.maxY, statsY, statsHeight,
 				1, TextAlignment.LEFT
 			)
@@ -613,12 +601,12 @@ class InventoryTabRenderer(
 		val textColor = srgbToLinear(rgb(238, 204, 127))
 		val textHeight = 5 * scale
 		uiRenderer?.drawString(
-			resources.font, assetCharacter.name, textColor, intArrayOf(),
+			context.resources.font, assetCharacter.name, textColor, intArrayOf(),
 			x1 + margin / 2, region.minY, x3, region.maxY,
 			startY + margin + 5 * scale, textHeight, 1, TextAlignment.LEFT
 		)
 		uiRenderer?.drawString(
-			resources.font, "Lv${characterState.currentLevel}", textColor, intArrayOf(),
+			context.resources.font, "Lv${characterState.currentLevel}", textColor, intArrayOf(),
 			x3, region.minY, barX, region.maxY,
 			startY + margin + 5 * scale, textHeight, 1, TextAlignment.LEFT
 		)
@@ -627,14 +615,14 @@ class InventoryTabRenderer(
 			val baseBarWidth = 40 * scale
 			val barsHeight = margin
 
-			val healthRenderer = ResourceBarRenderer(resources.font, uiRenderer, ResourceType.Health, AbsoluteRectangle(
+			val healthRenderer = ResourceBarRenderer(context, ResourceType.Health, AbsoluteRectangle(
 				barX, startY + margin * 13 / 9, baseBarWidth, barsHeight
 			))
 			val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats)
 			healthRenderer.renderBar(characterState.currentHealth, maxHealth)
 			healthRenderer.renderTextBelowBar(characterState.currentHealth, maxHealth)
 
-			val manaRenderer = ResourceBarRenderer(resources.font, uiRenderer, ResourceType.Mana, AbsoluteRectangle(
+			val manaRenderer = ResourceBarRenderer(context, ResourceType.Mana, AbsoluteRectangle(
 				barX, startY + margin * 37 / 8, baseBarWidth, barsHeight
 			))
 			val maxMana = characterState.determineMaxMana(assetCharacter.baseStats)
@@ -658,8 +646,9 @@ class InventoryTabRenderer(
 			tab.renderEquipmentCharacterSpacing = scale * CHARACTER_BAR_HEIGHT
 		}
 
-		val assetCharacter = state.characterSelection.party[partyIndex] ?: return
-		val characterState = state.characterStates[assetCharacter] ?: throw IllegalStateException("Missing state for $assetCharacter")
+		val assetCharacter = context.campaign.characterSelection.party[partyIndex] ?: return
+		val characterState = context.campaign.characterStates[assetCharacter] ?:
+				throw IllegalStateException("Missing state for $assetCharacter")
 		val equipment = characterState.equipment
 
 		val pickedItem = tab.pickedUpItem
