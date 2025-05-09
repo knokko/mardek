@@ -6,6 +6,8 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
+import mardek.content.skill.SkillTargetType
+import mardek.content.stats.Element
 import java.util.*
 
 @BitStruct(backwardCompatible = true)
@@ -55,15 +57,41 @@ class BattleMoveSkill(
 	@BitField(id = 1)
 	@ClassField(root = BattleSkillTarget::class)
 	val target: BattleSkillTarget,
+
+	@BitField(id = 2, optional = true)
+	@ReferenceField(stable = true, label = "elements")
+	val nextElement: Element?
 ) : BattleMove() {
 
+	init {
+		if (skill.targetType == SkillTargetType.Self || skill.targetType == SkillTargetType.Single) {
+			if (target !is BattleSkillTargetSingle) throw IllegalArgumentException(
+				"Illegal multi-target $target for single-target skill ${skill.name}"
+			)
+		}
+		if (skill.targetType == SkillTargetType.AllAllies && target !is BattleSkillTargetAllAllies) {
+			throw IllegalArgumentException("all-allies skill ${skill.name} targets $target instead of all allies")
+		}
+		if (skill.targetType == SkillTargetType.AllEnemies && target !is BattleSkillTargetAllEnemies) {
+			throw IllegalArgumentException("all-enemies skill ${skill.name} targets $target instead of all enemies")
+		}
+		if (skill.changeElement && nextElement == null) {
+			throw IllegalArgumentException("Elemental shift requires an element")
+		}
+		if (!skill.changeElement && nextElement != null) {
+			throw IllegalArgumentException("Unexpected next element $nextElement for skill $skill")
+		}
+	}
+
 	@Suppress("unused")
-	private constructor() : this(ActiveSkill(), BattleSkillTargetAllEnemies)
+	private constructor() : this(ActiveSkill(), BattleSkillTargetAllEnemies, null)
 
 	override fun equals(other: Any?) = other is BattleMoveSkill &&
 			this.skill === other.skill && this.target == other.target
 
 	override fun hashCode() = skill.hashCode() - 13 * target.hashCode()
+
+	override fun toString() = "($skill at $target${if (nextElement != null) " ($nextElement)" else ""})"
 }
 
 @BitStruct(backwardCompatible = true)
@@ -103,9 +131,19 @@ class BattleSkillTargetSingle(
 	override fun toString() = target.toString()
 }
 
+/**
+ * Targets all enemies of the caster:
+ * - when the caster is a monster, it targets all players
+ * - when the caster is a player, it targets all monsters
+ */
 @BitStruct(backwardCompatible = true)
 data object BattleSkillTargetAllEnemies : BattleSkillTarget()
 
+/**
+ * Targets all allies of the caster:
+ * - when the caster is a monster, it targets all monsters
+ * - when the caster is a player, it targets all players
+ */
 @BitStruct(backwardCompatible = true)
 data object BattleSkillTargetAllAllies : BattleSkillTarget()
 

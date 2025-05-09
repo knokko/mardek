@@ -10,7 +10,7 @@ import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
 
 fun parseActiveSkills(
-	statsContent: StatsContent, rawSkills: List<Map<String, String>>
+	statsContent: StatsContent, rawSkills: List<Map<String, String>>, reverseTargetType: Boolean
 ) = rawSkills.map { rawSkill ->
 	val mode = when (rawSkill["MODE"]!!) {
 		"\"P\"" -> ActiveSkillMode.Melee
@@ -21,10 +21,10 @@ fun parseActiveSkills(
 	val targetType = when (rawSkill["TT"]) {
 		"\"SINGLE\"" -> SkillTargetType.Single
 		"\"ANY\"" -> SkillTargetType.Any
-		"\"ALL_e\"" -> SkillTargetType.AllEnemies
-		"\"ALL\"" -> SkillTargetType.AllEnemies
+		"\"ALL_e\"" -> if (reverseTargetType) SkillTargetType.AllAllies else SkillTargetType.AllEnemies
+		"\"ALL\"" -> if (reverseTargetType) SkillTargetType.AllAllies else SkillTargetType.AllEnemies
 		"\"SELF\"" -> SkillTargetType.Self
-		"\"ALL_p\"" -> SkillTargetType.AllAllies
+		"\"ALL_p\"" -> if (reverseTargetType) SkillTargetType.AllEnemies else SkillTargetType.AllAllies
 		else -> throw SkillParseException("Unknown skill TT ${rawSkill["TT"]}")
 	}
 

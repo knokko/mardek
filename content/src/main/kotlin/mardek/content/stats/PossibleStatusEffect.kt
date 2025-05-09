@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class PossibleStatusEffect(
@@ -21,4 +22,8 @@ class PossibleStatusEffect(
 	private constructor() : this(StatusEffect(), 0)
 
 	override fun toString() = "$chance% $effect"
+
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
+
+	override fun hashCode() = BITSER.hashCode(this)
 }

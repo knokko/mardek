@@ -7,8 +7,8 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 import mardek.content.inventory.Item
 import mardek.content.inventory.PlotItem
-import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.random.Random
 
 @BitStruct(backwardCompatible = true)
 class PotentialItem(
@@ -49,6 +49,19 @@ class PotentialEquipment(
 	override fun hashCode() = BITSER.hashCode(this)
 
 	override fun toString() = "Equipment($entries)"
+
+	fun pick(): Item? {
+		val total = entries.sumOf { it.chance }
+		val selected = Random.Default.nextInt(total)
+
+		var current = 0
+		for (candidate in entries) {
+			if (current + candidate.chance >= selected) return candidate.item
+			current += candidate.chance
+		}
+
+		throw Error("Should not happen")
+	}
 
 	companion object {
 		val EMPTY = PotentialEquipment(arrayListOf(PotentialItem(null, 100)))

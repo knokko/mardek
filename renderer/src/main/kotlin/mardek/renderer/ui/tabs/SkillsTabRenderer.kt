@@ -237,8 +237,9 @@ class SkillsTabRenderer(
 		)
 
 		val characterState = context.campaign.characterStates[assetCharacter]!!
-		val maxResourceValue = if (tab.skillTypeIndex == 0) characterState.determineMaxMana(assetCharacter.baseStats)
-		else characterState.determineSkillEnablePoints()
+		val maxResourceValue = if (tab.skillTypeIndex == 0) {
+			characterState.determineMaxMana(assetCharacter.baseStats, characterState.activeStatusEffects)
+		} else characterState.determineSkillEnablePoints()
 		val currentResourceValue = if (tab.skillTypeIndex == 0) characterState.currentMana
 		else maxResourceValue - visibleSkills.sumOf { skillEntry ->
 			if (skillEntry.isToggled) {

@@ -90,19 +90,27 @@ private fun importRawMonsterStrategy(
 	var chance = if (rawChance != null) parseInt(rawChance) else 100
 
 	if (rawCriteria is ArrayList<*> && rawCriteria.size >= 2) {
-		var type = parseFlashString(rawCriteria[0].toString(), "gambit criteria type")!!
+		val type = parseFlashString(rawCriteria[0].toString(), "gambit criteria type")!!
 		if (type == "random") {
 			chance = parseInt(rawCriteria[1].toString())
 		} else {
-			@Suppress("SpellCheckingInspection")
-			if (type == "MYHP<") type = "HP<"
 			criteria = criteria.merge(when (type) {
 				"HP<" -> StrategyCriteria(
-					hpPercentageAtMost = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt()
+					targetHpPercentageAtMost = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt()
 				)
 
 				"HP>" -> StrategyCriteria(
-					hpPercentageAtLeast = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt()
+					targetHpPercentageAtLeast = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt()
+				)
+
+				@Suppress("SpellCheckingInspection")
+				"MYHP<" -> StrategyCriteria(
+					myHpPercentageAtMost = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt()
+				)
+
+				@Suppress("SpellCheckingInspection")
+				"MYHP>" -> StrategyCriteria(
+					myHpPercentageAtLeast = (100.0 * parseDouble(rawCriteria[1].toString())).roundToInt()
 				)
 
 				"has_status" -> StrategyCriteria(
@@ -145,9 +153,11 @@ private fun importRawMonsterStrategy(
 		}
 	} else if (rawCriteria is ArrayList<*> && rawCriteria.size == 1) {
 		val criteriaName = parseFlashString(rawCriteria[0].toString(), "criteria")!!
-		if (criteriaName == "NotLastTech") criteria = criteria.merge(StrategyCriteria(canRepeat = false))
-		else if (criteriaName == "alone") criteria = criteria.merge(StrategyCriteria(freeAllySlots = 3))
-		else throw SkillParseException("Unexpected raw criteria $rawCriteria")
+		criteria = when (criteriaName) {
+			"NotLastTech" -> criteria.merge(StrategyCriteria(canRepeat = false))
+			"alone" -> criteria.merge(StrategyCriteria(freeAllySlots = 3))
+			else -> throw SkillParseException("Unexpected raw criteria $rawCriteria")
+		}
 	} else {
 		if (rawCriteria != "null") throw SkillParseException("Unexpected raw criteria $rawCriteria")
 	}

@@ -66,7 +66,6 @@ class ActionBarRenderer(
 		batch2 = context.resources.kim2Renderer.startBatch()
 
 		val player = context.battle.players[onTurn!!.index]!!
-		val state = context.campaign.characterStates[player]!!
 		renderIcon(player.element.sprite, region.maxX - region.height - marginX)
 
 		run {
@@ -77,7 +76,7 @@ class ActionBarRenderer(
 				x -= region.height + marginX
 			}
 
-			renderIcon(state.equipment[0]!!.sprite, iconPositions[0])
+			renderIcon(onTurn!!.getState().equipment[0]!!.sprite, iconPositions[0])
 			renderIcon(player.characterClass.skillClass.icon, iconPositions[1])
 			renderIcon(context.content.ui.consumableIcon, iconPositions[2])
 			renderIcon(context.content.ui.waitIcon, iconPositions[3])

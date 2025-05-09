@@ -30,36 +30,33 @@ class PassiveSkill(
 	val statModifiers: ArrayList<StatModifier>,
 
 	@BitField(id = 4)
-	val elementalResistances: ArrayList<ElementalResistance>,
+	val resistances: Resistances,
 
 	@BitField(id = 5)
-	val statusResistances: ArrayList<PossibleStatusEffect>,
-
-	@BitField(id = 6)
 	@ReferenceField(stable = false, label = "status effects")
 	val autoEffects: HashSet<StatusEffect>,
 
-	@BitField(id = 7)
+	@BitField(id = 6)
 	@ReferenceField(stable = false, label = "status effects")
 	val sosEffects: HashSet<StatusEffect>,
 
-	@BitField(id = 8)
+	@BitField(id = 7)
 	@FloatField(expectMultipleOf = 0.05)
 	val experienceModifier: Float,
 
-	@BitField(id = 9)
+	@BitField(id = 8)
 	@IntegerField(expectUniform = false)
 	val masteryModifier: Int,
 
-	@BitField(id = 10)
+	@BitField(id = 9)
 	@IntegerField(expectUniform = false)
 	val goldModifier: Int,
 
-	@BitField(id = 11)
+	@BitField(id = 10)
 	@IntegerField(expectUniform = false)
 	val addLootChance: Int,
 
-	@BitField(id = 12, optional = true)
+	@BitField(id = 11, optional = true)
 	@ReferenceField(stable = false, label = "skill classes")
 	val skillClass: SkillClass?,
 ): Skill(name, description, element, masteryPoints) {
@@ -67,7 +64,7 @@ class PassiveSkill(
 	@Suppress("unused")
 	private constructor() : this(
 		"", "", Element(), 0, 0, 0f, 0f,
-		ArrayList(), ArrayList(), ArrayList(), HashSet(), HashSet(), 0f,
+		ArrayList(), Resistances(), HashSet(), HashSet(), 0f,
 		0, 0, 0, null
 	)
 

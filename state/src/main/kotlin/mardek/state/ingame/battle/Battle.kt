@@ -9,6 +9,8 @@ import mardek.content.battle.BattleBackground
 import mardek.content.battle.Monster
 import mardek.content.battle.PartyLayout
 import mardek.content.stats.CombatStat
+import mardek.content.stats.StatusEffect
+import mardek.state.ingame.characters.CharacterState
 
 @BitStruct(backwardCompatible = true)
 class Battle(
@@ -16,7 +18,7 @@ class Battle(
 	@BitField(id = 0)
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
-	val enemies: Array<Enemy?>,
+	val startingEnemies: Array<Enemy?>,
 
 	@BitField(id = 1)
 	@ReferenceField(stable = true, label = "enemy party layouts")
@@ -45,20 +47,33 @@ class Enemy(
 	@Suppress("unused")
 	private constructor() : this(Monster(), 0)
 
-	fun determineMaxHealth(bonusVitality: Int): Int {
+	fun determineMaxHealth(bonusVitality: Int, statusEffects: Set<StatusEffect>): Int {
 		if (monster.playerStatModifier == 0) {
 			return monster.baseStats[CombatStat.MaxHealth]!! + level * monster.hpPerLevel
 		} else {
-			TODO()
+			var vitality = monster.baseStats[CombatStat.Vitality] ?: 0
+			var extra = monster.baseStats[CombatStat.MaxHealth] ?: 0
+			vitality += bonusVitality
+			for (effect in statusEffects) {
+				vitality += effect.getModifier(CombatStat.Vitality)
+				extra += effect.getModifier(CombatStat.MaxHealth)
+			}
+			return CharacterState.determineMaxHealth(level, vitality, 0f, extra)
 		}
 	}
 
-	fun determineMaxMana(bonusSpirit: Int): Int {
+	fun determineMaxMana(bonusSpirit: Int, statusEffects: Set<StatusEffect>): Int {
 		if (monster.playerStatModifier == 0) {
 			return monster.baseStats[CombatStat.MaxMana]!!
 		} else {
-			TODO()
-			//return CharacterState.determineMaxMana(level, spirit, modifier, extra)
+			var spirit = monster.baseStats[CombatStat.Spirit] ?: 0
+			var extra = monster.baseStats[CombatStat.MaxMana] ?: 0
+			spirit += bonusSpirit
+			for (effect in statusEffects) {
+				spirit += effect.getModifier(CombatStat.Spirit)
+				extra += effect.getModifier(CombatStat.MaxMana)
+			}
+			return CharacterState.determineMaxMana(level, spirit, 0f, extra)
 		}
 	}
 }

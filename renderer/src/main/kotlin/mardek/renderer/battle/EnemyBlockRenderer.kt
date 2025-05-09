@@ -24,7 +24,7 @@ class EnemyBlockRenderer(
 
 	fun beforeRendering() {
 		kimBatch = context.resources.kim2Renderer.startBatch()
-		val sprite = enemy.monster.element.sprite
+		val sprite = enemyState.element.sprite
 		val marginY = region.height / 20
 		val scale = (region.height - 2 * marginY) / sprite.height.toFloat()
 		kimBatch.requests.add(KimRequest(
@@ -34,7 +34,7 @@ class EnemyBlockRenderer(
 	}
 
 	fun render() {
-		val element = enemy.monster.element
+		val element = enemyState.element
 		context.uiRenderer.beginBatch()
 		run {
 			val marginY = region.height / 10

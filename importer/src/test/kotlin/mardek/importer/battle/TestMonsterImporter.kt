@@ -8,6 +8,7 @@ import mardek.content.skill.ActiveSkill
 import mardek.content.stats.ElementalResistance
 import mardek.content.skill.SkillTargetType
 import mardek.content.stats.CombatStat
+import mardek.content.stats.PossibleStatusEffect
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.skills.importSkillsContent
@@ -325,7 +326,7 @@ class TestMonsterImporter {
 
 		assertEquals(2, paladin.strategies.size)
 		val boostPool = paladin.strategies[0]
-		assertEquals(StrategyCriteria(maxUses = 1, hpPercentageAtMost = 25), boostPool.criteria)
+		assertEquals(StrategyCriteria(maxUses = 1, targetHpPercentageAtMost = 25), boostPool.criteria)
 		assertEquals(1, boostPool.entries.size)
 		assertEquals(StrategyEntry(
 			skill = boost, item = null, target = StrategyTarget.Self, chance = 100
@@ -360,7 +361,7 @@ class TestMonsterImporter {
 		assertTrue(heh.drainsBlood)
 		val storm = bernard.actions[1]
 		assertEquals("Thunderstorm", storm.name)
-		assertEquals(SkillTargetType.AllAllies, storm.targetType)
+		assertEquals(SkillTargetType.AllEnemies, storm.targetType)
 		val immolate = bernard.actions[2]
 		assertEquals("Immolate", immolate.name)
 		assertEquals("FIRE", immolate.element.properName)
@@ -391,6 +392,53 @@ class TestMonsterImporter {
 		assertEquals(CounterAttack(
 			action = heh, chance = 100, target = StrategyTarget.AnyPlayer
 		), bernard.meleeCounterAttacks[0])
+	}
+
+	@Test
+	fun testAaliaChapter3() {
+		val aalia = importMonsterStats(
+			"Aalia", BattleModel(), OVERRIDE_AALIA_CHAPTER3, content
+		)
+		assertEquals(4, aalia.playerStatModifier)
+
+		val regenEffect = content.stats.statusEffects.find { it.niceName == "Regen" }!!
+		val magicShieldEffect = content.stats.statusEffects.find { it.niceName == "M.Shield" }!!
+		val meleeShieldEffect = content.stats.statusEffects.find { it.niceName == "Shield" }!!
+
+		assertEquals(4, aalia.actions.size)
+		val massRegen = aalia.actions[0]
+		assertEquals(listOf(PossibleStatusEffect(regenEffect, 100)), massRegen.addStatusEffects)
+		assertEquals(SkillTargetType.AllAllies, massRegen.targetType)
+		val massMagicShield = aalia.actions[1]
+		assertEquals(listOf(PossibleStatusEffect(magicShieldEffect, 100)), massMagicShield.addStatusEffects)
+		assertEquals(SkillTargetType.AllAllies, massMagicShield.targetType)
+		val massShield = aalia.actions[2]
+		assertEquals(listOf(PossibleStatusEffect(meleeShieldEffect, 100)), massShield.addStatusEffects)
+		assertEquals(SkillTargetType.AllAllies, massShield.targetType)
+		val cureAll = aalia.actions[3]
+		assertEquals(SkillTargetType.AllAllies, cureAll.targetType)
+		assertTrue(cureAll.isHealing)
+
+		assertEquals(5, aalia.strategies.size)
+		val cureStrategy = aalia.strategies[0]
+		assertEquals(StrategyCriteria(targetHpPercentageAtMost = 60), cureStrategy.criteria)
+		assertEquals(listOf(StrategyEntry(cureAll, null, StrategyTarget.AllAllies, 100)), cureStrategy.entries)
+
+		val meleeShieldStrategy = aalia.strategies[1]
+		assertEquals(StrategyCriteria(targetMissesEffect = meleeShieldEffect), meleeShieldStrategy.criteria)
+		assertEquals(listOf(StrategyEntry(massShield, null, StrategyTarget.AllAllies, 100)), meleeShieldStrategy.entries)
+
+		val magicShieldStrategy = aalia.strategies[2]
+		assertEquals(StrategyCriteria(targetMissesEffect = magicShieldEffect), magicShieldStrategy.criteria)
+		assertEquals(listOf(StrategyEntry(massMagicShield, null, StrategyTarget.AllAllies, 100)), magicShieldStrategy.entries)
+
+		val regenStrategy = aalia.strategies[3]
+		assertEquals(StrategyCriteria(targetMissesEffect = regenEffect), regenStrategy.criteria)
+		assertEquals(listOf(StrategyEntry(massRegen, null, StrategyTarget.AllAllies, 100)), regenStrategy.entries)
+
+		val attackStrategy = aalia.strategies[4]
+		assertEquals(StrategyCriteria.NONE, attackStrategy.criteria)
+		assertEquals(listOf(StrategyEntry(null, null, StrategyTarget.AnyPlayer, 100)), attackStrategy.entries)
 	}
 
 	@Test
@@ -429,7 +477,7 @@ class TestMonsterImporter {
 		), mirrilixirPool.entries[0])
 
 		val chakraPool = mystery.strategies[1]
-		assertEquals(StrategyCriteria(hpPercentageAtMost = 20), chakraPool.criteria)
+		assertEquals(StrategyCriteria(targetHpPercentageAtMost = 20), chakraPool.criteria)
 		assertEquals(1, chakraPool.entries.size)
 		assertEquals(StrategyEntry(
 			skill = chakra, item = null, target = StrategyTarget.Self, chance = 60
@@ -455,7 +503,7 @@ class TestMonsterImporter {
 		), normalPool.entries[4])
 
 		val maybeChakraPool = mystery.strategies[3]
-		assertEquals(StrategyCriteria(hpPercentageAtMost = 30), maybeChakraPool.criteria)
+		assertEquals(StrategyCriteria(targetHpPercentageAtMost = 30), maybeChakraPool.criteria)
 		assertEquals(1, maybeChakraPool.entries.size)
 		assertEquals(StrategyEntry(
 			skill = chakra, item = null, target = StrategyTarget.Self, chance = 100
@@ -531,7 +579,7 @@ class TestMonsterImporter {
 		assertEquals(18, animus.strategies.size)
 
 		val barrierPool = animus.strategies[0]
-		assertEquals(StrategyCriteria(maxUses = 1, hpPercentageAtMost = 25), barrierPool.criteria)
+		assertEquals(StrategyCriteria(maxUses = 1, targetHpPercentageAtMost = 25), barrierPool.criteria)
 		assertEquals(1, barrierPool.entries.size)
 		assertEquals(StrategyEntry(
 			skill = megaBarrier, item = null, target = StrategyTarget.Self, chance = 100
@@ -592,14 +640,14 @@ class TestMonsterImporter {
 		), ionPool.entries[0])
 
 		val omegaPool = animus.strategies[15]
-		assertEquals(StrategyCriteria(hpPercentageAtMost = 40), omegaPool.criteria)
+		assertEquals(StrategyCriteria(myHpPercentageAtMost = 40), omegaPool.criteria)
 		assertEquals(1, omegaPool.entries.size)
 		assertEquals(StrategyEntry(
 			skill = omega, item = null, target = StrategyTarget.AllPlayers, chance = 100
 		), omegaPool.entries[0])
 
 		val gammaPool = animus.strategies[16]
-		assertEquals(StrategyCriteria(hpPercentageAtMost = 70), gammaPool.criteria)
+		assertEquals(StrategyCriteria(myHpPercentageAtMost = 70), gammaPool.criteria)
 		assertEquals(1, gammaPool.entries.size)
 		assertEquals(StrategyEntry(
 			skill = gamma, item = null, target = StrategyTarget.AllPlayers, chance = 100

@@ -736,11 +736,11 @@ class TestSkillsImporter {
 		assertEquals(0f, favour.hpModifier, margin)
 		assertEquals(0f, favour.mpModifier, margin)
 		assertEquals(0, favour.statModifiers.size)
-		assertEquals(0, favour.elementalResistances.size)
-		assertEquals(4, favour.statusResistances.size)
-		for (resistance in favour.statusResistances) assertEquals(20, resistance.chance)
+		assertEquals(0, favour.resistances.elements.size)
+		assertEquals(4, favour.resistances.effects.size)
+		for (resistance in favour.resistances.effects) assertEquals(20, resistance.percentage)
 		for (effectName in arrayOf("Poison", "Silence", "Sleep", "Paralysis")) {
-			assertNotNull(favour.statusResistances.find { it.effect.niceName == effectName })
+			assertNotNull(favour.resistances.effects.find { it.effect.niceName == effectName })
 		}
 		assertEquals(0, favour.autoEffects.size)
 		assertEquals(0, favour.sosEffects.size)
@@ -757,7 +757,7 @@ class TestSkillsImporter {
 		assertEquals(0.1f, increaseHp.hpModifier, margin)
 		assertEquals(4, increaseHp.enablePoints)
 
-		assertEquals(0, increaseHp.statusResistances.size)
+		assertEquals(0, increaseHp.resistances.effects.size)
 	}
 
 	@Test
@@ -783,10 +783,10 @@ class TestSkillsImporter {
 	@Test
 	fun testRainbowAura() {
 		val aura = getPassive("Rainbow Aura Lv.1")
-		assertEquals(8, aura.elementalResistances.size)
-		for (resistance in aura.elementalResistances) assertEquals(0.2f, resistance.modifier, margin)
+		assertEquals(8, aura.resistances.elements.size)
+		for (resistance in aura.resistances.elements) assertEquals(0.2f, resistance.modifier, margin)
 		for (element in arrayOf("FIRE", "WATER", "LIGHT", "AETHER")) {
-			assertNotNull(aura.elementalResistances.find { it.element.properName == element })
+			assertNotNull(aura.resistances.elements.find { it.element.properName == element })
 		}
 
 		assertEquals(0, aura.statModifiers.size)
@@ -798,7 +798,7 @@ class TestSkillsImporter {
 		assertEquals(setOf(content.stats.statusEffects.find { it.flashName == "PSH" }!!), autoShield.autoEffects)
 		assertEquals("LIGHT", autoShield.element.properName)
 
-		assertEquals(0, autoShield.elementalResistances.size)
+		assertEquals(0, autoShield.resistances.elements.size)
 	}
 
 	@Test

@@ -33,15 +33,13 @@ class TargetSelectionRenderer(
 		if (target == null) return@run null
 		val selectedMove = context.battle.selectedMove
 		if (selectedMove is BattleMoveSelectionAttack) {
-			val player = context.campaign.characterStates[context.battle.players[context.battle.onTurn!!.index]!!]!!
-			Action("Attack", 0, player.equipment[0]!!.element!!)
+			Action("Attack", 0, context.battle.onTurn!!.getState().equipment[0]!!.element!!)
 		} else if (selectedMove is BattleMoveSelectionSkill && selectedMove.target != null) {
 			var manaCost = selectedMove.skill!!.manaCost
 			if (target is BattleSkillTargetAllAllies || target is BattleSkillTargetAllEnemies) manaCost *= 2
 			Action(selectedMove.skill!!.name, manaCost, selectedMove.skill!!.element)
 		} else if (selectedMove is BattleMoveSelectionItem && selectedMove.target != null) {
-			val player = context.campaign.characterStates[context.battle.players[context.battle.onTurn!!.index]!!]!!
-			Action(selectedMove.item!!.flashName, 0, player.equipment[0]!!.element!!)
+			Action(selectedMove.item!!.flashName, 0, context.battle.onTurn!!.getState().equipment[0]!!.element!!)
 		} else throw IllegalStateException()
 	}
 

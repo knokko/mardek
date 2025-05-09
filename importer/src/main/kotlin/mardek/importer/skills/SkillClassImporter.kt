@@ -19,7 +19,7 @@ fun parseSkillClasses(
 	val techSpriteMappings = parseActionScriptNestedList(rawTechSpriteMappings) as ArrayList<*>
 	val techIconsInput = FatPlayableCharacter::class.java.classLoader.getResourceAsStream(
 		"mardek/importer/stats/tech-icons.png"
-	)
+	)!!
 	val techIcons = ImageIO.read(techIconsInput)
 	techIconsInput.close()
 	return rawTechsMap.map { entry ->
@@ -33,7 +33,7 @@ fun parseSkillClasses(
 			key = entry.key,
 			name = techName,
 			description = parseFlashString(tech["desc"]!!, "Tech desc")!!,
-			actions = ArrayList(parseActiveSkills(statsContent, parseActionScriptObjectList(rawSkills))),
+			actions = ArrayList(parseActiveSkills(statsContent, parseActionScriptObjectList(rawSkills), false)),
 			icon = compressKimSprite1(icon)
 		)
 	}

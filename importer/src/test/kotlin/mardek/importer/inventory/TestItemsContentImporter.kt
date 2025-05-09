@@ -163,9 +163,9 @@ class TestItemsContentImporter {
 		assertEquals(ReactionSkillType.RangedAttack, increaseDamage.type)
 		assertEquals(0.2f, increaseDamage.addDamageFraction, margin)
 		val brightEyes = equipment.skills[1] as PassiveSkill
-		assertEquals(1, brightEyes.statusResistances.size)
-		assertEquals("Blindness", brightEyes.statusResistances[0].effect.niceName)
-		assertEquals(100, brightEyes.statusResistances[0].chance)
+		assertEquals(1, brightEyes.resistances.effects.size)
+		assertEquals("Blindness", brightEyes.resistances.effects[0].effect.niceName)
+		assertEquals(100, brightEyes.resistances.effects[0].percentage)
 
 		assertSpriteEquals("armour", 256, 128, helmet)
 	}
@@ -332,6 +332,22 @@ class TestItemsContentImporter {
 		assertEquals(1, (equipment.skills[0] as PassiveSkill).masteryModifier)
 
 		assertSpriteEquals("misc", 240, 48, eveningStar)
+	}
+
+	@Test
+	fun testFirePendant() {
+		val fire = content.stats.elements.find { it.properName == "FIRE" }!!
+		val water = content.stats.elements.find { it.properName == "WATER" }!!
+
+		val firePendant = getItem("FirePendant")
+		assertEquals("accs", firePendant.type.flashName)
+		assertEquals(300, firePendant.cost)
+		assertSame(fire, firePendant.element)
+
+		val equipment = firePendant.equipment!!
+		assertEquals(2, equipment.resistances.elements.size)
+		assertEquals(0.5f, equipment.resistances.get(fire))
+		assertEquals(-0.5f, equipment.resistances.get(water))
 	}
 
 	@Test

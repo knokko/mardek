@@ -1,11 +1,16 @@
 package mardek.importer.stats
 
+import mardek.content.stats.ElementalResistance
+import mardek.content.stats.Resistances
 import mardek.content.stats.StatsContent
 import mardek.content.stats.StatusEffect
 import java.util.*
+import kotlin.collections.ArrayList
 
-fun addStatusEffects(assets: StatsContent) {
-	assets.statusEffects.add(StatusEffect(
+fun addStatusEffects(content: StatsContent) {
+	fun element(properName: String) = content.elements.find { it.properName == properName }!!
+
+	content.statusEffects.add(StatusEffect(
 		flashName = "PSN",
 		niceName = "Poison",
 		isPositive = false,
@@ -13,14 +18,14 @@ fun addStatusEffects(assets: StatsContent) {
 		damageFractionPerTurn = 0.1f,
 		damageOutsideCombat = 1
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "CNF",
 		niceName = "Confusion",
 		isPositive = false,
 		disappearsAfterCombat = true,
 		isConfusing = true
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "CRS",
 		niceName = "Curse",
 		isPositive = false,
@@ -28,21 +33,21 @@ fun addStatusEffects(assets: StatsContent) {
 		blocksRangedSkills = true,
 		blocksMeleeSkills = true
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "DRK",
 		niceName = "Blindness",
 		isPositive = false,
 		disappearsAfterCombat = false,
 		missChance = 50
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "SIL",
 		niceName = "Silence",
 		isPositive = false,
 		disappearsAfterCombat = false,
 		blocksRangedSkills = true
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "SLP",
 		niceName = "Sleep",
 		isPositive = false,
@@ -50,14 +55,14 @@ fun addStatusEffects(assets: StatsContent) {
 		skipTurnChance = 100,
 		disappearChancePerTurn = 25
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "PAR",
 		niceName = "Paralysis",
 		isPositive = false,
 		disappearsAfterCombat = false,
 		skipTurnChance = 50
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "NUM",
 		niceName = "Numbness",
 		isPositive = false,
@@ -65,28 +70,28 @@ fun addStatusEffects(assets: StatsContent) {
 		blocksMeleeSkills = true,
 		blocksBasicAttacks = true
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "RGN",
 		niceName = "Regen",
 		isPositive = true,
 		disappearsAfterCombat = true,
 		damageFractionPerTurn = -0.1f
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "PSH",
 		niceName = "Shield",
 		isPositive = true,
 		disappearsAfterCombat = true,
 		meleeDamageReduction = 0.5f
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "MSH",
 		niceName = "M.Shield",
 		isPositive = true,
 		disappearsAfterCombat = true,
 		rangedDamageReduction = 0.5f
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "BSK",
 		niceName = "Berserk",
 		isPositive = true,
@@ -94,42 +99,56 @@ fun addStatusEffects(assets: StatsContent) {
 		meleeDamageModifier = 2f,
 		isReckless = true
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "HST",
 		niceName = "Haste",
 		isPositive = true,
 		disappearsAfterCombat = true,
 		extraTurns = 1
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "UWB",
 		niceName = "Aqualong",
 		isPositive = true,
 		disappearsAfterCombat = false,
 		canWaterBreathe = true
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "ZOM",
 		niceName = "Zombie",
 		isPositive = false,
 		disappearsAfterCombat = false,
 		isZombie = true
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "GST",
 		niceName = "Astral",
 		isPositive = true,
 		disappearsAfterCombat = true,
-		isAstralForm = true
+		isAstralForm = true,
+		resistances = Resistances(
+			elements = arrayListOf(
+				ElementalResistance(element("WATER"), 0.5f),
+				ElementalResistance(element("FIRE"), 0.5f),
+				ElementalResistance(element("AIR"), 0.5f),
+				ElementalResistance(element("EARTH"), 0.5f),
+				ElementalResistance(element("LIGHT"), -1f),
+				ElementalResistance(element("DARK"), -1f),
+				ElementalResistance(element("AETHER"), 2f),
+				ElementalResistance(element("FIG"), -1f),
+				ElementalResistance(element("THAUMA"), -1f)
+			),
+			effects = ArrayList(0)
+		)
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "BRK",
 		niceName = "Barskin",
 		isPositive = true,
 		disappearsAfterCombat = true,
-		hasBarskin = true
+		hasBarskin = true,
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "BLD",
 		niceName = "Bleed",
 		isPositive = false,
@@ -137,9 +156,9 @@ fun addStatusEffects(assets: StatsContent) {
 		damageFractionPerTurn = 0.2f
 	))
 
-	for (element in assets.elements) {
+	for (element in content.elements) {
 		if (element.weakAgainst == null) continue // Skip physical and thauma
-		assets.statusEffects.add(StatusEffect(
+		content.statusEffects.add(StatusEffect(
 			flashName = "${element.primaryChar}N1",
 			niceName = "Null ${element.properName.lowercase(Locale.ROOT)}",
 			isPositive = true,
@@ -148,36 +167,36 @@ fun addStatusEffects(assets: StatsContent) {
 		))
 	}
 
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "SHF",
 		niceName = "Pyro Shell",
 		isPositive = true,
 		disappearsAfterCombat = true,
-		elementShell = assets.elements.find { it.rawName == "FIRE" }!!
+		elementShell = content.elements.find { it.rawName == "FIRE" }!!
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "SHW",
 		niceName = "Hydro Shell",
 		isPositive = true,
 		disappearsAfterCombat = true,
-		elementShell = assets.elements.find { it.rawName == "WATER" }!!
+		elementShell = content.elements.find { it.rawName == "WATER" }!!
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "SHE",
 		niceName = "Geo Shell",
 		isPositive = true,
 		disappearsAfterCombat = true,
-		elementShell = assets.elements.find { it.rawName == "EARTH" }!!
+		elementShell = content.elements.find { it.rawName == "EARTH" }!!
 	))
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "SHA",
 		niceName = "Aero Shell",
 		isPositive = true,
 		disappearsAfterCombat = true,
-		elementShell = assets.elements.find { it.rawName == "AIR" }!!
+		elementShell = content.elements.find { it.rawName == "AIR" }!!
 	))
 
-	assets.statusEffects.add(StatusEffect(
+	content.statusEffects.add(StatusEffect(
 		flashName = "BRN",
 		niceName = "Burn?",
 		isPositive = false,

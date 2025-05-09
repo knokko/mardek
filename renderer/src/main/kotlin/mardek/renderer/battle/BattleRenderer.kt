@@ -1,16 +1,11 @@
 package mardek.renderer.battle
 
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.ui.renderer.Gradient
-import mardek.content.Content
 import mardek.content.animations.BattleModel
 import mardek.content.animations.ColorTransform
 import mardek.content.battle.PartyLayoutPosition
 import mardek.renderer.InGameRenderContext
-import mardek.renderer.SharedResources
-import mardek.state.ingame.CampaignState
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.title.AbsoluteRectangle
@@ -86,7 +81,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		skillOrItemDescriptionRenderer.beforeRendering()
 		targetSelectionRenderer.beforeRendering()
 
-		for ((index, enemy) in context.battle.battle.enemies.withIndex()) {
+		for ((index, enemy) in context.battle.enemies.withIndex()) {
 			if (enemy == null) continue
 			val region = AbsoluteRectangle(
 				minX = index * context.targetImage.width / 4, minY = 0,
@@ -119,7 +114,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 			Vector2f(-1f, -1f), Vector2f(1f, -1f), Vector2f(1f, 1f), Vector2f(-1f, 1f)
 		), null)
 
-		for ((index, enemy) in context.battle.battle.enemies.withIndex()) {
+		for ((index, enemy) in context.battle.enemies.withIndex()) {
 			if (enemy == null) continue
 
 			val rawPosition = context.battle.battle.enemyLayout.positions[index]

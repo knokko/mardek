@@ -237,7 +237,7 @@ internal fun battleClick(
 			val playerState = state.onTurn!!.getState()
 			if (manaCost <= playerState.currentMana) {
 				playerState.currentMana -= manaCost
-				state.confirmMove(BattleMoveSkill(selectedMove.skill, selectedMove.target), soundQueue)
+				state.confirmMove(BattleMoveSkill(selectedMove.skill, selectedMove.target, null), soundQueue)
 			} else {
 				soundQueue.insert("click-reject")
 			}

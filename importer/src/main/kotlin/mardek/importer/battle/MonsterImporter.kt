@@ -75,8 +75,8 @@ DetermineStats();
 
 const val OVERRIDE_AALIA_CHAPTER3 = """
 mdlStats = {names:["Aalia"],model:"aalia",unique_sprite:"aalia",Class:"Healer",TYPE:"HUMAN",cElem:"LIGHT",wpnType:"STAFF",armrTypes:[],baseStats:{hp:25,mp:140,STR:9,VIT:10,SPR:19,AGL:16},FAIR_STATS:4,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:10,atkGrowth:[0,0],equip:{weapon:["Fire Staff"],shield:["none"],helmet:["Regal Crown"],armour:["Dark Robe"],accs:["GoldRing"],accs2:["Mind Crystal"]},resist:{CNF:50,SIL:50,CRS:100,ZOM:100,BSK:100},EXP:1000};
-Techs = [{skill:"Regen",type:"ACT",MP:6,AP:20,stfx:{RGN:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"regen",desc:""},{skill:"M. Shield",type:"ACT",MP:6,AP:20,stfx:{MSH:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"mshield",desc:""},{skill:"Shield",type:"ACT",MP:6,AP:20,stfx:{PSH:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"shield",desc:""},{skill:"Cure",type:"ACT",DMG:30,MP:4,AP:20,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"cure1",desc:"10+d6/L",special:{HEALING:1},menuse:1},{skill:"Cura",type:"ACT",DMG:100,MP:4,AP:20,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"cure2",desc:"10+d6/L",special:{HEALING:1},menuse:1}];
-Gambits = [{command:"Cure",target:"ANY_ALLY",criteria:["HP<",0.4]},{command:"Shield",target:"ALL_e",criteria:["no_status","PSH"]},{command:"M. Shield",target:"ALL_e",criteria:["no_status","MSH"]},{command:"Regen",target:"ALL_e",criteria:["no_status","RGN"]},{command:"Attack",target:"ANY_PC",criteria:null}];
+Techs = [{skill:"Regen",type:"ACT",MP:6,AP:20,stfx:{RGN:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"ALL_e",pfx:"regen",desc:""},{skill:"M. Shield",type:"ACT",MP:6,AP:20,stfx:{MSH:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"ALL_e",pfx:"mshield",desc:""},{skill:"Shield",type:"ACT",MP:6,AP:20,stfx:{PSH:100},lasts:10,MODE:"M",elem:"LIGHT",TT:"ALL_e",pfx:"shield",desc:""},{skill:"Cure",type:"ACT",DMG:30,MP:4,AP:20,MODE:"M",elem:"LIGHT",TT:"SINGLE",pfx:"cure1",desc:"10+d6/L",special:{HEALING:1},menuse:1},{skill:"Cura",type:"ACT",DMG:100,MP:4,AP:20,MODE:"M",elem:"LIGHT",TT:"ALL_e",pfx:"cure2",desc:"10+d6/L",special:{HEALING:1},menuse:1}];
+Gambits = [{command:"Cura",target:"ALL_e",criteria:["HP<",0.6]},{command:"Shield",target:"ALL_e",criteria:["no_status","PSH"]},{command:"M. Shield",target:"ALL_e",criteria:["no_status","MSH"]},{command:"Regen",target:"ALL_e",criteria:["no_status","RGN"]},{command:"Attack",target:"ANY_PC",criteria:null}];
 loot = [["GoldRing",100]];
 DetermineStats();
 """
@@ -243,7 +243,7 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 			}
 			if (monster.label == "aalia_e") {
 				addMonster("AaliaChapter2", OVERRIDE_AALIA_CHAPTER2)
-				addMonster("AalieChapter3", OVERRIDE_AALIA_CHAPTER3)
+				addMonster("AaliaChapter3", OVERRIDE_AALIA_CHAPTER3)
 				continue
 			}
 			if (monster.label == "bernard_e") {
@@ -627,7 +627,7 @@ internal fun importMonsterStats(name: String, model: BattleModel, propertiesText
 		rawActionList.add(rawTechObject)
 	}
 
-	val actions = parseActiveSkills(content.stats, rawActionList)
+	val actions = parseActiveSkills(content.stats, rawActionList, true)
 	val targetMap = mutableMapOf<ActiveSkill, StrategyTarget>()
 	val strategies = importMonsterStrategies(
 		propertiesCode.variableAssignments["Gambits"]!!, actions, content, targetMap

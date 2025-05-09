@@ -28,7 +28,7 @@ fun parsePassiveSkill(
 
 	val statModifiers = ArrayList<StatModifier>()
 	val elementalResistances = ArrayList<ElementalResistance>()
-	val statusResistances = ArrayList<PossibleStatusEffect>()
+	val statusResistances = ArrayList<EffectResistance>()
 	val autoEffects = HashSet<StatusEffect>()
 	val sosEffects = HashSet<StatusEffect>()
 
@@ -49,7 +49,7 @@ fun parsePassiveSkill(
 					elementalResistances.add(ElementalResistance(element, parseInt(rawModifier) / 100f))
 				} else {
 					val statusEffect = statsContent.statusEffects.find { it.flashName == resistName }!!
-					statusResistances.add(PossibleStatusEffect(statusEffect, parseInt(rawModifier)))
+					statusResistances.add(EffectResistance(statusEffect, parseInt(rawModifier)))
 				}
 			}
 		}
@@ -107,8 +107,7 @@ fun parsePassiveSkill(
 			hpModifier = hpModifier,
 			mpModifier = mpModifier,
 			statModifiers = statModifiers,
-			elementalResistances = elementalResistances,
-			statusResistances = statusResistances,
+			resistances = Resistances(elementalResistances, statusResistances),
 			autoEffects = autoEffects,
 			sosEffects = sosEffects,
 			experienceModifier = experienceModifier,

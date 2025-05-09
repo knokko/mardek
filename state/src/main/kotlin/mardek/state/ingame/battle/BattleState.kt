@@ -4,7 +4,6 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.*
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
-import mardek.content.stats.CombatStat
 import mardek.input.InputKey
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
@@ -29,19 +28,30 @@ class BattleState(
 	campaignState: CampaignState,
 ) {
 
-	val allPossibleCombatants = (0 until 4).flatMap { listOf(
-		CombatantReference(false, it, this), CombatantReference(true, it, this)
-	) }
+	fun allPlayers() = (0 until 4).filter { players[it] != null }.map {
+		CombatantReference(isPlayer = true, index = it, this)
+	}
+
+	fun livingPlayers() = allPlayers().filter { it.isAlive() }
+
+	fun livingEnemies() = (0 until 4).filter { enemyStates[it] != null }.map {
+		CombatantReference(isPlayer = false, index = it, this)
+	}
 
 	@BitField(id = 3)
+	@NestedFieldSetting(path = "c", optional = true)
+	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
+	val enemies = battle.startingEnemies
+
+	@BitField(id = 4)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	@ReferenceFieldTarget(label = "combatants")
 	val enemyStates = Array(4) { index ->
-		val enemy = battle.enemies[index] ?: return@Array null
+		val enemy = enemies[index] ?: return@Array null
 		CombatantState(enemy)
 	}
 
-	@BitField(id = 4)
+	@BitField(id = 5)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	@ReferenceFieldTarget(label = "combatants")
 	val playerStates = Array(4) { index ->
@@ -49,7 +59,7 @@ class BattleState(
 		CombatantState(player, campaignState.characterStates[player]!!)
 	}
 
-	@BitField(id = 5, optional = true)
+	@BitField(id = 6, optional = true)
 	@ReferenceField(stable = false, label = "combatants")
 	var onTurn: CombatantReference? = null
 
@@ -59,7 +69,7 @@ class BattleState(
 
 	var selectedMove: BattleMoveSelection = BattleMoveSelectionAttack(target = null)
 
-	@BitField(id = 7)
+	@BitField(id = 8)
 	var outcome = BattleOutcome.Busy
 		private set
 
@@ -96,37 +106,26 @@ class BattleState(
 		}
 	}
 
-	internal fun getPlayerStat(stat: CombatStat, index: Int): Int {
-		val player = players[index]!!
-		val state = playerStates[index]!!
-		val base = player.baseStats.find { it.stat == stat }?.adder ?: 0
-		val extra = state.statModifiers[stat] ?: 0
-		return base + extra
-	}
-
-	internal fun getMonsterStat(stat: CombatStat, index: Int): Int {
-		val monster = battle.enemies[index]!!.monster
-		val state = enemyStates[index]!!
-		val base = monster.baseStats[stat] ?: 0
-		val extra = state.statModifiers[stat] ?: 0
-		return base + extra
-	}
-
-	private fun updateOnTurn(soundQueue: SoundQueue) {
-		val combatants = allPossibleCombatants.filter { it.isAlive() }
+	private fun updateOnTurn(characterStates: Map<PlayableCharacter, CharacterState>, soundQueue: SoundQueue) {
+		val combatants = livingPlayers() + livingEnemies()
 		if (combatants.none { it.isPlayer }) outcome = BattleOutcome.GameOver
 		if (combatants.none { !it.isPlayer }) outcome = BattleOutcome.Victory
 		if (outcome != BattleOutcome.Busy) return
 
-		val simulator = TurnOrderSimulator(this)
+		val simulator = TurnOrderSimulator(this, characterStates)
 		if (simulator.checkReset()) {
 			for (combatant in combatants) combatant.getState().spentTurnsThisRound = 0
 		}
-		beginTurn(soundQueue, simulator.next()!!)
+		beginTurn(characterStates, soundQueue, simulator.next()!!)
 	}
 
-	private fun beginTurn(soundQueue: SoundQueue, combatant: CombatantReference) {
-		combatant.getState().spentTurnsThisRound += 1
+	private fun beginTurn(
+		characterStates: Map<PlayableCharacter, CharacterState>,
+		soundQueue: SoundQueue, combatant: CombatantReference
+	) {
+		val combatantState = combatant.getState()
+		combatantState.spentTurnsThisRound += 1
+		combatantState.totalSpentTurns += 1
 		// TODO Allow status effects to skip the turn
 		onTurn = combatant
 
@@ -136,16 +135,16 @@ class BattleState(
 			BattleMoveThinking
 		} else {
 			moveDecisionTime = updatedTime
-			BattleMoveWait
+			MonsterStrategyCalculator(this, characterStates).determineNextMove()
 		}
 	}
 
 	fun update(
-		characterStates: HashMap<PlayableCharacter, CharacterState>,
+		characterStates: Map<PlayableCharacter, CharacterState>,
 		soundQueue: SoundQueue, timeStep: Duration
 	) {
 		updatedTime += timeStep
-		while (onTurn == null && outcome == BattleOutcome.Busy) updateOnTurn(soundQueue)
+		while (onTurn == null && outcome == BattleOutcome.Busy) updateOnTurn(characterStates, soundQueue)
 		if (outcome != BattleOutcome.Busy) return
 
 		if (currentMove == BattleMoveWait && updatedTime > moveDecisionTime + 500.milliseconds) {

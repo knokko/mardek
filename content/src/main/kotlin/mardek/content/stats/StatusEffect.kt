@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import java.util.*
+import kotlin.collections.ArrayList
 
 @BitStruct(backwardCompatible = true)
 class StatusEffect(
@@ -86,20 +87,28 @@ class StatusEffect(
 	val isAstralForm: Boolean = false,
 
 	@BitField(id = 22)
+	val statModifiers: ArrayList<StatModifier> = ArrayList(0),
+
+	@BitField(id = 23)
+	val resistances: Resistances = Resistances(),
+
+	@BitField(id = 24)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val skipTurnChance: Int = 0,
 
-	@BitField(id = 23)
+	@BitField(id = 25)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val disappearChancePerTurn: Int = 0,
 ) {
 
 	@Suppress("unused")
-	@BitField(id = 24)
+	@BitField(id = 26)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
 	internal constructor() : this("", null, false, false)
 
 	override fun toString() = niceName ?: flashName
+
+	fun getModifier(stat: CombatStat) = statModifiers.sumOf { if (it.stat == stat) it.adder else 0 }
 }

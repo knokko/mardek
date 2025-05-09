@@ -577,9 +577,15 @@ class InventoryTabRenderer(
 			val statsColor = srgbToLinear(rgb(238, 203, 127))
 			val statsHeight = 5 * scale
 
-			val attack = characterState.determineValue(assetCharacter.baseStats, CombatStat.Attack)
-			val defense = characterState.determineValue(assetCharacter.baseStats, CombatStat.MeleeDefense)
-			val rangedDefense = characterState.determineValue(assetCharacter.baseStats, CombatStat.RangedDefense)
+			val attack = characterState.computeStatValue(
+				assetCharacter.baseStats, characterState.activeStatusEffects, CombatStat.Attack
+			)
+			val defense = characterState.computeStatValue(
+				assetCharacter.baseStats, characterState.activeStatusEffects, CombatStat.MeleeDefense
+			)
+			val rangedDefense = characterState.computeStatValue(
+				assetCharacter.baseStats, characterState.activeStatusEffects, CombatStat.RangedDefense
+			)
 
 			uiRenderer.drawString(
 				context.resources.font, attack.toString(), statsColor, intArrayOf(),
@@ -618,14 +624,14 @@ class InventoryTabRenderer(
 			val healthRenderer = ResourceBarRenderer(context, ResourceType.Health, AbsoluteRectangle(
 				barX, startY + margin * 13 / 9, baseBarWidth, barsHeight
 			))
-			val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats)
+			val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats, characterState.activeStatusEffects)
 			healthRenderer.renderBar(characterState.currentHealth, maxHealth)
 			healthRenderer.renderTextBelowBar(characterState.currentHealth, maxHealth)
 
 			val manaRenderer = ResourceBarRenderer(context, ResourceType.Mana, AbsoluteRectangle(
 				barX, startY + margin * 37 / 8, baseBarWidth, barsHeight
 			))
-			val maxMana = characterState.determineMaxMana(assetCharacter.baseStats)
+			val maxMana = characterState.determineMaxMana(assetCharacter.baseStats, characterState.activeStatusEffects)
 			manaRenderer.renderBar(characterState.currentMana, maxMana)
 			manaRenderer.renderTextBelowBar(characterState.currentMana, maxMana)
 		}

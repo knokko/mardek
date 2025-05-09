@@ -52,7 +52,7 @@ class CharacterState {
 	@ReferenceField(stable = true, label = "skills")
 	val toggledSkills = HashSet<Skill>()
 
-	fun determineValue(base: List<StatModifier>, stat: CombatStat): Int {
+	fun computeStatValue(base: List<StatModifier>, statusEffects: Set<StatusEffect>, stat: CombatStat): Int {
 		var total = 0
 		for (modifier in base) {
 			if (modifier.stat == stat) total += modifier.adder
@@ -63,14 +63,16 @@ class CharacterState {
 		for (skill in toggledSkills) {
 			if (skill is PassiveSkill) total += skill.getModifier(stat)
 		}
-		// TODO Allow status effects to modify DEF
+		for (effect in statusEffects) {
+			total += effect.getModifier(stat)
+		}
 
 		return total
 	}
 
-	fun determineMaxHealth(base: List<StatModifier>): Int {
-		val vit = determineValue(base, CombatStat.Vitality)
-		val extra = determineValue(base, CombatStat.MaxHealth)
+	fun determineMaxHealth(base: List<StatModifier>, statusEffects: Set<StatusEffect>): Int {
+		val vit = computeStatValue(base, statusEffects, CombatStat.Vitality)
+		val extra = computeStatValue(base, statusEffects, CombatStat.MaxHealth)
 		var hpModifier = 0f
 		for (skill in toggledSkills) {
 			if (skill is PassiveSkill) hpModifier += skill.hpModifier
@@ -78,9 +80,9 @@ class CharacterState {
 		return determineMaxHealth(currentLevel, vit, hpModifier, extra)
 	}
 
-	fun determineMaxMana(base: List<StatModifier>): Int {
-		val spr = determineValue(base, CombatStat.Spirit)
-		val extra = determineValue(base, CombatStat.MaxMana)
+	fun determineMaxMana(base: List<StatModifier>, statusEffects: Set<StatusEffect>): Int {
+		val spr = computeStatValue(base, statusEffects, CombatStat.Spirit)
+		val extra = computeStatValue(base, statusEffects, CombatStat.MaxMana)
 		var mpModifier = 0f
 		for (skill in toggledSkills) {
 			if (skill is PassiveSkill) mpModifier += skill.mpModifier
