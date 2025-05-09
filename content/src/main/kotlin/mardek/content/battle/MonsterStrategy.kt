@@ -5,12 +5,14 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.BITSER
 import mardek.content.stats.Element
 import mardek.content.stats.StatusEffect
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
 import mardek.content.stats.ElementalResistance
+import java.util.*
 import kotlin.collections.ArrayList
 
 @BitStruct(backwardCompatible = true)
@@ -21,6 +23,11 @@ class StrategyPool(
 	@BitField(id = 1)
 	val entries: ArrayList<StrategyEntry>,
 ) {
+
+	@BitField(id = 2)
+	@Suppress("unused")
+	@StableReferenceFieldId
+	private val id = UUID.randomUUID()
 
 	@Suppress("unused")
 	private constructor() : this(StrategyCriteria.NONE, ArrayList(0))

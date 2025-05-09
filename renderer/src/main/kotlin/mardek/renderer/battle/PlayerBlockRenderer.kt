@@ -28,7 +28,7 @@ class PlayerBlockRenderer(
 	fun beforeRendering() {
 		run {
 			batch2 = context.resources.kim2Renderer.startBatch()
-			val sprite = player.element.sprite // TODO thin sprite?
+			val sprite = playerState.element.sprite // TODO thin sprite?
 			val marginY = region.height / 20
 			val scale = (region.height - 2 * marginY) / sprite.height.toFloat()
 			batch2.requests.add(KimRequest(
@@ -54,12 +54,13 @@ class PlayerBlockRenderer(
 	fun render() {
 		context.uiRenderer.beginBatch()
 		run {
+			val element = playerState.element
 			val marginY = region.height / 10
 			val minX = region.minX + region.height / 2
 			val minY = region.minY + marginY
 			val maxX = minX + 3 * region.width / 4
 			val maxY = region.minY + region.height / 3
-			val weakColor = rgba(red(player.element.color), green(player.element.color), blue(player.element.color), 150.toByte())
+			val weakColor = rgba(red(element.color), green(element.color), blue(element.color), 150.toByte())
 			context.uiRenderer.fillColorUnaligned(
 				minX, maxY, maxX, maxY, maxX - region.height / 2, minY, minX, minY, 0,
 				Gradient(minX, minY, region.width, region.height, weakColor, 0, weakColor)

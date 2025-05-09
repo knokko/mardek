@@ -126,7 +126,9 @@ class BattleState(
 	}
 
 	private fun beginTurn(soundQueue: SoundQueue, combatant: CombatantReference) {
-		combatant.getState().spentTurnsThisRound += 1
+		val combatantState = combatant.getState()
+		combatantState.spentTurnsThisRound += 1
+		combatantState.totalSpentTurns += 1
 		// TODO Allow status effects to skip the turn
 		onTurn = combatant
 
@@ -136,8 +138,9 @@ class BattleState(
 			BattleMoveThinking
 		} else {
 			moveDecisionTime = updatedTime
-			BattleMoveWait
+			MonsterStrategyCalculator(this).determineNextMove()
 		}
+		println("picked $currentMove")
 	}
 
 	fun update(
