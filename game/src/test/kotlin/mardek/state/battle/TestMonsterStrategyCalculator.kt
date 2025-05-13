@@ -13,7 +13,7 @@ object TestMonsterStrategyCalculator {
 
 	fun testMaxUses(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(content, CampaignState(
+			val state = InGameState(CampaignState(
 				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
@@ -26,19 +26,19 @@ object TestMonsterStrategyCalculator {
 				monster = zombieShaman, level = 5
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingEnemies()[0]
+			battle.onTurn = battle.livingOpponents()[0]
 
-			val firstMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove()
-			assertEquals(BattleMoveSkill(darkGift, BattleSkillTargetSingle(battle.livingEnemies()[0]), null), firstMove)
+			val firstMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove()
+			assertEquals(BattleMoveSkill(darkGift, BattleSkillTargetSingle(battle.livingOpponents()[0]), null), firstMove)
 
-			val secondMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove()
+			val secondMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove()
 			assertNotEquals(firstMove, secondMove)
 		}
 	}
 
 	fun testMyHp(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(content, CampaignState(
+			val state = InGameState(CampaignState(
 				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
@@ -53,7 +53,7 @@ object TestMonsterStrategyCalculator {
 				monster = animus, level = 50
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingEnemies()[0]
+			battle.onTurn = battle.livingOpponents()[0]
 
 			var alphaCounter = 0
 			var gammaCounter = 0
@@ -61,7 +61,7 @@ object TestMonsterStrategyCalculator {
 
 			fun countSoulStorms() {
 				repeat(10_000) {
-					val nextMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove()
+					val nextMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove()
 					assertTrue(nextMove is BattleMoveSkill)
 					val skill = (nextMove as BattleMoveSkill).skill
 					if (skill === alpha) alphaCounter += 1
@@ -76,14 +76,14 @@ object TestMonsterStrategyCalculator {
 			assertEquals(0, omegaCounter)
 
 			alphaCounter = 0
-			battle.livingEnemies()[0].getState().currentHealth /= 2
+			battle.livingOpponents()[0].currentHealth /= 2
 			countSoulStorms()
 			assertEquals(0, alphaCounter)
 			assertTrue(gammaCounter > 0)
 			assertEquals(0, omegaCounter)
 
 			gammaCounter = 0
-			battle.livingEnemies()[0].getState().currentHealth /= 2
+			battle.livingOpponents()[0].currentHealth /= 2
 			countSoulStorms()
 			assertEquals(0, alphaCounter)
 			assertEquals(0, gammaCounter)
@@ -93,7 +93,7 @@ object TestMonsterStrategyCalculator {
 
 	fun testRepeatAndMyElement(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(content, CampaignState(
+			val state = InGameState(CampaignState(
 				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
@@ -105,18 +105,18 @@ object TestMonsterStrategyCalculator {
 				monster = masterStone, level = 50
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingEnemies()[0]
+			battle.onTurn = battle.livingOpponents()[0]
 
 			val encounteredElements = mutableSetOf<Element>()
 			repeat(10_000) {
-				val rawShiftMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove()
+				val rawShiftMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove()
 				val shiftMove = rawShiftMove as BattleMoveSkill
 				assertTrue(shiftMove.skill.changeElement)
 				encounteredElements.add(shiftMove.nextElement!!)
-				battle.livingEnemies()[0].getState().element = shiftMove.nextElement!!
-				assertEquals(BattleSkillTargetSingle(battle.livingEnemies()[0]), shiftMove.target)
+				battle.livingOpponents()[0].element = shiftMove.nextElement!!
+				assertEquals(BattleSkillTargetSingle(battle.livingOpponents()[0]), shiftMove.target)
 
-				val rawGemsplosion = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove()
+				val rawGemsplosion = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove()
 				val gemsplosionMove = rawGemsplosion as BattleMoveSkill
 				assertFalse(gemsplosionMove.skill.changeElement)
 				assertSame(shiftMove.nextElement!!, gemsplosionMove.skill.element)
@@ -129,7 +129,7 @@ object TestMonsterStrategyCalculator {
 
 	fun testTargetHasEffectAndResistanceAndEvenOdd(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(content, CampaignState(
+			val state = InGameState(CampaignState(
 				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
@@ -151,8 +151,8 @@ object TestMonsterStrategyCalculator {
 				monster = animus, level = 50
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingEnemies()[0]
-			battle.livingEnemies()[0].getState().statusEffects.add(magicShield)
+			battle.onTurn = battle.livingOpponents()[0]
+			battle.livingOpponents()[0].statusEffects.add(magicShield)
 
 			var fireCounter = 0
 			var waterCounterMardek = 0
@@ -162,20 +162,20 @@ object TestMonsterStrategyCalculator {
 			fun countMoves() {
 				var expectEven = true
 				repeat(10_000) {
-					val nextMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove()
+					val nextMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove()
 					assertTrue(nextMove is BattleMoveSkill)
 					val skill = (nextMove as BattleMoveSkill).skill
 					if (skill === fireVortex) {
 						assertTrue(expectEven)
 						// Mardek has a high fire resistance, so Animus shouldn't cast Energy Vortex: Fire on him
-						assertEquals(BattleSkillTargetSingle(CombatantReference(isPlayer = true, index = 2, battle)), nextMove.target)
+						assertEquals(BattleSkillTargetSingle(battle.allPlayers()[1]), nextMove.target)
 						fireCounter += 1
 					}
 					if (skill === waterVortex) {
 						assertTrue(expectEven)
 						val target = (nextMove.target as BattleSkillTargetSingle)
-						assertTrue(target.target.isPlayer)
-						if (target.target.index == 0) waterCounterMardek += 1
+						val playerTarget = target.target as PlayerCombatantState
+						if (playerTarget === battle.allPlayers()[0]) waterCounterMardek += 1
 						else waterCounterDeugan += 1
 					}
 					if (skill === shieldBreak) {
@@ -184,7 +184,7 @@ object TestMonsterStrategyCalculator {
 						shieldBreakCounter += 1
 					}
 					expectEven = !expectEven
-					battle.onTurn!!.getState().totalSpentTurns += 1
+					(battle.onTurn as MonsterCombatantState).totalSpentTurns += 1
 				}
 			}
 
@@ -194,7 +194,7 @@ object TestMonsterStrategyCalculator {
 			assertTrue(waterCounterMardek > 0)
 			assertTrue(waterCounterDeugan > 0)
 
-			battle.livingPlayers()[0].getState().statusEffects.add(magicShield)
+			battle.livingPlayers()[0].statusEffects.add(magicShield)
 			fireCounter = 0
 			waterCounterMardek = 0
 			waterCounterDeugan = 0
@@ -207,7 +207,7 @@ object TestMonsterStrategyCalculator {
 
 			shieldBreakCounter = 0
 			waterCounterMardek = 0
-			battle.livingPlayers()[0].getState().currentHealth = 0
+			battle.livingPlayers()[0].currentHealth = 0
 			countMoves()
 
 			assertEquals(0, shieldBreakCounter) // The only player with a magic shield, is down
@@ -219,7 +219,7 @@ object TestMonsterStrategyCalculator {
 
 	fun testTargetMissesEffectAndTargetHp(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(content, CampaignState(
+			val state = InGameState(CampaignState(
 				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
@@ -241,39 +241,38 @@ object TestMonsterStrategyCalculator {
 				monster = aalia, level = 30
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.livingEnemies()[0].getState().statusEffects.add(magicShield)
-			battle.onTurn = battle.livingEnemies()[1]
+			battle.livingOpponents()[0].statusEffects.add(magicShield)
+			battle.onTurn = battle.livingOpponents()[1]
 
-			val firstMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove() as BattleMoveSkill
+			val firstMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove() as BattleMoveSkill
 			assertSame(massMeleeShield, firstMove.skill)
 			assertEquals(BattleSkillTargetAllAllies, firstMove.target)
-			for (enemy in battle.livingEnemies()) enemy.getState().statusEffects.add(meleeShield)
+			for (enemy in battle.livingOpponents()) enemy.statusEffects.add(meleeShield)
 
-			battle.livingEnemies()[0].getState().currentHealth /= 2
-			val secondMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove() as BattleMoveSkill
+			battle.livingOpponents()[0].currentHealth /= 2
+			val secondMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove() as BattleMoveSkill
 			assertSame(cura, secondMove.skill)
 			assertEquals(BattleSkillTargetAllAllies, secondMove.target)
-			battle.livingEnemies()[0].getState().currentHealth *= 2
+			battle.livingOpponents()[0].currentHealth *= 2
 
-			val thirdMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove() as BattleMoveSkill
+			val thirdMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove() as BattleMoveSkill
 			assertSame(massMagicShield, thirdMove.skill)
 			assertEquals(BattleSkillTargetAllAllies, thirdMove.target)
-			for (enemy in battle.livingEnemies()) enemy.getState().statusEffects.add(magicShield)
+			for (enemy in battle.livingOpponents()) enemy.statusEffects.add(magicShield)
 
-			val fourthMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove() as BattleMoveSkill
+			val fourthMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove() as BattleMoveSkill
 			assertSame(massRegen, fourthMove.skill)
 			assertEquals(BattleSkillTargetAllAllies, fourthMove.target)
-			for (enemy in battle.livingEnemies()) enemy.getState().statusEffects.add(regen)
+			for (enemy in battle.livingOpponents()) enemy.statusEffects.add(regen)
 
-			val lastMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove() as BattleMoveBasicAttack
-			assertTrue(lastMove.target.isPlayer)
-			assertTrue(lastMove.target.index == 0 || lastMove.target.index == 2, "Unexpected target ${lastMove.target}")
+			val lastMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove() as BattleMoveBasicAttack
+			assertTrue(battle.livingPlayers().contains(lastMove.target), "Unexpected target ${lastMove.target}")
 		}
 	}
 
 	fun testFaintedAndFreeAllySlots(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(content, CampaignState(
+			val state = InGameState(CampaignState(
 				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
@@ -288,18 +287,18 @@ object TestMonsterStrategyCalculator {
 				monster = moric, level = 30
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingEnemies()[0]
+			battle.onTurn = battle.livingOpponents()[0]
 
-			battle.livingPlayers()[0].getState().currentHealth = 0
+			battle.livingPlayers()[0].currentHealth = 0
 			run {
-				val move = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove() as BattleMoveSkill
+				val move = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove() as BattleMoveSkill
 				assertSame(zombify, move.skill)
 				assertEquals(BattleSkillTargetSingle(battle.allPlayers()[0]), move.target)
-				battle.allPlayers()[0].getState().currentHealth = 100
+				battle.allPlayers()[0].currentHealth = 100
 			}
 
 			run {
-				val move = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove() as BattleMoveSkill
+				val move = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove() as BattleMoveSkill
 				assertSame(animateDead, move.skill)
 				assertEquals(BattleSkillTargetAllAllies, move.target)
 			}
@@ -307,7 +306,7 @@ object TestMonsterStrategyCalculator {
 			fun countAnimateDead(): Int {
 				var counter = 0
 				repeat(10_000) {
-					val move = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove()
+					val move = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove()
 					if (move is BattleMoveSkill && move.skill === animateDead) counter += 1
 				}
 				return counter
@@ -319,24 +318,21 @@ object TestMonsterStrategyCalculator {
 			}
 
 			val simpleEnemy = Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 10)
-			battle.enemies[0] = simpleEnemy
-			battle.enemyStates[0] = CombatantState(simpleEnemy)
+			battle.opponents[0] = MonsterCombatantState(simpleEnemy.monster, simpleEnemy.level, false)
 			run {
 				val count = countAnimateDead()
 				assertTrue(count in 1000..3000, "Expected $count to be approximately 2000")
 			}
 
-			battle.enemies[1] = simpleEnemy
-			battle.enemyStates[1] = CombatantState(simpleEnemy)
+			battle.opponents[1] = MonsterCombatantState(simpleEnemy.monster, simpleEnemy.level, false)
 			run {
 				val count = countAnimateDead()
 				assertTrue(count in 100..1000, "Expected $count to be approximately 500")
 			}
 
-			battle.enemies[2] = simpleEnemy
-			battle.enemyStates[2] = CombatantState(simpleEnemy)
+			battle.opponents[2] = MonsterCombatantState(simpleEnemy.monster, simpleEnemy.level, false)
 			repeat(10_000) {
-				val nextMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove()
+				val nextMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove()
 				if (nextMove is BattleMoveSkill) {
 					assertNotSame(animateDead, nextMove.skill)
 					assertNotSame(zombify, nextMove.skill)
@@ -347,7 +343,7 @@ object TestMonsterStrategyCalculator {
 
 	fun testLowMana(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(content, CampaignState(
+			val state = InGameState(CampaignState(
 				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
@@ -364,7 +360,7 @@ object TestMonsterStrategyCalculator {
 				monster = bernard, level = 30
 			), null))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingEnemies()[0]
+			battle.onTurn = battle.livingOpponents()[0]
 
 			var thunderCounter = 0
 			var immolateCounter = 0
@@ -373,7 +369,7 @@ object TestMonsterStrategyCalculator {
 
 			fun countMoves() {
 				repeat(10_000) {
-					val nextMove = MonsterStrategyCalculator(battle, state.campaign.characterStates).determineNextMove()
+					val nextMove = MonsterStrategyCalculator(battle, battleUpdateContext(state.campaign)).determineNextMove()
 					val nextSkill = nextMove as BattleMoveSkill
 					if (nextSkill.skill === thunderstorm) thunderCounter += 1
 					if (nextSkill.skill === immolate) immolateCounter += 1
@@ -399,7 +395,7 @@ object TestMonsterStrategyCalculator {
 			assertEquals(0, hehCounter)
 
 			// Thunderstorm, immolate, and glaciate cost 6 mana
-			battle.livingEnemies()[0].getState().currentMana = 5
+			battle.livingOpponents()[0].currentMana = 5
 
 			thunderCounter = 0
 			immolateCounter = 0

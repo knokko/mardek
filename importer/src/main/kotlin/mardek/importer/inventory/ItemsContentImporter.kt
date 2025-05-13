@@ -12,7 +12,7 @@ fun importItemsContent(content: Content) {
 	val miscSheet = sheet("misc")
 
 	importItemTypes(content.items, itemData.variableAssignments["sheetIDs"]!!, itemData.variableAssignments["STACKABLE_TYPES"]!!)
-	importWeaponTypes(content.items, itemData.variableAssignments["wpnIDs"]!!, itemData.variableAssignments["WeaponSFXType"]!!)
+	importWeaponTypes(content, itemData.variableAssignments["wpnIDs"]!!, itemData.variableAssignments["WeaponSFXType"]!!)
 	importArmorTypes(content.items, itemData.variableAssignments["ARMOUR_TYPES"]!!)
 	importItems(content, itemData.variableAssignments["ItemList"]!!)
 

@@ -6,6 +6,7 @@ import mardek.content.animations.BattleModel
 import mardek.content.area.*
 import mardek.content.battle.PartyLayoutPosition
 import mardek.content.inventory.ItemStack
+import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
 import mardek.importer.stats.importStatsContent
@@ -29,6 +30,7 @@ class TestAreaParser {
 	private val content = Content()
 
 	init {
+		importAudioContent(content.audio)
 		importStatsContent(content)
 		importSkillsContent(content)
 		importItemsContent(content)
@@ -45,6 +47,7 @@ class TestAreaParser {
 
 	@Test
 	fun testParseAeropolisNorth() {
+		println("Thread is ${Thread.currentThread().name}")
 		val parsed = parseArea(content, "aeropolis_N", ArrayList(), ArrayList())
 		assertEquals("aeropolis_N", parsed.properties.rawName)
 		assertEquals("Aeropolis - Temple District", parsed.properties.displayName)

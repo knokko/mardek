@@ -10,11 +10,13 @@ import mardek.content.Content
 import mardek.content.area.*
 import mardek.input.InputKey
 import mardek.input.InputManager
+import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.battle.Battle
 import mardek.state.ingame.battle.BattleState
+import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.state.ingame.battle.Enemy
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -79,7 +81,7 @@ class AreaState(
 		if (key == InputKey.Interact) shouldInteract = true
 	}
 
-	fun update(input: InputManager, state: CampaignState, timeStep: Duration, content: Content) {
+	fun update(input: InputManager, state: CampaignState, soundQueue: SoundQueue, timeStep: Duration, content: Content) {
 		if (obtainedItemStack != null) return
 		if (currentTime == ZERO && !area.flags.hasClearMap) {
 			state.areaDiscovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
@@ -102,11 +104,12 @@ class AreaState(
 		}
 
 		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
+			val physicalElement = content.stats.elements.find { it.rawName == "NONE" }!!
 			activeBattle = BattleState(
 				battle = incomingRandomBattle!!.battle,
 				players = state.characterSelection.party,
 				playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
-				campaignState = state
+				context = BattleUpdateContext(state.characterStates, content.audio.fixedEffects, physicalElement, soundQueue)
 			)
 			incomingRandomBattle = null
 		}

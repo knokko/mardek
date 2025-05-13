@@ -44,8 +44,8 @@ class ActionBarRenderer(
 		return false
 	}
 
-	private fun shouldRender() = onTurn != null && onTurn.isPlayer &&
-			context.battle.currentMove == BattleMoveThinking && !isTargeting()
+	private fun shouldRender() = onTurn is PlayerCombatantState &&
+			context.battle.currentMove is BattleMoveThinking && !isTargeting()
 
 	private fun renderIcon(icon: KimSprite, x: Int) {
 		val request = KimRequest(
@@ -65,7 +65,7 @@ class ActionBarRenderer(
 		batch1 = context.resources.kim1Renderer.startBatch()
 		batch2 = context.resources.kim2Renderer.startBatch()
 
-		val player = context.battle.players[onTurn!!.index]!!
+		val player = onTurn as PlayerCombatantState
 		renderIcon(player.element.sprite, region.maxX - region.height - marginX)
 
 		run {
@@ -76,8 +76,8 @@ class ActionBarRenderer(
 				x -= region.height + marginX
 			}
 
-			renderIcon(onTurn!!.getState().equipment[0]!!.sprite, iconPositions[0])
-			renderIcon(player.characterClass.skillClass.icon, iconPositions[1])
+			renderIcon(player.getEquipment(context.updateContext)[0]!!.sprite, iconPositions[0])
+			renderIcon(player.player.characterClass.skillClass.icon, iconPositions[1])
 			renderIcon(context.content.ui.consumableIcon, iconPositions[2])
 			renderIcon(context.content.ui.waitIcon, iconPositions[3])
 			renderIcon(context.content.ui.fleeIcon, iconPositions[4])
@@ -103,7 +103,6 @@ class ActionBarRenderer(
 
 	fun render() {
 		if (!shouldRender()) return
-		val player = context.battle.players[onTurn!!.index]!!
 
 		val lineWidth = max(1, region.height / 30)
 		val lineColor = srgbToLinear(rgb(208, 193, 142))
@@ -116,6 +115,7 @@ class ActionBarRenderer(
 			rgba(0, 0, 0, 100)
 		)
 
+		val player = (onTurn as PlayerCombatantState).player
 		val circleColor = srgbToLinear(rgb(89, 69, 46))
 		for (x in iconPositions) {
 			if (x == iconPositions[selectedIndex]) {

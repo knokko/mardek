@@ -1,10 +1,7 @@
 package mardek.content.animations
 
 import com.github.knokko.bitser.BitStruct
-import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.FunctionContext
-import com.github.knokko.bitser.field.NestedFieldSetting
-import com.github.knokko.bitser.field.ReferenceFieldTarget
+import com.github.knokko.bitser.field.*
 import com.github.knokko.bitser.serialize.BitPostInit
 import com.github.knokko.bitser.serialize.Bitser
 
@@ -14,13 +11,26 @@ class Skeleton(
 	@ReferenceFieldTarget(label = "skeleton parts")
 	val parts: Array<SkeletonPart>,
 
+	@BitField(id = 1)
+	val strikePoint: AnimationPoint,
+
+	@BitField(id = 2)
+	val hitPoint: AnimationPoint,
+
+	@BitField(id = 3)
+	val statusPoint: AnimationPoint,
+
+	@BitField(id = 4)
+	@FloatField(expectMultipleOf = 0.05)
+	val groundDistance: Float,
+
 	private val animations: HashMap<String, Animation>
 ) : BitPostInit {
 
 	private lateinit var bitser: Bitser
 	private val rawAnimations = HashMap<String, ByteArray>()
 
-	constructor() : this(emptyArray(), HashMap())
+	constructor() : this(emptyArray(), AnimationPoint(), AnimationPoint(), AnimationPoint(), 0f, HashMap())
 
 	@Suppress("unused")
 	@BitField(id = 0)

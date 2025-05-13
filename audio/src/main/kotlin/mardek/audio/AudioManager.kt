@@ -24,11 +24,15 @@ private fun getResource(path: String): ByteBuffer {
 	return buffer
 }
 
-private fun readVorbis(path: String, alBuffer: Int, stack: MemoryStack) {
-	val rawBytes = getResource(path)
+private fun readVorbis(path: String?, byteArray: ByteArray?, alBuffer: Int, stack: MemoryStack) {
+	val byteBuffer = if (byteArray != null) {
+		val buffer = memCalloc(byteArray.size)
+		buffer.put(0, byteArray)
+		buffer
+	} else getResource(path!!)
 	val error = stack.callocInt(1)
 
-	val decoder = stb_vorbis_open_memory(rawBytes, error, null)
+	val decoder = stb_vorbis_open_memory(byteBuffer, error, null)
 	if (error[0] != VORBIS__no_error) throw AudioException("stb_vorbis_open_memory($path) caused error ${error[0]}")
 	if (decoder == 0L) throw Error("stb_vorbis_open_memory failed")
 
@@ -69,13 +73,13 @@ internal class AudioManager {
 		this.soundSource = assertAlSuccess(alGenSources(), "alGenSources")
 	}
 
-	fun add(path: String) = stackPush().use { stack ->
+	fun add(path: String?, bytes: ByteArray?) = stackPush().use { stack ->
 		val pBuffer = stack.callocInt(1)
 		alGenBuffers(pBuffer)
 		assertAlSuccess("alGenBuffers")
 
 		val buffer = pBuffer.get(0)
-		readVorbis(path, buffer, stack)
+		readVorbis(path, bytes, buffer, stack)
 		buffers.add(buffer)
 		buffer
 	}

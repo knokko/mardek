@@ -7,17 +7,16 @@ class TestTurnOrderSimulator {
 
 	@Test
 	fun testComputePriority() {
-		assertEquals(12, TurnOrderEntry(CombatantReference(), 12, 0, 1).computePriority())
-		assertNull(TurnOrderEntry(CombatantReference(), 12, 1, 1).computePriority())
-		assertEquals(12, TurnOrderEntry(CombatantReference(), 12, 0, 2).computePriority())
-		assertEquals(6, TurnOrderEntry(CombatantReference(), 12, 1, 2).computePriority())
+		assertEquals(12, TurnOrderEntry(MonsterCombatantState(), 12, 0, 1).computePriority())
+		assertNull(TurnOrderEntry(MonsterCombatantState(), 12, 1, 1).computePriority())
+		assertEquals(12, TurnOrderEntry(MonsterCombatantState(), 12, 0, 2).computePriority())
+		assertEquals(6, TurnOrderEntry(MonsterCombatantState(), 12, 1, 2).computePriority())
 	}
 
 	@Test
 	fun testSimulateWithHaste() {
-		val dummyBattle = BattleState()
-		val enemy = CombatantReference(false, 0, dummyBattle)
-		val player = CombatantReference(true, 1, dummyBattle)
+		val enemy = MonsterCombatantState()
+		val player = MonsterCombatantState()
 		val simulator = TurnOrderSimulator(listOf(
 			TurnOrderEntry(enemy, 25, 1, 2),
 			TurnOrderEntry(player, 15, 0, 1)

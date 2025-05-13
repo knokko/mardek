@@ -8,4 +8,4 @@ private fun determineResourcesFolder(): File {
 }
 
 val resourcesFolder = determineResourcesFolder()
-val projectFolder = resourcesFolder.parentFile.parentFile.parentFile.parentFile.absoluteFile.parentFile.parentFile
+val projectFolder = resourcesFolder.parentFile.parentFile.parentFile.parentFile.absoluteFile.parentFile.parentFile!!

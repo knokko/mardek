@@ -9,6 +9,7 @@ import mardek.content.stats.CharacterClass
 import mardek.content.stats.Element
 import mardek.content.stats.StatModifier
 import mardek.content.sprite.DirectionalSprites
+import mardek.content.stats.CreatureType
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -33,15 +34,19 @@ class PlayableCharacter(
 
 	@BitField(id = 5)
 	val battleModel: BattleModel,
-) {
 
 	@BitField(id = 6)
+	val creatureType: CreatureType,
+) {
+
+	@BitField(id = 7)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
 	@Suppress("unused")
 	private constructor() : this(
-		"", CharacterClass(), Element(), ArrayList(0), DirectionalSprites(), BattleModel()
+		"", CharacterClass(), Element(), ArrayList(0),
+		DirectionalSprites(), BattleModel(), CreatureType()
 	)
 
 	override fun toString() = name

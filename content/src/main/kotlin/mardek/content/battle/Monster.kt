@@ -100,6 +100,7 @@ class Monster(
 	val attackEffects: ArrayList<PossibleStatusEffect>,
 
 	@BitField(id = 24)
+	@ReferenceField(stable = false, label = "status effects")
 	val initialEffects: ArrayList<StatusEffect>,
 
 	@BitField(id = 25)
@@ -107,6 +108,7 @@ class Monster(
 	val actions: ArrayList<ActiveSkill>,
 
 	@BitField(id = 26)
+	@ReferenceFieldTarget(label = "strategy pools")
 	val strategies: ArrayList<StrategyPool>,
 
 	@BitField(id = 27)
@@ -126,7 +128,7 @@ class Monster(
 		className = "",
 		type = CreatureType(),
 		element = Element(),
-		baseStats = HashMap(), // TODO Add EnumMap support to Bitser?
+		baseStats = hashMapOf(Pair(CombatStat.MaxHealth, 1), Pair(CombatStat.MaxMana, 1)),
 		playerStatModifier = 0,
 		hpPerLevel = 0,
 		attackPerLevelNumerator = 0,

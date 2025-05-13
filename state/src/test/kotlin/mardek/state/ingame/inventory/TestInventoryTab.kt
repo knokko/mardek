@@ -1,13 +1,16 @@
 package mardek.state.ingame.inventory
 
 import mardek.content.animations.BattleModel
+import mardek.content.audio.FixedSoundEffects
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.CharacterClass
 import mardek.content.stats.Element
 import mardek.content.stats.Resistances
 import mardek.content.inventory.*
 import mardek.content.skill.SkillClass
+import mardek.content.skill.SkillsContent
 import mardek.content.sprite.DirectionalSprites
+import mardek.content.stats.CreatureType
 import mardek.input.InputKey
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
@@ -15,6 +18,7 @@ import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
 import mardek.state.ingame.menu.InventoryTab
 import mardek.state.ingame.menu.ItemReference
+import mardek.state.ingame.menu.UiUpdateContext
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -26,7 +30,10 @@ private fun createState(): CampaignState {
 		weaponType = WeaponType(),
 		armorTypes = arrayListOf(ArmorType("Sh", "Shield", EquipmentSlotType.OffHand))
 	)
-	val mardek = PlayableCharacter("Mardek", mardekClass, Element(), ArrayList(), DirectionalSprites(), BattleModel())
+	val mardek = PlayableCharacter(
+		"Mardek", mardekClass, Element(), ArrayList(),
+		DirectionalSprites(), BattleModel(), CreatureType()
+	)
 	val mardekState = CharacterState()
 
 	return CampaignState(
@@ -47,7 +54,11 @@ class TestInventoryTab {
 	private val mardek = state.characterStates.keys.first()
 	private val mardekState = state.characterStates.values.first()
 	private val soundQueue = SoundQueue()
-	private val tab = InventoryTab(state)
+	private val tab = InventoryTab()
+	private val context = UiUpdateContext(
+		state.characterSelection, state.characterStates,
+		soundQueue, FixedSoundEffects(), SkillsContent()
+	)
 
 	init {
 		tab.inside = true
@@ -95,6 +106,7 @@ class TestInventoryTab {
 		critChance = 0,
 		hitChance = 100,
 		hpDrain = 0f,
+		mpDrain = 0f,
 		effectiveAgainstCreatureTypes = ArrayList(0),
 		effectiveAgainstElements = ArrayList(0),
 		addEffects = ArrayList(0),
@@ -107,8 +119,8 @@ class TestInventoryTab {
 
 		tab.pickedUpItem = putStack(10, ItemStack(item, 3))
 		tab.hoveringItem = ItemReference(mardek, mardekState, 11)
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-cancel", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
 
 		assertNull(tab.pickedUpItem)
 		assertEquals(tab.hoveringItem, ItemReference(mardek, mardekState, 11))
@@ -121,8 +133,8 @@ class TestInventoryTab {
 		val item = Item()
 
 		tab.hoveringItem = putStack(5, ItemStack(item, 1))
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-confirm", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
 		assertEquals(tab.hoveringItem, tab.pickedUpItem)
 	}
 
@@ -132,22 +144,22 @@ class TestInventoryTab {
 
 		tab.hoveringItem = putEquipment(1, shield)
 		assertEquals(shield, mardekState.equipment[1])
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-confirm", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
 		assertEquals(tab.hoveringItem, tab.pickedUpItem)
 
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-cancel", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
 		assertNull(tab.pickedUpItem)
 		assertEquals(ItemStack(shield, 1), tab.hoveringItem!!.get())
 
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-confirm", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
 		assertEquals(tab.hoveringItem, tab.pickedUpItem)
 
 		tab.hoveringItem = ItemReference(mardek, mardekState, 5)
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-cancel", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
 		assertNull(tab.pickedUpItem)
 		assertEquals(ItemStack(shield, 1), mardekState.inventory[5])
 		assertNull(mardekState.equipment[1])
@@ -159,13 +171,13 @@ class TestInventoryTab {
 
 		tab.hoveringItem = putEquipment(1, shield)
 		assertEquals(shield, mardekState.equipment[1])
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-confirm", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
 		assertEquals(tab.hoveringItem, tab.pickedUpItem)
 
 		tab.hoveringItem = ItemReference(mardek, mardekState, -4)
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-reject", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickReject, soundQueue.take())
 		assertEquals(ItemReference(mardek, mardekState, -2), tab.pickedUpItem)
 		assertEquals(shield, mardekState.equipment[1])
 		assertNull(mardekState.equipment[3])
@@ -178,8 +190,8 @@ class TestInventoryTab {
 		tab.hoveringItem = putEquipment(0, weapon)
 		tab.pickedUpItem = putEquipment(1, shield)
 
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-reject", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickReject, soundQueue.take())
 		assertEquals(ItemStack(shield, 1), tab.pickedUpItem!!.get())
 		assertEquals(ItemStack(weapon, 1), tab.hoveringItem!!.get())
 	}
@@ -191,8 +203,8 @@ class TestInventoryTab {
 		tab.pickedUpItem = putStack(0, ItemStack(newWeapon, 1))
 		tab.hoveringItem = putEquipment(0, oldWeapon)
 
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-confirm", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
 		assertEquals(ItemStack(oldWeapon, 1), tab.pickedUpItem!!.get())
 		assertEquals(ItemStack(newWeapon, 1), tab.hoveringItem!!.get())
 		assertSame(newWeapon, mardekState.equipment[0])
@@ -204,8 +216,8 @@ class TestInventoryTab {
 		val weapon = createWeapon(mardek.characterClass.weaponType!!)
 		tab.hoveringItem = putEquipment(0, weapon)
 
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-reject", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickReject, soundQueue.take())
 		assertSame(weapon, mardekState.equipment[0])
 		assertNull(tab.pickedUpItem)
 	}
@@ -217,8 +229,8 @@ class TestInventoryTab {
 		tab.hoveringItem = putEquipment(0, goodWeapon)
 		tab.pickedUpItem = putStack(12, ItemStack(wrongWeapon, 1))
 
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-reject", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickReject, soundQueue.take())
 		assertSame(goodWeapon, mardekState.equipment[0])
 	}
 
@@ -229,13 +241,13 @@ class TestInventoryTab {
 		tab.pickedUpItem = putStack(3, ItemStack(badShield, 1))
 		tab.hoveringItem = ItemReference(mardek, mardekState, -2)
 
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-reject", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickReject, soundQueue.take())
 		assertNull(mardekState.equipment[1])
 
 		tab.pickedUpItem = putStack(2, ItemStack(goodShield, 1))
-		tab.processKeyPress(InputKey.Interact, soundQueue)
-		assertEquals("click-cancel", soundQueue.take())
+		tab.processKeyPress(InputKey.Interact, context)
+		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
 		assertSame(goodShield, mardekState.equipment[1])
 	}
 }

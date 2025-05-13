@@ -6,6 +6,7 @@ import mardek.content.Content
 import mardek.content.animations.BattleModel
 import mardek.content.area.Direction
 import mardek.importer.area.importAreaContent
+import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.characters.FatPlayableCharacter
 import mardek.importer.characters.importPlayableCharacters
@@ -23,10 +24,12 @@ import java.io.ByteArrayOutputStream
 
 fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content {
 	val content = Content()
-	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, BattleModel>()
+	importAudioContent(content.audio)
 	importStatsContent(content)
 	importSkillsContent(content)
 	importItemsContent(content)
+
+	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, BattleModel>()
 	importBattleContent(content, playerModelMapping)
 	importClasses(content)
 	importAreaContent(content)

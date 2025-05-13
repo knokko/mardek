@@ -22,4 +22,6 @@ class EffectResistance(
 	override fun equals(other: Any?) = other is EffectResistance && effect === other.effect && percentage == other.percentage
 
 	override fun hashCode() = effect.hashCode() - 13 * percentage
+
+	override fun toString() = "$percentage% $effect"
 }

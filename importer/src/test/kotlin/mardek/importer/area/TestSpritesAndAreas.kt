@@ -6,6 +6,7 @@ import mardek.content.Content
 import mardek.content.area.AreaContent
 import mardek.content.area.objects.AreaObject
 import mardek.content.sprite.KimSprite
+import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.stats.importStatsContent
@@ -71,6 +72,7 @@ class TestSpritesAndAreas {
 	@Test
 	fun testImportCharacterSprites() {
 		val content = Content()
+		importAudioContent(content.audio)
 		importStatsContent(content)
 		importSkillsContent(content)
 		importItemsContent(content)

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.audio.SoundEffect
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.ElementalDamageBonus
 import mardek.content.stats.CreatureTypeBonus
@@ -28,21 +29,26 @@ class WeaponProperties(
 	val hpDrain: Float,
 
 	@BitField(id = 4)
-	val effectiveAgainstCreatureTypes: ArrayList<CreatureTypeBonus>,
+	@FloatField(expectMultipleOf = 0.1)
+	val mpDrain: Float,
 
 	@BitField(id = 5)
-	val effectiveAgainstElements: ArrayList<ElementalDamageBonus>,
+	val effectiveAgainstCreatureTypes: ArrayList<CreatureTypeBonus>,
 
 	@BitField(id = 6)
+	val effectiveAgainstElements: ArrayList<ElementalDamageBonus>,
+
+	@BitField(id = 7)
 	val addEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(id = 7, optional = true)
-	val hitSound: String?, // TODO Turn into reference
+	@BitField(id = 8, optional = true)
+	@ReferenceField(stable = false, label = "sound effects")
+	val hitSound: SoundEffect?,
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(
-			WeaponType(), 0, 0, 0f, ArrayList(0),
-			ArrayList(0), ArrayList(0), ""
+			WeaponType(), 0, 0, 0f, 0f, ArrayList(0),
+			ArrayList(0), ArrayList(0), null
 	)
 }

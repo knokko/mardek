@@ -10,9 +10,12 @@ import mardek.content.inventory.ItemStack
 import mardek.content.skill.ActiveSkill
 import mardek.renderer.GameRenderer
 import mardek.renderer.SharedResources
+import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.battle.Battle
 import mardek.state.ingame.battle.BattleState
+import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.state.ingame.battle.Enemy
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
@@ -23,9 +26,7 @@ class TestingInstance {
 
 	val content = Content.load("mardek/game/content.bin")
 	val boiler: BoilerInstance
-	val resources: SharedResources
-
-	val getResources = CompletableFuture<SharedResources>()
+	val getBoiler: CompletableFuture<BoilerInstance>
 
 	val dragonLairEntry: Area
 	val dragonLair2: Area
@@ -41,10 +42,8 @@ class TestingInstance {
 		builder.defaultTimeout(5_000_000_000L)
 		boiler = builder.validation().forbidValidationErrors().build()
 
-		val getBoiler = CompletableFuture<BoilerInstance>()
+		getBoiler = CompletableFuture<BoilerInstance>()
 		getBoiler.complete(boiler)
-		resources = SharedResources(getBoiler, 1, skipWindow = true)
-		getResources.complete(resources)
 
 		dragonLairEntry = content.areas.areas.find { it.properties.rawName == "DL_entr" }!!
 		dragonLair2 = content.areas.areas.find { it.properties.rawName == "DL_area2" }!!
@@ -75,6 +74,11 @@ class TestingInstance {
 		hashMapOf(Pair(heroMardek, mardekState), Pair(heroDeugan, deuganState))
 	}
 
+	fun battleUpdateContext(campaign: CampaignState) = BattleUpdateContext(
+		campaign.characterStates, content.audio.fixedEffects,
+		content.stats.elements.find { it.rawName == "NONE" }!!, SoundQueue()
+	)
+
 	fun startSimpleBattle(state: InGameState, enemies: Array<Enemy?> = arrayOf(
 		null, Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 10), null, null)
 	) {
@@ -87,12 +91,11 @@ class TestingInstance {
 			),
 			players = arrayOf(heroMardek, null, heroDeugan, null),
 			playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
-			campaignState = state.campaign
+			context = battleUpdateContext(state.campaign)
 		)
 	}
 
 	fun destroy() {
-		resources.destroy()
 		boiler.destroyInitialObjects()
 	}
 }

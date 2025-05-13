@@ -33,13 +33,13 @@ class TargetSelectionRenderer(
 		if (target == null) return@run null
 		val selectedMove = context.battle.selectedMove
 		if (selectedMove is BattleMoveSelectionAttack) {
-			Action("Attack", 0, context.battle.onTurn!!.getState().equipment[0]!!.element!!)
+			Action("Attack", 0, context.battle.onTurn!!.getEquipment(context.updateContext)[0]!!.element!!)
 		} else if (selectedMove is BattleMoveSelectionSkill && selectedMove.target != null) {
 			var manaCost = selectedMove.skill!!.manaCost
 			if (target is BattleSkillTargetAllAllies || target is BattleSkillTargetAllEnemies) manaCost *= 2
 			Action(selectedMove.skill!!.name, manaCost, selectedMove.skill!!.element)
 		} else if (selectedMove is BattleMoveSelectionItem && selectedMove.target != null) {
-			Action(selectedMove.item!!.flashName, 0, context.battle.onTurn!!.getState().equipment[0]!!.element!!)
+			Action(selectedMove.item!!.flashName, 0, context.battle.onTurn!!.getEquipment(context.updateContext)[0]!!.element!!)
 		} else throw IllegalStateException()
 	}
 
@@ -62,8 +62,8 @@ class TargetSelectionRenderer(
 		}
 		for ((index, position) in context.battle.playerLayout.positions.withIndex()) {
 			var isTargeted = false
-			if (target is BattleSkillTargetAllAllies) isTargeted = context.battle.playerStates[index] != null
-			if (target is BattleSkillTargetSingle) isTargeted = target.target.isPlayer && index == target.target.index
+			if (target is BattleSkillTargetAllAllies) isTargeted = context.battle.players[index]?.isAlive() == true
+			if (target is BattleSkillTargetSingle) isTargeted = target.target === context.battle.players[index]
 			if (!isTargeted) continue
 
 			val floatCoordinates = transformBattleCoordinates(position, 1f, context.targetImage)
@@ -76,8 +76,8 @@ class TargetSelectionRenderer(
 
 		for ((index, position) in context.battle.battle.enemyLayout.positions.withIndex()) {
 			var isTargeted = false
-			if (target is BattleSkillTargetAllEnemies) isTargeted = context.battle.enemyStates[index] != null
-			if (target is BattleSkillTargetSingle) isTargeted = !target.target.isPlayer && index == target.target.index
+			if (target is BattleSkillTargetAllEnemies) isTargeted = context.battle.opponents[index]?.isAlive() == true
+			if (target is BattleSkillTargetSingle) isTargeted = target.target === context.battle.opponents[index]
 			if (!isTargeted) continue
 
 			val floatCoordinates = transformBattleCoordinates(position, -1f, context.targetImage)
@@ -129,8 +129,7 @@ class TargetSelectionRenderer(
 			minY + 6 * (maxY - minY) / 7, 2 * (maxY - minY) / 3, 1, TextAlignment.LEFT
 		)
 		val manaString = if (action!!.manaCost > 0) action.manaCost.toString() else "-"
-		val playerState = context.battle.playerStates[context.battle.onTurn!!.index]!!
-		val manaColor = if (action.manaCost > playerState.currentMana) srgbToLinear(rgb(254, 81, 81))
+		val manaColor = if (action.manaCost > context.battle.onTurn!!.currentMana) srgbToLinear(rgb(254, 81, 81))
 		else srgbToLinear(rgb(50, 203, 254))
 		context.uiRenderer.drawString(
 			context.resources.font, manaString, manaColor, IntArray(0),

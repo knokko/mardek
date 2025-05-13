@@ -39,7 +39,7 @@ class TurnOrderRenderer(
 
 		var x = region.minX + slotWidth
 		var isFirst = true
-		val simulator = TurnOrderSimulator(context.battle, context.campaign.characterStates)
+		val simulator = TurnOrderSimulator(context.battle, context.updateContext)
 		while (x + slotWidth < region.maxX) {
 			val combatant = if (isFirst && onTurn != null) {
 				onTurn
@@ -47,14 +47,11 @@ class TurnOrderRenderer(
 				simulator.checkReset()
 				simulator.next() ?: break
 			}
-			val sprite = if (combatant.isPlayer) {
-				context.battle.players[combatant.index]!!.areaSprites.sprites[0]
-			} else context.battle.enemies[combatant.index]!!.monster.type.icon
 
 			kimBatch.requests.add(KimRequest(
 				x = x + slotWidth - spriteSize,
 				y = region.minY + (region.height - spriteSize) / 2,
-				scale = scale, sprite = sprite, opacity = 1f
+				scale = scale, sprite = combatant.getTurnOrderIcon(), opacity = 1f
 			))
 
 			x += slotWidth
@@ -93,7 +90,7 @@ class TurnOrderRenderer(
 			x += slotWidth
 		}
 
-		val simulator = TurnOrderSimulator(context.battle, context.campaign.characterStates)
+		val simulator = TurnOrderSimulator(context.battle, context.updateContext)
 		val darkPlayerColor = srgbToLinear(rgba(49, 84, 122, 200))
 		val lightPlayerColor = srgbToLinear(rgba(89, 118, 148, 200))
 		val darkEnemyColor = srgbToLinear(rgba(131, 45, 32, 200))
@@ -114,8 +111,9 @@ class TurnOrderRenderer(
 				simulator.next() ?: break
 			}
 
-			val (lightColor, darkColor) = if (combatant.isPlayer) Pair(lightPlayerColor, darkPlayerColor)
+			val (lightColor, darkColor) = if (combatant.isOnPlayerSide) Pair(lightPlayerColor, darkPlayerColor)
 			else Pair(lightEnemyColor, darkEnemyColor)
+
 			val minTriX = x + triangleWidth
 			val maxTriX = minTriX + slotWidth
 			context.uiRenderer.fillColorUnaligned(

@@ -29,10 +29,10 @@ sealed class BattleMove {
 }
 
 @BitStruct(backwardCompatible = true)
-data object BattleMoveThinking : BattleMove()
+class BattleMoveThinking : BattleMove()
 
 @BitStruct(backwardCompatible = true)
-data object BattleMoveWait : BattleMove()
+class BattleMoveWait : BattleMove()
 
 @BitStruct(backwardCompatible = true)
 class BattleMoveItem(
@@ -41,11 +41,12 @@ class BattleMoveItem(
 	val item: Item,
 
 	@BitField(id = 1)
-	val target: CombatantReference,
+	@ReferenceField(stable = false, label = "combatants")
+	val target: CombatantState,
 ) : BattleMove() {
 
 	@Suppress("unused")
-	private constructor() : this(Item(), CombatantReference())
+	private constructor() : this(Item(), MonsterCombatantState())
 }
 
 @BitStruct(backwardCompatible = true)
@@ -60,7 +61,7 @@ class BattleMoveSkill(
 
 	@BitField(id = 2, optional = true)
 	@ReferenceField(stable = true, label = "elements")
-	val nextElement: Element?
+	val nextElement: Element?,
 ) : BattleMove() {
 
 	init {
@@ -95,13 +96,23 @@ class BattleMoveSkill(
 }
 
 @BitStruct(backwardCompatible = true)
-data class BattleMoveBasicAttack(
+class BattleMoveBasicAttack(
 	@BitField(id = 0)
-	val target: CombatantReference
+	@ReferenceField(stable = false, label = "combatants")
+	val target: CombatantState,
 ) : BattleMove() {
 
+	var finishedStrike = false
+
+	@BitField(id = 1)
+	var processedStrike = false
+
+	var finishedJump = false
+
 	@Suppress("unused")
-	private constructor() : this(CombatantReference())
+	private constructor() : this(MonsterCombatantState())
+
+	override fun toString() = "(Basic Attack at $target)"
 }
 
 sealed class BattleSkillTarget {
@@ -119,12 +130,12 @@ sealed class BattleSkillTarget {
 
 @BitStruct(backwardCompatible = true)
 class BattleSkillTargetSingle(
-
 	@BitField(id = 0)
-	val target: CombatantReference
+	@ReferenceField(stable = false, label = "combatants")
+	val target: CombatantState
 ) : BattleSkillTarget() {
 
-	override fun equals(other: Any?) = other is BattleSkillTargetSingle && this.target == other.target
+	override fun equals(other: Any?) = other is BattleSkillTargetSingle && this.target === other.target
 
 	override fun hashCode() = 2 + target.hashCode()
 
@@ -148,15 +159,14 @@ data object BattleSkillTargetAllEnemies : BattleSkillTarget()
 data object BattleSkillTargetAllAllies : BattleSkillTarget()
 
 sealed class BattleMoveSelection {
-
-	open fun targets(state: BattleState) = emptyArray<CombatantReference>()
+	open fun targets(state: BattleState) = emptyArray<CombatantState>()
 }
 
-class BattleMoveSelectionAttack(val target: CombatantReference?) : BattleMoveSelection() {
+class BattleMoveSelectionAttack(val target: CombatantState?) : BattleMoveSelection() {
 
 	override fun targets(state: BattleState) = if (target == null) super.targets(state) else arrayOf(target)
 
-	override fun equals(other: Any?) = other is BattleMoveSelectionAttack && this.target == other.target
+	override fun equals(other: Any?) = other is BattleMoveSelectionAttack && this.target === other.target
 
 	override fun hashCode() = 5 + Objects.hashCode(target)
 
@@ -172,12 +182,8 @@ class BattleMoveSelectionSkill(val skill: ActiveSkill?, val target: BattleSkillT
 	override fun targets(state: BattleState) = when (target) {
 		null -> super.targets(state)
 		is BattleSkillTargetSingle -> arrayOf(target.target)
-		is BattleSkillTargetAllAllies -> state.playerStates.withIndex().filter {
-			it.value != null
-		}.map { CombatantReference(true, it.index, state) }.toTypedArray()
-		is BattleSkillTargetAllEnemies -> state.enemyStates.withIndex().filter {
-			it.value != null
-		}.map { CombatantReference(false, it.index, state) }.toTypedArray()
+		is BattleSkillTargetAllAllies -> state.allPlayers().toTypedArray()
+		is BattleSkillTargetAllEnemies -> state.livingOpponents().toTypedArray()
 	}
 
 	override fun equals(other: Any?) = other is BattleMoveSelectionSkill &&
@@ -188,7 +194,7 @@ class BattleMoveSelectionSkill(val skill: ActiveSkill?, val target: BattleSkillT
 	override fun toString() = "SelectingSkill($skill, $target)"
 }
 
-class BattleMoveSelectionItem(val item: Item?, val target: CombatantReference?) : BattleMoveSelection() {
+class BattleMoveSelectionItem(val item: Item?, val target: CombatantState?) : BattleMoveSelection() {
 
 	init {
 		if (item == null && target != null) throw IllegalArgumentException("target must be null if item is null")
@@ -197,7 +203,7 @@ class BattleMoveSelectionItem(val item: Item?, val target: CombatantReference?) 
 	override fun targets(state: BattleState) = if (target == null) super.targets(state) else arrayOf(target)
 
 	override fun equals(other: Any?) = other is BattleMoveSelectionItem &&
-			this.item === other.item && this.target == other.target
+			this.item === other.item && this.target === other.target
 
 	override fun hashCode() = 7 + 13 * Objects.hashCode(item) + 31 * Objects.hashCode(target)
 

@@ -3,15 +3,18 @@ package mardek.game
 import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.boiler.images.ImageBuilder
 import com.github.knokko.boiler.synchronization.ResourceUsage
+import mardek.content.Content
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.renderer.GameRenderer
+import mardek.renderer.SharedResources
 import mardek.state.ingame.InGameState
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.lwjgl.vulkan.VK10.*
 import java.awt.Color
 import java.io.File
+import java.util.concurrent.CompletableFuture
 import javax.imageio.ImageIO
 import kotlin.math.abs
 
@@ -24,7 +27,8 @@ private fun nearlyEquals(expected: Color, actual: Color) = nearlyEquals(expected
 		nearlyEquals(expected.alpha, actual.alpha)
 
 fun TestingInstance.testRendering(
-	state: InGameState, width: Int, height: Int, name: String,
+	getResources: CompletableFuture<SharedResources>, state: InGameState,
+	width: Int, height: Int, name: String,
 	expectedColors: Array<Color>, forbiddenColors: Array<Color>,
 ) {
 	if (!actualResultsDirectory.exists() && !actualResultsDirectory.mkdir()) {
@@ -38,16 +42,18 @@ fun TestingInstance.testRendering(
 		.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
 		.build(boiler)
 	val framebuffer = boiler.images.createFramebuffer(
-		resources.renderPass, width, height, "Framebuffer($name)", targetImage.vkImageView
+		getResources.get().renderPass, width, height, "Framebuffer($name)", targetImage.vkImageView
 	)
 	val destinationBuffer = boiler.buffers.createMapped(
 		4L * width * height, VK_BUFFER_USAGE_TRANSFER_DST_BIT, "DestinationBuffer($name)"
 	)
 
 	val commands = SingleTimeCommands(boiler)
+	val getContent = CompletableFuture<Content>()
+	getContent.complete(content)
 	commands.submit(name) { recorder ->
 		recorder.transitionLayout(targetImage, null, ResourceUsage.COLOR_ATTACHMENT_WRITE)
-		renderer.render(state, recorder, targetImage, framebuffer, 0)
+		renderer.render(getContent, state, recorder, targetImage, framebuffer, 0)
 		recorder.transitionLayout(targetImage, ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.TRANSFER_SOURCE)
 		recorder.copyImageToBuffer(targetImage, destinationBuffer.fullRange())
 	}

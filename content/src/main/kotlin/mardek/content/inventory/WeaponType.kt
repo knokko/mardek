@@ -2,6 +2,8 @@ package mardek.content.inventory
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.audio.SoundEffect
 
 @BitStruct(backwardCompatible = true)
 class WeaponType(
@@ -9,7 +11,8 @@ class WeaponType(
 	val flashName: String,
 
 	@BitField(id = 1, optional = true)
-	val soundEffect: String?,
+	@ReferenceField(stable = false, label = "sound effects")
+	val soundEffect: SoundEffect?,
 ) {
 
 	constructor() : this("", null)

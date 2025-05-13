@@ -46,34 +46,4 @@ class Enemy(
 ) {
 	@Suppress("unused")
 	private constructor() : this(Monster(), 0)
-
-	fun determineMaxHealth(bonusVitality: Int, statusEffects: Set<StatusEffect>): Int {
-		if (monster.playerStatModifier == 0) {
-			return monster.baseStats[CombatStat.MaxHealth]!! + level * monster.hpPerLevel
-		} else {
-			var vitality = monster.baseStats[CombatStat.Vitality] ?: 0
-			var extra = monster.baseStats[CombatStat.MaxHealth] ?: 0
-			vitality += bonusVitality
-			for (effect in statusEffects) {
-				vitality += effect.getModifier(CombatStat.Vitality)
-				extra += effect.getModifier(CombatStat.MaxHealth)
-			}
-			return CharacterState.determineMaxHealth(level, vitality, 0f, extra)
-		}
-	}
-
-	fun determineMaxMana(bonusSpirit: Int, statusEffects: Set<StatusEffect>): Int {
-		if (monster.playerStatModifier == 0) {
-			return monster.baseStats[CombatStat.MaxMana]!!
-		} else {
-			var spirit = monster.baseStats[CombatStat.Spirit] ?: 0
-			var extra = monster.baseStats[CombatStat.MaxMana] ?: 0
-			spirit += bonusSpirit
-			for (effect in statusEffects) {
-				spirit += effect.getModifier(CombatStat.Spirit)
-				extra += effect.getModifier(CombatStat.MaxMana)
-			}
-			return CharacterState.determineMaxMana(level, spirit, 0f, extra)
-		}
-	}
 }

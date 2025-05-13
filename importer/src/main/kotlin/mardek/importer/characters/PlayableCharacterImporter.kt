@@ -49,7 +49,8 @@ internal fun importPlayableCharacters(
 			areaSprites = content.areas.characterSprites.find {
 				it.name == parseFlashString(nestedCharacter[1] as String, "playable character area sprites")
 			}!!,
-			battleModel = if (playerModelMapping != null) playerModelMapping[className]!! else BattleModel()
+			battleModel = if (playerModelMapping != null) playerModelMapping[className]!! else BattleModel(),
+			creatureType = content.stats.creatureTypes.find { it.flashName == "HUMAN" }!!,
 		)
 
 		val masteredSkills: MutableList<Skill> = (nestedCharacter[8] as ArrayList<String>).map { rawActiveName ->

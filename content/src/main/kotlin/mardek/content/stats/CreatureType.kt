@@ -13,7 +13,7 @@ class CreatureType(
 	val icon: KimSprite,
 ) {
 
-	internal constructor() : this("", KimSprite())
+	constructor() : this("", KimSprite())
 
 	override fun toString() = flashName
 }

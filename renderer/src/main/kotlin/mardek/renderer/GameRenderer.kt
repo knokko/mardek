@@ -3,9 +3,9 @@ package mardek.renderer
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
+import mardek.content.Content
 import mardek.renderer.ui.TitleScreenRenderer
 import mardek.state.GameState
-import mardek.state.StartupState
 import mardek.state.ingame.InGameState
 import mardek.state.title.TitleScreenState
 import org.lwjgl.vulkan.VK10.*
@@ -18,17 +18,17 @@ class GameRenderer(
 ) {
 
 	fun render(
-		state: GameState, recorder: CommandRecorder,
+		getContent: CompletableFuture<Content>, state: GameState, recorder: CommandRecorder,
 		targetImage: VkbImage, framebuffer: Long, frameIndex: Int
 	) {
-		if (state is StartupState) return
-
 		val resources = resources.join()
+		val context = if (getContent.isDone) {
+			RenderContext(getContent.get(), resources, state, recorder, targetImage, frameIndex)
+		} else null
 		resources.perFrameBuffer.startFrame(frameIndex)
 
 		val renderer = createRenderer(state)
-		val context = RenderContext(resources, state, recorder, targetImage, frameIndex)
-		renderer.beforeRendering(context)
+		if (context != null) renderer.beforeRendering(context)
 
 		val clearValues = VkClearValue.calloc(1, recorder.stack)
 		clearValues.get(0).color().float32(recorder.stack.floats(0f, 0f, 0f, 1f)) // TODO Let renderer decide background color
@@ -45,7 +45,7 @@ class GameRenderer(
 		vkCmdBeginRenderPass(recorder.commandBuffer, biRenderPass, VK_SUBPASS_CONTENTS_INLINE)
 		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
-		renderer.render(context)
+		if (context != null) renderer.render(context)
 
 		vkCmdEndRenderPass(recorder.commandBuffer)
 	}

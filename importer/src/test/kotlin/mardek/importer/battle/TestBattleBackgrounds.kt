@@ -1,6 +1,7 @@
 package mardek.importer.battle
 
 import mardek.content.Content
+import mardek.importer.audio.importAudioContent
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.stats.importStatsContent
 import mardek.importer.skills.importSkillsContent
@@ -12,6 +13,7 @@ class TestBattleBackgrounds {
 	@Test
 	fun testBattleBackgrounds() {
 		val content = Content()
+		importAudioContent(content.audio)
 		importStatsContent(content)
 		importSkillsContent(content)
 		importItemsContent(content)

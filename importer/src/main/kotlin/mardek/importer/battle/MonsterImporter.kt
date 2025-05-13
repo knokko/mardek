@@ -122,7 +122,6 @@ private fun importSkeleton(swf: SWF, id: Int, spriteIdMapping: MutableMap<Int, B
 
 internal fun importMonsters(content: Content, playerModelMapping: MutableMap<String, BattleModel>) {
 	val battleTag = FLASH.tags.find { it.uniqueId == "5118" }!! as DefineSpriteTag
-	println("battle tag is $battleTag")
 
 	val labelBlacklist = arrayOf("null", "humans!", "dummy", "Monsters", "Bosses", "Ether Clone")
 	val idBlacklist = arrayOf(-1, 0, 1885, 2233, 2294, 2311)
@@ -327,7 +326,14 @@ private fun convertFlashCreature(creature: BattleCreature2, spriteIdMapping: Mut
 			)
 		}.toTypedArray())
 	}.toTypedArray()) }
-	return Skeleton(animations = HashMap(animations), parts = parts.toTypedArray())
+	return Skeleton(
+		animations = HashMap(animations),
+		parts = parts.toTypedArray(),
+		strikePoint = creature.strikePoint,
+		hitPoint = creature.hitPoint,
+		statusPoint = creature.statusPoint,
+		groundDistance = creature.groundDistance,
+	)
 }
 
 private class FlashShapeEntry(val rect: RECT, val id: Int)
@@ -336,7 +342,11 @@ private class FlashShapeVariation(val name: String, val entries: List<FlashShape
 
 private class BodyPart2(val id: Int, val variations: List<FlashShapeVariation>)
 
-private class BattleCreature2(val bodyParts: Set<BodyPart2>, val minDepth: Int, val maxDepth: Int) {
+private class BattleCreature2(
+	val bodyParts: Set<BodyPart2>, val minDepth: Int, val maxDepth: Int,
+	val hitPoint: AnimationPoint, val strikePoint: AnimationPoint,
+	val statusPoint: AnimationPoint, val groundDistance: Float,
+) {
 	lateinit var baseState: AnimationState
 
 	val animations = mutableMapOf<String, List<AnimationState>>()
@@ -354,15 +364,20 @@ private class AnimationState(private val creature: BattleCreature2) {
 	val parts = Array(1 + creature.maxDepth - creature.minDepth) { AnimationPartState() }
 
 	fun update(tag: Tag): Boolean {
-		if (tag is PlaceObject2Tag) {
+		if (tag is PlaceObject2Tag && tag.depth - creature.minDepth < parts.size) {
 			val part = parts[tag.depth - creature.minDepth]
-			if (tag.characterId != 0) part.part = creature.bodyParts.find { it.id == tag.characterId }!!
+			if (tag.characterId != 0 && tag.characterId != 2234 && tag.characterId != 2306 && tag.characterId != 4747) {
+				part.part = creature.bodyParts.find { it.id == tag.characterId }!!
+			}
 			part.matrix = tag.matrix
 			if (tag.placeFlagHasColorTransform) part.color = tag.colorTransform
 			return true
 		} else if (tag is RemoveObject2Tag) {
-			parts[tag.depth - creature.minDepth].matrix = null
-			parts[tag.depth - creature.minDepth].color = null
+			val index = tag.depth - creature.minDepth
+			if (index >= 0 && index < parts.size) {
+				parts[index].matrix = null
+				parts[index].color = null
+			}
 			return true
 		}
 
@@ -445,21 +460,45 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 	var minDepth = 1000
 	var maxDepth = 0
 	val bodyParts = mutableSetOf<BodyPart2>()
+	var hitPoint: AnimationPoint? = null
+	var strikePoint: AnimationPoint? = null
+	var statusPoint: AnimationPoint? = null
+	var groundDistance = 0f
 	for (child in creatureTag.tags) {
 		if (child is PlaceObject2Tag) {
-			minDepth = min(minDepth, child.depth)
-			maxDepth = max(maxDepth, child.depth)
-			if (child.characterId != 0) bodyParts.add(BodyPart2(child.characterId, parseVariations(
-				creatureTag.swf.tags.find { it.uniqueId == child.characterId.toString() }!!
-			)))
+			if (child.characterId == 2306) {
+				val point = AnimationPoint(child.matrix.translateX * 0.05f, child.matrix.translateY * 0.05f)
+				if (child.name == "HitPoint") hitPoint = point
+				if (child.name == "StrikePoint") strikePoint = point
+				if (child.name == "StfxPoint") statusPoint = point
+			} else if (child.characterId == 2234 || child.characterId == 4747) {
+				groundDistance = child.matrix.translateY * 0.05f
+			} else {
+				minDepth = min(minDepth, child.depth)
+				maxDepth = max(maxDepth, child.depth)
+				if (child.characterId != 0) bodyParts.add(BodyPart2(child.characterId, parseVariations(
+					creatureTag.swf.tags.find { it.uniqueId == child.characterId.toString() }!!
+				)))
+			}
 		}
 	}
 
-	val creature = BattleCreature2(bodyParts, minDepth, maxDepth)
+	if (statusPoint == null) statusPoint = hitPoint
+	if (hitPoint == null || strikePoint == null) {
+		throw RuntimeException("Tag $creatureTag misses HitPoint or StrikePoint")
+	}
+	val creature = BattleCreature2(
+		bodyParts, minDepth, maxDepth, hitPoint = hitPoint,
+		strikePoint = strikePoint, statusPoint = statusPoint!!,
+		groundDistance = groundDistance
+	)
 
 	val animationState = AnimationState(creature)
 	for (child in creatureTag.tags) {
 		if (child is FrameLabelTag) break
+		if (child is PlaceObject2Tag) {
+			if (child.characterId == 2234 || child.characterId == 2306 || child.characterId == 4747) continue
+		}
 		animationState.update(child)
 	}
 
