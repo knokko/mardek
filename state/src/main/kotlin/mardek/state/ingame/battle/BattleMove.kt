@@ -9,10 +9,12 @@ import mardek.content.skill.ActiveSkill
 import mardek.content.skill.SkillTargetType
 import mardek.content.stats.Element
 import java.util.*
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @BitStruct(backwardCompatible = true)
-sealed class BattleMove {
-	val decisionTime = System.nanoTime()
+sealed class BattleMove(val stateDecisionTime: Duration) {
+	val realDecisionTime = System.nanoTime()
 
 	companion object {
 
@@ -29,10 +31,10 @@ sealed class BattleMove {
 }
 
 @BitStruct(backwardCompatible = true)
-data object BattleMoveThinking : BattleMove()
+class BattleMoveThinking(stateDecisionTime: Duration) : BattleMove(stateDecisionTime)
 
 @BitStruct(backwardCompatible = true)
-data object BattleMoveWait : BattleMove()
+class BattleMoveWait(stateDecisionTime: Duration) : BattleMove(stateDecisionTime)
 
 @BitStruct(backwardCompatible = true)
 class BattleMoveItem(
@@ -42,10 +44,12 @@ class BattleMoveItem(
 
 	@BitField(id = 1)
 	val target: CombatantReference,
-) : BattleMove() {
+
+	stateDecisionTime: Duration,
+) : BattleMove(stateDecisionTime) {
 
 	@Suppress("unused")
-	private constructor() : this(Item(), CombatantReference())
+	private constructor() : this(Item(), CombatantReference(), 0.seconds)
 }
 
 @BitStruct(backwardCompatible = true)
@@ -60,8 +64,10 @@ class BattleMoveSkill(
 
 	@BitField(id = 2, optional = true)
 	@ReferenceField(stable = true, label = "elements")
-	val nextElement: Element?
-) : BattleMove() {
+	val nextElement: Element?,
+
+	stateDecisionTime: Duration,
+) : BattleMove(stateDecisionTime) {
 
 	init {
 		if (skill.targetType == SkillTargetType.Self || skill.targetType == SkillTargetType.Single) {
@@ -84,7 +90,7 @@ class BattleMoveSkill(
 	}
 
 	@Suppress("unused")
-	private constructor() : this(ActiveSkill(), BattleSkillTargetAllEnemies, null)
+	private constructor() : this(ActiveSkill(), BattleSkillTargetAllEnemies, null, 0.seconds)
 
 	override fun equals(other: Any?) = other is BattleMoveSkill &&
 			this.skill === other.skill && this.target == other.target
@@ -95,13 +101,22 @@ class BattleMoveSkill(
 }
 
 @BitStruct(backwardCompatible = true)
-data class BattleMoveBasicAttack(
+class BattleMoveBasicAttack(
 	@BitField(id = 0)
-	val target: CombatantReference
-) : BattleMove() {
+	val target: CombatantReference,
+
+	stateDecisionTime: Duration,
+) : BattleMove(stateDecisionTime) {
+
+	var finishedStrike = false
+
+	@BitField(id = 1)
+	var dealtDamage = false
+
+	var finishedJump = false
 
 	@Suppress("unused")
-	private constructor() : this(CombatantReference())
+	private constructor() : this(CombatantReference(), 0.seconds)
 }
 
 sealed class BattleSkillTarget {

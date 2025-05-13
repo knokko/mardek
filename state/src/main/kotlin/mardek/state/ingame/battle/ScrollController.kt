@@ -205,7 +205,7 @@ internal fun battleClick(
 		if (selectedMove.target == null) {
 			changeSelectedMove(state, BattleMoveSelectionAttack(target = firstEnemyTarget), soundQueue)
 		} else {
-			state.confirmMove(BattleMoveBasicAttack(selectedMove.target), soundQueue)
+			state.confirmMove(BattleMoveBasicAttack(selectedMove.target, state.updatedTime), soundQueue)
 		}
 	}
 	if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill == null) {
@@ -237,7 +237,8 @@ internal fun battleClick(
 			val playerState = state.onTurn!!.getState()
 			if (manaCost <= playerState.currentMana) {
 				playerState.currentMana -= manaCost
-				state.confirmMove(BattleMoveSkill(selectedMove.skill, selectedMove.target, null), soundQueue)
+				val nextMove = BattleMoveSkill(selectedMove.skill, selectedMove.target, null, state.updatedTime)
+				state.confirmMove(nextMove, soundQueue)
 			} else {
 				soundQueue.insert("click-reject")
 			}
@@ -260,10 +261,10 @@ internal fun battleClick(
 			val player = state.players[state.onTurn!!.index]!!
 			val playerState = characterStates[player]!!
 			if (!playerState.removeItem(selectedMove.item)) throw IllegalStateException()
-			state.confirmMove(BattleMoveItem(selectedMove.item, selectedMove.target), soundQueue)
+			state.confirmMove(BattleMoveItem(selectedMove.item, selectedMove.target, state.updatedTime), soundQueue)
 		}
 	}
-	if (selectedMove is BattleMoveSelectionWait) state.confirmMove(BattleMoveWait, soundQueue)
+	if (selectedMove is BattleMoveSelectionWait) state.confirmMove(BattleMoveWait(state.updatedTime), soundQueue)
 	if (selectedMove is BattleMoveSelectionFlee) state.runAway()
 }
 
@@ -286,7 +287,7 @@ internal fun battleCancel(state: BattleState, soundQueue: SoundQueue) {
 			soundQueue.insert("click-cancel")
 		}
 	} else {
-		state.confirmMove(BattleMoveWait, soundQueue)
+		state.confirmMove(BattleMoveWait(state.updatedTime), soundQueue)
 	}
 }
 

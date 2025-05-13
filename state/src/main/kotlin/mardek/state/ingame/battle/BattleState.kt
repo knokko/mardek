@@ -65,7 +65,7 @@ class BattleState(
 
 	@BitField(id = 6) // TODO right annotation
 	@ClassField(root = BattleMove::class)
-	var currentMove: BattleMove = BattleMoveThinking
+	var currentMove: BattleMove = BattleMoveThinking(0.seconds)
 
 	var selectedMove: BattleMoveSelection = BattleMoveSelectionAttack(target = null)
 
@@ -75,8 +75,8 @@ class BattleState(
 
 	val startTime = System.nanoTime()
 
-	private var updatedTime = 0.seconds
-	private var moveDecisionTime = 0.seconds
+	var updatedTime = 0.seconds
+		private set
 
 	@Suppress("unused")
 	internal constructor() : this(Battle(), arrayOf(null, null, null, null), PartyLayout(), CampaignState())
@@ -84,21 +84,19 @@ class BattleState(
 	internal fun confirmMove(chosenMove: BattleMove, soundQueue: SoundQueue) {
 		this.selectedMove = BattleMoveSelectionAttack(target = null)
 		this.currentMove = chosenMove
-		this.moveDecisionTime = updatedTime
 		if (currentMove is BattleMoveWait) soundQueue.insert("click-cancel")
 		else soundQueue.insert("click-confirm")
 	}
 
 	internal fun runAway() {
 		outcome = BattleOutcome.RanAway
-		moveDecisionTime = updatedTime
 	}
 
 	fun processKeyPress(
 		key: InputKey, characterStates: HashMap<PlayableCharacter, CharacterState>, soundQueue: SoundQueue
 	) {
 		val onTurn = this.onTurn
-		if (onTurn != null && currentMove == BattleMoveThinking) {
+		if (onTurn != null && currentMove is BattleMoveThinking) {
 			if (key == InputKey.Cancel) battleCancel(this, soundQueue)
 			if (key == InputKey.Interact) battleClick(this, soundQueue, characterStates)
 			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, soundQueue)
@@ -132,11 +130,11 @@ class BattleState(
 		currentMove = if (combatant.isPlayer) {
 			soundQueue.insert("menu-party-scroll")
 			selectedMove = BattleMoveSelectionAttack(target = null)
-			BattleMoveThinking
+			BattleMoveThinking(updatedTime)
 		} else {
-			moveDecisionTime = updatedTime
 			MonsterStrategyCalculator(this, characterStates).determineNextMove()
 		}
+		println("currentMove is $currentMove")
 	}
 
 	fun update(
@@ -147,8 +145,20 @@ class BattleState(
 		while (onTurn == null && outcome == BattleOutcome.Busy) updateOnTurn(characterStates, soundQueue)
 		if (outcome != BattleOutcome.Busy) return
 
-		if (currentMove == BattleMoveWait && updatedTime > moveDecisionTime + 500.milliseconds) {
+		val currentMove = this.currentMove
+		if (currentMove is BattleMoveWait && updatedTime > currentMove.stateDecisionTime + 500.milliseconds) {
 			onTurn = null
+		}
+
+		if (currentMove is BattleMoveBasicAttack) {
+			if (currentMove.finishedStrike && !currentMove.dealtDamage) {
+				// TODO proper damage calculation
+				currentMove.target.getState().currentHealth -= 500
+				currentMove.dealtDamage = true
+			}
+			if (currentMove.finishedJump) {
+				this.onTurn = null
+			}
 		}
 	}
 }

@@ -45,7 +45,7 @@ class ActionBarRenderer(
 	}
 
 	private fun shouldRender() = onTurn != null && onTurn.isPlayer &&
-			context.battle.currentMove == BattleMoveThinking && !isTargeting()
+			context.battle.currentMove is BattleMoveThinking && !isTargeting()
 
 	private fun renderIcon(icon: KimSprite, x: Int) {
 		val request = KimRequest(

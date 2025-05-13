@@ -27,7 +27,7 @@ class MonsterStrategyCalculator(
 	}
 
 	private fun determineNextMoveRaw(): BattleMove {
-		val pool = determineNextPool() ?: return BattleMoveWait
+		val pool = determineNextPool() ?: return BattleMoveWait(state.updatedTime)
 
 		myState.usedStrategies[pool] = myState.usedStrategies.getOrDefault(pool, 0) + 1
 
@@ -35,7 +35,8 @@ class MonsterStrategyCalculator(
 
 		val item = entry.item
 		if (item != null) {
-			return BattleMoveItem(item, chooseSingleTarget(entry, pool.criteria, "item ${item.flashName}"))
+			val target = chooseSingleTarget(entry, pool.criteria, "item ${item.flashName}")
+			return BattleMoveItem(item, target, state.updatedTime)
 		}
 
 		val skill = entry.skill
@@ -47,10 +48,11 @@ class MonsterStrategyCalculator(
 				else -> BattleSkillTargetSingle(chooseSingleTarget(entry, pool.criteria, "skill ${skill.name}"))
 			}
 			val nextElement = if (skill.changeElement) monster.elementalShiftResistances.keys.random() else null
-			return BattleMoveSkill(skill, skillTarget, nextElement)
+			return BattleMoveSkill(skill, skillTarget, nextElement, state.updatedTime)
 		}
 
-		return BattleMoveBasicAttack(chooseSingleTarget(entry, pool.criteria, "basic attack"))
+		val target = chooseSingleTarget(entry, pool.criteria, "basic attack")
+		return BattleMoveBasicAttack(target, state.updatedTime)
 	}
 
 	private fun chooseSingleTarget(
