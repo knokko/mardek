@@ -60,7 +60,7 @@ class TestBatchRendering {
 
 		val boiler = BoilerBuilder(
 			VK_API_VERSION_1_0, "TestBatchRendering", 1
-		).enableDynamicRendering().validation().forbidValidationErrors().build()
+		).enableDynamicRendering().defaultTimeout(5_000_000_000L).validation().forbidValidationErrors().build()
 
 		val renderPass = createRenderPass(boiler, VK_FORMAT_R8G8B8A8_SRGB)
 

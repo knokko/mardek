@@ -38,6 +38,7 @@ class TestingInstance {
 	init {
 		val builder = BoilerBuilder(VK_API_VERSION_1_0, "IntegrationTests", 1)
 		GameRenderer.addBoilerRequirements(builder)
+		builder.defaultTimeout(5_000_000_000L)
 		boiler = builder.validation().forbidValidationErrors().build()
 
 		val getBoiler = CompletableFuture<BoilerInstance>()
