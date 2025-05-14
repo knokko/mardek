@@ -199,6 +199,11 @@ private fun parseWeaponProperties(content: Content, rawItem: Map<String, String>
 	}
 
 	val rawSound = rawItem["hit_sfx"]
+	val hitSound = if (rawSound != null) {
+		val soundName = parseFlashString(rawSound, "weapon hit sound")!!
+		if (soundName == "punch") content.audio.fixedEffects.battle.punch
+		else content.audio.effects.find { it.flashName == soundName }!!
+	} else null
 
 	return WeaponProperties(
 		type = weaponType,
@@ -208,7 +213,7 @@ private fun parseWeaponProperties(content: Content, rawItem: Map<String, String>
 		effectiveAgainstCreatureTypes = creatureBonuses,
 		effectiveAgainstElements = elementalBonuses,
 		addEffects = addEffects,
-		hitSound = if (rawSound != null) parseFlashString(rawSound, "weapon hit sound")!! else null,
+		hitSound = hitSound
 	)
 }
 

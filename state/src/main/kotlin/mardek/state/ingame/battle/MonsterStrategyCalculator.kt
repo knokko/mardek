@@ -4,13 +4,11 @@ import mardek.content.battle.StrategyCriteria
 import mardek.content.battle.StrategyEntry
 import mardek.content.battle.StrategyPool
 import mardek.content.battle.StrategyTarget
-import mardek.content.characters.PlayableCharacter
-import mardek.state.ingame.characters.CharacterState
 import kotlin.random.Random
 
 class MonsterStrategyCalculator(
 	private val state: BattleState,
-	private val characterStates: Map<PlayableCharacter, CharacterState>,
+	private val context: BattleUpdateContext,
 ) {
 	private val enemyIndex = state.onTurn!!.index
 	private val monster = state.enemies[enemyIndex]!!.monster
@@ -154,12 +152,12 @@ class MonsterStrategyCalculator(
 		if (targetMissesEffect != null && targetState.statusEffects.contains(targetMissesEffect)) return false
 
 		val maxResistance = criteria.resistanceAtMost
-		if (maxResistance != null && target.getResistance(maxResistance.element, characterStates) > maxResistance.modifier) {
+		if (maxResistance != null && target.getResistance(maxResistance.element, context) > maxResistance.modifier) {
 			return false
 		}
 
 		val minResistance = criteria.resistanceAtLeast
-		if (minResistance != null && target.getResistance(minResistance.element, characterStates) < minResistance.modifier) {
+		if (minResistance != null && target.getResistance(minResistance.element, context) < minResistance.modifier) {
 			return false
 		}
 

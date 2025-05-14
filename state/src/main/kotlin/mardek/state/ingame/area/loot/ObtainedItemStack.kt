@@ -1,5 +1,6 @@
 package mardek.state.ingame.area.loot
 
+import mardek.content.audio.FixedSoundEffects
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.ItemStack
 import mardek.content.inventory.PlotItem
@@ -16,7 +17,7 @@ class ObtainedItemStack(
 ) {
 	var partyIndex = party.indexOfFirst { it != null }
 
-	fun processKeyPress(key: InputKey, soundQueue: SoundQueue) {
+	fun processKeyPress(key: InputKey, sounds: FixedSoundEffects, soundQueue: SoundQueue) {
 		if (key == InputKey.Interact) {
 			if (plotItem != null) {
 				close(true)
@@ -48,7 +49,7 @@ class ObtainedItemStack(
 			}
 
 			if (done) close(true)
-			else soundQueue.insert("click-reject")
+			else soundQueue.insert(sounds.ui.clickReject)
 		}
 
 		if (key == InputKey.Cancel) close(false)
@@ -66,6 +67,6 @@ class ObtainedItemStack(
 			if (partyIndex == party.size) partyIndex = party.indexOfFirst { it != null }
 		}
 
-		if (partyIndex != oldPartyIndex) soundQueue.insert("menu-scroll")
+		if (partyIndex != oldPartyIndex) soundQueue.insert(sounds.ui.scroll)
 	}
 }

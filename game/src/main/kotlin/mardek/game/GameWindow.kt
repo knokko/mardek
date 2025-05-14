@@ -10,6 +10,7 @@ import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.profiler.SampleProfiler
 import com.github.knokko.profiler.storage.SampleStorage
 import com.github.knokko.update.UpdateCounter
+import mardek.content.Content
 import mardek.renderer.GameRenderer
 import mardek.renderer.SharedResources
 import mardek.state.ExitState
@@ -24,6 +25,7 @@ class GameWindow(
 	window: VkbWindow,
 	framesInFlight: Int,
 	private val getResources: CompletableFuture<SharedResources>,
+	private val getContent: CompletableFuture<Content>,
 	private val state: GameStateManager,
 	private val mainStartTime: Long
 ): SimpleWindowRenderLoop(
@@ -73,7 +75,7 @@ class GameWindow(
 		val framebuffer = framebuffers.get(acquiredImage)
 		synchronized(state.lock()) {
 			if (state.currentState is ExitState) glfwSetWindowShouldClose(window.glfwWindow, true)
-			else renderer.render(state.currentState, recorder, acquiredImage.image(), framebuffer, frameIndex)
+			else renderer.render(getContent, state.currentState, recorder, acquiredImage.image(), framebuffer, frameIndex)
 		}
 
 		if (firstFrame) {

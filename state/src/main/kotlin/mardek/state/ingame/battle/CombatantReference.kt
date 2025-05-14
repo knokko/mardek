@@ -4,12 +4,10 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.characters.PlayableCharacter
 import mardek.content.skill.PassiveSkill
 import mardek.content.stats.CombatStat
 import mardek.content.stats.Element
 import mardek.content.stats.StatusEffect
-import mardek.state.ingame.characters.CharacterState
 
 @BitStruct(backwardCompatible = true)
 class CombatantReference(
@@ -40,12 +38,12 @@ class CombatantReference(
 		state != null && state.currentHealth > 0
 	} else battleState.enemyStates[index] != null
 
-	fun getStat(stat: CombatStat, characterStates: Map<PlayableCharacter, CharacterState>) = if (isPlayer) {
+	fun getStat(stat: CombatStat, context: BattleUpdateContext) = if (isPlayer) {
 		val player = battleState.players[index]!!
 		val combatState = battleState.playerStates[index]!!
 		val extra = combatState.statModifiers[stat] ?: 0
 
-		val characterState = characterStates[player]!!
+		val characterState = context.characterStates[player]!!
 		characterState.computeStatValue(player.baseStats, combatState.statusEffects, stat) + extra
 	} else {
 		val monster = battleState.enemies[index]!!.monster
@@ -58,7 +56,7 @@ class CombatantReference(
 	fun getState() = if (isPlayer) battleState.playerStates[index]!!
 	else battleState.enemyStates[index]!!
 
-	fun getResistance(element: Element, characterStates: Map<PlayableCharacter, CharacterState>): Float {
+	fun getResistance(element: Element, context: BattleUpdateContext): Float {
 		var resistance = 0f
 		val combatState = getState()
 		for (item in combatState.equipment) {
@@ -70,7 +68,7 @@ class CombatantReference(
 			if (element === combatState.element) resistance += 0.2f
 			if (element === combatState.element.weakAgainst) resistance -= 0.2f
 
-			val characterState = characterStates[battleState.players[index]]!!
+			val characterState = context.characterStates[battleState.players[index]]!!
 			for (skill in characterState.toggledSkills) {
 				if (skill is PassiveSkill) resistance += skill.resistances.get(element)
 			}
@@ -83,7 +81,7 @@ class CombatantReference(
 		return resistance
 	}
 
-	fun getResistance(effect: StatusEffect, characterStates: Map<PlayableCharacter, CharacterState>): Int {
+	fun getResistance(effect: StatusEffect, context: BattleUpdateContext): Int {
 		var resistance = 0
 		val combatState = getState()
 		for (item in combatState.equipment) {
@@ -92,7 +90,7 @@ class CombatantReference(
 		for (otherEffect in combatState.statusEffects) resistance += otherEffect.resistances.get(effect)
 
 		if (isPlayer) {
-			val characterState = characterStates[battleState.players[index]]!!
+			val characterState = context.characterStates[battleState.players[index]]!!
 			for (skill in characterState.toggledSkills) {
 				if (skill is PassiveSkill) resistance += skill.resistances.get(effect)
 			}

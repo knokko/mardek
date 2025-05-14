@@ -17,7 +17,7 @@ class InGameRenderer(
 		context.resources.kim1Renderer.begin()
 		context.resources.kim2Renderer.begin()
 
-		val inGameContext = InGameRenderContext(state.content, state.campaign, context)
+		val inGameContext = InGameRenderContext(state.campaign, context)
 		val area = state.campaign.currentArea
 		areaRenderer = if (area != null && area.activeBattle == null) AreaRenderer(inGameContext, area) else null
 		battleRenderer = if (area?.activeBattle != null) BattleRenderer(inGameContext, area.activeBattle!!) else null

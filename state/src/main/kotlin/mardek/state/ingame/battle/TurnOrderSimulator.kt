@@ -1,18 +1,16 @@
 package mardek.state.ingame.battle
 
-import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.CombatStat
-import mardek.state.ingame.characters.CharacterState
 
 class TurnOrderSimulator internal constructor(
 	private val entries: List<TurnOrderEntry>
 ) {
 
 	constructor(
-		battleState: BattleState, characterStates: Map<PlayableCharacter, CharacterState>
+		battleState: BattleState, context: BattleUpdateContext
 	) : this((battleState.livingEnemies() + battleState.livingPlayers()).map { TurnOrderEntry(
 		combatant = it,
-		agility = it.getStat(CombatStat.Agility, characterStates),
+		agility = it.getStat(CombatStat.Agility, context),
 		turnsSpent = it.getState().spentTurnsThisRound,
 		turnsPerRound = 1 + it.getState().statusEffects.sumOf { effect -> effect.extraTurns },
 	) })

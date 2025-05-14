@@ -447,6 +447,7 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 	val bodyParts = mutableSetOf<BodyPart2>()
 	for (child in creatureTag.tags) {
 		if (child is PlaceObject2Tag) {
+			if (child.characterId == 2306) println("Found $child")
 			minDepth = min(minDepth, child.depth)
 			maxDepth = max(maxDepth, child.depth)
 			if (child.characterId != 0) bodyParts.add(BodyPart2(child.characterId, parseVariations(

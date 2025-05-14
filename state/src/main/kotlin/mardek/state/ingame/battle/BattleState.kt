@@ -5,9 +5,7 @@ import com.github.knokko.bitser.field.*
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
-import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
-import mardek.state.ingame.characters.CharacterState
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -81,46 +79,41 @@ class BattleState(
 	@Suppress("unused")
 	internal constructor() : this(Battle(), arrayOf(null, null, null, null), PartyLayout(), CampaignState())
 
-	internal fun confirmMove(chosenMove: BattleMove, soundQueue: SoundQueue) {
+	internal fun confirmMove(context: BattleUpdateContext, chosenMove: BattleMove) {
 		this.selectedMove = BattleMoveSelectionAttack(target = null)
 		this.currentMove = chosenMove
-		if (currentMove is BattleMoveWait) soundQueue.insert("click-cancel")
-		else soundQueue.insert("click-confirm")
+		if (currentMove is BattleMoveWait) context.soundQueue.insert(context.sounds.ui.clickCancel)
+		else context.soundQueue.insert(context.sounds.ui.clickConfirm)
 	}
 
 	internal fun runAway() {
 		outcome = BattleOutcome.RanAway
 	}
 
-	fun processKeyPress(
-		key: InputKey, characterStates: HashMap<PlayableCharacter, CharacterState>, soundQueue: SoundQueue
-	) {
+	fun processKeyPress(key: InputKey, context: BattleUpdateContext) {
 		val onTurn = this.onTurn
 		if (onTurn != null && currentMove is BattleMoveThinking) {
-			if (key == InputKey.Cancel) battleCancel(this, soundQueue)
-			if (key == InputKey.Interact) battleClick(this, soundQueue, characterStates)
-			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, soundQueue)
-			if (key == InputKey.MoveUp || key == InputKey.MoveDown) battleScrollVertically(this, key, soundQueue, characterStates)
+			if (key == InputKey.Cancel) battleCancel(this, context)
+			if (key == InputKey.Interact) battleClick(this, context)
+			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, context)
+			if (key == InputKey.MoveUp || key == InputKey.MoveDown) battleScrollVertically(this, key, context)
 		}
 	}
 
-	private fun updateOnTurn(characterStates: Map<PlayableCharacter, CharacterState>, soundQueue: SoundQueue) {
+	private fun updateOnTurn(context: BattleUpdateContext) {
 		val combatants = livingPlayers() + livingEnemies()
 		if (combatants.none { it.isPlayer }) outcome = BattleOutcome.GameOver
 		if (combatants.none { !it.isPlayer }) outcome = BattleOutcome.Victory
 		if (outcome != BattleOutcome.Busy) return
 
-		val simulator = TurnOrderSimulator(this, characterStates)
+		val simulator = TurnOrderSimulator(this, context)
 		if (simulator.checkReset()) {
 			for (combatant in combatants) combatant.getState().spentTurnsThisRound = 0
 		}
-		beginTurn(characterStates, soundQueue, simulator.next()!!)
+		beginTurn(context, simulator.next()!!)
 	}
 
-	private fun beginTurn(
-		characterStates: Map<PlayableCharacter, CharacterState>,
-		soundQueue: SoundQueue, combatant: CombatantReference
-	) {
+	private fun beginTurn(context: BattleUpdateContext, combatant: CombatantReference) {
 		val combatantState = combatant.getState()
 		combatantState.spentTurnsThisRound += 1
 		combatantState.totalSpentTurns += 1
@@ -128,21 +121,18 @@ class BattleState(
 		onTurn = combatant
 
 		currentMove = if (combatant.isPlayer) {
-			soundQueue.insert("menu-party-scroll")
+			context.soundQueue.insert(context.sounds.ui.partyScroll)
 			selectedMove = BattleMoveSelectionAttack(target = null)
 			BattleMoveThinking(updatedTime)
 		} else {
-			MonsterStrategyCalculator(this, characterStates).determineNextMove()
+			MonsterStrategyCalculator(this, context).determineNextMove()
 		}
 		println("currentMove is $currentMove")
 	}
 
-	fun update(
-		characterStates: Map<PlayableCharacter, CharacterState>,
-		soundQueue: SoundQueue, timeStep: Duration
-	) {
+	fun update(context: BattleUpdateContext, timeStep: Duration) {
 		updatedTime += timeStep
-		while (onTurn == null && outcome == BattleOutcome.Busy) updateOnTurn(characterStates, soundQueue)
+		while (onTurn == null && outcome == BattleOutcome.Busy) updateOnTurn(context)
 		if (outcome != BattleOutcome.Busy) return
 
 		val currentMove = this.currentMove
@@ -152,6 +142,14 @@ class BattleState(
 
 		if (currentMove is BattleMoveBasicAttack) {
 			if (currentMove.finishedStrike && !currentMove.dealtDamage) {
+				val rawWeapon = onTurn!!.getState().equipment[0]
+				val weapon = rawWeapon?.equipment?.weapon
+
+				val weaponSound = weapon?.hitSound
+				val weaponTypeSound = weapon?.type?.soundEffect
+				val punchSound = context.sounds.battle.punch
+				context.soundQueue.insert(weaponSound ?: weaponTypeSound ?: punchSound)
+
 				// TODO proper damage calculation
 				currentMove.target.getState().currentHealth -= 500
 				currentMove.dealtDamage = true

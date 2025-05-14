@@ -41,7 +41,7 @@ class SkillsTabRenderer(
 	private val skillsEnablePointsX = descriptionMaxX + region.width / 2
 	private val skillsMasteryPointsX = descriptionMaxX + region.width / 2 + region.width / 20
 
-	private val visibleSkills = tab.determineSkillList()
+	private val visibleSkills = tab.determineSkillList(context.uiContext)
 	private val selectedSkill = if (visibleSkills.isEmpty()) null else visibleSkills[tab.skillIndex]
 
 	private lateinit var kim1Batch: KimBatch

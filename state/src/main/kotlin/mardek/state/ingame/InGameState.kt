@@ -1,21 +1,18 @@
 package mardek.state.ingame
 
-import mardek.content.Content
-import mardek.input.InputManager
 import mardek.state.GameState
-import mardek.state.SoundQueue
+import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.menu.InGameMenuState
-import kotlin.time.Duration
 
-class InGameState(val content: Content, val campaign: CampaignState): GameState {
+class InGameState(val campaign: CampaignState): GameState {
 
 	val menu = InGameMenuState(campaign)
 
-	override fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue): GameState {
+	override fun update(context: GameStateUpdateContext): GameState {
 		if (menu.shown) {
-			menu.update(input, soundQueue, content)
+			menu.update(context.input, context.soundQueue, context.content)
 		} else {
-			campaign.update(input, timeStep, soundQueue, content)
+			campaign.update(context.input, context.timeStep, context.soundQueue, context.content)
 			if (campaign.shouldOpenMenu) {
 				menu.shown = true
 				campaign.shouldOpenMenu = false

@@ -13,7 +13,11 @@ class InGameMenuState(private val state: CampaignState) {
 	var shown = false
 	var currentTab: InGameMenuTab = PartyTab()
 
-	fun update(input: InputManager, soundQueue: SoundQueue, assets: Content) {
+	fun update(input: InputManager, soundQueue: SoundQueue, content: Content) {
+		val context = UiUpdateContext(
+			state.characterSelection, state.characterStates, soundQueue,
+			content.audio.fixedEffects, content.skills
+		)
 		while (true) {
 			val event = input.consumeEvent() ?: break
 
@@ -27,28 +31,28 @@ class InGameMenuState(private val state: CampaignState) {
 					if (event.key == InputKey.MoveUp) {
 						val oldTab = currentTab
 						if (currentTab is SkillsTab) currentTab = PartyTab()
-						if (currentTab is InventoryTab) currentTab = SkillsTab(assets, state)
-						if (currentTab is MapTab) currentTab = InventoryTab(state)
+						if (currentTab is InventoryTab) currentTab = SkillsTab(state.characterSelection)
+						if (currentTab is MapTab) currentTab = InventoryTab()
 
-						if (oldTab !== currentTab) soundQueue.insert("menu-scroll")
+						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll)
 						continue
 					}
 
 					if (event.key == InputKey.MoveDown) {
 						val oldTab = currentTab
 						if (currentTab is InventoryTab) currentTab = MapTab()
-						if (currentTab is SkillsTab) currentTab = InventoryTab(state)
-						if (currentTab is PartyTab) currentTab = SkillsTab(assets, state)
+						if (currentTab is SkillsTab) currentTab = InventoryTab()
+						if (currentTab is PartyTab) currentTab = SkillsTab(state.characterSelection)
 
-						if (oldTab !== currentTab) soundQueue.insert("menu-scroll")
+						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll)
 						continue
 					}
 				}
 
-				currentTab.processKeyPress(event.key, soundQueue)
+				currentTab.processKeyPress(event.key, context)
 			}
 
-			if (event is MouseMoveEvent) currentTab.processMouseMove(event)
+			if (event is MouseMoveEvent) currentTab.processMouseMove(event, context)
 		}
 	}
 }

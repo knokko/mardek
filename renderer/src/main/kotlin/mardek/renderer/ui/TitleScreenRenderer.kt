@@ -17,7 +17,7 @@ class TitleScreenRenderer(
 		context.uiRenderer.beginBatch()
 
 		context.uiRenderer.drawImage(
-			context.resources.bcImages[state.assets.ui.titleScreenBackground.index],
+			context.resources.bcImages[context.content.ui.titleScreenBackground.index],
 			0, 0, context.targetImage.width, context.targetImage.height
 		)
 
@@ -28,7 +28,7 @@ class TitleScreenRenderer(
 		run {
 			val height = 0.2f
 			// TODO Export title with higher quality
-			val image = context.resources.bcImages[state.assets.ui.titleScreenTitle.index]
+			val image = context.resources.bcImages[context.content.ui.titleScreenTitle.index]
 			val titleRect = transform.transform(0.05f, 0.77f, height * image.width / image.height, height)
 			context.uiRenderer.drawImage(image, titleRect.minX, titleRect.minY, titleRect.maxX, titleRect.maxY)
 		}

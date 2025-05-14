@@ -5,12 +5,10 @@ import mardek.content.inventory.EquipmentSlotType
 import mardek.content.inventory.Item
 import mardek.input.InputKey
 import mardek.input.MouseMoveEvent
-import mardek.state.SoundQueue
-import mardek.state.ingame.CampaignState
 import mardek.state.ingame.characters.CharacterState
 import mardek.content.inventory.ItemStack
 
-class InventoryTab(private val state: CampaignState): InGameMenuTab(true) {
+class InventoryTab: InGameMenuTab(true) {
 
 	var partyIndex = 0
 	var descriptionIndex = 0
@@ -33,21 +31,21 @@ class InventoryTab(private val state: CampaignState): InGameMenuTab(true) {
 
 	override fun getText() = "Inventory"
 
-	private fun validatePartyIndex() {
-		if (state.characterSelection.party[partyIndex] == null) {
-			partyIndex = state.characterSelection.party.indexOfFirst { it != null }
+	private fun validatePartyIndex(context: UiUpdateContext) {
+		if (context.characterSelection.party[partyIndex] == null) {
+			partyIndex = context.characterSelection.party.indexOfFirst { it != null }
 			if (partyIndex == -1) throw IllegalStateException("Party must have at least 1 character at all times")
 		}
 	}
 
-	override fun processKeyPress(key: InputKey, soundQueue: SoundQueue) {
-		val party = state.characterSelection.party
-		validatePartyIndex()
+	override fun processKeyPress(key: InputKey, context: UiUpdateContext) {
+		val party = context.characterSelection.party
+		validatePartyIndex(context)
 
 		if ((inside && key == InputKey.Interact) || key == InputKey.Click) {
 			if (!inside) {
 				inside = true
-				soundQueue.insert("click-confirm")
+				context.soundQueue.insert(context.sounds.ui.clickConfirm)
 			}
 
 			if (hoveringItem != null) {
@@ -63,16 +61,16 @@ class InventoryTab(private val state: CampaignState): InGameMenuTab(true) {
 				}
 
 				if (forbidden) {
-					soundQueue.insert("click-reject")
+					context.soundQueue.insert(context.sounds.ui.clickReject)
 				} else {
 					val oldItem = hoveringItem!!.get()
 					if (oldItem != null) {
 						if (pickedUpItem == null) {
 							pickedUpItem = hoveringItem
-							soundQueue.insert("click-confirm")
+							context.soundQueue.insert(context.sounds.ui.clickConfirm)
 						} else if (hoveringItem == pickedUpItem) {
 							pickedUpItem = null
-							soundQueue.insert("click-cancel")
+							context.soundQueue.insert(context.sounds.ui.clickCancel)
 						} else {
 							if (oldItem.item == pickedUpItem!!.get()!!.item) {
 								hoveringItem!!.set(ItemStack(oldItem.item, oldItem.amount + pickedUpItem!!.get()!!.amount))
@@ -82,13 +80,13 @@ class InventoryTab(private val state: CampaignState): InGameMenuTab(true) {
 								hoveringItem!!.set(pickedUpItem!!.get())
 								pickedUpItem!!.set(oldItem)
 							}
-							soundQueue.insert("click-confirm")
+							context.soundQueue.insert(context.sounds.ui.clickConfirm)
 						}
 					} else if (pickedUpItem != null) {
 						hoveringItem!!.set(pickedUpItem!!.get())
 						pickedUpItem!!.set(null)
 						pickedUpItem = null
-						soundQueue.insert("click-cancel")
+						context.soundQueue.insert(context.sounds.ui.clickCancel)
 					}
 				}
 			}
@@ -99,34 +97,34 @@ class InventoryTab(private val state: CampaignState): InGameMenuTab(true) {
 			partyIndex -= 1
 			while (partyIndex >= 0 && party[partyIndex] == null) partyIndex -= 1
 			if (partyIndex < 0) partyIndex = party.indexOfLast { it != null }
-			if (partyIndex != oldPartyIndex) soundQueue.insert("menu-party-scroll")
+			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.partyScroll)
 		}
 
 		if (key == InputKey.MoveDown) {
 			partyIndex += 1
 			while (partyIndex < party.size && party[partyIndex] == null) partyIndex += 1
 			if (partyIndex >= party.size) partyIndex = party.indexOfFirst { it != null }
-			if (partyIndex != oldPartyIndex) soundQueue.insert("menu-party-scroll")
+			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.partyScroll)
 		}
 
 		if (key == InputKey.MoveLeft) {
 			descriptionIndex -= 1
 			if (descriptionIndex == -1) descriptionIndex = 2
-			soundQueue.insert("menu-scroll")
+			context.soundQueue.insert(context.sounds.ui.scroll)
 		}
 		if (key == InputKey.MoveRight) {
 			descriptionIndex += 1
 			if (descriptionIndex == 3) descriptionIndex = 0
-			soundQueue.insert("menu-scroll")
+			context.soundQueue.insert(context.sounds.ui.scroll)
 		}
 
-		super.processKeyPress(key, soundQueue)
+		super.processKeyPress(key, context)
 	}
 
-	override fun processMouseMove(event: MouseMoveEvent) {
-		validatePartyIndex()
-		val assetCharacter = state.characterSelection.party[partyIndex]!!
-		val currentCharacter = state.characterStates[assetCharacter] ?: throw IllegalStateException(
+	override fun processMouseMove(event: MouseMoveEvent, context: UiUpdateContext) {
+		validatePartyIndex(context)
+		val assetCharacter = context.characterSelection.party[partyIndex]!!
+		val currentCharacter = context.characterStates[assetCharacter] ?: throw IllegalStateException(
 			"Character ${assetCharacter.name} doesn't have a state"
 		)
 		if (renderItemSlotSize <= 0) return
@@ -140,7 +138,7 @@ class InventoryTab(private val state: CampaignState): InGameMenuTab(true) {
 			)
 		}
 
-		val party = state.characterSelection.party
+		val party = context.characterSelection.party
 		if (event.newX >= renderEquipmentStartX && event.newY >= renderEquipmentStartY) {
 			val offsetX = event.newX - renderEquipmentStartX
 			val offsetY = event.newY - renderEquipmentStartY
@@ -152,7 +150,7 @@ class InventoryTab(private val state: CampaignState): InGameMenuTab(true) {
 			) {
 				val equipmentOwner = party[characterIndex]
 				if (equipmentOwner != null) hoveringItem = ItemReference(
-					equipmentOwner, state.characterStates[equipmentOwner]!!, -1 - slotIndex
+					equipmentOwner, context.characterStates[equipmentOwner]!!, -1 - slotIndex
 				)
 			}
 		}
