@@ -102,4 +102,9 @@ class CombatantReference(
 
 		return resistance
 	}
+
+	fun getLevel(context: BattleUpdateContext) = if (isPlayer) {
+		val player = battleState.players[index]!!
+		context.characterStates[player]!!.currentLevel
+	} else battleState.enemies[index]!!.level
 }

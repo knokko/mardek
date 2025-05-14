@@ -80,4 +80,8 @@ class ReactionSkill(
 		0, 0f, 0, 0, 0f, 0f, ArrayList(0),
 		ArrayList(0), ArrayList(0), ArrayList(0), false, false, false
 	)
+
+	fun getElementalBonus(element: Element) = elementalBonuses.sumOf {
+		if (it.element === element) it.modifier.toDouble() else 0.0
+	}.toFloat()
 }
