@@ -20,7 +20,7 @@ class InGameMenuRenderer(
 		)
 		val tab = menu.currentTab
 		val tabRegion = transform.transform(0f, 0.08f, 0.78f, 0.84f)
-		if (tab is PartyTab) this.tabRenderer = PartyTabRenderer()
+		if (tab is PartyTab) this.tabRenderer = PartyTabRenderer(context, tab, tabRegion)
 		if (tab is SkillsTab) this.tabRenderer = SkillsTabRenderer(context, tab, tabRegion)
 		if (tab is InventoryTab) this.tabRenderer = InventoryTabRenderer(context, tab, tabRegion)
 		if (tab is MapTab) this.tabRenderer = MapTabRenderer(context, tabRegion)
