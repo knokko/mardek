@@ -11,7 +11,7 @@ import mardek.state.ingame.CampaignState
 class InGameMenuState(private val state: CampaignState) {
 
 	var shown = false
-	var currentTab: InGameMenuTab = PartyTab()
+	var currentTab: InGameMenuTab = PartyTab(state)
 
 	fun update(input: InputManager, soundQueue: SoundQueue, assets: Content) {
 		while (true) {
@@ -26,7 +26,7 @@ class InGameMenuState(private val state: CampaignState) {
 
 					if (event.key == InputKey.MoveUp) {
 						val oldTab = currentTab
-						if (currentTab is SkillsTab) currentTab = PartyTab()
+						if (currentTab is SkillsTab) currentTab = PartyTab(state)
 						if (currentTab is InventoryTab) currentTab = SkillsTab(assets, state)
 						if (currentTab is MapTab) currentTab = InventoryTab(state)
 
