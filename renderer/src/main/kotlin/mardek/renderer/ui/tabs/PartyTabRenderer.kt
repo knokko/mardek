@@ -75,6 +75,8 @@ class PartyTabRenderer(
 	{
 		// this.kim1Batch = resources.kim1Renderer.startBatch()
 		// this.kim2Batch = resources.kim2Renderer.startBatch()
+		this.kim1Batch = context.resources.kim1Renderer.startBatch()
+		this.kim2Batch = context.resources.kim2Renderer.startBatch()
 	}
 
 	override fun render()
@@ -82,6 +84,8 @@ class PartyTabRenderer(
 		context.uiRenderer.beginBatch()
 		mainProcedure()
 		context.uiRenderer.endBatch()
+		context.resources.kim1Renderer.submit(kim1Batch, context.recorder, context.targetImage)
+		context.resources.kim2Renderer.submit(kim2Batch, context.recorder, context.targetImage)
 	}
 
 	public fun mainProcedure()
@@ -254,9 +258,11 @@ class PartyTabRenderer(
 	public fun renderElement()
 	{
 		val offsetY = printedCount * (RECT_HEIGHT + 20)
-		val startX = region.maxX - 20
+		val barX = region.maxX - 250
 		val startY = region.minY + MARGIN_TOP + offsetY
 		val assetCharacter = context.campaign.characterSelection.party[printedCount]!!
+
+		val element = assetCharacter.element
 	
 		// addKimRequest(KimRequest(
 		// 	x = region.minX + region.width / 200,
@@ -264,6 +270,14 @@ class PartyTabRenderer(
 		// 	sprite = assetCharacter.element.sprite,
 		// 	scale = region.width / 500f, opacity = 0.01f
 		// ))
+		// kim2Batch.requests.add(KimRequest(x =
+		// region.minX + (maxX - region.minX - scale * element.sprite.width) / 2,
+		// y = barY - sca))
+		kim2Batch.requests.add(KimRequest(
+					x = barX + BASE_BAR_WIDTH / 2,
+					y = startY + BASE_BAR_HEIGHT - 30,
+					scale = scale.toFloat(), sprite = element.sprite, opacity = 0.02f
+				))
 	}
 	// resources.kim1Renderer.submit(kim1Batch, recorder, targetImage)
 	// resources.kim2Renderer.submit(kim2Batch, recorder, targetImage)
