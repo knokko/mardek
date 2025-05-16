@@ -1,6 +1,5 @@
 package mardek.state.ingame.battle
 
-import mardek.content.skill.PassiveSkill
 import mardek.content.skill.ReactionSkill
 import mardek.content.skill.ReactionSkillType
 import mardek.content.stats.CombatStat
@@ -46,7 +45,7 @@ class DamageCalculator(
 				extraFlatDamage += skill.addFlatDamage
 				if (skill.smitePlus) TODO()
 				elementalBonus += skill.getElementalBonus(element)
-				creatureBonus += skill.getCreatureTypeBonus(ehm)
+				creatureBonus += skill.getCreatureTypeBonus(target.getCreatureType())
 			}
 		}
 

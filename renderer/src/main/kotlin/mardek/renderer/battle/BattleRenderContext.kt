@@ -11,6 +11,7 @@ class BattleRenderContext(
 ): InGameRenderContext(inGameContext.campaign, inGameContext) {
 
 	val updateContext = BattleUpdateContext(
-		inGameContext.campaign.characterStates, inGameContext.content.audio.fixedEffects, SoundQueue()
+		campaign.characterStates, content.audio.fixedEffects,
+		content.stats.elements.find { it.rawName == "NONE" }!!, SoundQueue()
 	)
 }

@@ -107,4 +107,8 @@ class CombatantReference(
 		val player = battleState.players[index]!!
 		context.characterStates[player]!!.currentLevel
 	} else battleState.enemies[index]!!.level
+
+	fun getCreatureType() = if (isPlayer) {
+		TODO()
+	} else battleState.enemies[index]!!.monster.type
 }

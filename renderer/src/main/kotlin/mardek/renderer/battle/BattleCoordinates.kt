@@ -5,6 +5,10 @@ import mardek.content.battle.PartyLayoutPosition
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+fun computeMagicScale(targetImage: VkbImage) {
+	// TODO
+}
+
 fun transformBattleCoordinates(rawPosition: PartyLayoutPosition, flipX: Float, targetImage: VkbImage): TransformedCoordinates {
 	// Original resolution is 240x176
 	var magicScaleX = 1f / 240f

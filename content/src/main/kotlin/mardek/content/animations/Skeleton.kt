@@ -14,13 +14,22 @@ class Skeleton(
 	@ReferenceFieldTarget(label = "skeleton parts")
 	val parts: Array<SkeletonPart>,
 
+	@BitField(id = 1)
+	val strikePoint: AnimationPoint,
+
+	@BitField(id = 2)
+	val hitPoint: AnimationPoint,
+
+	@BitField(id = 3)
+	val statusPoint: AnimationPoint,
+
 	private val animations: HashMap<String, Animation>
 ) : BitPostInit {
 
 	private lateinit var bitser: Bitser
 	private val rawAnimations = HashMap<String, ByteArray>()
 
-	constructor() : this(emptyArray(), HashMap())
+	constructor() : this(emptyArray(), AnimationPoint(), AnimationPoint(), AnimationPoint(), HashMap())
 
 	@Suppress("unused")
 	@BitField(id = 0)

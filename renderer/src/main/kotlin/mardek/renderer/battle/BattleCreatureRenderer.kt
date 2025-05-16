@@ -1,13 +1,16 @@
 package mardek.renderer.battle
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
+import mardek.content.animations.BattleModel
 import mardek.content.animations.ColorTransform
+import mardek.content.battle.PartyLayoutPosition
 import mardek.state.ingame.battle.BattleMoveBasicAttack
 import mardek.state.ingame.battle.CombatantReference
 import mardek.state.ingame.battle.CombatantState
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.lang.Math.toIntExact
+import kotlin.math.roundToInt
 
 class BattleCreatureRenderer(
 	private val context: BattleRenderContext,
@@ -62,15 +65,12 @@ class BattleCreatureRenderer(
 	}
 
 	private fun renderCreature(combatant: CombatantReference) {
-		val partyLayout = if (combatant.isPlayer) context.battle.playerLayout else context.battle.battle.enemyLayout
-		val rawPosition = partyLayout.positions[combatant.index]
-		val flipX = if (combatant.isPlayer) 1f else -1f
+		val (rawPosition, flipX) = getRawCoordinates(combatant)
+		var coordinates = transformBattleCoordinates(rawPosition, flipX, context.targetImage)
 		val effectColorTransform = selectedColorTransform(combatant.getState())
-		val model = if (combatant.isPlayer) context.battle.players[combatant.index]!!.battleModel
-		else context.battle.enemies[combatant.index]!!.monster.model
+		val model = getModel(combatant)
 
 		var relativeTime = currentRealTime - context.battle.startTime
-		val coordinates = transformBattleCoordinates(rawPosition, flipX, context.targetImage)
 		var animation = model.skeleton.getAnimation("idle")
 		val frameLength = 33_000_000L
 
@@ -105,6 +105,18 @@ class BattleCreatureRenderer(
 							currentMove.finishedJump = true
 						}
 					}
+				} else {
+					val movementProgress = relativeTime.toDouble() / moveTime.toDouble()
+					//coordinates = transformBattleCoordinates(rawPosition, flipX, context.targetImage)
+					val (rawTargetCoordinates, targetFlipX) = getRawCoordinates(currentMove.target)
+					val targetCoordinates = transformBattleCoordinates(rawTargetCoordinates, targetFlipX, context.targetImage)
+					val targetStrikePoint = getModel(currentMove.target).skeleton.strikePoint
+					val strikePosition = PartyLayoutPosition(
+						rawTargetCoordinates.x + (targetCoordinates.scaleX * targetStrikePoint.x).roundToInt(),
+						rawTargetCoordinates.y + (targetCoordinates.scaleY * targetStrikePoint.y).roundToInt()
+					)
+					println("raw target position is $rawTargetCoordinates and extraX is ${targetCoordinates.scaleX * targetStrikePoint.x}")
+					rawPosition = strikePosition
 				}
 			}
 		}
@@ -150,5 +162,17 @@ class BattleCreatureRenderer(
 				context.resources.partRenderer.render(entry.sprite, corners, colorTransform)
 			}
 		}
+	}
+
+	private fun getRawCoordinates(combatant: CombatantReference): Pair<PartyLayoutPosition, Float> {
+		val partyLayout = if (combatant.isPlayer) context.battle.playerLayout else context.battle.battle.enemyLayout
+		val rawPosition = partyLayout.positions[combatant.index]
+		val flipX = if (combatant.isPlayer) 1f else -1f
+		return Pair(rawPosition, flipX)
+	}
+
+	private fun getModel(combatant: CombatantReference): BattleModel {
+		return if (combatant.isPlayer) context.battle.players[combatant.index]!!.battleModel
+		else context.battle.enemies[combatant.index]!!.monster.model
 	}
 }

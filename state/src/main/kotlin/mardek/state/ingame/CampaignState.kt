@@ -67,7 +67,10 @@ class CampaignState(
 			val currentBattle = currentArea.activeBattle
 
 			if (currentBattle != null) {
-				val context = BattleUpdateContext(characterStates, content.audio.fixedEffects, soundQueue)
+				val physicalElement = content.stats.elements.find { it.rawName == "NONE" }!!
+				val context = BattleUpdateContext(
+					characterStates, content.audio.fixedEffects, physicalElement, soundQueue
+				)
 				currentBattle.processKeyPress(event.key, context)
 				continue
 			}
@@ -109,7 +112,10 @@ class CampaignState(
 		// Don't update currentArea during battles!!
 		val activeBattle = currentArea?.activeBattle
 		if (activeBattle != null) {
-			val context = BattleUpdateContext(characterStates, content.audio.fixedEffects, soundQueue)
+			val physicalElement = content.stats.elements.find { it.rawName == "NONE" }!!
+			val context = BattleUpdateContext(
+				characterStates, content.audio.fixedEffects, physicalElement, soundQueue
+			)
 			when (activeBattle.outcome) {
 				BattleOutcome.GameOver -> TODO("Game over")
 				BattleOutcome.Busy -> activeBattle.update(context, timeStep)
