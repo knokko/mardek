@@ -28,8 +28,8 @@ import kotlin.math.roundToInt
 private const val PARTY_BAR_HEIGHT = 30;
 private const val BAR_MARGIN = 5;
 
-private const val BASE_WIDTH = 500;
-private const val BASE_HEIGHT = 100;
+// private const val BASE_WIDTH = 500;
+// private const val BASE_HEIGHT = 100;
 
 private const val SCALE = 2;
 
@@ -46,6 +46,9 @@ private const val IMAGE_SIZE = 75;
 private const val BASE_BAR_WIDTH = 40 * SCALE
 private const val BASE_BAR_HEIGHT = 20
 private const val MARGIN = 10
+
+private const val BASE_WIDTH = 400
+private const val BASE_HEIGHT = 400
 /////////////////////////////////////////
 
 class PartyTabRenderer(
@@ -109,9 +112,9 @@ class PartyTabRenderer(
 		val imagePlaceholderColor = srgbToLinear(rgb(150, 150, 150))
 		val borderColor = srgbToLinear(rgb(254, 225, 123))
 		val innerColor = srgbToLinear(rgb(0, 0, 0))
-		val imageMargin = 10
 
-		// Convert a color to linear (using your helper method)
+		// local variables
+		val imageMargin = 10
 		val borderThickness = 3
 		
 		// applying the margin and vertical offset for each box.
@@ -124,14 +127,19 @@ class PartyTabRenderer(
 
 		// Draw the outer rectangle (border)
 		context.uiRenderer.fillColor(
-		 	rectX, rectY, rectX + RECT_WIDTH, rectY + RECT_HEIGHT,
+		 	region.minX, // starting point
+			rectY,
+			region.maxX, // finishing point
+			rectY + RECT_HEIGHT,
 		 	borderColor,
 		 	Gradient(0, 0, RECT_WIDTH, RECT_HEIGHT, borderColor, borderColor, borderColor)
 		)
 		// Draw the inner rectangle (empty area) inset by borderThickness.
 		context.uiRenderer.fillColor(
-			rectX + borderThickness, rectY + borderThickness,
-			rectX + RECT_WIDTH - borderThickness, rectY + RECT_HEIGHT - borderThickness,
+			region.minX + borderThickness,
+			rectY + borderThickness,
+			region.maxX - borderThickness,
+			rectY + RECT_HEIGHT - borderThickness,
 			innerColor,
 			Gradient(0, 0, RECT_WIDTH - 2 * borderThickness, RECT_HEIGHT - 2 * borderThickness, innerColor, innerColor, innerColor)
 		)
@@ -258,27 +266,17 @@ class PartyTabRenderer(
 	public fun renderElement()
 	{
 		val offsetY = printedCount * (RECT_HEIGHT + 20)
-		val barX = region.maxX - 250
 		val startY = region.minY + MARGIN_TOP + offsetY
 		val assetCharacter = context.campaign.characterSelection.party[printedCount]!!
 
 		val element = assetCharacter.element
 	
-		// addKimRequest(KimRequest(
-		// 	x = region.minX + region.width / 200,
-		// 	y = region.minY + region.height * 2 / 5,
-		// 	sprite = assetCharacter.element.sprite,
-		// 	scale = region.width / 500f, opacity = 0.01f
-		// ))
-		// kim2Batch.requests.add(KimRequest(x =
-		// region.minX + (maxX - region.minX - scale * element.sprite.width) / 2,
-		// y = barY - sca))
 		kim2Batch.requests.add(KimRequest(
-					x = barX + BASE_BAR_WIDTH / 2,
-					y = startY + BASE_BAR_HEIGHT - 30,
-					scale = scale.toFloat(), sprite = element.sprite, opacity = 0.02f
-				))
+		 	x = region.maxX - BASE_BAR_WIDTH,
+			y = startY + BASE_BAR_HEIGHT - 20,
+			scale = (scale * (0.8)).toFloat(),
+			sprite = element.sprite,
+			opacity = 0.8f
+		))
 	}
-	// resources.kim1Renderer.submit(kim1Batch, recorder, targetImage)
-	// resources.kim2Renderer.submit(kim2Batch, recorder, targetImage)
 }
