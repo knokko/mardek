@@ -11,9 +11,12 @@ class CreatureType(
 
 	@BitField(id = 1)
 	val icon: KimSprite,
+
+	@BitField(id = 2)
+	val countersHealthDrain: Boolean,
 ) {
 
-	internal constructor() : this("", KimSprite())
+	internal constructor() : this("", KimSprite(), false)
 
 	override fun toString() = flashName
 }

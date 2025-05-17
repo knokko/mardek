@@ -507,7 +507,7 @@ class TestSkillsImporter {
 		assertEquals(1, quarry.effectiveAgainst.size)
 		val beast = quarry.effectiveAgainst[0]
 		assertEquals("BEAST", beast.type.flashName)
-		assertEquals(0.5f, beast.bonusFraction, margin)
+		assertEquals(0.5f, beast.modifier, margin)
 
 		assertEquals("DARK", quarry.element.properName)
 		assertFalse(quarry.soulStrike)

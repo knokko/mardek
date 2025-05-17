@@ -13,11 +13,11 @@ class CreatureTypeBonus(
 
 	@BitField(id = 1)
 	@FloatField(expectMultipleOf = 0.1)
-	val bonusFraction: Float,
+	val modifier: Float,
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(CreatureType(), 0f)
 
-	override fun toString() = "+ $bonusFraction * damage against $type"
+	override fun toString() = "+ $modifier * damage against $type"
 }

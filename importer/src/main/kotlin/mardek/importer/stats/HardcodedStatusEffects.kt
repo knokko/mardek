@@ -96,7 +96,7 @@ fun addStatusEffects(content: StatsContent) {
 		niceName = "Berserk",
 		isPositive = true,
 		disappearsAfterCombat = true,
-		meleeDamageModifier = 2f,
+		meleeDamageModifier = 1f,
 		isReckless = true
 	))
 	content.statusEffects.add(StatusEffect(

@@ -9,6 +9,8 @@ import mardek.content.stats.Element
 import mardek.content.stats.StatModifier
 import mardek.content.stats.StatusEffect
 import mardek.state.ingame.characters.CharacterState
+import kotlin.math.max
+import kotlin.math.min
 
 private fun determinePlayerMaxHealth(
 	player: PlayableCharacter, state: CharacterState
@@ -41,7 +43,6 @@ class CombatantState private constructor( // TODO Use BitField's
 
 	val equipment: Array<Item?>,
 ) {
-
 	var lastPointedTo = 0L
 
 	/**
@@ -106,4 +107,11 @@ class CombatantState private constructor( // TODO Use BitField's
 		element = player.element,
 		equipment = state.equipment,
 	)
+
+	fun clampHealthAndMana() {
+		this.maxHealth = recomputeMaxHealth(statModifiers.getOrDefault(CombatStat.Vitality, 0), statusEffects)
+		this.maxMana = recomputeMaxMana(statModifiers.getOrDefault(CombatStat.Spirit, 0), statusEffects)
+		this.currentHealth = max(0, min(currentHealth, maxHealth))
+		this.currentMana = max(0, min(currentMana, maxMana))
+	}
 }

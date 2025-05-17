@@ -111,12 +111,14 @@ class BattleMoveBasicAttack(
 	var finishedStrike = false
 
 	@BitField(id = 1)
-	var dealtDamage = false
+	var processedStrike = false
 
 	var finishedJump = false
 
 	@Suppress("unused")
 	private constructor() : this(CombatantReference(), 0.seconds)
+
+	override fun toString() = "(Basic Attack at $target)"
 }
 
 sealed class BattleSkillTarget {

@@ -83,6 +83,6 @@ class ReactionSkill(
 	}.toFloat()
 
 	fun getCreatureTypeBonus(creatureType: CreatureType) = effectiveAgainst.sumOf {
-		if (it.type === creatureType) it.bonusFraction.toDouble() else 0.0
+		if (it.type === creatureType) it.modifier.toDouble() else 0.0
 	}.toFloat()
 }

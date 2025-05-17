@@ -294,8 +294,8 @@ class InventoryTabRenderer(
 
 				if (weapon != null) {
 					for (bonus in weapon.effectiveAgainstCreatureTypes) {
-						if (bonus.bonusFraction > 0f) addLine("Effective against ${bonus.type.flashName}", goodTextColor)
-						if (bonus.bonusFraction < 0f) addLine("Ineffective against ${bonus.type.flashName}", badTextColor)
+						if (bonus.modifier > 0f) addLine("Effective against ${bonus.type.flashName}", goodTextColor)
+						if (bonus.modifier < 0f) addLine("Ineffective against ${bonus.type.flashName}", badTextColor)
 					}
 					for (bonus in weapon.effectiveAgainstElements) {
 						addLine("Effective against ${bonus.element.properName}", goodTextColor)

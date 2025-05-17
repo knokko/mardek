@@ -56,6 +56,13 @@ class BattleSoundEffects(
 	@BitField(id = 1)
 	@ReferenceFieldTarget(label = "sound effects")
 	val punch: SoundEffect,
+
+	@BitField(id = 2)
+	val miss: SoundEffect,
+
+	@BitField(id = 3)
+	@ReferenceFieldTarget(label = "sound effects")
+	val critical: SoundEffect,
 ) {
-	internal constructor() : this(SoundEffect(), SoundEffect())
+	internal constructor() : this(SoundEffect(), SoundEffect(), SoundEffect(), SoundEffect())
 }

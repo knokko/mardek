@@ -215,7 +215,7 @@ class TestItemsContentImporter {
 
 		assertEquals(1, weapon.effectiveAgainstCreatureTypes.size)
 		assertEquals("UNDEAD", weapon.effectiveAgainstCreatureTypes[0].type.flashName)
-		assertEquals(1f, weapon.effectiveAgainstCreatureTypes[0].bonusFraction, margin)
+		assertEquals(1f, weapon.effectiveAgainstCreatureTypes[0].modifier, margin)
 		assertEquals("LIGHT", axe.element!!.properName)
 		assertEquals("hit_2HSWORDS", weapon.hitSound)
 

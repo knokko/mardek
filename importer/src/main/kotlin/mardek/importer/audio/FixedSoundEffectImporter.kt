@@ -16,11 +16,13 @@ internal fun importFixedSoundEffects(audio: AudioContent) {
 			scroll = importFixed("7_sfx_menuBlip1"),
 			partyScroll = importFixed("2_sfx_menuSwish"),
 			toggleSkill = importFixed("6_sfx_menuBlip2"),
-			openMenu = importFixed("3_sfx_menuOpen")
+			openMenu = importFixed("3_sfx_menuOpen"),
 		),
 		battle = BattleSoundEffects(
 			flee = importFixed("sfx_Escape"),
-			punch = importFixed("5412_sfx_punch")
+			punch = importFixed("5412_sfx_punch"),
+			miss = importFixed("5423_sfx_Miss"),
+			critical = importFixed("5420_sfx_Slam"),
 		),
 		openChest = importFixed("5411_sfx_Open1")
 	)

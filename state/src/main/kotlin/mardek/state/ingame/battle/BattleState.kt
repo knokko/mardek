@@ -141,18 +141,46 @@ class BattleState(
 		}
 
 		if (currentMove is BattleMoveBasicAttack) {
-			if (currentMove.finishedStrike && !currentMove.dealtDamage) {
-				val rawWeapon = onTurn!!.getState().equipment[0]
-				val weapon = rawWeapon?.equipment?.weapon
+			if (currentMove.finishedStrike && !currentMove.processedStrike) {
+				val attacker = onTurn!!
+				val passedChallenge = true // TODO
+				val result = MoveResultCalculator(this, context).computeBasicAttackResult(attacker, currentMove.target, passedChallenge)
 
-				val weaponSound = weapon?.hitSound
-				val weaponTypeSound = weapon?.type?.soundEffect
-				val punchSound = context.sounds.battle.punch
-				context.soundQueue.insert(weaponSound ?: weaponTypeSound ?: punchSound)
+				context.soundQueue.insert(result.sound)
 
-				// TODO proper damage calculation
-				currentMove.target.getState().currentHealth -= 500
-				currentMove.dealtDamage = true
+				if (!result.missed) {
+					val targetState = currentMove.target.getState()
+					val attackerState = onTurn!!.getState()
+					println("damage is ${result.damage}")
+					targetState.currentHealth -= result.damage
+					attackerState.currentHealth += result.restoreAttackerHealth
+					attackerState.currentMana += result.restoreAttackerMana
+					targetState.statusEffects.removeAll(result.removedEffects)
+					targetState.statusEffects.addAll(result.addedEffects)
+					for ((stat, modifier) in result.addedStatModifiers) {
+						targetState.statModifiers[stat] = targetState.statModifiers.getOrDefault(stat, 0) + modifier
+					}
+					attackerState.clampHealthAndMana()
+					targetState.clampHealthAndMana()
+
+					if (attackerState.currentHealth > 0 && attackerState.currentHealth <= attackerState.maxHealth / 5) {
+						attackerState.statusEffects.addAll(attacker.getSosEffects(context))
+					}
+					if (targetState.currentHealth > 0 && targetState.currentHealth <= targetState.maxHealth / 5) {
+						targetState.statusEffects.addAll(currentMove.target.getSosEffects(context))
+					}
+
+					if (!attacker.isPlayer && attackerState.currentHealth == 0) {
+						enemies[attacker.index] = null
+						enemyStates[attacker.index] = null
+					}
+					if (!currentMove.target.isPlayer && targetState.currentHealth == 0) {
+						enemies[currentMove.target.index] = null
+						enemyStates[currentMove.target.index] = null
+					}
+				}
+
+				currentMove.processedStrike = true
 			}
 			if (currentMove.finishedJump) {
 				this.onTurn = null

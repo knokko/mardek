@@ -109,6 +109,34 @@ class CombatantReference(
 	} else battleState.enemies[index]!!.level
 
 	fun getCreatureType() = if (isPlayer) {
-		TODO()
+		battleState.players[index]!!.creatureType
 	} else battleState.enemies[index]!!.monster.type
+
+	fun getAutoEffects(context: BattleUpdateContext): Set<StatusEffect> {
+		val autoEffects = mutableSetOf<StatusEffect>()
+		val combatState = getState()
+		for (item in combatState.equipment) {
+			if (item?.equipment != null) autoEffects.addAll(item.equipment!!.autoEffects)
+		}
+
+		if (isPlayer) {
+			val characterState = context.characterStates[battleState.players[index]]!!
+			for (skill in characterState.toggledSkills) {
+				if (skill is PassiveSkill) autoEffects.addAll(skill.autoEffects)
+			}
+		}
+
+		return autoEffects
+	}
+
+	fun getSosEffects(context: BattleUpdateContext): Set<StatusEffect> {
+		val effects = mutableSetOf<StatusEffect>()
+		if (isPlayer) {
+			val characterState = context.characterStates[battleState.players[index]]!!
+			for (skill in characterState.toggledSkills) {
+				if (skill is PassiveSkill) effects.addAll(skill.sosEffects)
+			}
+		}
+		return effects
+	}
 }

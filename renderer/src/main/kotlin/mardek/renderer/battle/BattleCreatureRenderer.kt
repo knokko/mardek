@@ -10,7 +10,9 @@ import mardek.state.ingame.battle.CombatantState
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.lang.Math.toIntExact
+import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 class BattleCreatureRenderer(
 	private val context: BattleRenderContext,
@@ -85,6 +87,17 @@ class BattleCreatureRenderer(
 				val moveTime = moveAnimation.frames.size * frameLength
 				animation = moveAnimation
 
+				val (rawTargetCoordinates, targetFlipX) = getRawCoordinates(currentMove.target)
+				val targetHitPoint = getModel(currentMove.target).skeleton.hitPoint
+				val myStrikePoint = model.skeleton.strikePoint
+				val targetStrikePoint = getModel(currentMove.target).skeleton.strikePoint
+				val rawStrikePosition = PartyLayoutPosition(
+					//rawTargetCoordinates.x - (0.05f * (myStrikePoint.x - targetHitPoint.x)).roundToInt(),
+					rawTargetCoordinates.x - (0.05f * (targetStrikePoint.x - myStrikePoint.x)).roundToInt(),
+					rawTargetCoordinates.y - (0.05f * (targetStrikePoint.y - myStrikePoint.y)).roundToInt()
+				)
+				val strikePosition = transformBattleCoordinates(rawStrikePosition, targetFlipX, context.targetImage)
+
 				if (relativeTime >= moveTime) {
 					relativeTime -= moveTime
 
@@ -92,9 +105,9 @@ class BattleCreatureRenderer(
 					val strikeTime = strikeAnimation.frames.size * frameLength
 					animation = strikeAnimation
 
+					if (relativeTime >= strikeTime / 2) currentMove.finishedStrike = true
 					if (relativeTime >= strikeTime) {
 						relativeTime -= strikeTime
-						currentMove.finishedStrike = true
 
 						val jumpAnimation = model.skeleton.getAnimation("jumpback")
 						val jumpTime = jumpAnimation.frames.size * frameLength
@@ -103,20 +116,21 @@ class BattleCreatureRenderer(
 						if (relativeTime >= jumpTime) {
 							relativeTime = jumpTime - 1L
 							currentMove.finishedJump = true
+						} else {
+							var movementProgress = (relativeTime.toFloat() / jumpTime.toFloat()).pow(1.0f)
+							movementProgress = if (movementProgress < 0.2f) 0f
+							else (movementProgress - 0.2f) / 0.5f
+							if (movementProgress > 1f) movementProgress = 1f
+							coordinates.x = (1f - movementProgress) * strikePosition.x + movementProgress * coordinates.x
+							coordinates.y = (1f - movementProgress) * strikePosition.y + movementProgress * coordinates.y
 						}
+					} else {
+						coordinates = strikePosition
 					}
 				} else {
-					val movementProgress = relativeTime.toDouble() / moveTime.toDouble()
-					//coordinates = transformBattleCoordinates(rawPosition, flipX, context.targetImage)
-					val (rawTargetCoordinates, targetFlipX) = getRawCoordinates(currentMove.target)
-					val targetCoordinates = transformBattleCoordinates(rawTargetCoordinates, targetFlipX, context.targetImage)
-					val targetStrikePoint = getModel(currentMove.target).skeleton.strikePoint
-					val strikePosition = PartyLayoutPosition(
-						rawTargetCoordinates.x + (targetCoordinates.scaleX * targetStrikePoint.x).roundToInt(),
-						rawTargetCoordinates.y + (targetCoordinates.scaleY * targetStrikePoint.y).roundToInt()
-					)
-					println("raw target position is $rawTargetCoordinates and extraX is ${targetCoordinates.scaleX * targetStrikePoint.x}")
-					rawPosition = strikePosition
+					val movementProgress = relativeTime.toFloat() / moveTime.toFloat()
+					coordinates.x = movementProgress * strikePosition.x + (1f - movementProgress) * coordinates.x
+					coordinates.y = movementProgress * strikePosition.y + (1f - movementProgress) * coordinates.y
 				}
 			}
 		}

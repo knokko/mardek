@@ -104,7 +104,7 @@ class AreaState(
 		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
 			activeBattle = BattleState(
 				battle = incomingRandomBattle!!.battle,
-				players = state.characterSelection.party,
+				players = arrayOf(state.characterSelection.party[0], null, null, null), // TODO revert
 				playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
 				campaignState = state
 			)
