@@ -11,6 +11,7 @@ import mardek.renderer.ui.ResourceType
 import mardek.renderer.ui.renderDescription
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
+import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.title.AbsoluteRectangle
 import kotlin.math.roundToInt
 
@@ -28,7 +29,7 @@ class SkillOrItemDescriptionRenderer(
 		if (charsPerLine < 10) null
 		else if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null && selectedMove.target == null) {
 			val skill = selectedMove.skill!!
-			val playerState = context.campaign.characterStates[context.battle.players[context.battle.onTurn!!.index]!!]!!
+			val playerState = context.campaign.characterStates[(context.battle.onTurn as PlayerCombatantState).player]!!
 			SelectedElement(
 				name = skill.name, icon = skill.element.sprite, description = skill.description,
 				currentMastery = playerState.skillMastery[skill] ?: 0, maxMastery = skill.masteryPoints

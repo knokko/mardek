@@ -15,21 +15,16 @@ class MoveResultCalculator(
 ) {
 
 	fun computeBasicAttackResult(
-		attacker: CombatantReference, target: CombatantReference, passedChallenge: Boolean
+		attacker: CombatantState, target: CombatantState, passedChallenge: Boolean
 	): MoveResult {
 		val attack = attacker.getStat(CombatStat.Attack, context)
 		val defense = target.getStat(CombatStat.MeleeDefense, context)
 		var sound = context.sounds.battle.punch
 
-		val attackingPlayer = if (attacker.isPlayer) state.players[attacker.index]!! else null
-		val attackerState = if (attackingPlayer != null) context.characterStates[attackingPlayer]!! else null
-		val targetPlayer = if (target.isPlayer) state.players[target.index]!! else null
-		val targetState = if (targetPlayer != null) context.characterStates[targetPlayer]!! else null
-
 		val strength = attacker.getStat(CombatStat.Strength, context)
 		var damage = max(0, attack - defense) * strength * (attacker.getLevel(context) + 5)
 
-		val rawWeapon = attacker.getState().equipment[0]
+		val rawWeapon = attacker.getEquipment(context)[0]
 		val weapon = rawWeapon?.equipment?.weapon
 		var attackElement = (rawWeapon?.element) ?: context.physicalElement
 		var hasSmitePlus = false
@@ -45,27 +40,27 @@ class MoveResultCalculator(
 		var criticalChance = 0
 		var hitChance = 100
 
-		for (effect in attacker.getState().statusEffects) {
+		for (effect in attacker.statusEffects) {
 			attackerEffectBonus += effect.meleeDamageModifier
 			hitChance -= effect.missChance
 		}
 
-		for (effect in target.getState().statusEffects) {
+		for (effect in target.statusEffects) {
 			targetEffectBonus -= effect.meleeDamageReduction
 		}
 
 		val removeCandidateEffects = mutableMapOf<StatusEffect, Int>()
-		for (effect in target.getState().statusEffects) {
+		for (effect in target.statusEffects) {
 			if (effect.disappearAfterHitChance > 0) {
 				removeCandidateEffects[effect] = removeCandidateEffects.getOrDefault(effect, 0) + effect.disappearAfterHitChance
 			}
 		}
 
 		val addCandidateEffects = mutableMapOf<StatusEffect, Int>()
-		if (passedChallenge && attackerState != null) {
-			for (skill in attackerState.toggledSkills) {
+		if (passedChallenge) {
+			for (skill in attacker.getToggledSkills(context)) {
 				if (skill !is ReactionSkill || skill.type != ReactionSkillType.MeleeAttack) continue
-				if (skill.soulStrike) attackElement = attackingPlayer!!.element
+				if (skill.soulStrike) attackElement = attacker.element
 				if (skill.smitePlus) hasSmitePlus = true
 				extraDamageFractionAttacker += skill.addDamageFraction
 				extraFlatDamage += skill.addFlatDamage
@@ -73,7 +68,7 @@ class MoveResultCalculator(
 				mpAbsorption += skill.absorbMp
 				hitChance += skill.addAccuracy
 				for (maybeRemove in skill.removeStatusEffects) {
-					if (target.getState().statusEffects.contains(maybeRemove.effect)) {
+					if (target.statusEffects.contains(maybeRemove.effect)) {
 						removeCandidateEffects[maybeRemove.effect] = removeCandidateEffects.getOrDefault(maybeRemove.effect, 0) + maybeRemove.chance
 					}
 				}
@@ -89,7 +84,7 @@ class MoveResultCalculator(
 			hitChance = weapon.hitChance
 			hpDrain += weapon.hpDrain
 			for (effective in weapon.effectiveAgainstElements) {
-				if (effective.element === target.getState().element) attackElementBonus += effective.modifier
+				if (effective.element === target.element) attackElementBonus += effective.modifier
 			}
 			for (effective in weapon.effectiveAgainstCreatureTypes) {
 				if (effective.type === target.getCreatureType()) attackerCreatureBonus += effective.modifier
@@ -101,25 +96,24 @@ class MoveResultCalculator(
 			else if (weapon.type.soundEffect != null) sound = weapon.type.soundEffect!!
 		}
 
-		for (potentialEquipment in attacker.getState().equipment) {
+		for (potentialEquipment in attacker.getEquipment(context)) {
 			val equipment = potentialEquipment?.equipment ?: continue
 			for (bonus in equipment.elementalBonuses) {
 				if (bonus.element === attackElement) attackElementBonus += bonus.modifier
 			}
 		}
 
-		if (passedChallenge && attackerState != null) {
-			for (skill in attackerState.toggledSkills) {
+		if (passedChallenge) {
+			for (skill in attacker.getToggledSkills(context)) {
 				if (skill !is ReactionSkill || skill.type != ReactionSkillType.MeleeAttack) continue
 				attackElementBonus += skill.getElementalBonus(attackElement)
-				hitChance += skill.addAccuracy
 			}
 		}
 
 		var elementalResistance = target.getResistance(attackElement, context)
 		var hasSurvivor = false
-		if (passedChallenge && targetState != null) {
-			for (skill in targetState.toggledSkills) {
+		if (passedChallenge) {
+			for (skill in target.getToggledSkills(context)) {
 				if (skill !is ReactionSkill || skill.type != ReactionSkillType.MeleeDefense) continue
 				elementalResistance -= skill.getElementalBonus(attackElement)
 				hitChance += skill.addAccuracy // Will be negative for evasion skills
@@ -161,19 +155,19 @@ class MoveResultCalculator(
 
 		var restoreAttackerHealth = (hpDrain * damage).roundToInt()
 		if (restoreAttackerHealth > 0 && target.getCreatureType().countersHealthDrain) restoreAttackerHealth = -restoreAttackerHealth
-		if (restoreAttackerHealth > 0) restoreAttackerHealth = min(restoreAttackerHealth, target.getState().currentHealth)
+		if (restoreAttackerHealth > 0) restoreAttackerHealth = min(restoreAttackerHealth, target.currentHealth)
 		if (restoreAttackerHealth < 0) {
-			restoreAttackerHealth = -min(-restoreAttackerHealth, attacker.getState().currentHealth)
+			restoreAttackerHealth = -min(-restoreAttackerHealth, attacker.currentHealth)
 			damage += restoreAttackerHealth
 		}
 
-		if (hasSurvivor && target.getState().currentHealth > 1) {
-			damage = min(damage, target.getState().currentHealth - 1)
+		if (hasSurvivor && target.currentHealth > 1) {
+			damage = min(damage, target.currentHealth - 1)
 		}
 
 		var restoreAttackerMana = (mpAbsorption * damage).roundToInt()
-		if (restoreAttackerMana > 0) restoreAttackerMana = min(restoreAttackerMana, target.getState().currentHealth)
-		if (restoreAttackerMana < 0) restoreAttackerMana = -min(-restoreAttackerMana, attacker.getState().currentMana)
+		if (restoreAttackerMana > 0) restoreAttackerMana = min(restoreAttackerMana, target.currentHealth)
+		if (restoreAttackerMana < 0) restoreAttackerMana = -min(-restoreAttackerMana, attacker.currentMana)
 
 		val removedEffects = removeCandidateEffects.filter {
 			val effect = it.key
@@ -186,7 +180,7 @@ class MoveResultCalculator(
 			val effect = it.key
 			val chance = it.value
 			if (chance <= Random.Default.nextInt(100)) return@filter false
-			if (target.getState().statusEffects.contains(effect) && !removedEffects.contains(effect)) return@filter false
+			if (target.statusEffects.contains(effect) && !removedEffects.contains(effect)) return@filter false
 			val resistance = target.getResistance(effect, context)
 			if (resistance > Random.Default.nextInt(100)) return@filter false
 			true

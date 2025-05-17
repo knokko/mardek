@@ -11,4 +11,6 @@ class BattleUpdateContext(
 	val sounds: FixedSoundEffects,
 	val physicalElement: Element,
 	val soundQueue: SoundQueue,
-)
+) {
+	internal constructor() : this(emptyMap(), FixedSoundEffects(), Element(), SoundQueue())
+}

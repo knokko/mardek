@@ -15,8 +15,7 @@ class FixedSoundEffects(
 	@BitField(id = 2)
 	val openChest: SoundEffect,
 ) {
-	@Suppress("unused")
-	private constructor() : this(UiSoundEffects(), BattleSoundEffects(), SoundEffect())
+	constructor() : this(UiSoundEffects(), BattleSoundEffects(), SoundEffect())
 }
 
 @BitStruct(backwardCompatible = true)

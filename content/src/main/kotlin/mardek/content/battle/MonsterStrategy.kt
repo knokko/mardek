@@ -69,8 +69,8 @@ class StrategyEntry(
 
 @BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class StrategyTarget(val raw: String) {
-	AnyPlayer("ANY_PC"),
-	AllPlayers("ALL_p"),
+	AnyEnemy("ANY_PC"),
+	AllEnemies("ALL_p"),
 	Self("SELF"),
 	AnyAlly("ANY_ALLY"),
 	AllAllies("ALL_e")

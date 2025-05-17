@@ -9,12 +9,10 @@ import mardek.content.skill.ActiveSkill
 import mardek.content.skill.SkillTargetType
 import mardek.content.stats.Element
 import java.util.*
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 @BitStruct(backwardCompatible = true)
-sealed class BattleMove(val stateDecisionTime: Duration) {
-	val realDecisionTime = System.nanoTime()
+sealed class BattleMove {
+	val decisionTime = System.nanoTime()
 
 	companion object {
 
@@ -31,10 +29,10 @@ sealed class BattleMove(val stateDecisionTime: Duration) {
 }
 
 @BitStruct(backwardCompatible = true)
-class BattleMoveThinking(stateDecisionTime: Duration) : BattleMove(stateDecisionTime)
+class BattleMoveThinking : BattleMove()
 
 @BitStruct(backwardCompatible = true)
-class BattleMoveWait(stateDecisionTime: Duration) : BattleMove(stateDecisionTime)
+class BattleMoveWait : BattleMove()
 
 @BitStruct(backwardCompatible = true)
 class BattleMoveItem(
@@ -43,13 +41,12 @@ class BattleMoveItem(
 	val item: Item,
 
 	@BitField(id = 1)
-	val target: CombatantReference,
-
-	stateDecisionTime: Duration,
-) : BattleMove(stateDecisionTime) {
+	@ReferenceField(stable = false, label = "combatants")
+	val target: CombatantState,
+) : BattleMove() {
 
 	@Suppress("unused")
-	private constructor() : this(Item(), CombatantReference(), 0.seconds)
+	private constructor() : this(Item(), MonsterCombatantState())
 }
 
 @BitStruct(backwardCompatible = true)
@@ -65,9 +62,7 @@ class BattleMoveSkill(
 	@BitField(id = 2, optional = true)
 	@ReferenceField(stable = true, label = "elements")
 	val nextElement: Element?,
-
-	stateDecisionTime: Duration,
-) : BattleMove(stateDecisionTime) {
+) : BattleMove() {
 
 	init {
 		if (skill.targetType == SkillTargetType.Self || skill.targetType == SkillTargetType.Single) {
@@ -90,7 +85,7 @@ class BattleMoveSkill(
 	}
 
 	@Suppress("unused")
-	private constructor() : this(ActiveSkill(), BattleSkillTargetAllEnemies, null, 0.seconds)
+	private constructor() : this(ActiveSkill(), BattleSkillTargetAllEnemies, null)
 
 	override fun equals(other: Any?) = other is BattleMoveSkill &&
 			this.skill === other.skill && this.target == other.target
@@ -103,10 +98,9 @@ class BattleMoveSkill(
 @BitStruct(backwardCompatible = true)
 class BattleMoveBasicAttack(
 	@BitField(id = 0)
-	val target: CombatantReference,
-
-	stateDecisionTime: Duration,
-) : BattleMove(stateDecisionTime) {
+	@ReferenceField(stable = false, label = "combatants")
+	val target: CombatantState,
+) : BattleMove() {
 
 	var finishedStrike = false
 
@@ -116,7 +110,7 @@ class BattleMoveBasicAttack(
 	var finishedJump = false
 
 	@Suppress("unused")
-	private constructor() : this(CombatantReference(), 0.seconds)
+	private constructor() : this(MonsterCombatantState())
 
 	override fun toString() = "(Basic Attack at $target)"
 }
@@ -136,12 +130,12 @@ sealed class BattleSkillTarget {
 
 @BitStruct(backwardCompatible = true)
 class BattleSkillTargetSingle(
-
 	@BitField(id = 0)
-	val target: CombatantReference
+	@ReferenceField(stable = false, label = "combatants")
+	val target: CombatantState
 ) : BattleSkillTarget() {
 
-	override fun equals(other: Any?) = other is BattleSkillTargetSingle && this.target == other.target
+	override fun equals(other: Any?) = other is BattleSkillTargetSingle && this.target === other.target
 
 	override fun hashCode() = 2 + target.hashCode()
 
@@ -165,15 +159,14 @@ data object BattleSkillTargetAllEnemies : BattleSkillTarget()
 data object BattleSkillTargetAllAllies : BattleSkillTarget()
 
 sealed class BattleMoveSelection {
-
-	open fun targets(state: BattleState) = emptyArray<CombatantReference>()
+	open fun targets(state: BattleState) = emptyArray<CombatantState>()
 }
 
-class BattleMoveSelectionAttack(val target: CombatantReference?) : BattleMoveSelection() {
+class BattleMoveSelectionAttack(val target: CombatantState?) : BattleMoveSelection() {
 
 	override fun targets(state: BattleState) = if (target == null) super.targets(state) else arrayOf(target)
 
-	override fun equals(other: Any?) = other is BattleMoveSelectionAttack && this.target == other.target
+	override fun equals(other: Any?) = other is BattleMoveSelectionAttack && this.target === other.target
 
 	override fun hashCode() = 5 + Objects.hashCode(target)
 
@@ -189,12 +182,8 @@ class BattleMoveSelectionSkill(val skill: ActiveSkill?, val target: BattleSkillT
 	override fun targets(state: BattleState) = when (target) {
 		null -> super.targets(state)
 		is BattleSkillTargetSingle -> arrayOf(target.target)
-		is BattleSkillTargetAllAllies -> state.playerStates.withIndex().filter {
-			it.value != null
-		}.map { CombatantReference(true, it.index, state) }.toTypedArray()
-		is BattleSkillTargetAllEnemies -> state.enemyStates.withIndex().filter {
-			it.value != null
-		}.map { CombatantReference(false, it.index, state) }.toTypedArray()
+		is BattleSkillTargetAllAllies -> state.allPlayers().toTypedArray()
+		is BattleSkillTargetAllEnemies -> state.livingOpponents().toTypedArray()
 	}
 
 	override fun equals(other: Any?) = other is BattleMoveSelectionSkill &&
@@ -205,7 +194,7 @@ class BattleMoveSelectionSkill(val skill: ActiveSkill?, val target: BattleSkillT
 	override fun toString() = "SelectingSkill($skill, $target)"
 }
 
-class BattleMoveSelectionItem(val item: Item?, val target: CombatantReference?) : BattleMoveSelection() {
+class BattleMoveSelectionItem(val item: Item?, val target: CombatantState?) : BattleMoveSelection() {
 
 	init {
 		if (item == null && target != null) throw IllegalArgumentException("target must be null if item is null")
@@ -214,7 +203,7 @@ class BattleMoveSelectionItem(val item: Item?, val target: CombatantReference?) 
 	override fun targets(state: BattleState) = if (target == null) super.targets(state) else arrayOf(target)
 
 	override fun equals(other: Any?) = other is BattleMoveSelectionItem &&
-			this.item === other.item && this.target == other.target
+			this.item === other.item && this.target === other.target
 
 	override fun hashCode() = 7 + 13 * Objects.hashCode(item) + 31 * Objects.hashCode(target)
 

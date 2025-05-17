@@ -5,14 +5,13 @@ import mardek.content.animations.BattleModel
 import mardek.content.animations.ColorTransform
 import mardek.content.battle.PartyLayoutPosition
 import mardek.state.ingame.battle.BattleMoveBasicAttack
-import mardek.state.ingame.battle.CombatantReference
 import mardek.state.ingame.battle.CombatantState
+import mardek.state.ingame.battle.MonsterCombatantState
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.lang.Math.toIntExact
 import kotlin.math.pow
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 class BattleCreatureRenderer(
 	private val context: BattleRenderContext,
@@ -59,18 +58,20 @@ class BattleCreatureRenderer(
 			Vector2f(-1f, -1f), Vector2f(1f, -1f), Vector2f(1f, 1f), Vector2f(-1f, 1f)
 		), null)
 
-		for (enemy in context.battle.livingEnemies()) renderCreature(enemy)
-
+		for (enemy in context.battle.allOpponents()) renderCreature(enemy)
 		for (player in context.battle.allPlayers()) renderCreature(player)
 
 		context.resources.partRenderer.endBatch()
 	}
 
-	private fun renderCreature(combatant: CombatantReference) {
+	private fun renderCreature(combatant: CombatantState) {
+		// TODO Monster death animation
+		if (combatant is MonsterCombatantState && !combatant.isAlive()) return
+
 		val (rawPosition, flipX) = getRawCoordinates(combatant)
 		var coordinates = transformBattleCoordinates(rawPosition, flipX, context.targetImage)
-		val effectColorTransform = selectedColorTransform(combatant.getState())
-		val model = getModel(combatant)
+		val effectColorTransform = selectedColorTransform(combatant)
+		val model = combatant.getModel()
 
 		var relativeTime = currentRealTime - context.battle.startTime
 		var animation = model.skeleton.getAnimation("idle")
@@ -81,16 +82,17 @@ class BattleCreatureRenderer(
 		if (onTurn == combatant) {
 			// die, hit, idle, spellcast, strike, dead, jumpback, useitem, moveto
 			if (currentMove is BattleMoveBasicAttack) {
-				relativeTime = currentRealTime - currentMove.realDecisionTime
+				relativeTime = currentRealTime - currentMove.decisionTime
 
 				val moveAnimation = model.skeleton.getAnimation("moveto")
 				val moveTime = moveAnimation.frames.size * frameLength
 				animation = moveAnimation
 
 				val (rawTargetCoordinates, targetFlipX) = getRawCoordinates(currentMove.target)
-				val targetHitPoint = getModel(currentMove.target).skeleton.hitPoint
+				val targetModel = currentMove.target.getModel()
+				val targetHitPoint = targetModel.skeleton.hitPoint
 				val myStrikePoint = model.skeleton.strikePoint
-				val targetStrikePoint = getModel(currentMove.target).skeleton.strikePoint
+				val targetStrikePoint = targetModel.skeleton.strikePoint
 				val rawStrikePosition = PartyLayoutPosition(
 					//rawTargetCoordinates.x - (0.05f * (myStrikePoint.x - targetHitPoint.x)).roundToInt(),
 					rawTargetCoordinates.x - (0.05f * (targetStrikePoint.x - myStrikePoint.x)).roundToInt(),
@@ -178,15 +180,12 @@ class BattleCreatureRenderer(
 		}
 	}
 
-	private fun getRawCoordinates(combatant: CombatantReference): Pair<PartyLayoutPosition, Float> {
-		val partyLayout = if (combatant.isPlayer) context.battle.playerLayout else context.battle.battle.enemyLayout
-		val rawPosition = partyLayout.positions[combatant.index]
-		val flipX = if (combatant.isPlayer) 1f else -1f
+	private fun getRawCoordinates(combatant: CombatantState): Pair<PartyLayoutPosition, Float> {
+		val partyLayout = if (combatant.isOnPlayerSide) context.battle.playerLayout else context.battle.battle.enemyLayout
+		val index = if (combatant.isOnPlayerSide) context.battle.players.indexOf(combatant)
+		else context.battle.opponents.indexOf(combatant)
+		val rawPosition = partyLayout.positions[index]
+		val flipX = if (combatant.isOnPlayerSide) 1f else -1f
 		return Pair(rawPosition, flipX)
-	}
-
-	private fun getModel(combatant: CombatantReference): BattleModel {
-		return if (combatant.isPlayer) context.battle.players[combatant.index]!!.battleModel
-		else context.battle.enemies[combatant.index]!!.monster.model
 	}
 }

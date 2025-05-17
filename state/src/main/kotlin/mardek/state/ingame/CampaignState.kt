@@ -118,7 +118,7 @@ class CampaignState(
 			)
 			when (activeBattle.outcome) {
 				BattleOutcome.GameOver -> TODO("Game over")
-				BattleOutcome.Busy -> activeBattle.update(context, timeStep)
+				BattleOutcome.Busy -> activeBattle.update(context)
 				BattleOutcome.RanAway -> {
 					currentArea!!.activeBattle = null
 					soundQueue.insert(content.audio.fixedEffects.battle.flee)
@@ -128,7 +128,7 @@ class CampaignState(
 			return
 		}
 
-		currentArea?.update(input, this, timeStep, content)
+		currentArea?.update(input, this, soundQueue, timeStep, content)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area

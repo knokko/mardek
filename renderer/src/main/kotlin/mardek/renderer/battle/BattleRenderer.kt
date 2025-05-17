@@ -4,6 +4,8 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.ui.renderer.Gradient
 import mardek.renderer.InGameRenderContext
 import mardek.state.ingame.battle.BattleState
+import mardek.state.ingame.battle.MonsterCombatantState
+import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.title.AbsoluteRectangle
 
 class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
@@ -30,7 +32,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		minX = 0, minY = context.targetImage.height / 12, width = context.targetImage.width,
 		height = context.targetImage.height - context.targetImage.height / 8 - context.targetImage.height / 12
 	))
-	private val enemyBlockRenderers = mutableListOf<EnemyBlockRenderer>()
+	private val enemyBlockRenderers = mutableListOf<MonsterBlockRenderer>()
 	private val playerBlockRenderers = mutableListOf<PlayerBlockRenderer>()
 	private val creatureRenderer = BattleCreatureRenderer(this.context)
 
@@ -41,13 +43,14 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		skillOrItemDescriptionRenderer.beforeRendering()
 		targetSelectionRenderer.beforeRendering()
 
-		for ((index, enemy) in context.battle.enemies.withIndex()) {
+		for ((index, enemy) in context.battle.opponents.withIndex()) {
 			if (enemy == null) continue
 			val region = AbsoluteRectangle(
 				minX = index * context.targetImage.width / 4, minY = 0,
 				width = context.targetImage.width / 4, height = context.targetImage.height / 12
 			)
-			enemyBlockRenderers.add(EnemyBlockRenderer(context, enemy, context.battle.enemyStates[index]!!, region))
+			if (enemy is MonsterCombatantState) enemyBlockRenderers.add(MonsterBlockRenderer(context, enemy, region))
+			else playerBlockRenderers.add(PlayerBlockRenderer(context, enemy as PlayerCombatantState, region))
 		}
 
 		for ((index, player) in context.battle.players.withIndex()) {
@@ -57,10 +60,8 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 				minY = context.targetImage.height - context.targetImage.height / 8,
 				width = context.targetImage.width / 4, height = context.targetImage.height / 8
 			)
-			playerBlockRenderers.add(PlayerBlockRenderer(
-				context, player, context.battle.playerStates[index]!!,
-				context.campaign.characterStates[player]!!, region
-			))
+			if (player is PlayerCombatantState) playerBlockRenderers.add(PlayerBlockRenderer(context, player, region))
+			else enemyBlockRenderers.add(MonsterBlockRenderer(context, player as MonsterCombatantState, region))
 		}
 
 		for (blockRenderer in enemyBlockRenderers) blockRenderer.beforeRendering()
