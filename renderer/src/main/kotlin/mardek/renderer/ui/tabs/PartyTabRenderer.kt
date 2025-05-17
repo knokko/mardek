@@ -15,6 +15,9 @@ import mardek.renderer.batch.Kim1Renderer
 import mardek.renderer.batch.KimRequest
 import mardek.state.ingame.CampaignState
 import mardek.renderer.ui.renderDescription
+import mardek.renderer.ui.ResourceBarRenderer
+import mardek.renderer.ui.ResourceType
+import mardek.renderer.ui.renderDescription
 import mardek.state.ingame.menu.PartyTab
 import mardek.state.title.AbsoluteRectangle
 import kotlin.math.max
@@ -57,22 +60,14 @@ class PartyTabRenderer(
 	private val region: AbsoluteRectangle,
 ): TabRenderer()
 {
-	// val assetCharacter = context.campaign.characterSelection.party[partyIndex]
-	// val characterState = context.campaign.characterStates[assetCharacter]!!
 	private val scale = max(1, min(region.width / BASE_WIDTH, region.height / BASE_HEIGHT))
-	// initializing UI renderer
-	// val uiRenderer = context.resources.uiRenderers[frameIndex]
+	private val baseBarWidth = 40 * scale * 2
 
 	private val assetCharacter = context.campaign.characterSelection.party[tab.partyIndex]!!
 
 	private lateinit var kim1Batch: KimBatch
 	private lateinit var kim2Batch: KimBatch
 	var printedCount = 0;
-
-	// private fun addKimRequest(request: KimRequest) {
-	// 	if (request.sprite.version == 1) kim1Batch.requests.add(request)
-	// 	else kim2Batch.requests.add(request)
-	// }
 
 	override fun beforeRendering()
 	{
@@ -153,16 +148,18 @@ class PartyTabRenderer(
 
 	public fun drawStatBars()
 	{
+		val assetCharacter = context.campaign.characterSelection.party[printedCount]!!
+		val characterState = context.campaign.characterStates[assetCharacter] ?: throw IllegalStateException("Missing state for $assetCharacter")
 		///////////// Health Bar Color //////////////////////
-		val bottomHealthColor = srgbToLinear(rgb(75, 179, 42))
-		val topHealthColor = srgbToLinear(rgb(182, 229, 163))
-		val rightHealthColor = srgbToLinear(rgb(26, 89, 45))
-		val healthTextColor = srgbToLinear(rgb(122, 217, 62))
+		// val bottomHealthColor = srgbToLinear(rgb(75, 179, 42))
+		// val topHealthColor = srgbToLinear(rgb(182, 229, 163))
+		// val rightHealthColor = srgbToLinear(rgb(26, 89, 45))
+		// val healthTextColor = srgbToLinear(rgb(122, 217, 62))
 		///////////// Mana Bar Color //////////////////////
-		val bottomManaColor = srgbToLinear(rgb(8, 122, 178))
-		val topManaColor = srgbToLinear(rgb(152, 204, 230))
-		val rightManaColor = srgbToLinear(rgb(12, 207, 159))
-		val manaTextColor = srgbToLinear(rgb(100, 200, 255))
+		// val bottomManaColor = srgbToLinear(rgb(8, 122, 178))
+		// val topManaColor = srgbToLinear(rgb(152, 204, 230))
+		// val rightManaColor = srgbToLinear(rgb(12, 207, 159))
+		// val manaTextColor = srgbToLinear(rgb(100, 200, 255))
 		////////////////////////////
 		// Size of the stat bars
 		////////////////////////////
@@ -172,10 +169,18 @@ class PartyTabRenderer(
 		val offsetY = printedCount * (RECT_HEIGHT + 20)
 		
 		// Placeholder values for the bars
-		val currentMana = 75 
-		val maxMana = 120     
-		val currentHealth = 150   
-		val maxHealth = 200
+		// val currentMana = 75 
+		// val maxMana = 120     
+		// val currentHealth = 150   
+		//val maxHealth = 200
+
+		val darkColor = srgbToLinear(rgb(39, 26, 16))
+		 ///////////////////////
+		 // Xp Bar Position
+		 ///////////////////////
+		 val XpBarX = region.minX + IMAGE_SIZE + BASE_BAR_WIDTH * 2 + MARGIN_LEFT + 50
+
+		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats, characterState.activeStatusEffects)
 
 		///////////////////////
 		// Health Bar Position
@@ -185,27 +190,60 @@ class PartyTabRenderer(
 		//////////////////////
 		// Mana Bar Position
 		//////////////////////
-		val manaBarX = healthBarX + BASE_BAR_WIDTH + barSpacing
+		val manaBarX = healthBarX + baseBarWidth + barSpacing
 
-		// Rendering Health Bar
-		context.uiRenderer.fillColor(
-			healthBarX, startY + MARGIN + offsetY,
-			healthBarX + BASE_BAR_WIDTH, startY + BASE_BAR_HEIGHT + offsetY,
-			bottomHealthColor, Gradient(
-				0, 0, BASE_BAR_WIDTH, BASE_BAR_HEIGHT, 
-				bottomHealthColor, rightHealthColor, topHealthColor
-			)
-		)
+		val healthRenderer = ResourceBarRenderer(context, ResourceType.Health, AbsoluteRectangle(
+			healthBarX, 
+			startY + offsetY + MARGIN * 2, 
+			baseBarWidth * 2, 
+			BASE_BAR_HEIGHT - 5
+		))
+
+		//////////////////////////
+		// Mana Bar Rendering
+		//////////////////////////
+
+		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats, characterState.activeStatusEffects)
+
+		healthRenderer.renderBar(characterState.currentHealth, maxHealth)
+		healthRenderer.renderTextOverBar(characterState.currentHealth, maxHealth)
 
 		// Rendering the Mana Bar
-		context.uiRenderer.fillColor(
-		 	manaBarX + 10, startY + MARGIN + offsetY,
-		 	manaBarX + BASE_BAR_WIDTH, startY + BASE_BAR_HEIGHT + offsetY,
-		 	bottomManaColor, Gradient(
-		 		0, 0, BASE_BAR_WIDTH, BASE_BAR_HEIGHT,
-		 		bottomManaColor, rightManaColor, topManaColor
-		 	)
-		 )
+		val manaRenderer = ResourceBarRenderer(context, ResourceType.Mana, AbsoluteRectangle(
+			manaBarX + baseBarWidth, 
+			startY + MARGIN * 2 + offsetY, 
+			baseBarWidth * 2, 
+			BASE_BAR_HEIGHT - 5
+		))
+
+		manaRenderer.renderBar(characterState.currentMana, maxMana)
+		manaRenderer.renderTextOverBar(characterState.currentMana, maxMana)
+
+		// val xpBarX = manaBarX + baseBarWidth * 2
+
+
+		// Rendering placeholder Xp Bar
+		// context.uiRenderer.fillColor(
+		// 	XpBarX, startY + MARGIN,
+		// 	XpBarX + baseBarWidth, startY,
+		// 	darkColor, Gradient(
+		// 		0, 0, BASE_BAR_WIDTH / 2, BASE_BAR_HEIGHT, 
+		// 		darkColor, darkColor, darkColor
+		// 	)
+		// )
+
+		// val nextLevel = characterState.
+
+		// val xpRenderer =  ResourceBarRenderer(context, ResourceType.Experience, AbsoluteRectangle(
+		// 	xpBarX,
+		// 	startY + MARGIN * 2 + offsetY,
+		// 	baseBarWidth,
+		// 	BASE_BAR_HEIGHT - 5
+		// ))
+
+		// xpRenderer.renderBar(characterState.currentLevel, 0)
+		// xpRenderer.renderTextOverBar(characterState.currentLevel, 0)
+
 	}
 
 	public fun renderNameAndClass()
@@ -241,26 +279,13 @@ class PartyTabRenderer(
 
 	public fun renderXp()
 	{
-		val offsetY = printedCount * (RECT_HEIGHT + 20)
-		///////////// Xp Bar Colors //////////////////////
-		val lineColor = srgbToLinear(rgb(165, 151, 110))
-		val outerLightColor = srgbToLinear(rgb(89, 72, 42))
-		val outerRightColor = srgbToLinear(rgb(104, 80, 47))
-		val darkColor = srgbToLinear(rgb(39, 26, 16))
-		///////////////////////
-		// Xp Bar Position
-		///////////////////////
-		val XpBarX = region.minX + IMAGE_SIZE + BASE_BAR_WIDTH * 2 + MARGIN_LEFT + 50
-		val startY = region.minY + MARGIN_TOP + offsetY + 40// Offset from the top
-		// Rendering Xp Bar
-		context.uiRenderer.fillColor(
-			XpBarX, startY + MARGIN,
-			XpBarX + BASE_BAR_WIDTH / 2, startY + BASE_BAR_HEIGHT,
-			darkColor, Gradient(
-				0, 0, BASE_BAR_WIDTH / 2, BASE_BAR_HEIGHT, 
-				darkColor, darkColor, darkColor
-			)
-		)
+		 val offsetY = printedCount * (RECT_HEIGHT + 20)
+		 ///////////// Xp Bar Colors //////////////////////
+		 // val lineColor = srgbToLinear(rgb(165, 151, 110))
+		 // val outerLightColor = srgbToLinear(rgb(89, 72, 42))
+		 // val outerRightColor = srgbToLinear(rgb(104, 80, 47))
+
+		
 	}
 
 	public fun renderElement()
