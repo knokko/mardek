@@ -55,6 +55,7 @@ class SkillsTabRenderer(
 	}
 
 	override fun beforeRendering() {
+		if (region.width < 50) return
 		this.kim1Batch = context.resources.kim1Renderer.startBatch()
 		this.kim2Batch = context.resources.kim2Renderer.startBatch()
 
@@ -140,6 +141,7 @@ class SkillsTabRenderer(
 	}
 
 	override fun render() {
+		if (region.width < 50) return
 		val titleTextColor = srgbToLinear(rgb(238, 203, 127))
 		val selectionLowColor = srgbToLinear(rgb(25, 72, 119))
 		context.uiRenderer.fillColor(

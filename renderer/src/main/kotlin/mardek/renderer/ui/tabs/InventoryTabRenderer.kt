@@ -55,6 +55,7 @@ class InventoryTabRenderer(
 	}
 
 	override fun beforeRendering() {
+		if (region.width < 50) return
 		this.kim1Batch = context.resources.kim1Renderer.startBatch()
 		this.kim2Batch = context.resources.kim2Renderer.startBatch()
 		renderHoverItemProperties(null, context.resources.kim1Renderer)
@@ -69,6 +70,7 @@ class InventoryTabRenderer(
 	}
 
 	override fun render() {
+		if (region.width < 50) return
 		renderHoverItemProperties(context.uiRenderer, null)
 		renderItemGrid(context.uiRenderer, null, null)
 		renderCharacterBars(context.uiRenderer, null)
@@ -82,6 +84,9 @@ class InventoryTabRenderer(
 	}
 
 	override fun postUiRendering() {
+		super.postUiRendering()
+		if (region.width < 50) return
+
 		context.resources.kim1Renderer.submit(kim1Batch, context.recorder, context.targetImage)
 		context.resources.kim2Renderer.submit(kim2Batch, context.recorder, context.targetImage)
 
@@ -97,6 +102,7 @@ class InventoryTabRenderer(
 	private fun getItemGridStartY() = region.maxY - getItemGridSize() - 2 * scale
 
 	private fun renderHoverItemProperties(uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?) {
+		if (getItemGridStartX() < 30 * scale) return
 		val maxX = min(200 * scale, getItemGridStartX() - 2 * scale)
 		val width = 1 + maxX - region.minX
 		val startY = getItemGridStartY()
@@ -355,6 +361,7 @@ class InventoryTabRenderer(
 		)
 
 		val tabWidth = width / 3 - 3 * scale
+		if (tabWidth < 3 * scale) return
 		val maxY = region.maxY - 2 * scale
 		val tabX1 = 4 * scale
 		val tabX2 = tabX1 + tabWidth + 2 * scale
