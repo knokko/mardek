@@ -24,7 +24,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-
 ///////////////
 // Constants //
 //////////////////////////////////////////
@@ -88,12 +87,51 @@ class PartyTabRenderer(
 		{
 			if (character == null || printedCount >= 4) continue
 			drawRectangles()
-			drawStatBars()
-			renderNameAndClass()
 			renderAlternateWins()
-			renderElement()
+			winSelector()
+
+
 			printedCount++
 		}
+	}
+
+	public fun renderConditionWin()
+	{
+		drawStatBars()
+		renderNameAndClass()	
+		renderElement()
+	}
+
+	public fun winSelector()
+	{
+		if (tab.activeValue == 0)
+		{
+			renderConditionWin()
+		}
+		// if (tab.activeValue == 1)
+		// {
+		// 	renderVitalStatistics()
+		// }
+		// if (tab.activeValue == 2)
+		// {
+		// 	renderElementalResistances()
+		// }
+		// if (tab.activeValue == 3)
+		// {
+		// 	renderStatusResistances()
+		// }
+		// if (tab.activeValue == 4)
+		// {
+		// 	renderGrowth()
+		// }
+		// if (tab.activeValue == 5)
+		// {
+		// 	renderPerformance1()
+		// }
+		// if (tab.activeValue == 6)
+		// {
+		// 	renderPerformance2()
+		// }
 	}
 
 	public fun drawRectangles()
@@ -262,13 +300,12 @@ class PartyTabRenderer(
 	{
 		val squareSize = 8
 		val squareSpacing = 5
-		val squaresCount = 7 // number of squares to draw (you can change this)
 		
 			val offsetY = printedCount * (RECT_HEIGHT + 20)
 
 		// val offsetY = printedCount * (RECT_HEIGHT + 20)
 		val rectTopY = region.minY + MARGIN_TOP + offsetY
-		val startX = region.maxX - (squareSize + squareSpacing) * squaresCount - 10
+		val startX = region.maxX - (squareSize + squareSpacing) * tab.squaresCount - 10
 
 			val borderColor = srgbToLinear(rgb(254, 225, 123))
 			val squareColor = srgbToLinear(rgb(80, 80, 80))
@@ -280,20 +317,31 @@ class PartyTabRenderer(
 			val rectRight = region.maxX - MARGIN
 
 		
-		// Draw "Condition:" laceholder
-		context.uiRenderer.drawString(
-			context.resources.font, "Condition:", borderColor, intArrayOf(),
-			rectRight - 200, rectTop - 10, rectRight, rectTop + 25,
-			rectTop - 10, 4, 1, TextAlignment.LEFT
-		)
+		// Draw "Condition:" placeholder
+		// context.uiRenderer.drawString(
+		// 	context.resources.font, "Condition:", borderColor, intArrayOf(),
+		// 	squareX,
+		// 	rectTop - 10, squareX + squareSize, rectTopY - 10 + squareSize,
+		// 	rectTop - 10, 4, 1, TextAlignment.LEFT
+		// )
 
-		for (i in 0 until squaresCount) {
+		for (i in 0 until tab.squaresCount)
+		{
 			val squareX = startX + i * (squareSize + squareSpacing)
+
+			// Decide square color based on whether this square is active
+			val fillColor = if (i == tab.activeValue) {
+				srgbToLinear(rgb(254, 225, 123)) // Active (highlighted) color
+			} else {
+				srgbToLinear(rgb(80, 80, 80)) // Inactive color
+			}
+
+			// Draw the square
 			context.uiRenderer.fillColor(
 				squareX, rectTopY - 10,
 				squareX + squareSize, rectTopY - 10 + squareSize,
-				srgbToLinear(rgb(200 - i * 20, 200, 100 + i * 20)), // different colors
-				Gradient(0, 0, squareSize, squareSize, srgbToLinear(rgb(200, 200, 200)), srgbToLinear(rgb(150, 150, 150)), srgbToLinear(rgb(100, 100, 100)))
+				fillColor,
+				Gradient(0, 0, squareSize, squareSize, fillColor, fillColor, fillColor)
 			)
 		}
 	}
