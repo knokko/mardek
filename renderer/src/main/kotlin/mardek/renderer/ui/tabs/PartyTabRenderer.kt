@@ -83,14 +83,13 @@ class PartyTabRenderer(
 	public fun mainProcedure()
 	{
 		// Iterate through the party characters using withIndex()
+		// index seems never used but removing it cause the gamee to crash
 		for ((index, character) in context.campaign.characterSelection.party.withIndex())
 		{
 			if (character == null || printedCount >= 4) continue
 			drawRectangles()
 			renderAlternateWins()
 			winSelector()
-
-
 			printedCount++
 		}
 	}
@@ -277,6 +276,21 @@ class PartyTabRenderer(
 			barX + BASE_BAR_WIDTH + 50, region.minY + offsetY, barX + BASE_BAR_WIDTH * 2 + 50, region.maxY + offsetY,
 			startY + MARGIN + offsetY, MARGIN, 1, TextAlignment.CENTER
 		)
+
+			//Draw "Condition:" placeholder
+			// context.uiRenderer.drawString(
+			// 	context.resources.font,
+			// 	"Condition",
+			// 	borderColor,
+			// 	intArrayOf(),
+			// 	barX + BASE_BAR_WIDTH + 50,
+			// 	region.minY + offsetY - 200,
+			// 	barX + BASE_BAR_WIDTH * 2 + 50, // Width of text box
+			// 	region.maxY + offsetY - 200,
+			// 	startY + MARGIN + offsetY, 5,
+			// 	1,
+			// 	TextAlignment.LEFT
+			// )
 	}
 
 	public fun renderElement()
@@ -301,29 +315,10 @@ class PartyTabRenderer(
 		val squareSize = 8
 		val squareSpacing = 5
 		
-			val offsetY = printedCount * (RECT_HEIGHT + 20)
+		val offsetY = printedCount * (RECT_HEIGHT + 20)
 
-		// val offsetY = printedCount * (RECT_HEIGHT + 20)
 		val rectTopY = region.minY + MARGIN_TOP + offsetY
 		val startX = region.maxX - (squareSize + squareSpacing) * tab.squaresCount - 10
-
-			val borderColor = srgbToLinear(rgb(254, 225, 123))
-			val squareColor = srgbToLinear(rgb(80, 80, 80))
-			// val squareSize = 12
-			val spacing = 5
-
-			val rectY = region.minY + MARGIN_TOP + offsetY
-			val rectTop = rectY
-			val rectRight = region.maxX - MARGIN
-
-		
-		// Draw "Condition:" placeholder
-		// context.uiRenderer.drawString(
-		// 	context.resources.font, "Condition:", borderColor, intArrayOf(),
-		// 	squareX,
-		// 	rectTop - 10, squareX + squareSize, rectTopY - 10 + squareSize,
-		// 	rectTop - 10, 4, 1, TextAlignment.LEFT
-		// )
 
 		for (i in 0 until tab.squaresCount)
 		{
