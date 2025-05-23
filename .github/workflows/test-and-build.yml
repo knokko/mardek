@@ -124,7 +124,7 @@ jobs:
 
       - run: jlink --module-path "%JAVA_HOME%/jmods" --add-modules java.base,jdk.unsupported --output ./mardek-dir
       - run: cd with-correct-natives && jar -cfM ../mardek-dir/mardek.jar *
-      - run: curl -L -o warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }} https://github.com/knokko/warp/releases/download/v0.4.4/warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }}
+      - run: curl -L -o warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }} https://github.com/knokko/warp/releases/download/v0.4.5/warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }}
       - run: chmod 777 ./warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }}
       - run: ./warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }} --arch ${{ matrix.os.architecture }} --input-dir ./mardek-dir --exec bin/${{ matrix.os.java }} --output mardek${{ matrix.os.extension }} --use-temp-directory --exec-args "${{ matrix.os.jvmArgs }}-jar %APP_DIR%/mardek.jar %ARGS%"
       - run: ./mardek${{ matrix.os.extension }} self-test1
