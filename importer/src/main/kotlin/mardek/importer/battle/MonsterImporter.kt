@@ -261,7 +261,7 @@ private fun convertFlashCreature(creature: BattleCreature2, spriteIdMapping: Mut
 	val partMapping = mutableMapOf<Int, SkeletonPart>()
 	val exportScale = 4
 	val compressedShapesDirectory = File("$resourcesFolder/bc7shapes-x$exportScale")
-	
+
 	val parts = creature.bodyParts.map { rawBodyPart ->
 		val skins = rawBodyPart.variations.map { BodyPart(name = it.name, entries = it.entries.map { rawEntry ->
 			var sprite = spriteIdMapping[rawEntry.id]
@@ -666,7 +666,7 @@ internal fun importMonsterStats(name: String, model: BattleModel, propertiesText
 		rawActionList.add(rawTechObject)
 	}
 
-	val actions = parseActiveSkills(content.stats, rawActionList, true)
+	val actions = parseActiveSkills(content, rawActionList, true)
 	val targetMap = mutableMapOf<ActiveSkill, StrategyTarget>()
 	val strategies = importMonsterStrategies(
 		propertiesCode.variableAssignments["Gambits"]!!, actions, content, targetMap

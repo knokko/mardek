@@ -7,7 +7,7 @@ fun importSkillsContent(content: Content) {
 	val skillsCode = parseActionScriptResource("mardek/importer/stats/skills.txt")
 
 	val skillClasses = parseSkillClasses(
-		content.stats, skillsCode.variableAssignments["techInfo"]!!,
+		content, skillsCode.variableAssignments["techInfo"]!!,
 		skillsCode.variableAssignments["MONSTER_SKILLS"]!!,
 		skillsCode.variableAssignments["TechSpriteMappings"]!!
 	)

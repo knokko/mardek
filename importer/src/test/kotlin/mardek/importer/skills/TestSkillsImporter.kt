@@ -2,6 +2,7 @@ package mardek.importer.skills
 
 import mardek.content.Content
 import mardek.content.skill.*
+import mardek.importer.audio.importAudioContent
 import mardek.importer.stats.importStatsContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
@@ -16,6 +17,7 @@ class TestSkillsImporter {
 
 	@BeforeAll
 	fun importSkills() {
+		importAudioContent(content.audio)
 		importStatsContent(content)
 		importSkillsContent(content)
 	}
@@ -270,7 +272,7 @@ class TestSkillsImporter {
 		assertEquals(0.8f, damage.weaponModifier, margin)
 
 		assertEquals("DARK", bloodDrain.element.properName)
-		assertTrue(bloodDrain.drainsBlood)
+		assertEquals(1f, bloodDrain.healthDrain)
 	}
 
 	@Test

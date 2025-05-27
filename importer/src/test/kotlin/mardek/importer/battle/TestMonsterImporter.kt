@@ -360,7 +360,7 @@ class TestMonsterImporter {
 		assertEquals("Heh.", heh.name)
 		assertEquals("darkbolt", heh.particleEffect)
 		assertEquals(100, heh.damage!!.flatAttackValue)
-		assertTrue(heh.drainsBlood)
+		assertEquals(1f, heh.healthDrain)
 		val storm = bernard.actions[1]
 		assertEquals("Thunderstorm", storm.name)
 		assertEquals(SkillTargetType.AllEnemies, storm.targetType)

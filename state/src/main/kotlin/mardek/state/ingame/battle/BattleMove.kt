@@ -64,6 +64,13 @@ class BattleMoveSkill(
 	val nextElement: Element?,
 ) : BattleMove() {
 
+	var canProcessDamage = false
+
+	@BitField(id = 3)
+	var hasProcessedDamage = false
+
+	var finished = false
+
 	init {
 		if (skill.targetType == SkillTargetType.Self || skill.targetType == SkillTargetType.Single) {
 			if (target !is BattleSkillTargetSingle) throw IllegalArgumentException(
