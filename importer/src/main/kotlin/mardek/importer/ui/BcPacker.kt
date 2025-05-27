@@ -16,6 +16,7 @@ import java.awt.image.BufferedImage
 import java.io.DataOutputStream
 import java.io.OutputStream
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -88,7 +89,8 @@ class BcPacker {
 		images.sortBy { it.version }
 
 		val threadPool = Executors.newFixedThreadPool(40)
-		threadPool.submit {
+		val submissions = mutableListOf<Future<*>>()
+		submissions.add(threadPool.submit {
 			val boiler = BoilerBuilder(
 				VK_API_VERSION_1_0, "ExportBc1Sprites", 1
 			).validation().forbidValidationErrors().build()
@@ -108,13 +110,13 @@ class BcPacker {
 
 			destinationBuffer.destroy(boiler)
 			boiler.destroyInitialObjects()
-		}
+		})
 
 		val counter = AtomicInteger()
 		val total = images.filter { it.version == 7 && it.data == null }.size
 		for (image in images) {
 			if (image.version != 7 || image.data != null) continue
-			threadPool.submit {
+			submissions.add(threadPool.submit {
 				image.data = compressBc7(image.bufferedImage as BufferedImage)
 				image.postEncodeCallback?.invoke()
 				image.bufferedImage = null
@@ -123,10 +125,11 @@ class BcPacker {
 				if (currentCounter % 100 == 0) {
 					println("compressed $currentCounter / $total bc7 images")
 				}
-			}
+			})
 		}
 
 		threadPool.shutdown()
+		for (submission in submissions) submission.get()
 		if (!threadPool.awaitTermination(200, TimeUnit.SECONDS)) {
 			threadPool.shutdownNow()
 			throw RuntimeException("Bc compression timed out")

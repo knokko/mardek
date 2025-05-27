@@ -70,5 +70,6 @@ class IntegrationTests {
 		TestMoveResultCalculator.testSurvivor(instance)
 		TestMoveResultCalculator.testEvasion(instance)
 		TestMoveResultCalculator.testShieldAndBerserkDamage(instance)
+		TestMoveResultCalculator.testDamageReductionDoesNotHeal(instance)
 	}
 }

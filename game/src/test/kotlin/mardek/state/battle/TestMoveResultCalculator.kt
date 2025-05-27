@@ -677,4 +677,56 @@ object TestMoveResultCalculator {
 			}
 		}
 	}
+
+	fun testDamageReductionDoesNotHeal(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(CampaignState(
+				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
+				characterSelection = simpleCharacterSelectionState(),
+				characterStates = simpleCharacterStates(),
+				gold = 123
+			))
+
+			val mardekState = state.campaign.characterStates[heroMardek]!!
+			mardekState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "Nullify Physical" }!!)
+			val deuganState = state.campaign.characterStates[heroDeugan]!!
+			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "DMG Soak 200" }!!)
+			deuganState.equipment[2] = content.items.items.find { it.flashName == "Hero's Coat" }!!
+
+			val monster = content.battle.monsters.find { it.name == "monster" }!!
+			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
+			val battle = state.campaign.currentArea!!.activeBattle!!
+			battle.onTurn = battle.livingOpponents()[0]
+
+			repeat(100) {
+				val mardekHit = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeBasicAttackResult(
+					battle.livingOpponents()[0], battle.livingPlayers()[0], false
+				)
+				assertTrue(mardekHit.damage > 0, "Expected ${mardekHit.damage} to be positive")
+
+				val mardekBlock = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeBasicAttackResult(
+					battle.livingOpponents()[0], battle.livingPlayers()[0], true
+				)
+				assertEquals(0, mardekBlock.damage)
+
+				val deuganHit = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeBasicAttackResult(
+					battle.livingOpponents()[0], battle.livingPlayers()[1], false
+				)
+				assertTrue(deuganHit.damage > 0, "Expected ${deuganHit.damage} to be positive")
+
+				val deuganBlock = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeBasicAttackResult(
+					battle.livingOpponents()[0], battle.livingPlayers()[1], true
+				)
+				assertEquals(0, deuganBlock.damage)
+			}
+		}
+	}
 }
