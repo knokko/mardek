@@ -44,11 +44,6 @@ validation layer enabled:
 ```
 ./gradlew runValidation
 ```
-**Unfortunately, due to a
-[false positive](https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/9587)
-that was recently fixed but not yet released, this will fail
-miserably** unless your graphics driver supports the
-`VK_EXT_swapchain_maintenance1` extension.
 Alternative, you can run `MardekGame.kt` with a `validation`
 program argument.
 
@@ -65,6 +60,14 @@ at `steamapps/common/MARDEK/MARDEK.swf`
 After this is done, you should be able to import the content:
 ```
 ./gradlew exportContent
+```
+If the above command failed with on Linux:
+```
+Bc7 compression failed: ./bc7enc-linux: error while loading shared libraries: libomp.so.5: cannot open shared object file: No such file or directory
+```
+You should install `libomp-dev`, for instance by running
+```
+sudo apt install libomp-dev
 ```
 
 ### Video settings
