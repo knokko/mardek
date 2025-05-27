@@ -58,7 +58,7 @@ class IntegrationTests {
 	}
 
 	@Test
-	fun testMoveResultCalculator() {
+	fun testBasicAttackResultCalculator() {
 		TestMoveResultCalculator.testSimpleElementCreatureStunCrit(instance)
 		TestMoveResultCalculator.testStrengthAndAttack(instance)
 		TestMoveResultCalculator.testDamageReductionAndSoak(instance)
@@ -71,5 +71,11 @@ class IntegrationTests {
 		TestMoveResultCalculator.testEvasion(instance)
 		TestMoveResultCalculator.testShieldAndBerserkDamage(instance)
 		TestMoveResultCalculator.testDamageReductionDoesNotHeal(instance)
+	}
+
+	@Test
+	fun testSkillResultCalculator() {
+		TestMoveResultCalculator.testShockDamageAndParalyze(instance)
+		TestMoveResultCalculator.testDarkClawBlinding(instance)
 	}
 }

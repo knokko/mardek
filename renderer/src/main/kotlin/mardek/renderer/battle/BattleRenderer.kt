@@ -34,12 +34,18 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 	))
 	private val enemyBlockRenderers = mutableListOf<MonsterBlockRenderer>()
 	private val playerBlockRenderers = mutableListOf<PlayerBlockRenderer>()
+	private val currentMoveBarRenderer = CurrentMoveBarRenderer(this.context, AbsoluteRectangle(
+		minX = 0, minY = context.targetImage.height / 12,
+		width = context.targetImage.width, height = context.targetImage.height / 16
+	))
 	private val indicatorRenderers = mutableListOf<DamageIndicatorRenderer>()
 	private val creatureRenderer = BattleCreatureRenderers(this.context)
+	private val particleRenderer = ParticleRenderer(this.context)
 
 	fun beforeRendering() {
 		turnOrderRenderer.beforeRendering()
 		actionBarRenderer.beforeRendering()
+		currentMoveBarRenderer.beforeRendering()
 		skillOrItemSelectionRenderer.beforeRendering()
 		skillOrItemDescriptionRenderer.beforeRendering()
 		targetSelectionRenderer.beforeRendering()
@@ -74,6 +80,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 
 	fun render() {
 		creatureRenderer.render()
+		particleRenderer.render()
 		context.uiRenderer.beginBatch()
 		val leftColor = srgbToLinear(rgba(90, 76, 44, 200))
 		val rightColor = srgbToLinear(rgba(38, 28, 17, 200))
@@ -92,6 +99,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 
 		turnOrderRenderer.render()
 		actionBarRenderer.render()
+		currentMoveBarRenderer.render()
 		skillOrItemSelectionRenderer.render()
 		skillOrItemDescriptionRenderer.render()
 		targetSelectionRenderer.render()

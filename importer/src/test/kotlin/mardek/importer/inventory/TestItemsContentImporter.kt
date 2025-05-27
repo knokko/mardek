@@ -8,6 +8,7 @@ import mardek.content.inventory.EquipmentSlotType
 import mardek.content.inventory.Item
 import mardek.content.skill.*
 import mardek.importer.audio.importAudioContent
+import mardek.importer.particle.importParticleEffects
 import mardek.importer.stats.importStatsContent
 import mardek.importer.skills.importSkillsContent
 import org.junit.jupiter.api.Assertions.*
@@ -56,6 +57,7 @@ class TestItemsContentImporter {
 	fun importItems() {
 		importAudioContent(content.audio)
 		importStatsContent(content)
+		importParticleEffects(content)
 		importSkillsContent(content)
 		importItemsContent(content)
 	}

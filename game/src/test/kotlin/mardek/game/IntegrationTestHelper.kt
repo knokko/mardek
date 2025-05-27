@@ -8,6 +8,7 @@ import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.renderer.GameRenderer
 import mardek.renderer.SharedResources
+import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -53,7 +54,7 @@ fun TestingInstance.testRendering(
 	getContent.complete(content)
 	commands.submit(name) { recorder ->
 		recorder.transitionLayout(targetImage, null, ResourceUsage.COLOR_ATTACHMENT_WRITE)
-		renderer.render(getContent, state, recorder, targetImage, framebuffer, 0)
+		renderer.render(getContent, state, recorder, targetImage, framebuffer, 0, SoundQueue())
 		recorder.transitionLayout(targetImage, ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.TRANSFER_SOURCE)
 		recorder.copyImageToBuffer(targetImage, destinationBuffer.fullRange())
 	}

@@ -12,9 +12,11 @@ import mardek.content.stats.PossibleStatusEffect
 import mardek.importer.audio.importAudioContent
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
+import mardek.importer.particle.importParticleEffects
 import mardek.importer.skills.importSkillsContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
 private const val FOREST_FISH_PROPERTIES = """
 mdlStats = {names:["Forest Fish"],model:"flyingfish",sprite:"forestfish",Class:"Flying Fish",TYPE:"ICHTHYD",cElem:"WATER",baseStats:{hp:6,mp:10,STR:12,VIT:12,SPR:11,AGL:10},nAtk:4,nDef:0,nMDef:0,critical:3,evasion:0,hpGrowth:6,atkGrowth:[3,2],equip:{weapon:["none"],shield:["none"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},resist:{EARTH:40,AIR:-50,PSN:0,PAR:0,DRK:0,CNF:0,NUM:0,SIL:0,CRS:0,SLP:0,ZOM:0,BSK:0,BLD:0},EXP:100};
@@ -76,6 +78,7 @@ loot = [["Candriathope",100]];
 DetermineStats();
 """
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestMonsterImporter {
 
 	private val content = Content()
@@ -83,6 +86,7 @@ class TestMonsterImporter {
 	init {
 		importAudioContent(content.audio)
 		importStatsContent(content)
+		importParticleEffects(content)
 		importSkillsContent(content)
 		importItemsContent(content)
 	}
@@ -358,9 +362,9 @@ class TestMonsterImporter {
 		assertEquals(4, bernard.actions.size)
 		val heh = bernard.actions[0]
 		assertEquals("Heh.", heh.name)
-		assertEquals("darkbolt", heh.particleEffect)
+		assertSame(content.battle.particles.find { it.name == "darkbolt" }!!, heh.particleEffect)
 		assertEquals(100, heh.damage!!.flatAttackValue)
-		assertTrue(heh.drainsBlood)
+		assertEquals(1f, heh.healthDrain)
 		val storm = bernard.actions[1]
 		assertEquals("Thunderstorm", storm.name)
 		assertEquals(SkillTargetType.AllEnemies, storm.targetType)

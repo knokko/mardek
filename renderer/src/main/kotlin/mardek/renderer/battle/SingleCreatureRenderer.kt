@@ -4,7 +4,10 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import mardek.content.animations.Animation
 import mardek.content.animations.ColorTransform
 import mardek.content.battle.PartyLayoutPosition
+import mardek.content.skill.ActiveSkillMode
 import mardek.state.ingame.battle.BattleMoveBasicAttack
+import mardek.state.ingame.battle.BattleMoveSkill
+import mardek.state.ingame.battle.BattleSkillTargetSingle
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.DamageIndicatorHealth
 import mardek.state.ingame.battle.MonsterCombatantState
@@ -22,7 +25,7 @@ class SingleCreatureRenderer(
 ) {
 	private val currentRealTime = System.nanoTime()
 	private val flipX = if (combatant.isOnPlayerSide) 1f else -1f
-	private val effectColorTransform = selectedColorTransform()
+	private val effectColorTransform = mergeColorTransforms(selectedColorTransform(), damageColorTransform())
 	private val skeleton = combatant.getModel().skeleton
 
 	private var relativeTime = currentRealTime - context.battle.startTime
@@ -44,6 +47,30 @@ class SingleCreatureRenderer(
 		if (passedTime >= blinkTime) return null
 
 		return selectedColorTransform(1f - passedTime.toFloat() / blinkTime)
+	}
+
+	private fun damageColorTransform(elementColor: Int, intensity: Float) = ColorTransform(
+		addColor = rgba(
+			normalize(red(elementColor)) * 0.5f * intensity,
+			normalize(green(elementColor)) * 0.5f * intensity,
+			normalize(blue(elementColor)) * 0.5f * intensity,
+			0f
+		),
+		multiplyColor = rgb(1f - 0.5f * intensity, 1f - 0.5f * intensity, 1f - 0.5f * intensity)
+	)
+
+	private fun damageColorTransform(): ColorTransform? {
+		val damageIndicator = combatant.lastDamageIndicator
+		if (damageIndicator !is DamageIndicatorHealth || damageIndicator.gainedHealth == 0) return null
+
+		val blinkTime = 1000_000_000L
+		val passedTime = currentRealTime - damageIndicator.time
+		if (passedTime >= blinkTime) return null
+
+		val color = if (damageIndicator.element === context.updateContext.physicalElement) rgb(250, 20, 20)
+		else damageIndicator.element.color
+
+		return damageColorTransform(color, 1f - passedTime.toFloat() / blinkTime)
 	}
 
 	private fun mergeColorTransforms(base: ColorTransform?, top: ColorTransform?): ColorTransform? {
@@ -70,59 +97,82 @@ class SingleCreatureRenderer(
 		renderAnimation()
 	}
 
+	private fun chooseMeleeAnimation(
+		target: CombatantState, decisionTime: Long,
+		setReadyForDamage: () -> Unit, setFinished: () -> Unit
+	) {
+		relativeTime = currentRealTime - decisionTime
+
+		val moveAnimation = skeleton.getAnimation("moveto")
+		val moveTime = moveAnimation.frames.size * FRAME_LENGTH
+		animation = moveAnimation
+
+		val rawTargetCoordinates = target.getPosition(context.battle)
+		val targetFlipX = if (target.isOnPlayerSide) 1f else -1f
+		val targetModel = target.getModel()
+		val targetStrikePoint = targetModel.skeleton.strikePoint
+		val rawStrikePosition = PartyLayoutPosition(
+			rawTargetCoordinates.x - targetStrikePoint.x.roundToInt(),
+			rawTargetCoordinates.y + (targetModel.skeleton.groundDistance - skeleton.groundDistance).roundToInt()
+		)
+		val strikePosition = transformBattleCoordinates(rawStrikePosition, targetFlipX, context.targetImage)
+
+		if (relativeTime >= moveTime) {
+			relativeTime -= moveTime
+
+			val strikeAnimation = skeleton.getAnimation("strike")
+			val strikeTime = strikeAnimation.frames.size * FRAME_LENGTH
+			animation = strikeAnimation
+
+			if (relativeTime >= strikeTime / 2) setReadyForDamage()
+			if (relativeTime >= strikeTime) {
+				relativeTime -= strikeTime
+
+				val jumpAnimation = skeleton.getAnimation("jumpback")
+				val jumpTime = jumpAnimation.frames.size * FRAME_LENGTH
+				animation = jumpAnimation
+
+				if (relativeTime >= jumpTime) {
+					relativeTime = jumpTime - 1L
+					setFinished()
+				} else {
+					var movementProgress = (relativeTime.toFloat() / jumpTime.toFloat()).pow(1.0f)
+					movementProgress = if (movementProgress < 0.2f) 0f
+					else (movementProgress - 0.2f) / 0.5f
+					if (movementProgress > 1f) movementProgress = 1f
+					coordinates.x = (1f - movementProgress) * strikePosition.x + movementProgress * coordinates.x
+					coordinates.y = (1f - movementProgress) * strikePosition.y + movementProgress * coordinates.y
+				}
+			} else {
+				coordinates = strikePosition
+			}
+		} else {
+			val movementProgress = relativeTime.toFloat() / moveTime.toFloat()
+			coordinates.x = movementProgress * strikePosition.x + (1f - movementProgress) * coordinates.x
+			coordinates.y = movementProgress * strikePosition.y + (1f - movementProgress) * coordinates.y
+		}
+	}
+
 	private fun chooseActiveAnimation() {
 		// die, hit, idle, spellcast, strike, dead, jumpback, useitem, moveto
 		val currentMove = context.battle.currentMove
 		if (currentMove is BattleMoveBasicAttack) {
-			relativeTime = currentRealTime - currentMove.decisionTime
-
-			val moveAnimation = skeleton.getAnimation("moveto")
-			val moveTime = moveAnimation.frames.size * FRAME_LENGTH
-			animation = moveAnimation
-
-			val rawTargetCoordinates = currentMove.target.getPosition(context.battle)
-			val targetFlipX = if (currentMove.target.isOnPlayerSide) 1f else -1f
-			val targetModel = currentMove.target.getModel()
-			val targetStrikePoint = targetModel.skeleton.strikePoint
-			val rawStrikePosition = PartyLayoutPosition(
-				rawTargetCoordinates.x - targetStrikePoint.x.roundToInt(),
-				rawTargetCoordinates.y + (targetModel.skeleton.groundDistance - skeleton.groundDistance).roundToInt()
+			chooseMeleeAnimation(
+				currentMove.target, currentMove.decisionTime,
+				{ currentMove.finishedStrike = true },
+				{ currentMove.finishedJump = true }
 			)
-			val strikePosition = transformBattleCoordinates(rawStrikePosition, targetFlipX, context.targetImage)
-
-			if (relativeTime >= moveTime) {
-				relativeTime -= moveTime
-
-				val strikeAnimation = skeleton.getAnimation("strike")
-				val strikeTime = strikeAnimation.frames.size * FRAME_LENGTH
-				animation = strikeAnimation
-
-				if (relativeTime >= strikeTime / 2) currentMove.finishedStrike = true
-				if (relativeTime >= strikeTime) {
-					relativeTime -= strikeTime
-
-					val jumpAnimation = skeleton.getAnimation("jumpback")
-					val jumpTime = jumpAnimation.frames.size * FRAME_LENGTH
-					animation = jumpAnimation
-
-					if (relativeTime >= jumpTime) {
-						relativeTime = jumpTime - 1L
-						currentMove.finishedJump = true
-					} else {
-						var movementProgress = (relativeTime.toFloat() / jumpTime.toFloat()).pow(1.0f)
-						movementProgress = if (movementProgress < 0.2f) 0f
-						else (movementProgress - 0.2f) / 0.5f
-						if (movementProgress > 1f) movementProgress = 1f
-						coordinates.x = (1f - movementProgress) * strikePosition.x + movementProgress * coordinates.x
-						coordinates.y = (1f - movementProgress) * strikePosition.y + movementProgress * coordinates.y
-					}
-				} else {
-					coordinates = strikePosition
-				}
-			} else {
-				val movementProgress = relativeTime.toFloat() / moveTime.toFloat()
-				coordinates.x = movementProgress * strikePosition.x + (1f - movementProgress) * coordinates.x
-				coordinates.y = movementProgress * strikePosition.y + (1f - movementProgress) * coordinates.y
+		}
+		if (currentMove is BattleMoveSkill) {
+			if (currentMove.skill.mode == ActiveSkillMode.Melee) {
+				if (currentMove.target !is BattleSkillTargetSingle) throw UnsupportedOperationException(
+					"Melee skills like ${currentMove.skill} can only target 1 combatant, but got ${currentMove.target}"
+				)
+				chooseMeleeAnimation(
+					(currentMove.target as BattleSkillTargetSingle).target, currentMove.decisionTime,
+					{ currentMove.canProcessDamage = true },
+					{ currentMove.finished = true }
+				)
 			}
 		}
 	}

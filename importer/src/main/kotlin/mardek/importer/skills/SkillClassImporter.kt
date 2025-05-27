@@ -1,6 +1,6 @@
 package mardek.importer.skills
 
-import mardek.content.stats.StatsContent
+import mardek.content.Content
 import mardek.content.skill.SkillClass
 import mardek.importer.area.parseFlashString
 import mardek.importer.characters.FatPlayableCharacter
@@ -11,7 +11,7 @@ import mardek.importer.util.parseActionScriptObjectList
 import javax.imageio.ImageIO
 
 fun parseSkillClasses(
-	statsContent: StatsContent, rawTechs: String,
+	content: Content, rawTechs: String,
 	rawMonsterSkills: String,
 	rawTechSpriteMappings: String
 ): List<SkillClass> {
@@ -33,7 +33,7 @@ fun parseSkillClasses(
 			key = entry.key,
 			name = techName,
 			description = parseFlashString(tech["desc"]!!, "Tech desc")!!,
-			actions = ArrayList(parseActiveSkills(statsContent, parseActionScriptObjectList(rawSkills), false)),
+			actions = ArrayList(parseActiveSkills(content, parseActionScriptObjectList(rawSkills), false)),
 			icon = compressKimSprite1(icon)
 		)
 	}

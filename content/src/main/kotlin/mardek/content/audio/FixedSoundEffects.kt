@@ -39,6 +39,7 @@ class UiSoundEffects(
 	val toggleSkill: SoundEffect,
 
 	@BitField(id = 6)
+	@ReferenceFieldTarget(label = "sound effects")
 	val openMenu: SoundEffect,
 ) {
 	internal constructor() : this(

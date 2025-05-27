@@ -1,16 +1,18 @@
 package mardek.importer.skills
 
+import mardek.content.Content
 import mardek.content.skill.*
 import mardek.content.stats.*
 import mardek.importer.area.parseFlashString
 import mardek.importer.area.parseOptionalFlashString
+import mardek.importer.audio.getOptionalSoundByName
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
 
 fun parseActiveSkills(
-	statsContent: StatsContent, rawSkills: List<Map<String, String>>, reverseTargetType: Boolean
+	content: Content, rawSkills: List<Map<String, String>>, reverseTargetType: Boolean
 ) = rawSkills.map { rawSkill ->
 	val mode = when (rawSkill["MODE"]!!) {
 		"\"P\"" -> ActiveSkillMode.Melee
@@ -51,26 +53,37 @@ fun parseActiveSkills(
 		isElementalShift = elementList is ArrayList<*> && elementList.isNotEmpty()
 	}
 
+	val soundName = parseOptionalFlashString(rawSkill["sfx"] ?: rawSkill["delayedSfx"], "skill sound effect")
+	val soundEffect = getOptionalSoundByName(content, soundName)
+
+	var particleName = parseOptionalFlashString(rawSkill["pfx"], "skill particle effect")
+	if (particleName == "astralform" || particleName == "enfeeble" || particleName == "delaybuster" ||
+		particleName == "shatterwave" || particleName == "annihilation"
+	) particleName = null
+	if (particleName == "quake") particleName = "earthquake"
+	if (particleName == "crescendo") particleName = "crescendoslash"
+	val particleEffect = if (particleName != null) content.battle.particles.find { it.name == particleName }!! else null
+
 	ActiveSkill(
 		name = parseFlashString(rawSkill["skill"]!!, "skill name")!!,
 		description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else "",
 		mode = mode,
 		targetType = targetType,
-		element = statsContent.elements.find { it.rawName == parseFlashString(rawSkill["elem"]!!, "element") }!!,
-		damage = parseSkillDamage(statsContent, rawSkill),
+		element = content.stats.elements.find { it.rawName == parseFlashString(rawSkill["elem"]!!, "element") }!!,
+		damage = parseSkillDamage(content.stats, rawSkill),
 		masteryPoints = if (rawAP != null) parseInt(rawAP) else 0,
 		accuracy = if (rawSkill.containsKey("cannot_miss")) 255 else parseInt(rawSkill["accuracy"] ?: "255"),
 		manaCost = parseInt(rawSkill["MP"]),
 		isHealing = isHealing,
 		isBreath = rawSkill.containsKey("BREATH"),
 		isBuff = isBuff,
-		drainsBlood = rawSpecial != null && rawSpecial.contains("DRAIN"),
+		healthDrain = if (rawSpecial != null && rawSpecial.contains("DRAIN")) 1f else 0f,
 		statModifiers = statModifiers,
-		addStatusEffects = parseStatusEffectList(statsContent, addEffects),
-		removeStatusEffects = parseStatusEffectList(statsContent, removeEffects),
+		addStatusEffects = parseStatusEffectList(content.stats, addEffects),
+		removeStatusEffects = parseStatusEffectList(content.stats, removeEffects),
 		revive = parseRevive(rawSkill["special"]),
-		particleEffect = parseOptionalFlashString(rawSkill["pfx"], "skill particle effect"),
-		soundEffect = parseOptionalFlashString(rawSkill["sfx"] ?: rawSkill["delayedSfx"], "skill sound effect"),
+		particleEffect = particleEffect,
+		soundEffect = soundEffect,
 		animation = parseOptionalFlashString(rawSkill["anim"], "skill animation"),
 		combatRequirement = parseCombatRequirement(rawSkill["menuse"]),
 		delay = if (rawDelay == null) 0 else parseInt(rawDelay),

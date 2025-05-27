@@ -6,6 +6,7 @@ import com.github.knokko.boiler.images.VkbImage
 import mardek.content.Content
 import mardek.renderer.ui.TitleScreenRenderer
 import mardek.state.GameState
+import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.title.TitleScreenState
 import org.lwjgl.vulkan.VK10.*
@@ -19,11 +20,11 @@ class GameRenderer(
 
 	fun render(
 		getContent: CompletableFuture<Content>, state: GameState, recorder: CommandRecorder,
-		targetImage: VkbImage, framebuffer: Long, frameIndex: Int
+		targetImage: VkbImage, framebuffer: Long, frameIndex: Int, soundQueue: SoundQueue,
 	) {
 		val resources = resources.join()
 		val context = if (getContent.isDone) {
-			RenderContext(getContent.get(), resources, state, recorder, targetImage, frameIndex)
+			RenderContext(getContent.get(), resources, state, recorder, targetImage, frameIndex, soundQueue)
 		} else null
 		resources.perFrameBuffer.startFrame(frameIndex)
 

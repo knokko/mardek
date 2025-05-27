@@ -1,0 +1,231 @@
+function ParticleEffect(pfx, x, y, sfx, Parent, d)
+{
+   if(!PFXList["pfx_" + pfx])
+   {
+      return undefined;
+   }
+   pdepth++;
+   if(pdepth > 100)
+   {
+      pdepth = 0;
+   }
+   var _loc8_ = (Parent != null ? Parent : PARTICLE_CONT).createEmptyMovieClip("P" + pdepth,!d ? 100 + pdepth : d);
+   if(PFXList["pfx_" + pfx].derive != null)
+   {
+      d = PFXList["pfx_" + pfx];
+      _loc8_.stats = Clone(PFXList["pfx_" + PFXList["pfx_" + pfx].derive]);
+      var _loc5_ = 0;
+      while(_loc5_ < _loc8_.stats.emitters.length)
+      {
+         _loc8_.stats.emitters[_loc5_].type = d.newTypes[_loc5_];
+         if(d.newSheets[_loc5_] != null)
+         {
+            _loc8_.stats.emitters[_loc5_].sheet = d.newSheets[_loc5_];
+         }
+         _loc5_ = _loc5_ + 1;
+      }
+      if(d.sfx)
+      {
+         _loc8_.stats.sfx = d.sfx;
+      }
+   }
+   else
+   {
+      _loc8_.stats = Clone(PFXList["pfx_" + pfx]);
+   }
+   playSFX(sfx == null ? _loc8_.stats.sfx : sfx);
+   if(!_root.CheckOption("pfx"))
+   {
+      _loc8_.removeMovieClip();
+      return undefined;
+   }
+   if(_loc8_.stats.quake)
+   {
+      _loc8_.tremor = 1;
+      _loc8_.onEnterFrame = function()
+      {
+         _root._y = this.stats.quake[1] % 2 != 0 ? (this.tremor *= -1) * this.stats.quake[0] : 0;
+         this.stats.quake[0] -= this.stats.quake[2];
+         this.stats.quake[1]--;
+         if(!this.stats.quake[1] || this.stats.quake[0] <= 0)
+         {
+            _root._y = 0;
+            this.onEnterFrame = null;
+         }
+      };
+   }
+   _loc8_._x = x;
+   _loc8_._y = y;
+   _loc8_.emitters = _loc8_.stats.emitters.length;
+   _loc5_ = 0;
+   while(_loc5_ < _loc8_.stats.emitters.length)
+   {
+      var _loc6_ = _loc8_.createEmptyMovieClip("emitter" + _loc5_,100 - _loc5_);
+      _loc6_.S = _loc8_.stats.emitters[_loc5_];
+      _loc6_.count = 0;
+      _loc6_.pc = 0;
+      _loc6_._x = _loc6_.S.spawn[0];
+      _loc6_._y = _loc6_.S.spawn[1];
+      if(_loc6_.S.spawn[2])
+      {
+         _loc6_._rotation = _loc6_.S.spawn[2];
+      }
+      _loc6_.onEnterFrame = function()
+      {
+         var S = this.S;
+         this.count = this.count + 1;
+         if(this._parent.stats.countSfx != null)
+         {
+            if(this._parent.stats.countSfx[0] == this.count)
+            {
+               this._parent.stats.countSfx[0].shift();
+               _root.playSFX(this._parent.stats.sfx);
+            }
+         }
+         if(this.count > S.delay + S.dur)
+         {
+            if(this.count > S.delay + S.dur + 100)
+            {
+               this._parent.emitters--;
+               if(this._parent.emitters <= 0)
+               {
+                  this._parent.removeMovieClip();
+               }
+               this.removeMovieClip();
+            }
+            return undefined;
+         }
+         if(this.count < S.delay)
+         {
+            return undefined;
+         }
+         if(this.count > 1 && (this.S.ppf < 1 && this.count % (1 / this.S.ppf) || this.S.skipframes && this.count % this.S.skipframes != 0))
+         {
+            return undefined;
+         }
+         if(this.count == S.delay && S.delayedSFX)
+         {
+            _root.playSFX(S.delayedSFX);
+         }
+         var _loc6_ = 0;
+         while(_loc6_ < S.ppf)
+         {
+            var _loc3_ = this.createEmptyMovieClip("p" + this.pc++,100 + this.pc);
+            var _loc9_ = new flash.display.BitmapData(S.sheet,S.sheet,true,0);
+            _loc9_.copyPixels(_root["PFX_SHEET" + S.sheet],new flash.geom.Rectangle(S.type % 10 * S.sheet,Math.floor(S.type / 10) * S.sheet,S.sheet,S.sheet),new flash.geom.Point(0,0),null,new flash.geom.Point(0,0),true);
+            _loc3_.createEmptyMovieClip("box",7);
+            _loc3_.box.createEmptyMovieClip("box2",7);
+            _loc3_.box.box2.attachBitmap(_loc9_,100);
+            _loc3_.S = _root.Clone(this.S);
+            if(S.flip === true)
+            {
+               _loc3_.box._xscale *= -1;
+            }
+            _loc3_._alpha = S.alpha;
+            _loc3_._width = S.size[0];
+            _loc3_._height = S.size[1];
+            if(S.rsize != null)
+            {
+               var _loc7_ = S.rsize[0] + Math.random() * (S.rsize[1] - S.rsize[0]);
+               _loc3_._width *= _loc7_;
+               _loc3_._height *= _loc7_;
+            }
+            _loc3_._x = - S.area[0] + int(S.Coffset[0]) + random(S.area[0] * 2 + 1);
+            _loc3_._y = - S.area[1] + int(S.Coffset[1]) + random(S.area[1] * 2 + 1);
+            _loc3_.box.box2._x = (- _loc3_.box.box2._width) / 2;
+            _loc3_.box.box2._y = (- _loc3_.box.box2._height) / 2;
+            _loc3_.box._rotation = S.rot != "R" ? S.rot : Math.random() * 360;
+            _loc3_.S._vel = [S.vel[0] + random(S.vel[1] - S.vel[0] + 1),S.vel[2] + random(S.vel[3] - S.vel[2] + 1)];
+            if(S.mode == RADIAL)
+            {
+               var _loc5_ = ((!S.even_spacing ? Math.random() * 360 : (_loc6_ + 1) / S.ppf * 360 + (S.even_spacing === true ? 0 : S.even_spacing)) + int(S.start_angle)) * 3.141592653589793 / 180;
+               var _loc10_ = S.vel[0] + Math.random() * (S.vel[1] - S.vel[0]);
+               _loc3_.S._vel = [_loc10_ * Math.cos(_loc5_),_loc10_ * Math.sin(_loc5_)];
+               if(S.rot == "theta")
+               {
+                  _loc3_.box._rotation = _loc5_ / 0.017453292519943295 + 90;
+               }
+               if(_loc3_.S.rvelmod)
+               {
+                  _loc3_.S.mod = [_loc3_.S.rvelmod * Math.cos(_loc5_),_loc3_.S.rvelmod * Math.sin(_loc5_)];
+               }
+               if(S.offset)
+               {
+                  var _loc8_ = typeof S.offset.pop != "function" ? S.offset : Math.random() * (S.offset[1] - S.offset[0]) + S.offset[0];
+                  _loc3_._x = _loc8_ * Math.cos(_loc5_);
+                  _loc3_._y = _loc8_ * Math.sin(_loc5_);
+               }
+            }
+            _loc3_.onEnterFrame = function()
+            {
+               this._x += this.S._vel[0];
+               this._y += this.S._vel[1];
+               this.S._vel[0] += this.S.mod[0];
+               this.S._vel[1] += this.S.mod[1];
+               this.S._vel[0] *= this.S.accel[0];
+               this.S._vel[1] *= this.S.accel[1];
+               this.S.life--;
+               if(this.S.life <= 0)
+               {
+                  this.removeMovieClip();
+               }
+               this._alpha -= this.S.fade;
+               if(this._alpha <= 0)
+               {
+                  this.removeMovieClip();
+               }
+               if(this.S.maxalpha != null && this._alpha > this.S.maxalpha)
+               {
+                  this._alpha = this.S.maxalpha;
+               }
+               this._width *= this.S.grow[0];
+               this._height *= this.S.grow[1];
+               this.box._rotation += this.S.spin;
+            };
+            _loc6_ = _loc6_ + 1;
+         }
+         if(S.rotmod)
+         {
+            S.rot *= S.rotmod;
+         }
+         if(S.OEFmod != null)
+         {
+            for(o in S.OEFmod)
+            {
+               if(S.OEFmod[o].pop)
+               {
+                  var _loc4_ = 0;
+                  while(_loc4_ < S.OEFmod[o].length)
+                  {
+                     trace(S[o][_loc4_] += S.OEFmod[o][_loc4_]);
+                     _loc4_ = _loc4_ + 1;
+                  }
+               }
+               else
+               {
+                  S[o] += S.OEFmod[o];
+               }
+            }
+         }
+      };
+      _loc5_ = _loc5_ + 1;
+   }
+   return _loc8_;
+}
+
+// I guess this is the meaning of "derive"
+for(var p in PFXList)
+{
+if(PFXList[p].derive)
+   {
+      var pd = PFXList["pfx_" + PFXList[p].derive];
+      if(pd.dmgdelay)
+      {
+         PFXList[p].dmgdelay = pd.dmgdelay;
+      }
+      if(pd.delayedSfx)
+      {
+         PFXList[p].delayedSfx = pd.delayedSfx;
+      }
+   }
+}

@@ -13,6 +13,7 @@ import mardek.importer.characters.importPlayableCharacters
 import mardek.importer.stats.importClasses
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
+import mardek.importer.particle.importParticleEffects
 import mardek.importer.skills.importSkillsContent
 import mardek.importer.ui.importUiSprites
 import mardek.state.ingame.CampaignState
@@ -25,6 +26,7 @@ import java.io.ByteArrayOutputStream
 fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content {
 	val content = Content()
 	importAudioContent(content.audio)
+	importParticleEffects(content)
 	importStatsContent(content)
 	importSkillsContent(content)
 	importItemsContent(content)

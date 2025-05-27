@@ -14,7 +14,8 @@ open class RenderContext(
 	val state: GameState,
 	val recorder: CommandRecorder,
 	val targetImage: VkbImage,
-	val frameIndex: Int
+	val frameIndex: Int,
+	val soundQueue: SoundQueue,
 ) {
 	val uiRenderer = resources.uiRenderers[frameIndex]
 }
@@ -22,9 +23,13 @@ open class RenderContext(
 open class InGameRenderContext(
 	val campaign: CampaignState,
 	context: RenderContext,
-) : RenderContext(context.content, context.resources, context.state, context.recorder, context.targetImage, context.frameIndex) {
+) : RenderContext(
+	context.content, context.resources, context.state, context.recorder,
+	context.targetImage, context.frameIndex, context.soundQueue
+) {
 
 	val uiContext = UiUpdateContext(
-		campaign.characterSelection, campaign.characterStates, SoundQueue(), content.audio.fixedEffects, content.skills
+		campaign.characterSelection, campaign.characterStates, soundQueue,
+		content.audio.fixedEffects, content.skills
 	)
 }

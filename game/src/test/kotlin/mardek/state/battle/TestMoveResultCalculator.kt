@@ -729,4 +729,85 @@ object TestMoveResultCalculator {
 			}
 		}
 	}
+
+	fun testShockDamageAndParalyze(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(CampaignState(
+				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
+				characterSelection = simpleCharacterSelectionState(),
+				characterStates = simpleCharacterStates(),
+				gold = 123
+			))
+
+			val mardekState = state.campaign.characterStates[heroMardek]!!
+			mardekState.currentLevel = 50
+
+			val monster = content.battle.monsters.find { it.name == "monster" }!!
+			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
+			val battle = state.campaign.currentArea!!.activeBattle!!
+			battle.onTurn = battle.livingPlayers()[0]
+
+			var stunCounter = 0
+			repeat(10_000) {
+				val result = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeMeleeSkillResult(
+					shock, battle.livingPlayers()[0],
+					battle.livingOpponents()[0], false
+				)
+				assertSame(content.stats.elements.find { it.rawName == "AIR" }!!, result.element)
+				if (!result.criticalHit) {
+					assertTrue(result.damage in 4500..6500, "Expected ${result.damage} to be 5500")
+				}
+				if (result.addedEffects.isNotEmpty()) {
+					assertEquals(setOf(content.stats.statusEffects.find { it.flashName == "PAR" }!!), result.addedEffects)
+					stunCounter += 1
+				}
+			}
+
+			assertTrue(stunCounter in 500 .. 1500, "Expected $stunCounter to be 1000")
+		}
+	}
+
+	fun testDarkClawBlinding(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(CampaignState(
+				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
+				characterSelection = simpleCharacterSelectionState(),
+				characterStates = simpleCharacterStates(),
+				gold = 123
+			))
+
+			val mardekState = state.campaign.characterStates[heroMardek]!!
+			mardekState.currentLevel = 50
+			mardekState.equipment[1] = content.items.items.find { it.flashName == "Hero's Shield" }!!
+			mardekState.equipment[3] = content.items.items.find { it.flashName == "Hero's Armour" }!!
+
+			val monster = content.battle.monsters.find { it.name == "monster" }!!
+			val darkClaw = monster.actions.find { it.name == "Dark Claw" }!!
+			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 30)))
+			val battle = state.campaign.currentArea!!.activeBattle!!
+			battle.onTurn = battle.livingPlayers()[0]
+
+			var blindCounter = 0
+			repeat(10_000) {
+				val result = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeMeleeSkillResult(
+					darkClaw, battle.livingOpponents()[0],
+					battle.livingPlayers()[0], false
+				)
+				assertSame(content.stats.elements.find { it.rawName == "DARK" }!!, result.element)
+				if (!result.criticalHit) {
+					assertTrue(result.damage in 300..450, "Expected ${result.damage} to be 378")
+				}
+				if (result.addedEffects.isNotEmpty()) {
+					assertEquals(setOf(content.stats.statusEffects.find { it.flashName == "DRK" }!!), result.addedEffects)
+					blindCounter += 1
+				}
+			}
+
+			assertTrue(blindCounter in 500 .. 1500, "Expected $blindCounter to be 1000")
+		}
+	}
 }

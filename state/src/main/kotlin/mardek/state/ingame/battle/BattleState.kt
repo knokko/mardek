@@ -4,7 +4,12 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.*
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
+import mardek.content.skill.ActiveSkillMode
 import mardek.input.InputKey
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.iterator
+import kotlin.collections.set
 
 @BitStruct(backwardCompatible = true)
 class BattleState(
@@ -52,6 +57,8 @@ class BattleState(
 		private set
 
 	val startTime = System.nanoTime()
+
+	val particles = mutableListOf<ParticleEffectState>()
 
 	@Suppress("unused")
 	internal constructor() : this(Battle(), arrayOf(null, null, null, null), PartyLayout(), BattleUpdateContext())
@@ -127,58 +134,92 @@ class BattleState(
 			if (currentMove.finishedStrike && !currentMove.processedStrike) {
 				val attacker = onTurn!!
 				val passedChallenge = false // TODO
-				val result = MoveResultCalculator(this, context).computeBasicAttackResult(attacker, currentMove.target, passedChallenge)
+				val result = MoveResultCalculator(this, context).computeBasicAttackResult(
+					attacker, currentMove.target, passedChallenge
+				)
 
-				context.soundQueue.insert(result.sound)
-
-				val target = currentMove.target
-				if (!result.missed) {
-					target.lastDamageIndicator = DamageIndicatorHealth(
-						oldHealth = target.currentHealth,
-						oldMana = target.currentMana,
-						gainedHealth = -result.damage,
-						element = result.element,
-					)
-					if (result.restoreAttackerHealth != 0) {
-						attacker.lastDamageIndicator = DamageIndicatorHealth(
-							oldHealth = attacker.currentHealth,
-							oldMana = attacker.currentMana,
-							gainedHealth = result.restoreAttackerHealth,
-							element = result.element,
-						)
-					} else if (result.restoreAttackerMana != 0) {
-						attacker.lastDamageIndicator = DamageIndicatorMana(
-							oldHealth = attacker.currentHealth,
-							oldMana = attacker.currentMana,
-							gainedMana = result.restoreAttackerMana,
-							element = result.element,
-						)
-					}
-
-					target.currentHealth -= result.damage
-					attacker.currentHealth += result.restoreAttackerHealth
-					attacker.currentMana += result.restoreAttackerMana
-					target.statusEffects.removeAll(result.removedEffects)
-					target.statusEffects.addAll(result.addedEffects)
-					for ((stat, modifier) in result.addedStatModifiers) {
-						target.statModifiers[stat] = target.statModifiers.getOrDefault(stat, 0) + modifier
-					}
-					attacker.clampHealthAndMana(context)
-					target.clampHealthAndMana(context)
-
-					if (attacker.isAlive() && attacker.currentHealth <= attacker.maxHealth / 5) {
-						attacker.statusEffects.addAll(attacker.getSosEffects(context))
-					}
-					if (target.isAlive() && target.currentHealth <= target.maxHealth / 5) {
-						target.statusEffects.addAll(currentMove.target.getSosEffects(context))
-					}
-				} else target.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
-
+				applyMoveResult(context, result, attacker, currentMove.target)
 				currentMove.processedStrike = true
 			}
 			if (currentMove.finishedJump) {
 				this.onTurn = null
 			}
 		}
+
+		if (currentMove is BattleMoveSkill) {
+			if (currentMove.skill.mode == ActiveSkillMode.Melee) {
+				if (currentMove.canProcessDamage && !currentMove.hasProcessedDamage) {
+					val attacker = onTurn!!
+					if (currentMove.target !is BattleSkillTargetSingle) throw UnsupportedOperationException(
+						"Melee skills can only hit 1 target, but got ${currentMove.target}"
+					)
+					val target = currentMove.target.target
+					val passedChallenge = false // TODO
+					currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(it, target)) }
+
+					val result = MoveResultCalculator(this, context).computeMeleeSkillResult(
+						currentMove.skill, attacker, target, passedChallenge
+					)
+
+					applyMoveResult(context, result, attacker, target)
+					currentMove.hasProcessedDamage = true
+				}
+			} else {
+				println("WARNING: ${currentMove.skill} is not yet supported")
+			}
+
+			if (currentMove.finished) {
+				this.onTurn = null
+			}
+		}
+	}
+
+	private fun applyMoveResult(
+		context: BattleUpdateContext, result: MoveResult,
+		attacker: CombatantState, target: CombatantState,
+	) {
+		if (result.sound != null) context.soundQueue.insert(result.sound)
+
+		if (!result.missed) {
+			target.lastDamageIndicator = DamageIndicatorHealth(
+				oldHealth = target.currentHealth,
+				oldMana = target.currentMana,
+				gainedHealth = -result.damage,
+				element = result.element,
+			)
+			if (result.restoreAttackerHealth != 0) {
+				attacker.lastDamageIndicator = DamageIndicatorHealth(
+					oldHealth = attacker.currentHealth,
+					oldMana = attacker.currentMana,
+					gainedHealth = result.restoreAttackerHealth,
+					element = result.element,
+				)
+			} else if (result.restoreAttackerMana != 0) {
+				attacker.lastDamageIndicator = DamageIndicatorMana(
+					oldHealth = attacker.currentHealth,
+					oldMana = attacker.currentMana,
+					gainedMana = result.restoreAttackerMana,
+					element = result.element,
+				)
+			}
+
+			target.currentHealth -= result.damage
+			attacker.currentHealth += result.restoreAttackerHealth
+			attacker.currentMana += result.restoreAttackerMana
+			target.statusEffects.removeAll(result.removedEffects)
+			target.statusEffects.addAll(result.addedEffects)
+			for ((stat, modifier) in result.addedStatModifiers) {
+				target.statModifiers[stat] = target.statModifiers.getOrDefault(stat, 0) + modifier
+			}
+			attacker.clampHealthAndMana(context)
+			target.clampHealthAndMana(context)
+
+			if (attacker.isAlive() && attacker.currentHealth <= attacker.maxHealth / 5) {
+				attacker.statusEffects.addAll(attacker.getSosEffects(context))
+			}
+			if (target.isAlive() && target.currentHealth <= target.maxHealth / 5) {
+				target.statusEffects.addAll(target.getSosEffects(context))
+			}
+		} else target.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
 	}
 }
