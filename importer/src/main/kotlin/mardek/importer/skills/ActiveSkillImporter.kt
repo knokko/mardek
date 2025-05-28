@@ -5,6 +5,7 @@ import mardek.content.skill.*
 import mardek.content.stats.*
 import mardek.importer.area.parseFlashString
 import mardek.importer.area.parseOptionalFlashString
+import mardek.importer.audio.getOptionalSoundByName
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import java.lang.Float.parseFloat
@@ -53,13 +54,7 @@ fun parseActiveSkills(
 	}
 
 	val soundName = parseOptionalFlashString(rawSkill["sfx"] ?: rawSkill["delayedSfx"], "skill sound effect")
-	println("sound name is $soundName and available are ${content.audio.effects.map { it.flashName }}")
-	val soundEffect = when (soundName) {
-		null -> null
-		"Slam" -> content.audio.fixedEffects.battle.critical
-		"punch" -> content.audio.fixedEffects.battle.punch
-		else -> content.audio.effects.find { it.flashName == soundName }!!
-	}
+	val soundEffect = getOptionalSoundByName(content, soundName)
 	ActiveSkill(
 		name = parseFlashString(rawSkill["skill"]!!, "skill name")!!,
 		description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else "",

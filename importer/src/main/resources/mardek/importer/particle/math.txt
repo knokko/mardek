@@ -1,0 +1,30 @@
+y[t] = 0.8y[t-1] + 0.1
+
+step 1: solve
+  y* = 0.8y* + 0.1
+  0.2y* = 0.1
+  y* = 0.5
+
+let x[t] = y[t] - 0.5
+x[t] = 0.8x[t-1] = x[0] * 0.8^t
+so y[t] - 0.5 = (y[0] - 0.5) * 0.8^t
+
+for y[0] = 2.0 -> y[t] = 0.5 + 1.5 * 0.8^t
+
+WITH PARAMETERS:
+v[t] = M*v[t-1] + A
+
+step 1:
+  v* = M * v* + A
+  (1-M)v* = A
+  v* = A / (1-M)
+
+x[t] = Mx[t-1] = x[0]M^t
+so v(t) - v* = (v[0] - v*)M^t
+so v(t) = v* + (v[0] - v*)M^t
+= A / (1-M) + (v[0] - A / (1-M))M^t
+
+NOW THE POSITION
+
+p(t) = p[0] + integral v(t)
+= p[0] + t * v* + (v[0] - v*) * M^t / ln(M)

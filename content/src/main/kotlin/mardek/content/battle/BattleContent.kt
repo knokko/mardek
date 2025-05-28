@@ -4,9 +4,8 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.animations.Skeleton
-import mardek.content.particle.Particle
+import mardek.content.particle.ParticleEffect
 import mardek.content.particle.ParticleSprite
-import mardek.content.sprite.BcSprite
 
 @BitStruct(backwardCompatible = true)
 class BattleContent {
@@ -25,7 +24,7 @@ class BattleContent {
 
 	@BitField(id = 3)
 	@ReferenceFieldTarget(label = "particles")
-	val particles = ArrayList<Particle>()
+	val particles = ArrayList<ParticleEffect>()
 
 	@BitField(id = 4)
 	@ReferenceFieldTarget(label = "monsters")

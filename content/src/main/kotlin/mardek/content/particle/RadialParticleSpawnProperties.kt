@@ -1,15 +1,15 @@
 package mardek.content.particle
 
-class RadialParticleProperties(
+class RadialParticleSpawnProperties(
 	/**
 	 * The minimum distance between the particle and the emitter when the particle is spawned.
 	 */
-	val minSpawnRadius: Float,
+	val minRadius: Float,
 
 	/**
 	 * The minimum distance between the particle and the emitter when the particle is spawned.
 	 */
-	val maxSpawnRadius: Float,
+	val maxRadius: Float,
 
 	/**
 	 * When the number of spawned particles is larger than 1, this property determines whether particles should be
@@ -26,6 +26,12 @@ class RadialParticleProperties(
 	val baseEvenAngle: Float,
 
 	/**
+	 * The value of `baseEvenAngle` is basically increased by `baseEvenAngleShift` every second (continuously), so the
+	 * `baseEvenAngle` after `t` seconds is `originalBaseEvenAngle + t * baseEvenAngleShift`.
+	 */
+	val baseEvenAngleShift: Float,
+
+	/**
 	 * Whether the particle should initially be rotated towards the direction in which it starts moving
 	 */
 	val rotateToMoveDirection: Boolean,
@@ -33,11 +39,11 @@ class RadialParticleProperties(
 	/**
 	 * The minimum initial velocity (units / second), towards the spawn direction of the particle
 	 */
-	val minSpawnVelocity: Float,
+	val minVelocity: Float,
 
 	/**
 	 * The maximum initial velocity (units / second), towards the spawn direction of the particle
 	 */
-	val maxSpawnVelocity: Float,
+	val maxVelocity: Float,
 ) {
 }

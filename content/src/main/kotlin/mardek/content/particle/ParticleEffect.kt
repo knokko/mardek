@@ -20,7 +20,7 @@ class ParticleEffect(
 	 * The sound played when the particle effect begins
 	 */
 	@ReferenceField(stable = false, label = "sound effects")
-	val initialSound: SoundEffect,
+	val initialSound: SoundEffect?,
 
 	/**
 	 * The sound played when the target takes damage (or gets healed or cured)
@@ -37,6 +37,8 @@ class ParticleEffect(
 	 * after each duration in `extraSoundDelays` (since the start of the particle effect)
 	 */
 	val extraSoundDelays: Array<Duration>,
+
+	val inheritance: ParticleInheritance?,
 
 	val emitters: ArrayList<ParticleEmitter>,
 ) {
