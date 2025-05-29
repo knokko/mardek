@@ -3,6 +3,7 @@ package mardek.importer.skills
 import mardek.content.Content
 import mardek.content.skill.*
 import mardek.importer.audio.importAudioContent
+import mardek.importer.particle.importParticleEffects
 import mardek.importer.stats.importStatsContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
@@ -19,6 +20,7 @@ class TestSkillsImporter {
 	fun importSkills() {
 		importAudioContent(content.audio)
 		importStatsContent(content)
+		importParticleEffects(content)
 		importSkillsContent(content)
 	}
 
@@ -48,7 +50,7 @@ class TestSkillsImporter {
 		assertEquals(ActiveSkillMode.Melee, earthSlash.mode)
 		assertEquals("EARTH", earthSlash.element.properName)
 		assertEquals(SkillTargetType.Single, earthSlash.targetType)
-		assertEquals("slash_earth", earthSlash.particleEffect)
+		assertSame(content.battle.particles.find { it.name == "slash_earth" }!!, earthSlash.particleEffect)
 		assertEquals("Magically enchant your sword to inflict Earth elemental damage.", earthSlash.description)
 	}
 
@@ -86,7 +88,7 @@ class TestSkillsImporter {
 		assertEquals(ActiveSkillMode.Self, boost.mode)
 		assertEquals("FIRE", boost.element.properName)
 		assertEquals(SkillTargetType.Self, boost.targetType)
-		assertEquals("boost", boost.particleEffect)
+		assertSame(content.battle.particles.find { it.name == "boost" }!!, boost.particleEffect)
 		assertTrue(boost.isHealing)
 	}
 
@@ -145,7 +147,7 @@ class TestSkillsImporter {
 
 		assertEquals(25, glory.manaCost)
 		assertEquals(ActiveSkillMode.Melee, glory.mode)
-		assertEquals("smiteevil", glory.particleEffect)
+		assertSame(content.battle.particles.find { it.name == "smiteevil" }!!, glory.particleEffect)
 	}
 
 	@Test

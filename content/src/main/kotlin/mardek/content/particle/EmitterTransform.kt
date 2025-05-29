@@ -1,6 +1,8 @@
 package mardek.content.particle
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.FloatField
 
 @BitStruct(backwardCompatible = true)
 class EmitterTransform(
@@ -15,6 +17,8 @@ class EmitterTransform(
 	 * - negative is right
 	 * - positive is left
 	 */
+	@BitField(id = 0)
+	@FloatField(expectMultipleOf = 1.0)
 	val x: Float,
 
 	/**
@@ -22,17 +26,16 @@ class EmitterTransform(
 	 * - negative is up
 	 * - positive is down
 	 */
+	@BitField(id = 1)
+	@FloatField(expectMultipleOf = 1.0)
 	val y: Float,
 
 	/**
-	 * The initial rotation, in degrees
+	 * The rotation, in degrees
 	 */
-	val initialRotation: Float,
-
-	/**
-	 * The rotation of the emitter is multiplied by `rotationMultiplier` every second (continuously).
-	 * So, after `t` seconds, the rotation of the emitter will be `initialRotation * pow(rotationMultiplier, t)`
-	 */
-	val rotationMultiplier: Float,
+	@BitField(id = 2)
+	@FloatField(expectMultipleOf = 1.0)
+	val rotation: Float,
 ) {
+	internal constructor() : this(0f, 0f, 0f)
 }

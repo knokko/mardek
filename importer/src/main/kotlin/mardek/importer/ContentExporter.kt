@@ -39,6 +39,7 @@ fun main() {
 		val bcPacker = BcPacker()
 		for (sprite in content.ui.allBcSprites()) bcPacker.add(sprite)
 		for (background in content.battle.backgrounds) bcPacker.add(background.sprite)
+		for (sprite in content.battle.particleSprites) bcPacker.add(sprite.sprite)
 		for (skeleton in content.battle.skeletons) {
 			for (part in skeleton.parts) {
 				for (skin in part.skins) {

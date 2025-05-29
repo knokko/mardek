@@ -9,6 +9,7 @@ import mardek.content.sprite.KimSprite
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.inventory.importItemsContent
+import mardek.importer.particle.importParticleEffects
 import mardek.importer.stats.importStatsContent
 import mardek.importer.skills.importSkillsContent
 import mardek.importer.util.parseActionScriptObjectList
@@ -74,6 +75,7 @@ class TestSpritesAndAreas {
 		val content = Content()
 		importAudioContent(content.audio)
 		importStatsContent(content)
+		importParticleEffects(content)
 		importSkillsContent(content)
 		importItemsContent(content)
 		importBattleContent(content, null)

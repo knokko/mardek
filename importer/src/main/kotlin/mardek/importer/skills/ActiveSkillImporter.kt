@@ -55,6 +55,15 @@ fun parseActiveSkills(
 
 	val soundName = parseOptionalFlashString(rawSkill["sfx"] ?: rawSkill["delayedSfx"], "skill sound effect")
 	val soundEffect = getOptionalSoundByName(content, soundName)
+
+	var particleName = parseOptionalFlashString(rawSkill["pfx"], "skill particle effect")
+	if (particleName == "astralform" || particleName == "enfeeble" || particleName == "delaybuster" ||
+		particleName == "shatterwave" || particleName == "annihilation"
+	) particleName = null
+	if (particleName == "quake") particleName = "earthquake"
+	if (particleName == "crescendo") particleName = "crescendoslash"
+	val particleEffect = if (particleName != null) content.battle.particles.find { it.name == particleName }!! else null
+
 	ActiveSkill(
 		name = parseFlashString(rawSkill["skill"]!!, "skill name")!!,
 		description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else "",
@@ -73,7 +82,7 @@ fun parseActiveSkills(
 		addStatusEffects = parseStatusEffectList(content.stats, addEffects),
 		removeStatusEffects = parseStatusEffectList(content.stats, removeEffects),
 		revive = parseRevive(rawSkill["special"]),
-		particleEffect = parseOptionalFlashString(rawSkill["pfx"], "skill particle effect"),
+		particleEffect = particleEffect,
 		soundEffect = soundEffect,
 		animation = parseOptionalFlashString(rawSkill["anim"], "skill animation"),
 		combatRequirement = parseCombatRequirement(rawSkill["menuse"]),

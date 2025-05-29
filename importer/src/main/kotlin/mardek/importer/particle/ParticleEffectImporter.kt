@@ -8,14 +8,13 @@ import mardek.importer.area.parseFlashString
 import mardek.importer.audio.getSoundByName
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
+import mardek.importer.util.parseActionScriptObjectList
 import mardek.importer.util.parseActionScriptResource
 import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 internal const val FLASH_FRAMES_PER_SECOND = 30
-internal val FLASH_FRAME = 1.seconds / FLASH_FRAMES_PER_SECOND
+internal const val FLASH_FRAME = 1f / FLASH_FRAMES_PER_SECOND
 
 internal fun importParticleEffects(content: Content) {
 	val code = parseActionScriptResource("mardek/importer/particle/particles.txt")
@@ -40,7 +39,7 @@ private fun parseParticleEffect(content: Content, name: String, rawEffect: Strin
 	} else null
 
 	val rawDamageDelay = effectProperties["dmgdelay"]
-	val damageDelay = if (rawDamageDelay != null) FLASH_FRAME * parseInt(rawDamageDelay) else 0.seconds
+	val damageDelay = if (rawDamageDelay != null) FLASH_FRAME * parseInt(rawDamageDelay) else 0f
 
 	val rawDamageSound = effectProperties["delayedSfx"]
 	val damageSound = if (rawDamageSound != null) {
@@ -63,15 +62,41 @@ private fun parseParticleEffect(content: Content, name: String, rawEffect: Strin
 	val extraSoundDelays = if (rawSoundDelays != null) {
 		val rawDelayList = parseActionScriptNestedList(rawSoundDelays)
 		if (rawDelayList !is ArrayList<*>) throw IllegalArgumentException("Unexpected extra delays $rawSoundDelays")
-		rawDelayList.map { rawDelay -> FLASH_FRAME * parseInt(rawDelay.toString()) }.toTypedArray()
-	} else emptyArray<Duration>()
+		rawDelayList.map { rawDelay -> FLASH_FRAME * parseInt(rawDelay.toString()) }.toFloatArray()
+	} else FloatArray(0)
 
 	val rawDerived = effectProperties["derive"]
 	val inheritance = if (rawDerived != null) {
 		val parentName = parseFlashString(rawDerived, "derived particle name")!!
 		val parent = content.battle.particles.find { it.name == parentName }!!
-		ParticleInheritance(parent = parent, overrideSprites = null)
+		val rawTypes = effectProperties["newTypes"]
+		val overrideSprites = if (rawTypes != null) {
+			val rawTypeList = parseActionScriptNestedList(rawTypes)
+			if (rawTypeList !is ArrayList<*>) throw IllegalArgumentException("Unexpected newTypes $rawTypes")
+			val overrideElements = ArrayList(rawTypeList.map { parseInt(it.toString()) })
+			while (overrideElements.size > parent.emitters.size) overrideElements.removeLast()
+			val rawSheets = effectProperties["newSheets"]
+			val overrideSheets = if (rawSheets != null) {
+				val rawSheetList = parseActionScriptNestedList(rawSheets)
+				if (rawSheetList !is ArrayList<*>) throw IllegalArgumentException("Unexpected newSheets $rawTypes")
+				rawSheetList.map { parseInt(it.toString()) }
+			} else null
+			overrideElements.mapIndexed { index, newElement ->
+				val dummyEmitter = mutableMapOf(Pair("type", newElement.toString()))
+				if (overrideSheets == null) dummyEmitter["sheet"] = parent.emitters[index].sprite.sprite.width.toString()
+				else dummyEmitter["sheet"] = overrideSheets[index].toString()
+				getParticleSprite(content, dummyEmitter)
+			}.toTypedArray()
+		} else null
+		ParticleInheritance(parent = parent, overrideSprites = overrideSprites)
 	} else null
+
+	val rawEmitters = effectProperties["emitters"]
+	val emitters = if (rawEmitters != null) {
+		val emitterProperties = parseActionScriptObjectList(rawEmitters)
+		ArrayList(emitterProperties.map { importParticleEmitter(content, it) })
+	} else ArrayList(0)
+
 	return ParticleEffect(
 		name = name,
 		damageDelay = damageDelay,
@@ -80,6 +105,6 @@ private fun parseParticleEffect(content: Content, name: String, rawEffect: Strin
 		quake = quake,
 		extraSoundDelays = extraSoundDelays,
 		inheritance = inheritance,
-		emitters = ArrayList(0) // TODO Import emitters
+		emitters = emitters,
 	)
 }

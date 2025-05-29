@@ -11,6 +11,7 @@ import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
+import mardek.importer.particle.importParticleEffects
 import mardek.importer.skills.importSkillsContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -32,6 +33,7 @@ class TestAreaParser {
 	init {
 		importAudioContent(content.audio)
 		importStatsContent(content)
+		importParticleEffects(content)
 		importSkillsContent(content)
 		importItemsContent(content)
 		importBattleContent(content, null)

@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.SoundEffect
+import mardek.content.particle.ParticleEffect
 import mardek.content.stats.Element
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.StatModifierRange
@@ -61,7 +62,8 @@ class ActiveSkill(
 	val revive: Float,
 
 	@BitField(id = 13, optional = true)
-	val particleEffect: String?,
+	@ReferenceField(stable = false, label = "particles")
+	val particleEffect: ParticleEffect?,
 
 	@BitField(id = 14, optional = true)
 	@ReferenceField(stable = false, label = "sound effects")

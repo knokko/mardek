@@ -12,4 +12,5 @@ class ParticleSprite(
 	@BitField(id = 1)
 	val sprite: BcSprite,
 ) {
+	internal constructor() : this("", BcSprite())
 }

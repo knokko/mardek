@@ -1,6 +1,8 @@
 package mardek.content.particle
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.FloatField
 
 @BitStruct(backwardCompatible = true)
 class ParticleSize(
@@ -8,6 +10,8 @@ class ParticleSize(
 	 * The 'base' initial width of the emitted particles, which will be multiplied by a random number between
 	 * `minSizeMultiplier` and `maxSizeMultiplier` to determine the initial particle width.
 	 */
+	@BitField(id = 0)
+	@FloatField(expectMultipleOf = 1.0)
 	val baseWidth: Float,
 
 	/**
@@ -15,25 +19,52 @@ class ParticleSize(
 	 * `minSizeMultiplier` and `maxSizeMultiplier` (the same random number that was multiplied by `baseWidth`)
 	 * to determine the initial particle height.
 	 */
+	@BitField(id = 1)
+	@FloatField(expectMultipleOf = 1.0)
 	val baseHeight: Float,
+
+	/**
+	 * The `baseWidth` for new particles is increased by `shiftWidth` every second (continuously)
+	 */
+	@BitField(id = 2)
+	@FloatField(expectMultipleOf = 0.1)
+	val shiftWidth: Float,
+
+	/**
+	 * The `baseHeight` for new particles is increased by `shiftHeight` every second (continuously)
+	 */
+	@BitField(id = 3)
+	@FloatField(expectMultipleOf = 0.1)
+	val shiftHeight: Float,
 
 	/**
 	 * Whenever a particle is spawned, its width and height will be multiplied by a random number between
 	 * `minSizeMultiplier` and `maxSizeMultiplier`.
 	 */
+	@BitField(id = 4)
+	@FloatField(expectMultipleOf = 0.1)
 	val minSizeMultiplier: Float,
+
+	@BitField(id = 5)
+	@FloatField(expectMultipleOf = 0.1)
 	val maxSizeMultiplier: Float,
 
 	/**
-	 * At any point in time, the current width of each particle is computed as
-	 * `initialWidth * pow(growX, time since particle spawned)`
+	 * The width of each particle will be multiplied by `growX` every second (continuously)
 	 */
-	val growX: Int,
+	@BitField(id = 6)
+	@FloatField(expectMultipleOf = 1.0)
+	val growX: Float,
 
 	/**
-	 * At any point in time, the current height of each particle is computed as
-	 * `initialHeight * pow(growY, time since particle spawned)`
+	 * The height of each particle will be multiplied by `growY` every second (continuously)
 	 */
-	val growY: Int,
+	@BitField(id = 7)
+	@FloatField(expectMultipleOf = 1.0)
+	val growY: Float,
 ) {
+	internal constructor() : this(
+		0f, 0f, 0f, 0f,
+		0f, 0f, 0f, 0f
+	)
 }
