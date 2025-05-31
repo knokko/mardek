@@ -14,7 +14,7 @@ class MoveResult(
 	/**
 	 * The sound that should be played
 	 */
-	val sound: SoundEffect,
+	val sound: SoundEffect?,
 
 	/**
 	 * The final amount of damage dealt.

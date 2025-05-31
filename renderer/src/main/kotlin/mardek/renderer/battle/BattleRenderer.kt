@@ -36,6 +36,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 	private val playerBlockRenderers = mutableListOf<PlayerBlockRenderer>()
 	private val indicatorRenderers = mutableListOf<DamageIndicatorRenderer>()
 	private val creatureRenderer = BattleCreatureRenderers(this.context)
+	private val particleRenderer = ParticleRenderer(this.context)
 
 	fun beforeRendering() {
 		turnOrderRenderer.beforeRendering()
@@ -74,6 +75,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 
 	fun render() {
 		creatureRenderer.render()
+		particleRenderer.render()
 		context.uiRenderer.beginBatch()
 		val leftColor = srgbToLinear(rgba(90, 76, 44, 200))
 		val rightColor = srgbToLinear(rgba(38, 28, 17, 200))

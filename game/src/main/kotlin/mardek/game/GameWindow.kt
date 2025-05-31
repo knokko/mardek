@@ -75,7 +75,7 @@ class GameWindow(
 		val framebuffer = framebuffers.get(acquiredImage)
 		synchronized(state.lock()) {
 			if (state.currentState is ExitState) glfwSetWindowShouldClose(window.glfwWindow, true)
-			else renderer.render(getContent, state.currentState, recorder, acquiredImage.image(), framebuffer, frameIndex)
+			else renderer.render(getContent, state.currentState, recorder, acquiredImage.image(), framebuffer, frameIndex, state.soundQueue)
 		}
 
 		if (firstFrame) {

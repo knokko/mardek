@@ -38,8 +38,8 @@ class ParticleOpacity(
 ) {
 	internal constructor() : this(0f, 0f, null)
 
-	fun compute(timeSinceSpawn: Duration): Float {
-		val uncappedResult = initial + grow * timeSinceSpawn.toDouble(DurationUnit.SECONDS).toFloat()
+	fun compute(timeSinceSpawn: Float): Float {
+		val uncappedResult = initial + grow * timeSinceSpawn
 		if (limit == null) return uncappedResult
 		if (grow > 0f) return min(limit, uncappedResult)
 		if (grow < 0f) return max(limit, uncappedResult)

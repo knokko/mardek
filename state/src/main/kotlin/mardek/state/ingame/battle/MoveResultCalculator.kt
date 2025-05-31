@@ -22,7 +22,7 @@ class MoveResultCalculator(
 	private fun computeMeleeAttackResult(
 		attacker: CombatantState, target: CombatantState, passedChallenge: Boolean,
 		baseFlatDamage: Int, attackValue: Int, basicElementalBonus: Float,
-		basicSound: SoundEffect, basicHitChance: Int, basicCritChance: Int,
+		basicSound: SoundEffect?, basicHitChance: Int, basicCritChance: Int,
 		basicHealthDrain: Float, basicManaDrain: Float, attackElement: Element,
 		basicAddStatModifiers: MutableMap<CombatStat, Int>,
 		basicAddEffects: MutableMap<StatusEffect, Int>,
@@ -255,12 +255,15 @@ class MoveResultCalculator(
 		if (skill.revive != 0f) TODO("revive")
 		if (skill.changeElement) TODO("change element")
 
+		val sound = if (skill.particleEffect?.initialSound != null) null else
+			weapon?.hitSound ?: weapon?.type?.soundEffect ?: context.sounds.battle.punch
+
 		return computeMeleeAttackResult(
 			attacker, target, passedChallenge,
 			baseFlatDamage = extraFlatDamage,
 			attackValue = attackValue,
 			basicElementalBonus = elementalBonus,
-			basicSound = skill.soundEffect ?: weapon?.hitSound ?: weapon?.type?.soundEffect ?: context.sounds.battle.punch,
+			basicSound = sound,
 			basicHitChance = skill.accuracy,
 			basicCritChance = skillDamage.critChance ?: weapon?.critChance ?: 0,
 			basicHealthDrain = skill.healthDrain,

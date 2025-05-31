@@ -6,8 +6,6 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.SoundEffect
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 @BitStruct(backwardCompatible = true)
 class EmissionWaves(

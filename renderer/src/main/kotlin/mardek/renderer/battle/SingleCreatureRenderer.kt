@@ -25,7 +25,7 @@ class SingleCreatureRenderer(
 ) {
 	private val currentRealTime = System.nanoTime()
 	private val flipX = if (combatant.isOnPlayerSide) 1f else -1f
-	private val effectColorTransform = selectedColorTransform()
+	private val effectColorTransform = mergeColorTransforms(selectedColorTransform(), damageColorTransform())
 	private val skeleton = combatant.getModel().skeleton
 
 	private var relativeTime = currentRealTime - context.battle.startTime
@@ -47,6 +47,27 @@ class SingleCreatureRenderer(
 		if (passedTime >= blinkTime) return null
 
 		return selectedColorTransform(1f - passedTime.toFloat() / blinkTime)
+	}
+
+	private fun damageColorTransform(elementColor: Int, intensity: Float) = ColorTransform(
+		addColor = rgba(
+			normalize(red(elementColor)) * 0.5f * intensity,
+			normalize(green(elementColor)) * 0.5f * intensity,
+			normalize(blue(elementColor)) * 0.5f * intensity,
+			0f
+		),
+		multiplyColor = rgb(1f - 0.5f * intensity, 1f - 0.5f * intensity, 1f - 0.5f * intensity)
+	)
+
+	private fun damageColorTransform(): ColorTransform? {
+		val damageIndicator = combatant.lastDamageIndicator
+		if (damageIndicator !is DamageIndicatorHealth) return null
+
+		val blinkTime = 1000_000_000L
+		val passedTime = currentRealTime - damageIndicator.time
+		if (passedTime >= blinkTime) return null
+
+		return damageColorTransform(damageIndicator.element.color, 1f - passedTime.toFloat() / blinkTime)
 	}
 
 	private fun mergeColorTransforms(base: ColorTransform?, top: ColorTransform?): ColorTransform? {

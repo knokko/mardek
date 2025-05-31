@@ -16,7 +16,7 @@ private const val DURATION = 2_000_000_000L
 
 class DamageIndicatorRenderer(
 	private val context: BattleRenderContext,
-	private val combatant: CombatantState,
+	combatant: CombatantState,
 ) {
 
 	private val indicator = combatant.lastDamageIndicator
@@ -42,7 +42,7 @@ class DamageIndicatorRenderer(
 			batch.requests.add(
 				KimRequest(
 					x = midX - size / 2, y = midY - size / 2, scale = scale,
-					sprite = indicator.element.sprite, opacity = opacity * 0.2f
+					sprite = indicator.element.sprite, opacity = opacity * 0.7f
 				)
 			)
 		}
@@ -51,7 +51,7 @@ class DamageIndicatorRenderer(
 	private fun changeAlpha(color: Int, alpha: Int) = rgba(red(color), green(color), blue(color), alpha.toByte())
 
 	fun render() {
-		if (opacity <= 0f) return
+		if (!this::batch.isInitialized) return
 
 		context.resources.kim2Renderer.submit(batch, context.recorder, context.targetImage)
 

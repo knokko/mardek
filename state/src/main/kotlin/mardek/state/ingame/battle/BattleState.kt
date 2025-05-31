@@ -58,6 +58,8 @@ class BattleState(
 
 	val startTime = System.nanoTime()
 
+	val particles = mutableListOf<ParticleEffectState>()
+
 	@Suppress("unused")
 	internal constructor() : this(Battle(), arrayOf(null, null, null, null), PartyLayout(), BattleUpdateContext())
 
@@ -153,6 +155,7 @@ class BattleState(
 					)
 					val target = currentMove.target.target
 					val passedChallenge = false // TODO
+					currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(it, target)) }
 
 					val result = MoveResultCalculator(this, context).computeMeleeSkillResult(
 						currentMove.skill, attacker, target, passedChallenge
@@ -175,7 +178,7 @@ class BattleState(
 		context: BattleUpdateContext, result: MoveResult,
 		attacker: CombatantState, target: CombatantState,
 	) {
-		context.soundQueue.insert(result.sound)
+		if (result.sound != null) context.soundQueue.insert(result.sound)
 
 		if (!result.missed) {
 			target.lastDamageIndicator = DamageIndicatorHealth(
