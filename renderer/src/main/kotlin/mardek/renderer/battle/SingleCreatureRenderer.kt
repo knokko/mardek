@@ -61,13 +61,16 @@ class SingleCreatureRenderer(
 
 	private fun damageColorTransform(): ColorTransform? {
 		val damageIndicator = combatant.lastDamageIndicator
-		if (damageIndicator !is DamageIndicatorHealth) return null
+		if (damageIndicator !is DamageIndicatorHealth || damageIndicator.gainedHealth == 0) return null
 
 		val blinkTime = 1000_000_000L
 		val passedTime = currentRealTime - damageIndicator.time
 		if (passedTime >= blinkTime) return null
 
-		return damageColorTransform(damageIndicator.element.color, 1f - passedTime.toFloat() / blinkTime)
+		val color = if (damageIndicator.element === context.updateContext.physicalElement) rgb(250, 20, 20)
+		else damageIndicator.element.color
+
+		return damageColorTransform(color, 1f - passedTime.toFloat() / blinkTime)
 	}
 
 	private fun mergeColorTransforms(base: ColorTransform?, top: ColorTransform?): ColorTransform? {
