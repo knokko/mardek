@@ -11,8 +11,12 @@ class BattleCreatureRenderers(
 			Vector2f(-1f, -1f), Vector2f(1f, -1f), Vector2f(1f, 1f), Vector2f(-1f, 1f)
 		), null)
 
-		for (enemy in context.battle.allOpponents()) SingleCreatureRenderer(context, enemy).render()
-		for (player in context.battle.allPlayers()) SingleCreatureRenderer(context, player).render()
+		for (enemy in context.battle.allOpponents().sortedBy {
+			opponent -> opponent.getPosition(context.battle).y
+		}) SingleCreatureRenderer(context, enemy).render()
+		for (player in context.battle.allPlayers().sortedBy {
+			player -> player.getPosition(context.battle).y
+		}) SingleCreatureRenderer(context, player).render()
 
 		context.resources.partRenderer.endBatch()
 	}
