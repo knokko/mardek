@@ -7,11 +7,8 @@ import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.ui.ResourceBarRenderer
 import mardek.renderer.ui.ResourceType
-import mardek.state.ingame.battle.DamageIndicatorHealth
 import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.title.AbsoluteRectangle
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 class PlayerBlockRenderer(
@@ -78,20 +75,7 @@ class PlayerBlockRenderer(
 				region.minX + 4 * region.height / 5, region.minY + 13 * region.height / 30,
 				region.width - 4 * region.height / 5 - region.width / 20, 2 * region.height / 12
 			))
-			var displayedHealth = player.currentHealth
-			val lastDamage = player.lastDamageIndicator
-			if (lastDamage is DamageIndicatorHealth) {
-				val passedTime = System.nanoTime() - lastDamage.time
-				val duration = 2_000_000_000L
-				val progress = passedTime.toDouble() / duration.toDouble()
-				if (progress < 1.0) {
-					val newHealth = lastDamage.oldHealth + lastDamage.gainedHealth
-					displayedHealth = (progress * newHealth + (1.0 - progress) * lastDamage.oldHealth).roundToInt()
-					displayedHealth = if (lastDamage.gainedHealth >= 0) min(displayedHealth, player.currentHealth)
-					else max(displayedHealth, player.currentHealth)
-				}
-			}
-			healthBar.renderBar(displayedHealth, player.maxHealth)
+			val displayedHealth = renderCombatantHealth(player, healthBar, System.nanoTime())
 			healthBar.renderTextOverBar(displayedHealth, player.maxHealth)
 
 			val xpBar = ResourceBarRenderer(context, ResourceType.Experience, AbsoluteRectangle(

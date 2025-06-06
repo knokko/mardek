@@ -7,11 +7,8 @@ import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.ui.ResourceBarRenderer
 import mardek.renderer.ui.ResourceType
-import mardek.state.ingame.battle.DamageIndicatorHealth
 import mardek.state.ingame.battle.MonsterCombatantState
 import mardek.state.title.AbsoluteRectangle
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 class MonsterBlockRenderer(
@@ -30,7 +27,7 @@ class MonsterBlockRenderer(
 			val lastDamage = enemy.lastDamageIndicator
 			if (lastDamage != null) {
 				val spentTime = currentTime - lastDamage.time
-				val vanishTime = 1_000_000_000L
+				val vanishTime = 1_500_000_000L
 				opacity = 1f - spentTime.toFloat() / vanishTime.toFloat()
 			} else opacity = 0f
 		} else opacity = 1f
@@ -71,27 +68,12 @@ class MonsterBlockRenderer(
 			)
 		}
 
-		run {
-			val healthBar = ResourceBarRenderer(context, ResourceType.Health, AbsoluteRectangle(
-				region.minX + region.height / 2, region.minY + 6 * region.height / 10,
-				78 * region.width / 100 - region.height / 2, 2 * region.height / 10
-			))
-			var displayedHealth = enemy.currentHealth
-			val lastDamage = enemy.lastDamageIndicator
-			if (lastDamage is DamageIndicatorHealth) {
-				val passedTime = currentTime - lastDamage.time
-				val duration = 2_000_000_000L
-				val progress = passedTime.toDouble() / duration.toDouble()
-				if (progress < 1.0) {
-					val newHealth = lastDamage.oldHealth + lastDamage.gainedHealth
-					displayedHealth = (progress * newHealth + (1.0 - progress) * lastDamage.oldHealth).roundToInt()
-					displayedHealth = if (lastDamage.gainedHealth >= 0) min(displayedHealth, enemy.currentHealth)
-					else max(displayedHealth, enemy.currentHealth)
-				}
-			}
-			healthBar.renderBar(displayedHealth, enemy.maxHealth)
-			healthBar.renderCurrentOverBar(displayedHealth, enemy.maxHealth)
-		}
+		val healthBar = ResourceBarRenderer(context, ResourceType.Health, AbsoluteRectangle(
+			region.minX + region.height / 2, region.minY + 6 * region.height / 10,
+			78 * region.width / 100 - region.height / 2, 2 * region.height / 10
+		))
+		val displayedHealth = renderCombatantHealth(enemy, healthBar, currentTime)
+		healthBar.renderCurrentOverBar(displayedHealth, enemy.maxHealth)
 
 		run {
 			val minX = region.minX + 80 * region.width / 100

@@ -5,6 +5,7 @@ import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
+import mardek.renderer.changeAlpha
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.DamageIndicatorHealth
 import mardek.state.ingame.battle.DamageIndicatorMana
@@ -47,8 +48,6 @@ class DamageIndicatorRenderer(
 			)
 		}
 	}
-
-	private fun changeAlpha(color: Int, alpha: Int) = rgba(red(color), green(color), blue(color), alpha.toByte())
 
 	fun render() {
 		if (!this::batch.isInitialized) return
