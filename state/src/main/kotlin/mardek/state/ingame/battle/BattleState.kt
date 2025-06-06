@@ -155,13 +155,15 @@ class BattleState(
 					)
 					val target = currentMove.target.target
 					val passedChallenge = false // TODO
-					currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(it, target)) }
 
 					val result = MoveResultCalculator(this, context).computeMeleeSkillResult(
 						currentMove.skill, attacker, target, passedChallenge
 					)
 
 					applyMoveResult(context, result, attacker, target)
+					if (!result.missed) {
+						currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(it, target)) }
+					}
 					currentMove.hasProcessedDamage = true
 				}
 			} else {

@@ -4,8 +4,6 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 @BitStruct(backwardCompatible = true)
 class ParticleQuake(
