@@ -34,9 +34,17 @@ class SingleCreatureRenderer(
 		combatant.getPosition(context.battle), flipX, context.targetImage
 	)
 
-	private fun selectedColorTransform(intensity: Float) = ColorTransform(
-		addColor = rgba(0f, 0f, 0.5f * intensity, 0f),
-		multiplyColor = rgb(1f - 0.5f * intensity, 1f - 0.5f * intensity, 1f - 0.5f * intensity)
+	private fun colorCombineTransform(max: Float, intensity: Float, color: Int, ) = ColorTransform(
+		addColor = rgba(
+			normalize(red(color)) * max * intensity,
+			normalize(green(color)) * max * intensity,
+			normalize(blue(color)) * max * intensity, 0f
+		),
+		multiplyColor = rgb(1f - max * intensity, 1f - max * intensity, 1f - max * intensity)
+	)
+
+	private fun selectedColorTransform(intensity: Float) = colorCombineTransform(
+		0.5f, intensity, rgb(0f, 0f, 1f)
 	)
 
 	private fun selectedColorTransform(): ColorTransform? {
@@ -49,14 +57,8 @@ class SingleCreatureRenderer(
 		return selectedColorTransform(1f - passedTime.toFloat() / blinkTime)
 	}
 
-	private fun damageColorTransform(elementColor: Int, intensity: Float) = ColorTransform(
-		addColor = rgba(
-			normalize(red(elementColor)) * 0.5f * intensity,
-			normalize(green(elementColor)) * 0.5f * intensity,
-			normalize(blue(elementColor)) * 0.5f * intensity,
-			0f
-		),
-		multiplyColor = rgb(1f - 0.5f * intensity, 1f - 0.5f * intensity, 1f - 0.5f * intensity)
+	private fun damageColorTransform(elementColor: Int, intensity: Float) = colorCombineTransform(
+		1f, intensity, elementColor
 	)
 
 	private fun damageColorTransform(): ColorTransform? {
