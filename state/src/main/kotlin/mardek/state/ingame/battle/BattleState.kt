@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.*
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
 import mardek.content.skill.ActiveSkillMode
+import mardek.content.skill.ReactionSkillType
 import mardek.input.InputKey
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -53,6 +54,9 @@ class BattleState(
 	var selectedMove: BattleMoveSelection = BattleMoveSelectionAttack(target = null)
 
 	@BitField(id = 6)
+	var reactionChallenge: ReactionChallenge? = null
+
+	@BitField(id = 7)
 	var outcome = BattleOutcome.Busy
 		private set
 
@@ -74,8 +78,66 @@ class BattleState(
 	internal fun confirmMove(context: BattleUpdateContext, chosenMove: BattleMove) {
 		this.selectedMove = BattleMoveSelectionAttack(target = null)
 		this.currentMove = chosenMove
-		if (currentMove is BattleMoveWait) context.soundQueue.insert(context.sounds.ui.clickCancel)
+		if (chosenMove is BattleMoveWait) context.soundQueue.insert(context.sounds.ui.clickCancel)
 		else context.soundQueue.insert(context.sounds.ui.clickConfirm)
+
+		this.maybeShowReactionBar(context)
+	}
+
+	private fun maybeShowReactionBar(context: BattleUpdateContext) {
+		val chosenMove = this.currentMove
+		val onTurn = this.onTurn!!
+
+		var primaryType: ReactionSkillType? = null
+		if (chosenMove is BattleMoveBasicAttack) {
+			if (chosenMove.target.hasReactions(context, ReactionSkillType.MeleeDefense)) {
+				primaryType = ReactionSkillType.MeleeDefense
+			}
+			if (onTurn.hasReactions(context, ReactionSkillType.MeleeAttack)) {
+				primaryType = ReactionSkillType.MeleeAttack
+			}
+		}
+
+		if (chosenMove is BattleMoveSkill) {
+			if (chosenMove.skill.mode == ActiveSkillMode.Self &&
+				onTurn.hasReactions(context, ReactionSkillType.RangedAttack)
+			) {
+				primaryType = ReactionSkillType.RangedAttack
+			}
+			if (chosenMove.skill.mode == ActiveSkillMode.Melee) {
+				if (chosenMove.target !is BattleSkillTargetSingle) throw UnsupportedOperationException(
+					"Melee skills must be single-target, but got ${chosenMove.skill.name}"
+				)
+				if (chosenMove.target.target.hasReactions(context, ReactionSkillType.MeleeDefense)) {
+					primaryType = ReactionSkillType.MeleeDefense
+				}
+				if (onTurn.hasReactions(context, ReactionSkillType.MeleeAttack)) {
+					primaryType = ReactionSkillType.MeleeAttack
+				}
+			}
+			if (chosenMove.skill.mode == ActiveSkillMode.Ranged) {
+				if (chosenMove.target is BattleSkillTargetSingle &&
+					chosenMove.target.target.hasReactions(context, ReactionSkillType.RangedDefense)
+				) primaryType = ReactionSkillType.RangedDefense
+				if (chosenMove.target is BattleSkillTargetAllAllies) {
+					val allies = if (onTurn.isOnPlayerSide) livingPlayers() else livingOpponents()
+					if (allies.any { it.hasReactions(context, ReactionSkillType.RangedDefense) }) {
+						primaryType = ReactionSkillType.RangedDefense
+					}
+				}
+				if (chosenMove.target is BattleSkillTargetAllEnemies) {
+					val enemies = if (onTurn.isOnPlayerSide) livingOpponents() else livingPlayers()
+					if (enemies.any { it.hasReactions(context, ReactionSkillType.RangedDefense) }) {
+						primaryType = ReactionSkillType.RangedDefense
+					}
+				}
+				if (onTurn.hasReactions(context, ReactionSkillType.RangedAttack)) {
+					primaryType = ReactionSkillType.RangedAttack
+				}
+			}
+		}
+
+		if (primaryType != null) this.reactionChallenge = ReactionChallenge(primaryType)
 	}
 
 	internal fun runAway() {
@@ -84,11 +146,15 @@ class BattleState(
 
 	fun processKeyPress(key: InputKey, context: BattleUpdateContext) {
 		val onTurn = this.onTurn
+		val reactionChallenge = this.reactionChallenge
 		if (onTurn != null && currentMove is BattleMoveThinking) {
 			if (key == InputKey.Cancel) battleCancel(this, context)
 			if (key == InputKey.Interact) battleClick(this, context)
 			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, context)
 			if (key == InputKey.MoveUp || key == InputKey.MoveDown) battleScrollVertically(this, key, context)
+		}
+		if (reactionChallenge != null && reactionChallenge.clickedAfter == -1L) {
+			reactionChallenge.clickedAfter = System.nanoTime() - reactionChallenge.startTime
 		}
 	}
 
@@ -118,7 +184,7 @@ class BattleState(
 		} else {
 			MonsterStrategyCalculator(this, context).determineNextMove()
 		}
-		println("currentMove is $currentMove")
+		maybeShowReactionBar(context)
 	}
 
 	fun update(context: BattleUpdateContext) {
@@ -133,7 +199,7 @@ class BattleState(
 		if (currentMove is BattleMoveBasicAttack) {
 			if (currentMove.finishedStrike && !currentMove.processedStrike) {
 				val attacker = onTurn!!
-				val passedChallenge = false // TODO
+				val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
 				val result = MoveResultCalculator(this, context).computeBasicAttackResult(
 					attacker, currentMove.target, passedChallenge
 				)
@@ -143,6 +209,7 @@ class BattleState(
 			}
 			if (currentMove.finishedJump) {
 				this.onTurn = null
+				this.reactionChallenge = null
 			}
 		}
 
@@ -154,7 +221,7 @@ class BattleState(
 						"Melee skills can only hit 1 target, but got ${currentMove.target}"
 					)
 					val target = currentMove.target.target
-					val passedChallenge = false // TODO
+					val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
 
 					val result = MoveResultCalculator(this, context).computeMeleeSkillResult(
 						currentMove.skill, attacker, target, passedChallenge
@@ -172,6 +239,7 @@ class BattleState(
 
 			if (currentMove.finished) {
 				this.onTurn = null
+				this.reactionChallenge = null
 			}
 		}
 	}

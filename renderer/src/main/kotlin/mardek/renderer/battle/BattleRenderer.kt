@@ -38,6 +38,10 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		minX = 0, minY = context.targetImage.height / 12,
 		width = context.targetImage.width, height = context.targetImage.height / 16
 	))
+	private val challengeBarRenderer = ChallengeBarRenderer(this.context, AbsoluteRectangle(
+		minX = 0, minY = context.targetImage.height - context.targetImage.height / 16 - context.targetImage.height / 8,
+		width = context.targetImage.width, height = context.targetImage.height / 16
+	))
 	private val indicatorRenderers = mutableListOf<DamageIndicatorRenderer>()
 	private val creatureRenderer = BattleCreatureRenderers(this.context)
 	private val particleRenderer = ParticleRenderer(this.context)
@@ -46,6 +50,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		turnOrderRenderer.beforeRendering()
 		actionBarRenderer.beforeRendering()
 		currentMoveBarRenderer.beforeRendering()
+		challengeBarRenderer.beforeRendering()
 		skillOrItemSelectionRenderer.beforeRendering()
 		skillOrItemDescriptionRenderer.beforeRendering()
 		targetSelectionRenderer.beforeRendering()
@@ -100,6 +105,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		turnOrderRenderer.render()
 		actionBarRenderer.render()
 		currentMoveBarRenderer.render()
+		challengeBarRenderer.render()
 		skillOrItemSelectionRenderer.render()
 		skillOrItemDescriptionRenderer.render()
 		targetSelectionRenderer.render()

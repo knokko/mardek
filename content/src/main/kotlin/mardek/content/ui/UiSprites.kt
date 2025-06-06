@@ -96,6 +96,9 @@ class UiSprites(
 
 	@BitField(id = 29)
 	val fleeIcon: KimSprite,
+
+	@BitField(id = 30)
+	val challengeCursor: BcSprite,
 ) {
 
 	@Suppress("unused")
@@ -107,7 +110,7 @@ class UiSprites(
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		BcSprite(), BcSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite()
+		KimSprite(), KimSprite(), KimSprite(), BcSprite(),
 	)
 
 	fun allKimSprites() = arrayOf(
@@ -121,5 +124,5 @@ class UiSprites(
 		consumableIcon, waitIcon, fleeIcon
 	)
 
-	fun allBcSprites() = arrayOf(titleScreenBackground, titleScreenTitle)
+	fun allBcSprites() = arrayOf(titleScreenBackground, titleScreenTitle, challengeCursor)
 }

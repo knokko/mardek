@@ -12,6 +12,8 @@ import mardek.content.battle.StrategyPool
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Item
 import mardek.content.skill.PassiveSkill
+import mardek.content.skill.ReactionSkill
+import mardek.content.skill.ReactionSkillType
 import mardek.content.skill.Skill
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.*
@@ -213,6 +215,8 @@ abstract class CombatantState internal constructor(
 
 	abstract fun getTurnOrderIcon(): KimSprite
 
+	abstract fun hasReactions(context: BattleUpdateContext, type: ReactionSkillType): Boolean
+
 	companion object {
 
 		@JvmStatic
@@ -281,6 +285,10 @@ class PlayerCombatantState(
 	override fun getModel() = player.battleModel
 
 	override fun getTurnOrderIcon() = player.areaSprites.sprites[0]
+
+	override fun hasReactions(
+		context: BattleUpdateContext, type: ReactionSkillType
+	) = context.characterStates[player]!!.toggledSkills.any { it is ReactionSkill && it.type == type }
 }
 
 @BitStruct(backwardCompatible = true)
@@ -388,6 +396,8 @@ class MonsterCombatantState(
 	override fun getModel() = monster.model
 
 	override fun getTurnOrderIcon() = monster.type.icon
+
+	override fun hasReactions(context: BattleUpdateContext, type: ReactionSkillType) = false
 
 	companion object {
 
