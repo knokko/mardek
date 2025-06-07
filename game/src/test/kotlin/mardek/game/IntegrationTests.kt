@@ -77,5 +77,9 @@ class IntegrationTests {
 	fun testSkillResultCalculator() {
 		TestMoveResultCalculator.testShockDamageAndParalyze(instance)
 		TestMoveResultCalculator.testDarkClawBlinding(instance)
+		TestMoveResultCalculator.testThousandNeedles(instance)
+		TestMoveResultCalculator.testPyromagia(instance)
+		TestMoveResultCalculator.testRecover(instance)
+		TestMoveResultCalculator.testMultiTargetFrostasia(instance)
 	}
 }

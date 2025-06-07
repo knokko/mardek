@@ -87,7 +87,7 @@ class AreaState(
 			state.areaDiscovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
 		}
 
-		updatePlayerPosition(state.areaDiscovery)
+		updatePlayerPosition(state.areaDiscovery, content, soundQueue)
 		processInput(input)
 		if (shouldInteract) {
 			interact()
@@ -105,6 +105,7 @@ class AreaState(
 
 		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
 			val physicalElement = content.stats.elements.find { it.rawName == "NONE" }!!
+			soundQueue.insert(content.audio.fixedEffects.battle.engage)
 			activeBattle = BattleState(
 				battle = incomingRandomBattle!!.battle,
 				players = state.characterSelection.party,
@@ -178,7 +179,7 @@ class AreaState(
 		}
 	}
 
-	private fun updatePlayerPosition(discovery: AreaDiscoveryMap) {
+	private fun updatePlayerPosition(discovery: AreaDiscoveryMap, content: Content, soundQueue: SoundQueue) {
 		val nextPlayerPosition = this.nextPlayerPosition
 		if (nextPlayerPosition != null && nextPlayerPosition.arrivalTime <= currentTime) {
 			for (index in 1 until playerPositions.size) {
@@ -196,11 +197,11 @@ class AreaState(
 			checkTransitions()
 			if (nextTransition != null) return
 
-			maybeStartRandomBattle()
+			maybeStartRandomBattle(content, soundQueue)
 		}
 	}
 
-	private fun maybeStartRandomBattle() {
+	private fun maybeStartRandomBattle(content: Content, soundQueue: SoundQueue) {
 		val randomBattles = area.randomBattles ?: return
 		if (stepsWithoutBattle == 0) {
 			if (rng.nextInt(100) < randomBattles.chance || true) {
@@ -219,6 +220,7 @@ class AreaState(
 					randomBattles.specialBackground ?: randomBattles.defaultBackground
 				)
 				incomingRandomBattle = IncomingRandomBattle(battle, currentTime + 1.seconds, canAvoid)
+				soundQueue.insert(content.audio.fixedEffects.battle.encounter)
 				stepsWithoutBattle = randomBattles.minSteps
 			}
 		} else stepsWithoutBattle -= 1

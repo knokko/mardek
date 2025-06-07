@@ -8,7 +8,7 @@ class SoundQueue {
 	private val internal = ArrayBlockingQueue<SoundEffect>(5)
 
 	fun insert(sound: SoundEffect) {
-		internal.offer(sound)
+		if (!internal.offer(sound)) println("WARNING: too many sounds! skipped $sound")
 	}
 
 	fun take(): SoundEffect? = internal.poll()

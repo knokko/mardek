@@ -19,8 +19,8 @@ class TestSkillsImporter {
 	@BeforeAll
 	fun importSkills() {
 		importAudioContent(content.audio)
-		importStatsContent(content)
 		importParticleEffects(content)
+		importStatsContent(content)
 		importSkillsContent(content)
 	}
 
@@ -47,7 +47,7 @@ class TestSkillsImporter {
 		assertEquals(12, earthSlash.manaCost)
 		assertEquals(100, earthSlash.accuracy)
 		assertEquals(20, earthSlash.masteryPoints)
-		assertEquals(ActiveSkillMode.Melee, earthSlash.mode)
+		assertTrue(earthSlash.isMelee)
 		assertEquals("EARTH", earthSlash.element.properName)
 		assertEquals(SkillTargetType.Single, earthSlash.targetType)
 		assertSame(content.battle.particles.find { it.name == "slash_earth" }!!, earthSlash.particleEffect)
@@ -85,7 +85,7 @@ class TestSkillsImporter {
 		assertEquals(1, strengthBoost.minAdder)
 		assertEquals(6, strengthBoost.maxAdder)
 
-		assertEquals(ActiveSkillMode.Self, boost.mode)
+		assertFalse(boost.isMelee)
 		assertEquals("FIRE", boost.element.properName)
 		assertEquals(SkillTargetType.Self, boost.targetType)
 		assertSame(content.battle.particles.find { it.name == "boost" }!!, boost.particleEffect)
@@ -125,7 +125,7 @@ class TestSkillsImporter {
 		assertEquals(0, damage.critChance)
 		assertTrue(damage.splitDamage)
 
-		assertEquals(ActiveSkillMode.Ranged, inferno.mode)
+		assertFalse(inferno.isMelee)
 		assertEquals(20, inferno.manaCost)
 		assertEquals(0, inferno.masteryPoints)
 		assertEquals(SkillTargetType.AllEnemies, inferno.targetType)
@@ -146,7 +146,7 @@ class TestSkillsImporter {
 		assertFalse(damage.ignoresShield)
 
 		assertEquals(25, glory.manaCost)
-		assertEquals(ActiveSkillMode.Melee, glory.mode)
+		assertTrue(glory.isMelee)
 		assertSame(content.battle.particles.find { it.name == "smiteevil" }!!, glory.particleEffect)
 	}
 
@@ -178,7 +178,7 @@ class TestSkillsImporter {
 		val removeConfusion = healingWind.removeStatusEffects[0]
 		assertEquals("Confusion", removeConfusion.effect.niceName)
 		assertEquals(100, removeConfusion.chance)
-		assertEquals(ActiveSkillMode.Ranged, healingWind.mode)
+		assertFalse(healingWind.isMelee)
 		assertEquals(SkillTargetType.Any, healingWind.targetType)
 
 		assertTrue(healingWind.isHealing)
@@ -223,7 +223,7 @@ class TestSkillsImporter {
 
 		assertEquals(10, acid.manaCost)
 		assertEquals(100, acid.accuracy)
-		assertEquals(ActiveSkillMode.Ranged, acid.mode)
+		assertFalse(acid.isMelee)
 		assertEquals(SkillTargetType.Single, acid.targetType)
 	}
 
@@ -262,7 +262,7 @@ class TestSkillsImporter {
 
 		assertTrue(potionSpray.isHealing)
 		assertEquals(-1, potionSpray.masteryPoints)
-		assertEquals(ActiveSkillMode.Self, potionSpray.mode)
+		assertFalse(potionSpray.isMelee)
 		assertEquals(SkillTargetType.AllAllies, potionSpray.targetType)
 	}
 
@@ -293,7 +293,7 @@ class TestSkillsImporter {
 		val resurrect = getAction("Astral Magic", "Resurrect")
 		assertNull(resurrect.damage)
 		assertEquals(32, resurrect.manaCost)
-		assertEquals(ActiveSkillMode.Ranged, resurrect.mode)
+		assertFalse(resurrect.isMelee)
 		assertEquals(SkillTargetType.Single, resurrect.targetType)
 		assertTrue(resurrect.isHealing)
 		assertEquals(0.5f, resurrect.revive, margin)
@@ -352,7 +352,7 @@ class TestSkillsImporter {
 		assertEquals(50, maybePoison.chance)
 
 		assertEquals(SkillTargetType.Single, needleflare.targetType)
-		assertEquals(ActiveSkillMode.Ranged, needleflare.mode)
+		assertFalse(needleflare.isMelee)
 		assertEquals("PHYSICAL", needleflare.element.properName)
 		assertEquals(20, needleflare.delay)
 	}

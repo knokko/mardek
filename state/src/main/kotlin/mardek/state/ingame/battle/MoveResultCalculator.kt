@@ -14,25 +14,23 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
-class MoveResultCalculator(
-	private val state: BattleState,
-	private val context: BattleUpdateContext,
-) {
+class MoveResultCalculator(private val context: BattleUpdateContext) {
 
-	private fun computeMeleeAttackResult(
+	private fun computeAttackResult(
 		attacker: CombatantState, target: CombatantState, passedChallenge: Boolean,
+		multiplierStat: CombatStat?, defenseStat: CombatStat?, isMelee: Boolean, isHealing: Boolean,
+		attackReactionType: ReactionSkillType, defenseReactionType: ReactionSkillType,
 		baseFlatDamage: Int, attackValue: Int, basicElementalBonus: Float,
-		basicSound: SoundEffect?, basicHitChance: Int, basicCritChance: Int,
+		basicHitChance: Int, basicCritChance: Int, applyDamageSplit: Boolean,
 		basicHealthDrain: Float, basicManaDrain: Float, attackElement: Element,
 		basicAddStatModifiers: MutableMap<CombatStat, Int>,
 		basicAddEffects: MutableMap<StatusEffect, Int>,
 		basicRemoveEffects: MutableMap<StatusEffect, Int>,
-	): MoveResult {
-		val defense = target.getStat(CombatStat.MeleeDefense, context)
-		var sound = basicSound
+	): Entry {
+		val defense = if (defenseStat != null && !isHealing) target.getStat(defenseStat, context) else 0
 
-		val strength = attacker.getStat(CombatStat.Strength, context)
-		var damage = max(0, attackValue - defense) * strength * (attacker.getLevel(context) + 5)
+		val multiplier = if (multiplierStat != null) attacker.getStat(multiplierStat, context) else 1
+		var damage = max(0, attackValue - defense) * multiplier * (attacker.getLevel(context) + 5)
 
 		val rawWeapon = attacker.getEquipment(context)[0]
 		val weapon = rawWeapon?.equipment?.weapon
@@ -50,17 +48,16 @@ class MoveResultCalculator(
 		var hitChance = basicHitChance
 
 		for (effect in attacker.statusEffects) {
-			attackerEffectBonus += effect.meleeDamageModifier
-			hitChance -= effect.missChance
-		}
-
-		for (effect in target.statusEffects) {
-			targetEffectBonus -= effect.meleeDamageReduction
+			if (isMelee) {
+				attackerEffectBonus += effect.meleeDamageModifier
+				hitChance -= effect.missChance
+			}
 		}
 
 		val removeCandidateEffects = basicRemoveEffects
 		for (effect in target.statusEffects) {
-			if (effect.disappearAfterHitChance > 0) {
+			targetEffectBonus -= if (isMelee) effect.meleeDamageReduction else effect.rangedDamageReduction
+			if (isMelee && effect.disappearAfterHitChance > 0) {
 				removeCandidateEffects[effect] =
 					removeCandidateEffects.getOrDefault(effect, 0) + effect.disappearAfterHitChance
 			}
@@ -70,7 +67,7 @@ class MoveResultCalculator(
 		var attackElementBonus = basicElementalBonus
 		if (passedChallenge) {
 			for (skill in attacker.getToggledSkills(context)) {
-				if (skill !is ReactionSkill || skill.type != ReactionSkillType.MeleeAttack) continue
+				if (skill !is ReactionSkill || skill.type != attackReactionType) continue
 				if (skill.smitePlus) hasSmitePlus = true
 				extraDamageFractionAttacker += skill.addDamageFraction
 				extraFlatDamage += skill.addFlatDamage
@@ -121,9 +118,9 @@ class MoveResultCalculator(
 
 		var elementalResistance = target.getResistance(attackElement, context)
 		var hasSurvivor = false
-		if (passedChallenge) {
+		if (passedChallenge && !isHealing) {
 			for (skill in target.getToggledSkills(context)) {
-				if (skill !is ReactionSkill || skill.type != ReactionSkillType.MeleeDefense) continue
+				if (skill !is ReactionSkill || skill.type != defenseReactionType) continue
 				elementalResistance -= skill.getElementalBonus(attackElement)
 				hitChance += skill.addAccuracy // Will be negative for evasion skills
 				extraFlatDamage += skill.addFlatDamage
@@ -134,7 +131,7 @@ class MoveResultCalculator(
 			}
 		}
 
-		hitChance -= target.getStat(CombatStat.Evasion, context)
+		if (isMelee) hitChance -= target.getStat(CombatStat.Evasion, context)
 		val missed = hitChance <= Random.Default.nextInt(100)
 		val criticalHit = criticalChance > Random.Default.nextInt(100)
 
@@ -144,24 +141,27 @@ class MoveResultCalculator(
 			floatDamage *= (1.0 + attackerCreatureBonus)
 			floatDamage *= (1.0 + attackerEffectBonus)
 			floatDamage *= (1.0 + attackElementBonus)
-			floatDamage *= Random.Default.nextDouble(0.9, 1.1)
+			floatDamage *= if (isMelee) Random.Default.nextDouble(0.9, 1.1)
+			else Random.Default.nextDouble(0.7, 1.3)
 
-			floatDamage *= max(0.0, 1.0 + extraDamageFractionTarget)
-			floatDamage *= (1.0 + targetCreatureBonus)
-			floatDamage *= (1.0 + targetEffectBonus)
-			floatDamage *= (1.0 - elementalResistance)
-
-			if (criticalHit) {
-				floatDamage *= 2.0
-				sound = context.sounds.battle.critical
+			if (!isHealing) {
+				floatDamage *= max(0.0, 1.0 + extraDamageFractionTarget)
+				floatDamage *= (1.0 + targetCreatureBonus)
+				floatDamage *= (1.0 + targetEffectBonus)
+				floatDamage *= (1.0 - elementalResistance)
 			}
+
+			if (criticalHit) floatDamage *= 2.0
 
 			if (hasSmitePlus) TODO()
 
+			if (applyDamageSplit) floatDamage /= 2.0
 			damage = (floatDamage * 0.02).roundToInt()
 		}
 
 		if (damage > 0 && extraFlatDamage < 0) damage = max(0, damage + extraFlatDamage)
+		else damage += extraFlatDamage
+		if (isHealing) damage = -damage
 
 		var restoreAttackerHealth = (hpDrain * damage).roundToInt()
 		if (restoreAttackerHealth > 0) restoreAttackerHealth = min(restoreAttackerHealth, target.currentHealth)
@@ -176,6 +176,7 @@ class MoveResultCalculator(
 		val removedEffects = removeCandidateEffects.filter {
 			val effect = it.key
 			val chance = it.value
+			if (!target.statusEffects.contains(effect)) return@filter false
 			if (chance <= Random.Default.nextInt(100)) return@filter false
 			if (target.getAutoEffects(context).contains(effect)) return@filter false
 			true
@@ -190,39 +191,59 @@ class MoveResultCalculator(
 			true
 		}.keys
 
-		if (missed) sound = context.sounds.battle.miss
-
-		return MoveResult(
-			element = attackElement,
-			sound = sound,
-			damage = damage,
-			missed = missed,
-			criticalHit = criticalHit,
-			addedEffects = addedEffects,
-			removedEffects = removedEffects,
-			addedStatModifiers = basicAddStatModifiers,
-			restoreAttackerHealth = restoreAttackerHealth,
-			restoreAttackerMana = restoreAttackerMana,
+		return Entry(
+			result = MoveResult.Entry(
+				target = target,
+				damage = damage,
+				missed = missed,
+				criticalHit = criticalHit,
+				addedEffects = addedEffects,
+				removedEffects = removedEffects,
+				addedStatModifiers = basicAddStatModifiers,
+			),
+			restoredHealth = restoreAttackerHealth,
+			restoredMana = restoreAttackerMana,
 		)
 	}
 
-	fun computeMeleeSkillResult(
-		skill: ActiveSkill, attacker: CombatantState, target: CombatantState, passedChallenge: Boolean
+	fun computeSkillResult(
+		skill: ActiveSkill, attacker: CombatantState, targets: List<CombatantState>, passedChallenge: Boolean
 	): MoveResult {
 		val rawWeapon = attacker.getEquipment(context)[0]
 		val weapon = rawWeapon?.equipment?.weapon
 
 		val skillDamage = skill.damage!!
 
+		var attackReactionType = ReactionSkillType.RangedAttack
+		var defenseReactionType = ReactionSkillType.RangedDefense
+		var multiplierStat = CombatStat.Spirit
+		var defenseStat: CombatStat? = CombatStat.RangedDefense
+		if (skill.isMelee) {
+			if (skillDamage.spiritModifier != SkillSpiritModifier.SpiritBlade) {
+				multiplierStat = CombatStat.Strength
+				defenseStat = CombatStat.MeleeDefense
+			}
+			attackReactionType = ReactionSkillType.MeleeAttack
+			defenseReactionType = ReactionSkillType.MeleeDefense
+		}
+
 		var extraFlatDamage = 0
 		var elementalBonus = 0f
 		var attackValue = skillDamage.flatAttackValue
 		attackValue += (skillDamage.weaponModifier * attacker.getStat(CombatStat.Attack, context)).roundToInt()
 		attackValue += (skillDamage.levelModifier * attacker.getLevel(context))
+		if (skillDamage.spiritModifier == SkillSpiritModifier.GreenLightning) {
+			attackValue += 2 * attacker.getStat(CombatStat.Spirit, context)
+		}
+		if (skillDamage.spiritModifier == SkillSpiritModifier.DivineGlory) {
+			extraFlatDamage += attacker.getLevel(context) * attacker.getStat(CombatStat.Spirit, context)
+		}
+		if (skillDamage.spiritModifier == SkillSpiritModifier.LayOnHands) {
+			extraFlatDamage -= 2 * attacker.getLevel(context) * attacker.getStat(CombatStat.Spirit, context)
+		}
 
-		if (skillDamage.ignoresDefense) TODO("ignores defense")
+		if (skillDamage.ignoresDefense) defenseStat = null
 		if (skillDamage.ignoresShield) TODO("ignores shield")
-		if (skillDamage.spiritModifier != SkillSpiritModifier.None) TODO("spirit modifier")
 		for (bonus in skillDamage.bonusAgainstElements) {
 			if (bonus.element == skill.element) elementalBonus += bonus.modifier
 		}
@@ -232,7 +253,6 @@ class MoveResultCalculator(
 		if (skillDamage.statusEffectModifier != 0f) TODO("status effect modifier")
 		if (skillDamage.killCountModifier != 0f) TODO("kill count modifier")
 		extraFlatDamage += skillDamage.hardcodedDamage
-		extraFlatDamage += (skillDamage.remainingTargetHpModifier * target.currentHealth).roundToInt()
 		if (skillDamage.potionModifier != 0f) TODO("potion modifier")
 		if (skillDamage.crescendoModifier != 0f) TODO("crescendo modifier")
 
@@ -255,23 +275,48 @@ class MoveResultCalculator(
 		if (skill.revive != 0f) TODO("revive")
 		if (skill.changeElement) TODO("change element")
 
-		val sound = if (skill.particleEffect?.initialSound != null) null else
-			weapon?.hitSound ?: weapon?.type?.soundEffect ?: context.sounds.battle.punch
+		var sound = skill.particleEffect?.damageSound
+		if (sound == null && skill.isMelee) {
+			sound = skill.particleEffect?.initialSound
+			if (sound == null && weapon != null) sound = weapon.hitSound ?: weapon.type.soundEffect
+			if (sound == null) sound = context.sounds.battle.punch
+		}
 
-		return computeMeleeAttackResult(
+		val critChance = if (skillDamage.critChance != null) skillDamage.critChance!!
+		else if (skill.isMelee && weapon?.critChance != null) weapon.critChance else 0
+
+		val rawEntries = targets.map { target -> computeAttackResult(
 			attacker, target, passedChallenge,
-			baseFlatDamage = extraFlatDamage,
+			multiplierStat = multiplierStat,
+			defenseStat = defenseStat,
+			isMelee = skill.isMelee,
+			isHealing = skill.isPositive() && !target.getCreatureType().revertsHealing,
+			attackReactionType = attackReactionType,
+			defenseReactionType = defenseReactionType,
+			baseFlatDamage = extraFlatDamage + (skillDamage.remainingTargetHpModifier * target.currentHealth).roundToInt(),
 			attackValue = attackValue,
 			basicElementalBonus = elementalBonus,
-			basicSound = sound,
 			basicHitChance = skill.accuracy,
-			basicCritChance = skillDamage.critChance ?: weapon?.critChance ?: 0,
+			basicCritChance = critChance,
+			applyDamageSplit = targets.size > 1 && skillDamage.splitDamage,
 			basicHealthDrain = skill.healthDrain,
 			basicManaDrain = 0f,
 			attackElement = skill.element,
 			basicAddStatModifiers = addStatModifiers,
 			basicAddEffects = addEffects,
 			basicRemoveEffects = removeEffects,
+		) }
+
+		val sounds = mutableListOf<SoundEffect>()
+		if (rawEntries.any { it.result.missed }) sounds.add(context.sounds.battle.miss)
+		if (sound != null && rawEntries.any { !it.result.missed }) sounds.add(sound)
+		if (rawEntries.any { !it.result.missed && it.result.criticalHit }) sounds.add(context.sounds.battle.critical)
+		return MoveResult(
+			element = skill.element,
+			sounds = sounds,
+			targets = rawEntries.map { it.result },
+			restoreAttackerHealth = rawEntries.sumOf { it.restoredHealth },
+			restoreAttackerMana = rawEntries.sumOf { it.restoredMana }
 		)
 	}
 
@@ -311,14 +356,20 @@ class MoveResultCalculator(
 			attackElement = attacker.element
 		}
 
-		return computeMeleeAttackResult(
+		val rawEntry = computeAttackResult(
 			attacker, target, passedChallenge,
+			multiplierStat = CombatStat.Strength,
+			defenseStat = CombatStat.MeleeDefense,
+			isMelee = true,
+			isHealing = false,
+			attackReactionType = ReactionSkillType.MeleeAttack,
+			defenseReactionType = ReactionSkillType.MeleeDefense,
 			baseFlatDamage = 0,
 			attackValue = attacker.getStat(CombatStat.Attack, context),
 			basicElementalBonus = 0f,
-			basicSound = sound,
 			basicHitChance = hitChance,
 			basicCritChance = critChance,
+			applyDamageSplit = false,
 			basicHealthDrain = healthDrain,
 			basicManaDrain = manaDrain,
 			attackElement = attackElement,
@@ -326,5 +377,26 @@ class MoveResultCalculator(
 			basicAddEffects = mutableMapOf(),
 			basicRemoveEffects = mutableMapOf(),
 		)
+
+		val sounds = mutableListOf<SoundEffect>()
+		if (rawEntry.result.missed) {
+			sounds.add(context.sounds.battle.miss)
+		} else {
+			sounds.add(sound)
+			if (rawEntry.result.criticalHit) sounds.add(context.sounds.battle.critical)
+		}
+		return MoveResult(
+			element = attackElement,
+			sounds = sounds,
+			targets = listOf(rawEntry.result),
+			restoreAttackerHealth = rawEntry.restoredHealth,
+			restoreAttackerMana = rawEntry.restoredMana,
+		)
 	}
+
+	private class Entry(
+		val result: MoveResult.Entry,
+		val restoredHealth: Int,
+		val restoredMana: Int,
+	)
 }

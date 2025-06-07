@@ -32,8 +32,8 @@ class TestAreaParser {
 
 	init {
 		importAudioContent(content.audio)
-		importStatsContent(content)
 		importParticleEffects(content)
+		importStatsContent(content)
 		importSkillsContent(content)
 		importItemsContent(content)
 		importBattleContent(content, null)

@@ -124,6 +124,10 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 	val battleTag = FLASH.tags.find { it.uniqueId == "5118" }!! as DefineSpriteTag
 
 	val labelBlacklist = arrayOf("null", "humans!", "dummy", "Monsters", "Bosses", "Ether Clone")
+	// 1885 is 'crystal pointer'
+	// 2233 is casting element shadow
+	// 2294 appears to be nothing
+	// 2311 is an exclamation mark, no clue what it's for
 	val idBlacklist = arrayOf(-1, 0, 1885, 2233, 2294, 2311)
 
 	class Monster(val label: String) {
@@ -154,7 +158,6 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 		val prefix = "skin = "
 		val index = source.indexOf(prefix)
 		if (index == -1) {
-
 			throw RuntimeException("monster is ${monster.label} and source is $source")
 		}
 		val endIndex = source.indexOf(';', index + prefix.length)
@@ -263,39 +266,51 @@ private fun convertFlashCreature(creature: BattleCreature2, spriteIdMapping: Mut
 	val compressedShapesDirectory = File("$resourcesFolder/bc7shapes-x$exportScale")
 
 	val parts = creature.bodyParts.map { rawBodyPart ->
-		val skins = rawBodyPart.variations.map { BodyPart(name = it.name, entries = it.entries.map { rawEntry ->
-			var sprite = spriteIdMapping[rawEntry.id]
-			val bc7File = File("$compressedShapesDirectory/${rawEntry.id}.bc7")
-			if (sprite == null) {
-				if (bc7File.exists()) {
-					val input = DataInputStream(Files.newInputStream(bc7File.toPath()))
-					val width = input.readInt()
-					val height = input.readInt()
+		val content = when (rawBodyPart.content) {
+			is BodyPartSwingEffect -> SkeletonPartSwingEffect()
+			is BodyPartCastSparkle -> SkeletonPartCastSparkle()
+			is BodyPartSkins -> {
+				val skins = rawBodyPart.content.variations.map { BodyPart(name = it.name, entries = it.entries.map { rawEntry ->
+					var sprite = spriteIdMapping[rawEntry.id]
+					val bc7File = File("$compressedShapesDirectory/${rawEntry.id}.bc7")
+					if (sprite == null) {
+						if (bc7File.exists()) {
+							val input = DataInputStream(Files.newInputStream(bc7File.toPath()))
+							val width = input.readInt()
+							val height = input.readInt()
 
-					sprite = BcSprite(width, height, 7)
-					sprite.data = input.readAllBytes()
-					input.close()
-				} else {
-					val image = ImageIO.read(File("flash/monster-shapes-x$exportScale/${rawEntry.id}.png"))
+							sprite = BcSprite(width, height, 7)
+							sprite.data = input.readAllBytes()
+							input.close()
+						} else {
+							val imageFile = File("flash/monster-shapes-x$exportScale/${rawEntry.id}.png")
+							if (!imageFile.exists()) {
+								throw Error("Can't find $imageFile")
+							}
+							val image = ImageIO.read(imageFile)
 
-					sprite = BcSprite(image.width, image.height, 7)
-					sprite.bufferedImage = image
-					sprite.postEncodeCallback = {
-						compressedShapesDirectory.mkdirs()
-						val output = DataOutputStream(Files.newOutputStream(bc7File.toPath()))
-						output.writeInt(sprite.width)
-						output.writeInt(sprite.height)
-						output.write(sprite.data!!)
-						output.flush()
-						output.close()
+							sprite = BcSprite(image.width, image.height, 7)
+							sprite.bufferedImage = image
+							sprite.postEncodeCallback = {
+								compressedShapesDirectory.mkdirs()
+								val output = DataOutputStream(Files.newOutputStream(bc7File.toPath()))
+								output.writeInt(sprite.width)
+								output.writeInt(sprite.height)
+								output.write(sprite.data!!)
+								output.flush()
+								output.close()
+							}
+						}
+						spriteIdMapping[rawEntry.id] = sprite
 					}
-				}
-				spriteIdMapping[rawEntry.id] = sprite
-			}
 
-			BodyPartEntry(sprite = sprite, offsetX = rawEntry.rect.Xmin / 20f, offsetY = rawEntry.rect.Ymin / 20f, scale = exportScale)
-		}.toTypedArray()) }.toTypedArray()
-		val skeletonPart = SkeletonPart(skins = skins)
+					BodyPartEntry(sprite = sprite, offsetX = rawEntry.rect.Xmin / 20f, offsetY = rawEntry.rect.Ymin / 20f, scale = exportScale)
+				}.toTypedArray()) }.toTypedArray()
+				SkeletonPartSkins(skins)
+			}
+		}
+
+		val skeletonPart = SkeletonPart(content)
 		partMapping[rawBodyPart.id] = skeletonPart
 		skeletonPart
 	}
@@ -340,7 +355,23 @@ private class FlashShapeEntry(val rect: RECT, val id: Int)
 
 private class FlashShapeVariation(val name: String, val entries: List<FlashShapeEntry>)
 
-private class BodyPart2(val id: Int, val variations: List<FlashShapeVariation>)
+private class BodyPart2(val id: Int, val content: BodyPartContent) {
+	override fun toString() = "BodyPart2($id, $content)"
+}
+
+private sealed class BodyPartContent
+
+private class BodyPartSkins(val variations: List<FlashShapeVariation>) : BodyPartContent() {
+	override fun toString() = "#variations=${variations.size}"
+}
+
+private class BodyPartCastSparkle : BodyPartContent() {
+	override fun toString() = "sparkle"
+}
+
+private class BodyPartSwingEffect : BodyPartContent() {
+	override fun toString() = "swing effect"
+}
 
 private class BattleCreature2(
 	val bodyParts: Set<BodyPart2>, val minDepth: Int, val maxDepth: Int,
@@ -439,9 +470,14 @@ private fun parseShape(swf: SWF, id: Int, outShapes: MutableList<FlashShapeEntry
 	}
 }
 
+private fun parseContent(tag: Tag): BodyPartContent {
+	if (tag.uniqueId == "494") return BodyPartCastSparkle()
+	if (tag.uniqueId == "2304") return BodyPartSwingEffect()
+	return BodyPartSkins(parseVariations(tag))
+}
+
 private fun parseVariations(tag: Tag): List<FlashShapeVariation> {
 	return if (tag is DefineSpriteTag) {
-		if (tag.spriteId == 494) return emptyList() // TODO Support castSparkle
 		parsePartSprites(tag)
 	} else if (tag is DefineShapeTag || tag is DefineShape3Tag) {
 		val singleShapes = mutableListOf<FlashShapeEntry>()
@@ -476,7 +512,7 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 			} else {
 				minDepth = min(minDepth, child.depth)
 				maxDepth = max(maxDepth, child.depth)
-				if (child.characterId != 0) bodyParts.add(BodyPart2(child.characterId, parseVariations(
+				if (child.characterId != 0) bodyParts.add(BodyPart2(child.characterId, parseContent(
 					creatureTag.swf.tags.find { it.uniqueId == child.characterId.toString() }!!
 				)))
 			}
@@ -507,9 +543,15 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 	var currentLabel: String? = null
 	val currentFrames = mutableListOf<AnimationState>()
 	var hasChangedAnimation = false
+	var lastFrame: AnimationState? = null
 	for (child in creatureTag.tags) {
 		if (child is FrameLabelTag) {
-			if (currentLabel != null) creature.animations[currentLabel] = currentFrames.toList()
+			if (currentLabel == "dead") {
+				if (currentFrames.size > 1) throw RuntimeException("Non-empty dead animation for $creatureTag")
+				creature.animations["dead"] = listOf(lastFrame!!)
+			} else if (currentLabel != null && currentFrames.isNotEmpty()) {
+				creature.animations[currentLabel] = currentFrames.toList()
+			}
 			currentFrames.clear()
 			currentLabel = child.labelName
 		}
@@ -517,6 +559,7 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 		if (child is ShowFrameTag && hasChangedAnimation) {
 			hasChangedAnimation = false
 			currentFrames.add(animationState.copy())
+			lastFrame = animationState.copy()
 		}
 
 		if (currentLabel != null) {

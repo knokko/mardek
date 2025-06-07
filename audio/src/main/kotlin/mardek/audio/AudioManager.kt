@@ -53,7 +53,8 @@ internal class AudioManager {
 	private val device = alcOpenDevice(null as ByteBuffer?)
 	private val context: Long
 	private val musicSource: Int
-	private val soundSource: Int
+	private val soundSources = IntArray(3)
+	private var nextSoundSource = 0
 
 	private val buffers = mutableListOf<Int>()
 
@@ -70,7 +71,12 @@ internal class AudioManager {
 		assertAlSuccess("AL.createCapabilities")
 
 		this.musicSource = assertAlSuccess(alGenSources(), "alGenSources")
-		this.soundSource = assertAlSuccess(alGenSources(), "alGenSources")
+
+		stackPush().use { stack ->
+			val pSoundSources = stack.callocInt(soundSources.size)
+			alGenSources(pSoundSources)
+			pSoundSources.get(soundSources)
+		}
 	}
 
 	fun add(path: String?, bytes: ByteArray?) = stackPush().use { stack ->
@@ -86,7 +92,10 @@ internal class AudioManager {
 
 	fun playMusic(audio: Int) = play(musicSource, audio)
 
-	fun playSound(audio: Int) = play(soundSource, audio)
+	fun playSound(audio: Int) {
+		play(soundSources[nextSoundSource], audio)
+		nextSoundSource = (nextSoundSource + 1) % soundSources.size
+	}
 
 	private fun play(source: Int, audio: Int) {
 		val currentAudio = alGetSourcei(source, AL_BUFFER)
@@ -108,12 +117,16 @@ internal class AudioManager {
 	}
 
 	fun destroy() {
-		alSourceStop(soundSource)
+		for (soundSource in soundSources) alSourceStop(soundSource)
 		alSourceStop(musicSource)
 		assertAlSuccess("alSourceStop")
 
 		stackPush().use { stack ->
-			alDeleteSources(stack.ints(musicSource, soundSource))
+			val pSources = stack.callocInt(1 + soundSources.size)
+			pSources.put(0, musicSource)
+			pSources.put(1, soundSources)
+
+			alDeleteSources(pSources)
 			assertAlSuccess("alDeleteSources")
 
 			val pBuffers = stack.callocInt(buffers.size)

@@ -43,7 +43,7 @@ class TestParticleEffectImporter {
 		assertEquals(1f, emitter.dynamics.velocityMultiplierX)
 		assertEquals(1f, emitter.dynamics.velocityMultiplierY)
 		assertEquals(0f, emitter.dynamics.accelerationX)
-		assertEquals(12f, emitter.dynamics.accelerationY, 0.001f)
+		assertEquals(360f, emitter.dynamics.accelerationY, 0.01f)
 		assertEquals(38f / 30f, emitter.waves.delay, 0.001f)
 		assertEquals(8, emitter.waves.particlesPerWave)
 		assertEquals(0.5f, emitter.size.minSizeMultiplier)
@@ -193,7 +193,7 @@ class TestParticleEffectImporter {
 	fun testImportPyromagia() {
 		val pyromagia = content.battle.particles.find { it.name == "pyromagia" }!!
 		val emitter = pyromagia.emitters[0]
-		assertEquals(-30f, emitter.dynamics.radialAcceleration)
+		assertEquals(-2100f, emitter.dynamics.radialAcceleration, 50f)
 		assertEquals(1f, emitter.opacity.limit)
 		assertEquals(0.9f, emitter.opacity.grow, 0.001f)
 		assertEquals(0.1f, emitter.opacity.initial, 0.001f)
@@ -225,7 +225,7 @@ class TestParticleEffectImporter {
 			assertEquals(60f, emitter.size.shiftWidth)
 			assertEquals(75f, emitter.size.shiftHeight)
 			assertEquals(0f, emitter.dynamics.shiftAccelerationX)
-			assertEquals(-2.1f, emitter.dynamics.shiftAccelerationY, 0.001f)
+			assertEquals(-63f, emitter.dynamics.shiftAccelerationY, 0.01f)
 
 			val linear = emitter.spawn.linear!!
 			assertEquals(0f, linear.shiftMinVelocityX)

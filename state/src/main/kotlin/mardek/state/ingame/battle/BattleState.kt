@@ -4,7 +4,6 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.*
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
-import mardek.content.skill.ActiveSkillMode
 import mardek.content.skill.ReactionSkillType
 import mardek.input.InputKey
 import kotlin.collections.component1
@@ -61,6 +60,7 @@ class BattleState(
 		private set
 
 	val startTime = System.nanoTime()
+	var startNextTurnAt = startTime + 750_000_000L
 
 	val particles = mutableListOf<ParticleEffectState>()
 
@@ -99,35 +99,20 @@ class BattleState(
 		}
 
 		if (chosenMove is BattleMoveSkill) {
-			if (chosenMove.skill.mode == ActiveSkillMode.Self &&
-				onTurn.hasReactions(context, ReactionSkillType.RangedAttack)
-			) {
-				primaryType = ReactionSkillType.RangedAttack
-			}
-			if (chosenMove.skill.mode == ActiveSkillMode.Melee) {
-				if (chosenMove.target !is BattleSkillTargetSingle) throw UnsupportedOperationException(
-					"Melee skills must be single-target, but got ${chosenMove.skill.name}"
-				)
-				if (chosenMove.target.target.hasReactions(context, ReactionSkillType.MeleeDefense)) {
-					primaryType = ReactionSkillType.MeleeDefense
+			val isHealing = chosenMove.skill.isHealing
+			val targets = chosenMove.target.getTargets(onTurn, this)
+			if (chosenMove.skill.isMelee) {
+				for (target in targets) {
+					if (target.hasReactions(context, ReactionSkillType.MeleeDefense) && (!isHealing || target.getCreatureType().revertsHealing)) {
+						primaryType = ReactionSkillType.MeleeDefense
+					}
 				}
 				if (onTurn.hasReactions(context, ReactionSkillType.MeleeAttack)) {
 					primaryType = ReactionSkillType.MeleeAttack
 				}
-			}
-			if (chosenMove.skill.mode == ActiveSkillMode.Ranged) {
-				if (chosenMove.target is BattleSkillTargetSingle &&
-					chosenMove.target.target.hasReactions(context, ReactionSkillType.RangedDefense)
-				) primaryType = ReactionSkillType.RangedDefense
-				if (chosenMove.target is BattleSkillTargetAllAllies) {
-					val allies = if (onTurn.isOnPlayerSide) livingPlayers() else livingOpponents()
-					if (allies.any { it.hasReactions(context, ReactionSkillType.RangedDefense) }) {
-						primaryType = ReactionSkillType.RangedDefense
-					}
-				}
-				if (chosenMove.target is BattleSkillTargetAllEnemies) {
-					val enemies = if (onTurn.isOnPlayerSide) livingOpponents() else livingPlayers()
-					if (enemies.any { it.hasReactions(context, ReactionSkillType.RangedDefense) }) {
+			} else {
+				for (target in targets) {
+					if (target.hasReactions(context, ReactionSkillType.RangedDefense) && (!isHealing || target.getCreatureType().revertsHealing)) {
 						primaryType = ReactionSkillType.RangedDefense
 					}
 				}
@@ -153,7 +138,7 @@ class BattleState(
 			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, context)
 			if (key == InputKey.MoveUp || key == InputKey.MoveDown) battleScrollVertically(this, key, context)
 		}
-		if (reactionChallenge != null && reactionChallenge.clickedAfter == -1L) {
+		if (key == InputKey.Interact && reactionChallenge != null && reactionChallenge.clickedAfter == -1L) {
 			reactionChallenge.clickedAfter = System.nanoTime() - reactionChallenge.startTime
 		}
 	}
@@ -188,6 +173,7 @@ class BattleState(
 	}
 
 	fun update(context: BattleUpdateContext) {
+		if (onTurn == null && System.nanoTime() < startNextTurnAt) return
 		while (onTurn == null && outcome == BattleOutcome.Busy) updateOnTurn(context)
 		if (outcome != BattleOutcome.Busy) return
 
@@ -200,41 +186,79 @@ class BattleState(
 			if (currentMove.finishedStrike && !currentMove.processedStrike) {
 				val attacker = onTurn!!
 				val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
-				val result = MoveResultCalculator(this, context).computeBasicAttackResult(
+				val result = MoveResultCalculator(context).computeBasicAttackResult(
 					attacker, currentMove.target, passedChallenge
 				)
 
-				applyMoveResult(context, result, attacker, currentMove.target)
+				applyMoveResult(context, result, attacker)
 				currentMove.processedStrike = true
 			}
 			if (currentMove.finishedJump) {
 				this.onTurn = null
 				this.reactionChallenge = null
+				this.startNextTurnAt = System.nanoTime() + 250_000_000L
 			}
 		}
 
 		if (currentMove is BattleMoveSkill) {
-			if (currentMove.skill.mode == ActiveSkillMode.Melee) {
+			if (currentMove.skill.isMelee) {
 				if (currentMove.canProcessDamage && !currentMove.hasProcessedDamage) {
 					val attacker = onTurn!!
-					if (currentMove.target !is BattleSkillTargetSingle) throw UnsupportedOperationException(
-						"Melee skills can only hit 1 target, but got ${currentMove.target}"
-					)
-					val target = currentMove.target.target
 					val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
 
-					val result = MoveResultCalculator(this, context).computeMeleeSkillResult(
-						currentMove.skill, attacker, target, passedChallenge
+					val result = MoveResultCalculator(context).computeSkillResult(
+						currentMove.skill, attacker,
+						currentMove.target.getTargets(attacker, this), passedChallenge
 					)
 
-					applyMoveResult(context, result, attacker, target)
-					if (!result.missed) {
-						currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(it, target)) }
+					applyMoveResult(context, result, attacker)
+					for (entry in result.targets) {
+						if (!entry.missed) {
+							currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(
+								it, entry.target.getPosition(this),
+								entry.target.isOnPlayerSide
+							)) }
+						}
 					}
+
 					currentMove.hasProcessedDamage = true
+					this.startNextTurnAt = System.nanoTime() + 250_000_000L
 				}
 			} else {
-				println("WARNING: ${currentMove.skill} is not yet supported")
+				val attacker = onTurn!!
+				if (currentMove.canProcessDamage && currentMove.particleStartTime == 0L) {
+					val particleEffect = currentMove.skill.particleEffect ?: throw UnsupportedOperationException(
+						"Ranged skills must have a particle effect"
+					)
+
+					for (target in currentMove.target.getTargets(attacker, this)) {
+						val particle = ParticleEffectState(
+							particleEffect,
+							target.getPosition(this),
+							target.isOnPlayerSide
+						)
+						particle.startTime = System.nanoTime()
+						particles.add(particle)
+					}
+					currentMove.particleStartTime = System.nanoTime()
+				}
+
+				if (currentMove.particleStartTime != 0L && !currentMove.hasProcessedDamage) {
+					val spentSeconds = (System.nanoTime() - currentMove.particleStartTime) / 1000_000_000f
+					if (spentSeconds > currentMove.skill.particleEffect!!.damageDelay) {
+						val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
+
+						val result = MoveResultCalculator(context).computeSkillResult(
+							currentMove.skill, attacker,
+							currentMove.target.getTargets(attacker, this), passedChallenge
+						)
+
+						applyMoveResult(context, result, attacker)
+						currentMove.hasProcessedDamage = true
+						currentMove.finished = true
+						this.startNextTurnAt = System.nanoTime() + 750_000_000L
+					}
+				}
 			}
 
 			if (currentMove.finished) {
@@ -244,52 +268,53 @@ class BattleState(
 		}
 	}
 
-	private fun applyMoveResult(
-		context: BattleUpdateContext, result: MoveResult,
-		attacker: CombatantState, target: CombatantState,
-	) {
-		if (result.sound != null) context.soundQueue.insert(result.sound)
+	private fun applyMoveResult(context: BattleUpdateContext, result: MoveResult, attacker: CombatantState) {
+		for (sound in result.sounds) context.soundQueue.insert(sound)
 
-		if (!result.missed) {
-			target.lastDamageIndicator = DamageIndicatorHealth(
-				oldHealth = target.currentHealth,
-				oldMana = target.currentMana,
-				gainedHealth = -result.damage,
+		for (entry in result.targets) {
+			val target = entry.target
+			if (!entry.missed) {
+				target.lastDamageIndicator = DamageIndicatorHealth(
+					oldHealth = target.currentHealth,
+					oldMana = target.currentMana,
+					gainedHealth = -entry.damage,
+					element = result.element,
+				)
+
+				target.currentHealth -= entry.damage
+
+				target.statusEffects.removeAll(entry.removedEffects)
+				target.statusEffects.addAll(entry.addedEffects)
+				for ((stat, modifier) in entry.addedStatModifiers) {
+					target.statModifiers[stat] = target.statModifiers.getOrDefault(stat, 0) + modifier
+				}
+				target.clampHealthAndMana(context)
+				if (target.isAlive() && target.currentHealth <= target.maxHealth / 5) {
+					target.statusEffects.addAll(target.getSosEffects(context))
+				}
+			} else target.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
+		}
+
+		if (result.restoreAttackerHealth != 0) {
+			attacker.lastDamageIndicator = DamageIndicatorHealth(
+				oldHealth = attacker.currentHealth,
+				oldMana = attacker.currentMana,
+				gainedHealth = result.restoreAttackerHealth,
 				element = result.element,
 			)
-			if (result.restoreAttackerHealth != 0) {
-				attacker.lastDamageIndicator = DamageIndicatorHealth(
-					oldHealth = attacker.currentHealth,
-					oldMana = attacker.currentMana,
-					gainedHealth = result.restoreAttackerHealth,
-					element = result.element,
-				)
-			} else if (result.restoreAttackerMana != 0) {
-				attacker.lastDamageIndicator = DamageIndicatorMana(
-					oldHealth = attacker.currentHealth,
-					oldMana = attacker.currentMana,
-					gainedMana = result.restoreAttackerMana,
-					element = result.element,
-				)
-			}
-
-			target.currentHealth -= result.damage
-			attacker.currentHealth += result.restoreAttackerHealth
-			attacker.currentMana += result.restoreAttackerMana
-			target.statusEffects.removeAll(result.removedEffects)
-			target.statusEffects.addAll(result.addedEffects)
-			for ((stat, modifier) in result.addedStatModifiers) {
-				target.statModifiers[stat] = target.statModifiers.getOrDefault(stat, 0) + modifier
-			}
-			attacker.clampHealthAndMana(context)
-			target.clampHealthAndMana(context)
-
-			if (attacker.isAlive() && attacker.currentHealth <= attacker.maxHealth / 5) {
-				attacker.statusEffects.addAll(attacker.getSosEffects(context))
-			}
-			if (target.isAlive() && target.currentHealth <= target.maxHealth / 5) {
-				target.statusEffects.addAll(target.getSosEffects(context))
-			}
-		} else target.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
+		} else if (result.restoreAttackerMana != 0) {
+			attacker.lastDamageIndicator = DamageIndicatorMana(
+				oldHealth = attacker.currentHealth,
+				oldMana = attacker.currentMana,
+				gainedMana = result.restoreAttackerMana,
+				element = result.element,
+			)
+		}
+		attacker.currentHealth += result.restoreAttackerHealth
+		attacker.currentMana += result.restoreAttackerMana
+		attacker.clampHealthAndMana(context)
+		if (attacker.isAlive() && attacker.currentHealth <= attacker.maxHealth / 5) {
+			attacker.statusEffects.addAll(attacker.getSosEffects(context))
+		}
 	}
 }

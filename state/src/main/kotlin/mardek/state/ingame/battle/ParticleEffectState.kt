@@ -1,5 +1,6 @@
 package mardek.state.ingame.battle
 
+import mardek.content.battle.PartyLayoutPosition
 import mardek.content.particle.ParticleEffect
 import mardek.content.particle.ParticleEmitter
 import java.lang.Math.toRadians
@@ -8,11 +9,12 @@ import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sin
+import kotlin.math.sqrt
 import kotlin.random.Random
 
-class ParticleEffectState(val particle: ParticleEffect, val combatant: CombatantState) {
+class ParticleEffectState(val particle: ParticleEffect, val position: PartyLayoutPosition, val isOnPlayerSide: Boolean) {
 	var startTime = 0L
-	val emitters = particle.emitters.map { ParticleEmitterState(it) }.toMutableList()
+	val emitters = particle.emitters().map { ParticleEmitterState(it) }.toMutableList()
 
 	private var playedInitialSound = false
 	private var playedDamageSound = false
@@ -21,18 +23,16 @@ class ParticleEffectState(val particle: ParticleEffect, val combatant: Combatant
 	 * Returns `true` if and only if the particle can be removed
 	 */
 	fun update(context: BattleUpdateContext, currentTime: Long): Boolean {
-		if (startTime == 0L) {
-			startTime = currentTime
-			println("Initialize start time to $currentTime")
-		}
+		if (startTime == 0L) startTime = currentTime
+
 		if (!playedInitialSound) {
-			particle.initialSound?.let { context.soundQueue.insert(it) }
+			particle.initialSound()?.let { context.soundQueue.insert(it) }
 			playedInitialSound = true
 		}
 
 		val passedSeconds = (currentTime - startTime) / 1000_000_000f
-		if (!playedDamageSound && passedSeconds >= particle.damageDelay) {
-			particle.damageSound?.let { context.soundQueue.insert(it) }
+		if (!playedDamageSound && passedSeconds >= particle.damageDelay()) {
+			particle.damageSound()?.let { context.soundQueue.insert(it) }
 			playedDamageSound = true
 		}
 
@@ -132,8 +132,16 @@ class ParticleState(
 		var accelerationY = emitter.dynamics.accelerationY
 		accelerationX += deltaTime * emitter.dynamics.shiftAccelerationX
 		accelerationY += deltaTime * emitter.dynamics.shiftAccelerationY
-		accelerationX += initialVelocityX * emitter.dynamics.radialAcceleration
-		accelerationY += initialVelocityY * emitter.dynamics.radialAcceleration
+
+		if (emitter.dynamics.radialAcceleration != 0f) {
+			val initialVelocity = sqrt(initialVelocityX * initialVelocityX + initialVelocityY * initialVelocityY)
+			if (initialVelocity > 0.0001f) {
+				val initialDirectionX = initialVelocityX / initialVelocity
+				val initialDirectionY = initialVelocityY / initialVelocity
+				accelerationX += initialDirectionX * emitter.dynamics.radialAcceleration
+				accelerationY += initialDirectionY * emitter.dynamics.radialAcceleration
+			}
+		}
 
 		this.initialX = initialX
 		this.initialY = initialY
@@ -149,20 +157,24 @@ class ParticleState(
 	/**
 	 * The recurrence formula for the velocity is
 	 * ```
-	 * v[t] = M*v[t-1] + A
+	 * v[t] = M * (v[t-1] + A)
 	 * ```
 	 * where `M` is `velocityMultiplierX`, and `A` is `accelerationX`.
 	 * To compute the steady-state velocity `v*`, we solve
 	 * ```
-	 * v* = Mv* + A
-	 * v* = A / (1-M)
+	 * v* = M * (v* + A)
+	 * v* = M * v* + M * A
+	 * v* - M * v* = M * A
+	 * (1 - M)v* = M * A
+	 * v* = M * A / (1 - M)
 	 * ```
 	 * Using `v*`, the original formula can be rewritten to
-	 * ```v(t) - v* = (v[0] - v*)M^t
-	 * v(t) = v* + (v[0] - v*)M^t`
+	 * ```
+	 * v(t) - v* = (v[0] - v*)M^t
+	 * v(t) = v* + (v[0] - v*)M^t
 	 * ```
 	 *
-	 * To compute the (X) position, we need the primitive V(t) of v(t): which is
+	 * To compute the (X) position, we need the antiderivative V(t) of v(t): which is
 	 * ```
 	 * V(t) = tv* + (v[0] - v*)M^t / ln(M) + C
 	 * ```
@@ -178,7 +190,7 @@ class ParticleState(
 		val velocityMultiplier = emitter.dynamics.velocityMultiplierX
 		if (velocityMultiplier == 1f) return initialX + t * initialVelocityX + t * t * 0.5f * accelerationX
 
-		val steadyVelocity = accelerationX / (1f - emitter.dynamics.velocityMultiplierX)
+		val steadyVelocity = velocityMultiplier * accelerationX / (1f - velocityMultiplier)
 		val lnMultiplier = ln(velocityMultiplier)
 		return initialX + t * steadyVelocity + (initialVelocityX - steadyVelocity) *
 				velocityMultiplier.pow(t) / lnMultiplier -
@@ -190,7 +202,7 @@ class ParticleState(
 		val velocityMultiplier = emitter.dynamics.velocityMultiplierY
 		if (velocityMultiplier == 1f) return initialY + t * initialVelocityY + t * t * 0.5f * accelerationY
 
-		val steadyVelocity = accelerationY / (1f - emitter.dynamics.velocityMultiplierY)
+		val steadyVelocity = velocityMultiplier * accelerationY / (1f - velocityMultiplier)
 		val lnMultiplier = ln(velocityMultiplier)
 		return initialY + t * steadyVelocity + (initialVelocityY - steadyVelocity) *
 				velocityMultiplier.pow(t) / lnMultiplier -

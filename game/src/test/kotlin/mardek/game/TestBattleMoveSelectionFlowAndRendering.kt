@@ -101,6 +101,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		val soundQueue = SoundQueue()
 		val context = GameStateUpdateContext(content, fakeInput, soundQueue, 10.milliseconds)
 		val sounds = content.audio.fixedEffects
+		battle.startNextTurnAt = System.nanoTime() // Skip waiting
 		state.update(context)
 		assertEquals(BattleMoveSelectionAttack(target = null), battle.selectedMove)
 		assertSame(sounds.ui.partyScroll, soundQueue.take())

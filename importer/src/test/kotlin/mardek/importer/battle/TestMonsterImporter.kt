@@ -85,8 +85,8 @@ class TestMonsterImporter {
 
 	init {
 		importAudioContent(content.audio)
-		importStatsContent(content)
 		importParticleEffects(content)
+		importStatsContent(content)
 		importSkillsContent(content)
 		importItemsContent(content)
 	}
@@ -121,6 +121,7 @@ class TestMonsterImporter {
 
 		assertEquals("Flying Fish", forestFish.className)
 		assertSame(content.stats.creatureTypes.find { it.flashName == "ICHTHYD" }!!, forestFish.type)
+		assertFalse(forestFish.type.revertsHealing)
 		assertSame(content.stats.elements.find { it.rawName == "WATER" }!!, forestFish.element)
 		assertEquals(6, getStatValue(forestFish, "hp"))
 		assertEquals(10, getStatValue(forestFish, "mp"))
@@ -170,6 +171,7 @@ class TestMonsterImporter {
 
 		assertEquals("Undead", abomination.className)
 		assertSame(content.stats.creatureTypes.find { it.flashName == "UNDEAD" }!!, abomination.type)
+		assertTrue(abomination.type.revertsHealing)
 		assertSame(content.stats.elements.find { it.rawName == "DARK" }!!, abomination.element)
 		assertEquals(50, getStatValue(abomination, "hp"))
 		assertEquals(36, getStatValue(abomination, "mp"))

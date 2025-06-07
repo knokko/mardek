@@ -19,7 +19,7 @@ class ActiveSkill(
 	masteryPoints: Int,
 
 	@BitField(id = 0)
-	val mode: ActiveSkillMode,
+	val isMelee: Boolean,
 
 	@BitField(id = 1)
 	val targetType: SkillTargetType,
@@ -111,7 +111,7 @@ class ActiveSkill(
 ): Skill(name, description, element, masteryPoints) {
 
 	constructor() : this(
-		"", "", Element(), 0, ActiveSkillMode.Melee, SkillTargetType.Single, null,
+		"", "", Element(), 0, false, SkillTargetType.Single, null,
 		0, 0, false, false, false, 0f, ArrayList(), ArrayList(),
 		ArrayList(), 0f, null, null, null, SkillCombatRequirement.OutsideCombat,
 		0, false, false, false, null, false

@@ -6,7 +6,6 @@ class BattleCreatureRenderers(
 	private val context: BattleRenderContext
 ) {
 	fun render() {
-		context.resources.partRenderer.startBatch(context.recorder)
 		context.resources.partRenderer.render(context.battle.battle.background.sprite, arrayOf(
 			Vector2f(-1f, -1f), Vector2f(1f, -1f), Vector2f(1f, 1f), Vector2f(-1f, 1f)
 		), null)
@@ -17,7 +16,5 @@ class BattleCreatureRenderers(
 		for (player in context.battle.allPlayers().sortedBy {
 			player -> player.getPosition(context.battle).y
 		}) SingleCreatureRenderer(context, player).render()
-
-		context.resources.partRenderer.endBatch()
 	}
 }

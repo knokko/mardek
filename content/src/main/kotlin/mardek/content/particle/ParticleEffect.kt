@@ -58,4 +58,14 @@ class ParticleEffect(
 		"", 0f, null, null, null,
 		FloatArray(0), null, ArrayList(0)
 	)
+
+	override fun toString() = name
+
+	fun emitters() = inheritance?.parent?.emitters ?: emitters
+
+	fun initialSound() = initialSound ?: inheritance?.parent?.initialSound
+
+	fun damageSound() = damageSound ?: inheritance?.parent?.damageSound
+
+	fun damageDelay() = inheritance?.parent?.damageDelay ?: damageDelay
 }

@@ -314,12 +314,59 @@ private fun parseParticleDynamics(rawEmitter: Map<String, String>): ParticleDyna
 		}
 	}
 
+	/*
+	 * Unlike most other quantities, converting the acceleration from flash frames to seconds is non-trivial.
+	 *
+	 * Flash dynamics: v_f[t+1] = m_f * (v_f[t] + a_f)
+	 *
+	 * Where
+	 * - v_f[t] is the velocity after t frames
+	 * - m_f is the velocityMultiplier
+	 * - a_f is the acceleration
+	 *
+	 * To compute the steady-state velocity s_f, we need to solve: s_f = m_f * (s_f + a_f)
+	 * -> s_f = m_f * s_f + m_f * a_f
+	 * -> s_f - m_f * s_f = m_f * a_f
+	 * -> (1 - m_f)s_f = m_f * a_f
+	 * -> s_f = m_f * a_f / (1 - m_f)
+	 *
+	 * In our own format, we want to express t in seconds rather than in flash frames, which requires us to use
+	 * different constants m_n and a_n, where m_n must be m_f^30 (1 second = 30 flash frames).
+	 *
+	 * Normalized dynamics: v_n[t+1] = m_n * (v_n[t] + a_n)
+	 * Normalized steady-state velocity: s_n = m_n * (s_n + a_n)
+	 * -> s_n = m_n * a_n / (1 - m_n)
+	 *
+	 * We want the normalized steady-state velocity s_n to be equal to the flash steady-state velocity s_f,
+	 * although its numerical value should be 30 times as large. The following derivation shows how we can
+	 * compute the correct value of a_n to accomplish this:
+	 * s_n = 30 * s_f
+	 * -> m_n * a_n / (1 - m_n) = 30 * m_f * a_f / (1 - m_f)
+	 * -> a_n = 30 * (1 - m_n) * m_f * a_f / m_n(1 - m_f)
+	 * -> a_n = a_f * 30 * (1 - m_n) * m_f / m_n(1 - m_f)
+	 */
+	var accelerationFactorX = FLASH_FRAMES_PER_SECOND.toFloat() * FLASH_FRAMES_PER_SECOND
+	if (velocityMultiplierX != 1f) {
+		val normalVelocityMultiplierX = velocityMultiplierX.pow(FLASH_FRAMES_PER_SECOND)
+		accelerationFactorX = FLASH_FRAMES_PER_SECOND * (1f - normalVelocityMultiplierX) * velocityMultiplierX /
+				(1f - velocityMultiplierX) / normalVelocityMultiplierX
+	}
+	var accelerationFactorY = FLASH_FRAMES_PER_SECOND.toFloat() * FLASH_FRAMES_PER_SECOND
+	if (velocityMultiplierY != 1f) {
+		val normalVelocityMultiplierY = velocityMultiplierY.pow(FLASH_FRAMES_PER_SECOND)
+		accelerationFactorY = FLASH_FRAMES_PER_SECOND * (1f - normalVelocityMultiplierY) * velocityMultiplierY /
+				(1f - velocityMultiplierY) / normalVelocityMultiplierY
+	}
+
 	return ParticleDynamics(
-		accelerationX = FLASH_FRAMES_PER_SECOND * accelerationX,
-		accelerationY = FLASH_FRAMES_PER_SECOND * accelerationY,
-		shiftAccelerationX = FLASH_FRAMES_PER_SECOND * shiftAccelerationX,
-		shiftAccelerationY = FLASH_FRAMES_PER_SECOND * shiftAccelerationY,
-		radialAcceleration = FLASH_FRAMES_PER_SECOND * radialAcceleration,
+		accelerationX = accelerationFactorX * accelerationX,
+		accelerationY = accelerationFactorY * accelerationY,
+		shiftAccelerationX = accelerationFactorX * shiftAccelerationX,
+		shiftAccelerationY = accelerationFactorY * shiftAccelerationY,
+
+		// Fortunately, for all particles such that radialAcceleration != 0,
+		// it holds that velocityMultiplierX == velocityMultiplierY
+		radialAcceleration = accelerationFactorX * radialAcceleration,
 		velocityMultiplierX = velocityMultiplierX.pow(FLASH_FRAMES_PER_SECOND),
 		velocityMultiplierY = velocityMultiplierY.pow(FLASH_FRAMES_PER_SECOND),
 		spin = FLASH_FRAMES_PER_SECOND * spin,
