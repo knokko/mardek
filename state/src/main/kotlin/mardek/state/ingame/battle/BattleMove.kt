@@ -64,6 +64,10 @@ class BattleMoveSkill(
 	val nextElement: Element?,
 ) : BattleMove() {
 
+	/**
+	 * Not for melee skills
+	 */
+	var particle: ParticleEffectState? = null
 	var canProcessDamage = false
 
 	@BitField(id = 3)

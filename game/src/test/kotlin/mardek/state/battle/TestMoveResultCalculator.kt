@@ -751,7 +751,7 @@ object TestMoveResultCalculator {
 			repeat(10_000) {
 				val result = MoveResultCalculator(
 					battle, battleUpdateContext(state.campaign)
-				).computeMeleeSkillResult(
+				).computeSkillResult(
 					shock, battle.livingPlayers()[0],
 					battle.livingOpponents()[0], false
 				)
@@ -793,7 +793,7 @@ object TestMoveResultCalculator {
 			repeat(10_000) {
 				val result = MoveResultCalculator(
 					battle, battleUpdateContext(state.campaign)
-				).computeMeleeSkillResult(
+				).computeSkillResult(
 					darkClaw, battle.livingOpponents()[0],
 					battle.livingPlayers()[0], false
 				)
@@ -808,6 +808,39 @@ object TestMoveResultCalculator {
 			}
 
 			assertTrue(blindCounter in 500 .. 1500, "Expected $blindCounter to be 1000")
+		}
+	}
+
+	fun testThousandNeedles(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(CampaignState(
+				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
+				characterSelection = simpleCharacterSelectionState(),
+				characterStates = simpleCharacterStates(),
+				gold = 123
+			))
+
+			val mardekState = state.campaign.characterStates[heroMardek]!!
+			mardekState.currentLevel = 50
+			mardekState.equipment[3] = content.items.items.find { it.flashName == "Hero's Armour" }!!
+
+			val johnny = content.battle.monsters.find { it.name == "HappyJohnny" }!!
+			val mimicry = content.skills.classes.find { it.name == "Mimicry" }!!
+			val thousandNeedles = mimicry.actions.find { it.name == "1000 Needles" }!!
+			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = johnny, level = 30)))
+			val battle = state.campaign.currentArea!!.activeBattle!!
+			battle.onTurn = battle.livingPlayers()[0]
+
+			repeat(10_000) {
+				val result = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeSkillResult(
+					thousandNeedles, battle.livingOpponents()[0],
+					battle.livingPlayers()[0], false
+				)
+				assertSame(content.stats.elements.find { it.rawName == "NONE" }!!, result.element)
+				assertEquals(1000, result.damage)
+			}
 		}
 	}
 }

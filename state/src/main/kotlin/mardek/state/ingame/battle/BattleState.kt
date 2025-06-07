@@ -61,6 +61,7 @@ class BattleState(
 		private set
 
 	val startTime = System.nanoTime()
+	var startNextTurnAt = startTime + 750_000_000L
 
 	val particles = mutableListOf<ParticleEffectState>()
 
@@ -153,7 +154,7 @@ class BattleState(
 			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, context)
 			if (key == InputKey.MoveUp || key == InputKey.MoveDown) battleScrollVertically(this, key, context)
 		}
-		if (reactionChallenge != null && reactionChallenge.clickedAfter == -1L) {
+		if (key == InputKey.Interact && reactionChallenge != null && reactionChallenge.clickedAfter == -1L) {
 			reactionChallenge.clickedAfter = System.nanoTime() - reactionChallenge.startTime
 		}
 	}
@@ -188,6 +189,7 @@ class BattleState(
 	}
 
 	fun update(context: BattleUpdateContext) {
+		if (onTurn == null && System.nanoTime() < startNextTurnAt) return
 		while (onTurn == null && outcome == BattleOutcome.Busy) updateOnTurn(context)
 		if (outcome != BattleOutcome.Busy) return
 
@@ -210,6 +212,7 @@ class BattleState(
 			if (currentMove.finishedJump) {
 				this.onTurn = null
 				this.reactionChallenge = null
+				this.startNextTurnAt = System.nanoTime() + 250_000_000L
 			}
 		}
 
@@ -223,7 +226,7 @@ class BattleState(
 					val target = currentMove.target.target
 					val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
 
-					val result = MoveResultCalculator(this, context).computeMeleeSkillResult(
+					val result = MoveResultCalculator(this, context).computeSkillResult(
 						currentMove.skill, attacker, target, passedChallenge
 					)
 
@@ -232,6 +235,39 @@ class BattleState(
 						currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(it, target)) }
 					}
 					currentMove.hasProcessedDamage = true
+					this.startNextTurnAt = System.nanoTime() + 250_000_000L
+				}
+			} else if (currentMove.skill.mode == ActiveSkillMode.Ranged) {
+				if (currentMove.target !is BattleSkillTargetSingle) TODO("Not yet implemented")
+				val attacker = onTurn!!
+				if (currentMove.particle == null) {
+					val particleEffect = currentMove.skill.particleEffect ?: throw UnsupportedOperationException(
+						"Ranged skills must have a particle effect"
+					)
+					val particle = ParticleEffectState(particleEffect, currentMove.target.target)
+					particle.startTime = System.nanoTime()
+					particles.add(particle)
+					currentMove.particle = particle
+				}
+
+				val particle = currentMove.particle!!
+				if (!currentMove.canProcessDamage) {
+					val spentSeconds = (System.nanoTime() - particle.startTime) / 1000_000_000f
+					if (spentSeconds > particle.particle.damageDelay) currentMove.canProcessDamage = true
+				}
+
+				if (currentMove.canProcessDamage && !currentMove.hasProcessedDamage) {
+					val target = currentMove.target.target
+					val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
+
+					val result = MoveResultCalculator(this, context).computeSkillResult(
+						currentMove.skill, attacker, target, passedChallenge
+					)
+
+					applyMoveResult(context, result, attacker, target)
+					currentMove.hasProcessedDamage = true
+					currentMove.finished = true
+					this.startNextTurnAt = System.nanoTime() + 750_000_000L
 				}
 			} else {
 				println("WARNING: ${currentMove.skill} is not yet supported")
@@ -249,6 +285,7 @@ class BattleState(
 		attacker: CombatantState, target: CombatantState,
 	) {
 		if (result.sound != null) context.soundQueue.insert(result.sound)
+		if (result.extraSound != null) context.soundQueue.insert(result.extraSound)
 
 		if (!result.missed) {
 			target.lastDamageIndicator = DamageIndicatorHealth(

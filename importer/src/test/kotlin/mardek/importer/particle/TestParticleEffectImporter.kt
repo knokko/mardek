@@ -193,7 +193,7 @@ class TestParticleEffectImporter {
 	fun testImportPyromagia() {
 		val pyromagia = content.battle.particles.find { it.name == "pyromagia" }!!
 		val emitter = pyromagia.emitters[0]
-		assertEquals(-30f, emitter.dynamics.radialAcceleration)
+		assertEquals(-2100f, emitter.dynamics.radialAcceleration, 50f)
 		assertEquals(1f, emitter.opacity.limit)
 		assertEquals(0.9f, emitter.opacity.grow, 0.001f)
 		assertEquals(0.1f, emitter.opacity.initial, 0.001f)

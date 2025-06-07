@@ -30,9 +30,9 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 		}
 
 		if (trackName != null) {
-			musicTrack = musicMap.computeIfAbsent(trackName!!) { track -> manager.add("$track.ogg", null) }
+			musicTrack = musicMap.computeIfAbsent(trackName) { track -> manager.add("$track.ogg", null) }
 		}
-		if (musicTrack != null) manager.playMusic(musicTrack!!)
+		if (musicTrack != null) manager.playMusic(musicTrack)
 
 		if (nextSound != null) {
 			val soundHandle = soundMap.computeIfAbsent(nextSound) { soundEffect -> manager.add("", soundEffect.oggData) }

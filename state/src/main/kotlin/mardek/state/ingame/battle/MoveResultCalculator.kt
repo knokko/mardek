@@ -2,6 +2,7 @@ package mardek.state.ingame.battle
 
 import mardek.content.audio.SoundEffect
 import mardek.content.skill.ActiveSkill
+import mardek.content.skill.ActiveSkillMode
 import mardek.content.skill.ReactionSkill
 import mardek.content.skill.ReactionSkillType
 import mardek.content.skill.SkillSpiritModifier
@@ -19,8 +20,10 @@ class MoveResultCalculator(
 	private val context: BattleUpdateContext,
 ) {
 
-	private fun computeMeleeAttackResult(
+	private fun computeAttackResult(
 		attacker: CombatantState, target: CombatantState, passedChallenge: Boolean,
+		multiplierStat: CombatStat?, defenseStat: CombatStat?, isMelee: Boolean,
+		attackReactionType: ReactionSkillType, defenseReactionType: ReactionSkillType,
 		baseFlatDamage: Int, attackValue: Int, basicElementalBonus: Float,
 		basicSound: SoundEffect?, basicHitChance: Int, basicCritChance: Int,
 		basicHealthDrain: Float, basicManaDrain: Float, attackElement: Element,
@@ -28,11 +31,12 @@ class MoveResultCalculator(
 		basicAddEffects: MutableMap<StatusEffect, Int>,
 		basicRemoveEffects: MutableMap<StatusEffect, Int>,
 	): MoveResult {
-		val defense = target.getStat(CombatStat.MeleeDefense, context)
+		val defense = if (defenseStat != null) target.getStat(defenseStat, context) else 0
 		var sound = basicSound
+		var extraSound: SoundEffect? = null
 
-		val strength = attacker.getStat(CombatStat.Strength, context)
-		var damage = max(0, attackValue - defense) * strength * (attacker.getLevel(context) + 5)
+		val multiplier = if (multiplierStat != null) attacker.getStat(multiplierStat, context) else 1
+		var damage = max(0, attackValue - defense) * multiplier * (attacker.getLevel(context) + 5)
 
 		val rawWeapon = attacker.getEquipment(context)[0]
 		val weapon = rawWeapon?.equipment?.weapon
@@ -50,17 +54,16 @@ class MoveResultCalculator(
 		var hitChance = basicHitChance
 
 		for (effect in attacker.statusEffects) {
-			attackerEffectBonus += effect.meleeDamageModifier
-			hitChance -= effect.missChance
-		}
-
-		for (effect in target.statusEffects) {
-			targetEffectBonus -= effect.meleeDamageReduction
+			if (isMelee) {
+				attackerEffectBonus += effect.meleeDamageModifier
+				hitChance -= effect.missChance
+			}
 		}
 
 		val removeCandidateEffects = basicRemoveEffects
 		for (effect in target.statusEffects) {
-			if (effect.disappearAfterHitChance > 0) {
+			targetEffectBonus -= if (isMelee) effect.meleeDamageReduction else effect.rangedDamageReduction
+			if (isMelee && effect.disappearAfterHitChance > 0) {
 				removeCandidateEffects[effect] =
 					removeCandidateEffects.getOrDefault(effect, 0) + effect.disappearAfterHitChance
 			}
@@ -70,7 +73,7 @@ class MoveResultCalculator(
 		var attackElementBonus = basicElementalBonus
 		if (passedChallenge) {
 			for (skill in attacker.getToggledSkills(context)) {
-				if (skill !is ReactionSkill || skill.type != ReactionSkillType.MeleeAttack) continue
+				if (skill !is ReactionSkill || skill.type != attackReactionType) continue
 				if (skill.smitePlus) hasSmitePlus = true
 				extraDamageFractionAttacker += skill.addDamageFraction
 				extraFlatDamage += skill.addFlatDamage
@@ -123,7 +126,7 @@ class MoveResultCalculator(
 		var hasSurvivor = false
 		if (passedChallenge) {
 			for (skill in target.getToggledSkills(context)) {
-				if (skill !is ReactionSkill || skill.type != ReactionSkillType.MeleeDefense) continue
+				if (skill !is ReactionSkill || skill.type != defenseReactionType) continue
 				elementalResistance -= skill.getElementalBonus(attackElement)
 				hitChance += skill.addAccuracy // Will be negative for evasion skills
 				extraFlatDamage += skill.addFlatDamage
@@ -134,7 +137,7 @@ class MoveResultCalculator(
 			}
 		}
 
-		hitChance -= target.getStat(CombatStat.Evasion, context)
+		if (isMelee) hitChance -= target.getStat(CombatStat.Evasion, context)
 		val missed = hitChance <= Random.Default.nextInt(100)
 		val criticalHit = criticalChance > Random.Default.nextInt(100)
 
@@ -144,7 +147,8 @@ class MoveResultCalculator(
 			floatDamage *= (1.0 + attackerCreatureBonus)
 			floatDamage *= (1.0 + attackerEffectBonus)
 			floatDamage *= (1.0 + attackElementBonus)
-			floatDamage *= Random.Default.nextDouble(0.9, 1.1)
+			floatDamage *= if (isMelee) Random.Default.nextDouble(0.9, 1.1)
+			else Random.Default.nextDouble(0.7, 1.3)
 
 			floatDamage *= max(0.0, 1.0 + extraDamageFractionTarget)
 			floatDamage *= (1.0 + targetCreatureBonus)
@@ -153,7 +157,7 @@ class MoveResultCalculator(
 
 			if (criticalHit) {
 				floatDamage *= 2.0
-				sound = context.sounds.battle.critical
+				extraSound = context.sounds.battle.critical
 			}
 
 			if (hasSmitePlus) TODO()
@@ -162,6 +166,7 @@ class MoveResultCalculator(
 		}
 
 		if (damage > 0 && extraFlatDamage < 0) damage = max(0, damage + extraFlatDamage)
+		else damage += extraFlatDamage
 
 		var restoreAttackerHealth = (hpDrain * damage).roundToInt()
 		if (restoreAttackerHealth > 0) restoreAttackerHealth = min(restoreAttackerHealth, target.currentHealth)
@@ -190,11 +195,15 @@ class MoveResultCalculator(
 			true
 		}.keys
 
-		if (missed) sound = context.sounds.battle.miss
+		if (missed) {
+			sound = context.sounds.battle.miss
+			extraSound = null
+		}
 
 		return MoveResult(
 			element = attackElement,
 			sound = sound,
+			extraSound = extraSound,
 			damage = damage,
 			missed = missed,
 			criticalHit = criticalHit,
@@ -206,7 +215,7 @@ class MoveResultCalculator(
 		)
 	}
 
-	fun computeMeleeSkillResult(
+	fun computeSkillResult(
 		skill: ActiveSkill, attacker: CombatantState, target: CombatantState, passedChallenge: Boolean
 	): MoveResult {
 		val rawWeapon = attacker.getEquipment(context)[0]
@@ -214,15 +223,36 @@ class MoveResultCalculator(
 
 		val skillDamage = skill.damage!!
 
+		var attackReactionType = ReactionSkillType.RangedAttack
+		var defenseReactionType = ReactionSkillType.RangedDefense
+		var multiplierStat = CombatStat.Spirit
+		var defenseStat: CombatStat? = CombatStat.RangedDefense
+		if (skill.mode == ActiveSkillMode.Melee) {
+			if (skillDamage.spiritModifier != SkillSpiritModifier.SpiritBlade) {
+				multiplierStat = CombatStat.Strength
+				defenseStat = CombatStat.MeleeDefense
+			}
+			attackReactionType = ReactionSkillType.MeleeAttack
+			defenseReactionType = ReactionSkillType.MeleeDefense
+		}
+
 		var extraFlatDamage = 0
 		var elementalBonus = 0f
 		var attackValue = skillDamage.flatAttackValue
 		attackValue += (skillDamage.weaponModifier * attacker.getStat(CombatStat.Attack, context)).roundToInt()
 		attackValue += (skillDamage.levelModifier * attacker.getLevel(context))
+		if (skillDamage.spiritModifier == SkillSpiritModifier.GreenLightning) {
+			attackValue += 2 * attacker.getStat(CombatStat.Spirit, context)
+		}
+		if (skillDamage.spiritModifier == SkillSpiritModifier.DivineGlory) {
+			extraFlatDamage += attacker.getLevel(context) * attacker.getStat(CombatStat.Spirit, context)
+		}
+		if (skillDamage.spiritModifier == SkillSpiritModifier.LayOnHands) {
+			extraFlatDamage -= 2 * attacker.getLevel(context) * attacker.getStat(CombatStat.Spirit, context)
+		}
 
-		if (skillDamage.ignoresDefense) TODO("ignores defense")
+		if (skillDamage.ignoresDefense) defenseStat = null
 		if (skillDamage.ignoresShield) TODO("ignores shield")
-		if (skillDamage.spiritModifier != SkillSpiritModifier.None) TODO("spirit modifier")
 		for (bonus in skillDamage.bonusAgainstElements) {
 			if (bonus.element == skill.element) elementalBonus += bonus.modifier
 		}
@@ -255,11 +285,20 @@ class MoveResultCalculator(
 		if (skill.revive != 0f) TODO("revive")
 		if (skill.changeElement) TODO("change element")
 
-		val sound = if (skill.particleEffect?.initialSound != null) null else
-			weapon?.hitSound ?: weapon?.type?.soundEffect ?: context.sounds.battle.punch
+		var sound = skill.particleEffect?.damageSound
+		if (sound == null && skill.mode == ActiveSkillMode.Melee) {
+			sound = skill.particleEffect?.initialSound
+			if (sound == null && weapon != null) sound = weapon.hitSound ?: weapon.type.soundEffect
+			if (sound == null) sound = context.sounds.battle.punch
+		}
 
-		return computeMeleeAttackResult(
+		return computeAttackResult(
 			attacker, target, passedChallenge,
+			multiplierStat = multiplierStat,
+			defenseStat = defenseStat,
+			isMelee = skill.mode == ActiveSkillMode.Melee,
+			attackReactionType = attackReactionType,
+			defenseReactionType = defenseReactionType,
 			baseFlatDamage = extraFlatDamage,
 			attackValue = attackValue,
 			basicElementalBonus = elementalBonus,
@@ -311,8 +350,13 @@ class MoveResultCalculator(
 			attackElement = attacker.element
 		}
 
-		return computeMeleeAttackResult(
+		return computeAttackResult(
 			attacker, target, passedChallenge,
+			multiplierStat = CombatStat.Strength,
+			defenseStat = CombatStat.MeleeDefense,
+			isMelee = true,
+			attackReactionType = ReactionSkillType.MeleeAttack,
+			defenseReactionType = ReactionSkillType.MeleeDefense,
 			baseFlatDamage = 0,
 			attackValue = attacker.getStat(CombatStat.Attack, context),
 			basicElementalBonus = 0f,

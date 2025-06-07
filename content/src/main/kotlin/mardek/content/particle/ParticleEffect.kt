@@ -58,4 +58,6 @@ class ParticleEffect(
 		"", 0f, null, null, null,
 		FloatArray(0), null, ArrayList(0)
 	)
+
+	override fun toString() = name
 }

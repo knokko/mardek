@@ -17,6 +17,11 @@ class MoveResult(
 	val sound: SoundEffect?,
 
 	/**
+	 * Sometimes, multiple sound effects should be played
+	 */
+	val extraSound: SoundEffect?,
+
+	/**
 	 * The final amount of damage dealt.
 	 * When negative, the move heals the target instead
 	 */
