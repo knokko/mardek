@@ -843,4 +843,55 @@ object TestMoveResultCalculator {
 			}
 		}
 	}
+
+	fun testPyromagia(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(CampaignState(
+				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
+				characterSelection = simpleCharacterSelectionState(),
+				characterStates = simpleCharacterStates(),
+				gold = 123
+			))
+
+			val deuganState = state.campaign.characterStates[heroDeugan]!!
+			deuganState.currentLevel = 50
+			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG+30%" }!!)
+			deuganState.equipment[0] = content.items.items.find { it.flashName == "Balmung" }!!
+			deuganState.equipment[3] = content.items.items.find { it.flashName == "Hero's Coat" }!!
+			deuganState.equipment[4] = content.items.items.find { it.flashName == "Dragon Amulet" }!!
+
+			val pyromagia = heroDeugan.characterClass.skillClass.actions.find { it.name == "Pyromagia" }!!
+
+			val monster = content.battle.monsters.find { it.name == "monster" }!!
+			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
+			val battle = state.campaign.currentArea!!.activeBattle!!
+			battle.onTurn = battle.livingPlayers()[0]
+
+			repeat(1000) {
+				val result = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeSkillResult(
+					pyromagia, battle.livingPlayers()[1],
+					battle.livingOpponents()[0], false
+				)
+				assertSame(content.stats.elements.find { it.rawName == "FIRE" }!!, result.element)
+				assertFalse(result.criticalHit)
+				assertTrue(result.damage in 1800..3500, "Expected ${result.damage} to be 2640")
+				assertEquals(0, result.addedEffects.size)
+			}
+
+			repeat(1000) {
+				val result = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeSkillResult(
+					pyromagia, battle.livingPlayers()[1],
+					battle.livingOpponents()[0], true
+				)
+				assertSame(content.stats.elements.find { it.rawName == "FIRE" }!!, result.element)
+				assertFalse(result.criticalHit)
+				assertTrue(result.damage in 2300..4500, "Expected ${result.damage} to be 3432")
+				assertEquals(0, result.addedEffects.size)
+			}
+		}
+	}
 }

@@ -232,7 +232,9 @@ class BattleState(
 
 					applyMoveResult(context, result, attacker, target)
 					if (!result.missed) {
-						currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(it, target)) }
+						currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(
+							it, target.getPosition(this), target.isOnPlayerSide))
+						}
 					}
 					currentMove.hasProcessedDamage = true
 					this.startNextTurnAt = System.nanoTime() + 250_000_000L
@@ -240,34 +242,33 @@ class BattleState(
 			} else if (currentMove.skill.mode == ActiveSkillMode.Ranged) {
 				if (currentMove.target !is BattleSkillTargetSingle) TODO("Not yet implemented")
 				val attacker = onTurn!!
-				if (currentMove.particle == null) {
+				if (currentMove.canProcessDamage && currentMove.particle == null) {
 					val particleEffect = currentMove.skill.particleEffect ?: throw UnsupportedOperationException(
 						"Ranged skills must have a particle effect"
 					)
-					val particle = ParticleEffectState(particleEffect, currentMove.target.target)
+					val target = currentMove.target.target
+					val particle = ParticleEffectState(particleEffect, target.getPosition(this), target.isOnPlayerSide)
 					particle.startTime = System.nanoTime()
 					particles.add(particle)
 					currentMove.particle = particle
 				}
 
-				val particle = currentMove.particle!!
-				if (!currentMove.canProcessDamage) {
+				val particle = currentMove.particle
+				if (particle != null && !currentMove.hasProcessedDamage) {
 					val spentSeconds = (System.nanoTime() - particle.startTime) / 1000_000_000f
-					if (spentSeconds > particle.particle.damageDelay) currentMove.canProcessDamage = true
-				}
+					if (spentSeconds > particle.particle.damageDelay) {
+						val target = currentMove.target.target
+						val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
 
-				if (currentMove.canProcessDamage && !currentMove.hasProcessedDamage) {
-					val target = currentMove.target.target
-					val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
+						val result = MoveResultCalculator(this, context).computeSkillResult(
+							currentMove.skill, attacker, target, passedChallenge
+						)
 
-					val result = MoveResultCalculator(this, context).computeSkillResult(
-						currentMove.skill, attacker, target, passedChallenge
-					)
-
-					applyMoveResult(context, result, attacker, target)
-					currentMove.hasProcessedDamage = true
-					currentMove.finished = true
-					this.startNextTurnAt = System.nanoTime() + 750_000_000L
+						applyMoveResult(context, result, attacker, target)
+						currentMove.hasProcessedDamage = true
+						currentMove.finished = true
+						this.startNextTurnAt = System.nanoTime() + 750_000_000L
+					}
 				}
 			} else {
 				println("WARNING: ${currentMove.skill} is not yet supported")

@@ -3,6 +3,7 @@ package mardek.importer
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.Content
+import mardek.content.animations.SkeletonPartSkins
 import mardek.importer.area.SpritesAndAreas
 import mardek.importer.ui.BcPacker
 import mardek.importer.util.projectFolder
@@ -37,13 +38,23 @@ fun main() {
 		kimOutput.close()
 
 		val bcPacker = BcPacker()
+		for (element in content.stats.elements) {
+			val swingSprite = element.swingEffect
+			if (swingSprite != null) bcPacker.add(swingSprite)
+			bcPacker.add(element.bcSprite)
+			val castSprite = element.spellCastBackground
+			if (castSprite != null) bcPacker.add(castSprite)
+		}
 		for (sprite in content.ui.allBcSprites()) bcPacker.add(sprite)
 		for (background in content.battle.backgrounds) bcPacker.add(background.sprite)
 		for (sprite in content.battle.particleSprites) bcPacker.add(sprite.sprite)
 		for (skeleton in content.battle.skeletons) {
 			for (part in skeleton.parts) {
-				for (skin in part.skins) {
-					for (entry in skin.entries) bcPacker.add(entry.sprite)
+				val content = part.content
+				if (content is SkeletonPartSkins) {
+					for (skin in content.skins) {
+						for (entry in skin.entries) bcPacker.add(entry.sprite)
+					}
 				}
 			}
 		}

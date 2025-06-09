@@ -18,12 +18,13 @@ class ParticleRenderer(private val context: BattleRenderContext) {
 		}
 		context.resources.partRenderer.startBatch(context.recorder)
 		for (particleEffect in context.battle.particles) {
-			val flipX = if (particleEffect.combatant.isOnPlayerSide) 1f else -1f
+			val flipX = if (particleEffect.isOnPlayerSide) 1f else -1f
 			val combatantPosition = transformBattleCoordinates(
-				particleEffect.combatant.getPosition(context.battle),
+				particleEffect.position,
 				flipX, context.targetImage
 			)
-			for (emitter in particleEffect.emitters) {
+
+			for ((index, emitter) in particleEffect.emitters.withIndex()) {
 				for (particle in emitter.particles) {
 					val relativeX = particle.computeX(renderTime)
 					val relativeY = particle.computeY(renderTime)
@@ -54,7 +55,11 @@ class ParticleRenderer(private val context: BattleRenderContext) {
 							combatantPosition.y + position.y * combatantPosition.scaleY
 						)
 					}.toTypedArray()
-					context.resources.partRenderer.render(particle.emitter.sprite.sprite, corners, fadeTransform)
+					val overrideSprites = particleEffect.particle.inheritance?.overrideSprites
+					val sprite = if (overrideSprites != null) {
+						overrideSprites[index].sprite
+					} else emitter.emitter.sprite.sprite
+					context.resources.partRenderer.render(sprite, corners, fadeTransform)
 				}
 			}
 		}

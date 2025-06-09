@@ -19,8 +19,8 @@ class TestSkillsImporter {
 	@BeforeAll
 	fun importSkills() {
 		importAudioContent(content.audio)
-		importStatsContent(content)
 		importParticleEffects(content)
+		importStatsContent(content)
 		importSkillsContent(content)
 	}
 

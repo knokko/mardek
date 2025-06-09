@@ -65,7 +65,15 @@ class BattleMoveSkill(
 ) : BattleMove() {
 
 	/**
-	 * Not for melee skills
+	 * While casing magic skills, a small particle effect (depending on the element of the skill) is spawned
+	 * continuously at the main hand of the caster. This field tracks when it was last spawned, to keep the rate
+	 * at a stable 30 particles per second.
+	 */
+	var lastCastParticle = System.nanoTime()
+
+	/**
+	 * Most (possibly all) magic skills have a particle effect that is displayed at the position of the target.
+	 * This field tracks the state of that particle effect.
 	 */
 	var particle: ParticleEffectState? = null
 	var canProcessDamage = false

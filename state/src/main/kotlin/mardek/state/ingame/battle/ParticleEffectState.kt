@@ -1,5 +1,6 @@
 package mardek.state.ingame.battle
 
+import mardek.content.battle.PartyLayoutPosition
 import mardek.content.particle.ParticleEffect
 import mardek.content.particle.ParticleEmitter
 import java.lang.Math.toRadians
@@ -11,9 +12,9 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-class ParticleEffectState(val particle: ParticleEffect, val combatant: CombatantState) {
+class ParticleEffectState(val particle: ParticleEffect, val position: PartyLayoutPosition, val isOnPlayerSide: Boolean) {
 	var startTime = 0L
-	val emitters = particle.emitters.map { ParticleEmitterState(it) }.toMutableList()
+	val emitters = particle.emitters().map { ParticleEmitterState(it) }.toMutableList()
 
 	private var playedInitialSound = false
 	private var playedDamageSound = false
@@ -26,14 +27,15 @@ class ParticleEffectState(val particle: ParticleEffect, val combatant: Combatant
 			startTime = currentTime
 			println("Initialize start time to $currentTime")
 		}
+
 		if (!playedInitialSound) {
-			particle.initialSound?.let { context.soundQueue.insert(it) }
+			particle.initialSound()?.let { context.soundQueue.insert(it) }
 			playedInitialSound = true
 		}
 
 		val passedSeconds = (currentTime - startTime) / 1000_000_000f
-		if (!playedDamageSound && passedSeconds >= particle.damageDelay) {
-			particle.damageSound?.let { context.soundQueue.insert(it) }
+		if (!playedDamageSound && passedSeconds >= particle.damageDelay()) {
+			particle.damageSound()?.let { context.soundQueue.insert(it) }
 			playedDamageSound = true
 		}
 

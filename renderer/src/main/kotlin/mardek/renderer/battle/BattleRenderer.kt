@@ -84,8 +84,10 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 	}
 
 	fun render() {
+		context.resources.partRenderer.startBatch(context.recorder)
 		creatureRenderer.render()
 		particleRenderer.render()
+		context.resources.partRenderer.endBatch()
 		context.uiRenderer.beginBatch()
 		val leftColor = srgbToLinear(rgba(90, 76, 44, 200))
 		val rightColor = srgbToLinear(rgba(38, 28, 17, 200))

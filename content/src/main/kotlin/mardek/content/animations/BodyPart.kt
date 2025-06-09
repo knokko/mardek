@@ -14,4 +14,6 @@ class BodyPart(
 
 	@Suppress("unused")
 	constructor() : this("", emptyArray())
+
+	override fun toString() = "BodyPart($name, #entries=${entries.size})"
 }

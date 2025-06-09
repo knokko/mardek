@@ -292,6 +292,9 @@ class MoveResultCalculator(
 			if (sound == null) sound = context.sounds.battle.punch
 		}
 
+		val critChance = if (skillDamage.critChance != null) skillDamage.critChance!!
+		else if (skill.mode == ActiveSkillMode.Melee && weapon?.critChance != null) weapon.critChance else 0
+
 		return computeAttackResult(
 			attacker, target, passedChallenge,
 			multiplierStat = multiplierStat,
@@ -304,7 +307,7 @@ class MoveResultCalculator(
 			basicElementalBonus = elementalBonus,
 			basicSound = sound,
 			basicHitChance = skill.accuracy,
-			basicCritChance = skillDamage.critChance ?: weapon?.critChance ?: 0,
+			basicCritChance = critChance,
 			basicHealthDrain = skill.healthDrain,
 			basicManaDrain = 0f,
 			attackElement = skill.element,

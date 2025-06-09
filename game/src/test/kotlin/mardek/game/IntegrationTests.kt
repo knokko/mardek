@@ -78,5 +78,6 @@ class IntegrationTests {
 		TestMoveResultCalculator.testShockDamageAndParalyze(instance)
 		TestMoveResultCalculator.testDarkClawBlinding(instance)
 		TestMoveResultCalculator.testThousandNeedles(instance)
+		TestMoveResultCalculator.testPyromagia(instance)
 	}
 }

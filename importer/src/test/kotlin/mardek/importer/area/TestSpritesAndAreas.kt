@@ -74,8 +74,8 @@ class TestSpritesAndAreas {
 	fun testImportCharacterSprites() {
 		val content = Content()
 		importAudioContent(content.audio)
-		importStatsContent(content)
 		importParticleEffects(content)
+		importStatsContent(content)
 		importSkillsContent(content)
 		importItemsContent(content)
 		importBattleContent(content, null)
