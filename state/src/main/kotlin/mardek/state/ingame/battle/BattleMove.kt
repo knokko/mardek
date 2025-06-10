@@ -72,10 +72,10 @@ class BattleMoveSkill(
 	var lastCastParticle = System.nanoTime()
 
 	/**
-	 * Most (possibly all) magic skills have a particle effect that is displayed at the position of the target.
-	 * This field tracks the state of that particle effect.
+	 * All magic skills have a particle effect that is displayed at the position of the target.
+	 * This field records the time at which that particle was spawned.
 	 */
-	var particle: ParticleEffectState? = null
+	var particleStartTime = 0L
 	var canProcessDamage = false
 
 	@BitField(id = 3)
