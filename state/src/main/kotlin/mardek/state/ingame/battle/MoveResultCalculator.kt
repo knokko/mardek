@@ -2,7 +2,6 @@ package mardek.state.ingame.battle
 
 import mardek.content.audio.SoundEffect
 import mardek.content.skill.ActiveSkill
-import mardek.content.skill.ActiveSkillMode
 import mardek.content.skill.ReactionSkill
 import mardek.content.skill.ReactionSkillType
 import mardek.content.skill.SkillSpiritModifier
@@ -22,8 +21,8 @@ class MoveResultCalculator(
 
 	private fun computeAttackResult(
 		attacker: CombatantState, target: CombatantState, passedChallenge: Boolean,
-		multiplierStat: CombatStat?, defenseStat: CombatStat?, isMelee: Boolean,
-		attackReactionType: ReactionSkillType, defenseReactionType: ReactionSkillType,
+		multiplierStat: CombatStat?, defenseStat: CombatStat?, isMelee: Boolean, isHealing: Boolean,
+		attackReactionType: ReactionSkillType, defenseReactionType: ReactionSkillType?,
 		baseFlatDamage: Int, attackValue: Int, basicElementalBonus: Float,
 		basicSound: SoundEffect?, basicHitChance: Int, basicCritChance: Int,
 		basicHealthDrain: Float, basicManaDrain: Float, attackElement: Element,
@@ -150,10 +149,12 @@ class MoveResultCalculator(
 			floatDamage *= if (isMelee) Random.Default.nextDouble(0.9, 1.1)
 			else Random.Default.nextDouble(0.7, 1.3)
 
-			floatDamage *= max(0.0, 1.0 + extraDamageFractionTarget)
-			floatDamage *= (1.0 + targetCreatureBonus)
-			floatDamage *= (1.0 + targetEffectBonus)
-			floatDamage *= (1.0 - elementalResistance)
+			if (!isHealing) {
+				floatDamage *= max(0.0, 1.0 + extraDamageFractionTarget)
+				floatDamage *= (1.0 + targetCreatureBonus)
+				floatDamage *= (1.0 + targetEffectBonus)
+				floatDamage *= (1.0 - elementalResistance)
+			}
 
 			if (criticalHit) {
 				floatDamage *= 2.0
@@ -167,6 +168,7 @@ class MoveResultCalculator(
 
 		if (damage > 0 && extraFlatDamage < 0) damage = max(0, damage + extraFlatDamage)
 		else damage += extraFlatDamage
+		if (isHealing) damage = -damage
 
 		var restoreAttackerHealth = (hpDrain * damage).roundToInt()
 		if (restoreAttackerHealth > 0) restoreAttackerHealth = min(restoreAttackerHealth, target.currentHealth)
@@ -181,6 +183,7 @@ class MoveResultCalculator(
 		val removedEffects = removeCandidateEffects.filter {
 			val effect = it.key
 			val chance = it.value
+			if (!target.statusEffects.contains(effect)) return@filter false
 			if (chance <= Random.Default.nextInt(100)) return@filter false
 			if (target.getAutoEffects(context).contains(effect)) return@filter false
 			true
@@ -224,16 +227,20 @@ class MoveResultCalculator(
 		val skillDamage = skill.damage!!
 
 		var attackReactionType = ReactionSkillType.RangedAttack
-		var defenseReactionType = ReactionSkillType.RangedDefense
+		var defenseReactionType: ReactionSkillType? = ReactionSkillType.RangedDefense
 		var multiplierStat = CombatStat.Spirit
 		var defenseStat: CombatStat? = CombatStat.RangedDefense
-		if (skill.mode == ActiveSkillMode.Melee) {
+		if (skill.isMelee) {
 			if (skillDamage.spiritModifier != SkillSpiritModifier.SpiritBlade) {
 				multiplierStat = CombatStat.Strength
 				defenseStat = CombatStat.MeleeDefense
 			}
 			attackReactionType = ReactionSkillType.MeleeAttack
 			defenseReactionType = ReactionSkillType.MeleeDefense
+		}
+		if (skill.isPositive() && !target.getCreatureType().revertsHealing) {
+			defenseStat = null
+			defenseReactionType = null
 		}
 
 		var extraFlatDamage = 0
@@ -286,20 +293,21 @@ class MoveResultCalculator(
 		if (skill.changeElement) TODO("change element")
 
 		var sound = skill.particleEffect?.damageSound
-		if (sound == null && skill.mode == ActiveSkillMode.Melee) {
+		if (sound == null && skill.isMelee) {
 			sound = skill.particleEffect?.initialSound
 			if (sound == null && weapon != null) sound = weapon.hitSound ?: weapon.type.soundEffect
 			if (sound == null) sound = context.sounds.battle.punch
 		}
 
 		val critChance = if (skillDamage.critChance != null) skillDamage.critChance!!
-		else if (skill.mode == ActiveSkillMode.Melee && weapon?.critChance != null) weapon.critChance else 0
+		else if (skill.isMelee && weapon?.critChance != null) weapon.critChance else 0
 
 		return computeAttackResult(
 			attacker, target, passedChallenge,
 			multiplierStat = multiplierStat,
 			defenseStat = defenseStat,
-			isMelee = skill.mode == ActiveSkillMode.Melee,
+			isMelee = skill.isMelee,
+			isHealing = skill.isHealing && !target.getCreatureType().revertsHealing,
 			attackReactionType = attackReactionType,
 			defenseReactionType = defenseReactionType,
 			baseFlatDamage = extraFlatDamage,
@@ -358,6 +366,7 @@ class MoveResultCalculator(
 			multiplierStat = CombatStat.Strength,
 			defenseStat = CombatStat.MeleeDefense,
 			isMelee = true,
+			isHealing = false,
 			attackReactionType = ReactionSkillType.MeleeAttack,
 			defenseReactionType = ReactionSkillType.MeleeDefense,
 			baseFlatDamage = 0,

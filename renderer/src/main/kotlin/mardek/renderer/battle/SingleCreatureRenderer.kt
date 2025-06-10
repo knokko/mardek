@@ -7,7 +7,6 @@ import mardek.content.animations.SkeletonPartCastSparkle
 import mardek.content.animations.SkeletonPartSkins
 import mardek.content.animations.SkeletonPartSwingEffect
 import mardek.content.battle.PartyLayoutPosition
-import mardek.content.skill.ActiveSkillMode
 import mardek.content.stats.Element
 import mardek.state.ingame.battle.BattleMoveBasicAttack
 import mardek.state.ingame.battle.BattleMoveSkill
@@ -164,7 +163,6 @@ class SingleCreatureRenderer(
 	}
 
 	private fun chooseActiveAnimation() {
-		// die, hit, idle, spellcast, strike, dead, jumpback, useitem, moveto
 		val currentMove = context.battle.currentMove
 		if (currentMove is BattleMoveBasicAttack) {
 			chooseMeleeAnimation(
@@ -174,7 +172,7 @@ class SingleCreatureRenderer(
 			)
 		}
 		if (currentMove is BattleMoveSkill) {
-			if (currentMove.skill.mode == ActiveSkillMode.Melee) {
+			if (currentMove.skill.isMelee) {
 				if (currentMove.target !is BattleSkillTargetSingle) throw UnsupportedOperationException(
 					"Melee skills like ${currentMove.skill} can only target 1 combatant, but got ${currentMove.target}"
 				)
@@ -184,7 +182,7 @@ class SingleCreatureRenderer(
 					{ currentMove.finished = true }
 				)
 			} else {
-				val castAnimation = skeleton.getAnimation("spellcast")
+				val castAnimation = skeleton.getAnimation(currentMove.skill.animation ?: "spellcast")
 				val relativeCastTime = currentRealTime - currentMove.decisionTime
 				val castTime = castAnimation.frames.size * FRAME_LENGTH
 				if (relativeCastTime < castTime) {
@@ -258,7 +256,7 @@ class SingleCreatureRenderer(
 			}
 
 			animation = if (combatant is MonsterCombatantState) null
-			else skeleton.getAnimation("death")
+			else skeleton.getAnimation("dead")
 		}
 	}
 
@@ -331,7 +329,7 @@ class SingleCreatureRenderer(
 					val element = if (currentMove is BattleMoveBasicAttack) {
 						val weapon = combatant.getEquipment(context.updateContext)[0]
 						weapon?.element ?: context.updateContext.physicalElement
-					} else if (currentMove is BattleMoveSkill && currentMove.skill.mode == ActiveSkillMode.Melee) {
+					} else if (currentMove is BattleMoveSkill && currentMove.skill.isMelee) {
 						currentMove.skill.element
 					} else null
 

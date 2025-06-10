@@ -23,10 +23,7 @@ class ParticleEffectState(val particle: ParticleEffect, val position: PartyLayou
 	 * Returns `true` if and only if the particle can be removed
 	 */
 	fun update(context: BattleUpdateContext, currentTime: Long): Boolean {
-		if (startTime == 0L) {
-			startTime = currentTime
-			println("Initialize start time to $currentTime")
-		}
+		if (startTime == 0L) startTime = currentTime
 
 		if (!playedInitialSound) {
 			particle.initialSound()?.let { context.soundQueue.insert(it) }

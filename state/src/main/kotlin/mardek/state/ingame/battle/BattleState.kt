@@ -4,7 +4,6 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.*
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
-import mardek.content.skill.ActiveSkillMode
 import mardek.content.skill.ReactionSkillType
 import mardek.input.InputKey
 import kotlin.collections.component1
@@ -100,35 +99,20 @@ class BattleState(
 		}
 
 		if (chosenMove is BattleMoveSkill) {
-			if (chosenMove.skill.mode == ActiveSkillMode.Self &&
-				onTurn.hasReactions(context, ReactionSkillType.RangedAttack)
-			) {
-				primaryType = ReactionSkillType.RangedAttack
-			}
-			if (chosenMove.skill.mode == ActiveSkillMode.Melee) {
-				if (chosenMove.target !is BattleSkillTargetSingle) throw UnsupportedOperationException(
-					"Melee skills must be single-target, but got ${chosenMove.skill.name}"
-				)
-				if (chosenMove.target.target.hasReactions(context, ReactionSkillType.MeleeDefense)) {
-					primaryType = ReactionSkillType.MeleeDefense
+			val isHealing = chosenMove.skill.isHealing
+			val targets = chosenMove.target.getTargets(onTurn, this)
+			if (chosenMove.skill.isMelee) {
+				for (target in targets) {
+					if (target.hasReactions(context, ReactionSkillType.MeleeDefense) && (!isHealing || target.getCreatureType().revertsHealing)) {
+						primaryType = ReactionSkillType.MeleeDefense
+					}
 				}
 				if (onTurn.hasReactions(context, ReactionSkillType.MeleeAttack)) {
 					primaryType = ReactionSkillType.MeleeAttack
 				}
-			}
-			if (chosenMove.skill.mode == ActiveSkillMode.Ranged) {
-				if (chosenMove.target is BattleSkillTargetSingle &&
-					chosenMove.target.target.hasReactions(context, ReactionSkillType.RangedDefense)
-				) primaryType = ReactionSkillType.RangedDefense
-				if (chosenMove.target is BattleSkillTargetAllAllies) {
-					val allies = if (onTurn.isOnPlayerSide) livingPlayers() else livingOpponents()
-					if (allies.any { it.hasReactions(context, ReactionSkillType.RangedDefense) }) {
-						primaryType = ReactionSkillType.RangedDefense
-					}
-				}
-				if (chosenMove.target is BattleSkillTargetAllEnemies) {
-					val enemies = if (onTurn.isOnPlayerSide) livingOpponents() else livingPlayers()
-					if (enemies.any { it.hasReactions(context, ReactionSkillType.RangedDefense) }) {
+			} else {
+				for (target in targets) {
+					if (target.hasReactions(context, ReactionSkillType.RangedDefense) && (!isHealing || target.getCreatureType().revertsHealing)) {
 						primaryType = ReactionSkillType.RangedDefense
 					}
 				}
@@ -217,7 +201,7 @@ class BattleState(
 		}
 
 		if (currentMove is BattleMoveSkill) {
-			if (currentMove.skill.mode == ActiveSkillMode.Melee) {
+			if (currentMove.skill.isMelee) {
 				if (currentMove.canProcessDamage && !currentMove.hasProcessedDamage) {
 					val attacker = onTurn!!
 					if (currentMove.target !is BattleSkillTargetSingle) throw UnsupportedOperationException(
@@ -239,7 +223,7 @@ class BattleState(
 					currentMove.hasProcessedDamage = true
 					this.startNextTurnAt = System.nanoTime() + 250_000_000L
 				}
-			} else if (currentMove.skill.mode == ActiveSkillMode.Ranged) {
+			} else {
 				if (currentMove.target !is BattleSkillTargetSingle) TODO("Not yet implemented")
 				val attacker = onTurn!!
 				if (currentMove.canProcessDamage && currentMove.particle == null) {
@@ -270,8 +254,6 @@ class BattleState(
 						this.startNextTurnAt = System.nanoTime() + 750_000_000L
 					}
 				}
-			} else {
-				println("WARNING: ${currentMove.skill} is not yet supported")
 			}
 
 			if (currentMove.finished) {

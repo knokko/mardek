@@ -345,13 +345,13 @@ private fun parseParticleDynamics(rawEmitter: Map<String, String>): ParticleDyna
 	 * -> a_n = 30 * (1 - m_n) * m_f * a_f / m_n(1 - m_f)
 	 * -> a_n = a_f * 30 * (1 - m_n) * m_f / m_n(1 - m_f)
 	 */
-	var accelerationFactorX = FLASH_FRAMES_PER_SECOND.toFloat()
+	var accelerationFactorX = FLASH_FRAMES_PER_SECOND.toFloat() * FLASH_FRAMES_PER_SECOND
 	if (velocityMultiplierX != 1f) {
 		val normalVelocityMultiplierX = velocityMultiplierX.pow(FLASH_FRAMES_PER_SECOND)
 		accelerationFactorX = FLASH_FRAMES_PER_SECOND * (1f - normalVelocityMultiplierX) * velocityMultiplierX /
 				(1f - velocityMultiplierX) / normalVelocityMultiplierX
 	}
-	var accelerationFactorY = FLASH_FRAMES_PER_SECOND.toFloat()
+	var accelerationFactorY = FLASH_FRAMES_PER_SECOND.toFloat() * FLASH_FRAMES_PER_SECOND
 	if (velocityMultiplierY != 1f) {
 		val normalVelocityMultiplierY = velocityMultiplierY.pow(FLASH_FRAMES_PER_SECOND)
 		accelerationFactorY = FLASH_FRAMES_PER_SECOND * (1f - normalVelocityMultiplierY) * velocityMultiplierY /

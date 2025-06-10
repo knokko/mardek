@@ -543,9 +543,15 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 	var currentLabel: String? = null
 	val currentFrames = mutableListOf<AnimationState>()
 	var hasChangedAnimation = false
+	var lastFrame: AnimationState? = null
 	for (child in creatureTag.tags) {
 		if (child is FrameLabelTag) {
-			if (currentLabel != null) creature.animations[currentLabel] = currentFrames.toList()
+			if (currentLabel == "dead") {
+				if (currentFrames.size > 1) throw RuntimeException("Non-empty dead animation for $creatureTag")
+				creature.animations["dead"] = listOf(lastFrame!!)
+			} else if (currentLabel != null && currentFrames.isNotEmpty()) {
+				creature.animations[currentLabel] = currentFrames.toList()
+			}
 			currentFrames.clear()
 			currentLabel = child.labelName
 		}
@@ -553,6 +559,7 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 		if (child is ShowFrameTag && hasChangedAnimation) {
 			hasChangedAnimation = false
 			currentFrames.add(animationState.copy())
+			lastFrame = animationState.copy()
 		}
 
 		if (currentLabel != null) {

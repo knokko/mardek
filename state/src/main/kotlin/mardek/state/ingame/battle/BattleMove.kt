@@ -135,6 +135,9 @@ class BattleMoveBasicAttack(
 }
 
 sealed class BattleSkillTarget {
+
+	abstract fun getTargets(caster: CombatantState, battle: BattleState): List<CombatantState>
+
 	companion object {
 
 		@JvmStatic
@@ -159,6 +162,8 @@ class BattleSkillTargetSingle(
 	override fun hashCode() = 2 + target.hashCode()
 
 	override fun toString() = target.toString()
+
+	override fun getTargets(caster: CombatantState, battle: BattleState) = listOf(target)
 }
 
 /**
@@ -167,7 +172,12 @@ class BattleSkillTargetSingle(
  * - when the caster is a player, it targets all monsters
  */
 @BitStruct(backwardCompatible = true)
-data object BattleSkillTargetAllEnemies : BattleSkillTarget()
+data object BattleSkillTargetAllEnemies : BattleSkillTarget() {
+	override fun getTargets(
+		caster: CombatantState,
+		battle: BattleState
+	) = if (caster.isOnPlayerSide) battle.livingOpponents() else battle.livingPlayers()
+}
 
 /**
  * Targets all allies of the caster:
@@ -175,7 +185,12 @@ data object BattleSkillTargetAllEnemies : BattleSkillTarget()
  * - when the caster is a player, it targets all players
  */
 @BitStruct(backwardCompatible = true)
-data object BattleSkillTargetAllAllies : BattleSkillTarget()
+data object BattleSkillTargetAllAllies : BattleSkillTarget() {
+	override fun getTargets(
+		caster: CombatantState,
+		battle: BattleState
+	) = if (caster.isOnPlayerSide) battle.livingPlayers() else battle.livingOpponents()
+}
 
 sealed class BattleMoveSelection {
 	open fun targets(state: BattleState) = emptyArray<CombatantState>()

@@ -43,7 +43,7 @@ class TestParticleEffectImporter {
 		assertEquals(1f, emitter.dynamics.velocityMultiplierX)
 		assertEquals(1f, emitter.dynamics.velocityMultiplierY)
 		assertEquals(0f, emitter.dynamics.accelerationX)
-		assertEquals(12f, emitter.dynamics.accelerationY, 0.001f)
+		assertEquals(360f, emitter.dynamics.accelerationY, 0.01f)
 		assertEquals(38f / 30f, emitter.waves.delay, 0.001f)
 		assertEquals(8, emitter.waves.particlesPerWave)
 		assertEquals(0.5f, emitter.size.minSizeMultiplier)
@@ -225,7 +225,7 @@ class TestParticleEffectImporter {
 			assertEquals(60f, emitter.size.shiftWidth)
 			assertEquals(75f, emitter.size.shiftHeight)
 			assertEquals(0f, emitter.dynamics.shiftAccelerationX)
-			assertEquals(-2.1f, emitter.dynamics.shiftAccelerationY, 0.001f)
+			assertEquals(-63f, emitter.dynamics.shiftAccelerationY, 0.01f)
 
 			val linear = emitter.spawn.linear!!
 			assertEquals(0f, linear.shiftMinVelocityX)

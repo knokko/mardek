@@ -14,12 +14,7 @@ import java.lang.Integer.parseInt
 fun parseActiveSkills(
 	content: Content, rawSkills: List<Map<String, String>>, reverseTargetType: Boolean
 ) = rawSkills.map { rawSkill ->
-	val mode = when (rawSkill["MODE"]!!) {
-		"\"P\"" -> ActiveSkillMode.Melee
-		"\"M\"" -> ActiveSkillMode.Ranged
-		"\"S\"" -> ActiveSkillMode.Self
-		else -> throw SkillParseException("Unknown skill MODE ${rawSkill["MODE"]}")
-	}
+	val isMelee = rawSkill["MODE"] == "\"P\""
 	val targetType = when (rawSkill["TT"]) {
 		"\"SINGLE\"" -> SkillTargetType.Single
 		"\"ANY\"" -> SkillTargetType.Any
@@ -67,7 +62,7 @@ fun parseActiveSkills(
 	ActiveSkill(
 		name = parseFlashString(rawSkill["skill"]!!, "skill name")!!,
 		description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else "",
-		mode = mode,
+		isMelee = isMelee,
 		targetType = targetType,
 		element = content.stats.elements.find { it.rawName == parseFlashString(rawSkill["elem"]!!, "element") }!!,
 		damage = parseSkillDamage(content.stats, rawSkill),

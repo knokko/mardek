@@ -7,6 +7,7 @@ import mardek.state.battle.TestMoveResultCalculator
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
+import kotlin.math.sqrt
 
 @Execution(ExecutionMode.CONCURRENT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -79,5 +80,6 @@ class IntegrationTests {
 		TestMoveResultCalculator.testDarkClawBlinding(instance)
 		TestMoveResultCalculator.testThousandNeedles(instance)
 		TestMoveResultCalculator.testPyromagia(instance)
+		TestMoveResultCalculator.testRecover(instance)
 	}
 }

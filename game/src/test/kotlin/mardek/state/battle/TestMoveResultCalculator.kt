@@ -865,7 +865,7 @@ object TestMoveResultCalculator {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[0]
+			battle.onTurn = battle.livingPlayers()[1]
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
@@ -891,6 +891,76 @@ object TestMoveResultCalculator {
 				assertFalse(result.criticalHit)
 				assertTrue(result.damage in 2300..4500, "Expected ${result.damage} to be 3432")
 				assertEquals(0, result.addedEffects.size)
+			}
+		}
+	}
+
+	fun testRecover(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(CampaignState(
+				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
+				characterSelection = simpleCharacterSelectionState(),
+				characterStates = simpleCharacterStates(),
+				gold = 123
+			))
+
+			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
+			val paralysis = content.stats.statusEffects.find { it.flashName == "PAR" }!!
+			val regeneration = content.stats.statusEffects.find { it.flashName == "RGN" }!!
+
+			val deuganState = state.campaign.characterStates[heroDeugan]!!
+			deuganState.currentLevel = 50
+			deuganState.activeStatusEffects.add(poison)
+			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG+30%" }!!)
+			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "Nullify Magic" }!!)
+			deuganState.equipment[0] = content.items.items.find { it.flashName == "Balmung" }!!
+
+			val recover = heroDeugan.characterClass.skillClass.actions.find { it.name == "Recover" }!!
+
+			val monster = content.battle.monsters.find { it.name == "monster" }!!
+			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
+
+			val battle = state.campaign.currentArea!!.activeBattle!!
+			val deuganCombat = battle.livingPlayers()[1]
+			deuganCombat.statusEffects.add(paralysis)
+			deuganCombat.statusEffects.add(regeneration)
+			battle.onTurn = deuganCombat
+
+			repeat(1000) {
+				val result = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeSkillResult(recover, deuganCombat, deuganCombat, false)
+				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
+				assertFalse(result.criticalHit)
+				assertTrue(result.damage in -180000..-90000, "Expected ${result.damage} to be -132000")
+				assertEquals(0, result.addedEffects.size)
+				assertEquals(setOf(poison, paralysis), result.removedEffects)
+			}
+
+			repeat(1000) {
+				val result = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeSkillResult(recover, deuganCombat, deuganCombat, true)
+				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
+				assertFalse(result.criticalHit)
+				assertTrue(result.damage in -230000..-110000, "Expected ${result.damage} to be -170000")
+				assertEquals(0, result.addedEffects.size)
+				assertEquals(setOf(poison, paralysis), result.removedEffects)
+			}
+
+			// Increasing magic resistance should NOT decrease healing power
+			deuganState.equipment[3] = content.items.items.find { it.flashName == "Hero's Shield" }!!
+			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG-30%" }!!)
+
+			repeat(1000) {
+				val result = MoveResultCalculator(
+					battle, battleUpdateContext(state.campaign)
+				).computeSkillResult(recover, deuganCombat, deuganCombat, true)
+				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
+				assertFalse(result.criticalHit)
+				assertTrue(result.damage in -230000..-110000, "Expected ${result.damage} to be -170000")
+				assertEquals(0, result.addedEffects.size)
+				assertEquals(setOf(poison, paralysis), result.removedEffects)
 			}
 		}
 	}
