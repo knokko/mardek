@@ -1,9 +1,9 @@
 dependencies {
-    for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
-    for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
-    implementation project(":content")
-    implementation project(":state")
-    implementation project(":ui-renderer")
+	for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+	for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
+	implementation project(":content")
+	implementation project(":state")
+	implementation project(":ui-renderer")
 
-    for (format in ["kim1", "kim2"]) testImplementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
+	for (format in ["kim1", "kim2"]) testImplementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
 }
