@@ -115,7 +115,7 @@ class SingleCreatureRenderer(
 		val targetModel = state.target.getModel()
 		val targetStrikePoint = targetModel.skeleton.strikePoint
 		val rawStrikePosition = PartyLayoutPosition(
-			rawTargetCoordinates.x - targetStrikePoint.x.roundToInt(),
+			rawTargetCoordinates.x + (flipX * targetFlipX).roundToInt() * targetStrikePoint.x.roundToInt(),
 			rawTargetCoordinates.y + (targetModel.skeleton.groundDistance - skeleton.groundDistance).roundToInt()
 		)
 		val strikePosition = transformBattleCoordinates(rawStrikePosition, targetFlipX, context.targetImage)

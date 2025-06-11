@@ -57,6 +57,7 @@ class CampaignState(
 	constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
 	var shouldOpenMenu = false
+	var gameOver = false
 
 	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, content: Content) {
 		while (true) {
@@ -123,7 +124,7 @@ class CampaignState(
 				soundQueue.insert(content.audio.fixedEffects.battle.flee)
 			}
 			if (battleState is BattleStateMachine.GameOver && battleState.shouldGoToGameOverMenu()) {
-				TODO("Game over")
+				gameOver = true
 			}
 			if (battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
 				TODO("Open loot menu")

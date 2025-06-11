@@ -39,6 +39,8 @@ class TurnOrderRenderer(
 			if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) return false
 			if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) return false
 		}
+		if (state is BattleStateMachine.GameOver) return false
+		if (state is BattleStateMachine.Victory) return false
 		return true
 	}
 

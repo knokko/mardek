@@ -4,10 +4,12 @@ import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import mardek.content.Content
+import mardek.renderer.ui.GameOverRenderer
 import mardek.renderer.ui.TitleScreenRenderer
 import mardek.state.GameState
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
+import mardek.state.title.GameOverState
 import mardek.state.title.TitleScreenState
 import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkClearValue
@@ -58,6 +60,7 @@ class GameRenderer(
 	private fun createRenderer(state: GameState): StateRenderer {
 		if (state is InGameState) return InGameRenderer(state)
 		if (state is TitleScreenState) return TitleScreenRenderer(state)
+		if (state is GameOverState) return GameOverRenderer(state)
 
 		throw UnsupportedOperationException("Unexpected state $state")
 	}
