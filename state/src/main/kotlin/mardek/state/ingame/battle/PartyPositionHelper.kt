@@ -7,7 +7,7 @@ import kotlin.math.abs
 
 fun closestTarget(
 	target: PartyLayoutPosition, states: Array<CombatantState?>, positions: PartyLayout
-) = states.withIndex().filter { it.value != null }.minBy { abs(positions.positions[it.index].y - target.y) }.index
+) = states.withIndex().filter { it.value?.isAlive() == true }.minBy { abs(positions.positions[it.index].y - target.y) }.index
 
 private fun nextDown(current: CombatantState, states: Array<CombatantState?>, positions: PartyLayout): CombatantState {
 	val currentIndex = states.indexOf(current)
@@ -15,7 +15,7 @@ private fun nextDown(current: CombatantState, states: Array<CombatantState?>, po
 		states[it.index]?.isAlive() == true && it.value.y > positions.positions[currentIndex].y
 	}.minByOrNull { it.value.y }
 	return states[nextIndex?.index ?: positions.positions.withIndex().filter {
-		states[it.index] != null
+		states[it.index]?.isAlive() == true
 	}.minBy { it.value.y }.index]!!
 }
 
@@ -25,7 +25,7 @@ private fun nextUp(current: CombatantState, states: Array<CombatantState?>, posi
 		states[it.index]?.isAlive() == true && it.value.y < positions.positions[currentIndex].y
 	}.maxByOrNull { it.value.y }
 	return states[nextIndex?.index ?: positions.positions.withIndex().filter {
-		states[it.index] != null
+		states[it.index]?.isAlive() == true
 	}.maxBy { it.value.y }.index]!!
 }
 
