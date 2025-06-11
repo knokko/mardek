@@ -4,9 +4,11 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.ui.renderer.Gradient
 import mardek.renderer.InGameRenderContext
 import mardek.state.ingame.battle.BattleState
+import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.MonsterCombatantState
 import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.title.AbsoluteRectangle
+import kotlin.math.min
 
 class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 
@@ -114,5 +116,19 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		for (indicatorRenderer in indicatorRenderers) indicatorRenderer.render()
 		for (blockRenderer in enemyBlockRenderers) blockRenderer.render()
 		for (blockRenderer in playerBlockRenderers) blockRenderer.render()
+
+		val state = context.battle.state
+		if (state is BattleStateMachine.GameOver) {
+			val spentTime = System.nanoTime() - state.startTime
+			val fade = min(255L, 255L * spentTime / BattleStateMachine.GameOver.FADE_DURATION).toInt()
+			if (fade > 0) {
+				context.uiRenderer.beginBatch()
+				context.uiRenderer.fillColor(
+					0, 0, context.targetImage.width,
+					context.targetImage.height, rgba(0, 0, 0, fade)
+				)
+				context.uiRenderer.endBatch()
+			}
+		}
 	}
 }

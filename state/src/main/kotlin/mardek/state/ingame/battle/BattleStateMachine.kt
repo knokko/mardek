@@ -260,7 +260,11 @@ sealed class BattleStateMachine {
 	class GameOver : BattleStateMachine() {
 		val startTime = System.nanoTime()
 
-		fun shouldGoToGameOverMenu() = (System.nanoTime() - startTime) >= 2000_000_000L
+		fun shouldGoToGameOverMenu() = (System.nanoTime() - startTime) >= FADE_DURATION
+
+		companion object {
+			const val FADE_DURATION = 5000_000_000L
+		}
 	}
 
 	sealed interface Move

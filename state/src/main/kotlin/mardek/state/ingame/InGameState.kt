@@ -3,6 +3,7 @@ package mardek.state.ingame
 import mardek.state.GameState
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.menu.InGameMenuState
+import mardek.state.title.GameOverState
 
 class InGameState(val campaign: CampaignState): GameState {
 
@@ -17,6 +18,7 @@ class InGameState(val campaign: CampaignState): GameState {
 				menu.shown = true
 				campaign.shouldOpenMenu = false
 			}
+			if (campaign.gameOver) return GameOverState()
 		}
 		return this
 	}
