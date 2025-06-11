@@ -19,20 +19,31 @@ class TurnOrderRenderer(
 	private val triangleWidth = region.height / 4
 	private val midY = region.minY + region.height / 2
 
-	private val onTurn = context.battle.onTurn
+	private val state = context.battle.state
 	private lateinit var kimBatch: KimBatch
+	private val onTurn = when (state) {
+		is BattleStateMachine.MeleeAttack -> state.attacker
+		is BattleStateMachine.CastSkill -> state.caster
+		is BattleStateMachine.UseItem -> state.thrower
+		is BattleStateMachine.SelectMove -> state.onTurn
+		else -> null
+	}
 
-	private fun shouldRender(selectedMove: BattleMoveSelection): Boolean {
+	private fun shouldRender(): Boolean {
 		if (slotWidth < 5) return false
-		if (context.battle.currentMove is BattleMoveSkill) return false
-		if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) return false
-		if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) return false
-		if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) return false
+		if (state is BattleStateMachine.MeleeAttack && state.skill != null) return false
+		if (state is BattleStateMachine.CastSkill) return false
+		if (state is BattleStateMachine.SelectMove) {
+			val selectedMove = state.selectedMove
+			if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) return false
+			if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) return false
+			if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) return false
+		}
 		return true
 	}
 
 	fun beforeRendering() {
-		if (!shouldRender(context.battle.selectedMove)) return
+		if (!shouldRender()) return
 		kimBatch = context.resources.kim1Renderer.startBatch()
 
 		val scale = region.height / 24f
@@ -61,7 +72,7 @@ class TurnOrderRenderer(
 	}
 
 	fun render() {
-		if (!shouldRender(context.battle.selectedMove)) return
+		if (!shouldRender()) return
 
 		context.uiRenderer.beginBatch()
 

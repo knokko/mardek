@@ -7,13 +7,17 @@ import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
-import mardek.state.ingame.battle.BattleMoveSkill
+import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.title.AbsoluteRectangle
 
 class CurrentMoveBarRenderer(private val context: BattleRenderContext, private val region: AbsoluteRectangle) {
 
-	private val currentMove = context.battle.currentMove
-	private val currentSkill = if (currentMove is BattleMoveSkill) currentMove.skill else null
+	private val state = context.battle.state
+	private val currentSkill = when (state) {
+		is BattleStateMachine.MeleeAttack -> state.skill
+		is BattleStateMachine.CastSkill -> state.skill
+		else -> null
+	}
 	private lateinit var batch: KimBatch
 
 	fun beforeRendering() {

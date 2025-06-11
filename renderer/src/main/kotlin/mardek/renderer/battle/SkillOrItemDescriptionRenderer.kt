@@ -11,7 +11,7 @@ import mardek.renderer.ui.ResourceType
 import mardek.renderer.ui.renderDescription
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
-import mardek.state.ingame.battle.PlayerCombatantState
+import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.title.AbsoluteRectangle
 import kotlin.math.roundToInt
 
@@ -25,11 +25,13 @@ class SkillOrItemDescriptionRenderer(
 	private val charsPerLine = (7f * region.width / region.height).roundToInt()
 
 	private val selectedElement = run {
-		val selectedMove = context.battle.selectedMove
+		val state = context.battle.state
+		if (state !is BattleStateMachine.SelectMove) return@run null
+		val selectedMove = state.selectedMove
 		if (charsPerLine < 10) null
 		else if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null && selectedMove.target == null) {
 			val skill = selectedMove.skill!!
-			val playerState = context.campaign.characterStates[(context.battle.onTurn as PlayerCombatantState).player]!!
+			val playerState = context.campaign.characterStates[state.onTurn.player]!!
 			SelectedElement(
 				name = skill.name, icon = skill.element.sprite, description = skill.description,
 				currentMastery = playerState.skillMastery[skill] ?: 0, maxMastery = skill.masteryPoints

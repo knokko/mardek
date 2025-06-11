@@ -34,7 +34,6 @@ object TestMoveResultCalculator {
 				monster = content.battle.monsters.find { it.name == "monster" }!!, level = 5
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[0]
 
 			var critCounter = 0
 			repeat(10_000) {
@@ -93,7 +92,6 @@ object TestMoveResultCalculator {
 				monster = monster, level = 30
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingOpponents()[0]
 
 			var critCounter = 0
 			repeat(10_000) {
@@ -181,7 +179,6 @@ object TestMoveResultCalculator {
 				monster = monster, level = 5
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingOpponents()[0]
 
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
@@ -231,7 +228,6 @@ object TestMoveResultCalculator {
 				monster = monster, level = 5
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[1]
 
 			val targetEquipment = state.campaign.characterStates[heroMardek]!!.equipment
 			val attackerEquipment = state.campaign.characterStates[heroDeugan]!!.equipment
@@ -333,7 +329,6 @@ object TestMoveResultCalculator {
 
 			val battle = state.campaign.currentArea!!.activeBattle!!
 			battle.livingOpponents()[0].statModifiers[CombatStat.MeleeDefense] = 10
-			battle.onTurn = battle.livingPlayers()[0]
 
 			val dark = content.stats.elements.find { it.rawName == "DARK" }!!
 			repeat(100) {
@@ -402,7 +397,6 @@ object TestMoveResultCalculator {
 				monster = monster, level = 5
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[1]
 			assertEquals(3, battle.livingPlayers()[0].statusEffects.size)
 			assertTrue(battle.livingPlayers()[0].statusEffects.contains(shieldEffect))
 
@@ -449,7 +443,6 @@ object TestMoveResultCalculator {
 				monster = dreamFish, level = 5
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingOpponents()[0]
 
 			// Dreamfish attacks have 100% chance to apply sleep
 			repeat(100) {
@@ -520,7 +513,6 @@ object TestMoveResultCalculator {
 			))
 
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[0]
 
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
@@ -565,7 +557,6 @@ object TestMoveResultCalculator {
 			))
 
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingOpponents()[0]
 
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
@@ -604,7 +595,6 @@ object TestMoveResultCalculator {
 				monster = dreamFish, level = 5
 			)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[0]
 
 			// Dreamfish has 50% evasion and Shadowblade has 97% accuracy
 			var missCounter = 0
@@ -667,7 +657,6 @@ object TestMoveResultCalculator {
 			val smith = content.battle.monsters.find { it.name == "ZombieLocksmith" }!!
 			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = smith, level = 5)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[0]
 
 			repeat(10_000) {
 				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
@@ -721,7 +710,6 @@ object TestMoveResultCalculator {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingOpponents()[0]
 
 			repeat(100) {
 				val mardekHit = MoveResultCalculator(
@@ -776,7 +764,6 @@ object TestMoveResultCalculator {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[0]
 
 			var stunCounter = 0
 			repeat(10_000) {
@@ -820,7 +807,6 @@ object TestMoveResultCalculator {
 			val darkClaw = monster.actions.find { it.name == "Dark Claw" }!!
 			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 30)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[0]
 
 			var blindCounter = 0
 			repeat(10_000) {
@@ -863,7 +849,6 @@ object TestMoveResultCalculator {
 			val thousandNeedles = mimicry.actions.find { it.name == "1000 Needles" }!!
 			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = johnny, level = 30)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[0]
 
 			repeat(10_000) {
 				val result = MoveResultCalculator(
@@ -900,7 +885,6 @@ object TestMoveResultCalculator {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[1]
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
@@ -961,7 +945,6 @@ object TestMoveResultCalculator {
 			val deuganCombat = battle.livingPlayers()[1]
 			deuganCombat.statusEffects.add(paralysis)
 			deuganCombat.statusEffects.add(regeneration)
-			battle.onTurn = deuganCombat
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
@@ -1028,7 +1011,6 @@ object TestMoveResultCalculator {
 				Enemy(monster = monster, level = 10), null, null, Enemy(monster = monster, level = 1))
 			)
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			battle.onTurn = battle.livingPlayers()[1]
 
 			repeat(1000) {
 				val result = MoveResultCalculator(

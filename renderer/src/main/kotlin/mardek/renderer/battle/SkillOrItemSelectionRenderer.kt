@@ -8,7 +8,7 @@ import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
-import mardek.state.ingame.battle.PlayerCombatantState
+import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.title.AbsoluteRectangle
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -18,14 +18,17 @@ class SkillOrItemSelectionRenderer(
 	private val region: AbsoluteRectangle,
 ) {
 
-	private val selectedMove = context.battle.selectedMove
+	private val state = context.battle.state
 	private val marginX = region.width / 15
 	private val entryHeight = region.height / 15
 
 	private val entries = run {
+		if (state !is BattleStateMachine.SelectMove) return@run emptyList()
+		val player = state.onTurn.player
+		val playerState = context.campaign.characterStates[player]!!
+
+		val selectedMove = state.selectedMove
 		if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null && selectedMove.target == null) {
-			val player = (context.battle.onTurn as PlayerCombatantState).player
-			val playerState = context.campaign.characterStates[player]!!
 			val skills = player.characterClass.skillClass.actions.filter { playerState.canCastSkill(it) }
 			skills.map { skill -> Entry(
 				icon = skill.element.sprite, name = skill.name,
@@ -33,7 +36,6 @@ class SkillOrItemSelectionRenderer(
 				isSelected = selectedMove.skill === skill
 			) }
 		} else if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null && selectedMove.target == null) {
-			val player = (context.battle.onTurn as PlayerCombatantState).player
 			val playerState = context.campaign.characterStates[player]!!
 			val itemSet = playerState.inventory.filter {
 				it != null && it.item.consumable != null

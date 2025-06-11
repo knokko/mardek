@@ -4,7 +4,6 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.*
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
-import mardek.content.skill.ReactionSkillType
 import mardek.input.InputKey
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -42,25 +41,11 @@ class BattleState(
 		if (enemy != null) MonsterCombatantState(enemy.monster, enemy.level, false) else null
 	}.toTypedArray()
 
-	@BitField(id = 4, optional = true)
-	@ReferenceField(stable = false, label = "combatants")
-	var onTurn: CombatantState? = null
-
-	@BitField(id = 5)
-	@ClassField(root = BattleMove::class)
-	var currentMove: BattleMove = BattleMoveThinking()
-
-	var selectedMove: BattleMoveSelection = BattleMoveSelectionAttack(target = null)
-
-	@BitField(id = 6)
-	var reactionChallenge: ReactionChallenge? = null
-
-	@BitField(id = 7)
-	var outcome = BattleOutcome.Busy
-		private set
+	@BitField(id = 4)
+	@ClassField(root = BattleStateMachine::class)
+	var state: BattleStateMachine = BattleStateMachine.NextTurn(System.nanoTime() + 750_000_000L)
 
 	val startTime = System.nanoTime()
-	var startNextTurnAt = startTime + 750_000_000L
 
 	val particles = mutableListOf<ParticleEffectState>()
 
@@ -75,64 +60,25 @@ class BattleState(
 
 	fun livingOpponents() = allOpponents().filter { it.isAlive() }
 
-	internal fun confirmMove(context: BattleUpdateContext, chosenMove: BattleMove) {
-		this.selectedMove = BattleMoveSelectionAttack(target = null)
-		this.currentMove = chosenMove
-		if (chosenMove is BattleMoveWait) context.soundQueue.insert(context.sounds.ui.clickCancel)
+	internal fun confirmMove(context: BattleUpdateContext, newState: BattleStateMachine) {
+		this.state = newState
+		if (newState is BattleStateMachine.Wait) context.soundQueue.insert(context.sounds.ui.clickCancel)
 		else context.soundQueue.insert(context.sounds.ui.clickConfirm)
-
-		this.maybeShowReactionBar(context)
 	}
 
-	private fun maybeShowReactionBar(context: BattleUpdateContext) {
-		val chosenMove = this.currentMove
-		val onTurn = this.onTurn!!
-
-		var primaryType: ReactionSkillType? = null
-		if (chosenMove is BattleMoveBasicAttack) {
-			if (chosenMove.target.hasReactions(context, ReactionSkillType.MeleeDefense)) {
-				primaryType = ReactionSkillType.MeleeDefense
-			}
-			if (onTurn.hasReactions(context, ReactionSkillType.MeleeAttack)) {
-				primaryType = ReactionSkillType.MeleeAttack
-			}
+	fun getReactionChallenge(): ReactionChallenge? {
+		val state = this.state
+		return when (state) {
+			is BattleStateMachine.MeleeAttack -> state.reactionChallenge
+			is BattleStateMachine.CastSkill -> state.reactionChallenge
+			else -> null
 		}
-
-		if (chosenMove is BattleMoveSkill) {
-			val isHealing = chosenMove.skill.isHealing
-			val targets = chosenMove.target.getTargets(onTurn, this)
-			if (chosenMove.skill.isMelee) {
-				for (target in targets) {
-					if (target.hasReactions(context, ReactionSkillType.MeleeDefense) && (!isHealing || target.getCreatureType().revertsHealing)) {
-						primaryType = ReactionSkillType.MeleeDefense
-					}
-				}
-				if (onTurn.hasReactions(context, ReactionSkillType.MeleeAttack)) {
-					primaryType = ReactionSkillType.MeleeAttack
-				}
-			} else {
-				for (target in targets) {
-					if (target.hasReactions(context, ReactionSkillType.RangedDefense) && (!isHealing || target.getCreatureType().revertsHealing)) {
-						primaryType = ReactionSkillType.RangedDefense
-					}
-				}
-				if (onTurn.hasReactions(context, ReactionSkillType.RangedAttack)) {
-					primaryType = ReactionSkillType.RangedAttack
-				}
-			}
-		}
-
-		if (primaryType != null) this.reactionChallenge = ReactionChallenge(primaryType)
-	}
-
-	internal fun runAway() {
-		outcome = BattleOutcome.RanAway
 	}
 
 	fun processKeyPress(key: InputKey, context: BattleUpdateContext) {
-		val onTurn = this.onTurn
-		val reactionChallenge = this.reactionChallenge
-		if (onTurn != null && currentMove is BattleMoveThinking) {
+		val state = this.state
+		val reactionChallenge = this.getReactionChallenge()
+		if (state is BattleStateMachine.SelectMove) {
 			if (key == InputKey.Cancel) battleCancel(this, context)
 			if (key == InputKey.Interact) battleClick(this, context)
 			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, context)
@@ -143,127 +89,115 @@ class BattleState(
 		}
 	}
 
-	private fun updateOnTurn(context: BattleUpdateContext) {
+	private fun nextCombatantOnTurn(context: BattleUpdateContext): CombatantState? {
 		val combatants = livingPlayers() + livingOpponents()
-		if (combatants.none { it.isOnPlayerSide }) outcome = BattleOutcome.GameOver
-		if (combatants.none { !it.isOnPlayerSide }) outcome = BattleOutcome.Victory
-		if (outcome != BattleOutcome.Busy) return
+		if (combatants.none { it.isOnPlayerSide }) state = BattleStateMachine.GameOver()
+		if (combatants.none { !it.isOnPlayerSide }) state = BattleStateMachine.Victory()
+		if (state is BattleStateMachine.GameOver || state is BattleStateMachine.Victory) return null
 
 		val simulator = TurnOrderSimulator(this, context)
 		if (simulator.checkReset()) {
 			for (combatant in combatants) combatant.spentTurnsThisRound = 0
 		}
-		beginTurn(context, simulator.next()!!)
+		return simulator.next()
 	}
 
 	private fun beginTurn(context: BattleUpdateContext, combatant: CombatantState) {
 		combatant.spentTurnsThisRound += 1
 		if (combatant is MonsterCombatantState) combatant.totalSpentTurns += 1
 		// TODO Allow status effects to skip the turn, or to deal damage
-		onTurn = combatant
 
-		currentMove = if (combatant is PlayerCombatantState) {
+		state = if (combatant is PlayerCombatantState) {
 			context.soundQueue.insert(context.sounds.ui.partyScroll)
-			selectedMove = BattleMoveSelectionAttack(target = null)
-			BattleMoveThinking()
+			BattleStateMachine.SelectMove(combatant)
 		} else {
-			MonsterStrategyCalculator(this, context).determineNextMove()
+			MonsterStrategyCalculator(
+				this, combatant as MonsterCombatantState, context
+			).determineNextMove() as BattleStateMachine
 		}
-		maybeShowReactionBar(context)
 	}
 
 	fun update(context: BattleUpdateContext) {
-		if (onTurn == null && System.nanoTime() < startNextTurnAt) return
-		while (onTurn == null && outcome == BattleOutcome.Busy) updateOnTurn(context)
-		if (outcome != BattleOutcome.Busy) return
-
-		val currentMove = this.currentMove
-		if (currentMove is BattleMoveWait && System.nanoTime() > currentMove.decisionTime + 500_000_000L) {
-			onTurn = null
+		while (true) {
+			val state = this.state
+			if (state is BattleStateMachine.NextTurn && System.nanoTime() >= state.startAt) {
+				val next = nextCombatantOnTurn(context)
+				if (next != null) beginTurn(context, next)
+			} else break
 		}
 
-		if (currentMove is BattleMoveBasicAttack) {
-			if (currentMove.finishedStrike && !currentMove.processedStrike) {
-				val attacker = onTurn!!
-				val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
-				val result = MoveResultCalculator(context).computeBasicAttackResult(
-					attacker, currentMove.target, passedChallenge
+		val state = this.state
+		if (state is BattleStateMachine.Wait && System.nanoTime() > state.startTime + 250_000_000L) {
+			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 250_000_000L)
+		}
+
+		if (state is BattleStateMachine.MeleeAttack.MoveTo && state.finished) {
+			this.state = BattleStateMachine.MeleeAttack.Strike(
+				state.attacker, state.target,
+				state.skill, state.reactionChallenge
+			)
+		}
+		if (state is BattleStateMachine.MeleeAttack.Strike) {
+			if (state.canDealDamage && !state.hasDealtDamage) {
+				val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
+				val result = if (state.skill == null) MoveResultCalculator(context).computeBasicAttackResult(
+					state.attacker, state.target, passedChallenge
+				) else MoveResultCalculator(context).computeSkillResult(
+					state.skill, state.attacker, listOf(state.target), passedChallenge
 				)
 
-				applyMoveResult(context, result, attacker)
-				currentMove.processedStrike = true
+				applyMoveResult(context, result, state.attacker)
+				for (entry in result.targets) {
+					if (!entry.missed && state.skill != null) {
+						state.skill.particleEffect?.let { particles.add(ParticleEffectState(
+							it, entry.target.getPosition(this),
+							entry.target.isOnPlayerSide
+						)) }
+					}
+				}
+				state.hasDealtDamage = true
 			}
-			if (currentMove.finishedJump) {
-				this.onTurn = null
-				this.reactionChallenge = null
-				this.startNextTurnAt = System.nanoTime() + 250_000_000L
+			if (state.finished) {
+				this.state = BattleStateMachine.MeleeAttack.JumpBack(
+					state.attacker, state.target,
+					state.skill, state.reactionChallenge
+				)
 			}
 		}
+		if (state is BattleStateMachine.MeleeAttack.JumpBack && state.finished) {
+			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 250_000_000L)
+		}
 
-		if (currentMove is BattleMoveSkill) {
-			if (currentMove.skill.isMelee) {
-				if (currentMove.canProcessDamage && !currentMove.hasProcessedDamage) {
-					val attacker = onTurn!!
-					val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
+		if (state is BattleStateMachine.CastSkill) {
+			if (state.canDealDamage && state.targetParticlesSpawnTime == 0L) {
+				val particleEffect = state.skill.particleEffect ?: throw UnsupportedOperationException(
+					"Ranged skills must have a particle effect"
+				)
 
-					val result = MoveResultCalculator(context).computeSkillResult(
-						currentMove.skill, attacker,
-						currentMove.target.getTargets(attacker, this), passedChallenge
+				for (target in state.targets) {
+					val particle = ParticleEffectState(
+						particleEffect,
+						target.getPosition(this),
+						target.isOnPlayerSide
 					)
-
-					applyMoveResult(context, result, attacker)
-					for (entry in result.targets) {
-						if (!entry.missed) {
-							currentMove.skill.particleEffect?.let { particles.add(ParticleEffectState(
-								it, entry.target.getPosition(this),
-								entry.target.isOnPlayerSide
-							)) }
-						}
-					}
-
-					currentMove.hasProcessedDamage = true
-					this.startNextTurnAt = System.nanoTime() + 250_000_000L
+					particle.startTime = System.nanoTime()
+					particles.add(particle)
 				}
-			} else {
-				val attacker = onTurn!!
-				if (currentMove.canProcessDamage && currentMove.particleStartTime == 0L) {
-					val particleEffect = currentMove.skill.particleEffect ?: throw UnsupportedOperationException(
-						"Ranged skills must have a particle effect"
-					)
-
-					for (target in currentMove.target.getTargets(attacker, this)) {
-						val particle = ParticleEffectState(
-							particleEffect,
-							target.getPosition(this),
-							target.isOnPlayerSide
-						)
-						particle.startTime = System.nanoTime()
-						particles.add(particle)
-					}
-					currentMove.particleStartTime = System.nanoTime()
-				}
-
-				if (currentMove.particleStartTime != 0L && !currentMove.hasProcessedDamage) {
-					val spentSeconds = (System.nanoTime() - currentMove.particleStartTime) / 1000_000_000f
-					if (spentSeconds > currentMove.skill.particleEffect!!.damageDelay) {
-						val passedChallenge = this.reactionChallenge?.wasPassed() ?: false
-
-						val result = MoveResultCalculator(context).computeSkillResult(
-							currentMove.skill, attacker,
-							currentMove.target.getTargets(attacker, this), passedChallenge
-						)
-
-						applyMoveResult(context, result, attacker)
-						currentMove.hasProcessedDamage = true
-						currentMove.finished = true
-						this.startNextTurnAt = System.nanoTime() + 750_000_000L
-					}
-				}
+				state.targetParticlesSpawnTime = System.nanoTime()
 			}
 
-			if (currentMove.finished) {
-				this.onTurn = null
-				this.reactionChallenge = null
+			if (state.targetParticlesSpawnTime != 0L) {
+				val spentSeconds = (System.nanoTime() - state.targetParticlesSpawnTime) / 1000_000_000f
+				if (spentSeconds > state.skill.particleEffect!!.damageDelay) {
+					val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
+
+					val result = MoveResultCalculator(context).computeSkillResult(
+						state.skill, state.caster, state.targets, passedChallenge
+					)
+
+					applyMoveResult(context, result, state.caster)
+					this.state = BattleStateMachine.NextTurn(System.nanoTime() + 750_000_000L)
+				}
 			}
 		}
 	}

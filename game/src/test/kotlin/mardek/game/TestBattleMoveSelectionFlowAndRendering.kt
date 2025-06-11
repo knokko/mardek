@@ -69,7 +69,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		)
 
 		val turnOrderColors = arrayOf(
-			Color(88, 64, 28), // one of the turn order monster icon colors
+			Color(158, 128, 83), // one of the turn order monster icon colors
 		)
 
 		val pointerColors = arrayOf(
@@ -95,15 +95,20 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 			Color(11, 195, 243),
 		)
 
+		fun assertSelectedMove(expected: BattleMoveSelection) {
+			assertInstanceOf(BattleStateMachine.SelectMove::class.java, battle.state)
+			assertEquals(expected, (battle.state as BattleStateMachine.SelectMove).selectedMove)
+		}
+
 		val shallowColors = backgroundColors + barColors + monsterColors + mardekColors +
 				deuganColors + turnOrderColors + pointerColors
 		val fakeInput = InputManager()
 		val soundQueue = SoundQueue()
 		val context = GameStateUpdateContext(content, fakeInput, soundQueue, 10.milliseconds)
 		val sounds = content.audio.fixedEffects
-		battle.startNextTurnAt = System.nanoTime() // Skip waiting
+		battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
 		state.update(context)
-		assertEquals(BattleMoveSelectionAttack(target = null), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionAttack(target = null))
 		assertSame(sounds.ui.partyScroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -115,7 +120,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		// 'Scroll' to skill selection
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
 		state.update(context)
-		assertEquals(BattleMoveSelectionSkill(skill = null, target = null), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionSkill(skill = null, target = null))
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -127,7 +132,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		// 'Scroll' to item selection
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
 		state.update(context)
-		assertEquals(BattleMoveSelectionItem(item = null, target = null), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionItem(item = null, target = null))
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -139,7 +144,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		// 'Scroll' to wait
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
 		state.update(context)
-		assertTrue(battle.selectedMove is BattleMoveSelectionWait)
+		assertSelectedMove(BattleMoveSelectionWait)
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -151,7 +156,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		// 'Scroll' to flee
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
 		state.update(context)
-		assertTrue(battle.selectedMove is BattleMoveSelectionFlee)
+		assertSelectedMove(BattleMoveSelectionFlee)
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -163,7 +168,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		// 'Scroll' to attack
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
 		state.update(context)
-		assertTrue(battle.selectedMove is BattleMoveSelectionAttack)
+		assertSelectedMove(BattleMoveSelectionAttack(target = null))
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -172,7 +177,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 		state.update(context)
-		assertEquals(BattleMoveSelectionAttack(battle.livingOpponents()[0]), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionAttack(battle.livingOpponents()[0]))
 		assertSame(sounds.ui.clickConfirm, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -186,14 +191,14 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveLeft))
 		state.update(context)
-		assertEquals(BattleMoveSelectionAttack(battle.livingOpponents()[0]), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionAttack(battle.livingOpponents()[0]))
 		assertNull(soundQueue.take())
 
 		// 'Scrolling' right should cause Deugan to become the target
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveRight))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveRight))
 		state.update(context)
-		assertEquals(BattleMoveSelectionAttack(battle.livingPlayers()[1]), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionAttack(battle.livingPlayers()[1]))
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -207,7 +212,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveRight))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveRight))
 		state.update(context)
-		assertEquals(BattleMoveSelectionAttack(battle.livingPlayers()[1]), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionAttack(battle.livingPlayers()[1]))
 		assertNull(soundQueue.take())
 
 		// 'Cancel' and open item selection
@@ -220,10 +225,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionItem(
-				item = elixir, target = null
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionItem(item = elixir, target = null))
 		assertSame(sounds.ui.clickCancel, soundQueue.take())
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertSame(sounds.ui.scroll, soundQueue.take())
@@ -240,10 +242,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionItem(
-				item = elixir, target = battle.livingPlayers()[1]
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionItem(item = elixir, target = battle.livingPlayers()[1]))
 		assertSame(sounds.ui.clickConfirm, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -251,10 +250,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveRight))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveRight))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionItem(
-				item = elixir, target = battle.livingPlayers()[1]
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionItem(item = elixir, target = battle.livingPlayers()[1]))
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -266,10 +262,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveUp))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveUp))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionItem(
-				item = elixir, target = battle.livingPlayers()[0]
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionItem(item = elixir, target = battle.livingPlayers()[0]))
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -283,10 +276,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveLeft))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionItem(
-				item = elixir, target = battle.livingOpponents()[0]
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionItem(item = elixir, target = battle.livingOpponents()[0]))
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -299,10 +289,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionSkill(
-				skill = shock, target = null
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionSkill(skill = shock, target = null))
 		assertSame(sounds.ui.clickCancel, soundQueue.take())
 		assertSame(sounds.ui.clickCancel, soundQueue.take())
 		assertSame(sounds.ui.scroll, soundQueue.take())
@@ -320,10 +307,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveDown))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveDown))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionSkill(
-				skill = frostasia, target = null
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionSkill(skill = frostasia, target = null))
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
@@ -341,10 +325,9 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionSkill(
-				skill = frostasia, target = BattleSkillTargetSingle(battle.livingOpponents()[0])
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionSkill(
+			skill = frostasia, target = BattleSkillTargetSingle(battle.livingOpponents()[0])
+		))
 		assertSame(sounds.ui.clickConfirm, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -358,20 +341,18 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveLeft))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionSkill(
-				skill = frostasia, target = BattleSkillTargetSingle(battle.livingOpponents()[0])
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionSkill(
+			skill = frostasia, target = BattleSkillTargetSingle(battle.livingOpponents()[0])
+		))
 		assertNull(soundQueue.take())
 
 		// Scroll right once to target Deugan
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveRight))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveRight))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionSkill(
-				skill = frostasia, target = BattleSkillTargetSingle(battle.livingPlayers()[1])
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionSkill(
+			skill = frostasia, target = BattleSkillTargetSingle(battle.livingPlayers()[1])
+		))
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -385,10 +366,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveRight))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveRight))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionSkill(
-				skill = frostasia, target = BattleSkillTargetAllAllies
-			), battle.selectedMove)
+		assertSelectedMove(BattleMoveSelectionSkill(skill = frostasia, target = BattleSkillTargetAllAllies))
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -402,11 +380,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 		state.update(context)
-		assertEquals(
-			BattleMoveSelectionSkill(
-				skill = frostasia, target = BattleSkillTargetAllAllies
-			), battle.selectedMove)
-		assertInstanceOf(BattleMoveThinking::class.java, battle.currentMove)
+		assertSelectedMove(BattleMoveSelectionSkill(skill = frostasia, target = BattleSkillTargetAllAllies))
 		assertSame(sounds.ui.clickReject, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -416,8 +390,10 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 		fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 		state.update(context)
-		assertEquals(BattleMoveSelectionAttack(null), battle.selectedMove)
-		assertEquals(BattleMoveSkill(frostasia, BattleSkillTargetSingle(battle.livingPlayers()[1]), null), battle.currentMove)
+		assertEquals(BattleStateMachine.CastSkill(
+			battle.livingPlayers()[1], listOf(battle.livingPlayers()[1]), frostasia,
+			null, battleUpdateContext(state.campaign)
+		), battle.state)
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertSame(sounds.ui.clickConfirm, soundQueue.take())
 		assertNull(soundQueue.take())

@@ -13,7 +13,7 @@ import kotlin.math.roundToInt
 
 class ChallengeBarRenderer(private val context: BattleRenderContext, private val region: AbsoluteRectangle) {
 
-	private val challengeState = context.battle.reactionChallenge
+	private val challengeState = context.battle.getReactionChallenge()
 	private lateinit var batch: KimBatch
 
 	private var resultColor = 0

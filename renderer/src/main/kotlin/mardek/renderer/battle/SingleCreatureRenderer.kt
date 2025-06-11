@@ -8,9 +8,7 @@ import mardek.content.animations.SkeletonPartSkins
 import mardek.content.animations.SkeletonPartSwingEffect
 import mardek.content.battle.PartyLayoutPosition
 import mardek.content.stats.Element
-import mardek.state.ingame.battle.BattleMoveBasicAttack
-import mardek.state.ingame.battle.BattleMoveSkill
-import mardek.state.ingame.battle.BattleSkillTargetSingle
+import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.DamageIndicatorHealth
 import mardek.state.ingame.battle.MonsterCombatantState
@@ -20,7 +18,6 @@ import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.lang.Math.toIntExact
 import kotlin.math.cos
-import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -30,6 +27,7 @@ class SingleCreatureRenderer(
 	private val context: BattleRenderContext,
 	private val combatant: CombatantState,
 ) {
+	private val state = context.battle.state
 	private val currentRealTime = System.nanoTime()
 	private val flipX = if (combatant.isOnPlayerSide) 1f else -1f
 	private val effectColorTransform = mergeColorTransforms(selectedColorTransform(), damageColorTransform())
@@ -102,23 +100,19 @@ class SingleCreatureRenderer(
 	}
 
 	fun render() {
-		if (context.battle.onTurn === combatant) chooseActiveAnimation() else choosePassiveAnimation()
+		if (state is BattleStateMachine.MeleeAttack && state.attacker === combatant) {
+			chooseMeleeAnimation()
+		} else if (state is BattleStateMachine.CastSkill && state.caster === combatant) {
+			chooseCastingAnimation()
+		} else choosePassiveAnimation()
 		renderAnimation()
 	}
 
-	private fun chooseMeleeAnimation(
-		target: CombatantState, decisionTime: Long,
-		setReadyForDamage: () -> Unit, setFinished: () -> Unit
-	) {
-		relativeTime = currentRealTime - decisionTime
-
-		val moveAnimation = skeleton.getAnimation("moveto")
-		val moveTime = moveAnimation.frames.size * FRAME_LENGTH
-		animation = moveAnimation
-
-		val rawTargetCoordinates = target.getPosition(context.battle)
-		val targetFlipX = if (target.isOnPlayerSide) 1f else -1f
-		val targetModel = target.getModel()
+	private fun chooseMeleeAnimation() {
+		if (state !is BattleStateMachine.MeleeAttack) throw Error()
+		val rawTargetCoordinates = state.target.getPosition(context.battle)
+		val targetFlipX = if (state.target.isOnPlayerSide) 1f else -1f
+		val targetModel = state.target.getModel()
 		val targetStrikePoint = targetModel.skeleton.strikePoint
 		val rawStrikePosition = PartyLayoutPosition(
 			rawTargetCoordinates.x - targetStrikePoint.x.roundToInt(),
@@ -126,72 +120,70 @@ class SingleCreatureRenderer(
 		)
 		val strikePosition = transformBattleCoordinates(rawStrikePosition, targetFlipX, context.targetImage)
 
-		if (relativeTime >= moveTime) {
-			relativeTime -= moveTime
-
-			val strikeAnimation = skeleton.getAnimation("strike")
-			val strikeTime = strikeAnimation.frames.size * FRAME_LENGTH
-			animation = strikeAnimation
-
-			if (relativeTime >= strikeTime / 2) setReadyForDamage()
-			if (relativeTime >= strikeTime) {
-				relativeTime -= strikeTime
-
-				val jumpAnimation = skeleton.getAnimation("jumpback")
-				val jumpTime = jumpAnimation.frames.size * FRAME_LENGTH
-				animation = jumpAnimation
-
-				if (relativeTime >= jumpTime) {
-					relativeTime = jumpTime - 1L
-					setFinished()
-				} else {
-					var movementProgress = (relativeTime.toFloat() / jumpTime.toFloat()).pow(1.0f)
-					movementProgress = if (movementProgress < 0.2f) 0f
-					else (movementProgress - 0.2f) / 0.5f
-					if (movementProgress > 1f) movementProgress = 1f
-					coordinates.x = (1f - movementProgress) * strikePosition.x + movementProgress * coordinates.x
-					coordinates.y = (1f - movementProgress) * strikePosition.y + movementProgress * coordinates.y
-				}
-			} else {
-				coordinates = strikePosition
+		if (state is BattleStateMachine.MeleeAttack.MoveTo) {
+			val moveAnimation = skeleton.getAnimation("moveto")
+			val moveTime = moveAnimation.frames.size * FRAME_LENGTH
+			animation = moveAnimation
+			relativeTime = currentRealTime - state.startTime
+			if (relativeTime >= moveTime) {
+				state.finished = true
+				relativeTime = moveTime - 1L
 			}
-		} else {
+
 			val movementProgress = relativeTime.toFloat() / moveTime.toFloat()
 			coordinates.x = movementProgress * strikePosition.x + (1f - movementProgress) * coordinates.x
 			coordinates.y = movementProgress * strikePosition.y + (1f - movementProgress) * coordinates.y
 		}
-	}
 
-	private fun chooseActiveAnimation() {
-		val currentMove = context.battle.currentMove
-		if (currentMove is BattleMoveBasicAttack) {
-			chooseMeleeAnimation(
-				currentMove.target, currentMove.decisionTime,
-				{ currentMove.finishedStrike = true },
-				{ currentMove.finishedJump = true }
-			)
+		if (state is BattleStateMachine.MeleeAttack.Strike) {
+			val strikeAnimation = skeleton.getAnimation("strike")
+			val strikeTime = strikeAnimation.frames.size * FRAME_LENGTH
+			animation = strikeAnimation
+			relativeTime = currentRealTime - state.startTime
+
+			if (relativeTime >= strikeTime / 2) state.canDealDamage = true
+			if (relativeTime >= strikeTime) {
+				state.finished = true
+				relativeTime = strikeTime - 1L
+			}
+
+			coordinates.x = strikePosition.x
+			coordinates.y = strikePosition.y
 		}
-		if (currentMove is BattleMoveSkill) {
-			if (currentMove.skill.isMelee) {
-				if (currentMove.target !is BattleSkillTargetSingle) throw UnsupportedOperationException(
-					"Melee skills like ${currentMove.skill} can only target 1 combatant, but got ${currentMove.target}"
-				)
-				chooseMeleeAnimation(
-					(currentMove.target as BattleSkillTargetSingle).target, currentMove.decisionTime,
-					{ currentMove.canProcessDamage = true },
-					{ currentMove.finished = true }
-				)
+
+		if (state is BattleStateMachine.MeleeAttack.JumpBack) {
+			val jumpAnimation = skeleton.getAnimation("jumpback")
+			val jumpTime = jumpAnimation.frames.size * FRAME_LENGTH
+
+			val relativeJumpTime = currentRealTime - state.startTime
+			if (relativeJumpTime >= jumpTime) {
+				relativeTime = jumpTime - 1L
+				state.finished = true
 			} else {
-				val castAnimation = skeleton.getAnimation(currentMove.skill.animation ?: "spellcast")
-				val relativeCastTime = currentRealTime - currentMove.decisionTime
-				val castTime = castAnimation.frames.size * FRAME_LENGTH
-				if (relativeCastTime < castTime) {
-					animation = castAnimation
-					relativeTime = relativeCastTime
-					renderCastShadow(currentMove.skill.element)
-				} else currentMove.canProcessDamage = true
+				animation = jumpAnimation
+				relativeTime = relativeJumpTime
+
+				var movementProgress = relativeTime.toFloat() / jumpTime.toFloat()
+				movementProgress = if (movementProgress < 0.2f) 0f
+				else (movementProgress - 0.2f) / 0.5f
+				if (movementProgress > 1f) movementProgress = 1f
+				coordinates.x = (1f - movementProgress) * strikePosition.x + movementProgress * coordinates.x
+				coordinates.y = (1f - movementProgress) * strikePosition.y + movementProgress * coordinates.y
 			}
 		}
+	}
+
+	private fun chooseCastingAnimation() {
+		if (state !is BattleStateMachine.CastSkill) throw Error()
+
+		val castAnimation = skeleton.getAnimation(state.skill.animation ?: "spellcast")
+		val relativeCastTime = currentRealTime - state.startTime
+		val castTime = castAnimation.frames.size * FRAME_LENGTH
+		if (relativeCastTime < castTime) {
+			animation = castAnimation
+			relativeTime = relativeCastTime
+			renderCastShadow(state.skill.element)
+		} else state.canDealDamage = true
 	}
 
 	private fun renderCastShadow(element: Element) {
@@ -306,56 +298,49 @@ class SingleCreatureRenderer(
 					context.resources.partRenderer.render(entry.sprite, corners, colorTransform)
 				}
 			}
-			if (content is SkeletonPartCastSparkle) {
-				if (context.battle.onTurn === this.combatant) {
-					val currentMove = context.battle.currentMove
-					if (currentMove is BattleMoveSkill) {
-						val castEffect = currentMove.skill.element.spellCastEffect
-						if (castEffect != null && currentRealTime > currentMove.lastCastParticle + 30_000_000L) {
-							val basePosition = combatant.getPosition(context.battle)
-							val position = PartyLayoutPosition(
-								basePosition.x - (flipX * matrix.translateX).toInt(),
-								basePosition.y + matrix.translateY.toInt()
-							)
-							context.battle.particles.add(ParticleEffectState(castEffect, position, combatant.isOnPlayerSide))
-							currentMove.lastCastParticle = currentRealTime
-						}
-					}
+
+			if (content is SkeletonPartCastSparkle && state is BattleStateMachine.CastSkill && state.caster === this.combatant) {
+				val castEffect = state.skill.element.spellCastEffect
+				if (castEffect != null && currentRealTime > state.lastCastParticleSpawnTime + 30_000_000L) {
+					val basePosition = combatant.getPosition(context.battle)
+					val position = PartyLayoutPosition(
+						basePosition.x - (flipX * matrix.translateX).toInt(),
+						basePosition.y + matrix.translateY.toInt()
+					)
+					context.battle.particles.add(ParticleEffectState(castEffect, position, combatant.isOnPlayerSide))
+					state.lastCastParticleSpawnTime = currentRealTime
 				}
 			}
-			if (content is SkeletonPartSwingEffect) {
-				if (context.battle.onTurn === combatant) {
-					val currentMove = context.battle.currentMove
-					val element = if (currentMove is BattleMoveBasicAttack) {
-						val weapon = combatant.getEquipment(context.updateContext)[0]
-						weapon?.element ?: context.updateContext.physicalElement
-					} else if (currentMove is BattleMoveSkill && currentMove.skill.isMelee) {
-						currentMove.skill.element
-					} else null
 
-					val sprite = element?.swingEffect
-					if (sprite != null) {
-						val jomlMatrix = Matrix3x2f(
-							scaleX * flipX, matrix.rotateSkew0,
-							matrix.rotateSkew1 * flipX, scaleY,
-							matrix.translateX * flipX, matrix.translateY
-						).translate(-15.35f, -14.50f) // (-15, -14) are the offset of shape 2295
+			if (content is SkeletonPartSwingEffect && state is BattleStateMachine.MeleeAttack && state.attacker === this.combatant) {
+				val skill = state.skill
+				val element = if (skill == null) {
+					val weapon = combatant.getEquipment(context.updateContext)[0]
+					weapon?.element ?: context.updateContext.physicalElement
+				} else skill.element
 
-						val corners = arrayOf(Pair(0f, 0f), Pair(1f, 0f), Pair(1f, 1f), Pair(0f, 1f)).map { rawCorner ->
-							val position = jomlMatrix.transformPosition(Vector2f(
-								rawCorner.first * sprite.width.toFloat() / 4,
-								rawCorner.second * sprite.height.toFloat() / 4
-							))
+				val sprite = element.swingEffect
+				if (sprite != null) {
+					val jomlMatrix = Matrix3x2f(
+						scaleX * flipX, matrix.rotateSkew0,
+						matrix.rotateSkew1 * flipX, scaleY,
+						matrix.translateX * flipX, matrix.translateY
+					).translate(-15.35f, -14.50f) // (-15, -14) are the offset of shape 2295
 
-							Vector2f(
-								coordinates.x + position.x * coordinates.scaleX,
-								coordinates.y + position.y * coordinates.scaleY
-							)
-						}.toTypedArray()
+					val corners = arrayOf(Pair(0f, 0f), Pair(1f, 0f), Pair(1f, 1f), Pair(0f, 1f)).map { rawCorner ->
+						val position = jomlMatrix.transformPosition(Vector2f(
+							rawCorner.first * sprite.width.toFloat() / 4,
+							rawCorner.second * sprite.height.toFloat() / 4
+						))
 
-						val colorTransform = mergeColorTransforms(animationPart.color, effectColorTransform)
-						context.resources.partRenderer.render(sprite, corners, colorTransform)
-					}
+						Vector2f(
+							coordinates.x + position.x * coordinates.scaleX,
+							coordinates.y + position.y * coordinates.scaleY
+						)
+					}.toTypedArray()
+
+					val colorTransform = mergeColorTransforms(animationPart.color, effectColorTransform)
+					context.resources.partRenderer.render(sprite, corners, colorTransform)
 				}
 			}
 		}

@@ -74,7 +74,7 @@ private fun determineEnemyMaxMana(
 }
 
 @BitStruct(backwardCompatible = true)
-abstract class CombatantState internal constructor(
+sealed class CombatantState(
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var maxHealth: Int,
@@ -352,8 +352,8 @@ class MonsterCombatantState(
 	 * used by the monster.
 	 */
 	@BitField(id = 5, optional = true)
-	@ClassField(root = BattleMove::class)
-	var lastMove: BattleMove? = null
+	@ClassField(root = BattleStateMachine::class)
+	var lastMove: BattleStateMachine.Move? = null
 
 	constructor() : this(Monster(), 0, false)
 

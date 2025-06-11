@@ -8,19 +8,19 @@ import kotlin.random.Random
 
 class MonsterStrategyCalculator(
 	private val state: BattleState,
+	private val myState: MonsterCombatantState,
 	private val context: BattleUpdateContext,
 ) {
-	private val myState = state.onTurn as MonsterCombatantState
 	private val monster = myState.monster
 
-	fun determineNextMove(): BattleMove {
+	fun determineNextMove(): BattleStateMachine.Move {
 		val nextMove = determineNextMoveRaw()
 		myState.lastMove = nextMove
 		return nextMove
 	}
 
-	private fun determineNextMoveRaw(): BattleMove {
-		val pool = determineNextPool() ?: return BattleMoveWait()
+	private fun determineNextMoveRaw(): BattleStateMachine.Move {
+		val pool = determineNextPool() ?: return BattleStateMachine.Wait()
 
 		myState.usedStrategies[pool] = myState.usedStrategies.getOrDefault(pool, 0) + 1
 
@@ -29,30 +29,34 @@ class MonsterStrategyCalculator(
 		val item = entry.item
 		if (item != null) {
 			val target = chooseSingleTarget(entry, pool.criteria, "item ${item.flashName}")
-			return BattleMoveItem(item, target)
+			return BattleStateMachine.UseItem(myState, target, item)
 		}
 
 		val skill = entry.skill
 		if (skill != null) {
 			val skillTarget = when (entry.target) {
-				StrategyTarget.Self -> BattleSkillTargetSingle(state.onTurn!!)
+				StrategyTarget.Self -> BattleSkillTargetSingle(myState)
 				StrategyTarget.AllEnemies -> BattleSkillTargetAllEnemies
 				StrategyTarget.AllAllies -> BattleSkillTargetAllAllies
 				else -> BattleSkillTargetSingle(chooseSingleTarget(entry, pool.criteria, "skill ${skill.name}"))
 			}
 			val nextElement = if (skill.changeElement) monster.elementalShiftResistances.keys.random() else null
-			return BattleMoveSkill(skill, skillTarget, nextElement)
+			return if (skill.isMelee) BattleStateMachine.MeleeAttack.MoveTo(
+				myState, (skillTarget as BattleSkillTargetSingle).target, skill, context
+			) else BattleStateMachine.CastSkill(
+				myState, skillTarget.getTargets(myState, state), skill, nextElement, context
+			)
 		}
 
 		val target = chooseSingleTarget(entry, pool.criteria, "basic attack")
-		return BattleMoveBasicAttack(target)
+		return BattleStateMachine.MeleeAttack.MoveTo(myState, target, null, context)
 	}
 
 	private fun chooseSingleTarget(
 		entry: StrategyEntry, criteria: StrategyCriteria, description: String
 	): CombatantState {
 		val potentialTargets = when (entry.target) {
-			StrategyTarget.Self -> listOf(state.onTurn!!)
+			StrategyTarget.Self -> listOf(myState)
 			StrategyTarget.AnyAlly -> if (myState.isOnPlayerSide) state.allPlayers() else state.livingOpponents()
 			StrategyTarget.AnyEnemy -> if (myState.isOnPlayerSide) state.livingOpponents() else state.allPlayers()
 			else -> throw IllegalStateException("Unexpected strategy target ${entry.target} for single-target $description")
@@ -113,7 +117,7 @@ class MonsterStrategyCalculator(
 			val potentialTargets = when (entry.target) {
 				StrategyTarget.AnyEnemy -> allEnemies
 				StrategyTarget.AllEnemies -> allEnemies
-				StrategyTarget.Self -> listOf(state.onTurn!!)
+				StrategyTarget.Self -> listOf(myState)
 				StrategyTarget.AnyAlly -> allAllies
 				StrategyTarget.AllAllies -> allAllies
 			}
@@ -126,9 +130,10 @@ class MonsterStrategyCalculator(
 	private fun canChooseEntry(criteria: StrategyCriteria, entry: StrategyEntry): Boolean {
 		val lastMove = myState.lastMove
 		if (!criteria.canRepeat) {
-			if (entry.skill != null && lastMove is BattleMoveSkill && entry.skill === lastMove.skill) return false
-			if (entry.item != null && lastMove is BattleMoveItem && entry.item === lastMove.item) return false
-			if (entry.skill == null && entry.item == null && lastMove is BattleMoveBasicAttack) return false
+			if (entry.skill != null && lastMove is BattleStateMachine.CastSkill && entry.skill === lastMove.skill) return false
+			if (entry.skill != null && lastMove is BattleStateMachine.MeleeAttack && entry.skill === lastMove.skill) return false
+			if (entry.item != null && lastMove is BattleStateMachine.UseItem && entry.item === lastMove.item) return false
+			if (entry.skill == null && entry.item == null && lastMove is BattleStateMachine.MeleeAttack && lastMove.skill == null) return false
 		}
 
 		if (entry.skill != null && entry.skill!!.manaCost > myState.currentMana) return false
