@@ -11,8 +11,8 @@ import mardek.renderer.GameRenderer
 import mardek.renderer.SharedResources
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.fail
 import org.lwjgl.vulkan.VK10.*
 import java.awt.Color
 import java.io.File
@@ -76,9 +76,13 @@ fun TestingInstance.testRendering(
 	}
 
 	for (color in forbiddenColors) {
-		assertFalse((0 until result.width).any { x -> (0 until result.height).any { y ->
-			nearlyEquals(color, Color(result.getRGB(x, y), true))
-		} }, "Expected not to find color $color, but found it anyway")
+		for (x in 0 until result.width) {
+			for (y in 0 until result.height) {
+				if (nearlyEquals(color, Color(result.getRGB(x, y), true))) {
+					fail("Expected not to find color $color, but found it at ($x, $y)")
+				}
+			}
+		}
 	}
 }
 

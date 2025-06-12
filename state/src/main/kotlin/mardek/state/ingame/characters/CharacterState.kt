@@ -111,10 +111,54 @@ class CharacterState {
 		return equipment.any { it?.equipment != null && it.equipment!!.skills.contains(skill) }
 	}
 
+	/**
+	 * Counts how many times this character has `item` in its inventory and equipment.
+	 */
+	fun countItemOccurrences(item: Item): Int {
+		var count = 0
+		for (candidate in equipment) {
+			if (candidate === item) count += 1
+		}
+
+		for (stack in inventory) {
+			if (stack != null && stack.item === item) count += stack.amount
+		}
+
+		return count
+	}
+
+	/**
+	 * Attempts to add `stackToGive` to the inventory of this character. Returns `true` if it was added, and `false`
+	 * if the item could not be added due to a lack of inventory space.
+	 */
+	fun giveItemStack(stackToGive: ItemStack): Boolean {
+		for ((index, existingStack) in inventory.withIndex()) {
+			if (existingStack != null && existingStack.item === stackToGive.item) {
+				inventory[index] = ItemStack(
+					existingStack.item, existingStack.amount + stackToGive.amount
+				)
+				return true
+			}
+		}
+
+		for ((index, existingStack) in inventory.withIndex()) {
+			if (existingStack == null) {
+				inventory[index] = stackToGive
+				return true
+			}
+		}
+
+		return false
+	}
+
 	fun removeItem(item: Item): Boolean {
 		for ((index, stack) in inventory.withIndex()) {
 			if (stack != null && stack.item === item) {
-				inventory[index] = ItemStack(item, stack.amount - 1)
+				if (stack.amount > 1) {
+					inventory[index] = ItemStack(item, stack.amount - 1)
+				} else {
+					inventory[index] = null
+				}
 				return true
 			}
 		}

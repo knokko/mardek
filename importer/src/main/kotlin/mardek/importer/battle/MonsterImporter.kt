@@ -567,6 +567,10 @@ private fun parseCreature2(creatureTag: DefineSpriteTag): BattleCreature2 {
 		}
 	}
 
+	if (currentLabel != null && currentFrames.isNotEmpty()) {
+		creature.animations[currentLabel] = currentFrames.toList()
+	}
+
 	return creature
 }
 

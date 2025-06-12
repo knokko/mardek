@@ -217,6 +217,8 @@ sealed class CombatantState(
 
 	abstract fun hasReactions(context: BattleUpdateContext, type: ReactionSkillType): Boolean
 
+	open fun transferStatusBack(context: BattleUpdateContext) {}
+
 	companion object {
 
 		@JvmStatic
@@ -289,6 +291,20 @@ class PlayerCombatantState(
 	override fun hasReactions(
 		context: BattleUpdateContext, type: ReactionSkillType
 	) = context.characterStates[player]!!.toggledSkills.any { it is ReactionSkill && it.type == type }
+
+	override fun transferStatusBack(context: BattleUpdateContext) {
+		val characterState = context.characterStates[player]!!
+		characterState.activeStatusEffects.clear()
+		characterState.activeStatusEffects.addAll(statusEffects.filter { !it.disappearsAfterCombat })
+		statusEffects.clear()
+		statusEffects.addAll(characterState.activeStatusEffects)
+		maxHealth = characterState.determineMaxHealth(player.baseStats, statusEffects)
+		currentHealth = max(0, min(currentHealth, maxHealth))
+		characterState.currentHealth = max(1, currentHealth)
+		maxMana = characterState.determineMaxMana(player.baseStats, statusEffects)
+		currentMana = max(0, min(currentMana, maxMana))
+		characterState.currentMana = currentMana
+	}
 }
 
 @BitStruct(backwardCompatible = true)

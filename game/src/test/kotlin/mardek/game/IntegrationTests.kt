@@ -1,9 +1,14 @@
 package mardek.game
 
-import mardek.state.battle.TestBattleState
-import mardek.state.battle.TestCombatantState
-import mardek.state.battle.TestMonsterStrategyCalculator
-import mardek.state.battle.TestMoveResultCalculator
+import mardek.game.area.TestChestLoot
+import mardek.game.area.testDragonLairDoor
+import mardek.game.battle.TestBattleLoot
+import mardek.game.battle.TestBattleState
+import mardek.game.battle.TestCombatantState
+import mardek.game.inventory.TestCountItemOccurrences
+import mardek.game.battle.TestMonsterStrategyCalculator
+import mardek.game.battle.TestMoveResultCalculator
+import mardek.game.battle.testBattleMoveSelectionFlowAndRendering
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -44,6 +49,7 @@ class IntegrationTests {
 		TestCombatantState.testGetStat(instance)
 		TestCombatantState.testGetElementalResistance(instance)
 		TestCombatantState.testGetEffectResistance(instance)
+		TestCombatantState.testTransferStatusBack(instance)
 	}
 
 	@Test
@@ -81,5 +87,27 @@ class IntegrationTests {
 		TestMoveResultCalculator.testPyromagia(instance)
 		TestMoveResultCalculator.testRecover(instance)
 		TestMoveResultCalculator.testMultiTargetFrostasia(instance)
+	}
+
+	@Test
+	fun testBattleLoot() {
+		TestBattleLoot.testSimpleLoot(instance)
+		TestBattleLoot.testDoubleGoldTwice(instance)
+		TestBattleLoot.testLootFinderTwice(instance)
+		TestBattleLoot.testPlotLoot(instance)
+		TestBattleLoot.testDreamLoot(instance)
+		TestBattleLoot.testTakeSingle(instance)
+		TestBattleLoot.testTakeAll(instance)
+		TestBattleLoot.testRendering(instance)
+	}
+
+	@Test
+	fun testCountItemOccurrences() {
+		TestCountItemOccurrences.testMixed(instance)
+	}
+
+	@Test
+	fun testChestLoot() {
+		TestChestLoot.testControlsAndRendering(instance)
 	}
 }

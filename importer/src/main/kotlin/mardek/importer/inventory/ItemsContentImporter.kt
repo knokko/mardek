@@ -40,7 +40,7 @@ fun importItemsContent(content: Content) {
 		}
 	}
 
-	for (index in 0 until 25) content.items.dreamstones.add(Dreamstone(index))
+	for (index in 1 .. 16) content.items.dreamstones.add(Dreamstone(index))
 }
 
 class ItemParseException(message: String): RuntimeException(message)

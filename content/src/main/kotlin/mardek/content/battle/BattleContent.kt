@@ -33,4 +33,10 @@ class BattleContent {
 	@BitField(id = 5)
 	@ReferenceFieldTarget(label = "enemy party layouts")
 	val enemyPartyLayouts = ArrayList<PartyLayout>()
+
+	@BitField(id = 6)
+	val lootItemTexts = ArrayList<String>()
+
+	@BitField(id = 7)
+	val lootNoItemTexts = ArrayList<String>()
 }

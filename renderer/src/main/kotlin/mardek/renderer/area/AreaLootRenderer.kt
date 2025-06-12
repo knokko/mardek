@@ -144,15 +144,7 @@ class AreaLootRenderer(
 				}
 
 				val characterState = obtainedItemStack.characters[character]!!
-				var alreadyHas = 0
-				for (item in characterState.equipment) {
-					if (item == obtainedItemStack.itemStack!!.item) alreadyHas += 1
-				}
-				for (itemStack in characterState.inventory) {
-					if (itemStack != null && itemStack.item == obtainedItemStack.itemStack!!.item) {
-						alreadyHas += itemStack.amount
-					}
-				}
+				val alreadyHas = characterState.countItemOccurrences(obtainedItemStack.itemStack!!.item)
 				context.uiRenderer.drawString(
 					context.resources.font, alreadyHas.toString(), brightTextColor, intArrayOf(),
 					minX, rectMaxY, minX + 18 * scale, context.targetImage.height,
@@ -175,41 +167,9 @@ class AreaLootRenderer(
 		context.uiRenderer.endBatch()
 
 		if (obtainedItemStack.itemStack != null) {
-			context.resources.colorGridRenderer.startBatch(context.recorder)
-			for ((column, character) in obtainedItemStack.party.withIndex()) {
-				if (character == null) continue
-				val inventory = obtainedItemStack.characters[character]!!.inventory
-				if (inventory.size % 8 != 0) throw Error("Huh? inventory size is ${inventory.size}")
-
-				val minX = rectMinX + columnWidth * column + scale
-				val colorIndexBuffer = context.resources.colorGridRenderer.drawGrid(
-					context.recorder, context.targetImage, minX, rectMaxY + 40 * scale,
-					8, inventory.size / 8, 0, 2 * scale
-				)
-
-				for (row in 0 until inventory.size / 8) {
-					var indices = 0u
-					for (itemColumn in 0 until 8) {
-						var localBits = 0u
-						val itemStack = inventory[itemColumn + 8 * row]
-						if (itemStack != null) {
-							val item = itemStack.item
-							localBits = 1u
-
-							if (item.consumable != null) localBits = 2u
-							val equipment = item.equipment
-							if (equipment != null) {
-								localBits = 5u
-								if (equipment.weapon != null) localBits = 3u
-								if (equipment.armorType != null) localBits = 4u
-							}
-						}
-						indices = indices or (localBits shl (4 * itemColumn))
-					}
-					colorIndexBuffer.put(indices.toInt())
-				}
-			}
-			context.resources.colorGridRenderer.endBatch()
+			val party = obtainedItemStack.party.map { if (it != null) obtainedItemStack.characters[it]!! else null }
+			val minY = rectMaxY + 40 * scale
+			renderLootInventoryGrid(context, party, rectMinX + scale, minY, columnWidth, scale)
 		}
 
 		context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)

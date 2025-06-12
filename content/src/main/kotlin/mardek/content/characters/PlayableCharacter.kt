@@ -43,8 +43,7 @@ class PlayableCharacter(
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
-	@Suppress("unused")
-	private constructor() : this(
+	constructor() : this(
 		"", CharacterClass(), Element(), ArrayList(0),
 		DirectionalSprites(), BattleModel(), CreatureType()
 	)

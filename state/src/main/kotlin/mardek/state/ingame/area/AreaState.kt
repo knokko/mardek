@@ -6,20 +6,20 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
-import mardek.content.Content
 import mardek.content.area.*
+import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.state.SoundQueue
-import mardek.state.ingame.CampaignState
+import mardek.state.GameStateUpdateContext
+import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.battle.Battle
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.state.ingame.battle.Enemy
+import mardek.state.ingame.characters.CharacterState
 import kotlin.random.Random
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -59,6 +59,9 @@ class AreaState(
 	@ReferenceFieldTarget(label = "battle state")
 	var activeBattle: BattleState? = null
 
+	@BitField(id = 8, optional = true)
+	var battleLoot: BattleLoot? = null
+
 	private val rng = Random.Default
 
 	var nextTransition: TransitionDestination? = null
@@ -81,14 +84,14 @@ class AreaState(
 		if (key == InputKey.Interact) shouldInteract = true
 	}
 
-	fun update(input: InputManager, state: CampaignState, soundQueue: SoundQueue, timeStep: Duration, content: Content) {
+	fun update(context: UpdateContext) {
 		if (obtainedItemStack != null) return
 		if (currentTime == ZERO && !area.flags.hasClearMap) {
-			state.areaDiscovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
+			context.discovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
 		}
 
-		updatePlayerPosition(state.areaDiscovery, content, soundQueue)
-		processInput(input)
+		updatePlayerPosition(context)
+		processInput(context.input)
 		if (shouldInteract) {
 			interact()
 			shouldInteract = false
@@ -104,18 +107,23 @@ class AreaState(
 		}
 
 		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
-			val physicalElement = content.stats.elements.find { it.rawName == "NONE" }!!
-			soundQueue.insert(content.audio.fixedEffects.battle.engage)
+			val physicalElement = context.content.stats.elements.find { it.rawName == "NONE" }!!
+			context.soundQueue.insert(context.content.audio.fixedEffects.battle.engage)
 			activeBattle = BattleState(
 				battle = incomingRandomBattle!!.battle,
-				players = state.characterSelection.party,
-				playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
-				context = BattleUpdateContext(state.characterStates, content.audio.fixedEffects, physicalElement, soundQueue)
+				players = context.party,
+				playerLayout = context.content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
+				context = BattleUpdateContext(
+					context.characterStates,
+					context.content.audio.fixedEffects,
+					physicalElement,
+					context.soundQueue
+				)
 			)
 			incomingRandomBattle = null
 		}
 
-		currentTime += timeStep
+		currentTime += context.timeStep
 	}
 
 	private fun interact() {
@@ -179,7 +187,7 @@ class AreaState(
 		}
 	}
 
-	private fun updatePlayerPosition(discovery: AreaDiscoveryMap, content: Content, soundQueue: SoundQueue) {
+	private fun updatePlayerPosition(context: UpdateContext) {
 		val nextPlayerPosition = this.nextPlayerPosition
 		if (nextPlayerPosition != null && nextPlayerPosition.arrivalTime <= currentTime) {
 			for (index in 1 until playerPositions.size) {
@@ -192,16 +200,18 @@ class AreaState(
 			playerPositions[0] = nextPlayerPosition.position
 			this.nextPlayerPosition = null
 			if (!area.flags.hasClearMap) {
-				discovery.readWrite(area).discover(nextPlayerPosition.position.x, nextPlayerPosition.position.y)
+				context.discovery.readWrite(area).discover(
+					nextPlayerPosition.position.x, nextPlayerPosition.position.y
+				)
 			}
 			checkTransitions()
 			if (nextTransition != null) return
 
-			maybeStartRandomBattle(content, soundQueue)
+			maybeStartRandomBattle(context)
 		}
 	}
 
-	private fun maybeStartRandomBattle(content: Content, soundQueue: SoundQueue) {
+	private fun maybeStartRandomBattle(context: UpdateContext) {
 		val randomBattles = area.randomBattles ?: return
 		if (stepsWithoutBattle == 0) {
 			if (rng.nextInt(100) < randomBattles.chance || true) {
@@ -220,7 +230,7 @@ class AreaState(
 					randomBattles.specialBackground ?: randomBattles.defaultBackground
 				)
 				incomingRandomBattle = IncomingRandomBattle(battle, currentTime + 1.seconds, canAvoid)
-				soundQueue.insert(content.audio.fixedEffects.battle.encounter)
+				context.soundQueue.insert(context.content.audio.fixedEffects.battle.encounter)
 				stepsWithoutBattle = randomBattles.minSteps
 			}
 		} else stepsWithoutBattle -= 1
@@ -279,4 +289,11 @@ class AreaState(
 	companion object {
 		val DOOR_OPEN_DURATION = 500.milliseconds
 	}
+
+	class UpdateContext(
+		parent: GameStateUpdateContext,
+		val party: Array<PlayableCharacter?>,
+		val characterStates: Map<PlayableCharacter, CharacterState>,
+		val discovery: AreaDiscoveryMap,
+	) : GameStateUpdateContext(parent)
 }
