@@ -8,9 +8,16 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.battle.BattleBackground
 import mardek.content.battle.Monster
 import mardek.content.battle.PartyLayout
+import mardek.content.inventory.Dreamstone
+import mardek.content.inventory.Item
+import mardek.content.inventory.ItemStack
+import mardek.content.inventory.PlotItem
 import mardek.content.stats.CombatStat
 import mardek.content.stats.StatusEffect
+import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.characters.CharacterState
+import java.lang.IllegalArgumentException
+import kotlin.random.Random
 
 @BitStruct(backwardCompatible = true)
 class Battle(
@@ -32,6 +39,35 @@ class Battle(
 	val background: BattleBackground,
 ) {
 	internal constructor() : this(arrayOf(null, null, null, null), PartyLayout(), "", BattleBackground())
+
+	fun generateLoot(): BattleLoot {
+		val items = mutableMapOf<Item, Int>()
+		val plotItems = mutableSetOf<PlotItem>()
+		val dreamStones = mutableSetOf<Dreamstone>()
+		var gold = 0 // TODO what about the gold?
+		for (enemy in startingEnemies) {
+			val monster = enemy?.monster ?: continue
+			for (potentialItem in monster.loot) {
+				if (potentialItem.chance > Random.Default.nextInt(100)) {
+					val item = potentialItem.item ?: throw IllegalArgumentException(
+						"${monster.name} has invalid loot"
+					)
+					items[item] = items.getOrDefault(item, 0) + 1
+				}
+			}
+			for (potentialItem in monster.plotLoot) {
+				if (potentialItem.chance > Random.Default.nextInt(100)) {
+					plotItems.add(potentialItem.item)
+				}
+			}
+			dreamStones.addAll(monster.dreamLoot)
+		}
+
+		return BattleLoot(
+			gold, ArrayList(items.entries.map { ItemStack(it.key, it.value) }),
+			ArrayList(plotItems), ArrayList(dreamStones)
+		)
+	}
 }
 
 @BitStruct(backwardCompatible = true)

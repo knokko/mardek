@@ -250,6 +250,13 @@ class SingleCreatureRenderer(
 			animation = if (combatant is MonsterCombatantState) null
 			else skeleton.getAnimation("dead")
 		}
+
+		if (combatant.isAlive() && state is BattleStateMachine.Victory) {
+//			val victoryAnimation = skeleton.getAnimation("victory")
+//			animation = victoryAnimation
+//			relativeTime = currentRealTime - state.startTime
+//			println("victory animation takes ${victoryAnimation.frames.size} frames")
+		}
 	}
 
 	private fun renderAnimation() {

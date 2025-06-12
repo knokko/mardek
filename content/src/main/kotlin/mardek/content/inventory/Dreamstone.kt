@@ -19,4 +19,6 @@ class Dreamstone(
 
 	@Suppress("unused")
 	private constructor() : this(-1)
+
+	override fun toString() = "DreamStone $index"
 }

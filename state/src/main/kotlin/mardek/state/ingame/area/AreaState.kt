@@ -12,6 +12,7 @@ import mardek.input.InputKey
 import mardek.input.InputManager
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
+import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.battle.Battle
@@ -58,6 +59,9 @@ class AreaState(
 	@BitField(id = 7, optional = true)
 	@ReferenceFieldTarget(label = "battle state")
 	var activeBattle: BattleState? = null
+
+	@BitField(id = 8, optional = true)
+	var battleLoot: BattleLoot? = null
 
 	private val rng = Random.Default
 

@@ -249,7 +249,7 @@ sealed class BattleStateMachine {
 	class Victory : BattleStateMachine() {
 		val startTime = System.nanoTime()
 
-		fun shouldGoToLootMenu() = (System.nanoTime() - startTime) >= 2000_000_000L
+		fun shouldGoToLootMenu() = (System.nanoTime() - startTime) >= 7000_000_000L
 	}
 
 	/**

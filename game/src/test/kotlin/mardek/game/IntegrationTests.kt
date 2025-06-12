@@ -1,5 +1,6 @@
 package mardek.game
 
+import mardek.state.battle.TestBattleLoot
 import mardek.state.battle.TestBattleState
 import mardek.state.battle.TestCombatantState
 import mardek.state.battle.TestMonsterStrategyCalculator
@@ -81,5 +82,12 @@ class IntegrationTests {
 		TestMoveResultCalculator.testPyromagia(instance)
 		TestMoveResultCalculator.testRecover(instance)
 		TestMoveResultCalculator.testMultiTargetFrostasia(instance)
+	}
+
+	@Test
+	fun testBattleLoot() {
+		TestBattleLoot.testSimpleLoot(instance)
+		TestBattleLoot.testPlotLoot(instance)
+		TestBattleLoot.testDreamLoot(instance)
 	}
 }

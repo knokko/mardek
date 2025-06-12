@@ -120,6 +120,7 @@ class CampaignState(
 			activeBattle.update(context)
 			val battleState = activeBattle.state
 			if (battleState is BattleStateMachine.RanAway) {
+				// TODO transfer health, mana, and status effects
 				currentArea!!.activeBattle = null
 				soundQueue.insert(content.audio.fixedEffects.battle.flee)
 			}
@@ -127,7 +128,9 @@ class CampaignState(
 				gameOver = true
 			}
 			if (battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
-				TODO("Open loot menu")
+				// TODO transfer health, mana, and status effects
+				currentArea!!.battleLoot = activeBattle.battle.generateLoot()
+				currentArea!!.activeBattle = null
 			}
 			return
 		}
