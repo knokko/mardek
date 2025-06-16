@@ -1,6 +1,6 @@
 package playground;
 
-import com.github.knokko.ui.renderer.text.Font;
+import com.github.knokko.ui.renderer.text.FontManager;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -14,6 +14,7 @@ public class TextPlayground {
 		var fontBytes = fontInput.readAllBytes();
 		fontInput.close();
 
-		var font = new Font(fontBytes);
+		var manager = new FontManager();
+		var font = manager.addFont(fontBytes);
 	}
 }
