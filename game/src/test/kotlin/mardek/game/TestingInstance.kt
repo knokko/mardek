@@ -9,7 +9,6 @@ import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
 import mardek.content.skill.ActiveSkill
 import mardek.renderer.GameRenderer
-import mardek.renderer.SharedResources
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState

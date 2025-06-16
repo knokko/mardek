@@ -56,8 +56,9 @@ tasks.register("proguard", ProGuardTask) {
 	dontwarn "mardek.assets.area.ParsedTile"
 	dontwarn "mardek.assets.area.ParsedTilesheet"
 
-	// Some methods of BoilerBuffers use java.awt.BufferedImage, but it's fine since I don't call them
-	dontwarn "com.github.knokko.boiler.buffers.BoilerBuffers"
+	// Some methods of MappedVkbBuffer/ImageCoding use java.awt.BufferedImage, but it's fine since I don't call them
+	dontwarn "com.github.knokko.boiler.buffers.MappedVkbBuffer"
+	dontwarn "com.github.knokko.boiler.utilities.ImageCoding"
 }
 
 tasks.register("run", JavaExec) {

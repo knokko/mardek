@@ -47,7 +47,7 @@ class GameWindow(
 		framebuffers = SwapchainResourceManager({ swapchainImage: AcquiredImage ->
 				boiler.images.createFramebuffer(
 					getResources.join().renderPass, swapchainImage.width(), swapchainImage.height(),
-					"SwapchainFrameBuffer", swapchainImage.image().vkImageView()
+					"SwapchainFrameBuffer", swapchainImage.image().vkImageView
 				)
 		}, { framebuffer: Long -> vkDestroyFramebuffer(boiler.vkDevice(), framebuffer, null) })
 	}

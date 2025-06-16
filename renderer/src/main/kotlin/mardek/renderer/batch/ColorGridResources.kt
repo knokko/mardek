@@ -2,28 +2,27 @@ package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
-import com.github.knokko.boiler.descriptors.SharedDescriptorPool
-import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
+import com.github.knokko.boiler.descriptors.DescriptorCombiner
+import com.github.knokko.boiler.descriptors.DescriptorSetLayoutBuilder
+import com.github.knokko.boiler.descriptors.DescriptorUpdater
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 
 private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
-	val bindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
-	boiler.descriptors.binding(bindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
-	boiler.descriptors.createLayout(stack, bindings, "ColorGridDescriptorLayout")
+	val builder = DescriptorSetLayoutBuilder(stack, 1)
+	builder.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+	builder.build(boiler, "ColorGridDescriptorLayout")
 }
 
 class ColorGridResources(
 	private val boiler: BoilerInstance,
 	renderPass: Long,
-	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
+	descriptorCombiner: DescriptorCombiner,
 ) {
 
 	private val descriptorLayout = createDescriptorSetLayout(boiler)
-	lateinit var perFrame: PerFrameBuffer
-		private set
 	var descriptorSet = 0L
 		private set
 
@@ -31,7 +30,7 @@ class ColorGridResources(
 	val graphicsPipeline: Long
 
 	init {
-		sharedDescriptorPoolBuilder.request(descriptorLayout, 1)
+		descriptorCombiner.addSingle(descriptorLayout) { descriptorSet = it }
 		stackPush().use { stack ->
 			val pushConstants = VkPushConstantRange.calloc(1, stack)
 			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT or VK_SHADER_STAGE_FRAGMENT_BIT, 0, 36)
@@ -42,8 +41,8 @@ class ColorGridResources(
 
 			val builder = GraphicsPipelineBuilder(boiler, stack)
 			builder.simpleShaderStages(
-				"ColorGrid", "mardek/renderer/color-grid.vert.spv",
-				"mardek/renderer/color-grid.frag.spv"
+				"ColorGrid", "mardek/renderer/",
+				"color-grid.vert.spv", "color-grid.frag.spv"
 			)
 			builder.noVertexInput()
 			builder.simpleInputAssembly()
@@ -60,24 +59,17 @@ class ColorGridResources(
 		}
 	}
 
-	fun initDescriptors(pool: SharedDescriptorPool, perFrameBuffer: PerFrameBuffer) {
-		this.perFrame = perFrameBuffer
-		this.descriptorSet = pool.allocate(descriptorLayout, 1)[0]
-
+	fun prepare(perFrame: PerFrameBuffer) {
 		stackPush().use { stack ->
-			val writes = VkWriteDescriptorSet.calloc(1, stack)
-			boiler.descriptors.writeBuffer(
-				stack, writes, descriptorSet, 0,
-				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, perFrame.range.range()
-			)
-
-			vkUpdateDescriptorSets(boiler.vkDevice(), writes, null)
+			val updater = DescriptorUpdater(stack, 1)
+			updater.writeStorageBuffer(0, descriptorSet, 0, perFrame.buffer)
+			updater.update(boiler)
 		}
 	}
 
 	fun destroy(boiler: BoilerInstance) {
 		vkDestroyPipeline(boiler.vkDevice(), graphicsPipeline, null)
 		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)
-		descriptorLayout.destroy()
+		vkDestroyDescriptorSetLayout(boiler.vkDevice(), descriptorLayout.vkDescriptorSetLayout, null)
 	}
 }
