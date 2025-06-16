@@ -2,6 +2,8 @@ package mardek.state.ingame.menu
 
 import mardek.content.Content
 
+import mardek.state.ingame.characters.CharacterState
+
 import mardek.state.ingame.CampaignState
 
 import mardek.input.InputKey
@@ -18,22 +20,24 @@ class PartyTab(private val state: CampaignState): InGameMenuTab(false)
 	// var for mutable properties
 	var activeValue = 0
 
-	override fun processKeyPress(key: InputKey, soundQueue: SoundQueue)
+	override fun processKeyPress(key: InputKey, context: UiUpdateContext)
 	{
 		if (key == InputKey.MoveLeft)
 		{
 			if (activeValue > 0)
 				activeValue -= 1
-			soundQueue.insert("menu-party-scroll")
+			// soundQueue.insert("menu-party-scroll")
+			context.soundQueue.insert(context.sounds.ui.scroll)
 		}
 
 		if (key == InputKey.MoveRight)
 		{
 			if (activeValue < 6)
 				activeValue += 1
-			soundQueue.insert("menu-party-scroll")
+			// soundQueue.insert("menu-party-scroll")
+			context.soundQueue.insert(context.sounds.ui.scroll)
 		}
-		super.processKeyPress(key, soundQueue)
+		super.processKeyPress(key, context)
 	}
 
 }

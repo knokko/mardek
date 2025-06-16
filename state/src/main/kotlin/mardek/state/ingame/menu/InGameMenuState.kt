@@ -31,8 +31,8 @@ class InGameMenuState(private val state: CampaignState) {
 					if (event.key == InputKey.MoveUp) {
 						val oldTab = currentTab
 						if (currentTab is SkillsTab) currentTab = PartyTab(state)
-						if (currentTab is InventoryTab) currentTab = SkillsTab(assets, state)
-						if (currentTab is MapTab) currentTab = InventoryTab(state)
+						if (currentTab is InventoryTab) currentTab = SkillsTab(state.characterSelection)
+						if (currentTab is MapTab) currentTab = InventoryTab()
 
 						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll)
 						continue
