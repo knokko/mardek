@@ -109,7 +109,6 @@ class Kim1Resources(
 	}
 
 	fun prepare(perFrameBuffer: PerFrameBuffer, spriteBuffer: VkbBuffer) {
-		// TODO combine descriptor updates?
 		stackPush().use { stack ->
 			val updater = DescriptorUpdater(stack, 1 + 3 * framesInFlight)
 			for (frame in 0 until framesInFlight) {
