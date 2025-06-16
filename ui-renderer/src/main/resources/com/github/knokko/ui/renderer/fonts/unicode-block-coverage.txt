@@ -1,0 +1,113 @@
+This project uses the unicode-3.2 test page to test whether it supports most unicode characters. Since no font
+supports all the characters, this project needs 16 fonts (~20MB in total, or ~10MB when zipped) to cover
+almost all characters.
+
+The following list shows which unicode block is covered by which font. I did a reasonable attempt to minimize the
+total size, but there are a lot of characters...
+ - Basic Latin -> unicode-polyglott.ttf
+ - Latin-I supplement -> unicode-polyglott.ttf
+ - Latin Extended-A -> unicode-polyglott.ttf
+ - Latin Extended-B -> unicode-polyglott.ttf
+ - IPA Extensions -> unicode-quivira.ttf
+ - Spacing Modifier Letters -> unicode-polyglott.ttf
+ - Combining Diacritical Marks -> unicode-polyglott.ttf
+ - Greek and Coptic -> unicode-polyglott.ttf
+ - Cyrillic -> unicode-polyglott.ttf
+ - Cyrillic Supplementary -> unicode-polyglott.ttf
+ - Armenian -> unicode-polyglott.ttf
+ - Hebrew -> unicode-polyglott.ttf
+ - Arabic -> unicode-polyglott.ttf
+ - Syriac -> syriac.otf
+ - Thaana -> thaana.ttf
+ - Devanagari -> unicode-polyglott.ttf IMPERFECT
+ - Bengali -> unicode-polyglott.ttf IMPERFECT
+ - Gurmukhi -> unicode-freeserif.ttf
+ - Gujarati -> gujarati.ttf -> IMPERFECT
+ - Oriya -> oriya.ttf -> IMPERFECT
+ - Tamil -> unicode-freeserif.ttf -> IMPERFECT
+ - Telugu -> telugu.otf -> IMPERFECT
+ - Kannada -> kannada.ttf -> IMPERFECT
+ - Malayalam -> unicode-freeserif.ttf -> IMPERFECT
+ - Sinhala -> unicode-freeserif.ttf -> ALMOST PERFECT
+ - Thai -> unicode-polyglott.ttf
+ - Lao -> unicode-polyglott.ttf
+ - Tibetan -> tibetan.ttf -> ALMOST PERFECT
+ - Myanmar -> myanmar.ttf -> IMPERFECT
+ - Georgian -> unicode-quivira.ttf
+ - Hangul Jamo -> hangul.ttf ALMOST PERFECT
+ - Ethiopic -> unicode-freeserif.ttf
+ - Cherokee -> unicode-polyglott.ttf
+ - Unified Canadian Aboriginal Syllabics -> unicode-quivira.ttf
+ - Ogham -> unicode-quivira.ttf
+ - Runic -> unicode-quivira.ttf
+ - Tagalog -> unicode-quivira.ttf
+ - Hanunoo -> unicode-quivira.ttf
+ - Buhid -> unicode-quivira.ttf
+ - Tagbanwa -> unicode-quivira.ttf
+ - Khmer -> unicode-polyglott.ttf -> IMPERFECT
+ - Mongolian -> mongolian.ttf
+ - Latin Extended Additional -> unicode-polyglott.ttf
+ - Greek Extended -> unicode-polyglott.ttf
+ - General Punctuation -> unicode-polyglott.ttf
+ - Superscripts and Subscripts -> unicode-quivira.ttf
+ - Currency Symbols -> unicode-polyglott.ttf
+ - Combining Diacritical Marks for Symbols -> unicode-freeserif.ttf
+ - Letterlike Symbols -> unicode-quivira.ttf
+ - Number Forms -> unicode-quivira.ttf
+ - Arrows -> unicode-quivira.ttf
+ - Mathematical Operators -> unicode-quivira.ttf
+ - Miscellaneous Technical -> unicode-quivira.ttf
+ - Control Pictures -> unicode-quivira.ttf
+ - Optical Character Recognition -> unicode-quivira.ttf
+ - Enclosed Alphanumerics -> unicode-quivira.ttf
+ - Box Drawing -> unicode-quivira.ttf
+ - Block elements -> unicode-quivira.ttf
+ - Geometric Shapes -> unicode-quivira.ttf
+ - Miscellaneous Symbols -> unicode-quivira.ttf
+ - Dingbats -> unicode-quivira.ttf
+ - Miscellaneous Mathematical Symbols-A -> unicode-quivira.ttf
+ - Supplemental Arrows-A -> unicode-quivira.ttf
+ - Braille Patterns -> unicode-quivira.ttf
+ - Supplemental Arrows-B -> unicode-quivira.ttf
+ - Miscellaneous Mathematical Symbols-B -> unicode-quivira.ttf
+ - Supplemental Mathematic Operators -> unicode-quivira.ttf
+ - CJK Radicals Supplement -> cjk.ttf
+ - Kangxi Radicals -> cjk.ttf
+ - Ideographic Description Characters -> unicode-quivira.ttf
+ - CJK Symbols and Punctuation -> cjk.ttf ALMOST PERFECT
+ - Hiragana -> cjk.ttf
+ - Katakana -> cjk.ttf
+ - Bopomofo -> cjk.ttf
+ - Hangul Compatibility Jamo -> cjk.ttf
+ - Kanbun -> cjk.ttf
+ - Bopomofo Extended -> cjk.ttf
+ - Katakana Phonetic Extensions -> cjk.ttf
+ - Enclosed CJK Letters and Months -> cjk.ttf
+ - CJK Compatibility -> cjk.ttf
+ - CJK Unified Ideographs Extension A -> cjk.ttf
+ - CJK Unified Ideographs -> cjk.ttf
+ - Yi Syllables -> yi.ttf
+ - Yi Radicals -> yi.ttf
+ - Hangul Syllables -> hangul.ttf
+ - Private Use Area -> not applicable
+ - CJK Compatibility Ideographs -> cjk.ttf
+ - Alphabetic Presentation Forms -> unicode-quivira.ttf
+ - Arabic Presentation Forms-A -> unicode-polyglott.ttf
+ - Variation Selectors -> not applicable?
+ - Combining Half Marks -> marks.ttf
+ - CJK Compatibility Forms -> cjk.ttf
+ - Small Form Variants -> cjk.ttf
+ - Arabic Presentation Forms-B -> unicode-polyglott.ttf
+ - Halfwidth and Fullwidth Forms -> cjk.ttf
+ - Specials -> unicode-quivira.ttf
+ - Old Italic -> unicode-quivira.ttf
+ - Gothic -> unicode-quivira.ttf
+ - Deseret -> unicode-polyglott.ttf
+ - Byzantine Musical Symbols -> unicode-freeserif.ttf
+ - Musical Symbols -> unicode-freeserif.ttf
+ - Mathematical Alphanumeric Symbols -> unicode-quivira.ttf
+ - CJK Unified Ideographs Extension B -> MISSING I could not find a font that supports it completely
+ - CJK Compatibility Ideographs Supplement -> cjk.ttf IMPERFECT
+ - Tags -> not applicable
+ - Supplementary Private Use Area-A -> not applicable
+ - Supplementary Private Use Area-B -> not applicable

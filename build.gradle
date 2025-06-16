@@ -58,7 +58,7 @@ allprojects {
 			"org.lwjgl:lwjgl-vulkan",
 	]
 	project.ext.vulkanRuntimeDependencies = project.ext.lwjglNatives.collectMany {
-		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-vma::$it", "org.lwjgl:lwjgl-freetype::$it"]
+		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-vma::$it", "org.lwjgl:lwjgl-freetype::$it", "org.lwjgl:lwjgl-harfbuzz::$it"]
 		if (it.startsWith("natives-macos")) result.add("org.lwjgl:lwjgl-vulkan::$it")
 		result
 	}

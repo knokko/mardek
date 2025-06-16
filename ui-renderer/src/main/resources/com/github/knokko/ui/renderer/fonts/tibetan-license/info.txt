@@ -1,0 +1,2 @@
+﻿license: GPL
+link: https://www.fontspace.com/yagpo-tibetan-sambhota-uni-font-f44981

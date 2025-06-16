@@ -198,6 +198,14 @@ public class UiRenderer {
 		draw(quadRange);
 	}
 
+	public void drawString2(
+			FontData fontData, String text, int color, int[] outlineColors,
+			int minX, int minY, int maxX, int maxY, int baseY, int heightA,
+			int minScale, TextAlignment alignment, Gradient... gradients
+	) {
+
+	}
+
 	private void putGradient(Gradient gradient, IntBuffer extra) {
 		extra.put(gradient.minX());
 		extra.put(gradient.minY());
