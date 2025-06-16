@@ -18,6 +18,7 @@ import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.lang.Math.toIntExact
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -252,10 +253,9 @@ class SingleCreatureRenderer(
 		}
 
 		if (combatant.isAlive() && state is BattleStateMachine.Victory) {
-//			val victoryAnimation = skeleton.getAnimation("victory")
-//			animation = victoryAnimation
-//			relativeTime = currentRealTime - state.startTime
-//			println("victory animation takes ${victoryAnimation.frames.size} frames")
+			val victoryAnimation = skeleton.getAnimation("victory")
+			animation = victoryAnimation
+			relativeTime = min(currentRealTime - state.startTime, victoryAnimation.frames.size * FRAME_LENGTH - 1)
 		}
 	}
 

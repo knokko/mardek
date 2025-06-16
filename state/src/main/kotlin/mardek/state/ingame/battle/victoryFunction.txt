@@ -1,0 +1,484 @@
+function DoVictory()
+{
+   VICTORY.swapDepths(19273);
+   VICTORY.gotoAndPlay(2);
+   if(!GameData.plotVars.NO_BATTLE_MUSIC)
+   {
+      playMusic("VictoryFanfare" + (boss != null ? "2" : ""));
+   }
+   victory = true;
+   RemoveStatEnhancements();
+   var _loc1_ = 1;
+   while(_loc1_ <= 4)
+   {
+      if(BA["p" + _loc1_].stats.hp[0] > 0)
+      {
+         BA["p" + _loc1_].Animate("Victory");
+      }
+      _loc1_ = _loc1_ + 1;
+   }
+}
+function FinishVictory()
+{
+   var _loc7_ = 0;
+   while(_loc7_ < 4)
+   {
+      if(PCstats[_loc7_].model != null)
+      {
+         PCstats[_loc7_].BATTLES = int(PCstats[_loc7_].BATTLES) + 1;
+         var _loc6_ = PCstats[_loc7_].learned._REACTIONS.PASSIVE;
+         for(var _loc15_ in _loc6_)
+         {
+            if(_loc6_[_loc15_][0] < GetReactionInfo("PASSIVE",_loc15_).AP && _loc6_[_loc15_][1])
+            {
+               _loc6_[_loc15_][0] += !PCstats[_loc7_].REACT.PASSIVE.apmult ? 1 : PCstats[_loc7_].REACT.PASSIVE.apmult;
+               if(_loc6_[_loc15_][0] >= GetReactionInfo("PASSIVE",_loc15_).AP)
+               {
+                  B_SKILLS_MASTERED[_loc7_].push(["PASSIVE",_loc15_]);
+               }
+            }
+         }
+      }
+      _loc7_ = _loc7_ + 1;
+   }
+   RecordStat("BATTLES");
+   SetBadgeStat("NumBattlesWon",GameData.RECORDS.BATTLES,"MAX");
+   SPOILS = [];
+   REWARD_GOLD = 0;
+   if(SPECIAL_LOOT)
+   {
+      SPOILS.push(SPECIAL_LOOT);
+      SPECIAL_LOOT = null;
+   }
+   var _loc14_ = 0;
+   var _loc17_ = 1;
+   _loc7_ = 0;
+   while(_loc7_ < 4)
+   {
+      _loc14_ += int(PCstats[_loc7_].REACT.PASSIVE.lootmod);
+      _loc17_ += int(PCstats[_loc7_].REACT.PASSIVE.goldmult);
+      _loc7_ = _loc7_ + 1;
+   }
+   var _loc10_ = 0;
+   while(_loc10_ < PCstatsE.length)
+   {
+      if(_root.PCstatsE[_loc10_].name != undefined)
+      {
+         var _loc4_ = 0;
+         while(_loc4_ < _root.PCstatsE[_loc10_].loot.length)
+         {
+            if(Math.random() * 100 < _root.PCstatsE[_loc10_].loot[_loc4_][1] + _loc14_)
+            {
+               var _loc8_ = false;
+               var _loc5_ = 0;
+               while(_loc5_ < SPOILS.length)
+               {
+                  if(SPOILS[_loc5_][0] == _root.PCstatsE[_loc10_].loot[_loc4_][0])
+                  {
+                     _loc8_ = _loc5_;
+                  }
+                  _loc5_ = _loc5_ + 1;
+               }
+               if(_loc8_ !== false)
+               {
+                  SPOILS[_loc5_][1] = SPOILS[_loc5_][1] + 1;
+               }
+               else
+               {
+                  SPOILS.push([_root.PCstatsE[_loc10_].loot[_loc4_][0],1,_root.PCstatsE[_loc10_].loot[_loc4_][2]]);
+               }
+            }
+            _loc4_ = _loc4_ + 1;
+         }
+         REWARD_GOLD += int(random(Math.pow(_root.PCstatsE[_loc10_].level,2) + 1 + random(10)) * (Math.random() + 0.5));
+         if(_root.PCstatsE[_loc10_].extra_gold != null)
+         {
+            REWARD_GOLD += _root.PCstatsE[_loc10_].extra_gold;
+         }
+      }
+      _loc10_ = _loc10_ + 1;
+   }
+   REWARD_GOLD = int(REWARD_GOLD * _loc17_);
+   if(SPOILS.length > 0 || REWARD_GOLD > 0)
+   {
+      _CURSOR._visible = false;
+      snapshot = new flash.display.BitmapData(STAGEW,STAGEH,true);
+      snapshot.draw(_root);
+      BA._visible = false;
+      _CURSOR._visible = true;
+      _root.createEmptyMovieClip("SNAP",1007);
+      SNAP.attachBitmap(snapshot,100);
+      SNAP.filters = [new flash.filters.BlurFilter(8,8)];
+      _root.ClearBattlefield("LeaveVictory");
+      SNAP.battle = true;
+      VICTORY.gotoAndStop("SPOILS");
+      VICTORY._x = VICTORY._y = 0;
+      VICTORY._alpha = 0;
+      VICTORY.ShownMoney = GameData.money;
+      VICTORY.GotMoney = "+ " + REWARD_GOLD;
+      VICTORY.MONEY = NumberFormat(VICTORY.ShownMoney);
+      GameData.money += REWARD_GOLD;
+      _root.RecordStat("GOLD_EARNED",REWARD_GOLD);
+      VICTORY.fraction = Math.floor(REWARD_GOLD / 30);
+      if(VICTORY.fraction < 1)
+      {
+         VICTORY.fraction = 1;
+      }
+      var _loc21_ = ["arduously scrounged","stole amongst the carnage","find where your foes once stood","found","have acquired","see these items","now have these","find in the aftermath","now own"];
+      var _loc20_ = ["You didn\'t find any items.","You got no items this time.","No spoils here!","Today was not your lucky day, item-wise.","These opponents were poor and carried nothing."];
+      if(SPOILS.length == 0)
+      {
+         VICTORY.YouFound = _loc20_[random(_loc20_.length)];
+      }
+      else
+      {
+         VICTORY.YouFound = "You " + _loc21_[random(_loc21_.length)] + ":";
+      }
+      VICTORY.SpoilsMenu = [VICTORY._GETALL];
+      _loc5_ = 0;
+      while(_loc5_ < SPOILS.length)
+      {
+         var _loc3_ = VICTORY.SpoilsList.attachMovie("VictorySpoil","SPOIL" + _loc5_,100 + _loc5_);
+         _loc3_._y = 54 * _loc5_;
+         if(SPOILS[_loc5_][0] == "Dreamstone")
+         {
+            _loc3_.gotoAndStop("dreamstone");
+            _loc3_.ItemName = "Dreamstone #" + (SPOILS[_loc5_][2] + 1);
+            var _loc13_ = new flash.display.BitmapData(16,16,true);
+            _loc13_.copyPixels(flash.display.BitmapData.loadBitmap("SoulOrb"),new flash.geom.Rectangle(0,0,16,16),new flash.geom.Point(0,0));
+            _loc3_.createEmptyMovieClip("img",10);
+            _loc3_.img.attachBitmap(_loc13_,1);
+            _loc3_.img._width = _loc3_.img._height = 48;
+            _loc3_.SKIP = true;
+            _loc3_.NECESSARY = true;
+         }
+         else
+         {
+            _loc3_.ItemName = SPOILS[_loc5_][0];
+            _loc3_.ItemAmount = "x " + SPOILS[_loc5_][1];
+            _loc7_ = 0;
+            while(_loc7_ < 4)
+            {
+               _loc3_["p" + (_loc7_ + 1) + "has"] = HasItem(SPOILS[_loc5_][0],_loc7_);
+               _loc7_ = _loc7_ + 1;
+            }
+            AddItemImg(SPOILS[_loc5_][0],_loc3_,48,0);
+            if(GetItemInfo(SPOILS[_loc5_][0]).type == "plot")
+            {
+               _loc3_.gotoAndStop("plot");
+               _loc3_.SKIP = true;
+               _loc3_.NECESSARY = true;
+            }
+         }
+         _loc3_.SPOIL = SPOILS[_loc5_];
+         _loc3_.Acquire = function()
+         {
+            if(this.SPOIL[0] == "Dreamstone")
+            {
+               GIVEDREAMSTONE(this.SPOIL[2]);
+            }
+            else if(_root.GetItemInfo(this.SPOIL[0]).type == "plot")
+            {
+               GIVEPLOTITEM(this.SPOIL[0]);
+            }
+            else
+            {
+               var _loc3_ = _root.PCstats[(_root.VICTORY_LAST_SEL_PC = _root.VICTORY.SEL_PC) - 1];
+               var _loc4_ = _root.HasItem(this.SPOIL[0],_root.VICTORY.SEL_PC - 1);
+               if(_root.FullInventory(_loc3_) && !(_loc4_ && _loc4_ + this.SPOIL[1] < 99))
+               {
+                  _root.playSFX("error");
+                  _root.Flash(this,[255,0,0]);
+                  _root.Flash(_root.VICTORY["inv" + _root.VICTORY.SEL_PC],[255,0,0]);
+                  return false;
+               }
+               _root.GiveItemTo(this.SPOIL[0],this.SPOIL[1],_loc3_);
+            }
+            _root.VICTORY["inv" + _root.VICTORY.SEL_PC].Refresh();
+            this.removeMovieClip();
+            _root.VICTORY.SpoilsMenu[this.INDEX] = null;
+            return true;
+         };
+         _loc3_.INDEX = VICTORY.SpoilsMenu.push(_loc3_) - 1;
+         _loc5_ = _loc5_ + 1;
+      }
+      VICTORY.SpoilsMenu.push(VICTORY._END);
+      VICTORY._GETALL.LABEL = "GET ALL";
+      VICTORY._END.LABEL = "FINISH";
+      VICTORY._GETALL.gotoAndStop(1);
+      VICTORY._END.gotoAndStop(1);
+      if(!SPOILS.length)
+      {
+         VICTORY._GETALL._alpha = 20;
+         VICTORY._GETALL.SKIP = true;
+      }
+      VICTORY.cursor.POS = 0;
+      VICTORY.cursor.Move = function(n, mute)
+      {
+         var _loc5_ = 0;
+         var _loc3_ = 1;
+         while(_loc3_ < this._parent.SpoilsMenu.length - 1)
+         {
+            if(!this._parent.SpoilsMenu[_loc3_].SKIP && this._parent.SpoilsMenu[_loc3_].SPOIL != null)
+            {
+               _loc5_ = _loc5_ + 1;
+            }
+            _loc3_ = _loc3_ + 1;
+         }
+         if(!_loc5_)
+         {
+            this._parent._GETALL._alpha = 20;
+            this._parent._GETALL.SKIP = true;
+         }
+         this._parent.SpoilsMenu[this.POS].gotoAndStop(1);
+         this.POS += n;
+         while(this._parent.SpoilsMenu[this.POS]._y == null || this._parent.SpoilsMenu[this.POS].SKIP)
+         {
+            this.POS += !n ? 1 : n;
+            if(this.POS < 0)
+            {
+               this.POS = this._parent.SpoilsMenu.length - 1;
+            }
+            if(this.POS >= this._parent.SpoilsMenu.length)
+            {
+               this.POS = 0;
+            }
+         }
+         var _loc6_ = this._parent.SpoilsMenu[this.POS];
+         _loc6_.gotoAndStop(2);
+         this._y = _loc6_._y + _loc6_._height / 2 + (_loc6_._parent._name != "SpoilsList" ? 0 : this._parent.SpoilsList._y);
+         if(n && !mute)
+         {
+            _root.playSFX("menuBlip1");
+         }
+      };
+      VICTORY.cursor.Move(0,true);
+      VICTORY.SEL_PC = !_root.VICTORY_LAST_SEL_PC ? 1 : _root.VICTORY_LAST_SEL_PC;
+      if(_root.PCstats[VICTORY.SEL_PC - 1].model == null)
+      {
+         VICTORY.SEL_PC = 1;
+      }
+      _loc7_ = 1;
+      while(_loc7_ <= 4)
+      {
+         var _loc9_ = VICTORY["P" + _loc7_];
+         if(_root.PCstats[_loc7_ - 1] == null)
+         {
+            _loc9_._visible = false;
+         }
+         else
+         {
+            _loc9_._visible = true;
+            _loc9_.gotoAndStop(_loc7_ != VICTORY.SEL_PC ? 3 : 2);
+            if(_loc9_.box == null)
+            {
+               AttachPCSprite(_loc9_,_root.PCstats[_loc7_ - 1],1,1,3);
+            }
+            VICTORY["inv" + _loc7_].Refresh = function()
+            {
+               this.attachBitmap(_root.InventorySquare(_root.PCstats[this._name.substr(-1) - 1]),0);
+               this._width = this._height = 48;
+            };
+            VICTORY["inv" + _loc7_].Refresh();
+         }
+         _loc7_ = _loc7_ + 1;
+      }
+      playSFX("menuBlip4");
+      VICTORY.onEnterFrame = function()
+      {
+         if(this._alpha < 100)
+         {
+            this._alpha += 20;
+            if(this._alpha >= 100)
+            {
+               this._alpha = 100;
+            }
+            return undefined;
+         }
+         if(this.ShownMoney < GameData.money)
+         {
+            var _loc5_ = _root.REWARD_GOLD >= this.fraction ? this.fraction : _root.REWARD_GOLD;
+            this.ShownMoney += _loc5_;
+            _root.REWARD_GOLD -= _loc5_;
+            this.MONEY = _root.NumberFormat(this.ShownMoney);
+         }
+         if(!Key.isDown(38) && !Key.isDown(40) && !Key.isDown(37) && !Key.isDown(39) && !Key.isDown(KEYS.X) && !Key.isDown(KEYS.Z))
+         {
+            this.KeyDown = false;
+         }
+         if(!this.KeyDown)
+         {
+            if(Key.isDown(37))
+            {
+               this["P" + this.SEL_PC].gotoAndStop(3);
+               do
+               {
+                  this.SEL_PC = this.SEL_PC - 1;
+                  if(this.SEL_PC <= 0)
+                  {
+                     this.SEL_PC = 4;
+                  }
+               }
+               while(_root.PCstats[this.SEL_PC - 1] == null);
+
+               this["P" + this.SEL_PC].gotoAndStop(2);
+               this.KeyDown = true;
+               playSFX("menuBlip1");
+            }
+            else if(Key.isDown(39))
+            {
+               this["P" + this.SEL_PC].gotoAndStop(3);
+               do
+               {
+                  this.SEL_PC = this.SEL_PC + 1;
+                  if(this.SEL_PC > 4)
+                  {
+                     this.SEL_PC = 1;
+                  }
+               }
+               while(_root.PCstats[this.SEL_PC - 1] == null);
+
+               this["P" + this.SEL_PC].gotoAndStop(2);
+               this.KeyDown = true;
+               playSFX("menuBlip1");
+            }
+            else if(Key.isDown(40))
+            {
+               this.cursor.Move(1);
+               this.KeyDown = true;
+            }
+            else if(Key.isDown(38))
+            {
+               this.cursor.Move(-1);
+               this.KeyDown = true;
+            }
+            else if(Key.isDown(KEYS.X))
+            {
+               this.KeyDown = true;
+               if(!this.SHOW_MASTER)
+               {
+                  if(this.cursor.POS == 0)
+                  {
+                     var _loc4_ = 0;
+                     var _loc3_ = 1;
+                     while(_loc3_ < this.SpoilsMenu.length - 1)
+                     {
+                        if(this.SpoilsMenu[_loc3_].SPOIL != null)
+                        {
+                           if(!this.SpoilsMenu[_loc3_].Acquire())
+                           {
+                              this.cursor.POS = _loc3_;
+                              this.cursor.Move(0,true);
+                              return false;
+                           }
+                           _loc4_ = _loc4_ + 1;
+                        }
+                        _loc3_ = _loc3_ + 1;
+                     }
+                     if(_loc4_)
+                     {
+                        _root.playSFX("menuBlip4");
+                     }
+                     this.cursor.POS = this.SpoilsMenu.length - 1;
+                     this.cursor.Move(0,true);
+                     return undefined;
+                  }
+                  if(this.SpoilsMenu[this.cursor.POS].SPOIL != null)
+                  {
+                     if(this.SpoilsMenu[this.cursor.POS].Acquire())
+                     {
+                        this.cursor.Move(1,true);
+                        _root.playSFX("menuBlip4");
+                     }
+                     return undefined;
+                  }
+                  if(this.SpoilsMenu[this.cursor.POS]._name == "_END")
+                  {
+                     _loc3_ = 1;
+                     while(_loc3_ < this.SpoilsMenu.length - 1)
+                     {
+                        if(this.SpoilsMenu[_loc3_].NECESSARY)
+                        {
+                           this.SpoilsMenu[_loc3_].Acquire();
+                        }
+                        _loc3_ = _loc3_ + 1;
+                     }
+                  }
+                  if(ShowSkillsMasteredScreen())
+                  {
+                     return undefined;
+                  }
+               }
+               _root.EndBattle();
+               this.onEnterFrame = null;
+            }
+         }
+      };
+   }
+   else if(!ShowSkillsMasteredScreen(true))
+   {
+      EndBattle();
+   }
+}
+function ShowSkillsMasteredScreen(zeroAlpha)
+{
+   if(!B_SKILLS_MASTERED[0].length && !B_SKILLS_MASTERED[1].length && !B_SKILLS_MASTERED[2].length && !B_SKILLS_MASTERED[3].length)
+   {
+      return false;
+   }
+   VICTORY.gotoAndStop("LEARNED");
+   playSFX("MasterJingle");
+   var _loc4_ = 0;
+   while(_loc4_ < 4)
+   {
+      var _loc6_ = VICTORY["p" + _loc4_];
+      if(PCstats[_loc4_] == null)
+      {
+         _loc6_.gotoAndStop("empty");
+      }
+      else
+      {
+         _loc6_.gotoAndStop(2);
+         _loc6_.charname = PCstats[_loc4_].name + "\nLevel " + PCstats[_loc4_].level;
+         AttachPCSprite(_loc6_.sprite,_root.PCstats[_loc4_],1,1,3);
+         _loc6_.elemstrip.gotoAndStop(PCstats[_loc4_].element);
+         var _loc3_ = 0;
+         while(_loc3_ < B_SKILLS_MASTERED[_loc4_].length)
+         {
+            var _loc5_ = _loc6_.LIST.attachMovie("Afterbattle_SkillMastered","A" + _loc3_,_loc3_);
+            _loc5_._y = 25 * _loc3_;
+            _loc5_.icon.gotoAndStop(B_SKILLS_MASTERED[_loc4_][_loc3_][0]);
+            _loc5_.skill = B_SKILLS_MASTERED[_loc4_][_loc3_][1];
+            _loc3_ = _loc3_ + 1;
+         }
+      }
+      _loc4_ = _loc4_ + 1;
+   }
+   VICTORY.SHOW_MASTER = true;
+   VICTORY._alpha = 0;
+   VICTORY.onEnterFrame = function()
+   {
+      if(this._alpha < 100)
+      {
+         this._alpha += 20;
+         if(this._alpha >= 100)
+         {
+            this._alpha = 100;
+         }
+         return undefined;
+      }
+      if(!Key.isDown(KEYS.X) && !Key.isDown(KEYS.Z))
+      {
+         this.KeyDown = false;
+      }
+      if(!this.KeyDown)
+      {
+         if(Key.isDown(KEYS.X) || Key.isDown(KEYS.Z))
+         {
+            _root.EndBattle();
+            this.onEnterFrame = null;
+         }
+      }
+   };
+   return true;
+}
