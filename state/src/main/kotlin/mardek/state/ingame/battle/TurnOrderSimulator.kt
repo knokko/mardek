@@ -1,20 +1,18 @@
 package mardek.state.ingame.battle
 
-import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.CombatStat
-import mardek.state.ingame.characters.CharacterState
 
 class TurnOrderSimulator internal constructor(
 	private val entries: List<TurnOrderEntry>
 ) {
 
 	constructor(
-		battleState: BattleState, characterStates: Map<PlayableCharacter, CharacterState>
-	) : this((battleState.livingEnemies() + battleState.livingPlayers()).map { TurnOrderEntry(
+		battleState: BattleState, context: BattleUpdateContext
+	) : this((battleState.livingOpponents() + battleState.livingPlayers()).map { TurnOrderEntry(
 		combatant = it,
-		agility = it.getStat(CombatStat.Agility, characterStates),
-		turnsSpent = it.getState().spentTurnsThisRound,
-		turnsPerRound = 1 + it.getState().statusEffects.sumOf { effect -> effect.extraTurns },
+		agility = it.getStat(CombatStat.Agility, context),
+		turnsSpent = it.spentTurnsThisRound,
+		turnsPerRound = 1 + it.statusEffects.sumOf { effect -> effect.extraTurns },
 	) })
 
 	fun checkReset(): Boolean {
@@ -24,7 +22,7 @@ class TurnOrderSimulator internal constructor(
 		} else false
 	}
 
-	fun next(): CombatantReference? {
+	fun next(): CombatantState? {
 		if (entries.isEmpty()) return null
 		val nextPriority = entries.mapNotNull { it.computePriority() }.max()
 		val nextEntry = entries.find { it.computePriority() == nextPriority }!!
@@ -34,7 +32,7 @@ class TurnOrderSimulator internal constructor(
 }
 
 internal class TurnOrderEntry(
-	val combatant: CombatantReference,
+	val combatant: CombatantState,
 	val agility: Int,
 	var turnsSpent: Int,
 	val turnsPerRound: Int,

@@ -7,6 +7,8 @@ import mardek.content.inventory.EquipmentProperties
 import mardek.content.inventory.EquipmentSlotType
 import mardek.content.inventory.Item
 import mardek.content.skill.*
+import mardek.importer.audio.importAudioContent
+import mardek.importer.particle.importParticleEffects
 import mardek.importer.stats.importStatsContent
 import mardek.importer.skills.importSkillsContent
 import org.junit.jupiter.api.Assertions.*
@@ -53,6 +55,8 @@ class TestItemsContentImporter {
 
 	@BeforeAll
 	fun importItems() {
+		importAudioContent(content.audio)
+		importParticleEffects(content)
 		importStatsContent(content)
 		importSkillsContent(content)
 		importItemsContent(content)
@@ -60,7 +64,7 @@ class TestItemsContentImporter {
 
 	@Test
 	fun testImportSword() {
-		assertEquals("MARTIAL", content.items.weaponTypes.find { it.flashName == "SWORD" }!!.soundEffect)
+		assertEquals(content.audio.effects.find { it.flashName == "hit_MARTIAL" }!!, content.items.weaponTypes.find { it.flashName == "SWORD" }!!.soundEffect)
 	}
 
 	@Test
@@ -215,9 +219,9 @@ class TestItemsContentImporter {
 
 		assertEquals(1, weapon.effectiveAgainstCreatureTypes.size)
 		assertEquals("UNDEAD", weapon.effectiveAgainstCreatureTypes[0].type.flashName)
-		assertEquals(1f, weapon.effectiveAgainstCreatureTypes[0].bonusFraction, margin)
+		assertEquals(1f, weapon.effectiveAgainstCreatureTypes[0].modifier, margin)
 		assertEquals("LIGHT", axe.element!!.properName)
-		assertEquals("hit_2HSWORDS", weapon.hitSound)
+		assertEquals("hit_2HSWORDS", weapon.hitSound!!.flashName)
 
 		assertEquals(1, equipment.skills.size)
 		val quarry = equipment.skills[0] as ReactionSkill

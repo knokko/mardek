@@ -3,21 +3,17 @@ package mardek.renderer.battle
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
-import mardek.content.characters.PlayableCharacter
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.ui.ResourceBarRenderer
 import mardek.renderer.ui.ResourceType
-import mardek.state.ingame.battle.CombatantState
-import mardek.state.ingame.characters.CharacterState
+import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.title.AbsoluteRectangle
 import kotlin.math.roundToInt
 
 class PlayerBlockRenderer(
 	private val context: BattleRenderContext,
-	private val player: PlayableCharacter,
-	private val playerState: CombatantState,
-	private val characterState: CharacterState,
+	private val player: PlayerCombatantState,
 	private val region: AbsoluteRectangle,
 ) {
 
@@ -28,7 +24,7 @@ class PlayerBlockRenderer(
 	fun beforeRendering() {
 		run {
 			batch2 = context.resources.kim2Renderer.startBatch()
-			val sprite = playerState.element.sprite // TODO thin sprite?
+			val sprite = player.element.sprite // TODO thin sprite?
 			val marginY = region.height / 20
 			val scale = (region.height - 2 * marginY) / sprite.height.toFloat()
 			batch2.requests.add(KimRequest(
@@ -41,7 +37,7 @@ class PlayerBlockRenderer(
 			batch1 = context.resources.kim1Renderer.startBatch()
 			val period = 1_000_000_000L
 			val inPeriod = (System.nanoTime() - context.battle.startTime) % period
-			val walkingSprite = player.areaSprites.sprites[if (inPeriod < 500_000_000L) 0 else 1]
+			val walkingSprite = player.player.areaSprites.sprites[if (inPeriod < 500_000_000L) 0 else 1]
 			val scale = 0.5f * region.height / walkingSprite.height
 			batch1.requests.add(KimRequest(
 				x = region.minX + (6.5f * scale).roundToInt(),
@@ -54,7 +50,7 @@ class PlayerBlockRenderer(
 	fun render() {
 		context.uiRenderer.beginBatch()
 		run {
-			val element = playerState.element
+			val element = player.element
 			val marginY = region.height / 10
 			val minX = region.minX + region.height / 2
 			val minY = region.minY + marginY
@@ -68,7 +64,7 @@ class PlayerBlockRenderer(
 
 			val textColor = srgbToLinear(rgb(238, 203, 127))
 			context.uiRenderer.drawString(
-				context.resources.font, player.name, textColor, IntArray(0),
+				context.resources.font, player.player.name, textColor, IntArray(0),
 				nameX, region.minY, region.maxX, maxY, maxY - marginY / 2,
 				3 * region.height / 15, 1, TextAlignment.LEFT
 			)
@@ -79,8 +75,8 @@ class PlayerBlockRenderer(
 				region.minX + 4 * region.height / 5, region.minY + 13 * region.height / 30,
 				region.width - 4 * region.height / 5 - region.width / 20, 2 * region.height / 12
 			))
-			healthBar.renderBar(playerState.currentHealth, playerState.maxHealth)
-			healthBar.renderTextOverBar(playerState.currentHealth, playerState.maxHealth)
+			val displayedHealth = renderCombatantHealth(player, healthBar, System.nanoTime())
+			healthBar.renderTextOverBar(displayedHealth, player.maxHealth)
 
 			val xpBar = ResourceBarRenderer(context, ResourceType.Experience, AbsoluteRectangle(
 				region.minX + 2 * region.height / 3, region.maxY - 4 * region.height / 13,
@@ -88,7 +84,7 @@ class PlayerBlockRenderer(
 			))
 			xpBar.renderBar(80, 100) // TODO proper xp
 			context.uiRenderer.drawString(
-				context.resources.font, "Lv${characterState.currentLevel}",
+				context.resources.font, "Lv${player.getLevel(context.updateContext)}",
 				srgbToLinear(rgb(251, 225, 100)), IntArray(0),
 				nameX, region.minY, region.maxX, region.maxY, region.maxY - region.height / 8,
 				region.height / 5, 1, TextAlignment.LEFT
@@ -98,8 +94,8 @@ class PlayerBlockRenderer(
 				region.maxX - region.width / 3 - region.width / 20, region.maxY - 4 * region.height / 13,
 				region.width / 3, region.height / 6
 			))
-			manaBar.renderBar(playerState.currentMana, playerState.maxMana)
-			manaBar.renderCurrentOverBar(playerState.currentMana, playerState.maxMana)
+			manaBar.renderBar(player.currentMana, player.maxMana)
+			manaBar.renderCurrentOverBar(player.currentMana, player.maxMana)
 		}
 
 		run {
@@ -117,6 +113,6 @@ class PlayerBlockRenderer(
 		context.resources.kim2Renderer.submit(batch2, context.recorder, context.targetImage)
 		context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)
 
-		maybeRenderSelectionBlink(playerState, context.uiRenderer, region)
+		maybeRenderSelectionBlink(player, context.uiRenderer, region)
 	}
 }

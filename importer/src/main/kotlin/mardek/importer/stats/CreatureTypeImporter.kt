@@ -21,7 +21,9 @@ internal fun importCreatureTypes(statsContent: StatsContent) {
 
 	for ((index, typeName) in creatureTypeList.withIndex()) {
 		statsContent.creatureTypes.add(CreatureType(
-			typeName, compressKimSprite1(spriteSheet.getSubimage(16 * index, 0, 16, spriteSheet.height))
+			flashName = typeName,
+			icon = compressKimSprite1(spriteSheet.getSubimage(16 * index, 0, 16, spriteSheet.height)),
+			revertsHealing = typeName == "UNDEAD",
 		))
 	}
 }

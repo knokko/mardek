@@ -23,6 +23,7 @@ fun addStatusEffects(content: StatsContent) {
 		niceName = "Confusion",
 		isPositive = false,
 		disappearsAfterCombat = true,
+		disappearAfterHitChance = 100,
 		isConfusing = true
 	))
 	content.statusEffects.add(StatusEffect(
@@ -52,6 +53,7 @@ fun addStatusEffects(content: StatsContent) {
 		niceName = "Sleep",
 		isPositive = false,
 		disappearsAfterCombat = true,
+		disappearAfterHitChance = 100,
 		skipTurnChance = 100,
 		disappearChancePerTurn = 25
 	))
@@ -96,7 +98,7 @@ fun addStatusEffects(content: StatsContent) {
 		niceName = "Berserk",
 		isPositive = true,
 		disappearsAfterCombat = true,
-		meleeDamageModifier = 2f,
+		meleeDamageModifier = 1f,
 		isReckless = true
 	))
 	content.statusEffects.add(StatusEffect(

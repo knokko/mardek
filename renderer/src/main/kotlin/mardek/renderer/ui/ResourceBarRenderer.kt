@@ -4,14 +4,13 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.Gradient
 import mardek.renderer.InGameRenderContext
+import mardek.renderer.changeAlpha
 import mardek.state.title.AbsoluteRectangle
-
-private fun changeAlpha(color: Int, alpha: Int) = rgba(red(color), green(color), blue(color), alpha.toByte())
 
 class ResourceBarRenderer(
 	private val context: InGameRenderContext,
 	private val resourceType: ResourceType,
-	private val barRegion: AbsoluteRectangle
+	val barRegion: AbsoluteRectangle
 ) {
 
 	fun renderBar(currentValue: Int, maxValue: Int) {
@@ -32,6 +31,16 @@ class ResourceBarRenderer(
 				entry.topLeftColor, entry.topRightColor, entry.topLeftColor
 			)
 		)
+	}
+
+	fun renderLost(currentValue: Int, oldValue: Int, maxValue: Int, opacity: Float) {
+		if (oldValue > currentValue) {
+			context.uiRenderer.fillColor(
+				barRegion.minX + currentValue * barRegion.width / maxValue, barRegion.minY,
+				barRegion.minX + oldValue * barRegion.width / maxValue,
+				barRegion.maxY, rgba(1f, 0f, 0f, opacity)
+			)
+		}
 	}
 
 	fun renderTextBelowBar(currentValue: Int, maxValue: Int) {

@@ -1,13 +1,14 @@
 package mardek.game
 
 import mardek.state.battle.TestBattleState
-import mardek.state.battle.TestCombatantReference
+import mardek.state.battle.TestCombatantState
 import mardek.state.battle.TestMonsterStrategyCalculator
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import mardek.state.battle.TestMoveResultCalculator
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 
+@Execution(ExecutionMode.CONCURRENT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IntegrationTests {
 
@@ -40,9 +41,9 @@ class IntegrationTests {
 
 	@Test
 	fun testCombatantReference() {
-		TestCombatantReference.testGetStat(instance)
-		TestCombatantReference.testGetElementalResistance(instance)
-		TestCombatantReference.testGetEffectResistance(instance)
+		TestCombatantState.testGetStat(instance)
+		TestCombatantState.testGetElementalResistance(instance)
+		TestCombatantState.testGetEffectResistance(instance)
 	}
 
 	@Test
@@ -54,5 +55,31 @@ class IntegrationTests {
 		TestMonsterStrategyCalculator.testTargetMissesEffectAndTargetHp(instance)
 		TestMonsterStrategyCalculator.testFaintedAndFreeAllySlots(instance)
 		TestMonsterStrategyCalculator.testLowMana(instance)
+	}
+
+	@Test
+	fun testBasicAttackResultCalculator() {
+		TestMoveResultCalculator.testSimpleElementCreatureStunCrit(instance)
+		TestMoveResultCalculator.testStrengthAndAttack(instance)
+		TestMoveResultCalculator.testDamageReductionAndSoak(instance)
+		TestMoveResultCalculator.testComplexElementalModifiers(instance)
+		TestMoveResultCalculator.testHealthDrainAgainstUndead(instance)
+		TestMoveResultCalculator.testRemoveStatusEffects(instance)
+		TestMoveResultCalculator.testAddSleepAfterRemoveSleep(instance)
+		TestMoveResultCalculator.testDrainMana(instance)
+		TestMoveResultCalculator.testSurvivor(instance)
+		TestMoveResultCalculator.testEvasion(instance)
+		TestMoveResultCalculator.testShieldAndBerserkDamage(instance)
+		TestMoveResultCalculator.testDamageReductionDoesNotHeal(instance)
+	}
+
+	@Test
+	fun testSkillResultCalculator() {
+		TestMoveResultCalculator.testShockDamageAndParalyze(instance)
+		TestMoveResultCalculator.testDarkClawBlinding(instance)
+		TestMoveResultCalculator.testThousandNeedles(instance)
+		TestMoveResultCalculator.testPyromagia(instance)
+		TestMoveResultCalculator.testRecover(instance)
+		TestMoveResultCalculator.testMultiTargetFrostasia(instance)
 	}
 }

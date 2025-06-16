@@ -18,7 +18,8 @@ import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
-import mardek.state.ingame.battle.BattleOutcome
+import mardek.state.ingame.battle.BattleStateMachine
+import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
 import kotlin.time.Duration
@@ -56,6 +57,7 @@ class CampaignState(
 	constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
 	var shouldOpenMenu = false
+	var gameOver = false
 
 	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, content: Content) {
 		while (true) {
@@ -66,19 +68,23 @@ class CampaignState(
 			val currentBattle = currentArea.activeBattle
 
 			if (currentBattle != null) {
-				currentBattle.processKeyPress(event.key, characterStates, soundQueue)
+				val physicalElement = content.stats.elements.find { it.rawName == "NONE" }!!
+				val context = BattleUpdateContext(
+					characterStates, content.audio.fixedEffects, physicalElement, soundQueue
+				)
+				currentBattle.processKeyPress(event.key, context)
 				continue
 			}
 
 			val obtainedItemStack = currentArea.obtainedItemStack
 			if (obtainedItemStack != null) {
-				obtainedItemStack.processKeyPress(event.key, soundQueue)
+				obtainedItemStack.processKeyPress(event.key, content.audio.fixedEffects, soundQueue)
 				continue
 			}
 
 			if (event.key == InputKey.ToggleMenu) {
 				shouldOpenMenu = true
-				soundQueue.insert("menu-open")
+				soundQueue.insert(content.audio.fixedEffects.ui.openMenu)
 				continue
 			}
 
@@ -107,19 +113,26 @@ class CampaignState(
 		// Don't update currentArea during battles!!
 		val activeBattle = currentArea?.activeBattle
 		if (activeBattle != null) {
-			when (activeBattle.outcome) {
-				BattleOutcome.GameOver -> TODO("Game over")
-				BattleOutcome.Busy -> activeBattle.update(characterStates, soundQueue, timeStep)
-				BattleOutcome.RanAway -> {
-					currentArea!!.activeBattle = null
-					soundQueue.insert("flee-battle")
-				}
-				BattleOutcome.Victory -> TODO("Open loot menu")
+			val physicalElement = content.stats.elements.find { it.rawName == "NONE" }!!
+			val context = BattleUpdateContext(
+				characterStates, content.audio.fixedEffects, physicalElement, soundQueue
+			)
+			activeBattle.update(context)
+			val battleState = activeBattle.state
+			if (battleState is BattleStateMachine.RanAway) {
+				currentArea!!.activeBattle = null
+				soundQueue.insert(content.audio.fixedEffects.battle.flee)
+			}
+			if (battleState is BattleStateMachine.GameOver && battleState.shouldGoToGameOverMenu()) {
+				gameOver = true
+			}
+			if (battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
+				TODO("Open loot menu")
 			}
 			return
 		}
 
-		currentArea?.update(input, this, timeStep, content)
+		currentArea?.update(input, this, soundQueue, timeStep, content)
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area
@@ -133,7 +146,7 @@ class CampaignState(
 		if (openedChest != null) {
 			currentArea.openedChest = null
 			if (!openedChests.contains(openedChest)) {
-				soundQueue.insert("open-chest")
+				soundQueue.insert(content.audio.fixedEffects.openChest)
 				if (openedChest.battle != null) {
 					// TODO chest battle
 					return
@@ -151,7 +164,7 @@ class CampaignState(
 						openedChest.stack!!, null, characterSelection.party, characterStates
 					) { didTake ->
 						currentArea.obtainedItemStack = null
-						soundQueue.insert("click-cancel")
+						soundQueue.insert(content.audio.fixedEffects.ui.clickCancel)
 						if (didTake) openedChests.add(openedChest)
 					}
 				}
@@ -164,7 +177,7 @@ class CampaignState(
 							collectedPlotItems.add(openedChest.plotItem!!)
 							openedChests.add(openedChest)
 						}
-						soundQueue.insert("click-cancel")
+						soundQueue.insert(content.audio.fixedEffects.ui.clickCancel)
 					}
 				}
 				// TODO dreamstone in chest

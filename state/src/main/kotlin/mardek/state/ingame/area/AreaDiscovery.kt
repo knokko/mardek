@@ -28,7 +28,7 @@ class AreaDiscovery(area: Area) {
 		val range = 9
 		val height = raw.size / width
 		for (x in max(0, playerX - range) .. min(width - 1, playerX + range)) {
-			for (y in max(0, playerY - range) .. min(height, playerY + range)) {
+			for (y in max(0, playerY - range) .. min(height - 1, playerY + range)) {
 				raw[x + y * width] = true
 			}
 		}

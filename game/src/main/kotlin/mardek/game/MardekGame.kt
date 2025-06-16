@@ -12,7 +12,7 @@ import mardek.input.InputManager
 import mardek.renderer.GameRenderer
 import mardek.renderer.SharedResources
 import mardek.state.GameStateManager
-import mardek.state.StartupState
+import mardek.state.title.TitleScreenState
 import org.lwjgl.vulkan.VK10.*
 import java.io.File
 import java.util.concurrent.CompletableFuture
@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
 	val mainThread = Thread.currentThread()
 	val content = CompletableFuture<Content>()
 	val input = InputManager()
-	val state = GameStateManager(input, StartupState(content))
+	val state = GameStateManager(input, TitleScreenState())
 	val getBoiler = CompletableFuture<BoilerInstance>()
 	val getTargetImageFormat = CompletableFuture<Int>()
 	val sharedResources = CompletableFuture<SharedResources>()
@@ -78,8 +78,11 @@ fun main(args: Array<String>) {
 
 	Thread {
 		val updateLoop = UpdateLoop({ _ ->
-			synchronized(state.lock()) {
-				state.update(10.milliseconds)
+			if (content.isCompletedExceptionally || content.isCancelled) throw RuntimeException("Failed to load campagin")
+			if (content.isDone) {
+				synchronized(state.lock()) {
+					state.update(content.get(), 10.milliseconds)
+				}
 			}
 		}, 10_000_000L)
 		val updateThread = Thread(updateLoop)
@@ -99,7 +102,7 @@ fun main(args: Array<String>) {
 	inputListener.register()
 
 	val eventLoop = WindowEventLoop(0.01, inputListener::update)
-	eventLoop.addWindow(GameWindow(boiler.window(), framesInFlight, sharedResources, state, startTime))
+	eventLoop.addWindow(GameWindow(boiler.window(), framesInFlight, sharedResources, content, state, startTime))
 	println("Started event loop after ${(System.nanoTime() - startTime) / 1000_000} ms")
 	eventLoop.runMain()
 

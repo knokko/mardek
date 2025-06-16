@@ -5,10 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.stats.CreatureTypeBonus
-import mardek.content.stats.Element
-import mardek.content.stats.ElementalDamageBonus
-import mardek.content.stats.PossibleStatusEffect
+import mardek.content.stats.*
 
 @BitStruct(backwardCompatible = true)
 class ReactionSkill(
@@ -80,4 +77,12 @@ class ReactionSkill(
 		0, 0f, 0, 0, 0f, 0f, ArrayList(0),
 		ArrayList(0), ArrayList(0), ArrayList(0), false, false, false
 	)
+
+	fun getElementalBonus(element: Element) = elementalBonuses.sumOf {
+		if (it.element === element) it.modifier.toDouble() else 0.0
+	}.toFloat()
+
+	fun getCreatureTypeBonus(creatureType: CreatureType) = effectiveAgainst.sumOf {
+		if (it.type === creatureType) it.modifier.toDouble() else 0.0
+	}.toFloat()
 }

@@ -41,7 +41,7 @@ class SkillsTabRenderer(
 	private val skillsEnablePointsX = descriptionMaxX + region.width / 2
 	private val skillsMasteryPointsX = descriptionMaxX + region.width / 2 + region.width / 20
 
-	private val visibleSkills = tab.determineSkillList()
+	private val visibleSkills = tab.determineSkillList(context.uiContext)
 	private val selectedSkill = if (visibleSkills.isEmpty()) null else visibleSkills[tab.skillIndex]
 
 	private lateinit var kim1Batch: KimBatch
@@ -55,6 +55,7 @@ class SkillsTabRenderer(
 	}
 
 	override fun beforeRendering() {
+		if (region.width < 50) return
 		this.kim1Batch = context.resources.kim1Renderer.startBatch()
 		this.kim2Batch = context.resources.kim2Renderer.startBatch()
 
@@ -140,6 +141,7 @@ class SkillsTabRenderer(
 	}
 
 	override fun render() {
+		if (region.width < 50) return
 		val titleTextColor = srgbToLinear(rgb(238, 203, 127))
 		val selectionLowColor = srgbToLinear(rgb(25, 72, 119))
 		context.uiRenderer.fillColor(

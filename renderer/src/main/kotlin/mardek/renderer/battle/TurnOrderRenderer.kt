@@ -19,19 +19,33 @@ class TurnOrderRenderer(
 	private val triangleWidth = region.height / 4
 	private val midY = region.minY + region.height / 2
 
-	private val onTurn = context.battle.onTurn
+	private val state = context.battle.state
 	private lateinit var kimBatch: KimBatch
+	private val onTurn = when (state) {
+		is BattleStateMachine.MeleeAttack -> state.attacker
+		is BattleStateMachine.CastSkill -> state.caster
+		is BattleStateMachine.UseItem -> state.thrower
+		is BattleStateMachine.SelectMove -> state.onTurn
+		else -> null
+	}
 
-	private fun shouldRender(selectedMove: BattleMoveSelection): Boolean {
+	private fun shouldRender(): Boolean {
 		if (slotWidth < 5) return false
-		if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) return false
-		if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) return false
-		if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) return false
+		if (state is BattleStateMachine.MeleeAttack && state.skill != null) return false
+		if (state is BattleStateMachine.CastSkill) return false
+		if (state is BattleStateMachine.SelectMove) {
+			val selectedMove = state.selectedMove
+			if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) return false
+			if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) return false
+			if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) return false
+		}
+		if (state is BattleStateMachine.GameOver) return false
+		if (state is BattleStateMachine.Victory) return false
 		return true
 	}
 
 	fun beforeRendering() {
-		if (!shouldRender(context.battle.selectedMove)) return
+		if (!shouldRender()) return
 		kimBatch = context.resources.kim1Renderer.startBatch()
 
 		val scale = region.height / 24f
@@ -39,7 +53,7 @@ class TurnOrderRenderer(
 
 		var x = region.minX + slotWidth
 		var isFirst = true
-		val simulator = TurnOrderSimulator(context.battle, context.campaign.characterStates)
+		val simulator = TurnOrderSimulator(context.battle, context.updateContext)
 		while (x + slotWidth < region.maxX) {
 			val combatant = if (isFirst && onTurn != null) {
 				onTurn
@@ -47,14 +61,11 @@ class TurnOrderRenderer(
 				simulator.checkReset()
 				simulator.next() ?: break
 			}
-			val sprite = if (combatant.isPlayer) {
-				context.battle.players[combatant.index]!!.areaSprites.sprites[0]
-			} else context.battle.enemies[combatant.index]!!.monster.type.icon
 
 			kimBatch.requests.add(KimRequest(
 				x = x + slotWidth - spriteSize,
 				y = region.minY + (region.height - spriteSize) / 2,
-				scale = scale, sprite = sprite, opacity = 1f
+				scale = scale, sprite = combatant.getTurnOrderIcon(), opacity = 1f
 			))
 
 			x += slotWidth
@@ -63,7 +74,7 @@ class TurnOrderRenderer(
 	}
 
 	fun render() {
-		if (!shouldRender(context.battle.selectedMove)) return
+		if (!shouldRender()) return
 
 		context.uiRenderer.beginBatch()
 
@@ -93,7 +104,7 @@ class TurnOrderRenderer(
 			x += slotWidth
 		}
 
-		val simulator = TurnOrderSimulator(context.battle, context.campaign.characterStates)
+		val simulator = TurnOrderSimulator(context.battle, context.updateContext)
 		val darkPlayerColor = srgbToLinear(rgba(49, 84, 122, 200))
 		val lightPlayerColor = srgbToLinear(rgba(89, 118, 148, 200))
 		val darkEnemyColor = srgbToLinear(rgba(131, 45, 32, 200))
@@ -114,8 +125,9 @@ class TurnOrderRenderer(
 				simulator.next() ?: break
 			}
 
-			val (lightColor, darkColor) = if (combatant.isPlayer) Pair(lightPlayerColor, darkPlayerColor)
+			val (lightColor, darkColor) = if (combatant.isOnPlayerSide) Pair(lightPlayerColor, darkPlayerColor)
 			else Pair(lightEnemyColor, darkEnemyColor)
+
 			val minTriX = x + triangleWidth
 			val maxTriX = minTriX + slotWidth
 			context.uiRenderer.fillColorUnaligned(

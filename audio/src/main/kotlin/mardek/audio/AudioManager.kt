@@ -24,11 +24,15 @@ private fun getResource(path: String): ByteBuffer {
 	return buffer
 }
 
-private fun readVorbis(path: String, alBuffer: Int, stack: MemoryStack) {
-	val rawBytes = getResource(path)
+private fun readVorbis(path: String?, byteArray: ByteArray?, alBuffer: Int, stack: MemoryStack) {
+	val byteBuffer = if (byteArray != null) {
+		val buffer = memCalloc(byteArray.size)
+		buffer.put(0, byteArray)
+		buffer
+	} else getResource(path!!)
 	val error = stack.callocInt(1)
 
-	val decoder = stb_vorbis_open_memory(rawBytes, error, null)
+	val decoder = stb_vorbis_open_memory(byteBuffer, error, null)
 	if (error[0] != VORBIS__no_error) throw AudioException("stb_vorbis_open_memory($path) caused error ${error[0]}")
 	if (decoder == 0L) throw Error("stb_vorbis_open_memory failed")
 
@@ -49,7 +53,8 @@ internal class AudioManager {
 	private val device = alcOpenDevice(null as ByteBuffer?)
 	private val context: Long
 	private val musicSource: Int
-	private val soundSource: Int
+	private val soundSources = IntArray(3)
+	private var nextSoundSource = 0
 
 	private val buffers = mutableListOf<Int>()
 
@@ -66,23 +71,31 @@ internal class AudioManager {
 		assertAlSuccess("AL.createCapabilities")
 
 		this.musicSource = assertAlSuccess(alGenSources(), "alGenSources")
-		this.soundSource = assertAlSuccess(alGenSources(), "alGenSources")
+
+		stackPush().use { stack ->
+			val pSoundSources = stack.callocInt(soundSources.size)
+			alGenSources(pSoundSources)
+			pSoundSources.get(soundSources)
+		}
 	}
 
-	fun add(path: String) = stackPush().use { stack ->
+	fun add(path: String?, bytes: ByteArray?) = stackPush().use { stack ->
 		val pBuffer = stack.callocInt(1)
 		alGenBuffers(pBuffer)
 		assertAlSuccess("alGenBuffers")
 
 		val buffer = pBuffer.get(0)
-		readVorbis(path, buffer, stack)
+		readVorbis(path, bytes, buffer, stack)
 		buffers.add(buffer)
 		buffer
 	}
 
 	fun playMusic(audio: Int) = play(musicSource, audio)
 
-	fun playSound(audio: Int) = play(soundSource, audio)
+	fun playSound(audio: Int) {
+		play(soundSources[nextSoundSource], audio)
+		nextSoundSource = (nextSoundSource + 1) % soundSources.size
+	}
 
 	private fun play(source: Int, audio: Int) {
 		val currentAudio = alGetSourcei(source, AL_BUFFER)
@@ -104,12 +117,16 @@ internal class AudioManager {
 	}
 
 	fun destroy() {
-		alSourceStop(soundSource)
+		for (soundSource in soundSources) alSourceStop(soundSource)
 		alSourceStop(musicSource)
 		assertAlSuccess("alSourceStop")
 
 		stackPush().use { stack ->
-			alDeleteSources(stack.ints(musicSource, soundSource))
+			val pSources = stack.callocInt(1 + soundSources.size)
+			pSources.put(0, musicSource)
+			pSources.put(1, soundSources)
+
+			alDeleteSources(pSources)
 			assertAlSuccess("alDeleteSources")
 
 			val pBuffers = stack.callocInt(buffers.size)

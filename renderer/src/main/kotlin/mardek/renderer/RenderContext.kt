@@ -4,20 +4,32 @@ import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
 import mardek.content.Content
 import mardek.state.GameState
+import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
+import mardek.state.ingame.menu.UiUpdateContext
 
 open class RenderContext(
+	val content: Content,
 	val resources: SharedResources,
 	val state: GameState,
 	val recorder: CommandRecorder,
 	val targetImage: VkbImage,
-	val frameIndex: Int
+	val frameIndex: Int,
+	val soundQueue: SoundQueue,
 ) {
 	val uiRenderer = resources.uiRenderers[frameIndex]
 }
 
 open class InGameRenderContext(
-	val content: Content,
 	val campaign: CampaignState,
 	context: RenderContext,
-) : RenderContext(context.resources, context.state, context.recorder, context.targetImage, context.frameIndex)
+) : RenderContext(
+	context.content, context.resources, context.state, context.recorder,
+	context.targetImage, context.frameIndex, context.soundQueue
+) {
+
+	val uiContext = UiUpdateContext(
+		campaign.characterSelection, campaign.characterStates, soundQueue,
+		content.audio.fixedEffects, content.skills
+	)
+}

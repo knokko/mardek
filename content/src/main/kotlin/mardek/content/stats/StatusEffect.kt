@@ -33,7 +33,7 @@ class StatusEffect(
 
 	@BitField(id = 6)
 	@FloatField(expectMultipleOf = 0.25)
-	val meleeDamageModifier: Float = 1f,
+	val meleeDamageModifier: Float = 0f,
 
 	@BitField(id = 7)
 	@FloatField(expectMultipleOf = 0.25)
@@ -99,10 +99,14 @@ class StatusEffect(
 	@BitField(id = 25)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val disappearChancePerTurn: Int = 0,
+
+	@BitField(id = 26)
+	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
+	val disappearAfterHitChance: Int = 0,
 ) {
 
 	@Suppress("unused")
-	@BitField(id = 26)
+	@BitField(id = 27)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 

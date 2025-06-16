@@ -4,30 +4,23 @@ import mardek.content.battle.StrategyCriteria
 import mardek.content.battle.StrategyEntry
 import mardek.content.battle.StrategyPool
 import mardek.content.battle.StrategyTarget
-import mardek.content.characters.PlayableCharacter
-import mardek.state.ingame.characters.CharacterState
 import kotlin.random.Random
 
 class MonsterStrategyCalculator(
 	private val state: BattleState,
-	private val characterStates: Map<PlayableCharacter, CharacterState>,
+	private val myState: MonsterCombatantState,
+	private val context: BattleUpdateContext,
 ) {
-	private val enemyIndex = state.onTurn!!.index
-	private val monster = state.enemies[enemyIndex]!!.monster
-	private val myState = state.enemyStates[enemyIndex]!!
+	private val monster = myState.monster
 
-	init {
-		if (state.onTurn!!.isPlayer) throw IllegalStateException("A monster must be on turn")
-	}
-
-	fun determineNextMove(): BattleMove {
+	fun determineNextMove(): BattleStateMachine.Move {
 		val nextMove = determineNextMoveRaw()
 		myState.lastMove = nextMove
 		return nextMove
 	}
 
-	private fun determineNextMoveRaw(): BattleMove {
-		val pool = determineNextPool() ?: return BattleMoveWait
+	private fun determineNextMoveRaw(): BattleStateMachine.Move {
+		val pool = determineNextPool() ?: return BattleStateMachine.Wait()
 
 		myState.usedStrategies[pool] = myState.usedStrategies.getOrDefault(pool, 0) + 1
 
@@ -35,31 +28,37 @@ class MonsterStrategyCalculator(
 
 		val item = entry.item
 		if (item != null) {
-			return BattleMoveItem(item, chooseSingleTarget(entry, pool.criteria, "item ${item.flashName}"))
+			val target = chooseSingleTarget(entry, pool.criteria, "item ${item.flashName}")
+			return BattleStateMachine.UseItem(myState, target, item)
 		}
 
 		val skill = entry.skill
 		if (skill != null) {
 			val skillTarget = when (entry.target) {
-				StrategyTarget.Self -> BattleSkillTargetSingle(state.onTurn!!)
-				StrategyTarget.AllPlayers -> BattleSkillTargetAllEnemies
+				StrategyTarget.Self -> BattleSkillTargetSingle(myState)
+				StrategyTarget.AllEnemies -> BattleSkillTargetAllEnemies
 				StrategyTarget.AllAllies -> BattleSkillTargetAllAllies
 				else -> BattleSkillTargetSingle(chooseSingleTarget(entry, pool.criteria, "skill ${skill.name}"))
 			}
 			val nextElement = if (skill.changeElement) monster.elementalShiftResistances.keys.random() else null
-			return BattleMoveSkill(skill, skillTarget, nextElement)
+			return if (skill.isMelee) BattleStateMachine.MeleeAttack.MoveTo(
+				myState, (skillTarget as BattleSkillTargetSingle).target, skill, context
+			) else BattleStateMachine.CastSkill(
+				myState, skillTarget.getTargets(myState, state), skill, nextElement, context
+			)
 		}
 
-		return BattleMoveBasicAttack(chooseSingleTarget(entry, pool.criteria, "basic attack"))
+		val target = chooseSingleTarget(entry, pool.criteria, "basic attack")
+		return BattleStateMachine.MeleeAttack.MoveTo(myState, target, null, context)
 	}
 
 	private fun chooseSingleTarget(
 		entry: StrategyEntry, criteria: StrategyCriteria, description: String
-	): CombatantReference {
+	): CombatantState {
 		val potentialTargets = when (entry.target) {
-			StrategyTarget.Self -> listOf(state.onTurn!!)
-			StrategyTarget.AnyAlly -> state.livingEnemies()
-			StrategyTarget.AnyPlayer -> state.allPlayers()
+			StrategyTarget.Self -> listOf(myState)
+			StrategyTarget.AnyAlly -> if (myState.isOnPlayerSide) state.allPlayers() else state.livingOpponents()
+			StrategyTarget.AnyEnemy -> if (myState.isOnPlayerSide) state.livingOpponents() else state.allPlayers()
 			else -> throw IllegalStateException("Unexpected strategy target ${entry.target} for single-target $description")
 		}
 		return potentialTargets.filter { areCriteriaSatisfied(criteria, it) }.random()
@@ -104,18 +103,23 @@ class MonsterStrategyCalculator(
 		val myElement = criteria.myElement
 		if (myElement != null && myState.element !== myElement) return false
 
-		if (criteria.freeAllySlots > 0 && criteria.freeAllySlots != state.enemyStates.count { it == null }) return false
+		if (criteria.freeAllySlots > 0) {
+			if (myState.isOnPlayerSide && criteria.freeAllySlots != state.players.count { it == null }) return false
+			if (!myState.isOnPlayerSide && criteria.freeAllySlots != state.opponents.size - state.livingOpponents().size) return false
+		}
 
 		if (!criteria.canUseOnOddTurns && myState.totalSpentTurns % 2 == 1) return false
 		if (!criteria.canUseOnEvenTurns && myState.totalSpentTurns % 2 == 0) return false
 
 		for (entry in pool.entries) {
+			val allEnemies = if (myState.isOnPlayerSide) state.livingOpponents() else state.allPlayers()
+			val allAllies = if (myState.isOnPlayerSide) state.allPlayers() else state.livingOpponents()
 			val potentialTargets = when (entry.target) {
-				StrategyTarget.AnyPlayer -> state.allPlayers()
-				StrategyTarget.AllPlayers -> state.allPlayers()
-				StrategyTarget.Self -> listOf(state.onTurn!!)
-				StrategyTarget.AnyAlly -> state.livingEnemies()
-				StrategyTarget.AllAllies -> state.livingEnemies()
+				StrategyTarget.AnyEnemy -> allEnemies
+				StrategyTarget.AllEnemies -> allEnemies
+				StrategyTarget.Self -> listOf(myState)
+				StrategyTarget.AnyAlly -> allAllies
+				StrategyTarget.AllAllies -> allAllies
 			}
 			if (potentialTargets.none { areCriteriaSatisfied(pool.criteria, it) }) return false
 		}
@@ -126,9 +130,10 @@ class MonsterStrategyCalculator(
 	private fun canChooseEntry(criteria: StrategyCriteria, entry: StrategyEntry): Boolean {
 		val lastMove = myState.lastMove
 		if (!criteria.canRepeat) {
-			if (entry.skill != null && lastMove is BattleMoveSkill && entry.skill === lastMove.skill) return false
-			if (entry.item != null && lastMove is BattleMoveItem && entry.item === lastMove.item) return false
-			if (entry.skill == null && entry.item == null && lastMove is BattleMoveBasicAttack) return false
+			if (entry.skill != null && lastMove is BattleStateMachine.CastSkill && entry.skill === lastMove.skill) return false
+			if (entry.skill != null && lastMove is BattleStateMachine.MeleeAttack && entry.skill === lastMove.skill) return false
+			if (entry.item != null && lastMove is BattleStateMachine.UseItem && entry.item === lastMove.item) return false
+			if (entry.skill == null && entry.item == null && lastMove is BattleStateMachine.MeleeAttack && lastMove.skill == null) return false
 		}
 
 		if (entry.skill != null && entry.skill!!.manaCost > myState.currentMana) return false
@@ -136,28 +141,27 @@ class MonsterStrategyCalculator(
 		return true
 	}
 
-	private fun areCriteriaSatisfied(criteria: StrategyCriteria, target: CombatantReference): Boolean {
+	private fun areCriteriaSatisfied(criteria: StrategyCriteria, target: CombatantState): Boolean {
 		if (criteria.targetFainted) return !target.isAlive()
 		else if (!target.isAlive()) return false
-		val targetState = target.getState()
 
-		val targetHpPercentage = 100 * targetState.currentHealth / targetState.maxHealth
+		val targetHpPercentage = 100 * target.currentHealth / target.maxHealth
 		if (targetHpPercentage > criteria.targetHpPercentageAtMost) return false
 		if (targetHpPercentage < criteria.targetHpPercentageAtLeast) return false
 
 		val targetHasEffect = criteria.targetHasEffect
-		if (targetHasEffect != null && !targetState.statusEffects.contains(targetHasEffect)) return false
+		if (targetHasEffect != null && !target.statusEffects.contains(targetHasEffect)) return false
 
 		val targetMissesEffect = criteria.targetMissesEffect
-		if (targetMissesEffect != null && targetState.statusEffects.contains(targetMissesEffect)) return false
+		if (targetMissesEffect != null && target.statusEffects.contains(targetMissesEffect)) return false
 
 		val maxResistance = criteria.resistanceAtMost
-		if (maxResistance != null && target.getResistance(maxResistance.element, characterStates) > maxResistance.modifier) {
+		if (maxResistance != null && target.getResistance(maxResistance.element, context) > maxResistance.modifier) {
 			return false
 		}
 
 		val minResistance = criteria.resistanceAtLeast
-		if (minResistance != null && target.getResistance(minResistance.element, characterStates) < minResistance.modifier) {
+		if (minResistance != null && target.getResistance(minResistance.element, context) < minResistance.modifier) {
 			return false
 		}
 

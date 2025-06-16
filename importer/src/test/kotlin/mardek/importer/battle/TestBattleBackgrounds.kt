@@ -1,7 +1,9 @@
 package mardek.importer.battle
 
 import mardek.content.Content
+import mardek.importer.audio.importAudioContent
 import mardek.importer.inventory.importItemsContent
+import mardek.importer.particle.importParticleEffects
 import mardek.importer.stats.importStatsContent
 import mardek.importer.skills.importSkillsContent
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -12,6 +14,8 @@ class TestBattleBackgrounds {
 	@Test
 	fun testBattleBackgrounds() {
 		val content = Content()
+		importAudioContent(content.audio)
+		importParticleEffects(content)
 		importStatsContent(content)
 		importSkillsContent(content)
 		importItemsContent(content)

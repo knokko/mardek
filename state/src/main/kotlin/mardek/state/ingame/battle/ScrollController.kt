@@ -1,141 +1,121 @@
 package mardek.state.ingame.battle
 
-import mardek.content.characters.PlayableCharacter
 import mardek.content.skill.SkillTargetType
 import mardek.input.InputKey
-import mardek.state.SoundQueue
-import mardek.state.ingame.characters.CharacterState
 
-internal fun battleScrollHorizontally(state: BattleState, key: InputKey, soundQueue: SoundQueue) {
+internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, context: BattleUpdateContext) {
+	val state = battle.state as BattleStateMachine.SelectMove
 	val selectedMove = state.selectedMove
 	if (selectedMove is BattleMoveSelectionAttack && selectedMove.target == null) {
 		if (key == InputKey.MoveLeft) state.selectedMove = BattleMoveSelectionSkill(skill = null, target = null)
 		else state.selectedMove = BattleMoveSelectionFlee
-		soundQueue.insert("menu-scroll")
+		context.soundQueue.insert(context.sounds.ui.scroll)
 	}
 	if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) {
-		if (key == InputKey.MoveLeft && selectedMove.target.isPlayer) {
-			val nextIndex = closestTarget(
-				state.playerLayout.positions[selectedMove.target.index], state.enemyStates, state.battle.enemyLayout
-			)
-			changeSelectedMove(state, BattleMoveSelectionAttack(
-				CombatantReference(false, nextIndex, state)
-			), soundQueue)
+		if (key == InputKey.MoveLeft && selectedMove.target.isOnPlayerSide) {
+			val nextIndex = closestTarget(selectedMove.target.getPosition(battle), battle.opponents, battle.battle.enemyLayout)
+			changeSelectedMove(battle, BattleMoveSelectionAttack(battle.opponents[nextIndex]!!), context)
 		}
-		if (key == InputKey.MoveRight && !selectedMove.target.isPlayer) {
-			val nextIndex = closestTarget(
-				state.battle.enemyLayout.positions[selectedMove.target.index], state.playerStates, state.playerLayout
-			)
-			changeSelectedMove(state, BattleMoveSelectionAttack(
-				CombatantReference(true, nextIndex, state)
-			), soundQueue)
+		if (key == InputKey.MoveRight && !selectedMove.target.isOnPlayerSide) {
+			val nextIndex = closestTarget(selectedMove.target.getPosition(battle), battle.players, battle.playerLayout)
+			changeSelectedMove(battle, BattleMoveSelectionAttack(battle.players[nextIndex]!!), context)
 		}
 	}
 	if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill == null) {
-		if (key == InputKey.MoveLeft) changeSelectedMove(state, BattleMoveSelectionItem(item = null, target = null), soundQueue)
-		else changeSelectedMove(state, BattleMoveSelectionAttack(target = null), soundQueue)
-		soundQueue.insert("menu-scroll")
+		if (key == InputKey.MoveLeft) changeSelectedMove(battle, BattleMoveSelectionItem(item = null, target = null), context)
+		else changeSelectedMove(battle, BattleMoveSelectionAttack(target = null), context)
+		context.soundQueue.insert(context.sounds.ui.scroll)
 	}
 	if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null && selectedMove.target != null) {
 		if (selectedMove.target is BattleSkillTargetSingle) {
-			if (key == InputKey.MoveLeft && selectedMove.target.target.isPlayer &&
+			if (key == InputKey.MoveLeft && selectedMove.target.target.isOnPlayerSide &&
 				selectedMove.skill.targetType != SkillTargetType.Self
 			) {
 				val nextIndex = closestTarget(
-					state.playerLayout.positions[selectedMove.target.target.index], state.enemyStates, state.battle.enemyLayout
+					selectedMove.target.target.getPosition(battle), battle.opponents, battle.battle.enemyLayout
 				)
-				changeSelectedMove(state, BattleMoveSelectionSkill(selectedMove.skill, BattleSkillTargetSingle(
-					CombatantReference(false, nextIndex, state)
-				)), soundQueue)
+				changeSelectedMove(battle, BattleMoveSelectionSkill(selectedMove.skill, BattleSkillTargetSingle(
+					battle.opponents[nextIndex]!!
+				)), context)
 			}
-			if (key == InputKey.MoveLeft && !selectedMove.target.target.isPlayer &&
-				selectedMove.skill.targetType == SkillTargetType.Any && state.enemyStates.count { it != null } > 1
+			if (key == InputKey.MoveLeft && !selectedMove.target.target.isOnPlayerSide &&
+				selectedMove.skill.targetType == SkillTargetType.Any && battle.livingOpponents().size > 1
 			) {
-				changeSelectedMove(state, BattleMoveSelectionSkill(
+				changeSelectedMove(battle, BattleMoveSelectionSkill(
 					selectedMove.skill, BattleSkillTargetAllEnemies
-				), soundQueue)
+				), context)
 			}
-			if (key == InputKey.MoveRight && !selectedMove.target.target.isPlayer) {
+			if (key == InputKey.MoveRight && !selectedMove.target.target.isOnPlayerSide) {
 				val nextIndex = closestTarget(
-					state.battle.enemyLayout.positions[selectedMove.target.target.index], state.playerStates, state.playerLayout
+					selectedMove.target.target.getPosition(battle), battle.players, battle.playerLayout
 				)
-				changeSelectedMove(state, BattleMoveSelectionSkill(selectedMove.skill, BattleSkillTargetSingle(
-					CombatantReference(true, nextIndex, state)
-				)), soundQueue)
+				changeSelectedMove(battle, BattleMoveSelectionSkill(selectedMove.skill, BattleSkillTargetSingle(
+					battle.players[nextIndex]!!
+				)), context)
 			}
-			if (key == InputKey.MoveRight && selectedMove.target.target.isPlayer &&
-				selectedMove.skill.targetType == SkillTargetType.Any && state.playerStates.count { it != null } > 1
+			if (key == InputKey.MoveRight && selectedMove.target.target.isOnPlayerSide &&
+				selectedMove.skill.targetType == SkillTargetType.Any && battle.livingPlayers().size > 1
 			) {
-				changeSelectedMove(state, BattleMoveSelectionSkill(
+				changeSelectedMove(battle, BattleMoveSelectionSkill(
 					selectedMove.skill, BattleSkillTargetAllAllies
-				), soundQueue)
+				), context)
 			}
 		}
 		if (selectedMove.target is BattleSkillTargetAllAllies &&
 			selectedMove.skill.targetType != SkillTargetType.AllAllies && key == InputKey.MoveLeft
 		) {
-			changeSelectedMove(state, BattleMoveSelectionSkill(
-				selectedMove.skill, BattleSkillTargetSingle(state.onTurn!!)
-			), soundQueue)
+			changeSelectedMove(battle, BattleMoveSelectionSkill(
+				selectedMove.skill, BattleSkillTargetSingle(state.onTurn)
+			), context)
 		}
 		if (selectedMove.target is BattleSkillTargetAllEnemies &&
 			selectedMove.skill.targetType != SkillTargetType.AllEnemies && key == InputKey.MoveRight
 		) {
-			val firstEnemyTarget = CombatantReference(
-				isPlayer = false, index = state.enemyStates.indexOfFirst { it != null }, state
-			)
-			changeSelectedMove(state, BattleMoveSelectionSkill(
+			val firstEnemyTarget = battle.livingOpponents().first()
+			changeSelectedMove(battle, BattleMoveSelectionSkill(
 				selectedMove.skill, BattleSkillTargetSingle(firstEnemyTarget)
-			), soundQueue)
+			), context)
 		}
 	}
 	if (selectedMove is BattleMoveSelectionItem && selectedMove.item == null) {
-		if (key == InputKey.MoveLeft) changeSelectedMove(state, BattleMoveSelectionWait, soundQueue)
-		else changeSelectedMove(state, BattleMoveSelectionSkill(skill = null, target = null), soundQueue)
-		soundQueue.insert("menu-scroll")
+		if (key == InputKey.MoveLeft) changeSelectedMove(battle, BattleMoveSelectionWait, context)
+		else changeSelectedMove(battle, BattleMoveSelectionSkill(skill = null, target = null), context)
+		context.soundQueue.insert(context.sounds.ui.scroll)
 	}
 	if (selectedMove is BattleMoveSelectionItem && selectedMove.target != null) {
-		if (key == InputKey.MoveLeft && selectedMove.target.isPlayer) {
+		if (key == InputKey.MoveLeft && selectedMove.target.isOnPlayerSide) {
 			val nextIndex = closestTarget(
-				state.playerLayout.positions[selectedMove.target.index], state.enemyStates, state.battle.enemyLayout
+				selectedMove.target.getPosition(battle), battle.opponents, battle.battle.enemyLayout
 			)
-			changeSelectedMove(state, BattleMoveSelectionItem(
-				selectedMove.item, CombatantReference(false, nextIndex, state)
-			), soundQueue)
+			changeSelectedMove(battle, BattleMoveSelectionItem(selectedMove.item, battle.opponents[nextIndex]), context)
 		}
-		if (key == InputKey.MoveRight && !selectedMove.target.isPlayer) {
-			val nextIndex = closestTarget(
-				state.battle.enemyLayout.positions[selectedMove.target.index], state.playerStates, state.playerLayout
-			)
-			changeSelectedMove(state, BattleMoveSelectionItem(
-				selectedMove.item, CombatantReference(true, nextIndex, state)
-			), soundQueue)
+		if (key == InputKey.MoveRight && !selectedMove.target.isOnPlayerSide) {
+			val nextIndex = closestTarget(selectedMove.target.getPosition(battle), battle.players, battle.playerLayout)
+			changeSelectedMove(battle, BattleMoveSelectionItem(selectedMove.item, battle.players[nextIndex]), context)
 		}
 	}
 	if (selectedMove is BattleMoveSelectionWait) {
-		if (key == InputKey.MoveLeft) changeSelectedMove(state, BattleMoveSelectionFlee, soundQueue)
-		else changeSelectedMove(state, BattleMoveSelectionItem(item = null, target = null), soundQueue)
-		soundQueue.insert("menu-scroll")
+		if (key == InputKey.MoveLeft) changeSelectedMove(battle, BattleMoveSelectionFlee, context)
+		else changeSelectedMove(battle, BattleMoveSelectionItem(item = null, target = null), context)
+		context.soundQueue.insert(context.sounds.ui.scroll)
 	}
 	if (selectedMove is BattleMoveSelectionFlee) {
-		if (key == InputKey.MoveLeft) changeSelectedMove(state, BattleMoveSelectionAttack(target = null), soundQueue)
-		else changeSelectedMove(state, BattleMoveSelectionWait, soundQueue)
-		soundQueue.insert("menu-scroll")
+		if (key == InputKey.MoveLeft) changeSelectedMove(battle, BattleMoveSelectionAttack(target = null), context)
+		else changeSelectedMove(battle, BattleMoveSelectionWait, context)
+		context.soundQueue.insert(context.sounds.ui.scroll)
 	}
 }
 
-internal fun battleScrollVertically(
-	state: BattleState, key: InputKey, soundQueue: SoundQueue,
-	characterStates: Map<PlayableCharacter, CharacterState>
-) {
+internal fun battleScrollVertically(battle: BattleState, key: InputKey, context: BattleUpdateContext) {
+	val state = battle.state as BattleStateMachine.SelectMove
 	val selectedMove = state.selectedMove
-	val player = state.players[state.onTurn!!.index]!!
-	val playerState = characterStates[player]!!
+	val player = state.onTurn.player
+	val playerState = context.characterStates[player]!!
 
 	if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) {
-		val newTarget = nextTarget(key, selectedMove.target, state)
-		if (newTarget.index != selectedMove.target.index) {
-			changeSelectedMove(state, BattleMoveSelectionAttack(newTarget), soundQueue)
+		val newTarget = nextTarget(key, selectedMove.target, battle)
+		if (newTarget !== selectedMove.target) {
+			changeSelectedMove(battle, BattleMoveSelectionAttack(newTarget), context)
 		}
 	}
 
@@ -151,16 +131,16 @@ internal fun battleScrollVertically(
 					index += 1
 					if (index >= skills.size) index = 0
 				}
-				changeSelectedMove(state, BattleMoveSelectionSkill(skill = skills[index], target = null), soundQueue)
-				soundQueue.insert("menu-scroll")
+				changeSelectedMove(battle, BattleMoveSelectionSkill(skill = skills[index], target = null), context)
+				context.soundQueue.insert(context.sounds.ui.scroll)
 			}
 		} else {
 			if (selectedMove.skill.targetType != SkillTargetType.Self && selectedMove.target is BattleSkillTargetSingle) {
-				val newTarget = nextTarget(key, selectedMove.target.target, state)
-				if (newTarget.index != selectedMove.target.target.index) {
-					changeSelectedMove(state, BattleMoveSelectionSkill(
+				val newTarget = nextTarget(key, selectedMove.target.target, battle)
+				if (newTarget !== selectedMove.target.target) {
+					changeSelectedMove(battle, BattleMoveSelectionSkill(
 						selectedMove.skill, BattleSkillTargetSingle(newTarget)
-					), soundQueue)
+					), context)
 				}
 			}
 		}
@@ -180,126 +160,131 @@ internal fun battleScrollVertically(
 					index += 1
 					if (index >= items.size) index = 0
 				}
-				changeSelectedMove(state, BattleMoveSelectionItem(item = items[index], target = null), soundQueue)
-				soundQueue.insert("menu-scroll")
+				changeSelectedMove(battle, BattleMoveSelectionItem(item = items[index], target = null), context)
+				context.soundQueue.insert(context.sounds.ui.scroll)
 			}
 		} else {
-			val newTarget = nextTarget(key, selectedMove.target, state)
-			if (newTarget.index != selectedMove.target.index) {
-				changeSelectedMove(state, BattleMoveSelectionItem(selectedMove.item, newTarget), soundQueue)
+			val newTarget = nextTarget(key, selectedMove.target, battle)
+			if (newTarget !== selectedMove.target) {
+				changeSelectedMove(battle, BattleMoveSelectionItem(selectedMove.item, newTarget), context)
 			}
 		}
 	}
 }
 
-internal fun battleClick(
-	state: BattleState, soundQueue: SoundQueue,
-	characterStates: Map<PlayableCharacter, CharacterState>
-) {
+internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
+	val state = battle.state as BattleStateMachine.SelectMove
 	val selectedMove = state.selectedMove
-	val firstEnemyTarget = CombatantReference(
-		isPlayer = false, index = state.enemyStates.indexOfFirst { it != null }, state
-	)
+	val firstEnemyTarget = battle.livingOpponents().first()
 
 	if (selectedMove is BattleMoveSelectionAttack) {
-		if (selectedMove.target == null) {
-			changeSelectedMove(state, BattleMoveSelectionAttack(target = firstEnemyTarget), soundQueue)
+		val target = selectedMove.target
+		if (target == null) {
+			changeSelectedMove(battle, BattleMoveSelectionAttack(target = firstEnemyTarget), context)
 		} else {
-			state.confirmMove(BattleMoveBasicAttack(selectedMove.target), soundQueue)
+			battle.confirmMove(context, BattleStateMachine.MeleeAttack.MoveTo(
+				state.onTurn, target, null, context
+			))
 		}
 	}
 	if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill == null) {
-		val player = state.players[state.onTurn!!.index]!!
-		val playerState = characterStates[player]!!
-		val skill = player.characterClass.skillClass.actions.firstOrNull { playerState.canCastSkill(it) }
+		val playerState = context.characterStates[state.onTurn.player]!!
+		val skill = state.onTurn.player.characterClass.skillClass.actions.firstOrNull { playerState.canCastSkill(it) }
 		if (skill != null) {
-			changeSelectedMove(state, BattleMoveSelectionSkill(skill = skill, target = null), soundQueue)
-			soundQueue.insert("click-confirm")
-		} else soundQueue.insert("click-reject")
+			changeSelectedMove(battle, BattleMoveSelectionSkill(skill = skill, target = null), context)
+			context.soundQueue.insert(context.sounds.ui.clickConfirm)
+		} else context.soundQueue.insert(context.sounds.ui.clickReject)
 	}
 	if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) {
 		if (selectedMove.target == null) {
 			val firstTarget = when (selectedMove.skill.targetType) {
-				SkillTargetType.Self -> BattleSkillTargetSingle(state.onTurn!!)
+				SkillTargetType.Self -> BattleSkillTargetSingle(state.onTurn)
 				SkillTargetType.AllEnemies -> BattleSkillTargetAllEnemies
 				SkillTargetType.AllAllies -> BattleSkillTargetAllAllies
 				else -> BattleSkillTargetSingle(
-					if (selectedMove.skill.isPositive()) state.onTurn!! else firstEnemyTarget
+					if (selectedMove.skill.isPositive()) state.onTurn else firstEnemyTarget
 				)
 			}
-			changeSelectedMove(state, BattleMoveSelectionSkill(selectedMove.skill, firstTarget), soundQueue)
+			changeSelectedMove(battle, BattleMoveSelectionSkill(selectedMove.skill, firstTarget), context)
 		} else {
 			var manaCost = selectedMove.skill.manaCost
 			if (selectedMove.target is BattleSkillTargetAllAllies || selectedMove.target is BattleSkillTargetAllEnemies) {
 				manaCost *= 2
 			}
 
-			val playerState = state.onTurn!!.getState()
-			if (manaCost <= playerState.currentMana) {
-				playerState.currentMana -= manaCost
-				state.confirmMove(BattleMoveSkill(selectedMove.skill, selectedMove.target, null), soundQueue)
+			if (manaCost <= state.onTurn.currentMana) {
+				state.onTurn.currentMana -= manaCost
+				val nextMove = if (selectedMove.skill.isMelee) BattleStateMachine.MeleeAttack.MoveTo(
+					state.onTurn, (selectedMove.target as BattleSkillTargetSingle).target,
+					selectedMove.skill, context
+				) else BattleStateMachine.CastSkill(
+					state.onTurn, selectedMove.target.getTargets(state.onTurn, battle),
+					selectedMove.skill, null, context
+				)
+				battle.confirmMove(context, nextMove)
 			} else {
-				soundQueue.insert("click-reject")
+				context.soundQueue.insert(context.sounds.ui.clickReject)
 			}
 		}
 	}
 	if (selectedMove is BattleMoveSelectionItem && selectedMove.item == null) {
-		val player = state.players[state.onTurn!!.index]!!
-		val playerState = characterStates[player]!!
+		val playerState = context.characterStates[state.onTurn.player]!!
 		val item = playerState.inventory.firstOrNull { it != null && it.item.consumable != null }
 		if (item != null) {
-			changeSelectedMove(state, BattleMoveSelectionItem(item = item.item, target = null), soundQueue)
-			soundQueue.insert("click-confirm")
-		} else soundQueue.insert("click-reject")
+			changeSelectedMove(battle, BattleMoveSelectionItem(item = item.item, target = null), context)
+			context.soundQueue.insert(context.sounds.ui.clickConfirm)
+		} else context.soundQueue.insert(context.sounds.ui.clickReject)
 	}
 	if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) {
 		if (selectedMove.target == null) {
-			val target = if (selectedMove.item.consumable!!.isPositive()) state.onTurn!! else firstEnemyTarget
-			changeSelectedMove(state, BattleMoveSelectionItem(selectedMove.item, target), soundQueue)
+			val target = if (selectedMove.item.consumable!!.isPositive()) state.onTurn else firstEnemyTarget
+			changeSelectedMove(battle, BattleMoveSelectionItem(selectedMove.item, target), context)
 		} else {
-			val player = state.players[state.onTurn!!.index]!!
-			val playerState = characterStates[player]!!
+			val playerState = context.characterStates[state.onTurn.player]!!
 			if (!playerState.removeItem(selectedMove.item)) throw IllegalStateException()
-			state.confirmMove(BattleMoveItem(selectedMove.item, selectedMove.target), soundQueue)
+			battle.confirmMove(context, BattleStateMachine.UseItem(
+				state.onTurn, selectedMove.target, selectedMove.item
+			))
 		}
 	}
-	if (selectedMove is BattleMoveSelectionWait) state.confirmMove(BattleMoveWait, soundQueue)
-	if (selectedMove is BattleMoveSelectionFlee) state.runAway()
+	if (selectedMove is BattleMoveSelectionWait) battle.confirmMove(context, BattleStateMachine.Wait())
+	if (selectedMove is BattleMoveSelectionFlee) battle.state = BattleStateMachine.RanAway()
 }
 
-internal fun battleCancel(state: BattleState, soundQueue: SoundQueue) {
-	val selectedMove = state.selectedMove
+internal fun battleCancel(battle: BattleState, context: BattleUpdateContext) {
+	val selectedMove = (battle.state as BattleStateMachine.SelectMove).selectedMove
 	if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) {
-		changeSelectedMove(state, BattleMoveSelectionAttack(target = null), soundQueue)
+		changeSelectedMove(battle, BattleMoveSelectionAttack(target = null), context)
 	} else if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) {
 		if (selectedMove.target != null) {
-			changeSelectedMove(state, BattleMoveSelectionSkill(skill = selectedMove.skill, target = null), soundQueue)
+			changeSelectedMove(battle, BattleMoveSelectionSkill(skill = selectedMove.skill, target = null), context)
 		} else {
-			changeSelectedMove(state, BattleMoveSelectionSkill(skill = null, target = null), soundQueue)
-			soundQueue.insert("click-cancel")
+			changeSelectedMove(battle, BattleMoveSelectionSkill(skill = null, target = null), context)
+			context.soundQueue.insert(context.sounds.ui.clickCancel)
 		}
 	} else if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null) {
 		if (selectedMove.target != null) {
-			changeSelectedMove(state, BattleMoveSelectionItem(item = selectedMove.item, target = null), soundQueue)
+			changeSelectedMove(battle, BattleMoveSelectionItem(item = selectedMove.item, target = null), context)
 		} else {
-			changeSelectedMove(state,BattleMoveSelectionItem(item = null, target = null), soundQueue)
-			soundQueue.insert("click-cancel")
+			changeSelectedMove(battle,BattleMoveSelectionItem(item = null, target = null), context)
+			context.soundQueue.insert(context.sounds.ui.clickCancel)
 		}
 	} else {
-		state.confirmMove(BattleMoveWait, soundQueue)
+		battle.confirmMove(context, BattleStateMachine.Wait())
 	}
 }
 
-private fun changeSelectedMove(state: BattleState, newMove: BattleMoveSelection, soundQueue: SoundQueue) {
-	val oldTargets = state.selectedMove.targets(state)
+private fun changeSelectedMove(battle: BattleState, newMove: BattleMoveSelection, context: BattleUpdateContext) {
+	val state = battle.state as BattleStateMachine.SelectMove
+	val oldTargets = state.selectedMove.targets(battle)
 	state.selectedMove = newMove
-	val newTargets = newMove.targets(state)
+	val newTargets = newMove.targets(battle)
 
 	if (oldTargets.isNotEmpty() && newTargets.isNotEmpty() && !oldTargets.contentEquals(newTargets)) {
-		soundQueue.insert("menu-scroll")
+		context.soundQueue.insert(context.sounds.ui.scroll)
 	}
-	if (oldTargets.isEmpty() && newTargets.isNotEmpty()) soundQueue.insert("click-confirm")
-	if (oldTargets.isNotEmpty() && newTargets.isEmpty()) soundQueue.insert("click-cancel")
+	if (oldTargets.isEmpty() && newTargets.isNotEmpty()) context.soundQueue.insert(context.sounds.ui.clickConfirm)
+	if (oldTargets.isNotEmpty() && newTargets.isEmpty()) context.soundQueue.insert(context.sounds.ui.clickCancel)
 
-	for (target in newTargets) target.getState().lastPointedTo = System.nanoTime()
+	for (target in newTargets) target.lastPointedTo = System.nanoTime()
 }

@@ -4,6 +4,9 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.audio.SoundEffect
+import mardek.content.particle.ParticleEffect
 import mardek.content.stats.Element
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.StatModifierRange
@@ -16,7 +19,7 @@ class ActiveSkill(
 	masteryPoints: Int,
 
 	@BitField(id = 0)
-	val mode: ActiveSkillMode,
+	val isMelee: Boolean,
 
 	@BitField(id = 1)
 	val targetType: SkillTargetType,
@@ -42,7 +45,8 @@ class ActiveSkill(
 	val isBuff: Boolean,
 
 	@BitField(id = 8)
-	val drainsBlood: Boolean,
+	@FloatField(expectMultipleOf = 0.1)
+	val healthDrain: Float,
 
 	@BitField(id = 9)
 	val statModifiers: ArrayList<StatModifierRange>,
@@ -58,10 +62,12 @@ class ActiveSkill(
 	val revive: Float,
 
 	@BitField(id = 13, optional = true)
-	val particleEffect: String?,
+	@ReferenceField(stable = false, label = "particles")
+	val particleEffect: ParticleEffect?,
 
 	@BitField(id = 14, optional = true)
-	val soundEffect: String?,
+	@ReferenceField(stable = false, label = "sound effects")
+	val soundEffect: SoundEffect?,
 
 	@BitField(id = 15, optional = true)
 	val animation: String?,
@@ -105,8 +111,8 @@ class ActiveSkill(
 ): Skill(name, description, element, masteryPoints) {
 
 	constructor() : this(
-		"", "", Element(), 0, ActiveSkillMode.Melee, SkillTargetType.Single, null,
-		0, 0, false, false, false, false, ArrayList(), ArrayList(),
+		"", "", Element(), 0, false, SkillTargetType.Single, null,
+		0, 0, false, false, false, 0f, ArrayList(), ArrayList(),
 		ArrayList(), 0f, null, null, null, SkillCombatRequirement.OutsideCombat,
 		0, false, false, false, null, false
 	)

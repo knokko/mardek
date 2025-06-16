@@ -3,17 +3,22 @@ package mardek.game
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
+import mardek.renderer.SharedResources
+import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import java.awt.Color
+import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 
 fun testDragonLairDoor(instance: TestingInstance) {
 	instance.apply {
-		val state = InGameState(content, CampaignState(
+		val getResources = CompletableFuture<SharedResources>()
+		getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
+		val state = InGameState(CampaignState(
 			currentArea = AreaState(dragonLairEntry, AreaPosition(5, 8)),
 			characterSelection = simpleCharacterSelectionState(),
 			characterStates = simpleCharacterStates(),
@@ -33,7 +38,7 @@ fun testDragonLairDoor(instance: TestingInstance) {
 		)
 
 		testRendering(
-			state, 1000, 800, "dragon-lair-entry1",
+			getResources, state, 1000, 800, "dragon-lair-entry1",
 			expectedEntryColors + doorColor, arrayOf(hairColorDeugan)
 		)
 
@@ -41,12 +46,13 @@ fun testDragonLairDoor(instance: TestingInstance) {
 		val fakeInput = InputManager()
 		fakeInput.postEvent(InputKeyEvent(InputKey.MoveUp, didPress = true, didRelease = false, didRepeat = false))
 
+		val context = GameStateUpdateContext(content, fakeInput, dummySoundQueue, 10.milliseconds)
 		for (counter in 0 until 5000) {
-			state.update(fakeInput, 10.milliseconds, dummySoundQueue)
+			state.update(context)
 		}
 
 		testRendering(
-			state, 1000, 800, "dragon-lair-entry2",
+			getResources, state, 1000, 800, "dragon-lair-entry2",
 			expectedEntryColors + hairColorDeugan, emptyArray()
 		)
 
@@ -54,7 +60,7 @@ fun testDragonLairDoor(instance: TestingInstance) {
 		fakeInput.postEvent(InputKeyEvent(InputKey.Interact, didPress = true, didRelease = false, didRepeat = false))
 
 		for (counter in 0 until 2000) {
-			state.update(fakeInput, 10.milliseconds, dummySoundQueue)
+			state.update(context)
 		}
 
 		val expectedRoomColors = arrayOf(
@@ -65,8 +71,10 @@ fun testDragonLairDoor(instance: TestingInstance) {
 			Color(101, 50, 0), // hair color of Mardek
 		)
 		testRendering(
-			state, 1000, 800, "dragon-lair-room2",
+			getResources, state, 1000, 800, "dragon-lair-room2",
 			expectedRoomColors, arrayOf(hairColorDeugan)
 		)
+
+		getResources.get().destroy()
 	}
 }

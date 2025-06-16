@@ -148,7 +148,7 @@ public class UiRenderer {
 			int minX, int minY, int maxX, int maxY, int baseY, int heightA,
 			int minScale, TextAlignment alignment, Gradient... gradients
 	) {
-		if (heightA <= 0 || maxY < minY) return;
+		if (heightA <= 0 || maxY < minY || maxX < minX) return;
 		FontResources font = fonts.computeIfAbsent(fontData, f -> new FontResources(
 				f, new TextPlacer(f), new OutlineGlyphRasterizer(f))
 		);

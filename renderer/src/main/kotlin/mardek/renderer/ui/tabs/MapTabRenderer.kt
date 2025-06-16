@@ -31,6 +31,7 @@ class MapTabRenderer(
 	private val minY = region.minY + (region.height - renderHeight) / 2
 
 	override fun beforeRendering() {
+		if (scale <= 0) return
 		val area = context.campaign.currentArea?.area ?: return
 		if (area.chests.isEmpty() && !shouldBlink) return
 		kimBatch = context.resources.kim1Renderer.startBatch()
@@ -65,6 +66,7 @@ class MapTabRenderer(
 	}
 
 	override fun render() {
+		if (scale <= 0) return
 		val area = context.campaign.currentArea?.area ?: return
 
 		if (area.chests.isNotEmpty()) {
@@ -107,10 +109,10 @@ class MapTabRenderer(
 
 	override fun postUiRendering() {
 		super.postUiRendering()
-		val areaState = context.campaign.currentArea ?: return
-		val area = areaState.area
 
 		if (scale <= 0) return
+		val areaState = context.campaign.currentArea ?: return
+		val area = areaState.area
 
 		context.resources.colorGridRenderer.startBatch(context.recorder)
 

@@ -60,4 +60,5 @@ internal fun importUiSprites() = UiSprites(
 	consumableIcon = importKimSprite("Consumable", 0),
 	waitIcon = importKimSprite("Wait", 0),
 	fleeIcon = importKimSprite("Flee", 0),
+	challengeCursor = importBcSprite("ChallengeCursor", 7),
 )

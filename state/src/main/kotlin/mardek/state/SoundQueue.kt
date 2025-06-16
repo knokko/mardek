@@ -1,14 +1,15 @@
 package mardek.state
 
+import mardek.content.audio.SoundEffect
 import java.util.concurrent.ArrayBlockingQueue
 
 class SoundQueue {
 
-	private val internal = ArrayBlockingQueue<String>(5)
+	private val internal = ArrayBlockingQueue<SoundEffect>(5)
 
-	fun insert(sound: String) {
-		internal.offer(sound)
+	fun insert(sound: SoundEffect) {
+		if (!internal.offer(sound)) println("WARNING: too many sounds! skipped $sound")
 	}
 
-	fun take(): String? = internal.poll()
+	fun take(): SoundEffect? = internal.poll()
 }

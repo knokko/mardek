@@ -6,10 +6,12 @@ import mardek.content.animations.BattleModel
 import mardek.content.area.*
 import mardek.content.battle.PartyLayoutPosition
 import mardek.content.inventory.ItemStack
+import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
+import mardek.importer.particle.importParticleEffects
 import mardek.importer.skills.importSkillsContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -29,6 +31,8 @@ class TestAreaParser {
 	private val content = Content()
 
 	init {
+		importAudioContent(content.audio)
+		importParticleEffects(content)
 		importStatsContent(content)
 		importSkillsContent(content)
 		importItemsContent(content)
@@ -45,6 +49,7 @@ class TestAreaParser {
 
 	@Test
 	fun testParseAeropolisNorth() {
+		println("Thread is ${Thread.currentThread().name}")
 		val parsed = parseArea(content, "aeropolis_N", ArrayList(), ArrayList())
 		assertEquals("aeropolis_N", parsed.properties.rawName)
 		assertEquals("Aeropolis - Temple District", parsed.properties.displayName)

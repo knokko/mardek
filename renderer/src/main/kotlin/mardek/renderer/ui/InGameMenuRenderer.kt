@@ -86,6 +86,7 @@ class InGameMenuRenderer(
 
 	private fun renderTabName(transform: CoordinateTransform, text: String, index: Int) {
 		val rect = transform.transform(0.8f, 0.85f - index * 0.07f, 0.2f, 0.06f)
+		if (rect.width < 5) return
 
 		var goldTint = srgbToLinear(rgba(111, 92, 53, 183))
 		if (text == menu.currentTab.getText()) {

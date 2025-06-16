@@ -1,14 +1,14 @@
 dependencies {
-    implementation project(":content")
-    implementation project(":state")
+	implementation project(":content")
+	implementation project(":state")
 
-    implementation "org.lwjgl:lwjgl"
-    implementation "org.lwjgl:lwjgl-openal"
-    implementation "org.lwjgl:lwjgl-stb"
+	implementation "org.lwjgl:lwjgl"
+	implementation "org.lwjgl:lwjgl-openal"
+	implementation "org.lwjgl:lwjgl-stb"
 
-    for (natives in project.ext.lwjglNatives) {
-        runtimeOnly "org.lwjgl:lwjgl::$natives"
-        runtimeOnly "org.lwjgl:lwjgl-openal::$natives"
-        runtimeOnly "org.lwjgl:lwjgl-stb::$natives"
-    }
+	for (natives in project.ext.lwjglNatives) {
+		runtimeOnly "org.lwjgl:lwjgl::$natives"
+		runtimeOnly "org.lwjgl:lwjgl-openal::$natives"
+		runtimeOnly "org.lwjgl:lwjgl-stb::$natives"
+	}
 }

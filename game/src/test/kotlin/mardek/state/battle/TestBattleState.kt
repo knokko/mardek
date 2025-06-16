@@ -5,14 +5,14 @@ import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
-import mardek.state.ingame.battle.CombatantReference
+import mardek.state.ingame.battle.CombatantState
 import org.junit.jupiter.api.Assertions.assertEquals
 
 object TestBattleState {
 
 	fun testListPlayersAndEnemies(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(content, CampaignState(
+			val state = InGameState(CampaignState(
 				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
@@ -25,16 +25,11 @@ object TestBattleState {
 			startSimpleBattle(state)
 
 			val battle = state.campaign.currentArea!!.activeBattle!!
-			val mardekReference = CombatantReference(isPlayer = true, index = 0, battle)
-			val deuganReference = CombatantReference(isPlayer = true, index = 2, battle)
-			val monsterReference = CombatantReference(isPlayer = false, index = 1, battle)
+			assertEquals(listOf(battle.allPlayers()[1]), battle.livingPlayers())
+			assertEquals(2, battle.allPlayers().size)
 
-			assertEquals(listOf(mardekReference, deuganReference), battle.allPlayers())
-			assertEquals(listOf(deuganReference), battle.livingPlayers())
-			assertEquals(listOf(monsterReference), battle.livingEnemies())
-
-			battle.enemyStates[1] = null
-			assertEquals(emptyList<CombatantReference>(), battle.livingEnemies())
+			battle.opponents[1] = null
+			assertEquals(emptyList<CombatantState>(), battle.livingOpponents())
 		}
 	}
 }
