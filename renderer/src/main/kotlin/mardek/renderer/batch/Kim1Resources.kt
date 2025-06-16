@@ -2,10 +2,11 @@ package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
-import com.github.knokko.boiler.buffers.SharedDeviceBufferBuilder
-import com.github.knokko.boiler.buffers.VkbBufferRange
-import com.github.knokko.boiler.descriptors.SharedDescriptorPool
-import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
+import com.github.knokko.boiler.buffers.VkbBuffer
+import com.github.knokko.boiler.descriptors.DescriptorCombiner
+import com.github.knokko.boiler.descriptors.DescriptorSetLayoutBuilder
+import com.github.knokko.boiler.descriptors.DescriptorUpdater
+import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
@@ -14,26 +15,25 @@ import org.lwjgl.vulkan.VK10.*
 const val KIM1_VERTEX_SIZE = 7 * 4
 
 private fun createGraphicsDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
-	val bindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
-	boiler.descriptors.binding(bindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
-	boiler.descriptors.createLayout(stack, bindings, "KimComputeDescriptorLayout")
+	val builder = DescriptorSetLayoutBuilder(stack, 1)
+	builder.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
+	builder.build(boiler, "KimGraphicsDescriptorLayout")
 }
 
 private fun createComputeDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
-	val bindings = VkDescriptorSetLayoutBinding.calloc(3, stack)
-	for (index in 0 until 3)
-		boiler.descriptors.binding(bindings, index, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
-	boiler.descriptors.createLayout(stack, bindings, "KimComputeDescriptorLayout")
+	val builder = DescriptorSetLayoutBuilder(stack, 3)
+	for (index in 0 until 3) {
+		builder.set(index, index, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT)
+	}
+	builder.build(boiler, "KimComputeDescriptorLayout")
 }
 
 class Kim1Resources(
 	private val boiler: BoilerInstance,
 	private val framesInFlight: Int,
 	renderPass: Long,
-
-	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
-	sharedStorageBuilder: SharedDeviceBufferBuilder,
-	storageIntAlignment: Long,
+	descriptorCombiner: DescriptorCombiner,
+	persistentCombiner: MemoryCombiner,
 ) {
 
 	private val graphicsDescriptorLayout = createGraphicsDescriptorSetLayout(boiler)
@@ -44,19 +44,19 @@ class Kim1Resources(
 	val graphicsPipeline: Long
 
 	private val computeDescriptorLayout = createComputeDescriptorSetLayout(boiler)
-	lateinit var computeDescriptorSets: LongArray
-		private set
+	val computeDescriptorSets = descriptorCombiner.addMultiple(computeDescriptorLayout, framesInFlight)!!
 
 	val computeLayout: Long
 	val computePipeline: Long
 
-	private val getMiddleBuffer = sharedStorageBuilder.add(1_000_000L, storageIntAlignment)
-	lateinit var middleBuffer: VkbBufferRange
-		private set
+	val middleBuffer = persistentCombiner.addBuffer(
+		1_000_000L, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
+		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+	)!!
 
 	init {
-		sharedDescriptorPoolBuilder.request(graphicsDescriptorLayout, 1)
-		sharedDescriptorPoolBuilder.request(computeDescriptorLayout, framesInFlight)
+		descriptorCombiner.addSingle(graphicsDescriptorLayout) { graphicsDescriptorSet = it }
+
 		stackPush().use { stack ->
 			val pushConstants = VkPushConstantRange.calloc(1, stack)
 			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8)
@@ -81,8 +81,8 @@ class Kim1Resources(
 
 			val builder = GraphicsPipelineBuilder(boiler, stack)
 			builder.simpleShaderStages(
-				"Kim1", "mardek/renderer/fake-image.vert.spv",
-				"mardek/renderer/fake-image.frag.spv"
+				"Kim1", "mardek/renderer/",
+				"fake-image.vert.spv", "fake-image.frag.spv"
 			)
 			builder.ciPipeline.pVertexInputState(ciVertex)
 			builder.simpleInputAssembly()
@@ -108,37 +108,25 @@ class Kim1Resources(
 		}
 	}
 
-	fun initBuffers() {
-		middleBuffer = getMiddleBuffer.get()
-	}
-
-	fun initDescriptors(pool: SharedDescriptorPool, spriteBuffer: VkbBufferRange, perFrameBuffer: PerFrameBuffer) {
-		this.graphicsDescriptorSet = pool.allocate(graphicsDescriptorLayout, 1)[0]
-		this.computeDescriptorSets = pool.allocate(computeDescriptorLayout, framesInFlight)
-
+	fun prepare(perFrameBuffer: PerFrameBuffer, spriteBuffer: VkbBuffer) {
 		stackPush().use { stack ->
-			val descriptorWrites = VkWriteDescriptorSet.calloc(3 * framesInFlight + 1, stack)
+			val updater = DescriptorUpdater(stack, 1 + 3 * framesInFlight)
 			for (frame in 0 until framesInFlight) {
-				boiler.descriptors.writeBuffer(
-					stack, descriptorWrites, computeDescriptorSets[frame],
-					3 * frame, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, spriteBuffer
+				updater.writeStorageBuffer(
+					3 * frame, computeDescriptorSets[frame],
+					0, spriteBuffer
 				)
-				boiler.descriptors.writeBuffer(
-					stack, descriptorWrites, computeDescriptorSets[frame],
-					3 * frame + 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, perFrameBuffer.range.range()
+				updater.writeStorageBuffer(
+					3 * frame + 1, computeDescriptorSets[frame],
+					1, perFrameBuffer.buffer
 				)
-				boiler.descriptors.writeBuffer(
-					stack, descriptorWrites, computeDescriptorSets[frame],
-					3 * frame + 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, middleBuffer
+				updater.writeStorageBuffer(
+					3 * frame + 2, computeDescriptorSets[frame],
+					2, middleBuffer
 				)
-				for (index in 0 until 3) descriptorWrites[3 * frame + index].dstBinding(index)
 			}
-			boiler.descriptors.writeBuffer(
-				stack, descriptorWrites, graphicsDescriptorSet, 3 * framesInFlight, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, middleBuffer
-			)
-			descriptorWrites.get(3 * framesInFlight).dstBinding(0)
-
-			vkUpdateDescriptorSets(boiler.vkDevice(), descriptorWrites, null)
+			updater.writeStorageBuffer(3 * framesInFlight, graphicsDescriptorSet, 0, middleBuffer)
+			updater.update(boiler)
 		}
 	}
 
@@ -147,7 +135,7 @@ class Kim1Resources(
 		vkDestroyPipeline(boiler.vkDevice(), computePipeline, null)
 		vkDestroyPipelineLayout(boiler.vkDevice(), graphicsLayout, null)
 		vkDestroyPipelineLayout(boiler.vkDevice(), computeLayout, null)
-		computeDescriptorLayout.destroy()
-		graphicsDescriptorLayout.destroy()
+		vkDestroyDescriptorSetLayout(boiler.vkDevice(), computeDescriptorLayout.vkDescriptorSetLayout, null)
+		vkDestroyDescriptorSetLayout(boiler.vkDevice(), graphicsDescriptorLayout.vkDescriptorSetLayout, null)
 	}
 }

@@ -35,8 +35,8 @@ class LightResources(boiler: BoilerInstance, renderPass: Long) {
 
 			val builder = GraphicsPipelineBuilder(boiler, stack)
 			builder.simpleShaderStages(
-				"Light", "mardek/renderer/light.vert.spv",
-				"mardek/renderer/light.frag.spv"
+				"Light", "mardek/renderer/",
+				"light.vert.spv", "light.frag.spv"
 			)
 			builder.ciPipeline.pVertexInputState(ciVertex)
 			builder.simpleInputAssembly()

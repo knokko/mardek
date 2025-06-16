@@ -2,38 +2,31 @@ package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
-import com.github.knokko.boiler.buffers.SharedDeviceBufferBuilder
-import com.github.knokko.boiler.buffers.VkbBufferRange
+import com.github.knokko.boiler.buffers.VkbBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.descriptors.SharedDescriptorPool
-import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
+import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.images.VkbImage
+import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.synchronization.ResourceUsage
 import org.lwjgl.vulkan.VK10.*
 import java.lang.Math.toIntExact
 
 class Kim1Renderer(
 	private val boiler: BoilerInstance,
+	private val perFrameBuffer: PerFrameBuffer,
 	renderPass: Long,
 	framesInFlight: Int,
-	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
-	sharedStorageBuilder: SharedDeviceBufferBuilder,
-	storageIntAlignment: Long,
+	descriptorCombiner: DescriptorCombiner,
+	persistentCombiner: MemoryCombiner,
 ) {
 	private val batches = HashSet<KimBatch>()
-	private lateinit var perFrameBuffer: PerFrameBuffer
 
 	private val resources = Kim1Resources(
-		boiler, framesInFlight, renderPass, sharedDescriptorPoolBuilder, sharedStorageBuilder, storageIntAlignment
+		boiler, framesInFlight, renderPass, descriptorCombiner, persistentCombiner
 	)
 
-	fun initBuffers() {
-		resources.initBuffers()
-	}
-
-	fun initDescriptors(pool: SharedDescriptorPool, spriteBuffer: VkbBufferRange, perFrameBuffer: PerFrameBuffer) {
-		this.perFrameBuffer = perFrameBuffer
-		resources.initDescriptors(pool, spriteBuffer, perFrameBuffer)
+	fun prepare(spriteBuffer: VkbBuffer) {
+		resources.prepare(perFrameBuffer, spriteBuffer)
 	}
 
 	fun begin() {
@@ -79,7 +72,7 @@ class Kim1Renderer(
 		}
 
 		val offsetRange = perFrameBuffer.allocate(4L * sizeMap.values.sumOf { it.size }, 4)
-		val baseOffset = toIntExact((offsetRange.offset - perFrameBuffer.range.offset) / 4)
+		val baseOffset = toIntExact((offsetRange.offset - perFrameBuffer.buffer.offset) / 4)
 		val offsetIntBuffer = offsetRange.intBuffer()
 		var nextResultOffset = 0
 		for ((size, requests) in sizeMap) {
@@ -113,7 +106,7 @@ class Kim1Renderer(
 
 		val vertexRange = perFrameBuffer.allocate(KIM1_VERTEX_SIZE.toLong() * batch.requests.size, 4)
 		val hostVertexRange = vertexRange.byteBuffer()
-		recorder.bindVertexBuffers(0, vertexRange.range())
+		recorder.bindVertexBuffers(0, vertexRange)
 		vkCmdPushConstants(
 			recorder.commandBuffer, resources.graphicsLayout, VK_SHADER_STAGE_VERTEX_BIT,
 			0, recorder.stack.ints(targetImage.width, targetImage.height)

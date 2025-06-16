@@ -2,26 +2,24 @@ package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
-import com.github.knokko.boiler.buffers.VkbBufferRange
+import com.github.knokko.boiler.buffers.VkbBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.descriptors.SharedDescriptorPool
-import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
+import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.images.VkbImage
 import org.lwjgl.vulkan.VK10.*
 
 class Kim2Renderer(
 	private val boiler: BoilerInstance,
+	private val perFrameBuffer: PerFrameBuffer,
 	renderPass: Long,
-	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
+	descriptorCombiner: DescriptorCombiner,
 ) {
 	private val batches = HashSet<KimBatch>()
-	private lateinit var perFrameBuffer: PerFrameBuffer
 
-	private val resources = Kim2Resources(boiler, renderPass, sharedDescriptorPoolBuilder)
+	private val resources = Kim2Resources(boiler, renderPass, descriptorCombiner)
 
-	fun initDescriptors(pool: SharedDescriptorPool, spriteBuffer: VkbBufferRange, perFrameBuffer: PerFrameBuffer) {
-		resources.initDescriptors(pool, spriteBuffer)
-		this.perFrameBuffer = perFrameBuffer
+	fun prepare(spriteBuffer: VkbBuffer) {
+		resources.prepare(spriteBuffer)
 	}
 
 	fun begin() {
@@ -44,7 +42,7 @@ class Kim2Renderer(
 
 		val vertexRange = perFrameBuffer.allocate(KIM2_VERTEX_SIZE.toLong() * batch.requests.size, 4)
 		val hostVertexRange = vertexRange.byteBuffer()
-		recorder.bindVertexBuffers(0, vertexRange.range())
+		recorder.bindVertexBuffers(0, vertexRange)
 		vkCmdPushConstants(
 			recorder.commandBuffer, resources.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 			0, recorder.stack.ints(targetImage.width, targetImage.height)

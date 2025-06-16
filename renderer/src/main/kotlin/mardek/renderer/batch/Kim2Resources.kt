@@ -1,9 +1,10 @@
 package mardek.renderer.batch
 
 import com.github.knokko.boiler.BoilerInstance
-import com.github.knokko.boiler.buffers.VkbBufferRange
-import com.github.knokko.boiler.descriptors.SharedDescriptorPool
-import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
+import com.github.knokko.boiler.buffers.VkbBuffer
+import com.github.knokko.boiler.descriptors.DescriptorCombiner
+import com.github.knokko.boiler.descriptors.DescriptorSetLayoutBuilder
+import com.github.knokko.boiler.descriptors.DescriptorUpdater
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
@@ -12,18 +13,18 @@ import org.lwjgl.vulkan.VK10.*
 const val KIM2_VERTEX_SIZE = 5 * 4
 
 private fun createDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
-	val bindings = VkDescriptorSetLayoutBinding.calloc(1, stack)
-	boiler.descriptors.binding(
-		bindings, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+	val builder = DescriptorSetLayoutBuilder(stack, 1)
+	builder.set(
+		0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 		VK_SHADER_STAGE_VERTEX_BIT or VK_SHADER_STAGE_FRAGMENT_BIT
 	)
-	boiler.descriptors.createLayout(stack, bindings, "Kim2DescriptorLayout")
+	builder.build(boiler, "Kim2DescriptorLayout")
 }
 
 class Kim2Resources(
 	private val boiler: BoilerInstance,
 	renderPass: Long,
-	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
+	descriptorCombiner: DescriptorCombiner,
 ) {
 
 	private val descriptorLayout = createDescriptorSetLayout(boiler)
@@ -34,7 +35,7 @@ class Kim2Resources(
 	val graphicsPipeline: Long
 
 	init {
-		sharedDescriptorPoolBuilder.request(descriptorLayout, 1)
+		descriptorCombiner.addSingle(descriptorLayout) { descriptorSet = it }
 		stackPush().use { stack ->
 			val pushConstants = VkPushConstantRange.calloc(1, stack)
 			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8)
@@ -59,8 +60,8 @@ class Kim2Resources(
 
 			val builder = GraphicsPipelineBuilder(boiler, stack)
 			builder.simpleShaderStages(
-				"Kim2", "mardek/renderer/kim2.vert.spv",
-				"mardek/renderer/kim2.frag.spv"
+				"Kim2", "mardek/renderer/",
+				"kim2.vert.spv", "kim2.frag.spv"
 			)
 			builder.ciPipeline.pVertexInputState(ciVertex)
 			builder.simpleInputAssembly()
@@ -77,20 +78,17 @@ class Kim2Resources(
 		}
 	}
 
-	fun initDescriptors(pool: SharedDescriptorPool, spriteBuffer: VkbBufferRange) {
-		this.descriptorSet = pool.allocate(descriptorLayout, 1)[0]
-
+	fun prepare(spriteBuffer: VkbBuffer) {
 		stackPush().use { stack ->
-			val writes = VkWriteDescriptorSet.calloc(1, stack)
-			boiler.descriptors.writeBuffer(stack, writes, descriptorSet, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, spriteBuffer)
-
-			vkUpdateDescriptorSets(boiler.vkDevice(), writes, null)
+			val updater = DescriptorUpdater(stack, 1)
+			updater.writeStorageBuffer(0, descriptorSet, 0, spriteBuffer)
+			updater.update(boiler)
 		}
 	}
 
 	fun destroy(boiler: BoilerInstance) {
 		vkDestroyPipeline(boiler.vkDevice(), graphicsPipeline, null)
 		vkDestroyPipelineLayout(boiler.vkDevice(), pipelineLayout, null)
-		descriptorLayout.destroy()
+		vkDestroyDescriptorSetLayout(boiler.vkDevice(), descriptorLayout.vkDescriptorSetLayout, null)
 	}
 }

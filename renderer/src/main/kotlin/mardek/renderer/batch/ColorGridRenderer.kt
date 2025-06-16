@@ -3,8 +3,7 @@ package mardek.renderer.batch
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.descriptors.SharedDescriptorPool
-import com.github.knokko.boiler.descriptors.SharedDescriptorPoolBuilder
+import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.images.VkbImage
 import org.lwjgl.vulkan.VK10.*
 import java.lang.Math.toIntExact
@@ -12,14 +11,15 @@ import java.nio.IntBuffer
 
 class ColorGridRenderer(
 	private val boiler: BoilerInstance,
+	private val perFrameBuffer: PerFrameBuffer,
 	renderPass: Long,
-	sharedDescriptorPoolBuilder: SharedDescriptorPoolBuilder,
+	descriptorCombiner: DescriptorCombiner,
 ) {
 
-	private val resources = ColorGridResources(boiler, renderPass, sharedDescriptorPoolBuilder)
+	private val resources = ColorGridResources(boiler, renderPass, descriptorCombiner)
 
-	fun initDescriptors(pool: SharedDescriptorPool, perFrameBuffer: PerFrameBuffer) {
-		resources.initDescriptors(pool, perFrameBuffer)
+	fun prepare() {
+		resources.prepare(perFrameBuffer)
 	}
 
 	fun startBatch(recorder: CommandRecorder) {
@@ -35,10 +35,10 @@ class ColorGridRenderer(
 		val numTableEntries = width * height
 		var numTableInts = numTableEntries / 8
 		if (numTableEntries % 8 != 0) numTableInts += 1
-		val tableRange = resources.perFrame.allocate(4L * numTableInts, 4L)
+		val tableRange = perFrameBuffer.allocate(4L * numTableInts, 4L)
 		vkCmdPushConstants(recorder.commandBuffer, resources.pipelineLayout, stages, 0, recorder.stack.ints(
 			targetImage.width, targetImage.height, minX, minY, width, height,
-			toIntExact((tableRange.offset - resources.perFrame.range.offset) / 4), table, scale
+			toIntExact((tableRange.offset - perFrameBuffer.buffer.offset) / 4), table, scale
 		))
 		vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
 		return tableRange.intBuffer()

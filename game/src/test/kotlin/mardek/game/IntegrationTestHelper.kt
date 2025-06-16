@@ -2,6 +2,7 @@ package mardek.game
 
 import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.boiler.images.ImageBuilder
+import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.synchronization.ResourceUsage
 import mardek.content.Content
 import mardek.input.InputKey
@@ -36,17 +37,20 @@ fun TestingInstance.testRendering(
 		throw RuntimeException("Failed to create $actualResultsDirectory")
 	}
 
+	val combiner = MemoryCombiner(boiler, "TestHelper")
 	val renderer = GameRenderer(getResources)
 
-	val targetImage = ImageBuilder("TargetImage($name)", width, height)
+	val targetImage = combiner.addImage(ImageBuilder("TargetImage($name)", width, height)
 		.format(VK_FORMAT_R8G8B8A8_SRGB)
 		.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
-		.build(boiler)
+	)
+	val destinationBuffer = combiner.addMappedBuffer(
+		4L * width * height, 4L, VK_BUFFER_USAGE_TRANSFER_DST_BIT
+	)
+
+	val memory = combiner.build(true)
 	val framebuffer = boiler.images.createFramebuffer(
 		getResources.get().renderPass, width, height, "Framebuffer($name)", targetImage.vkImageView
-	)
-	val destinationBuffer = boiler.buffers.createMapped(
-		4L * width * height, VK_BUFFER_USAGE_TRANSFER_DST_BIT, "DestinationBuffer($name)"
 	)
 
 	val commands = SingleTimeCommands(boiler)
@@ -56,15 +60,14 @@ fun TestingInstance.testRendering(
 		recorder.transitionLayout(targetImage, null, ResourceUsage.COLOR_ATTACHMENT_WRITE)
 		renderer.render(getContent, state, recorder, targetImage, framebuffer, 0, SoundQueue())
 		recorder.transitionLayout(targetImage, ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.TRANSFER_SOURCE)
-		recorder.copyImageToBuffer(targetImage, destinationBuffer.fullRange())
+		recorder.copyImageToBuffer(targetImage, destinationBuffer)
 	}
 	commands.destroy()
 
-	val result = boiler.buffers.decodeBufferedImageRGBA(destinationBuffer, 0L, width, height)
+	val result = destinationBuffer.decodeBufferedImage(width, height)
 	ImageIO.write(result, "PNG", File("$actualResultsDirectory/$name.png"))
-	destinationBuffer.destroy(boiler)
 	vkDestroyFramebuffer(boiler.vkDevice(), framebuffer, null)
-	targetImage.destroy(boiler)
+	memory.destroy(boiler)
 
 	for (color in expectedColors) {
 		assertTrue((0 until result.width).any { x -> (0 until result.height).any { y ->

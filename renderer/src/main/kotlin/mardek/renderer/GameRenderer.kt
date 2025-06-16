@@ -67,7 +67,7 @@ class GameRenderer(
 
 	companion object {
 		fun addBoilerRequirements(builder: BoilerBuilder): BoilerBuilder = builder
-			.requiredFeatures10 { it.textureCompressionBC() }
+			.requiredFeatures10("textureCompressionBC") { it.textureCompressionBC() }
 			.featurePicker10 { _, _, toEnable -> toEnable.textureCompressionBC(true) }
 	}
 }
