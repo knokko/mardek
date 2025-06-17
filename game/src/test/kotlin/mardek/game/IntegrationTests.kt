@@ -87,6 +87,8 @@ class IntegrationTests {
 	@Test
 	fun testBattleLoot() {
 		TestBattleLoot.testSimpleLoot(instance)
+		TestBattleLoot.testDoubleGoldTwice(instance)
+		TestBattleLoot.testLootFinderTwice(instance)
 		TestBattleLoot.testPlotLoot(instance)
 		TestBattleLoot.testDreamLoot(instance)
 	}

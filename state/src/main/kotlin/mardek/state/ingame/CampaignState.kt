@@ -18,6 +18,7 @@ import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
+import mardek.state.ingame.area.loot.generateBattleLoot
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.state.ingame.characters.CharacterSelectionState
@@ -129,8 +130,7 @@ class CampaignState(
 			}
 			if (battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
 				// TODO transfer health, mana, and status effects
-				currentArea!!.battleLoot = activeBattle.battle.generateLoot()
-				currentArea!!.activeBattle = null
+				currentArea!!.battleLoot = generateBattleLoot(activeBattle.battle, getParty())
 			}
 			return
 		}
@@ -186,6 +186,10 @@ class CampaignState(
 				// TODO dreamstone in chest
 			}
 		}
+	}
+
+	fun getParty() = characterSelection.party.filterNotNull().map {
+		Pair(it, characterStates[it]!!)
 	}
 
 	companion object {
