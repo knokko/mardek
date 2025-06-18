@@ -12,6 +12,7 @@ import mardek.content.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
+import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaDiscoveryMap
 import mardek.state.ingame.area.AreaPosition
@@ -60,18 +61,19 @@ class CampaignState(
 	var shouldOpenMenu = false
 	var gameOver = false
 
-	fun update(input: InputManager, timeStep: Duration, soundQueue: SoundQueue, content: Content) {
+	fun update(context: GameStateUpdateContext) {
 		while (true) {
-			val event = input.consumeEvent() ?: break
+			val event = context.input.consumeEvent() ?: break
 			if (event !is InputKeyEvent || !event.didPress) continue
 
 			val currentArea = this.currentArea ?: continue
 			val currentBattle = currentArea.activeBattle
 
 			if (currentBattle != null) {
-				val physicalElement = content.stats.elements.find { it.rawName == "NONE" }!!
+				val physicalElement = context.content.stats.elements.find { it.rawName == "NONE" }!!
 				val context = BattleUpdateContext(
-					characterStates, content.audio.fixedEffects, physicalElement, soundQueue
+					characterStates, context.content.audio.fixedEffects,
+					physicalElement, context.soundQueue
 				)
 				currentBattle.processKeyPress(event.key, context)
 				continue
@@ -128,9 +130,16 @@ class CampaignState(
 			if (battleState is BattleStateMachine.GameOver && battleState.shouldGoToGameOverMenu()) {
 				gameOver = true
 			}
-			if (battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
+			if (currentArea!!.battleLoot == null && battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
 				// TODO transfer health, mana, and status effects
-				currentArea!!.battleLoot = generateBattleLoot(activeBattle.battle, getParty())
+				val loot = generateBattleLoot(content, activeBattle.battle, getParty())
+				collectedPlotItems.addAll(loot.plotItems)
+				currentArea!!.battleLoot = loot
+			}
+
+			val battleLoot = currentArea!!.battleLoot
+			if (battleLoot != null) {
+				battleLoot.update(ehm)
 			}
 			return
 		}
@@ -198,4 +207,10 @@ class CampaignState(
 		@ReferenceField(stable = true, label = "playable characters")
 		private val CHARACTER_STATES_KEY = false
 	}
+
+	class ChildContext(
+		val content: Content,
+		val party: Array<Pair<PlayableCharacter, CharacterState>?>,
+		val soundQueue: SoundQueue,
+	)
 }

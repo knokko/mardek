@@ -3,6 +3,7 @@ package mardek.game
 import mardek.state.battle.TestBattleLoot
 import mardek.state.battle.TestBattleState
 import mardek.state.battle.TestCombatantState
+import mardek.state.battle.TestCountItemOccurrences
 import mardek.state.battle.TestMonsterStrategyCalculator
 import mardek.state.battle.TestMoveResultCalculator
 import org.junit.jupiter.api.*
@@ -91,5 +92,10 @@ class IntegrationTests {
 		TestBattleLoot.testLootFinderTwice(instance)
 		TestBattleLoot.testPlotLoot(instance)
 		TestBattleLoot.testDreamLoot(instance)
+	}
+
+	@Test
+	fun testCountItemOccurrences() {
+		TestCountItemOccurrences.testMixed(instance)
 	}
 }

@@ -144,15 +144,7 @@ class AreaLootRenderer(
 				}
 
 				val characterState = obtainedItemStack.characters[character]!!
-				var alreadyHas = 0
-				for (item in characterState.equipment) {
-					if (item == obtainedItemStack.itemStack!!.item) alreadyHas += 1
-				}
-				for (itemStack in characterState.inventory) {
-					if (itemStack != null && itemStack.item == obtainedItemStack.itemStack!!.item) {
-						alreadyHas += itemStack.amount
-					}
-				}
+				val alreadyHas = characterState.countItemOccurrences(obtainedItemStack.itemStack!!.item)
 				context.uiRenderer.drawString(
 					context.resources.font, alreadyHas.toString(), brightTextColor, intArrayOf(),
 					minX, rectMaxY, minX + 18 * scale, context.targetImage.height,

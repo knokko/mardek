@@ -5,10 +5,7 @@ import mardek.input.InputManager
 import mardek.renderer.SharedResources
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
-import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
-import mardek.state.ingame.area.AreaPosition
-import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.battle.*
 import org.junit.jupiter.api.Assertions.*
 import java.awt.Color
@@ -20,21 +17,16 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 	instance.apply {
 		val getResources = CompletableFuture<SharedResources>()
 		getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
-		val state = InGameState(CampaignState(
-			currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-			characterSelection = simpleCharacterSelectionState(),
-			characterStates = simpleCharacterStates(),
-			gold = 123
-		))
-		val mardekState = state.campaign.characterStates[heroMardek]!!
-		val deuganState = state.campaign.characterStates[heroDeugan]!!
+		val campaign = simpleCampaignState()
+		val mardekState = campaign.characterStates[heroMardek]!!
+		val deuganState = campaign.characterStates[heroDeugan]!!
 		mardekState.currentHealth = 20
 		deuganState.currentHealth = deuganState.determineMaxHealth(heroDeugan.baseStats, deuganState.activeStatusEffects)
 		mardekState.currentMana = mardekState.determineMaxMana(heroMardek.baseStats, deuganState.activeStatusEffects)
 		deuganState.currentMana = 20
-		startSimpleBattle(state)
+		startSimpleBattle(campaign)
 
-		val battle = state.campaign.currentArea!!.activeBattle!!
+		val battle = campaign.currentArea!!.activeBattle!!
 
 		val backgroundColors = arrayOf(
 			Color(198, 4, 0), // one of the lava colors
@@ -99,6 +91,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 			assertInstanceOf(BattleStateMachine.SelectMove::class.java, battle.state)
 			assertEquals(expected, (battle.state as BattleStateMachine.SelectMove).selectedMove)
 		}
+
+		val state = InGameState(campaign)
 
 		val shallowColors = backgroundColors + barColors + monsterColors + mardekColors +
 				deuganColors + turnOrderColors + pointerColors

@@ -1,5 +1,6 @@
 package mardek.state.ingame.area.loot
 
+import mardek.content.Content
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Dreamstone
 import mardek.content.inventory.Item
@@ -26,7 +27,10 @@ private fun getModifiers(party: List<Pair<PlayableCharacter, CharacterState>>): 
 	return Pair(goldModifier, extraLootChance)
 }
 
-fun generateBattleLoot(battle: Battle, party: List<Pair<PlayableCharacter, CharacterState>>): BattleLoot {
+fun generateBattleLoot(
+	content: Content, battle: Battle,
+	party: List<Pair<PlayableCharacter, CharacterState>>
+): BattleLoot {
 	val (goldModifier, extraLootChance) = getModifiers(party)
 
 	val items = mutableMapOf<Item, Int>()
@@ -37,7 +41,8 @@ fun generateBattleLoot(battle: Battle, party: List<Pair<PlayableCharacter, Chara
 	for (enemy in battle.startingEnemies) {
 		val monster = enemy?.monster ?: continue
 		for (potentialItem in monster.loot) {
-			if (potentialItem.chance + extraLootChance > Random.Default.nextInt(100)) {
+			// TODO Remove the || true after testing
+			if (potentialItem.chance + extraLootChance > Random.Default.nextInt(100) || true) {
 				val item = potentialItem.item ?: throw IllegalArgumentException(
 					"${monster.name} has invalid loot"
 				)
@@ -56,8 +61,11 @@ fun generateBattleLoot(battle: Battle, party: List<Pair<PlayableCharacter, Chara
 		) * (Random.Default.nextDouble() + 0.5) * goldModifier).roundToInt()
 	}
 
+	val foundItems = items.isNotEmpty() || plotItems.isNotEmpty() || dreamStones.isNotEmpty()
+	val itemText = if (foundItems) "You ${content.battle.lootItemTexts.random()}"
+	else content.battle.lootNoItemTexts.random()
 	return BattleLoot(
 		gold, ArrayList(items.entries.map { ItemStack(it.key, it.value) }),
-		ArrayList(plotItems), ArrayList(dreamStones)
+		ArrayList(plotItems), ArrayList(dreamStones), itemText
 	)
 }

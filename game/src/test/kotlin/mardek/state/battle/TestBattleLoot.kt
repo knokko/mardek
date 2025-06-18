@@ -1,10 +1,6 @@
 package mardek.state.battle
 
 import mardek.game.TestingInstance
-import mardek.state.ingame.CampaignState
-import mardek.state.ingame.InGameState
-import mardek.state.ingame.area.AreaPosition
-import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.loot.generateBattleLoot
 import mardek.state.ingame.battle.Enemy
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -15,16 +11,11 @@ object TestBattleLoot {
 
 	fun testSimpleLoot(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			val monsterFang = content.items.items.find { it.flashName == "Monster Fang" }!!
-			startSimpleBattle(state, enemies = arrayOf(
+			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = monster, level = 10),
 				null, null,
 				Enemy(monster = monster, level = 5)
@@ -34,18 +25,22 @@ object TestBattleLoot {
 			var numDoubleFangs = 0
 			var totalGold = 0
 
-			val battle = state.campaign.currentArea!!.activeBattle!!.battle
+			val battle = campaign.currentArea!!.activeBattle!!.battle
 			repeat(10_000) {
-				val loot = generateBattleLoot(battle, state.campaign.getParty())
+				val loot = generateBattleLoot(content, battle, campaign.getParty())
 				totalGold += loot.gold
 				assertEquals(0, loot.plotItems.size)
 				assertEquals(0, loot.dreamStones.size)
 				if (loot.items.size == 1) {
+					assertTrue(content.battle.lootItemTexts.contains(loot.itemText.replace("You ", "")))
 					assertSame(monsterFang, loot.items[0].item)
 					assertTrue(loot.items[0].amount <= 2, "Expected ${loot.items[0].amount} <= 2")
 					numMonsterFangs += loot.items[0].amount
 					if (loot.items[0].amount == 2) numDoubleFangs += 1
-				} else assertEquals(0, loot.items.size)
+				} else {
+					assertEquals(0, loot.items.size)
+					assertTrue(content.battle.lootNoItemTexts.contains(loot.itemText))
+				}
 			}
 
 			// 20% chance to get Monster Fang, and there are 20k monsters
@@ -57,21 +52,16 @@ object TestBattleLoot {
 
 	fun testDoubleGoldTwice(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			// Since Double Gold gives +100% gold, this should triple the total gold,
 			// with respect to the previous test case
 			val doubleGold = content.skills.passiveSkills.find { it.name == "Double Gold" }!!
-			state.campaign.characterStates[heroMardek]!!.toggledSkills.add(doubleGold)
-			state.campaign.characterStates[heroDeugan]!!.toggledSkills.add(doubleGold)
+			campaign.characterStates[heroMardek]!!.toggledSkills.add(doubleGold)
+			campaign.characterStates[heroDeugan]!!.toggledSkills.add(doubleGold)
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(
+			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = monster, level = 10),
 				null, null,
 				Enemy(monster = monster, level = 5)
@@ -79,9 +69,9 @@ object TestBattleLoot {
 
 			var totalGold = 0
 
-			val battle = state.campaign.currentArea!!.activeBattle!!.battle
+			val battle = campaign.currentArea!!.activeBattle!!.battle
 			repeat(10_000) {
-				val loot = generateBattleLoot(battle, state.campaign.getParty())
+				val loot = generateBattleLoot(content, battle, campaign.getParty())
 				totalGold += loot.gold
 			}
 
@@ -94,21 +84,16 @@ object TestBattleLoot {
 
 	fun testLootFinderTwice(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			// Since Loot Finder Lv.3 gives 5% extra loot chance, this should add 10% in total
 			// with respect to the previous test case
 			val lootFinder = content.skills.passiveSkills.find { it.name == "Loot Finder Lv.3" }!!
-			state.campaign.characterStates[heroMardek]!!.toggledSkills.add(lootFinder)
-			state.campaign.characterStates[heroDeugan]!!.toggledSkills.add(lootFinder)
+			campaign.characterStates[heroMardek]!!.toggledSkills.add(lootFinder)
+			campaign.characterStates[heroDeugan]!!.toggledSkills.add(lootFinder)
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(
+			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = monster, level = 10),
 				null, null,
 				Enemy(monster = monster, level = 5)
@@ -118,9 +103,9 @@ object TestBattleLoot {
 			var numDoubleFangs = 0
 
 			val monsterFang = content.items.items.find { it.flashName == "Monster Fang" }!!
-			val battle = state.campaign.currentArea!!.activeBattle!!.battle
+			val battle = campaign.currentArea!!.activeBattle!!.battle
 			repeat(10_000) {
-				val loot = generateBattleLoot(battle, state.campaign.getParty())
+				val loot = generateBattleLoot(content, battle, campaign.getParty())
 				if (loot.items.size == 1) {
 					assertSame(monsterFang, loot.items[0].item)
 					assertTrue(loot.items[0].amount <= 2, "Expected ${loot.items[0].amount} <= 2")
@@ -138,24 +123,20 @@ object TestBattleLoot {
 
 	fun testPlotLoot(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val demon = content.battle.monsters.find { it.name == "WarportDemon" }!!
 			val pass = content.items.plotItems.find { it.name == "Gold Warport Pass" }!!
-			startSimpleBattle(state, enemies = arrayOf(
+			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = demon, level = 10),
 				null, null,
 				Enemy(monster = demon, level = 5)
 			))
 
-			val battle = state.campaign.currentArea!!.activeBattle!!.battle
+			val battle = campaign.currentArea!!.activeBattle!!.battle
 			repeat(100) {
-				val loot = generateBattleLoot(battle, state.campaign.getParty())
+				val loot = generateBattleLoot(content, battle, campaign.getParty())
+				assertTrue(content.battle.lootItemTexts.contains(loot.itemText))
 				assertEquals(1, loot.plotItems.size)
 				assertSame(pass, loot.plotItems[0])
 			}
@@ -164,24 +145,20 @@ object TestBattleLoot {
 
 	fun testDreamLoot(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val qualna = content.battle.monsters.find { it.name == "Qualna" }!!
 			val stone = content.items.dreamstones.find { it.index == 16 }!!
-			startSimpleBattle(state, enemies = arrayOf(
+			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = qualna, level = 10),
 				null, null,
 				Enemy(monster = qualna, level = 5)
 			))
 
-			val battleState = state.campaign.currentArea!!.activeBattle!!
+			val battleState = campaign.currentArea!!.activeBattle!!
 			repeat(100) {
-				val loot = generateBattleLoot(battleState.battle, state.campaign.getParty())
+				val loot = generateBattleLoot(content, battleState.battle, campaign.getParty())
+				assertTrue(content.battle.lootItemTexts.contains(loot.itemText))
 				assertEquals(1, loot.dreamStones.size)
 				assertSame(stone, loot.dreamStones[0])
 			}

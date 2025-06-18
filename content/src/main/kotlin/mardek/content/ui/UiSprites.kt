@@ -99,6 +99,9 @@ class UiSprites(
 
 	@BitField(id = 30)
 	val challengeCursor: BcSprite,
+
+	@BitField(id = 31)
+	val dreamStoneIcon: KimSprite,
 ) {
 
 	@Suppress("unused")
@@ -110,7 +113,7 @@ class UiSprites(
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		BcSprite(), BcSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), BcSprite(),
+		KimSprite(), KimSprite(), KimSprite(), BcSprite(), KimSprite(),
 	)
 
 	fun allKimSprites() = arrayOf(
@@ -121,7 +124,7 @@ class UiSprites(
 		mapChest, mapSaveCrystal, mapDreamCircle, skillToggled, skillNotToggled,
 		horizontalPointer, flippedPointer, verticalPointer, diagonalPointer,
 		blueAlertBalloon, redAlertBalloon,
-		consumableIcon, waitIcon, fleeIcon
+		consumableIcon, waitIcon, fleeIcon, dreamStoneIcon
 	)
 
 	fun allBcSprites() = arrayOf(titleScreenBackground, titleScreenTitle, challengeCursor)

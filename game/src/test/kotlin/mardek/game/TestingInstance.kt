@@ -11,7 +11,8 @@ import mardek.content.skill.ActiveSkill
 import mardek.renderer.GameRenderer
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
-import mardek.state.ingame.InGameState
+import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.battle.Battle
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleUpdateContext
@@ -78,10 +79,10 @@ class TestingInstance {
 		content.stats.elements.find { it.rawName == "NONE" }!!, SoundQueue()
 	)
 
-	fun startSimpleBattle(state: InGameState, enemies: Array<Enemy?> = arrayOf(
+	fun startSimpleBattle(campaign: CampaignState, enemies: Array<Enemy?> = arrayOf(
 		null, Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 10), null, null)
 	) {
-		state.campaign.currentArea!!.activeBattle = BattleState(
+		campaign.currentArea!!.activeBattle = BattleState(
 			battle = Battle(
 				startingEnemies = enemies,
 				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!,
@@ -90,9 +91,16 @@ class TestingInstance {
 			),
 			players = arrayOf(heroMardek, null, heroDeugan, null),
 			playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
-			context = battleUpdateContext(state.campaign)
+			context = battleUpdateContext(campaign)
 		)
 	}
+
+	fun simpleCampaignState() = CampaignState(
+		currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
+		characterSelection = simpleCharacterSelectionState(),
+		characterStates = simpleCharacterStates(),
+		gold = 123
+	)
 
 	fun destroy() {
 		boiler.destroyInitialObjects()

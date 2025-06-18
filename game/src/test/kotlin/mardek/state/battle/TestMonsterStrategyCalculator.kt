@@ -2,10 +2,6 @@ package mardek.state.battle
 
 import mardek.content.stats.Element
 import mardek.game.TestingInstance
-import mardek.state.ingame.CampaignState
-import mardek.state.ingame.InGameState
-import mardek.state.ingame.area.AreaPosition
-import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.battle.*
 import org.junit.jupiter.api.Assertions.*
 
@@ -13,21 +9,16 @@ object TestMonsterStrategyCalculator {
 
 	fun testMaxUses(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val zombieShaman = content.battle.monsters.find { it.name == "CanoniaShaman" }!!
 			val darkGift = zombieShaman.actions.find { it.name == "Dark Gift" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = zombieShaman, level = 5
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
-			val context = battleUpdateContext(state.campaign)
+			val context = battleUpdateContext(campaign)
 
 			val firstMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
 			assertEquals(BattleStateMachine.CastSkill(
@@ -41,23 +32,18 @@ object TestMonsterStrategyCalculator {
 
 	fun testMyHp(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val animus = content.battle.monsters.find { it.name == "Kdestralan_Mind" }!!
 			val alpha = animus.actions.find { it.name.contains("Alpha") }!!
 			val gamma = animus.actions.find { it.name.contains("Gamma") }!!
 			val omega = animus.actions.find { it.name.contains("Omega") }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = animus, level = 50
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
-			val context = battleUpdateContext(state.campaign)
+			val context = battleUpdateContext(campaign)
 
 			var alphaCounter = 0
 			var gammaCounter = 0
@@ -97,20 +83,15 @@ object TestMonsterStrategyCalculator {
 
 	fun testRepeatAndMyElement(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val masterStone = content.battle.monsters.find { it.name == "MasterStone" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = masterStone, level = 50
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
-			val context = battleUpdateContext(state.campaign)
+			val context = battleUpdateContext(campaign)
 
 			val encounteredElements = mutableSetOf<Element>()
 			repeat(10_000) {
@@ -134,15 +115,10 @@ object TestMonsterStrategyCalculator {
 
 	fun testTargetHasEffectAndResistanceAndEvenOdd(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val magicShield = content.stats.statusEffects.find { it.niceName == "M.Shield" }!!
-			val mardekState = state.campaign.characterStates[heroMardek]!!
+			val mardekState = campaign.characterStates[heroMardek]!!
 			val firePendant = content.items.items.find { it.flashName == "FirePendant" }!!
 			mardekState.equipment[4] = firePendant
 			mardekState.equipment[5] = firePendant
@@ -152,13 +128,13 @@ object TestMonsterStrategyCalculator {
 			val waterVortex = animus.actions.find { it.name == "Energy Vortex: Water" }!!
 			val shieldBreak = animus.actions.find { it.name == "Shield Breaker: Annihilation" }!!
 
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign,  enemies = arrayOf(null, null, null, Enemy(
 				monster = animus, level = 50
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
 			caster.statusEffects.add(magicShield)
-			val context = battleUpdateContext(state.campaign)
+			val context = battleUpdateContext(campaign)
 
 			var fireCounter = 0
 			var waterCounterMardek = 0
@@ -224,12 +200,7 @@ object TestMonsterStrategyCalculator {
 
 	fun testTargetMissesEffectAndTargetHp(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val meleeShield = content.stats.statusEffects.find { it.niceName == "Shield" }!!
 			val magicShield = content.stats.statusEffects.find { it.niceName == "M.Shield" }!!
@@ -242,13 +213,13 @@ object TestMonsterStrategyCalculator {
 			val massRegen = aalia.actions.find { it.name == "Regen" }!!
 			val cura = aalia.actions.find { it.name == "Cura" }!!
 
-			startSimpleBattle(state, enemies = arrayOf(Enemy(monster = monster, level = 50), null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(Enemy(monster = monster, level = 50), null, null, Enemy(
 				monster = aalia, level = 30
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			battle.livingOpponents()[0].statusEffects.add(magicShield)
 			val caster = battle.livingOpponents()[1] as MonsterCombatantState
-			val context = battleUpdateContext(state.campaign)
+			val context = battleUpdateContext(campaign)
 
 			val firstMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove() as BattleStateMachine.CastSkill
 			assertSame(massMeleeShield, firstMove.skill)
@@ -278,23 +249,18 @@ object TestMonsterStrategyCalculator {
 
 	fun testFaintedAndFreeAllySlots(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val moric = content.battle.monsters.find { it.name == "Moric" }!!
 			val zombify = moric.actions.find { it.name == "Zombify" }!!
 			val animateDead = moric.actions.find { it.name == "Animate Dead" }!!
 
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = moric, level = 30
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
-			val context = battleUpdateContext(state.campaign)
+			val context = battleUpdateContext(campaign)
 
 			battle.livingPlayers()[0].currentHealth = 0
 			run {
@@ -350,12 +316,7 @@ object TestMonsterStrategyCalculator {
 
 	fun testLowMana(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val bernard = content.battle.monsters.find { it.name == "BernardChapter3" }!!
 			val thunderstorm = bernard.actions.find { it.name == "Thunderstorm" }!!
@@ -363,12 +324,12 @@ object TestMonsterStrategyCalculator {
 			val glaciate = bernard.actions.find { it.name == "Glaciate" }!!
 			val heh = bernard.actions.find { it.name == "Heh." }!!
 
-			startSimpleBattle(state, enemies = arrayOf(null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, Enemy(
 				monster = bernard, level = 30
 			), null))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
-			val context = battleUpdateContext(state.campaign)
+			val context = battleUpdateContext(campaign)
 
 			var thunderCounter = 0
 			var immolateCounter = 0

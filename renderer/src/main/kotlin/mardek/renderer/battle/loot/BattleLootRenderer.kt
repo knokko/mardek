@@ -2,9 +2,15 @@ package mardek.renderer.battle.loot
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
+import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.text.placement.TextAlignment
+import com.github.knokko.ui.renderer.Gradient
 import mardek.renderer.InGameRenderContext
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
+import mardek.renderer.changeAlpha
+import mardek.renderer.ui.renderButton
+import mardek.state.title.AbsoluteRectangle
 import kotlin.math.max
 
 private val referenceTime = System.nanoTime()
@@ -24,8 +30,7 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 	fun beforeRendering() {
 		this.kimBatch = context.resources.kim1Renderer.startBatch()
 
-		val maxPartyWidth = width / 2
-		this.scale = max(1, maxPartyWidth / (18 * party.size))
+		this.scale = max(1, height / (11 * 16))
 		this.partyMinX = width - 5 * scale - 18 * scale * party.size
 
 		for ((column, character) in party.withIndex()) {
@@ -44,8 +49,8 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 		}
 
 		val rowHeight = 18 * scale
-		val itemX = width / 10
-		var itemY = height / 8
+		val itemX = 30 * scale
+		var itemY = 40 * scale
 		var row = 0
 		for (item in loot.items) {
 			kimBatch.requests.add(KimRequest(
@@ -68,39 +73,140 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 		repeat(loot.dreamStones.size) {
 			kimBatch.requests.add(KimRequest(
 				x = itemX - 16 * scale, y = itemY, scale = scale.toFloat(),
-				sprite = context.content.ui.dreamStone, opacity = 1f
+				sprite = context.content.ui.dreamStoneIcon, opacity = 1f
 			))
 			itemYs[row] = itemY
 			row += 1
 			itemY += rowHeight
 		}
 		kimBatch.requests.add(KimRequest(
-			x = itemX - 16 * scale, y = height - 20 * scale,
+			x = 8 * scale, y = height - 20 * scale,
 			scale = scale.toFloat(), sprite = context.content.ui.goldIcon, opacity = 1f
 		))
 	}
 
 	fun render() {
 		context.uiRenderer.beginBatch()
-		context.uiRenderer.fillColor(
-			0, 0, width,
-			height, rgba(100, 70, 0, 240)
-		)
 		run {
-			val color = rgb(0, 0, 0)
+			val leftColor = srgbToLinear(rgba(54, 37, 21, 240))
+			val rightColor = srgbToLinear(rgba(132, 84, 53, 240))
 			val x1 = partyMinX - 20 * scale
 			val x2 = partyMinX - 2 * scale
-			val y1 = 10 * scale
-			val y2 = 25 * scale
-			context.uiRenderer.fillColor(0, 0, x1, y1, color)
-			context.uiRenderer.fillColorUnaligned(x1, y1, x2, y2, x2, 0, x1, 0, color)
-			context.uiRenderer.fillColor(x2, 0, width, y2, color)
+			val y1 = 12 * scale
+			val y2 = 24 * scale
+			context.uiRenderer.fillColor(
+				0, 0, width - 1, height - 1, 0,
+				Gradient(0, 0, width, height, leftColor, rightColor, leftColor)
+			)
+			val upColor = changeAlpha(rightColor, 100)
+			context.uiRenderer.fillColor(0, y1, width - 1, y2, upColor)
+			val barColor = rgb(0, 0, 0)
+			context.uiRenderer.fillColor(0, 0, x1, y1, barColor)
+			context.uiRenderer.fillColorUnaligned(x1, y1, x2, y2, x2, 0, x1, 0, barColor)
+			context.uiRenderer.fillColor(x2, 0, width, y2, barColor)
+
+			val x4 = width - 55 * scale
+			val x3 = x4 - 4 * scale
+			val y4 = height - 25 * scale
+			val y3 = y4 - 5 * scale
+			context.uiRenderer.fillColor(0, y4, width - 1, height - 1, barColor)
+			context.uiRenderer.fillColorUnaligned(x3, y4, width, y4, width, y3, x4, y3, barColor)
+			context.uiRenderer.drawString(
+				context.resources.font, "INVENTORY SPACE", srgbToLinear(rgb(131, 81, 37)),
+				IntArray(0), x4, y3, width - 1, height - 1,
+				y4, 4 * scale, 1, TextAlignment.LEFT
+			)
 		}
 		context.uiRenderer.drawString(
-			context.resources.font, "Spoils", color, IntArray(0),
-			width / 50, 0, width / 3,
+			context.resources.font, "Spoils", srgbToLinear(rgb(131, 81, 37)),
+			IntArray(0), width / 50, 0, width / 3, height / 3,
+			9 * scale, 6 * scale, 1, TextAlignment.LEFT
 		)
-		// TODO ehm
+		context.uiRenderer.drawString(
+			context.resources.font, loot.itemText, srgbToLinear(rgb(207, 192, 141)),
+			IntArray(0), width / 50, 0, width / 2, height / 3,
+			20 * scale, 4 * scale, 1, TextAlignment.LEFT
+		)
+		run {
+			val strongColor = srgbToLinear(rgb(238, 203, 127))
+			val weakColor = srgbToLinear(rgb(192, 144, 89))
+			val textHeight = 6 * scale
+			var indexY = 0
+			for (itemStack in loot.items) {
+				val textY = itemYs[indexY] + 10 * scale
+				context.uiRenderer.drawString(
+					context.resources.font, itemStack.item.flashName, strongColor,
+					IntArray(0), 32 * scale, 0, width / 2, height,
+					textY, textHeight, 1, TextAlignment.LEFT
+				)
+				context.uiRenderer.drawString(
+					context.resources.font, "x ${itemStack.amount}", strongColor,
+					IntArray(0), 140 * scale, 0, width, height,
+					textY, textHeight, 1, TextAlignment.LEFT
+				)
+				for ((column, member) in party.withIndex()) {
+					if (member == null) continue
+					val currentAmount = context.campaign.characterStates[member]!!.countItemOccurrences(itemStack.item)
+					context.uiRenderer.drawString(
+						context.resources.font, currentAmount.toString(), weakColor, IntArray(0),
+						partyMinX + 5 * scale + 18 * column * scale, 0, width, height,
+						textY, textHeight, 1, TextAlignment.LEFT
+					)
+				}
+				indexY += 1
+			}
+		}
+		run {
+			val goldBackground = srgbToLinear(rgb(35, 23, 15))
+			val minGoldY = height - 21 * scale
+			val maxGoldY = height - 3 * scale
+			val goldCircleX = width / 2
+			val goldRadius = (maxGoldY - minGoldY) / 2
+			context.uiRenderer.fillColor(0, minGoldY, goldCircleX, maxGoldY, goldBackground)
+			context.uiRenderer.fillCircle(
+				goldCircleX - goldRadius, minGoldY,
+				goldCircleX + goldRadius, maxGoldY, goldBackground
+			)
+			val goldText = srgbToLinear(rgb(230, 200, 120))
+			val goldTextY = maxGoldY - 5 * scale
+			val goldTextHeight = 7 * scale
+			context.uiRenderer.drawString(
+				context.resources.font, String.format("%,d", context.campaign.gold), goldText,
+				IntArray(0), 27 * scale, minGoldY, goldCircleX, maxGoldY,
+				goldTextY, goldTextHeight, 1, TextAlignment.LEFT
+			)
+			context.uiRenderer.drawString(
+				context.resources.font, "+ ${loot.gold}", goldText,
+				IntArray(0), 0, minGoldY, goldCircleX, maxGoldY,
+				goldTextY, goldTextHeight, 1, TextAlignment.RIGHT
+			)
+		}
+		run {
+			val outlineWidth = 3 * scale / 2
+			val textOffsetX = 15 * scale
+			val textOffsetY = 7 * scale
+			val textHeight = 5 * scale
+			renderButton(
+				context.uiRenderer, context.resources.font, false, "GET ALL", true,
+				AbsoluteRectangle(0, 26 * scale, 100 * scale, 10 * scale),
+				outlineWidth, textOffsetX, 26 * scale + textOffsetY, textHeight
+			)
+			renderButton(
+				context.uiRenderer, context.resources.font, false, "FINISH", false,
+				AbsoluteRectangle(0, height - 35 * scale, 100 * scale, 10 * scale),
+				outlineWidth, textOffsetX, height - 35 * scale + textOffsetY, textHeight
+			)
+		}
+		run {
+			val borderColor = srgbToLinear(rgb(99, 128, 177))
+			val lowColor = srgbToLinear(rgb(19, 65, 114))
+			val baseX = partyMinX + 18 * scale * loot.selectedPartyIndex
+			val baseY = 4 * scale
+			context.uiRenderer.fillColor(
+				baseX, baseY + 3 * scale, baseX + 18 * scale + 1, baseY + 21 * scale + 1, borderColor,
+				Gradient(1, 1, 18 * scale, 18 * scale, lowColor, lowColor, 0)
+			)
+		}
 		context.uiRenderer.endBatch()
 		context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)
 	}

@@ -4,10 +4,6 @@ import mardek.content.skill.ReactionSkillType
 import mardek.content.stats.CombatStat
 import mardek.content.stats.StatusEffect
 import mardek.game.TestingInstance
-import mardek.state.ingame.CampaignState
-import mardek.state.ingame.InGameState
-import mardek.state.ingame.area.AreaPosition
-import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.battle.Enemy
 import mardek.state.ingame.battle.MoveResultCalculator
 import org.junit.jupiter.api.Assertions.*
@@ -16,28 +12,23 @@ object TestMoveResultCalculator {
 
 	fun testSimpleElementCreatureStunCrit(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 			run {
-				val mardek = state.campaign.characterStates[instance.heroMardek]!!
+				val mardek = campaign.characterStates[instance.heroMardek]!!
 				val quarryBeast = instance.content.skills.reactionSkills.find { it.name == "Quarry: BEAST" }!!
 				val stunStrike = instance.content.skills.reactionSkills.find { it.name == "Stunstrike" }!!
 				mardek.toggledSkills.add(quarryBeast)
 				mardek.toggledSkills.add(stunStrike)
 				mardek.currentLevel = 50
 			}
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = content.battle.monsters.find { it.name == "monster" }!!, level = 5
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			var critCounter = 0
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], false
 				)
 				assertEquals(1, result.targets.size)
@@ -57,7 +48,7 @@ object TestMoveResultCalculator {
 
 			critCounter = 0
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				assertEquals(1, result.targets.size)
@@ -79,23 +70,18 @@ object TestMoveResultCalculator {
 
 	fun testStrengthAndAttack(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
-			val equipment = state.campaign.characterStates[instance.heroMardek]!!.equipment
+			val equipment = campaign.characterStates[instance.heroMardek]!!.equipment
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = monster, level = 30
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			var critCounter = 0
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				val entry = result.targets[0]
@@ -111,12 +97,12 @@ object TestMoveResultCalculator {
 			assertTrue(critCounter in 200 .. 400, "Expected $critCounter to be 300")
 
 			val monsterStrength = monster.baseStats[CombatStat.Strength]!!
-			assertEquals(monsterStrength, battle.livingOpponents()[0].getStat(CombatStat.Strength, battleUpdateContext(state.campaign)))
+			assertEquals(monsterStrength, battle.livingOpponents()[0].getStat(CombatStat.Strength, battleUpdateContext(campaign)))
 			battle.livingOpponents()[0].statModifiers[CombatStat.Strength] = 2 * monsterStrength
 
 			// Damage should be tripled
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				val entry = result.targets[0]
@@ -131,7 +117,7 @@ object TestMoveResultCalculator {
 			// Hero's Coat gives 45 armor, so only 10% of damage left since monster attack is 50
 			equipment[2] = content.items.items.find { it.flashName == "Hero's Coat" }!!
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				val entry = result.targets[0]
@@ -144,7 +130,7 @@ object TestMoveResultCalculator {
 			// Hero's Armour gives 50 armor, so no damage is left
 			equipment[3] = content.items.items.find { it.flashName == "Hero's Armour" }!!
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				val entry = result.targets[0]
@@ -155,7 +141,7 @@ object TestMoveResultCalculator {
 			// When we give Mardek even more armour, the damage should stay 0
 			equipment[4] = content.items.items.find { it.flashName == "Emerald Bangle" }!!
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				val entry = result.targets[0]
@@ -167,21 +153,16 @@ object TestMoveResultCalculator {
 
 	fun testDamageReductionAndSoak(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = monster, level = 5
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				val entry = result.targets[0]
@@ -190,10 +171,10 @@ object TestMoveResultCalculator {
 				}
 			}
 
-			val playerState = state.campaign.characterStates[heroMardek]!!
+			val playerState = campaign.characterStates[heroMardek]!!
 			playerState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "DMG Soak 200" }!!)
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				val entry = result.targets[0]
@@ -205,7 +186,7 @@ object TestMoveResultCalculator {
 			// Since damage soak is applied last, the damage should be 300 / 2 - 200 <= 0 -> 0
 			playerState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "DMG-50%" }!!)
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				val entry = result.targets[0]
@@ -216,25 +197,20 @@ object TestMoveResultCalculator {
 
 	fun testComplexElementalModifiers(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = monster, level = 5
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 
-			val targetEquipment = state.campaign.characterStates[heroMardek]!!.equipment
-			val attackerEquipment = state.campaign.characterStates[heroDeugan]!!.equipment
+			val targetEquipment = campaign.characterStates[heroMardek]!!.equipment
+			val attackerEquipment = campaign.characterStates[heroDeugan]!!.equipment
 			val fire = content.stats.elements.find { it.rawName == "FIRE" }!!
 			attackerEquipment[0] = content.items.items.find { it.flashName == "Firefang" }!!
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[1], battle.livingPlayers()[0], true
 				)
 				assertSame(fire, result.element)
@@ -251,7 +227,7 @@ object TestMoveResultCalculator {
 			}
 
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[1], battle.livingPlayers()[0], true
 				)
 				assertSame(fire, result.element)
@@ -261,12 +237,12 @@ object TestMoveResultCalculator {
 				}
 			}
 
-			state.campaign.characterStates[heroMardek]!!.toggledSkills.add(
+			campaign.characterStates[heroMardek]!!.toggledSkills.add(
 				content.skills.reactionSkills.find { it.name == "FIRE-50%" }!!
 			)
 
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[1], battle.livingPlayers()[0], true
 				)
 				assertSame(fire, result.element)
@@ -280,7 +256,7 @@ object TestMoveResultCalculator {
 			targetEquipment[4] = content.items.items.find { it.flashName == "FirePendant" }!!
 
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[1], battle.livingPlayers()[0], true
 				)
 				assertSame(fire, result.element)
@@ -295,7 +271,7 @@ object TestMoveResultCalculator {
 				it.stat == CombatStat.MeleeDefense
 			}!!.adder
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[1], battle.livingPlayers()[0], true
 				)
 				assertSame(fire, result.element)
@@ -309,30 +285,23 @@ object TestMoveResultCalculator {
 
 	fun testHealthDrainAgainstUndead(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(
-				CampaignState(
-					currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-					characterSelection = simpleCharacterSelectionState(),
-					characterStates = simpleCharacterStates(),
-					gold = 123
-				)
-			)
+			val campaign = simpleCampaignState()
 
 			val drainHp = content.skills.reactionSkills.find { it.name == "Drain HP 10%" }!!
-			val attackerState = state.campaign.characterStates[heroMardek]!!
+			val attackerState = campaign.characterStates[heroMardek]!!
 			attackerState.equipment[0] = content.items.items.find { it.flashName == "Shadowblade" }!!
 			attackerState.currentLevel = 50
 			attackerState.currentHealth = attackerState.determineMaxHealth(heroMardek.baseStats, emptySet())
 
 			val paladin = content.battle.monsters.find { it.name == "FallenPaladin" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = paladin, level = 5)))
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = paladin, level = 5)))
 
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			battle.livingOpponents()[0].statModifiers[CombatStat.MeleeDefense] = 10
 
 			val dark = content.stats.elements.find { it.rawName == "DARK" }!!
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				assertSame(dark, result.element)
@@ -346,7 +315,7 @@ object TestMoveResultCalculator {
 			// The drain HP skill should work fine
 			attackerState.toggledSkills.add(drainHp)
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				assertSame(dark, result.element)
@@ -362,7 +331,7 @@ object TestMoveResultCalculator {
 			battle.livingPlayers()[0].statModifiers[CombatStat.Attack] = -5
 			attackerState.equipment[0] = content.items.items.find { it.flashName == "Blood Sword" }!!
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				assertSame(dark, result.element)
@@ -377,31 +346,26 @@ object TestMoveResultCalculator {
 
 	fun testRemoveStatusEffects(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
-			val mardekEquipment = state.campaign.characterStates[heroMardek]!!.equipment
+			val mardekEquipment = campaign.characterStates[heroMardek]!!.equipment
 			mardekEquipment[2] = content.items.items.find { it.flashName == "Cursed Beret" }!!
 
-			val deuganState = state.campaign.characterStates[heroDeugan]!!
+			val deuganState = campaign.characterStates[heroDeugan]!!
 			val shieldBreakReaction = content.skills.reactionSkills.find { it.name == "Shield Break 10%" }!!
 			deuganState.toggledSkills.add(shieldBreakReaction)
 
 			val shieldEffect = content.stats.statusEffects.find { it.niceName == "Shield" }!!
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = monster, level = 5
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			assertEquals(3, battle.livingPlayers()[0].statusEffects.size)
 			assertTrue(battle.livingPlayers()[0].statusEffects.contains(shieldEffect))
 
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[1], battle.livingPlayers()[0], true
 				)
 				// Since Mardek has auto-shield (from Cursed Beret), Deugan cannot break his shield
@@ -409,7 +373,7 @@ object TestMoveResultCalculator {
 			}
 
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[1], battle.livingOpponents()[0], true
 				)
 				// The monster doesn't have a shield, so there is nothing to break
@@ -419,7 +383,7 @@ object TestMoveResultCalculator {
 			battle.livingOpponents()[0].statusEffects.add(shieldEffect)
 			var shieldBreakCounter = 0
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[1], battle.livingOpponents()[0], true
 				)
 				if (result.targets[0].removedEffects == setOf(shieldEffect)) shieldBreakCounter += 1
@@ -430,23 +394,18 @@ object TestMoveResultCalculator {
 
 	fun testAddSleepAfterRemoveSleep(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val sleepEffect = content.stats.statusEffects.find { it.niceName == "Sleep" }!!
 			val dreamFish = content.battle.monsters.find { it.name == "Dreamfish" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = dreamFish, level = 5
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			// Dreamfish attacks have 100% chance to apply sleep
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				assertEquals(emptySet<StatusEffect>(), result.targets[0].removedEffects)
@@ -455,7 +414,7 @@ object TestMoveResultCalculator {
 
 			battle.livingPlayers()[0].statusEffects.add(sleepEffect)
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 
@@ -466,13 +425,13 @@ object TestMoveResultCalculator {
 
 			// Give Mardek 2 * 20% = 40% sleep resistance
 			val bodyCrystal = content.items.items.find { it.flashName == "Body Crystal" }!!
-			val equipment = state.campaign.characterStates[heroMardek]!!.equipment
+			val equipment = campaign.characterStates[heroMardek]!!.equipment
 			equipment[4] = bodyCrystal
 			equipment[5] = bodyCrystal
 
 			var sleepCounter = 0
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 
@@ -487,17 +446,10 @@ object TestMoveResultCalculator {
 
 	fun testDrainMana(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(
-				CampaignState(
-					currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-					characterSelection = simpleCharacterSelectionState(),
-					characterStates = simpleCharacterStates(),
-					gold = 123
-				)
-			)
+			val campaign = simpleCampaignState()
 
 			// Give Mardek a wand and a lot of mana
-			val attackerState = state.campaign.characterStates[heroMardek]!!
+			val attackerState = campaign.characterStates[heroMardek]!!
 			attackerState.equipment[0] = content.items.items.find { it.flashName == "Water Rod" }!!
 			attackerState.equipment[2] = content.items.items.find { it.flashName == "Silver Circlet" }!!
 			attackerState.equipment[3] = content.items.items.find { it.flashName == "Turquoise Armour" }!!
@@ -507,15 +459,15 @@ object TestMoveResultCalculator {
 			attackerState.currentHealth = attackerState.determineMaxHealth(heroMardek.baseStats, emptySet())
 			attackerState.currentMana = attackerState.determineMaxMana(heroMardek.baseStats, emptySet())
 
-			startSimpleBattle(state, enemies = arrayOf(
+			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 50), null, null,
 				Enemy(monster = content.battle.monsters.find { it.name == "Brinary" }!!, level = 50)
 			))
 
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				val entry = result.targets[0]
@@ -526,7 +478,7 @@ object TestMoveResultCalculator {
 			}
 
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[1], true
 				)
 				val entry = result.targets[0]
@@ -540,26 +492,19 @@ object TestMoveResultCalculator {
 
 	fun testSurvivor(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(
-				CampaignState(
-					currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-					characterSelection = simpleCharacterSelectionState(),
-					characterStates = simpleCharacterStates(),
-					gold = 123
-				)
-			)
+			val campaign = simpleCampaignState()
 
 			val survivor = content.skills.reactionSkills.find { it.survivor && it.type == ReactionSkillType.MeleeDefense }!!
-			state.campaign.characterStates[heroMardek]!!.toggledSkills.add(survivor)
+			campaign.characterStates[heroMardek]!!.toggledSkills.add(survivor)
 
-			startSimpleBattle(state, enemies = arrayOf(
+			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 100), null, null, null
 			))
 
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				assertEquals(result.targets[0].damage, battle.livingPlayers()[0].currentHealth - 1)
@@ -567,7 +512,7 @@ object TestMoveResultCalculator {
 
 			battle.livingPlayers()[0].currentHealth = 1
 			repeat(100) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				val entry = result.targets[0]
@@ -580,26 +525,21 @@ object TestMoveResultCalculator {
 
 	fun testEvasion(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
-			val mardekState = state.campaign.characterStates[heroMardek]!!
+			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.equipment[0] = content.items.items.find { it.flashName == "Shadowblade" }!!
 
 			val dreamFish = content.battle.monsters.find { it.name == "Dreamfish" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = dreamFish, level = 5
 			)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			// Dreamfish has 50% evasion and Shadowblade has 97% accuracy
 			var missCounter = 0
 			repeat(100_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				if (result.targets[0].missed) missCounter += 1
@@ -612,7 +552,7 @@ object TestMoveResultCalculator {
 			// Now Mardek should get enough accuracy
 			missCounter = 0
 			repeat(100_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				if (result.targets[0].missed) missCounter += 1
@@ -625,7 +565,7 @@ object TestMoveResultCalculator {
 
 			missCounter = 0
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				if (result.targets[0].missed) missCounter += 1
@@ -634,7 +574,7 @@ object TestMoveResultCalculator {
 
 			// When Mardek does not pass the challenge, he should always get hit
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], false
 				)
 				assertFalse(result.targets[0].missed)
@@ -644,22 +584,17 @@ object TestMoveResultCalculator {
 
 	fun testShieldAndBerserkDamage(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val shieldEffect = content.stats.statusEffects.find { it.niceName == "Shield" }!!
 			val berserkEffect = content.stats.statusEffects.find { it.niceName == "Berserk" }!!
 
 			val smith = content.battle.monsters.find { it.name == "ZombieLocksmith" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = smith, level = 5)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = smith, level = 5)))
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				val entry = result.targets[0]
@@ -670,7 +605,7 @@ object TestMoveResultCalculator {
 
 			battle.livingPlayers()[0].statusEffects.add(berserkEffect)
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				val entry = result.targets[0]
@@ -681,7 +616,7 @@ object TestMoveResultCalculator {
 
 			battle.livingOpponents()[0].statusEffects.remove(shieldEffect)
 			repeat(10_000) {
-				val result = MoveResultCalculator(battleUpdateContext(state.campaign)).computeBasicAttackResult(
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
 				)
 				val entry = result.targets[0]
@@ -694,26 +629,21 @@ object TestMoveResultCalculator {
 
 	fun testDamageReductionDoesNotHeal(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
-			val mardekState = state.campaign.characterStates[heroMardek]!!
+			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "Nullify Physical" }!!)
-			val deuganState = state.campaign.characterStates[heroDeugan]!!
+			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "DMG Soak 200" }!!)
 			deuganState.equipment[2] = content.items.items.find { it.flashName == "Hero's Coat" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			repeat(100) {
 				val mardekHit = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], false
 				)
@@ -723,14 +653,14 @@ object TestMoveResultCalculator {
 				)
 
 				val mardekBlock = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
 				)
 				assertEquals(0, mardekBlock.targets[0].damage)
 
 				val deuganHit = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[1], false
 				)
@@ -740,7 +670,7 @@ object TestMoveResultCalculator {
 				)
 
 				val deuganBlock = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[1], true
 				)
@@ -751,24 +681,19 @@ object TestMoveResultCalculator {
 
 	fun testShockDamageAndParalyze(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
-			val mardekState = state.campaign.characterStates[heroMardek]!!
+			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.currentLevel = 50
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			var stunCounter = 0
 			repeat(10_000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(
 					shock, battle.livingPlayers()[0],
 					listOf(battle.livingOpponents()[0]), false
@@ -791,27 +716,22 @@ object TestMoveResultCalculator {
 
 	fun testDarkClawBlinding(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
-			val mardekState = state.campaign.characterStates[heroMardek]!!
+			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.currentLevel = 50
 			mardekState.equipment[1] = content.items.items.find { it.flashName == "Hero's Shield" }!!
 			mardekState.equipment[3] = content.items.items.find { it.flashName == "Hero's Armour" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			val darkClaw = monster.actions.find { it.name == "Dark Claw" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 30)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 30)))
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			var blindCounter = 0
 			repeat(10_000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(
 					darkClaw, battle.livingOpponents()[0],
 					listOf(battle.livingPlayers()[0]), false
@@ -833,26 +753,21 @@ object TestMoveResultCalculator {
 
 	fun testThousandNeedles(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
-			val mardekState = state.campaign.characterStates[heroMardek]!!
+			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.currentLevel = 50
 			mardekState.equipment[3] = content.items.items.find { it.flashName == "Hero's Armour" }!!
 
 			val johnny = content.battle.monsters.find { it.name == "HappyJohnny" }!!
 			val mimicry = content.skills.classes.find { it.name == "Mimicry" }!!
 			val thousandNeedles = mimicry.actions.find { it.name == "1000 Needles" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = johnny, level = 30)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = johnny, level = 30)))
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			repeat(10_000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(
 					thousandNeedles, battle.livingOpponents()[0],
 					listOf(battle.livingPlayers()[0]), false
@@ -866,14 +781,9 @@ object TestMoveResultCalculator {
 
 	fun testPyromagia(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
-			val deuganState = state.campaign.characterStates[heroDeugan]!!
+			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.currentLevel = 50
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG+30%" }!!)
 			deuganState.equipment[0] = content.items.items.find { it.flashName == "Balmung" }!!
@@ -883,12 +793,12 @@ object TestMoveResultCalculator {
 			val pyromagia = heroDeugan.characterClass.skillClass.actions.find { it.name == "Pyromagia" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(
 					pyromagia, battle.livingPlayers()[1],
 					listOf(battle.livingOpponents()[0]), false
@@ -902,7 +812,7 @@ object TestMoveResultCalculator {
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(
 					pyromagia, battle.livingPlayers()[1],
 					listOf(battle.livingOpponents()[0]), true
@@ -918,18 +828,13 @@ object TestMoveResultCalculator {
 
 	fun testRecover(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
 			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
 			val paralysis = content.stats.statusEffects.find { it.flashName == "PAR" }!!
 			val regeneration = content.stats.statusEffects.find { it.flashName == "RGN" }!!
 
-			val deuganState = state.campaign.characterStates[heroDeugan]!!
+			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.currentLevel = 50
 			deuganState.activeStatusEffects.add(poison)
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG+30%" }!!)
@@ -939,16 +844,16 @@ object TestMoveResultCalculator {
 			val recover = heroDeugan.characterClass.skillClass.actions.find { it.name == "Recover" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
 
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 			val deuganCombat = battle.livingPlayers()[1]
 			deuganCombat.statusEffects.add(paralysis)
 			deuganCombat.statusEffects.add(regeneration)
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(recover, deuganCombat, listOf(deuganCombat), false)
 				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
 				val entry = result.targets[0]
@@ -960,7 +865,7 @@ object TestMoveResultCalculator {
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(recover, deuganCombat, listOf(deuganCombat), true)
 				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
 				val entry = result.targets[0]
@@ -976,7 +881,7 @@ object TestMoveResultCalculator {
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(recover, deuganCombat, listOf(deuganCombat), true)
 				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
 				val entry = result.targets[0]
@@ -990,14 +895,9 @@ object TestMoveResultCalculator {
 
 	fun testMultiTargetFrostasia(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			))
+			val campaign = simpleCampaignState()
 
-			val deuganState = state.campaign.characterStates[heroDeugan]!!
+			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.currentLevel = 50
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG+30%" }!!)
 			deuganState.equipment[0] = content.items.items.find { it.flashName == "Balmung" }!!
@@ -1007,14 +907,14 @@ object TestMoveResultCalculator {
 			val frostasia = heroDeugan.characterClass.skillClass.actions.find { it.name == "Frostasia" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			startSimpleBattle(state, enemies = arrayOf(
+			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = monster, level = 10), null, null, Enemy(monster = monster, level = 1))
 			)
-			val battle = state.campaign.currentArea!!.activeBattle!!
+			val battle = campaign.currentArea!!.activeBattle!!
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(
 					frostasia, battle.livingPlayers()[1],
 					battle.livingOpponents(), false
@@ -1028,7 +928,7 @@ object TestMoveResultCalculator {
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
-					battleUpdateContext(state.campaign)
+					battleUpdateContext(campaign)
 				).computeSkillResult(
 					frostasia, battle.livingPlayers()[1],
 					battle.livingOpponents(), true
