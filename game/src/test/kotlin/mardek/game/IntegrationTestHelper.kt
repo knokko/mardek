@@ -1,6 +1,7 @@
 package mardek.game
 
 import com.github.knokko.boiler.commands.SingleTimeCommands
+import com.github.knokko.boiler.exceptions.VulkanFailureException.assertVkSuccess
 import com.github.knokko.boiler.images.ImageBuilder
 import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.synchronization.ResourceUsage
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.lwjgl.vulkan.VK10.*
 import java.awt.Color
 import java.io.File
+import java.lang.Thread.sleep
 import java.util.concurrent.CompletableFuture
 import javax.imageio.ImageIO
 import kotlin.math.abs
@@ -32,9 +34,20 @@ fun TestingInstance.testRendering(
 	getResources: CompletableFuture<SharedResources>, state: InGameState,
 	width: Int, height: Int, name: String,
 	expectedColors: Array<Color>, forbiddenColors: Array<Color>,
-) {
+)  = synchronized(this) {
 	if (!actualResultsDirectory.exists() && !actualResultsDirectory.mkdir()) {
 		throw RuntimeException("Failed to create $actualResultsDirectory")
+	}
+
+	// For some reason, SwiftShader sometimes segfaults if I don't do this.
+	// Which is weird, since I am already awaiting each fence after each submission
+	// (and I actually checked the API dump to verify this...)
+	if (boiler.deviceProperties.deviceType() == VK_PHYSICAL_DEVICE_TYPE_CPU) {
+		sleep(100)
+		assertVkSuccess(vkDeviceWaitIdle(
+			boiler.vkDevice()),"DeviceWaitIdle", "TestingInstance.testRendering"
+		)
+		sleep(100)
 	}
 
 	val combiner = MemoryCombiner(boiler, "TestHelper")
@@ -61,6 +74,17 @@ fun TestingInstance.testRendering(
 		renderer.render(getContent, state, recorder, targetImage, framebuffer, 0, SoundQueue())
 		recorder.transitionLayout(targetImage, ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.TRANSFER_SOURCE)
 		recorder.copyImageToBuffer(targetImage, destinationBuffer)
+	}
+
+	// For some reason, SwiftShader sometimes segfaults if I don't do this.
+	// Which is weird, since I am already awaiting each fence after each submission
+	// (and I actually checked the API dump to verify this...)
+	if (boiler.deviceProperties.deviceType() == VK_PHYSICAL_DEVICE_TYPE_CPU) {
+		sleep(100)
+		assertVkSuccess(vkDeviceWaitIdle(
+			boiler.vkDevice()),"DeviceWaitIdle", "TestingInstance.testRendering"
+		)
+		sleep(100)
 	}
 	commands.destroy()
 
