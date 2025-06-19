@@ -10,6 +10,7 @@ import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.changeAlpha
 import mardek.renderer.ui.renderButton
+import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.title.AbsoluteRectangle
 import kotlin.math.max
 
@@ -128,11 +129,27 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 			20 * scale, 4 * scale, 1, TextAlignment.LEFT
 		)
 		run {
-			val strongColor = srgbToLinear(rgb(238, 203, 127))
-			val weakColor = srgbToLinear(rgb(192, 144, 89))
+			val selectedElement = loot.selectedElement
 			val textHeight = 6 * scale
 			var indexY = 0
 			for (itemStack in loot.items) {
+				var strongColor = srgbToLinear(rgb(238, 203, 127))
+				var weakColor = srgbToLinear(rgb(192, 144, 89))
+				if (selectedElement is BattleLoot.SelectedItem && selectedElement.index == indexY) {
+					val color = srgbToLinear(rgb(51, 102, 204))
+					val itemY = itemYs[indexY]
+					context.uiRenderer.fillColor(
+						0, itemY, width - 1, itemY + 16 * scale,
+						changeAlpha(color, 50)
+					)
+					context.uiRenderer.fillColor(0, itemY, width - 1, itemY + 1, color)
+					context.uiRenderer.fillColor(
+						0, itemY + 16 * scale - 1,
+						width - 1, itemY + 16 * scale, color
+					)
+					strongColor = srgbToLinear(rgb(152, 203, 255))
+					weakColor = srgbToLinear(rgb(51, 102, 255))
+				}
 				val textY = itemYs[indexY] + 10 * scale
 				context.uiRenderer.drawString(
 					context.resources.font, itemStack.item.flashName, strongColor,
@@ -186,13 +203,21 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 			val textOffsetX = 15 * scale
 			val textOffsetY = 7 * scale
 			val textHeight = 5 * scale
+			val getAll = AbsoluteRectangle(0, 26 * scale, 100 * scale, 10 * scale)
 			renderButton(
-				context.uiRenderer, context.resources.font, false, "GET ALL", true,
-				AbsoluteRectangle(0, 26 * scale, 100 * scale, 10 * scale),
-				outlineWidth, textOffsetX, 26 * scale + textOffsetY, textHeight
+				context.uiRenderer, context.resources.font, false, "GET ALL",
+				loot.selectedElement is BattleLoot.SelectedGetAll, getAll, outlineWidth, textOffsetX,
+				26 * scale + textOffsetY, textHeight
 			)
+			if (loot.items.isEmpty()) {
+				context.uiRenderer.fillColor(
+					getAll.minX, getAll.minY, getAll.maxX, getAll.maxY,
+					srgbToLinear(rgba(54, 37, 21, 200))
+				)
+			}
 			renderButton(
-				context.uiRenderer, context.resources.font, false, "FINISH", false,
+				context.uiRenderer, context.resources.font, false, "FINISH",
+				loot.selectedElement is BattleLoot.SelectedFinish,
 				AbsoluteRectangle(0, height - 35 * scale, 100 * scale, 10 * scale),
 				outlineWidth, textOffsetX, height - 35 * scale + textOffsetY, textHeight
 			)
@@ -200,10 +225,10 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 		run {
 			val borderColor = srgbToLinear(rgb(99, 128, 177))
 			val lowColor = srgbToLinear(rgb(19, 65, 114))
-			val baseX = partyMinX + 18 * scale * loot.selectedPartyIndex
-			val baseY = 4 * scale
+			val baseX = partyMinX + 18 * scale * loot.selectedPartyIndex - scale - 1
+			val baseY = 4 * scale - 1
 			context.uiRenderer.fillColor(
-				baseX, baseY + 3 * scale, baseX + 18 * scale + 1, baseY + 21 * scale + 1, borderColor,
+				baseX, baseY, baseX + 18 * scale + 1, baseY + 18 * scale + 1, borderColor,
 				Gradient(1, 1, 18 * scale, 18 * scale, lowColor, lowColor, 0)
 			)
 		}

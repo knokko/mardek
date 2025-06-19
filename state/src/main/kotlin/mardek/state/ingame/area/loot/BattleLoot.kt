@@ -32,13 +32,13 @@ class BattleLoot(
 	@BitField(id = 4)
 	val itemText: String,
 
-	party: Array<PlayableCharacter?>,
+	party: List<Any?>,
 ) {
 	@Suppress("unused")
 	private constructor() : this(
 		0, ArrayList(0),
 		ArrayList(0), ArrayList(0),
-		"", emptyArray()
+		"", ArrayList(0)
 	)
 
 	@BitField(id = 5)
@@ -48,7 +48,7 @@ class BattleLoot(
 
 	var selectedElement: SelectedElement = SelectedGetAll
 
-	fun processKeyPress(key: InputKey, context: UpdateContext) {
+	fun processKeyPress(key: InputKey, context: UpdateContext): Boolean {
 		val soundEffects = context.content.audio.fixedEffects.ui
 		val oldPartyIndex = selectedPartyIndex
 		if (key == InputKey.MoveLeft) {
@@ -117,7 +117,13 @@ class BattleLoot(
 					}
 				} else context.soundQueue.insert(soundEffects.clickReject)
 			}
+			if (oldElement is SelectedFinish) {
+				context.soundQueue.insert(soundEffects.clickConfirm)
+				return true
+			}
 		}
+
+		return false
 	}
 
 	sealed class SelectedElement
@@ -130,6 +136,6 @@ class BattleLoot(
 
 	class UpdateContext(
 		parent: GameStateUpdateContext,
-		val party: Array<Pair<PlayableCharacter, CharacterState>?>
+		val party: List<Pair<PlayableCharacter, CharacterState>?>
 	) : GameStateUpdateContext(parent)
 }

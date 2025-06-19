@@ -92,6 +92,7 @@ class IntegrationTests {
 		TestBattleLoot.testLootFinderTwice(instance)
 		TestBattleLoot.testPlotLoot(instance)
 		TestBattleLoot.testDreamLoot(instance)
+		TestBattleLoot.testTakeSingle(instance)
 	}
 
 	@Test

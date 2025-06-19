@@ -41,8 +41,7 @@ fun generateBattleLoot(
 	for (enemy in battle.startingEnemies) {
 		val monster = enemy?.monster ?: continue
 		for (potentialItem in monster.loot) {
-			// TODO Remove the || true after testing
-			if (potentialItem.chance + extraLootChance > Random.Default.nextInt(100) || true) {
+			if (potentialItem.chance + extraLootChance > Random.Default.nextInt(100)) {
 				val item = potentialItem.item ?: throw IllegalArgumentException(
 					"${monster.name} has invalid loot"
 				)
@@ -62,10 +61,10 @@ fun generateBattleLoot(
 	}
 
 	val foundItems = items.isNotEmpty() || plotItems.isNotEmpty() || dreamStones.isNotEmpty()
-	val itemText = if (foundItems) "You ${content.battle.lootItemTexts.random()}"
+	val itemText = if (foundItems) "You ${content.battle.lootItemTexts.random()}:"
 	else content.battle.lootNoItemTexts.random()
 	return BattleLoot(
 		gold, ArrayList(items.entries.map { ItemStack(it.key, it.value) }),
-		ArrayList(plotItems), ArrayList(dreamStones), itemText
+		ArrayList(plotItems), ArrayList(dreamStones), itemText, party
 	)
 }

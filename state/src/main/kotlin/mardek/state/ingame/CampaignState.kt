@@ -5,18 +5,16 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.Content
 import mardek.content.area.Chest
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
-import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaDiscoveryMap
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.area.loot.generateBattleLoot
@@ -24,7 +22,6 @@ import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 @BitStruct(backwardCompatible = true)
@@ -67,8 +64,19 @@ class CampaignState(
 			if (event !is InputKeyEvent || !event.didPress) continue
 
 			val currentArea = this.currentArea ?: continue
-			val currentBattle = currentArea.activeBattle
 
+			val battleLoot = currentArea.battleLoot
+			if (battleLoot != null) {
+				val lootContext = BattleLoot.UpdateContext(context, getParty())
+				if (battleLoot.processKeyPress(event.key, lootContext)) {
+					gold += battleLoot.gold
+					currentArea.activeBattle = null
+					currentArea.battleLoot = null
+				}
+				continue
+			}
+
+			val currentBattle = currentArea.activeBattle
 			if (currentBattle != null) {
 				val physicalElement = context.content.stats.elements.find { it.rawName == "NONE" }!!
 				val context = BattleUpdateContext(
@@ -81,28 +89,31 @@ class CampaignState(
 
 			val obtainedItemStack = currentArea.obtainedItemStack
 			if (obtainedItemStack != null) {
-				obtainedItemStack.processKeyPress(event.key, content.audio.fixedEffects, soundQueue)
+				obtainedItemStack.processKeyPress(
+					event.key, context.content.audio.fixedEffects, context.soundQueue
+				)
 				continue
 			}
 
 			if (event.key == InputKey.ToggleMenu) {
 				shouldOpenMenu = true
-				soundQueue.insert(content.audio.fixedEffects.ui.openMenu)
+				context.soundQueue.insert(context.content.audio.fixedEffects.ui.openMenu)
 				continue
 			}
 
 			if (event.key == InputKey.ScrollUp || event.key == InputKey.ScrollDown) {
-				val currentIndex = content.areas.areas.indexOf(currentArea.area)
+				val areas = context.content.areas.areas
+				val currentIndex = areas.indexOf(currentArea.area)
 
 				var nextIndex = currentIndex
 				if (event.key == InputKey.ScrollUp) nextIndex -= 1
 				else nextIndex += 1
 
-				if (nextIndex < 0) nextIndex += content.areas.areas.size
-				if (nextIndex >= content.areas.areas.size) nextIndex -= content.areas.areas.size
+				if (nextIndex < 0) nextIndex += areas.size
+				if (nextIndex >= areas.size) nextIndex -= areas.size
 
 				var nextPosition = currentArea.getPlayerPosition(0)
-				val nextArea = content.areas.areas[nextIndex]
+				val nextArea = areas[nextIndex]
 				if (nextPosition.x > 5 + nextArea.width || nextPosition.y > 3 + nextArea.height) {
 					nextPosition = AreaPosition(3, 3)
 				}
@@ -116,35 +127,33 @@ class CampaignState(
 		// Don't update currentArea during battles!!
 		val activeBattle = currentArea?.activeBattle
 		if (activeBattle != null) {
-			val physicalElement = content.stats.elements.find { it.rawName == "NONE" }!!
-			val context = BattleUpdateContext(
-				characterStates, content.audio.fixedEffects, physicalElement, soundQueue
+			val currentArea = this.currentArea!!
+			val physicalElement = context.content.stats.elements.find { it.rawName == "NONE" }!!
+			val battleContext = BattleUpdateContext(
+				characterStates, context.content.audio.fixedEffects, physicalElement, context.soundQueue
 			)
-			activeBattle.update(context)
+			activeBattle.update(battleContext)
 			val battleState = activeBattle.state
 			if (battleState is BattleStateMachine.RanAway) {
 				// TODO transfer health, mana, and status effects
-				currentArea!!.activeBattle = null
-				soundQueue.insert(content.audio.fixedEffects.battle.flee)
+				currentArea.activeBattle = null
+				context.soundQueue.insert(context.content.audio.fixedEffects.battle.flee)
 			}
 			if (battleState is BattleStateMachine.GameOver && battleState.shouldGoToGameOverMenu()) {
 				gameOver = true
 			}
-			if (currentArea!!.battleLoot == null && battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
+			if (currentArea.battleLoot == null && battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
 				// TODO transfer health, mana, and status effects
-				val loot = generateBattleLoot(content, activeBattle.battle, getParty())
+				val loot = generateBattleLoot(context.content, activeBattle.battle, getParty())
 				collectedPlotItems.addAll(loot.plotItems)
-				currentArea!!.battleLoot = loot
-			}
-
-			val battleLoot = currentArea!!.battleLoot
-			if (battleLoot != null) {
-				battleLoot.update(ehm)
+				currentArea.battleLoot = loot
 			}
 			return
 		}
 
-		currentArea?.update(input, this, soundQueue, timeStep, content)
+		currentArea?.update(AreaState.UpdateContext(
+			context, characterSelection.party, characterStates, areaDiscovery
+		))
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area
@@ -158,7 +167,7 @@ class CampaignState(
 		if (openedChest != null) {
 			currentArea.openedChest = null
 			if (!openedChests.contains(openedChest)) {
-				soundQueue.insert(content.audio.fixedEffects.openChest)
+				context.soundQueue.insert(context.content.audio.fixedEffects.openChest)
 				if (openedChest.battle != null) {
 					// TODO chest battle
 					return
@@ -176,7 +185,7 @@ class CampaignState(
 						openedChest.stack!!, null, characterSelection.party, characterStates
 					) { didTake ->
 						currentArea.obtainedItemStack = null
-						soundQueue.insert(content.audio.fixedEffects.ui.clickCancel)
+						context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickCancel)
 						if (didTake) openedChests.add(openedChest)
 					}
 				}
@@ -189,7 +198,7 @@ class CampaignState(
 							collectedPlotItems.add(openedChest.plotItem!!)
 							openedChests.add(openedChest)
 						}
-						soundQueue.insert(content.audio.fixedEffects.ui.clickCancel)
+						context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickCancel)
 					}
 				}
 				// TODO dreamstone in chest
@@ -207,10 +216,4 @@ class CampaignState(
 		@ReferenceField(stable = true, label = "playable characters")
 		private val CHARACTER_STATES_KEY = false
 	}
-
-	class ChildContext(
-		val content: Content,
-		val party: Array<Pair<PlayableCharacter, CharacterState>?>,
-		val soundQueue: SoundQueue,
-	)
 }

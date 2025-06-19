@@ -13,7 +13,7 @@ class InGameState(val campaign: CampaignState): GameState {
 		if (menu.shown) {
 			menu.update(context.input, context.soundQueue, context.content)
 		} else {
-			campaign.update(context.input, context.timeStep, context.soundQueue, context.content)
+			campaign.update(context)
 			if (campaign.shouldOpenMenu) {
 				menu.shown = true
 				campaign.shouldOpenMenu = false

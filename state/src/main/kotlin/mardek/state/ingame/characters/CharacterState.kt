@@ -133,14 +133,17 @@ class CharacterState {
 	 */
 	fun giveItemStack(stackToGive: ItemStack): Boolean {
 		for ((index, existingStack) in inventory.withIndex()) {
-			if (existingStack == null) {
-				inventory[index] = stackToGive
-				return true
-			}
-			if (existingStack.item === stackToGive.item) {
+			if (existingStack != null && existingStack.item === stackToGive.item) {
 				inventory[index] = ItemStack(
 					existingStack.item, existingStack.amount + stackToGive.amount
 				)
+				return true
+			}
+		}
+
+		for ((index, existingStack) in inventory.withIndex()) {
+			if (existingStack == null) {
+				inventory[index] = stackToGive
 				return true
 			}
 		}
@@ -151,7 +154,11 @@ class CharacterState {
 	fun removeItem(item: Item): Boolean {
 		for ((index, stack) in inventory.withIndex()) {
 			if (stack != null && stack.item === item) {
-				inventory[index] = ItemStack(item, stack.amount - 1)
+				if (stack.amount > 1) {
+					inventory[index] = ItemStack(item, stack.amount - 1)
+				} else {
+					inventory[index] = null
+				}
 				return true
 			}
 		}
