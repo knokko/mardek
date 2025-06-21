@@ -35,15 +35,20 @@ class DamageIndicatorRenderer(
 
 		midX = position.intX(context.targetImage.width)
 		midY = position.intY(context.targetImage.height)
-		if (indicator is DamageIndicatorHealth) {
+
+		val element = when (indicator) {
+			is DamageIndicatorHealth -> indicator.element
+			is DamageIndicatorMana -> indicator.element
+			else -> null
+		}
+		if (element != null) {
 			batch = context.resources.kim2Renderer.startBatch()
-			// TODO blink element color
-			val scale = 0.1f * context.targetImage.height / indicator.element.sprite.height
-			val size = (scale * indicator.element.sprite.width).roundToInt()
+			val scale = 0.1f * context.targetImage.height / element.sprite.height
+			val size = (scale * element.sprite.width).roundToInt()
 			batch.requests.add(
 				KimRequest(
 					x = midX - size / 2, y = midY - size / 2, scale = scale,
-					sprite = indicator.element.sprite, opacity = opacity * 0.7f
+					sprite = element.sprite, opacity = opacity * 0.7f
 				)
 			)
 		}

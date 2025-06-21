@@ -65,7 +65,7 @@ class InventoryTabRenderer(
 		kim1Batch.requests.add(KimRequest(
 			x = region.minX + region.width / 2,
 			y = 4 * scale, scale = scale.toFloat(),
-			sprite = context.content.ui.goldIcon, opacity = 1f
+			sprite = context.content.ui.goldIcon
 		))
 	}
 
@@ -239,13 +239,13 @@ class InventoryTabRenderer(
 					if (kim1Renderer != null) {
 						kim2Batch.requests.add(KimRequest(
 							x = 5 * scale, y = skillY, scale = scale / 8f,
-							sprite = skill.element.sprite, opacity = 1f
+							sprite = skill.element.sprite
 						))
 
 						if (skillMastery >= skill.masteryPoints) {
 							kim1Batch.requests.add(KimRequest(
 								x = 25 * scale, y = skillY + 16 * scale, scale = scale / 2f,
-								sprite = context.content.ui.mastered, opacity = 1f
+								sprite = context.content.ui.mastered
 							))
 						}
 
@@ -265,7 +265,7 @@ class InventoryTabRenderer(
 						addKimRequest(KimRequest(
 							x = x, y = skillY + 3 * scale,
 							scale = if (skill is ActiveSkill) scale.toFloat() else scale / 12f,
-							sprite = skillSprite, opacity = 1f
+							sprite = skillSprite
 						))
 					}
 				}
@@ -473,7 +473,7 @@ class InventoryTabRenderer(
 					val itemY = startY + 1 + fullSlotSize * y + scale
 					if (kim1Renderer != null) {
 						kim1Batch.requests.add(KimRequest(
-							x = itemX, y = itemY, scale = scale.toFloat(), sprite = itemStack.item.sprite, opacity = 1f
+							x = itemX, y = itemY, scale = scale.toFloat(), sprite = itemStack.item.sprite
 						))
 					}
 					renderAmount(itemStack, itemX, itemY)
@@ -485,7 +485,7 @@ class InventoryTabRenderer(
 			if (kim1Renderer != null) {
 				kim1Batch.requests.add(KimRequest(
 					x = tab.mouseX, y = tab.mouseY, scale = scale.toFloat(),
-					sprite = pickedItem.get()!!.item.sprite, opacity = 1f
+					sprite = pickedItem.get()!!.item.sprite
 				))
 			}
 			renderAmount(pickedItem.get()!!, tab.mouseX, tab.mouseY)
@@ -543,7 +543,7 @@ class InventoryTabRenderer(
 			if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
 			kim1Batch.requests.add(KimRequest(
 				x = characterX, y = characterY, scale = scale.toFloat(),
-				sprite = assetCharacter.areaSprites.sprites[spriteIndex], opacity = 1f
+				sprite = assetCharacter.areaSprites.sprites[spriteIndex]
 			))
 		}
 
@@ -567,13 +567,13 @@ class InventoryTabRenderer(
 			val iconY = startY + barHeight / 2 + margin / 2
 			val iconScale = scale / 8f
 			addKimRequest(KimRequest(
-				x = x1, y = iconY, scale = iconScale, sprite = context.content.ui.attackIcon, opacity = 1f
+				x = x1, y = iconY, scale = iconScale, sprite = context.content.ui.attackIcon
 			))
 			addKimRequest(KimRequest(
-				x = x2, y = iconY, scale = iconScale, sprite = context.content.ui.defIcon, opacity = 1f
+				x = x2, y = iconY, scale = iconScale, sprite = context.content.ui.defIcon
 			))
 			addKimRequest(KimRequest(
-				x = x4, y = iconY, scale = iconScale, sprite = context.content.ui.rangedDefIcon, opacity = 1f
+				x = x4, y = iconY, scale = iconScale, sprite = context.content.ui.rangedDefIcon
 			))
 		}
 
@@ -676,7 +676,7 @@ class InventoryTabRenderer(
 			uiRenderer?.fillColor(maxX, startY, maxX, maxY, lineColor)
 			if (pickedItem != null && (-pickedItem.slotIndex - 1) == column && pickedItem.characterState == characterState) continue
 			if (kim1Renderer != null && item != null) kim1Batch.requests.add(KimRequest(
-				x = minX + scale, y = startY + scale, scale = scale.toFloat(), sprite = item.sprite, opacity = 1f
+				x = minX + scale, y = startY + scale, scale = scale.toFloat(), sprite = item.sprite
 			))
 		}
 

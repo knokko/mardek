@@ -91,6 +91,19 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testItemResultCalculator() {
+		TestMoveResultCalculator.testPotion(instance)
+		TestMoveResultCalculator.testEther(instance)
+		TestMoveResultCalculator.testElixir(instance)
+		TestMoveResultCalculator.testElixirOnSkeleton(instance)
+		TestMoveResultCalculator.testPhoenixDown(instance)
+		TestMoveResultCalculator.testAntidote(instance)
+		TestMoveResultCalculator.testRemedy(instance)
+		TestMoveResultCalculator.testAngryJuice(instance)
+		TestMoveResultCalculator.testMagicDrink(instance)
+	}
+
+	@Test
 	fun testBattleLoot() {
 		TestBattleLoot.testSimpleLoot(instance)
 		TestBattleLoot.testDoubleGoldTwice(instance)

@@ -32,13 +32,13 @@ class AreaLootRenderer(
 		else obtainedItemStack.plotItem!!.sprite
 		kimBatch.requests.add(KimRequest(
 			x = rectMinX - 25 * scale, y = rectMinY + 2 * scale,
-			scale = scale.toFloat(), sprite = sprite, opacity = 1f
+			scale = scale.toFloat(), sprite = sprite
 		))
 
 		if (obtainedItemStack.itemStack != null) {
 			kimBatch.requests.add(KimRequest(
 				x = rectMinX, y = rectMinY - 10 * scale, scale = scale / 2.5f,
-				sprite = context.content.ui.treasure, opacity = 1f
+				sprite = context.content.ui.treasure
 			))
 
 			for ((column, character) in obtainedItemStack.party.withIndex()) {
@@ -51,13 +51,13 @@ class AreaLootRenderer(
 
 				kimBatch.requests.add(KimRequest(
 					x = rectMinX + scale + column * columnWidth, y = rectMaxY + 5 * scale, scale = scale.toFloat(),
-					sprite = character.areaSprites.sprites[spriteIndex], opacity = 1f
+					sprite = character.areaSprites.sprites[spriteIndex]
 				))
 			}
 		} else {
 			kimBatch.requests.add(KimRequest(
 				x = rectMinX, y = rectMinY - 13 * scale, scale = scale / 2.5f,
-				sprite = context.content.ui.plotItem, opacity = 1f
+				sprite = context.content.ui.plotItem
 			))
 		}
 	}

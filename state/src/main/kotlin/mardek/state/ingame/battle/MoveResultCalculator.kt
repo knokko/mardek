@@ -1,12 +1,15 @@
 package mardek.state.ingame.battle
 
 import mardek.content.audio.SoundEffect
+import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
 import mardek.content.skill.ReactionSkill
 import mardek.content.skill.ReactionSkillType
 import mardek.content.skill.SkillSpiritModifier
 import mardek.content.stats.CombatStat
 import mardek.content.stats.Element
+import mardek.content.stats.PossibleStatusEffect
+import mardek.content.stats.StatModifierRange
 import mardek.content.stats.StatusEffect
 import kotlin.collections.set
 import kotlin.math.max
@@ -173,28 +176,14 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		if (restoreAttackerMana > 0) restoreAttackerMana = min(restoreAttackerMana, target.currentHealth)
 		if (restoreAttackerMana < 0) restoreAttackerMana = -min(-restoreAttackerMana, attacker.currentMana)
 
-		val removedEffects = removeCandidateEffects.filter {
-			val effect = it.key
-			val chance = it.value
-			if (!target.statusEffects.contains(effect)) return@filter false
-			if (chance <= Random.Default.nextInt(100)) return@filter false
-			if (target.getAutoEffects(context).contains(effect)) return@filter false
-			true
-		}.keys
-		val addedEffects = addCandidateEffects.filter {
-			val effect = it.key
-			val chance = it.value
-			if (chance <= Random.Default.nextInt(100)) return@filter false
-			if (target.statusEffects.contains(effect) && !removedEffects.contains(effect)) return@filter false
-			val resistance = target.getResistance(effect, context)
-			if (resistance > Random.Default.nextInt(100)) return@filter false
-			true
-		}.keys
+		val removedEffects = determineRemovedEffects(removeCandidateEffects, target)
+		val addedEffects = determineAddedEffects(addCandidateEffects, target, removedEffects)
 
 		return Entry(
 			result = MoveResult.Entry(
 				target = target,
 				damage = damage,
+				damageMana = 0,
 				missed = missed,
 				criticalHit = criticalHit,
 				addedEffects = addedEffects,
@@ -204,6 +193,44 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			restoredHealth = restoreAttackerHealth,
 			restoredMana = restoreAttackerMana,
 		)
+	}
+
+	private fun determineRemovedEffects(candidates: Map<StatusEffect, Int>, target: CombatantState) = candidates.filter {
+		val effect = it.key
+		val chance = it.value
+		if (!target.statusEffects.contains(effect)) return@filter false
+		if (chance <= Random.Default.nextInt(100)) return@filter false
+		if (target.getAutoEffects(context).contains(effect)) return@filter false
+		true
+	}.keys
+
+	private fun determineAddedEffects(
+		candidates: Map<StatusEffect, Int>, target: CombatantState, removedEffects: Set<StatusEffect>
+	) = candidates.filter {
+		val effect = it.key
+		val chance = it.value
+		if (chance <= Random.Default.nextInt(100)) return@filter false
+		if (target.statusEffects.contains(effect) && !removedEffects.contains(effect)) return@filter false
+		val resistance = target.getResistance(effect, context)
+		if (resistance > Random.Default.nextInt(100)) return@filter false
+		true
+	}.keys
+
+	private fun effectListToMap(list: Collection<PossibleStatusEffect>): MutableMap<StatusEffect, Int> {
+		val map = mutableMapOf<StatusEffect, Int>()
+		for (candidate in list) {
+			map[candidate.effect] = map.getOrDefault(candidate.effect, 0) + candidate.chance
+		}
+		return map
+	}
+
+	private fun statListToMap(list: Collection<StatModifierRange>): MutableMap<CombatStat, Int> {
+		val map = mutableMapOf<CombatStat, Int>()
+		for (entry in list) {
+			val adder = Random.Default.nextInt(entry.minAdder, 1 + entry.maxAdder)
+			map[entry.stat] = map.getOrDefault(entry.stat, 0) + adder
+		}
+		return map
 	}
 
 	fun computeSkillResult(
@@ -290,7 +317,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			multiplierStat = multiplierStat,
 			defenseStat = defenseStat,
 			isMelee = skill.isMelee,
-			isHealing = skill.isPositive() && !target.getCreatureType().revertsHealing,
+			isHealing = skill.isPositive() && !target.revertsHealing(),
 			attackReactionType = attackReactionType,
 			defenseReactionType = defenseReactionType,
 			baseFlatDamage = extraFlatDamage + (skillDamage.remainingTargetHpModifier * target.currentHealth).roundToInt(),
@@ -316,7 +343,8 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			sounds = sounds,
 			targets = rawEntries.map { it.result },
 			restoreAttackerHealth = rawEntries.sumOf { it.restoredHealth },
-			restoreAttackerMana = rawEntries.sumOf { it.restoredMana }
+			restoreAttackerMana = rawEntries.sumOf { it.restoredMana },
+			overrideBlinkColor = 0,
 		)
 	}
 
@@ -391,6 +419,59 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			targets = listOf(rawEntry.result),
 			restoreAttackerHealth = rawEntry.restoredHealth,
 			restoreAttackerMana = rawEntry.restoredMana,
+			overrideBlinkColor = 0,
+		)
+	}
+
+	fun computeItemResult(item: Item, thrower: CombatantState, target: CombatantState): MoveResult {
+		val consumable = item.consumable ?: throw IllegalArgumentException("Item ${item.flashName} is not consumable")
+		var (restoreHealth, restoreMana) = if (consumable.isFullCure) {
+			Pair(target.maxHealth - target.currentHealth, target.maxMana - target.currentMana)
+		} else Pair(consumable.restoreHealth, consumable.restoreMana)
+
+		if (target.currentHealth == 0) {
+			restoreHealth += (consumable.revive * target.maxHealth).roundToInt()
+		}
+
+		if (target.revertsHealing()) restoreHealth = 0
+
+		val effectsToRemove = effectListToMap(consumable.removeStatusEffects)
+		if (consumable.removeNegativeStatusEffects) {
+			for (effect in target.statusEffects) {
+				if (!effect.isPositive) effectsToRemove[effect] = 100
+			}
+		}
+
+		val damage = consumable.damage
+		if (damage != null) TODO("Damaging consumables")
+
+		val removedEffects = determineRemovedEffects(effectsToRemove, target)
+		val entry = MoveResult.Entry(
+			target = target,
+			damage = -restoreHealth,
+			damageMana = -restoreMana,
+			missed = false,
+			criticalHit = false,
+			removedEffects = removedEffects,
+			addedEffects = determineAddedEffects(
+				effectListToMap(consumable.addStatusEffects), target, removedEffects
+			),
+			addedStatModifiers = statListToMap(consumable.statModifiers)
+		)
+
+		val particleEffect = consumable.particleEffect
+		val sounds = mutableListOf<SoundEffect>()
+		if (particleEffect != null) {
+			particleEffect.initialSound()?.let { sounds.add(it) }
+			particleEffect.damageSound()?.let { sounds.add(it) }
+		}
+		return MoveResult(
+			element = item.element ?: thrower.element,
+			sounds = sounds,
+			targets = listOf(entry),
+			restoreAttackerHealth = 0,
+			restoreAttackerMana = 0,
+			overrideBlinkColor = consumable.blinkColor,
 		)
 	}
 

@@ -11,6 +11,7 @@ import mardek.content.stats.Element
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.DamageIndicatorHealth
+import mardek.state.ingame.battle.DamageIndicatorMana
 import mardek.state.ingame.battle.MonsterCombatantState
 import mardek.state.ingame.battle.ParticleEffectState
 import org.joml.Math.toRadians
@@ -63,20 +64,27 @@ class SingleCreatureRenderer(
 		return selectedColorTransform(1f - passedTime.toFloat() / blinkTime)
 	}
 
-	private fun damageColorTransform(elementColor: Int, intensity: Float) = colorCombineTransform(
-		1f, intensity, elementColor
+	private fun damageColorTransform(blinkColor: Int, intensity: Float) = colorCombineTransform(
+		1f, intensity, blinkColor
 	)
 
 	private fun damageColorTransform(): ColorTransform? {
 		val damageIndicator = combatant.lastDamageIndicator
-		if (damageIndicator !is DamageIndicatorHealth || damageIndicator.gainedHealth == 0) return null
+		val (element, overrideColor) = when (damageIndicator) {
+			is DamageIndicatorHealth -> if (damageIndicator.gainedHealth == 0) return null else Pair(
+				damageIndicator.element, damageIndicator.overrideColor
+			)
+			is DamageIndicatorMana -> Pair(damageIndicator.element, damageIndicator.overrideColor)
+			else -> return null
+		}
 
 		val blinkTime = 1000_000_000L
 		val passedTime = currentRealTime - damageIndicator.time
 		if (passedTime >= blinkTime) return null
 
-		val color = if (damageIndicator.element === context.updateContext.physicalElement) rgb(250, 20, 20)
-		else damageIndicator.element.color
+		val color = if (overrideColor != 0) overrideColor
+		else if (element === context.updateContext.physicalElement) rgb(250, 20, 20)
+		else element.color
 
 		return damageColorTransform(color, 1f - passedTime.toFloat() / blinkTime)
 	}
@@ -105,6 +113,8 @@ class SingleCreatureRenderer(
 			chooseMeleeAnimation()
 		} else if (state is BattleStateMachine.CastSkill && state.caster === combatant) {
 			chooseCastingAnimation()
+		} else if (state is BattleStateMachine.UseItem && state.thrower === combatant) {
+			chooseItemAnimation()
 		} else choosePassiveAnimation()
 		renderAnimation()
 	}
@@ -185,6 +195,18 @@ class SingleCreatureRenderer(
 			relativeTime = relativeCastTime
 			renderCastShadow(state.skill.element)
 		} else state.canDealDamage = true
+	}
+
+	private fun chooseItemAnimation() {
+		if (state !is BattleStateMachine.UseItem) throw Error()
+
+		val itemAnimation = skeleton.getAnimation("useitem")
+		val relativeThrowTime = currentRealTime - state.startTime
+		val throwTime = itemAnimation.frames.size * FRAME_LENGTH
+		if (relativeThrowTime < throwTime) {
+			animation = itemAnimation
+			relativeTime = relativeThrowTime
+		} else state.canDrinkItem = true
 	}
 
 	private fun renderCastShadow(element: Element) {

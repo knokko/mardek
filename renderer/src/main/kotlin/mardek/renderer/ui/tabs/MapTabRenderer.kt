@@ -44,7 +44,7 @@ class MapTabRenderer(
 				kimBatch.requests.add(KimRequest(
 					x = minX + x * scale + scale / 2 - (spriteScale * sprite.width / 2).roundToInt(),
 					y = minY + y * scale + scale / 2 - (spriteScale * sprite.height / 2).roundToInt(),
-					scale = spriteScale, sprite = sprite, opacity = 1f
+					scale = spriteScale, sprite = sprite
 				))
 			}
 			for (element in area.objects.objects) {
@@ -61,7 +61,7 @@ class MapTabRenderer(
 		}
 		if (area.chests.isNotEmpty()) kimBatch.requests.add(KimRequest(
 			x = region.width * 95 / 100, y = region.minY + region.height / 150,
-			scale = region.height / 1200f, sprite = context.content.ui.mapChest, opacity = 1f
+			scale = region.height / 1200f, sprite = context.content.ui.mapChest
 		))
 	}
 

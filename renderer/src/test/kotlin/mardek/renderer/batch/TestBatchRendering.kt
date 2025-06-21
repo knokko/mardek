@@ -147,10 +147,10 @@ class TestBatchRendering {
 			val lateKim2 = kim2Renderer.startBatch()
 			val earlyKim2 = kim2Renderer.startBatch()
 
-			lateKim1.requests.add(KimRequest(x = 5, y = 3, scale = 1f, sprite = orangeSprite, opacity = 1f))
-			lateKim2.requests.add(KimRequest(x = 1, y = 2, scale = 2f, sprite = cyanSprite, opacity = 1f))
-			earlyKim2.requests.add(KimRequest(x = 1, y = 7, scale = 1f, sprite = greenSprite, opacity = 1f))
-			earlyKim1.requests.add(KimRequest(x = 0, y = 0, scale = 4f, sprite = redSprite, opacity = 1f))
+			lateKim1.requests.add(KimRequest(x = 5, y = 3, scale = 1f, sprite = orangeSprite))
+			lateKim2.requests.add(KimRequest(x = 1, y = 2, scale = 2f, sprite = cyanSprite))
+			earlyKim2.requests.add(KimRequest(x = 1, y = 7, scale = 1f, sprite = greenSprite))
+			earlyKim1.requests.add(KimRequest(x = 0, y = 0, scale = 4f, sprite = redSprite))
 
 			kim1Renderer.recordBeforeRenderpass(recorder, 0)
 

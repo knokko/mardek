@@ -69,27 +69,23 @@ class SkillsTabRenderer(
 			val skill = skillEntry.skill
 
 			if (skill is ActiveSkill) addKimRequest(KimRequest(
-				x = skillsMinX, y = baseY, scale = region.height / 3000f, sprite = skill.element.sprite, opacity = 1f
+				x = skillsMinX, y = baseY, scale = region.height / 3000f, sprite = skill.element.sprite
 			)) else {
 				val icon = if (skillEntry.isToggled) context.content.ui.skillToggled else context.content.ui.skillNotToggled
 				addKimRequest(KimRequest(
-					x = skillsMinX, y = baseY, scale = region.height / 3000f, sprite = icon, opacity = 1f
+					x = skillsMinX, y = baseY, scale = region.height / 3000f, sprite = icon
 				))
 			}
 
-			if (tab.inside && row == tab.skillIndex) addKimRequest(
-				KimRequest(
+			if (tab.inside && row == tab.skillIndex) addKimRequest(KimRequest(
 				x = skillsMinX - region.height / 20, y = baseY, scale = region.height / 3000f,
-				sprite = context.content.ui.horizontalPointer, opacity = 1f
-			)
-			)
+				sprite = context.content.ui.horizontalPointer
+			))
 
-			if (skillEntry.mastery >= skill.masteryPoints) addKimRequest(
-				KimRequest(
+			if (skillEntry.mastery >= skill.masteryPoints) addKimRequest(KimRequest(
 				x = skillsMasteryPointsX, y = baseY, scale = region.height / 500f,
-				sprite = context.content.ui.mastered, opacity = 1f
-			)
-			)
+				sprite = context.content.ui.mastered
+			))
 		}
 	}
 
@@ -104,7 +100,7 @@ class SkillsTabRenderer(
 			val y = region.minY + 2 * characterScale
 			addKimRequest(KimRequest(
 				x = x, y = y, scale = characterScale.toFloat(),
-				sprite = character.areaSprites.sprites[spriteIndex], opacity = 1f
+				sprite = character.areaSprites.sprites[spriteIndex]
 			))
 
 			if (column == tab.partyIndex) {
@@ -116,7 +112,7 @@ class SkillsTabRenderer(
 		addKimRequest(KimRequest(
 			x = region.minX + 4 * characterScale,
 			y = region.minY + 6 * characterScale, scale = characterScale / 2f,
-			sprite = assetCharacter.characterClass.skillClass.icon, opacity = 1f
+			sprite = assetCharacter.characterClass.skillClass.icon
 		))
 
 		for ((column, icon) in arrayOf(
@@ -124,11 +120,11 @@ class SkillsTabRenderer(
 			context.content.ui.rangedAttackIcon, context.content.ui.rangedDefenseIcon, context.content.ui.passiveIcon
 		).withIndex()) {
 			val x = region.minX + region.width / 7 + column * 12 * characterScale
-			addKimRequest(KimRequest(x = x, y = iconY, scale = characterScale / 32f, sprite = icon, opacity = 1f))
+			addKimRequest(KimRequest(x = x, y = iconY, scale = characterScale / 32f, sprite = icon))
 
 			if (column == tab.skillTypeIndex && tab.inside) addKimRequest(KimRequest(
 				x = x - 4 * characterScale, y = iconY - 4 * characterScale,
-				scale = characterScale / 16f, sprite = context.content.ui.diagonalPointer, opacity = 1f
+				scale = characterScale / 16f, sprite = context.content.ui.diagonalPointer
 			))
 		}
 

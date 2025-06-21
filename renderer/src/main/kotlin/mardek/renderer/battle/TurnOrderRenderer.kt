@@ -33,6 +33,7 @@ class TurnOrderRenderer(
 		if (slotWidth < 5) return false
 		if (state is BattleStateMachine.MeleeAttack && state.skill != null) return false
 		if (state is BattleStateMachine.CastSkill) return false
+		if (state is BattleStateMachine.UseItem) return false
 		if (state is BattleStateMachine.SelectMove) {
 			val selectedMove = state.selectedMove
 			if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) return false
@@ -64,7 +65,7 @@ class TurnOrderRenderer(
 			kimBatch.requests.add(KimRequest(
 				x = x + slotWidth - spriteSize,
 				y = region.minY + (region.height - spriteSize) / 2,
-				scale = scale, sprite = combatant.getTurnOrderIcon(), opacity = 1f
+				scale = scale, sprite = combatant.getTurnOrderIcon()
 			))
 
 			x += slotWidth

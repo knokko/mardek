@@ -8,6 +8,7 @@ import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.synchronization.ResourceUsage
+import org.joml.Math.toRadians
 import org.lwjgl.vulkan.VK10.*
 import java.lang.Math.toIntExact
 
@@ -117,6 +118,7 @@ class Kim1Renderer(
 			hostVertexRange.putInt(request.x).putInt(request.y)
 			hostVertexRange.putInt(request.sprite.width).putInt(request.sprite.height).putFloat(request.scale)
 			hostVertexRange.putInt(offsetMap[request.sprite.offset]!!).putFloat(request.opacity)
+			hostVertexRange.putFloat(toRadians(request.rotation))
 		}
 		vkCmdDraw(recorder.commandBuffer, 6, batch.requests.size, 0, 0)
 		batch.requests.clear()

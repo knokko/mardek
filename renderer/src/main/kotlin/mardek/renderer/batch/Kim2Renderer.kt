@@ -52,6 +52,7 @@ class Kim2Renderer(
 			if (request.sprite.version != 2) throw IllegalArgumentException("Kim2Renderer only supports kim2 sprites")
 			hostVertexRange.putInt(request.x).putInt(request.y).putFloat(request.scale)
 			hostVertexRange.putInt(request.sprite.offset).putFloat(request.opacity)
+			if (request.rotation != 0f) throw UnsupportedOperationException("Kim2Renderer doesn't support rotations")
 		}
 		vkCmdDraw(recorder.commandBuffer, 6, batch.requests.size, 0, 0)
 		batch.requests.clear()

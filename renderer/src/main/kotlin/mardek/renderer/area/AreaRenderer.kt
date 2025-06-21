@@ -344,7 +344,7 @@ class AreaRenderer(
 					}
 					val waterSprite = renderData.waterSprites[renderData.getWaterSpriteIndex(tileX, tileY)]
 					kimBatch.requests.add(KimRequest(
-						x = renderX, y = renderY, scale = scale.toFloat(), sprite = backgroundSprite, opacity = 1f
+						x = renderX, y = renderY, scale = scale.toFloat(), sprite = backgroundSprite
 					))
 					val opacity = if (waterType == WaterType.Water) 0.3f else 1f
 					kimBatch.requests.add(KimRequest(
@@ -352,7 +352,7 @@ class AreaRenderer(
 					))
 				}
 				val sprite = renderData.tileSprites[renderData.getTileSpriteIndex(tileX, tileY, 0)]
-				kimBatch.requests.add(KimRequest(x = renderX, y = renderY, scale = scale.toFloat(), sprite = sprite, opacity = 1f))
+				kimBatch.requests.add(KimRequest(x = renderX, y = renderY, scale = scale.toFloat(), sprite = sprite))
 			}
 		}
 
@@ -393,7 +393,7 @@ class AreaRenderer(
 			kimBatch.requests.add(KimRequest(
 				x = renderGold!!.baseX - (tileSize * 19f / 32f).roundToInt(),
 				y = renderGold!!.baseY - (tileSize * 17f / 32f).roundToInt(),
-				scale = scale.toFloat() / 2f, sprite = context.content.ui.goldIcon, opacity = 1f
+				scale = scale.toFloat() / 2f, sprite = context.content.ui.goldIcon
 			))
 		}
 

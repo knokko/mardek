@@ -200,6 +200,25 @@ class BattleState(
 				}
 			}
 		}
+
+		if (state is BattleStateMachine.UseItem && state.canDrinkItem) {
+			val result = MoveResultCalculator(context).computeItemResult(
+				state.item, state.thrower, state.target
+			)
+			applyMoveResult(context, result, state.thrower)
+			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 500_000_000L)
+
+			val particleEffect = state.item.consumable?.particleEffect
+			if (particleEffect != null) {
+				val particle = ParticleEffectState(
+					particleEffect,
+					state.target.getPosition(this),
+					state.target.isOnPlayerSide
+				)
+				particle.startTime = System.nanoTime()
+				particles.add(particle)
+			}
+		}
 	}
 
 	private fun applyMoveResult(context: BattleUpdateContext, result: MoveResult, attacker: CombatantState) {
@@ -208,14 +227,26 @@ class BattleState(
 		for (entry in result.targets) {
 			val target = entry.target
 			if (!entry.missed) {
-				target.lastDamageIndicator = DamageIndicatorHealth(
-					oldHealth = target.currentHealth,
-					oldMana = target.currentMana,
-					gainedHealth = -entry.damage,
-					element = result.element,
-				)
+				if (entry.damage != 0 || entry.damageMana == 0) {
+					target.lastDamageIndicator = DamageIndicatorHealth(
+						oldHealth = target.currentHealth,
+						oldMana = target.currentMana,
+						gainedHealth = -entry.damage,
+						element = result.element,
+						overrideColor = result.overrideBlinkColor,
+					)
+				} else {
+					target.lastDamageIndicator = DamageIndicatorMana(
+						oldHealth = target.currentHealth,
+						oldMana = target.currentMana,
+						gainedMana = -entry.damageMana,
+						element = result.element,
+						overrideColor = result.overrideBlinkColor,
+					)
+				}
 
 				target.currentHealth -= entry.damage
+				target.currentMana -= entry.damageMana
 
 				target.statusEffects.removeAll(entry.removedEffects)
 				target.statusEffects.addAll(entry.addedEffects)
@@ -235,6 +266,7 @@ class BattleState(
 				oldMana = attacker.currentMana,
 				gainedHealth = result.restoreAttackerHealth,
 				element = result.element,
+				overrideColor = 0,
 			)
 		} else if (result.restoreAttackerMana != 0) {
 			attacker.lastDamageIndicator = DamageIndicatorMana(
@@ -242,6 +274,7 @@ class BattleState(
 				oldMana = attacker.currentMana,
 				gainedMana = result.restoreAttackerMana,
 				element = result.element,
+				overrideColor = 0,
 			)
 		}
 		attacker.currentHealth += result.restoreAttackerHealth

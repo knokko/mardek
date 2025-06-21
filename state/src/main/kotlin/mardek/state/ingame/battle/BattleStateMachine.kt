@@ -88,7 +88,7 @@ sealed class BattleStateMachine {
 				skill: ActiveSkill?, context: BattleUpdateContext
 			): ReactionChallenge? {
 				var primaryType: ReactionSkillType? = null
-				val isHealing = skill != null && skill.isPositive() && !target.getCreatureType().revertsHealing
+				val isHealing = skill != null && skill.isPositive() && !target.revertsHealing()
 
 				if (target.hasReactions(context, ReactionSkillType.MeleeDefense) && !isHealing) {
 					primaryType = ReactionSkillType.MeleeDefense
@@ -193,7 +193,7 @@ sealed class BattleStateMachine {
 			var primaryType: ReactionSkillType? = null
 			val isHealing = skill.isPositive()
 			for (target in targets) {
-				if (target.hasReactions(context, ReactionSkillType.RangedDefense) && (!isHealing || target.getCreatureType().revertsHealing)) {
+				if (target.hasReactions(context, ReactionSkillType.RangedDefense) && (!isHealing || target.revertsHealing())) {
 					primaryType = ReactionSkillType.RangedDefense
 				}
 			}
@@ -233,7 +233,11 @@ sealed class BattleStateMachine {
 		@BitField(id = 2)
 		@ReferenceField(stable = true, label = "items")
 		val item: Item
-	) : BattleStateMachine(), Move
+	) : BattleStateMachine(), Move {
+		val startTime = System.nanoTime()
+
+		var canDrinkItem = false
+	}
 
 	/**
 	 * The player ran away from the battle, so the game state should go back to the area state

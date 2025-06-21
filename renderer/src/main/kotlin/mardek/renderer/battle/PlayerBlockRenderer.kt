@@ -28,7 +28,7 @@ class PlayerBlockRenderer(
 			val marginY = region.height / 20
 			val scale = (region.height - 2 * marginY) / sprite.height.toFloat()
 			batch2.requests.add(KimRequest(
-				x = region.minX, y = region.minY + marginY, scale = scale, sprite = sprite, opacity = 1f
+				x = region.minX, y = region.minY + marginY, scale = scale, sprite = sprite
 			))
 			nameX = region.minX + (scale * sprite.width).roundToInt()
 		}
@@ -42,7 +42,7 @@ class PlayerBlockRenderer(
 			batch1.requests.add(KimRequest(
 				x = region.minX + (6.5f * scale).roundToInt(),
 				y = region.minY + (8f * scale).roundToInt(),
-				scale = scale, sprite = walkingSprite, opacity = 1f
+				scale = scale, sprite = walkingSprite
 			))
 		}
 	}

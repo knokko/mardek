@@ -63,8 +63,7 @@ class SkillOrItemSelectionRenderer(
 		for (entry in entries) {
 			val spriteRequest = KimRequest(
 				x = region.minX + marginX, y = minY,
-				scale = entryHeight.toFloat() / entry.icon.height.toFloat(),
-				sprite = entry.icon, opacity = 1f
+				scale = entryHeight.toFloat() / entry.icon.height.toFloat(), sprite = entry.icon
 			)
 			if (entry.icon.version == 1) batch1.requests.add(spriteRequest) else batch2.requests.add(spriteRequest)
 			if (entry.isSelected) {
@@ -73,7 +72,7 @@ class SkillOrItemSelectionRenderer(
 				val width = scale * pointer.width
 				val x = region.minX + marginX / 3 - width
 				batch1.requests.add(KimRequest(
-					x = x.roundToInt(), y = minY + entryHeight / 10, scale = scale, sprite = pointer, opacity = 1f
+					x = x.roundToInt(), y = minY + entryHeight / 10, scale = scale, sprite = pointer
 				))
 			}
 			minY += region.height / 12

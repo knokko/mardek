@@ -5,6 +5,7 @@ layout(location = 1) in uvec2 spriteSize;
 layout(location = 2) in float scale;
 layout(location = 3) in int spriteOffset;
 layout(location = 4) in float opacity;
+layout(location = 5) in float rotation;
 
 layout(push_constant) uniform PushConstants {
 	ivec2 viewportSize;
@@ -22,7 +23,15 @@ vec2 textureCoordinateMapping[] = {
 
 void main() {
 	textureCoordinates = textureCoordinateMapping[gl_VertexIndex];
-	vec2 relative = vec2(offset + scale * spriteSize * textureCoordinates) / vec2(viewportSize);
+	vec2 diagonal = scale * spriteSize;
+	vec2 middle = vec2(offset + diagonal * 0.5);
+
+	mat2 rotationMatrix = mat2(
+		cos(rotation), -sin(rotation),
+		sin(rotation), cos(rotation)
+	);
+
+	vec2 relative = vec2(middle + rotationMatrix * (textureCoordinates - vec2(0.5)) * diagonal) / vec2(viewportSize);
 	gl_Position = vec4(2.0 * relative - vec2(1.0), 0.0, 1.0);
 	propagateSpriteSize = spriteSize;
 	propagateSpriteOffset = spriteOffset;

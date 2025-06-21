@@ -94,7 +94,7 @@ object TestMonsterStrategyCalculator {
 			val context = battleUpdateContext(campaign)
 
 			val encounteredElements = mutableSetOf<Element>()
-			repeat(10_000) {
+			repeat(100) {
 				val rawShiftMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
 				val shiftMove = rawShiftMove as BattleStateMachine.CastSkill
 				assertTrue(shiftMove.skill.changeElement)
@@ -279,6 +279,7 @@ object TestMonsterStrategyCalculator {
 			fun countAnimateDead(): Int {
 				var counter = 0
 				repeat(10_000) {
+					caster.currentMana = 50
 					val move = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
 					if (move is BattleStateMachine.CastSkill && move.skill === animateDead) counter += 1
 				}
@@ -338,12 +339,15 @@ object TestMonsterStrategyCalculator {
 
 			fun countMoves() {
 				repeat(10_000) {
+					val oldMana = caster.currentMana
 					val nextMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
 					val nextSkill = nextMove as BattleStateMachine.CastSkill
 					if (nextSkill.skill === thunderstorm) thunderCounter += 1
 					if (nextSkill.skill === immolate) immolateCounter += 1
 					if (nextSkill.skill === glaciate) glaciateCounter += 1
 					if (nextSkill.skill === heh) hehCounter += 1
+					assertEquals(oldMana, caster.currentMana + nextSkill.skill.manaCost)
+					if (caster.currentMana > 40) caster.currentMana = 100
 				}
 			}
 

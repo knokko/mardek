@@ -21,6 +21,11 @@ class DamageIndicatorHealth(
 	 */
 	val gainedHealth: Int,
 	val element: Element,
+
+	/**
+	 * When non-zero, this overrides the 'blink' color
+	 */
+	val overrideColor: Int,
 ) : DamageIndicator(oldHealth, oldMana)
 
 class DamageIndicatorMana(
@@ -33,4 +38,9 @@ class DamageIndicatorMana(
 	 */
 	val gainedMana: Int,
 	val element: Element,
+
+	/**
+	 * When non-zero, this overrides the 'blink' color
+	 */
+	val overrideColor: Int,
 ) : DamageIndicator(oldHealth, oldMana)

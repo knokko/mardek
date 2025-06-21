@@ -55,7 +55,7 @@ class SkillOrItemDescriptionRenderer(
 
 		val iconRequest = KimRequest(
 			x = region.minX + region.width / 100, y = region.minY + region.height / 20,
-			scale = 0.9f * region.height / selectedElement.icon.height, sprite = selectedElement.icon, opacity = 1f
+			scale = 0.9f * region.height / selectedElement.icon.height, sprite = selectedElement.icon
 		)
 		if (selectedElement.icon.version == 2) batch2.requests.add(iconRequest)
 		else batch1.requests.add(iconRequest)
@@ -66,7 +66,7 @@ class SkillOrItemDescriptionRenderer(
 					x = region.minX + region.width / 50 + region.height,
 					y = region.minY + 5 * region.height / 9,
 					scale = 0.25f * region.height / context.content.ui.mastered.height,
-					sprite = context.content.ui.mastered, opacity = 1f
+					sprite = context.content.ui.mastered
 				))
 			}
 		}

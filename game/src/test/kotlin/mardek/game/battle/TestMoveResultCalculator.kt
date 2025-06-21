@@ -1,5 +1,6 @@
 package mardek.game.battle
 
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.skill.ReactionSkillType
 import mardek.content.stats.CombatStat
 import mardek.content.stats.StatusEffect
@@ -472,6 +473,7 @@ object TestMoveResultCalculator {
 				)
 				val entry = result.targets[0]
 				assertEquals(entry.damage, result.restoreAttackerMana)
+				assertEquals(0, result.overrideBlinkColor)
 				if (!entry.criticalHit) {
 					assertTrue(entry.damage in 120 .. 160, "Expected ${entry.damage} to be 138")
 				}
@@ -737,6 +739,7 @@ object TestMoveResultCalculator {
 					listOf(battle.livingPlayers()[0]), false
 				)
 				assertSame(content.stats.elements.find { it.rawName == "DARK" }!!, result.element)
+				assertEquals(0, result.overrideBlinkColor)
 				val entry = result.targets[0]
 				if (!entry.criticalHit) {
 					assertTrue(entry.damage in 300..450, "Expected ${entry.damage} to be 378")
@@ -775,6 +778,7 @@ object TestMoveResultCalculator {
 				assertSame(content.stats.elements.find { it.rawName == "NONE" }!!, result.element)
 				assertEquals(1, result.targets.size)
 				assertEquals(1000, result.targets[0].damage)
+				assertEquals(0, result.overrideBlinkColor)
 			}
 		}
 	}
@@ -938,6 +942,281 @@ object TestMoveResultCalculator {
 				assertFalse(entry.criticalHit)
 				assertTrue(entry.damage in 1100..2300, "Expected ${entry.damage} to be 1716")
 				assertEquals(0, entry.addedEffects.size)
+			}
+		}
+	}
+
+	fun testPotion(instance: TestingInstance) {
+		instance.apply {
+			val potion = content.items.items.find { it.flashName == "Potion" }!!
+			val campaign = simpleCampaignState()
+			startSimpleBattle(campaign)
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			repeat(1000) {
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					potion, battle.livingPlayers()[0], battle.livingPlayers()[0]
+				)
+				assertEquals("LIGHT", result.element.rawName)
+				assertEquals(rgb(100, 160, 220), result.overrideBlinkColor)
+				assertEquals(0, result.restoreAttackerHealth)
+				assertEquals(0, result.restoreAttackerMana)
+				assertEquals(1, result.targets.size)
+				assertEquals(1, result.sounds.size)
+
+				val entry = result.targets[0]
+				assertFalse(entry.criticalHit)
+				assertFalse(entry.missed)
+				assertEquals(-100, entry.damage)
+				assertEquals(0, entry.damageMana)
+				assertEquals(0, entry.addedEffects.size)
+				assertEquals(0, entry.removedEffects.size)
+				assertEquals(0, entry.addedStatModifiers.size)
+			}
+		}
+	}
+
+	fun testEther(instance: TestingInstance) {
+		instance.apply {
+			val ether = content.items.items.find { it.flashName == "Ether" }!!
+			val campaign = simpleCampaignState()
+			startSimpleBattle(campaign)
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			repeat(1000) {
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					ether, battle.livingPlayers()[0], battle.livingPlayers()[1]
+				)
+				assertEquals("LIGHT", result.element.properName)
+				assertEquals(rgb(100, 255, 255), result.overrideBlinkColor)
+				assertEquals(0, result.restoreAttackerHealth)
+				assertEquals(0, result.restoreAttackerMana)
+				assertEquals(1, result.targets.size)
+				assertEquals(1, result.sounds.size)
+
+				val entry = result.targets[0]
+				assertFalse(entry.criticalHit)
+				assertFalse(entry.missed)
+				assertEquals(0, entry.damage)
+				assertEquals(-100, entry.damageMana)
+				assertEquals(0, entry.addedEffects.size)
+				assertEquals(0, entry.removedEffects.size)
+				assertEquals(0, entry.addedStatModifiers.size)
+			}
+		}
+	}
+
+	fun testElixir(instance: TestingInstance) {
+		instance.apply {
+			val elixir = content.items.items.find { it.flashName == "Elixir" }!!
+			val campaign = simpleCampaignState()
+			startSimpleBattle(campaign)
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			val combatDeugan = battle.livingPlayers()[1]
+			combatDeugan.currentHealth = 200
+			combatDeugan.maxHealth = 350
+			combatDeugan.currentMana = 50
+			combatDeugan.maxMana = 120
+
+			repeat(1000) {
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					elixir, battle.livingPlayers()[1], battle.livingPlayers()[1]
+				)
+				assertEquals("EARTH", result.element.rawName)
+				assertEquals(0, result.restoreAttackerHealth)
+				assertEquals(0, result.restoreAttackerMana)
+				assertEquals(1, result.targets.size)
+				assertEquals(1, result.sounds.size)
+
+				val entry = result.targets[0]
+				assertEquals(-150, entry.damage)
+				assertEquals(-70, entry.damageMana)
+			}
+		}
+	}
+
+	fun testElixirOnSkeleton(instance: TestingInstance) {
+		instance.apply {
+			val skeleton = content.battle.monsters.find { it.name == "Skeleton" }!!
+			val campaign = simpleCampaignState()
+			startSimpleBattle(campaign, arrayOf(null, null, Enemy(skeleton, 10), null))
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			val combatSkeleton = battle.livingOpponents()[0]
+			combatSkeleton.currentHealth = 200
+			combatSkeleton.maxHealth = 350
+			combatSkeleton.currentMana = 50
+			combatSkeleton.maxMana = 120
+
+			repeat(1000) {
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					elixir, battle.livingPlayers()[0], combatSkeleton
+				)
+				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
+				assertEquals(0, result.restoreAttackerHealth)
+				assertEquals(0, result.restoreAttackerMana)
+				assertEquals(1, result.targets.size)
+				assertEquals(1, result.sounds.size)
+
+				val entry = result.targets[0]
+				assertEquals(0, entry.damage)
+				assertEquals(-70, entry.damageMana)
+			}
+		}
+	}
+
+	fun testPhoenixDown(instance: TestingInstance) {
+		instance.apply {
+			val phoenixDown = content.items.items.find { it.flashName == "PhoenixDown" }!!
+			val campaign = simpleCampaignState()
+			startSimpleBattle(campaign)
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			val combatMardek = battle.livingPlayers()[0]
+			combatMardek.currentHealth = 0
+			combatMardek.maxHealth = 400
+
+			repeat(1000) {
+				val mardekResult = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					phoenixDown, combatMardek, combatMardek
+				)
+				val deuganResult = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					phoenixDown, combatMardek, battle.allPlayers()[1]
+				)
+
+				val mardekEntry = mardekResult.targets[0]
+				assertEquals(-200, mardekEntry.damage)
+
+				// Deugan is not K.O.
+				val deuganEntry = deuganResult.targets[0]
+				assertEquals(0, deuganEntry.damage)
+			}
+		}
+	}
+
+	fun testAntidote(instance: TestingInstance) {
+		instance.apply {
+			val antidote = content.items.items.find { it.flashName == "Antidote" }!!
+			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
+			val paralysis = content.stats.statusEffects.find { it.flashName == "PAR" }!!
+
+			val campaign = simpleCampaignState()
+			startSimpleBattle(campaign)
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			val combatMardek = battle.livingPlayers()[0]
+			combatMardek.statusEffects.add(poison)
+			combatMardek.statusEffects.add(paralysis)
+
+			val combatDeugan = battle.livingPlayers()[1]
+			combatDeugan.statusEffects.add(paralysis)
+
+			repeat(1000) {
+				val mardekResult = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					antidote, combatMardek, combatMardek
+				)
+				val deuganResult = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					antidote, combatDeugan, battle.allPlayers()[1]
+				)
+
+				val mardekEntry = mardekResult.targets[0]
+				assertEquals(0, mardekEntry.damage)
+				assertEquals(setOf(poison), mardekEntry.removedEffects)
+				assertEquals(0, mardekEntry.addedEffects.size)
+
+				// Note that only Mardek is currently poisoned
+				val deuganEntry = deuganResult.targets[0]
+				assertEquals(0, deuganEntry.damage)
+				assertEquals(0, deuganEntry.removedEffects.size)
+				assertEquals(0, deuganEntry.addedEffects.size)
+			}
+		}
+	}
+
+	fun testRemedy(instance: TestingInstance) {
+		instance.apply {
+			val remedy = content.items.items.find { it.flashName == "Remedy" }!!
+			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
+			val paralysis = content.stats.statusEffects.find { it.flashName == "PAR" }!!
+			val shield = content.stats.statusEffects.find { it.flashName == "PSH" }!!
+
+			val campaign = simpleCampaignState()
+			startSimpleBattle(campaign)
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			val combatMardek = battle.livingPlayers()[0]
+			combatMardek.statusEffects.add(poison)
+			combatMardek.statusEffects.add(paralysis)
+			combatMardek.statusEffects.add(shield)
+
+			repeat(1000) {
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					remedy, combatMardek, combatMardek
+				)
+
+				val entry = result.targets[0]
+				assertEquals(0, entry.damage)
+				assertEquals(setOf(poison, paralysis), entry.removedEffects)
+				assertEquals(0, entry.addedEffects.size)
+			}
+		}
+	}
+
+	fun testAngryJuice(instance: TestingInstance) {
+		instance.apply {
+			val angryJuice = content.items.items.find { it.flashName == "Angry Juice" }!!
+			val berserk = content.stats.statusEffects.find { it.flashName == "BSK" }!!
+
+			val campaign = simpleCampaignState()
+			startSimpleBattle(campaign)
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			val combatMardek = battle.livingPlayers()[0]
+			combatMardek.statusEffects.add(berserk)
+
+			repeat(1000) {
+				val mardekResult = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					angryJuice, combatMardek, combatMardek
+				)
+				val deuganResult = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					angryJuice, combatMardek, battle.allPlayers()[1]
+				)
+
+				// Note that Mardek already has Berserk
+				val mardekEntry = mardekResult.targets[0]
+				assertEquals(0, mardekEntry.damage)
+				assertEquals(0, mardekEntry.removedEffects.size)
+				assertEquals(0, mardekEntry.addedEffects.size)
+
+				val deuganEntry = deuganResult.targets[0]
+				assertEquals(0, deuganEntry.damage)
+				assertEquals(0, deuganEntry.removedEffects.size)
+				assertEquals(setOf(berserk), deuganEntry.addedEffects)
+			}
+		}
+	}
+
+	fun testMagicDrink(instance: TestingInstance) {
+		instance.apply {
+			val magicDrink = content.items.items.find { it.flashName == "Magic Drink" }!!
+
+			val campaign = simpleCampaignState()
+			startSimpleBattle(campaign)
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			repeat(1000) {
+				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
+					magicDrink, battle.livingOpponents()[0], battle.livingPlayers()[1]
+				)
+
+				val entry = result.targets[0]
+				assertEquals(-200, entry.damageMana)
+				assertEquals(0, entry.removedEffects.size)
+				assertEquals(0, entry.addedEffects.size)
+				assertEquals(1, entry.addedStatModifiers.size)
+				val increaseSpirit = entry.addedStatModifiers[CombatStat.Spirit]
+				assertEquals(10, increaseSpirit)
 			}
 		}
 	}

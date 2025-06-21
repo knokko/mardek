@@ -158,6 +158,8 @@ sealed class CombatantState(
 
 	fun isAlive() = currentHealth > 0
 
+	fun revertsHealing() = getCreatureType().revertsHealing || statusEffects.any { it.isZombie }
+
 	abstract fun getLevel(context: BattleUpdateContext): Int
 
 	abstract fun getCreatureType(): CreatureType

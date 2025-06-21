@@ -363,8 +363,8 @@ class TestItemsContentImporter {
 
 		val consumable = elixir.consumable!!
 		assertTrue(consumable.isFullCure)
-		assertEquals("potion5", consumable.particleEffect)
-		assertEquals(rgb(255, 220, 20), consumable.particleColor)
+		assertEquals("potion5", consumable.particleEffect!!.name)
+		assertEquals(rgb(255, 220, 20), consumable.blinkColor)
 
 		assertEquals("An amazing brew made from the tears of a goddess, or something astounding like that. It restores all HP and MP.", elixir.description)
 		assertSpriteEquals("misc", 304, 32, elixir)
@@ -379,8 +379,8 @@ class TestItemsContentImporter {
 
 		val consumable = phoenixDown.consumable!!
 		assertEquals(0.5f, consumable.revive, margin)
-		assertEquals("phoenixdown", consumable.particleEffect)
-		assertEquals(rgb(255, 200, 50), consumable.particleColor)
+		assertSame(content.battle.particles.find { it.name == "phoenixdown" }!!, consumable.particleEffect)
+		assertEquals(rgb(255, 200, 50), consumable.blinkColor)
 
 		assertSpriteEquals("misc", 272, 32,  phoenixDown)
 	}
@@ -398,8 +398,8 @@ class TestItemsContentImporter {
 		assertEquals(0.5f, consumable.addStatusEffects[0].effect.meleeDamageReduction)
 		assertEquals(0.5f, consumable.addStatusEffects[1].effect.rangedDamageReduction)
 
-		assertEquals(rgb(220, 220, 220), consumable.particleColor)
-		assertEquals("shield", consumable.particleEffect)
+		assertEquals(rgb(220, 220, 220), consumable.blinkColor)
+		assertEquals("shield", consumable.particleEffect!!.name)
 		assertEquals(0, consumable.restoreMana)
 
 		assertSpriteEquals("misc", 320, 32, mirrilixir)
@@ -414,8 +414,8 @@ class TestItemsContentImporter {
 
 		val consumable = ether.consumable!!
 		assertEquals(200, consumable.restoreMana)
-		assertEquals("potion_ether2", consumable.particleEffect)
-		assertEquals(rgb(100, 255, 255), consumable.particleColor)
+		assertSame(content.battle.particles.find { it.name == "potion_ether2" }!!, consumable.particleEffect)
+		assertEquals(rgb(100, 255, 255), consumable.blinkColor)
 
 		assertEquals("A higher quality ether, infused with the blood of a fairy queen or something like that. It restores 200MP.", ether.description)
 		assertSpriteEquals("misc", 128, 32, ether)
@@ -429,8 +429,8 @@ class TestItemsContentImporter {
 		assertEquals(500, alchemistsFire.cost)
 
 		val consumable = alchemistsFire.consumable!!
-		assertEquals("flame1", consumable.particleEffect)
-		assertEquals(rgb(255, 200, 0), consumable.particleColor)
+		assertEquals("flame1", consumable.particleEffect!!.name)
+		assertEquals(rgb(255, 200, 0), consumable.blinkColor)
 
 		val damage = consumable.damage!!
 		assertEquals(50, damage.power)
@@ -466,8 +466,8 @@ class TestItemsContentImporter {
 
 		val consumable = potion.consumable!!
 		assertEquals(100, consumable.restoreHealth)
-		assertEquals("potion", consumable.particleEffect)
-		assertEquals(rgb(100, 160, 220), consumable.particleColor)
+		assertEquals("potion", consumable.particleEffect!!.name)
+		assertEquals(rgb(100, 160, 220), consumable.blinkColor)
 
 		assertSpriteEquals("misc", 0, 32, potion)
 	}
@@ -487,8 +487,8 @@ class TestItemsContentImporter {
 		assertEquals(10, increaseStrength.maxAdder)
 		assertEquals("STR", increaseStrength.stat.flashName)
 
-		assertEquals("boost", consumable.particleEffect)
-		assertEquals(rgb(255, 100, 0), consumable.particleColor)
+		assertEquals("boost", consumable.particleEffect!!.name)
+		assertEquals(rgb(255, 100, 0), consumable.blinkColor)
 
 		assertSpriteEquals("misc", 512, 32, powerDrink)
 	}
@@ -501,7 +501,7 @@ class TestItemsContentImporter {
 		val consumable = magicDrink.consumable!!
 		assertEquals(200, consumable.restoreMana)
 		assertEquals(0, consumable.restoreHealth)
-		assertEquals("boost_ETHER", consumable.particleEffect)
+		assertEquals("boost_ETHER", consumable.particleEffect!!.name)
 
 		assertEquals(1, consumable.statModifiers.size)
 		assertEquals("SPR", consumable.statModifiers[0].stat.flashName)
@@ -522,8 +522,8 @@ class TestItemsContentImporter {
 		assertEquals(100, consumable.removeStatusEffects[0].chance)
 		assertEquals("Silence", consumable.removeStatusEffects[0].effect.niceName)
 
-		assertEquals("cleanse", consumable.particleEffect)
-		assertEquals(rgb(100, 0, 155), consumable.particleColor)
+		assertEquals("cleanse", consumable.particleEffect!!.name)
+		assertEquals(rgb(100, 0, 155), consumable.blinkColor)
 
 		assertSpriteEquals("misc", 192, 32, liquidSound)
 	}

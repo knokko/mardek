@@ -18,20 +18,30 @@ class CurrentMoveBarRenderer(private val context: BattleRenderContext, private v
 		is BattleStateMachine.CastSkill -> state.skill
 		else -> null
 	}
+	private val currentItem = if (state is BattleStateMachine.UseItem) state.item else null
 	private lateinit var batch: KimBatch
 
 	fun beforeRendering() {
-		if (currentSkill == null) return
+		if (currentSkill == null && currentItem == null) return
 		batch = context.resources.kim2Renderer.startBatch()
-		batch.requests.add(KimRequest(
-			x = region.minX + region.width / 4, y = region.minY,
-			scale = region.height.toFloat() / currentSkill.element.sprite.height,
-			sprite = currentSkill.element.sprite, opacity = 1f
-		))
+		if (currentSkill != null) {
+			batch.requests.add(KimRequest(
+				x = region.minX + region.width / 4, y = region.minY,
+				scale = region.height.toFloat() / currentSkill.element.sprite.height,
+				sprite = currentSkill.element.sprite
+			))
+		}
+		if (currentItem != null) {
+			batch.requests.add(KimRequest(
+				x = region.minX + region.width / 4, y = region.minY,
+				scale = region.height.toFloat() / currentItem.sprite.height,
+				sprite = currentItem.sprite
+			))
+		}
 	}
 
 	fun render() {
-		if (currentSkill == null) return
+		if (currentSkill == null && currentItem == null) return
 
 		context.uiRenderer.beginBatch()
 		val lightBottomColor = srgbToLinear(rgba(80, 65, 55, 220))
@@ -56,13 +66,18 @@ class CurrentMoveBarRenderer(private val context: BattleRenderContext, private v
 
 		val textX = region.minX + region.width / 4 + 7 * region.height / 6
 		val textColor = srgbToLinear(rgb(238, 203, 127))
+		val name = currentSkill?.name ?: currentItem!!.flashName
 		context.uiRenderer.drawString(
-			context.resources.font, currentSkill.name, textColor, IntArray(0),
+			context.resources.font, name, textColor, IntArray(0),
 			textX, region.minY, region.maxX, region.maxY,
 			region.maxY - region.height / 4, 4 * region.height / 9, 1, TextAlignment.LEFT
 		)
 		context.uiRenderer.endBatch()
 
-		context.resources.kim2Renderer.submit(batch, context.recorder, context.targetImage)
+		if (currentSkill != null) {
+			context.resources.kim2Renderer.submit(batch, context.recorder, context.targetImage)
+		} else {
+			context.resources.kim1Renderer.submit(batch, context.recorder, context.targetImage)
+		}
 	}
 }

@@ -41,6 +41,7 @@ class MonsterStrategyCalculator(
 				else -> BattleSkillTargetSingle(chooseSingleTarget(entry, pool.criteria, "skill ${skill.name}"))
 			}
 			val nextElement = if (skill.changeElement) monster.elementalShiftResistances.keys.random() else null
+			myState.currentMana -= skill.manaCost
 			return if (skill.isMelee) BattleStateMachine.MeleeAttack.MoveTo(
 				myState, (skillTarget as BattleSkillTargetSingle).target, skill, context
 			) else BattleStateMachine.CastSkill(

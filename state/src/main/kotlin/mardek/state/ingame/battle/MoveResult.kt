@@ -12,6 +12,11 @@ class MoveResult(
 	val element: Element,
 
 	/**
+	 * When non-zero, overrides the 'blink color' of the target if it takes damage
+	 */
+	val overrideBlinkColor: Int,
+
+	/**
 	 * The sounds that should be played
 	 */
 	val sounds: List<SoundEffect>,
@@ -53,6 +58,12 @@ class MoveResult(
 		 * When negative, the move heals the target instead
 		 */
 		val damage: Int,
+
+		/**
+		 * The final amount of mana that this target will lose.
+		 * When negative, the move restores mana of the target instead.
+		 */
+		val damageMana: Int,
 
 		/**
 		 * True if the attack missed, false otherwise.

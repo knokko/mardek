@@ -72,7 +72,7 @@ class TargetSelectionRenderer(
 			kimBatch.requests.add(KimRequest(
 				x = floatCoordinates.intX(context.targetImage.width) - (pointerScale * pointer.width).roundToInt() + pointerOffsetX,
 				y = floatCoordinates.intY(context.targetImage.height) - (pointerScale * pointer.height / 2).roundToInt(),
-				scale = pointerScale, sprite = pointer, opacity = 1f
+				scale = pointerScale, sprite = pointer
 			))
 		}
 
@@ -86,7 +86,7 @@ class TargetSelectionRenderer(
 			kimBatch.requests.add(KimRequest(
 				x = floatCoordinates.intX(context.targetImage.width) - pointerOffsetX,
 				y = floatCoordinates.intY(context.targetImage.height) - (pointerScale * pointer.height / 2).roundToInt(),
-				scale = pointerScale, sprite = context.content.ui.flippedPointer, opacity = 1f
+				scale = pointerScale, sprite = context.content.ui.flippedPointer
 			))
 		}
 
@@ -97,7 +97,7 @@ class TargetSelectionRenderer(
 			kimBatch.requests.add(KimRequest(
 				x = region.maxX - width - region.width / 50,
 				y = region.minY + region.height / 50,
-				scale = scale, sprite = text, opacity = 1f
+				scale = scale, sprite = text
 			))
 		}
 
@@ -108,7 +108,7 @@ class TargetSelectionRenderer(
 			batch2.requests.add(KimRequest(
 				x = elementX, y = elementY,
 				scale = desiredHeight / elementSprite.height,
-				sprite = elementSprite, opacity = 1f
+				sprite = elementSprite
 			))
 		}
 	}

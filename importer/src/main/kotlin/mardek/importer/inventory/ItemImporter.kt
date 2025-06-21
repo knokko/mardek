@@ -43,7 +43,7 @@ internal fun importItems(content: Content, rawItems: String) {
 			element = element,
 			cost = cost,
 			equipment = parseEquipment(content, rawItem),
-			consumable = parseConsumable(content.stats, rawItem),
+			consumable = parseConsumable(content, rawItem),
 		))
 	}
 }
@@ -243,7 +243,7 @@ private fun parseGemProperties(statsContent: StatsContent, rawItem: Map<String, 
 	)
 }
 
-private fun parseConsumable(statsContent: StatsContent, rawItem: Map<String, String>): ConsumableProperties? {
+private fun parseConsumable(content: Content, rawItem: Map<String, String>): ConsumableProperties? {
 	val rawAction = rawItem["action"]
 	val rawRgb = rawItem["rgb"]
 	if (rawAction == null && rawRgb == null) return null
@@ -282,7 +282,7 @@ private fun parseConsumable(statsContent: StatsContent, rawItem: Map<String, Str
 		for (name in nameList) {
 			if (name == "\"ALL_BAD\"") removeNegativeStatusEffects = true
 			else {
-				val effect = statsContent.statusEffects.find {
+				val effect = content.stats.statusEffects.find {
 					it.flashName == parseFlashString(name, "heal status name")
 				}!!
 				removeStatusEffects.add(PossibleStatusEffect(effect, 100))
@@ -297,7 +297,7 @@ private fun parseConsumable(statsContent: StatsContent, rawItem: Map<String, Str
 		val rawStatusEffects = rawSpell["stfx"]
 		if (rawStatusEffects != null) {
 			for ((rawEffect, rawChance) in parseActionScriptObject(rawStatusEffects)) {
-				val effect = statsContent.statusEffects.find { it.flashName == rawEffect }!!
+				val effect = content.stats.statusEffects.find { it.flashName == rawEffect }!!
 				addStatusEffects.add(PossibleStatusEffect(effect, parseInt(rawChance)))
 			}
 		}
@@ -315,7 +315,7 @@ private fun parseConsumable(statsContent: StatsContent, rawItem: Map<String, Str
 			val power = parseInt(rawSpell["pow"])
 			val spirit = parseInt(rawSpell["SPR"])
 			if (power != 0) {
-				val element = statsContent.elements.find {
+				val element = content.stats.elements.find {
 					it.rawName == parseFlashString(rawSpell["elem"]!!, "consumable damage element")
 				}!!
 				damage = ConsumableDamage(power, spirit, element)
@@ -330,10 +330,13 @@ private fun parseConsumable(statsContent: StatsContent, rawItem: Map<String, Str
 		}
 	}
 
+	var particleName = if (rawItem["name"] == "\"Oxyale\"") null
+	else parseFlashString(particleEffect!!, "consumable pfx")!!
+	if (particleName == "Remedy") particleName = "cleanse"
+	if (particleName == "rainbow") particleName = null
 	return ConsumableProperties(
-			particleEffect = if (rawItem["name"] == "\"Oxyale\"") null else
-				parseFlashString(particleEffect!!, "consumable pfx")!!,
-			particleColor = rgb(
+			particleEffect = if (particleName != null) content.battle.particles.find { it.name == particleName }!! else null,
+			blinkColor = rgb(
 					parseInt(nestedRgb[0] as String),
 					parseInt(nestedRgb[1] as String),
 					parseInt(nestedRgb[2] as String)

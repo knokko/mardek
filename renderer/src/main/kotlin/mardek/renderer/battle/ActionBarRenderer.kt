@@ -52,7 +52,6 @@ class ActionBarRenderer(
 			y = region.minY + marginY,
 			scale = (region.height.toFloat() - 2f * marginY) / icon.height,
 			sprite = icon,
-			opacity = 1f
 		)
 		if (icon.version == 1) batch1.requests.add(request)
 		else batch2.requests.add(request)
@@ -96,7 +95,6 @@ class ActionBarRenderer(
 				y = region.minY - 4 * region.height / 5,
 				scale = pointerScale,
 				sprite = context.content.ui.verticalPointer,
-				opacity = 1f
 			))
 		}
 	}

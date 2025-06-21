@@ -46,7 +46,7 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 
 			kimBatch.requests.add(KimRequest(
 				x = partyMinX + column * 18 * scale, y = 5 * scale, scale = scale.toFloat(),
-				sprite = character.areaSprites.sprites[spriteIndex], opacity = 1f
+				sprite = character.areaSprites.sprites[spriteIndex]
 			))
 		}
 
@@ -60,12 +60,12 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 		for (item in loot.items) {
 			kimBatch.requests.add(KimRequest(
 				x = itemX - 16 * scale, y = itemY, scale = scale.toFloat(),
-				sprite = item.item.sprite, opacity = 1f
+				sprite = item.item.sprite
 			))
 			if (selectedElement is BattleLoot.SelectedItem && row == selectedElement.index) {
 				kimBatch.requests.add(KimRequest(
 					x = itemX - 25 * scale, y = itemY + 5 * scale,
-					scale = pointerScale, sprite = pointer, opacity = 1f
+					scale = pointerScale, sprite = pointer
 				))
 			}
 			itemYs[row] = itemY
@@ -73,15 +73,15 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 			itemY += rowHeight
 		}
 		if (selectedElement is BattleLoot.SelectedGetAll) {
-			kimBatch.requests.add(KimRequest(x = 3 * scale, y = 28 * scale, pointerScale, sprite = pointer, opacity = 1f))
+			kimBatch.requests.add(KimRequest(x = 3 * scale, y = 28 * scale, pointerScale, sprite = pointer))
 		}
 		if (selectedElement is BattleLoot.SelectedFinish) {
-			kimBatch.requests.add(KimRequest(x = 3 * scale, y = height - 33 * scale, pointerScale, sprite = pointer, opacity = 1f))
+			kimBatch.requests.add(KimRequest(x = 3 * scale, y = height - 33 * scale, pointerScale, sprite = pointer))
 		}
 		for (plotItem in loot.plotItems) {
 			kimBatch.requests.add(KimRequest(
 				x = itemX - 16 * scale, y = itemY, scale = scale.toFloat(),
-				sprite = plotItem.sprite, opacity = 1f
+				sprite = plotItem.sprite
 			))
 			itemYs[row] = itemY
 			row += 1
@@ -90,7 +90,7 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 		repeat(loot.dreamStones.size) {
 			kimBatch.requests.add(KimRequest(
 				x = itemX - 16 * scale, y = itemY, scale = scale.toFloat(),
-				sprite = context.content.ui.dreamStoneIcon, opacity = 1f
+				sprite = context.content.ui.dreamStoneIcon
 			))
 			itemYs[row] = itemY
 			row += 1
@@ -98,7 +98,7 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 		}
 		kimBatch.requests.add(KimRequest(
 			x = 8 * scale, y = height - 20 * scale,
-			scale = scale.toFloat(), sprite = context.content.ui.goldIcon, opacity = 1f
+			scale = scale.toFloat(), sprite = context.content.ui.goldIcon
 		))
 	}
 

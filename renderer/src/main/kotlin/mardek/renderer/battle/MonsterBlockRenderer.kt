@@ -40,7 +40,7 @@ class MonsterBlockRenderer(
 		val marginY = region.height / 20
 		val scale = (region.height - 2 * marginY) / sprite.height.toFloat()
 		kimBatch.requests.add(KimRequest(
-			x = region.minX, y = region.minY + marginY, scale = scale, sprite = sprite, opacity = 1f
+			x = region.minX, y = region.minY + marginY, scale = scale, sprite = sprite
 		))
 		nameX = region.minX + (scale * sprite.width).roundToInt() + region.width / 50
 	}
