@@ -9,6 +9,7 @@ import mardek.game.inventory.TestCountItemOccurrences
 import mardek.game.battle.TestMonsterStrategyCalculator
 import mardek.game.battle.TestMoveResultCalculator
 import mardek.game.battle.testBattleMoveSelectionFlowAndRendering
+import mardek.game.ui.TestInGameMenu
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -109,5 +110,10 @@ class IntegrationTests {
 	@Test
 	fun testChestLoot() {
 		TestChestLoot.testControlsAndRendering(instance)
+	}
+
+	@Test
+	fun testInGameMenu() {
+		TestInGameMenu.testOpeningAndScrolling(instance)
 	}
 }
