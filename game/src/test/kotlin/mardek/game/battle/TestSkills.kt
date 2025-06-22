@@ -1,0 +1,237 @@
+package mardek.game.battle
+
+import mardek.game.TestingInstance
+import mardek.game.pressKeyEvent
+import mardek.game.releaseKeyEvent
+import mardek.game.repeatKeyEvent
+import mardek.game.testRendering
+import mardek.input.InputKey
+import mardek.input.InputManager
+import mardek.renderer.SharedResources
+import mardek.state.GameStateUpdateContext
+import mardek.state.SoundQueue
+import mardek.state.ingame.InGameState
+import mardek.state.ingame.battle.BattleMoveSelectionAttack
+import mardek.state.ingame.battle.BattleStateMachine
+import mardek.state.ingame.battle.Enemy
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertInstanceOf
+import java.awt.Color
+import java.lang.Thread.sleep
+import java.util.concurrent.CompletableFuture
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+
+object TestSkills {
+
+	fun testSmiteEvilFlow(instance: TestingInstance) {
+		instance.apply {
+			val campaign = simpleCampaignState()
+			val smiteEvil = heroMardek.characterClass.skillClass.actions.find { it.name == "Smite Evil" }!!
+			val monster = content.battle.monsters.find { it.name == "monster" }!!
+
+			// Make sure Mardek gets on turn first, since his sword cannot miss
+			val mardekState = campaign.characterStates[heroMardek]!!
+			mardekState.currentLevel = 50
+			mardekState.currentMana = 20
+			mardekState.equipment[4] = content.items.items.find { it.flashName == "RingOfAGL+2" }!!
+			mardekState.equipment[5] = mardekState.equipment[4]
+
+			startSimpleBattle(campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
+
+			val getResources = CompletableFuture<SharedResources>()
+			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
+
+			val input = InputManager()
+			val soundQueue = SoundQueue()
+			fun context(timeStep: Duration) = GameStateUpdateContext(content, input, soundQueue, timeStep)
+
+			campaign.update(context(1.milliseconds))
+			sleep(1000)
+			campaign.update(context(1.seconds))
+
+			val battle = campaign.currentArea!!.activeBattle!!
+			val mardek = battle.livingPlayers()[0]
+			val monsterState = battle.livingOpponents()[0]
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.SelectMove)
+				assertSame(mardek, (it as BattleStateMachine.SelectMove).onTurn)
+				assertEquals(BattleMoveSelectionAttack(null), it.selectedMove)
+			}
+
+			input.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
+			input.postEvent(pressKeyEvent(InputKey.Interact))
+			input.postEvent(repeatKeyEvent(InputKey.Interact))
+			input.postEvent(repeatKeyEvent(InputKey.Interact))
+			input.postEvent(releaseKeyEvent(InputKey.Interact))
+			campaign.update(context(1.milliseconds))
+
+			assertEquals(1480, monsterState.currentHealth)
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.MeleeAttack.MoveTo)
+				assertSame(mardek, (it as BattleStateMachine.MeleeAttack.MoveTo).attacker)
+				assertSame(monsterState, it.target)
+				assertSame(smiteEvil, it.skill)
+				assertFalse(it.finished)
+			}
+
+			val state = InGameState(campaign)
+			val playerColors = arrayOf(
+				Color(129, 129, 79), // Mardek pants
+				Color(70, 117, 33), // Deugan coat
+			)
+			val turnOrderColor = arrayOf(Color(132, 96, 53))
+			val monsterColor = arrayOf(Color(85, 56, 133))
+
+			sleep(1000)
+			testRendering(
+				getResources, state, 800, 450, "smite-evil1",
+				playerColors + monsterColor, turnOrderColor
+			)
+			assertTrue((battle.state as BattleStateMachine.MeleeAttack.MoveTo).finished)
+			campaign.update(context(1.seconds))
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.MeleeAttack.Strike)
+				assertSame(mardek, (it as BattleStateMachine.MeleeAttack.Strike).attacker)
+				assertSame(monsterState, it.target)
+				assertSame(smiteEvil, it.skill)
+				assertFalse(it.finished)
+				assertFalse(it.canDealDamage)
+			}
+
+			sleep(1000)
+			testRendering(
+				getResources, state, 800, 450, "smite-evil2",
+				playerColors + monsterColor, turnOrderColor
+			)
+			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).canDealDamage)
+			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).finished)
+			campaign.update(context(1.seconds))
+			assertEquals(0, monsterState.currentHealth)
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.MeleeAttack.JumpBack)
+				assertSame(mardek, (it as BattleStateMachine.MeleeAttack.JumpBack).attacker)
+				assertSame(monsterState, it.target)
+				assertSame(smiteEvil, it.skill)
+				assertFalse(it.finished)
+			}
+
+			sleep(1000)
+			testRendering(
+				getResources, state, 800, 450, "smite-evil3",
+				playerColors + monsterColor, turnOrderColor
+			)
+			assertTrue((battle.state as BattleStateMachine.MeleeAttack.JumpBack).finished)
+			campaign.update(context(1.seconds))
+			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
+
+			sleep(1000)
+			campaign.update(context(1.seconds))
+			battle.state.let {
+				assertSame(battle.livingPlayers()[1], (it as BattleStateMachine.SelectMove).onTurn)
+				assertEquals(BattleMoveSelectionAttack(null), it.selectedMove)
+			}
+			testRendering(
+				getResources, state, 800, 450, "smite-evil4",
+				playerColors + monsterColor + turnOrderColor, emptyArray()
+			)
+
+			getResources.get().destroy()
+		}
+	}
+
+	fun testRecoverFlow(instance: TestingInstance) {
+		instance.apply {
+			val campaign = simpleCampaignState()
+			val recover = heroDeugan.characterClass.skillClass.actions.find { it.name == "Recover" }!!
+			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
+
+			// Make sure Mardek gets on turn first, since his sword cannot miss
+			val deuganState = campaign.characterStates[heroDeugan]!!
+			deuganState.currentHealth = 10
+			deuganState.currentMana = 20
+			deuganState.activeStatusEffects.add(poison)
+			deuganState.skillMastery[recover] = recover.masteryPoints
+
+			startSimpleBattle(campaign)
+
+			val getResources = CompletableFuture<SharedResources>()
+			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
+
+			val input = InputManager()
+			val soundQueue = SoundQueue()
+			fun context(timeStep: Duration) = GameStateUpdateContext(content, input, soundQueue, timeStep)
+
+			campaign.update(context(1.milliseconds))
+			sleep(1000)
+			campaign.update(context(1.seconds))
+
+			val battle = campaign.currentArea!!.activeBattle!!
+			val deugan = battle.livingPlayers()[1]
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.SelectMove)
+				assertSame(deugan, (it as BattleStateMachine.SelectMove).onTurn)
+				assertEquals(BattleMoveSelectionAttack(null), it.selectedMove)
+			}
+
+			input.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
+			input.postEvent(pressKeyEvent(InputKey.Interact))
+			input.postEvent(releaseKeyEvent(InputKey.Interact))
+			input.postEvent(pressKeyEvent(InputKey.MoveUp))
+			input.postEvent(releaseKeyEvent(InputKey.MoveUp))
+			input.postEvent(pressKeyEvent(InputKey.Interact))
+			input.postEvent(repeatKeyEvent(InputKey.Interact))
+			input.postEvent(releaseKeyEvent(InputKey.Interact))
+			campaign.update(context(1.milliseconds))
+
+			assertEquals(10, deugan.currentHealth)
+			assertEquals(setOf(poison), deugan.statusEffects)
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.CastSkill)
+				assertSame(deugan, (it as BattleStateMachine.CastSkill).caster)
+				assertEquals(listOf(deugan), it.targets)
+				assertSame(recover, it.skill)
+				assertFalse(it.canDealDamage)
+			}
+
+			val state = InGameState(campaign)
+			val playerColors = arrayOf(
+				Color(129, 129, 79), // Mardek pants
+				Color(70, 117, 33), // Deugan coat
+			)
+			val turnOrderColor = arrayOf(Color(132, 96, 53))
+			val monsterColor = arrayOf(Color(85, 56, 133))
+
+			sleep(2000)
+			testRendering(
+				getResources, state, 800, 450, "recover1",
+				playerColors + monsterColor, turnOrderColor
+			)
+			assertTrue((battle.state as BattleStateMachine.CastSkill).canDealDamage)
+			campaign.update(context(2.seconds))
+			assertTrue((battle.state as BattleStateMachine.CastSkill).canDealDamage)
+
+			sleep(1000)
+			campaign.update(context(1.seconds))
+			assertEquals(deugan.maxHealth, deugan.currentHealth)
+			assertEquals(0, deugan.currentMana)
+			assertEquals(0, deugan.statusEffects.size)
+			assertEquals(deugan.maxHealth, deugan.currentHealth)
+			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
+
+			sleep(1000)
+			campaign.update(context(1.seconds))
+			val selection = battle.state as BattleStateMachine.SelectMove
+			assertSame(battle.livingPlayers()[0], selection.onTurn)
+			assertEquals(BattleMoveSelectionAttack(null), selection.selectedMove)
+
+			getResources.get().destroy()
+		}
+	}
+}

@@ -9,8 +9,8 @@ import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.renderer.GameRenderer
 import mardek.renderer.SharedResources
+import mardek.state.GameState
 import mardek.state.SoundQueue
-import mardek.state.ingame.InGameState
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.fail
 import org.lwjgl.vulkan.VK10.*
@@ -29,7 +29,7 @@ private fun nearlyEquals(expected: Color, actual: Color) = nearlyEquals(expected
 		nearlyEquals(expected.alpha, actual.alpha)
 
 fun TestingInstance.testRendering(
-	getResources: CompletableFuture<SharedResources>, state: InGameState,
+	getResources: CompletableFuture<SharedResources>, state: GameState,
 	width: Int, height: Int, name: String,
 	expectedColors: Array<Color>, forbiddenColors: Array<Color>,
 ) {

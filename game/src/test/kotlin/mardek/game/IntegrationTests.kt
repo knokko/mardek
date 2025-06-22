@@ -2,14 +2,18 @@ package mardek.game
 
 import mardek.game.area.TestChestLoot
 import mardek.game.area.testDragonLairDoor
+import mardek.game.battle.TestBasicAttacks
 import mardek.game.battle.TestBattleLoot
 import mardek.game.battle.TestBattleState
 import mardek.game.battle.TestCombatantState
 import mardek.game.inventory.TestCountItemOccurrences
 import mardek.game.battle.TestMonsterStrategyCalculator
 import mardek.game.battle.TestMoveResultCalculator
+import mardek.game.battle.TestSkills
+import mardek.game.battle.TestThrowItems
 import mardek.game.battle.testBattleMoveSelectionFlowAndRendering
 import mardek.game.ui.TestInGameMenu
+import mardek.game.ui.TestTitleScreen
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -128,5 +132,30 @@ class IntegrationTests {
 	@Test
 	fun testInGameMenu() {
 		TestInGameMenu.testOpeningAndScrolling(instance)
+	}
+
+	@Test
+	fun testTitleScreen() {
+		TestTitleScreen.testRendering(instance)
+	}
+
+	@Test
+	fun testPerformBasicAttack() {
+		TestBasicAttacks.testSimpleFlow(instance)
+	}
+
+	@Test
+	fun testPerformSmiteEvil() {
+		TestSkills.testSmiteEvilFlow(instance)
+	}
+
+	@Test
+	fun testPerformRecover() {
+		TestSkills.testRecoverFlow(instance)
+	}
+
+	@Test
+	fun testThrowElixir() {
+		TestThrowItems.testElixirFlow(instance)
 	}
 }

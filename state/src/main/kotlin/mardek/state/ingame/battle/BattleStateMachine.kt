@@ -46,6 +46,8 @@ sealed class BattleStateMachine {
 		val onTurn: PlayerCombatantState
 	) : BattleStateMachine() {
 		var selectedMove: BattleMoveSelection = BattleMoveSelectionAttack(null)
+
+		override fun toString() = "$onTurn considers $selectedMove"
 	}
 
 	/**
