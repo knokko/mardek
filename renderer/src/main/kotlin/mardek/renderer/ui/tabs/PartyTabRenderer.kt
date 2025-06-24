@@ -171,12 +171,29 @@ class PartyTabRenderer(
 
 			// Draw the square
 			context.uiRenderer.fillColor(
-				squareX, rectTopY - 10,
-				squareX + squareSize, rectTopY - 10 + squareSize,
+				squareX,
+				rectTopY - 10,
+				squareX + squareSize,
+				rectTopY - 10 + squareSize,
 				fillColor,
 				Gradient(0, 0, squareSize, squareSize, fillColor, fillColor, fillColor)
 			)
 		}
+
+		context.uiRenderer.drawString(
+			context.resources.font,
+			"Condition",
+			srgbToLinear(rgb(254, 225, 123)),
+			intArrayOf(),
+			startX - 150, 
+			rectTopY - 50,
+			startX - 20,
+			rectTopY,
+			rectTopY,
+			14,
+			1,
+			TextAlignment.RIGHT
+		)
 	}
 
 	public fun render_character_portrait()
