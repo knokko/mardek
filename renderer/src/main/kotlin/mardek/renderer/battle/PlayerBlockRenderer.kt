@@ -50,6 +50,15 @@ class PlayerBlockRenderer(
 	fun render() {
 		context.uiRenderer.beginBatch()
 		run {
+			val mousePosition = context.battle.lastMousePosition
+			if (mousePosition != null && region.contains(mousePosition.first, mousePosition.second)) {
+				context.uiRenderer.fillColor(
+					region.minX, region.minY, region.maxX, region.maxY,
+					rgba(0, 200, 50, 10)
+				)
+			}
+		}
+		run {
 			val element = player.element
 			val marginY = region.height / 10
 			val minX = region.minX + region.height / 2
@@ -114,5 +123,7 @@ class PlayerBlockRenderer(
 		context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)
 
 		maybeRenderSelectionBlink(player, context.uiRenderer, region)
+
+		player.renderedInfoBlock = region
 	}
 }

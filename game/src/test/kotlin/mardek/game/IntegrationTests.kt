@@ -6,6 +6,7 @@ import mardek.game.battle.TestBasicAttacks
 import mardek.game.battle.TestBattleLoot
 import mardek.game.battle.TestBattleState
 import mardek.game.battle.TestCombatantState
+import mardek.game.battle.TestInfoModal
 import mardek.game.inventory.TestCountItemOccurrences
 import mardek.game.battle.TestMonsterStrategyCalculator
 import mardek.game.battle.TestMoveResultCalculator
@@ -157,5 +158,10 @@ class IntegrationTests {
 	@Test
 	fun testThrowElixir() {
 		TestThrowItems.testElixirFlow(instance)
+	}
+
+	@Test
+	fun testInfoModal() {
+		TestInfoModal.testRendering(instance)
 	}
 }

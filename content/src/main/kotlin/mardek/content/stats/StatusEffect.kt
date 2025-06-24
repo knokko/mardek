@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.sprite.KimSprite
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -103,14 +104,17 @@ class StatusEffect(
 	@BitField(id = 26)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val disappearAfterHitChance: Int = 0,
+
+	@BitField(id = 27)
+	val icon: KimSprite,
 ) {
 
 	@Suppress("unused")
-	@BitField(id = 27)
+	@BitField(id = 28)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
-	internal constructor() : this("", null, false, false)
+	internal constructor() : this("", null, false, false, icon = KimSprite())
 
 	override fun toString() = niceName ?: flashName
 

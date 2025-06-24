@@ -1,5 +1,6 @@
 package mardek.game
 
+import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import mardek.content.Content
@@ -24,7 +25,7 @@ import java.util.concurrent.CompletableFuture
 
 class TestingInstance {
 
-	val content = Content.load("mardek/game/content.bin")
+	val content = Content.load("mardek/game/content.bin", Bitser(true))
 	val boiler: BoilerInstance
 	val getBoiler: CompletableFuture<BoilerInstance>
 

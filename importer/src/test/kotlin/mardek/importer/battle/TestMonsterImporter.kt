@@ -78,6 +78,14 @@ loot = [["Candriathope",100]];
 DetermineStats();
 """
 
+private const val MONSTER_PROPERTIES = """
+mdlStats = {names:["Monster"],model:"monster",sprite:"monster",Class:"Monster",TYPE:"BEAST",cElem:"DARK",baseStats:{hp:1200,mp:10,STR:30,VIT:24,SPR:2,AGL:8},nAtk:50,nDef:0,nMDef:0,critical:3,evasion:0,hpGrowth:28,atkGrowth:[0,0],equip:{weapon:["none"],shield:["none"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},resist:{DARK:30,LIGHT:-100,PSN:0,PAR:0,DRK:0,CNF:0,NUM:0,SIL:0,CRS:0,SLP:0,ZOM:0,BSK:0,BLD:0},EXP:300};
+Techs = [{skill:"Dark Claw",type:"ACT",DMG:["m",1.5],MP:10,critical:10,accuracy:100,stfx:{DRK:10},AP:0,MODE:"P",elem:"DARK",TT:"SINGLE",pfx:"darkclaw"}];
+Gambits = [{command:"Dark Claw",target:"ANY_PC",criteria:["random",30]},{command:"Attack",target:"ANY_PC",criteria:null}];
+loot = [["Monster Fang",20]];
+DetermineStats();
+"""
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestMonsterImporter {
 
@@ -132,14 +140,15 @@ class TestMonsterImporter {
 		assertEquals(4, getStatValue(forestFish, "ATK"))
 		assertEquals(0, getStatValue(forestFish, "DEF"))
 		assertEquals(0, getStatValue(forestFish, "MDEF"))
-		assertEquals(0, getStatValue(forestFish, "evasion"))
+		assertEquals(0, getStatValue(forestFish, "EVA"))
 		assertEquals(3, forestFish.critChance)
 		assertEquals(6, forestFish.hpPerLevel)
 		assertEquals(3, forestFish.attackPerLevelNumerator)
 		assertEquals(2, forestFish.attackPerLevelDenominator)
 		assertEquals(100, forestFish.experience)
-		assertEquals(2, forestFish.resistances.elements.size)
-		assertEquals(0.4f, getElementalResistance(forestFish, "EARTH"), 0.01f)
+		assertEquals(3, forestFish.resistances.elements.size)
+		assertEquals(0.2f, getElementalResistance(forestFish, "EARTH"), 0.01f)
+		assertEquals(0.2f, getElementalResistance(forestFish, "WATER"), 0.01f)
 		assertEquals(-0.5f, getElementalResistance(forestFish, "AIR"), 0.01f)
 		assertEquals(0, forestFish.resistances.effects.size)
 		assertEquals(0, forestFish.attackEffects.size)
@@ -182,7 +191,7 @@ class TestMonsterImporter {
 		assertEquals(15, getStatValue(abomination, "ATK"))
 		assertEquals(0, getStatValue(abomination, "DEF"))
 		assertEquals(0, getStatValue(abomination, "MDEF"))
-		assertEquals(0, getStatValue(abomination, "evasion"))
+		assertEquals(0, getStatValue(abomination, "EVA"))
 		assertEquals(3, abomination.critChance)
 		assertEquals(18, abomination.hpPerLevel)
 		assertEquals(0, abomination.attackPerLevelNumerator)
@@ -261,7 +270,7 @@ class TestMonsterImporter {
 		assertEquals(19, getStatValue(ghoul, "ATK"))
 		assertEquals(0, getStatValue(ghoul, "DEF"))
 		assertEquals(0, getStatValue(ghoul, "MDEF"))
-		assertEquals(0, getStatValue(ghoul, "evasion"))
+		assertEquals(0, getStatValue(ghoul, "EVA"))
 		assertEquals(3, ghoul.critChance)
 		assertEquals(19, ghoul.hpPerLevel)
 		assertEquals(0, ghoul.attackPerLevelNumerator)
@@ -721,5 +730,16 @@ class TestMonsterImporter {
 			target = StrategyTarget.AllEnemies,
 			chance = 100
 		), fireStrategy.entries[0])
+	}
+
+	@Test
+	fun testParseMonster() {
+		val monster = importMonsterStats(
+			"monster", BattleModel(), MONSTER_PROPERTIES, content
+		)
+
+		assertEquals(2, monster.resistances.elements.size)
+		assertEquals(0.5f, getElementalResistance(monster, "DARK"), 0.01f)
+		assertEquals(-1f, getElementalResistance(monster, "LIGHT"), 0.01f)
 	}
 }

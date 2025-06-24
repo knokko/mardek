@@ -18,6 +18,7 @@ import mardek.content.skill.Skill
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.*
 import mardek.state.ingame.characters.CharacterState
+import mardek.state.title.AbsoluteRectangle
 import kotlin.math.max
 import kotlin.math.min
 
@@ -137,6 +138,13 @@ sealed class CombatantState(
 	 */
 	var lastDamageIndicator: DamageIndicator? = null
 
+	/**
+	 * The position where the information block (health, mana, status effects, etc...) of this combatant was rendered
+	 * during the last frame, or null when the combatant info was not rendered last frame (e.g. because the first
+	 * frame hasn't been rendered yet)
+	 */
+	var renderedInfoBlock: AbsoluteRectangle? = null
+
 	fun getPosition(battleState: BattleState) = if (isOnPlayerSide) {
 		battleState.playerLayout.positions[battleState.players.indexOf(this)]
 	} else battleState.battle.enemyLayout.positions[battleState.opponents.indexOf(this)]
@@ -146,6 +154,8 @@ sealed class CombatantState(
 	abstract fun computeMaxMana(context: BattleUpdateContext): Int
 
 	abstract fun getEquipment(context: BattleUpdateContext): Array<Item?>
+
+	abstract fun getNatural(stat: CombatStat): Int
 
 	abstract fun getStat(stat: CombatStat, context: BattleUpdateContext): Int
 
@@ -161,6 +171,10 @@ sealed class CombatantState(
 	fun revertsHealing() = getCreatureType().revertsHealing || statusEffects.any { it.isZombie }
 
 	abstract fun getLevel(context: BattleUpdateContext): Int
+
+	abstract fun getName(): String
+
+	abstract fun getClassName(): String
 
 	abstract fun getCreatureType(): CreatureType
 
@@ -267,11 +281,23 @@ class PlayerCombatantState(
 
 	override fun getEquipment(context: BattleUpdateContext) = context.characterStates[player]!!.equipment
 
+	override fun getNatural(stat: CombatStat): Int {
+		var result = 0
+		for (modifier in player.baseStats) {
+			if (modifier.stat == stat) result += modifier.adder
+		}
+		return result
+	}
+
 	override fun getStat(stat: CombatStat, context: BattleUpdateContext): Int {
 		val extra = statModifiers.getOrDefault(stat, 0)
 		val characterState = context.characterStates[player]!!
 		return characterState.computeStatValue(player.baseStats, statusEffects, stat) + extra
 	}
+
+	override fun getName() = player.name
+
+	override fun getClassName() = player.characterClass.displayName
 
 	override fun getCreatureType() = player.creatureType
 
@@ -387,9 +413,15 @@ class MonsterCombatantState(
 
 	override fun getEquipment(context: BattleUpdateContext) = equipment
 
+	override fun getNatural(stat: CombatStat) = monster.baseStats.getOrDefault(stat, 0)
+
 	override fun getStat(stat: CombatStat, context: BattleUpdateContext): Int {
 		return monster.baseStats.getOrDefault(stat, 0) + statModifiers.getOrDefault(stat, 0)
 	}
+
+	override fun getName() = monster.name
+
+	override fun getClassName() = monster.className
 
 	override fun getCreatureType() = monster.type
 

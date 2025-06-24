@@ -49,6 +49,15 @@ class MonsterBlockRenderer(
 		if (opacity <= 0f) return
 		context.uiRenderer.beginBatch()
 		run {
+			val mousePosition = context.battle.lastMousePosition
+			if (mousePosition != null && region.contains(mousePosition.first, mousePosition.second)) {
+				context.uiRenderer.fillColor(
+					region.minX, region.minY, region.maxX, region.maxY,
+					rgba(0, 200, 50, 10)
+				)
+			}
+		}
+		run {
 			val marginY = region.height / 10
 			val minX = region.minX + region.height / 2
 			val minY = region.minY + marginY
@@ -100,5 +109,6 @@ class MonsterBlockRenderer(
 		context.resources.kim2Renderer.submit(kimBatch, context.recorder, context.targetImage)
 
 		maybeRenderSelectionBlink(enemy, context.uiRenderer, region)
+		enemy.renderedInfoBlock = region
 	}
 }

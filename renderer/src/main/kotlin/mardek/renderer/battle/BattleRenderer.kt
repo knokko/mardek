@@ -46,6 +46,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 	private val creatureRenderer = BattleCreatureRenderers(this.context)
 	private val particleRenderer = ParticleRenderer(this.context)
 	private val itemRenderer = ThrownItemRenderer(this.context)
+	private val infoRenderer = CombatantInfoModalRenderer(this.context)
 	private val finishRenderer = FinishEffectRenderer(this.context)
 
 	fun beforeRendering() {
@@ -84,6 +85,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		for (blockRenderer in enemyBlockRenderers) blockRenderer.beforeRendering()
 		for (blockRenderer in playerBlockRenderers) blockRenderer.beforeRendering()
 		itemRenderer.beforeRendering()
+		infoRenderer.beforeRendering()
 	}
 
 	fun render() {
@@ -118,6 +120,7 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		for (blockRenderer in enemyBlockRenderers) blockRenderer.render()
 		for (blockRenderer in playerBlockRenderers) blockRenderer.render()
 		itemRenderer.render()
+		infoRenderer.render()
 		finishRenderer.render()
 	}
 }

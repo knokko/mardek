@@ -459,8 +459,13 @@ private fun parsePartSprites(partTag: DefineSpriteTag): List<FlashShapeVariation
 private fun parseShape(swf: SWF, id: Int, outShapes: MutableList<FlashShapeEntry>) {
 	if (id == 0) return
 	val shape = swf.tags.find { it.uniqueId == id.toString() } ?: throw RuntimeException("Can't find shape with ID $id")
-	val rect = if (shape is DefineShape2Tag) shape.rect else if (shape is DefineShapeTag) shape.rect
-	else if (shape is DefineShape3Tag) shape.rect else if (shape is DefineShape4Tag) shape.rect else null
+	val rect = when (shape) {
+		is DefineShape2Tag -> shape.rect
+		is DefineShapeTag -> shape.rect
+		is DefineShape3Tag -> shape.rect
+		is DefineShape4Tag -> shape.rect
+		else -> null
+	}
 	if (rect != null) {
 		outShapes.add(FlashShapeEntry(rect, id))
 	} else {
@@ -477,18 +482,26 @@ private fun parseContent(tag: Tag): BodyPartContent {
 }
 
 private fun parseVariations(tag: Tag): List<FlashShapeVariation> {
-	return if (tag is DefineSpriteTag) {
-		parsePartSprites(tag)
-	} else if (tag is DefineShapeTag || tag is DefineShape3Tag) {
-		val singleShapes = mutableListOf<FlashShapeEntry>()
-		parseShape(tag.swf, parseInt(tag.uniqueId), singleShapes)
-		listOf(FlashShapeVariation("D", singleShapes))
-	} else if (tag is DefineMorphShapeTag || tag is DefineMorphShape2Tag) {
-		// TODO Do something?
-		emptyList()
-	} else {
-		println("no DefineSpriteTag? ${tag::class.java} $tag")
-		emptyList()
+	return when (tag) {
+		is DefineSpriteTag -> {
+			parsePartSprites(tag)
+		}
+
+		is DefineShapeTag, is DefineShape3Tag -> {
+			val singleShapes = mutableListOf<FlashShapeEntry>()
+			parseShape(tag.swf, parseInt(tag.uniqueId), singleShapes)
+			listOf(FlashShapeVariation("D", singleShapes))
+		}
+
+		is DefineMorphShapeTag, is DefineMorphShape2Tag -> {
+			// TODO Do something?
+			emptyList()
+		}
+
+		else -> {
+			println("no DefineSpriteTag? ${tag::class.java} $tag")
+			emptyList()
+		}
 	}
 }
 
@@ -625,7 +638,8 @@ internal fun importMonsterStats(name: String, model: BattleModel, propertiesText
 		Pair("ATK", rawAttack), Pair("DEF", rawMeleeDef), Pair("MDEF", rawMagicDef), Pair("evasion", rawEvasion)
 	)) {
 		if (statValue == null) continue
-		val stat = CombatStat.entries.find { it.flashName == statName }!!
+		val stat = if (statName == "evasion") CombatStat.Evasion
+		else  CombatStat.entries.find { it.flashName == statName }!!
 		baseStats[stat] = parseInt(statValue)
 	}
 
@@ -681,6 +695,21 @@ internal fun importMonsterStats(name: String, model: BattleModel, propertiesText
 		val element = content.stats.elements.find { it.rawName == source }
 		if (element != null) elementalResistances.add(ElementalResistance(element, parseInt(rawResistance) / 100f))
 		else statusResistances.add(EffectResistance(content.stats.statusEffects.find { it.flashName == source }!!, parseInt(rawResistance)))
+	}
+
+	val element = content.stats.elements.find { it.rawName == elementName }!!
+	val ownResistance = elementalResistances.indexOfFirst { it.element === element }
+	if (ownResistance != -1) {
+		val oldResistance = elementalResistances[ownResistance]
+		elementalResistances[ownResistance] = ElementalResistance(element, min(2f, oldResistance.modifier + 0.2f))
+	} else elementalResistances.add(ElementalResistance(element, 0.2f))
+	val weakAgainst = element.weakAgainst
+	if (weakAgainst != null) {
+		val weakResistance = elementalResistances.indexOfFirst { it.element === weakAgainst }
+		if (weakResistance != -1) {
+			val oldResistance = elementalResistances[weakResistance]
+			elementalResistances[weakResistance] = ElementalResistance(weakAgainst, max(-1f, oldResistance.modifier - 0.2f))
+		} else elementalResistances.add(ElementalResistance(weakAgainst, -0.2f))
 	}
 
 	val attackEffects = ArrayList<PossibleStatusEffect>()

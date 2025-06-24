@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.*
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
+import mardek.input.MouseMoveEvent
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
@@ -49,6 +50,19 @@ class BattleState(
 
 	val particles = mutableListOf<ParticleEffectState>()
 
+	/**
+	 * The last mouse position that was detected (after receiving a `MouseMoveEvent`), in pixels
+	 */
+	var lastMousePosition: Pair<Int, Int>? = null
+
+	/**
+	 * When clicking at or around the health bar of a combatant, a modal/pop-up will open, which will display all
+	 * kinds of information about the combatant (like strength, elemental resistances, and status effect resistances).
+	 *
+	 * When this is non-null, the information about this combatant will be displayed.
+	 */
+	var openCombatantInfo: CombatantState? = null
+
 	@Suppress("unused")
 	internal constructor() : this(Battle(), arrayOf(null, null, null, null), PartyLayout(), BattleUpdateContext())
 
@@ -77,8 +91,9 @@ class BattleState(
 
 	fun processKeyPress(key: InputKey, context: BattleUpdateContext) {
 		val state = this.state
+		val openCombatantInfo = this.openCombatantInfo
 		val reactionChallenge = this.getReactionChallenge()
-		if (state is BattleStateMachine.SelectMove) {
+		if (state is BattleStateMachine.SelectMove && openCombatantInfo == null) {
 			if (key == InputKey.Cancel) battleCancel(this, context)
 			if (key == InputKey.Interact) battleClick(this, context)
 			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, context)
@@ -87,6 +102,31 @@ class BattleState(
 		if (key == InputKey.Interact && reactionChallenge != null && reactionChallenge.clickedAfter == -1L) {
 			reactionChallenge.clickedAfter = System.nanoTime() - reactionChallenge.startTime
 		}
+
+		if (key == InputKey.Click) {
+			val mouse = this.lastMousePosition
+			for (combatant in allPlayers() + allOpponents()) {
+				val renderRegion = combatant.renderedInfoBlock
+				if (mouse != null && renderRegion != null && renderRegion.contains(mouse.first, mouse.second)) {
+					this.openCombatantInfo = combatant
+					context.soundQueue.insert(context.sounds.ui.clickConfirm)
+					break
+				}
+			}
+			if (this.openCombatantInfo == openCombatantInfo) {
+				this.openCombatantInfo = null
+				context.soundQueue.insert(context.sounds.ui.clickCancel)
+			}
+		}
+
+		if (openCombatantInfo != null && (key == InputKey.Interact || key == InputKey.Cancel || key == InputKey.Escape)) {
+			this.openCombatantInfo = null
+			context.soundQueue.insert(context.sounds.ui.clickCancel)
+		}
+	}
+
+	fun processMouseMove(event: MouseMoveEvent) {
+		this.lastMousePosition = Pair(event.newX, event.newY)
 	}
 
 	private fun nextCombatantOnTurn(context: BattleUpdateContext): CombatantState? {

@@ -56,4 +56,12 @@ class EquipmentProperties(
 		if (armorType == null) return EquipmentSlotType.Accessory
 		return armorType.slot
 	}
+
+	fun getStat(stat: CombatStat): Int {
+		var result = 0
+		for (modifier in stats) {
+			if (modifier.stat == stat) result += modifier.adder
+		}
+		return result
+	}
 }

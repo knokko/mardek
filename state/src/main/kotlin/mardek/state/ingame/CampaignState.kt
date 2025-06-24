@@ -10,6 +10,7 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
+import mardek.input.MouseMoveEvent
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.area.AreaDiscoveryMap
 import mardek.state.ingame.area.AreaPosition
@@ -64,6 +65,9 @@ class CampaignState(
 	fun update(context: GameStateUpdateContext) {
 		while (true) {
 			val event = context.input.consumeEvent() ?: break
+			if (event is MouseMoveEvent) {
+				this.currentArea?.activeBattle?.processMouseMove(event)
+			}
 			if (event !is InputKeyEvent || !event.didPress) continue
 
 			val currentArea = this.currentArea ?: continue

@@ -9,6 +9,7 @@ enum class InputKey {
 	Interact,
 	Cancel,
 	ToggleMenu,
+	Escape,
 	Cheat,
 	ScrollUp,
 	ScrollDown

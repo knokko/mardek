@@ -48,9 +48,9 @@ class Content {
 	val checkpoints = HashMap<String, ByteArray>()
 
 	companion object {
-		fun load(resourcePath: String): Content {
+		fun load(resourcePath: String, bitser: Bitser): Content {
 			val input = BitInputStream(BufferedInputStream(Content::class.java.classLoader.getResourceAsStream(resourcePath)!!))
-			val assets = Bitser(false).deserialize(Content::class.java, input, Bitser.BACKWARD_COMPATIBLE)
+			val assets = bitser.deserialize(Content::class.java, input, Bitser.BACKWARD_COMPATIBLE)
 			input.close()
 
 			return assets

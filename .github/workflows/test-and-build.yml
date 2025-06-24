@@ -27,6 +27,12 @@ jobs:
         with:
           name: test-results
           path: "**/build/reports"
+      - name: Store rendering results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendering-results
+          path: "game/rendering-test-results"
       - name: Store JVM crashes
         if: failure()
         uses: actions/upload-artifact@v4

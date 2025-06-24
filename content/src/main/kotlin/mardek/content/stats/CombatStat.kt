@@ -12,7 +12,7 @@ enum class CombatStat(val flashName: String) {
 	Attack("ATK"),
 	MeleeDefense("DEF"),
 	RangedDefense("MDEF"),
-	Evasion("evasion"),
+	Evasion("EVA"),
 
 	MaxHealth("hp"),
 	MaxMana("mp")

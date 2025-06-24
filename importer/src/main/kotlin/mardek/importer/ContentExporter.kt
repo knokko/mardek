@@ -24,6 +24,7 @@ fun main() {
 		val spritesAndAreas = SpritesAndAreas()
 		for (creatureType in content.stats.creatureTypes) spritesAndAreas.registerSprite(creatureType.icon)
 		for (element in content.stats.elements) spritesAndAreas.registerSprite(element.sprite)
+		for (effect in content.stats.statusEffects) spritesAndAreas.registerSprite(effect.icon)
 		for (skillClass in content.skills.classes) spritesAndAreas.registerSprite(skillClass.icon)
 		for (item in content.items.items) spritesAndAreas.registerSprite(item.sprite)
 		for (item in content.items.plotItems) spritesAndAreas.registerSprite(item.sprite)

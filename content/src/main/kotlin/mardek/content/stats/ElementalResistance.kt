@@ -23,4 +23,6 @@ class ElementalResistance(
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
 	override fun hashCode() = BITSER.hashCode(this)
+
+	override fun toString() = "${element.properName} $modifier"
 }

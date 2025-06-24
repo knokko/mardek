@@ -28,10 +28,11 @@ private const val FRAME_LENGTH = 33_000_000L
 class SingleCreatureRenderer(
 	private val context: BattleRenderContext,
 	private val combatant: CombatantState,
+	private val showcase: Boolean = false,
 ) {
 	private val state = context.battle.state
 	private val currentRealTime = System.nanoTime()
-	private val flipX = if (combatant.isOnPlayerSide) 1f else -1f
+	private val flipX = if (combatant.isOnPlayerSide && !showcase) 1f else -1f
 	private val effectColorTransform = mergeColorTransforms(selectedColorTransform(), damageColorTransform())
 	private val skeleton = combatant.getModel().skeleton
 
@@ -109,13 +110,21 @@ class SingleCreatureRenderer(
 	}
 
 	fun render() {
-		if (state is BattleStateMachine.MeleeAttack && state.attacker === combatant) {
-			chooseMeleeAnimation()
-		} else if (state is BattleStateMachine.CastSkill && state.caster === combatant) {
-			chooseCastingAnimation()
-		} else if (state is BattleStateMachine.UseItem && state.thrower === combatant) {
-			chooseItemAnimation()
-		} else choosePassiveAnimation()
+		if (showcase) {
+			choosePassiveAnimation()
+			coordinates = transformBattleCoordinates(
+				PartyLayoutPosition(40, 60), flipX, context.targetImage
+			)
+		} else {
+			if (state is BattleStateMachine.MeleeAttack && state.attacker === combatant) {
+				chooseMeleeAnimation()
+			} else if (state is BattleStateMachine.CastSkill && state.caster === combatant) {
+				chooseCastingAnimation()
+			} else if (state is BattleStateMachine.UseItem && state.thrower === combatant) {
+				chooseItemAnimation()
+			} else choosePassiveAnimation()
+		}
+
 		renderAnimation()
 	}
 
@@ -328,7 +337,7 @@ class SingleCreatureRenderer(
 				}
 			}
 
-			if (content is SkeletonPartCastSparkle && state is BattleStateMachine.CastSkill && state.caster === this.combatant) {
+			if (content is SkeletonPartCastSparkle && state is BattleStateMachine.CastSkill && state.caster === this.combatant && !showcase) {
 				val castEffect = state.skill.element.spellCastEffect
 				if (castEffect != null && currentRealTime > state.lastCastParticleSpawnTime + 30_000_000L) {
 					val basePosition = combatant.getPosition(context.battle)

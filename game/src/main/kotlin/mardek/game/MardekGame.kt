@@ -1,5 +1,6 @@
 package mardek.game
 
+import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.WindowBuilder
@@ -69,7 +70,7 @@ fun main(args: Array<String>) {
 
 	Thread {
 		try {
-			content.complete(Content.load("mardek/game/content.bin"))
+			content.complete(Content.load("mardek/game/content.bin", Bitser(false)))
 		} catch (failed: Throwable) {
 			content.completeExceptionally(failed)
 			throw failed
