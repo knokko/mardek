@@ -254,31 +254,61 @@ class PartyTabRenderer(
 		// val assetCharacter = state.characterSelection.party[printedCount]!!
 		/////////////////////////////
 		val offsetY = printedCount * (RECT_HEIGHT + 20)
-
+		
 		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats, characterState.activeStatusEffects)
 
+		context.uiRenderer.drawString(
+			context.resources.font,
+			"HP",
+			srgbToLinear(rgb(254, 225, 123)),
+			intArrayOf(),
+			healthBarX - 30, 
+			startY + offsetY + MARGIN * 2 - 75,
+			healthBarX,
+			startY + offsetY + MARGIN * 2 + BASE_BAR_HEIGHT,
+			startY + offsetY + MARGIN * 2 + 10,
+			14,
+			1,
+			TextAlignment.RIGHT
+		)
+
 		val healthRenderer = ResourceBarRenderer(context, ResourceType.Health, AbsoluteRectangle(
-			healthBarX, 
+			healthBarX + 5, 
 			startY + offsetY + MARGIN * 2 - 5, 
 			baseBarWidth * 2, 
 			BASE_BAR_HEIGHT - 5
 		))
-
+		
 		//////////////////////////
 		// Mana Bar Rendering
 		//////////////////////////
-
+		
 		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats, characterState.activeStatusEffects)
+
+		context.uiRenderer.drawString(
+			context.resources.font,
+			"MP",
+			srgbToLinear(rgb(254, 225, 123)),
+			intArrayOf(),
+			manaBarX + baseBarWidth - 20, 
+			startY + offsetY + MARGIN * 2 - 50,
+			manaBarX + baseBarWidth + 20, 
+			startY + offsetY + MARGIN * 2 + BASE_BAR_HEIGHT,
+			startY + offsetY + MARGIN * 2 + 10,
+			14,
+			1,
+			TextAlignment.RIGHT
+		)
 
 		healthRenderer.renderBar(characterState.currentHealth, maxHealth)
 		healthRenderer.renderTextOverBar(characterState.currentHealth, maxHealth)
 
 		// Rendering the Mana Bar
 		val manaRenderer = ResourceBarRenderer(context, ResourceType.Mana, AbsoluteRectangle(
-			manaBarX + baseBarWidth, 
+			manaBarX + baseBarWidth + 30, 
 			startY + MARGIN * 2 + offsetY - 5, 
-			baseBarWidth * 2, 
-			BASE_BAR_HEIGHT - 5
+			baseBarWidth * 2 - 30, 
+			BASE_BAR_HEIGHT - 8
 		))
 
 		manaRenderer.renderBar(characterState.currentMana, maxMana)
@@ -286,15 +316,34 @@ class PartyTabRenderer(
 
 		val darkColor = srgbToLinear(rgb(36, 26, 16))
 		val borderColor = srgbToLinear(rgb(254, 225, 123))
+
 		///////////////////////
 		// Xp Bar Position
 		///////////////////////
+
 		val XpBarX = manaBarX + IMAGE_SIZE + BASE_BAR_WIDTH * 2 + MARGIN_LEFT
-		// // Rendering Xp Bar
+		context.uiRenderer.drawString(
+			context.resources.font,
+			"XP",
+			srgbToLinear(rgb(254, 225, 123)),
+			intArrayOf(),
+			XpBarX - 10,
+			startY + offsetY + MARGIN * 2 - 50,
+			XpBarX + 20, 
+			startY + offsetY + MARGIN * 2 + BASE_BAR_HEIGHT,
+			startY + offsetY + MARGIN * 2 + 10,
+			14,
+			1,
+			TextAlignment.RIGHT
+		)
+		// Rendering Xp Bar
 		context.uiRenderer.fillColor(
-			XpBarX, startY + MARGIN * 2 + offsetY,
-			XpBarX + BASE_BAR_WIDTH / 2, startY + BASE_BAR_HEIGHT + 5 + offsetY,
-			darkColor, Gradient(
+			XpBarX + 25, 
+			startY + MARGIN * 2 + offsetY,
+			XpBarX + BASE_BAR_WIDTH, 
+			startY + BASE_BAR_HEIGHT + 5 + offsetY,
+			darkColor,
+			Gradient(
 				0, 0, BASE_BAR_WIDTH / 2, BASE_BAR_HEIGHT, 
 				darkColor, darkColor, darkColor
 			)
