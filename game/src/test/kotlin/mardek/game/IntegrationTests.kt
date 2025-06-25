@@ -136,6 +136,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testSkillsMenu() {
+		TestInGameMenu.testSkills(instance)
+	}
+
+	@Test
 	fun testTitleScreen() {
 		TestTitleScreen.testRendering(instance)
 	}
