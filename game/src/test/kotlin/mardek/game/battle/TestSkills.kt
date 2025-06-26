@@ -170,12 +170,13 @@ object TestSkills {
 			campaign.update(context(1.milliseconds))
 			sleep(1000)
 			campaign.update(context(1.seconds))
+			campaign.update(context(1.milliseconds))
 
 			val battle = campaign.currentArea!!.activeBattle!!
 			val deugan = battle.livingPlayers()[1]
 			battle.state.let {
-				assertTrue(it is BattleStateMachine.SelectMove)
-				assertSame(deugan, (it as BattleStateMachine.SelectMove).onTurn)
+				assertInstanceOf<BattleStateMachine.SelectMove>(it)
+				assertSame(deugan, it.onTurn)
 				assertEquals(BattleMoveSelectionAttack(null), it.selectedMove)
 			}
 
@@ -190,7 +191,8 @@ object TestSkills {
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			campaign.update(context(1.milliseconds))
 
-			assertEquals(10, deugan.currentHealth)
+			// Deugan should take 3 damage from poison
+			assertEquals(10 - 3, deugan.currentHealth)
 			assertEquals(setOf(poison), deugan.statusEffects)
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.CastSkill)

@@ -44,7 +44,6 @@ class EmissionWaves(
 ) {
 
 	init {
-		// TODO if (numRounds < 1) throw IllegalArgumentException("At least 1 round is required, but got $numRounds")
 		if (particlesPerWave < 1) {
 			throw IllegalArgumentException("At least 1 particle per wave is required, but got $particlesPerWave")
 		}

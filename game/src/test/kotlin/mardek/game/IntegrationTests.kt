@@ -11,7 +11,9 @@ import mardek.game.inventory.TestCountItemOccurrences
 import mardek.game.battle.TestMonsterStrategyCalculator
 import mardek.game.battle.TestMoveResultCalculator
 import mardek.game.battle.TestSkills
+import mardek.game.battle.TestStatusEffects
 import mardek.game.battle.TestThrowItems
+import mardek.game.battle.TestTurnStatusEffects
 import mardek.game.battle.testBattleMoveSelectionFlowAndRendering
 import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestTitleScreen
@@ -168,5 +170,23 @@ class IntegrationTests {
 	@Test
 	fun testInfoModal() {
 		TestInfoModal.testRendering(instance)
+	}
+
+	@Test
+	fun testStatusEffects() {
+		TestStatusEffects.testBattleRendering(instance)
+		TestStatusEffects.testPoisonAfterWalking(instance)
+	}
+
+	@Test
+	fun testBeforeTurnStatusEffects() {
+		TestTurnStatusEffects.testWithoutStatusEffects(instance)
+		TestTurnStatusEffects.testParalysis(instance)
+		TestTurnStatusEffects.testSleep(instance)
+		TestTurnStatusEffects.testPoisonLowDamage(instance)
+		TestTurnStatusEffects.testPoisonHighDamage(instance)
+		TestTurnStatusEffects.testRegeneration(instance)
+		TestTurnStatusEffects.testMultiple(instance)
+		TestTurnStatusEffects.testRemoveEffectsWhenResistanceIsLarge(instance)
 	}
 }

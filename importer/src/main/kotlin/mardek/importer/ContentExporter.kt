@@ -46,6 +46,9 @@ fun main() {
 			val castSprite = element.spellCastBackground
 			if (castSprite != null) bcPacker.add(castSprite)
 		}
+		for (effect in content.stats.statusEffects) {
+			for (sprite in effect.passiveParticleSprites) bcPacker.add(sprite)
+		}
 		for (sprite in content.ui.allBcSprites()) bcPacker.add(sprite)
 		for (background in content.battle.backgrounds) bcPacker.add(background.sprite)
 		for (sprite in content.battle.particleSprites) bcPacker.add(sprite.sprite)

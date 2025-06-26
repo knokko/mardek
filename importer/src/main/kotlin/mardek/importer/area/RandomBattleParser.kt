@@ -13,7 +13,8 @@ fun parseRandomBattle(areaCode: ActionScriptCode, content: Content): RandomAreaB
 	}
 	if (chance == 0) return null
 
-	val minSteps = parseInt(areaCode.variableAssignments["minSteps"] ?: "0")
+	// It looks like vanilla completely ignores the minSteps variable, and just assumes a hardcoded 30
+	val minSteps = 30
 
 	val (ownLevelRange, sharedLevelRange) = run {
 		val rawLevelRange = areaCode.variableAssignments["levelrange"]!!

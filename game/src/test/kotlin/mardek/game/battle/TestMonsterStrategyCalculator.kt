@@ -204,7 +204,7 @@ object TestMonsterStrategyCalculator {
 
 			val meleeShield = content.stats.statusEffects.find { it.niceName == "Shield" }!!
 			val magicShield = content.stats.statusEffects.find { it.niceName == "M.Shield" }!!
-			val regen = content.stats.statusEffects.find { it.niceName == "Regen" }!!
+			val regen = content.stats.statusEffects.find { it.niceName == "Regeneration" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			val aalia = content.battle.monsters.find { it.name == "AaliaChapter3" }!!

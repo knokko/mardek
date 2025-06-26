@@ -418,7 +418,7 @@ class TestMonsterImporter {
 		)
 		assertEquals(4, aalia.playerStatModifier)
 
-		val regenEffect = content.stats.statusEffects.find { it.niceName == "Regen" }!!
+		val regenEffect = content.stats.statusEffects.find { it.flashName == "RGN" }!!
 		val magicShieldEffect = content.stats.statusEffects.find { it.niceName == "M.Shield" }!!
 		val meleeShieldEffect = content.stats.statusEffects.find { it.niceName == "Shield" }!!
 

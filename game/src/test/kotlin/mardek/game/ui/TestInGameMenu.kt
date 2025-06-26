@@ -70,6 +70,7 @@ object TestInGameMenu {
 				Color(223, 223, 223), // M. Blade color
 				Color(59, 42, 28), // Empty mana bar color
 				Color(0, 141, 222), // Potion color
+				Color(153, 0, 0), // Numbness color
 			)
 			testRendering(
 				getResources, state, 800, 450, "in-game-menu-before-open",
@@ -114,6 +115,7 @@ object TestInGameMenu {
 
 			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.inventory[5] = ItemStack(content.items.items.find { it.flashName == "Potion" }!!, 1)
+			mardekState.activeStatusEffects.add(content.stats.statusEffects.find { it.flashName == "NUM" }!!)
 			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.equipment[3] = content.items.items.find { it.flashName == "Hero's Coat" }!!
 			deuganState.inventory[0] = ItemStack(content.items.items.find { it.flashName == "MugwortJuice" }!!, 1)

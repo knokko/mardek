@@ -134,7 +134,7 @@ public class UiRenderInstance {
 		});
 	}
 
-	public void prepare(CommandRecorder recorder) { // TODO use this
+	public void prepare(CommandRecorder recorder) {
 		recorder.transitionLayout(dummyImage, null, ResourceUsage.TRANSFER_DEST);
 		recorder.clearColorImage(dummyImage.vkImage, 1f, 0.1f, 0.8f, 1f);
 		recorder.transitionLayout(dummyImage, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT));

@@ -24,8 +24,7 @@ class DamageIndicatorRenderer(
 	private var opacity = 0f
 	private var midX = 0
 	private var midY = 0
-	private val flipX = if (combatant.isOnPlayerSide) 1f else -1f
-	private val position = transformBattleCoordinates(combatant.getPosition(context.battle), flipX, context.targetImage)
+	private val position = combatant.lastRenderedPosition
 	private lateinit var batch: KimBatch
 
 	fun beforeRendering() {
@@ -33,8 +32,8 @@ class DamageIndicatorRenderer(
 		opacity = 1f - (System.nanoTime() - indicator.time) / DURATION.toFloat()
 		if (opacity <= 0f) return
 
-		midX = position.intX(context.targetImage.width)
-		midY = position.intY(context.targetImage.height)
+		midX = TransformedCoordinates.intX(position.first, context.targetImage.width)
+		midY = TransformedCoordinates.intY(position.second, context.targetImage.height)
 
 		val element = when (indicator) {
 			is DamageIndicatorHealth -> indicator.element
@@ -45,12 +44,10 @@ class DamageIndicatorRenderer(
 			batch = context.resources.kim2Renderer.startBatch()
 			val scale = 0.1f * context.targetImage.height / element.sprite.height
 			val size = (scale * element.sprite.width).roundToInt()
-			batch.requests.add(
-				KimRequest(
-					x = midX - size / 2, y = midY - size / 2, scale = scale,
-					sprite = element.sprite, opacity = opacity * 0.7f
-				)
-			)
+			batch.requests.add(KimRequest(
+				x = midX - size / 2, y = midY - size / 2, scale = scale,
+				sprite = element.sprite, opacity = opacity * 0.7f
+			))
 		}
 	}
 

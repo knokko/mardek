@@ -73,6 +73,8 @@ class ParticleState(
 ) {
 	val initialX: Float
 	val initialY: Float
+	val initialWidth: Float
+	val initialHeight: Float
 	val initialRotation: Float
 	val initialVelocityX: Float
 	val initialVelocityY: Float
@@ -82,11 +84,18 @@ class ParticleState(
 	init {
 		var initialX = emitter.spawn.baseX + deltaTime * emitter.spawn.shiftX
 		var initialY = emitter.spawn.baseY + deltaTime * emitter.spawn.shiftY
+		var initialWidth = emitter.size.baseWidth + deltaTime * emitter.size.shiftWidth
+		var initialHeight = emitter.size.baseHeight + deltaTime * emitter.size.shiftHeight
 		var initialRotation = emitter.spawn.rotation ?: (360f * Random.Default.nextFloat())
 		val variationX = emitter.spawn.variationX + deltaTime * emitter.spawn.shiftVariationX
 		val variationY = emitter.spawn.variationY + deltaTime * emitter.spawn.shiftVariationY
 		initialX += Random.Default.nextFloat() * variationX - 0.5f * variationX
 		initialY += Random.Default.nextFloat() * variationY - 0.5f * variationY
+
+		val sizeMultiplier = emitter.size.minSizeMultiplier + Random.Default.nextFloat() *
+				(emitter.size.maxSizeMultiplier - emitter.size.minSizeMultiplier)
+		initialWidth *= sizeMultiplier
+		initialHeight *= sizeMultiplier
 
 		var initialVelocityX = 0f
 		var initialVelocityY = 0f
@@ -145,6 +154,8 @@ class ParticleState(
 
 		this.initialX = initialX
 		this.initialY = initialY
+		this.initialWidth = initialWidth
+		this.initialHeight = initialHeight
 		this.initialRotation = initialRotation
 		this.initialVelocityX = initialVelocityX
 		this.initialVelocityY = initialVelocityY

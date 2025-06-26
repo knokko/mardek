@@ -18,27 +18,20 @@ class ThrownItemRenderer(private val context: BattleRenderContext) {
 		val rotationPeriod = 1000_000_000L
 		val relativeTime = (passedTime % rotationPeriod).toFloat() / rotationPeriod.toFloat()
 
-		val throwPosition = transformBattleCoordinates(
-			state.thrower.getPosition(context.battle),
-			if (state.thrower.isOnPlayerSide) 1f else -1f, context.targetImage
-		)
-		val targetPosition = transformBattleCoordinates(
-			state.target.getPosition(context.battle),
-			if (state.target.isOnPlayerSide) 1f else -1f, context.targetImage
-		)
-
-		targetPosition.x = relativeTime * targetPosition.x + (1f - relativeTime) * throwPosition.x
-		targetPosition.y = relativeTime * targetPosition.y + (1f - relativeTime) * throwPosition.y
+		val itemX = relativeTime * state.target.lastRenderedPosition.first +
+				(1f - relativeTime) * state.thrower.lastRenderedPosition.first
+		var itemY = relativeTime * state.target.lastRenderedPosition.second +
+				(1f - relativeTime) * state.thrower.lastRenderedPosition.second
 
 		val throwHeight = 1f - 4f * (relativeTime - 0.5f).pow(2)
-		targetPosition.y -= 0.25f * throwHeight
+		itemY -= 0.25f * throwHeight
 
 		batch = context.resources.kim1Renderer.startBatch()
 		val sprite = state.item.sprite
 		val scale = context.targetImage.height / 200f
 		batch.requests.add(KimRequest(
-			targetPosition.intX(context.targetImage.width) - (0.5f * scale * sprite.width).roundToInt(),
-			targetPosition.intY(context.targetImage.height) - (0.5f * scale * sprite.height).roundToInt(),
+			TransformedCoordinates.intX(itemX, context.targetImage.width) - (0.5f * scale * sprite.width).roundToInt(),
+			TransformedCoordinates.intY(itemY, context.targetImage.height) - (0.5f * scale * sprite.height).roundToInt(),
 			scale, sprite, rotation = 360f * relativeTime,
 		))
 	}

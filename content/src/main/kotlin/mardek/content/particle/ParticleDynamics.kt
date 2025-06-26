@@ -3,10 +3,6 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
-import kotlin.math.ln
-import kotlin.math.pow
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
 
 @BitStruct(backwardCompatible = true)
 class ParticleDynamics(
@@ -74,6 +70,4 @@ class ParticleDynamics(
 		0f, 0f, 0f, 0f,
 		0f, 0f, 0f, 0f
 	)
-
-
 }

@@ -119,6 +119,8 @@ class Kim1Renderer(
 			hostVertexRange.putInt(request.sprite.width).putInt(request.sprite.height).putFloat(request.scale)
 			hostVertexRange.putInt(offsetMap[request.sprite.offset]!!).putFloat(request.opacity)
 			hostVertexRange.putFloat(toRadians(request.rotation))
+			hostVertexRange.putInt(request.blinkColor)
+			hostVertexRange.putFloat(request.blinkIntensity)
 		}
 		vkCmdDraw(recorder.commandBuffer, 6, batch.requests.size, 0, 0)
 		batch.requests.clear()

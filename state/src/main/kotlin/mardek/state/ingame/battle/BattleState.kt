@@ -50,6 +50,8 @@ class BattleState(
 
 	val particles = mutableListOf<ParticleEffectState>()
 
+	val customParticles = mutableListOf<CustomParticle>()
+
 	/**
 	 * The last mouse position that was detected (after receiving a `MouseMoveEvent`), in pixels
 	 */
@@ -109,11 +111,13 @@ class BattleState(
 				val renderRegion = combatant.renderedInfoBlock
 				if (mouse != null && renderRegion != null && renderRegion.contains(mouse.first, mouse.second)) {
 					this.openCombatantInfo = combatant
-					context.soundQueue.insert(context.sounds.ui.clickConfirm)
 					break
 				}
 			}
-			if (this.openCombatantInfo == openCombatantInfo) {
+			if (this.openCombatantInfo != openCombatantInfo && this.openCombatantInfo != null) {
+				context.soundQueue.insert(context.sounds.ui.clickConfirm)
+			}
+			if (this.openCombatantInfo == openCombatantInfo && openCombatantInfo != null) {
 				this.openCombatantInfo = null
 				context.soundQueue.insert(context.sounds.ui.clickCancel)
 			}
@@ -145,14 +149,71 @@ class BattleState(
 	private fun beginTurn(context: BattleUpdateContext, combatant: CombatantState) {
 		combatant.spentTurnsThisRound += 1
 		if (combatant is MonsterCombatantState) combatant.totalSpentTurns += 1
-		// TODO Allow status effects to skip the turn, or to deal damage
 
-		state = if (combatant is PlayerCombatantState) {
+		state = computeStatusEffectsBeforeTurn(combatant, context)
+	}
+
+	private fun prepareNextTurn(context: BattleUpdateContext, effects: BattleStateMachine.NextTurnEffects) {
+		val time = System.nanoTime()
+		if (effects.removedEffects.isNotEmpty()) {
+			effects.combatant.statusEffects.removeAll(effects.removedEffects)
+			for (effect in effects.removedEffects) {
+				effects.combatant.effectHistory.remove(effect, time)
+			}
+			effects.removedEffects.clear()
+		}
+
+		if (effects.takeDamage.isNotEmpty()) {
+			if (time >= effects.applyNextDamageAt) {
+				val takeDamage = effects.takeDamage.removeFirst()
+				val dpt = takeDamage.effect.damagePerTurn!!
+				effects.applyNextDamageAt = time + BattleStateMachine.NextTurnEffects.DAMAGE_DELAY
+
+				val oldHealth = effects.combatant.currentHealth
+				effects.combatant.currentHealth -= takeDamage.amount
+				effects.combatant.clampHealthAndMana(context)
+
+				if (effects.combatant.currentHealth != oldHealth) {
+					effects.combatant.lastDamageIndicator = DamageIndicatorHealth(
+						oldHealth = oldHealth, oldMana = effects.combatant.currentMana,
+						gainedHealth = -takeDamage.amount, element = dpt.element, overrideColor = dpt.blinkColor
+					)
+					val particle = ParticleEffectState(
+						dpt.particleEffect,
+						effects.combatant.getPosition(this),
+						effects.combatant.isOnPlayerSide
+					)
+					particle.startTime = System.nanoTime()
+					particles.add(particle)
+					if (!effects.combatant.isAlive()) state = BattleStateMachine.NextTurn(time + 1000_000_000L)
+				}
+			}
+			return
+		}
+
+		val forceMove = effects.forceMove
+		if (forceMove != null && time < effects.applyNextDamageAt) return
+
+		state = if (forceMove != null) {
+			if (forceMove.blinkColor != 0) effects.combatant.lastForcedTurn = ForcedTurnBlink(forceMove.blinkColor)
+			val particleEffect = forceMove.particleEffect
+			if (particleEffect != null) {
+				val particle = ParticleEffectState(
+					particleEffect,
+					effects.combatant.getPosition(this),
+					effects.combatant.isOnPlayerSide
+				)
+				particle.startTime = System.nanoTime()
+				particles.add(particle)
+			}
+			forceMove.move.refreshStartTime()
+			forceMove.move as BattleStateMachine
+		} else if (effects.combatant is PlayerCombatantState) {
 			context.soundQueue.insert(context.sounds.ui.partyScroll)
-			BattleStateMachine.SelectMove(combatant)
+			BattleStateMachine.SelectMove(effects.combatant)
 		} else {
 			MonsterStrategyCalculator(
-				this, combatant as MonsterCombatantState, context
+				this, effects.combatant as MonsterCombatantState, context
 			).determineNextMove() as BattleStateMachine
 		}
 	}
@@ -170,6 +231,8 @@ class BattleState(
 		if (state is BattleStateMachine.Wait && System.nanoTime() > state.startTime + 250_000_000L) {
 			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 250_000_000L)
 		}
+
+		if (state is BattleStateMachine.NextTurnEffects) prepareNextTurn(context, state)
 
 		if (state is BattleStateMachine.MeleeAttack.MoveTo && state.finished) {
 			this.state = BattleStateMachine.MeleeAttack.Strike(
@@ -262,6 +325,7 @@ class BattleState(
 	}
 
 	private fun applyMoveResult(context: BattleUpdateContext, result: MoveResult, attacker: CombatantState) {
+		val currentTime = System.nanoTime()
 		for (sound in result.sounds) context.soundQueue.insert(sound)
 
 		for (entry in result.targets) {
@@ -288,14 +352,16 @@ class BattleState(
 				target.currentHealth -= entry.damage
 				target.currentMana -= entry.damageMana
 
-				target.statusEffects.removeAll(entry.removedEffects)
 				target.statusEffects.addAll(entry.addedEffects)
 				for ((stat, modifier) in entry.addedStatModifiers) {
 					target.statModifiers[stat] = target.statModifiers.getOrDefault(stat, 0) + modifier
 				}
 				target.clampHealthAndMana(context)
-				if (target.isAlive() && target.currentHealth <= target.maxHealth / 5) {
-					target.statusEffects.addAll(target.getSosEffects(context))
+
+				if (target.isAlive()) {
+					target.statusEffects.removeAll(entry.removedEffects)
+					for (effect in entry.removedEffects) target.effectHistory.remove(effect, currentTime)
+					for (effect in entry.addedEffects) target.effectHistory.add(effect, currentTime)
 				}
 			} else target.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
 		}

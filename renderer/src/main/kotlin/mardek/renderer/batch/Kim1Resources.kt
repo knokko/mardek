@@ -12,7 +12,7 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.*
 import org.lwjgl.vulkan.VK10.*
 
-const val KIM1_VERTEX_SIZE = 8 * 4
+const val KIM1_VERTEX_SIZE = 10 * 4
 
 private fun createGraphicsDescriptorSetLayout(boiler: BoilerInstance) = stackPush().use { stack ->
 	val builder = DescriptorSetLayoutBuilder(stack, 1)
@@ -67,13 +67,15 @@ class Kim1Resources(
 			val vertexBindings = VkVertexInputBindingDescription.calloc(1, stack)
 			vertexBindings.get(0).set(0, KIM1_VERTEX_SIZE, VK_VERTEX_INPUT_RATE_INSTANCE)
 
-			val vertexAttributes = VkVertexInputAttributeDescription.calloc(6, stack)
+			val vertexAttributes = VkVertexInputAttributeDescription.calloc(8, stack)
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SINT, 0)
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_UINT, 8)
 			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_SFLOAT, 16)
 			vertexAttributes.get(3).set(3, 0, VK_FORMAT_R32_SINT, 20)
 			vertexAttributes.get(4).set(4, 0, VK_FORMAT_R32_SFLOAT, 24)
 			vertexAttributes.get(5).set(5, 0, VK_FORMAT_R32_SFLOAT, 28)
+			vertexAttributes.get(6).set(6, 0, VK_FORMAT_R32_SINT, 32)
+			vertexAttributes.get(7).set(7, 0, VK_FORMAT_R32_SFLOAT, 36)
 
 			val ciVertex = VkPipelineVertexInputStateCreateInfo.calloc(stack)
 			ciVertex.`sType$Default`()

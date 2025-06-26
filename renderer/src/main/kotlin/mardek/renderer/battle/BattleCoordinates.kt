@@ -28,7 +28,13 @@ class TransformedCoordinates(var x: Float, var y: Float, val scaleX: Float, val 
 
 	override fun toString() = "(x=$x, y=$y, scaleX=$scaleX, scaleY=$scaleY)"
 
-	fun intX(width: Int) = ((0.5f + 0.5f * x) * width).roundToInt()
+	fun intX(width: Int) = intX(x, width)
 
-	fun intY(height: Int) = ((0.5f + 0.5f * y) * height).roundToInt()
+	fun intY(height: Int) = intY(y, height)
+
+	companion object {
+		fun intX(floatX: Float, width: Int) = ((0.5f + 0.5f * floatX) * width).roundToInt()
+
+		fun intY(floatY: Float, height: Int) = ((0.5f + 0.5f * floatY) * height).roundToInt()
+	}
 }

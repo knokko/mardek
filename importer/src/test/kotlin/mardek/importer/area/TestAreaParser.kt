@@ -115,7 +115,7 @@ class TestAreaParser {
 			sharedEnemies = null,
 			sharedLevelRange = levelRange,
 			ownLevelRange = null,
-			minSteps = 0,
+			minSteps = 30,
 			chance = 10,
 			defaultBackground = content.battle.backgrounds.find { it.name == "dragonlair" }!!,
 			specialBackground = null

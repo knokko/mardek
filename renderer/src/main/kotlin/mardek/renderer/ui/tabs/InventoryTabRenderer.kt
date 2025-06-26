@@ -20,6 +20,7 @@ import mardek.renderer.ui.ResourceType
 import mardek.renderer.ui.renderDescription
 import mardek.state.ingame.menu.InventoryTab
 import mardek.state.title.AbsoluteRectangle
+import java.lang.Math.toIntExact
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -575,6 +576,16 @@ class InventoryTabRenderer(
 			addKimRequest(KimRequest(
 				x = x4, y = iconY, scale = iconScale, sprite = context.content.ui.rangedDefIcon
 			))
+			val numEffects = characterState.activeStatusEffects.size
+			if (numEffects > 0) {
+				val passedTime = System.nanoTime() - referenceTime
+				val period = 250_000_000L
+				val index = (passedTime % (period * numEffects)) / period
+				val sprite = characterState.activeStatusEffects.toList()[toIntExact(index)].icon
+				addKimRequest(KimRequest(
+					x = x4 + 9 * scale, y = startY + 2 * scale, scale = 8f * scale / sprite.height, sprite = sprite
+				))
+			}
 		}
 
 		val barX = x4 + 20 * scale

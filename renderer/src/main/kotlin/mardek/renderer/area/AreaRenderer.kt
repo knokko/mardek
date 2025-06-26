@@ -120,7 +120,8 @@ class AreaRenderer(
 		val animationSize = 2
 
 		class EntityRenderJob(
-				val x: Int, val y: Int, val sprite: KimSprite, val opacity: Float = 1f, val sortY: Int = y
+				val x: Int, val y: Int, val sprite: KimSprite, val opacity: Float = 1f, val sortY: Int = y,
+				val blinkColor: Int = 0, val blinkIntensity: Float = 0f,
 		): Comparable<EntityRenderJob> {
 			override fun compareTo(other: EntityRenderJob) = this.sortY.compareTo(other.sortY)
 		}
@@ -250,6 +251,7 @@ class AreaRenderer(
 		val nextPlayerPosition = state.nextPlayerPosition
 		for ((index, character) in context.campaign.characterSelection.party.withIndex().reversed()) {
 			if (character == null) continue
+			val characterState = context.campaign.characterStates[character]!!
 
 			var spriteIndex = 0
 			val oldPosition = state.getPlayerPosition(index)
@@ -287,8 +289,16 @@ class AreaRenderer(
 
 			spriteIndex += animationSize * direction.ordinal
 
+			val walkDamage = characterState.lastWalkDamage
+			val walkDamageDuration = 500_000_000L
+			val currentTime = System.nanoTime()
+			val (blinkColor, blinkIntensity) = if (walkDamage != null && currentTime < walkDamage.time + walkDamageDuration) {
+				val intensity = 1f - (currentTime - walkDamage.time).toFloat() / walkDamageDuration
+				Pair(srgbToLinear(walkDamage.color), intensity)
+			} else Pair(0, 0f)
 			renderJobs.add(EntityRenderJob(
-					x = x, y = y, sprite = character.areaSprites.sprites[spriteIndex]
+					x = x, y = y, sprite = character.areaSprites.sprites[spriteIndex],
+					blinkColor = blinkColor, blinkIntensity = blinkIntensity
 			))
 		}
 
@@ -378,7 +388,8 @@ class AreaRenderer(
 				renderY < context.targetImage.height + 2 * margin
 			) {
 				kimBatch.requests.add(KimRequest(
-					x = renderX, y = renderY, scale = scale.toFloat(), sprite = job.sprite, opacity = job.opacity
+					x = renderX, y = renderY, scale = scale.toFloat(), sprite = job.sprite, opacity = job.opacity,
+					blinkColor = job.blinkColor, blinkIntensity = job.blinkIntensity,
 				))
 			}
 		}

@@ -431,7 +431,7 @@ class TestSkillsImporter {
 		assertEquals("Powers", stunstrike.skillClass!!.name)
 		assertEquals(1, stunstrike.addStatusEffects.size)
 		val stun = stunstrike.addStatusEffects[0]
-		assertEquals(50, stun.effect.skipTurnChance)
+		assertEquals(40, stun.effect.skipTurn!!.chance)
 		assertEquals(100, stun.chance)
 
 		assertEquals("This reaction has a 100% chance of inflicting Paralysis.", stunstrike.description)
@@ -808,7 +808,7 @@ class TestSkillsImporter {
 	@Test
 	fun testSosRegen() {
 		val sosRegen = getPassive("SOS Regen")
-		assertEquals(setOf(content.stats.statusEffects.find { it.niceName == "Regen" }!!), sosRegen.sosEffects)
+		assertEquals(setOf(content.stats.statusEffects.find { it.niceName == "Regeneration" }!!), sosRegen.sosEffects)
 		assertEquals("The Regen status effect triggers when the character is at 20% HP or less.", sosRegen.description)
 
 		assertEquals(0, sosRegen.autoEffects.size)

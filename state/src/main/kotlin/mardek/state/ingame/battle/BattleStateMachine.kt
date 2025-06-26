@@ -2,12 +2,16 @@ package mardek.state.ingame.battle
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
+import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.inventory.Item
+import mardek.content.particle.ParticleEffect
 import mardek.content.skill.ActiveSkill
 import mardek.content.skill.ReactionSkillType
 import mardek.content.skill.SkillTargetType
 import mardek.content.stats.Element
+import mardek.content.stats.StatusEffect
 import java.util.Objects
 
 @BitStruct(backwardCompatible = true)
@@ -19,6 +23,7 @@ sealed class BattleStateMachine {
 		@Suppress("unused")
 		val BITSER_HIERARCHY = arrayOf(
 			NextTurn::class.java,
+			NextTurnEffects::class.java,
 			SelectMove::class.java,
 			Wait::class.java,
 			MeleeAttack::class.java,
@@ -35,6 +40,57 @@ sealed class BattleStateMachine {
 	 */
 	@BitStruct(backwardCompatible = true)
 	class NextTurn(val startAt: Long) : BattleStateMachine()
+
+	@BitStruct(backwardCompatible = true)
+	class NextTurnEffects(
+		@BitField(id = 0)
+		@ReferenceField(stable = false, label = "combatants")
+		val combatant: CombatantState,
+
+		@BitField(id = 1, optional = true)
+		val forceMove: ForceMove?,
+
+	) : BattleStateMachine() {
+
+		@BitField(id = 2)
+		@ReferenceField(stable = true, label = "status effects")
+		val removedEffects = HashSet<StatusEffect>()
+
+		@BitField(id = 3)
+		val takeDamage = ArrayList<TakeDamage>()
+
+		var applyNextDamageAt = System.nanoTime()
+
+		@BitStruct(backwardCompatible = true)
+		class ForceMove(
+			@BitField(id = 0)
+			@ClassField(root = BattleStateMachine::class)
+			val move: Move,
+
+			@BitField(id = 1)
+			@ReferenceField(stable = true, label = "status effects")
+			val effect: StatusEffect,
+
+			val blinkColor: Int,
+
+			val particleEffect: ParticleEffect?,
+		)
+
+		@BitStruct(backwardCompatible = true)
+		class TakeDamage(
+			@BitField(id = 0)
+			@IntegerField(expectUniform = false)
+			val amount: Int,
+
+			@BitField(id = 1)
+			@ReferenceField(stable = true, label = "status effects")
+			val effect: StatusEffect,
+		)
+
+		companion object {
+			const val DAMAGE_DELAY = 1_000_000_000L
+		}
+	}
 
 	/**
 	 * A player is on turn, and this player is currently choosing its next move
@@ -56,7 +112,11 @@ sealed class BattleStateMachine {
 	 */
 	@BitStruct(backwardCompatible = true)
 	class Wait : BattleStateMachine(), Move {
-		val startTime = System.nanoTime()
+		var startTime = System.nanoTime()
+
+		override fun refreshStartTime() {
+			startTime = System.nanoTime()
+		}
 	}
 
 	/**
@@ -82,7 +142,11 @@ sealed class BattleStateMachine {
 		@BitField(id = 3, optional = true)
 		val reactionChallenge: ReactionChallenge?,
 	) : BattleStateMachine(), Move {
-		val startTime = System.nanoTime()
+		var startTime = System.nanoTime()
+
+		override fun refreshStartTime() {
+			startTime = System.nanoTime()
+		}
 
 		companion object {
 			fun determineReactionChallenge(
@@ -159,7 +223,7 @@ sealed class BattleStateMachine {
 
 		context: BattleUpdateContext,
 	) : BattleStateMachine(), Move {
-		val startTime = System.nanoTime()
+		var startTime = System.nanoTime()
 
 		@BitField(id = 4)
 		val reactionChallenge: ReactionChallenge?
@@ -217,6 +281,10 @@ sealed class BattleStateMachine {
 
 		override fun hashCode() = caster.hashCode() + 13 * targets.hashCode() - 31 * skill.hashCode() +
 				127 * Objects.hashCode(nextElement)
+
+		override fun refreshStartTime() {
+			startTime = System.nanoTime()
+		}
 	}
 
 	/**
@@ -236,9 +304,13 @@ sealed class BattleStateMachine {
 		@ReferenceField(stable = true, label = "items")
 		val item: Item
 	) : BattleStateMachine(), Move {
-		val startTime = System.nanoTime()
+		var startTime = System.nanoTime()
 
 		var canDrinkItem = false
+
+		override fun refreshStartTime() {
+			startTime = System.nanoTime()
+		}
 	}
 
 	/**
@@ -273,5 +345,7 @@ sealed class BattleStateMachine {
 		}
 	}
 
-	sealed interface Move
+	sealed interface Move {
+		fun refreshStartTime()
+	}
 }

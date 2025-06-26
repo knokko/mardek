@@ -6,6 +6,8 @@ layout(location = 2) in float scale;
 layout(location = 3) in int spriteOffset;
 layout(location = 4) in float opacity;
 layout(location = 5) in float rotation;
+layout(location = 6) in int blinkColor;
+layout(location = 7) in float blinkIntensity;
 
 layout(push_constant) uniform PushConstants {
 	ivec2 viewportSize;
@@ -15,6 +17,8 @@ layout(location = 0) out vec2 textureCoordinates;
 layout(location = 1) out uvec2 propagateSpriteSize;
 layout(location = 2) out int propagateSpriteOffset;
 layout(location = 3) out float propagateOpacity;
+layout(location = 4) out int propagateBlinkColor;
+layout(location = 5) out float propagateBlinkIntensity;
 
 vec2 textureCoordinateMapping[] = {
 		vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.0),
@@ -36,4 +40,6 @@ void main() {
 	propagateSpriteSize = spriteSize;
 	propagateSpriteOffset = spriteOffset;
 	propagateOpacity = opacity;
+	propagateBlinkColor = blinkColor;
+	propagateBlinkIntensity = blinkIntensity;
 }

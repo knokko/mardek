@@ -52,6 +52,8 @@ class CharacterState {
 	@ReferenceField(stable = true, label = "skills")
 	val toggledSkills = HashSet<Skill>()
 
+	var lastWalkDamage: WalkDamage? = null
+
 	fun computeStatValue(base: List<StatModifier>, statusEffects: Set<StatusEffect>, stat: CombatStat): Int {
 		var total = 0
 		for (modifier in base) {
@@ -185,5 +187,9 @@ class CharacterState {
 		fun determineMaxMana(
 			level: Int, spirit: Int, modifier: Float, extra: Int
 		) = ((1f + modifier) * (spirit * 17 / 6 + spirit * level / 6 + extra)).roundToInt()
+	}
+
+	class WalkDamage(val color: Int) {
+		val time = System.nanoTime()
 	}
 }

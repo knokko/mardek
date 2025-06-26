@@ -4,6 +4,6 @@ import mardek.content.Content
 
 fun importStatsContent(content: Content) {
 	addElements(content)
-	addStatusEffects(content.stats)
+	addStatusEffects(content)
 	importCreatureTypes(content.stats)
 }

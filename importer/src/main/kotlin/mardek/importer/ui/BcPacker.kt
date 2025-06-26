@@ -59,6 +59,9 @@ class BcPacker {
 			compressor.performStagingTransfer(recorder)
 			for ((index, sourceImage) in bc1Images.withIndex()) {
 				val bufferedImage = sourceImage.bufferedImage as BufferedImage
+				if (bufferedImage.width != sourceImage.width || bufferedImage.height != sourceImage.height) {
+					throw Error("Buffered image size must match source image size")
+				}
 				if (bufferedImage.width % 4 != 0 || bufferedImage.height % 4 != 0) {
 					throw Error("Image dimensions must be multiples of 4 at this point")
 				}
@@ -109,7 +112,11 @@ class BcPacker {
 		for (image in images) {
 			if (image.version != 7 || image.data != null) continue
 			submissions.add(threadPool.submit {
-				image.data = compressBc7(image.bufferedImage as BufferedImage)
+				val bufferedImage = image.bufferedImage as BufferedImage
+				if (bufferedImage.width != image.width || bufferedImage.height != image.height) {
+					throw Error("Buffered image size must match source image size")
+				}
+				image.data = compressBc7(bufferedImage)
 				image.postEncodeCallback?.invoke()
 				image.bufferedImage = null
 
