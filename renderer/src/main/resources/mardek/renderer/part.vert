@@ -10,6 +10,12 @@ vec2 textureCoordinateMapping[] = { vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.
 
 void main() {
 	int index = vertexIndexMapping[gl_VertexIndex];
-	gl_Position = vec4(corners[index], 0.0, 1.0);
+
+	// Note: it is NOT valid to just use `vec2 corner = corners[index]` since push constants must be
+	// indexed uniformly
+	vec2 copyOfCorners[4] = corners;
+	vec2 corner = copyOfCorners[index];
+
+	gl_Position = vec4(corner, 0.0, 1.0);
 	textureCoordinates = textureCoordinateMapping[index];
 }
