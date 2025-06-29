@@ -50,29 +50,34 @@ class EffectHistoryRenderer(private val context: BattleRenderContext, private va
 			it, context.recorder, context.targetImage
 		) }
 
-		context.uiRenderer.beginBatch()
 		if (currentEntry.type == StatusEffectHistory.Type.Remove) {
 			val crossColor = srgbToLinear(rgba(199, 0, 0, 128))
 			val l = height / 28
 			val w = height / 250
 			val p = (l - 2 * l * (1f - currentEntry.relativeTime)).roundToInt()
-			context.uiRenderer.fillColorUnaligned(
+
+			val rectangles = context.resources.rectangleRenderer
+			rectangles.beginBatch(context.recorder, context.targetImage, 2)
+			rectangles.fillUnaligned(
 				midX - l + w, midY - l - w, midX - l - w, midY - l + w,
 				midX + p - w, midY + p + w, midX + p + w, midY + p - w, crossColor
 			)
-			context.uiRenderer.fillColorUnaligned(
+			rectangles.fillUnaligned(
 				midX + l - w, midY - l - w, midX + l + w, midY - l + w,
 				midX - p + w, midY + p + w, midX - p - w, midY + p - w, crossColor
 			)
+			rectangles.endBatch(context.recorder)
 		} else {
 			val f = currentEntry.relativeTime.pow(2)
 			val color = changeAlpha(srgbToLinear(currentEntry.effect.textColor), 255 - (250 * f).roundToInt())
+
+			context.uiRenderer.beginBatch()
 			context.uiRenderer.drawString(
 				context.resources.font, currentEntry.effect.shortName, color, IntArray(0),
 				midX - width / 5, 0, midX + width / 5, height,
 				midY, height / 30, 1, TextAlignment.CENTER
 			)
+			context.uiRenderer.endBatch()
 		}
-		context.uiRenderer.endBatch()
 	}
 }

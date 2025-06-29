@@ -5,7 +5,6 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.text.placement.TextAlignment
 import com.github.knokko.ui.renderer.CircleGradient
-import com.github.knokko.ui.renderer.Gradient
 import mardek.content.sprite.KimSprite
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
@@ -116,25 +115,52 @@ class ActionBarRenderer(
 		val lineColor = srgbToLinear(rgb(208, 193, 142))
 		val textColor = srgbToLinear(rgb(238, 203, 117))
 		val textOutline = intArrayOf(textColor, rgba(0, 0, 0, 200))
-		context.uiRenderer.beginBatch()
-		context.uiRenderer.fillColorUnaligned(
+		val player = (state as BattleStateMachine.SelectMove).onTurn.player
+
+		val rectangles = context.resources.rectangleRenderer
+		rectangles.beginBatch(context.recorder, context.targetImage, 7)
+
+		rectangles.fillUnaligned(
 			region.minX, region.maxY, lowDashX, region.maxY,
 			highDashX, region.minY, region.minX, region.minY,
 			rgba(0, 0, 0, 100)
 		)
+		run {
+			val minX = iconPositions[selectedIndex] + region.height / 2
+			val width = region.width / 3
+			val gradientColor = changeAlpha(lineColor, 35)
+			rectangles.gradient(
+				minX, region.minY + marginY, minX + width, region.maxY - marginY,
+				gradientColor, 0, gradientColor
+			)
+		}
 
-		val player = (state as BattleStateMachine.SelectMove).onTurn.player
+		rectangles.fillUnaligned(
+			lowDashX, region.maxY, region.maxX, region.maxY,
+			region.maxX, region.minY, highDashX, region.minY,
+			srgbToLinear(rgb(82, 62, 37))
+		)
+
+		val leftElementColor = changeAlpha(player.element.color, 5)
+		val rightElementColor = changeAlpha(player.element.color, 50)
+		rectangles.gradientUnaligned(
+			lowDashX, region.maxY - marginY, leftElementColor,
+			region.maxX, region.maxY - marginY, rightElementColor,
+			region.maxX, region.minY + marginY, rightElementColor,
+			highDashX + marginX - 2 * marginY, region.minY + marginY, leftElementColor,
+		)
+		rectangles.fill(region.minX, region.minY, region.maxX, region.minY + lineWidth - 1, lineColor)
+		rectangles.fill(region.minX, 1 + region.maxY - lineWidth, region.maxX, region.maxY, lineColor)
+		rectangles.fillUnaligned(
+			lowDashX, region.maxY, lowDashX + 3 * lineWidth - 1, region.maxY,
+			highDashX + 3 * lineWidth - 1, region.minY, highDashX, region.minY, lineColor
+		)
+
+		rectangles.endBatch(context.recorder)
 		val circleColor = srgbToLinear(rgb(89, 69, 46))
+		context.uiRenderer.beginBatch()
+
 		for (x in iconPositions) {
-			if (x == iconPositions[selectedIndex]) {
-				val minX = x + region.height / 2
-				val width = region.width / 3
-				val gradientColor = changeAlpha(lineColor, 35)
-				context.uiRenderer.fillColor(
-					minX, region.minY + marginY, minX + width, region.maxY - marginY, 0,
-					Gradient(0, 0, width, region.height, gradientColor, 0, gradientColor)
-				)
-			}
 			context.uiRenderer.fillCircle(
 				x, region.minY + marginY, x + region.height - 2 * marginY, region.maxY - marginY,
 				circleColor, CircleGradient(0.85f, 1f, circleColor, lineColor)
@@ -161,30 +187,12 @@ class ActionBarRenderer(
 			}
 		}
 
-		context.uiRenderer.fillColorUnaligned(
-			lowDashX, region.maxY, region.maxX, region.maxY,
-			region.maxX, region.minY, highDashX, region.minY,
-			srgbToLinear(rgb(82, 62, 37))
-		)
-		context.uiRenderer.fillColorUnaligned(
-			lowDashX, region.maxY - marginY, region.maxX, region.maxY - marginY,
-			region.maxX, region.minY + marginY, highDashX + marginX - 2 * marginY, region.minY + marginY,
-			0, Gradient(
-				region.minX + region.width / 2, region.minY, region.width, region.height,
-				0, player.element.color, 0
-			)
-		)
 		context.uiRenderer.drawString(
 			context.resources.font, player.name, textColor, textOutline,
 			highDashX, region.minY, region.maxX - region.height - 3 * marginX, region.maxY,
 			region.maxY - region.height / 3, region.height / 2, 1, TextAlignment.RIGHT
 		)
-		context.uiRenderer.fillColor(region.minX, region.minY, region.maxX, region.minY + lineWidth - 1, lineColor)
-		context.uiRenderer.fillColor(region.minX, 1 + region.maxY - lineWidth, region.maxX, region.maxY, lineColor)
-		context.uiRenderer.fillColorUnaligned(
-			lowDashX, region.maxY, lowDashX + 3 * lineWidth - 1, region.maxY,
-			highDashX + 3 * lineWidth - 1, region.minY, highDashX, region.minY, lineColor
-		)
+
 		context.uiRenderer.endBatch()
 
 		context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)

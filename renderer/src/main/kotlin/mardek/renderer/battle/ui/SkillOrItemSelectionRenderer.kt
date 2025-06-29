@@ -83,29 +83,34 @@ class SkillOrItemSelectionRenderer(
 	fun render() {
 		if (entries.isEmpty()) return
 
+		val rectangles = context.resources.rectangleRenderer
+		rectangles.beginBatch(context.recorder, context.targetImage, 5)
+
 		val borderColor = srgbToLinear(rgb(208, 193, 142))
 		val borderWidth = max(1, region.width / 100)
-		context.uiRenderer.beginBatch()
-		context.uiRenderer.fillColor(region.minX, region.minY, region.maxX, region.maxY, 0, Gradient(
-			0, 0, region.width, region.height,
+		rectangles.gradient(
+			region.minX, region.minY, region.maxX, region.maxY,
 			backgroundColor(240), backgroundColor(210), backgroundColor(240)
-		))
-		context.uiRenderer.fillColor(
+		)
+		rectangles.fill(
 			region.minX + borderWidth, region.minY + borderWidth,
 			region.maxX - borderWidth, region.minY + 2 * borderWidth - 1, borderColor
 		)
-		context.uiRenderer.fillColor(
+		rectangles.fill(
 			region.minX + borderWidth, region.maxY - 2 * borderWidth + 1,
 			region.maxX - borderWidth, region.maxY - borderWidth, borderColor
 		)
-		context.uiRenderer.fillColor(
+		rectangles.fill(
 			region.minX + borderWidth, region.minY + borderWidth,
 			region.minX + 2 * borderWidth - 1, region.maxY - borderWidth, borderColor
 		)
-		context.uiRenderer.fillColor(
+		rectangles.fill(
 			region.maxX - 2 * borderWidth + 1, region.minY + borderWidth,
 			region.maxX - borderWidth, region.maxY - borderWidth, borderColor
 		)
+
+		rectangles.endBatch(context.recorder)
+		context.uiRenderer.beginBatch()
 
 		var minY = region.minY + region.height / 20
 		for (entry in entries) {

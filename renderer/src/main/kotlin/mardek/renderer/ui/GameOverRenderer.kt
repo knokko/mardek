@@ -55,16 +55,19 @@ class GameOverRenderer(
 			1, TextAlignment.CENTER
 		)
 
+		context.uiRenderer.endBatch()
+		context.uiRenderer.end()
+
 		val timeSinceGameOver = System.nanoTime() - state.startTime
 		val fade = max(0L, 255L - 255L * timeSinceGameOver / 5000_000_000L).toInt()
 		if (fade > 0) {
-			context.uiRenderer.fillColor(
+			val rectangles = context.resources.rectangleRenderer
+			rectangles.beginBatch(context.recorder, context.targetImage, 1)
+			rectangles.fill(
 				0, 0, context.targetImage.width, context.targetImage.height,
 				rgba(0, 0, 0, fade)
 			)
+			rectangles.endBatch(context.recorder)
 		}
-
-		context.uiRenderer.endBatch()
-		context.uiRenderer.end()
 	}
 }

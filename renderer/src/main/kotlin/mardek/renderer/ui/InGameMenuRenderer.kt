@@ -29,7 +29,9 @@ class InGameMenuRenderer(
 	}
 
 	fun render() {
-		context.uiRenderer.beginBatch()
+		context.resources.rectangleRenderer.beginBatch(
+			context.recorder, context.targetImage, 3
+		)
 		val transform = CoordinateTransform.create(
 			SpaceLayout.Simple, context.targetImage.width, context.targetImage.height
 		)
@@ -38,18 +40,20 @@ class InGameMenuRenderer(
 		val upperBar = transform.transform(0f, 0.92f, 1f, 1f)
 		val lowerBar = transform.transform(0f, 0f, 1f, 0.08f)
 
-		context.uiRenderer.fillColor(upperBar.minX, upperBar.minY, upperBar.maxX, upperBar.maxY, barColor)
-		context.uiRenderer.fillColor(lowerBar.minX, lowerBar.minY, lowerBar.maxX, lowerBar.maxY, barColor)
+		context.resources.rectangleRenderer.fill(upperBar.minX, upperBar.minY, upperBar.maxX, upperBar.maxY, barColor)
+		context.resources.rectangleRenderer.fill(lowerBar.minX, lowerBar.minY, lowerBar.maxX, lowerBar.maxY, barColor)
 
 		val leftColor = srgbToLinear(rgba(54, 37, 21, 240))
 		val rightColor = srgbToLinear(rgba(132, 84, 53, 240))
-		context.uiRenderer.fillColor(
-			lowerBar.minX, upperBar.boundY, lowerBar.maxX, lowerBar.minY - 1, barColor,
-			Gradient(
-				0, 0, lowerBar.width, lowerBar.minY - upperBar.boundY,
-				leftColor, rightColor, leftColor
-			)
+		context.resources.rectangleRenderer.gradient(
+			lowerBar.minX, upperBar.boundY, lowerBar.maxX, lowerBar.minY - 1,
+			leftColor, rightColor, leftColor
 		)
+		context.resources.rectangleRenderer.endBatch(context.recorder)
+
+		tabRenderer.renderBackgroundRectangles()
+
+		context.uiRenderer.beginBatch()
 
 		val area = context.campaign.currentArea
 		if (area != null) {
@@ -71,15 +75,20 @@ class InGameMenuRenderer(
 		renderTabName(transform, "Inventory", 2)
 		renderTabName(transform, "Map", 3)
 
-		if (menu.currentTab.inside) {
-			val tabNamesRegion = transform.transform(0.79f, 0.08f, 0.21f, 0.92f)
-			val cover = rgba(0, 0, 0, 150)
-			context.uiRenderer.fillColor(tabNamesRegion.minX, tabNamesRegion.minY, tabNamesRegion.maxX, tabNamesRegion.maxY, cover)
-		}
-
 		tabRenderer.render()
 
 		context.uiRenderer.endBatch()
+
+		if (menu.currentTab.inside) {
+			context.resources.rectangleRenderer.beginBatch(context.recorder, context.targetImage, 1)
+			val tabNamesRegion = transform.transform(0.79f, 0.08f, 0.21f, 0.92f)
+			val cover = rgba(0, 0, 0, 150)
+			context.resources.rectangleRenderer.fill(
+				tabNamesRegion.minX, tabNamesRegion.minY,
+				tabNamesRegion.maxX, tabNamesRegion.maxY, cover
+			)
+			context.resources.rectangleRenderer.endBatch(context.recorder)
+		}
 
 		tabRenderer.postUiRendering()
 	}

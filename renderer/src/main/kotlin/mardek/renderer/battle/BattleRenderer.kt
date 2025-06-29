@@ -1,7 +1,6 @@
 package mardek.renderer.battle
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
-import com.github.knokko.ui.renderer.Gradient
 import mardek.renderer.InGameRenderContext
 import mardek.renderer.battle.block.MonsterBlockRenderer
 import mardek.renderer.battle.block.PlayerBlockRenderer
@@ -124,21 +123,21 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		effectParticleRenderer.render()
 		particleRenderer.render()
 		context.resources.partRenderer.endBatch()
-		context.uiRenderer.beginBatch()
+
+		val rectangles = context.resources.rectangleRenderer
 		val leftColor = srgbToLinear(rgba(90, 76, 44, 200))
 		val rightColor = srgbToLinear(rgba(38, 28, 17, 200))
-		context.uiRenderer.fillColor(
-			0, 0, context.targetImage.width, context.targetImage.height / 12, 0, Gradient(
-				0, 0, context.targetImage.width, context.targetImage.height, leftColor, rightColor, leftColor
-			)
+		rectangles.beginBatch(context.recorder, context.targetImage, 2)
+		rectangles.gradient(
+			0, 0, context.targetImage.width - 1, context.targetImage.height / 12,
+			leftColor, rightColor, leftColor
 		)
-		context.uiRenderer.fillColor(
+		rectangles.gradient(
 			0, context.targetImage.height - context.targetImage.height / 8,
-			context.targetImage.width, context.targetImage.height, 0, Gradient(
-				0, 0, context.targetImage.width, context.targetImage.height, rightColor, leftColor, rightColor
-			)
+			context.targetImage.width, context.targetImage.height,
+			rightColor, leftColor, rightColor
 		)
-		context.uiRenderer.endBatch()
+		rectangles.endBatch(context.recorder)
 
 		turnOrderRenderer.render()
 		actionBarRenderer.render()

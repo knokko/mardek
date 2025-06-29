@@ -54,7 +54,7 @@ class TurnOrderRenderer(
 		var x = region.minX + slotWidth
 		var isFirst = true
 		val simulator = TurnOrderSimulator(context.battle, context.updateContext)
-		while (x + slotWidth < region.maxX) {
+		while (x < region.maxX) {
 			val combatant = if (isFirst && onTurn != null) {
 				onTurn
 			} else {
@@ -76,33 +76,27 @@ class TurnOrderRenderer(
 	fun render() {
 		if (!shouldRender()) return
 
-		context.uiRenderer.beginBatch()
-
-		var x = region.minX
-		val lineColor = srgbToLinear(rgb(208, 193, 142))
 		val lineWidth = max(1, region.height / 20)
-		run {
-			val backgroundColor = srgbToLinear(rgb(25, 13, 9))
-			context.uiRenderer.fillColorUnaligned(
-				x, region.minY, x + slotWidth, region.minY,
-				x + slotWidth + triangleWidth, midY, x, midY, backgroundColor
-			)
-			context.uiRenderer.fillColorUnaligned(
-				x, region.maxY, x + slotWidth, region.maxY,
-				x + slotWidth + triangleWidth, midY, x, midY, backgroundColor
-			)
-			context.uiRenderer.drawString(
-				context.resources.font, "TURN", lineColor, IntArray(0),
-				x + slotWidth / 10, region.minY, x + slotWidth, region.maxY,
-				region.minY + 2 * region.height / 5, region.height / 5, 1, TextAlignment.LEFT
-			)
-			context.uiRenderer.drawString(
-				context.resources.font, "ORDER", lineColor, IntArray(0),
-				x + slotWidth / 10, region.minY, x + slotWidth, region.maxY,
-				region.minY + 3 * region.height / 4, region.height / 5, 1, TextAlignment.LEFT
-			)
-			x += slotWidth
-		}
+		var x = region.minX
+
+		val lineColor = srgbToLinear(rgb(208, 193, 142))
+
+		val rectangles = context.resources.rectangleRenderer
+		rectangles.beginBatch(
+			context.recorder, context.targetImage,
+			11 + 5 * region.width / slotWidth
+		)
+
+		val backgroundColor = srgbToLinear(rgb(25, 13, 9))
+		rectangles.fillUnaligned(
+			x, region.minY, x + slotWidth, region.minY,
+			x + slotWidth + triangleWidth, midY, x, midY, backgroundColor
+		)
+		rectangles.fillUnaligned(
+			x, region.maxY, x + slotWidth, region.maxY,
+			x + slotWidth + triangleWidth, midY, x, midY, backgroundColor
+		)
+		x += slotWidth
 
 		val simulator = TurnOrderSimulator(context.battle, context.updateContext)
 		val darkPlayerColor = srgbToLinear(rgba(49, 84, 122, 200))
@@ -117,7 +111,7 @@ class TurnOrderRenderer(
 		}
 
 		var isFirst = true
-		while (x + slotWidth < region.maxX) {
+		while (x < region.maxX) {
 			val combatant = if (isFirst && onTurn != null) {
 				onTurn
 			} else {
@@ -130,41 +124,67 @@ class TurnOrderRenderer(
 
 			val minTriX = x + triangleWidth
 			val maxTriX = minTriX + slotWidth
-			context.uiRenderer.fillColorUnaligned(
-				x, region.minY, x + slotWidth, region.minY, maxTriX, midY, minTriX, midY, darkColor
+			rectangles.fillUnaligned(
+				x, region.minY, x + slotWidth, region.minY,
+				maxTriX, midY, minTriX, midY, darkColor
 			)
-			context.uiRenderer.fillColorUnaligned(
+			rectangles.fillUnaligned(
 				x + 3 * lineWidth, region.minY + 2 * lineWidth,
 				x + slotWidth, region.minY + 2 * lineWidth,
 				maxTriX - lineWidth, midY, minTriX + 2 * lineWidth, midY, lightColor
 			)
-			context.uiRenderer.fillColorUnaligned(
-				x, region.maxY, x + slotWidth, region.maxY, maxTriX, midY, minTriX, midY, darkColor
+			rectangles.fillUnaligned(
+				x, region.maxY, x + slotWidth, region.maxY,
+				maxTriX, midY, minTriX, midY, darkColor
 			)
 			if (isFirst && onTurn != null) {
-				context.uiRenderer.fillColorUnaligned(
+				rectangles.fillUnaligned(
 					x + 3 * lineWidth, region.minY + 2 * lineWidth,
 					x + slotWidth, region.minY + 2 * lineWidth,
 					maxTriX - lineWidth, midY, minTriX + 2 * lineWidth, midY, onTurnColor
 				)
-				context.uiRenderer.fillColorUnaligned(
+				rectangles.fillUnaligned(
 					x + 3 * lineWidth, region.maxY - 2 * lineWidth,
 					x + slotWidth, region.maxY - 2 * lineWidth,
 					maxTriX - lineWidth, midY, minTriX + 2 * lineWidth, midY, onTurnColor
 				)
 			}
-			context.uiRenderer.fillColorUnaligned(
-				x, region.minY, x + lineWidth, region.minY, minTriX + lineWidth, midY, minTriX, midY, lineColor
+			rectangles.fillUnaligned(
+				x, region.minY, x + lineWidth, region.minY,
+				minTriX + lineWidth, midY, minTriX, midY, lineColor
 			)
-			context.uiRenderer.fillColorUnaligned(
-				x, region.maxY, x + lineWidth, region.maxY, minTriX + lineWidth, midY, minTriX, midY, lineColor
+			rectangles.fillUnaligned(
+				x, region.maxY, x + lineWidth, region.maxY,
+				minTriX + lineWidth, midY, minTriX, midY, lineColor
 			)
 			x += slotWidth
 			isFirst = false
 		}
 
-		context.uiRenderer.fillColor(region.minX, region.minY, region.maxX, region.minY + lineWidth - 1, lineColor)
-		context.uiRenderer.fillColor(region.minX, 1 + region.maxY - lineWidth, region.maxX, region.maxY, lineColor)
+		rectangles.fill(
+			region.minX, region.minY,
+			region.maxX, region.minY + lineWidth - 1, lineColor
+		)
+		rectangles.fill(
+			region.minX, 1 + region.maxY - lineWidth,
+			region.maxX, region.maxY, lineColor
+		)
+
+		x = region.minX
+
+		rectangles.endBatch(context.recorder)
+
+		context.uiRenderer.beginBatch()
+		context.uiRenderer.drawString(
+			context.resources.font, "TURN", lineColor, IntArray(0),
+			x + slotWidth / 10, region.minY, x + slotWidth, region.maxY,
+			region.minY + 2 * region.height / 5, region.height / 5, 1, TextAlignment.LEFT
+		)
+		context.uiRenderer.drawString(
+			context.resources.font, "ORDER", lineColor, IntArray(0),
+			x + slotWidth / 10, region.minY, x + slotWidth, region.maxY,
+			region.minY + 3 * region.height / 4, region.height / 5, 1, TextAlignment.LEFT
+		)
 		context.uiRenderer.endBatch()
 
 		context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)

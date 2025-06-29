@@ -2,7 +2,6 @@ package mardek.renderer.battle.block
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
-import com.github.knokko.ui.renderer.Gradient
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
 import mardek.renderer.battle.BattleRenderContext
@@ -66,11 +65,14 @@ class MonsterBlockRenderer(
 
 	fun render() {
 		if (opacity <= 0f) return
-		context.uiRenderer.beginBatch()
+
+		val rectangles = context.resources.rectangleRenderer
+		rectangles.beginBatch(context.recorder, context.targetImage, 2)
+
 		run {
 			val mousePosition = context.battle.lastMousePosition
 			if (mousePosition != null && region.contains(mousePosition.first, mousePosition.second)) {
-				context.uiRenderer.fillColor(
+				rectangles.fill(
 					region.minX, region.minY, region.maxX, region.maxY,
 					rgba(0, 200, 50, 10)
 				)
@@ -83,10 +85,15 @@ class MonsterBlockRenderer(
 			val maxX = minX + 3 * region.width / 4
 			val maxY = region.minY + region.height / 2
 			val weakColor = changeAlpha(enemy.element.color, 150)
-			context.uiRenderer.fillColorUnaligned(
-				minX, maxY, maxX, maxY, maxX - region.height / 2, minY, minX, minY, 0,
-				Gradient(minX, minY, region.width, region.height, weakColor, 0, weakColor)
+			rectangles.gradientUnaligned(
+				minX, maxY, weakColor,
+				maxX, maxY, 0,
+				maxX - region.height / 2, minY, 0,
+				minX, minY, weakColor,
 			)
+
+			rectangles.endBatch(context.recorder)
+			context.uiRenderer.beginBatch()
 
 			val textColor = srgbToLinear(rgb(238, 203, 127))
 			context.uiRenderer.drawString(

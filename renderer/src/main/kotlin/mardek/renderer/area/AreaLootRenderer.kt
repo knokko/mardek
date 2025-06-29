@@ -63,8 +63,9 @@ class AreaLootRenderer(
 	}
 
 	fun render() {
-		context.uiRenderer.beginBatch()
-		context.uiRenderer.fillColor(
+		val rectangles = context.resources.rectangleRenderer
+		rectangles.beginBatch(context.recorder, context.targetImage, 10)
+		rectangles.fill(
 			0, 0, context.targetImage.width, context.targetImage.height,
 			srgbToLinear(rgba(37, 26, 17, 254))
 		)
@@ -72,31 +73,35 @@ class AreaLootRenderer(
 		val leftColor = srgbToLinear(rgb(25, 15, 11))
 		val rightColor = srgbToLinear(rgb(107, 88, 50))
 		val upColor = srgbToLinear(rgb(58, 48, 43))
-		context.uiRenderer.fillColor(
-			rectMinX, rectMinY, rectMaxX, rectMaxY, srgbToLinear(rgb(155, 138, 95)),
-			Gradient(1, 1, rectWidth - 2, rectHeight - 2, leftColor, rightColor, leftColor),
-			Gradient(
-				2 + scale, 2 + scale, rectWidth - 4 - 2 * scale, rectHeight - 3 - scale,
-				leftColor, rightColor, upColor
-			)
+		rectangles.gradientWithBorder(
+			rectMinX, rectMinY, rectMaxX, rectMaxY, 1, 1,
+			srgbToLinear(rgb(155, 138, 95)),
+			leftColor, rightColor, upColor
 		)
 
 		val goldColor = srgbToLinear(rgb(255, 204, 0))
 		if (obtainedItemStack.plotItem != null) {
 			val margin = 2 * scale
-			context.uiRenderer.fillColor(
-				rectMinX - margin, rectMinY - margin, rectMaxX + margin, rectMinY - margin, goldColor
+			rectangles.fill(
+				rectMinX - margin, rectMinY - margin,
+				rectMaxX + margin, rectMinY - margin, goldColor
 			)
-			context.uiRenderer.fillColor(
-				rectMinX - margin, rectMaxY + margin, rectMaxX + margin, rectMaxY + margin, goldColor
+			rectangles.fill(
+				rectMinX - margin, rectMaxY + margin,
+				rectMaxX + margin, rectMaxY + margin, goldColor
 			)
-			context.uiRenderer.fillColor(
-				rectMinX - margin, rectMinY - margin, rectMinX - margin, rectMaxY + margin, goldColor
+			rectangles.fill(
+				rectMinX - margin, rectMinY - margin,
+				rectMinX - margin, rectMaxY + margin, goldColor
 			)
-			context.uiRenderer.fillColor(
-				rectMaxX + margin, rectMinY - margin, rectMaxX + margin, rectMaxY + margin, goldColor
+			rectangles.fill(
+				rectMaxX + margin, rectMinY - margin,
+				rectMaxX + margin, rectMaxY + margin, goldColor
 			)
 		}
+		rectangles.endBatch(context.recorder)
+
+		context.uiRenderer.beginBatch()
 
 		val minTextX = rectMinX + 7 * scale
 		val maxTextX = rectMaxX - 7 * scale

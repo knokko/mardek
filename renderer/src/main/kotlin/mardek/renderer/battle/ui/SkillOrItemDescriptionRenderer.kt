@@ -2,7 +2,6 @@ package mardek.renderer.battle.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
-import com.github.knokko.ui.renderer.Gradient
 import mardek.content.sprite.KimSprite
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
@@ -76,15 +75,20 @@ class SkillOrItemDescriptionRenderer(
 	fun render() {
 		if (selectedElement == null) return
 
-		context.uiRenderer.beginBatch()
 		run {
+			val rectangles = context.resources.rectangleRenderer
+			rectangles.beginBatch(context.recorder, context.targetImage, 1)
 			val leftColor = srgbToLinear(rgba(60, 45, 30, 230))
 			val rightColor = srgbToLinear(rgba(120, 90, 40, 230))
-			context.uiRenderer.fillColor(region.minX, region.minY, region.maxX, region.maxY, 0, Gradient(
-				0, 0, region.width, region.height, leftColor, rightColor, leftColor
-			))
+			rectangles.gradient(
+				region.minX, region.minY, region.maxX, region.maxY,
+				leftColor, rightColor, leftColor
+			)
+			rectangles.endBatch(context.recorder)
 		}
+
 		val textColor = srgbToLinear(rgb(238, 203, 127))
+		context.uiRenderer.beginBatch()
 		context.uiRenderer.drawString(
 			context.resources.font, selectedElement.name, textColor, IntArray(0),
 			region.minX + region.width / 100 + region.height, region.minY, region.maxX, region.maxY,

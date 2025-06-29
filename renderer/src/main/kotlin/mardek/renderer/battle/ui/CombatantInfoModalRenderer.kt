@@ -2,7 +2,6 @@ package mardek.renderer.battle.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
-import com.github.knokko.ui.renderer.Gradient
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.CombatStat
 import mardek.renderer.batch.KimBatch
@@ -91,19 +90,21 @@ class CombatantInfoModalRenderer(private val context: BattleRenderContext) {
 	fun render() {
 		if (combatant == null) return
 
-		context.uiRenderer.beginBatch()
+		val rectangles = context.resources.rectangleRenderer
+		rectangles.beginBatch(context.recorder, context.targetImage, 5)
 
 		// Render thin left bar
 		run {
 			val upColor = srgbToLinear(rgba(40, 25, 10, 250))
 			val downColor = srgbToLinear(rgba(50, 30, 15, 250))
-			context.uiRenderer.fillColor(0, y1, x1, maxY, 0, Gradient(
-				0, 0, x1, maxY - y1, downColor, downColor, upColor
-			))
+			rectangles.gradient(
+				0, y1, x1, maxY,
+				downColor, downColor, upColor
+			)
 		}
 
 		// Render thick dark left bar
-		context.uiRenderer.fillColor(
+		rectangles.fill(
 			x1, y1, x2, maxY,
 			srgbToLinear(rgb(24, 14, 10))
 		)
@@ -112,11 +113,9 @@ class CombatantInfoModalRenderer(private val context: BattleRenderContext) {
 		run {
 			val rightColor = srgbToLinear(rgba(99, 81, 49, 250))
 			val leftColor = srgbToLinear(rgba(50, 40, 25, 230))
-			context.uiRenderer.fillColor(
-				x2, y1, width - 1, y3, 0, Gradient(
-					0, 0, width - x2, y3 - y1,
-					leftColor, rightColor, leftColor
-				)
+			rectangles.gradient(
+				x2, y1, width - 1, y3,
+				leftColor, rightColor, leftColor
 			)
 		}
 
@@ -124,17 +123,20 @@ class CombatantInfoModalRenderer(private val context: BattleRenderContext) {
 		run {
 			val leftColor = srgbToLinear(rgba(55, 35, 15, 240))
 			val rightColor = srgbToLinear(rgba(90, 60, 20, 240))
-			context.uiRenderer.fillColorUnaligned(
-				x3, y1, x4, y2, width, y2, width, y1, 0, Gradient(
-					x3, y1, width - x3, y2 - y1,
-					leftColor, rightColor, leftColor
-				)
+			rectangles.gradientUnaligned(
+				x3, y1, leftColor,
+				x4, y2, leftColor,
+				width, y2, rightColor,
+				width, y1, rightColor,
 			)
-			context.uiRenderer.fillColor(x2, y3, width - 1, maxY, 0, Gradient(
-				0, 0, width - x2, maxY - y3,
+			rectangles.gradient(
+				x2, y3, width - 1, maxY,
 				leftColor, rightColor, leftColor
-			))
+			)
 		}
+
+		rectangles.endBatch(context.recorder)
+		context.uiRenderer.beginBatch()
 
 		// Render health
 		val darkTextColor = srgbToLinear(rgb(149, 107, 62))

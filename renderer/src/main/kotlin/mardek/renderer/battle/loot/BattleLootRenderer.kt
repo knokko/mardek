@@ -43,7 +43,6 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 			val animationPeriod = 700_000_000L
 			if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
 
-
 			kimBatch.requests.add(KimRequest(
 				x = partyMinX + column * 18 * scale, y = 5 * scale, scale = scale.toFloat(),
 				sprite = character.areaSprites.sprites[spriteIndex]
@@ -103,39 +102,68 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 	}
 
 	fun render() {
-		context.uiRenderer.beginBatch()
+		val rectangles = context.resources.rectangleRenderer
+		rectangles.beginBatch(context.recorder, context.targetImage, 11)
+
+		val leftColor = srgbToLinear(rgba(54, 37, 21, 240))
+		val rightColor = srgbToLinear(rgba(132, 84, 53, 240))
+		val x1 = partyMinX - 20 * scale
+		val x2 = partyMinX - 2 * scale
+		val y1 = 12 * scale
+		val y2 = 24 * scale
+		rectangles.gradient(
+			0, 0, width - 1, height - 1,
+			leftColor, rightColor, leftColor
+		)
 
 		// Render dark top bar & bottom bar
-		run {
-			val leftColor = srgbToLinear(rgba(54, 37, 21, 240))
-			val rightColor = srgbToLinear(rgba(132, 84, 53, 240))
-			val x1 = partyMinX - 20 * scale
-			val x2 = partyMinX - 2 * scale
-			val y1 = 12 * scale
-			val y2 = 24 * scale
-			context.uiRenderer.fillColor(
-				0, 0, width - 1, height - 1, 0,
-				Gradient(0, 0, width, height, leftColor, rightColor, leftColor)
-			)
-			val upColor = changeAlpha(rightColor, 100)
-			context.uiRenderer.fillColor(0, y1, width - 1, y2, upColor)
-			val barColor = rgb(0, 0, 0)
-			context.uiRenderer.fillColor(0, 0, x1, y1, barColor)
-			context.uiRenderer.fillColorUnaligned(x1, y1, x2, y2, x2, 0, x1, 0, barColor)
-			context.uiRenderer.fillColor(x2, 0, width, y2, barColor)
+		val upColor = changeAlpha(rightColor, 100)
+		rectangles.fill(0, y1, width - 1, y2, upColor)
+		val barColor = rgb(0, 0, 0)
+		rectangles.fill(0, 0, x1, y1, barColor)
+		rectangles.fillUnaligned(x1, y1, x2, y2, x2, 0, x1, 0, barColor)
+		rectangles.fill(x2, 0, width, y2, barColor)
 
-			val x4 = width - 55 * scale
-			val x3 = x4 - 4 * scale
-			val y4 = height - 25 * scale
-			val y3 = y4 - 5 * scale
-			context.uiRenderer.fillColor(0, y4, width - 1, height - 1, barColor)
-			context.uiRenderer.fillColorUnaligned(x3, y4, width, y4, width, y3, x4, y3, barColor)
-			context.uiRenderer.drawString(
-				context.resources.font, "INVENTORY SPACE", srgbToLinear(rgb(131, 81, 37)),
-				IntArray(0), x4, y3, width - 1, height - 1,
-				y4, 4 * scale, 1, TextAlignment.LEFT
-			)
+		val x4 = width - 55 * scale
+		val x3 = x4 - 4 * scale
+		val y4 = height - 25 * scale
+		val y3 = y4 - 5 * scale
+		rectangles.fill(0, y4, width - 1, height - 1, barColor)
+		rectangles.fillUnaligned(x3, y4, width, y4, width, y3, x4, y3, barColor)
+
+		val selectedElement = loot.selectedElement
+		for (indexY in loot.items.indices) {
+			if (selectedElement is BattleLoot.SelectedItem && selectedElement.index == indexY) {
+				val color = srgbToLinear(rgb(51, 102, 204))
+				val itemY = itemYs[indexY]
+				rectangles.fill(
+					0, itemY, width - 1, itemY + 16 * scale,
+					changeAlpha(color, 50)
+				)
+				rectangles.fill(0, itemY, width - 1, itemY + 1, color)
+				rectangles.fill(
+					0, itemY + 16 * scale - 1,
+					width - 1, itemY + 16 * scale, color
+				)
+			}
 		}
+
+		val goldBackground = srgbToLinear(rgb(35, 23, 15))
+		val minGoldY = height - 21 * scale
+		val maxGoldY = height - 3 * scale
+		val goldCircleX = width / 2
+		val goldRadius = (maxGoldY - minGoldY) / 2
+		rectangles.fill(0, minGoldY, goldCircleX, maxGoldY, goldBackground)
+
+		rectangles.endBatch(context.recorder)
+
+		context.uiRenderer.beginBatch()
+
+		context.uiRenderer.drawString(
+			context.resources.font, "INVENTORY SPACE", srgbToLinear(rgb(131, 81, 37)),
+			IntArray(0), x4, y3, width - 1, height - 1,
+			y4, 4 * scale, 1, TextAlignment.LEFT
+		)
 
 		// Render "Spoils" and the random title
 		context.uiRenderer.drawString(
@@ -151,24 +179,12 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 
 		// Render item rows
 		run {
-			val selectedElement = loot.selectedElement
 			val textHeight = 6 * scale
 			var indexY = 0
 			for (itemStack in loot.items) {
 				var strongColor = srgbToLinear(rgb(238, 203, 127))
 				var weakColor = srgbToLinear(rgb(192, 144, 89))
 				if (selectedElement is BattleLoot.SelectedItem && selectedElement.index == indexY) {
-					val color = srgbToLinear(rgb(51, 102, 204))
-					val itemY = itemYs[indexY]
-					context.uiRenderer.fillColor(
-						0, itemY, width - 1, itemY + 16 * scale,
-						changeAlpha(color, 50)
-					)
-					context.uiRenderer.fillColor(0, itemY, width - 1, itemY + 1, color)
-					context.uiRenderer.fillColor(
-						0, itemY + 16 * scale - 1,
-						width - 1, itemY + 16 * scale, color
-					)
 					strongColor = srgbToLinear(rgb(152, 203, 255))
 					weakColor = srgbToLinear(rgb(51, 102, 255))
 				}
@@ -198,12 +214,6 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 
 		// Render gold text & icon
 		run {
-			val goldBackground = srgbToLinear(rgb(35, 23, 15))
-			val minGoldY = height - 21 * scale
-			val maxGoldY = height - 3 * scale
-			val goldCircleX = width / 2
-			val goldRadius = (maxGoldY - minGoldY) / 2
-			context.uiRenderer.fillColor(0, minGoldY, goldCircleX, maxGoldY, goldBackground)
 			context.uiRenderer.fillCircle(
 				goldCircleX - goldRadius, minGoldY,
 				goldCircleX + goldRadius, maxGoldY, goldBackground

@@ -15,12 +15,13 @@ class FinishEffectRenderer(private val context: BattleRenderContext) {
 			val spentTime = System.nanoTime() - state.startTime
 			val fade = min(255L, 255L * spentTime / BattleStateMachine.GameOver.FADE_DURATION).toInt()
 			if (fade > 0) {
-				context.uiRenderer.beginBatch()
-				context.uiRenderer.fillColor(
-					0, 0, context.targetImage.width,
-					context.targetImage.height, rgba(0, 0, 0, fade)
+				val rectangles = context.resources.rectangleRenderer
+				rectangles.beginBatch(context.recorder, context.targetImage, 1)
+				rectangles.fill(
+					0, 0, context.targetImage.width, context.targetImage.height,
+					rgba(0, 0, 0, fade)
 				)
-				context.uiRenderer.endBatch()
+				rectangles.endBatch(context.recorder)
 			}
 		}
 		if (state is BattleStateMachine.Victory) {

@@ -15,6 +15,8 @@ import mardek.renderer.batch.Kim1Renderer
 import mardek.renderer.batch.KimRequest
 import mardek.content.inventory.ItemStack
 import mardek.renderer.InGameRenderContext
+import mardek.renderer.batch.RectangleRenderer
+import mardek.renderer.changeAlpha
 import mardek.renderer.ui.ResourceBarRenderer
 import mardek.renderer.ui.ResourceType
 import mardek.renderer.ui.renderDescription
@@ -59,9 +61,9 @@ class InventoryTabRenderer(
 		if (region.width < 50) return
 		this.kim1Batch = context.resources.kim1Renderer.startBatch()
 		this.kim2Batch = context.resources.kim2Renderer.startBatch()
-		renderHoverItemProperties(null, context.resources.kim1Renderer)
+		renderHoverItemProperties(null, null, context.resources.kim1Renderer)
 		renderItemGrid(null, context.resources.kim1Renderer, null)
-		renderCharacterBars(null, context.resources.kim1Renderer)
+		renderCharacterBars(null, null, context.resources.kim1Renderer)
 
 		kim1Batch.requests.add(KimRequest(
 			x = region.minX + region.width / 2,
@@ -70,11 +72,20 @@ class InventoryTabRenderer(
 		))
 	}
 
+	override fun renderBackgroundRectangles() {
+		if (region.width < 50) return
+		val renderer = context.resources.rectangleRenderer
+		renderer.beginBatch(context.recorder, context.targetImage, 200)
+		renderHoverItemProperties(renderer, null, null)
+		renderItemGrid(renderer, null, null)
+		renderCharacterBars(renderer, null, null)
+		renderer.endBatch(context.recorder)
+	}
+
 	override fun render() {
 		if (region.width < 50) return
-		renderHoverItemProperties(context.uiRenderer, null)
-		renderItemGrid(context.uiRenderer, null, null)
-		renderCharacterBars(context.uiRenderer, null)
+		renderHoverItemProperties(null, context.uiRenderer, null)
+		renderCharacterBars(null, context.uiRenderer, null)
 
 		val goldColor = srgbToLinear(rgb(254, 225, 123))
 		context.uiRenderer.drawString(
@@ -102,7 +113,9 @@ class InventoryTabRenderer(
 
 	private fun getItemGridStartY() = region.maxY - getItemGridSize() - 2 * scale
 
-	private fun renderHoverItemProperties(uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?) {
+	private fun renderHoverItemProperties(
+		rectangleRenderer: RectangleRenderer?, uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?
+	) {
 		if (getItemGridStartX() < 30 * scale) return
 		val maxX = min(200 * scale, getItemGridStartX() - 2 * scale)
 		val width = 1 + maxX - region.minX
@@ -112,16 +125,16 @@ class InventoryTabRenderer(
 
 		val barColorLight = srgbToLinear(rgb(127, 93, 50))
 		val barColorDark = srgbToLinear(rgb(66, 56, 48))
-		uiRenderer?.fillColor(region.minX, startY, maxX, barY, barColorLight, Gradient(
-			0, 0, width, barY - startY, barColorLight, barColorLight, barColorDark
-		))
+		rectangleRenderer?.gradient(
+			region.minX, startY, maxX, barY, barColorLight, barColorLight, barColorDark
+		)
 
 		val midColorLight = srgbToLinear(rgb(91, 74, 43))
 		val midColorDark = srgbToLinear(rgb(60, 40, 28))
-		val midGradient = Gradient(
-			0, 0, width, tabsY - barY, midColorLight, midColorDark, midColorLight
+		rectangleRenderer?.gradient(
+			region.minX, barY, maxX, tabsY,
+			midColorLight, midColorDark, midColorLight
 		)
-		uiRenderer?.fillColor(region.minX, barY, maxX, tabsY, midColorLight, midGradient)
 
 		val hoverItem = tab.hoveringItem?.get()
 		if (hoverItem != null) {
@@ -129,13 +142,12 @@ class InventoryTabRenderer(
 			val element = hoverItem.item.element
 			if (element != null) {
 				val elementColor = srgbToLinear(element.color)
-				val lowElementColor = rgba(red(elementColor), green(elementColor), blue(elementColor), 100.toByte())
-				val highElementColor = rgba(red(elementColor), green(elementColor), blue(elementColor), 30.toByte())
-				uiRenderer?.fillColor(
-					region.minX, startY + 5 * scale, maxX - 5 * scale,
-					startY + 13 * scale, highElementColor, Gradient(
-						0, 0, 2 * width, barY - startY, lowElementColor, 0, highElementColor
-					)
+				val lowElementColor = changeAlpha(elementColor, 100)
+				val highElementColor = changeAlpha(elementColor, 30)
+				rectangleRenderer?.gradient(
+					region.minX, startY + 5 * scale,
+					maxX - 5 * scale, startY + 13 * scale,
+					lowElementColor, 0, highElementColor
 				)
 
 				if (kim1Renderer != null) kim2Batch.requests.add(KimRequest(
@@ -356,11 +368,6 @@ class InventoryTabRenderer(
 			}
 		}
 
-		fun shift(amount: Int) = Gradient(
-			midGradient.minX - amount, midGradient.minY, midGradient.width, midGradient.height,
-			midGradient.baseColor, midGradient.rightColor, midGradient.upColor
-		)
-
 		val tabWidth = width / 3 - 3 * scale
 		if (tabWidth < 3 * scale) return
 		val maxY = region.maxY - 2 * scale
@@ -375,14 +382,22 @@ class InventoryTabRenderer(
 			var lineColor = lineColorDark
 			var textColor = srgbToLinear(rgb(110, 101, 95))
 			if (tab.descriptionIndex == index) {
+				val midGradient = Gradient(
+					0, 0, width, tabsY - barY,
+					midColorLight, midColorDark, midColorLight
+				)
+				fun shift(amount: Int) = Gradient(
+					midGradient.minX - amount, midGradient.minY, midGradient.width, midGradient.height,
+					midGradient.baseColor, midGradient.rightColor, midGradient.upColor
+				)
 				uiRenderer?.fillColor(x, tabsY, x + tabWidth, maxY, midColorDark, shift(x))
 				lineColor = lineColorLight
 				textColor = srgbToLinear(rgb(238, 203, 127))
 			}
 
-			uiRenderer?.fillColor(x, tabsY, x, maxY, lineColor)
-			uiRenderer?.fillColor(x, maxY, x + tabWidth, maxY, lineColor)
-			uiRenderer?.fillColor(x + tabWidth, tabsY, x + tabWidth, maxY, lineColor)
+			rectangleRenderer?.fill(x, tabsY, x, maxY, lineColor)
+			rectangleRenderer?.fill(x, maxY, x + tabWidth, maxY, lineColor)
+			rectangleRenderer?.fill(x + tabWidth, tabsY, x + tabWidth, maxY, lineColor)
 			uiRenderer?.drawString(
 				context.resources.font, text, textColor, intArrayOf(),
 				x + scale, tabsY, x + tabWidth - scale, maxY,
@@ -394,31 +409,44 @@ class InventoryTabRenderer(
 		drawTab("SKILLS", 1, tabX2)
 		drawTab("PROPERTIES", 2, tabX3)
 
-		uiRenderer?.fillColor(region.minX, tabsY, if (tab.descriptionIndex == 0) tabX1 else tabX2, tabsY, lineColorLight)
-		uiRenderer?.fillColor((if (tab.descriptionIndex == 1) tabX2 else tabX1) + tabWidth, tabsY, tabX3, tabsY, lineColorLight)
-		if (tab.descriptionIndex != 2) uiRenderer?.fillColor(tabX2 + tabWidth, tabsY, tabX3 + tabWidth, tabsY, lineColorLight)
+		rectangleRenderer?.fill(
+			region.minX, tabsY,
+			if (tab.descriptionIndex == 0) tabX1 else tabX2, tabsY, lineColorLight
+		)
+		rectangleRenderer?.fill((
+				if (tab.descriptionIndex == 1) tabX2 else tabX1) + tabWidth, tabsY,
+			tabX3, tabsY, lineColorLight
+		)
+		if (tab.descriptionIndex != 2) rectangleRenderer?.fill(
+			tabX2 + tabWidth, tabsY,
+			tabX3 + tabWidth, tabsY, lineColorLight
+		)
 	}
 
-	private fun renderItemGrid(uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?, amountRenderer: UiRenderer?) {
+	private fun renderItemGrid(
+		rectangleRenderer: RectangleRenderer?,
+		kim1Renderer: Kim1Renderer?, amountRenderer: UiRenderer?
+	) {
 		val fullSlotSize = scale * SIMPLE_SLOT_SIZE
 		val size = getItemGridSize()
 		val startX = getItemGridStartX()
 		val startY = getItemGridStartY()
 
-		uiRenderer?.fillColor(startX, startY, region.maxX, startY, LINE_COLOR)
+		rectangleRenderer?.fill(startX, startY, region.maxX, startY, LINE_COLOR)
 		for (row in 0 until 8) {
 			val minY = 1 + startY + row * fullSlotSize
 			val maxY = minY + fullSlotSize - 1
-			uiRenderer?.fillColor(startX, minY, region.maxX, maxY, LINE_COLOR, Gradient(
-				2, 1, size - 4, fullSlotSize - 2,
+			rectangleRenderer?.gradientWithBorder(
+				startX, minY, region.maxX, maxY,
+				2, 1, LINE_COLOR,
 				LIGHT_SLOT_COLOR, LIGHT_SLOT_COLOR, DARK_SLOT_COLOR
-			))
+			)
 		}
-		uiRenderer?.fillColor(startX, startY + size - 1, region.maxX, startY + size - 1, LINE_COLOR)
+		rectangleRenderer?.fill(startX, startY + size - 1, region.maxX, startY + size - 1, LINE_COLOR)
 
 		for (column in 1 until 8) {
 			val x = startX + column * fullSlotSize
-			uiRenderer?.fillColor(x, startY + 2, x + 1, startY + 8 * fullSlotSize - 1, LINE_COLOR)
+			rectangleRenderer?.fill(x, startY + 2, x + 1, startY + 8 * fullSlotSize - 1, LINE_COLOR)
 		}
 
 		val hoveredItem = tab.hoveringItem
@@ -432,10 +460,12 @@ class InventoryTabRenderer(
 
 				val x = startX + 1 + slotX * fullSlotSize
 				val y = startY + 1 + slotY * fullSlotSize
-				uiRenderer?.fillColor(x, y, x + fullSlotSize - 1, y + fullSlotSize - 1, hoverLineColor, Gradient(
-					1, 1, fullSlotSize - 2, fullSlotSize - 2,
+				val maxX = x + fullSlotSize - 1
+				val maxY = y + fullSlotSize - 1
+				rectangleRenderer?.gradientWithBorder(
+					x, y, maxX, maxY, 1, 1, hoverLineColor,
 					hoverLightColor, hoverLightColor, hoverDarkColor
-				))
+				)
 			}
 		}
 
@@ -497,42 +527,53 @@ class InventoryTabRenderer(
 		tab.renderItemSlotSize = fullSlotSize
 	}
 
-	private fun renderCharacterBars(uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?) {
+	private fun renderCharacterBars(
+		rectangleRenderer: RectangleRenderer?, uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?
+	) {
 		for (index in context.campaign.characterSelection.party.indices) {
-			renderCharacterBar(index, uiRenderer, kim1Renderer)
+			renderCharacterBar(index, rectangleRenderer, uiRenderer, kim1Renderer)
 		}
 	}
 
-	private fun renderCharacterBar(partyIndex: Int, uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?) {
+	private fun renderCharacterBar(
+		partyIndex: Int, rectangleRenderer: RectangleRenderer?,
+		uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?
+	) {
 		val assetCharacter = context.campaign.characterSelection.party[partyIndex] ?: return
 		val characterState = context.campaign.characterStates[assetCharacter] ?: throw IllegalStateException("Missing state for $assetCharacter")
 		val barHeight = scale * CHARACTER_BAR_HEIGHT
 		val startX = region.minX + 5 * scale
 		val startY = region.minY + 3 * scale + partyIndex * barHeight
-		val width = region.boundX - startX
 
-		val lineColor = srgbToLinear(rgb(165, 151, 110))
-		val outerLightColor = srgbToLinear(rgb(89, 72, 42))
-		val outerRightColor = srgbToLinear(rgb(104, 80, 47))
-		val outerDarkColor = srgbToLinear(rgb(39, 26, 16))
-		uiRenderer?.fillColor(startX, startY, region.maxX, startY + barHeight - 1, lineColor, Gradient(
-			2, 2, width - 4, barHeight - 3,
-			outerLightColor, outerRightColor, outerDarkColor
-		))
-
-		val innerDarkColor = srgbToLinear(rgb(113, 88, 58))
-		val innerLightColor = srgbToLinear(rgb(119, 105, 91))
-		val margin = 3 * scale
-		uiRenderer?.fillColor(
-			startX + margin, startY + margin, region.maxX - margin,
-			startY + barHeight * 2 / 3, innerDarkColor, Gradient(
-				0, 0, region.width, barHeight, innerDarkColor, innerDarkColor, innerLightColor
+		run {
+			val lineColor = srgbToLinear(rgb(165, 151, 110))
+			val outerLightColor = srgbToLinear(rgb(89, 72, 42))
+			val outerRightColor = srgbToLinear(rgb(104, 80, 47))
+			val outerDarkColor = srgbToLinear(rgb(39, 26, 16))
+			val maxY = startY + barHeight - 1
+			rectangleRenderer?.gradientWithBorder(
+				startX, startY, region.maxX, maxY, 2, 2,
+				lineColor, outerLightColor, outerRightColor, outerDarkColor
 			)
-		)
+		}
+
+		val margin = 3 * scale
+		run {
+			val innerDarkColor = srgbToLinear(rgb(113, 88, 58))
+			val innerLightColor = srgbToLinear(rgb(119, 105, 91))
+			rectangleRenderer?.gradient(
+				startX + margin, startY + margin,
+				region.maxX - margin, startY + barHeight * 2 / 3,
+				innerDarkColor, innerDarkColor, innerLightColor
+			)
+		}
 
 		if (partyIndex == tab.partyIndex) {
 			val selectedColor = rgba(0, 30, 150, 100)
-			uiRenderer?.fillColor(startX, startY, region.maxX, startY + barHeight - 1, selectedColor)
+			rectangleRenderer?.fill(
+				startX, startY,
+				region.maxX, startY + barHeight - 1, selectedColor
+			)
 		}
 
 		val characterX = startX + margin + margin / 2
@@ -553,11 +594,10 @@ class InventoryTabRenderer(
 		val elementColor = srgbToLinear(assetCharacter.element.color)
 		val lowElementColor = rgba(red(elementColor), green(elementColor), blue(elementColor), 150.toByte())
 		val highElementColor = rgba(red(elementColor), green(elementColor), blue(elementColor), 50.toByte())
-		uiRenderer?.fillColor(
+		rectangleRenderer?.gradient(
 			x1, startY + margin, characterX + 80 * scale,
-			startY + margin + 6 * scale, highElementColor, Gradient(
-				0, 0, region.width, region.height, lowElementColor, 0, highElementColor
-			)
+			startY + margin + 6 * scale,
+			lowElementColor, 0, highElementColor
 		)
 
 		val x2 = x1 + 25 * scale
@@ -654,10 +694,14 @@ class InventoryTabRenderer(
 			manaRenderer.renderTextBelowBar(characterState.currentMana, maxMana)
 		}
 
-		renderEquipment(partyIndex, startY + margin - 1, uiRenderer, kim1Renderer)
+		renderEquipment(partyIndex, startY + margin - 1, rectangleRenderer, kim1Renderer)
 	}
 
-	private fun renderEquipment(partyIndex: Int, startY: Int, uiRenderer: UiRenderer?, kim1Renderer: Kim1Renderer?) {
+	private fun renderEquipment(
+		partyIndex: Int, startY: Int,
+		rectangleRenderer: RectangleRenderer?,
+		kim1Renderer: Kim1Renderer?
+	) {
 		val startX = region.maxX - 6 * scale * EQUIPMENT_SLOT_SIZE
 		val largeSlotSize = scale * EQUIPMENT_SLOT_SIZE
 		val slotSize = scale * SIMPLE_SLOT_SIZE
@@ -681,10 +725,10 @@ class InventoryTabRenderer(
 			val minX = startX + column * largeSlotSize
 			val maxX = minX + slotSize - 1
 			val maxY = startY + slotSize - 1
-			uiRenderer?.fillColor(minX, startY, maxX, startY, lineColor)
-			uiRenderer?.fillColor(minX, maxY, maxX, maxY, lineColor)
-			uiRenderer?.fillColor(minX, startY, minX, maxY, lineColor)
-			uiRenderer?.fillColor(maxX, startY, maxX, maxY, lineColor)
+			rectangleRenderer?.fill(minX, startY, maxX, startY, lineColor)
+			rectangleRenderer?.fill(minX, maxY, maxX, maxY, lineColor)
+			rectangleRenderer?.fill(minX, startY, minX, maxY, lineColor)
+			rectangleRenderer?.fill(maxX, startY, maxX, maxY, lineColor)
 			if (pickedItem != null && (-pickedItem.slotIndex - 1) == column && pickedItem.characterState == characterState) continue
 			if (kim1Renderer != null && item != null) kim1Batch.requests.add(KimRequest(
 				x = minX + scale, y = startY + scale, scale = scale.toFloat(), sprite = item.sprite
@@ -704,10 +748,10 @@ class InventoryTabRenderer(
 			val minX = startX + (-hoveredItem.slotIndex - 1) * largeSlotSize
 			val maxX = minX + slotSize - 1
 			val maxY = startY + slotSize - 1
-			uiRenderer?.fillColor(minX, startY, maxX, maxY, hoverLineColor, Gradient(
-				1, 1, slotSize - 2, slotSize - 2,
+			rectangleRenderer?.gradientWithBorder(
+				minX, startY, maxX, maxY, 1, 1, hoverLineColor,
 				hoverLightColor, hoverLightColor, hoverDarkColor
-			))
+			)
 		}
 	}
 }

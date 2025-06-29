@@ -2,7 +2,6 @@ package mardek.renderer.ui.tabs
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
-import com.github.knokko.ui.renderer.Gradient
 import mardek.content.skill.ActiveSkill
 import mardek.content.skill.PassiveSkill
 import mardek.content.skill.ReactionSkill
@@ -120,6 +119,7 @@ class SkillsTabRenderer(
 			context.content.ui.rangedAttackIcon, context.content.ui.rangedDefenseIcon, context.content.ui.passiveIcon
 		).withIndex()) {
 			val x = region.minX + region.width / 7 + column * 12 * characterScale
+			// TODO The next line is expensive because the icons are ridiculously large
 			addKimRequest(KimRequest(x = x, y = iconY, scale = characterScale / 32f, sprite = icon))
 
 			if (column == tab.skillTypeIndex && tab.inside) addKimRequest(KimRequest(
@@ -136,19 +136,46 @@ class SkillsTabRenderer(
 		))
 	}
 
+	override fun renderBackgroundRectangles() {
+		if (region.width < 50) return
+
+		val renderer = context.resources.rectangleRenderer
+		renderer.beginBatch(context.recorder, context.targetImage, 8)
+
+		val selectionLowColor = srgbToLinear(rgb(25, 72, 119))
+		val selectionBorder = srgbToLinear(rgb(165, 205, 254))
+		val selectedCharacterMaxX = selectedCharacterX + 18 * characterScale - 1
+		val selectedCharacterMaxY = selectedCharacterY + 18 * characterScale - 1
+		renderer.gradientWithBorder(
+			selectedCharacterX, selectedCharacterY, selectedCharacterMaxX, selectedCharacterMaxY,
+			1, 1, selectionBorder,
+			selectionLowColor, selectionLowColor, 0
+		)
+
+		renderer.fill(
+			descriptionMaxX, headerY, region.maxX, headerMaxY,
+			srgbToLinear(rgb(50, 37, 27))
+		)
+
+		val titleBarLowColor = srgbToLinear(rgb(125, 91, 49))
+		val titleBarHighColor = srgbToLinear(rgb(80, 69, 61))
+		renderer.gradient(
+			region.minX, headerY, descriptionMaxX, headerMaxY + headerHeight,
+			titleBarLowColor, titleBarLowColor, titleBarHighColor
+		)
+
+		val leftBarColor = srgbToLinear(rgba(93, 75, 43, 200))
+		renderer.gradient(
+			region.minX, headerMaxY + headerHeight, descriptionMaxX, region.maxY,
+			leftBarColor, 0, leftBarColor
+		)
+
+		renderer.endBatch(context.recorder)
+	}
+
 	override fun render() {
 		if (region.width < 50) return
 		val titleTextColor = srgbToLinear(rgb(238, 203, 127))
-		val selectionLowColor = srgbToLinear(rgb(25, 72, 119))
-		context.uiRenderer.fillColor(
-			selectedCharacterX, selectedCharacterY, selectedCharacterX + 18 * characterScale - 1,
-			selectedCharacterY + 18 * characterScale - 1, srgbToLinear(rgb(165, 205, 254)), Gradient(
-				1, 1, 18 * characterScale - 2, 18 * characterScale - 2, selectionLowColor, selectionLowColor, 0
-			)
-		)
-		context.uiRenderer.fillColor(
-			descriptionMaxX, headerY, region.maxX, headerMaxY, srgbToLinear(rgb(50, 37, 27))
-		)
 
 		if (tab.inside) {
 			val skillTypeDescription = when (tab.skillTypeIndex) {
@@ -166,21 +193,6 @@ class SkillsTabRenderer(
 				selectedCharacterY + 7 * characterScale, 4 * characterScale, 1, TextAlignment.RIGHT
 			)
 		}
-
-		val titleBarLowColor = srgbToLinear(rgb(125, 91, 49))
-		val titleBarHighColor = srgbToLinear(rgb(80, 69, 61))
-		context.uiRenderer.fillColor(
-			region.minX, headerY, descriptionMaxX, headerMaxY + headerHeight, 0, Gradient(
-				0, 0, region.width, 2 * headerHeight, titleBarLowColor, titleBarLowColor, titleBarHighColor
-			)
-		)
-
-		val leftBarColor = srgbToLinear(rgba(93, 75, 43, 200))
-		context.uiRenderer.fillColor(
-			region.minX, headerMaxY + headerHeight, descriptionMaxX, region.maxY, 0, Gradient(
-				0, 0, descriptionMaxX - region.minX, region.height, leftBarColor, 0, leftBarColor
-			)
-		)
 
 		val selectedSkillText = if (tab.inside) selectedSkill?.skill?.name ?: "No skill"
 		else assetCharacter.characterClass.skillClass.name

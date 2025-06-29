@@ -37,6 +37,7 @@ class SharedResources(
 	val kim2Renderer: Kim2Renderer
 	val colorGridRenderer: ColorGridRenderer
 	val partRenderer: PartRenderer
+	val rectangleRenderer: RectangleRenderer
 	val light: LightResources
 
 	private val textInstance: TextInstance
@@ -104,6 +105,7 @@ class SharedResources(
 			descriptorCombiner = descriptorCombiner
 		)
 		colorGridRenderer = ColorGridRenderer(boiler, perFrameBuffer, renderPass, descriptorCombiner)
+		rectangleRenderer = RectangleRenderer(boiler, perFrameBuffer, renderPass)
 
 		uiInstance = UiRenderInstance.withRenderPass(
 			boiler, renderPass, 0, persistentCombiner,
@@ -155,6 +157,7 @@ class SharedResources(
 
 	fun destroy() {
 		vkDestroyDescriptorPool(boiler.vkDevice(), descriptorPool, null)
+		rectangleRenderer.destroy()
 		kim1Renderer.destroy()
 		kim2Renderer.destroy()
 		colorGridRenderer.destroy()

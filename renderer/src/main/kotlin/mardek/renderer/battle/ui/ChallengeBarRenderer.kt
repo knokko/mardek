@@ -2,7 +2,6 @@ package mardek.renderer.battle.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
-import com.github.knokko.ui.renderer.Gradient
 import mardek.content.skill.ReactionSkillType
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
@@ -74,8 +73,9 @@ class ChallengeBarRenderer(private val context: BattleRenderContext, private val
 	fun render() {
 		if (challengeState == null || opacity == 0f) return
 
+		val rectangles = context.resources.rectangleRenderer
+		rectangles.beginBatch(context.recorder, context.targetImage, 12)
 		val highAlpha = (255 * opacity).roundToInt()
-		context.uiRenderer.beginBatch()
 		run {
 			val alpha = (220 * opacity).roundToInt()
 			val lightBottomColor = srgbToLinear(rgba(80, 65, 55, alpha))
@@ -83,19 +83,23 @@ class ChallengeBarRenderer(private val context: BattleRenderContext, private val
 			val lightRightColor = srgbToLinear(rgba(130, 110, 70, alpha))
 			val darkLeftColor = srgbToLinear(rgba(38, 32, 32, alpha))
 			val darkRightColor = srgbToLinear(rgba(100, 90, 50, alpha))
-			val midY = region.height / 2
+			val midY = region.minY + region.height / 2
 			val borderHeight = region.height / 25
-			context.uiRenderer.fillColor(
-				region.minX, region.minY, region.maxX, region.maxY,
+			rectangles.fill(
+				region.minX, region.minY, region.maxX, region.minY + borderHeight - 1,
 				srgbToLinear(rgba(208, 193, 142, highAlpha)),
-				Gradient(
-					0, borderHeight, region.width, midY - borderHeight,
-					lightBottomColor, lightRightColor, lightTopColor
-				),
-				Gradient(
-					0, midY, region.width, region.height - borderHeight - midY,
-					darkLeftColor, darkRightColor, darkLeftColor
-				)
+			)
+			rectangles.fill(
+				region.minX, region.maxY + 1 - borderHeight, region.maxX, region.maxY,
+				srgbToLinear(rgba(208, 193, 142, highAlpha)),
+			)
+			rectangles.gradient(
+				region.minX, region.minY + borderHeight, region.maxX, midY - 1,
+				lightBottomColor, lightRightColor, lightTopColor
+			)
+			rectangles.gradient(
+				region.minX, midY, region.maxX, region.maxY - borderHeight,
+				darkLeftColor, darkRightColor, darkLeftColor
 			)
 		}
 		run {
@@ -110,19 +114,22 @@ class ChallengeBarRenderer(private val context: BattleRenderContext, private val
 			val maxY = region.maxY - region.height / 3
 			val width = 1 + maxX - minX
 			val height = 1 + maxY - minY
-			context.uiRenderer.fillColor(minX, minY, maxX, maxY, borderColor, Gradient(
-				borderWidth, borderWidth, width - 2 * borderWidth, height - 2 * borderWidth,
-				baseColor, rightColor, upColor
-			))
+			rectangles.gradientWithBorder(
+				minX, minY, maxX, maxY, borderWidth, borderWidth,
+				borderColor, baseColor, rightColor, upColor
+			)
+
 			val innerMinX = (minX + width * ReactionChallenge.MIN_CLICK_AFTER / ReactionChallenge.DURATION).toInt()
 			val innerMaxX = (minX + width * ReactionChallenge.MAX_CLICK_AFTER / ReactionChallenge.DURATION).toInt()
 			val darkColor = srgbToLinear(rgba(210, 170, 70, highAlpha))
 			val brightColor = srgbToLinear(rgba(250, 240, 140, highAlpha))
-			context.uiRenderer.fillColor(innerMinX, minY, innerMaxX, maxY, darkColor, Gradient(
-				0, height / 4, width, height / 3,
-				brightColor, brightColor, brightColor
-			))
-			context.uiRenderer.fillColor(minX, minY, maxX, maxY, resultColor)
+			rectangles.fill(innerMinX, minY, innerMaxX, minY + height / 4, darkColor)
+			rectangles.fill(
+				innerMinX, minY + height / 4,
+				innerMaxX, minY + height / 4 + height / 3, brightColor
+			)
+			rectangles.fill(minX, minY, maxX, maxY, resultColor)
+			rectangles.endBatch(context.recorder)
 
 			val cursorMinY = region.minY - region.height / 3
 			val cursorMaxY = region.maxY + region.height / 3
@@ -133,13 +140,14 @@ class ChallengeBarRenderer(private val context: BattleRenderContext, private val
 				min(maxX, minX + (width * challengeState.clickedAfter / ReactionChallenge.DURATION).toInt())
 			}
 			val cursorWidth = 3 * height / 2
+
+			context.uiRenderer.beginBatch()
 			context.uiRenderer.drawImage(
 				context.resources.bcImages[context.content.ui.challengeCursor.index],
 				cursorX - cursorWidth / 2, cursorMinY, cursorWidth, cursorMaxY - cursorMinY
 			)
+			context.uiRenderer.endBatch()
 		}
-
-		context.uiRenderer.endBatch()
 
 		if (batch.requests[0].sprite.version == 1) {
 			context.resources.kim1Renderer.submit(batch, context.recorder, context.targetImage)
