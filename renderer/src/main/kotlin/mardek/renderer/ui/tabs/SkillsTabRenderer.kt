@@ -119,8 +119,7 @@ class SkillsTabRenderer(
 			context.content.ui.rangedAttackIcon, context.content.ui.rangedDefenseIcon, context.content.ui.passiveIcon
 		).withIndex()) {
 			val x = region.minX + region.width / 7 + column * 12 * characterScale
-			// TODO The next line is expensive because the icons are ridiculously large
-			addKimRequest(KimRequest(x = x, y = iconY, scale = characterScale / 32f, sprite = icon))
+			addKimRequest(KimRequest(x = x, y = iconY, scale = 8f * characterScale / icon.width, sprite = icon))
 
 			if (column == tab.skillTypeIndex && tab.inside) addKimRequest(KimRequest(
 				x = x - 4 * characterScale, y = iconY - 4 * characterScale,
