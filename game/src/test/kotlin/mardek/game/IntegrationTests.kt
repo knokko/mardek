@@ -95,6 +95,7 @@ class IntegrationTests {
 		TestMoveResultCalculator.testPyromagia(instance)
 		TestMoveResultCalculator.testRecover(instance)
 		TestMoveResultCalculator.testMultiTargetFrostasia(instance)
+		TestMoveResultCalculator.testRageChord(instance)
 	}
 
 	@Test

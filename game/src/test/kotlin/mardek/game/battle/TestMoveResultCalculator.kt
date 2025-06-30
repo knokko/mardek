@@ -908,8 +908,6 @@ object TestMoveResultCalculator {
 			deuganState.equipment[3] = content.items.items.find { it.flashName == "Hero's Coat" }!!
 			deuganState.equipment[4] = content.items.items.find { it.flashName == "Dragon Amulet" }!!
 
-			val frostasia = heroDeugan.characterClass.skillClass.actions.find { it.name == "Frostasia" }!!
-
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = monster, level = 10), null, null, Enemy(monster = monster, level = 1))
@@ -941,6 +939,52 @@ object TestMoveResultCalculator {
 				val entry = result.targets[0]
 				assertFalse(entry.criticalHit)
 				assertTrue(entry.damage in 1100..2300, "Expected ${entry.damage} to be 1716")
+				assertEquals(0, entry.addedEffects.size)
+			}
+		}
+	}
+
+	fun testRageChord(instance: TestingInstance) {
+		instance.apply {
+			val campaign = simpleCampaignState()
+
+			val skeleton = content.battle.monsters.find { it.name == "CharredBones" }!!
+			val rageChord = skeleton.strategies[0].entries.find { it.chance == 10 }!!.skill!!
+			val berserk = content.stats.statusEffects.find { it.flashName == "BSK" }!!
+
+			startSimpleBattle(campaign, enemies = arrayOf(
+				Enemy(monster = skeleton, level = 10), null, null, null
+			))
+			val battle = campaign.currentArea!!.activeBattle!!
+
+			repeat(1000) {
+				val result = MoveResultCalculator(
+					battleUpdateContext(campaign)
+				).computeSkillResult(
+					rageChord, battle.livingOpponents()[0],
+					listOf(battle.livingPlayers()[1]), true
+				)
+				assertSame(content.stats.elements.find { it.rawName == "FIRE" }!!, result.element)
+				val entry = result.targets[0]
+				assertFalse(entry.criticalHit)
+				assertEquals(0, entry.damage)
+				assertFalse(entry.missed)
+				assertEquals(0, entry.addedStatModifiers.size)
+				assertEquals(0, entry.removedEffects.size)
+				assertEquals(setOf(berserk), entry.addedEffects)
+			}
+
+			// Let's give Deugan berserk, so that he can't get it again
+			battle.livingPlayers()[1].statusEffects.add(berserk)
+			repeat(1000) {
+				val result = MoveResultCalculator(
+					battleUpdateContext(campaign)
+				).computeSkillResult(
+					rageChord, battle.livingOpponents()[0],
+					listOf(battle.livingPlayers()[1]), true
+				)
+				assertSame(content.stats.elements.find { it.rawName == "FIRE" }!!, result.element)
+				val entry = result.targets[0]
 				assertEquals(0, entry.addedEffects.size)
 			}
 		}

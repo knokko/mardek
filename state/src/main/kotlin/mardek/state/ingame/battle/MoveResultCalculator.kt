@@ -105,7 +105,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			}
 		}
 
-		if (attacker is MonsterCombatantState) {
+		if (attacker is MonsterCombatantState && isMelee) {
 			for (addEffect in attacker.monster.attackEffects) {
 				addCandidateEffects[addEffect.effect] =
 					addCandidateEffects.getOrDefault(addEffect.effect, 0) + addEffect.chance
@@ -239,14 +239,14 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		val rawWeapon = attacker.getEquipment(context)[0]
 		val weapon = rawWeapon?.equipment?.weapon
 
-		val skillDamage = skill.damage!!
+		val skillDamage = skill.damage
 
 		var attackReactionType = ReactionSkillType.RangedAttack
 		var defenseReactionType = ReactionSkillType.RangedDefense
 		var multiplierStat = CombatStat.Spirit
 		var defenseStat: CombatStat? = CombatStat.RangedDefense
 		if (skill.isMelee) {
-			if (skillDamage.spiritModifier != SkillSpiritModifier.SpiritBlade) {
+			if (skillDamage != null && skillDamage.spiritModifier != SkillSpiritModifier.SpiritBlade) {
 				multiplierStat = CombatStat.Strength
 				defenseStat = CombatStat.MeleeDefense
 			}
@@ -256,32 +256,34 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 
 		var extraFlatDamage = 0
 		var elementalBonus = 0f
-		var attackValue = skillDamage.flatAttackValue
-		attackValue += (skillDamage.weaponModifier * attacker.getStat(CombatStat.Attack, context)).roundToInt()
-		attackValue += (skillDamage.levelModifier * attacker.getLevel(context))
-		if (skillDamage.spiritModifier == SkillSpiritModifier.GreenLightning) {
-			attackValue += 2 * attacker.getStat(CombatStat.Spirit, context)
-		}
-		if (skillDamage.spiritModifier == SkillSpiritModifier.DivineGlory) {
-			extraFlatDamage += attacker.getLevel(context) * attacker.getStat(CombatStat.Spirit, context)
-		}
-		if (skillDamage.spiritModifier == SkillSpiritModifier.LayOnHands) {
-			extraFlatDamage -= 2 * attacker.getLevel(context) * attacker.getStat(CombatStat.Spirit, context)
-		}
+		var attackValue = skillDamage?.flatAttackValue ?: 0
+		if (skillDamage != null) {
+			attackValue += (skillDamage.weaponModifier * attacker.getStat(CombatStat.Attack, context)).roundToInt()
+			attackValue += (skillDamage.levelModifier * attacker.getLevel(context))
+			if (skillDamage.spiritModifier == SkillSpiritModifier.GreenLightning) {
+				attackValue += 2 * attacker.getStat(CombatStat.Spirit, context)
+			}
+			if (skillDamage.spiritModifier == SkillSpiritModifier.DivineGlory) {
+				extraFlatDamage += attacker.getLevel(context) * attacker.getStat(CombatStat.Spirit, context)
+			}
+			if (skillDamage.spiritModifier == SkillSpiritModifier.LayOnHands) {
+				extraFlatDamage -= 2 * attacker.getLevel(context) * attacker.getStat(CombatStat.Spirit, context)
+			}
 
-		if (skillDamage.ignoresDefense) defenseStat = null
-		if (skillDamage.ignoresShield) TODO("ignores shield")
-		for (bonus in skillDamage.bonusAgainstElements) {
-			if (bonus.element == skill.element) elementalBonus += bonus.modifier
+			if (skillDamage.ignoresDefense) defenseStat = null
+			if (skillDamage.ignoresShield) TODO("ignores shield")
+			for (bonus in skillDamage.bonusAgainstElements) {
+				if (bonus.element == skill.element) elementalBonus += bonus.modifier
+			}
+			if (skillDamage.moneyModifier != 0f) TODO("money modifier")
+			if (skillDamage.gemModifier != 0f) TODO("gem modifier")
+			extraFlatDamage += (skillDamage.lostHealthModifier * (attacker.maxHealth - attacker.currentHealth)).roundToInt()
+			if (skillDamage.statusEffectModifier != 0f) TODO("status effect modifier")
+			if (skillDamage.killCountModifier != 0f) TODO("kill count modifier")
+			extraFlatDamage += skillDamage.hardcodedDamage
+			if (skillDamage.potionModifier != 0f) TODO("potion modifier")
+			if (skillDamage.crescendoModifier != 0f) TODO("crescendo modifier")
 		}
-		if (skillDamage.moneyModifier != 0f) TODO("money modifier")
-		if (skillDamage.gemModifier != 0f) TODO("gem modifier")
-		extraFlatDamage += (skillDamage.lostHealthModifier * (attacker.maxHealth - attacker.currentHealth)).roundToInt()
-		if (skillDamage.statusEffectModifier != 0f) TODO("status effect modifier")
-		if (skillDamage.killCountModifier != 0f) TODO("kill count modifier")
-		extraFlatDamage += skillDamage.hardcodedDamage
-		if (skillDamage.potionModifier != 0f) TODO("potion modifier")
-		if (skillDamage.crescendoModifier != 0f) TODO("crescendo modifier")
 
 		val addStatModifiers = mutableMapOf<CombatStat, Int>()
 		for (modifier in skill.statModifiers) {
@@ -309,29 +311,34 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			if (sound == null) sound = context.sounds.battle.punch
 		}
 
-		val critChance = if (skillDamage.critChance != null) skillDamage.critChance!!
+		val critChance = if (skillDamage?.critChance != null) skillDamage.critChance!!
 		else if (skill.isMelee && weapon?.critChance != null) weapon.critChance else 0
 
-		val rawEntries = targets.map { target -> computeAttackResult(
-			attacker, target, passedChallenge,
-			multiplierStat = multiplierStat,
-			defenseStat = defenseStat,
-			isMelee = skill.isMelee,
-			isHealing = skill.isPositive() && !target.revertsHealing(),
-			attackReactionType = attackReactionType,
-			defenseReactionType = defenseReactionType,
-			baseFlatDamage = extraFlatDamage + (skillDamage.remainingTargetHpModifier * target.currentHealth).roundToInt(),
-			attackValue = attackValue,
-			basicElementalBonus = elementalBonus,
-			basicHitChance = skill.accuracy,
-			basicCritChance = critChance,
-			applyDamageSplit = targets.size > 1 && skillDamage.splitDamage,
-			basicHealthDrain = skill.healthDrain,
-			basicManaDrain = 0f,
-			attackElement = skill.element,
-			basicAddStatModifiers = addStatModifiers,
-			basicAddEffects = addEffects,
-			basicRemoveEffects = removeEffects,
+		val rawEntries = targets.map { target ->
+			var revengeDamage = 0
+			if (skillDamage != null) {
+				revengeDamage += (skillDamage.remainingTargetHpModifier * target.currentHealth).roundToInt()
+			}
+			computeAttackResult(
+				attacker, target, passedChallenge,
+				multiplierStat = multiplierStat,
+				defenseStat = defenseStat,
+				isMelee = skill.isMelee,
+				isHealing = skill.isPositive() && !target.revertsHealing(),
+				attackReactionType = attackReactionType,
+				defenseReactionType = defenseReactionType,
+				baseFlatDamage = extraFlatDamage + revengeDamage,
+				attackValue = attackValue,
+				basicElementalBonus = elementalBonus,
+				basicHitChance = skill.accuracy,
+				basicCritChance = critChance,
+				applyDamageSplit = targets.size > 1 && skillDamage != null && skillDamage.splitDamage,
+				basicHealthDrain = skill.healthDrain,
+				basicManaDrain = 0f,
+				attackElement = skill.element,
+				basicAddStatModifiers = addStatModifiers,
+				basicAddEffects = addEffects,
+				basicRemoveEffects = removeEffects,
 		) }
 
 		val sounds = mutableListOf<SoundEffect>()
