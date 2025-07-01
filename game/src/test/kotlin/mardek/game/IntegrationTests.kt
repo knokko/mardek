@@ -1,6 +1,7 @@
 package mardek.game
 
 import mardek.game.area.TestChestLoot
+import mardek.game.area.TestRandomBattles
 import mardek.game.area.testDragonLairDoor
 import mardek.game.battle.TestBasicAttacks
 import mardek.game.battle.TestBattleLoot
@@ -189,5 +190,13 @@ class IntegrationTests {
 		TestTurnStatusEffects.testRegeneration(instance)
 		TestTurnStatusEffects.testMultiple(instance)
 		TestTurnStatusEffects.testRemoveEffectsWhenResistanceIsLarge(instance)
+	}
+
+	@Test
+	fun testTriggerRandomBattles() {
+		TestRandomBattles.testNoEncountersBefore30Steps(instance)
+		TestRandomBattles.testEncountersAfter30Steps(instance)
+		TestRandomBattles.testEncountersAfter60Steps(instance)
+		TestRandomBattles.testTransferOddsToNextArea(instance)
 	}
 }

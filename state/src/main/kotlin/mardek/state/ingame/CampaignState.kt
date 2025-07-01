@@ -57,6 +57,20 @@ class CampaignState(
 	@BitField(id = 6)
 	val areaDiscovery = AreaDiscoveryMap()
 
+	/**
+	 * - This variable is 0 at the start of the campaign, and is reset to 0 whenever a random battle is encountered.
+	 * - This variable is increased by 1 whenever the player moves in an area with random battles
+	 * - When this variable gets larger, the probability of encountering a random battle increases.
+	 * - When this variable is too low, no random battle can be encountered.
+	 */
+	@BitField(id = 7)
+	@IntegerField(expectUniform = false, minValue = 0)
+	var stepsSinceLastBattle = 0
+
+	@BitField(id = 8)
+	@IntegerField(expectUniform = false, minValue = 0)
+	var totalSteps = 0L
+
 	constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
 	var shouldOpenMenu = false
@@ -162,9 +176,15 @@ class CampaignState(
 			return
 		}
 
-		currentArea?.update(AreaState.UpdateContext(
-			context, characterSelection.party, characterStates, areaDiscovery
-		))
+		currentArea?.let {
+			val areaContext = AreaState.UpdateContext(
+				context, characterSelection.party, characterStates,
+				areaDiscovery, stepsSinceLastBattle, totalSteps
+			)
+			it.update(areaContext)
+			this.stepsSinceLastBattle = areaContext.stepsSinceLastBattle
+			this.totalSteps = areaContext.totalSteps
+		}
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area
