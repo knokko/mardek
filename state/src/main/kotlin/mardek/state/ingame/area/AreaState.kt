@@ -54,20 +54,12 @@ class AreaState(
 	@BitField(id = 5, optional = true)
 	var incomingRandomBattle: IncomingRandomBattle? = null
 
-	@BitField(id = 6)
-	@IntegerField(expectUniform = false, minValue = 0)
-	private var stepsWithoutBattle = area.randomBattles?.minSteps ?: 0
-
-	@BitField(id = 7, optional = true)
+	@BitField(id = 6, optional = true)
 	@ReferenceFieldTarget(label = "battle state")
 	var activeBattle: BattleState? = null
 
-	@BitField(id = 8, optional = true)
+	@BitField(id = 7, optional = true)
 	var battleLoot: BattleLoot? = null
-
-	@BitField(id = 9)
-	@IntegerField(expectUniform = false, minValue = 0)
-	private var stepsSinceLastBattle = 0
 
 	private val rng = Random.Default
 
@@ -128,7 +120,6 @@ class AreaState(
 				)
 			)
 			incomingRandomBattle = null
-			stepsSinceLastBattle = 0
 		}
 
 		currentTime += context.timeStep
@@ -198,6 +189,7 @@ class AreaState(
 	private fun updatePlayerPosition(context: UpdateContext) {
 		val nextPlayerPosition = this.nextPlayerPosition
 		if (nextPlayerPosition != null && nextPlayerPosition.arrivalTime <= currentTime) {
+			context.totalSteps += 1
 			for (index in 1 until playerPositions.size) {
 				playerPositions[index] = playerPositions[index - 1]
 			}
@@ -217,14 +209,12 @@ class AreaState(
 
 			maybeStartRandomBattle(context)
 
-			stepsSinceLastBattle += 1
-
 			for (character in context.party) {
 				if (character == null) continue
 				val state = context.characterStates[character]!!
 				for (effect in state.activeStatusEffects) {
 					val walkDamage = effect.damageWhileWalking ?: continue
-					if (stepsSinceLastBattle % walkDamage.period != 0) continue
+					if (context.totalSteps % walkDamage.period != 0L) continue
 
 					val maxHealth = state.determineMaxHealth(character.baseStats, state.activeStatusEffects)
 					state.currentHealth -= max(1, (walkDamage.hpFraction * maxHealth).roundToInt())
@@ -237,32 +227,33 @@ class AreaState(
 
 	private fun maybeStartRandomBattle(context: UpdateContext) {
 		val randomBattles = area.randomBattles ?: return
-		if (stepsWithoutBattle == 0) {
-			if (randomBattles.chance > 0 && rng.nextInt(150 - stepsSinceLastBattle) <= randomBattles.chance) {
-				fun chooseLevel(range: LevelRange) = range.min + rng.nextInt(1 + range.max - range.min)
+		if (
+			randomBattles.chance > 0 && context.stepsSinceLastBattle > randomBattles.minSteps &&
+			rng.nextInt(150 - context.stepsSinceLastBattle) <= randomBattles.chance
+		) {
+			fun chooseLevel(range: LevelRange) = range.min + rng.nextInt(1 + range.max - range.min)
 
-				val possibleEnemySelections = randomBattles.getEnemySelections()
-				val selection = possibleEnemySelections[rng.nextInt(possibleEnemySelections.size)]
-				val enemies = selection.enemies.map {
-					if (it != null) Enemy(it, chooseLevel(randomBattles.getLevelRange())) else null
-				}.toTypedArray()
+			val possibleEnemySelections = randomBattles.getEnemySelections()
+			val selection = possibleEnemySelections[rng.nextInt(possibleEnemySelections.size)]
+			val enemies = selection.enemies.map {
+				if (it != null) Enemy(it, chooseLevel(randomBattles.getLevelRange())) else null
+			}.toTypedArray()
 
-				val battle = Battle(
-					enemies, selection.enemyLayout, "battle",
-					randomBattles.specialBackground ?: randomBattles.defaultBackground
-				)
+			val battle = Battle(
+				enemies, selection.enemyLayout, "battle",
+				randomBattles.specialBackground ?: randomBattles.defaultBackground
+			)
 
-				val averagePlayerLevel = context.party.filterNotNull().map {
-					context.characterStates[it]!!.currentLevel
-				}.average()
-				val averageMonsterLevel = enemies.filterNotNull().map { it.level }.average()
-				val canAvoid = averagePlayerLevel > 2 + averageMonsterLevel
+			val averagePlayerLevel = context.party.filterNotNull().map {
+				context.characterStates[it]!!.currentLevel
+			}.average()
+			val averageMonsterLevel = enemies.filterNotNull().map { it.level }.average()
+			val canAvoid = averagePlayerLevel > 2 + averageMonsterLevel
 
-				incomingRandomBattle = IncomingRandomBattle(battle, currentTime + 1.seconds, canAvoid)
-				context.soundQueue.insert(context.content.audio.fixedEffects.battle.encounter)
-				stepsWithoutBattle = randomBattles.minSteps
-			}
-		} else stepsWithoutBattle -= 1
+			incomingRandomBattle = IncomingRandomBattle(battle, currentTime + 1.seconds, canAvoid)
+			context.soundQueue.insert(context.content.audio.fixedEffects.battle.encounter)
+			context.stepsSinceLastBattle = 0
+		} else context.stepsSinceLastBattle += 1
 	}
 
 	private fun processInput(input: InputManager) {
@@ -324,5 +315,7 @@ class AreaState(
 		val party: Array<PlayableCharacter?>,
 		val characterStates: Map<PlayableCharacter, CharacterState>,
 		val discovery: AreaDiscoveryMap,
+		var stepsSinceLastBattle: Int,
+		var totalSteps: Long,
 	) : GameStateUpdateContext(parent)
 }
