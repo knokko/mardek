@@ -371,7 +371,7 @@ class AreaRenderer(
 			val playerPosition = state.getPlayerPosition(0)
 			renderJobs.add(EntityRenderJob(
 				x = tileSize * playerPosition.x,
-				y = tileSize * (playerPosition.y - 1),
+				y = tileSize * (playerPosition.y - 1) - 4 * scale,
 				sprite = if (incomingRandomBattle.canAvoid) {
 					context.content.ui.blueAlertBalloon
 				} else context.content.ui.redAlertBalloon
