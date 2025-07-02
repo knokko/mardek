@@ -71,7 +71,11 @@ private fun parseArea2(
 		width = width,
 		height = height,
 		tileGrid = tileGrid,
-		objects = parseAreaObjects(content.areas, areaCode.variableAssignments["A_sprites"]!!, extraDecorations, transitions),
+		objects = parseAreaObjects(
+			content, properties.rawName,
+			areaCode.variableAssignments["A_sprites"]!!,
+			extraDecorations, transitions,
+		),
 		chests = if (rawAreaLoot != null) parseAreaChests(content, rawAreaLoot, chestType) else ArrayList(0),
 		randomBattles = randomBattles,
 		properties = properties,

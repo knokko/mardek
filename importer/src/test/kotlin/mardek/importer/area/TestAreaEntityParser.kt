@@ -1,7 +1,7 @@
 package mardek.importer.area
 
+import mardek.content.Content
 import mardek.content.area.Area
-import mardek.content.area.AreaContent
 import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
 import mardek.content.area.objects.*
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 
 class TestAreaEntityParser {
 
-	private val assets = AreaContent()
+	private val content = Content()
 
 	@Test
 	fun testSingleEntitySingleKey() {
@@ -79,30 +79,30 @@ class TestAreaEntityParser {
 		assertEquals(expectedConversation, parsed1[0]["conv"])
 	}
 
-	private fun parseAreaEntityRaw(rawString: String): Any {
+	private fun parseAreaEntityRaw(rawString: String, areaName: String = ""): Any {
 		val transitions = ArrayList<Pair<TransitionDestination, String>>()
-		val parsedEntities = parseAreaObjectsToList(assets, "[$rawString]", transitions)
+		val parsedEntities = parseAreaObjectsToList(content, areaName, "[$rawString]", transitions)
 		assertEquals(1, parsedEntities.size)
 
 		for ((transition, destination) in transitions) {
 			val area = Area()
 			area.properties.rawName = destination
 			transition.area = area
-			assets.areas.add(area)
+			content.areas.areas.add(area)
 		}
 		return parsedEntities[0]
 	}
 
-	private fun assertArea(name: String) = assets.areas.find { it.properties.rawName == name }!!
+	private fun assertArea(name: String) = content.areas.areas.find { it.properties.rawName == name }!!
 
 	@Test
 	fun testParseTransitionWithArrowWithoutDirection() {
-		assets.arrowSprites.add(ArrowSprite("S", KimSprite()))
+		content.areas.arrowSprites.add(ArrowSprite("S", KimSprite()))
 		val actual = parseAreaEntityRaw(
 			"{name:\"EXIT\",model:\"area_transition\",x:3,y:7,dest:[\"aeropolis_E\",22,24],ARROW:\"S\"}"
 		)
 		val expected = AreaTransition(
-			x = 3, y = 7, arrow = assets.arrowSprites[0], destination = TransitionDestination(
+			x = 3, y = 7, arrow = content.areas.arrowSprites[0], destination = TransitionDestination(
 			area = assertArea("aeropolis_E"), x = 22, y = 24, direction = null, discoveredAreaName = null
 		))
 		assertEquals(expected, actual)
@@ -134,7 +134,8 @@ class TestAreaEntityParser {
 			flashCode = "function()\n{\n   _root.Interjection(\"Mardek\",\"dreamcave1\",\"c_A_Gloria\");\n}",
 			oneTimeOnly = true,
 			oncePerAreaLoad = false,
-			walkOn = false
+			walkOn = false,
+			actions = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -164,7 +165,8 @@ class TestAreaEntityParser {
 			flashCode = executeScript,
 			oneTimeOnly = false,
 			oncePerAreaLoad = false,
-			walkOn = true
+			walkOn = true,
+			actions = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -183,7 +185,8 @@ class TestAreaEntityParser {
 			oneTimeOnly = true,
 			oncePerAreaLoad = true,
 			flashCode = "function(){\tDO_ACTIONS([[\"UNFREEZE\"],[\"TALK\",\"c_inventor\"]],\"PC\",true);}",
-			walkOn = false
+			walkOn = false,
+			actions = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -204,13 +207,13 @@ class TestAreaEntityParser {
 
 	private fun objectSprite(name: String): ObjectSprites {
 		val sprites = ObjectSprites(name, 0, 0, null, emptyArray())
-		assets.objectSprites.add(sprites)
+		content.areas.objectSprites.add(sprites)
 		return sprites
 	}
 
 	private fun characterSprite(name: String): DirectionalSprites {
 		val sprites = DirectionalSprites(name, emptyArray())
-		assets.characterSprites.add(sprites)
+		content.areas.characterSprites.add(sprites)
 		return sprites
 	}
 
@@ -222,7 +225,8 @@ class TestAreaEntityParser {
 			sprites = objectSprite("obj_Crystal"),
 			conversationName = "c_healingCrystal",
 			rawConversion = null,
-			signType = null
+			signType = null,
+			actionSequence = content.actions.global.find { it.name == "c_healingCrystal" },
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Save Crystal\",model:\"o_Crystal\",x:4,y:7,walkspeed:-1,conv:\"c_healingCrystal\"}"
@@ -238,7 +242,8 @@ class TestAreaEntityParser {
 			y = 21,
 			conversationName = "c_A_Rohoph",
 			rawConversion = null,
-			signType = null
+			signType = null,
+			actionSequence = null,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Dracelon\",model:\"ch2bosses\",x:4,y:21,walkspeed:-1,FRAME:4,silent:true," +
@@ -265,7 +270,8 @@ class TestAreaEntityParser {
 			y = 6,
 			conversationName = null,
 			rawConversion = "[Do = $flashCode]",
-			signType = null
+			signType = null,
+			actionSequence = null,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Zombie Dragon\",model:\"dragon\",x:11,y:6,walkspeed:-1,dir:\"n\",Static:1,elem:\"DARK\",conv:[Do = $flashCode]}"
@@ -281,7 +287,8 @@ class TestAreaEntityParser {
 			y = 7,
 			conversationName = null,
 			rawConversion = "[[\"\",\"You shouldn\\'t be able to talk to me! REPORT THIS BUG PLEASE!\"]]",
-			signType = null
+			signType = null,
+			actionSequence = null,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"The Dragon\",model:\"dragon\",x:6,y:7,walkspeed:-1,dir:\"s\",Static:true,elem:\"DARK\"," +
@@ -298,7 +305,8 @@ class TestAreaEntityParser {
 			y = 11,
 			conversationName = "c_GdM_Moric",
 			rawConversion = null,
-			signType = null
+			signType = null,
+			actionSequence = null,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Moric\",model:\"moric\",x:7,y:11,walkspeed:-2,FRAME:1,elem:\"EARTH\",conv:\"c_GdM_Moric\"}"
@@ -336,7 +344,8 @@ class TestAreaEntityParser {
 			y = 26,
 			conversationName = null,
 			rawConversion = "[[\"\",\"CLOEST FORE THE NYHTE\"]]",
-			signType = "words"
+			signType = "words",
+			actionSequence = null,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Sign\",model:\"sign\",sign:\"words\",FRAME:10,x:26,y:26,walkspeed:-2," +
@@ -393,7 +402,8 @@ class TestAreaEntityParser {
 			y = 3,
 			conversationName = null,
 			rawConversion = "[statueFlavour]",
-			signType = null
+			signType = null,
+			actionSequence = null,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Statue\",model:\"statue\",x:25,y:3,walkspeed:-2,dir:\"m1\",FRAME:6,conv:[statueFlavour]}"
@@ -486,7 +496,8 @@ class TestAreaEntityParser {
 			flashCode = flashCode,
 			oneTimeOnly = false,
 			oncePerAreaLoad = false,
-			walkOn = true
+			walkOn = true,
+			actions = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -514,7 +525,8 @@ class TestAreaEntityParser {
 			flashCode = flashCode,
 			oneTimeOnly = false,
 			oncePerAreaLoad = false,
-			walkOn = null
+			walkOn = null,
+			actions = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -527,7 +539,8 @@ class TestAreaEntityParser {
 			y = 4,
 			conversationName = null,
 			rawConversion = "[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]",
-			signType = null
+			signType = null,
+			actionSequence = null,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Portal\",model:\"o_portal\",x:36,y:4," +
@@ -630,7 +643,7 @@ class TestAreaEntityParser {
 
 	private fun switchColor(name: String): SwitchColor {
 		val color = SwitchColor(name, KimSprite(), KimSprite(), KimSprite(), KimSprite())
-		assets.switchColors.add(color)
+		content.areas.switchColors.add(color)
 		return color
 	}
 

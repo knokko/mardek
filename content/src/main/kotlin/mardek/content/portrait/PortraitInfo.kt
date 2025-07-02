@@ -47,7 +47,9 @@ class PortraitInfo(
 	val eyeBrowSkin: String,
 
 	/**
-	 * The skin used for Sprite 1059 (mouth), for instance "zombie"
+	 * It looks like this skin is sometimes used for Sprite 1059 (mouth), for instance when it is "zombie".
+	 * However, the expression ("norm", "grin", etc...) determines the skin for Sprite 1059 most of the time.
+	 * Figuring this out exactly is probably a problem for chapter 2...
 	 */
 	@BitField(id = 6)
 	val mouthSkin: String,

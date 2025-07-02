@@ -2,16 +2,18 @@ package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import mardek.content.Content
-import mardek.content.area.AreaContent
 import mardek.content.area.objects.AreaObject
 import mardek.content.sprite.KimSprite
+import mardek.importer.actions.hardcodeActionSequences
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
+import mardek.importer.characters.importPlayableCharacters
 import mardek.importer.inventory.assertDecompressedKim3Equals
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
 import mardek.importer.stats.importStatsContent
 import mardek.importer.skills.importSkillsContent
+import mardek.importer.stats.importClasses
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -64,6 +66,10 @@ class TestSpritesAndAreas {
 		importSkillsContent(content)
 		importItemsContent(content)
 		importBattleContent(content, null)
+		importAreaSprites(content)
+		importClasses(content)
+		importPlayableCharacters(content, null)
+		hardcodeActionSequences(content)
 		importAreaContent(content)
 
 		val deugan = content.areas.characterSprites.find { it.name == "deugan_hero" }!!
@@ -129,7 +135,7 @@ class TestSpritesAndAreas {
 
 	@Test
 	fun testGetMolestor() {
-		val rawMolester = parseAreaEntity(AreaContent(),
+		val rawMolester = parseAreaEntity(Content(), "",
 			parseActionScriptObjectList("[{name:\"Molestor\",model:\"ch3bosses\",x:16,y:37,walkspeed:-1,dir:\"e\",Static:true,elem:\"DARK\",BOSSCODE:\"Molestor2\",conv:[[\"norm\",\"<<demon>>Neeeeeeeheeheeheehee... Children... You do not belooooong heeeererererere...!\"],Do = function()\n" +
 				"{\n" +
 				"   BATTLE([[\"Molestor\",null,null,null],[\"Molestor\",null,null,null],[20,null,null,null],\"SOLO\"],\"battle\",true,true);\n" +

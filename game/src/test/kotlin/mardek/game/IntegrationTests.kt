@@ -1,5 +1,6 @@
 package mardek.game
 
+import mardek.game.action.TestActions
 import mardek.game.area.TestChestLoot
 import mardek.game.area.TestRandomBattles
 import mardek.game.area.testDragonLairDoor
@@ -41,6 +42,12 @@ class IntegrationTests {
 	@Test
 	fun testPortraits() {
 		TestSpecialPortraitNodes.testPresenceAndAbsence(instance)
+	}
+
+	@Test
+	fun testActions() {
+		TestActions.testIntroDialogue(instance)
+		TestActions.testSaveCrystalCancel(instance)
 	}
 
 	@Test

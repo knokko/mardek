@@ -186,8 +186,8 @@ internal fun importSkinnedAnimation(tag: DefineSpriteTag, context: AnimationImpo
 				}
 
 				val mask = if (rawMask != null) {
-					val childTag = FLASH.tags.find { it.uniqueId == rawMask.tag.characterId.toString() }
-					val matrix = convertTransformationMatrix(rawMask.tag.matrix)!!
+					val childTag = FLASH.tags.find { it.uniqueId == rawMask.childID.toString() }
+					val matrix = convertTransformationMatrix(rawMask.tag.matrix) ?: AnimationMatrix.DEFAULT
 					if (childTag is ShapeTag) {
 						arrayOf(AnimationMaskFrame(importAnimationSprite(
 							childTag, true, context

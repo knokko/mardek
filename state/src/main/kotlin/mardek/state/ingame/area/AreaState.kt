@@ -11,6 +11,8 @@ import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
+import mardek.state.ingame.actions.ActivatedTriggers
+import mardek.state.ingame.actions.AreaActionsState
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
@@ -45,7 +47,8 @@ class AreaState(
 	private val playerPositions = Array(4) { initialPlayerPosition }
 
 	@BitField(id = 3)
-	var lastPlayerDirection = Direction.Down
+	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
+	private val playerDirections = Array(4) { Direction.Up }
 
 	@BitField(id = 4, optional = true)
 	var nextPlayerPosition: NextAreaPosition? = null
@@ -60,6 +63,9 @@ class AreaState(
 
 	@BitField(id = 7, optional = true)
 	var battleLoot: BattleLoot? = null
+
+	@BitField(id = 8, optional = true)
+	var actions: AreaActionsState? = null
 
 	private val rng = Random.Default
 
@@ -89,12 +95,20 @@ class AreaState(
 			context.discovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
 		}
 
+		if (actions != null) {
+			currentTime += context.timeStep
+			return
+		}
+
 		updatePlayerPosition(context)
+		checkTriggers(context)
+		if (actions != null) return
 		processInput(context.input)
 		if (shouldInteract) {
 			interact()
 			shouldInteract = false
 		}
+		if (actions != null) return
 
 		val openingDoor = this.openingDoor
 		if (openingDoor != null && currentTime >= openingDoor.finishTime) {
@@ -128,8 +142,8 @@ class AreaState(
 	private fun interact() {
 		if (nextTransition != null || nextPlayerPosition != null || openingDoor != null) return
 
-		val x = playerPositions[0].x + lastPlayerDirection.deltaX
-		val y = playerPositions[0].y + lastPlayerDirection.deltaY
+		val x = playerPositions[0].x + playerDirections[0].deltaX
+		val y = playerPositions[0].y + playerDirections[0].deltaY
 
 		for (chest in area.chests) {
 			if (x == chest.x && y == chest.y) {
@@ -153,7 +167,17 @@ class AreaState(
 
 		for (areaObject in area.objects.objects) {
 			if (x == areaObject.x && y == areaObject.y) {
-				println("interact with $areaObject")
+				val actionSequence = areaObject.actionSequence
+				if (actionSequence != null) {
+					actions = AreaActionsState(
+						actionSequence.root,
+						playerPositions,
+						playerDirections,
+					)
+					return
+				} else {
+					println("interact with $areaObject")
+				}
 			}
 		}
 
@@ -170,7 +194,11 @@ class AreaState(
 		}
 	}
 
-	fun getPlayerPosition(index: Int) = playerPositions[index]
+	fun getPlayerPosition(index: Int) = if (actions == null) playerPositions[index]
+	else actions!!.partyPositions[index]
+
+	fun getPlayerDirection(index: Int) = if (actions == null) playerDirections[index]
+	else actions!!.partyDirections[index]
 
 	private fun checkTransitions() {
 		for (portal in area.objects.portals) {
@@ -193,10 +221,6 @@ class AreaState(
 			for (index in 1 until playerPositions.size) {
 				playerPositions[index] = playerPositions[index - 1]
 			}
-			lastPlayerDirection = Direction.delta(
-				nextPlayerPosition.position.x - playerPositions[0].x,
-				nextPlayerPosition.position.y - playerPositions[0].y
-			)!!
 			playerPositions[0] = nextPlayerPosition.position
 			this.nextPlayerPosition = null
 			if (!area.flags.hasClearMap) {
@@ -256,6 +280,39 @@ class AreaState(
 		} else context.stepsSinceLastBattle += 1
 	}
 
+	private fun checkTriggers(context: UpdateContext) {
+		for (trigger in area.objects.walkTriggers) {
+			if (trigger.walkOn != true) continue
+			if (trigger.x != playerPositions[0].x || trigger.y != playerPositions[0].y) continue
+			if (!context.triggers.activeTrigger(trigger)) continue
+
+			val triggerActions = trigger.actions
+			if (triggerActions != null) {
+
+				// Make sure walking is cancelled upon hitting a trigger
+				nextPlayerPosition = null
+				actions = AreaActionsState(
+					triggerActions.root,
+					playerPositions.clone(),
+					playerDirections.clone(),
+				)
+			} else {
+				println("Hit flash trigger ${trigger.flashCode}")
+			}
+
+			// Make sure it can't get overwritten by any other trigger
+			return
+		}
+	}
+
+	internal fun finishActions() {
+		val actions = this.actions!!
+		actions.partyPositions.copyInto(playerPositions)
+		actions.partyDirections.copyInto(playerDirections)
+		nextPlayerPosition = null
+		this.actions = null
+	}
+
 	private fun processInput(input: InputManager) {
 		if (nextPlayerPosition == null && incomingRandomBattle == null) {
 			val lastPressed = input.mostRecentlyPressed(arrayOf(
@@ -273,11 +330,23 @@ class AreaState(
 				val nextX = playerPositions[0].x + moveDirection.deltaX
 				val nextY = playerPositions[0].y + moveDirection.deltaY
 				if (canWalkTo(input, nextX, nextY)) {
-					nextPlayerPosition = NextAreaPosition(
+					val next = NextAreaPosition(
 						AreaPosition(nextX, nextY), currentTime, currentTime + 0.2.seconds
 					)
+					nextPlayerPosition = next
+					for (index in 1 until playerPositions.size) {
+						val walkDirection = Direction.exactDelta(
+							playerPositions[index - 1].x - playerPositions[index].x,
+							playerPositions[index - 1].y - playerPositions[index].y,
+						)
+						playerDirections[index] = walkDirection ?: playerDirections[index - 1]
+					}
+					playerDirections[0] = Direction.exactDelta(
+						next.position.x - playerPositions[0].x,
+						next.position.y - playerPositions[0].y
+					)!!
 				} else {
-					lastPlayerDirection = moveDirection
+					playerDirections[0] = moveDirection
 				}
 			}
 		}
@@ -315,6 +384,7 @@ class AreaState(
 		val party: Array<PlayableCharacter?>,
 		val characterStates: Map<PlayableCharacter, CharacterState>,
 		val discovery: AreaDiscoveryMap,
+		val triggers: ActivatedTriggers,
 		var stepsSinceLastBattle: Int,
 		var totalSteps: Long,
 	) : GameStateUpdateContext(parent)

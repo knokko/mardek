@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
+import mardek.content.action.ActionSequence
 import mardek.content.sprite.ObjectSprites
 
 @BitStruct(backwardCompatible = true)
@@ -30,11 +31,15 @@ class AreaObject(
 
 	@BitField(id = 5, optional = true)
 	val signType: String?,
+
+	@BitField(id = 6, optional = true)
+	val actionSequence: ActionSequence?,
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(
-		ObjectSprites(), 0, 0, null, null, null
+		ObjectSprites(), 0, 0, null,
+		null, null, null
 	)
 
 	init {
@@ -43,7 +48,8 @@ class AreaObject(
 		}
 	}
 
-	override fun toString() = "AreaObject(${sprites.flashName}, x=$x, y=$y, ${rawConversion ?: conversationName})"
+	override fun toString() = "AreaObject(${sprites.flashName}, x=$x, y=$y, " +
+			"${rawConversion ?: conversationName}, action=$actionSequence)"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

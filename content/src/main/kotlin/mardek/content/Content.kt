@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
+import mardek.content.action.ActionContent
 import mardek.content.area.AreaContent
 import mardek.content.audio.AudioContent
 import mardek.content.battle.BattleContent
@@ -39,19 +40,22 @@ class Content {
 	val areas = AreaContent()
 
 	@BitField(id = 6)
+	val actions = ActionContent()
+
+	@BitField(id = 7)
 	@ReferenceFieldTarget(label = "playable characters")
 	val playableCharacters = ArrayList<PlayableCharacter>()
 
-	@BitField(id = 7)
+	@BitField(id = 8)
 	val portraits = PortraitContent()
 
-	@BitField(id = 8)
+	@BitField(id = 9)
 	lateinit var ui: UiSprites
 
-	@BitField(id = 9)
+	@BitField(id = 10)
 	lateinit var fonts: Fonts
 
-	@BitField(id = 10)
+	@BitField(id = 11)
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	val checkpoints = HashMap<String, ByteArray>()
 

@@ -6,13 +6,17 @@ import mardek.content.animation.CombatantAnimations
 import mardek.content.area.*
 import mardek.content.battle.PartyLayoutPosition
 import mardek.content.inventory.ItemStack
+import mardek.importer.actions.hardcodeActionSequences
+import mardek.importer.actions.storeHardcodedActionSequences
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
+import mardek.importer.characters.importPlayableCharacters
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
 import mardek.importer.skills.importSkillsContent
+import mardek.importer.stats.importClasses
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -42,7 +46,12 @@ class TestAreaParser {
 			name = "monster", animations = CombatantAnimations(), propertiesText = MONSTER_PROPERTIES_TEXT, content
 		))
 		content.areas.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
+		importAreaSprites(content)
+		importClasses(content)
+		importPlayableCharacters(content, null)
+		hardcodeActionSequences(content)
 		importAreaContent(content)
+		storeHardcodedActionSequences(content)
 	}
 
 	@Test
@@ -76,6 +85,14 @@ class TestAreaParser {
 		assertEquals(15, parsed.objects.transitions.size)
 		assertEquals(1, parsed.objects.walkTriggers.size)
 		assertEquals(13, parsed.objects.characters.size)
+	}
+
+	@Test
+	fun testDragonLairEntry() {
+		val dragonLairEntry = content.areas.areas.find { it.properties.rawName == "DL_entr" }!!
+		val triggers = dragonLairEntry.objects.walkTriggers
+		assertEquals(1, triggers.size)
+		assertNotNull(triggers[0].actions)
 	}
 
 	@Test

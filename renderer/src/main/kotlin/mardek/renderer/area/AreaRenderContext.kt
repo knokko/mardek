@@ -1,7 +1,10 @@
 package mardek.renderer.area
 
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dImageBatch
+import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import mardek.renderer.RenderContext
+import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
@@ -12,7 +15,11 @@ internal class AreaRenderContext(
 	val scale: Int,
 	val region: Rectangle,
 	val spriteBatch: AreaSpriteBatch,
+	val portraitBackgroundBatch: Vk2dColorBatch,
+	val portraitBatch: AnimationPartBatch,
 	val colorBatch: Vk2dColorBatch,
+	val imageBatch: Vk2dImageBatch,
+	val ovalBatch: Vk2dOvalBatch,
 	val textBatch: MardekGlyphBatch,
 	val scissorLeft: Int,
 	val scissor: Rectangle,

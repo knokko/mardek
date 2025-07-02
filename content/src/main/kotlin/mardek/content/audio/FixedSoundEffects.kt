@@ -14,8 +14,12 @@ class FixedSoundEffects(
 
 	@BitField(id = 2)
 	val openChest: SoundEffect,
+
+	@BitField(id = 3)
+	@ReferenceFieldTarget(label = "sound effects")
+	val saveCrystal: SoundEffect,
 ) {
-	constructor() : this(UiSoundEffects(), BattleSoundEffects(), SoundEffect())
+	constructor() : this(UiSoundEffects(), BattleSoundEffects(), SoundEffect(), SoundEffect())
 }
 
 @BitStruct(backwardCompatible = true)

@@ -7,15 +7,14 @@ import mardek.content.sprite.DirectionalSprites
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.resourcesFolder
 import java.io.File
-import java.util.*
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
-fun importAreaContent(content: Content) {
-	importAreaBattleAssets(content)
+private val areaFolder = File("$resourcesFolder/area")
 
+internal fun importAreaSprites(content: Content) {
 	val rawArrowSprites = importObjectSprites("trans_arrows")
 	content.areas.arrowSprites.add(ArrowSprite("N", rawArrowSprites.frames[0]))
 	content.areas.arrowSprites.add(ArrowSprite("E", rawArrowSprites.frames[1]))
@@ -32,7 +31,6 @@ fun importAreaContent(content: Content) {
 		))
 	}
 
-	val areaFolder = File("$resourcesFolder/area")
 	val charactersFolder = File("$areaFolder/sheets/character")
 	for (characterSprite in charactersFolder.listFiles()!!) {
 		val name = characterSprite.name
@@ -46,6 +44,10 @@ fun importAreaContent(content: Content) {
 		}.toTypedArray())
 		content.areas.characterSprites.add(sheet)
 	}
+}
+
+internal fun importAreaContent(content: Content) {
+	importAreaBattleAssets(content)
 
 	val parsedAreas = ArrayList<ParsedArea>()
 	val parsedTilesheets = ArrayList<ParsedTilesheet>()

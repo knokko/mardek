@@ -15,7 +15,9 @@ internal class RawAnimationNode(
 	val instanceName: String?,
 	val colors: ColorTransform?,
 	val clipDepth: Int,
-)
+) {
+	override fun toString() = "RawAnimationNode($childID, $instanceName, $colors, $clipDepth)"
+}
 
 internal class RawAnimationState(
 	val nodes: MutableList<RawAnimationNode?>,
@@ -26,12 +28,13 @@ internal class RawAnimationState(
 	fun placeObject(tag: PlaceObjectTypeTag) {
 		while (nodes.size <= tag.depth) nodes.add(null)
 
-		val (childID, instanceName, colorTransform) = if (tag.characterId < 0) {
-			val existingNode = nodes[tag.depth] ?: throw IllegalArgumentException("Unknown child node in $tag")
-			Triple(existingNode.childID, existingNode.instanceName, existingNode.colors)
-		} else Triple(tag.characterId, tag.instanceName, tag.colorTransform)
+		val existingNode = nodes[tag.depth]
+		val childID = if (tag.characterId < 0) existingNode!!.childID else tag.characterId
+		val instanceName = tag.instanceName ?: existingNode?.instanceName
+		val colorTransform = tag.colorTransform ?: existingNode?.colors
+		val clipDepth = if (tag.clipDepth < 0 && existingNode != null) existingNode.clipDepth else tag.clipDepth
 
-		nodes[tag.depth] = RawAnimationNode(tag, childID, instanceName, colorTransform, tag.clipDepth)
+		nodes[tag.depth] = RawAnimationNode(tag, childID, instanceName, colorTransform, clipDepth)
 	}
 
 	fun removeObject(tag: RemoveTag) {

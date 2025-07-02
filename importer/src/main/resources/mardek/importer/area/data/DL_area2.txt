@@ -4,10 +4,11 @@ area = "DL_area2";
 areaname = "Dragon\'s Lair";
 ambience = null;
 dungeon = "DragonLair";
-A_sprites = [{name:"INTERJECTION",model:"_trigger",x:7,y:38,ExecuteScript:function()
-{
-   _root.Interjection("Deugan","intro_tut","c_HeroBabble");
-}},{name:"N",model:"BIGDOOR0",x:7,y:1,dest:["DL_area3",15,34]},{name:"S",model:"BIGDOOR0",x:7,y:40,dest:["DL_entr",5,2]}];
+A_sprites = [
+    {name:"INTERJECTION",model:"_trigger",x:7,y:38,WALKON:true,actionSequence:Entry},
+    {name:"N",model:"BIGDOOR0",x:7,y:1,dest:["DL_area3",15,34]},
+    {name:"S",model:"BIGDOOR0",x:7,y:40,dest:["DL_entr",5,2]}
+];
 areaLoot = [];
 foes = [["monster",null,null,null,"SOLO"],["monster","monster",null,null,"DUO"],["monster","monster","monster",null,"TRIO"]];
 btlChance = 10;

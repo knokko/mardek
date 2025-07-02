@@ -1,10 +1,13 @@
 package mardek.importer.area
 
-import mardek.content.area.AreaContent
+import mardek.content.Content
+import mardek.content.action.ActionSequence
 import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
 import mardek.content.area.objects.*
 import mardek.content.sprite.ObjectSprites
+import mardek.importer.actions.getHardcodedAreaActions
+import mardek.importer.actions.getHardcodedGlobalActionSequence
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptObjectList
 import java.lang.Integer.parseInt
@@ -23,17 +26,17 @@ private inline fun <reified T> extract(objectList: MutableList<Any>): ArrayList<
 }
 
 fun parseAreaObjectsToList(
-	assets: AreaContent, rawEntities: String,
+	content: Content, areaName: String, rawEntities: String,
 	transitions: MutableList<Pair<TransitionDestination, String>>
 ) = parseActionScriptObjectList(rawEntities).map {
-	rawEntity -> parseAreaEntity(assets, rawEntity, transitions)
+	rawEntity -> parseAreaEntity(content, areaName, rawEntity, transitions)
 }
 
 internal fun parseAreaObjects(
-	assets: AreaContent, rawEntities: String, extraDecorations: List<AreaDecoration>,
+	content: Content, areaName: String, rawEntities: String, extraDecorations: List<AreaDecoration>,
 	transitions: MutableList<Pair<TransitionDestination, String>>
 ): AreaObjects {
-	val objectList = parseAreaObjectsToList(assets, rawEntities, transitions).toMutableList()
+	val objectList = parseAreaObjectsToList(content, areaName, rawEntities, transitions).toMutableList()
 	return AreaObjects(
 		transitions = extract(objectList),
 		walkTriggers = extract(objectList),
@@ -101,7 +104,7 @@ private fun importSwitchColor(name: String): SwitchColor {
 }
 
 fun parseAreaEntity(
-	assets: AreaContent, rawEntity: Map<String, String>,
+	content: Content, areaName: String, rawEntity: Map<String, String>,
 	transitions: MutableList<Pair<TransitionDestination, String>>
 ): Any {
 	val model = parseFlashString(rawEntity["model"]!!, "model")!!
@@ -115,6 +118,12 @@ fun parseAreaEntity(
 	val conversationName = if (conversation != null && conversation.startsWith('"')) {
 		parseFlashString(conversation, "conv")!!
 	} else null
+
+	var actionSequence: ActionSequence? = null
+	if (conversationName != null) {
+		actionSequence = getHardcodedAreaActions(areaName, conversationName) ?:
+				getHardcodedGlobalActionSequence(conversationName)
+	}
 	val rawConversation = if (conversation != null && !conversation.startsWith('"')) conversation else null
 
 	if (model == "object" || model == "examine") {
@@ -122,10 +131,10 @@ fun parseAreaEntity(
 		val rawColor = rawEntity["colour"]
 		if (rawColor != null && rawType != null) {
 			val colorName = parseFlashString(rawColor, "colour")!!
-			var color = assets.switchColors.find { it.name == colorName }
+			var color = content.areas.switchColors.find { it.name == colorName }
 			if (color == null) {
 				color = importSwitchColor(colorName)
-				assets.switchColors.add(color)
+				content.areas.switchColors.add(color)
 			}
 			val type = parseFlashString(rawType, "type")
 			if (type == "switch_orb") return AreaSwitchOrb(x = x, y = y, color = color)
@@ -149,16 +158,16 @@ fun parseAreaEntity(
 	if (model == "area_transition") return AreaTransition(
 		x = x,
 		y = y,
-		arrow = if (rawEntity["ARROW"] != null) assets.arrowSprites.find {
+		arrow = if (rawEntity["ARROW"] != null) content.areas.arrowSprites.find {
 			it.flashName == parseFlashString(rawEntity["ARROW"]!!, "ARROW")!!
 		}!! else null,
 		destination = parseDestination(rawEntity["dest"]!!, rawEntity["dir"], transitions)
 	)
 
 	if (model == "_trigger") {
-		val flashCode = rawEntity["ExecuteScript"]!!
+		val flashCode = rawEntity["ExecuteScript"]
 		val warpPrefix = "_root.WarpTrans("
-		if (flashCode.contains(warpPrefix)) {
+		if (flashCode != null && flashCode.contains(warpPrefix)) {
 			val startIndex = flashCode.indexOf(warpPrefix) + warpPrefix.length
 			val endIndex = flashCode.indexOf(")", startIndex)
 			val destination = parseDestination(flashCode.substring(startIndex, endIndex), null, transitions)
@@ -178,6 +187,11 @@ fun parseAreaEntity(
 		}
 
 		val rawWalkOn = rawEntity["WALKON"]
+		val rawSequenceName = rawEntity["actionSequence"]
+
+		val actionSequence = if (rawSequenceName != null) {
+			getHardcodedAreaActions(areaName, rawSequenceName) ?: getHardcodedGlobalActionSequence(rawSequenceName)
+		} else null
 
 		return AreaTrigger(
 			name = name,
@@ -186,7 +200,8 @@ fun parseAreaEntity(
 			flashCode = flashCode,
 			oneTimeOnly = rawEntity["triggers"] != "-1",
 			oncePerAreaLoad = rawEntity["recurring"] == "true",
-			walkOn = if (rawWalkOn != null) { if (rawWalkOn == "true") true else null } else false
+			walkOn = if (rawWalkOn != null) { if (rawWalkOn == "true") true else null } else false,
+			actions = actionSequence,
 		)
 	}
 
@@ -202,10 +217,10 @@ fun parseAreaEntity(
 
 	if (model.startsWith("o_")) {
 		val spritesheetName = "obj_${model.substring(2)}"
-		var sprites = assets.objectSprites.find { it.flashName == spritesheetName }
+		var sprites = content.areas.objectSprites.find { it.flashName == spritesheetName }
 		if (sprites == null) {
 			sprites = importObjectSprites(spritesheetName)
-			assets.objectSprites.add(sprites)
+			content.areas.objectSprites.add(sprites)
 		}
 		return if (rawEntity["walkable"] == "true") AreaDecoration(
 			x = x,
@@ -221,7 +236,8 @@ fun parseAreaEntity(
 			y = y,
 			conversationName = conversationName,
 			rawConversion = rawConversation,
-			signType = null
+			signType = null,
+			actionSequence = actionSequence,
 		)
 	}
 
@@ -239,13 +255,13 @@ fun parseAreaEntity(
 		val lockType = if (rawEntity.containsKey("lock")) parseFlashString(rawEntity["lock"]!!, "lock") else null
 
 		val spriteID = sheetName + spriteRow
-		var sprites = assets.objectSprites.find { it.flashName == spriteID }
+		var sprites = content.areas.objectSprites.find { it.flashName == spriteID }
 		if (sprites == null) {
 			sprites = importObjectSprites(
 					sheetName + "SHEET", offsetY = spriteHeight * spriteRow, height = spriteHeight
 			)
 			sprites.flashName = spriteID
-			assets.objectSprites.add(sprites)
+			content.areas.objectSprites.add(sprites)
 		}
 		return AreaDoor(
 			sprites = sprites,
@@ -277,11 +293,11 @@ fun parseAreaEntity(
 		val signType = if (rawSignType != null) parseFlashString(rawSignType, "sign type")!! else null
 
 		val spriteID = "$spritesheetName($firstFrame, $numFrames)"
-		var sprites = assets.objectSprites.find { it.flashName == spriteID }
+		var sprites = content.areas.objectSprites.find { it.flashName == spriteID }
 		if (sprites == null) {
 			sprites = importObjectSprites(spritesheetName, frameIndex = firstFrame, numFrames = numFrames)
 			sprites.flashName = spriteID
-			assets.objectSprites.add(sprites)
+			content.areas.objectSprites.add(sprites)
 		}
 
 		return AreaObject(
@@ -290,7 +306,8 @@ fun parseAreaEntity(
 			y = y,
 			conversationName = conversationName,
 			rawConversion = rawConversation,
-			signType = signType
+			signType = signType,
+			actionSequence = actionSequence,
 		)
 	}
 
@@ -304,7 +321,7 @@ fun parseAreaEntity(
 	} else null
 
 	spritesheetName = spritesheetName.replace("spritesheet_", "")
-	val sprites = assets.characterSprites.find { it.name == spritesheetName }!!
+	val sprites = content.areas.characterSprites.find { it.name == spritesheetName }!!
 	return AreaCharacter(
 		name = name,
 		sprites = sprites,

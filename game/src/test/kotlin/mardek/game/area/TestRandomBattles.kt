@@ -13,7 +13,6 @@ import mardek.state.ingame.area.AreaState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -28,6 +27,7 @@ object TestRandomBattles {
 					characterStates = simpleCharacterStates(),
 					gold = 123
 				)
+				campaign.triggers.activeTrigger(dragonLair2.objects.walkTriggers[0])
 
 				val input = InputManager()
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
@@ -57,6 +57,7 @@ object TestRandomBattles {
 					gold = 123
 				)
 				campaign.stepsSinceLastBattle = 30
+				campaign.triggers.activeTrigger(dragonLair2.objects.walkTriggers[0])
 
 				val input = InputManager()
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
@@ -86,6 +87,7 @@ object TestRandomBattles {
 					gold = 123
 				)
 				campaign.stepsSinceLastBattle = 60
+				campaign.triggers.activeTrigger(dragonLair2.objects.walkTriggers[0])
 
 				val input = InputManager()
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
@@ -114,6 +116,7 @@ object TestRandomBattles {
 			)
 			campaign.stepsSinceLastBattle = 20
 			campaign.totalSteps = 100
+			campaign.triggers.activeTrigger(dragonLair2.objects.walkTriggers[0])
 
 			val input = InputManager()
 			val context = GameStateUpdateContext(content, input, SoundQueue(), 600.milliseconds)

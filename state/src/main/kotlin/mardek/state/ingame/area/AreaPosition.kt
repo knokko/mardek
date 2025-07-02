@@ -19,4 +19,8 @@ class AreaPosition(
 	internal constructor() : this(0, 0)
 
 	override fun toString() = "($x, $y)"
+
+	override fun equals(other: Any?) = other is AreaPosition && this.x == other.x && this.y == other.y
+
+	override fun hashCode() = x - 13 * y
 }

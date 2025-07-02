@@ -2,6 +2,7 @@ package mardek.renderer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import mardek.content.area.Direction
+import mardek.state.ingame.area.NextAreaPosition
 import kotlin.math.roundToInt
 
 internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
@@ -21,26 +22,42 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			))
 		}
 
-		val nextPlayerPosition = state.nextPlayerPosition
+		val actionState = state.actions
 		for ((index, character) in context.campaign.characterSelection.party.withIndex().reversed()) {
 			if (character == null) continue
 			val characterState = context.campaign.characterStates[character]!!
 
-			var spriteIndex = 0
 			val oldPosition = state.getPlayerPosition(index)
+			val direction = state.getPlayerDirection(index)
+			val nextPosition = if (actionState == null) {
+				val nextPlayerPosition = state.nextPlayerPosition
+				if (index == 0) {
+					nextPlayerPosition
+				} else {
+					if (nextPlayerPosition != null) {
+						NextAreaPosition(
+							state.getPlayerPosition(index - 1),
+							nextPlayerPosition.startTime,
+							nextPlayerPosition.arrivalTime,
+						)
+					} else null
+				}
+			} else {
+				actionState.nextPartyPositions[index]
+			}
+
+			var spriteIndex = 0
 
 			var x = tileSize * oldPosition.x
 			var y = tileSize * oldPosition.y
 
-			if (nextPlayerPosition != null) {
-				val newPosition = if (index > 0) state.getPlayerPosition(index - 1)
-				else nextPlayerPosition.position
+			if (nextPosition != null) {
+				val currentTime = actionState?.currentTime ?: state.currentTime
+				val p = (currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
+				x = (tileSize * ((1 - p) * oldPosition.x + p * nextPosition.position.x)).roundToInt()
+				y = (tileSize * ((1 - p) * oldPosition.y + p * nextPosition.position.y)).roundToInt()
 
-				val p = (state.currentTime - nextPlayerPosition.startTime) / (nextPlayerPosition.arrivalTime - nextPlayerPosition.startTime)
-				x = (tileSize * ((1 - p) * oldPosition.x + p * newPosition.x)).roundToInt()
-				y = (tileSize * ((1 - p) * oldPosition.y + p * newPosition.y)).roundToInt()
-
-				if (p >= 0.25 && p < 0.75) spriteIndex += 1
+				if (p in 0.25 ..< 0.75) spriteIndex += 1
 			}
 
 			if (index == 0) {
@@ -49,16 +66,6 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			}
 
 			y -= 4 * scale
-
-			val direction = if (index == 0) {
-				if (nextPlayerPosition == null) state.lastPlayerDirection else Direction.delta(
-					nextPlayerPosition.position.x - oldPosition.x,
-					nextPlayerPosition.position.y - oldPosition.y
-				)!!
-			} else Direction.delta(
-				state.getPlayerPosition(index - 1).x - oldPosition.x,
-				state.getPlayerPosition(index - 1).y - oldPosition.y
-			) ?: Direction.Down
 
 			spriteIndex += animationSize * direction.ordinal
 

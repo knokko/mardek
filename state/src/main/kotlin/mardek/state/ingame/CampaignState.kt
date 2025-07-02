@@ -12,6 +12,8 @@ import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.MouseMoveEvent
 import mardek.state.GameStateUpdateContext
+import mardek.state.ingame.actions.ActivatedTriggers
+import mardek.state.ingame.actions.AreaActionsState
 import mardek.state.ingame.area.AreaDiscoveryMap
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -57,21 +59,24 @@ class CampaignState(
 	@BitField(id = 6)
 	val areaDiscovery = AreaDiscoveryMap()
 
+	@BitField(id = 7)
+	val triggers = ActivatedTriggers()
+
 	/**
 	 * - This variable is 0 at the start of the campaign, and is reset to 0 whenever a random battle is encountered.
 	 * - This variable is increased by 1 whenever the player moves in an area with random battles
 	 * - When this variable gets larger, the probability of encountering a random battle increases.
 	 * - When this variable is too low, no random battle can be encountered.
 	 */
-	@BitField(id = 7)
+	@BitField(id = 8)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var stepsSinceLastBattle = 0
 
-	@BitField(id = 8)
+	@BitField(id = 9)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var totalSteps = 0L
 
-	@BitField(id = 9)
+	@BitField(id = 10)
 	@IntegerField(expectUniform = true, minValue = 0)
 	var totalTime = 0.seconds
 
@@ -118,6 +123,12 @@ class CampaignState(
 				obtainedItemStack.processKeyPress(
 					event.key, context.content.audio.fixedEffects, context.soundQueue
 				)
+				continue
+			}
+
+			val actions = currentArea.actions
+			if (actions != null) {
+				actions.processKeyEvent(event)
 				continue
 			}
 
@@ -181,15 +192,25 @@ class CampaignState(
 			return
 		}
 
+		val areaActions = currentArea?.actions
+		if (areaActions != null) {
+			areaActions.update(AreaActionsState.UpdateContext(
+				context.input, context.timeStep, context.soundQueue, this::healParty
+			))
+			if (areaActions.node == null) currentArea!!.finishActions()
+		}
+
 		currentArea?.let {
 			val areaContext = AreaState.UpdateContext(
 				context, characterSelection.party, characterStates,
-				areaDiscovery, stepsSinceLastBattle, totalSteps
+				areaDiscovery, triggers, stepsSinceLastBattle, totalSteps
 			)
 			it.update(areaContext)
 			this.stepsSinceLastBattle = areaContext.stepsSinceLastBattle
 			this.totalSteps = areaContext.totalSteps
+			if (it.actions != null) return
 		}
+
 		val destination = currentArea?.nextTransition
 		if (destination != null) {
 			val destinationArea = destination.area
@@ -268,6 +289,17 @@ class CampaignState(
 			state.currentHealth = state.currentHealth.coerceIn(1, maxHealth)
 			val maxMana = state.determineMaxMana(playableCharacter.baseStats, state.activeStatusEffects)
 			state.currentMana = state.currentMana.coerceIn(0, maxMana)
+		}
+	}
+
+	/**
+	 * Restores all HP and MP of all party members, and removes all their status effects.
+	 */
+	fun healParty() {
+		for ((player, playerState) in getParty()) {
+			playerState.activeStatusEffects.clear()
+			playerState.currentHealth = playerState.determineMaxHealth(player.baseStats, emptySet())
+			playerState.currentMana = playerState.determineMaxMana(player.baseStats, emptySet())
 		}
 	}
 

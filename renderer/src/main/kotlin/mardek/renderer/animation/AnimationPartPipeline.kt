@@ -12,12 +12,7 @@ import com.github.knokko.vk2d.pipeline.Vk2dPipeline
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import org.lwjgl.system.MemoryStack.stackPush
-import org.lwjgl.vulkan.VK10.VK_FORMAT_R32G32_SFLOAT
-import org.lwjgl.vulkan.VK10.VK_FORMAT_R32G32_UINT
-import org.lwjgl.vulkan.VK10.VK_PIPELINE_BIND_POINT_GRAPHICS
-import org.lwjgl.vulkan.VK10.vkCmdBindDescriptorSets
-import org.lwjgl.vulkan.VK10.vkCmdDraw
-import org.lwjgl.vulkan.VK10.vkDestroyPipelineLayout
+import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription
 import java.lang.Math.toIntExact
 
@@ -60,13 +55,13 @@ class AnimationPartPipeline(context: Vk2dPipelineContext, vk2d: Vk2dInstance) : 
 	)
 
 	override fun recordBatch(
-		recorder: CommandRecorder?,
-		perFrameBuffer: PerFrameBuffer?,
-		miniBatch: MiniBatch?,
-		batch: Vk2dBatch?
+		recorder: CommandRecorder,
+		perFrameBuffer: PerFrameBuffer,
+		miniBatch: MiniBatch,
+		batch: Vk2dBatch,
 	) {
-		var firstVertex = toIntExact((miniBatch!!.vertexBuffers[0].offset - perFrameBuffer!!.buffer.offset) / VERTEX_SIZE)
-		val pDescriptorSet = recorder!!.stack.callocLong(2)
+		var firstVertex = toIntExact((miniBatch.vertexBuffers[0].offset - perFrameBuffer.buffer.offset) / VERTEX_SIZE)
+		val pDescriptorSet = recorder.stack.callocLong(2)
 		var index = 0
 		var descriptorIndex = 0
 		while (index < miniBatch.vertexData[0].position()) {

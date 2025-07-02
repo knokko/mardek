@@ -1,6 +1,7 @@
 package mardek.content.area
 
 import com.github.knokko.bitser.BitEnum
+import kotlin.math.abs
 
 @BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class Direction(val deltaX: Int, val deltaY: Int, val abbreviation: String) {
@@ -10,6 +11,16 @@ enum class Direction(val deltaX: Int, val deltaY: Int, val abbreviation: String)
 	Left(-1, 0, "w");
 
 	companion object {
-		fun delta(deltaX: Int, deltaY: Int) = entries.find { it.deltaX == deltaX && it.deltaY == deltaY }
+		fun exactDelta(deltaX: Int, deltaY: Int) = entries.find { it.deltaX == deltaX && it.deltaY == deltaY }
+
+		// TODO Test this
+		fun bestDelta(deltaX: Int, deltaY: Int): Direction? {
+			if (deltaX == 0 && deltaY == 0) return null
+			return if (abs(deltaX) > abs(deltaY)) {
+				if (deltaX > 0) Right else Left
+			} else {
+				if (deltaY > 0) Down else Up
+			}
+		}
 	}
 }

@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.action.ActionSequence
 import mardek.content.area.objects.AreaObjects
 import java.util.*
 
@@ -45,6 +46,10 @@ class Area(
 	val properties: AreaProperties,
 ) {
 
+	@BitField(id = 9)
+	@ReferenceFieldTarget(label = "action sequences")
+	val actions = ArrayList<ActionSequence>()
+
 	@BitField(id = 10)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
@@ -57,7 +62,7 @@ class Area(
 	override fun toString() = properties.displayName
 
 	fun canWalkOnTile(x: Int, y: Int): Boolean {
-		if (x < 0 || x >= width || y < 0 || y >= height) return false
+		if (x !in 0 until width || y !in 0 until height) return false
 		if (!getTile(x, y).canWalkOn) return false
 
 		for (chest in chests) {

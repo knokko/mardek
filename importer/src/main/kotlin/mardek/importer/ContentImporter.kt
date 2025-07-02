@@ -4,8 +4,10 @@ import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.Content
 import mardek.content.animation.CombatantAnimations
-import mardek.content.area.Direction
+import mardek.importer.actions.hardcodeActionSequences
+import mardek.importer.actions.storeHardcodedActionSequences
 import mardek.importer.area.importAreaContent
+import mardek.importer.area.importAreaSprites
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.characters.FatPlayableCharacter
@@ -37,11 +39,14 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, CombatantAnimations>()
 	importBattleContent(content, playerModelMapping)
 	importClasses(content)
+	importAreaSprites(content)
+	val fatCharacters = importPlayableCharacters(content, playerModelMapping)
+	hardcodeActionSequences(content)
 	importAreaContent(content)
+	storeHardcodedActionSequences(content)
 	content.ui = importUiSprites()
 	content.fonts = importFonts()
 
-	val fatCharacters = importPlayableCharacters(content, playerModelMapping)
 	val heroMardek = fatCharacters.find { it.wrapped.areaSprites.name == "mardek_hero" }!!
 	val heroDeugan = fatCharacters.find { it.wrapped.areaSprites.name == "deugan_hero" }!!
 
@@ -72,7 +77,6 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 		),
 		gold = 0
 	)
-	startChapter1.currentArea!!.lastPlayerDirection = Direction.Up
 
 	fun addCheckpoint(name: String, state: CampaignState) {
 		val byteOutput = ByteArrayOutputStream()

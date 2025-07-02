@@ -1,12 +1,7 @@
 package mardek.renderer.animation
 
-import com.github.knokko.boiler.utilities.ColorPacker.alpha
-import com.github.knokko.boiler.utilities.ColorPacker.blue
-import com.github.knokko.boiler.utilities.ColorPacker.green
+import com.github.knokko.boiler.utilities.ColorPacker.addColors
 import com.github.knokko.boiler.utilities.ColorPacker.multiplyColors
-import com.github.knokko.boiler.utilities.ColorPacker.normalize
-import com.github.knokko.boiler.utilities.ColorPacker.red
-import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.content.animation.AnimationFrames
 import mardek.content.animation.AnimationNode
 import mardek.content.animation.AnimationSprite
@@ -225,7 +220,7 @@ private fun chooseSkin(
 	}
 
 	if (special == SpecialAnimationNode.PortraitMouth) {
-		return skinned.skins[context.portrait!!.mouthSkin]
+		return skinned.skins[context.portraitExpression!!]
 	}
 
 	if (special == SpecialAnimationNode.PortraitEthnicity) {
@@ -292,12 +287,8 @@ private fun mergeColorTransforms(base: ColorTransform?, top: ColorTransform?): C
 	if (base == null) return top
 	if (top == null) return base
 
-	var addColor = multiplyColors(base.addColor, top.multiplyColor)
-	addColor = rgba(
-		normalize(red(addColor)) + normalize(red(top.addColor)),
-		normalize(green(addColor)) + normalize(green(top.addColor)),
-		normalize(blue(addColor)) + normalize(blue(top.addColor)),
-		normalize(alpha(addColor)) + normalize(alpha(top.addColor)),
+	return ColorTransform(
+		addColor = addColors(multiplyColors(base.addColor, top.multiplyColor), top.addColor),
+		multiplyColor = multiplyColors(base.multiplyColor, top.multiplyColor),
 	)
-	return ColorTransform(addColor = addColor, multiplyColor = multiplyColors(base.multiplyColor, top.multiplyColor))
 }
