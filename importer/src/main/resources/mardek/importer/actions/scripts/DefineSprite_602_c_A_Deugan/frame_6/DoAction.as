@@ -1,0 +1,1 @@
+Say("Deugan","smile","We should maybe go and find it, Mardek! Who knows what kind of mystery and wonders it holds? We\'ve been looking for adventures for ages, and this might be our big chance... Let\'s go and find the $Fallen Star%!!");

@@ -1,0 +1,1 @@
+Say("Deugan","deep","Mardek... If I don\'t do this, then we\'ll all either have to fight this thing and die when the timer runs out, or try to flee and die when it chases us down. I can\'t let either of those things happen.");

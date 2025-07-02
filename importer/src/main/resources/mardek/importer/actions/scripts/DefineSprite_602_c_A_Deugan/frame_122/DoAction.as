@@ -1,0 +1,1 @@
+Say("Deugan","susp","But wait... Wouldn\'t he have needed another body to go into like you did? There weren\'t any around apart from us, and he didn\'t go into any of us like you did with Mardek...");

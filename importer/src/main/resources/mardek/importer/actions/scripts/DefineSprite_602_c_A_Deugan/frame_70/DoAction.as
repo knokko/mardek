@@ -1,0 +1,1 @@
+Say("RM","deep","Heh... Funny. We were probably worse... Maybe not violently, but we certainly treated the droma like objects rather than other sentients... I always had a problem with that, but the others never listened. And now, after that crystal arrived...");

@@ -1,0 +1,1 @@
+Say("","grin","Eh, you looked so peaceful! And besides, it is pretty early, considering. I only managed to wake up so soon because I\'m so *excited*! Aren\'t you? I mean, we have our final test mission today-...");

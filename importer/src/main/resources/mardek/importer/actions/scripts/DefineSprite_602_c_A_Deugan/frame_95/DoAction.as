@@ -1,0 +1,1 @@
+Say("Deugan","susp","Oh, I was just concerned... You seemed really distressed last night after, er, what happened... Do you think you\'ll be okay with this mission? I mean, it might include killing...");

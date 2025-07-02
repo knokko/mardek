@@ -1,0 +1,1 @@
+Say("Emela","deep","Um... I don\'t think there are any spells like that - at least, none that I\'ve ever heard of - but I suppose we could ask the best magical people around if they know anything that we could use...");

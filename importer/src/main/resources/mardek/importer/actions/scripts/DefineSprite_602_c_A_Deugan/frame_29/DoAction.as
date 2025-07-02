@@ -1,0 +1,1 @@
+Say("","deep","I\'m not sure, still... I was hoping Jacques would tell me if I got up early and asked him, but he wouldn\'t, which was annoying. He said to wait for everyone else to get there first.");

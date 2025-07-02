@@ -1,0 +1,1 @@
+Say("","norm","Eh, you know I don\'t mean to make you jealous, though, mate. I wouldn\'t\'ve talked to her behind your back like that at all normally - or, well, AT ALL normally! - but we were sort of near eachother by chance and there was this awkward silence that I felt I needed to fill...!");

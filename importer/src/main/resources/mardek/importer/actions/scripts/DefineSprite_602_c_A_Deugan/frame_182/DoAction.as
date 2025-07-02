@@ -1,0 +1,1 @@
+Say("Deugan","norm","But if you ever need me for any reason, remember that you can talk to me using the $P key%... though don\'t expect me to have all the answers to all our problems! I\'ll probably mainly just make forgettable comments about the scenery or something.");

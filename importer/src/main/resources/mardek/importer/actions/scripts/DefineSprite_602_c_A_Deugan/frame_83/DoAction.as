@@ -1,0 +1,1 @@
+Say("RM","norm","I don\'t know if he\'ll be able to detect me though. I can only pick up his vague magical signature, but I can\'t say where he is. And like I said before, I could be completely wrong, and I could\'ve just detected a monster or something...");

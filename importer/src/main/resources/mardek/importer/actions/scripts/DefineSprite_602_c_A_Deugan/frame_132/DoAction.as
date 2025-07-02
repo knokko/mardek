@@ -1,0 +1,1 @@
+Say("RM","deep","We don\'t, but I\'d bet all your money on it. As for finding him... That should be simple. Just... well, I know you\'re both exhausted, but rest lightly tonight, and get what rest you can. I have a feeling something\'s going to happen really soon...");

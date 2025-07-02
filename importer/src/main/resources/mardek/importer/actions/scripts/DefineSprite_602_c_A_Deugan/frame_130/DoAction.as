@@ -1,0 +1,1 @@
+Say("RM","deep","I am greatly concerned that Moric may yet perpetuate his existence on this physical plane, and you saw how he was when we battled him back in the catacombs. He seems dead set on conquering this world for his own selfish pleasures, and we must stop him!");
