@@ -1,0 +1,1 @@
+Say("Deugan","deep","She seems sort of scared and awkward about being here though, like... she didn\'t quite join for the same reasons that we did, but because she had to? It\'s sort of concerning, actually.");

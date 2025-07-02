@@ -1,0 +1,1 @@
+Say("Deugan","norm","The world needs a Hero, but I suppose it was never meant to be me... You\'ve always been more successful and likable than me, Mardek... You\'re the better man, and it\'s you who should shine your light on the world and become the next Social Fox, not me.");

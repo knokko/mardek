@@ -1,0 +1,1 @@
+Say("","norm","Psht. They\'re all mindless floozies though, who like \'bad boys\' like that. That\'s why Emela\'s so different... His uber-machoness doesn\'t work on her; she\'s got more of a mind than that.");

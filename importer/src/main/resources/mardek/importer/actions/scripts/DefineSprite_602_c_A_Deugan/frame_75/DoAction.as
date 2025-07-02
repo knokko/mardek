@@ -1,0 +1,1 @@
+Say("RM","deep","But when we were exploring those mines, I got this overwhelming feeling that I can\'t ignore... I COULD be wrong, and I HOPE I am, but... I think that another of my race - another \'angel\' - is here. On this world. Now.");

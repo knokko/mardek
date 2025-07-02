@@ -1,0 +1,1 @@
+Say("RM","norm","You\'re also not limited by the body\'s element if it\'s dead, anyway... I was able to share Mardek\'s body with him because we\'re both Light, but if we were different elements, it wouldn\'t\'ve worked. The soul determines the element though, so evacuated bodies offer no such limitation.");

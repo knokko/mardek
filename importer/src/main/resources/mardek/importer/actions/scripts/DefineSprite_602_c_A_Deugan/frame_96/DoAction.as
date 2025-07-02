@@ -1,0 +1,1 @@
+Say("Emela","deep","Yes, I\'m... I\'ve come to terms with that, I think. I realise now that killing people who put themselves at risk of death, and who act in such a way as to encourage it and make OTHERS feel bad isn\'t such an evil thing... No, ultimately it\'s a good thing because of how many people benefit from it.");

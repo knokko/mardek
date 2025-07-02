@@ -1,0 +1,1 @@
+Say("Deugan","norm","There was this star in the sky, right, even though it was daytime - well, morning really, but same thing! - and I looked at it because it was weird, and then it started like getting BIGGER!");

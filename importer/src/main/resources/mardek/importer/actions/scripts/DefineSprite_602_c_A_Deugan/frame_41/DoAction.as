@@ -1,0 +1,1 @@
+Say("","grin","Oh, she\'s... well, she\'s great. Just great, yes. She\'s clever, funny in her own way, sort of shy, which I rather like... Water... She\'s as good to talk to as she is to look at, that\'s for certain!");

@@ -1,0 +1,1 @@
+Say("Deugan","deep","Because it makes us \'no use to anyone\' if we think about it too much and break down on the battlefield? Hm... That\'s all we are, I suppose... Tools. Don\'t want us breaking...");

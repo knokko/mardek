@@ -1,0 +1,1 @@
+Say("Deugan","deep","Have you ever really thought about things like... the life of people you might kill? We fought those bandits today... Did you consider that they might\'ve had families that\'d never see them again?");

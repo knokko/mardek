@@ -1,0 +1,1 @@
+Say("Deugan","shok","Jacques says that a black mist has appeared over Canonia, like how one appeared over Goznor! But there\'s not just that! Apparently this big black... solid cloud thing appeared over the village, burning with magical green fire or something!");

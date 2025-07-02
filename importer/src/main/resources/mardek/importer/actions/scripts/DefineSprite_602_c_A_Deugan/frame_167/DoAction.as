@@ -1,0 +1,1 @@
+Say("Emela","sad","Deugan...");
