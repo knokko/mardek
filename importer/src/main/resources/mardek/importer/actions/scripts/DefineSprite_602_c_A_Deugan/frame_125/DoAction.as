@@ -1,0 +1,1 @@
+Say("RM","norm","Not necessarily! It\'s preferable and easier - says I, as if I have experience transferring my soul, even though I\'ve only done it once - but Moric\'s a Necromancer; I honestly think he\'d *rather* have a dead body than a live one!");

@@ -1,0 +1,1 @@
+Say("Deugan","grin","You can open the menu with the $ENTER key%, and we can check our stuff from there! It\'d be a good idea to sort out our $Reactions% from the $Skills menu%! Remember, we can trigger them by using the $X key% in battle just as we hit or are hit!");

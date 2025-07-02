@@ -1,0 +1,1 @@
+Say("","norm","I know what you mean... but though it may be a test, it\'s ALSO a mission! Our first ACTUAL mission! I mean, up until now we\'ve only had those frustratingly tame practice exercises in the training areas with targets that couldn\'t hurt us if they wanted to...");

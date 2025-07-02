@@ -1,0 +1,1 @@
+Say("RM","deep","It might be, but I\'m not sure... Since I melded with Mardek, my innate powers have sort of been on the fritz... I\'ve been not detecting things I should, and detecting other things that turn out to be nothing.");

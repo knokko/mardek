@@ -1,0 +1,1 @@
+Say("Emela","deep","They\'re eerie.. They look *too* real, and look at the expressions on some of them... It\'s like some sick artist captured peoples\' last moments of shock and surprise or something.");

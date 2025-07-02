@@ -1,0 +1,1 @@
+Say("Deugan","deep","I know... I mean, I always WANTED him dead, I suppose, so I should be happier maybe... But I\'m not. Especially after that conversation just then. I just can\'t stand to see Emela like that, and she made a good point, too...");

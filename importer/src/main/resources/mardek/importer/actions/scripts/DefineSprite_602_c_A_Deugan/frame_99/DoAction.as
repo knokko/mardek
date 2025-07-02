@@ -1,0 +1,1 @@
+Say("Deugan","norm","And if you try to change them, then you can\'t... It\'s like trying to change their element. That just can\'t happen because it\'s a fundamental part of their soul. THE most fundamental part!");

@@ -1,0 +1,1 @@
+Say("RM","norm","So, uh, it\'d be best if you didn\'t think too much about what I\'ve just said! The chances of them finding me here of all places are pretty low anyway, and they\'ve probably assumed I\'m dead by now since it\'s been so long! So please don\'t worry about it.");
