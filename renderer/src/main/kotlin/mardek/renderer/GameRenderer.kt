@@ -3,12 +3,11 @@ package mardek.renderer
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.images.VkbImage
-import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import mardek.content.Content
 import mardek.renderer.ui.GameOverRenderer
 import mardek.renderer.ui.TitleScreenRenderer
 import mardek.state.GameState
+import mardek.state.GameStateManager
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.title.GameOverState
@@ -17,7 +16,6 @@ import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkClearValue
 import org.lwjgl.vulkan.VkRect2D
 import org.lwjgl.vulkan.VkRenderPassBeginInfo
-import org.lwjgl.vulkan.VkViewport
 import java.util.concurrent.CompletableFuture
 
 const val BORDER_WIDTH = 2
@@ -29,10 +27,9 @@ class GameRenderer(
 ) {
 
 	fun render(
-		getContent: CompletableFuture<Content>, state: GameState, recorder: CommandRecorder,
+		getContent: CompletableFuture<Content>, state: GameStateManager, recorder: CommandRecorder,
 		targetImage: VkbImage, framebuffer: Long, frameIndex: Int, soundQueue: SoundQueue,
 	) {
-		val borderColor = srgbToLinear(rgb(74, 58, 48))
 
 		val pScissor = VkRect2D.calloc(1, recorder.stack)
 		pScissor.offset().set(BORDER_WIDTH, FULL_BORDER_HEIGHT)
@@ -41,14 +38,14 @@ class GameRenderer(
 		val resources = resources.join()
 		val context = if (getContent.isDone) {
 			RenderContext(
-				getContent.get(), resources, state, recorder,
+				getContent.get(), resources, state.currentState, recorder,
 				pScissor.extent().width(), pScissor.extent().height(),
 				frameIndex, soundQueue
 			)
 		} else null
 		resources.perFrameBuffer.startFrame(frameIndex)
 
-		val renderer = createRenderer(state)
+		val renderer = createRenderer(state.currentState)
 		if (context != null) renderer.beforeRendering(context)
 
 		val clearValues = VkClearValue.calloc(1, recorder.stack)
@@ -65,29 +62,7 @@ class GameRenderer(
 
 		vkCmdBeginRenderPass(recorder.commandBuffer, biRenderPass, VK_SUBPASS_CONTENTS_INLINE)
 
-		recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
-
-		resources.rectangleRenderer.beginBatch(
-			recorder, targetImage.width, targetImage.height, 1
-		)
-		resources.rectangleRenderer.fill(
-			BORDER_WIDTH, BORDER_WIDTH,
-			targetImage.width - 1 - BORDER_WIDTH,
-			pScissor.offset().y() - 1, borderColor
-		)
-		resources.rectangleRenderer.endBatch(recorder)
-
-		val pViewport = VkViewport.calloc(1, recorder.stack)
-		pViewport.x(pScissor.offset().x().toFloat())
-		pViewport.y(pScissor.offset().y().toFloat())
-		pViewport.width(pScissor.extent().width().toFloat())
-		pViewport.height(pScissor.extent().height().toFloat())
-		pViewport.minDepth(0f)
-		pViewport.maxDepth(1f)
-
-		vkCmdSetViewport(recorder.commandBuffer, 0, pViewport)
-		vkCmdSetScissor(recorder.commandBuffer, 0, pScissor)
-
+		renderTitleBar(recorder, targetImage, resources.rectangleRenderer, pScissor, state)
 		if (context != null) renderer.render(context)
 
 		vkCmdEndRenderPass(recorder.commandBuffer)

@@ -5,6 +5,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.WindowBuilder
 import com.github.knokko.boiler.builders.device.SimpleDeviceSelector
+import com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess
 import com.github.knokko.boiler.window.WindowEventLoop
 import com.github.knokko.update.UpdateLoop
 import mardek.content.Content
@@ -14,6 +15,17 @@ import mardek.renderer.GameRenderer
 import mardek.renderer.SharedResources
 import mardek.state.GameStateManager
 import mardek.state.title.TitleScreenState
+import org.lwjgl.sdl.SDLInit.SDL_INIT_GAMEPAD
+import org.lwjgl.sdl.SDLInit.SDL_INIT_VIDEO
+import org.lwjgl.sdl.SDLInit.SDL_PROP_APP_METADATA_CREATOR_STRING
+import org.lwjgl.sdl.SDLInit.SDL_PROP_APP_METADATA_IDENTIFIER_STRING
+import org.lwjgl.sdl.SDLInit.SDL_PROP_APP_METADATA_NAME_STRING
+import org.lwjgl.sdl.SDLInit.SDL_PROP_APP_METADATA_TYPE_STRING
+import org.lwjgl.sdl.SDLInit.SDL_PROP_APP_METADATA_URL_STRING
+import org.lwjgl.sdl.SDLInit.SDL_SetAppMetadataProperty
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_BORDERLESS
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_RESIZABLE
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_VULKAN
 import org.lwjgl.vulkan.VK10.*
 import java.io.File
 import java.util.concurrent.CompletableFuture
@@ -47,11 +59,28 @@ fun main(args: Array<String>) {
 	}.start()
 
 	val boiler = try {
+		assertSdlSuccess(SDL_SetAppMetadataProperty(
+			SDL_PROP_APP_METADATA_NAME_STRING, "MARDEK"
+		), "SetAppMetadataProperty")
+		assertSdlSuccess(SDL_SetAppMetadataProperty(
+			SDL_PROP_APP_METADATA_IDENTIFIER_STRING, "com.github.knokko.mardek"
+		), "SetAppMetadataProperty")
+		assertSdlSuccess(SDL_SetAppMetadataProperty(
+			SDL_PROP_APP_METADATA_CREATOR_STRING, "knokko"
+		), "SetAppMetadataProperty")
+		assertSdlSuccess(SDL_SetAppMetadataProperty(
+			SDL_PROP_APP_METADATA_URL_STRING, "https://github.com/knokko/mardek"
+		), "SetAppMetadataProperty")
+		assertSdlSuccess(SDL_SetAppMetadataProperty(
+			SDL_PROP_APP_METADATA_TYPE_STRING, "game"
+		), "SetAppMetadataProperty")
+
 		val boilerBuilder = BoilerBuilder(
 			VK_API_VERSION_1_0, "MardekKt", 1
 		).addWindow(WindowBuilder(
 			800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-		).hideUntilFirstFrame())
+			).hideUntilFirstFrame().sdlFlags(SDL_WINDOW_VULKAN or SDL_WINDOW_RESIZABLE or SDL_WINDOW_BORDERLESS)
+		).useSDL(SDL_INIT_VIDEO or SDL_INIT_GAMEPAD)
 		if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()
 		if (args.contains("api-dump")) boilerBuilder.apiDump()
 		if (args.contains("integrated")) boilerBuilder.physicalDeviceSelector(SimpleDeviceSelector(
@@ -80,7 +109,7 @@ fun main(args: Array<String>) {
 
 	Thread {
 		val updateLoop = UpdateLoop({ _ ->
-			if (content.isCompletedExceptionally || content.isCancelled) throw RuntimeException("Failed to load campagin")
+			if (content.isCompletedExceptionally || content.isCancelled) throw RuntimeException("Failed to load campaign")
 			if (content.isDone) {
 				synchronized(state.lock()) {
 					state.update(content.get(), 10.milliseconds)
@@ -100,7 +129,7 @@ fun main(args: Array<String>) {
 		audioUpdater.destroy()
 	}.start()
 
-	val inputListener = MardekGlfwInput(boiler.window().glfwWindow, input)
+	val inputListener = MardekSdlInput(boiler.window(), state, input)
 	inputListener.register()
 
 	val eventLoop = WindowEventLoop(0.01, inputListener::update)

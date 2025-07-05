@@ -7,9 +7,11 @@ import com.github.knokko.boiler.synchronization.ResourceUsage
 import mardek.content.Content
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
+import mardek.input.InputManager
 import mardek.renderer.GameRenderer
 import mardek.renderer.SharedResources
 import mardek.state.GameState
+import mardek.state.GameStateManager
 import mardek.state.SoundQueue
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.fail
@@ -58,7 +60,10 @@ fun TestingInstance.testRendering(
 	getContent.complete(content)
 	commands.submit(name) { recorder ->
 		recorder.transitionLayout(targetImage, null, ResourceUsage.COLOR_ATTACHMENT_WRITE)
-		renderer.render(getContent, state, recorder, targetImage, framebuffer, 0, SoundQueue())
+		renderer.render(
+			getContent, GameStateManager(InputManager(), state),
+			recorder, targetImage, framebuffer, 0, SoundQueue()
+		)
 		recorder.transitionLayout(targetImage, ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.TRANSFER_SOURCE)
 		recorder.copyImageToBuffer(targetImage, destinationBuffer)
 	}

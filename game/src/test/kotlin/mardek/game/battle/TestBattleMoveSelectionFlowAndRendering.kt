@@ -76,7 +76,6 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		)
 
 		val targetingColors = arrayOf(
-			Color(180, 154, 109),
 			Color(178, 129, 81),
 			Color(175, 59, 0),
 		)

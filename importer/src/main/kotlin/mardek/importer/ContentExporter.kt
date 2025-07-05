@@ -2,6 +2,7 @@ package mardek.importer
 
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.boiler.utilities.ImageCoding
 import mardek.content.Content
 import mardek.content.animations.SkeletonPartSkins
 import mardek.importer.area.SpritesAndAreas
@@ -9,8 +10,10 @@ import mardek.importer.ui.BcPacker
 import mardek.importer.util.projectFolder
 import java.io.BufferedOutputStream
 import java.io.File
+import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.util.zip.DeflaterOutputStream
+import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
 fun main() {
@@ -19,6 +22,16 @@ fun main() {
 		val bitser = Bitser(false)
 		val content = importVanillaContent(bitser)
 		val outputFolder = File("$projectFolder/game/src/main/resources/mardek/game/")
+
+		val itemSheet = ImageIO.read(BcPacker::class.java.classLoader.getResource(
+			"mardek/importer/inventory/itemsheet_misc.png"
+		))
+		val imageData = ByteBuffer.allocate(4 * 16 * 16)
+		ImageCoding.encodeBufferedImage(imageData, itemSheet.getSubimage(288, 32, 16, 16))
+		val iconOutput = Files.newOutputStream(File("$outputFolder/icon.bin").toPath())
+		iconOutput.write(imageData.array())
+		iconOutput.flush()
+		iconOutput.close()
 
 		val kimOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/kim-sprites.bin").toPath()))
 		val spritesAndAreas = SpritesAndAreas()

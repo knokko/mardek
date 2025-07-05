@@ -6,13 +6,13 @@ dependencies {
 	implementation "com.github.knokko.update-loop:implementation:v2.0.0"
 	implementation "com.github.knokko:sample-profiler:v1.0.0"
 	for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
-	implementation "org.lwjgl:lwjgl-glfw"
+	implementation "org.lwjgl:lwjgl-sdl"
 	implementation project(":content")
 	implementation project(":audio")
 	implementation project(":input")
 	implementation project(":renderer")
 	implementation project(":state")
-	for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-glfw::$natives"
+	for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-sdl::$natives"
 }
 
 shadowJar {

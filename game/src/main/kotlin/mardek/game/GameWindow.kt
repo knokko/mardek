@@ -2,6 +2,7 @@ package mardek.game
 
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
+import com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess
 import com.github.knokko.boiler.synchronization.ResourceUsage
 import com.github.knokko.boiler.window.AcquiredImage
 import com.github.knokko.boiler.window.SimpleWindowRenderLoop
@@ -15,10 +16,13 @@ import mardek.renderer.GameRenderer
 import mardek.renderer.SharedResources
 import mardek.state.ExitState
 import mardek.state.GameStateManager
-import org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose
+import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_CLOSE_REQUESTED
+import org.lwjgl.sdl.SDLEvents.SDL_PushEvent
+import org.lwjgl.sdl.SDLVideo.SDL_GetWindowID
+import org.lwjgl.sdl.SDL_Event
+import org.lwjgl.sdl.SDL_WindowEvent
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.KHRSurface.*
-import org.lwjgl.vulkan.VK10.vkDestroyFramebuffer
 import java.util.concurrent.CompletableFuture
 
 class GameWindow(
@@ -34,7 +38,7 @@ class GameWindow(
 	ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 ) {
 	private lateinit var renderer: GameRenderer
-	private lateinit var framebuffers: SwapchainResourceManager<Long>
+	private lateinit var framebuffers: SwapchainResourceManager<Any, Long>
 
 	private val updateCounter = UpdateCounter()
 	private var lastFps = -1L
@@ -44,12 +48,7 @@ class GameWindow(
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
 		renderer = GameRenderer(getResources)
-		framebuffers = SwapchainResourceManager({ swapchainImage: AcquiredImage ->
-				boiler.images.createFramebuffer(
-					getResources.join().renderPass, swapchainImage.width(), swapchainImage.height(),
-					"SwapchainFrameBuffer", swapchainImage.image().vkImageView
-				)
-		}, { framebuffer: Long -> vkDestroyFramebuffer(boiler.vkDevice(), framebuffer, null) })
+		framebuffers = SwapchainResources(boiler, getResources)
 	}
 //	init {
 //		profiler.start()
@@ -74,8 +73,16 @@ class GameWindow(
 
 		val framebuffer = framebuffers.get(acquiredImage)
 		synchronized(state.lock()) {
-			if (state.currentState is ExitState) glfwSetWindowShouldClose(window.glfwWindow, true)
-			else renderer.render(getContent, state.currentState, recorder, acquiredImage.image(), framebuffer, frameIndex, state.soundQueue)
+			if (state.currentState is ExitState) {
+				val quitEvent = SDL_Event.calloc(stack)
+				quitEvent.type(SDL_EVENT_WINDOW_CLOSE_REQUESTED)
+				SDL_WindowEvent.nwindowID(quitEvent.address(), SDL_GetWindowID(window.handle))
+				assertSdlSuccess(SDL_PushEvent(quitEvent), "PushEvent")
+			}
+			else renderer.render(
+				getContent, state, recorder, acquiredImage.image(),
+				framebuffer, frameIndex, state.soundQueue
+			)
 		}
 
 		if (firstFrame) {
