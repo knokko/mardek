@@ -44,7 +44,7 @@ class SingleCreatureRenderer(
 	private var relativeTime = currentRealTime - context.battle.startTime
 	private var animation: Animation? = skeleton.getAnimation("idle")
 	private var coordinates = transformBattleCoordinates(
-		combatant.getPosition(context.battle), flipX, context.targetImage
+		combatant.getPosition(context.battle), flipX, context
 	)
 
 	private fun colorCombineTransform(max: Float, intensity: Float, color: Int) = ColorTransform(
@@ -127,7 +127,7 @@ class SingleCreatureRenderer(
 		if (showcase) {
 			choosePassiveAnimation()
 			coordinates = transformBattleCoordinates(
-				PartyLayoutPosition(40, 60), flipX, context.targetImage
+				PartyLayoutPosition(40, 60), flipX, context
 			)
 		} else {
 			if (state is BattleStateMachine.MeleeAttack && state.attacker === combatant) {
@@ -152,7 +152,7 @@ class SingleCreatureRenderer(
 			rawTargetCoordinates.x + (flipX * targetFlipX).roundToInt() * targetStrikePoint.x.roundToInt(),
 			rawTargetCoordinates.y + (targetModel.skeleton.groundDistance - skeleton.groundDistance).roundToInt()
 		)
-		val strikePosition = transformBattleCoordinates(rawStrikePosition, targetFlipX, context.targetImage)
+		val strikePosition = transformBattleCoordinates(rawStrikePosition, targetFlipX, context)
 
 		if (state is BattleStateMachine.MeleeAttack.MoveTo) {
 			val moveAnimation = skeleton.getAnimation("moveto")
@@ -237,7 +237,7 @@ class SingleCreatureRenderer(
 		val rawShadowPosition = PartyLayoutPosition(
 			rawCoordinates.x, rawCoordinates.y + skeleton.groundDistance.roundToInt()
 		)
-		val shadowPosition = transformBattleCoordinates(rawShadowPosition, flipX, context.targetImage)
+		val shadowPosition = transformBattleCoordinates(rawShadowPosition, flipX, context)
 		val shadowRadius = 50f
 
 		run {

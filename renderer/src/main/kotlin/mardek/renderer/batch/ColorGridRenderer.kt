@@ -4,7 +4,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
-import com.github.knokko.boiler.images.VkbImage
+import mardek.renderer.RenderContext
 import org.lwjgl.vulkan.VK10.*
 import java.lang.Math.toIntExact
 import java.nio.IntBuffer
@@ -28,7 +28,7 @@ class ColorGridRenderer(
 	}
 
 	fun drawGrid(
-		recorder: CommandRecorder, targetImage: VkbImage, minX: Int, minY: Int,
+		context: RenderContext, minX: Int, minY: Int,
 		width: Int, height: Int, table: Int, scale: Int
 	): IntBuffer {
 		val stages = VK_SHADER_STAGE_VERTEX_BIT or VK_SHADER_STAGE_FRAGMENT_BIT
@@ -36,11 +36,18 @@ class ColorGridRenderer(
 		var numTableInts = numTableEntries / 8
 		if (numTableEntries % 8 != 0) numTableInts += 1
 		val tableRange = perFrameBuffer.allocate(4L * numTableInts, 4L)
-		vkCmdPushConstants(recorder.commandBuffer, resources.pipelineLayout, stages, 0, recorder.stack.ints(
-			targetImage.width, targetImage.height, minX, minY, width, height,
+		val pushConstantData = context.recorder.stack.ints(
+			context.viewportWidth, context.viewportHeight, minX, minY, width, height,
 			toIntExact((tableRange.offset - perFrameBuffer.buffer.offset) / 4), table, scale
-		))
-		vkCmdDraw(recorder.commandBuffer, 6, 1, 0, 0)
+		)
+		vkCmdPushConstants(
+			context.recorder.commandBuffer, resources.pipelineLayout,
+			stages, 0, pushConstantData
+		)
+		vkCmdDraw(
+			context.recorder.commandBuffer,
+			6, 1, 0, 0
+		)
 		return tableRange.intBuffer()
 	}
 

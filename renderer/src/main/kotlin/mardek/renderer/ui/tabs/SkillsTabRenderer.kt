@@ -139,7 +139,7 @@ class SkillsTabRenderer(
 		if (region.width < 50) return
 
 		val renderer = context.resources.rectangleRenderer
-		renderer.beginBatch(context.recorder, context.targetImage, 8)
+		renderer.beginBatch(context, 8)
 
 		val selectionLowColor = srgbToLinear(rgb(25, 72, 119))
 		val selectionBorder = srgbToLinear(rgb(165, 205, 254))
@@ -318,7 +318,7 @@ class SkillsTabRenderer(
 			}
 		}
 
-		context.resources.kim1Renderer.submit(kim1Batch, context.recorder, context.targetImage)
-		context.resources.kim2Renderer.submit(kim2Batch, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(kim1Batch, context)
+		context.resources.kim2Renderer.submit(kim2Batch, context)
 	}
 }

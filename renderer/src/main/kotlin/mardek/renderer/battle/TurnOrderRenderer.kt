@@ -82,10 +82,7 @@ class TurnOrderRenderer(
 		val lineColor = srgbToLinear(rgb(208, 193, 142))
 
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(
-			context.recorder, context.targetImage,
-			11 + 5 * region.width / slotWidth
-		)
+		rectangles.beginBatch(context, 11 + 5 * region.width / slotWidth)
 
 		val backgroundColor = srgbToLinear(rgb(25, 13, 9))
 		rectangles.fillUnaligned(
@@ -187,6 +184,6 @@ class TurnOrderRenderer(
 		)
 		context.uiRenderer.endBatch()
 
-		context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(kimBatch, context)
 	}
 }

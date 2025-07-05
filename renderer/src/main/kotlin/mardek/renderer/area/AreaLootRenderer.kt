@@ -20,8 +20,8 @@ class AreaLootRenderer(
 
 	private val rectWidth = 120 * scale
 	private val rectHeight = 90 * scale
-	private val rectMinX = (context.targetImage.width - rectWidth) / 2
-	private val rectMinY = (context.targetImage.height - rectHeight) / 3
+	private val rectMinX = (context.viewportWidth - rectWidth) / 2
+	private val rectMinY = (context.viewportHeight - rectHeight) / 3
 	private val rectMaxX = rectMinX + rectWidth - 1
 	private val rectMaxY = rectMinY + rectHeight - 1
 
@@ -64,9 +64,9 @@ class AreaLootRenderer(
 
 	fun render() {
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(context.recorder, context.targetImage, 10)
+		rectangles.beginBatch(context, 10)
 		rectangles.fill(
-			0, 0, context.targetImage.width, context.targetImage.height,
+			0, 0, context.viewportWidth, context.viewportHeight,
 			srgbToLinear(rgba(37, 26, 17, 254))
 		)
 
@@ -112,7 +112,7 @@ class AreaLootRenderer(
 		} else Pair(obtainedItemStack.plotItem!!.name, obtainedItemStack.plotItem!!.description)
 		context.uiRenderer.drawString(
 			context.resources.font, itemName, brightTextColor, intArrayOf(),
-			minTextX, 0, maxTextX, context.targetImage.height, rectMinY + 9 * scale, 5 * scale,
+			minTextX, 0, maxTextX, context.viewportHeight, rectMinY + 9 * scale, 5 * scale,
 			1, TextAlignment.DEFAULT
 		)
 
@@ -121,7 +121,7 @@ class AreaLootRenderer(
 		fun drawLine(currentLine: String) {
 			context.uiRenderer.drawString(
 				context.resources.font, currentLine, srgbToLinear(rgb(197, 183, 134)), intArrayOf(),
-				minTextX, 0, maxTextX, context.targetImage.height, textY, 4 * scale, 1, TextAlignment.DEFAULT
+				minTextX, 0, maxTextX, context.viewportHeight, textY, 4 * scale, 1, TextAlignment.DEFAULT
 			)
 			textY += 8 * scale
 		}
@@ -131,7 +131,7 @@ class AreaLootRenderer(
 		if (obtainedItemStack.itemStack != null) {
 			context.uiRenderer.drawString(
 				context.resources.font, "x ${obtainedItemStack.itemStack!!.amount}", brightTextColor, intArrayOf(),
-				rectMaxX + 4 * scale, 0, context.targetImage.width, context.targetImage.height,
+				rectMaxX + 4 * scale, 0, context.viewportWidth, context.viewportHeight,
 				rectMaxY - scale, 8 * scale, 1, TextAlignment.LEFT
 			)
 
@@ -152,19 +152,19 @@ class AreaLootRenderer(
 				val alreadyHas = characterState.countItemOccurrences(obtainedItemStack.itemStack!!.item)
 				context.uiRenderer.drawString(
 					context.resources.font, alreadyHas.toString(), brightTextColor, intArrayOf(),
-					minX, rectMaxY, minX + 18 * scale, context.targetImage.height,
+					minX, rectMaxY, minX + 18 * scale, context.viewportHeight,
 					rectMaxY + 32 * scale, 6 * scale, 1, TextAlignment.CENTER
 				)
 			}
 
 			context.uiRenderer.drawString(
 				context.resources.font, "Already has:", brightTextColor, intArrayOf(),
-				0, rectMaxY, rectMinX - 2 * scale, context.targetImage.height,
+				0, rectMaxY, rectMinX - 2 * scale, context.viewportHeight,
 				rectMaxY + 32 * scale, 4 * scale, 1, TextAlignment.RIGHT
 			)
 			context.uiRenderer.drawString(
 				context.resources.font, "Space:", brightTextColor, intArrayOf(),
-				0, rectMaxY, rectMinX - 2 * scale, context.targetImage.height,
+				0, rectMaxY, rectMinX - 2 * scale, context.viewportHeight,
 				rectMaxY + 43 * scale, 4 * scale, 1, TextAlignment.RIGHT
 			)
 		}
@@ -177,6 +177,6 @@ class AreaLootRenderer(
 			renderLootInventoryGrid(context, party, rectMinX + scale, minY, columnWidth, scale)
 		}
 
-		context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(kimBatch, context)
 	}
 }

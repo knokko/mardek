@@ -3,7 +3,6 @@ package mardek.renderer.batch
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
 import com.github.knokko.boiler.utilities.ColorPacker.alpha
 import com.github.knokko.boiler.utilities.ColorPacker.blue
@@ -12,6 +11,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.normalize
 import com.github.knokko.boiler.utilities.ColorPacker.red
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.unsigned
+import mardek.renderer.RenderContext
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.VK_CULL_MODE_NONE
 import org.lwjgl.vulkan.VK10.VK_DYNAMIC_STATE_SCISSOR
@@ -81,18 +81,18 @@ class RectangleRenderer(
 		}
 	}
 
-	fun beginBatch(recorder: CommandRecorder, targetImage: VkbImage, maxNumRectangles: Int) {
+	fun beginBatch(context: RenderContext, maxNumRectangles: Int) {
 		if (batch != null) throw IllegalStateException("Previous batch was not submitted yet")
 		vkCmdBindPipeline(
-			recorder.commandBuffer,
+			context.recorder.commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			pipeline
 		)
 		val buffer = perFrame.allocate(RECTANGLE_VERTEX_SIZE * 6L * maxNumRectangles, 4)
 		this.batch = buffer.floatBuffer()
-		this.width = targetImage.width
-		this.height = targetImage.height
-		recorder.bindVertexBuffers(0, buffer)
+		this.width = context.viewportWidth
+		this.height = context.viewportHeight
+		context.recorder.bindVertexBuffers(0, buffer)
 	}
 
 	fun gradientUnaligned(

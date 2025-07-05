@@ -65,7 +65,7 @@ class PlayerBlockRenderer(
 
 	fun render() {
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(context.recorder, context.targetImage, 2)
+		rectangles.beginBatch(context, 2)
 
 		val mousePosition = context.battle.lastMousePosition
 		if (mousePosition != null && region.contains(mousePosition.first, mousePosition.second)) {
@@ -145,8 +145,8 @@ class PlayerBlockRenderer(
 		}
 		context.uiRenderer.endBatch()
 
-		context.resources.kim2Renderer.submit(batch2, context.recorder, context.targetImage)
-		context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)
+		context.resources.kim2Renderer.submit(batch2, context)
+		context.resources.kim1Renderer.submit(batch1, context)
 
 		maybeRenderSelectionBlink(player, context.uiRenderer, region)
 

@@ -15,8 +15,8 @@ import kotlin.math.sin
 class EffectHistoryRenderer(private val context: BattleRenderContext, private val combatant: CombatantState) {
 
 	private val currentEntry = combatant.effectHistory.get(System.nanoTime())
-	private val width = context.targetImage.width
-	private val height = context.targetImage.height
+	private val width = context.viewportWidth
+	private val height = context.viewportHeight
 	private var midX = 0
 	private var midY = 0
 	private var spriteSize = 0
@@ -46,9 +46,7 @@ class EffectHistoryRenderer(private val context: BattleRenderContext, private va
 
 	fun render() {
 		if (currentEntry == null) return
-		kimBatch?.let { context.resources.kim1Renderer.submit(
-			it, context.recorder, context.targetImage
-		) }
+		kimBatch?.let { context.resources.kim1Renderer.submit(it, context) }
 
 		if (currentEntry.type == StatusEffectHistory.Type.Remove) {
 			val crossColor = srgbToLinear(rgba(199, 0, 0, 128))
@@ -57,7 +55,7 @@ class EffectHistoryRenderer(private val context: BattleRenderContext, private va
 			val p = (l - 2 * l * (1f - currentEntry.relativeTime)).roundToInt()
 
 			val rectangles = context.resources.rectangleRenderer
-			rectangles.beginBatch(context.recorder, context.targetImage, 2)
+			rectangles.beginBatch(context, 2)
 			rectangles.fillUnaligned(
 				midX - l + w, midY - l - w, midX - l - w, midY - l + w,
 				midX + p - w, midY + p + w, midX + p + w, midY + p - w, crossColor

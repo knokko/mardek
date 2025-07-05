@@ -1,7 +1,6 @@
 package mardek.renderer
 
 import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import mardek.content.Content
 import mardek.state.GameState
 import mardek.state.SoundQueue
@@ -13,7 +12,8 @@ open class RenderContext(
 	val resources: SharedResources,
 	val state: GameState,
 	val recorder: CommandRecorder,
-	val targetImage: VkbImage,
+	val viewportWidth: Int,
+	val viewportHeight: Int,
 	val frameIndex: Int,
 	val soundQueue: SoundQueue,
 ) {
@@ -25,7 +25,8 @@ open class InGameRenderContext(
 	context: RenderContext,
 ) : RenderContext(
 	context.content, context.resources, context.state, context.recorder,
-	context.targetImage, context.frameIndex, context.soundQueue
+	context.viewportWidth, context.viewportHeight,
+	context.frameIndex, context.soundQueue
 ) {
 
 	val uiContext = UiUpdateContext(

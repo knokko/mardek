@@ -32,8 +32,8 @@ class DamageIndicatorRenderer(
 		opacity = 1f - (System.nanoTime() - indicator.time) / DURATION.toFloat()
 		if (opacity <= 0f) return
 
-		midX = TransformedCoordinates.intX(position.first, context.targetImage.width)
-		midY = TransformedCoordinates.intY(position.second, context.targetImage.height)
+		midX = TransformedCoordinates.intX(position.first, context.viewportWidth)
+		midY = TransformedCoordinates.intY(position.second, context.viewportHeight)
 
 		val element = when (indicator) {
 			is DamageIndicatorHealth -> indicator.element
@@ -42,7 +42,7 @@ class DamageIndicatorRenderer(
 		}
 		if (element != null) {
 			batch = context.resources.kim2Renderer.startBatch()
-			val scale = 0.1f * context.targetImage.height / element.sprite.height
+			val scale = 0.1f * context.viewportHeight / element.sprite.height
 			val size = (scale * element.sprite.width).roundToInt()
 			batch.requests.add(KimRequest(
 				x = midX - size / 2, y = midY - size / 2, scale = scale,
@@ -54,7 +54,7 @@ class DamageIndicatorRenderer(
 	fun render() {
 		if (!this::batch.isInitialized) return
 
-		context.resources.kim2Renderer.submit(batch, context.recorder, context.targetImage)
+		context.resources.kim2Renderer.submit(batch, context)
 
 		context.uiRenderer.beginBatch()
 
@@ -73,7 +73,7 @@ class DamageIndicatorRenderer(
 			midColor = changeAlpha(srgbToLinear(midColor), (sqrt(opacity) * 255f).roundToInt())
 			edgeColor = changeAlpha(srgbToLinear(edgeColor), (sqrt(opacity) * 255f).roundToInt())
 
-			val height = context.targetImage.height / 25
+			val height = context.viewportHeight / 25
 			context.uiRenderer.drawString(
 				context.resources.font, textAmount.toString(), edgeColor, IntArray(0),
 				midX - 5 * height, midY - 5 * height, midX + 5 * height, midY + 5 * height,

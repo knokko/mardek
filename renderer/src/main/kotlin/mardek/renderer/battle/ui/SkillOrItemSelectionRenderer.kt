@@ -2,7 +2,6 @@ package mardek.renderer.battle.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.text.placement.TextAlignment
-import com.github.knokko.ui.renderer.Gradient
 import mardek.content.sprite.KimSprite
 import mardek.renderer.batch.KimBatch
 import mardek.renderer.batch.KimRequest
@@ -84,7 +83,7 @@ class SkillOrItemSelectionRenderer(
 		if (entries.isEmpty()) return
 
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(context.recorder, context.targetImage, 5)
+		rectangles.beginBatch(context, 5)
 
 		val borderColor = srgbToLinear(rgb(208, 193, 142))
 		val borderWidth = max(1, region.width / 100)
@@ -149,8 +148,8 @@ class SkillOrItemSelectionRenderer(
 		}
 		context.uiRenderer.endBatch()
 
-		context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)
-		if (this::batch2.isInitialized) context.resources.kim2Renderer.submit(batch2, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(batch1, context)
+		if (this::batch2.isInitialized) context.resources.kim2Renderer.submit(batch2, context)
 	}
 }
 

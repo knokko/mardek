@@ -23,8 +23,8 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 	private val party = context.campaign.characterSelection.party
 	private lateinit var kimBatch: KimBatch
 
-	private val width = context.targetImage.width
-	private val height = context.targetImage.height
+	private val width = context.viewportWidth
+	private val height = context.viewportHeight
 	private var scale = 1
 	private var partyMinX = 0
 	private val itemYs = IntArray(loot.items.size + loot.plotItems.size + loot.dreamStones.size)
@@ -103,7 +103,7 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 
 	fun render() {
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(context.recorder, context.targetImage, 11)
+		rectangles.beginBatch(context, 11)
 
 		val leftColor = srgbToLinear(rgba(54, 37, 21, 240))
 		val rightColor = srgbToLinear(rgba(132, 84, 53, 240))
@@ -271,7 +271,7 @@ class BattleLootRenderer(private val context: InGameRenderContext) {
 			)
 		}
 		context.uiRenderer.endBatch()
-		context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(kimBatch, context)
 
 		renderLootInventoryGrid(
 			context, party.map { if (it != null) context.campaign.characterStates[it]!! else null },

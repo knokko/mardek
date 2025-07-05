@@ -19,7 +19,7 @@ layout(set = 0, binding = 3) uniform sampler pixelatedSampler;
 
 layout(set = 1, binding = 0) uniform texture2D currentImage;
 
-layout(location = 0) in flat ivec2 corner;
+layout(location = 0) in vec2 offset;
 layout(location = 1) in flat ivec2 size;
 layout(location = 2) in flat int type;
 layout(location = 3) in flat int extraIndex;
@@ -30,6 +30,7 @@ layout(location = 6) in flat int scale;
 layout(location = 7) in flat int colorIndex;
 layout(location = 8) in flat int inputColor;
 layout(location = 9) in flat int outlineWidth;
+layout(location = 10) in vec2 absoluteOffset;
 
 layout(location = 0) out vec4 outColor;
 
@@ -70,16 +71,16 @@ vec4 applyCircleGradient(vec4 oldColor, float distance, int gi) {
 	return oldColor;
 }
 
-void drawImage(ivec2 offset) {
+void drawImage() {
 	outColor = texture(sampler2D(currentImage, pixelatedSampler), vec2(offset) / size);
 }
 
-void fillColor(ivec2 offset) {
+void fillColor() {
 	outColor = decodeColor(extra[extraIndex]);
 
 	int numGradients = extra[extraIndex + 1];
 	for (int index = 0; index < numGradients; index++) {
-		outColor = applyGradient(outColor, offset, extraIndex + 2 + 7 * index);
+		outColor = applyGradient(outColor, ivec2(offset), extraIndex + 2 + 7 * index);
 	}
 }
 
@@ -105,7 +106,7 @@ void fillCircle(ivec2 absoluteOffset) {
 	}
 }
 
-void drawText(ivec2 offset) {
+void drawText() {
 
 	// This should not happen, but I prefer explicitly checking over undefined behavior
 	if (offset.x < 0 || offset.y < 0 || offset.x >= size.x || offset.y >= size.y) {
@@ -113,7 +114,7 @@ void drawText(ivec2 offset) {
 		return;
 	}
 
-	int intensityIndex = bufferIndex + offset.x / scale + (offset.y / scale) * sectionWidth;
+	int intensityIndex = bufferIndex + int(offset.x) / scale + (int(offset.y) / scale) * sectionWidth;
 	int rawIntensityIndex = intensityIndex / 4;
 	int byteIntensityIndex = intensityIndex % 4;
 	uint rawIntensity = intensities[rawIntensityIndex];
@@ -131,8 +132,8 @@ void drawText(ivec2 offset) {
 	if (intensity > 0 && rawColor == inputColor) {
 		int gradientIndex = colorIndex + 2 + outlineWidth;
 		ivec2 gradientCorner = ivec2(extra[gradientIndex], extra[gradientIndex + 1]);
-		int framebufferX = int(gl_FragCoord.x);
-		int framebufferY = int(gl_FragCoord.y);
+		int framebufferX = int(absoluteOffset.x);
+		int framebufferY = int(absoluteOffset.y);
 		ivec2 gradientOffset = ivec2(framebufferX, framebufferY) - gradientCorner;
 
 		int numGradients = extra[gradientIndex + 2];
@@ -145,12 +146,8 @@ void drawText(ivec2 offset) {
 }
 
 void main() {
-	int framebufferX = int(gl_FragCoord.x);
-	int framebufferY = int(gl_FragCoord.y);
-	ivec2 offset = ivec2(framebufferX, framebufferY) - corner;
-
-	if (type == 1) drawImage(offset);
-	if (type == 2) drawText(offset);
-	if (type == 3) fillColor(offset);
-	if (type == 4) fillCircle(offset);
+	if (type == 1) drawImage();
+	if (type == 2) drawText();
+	if (type == 3) fillColor();
+	if (type == 4) fillCircle(ivec2(offset));
 }

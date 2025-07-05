@@ -5,7 +5,7 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.buffers.VkbBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
-import com.github.knokko.boiler.images.VkbImage
+import mardek.renderer.RenderContext
 import org.lwjgl.vulkan.VK10.*
 
 class Kim2Renderer(
@@ -34,10 +34,18 @@ class Kim2Renderer(
 		return batch
 	}
 
-	fun submit(batch: KimBatch, recorder: CommandRecorder, targetImage: VkbImage) {
+	fun submit(batch: KimBatch, context: RenderContext) {
+		submit(batch, context.recorder, context.viewportWidth, context.viewportHeight)
+	}
+
+	fun submit(batch: KimBatch, recorder: CommandRecorder, viewportWidth: Int, viewportHeight: Int) {
 		if (batch.requests.isEmpty()) return
 
-		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.graphicsPipeline)
+		vkCmdBindPipeline(
+			recorder.commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			resources.graphicsPipeline
+		)
 		recorder.bindGraphicsDescriptors(resources.pipelineLayout, resources.descriptorSet)
 
 		val vertexRange = perFrameBuffer.allocate(KIM2_VERTEX_SIZE.toLong() * batch.requests.size, 4)
@@ -45,7 +53,7 @@ class Kim2Renderer(
 		recorder.bindVertexBuffers(0, vertexRange)
 		vkCmdPushConstants(
 			recorder.commandBuffer, resources.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-			0, recorder.stack.ints(targetImage.width, targetImage.height)
+			0, recorder.stack.ints(viewportWidth, viewportHeight)
 		)
 
 		for (request in batch.requests) {
@@ -54,7 +62,10 @@ class Kim2Renderer(
 			hostVertexRange.putInt(request.sprite.offset).putFloat(request.opacity)
 			if (request.rotation != 0f) throw UnsupportedOperationException("Kim2Renderer doesn't support rotations")
 		}
-		vkCmdDraw(recorder.commandBuffer, 6, batch.requests.size, 0, 0)
+		vkCmdDraw(
+			recorder.commandBuffer, 6,
+			batch.requests.size, 0, 0
+		)
 		batch.requests.clear()
 	}
 

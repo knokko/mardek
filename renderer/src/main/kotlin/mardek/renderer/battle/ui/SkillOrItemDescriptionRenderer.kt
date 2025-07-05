@@ -77,7 +77,7 @@ class SkillOrItemDescriptionRenderer(
 
 		run {
 			val rectangles = context.resources.rectangleRenderer
-			rectangles.beginBatch(context.recorder, context.targetImage, 1)
+			rectangles.beginBatch(context, 1)
 			val leftColor = srgbToLinear(rgba(60, 45, 30, 230))
 			val rightColor = srgbToLinear(rgba(120, 90, 40, 230))
 			rectangles.gradient(
@@ -116,8 +116,8 @@ class SkillOrItemDescriptionRenderer(
 		}
 		context.uiRenderer.endBatch()
 
-		if (this::batch1.isInitialized) context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)
-		if (this::batch2.isInitialized) context.resources.kim2Renderer.submit(batch2, context.recorder, context.targetImage)
+		if (this::batch1.isInitialized) context.resources.kim1Renderer.submit(batch1, context)
+		if (this::batch2.isInitialized) context.resources.kim2Renderer.submit(batch2, context)
 	}
 }
 

@@ -23,47 +23,47 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 	private val context = BattleRenderContext(battleState, context)
 
 	private val turnOrderRenderer = TurnOrderRenderer(this.context, AbsoluteRectangle(
-		minX = 0, minY = context.targetImage.height / 12,
-		width = context.targetImage.width, height = context.targetImage.height / 12
+		minX = 0, minY = context.viewportHeight / 12,
+		width = context.viewportWidth, height = context.viewportHeight / 12
 	))
 	private val actionBarRenderer = ActionBarRenderer(
 		this.context, AbsoluteRectangle(
 			minX = 0,
-			minY = context.targetImage.height - context.targetImage.height / 12 - context.targetImage.height / 8,
-			width = context.targetImage.width,
-			height = context.targetImage.height / 12
+			minY = context.viewportHeight - context.viewportHeight / 12 - context.viewportHeight / 8,
+			width = context.viewportWidth,
+			height = context.viewportHeight / 12
 		)
 	)
 	private val skillOrItemSelectionRenderer = SkillOrItemSelectionRenderer(
 		this.context, AbsoluteRectangle(
-			minX = context.targetImage.width / 3, minY = context.targetImage.height / 5,
-			width = context.targetImage.width / 3, height = 4 * context.targetImage.height / 7
+			minX = context.viewportWidth / 3, minY = context.viewportHeight / 5,
+			width = context.viewportWidth / 3, height = 4 * context.viewportHeight / 7
 		)
 	)
 	private val skillOrItemDescriptionRenderer = SkillOrItemDescriptionRenderer(
 		this.context, AbsoluteRectangle(
-			minX = 0, minY = context.targetImage.height / 12,
-			width = context.targetImage.width, height = context.targetImage.height / 9
+			minX = 0, minY = context.viewportHeight / 12,
+			width = context.viewportWidth, height = context.viewportHeight / 9
 		)
 	)
 	private val targetSelectionRenderer = TargetSelectionRenderer(
 		this.context, AbsoluteRectangle(
-			minX = 0, minY = context.targetImage.height / 12, width = context.targetImage.width,
-			height = context.targetImage.height - context.targetImage.height / 8 - context.targetImage.height / 12
+			minX = 0, minY = context.viewportHeight / 12, width = context.viewportWidth,
+			height = context.viewportHeight - context.viewportHeight / 8 - context.viewportHeight / 12
 		)
 	)
 	private val enemyBlockRenderers = mutableListOf<MonsterBlockRenderer>()
 	private val playerBlockRenderers = mutableListOf<PlayerBlockRenderer>()
 	private val currentMoveBarRenderer = CurrentMoveBarRenderer(this.context, AbsoluteRectangle(
-		minX = 0, minY = context.targetImage.height / 12,
-		width = context.targetImage.width, height = context.targetImage.height / 16
+		minX = 0, minY = context.viewportHeight / 12,
+		width = context.viewportWidth, height = context.viewportHeight / 16
 	))
 	private val challengeBarRenderer = ChallengeBarRenderer(
 		this.context, AbsoluteRectangle(
 			minX = 0,
-			minY = context.targetImage.height - context.targetImage.height / 16 - context.targetImage.height / 8,
-			width = context.targetImage.width,
-			height = context.targetImage.height / 16
+			minY = context.viewportHeight - context.viewportHeight / 16 - context.viewportHeight / 8,
+			width = context.viewportWidth,
+			height = context.viewportHeight / 16
 		)
 	)
 	private val indicatorRenderers = mutableListOf<DamageIndicatorRenderer>()
@@ -87,8 +87,8 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		for ((index, enemy) in context.battle.opponents.withIndex()) {
 			if (enemy == null) continue
 			val region = AbsoluteRectangle(
-				minX = index * context.targetImage.width / 4, minY = 0,
-				width = context.targetImage.width / 4, height = context.targetImage.height / 12
+				minX = index * context.viewportWidth / 4, minY = 0,
+				width = context.viewportWidth / 4, height = context.viewportHeight / 12
 			)
 			indicatorRenderers.add(DamageIndicatorRenderer(context, enemy))
 			effectRenderers.add(EffectHistoryRenderer(context, enemy))
@@ -99,9 +99,9 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		for ((index, player) in context.battle.players.withIndex()) {
 			if (player == null) continue
 			val region = AbsoluteRectangle(
-				minX = index * context.targetImage.width / 4,
-				minY = context.targetImage.height - context.targetImage.height / 8,
-				width = context.targetImage.width / 4, height = context.targetImage.height / 8
+				minX = index * context.viewportWidth / 4,
+				minY = context.viewportHeight - context.viewportHeight / 8,
+				width = context.viewportWidth / 4, height = context.viewportHeight / 8
 			)
 			indicatorRenderers.add(DamageIndicatorRenderer(context, player))
 			effectRenderers.add(EffectHistoryRenderer(context, player))
@@ -127,14 +127,14 @@ class BattleRenderer(context: InGameRenderContext, battleState: BattleState) {
 		val rectangles = context.resources.rectangleRenderer
 		val leftColor = srgbToLinear(rgba(90, 76, 44, 200))
 		val rightColor = srgbToLinear(rgba(38, 28, 17, 200))
-		rectangles.beginBatch(context.recorder, context.targetImage, 2)
+		rectangles.beginBatch(context, 2)
 		rectangles.gradient(
-			0, 0, context.targetImage.width - 1, context.targetImage.height / 12,
+			0, 0, context.viewportWidth - 1, context.viewportHeight / 12,
 			leftColor, rightColor, leftColor
 		)
 		rectangles.gradient(
-			0, context.targetImage.height - context.targetImage.height / 8,
-			context.targetImage.width, context.targetImage.height,
+			0, context.viewportHeight - context.viewportHeight / 8,
+			context.viewportWidth, context.viewportHeight,
 			rightColor, leftColor, rightColor
 		)
 		rectangles.endBatch(context.recorder)

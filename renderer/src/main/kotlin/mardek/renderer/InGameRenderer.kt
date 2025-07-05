@@ -35,7 +35,9 @@ class InGameRenderer(
 	}
 
 	override fun render(context: RenderContext) {
-		context.uiRenderer.begin(context.recorder, context.targetImage)
+		context.uiRenderer.begin(
+			context.recorder, context.viewportWidth, context.viewportHeight
+		)
 		areaRenderer?.render()
 		battleRenderer?.render()
 		lootRenderer?.render()

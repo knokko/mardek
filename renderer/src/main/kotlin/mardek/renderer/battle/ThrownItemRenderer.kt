@@ -28,17 +28,17 @@ class ThrownItemRenderer(private val context: BattleRenderContext) {
 
 		batch = context.resources.kim1Renderer.startBatch()
 		val sprite = state.item.sprite
-		val scale = context.targetImage.height / 200f
+		val scale = context.viewportHeight / 200f
 		batch.requests.add(KimRequest(
-			TransformedCoordinates.intX(itemX, context.targetImage.width) - (0.5f * scale * sprite.width).roundToInt(),
-			TransformedCoordinates.intY(itemY, context.targetImage.height) - (0.5f * scale * sprite.height).roundToInt(),
+			TransformedCoordinates.intX(itemX, context.viewportWidth) - (0.5f * scale * sprite.width).roundToInt(),
+			TransformedCoordinates.intY(itemY, context.viewportHeight) - (0.5f * scale * sprite.height).roundToInt(),
 			scale, sprite, rotation = 360f * relativeTime,
 		))
 	}
 
 	fun render() {
 		if (this::batch.isInitialized) {
-			context.resources.kim1Renderer.submit(batch, context.recorder, context.targetImage)
+			context.resources.kim1Renderer.submit(batch, context)
 		}
 	}
 }

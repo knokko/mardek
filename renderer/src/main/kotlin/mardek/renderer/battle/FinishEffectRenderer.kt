@@ -16,9 +16,9 @@ class FinishEffectRenderer(private val context: BattleRenderContext) {
 			val fade = min(255L, 255L * spentTime / BattleStateMachine.GameOver.FADE_DURATION).toInt()
 			if (fade > 0) {
 				val rectangles = context.resources.rectangleRenderer
-				rectangles.beginBatch(context.recorder, context.targetImage, 1)
+				rectangles.beginBatch(context, 1)
 				rectangles.fill(
-					0, 0, context.targetImage.width, context.targetImage.height,
+					0, 0, context.viewportWidth, context.viewportHeight,
 					rgba(0, 0, 0, fade)
 				)
 				rectangles.endBatch(context.recorder)
@@ -51,8 +51,8 @@ class FinishEffectRenderer(private val context: BattleRenderContext) {
 				val outerColor = srgbToLinear(rgba(195, 131, 32, (255 * a).roundToInt()))
 				context.uiRenderer.beginBatch()
 
-				val width = context.targetImage.width
-				val height = context.targetImage.height
+				val width = context.viewportWidth
+				val height = context.viewportHeight
 				val heightA = height / 12
 				// TODO use outlineColor after text render rework
 				context.uiRenderer.drawString(

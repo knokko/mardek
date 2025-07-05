@@ -75,7 +75,7 @@ class InventoryTabRenderer(
 	override fun renderBackgroundRectangles() {
 		if (region.width < 50) return
 		val renderer = context.resources.rectangleRenderer
-		renderer.beginBatch(context.recorder, context.targetImage, 200)
+		renderer.beginBatch(context, 200)
 		renderHoverItemProperties(renderer, null, null)
 		renderItemGrid(renderer, null, null)
 		renderCharacterBars(renderer, null, null)
@@ -99,8 +99,8 @@ class InventoryTabRenderer(
 		super.postUiRendering()
 		if (region.width < 50) return
 
-		context.resources.kim1Renderer.submit(kim1Batch, context.recorder, context.targetImage)
-		context.resources.kim2Renderer.submit(kim2Batch, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(kim1Batch, context)
+		context.resources.kim2Renderer.submit(kim2Batch, context)
 
 		context.uiRenderer.beginBatch()
 		renderItemGrid(null, null, context.uiRenderer)

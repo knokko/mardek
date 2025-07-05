@@ -14,7 +14,7 @@ fun renderLootInventoryGrid(
 		if (inventory.size % 8 != 0) throw Error("Huh? inventory size is ${inventory.size}")
 
 		val colorIndexBuffer = context.resources.colorGridRenderer.drawGrid(
-			context.recorder, context.targetImage, minX + columnWidth * column, minY,
+			context, minX + columnWidth * column, minY,
 			8, inventory.size / 8, 0, 2 * scale
 		)
 

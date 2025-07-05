@@ -43,7 +43,7 @@ class CurrentMoveBarRenderer(private val context: BattleRenderContext, private v
 		if (currentSkill == null && currentItem == null) return
 
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(context.recorder, context.targetImage, 4)
+		rectangles.beginBatch(context, 4)
 		val lightBottomColor = srgbToLinear(rgba(80, 65, 55, 220))
 		val lightTopColor = srgbToLinear(rgba(120, 110, 110, 220))
 		val lightRightColor = srgbToLinear(rgba(130, 110, 70, 220))
@@ -81,9 +81,9 @@ class CurrentMoveBarRenderer(private val context: BattleRenderContext, private v
 		context.uiRenderer.endBatch()
 
 		if (currentSkill != null) {
-			context.resources.kim2Renderer.submit(batch, context.recorder, context.targetImage)
+			context.resources.kim2Renderer.submit(batch, context)
 		} else {
-			context.resources.kim1Renderer.submit(batch, context.recorder, context.targetImage)
+			context.resources.kim1Renderer.submit(batch, context)
 		}
 	}
 }

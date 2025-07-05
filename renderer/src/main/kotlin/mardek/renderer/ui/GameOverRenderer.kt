@@ -16,11 +16,13 @@ class GameOverRenderer(
 ): StateRenderer() {
 
 	override fun render(context: RenderContext) {
-		context.uiRenderer.begin(context.recorder, context.targetImage)
+		context.uiRenderer.begin(
+			context.recorder, context.viewportWidth, context.viewportHeight
+		)
 		context.uiRenderer.beginBatch()
 
-		val screenWidth = context.targetImage.width
-		val screenHeight = context.targetImage.height
+		val screenWidth = context.viewportWidth
+		val screenHeight = context.viewportHeight
 		context.uiRenderer.fillCircle(
 			screenWidth / 5, screenHeight / 3,
 			4 * screenWidth / 5, 2 * screenHeight / 3,
@@ -50,8 +52,8 @@ class GameOverRenderer(
 		context.uiRenderer.drawString(
 			context.resources.font, "Press E or Q to return to the Title Screen",
 			srgbToLinear(rgb(220, 70, 70)), IntArray(0),
-			0, 0, context.targetImage.width, context.targetImage.height,
-			2 * context.targetImage.height / 3, context.targetImage.height / 40,
+			0, 0, context.viewportWidth, context.viewportHeight,
+			2 * context.viewportHeight / 3, context.viewportHeight / 40,
 			1, TextAlignment.CENTER
 		)
 
@@ -62,9 +64,9 @@ class GameOverRenderer(
 		val fade = max(0L, 255L - 255L * timeSinceGameOver / 5000_000_000L).toInt()
 		if (fade > 0) {
 			val rectangles = context.resources.rectangleRenderer
-			rectangles.beginBatch(context.recorder, context.targetImage, 1)
+			rectangles.beginBatch(context, 1)
 			rectangles.fill(
-				0, 0, context.targetImage.width, context.targetImage.height,
+				0, 0, context.viewportWidth, context.viewportHeight,
 				rgba(0, 0, 0, fade)
 			)
 			rectangles.endBatch(context.recorder)

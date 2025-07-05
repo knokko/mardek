@@ -13,16 +13,16 @@ class TitleScreenRenderer(
 ): StateRenderer() {
 
 	override fun render(context: RenderContext) {
-		context.uiRenderer.begin(context.recorder, context.targetImage)
+		context.uiRenderer.begin(context.recorder, context.viewportWidth, context.viewportHeight)
 		context.uiRenderer.beginBatch()
 
 		context.uiRenderer.drawImage(
 			context.resources.bcImages[context.content.ui.titleScreenBackground.index],
-			0, 0, context.targetImage.width, context.targetImage.height
+			0, 0, context.viewportWidth, context.viewportHeight
 		)
 
 		val transform = CoordinateTransform.create(
-			SpaceLayout.GrowRight, context.targetImage.width, context.targetImage.height
+			SpaceLayout.GrowRight, context.viewportWidth, context.viewportHeight
 		)
 
 		run {

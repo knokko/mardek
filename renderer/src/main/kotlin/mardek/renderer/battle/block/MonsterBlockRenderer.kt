@@ -67,7 +67,7 @@ class MonsterBlockRenderer(
 		if (opacity <= 0f) return
 
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(context.recorder, context.targetImage, 2)
+		rectangles.beginBatch(context, 2)
 
 		run {
 			val mousePosition = context.battle.lastMousePosition
@@ -132,9 +132,9 @@ class MonsterBlockRenderer(
 		}
 		context.uiRenderer.endBatch()
 
-		context.resources.kim2Renderer.submit(batch2, context.recorder, context.targetImage)
+		context.resources.kim2Renderer.submit(batch2, context)
 		if (this::batch1.isInitialized) {
-			context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)
+			context.resources.kim1Renderer.submit(batch1, context)
 		}
 
 		maybeRenderSelectionBlink(enemy, context.uiRenderer, region)

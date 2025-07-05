@@ -25,8 +25,8 @@ class AreaRenderer(
 	private var renderGold: RenderGold? = null
 	private var lootRenderer: AreaLootRenderer? = null
 
-	private val baseVisibleHorizontalTiles = context.targetImage.width / 16.0
-	private val baseVisibleVerticalTiles = context.targetImage.height / 16.0
+	private val baseVisibleHorizontalTiles = context.viewportWidth / 16.0
+	private val baseVisibleVerticalTiles = context.viewportHeight / 16.0
 
 	// The original MARDEK allow players to see at most 5 tiles above/below the player,
 	// and at most 7 tiles left/right from the player.
@@ -42,16 +42,16 @@ class AreaRenderer(
 	private var cameraY = 0
 
 	fun render() {
-		context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(kimBatch, context)
 
 		class LightRequest(val x: Int, val y: Int, val color: Int)
 		val lightRequests = ArrayList<LightRequest>()
 		val lightRadius = 24 * scale
 
-		val minLightX = cameraX - context.targetImage.width / 2 - lightRadius
-		val maxLightX = cameraX + context.targetImage.width / 2 + lightRadius
-		val minLightY = cameraY - context.targetImage.height / 2 - lightRadius
-		val maxLightY = cameraY + context.targetImage.height / 2 + lightRadius
+		val minLightX = cameraX - context.viewportWidth / 2 - lightRadius
+		val maxLightX = cameraX + context.viewportWidth / 2 + lightRadius
+		val minLightY = cameraY - context.viewportHeight / 2 - lightRadius
+		val maxLightY = cameraY + context.viewportHeight / 2 + lightRadius
 		for (decoration in state.area.objects.decorations) {
 			val light = decoration.light ?: continue
 			val x = 16 * scale * decoration.x + 8 * scale
@@ -69,13 +69,13 @@ class AreaRenderer(
 			)
 			vkCmdPushConstants(
 				context.recorder.commandBuffer, context.resources.light.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-				0, context.recorder.stack.ints(context.targetImage.width, context.targetImage.height)
+				0, context.recorder.stack.ints(context.viewportWidth, context.viewportHeight)
 			)
 			val vertexRange = context.resources.perFrameBuffer.allocate(LIGHT_VERTEX_SIZE.toLong() * lightRequests.size, 4L)
 			val vertexBuffer = vertexRange.intBuffer()
 			for (request in lightRequests) {
-				vertexBuffer.put(request.x + context.targetImage.width / 2 - cameraX - lightRadius)
-				vertexBuffer.put(request.y + context.targetImage.height / 2 - cameraY - lightRadius)
+				vertexBuffer.put(request.x + context.viewportWidth / 2 - cameraX - lightRadius)
+				vertexBuffer.put(request.y + context.viewportHeight / 2 - cameraY - lightRadius)
 				vertexBuffer.put(lightRadius)
 				vertexBuffer.put(request.color)
 			}
@@ -89,7 +89,7 @@ class AreaRenderer(
 			context.uiRenderer.drawString(
 				context.resources.font, "+${state.obtainedGold!!.amount}",
 				srgbToLinear(rgb(255, 204, 51)), intArrayOf(),
-				renderGold.baseX, 0, context.targetImage.width, context.targetImage.height,
+				renderGold.baseX, 0, context.viewportWidth, context.viewportHeight,
 				renderGold.baseY - 2 * renderGold.scale, 6 * renderGold.scale, 1, TextAlignment.LEFT
 			)
 			context.uiRenderer.endBatch()
@@ -108,10 +108,10 @@ class AreaRenderer(
 
 		var scissorLeft = 0
 		if (visibleHorizontalTiles > maxVisibleHorizontalTiles) {
-			scissorLeft = (context.targetImage.width * ((visibleHorizontalTiles - maxVisibleHorizontalTiles) / visibleHorizontalTiles) / 2.0).roundToInt()
+			scissorLeft = (context.viewportWidth * ((visibleHorizontalTiles - maxVisibleHorizontalTiles) / visibleHorizontalTiles) / 2.0).roundToInt()
 			val scissors = VkRect2D.calloc(1, context.recorder.stack)
 			scissors.get(0).offset().set(scissorLeft, 0)
-			scissors.get(0).extent().set(context.targetImage.width - 2 * scissorLeft, context.targetImage.height)
+			scissors.get(0).extent().set(context.viewportWidth - 2 * scissorLeft, context.viewportHeight)
 			vkCmdSetScissor(context.recorder.commandBuffer, 0, scissors)
 		}
 
@@ -303,10 +303,10 @@ class AreaRenderer(
 		}
 
 		val renderData = context.resources.areaMap[state.area.id]!!.data
-		val minTileX = max(0, (cameraX - context.targetImage.width / 2) / tileSize)
-		val minTileY = max(0, (cameraY - context.targetImage.height / 2) / tileSize)
-		val maxTileX = min(state.area.width - 1, 1 + (cameraX + context.targetImage.width / 2) / tileSize)
-		val maxTileY = min(state.area.height - 1, 1 + (cameraY + context.targetImage.height / 2) / tileSize)
+		val minTileX = max(0, (cameraX - context.viewportWidth / 2) / tileSize)
+		val minTileY = max(0, (cameraY - context.viewportHeight / 2) / tileSize)
+		val maxTileX = min(state.area.width - 1, 1 + (cameraX + context.viewportWidth / 2) / tileSize)
+		val maxTileY = min(state.area.height - 1, 1 + (cameraY + context.viewportHeight / 2) / tileSize)
 		for (tileX in minTileX .. maxTileX) {
 			for (tileY in minTileY .. maxTileY) {
 				val renderX = tileX * tileSize
@@ -330,21 +330,21 @@ class AreaRenderer(
 		renderJobs.sort()
 
 		if (state.area.flags.noMovingCamera) {
-			val minCameraX = context.targetImage.width / 2 - scissorLeft
-			val maxCameraX = state.area.width * tileSize - context.targetImage.width / 2 + scissorLeft
-			if (state.area.width * tileSize > context.targetImage.width) cameraX = min(maxCameraX, max(minCameraX, cameraX))
-			if (state.area.height * tileSize > context.targetImage.height) {
+			val minCameraX = context.viewportWidth / 2 - scissorLeft
+			val maxCameraX = state.area.width * tileSize - context.viewportWidth / 2 + scissorLeft
+			if (state.area.width * tileSize > context.viewportWidth) cameraX = min(maxCameraX, max(minCameraX, cameraX))
+			if (state.area.height * tileSize > context.viewportHeight) {
 				cameraY = min(
-					state.area.height * tileSize - context.targetImage.height / 2,
-					max(context.targetImage.height / 2, cameraY)
+					state.area.height * tileSize - context.viewportHeight / 2,
+					max(context.viewportHeight / 2, cameraY)
 				)
 			}
 		}
 
 		for (tileX in minTileX .. maxTileX) {
 			for (tileY in minTileY .. maxTileY) {
-				val renderX = tileX * tileSize + context.targetImage.width / 2 - cameraX
-				val renderY = tileY * tileSize + context.targetImage.height / 2 -cameraY
+				val renderX = tileX * tileSize + context.viewportWidth / 2 - cameraX
+				val renderY = tileY * tileSize + context.viewportHeight / 2 -cameraY
 
 				val waterType = renderData.getWaterType(tileX, tileY)
 				if (waterType != WaterType.None) {
@@ -379,13 +379,13 @@ class AreaRenderer(
 		}
 
 		for (job in renderJobs) {
-			var renderX = job.x + context.targetImage.width / 2 - cameraX
-			var renderY = job.y + context.targetImage.height / 2 - cameraY
+			var renderX = job.x + context.viewportWidth / 2 - cameraX
+			var renderY = job.y + context.viewportHeight / 2 - cameraY
 			if (job.sprite.width >= 32) renderX -= 16 * scale
 			if (job.sprite.height >= 32) renderY -= 16 * scale
 			val margin = 2 * tileSize
-			if (renderX > -margin && renderY > -margin && renderX < context.targetImage.width + 2 * margin &&
-				renderY < context.targetImage.height + 2 * margin
+			if (renderX > -margin && renderY > -margin && renderX < context.viewportWidth + 2 * margin &&
+				renderY < context.viewportHeight + 2 * margin
 			) {
 				kimBatch.requests.add(KimRequest(
 					x = renderX, y = renderY, scale = scale.toFloat(), sprite = job.sprite, opacity = job.opacity,
@@ -397,8 +397,8 @@ class AreaRenderer(
 		val obtainedGold = state.obtainedGold
 		if (obtainedGold != null) {
 			this.renderGold = RenderGold(
-				baseX = tileSize * obtainedGold.chestX + context.targetImage.width / 2 - cameraX,
-				baseY = tileSize * obtainedGold.chestY + context.targetImage.height / 2 - cameraY,
+				baseX = tileSize * obtainedGold.chestX + context.viewportWidth / 2 - cameraX,
+				baseY = tileSize * obtainedGold.chestY + context.viewportHeight / 2 - cameraY,
 				scale = scale
 			)
 			kimBatch.requests.add(KimRequest(

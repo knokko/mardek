@@ -22,10 +22,7 @@ class ParticleRenderer(private val context: BattleRenderContext) {
 		context.resources.partRenderer.startBatch(context.recorder)
 		for (particleEffect in context.battle.particles) {
 			val flipX = if (particleEffect.isOnPlayerSide) 1f else -1f
-			val combatantPosition = transformBattleCoordinates(
-				particleEffect.position,
-				flipX, context.targetImage
-			)
+			val combatantPosition = transformBattleCoordinates(particleEffect.position, flipX, context)
 
 			for ((index, emitter) in particleEffect.emitters.withIndex()) {
 				for (particle in emitter.particles) {

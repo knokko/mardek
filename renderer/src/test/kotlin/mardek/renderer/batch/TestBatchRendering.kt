@@ -169,17 +169,17 @@ class TestBatchRendering {
 			vkCmdBeginRenderPass(recorder.commandBuffer, biRenderPass, VK_SUBPASS_CONTENTS_INLINE)
 			recorder.dynamicViewportAndScissor(targetImage.width, targetImage.height)
 
-			uiRenderer.begin(recorder, targetImage)
+			uiRenderer.begin(recorder, targetImage.width, targetImage.height)
 			uiRenderer.beginBatch()
 			uiRenderer.fillColor(3, 0, 10, 10, rgb(100, 100, 100))
 			uiRenderer.endBatch()
-			kim1Renderer.submit(earlyKim1, recorder, targetImage)
-			kim2Renderer.submit(earlyKim2, recorder, targetImage)
-			kim1Renderer.submit(lateKim1, recorder, targetImage)
+			kim1Renderer.submit(earlyKim1, recorder, targetImage.width, targetImage.height)
+			kim2Renderer.submit(earlyKim2, recorder, targetImage.width, targetImage.height)
+			kim1Renderer.submit(lateKim1, recorder, targetImage.width, targetImage.height)
 
 			uiRenderer.beginBatch()
 			uiRenderer.fillColor(0, 2, 4, 4, rgb(200, 0, 100))
-			kim2Renderer.submit(lateKim2, recorder, targetImage)
+			kim2Renderer.submit(lateKim2, recorder, targetImage.width, targetImage.height)
 
 			uiRenderer.end()
 			kim1Renderer.end()

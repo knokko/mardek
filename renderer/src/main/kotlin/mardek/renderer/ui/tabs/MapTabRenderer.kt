@@ -117,7 +117,7 @@ class MapTabRenderer(
 		context.resources.colorGridRenderer.startBatch(context.recorder)
 
 		val mapBuffer = context.resources.colorGridRenderer.drawGrid(
-			context.recorder, context.targetImage, minX, minY, area.width, area.height + 1, 1, scale
+			context, minX, minY, area.width, area.height + 1, 1, scale
 		)
 
 		fun put(x: Int, y: Int, mask: Int) {
@@ -176,7 +176,7 @@ class MapTabRenderer(
 		context.resources.colorGridRenderer.endBatch()
 
 		if (shouldBlink || area.chests.isNotEmpty()) {
-			context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)
+			context.resources.kim1Renderer.submit(kimBatch, context)
 		}
 	}
 }

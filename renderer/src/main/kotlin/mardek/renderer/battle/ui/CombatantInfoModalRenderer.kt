@@ -17,8 +17,8 @@ import kotlin.math.roundToInt
 class CombatantInfoModalRenderer(private val context: BattleRenderContext) {
 
 	private val combatant = context.battle.openCombatantInfo
-	private val width = context.targetImage.width
-	private val height = context.targetImage.height
+	private val width = context.viewportWidth
+	private val height = context.viewportHeight
 
 	private val x1 = width / 30
 	private val x2 = width / 4
@@ -91,7 +91,7 @@ class CombatantInfoModalRenderer(private val context: BattleRenderContext) {
 		if (combatant == null) return
 
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(context.recorder, context.targetImage, 5)
+		rectangles.beginBatch(context, 5)
 
 		// Render thin left bar
 		run {
@@ -325,8 +325,8 @@ class CombatantInfoModalRenderer(private val context: BattleRenderContext) {
 
 		context.uiRenderer.endBatch()
 
-		context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)
-		context.resources.kim2Renderer.submit(batch2, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(batch1, context)
+		context.resources.kim2Renderer.submit(batch2, context)
 
 		context.resources.partRenderer.startBatch(context.recorder)
 		SingleCreatureRenderer(context, combatant, true).render()

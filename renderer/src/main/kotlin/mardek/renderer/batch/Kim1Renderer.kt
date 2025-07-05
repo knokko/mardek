@@ -5,9 +5,9 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.buffers.VkbBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.synchronization.ResourceUsage
+import mardek.renderer.RenderContext
 import org.joml.Math.toRadians
 import org.lwjgl.vulkan.VK10.*
 import java.lang.Math.toIntExact
@@ -96,13 +96,21 @@ class Kim1Renderer(
 		recorder.bufferBarrier(resources.middleBuffer, writeUsage, readUsage)
 	}
 
-	fun submit(batch: KimBatch, recorder: CommandRecorder, targetImage: VkbImage) {
+	fun submit(batch: KimBatch, context: RenderContext) {
+		submit(batch, context.recorder, context.viewportWidth, context.viewportHeight)
+	}
+
+	fun submit(batch: KimBatch, recorder: CommandRecorder, viewportWidth: Int, viewportHeight: Int) {
 		if (batch.requests.isEmpty()) return
 		if (offsetMap.isEmpty()) throw IllegalStateException(
 			"Invalid call order: you must call submit() between recordBeforeRenderpass() and end()"
 		)
 
-		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, resources.graphicsPipeline)
+		vkCmdBindPipeline(
+			recorder.commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			resources.graphicsPipeline
+		)
 		recorder.bindGraphicsDescriptors(resources.graphicsLayout, resources.graphicsDescriptorSet)
 
 		val vertexRange = perFrameBuffer.allocate(KIM1_VERTEX_SIZE.toLong() * batch.requests.size, 4)
@@ -110,7 +118,7 @@ class Kim1Renderer(
 		recorder.bindVertexBuffers(0, vertexRange)
 		vkCmdPushConstants(
 			recorder.commandBuffer, resources.graphicsLayout, VK_SHADER_STAGE_VERTEX_BIT,
-			0, recorder.stack.ints(targetImage.width, targetImage.height)
+			0, recorder.stack.ints(viewportWidth, viewportHeight)
 		)
 
 		for (request in batch.requests) {
@@ -122,7 +130,10 @@ class Kim1Renderer(
 			hostVertexRange.putInt(request.blinkColor)
 			hostVertexRange.putFloat(request.blinkIntensity)
 		}
-		vkCmdDraw(recorder.commandBuffer, 6, batch.requests.size, 0, 0)
+		vkCmdDraw(
+			recorder.commandBuffer, 6,
+			batch.requests.size, 0, 0
+		)
 		batch.requests.clear()
 	}
 

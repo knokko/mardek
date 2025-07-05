@@ -16,7 +16,7 @@ class InGameMenuRenderer(
 
 	fun beforeRendering() {
 		val transform = CoordinateTransform.create(
-			SpaceLayout.Simple, context.targetImage.width, context.targetImage.height
+			SpaceLayout.Simple, context.viewportWidth, context.viewportHeight
 		)
 		val tab = menu.currentTab
 		val tabRegion = transform.transform(0f, 0.08f, 0.78f, 0.84f)
@@ -29,11 +29,9 @@ class InGameMenuRenderer(
 	}
 
 	fun render() {
-		context.resources.rectangleRenderer.beginBatch(
-			context.recorder, context.targetImage, 3
-		)
+		context.resources.rectangleRenderer.beginBatch(context, 3)
 		val transform = CoordinateTransform.create(
-			SpaceLayout.Simple, context.targetImage.width, context.targetImage.height
+			SpaceLayout.Simple, context.viewportWidth, context.viewportHeight
 		)
 
 		val barColor = srgbToLinear(rgb(24, 14, 10))
@@ -80,7 +78,7 @@ class InGameMenuRenderer(
 		context.uiRenderer.endBatch()
 
 		if (menu.currentTab.inside) {
-			context.resources.rectangleRenderer.beginBatch(context.recorder, context.targetImage, 1)
+			context.resources.rectangleRenderer.beginBatch(context, 1)
 			val tabNamesRegion = transform.transform(0.79f, 0.08f, 0.21f, 0.92f)
 			val cover = rgba(0, 0, 0, 150)
 			context.resources.rectangleRenderer.fill(

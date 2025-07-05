@@ -12,7 +12,7 @@ layout(set = 0, binding = 2) readonly buffer sb2 {
 	int[] extra;
 };
 
-layout(location = 0) out flat ivec2 corner;
+layout(location = 0) out vec2 offset;
 layout(location = 1) out flat ivec2 size;
 layout(location = 2) out flat int type;
 layout(location = 3) out flat int extraIndex;
@@ -23,6 +23,7 @@ layout(location = 6) out flat int scale;
 layout(location = 7) out flat int colorIndex;
 layout(location = 8) out flat int rawColor;
 layout(location = 9) out flat int outlineWidth;
+layout(location = 10) out vec2 absoluteOffset;
 
 void main() {
 	int quadIndex = quadBufferOffset + 6 * (gl_VertexIndex / 6);
@@ -32,7 +33,7 @@ void main() {
 	if (rawVertexIndex == 4) vertexIndex = 3;
 	if (rawVertexIndex == 5) vertexIndex = 0;
 
-	corner = ivec2(quads[quadIndex], quads[quadIndex + 1]);
+	ivec2 corner = ivec2(quads[quadIndex], quads[quadIndex + 1]);
 	size = ivec2(quads[quadIndex + 2], quads[quadIndex + 3]);
 	type = quads[quadIndex + 4];
 	extraIndex = quads[quadIndex + 5];
@@ -66,4 +67,6 @@ void main() {
 	}
 
 	gl_Position = vec4(2.0 * float(x) / framebufferWidth - 1.0, 2.0 * float(y) / framebufferHeight - 1.0, 0.0, 1.0);
+	offset = vec2(x, y) - corner;
+	absoluteOffset = vec2(x, y);
 }

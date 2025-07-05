@@ -74,7 +74,7 @@ class ChallengeBarRenderer(private val context: BattleRenderContext, private val
 		if (challengeState == null || opacity == 0f) return
 
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(context.recorder, context.targetImage, 12)
+		rectangles.beginBatch(context, 12)
 		val highAlpha = (255 * opacity).roundToInt()
 		run {
 			val alpha = (220 * opacity).roundToInt()
@@ -150,9 +150,9 @@ class ChallengeBarRenderer(private val context: BattleRenderContext, private val
 		}
 
 		if (batch.requests[0].sprite.version == 1) {
-			context.resources.kim1Renderer.submit(batch, context.recorder, context.targetImage)
+			context.resources.kim1Renderer.submit(batch, context)
 		} else {
-			context.resources.kim2Renderer.submit(batch, context.recorder, context.targetImage)
+			context.resources.kim2Renderer.submit(batch, context)
 		}
 	}
 }

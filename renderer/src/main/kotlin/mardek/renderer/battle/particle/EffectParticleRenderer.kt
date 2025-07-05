@@ -19,7 +19,7 @@ class EffectParticleRenderer(private val context: BattleRenderContext) {
 			for (effect in combatant.statusEffects) emit(combatant, effect)
 		}
 
-		val magicScale = computeMagicScale(context.targetImage)
+		val magicScale = computeMagicScale(context)
 		val renderTime = System.nanoTime()
 		context.battle.customParticles.removeIf { particle ->
 			val rotation = toRadians(particle.rotation)

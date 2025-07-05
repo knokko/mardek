@@ -26,7 +26,8 @@ class GameRenderer(
 	) {
 		val resources = resources.join()
 		val context = if (getContent.isDone) {
-			RenderContext(getContent.get(), resources, state, recorder, targetImage, frameIndex, soundQueue)
+			// TODO Use a smaller width & height to leave space for the borders
+			RenderContext(getContent.get(), resources, state, recorder, targetImage.width, targetImage.height, frameIndex, soundQueue)
 		} else null
 		resources.perFrameBuffer.startFrame(frameIndex)
 

@@ -70,10 +70,10 @@ class TargetSelectionRenderer(
 			if (target is BattleSkillTargetSingle) isTargeted = target.target === context.battle.players[index]
 			if (!isTargeted) continue
 
-			val floatCoordinates = transformBattleCoordinates(position, 1f, context.targetImage)
+			val floatCoordinates = transformBattleCoordinates(position, 1f, context)
 			kimBatch.requests.add(KimRequest(
-				x = floatCoordinates.intX(context.targetImage.width) - (pointerScale * pointer.width).roundToInt() + pointerOffsetX,
-				y = floatCoordinates.intY(context.targetImage.height) - (pointerScale * pointer.height / 2).roundToInt(),
+				x = floatCoordinates.intX(context.viewportWidth) - (pointerScale * pointer.width).roundToInt() + pointerOffsetX,
+				y = floatCoordinates.intY(context.viewportHeight) - (pointerScale * pointer.height / 2).roundToInt(),
 				scale = pointerScale, sprite = pointer
 			))
 		}
@@ -84,10 +84,10 @@ class TargetSelectionRenderer(
 			if (target is BattleSkillTargetSingle) isTargeted = target.target === context.battle.opponents[index]
 			if (!isTargeted) continue
 
-			val floatCoordinates = transformBattleCoordinates(position, -1f, context.targetImage)
+			val floatCoordinates = transformBattleCoordinates(position, -1f, context)
 			kimBatch.requests.add(KimRequest(
-				x = floatCoordinates.intX(context.targetImage.width) - pointerOffsetX,
-				y = floatCoordinates.intY(context.targetImage.height) - (pointerScale * pointer.height / 2).roundToInt(),
+				x = floatCoordinates.intX(context.viewportWidth) - pointerOffsetX,
+				y = floatCoordinates.intY(context.viewportHeight) - (pointerScale * pointer.height / 2).roundToInt(),
 				scale = pointerScale, sprite = context.content.ui.flippedPointer
 			))
 		}
@@ -150,8 +150,8 @@ class TargetSelectionRenderer(
 		)
 		context.uiRenderer.endBatch()
 
-		context.resources.kim1Renderer.submit(kimBatch, context.recorder, context.targetImage)
-		context.resources.kim2Renderer.submit(batch2, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(kimBatch, context)
+		context.resources.kim2Renderer.submit(batch2, context)
 	}
 }
 

@@ -118,7 +118,7 @@ class ActionBarRenderer(
 		val player = (state as BattleStateMachine.SelectMove).onTurn.player
 
 		val rectangles = context.resources.rectangleRenderer
-		rectangles.beginBatch(context.recorder, context.targetImage, 7)
+		rectangles.beginBatch(context, 7)
 
 		rectangles.fillUnaligned(
 			region.minX, region.maxY, lowDashX, region.maxY,
@@ -195,7 +195,7 @@ class ActionBarRenderer(
 
 		context.uiRenderer.endBatch()
 
-		context.resources.kim1Renderer.submit(batch1, context.recorder, context.targetImage)
-		context.resources.kim2Renderer.submit(batch2, context.recorder, context.targetImage)
+		context.resources.kim1Renderer.submit(batch1, context)
+		context.resources.kim2Renderer.submit(batch2, context)
 	}
 }

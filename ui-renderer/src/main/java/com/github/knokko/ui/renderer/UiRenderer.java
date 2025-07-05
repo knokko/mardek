@@ -69,12 +69,13 @@ public class UiRenderer {
 		}
 	}
 
-	private VkbImage targetImage;
+	private int viewportWidth, viewportHeight;
 
-	public void begin(CommandRecorder recorder, VkbImage targetImage) {
+	public void begin(CommandRecorder recorder, int viewportWidth, int viewportHeight) {
 		this.recorder = recorder;
 		if (glyphsBuffer != null) glyphsBuffer.startFrame();
-		this.targetImage = targetImage;
+		this.viewportWidth = viewportWidth;
+		this.viewportHeight = viewportHeight;
 	}
 
 	public void beginBatch() {
@@ -266,7 +267,7 @@ public class UiRenderer {
 		//noinspection SuspiciousNameCombination
 		vkCmdPushConstants(
 				recorder.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-				0, recorder.stack.ints(offsetTo(quads), targetImage.width, targetImage.height)
+				0, recorder.stack.ints(offsetTo(quads), viewportWidth, viewportHeight)
 		);
 		vkCmdDraw(recorder.commandBuffer, 6 * toIntExact(quads.size / QUAD_SIZE), 1, 0, 0);
 	}
