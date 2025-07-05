@@ -4,6 +4,8 @@ import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
+import mardek.renderer.BORDER_WIDTH
+import mardek.renderer.FULL_BORDER_HEIGHT
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWGamepadState
 import org.lwjgl.system.MemoryStack.stackPush
@@ -55,7 +57,9 @@ class MardekGlfwInput(private val glfwWindow: Long, private val input: InputMana
 		}
 
 		glfwSetCursorPosCallback(glfwWindow) { _, x, y ->
-			input.postEvent(MouseMoveEvent(x.roundToInt(), y.roundToInt()))
+			input.postEvent(MouseMoveEvent(
+				x.roundToInt() - BORDER_WIDTH, y.roundToInt() - FULL_BORDER_HEIGHT
+			))
 		}
 
 		glfwSetMouseButtonCallback(glfwWindow) { _, button, action, _ ->

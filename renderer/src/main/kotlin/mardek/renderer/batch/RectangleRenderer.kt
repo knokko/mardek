@@ -82,17 +82,21 @@ class RectangleRenderer(
 	}
 
 	fun beginBatch(context: RenderContext, maxNumRectangles: Int) {
+		beginBatch(context.recorder, context.viewportWidth, context.viewportHeight, maxNumRectangles)
+	}
+
+	fun beginBatch(recorder: CommandRecorder, viewportWidth: Int, viewportHeight: Int, maxNumRectangles: Int) {
 		if (batch != null) throw IllegalStateException("Previous batch was not submitted yet")
 		vkCmdBindPipeline(
-			context.recorder.commandBuffer,
+			recorder.commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			pipeline
 		)
 		val buffer = perFrame.allocate(RECTANGLE_VERTEX_SIZE * 6L * maxNumRectangles, 4)
 		this.batch = buffer.floatBuffer()
-		this.width = context.viewportWidth
-		this.height = context.viewportHeight
-		context.recorder.bindVertexBuffers(0, buffer)
+		this.width = viewportWidth
+		this.height = viewportHeight
+		recorder.bindVertexBuffers(0, buffer)
 	}
 
 	fun gradientUnaligned(
