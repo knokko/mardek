@@ -1,7 +1,5 @@
 #version 450
 
-layout(origin_upper_left) in vec4 gl_FragCoord;
-
 layout(push_constant) uniform pc {
     int quadBufferOffset;
 	int framebufferWidth;

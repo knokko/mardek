@@ -127,7 +127,7 @@ class MardekSdlInput(
 					SDLK_KP_ENTER -> InputKey.ToggleMenu
 					SDLK_TAB -> InputKey.ToggleMenu
 					SDLK_ESCAPE -> InputKey.Escape
-					SDLK_BACKSPACE -> InputKey.Cheat
+					SDLK_SPACE -> InputKey.Cheat
 					SDLK_J -> InputKey.ScrollDown
 					SDLK_K -> InputKey.ScrollUp
 					else -> null
