@@ -2,8 +2,10 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.BITSER
+import mardek.content.action.ActionNode
 
 @BitStruct(backwardCompatible = true)
 class AreaTrigger(
@@ -45,11 +47,18 @@ class AreaTrigger(
 	 * **reaches** the tile. When `walkOn == null`, it is... complicated
 	 */
 	@BitField(id = 6, optional = true)
-	val walkOn: Boolean?
+	val walkOn: Boolean?,
+
+	@BitField(id = 7, optional = true)
+	@ClassField(root = ActionNode::class)
+	val firstNode: ActionNode?,
 ) {
 
 	@Suppress("unused")
-	private constructor() : this("", 0, 0, "", false, false, null)
+	private constructor() : this(
+		"", 0, 0, "", false,
+		false, null, null
+	)
 
 	override fun toString() = "Trigger(x=$x, y=$y, once=$oneTimeOnly, walkOn=$walkOn, code=$flashCode)"
 
