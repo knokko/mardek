@@ -51,7 +51,7 @@ class Kim1Resources(
 
 	val middleBuffer = persistentCombiner.addBuffer(
 		1_000_000L, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
-		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, 0.5f
 	)!!
 
 	init {

@@ -78,7 +78,7 @@ class TestBatchRendering {
 
 		val targetImage = combiner.addImage(ImageBuilder("TargetImage", 10, 10)
 			.format(VK_FORMAT_R8G8B8A8_SRGB)
-			.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+			.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT), 1f
 		)
 		val perFrameBuffer = PerFrameBuffer(perFrameRange)
 

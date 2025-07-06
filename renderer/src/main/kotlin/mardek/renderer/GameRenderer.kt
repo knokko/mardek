@@ -49,7 +49,7 @@ class GameRenderer(
 		if (context != null) renderer.beforeRendering(context)
 
 		val clearValues = VkClearValue.calloc(1, recorder.stack)
-		clearValues.get(0).color().float32(recorder.stack.floats(0f, 0f, 0f, 1f))
+		clearValues.get(0).color().float32(recorder.stack.floats(0f, 0f, 0f, 0f))
 
 		val biRenderPass = VkRenderPassBeginInfo.calloc(recorder.stack)
 		biRenderPass.`sType$Default`()

@@ -27,6 +27,7 @@ import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_BORDERLESS
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_RESIZABLE
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_VULKAN
 import org.lwjgl.vulkan.VK10.*
+import org.lwjgl.vulkan.VK11.VK_API_VERSION_1_1
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
@@ -76,7 +77,7 @@ fun main(args: Array<String>) {
 		), "SetAppMetadataProperty")
 
 		val boilerBuilder = BoilerBuilder(
-			VK_API_VERSION_1_0, "MardekKt", 1
+			VK_API_VERSION_1_1, "MardekKt", 1
 		).addWindow(WindowBuilder(
 			800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 			).hideUntilFirstFrame().sdlFlags(SDL_WINDOW_VULKAN or SDL_WINDOW_RESIZABLE or SDL_WINDOW_BORDERLESS)

@@ -3,6 +3,7 @@ package mardek.game
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
+import com.github.knokko.boiler.builders.instance.ValidationFeatures
 import mardek.content.Content
 import mardek.content.area.Area
 import mardek.content.characters.PlayableCharacter
@@ -20,7 +21,7 @@ import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.state.ingame.battle.Enemy
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
-import org.lwjgl.vulkan.VK10.VK_API_VERSION_1_0
+import org.lwjgl.vulkan.VK11.VK_API_VERSION_1_1
 import java.util.concurrent.CompletableFuture
 
 class TestingInstance {
@@ -38,10 +39,12 @@ class TestingInstance {
 	val elixir: Item
 
 	init {
-		val builder = BoilerBuilder(VK_API_VERSION_1_0, "IntegrationTests", 1)
+		val builder = BoilerBuilder(VK_API_VERSION_1_1, "IntegrationTests", 1)
 		GameRenderer.addBoilerRequirements(builder)
 		builder.defaultTimeout(5_000_000_000L)
-		boiler = builder.validation().forbidValidationErrors().build()
+		boiler = builder.validation(ValidationFeatures(
+			true, false, false, true
+		)).forbidValidationErrors().build()
 
 		getBoiler = CompletableFuture<BoilerInstance>()
 		getBoiler.complete(boiler)

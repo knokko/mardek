@@ -81,7 +81,7 @@ public class UiRenderInstance {
 		);
 		this.dummyImage = memoryCombiner.addImage(new ImageBuilder(
 				"DummyImage", 1, 1
-		).texture().format(VK_FORMAT_R8_UNORM));
+		).texture().format(VK_FORMAT_R8_UNORM), 0.5f);
 
 		try (var stack = stackPush()) {
 

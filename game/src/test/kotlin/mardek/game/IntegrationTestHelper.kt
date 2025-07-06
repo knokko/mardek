@@ -44,7 +44,7 @@ fun TestingInstance.testRendering(
 
 	val targetImage = combiner.addImage(ImageBuilder("TargetImage($name)", width, height)
 		.format(VK_FORMAT_R8G8B8A8_SRGB)
-		.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+		.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT), 1f
 	)
 	val destinationBuffer = combiner.addMappedBuffer(
 		4L * width * height, 4L, VK_BUFFER_USAGE_TRANSFER_DST_BIT

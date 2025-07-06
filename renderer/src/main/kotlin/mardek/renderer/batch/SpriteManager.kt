@@ -17,7 +17,7 @@ class SpriteManager(
 	private val spritesSize = spriteInput.readInt()
 	val spriteBuffer = persistentCombiner.addBuffer(
 		4L * spritesSize, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
-		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or VK_BUFFER_USAGE_TRANSFER_DST_BIT
+		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0.5f
 	)!!
 	private val stagingBuffer = stagingCombiner.addMappedBuffer(
 		4L * spritesSize, 4L, VK_BUFFER_USAGE_TRANSFER_SRC_BIT

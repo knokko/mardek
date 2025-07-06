@@ -47,7 +47,7 @@ class BcImageLoader(
 			}
 			maxSize = max(byteSize, maxSize)
 			val image = persistentCombiner.addImage(ImageBuilder(
-				"Bc${version}Image$it", width, height).texture().format(format)
+				"Bc${version}Image$it", width, height).texture().format(format), 0.5f
 			)
 			val buffer = stagingCombiner.addMappedBuffer(
 				byteSize.toLong(),
