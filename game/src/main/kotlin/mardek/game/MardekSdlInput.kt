@@ -103,9 +103,9 @@ class MardekSdlInput(
 			val windowIcon = SDL_CreateSurface(16 * iconScale, 16 * iconScale, SDL_PIXELFORMAT_RGBA32)
 			assertSdlSuccess(windowIcon != null, "CreateSurface")
 			windowIcon!!.pixels(iconData)
-			assertSdlSuccess(SDL_SetWindowIcon(
-				window.handle, windowIcon
-			), "SetWindowIcon")
+
+			// Note: don't use assertSdlSuccess because Wayland does not always support window icons
+			SDL_SetWindowIcon(window.handle, windowIcon)
 		}
 
 		assertSdlSuccess(SDL_AddEventWatch({ userData, rawEvent ->
