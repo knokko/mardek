@@ -2,6 +2,7 @@ package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
+import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import org.lwjgl.system.MemoryStack;
@@ -13,7 +14,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dColorPipeline extends Vk2dPipeline<Vk2dColorBatch> {
 
-	public static final int VERTEX_SIZE = 24;
+	public static final int VERTEX_SIZE = 8;
 
 	private final long vkPipelineLayout;
 
@@ -30,8 +31,8 @@ public class Vk2dColorPipeline extends Vk2dPipeline<Vk2dColorBatch> {
 			);
 
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(2, stack);
-			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SFLOAT, 0);
-			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, 8);
+			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32_UINT, 0);
+			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32_UINT, 4);
 
 			var builder = pipelineBuilder(context);
 			builder.simpleShaderStages(
@@ -48,6 +49,15 @@ public class Vk2dColorPipeline extends Vk2dPipeline<Vk2dColorBatch> {
 	@Override
 	public Vk2dColorBatch createBatch(PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height) {
 		return new Vk2dColorBatch(this, perFrameBuffer, initialCapacity, width, height);
+	}
+
+	@Override
+	public void prepareRecording(CommandRecorder recorder, int viewportWidth, int viewportHeight) {
+		super.prepareRecording(recorder, viewportWidth, viewportHeight);
+		vkCmdPushConstants(
+				recorder.commandBuffer, vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+				0, recorder.stack.ints(viewportWidth, viewportHeight)
+		);
 	}
 
 	@Override

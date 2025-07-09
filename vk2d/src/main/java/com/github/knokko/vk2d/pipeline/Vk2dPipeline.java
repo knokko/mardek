@@ -61,7 +61,7 @@ public abstract class Vk2dPipeline<B extends Vk2dBatch<?>> {
 
 	public abstract B createBatch(PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height);
 
-	public void prepareRecording(CommandRecorder recorder) {
+	public void prepareRecording(CommandRecorder recorder, int viewportWidth, int viewportHeight) {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 	}
 
