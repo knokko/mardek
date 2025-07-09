@@ -1,25 +1,22 @@
 package mardek.importer.util
 
+import com.github.knokko.boiler.utilities.ImageCoding
 import com.github.knokko.compressor.Kim1Compressor
 import com.github.knokko.compressor.Kim2Compressor
+import com.github.knokko.vk2d.Kim3Compressor
+import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
+import mardek.importer.ui.BcPacker
 import org.lwjgl.BufferUtils
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.nio.IntBuffer
+import javax.imageio.ImageIO
 
 fun compressKimSprite1(image: BufferedImage) = run {
 	val pixelBuffer = BufferUtils.createByteBuffer(4 * image.width * image.height)
-	for (x in 0 until image.width) {
-		for (y in 0 until image.height) {
-			val color = Color(image.getRGB(x, y), true)
-			val index = 4 * (x + y * image.width)
-			pixelBuffer.put(index, color.red.toByte())
-			pixelBuffer.put(index + 1, color.green.toByte())
-			pixelBuffer.put(index + 2, color.blue.toByte())
-			pixelBuffer.put(index + 3, color.alpha.toByte())
-		}
-	}
+	ImageCoding.encodeBufferedImage(pixelBuffer, image)
+	pixelBuffer.flip()
 
 	val compressor = Kim1Compressor(pixelBuffer, image.width, image.height, 4)
 	val spriteBuffer = BufferUtils.createByteBuffer(4 * compressor.intSize)
@@ -27,8 +24,28 @@ fun compressKimSprite1(image: BufferedImage) = run {
 	KimSprite(IntArray(compressor.intSize) { index -> spriteBuffer.getInt(4 * index) }, 1)
 }
 
+fun compressKimSprite3(image: BufferedImage) = run {
+	val pixelBuffer = BufferUtils.createByteBuffer(4 * image.width * image.height)
+	ImageCoding.encodeBufferedImage(pixelBuffer, image)
+	pixelBuffer.flip()
+
+	val compressor = Kim3Compressor(pixelBuffer, image.width, image.height)
+	val spriteBuffer = BufferUtils.createByteBuffer(4 * compressor.intSize)
+	compressor.compress(spriteBuffer)
+	KimSprite(IntArray(compressor.intSize) { index -> spriteBuffer.getInt(4 * index) }, 3)
+}
+
 fun compressKimSprite2(image: BufferedImage, bitsPerPixel: Int): KimSprite {
 	val outputArray = IntArray(Kim2Compressor.predictIntSize(image.width, image.height, bitsPerPixel))
 	Kim2Compressor.compress(image, IntBuffer.wrap(outputArray), bitsPerPixel)
 	return KimSprite(outputArray, 2)
+}
+
+fun loadBc7Sprite(path: String): BcSprite {
+	val resource = BcPacker::class.java.classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
+	val image = ImageIO.read(resource)
+
+	val sprite = BcSprite(image.width, image.height, 7)
+	sprite.bufferedImage = image
+	return sprite
 }

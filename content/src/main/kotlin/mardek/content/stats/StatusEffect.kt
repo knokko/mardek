@@ -8,7 +8,6 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.particle.ParticleEffect
 import mardek.content.sprite.BcSprite
-import mardek.content.sprite.KimSprite
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -105,7 +104,7 @@ class StatusEffect(
 	val disappearAfterHitChance: Int = 0,
 
 	@BitField(id = 27)
-	val icon: KimSprite,
+	val icon: BcSprite,
 
 	@BitField(id = 28)
 	@IntegerField(expectUniform = true)
@@ -125,7 +124,7 @@ class StatusEffect(
 
 	constructor() : this(
 		"", null, false, false,
-		icon = KimSprite(), textColor = 0, passiveParticleSprites = emptyArray<BcSprite>()
+		icon = BcSprite(), textColor = 0, passiveParticleSprites = emptyArray<BcSprite>()
 	)
 
 	override fun toString() = niceName ?: flashName

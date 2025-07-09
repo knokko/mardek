@@ -9,7 +9,6 @@ import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.renderer.SharedResources
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -349,8 +347,6 @@ object TestBattleLoot {
 
 	fun testRendering(instance: TestingInstance) {
 		instance.apply {
-			val getResources = CompletableFuture<SharedResources>()
-			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
 			val state = InGameState(campaign)
@@ -359,8 +355,8 @@ object TestBattleLoot {
 			val area = campaign.currentArea!!
 
 			testRendering(
-				getResources, state, 800, 450,
-				"loot-before", arrayOf(monsterSkinColor), emptyArray()
+				state, 800, 450, "loot-before",
+				arrayOf(monsterSkinColor), emptyArray()
 			)
 
 			val sapphire = content.items.items.find { it.flashName == "Sapphire" }!!
@@ -374,21 +370,21 @@ object TestBattleLoot {
 			val goldTextColor = Color(229, 199, 119)
 			val goldBackgroundColor = Color(34, 22, 13)
 			val mardekSpriteColor = Color(217, 214, 214)
-			val deuganSpriteColor = Color(91, 140, 42)
+			val deuganSpriteColor = Color(92, 141, 46)
 			val partyHighlightColor = Color(99, 128, 177)
 			val buttonHighlightColor = Color(152, 190, 222)
 			val consumableGridColor = Color(81, 113, 217)
 			val buttonTextColor = Color(248, 232, 194)
 			val pointerColor = Color(0, 50, 153)
 			val buttonBlurredBorderColor = Color(135, 107, 77)
-			val sapphireColor = Color(42, 175, 255)
+			val sapphireColor = Color(45, 175, 255)
 			val gemGridColor = Color(209, 209, 89)
 			val baseColors = arrayOf(
 				goldColor, goldTextColor, goldBackgroundColor, consumableGridColor, pointerColor,
 				mardekSpriteColor, deuganSpriteColor, partyHighlightColor, buttonHighlightColor
 			)
 			testRendering(
-				getResources, state, 800, 450, "loot-initial",
+				state, 800, 450, "loot-initial",
 				baseColors + arrayOf(buttonTextColor, sapphireColor),
 				arrayOf(monsterSkinColor, gemGridColor)
 			)
@@ -397,12 +393,10 @@ object TestBattleLoot {
 			input.postEvent(pressKeyEvent(InputKey.Interact))
 			campaign.update(GameStateUpdateContext(content, input, SoundQueue(), 1.seconds))
 			testRendering(
-				getResources, state, 800, 450, "loot-taken",
+				state, 800, 450, "loot-taken",
 				baseColors + arrayOf(buttonBlurredBorderColor, gemGridColor),
 				arrayOf(monsterSkinColor, buttonTextColor, sapphireColor)
 			)
-
-			getResources.get().destroy()
 		}
 	}
 }

@@ -3,7 +3,6 @@ package mardek.content.area
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
-import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
@@ -27,8 +26,7 @@ class Area(
 
 	@BitField(id = 3)
 	@ReferenceField(stable = false, label = "tiles")
-	@NestedFieldSetting(path = "", optional = true)
-	var tileGrid: Array<Tile>?,
+	val tileGrid: Array<Tile>,
 
 	@BitField(id = 4)
 	val objects: AreaObjects,
@@ -47,10 +45,6 @@ class Area(
 	val properties: AreaProperties,
 ) {
 
-	@BitField(id = 9)
-	lateinit var canWalkGrid: BooleanArray
-	// TODO Save conditionally
-
 	@BitField(id = 10)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
@@ -63,9 +57,23 @@ class Area(
 	override fun toString() = properties.displayName
 
 	fun canWalkOnTile(x: Int, y: Int): Boolean {
-		return if (x < 0 || x >= width || y < 0 || y >= height) false
-		else canWalkGrid[x + y * width]
+		if (x < 0 || x >= width || y < 0 || y >= height) return false
+		if (!getTile(x, y).canWalkOn) return false
+
+		for (chest in chests) {
+			if (x == chest.x && y == chest.y) return false
+		}
+
+		for (door in objects.doors) {
+			if (x == door.x && y == door.y) return false
+		}
+
+		for (orb in objects.switchOrbs) {
+			if (x == orb.x && y == orb.y) return false
+		}
+
+		return true
 	}
 
-	fun getTile(x: Int, y: Int) = tileGrid!![x + y * width]
+	fun getTile(x: Int, y: Int) = tileGrid[x + y * width]
 }

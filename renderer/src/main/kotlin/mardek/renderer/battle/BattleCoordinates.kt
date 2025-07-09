@@ -1,40 +1,23 @@
 package mardek.renderer.battle
 
 import mardek.content.battle.PartyLayoutPosition
-import mardek.renderer.RenderContext
-import kotlin.math.min
-import kotlin.math.roundToInt
 
-fun computeMagicScale(context: RenderContext): Pair<Float, Float> {
+fun computeMagicScale(context: BattleRenderContext): Float {
 	// Original resolution is 240x176
-	var magicScaleX = 1f / 240f
-	val magicScaleY2 = 1f / 176f
-	val magicScaleY1 = min(magicScaleY2, magicScaleX * context.viewportWidth / context.viewportHeight)
-	magicScaleX = min(magicScaleX, magicScaleY1 * context.viewportHeight / context.viewportWidth)
-	return Pair(magicScaleX, magicScaleY2)
+	val stage = context.context.currentStage
+	return 0.5f * stage.height / 176f
 }
 
-fun transformBattleCoordinates(rawPosition: PartyLayoutPosition, flipX: Float, context: RenderContext): TransformedCoordinates {
-	val (magicScaleX, magicScaleY) = computeMagicScale(context)
+fun transformBattleCoordinates(rawPosition: PartyLayoutPosition, flipX: Float, context: BattleRenderContext): TransformedCoordinates {
+	val magicScale = computeMagicScale(context)
 
-	val rawX = -flipX * (-1f + (rawPosition.x + 38) * magicScaleX)
-	val rawRelativeY = rawPosition.y + 78 - 176
-	val rawY = rawRelativeY * magicScaleY
+	val rawX = 0.5f * (1f + flipX) * context.context.currentStage.width - flipX * (rawPosition.x + 38) * magicScale
+	val rawY = magicScale * (rawPosition.y + 100)
 
-	return TransformedCoordinates(rawX, rawY, magicScaleX, magicScaleY)
+	return TransformedCoordinates(rawX, rawY, magicScale)
 }
 
-class TransformedCoordinates(var x: Float, var y: Float, val scaleX: Float, val scaleY: Float) {
+class TransformedCoordinates(var x: Float, var y: Float, val scale: Float) {
 
-	override fun toString() = "(x=$x, y=$y, scaleX=$scaleX, scaleY=$scaleY)"
-
-	fun intX(width: Int) = intX(x, width)
-
-	fun intY(height: Int) = intY(y, height)
-
-	companion object {
-		fun intX(floatX: Float, width: Int) = ((0.5f + 0.5f * floatX) * width).roundToInt()
-
-		fun intY(floatY: Float, height: Int) = ((0.5f + 0.5f * floatY) * height).roundToInt()
-	}
+	override fun toString() = "(x=$x, y=$y, scale=$scale)"
 }

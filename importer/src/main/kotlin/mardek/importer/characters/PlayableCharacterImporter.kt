@@ -1,7 +1,7 @@
 package mardek.importer.characters
 
 import mardek.content.Content
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.StatModifier
 import mardek.content.skill.ReactionSkillType
@@ -16,7 +16,7 @@ import java.lang.Integer.parseInt
 
 @Suppress("UNCHECKED_CAST")
 internal fun importPlayableCharacters(
-	content: Content, playerModelMapping: Map<String, BattleModel>?
+	content: Content, playerModelMapping: Map<String, CombatantAnimations>?
 ): List<FatPlayableCharacter> {
 	val characters = ArrayList<FatPlayableCharacter>()
 	val flashCode = parseActionScriptResource("mardek/importer/stats/playable-characters.txt")
@@ -49,7 +49,7 @@ internal fun importPlayableCharacters(
 			areaSprites = content.areas.characterSprites.find {
 				it.name == parseFlashString(nestedCharacter[1] as String, "playable character area sprites")
 			}!!,
-			battleModel = if (playerModelMapping != null) playerModelMapping[className]!! else BattleModel(),
+			animations = if (playerModelMapping != null) playerModelMapping[className]!! else CombatantAnimations(),
 			creatureType = content.stats.creatureTypes.find { it.flashName == "HUMAN" }!!,
 		)
 

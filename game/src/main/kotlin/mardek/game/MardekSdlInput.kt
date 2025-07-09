@@ -6,12 +6,18 @@ import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
-import mardek.renderer.BORDER_WIDTH
 import mardek.renderer.FULL_BORDER_HEIGHT
+import mardek.renderer.MardekCursor
 import mardek.state.GameStateManager
+import mardek.state.ingame.InGameState
+import mardek.state.ingame.menu.InventoryTab
 import org.lwjgl.sdl.SDLEvents.*
 import org.lwjgl.sdl.SDLGamepad.*
 import org.lwjgl.sdl.SDLKeycode.*
+import org.lwjgl.sdl.SDLMouse.SDL_CreateColorCursor
+import org.lwjgl.sdl.SDLMouse.SDL_HideCursor
+import org.lwjgl.sdl.SDLMouse.SDL_SetCursor
+import org.lwjgl.sdl.SDLMouse.SDL_ShowCursor
 import org.lwjgl.sdl.SDLPixels.SDL_PIXELFORMAT_RGBA32
 import org.lwjgl.sdl.SDLSurface.SDL_CreateSurface
 import org.lwjgl.sdl.SDLVideo.*
@@ -26,30 +32,45 @@ import org.lwjgl.sdl.SDL_Point
 import org.lwjgl.sdl.SDL_WindowEvent
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.memCalloc
+import java.nio.ByteBuffer
 import kotlin.math.abs
 
-private const val iconScale = 4
+private const val WINDOW_ICON_SCALE = 4
+private const val CURSOR_SCALE = 2
 
-private val iconData = memCalloc(4 * 16 * 16 * iconScale * iconScale).apply {
-	val input = MardekSdlInput::class.java.getResource("icon.bin")!!
-	val inputBytes = input.readBytes()
-	for (ix in 0 until 16) {
-		val ox = iconScale * ix
-		for (iy in 0 until 16) {
-			val oy = iconScale * iy
-			val inputIndex = 4 * (ix + 16 * iy)
-			for (sx in 0 until iconScale) {
-				for (sy in 0 until iconScale) {
-					for (i in 0 until 4) {
-						val outputIndex = 4 * ( (ox + sx) + 16 * iconScale * (oy + sy)) + i
-						put(outputIndex, inputBytes[inputIndex + i])
+private val rawIcons = run {
+	val inputBytes = MardekSdlInput::class.java.getResource("icons.bin")!!.readBytes()
+
+	fun createScaled(startIndex: Int, scale: Int): ByteBuffer {
+		val destination = memCalloc(4 * 16 * 16 * scale * scale)
+		for (ix in 0 until 16) {
+			val ox = scale * ix
+			for (iy in 0 until 16) {
+				val oy = scale * iy
+				val inputIndex = startIndex + 4 * (ix + 16 * iy)
+				for (sx in 0 until scale) {
+					for (sy in 0 until scale) {
+						for (i in 0 until 4) {
+							val outputIndex = 4 * ((ox + sx) + 16 * scale * (oy + sy)) + i
+							destination.put(outputIndex, inputBytes[inputIndex + i])
+						}
 					}
 				}
 			}
 		}
+		return destination
 	}
-	this
+
+	val windowIcon = createScaled(0, 4)
+
+	val cursorIcons = MardekCursor.entries.map {
+		val baseByteSize = 4 * 16 * 16
+		createScaled(baseByteSize * (1 + it.ordinal), CURSOR_SCALE)
+	}
+
+	arrayOf(windowIcon) + cursorIcons
 }
+
 
 private const val TRIGGER_THRESHOLD = 10_000
 private const val JOYSTICK_THRESHOLD = 10_000
@@ -65,6 +86,29 @@ class MardekSdlInput(
 	private var joystickX = 0
 	private var joystickY = 0
 	private var direction: InputKey? = null
+
+	private var desiredCursor = MardekCursor.Pointer
+	private var shownCursor: MardekCursor? = null
+	private var lastCursorAction = System.nanoTime()
+
+	private val cursors = LongArray(MardekCursor.entries.size)
+
+	private fun shouldShowCursor() = desiredCursor == MardekCursor.Grab ||
+			System.nanoTime() - lastCursorAction <= 2000_000_000L
+
+	fun updateCursor(desired: MardekCursor) {
+		this.desiredCursor = desired
+		val cursorToShow = if (shouldShowCursor()) this.desiredCursor else null
+		if (cursorToShow != shownCursor) {
+			if (cursorToShow == null) {
+				assertSdlSuccess(SDL_HideCursor(), "HideCursor")
+			} else {
+				assertSdlSuccess(SDL_ShowCursor(), "ShowCursor")
+				assertSdlSuccess(SDL_SetCursor(cursors[cursorToShow.ordinal]), "SetCursor")
+			}
+			shownCursor = cursorToShow
+		}
+	}
 
 	private fun updateJoystick() {
 		var newDirection: InputKey? = null
@@ -100,12 +144,32 @@ class MardekSdlInput(
 		}
 
 		stackPush().use { stack ->
-			val windowIcon = SDL_CreateSurface(16 * iconScale, 16 * iconScale, SDL_PIXELFORMAT_RGBA32)
+			val windowIcon = SDL_CreateSurface(
+				16 * WINDOW_ICON_SCALE,
+				16 * WINDOW_ICON_SCALE,
+				SDL_PIXELFORMAT_RGBA32
+			)
 			assertSdlSuccess(windowIcon != null, "CreateSurface")
-			windowIcon!!.pixels(iconData)
+			windowIcon!!.pixels(rawIcons[0])
 
 			// Note: don't use assertSdlSuccess because Wayland does not always support window icons
 			SDL_SetWindowIcon(window.handle, windowIcon)
+
+			for (cursorType in MardekCursor.entries) {
+				val cursorIcon = SDL_CreateSurface(
+					16 * CURSOR_SCALE,
+					16 * CURSOR_SCALE,
+					SDL_PIXELFORMAT_RGBA32
+				)
+				assertSdlSuccess(cursorIcon != null, "CreateSurface")
+				cursorIcon!!.pixels(rawIcons[1 + cursorType.ordinal])
+
+				val cursor = SDL_CreateColorCursor(
+					cursorIcon, 2 * CURSOR_SCALE, 2 * CURSOR_SCALE
+				)
+				assertSdlSuccess(cursor != 0L, "CreateColorCursor")
+				cursors[cursorType.ordinal] = cursor
+			}
 		}
 
 		assertSdlSuccess(SDL_AddEventWatch({ userData, rawEvent ->
@@ -144,24 +208,24 @@ class MardekSdlInput(
 			}
 
 			if (type == SDL_EVENT_MOUSE_MOTION) {
-				val rawX = SDL_MouseMotionEvent.nx(rawEvent).toInt()
-				val rawY = SDL_MouseMotionEvent.ny(rawEvent).toInt()
-				input.postEvent(MouseMoveEvent(
-					newX = rawX - BORDER_WIDTH,
-					newY = rawY - FULL_BORDER_HEIGHT
-				))
+				lastCursorAction = System.nanoTime()
+
+				val newX = SDL_MouseMotionEvent.nx(rawEvent).toInt()
+				val newY = SDL_MouseMotionEvent.ny(rawEvent).toInt()
+				input.postEvent(MouseMoveEvent(newX, newY))
 
 				val cross = state.crossLocation
-				state.hoveringCross = cross != null && cross.contains(rawX, rawY)
+				state.hoveringCross = cross != null && cross.contains(newX, newY)
 
 				val maximize = state.maximizeLocation
-				state.hoveringMaximize = maximize != null && maximize.contains(rawX, rawY)
+				state.hoveringMaximize = maximize != null && maximize.contains(newX, newY)
 
 				val minus = state.minusLocation
-				state.hoveringMinus = minus != null && minus.contains(rawX, rawY)
+				state.hoveringMinus = minus != null && minus.contains(newX, newY)
 			}
 
 			if (type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+				lastCursorAction = System.nanoTime()
 				input.postEvent(InputKeyEvent(
 					InputKey.Click, didPress = true, didRepeat = false, didRelease = false
 				))
@@ -194,6 +258,7 @@ class MardekSdlInput(
 				}
 			}
 			if (type == SDL_EVENT_MOUSE_BUTTON_UP) {
+				lastCursorAction = System.nanoTime()
 				input.postEvent(InputKeyEvent(
 					InputKey.Click, didPress = false, didRepeat = false, didRelease = true
 				))
@@ -312,5 +377,18 @@ class MardekSdlInput(
 		}, 0L), "SetWindowHintTest")
 	}
 
-	fun update() {}
+	fun update() {
+		val currentState = state.currentState
+		var newCursor = MardekCursor.Pointer
+
+		if (currentState is InGameState) {
+			val currentTab = currentState.menu.currentTab
+			if (currentTab is InventoryTab) {
+				newCursor = MardekCursor.Inventory
+				if (currentTab.pickedUpItem != null) newCursor = MardekCursor.Grab
+			}
+		}
+
+		updateCursor(newCursor)
+	}
 }

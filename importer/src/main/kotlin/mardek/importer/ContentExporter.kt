@@ -1,18 +1,23 @@
 package mardek.importer
 
-import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.utilities.ImageCoding
+import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
+import com.github.knokko.vk2d.resource.Vk2dImageCompression
+import com.github.knokko.vk2d.resource.Vk2dResourceWriter
 import mardek.content.Content
-import mardek.content.animations.SkeletonPartSkins
-import mardek.importer.area.SpritesAndAreas
+import mardek.content.animation.AnimationNode
+import mardek.content.sprite.BcSprite
+import mardek.content.sprite.KimSprite
+import mardek.content.ui.Font
+import mardek.content.ui.TitleScreenContent
 import mardek.importer.ui.BcPacker
 import mardek.importer.util.projectFolder
-import java.io.BufferedOutputStream
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files
-import java.util.zip.DeflaterOutputStream
 import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
@@ -21,77 +26,14 @@ fun main() {
 	try {
 		val bitser = Bitser(false)
 		val content = importVanillaContent(bitser)
+
 		val outputFolder = File("$projectFolder/game/src/main/resources/mardek/game/")
+		saveIcons(outputFolder)
 
-		val itemSheet = ImageIO.read(BcPacker::class.java.classLoader.getResource(
-			"mardek/importer/inventory/itemsheet_misc.png"
-		))
-		val imageData = ByteBuffer.allocate(4 * 16 * 16)
-		ImageCoding.encodeBufferedImage(imageData, itemSheet.getSubimage(288, 32, 16, 16))
-		val iconOutput = Files.newOutputStream(File("$outputFolder/icon.bin").toPath())
-		iconOutput.write(imageData.array())
-		iconOutput.flush()
-		iconOutput.close()
-
-		val kimOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/kim-sprites.bin").toPath()))
-		val spritesAndAreas = SpritesAndAreas()
-		for (creatureType in content.stats.creatureTypes) spritesAndAreas.registerSprite(creatureType.icon)
-		for (element in content.stats.elements) spritesAndAreas.registerSprite(element.sprite)
-		for (effect in content.stats.statusEffects) spritesAndAreas.registerSprite(effect.icon)
-		for (skillClass in content.skills.classes) spritesAndAreas.registerSprite(skillClass.icon)
-		for (item in content.items.items) spritesAndAreas.registerSprite(item.sprite)
-		for (item in content.items.plotItems) spritesAndAreas.registerSprite(item.sprite)
-		for (chestSprite in content.areas.chestSprites) {
-			spritesAndAreas.registerSprite(chestSprite.baseSprite)
-			spritesAndAreas.registerSprite(chestSprite.openedSprite)
-		}
-		for (sprite in content.ui.allKimSprites()) spritesAndAreas.registerSprite(sprite)
-		spritesAndAreas.register(content.areas)
-		spritesAndAreas.writeKimSprites(kimOutput)
-		kimOutput.flush()
-		kimOutput.close()
-
-		val bcPacker = BcPacker()
-		for (element in content.stats.elements) {
-			val swingSprite = element.swingEffect
-			if (swingSprite != null) bcPacker.add(swingSprite)
-			bcPacker.add(element.bcSprite)
-			val castSprite = element.spellCastBackground
-			if (castSprite != null) bcPacker.add(castSprite)
-		}
-		for (effect in content.stats.statusEffects) {
-			for (sprite in effect.passiveParticleSprites) bcPacker.add(sprite)
-		}
-		for (sprite in content.ui.allBcSprites()) bcPacker.add(sprite)
-		for (background in content.battle.backgrounds) bcPacker.add(background.sprite)
-		for (sprite in content.battle.particleSprites) bcPacker.add(sprite.sprite)
-		for (skeleton in content.battle.skeletons) {
-			for (part in skeleton.parts) {
-				val content = part.content
-				if (content is SkeletonPartSkins) {
-					for (skin in content.skins) {
-						for (entry in skin.entries) bcPacker.add(entry.sprite)
-					}
-				}
-			}
-		}
-
-		val startTime = System.nanoTime()
-		bcPacker.compressImages()
-		println("BC took ${(System.nanoTime() - startTime) / 1000_000} ms")
-		val bcOutput = DeflaterOutputStream(Files.newOutputStream(File("$outputFolder/bc-sprites.bin").toPath()))
-		bcPacker.writeData(bcOutput)
-		bcOutput.finish()
-		bcOutput.flush()
-		bcOutput.close()
-
-		val areasOutput = BufferedOutputStream(Files.newOutputStream(File("$outputFolder/area-offsets.bin").toPath()))
-		spritesAndAreas.writeAreaOffsets(areasOutput, bitser)
-		areasOutput.flush()
-		areasOutput.close()
+		saveTitleScreenBundle(bitser, content)
 
 		println("exporting campaign...")
-		exportCampaignData(content, outputFolder, bitser)
+		saveMainContent(bitser, content, outputFolder)
 		println("exported campaign")
 		succeeded = true
 	} catch (failure: Throwable) {
@@ -102,8 +44,155 @@ fun main() {
 	}
 }
 
-private fun exportCampaignData(content: Content, outputFolder: File, bitser: Bitser) {
-	val output = BitOutputStream(BufferedOutputStream(Files.newOutputStream(File("$outputFolder/content.bin").toPath())))
-	bitser.serialize(content, output, Bitser.BACKWARD_COMPATIBLE)
-	output.finish()
+private fun saveIcons(outputFolder: File) {
+	val iconOutput = Files.newOutputStream(File("$outputFolder/icons.bin").toPath())
+	val imageData = ByteBuffer.allocate(4 * 16 * 16)
+
+	val itemSheet = ImageIO.read(BcPacker::class.java.classLoader.getResource(
+		"mardek/importer/inventory/itemsheet_misc.png"
+	))
+	ImageCoding.encodeBufferedImage(imageData, itemSheet.getSubimage(288, 32, 16, 16))
+	iconOutput.write(imageData.array())
+
+	for (cursor in arrayOf("inventory", "pointer", "grab")) {
+		val image = ImageIO.read(BcPacker::class.java.classLoader.getResource(
+			"mardek/importer/cursors/$cursor.png"
+		))
+		imageData.position(0)
+		ImageCoding.encodeBufferedImage(imageData, image)
+		iconOutput.write(imageData.array())
+	}
+
+	iconOutput.flush()
+	iconOutput.close()
+}
+
+private fun addBcImage(resourceWriter: Vk2dResourceWriter, bc: BcSprite) {
+	if (bc.index != -1) return
+	val compression = when (bc.version) {
+		4 -> Vk2dImageCompression.BC4
+		7 -> Vk2dImageCompression.BC7
+		else -> throw UnsupportedOperationException("Unexpected compression BC${bc.version}")
+	}
+	if (bc.bufferedImage != null) {
+		if (compression == Vk2dImageCompression.BC4) {
+			bc.index = resourceWriter.addGreyscaleImage(
+				bc.bufferedImage as BufferedImage, compression, Vk2dGreyscaleChannel.ALPHA, false
+			)
+		} else {
+			bc.index = resourceWriter.addImage(
+				bc.bufferedImage as BufferedImage, compression, false
+			)
+		}
+	} else {
+		bc.index = resourceWriter.addPreCompressedImage(
+			bc.data, bc.width, bc.height,
+			compression, false
+		)
+	}
+	bc.data = null
+}
+
+private fun addKimImage(resourceWriter: Vk2dResourceWriter, kim: KimSprite) {
+	kim.index = resourceWriter.addFakeImage(kim.width, kim.height, kim.data)
+	kim.data = null
+}
+
+private fun addFont(resourceWriter: Vk2dResourceWriter, font: Font) {
+	font.index = resourceWriter.addFont(ByteArrayInputStream(font.data))
+	font.data = null
+}
+
+private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File) {
+	val resourceWriter = Vk2dResourceWriter()
+
+	for (sheet in content.areas.tilesheets) {
+		for (tile in sheet.tiles) {
+			for (sprite in tile.sprites) addKimImage(resourceWriter, sprite)
+		}
+		for (sprite in sheet.waterSprites) addKimImage(resourceWriter, sprite)
+	}
+	for (switchColor in content.areas.switchColors) {
+		addKimImage(resourceWriter, switchColor.onSprite)
+		addKimImage(resourceWriter, switchColor.offSprite)
+		addKimImage(resourceWriter, switchColor.gateSprite)
+		addKimImage(resourceWriter, switchColor.platformSprite)
+	}
+	for (characterSprite in content.areas.characterSprites) {
+		for (sprite in characterSprite.sprites) addKimImage(resourceWriter, sprite)
+	}
+	for (objectSprite in content.areas.objectSprites) {
+		for (frame in objectSprite.frames) addKimImage(resourceWriter, frame)
+	}
+	for (arrowSprite in content.areas.arrowSprites) addKimImage(resourceWriter, arrowSprite.sprite)
+	for (chestSprite in content.areas.chestSprites) {
+		addKimImage(resourceWriter, chestSprite.baseSprite)
+		addKimImage(resourceWriter, chestSprite.openedSprite)
+	}
+	for (creatureType in content.stats.creatureTypes) addKimImage(resourceWriter, creatureType.icon)
+	for (skillClass in content.skills.classes) addKimImage(resourceWriter, skillClass.icon)
+	for (item in content.items.items) addKimImage(resourceWriter, item.sprite)
+	for (item in content.items.plotItems) addKimImage(resourceWriter, item.sprite)
+	for (sprite in content.ui.allKimSprites()) addKimImage(resourceWriter, sprite)
+
+	for (element in content.stats.elements) {
+		val swingSprite = element.swingEffect
+		if (swingSprite != null) addBcImage(resourceWriter, swingSprite)
+		addBcImage(resourceWriter, element.thickSprite)
+		addBcImage(resourceWriter, element.thinSprite)
+		val castSprite = element.spellCastBackground
+		if (castSprite != null) addBcImage(resourceWriter, castSprite)
+	}
+	for (effect in content.stats.statusEffects) {
+		addBcImage(resourceWriter, effect.icon)
+		for (sprite in effect.passiveParticleSprites) addBcImage(resourceWriter, sprite)
+	}
+	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
+
+	for (animationSprite in content.battle.animationSprites) {
+		addBcImage(resourceWriter, animationSprite.image)
+	}
+	for (skeleton in content.battle.skeletons) {
+		for (animation in skeleton.animations.values) {
+			for (sprite in animation.innerSprites) addBcImage(resourceWriter, sprite.image)
+		}
+	}
+	addBcImage(resourceWriter, content.battle.noMask)
+
+	for (sprite in content.battle.particleSprites) addBcImage(resourceWriter, sprite.sprite)
+
+	for (font in content.fonts.all()) addFont(resourceWriter, font)
+
+	val output = Files.newOutputStream(File("$outputFolder/content.vk2d").toPath())
+	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))
+	output.close()
+
+	Files.write(
+		File("$outputFolder/content.bits").toPath(),
+		bitser.serializeToBytes(content, Bitser.BACKWARD_COMPATIBLE)
+	)
+}
+
+private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
+	val resourceWriter = Vk2dResourceWriter()
+	val titleScreenContent = TitleScreenContent(
+		background = content.ui.titleScreenBackground,
+		smallFont = content.fonts.basic1.copy(),
+		largeFont = content.fonts.large2.copy(),
+	)
+
+	addBcImage(resourceWriter, titleScreenContent.background)
+	addFont(resourceWriter, titleScreenContent.smallFont)
+	addFont(resourceWriter, titleScreenContent.largeFont)
+
+	val output = Files.newOutputStream(File(
+		"$projectFolder/game/src/main/resources/mardek/game/title-screen.vk2d"
+	).toPath())
+	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))
+	output.close()
+
+	Files.write(
+		File("$projectFolder/game/src/main/resources/mardek/game/title-screen.bits").toPath(),
+		bitser.serializeToBytes(titleScreenContent, Bitser.BACKWARD_COMPATIBLE)
+	)
 }

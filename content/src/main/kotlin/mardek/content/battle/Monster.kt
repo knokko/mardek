@@ -7,7 +7,7 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.stats.*
 import mardek.content.inventory.Dreamstone
 import mardek.content.skill.ActiveSkill
@@ -20,111 +20,115 @@ class Monster(
 	val name: String,
 
 	@BitField(id = 1)
-	val model: BattleModel,
+	val displayName: String,
 
 	@BitField(id = 2)
-	val className: String,
+	val animations: CombatantAnimations,
 
 	@BitField(id = 3)
+	val className: String,
+
+	@BitField(id = 4)
 	@ReferenceField(stable = false, label = "creature types")
 	val type: CreatureType,
 
-	@BitField(id = 4)
+	@BitField(id = 5)
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element,
 
-	@BitField(id = 5)
+	@BitField(id = 6)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val baseStats: HashMap<CombatStat, Int>,
 
-	@BitField(id = 6)
+	@BitField(id = 7)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val playerStatModifier: Int,
 
-	@BitField(id = 7)
+	@BitField(id = 8)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val hpPerLevel: Int,
 
-	@BitField(id = 8)
+	@BitField(id = 9)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val attackPerLevelNumerator: Int,
 
-	@BitField(id = 9)
+	@BitField(id = 10)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val attackPerLevelDenominator: Int,
 
-	@BitField(id = 10)
+	@BitField(id = 11)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val critChance: Int,
 
-	@BitField(id = 11)
+	@BitField(id = 12)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val experience: Int,
 
-	@BitField(id = 12)
+	@BitField(id = 13)
 	val loot: ArrayList<PotentialItem>,
 
-	@BitField(id = 13)
+	@BitField(id = 14)
 	val plotLoot: ArrayList<PotentialPlotItem>,
 
-	@BitField(id = 14)
+	@BitField(id = 15)
 	@ReferenceField(stable = false, label = "dreamstones")
 	val dreamLoot: ArrayList<Dreamstone>,
 
-	@BitField(id = 15)
+	@BitField(id = 16)
 	val weapon: PotentialEquipment,
 
-	@BitField(id = 16)
+	@BitField(id = 17)
 	val shield: PotentialEquipment,
 
-	@BitField(id = 17)
+	@BitField(id = 18)
 	val helmet: PotentialEquipment,
 
-	@BitField(id = 18)
+	@BitField(id = 19)
 	val armor: PotentialEquipment,
 
-	@BitField(id = 19)
+	@BitField(id = 20)
 	val accessory1: PotentialEquipment,
 
-	@BitField(id = 20)
+	@BitField(id = 21)
 	val accessory2: PotentialEquipment,
 
-	@BitField(id = 21)
+	@BitField(id = 22)
 	val resistances: Resistances,
 
-	@BitField(id = 22)
+	@BitField(id = 23)
 	@NestedFieldSetting(path = "k", fieldName = "SHIFT_RESISTANCES_KEY_PROPERTIES")
 	val elementalShiftResistances: HashMap<Element, Resistances>,
 
-	@BitField(id = 23)
+	@BitField(id = 24)
 	val attackEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(id = 24)
+	@BitField(id = 25)
 	@ReferenceField(stable = false, label = "status effects")
 	val initialEffects: ArrayList<StatusEffect>,
 
-	@BitField(id = 25)
+	@BitField(id = 26)
 	@ReferenceFieldTarget(label = "skills")
 	val actions: ArrayList<ActiveSkill>,
 
-	@BitField(id = 26)
+	@BitField(id = 27)
 	@ReferenceFieldTarget(label = "strategy pools")
 	val strategies: ArrayList<StrategyPool>,
 
-	@BitField(id = 27)
+	@BitField(id = 28)
 	val meleeCounterAttacks: ArrayList<CounterAttack>,
 
-	@BitField(id = 28)
+	@BitField(id = 29)
 	val rangedCounterAttacks: ArrayList<CounterAttack>,
 ) {
 
-	@BitField(id = 29)
+	@BitField(id = 30)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
 	constructor() : this(
 		name = "",
-		model = BattleModel(),
+		displayName = "",
+		animations = CombatantAnimations(),
 		className = "",
 		type = CreatureType(),
 		element = Element(),

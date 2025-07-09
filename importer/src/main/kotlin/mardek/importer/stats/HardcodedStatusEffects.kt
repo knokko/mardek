@@ -7,15 +7,13 @@ import mardek.content.stats.ElementalResistance
 import mardek.content.stats.Resistances
 import mardek.content.stats.StatusEffect
 import mardek.importer.ui.BcPacker
-import mardek.importer.util.compressKimSprite1
+import mardek.importer.util.loadBc7Sprite
 import java.awt.image.BufferedImage
 import java.util.*
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
 
-private fun icon(name: String) = compressKimSprite1(ImageIO.read(BcPacker::class.java.classLoader.getResource(
-	"mardek/importer/stats/effects/$name.png"
-)))
+private fun icon(name: String) = loadBc7Sprite("mardek/importer/stats/effects/$name.png")
 
 fun addStatusEffects(content: Content) {
 	val stats = content.stats

@@ -1,81 +1,77 @@
 package mardek.renderer.battle
 
+import com.github.knokko.boiler.utilities.ColorPacker.changeAlpha
+import com.github.knokko.boiler.utilities.ColorPacker.multiplyColors
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
-import com.github.knokko.text.placement.TextAlignment
-import mardek.renderer.batch.KimBatch
-import mardek.renderer.batch.KimRequest
-import mardek.renderer.changeAlpha
+import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dImageBatch
+import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.StatusEffectHistory
 import kotlin.math.pow
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
-class EffectHistoryRenderer(private val context: BattleRenderContext, private val combatant: CombatantState) {
+internal fun renderEffectHistory(
+	battleContext: BattleRenderContext, combatant: CombatantState,
+	imageBatch: Vk2dImageBatch, textBatch: MardekGlyphBatch, lateColorBatch: Vk2dColorBatch,
+) {
+	battleContext.run {
+		val currentEntry = combatant.renderInfo.effectHistory.get(renderTime) ?: return
+		var midX = combatant.renderInfo.statusEffectPoint.x
+		var midY = combatant.renderInfo.statusEffectPoint.y
 
-	private val currentEntry = combatant.effectHistory.get(System.nanoTime())
-	private val width = context.viewportWidth
-	private val height = context.viewportHeight
-	private var midX = 0
-	private var midY = 0
-	private var spriteSize = 0
-
-	private var kimBatch: KimBatch? = null
-
-	fun beforeRendering() {
-		if (currentEntry == null) return
-
-		midX = TransformedCoordinates.intX(combatant.lastRenderedPosition.first, width) - height / 20
-		midY = TransformedCoordinates.intY(combatant.lastRenderedPosition.second, height)
 		if (currentEntry.type == StatusEffectHistory.Type.Remove) {
-			midY -= (currentEntry.relativeTime * height / 20).roundToInt()
-			spriteSize = height / 20
+			midY -= currentEntry.relativeTime * imageBatch.height / 20f
+			val spriteSize = imageBatch.height / 20f
 			val sprite = currentEntry.effect.icon
-			kimBatch = context.resources.kim1Renderer.startBatch()
-			kimBatch!!.requests.add(KimRequest(
-				x = midX - spriteSize / 2, y = midY - spriteSize / 2,
-				scale = spriteSize / sprite.height.toFloat(), sprite = sprite,
-				opacity = 1f - 4f * (0.5f - currentEntry.relativeTime).pow(2)
-			))
-		} else {
-			val f = sin(4f * currentEntry.relativeTime)
-			midY -= (f * height / 20).roundToInt()
-		}
-	}
+			val opacity = 1f - 4f * (0.5f - currentEntry.relativeTime).pow(2)
+			imageBatch.coloredScale(
+				midX - spriteSize * 0.5f, midY - spriteSize * 0.5f,
+				spriteSize / sprite.height, sprite.index,
+				0, rgba(1f, 1f, 1f, opacity)
+			)
 
-	fun render() {
-		if (currentEntry == null) return
-		kimBatch?.let { context.resources.kim1Renderer.submit(it, context) }
-
-		if (currentEntry.type == StatusEffectHistory.Type.Remove) {
 			val crossColor = srgbToLinear(rgba(199, 0, 0, 128))
-			val l = height / 28
-			val w = height / 250
+			val l = imageBatch.height / 28
+			val w = imageBatch.height / 250
 			val p = (l - 2 * l * (1f - currentEntry.relativeTime)).roundToInt()
 
-			val rectangles = context.resources.rectangleRenderer
-			rectangles.beginBatch(context, 2)
-			rectangles.fillUnaligned(
-				midX - l + w, midY - l - w, midX - l - w, midY - l + w,
-				midX + p - w, midY + p + w, midX + p + w, midY + p - w, crossColor
+			val iMidX = midX.roundToInt()
+			val iMidY = midY.roundToInt()
+			lateColorBatch.fillUnaligned(
+				iMidX - l + w, iMidY - l - w, iMidX - l - w, iMidY - l + w,
+				iMidX + p - w, iMidY + p + w, iMidX + p + w, iMidY + p - w, crossColor
 			)
-			rectangles.fillUnaligned(
-				midX + l - w, midY - l - w, midX + l + w, midY - l + w,
-				midX - p + w, midY + p + w, midX - p - w, midY + p - w, crossColor
+			lateColorBatch.fillUnaligned(
+				iMidX + l - w, iMidY - l - w, iMidX + l + w, iMidY - l + w,
+				iMidX - p + w, iMidY + p + w, iMidX - p - w, iMidY + p - w, crossColor
 			)
-			rectangles.endBatch(context.recorder)
 		} else {
 			val f = currentEntry.relativeTime.pow(2)
-			val color = changeAlpha(srgbToLinear(currentEntry.effect.textColor), 255 - (250 * f).roundToInt())
+			midY -= f * imageBatch.height / 20f
 
-			context.uiRenderer.beginBatch()
-			context.uiRenderer.drawString(
-				context.resources.font, currentEntry.effect.shortName, color, IntArray(0),
-				midX - width / 5, 0, midX + width / 5, height,
-				midY, height / 30, 1, TextAlignment.CENTER
+			val strongColor = changeAlpha(
+				srgbToLinear(currentEntry.effect.textColor),
+				255 - (250 * f).roundToInt()
 			)
-			context.uiRenderer.endBatch()
+			val weakColor = multiplyColors(strongColor, rgb(0.7f, 0.7f, 0.7f))
+			val unknownFont = context.bundle.getFont(context.content.fonts.basic2.index)
+
+			// TODO Check this & fix weakColor
+			textBatch.drawFancyString(
+				currentEntry.effect.shortName, midX, midY, imageBatch.height / 30f, unknownFont,
+				weakColor, rgb(0, 0, 0), imageBatch.height / 150f,
+				TextAlignment.CENTERED, weakColor, strongColor, strongColor,
+				weakColor, 0.2f, 0.2f, 0.8f, 0.8f,
+			)
+//			context.uiRenderer.drawString(
+//				context.resources.font, currentEntry.effect.shortName, color, IntArray(0),
+//				midX - width / 5, 0, midX + width / 5, height,
+//				midY, height / 30, 1, TextAlignment.CENTER
+//			)
 		}
 	}
 }

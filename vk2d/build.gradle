@@ -1,0 +1,95 @@
+import proguard.gradle.ProGuardTask
+
+apply plugin: "com.gradleup.shadow"
+
+dependencies {
+	implementation "org.lwjgl:lwjgl-sdl"
+	implementation "com.github.knokko:vk-boiler:$boilerVersion"
+	implementation "org.lwjgl:lwjgl"
+	implementation "org.lwjgl:lwjgl-vulkan"
+
+	compileOnly "org.lwjgl:lwjgl-freetype"
+	compileOnly "org.lwjgl:lwjgl-harfbuzz"
+	for (format in ["kim1", "kim2", "bc1", "bc4", "bc7"]) {
+		compileOnly "com.github.knokko.vk-compressor:$format:$compressorVersion"
+	}
+
+	testImplementation "org.lwjgl:lwjgl-freetype"
+	testImplementation "org.lwjgl:lwjgl-harfbuzz"
+	testImplementation "org.lwjgl:lwjgl-vma"
+	for (format in ["kim1", "kim2", "bc1", "bc4", "bc7"]) {
+		testImplementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
+	}
+
+	project.ext.myRuntimeDependencies = project.ext.lwjglNatives.collectMany {
+		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-sdl::$it"]
+		if (it.startsWith("natives-macos")) result.add("org.lwjgl:lwjgl-vulkan::$it")
+		result
+	}
+	for (dependency in project.ext.myRuntimeDependencies) runtimeOnly "$dependency"
+	for (natives in project.ext.lwjglNatives) {
+		testRuntimeOnly "org.lwjgl:lwjgl-freetype::$natives"
+		testRuntimeOnly "org.lwjgl:lwjgl-vma::$natives"
+	}
+}
+
+shadowJar {
+	manifest {
+		attributes ("Main-Class": "com.github.knokko.vk2d.BlurBenchmark")
+	}
+}
+
+tasks.register("proguard", ProGuardTask) {
+	dependsOn "shadowJar"
+	injars "build/libs/vk2d-all.jar"
+	outjars "build/libs/Text.jar"
+
+	// I need java.base, and LWJGL needs jdk.unsupported (Unsafe)
+	libraryjars "${System.getProperty("java.home")}/jmods/java.base.jmod"
+	libraryjars "${System.getProperty("java.home")}/jmods/jdk.unsupported.jmod"
+
+	// I just want to remove unused LWJGL classes and Kotlin std classes;
+	// I do NOT want to obfuscate the game, since that will ruin stacktraces
+	dontobfuscate()
+	dontoptimize()
+
+	keep "class com.github.knokko.vk2d.GlyphBenchmark1 {*;}"
+
+	// LWJGL system is magical, and will segfault if we remove its stuff
+	keep "class org.lwjgl.system.** {*;}"
+
+	// These suggestive annotations are not interesting
+	dontwarn "org.jspecify.annotations.**"
+
+	// This game doesn't use OpenXR (virtual reality)
+	dontwarn "com.github.knokko.boiler**.xr**"
+	dontwarn "com.github.knokko.boiler.exceptions.OpenXrFailureException"
+
+	// We don't use GLFW
+	dontwarn "com.github.knokko.boiler.builders.*"
+	dontwarn "com.github.knokko.boiler.window.*"
+
+	// We don't use VMA
+	dontwarn "com.github.knokko.boiler.BoilerInstance"
+	dontwarn "com.github.knokko.boiler.memory.MemoryTypeClaims"
+	dontwarn "com.github.knokko.boiler.memory.MemoryBlock"
+
+	// We don't use JOML
+	dontwarn "com.github.knokko.boiler.culling.FrustumCuller"
+	dontwarn "com.github.knokko.boiler.culling.FrustumCuller\$Plane"
+
+	// These classes use java.awt.BufferedImage, which won't be present in the final game jar.
+	// However, these classes won't be used in-game, so it doesn't matter.
+	dontwarn "com.github.knokko.text.renderer.cpu.BufferedImageTextRenderer"
+	dontwarn "com.github.knokko.compressor.Kim2**pressor"
+
+	// This should not be used in all jars
+	dontwarn "com.github.knokko.vk2d.resource.Vk2dResourceWriter"
+	dontwarn "com.github.knokko.vk2d.resource.Vk2dResourceWriter\$Image"
+	dontwarn "com.github.knokko.vk2d.resource.Vk2dResourceWriter\$Font"
+	dontwarn "com.github.knokko.vk2d.text.FontHelper"
+
+	// Some methods of MappedVkbBuffer/ImageCoding use java.awt.BufferedImage, but it's fine since I don't call them
+	dontwarn "com.github.knokko.boiler.buffers.MappedVkbBuffer"
+	dontwarn "com.github.knokko.boiler.utilities.ImageCoding"
+}

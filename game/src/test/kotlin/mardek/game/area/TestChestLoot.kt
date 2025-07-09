@@ -9,7 +9,7 @@ import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.renderer.SharedResources
+import mardek.state.GameStateManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestChestLoot {
@@ -35,24 +34,21 @@ object TestChestLoot {
 			)
 
 			val input = InputManager()
+			val state = GameStateManager(input, InGameState(campaign))
 			val soundQueue = SoundQueue()
 			val context = GameStateUpdateContext(content, input, soundQueue, 100.milliseconds)
 			input.postEvent(pressKeyEvent(InputKey.MoveRight))
 			campaign.update(context)
 			assertNull(soundQueue.take())
 
-			val getResources = CompletableFuture<SharedResources>()
-			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
-
 			val partyColors = arrayOf(
 				Color(217, 214, 214), // Mardek armor
-				Color(69, 117, 28), // Deugan robe
+				Color(70, 117, 33), // Deugan robe
 			)
 			val areaColors = arrayOf(
-				Color(13, 46, 22), // Tree/grass color
-				Color(71, 64, 34), // Shaman hut color
-				Color(101, 50, 153), // Mushroom color
-				Color(86, 64, 50), // Chest color
+				Color(23, 66, 40), // Tree/grass color
+				Color(102, 51, 153), // Mushroom color
+				Color(88, 66, 50), // Chest color
 			)
 			val lootColors = arrayOf(
 				Color(203, 153, 0), // TREASURE text color
@@ -62,7 +58,7 @@ object TestChestLoot {
 				Color(81, 113, 217), // Inventory grid consumable color
 			)
 			testRendering(
-				getResources, InGameState(campaign), 900, 450, "chest-before-open",
+				state, 900, 450, "chest-before-open",
 				areaColors + partyColors, lootColors
 			)
 
@@ -73,7 +69,7 @@ object TestChestLoot {
 			assertNull(soundQueue.take())
 
 			testRendering(
-				getResources, InGameState(campaign), 900, 450, "chest-after-open",
+				state, 900, 450, "chest-after-open",
 				lootColors + partyColors, areaColors
 			)
 
@@ -125,7 +121,7 @@ object TestChestLoot {
 			assertEquals(1, campaign.openedChests.size)
 			assertNull(campaign.currentArea!!.obtainedItemStack)
 			testRendering(
-				getResources, InGameState(campaign), 900, 450, "chest-after-close",
+				state, 900, 450, "chest-after-close",
 				areaColors + partyColors, lootColors
 			)
 
@@ -134,8 +130,6 @@ object TestChestLoot {
 			campaign.update(context)
 			assertNull(campaign.currentArea!!.obtainedItemStack)
 			assertNull(soundQueue.take())
-
-			getResources.get().destroy()
 		}
 	}
 }

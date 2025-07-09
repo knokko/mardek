@@ -12,6 +12,7 @@ dependencies {
 	implementation project(":input")
 	implementation project(":renderer")
 	implementation project(":state")
+	implementation project(":vk2d")
 	for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-sdl::$natives"
 }
 
@@ -48,6 +49,16 @@ tasks.register("proguard", ProGuardTask) {
 	// This game doesn't use OpenXR (virtual reality)
 	dontwarn "com.github.knokko.boiler**.xr**"
 	dontwarn "com.github.knokko.boiler.exceptions.OpenXrFailureException"
+
+	// This game uses SDL rather than GLFW
+	dontwarn "org.lwjgl.glfw.**"
+
+	// We don't use VMA
+	dontwarn "org.lwjgl.util.vma.**"
+
+	// These classes are only used during importing; not in the game itself
+	dontwarn "com.github.knokko.vk2d.resource.Vk2dResourceWriter**"
+	dontwarn "com.github.knokko.vk2d.text.FontHelper**"
 
 	// These classes use java.awt.BufferedImage, which won't be present in the final game jar.
 	// However, these classes won't be used in-game, so it doesn't matter.

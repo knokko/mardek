@@ -6,7 +6,7 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.battle.Monster
 import mardek.content.battle.StrategyPool
 import mardek.content.characters.PlayableCharacter
@@ -18,7 +18,7 @@ import mardek.content.skill.Skill
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.*
 import mardek.state.ingame.characters.CharacterState
-import mardek.state.title.AbsoluteRectangle
+import mardek.state.util.Rectangle
 import kotlin.math.max
 import kotlin.math.min
 
@@ -125,43 +125,7 @@ sealed class CombatantState(
 	@IntegerField(expectUniform = false)
 	val statModifiers = HashMap<CombatStat, Int>()
 
-	val effectHistory = StatusEffectHistory()
-
-	val lastStatusEffectParticleEmissions = mutableMapOf<StatusEffect, Long>()
-
-	/**
-	 * The last point in time (`System.nanoTime()`) where a player pointed to this combatant as the potential target
-	 * for an attack, skill, or item. This is only used to determine whether the blue 'target selection blink' should
-	 * be rendered, and is not important for the course of the battle.
-	 */
-	var lastPointedTo = 0L
-
-	/**
-	 * The last position (normalized device coordinates) where this combatant was rendered
-	 */
-	var lastRenderedPosition = Pair(0f, 0f)
-
-	/**
-	 * This contains information that is used to render the damage indicator whenever combatants are attacked or
-	 * gain/lose health or mana.
-	 */
-	var lastDamageIndicator: DamageIndicator? = null
-
-	/**
-	 * When the turn of this combatant is forcibly skipped (e.g. due to paralysis or numbness + berserk),
-	 * `lastForcedTurn` will contain the time at which the turn was skipped, as well as the desired flash/blink
-	 * color.
-	 *
-	 * This information is used by the renderer to show the yellow/red paralysis/numbness blink/flash.
-	 */
-	var lastForcedTurn: ForcedTurnBlink? = null
-
-	/**
-	 * The position where the information block (health, mana, status effects, etc...) of this combatant was rendered
-	 * during the last frame, or null when the combatant info was not rendered last frame (e.g. because the first
-	 * frame hasn't been rendered yet)
-	 */
-	var renderedInfoBlock: AbsoluteRectangle? = null
+	val renderInfo = CombatantRenderInfo()
 
 	fun getPosition(battleState: BattleState) = if (isOnPlayerSide) {
 		battleState.playerLayout.positions[battleState.players.indexOf(this)]
@@ -188,12 +152,12 @@ sealed class CombatantState(
 			if (currentHealth <= maxHealth / 5) {
 				val sosEffects = getSosEffects(context) - statusEffects
 				statusEffects.addAll(sosEffects)
-				for (effect in sosEffects) effectHistory.add(effect, currentTime)
+				for (effect in sosEffects) renderInfo.effectHistory.add(effect, currentTime)
 			}
 		} else {
 			for (effect in statusEffects - getAutoEffects(context)) {
 				statusEffects.remove(effect)
-				effectHistory.remove(effect, currentTime)
+				renderInfo.effectHistory.remove(effect, currentTime)
 			}
 		}
 	}
@@ -259,7 +223,7 @@ sealed class CombatantState(
 		return autoEffects
 	}
 
-	abstract fun getModel(): BattleModel
+	abstract fun getAnimations(): CombatantAnimations
 
 	abstract fun getTurnOrderIcon(): KimSprite
 
@@ -344,7 +308,7 @@ class PlayerCombatantState(
 		return resistance
 	}
 
-	override fun getModel() = player.battleModel
+	override fun getAnimations() = player.animations
 
 	override fun getTurnOrderIcon() = player.areaSprites.sprites[0]
 
@@ -475,7 +439,7 @@ class MonsterCombatantState(
 		return resistance
 	}
 
-	override fun getModel() = monster.model
+	override fun getAnimations() = monster.animations
 
 	override fun getTurnOrderIcon() = monster.type.icon
 

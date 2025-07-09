@@ -7,7 +7,6 @@ import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.renderer.SharedResources
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import java.awt.Color
 import java.lang.Thread.sleep
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -38,9 +36,6 @@ object TestThrowItems {
 			assertEquals(1, deuganState.countItemOccurrences(elixir))
 
 			startSimpleBattle(campaign)
-
-			val getResources = CompletableFuture<SharedResources>()
-			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
@@ -82,7 +77,7 @@ object TestThrowItems {
 
 			sleep(1000)
 			testRendering(
-				getResources, state, 800, 450, "elixir1",
+				state, 800, 450, "elixir1",
 				playerColors + monsterColor + elixirColor, turnOrderColor
 			)
 			assertTrue((battle.state as BattleStateMachine.UseItem).canDrinkItem)
@@ -98,8 +93,6 @@ object TestThrowItems {
 			val selection = battle.state as BattleStateMachine.SelectMove
 			assertSame(battle.livingPlayers()[0], selection.onTurn)
 			assertEquals(BattleMoveSelectionAttack(null), selection.selectedMove)
-
-			getResources.get().destroy()
 		}
 	}
 }

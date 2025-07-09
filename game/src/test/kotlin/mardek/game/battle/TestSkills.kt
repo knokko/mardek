@@ -7,7 +7,6 @@ import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.renderer.SharedResources
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import java.awt.Color
 import java.lang.Thread.sleep
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -42,9 +40,6 @@ object TestSkills {
 			mardekState.equipment[5] = mardekState.equipment[4]
 
 			startSimpleBattle(campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
-
-			val getResources = CompletableFuture<SharedResources>()
-			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
@@ -85,13 +80,12 @@ object TestSkills {
 				Color(129, 129, 79), // Mardek pants
 				Color(70, 117, 33), // Deugan coat
 			)
-			val turnOrderColor = arrayOf(Color(132, 96, 53))
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
 			sleep(1000)
 			testRendering(
-				getResources, state, 800, 450, "smite-evil1",
-				playerColors + monsterColor, turnOrderColor
+				state, 800, 450, "smite-evil1",
+				playerColors + monsterColor, emptyArray(),
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.MoveTo).finished)
 			campaign.update(context(1.seconds))
@@ -106,8 +100,8 @@ object TestSkills {
 
 			sleep(1000)
 			testRendering(
-				getResources, state, 800, 450, "smite-evil2",
-				playerColors + monsterColor, turnOrderColor
+				state, 800, 450, "smite-evil2",
+				playerColors + monsterColor, emptyArray()
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).canDealDamage)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).finished)
@@ -123,8 +117,8 @@ object TestSkills {
 
 			sleep(1000)
 			testRendering(
-				getResources, state, 800, 450, "smite-evil3",
-				playerColors + monsterColor, turnOrderColor
+				state, 800, 450, "smite-evil3",
+				playerColors + monsterColor, emptyArray(),
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.JumpBack).finished)
 			campaign.update(context(1.seconds))
@@ -137,11 +131,9 @@ object TestSkills {
 				assertEquals(BattleMoveSelectionAttack(null), it.selectedMove)
 			}
 			testRendering(
-				getResources, state, 800, 450, "smite-evil4",
-				playerColors + monsterColor + turnOrderColor, emptyArray()
+				state, 800, 450, "smite-evil4",
+				playerColors + monsterColor, emptyArray()
 			)
-
-			getResources.get().destroy()
 		}
 	}
 
@@ -159,9 +151,6 @@ object TestSkills {
 			deuganState.skillMastery[recover] = recover.masteryPoints
 
 			startSimpleBattle(campaign)
-
-			val getResources = CompletableFuture<SharedResources>()
-			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
@@ -207,13 +196,12 @@ object TestSkills {
 				Color(129, 129, 79), // Mardek pants
 				Color(70, 117, 33), // Deugan coat
 			)
-			val turnOrderColor = arrayOf(Color(132, 96, 53))
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
 			sleep(2000)
 			testRendering(
-				getResources, state, 800, 450, "recover1",
-				playerColors + monsterColor, turnOrderColor
+				state, 800, 450, "recover1",
+				playerColors + monsterColor, emptyArray(),
 			)
 			assertTrue((battle.state as BattleStateMachine.CastSkill).canDealDamage)
 			campaign.update(context(2.seconds))
@@ -232,8 +220,6 @@ object TestSkills {
 			val selection = battle.state as BattleStateMachine.SelectMove
 			assertSame(battle.livingPlayers()[0], selection.onTurn)
 			assertEquals(BattleMoveSelectionAttack(null), selection.selectedMove)
-
-			getResources.get().destroy()
 		}
 	}
 }

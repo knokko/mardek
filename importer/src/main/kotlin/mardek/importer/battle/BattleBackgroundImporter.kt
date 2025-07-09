@@ -1,92 +1,53 @@
 package mardek.importer.battle
 
-import com.jpexs.decompiler.flash.SWF
 import com.jpexs.decompiler.flash.tags.DefineSpriteTag
-import com.jpexs.decompiler.flash.tags.FrameLabelTag
-import com.jpexs.decompiler.flash.tags.PlaceObject2Tag
+import mardek.content.animation.AnimationNode
 import mardek.content.battle.BattleContent
 import mardek.content.battle.BattleBackground
-import mardek.content.sprite.BcSprite
-import mardek.importer.util.resourcesFolder
-import java.awt.Color
-import java.awt.image.BufferedImage
+import mardek.importer.animation.AnimationImportContext
+import mardek.importer.animation.importSkinnedAnimation
+import mardek.importer.area.FLASH
+import mardek.importer.util.projectFolder
 import java.io.File
-import java.nio.file.Files
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import javax.imageio.ImageIO
 
-private fun extractFromFlash(swfFile: File) {
-	val input = Files.newInputStream(swfFile.toPath())
-	val swf = SWF(input, true)
-	input.close()
+internal fun importBattleBackgrounds(content: BattleContent) {
+	val backgroundsTag1 = FLASH.tags.find { it.uniqueId == "2186" }!! as DefineSpriteTag
+	val backgroundsTag2 = FLASH.tags.find { it.uniqueId == "2204" }!! as DefineSpriteTag
 
-	val backgroundsTag = swf.tags.find { it.uniqueId == "2186" }!! as DefineSpriteTag
+	val context = AnimationImportContext(
+		shapesDirectory = File("$projectFolder/flash/background-shapes-x4/")
+	)
+	val backgrounds1 = importSkinnedAnimation(backgroundsTag1, context)
+	val backgrounds2 = importSkinnedAnimation(backgroundsTag2, context)
 
-	val shapeMapping = mutableMapOf<String, MutableList<Int>>()
-	var currentLabel = ""
-	for (tag in backgroundsTag.tags) {
-		if (tag is FrameLabelTag) currentLabel = tag.labelName
-		if (currentLabel.isNotEmpty() && currentLabel != "BELFAN" && tag is PlaceObject2Tag) {
-			shapeMapping.computeIfAbsent(currentLabel) { mutableListOf() }.add(tag.characterId)
+	val combined = mutableMapOf<String, Array<AnimationNode>>()
+	for ((name, frames) in backgrounds1.skins) {
+		if (name.isEmpty()) continue
+		val firstFrame = frames.frames[0]
+		combined[name] = firstFrame.nodes
+	}
+
+	for ((name, frames) in backgrounds2.skins) {
+		if (name.isEmpty()) continue
+
+		val firstFrame = frames.frames[0]
+		val existing = combined[name]
+		if (existing == null) {
+			combined[name] = firstFrame.nodes
+		} else {
+			combined[name] = (existing + firstFrame.nodes).sortedBy { it.depth }.toTypedArray()
 		}
 	}
-	println("mapping is $shapeMapping")
 
-	val extractedShapesFolder = File("D:\\images/shapes")
-	val destinationFolder = File("importer/src/main/resources/mardek/importer/battle/backgrounds")
-
-	destinationFolder.mkdirs()
-
-	for (entry in shapeMapping) {
-		if (entry.value.size > 1) {
-			println("do ${entry.key} manually")
-			continue
-		}
-		val sourceFile = File("$extractedShapesFolder/${entry.value[0]}.png")
-		val destinationFile = File("$destinationFolder/${entry.key}.png")
-		if (destinationFile.exists()) destinationFile.delete()
-		Files.copy(sourceFile.toPath(), destinationFile.toPath())
+	for ((name, nodes) in combined) {
+		content.backgrounds.add(BattleBackground(name, nodes, 4))
 	}
-}
 
-fun main() {
-	// Copy MARDEK.swf from Steam to ./flash/MARDEK.swf to make this work
-	extractFromFlash(File("flash/MARDEK.swf"))
-}
-
-internal fun countTranslucentPixels(image: BufferedImage): Int {
-	var translucentPixels = 0
-	for (y in 0 until image.height) {
-		for (x in 0 until image.width) {
-			val alpha = Color(image.getRGB(x, y), true).alpha
-			if (alpha in 30..200) translucentPixels += 1
-		}
+	for (sprite in context.shapeMapping.values) {
+		content.animationSprites.add(sprite)
 	}
-	return translucentPixels
-}
 
-internal fun importBattleBackgrounds(assets: BattleContent) {
-	val backgroundsFolder = File("$resourcesFolder/battle/backgrounds")
-	val threadPool = Executors.newFixedThreadPool(4)
-	for (backgroundImageFile in backgroundsFolder.listFiles()!!) {
-		threadPool.submit {
-			var bufferedImage = ImageIO.read(backgroundImageFile)
-			val useBc7 = countTranslucentPixels(bufferedImage) > 10_000
-			if (!useBc7 && (bufferedImage.width % 4 != 0 || bufferedImage.height % 4 != 0)) {
-				bufferedImage = bufferedImage.getSubimage(
-					0, 0, 4 * (bufferedImage.width / 4), 4 * (bufferedImage.height / 4)
-				)
-			}
-
-			val sprite = BcSprite(bufferedImage.width, bufferedImage.height, if (useBc7) 7 else 1)
-			sprite.bufferedImage = bufferedImage
-
-			synchronized(backgroundsFolder) {
-				assets.backgrounds.add(BattleBackground(backgroundImageFile.nameWithoutExtension, sprite))
-			}
-		}
+	for (animation in context.spriteMapping.values) {
+		content.skinnedAnimations.add(animation)
 	}
-	threadPool.shutdown()
-	if (!threadPool.awaitTermination(5, TimeUnit.SECONDS)) throw RuntimeException("Battle background importer timed out")
 }

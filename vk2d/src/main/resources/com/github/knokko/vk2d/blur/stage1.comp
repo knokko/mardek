@@ -1,0 +1,53 @@
+#version 450
+
+layout(set = 0, binding = 0) writeonly buffer OutputBuffer {
+	uint outputBuffer[];
+};
+
+layout(set = 0, binding = 1) uniform sampler2D inputTexture;
+
+layout(push_constant) uniform PushConstants {
+	uvec2 inputSize;
+	uint pushFilterSize;
+	uint sectionLength;
+};
+
+#include "../decode.glsl"
+#include "./encode.glsl"
+#include "./filter.glsl"
+
+uint fetchColor(uint x) {
+	float normalizedX = (x + 0.5) / inputSize.x;
+	uint y = 64 * gl_WorkGroupID.x + gl_LocalInvocationIndex;
+	float normalizedY = (y + 0.5) / inputSize.y;
+	return encodeColor(texture(inputTexture, vec2(normalizedX, normalizedY)));
+}
+
+uint getInputSize() {
+	return inputSize.x;
+}
+
+layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
+
+#define supportFilterSize(supportedFilterSize, filterFunction, unroll) if (pushFilterSize == supportedFilterSize) {\
+		initializeFilterWindow(baseX, supportedFilterSize, unroll);\
+		uint limit = min(inputSize.x, baseX + sectionLength);\
+		for (uint x = baseX; x < limit; x += unroll) {\
+			applyFilter(x, 1, supportedFilterSize, filterFunction, unroll);\
+		}\
+	}
+
+void main() {
+	uint y = 64 * gl_WorkGroupID.x + gl_LocalInvocationIndex;
+	if (y >= inputSize.y) return;
+
+	int baseX = int(sectionLength * gl_WorkGroupID.y);
+	if (baseX >= inputSize.x) return;
+
+	supportFilterSize(0, applySingleFilter0, DEFAULT_UNROLL);
+	supportFilterSize(1, applySingleFilter1, DEFAULT_UNROLL);
+	supportFilterSize(3, applySingleFilter3, DEFAULT_UNROLL);
+	supportFilterSize(4, applySingleFilter4, DEFAULT_UNROLL);
+	supportFilterSize(9, applySingleFilter9, DEFAULT_UNROLL);
+	supportFilterSize(19, applySingleFilter19, DEFAULT_UNROLL);
+}

@@ -3,7 +3,7 @@ package mardek.importer
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.Content
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.area.Direction
 import mardek.importer.area.importAreaContent
 import mardek.importer.audio.importAudioContent
@@ -15,6 +15,7 @@ import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
 import mardek.importer.skills.importSkillsContent
+import mardek.importer.ui.importFonts
 import mardek.importer.ui.importUiSprites
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaPosition
@@ -31,11 +32,12 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	importSkillsContent(content)
 	importItemsContent(content)
 
-	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, BattleModel>()
+	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, CombatantAnimations>()
 	importBattleContent(content, playerModelMapping)
 	importClasses(content)
 	importAreaContent(content)
 	content.ui = importUiSprites()
+	content.fonts = importFonts()
 
 	val fatCharacters = importPlayableCharacters(content, playerModelMapping)
 	val heroMardek = fatCharacters.find { it.wrapped.areaSprites.name == "mardek_hero" }!!

@@ -8,124 +8,104 @@ import mardek.content.sprite.KimSprite
 @BitStruct(backwardCompatible = true)
 class UiSprites(
 	@BitField(id = 0)
-	val attackIcon: KimSprite,
+	val attackIcon: BcSprite,
 
 	@BitField(id = 1)
-	val defIcon: KimSprite,
+	val defIcon: BcSprite,
 
 	@BitField(id = 2)
-	val rangedDefIcon: KimSprite,
+	val rangedDefIcon: BcSprite,
 
 	@BitField(id = 3)
-	val activeStarIcon: KimSprite,
+	val activeStarIcon: BcSprite,
 
 	@BitField(id = 4)
-	val meleeAttackIcon: KimSprite,
+	val meleeAttackIcon: BcSprite,
 
 	@BitField(id = 5)
-	val rangedAttackIcon: KimSprite,
+	val rangedAttackIcon: BcSprite,
 
 	@BitField(id = 6)
-	val meleeDefenseIcon: KimSprite,
+	val meleeDefenseIcon: BcSprite,
 
 	@BitField(id = 7)
-	val rangedDefenseIcon: KimSprite,
+	val rangedDefenseIcon: BcSprite,
 
 	@BitField(id = 8)
-	val passiveIcon: KimSprite,
+	val passiveIcon: BcSprite,
 
 	@BitField(id = 9)
 	val goldIcon: KimSprite,
 
 	@BitField(id = 10)
-	val mastered: KimSprite,
-
-	@BitField(id = 11)
-	val treasure: KimSprite,
-
-	@BitField(id = 12)
-	val plotItem: KimSprite,
-
-	@BitField(id = 13)
-	val targetingMode: KimSprite,
-
-	@BitField(id = 14)
 	val mapChest: KimSprite,
 
+	@BitField(id = 11)
+	val mapSaveCrystal: BcSprite,
+
+	@BitField(id = 12)
+	val mapDreamCircle: BcSprite,
+
+	@BitField(id = 13)
+	val skillToggled: BcSprite,
+
+	@BitField(id = 14)
+	val skillNotToggled: BcSprite,
+
 	@BitField(id = 15)
-	val mapSaveCrystal: KimSprite,
+	val pointer: BcSprite,
 
 	@BitField(id = 16)
-	val mapDreamCircle: KimSprite,
-
-	@BitField(id = 17)
-	val skillToggled: KimSprite,
-
-	@BitField(id = 18)
-	val skillNotToggled: KimSprite,
-
-	@BitField(id = 19)
-	val horizontalPointer: KimSprite,
-
-	@BitField(id = 20)
-	val flippedPointer: KimSprite,
-
-	@BitField(id = 21)
-	val verticalPointer: KimSprite,
-
-	@BitField(id = 22)
-	val diagonalPointer: KimSprite,
-
-	@BitField(id = 23)
 	val titleScreenBackground: BcSprite,
 
-	@BitField(id = 24)
-	val titleScreenTitle: BcSprite,
-
-	@BitField(id = 25)
+	@BitField(id = 17)
 	val blueAlertBalloon: KimSprite,
 
-	@BitField(id = 26)
+	@BitField(id = 18)
 	val redAlertBalloon: KimSprite,
 
-	@BitField(id = 27)
+	@BitField(id = 19)
 	val consumableIcon: KimSprite,
 
-	@BitField(id = 28)
+	@BitField(id = 20)
 	val waitIcon: KimSprite,
 
-	@BitField(id = 29)
+	@BitField(id = 21)
 	val fleeIcon: KimSprite,
 
-	@BitField(id = 30)
+	@BitField(id = 22)
 	val challengeCursor: BcSprite,
 
-	@BitField(id = 31)
+	@BitField(id = 23)
 	val dreamStoneIcon: KimSprite,
+
+	@BitField(id = 24)
+	val clock: BcSprite,
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(
-		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
+		BcSprite(), BcSprite(), BcSprite(),
+		BcSprite(), BcSprite(), BcSprite(),
+		BcSprite(), BcSprite(), BcSprite(),
 		KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
-		BcSprite(), BcSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), BcSprite(), KimSprite(),
+		BcSprite(), BcSprite(),
+		BcSprite(), BcSprite(), BcSprite(),
+		BcSprite(),
+		KimSprite(), KimSprite(),
+		KimSprite(), KimSprite(), KimSprite(), BcSprite(),
+		KimSprite(), BcSprite(),
 	)
 
 	fun allKimSprites() = arrayOf(
-		attackIcon, defIcon, rangedDefIcon, activeStarIcon,
-		meleeAttackIcon, rangedAttackIcon,
-		meleeDefenseIcon, rangedDefenseIcon, passiveIcon,
-		goldIcon, mastered, treasure, plotItem, targetingMode,
-		mapChest, mapSaveCrystal, mapDreamCircle, skillToggled, skillNotToggled,
-		horizontalPointer, flippedPointer, verticalPointer, diagonalPointer,
-		blueAlertBalloon, redAlertBalloon,
+		goldIcon, mapChest, blueAlertBalloon, redAlertBalloon,
 		consumableIcon, waitIcon, fleeIcon, dreamStoneIcon
 	)
 
-	fun allBcSprites() = arrayOf(titleScreenBackground, titleScreenTitle, challengeCursor)
+	fun allBcSprites() = arrayOf(
+		attackIcon, defIcon, rangedDefIcon,
+		activeStarIcon, meleeAttackIcon, rangedAttackIcon, meleeDefenseIcon, rangedDefenseIcon, passiveIcon,
+		mapSaveCrystal, mapDreamCircle, skillToggled, skillNotToggled, pointer,
+		titleScreenBackground, challengeCursor, clock
+	)
 }

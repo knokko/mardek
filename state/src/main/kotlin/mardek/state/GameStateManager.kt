@@ -3,19 +3,20 @@ package mardek.state
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.Content
 import mardek.input.InputManager
-import mardek.state.title.AbsoluteRectangle
+import mardek.state.util.Rectangle
+import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 
 class GameStateManager(private val input: InputManager, var currentState: GameState) {
 
 	@Volatile
-	var crossLocation: AbsoluteRectangle? = null
+	var crossLocation: Rectangle? = null
 
 	@Volatile
-	var maximizeLocation: AbsoluteRectangle? = null
+	var maximizeLocation: Rectangle? = null
 
 	@Volatile
-	var minusLocation: AbsoluteRectangle? = null
+	var minusLocation: Rectangle? = null
 
 	@Volatile
 	var hoveringCross = false
@@ -30,8 +31,13 @@ class GameStateManager(private val input: InputManager, var currentState: GameSt
 
 	fun lock(): Any = this
 
-	fun update(content: Content, timeStep: Duration) {
-		this.currentState = this.currentState.update(GameStateUpdateContext(content, input, soundQueue, timeStep))
+	fun update(content: CompletableFuture<Content>, timeStep: Duration) {
+		if (content.isDone) {
+			val context = GameStateUpdateContext(content.get(), input, soundQueue, timeStep)
+			this.currentState = this.currentState.update(context)
+		} else {
+			this.currentState = this.currentState.updateBeforeContent(input, soundQueue)
+		}
 	}
 
 	companion object {

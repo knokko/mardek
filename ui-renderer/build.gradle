@@ -1,5 +1,0 @@
-dependencies {
-	implementation "org.lwjgl:lwjgl-freetype"
-	for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
-	for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
-}

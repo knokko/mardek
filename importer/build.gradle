@@ -1,10 +1,15 @@
 dependencies {
 	for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+	implementation "org.lwjgl:lwjgl-freetype"
 	for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
-	for (format in ["kim1", "kim2", "bc1", "bc7"]) implementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
+	for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-freetype::$natives"
+	for (format in ["kim1", "kim2", "bc1", "bc4", "bc7"]) {
+		implementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
+	}
 	implementation files("../flash/ffdec_lib.jar")
 	implementation project(":content")
 	implementation project(":state")
+	implementation project(":vk2d")
 }
 
 tasks.register("exportContent", JavaExec) {

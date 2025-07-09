@@ -1,0 +1,160 @@
+#version 450
+
+layout(set = 0, binding = 0) buffer IntersectionData {
+	float intersectionData[];
+};
+layout(set = 0, binding = 1) writeonly buffer IntersectionInfo {
+	uint intersectionInfo[];
+};
+layout(set = 1, binding = 0) readonly buffer CurveBuffer {
+	uint curveData[];
+};
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+layout(push_constant) uniform PushConstants {
+	uint intersectionDataOffset;
+	uint intersectionInfoOffset;
+	uint curveOffset;
+	uint numCurves;
+	float rawSizeInPixels;
+	float glyphMinX;
+	float glyphMinY;
+	float glyphMaxX;
+	float glyphMaxY;
+	float subpixelOffset;
+	float maxOrthogonalDistance;
+	uint numWaves;
+};
+
+float unpack(uint raw) {
+	return (raw & 1023) * 2.5 / 1023.0 - 0.5;
+}
+
+float transformOffset(float offset) {
+	if (rawSizeInPixels > 0.0) return (offset - glyphMinX) / (glyphMaxX - glyphMinX);
+	else return (offset - glyphMinY) / (glyphMaxY - glyphMinY);
+}
+
+float computeWavePosition(float base, uint thisWave, float glyphSize, float sizeInPixels) {
+	return base + (thisWave + 0.5 + subpixelOffset) * glyphSize / sizeInPixels;
+}
+
+float transformOrthogonal(float original) {
+	if (original != -1.0 && rawSizeInPixels > 0.0) return original * (glyphMaxY - glyphMinY) / (glyphMaxX - glyphMinX);
+	else return original;
+}
+
+void main() {
+	uint thisWave = gl_GlobalInvocationID.x;
+	if (thisWave >= numWaves) return;
+
+	float sizeInPixels;
+	float glyphSize, wavePosition;
+	bool isHorizontal;
+	if (rawSizeInPixels > 0.0) {
+		sizeInPixels = rawSizeInPixels;
+		glyphSize = glyphMaxY - glyphMinY;
+		wavePosition = computeWavePosition(glyphMinY, thisWave, glyphSize, sizeInPixels);
+		isHorizontal = true;
+	} else {
+		sizeInPixels = -rawSizeInPixels;
+		glyphSize = glyphMaxX - glyphMinX;
+		wavePosition = computeWavePosition(glyphMinX, thisWave, glyphSize, sizeInPixels);
+		isHorizontal = false;
+	}
+
+	uint localIntersectionIndex = 0;
+	uint rowIntersectionOffset = intersectionDataOffset + 4 * thisWave * numCurves;
+	for (uint localCurveIndex = 0; localCurveIndex < numCurves; localCurveIndex++) {
+		float curveStart, curveControl, curveEnd;
+		uint packed1;
+		if (isHorizontal) {
+			packed1 = curveData[curveOffset + 2 * localCurveIndex + 1];
+		} else {
+			packed1 = curveData[curveOffset + 2 * localCurveIndex];
+		}
+
+		curveStart = unpack(packed1) - wavePosition;
+		curveControl = unpack(packed1 >> 10) - wavePosition;
+		curveEnd = unpack(packed1 >> 20) - wavePosition;
+
+		float a = curveStart - 2 * curveControl + curveEnd;
+		float b = curveStart - curveControl;
+		float c = curveStart;
+		float t0, t1;
+		if (abs(a) > 1e-5) {
+			// Quadratic segment, solve abc formula to find roots.
+			float radicand = b * b - a * curveStart;
+			if (radicand <= 0) continue; // TODO Perhaps, I can do better when maxOrthogonalDistance > 0.0
+
+			float s = sqrt(radicand);
+			t0 = (b - s) / a;
+			t1 = (b + s) / a;
+			if (maxOrthogonalDistance == 0.0 && (t0 < 0.0 || t0 > 1.0) && (t1 < 0.0 || t1 > 1.0)) continue;
+		} else {
+			// Linear segment, avoid division by a.y, which is near zero.
+			t0 = curveStart / (curveStart - curveEnd);
+			if ((maxOrthogonalDistance > 0.0 && !isnan(t0)) || (t0 >= 0.0 && t0 <= 1.0)) t1 = t0;
+			else continue;
+		}
+
+		float oldT0 = t0;
+		float oldT1 = t1;
+		if (maxOrthogonalDistance > 0.0) {
+			t0 = clamp(t0, 0.0, 1.0);
+			t1 = clamp(t1, 0.0, 1.0);
+		}
+
+		uint packed2;
+		if (isHorizontal) {
+			packed2 = curveData[curveOffset + 2 * localCurveIndex];
+		} else {
+			packed2 = curveData[curveOffset + 2 * localCurveIndex + 1];
+		}
+
+		float curveStart2 = unpack(packed2);
+		float curveControl2 = unpack(packed2 >> 10);
+		float curveEnd2 = unpack(packed2 >> 20);
+		float a2 = curveStart2 - 2.0 * curveControl2 + curveEnd2;
+		float b2 = curveStart2 - curveControl2;
+		float c2 = curveStart2;
+
+		if (t1 >= 0.0 && t1 <= 1.0 && t1 != t0) {
+			float offset = (a2 * t1 - 2.0 * b2) * t1 + c2;
+			float orthogonalDistance = abs((a * t1 - 2.0 * b) * t1 + c);
+			if (t1 == oldT1) orthogonalDistance = -1.0;
+			if (orthogonalDistance < maxOrthogonalDistance) {
+				intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformOffset(offset);
+				intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformOrthogonal(orthogonalDistance);
+			}
+		}
+
+		if (t0 >= 0.0 && t0 <= 1.0) {
+			float offset = (a2 * t0 - 2.0 * b2) * t0 + c2;
+			float orthogonalDistance = abs((a * t0 - 2.0 * b) * t0 + c);
+			if (t0 == oldT0) orthogonalDistance = -1.0;
+			if (orthogonalDistance < maxOrthogonalDistance) {
+				intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformOffset(offset);
+				intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformOrthogonal(orthogonalDistance);
+			}
+		}
+	}
+
+	// Insertion sort
+	uint numIntersections = localIntersectionIndex / 2;
+	for (uint i = 1; i < numIntersections; i++) {
+		float old = intersectionData[rowIntersectionOffset + 2 * i];
+		float oldOrthogonal = intersectionData[rowIntersectionOffset + 2 * i + 1];
+		uint j;
+		for (j = i; j > 0 && intersectionData[rowIntersectionOffset + 2 * j - 2] > old; j--) {
+			intersectionData[rowIntersectionOffset + 2 * j] = intersectionData[rowIntersectionOffset + 2 * j - 2];
+			intersectionData[rowIntersectionOffset + 2 * j + 1] = intersectionData[rowIntersectionOffset + 2 * j - 1];
+		}
+		intersectionData[rowIntersectionOffset + 2 * j] = old;
+		intersectionData[rowIntersectionOffset + 2 * j + 1] = oldOrthogonal;
+	}
+
+	intersectionInfo[intersectionInfoOffset + 2 * thisWave] = numIntersections;
+	intersectionInfo[intersectionInfoOffset + 2 * thisWave + 1] = 2 * numCurves;
+}

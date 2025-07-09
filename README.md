@@ -2,9 +2,9 @@
 ## Rewrite of the MARDEK flash game series in Kotlin
 
 ### Development environment
-#### OpenJDK
-First of all, install OpenJDK 21.
-Later versions will probably work as well, earlier versions may or may not.
+#### OpenJDK 21+
+First of all, install OpenJDK **21**.
+Later versions will probably work as well, earlier versions probably not.
 After installing OpenJDK, you **should** be able to run the game by running
 ```
 ./gradlew run
@@ -70,45 +70,26 @@ You should install `libomp-dev`, for instance by running
 sudo apt install libomp-dev
 ```
 
-### Video settings
-Currently, there is no nice video settings UI, but there are
-some things you can tweak.
-
-#### Graphics card
-By default, the game will prefer a discrete graphics card over
-an integrated graphics card, and it will prefer an integrated
-graphics card over a CPU implementation.
-
-You can use the `integrated` program argument to let the game
-prefer an integrated graphics card (this argument is only
-useful if you have both a discrete and integrated graphics card),
-and you can use the `cpu` program argument to let the game prefer
-a CPU implementation (this only works when you actually install
-such an implementation like llvmpipe or swiftshader).
-
-#### FPS cap
-By default, the FPS is capped to the refresh rate of your monitor
-(because more FPS is useless in a game like MARDEK, and just
-wastes power). You can uncap the FPS by opening `GameWindow.kt`
-and replacing `VK_PRESENT_MODE_FIFO_KHR` with
-`VK_PRESENT_MODE_MAILBOX_KHR`.
-
 ### Project structure
 This project consists of several modules:
-- `audio` contains the audio player code (OpenAL) and the music.
-- `content` contains classes to model all the game content
-  (e.g. items, areas, monsters).
-- `game` contains the code that launches the game and is
-  basically the glue that connects all the other modules.
-- `importer` contains the code to import the Flash content.
-- `input` models the game controls, which will be written by
-  `game` and read by `renderer` and `state`.
-- `renderer` ensures that the state of the game is shown on
-  your screen. It uses the Vulkan graphics API for rendering.
-- `state` models and tracks the state of the game (both in
+- [audio](audio/README.md) contains the audio player code (OpenAL)
+  and the music.
+- [content](content/README.md) contains the classes to model all
+  the game content (e.g. items, areas, monsters).
+- [game](game/README.md) contains the code that launches the game
+  and glues all other modules.
+- [importer](importer/README.md) contains the code to parse the Flash
+  MARDEK and convert it to a 'nicer' format used by the rest of this
+  engine/project.
+- [input](input/README.md) models the keyboard/mouse events, which will
+  be read by `state` and supplied by `game`.
+- [renderer](renderer/README.md) ensures that the state of the game is 
+  shown on your screen. It uses the Vulkan graphics API for rendering.
+- [state](state/README.md) models and tracks the state of the game (both in
   the title screen and when actually in-game)
-- `ui-renderer` is a mini library for rendering UI with
-  Vulkan, and is used by `renderer`
+- [vk2d](vk2d/README.md) is a 2d rendering library that I wrote for
+  MARDEK, and is used by `renderer`. I intend to eventually move it to
+  its own GitHub repository once it matures.
 
 ### Creating releases
 To create releases that can be given to players/testers
@@ -118,8 +99,8 @@ a GitHub Actions workflow that will generate:
 - an exe file for Windows x64
 - an executable for Linux x64
 - a (totally untested) executable for Linux arm64
-- a (totally untested) executable for MacOS x64
-- a (totally untested) executable for MacOS arm64
+- a (totally untested) executable for macOS x64
+- a (totally untested) executable for macOS arm64
 - a jar file for any OS/architecture supported by LWJGL,
   but requires OpenJDK 21+ to run
 

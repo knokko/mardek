@@ -7,7 +7,6 @@ import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.renderer.SharedResources
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import java.lang.Thread.sleep
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -39,9 +37,6 @@ object TestBasicAttacks {
 			mardekState.equipment[5] = mardekState.equipment[4]
 
 			startSimpleBattle(campaign)
-
-			val getResources = CompletableFuture<SharedResources>()
-			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
@@ -83,7 +78,7 @@ object TestBasicAttacks {
 
 			sleep(1000)
 			testRendering(
-				getResources, state, 800, 450, "basic-attack1",
+				state, 800, 450, "basic-attack1",
 				playerColors + monsterColor, emptyArray()
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.MoveTo).finished)
@@ -99,7 +94,7 @@ object TestBasicAttacks {
 
 			sleep(1000)
 			testRendering(
-				getResources, state, 800, 450, "basic-attack2",
+				state, 800, 450, "basic-attack2",
 				playerColors + monsterColor, emptyArray()
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).canDealDamage)
@@ -116,7 +111,7 @@ object TestBasicAttacks {
 
 			sleep(1000)
 			testRendering(
-				getResources, state, 800, 450, "basic-attack3",
+				state, 800, 450, "basic-attack3",
 				playerColors, monsterColor
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.JumpBack).finished)
@@ -126,8 +121,6 @@ object TestBasicAttacks {
 			sleep(1000)
 			campaign.update(context(1.seconds))
 			assertInstanceOf<BattleStateMachine.Victory>(battle.state)
-
-			getResources.get().destroy()
 		}
 	}
 }

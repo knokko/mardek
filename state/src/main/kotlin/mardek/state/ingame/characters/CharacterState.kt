@@ -13,6 +13,7 @@ import mardek.content.skill.PassiveSkill
 import mardek.content.skill.Skill
 import mardek.content.inventory.ItemStack
 import mardek.content.skill.ActiveSkill
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 @BitStruct(backwardCompatible = true)
@@ -182,11 +183,11 @@ class CharacterState {
 
 		fun determineMaxHealth(
 			level: Int, vitality: Int, modifier: Float, extra: Int
-		) = ((1f + modifier) * (3 * vitality + 2 * vitality * level + extra)).roundToInt()
+		) = max(1, ((1f + modifier) * (3 * vitality + 2 * vitality * level + extra)).roundToInt())
 
 		fun determineMaxMana(
 			level: Int, spirit: Int, modifier: Float, extra: Int
-		) = ((1f + modifier) * (spirit * 17 / 6 + spirit * level / 6 + extra)).roundToInt()
+		) = max(0, ((1f + modifier) * (spirit * 17 / 6 + spirit * level / 6 + extra)).roundToInt())
 	}
 
 	class WalkDamage(val color: Int) {

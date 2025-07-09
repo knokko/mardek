@@ -4,7 +4,7 @@ import mardek.content.Content
 import mardek.content.area.*
 import mardek.content.sprite.ArrowSprite
 import mardek.content.sprite.DirectionalSprites
-import mardek.importer.util.compressKimSprite1
+import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.resourcesFolder
 import java.io.File
 import java.util.*
@@ -42,7 +42,7 @@ fun importAreaContent(content: Content) {
 		val numSprites = sheetImage.width / 16
 
 		val sheet = DirectionalSprites(name.substring(0, name.length - 4), (0 until numSprites).map {
-			compressKimSprite1(sheetImage.getSubimage(it * 16, 0, 16, sheetImage.height))
+			compressKimSprite3(sheetImage.getSubimage(it * 16, 0, 16, sheetImage.height))
 		}.toTypedArray())
 		content.areas.characterSprites.add(sheet)
 	}
@@ -58,7 +58,7 @@ fun importAreaContent(content: Content) {
 
 	for (parsed in parsedTilesheets) {
 		val tilesheet = Tilesheet(parsed.name)
-		tilesheet.waterSprites.addAll(parsed.waterSprites.map(::compressKimSprite1))
+		tilesheet.waterSprites.addAll(parsed.waterSprites.map(::compressKimSprite3))
 		content.areas.tilesheets.add(tilesheet)
 
 		val usedTiles = HashSet<Int>()
@@ -71,7 +71,7 @@ fun importAreaContent(content: Content) {
 		for (tileID in usedTiles) {
 			val parsedTile = parsed.tiles[tileID]!!
 			val tile = Tile(
-					sprites = ArrayList(parsedTile.sprites.map(::compressKimSprite1)),
+					sprites = ArrayList(parsedTile.sprites.map(::compressKimSprite3)),
 					canWalkOn = parsedTile.canWalkOn,
 					waterType = parsedTile.waterType
 			)

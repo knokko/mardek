@@ -7,7 +7,6 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StringField
 import mardek.content.particle.ParticleEffect
 import mardek.content.sprite.BcSprite
-import mardek.content.sprite.KimSprite
 
 @BitStruct(backwardCompatible = true)
 class Element(
@@ -29,10 +28,10 @@ class Element(
 	val color: Int,
 
 	@BitField(id = 5)
-	val sprite: KimSprite,
+	val thickSprite: BcSprite,
 
 	@BitField(id = 6)
-	val bcSprite: BcSprite,
+	val thinSprite: BcSprite,
 
 	@BitField(id = 7, optional = true)
 	val swingEffect: BcSprite?,
@@ -46,8 +45,8 @@ class Element(
 ) {
 
 	constructor() : this(
-		"", null, "", "", 0,
-		KimSprite(), BcSprite(), BcSprite(), null, null
+		"", null, "", "", 0, BcSprite(),
+		BcSprite(), BcSprite(), null, null
 	)
 
 	@BitField(id = 10, optional = true)

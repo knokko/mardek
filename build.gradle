@@ -30,9 +30,9 @@ allprojects {
 
 	project.ext.jomlVersion = "1.10.8"
 	project.ext.lwjglVersion = "3.4.0-SNAPSHOT"
-	project.ext.boilerVersion = "56d7899030"
+	project.ext.boilerVersion = "v5.0.0-pre7"
 	project.ext.textRenderVersion = "7eb6332d92"
-	project.ext.compressorVersion = "6ce1f6fd4f"
+	project.ext.compressorVersion = "v0.6.0-pre4"
 	project.ext.bitserVersion = "v0.2.0"
 	project.ext.lwjglNatives = [
 			"natives-linux", "natives-linux-arm32", "natives-linux-arm64",
@@ -50,16 +50,12 @@ allprojects {
 
 	project.ext.vulkanImplementationDependencies = [
 			"com.github.knokko:vk-boiler:$boilerVersion",
-			"com.github.knokko.text-renderer:core:$textRenderVersion",
-			"com.github.knokko.text-renderer:unicode-fonts:$textRenderVersion",
-			"com.github.knokko.text-renderer:vulkan:$textRenderVersion",
 			"org.joml:joml:$jomlVersion",
 			"org.lwjgl:lwjgl",
-			"org.lwjgl:lwjgl-vma",
 			"org.lwjgl:lwjgl-vulkan",
 	]
 	project.ext.vulkanRuntimeDependencies = project.ext.lwjglNatives.collectMany {
-		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-vma::$it", "org.lwjgl:lwjgl-freetype::$it"]
+		def result = ["org.lwjgl:lwjgl::$it", ]
 		if (it.startsWith("natives-macos")) result.add("org.lwjgl:lwjgl-vulkan::$it")
 		result
 	}

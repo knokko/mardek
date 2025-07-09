@@ -1,44 +1,29 @@
 package mardek.renderer.battle
 
-import mardek.renderer.batch.KimBatch
-import mardek.renderer.batch.KimRequest
+import com.github.knokko.vk2d.batch.Vk2dKimBatch
 import mardek.state.ingame.battle.BattleStateMachine
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-class ThrownItemRenderer(private val context: BattleRenderContext) {
+internal fun renderThrownItems(battleContext: BattleRenderContext, kimBatch: Vk2dKimBatch) {
+	battleContext.run {
+		val stateMachine = battle.state
+		if (stateMachine !is BattleStateMachine.UseItem) return
 
-	private val state = context.battle.state
-	private lateinit var batch: KimBatch
-
-	fun beforeRendering() {
-		if (state !is BattleStateMachine.UseItem) return
-
-		val passedTime = System.nanoTime() - state.startTime
+		val passedTime = renderTime - stateMachine.startTime
 		val rotationPeriod = 1000_000_000L
-		val relativeTime = (passedTime % rotationPeriod).toFloat() / rotationPeriod.toFloat()
+		val relativeTime = passedTime.toFloat() / rotationPeriod.toFloat()
 
-		val itemX = relativeTime * state.target.lastRenderedPosition.first +
-				(1f - relativeTime) * state.thrower.lastRenderedPosition.first
-		var itemY = relativeTime * state.target.lastRenderedPosition.second +
-				(1f - relativeTime) * state.thrower.lastRenderedPosition.second
+		val itemX = relativeTime * stateMachine.target.renderInfo.core.x +
+				(1f - relativeTime) * stateMachine.thrower.renderInfo.core.x
+		var itemY = relativeTime * stateMachine.target.renderInfo.core.y +
+				(1f - relativeTime) * stateMachine.thrower.renderInfo.core.y
 
 		val throwHeight = 1f - 4f * (relativeTime - 0.5f).pow(2)
-		itemY -= 0.25f * throwHeight
+		itemY -= 0.2f * kimBatch.height * throwHeight
 
-		batch = context.resources.kim1Renderer.startBatch()
-		val sprite = state.item.sprite
-		val scale = context.viewportHeight / 200f
-		batch.requests.add(KimRequest(
-			TransformedCoordinates.intX(itemX, context.viewportWidth) - (0.5f * scale * sprite.width).roundToInt(),
-			TransformedCoordinates.intY(itemY, context.viewportHeight) - (0.5f * scale * sprite.height).roundToInt(),
-			scale, sprite, rotation = 360f * relativeTime,
-		))
-	}
-
-	fun render() {
-		if (this::batch.isInitialized) {
-			context.resources.kim1Renderer.submit(batch, context)
-		}
+		val sprite = stateMachine.item.sprite
+		val scale = kimBatch.height / 200f
+		kimBatch.rotated(itemX, itemY, 360f * relativeTime, scale, sprite.index)
 	}
 }

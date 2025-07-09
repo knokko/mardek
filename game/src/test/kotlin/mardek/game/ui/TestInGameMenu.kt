@@ -8,7 +8,7 @@ import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.renderer.SharedResources
+import mardek.state.GameStateManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
@@ -23,43 +23,37 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestInGameMenu {
 
 	fun testOpeningAndScrolling(instance: TestingInstance) {
 		instance.apply {
-			val getResources = CompletableFuture<SharedResources>()
-			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
-
 			val campaign = simpleCampaignState()
 
 			val state = InGameState(campaign)
 			val input = InputManager()
+			val stateManager = GameStateManager(input, state)
 			val soundQueue = SoundQueue()
 			val context = GameStateUpdateContext(content, input, soundQueue, 10.milliseconds)
 			val sounds = content.audio.fixedEffects.ui
 
 			val areaColors = arrayOf(
-				Color(77, 66, 93), // Light floor color
-				Color(59, 53, 66), // Dark floor color
+				Color(78, 68, 94), // Light floor color
 			)
 			val partyColors = arrayOf(
 				Color(217, 214, 214), // Mardek armor
-				Color(69, 117, 28), // Deugan robe
+				Color(70, 117, 33), // Deugan robe
 			)
 			val partyTabColors = arrayOf(
 				Color(238, 203, 127), // Area name color
-				Color(22, 13, 13), // Dark bar color
 				Color(132, 81, 38), // Party text color
 			)
 			val skillsTabColors = arrayOf(
 				Color(255, 230, 145), // Powers icon
 				Color(232, 192, 104), // Star icon
-				Color(102, 239, 142), // Passive icon
+				Color(100, 249, 150), // Passive icon
 				Color(255, 255, 255), // Smite Evil element icon
-				Color(253, 95, 95), // Mastery text icon
 				Color(34, 247, 255), // Mana text icon
 				Color(165, 205, 254), // Party highlight color
 			)
@@ -73,7 +67,7 @@ object TestInGameMenu {
 				Color(153, 0, 0), // Numbness color
 			)
 			testRendering(
-				getResources, state, 800, 450, "in-game-menu-before-open",
+				stateManager, 800, 450, "in-game-menu-before-open",
 				areaColors + partyColors, partyTabColors
 			)
 
@@ -90,7 +84,7 @@ object TestInGameMenu {
 			assertNull(soundQueue.take())
 
 			testRendering(
-				getResources, state, 800, 450, "in-game-menu-party-tab",
+				stateManager, 800, 450, "in-game-menu-party-tab",
 				partyTabColors, partyColors + areaColors
 			)
 
@@ -102,7 +96,7 @@ object TestInGameMenu {
 			assertNull(soundQueue.take())
 
 			testRendering(
-				getResources, state, 800, 450, "in-game-menu-skills-tab",
+				stateManager, 800, 450, "in-game-menu-skills-tab",
 				skillsTabColors + partyColors, areaColors
 			)
 
@@ -122,7 +116,7 @@ object TestInGameMenu {
 
 			val mugwortJuiceColor = arrayOf(Color(101, 141, 0))
 			testRendering(
-				getResources, state, 1200, 675, "in-game-menu-inventory-tab",
+				stateManager, 1200, 675, "in-game-menu-inventory-tab",
 				inventoryTabColors + partyColors, areaColors + mugwortJuiceColor
 			)
 
@@ -138,7 +132,7 @@ object TestInGameMenu {
 				Color(81, 54, 35), // Unwalkable color
 			)
 			testRendering(
-				getResources, state, 900, 450, "in-game-menu-map-tab",
+				stateManager, 900, 450, "in-game-menu-map-tab",
 				mapColors, areaColors + partyColors
 			)
 
@@ -150,7 +144,7 @@ object TestInGameMenu {
 			assertNull(soundQueue.take())
 
 			testRendering(
-				getResources, state, 800, 450, "in-game-menu-before-open",
+				stateManager, 800, 450, "in-game-menu-before-open",
 				areaColors + partyColors, partyTabColors
 			)
 
@@ -162,19 +156,14 @@ object TestInGameMenu {
 			assertNull(soundQueue.take())
 
 			testRendering(
-				getResources, state, 900, 450, "in-game-menu-map-tab",
+				stateManager, 900, 450, "in-game-menu-map-tab",
 				mapColors, areaColors + partyColors
 			)
-
-			getResources.get().destroy()
 		}
 	}
 
 	fun testSkills(instance: TestingInstance) {
 		instance.apply {
-			val getResources = CompletableFuture<SharedResources>()
-			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
-
 			val campaign = simpleCampaignState()
 			val deugan = campaign.characterStates[heroDeugan]!!
 			val snakeBite = content.skills.reactionSkills.find { it.name == "Snakebite" }!!
@@ -183,19 +172,20 @@ object TestInGameMenu {
 
 			val state = InGameState(campaign)
 			val input = InputManager()
+			val stateManager = GameStateManager(input, state)
 			val soundQueue = SoundQueue()
 			val context = GameStateUpdateContext(content, input, soundQueue, 10.milliseconds)
 			val sounds = content.audio.fixedEffects.ui
 
 			val baseColors = arrayOf(
 				Color(217, 214, 214), // Mardek armor
-				Color(69, 117, 28), // Deugan robe
+				Color(70, 117, 33), // Deugan robe
 				Color(165, 205, 254), // Selection border color
 				Color(255, 230, 145), // Powers icon
 				Color(232, 192, 104), // Star icon
 				Color(208, 192, 142), // Melee reactions icon
 				Color(99, 249, 249), // Magic reactions icon
-				Color(102, 239, 142), // Passive icon
+				Color(100, 249, 150), // Passive icon
 				Color(50, 38, 28), // Ability bar icon,
 				Color(238, 203, 127), // Text color
 			)
@@ -217,27 +207,30 @@ object TestInGameMenu {
 			assertSame(sounds.scroll, soundQueue.take())
 			assertNull(soundQueue.take())
 
+			input.postEvent(pressKeyEvent(InputKey.Interact))
+			input.postEvent(releaseKeyEvent(InputKey.Interact))
+			state.update(context)
+			assertTrue(state.menu.currentTab.inside)
+			assertSame(sounds.clickConfirm, soundQueue.take())
+			assertNull(soundQueue.take())
+
 			val actionColors = arrayOf(
-				Color(254, 254, 194), // Air element icon
-				Color(14, 243, 8), // Earth element icon
-				Color(11, 195, 243), // Water element icon
+				Color(219, 218, 177), // Slightly translucent air element icon
+				Color(25, 219, 8), // Slightly translucent earth element icon
 				Color(34, 247, 255), // Mana text color
-				Color(255, 147, 22), // Mastery text icon
+				Color(229, 228, 136), // Mastery text border color
 			)
 			val reactionColors = arrayOf(
-				Color(159, 28, 22), // Mastery bar color
-				Color(22, 13, 0), // Not toggled color
-				Color(0, 255, 101), // Toggled color
+				Color(159, 39, 30), // Mastery bar color
+				Color(26, 219, 87), // Toggled color
 			)
-			val rpColor = arrayOf(Color(22, 241, 71))
+			val rpColor = arrayOf(Color(15, 145, 32))
 
 			testRendering(
-				getResources, state, 1600, 900, "skills-deugan-active",
+				stateManager, 1600, 900, "skills-deugan-active",
 				baseColors + actionColors, reactionColors + rpColor
 			)
 
-			input.postEvent(pressKeyEvent(InputKey.Interact))
-			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			state.update(context)
@@ -251,7 +244,7 @@ object TestInGameMenu {
 			assertEquals(1, (state.menu.currentTab as SkillsTab).skillTypeIndex)
 			assertEquals(1, (state.menu.currentTab as SkillsTab).skillIndex)
 			testRendering(
-				getResources, state, 1600, 900, "skills-deugan-reactions",
+				stateManager, 1600, 900, "skills-deugan-reactions",
 				baseColors + reactionColors + rpColor, actionColors
 			)
 
@@ -264,7 +257,7 @@ object TestInGameMenu {
 			assertEquals(5, (state.menu.currentTab as SkillsTab).skillTypeIndex)
 			assertEquals(0, (state.menu.currentTab as SkillsTab).skillIndex)
 			testRendering(
-				getResources, state, 1600, 900, "skills-deugan-passives",
+				stateManager, 1600, 900, "skills-deugan-passives",
 				baseColors + rpColor, actionColors + reactionColors
 			)
 
@@ -277,8 +270,6 @@ object TestInGameMenu {
 			input.postEvent(repeatKeyEvent(InputKey.Cancel))
 			state.update(context)
 			assertFalse(state.menu.shown)
-
-			getResources.join().destroy()
 		}
 	}
 }

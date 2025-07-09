@@ -5,7 +5,6 @@ import mardek.game.pressKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.renderer.SharedResources
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
@@ -14,16 +13,12 @@ import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.awt.Color
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestStatusEffects {
 
 	fun testBattleRendering(instance: TestingInstance) {
 		instance.apply {
-			val getResources = CompletableFuture<SharedResources>()
-			getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
-
 			val campaign = simpleCampaignState()
 			val state = InGameState(campaign)
 			val mardekState = campaign.characterStates[heroMardek]!!
@@ -42,11 +37,9 @@ object TestStatusEffects {
 				Color(255, 255, 0), // Paralysis color
 			)
 			testRendering(
-				getResources, state, 800, 600, "battle-status-effects",
+				state, 800, 600, "battle-status-effects",
 				effectColors, emptyArray()
 			)
-
-			getResources.join().destroy()
 		}
 	}
 

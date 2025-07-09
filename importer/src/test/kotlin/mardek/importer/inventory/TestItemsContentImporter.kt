@@ -1,7 +1,7 @@
 package mardek.importer.inventory
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
-import com.github.knokko.compressor.Kim1Decompressor
+import com.github.knokko.vk2d.Kim3Decompressor
 import mardek.content.Content
 import mardek.content.inventory.EquipmentProperties
 import mardek.content.inventory.EquipmentSlotType
@@ -18,8 +18,31 @@ import org.junit.jupiter.api.TestInstance
 import org.lwjgl.system.MemoryUtil.memCalloc
 import org.lwjgl.system.MemoryUtil.memFree
 import java.awt.Color
+import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import javax.imageio.ImageIO
+import kotlin.math.abs
+
+internal fun assertDecompressedKim3Equals(compressedSprite: ByteBuffer, expectedImage: BufferedImage) {
+	val decompressor = Kim3Decompressor(compressedSprite)
+	assertEquals(expectedImage.width, decompressor.width)
+	assertEquals(expectedImage.height, decompressor.height)
+
+	fun assertAlmostEquals(expected: Int, actual: Int) {
+		assertTrue(abs(expected - actual) <= 4, "Expected $expected to be $actual")
+	}
+
+	for (ox in 0 until expectedImage.width) {
+		for (oy in 0 until expectedImage.height) {
+			val expected = Color(expectedImage.getRGB(ox, oy), true)
+			val actual = decompressor.getColor(ox, oy)
+			assertAlmostEquals(expected.red, unsigned(red(actual)))
+			assertAlmostEquals(expected.green, unsigned(green(actual)))
+			assertAlmostEquals(expected.blue, unsigned(blue(actual)))
+			assertAlmostEquals(expected.alpha, unsigned(alpha(actual)))
+		}
+	}
+}
 
 internal fun assertSpriteEquals(sheetName: String, x: Int, y: Int, compressedSprite: ByteBuffer) {
 	val sheetInput = TestItemsContentImporter::class.java.getResourceAsStream("itemsheet_$sheetName.png")!!
@@ -27,22 +50,7 @@ internal fun assertSpriteEquals(sheetName: String, x: Int, y: Int, compressedSpr
 	sheetInput.close()
 
 	val expectedImage = sheet.getSubimage(x, y, 16, 16)
-
-	val decompressor = Kim1Decompressor(compressedSprite)
-	assertEquals(16, decompressor.width)
-	assertEquals(16, decompressor.height)
-
-	for (ox in 0 until 16) {
-		for (oy in 0 until 16) {
-			val expected = Color(expectedImage.getRGB(ox, oy), true)
-			val actual = decompressor.getColor(ox, oy)
-			assertEquals(expected.red, unsigned(red(actual)))
-			assertEquals(expected.green, unsigned(green(actual)))
-			assertEquals(expected.blue, unsigned(blue(actual)))
-			assertEquals(expected.alpha, unsigned(alpha(actual)))
-		}
-	}
-
+	assertDecompressedKim3Equals(compressedSprite, expectedImage)
 	memFree(compressedSprite)
 }
 

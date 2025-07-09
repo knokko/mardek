@@ -7,7 +7,6 @@ import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
-import mardek.renderer.SharedResources
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
@@ -15,13 +14,10 @@ import mardek.state.ingame.battle.*
 import org.junit.jupiter.api.Assertions.*
 import java.awt.Color
 import java.lang.Thread.sleep
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 
 fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 	instance.apply {
-		val getResources = CompletableFuture<SharedResources>()
-		getResources.complete(SharedResources(getBoiler, 1, skipWindow = true))
 		val campaign = simpleCampaignState()
 		val mardekState = campaign.characterStates[heroMardek]!!
 		val deuganState = campaign.characterStates[heroDeugan]!!
@@ -39,7 +35,6 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		)
 
 		val barColors = arrayOf(
-			Color(14, 243, 8), // earth element color
 			Color(58, 108, 25), // full health bar color
 			Color(127, 231, 56), // full health bar text color
 			Color(131, 94, 32), // half health bar color
@@ -66,18 +61,19 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		)
 
 		val turnOrderColors = arrayOf(
-			Color(158, 128, 83), // one of the turn order monster icon colors
+			Color(133, 96, 53), // one of the turn order monster icon colors
 		)
 
 		val pointerColors = arrayOf(
-			Color(50, 153, 203),
+			Color(51, 153, 204),
 			Color(0, 50, 153),
 			Color(50, 50, 203),
 		)
 
 		val targetingColors = arrayOf(
-			Color(178, 129, 81),
-			Color(175, 59, 0),
+			Color(180, 154, 110),
+			Color(175, 61, 1),
+			Color(126, 1, 1),
 		)
 
 		val elixirColors = arrayOf(
@@ -87,8 +83,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		)
 
 		val powersColors = arrayOf(
-			Color(254, 254, 194),
-			Color(11, 195, 243),
+			Color(157, 195, 243),
 		)
 
 		fun assertSelectedMove(expected: BattleMoveSelection) {
@@ -111,8 +106,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-attack0",
-			shallowColors, targetingColors + powersColors
+			state, 800, 600, "battle-select-attack0",
+			shallowColors, powersColors
 		)
 
 		// 'Scroll' to skill selection
@@ -123,8 +118,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-skill0",
-			shallowColors, targetingColors
+			state, 800, 600, "battle-select-skill0",
+			shallowColors, emptyArray()
 		)
 
 		// 'Scroll' to item selection
@@ -135,8 +130,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-item0",
-			shallowColors, targetingColors
+			state, 800, 600, "battle-select-item0",
+			shallowColors, emptyArray()
 		)
 
 		// 'Scroll' to wait
@@ -147,8 +142,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-wait",
-			shallowColors, targetingColors
+			state, 800, 600, "battle-select-wait",
+			shallowColors, emptyArray()
 		)
 
 		// 'Scroll' to flee
@@ -159,8 +154,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-flee",
-			shallowColors, targetingColors
+			state, 800, 600, "battle-select-flee",
+			shallowColors, emptyArray()
 		)
 
 		// 'Scroll' to attack
@@ -180,9 +175,9 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-attack1",
+			state, 800, 600, "battle-select-attack1",
 			backgroundColors + pointerColors + mardekColors + deuganColors + targetingColors,
-			turnOrderColors
+			emptyArray(),
 		)
 
 		// 'Scrolling' left has no effect since basic attacks are single-target
@@ -201,9 +196,9 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-attack2",
+			state, 800, 600, "battle-select-attack2",
 			backgroundColors + pointerColors + mardekColors + targetingColors,
-			turnOrderColors
+			emptyArray(),
 		)
 
 		// 'Scrolling' right again has no effect since basic attacks are single-target
@@ -232,8 +227,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-item1",
-			backgroundColors + pointerColors + mardekColors + elixirColors, turnOrderColors
+			state, 800, 600, "battle-select-item1",
+			backgroundColors + pointerColors + mardekColors + elixirColors, emptyArray()
 		)
 
 		// Choose elixir and 'dive into' target selection
@@ -252,8 +247,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-item2",
-			backgroundColors + pointerColors + mardekColors, turnOrderColors + elixirColors
+			state, 800, 600, "battle-select-item2",
+			backgroundColors + pointerColors + mardekColors, emptyArray()
 		)
 
 		// Scrolling up should cause Mardek to become the target
@@ -265,8 +260,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-item3",
-			backgroundColors + pointerColors, turnOrderColors + elixirColors
+			state, 800, 600, "battle-select-item3",
+			backgroundColors + pointerColors, emptyArray(),
 		)
 
 		// Scrolling left twice should only work once since elixirs are single-target
@@ -295,9 +290,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-skill1",
-			backgroundColors + pointerColors + powersColors,
-			turnOrderColors + elixirColors
+			state, 800, 600, "battle-select-skill1",
+			backgroundColors + pointerColors + powersColors, emptyArray()
 		)
 
 		// Scroll to frostasia
@@ -311,9 +305,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-skill2",
-			backgroundColors + pointerColors + powersColors,
-			turnOrderColors + elixirColors
+			state, 800, 600, "battle-select-skill2",
+			backgroundColors + pointerColors + powersColors, emptyArray(),
 		)
 
 		// Let 'blue targeting blink' wear off
@@ -330,9 +323,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-skill3",
-			backgroundColors + pointerColors + mardekColors + deuganColors + arrayOf(powersColors[1]),
-			turnOrderColors + elixirColors + arrayOf(powersColors[0])
+			state, 800, 600, "battle-select-skill3",
+			backgroundColors + pointerColors + mardekColors + deuganColors, emptyArray()
 		)
 
 		// Scrolling left has no effect since there is only 1 enemy
@@ -355,9 +347,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-skill4",
-			backgroundColors + pointerColors + mardekColors + arrayOf(powersColors[1]),
-			turnOrderColors + elixirColors + arrayOf(powersColors[0])
+			state, 800, 600, "battle-select-skill4",
+			backgroundColors + pointerColors + mardekColors, emptyArray()
 		)
 
 		// Scroll right again to target both Mardek and Deugan
@@ -369,9 +360,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 
 		testRendering(
-			getResources, state, 800, 600, "battle-select-skill5",
-			backgroundColors + pointerColors + arrayOf(powersColors[1]),
-			turnOrderColors + elixirColors + arrayOf(powersColors[0])
+			state, 800, 600, "battle-select-skill5",
+			backgroundColors + pointerColors, emptyArray()
 		)
 
 		// Targeting multiple allies costs too much mana
@@ -395,7 +385,5 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertSame(sounds.ui.scroll, soundQueue.take())
 		assertSame(sounds.ui.clickConfirm, soundQueue.take())
 		assertNull(soundQueue.take())
-
-		getResources.get().destroy()
 	}
 }

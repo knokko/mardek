@@ -3,7 +3,7 @@ dependencies {
 	for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
 	implementation project(":content")
 	implementation project(":state")
-	implementation project(":ui-renderer")
+	implementation project(":vk2d")
 
 	for (format in ["kim1", "kim2"]) testImplementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
 }

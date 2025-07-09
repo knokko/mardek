@@ -1,13 +1,13 @@
 package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
-import com.github.knokko.compressor.Kim1Decompressor
 import mardek.content.Content
 import mardek.content.area.AreaContent
 import mardek.content.area.objects.AreaObject
 import mardek.content.sprite.KimSprite
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
+import mardek.importer.inventory.assertDecompressedKim3Equals
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
 import mardek.importer.stats.importStatsContent
@@ -15,7 +15,6 @@ import mardek.importer.skills.importSkillsContent
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import java.awt.Color
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files
@@ -35,22 +34,8 @@ class TestSpritesAndAreas {
 
 		val actualBuffer = ByteBuffer.allocate(4 * actual.data!!.size)
 		actualBuffer.asIntBuffer().put(actual.data)
-
-		val sampler = Kim1Decompressor(actualBuffer)
-		assertEquals(expectedWidth, sampler.width)
-		assertEquals(expectedHeight, sampler.height)
-
 		val expectedImage = fullImage.getSubimage(expectedX, expectedY, expectedWidth, expectedHeight)
-		for (y in 0 until expectedHeight) {
-			for (x in 0 until expectedWidth) {
-				val expectedColor = Color(expectedImage.getRGB(x, y), true)
-				val actualColor = sampler.getColor(x, y)
-				assertEquals(expectedColor.red, unsigned(red(actualColor)))
-				assertEquals(expectedColor.green, unsigned(green(actualColor)))
-				assertEquals(expectedColor.blue, unsigned(blue(actualColor)))
-				assertEquals(expectedColor.alpha, unsigned(alpha(actualColor)))
-			}
-		}
+		assertDecompressedKim3Equals(actualBuffer, expectedImage)
 	}
 
 	@Suppress("unused")

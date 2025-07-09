@@ -13,6 +13,7 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.StatsContent
 import mardek.content.inventory.ItemsContent
 import mardek.content.skill.SkillsContent
+import mardek.content.ui.Fonts
 import mardek.content.ui.UiSprites
 import java.io.BufferedInputStream
 
@@ -44,6 +45,9 @@ class Content {
 	lateinit var ui: UiSprites
 
 	@BitField(id = 8)
+	lateinit var fonts: Fonts
+
+	@BitField(id = 9)
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	val checkpoints = HashMap<String, ByteArray>()
 

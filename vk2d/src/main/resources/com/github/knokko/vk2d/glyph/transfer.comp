@@ -1,0 +1,67 @@
+#version 450
+
+layout(set = 0, binding = 0) readonly buffer IntersectionInput {
+	float intersectionInput[];
+};
+layout(set = 0, binding = 1) readonly buffer InfoInput {
+	uint infoInput[];
+};
+layout(set = 0, binding = 2) writeonly buffer IntersectionOutput {
+	float intersectionOutput[];
+};
+layout(set = 0, binding = 3) writeonly buffer InfoOutput {
+	uint infoOutput[];
+};
+layout(set = 0, binding = 4) buffer NextInfo {
+	uint nextOutputIntersectionOffset;
+};
+layout(set = 0, binding = 5) buffer IntersectionIndexOutput {
+	uint intersectionIndexOutput[];
+};
+
+layout(push_constant) uniform PushConstants {
+	uint outputInfoOffset;
+	uint numRows;
+	uint frameIndex;
+	uint outputIntersectionSize;
+};
+
+void main() {
+	uint outputIntersectionIndex = nextOutputIntersectionOffset;
+	uint inputIntersectionIndex = 0;
+	uint inputInfoIndex = 0;
+	uint outputInfoIndex = outputInfoOffset;
+
+	for (uint row = 0; row < numRows; row++) {
+		uint numIntersections = infoInput[inputInfoIndex++];
+		uint maxIntersections = infoInput[inputInfoIndex++];
+		numIntersections = min(numIntersections, (outputIntersectionSize - outputIntersectionIndex) / 2);
+		infoOutput[outputInfoIndex++] = outputIntersectionIndex;
+		uint actualIntersections = 0;
+		uint almostIntersections = 0;
+		for (uint intersection = 0; intersection < numIntersections; intersection++) {
+			float intersectionDistance = intersectionInput[inputIntersectionIndex + 2 * intersection];
+			float orthogonalDistance = intersectionInput[inputIntersectionIndex + 2 * intersection + 1];
+			if (orthogonalDistance == -1.0) {
+				intersectionOutput[outputIntersectionIndex++] = intersectionDistance;
+				actualIntersections += 1;
+			}
+		}
+		for (uint intersection = 0; intersection < numIntersections; intersection++) {
+			float intersectionDistance = intersectionInput[inputIntersectionIndex + 2 * intersection];
+			float orthogonalDistance = intersectionInput[inputIntersectionIndex + 2 * intersection + 1];
+			if (orthogonalDistance >= 0.0) {
+				intersectionOutput[outputIntersectionIndex++] = intersectionDistance;
+				intersectionOutput[outputIntersectionIndex++] = orthogonalDistance;
+				almostIntersections += 1;
+			}
+		}
+
+		infoOutput[outputInfoIndex++] = actualIntersections;
+		infoOutput[outputInfoIndex++] = almostIntersections;
+		inputIntersectionIndex += 2 * maxIntersections;
+	}
+
+	nextOutputIntersectionOffset = outputIntersectionIndex;
+	intersectionIndexOutput[frameIndex] = outputIntersectionIndex;
+}
