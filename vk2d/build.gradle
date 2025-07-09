@@ -1,0 +1,7 @@
+dependencies {
+	implementation "org.lwjgl:lwjgl-sdl"
+	implementation "org.lwjgl:lwjgl-freetype"
+	for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+	for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
+	for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-sdl::$natives"
+}
