@@ -1,18 +1,17 @@
 package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.BoilerInstance;
+import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
-import com.github.knokko.vk2d.Vk2dBatch;
+import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.VkPushConstantRange;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 
-import java.nio.ByteBuffer;
-
-import static com.github.knokko.boiler.utilities.ColorPacker.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Vk2dColorPipeline extends Vk2dPipeline {
+public class Vk2dColorPipeline extends Vk2dPipeline<Vk2dColorBatch> {
 
 	public static final int VERTEX_SIZE = 24;
 
@@ -23,8 +22,11 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 		super(VERTEX_SIZE);
 
 		try (MemoryStack stack = stackPush()) {
+			VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
+			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8);
+
 			this.vkPipelineLayout = context.boiler().pipelines.createLayout(
-					null, "Vk2dColorPipelineLayout"
+					pushConstants, "Vk2dColorPipelineLayout"
 			);
 
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(2, stack);
@@ -44,6 +46,11 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 	}
 
 	@Override
+	public Vk2dColorBatch createBatch(PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height) {
+		return new Vk2dColorBatch(this, perFrameBuffer, initialCapacity, width, height);
+	}
+
+	@Override
 	public void destroy(BoilerInstance boiler) {
 		super.destroy(boiler);
 		try (MemoryStack stack = stackPush()) {
@@ -52,27 +59,5 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 					CallbackUserData.PIPELINE_LAYOUT.put(stack, boiler)
 			);
 		}
-	}
-
-	private void putColor(ByteBuffer vertices, int color) {
-		vertices.putFloat(normalize(red(color))).putFloat(normalize(green(color)));
-		vertices.putFloat(normalize(blue(color))).putFloat(normalize(alpha(color)));
-	}
-
-	public void fill(Vk2dBatch batch, int minX, int minY, int maxX, int maxY, int color) {
-		ByteBuffer vertices = batch.putVertices(6);
-		vertices.putFloat(batch.normalizeX(minX)).putFloat(batch.normalizeY(maxY));
-		putColor(vertices, color);
-		vertices.putFloat(batch.normalizeX(maxX)).putFloat(batch.normalizeY(maxY));
-		putColor(vertices, color);
-		vertices.putFloat(batch.normalizeX(maxX)).putFloat(batch.normalizeY(minY));
-		putColor(vertices, color);
-
-		vertices.putFloat(batch.normalizeX(maxX)).putFloat(batch.normalizeY(minY));
-		putColor(vertices, color);
-		vertices.putFloat(batch.normalizeX(minX)).putFloat(batch.normalizeY(minY));
-		putColor(vertices, color);
-		vertices.putFloat(batch.normalizeX(minX)).putFloat(batch.normalizeY(maxY));
-		putColor(vertices, color);
 	}
 }

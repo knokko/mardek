@@ -6,6 +6,7 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder;
+import com.github.knokko.vk2d.batch.Vk2dBatch;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkPipelineVertexInputStateCreateInfo;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
@@ -14,7 +15,7 @@ import org.lwjgl.vulkan.VkVertexInputBindingDescription;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
-public abstract class Vk2dPipeline {
+public abstract class Vk2dPipeline<B extends Vk2dBatch<?>> {
 
 	public static GraphicsPipelineBuilder pipelineBuilder(PipelineContext context) {
 		var builder = new GraphicsPipelineBuilder(context.boiler(), context.stack());
@@ -57,6 +58,8 @@ public abstract class Vk2dPipeline {
 
 		builder.ciPipeline.pVertexInputState(ciVertexInput);
 	}
+
+	public abstract B createBatch(PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height);
 
 	public void prepareRecording(CommandRecorder recorder) {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);

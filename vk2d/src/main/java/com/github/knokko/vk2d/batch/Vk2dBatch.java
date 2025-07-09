@@ -1,4 +1,4 @@
-package com.github.knokko.vk2d;
+package com.github.knokko.vk2d.batch;
 
 import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
@@ -11,16 +11,16 @@ import java.util.List;
 
 import static java.lang.Math.max;
 
-public class Vk2dBatch {
+public class Vk2dBatch<P extends Vk2dPipeline<?>> {
 
-	public final Vk2dPipeline pipeline;
+	public final P pipeline;
 	private final PerFrameBuffer perFrameBuffer;
 	private final List<MappedVkbBuffer> vertexBuffers = new ArrayList<>();
 	private final List<ByteBuffer> vertexDataBuffers = new ArrayList<>();
 
 	public final int width, height;
 
-	public Vk2dBatch(Vk2dPipeline pipeline, PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height) {
+	public Vk2dBatch(P pipeline, PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height) {
 		this.pipeline = pipeline;
 		this.perFrameBuffer = perFrameBuffer;
 		this.width = width;

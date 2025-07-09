@@ -82,7 +82,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
 	protected void createResources(MemoryCombiner combiner) {
 		this.perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
-				10_000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+				10_000_000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
 		));
 	}
 
