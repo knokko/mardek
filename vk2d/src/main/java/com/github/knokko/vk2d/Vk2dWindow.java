@@ -11,31 +11,40 @@ import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.boiler.window.*;
 import com.github.knokko.vk2d.pipeline.PipelineContext;
-import com.github.knokko.vk2d.pipeline.Vk2dColorPipeline;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkClearValue;
 import org.lwjgl.vulkan.VkRenderPassBeginInfo;
 
-import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
-import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_IMMEDIATE_KHR;
-import static org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_MAILBOX_KHR;
-import static org.lwjgl.vulkan.VK10.*;
-import static org.lwjgl.vulkan.VK12.VK_API_VERSION_1_2;
+import java.util.function.Function;
 
-public class MimicMardekWindow extends SimpleWindowRenderLoop {
+import static org.lwjgl.sdl.SDLVideo.*;
+import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.lwjgl.vulkan.KHRSurface.*;
+import static org.lwjgl.vulkan.VK10.*;
+import static org.lwjgl.vulkan.VK13.VK_API_VERSION_1_3;
+
+public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
+
+	private static int choosePresentMode(VkbWindow window, boolean capFps) {
+		if (capFps) return VK_PRESENT_MODE_FIFO_KHR;
+		if (window.supportedPresentModes.contains(VK_PRESENT_MODE_MAILBOX_KHR)) {
+			return VK_PRESENT_MODE_MAILBOX_KHR;
+		}
+		if (window.supportedPresentModes.contains(VK_PRESENT_MODE_IMMEDIATE_KHR)) {
+			return VK_PRESENT_MODE_IMMEDIATE_KHR;
+		}
+		System.err.println("This graphics driver doesn't appear to support any present mode with uncapped FPS");
+		return VK_PRESENT_MODE_FIFO_KHR;
+	}
 
 	private MemoryBlock memory;
-	private PerFrameBuffer perFrameBuffer;
-	private PipelineContext pipelineContext;
-	private Vk2dColorPipeline colorPipeline;
+	protected PerFrameBuffer perFrameBuffer;
+	protected PipelineContext pipelineContext;
 	private SwapchainResourceManager<Object, Long> framebuffers;
 
-	public MimicMardekWindow(VkbWindow window) {
+	public Vk2dWindow(VkbWindow window, boolean capFps) {
 		super(
-				window, 2, false,
-				window.supportedPresentModes.contains(VK_PRESENT_MODE_MAILBOX_KHR) ?
-						VK_PRESENT_MODE_MAILBOX_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR,
+				window, 2, false, choosePresentMode(window, capFps),
 				ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 		);
 	}
@@ -43,14 +52,12 @@ public class MimicMardekWindow extends SimpleWindowRenderLoop {
 	@Override
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
-
-		MemoryCombiner combiner = new MemoryCombiner(boiler, "AllMemory");
-		this.perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
-				10_000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
-		));
-		this.memory = combiner.build(false);
 		this.pipelineContext = PipelineContext.renderPass(boiler, window.surfaceFormat);
-		this.colorPipeline = new Vk2dColorPipeline(pipelineContext);
+
+		MemoryCombiner combiner = new MemoryCombiner(boiler, "Vk2dWindowMemory");
+		createResources(combiner);
+		this.memory = combiner.build(false);
+
 		this.framebuffers = new SwapchainResourceManager<>() {
 
 			@Override
@@ -73,10 +80,16 @@ public class MimicMardekWindow extends SimpleWindowRenderLoop {
 		};
 	}
 
+	protected void createResources(MemoryCombiner combiner) {
+		this.perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
+				10_000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+		));
+	}
+
 	@Override
 	protected void recordFrame(
 			MemoryStack stack, int frameIndex, CommandRecorder recorder,
-			AcquiredImage acquiredImage, BoilerInstance instance
+			AcquiredImage acquiredImage, BoilerInstance boiler
 	) {
 		perFrameBuffer.startFrame(frameIndex);
 
@@ -92,17 +105,20 @@ public class MimicMardekWindow extends SimpleWindowRenderLoop {
 		recorder.dynamicViewportAndScissor(acquiredImage.width(), acquiredImage.height());
 		Vk2dFrame frame = new Vk2dFrame(perFrameBuffer, acquiredImage.width(), acquiredImage.height());
 
-		Vk2dBatch colorBatch1 = frame.addBatch(colorPipeline, 6);
-		colorPipeline.fill(colorBatch1, 10, 20, 30, 40, rgb(255, 0, 255));
+		renderFrame(frame, recorder, acquiredImage, boiler);
 
 		frame.record(recorder);
 		vkCmdEndRenderPass(recorder.commandBuffer);
 	}
 
+	protected abstract void renderFrame(
+			Vk2dFrame frame, CommandRecorder recorder,
+			AcquiredImage swapchainImage, BoilerInstance boiler
+	);
+
 	@Override
 	protected void cleanUp(BoilerInstance boiler) {
 		super.cleanUp(boiler);
-		colorPipeline.destroy(boiler);
 		try (MemoryStack stack = stackPush()) {
 			vkDestroyRenderPass(
 					boiler.vkDevice(), pipelineContext.vkRenderPass(),
@@ -112,15 +128,23 @@ public class MimicMardekWindow extends SimpleWindowRenderLoop {
 		memory.destroy(boiler);
 	}
 
-	public static void main(String[] args) {
-		BoilerInstance boiler = new BoilerBuilder(
-				VK_API_VERSION_1_2, "MimicMardekWindow", 1
-		).validation().forbidValidationErrors().addWindow(
-				new WindowBuilder(1600, 900, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+	public static void bootstrap(
+			String title, int appVersion, ValidationMode validationMode,
+			Function<VkbWindow, WindowRenderLoop> createRenderer
+	) {
+		BoilerBuilder builder = new BoilerBuilder(
+				validationMode == ValidationMode.STRONG ? VK_API_VERSION_1_3 : VK_API_VERSION_1_0, title, appVersion
+		);
+		if (validationMode != ValidationMode.NONE) builder.validation();
+		if (validationMode == ValidationMode.STRONG) builder.forbidValidationErrors();
+		BoilerInstance boiler = builder.addWindow(
+				new WindowBuilder(
+						1200, 800, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+				).sdlFlags(SDL_WINDOW_VULKAN | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE)
 		).useSDL().build();
 
 		WindowEventLoop eventLoop = new WindowEventLoop();
-		eventLoop.addWindow(new MimicMardekWindow(boiler.window()));
+		eventLoop.addWindow(createRenderer.apply(boiler.window()));
 		eventLoop.runMain();
 
 		boiler.destroyInitialObjects();
