@@ -5,12 +5,12 @@ import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
-import com.github.knokko.vk2d.Vk2dDescriptors;
+import com.github.knokko.vk2d.Vk2dShared;
+import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dImageBatch;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 
-import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -23,13 +23,13 @@ public class Vk2dImagePipeline extends Vk2dPipeline<Vk2dImageBatch> {
 	private final long vkPipelineLayout;
 
 	@SuppressWarnings("resource")
-	public Vk2dImagePipeline(PipelineContext context, Vk2dDescriptors descriptors) {
+	public Vk2dImagePipeline(Vk2dPipelineContext context, Vk2dShared shared) {
 		super(VERTEX_SIZE);
 
 		try (MemoryStack stack = stackPush()) {
 			this.vkPipelineLayout = context.boiler().pipelines.createLayout(
 					null, "Vk2dImagePipelineLayout",
-					descriptors.imageLayout.vkDescriptorSetLayout
+					shared.imageDescriptorSetLayout.vkDescriptorSetLayout
 			);
 
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(2, stack);
@@ -54,18 +54,19 @@ public class Vk2dImagePipeline extends Vk2dPipeline<Vk2dImageBatch> {
 	}
 
 	@Override
-	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MappedVkbBuffer vertexData) {
+	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MappedVkbBuffer vertexData, Vk2dBatch<?> batch) {
 		int firstVertex = Math.toIntExact((vertexData.offset - perFrameBuffer.buffer.offset) / vertexSize);
-		ByteBuffer dataBuffer = vertexData.byteBuffer();
 		LongBuffer pDescriptorSet = recorder.stack.callocLong(1);
-		for (int index = 0; index < vertexData.size; index += 7 * VERTEX_SIZE) {
-			pDescriptorSet.put(0, dataBuffer.getLong(index + 6 * VERTEX_SIZE));
+		int descriptorIndex = 0;
+		for (int index = 0; index < vertexData.size; index += 6 * VERTEX_SIZE) {
+			pDescriptorSet.put(0, ((Vk2dImageBatch) batch).descriptorSets[descriptorIndex]);
 			vkCmdBindDescriptorSets(
 					recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 					vkPipelineLayout, 0, pDescriptorSet, null
 			);
 			vkCmdDraw(recorder.commandBuffer, 6, 1, firstVertex, 0);
-			firstVertex += 5;
+			firstVertex += 6;
+			descriptorIndex += 1;
 		}
 	}
 
@@ -77,7 +78,6 @@ public class Vk2dImagePipeline extends Vk2dPipeline<Vk2dImageBatch> {
 					boiler.vkDevice(), vkPipelineLayout,
 					CallbackUserData.PIPELINE_LAYOUT.put(stack, boiler)
 			);
-
 		}
 	}
 }

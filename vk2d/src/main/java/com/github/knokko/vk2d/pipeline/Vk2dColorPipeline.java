@@ -19,7 +19,7 @@ public class Vk2dColorPipeline extends Vk2dPipeline<Vk2dColorBatch> {
 	private final long vkPipelineLayout;
 
 	@SuppressWarnings("resource")
-	public Vk2dColorPipeline(PipelineContext context) {
+	public Vk2dColorPipeline(Vk2dPipelineContext context) {
 		super(VERTEX_SIZE);
 
 		try (MemoryStack stack = stackPush()) {

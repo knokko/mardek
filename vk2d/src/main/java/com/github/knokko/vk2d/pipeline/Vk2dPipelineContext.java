@@ -13,23 +13,23 @@ import static com.github.knokko.boiler.exceptions.VulkanFailureException.assertV
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
-public record PipelineContext(
+public record Vk2dPipelineContext(
 		BoilerInstance boiler, MemoryStack stack,
 		long vkRenderPass, int viewMask, int colorFormat
 ) {
 
-	public static PipelineContext renderPass(BoilerInstance boiler, MemoryStack stack, long vkRenderPass) {
-		return new PipelineContext(boiler, stack, vkRenderPass, 0, 0);
+	public static Vk2dPipelineContext renderPass(BoilerInstance boiler, MemoryStack stack, long vkRenderPass) {
+		return new Vk2dPipelineContext(boiler, stack, vkRenderPass, 0, 0);
 	}
 
-	public static PipelineContext dynamicRendering(
+	public static Vk2dPipelineContext dynamicRendering(
 			BoilerInstance boiler, MemoryStack stack, int viewMask, int colorFormat
 	) {
-		return new PipelineContext(boiler, stack, VK_NULL_HANDLE, viewMask, colorFormat);
+		return new Vk2dPipelineContext(boiler, stack, VK_NULL_HANDLE, viewMask, colorFormat);
 	}
 
 	@SuppressWarnings("DataFlowIssue")
-	public static PipelineContext renderPass(BoilerInstance boiler, int targetImageFormat) {
+	public static Vk2dPipelineContext renderPass(BoilerInstance boiler, int targetImageFormat) {
 		try (MemoryStack stack = stackPush()) {
 			VkAttachmentDescription.Buffer attachments = VkAttachmentDescription.calloc(1, stack);
 			VkAttachmentDescription colorAttachment = attachments.get(0);

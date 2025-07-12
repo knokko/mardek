@@ -17,7 +17,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public abstract class Vk2dPipeline<B extends Vk2dBatch<?>> {
 
-	public static GraphicsPipelineBuilder pipelineBuilder(PipelineContext context) {
+	public static GraphicsPipelineBuilder pipelineBuilder(Vk2dPipelineContext context) {
 		var builder = new GraphicsPipelineBuilder(context.boiler(), context.stack());
 		builder.simpleInputAssembly();
 		builder.dynamicViewports(1);
@@ -65,7 +65,10 @@ public abstract class Vk2dPipeline<B extends Vk2dBatch<?>> {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 	}
 
-	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MappedVkbBuffer vertexData) {
+	public void recordBatch(
+			CommandRecorder recorder, PerFrameBuffer perFrameBuffer,
+			MappedVkbBuffer vertexData, Vk2dBatch<?> batch
+	) {
 		int vertexCount = (int) (vertexData.size / vertexSize);
 		int firstVertex = Math.toIntExact((vertexData.offset - perFrameBuffer.buffer.offset) / vertexSize);
 		vkCmdDraw(recorder.commandBuffer, vertexCount, 1, firstVertex, 0);

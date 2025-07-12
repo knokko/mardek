@@ -52,7 +52,7 @@ public class Vk2dBatch<P extends Vk2dPipeline<?>> {
 		for (int index = 0; index < vertexBuffers.size(); index++) {
 			int usedBytes = vertexDataBuffers.get(index).position();
 			MappedVkbBuffer usedVertexBuffer = vertexBuffers.get(index).child(0L, usedBytes);
-			pipeline.recordBatch(recorder, perFrameBuffer, usedVertexBuffer);
+			pipeline.recordBatch(recorder, perFrameBuffer, usedVertexBuffer, this);
 		}
 	}
 

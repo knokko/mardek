@@ -5,16 +5,21 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.builders.BoilerBuilder;
 import com.github.knokko.boiler.builders.WindowBuilder;
 import com.github.knokko.boiler.commands.CommandRecorder;
+import com.github.knokko.boiler.commands.SingleTimeCommands;
 import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.boiler.window.*;
-import com.github.knokko.vk2d.pipeline.PipelineContext;
+import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext;
+import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
+import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkClearValue;
 import org.lwjgl.vulkan.VkRenderPassBeginInfo;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.function.Function;
 
 import static org.lwjgl.sdl.SDLVideo.*;
@@ -37,10 +42,11 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 
+	protected Vk2dPipelineContext pipelineContext;
+	protected Vk2dShared shared;
 	private MemoryBlock memory;
-	private Vk2dDescriptors descriptors;
 	protected PerFrameBuffer perFrameBuffer;
-	protected PipelineContext pipelineContext;
+	protected Vk2dResourceBundle resources;
 	private SwapchainResourceManager<Object, Long> framebuffers;
 
 	public Vk2dWindow(VkbWindow window, boolean capFps) {
@@ -50,21 +56,41 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		);
 	}
 
+	protected InputStream initialResourceBundle() throws IOException {
+		return null;
+	}
+
 	@Override
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
-		this.pipelineContext = PipelineContext.renderPass(boiler, window.surfaceFormat);
+		this.pipelineContext = Vk2dPipelineContext.renderPass(boiler, window.surfaceFormat);
+		this.shared = new Vk2dShared(boiler);
 
-		MemoryCombiner combiner = new MemoryCombiner(boiler, "Vk2dPersistent");
-		MemoryCombiner stagingCombiner = new MemoryCombiner(boiler, "Vk2dStaging");
-		this.descriptors = new Vk2dDescriptors(boiler);
-		createResources(boiler, descriptors, combiner, stagingCombiner);
-		this.memory = combiner.build(false);
+		try {
+			InputStream resourceInput = initialResourceBundle();
+			Vk2dResourceLoader loader = null;
+			if (resourceInput != null) loader = new Vk2dResourceLoader(resourceInput);
 
-		MemoryBlock stagingMemory = stagingCombiner.build(false);
-		performStagingCopies(boiler);
-		stagingMemory.destroy(boiler);
-		descriptors.finish(boiler);
+			MemoryCombiner combiner = new MemoryCombiner(boiler, "Vk2dPersistent");
+			if (loader != null) loader.claimMemory(boiler, combiner);
+			createResources(boiler, combiner);
+			this.memory = combiner.build(false);
+
+			if (loader != null) {
+				loader.prepareStaging();
+
+				Vk2dResourceLoader[] pLoader = { loader };
+				SingleTimeCommands.submit(
+						boiler, "Vk2dStaging",
+						recorder -> pLoader[0].performStaging(boiler, recorder, shared)
+				).destroy();
+				this.resources = loader.finish(boiler, shared);
+			}
+
+			if (resourceInput != null) resourceInput.close();
+		} catch (IOException io) {
+			throw new RuntimeException(io);
+		}
 
 		this.framebuffers = new SwapchainResourceManager<>() {
 
@@ -88,16 +114,11 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		};
 	}
 
-	protected void createResources(
-			BoilerInstance boiler, Vk2dDescriptors descriptors,
-			MemoryCombiner combiner, MemoryCombiner stagingCombiner
-	) {
+	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner) {
 		this.perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
 				10_000_000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
 		));
 	}
-
-	protected void performStagingCopies(BoilerInstance boiler) {}
 
 	@Override
 	protected void recordFrame(
@@ -138,23 +159,24 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 					CallbackUserData.RENDER_PASS.put(stack, boiler)
 			);
 		}
+		if (resources != null) resources.destroy(boiler);
 		memory.destroy(boiler);
-		descriptors.destroy(boiler);
+		shared.destroy(boiler);
 	}
 
 	public static void bootstrap(
-			String title, int appVersion, ValidationMode validationMode,
+			String title, int appVersion, Vk2dValidationMode validationMode,
 			Function<VkbWindow, WindowRenderLoop> createRenderer
 	) {
 		BoilerBuilder builder = new BoilerBuilder(
-				validationMode == ValidationMode.STRONG ? VK_API_VERSION_1_3 : VK_API_VERSION_1_0, title, appVersion
+				validationMode == Vk2dValidationMode.STRONG ? VK_API_VERSION_1_3 : VK_API_VERSION_1_0, title, appVersion
 		);
-		if (validationMode != ValidationMode.NONE) builder.validation();
-		if (validationMode == ValidationMode.STRONG) builder.forbidValidationErrors();
+		if (validationMode != Vk2dValidationMode.NONE) builder.validation();
+		if (validationMode == Vk2dValidationMode.STRONG) builder.forbidValidationErrors();
 		BoilerInstance boiler = builder.addWindow(
 				new WindowBuilder(
 						1200, 800, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-				).sdlFlags(SDL_WINDOW_VULKAN | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE)
+				).sdlFlags(SDL_WINDOW_VULKAN | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE).hideUntilFirstFrame()
 		).useSDL().build();
 
 		WindowEventLoop eventLoop = new WindowEventLoop();
