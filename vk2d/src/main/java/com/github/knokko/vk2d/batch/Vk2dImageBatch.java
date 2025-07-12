@@ -1,6 +1,7 @@
 package com.github.knokko.vk2d.batch;
 
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
+import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.pipeline.Vk2dImagePipeline;
 
 import java.nio.ByteBuffer;
@@ -11,11 +12,8 @@ public class Vk2dImageBatch extends Vk2dBatch<Vk2dImagePipeline> {
 	public long[] descriptorSets;
 	private int nextDescriptorIndex;
 
-	public Vk2dImageBatch(
-			Vk2dImagePipeline pipeline, PerFrameBuffer perFrameBuffer,
-			int initialCapacity, int width, int height
-	) {
-		super(pipeline, perFrameBuffer, initialCapacity, width, height);
+	public Vk2dImageBatch(Vk2dImagePipeline pipeline, Vk2dFrame frame, int initialCapacity) {
+		super(pipeline, frame, initialCapacity);
 		this.descriptorSets = new long[initialCapacity];
 	}
 

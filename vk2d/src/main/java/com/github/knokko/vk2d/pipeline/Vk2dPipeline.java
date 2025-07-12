@@ -15,7 +15,7 @@ import org.lwjgl.vulkan.VkVertexInputBindingDescription;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
-public abstract class Vk2dPipeline<B extends Vk2dBatch<?>> {
+public abstract class Vk2dPipeline {
 
 	public static GraphicsPipelineBuilder pipelineBuilder(Vk2dPipelineContext context) {
 		var builder = new GraphicsPipelineBuilder(context.boiler(), context.stack());
@@ -59,9 +59,7 @@ public abstract class Vk2dPipeline<B extends Vk2dBatch<?>> {
 		builder.ciPipeline.pVertexInputState(ciVertexInput);
 	}
 
-	public abstract B createBatch(PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height);
-
-	public void prepareRecording(CommandRecorder recorder, int viewportWidth, int viewportHeight) {
+	public void prepareRecording(CommandRecorder recorder, Vk2dBatch<?> batch) {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 	}
 

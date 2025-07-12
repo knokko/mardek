@@ -1,9 +1,10 @@
 package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.BoilerInstance;
-import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
+import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkPushConstantRange;
@@ -12,7 +13,7 @@ import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Vk2dColorPipeline extends Vk2dPipeline<Vk2dColorBatch> {
+public class Vk2dColorPipeline extends Vk2dPipeline {
 
 	public static final int VERTEX_SIZE = 8;
 
@@ -46,17 +47,16 @@ public class Vk2dColorPipeline extends Vk2dPipeline<Vk2dColorBatch> {
 		}
 	}
 
-	@Override
-	public Vk2dColorBatch createBatch(PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height) {
-		return new Vk2dColorBatch(this, perFrameBuffer, initialCapacity, width, height);
+	public Vk2dColorBatch addBatch(Vk2dFrame frame, int initialCapacity) {
+		return new Vk2dColorBatch(this, frame, initialCapacity);
 	}
 
 	@Override
-	public void prepareRecording(CommandRecorder recorder, int viewportWidth, int viewportHeight) {
-		super.prepareRecording(recorder, viewportWidth, viewportHeight);
+	public void prepareRecording(CommandRecorder recorder, Vk2dBatch<?> batch) {
+		super.prepareRecording(recorder, batch);
 		vkCmdPushConstants(
 				recorder.commandBuffer, vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-				0, recorder.stack.ints(viewportWidth, viewportHeight)
+				0, recorder.stack.ints(batch.width, batch.height)
 		);
 	}
 

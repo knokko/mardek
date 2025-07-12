@@ -1,6 +1,6 @@
 package com.github.knokko.vk2d.batch;
 
-import com.github.knokko.boiler.buffers.PerFrameBuffer;
+import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.pipeline.Vk2dColorPipeline;
 
 import java.nio.ByteBuffer;
@@ -9,11 +9,8 @@ import static java.lang.Math.max;
 
 public class Vk2dColorBatch extends Vk2dBatch<Vk2dColorPipeline> {
 
-	public Vk2dColorBatch(
-			Vk2dColorPipeline pipeline, PerFrameBuffer perFrameBuffer,
-			int initialCapacity, int width, int height
-	) {
-		super(pipeline, perFrameBuffer, initialCapacity, width, height);
+	public Vk2dColorBatch(Vk2dColorPipeline pipeline, Vk2dFrame frame, int initialCapacity) {
+		super(pipeline, frame, initialCapacity);
 	}
 
 	private void putPosition(ByteBuffer vertices, int x, int y) {

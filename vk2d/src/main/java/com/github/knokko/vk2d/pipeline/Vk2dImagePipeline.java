@@ -5,6 +5,7 @@ import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
+import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.Vk2dShared;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dImageBatch;
@@ -16,7 +17,7 @@ import java.nio.LongBuffer;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
-public class Vk2dImagePipeline extends Vk2dPipeline<Vk2dImageBatch> {
+public class Vk2dImagePipeline extends Vk2dPipeline {
 
 	public static final int VERTEX_SIZE = 16;
 
@@ -48,9 +49,8 @@ public class Vk2dImagePipeline extends Vk2dPipeline<Vk2dImageBatch> {
 		}
 	}
 
-	@Override
-	public Vk2dImageBatch createBatch(PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height) {
-		return new Vk2dImageBatch(this, perFrameBuffer, initialCapacity, width, height);
+	public Vk2dImageBatch addBatch(Vk2dFrame frame, int initialCapacity) {
+		return new Vk2dImageBatch(this, frame, initialCapacity);
 	}
 
 	@Override

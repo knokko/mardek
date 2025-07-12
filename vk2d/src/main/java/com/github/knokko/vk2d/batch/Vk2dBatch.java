@@ -3,6 +3,7 @@ package com.github.knokko.vk2d.batch;
 import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
+import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
 
 import java.nio.ByteBuffer;
@@ -11,7 +12,7 @@ import java.util.List;
 
 import static java.lang.Math.max;
 
-public class Vk2dBatch<P extends Vk2dPipeline<?>> {
+public class Vk2dBatch<P extends Vk2dPipeline> {
 
 	public final P pipeline;
 	protected final PerFrameBuffer perFrameBuffer;
@@ -20,15 +21,16 @@ public class Vk2dBatch<P extends Vk2dPipeline<?>> {
 
 	public final int width, height;
 
-	public Vk2dBatch(P pipeline, PerFrameBuffer perFrameBuffer, int initialCapacity, int width, int height) {
+	public Vk2dBatch(P pipeline, Vk2dFrame frame, int initialCapacity) {
 		this.pipeline = pipeline;
-		this.perFrameBuffer = perFrameBuffer;
-		this.width = width;
-		this.height = height;
+		this.perFrameBuffer = frame.perFrameBuffer;
+		this.width = frame.width;
+		this.height = frame.height;
 		vertexBuffers.add(perFrameBuffer.allocate(
 				(long) initialCapacity * pipeline.vertexSize, pipeline.vertexSize
 		));
 		vertexDataBuffers.add(vertexBuffers.get(0).byteBuffer());
+		frame.batches.add(this);
 	}
 
 	public ByteBuffer putVertices(int amount) {
@@ -48,7 +50,7 @@ public class Vk2dBatch<P extends Vk2dPipeline<?>> {
 
 	public void record(CommandRecorder recorder) {
 		if (vertexDataBuffers.get(0).position() == 0) return;
-		pipeline.prepareRecording(recorder, width, height);
+		pipeline.prepareRecording(recorder, this);
 		for (int index = 0; index < vertexBuffers.size(); index++) {
 			int usedBytes = vertexDataBuffers.get(index).position();
 			MappedVkbBuffer usedVertexBuffer = vertexBuffers.get(index).child(0L, usedBytes);

@@ -34,7 +34,7 @@ public class Kim1Benchmark extends Vk2dWindow {
 	@Override
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
-		this.kim1Pipeline = new Vk2dKim1Pipeline(pipelineContext, resources, shared);
+		this.kim1Pipeline = new Vk2dKim1Pipeline(pipelineContext, shared);
 	}
 
 	@Override
@@ -50,13 +50,13 @@ public class Kim1Benchmark extends Vk2dWindow {
 		Random rng = new Random();
 		int numRounds = 1;
 		int scale = 1;
-		Vk2dKim1Batch batch1 = frame.addBatch(kim1Pipeline, 5_000);
+		Vk2dKim1Batch batch1 = kim1Pipeline.addBatch(frame, 5000, resources);
 		for (int round = 0; round < numRounds; round++) {
 			for (int y = 0; y < swapchainImage.height(); y += 16 * scale) {
 				for (int x = 0; x < swapchainImage.width(); x += 16 * scale) {
 					batch1.simple(
 							x, y, x + 16 * scale - 1, y + 16 * scale - 1,
-							resources.getFakeImageOffset(rng.nextInt(resources.numFakeImages))
+							rng.nextInt(resources.numFakeImages)
 					);
 				}
 			}

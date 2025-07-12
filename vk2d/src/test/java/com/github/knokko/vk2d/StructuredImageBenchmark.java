@@ -50,7 +50,7 @@ public class StructuredImageBenchmark extends Vk2dWindow {
 		Random rng = new Random();
 		int numRounds = 1;
 		int scale = 1;
-		Vk2dImageBatch batch1 = frame.addBatch(imagePipeline, 5_000);
+		Vk2dImageBatch batch1 = imagePipeline.addBatch(frame, 5000);
 		for (int round = 0; round < numRounds; round++) {
 			for (int y = 0; y < swapchainImage.height(); y += 16 * scale) {
 				for (int x = 0; x < swapchainImage.width(); x += 16 * scale) {

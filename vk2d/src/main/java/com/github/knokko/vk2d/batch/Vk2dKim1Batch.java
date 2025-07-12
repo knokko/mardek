@@ -1,20 +1,23 @@
 package com.github.knokko.vk2d.batch;
 
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
+import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.pipeline.Vk2dKim1Pipeline;
+import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 
 import java.nio.ByteBuffer;
 
 public class Vk2dKim1Batch extends Vk2dBatch<Vk2dKim1Pipeline> {
 
-	public Vk2dKim1Batch(
-			Vk2dKim1Pipeline pipeline, PerFrameBuffer perFrameBuffer,
-			int initialCapacity, int width, int height
-	) {
-		super(pipeline, perFrameBuffer, initialCapacity, width, height);
+	public final Vk2dResourceBundle bundle;
+
+	public Vk2dKim1Batch(Vk2dKim1Pipeline pipeline, Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
+		super(pipeline, frame, initialCapacity);
+		this.bundle = bundle;
 	}
 
-	public void simple(int minX, int minY, int maxX, int maxY, int textureOffset) {
+	public void simple(int minX, int minY, int maxX, int maxY, int textureIndex) {
+		int textureOffset = bundle.getFakeImageOffset(textureIndex);
 		ByteBuffer vertices = putVertices(6);
 
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
