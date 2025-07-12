@@ -14,7 +14,7 @@ import static java.lang.Math.max;
 public class Vk2dBatch<P extends Vk2dPipeline<?>> {
 
 	public final P pipeline;
-	private final PerFrameBuffer perFrameBuffer;
+	protected final PerFrameBuffer perFrameBuffer;
 	private final List<MappedVkbBuffer> vertexBuffers = new ArrayList<>();
 	private final List<ByteBuffer> vertexDataBuffers = new ArrayList<>();
 

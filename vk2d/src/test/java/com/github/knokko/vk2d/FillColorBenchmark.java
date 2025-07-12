@@ -24,8 +24,11 @@ public class FillColorBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected void createResources(MemoryCombiner combiner) {
-		super.createResources(combiner);
+	protected void createResources(
+			BoilerInstance boiler, Vk2dDescriptors descriptors,
+			MemoryCombiner combiner, MemoryCombiner stagingCombiner
+	) {
+		super.createResources(boiler, descriptors, combiner, stagingCombiner);
 		this.colorPipeline = new Vk2dColorPipeline(pipelineContext);
 	}
 

@@ -38,6 +38,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 	}
 
 	private MemoryBlock memory;
+	private Vk2dDescriptors descriptors;
 	protected PerFrameBuffer perFrameBuffer;
 	protected PipelineContext pipelineContext;
 	private SwapchainResourceManager<Object, Long> framebuffers;
@@ -54,9 +55,16 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		super.setup(boiler, stack);
 		this.pipelineContext = PipelineContext.renderPass(boiler, window.surfaceFormat);
 
-		MemoryCombiner combiner = new MemoryCombiner(boiler, "Vk2dWindowMemory");
-		createResources(combiner);
+		MemoryCombiner combiner = new MemoryCombiner(boiler, "Vk2dPersistent");
+		MemoryCombiner stagingCombiner = new MemoryCombiner(boiler, "Vk2dStaging");
+		this.descriptors = new Vk2dDescriptors(boiler);
+		createResources(boiler, descriptors, combiner, stagingCombiner);
 		this.memory = combiner.build(false);
+
+		MemoryBlock stagingMemory = stagingCombiner.build(false);
+		performStagingCopies(boiler);
+		stagingMemory.destroy(boiler);
+		descriptors.finish(boiler);
 
 		this.framebuffers = new SwapchainResourceManager<>() {
 
@@ -80,11 +88,16 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		};
 	}
 
-	protected void createResources(MemoryCombiner combiner) {
+	protected void createResources(
+			BoilerInstance boiler, Vk2dDescriptors descriptors,
+			MemoryCombiner combiner, MemoryCombiner stagingCombiner
+	) {
 		this.perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
 				10_000_000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
 		));
 	}
+
+	protected void performStagingCopies(BoilerInstance boiler) {}
 
 	@Override
 	protected void recordFrame(
@@ -126,6 +139,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			);
 		}
 		memory.destroy(boiler);
+		descriptors.destroy(boiler);
 	}
 
 	public static void bootstrap(
