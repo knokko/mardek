@@ -2,6 +2,7 @@ package com.github.knokko.vk2d.resource;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.buffers.MappedVkbBuffer;
+import com.github.knokko.boiler.buffers.VkbBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
 import com.github.knokko.boiler.descriptors.DescriptorUpdater;
@@ -16,11 +17,11 @@ import org.lwjgl.system.MemoryStack;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.IntBuffer;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
 import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-import static org.lwjgl.vulkan.VK10.VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceLoader {
 
@@ -31,6 +32,14 @@ public class Vk2dResourceLoader {
 	private boolean[] pixelatedImages;
 	private long[] imageDescriptors;
 	private MappedVkbBuffer[] imageStagingBuffers;
+
+	private VkbBuffer fakeImages;
+	private MappedVkbBuffer fakeStagingBuffer;
+	private int[] fakeOffsets;
+	private int[] fakeWidths;
+	private int[] fakeHeights;
+	private long fakeImageDescriptor;
+
 	private long descriptorPool;
 
 	public Vk2dResourceLoader(InputStream rawInput) {
@@ -65,6 +74,29 @@ public class Vk2dResourceLoader {
 					size, compression.alignment, VK_BUFFER_USAGE_TRANSFER_SRC_BIT
 			);
 		}
+
+		int numFakeImages = input.readInt();
+		this.fakeOffsets = new int[numFakeImages];
+		this.fakeWidths = new int[numFakeImages];
+		this.fakeHeights = new int[numFakeImages];
+
+		int fakeOffset = 0;
+		for (int index = 0; index < numFakeImages; index++) {
+			int intSize = input.readInt();
+			fakeWidths[index] = input.readInt();
+			fakeHeights[index] = input.readInt();
+			this.fakeOffsets[index] = fakeOffset;
+			fakeOffset += intSize;
+		}
+
+		long fakeImageSize = 4L * fakeOffset;
+		this.fakeImages = combiner.addBuffer(
+				fakeImageSize, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
+				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0.5f
+		);
+		this.fakeStagingBuffer = stagingCombiner.addMappedBuffer(
+				fakeImageSize, 4L, VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+		);
 	}
 
 	public void prepareStaging() throws IOException {
@@ -76,18 +108,27 @@ public class Vk2dResourceLoader {
 			input.readFully(bytes);
 			buffer.byteBuffer().put(bytes);
 		}
+
+		IntBuffer fakeData = fakeStagingBuffer.intBuffer();
+		while (fakeData.hasRemaining()) fakeData.put(input.readInt());
 	}
 
 	public void performStaging(BoilerInstance boiler, CommandRecorder recorder, Vk2dShared shared) {
 		recorder.bulkTransitionLayout(null, ResourceUsage.TRANSFER_DEST, images);
 		recorder.bulkCopyBufferToImage(images, imageStagingBuffers);
+		recorder.copyBuffer(fakeStagingBuffer, fakeImages);
 		recorder.bulkTransitionLayout(
 				ResourceUsage.TRANSFER_DEST,
 				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT), images
 		);
+		recorder.bufferBarrier(
+				fakeImages, ResourceUsage.TRANSFER_DEST,
+				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+		);
 
 		DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
 		this.imageDescriptors = descriptors.addMultiple(shared.imageDescriptorSetLayout, images.length);
+		descriptors.addSingle(shared.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet);
 		this.descriptorPool = descriptors.build("Vk2dDescriptorPool");
 	}
 
@@ -95,6 +136,7 @@ public class Vk2dResourceLoader {
 		this.stagingMemory.destroy(boiler);
 		this.stagingMemory = null;
 		this.imageStagingBuffers = null;
+		this.fakeStagingBuffer = null;
 
 		for (int index = 0; index < images.length; index++) {
 			try (MemoryStack stack = stackPush()) {
@@ -109,6 +151,15 @@ public class Vk2dResourceLoader {
 			}
 		}
 
-		return new Vk2dResourceBundle(descriptorPool, imageDescriptors);
+		try (MemoryStack stack = stackPush()) {
+			DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
+			updater.writeStorageBuffer(0, fakeImageDescriptor, 0, fakeImages);
+			updater.update(boiler);
+		}
+
+		return new Vk2dResourceBundle(
+				descriptorPool, imageDescriptors,
+				fakeImageDescriptor, fakeOffsets, fakeWidths, fakeHeights
+		);
 	}
 }

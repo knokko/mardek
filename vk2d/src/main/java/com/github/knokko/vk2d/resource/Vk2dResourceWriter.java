@@ -11,12 +11,15 @@ import com.github.knokko.boiler.utilities.ImageCoding;
 import com.github.knokko.compressor.Bc1Compressor;
 import com.github.knokko.compressor.Bc1Worker;
 import com.github.knokko.compressor.Bc7Compressor;
+import com.github.knokko.compressor.Kim1Compressor;
+import org.lwjgl.BufferUtils;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -28,6 +31,7 @@ import static org.lwjgl.vulkan.VK10.*;
 public class Vk2dResourceWriter {
 
 	private final List<Image> images = new ArrayList<>();
+	private final List<FakeImage> fakeImages = new ArrayList<>();
 	private byte[][] bcImageData;
 
 	public int addImage(BufferedImage image, Vk2dImageCompression compression, boolean pixelated) {
@@ -38,6 +42,29 @@ public class Vk2dResourceWriter {
 		}
 		images.add(new Image(image, compression, pixelated));
 		return images.size() - 1;
+	}
+
+	public int addFakeImage(BufferedImage image, Vk2dFakeImageCompression compression) {
+		ByteBuffer pixelBuffer = ByteBuffer.allocate(4 * image.getWidth() * image.getHeight());
+		ImageCoding.encodeBufferedImage(pixelBuffer, image);
+		pixelBuffer.flip();
+
+		ByteBuffer data;
+		if (compression == Vk2dFakeImageCompression.KIM1) {
+			Kim1Compressor compressor = new Kim1Compressor(
+					pixelBuffer, image.getWidth(), image.getHeight(), 4
+			);
+			data = BufferUtils.createByteBuffer(4 * compressor.intSize);
+			compressor.compress(data);
+		} else throw new UnsupportedOperationException("TODO");
+
+		data.flip();
+		int[] intData =  new int[data.limit() / 4];
+		for (int index = 0; index < intData.length; index++) {
+			intData[index] = data.getInt();
+		}
+		fakeImages.add(new FakeImage(image.getWidth(), image.getHeight(), intData));
+		return fakeImages.size() - 1;
 	}
 
 	private void compressBc1Images() {
@@ -143,6 +170,13 @@ public class Vk2dResourceWriter {
 			output.writeByte(entry.pixelated ? 1 : 0);
 		}
 
+		output.writeInt(fakeImages.size());
+		for (FakeImage image : fakeImages) {
+			output.writeInt(image.data.length);
+			output.writeInt(image.width);
+			output.writeInt(image.height);
+		}
+
 		this.bcImageData = new byte[images.size()][];
 		compressBc1Images();
 		compressBc7Images();
@@ -155,6 +189,11 @@ public class Vk2dResourceWriter {
 			} else throw new UnsupportedOperationException("Unexpected compression " + entry.compression);
 			index += 1;
 		}
+
+		for (FakeImage image : fakeImages) {
+			for (int value : image.data) output.writeInt(value);
+		}
+
 		output.flush();
 	}
 
@@ -171,4 +210,6 @@ public class Vk2dResourceWriter {
 	}
 
 	private record Image(BufferedImage image, Vk2dImageCompression compression, boolean pixelated) {}
+
+	private record FakeImage(int width, int height, int[] data) {}
 }

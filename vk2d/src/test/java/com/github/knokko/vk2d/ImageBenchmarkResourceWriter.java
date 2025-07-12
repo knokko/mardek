@@ -1,5 +1,6 @@
 package com.github.knokko.vk2d;
 
+import com.github.knokko.vk2d.resource.Vk2dFakeImageCompression;
 import com.github.knokko.vk2d.resource.Vk2dImageCompression;
 import com.github.knokko.vk2d.resource.Vk2dResourceWriter;
 
@@ -34,7 +35,10 @@ public class ImageBenchmarkResourceWriter {
 			for (int y = 0; y < weaponSheet.getHeight(); y += 16) {
 				for (int x = 0; x < weaponSheet.getWidth(); x += 16) {
 					BufferedImage slice = weaponSheet.getSubimage(x, y, 16, 16);
-					if (hasContent(slice)) writer.addImage(slice, Vk2dImageCompression.NONE, true);
+					if (hasContent(slice)) {
+						writer.addImage(slice, Vk2dImageCompression.NONE, true);
+						writer.addFakeImage(slice, Vk2dFakeImageCompression.KIM1);
+					}
 				}
 			}
 		} catch (IOException e) {
