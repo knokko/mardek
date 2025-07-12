@@ -34,7 +34,10 @@ public class Vk2dShared {
 			this.imageDescriptorSetLayout = builder.build(boiler, "Vk2dImageDescriptorLayout");
 
 			builder = new DescriptorSetLayoutBuilder(stack, 1);
-			builder.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
+			builder.set(
+					0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+					VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT
+			);
 			this.bufferDescriptorSetLayout = builder.build(boiler, "Vk2dBufferDescriptorLayout");
 		}
 		this.kimPipelineLayout = boiler.pipelines.createLayout(

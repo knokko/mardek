@@ -8,6 +8,7 @@ import java.util.Map;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
 import static com.github.knokko.boiler.utilities.ColorPacker.*;
+import static java.lang.Math.max;
 
 public class Kim3Compressor {
 
@@ -67,7 +68,9 @@ public class Kim3Compressor {
 		int size = 1 + colorTable.size();
 		if (colorTable.size() > 16) size += nextMultipleOf(width * height, 4) / 4;
 		else size += nextMultipleOf(width * height, 8) / 8;
-		this.intSize = size;
+
+		// A dirty, but effective, optimization in the vertex shader relies on the existence of at least 5 integers
+		this.intSize = max(5, size);
 	}
 
 	/**
@@ -78,6 +81,8 @@ public class Kim3Compressor {
 	 * </ul>
 	 */
 	public void compress(ByteBuffer destination) {
+		int oldPosition = destination.position();
+
 		// Header
 		destination.putInt(width | (height << 12) | (colorTable.size() << 24));
 
@@ -105,5 +110,8 @@ public class Kim3Compressor {
 		}
 
 		if (nextBitIndex != 0) destination.putInt(nextValue);
+
+		// A dirty, but effective, optimization in the vertex shader relies on the existence of at least 5 integers
+		while (destination.position() - oldPosition < 20) destination.putInt(0);
 	}
 }

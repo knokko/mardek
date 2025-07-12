@@ -122,8 +122,9 @@ public class Vk2dResourceLoader {
 				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT), images
 		);
 		recorder.bufferBarrier(
-				fakeImages, ResourceUsage.TRANSFER_DEST,
-				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+				fakeImages, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
+						VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT
+				)
 		);
 
 		DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
