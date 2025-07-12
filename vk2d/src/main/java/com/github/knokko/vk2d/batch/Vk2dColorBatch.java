@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 
 import static java.lang.Math.max;
 
-public class Vk2dColorBatch extends Vk2dBatch<Vk2dColorPipeline> {
+public class Vk2dColorBatch extends Vk2dBatch {
 
 	public Vk2dColorBatch(Vk2dColorPipeline pipeline, Vk2dFrame frame, int initialCapacity) {
 		super(pipeline, frame, initialCapacity);

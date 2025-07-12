@@ -54,7 +54,7 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 	}
 
 	@Override
-	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MappedVkbBuffer vertexData, Vk2dBatch<?> batch) {
+	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MappedVkbBuffer vertexData, Vk2dBatch batch) {
 		int firstVertex = Math.toIntExact((vertexData.offset - perFrameBuffer.buffer.offset) / vertexSize);
 		LongBuffer pDescriptorSet = recorder.stack.callocLong(1);
 		int descriptorIndex = 0;

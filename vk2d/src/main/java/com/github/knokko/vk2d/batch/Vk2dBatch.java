@@ -12,16 +12,16 @@ import java.util.List;
 
 import static java.lang.Math.max;
 
-public class Vk2dBatch<P extends Vk2dPipeline> {
+public class Vk2dBatch {
 
-	public final P pipeline;
+	private final Vk2dPipeline pipeline;
 	protected final PerFrameBuffer perFrameBuffer;
 	private final List<MappedVkbBuffer> vertexBuffers = new ArrayList<>();
 	private final List<ByteBuffer> vertexDataBuffers = new ArrayList<>();
 
 	public final int width, height;
 
-	public Vk2dBatch(P pipeline, Vk2dFrame frame, int initialCapacity) {
+	public Vk2dBatch(Vk2dPipeline pipeline, Vk2dFrame frame, int initialCapacity) {
 		this.pipeline = pipeline;
 		this.perFrameBuffer = frame.perFrameBuffer;
 		this.width = frame.width;

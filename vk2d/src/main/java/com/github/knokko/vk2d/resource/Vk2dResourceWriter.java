@@ -12,6 +12,7 @@ import com.github.knokko.compressor.Bc1Compressor;
 import com.github.knokko.compressor.Bc1Worker;
 import com.github.knokko.compressor.Bc7Compressor;
 import com.github.knokko.compressor.Kim1Compressor;
+import com.github.knokko.vk2d.Kim3Compressor;
 import org.lwjgl.BufferUtils;
 
 import java.awt.*;
@@ -54,6 +55,10 @@ public class Vk2dResourceWriter {
 			Kim1Compressor compressor = new Kim1Compressor(
 					pixelBuffer, image.getWidth(), image.getHeight(), 4
 			);
+			data = BufferUtils.createByteBuffer(4 * compressor.intSize);
+			compressor.compress(data);
+		} else if (compression == Vk2dFakeImageCompression.KIM3) {
+			Kim3Compressor compressor = new Kim3Compressor(pixelBuffer, image.getWidth(), image.getHeight());
 			data = BufferUtils.createByteBuffer(4 * compressor.intSize);
 			compressor.compress(data);
 		} else throw new UnsupportedOperationException("TODO");

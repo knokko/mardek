@@ -59,13 +59,13 @@ public abstract class Vk2dPipeline {
 		builder.ciPipeline.pVertexInputState(ciVertexInput);
 	}
 
-	public void prepareRecording(CommandRecorder recorder, Vk2dBatch<?> batch) {
+	public void prepareRecording(CommandRecorder recorder, Vk2dBatch batch) {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 	}
 
 	public void recordBatch(
 			CommandRecorder recorder, PerFrameBuffer perFrameBuffer,
-			MappedVkbBuffer vertexData, Vk2dBatch<?> batch
+			MappedVkbBuffer vertexData, Vk2dBatch batch
 	) {
 		int vertexCount = (int) (vertexData.size / vertexSize);
 		int firstVertex = Math.toIntExact((vertexData.offset - perFrameBuffer.buffer.offset) / vertexSize);

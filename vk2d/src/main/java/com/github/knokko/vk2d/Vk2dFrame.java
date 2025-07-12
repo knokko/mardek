@@ -10,7 +10,7 @@ import java.util.List;
 public class Vk2dFrame {
 
 	public final PerFrameBuffer perFrameBuffer;
-	public final List<Vk2dBatch<?>> batches = new ArrayList<>();
+	public final List<Vk2dBatch> batches = new ArrayList<>();
 
 	public int width, height;
 
@@ -22,6 +22,6 @@ public class Vk2dFrame {
 
 	public void record(CommandRecorder recorder) {
 		recorder.bindVertexBuffers(0,  perFrameBuffer.buffer);
-		for (Vk2dBatch<?> batch : batches) batch.record(recorder);
+		for (Vk2dBatch batch : batches) batch.record(recorder);
 	}
 }

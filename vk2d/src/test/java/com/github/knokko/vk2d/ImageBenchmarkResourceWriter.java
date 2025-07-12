@@ -38,6 +38,7 @@ public class ImageBenchmarkResourceWriter {
 					if (hasContent(slice)) {
 						writer.addImage(slice, Vk2dImageCompression.NONE, true);
 						writer.addFakeImage(slice, Vk2dFakeImageCompression.KIM1);
+						writer.addFakeImage(slice, Vk2dFakeImageCompression.KIM3);
 					}
 				}
 			}

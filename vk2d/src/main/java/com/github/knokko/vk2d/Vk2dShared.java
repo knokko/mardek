@@ -17,6 +17,8 @@ public class Vk2dShared {
 	public final VkbDescriptorSetLayout imageDescriptorSetLayout;
 	public final VkbDescriptorSetLayout bufferDescriptorSetLayout;
 
+	public final long kimPipelineLayout;
+
 	public Vk2dShared(BoilerInstance boiler) {
 		this.pixelatedSampler = boiler.images.createSimpleSampler(
 				VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST,
@@ -35,6 +37,10 @@ public class Vk2dShared {
 			builder.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
 			this.bufferDescriptorSetLayout = builder.build(boiler, "Vk2dBufferDescriptorLayout");
 		}
+		this.kimPipelineLayout = boiler.pipelines.createLayout(
+				null, "Vk2dKimPipelineLayout",
+				bufferDescriptorSetLayout.vkDescriptorSetLayout
+		);
 	}
 
 	public void destroy(BoilerInstance boiler) {
@@ -48,6 +54,10 @@ public class Vk2dShared {
 			vkDestroyDescriptorSetLayout(
 					boiler.vkDevice(), bufferDescriptorSetLayout.vkDescriptorSetLayout,
 					CallbackUserData.DESCRIPTOR_SET_LAYOUT.put(stack, boiler)
+			);
+			vkDestroyPipelineLayout(
+					boiler.vkDevice(), kimPipelineLayout,
+					CallbackUserData.PIPELINE_LAYOUT.put(stack, boiler)
 			);
 		}
 	}

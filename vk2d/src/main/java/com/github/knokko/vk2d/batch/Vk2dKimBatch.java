@@ -1,17 +1,16 @@
 package com.github.knokko.vk2d.batch;
 
-import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.vk2d.Vk2dFrame;
-import com.github.knokko.vk2d.pipeline.Vk2dKim1Pipeline;
+import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 
 import java.nio.ByteBuffer;
 
-public class Vk2dKim1Batch extends Vk2dBatch<Vk2dKim1Pipeline> {
+public class Vk2dKimBatch extends Vk2dBatch {
 
 	public final Vk2dResourceBundle bundle;
 
-	public Vk2dKim1Batch(Vk2dKim1Pipeline pipeline, Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
+	public Vk2dKimBatch(Vk2dPipeline pipeline, Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
 		super(pipeline, frame, initialCapacity);
 		this.bundle = bundle;
 	}

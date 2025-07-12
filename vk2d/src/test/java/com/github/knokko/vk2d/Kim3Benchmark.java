@@ -15,14 +15,14 @@ import java.util.Random;
 
 import static com.github.knokko.vk2d.ImageBenchmarkResourceWriter.FILE;
 
-public class Kim1Benchmark extends Vk2dWindow {
+public class Kim3Benchmark extends Vk2dWindow {
 
-	private Vk2dKimPipeline kim1Pipeline;
+	private Vk2dKimPipeline kim3Pipeline;
 
 	private long referenceTime = System.nanoTime();
 	private int fps = 0;
 
-	public Kim1Benchmark(VkbWindow window) {
+	public Kim3Benchmark(VkbWindow window) {
 		super(window, false);
 	}
 
@@ -34,7 +34,7 @@ public class Kim1Benchmark extends Vk2dWindow {
 	@Override
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
-		this.kim1Pipeline = new Vk2dKimPipeline(pipelineContext, shared, 1);
+		this.kim3Pipeline = new Vk2dKimPipeline(pipelineContext, shared, 3);
 	}
 
 	@Override
@@ -50,13 +50,13 @@ public class Kim1Benchmark extends Vk2dWindow {
 		Random rng = new Random();
 		int numRounds = 1;
 		int scale = 1;
-		Vk2dKimBatch batch1 = kim1Pipeline.addBatch(frame, 5000, resources);
+		Vk2dKimBatch batch1 = kim3Pipeline.addBatch(frame, 5000, resources);
 		for (int round = 0; round < numRounds; round++) {
 			for (int y = 0; y < swapchainImage.height(); y += 16 * scale) {
 				for (int x = 0; x < swapchainImage.width(); x += 16 * scale) {
 					batch1.simple(
 							x, y, x + 16 * scale - 1, y + 16 * scale - 1,
-							2 * rng.nextInt(resources.numFakeImages / 2)
+							1 + 2 * rng.nextInt(resources.numFakeImages / 2)
 					);
 				}
 			}
@@ -66,10 +66,10 @@ public class Kim1Benchmark extends Vk2dWindow {
 	@Override
 	protected void cleanUp(BoilerInstance boiler) {
 		super.cleanUp(boiler);
-		kim1Pipeline.destroy(boiler);
+		kim3Pipeline.destroy(boiler);
 	}
 
 	public static void main(String[] args) {
-		bootstrap("Kim1Benchmark", 1, Vk2dValidationMode.NONE, Kim1Benchmark::new);
+		bootstrap("Kim3Benchmark", 1, Vk2dValidationMode.NONE, Kim3Benchmark::new);
 	}
 }

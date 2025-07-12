@@ -52,7 +52,7 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 	}
 
 	@Override
-	public void prepareRecording(CommandRecorder recorder, Vk2dBatch<?> batch) {
+	public void prepareRecording(CommandRecorder recorder, Vk2dBatch batch) {
 		super.prepareRecording(recorder, batch);
 		vkCmdPushConstants(
 				recorder.commandBuffer, vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
