@@ -1,0 +1,82 @@
+package com.github.knokko.vk2d;
+
+import com.github.knokko.boiler.BoilerInstance;
+import com.github.knokko.boiler.commands.CommandRecorder;
+import com.github.knokko.boiler.memory.MemoryCombiner;
+import com.github.knokko.boiler.window.AcquiredImage;
+import com.github.knokko.boiler.window.VkbWindow;
+import com.github.knokko.vk2d.batch.Vk2dOvalBatch;
+import com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline;
+
+import java.util.Random;
+
+import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
+
+public class OvalBenchmark extends Vk2dWindow {
+
+	private Vk2dOvalPipeline ovalPipeline;
+
+	private long referenceTime = System.nanoTime();
+	private int fps = 0;
+
+	public OvalBenchmark(VkbWindow window) {
+		super(window, false);
+	}
+
+	@Override
+	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner) {
+		super.createResources(boiler, combiner);
+		this.ovalPipeline = new Vk2dOvalPipeline(pipelineContext);
+	}
+
+	@Override
+	protected void renderFrame(Vk2dFrame frame, CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler) {
+		long currentTime = System.nanoTime();
+		if (currentTime - referenceTime > 1000_000_000L) {
+			System.out.println("FPS is " + fps);
+			fps = 0;
+			referenceTime = currentTime;
+		}
+		fps += 1;
+
+		Vk2dOvalBatch batch1 = ovalPipeline.addBatch(frame, 24);
+		batch1.simpleAliased(0, 0, batch1.width - 1, batch1.height - 1, rgb(255, 0, 0));
+		batch1.simpleAntiAliased(
+				batch1.width / 10, batch1.height / 10,
+				batch1.width - batch1.width / 10, batch1.height - batch1.height / 10,
+				0.1f, rgb(0, 255, 255)
+		);
+		batch1.aliased(
+				200, 100, 300, 300, 300, 200,
+				100, 100, rgb(255, 255, 0)
+		);
+		batch1.antiAliased(
+				batch1.width - 320, batch1.height - 320, batch1.width - 180, batch1.height - 80,
+				batch1.width - 300, batch1.height - 200,
+				100, 100, 0.1f, rgb(255, 0, 255)
+		);
+
+		int cellSize = 25;
+		Random rng = new Random();
+		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
+			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
+				batch1.complex(
+						x, y, x + cellSize - 1, y + cellSize - 1,
+						x + cellSize / 2, y + cellSize / 2, cellSize / 2, cellSize / 2,
+						rng.nextInt(), rng.nextInt(), rng.nextInt(), rng.nextInt(), rng.nextInt(),
+						0.2f, 0.4f, 0.6f, 0.8f
+				);
+			}
+		}
+	}
+
+	@Override
+	protected void cleanUp(BoilerInstance boiler) {
+		super.cleanUp(boiler);
+		ovalPipeline.destroy(boiler);
+	}
+
+	public static void main(String[] args) {
+		bootstrap("OvalBenchmark", 1, Vk2dValidationMode.NONE, OvalBenchmark::new);
+	}
+}

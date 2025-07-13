@@ -11,6 +11,8 @@ layout(set = 0, binding = 0) readonly buffer TextureData {
 
 layout(location = 0) out vec4 outColor;
 
+#include "decode.glsl"
+
 void main() {
 	uint width = header & 4095;
 	uint height = (header >> 12) & 4095;
@@ -36,9 +38,5 @@ void main() {
 	else if (tableIndex == 3) color = firstColors.w;
 	else color = textureData[textureIndex + 1 + tableIndex];
 
-	uint ured = color & 255u;
-	uint ugreen = (color >> 8) & 255u;
-	uint ublue = (color >> 16) & 255u;
-	uint ualpha = (color >> 24) & 255u;
-	outColor = vec4(ured / 255.0, ugreen / 255.0, ublue / 255.0, ualpha / 255.0);
+	outColor = decodeColor(color);
 }
