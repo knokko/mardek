@@ -1,6 +1,7 @@
 dependencies {
 	implementation "org.lwjgl:lwjgl-sdl"
 	implementation "org.lwjgl:lwjgl-freetype"
+	implementation "org.lwjgl:lwjgl-harfbuzz"
 	for (format in ["kim1", "kim2", "bc1", "bc7"]) {
 		implementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
 	}
