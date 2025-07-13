@@ -18,19 +18,23 @@ public class Vk2dColorBatch extends Vk2dBatch {
 	}
 
 	public void fill(int minX, int minY, int maxX, int maxY, int color) {
+		fillUnaligned(minX, maxY + 1, maxX + 1, maxY + 1, maxX + 1, minY, minX, minY, color);
+	}
+
+	public void fillUnaligned(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int color) {
 		ByteBuffer vertices = putVertices(6);
-		putPosition(vertices, minX, maxY + 1);
+		putPosition(vertices, x1, y1);
 		vertices.putInt(color);
-		putPosition(vertices, maxX + 1, maxY + 1);
+		putPosition(vertices, x2, y2);
 		vertices.putInt(color);
-		putPosition(vertices, maxX + 1, minY);
+		putPosition(vertices, x3, y3);
 		vertices.putInt(color);
 
-		putPosition(vertices, maxX + 1, minY);
+		putPosition(vertices, x3, y3);
 		vertices.putInt(color);
-		putPosition(vertices, minX, minY);
+		putPosition(vertices, x4, y4);
 		vertices.putInt(color);
-		putPosition(vertices, minX, maxY + 1);
+		putPosition(vertices, x1, y1);
 		vertices.putInt(color);
 	}
 }

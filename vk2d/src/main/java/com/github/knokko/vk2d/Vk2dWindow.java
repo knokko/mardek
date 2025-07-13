@@ -16,6 +16,7 @@ import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkClearValue;
+import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
 import org.lwjgl.vulkan.VkRenderPassBeginInfo;
 
 import java.io.IOException;
@@ -171,6 +172,8 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		BoilerBuilder builder = new BoilerBuilder(
 				validationMode == Vk2dValidationMode.STRONG ? VK_API_VERSION_1_3 : VK_API_VERSION_1_0, title, appVersion
 		);
+		builder.requiredFeatures10("textureCompressionBc", VkPhysicalDeviceFeatures::textureCompressionBC);
+		builder.featurePicker10((stack, supported, toEnable) -> toEnable.textureCompressionBC(true));
 		if (validationMode != Vk2dValidationMode.NONE) builder.validation();
 		if (validationMode == Vk2dValidationMode.STRONG) builder.forbidValidationErrors();
 		BoilerInstance boiler = builder.addWindow(

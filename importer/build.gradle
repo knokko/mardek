@@ -5,6 +5,7 @@ dependencies {
 	implementation files("../flash/ffdec_lib.jar")
 	implementation project(":content")
 	implementation project(":state")
+	implementation project(":vk2d")
 }
 
 tasks.register("exportContent", JavaExec) {

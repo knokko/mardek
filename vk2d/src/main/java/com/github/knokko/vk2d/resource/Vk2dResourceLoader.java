@@ -90,13 +90,15 @@ public class Vk2dResourceLoader {
 		}
 
 		long fakeImageSize = 4L * fakeOffset;
-		this.fakeImages = combiner.addBuffer(
-				fakeImageSize, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
-				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0.5f
-		);
-		this.fakeStagingBuffer = stagingCombiner.addMappedBuffer(
-				fakeImageSize, 4L, VK_BUFFER_USAGE_TRANSFER_SRC_BIT
-		);
+		if (fakeImageSize > 0L) {
+			this.fakeImages = combiner.addBuffer(
+					fakeImageSize, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
+					VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0.5f
+			);
+			this.fakeStagingBuffer = stagingCombiner.addMappedBuffer(
+					fakeImageSize, 4L, VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+			);
+		}
 	}
 
 	public void prepareStaging() throws IOException {
@@ -109,27 +111,31 @@ public class Vk2dResourceLoader {
 			buffer.byteBuffer().put(bytes);
 		}
 
-		IntBuffer fakeData = fakeStagingBuffer.intBuffer();
-		while (fakeData.hasRemaining()) fakeData.put(input.readInt());
+		if (fakeStagingBuffer != null) {
+			IntBuffer fakeData = fakeStagingBuffer.intBuffer();
+			while (fakeData.hasRemaining()) fakeData.put(input.readInt());
+		}
 	}
 
 	public void performStaging(BoilerInstance boiler, CommandRecorder recorder, Vk2dShared shared) {
 		recorder.bulkTransitionLayout(null, ResourceUsage.TRANSFER_DEST, images);
 		recorder.bulkCopyBufferToImage(images, imageStagingBuffers);
-		recorder.copyBuffer(fakeStagingBuffer, fakeImages);
+		if (fakeImages != null) recorder.copyBuffer(fakeStagingBuffer, fakeImages);
 		recorder.bulkTransitionLayout(
 				ResourceUsage.TRANSFER_DEST,
 				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT), images
 		);
-		recorder.bufferBarrier(
-				fakeImages, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
-						VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT
-				)
-		);
+		if (fakeImages != null) {
+			recorder.bufferBarrier(fakeImages, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
+					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT
+			));
+		}
 
 		DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
 		this.imageDescriptors = descriptors.addMultiple(shared.imageDescriptorSetLayout, images.length);
-		descriptors.addSingle(shared.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet);
+		if (fakeImages != null) descriptors.addSingle(
+				shared.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet
+		);
 		this.descriptorPool = descriptors.build("Vk2dDescriptorPool");
 	}
 
@@ -152,10 +158,12 @@ public class Vk2dResourceLoader {
 			}
 		}
 
-		try (MemoryStack stack = stackPush()) {
-			DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
-			updater.writeStorageBuffer(0, fakeImageDescriptor, 0, fakeImages);
-			updater.update(boiler);
+		if (fakeImageDescriptor != 0L) {
+			try (MemoryStack stack = stackPush()) {
+				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
+				updater.writeStorageBuffer(0, fakeImageDescriptor, 0, fakeImages);
+				updater.update(boiler);
+			}
 		}
 
 		return new Vk2dResourceBundle(
