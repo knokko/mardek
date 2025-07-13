@@ -6,7 +6,6 @@ import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
-import mardek.renderer.BORDER_WIDTH
 import mardek.renderer.FULL_BORDER_HEIGHT
 import mardek.state.GameStateManager
 import org.lwjgl.sdl.SDLEvents.*
@@ -144,21 +143,18 @@ class MardekSdlInput(
 			}
 
 			if (type == SDL_EVENT_MOUSE_MOTION) {
-				val rawX = SDL_MouseMotionEvent.nx(rawEvent).toInt()
-				val rawY = SDL_MouseMotionEvent.ny(rawEvent).toInt()
-				input.postEvent(MouseMoveEvent(
-					newX = rawX - BORDER_WIDTH,
-					newY = rawY - FULL_BORDER_HEIGHT
-				))
+				val newX = SDL_MouseMotionEvent.nx(rawEvent).toInt()
+				val newY = SDL_MouseMotionEvent.ny(rawEvent).toInt()
+				input.postEvent(MouseMoveEvent(newX, newY))
 
 				val cross = state.crossLocation
-				state.hoveringCross = cross != null && cross.contains(rawX, rawY)
+				state.hoveringCross = cross != null && cross.contains(newX, newY)
 
 				val maximize = state.maximizeLocation
-				state.hoveringMaximize = maximize != null && maximize.contains(rawX, rawY)
+				state.hoveringMaximize = maximize != null && maximize.contains(newX, newY)
 
 				val minus = state.minusLocation
-				state.hoveringMinus = minus != null && minus.contains(rawX, rawY)
+				state.hoveringMinus = minus != null && minus.contains(newX, newY)
 			}
 
 			if (type == SDL_EVENT_MOUSE_BUTTON_DOWN) {

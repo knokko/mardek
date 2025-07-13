@@ -2,11 +2,12 @@ package mardek.renderer.title
 
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
-import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import mardek.content.ui.TitleScreenContent
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderResources
+import mardek.renderer.util.renderButton
 import mardek.state.title.TitleScreenState
 import mardek.state.util.Rectangle
 import kotlin.math.roundToInt
@@ -39,19 +40,32 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 		)
 	}
 
-	val colorBatch = context.resources.colorPipeline.addBatch(context.frame, 36)
+	val colorBatch = context.resources.colorPipeline.addBatch(context.frame, 100)
+	val ovalBatch = context.resources.ovalPipeline.addBatch(context.frame, 48)
 
-	state.newGameButton = renderButton(region, colorBatch, "New Game", 0.54f, 0)
-	state.loadGameButton = renderButton(region, colorBatch, "Load Game", 0.64f, 1)
-	state.musicPlayerButton = renderButton(region, colorBatch, "Music Player", 0.74f, 2)
-	state.quitButton = renderButton(region, colorBatch, "Quit", 0.84f, 3)
+	state.newGameButton = renderButton(
+		region, colorBatch, ovalBatch, "New Game",
+		0.54f, state.selectedButton, 0
+	)
+	state.loadGameButton = renderButton(
+		region, colorBatch, ovalBatch, "Load Game",
+		0.64f, state.selectedButton, 1
+	)
+	state.musicPlayerButton = renderButton(
+		region, colorBatch, ovalBatch, "Music Player",
+		0.74f, state.selectedButton,2
+	)
+	state.quitButton = renderButton(
+		region, colorBatch, ovalBatch, "Quit",
+		0.84f, state.selectedButton, 3
+	)
 
 	return colorBatch
 }
 
 private fun renderButton(
-	outerRegion: Rectangle, colorBatch: Vk2dColorBatch,
-	text: String, relativeY: Float, index: Int
+	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
+	text: String, relativeY: Float, selectedButton: Int, buttonIndex: Int
 ): Rectangle {
 	val rect = Rectangle(
 		outerRegion.minX + 3 * outerRegion.height / 10,
@@ -59,15 +73,14 @@ private fun renderButton(
 		outerRegion.height / 2,
 		outerRegion.height / 12,
 	)
-	val outlineWidth = outerRegion.height / 200
+	val outlineWidth = rect.height / 10
 	val textOffsetX = rect.minX + outerRegion.height / 200
 	val textBaseY = rect.maxY - outerRegion.height / 50
 	val textHeight = outerRegion.height / 22
-	colorBatch.fill(rect.minX, rect.minY, rect.maxX, rect.maxY, rgb(100, 100, 100))
-//	renderButton(
-//		context.uiRenderer, context.resources.font, true, text,
-//		state.selectedButton == buttonIndex,
-//		rect, outlineWidth, textOffsetX, textBaseY, textHeight
-//	)
+	renderButton(
+		colorBatch, ovalBatch, true, text,
+		selectedButton == buttonIndex,
+		rect, outlineWidth, textOffsetX, textBaseY, textHeight
+	)
 	return rect
 }
