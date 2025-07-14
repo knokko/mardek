@@ -13,7 +13,12 @@ import com.github.knokko.compressor.Bc1Worker;
 import com.github.knokko.compressor.Bc7Compressor;
 import com.github.knokko.compressor.Kim1Compressor;
 import com.github.knokko.vk2d.Kim3Compressor;
+import com.github.knokko.vk2d.text.Font;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.freetype.FT_Face;
+import org.lwjgl.util.freetype.FT_Outline_Funcs;
+import org.lwjgl.util.freetype.FT_Vector;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -23,15 +28,20 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.github.knokko.text.FreeTypeFailureException.assertFtSuccess;
 import static java.lang.Math.max;
+import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.lwjgl.util.freetype.FreeType.*;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceWriter {
 
 	private final List<Image> images = new ArrayList<>();
+	private final List<Font> fonts = new ArrayList<>();
 	private final List<FakeImage> fakeImages = new ArrayList<>();
 	private byte[][] bcImageData;
 
@@ -43,6 +53,54 @@ public class Vk2dResourceWriter {
 		}
 		images.add(new Image(image, compression, pixelated));
 		return images.size() - 1;
+	}
+
+	public int addFont(FT_Face font) {
+		List<FontCurve> curves = new ArrayList<>();
+		List<FontGlyph> glyphs = new ArrayList<>();
+		try (MemoryStack stack = stackPush()) {
+			var position = FT_Vector.calloc(stack);
+			var outlineFunctions = FT_Outline_Funcs.calloc(stack);
+
+			outlineFunctions.move_to((long raw, long userData) -> {
+				@SuppressWarnings("resource") var to = FT_Vector.create(raw);
+				position.x(to.x());
+				position.y(to.y());
+				return 0;
+			});
+			outlineFunctions.line_to((long raw, long userData) -> {
+				@SuppressWarnings("resource") var to = FT_Vector.create(raw);
+				// TODO.add(new com.github.knokko.vk2d.text.Font.Line(position.x(), position.y(), to.x(), to.y()));
+				position.x(to.x());
+				position.y(to.y());
+				return 0;
+			});
+			outlineFunctions.conic_to((long rawControl, long rawTo, long userData) -> {
+				@SuppressWarnings("resource") var control = FT_Vector.create(rawControl);
+				@SuppressWarnings("resource") var to = FT_Vector.create(rawTo);
+				curves.add(new FontCurve(position.x(), position.y(), control.x(), control.y(), to.x(), to.y()));
+				// TODO Think about coordinate transform
+				position.x(to.x());
+				position.y(to.y());
+				return 0;
+			});
+			outlineFunctions.cubic_to((long control1, long control2, long to, long userData) -> 1);
+			outlineFunctions.delta(0);
+			outlineFunctions.shift(0);
+
+			for (int glyph = 0; glyph < font.num_glyphs(); glyph++) {
+				System.out.println("Glyph is " + glyph + " and #glyphs is " + font.num_glyphs());
+				int curveIndex = curves.size();
+				assertFtSuccess(FT_Load_Glyph(font, glyph, FT_LOAD_NO_SCALE), "Load_Glyph", "Vk2dResourceWriter");
+				var outline = Objects.requireNonNull(font.glyph()).outline();
+				assertFtSuccess(FT_Outline_Decompose(outline, outlineFunctions, 0L), "Outline_Decompose", "Vk2dResourceWriter");
+				int numCurves = curves.size() - curveIndex;
+				glyphs.add(new FontGlyph(curveIndex, numCurves));
+			}
+		}
+
+		fonts.add(new Font(font, curves, glyphs));
+		return fonts.size() - 1;
 	}
 
 	public int addFakeImage(BufferedImage image, Vk2dFakeImageCompression compression) {
@@ -182,6 +240,12 @@ public class Vk2dResourceWriter {
 			output.writeInt(image.height);
 		}
 
+		output.writeInt(fonts.size());
+		for (Font font : fonts) {
+			output.writeInt(font.curves.size());
+			output.writeInt(font.glyphs.size());
+		}
+
 		this.bcImageData = new byte[images.size()][];
 		compressBc1Images();
 		compressBc7Images();
@@ -197,6 +261,21 @@ public class Vk2dResourceWriter {
 
 		for (FakeImage image : fakeImages) {
 			for (int value : image.data) output.writeInt(value);
+		}
+
+		for (Font font : fonts) {
+			for (FontCurve curve : font.curves) {
+				output.writeFloat(curve.startX);
+				output.writeFloat(curve.startY);
+				output.writeFloat(curve.controlX);
+				output.writeFloat(curve.controlY);
+				output.writeFloat(curve.endX);
+				output.writeFloat(curve.endY);
+			}
+			for (FontGlyph glyph : font.glyphs) {
+				output.writeInt(glyph.curveIndex);
+				output.writeInt(glyph.numCurves);
+			}
 		}
 
 		output.flush();
@@ -217,4 +296,10 @@ public class Vk2dResourceWriter {
 	private record Image(BufferedImage image, Vk2dImageCompression compression, boolean pixelated) {}
 
 	private record FakeImage(int width, int height, int[] data) {}
+
+	private record Font(FT_Face ftFace, List<FontCurve> curves, List<FontGlyph> glyphs) {}
+
+	private record FontCurve(float startX, float startY, float controlX, float controlY, float endX, float endY) {}
+
+	private record FontGlyph(int curveIndex, int numCurves) {}
 }

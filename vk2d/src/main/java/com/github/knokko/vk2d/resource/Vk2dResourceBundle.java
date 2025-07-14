@@ -14,6 +14,8 @@ public class Vk2dResourceBundle {
 	private final long[] imageDescriptorSets;
 	public final int numImages;
 
+	private final Vk2dFont[] fonts;
+
 	public final long fakeImageDescriptorSet;
 	private final int[] fakeImageOffsets;
 	private final int[] fakeImageWidths;
@@ -21,12 +23,13 @@ public class Vk2dResourceBundle {
 	public final int numFakeImages;
 
 	Vk2dResourceBundle(
-			long vkDescriptorPool, long[] imageDescriptorSets,
+			long vkDescriptorPool, long[] imageDescriptorSets, Vk2dFont[] fonts,
 			long fakeImageDescriptorSet, int[] fakeImageOffsets, int[] fakeImageWidths, int[] fakeImageHeights
 	) {
 		this.vkDescriptorPool = vkDescriptorPool;
 		this.imageDescriptorSets = imageDescriptorSets;
 		this.numImages = imageDescriptorSets.length;
+		this.fonts = fonts;
 
 		this.fakeImageDescriptorSet = fakeImageDescriptorSet;
 		this.fakeImageOffsets = fakeImageOffsets;
@@ -37,6 +40,10 @@ public class Vk2dResourceBundle {
 
 	public long getImageDescriptor(int imageIndex) {
 		return imageDescriptorSets[imageIndex];
+	}
+
+	public Vk2dFont getFont(int fontIndex) {
+		return fonts[fontIndex];
 	}
 
 	public int getFakeImageOffset(int index) {
