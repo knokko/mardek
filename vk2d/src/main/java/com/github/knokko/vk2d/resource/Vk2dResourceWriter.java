@@ -13,7 +13,6 @@ import com.github.knokko.compressor.Bc1Worker;
 import com.github.knokko.compressor.Bc7Compressor;
 import com.github.knokko.compressor.Kim1Compressor;
 import com.github.knokko.vk2d.Kim3Compressor;
-import com.github.knokko.vk2d.text.Font;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.freetype.FT_Face;
@@ -59,6 +58,9 @@ public class Vk2dResourceWriter {
 		List<FontCurve> curves = new ArrayList<>();
 		List<FontGlyph> glyphs = new ArrayList<>();
 		try (MemoryStack stack = stackPush()) {
+			assertFtSuccess(FT_Load_Char(font, 'A', FT_LOAD_NO_SCALE), "Load_Char", "A");
+			float heightA = Objects.requireNonNull(font.glyph()).metrics().height();
+
 			var position = FT_Vector.calloc(stack);
 			var outlineFunctions = FT_Outline_Funcs.calloc(stack);
 
@@ -70,7 +72,12 @@ public class Vk2dResourceWriter {
 			});
 			outlineFunctions.line_to((long raw, long userData) -> {
 				@SuppressWarnings("resource") var to = FT_Vector.create(raw);
-				// TODO.add(new com.github.knokko.vk2d.text.Font.Line(position.x(), position.y(), to.x(), to.y()));
+				curves.add(new FontCurve(
+						position.x() / heightA, position.y() / heightA,
+						0.5f * (position.x() + to.x()) / heightA,
+						0.5f * (position.y() + to.y()) / heightA,
+						to.x() / heightA, to.y() / heightA
+				));
 				position.x(to.x());
 				position.y(to.y());
 				return 0;
@@ -78,8 +85,11 @@ public class Vk2dResourceWriter {
 			outlineFunctions.conic_to((long rawControl, long rawTo, long userData) -> {
 				@SuppressWarnings("resource") var control = FT_Vector.create(rawControl);
 				@SuppressWarnings("resource") var to = FT_Vector.create(rawTo);
-				curves.add(new FontCurve(position.x(), position.y(), control.x(), control.y(), to.x(), to.y()));
-				// TODO Think about coordinate transform
+				curves.add(new FontCurve(
+						position.x() / heightA, position.y() / heightA,
+						control.x() / heightA, control.y() / heightA,
+						to.x() / heightA, to.y() / heightA
+				));
 				position.x(to.x());
 				position.y(to.y());
 				return 0;
@@ -95,7 +105,9 @@ public class Vk2dResourceWriter {
 				var outline = Objects.requireNonNull(font.glyph()).outline();
 				assertFtSuccess(FT_Outline_Decompose(outline, outlineFunctions, 0L), "Outline_Decompose", "Vk2dResourceWriter");
 				int numCurves = curves.size() - curveIndex;
-				glyphs.add(new FontGlyph(curveIndex, numCurves));
+
+				var metrics = Objects.requireNonNull(font.glyph()).metrics();
+				glyphs.add(new FontGlyph(curveIndex, numCurves, metrics.width() / heightA, metrics.height() / heightA));
 			}
 		}
 
@@ -244,6 +256,10 @@ public class Vk2dResourceWriter {
 		for (Font font : fonts) {
 			output.writeInt(font.curves.size());
 			output.writeInt(font.glyphs.size());
+			for (FontGlyph glyph : font.glyphs) {
+				output.writeFloat(glyph.width);
+				output.writeFloat(glyph.height);
+			}
 		}
 
 		this.bcImageData = new byte[images.size()][];
@@ -301,5 +317,5 @@ public class Vk2dResourceWriter {
 
 	private record FontCurve(float startX, float startY, float controlX, float controlY, float endX, float endY) {}
 
-	private record FontGlyph(int curveIndex, int numCurves) {}
+	private record FontGlyph(int curveIndex, int numCurves, float width, float height) {}
 }

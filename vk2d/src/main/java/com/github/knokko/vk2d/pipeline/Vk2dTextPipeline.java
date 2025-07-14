@@ -2,14 +2,12 @@ package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.boiler.descriptors.DescriptorSetLayoutBuilder;
-import com.github.knokko.boiler.descriptors.VkbDescriptorSetLayout;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.Vk2dShared;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
-import com.github.knokko.vk2d.batch.Vk2dKimBatch;
-import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
+import com.github.knokko.vk2d.batch.Vk2dTextBatch;
+import com.github.knokko.vk2d.resource.Vk2dFont;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 
@@ -20,22 +18,16 @@ public class Vk2dTextPipeline extends Vk2dPipeline {
 
 	public static final int VERTEX_SIZE = 20;
 
-	private final VkbDescriptorSetLayout descriptorLayout;
 	private final long vkPipelineLayout;
 
 	@SuppressWarnings("resource")
-	public Vk2dTextPipeline(Vk2dPipelineContext context, int version) {
+	public Vk2dTextPipeline(Vk2dPipelineContext context, Vk2dShared shared) {
 		super(VERTEX_SIZE);
 
 		try (MemoryStack stack = stackPush()) {
-			var layoutBuilder = new DescriptorSetLayoutBuilder(stack, 2);
-			layoutBuilder.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
-			layoutBuilder.set(0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
-			this.descriptorLayout = layoutBuilder.build(context.boiler(), "Vk2dTextDescriptorLayout");
-
 			this.vkPipelineLayout = context.boiler().pipelines.createLayout(
 					null, "Vk2dTextPipelineLayout",
-					this.descriptorLayout.vkDescriptorSetLayout
+					shared.textDescriptorSetLayout.vkDescriptorSetLayout
 			);
 
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(3, stack);
@@ -55,14 +47,14 @@ public class Vk2dTextPipeline extends Vk2dPipeline {
 		}
 	}
 
-//	public Vk2dKimBatch addBatch(Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
-//		return new Vk2dKimBatch(this, frame, initialCapacity, bundle);
-//	}
+	public Vk2dTextBatch addBatch(Vk2dFrame frame, int initialCapacity, Vk2dFont font) {
+		return new Vk2dTextBatch(this, frame, initialCapacity, font);
+	}
 
 	@Override
 	public void prepareRecording(CommandRecorder recorder, Vk2dBatch batch) {
 		super.prepareRecording(recorder, batch);
-		recorder.bindGraphicsDescriptors(vkPipelineLayout, ((Vk2dKimBatch) batch).bundle.fakeImageDescriptorSet);
+		recorder.bindGraphicsDescriptors(vkPipelineLayout, ((Vk2dTextBatch) batch).font.vkDescriptorSet);
 	}
 
 	@Override
@@ -72,10 +64,6 @@ public class Vk2dTextPipeline extends Vk2dPipeline {
 			vkDestroyPipelineLayout(
 					boiler.vkDevice(), vkPipelineLayout,
 					CallbackUserData.PIPELINE_LAYOUT.put(stack, boiler)
-			);
-			vkDestroyDescriptorSetLayout(
-					boiler.vkDevice(), descriptorLayout.vkDescriptorSetLayout,
-					CallbackUserData.DESCRIPTOR_SET_LAYOUT.put(stack, boiler)
 			);
 		}
 	}

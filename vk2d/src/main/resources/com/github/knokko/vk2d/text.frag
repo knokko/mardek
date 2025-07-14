@@ -10,11 +10,11 @@ struct Curve {
 	vec2 p0, p1, p2;
 };
 
-layout(set = 0, binding = 0) readonly buffer GlyphBuffer {
-	uint glyphData[];
-};
-layout(set = 0, binding = 1) readonly buffer CurveBuffer {
+layout(set = 0, binding = 0) readonly buffer CurveBuffer {
 	float curveData[];
+};
+layout(set = 0, binding = 1) readonly buffer GlyphBuffer {
+	uint glyphData[];
 };
 
 // Controls for debugging and exploring:
@@ -22,7 +22,7 @@ layout(set = 0, binding = 1) readonly buffer CurveBuffer {
 // Size of the window (in pixels) used for 1-dimensional anti-aliasing along each rays.
 //   0 - no anti-aliasing
 //   1 - normal anti-aliasing
-// >=2 - exaggerated effect 
+// >=2 - exaggerated effect
 //uniform float antiAliasingWindowSize = 1.0;
 
 // Enable a second ray along the y-axis to achieve 2-dimensional anti-aliasing.
@@ -33,7 +33,7 @@ layout(set = 0, binding = 1) readonly buffer CurveBuffer {
 
 
 layout(location = 0) in vec2 uv;
-layout(location = 1) flat in int bufferIndex;
+layout(location = 1) in flat uint bufferIndex;
 layout(location = 2) in vec4 color;
 
 layout(location = 0) out vec4 result;
@@ -70,7 +70,7 @@ float computeCoverage(float inverseDiameter, vec2 p0, vec2 p1, vec2 p2) {
 		// Quadratic segment, solve abc formula to find roots.
 		float radicand = b.y*b.y - a.y*c.y;
 		if (radicand <= 0) return 0.0;
-	
+
 		float s = sqrt(radicand);
 		t0 = (b.y - s) / a.y;
 		t1 = (b.y + s) / a.y;
@@ -91,7 +91,7 @@ float computeCoverage(float inverseDiameter, vec2 p0, vec2 p1, vec2 p2) {
 	}
 
 	float alpha = 0;
-	
+
 	if (t0 >= 0 && t0 < 1) {
 		float x = (a.x*t0 - 2.0*b.x)*t0 + c.x;
 		alpha += clamp(x * inverseDiameter + 0.5, 0, 1);

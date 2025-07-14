@@ -15,6 +15,7 @@ public class Vk2dShared {
 	public final long smoothSampler;
 
 	public final VkbDescriptorSetLayout imageDescriptorSetLayout;
+	public final VkbDescriptorSetLayout textDescriptorSetLayout;
 	public final VkbDescriptorSetLayout bufferDescriptorSetLayout;
 
 	public final long kimPipelineLayout;
@@ -32,6 +33,11 @@ public class Vk2dShared {
 			DescriptorSetLayoutBuilder builder = new DescriptorSetLayoutBuilder(stack, 1);
 			builder.set(0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
 			this.imageDescriptorSetLayout = builder.build(boiler, "Vk2dImageDescriptorLayout");
+
+			builder = new DescriptorSetLayoutBuilder(stack, 2);
+			builder.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
+			builder.set(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
+			this.textDescriptorSetLayout = builder.build(boiler, "Vk2dTextDescriptorLayout");
 
 			builder = new DescriptorSetLayoutBuilder(stack, 1);
 			builder.set(
@@ -52,6 +58,10 @@ public class Vk2dShared {
 			vkDestroySampler(boiler.vkDevice(), smoothSampler, CallbackUserData.SAMPLER.put(stack, boiler));
 			vkDestroyDescriptorSetLayout(
 					boiler.vkDevice(), imageDescriptorSetLayout.vkDescriptorSetLayout,
+					CallbackUserData.DESCRIPTOR_SET_LAYOUT.put(stack, boiler)
+			);
+			vkDestroyDescriptorSetLayout(
+					boiler.vkDevice(), textDescriptorSetLayout.vkDescriptorSetLayout,
 					CallbackUserData.DESCRIPTOR_SET_LAYOUT.put(stack, boiler)
 			);
 			vkDestroyDescriptorSetLayout(

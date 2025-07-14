@@ -2,10 +2,10 @@
 
 layout (location = 0) in vec2 vertexPosition;
 layout (location = 1) in vec2 vertexUV;
-layout (location = 2) in int vertexIndex;
+layout (location = 2) in uint vertexIndex;
 
 layout(location = 0) out vec2 uv;
-layout(location = 1) flat out int bufferIndex;
+layout(location = 1) out flat uint bufferIndex;
 layout(location = 2) out vec4 color;
 
 void main() {
