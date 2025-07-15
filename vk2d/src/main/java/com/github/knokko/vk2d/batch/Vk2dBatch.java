@@ -58,11 +58,11 @@ public class Vk2dBatch {
 		}
 	}
 
-	public float normalizeX(int x) {
+	public float normalizeX(float x) {
 		return 2f * x / width - 1f;
 	}
 
-	public float normalizeY(int y) {
+	public float normalizeY(float y) {
 		return 2f * y / height - 1;
 	}
 }

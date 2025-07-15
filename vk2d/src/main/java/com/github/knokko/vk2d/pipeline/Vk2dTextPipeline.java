@@ -1,8 +1,6 @@
 package com.github.knokko.vk2d.pipeline;
 
-import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.Vk2dShared;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
@@ -16,7 +14,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dTextPipeline extends Vk2dPipeline {
 
-	public static final int VERTEX_SIZE = 20;
+	public static final int VERTEX_SIZE = 28;
 
 	private final long vkPipelineLayout;
 
@@ -24,16 +22,14 @@ public class Vk2dTextPipeline extends Vk2dPipeline {
 	public Vk2dTextPipeline(Vk2dPipelineContext context, Vk2dShared shared) {
 		super(VERTEX_SIZE);
 
+		this.vkPipelineLayout = shared.kimPipelineLayout;
 		try (MemoryStack stack = stackPush()) {
-			this.vkPipelineLayout = context.boiler().pipelines.createLayout(
-					null, "Vk2dTextPipelineLayout",
-					shared.textDescriptorSetLayout.vkDescriptorSetLayout
-			);
-
-			var vertexAttributes = VkVertexInputAttributeDescription.calloc(3, stack);
+			var vertexAttributes = VkVertexInputAttributeDescription.calloc(5, stack);
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SFLOAT, 0);
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_SFLOAT, 8);
 			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_UINT, 16);
+			vertexAttributes.get(3).set(3, 0, VK_FORMAT_R32_UINT, 20);
+			vertexAttributes.get(4).set(4, 0, VK_FORMAT_R32_UINT, 24);
 
 			var builder = pipelineBuilder(context);
 			builder.simpleShaderStages(
@@ -41,7 +37,7 @@ public class Vk2dTextPipeline extends Vk2dPipeline {
 					"text.vert.spv", "text.frag.spv"
 			);
 			simpleVertexInput(builder, stack, vertexAttributes);
-			builder.ciPipeline.layout(vkPipelineLayout);
+			builder.ciPipeline.layout(shared.kimPipelineLayout);
 
 			this.vkPipeline = builder.build("Vk2dTextPipeline");
 		}
@@ -55,16 +51,5 @@ public class Vk2dTextPipeline extends Vk2dPipeline {
 	public void prepareRecording(CommandRecorder recorder, Vk2dBatch batch) {
 		super.prepareRecording(recorder, batch);
 		recorder.bindGraphicsDescriptors(vkPipelineLayout, ((Vk2dTextBatch) batch).font.vkDescriptorSet);
-	}
-
-	@Override
-	public void destroy(BoilerInstance boiler) {
-		super.destroy(boiler);
-		try (MemoryStack stack = stackPush()) {
-			vkDestroyPipelineLayout(
-					boiler.vkDevice(), vkPipelineLayout,
-					CallbackUserData.PIPELINE_LAYOUT.put(stack, boiler)
-			);
-		}
 	}
 }

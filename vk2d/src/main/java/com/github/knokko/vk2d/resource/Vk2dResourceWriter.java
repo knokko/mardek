@@ -14,6 +14,7 @@ import com.github.knokko.compressor.Bc7Compressor;
 import com.github.knokko.compressor.Kim1Compressor;
 import com.github.knokko.vk2d.Kim3Compressor;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.freetype.FT_Face;
 import org.lwjgl.util.freetype.FT_Outline_Funcs;
@@ -23,6 +24,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -34,10 +36,14 @@ import java.util.concurrent.Executors;
 import static com.github.knokko.text.FreeTypeFailureException.assertFtSuccess;
 import static java.lang.Math.max;
 import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.lwjgl.system.MemoryUtil.memAlloc;
+import static org.lwjgl.system.MemoryUtil.memFree;
 import static org.lwjgl.util.freetype.FreeType.*;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceWriter {
+
+	private long ftLibrary;
 
 	private final List<Image> images = new ArrayList<>();
 	private final List<Font> fonts = new ArrayList<>();
@@ -52,6 +58,39 @@ public class Vk2dResourceWriter {
 		}
 		images.add(new Image(image, compression, pixelated));
 		return images.size() - 1;
+	}
+
+	public int addFont(InputStream ttfInput) {
+		byte[] fontBytes;
+		try {
+			fontBytes = ttfInput.readAllBytes();
+			ttfInput.close();
+		} catch (IOException io) {
+			throw new RuntimeException(io);
+		}
+
+		ByteBuffer ttfBuffer = memAlloc(fontBytes.length);
+		ttfBuffer.put(0, fontBytes);
+
+		FT_Face font;
+		try (MemoryStack stack = stackPush()) {
+			if (ftLibrary == 0L) {
+				PointerBuffer pLibrary = stack.callocPointer(1);
+				assertFtSuccess(FT_Init_FreeType(pLibrary), "Init_FreeType", "Vk2dResourceWriter");
+				ftLibrary = pLibrary.get(0);
+			}
+
+			PointerBuffer pFace = stack.callocPointer(1);
+			assertFtSuccess(FT_New_Memory_Face(
+					ftLibrary, ttfBuffer, 0, pFace
+			), "New_Memory_Face", "Vk2dResourceWriter");
+			font = FT_Face.create(pFace.get(0));
+		}
+
+		int result = addFont(font);
+		assertFtSuccess(FT_Done_Face(font), "Done_Face", "Vk2dResourceWriter");
+		memFree(ttfBuffer);
+		return result;
 	}
 
 	public int addFont(FT_Face font) {
@@ -98,17 +137,31 @@ public class Vk2dResourceWriter {
 			outlineFunctions.delta(0);
 			outlineFunctions.shift(0);
 
+			int maxCurves = 0;
 			for (int glyph = 0; glyph < font.num_glyphs(); glyph++) {
-				System.out.println("Glyph is " + glyph + " and #glyphs is " + font.num_glyphs());
 				int curveIndex = curves.size();
 				assertFtSuccess(FT_Load_Glyph(font, glyph, FT_LOAD_NO_SCALE), "Load_Glyph", "Vk2dResourceWriter");
 				var outline = Objects.requireNonNull(font.glyph()).outline();
 				assertFtSuccess(FT_Outline_Decompose(outline, outlineFunctions, 0L), "Outline_Decompose", "Vk2dResourceWriter");
 				int numCurves = curves.size() - curveIndex;
+				maxCurves = max(maxCurves, numCurves);
 
-				var metrics = Objects.requireNonNull(font.glyph()).metrics();
-				glyphs.add(new FontGlyph(curveIndex, numCurves, metrics.width() / heightA, metrics.height() / heightA));
+				float maxX = 0;
+				float maxY = 0;
+				for (int index = curveIndex; index < curveIndex + numCurves; index++) {
+					FontCurve curve = curves.get(index);
+					maxX = max(maxX, curve.startX);
+					maxY = max(maxY, curve.startY);
+					maxX = max(maxX, curve.controlX);
+					maxY = max(maxY, curve.controlY);
+					maxX = max(maxX, curve.endX);
+					maxY = max(maxY, curve.endY);
+				}
+				glyphs.add(new FontGlyph(curveIndex, numCurves, maxX + 1 / heightA, maxY + 1 / heightA));
+				System.out.println("#curves is " + numCurves);
 			}
+
+			System.out.println("max curves is " + maxCurves);
 		}
 
 		fonts.add(new Font(font, curves, glyphs));
@@ -257,6 +310,8 @@ public class Vk2dResourceWriter {
 			output.writeInt(font.curves.size());
 			output.writeInt(font.glyphs.size());
 			for (FontGlyph glyph : font.glyphs) {
+				output.writeInt(glyph.curveIndex);
+				output.writeInt(glyph.numCurves);
 				output.writeFloat(glyph.width);
 				output.writeFloat(glyph.height);
 			}
@@ -288,13 +343,12 @@ public class Vk2dResourceWriter {
 				output.writeFloat(curve.endX);
 				output.writeFloat(curve.endY);
 			}
-			for (FontGlyph glyph : font.glyphs) {
-				output.writeInt(glyph.curveIndex);
-				output.writeInt(glyph.numCurves);
-			}
 		}
 
 		output.flush();
+		if (ftLibrary != 0L) {
+			assertFtSuccess(FT_Done_FreeType(ftLibrary), "Done_FreeType", "Vk2dResourceWriter");
+		}
 	}
 
 	private void writeUncompressedImage(DataOutputStream output, BufferedImage image) throws IOException {

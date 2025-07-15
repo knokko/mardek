@@ -23,7 +23,7 @@ public class TextBenchmark extends Vk2dWindow {
 	private int fps = 0;
 
 	public TextBenchmark(VkbWindow window) {
-		super(window, true); // TODO uncap FPS
+		super(window, false);
 	}
 
 	@Override
@@ -47,20 +47,17 @@ public class TextBenchmark extends Vk2dWindow {
 		}
 		fps += 1;
 
-		Random rng = new Random();
 		Vk2dTextBatch batch1 = textPipeline.addBatch(frame, 6, resources.getFont(0));
-		// TODO Respect aspect ratio
-		batch1.simple(100, 100, 200, 200, 4);
-//		for (int round = 0; round < numRounds; round++) {
-//			for (int y = 0; y < swapchainImage.height(); y += 16 * scale) {
-//				for (int x = 0; x < swapchainImage.width(); x += 16 * scale) {
-//					batch1.simple(
-//							x, y, x + 16 * scale - 1, y + 16 * scale - 1,
-//							1 + 2 * rng.nextInt(resources.numFakeImages / 2)
-//					);
-//				}
-//			}
-//		}
+		int glyph = 0;
+		int cellSize = 50;
+		Random rng = new Random();
+		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
+			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
+				if (glyph >= batch1.font.getNumGlyphs()) glyph = 0;
+				batch1.glyphAt(x, y, 0.8f * cellSize, glyph, rng.nextInt());
+				glyph += 1;
+			}
+		}
 	}
 
 	@Override
@@ -70,6 +67,6 @@ public class TextBenchmark extends Vk2dWindow {
 	}
 
 	public static void main(String[] args) {
-		bootstrap("TextBenchmark", 1, Vk2dValidationMode.STRONG, TextBenchmark::new);
+		bootstrap("TextBenchmark", 1, Vk2dValidationMode.NONE, TextBenchmark::new);
 	}
 }

@@ -15,21 +15,42 @@ public class Vk2dTextBatch extends Vk2dBatch {
 		this.font = font;
 	}
 
-	public void simple(int minX, int minY, int maxX, int maxY, int glyph) {
+	public void glyphBetween(
+			float minX, float minY, float boundX, float boundY,
+			float minU, float minV, float maxU, float maxV, int glyph, int color
+	) {
 		ByteBuffer vertices = putVertices(6);
 
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
-		vertices.putFloat(0f).putFloat(1f).putInt(glyph);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
-		vertices.putFloat(1f).putFloat(1f).putInt(glyph);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
-		vertices.putFloat(1f).putFloat(0f).putInt(glyph);
+		int firstCurve = font.getFirstCurve(glyph);
+		int numCurves = font.getNumCurves(glyph);
 
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
-		vertices.putFloat(1f).putFloat(0f).putInt(glyph);
+		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(boundY));
+		vertices.putFloat(minU).putFloat(minV);
+		vertices.putInt(firstCurve).putInt(numCurves).putInt(color);
+		vertices.putFloat(normalizeX(boundX)).putFloat(normalizeY(boundY));
+		vertices.putFloat(maxU).putFloat(minV);
+		vertices.putInt(firstCurve).putInt(numCurves).putInt(color);
+		vertices.putFloat(normalizeX(boundX)).putFloat(normalizeY(minY));
+		vertices.putFloat(maxU).putFloat(maxV);
+		vertices.putInt(firstCurve).putInt(numCurves).putInt(color);
+
+		vertices.putFloat(normalizeX(boundX)).putFloat(normalizeY(minY));
+		vertices.putFloat(maxU).putFloat(maxV);
+		vertices.putInt(firstCurve).putInt(numCurves).putInt(color);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
-		vertices.putFloat(0f).putFloat(0f).putInt(glyph);
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
-		vertices.putFloat(0f).putFloat(1f).putInt(glyph);
+		vertices.putFloat(minU).putFloat(maxV);
+		vertices.putInt(firstCurve).putInt(numCurves).putInt(color);
+		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(boundY));
+		vertices.putFloat(minU).putFloat(minV);
+		vertices.putInt(firstCurve).putInt(numCurves).putInt(color);
+	}
+
+	public void glyphAt(float minX, float minY, float heightA, int glyph, int color) {
+		float glyphHeight = font.getGlyphHeight(glyph);
+		float glyphWidth = font.getGlyphWidth(glyph);
+		glyphBetween(
+				minX, minY, minX + heightA * glyphWidth, minY + heightA * glyphHeight,
+				0f, 0f, glyphWidth, glyphHeight, glyph, color
+		);
 	}
 }

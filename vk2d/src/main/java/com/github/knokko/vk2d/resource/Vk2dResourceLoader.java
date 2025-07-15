@@ -112,12 +112,12 @@ public class Vk2dResourceLoader {
 			int usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 			this.fonts[index] = new Font(
 					combiner.addBuffer(24L * numCurves, alignment, usage, 0.5f),
-					combiner.addBuffer(8L * numGlyphs, alignment, usage, 0.5f),
 					combiner.addMappedBuffer(24L * numCurves, 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT),
-					combiner.addMappedBuffer(8L * numGlyphs, 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT),
-					new float[numGlyphs], new float[numGlyphs]
+					new int[numGlyphs], new int[numGlyphs], new float[numGlyphs], new float[numGlyphs]
 			);
 			for (int glyph = 0; glyph < numGlyphs; glyph++) {
+				this.fonts[index].firstCurves[glyph] = input.readInt();
+				this.fonts[index].numCurves[glyph] = input.readInt();
 				this.fonts[index].glyphWidths[glyph] = input.readFloat();
 				this.fonts[index].glyphHeights[glyph] = input.readFloat();
 			}
@@ -142,24 +142,15 @@ public class Vk2dResourceLoader {
 		for (Font font : fonts) {
 			FloatBuffer curves = font.curveStagingBuffer.floatBuffer();
 			while (curves.hasRemaining()) curves.put(input.readFloat());
-			IntBuffer glyphs = font.glyphStagingBuffer.intBuffer();
-			while (glyphs.hasRemaining()) glyphs.put(input.readInt());
-
-			glyphs.flip();
-			for (int glyph = 0; glyph < 10; glyph++) {
-				System.out.println(glyphs.get() + " " + glyphs.get());
-			}
 		}
 	}
 
 	public void performStaging(BoilerInstance boiler, CommandRecorder recorder, Vk2dShared shared) {
-		VkbBuffer[] fontStagingBuffers = new VkbBuffer[2 * fonts.length];
-		VkbBuffer[] fontBuffers = new VkbBuffer[2 * fonts.length];
+		VkbBuffer[] fontStagingBuffers = new VkbBuffer[fonts.length];
+		VkbBuffer[] fontBuffers = new VkbBuffer[fonts.length];
 		for (int index = 0; index < fonts.length; index++) {
-			fontBuffers[2 * index] = fonts[index].curveBuffer;
-			fontBuffers[2 * index + 1] = fonts[index].glyphBuffer;
-			fontStagingBuffers[2 * index] = fonts[index].curveStagingBuffer;
-			fontStagingBuffers[2 * index + 1] = fonts[index].glyphStagingBuffer;
+			fontBuffers[index] = fonts[index].curveBuffer;
+			fontStagingBuffers[index] = fonts[index].curveStagingBuffer;
 		}
 
 		recorder.bulkTransitionLayout(null, ResourceUsage.TRANSFER_DEST, images);
@@ -190,7 +181,7 @@ public class Vk2dResourceLoader {
 				shared.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet
 		);
 		for (Font font : fonts) {
-			descriptors.addSingle(shared.textDescriptorSetLayout, descriptorSet -> font.descriptorSet = descriptorSet);
+			descriptors.addSingle(shared.bufferDescriptorSetLayout, descriptorSet -> font.descriptorSet = descriptorSet);
 		}
 		this.descriptorPool = descriptors.build("Vk2dDescriptorPool");
 	}
@@ -226,12 +217,11 @@ public class Vk2dResourceLoader {
 		for (int index = 0; index < fonts.length; index++) {
 			Font font = fonts[index];
 			try (MemoryStack stack = stackPush()) {
-				DescriptorUpdater updater = new DescriptorUpdater(stack, 2);
+				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
 				updater.writeStorageBuffer(0, font.descriptorSet, 0, font.curveBuffer);
-				updater.writeStorageBuffer(1, font.descriptorSet, 1, font.glyphBuffer);
 				updater.update(boiler);
 			}
-			bundleFonts[index] = new Vk2dFont(font.descriptorSet);
+			bundleFonts[index] = new Vk2dFont(font.descriptorSet, font.firstCurves, font.numCurves, font.glyphWidths, font.glyphHeights);
 		}
 
 		return new Vk2dResourceBundle(
@@ -242,22 +232,22 @@ public class Vk2dResourceLoader {
 
 	private static class Font {
 
-		final VkbBuffer curveBuffer, glyphBuffer;
-		final MappedVkbBuffer curveStagingBuffer, glyphStagingBuffer;
-		final float[] glyphWidths;
-		final float[] glyphHeights;
+		final VkbBuffer curveBuffer;
+		final MappedVkbBuffer curveStagingBuffer;
+		final int[] firstCurves, numCurves;
+		final float[] glyphWidths, glyphHeights;
 
 		long descriptorSet;
 
 		Font(
-				VkbBuffer curveBuffer, VkbBuffer glyphBuffer,
-				MappedVkbBuffer curveStagingBuffer, MappedVkbBuffer glyphStagingBuffer,
+				VkbBuffer curveBuffer, MappedVkbBuffer curveStagingBuffer,
+				int[] firstCurves, int[] numCurves,
 				float[] glyphWidths, float[] glyphHeights
 		) {
 			this.curveBuffer = curveBuffer;
-			this.glyphBuffer = glyphBuffer;
 			this.curveStagingBuffer = curveStagingBuffer;
-			this.glyphStagingBuffer = glyphStagingBuffer;
+			this.firstCurves = firstCurves;
+			this.numCurves = numCurves;
 			this.glyphWidths = glyphWidths;
 			this.glyphHeights = glyphHeights;
 		}

@@ -2,10 +2,6 @@
 
 // Based on: http://wdobbie.com/post/gpu-text-rendering-with-vector-textures/
 
-struct Glyph {
-	uint start, count;
-};
-
 struct Curve {
 	vec2 p0, p1, p2;
 };
@@ -13,37 +9,13 @@ struct Curve {
 layout(set = 0, binding = 0) readonly buffer CurveBuffer {
 	float curveData[];
 };
-layout(set = 0, binding = 1) readonly buffer GlyphBuffer {
-	uint glyphData[];
-};
-
-// Controls for debugging and exploring:
-
-// Size of the window (in pixels) used for 1-dimensional anti-aliasing along each rays.
-//   0 - no anti-aliasing
-//   1 - normal anti-aliasing
-// >=2 - exaggerated effect
-//uniform float antiAliasingWindowSize = 1.0;
-
-// Enable a second ray along the y-axis to achieve 2-dimensional anti-aliasing.
-//uniform bool enableSuperSamplingAntiAliasing = true;
-
-// Draw control points for debugging (green - on curve, magenta - off curve).
-//uniform bool enableControlPointsVisualization = false;
-
 
 layout(location = 0) in vec2 uv;
-layout(location = 1) in flat uint bufferIndex;
-layout(location = 2) in vec4 color;
+layout(location = 1) in flat uint firstCurve;
+layout(location = 2) in flat uint numCurves;
+layout(location = 3) in vec4 color;
 
-layout(location = 0) out vec4 result;
-
-Glyph loadGlyph(uint index) {
-	Glyph result;
-	result.start = glyphData[2 * index];
-	result.count = glyphData[2 * index + 1];
-	return result;
-}
+layout(location = 0) out vec4 outColor;
 
 Curve loadCurve(uint index) {
 	Curve result;
@@ -117,9 +89,8 @@ void main() {
 	float antiAliasingWindowSize = 1.0;
 	vec2 inverseDiameter = 1.0 / (antiAliasingWindowSize * fwidth(uv));
 
-	Glyph glyph = loadGlyph(bufferIndex);
-	for (uint i = 0; i < glyph.count; i++) {
-		Curve curve = loadCurve(glyph.start + i);
+	for (uint i = 0; i < numCurves; i++) {
+		Curve curve = loadCurve(firstCurve + i);
 
 		vec2 p0 = curve.p0 - uv;
 		vec2 p1 = curve.p1 - uv;
@@ -136,29 +107,5 @@ void main() {
 	}
 
 	alpha = clamp(alpha, 0.0, 1.0);
-	result = color * alpha;
-
-	bool enableControlPointsVisualization = false;
-	if (enableControlPointsVisualization) {
-		// Visualize control points.
-		vec2 fw = fwidth(uv);
-		float r = 4.0 * 0.5 * (fw.x + fw.y);
-		for (int i = 0; i < glyph.count; i++) {
-			Curve curve = loadCurve(glyph.start + i);
-
-			vec2 p0 = curve.p0 - uv;
-			vec2 p1 = curve.p1 - uv;
-			vec2 p2 = curve.p2 - uv;
-
-			if (dot(p0, p0) < r*r || dot(p2, p2) < r*r) {
-				result = vec4(0, 1, 0, 1);
-				return;
-			}
-
-			if (dot(p1, p1) < r*r) {
-				result = vec4(1, 0, 1, 1);
-				return;
-			}
-		}
-	}
+	outColor = color * alpha;
 }
