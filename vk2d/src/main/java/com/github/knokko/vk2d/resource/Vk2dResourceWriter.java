@@ -22,20 +22,18 @@ import org.lwjgl.util.freetype.FT_Vector;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.github.knokko.text.FreeTypeFailureException.assertFtSuccess;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.memAlloc;
 import static org.lwjgl.system.MemoryUtil.memFree;
@@ -106,6 +104,101 @@ public class Vk2dResourceWriter {
 			return 1023;
 		}
 		return Math.toIntExact(relativeValue * 1023L / worldSize);
+	}
+
+	private void playground(FontCurve[] packedCurves, FontGlyph glyph) throws IOException {
+		DataOutputStream intersectionOutput = new DataOutputStream(Files.newOutputStream(new File("intersections.bin").toPath()));
+		DataOutputStream infoOutput = new DataOutputStream(Files.newOutputStream(new File("info.bin").toPath()));
+		int outerIntersectionIndex = 0;
+
+		record Curve(float startX, float startY, float controlX, float controlY, float endX, float endY) { }
+
+		Curve[] curves = new Curve[packedCurves.length];
+		for (int index = 0; index < curves.length; index++) {
+			FontCurve raw = packedCurves[index];
+			curves[index] = new Curve(
+					(raw.packedX & 1023) * 2.5f / 1023f - 0.5f,
+					(raw.packedY & 1023) * 2.5f / 1023f - 0.5f,
+					((raw.packedX >> 10) & 1023) * 2.5f / 1023f - 0.5f,
+					((raw.packedY >> 10) & 1023) * 2.5f / 1023f - 0.5f,
+					((raw.packedX >> 20) & 1023) * 2.5f / 1023f - 0.5f,
+					((raw.packedY >> 20) & 1023) * 2.5f / 1023f - 0.5f
+			);
+		}
+
+		int pixelHeight = 100;
+		float glyphHeight = glyph.maxY - glyph.minY;
+		for (int pixelY = 0; pixelY < pixelHeight; pixelY++) {
+			float glyphY = glyph.minY + (pixelY + 0.5f) * glyphHeight / pixelHeight;
+			System.out.print("glyphY is " + glyphY + " with intersections ");
+
+			int intersectionIndex = 0;
+			float[] intersections = new float[2 * curves.length];
+			for (Curve curve : curves) {
+				float startY = curve.startY - glyphY;
+				float controlY = curve.controlY - glyphY;
+				float endY = curve.endY - glyphY;
+
+				float cutoff = 0.5f * glyphHeight / pixelHeight;
+				if (startY < -cutoff && controlY < -cutoff && endY < -cutoff) continue;
+				if (startY > cutoff && controlY > cutoff && endY > cutoff) continue;
+
+				float a = startY - 2f * controlY + endY;
+				float b = startY - controlY;
+				float t0, t1;
+				if (abs(a) > 1e-5f) {
+					// Quadratic segment, solve abc formula to find roots.
+					float radicand = b * b - a * startY;
+					if (radicand <= 0) continue;
+
+					float s = (float) sqrt(radicand);
+					t0 = (b - s) / a;
+					t1 = (b + s) / a;
+				} else {
+					// Linear segment, avoid division by a.y, which is near zero.
+					float t = startY / (startY - endY);
+					if (startY < endY) {
+						t0 = Float.NaN;
+						t1 = t;
+					} else {
+						t0 = t;
+						t1 = Float.NaN;
+					}
+				}
+
+				float ax = curve.startX - 2f * curve.controlX + curve.endX;
+				float bx = curve.startX - curve.controlX;
+				float cx = curve.startX;
+				if (!Float.isNaN(t0)) {
+					float x = (ax * t0 - 2f * bx) * t0 + cx;
+					if (!((x < curve.startX && x < curve.controlX && x < curve.endX) || (x > curve.startX && x > curve.controlX && x > curve.endX))) {
+						intersections[intersectionIndex++] = x;
+						System.out.print(x + " ");
+					}
+				}
+
+				if (!Float.isNaN(t1)) {
+					float x = (ax * t1 - 2f * bx) * t1 + cx;
+					if (!((x < curve.startX && x < curve.controlX && x < curve.endX) || (x > curve.startX && x > curve.controlX && x > curve.endX))) {
+						System.out.print(x + " ");
+						intersections[intersectionIndex++] = x;
+					}
+				}
+			}
+			System.out.println();
+			intersections = Arrays.copyOf(intersections, intersectionIndex);
+			Arrays.sort(intersections);
+			infoOutput.writeInt(outerIntersectionIndex);
+			infoOutput.writeInt(intersections.length);
+			outerIntersectionIndex += intersections.length;
+			for (float intersection : intersections) intersectionOutput.writeFloat(intersection);
+			System.out.println("sorted intersections are " + Arrays.toString(intersections));
+		}
+
+		infoOutput.flush();
+		intersectionOutput.flush();
+		infoOutput.close();
+		intersectionOutput.close();
 	}
 
 	public int addFont(FT_Face font) {
@@ -213,6 +306,14 @@ public class Vk2dResourceWriter {
 					(float) raw.minX / heightA, (float) raw.minY / heightA,
 					(float) raw.maxX / heightA, (float) raw.maxY / heightA
 			);
+			System.out.println("glyph " + index + " has " + raw.numCurves + " curves starting at " + raw.firstCurve);
+		}
+
+		FontGlyph testGlyph = glyphs[4];
+		try {
+			playground(Arrays.copyOfRange(curves, testGlyph.curveIndex, testGlyph.curveIndex + testGlyph.numCurves), testGlyph);
+		} catch (IOException failed) {
+			throw new RuntimeException(failed);
 		}
 		System.out.println("max curves is " + maxCurves + " and heightA is " + heightA);
 
