@@ -1,0 +1,96 @@
+#version 450
+
+layout(set = 0, binding = 0) buffer IntersectionData {
+	float intersectionData[];
+};
+layout(set = 0, binding = 1) writeonly buffer IntersectionInfo {
+	uint intersectionInfo[];
+};
+layout(set = 0, binding = 2) readonly buffer CurveBuffer {
+	uint curveData[];
+};
+
+layout(push_constant) uniform PushConstants {
+	uint intersectionDataOffset;
+	uint intersectionInfoOffset;
+	uint curveOffset;
+	uint numCurves;
+	uint pixelHeight;
+	float glyphMinY;
+	float glyphMaxY;
+};
+
+float unpack(uint raw) {
+	return (raw & 1023) * 2.5 / 1023.0 - 0.5;
+}
+
+void main() {
+	uint pixelY = gl_GlobalInvocationID.x;
+	float glyphHeight = glyphMaxY - glyphMinY;
+	float glyphY = glyphMinY + (pixelY + 0.5) * glyphHeight / pixelHeight;
+
+	uint localIntersectionIndex = 0;
+	uint rowIntersectionOffset = intersectionDataOffset + 2 * pixelY * numCurves;
+	for (uint localCurveIndex = 0; localCurveIndex < numCurves; localCurveIndex++) {
+		uint packedY = curveData[curveOffset + 2 * localCurveIndex + 1];
+		float curveStartY = unpack(packedY);
+		float curveControlY = unpack(packedY >> 10);
+		float curveEndY = unpack(packedY >> 20);
+
+		float startY = curveStartY - glyphY;
+		float controlY = curveControlY - glyphY;
+		float endY = curveEndY - glyphY;
+
+		float cutoff = 0.5f * glyphHeight / pixelHeight;
+		if (startY < -cutoff && controlY < -cutoff && endY < -cutoff) continue;
+		if (startY > cutoff && controlY > cutoff && endY > cutoff) continue;
+
+		float a = startY - 2 * controlY + endY;
+		float b = startY - controlY;
+		float t0, t1;
+		if (abs(a) > 1e-5) {
+			// Quadratic segment, solve abc formula to find roots.
+			float radicand = b * b - a * startY;
+			if (radicand <= 0) continue;
+
+			float s = sqrt(radicand);
+			t0 = (b - s) / a;
+			t1 = (b + s) / a;
+		} else {
+			// Linear segment, avoid division by a.y, which is near zero.
+			t0 = startY / (startY - endY);
+			t1 = t0;
+		}
+
+		uint packedX = curveData[curveOffset + 2 * localCurveIndex];
+		float curveStartX = unpack(packedX);
+		float curveControlX = unpack(packedX >> 10);
+		float curveEndX = unpack(packedX >> 20);
+		float ax = curveStartX - 2.0 * curveControlX + curveEndX;
+		float bx = curveStartX - curveControlX;
+		float cx = curveStartX;
+		float x = (ax * t0 - 2.0 * bx) * t0 + cx;
+		if (!((x < curveStartX && x < curveControlX && x < curveEndX) || (x > curveStartX && x > curveControlX && x > curveEndX))) {
+			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = x;
+		}
+
+		if (t0 != t1) {
+			x = (ax * t1 - 2.0 * bx) * t1 + cx;
+			if (!((x < curveStartX && x < curveControlX && x < curveEndX) || (x > curveStartX && x > curveControlX && x > curveEndX))) {
+				intersectionData[rowIntersectionOffset + localIntersectionIndex++] = x;
+			}
+		}
+	}
+
+	// Insertion sort
+	for (uint i = 1; i < localIntersectionIndex; i++) {
+		float old = intersectionData[rowIntersectionOffset + i];
+		uint j;
+		for (j = i; j > 0 && intersectionData[rowIntersectionOffset + j - 1] > old; j--) {
+			intersectionData[rowIntersectionOffset + j] = intersectionData[rowIntersectionOffset + j - 1];
+		}
+		intersectionData[rowIntersectionOffset + j] = old;
+	}
+
+	intersectionInfo[intersectionInfoOffset + pixelY] = localIntersectionIndex;
+}

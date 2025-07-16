@@ -9,8 +9,6 @@ import static org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool;
 
 public class Vk2dResourceBundle {
 
-	private final long vkDescriptorPool;
-
 	private final long[] imageDescriptorSets;
 	public final int numImages;
 
@@ -23,10 +21,9 @@ public class Vk2dResourceBundle {
 	public final int numFakeImages;
 
 	Vk2dResourceBundle(
-			long vkDescriptorPool, long[] imageDescriptorSets, Vk2dFont[] fonts,
+			long[] imageDescriptorSets, Vk2dFont[] fonts,
 			long fakeImageDescriptorSet, int[] fakeImageOffsets, int[] fakeImageWidths, int[] fakeImageHeights
 	) {
-		this.vkDescriptorPool = vkDescriptorPool;
 		this.imageDescriptorSets = imageDescriptorSets;
 		this.numImages = imageDescriptorSets.length;
 		this.fonts = fonts;
@@ -56,14 +53,5 @@ public class Vk2dResourceBundle {
 
 	public int getFakeImageHeight(int index) {
 		return fakeImageHeights[index];
-	}
-
-	public void destroy(BoilerInstance boiler) {
-		try (MemoryStack stack = stackPush()) {
-			vkDestroyDescriptorPool(
-					boiler.vkDevice(), vkDescriptorPool,
-					CallbackUserData.DESCRIPTOR_POOL.put(stack, boiler)
-			);
-		}
 	}
 }

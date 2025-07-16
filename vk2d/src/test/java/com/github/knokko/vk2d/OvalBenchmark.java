@@ -2,6 +2,7 @@ package com.github.knokko.vk2d;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.commands.CommandRecorder;
+import com.github.knokko.boiler.descriptors.DescriptorCombiner;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
@@ -24,8 +25,8 @@ public class OvalBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner) {
-		super.createResources(boiler, combiner);
+	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner, DescriptorCombiner descriptors) {
+		super.createResources(boiler, combiner, descriptors);
 		this.ovalPipeline = new Vk2dOvalPipeline(pipelineContext);
 	}
 

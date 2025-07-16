@@ -42,8 +42,6 @@ public class Vk2dResourceLoader {
 	private int[] fakeHeights;
 	private long fakeImageDescriptor;
 
-	private long descriptorPool;
-
 	public Vk2dResourceLoader(InputStream rawInput) {
 		this.input = new DataInputStream(rawInput);
 	}
@@ -145,7 +143,7 @@ public class Vk2dResourceLoader {
 		}
 	}
 
-	public void performStaging(BoilerInstance boiler, CommandRecorder recorder, Vk2dShared shared) {
+	public void performStaging(CommandRecorder recorder, Vk2dShared shared, DescriptorCombiner descriptors) {
 		VkbBuffer[] fontStagingBuffers = new VkbBuffer[fonts.length];
 		VkbBuffer[] fontBuffers = new VkbBuffer[fonts.length];
 		for (int index = 0; index < fonts.length; index++) {
@@ -170,7 +168,6 @@ public class Vk2dResourceLoader {
 				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
 		), fontBuffers);
 
-		DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
 		if (images.length > 0) {
 			// TODO The if (images.length > 0) should be unneeded. Fix in vk-boiler
 			this.imageDescriptors = descriptors.addMultiple(shared.imageDescriptorSetLayout, images.length);
@@ -183,7 +180,6 @@ public class Vk2dResourceLoader {
 		for (Font font : fonts) {
 			descriptors.addSingle(shared.bufferDescriptorSetLayout, descriptorSet -> font.descriptorSet = descriptorSet);
 		}
-		this.descriptorPool = descriptors.build("Vk2dDescriptorPool");
 	}
 
 	public Vk2dResourceBundle finish(BoilerInstance boiler, Vk2dShared shared) {
@@ -228,7 +224,7 @@ public class Vk2dResourceLoader {
 		}
 
 		return new Vk2dResourceBundle(
-				descriptorPool, imageDescriptors, bundleFonts,
+				imageDescriptors, bundleFonts,
 				fakeImageDescriptor, fakeOffsets, fakeWidths, fakeHeights
 		);
 	}

@@ -157,28 +157,21 @@ public class Vk2dResourceWriter {
 				} else {
 					// Linear segment, avoid division by a.y, which is near zero.
 					float t = startY / (startY - endY);
-					if (startY < endY) {
-						t0 = Float.NaN;
-						t1 = t;
-					} else {
-						t0 = t;
-						t1 = Float.NaN;
-					}
+					t0 = t;
+					t1 = t;
 				}
 
 				float ax = curve.startX - 2f * curve.controlX + curve.endX;
 				float bx = curve.startX - curve.controlX;
 				float cx = curve.startX;
-				if (!Float.isNaN(t0)) {
-					float x = (ax * t0 - 2f * bx) * t0 + cx;
-					if (!((x < curve.startX && x < curve.controlX && x < curve.endX) || (x > curve.startX && x > curve.controlX && x > curve.endX))) {
-						intersections[intersectionIndex++] = x;
-						System.out.print(x + " ");
-					}
+				float x = (ax * t0 - 2f * bx) * t0 + cx;
+				if (!((x < curve.startX && x < curve.controlX && x < curve.endX) || (x > curve.startX && x > curve.controlX && x > curve.endX))) {
+					intersections[intersectionIndex++] = x;
+					System.out.print(x + " ");
 				}
 
-				if (!Float.isNaN(t1)) {
-					float x = (ax * t1 - 2f * bx) * t1 + cx;
+				if (t0 != t1) {
+					x = (ax * t1 - 2f * bx) * t1 + cx;
 					if (!((x < curve.startX && x < curve.controlX && x < curve.endX) || (x > curve.startX && x > curve.controlX && x > curve.endX))) {
 						System.out.print(x + " ");
 						intersections[intersectionIndex++] = x;
@@ -186,13 +179,20 @@ public class Vk2dResourceWriter {
 				}
 			}
 			System.out.println();
-			intersections = Arrays.copyOf(intersections, intersectionIndex);
-			Arrays.sort(intersections);
+			for (int i = 1; i < intersectionIndex; i++) {
+				float old = intersections[0 + i];
+				int j;
+				for (j = i; j > 0 && intersections[0 + j - 1] > old; j--) {
+					intersections[0 + j] = intersections[0 + j - 1];
+				}
+				intersections[0 + j] = old;
+			}
+			//Arrays.sort(intersections);
 			infoOutput.writeInt(outerIntersectionIndex);
-			infoOutput.writeInt(intersections.length);
-			outerIntersectionIndex += intersections.length;
-			for (float intersection : intersections) intersectionOutput.writeFloat(intersection);
-			System.out.println("sorted intersections are " + Arrays.toString(intersections));
+			infoOutput.writeInt(intersectionIndex);
+			outerIntersectionIndex += intersectionIndex;
+			System.out.println("sorted is " + Arrays.toString(Arrays.copyOf(intersections, intersectionIndex)));
+			for (float intersection : Arrays.copyOf(intersections, intersectionIndex)) intersectionOutput.writeFloat(intersection);
 		}
 
 		infoOutput.flush();

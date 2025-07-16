@@ -6,6 +6,7 @@ import com.github.knokko.boiler.builders.BoilerBuilder;
 import com.github.knokko.boiler.builders.WindowBuilder;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.commands.SingleTimeCommands;
+import com.github.knokko.boiler.descriptors.DescriptorCombiner;
 import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
@@ -46,6 +47,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 	protected Vk2dPipelineContext pipelineContext;
 	protected Vk2dShared shared;
 	private MemoryBlock memory;
+	private long vkDescriptorPool;
 	protected PerFrameBuffer perFrameBuffer;
 	protected Vk2dResourceBundle resources;
 	private SwapchainResourceManager<Object, Long> framebuffers;
@@ -73,21 +75,22 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			if (resourceInput != null) loader = new Vk2dResourceLoader(resourceInput);
 
 			MemoryCombiner combiner = new MemoryCombiner(boiler, "Vk2dPersistent");
+			DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
 			if (loader != null) loader.claimMemory(boiler, combiner);
-			createResources(boiler, combiner);
+			createResources(boiler, combiner, descriptors);
 			this.memory = combiner.build(false);
 
 			if (loader != null) {
 				loader.prepareStaging();
-
 				Vk2dResourceLoader[] pLoader = { loader };
 				SingleTimeCommands.submit(
 						boiler, "Vk2dStaging",
-						recorder -> pLoader[0].performStaging(boiler, recorder, shared)
+						recorder -> pLoader[0].performStaging(recorder, shared, descriptors)
 				).destroy();
-				this.resources = loader.finish(boiler, shared);
 			}
 
+			this.vkDescriptorPool = descriptors.build("Vk2dDescriptors");
+			if (loader != null) this.resources = loader.finish(boiler, shared);
 			if (resourceInput != null) resourceInput.close();
 		} catch (IOException io) {
 			throw new RuntimeException(io);
@@ -115,7 +118,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		};
 	}
 
-	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner) {
+	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner, DescriptorCombiner descriptors) {
 		this.perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
 				10_000_000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
 		));
@@ -159,8 +162,11 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 					boiler.vkDevice(), pipelineContext.vkRenderPass(),
 					CallbackUserData.RENDER_PASS.put(stack, boiler)
 			);
+			vkDestroyDescriptorPool(
+					boiler.vkDevice(), vkDescriptorPool,
+					CallbackUserData.DESCRIPTOR_POOL.put(stack, boiler)
+			);
 		}
-		if (resources != null) resources.destroy(boiler);
 		memory.destroy(boiler);
 		shared.destroy(boiler);
 	}
