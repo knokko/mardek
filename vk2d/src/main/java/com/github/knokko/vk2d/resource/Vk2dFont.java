@@ -4,17 +4,19 @@ public class Vk2dFont {
 
 	public final long vkDescriptorSet;
 	private final int[] firstCurves, numCurves;
-	private final float[] glyphWidths, glyphHeights;
+	private final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY;
 
 	Vk2dFont(
 			long vkDescriptorSet, int[] firstCurves, int[] numCurves,
-			float[] glyphWidths, float[] glyphHeights
+			float[] glyphMinX, float[] glyphMinY, float[] glyphMaxX, float[] glyphMaxY
 	) {
 		this.vkDescriptorSet = vkDescriptorSet;
 		this.firstCurves = firstCurves;
 		this.numCurves = numCurves;
-		this.glyphWidths = glyphWidths;
-		this.glyphHeights = glyphHeights;
+		this.glyphMinX = glyphMinX;
+		this.glyphMinY = glyphMinY;
+		this.glyphMaxX = glyphMaxX;
+		this.glyphMaxY = glyphMaxY;
 	}
 
 	public int getFirstCurve(int glyph) {
@@ -25,15 +27,23 @@ public class Vk2dFont {
 		return numCurves[glyph];
 	}
 
-	public float getGlyphWidth(int glyph) {
-		return glyphWidths[glyph];
+	public float getGlyphMinX(int glyph) {
+		return glyphMinX[glyph];
 	}
 
-	public float getGlyphHeight(int glyph) {
-		return glyphHeights[glyph];
+	public float getGlyphMinY(int glyph) {
+		return glyphMinY[glyph];
+	}
+
+	public float getGlyphMaxX(int glyph) {
+		return glyphMaxX[glyph];
+	}
+
+	public float getGlyphMaxY(int glyph) {
+		return glyphMaxY[glyph];
 	}
 
 	public int getNumGlyphs() {
-		return glyphWidths.length;
+		return glyphMinX.length;
 	}
 }

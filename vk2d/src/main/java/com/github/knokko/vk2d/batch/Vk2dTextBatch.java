@@ -45,12 +45,17 @@ public class Vk2dTextBatch extends Vk2dBatch {
 		vertices.putInt(firstCurve).putInt(numCurves).putInt(color);
 	}
 
-	public void glyphAt(float minX, float minY, float heightA, int glyph, int color) {
-		float glyphHeight = font.getGlyphHeight(glyph);
-		float glyphWidth = font.getGlyphWidth(glyph);
+	public void glyphAt(float baseX, float baseY, float heightA, int glyph, int color) {
 		glyphBetween(
-				minX, minY, minX + heightA * glyphWidth, minY + heightA * glyphHeight,
-				0f, 0f, glyphWidth, glyphHeight, glyph, color
+				baseX + heightA * font.getGlyphMinX(glyph),
+				baseY - heightA * font.getGlyphMaxY(glyph),
+				baseX + heightA * font.getGlyphMaxX(glyph),
+				baseY - heightA * font.getGlyphMinY(glyph),
+				font.getGlyphMinX(glyph),
+				font.getGlyphMinY(glyph),
+				font.getGlyphMaxX(glyph),
+				font.getGlyphMaxY(glyph),
+				glyph, color
 		);
 	}
 }

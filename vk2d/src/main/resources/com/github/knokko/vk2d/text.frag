@@ -7,7 +7,7 @@ struct Curve {
 };
 
 layout(set = 0, binding = 0) readonly buffer CurveBuffer {
-	float curveData[];
+	uint curveData[];
 };
 
 layout(location = 0) in vec2 uv;
@@ -17,14 +17,20 @@ layout(location = 3) in vec4 color;
 
 layout(location = 0) out vec4 outColor;
 
+float transformCoordinate(uint raw) {
+	return raw * 2.5 / 1023.0 - 0.5;
+}
+
 Curve loadCurve(uint index) {
 	Curve result;
-	result.p0.x = curveData[6 * index];
-	result.p0.y = curveData[6 * index + 1];
-	result.p1.x = curveData[6 * index + 2];
-	result.p1.y = curveData[6 * index + 3];
-	result.p2.x = curveData[6 * index + 4];
-    result.p2.y = curveData[6 * index + 5];
+	uint packedX = curveData[2 * index];
+	uint packedY = curveData[2 * index + 1];
+	result.p0.x = transformCoordinate(packedX & 1023);
+	result.p0.y = transformCoordinate(packedY & 1023);
+	result.p1.x = transformCoordinate((packedX >> 10) & 1023);
+	result.p1.y = transformCoordinate((packedY >> 10) & 1023);
+	result.p2.x = transformCoordinate((packedX >> 20) & 1023);
+    result.p2.y = transformCoordinate((packedY >> 20) & 1023);
 	return result;
 }
 

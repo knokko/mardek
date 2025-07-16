@@ -17,7 +17,6 @@ import org.lwjgl.system.MemoryStack;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
@@ -111,15 +110,16 @@ public class Vk2dResourceLoader {
 			long alignment = boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
 			int usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 			this.fonts[index] = new Font(
-					combiner.addBuffer(24L * numCurves, alignment, usage, 0.5f),
-					combiner.addMappedBuffer(24L * numCurves, 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT),
-					new int[numGlyphs], new int[numGlyphs], new float[numGlyphs], new float[numGlyphs]
+					combiner.addBuffer(8L * numCurves, alignment, usage, 0.5f),
+					combiner.addMappedBuffer(8L * numCurves, 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), numGlyphs
 			);
 			for (int glyph = 0; glyph < numGlyphs; glyph++) {
 				this.fonts[index].firstCurves[glyph] = input.readInt();
 				this.fonts[index].numCurves[glyph] = input.readInt();
-				this.fonts[index].glyphWidths[glyph] = input.readFloat();
-				this.fonts[index].glyphHeights[glyph] = input.readFloat();
+				this.fonts[index].glyphMinX[glyph] = input.readFloat();
+				this.fonts[index].glyphMinY[glyph] = input.readFloat();
+				this.fonts[index].glyphMaxX[glyph] = input.readFloat();
+				this.fonts[index].glyphMaxY[glyph] = input.readFloat();
 			}
 		}
 	}
@@ -140,8 +140,8 @@ public class Vk2dResourceLoader {
 		}
 
 		for (Font font : fonts) {
-			FloatBuffer curves = font.curveStagingBuffer.floatBuffer();
-			while (curves.hasRemaining()) curves.put(input.readFloat());
+			IntBuffer curves = font.curveStagingBuffer.intBuffer();
+			while (curves.hasRemaining()) curves.put(input.readInt());
 		}
 	}
 
@@ -221,7 +221,10 @@ public class Vk2dResourceLoader {
 				updater.writeStorageBuffer(0, font.descriptorSet, 0, font.curveBuffer);
 				updater.update(boiler);
 			}
-			bundleFonts[index] = new Vk2dFont(font.descriptorSet, font.firstCurves, font.numCurves, font.glyphWidths, font.glyphHeights);
+			bundleFonts[index] = new Vk2dFont(
+					font.descriptorSet, font.firstCurves, font.numCurves,
+					font.glyphMinX, font.glyphMinY, font.glyphMaxX, font.glyphMaxY
+			);
 		}
 
 		return new Vk2dResourceBundle(
@@ -235,21 +238,19 @@ public class Vk2dResourceLoader {
 		final VkbBuffer curveBuffer;
 		final MappedVkbBuffer curveStagingBuffer;
 		final int[] firstCurves, numCurves;
-		final float[] glyphWidths, glyphHeights;
+		final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY;
 
 		long descriptorSet;
 
-		Font(
-				VkbBuffer curveBuffer, MappedVkbBuffer curveStagingBuffer,
-				int[] firstCurves, int[] numCurves,
-				float[] glyphWidths, float[] glyphHeights
-		) {
+		Font(VkbBuffer curveBuffer, MappedVkbBuffer curveStagingBuffer, int numGlyphs) {
 			this.curveBuffer = curveBuffer;
 			this.curveStagingBuffer = curveStagingBuffer;
-			this.firstCurves = firstCurves;
-			this.numCurves = numCurves;
-			this.glyphWidths = glyphWidths;
-			this.glyphHeights = glyphHeights;
+			this.firstCurves = new int[numGlyphs];
+			this.numCurves = new int[numGlyphs];
+			this.glyphMinX = new float[numGlyphs];
+			this.glyphMinY = new float[numGlyphs];
+			this.glyphMaxX = new float[numGlyphs];
+			this.glyphMaxY = new float[numGlyphs];
 		}
 	}
 }

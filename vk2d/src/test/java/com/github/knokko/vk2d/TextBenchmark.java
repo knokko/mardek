@@ -51,7 +51,7 @@ public class TextBenchmark extends Vk2dWindow {
 		int glyph = 0;
 		int cellSize = 50;
 		Random rng = new Random();
-		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
+		for (int y = cellSize; y < swapchainImage.height(); y += cellSize) {
 			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
 				if (glyph >= batch1.font.getNumGlyphs()) glyph = 0;
 				batch1.glyphAt(x, y, 0.8f * cellSize, glyph, rng.nextInt());
