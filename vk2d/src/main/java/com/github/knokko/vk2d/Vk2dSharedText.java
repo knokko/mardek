@@ -12,9 +12,10 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dSharedText {
 
-	public final VkbDescriptorSetLayout scratchDescriptorLayout;
-	public final long scratchPipeline, scratchPipelineLayout;
+	public final VkbDescriptorSetLayout scratchDescriptorLayout, transferDescriptorLayout, intersectionDescriptorLayout;
+	public final long scratchPipeline, scratchPipelineLayout, transferPipeline, transferPipelineLayout, intersectionPipelineLayout;
 
+	@SuppressWarnings("resource")
 	public Vk2dSharedText(BoilerInstance boiler) {
 		try (MemoryStack stack = stackPush()) {
 			DescriptorSetLayoutBuilder descriptors = new DescriptorSetLayoutBuilder(stack, 3);
@@ -23,12 +24,32 @@ public class Vk2dSharedText {
 			descriptors.set(2, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
 			this.scratchDescriptorLayout = descriptors.build(boiler, "Vk2dTextScratchDescriptorLayout");
 
+			descriptors = new DescriptorSetLayoutBuilder(stack, 4);
+			descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
+			descriptors.set(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
+			descriptors.set(2, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
+			descriptors.set(3, 3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
+			this.transferDescriptorLayout = descriptors.build(boiler, "Vk2dTextTransferDescriptorLayout");
+
+			descriptors = new DescriptorSetLayoutBuilder(stack, 2);
+			descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
+			descriptors.set(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
+			this.intersectionDescriptorLayout = descriptors.build(boiler, "Vk2dTextIntersectionDescriptorLayout");
+
 			VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
 			pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 28);
-
 			this.scratchPipelineLayout = boiler.pipelines.createLayout(
 					pushConstants, "Vk2dTextScratchPipelineLayout",
 					scratchDescriptorLayout.vkDescriptorSetLayout
+			);
+			pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 24);
+			this.transferPipelineLayout = boiler.pipelines.createLayout(
+					pushConstants, "Vk2dTextTransferPipelineLayout",
+					transferDescriptorLayout.vkDescriptorSetLayout
+			);
+			this.intersectionPipelineLayout = boiler.pipelines.createLayout(
+					null, "Vk2dIntersectionPipelineLayout",
+					transferDescriptorLayout.vkDescriptorSetLayout
 			);
 
 			this.scratchPipeline = boiler.pipelines.createComputePipeline(
@@ -36,20 +57,30 @@ public class Vk2dSharedText {
 					"com/github/knokko/vk2d/glyph-scratch.comp.spv",
 					"Vk2dTextScratchPipeline"
 			);
+			this.transferPipeline = boiler.pipelines.createComputePipeline(
+					transferPipelineLayout,
+					"com/github/knokko/vk2d/glyph-transfer.comp.spv",
+					"Vk2dTextTransferPipeline"
+			);
 		}
 	}
 
 	public void destroy(BoilerInstance boiler) {
 		try (MemoryStack stack = stackPush()) {
 			vkDestroyPipeline(boiler.vkDevice(), scratchPipeline, CallbackUserData.PIPELINE.put(stack, boiler));
-			vkDestroyPipelineLayout(
-					boiler.vkDevice(), scratchPipelineLayout,
-					CallbackUserData.PIPELINE_LAYOUT.put(stack, boiler)
-			);
-			vkDestroyDescriptorSetLayout(
-					boiler.vkDevice(), scratchDescriptorLayout.vkDescriptorSetLayout,
-					CallbackUserData.DESCRIPTOR_SET_LAYOUT.put(stack, boiler)
-			);
+			vkDestroyPipeline(boiler.vkDevice(), transferPipeline, CallbackUserData.PIPELINE.put(stack, boiler));
+			for (long layout : new long[] { scratchPipelineLayout, transferPipelineLayout, intersectionPipelineLayout }) {
+				vkDestroyPipelineLayout(boiler.vkDevice(), layout, CallbackUserData.PIPELINE_LAYOUT.put(stack, boiler));
+			}
+
+			for (VkbDescriptorSetLayout layout : new VkbDescriptorSetLayout[] {
+					scratchDescriptorLayout, transferDescriptorLayout, intersectionDescriptorLayout
+			}) {
+				vkDestroyDescriptorSetLayout(
+						boiler.vkDevice(), layout.vkDescriptorSetLayout,
+						CallbackUserData.DESCRIPTOR_SET_LAYOUT.put(stack, boiler)
+				);
+			}
 		}
 	}
 }

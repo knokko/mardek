@@ -41,7 +41,7 @@ void main() {
 		float controlY = curveControlY - glyphY;
 		float endY = curveEndY - glyphY;
 
-		float cutoff = 0.5f * glyphHeight / pixelHeight;
+		float cutoff = 0.5 * glyphHeight / pixelHeight;
 		if (startY < -cutoff && controlY < -cutoff && endY < -cutoff) continue;
 		if (startY > cutoff && controlY > cutoff && endY > cutoff) continue;
 
@@ -59,9 +59,9 @@ void main() {
 		} else {
 			// Linear segment, avoid division by a.y, which is near zero.
 			t0 = startY / (startY - endY);
+			if (isnan(t0) || isinf(t0)) continue;
 			t1 = t0;
 		}
-
 		uint packedX = curveData[curveOffset + 2 * localCurveIndex];
 		float curveStartX = unpack(packedX);
 		float curveControlX = unpack(packedX >> 10);

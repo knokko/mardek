@@ -1,16 +1,20 @@
 package com.github.knokko.vk2d.resource;
 
+import com.github.knokko.boiler.buffers.VkbBuffer;
+
 public class Vk2dFont {
 
 	public final long vkDescriptorSet;
+	public final VkbBuffer curveBuffer;
 	private final int[] firstCurves, numCurves;
 	private final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY;
 
 	Vk2dFont(
-			long vkDescriptorSet, int[] firstCurves, int[] numCurves,
+			long vkDescriptorSet, VkbBuffer curveBuffer, int[] firstCurves, int[] numCurves,
 			float[] glyphMinX, float[] glyphMinY, float[] glyphMaxX, float[] glyphMaxY
 	) {
 		this.vkDescriptorSet = vkDescriptorSet;
+		this.curveBuffer = curveBuffer;
 		this.firstCurves = firstCurves;
 		this.numCurves = numCurves;
 		this.glyphMinX = glyphMinX;

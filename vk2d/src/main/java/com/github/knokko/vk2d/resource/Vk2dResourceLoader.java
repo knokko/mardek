@@ -140,6 +140,7 @@ public class Vk2dResourceLoader {
 		for (Font font : fonts) {
 			IntBuffer curves = font.curveStagingBuffer.intBuffer();
 			while (curves.hasRemaining()) curves.put(input.readInt());
+			System.out.println("first packed curve is " + curves.get(0));
 		}
 	}
 
@@ -218,7 +219,7 @@ public class Vk2dResourceLoader {
 				updater.update(boiler);
 			}
 			bundleFonts[index] = new Vk2dFont(
-					font.descriptorSet, font.firstCurves, font.numCurves,
+					font.descriptorSet, font.curveBuffer, font.firstCurves, font.numCurves,
 					font.glyphMinX, font.glyphMinY, font.glyphMaxX, font.glyphMaxY
 			);
 		}

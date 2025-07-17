@@ -114,6 +114,7 @@ public class Vk2dResourceWriter {
 		record Curve(float startX, float startY, float controlX, float controlY, float endX, float endY) { }
 
 		Curve[] curves = new Curve[packedCurves.length];
+		System.out.println("First packedX is " + packedCurves[0].packedX);
 		for (int index = 0; index < curves.length; index++) {
 			FontCurve raw = packedCurves[index];
 			curves[index] = new Curve(
@@ -125,6 +126,7 @@ public class Vk2dResourceWriter {
 					((raw.packedY >> 20) & 1023) * 2.5f / 1023f - 0.5f
 			);
 		}
+		System.out.println("first startX is " + curves[0].startX);
 
 		int pixelHeight = 100;
 		float glyphHeight = glyph.maxY - glyph.minY;
@@ -187,7 +189,7 @@ public class Vk2dResourceWriter {
 				}
 				intersections[0 + j] = old;
 			}
-			//Arrays.sort(intersections);
+			Arrays.sort(intersections);
 			infoOutput.writeInt(outerIntersectionIndex);
 			infoOutput.writeInt(intersectionIndex);
 			outerIntersectionIndex += intersectionIndex;
@@ -306,7 +308,6 @@ public class Vk2dResourceWriter {
 					(float) raw.minX / heightA, (float) raw.minY / heightA,
 					(float) raw.maxX / heightA, (float) raw.maxY / heightA
 			);
-			System.out.println("glyph " + index + " has " + raw.numCurves + " curves starting at " + raw.firstCurve);
 		}
 
 		FontGlyph testGlyph = glyphs[4];
@@ -490,6 +491,7 @@ public class Vk2dResourceWriter {
 		}
 
 		for (Font font : fonts) {
+			System.out.println("first written packedX is " + font.curves[0].packedX);
 			for (FontCurve curve : font.curves) {
 				output.writeInt(curve.packedX);
 				output.writeInt(curve.packedY);
