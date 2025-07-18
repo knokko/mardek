@@ -63,14 +63,14 @@ public class GlyphBenchmark extends Vk2dWindow {
 		int glyphA = 4;
 		int glyphHeight = 100;
 		textBuffer.prepareScratch(recorder, sharedText);
-		textBuffer.scratch(recorder, sharedText, glyphA, glyphHeight);
+		int offsetA = textBuffer.scratch(recorder, sharedText, glyphA, glyphHeight);
 		textBuffer.prepareTransfer(recorder, sharedText);
 		textBuffer.transfer(recorder, sharedText);
 		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 6, textBuffer.getRenderDescriptorSet());
 		int cellSize = 100;
 		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
 			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
-				batch.simple(x, y, x + cellSize, y + glyphHeight - 1, 0);
+				batch.simple(x, y, x + cellSize, y + glyphHeight - 1, offsetA);
 			}
 		}
 	}
@@ -83,6 +83,6 @@ public class GlyphBenchmark extends Vk2dWindow {
 	}
 
 	public static void main(String[] args) {
-		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.STRONG, GlyphBenchmark::new);
+		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.NONE, GlyphBenchmark::new);
 	}
 }

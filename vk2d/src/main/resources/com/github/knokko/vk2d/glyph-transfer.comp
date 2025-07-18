@@ -12,6 +12,10 @@ layout(set = 0, binding = 2) writeonly buffer IntersectionOutput {
 layout(set = 0, binding = 3) writeonly buffer InfoOutput {
 	uint infoOutput[];
 };
+layout(set = 0, binding = 4) buffer NextInfo {
+	uint nextOutputIntersectionOffset;
+	uint nextOutputInfoOffset;
+};
 
 layout(push_constant) uniform PushConstants {
 	uint inputIntersectionOffset;

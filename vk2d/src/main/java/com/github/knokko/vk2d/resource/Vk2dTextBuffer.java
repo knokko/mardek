@@ -35,7 +35,7 @@ public class Vk2dTextBuffer {
 
 	private long scratchDescriptorSet, transferDescriptorSet, intersectionDescriptorSet;
 
-	private List<PreparedGlyph> preparedGlyphs = new ArrayList<>();
+	private final List<PreparedGlyph> preparedGlyphs = new ArrayList<>();
 
 	public Vk2dTextBuffer(
 			VkbBuffer scratchIntersectionBuffer,
@@ -88,7 +88,7 @@ public class Vk2dTextBuffer {
 		preparedGlyphs.clear();
 	}
 
-	public void scratch(CommandRecorder recorder, Vk2dSharedText shared, int glyph, int height) {
+	public int scratch(CommandRecorder recorder, Vk2dSharedText shared, int glyph, int height) {
 		int scratchIntersectionOffset, scratchInfoOffset;
 		if (preparedGlyphs.isEmpty()) {
 			scratchIntersectionOffset = 0;
@@ -121,6 +121,8 @@ public class Vk2dTextBuffer {
 		next.height = height;
 		next.numGlyphCurves = font.getNumCurves(glyph);
 		preparedGlyphs.add(next);
+
+		return 2 * scratchInfoOffset;
 	}
 
 	public void prepareTransfer(CommandRecorder recorder, Vk2dSharedText shared) {
@@ -147,8 +149,8 @@ public class Vk2dTextBuffer {
 		for (PreparedGlyph prepared : preparedGlyphs) {
 			pushConstants.put(0, prepared.scratchIntersectionOffset);
 			pushConstants.put(1, prepared.scratchInfoOffset);
-			pushConstants.put(2, 0);
-			pushConstants.put(3, 0);
+			pushConstants.put(2, 0); // outputIntersectionOffset
+			pushConstants.put(3, 0); // outputInfoOffset
 			pushConstants.put(4, prepared.height);
 			pushConstants.put(5, prepared.numGlyphCurves);
 			vkCmdPushConstants(
