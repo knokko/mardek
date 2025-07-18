@@ -130,6 +130,8 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			AcquiredImage acquiredImage, BoilerInstance boiler
 	) {
 		perFrameBuffer.startFrame(frameIndex);
+		Vk2dFrame frame = new Vk2dFrame(perFrameBuffer, acquiredImage.width(), acquiredImage.height());
+		renderFrame(frame, recorder, acquiredImage, boiler);
 
 		VkRenderPassBeginInfo biRenderPass = VkRenderPassBeginInfo.calloc(stack);
 		biRenderPass.sType$Default();
@@ -141,10 +143,6 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
 		vkCmdBeginRenderPass(recorder.commandBuffer, biRenderPass, VK_SUBPASS_CONTENTS_INLINE);
 		recorder.dynamicViewportAndScissor(acquiredImage.width(), acquiredImage.height());
-		Vk2dFrame frame = new Vk2dFrame(perFrameBuffer, acquiredImage.width(), acquiredImage.height());
-
-		renderFrame(frame, recorder, acquiredImage, boiler);
-
 		frame.record(recorder);
 		vkCmdEndRenderPass(recorder.commandBuffer);
 	}

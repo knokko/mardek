@@ -49,7 +49,7 @@ public class Vk2dSharedText {
 			);
 			this.intersectionPipelineLayout = boiler.pipelines.createLayout(
 					null, "Vk2dIntersectionPipelineLayout",
-					transferDescriptorLayout.vkDescriptorSetLayout
+					intersectionDescriptorLayout.vkDescriptorSetLayout
 			);
 
 			this.scratchPipeline = boiler.pipelines.createComputePipeline(

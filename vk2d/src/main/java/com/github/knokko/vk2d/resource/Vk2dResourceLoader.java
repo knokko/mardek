@@ -140,7 +140,6 @@ public class Vk2dResourceLoader {
 		for (Font font : fonts) {
 			IntBuffer curves = font.curveStagingBuffer.intBuffer();
 			while (curves.hasRemaining()) curves.put(input.readInt());
-			System.out.println("first packed curve is " + curves.get(0));
 		}
 	}
 

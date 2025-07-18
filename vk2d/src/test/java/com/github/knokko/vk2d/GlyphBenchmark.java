@@ -3,10 +3,10 @@ package com.github.knokko.vk2d;
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
-import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
+import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
 import com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline;
 import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
@@ -25,8 +25,6 @@ public class GlyphBenchmark extends Vk2dWindow {
 
 	private long referenceTime = System.nanoTime();
 	private int fps = 0;
-
-	private MemoryBlock testMemory;
 
 	public GlyphBenchmark(VkbWindow window) {
 		super(window, false);
@@ -62,13 +60,19 @@ public class GlyphBenchmark extends Vk2dWindow {
 		}
 		fps += 1;
 
-//		Vk2dGlyphBatch batch1 = textPipeline.addBatch(frame, 10_000, descriptorSet);
-//		int cellSize = 100;
-//		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
-//			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
-//				batch1.simple(x, y, x + cellSize, y + cellSize - 1, 0);
-//			}
-//		}
+		int glyphA = 4;
+		int glyphHeight = 100;
+		textBuffer.prepareScratch(recorder, sharedText);
+		textBuffer.scratch(recorder, sharedText, glyphA, glyphHeight);
+		textBuffer.prepareTransfer(recorder, sharedText);
+		textBuffer.transfer(recorder, sharedText);
+		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 6, textBuffer.getRenderDescriptorSet());
+		int cellSize = 100;
+		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
+			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
+				batch.simple(x, y, x + cellSize, y + glyphHeight - 1, 0);
+			}
+		}
 	}
 
 	@Override
@@ -76,10 +80,9 @@ public class GlyphBenchmark extends Vk2dWindow {
 		super.cleanUp(boiler);
 		textPipeline.destroy(boiler);
 		sharedText.destroy(boiler);
-		testMemory.destroy(boiler);
 	}
 
 	public static void main(String[] args) {
-		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.NONE, GlyphBenchmark::new);
+		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.STRONG, GlyphBenchmark::new);
 	}
 }

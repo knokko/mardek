@@ -5,26 +5,21 @@ import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.builders.BoilerBuilder;
 import com.github.knokko.boiler.commands.SingleTimeCommands;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
-import com.github.knokko.boiler.descriptors.DescriptorUpdater;
 import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
-import com.github.knokko.vk2d.resource.Vk2dFont;
-import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
-import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
-import com.github.knokko.vk2d.resource.Vk2dResourceWriter;
+import com.github.knokko.vk2d.resource.*;
 import org.junit.jupiter.api.Test;
-import org.lwjgl.system.MemoryStack;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Objects;
 
-import static org.lwjgl.system.MemoryStack.stackPush;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.lwjgl.vulkan.VK10.*;
 import static org.lwjgl.vulkan.VK12.VK_API_VERSION_1_2;
 
@@ -57,8 +52,14 @@ public class TestGlyphScratchBuffering {
 
 		long alignment = boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
 		int usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-		MappedVkbBuffer intersectionBuffer = memoryCombiner.addMappedBuffer(15000L, alignment, usage);
+		MappedVkbBuffer scratchIntersectionBuffer = memoryCombiner.addMappedBuffer(15000L, alignment, usage);
+		MappedVkbBuffer scratchInfoBuffer = memoryCombiner.addMappedBuffer(4L * glyphHeight, alignment, usage);
+		MappedVkbBuffer intersectionBuffer = memoryCombiner.addMappedBuffer(5000L, alignment, usage);
 		MappedVkbBuffer infoBuffer = memoryCombiner.addMappedBuffer(8L * glyphHeight, alignment, usage);
+		Vk2dTextBuffer textBuffer = new Vk2dTextBuffer(
+				scratchIntersectionBuffer, scratchInfoBuffer, intersectionBuffer, infoBuffer
+		);
+		textBuffer.requestDescriptorSets(sharedText, descriptorCombiner);
 		Vk2dResourceLoader loader = new Vk2dResourceLoader(new ByteArrayInputStream(propagate.toByteArray()));
 		loader.claimMemory(boiler, memoryCombiner);
 		MemoryBlock memory = memoryCombiner.build(false);
@@ -66,61 +67,71 @@ public class TestGlyphScratchBuffering {
 		loader.prepareStaging();
 
 		SingleTimeCommands commands = new SingleTimeCommands(boiler);
-		commands.submit("Staging", recorder -> {
-			loader.performStaging(recorder, shared, descriptorCombiner);
-		}).awaitCompletion();
-		long[] pDescriptorSet = descriptorCombiner.addMultiple(sharedText.scratchDescriptorLayout, 1);
+		commands.submit("Staging", recorder ->
+				loader.performStaging(recorder, shared, descriptorCombiner)
+		).awaitCompletion();
 		long vkDescriptorPool = descriptorCombiner.build("ScratchDescriptors");
-		long descriptorSet = pDescriptorSet[0];
 
 		Vk2dResourceBundle fontBundle = loader.finish(boiler, shared);
 		Vk2dFont font = fontBundle.getFont(0);
 
-		try (MemoryStack stack = stackPush()) {
-			DescriptorUpdater updater = new DescriptorUpdater(stack, 3);
-			updater.writeStorageBuffer(0, descriptorSet, 0, intersectionBuffer);
-			updater.writeStorageBuffer(1, descriptorSet, 1, infoBuffer);
-			updater.writeStorageBuffer(2, descriptorSet, 2, font.curveBuffer);
-			updater.update(boiler);
-		}
+		textBuffer.initializeDescriptorSets(boiler, font);
 
 		commands.submit("Scratch", recorder -> {
-			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, sharedText.scratchPipeline);
-			recorder.bindComputeDescriptors(sharedText.scratchPipelineLayout, descriptorSet);
+			textBuffer.prepareScratch(recorder, sharedText);
+			textBuffer.scratch(recorder, sharedText, glyph, glyphHeight);
+		}).awaitCompletion();
 
-			ByteBuffer pushConstants = recorder.stack.calloc(28);
-			pushConstants.putInt(0, 0); // intersectionDataOffset
-			pushConstants.putInt(4, 0); // intersectionInfoOffset
-			pushConstants.putInt(8, 2 * font.getFirstCurve(glyph));
-			System.out.println("first curve is " + font.getFirstCurve(glyph) + " and num curves is " + font.getNumCurves(glyph));
-			// 22 and 11
-			pushConstants.putInt(12, font.getNumCurves(glyph));
-			pushConstants.putInt(16, glyphHeight); // pixelHeight
-			pushConstants.putFloat(20, font.getGlyphMinY(glyph));
-			pushConstants.putFloat(24, font.getGlyphMaxY(glyph));
-			vkCmdPushConstants(
-					recorder.commandBuffer, sharedText.scratchPipelineLayout,
-					VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstants
-			);
-			//noinspection SuspiciousNameCombination
-			vkCmdDispatch(recorder.commandBuffer, glyphHeight, 1, 1);
-		});
-		commands.destroy();
-
-		IntBuffer info = infoBuffer.intBuffer();
-		FloatBuffer intersections = intersectionBuffer.floatBuffer();
+		IntBuffer info = scratchInfoBuffer.intBuffer();
+		FloatBuffer intersections = scratchIntersectionBuffer.floatBuffer();
 
 		int numCurves = font.getNumCurves(glyph);
 		for (int glyphY = 0; glyphY < glyphHeight; glyphY++) {
 			int numIntersections = info.get();
-			System.out.print("y " + glyphY + " has " + numIntersections + " intersections: ");
-			for (int index = 0; index < numIntersections; index++) {
-				System.out.print(" " + intersections.get(index + 2 * glyphY * numCurves));
-			}
-			System.out.println();
+			assertTrue(numIntersections == 2 || numIntersections == 4, "Expected " + numIntersections + " to be 2 or 4 for y " + glyphY);
 		}
 
-		// TODO Check result
+		// y 0 has 4 intersections
+		assertEquals(4, info.get(0));
+		assertEquals(0.018f, intersections.get(0), 0.001f);
+		assertEquals(0.123f, intersections.get(1), 0.001f);
+		assertEquals(0.827f, intersections.get(2), 0.001f);
+		assertEquals(0.930f, intersections.get(3), 0.001f);
+
+		// y 99 has 2 intersections
+		assertEquals(2, info.get(99));
+		assertEquals(0.432f, intersections.get(2 * 99 * numCurves), 0.001f);
+		assertEquals(0.518f, intersections.get(2 * 99 * numCurves + 1), 0.001f);
+
+		commands.submit("GlyphTransfer", recorder -> {
+			textBuffer.prepareTransfer(recorder, sharedText);
+			textBuffer.transfer(recorder, sharedText);
+		}).awaitCompletion();
+
+		info = infoBuffer.intBuffer();
+		intersections = intersectionBuffer.floatBuffer();
+
+		assertEquals(0, info.get(0));
+		assertEquals(4, info.get(1));
+		assertEquals(0.018f, intersections.get(0), 0.001f);
+		assertEquals(0.123f, intersections.get(1), 0.001f);
+		assertEquals(0.827f, intersections.get(2), 0.001f);
+		assertEquals(0.930f, intersections.get(3), 0.001f);
+
+		int nextIndex = 0;
+		for (int glyphY = 0; glyphY < glyphHeight; glyphY++) {
+			assertEquals(nextIndex, info.get());
+			int numIntersections = info.get();
+			nextIndex += numIntersections;
+			assertTrue(numIntersections == 2 || numIntersections == 4, "Expected " + numIntersections + " to be 2 or 4 for y " + glyphY);
+			for (int counter = 0; counter < numIntersections; counter++) {
+				float intersection = intersections.get();
+				assertTrue(intersection > 0f && intersection < 1f, "Expected " + intersection + " to be in [0; 1]");
+			}
+		}
+
+		// TODO check result
+		commands.destroy();
 		vkDestroyDescriptorPool(boiler.vkDevice(), vkDescriptorPool, null);
 		memory.destroy(boiler);
 		shared.destroy(boiler);
