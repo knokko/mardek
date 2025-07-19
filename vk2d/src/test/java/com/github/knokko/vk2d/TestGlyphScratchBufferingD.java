@@ -54,11 +54,13 @@ public class TestGlyphScratchBufferingD {
 		int usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 		MappedVkbBuffer scratchIntersectionBuffer = memoryCombiner.addMappedBuffer(18L * 2L * 4L * glyphHeight, alignment, usage);
 		MappedVkbBuffer scratchInfoBuffer = memoryCombiner.addMappedBuffer(4L * glyphHeight, alignment, usage);
-		MappedVkbBuffer intersectionBuffer = memoryCombiner.addMappedBuffer(5000L, alignment, usage);
+		MappedVkbBuffer intersectionBuffer = memoryCombiner.addMappedBuffer(18L * 2L * 4L * glyphHeight, alignment, usage);
 		MappedVkbBuffer infoBuffer = memoryCombiner.addMappedBuffer(8L * glyphHeight, alignment, usage);
 		MappedVkbBuffer nextOffsetBuffer = memoryCombiner.addMappedBuffer(4L, alignment, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+		MappedVkbBuffer nextIntersectionIndexBuffer = memoryCombiner.addMappedBuffer(4L, alignment, usage);
 		Vk2dTextBuffer textBuffer = new Vk2dTextBuffer(
-				scratchIntersectionBuffer, scratchInfoBuffer, intersectionBuffer, infoBuffer, nextOffsetBuffer
+				scratchIntersectionBuffer, scratchInfoBuffer, intersectionBuffer, infoBuffer,
+				nextOffsetBuffer, nextIntersectionIndexBuffer
 		);
 		textBuffer.requestDescriptorSets(sharedText, descriptorCombiner);
 		Vk2dResourceLoader loader = new Vk2dResourceLoader(new ByteArrayInputStream(propagate.toByteArray()));
@@ -111,6 +113,7 @@ public class TestGlyphScratchBufferingD {
 				textBuffer.transfer(recorder, sharedText)
 		).awaitCompletion();
 
+		assertEquals(364, nextIntersectionIndexBuffer.intBuffer().get());
 		info = infoBuffer.intBuffer();
 		intersections = intersectionBuffer.floatBuffer();
 

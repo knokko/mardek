@@ -1,5 +1,7 @@
 package com.github.knokko.vk2d.text;
 
+import java.nio.IntBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,10 +10,15 @@ public class GlyphCacheTracker {
 	private final Map<Entry, Integer> stableMap = new HashMap<>();
 	private final Map<Entry, Integer> scratchMap = new HashMap<>();
 
+	private int lastStableIntersectionIndex;
 	private final int scratchIntersectionBufferSize, scratchInfoBufferSize;
 	private final int stableIntersectionBufferSize, stableInfoBufferSize;
-	private int nextStableIndex, nextScratchInfoIndex, nextScratchIntersectionIndex;
+	private int nextStableInfoIndex, nextScratchInfoIndex, nextScratchIntersectionIndex;
+	private int maxInFlightIntersections;
 	private boolean shouldClearStable;
+
+	private IntBuffer stableIntersectionIndices;
+	private int[] previousScratchIntersectionCounts;
 
 	public GlyphCacheTracker(
 			long scratchIntersectionBufferSize, long scratchInfoBufferSize,
@@ -23,21 +30,41 @@ public class GlyphCacheTracker {
 		this.stableInfoBufferSize = Math.toIntExact(stableInfoBufferSize / 4L);
 	}
 
+	public void setIntersectionIndexBuffer(IntBuffer stableIntersectionIndices) {
+		if (this.stableIntersectionIndices != null) throw new IllegalStateException();
+		this.stableIntersectionIndices = stableIntersectionIndices;
+		this.previousScratchIntersectionCounts = new int[stableIntersectionIndices.capacity()];
+	}
+
 	public boolean startFrame() {
+		previousScratchIntersectionCounts[getCurrentFrameInFlight()] = nextScratchIntersectionIndex;
+
 		nextScratchInfoIndex = 0;
 		nextScratchIntersectionIndex = 0;
 
-		int oldStableIndex = nextStableIndex;
+		int frameInFlight = stableIntersectionIndices.position();
+		maxInFlightIntersections = 0;
+		for (int index = 0; index < previousScratchIntersectionCounts.length; index++) {
+			if (index != frameInFlight) maxInFlightIntersections += previousScratchIntersectionCounts[index];
+		}
+		if (!stableIntersectionIndices.hasRemaining()) stableIntersectionIndices.position(0);
+		lastStableIntersectionIndex = stableIntersectionIndices.get();
+		System.out.println("startFrame: lastStableIntersectionIndex is " + lastStableIntersectionIndex);
+
+		int oldStableIndex = nextStableInfoIndex;
 		scratchMap.forEach((entry, index) -> {
 			stableMap.put(entry, index + oldStableIndex);
-			nextStableIndex += entry.height;
+			nextStableInfoIndex += entry.height;
 		});
 		scratchMap.clear();
 
 		if (shouldClearStable) {
-			nextStableIndex = 0;
+			lastStableIntersectionIndex = 0;
+			nextStableInfoIndex = 0;
 			stableMap.clear();
 			shouldClearStable = false;
+			Arrays.fill(previousScratchIntersectionCounts, 0);
+			maxInFlightIntersections = 0;
 			return true;
 		} else return false;
 	}
@@ -46,7 +73,7 @@ public class GlyphCacheTracker {
 		Integer index = stableMap.get(new Entry(glyph, height));
 		if (index != null) return index;
 		index = scratchMap.get(new Entry(glyph, height));
-		if (index != null) return index + nextStableIndex;
+		if (index != null) return index + nextStableInfoIndex;
 		return null;
 	}
 
@@ -57,9 +84,17 @@ public class GlyphCacheTracker {
 		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 2 * height * numCurves;
 		if (newScratchIntersectionIndex > scratchIntersectionBufferSize) return -1;
 
-		int newStableIndex = nextStableIndex + newScratchInfoIndex;
-		if (2 * newStableIndex > stableInfoBufferSize) {
+		int newStableInfoIndex = nextStableInfoIndex + newScratchInfoIndex;
+		if (2 * newStableInfoIndex > stableInfoBufferSize) {
 			shouldClearStable = true;
+			return -1;
+		}
+
+		int worstCaseStableIntersectionIndex = lastStableIntersectionIndex + maxInFlightIntersections + newScratchIntersectionIndex;
+		if (worstCaseStableIntersectionIndex > stableIntersectionBufferSize) {
+			if (lastStableIntersectionIndex + 2 * height * numCurves > stableIntersectionBufferSize) {
+				shouldClearStable = true;
+			}
 			return -1;
 		}
 
@@ -71,8 +106,8 @@ public class GlyphCacheTracker {
 		return result;
 	}
 
-	public int getNextStableIndex() {
-		return nextStableIndex;
+	public int getNextStableInfoIndex() {
+		return nextStableInfoIndex;
 	}
 
 	public int getNextScratchIntersectionIndex() {
@@ -81,6 +116,11 @@ public class GlyphCacheTracker {
 
 	public int getNextScratchInfoIndex() {
 		return nextScratchInfoIndex;
+	}
+
+	public int getCurrentFrameInFlight() {
+		if (stableIntersectionIndices.position() == 0) return stableIntersectionIndices.capacity() - 1;
+		else return stableIntersectionIndices.position() - 1;
 	}
 
 	private record Entry(int glyph, int height) {}

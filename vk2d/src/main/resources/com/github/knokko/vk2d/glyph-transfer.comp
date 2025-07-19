@@ -15,6 +15,9 @@ layout(set = 0, binding = 3) writeonly buffer InfoOutput {
 layout(set = 0, binding = 4) buffer NextInfo {
 	uint nextOutputIntersectionOffset;
 };
+layout(set = 0, binding = 5) buffer IntersectionIndexOutput {
+	uint intersectionIndexOutput[];
+};
 
 layout(push_constant) uniform PushConstants {
 	uint inputIntersectionOffset;
@@ -22,6 +25,7 @@ layout(push_constant) uniform PushConstants {
 	uint outputInfoOffset;
 	uint pixelHeight;
 	uint numCurves;
+	uint frameIndex;
 };
 
 void main() {
@@ -36,4 +40,5 @@ void main() {
 		}
 	}
 	nextOutputIntersectionOffset = outputIntersectionIndex;
+	intersectionIndexOutput[frameIndex] = outputIntersectionIndex;
 }
