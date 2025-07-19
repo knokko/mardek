@@ -5,6 +5,7 @@ import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.Vk2dSharedText;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
+import com.github.knokko.vk2d.resource.Vk2dFont;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 
@@ -41,8 +42,8 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 		}
 	}
 
-	public Vk2dGlyphBatch addBatch(Vk2dFrame frame, int initialCapacity, long descriptorSet) {
-		return new Vk2dGlyphBatch(this, frame, initialCapacity, descriptorSet);
+	public Vk2dGlyphBatch addBatch(Vk2dFrame frame, int initialCapacity, Vk2dFont font, long descriptorSet) {
+		return new Vk2dGlyphBatch(this, frame, initialCapacity, font, descriptorSet);
 	}
 
 	@Override

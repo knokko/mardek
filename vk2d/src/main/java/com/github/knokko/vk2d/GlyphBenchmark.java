@@ -8,6 +8,7 @@ import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
 import com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline;
+import com.github.knokko.vk2d.resource.Vk2dFont;
 import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
 
@@ -61,20 +62,22 @@ public class GlyphBenchmark extends Vk2dWindow {
 		}
 		fps += 1;
 
-		int glyphHeight = 100;
+		int heightA = 70;
+		Vk2dFont font = resources.getFont(0);
+		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 600, font, textBuffer.getRenderDescriptorSet());
+
 		textBuffer.prepareScratch(recorder, sharedText);
-		int[] glyphOffsets = new int[resources.getFont(0).getNumGlyphs()];
+		int[] glyphOffsets = new int[font.getNumGlyphs()];
 		for (int glyph = 0; glyph < glyphOffsets.length; glyph++) {
-			glyphOffsets[glyph] = textBuffer.scratch(recorder, sharedText, glyph, glyphHeight);
+			glyphOffsets[glyph] = textBuffer.scratch(recorder, sharedText, glyph, batch.determineHeight(heightA, glyph));
 		}
 		textBuffer.transfer(recorder, sharedText, true);
-		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 6, textBuffer.getRenderDescriptorSet());
 		int cellSize = 100;
 		int glyph = 0;
 		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
 			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
 				if (glyph >= glyphOffsets.length) glyph = 0;
-				batch.simple(x, y, x + glyphHeight, y + glyphHeight - 1, glyphOffsets[glyph++]);
+				batch.glyphAt(x, y, heightA, glyph, glyphOffsets[glyph++]);
 			}
 		}
 	}

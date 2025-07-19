@@ -16,12 +16,18 @@ layout(push_constant) uniform PushConstants {
 	uint curveOffset;
 	uint numCurves;
 	uint pixelHeight;
+	float glyphMinX;
 	float glyphMinY;
+	float glyphMaxX;
 	float glyphMaxY;
 };
 
 float unpack(uint raw) {
 	return (raw & 1023) * 2.5 / 1023.0 - 0.5;
+}
+
+float transformX(float x) {
+	return (x - glyphMinX) / (glyphMaxX - glyphMinX);
 }
 
 void main() {
@@ -73,12 +79,12 @@ void main() {
 		float cx = curveStartX;
 		if (t0 >= 0.0 && t0 <= 1.0) {
 			float x = (ax * t0 - 2.0 * bx) * t0 + cx;
-			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = x;
+			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformX(x);
 		}
 
 		if (t1 >= 0.0 && t1 <= 1.0) {
 			float x = (ax * t1 - 2.0 * bx) * t1 + cx;
-			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = x;
+			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformX(x);
 		}
 	}
 

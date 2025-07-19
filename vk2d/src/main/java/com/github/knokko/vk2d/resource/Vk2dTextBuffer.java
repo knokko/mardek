@@ -94,6 +94,8 @@ public class Vk2dTextBuffer {
 	}
 
 	public int scratch(CommandRecorder recorder, Vk2dSharedText shared, int glyph, int height) {
+		if (font.getNumCurves(glyph) == 0) return -1;
+
 		int scratchIntersectionOffset, scratchInfoOffset;
 		if (preparedGlyphs.isEmpty()) {
 			scratchIntersectionOffset = 0;
@@ -104,14 +106,16 @@ public class Vk2dTextBuffer {
 			scratchInfoOffset = last.nextScratchInfoOffset();
 		}
 
-		ByteBuffer pushConstants = recorder.stack.calloc(28);
+		ByteBuffer pushConstants = recorder.stack.calloc(36);
 		pushConstants.putInt(0, scratchIntersectionOffset);
 		pushConstants.putInt(4, scratchInfoOffset);
 		pushConstants.putInt(8, 2 * font.getFirstCurve(glyph));
 		pushConstants.putInt(12, font.getNumCurves(glyph));
 		pushConstants.putInt(16, height);
-		pushConstants.putFloat(20, font.getGlyphMinY(glyph));
-		pushConstants.putFloat(24, font.getGlyphMaxY(glyph));
+		pushConstants.putFloat(20, font.getGlyphMinX(glyph));
+		pushConstants.putFloat(24, font.getGlyphMinY(glyph));
+		pushConstants.putFloat(28, font.getGlyphMaxX(glyph));
+		pushConstants.putFloat(32, font.getGlyphMaxY(glyph));
 
 		vkCmdPushConstants(
 				recorder.commandBuffer, shared.scratchPipelineLayout,

@@ -94,15 +94,15 @@ public class TestGlyphScratchBufferingA {
 
 		// y 0 has 4 intersections
 		assertEquals(4, info.get(0));
-		assertEquals(0.018f, intersections.get(0), 0.001f);
-		assertEquals(0.123f, intersections.get(1), 0.001f);
-		assertEquals(0.827f, intersections.get(2), 0.001f);
-		assertEquals(0.930f, intersections.get(3), 0.001f);
+		assertEquals(0.001f, intersections.get(0), 0.001f);
+		assertEquals(0.116f, intersections.get(1), 0.001f);
+		assertEquals(0.883f, intersections.get(2), 0.001f);
+		assertEquals(0.995f, intersections.get(3), 0.001f);
 
 		// y 99 has 2 intersections
 		assertEquals(2, info.get(99));
-		assertEquals(0.432f, intersections.get(2 * 99 * numCurves), 0.001f);
-		assertEquals(0.518f, intersections.get(2 * 99 * numCurves + 1), 0.001f);
+		assertEquals(0.453f, intersections.get(2 * 99 * numCurves), 0.001f);
+		assertEquals(0.546f, intersections.get(2 * 99 * numCurves + 1), 0.001f);
 
 		commands.submit("GlyphTransfer", recorder ->
 				textBuffer.transfer(recorder, sharedText, true)
@@ -113,10 +113,10 @@ public class TestGlyphScratchBufferingA {
 
 		assertEquals(0, info.get(0));
 		assertEquals(4, info.get(1));
-		assertEquals(0.018f, intersections.get(0), 0.001f);
-		assertEquals(0.123f, intersections.get(1), 0.001f);
-		assertEquals(0.827f, intersections.get(2), 0.001f);
-		assertEquals(0.930f, intersections.get(3), 0.001f);
+		assertEquals(0.001f, intersections.get(0), 0.001f);
+		assertEquals(0.116f, intersections.get(1), 0.001f);
+		assertEquals(0.883f, intersections.get(2), 0.001f);
+		assertEquals(0.995f, intersections.get(3), 0.001f);
 
 		int nextIndex = 0;
 		for (int glyphY = 0; glyphY < glyphHeight; glyphY++) {

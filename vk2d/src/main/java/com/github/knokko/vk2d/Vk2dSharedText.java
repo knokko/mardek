@@ -38,7 +38,7 @@ public class Vk2dSharedText {
 			this.intersectionDescriptorLayout = descriptors.build(boiler, "Vk2dTextIntersectionDescriptorLayout");
 
 			VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
-			pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 28);
+			pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 36);
 			this.scratchPipelineLayout = boiler.pipelines.createLayout(
 					pushConstants, "Vk2dTextScratchPipelineLayout",
 					scratchDescriptorLayout.vkDescriptorSetLayout
