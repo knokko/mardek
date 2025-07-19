@@ -8,11 +8,18 @@ public class GlyphCacheTracker {
 	private final Map<Entry, Integer> stableMap = new HashMap<>();
 	private final Map<Entry, Integer> scratchMap = new HashMap<>();
 
-	private int nextStableIndex, nextScratchIndex;
+	private final int scratchIntersectionBufferSize, scratchInfoBufferSize;
+	private int nextStableIndex, nextScratchInfoIndex, nextScratchIntersectionIndex;
+
+	public GlyphCacheTracker(long scratchIntersectionBufferSize, long scratchInfoBufferSize) {
+		this.scratchIntersectionBufferSize = Math.toIntExact(scratchIntersectionBufferSize / 4L);
+		this.scratchInfoBufferSize = Math.toIntExact(scratchInfoBufferSize / 4L);
+	}
 
 	public void startFrame() {
 		boolean clear = false; // TODO Figure out when to clear
-		nextScratchIndex = 0;
+		nextScratchInfoIndex = 0;
+		nextScratchIntersectionIndex = 0;
 
 		int oldStableIndex = nextStableIndex;
 		scratchMap.forEach((entry, index) -> {
@@ -35,10 +42,18 @@ public class GlyphCacheTracker {
 		return null;
 	}
 
-	public int putScratch(int glyph, int height) {
-		scratchMap.put(new Entry(glyph, height), nextScratchIndex);
-		int result = nextScratchIndex;
-		nextScratchIndex += height;
+	public int putScratch(int glyph, int height, int numCurves) {
+		int newScratchInfoIndex = nextScratchInfoIndex + height;
+		if (newScratchInfoIndex > scratchInfoBufferSize) return -1;
+
+		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 2 * height * numCurves;
+		if (newScratchIntersectionIndex > scratchIntersectionBufferSize) return -1;
+
+		scratchMap.put(new Entry(glyph, height), nextScratchInfoIndex);
+		int result = nextScratchInfoIndex;
+
+		nextScratchInfoIndex = newScratchInfoIndex;
+		nextScratchIntersectionIndex = newScratchIntersectionIndex;
 		return result;
 	}
 
@@ -46,8 +61,12 @@ public class GlyphCacheTracker {
 		return nextStableIndex;
 	}
 
-	public int getNextScratchIndex() {
-		return nextScratchIndex;
+	public int getNextScratchIntersectionIndex() {
+		return nextScratchIntersectionIndex;
+	}
+
+	public int getNextScratchInfoIndex() {
+		return nextScratchInfoIndex;
 	}
 
 	private record Entry(int glyph, int height) {}

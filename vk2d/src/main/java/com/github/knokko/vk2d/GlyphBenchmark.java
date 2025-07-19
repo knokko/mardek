@@ -42,7 +42,7 @@ public class GlyphBenchmark extends Vk2dWindow {
 		super.createResources(boiler, combiner, descriptors);
 		this.sharedText = new Vk2dSharedText(boiler);
 		this.textPipeline = new Vk2dGlyphPipeline(pipelineContext, sharedText);
-		this.textBuffer = new Vk2dTextBuffer(boiler, combiner);
+		this.textBuffer = new Vk2dTextBuffer(boiler, combiner, numFramesInFlight);
 		this.textBuffer.requestDescriptorSets(sharedText, descriptors);
 	}
 
@@ -66,20 +66,19 @@ public class GlyphBenchmark extends Vk2dWindow {
 		Vk2dFont font = resources.getFont(0);
 		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 600, font, textBuffer.getRenderDescriptorSet());
 
-		textBuffer.prepareScratch(recorder, sharedText);
-		int[] glyphOffsets = new int[font.getNumGlyphs()];
-		for (int glyph = 0; glyph < glyphOffsets.length; glyph++) {
-			glyphOffsets[glyph] = textBuffer.scratch(recorder, sharedText, glyph, batch.determineHeight(heightA, glyph));
-		}
-		textBuffer.transfer(recorder, sharedText, true);
+		textBuffer.startFrame();
 		int cellSize = 100;
 		int glyph = 0;
 		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
 			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
-				if (glyph >= glyphOffsets.length) glyph = 0;
-				batch.glyphAt(x, y, heightA, glyph, glyphOffsets[glyph++]);
+				if (glyph >= font.getNumGlyphs()) glyph = 0;
+				int glyphOffset = textBuffer.scratch(recorder, sharedText, glyph, batch.determineHeight(heightA, glyph));
+				batch.glyphAt(x, y, heightA, glyph, glyphOffset);
+				glyph += 1;
 			}
 		}
+
+		textBuffer.transfer(recorder, sharedText, true);
 	}
 
 	@Override

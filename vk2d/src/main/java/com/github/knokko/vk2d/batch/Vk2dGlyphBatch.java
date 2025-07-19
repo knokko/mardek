@@ -18,6 +18,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 	}
 
 	public void glyphBetween(int minX, int minY, int maxX, int maxY, int baseIndex) {
+		if (baseIndex == -1) return;
 		ByteBuffer vertices = putVertices(6);
 
 		int height = 1 + maxY - minY;

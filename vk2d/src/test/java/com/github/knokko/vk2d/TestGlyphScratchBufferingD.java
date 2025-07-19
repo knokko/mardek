@@ -52,7 +52,7 @@ public class TestGlyphScratchBufferingD {
 
 		long alignment = boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
 		int usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-		MappedVkbBuffer scratchIntersectionBuffer = memoryCombiner.addMappedBuffer(15000L, alignment, usage);
+		MappedVkbBuffer scratchIntersectionBuffer = memoryCombiner.addMappedBuffer(18L * 2L * 4L * glyphHeight, alignment, usage);
 		MappedVkbBuffer scratchInfoBuffer = memoryCombiner.addMappedBuffer(4L * glyphHeight, alignment, usage);
 		MappedVkbBuffer intersectionBuffer = memoryCombiner.addMappedBuffer(5000L, alignment, usage);
 		MappedVkbBuffer infoBuffer = memoryCombiner.addMappedBuffer(8L * glyphHeight, alignment, usage);
@@ -78,10 +78,10 @@ public class TestGlyphScratchBufferingD {
 
 		textBuffer.initializeDescriptorSets(boiler, font);
 
-		commands.submit("Scratch", recorder -> {
-			textBuffer.prepareScratch(recorder, sharedText);
-			textBuffer.scratch(recorder, sharedText, glyph, glyphHeight);
-		}).awaitCompletion();
+		textBuffer.startFrame();
+		commands.submit("Scratch", recorder ->
+			textBuffer.scratch(recorder, sharedText, glyph, glyphHeight)
+		).awaitCompletion();
 
 		IntBuffer info = scratchInfoBuffer.intBuffer();
 		FloatBuffer intersections = scratchIntersectionBuffer.floatBuffer();
