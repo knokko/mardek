@@ -56,12 +56,14 @@ void main() {
 			float s = sqrt(radicand);
 			t0 = (b - s) / a;
 			t1 = (b + s) / a;
+			if ((t0 < 0.0 || t0 > 1.0) && (t1 < 0.0 || t1 > 1.0)) continue;
 		} else {
 			// Linear segment, avoid division by a.y, which is near zero.
 			t0 = startY / (startY - endY);
-			if (isnan(t0) || isinf(t0)) continue;
-			t1 = t0;
+			if (t0 >= 0.0 && t0 <= 1.0) t1 = -1.0;
+			else continue;
 		}
+
 		uint packedX = curveData[curveOffset + 2 * localCurveIndex];
 		float curveStartX = unpack(packedX);
 		float curveControlX = unpack(packedX >> 10);
@@ -69,16 +71,14 @@ void main() {
 		float ax = curveStartX - 2.0 * curveControlX + curveEndX;
 		float bx = curveStartX - curveControlX;
 		float cx = curveStartX;
-		float x = (ax * t0 - 2.0 * bx) * t0 + cx;
-		if (!((x < curveStartX && x < curveControlX && x < curveEndX) || (x > curveStartX && x > curveControlX && x > curveEndX))) {
+		if (t0 >= 0.0 && t0 <= 1.0) {
+			float x = (ax * t0 - 2.0 * bx) * t0 + cx;
 			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = x;
 		}
 
-		if (t0 != t1) {
-			x = (ax * t1 - 2.0 * bx) * t1 + cx;
-			if (!((x < curveStartX && x < curveControlX && x < curveEndX) || (x > curveStartX && x > curveControlX && x > curveEndX))) {
-				intersectionData[rowIntersectionOffset + localIntersectionIndex++] = x;
-			}
+		if (t1 >= 0.0 && t1 <= 1.0) {
+			float x = (ax * t1 - 2.0 * bx) * t1 + cx;
+			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = x;
 		}
 	}
 

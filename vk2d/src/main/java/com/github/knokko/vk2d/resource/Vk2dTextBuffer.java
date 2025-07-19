@@ -179,7 +179,7 @@ public class Vk2dTextBuffer {
 		nextOffsetBarrier.offset(nextOffsetBuffer.offset);
 		nextOffsetBarrier.size(nextOffsetBuffer.size);
 
-		IntBuffer pushConstants = recorder.stack.callocInt(6);
+		IntBuffer pushConstants = recorder.stack.callocInt(5);
 		for (PreparedGlyph prepared : preparedGlyphs) {
 			pushConstants.put(0, prepared.scratchIntersectionOffset);
 			pushConstants.put(1, prepared.scratchInfoOffset);
@@ -187,16 +187,16 @@ public class Vk2dTextBuffer {
 			pushConstants.put(3, prepared.height);
 			pushConstants.put(4, prepared.numGlyphCurves);
 			vkCmdPushConstants(
-					recorder.commandBuffer, shared.scratchPipelineLayout,
+					recorder.commandBuffer, shared.transferPipelineLayout,
 					VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstants
 			);
 			vkCmdDispatch(recorder.commandBuffer, 1, 1, 1);
 			nextOutputInfoOffset += 2 * prepared.height;
 			if (prepared != preparedGlyphs.get(preparedGlyphs.size() - 1)) {
-//				vkCmdPipelineBarrier(
-//						recorder.commandBuffer, nextOffsetUsage.stageMask(), nextOffsetUsage.stageMask(),
-//						0, null, nextOffsetBarrier, null
-//				);
+				vkCmdPipelineBarrier(
+						recorder.commandBuffer, nextOffsetUsage.stageMask(), nextOffsetUsage.stageMask(),
+						0, null, nextOffsetBarrier, null
+				);
 			}
 		}
 

@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.lwjgl.vulkan.VK10.*;
 import static org.lwjgl.vulkan.VK12.VK_API_VERSION_1_2;
 
-public class TestGlyphScratchBuffering {
+public class TestGlyphScratchBufferingA {
 
 	@Test
 	public void testUpperCaseA() throws IOException {
@@ -130,7 +130,6 @@ public class TestGlyphScratchBuffering {
 			}
 		}
 
-		// TODO check result
 		commands.destroy();
 		vkDestroyDescriptorPool(boiler.vkDevice(), vkDescriptorPool, null);
 		memory.destroy(boiler);
