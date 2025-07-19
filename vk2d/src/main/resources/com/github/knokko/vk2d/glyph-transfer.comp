@@ -20,25 +20,29 @@ layout(set = 0, binding = 5) buffer IntersectionIndexOutput {
 };
 
 layout(push_constant) uniform PushConstants {
-	uint inputIntersectionOffset;
-	uint inputInfoOffset;
 	uint outputInfoOffset;
-	uint pixelHeight;
-	uint numCurves;
+	uint numRows;
 	uint frameIndex;
 };
 
 void main() {
 	uint outputIntersectionIndex = nextOutputIntersectionOffset;
-	for (uint y = 0; y < pixelHeight; y++) {
-		uint inputIntersectionIndex = inputIntersectionOffset + 2 * y * numCurves;
-		uint numIntersections = infoInput[inputInfoOffset + y];
-		infoOutput[outputInfoOffset + 2 * y] = outputIntersectionIndex;
-		infoOutput[outputInfoOffset + 2 * y + 1] = numIntersections;
-		for (uint counter = 0; counter < numIntersections; counter++) {
-			intersectionOutput[outputIntersectionIndex++] = intersectionInput[inputIntersectionIndex++];
+	uint inputIntersectionIndex = 0;
+	uint inputInfoIndex = 0;
+	uint outputInfoIndex = outputInfoOffset;
+
+	for (uint row = 0; row < numRows; row++) {
+		uint numIntersections = infoInput[inputInfoIndex++];
+		uint maxIntersections = infoInput[inputInfoIndex++];
+		infoOutput[outputInfoIndex++] = outputIntersectionIndex;
+		infoOutput[outputInfoIndex++] = numIntersections;
+		for (uint intersection = 0; intersection < numIntersections; intersection++) {
+			intersectionOutput[outputIntersectionIndex++] = intersectionInput[inputIntersectionIndex + intersection];
 		}
+
+		inputIntersectionIndex += maxIntersections;
 	}
+
 	nextOutputIntersectionOffset = outputIntersectionIndex;
 	intersectionIndexOutput[frameIndex] = outputIntersectionIndex;
 }

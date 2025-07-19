@@ -49,12 +49,11 @@ public class GlyphCacheTracker {
 		}
 		if (!stableIntersectionIndices.hasRemaining()) stableIntersectionIndices.position(0);
 		lastStableIntersectionIndex = stableIntersectionIndices.get();
-		System.out.println("startFrame: lastStableIntersectionIndex is " + lastStableIntersectionIndex);
 
 		int oldStableIndex = nextStableInfoIndex;
 		scratchMap.forEach((entry, index) -> {
 			stableMap.put(entry, index + oldStableIndex);
-			nextStableInfoIndex += entry.height;
+			nextStableInfoIndex += 2 * entry.height;
 		});
 		scratchMap.clear();
 
@@ -78,14 +77,14 @@ public class GlyphCacheTracker {
 	}
 
 	public int putScratch(int glyph, int height, int numCurves) {
-		int newScratchInfoIndex = nextScratchInfoIndex + height;
+		int newScratchInfoIndex = nextScratchInfoIndex + 2 * height;
 		if (newScratchInfoIndex > scratchInfoBufferSize) return -1;
 
 		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 2 * height * numCurves;
 		if (newScratchIntersectionIndex > scratchIntersectionBufferSize) return -1;
 
 		int newStableInfoIndex = nextStableInfoIndex + newScratchInfoIndex;
-		if (2 * newStableInfoIndex > stableInfoBufferSize) {
+		if (newStableInfoIndex > stableInfoBufferSize) {
 			shouldClearStable = true;
 			return -1;
 		}

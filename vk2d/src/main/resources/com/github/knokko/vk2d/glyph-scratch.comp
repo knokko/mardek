@@ -98,5 +98,6 @@ void main() {
 		intersectionData[rowIntersectionOffset + j] = old;
 	}
 
-	intersectionInfo[intersectionInfoOffset + pixelY] = localIntersectionIndex;
+	intersectionInfo[intersectionInfoOffset + 2 * pixelY] = localIntersectionIndex;
+	intersectionInfo[intersectionInfoOffset + 2 * pixelY + 1] = 2 * numCurves;
 }

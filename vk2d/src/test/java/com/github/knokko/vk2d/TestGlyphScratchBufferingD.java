@@ -53,7 +53,7 @@ public class TestGlyphScratchBufferingD {
 		long alignment = boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
 		int usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 		MappedVkbBuffer scratchIntersectionBuffer = memoryCombiner.addMappedBuffer(18L * 2L * 4L * glyphHeight, alignment, usage);
-		MappedVkbBuffer scratchInfoBuffer = memoryCombiner.addMappedBuffer(4L * glyphHeight, alignment, usage);
+		MappedVkbBuffer scratchInfoBuffer = memoryCombiner.addMappedBuffer(8L * glyphHeight, alignment, usage);
 		MappedVkbBuffer intersectionBuffer = memoryCombiner.addMappedBuffer(18L * 2L * 4L * glyphHeight, alignment, usage);
 		MappedVkbBuffer infoBuffer = memoryCombiner.addMappedBuffer(8L * glyphHeight, alignment, usage);
 		MappedVkbBuffer nextOffsetBuffer = memoryCombiner.addMappedBuffer(4L, alignment, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
@@ -92,20 +92,24 @@ public class TestGlyphScratchBufferingD {
 		for (int glyphY = 0; glyphY < glyphHeight; glyphY++) {
 			System.out.print("intersections for Y " + glyphY + ": ");
 			int numIntersections = info.get();
+			int maxIntersections = info.get();
 			for (int counter = 0; counter < numIntersections; counter++) {
 				System.out.print(intersections.get(counter + 2 * glyphY * numCurves));
 				System.out.print(" ");
 			}
+			assertEquals(maxIntersections, 2 * font.getNumCurves(glyph));
 			System.out.println();
 		}
 
 		// y 0 has only 2 intersections
 		assertEquals(2, info.get(0));
+		assertEquals(2 * numCurves, info.get(1));
 		assertEquals(-0.003f, intersections.get(0), 0.001f);
 		assertEquals(0.522f, intersections.get(1), 0.001f);
 
 		// y 99 also has only 2 intersections
-		assertEquals(2, info.get(99));
+		assertEquals(2, info.get(198));
+		assertEquals(2 * numCurves, info.get(199));
 		assertEquals(-0.003f, intersections.get(2 * 99 * numCurves), 0.001f);
 		assertEquals(0.491f, intersections.get(2 * 99 * numCurves + 1), 0.001f);
 

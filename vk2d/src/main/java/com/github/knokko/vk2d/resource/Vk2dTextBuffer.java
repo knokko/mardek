@@ -11,12 +11,9 @@ import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.vk2d.Vk2dSharedText;
 import com.github.knokko.vk2d.text.GlyphCacheTracker;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkBufferMemoryBarrier;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
@@ -40,8 +37,6 @@ public class Vk2dTextBuffer {
 	private long scratchDescriptorSet, transferDescriptorSet, intersectionDescriptorSet;
 	private boolean didInitializeNextOffsetBuffer, shouldBindScratchPipeline;
 
-	private final List<PreparedGlyph> preparedGlyphs = new ArrayList<>();
-
 	private boolean shouldClearNextTransfer;
 
 	public Vk2dTextBuffer(
@@ -64,7 +59,7 @@ public class Vk2dTextBuffer {
 	public Vk2dTextBuffer(BoilerInstance boiler, MemoryCombiner combiner, int numFramesInFlight) {
 		// Scratch buffer size:
 		//  target: fit glyph with 100 curves, using a height of 10k pixels
-		//  the info buffer needs 1 int (4 bytes) per pixel height: 40k bytes
+		//  the info buffer needs 2 ints (4 bytes each) per pixel height: 80k bytes
 		//  the intersection buffer needs 2 * numCurves intersections per pixel height:
 		//    2 * 100 curves * 4 bytes * 10k pixels = 8M bytes
 		// Real buffer size:
@@ -74,10 +69,10 @@ public class Vk2dTextBuffer {
 		//    the intersection buffer needs 10 intersections * 4 bytes * 100k rows = 4M bytes
 		this(
 				request(boiler, combiner, 8_000_000L),
-				request(boiler, combiner, 40_000L),
-				//request(boiler, combiner, numFramesInFlight * 8_000_000L + 4_000_000L),
-				request(boiler, combiner, 210_000L),
-				request(boiler, combiner, numFramesInFlight * 40_000L + 800_000),
+				request(boiler, combiner, 80_000L),
+				request(boiler, combiner, numFramesInFlight * 8_000_000L + 4_000_000L),
+				//request(boiler, combiner, 210_000L),
+				request(boiler, combiner, numFramesInFlight * 80_000L + 800_000),
 				request(boiler, combiner, 4L),
 				combiner.addMappedBuffer(
 						4L * numFramesInFlight,
@@ -117,7 +112,6 @@ public class Vk2dTextBuffer {
 	}
 
 	public void startFrame() {
-		preparedGlyphs.clear();
 		shouldClearNextTransfer = cache.startFrame();
 		shouldBindScratchPipeline = true;
 	}
@@ -155,30 +149,20 @@ public class Vk2dTextBuffer {
 		//noinspection SuspiciousNameCombination
 		vkCmdDispatch(recorder.commandBuffer, height, 1, 1);
 
-		PreparedGlyph next = new PreparedGlyph();
-		next.glyph = glyph;
-		next.scratchIntersectionOffset = scratchIntersectionOffset;
-		next.scratchInfoOffset = scratchInfoOffset;
-		next.height = height;
-		next.numGlyphCurves = font.getNumCurves(glyph);
-		preparedGlyphs.add(next);
-
-		return scratchInfoOffset;
+		return cache.get(glyph, height);
 	}
 
 	private void nextIntersectionBarrier(CommandRecorder recorder) {
 		ResourceUsage usage = ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT);
-		recorder.bufferBarrier(nextIntersectionIndexBuffer.child(
-				4L * cache.getCurrentFrameInFlight(), 4L
-		), usage, usage);
+		recorder.bufferBarrier(nextIntersectionIndexBuffer, usage, usage);
 	}
 
 	public void transfer(CommandRecorder recorder, Vk2dSharedText shared) {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, shared.transferPipeline);
 		recorder.bindComputeDescriptors(shared.transferPipelineLayout, transferDescriptorSet);
-		if (preparedGlyphs.isEmpty()) {
-			IntBuffer pushConstants = recorder.stack.callocInt(6);
-			pushConstants.put(5, cache.getCurrentFrameInFlight());
+		if (cache.getNextScratchInfoIndex() == 0) {
+			IntBuffer pushConstants = recorder.stack.callocInt(3);
+			pushConstants.put(2, cache.getCurrentFrameInFlight());
 			vkCmdPushConstants(
 					recorder.commandBuffer, shared.transferPipelineLayout,
 					VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstants
@@ -188,7 +172,7 @@ public class Vk2dTextBuffer {
 			return;
 		}
 
-		System.out.println("Propagate " + preparedGlyphs.size() + " glyphs");
+		System.out.println("Propagate " + (cache.getNextScratchInfoIndex() / 2) + " rows");
 		if (shouldClearNextTransfer || !didInitializeNextOffsetBuffer) {
 			if (didInitializeNextOffsetBuffer) {
 				recorder.bufferBarrier(
@@ -209,65 +193,40 @@ public class Vk2dTextBuffer {
 		}
 
 		recorder.bufferBarrier(
-				scratchIntersectionBuffer.child(0L, 4L * cache.getNextScratchIntersectionIndex()),
+				scratchIntersectionBuffer,
 				ResourceUsage.computeBuffer(VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT),
 				ResourceUsage.computeBuffer(VK_ACCESS_SHADER_READ_BIT)
 		);
 		recorder.bufferBarrier(
-				scratchInfoBuffer.child(0L, 4L * cache.getNextScratchInfoIndex()),
+				scratchInfoBuffer,
 				ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT),
 				ResourceUsage.computeBuffer(VK_ACCESS_SHADER_READ_BIT)
 		);
 
-		var nextOffsetUsage = ResourceUsage.computeBuffer(VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT);
-		var nextOffsetBarrier = VkBufferMemoryBarrier.calloc(1, recorder.stack);
-		nextOffsetBarrier.sType$Default();
-		nextOffsetBarrier.srcAccessMask(nextOffsetUsage.accessMask());
-		nextOffsetBarrier.dstAccessMask(nextOffsetUsage.accessMask());
-		nextOffsetBarrier.srcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
-		nextOffsetBarrier.dstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED);
-		nextOffsetBarrier.buffer(nextOffsetBuffer.vkBuffer);
-		nextOffsetBarrier.offset(nextOffsetBuffer.offset);
-		nextOffsetBarrier.size(nextOffsetBuffer.size);
+		IntBuffer pushConstants = recorder.stack.callocInt(3);
+		pushConstants.put(0, cache.getNextStableInfoIndex());
+		pushConstants.put(1, cache.getNextScratchInfoIndex() / 2);
+		pushConstants.put(2, cache.getCurrentFrameInFlight());
+		vkCmdPushConstants(
+				recorder.commandBuffer, shared.transferPipelineLayout,
+				VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstants
+		);
+		vkCmdDispatch(recorder.commandBuffer, 1, 1, 1);
 
-		IntBuffer pushConstants = recorder.stack.callocInt(6);
-		for (PreparedGlyph prepared : preparedGlyphs) {
-			pushConstants.put(0, prepared.scratchIntersectionOffset);
-			pushConstants.put(1, prepared.scratchInfoOffset);
-			pushConstants.put(2, 2 * cache.get(prepared.glyph, prepared.height));
-			pushConstants.put(3, prepared.height);
-			pushConstants.put(4, prepared.numGlyphCurves);
-			pushConstants.put(5, cache.getCurrentFrameInFlight());
-			vkCmdPushConstants(
-					recorder.commandBuffer, shared.transferPipelineLayout,
-					VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstants
-			);
-			vkCmdDispatch(recorder.commandBuffer, 1, 1, 1);
-			if (prepared != preparedGlyphs.get(preparedGlyphs.size() - 1)) {
-				vkCmdPipelineBarrier(
-						recorder.commandBuffer, nextOffsetUsage.stageMask(), nextOffsetUsage.stageMask(),
-						0, null, nextOffsetBarrier, null
-				);
-			}
-			nextIntersectionBarrier(recorder);
-		}
+		ResourceUsage nextOffsetUsage = ResourceUsage.computeBuffer(
+				VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT
+		);
+		recorder.bufferBarrier(nextOffsetBuffer, nextOffsetUsage, nextOffsetUsage);
+		nextIntersectionBarrier(recorder);
 
 		recorder.bulkBufferBarrier(
 				ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT),
 				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT),
-				intersectionBuffer, infoBuffer.child(
-						4L * cache.getNextStableInfoIndex(),
-						8L * cache.getNextScratchInfoIndex()
-				)
+				intersectionBuffer, infoBuffer
 		);
 	}
 
 	public long getRenderDescriptorSet() {
 		return intersectionDescriptorSet;
-	}
-
-	private static class PreparedGlyph {
-
-		int glyph, scratchIntersectionOffset, scratchInfoOffset, height, numGlyphCurves;
 	}
 }

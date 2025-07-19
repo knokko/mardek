@@ -15,9 +15,9 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
 	uint y = uint(height * textureCoordinates.y);
-	uint infoIndex = baseIndex + y;
-	uint intersectionIndex = intersectionInfo[2 * infoIndex];
-	uint numIntersections = intersectionInfo[2 * infoIndex + 1];
+	uint infoIndex = baseIndex + 2 * y;
+	uint intersectionIndex = intersectionInfo[infoIndex];
+	uint numIntersections = intersectionInfo[infoIndex + 1];
 
 	uint index = 0;
 	for (; index < numIntersections; index++) {
