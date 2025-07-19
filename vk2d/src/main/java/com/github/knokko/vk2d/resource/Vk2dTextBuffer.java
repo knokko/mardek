@@ -8,6 +8,7 @@ import com.github.knokko.boiler.descriptors.DescriptorUpdater;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.vk2d.Vk2dSharedText;
+import com.github.knokko.vk2d.text.GlyphCacheTracker;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkBufferMemoryBarrier;
 
@@ -29,12 +30,12 @@ public class Vk2dTextBuffer {
 		);
 	}
 
+	private final GlyphCacheTracker cache = new GlyphCacheTracker();
 	private Vk2dFont font;
 	private final VkbBuffer scratchIntersectionBuffer, scratchInfoBuffer;
 	private final VkbBuffer intersectionBuffer, infoBuffer, nextOffsetBuffer;
 
 	private long scratchDescriptorSet, transferDescriptorSet, intersectionDescriptorSet;
-	private int nextOutputInfoOffset;
 	private boolean didInitializeNextOffsetBuffer;
 
 	private final List<PreparedGlyph> preparedGlyphs = new ArrayList<>();
@@ -91,19 +92,21 @@ public class Vk2dTextBuffer {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, shared.scratchPipeline);
 		recorder.bindComputeDescriptors(shared.scratchPipelineLayout, scratchDescriptorSet);
 		preparedGlyphs.clear();
+		cache.startFrame();
 	}
 
 	public int scratch(CommandRecorder recorder, Vk2dSharedText shared, int glyph, int height) {
 		if (font.getNumCurves(glyph) == 0) return -1;
+		Integer existing = cache.get(glyph, height);
+		if (existing != null) return existing;
 
-		int scratchIntersectionOffset, scratchInfoOffset;
+		int scratchIntersectionOffset;
+		int scratchInfoOffset = cache.putScratch(glyph, height);
 		if (preparedGlyphs.isEmpty()) {
 			scratchIntersectionOffset = 0;
-			scratchInfoOffset = 0;
 		} else {
 			PreparedGlyph last = preparedGlyphs.get(preparedGlyphs.size() - 1);
 			scratchIntersectionOffset = last.nextScratchIntersectionOffset();
-			scratchInfoOffset = last.nextScratchInfoOffset();
 		}
 
 		ByteBuffer pushConstants = recorder.stack.calloc(36);
@@ -125,6 +128,7 @@ public class Vk2dTextBuffer {
 		vkCmdDispatch(recorder.commandBuffer, height, 1, 1);
 
 		PreparedGlyph next = new PreparedGlyph();
+		next.glyph = glyph;
 		next.scratchIntersectionOffset = scratchIntersectionOffset;
 		next.scratchInfoOffset = scratchInfoOffset;
 		next.height = height;
@@ -137,8 +141,7 @@ public class Vk2dTextBuffer {
 	public void transfer(CommandRecorder recorder, Vk2dSharedText shared, boolean clear) {
 		if (preparedGlyphs.isEmpty()) return;
 
-		if (clear) nextOutputInfoOffset = 0;
-		int oldOutputInfoOffset = nextOutputInfoOffset;
+		clear = false; // TODO Arrange properly
 		if (clear || !didInitializeNextOffsetBuffer) {
 			if (didInitializeNextOffsetBuffer) {
 				recorder.bufferBarrier(
@@ -187,7 +190,7 @@ public class Vk2dTextBuffer {
 		for (PreparedGlyph prepared : preparedGlyphs) {
 			pushConstants.put(0, prepared.scratchIntersectionOffset);
 			pushConstants.put(1, prepared.scratchInfoOffset);
-			pushConstants.put(2, nextOutputInfoOffset);
+			pushConstants.put(2, 2 * cache.get(prepared.glyph, prepared.height));
 			pushConstants.put(3, prepared.height);
 			pushConstants.put(4, prepared.numGlyphCurves);
 			vkCmdPushConstants(
@@ -195,7 +198,6 @@ public class Vk2dTextBuffer {
 					VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstants
 			);
 			vkCmdDispatch(recorder.commandBuffer, 1, 1, 1);
-			nextOutputInfoOffset += 2 * prepared.height;
 			if (prepared != preparedGlyphs.get(preparedGlyphs.size() - 1)) {
 				vkCmdPipelineBarrier(
 						recorder.commandBuffer, nextOffsetUsage.stageMask(), nextOffsetUsage.stageMask(),
@@ -208,8 +210,7 @@ public class Vk2dTextBuffer {
 				ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT),
 				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT),
 				intersectionBuffer, infoBuffer.child(
-						4L * oldOutputInfoOffset,
-						4L * (nextOutputInfoOffset - oldOutputInfoOffset)
+						4L * cache.getNextStableIndex(), 8L * cache.getNextScratchIndex()
 				)
 		);
 	}
@@ -220,7 +221,7 @@ public class Vk2dTextBuffer {
 
 	private static class PreparedGlyph {
 
-		int scratchIntersectionOffset, scratchInfoOffset, height, numGlyphCurves;
+		int glyph, scratchIntersectionOffset, scratchInfoOffset, height, numGlyphCurves;
 
 		int nextScratchIntersectionOffset() {
 			return scratchIntersectionOffset + 2 * height * numGlyphCurves;
