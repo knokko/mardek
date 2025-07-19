@@ -1,3 +1,5 @@
+apply plugin: "com.gradleup.shadow"
+
 dependencies {
 	implementation "org.lwjgl:lwjgl-sdl"
 	implementation "org.lwjgl:lwjgl-freetype"
@@ -8,4 +10,10 @@ dependencies {
 	for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
 	for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
 	for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-sdl::$natives"
+}
+
+shadowJar {
+	manifest {
+		attributes ("Main-Class": "com.github.knokko.vk2d.GlyphBenchmark")
+	}
 }
