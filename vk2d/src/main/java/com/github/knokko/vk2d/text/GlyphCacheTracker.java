@@ -9,15 +9,21 @@ public class GlyphCacheTracker {
 	private final Map<Entry, Integer> scratchMap = new HashMap<>();
 
 	private final int scratchIntersectionBufferSize, scratchInfoBufferSize;
+	private final int stableIntersectionBufferSize, stableInfoBufferSize;
 	private int nextStableIndex, nextScratchInfoIndex, nextScratchIntersectionIndex;
+	private boolean shouldClearStable;
 
-	public GlyphCacheTracker(long scratchIntersectionBufferSize, long scratchInfoBufferSize) {
+	public GlyphCacheTracker(
+			long scratchIntersectionBufferSize, long scratchInfoBufferSize,
+			long stableIntersectionBufferSize, long stableInfoBufferSize
+	) {
 		this.scratchIntersectionBufferSize = Math.toIntExact(scratchIntersectionBufferSize / 4L);
 		this.scratchInfoBufferSize = Math.toIntExact(scratchInfoBufferSize / 4L);
+		this.stableIntersectionBufferSize = Math.toIntExact(stableIntersectionBufferSize / 4L);
+		this.stableInfoBufferSize = Math.toIntExact(stableInfoBufferSize / 4L);
 	}
 
-	public void startFrame() {
-		boolean clear = false; // TODO Figure out when to clear
+	public boolean startFrame() {
 		nextScratchInfoIndex = 0;
 		nextScratchIntersectionIndex = 0;
 
@@ -28,10 +34,12 @@ public class GlyphCacheTracker {
 		});
 		scratchMap.clear();
 
-		if (clear) {
+		if (shouldClearStable) {
 			nextStableIndex = 0;
 			stableMap.clear();
-		}
+			shouldClearStable = false;
+			return true;
+		} else return false;
 	}
 
 	public Integer get(int glyph, int height) {
@@ -48,6 +56,12 @@ public class GlyphCacheTracker {
 
 		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 2 * height * numCurves;
 		if (newScratchIntersectionIndex > scratchIntersectionBufferSize) return -1;
+
+		int newStableIndex = nextStableIndex + newScratchInfoIndex;
+		if (2 * newStableIndex > stableInfoBufferSize) {
+			shouldClearStable = true;
+			return -1;
+		}
 
 		scratchMap.put(new Entry(glyph, height), nextScratchInfoIndex);
 		int result = nextScratchInfoIndex;

@@ -108,7 +108,7 @@ public class TestGlyphScratchBufferingD {
 		assertEquals(0.491f, intersections.get(2 * 99 * numCurves + 1), 0.001f);
 
 		commands.submit("GlyphTransfer", recorder ->
-				textBuffer.transfer(recorder, sharedText, true)
+				textBuffer.transfer(recorder, sharedText)
 		).awaitCompletion();
 
 		info = infoBuffer.intBuffer();

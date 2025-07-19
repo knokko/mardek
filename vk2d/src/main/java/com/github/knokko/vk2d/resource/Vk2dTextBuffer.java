@@ -40,6 +40,8 @@ public class Vk2dTextBuffer {
 
 	private final List<PreparedGlyph> preparedGlyphs = new ArrayList<>();
 
+	private boolean shouldClearNextTransfer;
+
 	public Vk2dTextBuffer(
 			VkbBuffer scratchIntersectionBuffer, VkbBuffer scratchInfoBuffer,
 			VkbBuffer intersectionBuffer, VkbBuffer infoBuffer, VkbBuffer nextOffsetBuffer
@@ -49,7 +51,10 @@ public class Vk2dTextBuffer {
 		this.intersectionBuffer = intersectionBuffer;
 		this.infoBuffer = infoBuffer;
 		this.nextOffsetBuffer = nextOffsetBuffer;
-		this.cache = new GlyphCacheTracker(scratchIntersectionBuffer.size, scratchInfoBuffer.size);
+		this.cache = new GlyphCacheTracker(
+				scratchIntersectionBuffer.size, scratchInfoBuffer.size,
+				intersectionBuffer.size, infoBuffer.size
+		);
 	}
 
 	public Vk2dTextBuffer(BoilerInstance boiler, MemoryCombiner combiner, int numFramesInFlight) {
@@ -60,14 +65,14 @@ public class Vk2dTextBuffer {
 		//    2 * 100 curves * 4 bytes * 10k pixels = 8M bytes
 		// Real buffer size:
 		//  target: framesInFlight * scratchSize + desiredSize
-		//  desiredSize: fit glyphs with an average of 10 intersections per row, with a total height of 10k rows
-		//    the info buffer needs 2 ints per row: 80k bytes
-		//    the intersection buffer needs 10 intersections * 4 bytes * 10k rows = 400k bytes
+		//  desiredSize: fit glyphs with an average of 10 intersections per row, with a total height of 100k rows
+		//    the info buffer needs 2 ints per row: 800k bytes
+		//    the intersection buffer needs 10 intersections * 4 bytes * 100k rows = 4M bytes
 		this(
 				request(boiler, combiner, 8_000_000L),
 				request(boiler, combiner, 40_000L),
-				request(boiler, combiner, numFramesInFlight * 8_000_000L + 400_000L),
-				request(boiler, combiner, numFramesInFlight * 40_000L + 80_000),
+				request(boiler, combiner, numFramesInFlight * 8_000_000L + 4_000_000L),
+				request(boiler, combiner, numFramesInFlight * 40_000L + 800_000),
 				request(boiler, combiner, 4L)
 		);
 	}
@@ -101,7 +106,7 @@ public class Vk2dTextBuffer {
 
 	public void startFrame() {
 		preparedGlyphs.clear();
-		cache.startFrame();
+		shouldClearNextTransfer = cache.startFrame();
 		shouldBindScratchPipeline = true;
 	}
 
@@ -149,11 +154,10 @@ public class Vk2dTextBuffer {
 		return scratchInfoOffset;
 	}
 
-	public void transfer(CommandRecorder recorder, Vk2dSharedText shared, boolean clear) {
+	public void transfer(CommandRecorder recorder, Vk2dSharedText shared) {
 		if (preparedGlyphs.isEmpty()) return;
 
-		clear = false; // TODO Arrange properly
-		if (clear || !didInitializeNextOffsetBuffer) {
+		if (shouldClearNextTransfer || !didInitializeNextOffsetBuffer) {
 			if (didInitializeNextOffsetBuffer) {
 				recorder.bufferBarrier(
 						nextOffsetBuffer,
