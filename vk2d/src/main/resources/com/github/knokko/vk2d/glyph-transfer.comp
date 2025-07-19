@@ -14,20 +14,18 @@ layout(set = 0, binding = 3) writeonly buffer InfoOutput {
 };
 layout(set = 0, binding = 4) buffer NextInfo {
 	uint nextOutputIntersectionOffset;
-	uint nextOutputInfoOffset;
 };
 
 layout(push_constant) uniform PushConstants {
 	uint inputIntersectionOffset;
 	uint inputInfoOffset;
-	uint outputIntersectionOffset;
 	uint outputInfoOffset;
 	uint pixelHeight;
 	uint numCurves;
 };
 
 void main() {
-	uint outputIntersectionIndex = outputIntersectionOffset;
+	uint outputIntersectionIndex = nextOutputIntersectionOffset;
 	for (uint y = 0; y < pixelHeight; y++) {
 		uint inputIntersectionIndex = inputIntersectionOffset + 2 * y * numCurves;
 		uint numIntersections = infoInput[inputInfoOffset + y];
@@ -37,4 +35,5 @@ void main() {
 			intersectionOutput[outputIntersectionIndex++] = intersectionInput[inputIntersectionIndex++];
 		}
 	}
+	nextOutputIntersectionOffset = outputIntersectionIndex;
 }

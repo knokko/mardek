@@ -21,30 +21,32 @@ import static org.lwjgl.vulkan.VK10.*;
 public class Vk2dTextBuffer {
 
 	private static VkbBuffer request(BoilerInstance boiler, MemoryCombiner combiner, long size) {
+		int usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		if (size == 4L) usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 		return combiner.addBuffer(
-				size, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
-				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, 0.75f
+				size, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(), usage, 0.75f
 		);
 	}
 
 	private Vk2dFont font;
-	private final VkbBuffer scratchIntersectionBuffer;
-	private final VkbBuffer scratchInfoBuffer;
-	private final VkbBuffer intersectionBuffer;
-	private final VkbBuffer infoBuffer;
+	private final VkbBuffer scratchIntersectionBuffer, scratchInfoBuffer;
+	private final VkbBuffer intersectionBuffer, infoBuffer, nextOffsetBuffer;
 
 	private long scratchDescriptorSet, transferDescriptorSet, intersectionDescriptorSet;
+	private int nextOutputInfoOffset;
+	private boolean didInitializeNextOffsetBuffer;
 
 	private final List<PreparedGlyph> preparedGlyphs = new ArrayList<>();
 
 	public Vk2dTextBuffer(
-			VkbBuffer scratchIntersectionBuffer,
-			VkbBuffer scratchInfoBuffer, VkbBuffer intersectionBuffer, VkbBuffer infoBuffer
+			VkbBuffer scratchIntersectionBuffer, VkbBuffer scratchInfoBuffer,
+			VkbBuffer intersectionBuffer, VkbBuffer infoBuffer, VkbBuffer nextOffsetBuffer
 	) {
 		this.scratchIntersectionBuffer = scratchIntersectionBuffer;
 		this.scratchInfoBuffer = scratchInfoBuffer;
 		this.intersectionBuffer = intersectionBuffer;
 		this.infoBuffer = infoBuffer;
+		this.nextOffsetBuffer = nextOffsetBuffer;
 	}
 
 	public Vk2dTextBuffer(BoilerInstance boiler, MemoryCombiner combiner) {
@@ -52,7 +54,8 @@ public class Vk2dTextBuffer {
 				request(boiler, combiner, 5000_000L),
 				request(boiler, combiner, 500_000L),
 				request(boiler, combiner, 5000_000L),
-				request(boiler, combiner, 1000_000L)
+				request(boiler, combiner, 1000_000L),
+				request(boiler, combiner, 4L)
 		);
 	}
 
@@ -65,7 +68,7 @@ public class Vk2dTextBuffer {
 	public void initializeDescriptorSets(BoilerInstance boiler, Vk2dFont font) {
 		this.font = font;
 		try (MemoryStack stack = stackPush()) {
-			DescriptorUpdater updater = new DescriptorUpdater(stack, 9);
+			DescriptorUpdater updater = new DescriptorUpdater(stack, 10);
 			updater.writeStorageBuffer(0, scratchDescriptorSet, 0, scratchIntersectionBuffer);
 			updater.writeStorageBuffer(1, scratchDescriptorSet, 1, scratchInfoBuffer);
 			updater.writeStorageBuffer(2, scratchDescriptorSet, 2, font.curveBuffer);
@@ -74,9 +77,10 @@ public class Vk2dTextBuffer {
 			updater.writeStorageBuffer(4, transferDescriptorSet, 1, scratchInfoBuffer);
 			updater.writeStorageBuffer(5, transferDescriptorSet, 2, intersectionBuffer);
 			updater.writeStorageBuffer(6, transferDescriptorSet, 3, infoBuffer);
+			updater.writeStorageBuffer(7, transferDescriptorSet, 4, nextOffsetBuffer);
 
-			updater.writeStorageBuffer(7, intersectionDescriptorSet, 0, intersectionBuffer);
-			updater.writeStorageBuffer(8, intersectionDescriptorSet, 1, infoBuffer);
+			updater.writeStorageBuffer(8, intersectionDescriptorSet, 0, intersectionBuffer);
+			updater.writeStorageBuffer(9, intersectionDescriptorSet, 1, infoBuffer);
 
 			updater.update(boiler);
 		}
@@ -122,10 +126,25 @@ public class Vk2dTextBuffer {
 		next.numGlyphCurves = font.getNumCurves(glyph);
 		preparedGlyphs.add(next);
 
-		return 2 * scratchInfoOffset;
+		return scratchInfoOffset;
 	}
 
-	public void prepareTransfer(CommandRecorder recorder, Vk2dSharedText shared) {
+	public void transfer(CommandRecorder recorder, Vk2dSharedText shared) {
+		if (preparedGlyphs.isEmpty()) return;
+
+		int oldOutputInfoOffset = nextOutputInfoOffset;
+		if (!didInitializeNextOffsetBuffer) {
+			vkCmdFillBuffer(
+					recorder.commandBuffer, nextOffsetBuffer.vkBuffer,
+					nextOffsetBuffer.offset, nextOffsetBuffer.size, 0
+			);
+			recorder.bufferBarrier(
+					nextOffsetBuffer, ResourceUsage.TRANSFER_DEST,
+					ResourceUsage.computeBuffer(VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT)
+			);
+			didInitializeNextOffsetBuffer = true;
+		}
+
 		PreparedGlyph last = preparedGlyphs.get(preparedGlyphs.size() - 1);
 		recorder.bufferBarrier(
 				scratchIntersectionBuffer.child(0L, 4L * last.nextScratchIntersectionOffset()),
@@ -139,31 +158,34 @@ public class Vk2dTextBuffer {
 		);
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, shared.transferPipeline);
 		recorder.bindComputeDescriptors(shared.transferPipelineLayout, transferDescriptorSet);
-	}
-
-	public void transfer(CommandRecorder recorder, Vk2dSharedText shared) {
-		if (preparedGlyphs.isEmpty()) return;
-		if (preparedGlyphs.size() != 1) throw new UnsupportedOperationException("TODO");
 
 		IntBuffer pushConstants = recorder.stack.callocInt(6);
 		for (PreparedGlyph prepared : preparedGlyphs) {
 			pushConstants.put(0, prepared.scratchIntersectionOffset);
 			pushConstants.put(1, prepared.scratchInfoOffset);
-			pushConstants.put(2, 0); // outputIntersectionOffset
-			pushConstants.put(3, 0); // outputInfoOffset
-			pushConstants.put(4, prepared.height);
-			pushConstants.put(5, prepared.numGlyphCurves);
+			pushConstants.put(2, nextOutputInfoOffset);
+			pushConstants.put(3, prepared.height);
+			pushConstants.put(4, prepared.numGlyphCurves);
 			vkCmdPushConstants(
 					recorder.commandBuffer, shared.scratchPipelineLayout,
 					VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstants
 			);
 			vkCmdDispatch(recorder.commandBuffer, 1, 1, 1);
+			nextOutputInfoOffset += 2 * prepared.height;
+			recorder.bufferBarrier(
+					nextOffsetBuffer,
+					ResourceUsage.computeBuffer(VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT),
+					ResourceUsage.computeBuffer(VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT)
+			);
 		}
 
 		recorder.bulkBufferBarrier(
 				ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT),
 				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT),
-				intersectionBuffer, infoBuffer // TODO Do it on a subsection of the region
+				intersectionBuffer, infoBuffer.child(
+						4L * oldOutputInfoOffset,
+						4L * (nextOutputInfoOffset - oldOutputInfoOffset)
+				)
 		);
 	}
 

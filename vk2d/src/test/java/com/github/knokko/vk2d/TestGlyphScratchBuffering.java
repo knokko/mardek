@@ -56,8 +56,9 @@ public class TestGlyphScratchBuffering {
 		MappedVkbBuffer scratchInfoBuffer = memoryCombiner.addMappedBuffer(4L * glyphHeight, alignment, usage);
 		MappedVkbBuffer intersectionBuffer = memoryCombiner.addMappedBuffer(5000L, alignment, usage);
 		MappedVkbBuffer infoBuffer = memoryCombiner.addMappedBuffer(8L * glyphHeight, alignment, usage);
+		MappedVkbBuffer nextOffsetBuffer = memoryCombiner.addMappedBuffer(4L, alignment, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		Vk2dTextBuffer textBuffer = new Vk2dTextBuffer(
-				scratchIntersectionBuffer, scratchInfoBuffer, intersectionBuffer, infoBuffer
+				scratchIntersectionBuffer, scratchInfoBuffer, intersectionBuffer, infoBuffer, nextOffsetBuffer
 		);
 		textBuffer.requestDescriptorSets(sharedText, descriptorCombiner);
 		Vk2dResourceLoader loader = new Vk2dResourceLoader(new ByteArrayInputStream(propagate.toByteArray()));
@@ -103,10 +104,9 @@ public class TestGlyphScratchBuffering {
 		assertEquals(0.432f, intersections.get(2 * 99 * numCurves), 0.001f);
 		assertEquals(0.518f, intersections.get(2 * 99 * numCurves + 1), 0.001f);
 
-		commands.submit("GlyphTransfer", recorder -> {
-			textBuffer.prepareTransfer(recorder, sharedText);
-			textBuffer.transfer(recorder, sharedText);
-		}).awaitCompletion();
+		commands.submit("GlyphTransfer", recorder ->
+				textBuffer.transfer(recorder, sharedText)
+		).awaitCompletion();
 
 		info = infoBuffer.intBuffer();
 		intersections = intersectionBuffer.floatBuffer();

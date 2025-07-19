@@ -24,11 +24,12 @@ public class Vk2dSharedText {
 			descriptors.set(2, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
 			this.scratchDescriptorLayout = descriptors.build(boiler, "Vk2dTextScratchDescriptorLayout");
 
-			descriptors = new DescriptorSetLayoutBuilder(stack, 4);
+			descriptors = new DescriptorSetLayoutBuilder(stack, 5);
 			descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
 			descriptors.set(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
 			descriptors.set(2, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
 			descriptors.set(3, 3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
+			descriptors.set(4, 4, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
 			this.transferDescriptorLayout = descriptors.build(boiler, "Vk2dTextTransferDescriptorLayout");
 
 			descriptors = new DescriptorSetLayoutBuilder(stack, 2);

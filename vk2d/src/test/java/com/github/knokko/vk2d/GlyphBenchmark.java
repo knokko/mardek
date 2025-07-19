@@ -26,6 +26,9 @@ public class GlyphBenchmark extends Vk2dWindow {
 	private long referenceTime = System.nanoTime();
 	private int fps = 0;
 
+	private int offsetSmallA = -1;
+	private int offsetA = -1;
+
 	public GlyphBenchmark(VkbWindow window) {
 		super(window, false);
 	}
@@ -62,15 +65,19 @@ public class GlyphBenchmark extends Vk2dWindow {
 
 		int glyphA = 4;
 		int glyphHeight = 100;
+		int smallHeight = 20;
 		textBuffer.prepareScratch(recorder, sharedText);
-		int offsetA = textBuffer.scratch(recorder, sharedText, glyphA, glyphHeight);
-		textBuffer.prepareTransfer(recorder, sharedText);
+		if (offsetA == -1) {
+			offsetSmallA = textBuffer.scratch(recorder, sharedText, glyphA, smallHeight);
+			offsetA = textBuffer.scratch(recorder, sharedText, glyphA, glyphHeight);
+		}
 		textBuffer.transfer(recorder, sharedText);
 		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 6, textBuffer.getRenderDescriptorSet());
 		int cellSize = 100;
 		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
 			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
-				batch.simple(x, y, x + cellSize, y + glyphHeight - 1, offsetA);
+				if ((x / cellSize) % 2 == 0) batch.simple(x, y, x + cellSize, y + glyphHeight - 1, offsetA);
+				else batch.simple(x, y, x + smallHeight, y + smallHeight - 1, offsetSmallA);
 			}
 		}
 	}
@@ -83,6 +90,6 @@ public class GlyphBenchmark extends Vk2dWindow {
 	}
 
 	public static void main(String[] args) {
-		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.NONE, GlyphBenchmark::new);
+		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.STRONG, GlyphBenchmark::new);
 	}
 }
