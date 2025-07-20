@@ -4,6 +4,9 @@ layout(location = 0) in vec2 textureCoordinates;
 layout(location = 1) in flat uint horizontalInfoOffset;
 layout(location = 2) in flat uint verticalInfoOffset;
 layout(location = 3) in flat uvec2 size;
+layout(location = 4) in vec4 fillColor;
+layout(location = 5) in vec4 strokeColor;
+layout(location = 6) in vec4 backgroundColor;
 
 layout(set = 0, binding = 0) readonly buffer IntersectionData {
 	float intersectionData[];
@@ -53,14 +56,9 @@ void main() {
 	WaveIntersections horizontal = wave(horizontalInfoOffset, y, textureCoordinates.x);
 	WaveIntersections vertical = wave(verticalInfoOffset, x, textureCoordinates.y);
 
-	vec4 strokeColor = vec4(1.0);
-	vec4 fillColor = vec4(0.0, 0.0, 0.0, 1.0);
-
-	vec4 outsideColor = vec4(0.2, 0.2, 0.2, 1.0);
 	vec4 otherColor = strokeColor;
-
 	if (horizontal.inside && vertical.inside) otherColor = fillColor;
-	if (!horizontal.inside && !vertical.inside) otherColor = outsideColor;
+	if (!horizontal.inside && !vertical.inside) otherColor = backgroundColor;
 
 	float distance = clamp(min(horizontal.distance * size.x, vertical.distance * size.y), 0.0, 1.0);
 	outColor = (1.0 - distance) * strokeColor + distance * otherColor;

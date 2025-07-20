@@ -38,6 +38,7 @@ public class Vk2dTextBuffer {
 	private boolean didInitializeNextOffsetBuffer, shouldBindScratchPipeline;
 
 	private boolean shouldClearNextTransfer;
+	private ByteBuffer scratchPushConstants;
 
 	public Vk2dTextBuffer(
 			VkbBuffer scratchIntersectionBuffer, VkbBuffer scratchInfoBuffer,
@@ -111,9 +112,10 @@ public class Vk2dTextBuffer {
 		}
 	}
 
-	public void startFrame() {
+	public void startFrame(CommandRecorder recorder) {
 		shouldClearNextTransfer = cache.startFrame();
 		shouldBindScratchPipeline = true;
+		scratchPushConstants = recorder.stack.calloc(36);
 	}
 
 	public int scratch(CommandRecorder recorder, Vk2dSharedText shared, int glyph, int size, boolean horizontal) {
@@ -131,7 +133,7 @@ public class Vk2dTextBuffer {
 			recorder.bindComputeDescriptors(shared.scratchPipelineLayout, scratchDescriptorSet);
 		}
 
-		ByteBuffer pushConstants = recorder.stack.calloc(36);
+		ByteBuffer pushConstants = scratchPushConstants;
 		pushConstants.putInt(0, scratchIntersectionOffset);
 		pushConstants.putInt(4, scratchInfoOffset);
 		pushConstants.putInt(8, 2 * font.getFirstCurve(glyph));

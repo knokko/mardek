@@ -31,6 +31,12 @@ float transformOffset(float offset) {
 	else return (offset - glyphMinY) / (glyphMaxY - glyphMinY);
 }
 
+float computeWavePosition(float base, uint thisWave, float glyphSize, uint numWaves) {
+	if (numWaves == 1) return base + 0.5 * glyphSize;
+	if (numWaves == 2) return base + thisWave * glyphSize;
+	return base + (thisWave - 0.5) * glyphSize / (numWaves - 2);
+}
+
 void main() {
 	uint thisWave = gl_GlobalInvocationID.x;
 
@@ -40,12 +46,12 @@ void main() {
 	if (rawNumWaves > 0) {
 		numWaves = rawNumWaves;
 		glyphSize = glyphMaxY - glyphMinY;
-		wavePosition = glyphMinY + (thisWave + 0.5) * glyphSize / numWaves;
+		wavePosition = computeWavePosition(glyphMinY, thisWave, glyphSize, numWaves);
 		isHorizontal = true;
 	} else {
 		numWaves = -rawNumWaves;
 		glyphSize = glyphMaxX - glyphMinX;
-		wavePosition = glyphMinX + (thisWave + 0.5) * glyphSize / numWaves;
+		wavePosition = computeWavePosition(glyphMinX, thisWave, glyphSize, numWaves);
 		isHorizontal = false;
 	}
 

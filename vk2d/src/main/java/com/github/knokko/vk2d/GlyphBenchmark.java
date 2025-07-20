@@ -17,6 +17,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 
+import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
+import static com.github.knokko.boiler.utilities.ColorPacker.rgba;
+
 public class GlyphBenchmark extends Vk2dWindow {
 
 	private static final File TEXT_RESOURCE_FILE = new File("text-benchmark-resources.bin");
@@ -62,25 +65,47 @@ public class GlyphBenchmark extends Vk2dWindow {
 		}
 		fps += 1;
 
-		int heightA = 50;
+		int heightA = 5;
 		Vk2dFont font = resources.getFont(0);
 		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 600, font, textBuffer.getRenderDescriptorSet());
 
-		textBuffer.startFrame();
+		textBuffer.startFrame(recorder);
 		int cellSize = 3 * heightA / 2;
+		int round = 0;
 		int glyph = 0;
 		for (int y = cellSize; y < swapchainImage.height(); y += cellSize) {
 			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
-				if (glyph >= font.getNumGlyphs()) glyph = 0;
+				if (glyph >= font.getNumGlyphs()) {
+					glyph = 0;
+					round += 1;
+				}
 				int glyphOffsetHorizontal = textBuffer.scratch(
 						recorder, sharedText, glyph, batch.determineHeight(heightA, glyph), true
 				);
 				int glyphOffsetVertical = textBuffer.scratch(
 						recorder, sharedText, glyph, batch.determineWidth(heightA, glyph), false
 				);
-				batch.glyphAt(x, y, heightA, glyph, glyphOffsetHorizontal, glyphOffsetVertical);
+
+				int fillColor;
+				int strokeColor;
+				int backgroundColor = 0;
+
+				if (glyph % 2 == round % 2) {
+					fillColor = rgb(255, 255, 255);
+					strokeColor = rgba(255, 255, 255, 128);
+				} else {
+					fillColor = 0;
+					strokeColor = rgb(255, 0, 0);
+				}
+				batch.glyphAt(
+						x, y, heightA, glyph, glyphOffsetHorizontal, glyphOffsetVertical,
+						fillColor, strokeColor, backgroundColor
+				);
 				glyph += 1;
 			}
+
+			heightA += 1;
+			cellSize = 3 * heightA / 2;
 		}
 
 		textBuffer.transfer(recorder, sharedText);
@@ -94,6 +119,6 @@ public class GlyphBenchmark extends Vk2dWindow {
 	}
 
 	public static void main(String[] args) {
-		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.STRONG, GlyphBenchmark::new);
+		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.NONE, GlyphBenchmark::new);
 	}
 }
