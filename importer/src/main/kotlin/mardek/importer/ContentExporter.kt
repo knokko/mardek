@@ -8,12 +8,14 @@ import com.github.knokko.vk2d.resource.Vk2dResourceWriter
 import mardek.content.Content
 import mardek.content.animations.SkeletonPartSkins
 import mardek.content.sprite.BcSprite
+import mardek.content.ui.Font
 import mardek.content.ui.TitleScreenContent
 import mardek.importer.area.SpritesAndAreas
 import mardek.importer.ui.BcPacker
 import mardek.importer.util.projectFolder
 import java.awt.image.BufferedImage
 import java.io.BufferedOutputStream
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.file.Files
@@ -33,15 +35,26 @@ fun main() {
 		val titleScreenContent = TitleScreenContent(
 			background = content.ui.titleScreenBackground,
 			title = content.ui.titleScreenTitle,
+			smallFont = content.fonts.basic,
+			largeFont = content.fonts.basicLarge,
 		)
 
 		fun addBcImage(bc: BcSprite) {
 			bc.index = resourceWriter.addImage(
 				bc.bufferedImage as BufferedImage, Vk2dImageCompression.BC7, false
 			)
+			bc.data = null
 		}
+
+		fun addFont(font: Font) {
+			font.index = resourceWriter.addFont(ByteArrayInputStream(font.data))
+			font.data = null
+		}
+
 		addBcImage(titleScreenContent.background)
 		addBcImage(titleScreenContent.title)
+		addFont(titleScreenContent.smallFont)
+		addFont(titleScreenContent.largeFont)
 
 		val output = Files.newOutputStream(File(
 			"$projectFolder/game2d/src/main/resources/mardek/game/title-screen.vk2d"

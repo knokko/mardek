@@ -15,6 +15,7 @@ import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
 import mardek.importer.skills.importSkillsContent
+import mardek.importer.ui.importFonts
 import mardek.importer.ui.importUiSprites
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaPosition
@@ -36,6 +37,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	importClasses(content)
 	importAreaContent(content)
 	content.ui = importUiSprites()
+	content.fonts = importFonts()
 
 	val fatCharacters = importPlayableCharacters(content, playerModelMapping)
 	val heroMardek = fatCharacters.find { it.wrapped.areaSprites.name == "mardek_hero" }!!

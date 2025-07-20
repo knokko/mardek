@@ -3,6 +3,7 @@ package mardek.renderer.title
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import mardek.content.ui.TitleScreenContent
 import mardek.renderer.RawRenderContext
@@ -23,7 +24,14 @@ private fun loadInfo(): TitleScreenContent {
 
 private val info = loadInfo()
 
+private var firstFrame = true
 fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region: Rectangle): Vk2dColorBatch {
+	if (firstFrame) {
+		// TODO get rid of this
+		context.resources.postInit(context.titleScreenBundle, info)
+		firstFrame = false
+	}
+
 	val imageBatch = context.resources.imagePipeline.addBatch(context.frame, 12)
 	imageBatch.simple(
 		region.minX, region.minY, region.maxX, region.maxY,
@@ -43,20 +51,25 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 	val colorBatch = context.resources.colorPipeline.addBatch(context.frame, 100)
 	val ovalBatch = context.resources.ovalPipeline.addBatch(context.frame, 48)
 
+	val buttonFont = context.titleScreenBundle.getFont(info.smallFont.index)
+	val glyphBatch = context.resources.glyphPipeline.addBatch(
+		context.frame, 100, buttonFont, context.resources.textBuffer.renderDescriptorSet
+	)
+
 	state.newGameButton = renderButton(
-		region, colorBatch, ovalBatch, "New Game",
+		region, colorBatch, ovalBatch, glyphBatch, "New Game",
 		0.54f, state.selectedButton, 0
 	)
 	state.loadGameButton = renderButton(
-		region, colorBatch, ovalBatch, "Load Game",
+		region, colorBatch, ovalBatch, glyphBatch, "Load Game",
 		0.64f, state.selectedButton, 1
 	)
 	state.musicPlayerButton = renderButton(
-		region, colorBatch, ovalBatch, "Music Player",
+		region, colorBatch, ovalBatch, glyphBatch, "Music Player",
 		0.74f, state.selectedButton,2
 	)
 	state.quitButton = renderButton(
-		region, colorBatch, ovalBatch, "Quit",
+		region, colorBatch, ovalBatch, glyphBatch, "Quit",
 		0.84f, state.selectedButton, 3
 	)
 
@@ -64,7 +77,7 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 }
 
 private fun renderButton(
-	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
+	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: Vk2dGlyphBatch,
 	text: String, relativeY: Float, selectedButton: Int, buttonIndex: Int
 ): Rectangle {
 	val rect = Rectangle(
@@ -78,7 +91,7 @@ private fun renderButton(
 	val textBaseY = rect.maxY - outerRegion.height / 50
 	val textHeight = outerRegion.height / 22
 	renderButton(
-		colorBatch, ovalBatch, true, text,
+		colorBatch, ovalBatch, glyphBatch, true, text,
 		selectedButton == buttonIndex,
 		rect, outlineWidth, textOffsetX, textBaseY, textHeight
 	)

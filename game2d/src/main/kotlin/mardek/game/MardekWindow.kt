@@ -3,6 +3,7 @@ package mardek.game
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
+import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess
 import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.window.AcquiredImage
@@ -43,10 +44,11 @@ class MardekWindow(
 		return MardekWindow::class.java.getResourceAsStream("title-screen.vk2d")!!
 	}
 
-	override fun createResources(boiler: BoilerInstance, combiner: MemoryCombiner) {
-		super.createResources(boiler, combiner)
+	override fun createResources(boiler: BoilerInstance, combiner: MemoryCombiner, descriptors: DescriptorCombiner) {
+		super.createResources(boiler, combiner, descriptors)
+		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, window.surfaceFormat)
 		this.renderResources = RenderResources(
-			boiler, Vk2dPipelineContext.renderPass(boiler, window.surfaceFormat)
+			boiler, pipelineContext, combiner, descriptors, numFramesInFlight
 		)
 	}
 
@@ -64,6 +66,7 @@ class MardekWindow(
 		totalFrames += 1
 		if (totalFrames == 10L) launchState()
 
+		renderResources.textBuffer.startFrame(recorder)
 		synchronized(gameState.lock()) {
 			if (gameState.currentState is ExitState) requestQuit(recorder.stack) else {
 				// TODO Propagate content
@@ -71,6 +74,8 @@ class MardekWindow(
 				renderGame(context)
 			}
 		}
+		// TODO Improve this?
+		renderResources.textBuffer.transfer(recorder, renderResources.sharedText)
 	}
 
 	override fun cleanUp(boiler: BoilerInstance) {
@@ -96,7 +101,7 @@ class MardekWindow(
 				}
 				throw failed
 			}
-		}.start()
+		}//.start()
 
 		val updateLoop = UpdateLoop({
 			synchronized(gameState.lock()) {

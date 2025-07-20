@@ -4,13 +4,14 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import mardek.state.util.Rectangle
 import kotlin.math.max
 
 fun renderButton(
-	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, showTextOutline: Boolean,
-	text: String, isSelected: Boolean, rect: Rectangle,
+	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: Vk2dGlyphBatch,
+	showTextOutline: Boolean, text: String, isSelected: Boolean, rect: Rectangle,
 	outlineWidth: Int, textOffsetX: Int, textBaseY: Int, textHeight: Int,
 ) {
 	var borderLight = srgbToLinear(rgb(255, 204, 153))
