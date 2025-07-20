@@ -17,24 +17,34 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		this.descriptorSet = descriptorSet;
 	}
 
-	public void glyphBetween(int minX, int minY, int maxX, int maxY, int baseIndex) {
-		if (baseIndex == -1) return;
+	public void glyphBetween(
+			int minX, int minY, int maxX, int maxY,
+			int horizontalIntersections, int verticalIntersections
+	) {
+		if (horizontalIntersections == -1 || verticalIntersections == -1) return;
 		ByteBuffer vertices = putVertices(6);
 
+		int width = 1 + maxX - minX;
 		int height = 1 + maxY - minY;
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
-		vertices.putFloat(0f).putFloat(0f).putInt(baseIndex).putInt(height);
+		vertices.putFloat(0f).putFloat(0f);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
-		vertices.putFloat(1f).putFloat(0f).putInt(baseIndex).putInt(height);
+		vertices.putFloat(1f).putFloat(0f);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
-		vertices.putFloat(1f).putFloat(1f).putInt(baseIndex).putInt(height);
+		vertices.putFloat(1f).putFloat(1f);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
 
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
-		vertices.putFloat(1f).putFloat(1f).putInt(baseIndex).putInt(height);
+		vertices.putFloat(1f).putFloat(1f);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
-		vertices.putFloat(0f).putFloat(1f).putInt(baseIndex).putInt(height);
+		vertices.putFloat(0f).putFloat(1f);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
-		vertices.putFloat(0f).putFloat(0f).putInt(baseIndex).putInt(height);
+		vertices.putFloat(0f).putFloat(0f);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
 	}
 
 	public int determineWidth(float heightA, int glyph) {
@@ -45,7 +55,10 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		return (int) (heightA * (font.getGlyphMaxY(glyph) - font.getGlyphMinY(glyph)));
 	}
 
-	public void glyphAt(float baseX, float baseY, float heightA, int glyph, int baseIndex) {
+	public void glyphAt(
+			float baseX, float baseY, float heightA, int glyph,
+			int horizontalIntersections, int verticalIntersections
+	) {
 		if (font.getNumCurves(glyph) == 0) return;
 		int minX = (int) (baseX + heightA * font.getGlyphMinX(glyph));
 		int minY = (int) (baseY - heightA * font.getGlyphMaxY(glyph));
@@ -53,7 +66,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 				minX, minY,
 				minX + determineWidth(heightA, glyph) - 1,
 				minY + determineHeight(heightA, glyph) - 1,
-				baseIndex
+				horizontalIntersections, verticalIntersections
 		);
 	}
 }

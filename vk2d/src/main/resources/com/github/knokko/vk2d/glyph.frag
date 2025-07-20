@@ -1,8 +1,9 @@
 #version 450
 
 layout(location = 0) in vec2 textureCoordinates;
-layout(location = 1) in flat uint baseIndex;
-layout(location = 2) in flat uint height;
+layout(location = 1) in flat uint horizontalInfoOffset;
+layout(location = 2) in flat uint verticalInfoOffset;
+layout(location = 3) in flat uvec2 size;
 
 layout(set = 0, binding = 0) readonly buffer IntersectionData {
 	float intersectionData[];
@@ -14,10 +15,12 @@ layout(set = 0, binding = 1) readonly buffer IntersectionInfo {
 layout(location = 0) out vec4 outColor;
 
 void main() {
-	uint y = uint(height * textureCoordinates.y);
-	uint infoIndex = baseIndex + 2 * y;
-	uint intersectionIndex = intersectionInfo[infoIndex];
-	uint numIntersections = intersectionInfo[infoIndex + 1];
+	uint x = uint(size.x * textureCoordinates.x);
+	uint y = uint(size.y * textureCoordinates.y);
+	uint horizontalInfoIndex = horizontalInfoOffset + 2 * y;
+
+	uint intersectionIndex = intersectionInfo[horizontalInfoIndex];
+	uint numIntersections = intersectionInfo[horizontalInfoIndex + 1];
 
 	uint index = 0;
 	float curveDistance = 100000.0;
