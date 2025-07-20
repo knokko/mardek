@@ -119,7 +119,7 @@ public class Vk2dTextBuffer {
 	}
 
 	public int scratch(CommandRecorder recorder, Vk2dSharedText shared, int glyph, int size, boolean horizontal) {
-		if (font.getNumCurves(glyph) == 0) return -1;
+		if (size == 0 || font.getNumCurves(glyph) == 0) return -1;
 		Integer existing = cache.get(glyph, size, horizontal);
 		if (existing != null) return existing;
 
