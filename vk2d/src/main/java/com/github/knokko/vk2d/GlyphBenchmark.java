@@ -72,8 +72,10 @@ public class GlyphBenchmark extends Vk2dWindow {
 		for (int y = cellSize; y < swapchainImage.height(); y += cellSize) {
 			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
 				if (glyph >= font.getNumGlyphs()) glyph = 0;
-				int glyphOffset = textBuffer.scratch(recorder, sharedText, glyph, batch.determineHeight(heightA, glyph));
-				batch.glyphAt(x, y, heightA, glyph, glyphOffset);
+				int glyphOffsetHorizontal = textBuffer.scratch(
+						recorder, sharedText, glyph, batch.determineHeight(heightA, glyph), true
+				);
+				batch.glyphAt(x, y, heightA, glyph, glyphOffsetHorizontal);
 				glyph += 1;
 			}
 		}

@@ -53,7 +53,7 @@ public class GlyphCacheTracker {
 		int oldStableIndex = nextStableInfoIndex;
 		scratchMap.forEach((entry, index) -> {
 			stableMap.put(entry, index + oldStableIndex);
-			nextStableInfoIndex += 2 * entry.height;
+			nextStableInfoIndex += 2 * entry.size;
 		});
 		scratchMap.clear();
 
@@ -68,19 +68,19 @@ public class GlyphCacheTracker {
 		} else return false;
 	}
 
-	public Integer get(int glyph, int height) {
-		Integer index = stableMap.get(new Entry(glyph, height));
+	public Integer get(int glyph, int size, boolean horizontal) {
+		Integer index = stableMap.get(new Entry(glyph, size, horizontal));
 		if (index != null) return index;
-		index = scratchMap.get(new Entry(glyph, height));
+		index = scratchMap.get(new Entry(glyph, size, horizontal));
 		if (index != null) return index + nextStableInfoIndex;
 		return null;
 	}
 
-	public int putScratch(int glyph, int height, int numCurves) {
-		int newScratchInfoIndex = nextScratchInfoIndex + 2 * height;
+	public int putScratch(int glyph, int size, int numCurves, boolean horizontal) {
+		int newScratchInfoIndex = nextScratchInfoIndex + 2 * size;
 		if (newScratchInfoIndex > scratchInfoBufferSize) return -1;
 
-		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 2 * height * numCurves;
+		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 2 * size * numCurves;
 		if (newScratchIntersectionIndex > scratchIntersectionBufferSize) return -1;
 
 		int newStableInfoIndex = nextStableInfoIndex + newScratchInfoIndex;
@@ -91,13 +91,13 @@ public class GlyphCacheTracker {
 
 		int worstCaseStableIntersectionIndex = lastStableIntersectionIndex + maxInFlightIntersections + newScratchIntersectionIndex;
 		if (worstCaseStableIntersectionIndex > stableIntersectionBufferSize) {
-			if (lastStableIntersectionIndex + 2 * height * numCurves > stableIntersectionBufferSize) {
+			if (lastStableIntersectionIndex + 2 * size * numCurves > stableIntersectionBufferSize) {
 				shouldClearStable = true;
 			}
 			return -1;
 		}
 
-		scratchMap.put(new Entry(glyph, height), nextScratchInfoIndex);
+		scratchMap.put(new Entry(glyph, size, horizontal), nextScratchInfoIndex);
 		int result = nextScratchInfoIndex;
 
 		nextScratchInfoIndex = newScratchInfoIndex;
@@ -122,5 +122,5 @@ public class GlyphCacheTracker {
 		else return stableIntersectionIndices.position() - 1;
 	}
 
-	private record Entry(int glyph, int height) {}
+	private record Entry(int glyph, int size, boolean horizontal) {}
 }

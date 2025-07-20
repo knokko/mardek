@@ -116,13 +116,13 @@ public class Vk2dTextBuffer {
 		shouldBindScratchPipeline = true;
 	}
 
-	public int scratch(CommandRecorder recorder, Vk2dSharedText shared, int glyph, int height) {
+	public int scratch(CommandRecorder recorder, Vk2dSharedText shared, int glyph, int size, boolean horizontal) {
 		if (font.getNumCurves(glyph) == 0) return -1;
-		Integer existing = cache.get(glyph, height);
+		Integer existing = cache.get(glyph, size, horizontal);
 		if (existing != null) return existing;
 
 		int scratchIntersectionOffset = cache.getNextScratchIntersectionIndex();
-		int scratchInfoOffset = cache.putScratch(glyph, height, font.getNumCurves(glyph));
+		int scratchInfoOffset = cache.putScratch(glyph, size, font.getNumCurves(glyph), horizontal);
 		if (scratchInfoOffset == -1) return -1;
 
 		if (shouldBindScratchPipeline) {
@@ -136,7 +136,7 @@ public class Vk2dTextBuffer {
 		pushConstants.putInt(4, scratchInfoOffset);
 		pushConstants.putInt(8, 2 * font.getFirstCurve(glyph));
 		pushConstants.putInt(12, font.getNumCurves(glyph));
-		pushConstants.putInt(16, height);
+		pushConstants.putInt(16, horizontal ? size : -size);
 		pushConstants.putFloat(20, font.getGlyphMinX(glyph));
 		pushConstants.putFloat(24, font.getGlyphMinY(glyph));
 		pushConstants.putFloat(28, font.getGlyphMaxX(glyph));
@@ -146,10 +146,9 @@ public class Vk2dTextBuffer {
 				recorder.commandBuffer, shared.scratchPipelineLayout,
 				VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstants
 		);
-		//noinspection SuspiciousNameCombination
-		vkCmdDispatch(recorder.commandBuffer, height, 1, 1);
+		vkCmdDispatch(recorder.commandBuffer, size, 1, 1);
 
-		return cache.get(glyph, height);
+		return cache.get(glyph, size, horizontal);
 	}
 
 	private void nextIntersectionBarrier(CommandRecorder recorder) {

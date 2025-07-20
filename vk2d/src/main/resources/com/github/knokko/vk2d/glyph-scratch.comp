@@ -15,7 +15,7 @@ layout(push_constant) uniform PushConstants {
 	uint intersectionInfoOffset;
 	uint curveOffset;
 	uint numCurves;
-	uint pixelHeight;
+	int rawNumWaves;
 	float glyphMinX;
 	float glyphMinY;
 	float glyphMaxX;
@@ -26,37 +26,54 @@ float unpack(uint raw) {
 	return (raw & 1023) * 2.5 / 1023.0 - 0.5;
 }
 
-float transformX(float x) {
-	return (x - glyphMinX) / (glyphMaxX - glyphMinX);
+float transformOffset(float offset) {
+	if (rawNumWaves > 0) return (offset - glyphMinX) / (glyphMaxX - glyphMinX);
+	else return (offset - glyphMinY) / (glyphMaxY - glyphMinY);
 }
 
 void main() {
-	uint pixelY = gl_GlobalInvocationID.x;
-	float glyphHeight = glyphMaxY - glyphMinY;
-	float glyphY = glyphMinY + (pixelY + 0.5) * glyphHeight / pixelHeight;
+	uint thisWave = gl_GlobalInvocationID.x;
+
+	uint numWaves;
+	float glyphSize, wavePosition;
+	bool isHorizontal;
+	if (rawNumWaves > 0) {
+		numWaves = rawNumWaves;
+		glyphSize = glyphMaxY - glyphMinY;
+		wavePosition = glyphMinY + (thisWave + 0.5) * glyphSize / numWaves;
+		isHorizontal = true;
+	} else {
+		numWaves = -rawNumWaves;
+		glyphSize = glyphMaxX - glyphMinX;
+		wavePosition = glyphMinX + (thisWave + 0.5) * glyphSize / numWaves;
+		isHorizontal = false;
+	}
 
 	uint localIntersectionIndex = 0;
-	uint rowIntersectionOffset = intersectionDataOffset + 2 * pixelY * numCurves;
+	uint rowIntersectionOffset = intersectionDataOffset + 2 * thisWave * numCurves;
 	for (uint localCurveIndex = 0; localCurveIndex < numCurves; localCurveIndex++) {
-		uint packedY = curveData[curveOffset + 2 * localCurveIndex + 1];
-		float curveStartY = unpack(packedY);
-		float curveControlY = unpack(packedY >> 10);
-		float curveEndY = unpack(packedY >> 20);
+		float curveStart, curveControl, curveEnd;
+		uint packed1;
+		if (isHorizontal) {
+			packed1 = curveData[curveOffset + 2 * localCurveIndex + 1];
+		} else {
+			packed1 = curveData[curveOffset + 2 * localCurveIndex];
+		}
 
-		float startY = curveStartY - glyphY;
-		float controlY = curveControlY - glyphY;
-		float endY = curveEndY - glyphY;
+		curveStart = unpack(packed1) - wavePosition;
+		curveControl = unpack(packed1 >> 10) - wavePosition;
+		curveEnd = unpack(packed1 >> 20) - wavePosition;
 
-		float cutoff = 0.5 * glyphHeight / pixelHeight;
-		if (startY < -cutoff && controlY < -cutoff && endY < -cutoff) continue;
-		if (startY > cutoff && controlY > cutoff && endY > cutoff) continue;
+		float cutoff = 0.5 * glyphSize / numWaves;
+		if (curveStart < -cutoff && curveControl < -cutoff && curveEnd < -cutoff) continue;
+		if (curveStart > cutoff && curveControl > cutoff && curveEnd > cutoff) continue;
 
-		float a = startY - 2 * controlY + endY;
-		float b = startY - controlY;
+		float a = curveStart - 2 * curveControl + curveEnd;
+		float b = curveStart - curveControl;
 		float t0, t1;
 		if (abs(a) > 1e-5) {
 			// Quadratic segment, solve abc formula to find roots.
-			float radicand = b * b - a * startY;
+			float radicand = b * b - a * curveStart;
 			if (radicand <= 0) continue;
 
 			float s = sqrt(radicand);
@@ -65,26 +82,32 @@ void main() {
 			if ((t0 < 0.0 || t0 > 1.0) && (t1 < 0.0 || t1 > 1.0)) continue;
 		} else {
 			// Linear segment, avoid division by a.y, which is near zero.
-			t0 = startY / (startY - endY);
+			t0 = curveStart / (curveStart - curveEnd);
 			if (t0 >= 0.0 && t0 <= 1.0) t1 = -1.0;
 			else continue;
 		}
 
-		uint packedX = curveData[curveOffset + 2 * localCurveIndex];
-		float curveStartX = unpack(packedX);
-		float curveControlX = unpack(packedX >> 10);
-		float curveEndX = unpack(packedX >> 20);
-		float ax = curveStartX - 2.0 * curveControlX + curveEndX;
-		float bx = curveStartX - curveControlX;
-		float cx = curveStartX;
+		uint packed2;
+		if (isHorizontal) {
+			packed2 = curveData[curveOffset + 2 * localCurveIndex];
+		} else {
+			packed2 = curveData[curveOffset + 2 * localCurveIndex + 1];
+		}
+
+		float curveStart2 = unpack(packed2);
+		float curveControl2 = unpack(packed2 >> 10);
+		float curveEnd2 = unpack(packed2 >> 20);
+		float a2 = curveStart2 - 2.0 * curveControl2 + curveEnd2;
+		float b2 = curveStart2 - curveControl2;
+		float c2 = curveStart2;
 		if (t0 >= 0.0 && t0 <= 1.0) {
-			float x = (ax * t0 - 2.0 * bx) * t0 + cx;
-			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformX(x);
+			float offset = (a2 * t0 - 2.0 * b2) * t0 + c2;
+			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformOffset(offset);
 		}
 
 		if (t1 >= 0.0 && t1 <= 1.0) {
-			float x = (ax * t1 - 2.0 * bx) * t1 + cx;
-			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformX(x);
+			float offset = (a2 * t1 - 2.0 * b2) * t1 + c2;
+			intersectionData[rowIntersectionOffset + localIntersectionIndex++] = transformOffset(offset);
 		}
 	}
 
@@ -98,6 +121,6 @@ void main() {
 		intersectionData[rowIntersectionOffset + j] = old;
 	}
 
-	intersectionInfo[intersectionInfoOffset + 2 * pixelY] = localIntersectionIndex;
-	intersectionInfo[intersectionInfoOffset + 2 * pixelY + 1] = 2 * numCurves;
+	intersectionInfo[intersectionInfoOffset + 2 * thisWave] = localIntersectionIndex;
+	intersectionInfo[intersectionInfoOffset + 2 * thisWave + 1] = 2 * numCurves;
 }
