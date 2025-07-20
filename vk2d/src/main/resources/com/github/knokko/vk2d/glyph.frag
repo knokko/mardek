@@ -14,32 +14,54 @@ layout(set = 0, binding = 1) readonly buffer IntersectionInfo {
 
 layout(location = 0) out vec4 outColor;
 
-void main() {
-	uint x = uint(size.x * textureCoordinates.x);
-	uint y = uint(size.y * textureCoordinates.y);
-	uint horizontalInfoIndex = horizontalInfoOffset + 2 * y;
+struct WaveIntersections {
+	float distance;
+	bool inside;
+};
 
-	uint intersectionIndex = intersectionInfo[horizontalInfoIndex];
-	uint numIntersections = intersectionInfo[horizontalInfoIndex + 1];
+WaveIntersections wave(uint infoOffset, uint thisWave, float wavePosition) {
+	uint infoIndex = infoOffset + 2 * thisWave;
+	uint intersectionIndex = intersectionInfo[infoIndex];
+	uint numIntersections = intersectionInfo[infoIndex + 1];
 
 	uint index = 0;
 	float curveDistance = 100000.0;
 	float previousIntersection = -100000.0;
 	for (; index < numIntersections; index++) {
 		float nextIntersection = intersectionData[index + intersectionIndex];
-		if (textureCoordinates.x < nextIntersection) {
-			curveDistance = nextIntersection - textureCoordinates.x;
+		if (wavePosition < nextIntersection) {
+			curveDistance = nextIntersection - wavePosition;
 			break;
 		}
 		previousIntersection = nextIntersection;
 	}
 
 	if (index > 0) {
-		curveDistance = min(curveDistance, textureCoordinates.x - previousIntersection);
+		curveDistance = min(curveDistance, wavePosition - previousIntersection);
 	}
 
-	if (index % 2 == 0) outColor = vec4(0.0);
-	else outColor = vec4(1.0);
+	WaveIntersections result;
+	result.distance = curveDistance;
+	result.inside = index % 2 == 1;
+	return result;
+}
 
-	outColor = vec4(vec3(curveDistance), 1.0);
+void main() {
+	uint x = uint(size.x * textureCoordinates.x);
+	uint y = uint(size.y * textureCoordinates.y);
+
+	WaveIntersections horizontal = wave(horizontalInfoOffset, y, textureCoordinates.x);
+	WaveIntersections vertical = wave(verticalInfoOffset, x, textureCoordinates.y);
+
+	vec4 strokeColor = vec4(1.0);
+	vec4 fillColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+	vec4 outsideColor = vec4(0.2, 0.2, 0.2, 1.0);
+	vec4 otherColor = strokeColor;
+
+	if (horizontal.inside && vertical.inside) otherColor = fillColor;
+	if (!horizontal.inside && !vertical.inside) otherColor = outsideColor;
+
+	float distance = clamp(min(horizontal.distance * size.x, vertical.distance * size.y), 0.0, 1.0);
+	outColor = (1.0 - distance) * strokeColor + distance * otherColor;
 }
