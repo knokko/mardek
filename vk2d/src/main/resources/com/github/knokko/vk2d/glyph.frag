@@ -20,10 +20,23 @@ void main() {
 	uint numIntersections = intersectionInfo[infoIndex + 1];
 
 	uint index = 0;
+	float curveDistance = 100000.0;
+	float previousIntersection = -100000.0;
 	for (; index < numIntersections; index++) {
-		if (textureCoordinates.x < intersectionData[index + intersectionIndex]) break;
+		float nextIntersection = intersectionData[index + intersectionIndex];
+		if (textureCoordinates.x < nextIntersection) {
+			curveDistance = nextIntersection - textureCoordinates.x;
+			break;
+		}
+		previousIntersection = nextIntersection;
+	}
+
+	if (index > 0) {
+		curveDistance = min(curveDistance, textureCoordinates.x - previousIntersection);
 	}
 
 	if (index % 2 == 0) outColor = vec4(0.0);
 	else outColor = vec4(1.0);
+
+	outColor = vec4(vec3(curveDistance), 1.0);
 }
