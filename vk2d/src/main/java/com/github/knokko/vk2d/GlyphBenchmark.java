@@ -64,24 +64,26 @@ public class GlyphBenchmark extends Vk2dWindow {
 		fps += 1;
 
 		int heightA = 5;
-		Vk2dFont font = resources.getFont(0);
-		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 600, font, textBuffer.getRenderDescriptorSet());
+		Vk2dFont font0 = resources.getFont(0);
+		Vk2dFont font1 = resources.getFont(1);
+		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 600, textBuffer.getRenderDescriptorSet());
 
-		textBuffer.startFrame(recorder);
+		textBuffer.startFrame();
 		int cellSize = 3 * heightA / 2;
 		int round = 0;
 		int glyph = 0;
 		for (int y = cellSize; y < swapchainImage.height(); y += cellSize) {
 			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
+				Vk2dFont font = glyph % 3 == 0 ? font0 : font1;
 				if (glyph >= font.getNumGlyphs()) {
 					glyph = 0;
 					round += 1;
 				}
 				int glyphOffsetHorizontal = textBuffer.scratch(
-						recorder, sharedText, font, glyph, batch.determineHeight(heightA, glyph), true
+						recorder, sharedText, font, glyph, batch.determineHeight(font, heightA, glyph), true
 				);
 				int glyphOffsetVertical = textBuffer.scratch(
-						recorder, sharedText, font, glyph, batch.determineWidth(heightA, glyph), false
+						recorder, sharedText, font, glyph, batch.determineWidth(font, heightA, glyph), false
 				);
 
 				int fillColor;
@@ -96,7 +98,7 @@ public class GlyphBenchmark extends Vk2dWindow {
 					strokeColor = rgb(255, 0, 0);
 				}
 				batch.glyphAt(
-						x, y, heightA, glyph, glyphOffsetHorizontal, glyphOffsetVertical,
+						x, y, font, heightA, glyph, glyphOffsetHorizontal, glyphOffsetVertical,
 						fillColor, strokeColor, backgroundColor
 				);
 				glyph += 1;
@@ -116,6 +118,6 @@ public class GlyphBenchmark extends Vk2dWindow {
 	}
 
 	public static void main(String[] args) {
-		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.STRONG, GlyphBenchmark::new);
+		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.NONE, GlyphBenchmark::new);
 	}
 }

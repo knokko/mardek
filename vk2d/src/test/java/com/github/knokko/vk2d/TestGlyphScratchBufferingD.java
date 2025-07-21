@@ -60,9 +60,8 @@ public class TestGlyphScratchBufferingD {
 		MappedVkbBuffer nextIntersectionIndexBuffer = memoryCombiner.addMappedBuffer(4L, alignment, usage);
 		Vk2dTextBuffer textBuffer = new Vk2dTextBuffer(
 				scratchIntersectionBuffer, scratchInfoBuffer, intersectionBuffer, infoBuffer,
-				nextOffsetBuffer, nextIntersectionIndexBuffer
+				nextOffsetBuffer, nextIntersectionIndexBuffer, sharedText, descriptorCombiner
 		);
-		textBuffer.requestDescriptorSets(sharedText, descriptorCombiner);
 		Vk2dResourceLoader loader = new Vk2dResourceLoader(new ByteArrayInputStream(propagate.toByteArray()));
 		loader.claimMemory(boiler, memoryCombiner);
 		MemoryBlock memory = memoryCombiner.build(false);
@@ -71,18 +70,18 @@ public class TestGlyphScratchBufferingD {
 
 		SingleTimeCommands commands = new SingleTimeCommands(boiler);
 		commands.submit("Staging", recorder ->
-				loader.performStaging(recorder, shared, descriptorCombiner)
+				loader.performStaging(recorder, shared, sharedText, descriptorCombiner)
 		).awaitCompletion();
 		long vkDescriptorPool = descriptorCombiner.build("ScratchDescriptors");
 
 		Vk2dResourceBundle fontBundle = loader.finish(boiler, shared);
 		Vk2dFont font = fontBundle.getFont(0);
 
-		textBuffer.initializeDescriptorSets(boiler, font);
+		textBuffer.initializeDescriptorSets(boiler);
 
 		textBuffer.startFrame();
 		commands.submit("Scratch", recorder ->
-			textBuffer.scratch(recorder, sharedText, glyph, glyphHeight)
+			textBuffer.scratch(recorder, sharedText, font, glyph, glyphHeight, true)
 		).awaitCompletion();
 
 		IntBuffer info = scratchInfoBuffer.intBuffer();

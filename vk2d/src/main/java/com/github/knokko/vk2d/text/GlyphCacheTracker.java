@@ -68,15 +68,15 @@ public class GlyphCacheTracker {
 		} else return false;
 	}
 
-	public Integer get(int glyph, int size, boolean horizontal) {
-		Integer index = stableMap.get(new Entry(glyph, size, horizontal));
+	public Integer get(int fontIndex, int glyph, int size, boolean horizontal) {
+		Integer index = stableMap.get(new Entry(fontIndex, glyph, size, horizontal));
 		if (index != null) return index;
-		index = scratchMap.get(new Entry(glyph, size, horizontal));
+		index = scratchMap.get(new Entry(fontIndex, glyph, size, horizontal));
 		if (index != null) return index + nextStableInfoIndex;
 		return null;
 	}
 
-	public int putScratch(int glyph, int size, int numCurves, boolean horizontal) {
+	public int putScratch(int fontIndex, int glyph, int size, int numCurves, boolean horizontal) {
 		int newScratchInfoIndex = nextScratchInfoIndex + 2 * size;
 		if (newScratchInfoIndex > scratchInfoBufferSize) return -1;
 
@@ -97,7 +97,7 @@ public class GlyphCacheTracker {
 			return -1;
 		}
 
-		scratchMap.put(new Entry(glyph, size, horizontal), nextScratchInfoIndex);
+		scratchMap.put(new Entry(fontIndex, glyph, size, horizontal), nextScratchInfoIndex);
 		int result = nextScratchInfoIndex;
 
 		nextScratchInfoIndex = newScratchInfoIndex;
@@ -122,5 +122,5 @@ public class GlyphCacheTracker {
 		else return stableIntersectionIndices.position() - 1;
 	}
 
-	private record Entry(int glyph, int size, boolean horizontal) {}
+	private record Entry(int fontIndex, int glyph, int size, boolean horizontal) {}
 }

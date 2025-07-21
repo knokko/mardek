@@ -8,12 +8,10 @@ import java.nio.ByteBuffer;
 
 public class Vk2dGlyphBatch extends Vk2dBatch {
 
-	private final Vk2dFont font;
 	public final long descriptorSet;
 
-	public Vk2dGlyphBatch(Vk2dPipeline pipeline, Vk2dFrame frame, int initialCapacity, Vk2dFont font, long descriptorSet) {
+	public Vk2dGlyphBatch(Vk2dPipeline pipeline, Vk2dFrame frame, int initialCapacity, long descriptorSet) {
 		super(pipeline, frame, initialCapacity);
-		this.font = font;
 		this.descriptorSet = descriptorSet;
 	}
 
@@ -54,16 +52,16 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
 	}
 
-	public int determineWidth(float heightA, int glyph) {
+	public int determineWidth(Vk2dFont font, float heightA, int glyph) {
 		return (int) (heightA * (font.getGlyphMaxX(glyph) - font.getGlyphMinX(glyph)));
 	}
 
-	public int determineHeight(float heightA, int glyph) {
+	public int determineHeight(Vk2dFont font, float heightA, int glyph) {
 		return (int) (heightA * (font.getGlyphMaxY(glyph) - font.getGlyphMinY(glyph)));
 	}
 
 	public void glyphAt(
-			float baseX, float baseY, float heightA, int glyph,
+			float baseX, float baseY, Vk2dFont font, float heightA, int glyph,
 			int horizontalIntersections, int verticalIntersections,
 			int fillColor, int strokeColor, int backgroundColor
 	) {
@@ -72,8 +70,8 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		int minY = (int) (baseY - heightA * font.getGlyphMaxY(glyph));
 		glyphBetween(
 				minX, minY,
-				minX + determineWidth(heightA, glyph) - 1,
-				minY + determineHeight(heightA, glyph) - 1,
+				minX + determineWidth(font, heightA, glyph) - 1,
+				minY + determineHeight(font, heightA, glyph) - 1,
 				horizontalIntersections, verticalIntersections,
 				fillColor, strokeColor, backgroundColor
 		);

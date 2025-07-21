@@ -17,9 +17,11 @@ public class TextBenchmarkResourceWriter {
 		InputStream fontInput = Objects.requireNonNull(TextPlayground.class.getClassLoader().getResourceAsStream(
 				"com/github/knokko/vk2d/fonts/thaana.ttf"
 		));
+		InputStream font2 = Files.newInputStream(new File("importer/src/main/resources/mardek/importer/fonts/274_Nyala.ttf").toPath());
 
 		Vk2dResourceWriter writer = new Vk2dResourceWriter();
 		writer.addFont(fontInput);
+		writer.addFont(font2);
 
 		OutputStream output = Files.newOutputStream(TEXT_RESOURCE_FILE.toPath());
 		writer.write(output);

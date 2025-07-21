@@ -35,6 +35,9 @@ public class Vk2dResourceLoader {
 	private MappedVkbBuffer[] imageStagingBuffers;
 
 	private Font[] fonts;
+	private VkbBuffer fontBuffer;
+	private MappedVkbBuffer fontStagingBuffer;
+	private long fontDescriptor;
 
 	private VkbBuffer fakeImages;
 	private MappedVkbBuffer fakeStagingBuffer;
@@ -101,17 +104,16 @@ public class Vk2dResourceLoader {
 			);
 		}
 
+		long fontBufferSize = 0L;
 		int numFonts = input.readInt();
+		int firstCurveIndex = 0;
 		this.fonts = new Font[numFonts];
 		for (int index = 0; index < numFonts; index++) {
 			int numCurves = input.readInt();
 			int numGlyphs = input.readInt();
-			long alignment = boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
-			int usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-			this.fonts[index] = new Font(
-					combiner.addBuffer(8L * numCurves, alignment, usage, 0.5f),
-					combiner.addMappedBuffer(8L * numCurves, 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT), numGlyphs
-			);
+			this.fonts[index] = new Font(numGlyphs, firstCurveIndex);
+			firstCurveIndex += numCurves;
+			fontBufferSize += 8L * numCurves;
 			for (int glyph = 0; glyph < numGlyphs; glyph++) {
 				this.fonts[index].firstCurves[glyph] = input.readInt();
 				this.fonts[index].numCurves[glyph] = input.readInt();
@@ -120,6 +122,14 @@ public class Vk2dResourceLoader {
 				this.fonts[index].glyphMaxX[glyph] = input.readFloat();
 				this.fonts[index].glyphMaxY[glyph] = input.readFloat();
 			}
+		}
+
+		if (fontBufferSize > 0L) {
+			this.fontBuffer = combiner.addBuffer(
+					fontBufferSize, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
+					VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0.5f
+			);
+			this.fontStagingBuffer = combiner.addMappedBuffer(fontBufferSize, 4L, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 		}
 	}
 
@@ -138,8 +148,8 @@ public class Vk2dResourceLoader {
 			while (fakeData.hasRemaining()) fakeData.put(input.readInt());
 		}
 
-		for (Font font : fonts) {
-			IntBuffer curves = font.curveStagingBuffer.intBuffer();
+		if (fontStagingBuffer != null) {
+			IntBuffer curves = fontStagingBuffer.intBuffer();
 			while (curves.hasRemaining()) curves.put(input.readInt());
 		}
 	}
@@ -148,17 +158,10 @@ public class Vk2dResourceLoader {
 			CommandRecorder recorder, Vk2dShared shared,
 			Vk2dSharedText sharedText, DescriptorCombiner descriptors
 	) {
-		VkbBuffer[] fontStagingBuffers = new VkbBuffer[fonts.length];
-		VkbBuffer[] fontBuffers = new VkbBuffer[fonts.length];
-		for (int index = 0; index < fonts.length; index++) {
-			fontBuffers[index] = fonts[index].curveBuffer;
-			fontStagingBuffers[index] = fonts[index].curveStagingBuffer;
-		}
-
 		recorder.bulkTransitionLayout(null, ResourceUsage.TRANSFER_DEST, images);
 		recorder.bulkCopyBufferToImage(images, imageStagingBuffers);
 		if (fakeImages != null) recorder.copyBuffer(fakeStagingBuffer, fakeImages);
-		recorder.bulkCopyBuffers(fontStagingBuffers, fontBuffers);
+		if (fontStagingBuffer != null) recorder.copyBuffer(fontStagingBuffer, fontBuffer);
 		recorder.bulkTransitionLayout(
 				ResourceUsage.TRANSFER_DEST,
 				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT), images
@@ -168,9 +171,9 @@ public class Vk2dResourceLoader {
 					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT
 			));
 		}
-		recorder.bulkBufferBarrier(ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
-		), fontBuffers);
+		if (fontBuffer != null) recorder.bufferBarrier(fontBuffer, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
+		));
 
 		if (images.length > 0) {
 			// TODO The if (images.length > 0) should be unneeded. Fix in vk-boiler
@@ -181,8 +184,8 @@ public class Vk2dResourceLoader {
 		if (fakeImages != null) descriptors.addSingle(
 				shared.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet
 		);
-		for (Font font : fonts) {
-			descriptors.addSingle(sharedText.scratchDescriptorLayout1, descriptorSet -> font.descriptorSet = descriptorSet);
+		if (fontBuffer != null) {
+			descriptors.addSingle(sharedText.scratchDescriptorLayout1, descriptorSet -> fontDescriptor = descriptorSet);
 		}
 	}
 
@@ -213,16 +216,19 @@ public class Vk2dResourceLoader {
 			}
 		}
 
+		if (fontDescriptor != 0L) {
+			try (MemoryStack stack = stackPush()) {
+				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
+				updater.writeStorageBuffer(0, fontDescriptor, 0, fontBuffer);
+				updater.update(boiler);
+			}
+		}
+
 		Vk2dFont[] bundleFonts = new Vk2dFont[fonts.length];
 		for (int index = 0; index < fonts.length; index++) {
 			Font font = fonts[index];
-			try (MemoryStack stack = stackPush()) {
-				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
-				updater.writeStorageBuffer(0, font.descriptorSet, 0, font.curveBuffer);
-				updater.update(boiler);
-			}
 			bundleFonts[index] = new Vk2dFont(
-					font.descriptorSet, font.curveBuffer, font.firstCurves, font.numCurves,
+					fontDescriptor, index, font.firstCurveIndex, font.firstCurves, font.numCurves,
 					font.glyphMinX, font.glyphMinY, font.glyphMaxX, font.glyphMaxY
 			);
 		}
@@ -235,16 +241,12 @@ public class Vk2dResourceLoader {
 
 	private static class Font {
 
-		final VkbBuffer curveBuffer;
-		final MappedVkbBuffer curveStagingBuffer;
+		final int firstCurveIndex;
 		final int[] firstCurves, numCurves;
 		final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY;
 
-		long descriptorSet;
-
-		Font(VkbBuffer curveBuffer, MappedVkbBuffer curveStagingBuffer, int numGlyphs) {
-			this.curveBuffer = curveBuffer;
-			this.curveStagingBuffer = curveStagingBuffer;
+		Font(int numGlyphs, int firstCurveIndex) {
+			this.firstCurveIndex = firstCurveIndex;
 			this.firstCurves = new int[numGlyphs];
 			this.numCurves = new int[numGlyphs];
 			this.glyphMinX = new float[numGlyphs];
