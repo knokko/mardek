@@ -46,6 +46,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
 	protected Vk2dPipelineContext pipelineContext;
 	protected Vk2dShared shared;
+	protected Vk2dSharedText sharedText;
 	private MemoryBlock memory;
 	private long vkDescriptorPool;
 	protected PerFrameBuffer perFrameBuffer;
@@ -84,8 +85,9 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 				loader.prepareStaging();
 				Vk2dResourceLoader[] pLoader = { loader };
 				SingleTimeCommands.submit(
-						boiler, "Vk2dStaging",
-						recorder -> pLoader[0].performStaging(recorder, shared, descriptors)
+						boiler, "Vk2dStaging", recorder -> pLoader[0].performStaging(
+								recorder, shared, sharedText, descriptors
+						)
 				).destroy();
 			}
 
@@ -166,6 +168,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			);
 		}
 		memory.destroy(boiler);
+		sharedText.destroy(boiler);
 		shared.destroy(boiler);
 	}
 

@@ -6,7 +6,7 @@ layout(set = 0, binding = 0) buffer IntersectionData {
 layout(set = 0, binding = 1) writeonly buffer IntersectionInfo {
 	uint intersectionInfo[];
 };
-layout(set = 0, binding = 2) readonly buffer CurveBuffer {
+layout(set = 1, binding = 0) readonly buffer CurveBuffer {
 	uint curveData[];
 };
 

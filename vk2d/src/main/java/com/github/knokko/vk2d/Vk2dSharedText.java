@@ -12,17 +12,21 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dSharedText {
 
-	public final VkbDescriptorSetLayout scratchDescriptorLayout, transferDescriptorLayout, intersectionDescriptorLayout;
+	public final VkbDescriptorSetLayout scratchDescriptorLayout0, scratchDescriptorLayout1;
+	public final VkbDescriptorSetLayout transferDescriptorLayout, intersectionDescriptorLayout;
 	public final long scratchPipeline, scratchPipelineLayout, transferPipeline, transferPipelineLayout, intersectionPipelineLayout;
 
 	@SuppressWarnings("resource")
 	public Vk2dSharedText(BoilerInstance boiler) {
 		try (MemoryStack stack = stackPush()) {
-			DescriptorSetLayoutBuilder descriptors = new DescriptorSetLayoutBuilder(stack, 3);
+			DescriptorSetLayoutBuilder descriptors = new DescriptorSetLayoutBuilder(stack, 2);
 			descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
 			descriptors.set(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
-			descriptors.set(2, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
-			this.scratchDescriptorLayout = descriptors.build(boiler, "Vk2dTextScratchDescriptorLayout");
+			this.scratchDescriptorLayout0 = descriptors.build(boiler, "Vk2dTextScratchDescriptorLayout0");
+
+			descriptors = new DescriptorSetLayoutBuilder(stack, 1);
+			descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
+			this.scratchDescriptorLayout1 = descriptors.build(boiler, "Vk2dTextScratchDescriptorLayout1");
 
 			descriptors = new DescriptorSetLayoutBuilder(stack, 6);
 			descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
@@ -42,7 +46,8 @@ public class Vk2dSharedText {
 			pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 36);
 			this.scratchPipelineLayout = boiler.pipelines.createLayout(
 					pushConstants, "Vk2dTextScratchPipelineLayout",
-					scratchDescriptorLayout.vkDescriptorSetLayout
+					scratchDescriptorLayout0.vkDescriptorSetLayout,
+					scratchDescriptorLayout1.vkDescriptorSetLayout
 			);
 			pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 12);
 			this.transferPipelineLayout = boiler.pipelines.createLayout(
@@ -76,7 +81,8 @@ public class Vk2dSharedText {
 			}
 
 			for (VkbDescriptorSetLayout layout : new VkbDescriptorSetLayout[] {
-					scratchDescriptorLayout, transferDescriptorLayout, intersectionDescriptorLayout
+					scratchDescriptorLayout0, scratchDescriptorLayout1,
+					transferDescriptorLayout, intersectionDescriptorLayout
 			}) {
 				vkDestroyDescriptorSetLayout(
 						boiler.vkDevice(), layout.vkDescriptorSetLayout,

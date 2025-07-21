@@ -12,6 +12,7 @@ import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.vk2d.Vk2dShared;
+import com.github.knokko.vk2d.Vk2dSharedText;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.DataInputStream;
@@ -143,7 +144,10 @@ public class Vk2dResourceLoader {
 		}
 	}
 
-	public void performStaging(CommandRecorder recorder, Vk2dShared shared, DescriptorCombiner descriptors) {
+	public void performStaging(
+			CommandRecorder recorder, Vk2dShared shared,
+			Vk2dSharedText sharedText, DescriptorCombiner descriptors
+	) {
 		VkbBuffer[] fontStagingBuffers = new VkbBuffer[fonts.length];
 		VkbBuffer[] fontBuffers = new VkbBuffer[fonts.length];
 		for (int index = 0; index < fonts.length; index++) {
@@ -178,7 +182,7 @@ public class Vk2dResourceLoader {
 				shared.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet
 		);
 		for (Font font : fonts) {
-			descriptors.addSingle(shared.bufferDescriptorSetLayout, descriptorSet -> font.descriptorSet = descriptorSet);
+			descriptors.addSingle(sharedText.scratchDescriptorLayout1, descriptorSet -> font.descriptorSet = descriptorSet);
 		}
 	}
 

@@ -29,7 +29,6 @@ public class Vk2dTextBuffer {
 	}
 
 	private final GlyphCacheTracker cache;
-	private Vk2dFont font;
 	private final VkbBuffer scratchIntersectionBuffer, scratchInfoBuffer;
 	private final VkbBuffer intersectionBuffer, infoBuffer, nextOffsetBuffer;
 	private final MappedVkbBuffer nextIntersectionIndexBuffer;
@@ -39,6 +38,7 @@ public class Vk2dTextBuffer {
 
 	private boolean shouldClearNextTransfer;
 	private ByteBuffer scratchPushConstants;
+	private long previousFontDescriptorSet;
 
 	public Vk2dTextBuffer(
 			VkbBuffer scratchIntersectionBuffer, VkbBuffer scratchInfoBuffer,
@@ -57,7 +57,10 @@ public class Vk2dTextBuffer {
 		this.nextIntersectionIndexBuffer = nextIntersectionIndexBuffer;
 	}
 
-	public Vk2dTextBuffer(BoilerInstance boiler, MemoryCombiner combiner, int numFramesInFlight) {
+	public Vk2dTextBuffer(
+			BoilerInstance boiler, MemoryCombiner combiner, Vk2dSharedText shared,
+			DescriptorCombiner descriptors, int numFramesInFlight
+	) {
 		// Scratch buffer size:
 		//  target: fit glyph with 100 curves, using a height of 10k pixels
 		//  the info buffer needs 2 ints (4 bytes each) per pixel height: 80k bytes
@@ -81,32 +84,27 @@ public class Vk2dTextBuffer {
 						VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
 				)
 		);
-	}
-
-	public void requestDescriptorSets(Vk2dSharedText shared, DescriptorCombiner descriptors) {
-		descriptors.addSingle(shared.scratchDescriptorLayout, set -> this.scratchDescriptorSet = set);
+		descriptors.addSingle(shared.scratchDescriptorLayout0, set -> this.scratchDescriptorSet = set);
 		descriptors.addSingle(shared.transferDescriptorLayout, set -> this.transferDescriptorSet = set);
 		descriptors.addSingle(shared.intersectionDescriptorLayout, set -> this.intersectionDescriptorSet = set);
 	}
 
-	public void initializeDescriptorSets(BoilerInstance boiler, Vk2dFont font) {
-		this.font = font;
+	public void initializeDescriptorSets(BoilerInstance boiler) {
 		this.cache.setIntersectionIndexBuffer(nextIntersectionIndexBuffer.intBuffer());
 		try (MemoryStack stack = stackPush()) {
-			DescriptorUpdater updater = new DescriptorUpdater(stack, 11);
+			DescriptorUpdater updater = new DescriptorUpdater(stack, 10);
 			updater.writeStorageBuffer(0, scratchDescriptorSet, 0, scratchIntersectionBuffer);
 			updater.writeStorageBuffer(1, scratchDescriptorSet, 1, scratchInfoBuffer);
-			updater.writeStorageBuffer(2, scratchDescriptorSet, 2, font.curveBuffer);
 
-			updater.writeStorageBuffer(3, transferDescriptorSet, 0, scratchIntersectionBuffer);
-			updater.writeStorageBuffer(4, transferDescriptorSet, 1, scratchInfoBuffer);
-			updater.writeStorageBuffer(5, transferDescriptorSet, 2, intersectionBuffer);
-			updater.writeStorageBuffer(6, transferDescriptorSet, 3, infoBuffer);
-			updater.writeStorageBuffer(7, transferDescriptorSet, 4, nextOffsetBuffer);
-			updater.writeStorageBuffer(8, transferDescriptorSet, 5, nextIntersectionIndexBuffer);
+			updater.writeStorageBuffer(2, transferDescriptorSet, 0, scratchIntersectionBuffer);
+			updater.writeStorageBuffer(3, transferDescriptorSet, 1, scratchInfoBuffer);
+			updater.writeStorageBuffer(4, transferDescriptorSet, 2, intersectionBuffer);
+			updater.writeStorageBuffer(5, transferDescriptorSet, 3, infoBuffer);
+			updater.writeStorageBuffer(6, transferDescriptorSet, 4, nextOffsetBuffer);
+			updater.writeStorageBuffer(7, transferDescriptorSet, 5, nextIntersectionIndexBuffer);
 
-			updater.writeStorageBuffer(9, intersectionDescriptorSet, 0, intersectionBuffer);
-			updater.writeStorageBuffer(10, intersectionDescriptorSet, 1, infoBuffer);
+			updater.writeStorageBuffer(8, intersectionDescriptorSet, 0, intersectionBuffer);
+			updater.writeStorageBuffer(9, intersectionDescriptorSet, 1, infoBuffer);
 
 			updater.update(boiler);
 		}
@@ -118,26 +116,39 @@ public class Vk2dTextBuffer {
 		scratchPushConstants = recorder.stack.calloc(36);
 	}
 
-	public int scratch(CommandRecorder recorder, Vk2dSharedText shared, int glyph, int size, boolean horizontal) {
-		if (size == 0 || font.getNumCurves(glyph) == 0) return -1;
+	public int scratch(
+			CommandRecorder recorder, Vk2dSharedText shared,
+			Vk2dFont font, int glyph, int size, boolean horizontal
+	) {
+		int numCurves = font.getNumCurves(glyph);
+		if (size == 0 || numCurves == 0) return -1;
 		Integer existing = cache.get(glyph, size, horizontal);
 		if (existing != null) return existing;
 
 		int scratchIntersectionOffset = cache.getNextScratchIntersectionIndex();
-		int scratchInfoOffset = cache.putScratch(glyph, size, font.getNumCurves(glyph), horizontal);
+		int scratchInfoOffset = cache.putScratch(glyph, size, numCurves, horizontal);
 		if (scratchInfoOffset == -1) return -1;
 
 		if (shouldBindScratchPipeline) {
 			shouldBindScratchPipeline = false;
 			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, shared.scratchPipeline);
-			recorder.bindComputeDescriptors(shared.scratchPipelineLayout, scratchDescriptorSet);
+			recorder.bindComputeDescriptors(shared.scratchPipelineLayout, scratchDescriptorSet, font.vkDescriptorSet);
+			previousFontDescriptorSet = font.vkDescriptorSet;
+		}
+
+		if (previousFontDescriptorSet != font.vkDescriptorSet) {
+			vkCmdBindDescriptorSets(
+					recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, shared.scratchPipelineLayout,
+					1, recorder.stack.longs(font.vkDescriptorSet), null
+			);
+			previousFontDescriptorSet = font.vkDescriptorSet;
 		}
 
 		ByteBuffer pushConstants = scratchPushConstants;
 		pushConstants.putInt(0, scratchIntersectionOffset);
 		pushConstants.putInt(4, scratchInfoOffset);
 		pushConstants.putInt(8, 2 * font.getFirstCurve(glyph));
-		pushConstants.putInt(12, font.getNumCurves(glyph));
+		pushConstants.putInt(12, numCurves);
 		pushConstants.putInt(16, horizontal ? size : -size);
 		pushConstants.putFloat(20, font.getGlyphMinX(glyph));
 		pushConstants.putFloat(24, font.getGlyphMinY(glyph));

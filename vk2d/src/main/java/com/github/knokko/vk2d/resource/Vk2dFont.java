@@ -24,6 +24,7 @@ public class Vk2dFont {
 	}
 
 	public int getFirstCurve(int glyph) {
+		// TODO Respect index for other fonts
 		return firstCurves[glyph];
 	}
 

@@ -24,7 +24,6 @@ public class GlyphBenchmark extends Vk2dWindow {
 
 	private static final File TEXT_RESOURCE_FILE = new File("text-benchmark-resources.bin");
 
-	private Vk2dSharedText sharedText;
 	private Vk2dGlyphPipeline textPipeline;
 	private Vk2dTextBuffer textBuffer;
 
@@ -32,7 +31,7 @@ public class GlyphBenchmark extends Vk2dWindow {
 	private int fps = 0;
 
 	public GlyphBenchmark(VkbWindow window) {
-		super(window, false);
+		super(window, true);
 	}
 
 	@Override
@@ -45,14 +44,13 @@ public class GlyphBenchmark extends Vk2dWindow {
 		super.createResources(boiler, combiner, descriptors);
 		this.sharedText = new Vk2dSharedText(boiler);
 		this.textPipeline = new Vk2dGlyphPipeline(pipelineContext, sharedText);
-		this.textBuffer = new Vk2dTextBuffer(boiler, combiner, numFramesInFlight);
-		this.textBuffer.requestDescriptorSets(sharedText, descriptors);
+		this.textBuffer = new Vk2dTextBuffer(boiler, combiner, sharedText, descriptors, numFramesInFlight);
 	}
 
 	@Override
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
-		this.textBuffer.initializeDescriptorSets(boiler, resources.getFont(0));
+		this.textBuffer.initializeDescriptorSets(boiler);
 	}
 
 	@Override
@@ -80,10 +78,10 @@ public class GlyphBenchmark extends Vk2dWindow {
 					round += 1;
 				}
 				int glyphOffsetHorizontal = textBuffer.scratch(
-						recorder, sharedText, glyph, batch.determineHeight(heightA, glyph), true
+						recorder, sharedText, font, glyph, batch.determineHeight(heightA, glyph), true
 				);
 				int glyphOffsetVertical = textBuffer.scratch(
-						recorder, sharedText, glyph, batch.determineWidth(heightA, glyph), false
+						recorder, sharedText, font, glyph, batch.determineWidth(heightA, glyph), false
 				);
 
 				int fillColor;
@@ -115,10 +113,9 @@ public class GlyphBenchmark extends Vk2dWindow {
 	protected void cleanUp(BoilerInstance boiler) {
 		super.cleanUp(boiler);
 		textPipeline.destroy(boiler);
-		sharedText.destroy(boiler);
 	}
 
 	public static void main(String[] args) {
-		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.NONE, GlyphBenchmark::new);
+		bootstrap("GlyphBenchmark", 1, Vk2dValidationMode.STRONG, GlyphBenchmark::new);
 	}
 }
