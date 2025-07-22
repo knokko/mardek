@@ -1,7 +1,6 @@
 package com.github.knokko.vk2d.text;
 
 import java.nio.IntBuffer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,15 +9,12 @@ public class GlyphCacheTracker {
 	private final Map<Entry, Integer> stableMap = new HashMap<>();
 	private final Map<Entry, Integer> scratchMap = new HashMap<>();
 
-	private int lastStableIntersectionIndex;
 	private final int scratchIntersectionBufferSize, scratchInfoBufferSize;
 	private final int stableIntersectionBufferSize, stableInfoBufferSize;
 	private int nextStableInfoIndex, nextScratchInfoIndex, nextScratchIntersectionIndex;
-	private int maxInFlightIntersections;
 	private boolean shouldClearStable;
 
 	private IntBuffer stableIntersectionIndices;
-	private int[] previousScratchIntersectionCounts;
 
 	public GlyphCacheTracker(
 			long scratchIntersectionBufferSize, long scratchInfoBufferSize,
@@ -33,22 +29,21 @@ public class GlyphCacheTracker {
 	public void setIntersectionIndexBuffer(IntBuffer stableIntersectionIndices) {
 		if (this.stableIntersectionIndices != null) throw new IllegalStateException();
 		this.stableIntersectionIndices = stableIntersectionIndices;
-		this.previousScratchIntersectionCounts = new int[stableIntersectionIndices.capacity()];
 	}
 
 	public boolean startFrame() {
-		previousScratchIntersectionCounts[getCurrentFrameInFlight()] = nextScratchIntersectionIndex;
-
 		nextScratchInfoIndex = 0;
 		nextScratchIntersectionIndex = 0;
 
-		int frameInFlight = stableIntersectionIndices.position();
-		maxInFlightIntersections = 0;
-		for (int index = 0; index < previousScratchIntersectionCounts.length; index++) {
-			if (index != frameInFlight) maxInFlightIntersections += previousScratchIntersectionCounts[index];
-		}
 		if (!stableIntersectionIndices.hasRemaining()) stableIntersectionIndices.position(0);
-		lastStableIntersectionIndex = stableIntersectionIndices.get();
+		int lastStableIntersectionIndex = stableIntersectionIndices.get();
+		if (lastStableIntersectionIndex > stableIntersectionBufferSize) throw new IllegalStateException(
+				"last stable index is " + lastStableIntersectionIndex + ", but size is only " + stableIntersectionBufferSize
+		);
+		if (lastStableIntersectionIndex < 0) {
+			throw new IllegalStateException("last stable index is " + lastStableIntersectionIndex);
+		}
+		if (lastStableIntersectionIndex == stableIntersectionBufferSize) shouldClearStable = true;
 
 		int oldStableIndex = nextStableInfoIndex;
 		scratchMap.forEach((entry, index) -> {
@@ -58,12 +53,11 @@ public class GlyphCacheTracker {
 		scratchMap.clear();
 
 		if (shouldClearStable) {
-			lastStableIntersectionIndex = 0;
 			nextStableInfoIndex = 0;
 			stableMap.clear();
 			shouldClearStable = false;
-			Arrays.fill(previousScratchIntersectionCounts, 0);
-			maxInFlightIntersections = 0;
+			System.out.println("Flush intersection cache: intersection index is " +
+					lastStableIntersectionIndex + " / " + stableIntersectionBufferSize);
 			return true;
 		} else return false;
 	}
@@ -86,14 +80,6 @@ public class GlyphCacheTracker {
 		int newStableInfoIndex = nextStableInfoIndex + newScratchInfoIndex;
 		if (newStableInfoIndex > stableInfoBufferSize) {
 			shouldClearStable = true;
-			return -1;
-		}
-
-		int worstCaseStableIntersectionIndex = lastStableIntersectionIndex + maxInFlightIntersections + newScratchIntersectionIndex;
-		if (worstCaseStableIntersectionIndex > stableIntersectionBufferSize) {
-			if (lastStableIntersectionIndex + 2 * size * numCurves > stableIntersectionBufferSize) {
-				shouldClearStable = true;
-			}
 			return -1;
 		}
 

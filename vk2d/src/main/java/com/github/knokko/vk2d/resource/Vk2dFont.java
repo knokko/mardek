@@ -1,5 +1,7 @@
 package com.github.knokko.vk2d.resource;
 
+import java.util.Map;
+
 public class Vk2dFont {
 
 	public final long vkDescriptorSet;
@@ -7,10 +9,12 @@ public class Vk2dFont {
 	public final int firstCurveIndex;
 	private final int[] firstCurves, numCurves;
 	private final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY;
+	private final Map<Integer, Integer> charToGlyphMap;
 
 	Vk2dFont(
 			long vkDescriptorSet, int index, int firstCurveIndex, int[] firstCurves, int[] numCurves,
-			float[] glyphMinX, float[] glyphMinY, float[] glyphMaxX, float[] glyphMaxY
+			float[] glyphMinX, float[] glyphMinY, float[] glyphMaxX, float[] glyphMaxY,
+			Map<Integer, Integer> charToGlyphMap
 	) {
 		this.vkDescriptorSet = vkDescriptorSet;
 		this.index = index;
@@ -21,10 +25,15 @@ public class Vk2dFont {
 		this.glyphMinY = glyphMinY;
 		this.glyphMaxX = glyphMaxX;
 		this.glyphMaxY = glyphMaxY;
+		this.charToGlyphMap = charToGlyphMap;
 	}
 
 	public int getFirstCurve(int glyph) {
 		return firstCurveIndex + firstCurves[glyph];
+	}
+
+	public int getGlyphForChar(int charCode) {
+		return charToGlyphMap.getOrDefault(charCode, 0);
 	}
 
 	public int getNumCurves(int glyph) {

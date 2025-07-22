@@ -60,6 +60,6 @@ void main() {
 	if (horizontal.inside && vertical.inside) otherColor = fillColor;
 	if (!horizontal.inside && !vertical.inside) otherColor = backgroundColor;
 
-	float distance = clamp(min(horizontal.distance * size.x, vertical.distance * size.y), 0.0, 1.0);
+	float distance = clamp(2.0 * min(horizontal.distance * size.x, vertical.distance * size.y), 0.0, 1.0);
 	outColor = (1.0 - distance) * strokeColor + distance * otherColor;
 }

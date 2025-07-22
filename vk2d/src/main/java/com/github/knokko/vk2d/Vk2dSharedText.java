@@ -49,7 +49,7 @@ public class Vk2dSharedText {
 					scratchDescriptorLayout0.vkDescriptorSetLayout,
 					scratchDescriptorLayout1.vkDescriptorSetLayout
 			);
-			pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 12);
+			pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 16);
 			this.transferPipelineLayout = boiler.pipelines.createLayout(
 					pushConstants, "Vk2dTextTransferPipelineLayout",
 					transferDescriptorLayout.vkDescriptorSetLayout

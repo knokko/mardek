@@ -66,21 +66,19 @@ public class Vk2dTextBuffer {
 			DescriptorCombiner descriptors, int numFramesInFlight
 	) {
 		// Scratch buffer size:
-		//  target: fit glyph with 100 curves, using a height of 10k pixels
-		//  the info buffer needs 2 ints (4 bytes each) per pixel height: 80k bytes
-		//  the intersection buffer needs 2 * numCurves intersections per pixel height:
-		//    2 * 100 curves * 4 bytes * 10k pixels = 8M bytes
+		//  target 1: fit glyph with 100 curves, using a height and width of 10k pixels
+		//    the info buffer needs 2 ints (4 bytes each) per pixel height and width: 160k bytes
+		//    the intersection buffer needs 2 * numCurves intersections per pixel height and width:
+		//      2 * 100 curves * 4 bytes * (10k rows + 10k columns) = 16M bytes
 		// Real buffer size:
-		//  target: framesInFlight * scratchSize + desiredSize
-		//  desiredSize: fit glyphs with an average of 10 intersections per row, with a total height of 100k rows
-		//    the info buffer needs 2 ints per row: 800k bytes
-		//    the intersection buffer needs 10 intersections * 4 bytes * 100k rows = 4M bytes
+		//  target: fit glyphs with an average of 10 intersections per row and column, with a total height of 100k rows
+		//    the info buffer needs 2 ints per row and column: 1600k bytes
+		//    the intersection buffer needs 10 intersections * 4 bytes * (100k rows + 100k columns) = 8M bytes
 		this(
+				request(boiler, combiner, 16_000_000L),
+				request(boiler, combiner, 160_000L),
 				request(boiler, combiner, 8_000_000L),
-				request(boiler, combiner, 80_000L),
-				request(boiler, combiner, numFramesInFlight * 8_000_000L + 4_000_000L),
-				//request(boiler, combiner, 210_000L),
-				request(boiler, combiner, numFramesInFlight * 80_000L + 800_000),
+				request(boiler, combiner, 1_600_000),
 				request(boiler, combiner, 4L),
 				combiner.addMappedBuffer(
 						4L * numFramesInFlight,
@@ -178,7 +176,7 @@ public class Vk2dTextBuffer {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, shared.transferPipeline);
 		recorder.bindComputeDescriptors(shared.transferPipelineLayout, transferDescriptorSet);
 		if (cache.getNextScratchInfoIndex() == 0) {
-			IntBuffer pushConstants = recorder.stack.callocInt(3);
+			IntBuffer pushConstants = recorder.stack.callocInt(4);
 			pushConstants.put(2, cache.getCurrentFrameInFlight());
 			vkCmdPushConstants(
 					recorder.commandBuffer, shared.transferPipelineLayout,
@@ -220,10 +218,11 @@ public class Vk2dTextBuffer {
 				ResourceUsage.computeBuffer(VK_ACCESS_SHADER_READ_BIT)
 		);
 
-		IntBuffer pushConstants = recorder.stack.callocInt(3);
+		IntBuffer pushConstants = recorder.stack.callocInt(4);
 		pushConstants.put(0, cache.getNextStableInfoIndex());
 		pushConstants.put(1, cache.getNextScratchInfoIndex() / 2);
 		pushConstants.put(2, cache.getCurrentFrameInFlight());
+		pushConstants.put(3, Math.toIntExact(intersectionBuffer.size / 4L));
 		vkCmdPushConstants(
 				recorder.commandBuffer, shared.transferPipelineLayout,
 				VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstants

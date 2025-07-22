@@ -19,6 +19,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.IntBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -111,7 +113,8 @@ public class Vk2dResourceLoader {
 		for (int index = 0; index < numFonts; index++) {
 			int numCurves = input.readInt();
 			int numGlyphs = input.readInt();
-			this.fonts[index] = new Font(numGlyphs, firstCurveIndex);
+			Map<Integer, Integer> charToGlyphMap = new HashMap<>();
+			this.fonts[index] = new Font(numGlyphs, firstCurveIndex, charToGlyphMap);
 			firstCurveIndex += numCurves;
 			fontBufferSize += 8L * numCurves;
 			for (int glyph = 0; glyph < numGlyphs; glyph++) {
@@ -121,6 +124,10 @@ public class Vk2dResourceLoader {
 				this.fonts[index].glyphMinY[glyph] = input.readFloat();
 				this.fonts[index].glyphMaxX[glyph] = input.readFloat();
 				this.fonts[index].glyphMaxY[glyph] = input.readFloat();
+			}
+			int numChars = input.readInt();
+			for (int counter = 0; counter < numChars; counter++) {
+				charToGlyphMap.put(input.readInt(), input.readInt());
 			}
 		}
 
@@ -229,7 +236,7 @@ public class Vk2dResourceLoader {
 			Font font = fonts[index];
 			bundleFonts[index] = new Vk2dFont(
 					fontDescriptor, index, font.firstCurveIndex, font.firstCurves, font.numCurves,
-					font.glyphMinX, font.glyphMinY, font.glyphMaxX, font.glyphMaxY
+					font.glyphMinX, font.glyphMinY, font.glyphMaxX, font.glyphMaxY, font.charToGlyphMap
 			);
 		}
 
@@ -244,8 +251,9 @@ public class Vk2dResourceLoader {
 		final int firstCurveIndex;
 		final int[] firstCurves, numCurves;
 		final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY;
+		final Map<Integer, Integer> charToGlyphMap;
 
-		Font(int numGlyphs, int firstCurveIndex) {
+		Font(int numGlyphs, int firstCurveIndex, Map<Integer, Integer> charToGlyphMap) {
 			this.firstCurveIndex = firstCurveIndex;
 			this.firstCurves = new int[numGlyphs];
 			this.numCurves = new int[numGlyphs];
@@ -253,6 +261,7 @@ public class Vk2dResourceLoader {
 			this.glyphMinY = new float[numGlyphs];
 			this.glyphMaxX = new float[numGlyphs];
 			this.glyphMaxY = new float[numGlyphs];
+			this.charToGlyphMap = charToGlyphMap;
 		}
 	}
 }

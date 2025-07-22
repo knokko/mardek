@@ -24,9 +24,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.nio.IntBuffer;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -211,7 +211,16 @@ public class Vk2dResourceWriter {
 		}
 		System.out.println("max curves is " + maxCurves + " and heightA is " + heightA);
 
-		fonts.add(new Font(font, curves, glyphs));
+		Map<Integer, Integer> charToGlyphMap = new HashMap<>();
+		try (MemoryStack stack = stackPush()) {
+			IntBuffer pGlyph = stack.callocInt(1);
+			long charCode = FT_Get_First_Char(font, pGlyph);
+			while (charCode > 0L) {
+				charToGlyphMap.put(Math.toIntExact(charCode), pGlyph.get(0));
+				charCode = FT_Get_Next_Char(font, charCode, pGlyph);
+			}
+		}
+		fonts.add(new Font(font, curves, glyphs, charToGlyphMap));
 		return fonts.size() - 1;
 	}
 
@@ -364,6 +373,11 @@ public class Vk2dResourceWriter {
 				output.writeFloat(glyph.maxX);
 				output.writeFloat(glyph.maxY);
 			}
+			output.writeInt(font.charToGlyphMap.size());
+			for (var entry : font.charToGlyphMap.entrySet()) {
+				output.writeInt(entry.getKey());
+				output.writeInt(entry.getValue());
+			}
 		}
 
 		this.bcImageData = new byte[images.size()][];
@@ -412,7 +426,7 @@ public class Vk2dResourceWriter {
 
 	private record FakeImage(int width, int height, int[] data) {}
 
-	private record Font(FT_Face ftFace, FontCurve[] curves, FontGlyph[] glyphs) {}
+	private record Font(FT_Face ftFace, FontCurve[] curves, FontGlyph[] glyphs, Map<Integer, Integer> charToGlyphMap) {}
 
 	private record FontCurve(int packedX, int packedY) {}
 
