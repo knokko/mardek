@@ -32,11 +32,7 @@ float transformOffset(float offset) {
 }
 
 float computeWavePosition(float base, uint thisWave, float glyphSize, uint numWaves) {
-	if (numWaves == 1) return base + 0.5 * glyphSize; // always `base + 0.5 * size`
-	// 2 waves: either `base` or `base + size`
-	// 3 waves: either `base`, `base + 0.5 * size`, or `base + size`
-	// 4 waves: `base`, `base + 0.33 * size`, `base + 0.67 * size`, `base + size`, etc
-	return base + thisWave * glyphSize / (numWaves - 1);
+	return base + (thisWave + 0.5) * glyphSize / numWaves;
 }
 
 void main() {

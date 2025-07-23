@@ -51,8 +51,7 @@ WaveIntersections wave(uint infoOffset, uint thisWave, float wavePosition) {
 
 // Mimic the `computeWavePosition` of `glyph-scratch.comp`
 float recoverWavePosition(uint thisWave, uint numWaves) {
-	if (numWaves == 1) return 0.5;
-	return thisWave / (numWaves - 1.0);
+	return (thisWave + 0.5) / numWaves;
 }
 
 void main() {
