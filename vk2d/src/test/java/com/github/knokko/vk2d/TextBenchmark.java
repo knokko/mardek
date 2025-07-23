@@ -8,12 +8,8 @@ import com.github.knokko.vk2d.batch.Vk2dTextBatch;
 import com.github.knokko.vk2d.pipeline.Vk2dTextPipeline;
 import org.lwjgl.system.MemoryStack;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Random;
-
-import static com.github.knokko.vk2d.TextBenchmarkResourceWriter.TEXT_RESOURCE_FILE;
 
 public class TextBenchmark extends Vk2dWindow {
 
@@ -27,8 +23,8 @@ public class TextBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected InputStream initialResourceBundle() throws IOException {
-		return Files.newInputStream(TEXT_RESOURCE_FILE.toPath());
+	protected InputStream initialResourceBundle() {
+		return TextBenchmark.class.getResourceAsStream("text-benchmark-resources.bin");
 	}
 
 	@Override

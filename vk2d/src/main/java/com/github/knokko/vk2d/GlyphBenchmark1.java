@@ -12,17 +12,12 @@ import com.github.knokko.vk2d.resource.Vk2dFont;
 import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
 import static com.github.knokko.boiler.utilities.ColorPacker.rgba;
 
 public class GlyphBenchmark1 extends Vk2dWindow {
-
-	private static final File TEXT_RESOURCE_FILE = new File("text-benchmark-resources.bin");
 
 	private Vk2dGlyphPipeline textPipeline;
 	private Vk2dTextBuffer textBuffer;
@@ -35,8 +30,8 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 	}
 
 	@Override
-	protected InputStream initialResourceBundle() throws IOException {
-		return Files.newInputStream(TEXT_RESOURCE_FILE.toPath());
+	protected InputStream initialResourceBundle() {
+		return GlyphBenchmark1.class.getResourceAsStream("text-benchmark-resources.bin");
 	}
 
 	@Override
@@ -66,7 +61,7 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 		int heightA = 5;
 		Vk2dFont font0 = resources.getFont(0);
 		Vk2dFont font1 = resources.getFont(1);
-		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 600_000, textBuffer.getRenderDescriptorSet());
+		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 10_000, textBuffer.getRenderDescriptorSet());
 
 		textBuffer.startFrame();
 		int cellSize = 3 * heightA / 2;

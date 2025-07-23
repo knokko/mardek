@@ -27,8 +27,8 @@ public class TestGlyphScratchBufferingD {
 
 	@Test
 	public void testUpperCaseD() throws IOException {
-		InputStream fontInput = Objects.requireNonNull(TextPlayground.class.getClassLoader().getResourceAsStream(
-				"com/github/knokko/vk2d/fonts/thaana.ttf"
+		InputStream fontInput = Objects.requireNonNull(TestGlyphScratchBufferingD.class.getResourceAsStream(
+				"fonts/thaana.ttf"
 		));
 
 		Vk2dResourceWriter writer = new Vk2dResourceWriter();

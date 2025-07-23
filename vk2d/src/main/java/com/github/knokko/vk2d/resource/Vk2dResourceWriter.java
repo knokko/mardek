@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.github.knokko.text.FreeTypeFailureException.assertFtSuccess;
+import static com.github.knokko.vk2d.text.FontHelper.assertFtSuccess;
 import static java.lang.Math.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.memAlloc;
@@ -74,19 +74,19 @@ public class Vk2dResourceWriter {
 		try (MemoryStack stack = stackPush()) {
 			if (ftLibrary == 0L) {
 				PointerBuffer pLibrary = stack.callocPointer(1);
-				assertFtSuccess(FT_Init_FreeType(pLibrary), "Init_FreeType", "Vk2dResourceWriter");
+				assertFtSuccess(FT_Init_FreeType(pLibrary), "Init_FreeType");
 				ftLibrary = pLibrary.get(0);
 			}
 
 			PointerBuffer pFace = stack.callocPointer(1);
 			assertFtSuccess(FT_New_Memory_Face(
 					ftLibrary, ttfBuffer, 0, pFace
-			), "New_Memory_Face", "Vk2dResourceWriter");
+			), "New_Memory_Face");
 			font = FT_Face.create(pFace.get(0));
 		}
 
 		int result = addFont(font);
-		assertFtSuccess(FT_Done_Face(font), "Done_Face", "Vk2dResourceWriter");
+		assertFtSuccess(FT_Done_Face(font), "Done_Face");
 		memFree(ttfBuffer);
 		return result;
 	}
@@ -102,6 +102,7 @@ public class Vk2dResourceWriter {
 			System.out.println("Too high");
 			return 1023;
 		}
+		// TODO Tune this again
 		return Math.toIntExact(relativeValue * 1023L / worldSize);
 	}
 
@@ -156,9 +157,9 @@ public class Vk2dResourceWriter {
 			CLongBuffer pAdvance = stack.callocCLong(1);
 			for (int glyph = 0; glyph < font.num_glyphs(); glyph++) {
 				int curveIndex = rawCurves.size();
-				assertFtSuccess(FT_Load_Glyph(font, glyph, FT_LOAD_NO_SCALE), "Load_Glyph", "Vk2dResourceWriter");
+				assertFtSuccess(FT_Load_Glyph(font, glyph, FT_LOAD_NO_SCALE), "Load_Glyph");
 				var outline = Objects.requireNonNull(font.glyph()).outline();
-				assertFtSuccess(FT_Outline_Decompose(outline, outlineFunctions, 0L), "Outline_Decompose", "Vk2dResourceWriter");
+				assertFtSuccess(FT_Outline_Decompose(outline, outlineFunctions, 0L), "Outline_Decompose");
 				int numCurves = rawCurves.size() - curveIndex;
 				maxCurves = max(maxCurves, numCurves);
 
@@ -184,7 +185,7 @@ public class Vk2dResourceWriter {
 
 				assertFtSuccess(FT_Get_Advance(
 						font, glyph, FT_LOAD_NO_SCALE, pAdvance
-				), "Get_Advance", "Vk2dResourceWriter");
+				), "Get_Advance");
 				rawGlyphs[glyph] = new RawGlyph(curveIndex, numCurves, minX, minY, maxX, maxY, pAdvance.get(0));
 			}
 		}
@@ -415,7 +416,7 @@ public class Vk2dResourceWriter {
 
 		output.flush();
 		if (ftLibrary != 0L) {
-			assertFtSuccess(FT_Done_FreeType(ftLibrary), "Done_FreeType", "Vk2dResourceWriter");
+			assertFtSuccess(FT_Done_FreeType(ftLibrary), "Done_FreeType");
 		}
 	}
 

@@ -11,17 +11,22 @@ import java.util.Objects;
 
 public class TextBenchmarkResourceWriter {
 
-	public static final File TEXT_RESOURCE_FILE = new File("text-benchmark-resources.bin");
+	private static final File TEXT_RESOURCE_FILE = new File(
+			"vk2d/src/main/resources/com/github/knokko/vk2d/text-benchmark-resources.bin"
+	);
 
 	public static void main(String[] args) throws IOException {
-		InputStream fontInput = Objects.requireNonNull(TextPlayground.class.getClassLoader().getResourceAsStream(
-				"com/github/knokko/vk2d/fonts/thaana.ttf"
+		InputStream fontInput = Objects.requireNonNull(TextBenchmarkResourceWriter.class.getResourceAsStream(
+				"fonts/thaana.ttf"
 		));
-		InputStream font2 = Files.newInputStream(new File("importer/src/main/resources/mardek/importer/fonts/274_Nyala.ttf").toPath());
 
 		Vk2dResourceWriter writer = new Vk2dResourceWriter();
 		writer.addFont(fontInput);
-		writer.addFont(font2);
+
+		File fontsFolder = new File("importer/src/main/resources/mardek/importer/fonts");
+		for (File fontFile : Objects.requireNonNull(fontsFolder.listFiles())) {
+			writer.addFont(Files.newInputStream(fontFile.toPath()));
+		}
 
 		OutputStream output = Files.newOutputStream(TEXT_RESOURCE_FILE.toPath());
 		writer.write(output);

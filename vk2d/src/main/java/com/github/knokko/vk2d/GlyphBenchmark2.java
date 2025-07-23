@@ -10,22 +10,20 @@ import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
 import com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline;
 import com.github.knokko.vk2d.resource.Vk2dFont;
 import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
+import org.lwjgl.sdl.*;
 import org.lwjgl.system.MemoryStack;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess;
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
-import static com.github.knokko.boiler.utilities.ColorPacker.rgba;
+import static java.lang.Math.max;
 
 public class GlyphBenchmark2 extends Vk2dWindow {
 
-	private static final File TEXT_RESOURCE_FILE = new File("text-benchmark-resources.bin");
 	private static final List<String> SHADER_CODE = new ArrayList<>();
 
 	static {
@@ -49,8 +47,8 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 	}
 
 	@Override
-	protected InputStream initialResourceBundle() throws IOException {
-		return Files.newInputStream(TEXT_RESOURCE_FILE.toPath());
+	protected InputStream initialResourceBundle() {
+		return GlyphBenchmark2.class.getResourceAsStream("text-benchmark-resources.bin");
 	}
 
 	@Override
@@ -61,10 +59,54 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 		this.textBuffer = new Vk2dTextBuffer(boiler, combiner, sharedText, descriptors, numFramesInFlight);
 	}
 
+	private boolean shiftDown, controlDown;
+	private float offsetX, offsetY;
+	private int heightA = 12;
+	private int fontIndex = 0;
+
 	@Override
+	@SuppressWarnings("resource")
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
 		this.textBuffer.initializeDescriptorSets(boiler);
+
+		assertSdlSuccess(SDLEvents.SDL_AddEventWatch((userData, rawEvent) -> {
+			int type = SDL_Event.ntype(rawEvent);
+			if (type == SDLEvents.SDL_EVENT_MOUSE_WHEEL) {
+				SDL_MouseWheelEvent event = SDL_MouseWheelEvent.create(rawEvent);
+				float x = event.x();
+				float y = event.y();
+
+				if (shiftDown) {
+					//noinspection SuspiciousNameCombination
+					x = y;
+					y = 0f;
+				}
+
+				if (controlDown) {
+					if (y > 0) heightA++;
+					else heightA = max(1, heightA - 1);
+				} else {
+					float speed = 2f * heightA;
+					offsetX += speed * x;
+					offsetY += speed * y;
+				}
+			}
+
+			if (type == SDLEvents.SDL_EVENT_KEY_DOWN || type == SDLEvents.SDL_EVENT_KEY_UP) {
+				SDL_KeyboardEvent event = SDL_KeyboardEvent.create(rawEvent);
+				if (event.key() == SDLKeycode.SDLK_LSHIFT || event.key() == SDLKeycode.SDLK_RSHIFT) {
+					shiftDown = event.down();
+				}
+				if (event.key() == SDLKeycode.SDLK_LCTRL || event.key() == SDLKeycode.SDLK_RCTRL) {
+					controlDown = event.down();
+				}
+				if (event.key() == SDLKeycode.SDLK_F && event.down()) {
+					fontIndex = (fontIndex + 1) % resources.getNumFonts();
+				}
+			}
+			return false;
+		}, 0L), "AddEventWatch");
 	}
 
 	@Override
@@ -77,18 +119,17 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 		}
 		fps += 1;
 
-		int heightA = 30;
-		int lineHeight = 3 * heightA / 2;
-		Vk2dFont font = resources.getFont(0);
+		int lineHeight = 11 * heightA / 6;
+		Vk2dFont font = resources.getFont(fontIndex);
 		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 60_000, textBuffer.getRenderDescriptorSet());
 
 		textBuffer.startFrame();
 
-		int baseY = lineHeight;
+		int baseY = lineHeight + (int) offsetY;
 		int whitespaceGlyph = font.getGlyphForChar(' ');
 		float whitespaceAdvance = font.getGlyphAdvance(whitespaceGlyph);
 		for (String line : SHADER_CODE) {
-			int baseX = 50;
+			int baseX = 50 + (int) offsetX;
 			for (int x = 0; x < line.length(); x++) {
 				int charCode = line.charAt(x);
 				if (charCode == '\t') {

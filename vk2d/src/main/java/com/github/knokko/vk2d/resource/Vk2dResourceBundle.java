@@ -43,6 +43,10 @@ public class Vk2dResourceBundle {
 		return fonts[fontIndex];
 	}
 
+	public int getNumFonts() {
+		return fonts.length;
+	}
+
 	public int getFakeImageOffset(int index) {
 		return fakeImageOffsets[index];
 	}
