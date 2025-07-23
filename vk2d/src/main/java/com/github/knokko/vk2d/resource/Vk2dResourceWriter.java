@@ -14,6 +14,7 @@ import com.github.knokko.compressor.Bc7Compressor;
 import com.github.knokko.compressor.Kim1Compressor;
 import com.github.knokko.vk2d.Kim3Compressor;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.CLongBuffer;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.freetype.FT_Face;
@@ -107,7 +108,7 @@ public class Vk2dResourceWriter {
 	public int addFont(FT_Face font) {
 		record RawCurve(long startX, long startY, long controlX, long controlY, long endX, long endY) {}
 
-		record RawGlyph(int firstCurve, int numCurves, long minX, long minY, long maxX, long maxY) {}
+		record RawGlyph(int firstCurve, int numCurves, long minX, long minY, long maxX, long maxY, long advance) {}
 
 		RawGlyph[] rawGlyphs = new RawGlyph[Math.toIntExact(font.num_glyphs())];
 		List<RawCurve> rawCurves = new ArrayList<>();
@@ -152,6 +153,7 @@ public class Vk2dResourceWriter {
 			outlineFunctions.delta(0);
 			outlineFunctions.shift(0);
 
+			CLongBuffer pAdvance = stack.callocCLong(1);
 			for (int glyph = 0; glyph < font.num_glyphs(); glyph++) {
 				int curveIndex = rawCurves.size();
 				assertFtSuccess(FT_Load_Glyph(font, glyph, FT_LOAD_NO_SCALE), "Load_Glyph", "Vk2dResourceWriter");
@@ -179,7 +181,11 @@ public class Vk2dResourceWriter {
 					minY = min(minY, curve.endY);
 					maxY = max(maxY, curve.endY);
 				}
-				rawGlyphs[glyph] = new RawGlyph(curveIndex, numCurves, minX, minY, maxX, maxY);
+
+				assertFtSuccess(FT_Get_Advance(
+						font, glyph, FT_LOAD_NO_SCALE, pAdvance
+				), "Get_Advance", "Vk2dResourceWriter");
+				rawGlyphs[glyph] = new RawGlyph(curveIndex, numCurves, minX, minY, maxX, maxY, pAdvance.get(0));
 			}
 		}
 
@@ -206,7 +212,8 @@ public class Vk2dResourceWriter {
 			glyphs[index] = new FontGlyph(
 					raw.firstCurve, raw.numCurves,
 					(float) raw.minX / heightA, (float) raw.minY / heightA,
-					(float) raw.maxX / heightA, (float) raw.maxY / heightA
+					(float) raw.maxX / heightA, (float) raw.maxY / heightA,
+					(float) raw.advance / heightA
 			);
 		}
 		System.out.println("max curves is " + maxCurves + " and heightA is " + heightA);
@@ -220,6 +227,7 @@ public class Vk2dResourceWriter {
 				charCode = FT_Get_Next_Char(font, charCode, pGlyph);
 			}
 		}
+
 		fonts.add(new Font(font, curves, glyphs, charToGlyphMap));
 		return fonts.size() - 1;
 	}
@@ -372,6 +380,7 @@ public class Vk2dResourceWriter {
 				output.writeFloat(glyph.minY);
 				output.writeFloat(glyph.maxX);
 				output.writeFloat(glyph.maxY);
+				output.writeFloat(glyph.advance);
 			}
 			output.writeInt(font.charToGlyphMap.size());
 			for (var entry : font.charToGlyphMap.entrySet()) {
@@ -430,5 +439,5 @@ public class Vk2dResourceWriter {
 
 	private record FontCurve(int packedX, int packedY) {}
 
-	private record FontGlyph(int curveIndex, int numCurves, float minX, float minY, float maxX, float maxY) {}
+	private record FontGlyph(int curveIndex, int numCurves, float minX, float minY, float maxX, float maxY, float advance) {}
 }

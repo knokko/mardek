@@ -124,6 +124,7 @@ public class Vk2dResourceLoader {
 				this.fonts[index].glyphMinY[glyph] = input.readFloat();
 				this.fonts[index].glyphMaxX[glyph] = input.readFloat();
 				this.fonts[index].glyphMaxY[glyph] = input.readFloat();
+				this.fonts[index].glyphAdvance[glyph] = input.readFloat();
 			}
 			int numChars = input.readInt();
 			for (int counter = 0; counter < numChars; counter++) {
@@ -236,7 +237,8 @@ public class Vk2dResourceLoader {
 			Font font = fonts[index];
 			bundleFonts[index] = new Vk2dFont(
 					fontDescriptor, index, font.firstCurveIndex, font.firstCurves, font.numCurves,
-					font.glyphMinX, font.glyphMinY, font.glyphMaxX, font.glyphMaxY, font.charToGlyphMap
+					font.glyphMinX, font.glyphMinY, font.glyphMaxX, font.glyphMaxY, font.glyphAdvance,
+					font.charToGlyphMap
 			);
 		}
 
@@ -250,7 +252,7 @@ public class Vk2dResourceLoader {
 
 		final int firstCurveIndex;
 		final int[] firstCurves, numCurves;
-		final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY;
+		final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY, glyphAdvance;
 		final Map<Integer, Integer> charToGlyphMap;
 
 		Font(int numGlyphs, int firstCurveIndex, Map<Integer, Integer> charToGlyphMap) {
@@ -261,6 +263,7 @@ public class Vk2dResourceLoader {
 			this.glyphMinY = new float[numGlyphs];
 			this.glyphMaxX = new float[numGlyphs];
 			this.glyphMaxY = new float[numGlyphs];
+			this.glyphAdvance = new float[numGlyphs];
 			this.charToGlyphMap = charToGlyphMap;
 		}
 	}

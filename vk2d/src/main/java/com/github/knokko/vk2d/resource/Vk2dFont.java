@@ -8,12 +8,12 @@ public class Vk2dFont {
 	public final int index;
 	public final int firstCurveIndex;
 	private final int[] firstCurves, numCurves;
-	private final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY;
+	private final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY, glyphAdvance;
 	private final Map<Integer, Integer> charToGlyphMap;
 
 	Vk2dFont(
 			long vkDescriptorSet, int index, int firstCurveIndex, int[] firstCurves, int[] numCurves,
-			float[] glyphMinX, float[] glyphMinY, float[] glyphMaxX, float[] glyphMaxY,
+			float[] glyphMinX, float[] glyphMinY, float[] glyphMaxX, float[] glyphMaxY, float[] glyphAdvance,
 			Map<Integer, Integer> charToGlyphMap
 	) {
 		this.vkDescriptorSet = vkDescriptorSet;
@@ -25,6 +25,7 @@ public class Vk2dFont {
 		this.glyphMinY = glyphMinY;
 		this.glyphMaxX = glyphMaxX;
 		this.glyphMaxY = glyphMaxY;
+		this.glyphAdvance = glyphAdvance;
 		this.charToGlyphMap = charToGlyphMap;
 	}
 
@@ -54,6 +55,10 @@ public class Vk2dFont {
 
 	public float getGlyphMaxY(int glyph) {
 		return glyphMaxY[glyph];
+	}
+
+	public float getGlyphAdvance(int glyph) {
+		return glyphAdvance[glyph];
 	}
 
 	public int getNumGlyphs() {
