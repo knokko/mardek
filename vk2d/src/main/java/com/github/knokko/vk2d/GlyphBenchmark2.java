@@ -20,6 +20,7 @@ import java.util.Scanner;
 
 import static com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess;
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
+import static com.github.knokko.boiler.utilities.ColorPacker.rgba;
 import static java.lang.Math.max;
 
 public class GlyphBenchmark2 extends Vk2dWindow {
@@ -43,7 +44,7 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 	private int fps = 0;
 
 	public GlyphBenchmark2(VkbWindow window) {
-		super(window, true);
+		super(window, false);
 	}
 
 	@Override
@@ -102,7 +103,10 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 					controlDown = event.down();
 				}
 				if (event.key() == SDLKeycode.SDLK_F && event.down()) {
-					fontIndex = (fontIndex + 1) % resources.getNumFonts();
+					if (shiftDown) {
+						fontIndex -= 1;
+						if (fontIndex < 0) fontIndex += resources.getNumFonts();
+					} else fontIndex = (fontIndex + 1) % resources.getNumFonts();
 				}
 			}
 			return false;
@@ -129,11 +133,12 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 		int whitespaceGlyph = font.getGlyphForChar(' ');
 		float whitespaceAdvance = font.getGlyphAdvance(whitespaceGlyph);
 		for (String line : SHADER_CODE) {
-			int baseX = 50 + (int) offsetX;
+			float baseX = 50 + offsetX;
 			for (int x = 0; x < line.length(); x++) {
+				if (baseX > swapchainImage.width() || baseY < -heightA || baseY > swapchainImage.height() + 2 * heightA) break;
 				int charCode = line.charAt(x);
 				if (charCode == '\t') {
-					baseX += (int) (4f * whitespaceAdvance * heightA);
+					baseX += 4f * whitespaceAdvance * heightA;
 					continue;
 				}
 				int glyph = font.getGlyphForChar(line.charAt(x));
@@ -144,10 +149,10 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 						recorder, sharedText, font, glyph, batch.determineWidth(font, heightA, glyph), false
 				);
 				batch.glyphAt(
-						baseX + (int) (heightA * font.getGlyphMinX(glyph)), baseY, font, heightA, glyph, glyphOffsetHorizontal, glyphOffsetVertical,
-						rgb(255, 255, 255), 0, 0
+						baseX + heightA * font.getGlyphMinX(glyph), baseY, font, heightA, glyph, glyphOffsetHorizontal, glyphOffsetVertical,
+						rgb(255, 255, 255), rgba(255, 255, 255, 127), 0
 				);
-				baseX += (int) (heightA * font.getGlyphAdvance(glyph));
+				baseX += heightA * font.getGlyphAdvance(glyph);
 			}
 			baseY += lineHeight;
 		}
@@ -162,6 +167,6 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 	}
 
 	public static void main(String[] args) {
-		bootstrap("GlyphBenchmark2", 1, Vk2dValidationMode.STRONG, GlyphBenchmark2::new);
+		bootstrap("GlyphBenchmark2", 1, Vk2dValidationMode.NONE, GlyphBenchmark2::new);
 	}
 }

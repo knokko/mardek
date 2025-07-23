@@ -26,7 +26,7 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 	private int fps = 0;
 
 	public GlyphBenchmark1(VkbWindow window) {
-		super(window, true);
+		super(window, false);
 	}
 
 	@Override
@@ -85,7 +85,10 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 				int strokeColor;
 				int backgroundColor = 0;
 
-				if (glyph % 2 == round % 2) {
+				if (glyph % 3 == round % 3) {
+					fillColor = rgb(255, 255, 255);
+					strokeColor = rgb(255, 0, 0);
+				} else if (glyph % 2 == round % 2) {
 					fillColor = rgb(255, 255, 255);
 					strokeColor = rgba(255, 255, 255, 128);
 				} else {
@@ -113,6 +116,10 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 	}
 
 	public static void main(String[] args) {
-		bootstrap("GlyphBenchmark1", 1, Vk2dValidationMode.STRONG, GlyphBenchmark1::new);
+		if (args.length > 0) {
+			bootstrap("GlyphBenchmark2", 1, Vk2dValidationMode.NONE, GlyphBenchmark2::new);
+		} else {
+			bootstrap("GlyphBenchmark1", 1, Vk2dValidationMode.NONE, GlyphBenchmark1::new);
+		}
 	}
 }

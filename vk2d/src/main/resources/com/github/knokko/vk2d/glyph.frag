@@ -63,24 +63,18 @@ void main() {
 
 	float horizontalDistance = horizontal.distance * size.x;
 	float verticalDistance = vertical.distance * size.y;
-	//verticalDistance = horizontalDistance;
-	//horizontalDistance = verticalDistance;
 	float distance = clamp(min(horizontalDistance, verticalDistance), 0.0, 0.5);
 
-	bool inside = horizontalDistance > verticalDistance ? horizontal.inside : vertical.inside;
-	//inside = horizontal.inside;
-	vec4 mainColor, otherColor;
-	if (inside) {
-		mainColor = fillColor;
-		otherColor = backgroundColor;
-	} else {
-		mainColor = backgroundColor;
-		otherColor = fillColor;
-	}
-	if (horizontal.inside != vertical.inside) mainColor = vec4(1.0, 0.0, 0.0, 1.0);
+	vec4 mainColor = horizontal.inside ? fillColor : backgroundColor;
 
-	// distance == 0 -> 0.5 * mainColor + 0.5 * otherColor
-	// distance == 0.25 -> 0.75 * mainColor + 0.25 * otherColor
-	// distance => 0.5 -> 1.0 * mainColor + 0.0 * otherColor
-	outColor = (0.5 + distance) * mainColor + (0.5 - distance) * otherColor;
+	// Without stroke (assuming strokeColor = 0.5 * (mainColor + otherColor), the desired behavior is:
+	// - inside && distance == 0 -> 0.5 * fillColor + 0.5 * background = 1.0 * strokeColor + 0.0 * fillColor
+	// - outside && distance == 0 -> 0.5 * fillColor + 0.5 * background = 1.0 * strokeColor + 0.0 * background
+	// - inside && distance == 0.25 -> 0.75 * fillColor + 0.25 * background = 0.5 * strokeColor + 0.5 * fillColor
+	// - outside && distance == 0.25 -> 0.25 * fillColor + 0.75 * background = 0.5 * strokeColor + 0.5 * background
+	// - inside && distance >= 0.5 -> 1.0 * fillColor + 0.0 * background = 0.0 * strokeColor + 1.0 * fillColor
+	// - outside && distance >= 0.5 -> 0.0 * fillColor + 1.0 * background = 0.0 * strokeColor + 1.0 * background
+	//
+	// In all cases, it should be equal to (1.0 - 2 * distance) * strokeColor + (2 * distance) * mainColor;
+	outColor = (1.0 - 2.0 * distance) * strokeColor + 2.0 * distance * mainColor;
 }

@@ -21,6 +21,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 			int fillColor, int strokeColor, int backgroundColor
 	) {
 		if (horizontalIntersections == -1 || verticalIntersections == -1) return;
+		if (maxX < 0 || maxY < 0 || minX >= width || minY >= height) return;
 		ByteBuffer vertices = putVertices(6);
 
 		int width = 1 + maxX - minX;
@@ -68,10 +69,10 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		if (font.getNumCurves(glyph) == 0) return;
 		int minX = (int) (baseX + heightA * font.getGlyphMinX(glyph));
 		int minY = (int) (baseY - heightA * font.getGlyphMaxY(glyph));
+		int maxX = minX + determineWidth(font, heightA, glyph) - 1;
+		int maxY = minY + determineHeight(font, heightA, glyph) - 1;
 		glyphBetween(
-				minX, minY,
-				minX + determineWidth(font, heightA, glyph) - 1,
-				minY + determineHeight(font, heightA, glyph) - 1,
+				minX, minY, maxX, maxY,
 				horizontalIntersections, verticalIntersections,
 				fillColor, strokeColor, backgroundColor
 		);
