@@ -56,10 +56,26 @@ void main() {
 	WaveIntersections horizontal = wave(horizontalInfoOffset, y, textureCoordinates.x);
 	WaveIntersections vertical = wave(verticalInfoOffset, x, textureCoordinates.y);
 
-	vec4 otherColor = strokeColor;
-	if (horizontal.inside && vertical.inside) otherColor = fillColor;
-	if (!horizontal.inside && !vertical.inside) otherColor = backgroundColor;
+	float horizontalDistance = horizontal.distance * size.x;
+	float verticalDistance = vertical.distance * size.y;
+	//verticalDistance = horizontalDistance;
+	//horizontalDistance = verticalDistance;
+	float distance = clamp(min(horizontalDistance, verticalDistance), 0.0, 0.5);
 
-	float distance = clamp(2.0 * min(horizontal.distance * size.x, vertical.distance * size.y), 0.0, 1.0);
-	outColor = (1.0 - distance) * strokeColor + distance * otherColor;
+	bool inside = horizontalDistance > verticalDistance ? horizontal.inside : vertical.inside;
+	//inside = horizontal.inside;
+	vec4 mainColor, otherColor;
+	if (inside) {
+		mainColor = fillColor;
+		otherColor = backgroundColor;
+	} else {
+		mainColor = backgroundColor;
+		otherColor = fillColor;
+	}
+	if (horizontal.inside != vertical.inside) mainColor = vec4(1.0, 0.0, 0.0, 1.0);
+
+	// distance == 0 -> 0.5 * mainColor + 0.5 * otherColor
+	// distance == 0.25 -> 0.75 * mainColor + 0.25 * otherColor
+	// distance => 0.5 -> 1.0 * mainColor + 0.0 * otherColor
+	outColor = (0.5 + distance) * mainColor + (0.5 - distance) * otherColor;
 }
