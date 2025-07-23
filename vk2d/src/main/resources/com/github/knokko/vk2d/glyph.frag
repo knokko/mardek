@@ -49,12 +49,18 @@ WaveIntersections wave(uint infoOffset, uint thisWave, float wavePosition) {
 	return result;
 }
 
+// Mimic the `computeWavePosition` of `glyph-scratch.comp`
+float recoverWavePosition(uint thisWave, uint numWaves) {
+	if (numWaves == 1) return 0.5;
+	return thisWave / (numWaves - 1.0);
+}
+
 void main() {
 	uint x = uint(size.x * textureCoordinates.x);
 	uint y = uint(size.y * textureCoordinates.y);
 
-	WaveIntersections horizontal = wave(horizontalInfoOffset, y, textureCoordinates.x);
-	WaveIntersections vertical = wave(verticalInfoOffset, x, textureCoordinates.y);
+	WaveIntersections horizontal = wave(horizontalInfoOffset, y, recoverWavePosition(x, size.x));
+	WaveIntersections vertical = wave(verticalInfoOffset, x, recoverWavePosition(y, size.y));
 
 	float horizontalDistance = horizontal.distance * size.x;
 	float verticalDistance = vertical.distance * size.y;
