@@ -125,7 +125,7 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 
 		int lineHeight = 11 * heightA / 6;
 		Vk2dFont font = resources.getFont(fontIndex);
-		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 60_000, textBuffer.getRenderDescriptorSet());
+		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 60_000, recorder, textBuffer);
 
 		textBuffer.startFrame();
 
@@ -143,10 +143,10 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 				}
 				int glyph = font.getGlyphForChar(line.charAt(x));
 				int glyphOffsetHorizontal = textBuffer.scratch(
-						recorder, sharedText, font, glyph, batch.determineHeight(font, heightA, glyph), true
+						recorder, font, glyph, batch.determineHeight(font, heightA, glyph), true
 				);
 				int glyphOffsetVertical = textBuffer.scratch(
-						recorder, sharedText, font, glyph, batch.determineWidth(font, heightA, glyph), false
+						recorder, font, glyph, batch.determineWidth(font, heightA, glyph), false
 				);
 				batch.glyphAt(
 						baseX + heightA * font.getGlyphMinX(glyph), baseY, font, heightA, glyph, glyphOffsetHorizontal, glyphOffsetVertical,

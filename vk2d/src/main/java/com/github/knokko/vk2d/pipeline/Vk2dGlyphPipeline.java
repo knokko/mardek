@@ -5,6 +5,7 @@ import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.Vk2dSharedText;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
+import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 
@@ -45,13 +46,15 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 		}
 	}
 
-	public Vk2dGlyphBatch addBatch(Vk2dFrame frame, int initialCapacity, long descriptorSet) {
-		return new Vk2dGlyphBatch(this, frame, initialCapacity, descriptorSet);
+	public Vk2dGlyphBatch addBatch(Vk2dFrame frame, int initialCapacity, CommandRecorder recorder, Vk2dTextBuffer textBuffer) {
+		return new Vk2dGlyphBatch(
+				this, frame, initialCapacity, recorder, textBuffer
+		);
 	}
 
 	@Override
 	public void prepareRecording(CommandRecorder recorder, Vk2dBatch batch) {
 		super.prepareRecording(recorder, batch);
-		recorder.bindGraphicsDescriptors(vkPipelineLayout, ((Vk2dGlyphBatch) batch).descriptorSet);
+		recorder.bindGraphicsDescriptors(vkPipelineLayout, ((Vk2dGlyphBatch) batch).textBuffer.getRenderDescriptorSet());
 	}
 }

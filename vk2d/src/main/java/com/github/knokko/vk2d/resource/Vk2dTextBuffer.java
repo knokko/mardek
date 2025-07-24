@@ -29,6 +29,7 @@ public class Vk2dTextBuffer {
 	}
 
 	private final GlyphCacheTracker cache;
+	private final Vk2dSharedText shared;
 	private final VkbBuffer scratchIntersectionBuffer, scratchInfoBuffer;
 	private final VkbBuffer intersectionBuffer, infoBuffer, nextOffsetBuffer;
 	private final MappedVkbBuffer nextIntersectionIndexBuffer;
@@ -46,6 +47,7 @@ public class Vk2dTextBuffer {
 			VkbBuffer nextOffsetBuffer, MappedVkbBuffer nextIntersectionIndexBuffer,
 			Vk2dSharedText shared, DescriptorCombiner descriptors
 	) {
+		this.shared = shared;
 		this.scratchIntersectionBuffer = scratchIntersectionBuffer;
 		this.scratchInfoBuffer = scratchInfoBuffer;
 		this.intersectionBuffer = intersectionBuffer;
@@ -117,10 +119,7 @@ public class Vk2dTextBuffer {
 		scratchPushConstants = null;
 	}
 
-	public int scratch(
-			CommandRecorder recorder, Vk2dSharedText shared,
-			Vk2dFont font, int glyph, int size, boolean horizontal
-	) {
+	public int scratch(CommandRecorder recorder, Vk2dFont font, int glyph, int size, boolean horizontal) {
 		int numCurves = font.getNumCurves(glyph);
 		if (size == 0 || numCurves == 0) return -1;
 		Integer existing = cache.get(font.index, glyph, size, horizontal);
