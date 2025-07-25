@@ -181,16 +181,16 @@ public class Vk2dResourceLoader {
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
 		));
 
-		if (images.length > 0) {
+		if (images.length > 0 && instance.imageDescriptorSetLayout != null) {
 			// TODO The if (images.length > 0) should be unneeded. Fix in vk-boiler
 			this.imageDescriptors = descriptors.addMultiple(instance.imageDescriptorSetLayout, images.length);
 		} else {
 			this.imageDescriptors = new long[0];
 		}
-		if (fakeImages != null) descriptors.addSingle(
+		if (fakeImages != null && instance.bufferDescriptorSetLayout != null) descriptors.addSingle(
 				instance.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet
 		);
-		if (fontBuffer != null) {
+		if (fontBuffer != null && instance.textScratchDescriptorLayout1 != null) {
 			descriptors.addSingle(instance.textScratchDescriptorLayout1, descriptorSet -> fontDescriptor = descriptorSet);
 		}
 	}
@@ -202,6 +202,7 @@ public class Vk2dResourceLoader {
 		this.fakeStagingBuffer = null;
 
 		for (int index = 0; index < images.length; index++) {
+			if (imageDescriptors.length == 0) break;
 			try (MemoryStack stack = stackPush()) {
 				// TODO Add bulk descriptor update to vk-boiler
 				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);

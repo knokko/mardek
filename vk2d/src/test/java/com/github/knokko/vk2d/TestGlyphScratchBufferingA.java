@@ -41,8 +41,9 @@ public class TestGlyphScratchBufferingA {
 				VK_API_VERSION_1_2, "TestUpperCaseA", 1
 		).validation().forbidValidationErrors().build();
 
-		Vk2dSharedText sharedText = new Vk2dSharedText(boiler);
-		Vk2dShared shared = new Vk2dShared(boiler);
+		Vk2dConfig config = new Vk2dConfig();
+		config.text = true;
+		Vk2dInstance instance = new Vk2dInstance(boiler, config);
 
 		int glyphHeight = 100;
 		int glyph = 4; // In this font, glyph 4 is uppercase A
@@ -60,24 +61,24 @@ public class TestGlyphScratchBufferingA {
 		MappedVkbBuffer nextIntersectionIndexBuffer = memoryCombiner.addMappedBuffer(4L, alignment, usage);
 		Vk2dTextBuffer textBuffer = new Vk2dTextBuffer(
 				scratchIntersectionBuffer, scratchInfoBuffer, intersectionBuffer, infoBuffer,
-				nextOffsetBuffer, nextIntersectionIndexBuffer, sharedText, descriptorCombiner
+				nextOffsetBuffer, nextIntersectionIndexBuffer, instance, descriptorCombiner
 		);
-		Vk2dResourceLoader loader = new Vk2dResourceLoader(new ByteArrayInputStream(propagate.toByteArray()));
-		loader.claimMemory(boiler, memoryCombiner);
+		Vk2dResourceLoader loader = new Vk2dResourceLoader(instance, new ByteArrayInputStream(propagate.toByteArray()));
+		loader.claimMemory(memoryCombiner);
 		MemoryBlock memory = memoryCombiner.build(false);
 
 		loader.prepareStaging();
 
 		SingleTimeCommands commands = new SingleTimeCommands(boiler);
 		commands.submit("Staging", recorder ->
-				loader.performStaging(recorder, shared, sharedText, descriptorCombiner)
+				loader.performStaging(recorder, descriptorCombiner)
 		).awaitCompletion();
 		long vkDescriptorPool = descriptorCombiner.build("ScratchDescriptors");
 
-		Vk2dResourceBundle fontBundle = loader.finish(boiler, shared);
+		Vk2dResourceBundle fontBundle = loader.finish();
 		Vk2dFont font = fontBundle.getFont(0);
 
-		textBuffer.initializeDescriptorSets(boiler);
+		textBuffer.initializeDescriptorSets();
 
 		textBuffer.startFrame();
 		commands.submit("Scratch", recorder ->
@@ -114,9 +115,7 @@ public class TestGlyphScratchBufferingA {
 		assertEquals(0.453f, intersections.get(2 * 98 * numCurves), 0.001f);
 		assertEquals(0.546f, intersections.get(2 * 98 * numCurves + 1), 0.001f);
 
-		commands.submit("GlyphTransfer", recorder ->
-				textBuffer.transfer(recorder, sharedText)
-		).awaitCompletion();
+		commands.submit("GlyphTransfer", textBuffer::transfer).awaitCompletion();
 
 		assertEquals(356, nextIntersectionIndexBuffer.intBuffer().get());
 		info = infoBuffer.intBuffer();
@@ -148,8 +147,7 @@ public class TestGlyphScratchBufferingA {
 		commands.destroy();
 		vkDestroyDescriptorPool(boiler.vkDevice(), vkDescriptorPool, null);
 		memory.destroy(boiler);
-		shared.destroy(boiler);
-		sharedText.destroy(boiler);
+		instance.destroy();
 		boiler.destroyInitialObjects();
 	}
 }

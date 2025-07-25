@@ -2,20 +2,15 @@ package com.github.knokko.vk2d;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.boiler.descriptors.DescriptorCombiner;
-import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dColorBatch;
-import com.github.knokko.vk2d.pipeline.Vk2dColorPipeline;
 
 import java.util.Random;
 
 import static java.lang.Math.min;
 
 public class FillColorBenchmark extends Vk2dWindow {
-
-	private Vk2dColorPipeline colorPipeline;
 
 	private long referenceTime = System.nanoTime();
 	private int fps = 0;
@@ -25,9 +20,8 @@ public class FillColorBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner, DescriptorCombiner descriptors) {
-		super.createResources(boiler, combiner, descriptors);
-		this.colorPipeline = new Vk2dColorPipeline(pipelineContext);
+	protected void setupConfig(Vk2dConfig config) {
+		config.color = true;
 	}
 
 	@Override
@@ -45,7 +39,7 @@ public class FillColorBenchmark extends Vk2dWindow {
 		int minWidth = min(10, swapchainImage.width());
 		int minHeight = min(10, swapchainImage.height());
 
-		Vk2dColorBatch batch1 = colorPipeline.addBatch(frame, 6 * numRectangles);
+		Vk2dColorBatch batch1 = pipelines.color.addBatch(frame, 6 * numRectangles);
 		for (int counter = 0; counter < numRectangles; counter++) {
 			int minX = rng.nextInt(1 + swapchainImage.width() - minWidth);
 			int minY = rng.nextInt(1 + swapchainImage.height() - minHeight);
@@ -56,12 +50,6 @@ public class FillColorBenchmark extends Vk2dWindow {
 					minY + rng.nextInt(boundHeight), rng.nextInt()
 			);
 		}
-	}
-
-	@Override
-	protected void cleanUp(BoilerInstance boiler) {
-		super.cleanUp(boiler);
-		colorPipeline.destroy(boiler);
 	}
 
 	public static void main(String[] args) {

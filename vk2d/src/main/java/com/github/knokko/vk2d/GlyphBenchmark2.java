@@ -2,14 +2,10 @@ package com.github.knokko.vk2d;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.boiler.descriptors.DescriptorCombiner;
-import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
-import com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline;
 import com.github.knokko.vk2d.resource.Vk2dFont;
-import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
 import org.lwjgl.sdl.*;
 import org.lwjgl.system.MemoryStack;
 
@@ -20,7 +16,6 @@ import java.util.Scanner;
 
 import static com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess;
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
-import static com.github.knokko.boiler.utilities.ColorPacker.rgba;
 import static java.lang.Math.max;
 
 public class GlyphBenchmark2 extends Vk2dWindow {
@@ -37,11 +32,13 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 		scanner.close();
 	}
 
-	private Vk2dGlyphPipeline textPipeline;
-	private Vk2dTextBuffer textBuffer;
-
 	private long referenceTime = System.nanoTime();
 	private int fps = 0;
+
+	private boolean shiftDown, controlDown;
+	private float offsetX, offsetY;
+	private int heightA = 12;
+	private int fontIndex = 0;
 
 	public GlyphBenchmark2(VkbWindow window) {
 		super(window, false);
@@ -53,23 +50,14 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 	}
 
 	@Override
-	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner, DescriptorCombiner descriptors) {
-		super.createResources(boiler, combiner, descriptors);
-		this.sharedText = new Vk2dSharedText(boiler);
-		this.textPipeline = new Vk2dGlyphPipeline(pipelineContext, sharedText);
-		this.textBuffer = new Vk2dTextBuffer(boiler, combiner, sharedText, descriptors, numFramesInFlight);
+	protected void setupConfig(Vk2dConfig config) {
+		config.text = true;
 	}
-
-	private boolean shiftDown, controlDown;
-	private float offsetX, offsetY;
-	private int heightA = 12;
-	private int fontIndex = 0;
 
 	@Override
 	@SuppressWarnings("resource")
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
-		this.textBuffer.initializeDescriptorSets(boiler);
 
 		assertSdlSuccess(SDLEvents.SDL_AddEventWatch((userData, rawEvent) -> {
 			int type = SDL_Event.ntype(rawEvent);
@@ -125,9 +113,7 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 
 		int lineHeight = 11 * heightA / 6;
 		Vk2dFont font = resources.getFont(fontIndex);
-		Vk2dGlyphBatch batch = textPipeline.addBatch(frame, 60_000, recorder, textBuffer);
-
-		textBuffer.startFrame();
+		Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 60_000, recorder, textBuffer);
 
 		int baseY = lineHeight + (int) offsetY;
 		for (String line : SHADER_CODE) {
@@ -135,14 +121,6 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 			batch.drawPrimitiveString(line, baseX, baseY, font, heightA, rgb(255, 255, 255));
 			baseY += lineHeight;
 		}
-
-		textBuffer.transfer(recorder, sharedText);
-	}
-
-	@Override
-	protected void cleanUp(BoilerInstance boiler) {
-		super.cleanUp(boiler);
-		textPipeline.destroy(boiler);
 	}
 
 	public static void main(String[] args) {

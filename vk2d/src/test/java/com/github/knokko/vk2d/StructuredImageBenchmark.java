@@ -2,12 +2,9 @@ package com.github.knokko.vk2d;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.boiler.descriptors.DescriptorCombiner;
-import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dImageBatch;
-import com.github.knokko.vk2d.pipeline.Vk2dImagePipeline;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,8 +14,6 @@ import java.util.Random;
 import static com.github.knokko.vk2d.ImageBenchmarkResourceWriter.FILE;
 
 public class StructuredImageBenchmark extends Vk2dWindow {
-
-	private Vk2dImagePipeline imagePipeline;
 
 	private long referenceTime = System.nanoTime();
 	private int fps = 0;
@@ -33,9 +28,8 @@ public class StructuredImageBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner, DescriptorCombiner descriptors) {
-		super.createResources(boiler, combiner, descriptors);
-		this.imagePipeline = new Vk2dImagePipeline(pipelineContext, shared);
+	protected void setupConfig(Vk2dConfig config) {
+		config.image = true;
 	}
 
 	@Override
@@ -51,7 +45,7 @@ public class StructuredImageBenchmark extends Vk2dWindow {
 		Random rng = new Random();
 		int numRounds = 1;
 		int scale = 1;
-		Vk2dImageBatch batch1 = imagePipeline.addBatch(frame, 5000);
+		Vk2dImageBatch batch1 = pipelines.image.addBatch(frame, 5000);
 		for (int round = 0; round < numRounds; round++) {
 			for (int y = 0; y < swapchainImage.height(); y += 16 * scale) {
 				for (int x = 0; x < swapchainImage.width(); x += 16 * scale) {
@@ -62,12 +56,6 @@ public class StructuredImageBenchmark extends Vk2dWindow {
 				}
 			}
 		}
-	}
-
-	@Override
-	protected void cleanUp(BoilerInstance boiler) {
-		super.cleanUp(boiler);
-		imagePipeline.destroy(boiler);
 	}
 
 	public static void main(String[] args) {

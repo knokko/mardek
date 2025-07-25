@@ -2,20 +2,15 @@ package com.github.knokko.vk2d;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.boiler.descriptors.DescriptorCombiner;
-import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch;
-import com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline;
 
 import java.util.Random;
 
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
 
 public class OvalBenchmark extends Vk2dWindow {
-
-	private Vk2dOvalPipeline ovalPipeline;
 
 	private long referenceTime = System.nanoTime();
 	private int fps = 0;
@@ -25,9 +20,8 @@ public class OvalBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner, DescriptorCombiner descriptors) {
-		super.createResources(boiler, combiner, descriptors);
-		this.ovalPipeline = new Vk2dOvalPipeline(pipelineContext);
+	protected void setupConfig(Vk2dConfig config) {
+		config.oval = true;
 	}
 
 	@Override
@@ -40,7 +34,7 @@ public class OvalBenchmark extends Vk2dWindow {
 		}
 		fps += 1;
 
-		Vk2dOvalBatch batch1 = ovalPipeline.addBatch(frame, 24);
+		Vk2dOvalBatch batch1 = pipelines.oval.addBatch(frame, 24);
 		batch1.simpleAliased(0, 0, batch1.width - 1, batch1.height - 1, rgb(255, 0, 0));
 		batch1.simpleAntiAliased(
 				batch1.width / 10, batch1.height / 10,
@@ -69,12 +63,6 @@ public class OvalBenchmark extends Vk2dWindow {
 				);
 			}
 		}
-	}
-
-	@Override
-	protected void cleanUp(BoilerInstance boiler) {
-		super.cleanUp(boiler);
-		ovalPipeline.destroy(boiler);
 	}
 
 	public static void main(String[] args) {

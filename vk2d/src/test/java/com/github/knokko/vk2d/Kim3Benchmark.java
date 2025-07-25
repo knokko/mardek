@@ -5,8 +5,6 @@ import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dKimBatch;
-import com.github.knokko.vk2d.pipeline.Vk2dKimPipeline;
-import org.lwjgl.system.MemoryStack;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,8 +14,6 @@ import java.util.Random;
 import static com.github.knokko.vk2d.ImageBenchmarkResourceWriter.FILE;
 
 public class Kim3Benchmark extends Vk2dWindow {
-
-	private Vk2dKimPipeline kim3Pipeline;
 
 	private long referenceTime = System.nanoTime();
 	private int fps = 0;
@@ -32,9 +28,8 @@ public class Kim3Benchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected void setup(BoilerInstance boiler, MemoryStack stack) {
-		super.setup(boiler, stack);
-		this.kim3Pipeline = new Vk2dKimPipeline(pipelineContext, shared, 3);
+	protected void setupConfig(Vk2dConfig config) {
+		config.kim3 = true;
 	}
 
 	@Override
@@ -50,7 +45,7 @@ public class Kim3Benchmark extends Vk2dWindow {
 		Random rng = new Random();
 		int numRounds = 1;
 		int scale = 1;
-		Vk2dKimBatch batch1 = kim3Pipeline.addBatch(frame, 5000, resources);
+		Vk2dKimBatch batch1 = pipelines.kim3.addBatch(frame, 5000, resources);
 		for (int round = 0; round < numRounds; round++) {
 			for (int y = 0; y < swapchainImage.height(); y += 16 * scale) {
 				for (int x = 0; x < swapchainImage.width(); x += 16 * scale) {
@@ -61,12 +56,6 @@ public class Kim3Benchmark extends Vk2dWindow {
 				}
 			}
 		}
-	}
-
-	@Override
-	protected void cleanUp(BoilerInstance boiler) {
-		super.cleanUp(boiler);
-		kim3Pipeline.destroy(boiler);
 	}
 
 	public static void main(String[] args) {

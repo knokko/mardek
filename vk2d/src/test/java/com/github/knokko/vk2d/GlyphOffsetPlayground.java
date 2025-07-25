@@ -80,7 +80,7 @@ public class GlyphOffsetPlayground {
 		long descriptorPool = descriptors.build("OffsetsDescriptors");
 		Vk2dResourceBundle resources = loader.finish();
 		Vk2dFont font = resources.getFont(0);
-		textBuffer.initializeDescriptorSets(boiler);
+		textBuffer.initializeDescriptorSets();
 
 		Vk2dFrame frame = new Vk2dFrame(perFrameBuffer, targetImage.width, targetImage.height);
 		textBuffer.startFrame();
