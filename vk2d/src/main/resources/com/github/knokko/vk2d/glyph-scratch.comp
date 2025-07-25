@@ -15,11 +15,12 @@ layout(push_constant) uniform PushConstants {
 	uint intersectionInfoOffset;
 	uint curveOffset;
 	uint numCurves;
-	int rawNumWaves;
+	float rawSizeInPixels;
 	float glyphMinX;
 	float glyphMinY;
 	float glyphMaxX;
 	float glyphMaxY;
+	float subpixelOffset;
 };
 
 float unpack(uint raw) {
@@ -27,29 +28,29 @@ float unpack(uint raw) {
 }
 
 float transformOffset(float offset) {
-	if (rawNumWaves > 0) return (offset - glyphMinX) / (glyphMaxX - glyphMinX);
+	if (rawSizeInPixels > 0.0) return (offset - glyphMinX) / (glyphMaxX - glyphMinX);
 	else return (offset - glyphMinY) / (glyphMaxY - glyphMinY);
 }
 
-float computeWavePosition(float base, uint thisWave, float glyphSize, uint numWaves) {
-	return base + (thisWave + 0.5) * glyphSize / numWaves;
+float computeWavePosition(float base, uint thisWave, float glyphSize, float sizeInPixels) {
+	return base + (thisWave + 0.5 + subpixelOffset) * glyphSize / sizeInPixels;
 }
 
 void main() {
 	uint thisWave = gl_GlobalInvocationID.x;
 
-	uint numWaves;
+	float sizeInPixels;
 	float glyphSize, wavePosition;
 	bool isHorizontal;
-	if (rawNumWaves > 0) {
-		numWaves = rawNumWaves;
+	if (rawSizeInPixels > 0.0) {
+		sizeInPixels = rawSizeInPixels;
 		glyphSize = glyphMaxY - glyphMinY;
-		wavePosition = computeWavePosition(glyphMinY, thisWave, glyphSize, numWaves);
+		wavePosition = computeWavePosition(glyphMinY, thisWave, glyphSize, sizeInPixels);
 		isHorizontal = true;
 	} else {
-		numWaves = -rawNumWaves;
+		sizeInPixels = -rawSizeInPixels;
 		glyphSize = glyphMaxX - glyphMinX;
-		wavePosition = computeWavePosition(glyphMinX, thisWave, glyphSize, numWaves);
+		wavePosition = computeWavePosition(glyphMinX, thisWave, glyphSize, sizeInPixels);
 		isHorizontal = false;
 	}
 
@@ -68,7 +69,7 @@ void main() {
 		curveControl = unpack(packed1 >> 10) - wavePosition;
 		curveEnd = unpack(packed1 >> 20) - wavePosition;
 
-		float cutoff = 0.5 * glyphSize / numWaves;
+		float cutoff = 0.5 * glyphSize / sizeInPixels;
 		if (curveStart < -cutoff && curveControl < -cutoff && curveEnd < -cutoff) continue;
 		if (curveStart > cutoff && curveControl > cutoff && curveEnd > cutoff) continue;
 

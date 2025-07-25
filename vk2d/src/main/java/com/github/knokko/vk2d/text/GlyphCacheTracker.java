@@ -48,7 +48,7 @@ public class GlyphCacheTracker {
 		int oldStableIndex = nextStableInfoIndex;
 		scratchMap.forEach((entry, index) -> {
 			stableMap.put(entry, index + oldStableIndex);
-			nextStableInfoIndex += 2 * entry.size;
+			nextStableInfoIndex += 2 * entry.intSize;
 		});
 		scratchMap.clear();
 
@@ -62,19 +62,20 @@ public class GlyphCacheTracker {
 		} else return false;
 	}
 
-	public Integer get(int fontIndex, int glyph, int size, boolean horizontal) {
-		Integer index = stableMap.get(new Entry(fontIndex, glyph, size, horizontal));
+	public Integer get(int fontIndex, int glyph, float size, int intSize, boolean horizontal) {
+		Entry key = new Entry(fontIndex, glyph, size, intSize, horizontal);
+		Integer index = stableMap.get(key);
 		if (index != null) return index;
-		index = scratchMap.get(new Entry(fontIndex, glyph, size, horizontal));
+		index = scratchMap.get(key);
 		if (index != null) return index + nextStableInfoIndex;
 		return null;
 	}
 
-	public int putScratch(int fontIndex, int glyph, int size, int numCurves, boolean horizontal) {
-		int newScratchInfoIndex = nextScratchInfoIndex + 2 * size;
+	public int putScratch(int fontIndex, int glyph, float size, int intSize, int numCurves, boolean horizontal) {
+		int newScratchInfoIndex = nextScratchInfoIndex + 2 * intSize;
 		if (newScratchInfoIndex > scratchInfoBufferSize) return -1;
 
-		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 2 * size * numCurves;
+		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 2 * intSize * numCurves;
 		if (newScratchIntersectionIndex > scratchIntersectionBufferSize) return -1;
 
 		int newStableInfoIndex = nextStableInfoIndex + newScratchInfoIndex;
@@ -83,7 +84,7 @@ public class GlyphCacheTracker {
 			return -1;
 		}
 
-		scratchMap.put(new Entry(fontIndex, glyph, size, horizontal), nextScratchInfoIndex);
+		scratchMap.put(new Entry(fontIndex, glyph, size, intSize, horizontal), nextScratchInfoIndex);
 		int result = nextScratchInfoIndex;
 
 		nextScratchInfoIndex = newScratchInfoIndex;
@@ -108,5 +109,5 @@ public class GlyphCacheTracker {
 		else return stableIntersectionIndices.position() - 1;
 	}
 
-	private record Entry(int fontIndex, int glyph, int size, boolean horizontal) {}
+	private record Entry(int fontIndex, int glyph, float size, int intSize, boolean horizontal) {}
 }

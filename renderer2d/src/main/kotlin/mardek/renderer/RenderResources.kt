@@ -4,8 +4,6 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData
-import com.github.knokko.vk2d.Vk2dShared
-import com.github.knokko.vk2d.Vk2dSharedText
 import com.github.knokko.vk2d.pipeline.Vk2dColorPipeline
 import com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline
 import com.github.knokko.vk2d.pipeline.Vk2dImagePipeline

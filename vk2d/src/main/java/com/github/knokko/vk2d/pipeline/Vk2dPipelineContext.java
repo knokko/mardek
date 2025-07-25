@@ -28,7 +28,10 @@ public record Vk2dPipelineContext(
 		return new Vk2dPipelineContext(boiler, stack, VK_NULL_HANDLE, viewMask, colorFormat);
 	}
 
-	@SuppressWarnings("DataFlowIssue")
+	public static Vk2dPipelineContext dynamicRendering(BoilerInstance boiler, MemoryStack stack, int colorFormat) {
+		return dynamicRendering(boiler, stack, 0, colorFormat);
+	}
+
 	public static Vk2dPipelineContext renderPass(BoilerInstance boiler, int targetImageFormat) {
 		try (MemoryStack stack = stackPush()) {
 			VkAttachmentDescription.Buffer attachments = VkAttachmentDescription.calloc(1, stack);

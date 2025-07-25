@@ -81,7 +81,7 @@ public class TestGlyphScratchBufferingA {
 
 		textBuffer.startFrame();
 		commands.submit("Scratch", recorder ->
-			textBuffer.scratch(recorder, font, glyph, glyphHeight, true)
+			textBuffer.scratch(recorder, font, glyph, 0f, glyphHeight, glyphHeight, true)
 		).awaitCompletion();
 
 		IntBuffer info = scratchInfoBuffer.intBuffer();

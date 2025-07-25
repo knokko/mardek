@@ -63,7 +63,8 @@ void main() {
 
 	float horizontalDistance = horizontal.distance * size.x;
 	float verticalDistance = vertical.distance * size.y;
-	float distance = clamp(min(horizontalDistance, verticalDistance), 0.0, 0.5);
+	//float distance = clamp(min(horizontalDistance, verticalDistance), 0.0, 0.5);
+	float distance = clamp(min(horizontalDistance, horizontalDistance), 0.0, 0.5);
 
 	vec4 mainColor = horizontal.inside ? fillColor : backgroundColor;
 

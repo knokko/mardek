@@ -2,7 +2,6 @@ package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.vk2d.Vk2dFrame;
-import com.github.knokko.vk2d.Vk2dShared;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dTextBatch;
 import com.github.knokko.vk2d.resource.Vk2dFont;

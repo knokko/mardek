@@ -1,6 +1,5 @@
 package com.github.knokko.vk2d.resource;
 
-import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.VkbBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
@@ -11,8 +10,7 @@ import com.github.knokko.boiler.images.VkbImage;
 import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
-import com.github.knokko.vk2d.Vk2dShared;
-import com.github.knokko.vk2d.Vk2dSharedText;
+import com.github.knokko.vk2d.Vk2dInstance;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.DataInputStream;
@@ -28,7 +26,9 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceLoader {
 
+	private final Vk2dInstance instance;
 	private final DataInputStream input;
+
 	private MemoryCombiner stagingCombiner;
 	private MemoryBlock stagingMemory;
 	private VkbImage[] images;
@@ -48,12 +48,13 @@ public class Vk2dResourceLoader {
 	private int[] fakeHeights;
 	private long fakeImageDescriptor;
 
-	public Vk2dResourceLoader(InputStream rawInput) {
+	public Vk2dResourceLoader(Vk2dInstance instance, InputStream rawInput) {
+		this.instance = instance;
 		this.input = new DataInputStream(rawInput);
 	}
 
-	public void claimMemory(BoilerInstance boiler, MemoryCombiner combiner) throws IOException {
-		this.stagingCombiner = new MemoryCombiner(boiler, "Vk2dStaging");
+	public void claimMemory(MemoryCombiner combiner) throws IOException {
+		this.stagingCombiner = new MemoryCombiner(instance.boiler, "Vk2dStaging");
 
 		int numImages = input.readInt();
 		this.images = new VkbImage[numImages];
@@ -98,7 +99,7 @@ public class Vk2dResourceLoader {
 		long fakeImageSize = 4L * fakeOffset;
 		if (fakeImageSize > 0L) {
 			this.fakeImages = combiner.addBuffer(
-					fakeImageSize, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
+					fakeImageSize, instance.boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
 					VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0.5f
 			);
 			this.fakeStagingBuffer = stagingCombiner.addMappedBuffer(
@@ -134,7 +135,7 @@ public class Vk2dResourceLoader {
 
 		if (fontBufferSize > 0L) {
 			this.fontBuffer = combiner.addBuffer(
-					fontBufferSize, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
+					fontBufferSize, instance.boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
 					VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0.5f
 			);
 			this.fontStagingBuffer = combiner.addMappedBuffer(fontBufferSize, 4L, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
@@ -162,10 +163,7 @@ public class Vk2dResourceLoader {
 		}
 	}
 
-	public void performStaging(
-			CommandRecorder recorder, Vk2dShared shared,
-			Vk2dSharedText sharedText, DescriptorCombiner descriptors
-	) {
+	public void performStaging(CommandRecorder recorder, DescriptorCombiner descriptors) {
 		recorder.bulkTransitionLayout(null, ResourceUsage.TRANSFER_DEST, images);
 		recorder.bulkCopyBufferToImage(images, imageStagingBuffers);
 		if (fakeImages != null) recorder.copyBuffer(fakeStagingBuffer, fakeImages);
@@ -185,20 +183,20 @@ public class Vk2dResourceLoader {
 
 		if (images.length > 0) {
 			// TODO The if (images.length > 0) should be unneeded. Fix in vk-boiler
-			this.imageDescriptors = descriptors.addMultiple(shared.imageDescriptorSetLayout, images.length);
+			this.imageDescriptors = descriptors.addMultiple(instance.imageDescriptorSetLayout, images.length);
 		} else {
 			this.imageDescriptors = new long[0];
 		}
 		if (fakeImages != null) descriptors.addSingle(
-				shared.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet
+				instance.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet
 		);
 		if (fontBuffer != null) {
-			descriptors.addSingle(sharedText.scratchDescriptorLayout1, descriptorSet -> fontDescriptor = descriptorSet);
+			descriptors.addSingle(instance.textScratchDescriptorLayout1, descriptorSet -> fontDescriptor = descriptorSet);
 		}
 	}
 
-	public Vk2dResourceBundle finish(BoilerInstance boiler, Vk2dShared shared) {
-		this.stagingMemory.destroy(boiler);
+	public Vk2dResourceBundle finish() {
+		this.stagingMemory.destroy(instance.boiler);
 		this.stagingMemory = null;
 		this.imageStagingBuffers = null;
 		this.fakeStagingBuffer = null;
@@ -207,12 +205,12 @@ public class Vk2dResourceLoader {
 			try (MemoryStack stack = stackPush()) {
 				// TODO Add bulk descriptor update to vk-boiler
 				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
-				long sampler = pixelatedImages[index] ? shared.pixelatedSampler : shared.smoothSampler;
+				long sampler = pixelatedImages[index] ? instance.pixelatedSampler : instance.smoothSampler;
 				updater.writeImage(
 						0, imageDescriptors[index], 0,
 						images[index].vkImageView, sampler
 				);
-				updater.update(boiler);
+				updater.update(instance.boiler);
 			}
 		}
 
@@ -220,7 +218,7 @@ public class Vk2dResourceLoader {
 			try (MemoryStack stack = stackPush()) {
 				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
 				updater.writeStorageBuffer(0, fakeImageDescriptor, 0, fakeImages);
-				updater.update(boiler);
+				updater.update(instance.boiler);
 			}
 		}
 
@@ -228,7 +226,7 @@ public class Vk2dResourceLoader {
 			try (MemoryStack stack = stackPush()) {
 				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
 				updater.writeStorageBuffer(0, fontDescriptor, 0, fontBuffer);
-				updater.update(boiler);
+				updater.update(instance.boiler);
 			}
 		}
 

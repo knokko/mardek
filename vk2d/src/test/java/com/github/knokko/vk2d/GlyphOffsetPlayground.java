@@ -12,9 +12,10 @@ import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.boiler.utilities.ImageCoding;
+import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
-import com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext;
+import com.github.knokko.vk2d.pipeline.Vk2dPipelines;
 import com.github.knokko.vk2d.resource.Vk2dFont;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
@@ -28,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
+import static com.github.knokko.boiler.utilities.ColorPacker.rgba;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 import static org.lwjgl.vulkan.VK13.VK_API_VERSION_1_3;
@@ -39,22 +41,22 @@ public class GlyphOffsetPlayground {
 				VK_API_VERSION_1_3, "GlyphOffsetPlayground", 1
 		).validation().forbidValidationErrors().enableDynamicRendering().build();
 
-		Vk2dShared shared = new Vk2dShared(boiler);
-		Vk2dSharedText sharedText = new Vk2dSharedText(boiler);
-		Vk2dPipelineContext pipelineContext;
+		Vk2dConfig config = new Vk2dConfig();
+		config.color = true;
+		config.text = true;
+		Vk2dInstance instance = new Vk2dInstance(boiler, config);
+		Vk2dPipelines pipelines;
 		try (MemoryStack stack = stackPush()) {
-			pipelineContext = Vk2dPipelineContext.dynamicRendering(
-					boiler, stack, 0, VK_FORMAT_R8G8B8A8_SRGB
+			pipelines = new Vk2dPipelines(
+					instance, Vk2dPipelineContext.dynamicRendering(boiler, stack, VK_FORMAT_R8G8B8A8_SRGB), config
 			);
 		}
 
-		Vk2dGlyphPipeline pipeline = new Vk2dGlyphPipeline(pipelineContext, sharedText);
-
 		MemoryCombiner combiner = new MemoryCombiner(boiler, "OffsetsMemory");
 		Vk2dResourceLoader loader = new Vk2dResourceLoader(
-				GlyphOffsetPlayground.class.getResourceAsStream("text-benchmark-resources.bin")
+				instance, GlyphOffsetPlayground.class.getResourceAsStream("text-benchmark-resources.bin")
 		);
-		loader.claimMemory(boiler, combiner);
+		loader.claimMemory(combiner);
 		VkbImage targetImage = combiner.addImage(new ImageBuilder(
 				"TargetImage", 60, 20
 		).addUsage(
@@ -69,28 +71,30 @@ public class GlyphOffsetPlayground {
 				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
 		));
 		DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
-		Vk2dTextBuffer textBuffer = new Vk2dTextBuffer(boiler, combiner, sharedText, descriptors, 1);
+		Vk2dTextBuffer textBuffer = new Vk2dTextBuffer(instance, combiner, descriptors, 1);
 		MemoryBlock memory = combiner.build(false);
 		loader.prepareStaging();
 		SingleTimeCommands.submit(boiler, "Staging",
-				recorder -> loader.performStaging(recorder, shared, sharedText, descriptors)
+				recorder -> loader.performStaging(recorder, descriptors)
 		).destroy();
 		long descriptorPool = descriptors.build("OffsetsDescriptors");
-		Vk2dResourceBundle resources = loader.finish(boiler, shared);
+		Vk2dResourceBundle resources = loader.finish();
 		Vk2dFont font = resources.getFont(0);
 		textBuffer.initializeDescriptorSets(boiler);
 
 		Vk2dFrame frame = new Vk2dFrame(perFrameBuffer, targetImage.width, targetImage.height);
 		textBuffer.startFrame();
-		perFrameBuffer.startFrame(0);
+		perFrameBuffer.startFrame(1);
 		SingleTimeCommands.submit(boiler, "GlyphOffsets", recorder -> {
 			int heightA = 14;
-			Vk2dGlyphBatch batch = pipeline.addBatch(frame, 30, recorder, textBuffer);
+			Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 30, recorder, textBuffer);
+			Vk2dColorBatch colorBatch = pipelines.color.addBatch(frame, 6);
 
 			batch.drawPrimitiveString(
-					"hello", 1f, 16f, font, heightA, rgb(255, 255, 255)
+					"helloA", 1f, 16f, font, heightA, rgb(255, 255, 255)
 			);
-			textBuffer.transfer(recorder, sharedText);
+			colorBatch.fill(0, 16, targetImage.width, targetImage.height, rgba(255, 0, 0, 100));
+			textBuffer.transfer(recorder);
 
 			VkRenderingAttachmentInfo.Buffer colorAttachments = recorder.singleColorRenderingAttachment(
 					targetImage.vkImageView, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE, 0
@@ -112,9 +116,8 @@ public class GlyphOffsetPlayground {
 
 		vkDestroyDescriptorPool(boiler.vkDevice(), descriptorPool, null);
 		memory.destroy(boiler);
-		pipeline.destroy(boiler);
-		sharedText.destroy(boiler);
-		shared.destroy(boiler);
+		pipelines.destroy();
+		instance.destroy();
 		boiler.destroyInitialObjects();
 	}
 }

@@ -2,7 +2,7 @@ package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.vk2d.Vk2dFrame;
-import com.github.knokko.vk2d.Vk2dSharedText;
+import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
 import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
@@ -19,10 +19,10 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 	private final long vkPipelineLayout;
 
 	@SuppressWarnings("resource")
-	public Vk2dGlyphPipeline(Vk2dPipelineContext context, Vk2dSharedText shared) {
+	public Vk2dGlyphPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
 		super(VERTEX_SIZE);
 
-		this.vkPipelineLayout = shared.intersectionPipelineLayout;
+		this.vkPipelineLayout = instance.textIntersectionPipelineLayout;
 		try (MemoryStack stack = stackPush()) {
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(8, stack);
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SFLOAT, 0);
@@ -40,7 +40,7 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 					"glyph.vert.spv", "glyph.frag.spv"
 			);
 			simpleVertexInput(builder, stack, vertexAttributes);
-			builder.ciPipeline.layout(shared.intersectionPipelineLayout);
+			builder.ciPipeline.layout(instance.textIntersectionPipelineLayout);
 
 			this.vkPipeline = builder.build("Vk2dGlyphPipeline");
 		}

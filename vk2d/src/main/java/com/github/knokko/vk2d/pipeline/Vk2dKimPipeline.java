@@ -2,7 +2,7 @@ package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.vk2d.Vk2dFrame;
-import com.github.knokko.vk2d.Vk2dShared;
+import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dKimBatch;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
@@ -20,7 +20,7 @@ public class Vk2dKimPipeline extends Vk2dPipeline {
 	private final long vkPipelineLayout;
 
 	@SuppressWarnings("resource")
-	public Vk2dKimPipeline(Vk2dPipelineContext context, Vk2dShared shared, int version) {
+	public Vk2dKimPipeline(Vk2dPipelineContext context, Vk2dInstance instance, int version) {
 		super(VERTEX_SIZE);
 
 		try (MemoryStack stack = stackPush()) {
@@ -35,10 +35,10 @@ public class Vk2dKimPipeline extends Vk2dPipeline {
 					"kim" + version + ".vert.spv", "kim" + version + ".frag.spv"
 			);
 			simpleVertexInput(builder, stack, vertexAttributes);
-			builder.ciPipeline.layout(shared.kimPipelineLayout);
+			builder.ciPipeline.layout(instance.kimPipelineLayout);
 
 			this.vkPipeline = builder.build("Vk2dKim" + version + "Pipeline");
-			this.vkPipelineLayout = shared.kimPipelineLayout;
+			this.vkPipelineLayout = instance.kimPipelineLayout;
 		}
 	}
 

@@ -130,30 +130,9 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 		textBuffer.startFrame();
 
 		int baseY = lineHeight + (int) offsetY;
-		int whitespaceGlyph = font.getGlyphForChar(' ');
-		float whitespaceAdvance = font.getGlyphAdvance(whitespaceGlyph);
 		for (String line : SHADER_CODE) {
 			float baseX = 50 + offsetX;
-			for (int x = 0; x < line.length(); x++) {
-				if (baseX > swapchainImage.width() || baseY < -heightA || baseY > swapchainImage.height() + 2 * heightA) break;
-				int charCode = line.charAt(x);
-				if (charCode == '\t') {
-					baseX += 4f * whitespaceAdvance * heightA;
-					continue;
-				}
-				int glyph = font.getGlyphForChar(line.charAt(x));
-				int glyphOffsetHorizontal = textBuffer.scratch(
-						recorder, font, glyph, batch.determineHeight(font, heightA, glyph), true
-				);
-				int glyphOffsetVertical = textBuffer.scratch(
-						recorder, font, glyph, batch.determineWidth(font, heightA, glyph), false
-				);
-				batch.glyphAt(
-						baseX + heightA * font.getGlyphMinX(glyph), baseY, font, heightA, glyph, glyphOffsetHorizontal, glyphOffsetVertical,
-						rgb(255, 255, 255), rgba(255, 255, 255, 127), 0
-				);
-				baseX += heightA * font.getGlyphAdvance(glyph);
-			}
+			batch.drawPrimitiveString(line, baseX, baseY, font, heightA, rgb(255, 255, 255));
 			baseY += lineHeight;
 		}
 

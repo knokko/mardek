@@ -190,7 +190,7 @@ public class Vk2dResourceWriter {
 			}
 		}
 
-		int heightA = Math.toIntExact(rawGlyphs[glyphA].maxY);
+		int heightA = Math.toIntExact(rawGlyphs[glyphA].maxY - 32);
 		int minY = -heightA / 2;
 		int maxY = 2 * heightA;
 		FontCurve[] curves = new FontCurve[rawCurves.size()];

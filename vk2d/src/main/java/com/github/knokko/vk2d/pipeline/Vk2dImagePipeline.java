@@ -6,7 +6,7 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.vk2d.Vk2dFrame;
-import com.github.knokko.vk2d.Vk2dShared;
+import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dImageBatch;
 import org.lwjgl.system.MemoryStack;
@@ -24,13 +24,13 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 	private final long vkPipelineLayout;
 
 	@SuppressWarnings("resource")
-	public Vk2dImagePipeline(Vk2dPipelineContext context, Vk2dShared shared) {
+	public Vk2dImagePipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
 		super(VERTEX_SIZE);
 
 		try (MemoryStack stack = stackPush()) {
 			this.vkPipelineLayout = context.boiler().pipelines.createLayout(
 					null, "Vk2dImagePipelineLayout",
-					shared.imageDescriptorSetLayout.vkDescriptorSetLayout
+					instance.imageDescriptorSetLayout.vkDescriptorSetLayout
 			);
 
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(2, stack);

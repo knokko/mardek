@@ -19,7 +19,6 @@ import static com.github.knokko.boiler.utilities.ColorPacker.rgba;
 
 public class GlyphBenchmark1 extends Vk2dWindow {
 
-	private Vk2dGlyphPipeline textPipeline;
 	private Vk2dTextBuffer textBuffer;
 
 	private long referenceTime = System.nanoTime();
@@ -32,6 +31,11 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 	@Override
 	protected InputStream initialResourceBundle() {
 		return GlyphBenchmark1.class.getResourceAsStream("text-benchmark-resources.bin");
+	}
+
+	@Override
+	protected void setupConfig(Vk2dConfig config) {
+		config.text = true;
 	}
 
 	@Override
@@ -74,11 +78,13 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 					glyph = 0;
 					round += 1;
 				}
+				int height = batch.determineHeight(font, heightA, glyph);
 				int glyphOffsetHorizontal = textBuffer.scratch(
-						recorder, font, glyph, batch.determineHeight(font, heightA, glyph), true
+						recorder, font, glyph, 0f, height, height, true
 				);
+				int width = batch.determineWidth(font, heightA, glyph);
 				int glyphOffsetVertical = textBuffer.scratch(
-						recorder, font, glyph, batch.determineWidth(font, heightA, glyph), false
+						recorder, font, glyph, 0f, width, width, false
 				);
 
 				int fillColor;

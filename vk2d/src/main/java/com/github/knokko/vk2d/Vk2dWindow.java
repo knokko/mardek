@@ -13,8 +13,10 @@ import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.boiler.window.*;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext;
+import com.github.knokko.vk2d.pipeline.Vk2dPipelines;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
+import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkClearValue;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
@@ -44,13 +46,13 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 
-	protected Vk2dPipelineContext pipelineContext;
-	protected Vk2dShared shared;
-	protected Vk2dSharedText sharedText;
+	protected Vk2dInstance instance;
+	protected Vk2dPipelines pipelines;
 	private MemoryBlock memory;
-	private long vkDescriptorPool;
+	private long vkDescriptorPool, vkRenderPass;
 	protected PerFrameBuffer perFrameBuffer;
 	protected Vk2dResourceBundle resources;
+	protected Vk2dTextBuffer textBuffer;
 	private SwapchainResourceManager<Object, Long> framebuffers;
 
 	public Vk2dWindow(VkbWindow window, boolean capFps) {
@@ -64,46 +66,54 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		return null;
 	}
 
+	protected abstract void setupConfig(Vk2dConfig config);
+
 	@Override
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
-		this.pipelineContext = Vk2dPipelineContext.renderPass(boiler, window.surfaceFormat);
-		this.shared = new Vk2dShared(boiler);
+		Vk2dConfig config = new Vk2dConfig();
+		setupConfig(config);
+		this.instance = new Vk2dInstance(boiler, config);
+
+		Vk2dPipelineContext pipelineContext = Vk2dPipelineContext.renderPass(boiler, window.surfaceFormat);
+		this.pipelines = new Vk2dPipelines(instance, pipelineContext, config);
+		this.vkRenderPass = pipelineContext.vkRenderPass();
 
 		try {
 			InputStream resourceInput = initialResourceBundle();
 			Vk2dResourceLoader loader = null;
-			if (resourceInput != null) loader = new Vk2dResourceLoader(resourceInput);
+			if (resourceInput != null) loader = new Vk2dResourceLoader(instance, resourceInput);
 
 			MemoryCombiner combiner = new MemoryCombiner(boiler, "Vk2dPersistent");
 			DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
-			if (loader != null) loader.claimMemory(boiler, combiner);
+			if (loader != null) loader.claimMemory(combiner);
 			createResources(boiler, combiner, descriptors);
+			if (config.text) this.textBuffer = new Vk2dTextBuffer(instance, combiner, descriptors, numFramesInFlight);
 			this.memory = combiner.build(false);
 
 			if (loader != null) {
 				loader.prepareStaging();
 				Vk2dResourceLoader[] pLoader = { loader };
-				SingleTimeCommands.submit(
-						boiler, "Vk2dStaging", recorder -> pLoader[0].performStaging(
-								recorder, shared, sharedText, descriptors
-						)
+				SingleTimeCommands.submit(boiler, "Vk2dStaging", recorder ->
+						pLoader[0].performStaging(recorder, descriptors)
 				).destroy();
 			}
 
 			this.vkDescriptorPool = descriptors.build("Vk2dDescriptors");
-			if (loader != null) this.resources = loader.finish(boiler, shared);
+			if (loader != null) this.resources = loader.finish();
 			if (resourceInput != null) resourceInput.close();
 		} catch (IOException io) {
 			throw new RuntimeException(io);
 		}
+
+		if (textBuffer != null) textBuffer.initializeDescriptorSets();
 
 		this.framebuffers = new SwapchainResourceManager<>() {
 
 			@Override
 			protected Long createImage(Object swapchain, AcquiredImage swapchainImage) {
 				return boiler.images.createFramebuffer(
-						pipelineContext.vkRenderPass(), swapchainImage.width(), swapchainImage.height(),
+						vkRenderPass, swapchainImage.width(), swapchainImage.height(),
 						"SwapchainFramebuffer", swapchainImage.image().vkImageView
 				);
 			}
@@ -137,7 +147,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
 		VkRenderPassBeginInfo biRenderPass = VkRenderPassBeginInfo.calloc(stack);
 		biRenderPass.sType$Default();
-		biRenderPass.renderPass(pipelineContext.vkRenderPass());
+		biRenderPass.renderPass(vkRenderPass);
 		biRenderPass.framebuffer(framebuffers.get(acquiredImage));
 		biRenderPass.renderArea().extent().set(acquiredImage.width(), acquiredImage.height());
 		biRenderPass.pClearValues(VkClearValue.calloc(1, stack));
@@ -159,7 +169,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		super.cleanUp(boiler);
 		try (MemoryStack stack = stackPush()) {
 			vkDestroyRenderPass(
-					boiler.vkDevice(), pipelineContext.vkRenderPass(),
+					boiler.vkDevice(), vkRenderPass,
 					CallbackUserData.RENDER_PASS.put(stack, boiler)
 			);
 			vkDestroyDescriptorPool(
@@ -168,8 +178,8 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			);
 		}
 		memory.destroy(boiler);
-		sharedText.destroy(boiler);
-		shared.destroy(boiler);
+		pipelines.destroy();
+		instance.destroy();
 	}
 
 	public static void bootstrap(
