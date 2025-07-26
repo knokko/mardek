@@ -1,12 +1,14 @@
 #version 450
 
 layout(location = 0) in vec2 textureCoordinates;
-layout(location = 1) in flat uint horizontalInfoOffset;
-layout(location = 2) in flat uint verticalInfoOffset;
-layout(location = 3) in flat uvec2 size;
-layout(location = 4) in vec4 fillColor;
-layout(location = 5) in vec4 strokeColor;
-layout(location = 6) in vec4 backgroundColor;
+layout(location = 1) in vec2 subpixelOffset;
+layout(location = 2) in flat uint horizontalInfoOffset;
+layout(location = 3) in flat uint verticalInfoOffset;
+layout(location = 4) in vec2 size;
+layout(location = 5) in flat uvec2 intSize;
+layout(location = 6) in vec4 fillColor;
+layout(location = 7) in vec4 strokeColor;
+layout(location = 8) in vec4 backgroundColor;
 
 layout(set = 0, binding = 0) readonly buffer IntersectionData {
 	float intersectionData[];
@@ -50,19 +52,20 @@ WaveIntersections wave(uint infoOffset, uint thisWave, float wavePosition) {
 }
 
 // Mimic the `computeWavePosition` of `glyph-scratch.comp`
-float recoverWavePosition(uint thisWave, uint numWaves) {
-	return (thisWave + 0.5) / numWaves;
+float recoverWavePosition(uint thisWave, float subpixelOffset, float size) {
+	return (thisWave + 0.5 + subpixelOffset) / size;
 }
 
 void main() {
-	uint x = uint(size.x * textureCoordinates.x);
-	uint y = uint(size.y * textureCoordinates.y);
+	uint x = uint(intSize.x * textureCoordinates.x);
+	uint y = uint(intSize.y * textureCoordinates.y);
 
-	WaveIntersections horizontal = wave(horizontalInfoOffset, y, recoverWavePosition(x, size.x));
-	WaveIntersections vertical = wave(verticalInfoOffset, x, recoverWavePosition(y, size.y));
+	WaveIntersections horizontal = wave(horizontalInfoOffset, y, recoverWavePosition(x, subpixelOffset.x, size.x));
+	WaveIntersections vertical = wave(verticalInfoOffset, x, recoverWavePosition(y, subpixelOffset.y, size.y));
 
-	float horizontalDistance = horizontal.distance * size.x;
-	float verticalDistance = vertical.distance * size.y;
+	// TODO Not sure I should use intSize for this
+	float horizontalDistance = horizontal.distance * intSize.x;
+	float verticalDistance = vertical.distance * intSize.y;
 	//float distance = clamp(min(horizontalDistance, verticalDistance), 0.0, 0.5);
 	float distance = clamp(min(horizontalDistance, horizontalDistance), 0.0, 0.5);
 

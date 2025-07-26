@@ -1,4 +1,4 @@
-package com.github.knokko.vk2d.resource;
+package com.github.knokko.vk2d.text;
 
 import java.util.Map;
 
@@ -11,7 +11,7 @@ public class Vk2dFont {
 	private final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY, glyphAdvance;
 	private final Map<Integer, Integer> charToGlyphMap;
 
-	Vk2dFont(
+	public Vk2dFont(
 			long vkDescriptorSet, int index, int firstCurveIndex, int[] firstCurves, int[] numCurves,
 			float[] glyphMinX, float[] glyphMinY, float[] glyphMaxX, float[] glyphMaxY, float[] glyphAdvance,
 			Map<Integer, Integer> charToGlyphMap

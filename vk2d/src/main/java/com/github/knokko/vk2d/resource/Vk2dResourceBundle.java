@@ -1,11 +1,6 @@
 package com.github.knokko.vk2d.resource;
 
-import com.github.knokko.boiler.BoilerInstance;
-import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
-import org.lwjgl.system.MemoryStack;
-
-import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool;
+import com.github.knokko.vk2d.text.Vk2dFont;
 
 public class Vk2dResourceBundle {
 

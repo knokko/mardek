@@ -5,7 +5,7 @@ import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
-import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
+import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 

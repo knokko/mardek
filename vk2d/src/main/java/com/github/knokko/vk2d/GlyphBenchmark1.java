@@ -5,7 +5,7 @@ import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
-import com.github.knokko.vk2d.resource.Vk2dFont;
+import com.github.knokko.vk2d.text.Vk2dFont;
 
 import java.io.InputStream;
 

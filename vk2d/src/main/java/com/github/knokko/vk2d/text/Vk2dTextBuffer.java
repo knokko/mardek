@@ -1,4 +1,4 @@
-package com.github.knokko.vk2d.resource;
+package com.github.knokko.vk2d.text;
 
 import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.buffers.MappedVkbBuffer;
@@ -9,7 +9,6 @@ import com.github.knokko.boiler.descriptors.DescriptorUpdater;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.vk2d.Vk2dInstance;
-import com.github.knokko.vk2d.text.GlyphCacheTracker;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
@@ -122,11 +121,11 @@ public class Vk2dTextBuffer {
 	public int scratch(CommandRecorder recorder, Vk2dFont font, int glyph, float offset, float size, int intSize, boolean horizontal) {
 		int numCurves = font.getNumCurves(glyph);
 		if (intSize <= 0 || numCurves == 0) return -1;
-		Integer existing = cache.get(font.index, glyph, size, intSize, horizontal);
+		Integer existing = cache.get(font.index, glyph, offset, size, intSize, horizontal);
 		if (existing != null) return existing;
 
 		int scratchIntersectionOffset = cache.getNextScratchIntersectionIndex();
-		int scratchInfoOffset = cache.putScratch(font.index, glyph, size, intSize, numCurves, horizontal);
+		int scratchInfoOffset = cache.putScratch(font.index, glyph, offset, size, intSize, numCurves, horizontal);
 		if (scratchInfoOffset == -1) return -1;
 
 		if (shouldBindScratchPipeline) {
@@ -164,7 +163,7 @@ public class Vk2dTextBuffer {
 		);
 		vkCmdDispatch(recorder.commandBuffer, intSize, 1, 1);
 
-		return cache.get(font.index, glyph, size, intSize, horizontal);
+		return cache.get(font.index, glyph, offset, size, intSize, horizontal);
 	}
 
 	private void nextIntersectionBarrier(CommandRecorder recorder) {

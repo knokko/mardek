@@ -3,8 +3,8 @@ package com.github.knokko.vk2d.batch;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
-import com.github.knokko.vk2d.resource.Vk2dFont;
-import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
+import com.github.knokko.vk2d.text.Vk2dFont;
+import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 
 import java.nio.ByteBuffer;
 
@@ -99,25 +99,29 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 			float minX = baseX + heightA * font.getGlyphMinX(glyph);
 			float minY = baseY - heightA * font.getGlyphMaxY(glyph);
 			float maxX = baseX + heightA * font.getGlyphMaxX(glyph);
-			float maxY = baseY + heightA * font.getGlyphMinY(glyph);
-			System.out.println(font.getGlyphMinX(glyph) + " " + font.getGlyphMinY(glyph) + " " + font.getGlyphMaxX(glyph) + " " + font.getGlyphMaxY(glyph));
+			float maxY = baseY - heightA * font.getGlyphMinY(glyph);
+			System.out.println("glyph: " + font.getGlyphMinX(glyph) + " " + font.getGlyphMinY(glyph) + " " + font.getGlyphMaxX(glyph) + " " + font.getGlyphMaxY(glyph));
+			System.out.println("float: " + minX + " " + minY + " " + maxX + " " + maxY);
 
 			int intMinX = (int) Math.floor(minX);
 			int intMinY = (int) Math.floor(minY);
-			int intMaxX = (int) Math.ceil(maxX);
-			int intMaxY = (int) Math.ceil(maxY);
+			int intBoundX = (int) Math.ceil(maxX);
+			int intBoundY = (int) Math.ceil(maxY);
+			System.out.println("int: " + intMinX + " " + intMinY + " " + intBoundX + " " + intBoundY);
 
-			float width =  1f + maxX - minX;
-			float height = 1f + maxY - minY;
-			int intWidth = 1 + intMaxX - intMinX;
-			int intHeight = 1 + intMaxY - intMinY;
+			float width = maxX - minX;
+			float height = maxY - minY;
+			int intWidth = intBoundX - intMinX;
+			int intHeight = intBoundY - intMinY;
 
 			float offsetX = minX - intMinX;
-			float offsetY = minY - intMinY;
-			int horizontalIndex = textBuffer.scratch(recorder, font, glyph, offsetY, height, intHeight, true);
-			int verticalIndex = textBuffer.scratch(recorder, font, glyph, offsetX, width, intWidth, false);
+			float offsetY = intBoundY - maxY;
+			System.out.println("offsets are " + offsetX + " " + offsetY);
+			System.out.println();
+			int horizontalIndex = textBuffer.scratch(recorder, font, glyph, -offsetY, height, intHeight, true);
+			int verticalIndex = textBuffer.scratch(recorder, font, glyph, -offsetX, width, intWidth, false);
 			glyphBetween(
-					intMinX, intMinY, intMaxX, intMaxY, horizontalIndex, verticalIndex,
+					intMinX, intMinY, intBoundX - 1, intBoundY - 1, horizontalIndex, verticalIndex,
 					fillColor, strokeColor, 0
 			);
 			baseX += heightA * font.getGlyphAdvance(glyph);

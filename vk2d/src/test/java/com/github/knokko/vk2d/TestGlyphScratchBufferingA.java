@@ -8,6 +8,8 @@ import com.github.knokko.boiler.descriptors.DescriptorCombiner;
 import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.vk2d.resource.*;
+import com.github.knokko.vk2d.text.Vk2dFont;
+import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;

@@ -16,7 +16,7 @@ import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
-import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
+import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkClearValue;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;

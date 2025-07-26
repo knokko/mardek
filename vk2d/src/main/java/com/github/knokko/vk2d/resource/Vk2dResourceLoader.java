@@ -11,6 +11,7 @@ import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.vk2d.Vk2dInstance;
+import com.github.knokko.vk2d.text.Vk2dFont;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.DataInputStream;

@@ -2,7 +2,7 @@ package com.github.knokko.vk2d.batch;
 
 import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
-import com.github.knokko.vk2d.resource.Vk2dFont;
+import com.github.knokko.vk2d.text.Vk2dFont;
 
 import java.nio.ByteBuffer;
 

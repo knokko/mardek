@@ -169,18 +169,18 @@ public class Vk2dResourceWriter {
 				long maxY = Long.MIN_VALUE;
 				for (int index = curveIndex; index < curveIndex + numCurves; index++) {
 					RawCurve curve = rawCurves.get(index);
-					minX = min(minX, curve.startX - 32);
-					maxX = max(maxX, curve.startX + 32);
-					minY = min(minY, curve.startY - 32);
-					maxY = max(maxY, curve.startY + 32);
-					minX = min(minX, curve.controlX - 32);
-					maxX = max(maxX, curve.controlX + 32);
-					minY = min(minY, curve.controlY - 32);
-					maxY = max(maxY, curve.controlY + 32);
-					minX = min(minX, curve.endX - 32);
-					maxX = max(maxX, curve.endX + 32);
-					minY = min(minY, curve.endY - 32);
-					maxY = max(maxY, curve.endY + 32);
+					minX = min(minX, curve.startX);
+					maxX = max(maxX, curve.startX);
+					minY = min(minY, curve.startY);
+					maxY = max(maxY, curve.startY);
+					minX = min(minX, curve.controlX);
+					maxX = max(maxX, curve.controlX);
+					minY = min(minY, curve.controlY);
+					maxY = max(maxY, curve.controlY);
+					minX = min(minX, curve.endX);
+					maxX = max(maxX, curve.endX);
+					minY = min(minY, curve.endY);
+					maxY = max(maxY, curve.endY);
 				}
 
 				assertFtSuccess(FT_Get_Advance(
@@ -190,7 +190,7 @@ public class Vk2dResourceWriter {
 			}
 		}
 
-		int heightA = Math.toIntExact(rawGlyphs[glyphA].maxY - 32);
+		int heightA = Math.toIntExact(rawGlyphs[glyphA].maxY);
 		int minY = -heightA / 2;
 		int maxY = 2 * heightA;
 		FontCurve[] curves = new FontCurve[rawCurves.size()];

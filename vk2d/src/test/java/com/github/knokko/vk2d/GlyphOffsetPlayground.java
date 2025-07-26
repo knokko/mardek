@@ -16,10 +16,10 @@ import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines;
-import com.github.knokko.vk2d.resource.Vk2dFont;
+import com.github.knokko.vk2d.text.Vk2dFont;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
-import com.github.knokko.vk2d.resource.Vk2dTextBuffer;
+import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkRenderingAttachmentInfo;
 
@@ -58,7 +58,7 @@ public class GlyphOffsetPlayground {
 		);
 		loader.claimMemory(combiner);
 		VkbImage targetImage = combiner.addImage(new ImageBuilder(
-				"TargetImage", 60, 20
+				"TargetImage", 90, 20
 		).addUsage(
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
 		).format(VK_FORMAT_R8G8B8A8_SRGB), 1f);
@@ -91,7 +91,7 @@ public class GlyphOffsetPlayground {
 			Vk2dColorBatch colorBatch = pipelines.color.addBatch(frame, 6);
 
 			batch.drawPrimitiveString(
-					"helloA", 1f, 16f, font, heightA, rgb(255, 255, 255)
+					"helloAgi", 1f, 16f, font, heightA, rgb(255, 255, 255)
 			);
 			colorBatch.fill(0, 16, targetImage.width, targetImage.height, rgba(255, 0, 0, 100));
 			textBuffer.transfer(recorder);
