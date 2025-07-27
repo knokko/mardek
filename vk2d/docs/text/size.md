@@ -29,23 +29,26 @@ will express them as a multiple of the `maxY` of the uppercase 'A' character:
 ### Rendering glyphs at integer coordinates
 Consider the case where I want to render the uppercase 'A' at position (5, 15)
 using `heightA = 10` (pixels). Then I should render it between the following bounds:
-- minX = 5 + 10 * 0.11 = 6.1
-- minY = 15 - 10 * 1.0 = 5.0 (yeah, it's annoying negative Y goes up here)
-- maxX = 5 + 10 * 0.96 = 14.6
+- minX = 5 + 10 * 0.09 = 5.95
+- minY = 15 - 10 * 1.0 = 5 (yeah, it's annoying negative Y goes up here)
+- maxX = 5 + 10 * 0.96 = 14.68
 - maxY = 15 - 10 * 0.0 = 15
 
 Since I can't truly render to 'half' pixels, some rounding is needed:
-- intMinX = floor(minX) = 6
+- intMinX = floor(minX) = 5
 - intMinY = floor(minY) = 5
 - intMaxX = ceil(maxX) = 15
 - intMaxY = ceil(maxY) = 15
 
+![image](./render-aliased1.drawio.png)
+
 For every pixel, the 'intensity' of the glyph at the *center* of the pixel is
 used. Ignoring antialiasing, a pixel should be white if and only if its
-*center* is inside the 'A' drawn at `(6.1, 5.0)`, otherwise it should be black.
-Observe that the bottom-left coordinate of the 'A' is `(6.1, 15.0)`, and that
-the bottom-right coordinate is `(14.6, 15.0)`.
+*center* is inside the 'A' drawn at `(5.95, 5.0)`, otherwise it should be
+black. The horribly aliased result is shown below:
 
-Ignoring antialiasing, the pixel at `(6, 14)` would be white since
-`(6.5, 14.5)` is inside the 'A'. Likewise, the pixel at `(14, 14)` would be
-white since `(14.5, 14.5)` is also inside the 'A'.
+![image](./render-aliased2.drawio.png)
+
+It is clearly supposed to be an 'A', but aliased text at such a small
+resolution looks horrible. Fortunately, my text rendering technique supports
+anti-aliasing.

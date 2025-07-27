@@ -26,39 +26,63 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 
 	public void glyphBetween(
 			int minX, int minY, int maxX, int maxY,
+			float subpixelX, float subpixelY, float width, float height,
 			int horizontalIntersections, int verticalIntersections,
 			int fillColor, int strokeColor, int backgroundColor
 	) {
 		if (horizontalIntersections == -1 || verticalIntersections == -1) return;
-		if (maxX < 0 || maxY < 0 || minX >= width || minY >= height) return;
+		if (maxX < 0 || maxY < 0 || minX >= this.width || minY >= this.height) return;
 		ByteBuffer vertices = putVertices(6);
 
-		int width = 1 + maxX - minX;
-		int height = 1 + maxY - minY;
+		int intWidth = 1 + maxX - minX;
+		int intHeight = 1 + maxY - minY;
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
+		vertices.putFloat(subpixelX).putFloat(subpixelY);
 		vertices.putFloat(0f).putFloat(0f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
+		vertices.putFloat(width).putFloat(height);
+		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
+		vertices.putFloat(subpixelX).putFloat(subpixelY);
 		vertices.putFloat(1f).putFloat(0f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
-		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
-		vertices.putFloat(1f).putFloat(1f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
+		vertices.putFloat(width).putFloat(height);
+		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
 
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
+		vertices.putFloat(subpixelX).putFloat(subpixelY);
 		vertices.putFloat(1f).putFloat(1f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
+		vertices.putFloat(width).putFloat(height);
+		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+
+
+		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
+		vertices.putFloat(subpixelX).putFloat(subpixelY);
+		vertices.putFloat(1f).putFloat(1f);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
+		vertices.putFloat(width).putFloat(height);
+		vertices.putInt(intWidth).putInt(intHeight);
+		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
+		vertices.putFloat(subpixelX).putFloat(subpixelY);
 		vertices.putFloat(0f).putFloat(1f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
+		vertices.putFloat(width).putFloat(height);
+		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
+		vertices.putFloat(subpixelX).putFloat(subpixelY);
 		vertices.putFloat(0f).putFloat(0f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections).putInt(width).putInt(height);
+		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
+		vertices.putFloat(width).putFloat(height);
+		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
 	}
 
@@ -84,7 +108,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		int maxX = minX + determineWidth(font, heightA, glyph) - 1;
 		int maxY = minY + determineHeight(font, heightA, glyph) - 1;
 		glyphBetween(
-				minX, minY, maxX, maxY,
+				minX, minY, maxX, maxY, 0f, 0f, 1f + maxX - minX, 1f + maxY - minY,
 				horizontalIntersections, verticalIntersections,
 				fillColor, strokeColor, backgroundColor
 		);
@@ -95,19 +119,22 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 	) {
 		int strokeColor = rgba(red(fillColor), green(fillColor), blue(fillColor), (alpha(fillColor) & 0xFF) / 2);
 		for (int charIndex = 0; charIndex < text.length(); charIndex++) {
-			int glyph = font.getGlyphForChar(text.charAt(charIndex));
+			char nextChar = text.charAt(charIndex);
+			if (nextChar == '\t') {
+				baseX += 4f * heightA * font.getWhitespaceAdvance();
+				continue;
+			}
+
+			int glyph = font.getGlyphForChar(nextChar);
 			float minX = baseX + heightA * font.getGlyphMinX(glyph);
 			float minY = baseY - heightA * font.getGlyphMaxY(glyph);
 			float maxX = baseX + heightA * font.getGlyphMaxX(glyph);
 			float maxY = baseY - heightA * font.getGlyphMinY(glyph);
-			System.out.println("glyph: " + font.getGlyphMinX(glyph) + " " + font.getGlyphMinY(glyph) + " " + font.getGlyphMaxX(glyph) + " " + font.getGlyphMaxY(glyph));
-			System.out.println("float: " + minX + " " + minY + " " + maxX + " " + maxY);
 
 			int intMinX = (int) Math.floor(minX);
 			int intMinY = (int) Math.floor(minY);
 			int intBoundX = (int) Math.ceil(maxX);
 			int intBoundY = (int) Math.ceil(maxY);
-			System.out.println("int: " + intMinX + " " + intMinY + " " + intBoundX + " " + intBoundY);
 
 			float width = maxX - minX;
 			float height = maxY - minY;
@@ -116,13 +143,12 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 
 			float offsetX = minX - intMinX;
 			float offsetY = intBoundY - maxY;
-			System.out.println("offsets are " + offsetX + " " + offsetY);
-			System.out.println();
 			int horizontalIndex = textBuffer.scratch(recorder, font, glyph, -offsetY, height, intHeight, true);
 			int verticalIndex = textBuffer.scratch(recorder, font, glyph, -offsetX, width, intWidth, false);
 			glyphBetween(
-					intMinX, intMinY, intBoundX - 1, intBoundY - 1, horizontalIndex, verticalIndex,
-					fillColor, strokeColor, 0
+					intMinX, intMinY, intBoundX - 1, intBoundY - 1,
+					-offsetX, -offsetY, width, height,
+					horizontalIndex, verticalIndex, fillColor, strokeColor, 0
 			);
 			baseX += heightA * font.getGlyphAdvance(glyph);
 		}

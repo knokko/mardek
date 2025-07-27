@@ -60,16 +60,17 @@ void main() {
 	uint x = uint(intSize.x * textureCoordinates.x);
 	uint y = uint(intSize.y * textureCoordinates.y);
 
-	WaveIntersections horizontal = wave(horizontalInfoOffset, y, recoverWavePosition(x, subpixelOffset.x, size.x));
-	WaveIntersections vertical = wave(verticalInfoOffset, x, recoverWavePosition(y, subpixelOffset.y, size.y));
+	float waveX = recoverWavePosition(x, subpixelOffset.x, size.x);
+	float waveY = recoverWavePosition(y, subpixelOffset.y, size.y);
+	WaveIntersections horizontal = wave(horizontalInfoOffset, y, waveX);
+	WaveIntersections vertical = wave(verticalInfoOffset, x, waveY);
 
-	// TODO Not sure I should use intSize for this
 	float horizontalDistance = horizontal.distance * intSize.x;
 	float verticalDistance = vertical.distance * intSize.y;
-	//float distance = clamp(min(horizontalDistance, verticalDistance), 0.0, 0.5);
-	float distance = clamp(min(horizontalDistance, horizontalDistance), 0.0, 0.5);
+	float distance = clamp(min(horizontalDistance, verticalDistance), 0.0, 0.5);
 
-	vec4 mainColor = horizontal.inside ? fillColor : backgroundColor;
+	bool inside = horizontalDistance > verticalDistance ? horizontal.inside : vertical.inside;
+	vec4 mainColor = inside ? fillColor : backgroundColor;
 
 	// Without stroke (assuming strokeColor = 0.5 * (mainColor + otherColor), the desired behavior is:
 	// - inside && distance == 0 -> 0.5 * fillColor + 0.5 * background = 1.0 * strokeColor + 0.0 * fillColor

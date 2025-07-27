@@ -11,7 +11,7 @@ import com.github.knokko.vk2d.pipeline.Vk2dKimPipeline
 import com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
-import com.github.knokko.vk2d.resource.Vk2dTextBuffer
+import com.github.knokko.vk2d.text.Vk2dTextBuffer
 import mardek.content.ui.TitleScreenContent
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.vkDestroyRenderPass
