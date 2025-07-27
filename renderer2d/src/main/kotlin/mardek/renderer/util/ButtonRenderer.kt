@@ -6,11 +6,11 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.text.Vk2dFont
 import mardek.state.util.Rectangle
-import kotlin.math.max
 
 fun renderButton(
-	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: Vk2dGlyphBatch,
+	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: Vk2dGlyphBatch, font: Vk2dFont,
 	showTextOutline: Boolean, text: String, isSelected: Boolean, rect: Rectangle,
 	outlineWidth: Int, textOffsetX: Int, textBaseY: Int, textHeight: Int,
 ) {
@@ -81,6 +81,11 @@ fun renderButton(
 
 	val outlineColors = if (showTextOutline) intArrayOf(srgbToLinear(rgb(112, 64, 33)))
 	else IntArray(0)
+
+	glyphBatch.drawString(
+		text, textOffsetX.toFloat(), textBaseY.toFloat(),
+		textHeight.toFloat(), font, lowerTextColor, outlineColors[0]
+	)
 //	uiRenderer.drawString(
 //		font, text, lowerTextColor, outlineColors, textOffsetX, rect.minY, rect.maxX, rect.maxY,
 //		textBaseY, textHeight, 1, TextAlignment.DEFAULT,

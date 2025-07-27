@@ -44,8 +44,8 @@ class TitleScreenState: GameState {
 		return this
 	}
 
-	override fun updateBeforeContent(input: InputManager, soundQueue: SoundQueue) {
-		update(input, soundQueue, null)
+	override fun updateBeforeContent(input: InputManager, soundQueue: SoundQueue): GameState {
+		return update(input, soundQueue, null)
 	}
 
 	override fun update(context: GameStateUpdateContext): GameState {

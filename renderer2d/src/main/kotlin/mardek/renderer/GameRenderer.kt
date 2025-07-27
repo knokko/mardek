@@ -1,21 +1,11 @@
 package mardek.renderer
 
-import com.github.knokko.boiler.builders.BoilerBuilder
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.vk2d.Vk2dFrame
 import mardek.content.Content
 import mardek.renderer.title.renderTitleScreen
-import mardek.state.GameState
 import mardek.state.GameStateManager
-import mardek.state.SoundQueue
 import mardek.state.title.TitleScreenState
 import mardek.state.util.Rectangle
-import org.lwjgl.vulkan.VK10.*
-import org.lwjgl.vulkan.VkClearValue
-import org.lwjgl.vulkan.VkRect2D
-import org.lwjgl.vulkan.VkRenderPassBeginInfo
-import java.util.concurrent.CompletableFuture
 
 const val BORDER_WIDTH = 2
 private const val BORDER_HEIGHT = 24
@@ -30,13 +20,12 @@ fun renderGame(context: RawRenderContext) {
 	val state = context.state.currentState
 
 	val titleBarBatch = if (state is TitleScreenState) renderTitleScreen(context, state, renderRegion)
-	else context.resources.colorPipeline.addBatch(context.frame, 36)
+	else context.pipelines.color.addBatch(context.frame, 36)
 
 	renderTitleBar(context, titleBarBatch)
 }
 
 class GameRenderer(
-	private val resources: RenderResources,
 	private val content: Content,
 	private val state: GameStateManager,
 	private val frame: Vk2dFrame,

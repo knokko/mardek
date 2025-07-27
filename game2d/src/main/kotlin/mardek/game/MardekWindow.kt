@@ -3,20 +3,17 @@ package mardek.game
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess
-import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.window.AcquiredImage
 import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.update.UpdateCounter
 import com.github.knokko.update.UpdateLoop
+import com.github.knokko.vk2d.Vk2dConfig
 import com.github.knokko.vk2d.Vk2dFrame
 import com.github.knokko.vk2d.Vk2dWindow
-import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import mardek.audio.AudioUpdater
 import mardek.content.Content
 import mardek.renderer.RawRenderContext
-import mardek.renderer.RenderResources
 import mardek.renderer.renderGame
 import mardek.state.ExitState
 import mardek.state.GameStateManager
@@ -34,7 +31,6 @@ class MardekWindow(
 	private val gameState: GameStateManager, window: VkbWindow, capFps: Boolean
 ) : Vk2dWindow(window, capFps) {
 
-	private lateinit var renderResources: RenderResources
 	private var totalFrames = 0L
 
 	private val fpsCounter = UpdateCounter()
@@ -44,12 +40,12 @@ class MardekWindow(
 		return MardekWindow::class.java.getResourceAsStream("title-screen.vk2d")!!
 	}
 
-	override fun createResources(boiler: BoilerInstance, combiner: MemoryCombiner, descriptors: DescriptorCombiner) {
-		super.createResources(boiler, combiner, descriptors)
-		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, window.surfaceFormat)
-		this.renderResources = RenderResources(
-			boiler, pipelineContext, combiner, descriptors, numFramesInFlight
-		)
+	override fun setupConfig(config: Vk2dConfig) {
+		config.color = true
+		config.oval = true
+		config.image = true
+		config.kim3 = true
+		config.text = true
 	}
 
 	override fun renderFrame(
@@ -66,16 +62,16 @@ class MardekWindow(
 		totalFrames += 1
 		if (totalFrames == 10L) launchState()
 
-		renderResources.textBuffer.startFrame(recorder)
 		synchronized(gameState.lock()) {
 			if (gameState.currentState is ExitState) requestQuit(recorder.stack) else {
 				// TODO Propagate content
-				val context = RawRenderContext(frame, renderResources, null, gameState, resources)
+				val context = RawRenderContext(
+					frame, pipelines, textBuffer, recorder,
+					null, gameState, resources
+				)
 				renderGame(context)
 			}
 		}
-		// TODO Improve this?
-		renderResources.textBuffer.transfer(recorder, renderResources.sharedText)
 	}
 
 	override fun cleanUp(boiler: BoilerInstance) {
@@ -83,7 +79,6 @@ class MardekWindow(
 		synchronized(gameState.lock()) {
 			gameState.currentState = ExitState()
 		}
-		this.renderResources.destroy()
 	}
 
 	private fun launchState() {
@@ -126,6 +121,7 @@ class MardekWindow(
 	}
 
 	private fun requestQuit(stack: MemoryStack) {
+		// TODO Add this to vk-boiler
 		val quitEvent = SDL_Event.calloc(stack)
 		quitEvent.type(SDL_EVENT_WINDOW_CLOSE_REQUESTED)
 		SDL_WindowEvent.nwindowID(quitEvent.address(), SDL_GetWindowID(window.handle))

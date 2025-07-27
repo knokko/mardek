@@ -5,16 +5,17 @@ import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.text.Vk2dFont
 import mardek.content.ui.TitleScreenContent
 import mardek.renderer.RawRenderContext
-import mardek.renderer.RenderResources
+import mardek.renderer.RenderContext
 import mardek.renderer.util.renderButton
 import mardek.state.title.TitleScreenState
 import mardek.state.util.Rectangle
 import kotlin.math.roundToInt
 
 private fun loadInfo(): TitleScreenContent {
-	val input = RenderResources::class.java.classLoader.getResourceAsStream("mardek/game/title-screen.bits")!!
+	val input = RenderContext::class.java.classLoader.getResourceAsStream("mardek/game/title-screen.bits")!!
 	return Bitser(false).deserialize(
 		TitleScreenContent::class.java,
 		BitInputStream(input),
@@ -24,15 +25,8 @@ private fun loadInfo(): TitleScreenContent {
 
 private val info = loadInfo()
 
-private var firstFrame = true
 fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region: Rectangle): Vk2dColorBatch {
-	if (firstFrame) {
-		// TODO get rid of this
-		context.resources.postInit(context.titleScreenBundle, info)
-		firstFrame = false
-	}
-
-	val imageBatch = context.resources.imagePipeline.addBatch(context.frame, 12)
+	val imageBatch = context.pipelines.image.addBatch(context.frame, 12)
 	imageBatch.simple(
 		region.minX, region.minY, region.maxX, region.maxY,
 		context.titleScreenBundle.getImageDescriptor(info.background.index)
@@ -48,28 +42,28 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 		)
 	}
 
-	val colorBatch = context.resources.colorPipeline.addBatch(context.frame, 100)
-	val ovalBatch = context.resources.ovalPipeline.addBatch(context.frame, 48)
+	val colorBatch = context.pipelines.color.addBatch(context.frame, 100)
+	val ovalBatch = context.pipelines.oval.addBatch(context.frame, 48)
 
-	val buttonFont = context.titleScreenBundle.getFont(info.smallFont.index)
-	val glyphBatch = context.resources.glyphPipeline.addBatch(
-		context.frame, 100, buttonFont, context.resources.textBuffer.renderDescriptorSet
+	val buttonFont = context.titleScreenBundle.getFont(info.largeFont.index)
+	val glyphBatch = context.pipelines.text.addBatch(
+		context.frame, 100, context.recorder, context.textBuffer
 	)
 
 	state.newGameButton = renderButton(
-		region, colorBatch, ovalBatch, glyphBatch, "New Game",
+		region, colorBatch, ovalBatch, glyphBatch, buttonFont, "New Game",
 		0.54f, state.selectedButton, 0
 	)
 	state.loadGameButton = renderButton(
-		region, colorBatch, ovalBatch, glyphBatch, "Load Game",
+		region, colorBatch, ovalBatch, glyphBatch, buttonFont, "Load Game",
 		0.64f, state.selectedButton, 1
 	)
 	state.musicPlayerButton = renderButton(
-		region, colorBatch, ovalBatch, glyphBatch, "Music Player",
+		region, colorBatch, ovalBatch, glyphBatch, buttonFont, "Music Player",
 		0.74f, state.selectedButton,2
 	)
 	state.quitButton = renderButton(
-		region, colorBatch, ovalBatch, glyphBatch, "Quit",
+		region, colorBatch, ovalBatch, glyphBatch, buttonFont, "Quit",
 		0.84f, state.selectedButton, 3
 	)
 
@@ -78,7 +72,7 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 
 private fun renderButton(
 	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: Vk2dGlyphBatch,
-	text: String, relativeY: Float, selectedButton: Int, buttonIndex: Int
+	font: Vk2dFont, text: String, relativeY: Float, selectedButton: Int, buttonIndex: Int
 ): Rectangle {
 	val rect = Rectangle(
 		outerRegion.minX + 3 * outerRegion.height / 10,
@@ -87,11 +81,11 @@ private fun renderButton(
 		outerRegion.height / 12,
 	)
 	val outlineWidth = rect.height / 10
-	val textOffsetX = rect.minX + outerRegion.height / 200
+	val textOffsetX = rect.minX + outerRegion.height / 30
 	val textBaseY = rect.maxY - outerRegion.height / 50
 	val textHeight = outerRegion.height / 22
 	renderButton(
-		colorBatch, ovalBatch, glyphBatch, true, text,
+		colorBatch, ovalBatch, glyphBatch, font, true, text,
 		selectedButton == buttonIndex,
 		rect, outlineWidth, textOffsetX, textBaseY, textHeight
 	)

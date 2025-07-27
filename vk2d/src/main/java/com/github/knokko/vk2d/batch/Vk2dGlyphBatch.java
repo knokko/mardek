@@ -114,10 +114,26 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		);
 	}
 
+	public void drawString(
+			String text, float baseX, float baseY, float heightA, Vk2dFont font,
+			int fillColor, int strokeColor
+	) {
+		// TODO Add HB support
+		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor);
+	}
+
 	public void drawPrimitiveString(
 			String text, float baseX, float baseY, Vk2dFont font, float heightA, int fillColor
 	) {
+		// TODO Add changeAlpha method to vk-boiler
 		int strokeColor = rgba(red(fillColor), green(fillColor), blue(fillColor), (alpha(fillColor) & 0xFF) / 2);
+		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor);
+	}
+
+	public void drawPrimitiveString(
+			String text, float baseX, float baseY, Vk2dFont font, float heightA, int fillColor, int strokeColor
+	) {
+
 		for (int charIndex = 0; charIndex < text.length(); charIndex++) {
 			char nextChar = text.charAt(charIndex);
 			if (nextChar == '\t') {

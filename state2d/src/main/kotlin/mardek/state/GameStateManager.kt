@@ -36,7 +36,7 @@ class GameStateManager(private val input: InputManager, var currentState: GameSt
 			val context = GameStateUpdateContext(content.get(), input, soundQueue, timeStep)
 			this.currentState = this.currentState.update(context)
 		} else {
-			this.currentState.updateBeforeContent(input, soundQueue)
+			this.currentState = this.currentState.updateBeforeContent(input, soundQueue)
 		}
 	}
 
