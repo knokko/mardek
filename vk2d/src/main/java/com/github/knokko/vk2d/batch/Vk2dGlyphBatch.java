@@ -8,8 +8,6 @@ import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 
 import java.nio.ByteBuffer;
 
-import static com.github.knokko.boiler.utilities.ColorPacker.*;
-
 public class Vk2dGlyphBatch extends Vk2dBatch {
 
 	private final CommandRecorder recorder;
@@ -28,7 +26,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 			int minX, int minY, int maxX, int maxY,
 			float subpixelX, float subpixelY, float width, float height,
 			int horizontalIntersections, int verticalIntersections,
-			int fillColor, int strokeColor, int backgroundColor
+			int fillColor, int strokeColor, int backgroundColor, float strokeWidth
 	) {
 		if (horizontalIntersections == -1 || verticalIntersections == -1) return;
 		if (maxX < 0 || maxY < 0 || minX >= this.width || minY >= this.height) return;
@@ -43,6 +41,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		vertices.putFloat(width).putFloat(height);
 		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+		vertices.putFloat(strokeWidth);
 
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(subpixelX).putFloat(subpixelY);
@@ -51,6 +50,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		vertices.putFloat(width).putFloat(height);
 		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+		vertices.putFloat(strokeWidth);
 
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
 		vertices.putFloat(subpixelX).putFloat(subpixelY);
@@ -59,6 +59,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		vertices.putFloat(width).putFloat(height);
 		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+		vertices.putFloat(strokeWidth);
 
 
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
@@ -68,6 +69,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		vertices.putFloat(width).putFloat(height);
 		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+		vertices.putFloat(strokeWidth);
 
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
 		vertices.putFloat(subpixelX).putFloat(subpixelY);
@@ -76,6 +78,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		vertices.putFloat(width).putFloat(height);
 		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+		vertices.putFloat(strokeWidth);
 
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(subpixelX).putFloat(subpixelY);
@@ -84,6 +87,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		vertices.putFloat(width).putFloat(height);
 		vertices.putInt(intWidth).putInt(intHeight);
 		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+		vertices.putFloat(strokeWidth);
 	}
 
 	public int determineWidth(Vk2dFont font, float heightA, int glyph) {
@@ -96,41 +100,55 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 
 	public void glyphAt(
 			float baseX, float baseY, Vk2dFont font, float heightA, int glyph,
-			int horizontalIntersections, int verticalIntersections,
-			int fillColor, int strokeColor, int backgroundColor
+			int fillColor, int strokeColor, int backgroundColor, float strokeWidth
 	) {
 		if (font.getNumCurves(glyph) == 0) return;
-		float perfectMinX = baseX + heightA * font.getGlyphMinX(glyph);
-		float perfectMinY = baseY - heightA * font.getGlyphMaxY(glyph);
-		int minX = (int) perfectMinX;
-		int minY = (int) perfectMinY;
-		float perfectMaxY = baseY + heightA * font.getGlyphMinY(glyph);
-		int maxX = minX + determineWidth(font, heightA, glyph) - 1;
-		int maxY = minY + determineHeight(font, heightA, glyph) - 1;
+		float minX = baseX + heightA * font.getGlyphMinX(glyph);
+		float minY = baseY - heightA * font.getGlyphMaxY(glyph);
+		float maxX = baseX + heightA * font.getGlyphMaxX(glyph);
+		float maxY = baseY - heightA * font.getGlyphMinY(glyph);
+		int intMinX = (int) minX - 1;
+		int intMinY = (int) minY - 1;
+		int intBoundX = (int) maxX + 1;
+		int intBoundY = (int) maxY + 1;
+
+		float width = maxX - minX;
+		float height = maxY - minY;
+		int intWidth = intBoundX - intMinX;
+		int intHeight = intBoundY - intMinY;
+		float offsetX = minX - intMinX;
+		float offsetY = intBoundY - maxY;
+
+		int glyphOffsetHorizontal = textBuffer.scratch(
+				recorder, font, glyph, -offsetY, height, intHeight, true
+		);
+		int glyphOffsetVertical = textBuffer.scratch(
+				recorder, font, glyph, -offsetX, width, intWidth, false
+		);
+
 		glyphBetween(
-				minX, minY, maxX, maxY, 0f, 0f, 1f + maxX - minX, 1f + maxY - minY,
-				horizontalIntersections, verticalIntersections,
-				fillColor, strokeColor, backgroundColor
+				intMinX, intMinY, intBoundX - 1, intBoundY - 1, -offsetX, -offsetY, width, height,
+				glyphOffsetHorizontal, glyphOffsetVertical,
+				fillColor, strokeColor, backgroundColor, strokeWidth
 		);
 	}
 
 	public void drawString(
-			String text, float baseX, float baseY, float heightA, Vk2dFont font,
-			int fillColor, int strokeColor
+			String text, float baseX, float baseY, float heightA, Vk2dFont font, int fillColor
 	) {
 		// TODO Add HB support
-		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor);
+		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor);
 	}
 
 	public void drawPrimitiveString(
 			String text, float baseX, float baseY, Vk2dFont font, float heightA, int fillColor
 	) {
-		int strokeColor = multiplyAlpha(fillColor, 0.5f);
-		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor);
+		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, 0, 0f);
 	}
 
 	public void drawPrimitiveString(
-			String text, float baseX, float baseY, Vk2dFont font, float heightA, int fillColor, int strokeColor
+			String text, float baseX, float baseY, Vk2dFont font, float heightA,
+			int fillColor, int strokeColor, float strokeWidth
 	) {
 
 		for (int charIndex = 0; charIndex < text.length(); charIndex++) {
@@ -146,10 +164,10 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 			float maxX = baseX + heightA * font.getGlyphMaxX(glyph);
 			float maxY = baseY - heightA * font.getGlyphMinY(glyph);
 
-			int intMinX = (int) Math.floor(minX);
-			int intMinY = (int) Math.floor(minY);
-			int intBoundX = (int) Math.ceil(maxX);
-			int intBoundY = (int) Math.ceil(maxY);
+			int intMinX = (int) Math.floor(minX - 2.5f * strokeWidth);
+			int intMinY = (int) Math.floor(minY - 0.5f * strokeWidth);
+			int intBoundX = (int) Math.ceil(maxX + 0.5f * strokeWidth);
+			int intBoundY = (int) Math.ceil(maxY + 0.5f * strokeWidth);
 
 			float width = maxX - minX;
 			float height = maxY - minY;
@@ -163,7 +181,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 			glyphBetween(
 					intMinX, intMinY, intBoundX - 1, intBoundY - 1,
 					-offsetX, -offsetY, width, height,
-					horizontalIndex, verticalIndex, fillColor, strokeColor, 0
+					horizontalIndex, verticalIndex, fillColor, strokeColor, 0, strokeWidth
 			);
 			baseX += heightA * font.getGlyphAdvance(glyph);
 		}

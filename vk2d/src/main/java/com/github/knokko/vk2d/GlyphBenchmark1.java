@@ -10,7 +10,6 @@ import com.github.knokko.vk2d.text.Vk2dFont;
 import java.io.InputStream;
 
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
-import static com.github.knokko.boiler.utilities.ColorPacker.rgba;
 
 public class GlyphBenchmark1 extends Vk2dWindow {
 
@@ -56,32 +55,28 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 					glyph = 0;
 					round += 1;
 				}
-				int height = batch.determineHeight(font, heightA, glyph);
-				int glyphOffsetHorizontal = textBuffer.scratch(
-						recorder, font, glyph, 0f, height, height, true
-				);
-				int width = batch.determineWidth(font, heightA, glyph);
-				int glyphOffsetVertical = textBuffer.scratch(
-						recorder, font, glyph, 0f, width, width, false
-				);
 
 				int fillColor;
 				int strokeColor;
 				int backgroundColor = 0;
+				float strokeWidth;
 
 				if (glyph % 3 == round % 3) {
 					fillColor = rgb(255, 255, 255);
 					strokeColor = rgb(255, 0, 0);
+					strokeWidth = 1f;
 				} else if (glyph % 2 == round % 2) {
 					fillColor = rgb(255, 255, 255);
-					strokeColor = rgba(255, 255, 255, 128);
+					strokeColor = 0;
+					strokeWidth = 0f;
 				} else {
 					fillColor = 0;
 					strokeColor = rgb(255, 0, 0);
+					strokeWidth = 1f;
 				}
 				batch.glyphAt(
-						x, y, font, heightA, glyph, glyphOffsetHorizontal, glyphOffsetVertical,
-						fillColor, strokeColor, backgroundColor
+						x, y, font, heightA, glyph,
+						fillColor, strokeColor, backgroundColor, strokeWidth
 				);
 				glyph += 1;
 			}
@@ -95,7 +90,7 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 		if (args.length > 0) {
 			bootstrap("GlyphBenchmark2", 1, Vk2dValidationMode.NONE, GlyphBenchmark2::new);
 		} else {
-			bootstrap("GlyphBenchmark1", 1, Vk2dValidationMode.NONE, GlyphBenchmark1::new);
+			bootstrap("GlyphBenchmark1", 1, Vk2dValidationMode.STRONG, GlyphBenchmark1::new);
 		}
 	}
 }

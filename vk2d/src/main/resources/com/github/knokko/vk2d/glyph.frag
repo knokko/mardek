@@ -9,6 +9,7 @@ layout(location = 5) in flat uvec2 intSize;
 layout(location = 6) in vec4 fillColor;
 layout(location = 7) in vec4 strokeColor;
 layout(location = 8) in vec4 backgroundColor;
+layout(location = 9) in float strokeWidth;
 
 layout(set = 0, binding = 0) readonly buffer IntersectionData {
 	float intersectionData[];
@@ -67,19 +68,27 @@ void main() {
 
 	float horizontalDistance = horizontal.distance * intSize.x;
 	float verticalDistance = vertical.distance * intSize.y;
-	float distance = clamp(min(horizontalDistance, verticalDistance), 0.0, 0.5);
-
+	float originalDistance = min(horizontalDistance, verticalDistance);
+	float distance = clamp(originalDistance, 0.0, 0.5);
 	bool inside = horizontalDistance > verticalDistance ? horizontal.inside : vertical.inside;
-	vec4 mainColor = inside ? fillColor : backgroundColor;
 
-	// Without stroke (assuming strokeColor = 0.5 * (mainColor + otherColor), the desired behavior is:
-	// - inside && distance == 0 -> 0.5 * fillColor + 0.5 * background = 1.0 * strokeColor + 0.0 * fillColor
-	// - outside && distance == 0 -> 0.5 * fillColor + 0.5 * background = 1.0 * strokeColor + 0.0 * background
-	// - inside && distance == 0.25 -> 0.75 * fillColor + 0.25 * background = 0.5 * strokeColor + 0.5 * fillColor
-	// - outside && distance == 0.25 -> 0.25 * fillColor + 0.75 * background = 0.5 * strokeColor + 0.5 * background
-	// - inside && distance >= 0.5 -> 1.0 * fillColor + 0.0 * background = 0.0 * strokeColor + 1.0 * fillColor
-	// - outside && distance >= 0.5 -> 0.0 * fillColor + 1.0 * background = 0.0 * strokeColor + 1.0 * background
-	//
-	// In all cases, it should be equal to (1.0 - 2 * distance) * strokeColor + (2 * distance) * mainColor;
-	outColor = (1.0 - 2.0 * distance) * strokeColor + 2.0 * distance * mainColor;
+	// The desired behavior is:
+	// - inside && distance == 0 -> 0.5 * fillColor + 0.5 * background
+	// - outside && distance == 0 -> 0.5 * fillColor + 0.5 * background
+	// - inside && distance == 0.25 -> 0.75 * fillColor + 0.25 * background
+	// - outside && distance == 0.25 -> 0.25 * fillColor + 0.75 * background
+	// - inside && distance >= 0.5 -> 1.0 * fillColor + 0.0 * background
+	// - outside && distance >= 0.5 -> 0.0 * fillColor + 1.0 * background
+	vec4 mainColor;
+	if (inside) mainColor = (0.5 + distance) * fillColor + (0.5 - distance) * backgroundColor;
+	else mainColor = (0.5 - distance) * fillColor + (0.5 + distance) * backgroundColor;
+
+	float strokeAlpha = 0.0;
+	if (strokeWidth > 0.0) {
+		// The goal is to stroke 0.5 * strokeWidth pixels on each side of the curve
+		if (originalDistance < 0.61 * strokeWidth) strokeAlpha = 1.0;
+		//strokeAlpha = strokeColor.a * (1.0 - clamp(strokeWidth - originalDistance, 0.0, 1.0));
+	}
+
+	outColor = (1.0 - strokeAlpha) * mainColor + vec4(strokeAlpha * strokeColor.rgb, strokeAlpha);
 }

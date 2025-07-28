@@ -14,7 +14,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
-	public static final int VERTEX_SIZE = 60;
+	public static final int VERTEX_SIZE = 64;
 
 	private final long vkPipelineLayout;
 
@@ -24,7 +24,7 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
 		this.vkPipelineLayout = instance.textIntersectionPipelineLayout;
 		try (MemoryStack stack = stackPush()) {
-			var vertexAttributes = VkVertexInputAttributeDescription.calloc(10, stack);
+			var vertexAttributes = VkVertexInputAttributeDescription.calloc(11, stack);
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SFLOAT, 0);
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_SFLOAT, 8);
 			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32G32_SFLOAT, 16);
@@ -35,6 +35,7 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 			vertexAttributes.get(7).set(7, 0, VK_FORMAT_R32_UINT, 48);
 			vertexAttributes.get(8).set(8, 0, VK_FORMAT_R32_UINT, 52);
 			vertexAttributes.get(9).set(9, 0, VK_FORMAT_R32_UINT, 56);
+			vertexAttributes.get(10).set(10, 0, VK_FORMAT_R32_SFLOAT, 60);
 
 			var builder = pipelineBuilder(context);
 			builder.simpleShaderStages(

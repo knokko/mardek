@@ -10,6 +10,7 @@ layout(location = 6) in uvec2 intSize;
 layout(location = 7) in uint rawFillColor;
 layout(location = 8) in uint rawStrokeColor;
 layout(location = 9) in uint rawBackgroundColor;
+layout(location = 10) in float strokeWidth;
 
 layout(location = 0) out vec2 propagateTextureCoordinates;
 layout(location = 1) out vec2 propagateSubpixelOffset;
@@ -20,6 +21,7 @@ layout(location = 5) out flat uvec2 propagateIntSize;
 layout(location = 6) out vec4 fillColor;
 layout(location = 7) out vec4 strokeColor;
 layout(location = 8) out vec4 backgroundColor;
+layout(location = 9) out float propagateStrokeWidth;
 
 #include "decode.glsl"
 
@@ -34,4 +36,5 @@ void main() {
 	fillColor = decodeColor(rawFillColor);
 	strokeColor = decodeColor(rawStrokeColor);
 	backgroundColor = decodeColor(rawBackgroundColor);
+	propagateStrokeWidth = strokeWidth;
 }

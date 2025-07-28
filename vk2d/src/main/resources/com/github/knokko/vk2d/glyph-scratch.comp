@@ -69,7 +69,7 @@ void main() {
 		curveControl = unpack(packed1 >> 10) - wavePosition;
 		curveEnd = unpack(packed1 >> 20) - wavePosition;
 
-		float cutoff = 0.5 * glyphSize / sizeInPixels;
+		float cutoff = 5.5 * glyphSize / sizeInPixels;
 		if (curveStart < -cutoff && curveControl < -cutoff && curveEnd < -cutoff) continue;
 		if (curveStart > cutoff && curveControl > cutoff && curveEnd > cutoff) continue;
 
