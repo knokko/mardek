@@ -3,7 +3,6 @@ package mardek.game
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess
 import com.github.knokko.boiler.window.AcquiredImage
 import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.update.UpdateCounter
@@ -17,12 +16,6 @@ import mardek.renderer.RawRenderContext
 import mardek.renderer.renderGame
 import mardek.state.ExitState
 import mardek.state.GameStateManager
-import org.lwjgl.sdl.SDLEvents.SDL_EVENT_WINDOW_CLOSE_REQUESTED
-import org.lwjgl.sdl.SDLEvents.SDL_PushEvent
-import org.lwjgl.sdl.SDLVideo.SDL_GetWindowID
-import org.lwjgl.sdl.SDL_Event
-import org.lwjgl.sdl.SDL_WindowEvent
-import org.lwjgl.system.MemoryStack
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
@@ -63,7 +56,7 @@ class MardekWindow(
 		if (totalFrames == 10L) launchState()
 
 		synchronized(gameState.lock()) {
-			if (gameState.currentState is ExitState) requestQuit(recorder.stack) else {
+			if (gameState.currentState is ExitState) window.requestClose() else {
 				// TODO Propagate content
 				val context = RawRenderContext(
 					frame, pipelines, textBuffer, recorder,
@@ -118,13 +111,5 @@ class MardekWindow(
 			audioLoop.run()
 			audioUpdater.destroy()
 		}.start()
-	}
-
-	private fun requestQuit(stack: MemoryStack) {
-		// TODO Add this to vk-boiler
-		val quitEvent = SDL_Event.calloc(stack)
-		quitEvent.type(SDL_EVENT_WINDOW_CLOSE_REQUESTED)
-		SDL_WindowEvent.nwindowID(quitEvent.address(), SDL_GetWindowID(window.handle))
-		assertSdlSuccess(SDL_PushEvent(quitEvent), "PushEvent")
 	}
 }

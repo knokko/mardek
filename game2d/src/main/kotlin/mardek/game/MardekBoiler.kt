@@ -35,6 +35,7 @@ fun createBoiler(args: Array<String>): BoilerInstance {
 	boilerBuilder.useSDL(SDL_INIT_VIDEO or SDL_INIT_GAMEPAD)
 	boilerBuilder.requiredFeatures10("textureCompressionBc", VkPhysicalDeviceFeatures::textureCompressionBC)
 	boilerBuilder.featurePicker10 { stack, supportedFeatures, toEnable -> toEnable.textureCompressionBC(true) }
+	boilerBuilder.doNotUseVma()
 	if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()
 	if (args.contains("api-dump")) boilerBuilder.apiDump()
 	if (args.contains("integrated")) boilerBuilder.physicalDeviceSelector(SimpleDeviceSelector(

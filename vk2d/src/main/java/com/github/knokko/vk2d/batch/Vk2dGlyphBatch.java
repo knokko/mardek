@@ -125,8 +125,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 	public void drawPrimitiveString(
 			String text, float baseX, float baseY, Vk2dFont font, float heightA, int fillColor
 	) {
-		// TODO Add changeAlpha method to vk-boiler
-		int strokeColor = rgba(red(fillColor), green(fillColor), blue(fillColor), (alpha(fillColor) & 0xFF) / 2);
+		int strokeColor = multiplyAlpha(fillColor, 0.5f);
 		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor);
 	}
 

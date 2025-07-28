@@ -3,6 +3,7 @@ package com.github.knokko.vk2d.resource;
 import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.VkbBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
+import com.github.knokko.boiler.descriptors.BulkDescriptorUpdater;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
 import com.github.knokko.boiler.descriptors.DescriptorUpdater;
 import com.github.knokko.boiler.images.ImageBuilder;
@@ -182,8 +183,7 @@ public class Vk2dResourceLoader {
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
 		));
 
-		if (images.length > 0 && instance.imageDescriptorSetLayout != null) {
-			// TODO The if (images.length > 0) should be unneeded. Fix in vk-boiler
+		if (instance.imageDescriptorSetLayout != null) {
 			this.imageDescriptors = descriptors.addMultiple(instance.imageDescriptorSetLayout, images.length);
 		} else {
 			this.imageDescriptors = new long[0];
@@ -202,35 +202,24 @@ public class Vk2dResourceLoader {
 		this.imageStagingBuffers = null;
 		this.fakeStagingBuffer = null;
 
+		BulkDescriptorUpdater updater = new BulkDescriptorUpdater(
+				instance.boiler, null,
+				2 + images.length, 2, images.length
+		);
 		for (int index = 0; index < images.length; index++) {
 			if (imageDescriptors.length == 0) break;
-			try (MemoryStack stack = stackPush()) {
-				// TODO Add bulk descriptor update to vk-boiler
-				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
-				long sampler = pixelatedImages[index] ? instance.pixelatedSampler : instance.smoothSampler;
-				updater.writeImage(
-						0, imageDescriptors[index], 0,
-						images[index].vkImageView, sampler
-				);
-				updater.update(instance.boiler);
-			}
+			long sampler = pixelatedImages[index] ? instance.pixelatedSampler : instance.smoothSampler;
+			updater.writeImage(imageDescriptors[index], 0, images[index].vkImageView, sampler);
 		}
 
 		if (fakeImageDescriptor != 0L) {
-			try (MemoryStack stack = stackPush()) {
-				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
-				updater.writeStorageBuffer(0, fakeImageDescriptor, 0, fakeImages);
-				updater.update(instance.boiler);
-			}
+			updater.writeStorageBuffer(fakeImageDescriptor, 0, fakeImages);
 		}
 
 		if (fontDescriptor != 0L) {
-			try (MemoryStack stack = stackPush()) {
-				DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
-				updater.writeStorageBuffer(0, fontDescriptor, 0, fontBuffer);
-				updater.update(instance.boiler);
-			}
+			updater.writeStorageBuffer(fontDescriptor, 0, fontBuffer);
 		}
+		updater.finish();
 
 		Vk2dFont[] bundleFonts = new Vk2dFont[fonts.length];
 		for (int index = 0; index < fonts.length; index++) {

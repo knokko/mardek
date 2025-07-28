@@ -7,7 +7,6 @@ dependencies {
 	implementation "com.github.knokko:vk-boiler:$boilerVersion"
 	implementation "org.lwjgl:lwjgl"
 	implementation "org.lwjgl:lwjgl-vulkan"
-	implementation "org.lwjgl:lwjgl-vma"
 
 	compileOnly "org.lwjgl:lwjgl-freetype"
 	compileOnly "org.lwjgl:lwjgl-harfbuzz"
@@ -22,7 +21,7 @@ dependencies {
 	}
 
 	project.ext.myRuntimeDependencies = project.ext.lwjglNatives.collectMany {
-		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-sdl::$it", "org.lwjgl:lwjgl-vma::$it"]
+		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-sdl::$it"]
 		if (it.startsWith("natives-macos")) result.add("org.lwjgl:lwjgl-vulkan::$it")
 		result
 	}
@@ -30,7 +29,6 @@ dependencies {
 	for (natives in project.ext.lwjglNatives) testRuntimeOnly "org.lwjgl:lwjgl-freetype::$natives"
 }
 
-// TODO Make it possible to skip VMA in vk-boiler
 shadowJar {
 	manifest {
 		attributes ("Main-Class": "com.github.knokko.vk2d.GlyphBenchmark1")
@@ -67,10 +65,10 @@ tasks.register("proguard", ProGuardTask) {
 	dontwarn "com.github.knokko.boiler.builders.*"
 	dontwarn "com.github.knokko.boiler.window.*"
 
-	// We don't use VMA TODO I wish
-//	dontwarn "com.github.knokko.boiler.BoilerInstance"
-//	dontwarn "com.github.knokko.boiler.memory.MemoryTypeClaims"
-//	dontwarn "com.github.knokko.boiler.memory.MemoryBlock"
+	// We don't use VMA
+	dontwarn "com.github.knokko.boiler.BoilerInstance"
+	dontwarn "com.github.knokko.boiler.memory.MemoryTypeClaims"
+	dontwarn "com.github.knokko.boiler.memory.MemoryBlock"
 
 	// We don't use JOML
 	dontwarn "com.github.knokko.boiler.culling.FrustumCuller"

@@ -199,7 +199,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 				new WindowBuilder(
 						1200, 800, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
 				).sdlFlags(SDL_WINDOW_VULKAN | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE).hideUntilFirstFrame()
-		).useSDL().build();
+		).useSDL().doNotUseVma().build();
 
 		WindowEventLoop eventLoop = new WindowEventLoop();
 		eventLoop.addWindow(createRenderer.apply(boiler.window()));

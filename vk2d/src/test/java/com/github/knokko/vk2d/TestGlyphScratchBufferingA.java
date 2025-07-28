@@ -100,32 +100,29 @@ public class TestGlyphScratchBufferingA {
 			assertEquals(maxIntersections, 2 * font.getNumCurves(glyph));
 		}
 
-		// y 0 has 0 intersections
-		// y 1 has 4 intersections
-		assertEquals(0, info.get(0));
-		assertEquals(2 * numCurves, info.get(1));
+		// y 0 has 4 intersections
 		assertEquals(4, info.get(2));
-		assertEquals(0.001f, intersections.get(2 * numCurves), 0.001f);
-		assertEquals(0.116f, intersections.get(2 * numCurves + 1), 0.001f);
-		assertEquals(0.883f, intersections.get(2 * numCurves + 2), 0.001f);
-		assertEquals(0.995f, intersections.get(2 * numCurves + 3), 0.001f);
+		assertEquals(2 * numCurves, info.get(1));
+		assertEquals(0.001f, intersections.get(), 0.001f);
+		assertEquals(0.116f, intersections.get(1), 0.001f);
+		assertEquals(0.883f, intersections.get(2), 0.001f);
+		assertEquals(0.995f, intersections.get(3), 0.001f);
 
 		// y 99 has 2 intersections
-		assertEquals(2, info.get(196));
-		assertEquals(2 * numCurves, info.get(197));
-		assertEquals(0, info.get(198));
-		assertEquals(0.453f, intersections.get(2 * 98 * numCurves), 0.001f);
-		assertEquals(0.546f, intersections.get(2 * 98 * numCurves + 1), 0.001f);
+		assertEquals(2, info.get(198));
+		assertEquals(2 * numCurves, info.get(199));
+		assertEquals(0.453f, intersections.get(2 * 99 * numCurves), 0.001f);
+		assertEquals(0.546f, intersections.get(2 * 99 * numCurves + 1), 0.001f);
 
 		commands.submit("GlyphTransfer", textBuffer::transfer).awaitCompletion();
 
-		assertEquals(356, nextIntersectionIndexBuffer.intBuffer().get());
+		assertEquals(360, nextIntersectionIndexBuffer.intBuffer().get());
 		info = infoBuffer.intBuffer();
 		intersections = intersectionBuffer.floatBuffer();
 
 		assertEquals(0, info.get(0));
-		assertEquals(0, info.get(1));
-		assertEquals(0, info.get(2));
+		assertEquals(4, info.get(1));
+		assertEquals(4, info.get(2));
 		assertEquals(4, info.get(3));
 		assertEquals(0.001f, intersections.get(0), 0.001f);
 		assertEquals(0.116f, intersections.get(1), 0.001f);
