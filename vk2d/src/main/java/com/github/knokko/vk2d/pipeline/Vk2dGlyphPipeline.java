@@ -39,8 +39,8 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
 			var builder = pipelineBuilder(context);
 			builder.simpleShaderStages(
-					"Glyph", "com/github/knokko/vk2d/",
-					"glyph.vert.spv", "glyph.frag.spv"
+					"Glyph", "com/github/knokko/vk2d/glyph/",
+					"basic.vert.spv", "basic.frag.spv"
 			);
 			simpleVertexInput(builder, stack, vertexAttributes);
 			builder.ciPipeline.layout(instance.textIntersectionPipelineLayout);

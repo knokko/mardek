@@ -24,7 +24,7 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 	private static final List<String> SHADER_CODE = new ArrayList<>();
 
 	static {
-		InputStream input = GlyphBenchmark2.class.getResourceAsStream("glyph.frag");
+		InputStream input = GlyphBenchmark2.class.getResourceAsStream("glyph/basic.frag");
 		assert input != null;
 		Scanner scanner = new Scanner(input);
 		while (scanner.hasNextLine()) {

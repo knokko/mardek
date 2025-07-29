@@ -111,12 +111,12 @@ public class Vk2dInstance {
 
 				this.textScratchPipeline = boiler.pipelines.createComputePipeline(
 						textScratchPipelineLayout,
-						"com/github/knokko/vk2d/glyph-scratch.comp.spv",
+						"com/github/knokko/vk2d/glyph/scratch.comp.spv",
 						"Vk2dTextScratchPipeline"
 				);
 				this.textTransferPipeline = boiler.pipelines.createComputePipeline(
 						textTransferPipelineLayout,
-						"com/github/knokko/vk2d/glyph-transfer.comp.spv",
+						"com/github/knokko/vk2d/glyph/transfer.comp.spv",
 						"Vk2dTextTransferPipeline"
 				);
 			} else {
