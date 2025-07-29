@@ -17,6 +17,7 @@ import java.util.Scanner;
 import static com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess;
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
 import static java.lang.Math.max;
+import static org.lwjgl.sdl.SDLKeycode.*;
 
 public class GlyphBenchmark2 extends Vk2dWindow {
 
@@ -38,6 +39,7 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 	private boolean shiftDown, controlDown;
 	private float offsetX, offsetY;
 	private int heightA = 12;
+	private int rawStrokeWidth = 0;
 	private int fontIndex = 0;
 
 	public GlyphBenchmark2(VkbWindow window) {
@@ -84,17 +86,22 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 
 			if (type == SDLEvents.SDL_EVENT_KEY_DOWN || type == SDLEvents.SDL_EVENT_KEY_UP) {
 				SDL_KeyboardEvent event = SDL_KeyboardEvent.create(rawEvent);
-				if (event.key() == SDLKeycode.SDLK_LSHIFT || event.key() == SDLKeycode.SDLK_RSHIFT) {
+				if (event.key() == SDLK_LSHIFT || event.key() == SDLK_RSHIFT) {
 					shiftDown = event.down();
 				}
-				if (event.key() == SDLKeycode.SDLK_LCTRL || event.key() == SDLKeycode.SDLK_RCTRL) {
+				if (event.key() == SDLK_LCTRL || event.key() == SDLK_RCTRL) {
 					controlDown = event.down();
 				}
-				if (event.key() == SDLKeycode.SDLK_F && event.down()) {
+				if (event.key() == SDLK_F && event.down()) {
 					if (shiftDown) {
 						fontIndex -= 1;
 						if (fontIndex < 0) fontIndex += resources.getNumFonts();
 					} else fontIndex = (fontIndex + 1) % resources.getNumFonts();
+				}
+				if (event.key() == SDLK_S && event.down()) {
+					if (shiftDown) rawStrokeWidth -= 1;
+					else rawStrokeWidth += 1;
+					System.out.println("new stroke width is " + 0.1f * rawStrokeWidth);
 				}
 			}
 			return false;
@@ -118,7 +125,10 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 		int baseY = lineHeight + (int) offsetY;
 		for (String line : SHADER_CODE) {
 			float baseX = 50 + offsetX;
-			batch.drawPrimitiveString(line, baseX, baseY, font, heightA, rgb(255, 255, 255));
+			batch.drawPrimitiveString(
+					line, baseX, baseY, font, heightA, rgb(255, 255, 255),
+					rgb(0, 0, 255), rawStrokeWidth * 0.1f
+			);
 			baseY += lineHeight;
 		}
 	}

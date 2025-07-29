@@ -39,7 +39,7 @@ public class GlyphOffsetPlayground {
 	public static void main(String[] args) throws IOException {
 		BoilerInstance boiler = new BoilerBuilder(
 				VK_API_VERSION_1_3, "GlyphOffsetPlayground", 1
-		).validation().forbidValidationErrors().enableDynamicRendering().build();
+		).validation().forbidValidationErrors().doNotUseVma().enableDynamicRendering().build();
 
 		Vk2dConfig config = new Vk2dConfig();
 		config.color = true;

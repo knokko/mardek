@@ -57,6 +57,43 @@ float recoverWavePosition(uint thisWave, float subpixelOffset, float size) {
 	return (thisWave + 0.5 + subpixelOffset) / size;
 }
 
+float determineStrokeIntensity(float originalDistance) {
+	// DESIRED BEHAVIOR:
+	// When strokeWidth = 1.0:
+	// - distance = 1.0 & 0.0 & 1.0 -> alpha = 0.0 & 1.0 & 0.0
+	// - distance = 1.1 & 0.1 & 0.9 -> alpha = 0.0 & 0.9 & 0.1
+	// - distance = 0.7 & 0.3 & 1.3 -> alpha = 0.3 & 0.7 & 0.0
+	// formula: alpha = 1.0 - distance
+
+	// When strokeWidth = 0.5:
+	// - distance = 1.0 & 0.0 & 1.0 -> alpha = 0.0 & 0.5 & 0.0
+	// - distance = 1.1 & 0.1 & 0.9 -> alpha = 0.0 & 0.45 & 0.05
+	// - distance = 0.7 & 0.3 & 1.3 -> alpha = 0.15 & 0.35 & 0.0
+	// formula: alpha = 0.5 - distance * 0.5
+
+	// When strokeWidth = 0.1:
+	// - distance = 1.0 & 0.0 & 1.0 -> alpha = 0.0 & 0.1 & 0.0
+	// - distance = 1.1 & 0.1 & 0.9 -> alpha = 0.0 & 0.09 & 0.01
+	// - distance = 0.7 & 0.3 & 1.3 -> alpha = 0.07 & 0.03 & 0.0
+	// formula: alpha = 0.1 - distance * 0.1
+
+	// When strokeWidth = 2.0:
+	// - distance = 1.0 & 0.0 & 1.0 -> alpha = 0.5 & 1.0 & 0.5
+	// - distance = 1.1 & 0.1 & 0.9 -> alpha = 0.4 & 1.0 & 0.6
+	// - distance = 0.7 & 0.3 & 1.3 -> alpha = 0.8 & 1.0 & 0.2
+	// - distance = 1.5 & 0.5 & 0.5 -> alpha = 0.0 & 1.0 & 1.0
+	// formula: alpha = 1.5 - distance
+
+	// When strokeWidth = 3.0:
+	// - distance = 2.0 & 1.0 & 0.0 & 1.0 -> alpha = 0.0 & 1.0 & 1.0 & 1.0
+	// - distance = 1.1 & 0.1 & 0.9 & 1.9 -> alpha = 0.9 & 1.0 & 1.0 & 0.1
+	// - distance = 1.7 & 0.7 & 0.3 & 1.3 -> alpha = 0.3 & 1.0 & 1.0 & 0.7
+	// formula: alpha = 2.0 - distance
+
+	if (strokeWidth >= 1.0) return clamp(0.5 + 0.5 * strokeWidth - originalDistance, 0.0, 1.0);
+	else return clamp(strokeWidth - strokeWidth * originalDistance, 0.0, 1.0);
+}
+
 void main() {
 	uint x = uint(intSize.x * textureCoordinates.x);
 	uint y = uint(intSize.y * textureCoordinates.y);
@@ -66,8 +103,8 @@ void main() {
 	WaveIntersections horizontal = wave(horizontalInfoOffset, y, waveX);
 	WaveIntersections vertical = wave(verticalInfoOffset, x, waveY);
 
-	float horizontalDistance = horizontal.distance * intSize.x;
-	float verticalDistance = vertical.distance * intSize.y;
+	float horizontalDistance = horizontal.distance * size.x;
+	float verticalDistance = vertical.distance * size.y;
 	float originalDistance = min(horizontalDistance, verticalDistance);
 	float distance = clamp(originalDistance, 0.0, 0.5);
 	bool inside = horizontalDistance > verticalDistance ? horizontal.inside : vertical.inside;
@@ -83,12 +120,6 @@ void main() {
 	if (inside) mainColor = (0.5 + distance) * fillColor + (0.5 - distance) * backgroundColor;
 	else mainColor = (0.5 - distance) * fillColor + (0.5 + distance) * backgroundColor;
 
-	float strokeAlpha = 0.0;
-	if (strokeWidth > 0.0) {
-		// The goal is to stroke 0.5 * strokeWidth pixels on each side of the curve
-		if (originalDistance < 0.61 * strokeWidth) strokeAlpha = 1.0;
-		//strokeAlpha = strokeColor.a * (1.0 - clamp(strokeWidth - originalDistance, 0.0, 1.0));
-	}
-
+	float strokeAlpha = strokeColor.a * determineStrokeIntensity(originalDistance);
 	outColor = (1.0 - strokeAlpha) * mainColor + vec4(strokeAlpha * strokeColor.rgb, strokeAlpha);
 }
