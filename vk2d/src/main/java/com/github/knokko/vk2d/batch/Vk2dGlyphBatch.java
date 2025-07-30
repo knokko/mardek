@@ -100,8 +100,24 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 	public void drawString(
 			String text, float baseX, float baseY, float heightA, Vk2dFont font, int fillColor
 	) {
+		drawString(text, baseX, baseY, heightA, font, fillColor, 0, 0f);
+	}
+
+	public void drawString(
+			String text, float baseX, float baseY, float heightA,
+			Vk2dFont font, int fillColor, int strokeColor, float strokeWidth
+	) {
 		// TODO Add HB support
-		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor);
+		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor, strokeWidth);
+	}
+
+	public void drawShadowedString(
+			String text, float baseX, float baseY, float heightA,
+			Vk2dFont font, int fillColor, int strokeColor, float strokeWidth,
+			int shadowColor, float shadowOffsetX, float shadowOffsetY
+	) {
+		drawString(text, baseX + shadowOffsetX, baseY + shadowOffsetY, heightA, font, shadowColor);
+		drawString(text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth);
 	}
 
 	public void drawPrimitiveString(

@@ -59,7 +59,7 @@ class MardekWindow(
 			if (gameState.currentState is ExitState) window.requestClose() else {
 				// TODO Propagate content
 				val context = RawRenderContext(
-					frame, pipelines, textBuffer, recorder,
+					frame, pipelines, textBuffer, perFrameDescriptorSet, recorder,
 					null, gameState, resources
 				)
 				renderGame(context)

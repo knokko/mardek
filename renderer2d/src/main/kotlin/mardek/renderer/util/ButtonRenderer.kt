@@ -79,12 +79,13 @@ fun renderButton(
 	val upperTextColor = srgbToLinear(rgb(248, 232, 194))
 	val lowerTextColor = srgbToLinear(rgb(238, 203, 127))
 
-	val outlineColors = if (showTextOutline) intArrayOf(srgbToLinear(rgb(112, 64, 33)))
-	else IntArray(0)
+	val outlineColor = srgbToLinear(rgb(112, 64, 33))
+	val outlineWidth = if (showTextOutline) 0.03f * textHeight else 0f
 
-	glyphBatch.drawString(
-		text, textOffsetX.toFloat(), textBaseY.toFloat(),
-		textHeight.toFloat(), font, lowerTextColor, outlineColors[0]
+	glyphBatch.drawPrimitiveString(
+		text, textOffsetX.toFloat(), textBaseY.toFloat(), font,
+		textHeight.toFloat(), lowerTextColor,
+		outlineColor, outlineWidth
 	)
 //	uiRenderer.drawString(
 //		font, text, lowerTextColor, outlineColors, textOffsetX, rect.minY, rect.maxX, rect.maxY,

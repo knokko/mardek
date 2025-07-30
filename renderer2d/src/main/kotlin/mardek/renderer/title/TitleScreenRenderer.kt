@@ -2,6 +2,8 @@ package mardek.renderer.title
 
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
+import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
@@ -32,22 +34,28 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 		context.titleScreenBundle.getImageDescriptor(info.background.index)
 	)
 
-	run {
-		val renderHeight = region.height / 5
-		imageBatch.simple(
-			region.minX + region.height / 20, region.minY + region.height / 4 - renderHeight,
-			region.minX + region.height / 20 + renderHeight * info.title.width / info.title.height - 1,
-			region.minY + region.height / 4,
-			context.titleScreenBundle.getImageDescriptor(info.title.index)
-		)
-	}
-
 	val colorBatch = context.pipelines.color.addBatch(context.frame, 100)
-	val ovalBatch = context.pipelines.oval.addBatch(context.frame, 48)
+	val ovalBatch = context.pipelines.oval.addBatch(
+		context.frame, context.perFrameDescriptorSet, 48
+	)
 
 	val buttonFont = context.titleScreenBundle.getFont(info.largeFont.index)
+	val simpleFont = context.titleScreenBundle.getFont(info.smallFont.index)
+	// TODO Ditch simpleFont entirely?
 	val glyphBatch = context.pipelines.text.addBatch(
-		context.frame, 100, context.recorder, context.textBuffer
+		context.frame, 100, context.recorder,
+		context.textBuffer, context.perFrameDescriptorSet
+	)
+
+	glyphBatch.drawString(
+		"MARDEK", region.minX + region.height * 0.09f, region.minY + region.height * 0.25f,
+		region.height * 0.18f, buttonFont, srgbToLinear(rgb(155, 80, 45))
+	)
+	glyphBatch.drawShadowedString(
+		"Kotlin Edition", region.minX + region.height * 0.14f, region.minY + region.height * 0.38f,
+		region.height * 0.07f, buttonFont, srgbToLinear(rgb(242, 183, 113)),
+		0, 0f, srgbToLinear(rgb(91, 63, 30)),
+		region.height * 0.005f, region.height * 0.005f
 	)
 
 	state.newGameButton = renderButton(

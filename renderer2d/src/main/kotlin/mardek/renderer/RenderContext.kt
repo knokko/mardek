@@ -14,6 +14,7 @@ class RawRenderContext(
 	val frame: Vk2dFrame,
 	val pipelines: Vk2dPipelines,
 	val textBuffer: Vk2dTextBuffer,
+	val perFrameDescriptorSet: Long,
 	val recorder: CommandRecorder,
 	val content: Content?,
 	val state: GameStateManager,
