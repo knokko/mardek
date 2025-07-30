@@ -7,15 +7,16 @@ layout(location = 1) in flat GlyphInfo glyph;
 
 layout(location = 0) out vec4 outColor;
 
+#include "../decode.glsl"
 #include "intersection.glsl"
 #include "color.glsl"
 
 void main() {
 	WaveIntersection intersection = closestIntersection(glyph);
 	vec4 mainColor = determineMainColor(
-		intersection.inside, intersection.distance, glyph.fillColor, glyph.backgroundColor
+		intersection.inside, intersection.distance, decodeColor(glyph.fillColor), decodeColor(glyph.backgroundColor)
 	);
 	outColor = mixStrokeColor(
-		mainColor, glyph.strokeColor, determineStrokeIntensity(intersection.distance, glyph.strokeWidth)
+		mainColor, decodeColor(glyph.strokeColor), determineStrokeIntensity(intersection.distance, glyph.strokeWidth)
 	);
 }

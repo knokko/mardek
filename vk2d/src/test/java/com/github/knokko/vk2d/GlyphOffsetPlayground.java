@@ -6,6 +6,7 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.builders.BoilerBuilder;
 import com.github.knokko.boiler.commands.SingleTimeCommands;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
+import com.github.knokko.boiler.descriptors.DescriptorUpdater;
 import com.github.knokko.boiler.images.ImageBuilder;
 import com.github.knokko.boiler.images.VkbImage;
 import com.github.knokko.boiler.memory.MemoryBlock;
@@ -68,9 +69,10 @@ public class GlyphOffsetPlayground {
 		);
 		PerFrameBuffer perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
 				5000L, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
-				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
 		));
 		DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
+		long[] perFrameDescriptorSet = descriptors.addMultiple(instance.bufferDescriptorSetLayout, 1);
 		Vk2dTextBuffer textBuffer = new Vk2dTextBuffer(instance, combiner, descriptors, 1);
 		MemoryBlock memory = combiner.build(false);
 		loader.prepareStaging();
@@ -81,13 +83,20 @@ public class GlyphOffsetPlayground {
 		Vk2dResourceBundle resources = loader.finish();
 		Vk2dFont font = resources.getFont(0);
 		textBuffer.initializeDescriptorSets();
+		try (MemoryStack stack = stackPush()) {
+			DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
+			updater.writeStorageBuffer(0, perFrameDescriptorSet[0], 0, perFrameBuffer.buffer);
+			updater.update(boiler);
+		}
 
 		Vk2dFrame frame = new Vk2dFrame(perFrameBuffer, targetImage.width, targetImage.height);
 		textBuffer.startFrame();
 		perFrameBuffer.startFrame(1);
 		SingleTimeCommands.submit(boiler, "GlyphOffsets", recorder -> {
 			int heightA = 14;
-			Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 16, recorder, textBuffer);
+			Vk2dGlyphBatch batch = pipelines.text.addBatch(
+					frame, 16, recorder, textBuffer, perFrameDescriptorSet[0]
+			);
 			Vk2dColorBatch colorBatch = pipelines.color.addBatch(frame, 6);
 
 			batch.drawPrimitiveString(

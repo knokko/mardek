@@ -24,7 +24,7 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 	private static final List<String> SHADER_CODE = new ArrayList<>();
 
 	static {
-		InputStream input = GlyphBenchmark2.class.getResourceAsStream("glyph/basic.frag");
+		InputStream input = GlyphBenchmark2.class.getResourceAsStream("glyph/scratch.comp");
 		assert input != null;
 		Scanner scanner = new Scanner(input);
 		while (scanner.hasNextLine()) {
@@ -120,7 +120,7 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 
 		int lineHeight = 11 * heightA / 6;
 		Vk2dFont font = resources.getFont(fontIndex);
-		Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 15_000, recorder, textBuffer);
+		Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 15_000, recorder, textBuffer, perFrameDescriptorSet);
 
 		int baseY = lineHeight + (int) offsetY;
 		for (String line : SHADER_CODE) {

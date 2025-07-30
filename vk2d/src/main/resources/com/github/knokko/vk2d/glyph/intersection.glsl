@@ -43,16 +43,16 @@ float recoverWavePosition(uint thisWave, float subpixelOffset, float size) {
 }
 
 WaveIntersection closestIntersection(GlyphInfo glyph) {
-	uint x = uint(glyph.intRegionSize.x * textureCoordinates.x);
-	uint y = uint(glyph.intRegionSize.y * textureCoordinates.y);
+	uint x = uint(glyph.intRenderWidth * textureCoordinates.x);
+	uint y = uint(glyph.intRenderHeight * textureCoordinates.y);
 
-	float waveX = recoverWavePosition(x, glyph.subpixelOffset.x, glyph.renderRegionSize.x);
-	float waveY = recoverWavePosition(y, glyph.subpixelOffset.y, glyph.renderRegionSize.y);
+	float waveX = recoverWavePosition(x, glyph.subpixelX, glyph.renderWidth);
+	float waveY = recoverWavePosition(y, glyph.subpixelY, glyph.renderHeight);
 	WaveIntersection horizontal = wave(glyph.horizontalInfoOffset, y, waveX);
 	WaveIntersection vertical = wave(glyph.verticalInfoOffset, x, waveY);
 
-	float horizontalDistance = horizontal.distance * glyph.renderRegionSize.x;
-	float verticalDistance = vertical.distance * glyph.renderRegionSize.y;
+	float horizontalDistance = horizontal.distance * glyph.renderWidth;
+	float verticalDistance = vertical.distance * glyph.renderHeight;
 
 	WaveIntersection result;
 	result.distance = min(horizontalDistance, verticalDistance);

@@ -43,7 +43,9 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 		int heightA = 5;
 		Vk2dFont font0 = resources.getFont(0);
 		Vk2dFont font1 = resources.getFont(1);
-		Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 10_000, recorder, textBuffer);
+		Vk2dGlyphBatch batch = pipelines.text.addBatch(
+				frame, 10_000, recorder, textBuffer, perFrameDescriptorSet
+		);
 
 		int cellSize = 3 * heightA / 2;
 		int round = 0;

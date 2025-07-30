@@ -1,35 +1,48 @@
 #version 450
 
-layout(location = 0) in vec2 position;
-layout(location = 1) in vec2 subpixelOffset;
-layout(location = 2) in vec2 textureCoordinates;
-layout(location = 3) in uint horizontalIntersectionsIndex;
-layout(location = 4) in uint verticalIntersectionsIndex;
-layout(location = 5) in vec2 size;
-layout(location = 6) in uvec2 intSize;
-layout(location = 7) in uint rawFillColor;
-layout(location = 8) in uint rawStrokeColor;
-layout(location = 9) in uint rawBackgroundColor;
-layout(location = 10) in float strokeWidth;
+layout(location = 0) in uint glyphIndex;
 
 #include "info.glsl"
 
-layout(location = 0) out vec2 propagateTextureCoordinates;
+layout(set = 1, binding = 0) readonly buffer GlyphData {
+	GlyphInfo glyphs[];
+};
+
+layout(push_constant) uniform PushConstants {
+	uvec2 viewportSize;
+};
+
+layout(location = 0) out vec2 textureCoordinates;
 layout(location = 1) out flat GlyphInfo glyph;
 
 #include "../decode.glsl"
 
 void main() {
+	glyph = glyphs[glyphIndex];
+
+	uint minX = glyph.rawMinPosition & 0xFFFF;
+	uint minY = (glyph.rawMinPosition >> 16) & 0xFFFF;
+
+	uint vertexX;
+	uint vertexY;
+
+	uint rawVertex = gl_VertexIndex % 6;
+	if (rawVertex >= 1 && rawVertex <= 3) {
+		textureCoordinates.x = 1.0;
+		vertexX = minX + glyph.intRenderWidth;
+	} else {
+		textureCoordinates.x = 0.0;
+		vertexX = minX;
+	}
+
+	if (rawVertex >= 2 && rawVertex <= 4) {
+		textureCoordinates.y = 1.0;
+		vertexY = minY;
+	} else {
+		textureCoordinates.y = 0.0;
+		vertexY = minY + glyph.intRenderHeight;
+	}
+
+	vec2 position = 2.0 * vec2(vertexX, vertexY) / viewportSize - vec2(1.0);
 	gl_Position = vec4(position, 0.0, 1.0);
-	propagateTextureCoordinates = textureCoordinates;
-	glyph.subpixelOffset = subpixelOffset;
-	glyph.horizontalInfoOffset = horizontalIntersectionsIndex;
-	glyph.verticalInfoOffset = verticalIntersectionsIndex;
-	glyph.renderRegionSize = size;
-	glyph.intRegionSize = intSize;
-	// TODO Decode in fragment shader?
-	glyph.fillColor = decodeColor(rawFillColor);
-	glyph.strokeColor = decodeColor(rawStrokeColor);
-	glyph.backgroundColor = decodeColor(rawBackgroundColor);
-	glyph.strokeWidth = strokeWidth;
 }

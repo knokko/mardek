@@ -1,11 +1,10 @@
 struct GlyphInfo {
-	vec2 subpixelOffset;
+	uint rawMinPosition;
+	float subpixelX, subpixelY;
 	uint horizontalInfoOffset;
 	uint verticalInfoOffset;
-	vec2 renderRegionSize;
-	uvec2 intRegionSize;
-	vec4 fillColor;
-	vec4 strokeColor;
-	vec4 backgroundColor;
+	float renderWidth, renderHeight;
+	uint intRenderWidth, intRenderHeight;
+	uint fillColor, strokeColor, backgroundColor;
 	float strokeWidth;
 };

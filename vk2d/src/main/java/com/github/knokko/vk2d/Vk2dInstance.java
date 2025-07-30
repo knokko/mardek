@@ -51,23 +51,27 @@ public class Vk2dInstance {
 				this.imageDescriptorSetLayout = null;
 			}
 
-			if (config.shouldCreateBufferPipelineLayout()) {
+			if (config.shouldCreateBufferPipelineLayout() || config.text) {
 				DescriptorSetLayoutBuilder builder = new DescriptorSetLayoutBuilder(stack, 1);
 				builder.set(
 						0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 						VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT
 				);
 				this.bufferDescriptorSetLayout = builder.build(boiler, "Vk2dBufferDescriptorLayout");
+			} else {
+				this.bufferDescriptorSetLayout = null;
+			}
 
+			if (config.shouldCreateBufferPipelineLayout()) {
 				VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
 				pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8);
 
+				assert bufferDescriptorSetLayout != null;
 				this.kimPipelineLayout = boiler.pipelines.createLayout(
 						pushConstants, "Vk2dKimPipelineLayout",
 						bufferDescriptorSetLayout.vkDescriptorSetLayout
 				);
 			} else {
-				this.bufferDescriptorSetLayout = null;
 				this.kimPipelineLayout = VK_NULL_HANDLE;
 			}
 
@@ -107,9 +111,12 @@ public class Vk2dInstance {
 						pushConstants, "Vk2dTextTransferPipelineLayout",
 						textTransferDescriptorLayout.vkDescriptorSetLayout
 				);
+				pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8);
+				assert bufferDescriptorSetLayout != null;
 				this.textIntersectionPipelineLayout = boiler.pipelines.createLayout(
-						null, "Vk2dIntersectionPipelineLayout",
-						textIntersectionDescriptorLayout.vkDescriptorSetLayout
+						pushConstants, "Vk2dIntersectionPipelineLayout",
+						textIntersectionDescriptorLayout.vkDescriptorSetLayout,
+						bufferDescriptorSetLayout.vkDescriptorSetLayout
 				);
 
 				this.textScratchPipeline = boiler.pipelines.createComputePipeline(

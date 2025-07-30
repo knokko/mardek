@@ -16,9 +16,12 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
-	public static final int VERTEX_SIZE = 64;
-	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE };
-	private static final int[] VERTEX_ALIGNMENTS = { VERTEX_SIZE };
+	private static final int VERTEX_SIZE = 4;
+	public static final int GLYPH_SIZE = 52;
+	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE, GLYPH_SIZE / 2 };
+
+	// We need an alignment of 3 * VERTEX_SIZE since the vertex shader uses gl_VertexIndex % 6 for calculations
+	private static final int[] VERTEX_ALIGNMENTS = { 3 * VERTEX_SIZE, GLYPH_SIZE };
 
 	private final long vkPipelineLayout;
 
@@ -28,18 +31,8 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
 		this.vkPipelineLayout = instance.textIntersectionPipelineLayout;
 		try (MemoryStack stack = stackPush()) {
-			var vertexAttributes = VkVertexInputAttributeDescription.calloc(11, stack);
-			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SFLOAT, 0);
-			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_SFLOAT, 8);
-			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32G32_SFLOAT, 16);
-			vertexAttributes.get(3).set(3, 0, VK_FORMAT_R32_UINT, 24);
-			vertexAttributes.get(4).set(4, 0, VK_FORMAT_R32_UINT, 28);
-			vertexAttributes.get(5).set(5, 0, VK_FORMAT_R32G32_SFLOAT, 32);
-			vertexAttributes.get(6).set(6, 0, VK_FORMAT_R32G32_UINT, 40);
-			vertexAttributes.get(7).set(7, 0, VK_FORMAT_R32_UINT, 48);
-			vertexAttributes.get(8).set(8, 0, VK_FORMAT_R32_UINT, 52);
-			vertexAttributes.get(9).set(9, 0, VK_FORMAT_R32_UINT, 56);
-			vertexAttributes.get(10).set(10, 0, VK_FORMAT_R32_SFLOAT, 60);
+			var vertexAttributes = VkVertexInputAttributeDescription.calloc(1, stack);
+			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32_UINT, 0);
 
 			var builder = pipelineBuilder(context);
 			builder.simpleShaderStages(
@@ -53,16 +46,28 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 		}
 	}
 
-	public Vk2dGlyphBatch addBatch(Vk2dFrame frame, int initialCapacity, CommandRecorder recorder, Vk2dTextBuffer textBuffer) {
+	public Vk2dGlyphBatch addBatch(
+			Vk2dFrame frame, int initialCapacity, CommandRecorder recorder,
+			Vk2dTextBuffer textBuffer, long perFrameDescriptorSet
+	) {
 		return new Vk2dGlyphBatch(
-				this, frame, initialCapacity, recorder, textBuffer
+				this, frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
 		);
 	}
 
 	@Override
 	public void prepareRecording(CommandRecorder recorder, Vk2dBatch batch) {
 		super.prepareRecording(recorder, batch);
-		recorder.bindGraphicsDescriptors(vkPipelineLayout, ((Vk2dGlyphBatch) batch).textBuffer.getRenderDescriptorSet());
+
+		Vk2dGlyphBatch glyphBatch = (Vk2dGlyphBatch) batch;
+		recorder.bindGraphicsDescriptors(
+				vkPipelineLayout, glyphBatch.textBuffer.getRenderDescriptorSet(),
+				glyphBatch.perFrameDescriptorSet
+		);
+		vkCmdPushConstants(
+				recorder.commandBuffer, vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+				0, recorder.stack.ints(batch.width, batch.height)
+		);
 	}
 
 	@Override

@@ -8,20 +8,23 @@ import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 
 import java.nio.ByteBuffer;
 
+import static com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline.GLYPH_SIZE;
 import static java.lang.Math.max;
 
 public class Vk2dGlyphBatch extends Vk2dBatch {
 
 	private final CommandRecorder recorder;
 	public final Vk2dTextBuffer textBuffer;
+	public final long perFrameDescriptorSet;
 
 	public Vk2dGlyphBatch(
 			Vk2dPipeline pipeline, Vk2dFrame frame, int initialCapacity,
-			CommandRecorder recorder, Vk2dTextBuffer textBuffer
+			CommandRecorder recorder, Vk2dTextBuffer textBuffer, long perFrameDescriptorSet
 	) {
 		super(pipeline, frame, initialCapacity);
 		this.recorder = recorder;
 		this.textBuffer = textBuffer;
+		this.perFrameDescriptorSet = perFrameDescriptorSet;
 	}
 
 	public void glyphBetween(
@@ -32,64 +35,29 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 	) {
 		if (horizontalIntersections == -1 || verticalIntersections == -1) return;
 		if (maxX < 0 || maxY < 0 || minX >= this.width || minY >= this.height) return;
-		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 
-		int intWidth = 1 + maxX - minX;
-		int intHeight = 1 + maxY - minY;
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
-		vertices.putFloat(subpixelX).putFloat(subpixelY);
-		vertices.putFloat(0f).putFloat(0f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
-		vertices.putFloat(width).putFloat(height);
-		vertices.putInt(intWidth).putInt(intHeight);
-		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
-		vertices.putFloat(strokeWidth);
+		BatchVertexData triangles = putTriangles(2);
 
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
-		vertices.putFloat(subpixelX).putFloat(subpixelY);
-		vertices.putFloat(1f).putFloat(0f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
-		vertices.putFloat(width).putFloat(height);
-		vertices.putInt(intWidth).putInt(intHeight);
-		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
-		vertices.putFloat(strokeWidth);
+		ByteBuffer glyphInfo = triangles.vertexData()[1];
+		int glyphByteOffset = Math.toIntExact(glyphInfo.position() + triangles.vertexBuffers()[1].offset - perFrameBuffer.buffer.offset);
+		int glyphIndex = glyphByteOffset / GLYPH_SIZE;
 
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
-		vertices.putFloat(subpixelX).putFloat(subpixelY);
-		vertices.putFloat(1f).putFloat(1f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
-		vertices.putFloat(width).putFloat(height);
-		vertices.putInt(intWidth).putInt(intHeight);
-		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
-		vertices.putFloat(strokeWidth);
+		putCompressedPosition(glyphInfo, minX, minY);
+		glyphInfo.putFloat(subpixelX).putFloat(subpixelY);
+		glyphInfo.putInt(horizontalIntersections).putInt(verticalIntersections);
+		glyphInfo.putFloat(width).putFloat(height);
+		glyphInfo.putInt(1 + maxX - minX).putInt(1 + maxY - minY);
+		glyphInfo.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
+		glyphInfo.putFloat(strokeWidth);
 
+		ByteBuffer vertices = triangles.vertexData()[0];
+		vertices.putInt(glyphIndex);
+		vertices.putInt(glyphIndex);
+		vertices.putInt(glyphIndex);
 
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
-		vertices.putFloat(subpixelX).putFloat(subpixelY);
-		vertices.putFloat(1f).putFloat(1f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
-		vertices.putFloat(width).putFloat(height);
-		vertices.putInt(intWidth).putInt(intHeight);
-		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
-		vertices.putFloat(strokeWidth);
-
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
-		vertices.putFloat(subpixelX).putFloat(subpixelY);
-		vertices.putFloat(0f).putFloat(1f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
-		vertices.putFloat(width).putFloat(height);
-		vertices.putInt(intWidth).putInt(intHeight);
-		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
-		vertices.putFloat(strokeWidth);
-
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
-		vertices.putFloat(subpixelX).putFloat(subpixelY);
-		vertices.putFloat(0f).putFloat(0f);
-		vertices.putInt(horizontalIntersections).putInt(verticalIntersections);
-		vertices.putFloat(width).putFloat(height);
-		vertices.putInt(intWidth).putInt(intHeight);
-		vertices.putInt(fillColor).putInt(strokeColor).putInt(backgroundColor);
-		vertices.putFloat(strokeWidth);
+		vertices.putInt(glyphIndex);
+		vertices.putInt(glyphIndex);
+		vertices.putInt(glyphIndex);
 	}
 
 	public void glyphAt(
