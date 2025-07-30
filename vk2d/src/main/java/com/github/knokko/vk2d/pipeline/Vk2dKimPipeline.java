@@ -24,7 +24,7 @@ public class Vk2dKimPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dKimPipeline(Vk2dPipelineContext context, Vk2dInstance instance, int version) {
-		super(BYTES_PER_TRIANGLE, VERTEX_ALIGNMENTS);
+		super();
 
 		try (MemoryStack stack = stackPush()) {
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(3, stack);
@@ -47,6 +47,16 @@ public class Vk2dKimPipeline extends Vk2dPipeline {
 
 	public Vk2dKimBatch addBatch(Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
 		return new Vk2dKimBatch(this, frame, initialCapacity, bundle);
+	}
+
+	@Override
+	protected int[] getBytesPerTriangle() {
+		return BYTES_PER_TRIANGLE;
+	}
+
+	@Override
+	protected int[] getVertexAlignments() {
+		return VERTEX_ALIGNMENTS;
 	}
 
 	@Override

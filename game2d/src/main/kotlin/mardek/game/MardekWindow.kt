@@ -10,12 +10,15 @@ import com.github.knokko.update.UpdateLoop
 import com.github.knokko.vk2d.Vk2dConfig
 import com.github.knokko.vk2d.Vk2dFrame
 import com.github.knokko.vk2d.Vk2dWindow
+import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import mardek.audio.AudioUpdater
 import mardek.content.Content
 import mardek.renderer.RawRenderContext
+import mardek.renderer.glyph.MardekGlyphPipeline
 import mardek.renderer.renderGame
 import mardek.state.ExitState
 import mardek.state.GameStateManager
+import org.lwjgl.system.MemoryStack
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
@@ -25,6 +28,7 @@ class MardekWindow(
 ) : Vk2dWindow(window, capFps) {
 
 	private var totalFrames = 0L
+	private lateinit var textPipeline: MardekGlyphPipeline
 
 	private val fpsCounter = UpdateCounter()
 	private var printFpsAt = System.nanoTime() + 1500_000_000L
@@ -39,6 +43,12 @@ class MardekWindow(
 		config.image = true
 		config.kim3 = true
 		config.text = true
+	}
+
+	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
+		super.setup(boiler, stack)
+		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, stack, vkRenderPass)
+		this.textPipeline = MardekGlyphPipeline(pipelineContext, instance)
 	}
 
 	override fun renderFrame(
@@ -59,7 +69,7 @@ class MardekWindow(
 			if (gameState.currentState is ExitState) window.requestClose() else {
 				// TODO Propagate content
 				val context = RawRenderContext(
-					frame, pipelines, textBuffer, perFrameDescriptorSet, recorder,
+					frame, pipelines, textPipeline, textBuffer, perFrameDescriptorSet, recorder,
 					null, gameState, resources
 				)
 				renderGame(context)
@@ -69,6 +79,7 @@ class MardekWindow(
 
 	override fun cleanUp(boiler: BoilerInstance) {
 		super.cleanUp(boiler)
+		textPipeline.destroy(boiler)
 		synchronized(gameState.lock()) {
 			gameState.currentState = ExitState()
 		}

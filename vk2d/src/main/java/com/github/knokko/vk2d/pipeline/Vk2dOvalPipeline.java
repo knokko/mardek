@@ -24,7 +24,7 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dOvalPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super(BYTES_PER_TRIANGLE, VERTEX_ALIGNMENTS);
+		super();
 		this.vkPipelineLayout = instance.kimPipelineLayout;
 
 		try (MemoryStack stack = stackPush()) {
@@ -46,6 +46,16 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 
 	public Vk2dOvalBatch addBatch(Vk2dFrame frame, long perFrameDescriptorSet, int initialCapacity) {
 		return new Vk2dOvalBatch(this, frame, perFrameDescriptorSet, initialCapacity);
+	}
+
+	@Override
+	protected int[] getBytesPerTriangle() {
+		return BYTES_PER_TRIANGLE;
+	}
+
+	@Override
+	protected int[] getVertexAlignments() {
+		return VERTEX_ALIGNMENTS;
 	}
 
 	@Override

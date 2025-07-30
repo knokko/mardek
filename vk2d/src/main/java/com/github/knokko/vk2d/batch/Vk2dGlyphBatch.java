@@ -8,7 +8,6 @@ import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 
 import java.nio.ByteBuffer;
 
-import static com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline.GLYPH_SIZE;
 import static java.lang.Math.max;
 
 public class Vk2dGlyphBatch extends Vk2dBatch {
@@ -40,7 +39,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 
 		ByteBuffer glyphInfo = triangles.vertexData()[1];
 		int glyphByteOffset = Math.toIntExact(glyphInfo.position() + triangles.vertexBuffers()[1].offset - perFrameBuffer.buffer.offset);
-		int glyphIndex = glyphByteOffset / GLYPH_SIZE;
+		int glyphIndex = glyphByteOffset / (2 * pipeline.getBytesPerTriangle(1));
 
 		putCompressedPosition(glyphInfo, minX, minY);
 		glyphInfo.putFloat(subpixelX).putFloat(subpixelY);

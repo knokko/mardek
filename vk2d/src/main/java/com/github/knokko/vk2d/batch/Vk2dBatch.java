@@ -14,9 +14,9 @@ import static java.lang.Math.max;
 
 public class Vk2dBatch {
 
-	private final Vk2dPipeline pipeline;
+	protected final Vk2dPipeline pipeline;
 	protected final PerFrameBuffer perFrameBuffer;
-	private final List<BatchVertexData> vertices = new ArrayList<>();
+	protected final List<BatchVertexData> vertices = new ArrayList<>();
 
 	public final int width, height;
 

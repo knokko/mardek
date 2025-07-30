@@ -42,10 +42,14 @@ public abstract class Vk2dPipeline {
 	private final int[] bytesPerTriangle;
 	private final int[] vertexAlignments;
 
-	public Vk2dPipeline(int[] bytesPerTriangle, int[] vertexAlignments) {
-		this.bytesPerTriangle = Objects.requireNonNull(bytesPerTriangle);
-		this.vertexAlignments = Objects.requireNonNull(vertexAlignments);
+	public Vk2dPipeline() {
+		this.bytesPerTriangle = Objects.requireNonNull(getBytesPerTriangle());
+		this.vertexAlignments = Objects.requireNonNull(getVertexAlignments());
 	}
+
+	protected abstract int[] getBytesPerTriangle();
+
+	protected abstract int[] getVertexAlignments();
 
 	public int getVertexDimensions() {
 		return bytesPerTriangle.length;

@@ -27,7 +27,7 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dImagePipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super(BYTES_PER_TRIANGLE, VERTEX_ALIGNMENTS);
+		super();
 
 		try (MemoryStack stack = stackPush()) {
 			this.vkPipelineLayout = context.boiler().pipelines.createLayout(
@@ -53,6 +53,16 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 
 	public Vk2dImageBatch addBatch(Vk2dFrame frame, int initialCapacity) {
 		return new Vk2dImageBatch(this, frame, initialCapacity);
+	}
+
+	@Override
+	protected int[] getBytesPerTriangle() {
+		return BYTES_PER_TRIANGLE;
+	}
+
+	@Override
+	protected int[] getVertexAlignments() {
+		return VERTEX_ALIGNMENTS;
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
+import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder;
 import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.BatchVertexData;
@@ -16,7 +17,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
-	private static final int VERTEX_SIZE = 4;
+	protected static final int VERTEX_SIZE = 4;
 	public static final int GLYPH_SIZE = 52;
 	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE, GLYPH_SIZE / 2 };
 
@@ -27,7 +28,7 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dGlyphPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super(BYTES_PER_TRIANGLE, VERTEX_ALIGNMENTS);
+		super();
 
 		this.vkPipelineLayout = instance.textIntersectionPipelineLayout;
 		try (MemoryStack stack = stackPush()) {
@@ -35,15 +36,19 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32_UINT, 0);
 
 			var builder = pipelineBuilder(context);
-			builder.simpleShaderStages(
-					"Glyph", "com/github/knokko/vk2d/glyph/",
-					"basic.vert.spv", "basic.frag.spv"
-			);
 			simpleVertexInput(builder, stack, vertexAttributes, VERTEX_SIZE);
+			setShaderStages(builder);
 			builder.ciPipeline.layout(instance.textIntersectionPipelineLayout);
 
 			this.vkPipeline = builder.build("Vk2dGlyphPipeline");
 		}
+	}
+
+	protected void setShaderStages(GraphicsPipelineBuilder builder) {
+		builder.simpleShaderStages(
+				"Glyph", "com/github/knokko/vk2d/glyph/",
+				"basic.vert.spv", "basic.frag.spv"
+		);
 	}
 
 	public Vk2dGlyphBatch addBatch(
@@ -53,6 +58,16 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 		return new Vk2dGlyphBatch(
 				this, frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
 		);
+	}
+
+	@Override
+	protected int[] getBytesPerTriangle() {
+		return BYTES_PER_TRIANGLE;
+	}
+
+	@Override
+	protected int[] getVertexAlignments() {
+		return VERTEX_ALIGNMENTS;
 	}
 
 	@Override

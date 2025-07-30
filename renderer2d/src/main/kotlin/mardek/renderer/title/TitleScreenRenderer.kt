@@ -42,14 +42,15 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 	val buttonFont = context.titleScreenBundle.getFont(info.largeFont.index)
 	val simpleFont = context.titleScreenBundle.getFont(info.smallFont.index)
 	// TODO Ditch simpleFont entirely?
-	val glyphBatch = context.pipelines.text.addBatch(
+	val glyphBatch = context.textPipeline.addBatch(
 		context.frame, 100, context.recorder,
 		context.textBuffer, context.perFrameDescriptorSet
 	)
 
 	glyphBatch.drawString(
 		"MARDEK", region.minX + region.height * 0.09f, region.minY + region.height * 0.25f,
-		region.height * 0.18f, buttonFont, srgbToLinear(rgb(155, 80, 45))
+		region.height * 0.18f, buttonFont, srgbToLinear(rgb(155, 80, 45)),
+		srgbToLinear(rgb(68, 51, 34)), 0.035f * region.height
 	)
 	glyphBatch.drawShadowedString(
 		"Kotlin Edition", region.minX + region.height * 0.14f, region.minY + region.height * 0.38f,

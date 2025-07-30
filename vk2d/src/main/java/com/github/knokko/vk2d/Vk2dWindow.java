@@ -53,7 +53,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 	protected Vk2dInstance instance;
 	protected Vk2dPipelines pipelines;
 	private MemoryBlock memory;
-	private long vkDescriptorPool, vkRenderPass;
+	protected long vkDescriptorPool, vkRenderPass;
 	protected PerFrameBuffer perFrameBuffer;
 	protected Vk2dResourceBundle resources;
 	protected Vk2dTextBuffer textBuffer;

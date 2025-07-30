@@ -25,7 +25,7 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dColorPipeline(Vk2dPipelineContext context) {
-		super(BYTES_PER_TRIANGLE, VERTEX_ALIGNMENTS);
+		super();
 
 		try (MemoryStack stack = stackPush()) {
 			VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
@@ -53,6 +53,16 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 
 	public Vk2dColorBatch addBatch(Vk2dFrame frame, int initialCapacity) {
 		return new Vk2dColorBatch(this, frame, initialCapacity);
+	}
+
+	@Override
+	protected int[] getBytesPerTriangle() {
+		return BYTES_PER_TRIANGLE;
+	}
+
+	@Override
+	protected int[] getVertexAlignments() {
+		return VERTEX_ALIGNMENTS;
 	}
 
 	@Override
