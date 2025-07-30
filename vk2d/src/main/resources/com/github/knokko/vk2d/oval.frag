@@ -1,44 +1,42 @@
 #version 450
 
+#include "oval.glsl"
+
 layout(location = 0) in vec2 position;
-layout(location = 1) in vec2 center;
-layout(location = 2) in vec2 radius;
-layout(location = 3) in flat uint centerColor;
-layout(location = 4) in flat uvec4 colors;
-layout(location = 5) in vec4 colorDistances;
+layout(location = 1) in flat Oval oval;
 
 layout(location = 0) out vec4 outColor;
 
 #include "decode.glsl"
 
 void main() {
-	vec2 difference = (center - position) / radius;
+	vec2 difference = (vec2(oval.centerX, oval.centerY) - position) / vec2(oval.radiusX, oval.radiusY);
 	float distance = difference.x * difference.x + difference.y * difference.y;
 
-	uint rawColor0 = centerColor;
+	uint rawColor0 = oval.centerColor;
 	float distance0 = 0.0;
-	uint rawColor1 = colors.x;
-	float distance1 = colorDistances.x;
+	uint rawColor1 = oval.color0;
+	float distance1 = oval.distance0;
 
-	if (distance >= colorDistances.x) {
-		rawColor0 = colors.x;
-		distance0 = colorDistances.x;
-		rawColor1 = colors.y;
-        distance1 = colorDistances.y;
+	if (distance >= oval.distance0) {
+		rawColor0 = oval.color0;
+		distance0 = oval.distance0;
+		rawColor1 = oval.color1;
+        distance1 = oval.distance1;
 	}
 
-	if (distance >= colorDistances.y) {
-		rawColor0 = colors.y;
-		distance0 = colorDistances.y;
-		rawColor1 = colors.z;
-		distance1 = colorDistances.z;
+	if (distance >= oval.distance1) {
+		rawColor0 = oval.color1;
+		distance0 = oval.distance1;
+		rawColor1 = oval.color2;
+		distance1 = oval.distance2;
 	}
 
-	if (distance >= colorDistances.z) {
-		rawColor0 = colors.z;
-		distance0 = colorDistances.z;
-		rawColor1 = colors.w;
-		distance1 = colorDistances.w;
+	if (distance >= oval.distance2) {
+		rawColor0 = oval.color2;
+		distance0 = oval.distance2;
+		rawColor1 = oval.color3;
+		distance1 = oval.distance3;
 	}
 
 	if (distance >= distance1 || rawColor0 == rawColor1) {

@@ -7,6 +7,7 @@ import com.github.knokko.boiler.builders.WindowBuilder;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.commands.SingleTimeCommands;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
+import com.github.knokko.boiler.descriptors.DescriptorUpdater;
 import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
@@ -24,8 +25,11 @@ import org.lwjgl.vulkan.VkRenderPassBeginInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 
+import static com.github.knokko.boiler.utilities.BoilerMath.leastCommonMultiple;
 import static org.lwjgl.sdl.SDLVideo.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.KHRSurface.*;
@@ -53,6 +57,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 	protected PerFrameBuffer perFrameBuffer;
 	protected Vk2dResourceBundle resources;
 	protected Vk2dTextBuffer textBuffer;
+	protected long perFrameDescriptorSet;
 	private SwapchainResourceManager<Object, Long> framebuffers;
 
 	public Vk2dWindow(VkbWindow window, boolean capFps) {
@@ -89,6 +94,10 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			if (loader != null) loader.claimMemory(combiner);
 			createResources(boiler, combiner, descriptors);
 			if (config.text) this.textBuffer = new Vk2dTextBuffer(instance, combiner, descriptors, numFramesInFlight);
+			if (config.oval) descriptors.addSingle(
+					instance.bufferDescriptorSetLayout,
+					descriptorSet -> this.perFrameDescriptorSet = descriptorSet
+			);
 			this.memory = combiner.build(false);
 
 			if (loader != null) {
@@ -107,6 +116,11 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		}
 
 		if (textBuffer != null) textBuffer.initializeDescriptorSets();
+		if (perFrameDescriptorSet != VK_NULL_HANDLE) {
+			DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
+			updater.writeStorageBuffer(0, perFrameDescriptorSet, 0, perFrameBuffer.buffer);
+			updater.update(boiler);
+		}
 
 		this.framebuffers = new SwapchainResourceManager<>() {
 
@@ -131,8 +145,12 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 	}
 
 	protected void createResources(BoilerInstance boiler, MemoryCombiner combiner, DescriptorCombiner descriptors) {
+		Set<Long> alignment = new HashSet<>();
+		alignment.add(4L);
+		alignment.add(boiler.deviceProperties.limits().minStorageBufferOffsetAlignment());
 		this.perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
-				10_000_000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+				10_000_000L, leastCommonMultiple(alignment),
+				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
 		));
 	}
 

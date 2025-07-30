@@ -5,10 +5,15 @@ import com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline;
 
 import java.nio.ByteBuffer;
 
+import static com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline.OVAL_SIZE;
+
 public class Vk2dOvalBatch extends Vk2dBatch {
 
-	public Vk2dOvalBatch(Vk2dOvalPipeline pipeline, Vk2dFrame frame, int initialCapacity) {
+	public final long perFrameDescriptorSet;
+
+	public Vk2dOvalBatch(Vk2dOvalPipeline pipeline, Vk2dFrame frame, long perFrameDescriptorSet, int initialCapacity) {
 		super(pipeline, frame, initialCapacity);
+		this.perFrameDescriptorSet = perFrameDescriptorSet;
 	}
 
 	public void complex(
@@ -17,32 +22,33 @@ public class Vk2dOvalBatch extends Vk2dBatch {
 			int centerColor, int color0, int color1, int color2, int color3,
 			float distance0, float distance1, float distance2, float distance3
 	) {
-		ByteBuffer vertices = putTriangles(2).vertexData()[0];
-		int startPosition = vertices.position();
+		BatchVertexData triangles = putTriangles(2);
 
-		for (int counter = 0; counter < 6; counter++) {
-			vertices.putInt(0).putInt(0);
-			vertices.putFloat(normalizeX(centerX)).putFloat(normalizeY(centerY));
-			vertices.putFloat(2f * radiusX / width).putFloat(2f * radiusY / height);
-			vertices.putInt(centerColor).putInt(color0).putInt(color1).putInt(color2).putInt(color3);
-			vertices.putFloat(distance0 * distance0).putFloat(distance1 * distance1);
-			vertices.putFloat(distance2 * distance2).putFloat(distance3 * distance3);
-		}
+		ByteBuffer oval = triangles.vertexData()[1];
+		int ovalByteOffset = Math.toIntExact(oval.position() + triangles.vertexBuffers()[1].offset - perFrameBuffer.buffer.offset);
+		int ovalIndex = ovalByteOffset / OVAL_SIZE;
 
-		vertices.position(startPosition);
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
-		vertices.position(startPosition + 60);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
-		vertices.position(startPosition + 120);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
+		oval.putInt(color0).putInt(color1).putInt(color2).putInt(color3);
+		oval.putFloat(distance0 * distance0).putFloat(distance1 * distance1);
+		oval.putFloat(distance2 * distance2).putFloat(distance3 * distance3);
+		oval.putFloat(normalizeX(centerX)).putFloat(normalizeY(centerY));
+		oval.putFloat(2f * radiusX / width).putFloat(2f * radiusY / height);
+		oval.putInt(centerColor);
 
-		vertices.position(startPosition + 180);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
-		vertices.position(startPosition + 240);
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
-		vertices.position(startPosition + 300);
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
-		vertices.position(startPosition + 360);
+		ByteBuffer vertices = triangles.vertexData()[0];
+		putCompressedPosition(vertices, minX, maxY + 1);
+		vertices.putInt(ovalIndex);
+		putCompressedPosition(vertices, maxX + 1, maxY + 1);
+		vertices.putInt(ovalIndex);
+		putCompressedPosition(vertices, maxX + 1, minY);
+		vertices.putInt(ovalIndex);
+
+		putCompressedPosition(vertices, maxX + 1, minY);
+		vertices.putInt(ovalIndex);
+		putCompressedPosition(vertices, minX, minY);
+		vertices.putInt(ovalIndex);
+		putCompressedPosition(vertices, minX, maxY + 1);
+		vertices.putInt(ovalIndex);
 	}
 
 	public void simpleAliased(int minX, int minY, int maxX, int maxY, int color) {

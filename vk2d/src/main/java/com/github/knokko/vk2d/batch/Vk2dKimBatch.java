@@ -19,18 +19,18 @@ public class Vk2dKimBatch extends Vk2dBatch {
 		int textureOffset = bundle.getFakeImageOffset(textureIndex);
 		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
+		putCompressedPosition(vertices, minX, maxY + 1);
 		vertices.putFloat(0f).putFloat(1f).putInt(textureOffset);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
+		putCompressedPosition(vertices, maxX + 1, maxY + 1);
 		vertices.putFloat(1f).putFloat(1f).putInt(textureOffset);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
+		putCompressedPosition(vertices, maxX + 1, minY);
 		vertices.putFloat(1f).putFloat(0f).putInt(textureOffset);
 
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
+		putCompressedPosition(vertices, maxX + 1, minY);
 		vertices.putFloat(1f).putFloat(0f).putInt(textureOffset);
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
+		putCompressedPosition(vertices, minX, minY);
 		vertices.putFloat(0f).putFloat(0f).putInt(textureOffset);
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
+		putCompressedPosition(vertices, minX, maxY + 1);
 		vertices.putFloat(0f).putFloat(1f).putInt(textureOffset);
 	}
 }

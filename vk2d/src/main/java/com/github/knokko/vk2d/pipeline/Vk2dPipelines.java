@@ -15,7 +15,7 @@ public class Vk2dPipelines {
 	public Vk2dPipelines(Vk2dInstance instance, Vk2dPipelineContext context, Vk2dConfig config) {
 		this.instance = instance;
 		this.color = config.color ? new Vk2dColorPipeline(context) : null;
-		this.oval = config.oval ? new Vk2dOvalPipeline(context) : null;
+		this.oval = config.oval ? new Vk2dOvalPipeline(context, instance) : null;
 		this.image = config.image ? new Vk2dImagePipeline(context, instance) : null;
 		this.kim1 = config.kim1 ? new Vk2dKimPipeline(context, instance, 1) : null;
 		this.kim3 = config.kim3 ? new Vk2dKimPipeline(context, instance, 3) : null;

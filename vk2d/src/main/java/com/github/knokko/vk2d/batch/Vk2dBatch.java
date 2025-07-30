@@ -60,6 +60,10 @@ public class Vk2dBatch {
 		for (BatchVertexData miniBatch : vertices) pipeline.recordBatch(recorder, perFrameBuffer, miniBatch, this);
 	}
 
+	protected void putCompressedPosition(ByteBuffer vertices, int x, int y) {
+		vertices.putInt(max(x, 0) | (max(y, 0) << 16));
+	}
+
 	public float normalizeX(float x) {
 		return 2f * x / width - 1f;
 	}

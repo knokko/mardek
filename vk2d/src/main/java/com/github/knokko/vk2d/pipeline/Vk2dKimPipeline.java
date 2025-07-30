@@ -12,12 +12,11 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.vulkan.VK10.VK_FORMAT_R32G32_SFLOAT;
-import static org.lwjgl.vulkan.VK10.VK_FORMAT_R32_UINT;
+import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dKimPipeline extends Vk2dPipeline {
 
-	public static final int VERTEX_SIZE = 20;
+	public static final int VERTEX_SIZE = 16;
 	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE };
 	private static final int[] VERTEX_ALIGNMENTS = { VERTEX_SIZE };
 
@@ -29,9 +28,9 @@ public class Vk2dKimPipeline extends Vk2dPipeline {
 
 		try (MemoryStack stack = stackPush()) {
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(3, stack);
-			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SFLOAT, 0);
-			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_SFLOAT, 8);
-			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_UINT, 16);
+			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32_UINT, 0);
+			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_SFLOAT, 4);
+			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_UINT, 12);
 
 			var builder = pipelineBuilder(context);
 			builder.simpleShaderStages(
@@ -54,6 +53,10 @@ public class Vk2dKimPipeline extends Vk2dPipeline {
 	public void prepareRecording(CommandRecorder recorder, Vk2dBatch batch) {
 		super.prepareRecording(recorder, batch);
 		recorder.bindGraphicsDescriptors(vkPipelineLayout, ((Vk2dKimBatch) batch).bundle.fakeImageDescriptorSet);
+		vkCmdPushConstants(
+				recorder.commandBuffer, vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+				0, recorder.stack.ints(batch.width, batch.height)
+		);
 	}
 
 	@Override

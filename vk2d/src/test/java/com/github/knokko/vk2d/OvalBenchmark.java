@@ -34,7 +34,7 @@ public class OvalBenchmark extends Vk2dWindow {
 		}
 		fps += 1;
 
-		Vk2dOvalBatch batch1 = pipelines.oval.addBatch(frame, 24);
+		Vk2dOvalBatch batch1 = pipelines.oval.addBatch(frame, perFrameDescriptorSet, 24);
 		batch1.simpleAliased(0, 0, batch1.width - 1, batch1.height - 1, rgb(255, 0, 0));
 		batch1.simpleAntiAliased(
 				batch1.width / 10, batch1.height / 10,

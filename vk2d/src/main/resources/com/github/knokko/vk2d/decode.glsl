@@ -5,3 +5,9 @@ vec4 decodeColor(uint color) {
 	uint alpha = (color >> 24) & 255u;
 	return vec4(red / 255.0, green / 255.0, blue / 255.0, alpha / 255.0);
 }
+
+vec2 decodePosition(uint position, uvec2 viewportSize) {
+	uint rawX = position & 0xFFFF;
+	uint rawY = (position >> 16) & 0xFFFF;
+	return 2.0 * vec2(rawX, rawY) / viewportSize - vec2(1.0);
+}

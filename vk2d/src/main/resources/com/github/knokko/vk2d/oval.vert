@@ -1,25 +1,24 @@
 #version 450
 
-layout(location = 0) in vec2 position;
-layout(location = 1) in vec2 center;
-layout(location = 2) in vec2 radius;
-layout(location = 3) in uint centerColor;
-layout(location = 4) in uvec4 colors;
-layout(location = 5) in vec4 colorDistances;
+layout(location = 0) in uint rawPosition;
+layout(location = 1) in uint ovalIndex;
 
-layout(location = 0) out vec2 propagatePosition;
-layout(location = 1) out vec2 propagateCenter;
-layout(location = 2) out vec2 propagateRadius;
-layout(location = 3) out flat uint propagateCenterColor;
-layout(location = 4) out flat uvec4 propagateColors;
-layout(location = 5) out vec4 propagateColorDistances;
+#include "decode.glsl"
+#include "oval.glsl"
+
+layout(set = 0, binding = 0) readonly buffer OvalData {
+	Oval ovals[];
+};
+
+layout(push_constant) uniform PushConstants {
+	uvec2 viewportSize;
+};
+
+layout(location = 0) out vec2 position;
+layout(location = 1) out flat Oval oval;
 
 void main() {
+	position = decodePosition(rawPosition, viewportSize);
 	gl_Position = vec4(position, 0.0, 1.0);
-	propagatePosition = position;
-	propagateCenter = center;
-	propagateRadius = radius;
-	propagateCenterColor = centerColor;
-	propagateColors = colors;
-	propagateColorDistances = colorDistances;
+	oval = ovals[ovalIndex];
 }

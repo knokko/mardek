@@ -27,7 +27,7 @@ public class Vk2dConfig {
 	 */
 	public boolean kim1, kim2, kim3;
 
-	public boolean anyKim() {
-		return kim1 || kim2 || kim3;
+	public boolean shouldCreateBufferPipelineLayout() {
+		return kim1 || kim2 || kim3 || oval;
 	}
 }

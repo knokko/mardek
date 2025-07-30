@@ -51,7 +51,7 @@ public class Vk2dInstance {
 				this.imageDescriptorSetLayout = null;
 			}
 
-			if (config.anyKim()) {
+			if (config.shouldCreateBufferPipelineLayout()) {
 				DescriptorSetLayoutBuilder builder = new DescriptorSetLayoutBuilder(stack, 1);
 				builder.set(
 						0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -59,8 +59,11 @@ public class Vk2dInstance {
 				);
 				this.bufferDescriptorSetLayout = builder.build(boiler, "Vk2dBufferDescriptorLayout");
 
+				VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
+				pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8);
+
 				this.kimPipelineLayout = boiler.pipelines.createLayout(
-						null, "Vk2dKimPipelineLayout",
+						pushConstants, "Vk2dKimPipelineLayout",
 						bufferDescriptorSetLayout.vkDescriptorSetLayout
 				);
 			} else {

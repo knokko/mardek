@@ -1,6 +1,6 @@
 #version 450
 
-layout(location = 0) in vec2 position;
+layout(location = 0) in uint rawPosition;
 layout(location = 1) in vec2 textureCoordinates;
 layout(location = 2) in uint textureIndex;
 
@@ -13,8 +13,14 @@ layout(set = 0, binding = 0) readonly buffer TextureData {
 	uint textureData[];
 };
 
+layout(push_constant) uniform PushConstants {
+	uvec2 viewportSize;
+};
+
+#include "decode.glsl"
+
 void main() {
-	gl_Position = vec4(position, 0.0, 1.0);
+	gl_Position = vec4(decodePosition(rawPosition, viewportSize), 0.0, 1.0);
 	propagateTextureCoordinates = textureCoordinates;
 	propagateTextureIndex = textureIndex;
 	header = textureData[textureIndex];
