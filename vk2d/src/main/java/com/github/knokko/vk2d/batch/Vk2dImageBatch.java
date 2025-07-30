@@ -17,7 +17,7 @@ public class Vk2dImageBatch extends Vk2dBatch {
 	}
 
 	public void simple(int minX, int minY, int maxX, int maxY, long descriptorSet) {
-		ByteBuffer vertices = putVertices(6);
+		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(0f).putFloat(1f);

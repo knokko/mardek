@@ -61,7 +61,7 @@ public class Vk2dColorBatch extends Vk2dBatch {
 			int x3, int y3, int color3,
 			int x4, int y4, int color4
 	) {
-		ByteBuffer vertices = putVertices(6);
+		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 		putPosition(vertices, x1, y1);
 		vertices.putInt(color1);
 		putPosition(vertices, x2, y2);

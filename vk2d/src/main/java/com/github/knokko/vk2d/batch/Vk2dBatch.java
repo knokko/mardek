@@ -16,8 +16,7 @@ public class Vk2dBatch {
 
 	private final Vk2dPipeline pipeline;
 	protected final PerFrameBuffer perFrameBuffer;
-	private final List<MappedVkbBuffer> vertexBuffers = new ArrayList<>();
-	private final List<ByteBuffer> vertexDataBuffers = new ArrayList<>();
+	private final List<BatchVertexData> vertices = new ArrayList<>();
 
 	public final int width, height;
 
@@ -26,36 +25,39 @@ public class Vk2dBatch {
 		this.perFrameBuffer = frame.perFrameBuffer;
 		this.width = frame.width;
 		this.height = frame.height;
-		vertexBuffers.add(perFrameBuffer.allocate(
-				(long) initialCapacity * pipeline.vertexSize, pipeline.vertexSize
-		));
-		vertexDataBuffers.add(vertexBuffers.get(0).byteBuffer());
+		addVertexBatch(initialCapacity);
 		frame.batches.add(this);
 	}
 
-	public ByteBuffer putVertices(int amount) {
-		int index = vertexBuffers.size() - 1;
-		int requiredBytes = amount * pipeline.vertexSize;
-		ByteBuffer last = vertexDataBuffers.get(index);
-		if (last.remaining() >= requiredBytes) return vertexDataBuffers.get(index);
+	protected void addVertexBatch(int numTriangles) {
+		int dimensions = pipeline.getVertexDimensions();
+		BatchVertexData vertices = new BatchVertexData(
+				new MappedVkbBuffer[dimensions], new ByteBuffer[dimensions]
+		);
+		for (int dimension = 0; dimension < dimensions; dimension++) {
+			vertices.vertexBuffers()[dimension] = perFrameBuffer.allocate(
+					(long) numTriangles * pipeline.getBytesPerTriangle(dimension),
+					pipeline.getVertexAlignment(dimension)
+			);
+			vertices.vertexData()[dimension] = vertices.vertexBuffers()[dimension].byteBuffer();
+		}
+		this.vertices.add(vertices);
+	}
 
-		int newBytes = max(requiredBytes, 2 * last.capacity());
+	public BatchVertexData putTriangles(int amount) {
+		int index = vertices.size() - 1;
+		BatchVertexData last = vertices.get(index);
+		if (last.vertexData()[0].remaining() / pipeline.getBytesPerTriangle(0) >= amount) return last;
 
-		MappedVkbBuffer newMappedBuffer = perFrameBuffer.allocate(newBytes, pipeline.vertexSize);
-		vertexBuffers.add(newMappedBuffer);
-		ByteBuffer newDataBuffer = newMappedBuffer.byteBuffer();
-		vertexDataBuffers.add(newDataBuffer);
-		return newDataBuffer;
+		int newTriangles = max(amount, 2 * last.vertexData()[0].capacity() / pipeline.getBytesPerTriangle(0));
+		addVertexBatch(newTriangles);
+		return vertices.get(index + 1);
 	}
 
 	public void record(CommandRecorder recorder) {
-		if (vertexDataBuffers.get(0).position() == 0) return;
+		if (vertices.get(0).vertexData()[0].position() == 0) return;
 		pipeline.prepareRecording(recorder, this);
-		for (int index = 0; index < vertexBuffers.size(); index++) {
-			int usedBytes = vertexDataBuffers.get(index).position();
-			MappedVkbBuffer usedVertexBuffer = vertexBuffers.get(index).child(0L, usedBytes);
-			pipeline.recordBatch(recorder, perFrameBuffer, usedVertexBuffer, this);
-		}
+		for (BatchVertexData miniBatch : vertices) pipeline.recordBatch(recorder, perFrameBuffer, miniBatch, this);
 	}
 
 	public float normalizeX(float x) {

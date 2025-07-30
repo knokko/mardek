@@ -1,8 +1,12 @@
 package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.BoilerInstance;
+import com.github.knokko.boiler.buffers.PerFrameBuffer;
+import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.batch.BatchVertexData;
+import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
@@ -13,12 +17,14 @@ import static org.lwjgl.vulkan.VK10.*;
 public class Vk2dOvalPipeline extends Vk2dPipeline {
 
 	public static final int VERTEX_SIZE = 60;
+	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE };
+	private static final int[] VERTEX_ALIGNMENTS = { VERTEX_SIZE };
 
 	private final long vkPipelineLayout;
 
 	@SuppressWarnings("resource")
 	public Vk2dOvalPipeline(Vk2dPipelineContext context) {
-		super(VERTEX_SIZE);
+		super(BYTES_PER_TRIANGLE, VERTEX_ALIGNMENTS);
 
 		try (MemoryStack stack = stackPush()) {
 			this.vkPipelineLayout = context.boiler().pipelines.createLayout(
@@ -38,7 +44,7 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 					"Oval", "com/github/knokko/vk2d/",
 					"oval.vert.spv", "oval.frag.spv"
 			);
-			simpleVertexInput(builder, stack, vertexAttributes);
+			simpleVertexInput(builder, stack, vertexAttributes, VERTEX_SIZE);
 			builder.ciPipeline.layout(vkPipelineLayout);
 
 			this.vkPipeline = builder.build("Vk2dOvalPipeline");
@@ -47,6 +53,11 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 
 	public Vk2dOvalBatch addBatch(Vk2dFrame frame, int initialCapacity) {
 		return new Vk2dOvalBatch(this, frame, initialCapacity);
+	}
+
+	@Override
+	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, BatchVertexData miniBatch, Vk2dBatch batch) {
+		recordNonIndexedBatch(recorder, perFrameBuffer, miniBatch);
 	}
 
 	@Override

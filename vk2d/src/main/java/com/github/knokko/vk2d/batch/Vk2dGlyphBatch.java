@@ -32,7 +32,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 	) {
 		if (horizontalIntersections == -1 || verticalIntersections == -1) return;
 		if (maxX < 0 || maxY < 0 || minX >= this.width || minY >= this.height) return;
-		ByteBuffer vertices = putVertices(6);
+		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 
 		int intWidth = 1 + maxX - minX;
 		int intHeight = 1 + maxY - minY;

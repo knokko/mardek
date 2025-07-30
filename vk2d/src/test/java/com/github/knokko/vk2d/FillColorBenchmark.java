@@ -39,7 +39,7 @@ public class FillColorBenchmark extends Vk2dWindow {
 		int minWidth = min(10, swapchainImage.width());
 		int minHeight = min(10, swapchainImage.height());
 
-		Vk2dColorBatch batch1 = pipelines.color.addBatch(frame, 6 * numRectangles);
+		Vk2dColorBatch batch1 = pipelines.color.addBatch(frame, 2 * numRectangles);
 		for (int counter = 0; counter < numRectangles; counter++) {
 			int minX = rng.nextInt(1 + swapchainImage.width() - minWidth);
 			int minY = rng.nextInt(1 + swapchainImage.height() - minHeight);

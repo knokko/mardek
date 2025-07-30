@@ -17,7 +17,7 @@ public class Vk2dOvalBatch extends Vk2dBatch {
 			int centerColor, int color0, int color1, int color2, int color3,
 			float distance0, float distance1, float distance2, float distance3
 	) {
-		ByteBuffer vertices = putVertices(6);
+		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 		int startPosition = vertices.position();
 
 		for (int counter = 0; counter < 6; counter++) {

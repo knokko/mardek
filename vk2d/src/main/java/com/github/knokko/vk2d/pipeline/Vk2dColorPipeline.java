@@ -1,9 +1,11 @@
 package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.BoilerInstance;
+import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import org.lwjgl.system.MemoryStack;
@@ -16,12 +18,14 @@ import static org.lwjgl.vulkan.VK10.*;
 public class Vk2dColorPipeline extends Vk2dPipeline {
 
 	public static final int VERTEX_SIZE = 8;
+	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE };
+	private static final int[] VERTEX_ALIGNMENTS = { VERTEX_SIZE };
 
 	private final long vkPipelineLayout;
 
 	@SuppressWarnings("resource")
 	public Vk2dColorPipeline(Vk2dPipelineContext context) {
-		super(VERTEX_SIZE);
+		super(BYTES_PER_TRIANGLE, VERTEX_ALIGNMENTS);
 
 		try (MemoryStack stack = stackPush()) {
 			VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
@@ -40,7 +44,7 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 					"Color/Gradient", "com/github/knokko/vk2d/",
 					"color.vert.spv", "color.frag.spv"
 			);
-			simpleVertexInput(builder, stack, vertexAttributes);
+			simpleVertexInput(builder, stack, vertexAttributes, VERTEX_SIZE);
 			builder.ciPipeline.layout(vkPipelineLayout);
 
 			this.vkPipeline = builder.build("Vk2dColorPipeline");
@@ -58,6 +62,11 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 				recorder.commandBuffer, vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
 				0, recorder.stack.ints(batch.width, batch.height)
 		);
+	}
+
+	@Override
+	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, BatchVertexData miniBatch, Vk2dBatch batch) {
+		recordNonIndexedBatch(recorder, perFrameBuffer, miniBatch);
 	}
 
 	@Override

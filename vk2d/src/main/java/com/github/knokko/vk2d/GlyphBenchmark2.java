@@ -120,7 +120,7 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 
 		int lineHeight = 11 * heightA / 6;
 		Vk2dFont font = resources.getFont(fontIndex);
-		Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 50_000, recorder, textBuffer);
+		Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 15_000, recorder, textBuffer);
 
 		int baseY = lineHeight + (int) offsetY;
 		for (String line : SHADER_CODE) {

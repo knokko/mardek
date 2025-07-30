@@ -1,16 +1,18 @@
 package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.BoilerInstance;
-import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder;
+import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkPipelineVertexInputStateCreateInfo;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 import org.lwjgl.vulkan.VkVertexInputBindingDescription;
+
+import java.util.Objects;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
@@ -37,15 +39,29 @@ public abstract class Vk2dPipeline {
 	}
 
 	protected long vkPipeline;
-	public final int vertexSize;
+	private final int[] bytesPerTriangle;
+	private final int[] vertexAlignments;
 
-	public Vk2dPipeline(int vertexSize) {
-		this.vertexSize = vertexSize;
+	public Vk2dPipeline(int[] bytesPerTriangle, int[] vertexAlignments) {
+		this.bytesPerTriangle = Objects.requireNonNull(bytesPerTriangle);
+		this.vertexAlignments = Objects.requireNonNull(vertexAlignments);
+	}
+
+	public int getVertexDimensions() {
+		return bytesPerTriangle.length;
+	}
+
+	public int getBytesPerTriangle(int dimension) {
+		return bytesPerTriangle[dimension];
+	}
+
+	public int getVertexAlignment(int dimension) {
+		return vertexAlignments[dimension];
 	}
 
 	protected void simpleVertexInput(
 			GraphicsPipelineBuilder builder, MemoryStack stack,
-			VkVertexInputAttributeDescription.Buffer attributes
+			VkVertexInputAttributeDescription.Buffer attributes, int vertexSize
 	) {
 		var bindings = VkVertexInputBindingDescription.calloc(1, stack);
 		//noinspection resource
@@ -63,13 +79,18 @@ public abstract class Vk2dPipeline {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 	}
 
-	public void recordBatch(
+	public abstract void recordBatch(
 			CommandRecorder recorder, PerFrameBuffer perFrameBuffer,
-			MappedVkbBuffer vertexData, Vk2dBatch batch
+			BatchVertexData miniBatch, Vk2dBatch batch
+	);
+
+	public void recordNonIndexedBatch(
+			CommandRecorder recorder, PerFrameBuffer perFrameBuffer, BatchVertexData miniBatch
 	) {
-		int vertexCount = (int) (vertexData.size / vertexSize);
-		int firstVertex = Math.toIntExact((vertexData.offset - perFrameBuffer.buffer.offset) / vertexSize);
-		vkCmdDraw(recorder.commandBuffer, vertexCount, 1, firstVertex, 0);
+		int numTriangles = Math.toIntExact(miniBatch.vertexData()[0].position() / bytesPerTriangle[0]);
+		int byteOffset = Math.toIntExact(miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset);
+		int firstVertex = byteOffset / (bytesPerTriangle[0] / 3);
+		vkCmdDraw(recorder.commandBuffer, 3 * numTriangles, 1, firstVertex, 0);
 	}
 
 	public void destroy(BoilerInstance boiler) {

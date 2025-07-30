@@ -87,7 +87,7 @@ public class GlyphOffsetPlayground {
 		perFrameBuffer.startFrame(1);
 		SingleTimeCommands.submit(boiler, "GlyphOffsets", recorder -> {
 			int heightA = 14;
-			Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 48, recorder, textBuffer);
+			Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 16, recorder, textBuffer);
 			Vk2dColorBatch colorBatch = pipelines.color.addBatch(frame, 6);
 
 			batch.drawPrimitiveString(

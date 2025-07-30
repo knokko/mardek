@@ -1,8 +1,10 @@
 package com.github.knokko.vk2d.pipeline;
 
+import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.Vk2dInstance;
+import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
 import com.github.knokko.vk2d.text.Vk2dTextBuffer;
@@ -15,12 +17,14 @@ import static org.lwjgl.vulkan.VK10.*;
 public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
 	public static final int VERTEX_SIZE = 64;
+	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE };
+	private static final int[] VERTEX_ALIGNMENTS = { VERTEX_SIZE };
 
 	private final long vkPipelineLayout;
 
 	@SuppressWarnings("resource")
 	public Vk2dGlyphPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super(VERTEX_SIZE);
+		super(BYTES_PER_TRIANGLE, VERTEX_ALIGNMENTS);
 
 		this.vkPipelineLayout = instance.textIntersectionPipelineLayout;
 		try (MemoryStack stack = stackPush()) {
@@ -42,7 +46,7 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 					"Glyph", "com/github/knokko/vk2d/glyph/",
 					"basic.vert.spv", "basic.frag.spv"
 			);
-			simpleVertexInput(builder, stack, vertexAttributes);
+			simpleVertexInput(builder, stack, vertexAttributes, VERTEX_SIZE);
 			builder.ciPipeline.layout(instance.textIntersectionPipelineLayout);
 
 			this.vkPipeline = builder.build("Vk2dGlyphPipeline");
@@ -59,5 +63,10 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 	public void prepareRecording(CommandRecorder recorder, Vk2dBatch batch) {
 		super.prepareRecording(recorder, batch);
 		recorder.bindGraphicsDescriptors(vkPipelineLayout, ((Vk2dGlyphBatch) batch).textBuffer.getRenderDescriptorSet());
+	}
+
+	@Override
+	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, BatchVertexData miniBatch, Vk2dBatch batch) {
+		recordNonIndexedBatch(recorder, perFrameBuffer, miniBatch);
 	}
 }

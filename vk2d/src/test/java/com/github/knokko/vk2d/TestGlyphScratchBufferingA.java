@@ -41,7 +41,7 @@ public class TestGlyphScratchBufferingA {
 
 		BoilerInstance boiler = new BoilerBuilder(
 				VK_API_VERSION_1_2, "TestUpperCaseA", 1
-		).validation().forbidValidationErrors().build();
+		).validation().forbidValidationErrors().doNotUseVma().build();
 
 		Vk2dConfig config = new Vk2dConfig();
 		config.text = true;
