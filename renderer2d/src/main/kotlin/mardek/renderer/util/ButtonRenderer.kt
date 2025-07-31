@@ -4,13 +4,13 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.text.Vk2dFont
+import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.util.Rectangle
 
 fun renderButton(
-	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: Vk2dGlyphBatch, font: Vk2dFont,
+	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: MardekGlyphBatch, font: Vk2dFont,
 	showTextOutline: Boolean, text: String, isSelected: Boolean, rect: Rectangle,
 	outlineWidth: Int, textOffsetX: Int, textBaseY: Int, textHeight: Int,
 ) {
@@ -82,18 +82,12 @@ fun renderButton(
 	val outlineColor = srgbToLinear(rgb(112, 64, 33))
 	val outlineWidth = if (showTextOutline) 0.03f * textHeight else 0f
 
-	glyphBatch.drawPrimitiveString(
-		text, textOffsetX.toFloat(), textBaseY.toFloat(), font,
-		textHeight.toFloat(), lowerTextColor,
-		outlineColor, outlineWidth
+	// TODO Determine hover text colors
+	glyphBatch.drawFancyString(
+		text, textOffsetX.toFloat(), textBaseY.toFloat(), textHeight.toFloat(),
+		font, lowerTextColor,
+		outlineColor, outlineWidth,
+		lowerTextColor, upperTextColor, upperTextColor, upperTextColor,
+		0.5f, 0.5f, 0.5f, 0.5f
 	)
-//	uiRenderer.drawString(
-//		font, text, lowerTextColor, outlineColors, textOffsetX, rect.minY, rect.maxX, rect.maxY,
-//		textBaseY, textHeight, 1, TextAlignment.DEFAULT,
-//		Gradient(0, 0, rect.width, rect.height / 2, upperTextColor, upperTextColor, upperTextColor)
-//	)
-
-//	if (isSelected) {
-//		fillColors(borderHoverDark, borderHoverLight, innerHoverLeft, innerHoverRight)
-//	}
 }

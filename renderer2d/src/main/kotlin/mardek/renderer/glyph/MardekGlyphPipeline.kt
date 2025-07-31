@@ -25,14 +25,14 @@ class MardekGlyphPipeline(context: Vk2dPipelineContext, instance: Vk2dInstance):
 	override fun addBatch(
 		frame: Vk2dFrame, initialCapacity: Int, recorder: CommandRecorder,
 		textBuffer: Vk2dTextBuffer, perFrameDescriptorSet: Long
-	): Vk2dGlyphBatch {
+	): MardekGlyphBatch {
 		return MardekGlyphBatch(
 			this, frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
 		)
 	}
 
 	companion object {
-		private const val GLYPH_SIZE = 60
+		private const val GLYPH_SIZE = 108
 		private val BYTES_PER_TRIANGLE = intArrayOf(3 * VERTEX_SIZE, GLYPH_SIZE / 2)
 		private val VERTEX_ALIGNMENTS = intArrayOf(6 * VERTEX_SIZE, GLYPH_SIZE)
 	}

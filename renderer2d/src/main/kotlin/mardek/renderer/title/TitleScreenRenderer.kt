@@ -5,12 +5,12 @@ import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.text.Vk2dFont
 import mardek.content.ui.TitleScreenContent
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
+import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.renderer.util.renderButton
 import mardek.state.title.TitleScreenState
 import mardek.state.util.Rectangle
@@ -29,9 +29,10 @@ private val info = loadInfo()
 
 fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region: Rectangle): Vk2dColorBatch {
 	val imageBatch = context.pipelines.image.addBatch(context.frame, 12)
-	imageBatch.simple(
+	imageBatch.fillWithoutDistortion(
 		region.minX, region.minY, region.maxX, region.maxY,
-		context.titleScreenBundle.getImageDescriptor(info.background.index)
+		context.titleScreenBundle.getImageDescriptor(info.background.index),
+		info.background.width, info.background.height
 	)
 
 	val colorBatch = context.pipelines.color.addBatch(context.frame, 100)
@@ -47,11 +48,24 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 		context.textBuffer, context.perFrameDescriptorSet
 	)
 
-	glyphBatch.drawString(
-		"MARDEK", region.minX + region.height * 0.09f, region.minY + region.height * 0.25f,
-		region.height * 0.18f, buttonFont, srgbToLinear(rgb(155, 80, 45)),
-		srgbToLinear(rgb(68, 51, 34)), 0.035f * region.height
-	)
+	run {
+		val outerColor = srgbToLinear(rgb(107, 53, 4))
+		val quarterColor = srgbToLinear(rgb(185, 93, 68))
+		val middleColor = srgbToLinear(rgb(230, 187, 178))
+		val innerBorderColor = srgbToLinear(rgb(68, 51, 34))
+		val outerBorderColor = srgbToLinear(rgb(190, 144, 95))
+		val borderWidth = 0.04f * region.height
+		glyphBatch.drawFancyBorderedString(
+			"MARDEK", region.minX + region.height * 0.09f, region.minY + region.height * 0.25f,
+			region.height * 0.18f, buttonFont, outerColor,
+			innerBorderColor, borderWidth,
+			quarterColor, middleColor, quarterColor, outerColor,
+			0.3f, 0.4f, 0.5f, 1f,
+			innerBorderColor, outerBorderColor,
+			0.25f * borderWidth, 0.25f * borderWidth
+		)
+	}
+
 	glyphBatch.drawShadowedString(
 		"Kotlin Edition", region.minX + region.height * 0.14f, region.minY + region.height * 0.38f,
 		region.height * 0.07f, buttonFont, srgbToLinear(rgb(242, 183, 113)),
@@ -80,7 +94,7 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 }
 
 private fun renderButton(
-	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: Vk2dGlyphBatch,
+	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: MardekGlyphBatch,
 	font: Vk2dFont, text: String, relativeY: Float, selectedButton: Int, buttonIndex: Int
 ): Rectangle {
 	val rect = Rectangle(

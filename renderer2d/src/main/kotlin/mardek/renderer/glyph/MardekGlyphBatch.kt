@@ -32,6 +32,73 @@ class MardekGlyphBatch(
 		val glyphInfo = vertices.last().vertexData[1]
 		if (oldGlyphInfo !== glyphInfo || oldPosition != glyphInfo.position()) {
 			glyphInfo.putFloat(baseY).putFloat(heightA)
+			glyphInfo.putInt(0).putInt(0).putInt(0).putInt(0)
+			val farAway = 123456f
+			glyphInfo.putFloat(farAway).putFloat(farAway).putFloat(farAway).putFloat(farAway)
+			glyphInfo.putInt(0).putInt(0)
+			glyphInfo.putFloat(farAway).putFloat(farAway)
 		}
+	}
+
+	fun fancyGlyphAt(
+		baseX: Float, baseY: Float, heightA: Float,
+		font: Vk2dFont, glyph: Int, firstColor: Int,
+		strokeColor: Int, strokeWidth: Float,
+		color0: Int, color1: Int, color2: Int, color3: Int,
+		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
+		borderColor0: Int, borderColor1: Int, borderDistance0: Float, borderDistance1: Float,
+	) {
+		val oldGlyphInfo = vertices.last().vertexData[1]
+		val oldPosition = oldGlyphInfo.position()
+		super.glyphAt(baseX, baseY, font, heightA, glyph, firstColor, strokeColor, 0, strokeWidth)
+		val glyphInfo = vertices.last().vertexData[1]
+		if (oldGlyphInfo !== glyphInfo || oldPosition != glyphInfo.position()) {
+			glyphInfo.putFloat(baseY).putFloat(heightA)
+			glyphInfo.putInt(color0).putInt(color1).putInt(color2).putInt(color3)
+			glyphInfo.putFloat(distance0).putFloat(distance1).putFloat(distance2).putFloat(distance3)
+			glyphInfo.putInt(borderColor0).putInt(borderColor1)
+			glyphInfo.putFloat(borderDistance0).putFloat(borderDistance1)
+		}
+	}
+
+	fun drawFancyBorderedString(
+		text: String, baseX: Float, baseY: Float, heightA: Float,
+		font: Vk2dFont, fillColor: Int, strokeColor: Int, strokeWidth: Float,
+		color0: Int, color1: Int, color2: Int, color3: Int,
+		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
+		borderColor0: Int, borderColor1: Int, borderDistance0: Float, borderDistance1: Float,
+	) {
+		var nextBaseX = baseX
+		for (nextCharacter in text.chars()) {
+			if (nextCharacter == '\t'.code) {
+				nextBaseX += 4f * heightA * font.whitespaceAdvance
+				continue
+			}
+
+			val glyph = font.getGlyphForChar(nextCharacter)
+			fancyGlyphAt(
+				nextBaseX, baseY, heightA,
+				font, glyph, fillColor,
+				strokeColor, strokeWidth,
+				color0, color1, color2, color3,
+				distance0, distance1, distance2, distance3,
+				borderColor0, borderColor1,
+				borderDistance0, borderDistance1,
+			)
+
+			nextBaseX += heightA * font.getGlyphAdvance(glyph)
+		}
+	}
+
+	fun drawFancyString(
+		text: String, baseX: Float, baseY: Float, heightA: Float,
+		font: Vk2dFont, fillColor: Int, strokeColor: Int, strokeWidth: Float,
+		color0: Int, color1: Int, color2: Int, color3: Int,
+		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
+	) {
+		drawFancyBorderedString(
+			text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth, color0, color1, color2, color3,
+			distance0, distance1, distance2, distance3, 0, 0, 12345f, 12345f
+		)
 	}
 }

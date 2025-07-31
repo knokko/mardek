@@ -9,22 +9,30 @@ layout(location = 2) in flat GlyphInfo glyph;
 layout(location = 0) out vec4 outColor;
 
 #include "../../../../../../../vk2d/src/main/resources/com/github/knokko/vk2d/decode.glsl"
+#include "../../../../../../../vk2d/src/main/resources/com/github/knokko/vk2d/linear-gradients.glsl"
 #include "../../../../../../../vk2d/src/main/resources/com/github/knokko/vk2d/glyph/intersection.glsl"
 #include "../../../../../../../vk2d/src/main/resources/com/github/knokko/vk2d/glyph/color.glsl"
 
 void main() {
-	WaveIntersection intersection = closestIntersection(glyph);
-	float intensity = 0.0;
-	float middle = 0.4;
-	if (relativeY >= middle) intensity = 1.0 - (relativeY - middle) / (1.0 - middle);
-	else intensity = relativeY / middle;
-	intensity *= intensity * intensity;
+	SelectedGradient selected = initialSelectedGradient(glyph.fillColor, glyph.color0, glyph.distance0);
+	selected = nextSelectedGradient(relativeY, selected, glyph.color0, glyph.color1, glyph.distance0, glyph.distance1);
+	selected = nextSelectedGradient(relativeY, selected, glyph.color1, glyph.color2, glyph.distance1, glyph.distance2);
+	selected = nextSelectedGradient(relativeY, selected, glyph.color2, glyph.color3, glyph.distance2, glyph.distance3);
+	vec4 fillColor = selectGradientColor(relativeY, selected);
 
-	vec4 fillColor = intensity * vec4(0.9, 0.75, 0.7, 1.0) + (1.0 - intensity) * vec4(0.42, 0.21, 0.02, 1.0);
+	WaveIntersection intersection = closestIntersection(glyph);
 	vec4 mainColor = determineMainColor(
 		intersection.inside, intersection.distance, fillColor, decodeColor(glyph.backgroundColor)
 	);
 	float strokeIntensity = determineStrokeIntensity(intersection.distance, glyph.strokeWidth);
 	if (intersection.inside) strokeIntensity = 0.0;
-	outColor = mixStrokeColor(mainColor, decodeColor(glyph.strokeColor), strokeIntensity);
+
+	vec4 strokeColor;
+	if (strokeIntensity > 0.0) {
+		selected = initialSelectedGradient(glyph.strokeColor, glyph.borderColor0, glyph.borderDistance0);
+		selected = nextSelectedGradient(intersection.distance, selected, glyph.borderColor0, glyph.borderColor1, glyph.borderDistance0, glyph.borderDistance1);
+		strokeColor = selectGradientColor(intersection.distance, selected);
+	} else strokeColor = decodeColor(glyph.strokeColor);
+
+	outColor = mixStrokeColor(mainColor, strokeColor, strokeIntensity);
 }
