@@ -23,20 +23,30 @@ class MardekGlyphBatch(
 		glyph: Int,
 		fillColor: Int,
 		strokeColor: Int,
-		backgroundColor: Int,
 		strokeWidth: Float
 	) {
 		val oldGlyphInfo = vertices.last().vertexData[1]
 		val oldPosition = oldGlyphInfo.position()
-		super.glyphAt(baseX, baseY, font, heightA, glyph, fillColor, strokeColor, backgroundColor, strokeWidth)
+		super.glyphAt(baseX, baseY, font, heightA, glyph, fillColor, strokeColor, strokeWidth)
 		val glyphInfo = vertices.last().vertexData[1]
 		if (oldGlyphInfo !== glyphInfo || oldPosition != glyphInfo.position()) {
-			glyphInfo.putFloat(baseY).putFloat(heightA)
+
+			// GlyphInfo.yInfoAndStrokeWidth
+			glyphInfo.putFloat(glyphInfo.position() - 3 * 4, baseY)
+			glyphInfo.putFloat(glyphInfo.position() - 2 * 4, heightA)
+
+			// GlyphInfo.fillColors
 			glyphInfo.putInt(0).putInt(0).putInt(0).putInt(0)
+
+			// GlyphInfo.fillDistances
 			val farAway = 123456f
 			glyphInfo.putFloat(farAway).putFloat(farAway).putFloat(farAway).putFloat(farAway)
-			glyphInfo.putInt(0).putInt(0)
-			glyphInfo.putFloat(farAway).putFloat(farAway)
+
+			// GlyphInfo.borderColors
+			glyphInfo.putInt(0).putInt(0).putInt(0).putInt(0)
+
+			// GlyphInfo.borderDistances
+			glyphInfo.putFloat(farAway).putFloat(farAway).putFloat(farAway).putFloat(farAway)
 		}
 	}
 
@@ -50,14 +60,25 @@ class MardekGlyphBatch(
 	) {
 		val oldGlyphInfo = vertices.last().vertexData[1]
 		val oldPosition = oldGlyphInfo.position()
-		super.glyphAt(baseX, baseY, font, heightA, glyph, firstColor, strokeColor, 0, strokeWidth)
+		super.glyphAt(baseX, baseY, font, heightA, glyph, firstColor, strokeColor, strokeWidth)
 		val glyphInfo = vertices.last().vertexData[1]
 		if (oldGlyphInfo !== glyphInfo || oldPosition != glyphInfo.position()) {
-			glyphInfo.putFloat(baseY).putFloat(heightA)
+
+			// GlyphInfo.yInfoAndStrokeWidth
+			glyphInfo.putFloat(glyphInfo.position() - 3 * 4, baseY)
+			glyphInfo.putFloat(glyphInfo.position() - 2 * 4, heightA)
+
+			// GlyphInfo.fillColors
 			glyphInfo.putInt(color0).putInt(color1).putInt(color2).putInt(color3)
+
+			// GlyphInfo.fillDistances
 			glyphInfo.putFloat(distance0).putFloat(distance1).putFloat(distance2).putFloat(distance3)
-			glyphInfo.putInt(borderColor0).putInt(borderColor1)
-			glyphInfo.putFloat(borderDistance0).putFloat(borderDistance1)
+
+			// GlyphInfo.borderColors
+			glyphInfo.putInt(borderColor0).putInt(borderColor1).putInt(0).putInt(0)
+
+			// GlyphInfo.borderDistances
+			glyphInfo.putFloat(borderDistance0).putFloat(borderDistance1).putFloat(borderDistance1).putFloat(borderDistance1)
 		}
 	}
 

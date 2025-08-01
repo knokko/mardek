@@ -32,7 +32,7 @@ class MardekGlyphPipeline(context: Vk2dPipelineContext, instance: Vk2dInstance):
 	}
 
 	companion object {
-		private const val GLYPH_SIZE = 108
+		private const val GLYPH_SIZE = 8 * 16
 		private val BYTES_PER_TRIANGLE = intArrayOf(3 * VERTEX_SIZE, GLYPH_SIZE / 2)
 		private val VERTEX_ALIGNMENTS = intArrayOf(6 * VERTEX_SIZE, GLYPH_SIZE)
 	}

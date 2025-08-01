@@ -20,8 +20,9 @@ layout(location = 1) out flat GlyphInfo glyph;
 void main() {
 	glyph = glyphs[glyphIndex];
 
-	uint minX = glyph.rawMinPosition & 0xFFFF;
-	uint minY = (glyph.rawMinPosition >> 16) & 0xFFFF;
+	uint rawMinPosition = glyph.rawInfo.z;
+	uint minX = rawMinPosition & 0xFFFF;
+	uint minY = (rawMinPosition >> 16) & 0xFFFF;
 
 	uint vertexX;
 	uint vertexY;
@@ -29,7 +30,7 @@ void main() {
 	uint rawVertex = gl_VertexIndex % 6;
 	if (rawVertex >= 1 && rawVertex <= 3) {
 		textureCoordinates.x = 1.0;
-		vertexX = minX + glyph.intRenderWidth;
+		vertexX = minX + glyph.colorsAndSize.x;
 	} else {
 		textureCoordinates.x = 0.0;
 		vertexX = minX;
@@ -40,7 +41,7 @@ void main() {
 		vertexY = minY;
 	} else {
 		textureCoordinates.y = 0.0;
-		vertexY = minY + glyph.intRenderHeight;
+		vertexY = minY + glyph.colorsAndSize.y;
 	}
 
 	vec2 position = 2.0 * vec2(vertexX, vertexY) / viewportSize - vec2(1.0);

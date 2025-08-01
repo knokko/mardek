@@ -14,9 +14,9 @@ layout(location = 0) out vec4 outColor;
 void main() {
 	WaveIntersection intersection = closestIntersection(glyph);
 	vec4 mainColor = determineMainColor(
-		intersection.inside, intersection.distance, decodeColor(glyph.fillColor), decodeColor(glyph.backgroundColor)
+		intersection.inside, intersection.distance, decodeColor(glyph.colorsAndSize.z)
 	);
 	outColor = mixStrokeColor(
-		mainColor, decodeColor(glyph.strokeColor), determineStrokeIntensity(intersection.distance, glyph.strokeWidth)
+		mainColor, decodeColor(glyph.colorsAndSize.w), determineStrokeIntensity(intersection.distance, glyph.strokeWidth)
 	);
 }

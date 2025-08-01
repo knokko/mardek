@@ -18,7 +18,7 @@ import static org.lwjgl.vulkan.VK10.*;
 public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
 	protected static final int VERTEX_SIZE = 4;
-	public static final int GLYPH_SIZE = 52;
+	public static final int GLYPH_SIZE = 64;
 	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE, GLYPH_SIZE / 2 };
 
 	// We need an alignment of 3 * VERTEX_SIZE since the vertex shader uses gl_VertexIndex % 6 for calculations

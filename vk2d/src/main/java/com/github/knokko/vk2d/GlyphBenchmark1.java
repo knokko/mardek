@@ -60,7 +60,6 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 
 				int fillColor;
 				int strokeColor;
-				int backgroundColor = 0;
 				float strokeWidth;
 
 				if (glyph % 3 == round % 3) {
@@ -78,7 +77,7 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 				}
 				batch.glyphAt(
 						x, y, font, heightA, glyph,
-						fillColor, strokeColor, backgroundColor, strokeWidth
+						fillColor, strokeColor, strokeWidth
 				);
 				glyph += 1;
 			}

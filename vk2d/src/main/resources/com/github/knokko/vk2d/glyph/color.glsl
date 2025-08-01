@@ -35,18 +35,18 @@ float determineStrokeIntensity(float distance, float strokeWidth) {
 	else return clamp(strokeWidth - strokeWidth * distance, 0.0, 1.0);
 }
 
-vec4 determineMainColor(bool inside, float distance, vec4 fillColor, vec4 backgroundColor) {
+vec4 determineMainColor(bool inside, float distance, vec4 fillColor) {
 	float clampedDistance = clamp(distance, 0.0, 0.5);
 
 	// The desired behavior is:
-	// - inside && distance == 0 -> 0.5 * fillColor + 0.5 * backgroundColor
-	// - outside && distance == 0 -> 0.5 * fillColor + 0.5 * backgroundColor
-	// - inside && distance == 0.25 -> 0.75 * fillColor + 0.25 * backgroundColor
-	// - outside && distance == 0.25 -> 0.25 * fillColor + 0.75 * backgroundColor
-	// - inside && distance >= 0.5 -> 1.0 * fillColor + 0.0 * backgroundColor
-	// - outside && distance >= 0.5 -> 0.0 * fillColor + 1.0 * backgroundColor
-	if (inside) return (0.5 + clampedDistance) * fillColor + (0.5 - clampedDistance) * backgroundColor;
-	else return (0.5 - clampedDistance) * fillColor + (0.5 + clampedDistance) * backgroundColor;
+	// - inside && distance == 0 -> 0.5 * fillColor
+	// - outside && distance == 0 -> 0.5 * fillColor
+	// - inside && distance == 0.25 -> 0.75 * fillColor
+	// - outside && distance == 0.25 -> 0.25 * fillColor
+	// - inside && distance >= 0.5 -> 1.0 * fillColor
+	// - outside && distance >= 0.5 -> 0.0 * fillColor
+	if (inside) return (0.5 + clampedDistance) * fillColor;
+	else return (0.5 - clampedDistance) * fillColor;
 }
 
 vec4 mixStrokeColor(vec4 mainColor, vec4 strokeColor, float strokeIntensity) {
