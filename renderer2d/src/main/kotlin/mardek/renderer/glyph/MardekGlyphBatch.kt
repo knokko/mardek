@@ -56,7 +56,8 @@ class MardekGlyphBatch(
 		strokeColor: Int, strokeWidth: Float,
 		color0: Int, color1: Int, color2: Int, color3: Int,
 		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
-		borderColor0: Int, borderColor1: Int, borderDistance0: Float, borderDistance1: Float,
+		borderColor0: Int, borderColor1: Int, borderColor2: Int, borderColor3: Int,
+		borderDistance0: Float, borderDistance1: Float, borderDistance2: Float, borderDistance3: Float,
 	) {
 		val oldGlyphInfo = vertices.last().vertexData[1]
 		val oldPosition = oldGlyphInfo.position()
@@ -75,10 +76,10 @@ class MardekGlyphBatch(
 			glyphInfo.putFloat(distance0).putFloat(distance1).putFloat(distance2).putFloat(distance3)
 
 			// GlyphInfo.borderColors
-			glyphInfo.putInt(borderColor0).putInt(borderColor1).putInt(0).putInt(0)
+			glyphInfo.putInt(borderColor0).putInt(borderColor1).putInt(borderColor2).putInt(borderColor3)
 
 			// GlyphInfo.borderDistances
-			glyphInfo.putFloat(borderDistance0).putFloat(borderDistance1).putFloat(borderDistance1).putFloat(borderDistance1)
+			glyphInfo.putFloat(borderDistance0).putFloat(borderDistance1).putFloat(10f * borderDistance2).putFloat(20f * borderDistance3)
 		}
 	}
 
@@ -87,7 +88,8 @@ class MardekGlyphBatch(
 		font: Vk2dFont, fillColor: Int, strokeColor: Int, strokeWidth: Float,
 		color0: Int, color1: Int, color2: Int, color3: Int,
 		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
-		borderColor0: Int, borderColor1: Int, borderDistance0: Float, borderDistance1: Float,
+		borderColor0: Int, borderColor1: Int, borderColor2: Int, borderColor3: Int,
+		borderDistance0: Float, borderDistance1: Float, borderDistance2: Float, borderDistance3: Float,
 	) {
 		var nextBaseX = baseX
 		for (nextCharacter in text.chars()) {
@@ -103,8 +105,8 @@ class MardekGlyphBatch(
 				strokeColor, strokeWidth,
 				color0, color1, color2, color3,
 				distance0, distance1, distance2, distance3,
-				borderColor0, borderColor1,
-				borderDistance0, borderDistance1,
+				borderColor0, borderColor1, borderColor2, borderColor3,
+				borderDistance0, borderDistance1, borderDistance2, borderDistance3,
 			)
 
 			nextBaseX += heightA * font.getGlyphAdvance(glyph)
@@ -118,8 +120,10 @@ class MardekGlyphBatch(
 		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
 	) {
 		drawFancyBorderedString(
-			text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth, color0, color1, color2, color3,
-			distance0, distance1, distance2, distance3, 0, 0, 12345f, 12345f
+			text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth,
+			color0, color1, color2, color3, distance0, distance1, distance2, distance3,
+			0, 0, 0, 0,
+			12345f, 12345f, 12345f, 12345f,
 		)
 	}
 }

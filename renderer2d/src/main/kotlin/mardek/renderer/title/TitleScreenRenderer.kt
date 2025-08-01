@@ -61,8 +61,8 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 			innerBorderColor, borderWidth,
 			quarterColor, middleColor, quarterColor, outerColor,
 			0.3f, 0.4f, 0.5f, 1f,
-			innerBorderColor, outerBorderColor,
-			0.25f * borderWidth, 0.25f * borderWidth
+			innerBorderColor, outerBorderColor, outerBorderColor, outerBorderColor,
+			0.25f * borderWidth, 0.25f * borderWidth, 12345f, 12345f
 		)
 	}
 

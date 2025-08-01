@@ -16,7 +16,7 @@ import static org.lwjgl.vulkan.VK10.*;
 public class Vk2dOvalPipeline extends Vk2dPipeline {
 
 	private static final int VERTEX_SIZE = 8;
-	public static final int OVAL_SIZE = 52;
+	public static final int OVAL_SIZE = 4 * 16;
 	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE, OVAL_SIZE / 2 };
 	private static final int[] VERTEX_ALIGNMENTS = { VERTEX_SIZE, OVAL_SIZE };
 

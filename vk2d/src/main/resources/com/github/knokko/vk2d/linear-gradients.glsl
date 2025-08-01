@@ -31,3 +31,11 @@ vec4 selectGradientColor(float distance, SelectedGradient selected) {
 	float slider = (distance - selected.distance0) / (selected.distance1 - selected.distance0);
 	return slider * decodeColor(selected.color1) + (1.0 - slider) * decodeColor(selected.color0);
 }
+
+vec4 computeGradientColor(float distance, uint baseColor, vec4 distances, uvec4 colors) {
+	SelectedGradient selected = initialSelectedGradient(baseColor, colors.x, distances.x);
+	selected = nextSelectedGradient(distance, selected, colors.x, colors.y, distances.x, distances.y);
+	selected = nextSelectedGradient(distance, selected, colors.y, colors.z, distances.y, distances.z);
+	selected = nextSelectedGradient(distance, selected, colors.z, colors.w, distances.z, distances.w);
+	return selectGradientColor(distance, selected);
+}

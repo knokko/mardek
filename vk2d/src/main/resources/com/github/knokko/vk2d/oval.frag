@@ -11,12 +11,7 @@ layout(location = 0) out vec4 outColor;
 #include "linear-gradients.glsl"
 
 void main() {
-	vec2 difference = (vec2(oval.centerX, oval.centerY) - position) / vec2(oval.radiusX, oval.radiusY);
+	vec2 difference = (oval.centerAndRadius.xy - position) / oval.centerAndRadius.zw;
 	float distance = difference.x * difference.x + difference.y * difference.y;
-
-	SelectedGradient selected = initialSelectedGradient(oval.centerColor, oval.color0, oval.distance0);
-	selected = nextSelectedGradient(distance, selected, oval.color0, oval.color1, oval.distance0, oval.distance1);
-	selected = nextSelectedGradient(distance, selected, oval.color1, oval.color2, oval.distance1, oval.distance2);
-	selected = nextSelectedGradient(distance, selected, oval.color2, oval.color3, oval.distance2, oval.distance3);
-	outColor = selectGradientColor(distance, selected);
+	outColor = computeGradientColor(distance, oval.centerColor, oval.distances, oval.colors);
 }

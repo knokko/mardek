@@ -33,7 +33,7 @@ public class Vk2dOvalBatch extends Vk2dBatch {
 		oval.putFloat(distance2 * distance2).putFloat(distance3 * distance3);
 		oval.putFloat(normalizeX(centerX)).putFloat(normalizeY(centerY));
 		oval.putFloat(2f * radiusX / width).putFloat(2f * radiusY / height);
-		oval.putInt(centerColor);
+		oval.putInt(centerColor).putInt(0).putInt(0).putInt(0);
 
 		ByteBuffer vertices = triangles.vertexData()[0];
 		putCompressedPosition(vertices, minX, maxY + 1);
