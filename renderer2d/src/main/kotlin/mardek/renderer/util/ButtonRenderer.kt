@@ -76,13 +76,16 @@ fun renderButton(
 		0.8f, 0.8f, 1f, 1f
 	)
 
-	val upperTextColor = srgbToLinear(rgb(248, 232, 194))
-	val lowerTextColor = srgbToLinear(rgb(238, 203, 127))
+	var upperTextColor = srgbToLinear(rgb(248, 232, 194))
+	var lowerTextColor = srgbToLinear(rgb(238, 203, 127))
+	if (isSelected) {
+		upperTextColor = srgbToLinear(rgb(221, 238, 254))
+		lowerTextColor = srgbToLinear(rgb(164, 204, 253))
+	}
 
 	val outlineColor = srgbToLinear(rgb(112, 64, 33))
 	val outlineWidth = if (showTextOutline) 0.03f * textHeight else 0f
 
-	// TODO Determine hover text colors
 	glyphBatch.drawFancyString(
 		text, textOffsetX.toFloat(), textBaseY.toFloat(), textHeight.toFloat(),
 		font, lowerTextColor,

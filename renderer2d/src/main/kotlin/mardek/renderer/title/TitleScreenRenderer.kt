@@ -66,12 +66,18 @@ fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region
 		)
 	}
 
-	glyphBatch.drawShadowedString(
-		"Kotlin Edition", region.minX + region.height * 0.14f, region.minY + region.height * 0.38f,
-		region.height * 0.07f, buttonFont, srgbToLinear(rgb(242, 183, 113)),
-		0, 0f, srgbToLinear(rgb(91, 63, 30)),
-		region.height * 0.005f, region.height * 0.005f
-	)
+	run {
+		val shadowColor = srgbToLinear(rgb(91, 63, 30))
+		val lowerColor = srgbToLinear(rgb(184, 130, 60))
+		val upperColor = srgbToLinear(rgb(241, 182, 113))
+		glyphBatch.drawFancyShadowedString(
+			"Kotlin Edition", region.minX + region.height * 0.14f, region.minY + region.height * 0.38f,
+			region.height * 0.07f, buttonFont, lowerColor, 0, 0f,
+			lowerColor, upperColor, upperColor, upperColor,
+			0.3f, 0.3f, 12345f, 12345f,
+			shadowColor, region.height * 0.005f, region.height * 0.005f
+		)
+	}
 
 	state.newGameButton = renderButton(
 		region, colorBatch, ovalBatch, glyphBatch, buttonFont, "New Game",

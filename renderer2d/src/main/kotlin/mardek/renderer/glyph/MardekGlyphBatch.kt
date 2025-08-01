@@ -126,4 +126,18 @@ class MardekGlyphBatch(
 			12345f, 12345f, 12345f, 12345f,
 		)
 	}
+
+	fun drawFancyShadowedString(
+		text: String, baseX: Float, baseY: Float, heightA: Float,
+		font: Vk2dFont, fillColor: Int, strokeColor: Int, strokeWidth: Float,
+		color0: Int, color1: Int, color2: Int, color3: Int,
+		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
+		shadowColor: Int, shadowOffsetX: Float, shadowOffsetY: Float
+	) {
+		drawString(text, baseX + shadowOffsetX, baseY + shadowOffsetY, heightA, font, shadowColor)
+		drawFancyString(
+			text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth,
+			color0, color1, color2, color3, distance0, distance1, distance2, distance3
+		)
+	}
 }
