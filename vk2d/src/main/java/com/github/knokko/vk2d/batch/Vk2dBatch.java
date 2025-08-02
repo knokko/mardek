@@ -61,7 +61,7 @@ public class Vk2dBatch {
 	}
 
 	protected void putCompressedPosition(ByteBuffer vertices, int x, int y) {
-		vertices.putInt(max(x, 0) | (max(y, 0) << 16));
+		vertices.putInt(max(x + 10_000, 0) | (max(y + 10_000, 0) << 16));
 	}
 
 	public float normalizeX(float x) {
