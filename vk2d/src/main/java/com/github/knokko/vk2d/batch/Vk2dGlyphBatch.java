@@ -94,10 +94,10 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		float offsetY = intBoundY - maxY;
 
 		int glyphOffsetHorizontal = textBuffer.scratch(
-				recorder, font, glyph, -offsetY, height, intHeight, true
+				recorder, font, glyph, -offsetY, heightA, height, intHeight, true, strokeWidth
 		);
 		int glyphOffsetVertical = textBuffer.scratch(
-				recorder, font, glyph, -offsetX, width, intWidth, false
+				recorder, font, glyph, -offsetX, heightA, width, intWidth, false, strokeWidth
 		);
 
 		glyphBetween(

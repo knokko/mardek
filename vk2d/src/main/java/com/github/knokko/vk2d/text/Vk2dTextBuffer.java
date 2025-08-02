@@ -118,14 +118,25 @@ public class Vk2dTextBuffer {
 		scratchPushConstants = null;
 	}
 
-	public int scratch(CommandRecorder recorder, Vk2dFont font, int glyph, float offset, float size, int intSize, boolean horizontal) {
+	public int scratch(
+			CommandRecorder recorder, Vk2dFont font, int glyph, float offset,
+			float heightA, float size, int intSize, boolean horizontal, float strokeWidth
+	) {
 		int numCurves = font.getNumCurves(glyph);
 		if (intSize <= 0 || numCurves == 0) return -1;
-		Integer existing = cache.get(font.index, glyph, offset, size, intSize, horizontal);
+
+		float maxOrthogonalDistance = 0.5f * strokeWidth / heightA;
+
+		// Round up to multiples of 0.001 to reduce the number of distinct keys in the glyph cache
+		maxOrthogonalDistance = (float) Math.ceil(maxOrthogonalDistance * 1000f) * 0.001f;
+
+		Integer existing = cache.get(font.index, glyph, offset, size, intSize, horizontal, maxOrthogonalDistance);
 		if (existing != null) return existing;
 
 		int scratchIntersectionOffset = cache.getNextScratchIntersectionIndex();
-		int scratchInfoOffset = cache.putScratch(font.index, glyph, offset, size, intSize, numCurves, horizontal);
+		int scratchInfoOffset = cache.putScratch(
+				font.index, glyph, offset, size, intSize, numCurves, horizontal, maxOrthogonalDistance
+		);
 		if (scratchInfoOffset == -1) return -1;
 
 		if (shouldBindScratchPipeline) {
@@ -144,7 +155,7 @@ public class Vk2dTextBuffer {
 			throw new UnsupportedOperationException("TODO");
 		}
 
-		if (scratchPushConstants == null) scratchPushConstants = recorder.stack.calloc(40);
+		if (scratchPushConstants == null) scratchPushConstants = recorder.stack.calloc(44);
 		ByteBuffer pushConstants = scratchPushConstants;
 		pushConstants.putInt(0, scratchIntersectionOffset);
 		pushConstants.putInt(4, scratchInfoOffset);
@@ -156,6 +167,7 @@ public class Vk2dTextBuffer {
 		pushConstants.putFloat(28, font.getGlyphMaxX(glyph));
 		pushConstants.putFloat(32, font.getGlyphMaxY(glyph));
 		pushConstants.putFloat(36, offset);
+		pushConstants.putFloat(40, maxOrthogonalDistance);
 
 		vkCmdPushConstants(
 				recorder.commandBuffer, instance.textScratchPipelineLayout,
@@ -163,7 +175,7 @@ public class Vk2dTextBuffer {
 		);
 		vkCmdDispatch(recorder.commandBuffer, intSize, 1, 1);
 
-		return cache.get(font.index, glyph, offset, size, intSize, horizontal);
+		return cache.get(font.index, glyph, offset, size, intSize, horizontal, maxOrthogonalDistance);
 	}
 
 	private void nextIntersectionBarrier(CommandRecorder recorder) {

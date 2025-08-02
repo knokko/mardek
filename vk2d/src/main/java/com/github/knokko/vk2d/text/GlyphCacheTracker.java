@@ -46,9 +46,9 @@ public class GlyphCacheTracker {
 		if (lastStableIntersectionIndex == stableIntersectionBufferSize) shouldClearStable = true;
 
 		int oldStableIndex = nextStableInfoIndex;
-		scratchMap.forEach((entry, index) -> {
-			stableMap.put(entry, index + oldStableIndex);
-			nextStableInfoIndex += 2 * entry.intSize;
+		scratchMap.forEach((entry, scratchIndex) -> {
+			stableMap.put(entry, 3 * scratchIndex / 2 + oldStableIndex);
+			nextStableInfoIndex += 3 * entry.intSize;
 		});
 		scratchMap.clear();
 
@@ -62,29 +62,35 @@ public class GlyphCacheTracker {
 		} else return false;
 	}
 
-	public Integer get(int fontIndex, int glyph, float offset, float size, int intSize, boolean horizontal) {
-		Entry key = new Entry(fontIndex, glyph, offset, size, intSize, horizontal);
+	public Integer get(
+			int fontIndex, int glyph, float offset,
+			float size, int intSize, boolean horizontal, float maxOrthogonalDistance
+	) {
+		Entry key = new Entry(fontIndex, glyph, offset, size, intSize, horizontal, maxOrthogonalDistance);
 		Integer index = stableMap.get(key);
 		if (index != null) return index;
 		index = scratchMap.get(key);
-		if (index != null) return index + nextStableInfoIndex;
+		if (index != null) return 3 * index / 2 + nextStableInfoIndex;
 		return null;
 	}
 
-	public int putScratch(int fontIndex, int glyph, float offset, float size, int intSize, int numCurves, boolean horizontal) {
+	public int putScratch(
+			int fontIndex, int glyph, float offset, float size, int intSize,
+			int numCurves, boolean horizontal, float maxOrthogonalDistance
+	) {
 		int newScratchInfoIndex = nextScratchInfoIndex + 2 * intSize;
 		if (newScratchInfoIndex > scratchInfoBufferSize) return -1;
 
-		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 2 * intSize * numCurves;
+		int newScratchIntersectionIndex = nextScratchIntersectionIndex + 4 * intSize * numCurves;
 		if (newScratchIntersectionIndex > scratchIntersectionBufferSize) return -1;
 
-		int newStableInfoIndex = nextStableInfoIndex + newScratchInfoIndex;
+		int newStableInfoIndex = nextStableInfoIndex + 3 * newScratchInfoIndex / 2;
 		if (newStableInfoIndex > stableInfoBufferSize) {
 			shouldClearStable = true;
 			return -1;
 		}
 
-		scratchMap.put(new Entry(fontIndex, glyph, offset, size, intSize, horizontal), nextScratchInfoIndex);
+		scratchMap.put(new Entry(fontIndex, glyph, offset, size, intSize, horizontal, maxOrthogonalDistance), nextScratchInfoIndex);
 		int result = nextScratchInfoIndex;
 
 		nextScratchInfoIndex = newScratchInfoIndex;
@@ -110,5 +116,8 @@ public class GlyphCacheTracker {
 	}
 
 	// TODO Use fixed-point offset & size?
-	private record Entry(int fontIndex, int glyph, float offset, float size, int intSize, boolean horizontal) {}
+	private record Entry(
+			int fontIndex, int glyph, float offset,
+			float size, int intSize, boolean horizontal, float maxOrthogonalDistance
+	) {}
 }

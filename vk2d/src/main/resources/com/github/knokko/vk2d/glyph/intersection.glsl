@@ -11,14 +11,15 @@ struct WaveIntersection {
 };
 
 WaveIntersection wave(uint infoOffset, uint thisWave, float wavePosition) {
-	uint infoIndex = infoOffset + 2 * thisWave;
+	uint infoIndex = infoOffset + 3 * thisWave;
 	uint intersectionIndex = intersectionInfo[infoIndex];
-	uint numIntersections = intersectionInfo[infoIndex + 1];
+	uint numActualIntersections = intersectionInfo[infoIndex + 1];
+	uint numAlmostIntersections = intersectionInfo[infoIndex + 2];
 
 	uint index = 0;
 	float curveDistance = 100000.0;
 	float previousIntersection = -100000.0;
-	for (; index < numIntersections; index++) {
+	for (; index < numActualIntersections; index++) {
 		float nextIntersection = intersectionData[index + intersectionIndex];
 		if (wavePosition < nextIntersection) {
 			curveDistance = nextIntersection - wavePosition;
@@ -29,6 +30,13 @@ WaveIntersection wave(uint infoOffset, uint thisWave, float wavePosition) {
 
 	if (index > 0) {
 		curveDistance = min(curveDistance, wavePosition - previousIntersection);
+	}
+
+	for (uint nearbyIndex = 0; nearbyIndex < numAlmostIntersections; nearbyIndex++) {
+		float parallelDistance = intersectionData[numActualIntersections + intersectionIndex + 2 * nearbyIndex] - wavePosition;
+		float orthogonalDistance = intersectionData[numActualIntersections + intersectionIndex + 2 * nearbyIndex + 1];
+		float distance = abs(parallelDistance) + abs(orthogonalDistance);
+		curveDistance = min(distance, curveDistance);
 	}
 
 	WaveIntersection result;
@@ -45,6 +53,7 @@ float recoverWavePosition(uint thisWave, float subpixelOffset, float size) {
 WaveIntersection closestIntersection(GlyphInfo glyph) {
 	uint x = uint(glyph.colorsAndSize.x * textureCoordinates.x);
 	uint y = uint(glyph.colorsAndSize.y * textureCoordinates.y);
+	vec2 test = glyph.colorsAndSize.xy;
 
 	float waveX = recoverWavePosition(x, glyph.subpixelAndSize.x, glyph.subpixelAndSize.z);
 	float waveY = recoverWavePosition(y, glyph.subpixelAndSize.y, glyph.subpixelAndSize.w);

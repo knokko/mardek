@@ -55,10 +55,10 @@ public class TestGlyphScratchBufferingD {
 
 		long alignment = boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
 		int usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-		MappedVkbBuffer scratchIntersectionBuffer = memoryCombiner.addMappedBuffer(18L * 2L * 4L * glyphHeight, alignment, usage);
+		MappedVkbBuffer scratchIntersectionBuffer = memoryCombiner.addMappedBuffer(18L * 2L * 8L * glyphHeight, alignment, usage);
 		MappedVkbBuffer scratchInfoBuffer = memoryCombiner.addMappedBuffer(8L * glyphHeight, alignment, usage);
 		MappedVkbBuffer intersectionBuffer = memoryCombiner.addMappedBuffer(18L * 2L * 4L * glyphHeight, alignment, usage);
-		MappedVkbBuffer infoBuffer = memoryCombiner.addMappedBuffer(8L * glyphHeight, alignment, usage);
+		MappedVkbBuffer infoBuffer = memoryCombiner.addMappedBuffer(12L * glyphHeight, alignment, usage);
 		MappedVkbBuffer nextOffsetBuffer = memoryCombiner.addMappedBuffer(4L, alignment, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		MappedVkbBuffer nextIntersectionIndexBuffer = memoryCombiner.addMappedBuffer(4L, alignment, usage);
 		Vk2dTextBuffer textBuffer = new Vk2dTextBuffer(
@@ -84,7 +84,7 @@ public class TestGlyphScratchBufferingD {
 
 		textBuffer.startFrame();
 		commands.submit("Scratch", recorder ->
-			textBuffer.scratch(recorder, font, glyph, 0f, glyphHeight, glyphHeight, true)
+			assertEquals(0, textBuffer.scratch(recorder, font, glyph, 0f, 123, glyphHeight, glyphHeight, true, 0f))
 		).awaitCompletion();
 
 		IntBuffer info = scratchInfoBuffer.intBuffer();
@@ -96,7 +96,7 @@ public class TestGlyphScratchBufferingD {
 			int numIntersections = info.get();
 			int maxIntersections = info.get();
 			for (int counter = 0; counter < numIntersections; counter++) {
-				System.out.print(intersections.get(counter + 2 * glyphY * numCurves));
+				System.out.print(intersections.get(2 * counter + 4 * glyphY * numCurves));
 				System.out.print(" ");
 			}
 			assertEquals(maxIntersections, 2 * font.getNumCurves(glyph));
@@ -107,13 +107,17 @@ public class TestGlyphScratchBufferingD {
 		assertEquals(2, info.get(0));
 		assertEquals(2 * numCurves, info.get(1));
 		assertEquals(-0.003f, intersections.get(0), 0.001f);
-		assertEquals(0.522f, intersections.get(1), 0.001f);
+		assertEquals(-1f, intersections.get(1));
+		assertEquals(0.522f, intersections.get(2), 0.001f);
+		assertEquals(-1f, intersections.get(3));
 
 		// y 99 also has only 2 intersections
 		assertEquals(2, info.get(198));
 		assertEquals(2 * numCurves, info.get(199));
-		assertEquals(-0.003f, intersections.get(2 * 99 * numCurves), 0.001f);
-		assertEquals(0.491f, intersections.get(2 * 99 * numCurves + 1), 0.001f);
+		assertEquals(-0.003f, intersections.get(4 * 99 * numCurves), 0.001f);
+		assertEquals(-1f, intersections.get(4 * 99 * numCurves + 1));
+		assertEquals(0.491f, intersections.get(4 * 99 * numCurves + 2), 0.001f);
+		assertEquals(-1f, intersections.get(4 * 99 * numCurves + 3));
 
 		commands.submit("GlyphTransfer", textBuffer::transfer
 		).awaitCompletion();
@@ -133,6 +137,8 @@ public class TestGlyphScratchBufferingD {
 		for (int glyphY = 0; glyphY < glyphHeight; glyphY++) {
 			assertEquals(nextIndex, info.get());
 			int numIntersections = info.get();
+			assertEquals(0, info.get());
+
 			nextIndex += numIntersections;
 			assertTrue(numIntersections == 2 || numIntersections == 4, "Expected " + numIntersections + " to be 2 or 4 for y " + glyphY);
 			for (int counter = 0; counter < numIntersections; counter++) {
