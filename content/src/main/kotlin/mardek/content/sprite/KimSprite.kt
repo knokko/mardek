@@ -15,7 +15,7 @@ class KimSprite(
 	var data: IntArray?,
 
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true, minValue = 1, maxValue = 2)
+	@IntegerField(expectUniform = true, minValue = 1, maxValue = 3)
 	val version: Int,
 ) {
 
@@ -34,7 +34,7 @@ class KimSprite(
 		get() = if (version == 1) Kim1Decompressor.height(header) else Kim2Decompressor.getWidth(header)
 
 	init {
-		if (version != 1 && version != 2) throw IllegalArgumentException("Unknown KIM version $version")
+		if (version != 1 && version != 2 && version != 3) throw IllegalArgumentException("Unknown KIM version $version")
 	}
 
 	constructor() : this(null, 1)

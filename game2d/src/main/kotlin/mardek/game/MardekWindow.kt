@@ -3,6 +3,11 @@ package mardek.game
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
+import com.github.knokko.boiler.commands.SingleTimeCommands
+import com.github.knokko.boiler.descriptors.DescriptorCombiner
+import com.github.knokko.boiler.memory.MemoryBlock
+import com.github.knokko.boiler.memory.MemoryCombiner
+import com.github.knokko.boiler.memory.callbacks.CallbackUserData
 import com.github.knokko.boiler.window.AcquiredImage
 import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.update.UpdateCounter
@@ -11,14 +16,21 @@ import com.github.knokko.vk2d.Vk2dConfig
 import com.github.knokko.vk2d.Vk2dFrame
 import com.github.knokko.vk2d.Vk2dWindow
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
+import com.github.knokko.vk2d.resource.Vk2dResourceBundle
+import com.github.knokko.vk2d.resource.Vk2dResourceLoader
 import mardek.audio.AudioUpdater
 import mardek.content.Content
 import mardek.renderer.RawRenderContext
+import mardek.renderer.RenderContext
 import mardek.renderer.glyph.MardekGlyphPipeline
 import mardek.renderer.renderGame
 import mardek.state.ExitState
 import mardek.state.GameStateManager
+import mardek.state.title.TitleScreenState
 import org.lwjgl.system.MemoryStack
+import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.vulkan.VK10.VK_NULL_HANDLE
+import org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool
 import java.io.InputStream
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
@@ -29,6 +41,11 @@ class MardekWindow(
 
 	private var totalFrames = 0L
 	private lateinit var textPipeline: MardekGlyphPipeline
+
+	private lateinit var content: Content
+	private lateinit var mainResources: Vk2dResourceBundle
+	private lateinit var mainResourceMemory: MemoryBlock
+	private var mainDescriptorPool = VK_NULL_HANDLE
 
 	private val fpsCounter = UpdateCounter()
 	private var printFpsAt = System.nanoTime() + 1500_000_000L
@@ -63,11 +80,18 @@ class MardekWindow(
 			printFpsAt += 500_000_000L
 		}
 		totalFrames += 1
-		if (totalFrames == 10L) launchState()
+		if (totalFrames == 10L) launchState(boiler)
 
 		synchronized(gameState.lock()) {
-			if (gameState.currentState is ExitState) window.requestClose() else {
-				// TODO Propagate content
+			if (gameState.currentState is ExitState) window.requestClose()
+			if (
+				this::content.isInitialized &&
+				this::mainResources.isInitialized &&
+				gameState.currentState !is TitleScreenState
+			) {
+				val context = RenderContext(frame, pipelines, content, gameState, mainResources)
+				renderGame(context)
+			} else {
 				val context = RawRenderContext(
 					frame, pipelines, textPipeline, textBuffer, perFrameDescriptorSet, recorder,
 					null, gameState, resources
@@ -79,13 +103,22 @@ class MardekWindow(
 
 	override fun cleanUp(boiler: BoilerInstance) {
 		super.cleanUp(boiler)
-		textPipeline.destroy(boiler)
 		synchronized(gameState.lock()) {
 			gameState.currentState = ExitState()
 		}
+		textPipeline.destroy(boiler)
+		if (this::mainResourceMemory.isInitialized) mainResourceMemory.destroy(boiler)
+		if (mainDescriptorPool != VK_NULL_HANDLE) {
+			stackPush().use { stack ->
+				vkDestroyDescriptorPool(
+					boiler.vkDevice(), mainDescriptorPool,
+					CallbackUserData.DESCRIPTOR_POOL.put(stack, boiler)
+				)
+			}
+		}
 	}
 
-	private fun launchState() {
+	private fun launchState(boiler: BoilerInstance) {
 		println("Start loading content after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 		val content = CompletableFuture<Content>()
 
@@ -93,6 +126,7 @@ class MardekWindow(
 			try {
 				content.complete(Content.load("mardek/game/content.bits", Bitser(false)))
 				println("Loaded content after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
+				this.content = content.get()
 			} catch (failed: Throwable) {
 				content.completeExceptionally(failed)
 				synchronized(gameState.lock()) {
@@ -100,7 +134,32 @@ class MardekWindow(
 				}
 				throw failed
 			}
-		}//.start()
+		}.start()
+
+		Thread {
+			try {
+				val loader = Vk2dResourceLoader(instance, MardekWindow::class.java.getResourceAsStream("content.vk2d"))
+				val combiner = MemoryCombiner(boiler, "MainContent")
+				loader.claimMemory(combiner)
+				this.mainResourceMemory = combiner.build(false)
+
+				loader.prepareStaging()
+
+				val descriptors = DescriptorCombiner(boiler)
+				SingleTimeCommands.submit(boiler, "Load MainContent") { recorder ->
+					loader.performStaging(recorder, descriptors)
+				}.destroy()
+
+				this.mainDescriptorPool = descriptors.build("MainDescriptors")
+				this.mainResources = loader.finish()
+				println("Loaded main resources after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
+			} catch (failed: Throwable) {
+				synchronized(gameState.lock()) {
+					gameState.currentState = ExitState()
+				}
+				throw failed
+			}
+		}.start()
 
 		val updateLoop = UpdateLoop({
 			synchronized(gameState.lock()) {

@@ -27,6 +27,10 @@ class RenderContext(
 	val frame: Vk2dFrame,
 	val pipelines: Vk2dPipelines,
 	val content: Content,
-	val state: GameState,
-	val soundQueue: SoundQueue,
-)
+	val state: GameStateManager,
+	val bundle: Vk2dResourceBundle
+) {
+	fun addColorBatch(initialCapacity: Int = 1000) = pipelines.color.addBatch(frame, initialCapacity)!!
+
+	fun addKim3Batch(initialCapacity: Int = 1000) = pipelines.kim3.addBatch(frame, initialCapacity, bundle)!!
+}

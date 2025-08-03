@@ -1,11 +1,16 @@
 package mardek.state.title
 
+import com.github.knokko.bitser.io.BitInputStream
+import com.github.knokko.bitser.serialize.Bitser
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
 import mardek.state.*
+import mardek.state.ingame.CampaignState
+import mardek.state.ingame.InGameState
 import mardek.state.util.Rectangle
+import java.io.ByteArrayInputStream
 
 class TitleScreenState: GameState {
 
@@ -54,15 +59,15 @@ class TitleScreenState: GameState {
 
 	private fun handleButtonClick(context: GameStateUpdateContext?): GameState {
 		if (selectedButton == 0 && context != null) {
-//			val rawCheckpoint = context.content.checkpoints["chapter1"]!!
-//			val bitInput = BitInputStream(ByteArrayInputStream(rawCheckpoint))
-//			val campaignState = GameStateManager.bitser.deserialize(
-//				CampaignState::class.java, bitInput, context.content, Bitser.BACKWARD_COMPATIBLE
-//			)
-//			bitInput.close()
-//
-//			context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickConfirm)
-//			return InGameState(campaignState)
+			val rawCheckpoint = context.content.checkpoints["chapter1"]!!
+			val bitInput = BitInputStream(ByteArrayInputStream(rawCheckpoint))
+			val campaignState = GameStateManager.bitser.deserialize(
+				CampaignState::class.java, bitInput, context.content, Bitser.BACKWARD_COMPATIBLE
+			)
+			bitInput.close()
+
+			context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickConfirm)
+			return InGameState(campaignState)
 		}
 		if (selectedButton == 3) return ExitState()
 		return this

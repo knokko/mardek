@@ -260,6 +260,11 @@ public class Vk2dResourceWriter {
 		return fakeImages.size() - 1;
 	}
 
+	public int addFakeImage(int width, int height, int[] imageData) {
+		fakeImages.add(new FakeImage(width, height, imageData));
+		return fakeImages.size() - 1;
+	}
+
 	private void compressBc1Images() {
 		if (images.stream().noneMatch(entry -> entry.compression == Vk2dImageCompression.BC1)) return;
 

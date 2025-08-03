@@ -113,8 +113,8 @@ class SpritesAndAreas {
 		}
 		for (orb in area.objects.switchOrbs) canWalkGrid[orb.x + area.width * orb.y] = false
 
-		area.tileGrid = null
-		area.canWalkGrid = canWalkGrid
+//		area.tileGrid = null
+//		area.canWalkGrid = canWalkGrid
 	}
 
 	fun writeKimSprites(output: OutputStream) {

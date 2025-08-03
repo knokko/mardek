@@ -27,7 +27,7 @@ private fun loadInfo(): TitleScreenContent {
 
 private val info = loadInfo()
 
-fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region: Rectangle): Vk2dColorBatch {
+internal fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region: Rectangle): Vk2dColorBatch {
 	val imageBatch = context.pipelines.image.addBatch(context.frame, 12)
 	imageBatch.fillWithoutDistortion(
 		region.minX, region.minY, region.maxX, region.maxY,
