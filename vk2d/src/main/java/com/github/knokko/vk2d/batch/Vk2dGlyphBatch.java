@@ -85,6 +85,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		int intMinY = (int) Math.floor(minY - strokeMargin);
 		int intBoundX = (int) Math.ceil(maxX + strokeMargin);
 		int intBoundY = (int) Math.ceil(maxY + strokeMargin);
+		if (intMinX >= this.width || intMinY >= this.height || intBoundX <= 0 || intBoundY <= 0) return;
 
 		float width = maxX - minX;
 		float height = maxY - minY;
