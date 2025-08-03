@@ -127,8 +127,8 @@ public class Vk2dTextBuffer {
 
 		float maxOrthogonalDistance = 0.5f * strokeWidth / heightA;
 
-		// Round up to multiples of 0.001 to reduce the number of distinct keys in the glyph cache
-		maxOrthogonalDistance = (float) Math.ceil(maxOrthogonalDistance * 1000f) * 0.001f;
+		// Round to multiples of 0.001 to reduce the number of distinct keys in the glyph cache
+		maxOrthogonalDistance = Math.round(maxOrthogonalDistance * 1000f) * 0.001f;
 
 		Integer existing = cache.get(font.index, glyph, offset, size, intSize, horizontal, maxOrthogonalDistance);
 		if (existing != null) return existing;

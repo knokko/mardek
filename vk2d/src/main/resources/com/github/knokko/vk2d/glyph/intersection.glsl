@@ -10,11 +10,9 @@ struct WaveIntersection {
 	bool inside;
 };
 
-WaveIntersection wave(uint infoOffset, uint thisWave, float wavePosition) {
-	uint infoIndex = infoOffset + 3 * thisWave;
-	uint intersectionIndex = intersectionInfo[infoIndex];
-	uint numActualIntersections = intersectionInfo[infoIndex + 1];
-	uint numAlmostIntersections = intersectionInfo[infoIndex + 2];
+WaveIntersection wave(uvec3 info, float wavePosition) {
+	uint intersectionIndex = info.x;
+	uint numActualIntersections = info.y;
 
 	uint index = 0;
 	float curveDistance = 100000.0;
@@ -32,17 +30,42 @@ WaveIntersection wave(uint infoOffset, uint thisWave, float wavePosition) {
 		curveDistance = min(curveDistance, wavePosition - previousIntersection);
 	}
 
-	for (uint nearbyIndex = 0; nearbyIndex < numAlmostIntersections; nearbyIndex++) {
-		float parallelDistance = intersectionData[numActualIntersections + intersectionIndex + 2 * nearbyIndex] - wavePosition;
-		float orthogonalDistance = intersectionData[numActualIntersections + intersectionIndex + 2 * nearbyIndex + 1];
-		float distance = abs(parallelDistance) + abs(orthogonalDistance);
+	WaveIntersection result;
+	result.inside = index % 2 == 1;
+	result.distance = curveDistance;
+	return result;
+}
+
+float improveDistanceUsingAlmostIntersections(
+	float curveDistance, uvec3 horizontalInfo, uvec3 verticalInfo,
+	float horizontalPosition, float verticalPosition,
+	float horizontalScale, float verticalScale
+) {
+	float nearbyThreshold = 5.0;
+	uint intersectionIndex = horizontalInfo.x + horizontalInfo.y;
+	uint numAlmostIntersections = horizontalInfo.z;
+	for (uint nearbyIndex = 0; nearbyIndex < numAlmostIntersections && curveDistance > nearbyThreshold; nearbyIndex++) {
+		float parallelDistance = horizontalScale * (intersectionData[intersectionIndex + 2 * nearbyIndex] - horizontalPosition);
+		if (parallelDistance > curveDistance) break;
+		if (parallelDistance < -curveDistance) continue;
+		float orthogonalDistance = abs(intersectionData[intersectionIndex + 2 * nearbyIndex + 1]);
+		float distance = abs(parallelDistance) + horizontalScale * orthogonalDistance;
 		curveDistance = min(distance, curveDistance);
 	}
 
-	WaveIntersection result;
-	result.distance = curveDistance;
-	result.inside = index % 2 == 1;
-	return result;
+	if (curveDistance <= nearbyThreshold) return curveDistance;
+
+	intersectionIndex = verticalInfo.x + verticalInfo.y;
+    numAlmostIntersections = verticalInfo.z;
+    for (uint nearbyIndex = 0; nearbyIndex < numAlmostIntersections && curveDistance > nearbyThreshold; nearbyIndex++) {
+		float parallelDistance = verticalScale * (intersectionData[intersectionIndex + 2 * nearbyIndex] - verticalPosition);
+		if (parallelDistance > curveDistance) break;
+		if (parallelDistance < -curveDistance) continue;
+		float orthogonalDistance = abs(intersectionData[intersectionIndex + 2 * nearbyIndex + 1]);
+		float distance = abs(parallelDistance) + verticalScale * orthogonalDistance;
+		curveDistance = min(distance, curveDistance);
+	}
+	return curveDistance;
 }
 
 // Mimic the `computeWavePosition` of `glyph-scratch.comp`
@@ -50,15 +73,26 @@ float recoverWavePosition(uint thisWave, float subpixelOffset, float size) {
 	return (thisWave + 0.5 + subpixelOffset) / size;
 }
 
-WaveIntersection closestIntersection(GlyphInfo glyph) {
+WaveIntersection closestIntersection(GlyphInfo glyph, bool useAlmostIntersections) {
 	uint x = uint(glyph.colorsAndSize.x * textureCoordinates.x);
 	uint y = uint(glyph.colorsAndSize.y * textureCoordinates.y);
-	vec2 test = glyph.colorsAndSize.xy;
 
 	float waveX = recoverWavePosition(x, glyph.subpixelAndSize.x, glyph.subpixelAndSize.z);
 	float waveY = recoverWavePosition(y, glyph.subpixelAndSize.y, glyph.subpixelAndSize.w);
-	WaveIntersection horizontal = wave(glyph.rawInfo.x, y, waveX);
-	WaveIntersection vertical = wave(glyph.rawInfo.y, x, waveY);
+
+	uvec3 horizontalInfo = uvec3(
+		intersectionInfo[glyph.rawInfo.x + 3 * y],
+		intersectionInfo[glyph.rawInfo.x + 3 * y + 1],
+		0
+	);
+	WaveIntersection horizontal = wave(horizontalInfo, waveX);
+
+	uvec3 verticalInfo = uvec3(
+		intersectionInfo[glyph.rawInfo.y + 3 * x],
+		intersectionInfo[glyph.rawInfo.y + 3 * x + 1],
+		0
+	);
+	WaveIntersection vertical = wave(verticalInfo, waveY);
 
 	float horizontalDistance = horizontal.distance * glyph.subpixelAndSize.z;
 	float verticalDistance = vertical.distance * glyph.subpixelAndSize.w;
@@ -66,5 +100,14 @@ WaveIntersection closestIntersection(GlyphInfo glyph) {
 	WaveIntersection result;
 	result.distance = min(horizontalDistance, verticalDistance);
 	result.inside = horizontalDistance > verticalDistance ? horizontal.inside : vertical.inside;
+
+	if (!result.inside && result.distance > 1.5 && useAlmostIntersections) {
+		horizontalInfo.z = intersectionInfo[glyph.rawInfo.x + 3 * y + 2];
+		verticalInfo.z = intersectionInfo[glyph.rawInfo.y + 3 * x + 2];
+		result.distance = improveDistanceUsingAlmostIntersections(
+			result.distance, horizontalInfo, verticalInfo,
+			waveX, waveY, glyph.subpixelAndSize.z, glyph.subpixelAndSize.w
+		);
+	}
 	return result;
 }

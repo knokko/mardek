@@ -12,11 +12,13 @@ layout(location = 0) out vec4 outColor;
 #include "color.glsl"
 
 void main() {
-	WaveIntersection intersection = closestIntersection(glyph);
-	vec4 mainColor = determineMainColor(
+	WaveIntersection intersection = closestIntersection(glyph, glyph.strokeWidth > 1.0 && glyph.colorsAndSize.w != 0);
+	outColor = determineMainColor(
 		intersection.inside, intersection.distance, decodeColor(glyph.colorsAndSize.z)
 	);
-	outColor = mixStrokeColor(
-		mainColor, decodeColor(glyph.colorsAndSize.w), determineStrokeIntensity(intersection.distance, glyph.strokeWidth)
-	);
+	if (glyph.colorsAndSize.w != 0 && glyph.strokeWidth > 0.0) {
+		outColor = mixStrokeColor(
+			outColor, decodeColor(glyph.colorsAndSize.w), determineStrokeIntensity(intersection.distance, glyph.strokeWidth)
+		);
+	}
 }

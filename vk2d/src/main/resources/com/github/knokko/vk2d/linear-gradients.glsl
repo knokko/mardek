@@ -33,6 +33,7 @@ vec4 selectGradientColor(float distance, SelectedGradient selected) {
 }
 
 vec4 computeGradientColor(float distance, uint baseColor, vec4 distances, uvec4 colors) {
+	if (distances.x > 100.0 * distance) return decodeColor(baseColor);
 	SelectedGradient selected = initialSelectedGradient(baseColor, colors.x, distances.x);
 	selected = nextSelectedGradient(distance, selected, colors.x, colors.y, distances.x, distances.y);
 	selected = nextSelectedGradient(distance, selected, colors.y, colors.z, distances.y, distances.z);

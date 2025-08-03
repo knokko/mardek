@@ -16,15 +16,12 @@ layout(location = 0) out vec4 outColor;
 void main() {
 	vec4 fillColor = computeGradientColor(relativeY, glyph.colorsAndSize.z, glyph.fillDistances, glyph.fillColors);
 
-	WaveIntersection intersection = closestIntersection(glyph);
-	vec4 mainColor = determineMainColor(intersection.inside, intersection.distance, fillColor);
-	float strokeIntensity = determineStrokeIntensity(intersection.distance, glyph.yInfoAndStrokeWidth.x);
-	if (intersection.inside) strokeIntensity = 0.0;
+	WaveIntersection intersection = closestIntersection(glyph, glyph.yInfoAndStrokeWidth.x > 1.0);
+	outColor = determineMainColor(intersection.inside, intersection.distance, fillColor);
 
-	vec4 strokeColor;
-	if (strokeIntensity > 0.0) {
-		strokeColor = computeGradientColor(intersection.distance, glyph.colorsAndSize.w, glyph.borderDistances, glyph.borderColors);
-	} else strokeColor = decodeColor(glyph.colorsAndSize.w);
-
-	outColor = mixStrokeColor(mainColor, strokeColor, strokeIntensity);
+	if (glyph.yInfoAndStrokeWidth.x > 0.0 && !intersection.inside) {
+		float strokeIntensity = determineStrokeIntensity(intersection.distance, glyph.yInfoAndStrokeWidth.x);
+		vec4 strokeColor = computeGradientColor(intersection.distance, glyph.colorsAndSize.w, glyph.borderDistances, glyph.borderColors);
+		outColor = mixStrokeColor(outColor, strokeColor, strokeIntensity);
+	}
 }
