@@ -26,7 +26,7 @@ class Area(
 
 	@BitField(id = 3)
 	@ReferenceField(stable = false, label = "tiles")
-	var tileGrid: Array<Tile>,
+	val tileGrid: Array<Tile>,
 
 	@BitField(id = 4)
 	val objects: AreaObjects,

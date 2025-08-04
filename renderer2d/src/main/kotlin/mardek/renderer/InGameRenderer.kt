@@ -6,10 +6,10 @@ import mardek.state.ingame.InGameState
 import mardek.state.util.Rectangle
 
 internal fun renderInGame(context: RenderContext, state: InGameState, region: Rectangle): Vk2dColorBatch {
-	val titleColorBatch = context.addColorBatch()
 
 	val area = state.campaign.currentArea
-	if (area != null) renderCurrentArea(context, area, region, titleColorBatch)
+	if (area != null) renderCurrentArea(context, area, region)
 
+	val titleColorBatch = context.addColorBatch()
 	return titleColorBatch
 }

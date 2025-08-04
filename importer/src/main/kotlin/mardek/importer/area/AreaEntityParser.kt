@@ -5,7 +5,7 @@ import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
 import mardek.content.area.objects.*
 import mardek.content.sprite.ObjectSprites
-import mardek.importer.util.compressKimSprite1
+import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptObjectList
 import java.lang.Integer.parseInt
 import javax.imageio.ImageIO
@@ -78,7 +78,7 @@ internal fun importObjectSprites(
 			frameIndex = frameIndex,
 			offsetY = offsetY,
 			numFrames = numFrames,
-			frames = images.map(::compressKimSprite1).toTypedArray()
+			frames = images.map(::compressKimSprite3).toTypedArray()
 	)
 }
 

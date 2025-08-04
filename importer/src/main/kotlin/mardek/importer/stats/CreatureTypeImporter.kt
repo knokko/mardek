@@ -4,7 +4,7 @@ import mardek.content.stats.CreatureType
 import mardek.content.stats.StatsContent
 import mardek.importer.area.parseFlashString
 import mardek.importer.ui.BcPacker
-import mardek.importer.util.compressKimSprite1
+import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptResource
 import javax.imageio.ImageIO
@@ -22,7 +22,7 @@ internal fun importCreatureTypes(statsContent: StatsContent) {
 	for ((index, typeName) in creatureTypeList.withIndex()) {
 		statsContent.creatureTypes.add(CreatureType(
 			flashName = typeName,
-			icon = compressKimSprite1(spriteSheet.getSubimage(16 * index, 0, 16, spriteSheet.height)),
+			icon = compressKimSprite3(spriteSheet.getSubimage(16 * index, 0, 16, spriteSheet.height)),
 			revertsHealing = typeName == "UNDEAD",
 		))
 	}

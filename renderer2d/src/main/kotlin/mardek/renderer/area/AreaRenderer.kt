@@ -2,7 +2,7 @@ package mardek.renderer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
-import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.text.placement.TextAlignment
 import mardek.content.area.AreaDreamType
 import mardek.content.area.Direction
 import mardek.content.area.WaterType
@@ -10,19 +10,22 @@ import mardek.content.sprite.KimSprite
 import mardek.renderer.RenderContext
 import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
-import org.lwjgl.vulkan.VK10.vkCmdSetScissor
-import org.lwjgl.vulkan.VkRect2D
+import org.lwjgl.vulkan.VK10.VK_PIPELINE_BIND_POINT_GRAPHICS
+import org.lwjgl.vulkan.VK10.VK_SHADER_STAGE_VERTEX_BIT
+import org.lwjgl.vulkan.VK10.vkCmdBindPipeline
+import org.lwjgl.vulkan.VK10.vkCmdDraw
+import org.lwjgl.vulkan.VK10.vkCmdPushConstants
 import kotlin.math.PI
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
-internal fun renderCurrentArea(context: RenderContext, state: AreaState, region: Rectangle, colorBatch: Vk2dColorBatch) {
+internal fun renderCurrentArea(context: RenderContext, state: AreaState, region: Rectangle) {
 	val kimBatch = context.addKim3Batch()
 
-	val baseVisibleHorizontalTiles = context.frame.width / 16.0
-	val baseVisibleVerticalTiles = context.frame.height / 16.0
+	val baseVisibleHorizontalTiles = region.width / 16.0
+	val baseVisibleVerticalTiles = region.height / 16.0
 
 	// The original MARDEK allow players to see at most 5 tiles above/below the player,
 	// and at most 7 tiles left/right from the player.
@@ -45,7 +48,7 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 	// TODO Re-implement scissor
 	var scissorLeft = 0
 	if (visibleHorizontalTiles > maxVisibleHorizontalTiles) {
-		scissorLeft = (context.frame.width * ((visibleHorizontalTiles - maxVisibleHorizontalTiles) / visibleHorizontalTiles) / 2.0).roundToInt()
+		scissorLeft = (region.width * ((visibleHorizontalTiles - maxVisibleHorizontalTiles) / visibleHorizontalTiles) / 2.0).roundToInt()
 //		val scissors = VkRect2D.calloc(1, context.recorder.stack)
 //		scissors.get(0).offset().set(scissorLeft, 0)
 //		scissors.get(0).extent().set(context.viewportWidth - 2 * scissorLeft, context.viewportHeight)
@@ -62,6 +65,8 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 		val sprite = if (context.campaign.openedChests.contains(chest)) {
 			chest.sprite.openedSprite
 		} else chest.sprite.baseSprite
+
+		continue // TODO Fix this
 		renderJobs.add(EntityRenderJob(
 			x = tileSize * chest.x,
 			y = tileSize * chest.y,
@@ -136,7 +141,6 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 		}
 
 		val spriteIndex = (state.currentTime.inWholeMilliseconds % (15000L * spritesheet.frames.size)) / 15000L
-		continue // TODO fix this
 		renderJobs.add(EntityRenderJob(
 			x = tileSize * portal.x,
 			y = tileSize * portal.y,
@@ -174,6 +178,7 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 		val period = 1000
 		val relativeTime = state.currentTime.inWholeMilliseconds % period
 		val opacity = 0.5 + 0.5 * sin(2 * PI * relativeTime / period)
+		continue // TODO
 		renderJobs.add(EntityRenderJob(
 			x = tileSize * transition.x,
 			y = tileSize * transition.y,
@@ -237,67 +242,73 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 	}
 
 	//val renderData = context.resources.areaMap[state.area.id]!!.data
-	val minTileX = max(0, (cameraX - context.frame.width / 2) / tileSize)
-	val minTileY = max(0, (cameraY - context.frame.height / 2) / tileSize)
-	val maxTileX = min(state.area.width - 1, 1 + (cameraX + context.frame.width / 2) / tileSize)
-	val maxTileY = min(state.area.height - 1, 1 + (cameraY + context.frame.height / 2) / tileSize)
-	// TODO Render high/mid tiles
-//	for (tileX in minTileX .. maxTileX) {
-//		for (tileY in minTileY .. maxTileY) {
-//			val renderX = tileX * tileSize
-//			val renderY = tileY * tileSize
-//
-//			val midIndex = renderData.getTileSpriteIndex(tileX, tileY, 1)
-//			if (midIndex != 1023) {
-//				val sprite = renderData.tileSprites[midIndex]
-//				renderJobs.add(EntityRenderJob(
-//					x = renderX, y = renderY, sprite = sprite, sortY = renderY + tileSize / 2
-//				))
-//			}
-//			val highIndex = renderData.getTileSpriteIndex(tileX, tileY, 2)
-//			if (highIndex != 1023) {
-//				val sprite = renderData.tileSprites[highIndex]
-//				renderJobs.add(EntityRenderJob(x = renderX, y = renderY, sprite = sprite, sortY = renderY + 3 * tileSize / 2))
-//			}
-//		}
-//	}
+	val minTileX = max(0, (cameraX - region.width / 2) / tileSize)
+	val minTileY = max(0, (cameraY - region.height / 2) / tileSize)
+	val maxTileX = min(state.area.width - 1, 1 + (cameraX + region.width / 2) / tileSize)
+	val maxTileY = min(state.area.height - 1, 1 + (cameraY + region.height / 2) / tileSize)
+	for (tileX in minTileX .. maxTileX) {
+		for (tileY in minTileY .. maxTileY) {
+			if (tileY + 1 >= state.area.height) continue
+
+			val renderX = tileX * tileSize
+			val renderY = tileY * tileSize
+
+			val midTile = state.area.getTile(tileX, tileY + 1)
+			if (midTile.sprites.size > 1) {
+				val sprite = midTile.sprites[midTile.sprites.size - 2]
+				renderJobs.add(EntityRenderJob(
+					x = renderX, y = renderY, sprite = sprite, sortY = renderY + tileSize / 2
+				))
+			}
+
+			if (tileY + 2 >= state.area.height) continue
+			val highTile = state.area.getTile(tileX, tileY + 2)
+			if (highTile.sprites.size > 2) {
+				val sprite = highTile.sprites[highTile.sprites.size - 3]
+				renderJobs.add(EntityRenderJob(
+					x = renderX, y = renderY, sprite = sprite, sortY = renderY + 3 * tileSize / 2
+				))
+			}
+		}
+	}
 
 	renderJobs.sort()
 
 	if (state.area.flags.noMovingCamera) {
-		val minCameraX = context.frame.width / 2 - scissorLeft
-		val maxCameraX = state.area.width * tileSize - context.frame.width / 2 + scissorLeft
-		if (state.area.width * tileSize > context.frame.width) cameraX = min(maxCameraX, max(minCameraX, cameraX))
-		if (state.area.height * tileSize > context.frame.height) {
+		val minCameraX = region.width / 2 - scissorLeft
+		val maxCameraX = state.area.width * tileSize - region.width / 2 + scissorLeft
+		if (state.area.width * tileSize > region.width) cameraX = min(maxCameraX, max(minCameraX, cameraX))
+		if (state.area.height * tileSize > region.height) {
 			cameraY = min(
-				state.area.height * tileSize - context.frame.height / 2,
-				max(context.frame.height / 2, cameraY)
+				state.area.height * tileSize - region.height / 2,
+				max(region.height / 2, cameraY)
 			)
 		}
 	}
 
 	for (tileX in minTileX .. maxTileX) {
 		for (tileY in minTileY .. maxTileY) {
-			val renderX = tileX * tileSize + context.frame.width / 2 - cameraX
-			val renderY = tileY * tileSize + context.frame.height / 2 -cameraY
+			val renderX = region.minX + tileX * tileSize + region.width / 2 - cameraX
+			val renderY = region.minY + tileY * tileSize + region.height / 2 -cameraY
 
-			// TODO water
-//			val waterType = renderData.getWaterType(tileX, tileY)
-//			if (waterType != WaterType.None) {
-//				var backgroundSprite = renderData.waterSprites[0]
-//				if (tileY > 0 && renderData.getWaterType(tileX, tileY - 1) == WaterType.None) {
-//					backgroundSprite = renderData.waterSprites[4]
-//				}
-//				val waterSprite = renderData.waterSprites[renderData.getWaterSpriteIndex(tileX, tileY)]
-//				kimBatch.requests.add(KimRequest(
-//					x = renderX, y = renderY, scale = scale.toFloat(), sprite = backgroundSprite
-//				))
-//				val opacity = if (waterType == WaterType.Water) 0.3f else 1f
-//				kimBatch.requests.add(KimRequest(
-//					x = renderX, y = renderY, scale = scale.toFloat(), sprite = waterSprite, opacity = opacity
-//				))
-//			}
-			val sprite = state.area.getTile(tileX, tileY).sprites[0]
+			val waterType = state.area.getTile(tileX, tileY).waterType
+			if (waterType != WaterType.None) {
+				var backgroundSprite = state.area.tilesheet.waterSprites[0]
+				val northWaterType = if (tileY == 0) WaterType.None
+				else state.area.getTile(tileX, tileY - 1).waterType
+
+				if (northWaterType == WaterType.None) {
+					backgroundSprite = state.area.tilesheet.waterSprites[4]
+				}
+
+				val waterSprite = state.area.tilesheet.waterSprites[waterType.ordinal]
+				kimBatch.simple(renderX, renderY, scale, backgroundSprite.offset)
+				val opacity = if (waterType == WaterType.Water) 0.3f else 1f
+				// TODO Respect opacity
+				kimBatch.simple(renderX, renderY, scale, waterSprite.offset)
+			}
+
+			val sprite = state.area.getTile(tileX, tileY).sprites.last()
 			kimBatch.simple(renderX, renderY, scale, sprite.offset)
 		}
 	}
@@ -315,8 +326,8 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 	}
 
 	for (job in renderJobs) {
-		var renderX = job.x + context.frame.width / 2 - cameraX
-		var renderY = job.y + context.frame.height / 2 - cameraY
+		var renderX = region.minX + job.x + region.width / 2 - cameraX
+		var renderY = region.minY + job.y + region.height / 2 - cameraY
 		if (job.sprite.width >= 32) renderX -= 16 * scale
 		if (job.sprite.height >= 32) renderY -= 16 * scale
 		val margin = 2 * tileSize
@@ -333,19 +344,24 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 	}
 
 	val obtainedGold = state.obtainedGold
-	val renderGold = if (obtainedGold != null) {
-		val renderGold = RenderGold(
-			baseX = tileSize * obtainedGold.chestX + context.frame.width / 2 - cameraX,
-			baseY = tileSize * obtainedGold.chestY + context.frame.height / 2 - cameraY,
-			scale = scale
-		)
+	if (obtainedGold != null) {
+		val baseX = region.minX + tileSize * obtainedGold.chestX + context.frame.width / 2 - cameraX
+		val baseY = region.minY + tileSize * obtainedGold.chestY + context.frame.height / 2 - cameraY
 		kimBatch.simple(
-			renderGold.baseX - tileSize * 19 / 32,
-			renderGold.baseY - tileSize * 17 / 32,
+			baseX - tileSize * 19 / 32,
+			baseY - tileSize * 17 / 32,
 			scale / 2f, context.content.ui.goldIcon.offset
 		)
-		renderGold
-	} else null
+		// TODO Draw obtained gold
+//		context.uiRenderer.beginBatch()
+//		context.uiRenderer.drawString(
+//			context.resources.font, "+${state.obtainedGold!!.amount}",
+//			srgbToLinear(rgb(255, 204, 51)), intArrayOf(),
+//			renderGold.baseX, 0, context.viewportWidth, context.viewportHeight,
+//			renderGold.baseY - 2 * renderGold.scale, 6 * renderGold.scale, 1, TextAlignment.LEFT
+//		)
+//		context.uiRenderer.endBatch()
+	}
 
 	val obtainedItemStack = state.obtainedItemStack
 	// TODO render loot
@@ -353,15 +369,46 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 //		this.lootRenderer = AreaLootRenderer(context, obtainedItemStack, scale)
 //		this.lootRenderer!!.beforeRendering()
 //	}
+	val lightRequests = ArrayList<LightRequest>()
+	val lightRadius = 24 * scale
+
+	val minLightX = cameraX - context.frame.width / 2 - lightRadius
+	val maxLightX = cameraX + context.frame.width / 2 + lightRadius
+	val minLightY = cameraY - context.frame.height / 2 - lightRadius
+	val maxLightY = cameraY + context.frame.height / 2 + lightRadius
+	for (decoration in state.area.objects.decorations) {
+		val light = decoration.light ?: continue
+		val x = 16 * scale * decoration.x + 8 * scale
+		val y = 16 * scale * decoration.y + scale * light.offsetY
+		if (x in minLightX .. maxLightX && y in minLightY .. maxLightY) {
+			lightRequests.add(LightRequest(x, y, srgbToLinear(light.color)))
+		}
+	}
+
+	if (lightRequests.isNotEmpty()) {
+//		vkCmdBindPipeline(
+//			context.recorder.commandBuffer,
+//			VK_PIPELINE_BIND_POINT_GRAPHICS,
+//			context.resources.light.graphicsPipeline
+//		)
+//		vkCmdPushConstants(
+//			context.recorder.commandBuffer, context.resources.light.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
+//			0, context.recorder.stack.ints(context.viewportWidth, context.viewportHeight)
+//		)
+//		val vertexRange = context.resources.perFrameBuffer.allocate(LIGHT_VERTEX_SIZE.toLong() * lightRequests.size, 4L)
+//		val vertexBuffer = vertexRange.intBuffer()
+//		for (request in lightRequests) {
+//			vertexBuffer.put(request.x + context.viewportWidth / 2 - cameraX - lightRadius)
+//			vertexBuffer.put(request.y + context.viewportHeight / 2 - cameraY - lightRadius)
+//			vertexBuffer.put(lightRadius)
+//			vertexBuffer.put(request.color)
+//		}
+//		context.recorder.bindVertexBuffers(0, vertexRange)
+//		vkCmdDraw(context.recorder.commandBuffer, 6, lightRequests.size, 0, 0)
+	}
 }
 
-private class RenderGold(
-	val baseX: Int,
-	val baseY: Int,
-	val scale: Int
-)
-
-class EntityRenderJob(
+private class EntityRenderJob(
 	val x: Int, val y: Int, val sprite: KimSprite, val opacity: Float = 1f, val sortY: Int = y,
 	val blinkColor: Int = 0, val blinkIntensity: Float = 0f,
 ): Comparable<EntityRenderJob> {
@@ -372,3 +419,5 @@ class EntityRenderJob(
 
 	override fun compareTo(other: EntityRenderJob) = this.sortY.compareTo(other.sortY)
 }
+
+private class LightRequest(val x: Int, val y: Int, val color: Int)
