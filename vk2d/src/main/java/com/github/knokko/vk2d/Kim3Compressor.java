@@ -12,6 +12,14 @@ import static java.lang.Math.max;
 
 public class Kim3Compressor {
 
+	public static int getWidth(int header) {
+		return header & 4095;
+	}
+
+	public static int getHeight(int header) {
+		return (header >> 12) & 4095;
+	}
+
 	/**
 	 * The dimensions of the compressed image, in pixels
 	 */

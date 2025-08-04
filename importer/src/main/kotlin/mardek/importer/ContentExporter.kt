@@ -65,8 +65,7 @@ private fun addBcImage(resourceWriter: Vk2dResourceWriter, bc: BcSprite) {
 }
 
 private fun addKimImage(resourceWriter: Vk2dResourceWriter, kim: KimSprite) {
-	if (kim.version == 3) kim.offset = resourceWriter.addFakeImage(kim.width, kim.height, kim.data)
-	// TODO kim.offset = resourceWriter.addFakeImage(kim.)
+	kim.offset = resourceWriter.addFakeImage(kim.width, kim.height, kim.data)
 	kim.data = null
 }
 
@@ -107,10 +106,6 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	for (skillClass in content.skills.classes) addKimImage(resourceWriter, skillClass.icon)
 	for (item in content.items.items) addKimImage(resourceWriter, item.sprite)
 	for (item in content.items.plotItems) addKimImage(resourceWriter, item.sprite)
-	for (chestSprite in content.areas.chestSprites) {
-		addKimImage(resourceWriter, chestSprite.baseSprite)
-		addKimImage(resourceWriter, chestSprite.openedSprite)
-	}
 	for (sprite in content.ui.allKimSprites()) addKimImage(resourceWriter, sprite)
 
 	for (element in content.stats.elements) {

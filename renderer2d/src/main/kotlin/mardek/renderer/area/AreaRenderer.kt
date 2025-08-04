@@ -66,7 +66,6 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 			chest.sprite.openedSprite
 		} else chest.sprite.baseSprite
 
-		continue // TODO Fix this
 		renderJobs.add(EntityRenderJob(
 			x = tileSize * chest.x,
 			y = tileSize * chest.y,
@@ -92,7 +91,6 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 		val spriteIndex = (state.currentTime.inWholeMilliseconds % (decoration.timePerFrame * spritesheet.frames.size)) / decoration.timePerFrame
 
 		val sprite = spritesheet.frames[spriteIndex.toInt()]
-		if (sprite.offset == -1) continue // TODO get rid of this
 		renderJobs.add(EntityRenderJob(
 			x = tileSize * decoration.x,
 			y = tileSize * decoration.y,
@@ -109,7 +107,6 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 			val progress = (state.currentTime - startTime) / AreaState.DOOR_OPEN_DURATION
 			spriteIndex = min((door.sprites.frames.size * progress).toInt(), door.sprites.frames.size - 1)
 		}
-		continue // TODO fix this
 		renderJobs.add(EntityRenderJob(
 			x = tileSize * door.x,
 			y = tileSize * door.y,
@@ -120,7 +117,6 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 	for (areaObject in state.area.objects.objects) {
 		val spriteIndex = (state.currentTime.inWholeMilliseconds % (200L * areaObject.sprites.frames.size)) / 200L
 
-		continue // TODO Fix this
 		renderJobs.add(EntityRenderJob(
 			x = tileSize * areaObject.x,
 			y = tileSize * areaObject.y - 4 * scale,
@@ -178,7 +174,6 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 		val period = 1000
 		val relativeTime = state.currentTime.inWholeMilliseconds % period
 		val opacity = 0.5 + 0.5 * sin(2 * PI * relativeTime / period)
-		continue // TODO
 		renderJobs.add(EntityRenderJob(
 			x = tileSize * transition.x,
 			y = tileSize * transition.y,

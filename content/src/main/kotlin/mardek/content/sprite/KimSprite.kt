@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.compressor.Kim1Decompressor
 import com.github.knokko.compressor.Kim2Decompressor
+import com.github.knokko.vk2d.Kim3Compressor
 
 // TODO Save conditionally
 @BitStruct(backwardCompatible = true)
@@ -28,10 +29,18 @@ class KimSprite(
 	val header = if (data == null) 0 else data!![0]
 
 	val width: Int
-		get() = if (version == 1) Kim1Decompressor.width(header) else Kim2Decompressor.getWidth(header)
+		get() = when (version) {
+			1 -> Kim1Decompressor.width(header)
+			2 -> Kim2Decompressor.getWidth(header)
+			else -> Kim3Compressor.getWidth(header)
+		}
 
 	val height: Int
-		get() = if (version == 1) Kim1Decompressor.height(header) else Kim2Decompressor.getWidth(header)
+		get() = when (version) {
+			1 -> Kim1Decompressor.height(header)
+			2 -> Kim2Decompressor.getWidth(header)
+			else -> Kim3Compressor.getHeight(header)
+		}
 
 	init {
 		if (version != 1 && version != 2 && version != 3) throw IllegalArgumentException("Unknown KIM version $version")

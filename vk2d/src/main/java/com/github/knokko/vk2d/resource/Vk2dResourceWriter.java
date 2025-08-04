@@ -261,7 +261,7 @@ public class Vk2dResourceWriter {
 	}
 
 	public int addFakeImage(int width, int height, int[] imageData) {
-		fakeImages.add(new FakeImage(width, height, imageData));
+		fakeImages.add(new FakeImage(width, height, Objects.requireNonNull(imageData)));
 		return fakeImages.size() - 1;
 	}
 
