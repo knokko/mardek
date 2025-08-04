@@ -20,9 +20,11 @@ private fun renderRegion(frame: Vk2dFrame) = Rectangle(
 fun renderGame(context: RawRenderContext) {
 	val state = context.state.currentState
 
-	val titleBarBatch = if (state is TitleScreenState) {
-		renderTitleScreen(context, state, renderRegion(context.frame))
-	} else context.pipelines.color.addBatch(context.frame, 36)
+	val titleBarBatch = when (state) {
+		is TitleScreenState -> renderTitleScreen(context, state, renderRegion(context.frame))
+		is GameOverState -> TODO()
+		else -> context.pipelines.color.addBatch(context.frame, 36)
+	}
 
 	renderTitleBar(context.state, titleBarBatch)
 }
@@ -32,7 +34,6 @@ fun renderGame(context: RenderContext) {
 
 	val titleBarBatch = when (state) {
 		is InGameState -> renderInGame(context, state, renderRegion(context.frame))
-		is GameOverState -> TODO()
 		else -> context.pipelines.color.addBatch(context.frame, 36)
 	}
 

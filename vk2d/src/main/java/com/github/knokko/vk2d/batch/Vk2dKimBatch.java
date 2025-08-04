@@ -33,4 +33,15 @@ public class Vk2dKimBatch extends Vk2dBatch {
 		putCompressedPosition(vertices, minX, maxY + 1);
 		vertices.putFloat(0f).putFloat(1f).putInt(textureOffset);
 	}
+
+	public void simple(int minX, int minY, int scale, int textureIndex) {
+		simple(minX, minY, (float) scale, textureIndex);
+	}
+
+	public void simple(int minX, int minY, float scale, int textureIndex) {
+		simple(
+				minX, minY, Math.round(minX + scale * bundle.getFakeImageWidth(textureIndex) - 1),
+				Math.round(minY + scale * bundle.getFakeImageHeight(textureIndex) - 1), textureIndex
+		);
+	}
 }

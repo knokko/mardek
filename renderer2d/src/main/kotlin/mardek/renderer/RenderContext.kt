@@ -10,6 +10,7 @@ import mardek.renderer.glyph.MardekGlyphPipeline
 import mardek.state.GameState
 import mardek.state.GameStateManager
 import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignState
 
 class RawRenderContext(
 	val frame: Vk2dFrame,
@@ -28,6 +29,7 @@ class RenderContext(
 	val pipelines: Vk2dPipelines,
 	val content: Content,
 	val state: GameStateManager,
+	val campaign: CampaignState,
 	val bundle: Vk2dResourceBundle
 ) {
 	fun addColorBatch(initialCapacity: Int = 1000) = pipelines.color.addBatch(frame, initialCapacity)!!

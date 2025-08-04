@@ -26,6 +26,7 @@ import mardek.renderer.glyph.MardekGlyphPipeline
 import mardek.renderer.renderGame
 import mardek.state.ExitState
 import mardek.state.GameStateManager
+import mardek.state.ingame.InGameState
 import mardek.state.title.TitleScreenState
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
@@ -83,13 +84,17 @@ class MardekWindow(
 		if (totalFrames == 10L) launchState(boiler)
 
 		synchronized(gameState.lock()) {
-			if (gameState.currentState is ExitState) window.requestClose()
+			val currentState = gameState.currentState
+			if (currentState is ExitState) window.requestClose()
 			if (
 				this::content.isInitialized &&
 				this::mainResources.isInitialized &&
-				gameState.currentState !is TitleScreenState
+				currentState is InGameState
 			) {
-				val context = RenderContext(frame, pipelines, content, gameState, mainResources)
+				val context = RenderContext(
+					frame, pipelines, content, gameState,
+					currentState.campaign, mainResources
+				)
 				renderGame(context)
 			} else {
 				val context = RawRenderContext(
