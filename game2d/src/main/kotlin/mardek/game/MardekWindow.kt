@@ -22,6 +22,7 @@ import mardek.audio.AudioUpdater
 import mardek.content.Content
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
+import mardek.renderer.area.AreaSpritePipeline
 import mardek.renderer.glyph.MardekGlyphPipeline
 import mardek.renderer.renderGame
 import mardek.state.ExitState
@@ -42,6 +43,7 @@ class MardekWindow(
 
 	private var totalFrames = 0L
 	private lateinit var textPipeline: MardekGlyphPipeline
+	private lateinit var areaSpritePipeline: AreaSpritePipeline
 
 	private lateinit var content: Content
 	private lateinit var mainResources: Vk2dResourceBundle
@@ -67,6 +69,7 @@ class MardekWindow(
 		super.setup(boiler, stack)
 		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, stack, vkRenderPass)
 		this.textPipeline = MardekGlyphPipeline(pipelineContext, instance)
+		this.areaSpritePipeline = AreaSpritePipeline(pipelineContext, instance)
 	}
 
 	override fun renderFrame(
@@ -92,7 +95,7 @@ class MardekWindow(
 				currentState is InGameState
 			) {
 				val context = RenderContext(
-					frame, pipelines, content, gameState,
+					frame, pipelines, areaSpritePipeline, perFrameDescriptorSet, content, gameState,
 					currentState.campaign, mainResources
 				)
 				renderGame(context)
@@ -111,6 +114,7 @@ class MardekWindow(
 		synchronized(gameState.lock()) {
 			gameState.currentState = ExitState()
 		}
+		areaSpritePipeline.destroy(boiler)
 		textPipeline.destroy(boiler)
 		if (this::mainResourceMemory.isInitialized) mainResourceMemory.destroy(boiler)
 		if (mainDescriptorPool != VK_NULL_HANDLE) {

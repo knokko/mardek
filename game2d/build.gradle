@@ -24,7 +24,7 @@ shadowJar {
 
 tasks.register("proguard", ProGuardTask) {
 	dependsOn "shadowJar"
-	injars "build/libs/game-all.jar"
+	injars "build/libs/game2d-all.jar"
 	outjars "build/libs/mardek.jar"
 
 	// I need java.base, and LWJGL needs jdk.unsupported (Unsafe)
@@ -49,6 +49,12 @@ tasks.register("proguard", ProGuardTask) {
 	// This game doesn't use OpenXR (virtual reality)
 	dontwarn "com.github.knokko.boiler**.xr**"
 	dontwarn "com.github.knokko.boiler.exceptions.OpenXrFailureException"
+
+	// This game uses SDL rather than GLFW
+	dontwarn "org.lwjgl.glfw.**"
+
+	// This class is only used during importing; not in the game itself
+	dontwarn "com.github.knokko.vk2d.resource.Vk2dResourceWriter**"
 
 	// These classes use java.awt.BufferedImage, which won't be present in the final game jar.
 	// However, these classes won't be used in-game, so it doesn't matter.
