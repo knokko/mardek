@@ -79,8 +79,9 @@ class AreaSpritePipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): 
 	}
 
 	fun addBatch(
-		frame: Vk2dFrame, bundle: Vk2dResourceBundle, perFrameDescriptorSet: Long, scissor: Rectangle
-	) = AreaSpriteBatch(this, frame, bundle, perFrameDescriptorSet, scissor)
+		frame: Vk2dFrame, initialCapacity: Int, bundle: Vk2dResourceBundle,
+		perFrameDescriptorSet: Long, scissor: Rectangle
+	) = AreaSpriteBatch(this, frame, initialCapacity, bundle, perFrameDescriptorSet, scissor)
 
 	override fun destroy(boiler: BoilerInstance) {
 		super.destroy(boiler)

@@ -9,6 +9,8 @@ import mardek.input.MouseMoveEvent
 import mardek.state.*
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
 import java.io.ByteArrayInputStream
 
@@ -64,6 +66,8 @@ class TitleScreenState: GameState {
 			val campaignState = GameStateManager.bitser.deserialize(
 				CampaignState::class.java, bitInput, context.content, Bitser.BACKWARD_COMPATIBLE
 			)
+			campaignState.currentArea = AreaState(context.content.areas.areas.find { it.properties.rawName == "lifewoodW" }!!,
+				AreaPosition(24, 26))
 			bitInput.close()
 
 			context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickConfirm)

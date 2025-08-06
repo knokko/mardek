@@ -97,7 +97,8 @@ class MardekWindow(
 				currentState is InGameState
 			) {
 				val context = RenderContext(
-					frame, pipelines, areaSpritePipeline, areaLightPipeline, perFrameDescriptorSet, content, gameState,
+					frame, pipelines, textPipeline, areaSpritePipeline, areaLightPipeline,
+					textBuffer, perFrameDescriptorSet, recorder, content, gameState,
 					currentState.campaign, mainResources
 				)
 				renderGame(context)

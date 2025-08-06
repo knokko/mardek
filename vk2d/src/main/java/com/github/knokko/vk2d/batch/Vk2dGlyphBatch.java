@@ -3,6 +3,7 @@ package com.github.knokko.vk2d.batch;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
+import com.github.knokko.vk2d.text.TextAlignment;
 import com.github.knokko.vk2d.text.Vk2dFont;
 import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 
@@ -111,24 +112,57 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 	public void drawString(
 			String text, float baseX, float baseY, float heightA, Vk2dFont font, int fillColor
 	) {
-		drawString(text, baseX, baseY, heightA, font, fillColor, 0, 0f);
+		drawString(text, baseX, baseY, heightA, font, fillColor, 0, 0f, TextAlignment.DEFAULT);
+	}
+
+	public void drawString(
+			String text, int baseX, int baseY, int heightA,
+			Vk2dFont font, int fillColor, TextAlignment alignment
+	) {
+		drawString(text, baseX, baseY, heightA, font, fillColor, 0, 0f, alignment);
 	}
 
 	public void drawString(
 			String text, float baseX, float baseY, float heightA,
-			Vk2dFont font, int fillColor, int strokeColor, float strokeWidth
+			Vk2dFont font, int fillColor, TextAlignment alignment
+	) {
+		drawString(text, baseX, baseY, heightA, font, fillColor, 0, 0f, alignment);
+	}
+
+	public void drawString(
+			String text, int baseX, int baseY, int heightA, Vk2dFont font, int fillColor
+	) {
+		drawString(
+				text, (float) baseX, (float) baseY, (float) heightA,
+				font, fillColor, 0, 0f, TextAlignment.DEFAULT
+		);
+	}
+
+	public void drawString(
+			String text, float baseX, float baseY, float heightA,
+			Vk2dFont font, int fillColor, int strokeColor, float strokeWidth, TextAlignment alignment
 	) {
 		// TODO Add HB support
-		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor, strokeWidth);
+		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor, strokeWidth, alignment);
+	}
+
+	public void drawString(
+			String text, int baseX, int baseY, int heightA,
+			Vk2dFont font, int fillColor, int strokeColor, float strokeWidth
+	) {
+		drawString(
+				text, (float) baseX, (float) baseY, (float) heightA, font,
+				fillColor, strokeColor, strokeWidth, TextAlignment.DEFAULT
+		);
 	}
 
 	public void drawShadowedString(
 			String text, float baseX, float baseY, float heightA,
 			Vk2dFont font, int fillColor, int strokeColor, float strokeWidth,
-			int shadowColor, float shadowOffsetX, float shadowOffsetY
+			int shadowColor, float shadowOffsetX, float shadowOffsetY, TextAlignment alignment
 	) {
-		drawString(text, baseX + shadowOffsetX, baseY + shadowOffsetY, heightA, font, shadowColor);
-		drawString(text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth);
+		drawString(text, baseX + shadowOffsetX, baseY + shadowOffsetY, heightA, font, shadowColor, alignment);
+		drawString(text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth, alignment);
 	}
 
 	public void drawPrimitiveString(
@@ -147,6 +181,31 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 			String text, float baseX, float baseY, Vk2dFont font, float heightA,
 			int fillColor, int strokeColor, float strokeWidth
 	) {
+		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor, strokeWidth, TextAlignment.LEFT);
+	}
+
+	public void drawPrimitiveString(
+			String text, float baseX, float baseY, Vk2dFont font, float heightA,
+			int fillColor, int strokeColor, float strokeWidth, TextAlignment alignment
+	) {
+		if (alignment == TextAlignment.DEFAULT) alignment = TextAlignment.LEFT;
+		if (alignment == TextAlignment.REVERSED) alignment = TextAlignment.RIGHT;
+
+		if (alignment != TextAlignment.LEFT) {
+			float width = 0;
+			for (int charIndex = 0; charIndex < text.length(); charIndex++) {
+				char nextChar = text.charAt(charIndex);
+				if (nextChar == '\t') {
+					width += 4f * heightA * font.getWhitespaceAdvance();
+				} else {
+					int glyph = font.getGlyphForChar(nextChar);
+					width += heightA * font.getGlyphAdvance(glyph);
+				}
+			}
+
+			if (alignment == TextAlignment.CENTERED) baseX -= 0.5f * width;
+			if (alignment == TextAlignment.RIGHT) baseX -= width;
+		}
 
 		for (int charIndex = 0; charIndex < text.length(); charIndex++) {
 			char nextChar = text.charAt(charIndex);

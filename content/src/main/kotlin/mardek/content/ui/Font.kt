@@ -15,4 +15,11 @@ class Font {
 	@BitField(id = 2)
 	@IntegerField(minValue = -1, expectUniform = false)
 	var index = -1
+
+	fun copy(): Font {
+		val copied = Font()
+		copied.data = data
+		copied.index = index
+		return copied
+	}
 }

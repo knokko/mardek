@@ -28,20 +28,31 @@ class RawRenderContext(
 class RenderContext(
 	val frame: Vk2dFrame,
 	val pipelines: Vk2dPipelines,
+	val fancyTextPipeline: MardekGlyphPipeline,
 	val areaSpritePipeline: AreaSpritePipeline,
 	val areaLightPipeline: AreaLightPipeline,
+	val textBuffer: Vk2dTextBuffer,
 	val perFrameDescriptorSet: Long,
+	val recorder: CommandRecorder,
 	val content: Content,
 	val state: GameStateManager,
 	val campaign: CampaignState,
 	val bundle: Vk2dResourceBundle
 ) {
-	fun addColorBatch(initialCapacity: Int = 1000) = pipelines.color.addBatch(frame, initialCapacity)!!
+	fun addColorBatch(initialCapacity: Int) = pipelines.color.addBatch(frame, initialCapacity)!!
 
-	fun addKim3Batch(initialCapacity: Int = 1000) = pipelines.kim3.addBatch(frame, initialCapacity, bundle)!!
+	fun addTextBatch(initialCapacity: Int) = pipelines.text.addBatch(
+		frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
+	)!!
 
-	fun addAreaSpriteBatch(scissor: Rectangle) = areaSpritePipeline.addBatch(
-		frame, bundle, perFrameDescriptorSet, scissor
+	fun addFancyTextBatch(initialCapacity: Int) = fancyTextPipeline.addBatch(
+		frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
+	)
+
+	fun addKim3Batch(initialCapacity: Int) = pipelines.kim3.addBatch(frame, initialCapacity, bundle)!!
+
+	fun addAreaSpriteBatch(initialCapacity: Int, scissor: Rectangle) = areaSpritePipeline.addBatch(
+		frame, initialCapacity, bundle, perFrameDescriptorSet, scissor
 	)
 
 	fun addAreaLightBatch(scissor: Rectangle) = areaLightPipeline.addBatch(frame, perFrameDescriptorSet, scissor)

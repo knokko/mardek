@@ -5,6 +5,7 @@ import mardek.content.sprite.KimSprite
 import mardek.content.ui.UiSprites
 import mardek.importer.util.compressKimSprite1
 import mardek.importer.util.compressKimSprite2
+import mardek.importer.util.compressKimSprite3
 import javax.imageio.ImageIO
 
 private fun importKimSprite(name: String, bitsPerPixel: Int): KimSprite {
@@ -12,7 +13,9 @@ private fun importKimSprite(name: String, bitsPerPixel: Int): KimSprite {
 	val resource = BcPacker::class.java.classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
 	val image = ImageIO.read(resource)
 
-	return if (bitsPerPixel == 0) compressKimSprite1(image) else compressKimSprite2(image, bitsPerPixel)
+	return if (bitsPerPixel == 0) compressKimSprite1(image)
+	else if (bitsPerPixel == -1) compressKimSprite3(image)
+	else compressKimSprite2(image, bitsPerPixel)
 }
 
 private fun importBcSprite(name: String, version: Int): BcSprite {
@@ -39,7 +42,7 @@ internal fun importUiSprites() = UiSprites(
 	meleeDefenseIcon = importKimSprite("MeleeDefenseIcon", 2),
 	rangedDefenseIcon = importKimSprite("RangedDefenseIcon", 0),
 	passiveIcon = importKimSprite("PassiveIcon", 4),
-	goldIcon = importKimSprite("Gold", 0),
+	goldIcon = importKimSprite("Gold", -1),
 	mastered = importKimSprite("Mastered", 0),
 	treasure = importKimSprite("TreasureText", 0),
 	plotItem = importKimSprite("PlotItemText", 0),

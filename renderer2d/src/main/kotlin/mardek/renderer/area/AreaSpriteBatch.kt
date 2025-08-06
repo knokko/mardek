@@ -9,10 +9,11 @@ import kotlin.math.roundToInt
 
 class AreaSpriteBatch(
 	pipeline: AreaSpritePipeline, frame: Vk2dFrame,
+	initialCapacity: Int,
 	internal val bundle: Vk2dResourceBundle,
 	internal val perFrameDescriptorSet: Long,
 	internal val scissor: Rectangle,
-): Vk2dBatch(pipeline, frame, 3000) {
+): Vk2dBatch(pipeline, frame, initialCapacity) {
 
 	fun draw(sprite: KimSprite, x: Int, y: Int, scale: Float, blinkColor: Int = 0, opacity: Float = 1f) {
 		val quad = putTriangles(2).vertexData[0]

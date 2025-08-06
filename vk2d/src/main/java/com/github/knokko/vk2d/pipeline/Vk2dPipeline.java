@@ -7,6 +7,7 @@ import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder;
 import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
+import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkPipelineVertexInputStateCreateInfo;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
@@ -92,6 +93,7 @@ public abstract class Vk2dPipeline {
 			CommandRecorder recorder, PerFrameBuffer perFrameBuffer, BatchVertexData miniBatch
 	) {
 		int numTriangles = Math.toIntExact(miniBatch.vertexData()[0].position() / bytesPerTriangle[0]);
+		//if (this instanceof Vk2dColorPipeline) System.out.println("#triangles is " + numTriangles);
 		int byteOffset = Math.toIntExact(miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset);
 		int firstVertex = byteOffset / (bytesPerTriangle[0] / 3);
 		vkCmdDraw(recorder.commandBuffer, 3 * numTriangles, 1, firstVertex, 0);

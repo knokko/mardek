@@ -25,10 +25,11 @@ fun main() {
 	try {
 		val bitser = Bitser(false)
 		val content = importVanillaContent(bitser)
-		saveTitleScreenBundle(bitser, content)
 
 		val outputFolder = File("$projectFolder/game2d/src/main/resources/mardek/game/")
 		saveIcon(outputFolder)
+
+		saveTitleScreenBundle(bitser, content)
 
 		println("exporting campaign...")
 		saveMainContent(bitser, content, outputFolder)
@@ -132,6 +133,8 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 		}
 	}
 
+	for (font in content.fonts.all()) addFont(resourceWriter, font)
+
 	val output = Files.newOutputStream(File("$outputFolder/content.vk2d").toPath())
 	resourceWriter.write(output)
 	output.close()
@@ -147,8 +150,8 @@ private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
 	val titleScreenContent = TitleScreenContent(
 		background = content.ui.titleScreenBackground,
 		title = content.ui.titleScreenTitle,
-		smallFont = content.fonts.basic,
-		largeFont = content.fonts.basicLarge,
+		smallFont = content.fonts.basic1.copy(),
+		largeFont = content.fonts.large2.copy(),
 	)
 
 	addBcImage(resourceWriter, titleScreenContent.background)
