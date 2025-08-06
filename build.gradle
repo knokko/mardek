@@ -50,16 +50,12 @@ allprojects {
 
 	project.ext.vulkanImplementationDependencies = [
 			"com.github.knokko:vk-boiler:$boilerVersion",
-			"com.github.knokko.text-renderer:core:$textRenderVersion",
-			"com.github.knokko.text-renderer:unicode-fonts:$textRenderVersion",
-			"com.github.knokko.text-renderer:vulkan:$textRenderVersion",
 			"org.joml:joml:$jomlVersion",
 			"org.lwjgl:lwjgl",
-			"org.lwjgl:lwjgl-vma",
 			"org.lwjgl:lwjgl-vulkan",
 	]
 	project.ext.vulkanRuntimeDependencies = project.ext.lwjglNatives.collectMany {
-		def result = ["org.lwjgl:lwjgl::$it", "org.lwjgl:lwjgl-vma::$it", "org.lwjgl:lwjgl-freetype::$it"]
+		def result = ["org.lwjgl:lwjgl::$it", ]
 		if (it.startsWith("natives-macos")) result.add("org.lwjgl:lwjgl-vulkan::$it")
 		result
 	}

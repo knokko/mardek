@@ -10,14 +10,16 @@ import com.github.knokko.vk2d.batch.BatchVertexData
 import com.github.knokko.vk2d.batch.Vk2dBatch
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
-import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import mardek.state.util.Rectangle
 import org.lwjgl.system.MemoryStack.stackPush
-import org.lwjgl.vulkan.VK10.*
+import org.lwjgl.vulkan.VK10.VK_SHADER_STAGE_VERTEX_BIT
+import org.lwjgl.vulkan.VK10.vkCmdDraw
+import org.lwjgl.vulkan.VK10.vkCmdPushConstants
+import org.lwjgl.vulkan.VK10.vkDestroyPipelineLayout
 import org.lwjgl.vulkan.VkPushConstantRange
 import java.lang.Math.toIntExact
 
-class AreaSpritePipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): Vk2dPipeline() {
+class AreaLightPipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): Vk2dPipeline() {
 
 	private val vkPipelineLayout: Long
 
@@ -28,19 +30,18 @@ class AreaSpritePipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): 
 
 			this.vkPipelineLayout = instance.boiler.pipelines.createLayout(
 				pushConstants, "AreaSpriteLayout",
-				instance.bufferDescriptorSetLayout.vkDescriptorSetLayout,
-				instance.bufferDescriptorSetLayout.vkDescriptorSetLayout,
+				instance.bufferDescriptorSetLayout.vkDescriptorSetLayout
 			)
 
 			val builder = pipelineBuilder(context)
 			builder.noVertexInput()
 			builder.simpleShaderStages(
-				"AreaSprites", "mardek/renderer/area/",
-				"sprite.vert.spv", "sprite.frag.spv"
+				"AreaLights", "mardek/renderer/area/",
+				"light.vert.spv", "light.frag.spv"
 			)
 			builder.ciPipeline.layout(vkPipelineLayout)
 
-			this.vkPipeline = builder.build("AreaSpritePipeline")
+			this.vkPipeline = builder.build("AreaLightPipeline")
 		}
 	}
 
@@ -54,12 +55,12 @@ class AreaSpritePipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): 
 		miniBatch: BatchVertexData,
 		batch: Vk2dBatch
 	) {
-		val spriteBatch = batch as AreaSpriteBatch
+		val lightBatch = batch as AreaLightBatch
 		val numQuads = miniBatch.vertexData[0].position() / QUAD_SIZE
 		val byteOffset = toIntExact(miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset)
 		val pushConstants = recorder.stack.ints(
-			batch.width, batch.height, spriteBatch.scissor.minX, spriteBatch.scissor.minY,
-			spriteBatch.scissor.boundX, spriteBatch.scissor.boundY, byteOffset / QUAD_SIZE,
+			batch.width, batch.height, lightBatch.scissor.minX, lightBatch.scissor.minY,
+			lightBatch.scissor.boundX, lightBatch.scissor.boundY, byteOffset / QUAD_SIZE,
 		)
 		vkCmdPushConstants(
 			recorder.commandBuffer, vkPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
@@ -71,16 +72,13 @@ class AreaSpritePipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): 
 	override fun prepareRecording(recorder: CommandRecorder, batch: Vk2dBatch) {
 		super.prepareRecording(recorder, batch)
 
-		val spriteBatch = batch as AreaSpriteBatch
-		recorder.bindGraphicsDescriptors(
-			vkPipelineLayout, spriteBatch.bundle.fakeImageDescriptorSet,
-			spriteBatch.perFrameDescriptorSet,
-		)
+		val lightBatch = batch as AreaLightBatch
+		recorder.bindGraphicsDescriptors(vkPipelineLayout, lightBatch.perFrameDescriptorSet)
 	}
 
 	fun addBatch(
-		frame: Vk2dFrame, bundle: Vk2dResourceBundle, perFrameDescriptorSet: Long, scissor: Rectangle
-	) = AreaSpriteBatch(this, frame, bundle, perFrameDescriptorSet, scissor)
+		frame: Vk2dFrame, perFrameDescriptorSet: Long, scissor: Rectangle
+	) = AreaLightBatch(this, frame, perFrameDescriptorSet, scissor)
 
 	override fun destroy(boiler: BoilerInstance) {
 		super.destroy(boiler)
@@ -93,7 +91,7 @@ class AreaSpritePipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): 
 	}
 
 	companion object {
-		const val QUAD_SIZE = 20
+		const val QUAD_SIZE = 12
 
 		val BYTES_PER_TRIANGLE = intArrayOf(QUAD_SIZE / 2)
 		val VERTEX_ALIGNMENTS = intArrayOf(QUAD_SIZE)

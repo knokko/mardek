@@ -22,13 +22,13 @@ import mardek.audio.AudioUpdater
 import mardek.content.Content
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
+import mardek.renderer.area.AreaLightPipeline
 import mardek.renderer.area.AreaSpritePipeline
 import mardek.renderer.glyph.MardekGlyphPipeline
 import mardek.renderer.renderGame
 import mardek.state.ExitState
 import mardek.state.GameStateManager
 import mardek.state.ingame.InGameState
-import mardek.state.title.TitleScreenState
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.VK_NULL_HANDLE
@@ -44,6 +44,7 @@ class MardekWindow(
 	private var totalFrames = 0L
 	private lateinit var textPipeline: MardekGlyphPipeline
 	private lateinit var areaSpritePipeline: AreaSpritePipeline
+	private lateinit var areaLightPipeline: AreaLightPipeline
 
 	private lateinit var content: Content
 	private lateinit var mainResources: Vk2dResourceBundle
@@ -70,6 +71,7 @@ class MardekWindow(
 		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, stack, vkRenderPass)
 		this.textPipeline = MardekGlyphPipeline(pipelineContext, instance)
 		this.areaSpritePipeline = AreaSpritePipeline(pipelineContext, instance)
+		this.areaLightPipeline = AreaLightPipeline(pipelineContext, instance)
 	}
 
 	override fun renderFrame(
@@ -95,7 +97,7 @@ class MardekWindow(
 				currentState is InGameState
 			) {
 				val context = RenderContext(
-					frame, pipelines, areaSpritePipeline, perFrameDescriptorSet, content, gameState,
+					frame, pipelines, areaSpritePipeline, areaLightPipeline, perFrameDescriptorSet, content, gameState,
 					currentState.campaign, mainResources
 				)
 				renderGame(context)
@@ -114,6 +116,7 @@ class MardekWindow(
 		synchronized(gameState.lock()) {
 			gameState.currentState = ExitState()
 		}
+		areaLightPipeline.destroy(boiler)
 		areaSpritePipeline.destroy(boiler)
 		textPipeline.destroy(boiler)
 		if (this::mainResourceMemory.isInitialized) mainResourceMemory.destroy(boiler)

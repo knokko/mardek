@@ -349,43 +349,24 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 //		this.lootRenderer = AreaLootRenderer(context, obtainedItemStack, scale)
 //		this.lootRenderer!!.beforeRendering()
 //	}
-	val lightRequests = ArrayList<LightRequest>()
+	val lightBatch = context.addAreaLightBatch(scissor)
 	val lightRadius = 24 * scale
 
-	val minLightX = cameraX - context.frame.width / 2 - lightRadius
-	val maxLightX = cameraX + context.frame.width / 2 + lightRadius
-	val minLightY = cameraY - context.frame.height / 2 - lightRadius
-	val maxLightY = cameraY + context.frame.height / 2 + lightRadius
+	val minLightX = cameraX - region.width / 2 - lightRadius
+	val maxLightX = cameraX + region.width / 2 + lightRadius
+	val minLightY = cameraY - region.height / 2 - lightRadius
+	val maxLightY = cameraY + region.height / 2 + lightRadius
 	for (decoration in state.area.objects.decorations) {
 		val light = decoration.light ?: continue
 		val x = 16 * scale * decoration.x + 8 * scale
 		val y = 16 * scale * decoration.y + scale * light.offsetY
 		if (x in minLightX .. maxLightX && y in minLightY .. maxLightY) {
-			lightRequests.add(LightRequest(x, y, srgbToLinear(light.color)))
+			lightBatch.draw(
+				region.minX + x + region.width / 2 - cameraX - lightRadius,
+				region.minY + y + region.height / 2 - cameraY - lightRadius,
+				lightRadius, srgbToLinear(light.color),
+			)
 		}
-	}
-
-	// TODO Render light
-	if (lightRequests.isNotEmpty()) {
-//		vkCmdBindPipeline(
-//			context.recorder.commandBuffer,
-//			VK_PIPELINE_BIND_POINT_GRAPHICS,
-//			context.resources.light.graphicsPipeline
-//		)
-//		vkCmdPushConstants(
-//			context.recorder.commandBuffer, context.resources.light.pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-//			0, context.recorder.stack.ints(context.viewportWidth, context.viewportHeight)
-//		)
-//		val vertexRange = context.resources.perFrameBuffer.allocate(LIGHT_VERTEX_SIZE.toLong() * lightRequests.size, 4L)
-//		val vertexBuffer = vertexRange.intBuffer()
-//		for (request in lightRequests) {
-//			vertexBuffer.put(request.x + context.viewportWidth / 2 - cameraX - lightRadius)
-//			vertexBuffer.put(request.y + context.viewportHeight / 2 - cameraY - lightRadius)
-//			vertexBuffer.put(lightRadius)
-//			vertexBuffer.put(request.color)
-//		}
-//		context.recorder.bindVertexBuffers(0, vertexRange)
-//		vkCmdDraw(context.recorder.commandBuffer, 6, lightRequests.size, 0, 0)
 	}
 }
 
@@ -400,5 +381,3 @@ private class EntityRenderJob(
 
 	override fun compareTo(other: EntityRenderJob) = this.sortY.compareTo(other.sortY)
 }
-
-private class LightRequest(val x: Int, val y: Int, val color: Int)
