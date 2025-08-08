@@ -71,6 +71,10 @@ class CampaignState(
 	@IntegerField(expectUniform = false, minValue = 0)
 	var totalSteps = 0L
 
+	@BitField(id = 9)
+	@IntegerField(expectUniform = true, minValue = 0)
+	var totalTime = 0.seconds
+
 	constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
 	var shouldOpenMenu = false

@@ -93,7 +93,6 @@ public abstract class Vk2dPipeline {
 			CommandRecorder recorder, PerFrameBuffer perFrameBuffer, BatchVertexData miniBatch
 	) {
 		int numTriangles = Math.toIntExact(miniBatch.vertexData()[0].position() / bytesPerTriangle[0]);
-		//if (this instanceof Vk2dColorPipeline) System.out.println("#triangles is " + numTriangles);
 		int byteOffset = Math.toIntExact(miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset);
 		int firstVertex = byteOffset / (bytesPerTriangle[0] / 3);
 		vkCmdDraw(recorder.commandBuffer, 3 * numTriangles, 1, firstVertex, 0);

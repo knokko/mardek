@@ -10,6 +10,7 @@ class InGameState(val campaign: CampaignState): GameState {
 	val menu = InGameMenuState(campaign)
 
 	override fun update(context: GameStateUpdateContext): GameState {
+		campaign.totalTime += context.timeStep
 		if (menu.shown) {
 			menu.update(context.input, context.soundQueue, context.content)
 		} else {

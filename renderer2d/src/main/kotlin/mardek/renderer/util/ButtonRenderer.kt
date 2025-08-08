@@ -5,6 +5,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.text.TextAlignment
 import com.github.knokko.vk2d.text.Vk2dFont
 import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.util.Rectangle
@@ -89,7 +90,7 @@ fun renderButton(
 	glyphBatch.drawFancyString(
 		text, textOffsetX.toFloat(), textBaseY.toFloat(), textHeight.toFloat(),
 		font, lowerTextColor,
-		outlineColor, outlineWidth,
+		outlineColor, outlineWidth, TextAlignment.LEFT,
 		lowerTextColor, upperTextColor, upperTextColor, upperTextColor,
 		0.5f, 0.5f, 0.5f, 0.5f
 	)

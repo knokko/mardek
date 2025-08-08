@@ -9,6 +9,8 @@ abstract class InGameMenuTab(private val canGoInside: Boolean) {
 
 	abstract fun getText(): String
 
+	open fun shouldShowLowerBar() = false
+
 	open fun processKeyPress(key: InputKey, context: UiUpdateContext) {
 		if (key == InputKey.Interact && canGoInside && !inside) {
 			inside = true

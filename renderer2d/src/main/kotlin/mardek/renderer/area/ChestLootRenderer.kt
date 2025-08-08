@@ -35,7 +35,7 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 			val font = context.bundle.getFont(context.content.fonts.basic2.index)
 			textBatch.drawFancyString(
 				text, rectMinX + 2f * scale, rectMinY - 2f * scale, 8f * scale,
-				font, lowColor, strokeColor, 2.5f * scale,
+				font, lowColor, strokeColor, 2.5f * scale, TextAlignment.LEFT,
 				lowColor, highColor, highColor, highColor,
 				0.5f, 0.5f, 0.5f, 0.5f
 			)

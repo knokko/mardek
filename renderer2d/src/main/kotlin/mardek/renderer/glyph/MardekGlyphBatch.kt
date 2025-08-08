@@ -3,6 +3,7 @@ package mardek.renderer.glyph
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.vk2d.Vk2dFrame
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.text.TextAlignment
 import com.github.knokko.vk2d.text.Vk2dFont
 import com.github.knokko.vk2d.text.Vk2dTextBuffer
 
@@ -84,13 +85,32 @@ class MardekGlyphBatch(
 	}
 
 	fun drawFancyBorderedString(
-		text: String, baseX: Float, baseY: Float, heightA: Float,
-		font: Vk2dFont, fillColor: Int, strokeColor: Int, strokeWidth: Float,
+		text: String, rawBaseX: Float, baseY: Float, heightA: Float,
+		font: Vk2dFont, fillColor: Int, strokeColor: Int, strokeWidth: Float, rawAlignment: TextAlignment,
 		color0: Int, color1: Int, color2: Int, color3: Int,
 		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
 		borderColor0: Int, borderColor1: Int, borderColor2: Int, borderColor3: Int,
 		borderDistance0: Float, borderDistance1: Float, borderDistance2: Float, borderDistance3: Float,
 	) {
+		var baseX = rawBaseX
+		var alignment = rawAlignment
+		if (alignment == TextAlignment.DEFAULT) alignment = TextAlignment.LEFT
+		if (alignment == TextAlignment.REVERSED) alignment = TextAlignment.RIGHT
+
+		if (alignment != TextAlignment.LEFT) {
+			var width = 0f
+			for (nextCharacter in text.chars()) {
+				if (nextCharacter == '\t'.code) {
+					width += 4f * heightA * font.whitespaceAdvance
+				} else {
+					val glyph = font.getGlyphForChar(nextCharacter)
+					width += heightA * font.getGlyphAdvance(glyph)
+				}
+			}
+			if (alignment == TextAlignment.CENTERED) baseX -= 0.5f * width
+			if (alignment == TextAlignment.RIGHT) baseX -= width
+		}
+
 		var nextBaseX = baseX
 		for (nextCharacter in text.chars()) {
 			if (nextCharacter == '\t'.code) {
@@ -115,12 +135,12 @@ class MardekGlyphBatch(
 
 	fun drawFancyString(
 		text: String, baseX: Float, baseY: Float, heightA: Float,
-		font: Vk2dFont, fillColor: Int, strokeColor: Int, strokeWidth: Float,
+		font: Vk2dFont, fillColor: Int, strokeColor: Int, strokeWidth: Float, alignment: TextAlignment,
 		color0: Int, color1: Int, color2: Int, color3: Int,
 		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
 	) {
 		drawFancyBorderedString(
-			text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth,
+			text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth, alignment,
 			color0, color1, color2, color3, distance0, distance1, distance2, distance3,
 			0, 0, 0, 0,
 			12345f, 12345f, 12345f, 12345f,
@@ -132,11 +152,11 @@ class MardekGlyphBatch(
 		font: Vk2dFont, fillColor: Int, strokeColor: Int, strokeWidth: Float,
 		color0: Int, color1: Int, color2: Int, color3: Int,
 		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
-		shadowColor: Int, shadowOffsetX: Float, shadowOffsetY: Float
+		shadowColor: Int, shadowOffsetX: Float, shadowOffsetY: Float, alignment: TextAlignment,
 	) {
 		drawString(text, baseX + shadowOffsetX, baseY + shadowOffsetY, heightA, font, shadowColor)
 		drawFancyString(
-			text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth,
+			text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth, alignment,
 			color0, color1, color2, color3, distance0, distance1, distance2, distance3
 		)
 	}

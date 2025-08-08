@@ -53,10 +53,10 @@ class UiSprites(
 	val mapChest: KimSprite,
 
 	@BitField(id = 15)
-	val mapSaveCrystal: KimSprite,
+	val mapSaveCrystal: BcSprite,
 
 	@BitField(id = 16)
-	val mapDreamCircle: KimSprite,
+	val mapDreamCircle: BcSprite,
 
 	@BitField(id = 17)
 	val skillToggled: KimSprite,
@@ -102,6 +102,9 @@ class UiSprites(
 
 	@BitField(id = 31)
 	val dreamStoneIcon: KimSprite,
+
+	@BitField(id = 32)
+	val clock: BcSprite,
 ) {
 
 	@Suppress("unused")
@@ -110,10 +113,11 @@ class UiSprites(
 		KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite(), KimSprite(),
+		KimSprite(), BcSprite(), BcSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		BcSprite(), BcSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), BcSprite(), KimSprite(),
+		BcSprite(),
 	)
 
 	fun allKimSprites() = arrayOf(
@@ -121,11 +125,13 @@ class UiSprites(
 		meleeAttackIcon, rangedAttackIcon,
 		meleeDefenseIcon, rangedDefenseIcon, passiveIcon,
 		goldIcon, mastered, treasure, plotItem, targetingMode,
-		mapChest, mapSaveCrystal, mapDreamCircle, skillToggled, skillNotToggled,
+		mapChest, skillToggled, skillNotToggled,
 		horizontalPointer, flippedPointer, verticalPointer, diagonalPointer,
 		blueAlertBalloon, redAlertBalloon,
 		consumableIcon, waitIcon, fleeIcon, dreamStoneIcon
 	)
 
-	fun allBcSprites() = arrayOf(titleScreenBackground, titleScreenTitle, challengeCursor)
+	fun allBcSprites() = arrayOf(
+		titleScreenBackground, titleScreenTitle, challengeCursor, mapSaveCrystal, mapDreamCircle, clock
+	)
 }

@@ -6,6 +6,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.text.TextAlignment
 import com.github.knokko.vk2d.text.Vk2dFont
 import mardek.content.ui.TitleScreenContent
 import mardek.renderer.RawRenderContext
@@ -58,7 +59,7 @@ internal fun renderTitleScreen(context: RawRenderContext, state: TitleScreenStat
 		glyphBatch.drawFancyBorderedString(
 			"MARDEK", region.minX + region.height * 0.09f, region.minY + region.height * 0.25f,
 			region.height * 0.18f, buttonFont, outerColor,
-			innerBorderColor, borderWidth,
+			innerBorderColor, borderWidth, TextAlignment.LEFT,
 			quarterColor, middleColor, quarterColor, outerColor,
 			0.3f, 0.4f, 0.5f, 1f,
 			innerBorderColor, outerBorderColor, outerBorderColor, outerBorderColor,
@@ -75,7 +76,7 @@ internal fun renderTitleScreen(context: RawRenderContext, state: TitleScreenStat
 			region.height * 0.07f, buttonFont, lowerColor, 0, 0f,
 			lowerColor, upperColor, upperColor, upperColor,
 			0.3f, 0.3f, 12345f, 12345f,
-			shadowColor, region.height * 0.005f, region.height * 0.005f
+			shadowColor, region.height * 0.005f, region.height * 0.005f, TextAlignment.LEFT,
 		)
 	}
 
