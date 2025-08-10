@@ -41,7 +41,7 @@ class RenderContext(
 ) {
 	fun addColorBatch(initialCapacity: Int) = pipelines.color.addBatch(frame, initialCapacity)!!
 
-	fun addImageBatch(initialCapacity: Int) = pipelines.image.addBatch(frame, initialCapacity)!!
+	fun addImageBatch(initialCapacity: Int) = pipelines.image.addBatch(frame, initialCapacity, bundle)!!
 
 	fun addTextBatch(initialCapacity: Int) = pipelines.text.addBatch(
 		frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet

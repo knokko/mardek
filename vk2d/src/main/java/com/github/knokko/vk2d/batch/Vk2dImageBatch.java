@@ -2,21 +2,24 @@ package com.github.knokko.vk2d.batch;
 
 import com.github.knokko.vk2d.Vk2dFrame;
 import com.github.knokko.vk2d.pipeline.Vk2dImagePipeline;
+import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Vk2dImageBatch extends Vk2dBatch {
 
+	private final Vk2dResourceBundle bundle;
 	public long[] descriptorSets;
 	private int nextDescriptorIndex;
 
-	public Vk2dImageBatch(Vk2dImagePipeline pipeline, Vk2dFrame frame, int initialCapacity) {
+	public Vk2dImageBatch(Vk2dImagePipeline pipeline, Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
 		super(pipeline, frame, initialCapacity);
+		this.bundle = bundle;
 		this.descriptorSets = new long[initialCapacity];
 	}
 
-	public void simple(int minX, int minY, int maxX, int maxY, long descriptorSet) {
+	public void simple(int minX, int minY, int maxX, int maxY, int imageIndex) {
 		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
@@ -36,13 +39,19 @@ public class Vk2dImageBatch extends Vk2dBatch {
 		if (nextDescriptorIndex >= descriptorSets.length) descriptorSets = Arrays.copyOf(
 				descriptorSets, 2 * descriptorSets.length
 		);
-		descriptorSets[nextDescriptorIndex] = descriptorSet;
+		descriptorSets[nextDescriptorIndex] = bundle.getImageDescriptor(imageIndex);
 		nextDescriptorIndex += 1;
+	}
+
+	public void simpleScale(int minX, int minY, float scale, int imageIndex) {
+		int width = Math.round(scale * bundle.getImageWidth(imageIndex));
+		int height = Math.round(scale * bundle.getImageHeight(imageIndex));
+		simple(minX, minY, minX + width - 1, minY + height - 1, imageIndex);
 	}
 
 	public void fillWithoutDistortion(
 			int minX, int minY, int maxX, int maxY,
-			long descriptorSet, int imageWidth, int imageHeight
+			int imageIndex, int imageWidth, int imageHeight
 	) {
 		if (maxX < minX || maxY < minY) return;
 		float imageAspectRatio = (float) imageWidth / imageHeight;
@@ -91,7 +100,7 @@ public class Vk2dImageBatch extends Vk2dBatch {
 		if (nextDescriptorIndex >= descriptorSets.length) descriptorSets = Arrays.copyOf(
 				descriptorSets, 2 * descriptorSets.length
 		);
-		descriptorSets[nextDescriptorIndex] = descriptorSet;
+		descriptorSets[nextDescriptorIndex] = bundle.getImageDescriptor(imageIndex);
 		nextDescriptorIndex += 1;
 	}
 }

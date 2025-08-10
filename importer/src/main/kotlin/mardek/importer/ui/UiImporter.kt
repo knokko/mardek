@@ -1,11 +1,11 @@
 package mardek.importer.ui
 
-import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
 import mardek.content.ui.UiSprites
 import mardek.importer.util.compressKimSprite1
 import mardek.importer.util.compressKimSprite2
 import mardek.importer.util.compressKimSprite3
+import mardek.importer.util.loadBc7Sprite
 import javax.imageio.ImageIO
 
 private fun importKimSprite(name: String, bitsPerPixel: Int): KimSprite {
@@ -18,52 +18,32 @@ private fun importKimSprite(name: String, bitsPerPixel: Int): KimSprite {
 	else compressKimSprite2(image, bitsPerPixel)
 }
 
-private fun importBcSprite(name: String, version: Int): BcSprite {
-	val path = "mardek/importer/ui/$name.png"
-	val resource = BcPacker::class.java.classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
-	var image = ImageIO.read(resource)
-
-	if (version == 1 && (image.width % 4 != 0 || image.height % 4 != 0)) {
-		image = image.getSubimage(0, 0,  4 * (image.width / 4), 4 * (image.height / 4))
-	}
-
-	val sprite = BcSprite(image.width, image.height, version)
-	sprite.bufferedImage = image
-	return sprite
-}
+private fun importBcSprite(name: String) = loadBc7Sprite("mardek/importer/ui/$name.png")
 
 internal fun importUiSprites() = UiSprites(
-	attackIcon = importKimSprite("AttackIcon", 2),
-	defIcon = importKimSprite("DefIcon", 2),
-	rangedDefIcon = importKimSprite("RangedDefIcon", 2),
-	activeStarIcon = importKimSprite("ActiveStarIcon", 0),
-	meleeAttackIcon = importKimSprite("MeleeAttackIcon", 2),
-	rangedAttackIcon = importKimSprite("RangedAttackIcon", 0),
-	meleeDefenseIcon = importKimSprite("MeleeDefenseIcon", 2),
-	rangedDefenseIcon = importKimSprite("RangedDefenseIcon", 0),
-	passiveIcon = importKimSprite("PassiveIcon", 4),
+	attackIcon = importBcSprite("AttackIcon"),
+	defIcon = importBcSprite("DefIcon"),
+	rangedDefIcon = importBcSprite("RangedDefIcon"),
+	activeStarIcon = importBcSprite("ActiveStarIcon"),
+	meleeAttackIcon = importBcSprite("MeleeAttackIcon"),
+	rangedAttackIcon = importBcSprite("RangedAttackIcon"),
+	meleeDefenseIcon = importBcSprite("MeleeDefenseIcon"),
+	rangedDefenseIcon = importBcSprite("RangedDefenseIcon"),
+	passiveIcon = importBcSprite("PassiveIcon"),
 	goldIcon = importKimSprite("Gold", -1),
-	mastered = importKimSprite("Mastered", 0),
-	treasure = importKimSprite("TreasureText", 0),
-	plotItem = importKimSprite("PlotItemText", 0),
-	targetingMode = importKimSprite("TargetingMode", 0),
 	mapChest = importKimSprite("MapChest", -1),
-	mapSaveCrystal = importBcSprite("MapSaveCrystal", 7),
-	mapDreamCircle = importBcSprite("MapDreamCircle", 7),
-	skillToggled = importKimSprite("SkillToggled", 0),
-	skillNotToggled = importKimSprite("SkillNotToggled", 0),
-	horizontalPointer = importKimSprite("HorizontalPointer", 0),
-	flippedPointer = importKimSprite("FlippedPointer", 0),
-	verticalPointer = importKimSprite("VerticalPointer", 0),
-	diagonalPointer = importKimSprite("DiagonalPointer", 0),
-	titleScreenBackground = importBcSprite("TitleScreenBackground", 1),
-	titleScreenTitle = importBcSprite("TitleScreenTitle", 7),
-	blueAlertBalloon = importKimSprite("BlueAlertBalloon", 0),
-	redAlertBalloon = importKimSprite("RedAlertBalloon", 0),
-	consumableIcon = importKimSprite("Consumable", 0),
-	waitIcon = importKimSprite("Wait", 0),
-	fleeIcon = importKimSprite("Flee", 0),
-	challengeCursor = importBcSprite("ChallengeCursor", 7),
-	dreamStoneIcon = importKimSprite("DreamStone", 0),
-	clock = importBcSprite("Clock", 7),
+	mapSaveCrystal = importBcSprite("MapSaveCrystal"),
+	mapDreamCircle = importBcSprite("MapDreamCircle"),
+	skillToggled = importBcSprite("SkillToggled"),
+	skillNotToggled = importBcSprite("SkillNotToggled"),
+	pointer = importBcSprite("HorizontalPointer"),
+	titleScreenBackground = importBcSprite("TitleScreenBackground"),
+	blueAlertBalloon = importKimSprite("BlueAlertBalloon", -1),
+	redAlertBalloon = importKimSprite("RedAlertBalloon", -1),
+	consumableIcon = importKimSprite("Consumable", -1),
+	waitIcon = importKimSprite("Wait", -1),
+	fleeIcon = importKimSprite("Flee", -1),
+	challengeCursor = importBcSprite("ChallengeCursor"),
+	dreamStoneIcon = importKimSprite("DreamStone", -1),
+	clock = importBcSprite("Clock"),
 )

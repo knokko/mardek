@@ -5,6 +5,8 @@ import com.github.knokko.vk2d.text.Vk2dFont;
 public class Vk2dResourceBundle {
 
 	private final long[] imageDescriptorSets;
+	private final int[] imageWidths;
+	private final int[] imageHeights;
 	public final int numImages;
 
 	private final Vk2dFont[] fonts;
@@ -16,11 +18,13 @@ public class Vk2dResourceBundle {
 	public final int numFakeImages;
 
 	Vk2dResourceBundle(
-			long[] imageDescriptorSets, Vk2dFont[] fonts,
+			long[] imageDescriptorSets, int[] imageWidths, int[] imageHeights, Vk2dFont[] fonts,
 			long fakeImageDescriptorSet, int[] fakeImageOffsets, int[] fakeImageWidths, int[] fakeImageHeights
 	) {
 		this.imageDescriptorSets = imageDescriptorSets;
 		this.numImages = imageDescriptorSets.length;
+		this.imageWidths = imageWidths;
+		this.imageHeights = imageHeights;
 		this.fonts = fonts;
 
 		this.fakeImageDescriptorSet = fakeImageDescriptorSet;
@@ -32,6 +36,14 @@ public class Vk2dResourceBundle {
 
 	public long getImageDescriptor(int imageIndex) {
 		return imageDescriptorSets[imageIndex];
+	}
+
+	public int getImageWidth(int imageIndex) {
+		return imageWidths[imageIndex];
+	}
+
+	public int getImageHeight(int imageIndex) {
+		return imageHeights[imageIndex];
 	}
 
 	public Vk2dFont getFont(int fontIndex) {

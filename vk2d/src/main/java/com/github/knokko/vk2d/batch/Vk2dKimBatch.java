@@ -39,9 +39,8 @@ public class Vk2dKimBatch extends Vk2dBatch {
 	}
 
 	public void simple(int minX, int minY, float scale, int textureIndex) {
-		simple(
-				minX, minY, Math.round(minX + scale * bundle.getFakeImageWidth(textureIndex) - 1),
-				Math.round(minY + scale * bundle.getFakeImageHeight(textureIndex) - 1), textureIndex
-		);
+		int width = Math.round(scale * bundle.getFakeImageWidth(textureIndex));
+		int height = Math.round(scale * bundle.getFakeImageHeight(textureIndex));
+		simple(minX, minY, minX + width - 1, minY + height - 1, textureIndex);
 	}
 }

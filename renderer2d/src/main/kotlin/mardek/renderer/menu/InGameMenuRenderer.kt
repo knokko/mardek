@@ -6,8 +6,10 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
+import mardek.renderer.menu.inventory.renderInventory
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.InGameMenuState
+import mardek.state.ingame.menu.InventoryTab
 import mardek.state.ingame.menu.MapTab
 import mardek.state.util.Rectangle
 
@@ -29,6 +31,7 @@ internal fun renderInGameMenu(
 		leftColor, rightColor, leftColor
 	)
 
+	val selectionWidth = region.height / 3
 	if (menu.currentTab.shouldShowLowerBar()) {
 		colorBatch1.fill(
 			region.minX, region.maxY - barHeight,
@@ -36,10 +39,10 @@ internal fun renderInGameMenu(
 		)
 	} else {
 		colorBatch1.fillUnaligned(
-			region.maxX - 2 * region.height / 5, region.maxY + 1,
+			region.maxX - selectionWidth, region.maxY + 1,
 			region.maxX + 1, region.maxY + 1,
 			region.maxX + 1, region.maxY - barHeight,
-			region.maxX - region.height / 3, region.maxY - barHeight, barColor
+			region.maxX + barHeight - selectionWidth, region.maxY - barHeight, barColor
 		)
 	}
 	colorBatch1.fill(
@@ -57,8 +60,7 @@ internal fun renderInGameMenu(
 	val clockMargin = (barHeight - clockSize) / 2
 	imageBatch.simple(
 		region.maxX - clockMargin - clockSize, region.maxY - clockMargin - clockSize,
-		region.maxX - clockMargin, region.maxY - clockMargin,
-		context.bundle.getImageDescriptor(context.content.ui.clock.index)
+		region.maxX - clockMargin, region.maxY - clockMargin, context.content.ui.clock.index
 	)
 
 	val totalSeconds = state.totalTime.inWholeSeconds
@@ -71,14 +73,18 @@ internal fun renderInGameMenu(
 	)
 
 	val menuContext = MenuRenderContext(context, colorBatch1, imageBatch, spriteBatch, textBatch, menu, state)
-	val selectionWidth = region.height / 3
 	renderInGameMenuSectionList(menuContext, Rectangle(
 		region.maxX - selectionWidth, region.minY + barHeight, selectionWidth, region.height - 2 * barHeight
 	))
 
-	if (menu.currentTab is MapTab) renderAreaMap(menuContext, Rectangle(
+	val submenuRectangleWithoutLowerBar = Rectangle(
 		region.minX, region.minY + barHeight, region.width - selectionWidth, region.height - 2 * barHeight
-	))
+	)
+	val submenuRectangleWithLowerBar = Rectangle(
+		region.minX, region.minY + barHeight, region.width - selectionWidth, region.height - barHeight
+	)
+	if (menu.currentTab is InventoryTab) renderInventory(menuContext, submenuRectangleWithLowerBar)
+	if (menu.currentTab is MapTab) renderAreaMap(menuContext, submenuRectangleWithoutLowerBar)
 
 	return colorBatch1
 }

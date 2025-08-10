@@ -4,11 +4,14 @@ import com.github.knokko.boiler.utilities.ImageCoding
 import com.github.knokko.compressor.Kim1Compressor
 import com.github.knokko.compressor.Kim2Compressor
 import com.github.knokko.vk2d.Kim3Compressor
+import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
+import mardek.importer.ui.BcPacker
 import org.lwjgl.BufferUtils
 import java.awt.Color
 import java.awt.image.BufferedImage
 import java.nio.IntBuffer
+import javax.imageio.ImageIO
 
 fun compressKimSprite1(image: BufferedImage) = run {
 	val pixelBuffer = BufferUtils.createByteBuffer(4 * image.width * image.height)
@@ -36,4 +39,13 @@ fun compressKimSprite2(image: BufferedImage, bitsPerPixel: Int): KimSprite {
 	val outputArray = IntArray(Kim2Compressor.predictIntSize(image.width, image.height, bitsPerPixel))
 	Kim2Compressor.compress(image, IntBuffer.wrap(outputArray), bitsPerPixel)
 	return KimSprite(outputArray, 2)
+}
+
+fun loadBc7Sprite(path: String): BcSprite {
+	val resource = BcPacker::class.java.classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
+	val image = ImageIO.read(resource)
+
+	val sprite = BcSprite(image.width, image.height, 7)
+	sprite.bufferedImage = image
+	return sprite
 }

@@ -41,8 +41,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 				val minY = minY + y * scale + scale / 2 - (spriteScale * sprite.height / 2).roundToInt()
 				imageBatch.simple(
 					minX, minY, minX + (sprite.width * spriteScale).roundToInt() - 1,
-					minY + (sprite.height * spriteScale).roundToInt() - 1,
-					context.bundle.getImageDescriptor(sprite.index)
+					minY + (sprite.height * spriteScale).roundToInt() - 1, sprite.index
 				)
 			}
 			for (element in area.objects.objects) {

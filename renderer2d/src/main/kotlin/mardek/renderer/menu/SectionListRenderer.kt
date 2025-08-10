@@ -50,8 +50,8 @@ internal fun renderInGameMenuSectionList(menuContext: MenuRenderContext, region:
 				0, tintColor, 0
 			)
 			textBatch.drawFancyString(
-				section, region.maxX - region.height / 300f, lineY - region.height / 100f,
-				region.height / 30f, font, lowTextColor,
+				section, region.maxX - region.height / 100f, lineY - region.height / 100f,
+				region.height / 25f, font, lowTextColor,
 				shadowColor, region.height / 250f, TextAlignment.RIGHT,
 				lowTextColor, highTextColor, highTextColor, highTextColor,
 				0.5f, 0.5f, 0.5f, 0.5f,

@@ -5,7 +5,6 @@ import com.github.knokko.boiler.buffers.VkbBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.descriptors.BulkDescriptorUpdater;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
-import com.github.knokko.boiler.descriptors.DescriptorUpdater;
 import com.github.knokko.boiler.images.ImageBuilder;
 import com.github.knokko.boiler.images.VkbImage;
 import com.github.knokko.boiler.memory.MemoryBlock;
@@ -13,7 +12,6 @@ import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.text.Vk2dFont;
-import org.lwjgl.system.MemoryStack;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -23,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
-import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceLoader {
@@ -231,8 +228,14 @@ public class Vk2dResourceLoader {
 			);
 		}
 
+		int[] imageWidths = new int[images.length];
+		int[] imageHeights = new int[images.length];
+		for (int index = 0; index < images.length; index++) {
+			imageWidths[index] = images[index].width;
+			imageHeights[index] = images[index].height;
+		}
 		return new Vk2dResourceBundle(
-				imageDescriptors, bundleFonts,
+				imageDescriptors, imageWidths, imageHeights, bundleFonts,
 				fakeImageDescriptor, fakeOffsets, fakeWidths, fakeHeights
 		);
 	}

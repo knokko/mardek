@@ -103,7 +103,6 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	}
 	for (creatureType in content.stats.creatureTypes) addKimImage(resourceWriter, creatureType.icon)
 	for (element in content.stats.elements) addKimImage(resourceWriter, element.sprite)
-	for (effect in content.stats.statusEffects) addKimImage(resourceWriter, effect.icon)
 	for (skillClass in content.skills.classes) addKimImage(resourceWriter, skillClass.icon)
 	for (item in content.items.items) addKimImage(resourceWriter, item.sprite)
 	for (item in content.items.plotItems) addKimImage(resourceWriter, item.sprite)
@@ -117,6 +116,7 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 		if (castSprite != null) addBcImage(resourceWriter, castSprite)
 	}
 	for (effect in content.stats.statusEffects) {
+		addBcImage(resourceWriter, effect.icon)
 		for (sprite in effect.passiveParticleSprites) addBcImage(resourceWriter, sprite)
 	}
 	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
@@ -149,13 +149,11 @@ private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
 	val resourceWriter = Vk2dResourceWriter()
 	val titleScreenContent = TitleScreenContent(
 		background = content.ui.titleScreenBackground,
-		title = content.ui.titleScreenTitle,
 		smallFont = content.fonts.basic1.copy(),
 		largeFont = content.fonts.large2.copy(),
 	)
 
 	addBcImage(resourceWriter, titleScreenContent.background)
-	addBcImage(resourceWriter, titleScreenContent.title)
 	addFont(resourceWriter, titleScreenContent.smallFont)
 	addFont(resourceWriter, titleScreenContent.largeFont)
 

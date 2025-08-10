@@ -11,15 +11,12 @@ class TitleScreenContent(
 	val background: BcSprite,
 
 	@BitField(id = 1)
-	val title: BcSprite,
-
-	@BitField(id = 2)
 	val smallFont: Font,
 
-	@BitField(id = 3)
+	@BitField(id = 2)
 	val largeFont: Font,
 ) {
 
 	@Suppress("unused")
-	private constructor() : this(BcSprite(), BcSprite(), Font(), Font())
+	private constructor() : this(BcSprite(), Font(), Font())
 }

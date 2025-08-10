@@ -9,6 +9,7 @@ import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dImageBatch;
+import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 
@@ -51,8 +52,8 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 		}
 	}
 
-	public Vk2dImageBatch addBatch(Vk2dFrame frame, int initialCapacity) {
-		return new Vk2dImageBatch(this, frame, initialCapacity);
+	public Vk2dImageBatch addBatch(Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
+		return new Vk2dImageBatch(this, frame, initialCapacity, bundle);
 	}
 
 	@Override
