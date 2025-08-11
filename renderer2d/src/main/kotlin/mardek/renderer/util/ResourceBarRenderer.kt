@@ -41,20 +41,6 @@ class ResourceBarRenderer(
 				entry.topLeftColor, entry.topRightColor, entry.topLeftColor
 			)
 		}
-//		context.uiRenderer.fillColor(
-//			barRegion.minX, barRegion.minY, barRegion.maxX, barRegion.maxY, backgroundColor,
-//			Gradient(
-//				0, 0, remainingWidth, barRegion.height,
-//				entry.bottomLeftColor, entry.bottomRightColor, entry.bottomLeftColor
-//			),
-//			if (entry.topGradient) Gradient(
-//				0, barRegion.height / 7, remainingWidth, 3 * barRegion.height / 7,
-//				changeAlpha(entry.topLeftColor, 100), changeAlpha(entry.topRightColor, 100), entry.topLeftColor
-//			) else Gradient(
-//				0, barRegion.height / 7, remainingWidth, 3 * barRegion.height / 7,
-//				entry.topLeftColor, entry.topRightColor, entry.topLeftColor
-//			)
-//		)
 	}
 
 	fun renderLost(currentValue: Int, oldValue: Int, maxValue: Int, opacity: Float) {
@@ -79,23 +65,33 @@ class ResourceBarRenderer(
 		)
 	}
 
-//	fun renderTextOverBar(currentValue: Int, maxValue: Int) {
-//		val entry = resourceType.chooseColor(currentValue, maxValue)
-//		val splitX = barRegion.minX + barRegion.width * 5 / 9
-//		val marginX = barRegion.width / 30
+	fun renderTextOverBar(currentValue: Int, maxValue: Int) {
+		val entry = resourceType.chooseColor(currentValue, maxValue)
+		val splitX = barRegion.minX + barRegion.width * 5 / 9
+		val marginX = barRegion.width / 30
+		val font = context.bundle.getFont(context.content.fonts.large1.index)
+		textBatch.drawString(
+			currentValue.toString(), splitX - marginX, barRegion.maxY + barRegion.height / 3,
+			7 * barRegion.height / 4, font, entry.textColor, TextAlignment.RIGHT
+		)
+		// TODO Shadows?
 //		context.uiRenderer.drawString(
 //			context.resources.font, currentValue.toString(), entry.textColor, IntArray(0),
 //			barRegion.minX, barRegion.minY - 2 * barRegion.height,
 //			splitX - marginX, barRegion.maxY + barRegion.height,
 //			barRegion.maxY + barRegion.height / 3, 7 * barRegion.height / 4, 1, TextAlignment.RIGHT
 //		)
+		textBatch.drawString(
+			maxValue.toString(), splitX + marginX, barRegion.maxY + barRegion.height / 5,
+			4 * barRegion.height / 3, font, entry.textColor
+		)
 //		context.uiRenderer.drawString(
 //			context.resources.font, maxValue.toString(), entry.textColor, IntArray(0),
 //			splitX + marginX, barRegion.minY - barRegion.height,
 //			barRegion.maxX, barRegion.maxY + barRegion.height / 2,
 //			barRegion.maxY + barRegion.height / 5, 4 * barRegion.height / 3, 1, TextAlignment.LEFT
 //		)
-//	}
+	}
 //
 //	fun renderCurrentOverBar(currentValue: Int, maxValue: Int) {
 //		val entry = resourceType.chooseColor(currentValue, maxValue)

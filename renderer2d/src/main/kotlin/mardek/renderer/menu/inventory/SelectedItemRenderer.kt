@@ -3,8 +3,22 @@ package mardek.renderer.menu.inventory
 import com.github.knokko.boiler.utilities.ColorPacker.changeAlpha
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.vk2d.text.TextAlignment
+import mardek.content.inventory.EquipmentSlotType
+import mardek.content.skill.ActiveSkill
+import mardek.content.skill.PassiveSkill
+import mardek.content.skill.ReactionSkill
+import mardek.content.skill.ReactionSkillType
+import mardek.content.sprite.BcSprite
+import mardek.content.sprite.KimSprite
+import mardek.content.stats.CombatStat
 import mardek.renderer.menu.MenuRenderContext
+import mardek.renderer.util.ResourceBarRenderer
+import mardek.renderer.util.ResourceType
+import mardek.renderer.util.renderDescription
 import mardek.state.ingame.menu.InventoryTab
+import mardek.state.util.Rectangle
+import kotlin.math.roundToInt
 
 internal fun renderHoverItemProperties(
 	menuContext: MenuRenderContext, minX: Int, startY: Int, maxX: Int, maxY: Int, scale: Int,
@@ -44,19 +58,26 @@ internal fun renderHoverItemProperties(
 				)
 
 
-				if (kim1Renderer != null) kim2Batch.requests.add(KimRequest(
-					x = minX + (maxX - minX - scale * element.sprite.width) / 2,
-					y = barY + (tabsY - barY - scale * element.sprite.height) / 2,
-					scale = scale.toFloat(), sprite = element.sprite, opacity = 0.02f
-				))
+				// TODO Render element
+//				if (kim1Renderer != null) kim2Batch.requests.add(KimRequest(
+//					x = minX + (maxX - minX - scale * element.sprite.width) / 2,
+//					y = barY + (tabsY - barY - scale * element.sprite.height) / 2,
+//					scale = scale.toFloat(), sprite = element.sprite, opacity = 0.02f
+//				))
 			}
 
+			// TODO Use the correct fonts
+			val unknownFont = context.bundle.getFont(context.content.fonts.basic1.index)
 			val titleColor = srgbToLinear(rgb(238, 203, 127))
-			uiRenderer?.drawString(
-				context.resources.font, hoverItem.toString(), titleColor, intArrayOf(),
-				minX + 5 * scale, startY, maxX - 5 * scale, barY,
-				startY + 11 * scale, 8 * scale, 1, TextAlignment.DEFAULT
+			textBatch.drawString(
+				hoverItem.toString(), minX + 5 * scale, startY + 11 * scale,
+				8 * scale, unknownFont, titleColor
 			)
+//			uiRenderer?.drawString(
+//				context.resources.font, hoverItem.toString(), titleColor, intArrayOf(),
+//				minX + 5 * scale, startY, maxX - 5 * scale, barY,
+//				startY + 11 * scale, 8 * scale, 1, TextAlignment.DEFAULT
+//			)
 
 			val baseTextColor = srgbToLinear(rgb(207, 192, 141))
 			val goodTextColor = srgbToLinear(rgb(152, 254, 0))
@@ -71,7 +92,6 @@ internal fun renderHoverItemProperties(
 			}
 
 			val textMinX = 5 * scale
-			val textMaxX = maxX - 5 * scale
 			var textY = barY + 13 * scale
 			if (tab.descriptionIndex == 0) {
 				var highText = ""
@@ -88,29 +108,41 @@ internal fun renderHoverItemProperties(
 				if (hoverItem.item.consumable != null) highText = "EXPENDABLE ITEM"
 				if (highText.isEmpty()) highText = "MISCELLANEOUS ITEM"
 
-				uiRenderer?.drawString(
-					context.resources.font, highText, baseTextColor, intArrayOf(),
-					textMinX, barY, textMaxX, tabsY, textY, 6 * scale, 1, TextAlignment.DEFAULT
+				textBatch.drawString(
+					highText, textMinX, textY,
+					6 * scale, unknownFont, baseTextColor
 				)
+//				uiRenderer?.drawString(
+//					context.resources.font, highText, baseTextColor, intArrayOf(),
+//					textMinX, barY, textMaxX, tabsY, textY, 6 * scale, 1, TextAlignment.DEFAULT
+//				)
 				textY += 20 * scale
 
 				for (stat in baseStats) {
 					val adder = hoverItem.item.getModifier(stat)
 					if (adder != 0) {
-						uiRenderer?.drawString(
-							context.resources.font, "${stat.flashName}: $adder", baseTextColor, intArrayOf(),
-							textMinX, barY, textMaxX, tabsY, textY, 6 * scale, 1, TextAlignment.DEFAULT
+						textBatch.drawString(
+							"${stat.flashName}: $adder", textMinX, textY,
+							6 * scale, unknownFont, baseTextColor
 						)
+//						uiRenderer?.drawString(
+//							context.resources.font, "${stat.flashName}: $adder", baseTextColor, intArrayOf(),
+//							textMinX, barY, textMaxX, tabsY, textY, 6 * scale, 1, TextAlignment.DEFAULT
+//						)
 						textY += 10 * scale
 					}
 				}
 				textY += 12 * scale
 
 				fun drawLine(currentLine: String) {
-					uiRenderer?.drawString(
-						context.resources.font, currentLine, baseTextColor, intArrayOf(),
-						textMinX, barY, textMaxX, tabsY, textY, 5 * scale, 1, TextAlignment.DEFAULT
+					textBatch.drawString(
+						currentLine, textMinX, textY, 5 * scale,
+						unknownFont, baseTextColor
 					)
+//					uiRenderer?.drawString(
+//						context.resources.font, currentLine, baseTextColor, intArrayOf(),
+//						textMinX, barY, textMaxX, tabsY, textY, 5 * scale, 1, TextAlignment.DEFAULT
+//					)
 					textY += 8 * scale
 				}
 
@@ -125,69 +157,82 @@ internal fun renderHoverItemProperties(
 					val skillY = barY + 2 * scale + 28 * row * scale
 
 					val nameColor = srgbToLinear(rgb(238, 203, 127))
-					uiRenderer?.drawString(
-						context.resources.font, skill.name, nameColor, intArrayOf(),
-						20 * scale, barY, maxX, tabsY,
-						skillY + 10 * scale, 7 * scale, 1, TextAlignment.LEFT
+					textBatch.drawString(
+						skill.name, minX + 20 * scale, skillY + 10 * scale,
+						7 * scale, unknownFont, nameColor
 					)
+//					uiRenderer?.drawString(
+//						context.resources.font, skill.name, nameColor, intArrayOf(),
+//						20 * scale, barY, maxX, tabsY,
+//						skillY + 10 * scale, 7 * scale, 1, TextAlignment.LEFT
+//					)
 
 					val skillMastery = characterState.skillMastery[skill] ?: 0
 
-					if (skillMastery < skill.masteryPoints && uiRenderer != null) {
+					if (skillMastery < skill.masteryPoints) {
 						val masteryRenderer = ResourceBarRenderer(
-							context, ResourceType.SkillMastery, AbsoluteRectangle(
+							context, ResourceType.SkillMastery, Rectangle(
 								23 * scale, skillY + 17 * scale, 57 * scale, 6 * scale
-							)
+							), colorBatch1, textBatch
 						)
+						// TODO Check shadows
 						masteryRenderer.renderBar(skillMastery, skill.masteryPoints)
 						masteryRenderer.renderTextOverBar(skillMastery, skill.masteryPoints)
 					}
 
-					if (kim1Renderer != null) {
-						kim2Batch.requests.add(KimRequest(
-							x = 5 * scale, y = skillY, scale = scale / 8f,
-							sprite = skill.element.sprite
-						))
+					// TODO Element sprite
+//					kim2Batch.requests.add(KimRequest(
+//						x = 5 * scale, y = skillY, scale = scale / 8f,
+//						sprite = skill.element.sprite
+//					))
 
-						if (skillMastery >= skill.masteryPoints) {
-							kim1Batch.requests.add(KimRequest(
-								x = 25 * scale, y = skillY + 16 * scale, scale = scale / 2f,
-								sprite = context.content.ui.mastered
-							))
+					if (skillMastery >= skill.masteryPoints) {
+						// TODO Render MASTERED
+						textBatch.drawString(
+							"Mastered", minX + 25 * scale, skillY + 16 * scale,
+							16 * scale, unknownFont, rgb(0, 0, 0)
+						)
+//						kim1Batch.requests.add(KimRequest(
+//							x = 25 * scale, y = skillY + 16 * scale, scale = scale / 2f,
+//							sprite = context.content.ui.mastered
+//						))
+					}
+
+					val skillSprite = when (skill) {
+						is ReactionSkill -> when (skill.type) {
+							ReactionSkillType.MeleeAttack -> context.content.ui.meleeAttackIcon
+							ReactionSkillType.RangedAttack -> context.content.ui.rangedAttackIcon
+							ReactionSkillType.MeleeDefense -> context.content.ui.meleeDefenseIcon
+							ReactionSkillType.RangedDefense -> context.content.ui.rangedDefenseIcon
 						}
+						is PassiveSkill -> context.content.ui.passiveIcon
+						else -> context.content.skills.classes.find { it.actions.contains(skill) }!!.icon
+					}
 
-						val skillSprite = when (skill) {
-							is ReactionSkill -> when (skill.type) {
-								ReactionSkillType.MeleeAttack -> context.content.ui.meleeAttackIcon
-								ReactionSkillType.RangedAttack -> context.content.ui.rangedAttackIcon
-								ReactionSkillType.MeleeDefense -> context.content.ui.meleeDefenseIcon
-								ReactionSkillType.RangedDefense -> context.content.ui.rangedDefenseIcon
-							}
-							is PassiveSkill -> context.content.ui.passiveIcon
-							else -> context.content.skills.classes.find { it.actions.contains(skill) }!!.icon
-						}
-
-						var x = maxX - 20 * scale
-						if (skill !is ActiveSkill) x -= 2 * scale
-						addKimRequest(KimRequest(
-							x = x, y = skillY + 3 * scale,
-							scale = if (skill is ActiveSkill) scale.toFloat() else scale / 12f,
-							sprite = skillSprite
-						))
+					var x = maxX - 20 * scale
+					if (skill !is ActiveSkill) x -= 2 * scale
+					if (skillSprite is BcSprite) {
+						imageBatch.simpleScale(x, skillY + 3 * scale, scale / 12f, skillSprite.index)
+					} else {
+						spriteBatch.simple(x, skillY + 3 * scale, scale.toFloat(), (skillSprite as KimSprite).offset)
 					}
 				}
 			}
 
-			if (tab.descriptionIndex == 2 && uiRenderer != null) {
+			if (tab.descriptionIndex == 2) {
 
 				textY = barY + 10 * scale
 
 				val basePropertiesColor = rgb(220, 220, 220)
 				fun addLine(text: String, color: Int) {
-					uiRenderer.drawString(
-						context.resources.font, "${11089.toChar()} $text", srgbToLinear(color), intArrayOf(),
-						textMinX, barY, textMaxX, tabsY, textY, 4 * scale, 1, TextAlignment.DEFAULT
+					textBatch.drawString(
+						"${11089.toChar()} $text", textMinX, textY,
+						4 * scale, unknownFont, srgbToLinear(color)
 					)
+//					uiRenderer.drawString(
+//						context.resources.font, "${11089.toChar()} $text", srgbToLinear(color), intArrayOf(),
+//						textMinX, barY, textMaxX, tabsY, textY, 4 * scale, 1, TextAlignment.DEFAULT
+//					)
 					textY += 7 * scale
 				}
 
@@ -262,6 +307,8 @@ internal fun renderHoverItemProperties(
 			}
 		}
 
+		// TODO Get rid of unknownFont
+		val unknownFont = context.bundle.getFont(context.content.fonts.basic1.index)
 		val tabWidth = width / 3 - 3 * scale
 		if (tabWidth < 3 * scale) return
 		val maxY = maxY - 2 * scale
@@ -276,42 +323,48 @@ internal fun renderHoverItemProperties(
 			var lineColor = lineColorDark
 			var textColor = srgbToLinear(rgb(110, 101, 95))
 			if (tab.descriptionIndex == index) {
-				val midGradient = Gradient(
-					0, 0, width, tabsY - barY,
-					midColorLight, midColorDark, midColorLight
-				)
-				fun shift(amount: Int) = Gradient(
-					midGradient.minX - amount, midGradient.minY, midGradient.width, midGradient.height,
-					midGradient.baseColor, midGradient.rightColor, midGradient.upColor
-				)
-				uiRenderer?.fillColor(x, tabsY, x + tabWidth, maxY, midColorDark, shift(x))
+//				val midGradient = Gradient(
+//					0, 0, width, tabsY - barY,
+//					midColorLight, midColorDark, midColorLight
+//				)
+//				fun shift(amount: Int) = Gradient(
+//					midGradient.minX - amount, midGradient.minY, midGradient.width, midGradient.height,
+//					midGradient.baseColor, midGradient.rightColor, midGradient.upColor
+//				)
+				//uiRenderer?.fillColor(x, tabsY, x + tabWidth, maxY, midColorDark, shift(x))
+				colorBatch1.fill(x, tabsY, x + tabWidth, maxY, midColorDark)
+				// TODO Hm... this one is tricky!
 				lineColor = lineColorLight
 				textColor = srgbToLinear(rgb(238, 203, 127))
 			}
 
-			rectangleRenderer?.fill(x, tabsY, x, maxY, lineColor)
-			rectangleRenderer?.fill(x, maxY, x + tabWidth, maxY, lineColor)
-			rectangleRenderer?.fill(x + tabWidth, tabsY, x + tabWidth, maxY, lineColor)
-			uiRenderer?.drawString(
-				context.resources.font, text, textColor, intArrayOf(),
-				x + scale, tabsY, x + tabWidth - scale, maxY,
-				maxY - 4 * scale, 4 * scale, 1, TextAlignment.CENTER
+			colorBatch1.fill(x, tabsY, x, maxY, lineColor)
+			colorBatch1.fill(x, maxY, x + tabWidth, maxY, lineColor)
+			colorBatch1.fill(x + tabWidth, tabsY, x + tabWidth, maxY, lineColor)
+			textBatch.drawString(
+				text, x + tabWidth / 2, maxY - 4 * scale, 4 * scale,
+				unknownFont, textColor, TextAlignment.CENTERED
 			)
+//			uiRenderer?.drawString(
+//				context.resources.font, text, textColor, intArrayOf(),
+//				x + scale, tabsY, x + tabWidth - scale, maxY,
+//				maxY - 4 * scale, 4 * scale, 1, TextAlignment.CENTER
+//			)
 		}
 
 		drawTab("DESCRIPTION", 0, tabX1)
 		drawTab("SKILLS", 1, tabX2)
 		drawTab("PROPERTIES", 2, tabX3)
-
-		rectangleRenderer?.fill(
+//
+		colorBatch1.fill(
 			minX, tabsY,
 			if (tab.descriptionIndex == 0) tabX1 else tabX2, tabsY, lineColorLight
 		)
-		rectangleRenderer?.fill((
+		colorBatch1.fill((
 				if (tab.descriptionIndex == 1) tabX2 else tabX1) + tabWidth, tabsY,
 			tabX3, tabsY, lineColorLight
 		)
-		if (tab.descriptionIndex != 2) rectangleRenderer?.fill(
+		if (tab.descriptionIndex != 2) colorBatch1.fill(
 			tabX2 + tabWidth, tabsY,
 			tabX3 + tabWidth, tabsY, lineColorLight
 		)

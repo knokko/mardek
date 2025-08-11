@@ -7,10 +7,12 @@ import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
 import mardek.renderer.menu.inventory.renderInventory
+import mardek.renderer.menu.skills.renderSkillsTab
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.InGameMenuState
 import mardek.state.ingame.menu.InventoryTab
 import mardek.state.ingame.menu.MapTab
+import mardek.state.ingame.menu.SkillsTab
 import mardek.state.util.Rectangle
 
 internal fun renderInGameMenu(
@@ -83,6 +85,7 @@ internal fun renderInGameMenu(
 	val submenuRectangleWithLowerBar = Rectangle(
 		region.minX, region.minY + barHeight, region.width - selectionWidth, region.height - barHeight
 	)
+	if (menu.currentTab is SkillsTab) renderSkillsTab(menuContext, submenuRectangleWithLowerBar)
 	if (menu.currentTab is InventoryTab) renderInventory(menuContext, submenuRectangleWithLowerBar)
 	if (menu.currentTab is MapTab) renderAreaMap(menuContext, submenuRectangleWithoutLowerBar)
 
