@@ -8,17 +8,18 @@ import mardek.content.skill.ActiveSkill
 import mardek.content.skill.PassiveSkill
 import mardek.content.skill.ReactionSkill
 import mardek.renderer.menu.MenuRenderContext
+import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
+import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderDescription
 import mardek.state.ingame.menu.SkillsTab
 import mardek.state.util.Rectangle
 import kotlin.math.roundToInt
-import kotlin.text.compareTo
-import kotlin.times
+
+private const val ANIMATION_PERIOD = 700_000_000L
 
 internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) {
-	// TODO ehm...
 	menuContext.run {
 		if (region.width < 50) return
 		val titleTextColor = srgbToLinear(rgb(238, 203, 127))
@@ -40,12 +41,97 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		val skillsEnablePointsX = descriptionMaxX + region.width / 2
 		val skillsMasteryPointsX = descriptionMaxX + region.width / 2 + region.width / 20
 
-		val visibleSkills = tab.determineSkillList(context.uiContext)
+		val visibleSkills = tab.determineSkillList(uiContext)
 		val selectedSkill = if (visibleSkills.isEmpty()) null else visibleSkills[tab.skillIndex]
 		val assetCharacter = context.campaign.characterSelection.party[tab.partyIndex]!!
 
 		// TODO Figure out the font
 		val unknownFont = context.bundle.getFont(context.content.fonts.basic1.index)
+
+
+
+		var spriteIndex = 0
+		if ((System.nanoTime() - referenceTime) % ANIMATION_PERIOD >= ANIMATION_PERIOD / 2) spriteIndex += 1
+
+		for ((column, character) in context.campaign.characterSelection.party.withIndex()) {
+			if (character == null) continue
+
+			val x = region.boundX + characterScale * 18 * (column - 4)
+			val y = region.minY + 2 * characterScale
+			spriteBatch.simple(
+				x, y, characterScale,
+				character.areaSprites.sprites[spriteIndex].offset
+			)
+
+			if (column == tab.partyIndex) {
+				selectedCharacterX = x - characterScale - 1
+				selectedCharacterY = y - characterScale - 1
+			}
+		}
+
+		spriteBatch.simple(
+			region.minX + 4 * characterScale, region.minY + 6 * characterScale, characterScale / 2f,
+			assetCharacter.characterClass.skillClass.icon.offset
+		)
+
+		for ((column, icon) in arrayOf(
+			context.content.ui.activeStarIcon, context.content.ui.meleeAttackIcon, context.content.ui.meleeDefenseIcon,
+			context.content.ui.rangedAttackIcon, context.content.ui.rangedDefenseIcon, context.content.ui.passiveIcon
+		).withIndex()) {
+			val x = region.minX + region.width / 7 + column * 12 * characterScale
+			val width = 8 * characterScale
+			val height = width * icon.height / icon.width
+			imageBatch.simple(x, iconY, x + width - 1, iconY + height - 1, icon.index)
+
+			// TODO Diagonal pointer
+			if (column == tab.skillTypeIndex && tab.inside) {
+				val midX = x + 1f * characterScale
+				val midY = iconY + 1f * characterScale
+				imageBatch.rotated(
+					midX, midY, -45f, characterScale / 16f,
+					context.content.ui.pointer.index
+				)
+			}
+//			if (column == tab.skillTypeIndex && tab.inside) addKimRequest(KimRequest(
+//				x = x - 4 * characterScale, y = iconY - 4 * characterScale,
+//				scale = characterScale / 16f, sprite = context.content.ui.diagonalPointer
+//			))
+		}
+
+		val selectionLowColor = srgbToLinear(rgb(25, 72, 119))
+		val selectionBorder = srgbToLinear(rgb(165, 205, 254))
+		val selectedCharacterMaxX = selectedCharacterX + 18 * characterScale - 1
+		val selectedCharacterMaxY = selectedCharacterY + 18 * characterScale - 1
+		gradientWithBorder(
+			colorBatch1, selectedCharacterX, selectedCharacterY, selectedCharacterMaxX, selectedCharacterMaxY,
+			1, 1, selectionBorder,
+			selectionLowColor, selectionLowColor, 0
+		)
+
+		colorBatch1.fill(
+			descriptionMaxX, headerY, region.maxX, headerMaxY,
+			srgbToLinear(rgb(50, 37, 27))
+		)
+
+		val titleBarLowColor = srgbToLinear(rgb(125, 91, 49))
+		val titleBarHighColor = srgbToLinear(rgb(80, 69, 61))
+		colorBatch1.gradient(
+			region.minX, headerY, descriptionMaxX, headerMaxY + headerHeight,
+			titleBarLowColor, titleBarLowColor, titleBarHighColor
+		)
+
+		val leftBarColor = srgbToLinear(rgba(93, 75, 43, 200))
+		colorBatch1.gradient(
+			region.minX, headerMaxY + headerHeight, descriptionMaxX, region.maxY,
+			leftBarColor, 0, leftBarColor
+		)
+
+//		if (selectedSkill != null && tab.inside) addKimRequest(KimRequest(
+//			x = region.minX + region.width / 200,
+//			y = region.minY + region.height * 2 / 5,
+//			sprite = selectedSkill.skill.element.sprite,
+//			scale = region.width / 500f, opacity = 0.01f
+//		))
 
 		for ((row, skillEntry) in visibleSkills.withIndex()) {
 			val baseY = skillsMinY + row * skillsSpacing
@@ -213,100 +299,10 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 					region.height / 28, unknownFont, masteryTextColor, TextAlignment.RIGHT
 				)
 				textBatch.drawString(
-					skill.masteryPoints.toString(), ehm
-				)
-				context.uiRenderer.drawString(
-					context.resources.font, skill.masteryPoints.toString(), masteryTextColor, intArrayOf(),
-					masterySplitX + region.height / 100, region.minY, maxMasteryX, region.maxY,
-					baseY + region.height / 33, region.height / 35, 1, TextAlignment.LEFT
+					skill.masteryPoints.toString(), masterySplitX + region.height / 33, baseY + region.height / 33,
+					region.height / 35, unknownFont, masteryTextColor
 				)
 			}
 		}
-
 	}
-}
-
-// TODO Call/copy this
-private fun renderUpperIcons() {
-	var spriteIndex = 0
-	if ((System.nanoTime() - referenceTime) % ANIMATION_PERIOD >= ANIMATION_PERIOD / 2) spriteIndex += 1
-
-	for ((column, character) in context.campaign.characterSelection.party.withIndex()) {
-		if (character == null) continue
-
-		val x = region.boundX + characterScale * 18 * (column - 4)
-		val y = region.minY + 2 * characterScale
-		addKimRequest(KimRequest(
-			x = x, y = y, scale = characterScale.toFloat(),
-			sprite = character.areaSprites.sprites[spriteIndex]
-		))
-
-		if (column == tab.partyIndex) {
-			selectedCharacterX = x - characterScale - 1
-			selectedCharacterY = y - characterScale - 1
-		}
-	}
-
-	addKimRequest(KimRequest(
-		x = region.minX + 4 * characterScale,
-		y = region.minY + 6 * characterScale, scale = characterScale / 2f,
-		sprite = assetCharacter.characterClass.skillClass.icon
-	))
-
-	for ((column, icon) in arrayOf(
-		context.content.ui.activeStarIcon, context.content.ui.meleeAttackIcon, context.content.ui.meleeDefenseIcon,
-		context.content.ui.rangedAttackIcon, context.content.ui.rangedDefenseIcon, context.content.ui.passiveIcon
-	).withIndex()) {
-		val x = region.minX + region.width / 7 + column * 12 * characterScale
-		addKimRequest(KimRequest(x = x, y = iconY, scale = 8f * characterScale / icon.width, sprite = icon))
-
-		if (column == tab.skillTypeIndex && tab.inside) addKimRequest(KimRequest(
-			x = x - 4 * characterScale, y = iconY - 4 * characterScale,
-			scale = characterScale / 16f, sprite = context.content.ui.diagonalPointer
-		))
-	}
-
-	if (selectedSkill != null && tab.inside) addKimRequest(KimRequest(
-		x = region.minX + region.width / 200,
-		y = region.minY + region.height * 2 / 5,
-		sprite = selectedSkill.skill.element.sprite,
-		scale = region.width / 500f, opacity = 0.01f
-	))
-}
-
-private fun renderBackgroundRectangles() {
-	if (region.width < 50) return
-
-	val renderer = context.resources.rectangleRenderer
-	renderer.beginBatch(context, 8)
-
-	val selectionLowColor = srgbToLinear(rgb(25, 72, 119))
-	val selectionBorder = srgbToLinear(rgb(165, 205, 254))
-	val selectedCharacterMaxX = selectedCharacterX + 18 * characterScale - 1
-	val selectedCharacterMaxY = selectedCharacterY + 18 * characterScale - 1
-	renderer.gradientWithBorder(
-		selectedCharacterX, selectedCharacterY, selectedCharacterMaxX, selectedCharacterMaxY,
-		1, 1, selectionBorder,
-		selectionLowColor, selectionLowColor, 0
-	)
-
-	renderer.fill(
-		descriptionMaxX, headerY, region.maxX, headerMaxY,
-		srgbToLinear(rgb(50, 37, 27))
-	)
-
-	val titleBarLowColor = srgbToLinear(rgb(125, 91, 49))
-	val titleBarHighColor = srgbToLinear(rgb(80, 69, 61))
-	renderer.gradient(
-		region.minX, headerY, descriptionMaxX, headerMaxY + headerHeight,
-		titleBarLowColor, titleBarLowColor, titleBarHighColor
-	)
-
-	val leftBarColor = srgbToLinear(rgba(93, 75, 43, 200))
-	renderer.gradient(
-		region.minX, headerMaxY + headerHeight, descriptionMaxX, region.maxY,
-		leftBarColor, 0, leftBarColor
-	)
-
-	renderer.endBatch(context.recorder)
 }

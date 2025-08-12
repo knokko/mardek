@@ -7,6 +7,8 @@ import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static java.lang.Math.*;
+
 public class Vk2dImageBatch extends Vk2dBatch {
 
 	private final Vk2dResourceBundle bundle;
@@ -96,6 +98,48 @@ public class Vk2dImageBatch extends Vk2dBatch {
 		vertices.putFloat(minU).putFloat(minV);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(minU).putFloat(maxV);
+
+		if (nextDescriptorIndex >= descriptorSets.length) descriptorSets = Arrays.copyOf(
+				descriptorSets, 2 * descriptorSets.length
+		);
+		descriptorSets[nextDescriptorIndex] = bundle.getImageDescriptor(imageIndex);
+		nextDescriptorIndex += 1;
+	}
+
+	public void rotated(float midX, float midY, float angle, float scale, int imageIndex) {
+		float hw = 0.5f * bundle.getImageWidth(imageIndex) * scale;
+		float hh = 0.5f * bundle.getImageHeight(imageIndex) * scale;
+		float rawAngle = (float) toRadians(angle);
+		float sa = (float) sin(angle);
+		float ca = (float) cos(angle);
+		transformed(
+				midX - hw * ca + hh * sa, midY + hh * ca + hw * sa,
+				midX + hw * ca + hh * sa, midY + hh * ca - hw * sa,
+				midX + hw * ca - hh * sa, midY - hh * ca - hw * sa,
+				midX - hw * ca - hh * sa, midY - hh * ca + hw * sa,
+				imageIndex
+		);
+	}
+
+	public void transformed(
+			float x1, float y1, float x2, float y2,
+			float x3, float y3, float x4, float y4, int imageIndex
+	) {
+		ByteBuffer vertices = putTriangles(2).vertexData()[0];
+
+		vertices.putFloat(normalizeX(x1)).putFloat(normalizeY(y1));
+		vertices.putFloat(0f).putFloat(1f);
+		vertices.putFloat(normalizeX(x2)).putFloat(normalizeY(y2));
+		vertices.putFloat(1f).putFloat(1f);
+		vertices.putFloat(normalizeX(x3)).putFloat(normalizeY(y3));
+		vertices.putFloat(1f).putFloat(0f);
+
+		vertices.putFloat(normalizeX(x3)).putFloat(normalizeY(y3));
+		vertices.putFloat(1f).putFloat(0f);
+		vertices.putFloat(normalizeX(x4)).putFloat(normalizeY(y4));
+		vertices.putFloat(0f).putFloat(0f);
+		vertices.putFloat(normalizeX(x1)).putFloat(normalizeY(y1));
+		vertices.putFloat(0f).putFloat(1f);
 
 		if (nextDescriptorIndex >= descriptorSets.length) descriptorSets = Arrays.copyOf(
 				descriptorSets, 2 * descriptorSets.length
