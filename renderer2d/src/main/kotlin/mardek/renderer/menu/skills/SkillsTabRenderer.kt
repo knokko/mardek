@@ -15,6 +15,7 @@ import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderDescription
 import mardek.state.ingame.menu.SkillsTab
 import mardek.state.util.Rectangle
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 private const val ANIMATION_PERIOD = 700_000_000L
@@ -45,10 +46,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		val selectedSkill = if (visibleSkills.isEmpty()) null else visibleSkills[tab.skillIndex]
 		val assetCharacter = context.campaign.characterSelection.party[tab.partyIndex]!!
 
-		// TODO Figure out the font
-		val unknownFont = context.bundle.getFont(context.content.fonts.basic1.index)
-
-
+		val basicFont2 = context.bundle.getFont(context.content.fonts.basic2.index)
 
 		var spriteIndex = 0
 		if ((System.nanoTime() - referenceTime) % ANIMATION_PERIOD >= ANIMATION_PERIOD / 2) spriteIndex += 1
@@ -66,6 +64,10 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			if (column == tab.partyIndex) {
 				selectedCharacterX = x - characterScale - 1
 				selectedCharacterY = y - characterScale - 1
+				imageBatch.rotated(
+					x + 8f * characterScale, y - 5f * characterScale, 270f, 0.1f * characterScale,
+					context.content.ui.pointer.index, 0, -1
+				)
 			}
 		}
 
@@ -83,19 +85,14 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			val height = width * icon.height / icon.width
 			imageBatch.simple(x, iconY, x + width - 1, iconY + height - 1, icon.index)
 
-			// TODO Diagonal pointer
 			if (column == tab.skillTypeIndex && tab.inside) {
 				val midX = x + 1f * characterScale
 				val midY = iconY + 1f * characterScale
 				imageBatch.rotated(
 					midX, midY, -45f, characterScale / 16f,
-					context.content.ui.pointer.index
+					context.content.ui.pointer.index, 0, -1
 				)
 			}
-//			if (column == tab.skillTypeIndex && tab.inside) addKimRequest(KimRequest(
-//				x = x - 4 * characterScale, y = iconY - 4 * characterScale,
-//				scale = characterScale / 16f, sprite = context.content.ui.diagonalPointer
-//			))
 		}
 
 		val selectionLowColor = srgbToLinear(rgb(25, 72, 119))
@@ -113,59 +110,100 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			srgbToLinear(rgb(50, 37, 27))
 		)
 
-		val titleBarLowColor = srgbToLinear(rgb(125, 91, 49))
-		val titleBarHighColor = srgbToLinear(rgb(80, 69, 61))
-		colorBatch.gradient(
-			region.minX, headerY, descriptionMaxX, headerMaxY + headerHeight,
-			titleBarLowColor, titleBarLowColor, titleBarHighColor
-		)
+		run {
+			val borderColor = srgbToLinear(rgb(68, 51, 34))
+			val borderWidth = max(1, headerHeight / 10)
+			colorBatch.fill(
+				region.minX, headerY, descriptionMaxX,
+				headerY + borderWidth - 1, borderColor,
+			)
+			colorBatch.fill(
+				descriptionMaxX + 1 - borderWidth, headerY,
+				descriptionMaxX, headerMaxY, borderColor,
+			)
 
-		val leftBarColor = srgbToLinear(rgba(93, 75, 43, 200))
+			val slopeSize = 4 * headerHeight / 5
+			val slopeX = descriptionMaxX - slopeSize - borderWidth
+			val slopeY = headerMaxY + slopeSize + borderWidth
+			colorBatch.fillUnaligned(
+				slopeX + 1, slopeY + 1,
+				descriptionMaxX + 2, headerMaxY + 1,
+				descriptionMaxX + 1 - borderWidth, headerMaxY + 1,
+				slopeX + 1, 1 + slopeY - borderWidth, borderColor,
+			)
+			colorBatch.fill(
+				region.minX, 1 + slopeY - borderWidth,
+				slopeX, slopeY, borderColor,
+			)
+
+			val titleBarLowColor = srgbToLinear(rgb(125, 91, 49))
+			val titleBarMidColor = srgbToLinear(rgb(85, 60, 34))
+			val titleBarHighColor = srgbToLinear(rgb(80, 69, 61))
+			val titleBarTopColor = srgbToLinear(rgb(34, 22, 14))
+			colorBatch.gradientUnaligned(
+				region.minX, 1 + slopeY - borderWidth, titleBarLowColor,
+				1 + slopeX, 1 + slopeY - borderWidth, titleBarLowColor,
+				1 + descriptionMaxX - borderWidth, 1 + headerMaxY, titleBarMidColor,
+				region.minX, 1 + headerMaxY, titleBarMidColor,
+			)
+			colorBatch.fill(
+				region.minX, headerY + borderWidth,
+				descriptionMaxX - borderWidth, headerY + 3 * borderWidth - 1, titleBarTopColor,
+			)
+			colorBatch.gradient(
+				region.minX, headerY + 3 * borderWidth,
+				region.minX + 3 * borderWidth - 1, headerMaxY,
+				titleBarMidColor, titleBarMidColor, titleBarTopColor,
+			)
+			colorBatch.gradient(
+				1 + descriptionMaxX - 4 * borderWidth, headerY + 3 * borderWidth,
+				descriptionMaxX - borderWidth, headerMaxY,
+				titleBarMidColor, titleBarMidColor, titleBarTopColor,
+			)
+			colorBatch.gradient(
+				region.minX + 3 * borderWidth, headerY + 3 * borderWidth,
+				descriptionMaxX - 4 * borderWidth, headerMaxY,
+				titleBarMidColor, titleBarMidColor, titleBarHighColor,
+			)
+		}
+		val leftBarColor = srgbToLinear(rgb(93, 75, 43))
 		colorBatch.gradient(
 			region.minX, headerMaxY + headerHeight, descriptionMaxX, region.maxY,
 			leftBarColor, 0, leftBarColor
 		)
 
-//		if (selectedSkill != null && tab.inside) addKimRequest(KimRequest(
-//			x = region.minX + region.width / 200,
-//			y = region.minY + region.height * 2 / 5,
-//			sprite = selectedSkill.skill.element.sprite,
-//			scale = region.width / 500f, opacity = 0.01f
-//		))
-
-		for ((row, skillEntry) in visibleSkills.withIndex()) {
-			val baseY = skillsMinY + row * skillsSpacing
-			val skill = skillEntry.skill
-
-			// TODO Element sprites
-//			if (skill is ActiveSkill) addKimRequest(KimRequest(
-//				x = skillsMinX, y = baseY, scale = region.height / 3000f, sprite = skill.element.sprite
-//			)) else {
-//				val icon = if (skillEntry.isToggled) context.content.ui.skillToggled else context.content.ui.skillNotToggled
-//				addKimRequest(KimRequest(
-//					x = skillsMinX, y = baseY, scale = region.height / 3000f, sprite = icon
-//				))
-//			}
-
-			if (tab.inside && row == tab.skillIndex) imageBatch.simpleScale(
-				skillsMinX - region.height / 20, baseY,
-				region.height / 3000f, context.content.ui.pointer.index
-			)
-
-			if (skillEntry.mastery >= skill.masteryPoints) {
-				// TODO MASTERED
-				textBatch.drawString(
-					"Mastered", skillsMasteryPointsX.toFloat(), baseY + region.height / 50f, region.height / 20f,
-					unknownFont, rgb(0, 0, 0)
-				)
-//				addKimRequest(KimRequest(
-//					x = skillsMasteryPointsX, y = baseY, scale = region.height / 500f,
-//					sprite = context.content.ui.mastered
-//				))
-			}
-		}
-
 		if (tab.inside) {
+			if (selectedSkill != null) {
+				imageBatch.coloredScale(
+					region.minX + region.width / 200,
+					region.minY + region.height * 2 / 5,
+					region.width / 500f,
+					selectedSkill.skill.element.sprite.index,
+					0, rgba(1f, 1f, 1f, 0.01f),
+				)
+			}
+			for ((row, skillEntry) in visibleSkills.withIndex()) {
+				val baseY = skillsMinY + row * skillsSpacing
+				val skill = skillEntry.skill
+
+				val icon = if (skill is ActiveSkill) skill.element.sprite
+				else if (skillEntry.isToggled) context.content.ui.skillToggled
+				else context.content.ui.skillNotToggled
+				imageBatch.simpleScale(skillsMinX, baseY, region.height / 3000f, icon.index)
+
+				if (tab.inside && row == tab.skillIndex) imageBatch.simpleScale(
+					skillsMinX - region.height / 20, baseY,
+					region.height / 2000f, context.content.ui.pointer.index
+				)
+
+				if (skillEntry.mastery >= skill.masteryPoints) {
+					// TODO MASTERED
+					textBatch.drawString(
+						"Mastered", skillsMasteryPointsX.toFloat(), baseY + region.height / 50f, region.height / 20f,
+						unknownFont, rgb(0, 0, 0)
+					)
+				}
+			}
 			val skillTypeDescription = when (tab.skillTypeIndex) {
 				0 -> "Action Skills"
 				1 -> "Physical Attack Reactions"
@@ -177,21 +215,18 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			}
 			textBatch.drawString(
 				skillTypeDescription, region.minX + region.width / 7 + 75 * characterScale,
-				selectedCharacterY + 7 * characterScale, 4 * characterScale, unknownFont,
+				selectedCharacterY + 7 * characterScale, 4 * characterScale, basicFont2,
 				titleTextColor, TextAlignment.RIGHT
 			)
-//			context.uiRenderer.drawString(
-//				context.resources.font, skillTypeDescription, titleTextColor, intArrayOf(),
-//				region.minX, region.minY, , headerY,
-//				selectedCharacterY + 7 * characterScale, 4 * characterScale, 1, TextAlignment.RIGHT
-//			)
 		}
 
 		val selectedSkillText = if (tab.inside) selectedSkill?.skill?.name ?: "No skill"
 		else assetCharacter.characterClass.skillClass.name
-		textBatch.drawString(
-			selectedSkillText, region.minX + region.width / 200, headerY + 4 * headerHeight / 3,
-			headerHeight * 2 / 3, unknownFont, titleTextColor
+		textBatch.drawShadowedString(
+			selectedSkillText, region.minX + region.height * 0.015f, headerY + 1.33f * headerHeight,
+			headerHeight * 0.66f, basicFont2, titleTextColor, 0, 0f,
+			srgbToLinear(rgb(37, 21, 10)), headerHeight * 0.05f,
+			headerHeight * 0.05f, TextAlignment.LEFT,
 		)
 
 		for ((minX, maxX, text) in arrayOf(
@@ -201,18 +236,21 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		)) {
 			textBatch.drawString(
 				text, if (text.startsWith("A")) minX else maxX, headerMaxY - headerHeight / 5,
-				headerHeight * 3 / 5, unknownFont, titleTextColor,
+				headerHeight * 3 / 5, basicFont2, titleTextColor,
 				if (text.startsWith("A")) TextAlignment.LEFT else TextAlignment.RIGHT,
 			)
 		}
 
-		var lineY = headerMaxY + 2 * headerHeight
+		var lineY = headerMaxY + 2f * headerHeight
 		fun drawDescriptionLine(line: String) {
-			textBatch.drawString(
-				line, region.minX + region.width / 100, lineY, region.width / 60,
-				unknownFont, srgbToLinear(rgb(200, 185, 135))
+			val shadowOffset = region.width * 0.001f
+			textBatch.drawShadowedString(
+				line, region.minX + region.width * 0.01f, lineY, region.width * 0.015f,
+				basicFont2, srgbToLinear(rgb(200, 185, 135)), 0, 0f,
+				srgbToLinear(rgb(53, 42, 27)),
+				shadowOffset, shadowOffset, TextAlignment.LEFT,
 			)
-			lineY += region.width / 35
+			lineY += region.width * 0.025f
 		}
 
 		val description = if (tab.inside) selectedSkill?.skill?.description ?: ""
@@ -220,18 +258,19 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		renderDescription(description, 25, ::drawDescriptionLine)
 
 		textBatch.drawString(
-			assetCharacter.name, region.minX + region.width / 100, region.maxY - region.height / 10,
-			region.height / 35, unknownFont, titleTextColor
+			assetCharacter.name, region.minX + region.width * 0.01f,
+			region.maxY - region.height * 0.1f, region.height * 0.03f, basicFont2,
+			titleTextColor, TextAlignment.LEFT,
 		)
 
-		val resourceX = region.minX + region.width / 25
+		val resourceX = region.minX + region.height / 18
 		val resourceMinY = region.maxY - region.height / 18
 		val resourceMaxY = region.maxY - region.height / 30
 
 		val resourceText = if (tab.skillTypeIndex == 0) "MP" else "RP"
 		textBatch.drawString(
 			resourceText, resourceX - 2, resourceMaxY, resourceMaxY - resourceMinY,
-			unknownFont, titleTextColor, TextAlignment.RIGHT
+			basicFont2, titleTextColor, TextAlignment.RIGHT
 		)
 
 		val characterState = context.campaign.characterStates[assetCharacter]!!
@@ -256,52 +295,55 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		resourceRenderer.renderBar(currentResourceValue, maxResourceValue)
 		resourceRenderer.renderTextOverBar(currentResourceValue, maxResourceValue)
 
-		for ((row, skillEntry) in visibleSkills.withIndex()) {
-			val baseY = skillsMinY + row * skillsSpacing
-			val skill = skillEntry.skill
-			colorBatch.fill(
-				skillsMinX, baseY, skillsEnablePointsX + region.height / 100,
-				baseY + region.height / 33, rgba(0, 0, 0, 100)
-			)
-			textBatch.drawString(
-				skill.name, skillsMinX + region.height / 20, baseY + region.height / 33, region.height / 35,
-				unknownFont, titleTextColor
-			)
-
-			val rp = when (skill) {
-				is ActiveSkill -> skill.manaCost
-				is PassiveSkill -> skill.enablePoints
-				else -> (skill as ReactionSkill).enablePoints
-			}
-			textBatch.drawString(
-				rp.toString(), skillsEnablePointsX - region.height / 100, baseY + region.height / 33,
-				region.height / 35, unknownFont, titleTextColor, TextAlignment.RIGHT,
-			)
-
-			val masteryBarColor = srgbToLinear(rgb(59, 38, 29))
-			val masteryFilledBarColor = srgbToLinear(rgb(159, 31, 23))
-			if (skillEntry.mastery < skill.masteryPoints) {
-				val minMasteryX = skillsMasteryPointsX + region.height / 100
-				val maxMasteryX = region.maxX - region.height / 50
-				val filledX = minMasteryX + ((maxMasteryX - minMasteryX) * (skillEntry.mastery.toFloat() / skill.masteryPoints)).roundToInt()
+		if (tab.inside) {
+			for ((row, skillEntry) in visibleSkills.withIndex()) {
+				val baseY = skillsMinY + row * skillsSpacing
+				val skill = skillEntry.skill
 				colorBatch.fill(
-					minMasteryX, baseY + region.height / 200, filledX - 1,
-					baseY + region.height / 40, masteryFilledBarColor
-				)
-				colorBatch.fill(
-					filledX, baseY + region.height / 200, maxMasteryX,
-					baseY + region.height / 40, masteryBarColor
-				)
-				val masteryTextColor = srgbToLinear(rgb(253, 94, 94))
-				val masterySplitX = (maxMasteryX + minMasteryX) / 2
-				textBatch.drawString(
-					skillEntry.mastery.toString(), masterySplitX, baseY + region.height / 30,
-					region.height / 28, unknownFont, masteryTextColor, TextAlignment.RIGHT
+					skillsMinX, baseY, skillsEnablePointsX + region.height / 100,
+					baseY + region.height / 33, rgba(0, 0, 0, 100)
 				)
 				textBatch.drawString(
-					skill.masteryPoints.toString(), masterySplitX + region.height / 33, baseY + region.height / 33,
-					region.height / 35, unknownFont, masteryTextColor
+					skill.name, skillsMinX + region.height / 20, baseY + region.height / 33, region.height / 35,
+					unknownFont, titleTextColor
 				)
+
+				val rp = when (skill) {
+					is ActiveSkill -> skill.manaCost
+					is PassiveSkill -> skill.enablePoints
+					else -> (skill as ReactionSkill).enablePoints
+				}
+				textBatch.drawString(
+					rp.toString(), skillsEnablePointsX - region.height / 100, baseY + region.height / 33,
+					region.height / 35, unknownFont, titleTextColor, TextAlignment.RIGHT,
+				)
+				// TODO Use ovals
+
+				val masteryBarColor = srgbToLinear(rgb(59, 38, 29))
+				val masteryFilledBarColor = srgbToLinear(rgb(159, 31, 23))
+				if (skillEntry.mastery < skill.masteryPoints) {
+					val minMasteryX = skillsMasteryPointsX + region.height / 100
+					val maxMasteryX = region.maxX - region.height / 50
+					val filledX = minMasteryX + ((maxMasteryX - minMasteryX) * (skillEntry.mastery.toFloat() / skill.masteryPoints)).roundToInt()
+					colorBatch.fill(
+						minMasteryX, baseY + region.height / 200, filledX - 1,
+						baseY + region.height / 40, masteryFilledBarColor
+					)
+					colorBatch.fill(
+						filledX, baseY + region.height / 200, maxMasteryX,
+						baseY + region.height / 40, masteryBarColor
+					)
+					val masteryTextColor = srgbToLinear(rgb(253, 94, 94))
+					val masterySplitX = (maxMasteryX + minMasteryX) / 2
+					textBatch.drawString(
+						skillEntry.mastery.toString(), masterySplitX, baseY + region.height / 30,
+						region.height / 28, unknownFont, masteryTextColor, TextAlignment.RIGHT
+					)
+					textBatch.drawString(
+						skill.masteryPoints.toString(), masterySplitX + region.height / 33, baseY + region.height / 33,
+						region.height / 35, unknownFont, masteryTextColor
+					)
+				}
 			}
 		}
 	}

@@ -128,7 +128,10 @@ public class Vk2dImageBatch extends Vk2dBatch {
 		nextDescriptorIndex += 1;
 	}
 
-	public void rotated(float midX, float midY, float angle, float scale, int imageIndex) {
+	public void rotated(
+			float midX, float midY, float angle, float scale,
+			int imageIndex, int addColor, int multiplyColor
+	) {
 		float hw = 0.5f * bundle.getImageWidth(imageIndex) * scale;
 		float hh = 0.5f * bundle.getImageHeight(imageIndex) * scale;
 		float rawAngle = (float) toRadians(angle);
@@ -139,29 +142,36 @@ public class Vk2dImageBatch extends Vk2dBatch {
 				midX + hw * ca + hh * sa, midY + hh * ca - hw * sa,
 				midX + hw * ca - hh * sa, midY - hh * ca - hw * sa,
 				midX - hw * ca - hh * sa, midY - hh * ca + hw * sa,
-				imageIndex
+				imageIndex, addColor, multiplyColor
 		);
 	}
 
 	public void transformed(
 			float x1, float y1, float x2, float y2,
-			float x3, float y3, float x4, float y4, int imageIndex
+			float x3, float y3, float x4, float y4,
+			int imageIndex, int addColor, int multiplyColor
 	) {
 		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 
 		vertices.putFloat(normalizeX(x1)).putFloat(normalizeY(y1));
 		vertices.putFloat(0f).putFloat(1f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(x2)).putFloat(normalizeY(y2));
 		vertices.putFloat(1f).putFloat(1f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(x3)).putFloat(normalizeY(y3));
 		vertices.putFloat(1f).putFloat(0f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 
 		vertices.putFloat(normalizeX(x3)).putFloat(normalizeY(y3));
 		vertices.putFloat(1f).putFloat(0f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(x4)).putFloat(normalizeY(y4));
 		vertices.putFloat(0f).putFloat(0f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(x1)).putFloat(normalizeY(y1));
 		vertices.putFloat(0f).putFloat(1f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 
 		if (nextDescriptorIndex >= descriptorSets.length) descriptorSets = Arrays.copyOf(
 				descriptorSets, 2 * descriptorSets.length

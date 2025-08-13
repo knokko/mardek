@@ -25,8 +25,8 @@ internal fun renderInGameMenu(
 	val barColor = srgbToLinear(rgb(24, 14, 10))
 	val barHeight = region.height / 12
 
-	val leftColor = srgbToLinear(rgba(54, 37, 21, 179))
-	val rightColor = srgbToLinear(rgba(132, 84, 53, 179))
+	val leftColor = srgbToLinear(rgba(54, 37, 21, 225))
+	val rightColor = srgbToLinear(rgba(132, 84, 53, 225))
 	colorBatch1.gradient(
 		region.minX, region.minY + barHeight, region.maxX,
 		if (menu.currentTab.shouldShowLowerBar()) region.maxY - barHeight else region.maxY,
