@@ -8,7 +8,7 @@ class KimRequest(
 	val blinkColor: Int = 0, val blinkIntensity: Float = 0f,
 ) {
 
-	override fun toString() = "KimRequest(x=$x, y=$y, scale=$scale, offset=${sprite.offset}, opacity=$opacity, rotation=$rotation)"
+	override fun toString() = "KimRequest(x=$x, y=$y, scale=$scale, offset=${sprite.index}, opacity=$opacity, rotation=$rotation)"
 }
 
 class KimBatch {

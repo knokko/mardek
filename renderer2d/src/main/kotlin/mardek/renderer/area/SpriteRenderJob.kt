@@ -9,7 +9,7 @@ internal class SpriteRenderJob(
 ): Comparable<SpriteRenderJob> {
 
 	init {
-		if (sprite.offset == -1) throw IllegalArgumentException()
+		if (sprite.index == -1) throw IllegalArgumentException()
 	}
 
 	override fun compareTo(other: SpriteRenderJob) = this.sortY.compareTo(other.sortY)

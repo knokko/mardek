@@ -17,8 +17,8 @@ class SpritesAndAreas {
 	private var kimOffset = 0
 
 	fun registerSprite(sprite: KimSprite) {
-		if (sprite.offset != -1) throw Error("Encountered tile twice")
-		sprite.offset = kimOffset
+		if (sprite.index != -1) throw Error("Encountered tile twice")
+		sprite.index = kimOffset
 		kimOffset += sprite.data!!.size
 		kimSprites.add(sprite)
 	}
@@ -27,7 +27,7 @@ class SpritesAndAreas {
 		for (tilesheet in assets.tilesheets) {
 			for (sprite in tilesheet.waterSprites) registerSprite(sprite)
 			for (tile in tilesheet.tiles) {
-				if (tile.sprites[0].offset != -1) throw Error("Shouldn't happen")
+				if (tile.sprites[0].index != -1) throw Error("Shouldn't happen")
 				for (sprite in tile.sprites) registerSprite(sprite)
 			}
 			tilesheet.tiles.clear()

@@ -60,7 +60,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 		if (area.chests.isNotEmpty()) {
 			spriteBatch.simple(
 				region.width * 95 / 100, region.minY + region.height / 150,
-				region.height / 1200f, context.content.ui.mapChest.offset
+				region.height / 1200f, context.content.ui.mapChest.index
 			)
 			val textColor = srgbToLinear(rgb(225, 185, 93))
 			val openedChests = area.chests.count { context.campaign.openedChests.contains(it) }
@@ -91,17 +91,17 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 			val barY1 = barHeight / 5
 			val barY2 = barY1 + barHeight / 2
 
-			colorBatch1.fill(barX1 + filledBarWidth, barMinY, barX2, barMaxY, backgroundColor)
+			colorBatch.fill(barX1 + filledBarWidth, barMinY, barX2, barMaxY, backgroundColor)
 			if (filledBarWidth > 0) {
-				colorBatch1.gradient(
+				colorBatch.gradient(
 					barX1, barMinY, barX1 + filledBarWidth, barMinY + barY1,
 					darkLeftColor, darkRightColor, darkLeftColor
 				)
-				colorBatch1.gradient(
+				colorBatch.gradient(
 					barX1, barMinY + barY1, barX1 + filledBarWidth, barMinY + barY2,
 					lightLeftColor, lightRightColor, lightUpColor
 				)
-				colorBatch1.gradient(
+				colorBatch.gradient(
 					barX1, barMinY + barY2, barX1 + filledBarWidth, barMaxY,
 					darkLeftColor, darkRightColor, darkLeftColor
 				)
@@ -111,7 +111,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 		fun putMapColor(tileX: Int, tileY: Int, color: Int) {
 			val slotX = minX + tileX * scale
 			val slotY = minY + tileY * scale
-			colorBatch1.fill(slotX, slotY, slotX + scale - 1, slotY + scale - 1, color)
+			colorBatch.fill(slotX, slotY, slotX + scale - 1, slotY + scale - 1, color)
 		}
 		val discovery = context.campaign.areaDiscovery.readOnly(area)
 		for (y in 0 .. area.height) {

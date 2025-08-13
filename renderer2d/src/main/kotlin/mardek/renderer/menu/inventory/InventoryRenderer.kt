@@ -1,5 +1,9 @@
 package mardek.renderer.menu.inventory
 
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
+import com.github.knokko.boiler.utilities.ColorPacker.rgba
+import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.menu.MenuRenderContext
 import mardek.state.util.Rectangle
 import kotlin.math.max
@@ -22,5 +26,19 @@ internal fun renderInventory(menuContext: MenuRenderContext, region: Rectangle) 
 		val startY = region.boundY - gridOffset
 		val maxX = min(200 * scale, gridStartX - 2 * scale)
 		renderHoverItemProperties(menuContext, region.minX, startY, maxX, region.maxY, scale)
+	}
+	menuContext.run {
+		val goldX = (region.minX + region.maxX) * 2 / 3
+		spriteBatch.simple(
+			goldX, region.minY - 20 * scale,
+			scale, context.content.ui.goldIcon.index,
+		)
+		textBatch.drawShadowedString(
+			state.gold.toString(), goldX + 20f * scale, region.minY - 6f * scale,
+			10f * scale, context.bundle.getFont(context.content.fonts.large1.index),
+			srgbToLinear(rgb(255, 225, 124)), 0, 0f,
+			srgbToLinear(rgba(83, 66, 50, 100)), 1.5f * scale,
+			1.5f * scale, TextAlignment.LEFT,
+		)
 	}
 }

@@ -22,7 +22,7 @@ class KimSprite(
 
 	@BitField(id = 2)
 	@IntegerField(minValue = -1, expectUniform = true)
-	var offset = -1
+	var index = -1
 
 	@BitField(id = 3)
 	@IntegerField(expectUniform = true)

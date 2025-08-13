@@ -40,7 +40,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 			val outerDarkColor = srgbToLinear(rgb(39, 26, 16))
 			val maxY = startY + barHeight - 1
 			gradientWithBorder(
-				colorBatch1, startX, startY, maxX, maxY, 2, 2,
+				colorBatch, startX, startY, maxX, maxY, 2, 2,
 				lineColor, outerLightColor, outerRightColor, outerDarkColor
 			)
 		}
@@ -49,7 +49,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 		run {
 			val innerDarkColor = srgbToLinear(rgb(113, 88, 58))
 			val innerLightColor = srgbToLinear(rgb(119, 105, 91))
-			colorBatch1.gradient(
+			colorBatch.gradient(
 				startX + margin, startY + margin,
 				maxX - margin, startY + barHeight * 2 / 3,
 				innerDarkColor, innerDarkColor, innerLightColor
@@ -57,10 +57,6 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 		}
 
 		val tab = menu.currentTab as InventoryTab
-		if (partyIndex == tab.partyIndex) {
-			val selectedColor = rgba(0, 30, 150, 100)
-			colorBatch1.fill(startX, startY, maxX, startY + barHeight - 1, selectedColor)
-		}
 
 		val characterX = startX + margin + margin / 2
 		val characterY = startY + margin + scale
@@ -71,7 +67,16 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 			if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
 			spriteBatch.simple(
 				characterX, characterY, scale,
-				assetCharacter.areaSprites.sprites[spriteIndex].offset
+				assetCharacter.areaSprites.sprites[spriteIndex].index
+			)
+		}
+
+		if (partyIndex == tab.partyIndex) {
+			val selectedColor = rgba(0, 30, 150, 100)
+			colorBatch.fill(startX, startY, maxX, startY + barHeight - 1, selectedColor)
+			imageBatch.simpleScale(
+				startX - 9 * scale, startY + 8 * scale,
+				scale * 0.15f, context.content.ui.pointer.index
 			)
 		}
 
@@ -80,7 +85,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 		val elementColor = srgbToLinear(assetCharacter.element.color)
 		val lowElementColor = changeAlpha(elementColor, 150)
 		val highElementColor = changeAlpha(elementColor, 50)
-		colorBatch1.gradient(
+		colorBatch.gradient(
 			x1, startY + margin, characterX + 80 * scale,
 			startY + margin + 6 * scale,
 			lowElementColor, 0, highElementColor
@@ -194,7 +199,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 		val healthRenderer = ResourceBarRenderer(
 			context, ResourceType.Health, Rectangle(
 				barX, startY + margin * 13 / 9, baseBarWidth, barsHeight
-			), colorBatch1, textBatch
+			), colorBatch, textBatch
 		)
 		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats, characterState.activeStatusEffects)
 		healthRenderer.renderBar(characterState.currentHealth, maxHealth)
@@ -202,7 +207,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 
 		val manaRenderer = ResourceBarRenderer(context, ResourceType.Mana, Rectangle(
 			barX, startY + margin * 37 / 8, baseBarWidth, barsHeight
-		), colorBatch1, textBatch)
+		), colorBatch, textBatch)
 		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats, characterState.activeStatusEffects)
 		manaRenderer.renderBar(characterState.currentMana, maxMana)
 		manaRenderer.renderTextBelowBar(characterState.currentMana, maxMana)
@@ -240,14 +245,14 @@ private fun renderEquipment(
 			val minX = startX + column * largeSlotSize
 			val maxX = minX + slotSize - 1
 			val maxY = startY + slotSize - 1
-			colorBatch1.fill(minX, startY, maxX, startY, lineColor)
-			colorBatch1.fill(minX, maxY, maxX, maxY, lineColor)
-			colorBatch1.fill(minX, startY, minX, maxY, lineColor)
-			colorBatch1.fill(maxX, startY, maxX, maxY, lineColor)
+			colorBatch.fill(minX, startY, maxX, startY, lineColor)
+			colorBatch.fill(minX, maxY, maxX, maxY, lineColor)
+			colorBatch.fill(minX, startY, minX, maxY, lineColor)
+			colorBatch.fill(maxX, startY, maxX, maxY, lineColor)
 			if (pickedItem != null && (-pickedItem.slotIndex - 1) == column && pickedItem.characterState == characterState) continue
 			if (item != null) spriteBatch.simple(
 				minX + scale, startY + scale,
-				scale.toFloat(), item.sprite.offset
+				scale.toFloat(), item.sprite.index
 			)
 		}
 
@@ -265,7 +270,7 @@ private fun renderEquipment(
 			val maxX = minX + slotSize - 1
 			val maxY = startY + slotSize - 1
 			gradientWithBorder(
-				colorBatch1, minX, startY, maxX, maxY, 1, 1,
+				colorBatch, minX, startY, maxX, maxY, 1, 1,
 				hoverLineColor, hoverLightColor, hoverLightColor, hoverDarkColor
 			)
 		}

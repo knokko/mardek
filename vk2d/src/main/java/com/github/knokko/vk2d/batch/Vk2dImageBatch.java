@@ -22,21 +22,31 @@ public class Vk2dImageBatch extends Vk2dBatch {
 	}
 
 	public void simple(int minX, int minY, int maxX, int maxY, int imageIndex) {
+		colored(minX, minY, maxX, maxY, imageIndex, 0, -1);
+	}
+
+	public void colored(int minX, int minY, int maxX, int maxY, int imageIndex, int addColor, int multiplyColor) {
 		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(0f).putFloat(1f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(1f).putFloat(1f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
 		vertices.putFloat(1f).putFloat(0f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
 		vertices.putFloat(1f).putFloat(0f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
 		vertices.putFloat(0f).putFloat(0f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(0f).putFloat(1f);
+		vertices.putInt(addColor).putInt(multiplyColor);
 
 		if (nextDescriptorIndex >= descriptorSets.length) descriptorSets = Arrays.copyOf(
 				descriptorSets, 2 * descriptorSets.length
@@ -46,9 +56,13 @@ public class Vk2dImageBatch extends Vk2dBatch {
 	}
 
 	public void simpleScale(int minX, int minY, float scale, int imageIndex) {
+		coloredScale(minX, minY, scale, imageIndex, 0, -1);
+	}
+
+	public void coloredScale(int minX, int minY, float scale, int imageIndex, int addColor, int multiplyColor) {
 		int width = Math.round(scale * bundle.getImageWidth(imageIndex));
 		int height = Math.round(scale * bundle.getImageHeight(imageIndex));
-		simple(minX, minY, minX + width - 1, minY + height - 1, imageIndex);
+		colored(minX, minY, minX + width - 1, minY + height - 1, imageIndex, addColor, multiplyColor);
 	}
 
 	public void fillWithoutDistortion(
@@ -85,19 +99,27 @@ public class Vk2dImageBatch extends Vk2dBatch {
 
 		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 
+		int addColor = 0;
+		int multiplyColor = -1;
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(minU).putFloat(maxV);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(maxU).putFloat(maxV);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
 		vertices.putFloat(maxU).putFloat(minV);
+		vertices.putInt(addColor).putInt(multiplyColor);
 
 		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
 		vertices.putFloat(maxU).putFloat(minV);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
 		vertices.putFloat(minU).putFloat(minV);
+		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
 		vertices.putFloat(minU).putFloat(maxV);
+		vertices.putInt(addColor).putInt(multiplyColor);
 
 		if (nextDescriptorIndex >= descriptorSets.length) descriptorSets = Arrays.copyOf(
 				descriptorSets, 2 * descriptorSets.length
@@ -110,8 +132,8 @@ public class Vk2dImageBatch extends Vk2dBatch {
 		float hw = 0.5f * bundle.getImageWidth(imageIndex) * scale;
 		float hh = 0.5f * bundle.getImageHeight(imageIndex) * scale;
 		float rawAngle = (float) toRadians(angle);
-		float sa = (float) sin(angle);
-		float ca = (float) cos(angle);
+		float sa = (float) sin(rawAngle);
+		float ca = (float) cos(rawAngle);
 		transformed(
 				midX - hw * ca + hh * sa, midY + hh * ca + hw * sa,
 				midX + hw * ca + hh * sa, midY + hh * ca - hw * sa,

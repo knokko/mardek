@@ -5,7 +5,6 @@ import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dKimBatch
 import mardek.renderer.RenderContext
 import mardek.renderer.glyph.MardekGlyphBatch
-import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.InGameMenuState
 import mardek.state.ingame.menu.UiUpdateContext
@@ -14,7 +13,7 @@ internal val referenceTime = System.nanoTime()
 
 internal class MenuRenderContext(
 	val context: RenderContext,
-	val colorBatch1: Vk2dColorBatch,
+	val colorBatch: Vk2dColorBatch,
 	val imageBatch: Vk2dImageBatch,
 	val spriteBatch: Vk2dKimBatch,
 	val textBatch: MardekGlyphBatch,

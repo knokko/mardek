@@ -44,8 +44,8 @@ internal fun renderInGameMenuSectionList(menuContext: MenuRenderContext, region:
 				highTextColor = highBaseTextColor
 			}
 
-			colorBatch1.fill(region.minX, lineY, region.maxX, lineY + lineWidth - 1, lineColor)
-			colorBatch1.gradient(
+			colorBatch.fill(region.minX, lineY, region.maxX, lineY + lineWidth - 1, lineColor)
+			colorBatch.gradient(
 				region.minX, lineY - region.height / 30, region.maxX, lineY - 1,
 				0, tintColor, 0
 			)

@@ -20,7 +20,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dImagePipeline extends Vk2dPipeline {
 
-	public static final int VERTEX_SIZE = 16;
+	public static final int VERTEX_SIZE = 24;
 	private static final int[] BYTES_PER_TRIANGLE = { 3 * VERTEX_SIZE };
 	private static final int[] VERTEX_ALIGNMENTS = { VERTEX_SIZE };
 
@@ -36,9 +36,10 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 					instance.imageDescriptorSetLayout.vkDescriptorSetLayout
 			);
 
-			var vertexAttributes = VkVertexInputAttributeDescription.calloc(2, stack);
+			var vertexAttributes = VkVertexInputAttributeDescription.calloc(3, stack);
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SFLOAT, 0);
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_SFLOAT, 8);
+			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32G32_UINT, 16);
 
 			var builder = pipelineBuilder(context);
 			builder.simpleShaderStages(

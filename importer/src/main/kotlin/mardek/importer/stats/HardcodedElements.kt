@@ -4,16 +4,9 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.Content
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
-import mardek.content.sprite.KimSprite
 import mardek.content.stats.CombatStat
 import mardek.importer.ui.BcPacker
-import mardek.importer.util.compressKimSprite2
 import javax.imageio.ImageIO
-
-private fun getSprite2(name: String, bitsPerPixel: Int): KimSprite {
-	val resource = BcPacker::class.java.classLoader.getResource("mardek/importer/stats/elements/${name}.png")!!
-	return compressKimSprite2(ImageIO.read(resource), bitsPerPixel)
-}
 
 private fun getBcSprite(name: String): BcSprite {
 	val resource = BcPacker::class.java.classLoader.getResource("mardek/importer/stats/elements/${name}.png")!!
@@ -29,8 +22,7 @@ fun addElements(content: Content) {
 		bonusStat = CombatStat.Strength,
 		primaryChar = "F",
 		color = rgb(255, 204, 0),
-		sprite = getSprite2("Fire", 4),
-		bcSprite = getBcSprite("Fire"),
+		sprite = getBcSprite("Fire"),
 		swingEffect = getBcSprite("SwingFire"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_FIRE" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundFire"),
@@ -40,8 +32,7 @@ fun addElements(content: Content) {
 		bonusStat = CombatStat.Spirit,
 		primaryChar = "W",
 		color = rgb(0, 204, 255),
-		sprite = getSprite2("Water", 4),
-		bcSprite = getBcSprite("Water"),
+		sprite = getBcSprite("Water"),
 		swingEffect = getBcSprite("SwingWater"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_WATER" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundWater"),
@@ -51,8 +42,7 @@ fun addElements(content: Content) {
 		bonusStat = CombatStat.Vitality,
 		primaryChar = "E",
 		color = rgb(0, 255, 0),
-		sprite = getSprite2("Earth",4),
-		bcSprite = getBcSprite("Earth"),
+		sprite = getBcSprite("Earth"),
 		swingEffect = getBcSprite("SwingEarth"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_EARTH" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundEarth"),
@@ -62,8 +52,7 @@ fun addElements(content: Content) {
 		bonusStat = CombatStat.Agility,
 		primaryChar = "A",
 		color = rgb(255, 255, 204),
-		sprite = getSprite2("Air", 4),
-		bcSprite = getBcSprite("Air"),
+		sprite = getBcSprite("Air"),
 		swingEffect = getBcSprite("SwingAir"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_AIR" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundAir"),
@@ -80,8 +69,7 @@ fun addElements(content: Content) {
 		bonusStat = CombatStat.MeleeDefense,
 		primaryChar = "D",
 		color = rgb(0, 0, 0),
-		sprite = getSprite2("Dark", 4),
-		bcSprite = getBcSprite("Dark"),
+		sprite = getBcSprite("Dark"),
 		swingEffect = getBcSprite("SwingDark"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_DARK" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundDark"),
@@ -91,8 +79,7 @@ fun addElements(content: Content) {
 		bonusStat = CombatStat.RangedDefense,
 		primaryChar = "L",
 		color = rgb(255, 255, 255),
-		sprite = getSprite2("Light", 8),
-		bcSprite = getBcSprite("Light"),
+		sprite = getBcSprite("Light"),
 		swingEffect = getBcSprite("SwingLight"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_LIGHT" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundLight"),
@@ -107,8 +94,7 @@ fun addElements(content: Content) {
 		bonusStat = CombatStat.MaxHealth,
 		primaryChar = "M",
 		color = rgb(191, 68, 205),
-		sprite = getSprite2("Fig", 4),
-		bcSprite = getBcSprite("Fig"),
+		sprite = getBcSprite("Fig"),
 		swingEffect = getBcSprite("SwingFig"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_FIG" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundFig"),
@@ -119,8 +105,7 @@ fun addElements(content: Content) {
 		primaryChar = "S",
 		properName = "AETHER",
 		color = rgb(0, 255, 204),
-		sprite = getSprite2("Aether", 4),
-		bcSprite = getBcSprite("Aether"),
+		sprite = getBcSprite("Aether"),
 		swingEffect = getBcSprite("SwingAether"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_ETHER" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundAether"),
@@ -136,8 +121,7 @@ fun addElements(content: Content) {
 		primaryChar = "N",
 		properName = "PHYSICAL",
 		color = rgb(204, 204, 204),
-		sprite = getSprite2("Physical", 4),
-		bcSprite = getBcSprite("Physical"),
+		sprite = getBcSprite("Physical"),
 		swingEffect = getBcSprite("SwingPhysical"),
 		spellCastEffect = null,
 		spellCastBackground = null,
@@ -147,8 +131,7 @@ fun addElements(content: Content) {
 		bonusStat = null,
 		primaryChar = "T",
 		color = rgb(120, 120, 254),
-		sprite = getSprite2("Thauma", 4),
-		bcSprite = getBcSprite("Thauma"),
+		sprite = getBcSprite("Thauma"),
 		swingEffect = null,
 		spellCastEffect = null,
 		spellCastBackground = getBcSprite("CastBackgroundThauma"),
@@ -158,8 +141,7 @@ fun addElements(content: Content) {
 		bonusStat = null,
 		primaryChar = "D",
 		color = rgb(252, 207, 207),
-		sprite = getSprite2("Divine", 4),
-		bcSprite = getBcSprite("Divine"),
+		sprite = getBcSprite("Divine"),
 		swingEffect = null,
 		spellCastEffect = null,
 		spellCastBackground = null,

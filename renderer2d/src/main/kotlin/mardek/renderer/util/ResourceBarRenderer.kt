@@ -67,30 +67,20 @@ class ResourceBarRenderer(
 
 	fun renderTextOverBar(currentValue: Int, maxValue: Int) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
-		val splitX = barRegion.minX + barRegion.width * 5 / 9
-		val marginX = barRegion.width / 30
+		val splitX = barRegion.minX + barRegion.width * 5f / 9f
+		val marginX = barRegion.width / 30f
 		val font = context.bundle.getFont(context.content.fonts.large1.index)
-		textBatch.drawString(
-			currentValue.toString(), splitX - marginX, barRegion.maxY + barRegion.height / 3,
-			7 * barRegion.height / 4, font, entry.textColor, TextAlignment.RIGHT
+		val shadowOffset = 0.125f * barRegion.height
+		textBatch.drawShadowedString(
+			currentValue.toString(), splitX - marginX, barRegion.maxY + barRegion.height * 0.33f,
+			1.75f * barRegion.height, font, entry.textColor, 0, 0f,
+			entry.shadowColor, shadowOffset, shadowOffset, TextAlignment.RIGHT
 		)
-		// TODO Shadows?
-//		context.uiRenderer.drawString(
-//			context.resources.font, currentValue.toString(), entry.textColor, IntArray(0),
-//			barRegion.minX, barRegion.minY - 2 * barRegion.height,
-//			splitX - marginX, barRegion.maxY + barRegion.height,
-//			barRegion.maxY + barRegion.height / 3, 7 * barRegion.height / 4, 1, TextAlignment.RIGHT
-//		)
-		textBatch.drawString(
-			maxValue.toString(), splitX + marginX, barRegion.maxY + barRegion.height / 5,
-			4 * barRegion.height / 3, font, entry.textColor
+		textBatch.drawShadowedString(
+			maxValue.toString(), splitX + marginX, barRegion.maxY + barRegion.height * 0.2f,
+			1.33f * barRegion.height, font, entry.textColor, 0, 0f,
+			entry.shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
 		)
-//		context.uiRenderer.drawString(
-//			context.resources.font, maxValue.toString(), entry.textColor, IntArray(0),
-//			splitX + marginX, barRegion.minY - barRegion.height,
-//			barRegion.maxX, barRegion.maxY + barRegion.height / 2,
-//			barRegion.maxY + barRegion.height / 5, 4 * barRegion.height / 3, 1, TextAlignment.LEFT
-//		)
 	}
 //
 //	fun renderCurrentOverBar(currentValue: Int, maxValue: Int) {

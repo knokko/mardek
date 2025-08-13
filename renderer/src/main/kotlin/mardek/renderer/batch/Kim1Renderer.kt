@@ -84,10 +84,10 @@ class Kim1Renderer(
 
 			var counter = 0
 			for (request in requests) {
-				if (offsetMap.containsKey(request.sprite.offset)) continue
-				offsetMap[request.sprite.offset] = nextResultOffset
+				if (offsetMap.containsKey(request.sprite.index)) continue
+				offsetMap[request.sprite.index] = nextResultOffset
 				nextResultOffset += size.first * size.second
-				offsetIntBuffer.put(request.sprite.offset)
+				offsetIntBuffer.put(request.sprite.index)
 				counter += 1
 			}
 			vkCmdDispatch(recorder.commandBuffer, size.first, size.second, counter)
@@ -125,7 +125,7 @@ class Kim1Renderer(
 			if (request.sprite.version != 1) throw IllegalArgumentException("Kim1Renderer only supports kim1 sprites")
 			hostVertexRange.putInt(request.x).putInt(request.y)
 			hostVertexRange.putInt(request.sprite.width).putInt(request.sprite.height).putFloat(request.scale)
-			hostVertexRange.putInt(offsetMap[request.sprite.offset]!!).putFloat(request.opacity)
+			hostVertexRange.putInt(offsetMap[request.sprite.index]!!).putFloat(request.opacity)
 			hostVertexRange.putFloat(toRadians(request.rotation))
 			hostVertexRange.putInt(request.blinkColor)
 			hostVertexRange.putFloat(request.blinkIntensity)

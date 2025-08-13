@@ -20,7 +20,7 @@ class AreaSpriteBatch(
 		val boundX = x + (scale * sprite.width).roundToInt()
 		val boundY = y + (scale * sprite.height).roundToInt()
 
-		val textureIndex = bundle.getFakeImageOffset(sprite.offset)
+		val textureIndex = bundle.getFakeImageOffset(sprite.index)
 		putCompressedPosition(quad, x, y)
 		putCompressedPosition(quad, boundX - x, boundY - y)
 		quad.putInt(textureIndex)

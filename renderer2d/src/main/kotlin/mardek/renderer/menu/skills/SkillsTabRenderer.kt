@@ -60,7 +60,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			val y = region.minY + 2 * characterScale
 			spriteBatch.simple(
 				x, y, characterScale,
-				character.areaSprites.sprites[spriteIndex].offset
+				character.areaSprites.sprites[spriteIndex].index
 			)
 
 			if (column == tab.partyIndex) {
@@ -71,7 +71,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 
 		spriteBatch.simple(
 			region.minX + 4 * characterScale, region.minY + 6 * characterScale, characterScale / 2f,
-			assetCharacter.characterClass.skillClass.icon.offset
+			assetCharacter.characterClass.skillClass.icon.index
 		)
 
 		for ((column, icon) in arrayOf(
@@ -103,25 +103,25 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		val selectedCharacterMaxX = selectedCharacterX + 18 * characterScale - 1
 		val selectedCharacterMaxY = selectedCharacterY + 18 * characterScale - 1
 		gradientWithBorder(
-			colorBatch1, selectedCharacterX, selectedCharacterY, selectedCharacterMaxX, selectedCharacterMaxY,
+			colorBatch, selectedCharacterX, selectedCharacterY, selectedCharacterMaxX, selectedCharacterMaxY,
 			1, 1, selectionBorder,
 			selectionLowColor, selectionLowColor, 0
 		)
 
-		colorBatch1.fill(
+		colorBatch.fill(
 			descriptionMaxX, headerY, region.maxX, headerMaxY,
 			srgbToLinear(rgb(50, 37, 27))
 		)
 
 		val titleBarLowColor = srgbToLinear(rgb(125, 91, 49))
 		val titleBarHighColor = srgbToLinear(rgb(80, 69, 61))
-		colorBatch1.gradient(
+		colorBatch.gradient(
 			region.minX, headerY, descriptionMaxX, headerMaxY + headerHeight,
 			titleBarLowColor, titleBarLowColor, titleBarHighColor
 		)
 
 		val leftBarColor = srgbToLinear(rgba(93, 75, 43, 200))
-		colorBatch1.gradient(
+		colorBatch.gradient(
 			region.minX, headerMaxY + headerHeight, descriptionMaxX, region.maxY,
 			leftBarColor, 0, leftBarColor
 		)
@@ -250,7 +250,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		val resourceRenderer = ResourceBarRenderer(
 			context, resourceType, Rectangle(
 				resourceX, resourceMinY, descriptionMaxX - resourceX, resourceMaxY - resourceMinY
-			), colorBatch1, textBatch
+			), colorBatch, textBatch
 		)
 
 		resourceRenderer.renderBar(currentResourceValue, maxResourceValue)
@@ -259,7 +259,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		for ((row, skillEntry) in visibleSkills.withIndex()) {
 			val baseY = skillsMinY + row * skillsSpacing
 			val skill = skillEntry.skill
-			colorBatch1.fill(
+			colorBatch.fill(
 				skillsMinX, baseY, skillsEnablePointsX + region.height / 100,
 				baseY + region.height / 33, rgba(0, 0, 0, 100)
 			)
@@ -284,11 +284,11 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 				val minMasteryX = skillsMasteryPointsX + region.height / 100
 				val maxMasteryX = region.maxX - region.height / 50
 				val filledX = minMasteryX + ((maxMasteryX - minMasteryX) * (skillEntry.mastery.toFloat() / skill.masteryPoints)).roundToInt()
-				colorBatch1.fill(
+				colorBatch.fill(
 					minMasteryX, baseY + region.height / 200, filledX - 1,
 					baseY + region.height / 40, masteryFilledBarColor
 				)
-				colorBatch1.fill(
+				colorBatch.fill(
 					filledX, baseY + region.height / 200, maxMasteryX,
 					baseY + region.height / 40, masteryBarColor
 				)

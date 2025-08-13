@@ -18,24 +18,24 @@ internal fun renderInventoryGrid(menuContext: MenuRenderContext, startX: Int, st
 		val fullSlotSize = scale * SIMPLE_SLOT_SIZE
 		val size = 8 * fullSlotSize + 2
 
-		colorBatch1.fill(startX, startY, startX + size - 1, startY, LINE_COLOR)
+		colorBatch.fill(startX, startY, startX + size - 1, startY, LINE_COLOR)
 		for (row in 0 until 8) {
 			val minY = 1 + startY + row * fullSlotSize
 			val maxY = minY + fullSlotSize - 1
 			gradientWithBorder(
-				colorBatch1, startX, minY, startX + size - 1, maxY,
+				colorBatch, startX, minY, startX + size - 1, maxY,
 				2, 1, LINE_COLOR,
 				LIGHT_SLOT_COLOR, LIGHT_SLOT_COLOR, DARK_SLOT_COLOR
 			)
 		}
-		colorBatch1.fill(
+		colorBatch.fill(
 			startX, startY + size - 1, startX + size - 1,
 			startY + size - 1, LINE_COLOR
 		)
 
 		for (column in 1 until 8) {
 			val x = startX + column * fullSlotSize
-			colorBatch1.fill(
+			colorBatch.fill(
 				x, startY + 2, x + 1,
 				startY + 8 * fullSlotSize - 1, LINE_COLOR
 			)
@@ -56,7 +56,7 @@ internal fun renderInventoryGrid(menuContext: MenuRenderContext, startX: Int, st
 				val maxX = x + fullSlotSize - 1
 				val maxY = y + fullSlotSize - 1
 				gradientWithBorder(
-					colorBatch1, x, y, maxX, maxY, 1, 1, hoverLineColor,
+					colorBatch, x, y, maxX, maxY, 1, 1, hoverLineColor,
 					hoverLightColor, hoverLightColor, hoverDarkColor
 				)
 			}
@@ -86,14 +86,14 @@ internal fun renderInventoryGrid(menuContext: MenuRenderContext, startX: Int, st
 					if (pickedItem != null && itemStack === pickedItem.get()) continue
 					val itemX = startX + 1 + fullSlotSize * x + scale
 					val itemY = startY + 1 + fullSlotSize * y + scale
-					spriteBatch.simple(itemX, itemY, scale, itemStack.item.sprite.offset)
+					spriteBatch.simple(itemX, itemY, scale, itemStack.item.sprite.index)
 					renderAmount(itemStack, itemX, itemY)
 				}
 			}
 		}
 
 		if (pickedItem != null && tab.mouseX >= 0 && tab.mouseY >= 0) {
-			spriteBatch.simple(tab.mouseX, tab.mouseY, scale, pickedItem.get()!!.item.sprite.offset)
+			spriteBatch.simple(tab.mouseX, tab.mouseY, scale, pickedItem.get()!!.item.sprite.index)
 			renderAmount(pickedItem.get()!!, tab.mouseX, tab.mouseY)
 		}
 

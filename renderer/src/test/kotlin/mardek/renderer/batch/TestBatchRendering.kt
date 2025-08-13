@@ -104,7 +104,7 @@ class TestBatchRendering {
 		fun getSprite(offset: Int, version: Int, compress: (Int) -> Unit): KimSprite {
 			compress(offset)
 			val sprite = KimSprite(intArrayOf(kimBuffer.intBuffer().get(offset)), version)
-			sprite.offset = offset
+			sprite.index = offset
 			return sprite
 		}
 
