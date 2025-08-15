@@ -1,7 +1,6 @@
 package com.github.knokko.vk2d.batch;
 
-import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
 import com.github.knokko.vk2d.text.TextAlignment;
 import com.github.knokko.vk2d.text.Vk2dFont;
@@ -13,16 +12,14 @@ import static java.lang.Math.max;
 
 public class Vk2dGlyphBatch extends Vk2dBatch {
 
-	private final CommandRecorder recorder;
 	public final Vk2dTextBuffer textBuffer;
 	public final long perFrameDescriptorSet;
 
 	public Vk2dGlyphBatch(
-			Vk2dPipeline pipeline, Vk2dFrame frame, int initialCapacity,
-			CommandRecorder recorder, Vk2dTextBuffer textBuffer, long perFrameDescriptorSet
+			Vk2dPipeline pipeline, Vk2dRenderStage frame, int initialCapacity,
+			Vk2dTextBuffer textBuffer, long perFrameDescriptorSet
 	) {
 		super(pipeline, frame, initialCapacity);
-		this.recorder = recorder;
 		this.textBuffer = textBuffer;
 		this.perFrameDescriptorSet = perFrameDescriptorSet;
 	}
@@ -96,10 +93,10 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		float offsetY = intBoundY - maxY;
 
 		int glyphOffsetHorizontal = textBuffer.scratch(
-				recorder, font, glyph, -offsetY, heightA, height, intHeight, true, strokeWidth
+				font, glyph, -offsetY, heightA, height, intHeight, true, strokeWidth
 		);
 		int glyphOffsetVertical = textBuffer.scratch(
-				recorder, font, glyph, -offsetX, heightA, width, intWidth, false, strokeWidth
+				font, glyph, -offsetX, heightA, width, intWidth, false, strokeWidth
 		);
 
 		glyphBetween(

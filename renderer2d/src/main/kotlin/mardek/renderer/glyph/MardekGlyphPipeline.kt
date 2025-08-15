@@ -2,9 +2,8 @@ package mardek.renderer.glyph
 
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
-import com.github.knokko.vk2d.Vk2dFrame
+import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.Vk2dInstance
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.text.Vk2dTextBuffer
@@ -23,11 +22,11 @@ class MardekGlyphPipeline(context: Vk2dPipelineContext, instance: Vk2dInstance):
 	}
 
 	override fun addBatch(
-		frame: Vk2dFrame, initialCapacity: Int, recorder: CommandRecorder,
+		stage: Vk2dRenderStage, initialCapacity: Int, recorder: CommandRecorder,
 		textBuffer: Vk2dTextBuffer, perFrameDescriptorSet: Long
 	): MardekGlyphBatch {
 		return MardekGlyphBatch(
-			this, frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
+			this, stage, initialCapacity, textBuffer, perFrameDescriptorSet
 		)
 	}
 

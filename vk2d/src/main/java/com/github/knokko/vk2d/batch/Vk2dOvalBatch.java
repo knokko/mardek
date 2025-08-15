@@ -1,6 +1,6 @@
 package com.github.knokko.vk2d.batch;
 
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline;
 
 import java.nio.ByteBuffer;
@@ -11,7 +11,7 @@ public class Vk2dOvalBatch extends Vk2dBatch {
 
 	public final long perFrameDescriptorSet;
 
-	public Vk2dOvalBatch(Vk2dOvalPipeline pipeline, Vk2dFrame frame, long perFrameDescriptorSet, int initialCapacity) {
+	public Vk2dOvalBatch(Vk2dOvalPipeline pipeline, Vk2dRenderStage frame, long perFrameDescriptorSet, int initialCapacity) {
 		super(pipeline, frame, initialCapacity);
 		this.perFrameDescriptorSet = perFrameDescriptorSet;
 	}

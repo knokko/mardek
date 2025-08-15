@@ -1,7 +1,6 @@
 package mardek.renderer.battle
 
 import mardek.content.battle.PartyLayoutPosition
-import mardek.renderer.RenderContext
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -10,9 +9,9 @@ fun computeMagicScale(context: BattleRenderContext): Pair<Float, Float> {
 	var magicScaleX = 1f / 240f
 	val magicScaleY2 = 1f / 176f
 
-	val frame = context.context.frame
-	val magicScaleY1 = min(magicScaleY2, magicScaleX * frame.width / frame.height)
-	magicScaleX = min(magicScaleX, magicScaleY1 * frame.height / frame.width)
+	val stage = context.context.currentStage
+	val magicScaleY1 = min(magicScaleY2, magicScaleX * stage.width / stage.height)
+	magicScaleX = min(magicScaleX, magicScaleY1 * stage.height / stage.width)
 	return Pair(magicScaleX, magicScaleY2)
 }
 

@@ -21,8 +21,8 @@ internal class SpriteRenderJob(
 			if (sprite.width >= 32) renderX -= 16 * scale
 			if (sprite.height >= 32) renderY -= 16 * scale
 			val margin = 2 * tileSize
-			if (renderX > -margin && renderY > -margin && renderX < context.frame.width + 2 * margin &&
-				renderY < context.frame.height + 2 * margin
+			if (renderX > -margin && renderY > -margin && renderX < region.width + 2 * margin &&
+				renderY < region.height + 2 * margin
 			) {
 				val blinkColor = multiplyAlpha(blinkColor, blinkIntensity)
 				spriteBatch.draw(sprite, renderX, renderY, scale, blinkColor, opacity)

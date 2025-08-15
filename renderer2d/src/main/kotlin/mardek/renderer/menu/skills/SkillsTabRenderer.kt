@@ -47,6 +47,8 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		val assetCharacter = context.campaign.characterSelection.party[tab.partyIndex]!!
 
 		val basicFont2 = context.bundle.getFont(context.content.fonts.basic2.index)
+		// TODO Figure this out
+		val unknownFont = basicFont2
 
 		var spriteIndex = 0
 		if ((System.nanoTime() - referenceTime) % ANIMATION_PERIOD >= ANIMATION_PERIOD / 2) spriteIndex += 1

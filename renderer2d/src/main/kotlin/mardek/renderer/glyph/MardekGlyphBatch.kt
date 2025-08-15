@@ -1,7 +1,6 @@
 package mardek.renderer.glyph
 
-import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.vk2d.Vk2dFrame
+import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import com.github.knokko.vk2d.text.Vk2dFont
@@ -9,12 +8,11 @@ import com.github.knokko.vk2d.text.Vk2dTextBuffer
 
 class MardekGlyphBatch(
 	pipeline: MardekGlyphPipeline,
-	frame: Vk2dFrame,
+	frame: Vk2dRenderStage,
 	initialCapacity: Int,
-	recorder: CommandRecorder,
 	textBuffer: Vk2dTextBuffer,
 	perFrameDescriptorSet: Long,
-): Vk2dGlyphBatch(pipeline, frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet) {
+): Vk2dGlyphBatch(pipeline, frame, initialCapacity, textBuffer, perFrameDescriptorSet) {
 
 	override fun glyphAt(
 		baseX: Float,

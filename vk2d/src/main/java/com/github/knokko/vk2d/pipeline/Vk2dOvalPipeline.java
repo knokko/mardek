@@ -2,7 +2,7 @@ package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
@@ -32,7 +32,7 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32_UINT, 0);
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32_UINT, 4);
 
-			var builder = pipelineBuilder(context);
+			var builder = pipelineBuilder(context, stack);
 			builder.simpleShaderStages(
 					"Oval", "com/github/knokko/vk2d/",
 					"oval.vert.spv", "oval.frag.spv"
@@ -44,7 +44,7 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 		}
 	}
 
-	public Vk2dOvalBatch addBatch(Vk2dFrame frame, long perFrameDescriptorSet, int initialCapacity) {
+	public Vk2dOvalBatch addBatch(Vk2dRenderStage frame, long perFrameDescriptorSet, int initialCapacity) {
 		return new Vk2dOvalBatch(this, frame, perFrameDescriptorSet, initialCapacity);
 	}
 

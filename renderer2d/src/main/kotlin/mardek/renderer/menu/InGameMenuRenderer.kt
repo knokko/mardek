@@ -1,7 +1,6 @@
 package mardek.renderer.menu
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.text.TextAlignment
@@ -18,36 +17,28 @@ import mardek.state.util.Rectangle
 internal fun renderInGameMenu(
 	context: RenderContext, region: Rectangle, menu: InGameMenuState, state: CampaignState
 ): Vk2dColorBatch {
-	val colorBatch1 = context.addColorBatch(10_000) // The map tab uses a lot of colors
+	val colorBatch = context.addColorBatch(10_000) // The map tab uses a lot of colors
 	val spriteBatch = context.addKim3Batch(500) // TODO Figure out right amount
 	val imageBatch = context.addImageBatch(500) // TODO Figure out right amount
 	val textBatch = context.addFancyTextBatch(500) // TODO Figure out right amount
 	val barColor = srgbToLinear(rgb(24, 14, 10))
-	val barHeight = region.height / 12
+	val barHeight = determineBarHeight(region)
 
-	val leftColor = srgbToLinear(rgba(54, 37, 21, 225))
-	val rightColor = srgbToLinear(rgba(132, 84, 53, 225))
-	colorBatch1.gradient(
-		region.minX, region.minY + barHeight, region.maxX,
-		if (menu.currentTab.shouldShowLowerBar()) region.maxY - barHeight else region.maxY,
-		leftColor, rightColor, leftColor
-	)
-
-	val selectionWidth = region.height / 3
+	val selectionWidth = determineSelectionWidth(region)
 	if (menu.currentTab.shouldShowLowerBar()) {
-		colorBatch1.fill(
+		colorBatch.fill(
 			region.minX, region.maxY - barHeight,
 			region.maxX, region.maxY, barColor
 		)
 	} else {
-		colorBatch1.fillUnaligned(
+		colorBatch.fillUnaligned(
 			region.maxX - selectionWidth, region.maxY + 1,
 			region.maxX + 1, region.maxY + 1,
 			region.maxX + 1, region.maxY - barHeight,
 			region.maxX + barHeight - selectionWidth, region.maxY - barHeight, barColor
 		)
 	}
-	colorBatch1.fill(
+	colorBatch.fill(
 		region.minX, region.minY,
 		region.maxX, region.minY + barHeight, barColor
 	)
@@ -74,10 +65,12 @@ internal fun renderInGameMenu(
 		srgbToLinear(rgb(238, 203, 127)), TextAlignment.RIGHT
 	)
 
-	val menuContext = MenuRenderContext(context, colorBatch1, imageBatch, spriteBatch, textBatch, menu, state)
-	renderInGameMenuSectionList(menuContext, Rectangle(
-		region.maxX - selectionWidth, region.minY + barHeight, selectionWidth, region.height - 2 * barHeight
-	))
+	val menuContext = MenuRenderContext(context, colorBatch, imageBatch, spriteBatch, textBatch, menu, state)
+	if (!menu.currentTab.inside) {
+		renderInGameMenuSectionList(menuContext, Rectangle(
+			region.maxX - selectionWidth, region.minY + barHeight, selectionWidth, region.height - 2 * barHeight
+		))
+	}
 
 	val submenuRectangleWithoutLowerBar = Rectangle(
 		region.minX, region.minY + barHeight, region.width - selectionWidth, region.height - 2 * barHeight
@@ -89,5 +82,14 @@ internal fun renderInGameMenu(
 	if (menu.currentTab is InventoryTab) renderInventory(menuContext, submenuRectangleWithLowerBar)
 	if (menu.currentTab is MapTab) renderAreaMap(menuContext, submenuRectangleWithoutLowerBar)
 
-	return colorBatch1
+	return colorBatch
 }
+
+private fun determineSelectionWidth(region: Rectangle) = region.height / 3
+
+private fun determineBarHeight(region: Rectangle) = region.height / 12
+
+internal fun determineSectionRenderRegion(region: Rectangle) = Rectangle(
+	region.maxX - determineSelectionWidth(region), region.minY + determineBarHeight(region),
+	determineSelectionWidth(region), region.height - 2 * determineBarHeight(region)
+)

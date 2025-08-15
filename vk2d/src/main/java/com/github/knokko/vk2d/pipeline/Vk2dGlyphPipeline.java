@@ -3,7 +3,7 @@ package com.github.knokko.vk2d.pipeline;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder;
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
@@ -35,7 +35,7 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(1, stack);
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32_UINT, 0);
 
-			var builder = pipelineBuilder(context);
+			var builder = pipelineBuilder(context, stack);
 			simpleVertexInput(builder, stack, vertexAttributes, VERTEX_SIZE);
 			setShaderStages(builder);
 			builder.ciPipeline.layout(instance.textIntersectionPipelineLayout);
@@ -52,11 +52,11 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 	}
 
 	public Vk2dGlyphBatch addBatch(
-			Vk2dFrame frame, int initialCapacity, CommandRecorder recorder,
+			Vk2dRenderStage frame, int initialCapacity, CommandRecorder recorder,
 			Vk2dTextBuffer textBuffer, long perFrameDescriptorSet
 	) {
 		return new Vk2dGlyphBatch(
-				this, frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
+				this, frame, initialCapacity, textBuffer, perFrameDescriptorSet
 		);
 	}
 

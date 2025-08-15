@@ -5,6 +5,7 @@ import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
+import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame;
 import com.github.knokko.vk2d.text.Vk2dFont;
 
 import java.io.InputStream;
@@ -12,9 +13,6 @@ import java.io.InputStream;
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
 
 public class GlyphBenchmark1 extends Vk2dWindow {
-
-	private long referenceTime = System.nanoTime();
-	private int fps = 0;
 
 	public GlyphBenchmark1(VkbWindow window) {
 		super(window, false);
@@ -31,20 +29,17 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 	}
 
 	@Override
-	protected void renderFrame(Vk2dFrame frame, CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler) {
-		long currentTime = System.nanoTime();
-		if (currentTime - referenceTime > 1000_000_000L) {
-			System.out.println("FPS is " + fps);
-			fps = 0;
-			referenceTime = currentTime;
-		}
-		fps += 1;
+	protected void renderFrame(
+			Vk2dSwapchainFrame frame, int frameIndex,
+			CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler
+	) {
+		printFps();
 
 		int heightA = 5;
 		Vk2dFont font0 = resources.getFont(0);
 		Vk2dFont font1 = resources.getFont(1);
 		Vk2dGlyphBatch batch = pipelines.text.addBatch(
-				frame, 10_000, recorder, textBuffer, perFrameDescriptorSet
+				frame.swapchainStage, 10_000, recorder, textBuffer, perFrameDescriptorSet
 		);
 
 		int cellSize = 3 * heightA / 2;

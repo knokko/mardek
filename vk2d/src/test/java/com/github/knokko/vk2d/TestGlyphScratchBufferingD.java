@@ -81,11 +81,8 @@ public class TestGlyphScratchBufferingD {
 		Vk2dFont font = fontBundle.getFont(0);
 
 		textBuffer.initializeDescriptorSets();
-
-		textBuffer.startFrame();
-		commands.submit("Scratch", recorder ->
-			assertEquals(0, textBuffer.scratch(recorder, font, glyph, 0f, 123, glyphHeight, glyphHeight, true, 0f))
-		).awaitCompletion();
+		assertEquals(0, textBuffer.scratch(font, glyph, 0f, 123, glyphHeight, glyphHeight, true, 0f));
+		commands.submit("GlyphTransfer", textBuffer::record).awaitCompletion();
 
 		IntBuffer info = scratchInfoBuffer.intBuffer();
 		FloatBuffer intersections = scratchIntersectionBuffer.floatBuffer();
@@ -118,9 +115,6 @@ public class TestGlyphScratchBufferingD {
 		assertEquals(-1f, intersections.get(4 * 99 * numCurves + 1));
 		assertEquals(0.491f, intersections.get(4 * 99 * numCurves + 2), 0.001f);
 		assertEquals(-1f, intersections.get(4 * 99 * numCurves + 3));
-
-		commands.submit("GlyphTransfer", textBuffer::transfer
-		).awaitCompletion();
 
 		assertEquals(364, nextIntersectionIndexBuffer.intBuffer().get());
 		info = infoBuffer.intBuffer();

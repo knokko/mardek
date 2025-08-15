@@ -6,8 +6,8 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 internal fun renderObtainedGold(areaContext: AreaRenderContext) {
 	areaContext.run {
 		val obtainedGold = state.obtainedGold ?: return
-		val baseX = region.minX + tileSize * obtainedGold.chestX + context.frame.width / 2 - cameraX - scale
-		val baseY = region.minY + tileSize * obtainedGold.chestY + context.frame.height / 2 - cameraY - 7 * scale
+		val baseX = region.minX + tileSize * obtainedGold.chestX + region.width / 2 - cameraX
+		val baseY = region.minY + tileSize * obtainedGold.chestY + region.height / 2 - cameraY - 4 * scale
 		spriteBatch.draw(
 			context.content.ui.goldIcon,
 			baseX - tileSize * 19 / 32,

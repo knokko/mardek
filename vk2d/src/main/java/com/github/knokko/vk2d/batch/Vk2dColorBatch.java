@@ -1,6 +1,6 @@
 package com.github.knokko.vk2d.batch;
 
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.pipeline.Vk2dColorPipeline;
 
 import java.nio.ByteBuffer;
@@ -9,7 +9,7 @@ import static com.github.knokko.boiler.utilities.ColorPacker.*;
 
 public class Vk2dColorBatch extends Vk2dBatch {
 
-	public Vk2dColorBatch(Vk2dColorPipeline pipeline, Vk2dFrame frame, int initialCapacity) {
+	public Vk2dColorBatch(Vk2dColorPipeline pipeline, Vk2dRenderStage frame, int initialCapacity) {
 		super(pipeline, frame, initialCapacity);
 	}
 

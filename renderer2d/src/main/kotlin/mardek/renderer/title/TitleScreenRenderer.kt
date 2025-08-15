@@ -29,22 +29,22 @@ private fun loadInfo(): TitleScreenContent {
 private val info = loadInfo()
 
 internal fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region: Rectangle): Vk2dColorBatch {
-	val imageBatch = context.pipelines.image.addBatch(context.frame, 12, context.titleScreenBundle)
+	val imageBatch = context.pipelines.image.addBatch(context.stage, 12, context.titleScreenBundle)
 	imageBatch.fillWithoutDistortion(
 		region.minX, region.minY, region.maxX, region.maxY,
 		info.background.index, info.background.width, info.background.height
 	)
 
-	val colorBatch = context.pipelines.color.addBatch(context.frame, 100)
+	val colorBatch = context.pipelines.color.addBatch(context.stage, 100)
 	val ovalBatch = context.pipelines.oval.addBatch(
-		context.frame, context.perFrameDescriptorSet, 48
+		context.stage, context.perFrameDescriptorSet, 48
 	)
 
 	val buttonFont = context.titleScreenBundle.getFont(info.largeFont.index)
 	val simpleFont = context.titleScreenBundle.getFont(info.smallFont.index)
 	// TODO Ditch simpleFont entirely?
 	val glyphBatch = context.textPipeline.addBatch(
-		context.frame, 100, context.recorder,
+		context.stage, 200, context.recorder,
 		context.textBuffer, context.perFrameDescriptorSet
 	)
 

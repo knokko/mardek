@@ -31,7 +31,7 @@ dependencies {
 
 shadowJar {
 	manifest {
-		attributes ("Main-Class": "com.github.knokko.vk2d.GlyphBenchmark1")
+		attributes ("Main-Class": "com.github.knokko.vk2d.BlurBenchmark")
 	}
 }
 

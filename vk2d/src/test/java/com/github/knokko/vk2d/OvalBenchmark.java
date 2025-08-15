@@ -5,15 +5,13 @@ import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch;
+import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame;
 
 import java.util.Random;
 
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
 
 public class OvalBenchmark extends Vk2dWindow {
-
-	private long referenceTime = System.nanoTime();
-	private int fps = 0;
 
 	public OvalBenchmark(VkbWindow window) {
 		super(window, false);
@@ -25,16 +23,13 @@ public class OvalBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected void renderFrame(Vk2dFrame frame, CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler) {
-		long currentTime = System.nanoTime();
-		if (currentTime - referenceTime > 1000_000_000L) {
-			System.out.println("FPS is " + fps);
-			fps = 0;
-			referenceTime = currentTime;
-		}
-		fps += 1;
+	protected void renderFrame(
+			Vk2dSwapchainFrame frame, int frameIndex,
+			CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler
+	) {
+		printFps();
 
-		Vk2dOvalBatch batch1 = pipelines.oval.addBatch(frame, perFrameDescriptorSet, 24);
+		Vk2dOvalBatch batch1 = pipelines.oval.addBatch(frame.swapchainStage, perFrameDescriptorSet, 24);
 		batch1.simpleAliased(0, 0, batch1.width - 1, batch1.height - 1, rgb(255, 0, 0));
 		batch1.simpleAntiAliased(
 				batch1.width / 10, batch1.height / 10,

@@ -4,7 +4,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData
-import com.github.knokko.vk2d.Vk2dFrame
+import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.Vk2dInstance
 import com.github.knokko.vk2d.batch.BatchVertexData
 import com.github.knokko.vk2d.batch.Vk2dBatch
@@ -32,7 +32,7 @@ class AreaSpritePipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): 
 				instance.bufferDescriptorSetLayout.vkDescriptorSetLayout,
 			)
 
-			val builder = pipelineBuilder(context)
+			val builder = pipelineBuilder(context, stack)
 			builder.noVertexInput()
 			builder.simpleShaderStages(
 				"AreaSprites", "mardek/renderer/area/",
@@ -79,7 +79,7 @@ class AreaSpritePipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): 
 	}
 
 	fun addBatch(
-		frame: Vk2dFrame, initialCapacity: Int, bundle: Vk2dResourceBundle,
+		frame: Vk2dRenderStage, initialCapacity: Int, bundle: Vk2dResourceBundle,
 		perFrameDescriptorSet: Long, scissor: Rectangle
 	) = AreaSpriteBatch(this, frame, initialCapacity, bundle, perFrameDescriptorSet, scissor)
 

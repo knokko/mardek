@@ -15,6 +15,7 @@ import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.boiler.utilities.ImageCoding;
 import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines;
 import com.github.knokko.vk2d.text.Vk2dFont;
@@ -46,12 +47,9 @@ public class GlyphOffsetPlayground {
 		config.color = true;
 		config.text = true;
 		Vk2dInstance instance = new Vk2dInstance(boiler, config);
-		Vk2dPipelines pipelines;
-		try (MemoryStack stack = stackPush()) {
-			pipelines = new Vk2dPipelines(
-					instance, Vk2dPipelineContext.dynamicRendering(boiler, stack, VK_FORMAT_R8G8B8A8_SRGB), config
-			);
-		}
+		Vk2dPipelines pipelines = new Vk2dPipelines(
+				instance, Vk2dPipelineContext.dynamicRendering(boiler, VK_FORMAT_R8G8B8A8_SRGB), config
+		);
 
 		MemoryCombiner combiner = new MemoryCombiner(boiler, "OffsetsMemory");
 		Vk2dResourceLoader loader = new Vk2dResourceLoader(
@@ -89,8 +87,7 @@ public class GlyphOffsetPlayground {
 			updater.update(boiler);
 		}
 
-		Vk2dFrame frame = new Vk2dFrame(perFrameBuffer, targetImage.width, targetImage.height);
-		textBuffer.startFrame();
+		Vk2dRenderStage frame = new Vk2dRenderStage(targetImage, perFrameBuffer, null, null);
 		perFrameBuffer.startFrame(1);
 		SingleTimeCommands.submit(boiler, "GlyphOffsets", recorder -> {
 			int heightA = 14;
@@ -103,7 +100,7 @@ public class GlyphOffsetPlayground {
 					"helloAgi", 1f, 16f, font, heightA, rgb(255, 255, 255)
 			);
 			colorBatch.fill(0, 16, targetImage.width, targetImage.height, rgba(255, 0, 0, 100));
-			textBuffer.transfer(recorder);
+			textBuffer.record(recorder);
 
 			VkRenderingAttachmentInfo.Buffer colorAttachments = recorder.singleColorRenderingAttachment(
 					targetImage.vkImageView, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE, 0

@@ -4,7 +4,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData
-import com.github.knokko.vk2d.Vk2dFrame
+import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.Vk2dInstance
 import com.github.knokko.vk2d.batch.BatchVertexData
 import com.github.knokko.vk2d.batch.Vk2dBatch
@@ -33,7 +33,7 @@ class AreaLightPipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): V
 				instance.bufferDescriptorSetLayout.vkDescriptorSetLayout
 			)
 
-			val builder = pipelineBuilder(context)
+			val builder = pipelineBuilder(context, stack)
 			builder.noVertexInput()
 			builder.simpleShaderStages(
 				"AreaLights", "mardek/renderer/area/",
@@ -77,7 +77,7 @@ class AreaLightPipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): V
 	}
 
 	fun addBatch(
-		frame: Vk2dFrame, perFrameDescriptorSet: Long, scissor: Rectangle
+		frame: Vk2dRenderStage, perFrameDescriptorSet: Long, scissor: Rectangle
 	) = AreaLightBatch(this, frame, perFrameDescriptorSet, scissor)
 
 	override fun destroy(boiler: BoilerInstance) {

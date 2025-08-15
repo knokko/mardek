@@ -5,6 +5,7 @@ import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch;
+import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame;
 import com.github.knokko.vk2d.text.Vk2dFont;
 import org.lwjgl.sdl.*;
 import org.lwjgl.system.MemoryStack;
@@ -32,9 +33,6 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 		}
 		scanner.close();
 	}
-
-	private long referenceTime = System.nanoTime();
-	private int fps = 0;
 
 	private boolean shiftDown, controlDown;
 	private float offsetX, offsetY;
@@ -109,18 +107,17 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 	}
 
 	@Override
-	protected void renderFrame(Vk2dFrame frame, CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler) {
-		long currentTime = System.nanoTime();
-		if (currentTime - referenceTime > 1000_000_000L) {
-			System.out.println("FPS is " + fps);
-			fps = 0;
-			referenceTime = currentTime;
-		}
-		fps += 1;
+	protected void renderFrame(
+			Vk2dSwapchainFrame frame, int frameIndex,
+			CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler
+	) {
+		printFps();
 
 		int lineHeight = 11 * heightA / 6;
 		Vk2dFont font = resources.getFont(fontIndex);
-		Vk2dGlyphBatch batch = pipelines.text.addBatch(frame, 15_000, recorder, textBuffer, perFrameDescriptorSet);
+		Vk2dGlyphBatch batch = pipelines.text.addBatch(
+				frame.swapchainStage, 15_000, recorder, textBuffer, perFrameDescriptorSet
+		);
 
 		int baseY = lineHeight + (int) offsetY;
 		for (String line : SHADER_CODE) {

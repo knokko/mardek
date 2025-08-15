@@ -27,6 +27,12 @@ jobs:
         with:
           name: test-results
           path: "**/build/reports"
+      - name: Store test results VK2D
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-vk2d
+          path: "vk2d/build/reports"
       - name: Store rendering results
         if: failure()
         uses: actions/upload-artifact@v4

@@ -5,6 +5,7 @@ import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dImageBatch;
+import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,9 +16,6 @@ import static com.github.knokko.vk2d.ImageBenchmarkResourceWriter.FILE;
 import static java.lang.Math.min;
 
 public class ChaosImageBenchmark extends Vk2dWindow {
-
-	private long referenceTime = System.nanoTime();
-	private int fps = 0;
 
 	public ChaosImageBenchmark(VkbWindow window) {
 		super(window, false);
@@ -34,21 +32,18 @@ public class ChaosImageBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected void renderFrame(Vk2dFrame frame, CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler) {
-		long currentTime = System.nanoTime();
-		if (currentTime - referenceTime > 1000_000_000L) {
-			System.out.println("FPS is " + fps);
-			fps = 0;
-			referenceTime = currentTime;
-		}
-		fps += 1;
+	protected void renderFrame(
+			Vk2dSwapchainFrame frame, int frameIndex,
+			CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler
+	) {
+		printFps();
 
 		Random rng = new Random();
 		int numImages = 10_000;
 		int minWidth = min(10, swapchainImage.width());
 		int minHeight = min(10, swapchainImage.height());
 
-		Vk2dImageBatch batch1 = pipelines.image.addBatch(frame, 2 * numImages, resources);
+		Vk2dImageBatch batch1 = pipelines.image.addBatch(frame.swapchainStage, 2 * numImages, resources);
 		for (int counter = 0; counter < numImages; counter++) {
 			int minX = rng.nextInt(1 + swapchainImage.width() - minWidth);
 			int minY = rng.nextInt(1 + swapchainImage.height() - minHeight);

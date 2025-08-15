@@ -2,7 +2,7 @@ package com.github.knokko.vk2d.pipeline;
 
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
@@ -32,7 +32,7 @@ public class Vk2dKimPipeline extends Vk2dPipeline {
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_SFLOAT, 4);
 			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32_UINT, 12);
 
-			var builder = pipelineBuilder(context);
+			var builder = pipelineBuilder(context, stack);
 			builder.simpleShaderStages(
 					"Kim" + version, "com/github/knokko/vk2d/",
 					"kim" + version + ".vert.spv", "kim" + version + ".frag.spv"
@@ -45,8 +45,8 @@ public class Vk2dKimPipeline extends Vk2dPipeline {
 		}
 	}
 
-	public Vk2dKimBatch addBatch(Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
-		return new Vk2dKimBatch(this, frame, initialCapacity, bundle);
+	public Vk2dKimBatch addBatch(Vk2dRenderStage stage, int initialCapacity, Vk2dResourceBundle bundle) {
+		return new Vk2dKimBatch(this, stage, initialCapacity, bundle);
 	}
 
 	@Override

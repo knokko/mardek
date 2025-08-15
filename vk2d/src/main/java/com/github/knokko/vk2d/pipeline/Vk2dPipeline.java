@@ -7,7 +7,6 @@ import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder;
 import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
-import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkPipelineVertexInputStateCreateInfo;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
@@ -20,8 +19,8 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public abstract class Vk2dPipeline {
 
-	public static GraphicsPipelineBuilder pipelineBuilder(Vk2dPipelineContext context) {
-		var builder = new GraphicsPipelineBuilder(context.boiler(), context.stack());
+	public static GraphicsPipelineBuilder pipelineBuilder(Vk2dPipelineContext context, MemoryStack stack) {
+		var builder = new GraphicsPipelineBuilder(context.boiler(), stack);
 		builder.simpleInputAssembly();
 		builder.dynamicViewports(1);
 		builder.simpleRasterization(VK_CULL_MODE_NONE);
@@ -37,6 +36,22 @@ public abstract class Vk2dPipeline {
 		}
 
 		return builder;
+	}
+
+	public static void simpleVertexInput(
+			GraphicsPipelineBuilder builder, MemoryStack stack,
+			VkVertexInputAttributeDescription.Buffer attributes, int vertexSize
+	) {
+		var bindings = VkVertexInputBindingDescription.calloc(1, stack);
+		//noinspection resource
+		bindings.get(0).set(0, vertexSize, VK_VERTEX_INPUT_RATE_VERTEX);
+
+		var ciVertexInput = VkPipelineVertexInputStateCreateInfo.calloc(stack);
+		ciVertexInput.sType$Default();
+		ciVertexInput.pVertexBindingDescriptions(bindings);
+		ciVertexInput.pVertexAttributeDescriptions(attributes);
+
+		builder.ciPipeline.pVertexInputState(ciVertexInput);
 	}
 
 	protected long vkPipeline;
@@ -64,22 +79,6 @@ public abstract class Vk2dPipeline {
 		return vertexAlignments[dimension];
 	}
 
-	protected void simpleVertexInput(
-			GraphicsPipelineBuilder builder, MemoryStack stack,
-			VkVertexInputAttributeDescription.Buffer attributes, int vertexSize
-	) {
-		var bindings = VkVertexInputBindingDescription.calloc(1, stack);
-		//noinspection resource
-		bindings.get(0).set(0, vertexSize, VK_VERTEX_INPUT_RATE_VERTEX);
-
-		var ciVertexInput = VkPipelineVertexInputStateCreateInfo.calloc(stack);
-		ciVertexInput.sType$Default();
-		ciVertexInput.pVertexBindingDescriptions(bindings);
-		ciVertexInput.pVertexAttributeDescriptions(attributes);
-
-		builder.ciPipeline.pVertexInputState(ciVertexInput);
-	}
-
 	public void prepareRecording(CommandRecorder recorder, Vk2dBatch batch) {
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
 	}
@@ -93,6 +92,7 @@ public abstract class Vk2dPipeline {
 			CommandRecorder recorder, PerFrameBuffer perFrameBuffer, BatchVertexData miniBatch
 	) {
 		int numTriangles = Math.toIntExact(miniBatch.vertexData()[0].position() / bytesPerTriangle[0]);
+		if (numTriangles == 0) return;
 		int byteOffset = Math.toIntExact(miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset);
 		int firstVertex = byteOffset / (bytesPerTriangle[0] / 3);
 		vkCmdDraw(recorder.commandBuffer, 3 * numTriangles, 1, firstVertex, 0);

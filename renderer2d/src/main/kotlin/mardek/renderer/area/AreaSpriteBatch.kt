@@ -1,6 +1,6 @@
 package mardek.renderer.area
 
-import com.github.knokko.vk2d.Vk2dFrame
+import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.batch.Vk2dBatch
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import mardek.content.sprite.KimSprite
@@ -8,7 +8,7 @@ import mardek.state.util.Rectangle
 import kotlin.math.roundToInt
 
 class AreaSpriteBatch(
-	pipeline: AreaSpritePipeline, frame: Vk2dFrame,
+	pipeline: AreaSpritePipeline, frame: Vk2dRenderStage,
 	initialCapacity: Int,
 	internal val bundle: Vk2dResourceBundle,
 	internal val perFrameDescriptorSet: Long,

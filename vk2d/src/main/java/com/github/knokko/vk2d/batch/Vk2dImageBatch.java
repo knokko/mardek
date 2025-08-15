@@ -1,6 +1,6 @@
 package com.github.knokko.vk2d.batch;
 
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.pipeline.Vk2dImagePipeline;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 
@@ -15,8 +15,8 @@ public class Vk2dImageBatch extends Vk2dBatch {
 	public long[] descriptorSets;
 	private int nextDescriptorIndex;
 
-	public Vk2dImageBatch(Vk2dImagePipeline pipeline, Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
-		super(pipeline, frame, initialCapacity);
+	public Vk2dImageBatch(Vk2dImagePipeline pipeline, Vk2dRenderStage stage, int initialCapacity, Vk2dResourceBundle bundle) {
+		super(pipeline, stage, initialCapacity);
 		this.bundle = bundle;
 		this.descriptorSets = new long[initialCapacity];
 	}

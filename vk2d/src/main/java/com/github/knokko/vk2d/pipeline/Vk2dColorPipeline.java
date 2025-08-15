@@ -4,7 +4,7 @@ import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dColorBatch;
@@ -39,7 +39,7 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32_UINT, 0);
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32_UINT, 4);
 
-			var builder = pipelineBuilder(context);
+			var builder = pipelineBuilder(context, stack);
 			builder.simpleShaderStages(
 					"Color/Gradient", "com/github/knokko/vk2d/",
 					"color.vert.spv", "color.frag.spv"
@@ -51,8 +51,11 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 		}
 	}
 
-	public Vk2dColorBatch addBatch(Vk2dFrame frame, int initialCapacity) {
-		return new Vk2dColorBatch(this, frame, initialCapacity);
+	/**
+	 * @param initialCapacity The initial capacity of this batch, in <i>triangles</i>
+	 */
+	public Vk2dColorBatch addBatch(Vk2dRenderStage stage, int initialCapacity) {
+		return new Vk2dColorBatch(this, stage, initialCapacity);
 	}
 
 	@Override

@@ -13,19 +13,20 @@ import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.boiler.window.*;
+import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
 import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkClearValue;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
-import org.lwjgl.vulkan.VkRenderPassBeginInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -38,7 +39,7 @@ import static org.lwjgl.vulkan.VK13.VK_API_VERSION_1_3;
 
 public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
-	private static int choosePresentMode(VkbWindow window, boolean capFps) {
+	public static int choosePresentMode(VkbWindow window, boolean capFps) {
 		if (capFps) return VK_PRESENT_MODE_FIFO_KHR;
 		if (window.supportedPresentModes.contains(VK_PRESENT_MODE_MAILBOX_KHR)) {
 			return VK_PRESENT_MODE_MAILBOX_KHR;
@@ -59,6 +60,9 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 	protected Vk2dTextBuffer textBuffer;
 	protected long perFrameDescriptorSet;
 	private SwapchainResourceManager<Object, Long> framebuffers;
+
+	private long referenceTime = System.nanoTime();
+	private int fps = 0;
 
 	public Vk2dWindow(VkbWindow window, boolean capFps) {
 		super(
@@ -160,27 +164,30 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			AcquiredImage acquiredImage, BoilerInstance boiler
 	) {
 		perFrameBuffer.startFrame(frameIndex);
-		if (textBuffer != null) textBuffer.startFrame();
-		Vk2dFrame frame = new Vk2dFrame(perFrameBuffer, acquiredImage.width(), acquiredImage.height());
-		renderFrame(frame, recorder, acquiredImage, boiler);
-		if (textBuffer != null) textBuffer.transfer(recorder);
 
-		VkRenderPassBeginInfo biRenderPass = VkRenderPassBeginInfo.calloc(stack);
-		biRenderPass.sType$Default();
-		biRenderPass.renderPass(vkRenderPass);
-		biRenderPass.framebuffer(framebuffers.get(acquiredImage));
-		biRenderPass.renderArea().extent().set(acquiredImage.width(), acquiredImage.height());
-		biRenderPass.pClearValues(VkClearValue.calloc(1, stack));
-		biRenderPass.clearValueCount(1);
+		Map<Long, Long> framebufferMap = new HashMap<>();
+		framebufferMap.put(acquiredImage.image().vkImageView, framebuffers.get(acquiredImage));
+		Vk2dSwapchainFrame frame = new Vk2dSwapchainFrame(
+				acquiredImage.image(), perFrameBuffer, vkRenderPass, framebufferMap
+		);
+		if (textBuffer != null) frame.stages.add(textBuffer);
+		renderFrame(frame, frameIndex, recorder, acquiredImage, boiler);
 
-		vkCmdBeginRenderPass(recorder.commandBuffer, biRenderPass, VK_SUBPASS_CONTENTS_INLINE);
-		recorder.dynamicViewportAndScissor(acquiredImage.width(), acquiredImage.height());
 		frame.record(recorder);
-		vkCmdEndRenderPass(recorder.commandBuffer);
+	}
+
+	protected void printFps() {
+		long currentTime = System.nanoTime();
+		if (currentTime - referenceTime > 1000_000_000L) {
+			System.out.println("FPS is " + fps);
+			fps = 0;
+			referenceTime = currentTime;
+		}
+		fps += 1;
 	}
 
 	protected abstract void renderFrame(
-			Vk2dFrame frame, CommandRecorder recorder,
+			Vk2dSwapchainFrame frame, int frameIndex, CommandRecorder recorder,
 			AcquiredImage swapchainImage, BoilerInstance boiler
 	);
 

@@ -14,22 +14,21 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
 public record Vk2dPipelineContext(
-		BoilerInstance boiler, MemoryStack stack,
-		long vkRenderPass, int viewMask, int colorFormat
+		BoilerInstance boiler, long vkRenderPass, int viewMask, int colorFormat
 ) {
 
-	public static Vk2dPipelineContext renderPass(BoilerInstance boiler, MemoryStack stack, long vkRenderPass) {
-		return new Vk2dPipelineContext(boiler, stack, vkRenderPass, 0, 0);
+	public static Vk2dPipelineContext renderPass(BoilerInstance boiler, long vkRenderPass) {
+		return new Vk2dPipelineContext(boiler, vkRenderPass, 0, 0);
 	}
 
 	public static Vk2dPipelineContext dynamicRendering(
-			BoilerInstance boiler, MemoryStack stack, int viewMask, int colorFormat
+			BoilerInstance boiler, int viewMask, int colorFormat
 	) {
-		return new Vk2dPipelineContext(boiler, stack, VK_NULL_HANDLE, viewMask, colorFormat);
+		return new Vk2dPipelineContext(boiler, VK_NULL_HANDLE, viewMask, colorFormat);
 	}
 
-	public static Vk2dPipelineContext dynamicRendering(BoilerInstance boiler, MemoryStack stack, int colorFormat) {
-		return dynamicRendering(boiler, stack, 0, colorFormat);
+	public static Vk2dPipelineContext dynamicRendering(BoilerInstance boiler, int colorFormat) {
+		return dynamicRendering(boiler, 0, colorFormat);
 	}
 
 	public static Vk2dPipelineContext renderPass(BoilerInstance boiler, int targetImageFormat) {
@@ -69,7 +68,7 @@ public record Vk2dPipelineContext(
 			), "CreateRenderPass", "Vk2dRenderPass");
 			long vkRenderPass = pRenderPass.get(0);
 
-			return renderPass(boiler, stack, vkRenderPass);
+			return renderPass(boiler, vkRenderPass);
 		}
 	}
 }

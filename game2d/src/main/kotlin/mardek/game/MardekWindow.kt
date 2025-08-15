@@ -13,13 +13,14 @@ import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.update.UpdateCounter
 import com.github.knokko.update.UpdateLoop
 import com.github.knokko.vk2d.Vk2dConfig
-import com.github.knokko.vk2d.Vk2dFrame
 import com.github.knokko.vk2d.Vk2dWindow
+import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader
 import mardek.audio.AudioUpdater
 import mardek.content.Content
+import mardek.renderer.PerFrameResources
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
 import mardek.renderer.area.AreaLightPipeline
@@ -50,6 +51,8 @@ class MardekWindow(
 	private lateinit var mainResources: Vk2dResourceBundle
 	private lateinit var mainResourceMemory: MemoryBlock
 	private var mainDescriptorPool = VK_NULL_HANDLE
+	private lateinit var swapchainResources: MardekSwapchainResources
+	lateinit var perFrame: Array<PerFrameResources>
 
 	private val fpsCounter = UpdateCounter()
 	private var printFpsAt = System.nanoTime() + 1500_000_000L
@@ -64,18 +67,33 @@ class MardekWindow(
 		config.image = true
 		config.kim3 = true
 		config.text = true
+		config.blur = true
+	}
+
+	override fun createResources(boiler: BoilerInstance, combiner: MemoryCombiner, descriptors: DescriptorCombiner) {
+		super.createResources(boiler, combiner, descriptors)
+		this.perFrame = (0 until numFramesInFlight).map {
+			PerFrameResources(
+				areaBlurDescriptors = pipelines.blur.claimResources(1, instance, descriptors)[0],
+				sectionsBlurDescriptors = pipelines.blur.claimResources(1, instance, descriptors)[0],
+			)
+		}.toTypedArray()
 	}
 
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
-		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, stack, vkRenderPass)
+		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, vkRenderPass)
 		this.textPipeline = MardekGlyphPipeline(pipelineContext, instance)
 		this.areaSpritePipeline = AreaSpritePipeline(pipelineContext, instance)
 		this.areaLightPipeline = AreaLightPipeline(pipelineContext, instance)
+		this.swapchainResources = MardekSwapchainResources(
+			boiler, pipelines.blur, window.surfaceFormat, vkRenderPass
+		)
 	}
 
 	override fun renderFrame(
-		frame: Vk2dFrame,
+		frame: Vk2dSwapchainFrame,
+		frameIndex: Int,
 		recorder: CommandRecorder,
 		swapchainImage: AcquiredImage,
 		boiler: BoilerInstance
@@ -97,14 +115,16 @@ class MardekWindow(
 				currentState is InGameState
 			) {
 				val context = RenderContext(
-					frame, pipelines, textPipeline, areaSpritePipeline, areaLightPipeline,
+					frame, frame.swapchainStage,
+					swapchainResources.get(swapchainImage), perFrame[frameIndex],
+					pipelines, textPipeline, areaSpritePipeline, areaLightPipeline,
 					textBuffer, perFrameDescriptorSet, recorder, content, gameState,
 					currentState.campaign, mainResources
 				)
 				renderGame(context)
 			} else {
 				val context = RawRenderContext(
-					frame, pipelines, textPipeline, textBuffer, perFrameDescriptorSet, recorder,
+					frame.swapchainStage, pipelines, textPipeline, textBuffer, perFrameDescriptorSet, recorder,
 					null, gameState, resources
 				)
 				renderGame(context)

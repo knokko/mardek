@@ -3,7 +3,7 @@ package com.github.knokko.vk2d.batch;
 import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
 
 import java.nio.ByteBuffer;
@@ -20,13 +20,13 @@ public class Vk2dBatch {
 
 	public final int width, height;
 
-	public Vk2dBatch(Vk2dPipeline pipeline, Vk2dFrame frame, int initialCapacity) {
+	public Vk2dBatch(Vk2dPipeline pipeline, Vk2dRenderStage stage, int initialCapacity) {
 		this.pipeline = pipeline;
-		this.perFrameBuffer = frame.perFrameBuffer;
-		this.width = frame.width;
-		this.height = frame.height;
+		this.perFrameBuffer = stage.perFrameBuffer;
+		this.width = stage.width;
+		this.height = stage.height;
 		addVertexBatch(initialCapacity);
-		frame.batches.add(this);
+		stage.batches.add(this);
 	}
 
 	protected void addVertexBatch(int numTriangles) {
@@ -54,8 +54,18 @@ public class Vk2dBatch {
 		return vertices.get(index + 1);
 	}
 
+	public boolean isEmpty() {
+		if (pipeline.getVertexDimensions() == 0 || pipeline.getBytesPerTriangle(0) == 0) {
+			throw new UnsupportedOperationException("Please override isEmpty()");
+		}
+		for (BatchVertexData miniBatch : vertices) {
+			if (miniBatch.vertexData()[0].position() != 0) return false;
+		}
+		return true;
+	}
+
 	public void record(CommandRecorder recorder) {
-		if (vertices.get(0).vertexData()[0].position() == 0) return;
+		if (isEmpty()) return;
 		pipeline.prepareRecording(recorder, this);
 		for (BatchVertexData miniBatch : vertices) pipeline.recordBatch(recorder, perFrameBuffer, miniBatch, this);
 	}

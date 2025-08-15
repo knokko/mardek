@@ -4,7 +4,7 @@ import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.batch.BatchVertexData;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
@@ -41,7 +41,7 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_SFLOAT, 8);
 			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32G32_UINT, 16);
 
-			var builder = pipelineBuilder(context);
+			var builder = pipelineBuilder(context, stack);
 			builder.simpleShaderStages(
 					"SimpleImage", "com/github/knokko/vk2d/",
 					"image.vert.spv", "image.frag.spv"
@@ -53,8 +53,8 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 		}
 	}
 
-	public Vk2dImageBatch addBatch(Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
-		return new Vk2dImageBatch(this, frame, initialCapacity, bundle);
+	public Vk2dImageBatch addBatch(Vk2dRenderStage stage, int initialCapacity, Vk2dResourceBundle bundle) {
+		return new Vk2dImageBatch(this, stage, initialCapacity, bundle);
 	}
 
 	@Override

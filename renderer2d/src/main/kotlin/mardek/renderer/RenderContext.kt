@@ -1,7 +1,8 @@
 package mardek.renderer
 
 import com.github.knokko.boiler.commands.CommandRecorder
-import com.github.knokko.vk2d.Vk2dFrame
+import com.github.knokko.vk2d.frame.Vk2dRenderStage
+import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.text.Vk2dTextBuffer
@@ -14,7 +15,7 @@ import mardek.state.ingame.CampaignState
 import mardek.state.util.Rectangle
 
 class RawRenderContext(
-	val frame: Vk2dFrame,
+	val stage: Vk2dRenderStage,
 	val pipelines: Vk2dPipelines,
 	val textPipeline: MardekGlyphPipeline,
 	val textBuffer: Vk2dTextBuffer,
@@ -26,7 +27,10 @@ class RawRenderContext(
 )
 
 class RenderContext(
-	val frame: Vk2dFrame,
+	val frame: Vk2dSwapchainFrame,
+	var currentStage: Vk2dRenderStage,
+	val framebuffers: MardekFramebuffers,
+	val perFrame: PerFrameResources,
 	val pipelines: Vk2dPipelines,
 	val fancyTextPipeline: MardekGlyphPipeline,
 	val areaSpritePipeline: AreaSpritePipeline,
@@ -39,23 +43,23 @@ class RenderContext(
 	val campaign: CampaignState,
 	val bundle: Vk2dResourceBundle
 ) {
-	fun addColorBatch(initialCapacity: Int) = pipelines.color.addBatch(frame, initialCapacity)!!
+	fun addColorBatch(initialCapacity: Int) = pipelines.color.addBatch(currentStage, initialCapacity)!!
 
-	fun addImageBatch(initialCapacity: Int) = pipelines.image.addBatch(frame, initialCapacity, bundle)!!
+	fun addImageBatch(initialCapacity: Int) = pipelines.image.addBatch(currentStage, initialCapacity, bundle)!!
 
 	fun addTextBatch(initialCapacity: Int) = pipelines.text.addBatch(
-		frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
+		currentStage, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
 	)!!
 
 	fun addFancyTextBatch(initialCapacity: Int) = fancyTextPipeline.addBatch(
-		frame, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
+		currentStage, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
 	)
 
-	fun addKim3Batch(initialCapacity: Int) = pipelines.kim3.addBatch(frame, initialCapacity, bundle)!!
+	fun addKim3Batch(initialCapacity: Int) = pipelines.kim3.addBatch(currentStage, initialCapacity, bundle)!!
 
 	fun addAreaSpriteBatch(initialCapacity: Int, scissor: Rectangle) = areaSpritePipeline.addBatch(
-		frame, initialCapacity, bundle, perFrameDescriptorSet, scissor
+		currentStage, initialCapacity, bundle, perFrameDescriptorSet, scissor
 	)
 
-	fun addAreaLightBatch(scissor: Rectangle) = areaLightPipeline.addBatch(frame, perFrameDescriptorSet, scissor)
+	fun addAreaLightBatch(scissor: Rectangle) = areaLightPipeline.addBatch(currentStage, perFrameDescriptorSet, scissor)
 }

@@ -5,6 +5,7 @@ import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dKimBatch;
+import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,9 +15,6 @@ import java.util.Random;
 import static com.github.knokko.vk2d.ImageBenchmarkResourceWriter.FILE;
 
 public class Kim1Benchmark extends Vk2dWindow {
-
-	private long referenceTime = System.nanoTime();
-	private int fps = 0;
 
 	public Kim1Benchmark(VkbWindow window) {
 		super(window, false);
@@ -33,19 +31,16 @@ public class Kim1Benchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected void renderFrame(Vk2dFrame frame, CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler) {
-		long currentTime = System.nanoTime();
-		if (currentTime - referenceTime > 1000_000_000L) {
-			System.out.println("FPS is " + fps);
-			fps = 0;
-			referenceTime = currentTime;
-		}
-		fps += 1;
+	protected void renderFrame(
+			Vk2dSwapchainFrame frame, int frameIndex,
+			CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler
+	) {
+		printFps();
 
 		Random rng = new Random();
 		int numRounds = 1;
 		int scale = 1;
-		Vk2dKimBatch batch1 = pipelines.kim1.addBatch(frame, 5000, resources);
+		Vk2dKimBatch batch1 = pipelines.kim1.addBatch(frame.swapchainStage, 5000, resources);
 		for (int round = 0; round < numRounds; round++) {
 			for (int y = 0; y < swapchainImage.height(); y += 16 * scale) {
 				for (int x = 0; x < swapchainImage.width(); x += 16 * scale) {

@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
 	val input = InputManager()
 	val state = GameStateManager(input, TitleScreenState())
 
-	val window = MardekWindow(state, boiler.window(), true)
+	val window = MardekWindow(state, boiler.window(), false)
 	val inputListener = MardekSdlInput(boiler.window(), state, input)
 	inputListener.register()
 

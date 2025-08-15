@@ -1,6 +1,6 @@
 package com.github.knokko.vk2d.batch;
 
-import com.github.knokko.vk2d.Vk2dFrame;
+import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 
@@ -10,8 +10,8 @@ public class Vk2dKimBatch extends Vk2dBatch {
 
 	public final Vk2dResourceBundle bundle;
 
-	public Vk2dKimBatch(Vk2dPipeline pipeline, Vk2dFrame frame, int initialCapacity, Vk2dResourceBundle bundle) {
-		super(pipeline, frame, initialCapacity);
+	public Vk2dKimBatch(Vk2dPipeline pipeline, Vk2dRenderStage stage, int initialCapacity, Vk2dResourceBundle bundle) {
+		super(pipeline, stage, initialCapacity);
 		this.bundle = bundle;
 	}
 
