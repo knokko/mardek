@@ -16,6 +16,7 @@ dependencies {
 
 	testImplementation "org.lwjgl:lwjgl-freetype"
 	testImplementation "org.lwjgl:lwjgl-harfbuzz"
+	testImplementation "org.lwjgl:lwjgl-vma"
 	for (format in ["kim1", "kim2", "bc1", "bc7"]) {
 		testImplementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
 	}
@@ -26,7 +27,10 @@ dependencies {
 		result
 	}
 	for (dependency in project.ext.myRuntimeDependencies) runtimeOnly "$dependency"
-	for (natives in project.ext.lwjglNatives) testRuntimeOnly "org.lwjgl:lwjgl-freetype::$natives"
+	for (natives in project.ext.lwjglNatives) {
+		testRuntimeOnly "org.lwjgl:lwjgl-freetype::$natives"
+		testRuntimeOnly "org.lwjgl:lwjgl-vma::$natives"
+	}
 }
 
 shadowJar {

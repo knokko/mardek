@@ -39,6 +39,12 @@ jobs:
         with:
           name: rendering-results
           path: "game/rendering-test-results"
+      - name: Store VK2D rendering results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendering-results-vk2d
+          path: "vk2d/test-cases/actual"
       - name: Store JVM crashes
         if: failure()
         uses: actions/upload-artifact@v4
