@@ -27,7 +27,7 @@ fun main() {
 		val content = importVanillaContent(bitser)
 
 		val outputFolder = File("$projectFolder/game2d/src/main/resources/mardek/game/")
-		saveIcon(outputFolder)
+		saveIcons(outputFolder)
 
 		saveTitleScreenBundle(bitser, content)
 
@@ -43,14 +43,25 @@ fun main() {
 	}
 }
 
-private fun saveIcon(outputFolder: File) {
+private fun saveIcons(outputFolder: File) {
+	val iconOutput = Files.newOutputStream(File("$outputFolder/icons.bin").toPath())
+	val imageData = ByteBuffer.allocate(4 * 16 * 16)
+
 	val itemSheet = ImageIO.read(BcPacker::class.java.classLoader.getResource(
 		"mardek/importer/inventory/itemsheet_misc.png"
 	))
-	val imageData = ByteBuffer.allocate(4 * 16 * 16)
 	ImageCoding.encodeBufferedImage(imageData, itemSheet.getSubimage(288, 32, 16, 16))
-	val iconOutput = Files.newOutputStream(File("$outputFolder/icon.bin").toPath())
 	iconOutput.write(imageData.array())
+
+	for (cursor in arrayOf("inventory", "pointer", "grab")) {
+		val image = ImageIO.read(BcPacker::class.java.classLoader.getResource(
+			"mardek/importer/cursors/$cursor.png"
+		))
+		imageData.position(0)
+		ImageCoding.encodeBufferedImage(imageData, image)
+		iconOutput.write(imageData.array())
+	}
+
 	iconOutput.flush()
 	iconOutput.close()
 }

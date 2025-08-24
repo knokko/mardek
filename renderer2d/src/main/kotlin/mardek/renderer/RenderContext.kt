@@ -41,7 +41,7 @@ class RenderContext(
 	val content: Content,
 	val state: GameStateManager,
 	val campaign: CampaignState,
-	val bundle: Vk2dResourceBundle
+	val bundle: Vk2dResourceBundle,
 ) {
 	fun addColorBatch(initialCapacity: Int) = pipelines.color.addBatch(currentStage, initialCapacity)!!
 
