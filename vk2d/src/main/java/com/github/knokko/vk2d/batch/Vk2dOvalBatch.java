@@ -18,7 +18,7 @@ public class Vk2dOvalBatch extends Vk2dBatch {
 
 	public void complex(
 			int minX, int minY, int maxX, int maxY,
-			int centerX, int centerY, int radiusX, int radiusY,
+			float centerX, float centerY, float radiusX, float radiusY,
 			int centerColor, int color0, int color1, int color2, int color3,
 			float distance0, float distance1, float distance2, float distance3
 	) {
@@ -59,7 +59,7 @@ public class Vk2dOvalBatch extends Vk2dBatch {
 
 	public void aliased(
 			int minX, int minY, int maxX, int maxY,
-			int centerX, int centerY, int radiusX, int radiusY, int color
+			float centerX, float centerY, float radiusX, float radiusY, int color
 	) {
 		complex(
 				minX, minY, maxX, maxY, centerX, centerY, radiusX, radiusY,
@@ -82,8 +82,8 @@ public class Vk2dOvalBatch extends Vk2dBatch {
 	}
 
 	public void antiAliased(
-			int minX, int minY, int maxX, int maxY, int centerX, int centerY,
-			int radiusX, int radiusY, float fade, int color
+			int minX, int minY, int maxX, int maxY, float centerX, float centerY,
+			float radiusX, float radiusY, float fade, int color
 	) {
 		complex(
 				minX, minY, maxX, maxY, centerX, centerY, radiusX, radiusY,

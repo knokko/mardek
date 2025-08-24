@@ -35,8 +35,8 @@ internal fun renderCurrentArea(context: RenderContext, state: AreaState, region:
 	}
 
 	val spriteBatch = context.addAreaSpriteBatch(3000, scissor)
-	val colorBatch = context.addColorBatch(100) // TODO Verify capacity
-	val textBatch = context.addFancyTextBatch(1000) // TODO Figure out the right amount
+	val colorBatch = context.addColorBatch(500)
+	val textBatch = context.addFancyTextBatch(1000)
 	val areaContext = AreaRenderContext(
 		context, state, scale, region,
 		spriteBatch, colorBatch, textBatch,

@@ -28,25 +28,28 @@ class Element(
 	val color: Int,
 
 	@BitField(id = 5)
-	val sprite: BcSprite,
+	val thickSprite: BcSprite,
 
-	@BitField(id = 6, optional = true)
-	val swingEffect: BcSprite?,
+	@BitField(id = 6)
+	val thinSprite: BcSprite,
 
 	@BitField(id = 7, optional = true)
+	val swingEffect: BcSprite?,
+
+	@BitField(id = 8, optional = true)
 	@ReferenceField(stable = false, label = "particles")
 	val spellCastEffect: ParticleEffect?,
 
-	@BitField(id = 8, optional = true)
+	@BitField(id = 9, optional = true)
 	val spellCastBackground: BcSprite?,
 ) {
 
 	constructor() : this(
-		"", null, "", "", 0,
+		"", null, "", "", 0, BcSprite(),
 		BcSprite(), BcSprite(), null, null
 	)
 
-	@BitField(id = 9, optional = true)
+	@BitField(id = 10, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	var weakAgainst: Element? = null
 		private set

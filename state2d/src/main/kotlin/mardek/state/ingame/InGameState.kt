@@ -11,6 +11,7 @@ class InGameState(val campaign: CampaignState): GameState {
 
 	override fun update(context: GameStateUpdateContext): GameState {
 		campaign.totalTime += context.timeStep
+		campaign.clampHealthAndMana()
 		if (menu.shown) {
 			menu.update(context.input, context.soundQueue, context.content)
 		} else {

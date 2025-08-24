@@ -110,7 +110,8 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	for (element in content.stats.elements) {
 		val swingSprite = element.swingEffect
 		if (swingSprite != null) addBcImage(resourceWriter, swingSprite)
-		addBcImage(resourceWriter, element.sprite)
+		addBcImage(resourceWriter, element.thickSprite)
+		addBcImage(resourceWriter, element.thinSprite)
 		val castSprite = element.spellCastBackground
 		if (castSprite != null) addBcImage(resourceWriter, castSprite)
 	}

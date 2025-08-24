@@ -75,7 +75,8 @@ class CampaignState(
 	@IntegerField(expectUniform = true, minValue = 0)
 	var totalTime = 0.seconds
 
-	constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
+	@Suppress("unused")
+	private constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
 	var shouldOpenMenu = false
 	var gameOver = false
@@ -259,6 +260,15 @@ class CampaignState(
 
 	fun getParty() = characterSelection.party.filterNotNull().map {
 		Pair(it, characterStates[it]!!)
+	}
+
+	fun clampHealthAndMana() {
+		for ((playableCharacter, state) in characterStates) {
+			val maxHealth = state.determineMaxHealth(playableCharacter.baseStats, state.activeStatusEffects)
+			state.currentHealth = state.currentHealth.coerceIn(1, maxHealth)
+			val maxMana = state.determineMaxMana(playableCharacter.baseStats, state.activeStatusEffects)
+			state.currentMana = state.currentMana.coerceIn(0, maxMana)
+		}
 	}
 
 	companion object {

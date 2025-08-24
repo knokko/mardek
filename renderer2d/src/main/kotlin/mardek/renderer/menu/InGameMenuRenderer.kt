@@ -18,9 +18,10 @@ internal fun renderInGameMenu(
 	context: RenderContext, region: Rectangle, menu: InGameMenuState, state: CampaignState
 ): Vk2dColorBatch {
 	val colorBatch = context.addColorBatch(10_000) // The map tab uses a lot of colors
-	val spriteBatch = context.addKim3Batch(500) // TODO Figure out right amount
-	val imageBatch = context.addImageBatch(500) // TODO Figure out right amount
-	val textBatch = context.addFancyTextBatch(500) // TODO Figure out right amount
+	val ovalBatch = context.addOvalBatch(100)
+	val spriteBatch = context.addKim3Batch(1000) // The inventory tab could use a lot of sprites
+	val imageBatch = context.addImageBatch(100)
+	val textBatch = context.addFancyTextBatch(2000)
 	val barColor = srgbToLinear(rgb(24, 14, 10))
 	val barHeight = determineBarHeight(region)
 
@@ -65,7 +66,7 @@ internal fun renderInGameMenu(
 		srgbToLinear(rgb(238, 203, 127)), TextAlignment.RIGHT
 	)
 
-	val menuContext = MenuRenderContext(context, colorBatch, imageBatch, spriteBatch, textBatch, menu, state)
+	val menuContext = MenuRenderContext(context, colorBatch, ovalBatch, imageBatch, spriteBatch, textBatch, menu, state)
 	if (!menu.currentTab.inside) {
 		renderInGameMenuSectionList(menuContext, Rectangle(
 			region.maxX - selectionWidth, region.minY + barHeight, selectionWidth, region.height - 2 * barHeight

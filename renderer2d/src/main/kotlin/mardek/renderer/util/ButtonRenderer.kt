@@ -64,15 +64,15 @@ fun renderButton(
 	)
 	ovalBatch.complex(
 		rect.minX, rect.minY, rect.minX + 2 * outlineWidth - 1, rect.maxY,
-		rect.minX + 4 * outlineWidth, rect.minY + rect.height / 2,
-		4 * outlineWidth, 7 * outlineWidth,
+		rect.minX + 4f * outlineWidth, rect.minY + rect.height / 2f,
+		4f * outlineWidth, 7f * outlineWidth,
 		innerLeft, innerLeft, borderLight, borderLight, 0,
 		0.8f, 0.8f, 1f, 1f
 	)
 	ovalBatch.complex(
 		rect.maxX + 1 - 2 * outlineWidth, rect.minY, rect.maxX, rect.maxY,
-		rect.maxX - 4 * outlineWidth, rect.minY + rect.height / 2,
-		4 * outlineWidth, 8 * outlineWidth,
+		rect.maxX - 4f * outlineWidth, rect.minY + rect.height / 2f,
+		4f * outlineWidth, 8f * outlineWidth,
 		innerRight, innerRight, borderDark, borderDark, 0,
 		0.8f, 0.8f, 1f, 1f
 	)

@@ -14,8 +14,10 @@ import mardek.renderer.menu.MenuRenderContext
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.renderer.util.renderDescription
+import mardek.renderer.util.renderFancyMasteredText
 import mardek.state.ingame.menu.InventoryTab
 import mardek.state.util.Rectangle
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 internal fun renderHoverItemProperties(
@@ -64,15 +66,17 @@ internal fun renderHoverItemProperties(
 					lowElementColor, 0, highElementColor
 				)
 
-				val marginX = maxX - minX - scale * element.sprite.width
-				val marginY = tabsY - barY - scale * element.sprite.height
+				val horizontalElementScale = 0.7f * (1f + maxX - minX) / element.thinSprite.width
+				val verticalElementScale = 0.9f * (1f + tabsY - barY) / element.thinSprite.height
+				val elementScale = min(horizontalElementScale, verticalElementScale)
+				val marginX = maxX - minX - elementScale * element.thinSprite.width
+				val marginY = tabsY - barY - elementScale * element.thinSprite.height
 				imageBatch.coloredScale(
-					minX + marginX / 2, barY + marginY / 2,
-					scale.toFloat(), element.sprite.index,
-					0, rgba(1f, 1f, 1f, 0.02f)
+					(minX + marginX / 2).roundToInt(), (barY + marginY / 2).roundToInt(),
+					elementScale, element.thinSprite.index,
+					0, rgba(1f, 1f, 1f, 0.075f)
 				)
 			}
-
 
 			val titleColor = srgbToLinear(rgb(238, 203, 127))
 			val titleHeight = 7f * scale
@@ -179,22 +183,16 @@ internal fun renderHoverItemProperties(
 
 					imageBatch.coloredScale(
 						minX + 5 * scale, skillY,
-						scale / 8f, skill.element.sprite.index,
+						scale / 8f, skill.element.thickSprite.index,
 						0, rgba(1f, 1f, 1f, 0.75f),
 					)
 
 					if (skillMastery >= skill.masteryPoints) {
-						val outerColor = srgbToLinear(rgb(213, 0, 0))
-						val quarterColor = srgbToLinear(rgb(255, 81, 26))
-						val middleColor = srgbToLinear(rgb(255, 147, 46))
-						val font = context.bundle.getFont(context.content.fonts.fat.index)
-						textBatch.drawFancyString(
-							"MASTERED", minX + 25f * scale, skillY + 24f * scale,
-							8f * scale, font, outerColor,
-							srgbToLinear(rgb(255, 255, 153)),
-							0.3f * scale, TextAlignment.LEFT,
-							quarterColor, middleColor, quarterColor, outerColor,
-							0.2f, 0.4f, 0.7f, 0.9f
+						renderFancyMasteredText(
+							context, textBatch,
+							minX + 25f * scale,
+							skillY + 24f * scale,
+							8f * scale
 						)
 					}
 

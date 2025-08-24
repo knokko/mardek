@@ -33,13 +33,14 @@ internal fun renderInGame(context: RenderContext, state: InGameState, region: Re
 					val colorBatch = context.addColorBatch(50)
 					val textBatch = context.addFancyTextBatch(250)
 
-					// The image/sprite pipelines are not needed for rendering the section list,
+					// The image/sprite/oval pipelines are not needed for rendering the section list,
 					// but we still need a valid instance of MenuRenderContext
+					val ovalBatch = context.addOvalBatch(0)
 					val imageBatch = context.addImageBatch(0)
 					val spriteBatch = context.addKim3Batch(0)
 
 					val menuContext = MenuRenderContext(
-						context, colorBatch, imageBatch, spriteBatch, textBatch,
+						context, colorBatch, ovalBatch, imageBatch, spriteBatch, textBatch,
 						state.menu, state.campaign
 					)
 					renderInGameMenuSectionList(menuContext, Rectangle(
