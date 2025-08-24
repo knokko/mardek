@@ -30,6 +30,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.DeflaterOutputStream;
 
 import static com.github.knokko.vk2d.text.FontHelper.assertFtSuccess;
 import static java.lang.Math.*;
@@ -54,7 +55,15 @@ public class Vk2dResourceWriter {
 					"We only support BC1 compression for images whose width and height are multiples of 4"
 			);
 		}
-		images.add(new Image(image, compression, pixelated));
+		images.add(new Image(null, image, compression, pixelated));
+		return images.size() - 1;
+	}
+
+	public int addPreCompressedImage(
+			byte[] imageData, int width, int height,
+			Vk2dImageCompression compression, boolean pixelated
+	) {
+		images.add(new Image(imageData, new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY), compression, pixelated));
 		return images.size() - 1;
 	}
 
@@ -281,7 +290,7 @@ public class Vk2dResourceWriter {
 		List<MappedVkbBuffer> destinationBuffers = new ArrayList<>();
 		long alignment = boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
 		for (Image entry : images) {
-			if (entry.compression != Vk2dImageCompression.BC1) continue;
+			if (entry.compression != Vk2dImageCompression.BC1 || entry.data != null) continue;
 
 			sourceBuffers.add(combiner.addMappedBuffer(
 					4L * entry.image.getWidth() * entry.image.getHeight(),
@@ -344,8 +353,12 @@ public class Vk2dResourceWriter {
 			imageIndex += 1;
 			if (entry.compression != Vk2dImageCompression.BC7) continue;
 
-			int rememberImageIndex = imageIndex;
-			threadPool.submit(() -> bcImageData[rememberImageIndex] = Bc7Compressor.compressBc7(entry.image));
+			if (entry.data == null) {
+				int rememberImageIndex = imageIndex;
+				threadPool.submit(() -> bcImageData[rememberImageIndex] = Bc7Compressor.compressBc7(entry.image));
+			} else {
+				bcImageData[imageIndex] = entry.data;
+			}
 		}
 		threadPool.close();
 
@@ -359,7 +372,8 @@ public class Vk2dResourceWriter {
 	}
 
 	public void write(OutputStream rawOutput) throws IOException {
-		DataOutputStream output = new DataOutputStream(rawOutput);
+		DeflaterOutputStream deflate = new DeflaterOutputStream(rawOutput);
+		DataOutputStream output = new DataOutputStream(deflate);
 		output.writeInt(images.size());
 		for (Image entry : images) {
 			output.writeInt(entry.image.getWidth());
@@ -419,6 +433,7 @@ public class Vk2dResourceWriter {
 			}
 		}
 
+		deflate.finish();
 		output.flush();
 		if (ftLibrary != 0L) {
 			assertFtSuccess(FT_Done_FreeType(ftLibrary), "Done_FreeType");
@@ -437,7 +452,7 @@ public class Vk2dResourceWriter {
 		}
 	}
 
-	private record Image(BufferedImage image, Vk2dImageCompression compression, boolean pixelated) {}
+	private record Image(byte[] data, BufferedImage image, Vk2dImageCompression compression, boolean pixelated) {}
 
 	private record FakeImage(int width, int height, int[] data) {}
 

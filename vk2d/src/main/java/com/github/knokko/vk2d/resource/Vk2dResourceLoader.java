@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.InflaterInputStream;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
 import static org.lwjgl.vulkan.VK10.*;
@@ -49,7 +50,7 @@ public class Vk2dResourceLoader {
 
 	public Vk2dResourceLoader(Vk2dInstance instance, InputStream rawInput) {
 		this.instance = instance;
-		this.input = new DataInputStream(rawInput);
+		this.input = new DataInputStream(new InflaterInputStream(rawInput));
 	}
 
 	public void claimMemory(MemoryCombiner combiner) throws IOException {

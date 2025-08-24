@@ -95,7 +95,7 @@ internal fun renderInGame(context: RenderContext, state: InGameState, region: Re
 				titleColorBatch = renderCurrentArea(context, area, region)
 			}
 		} else {
-			renderBattle(context, state.campaign, battle, region)
+			titleColorBatch = renderBattle(context, state.campaign, battle, region)
 			val loot = area.battleLoot
 			if (loot != null) TODO("Render battle loot")
 		}

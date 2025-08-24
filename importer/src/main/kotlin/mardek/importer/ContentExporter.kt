@@ -67,12 +67,17 @@ private fun saveIcons(outputFolder: File) {
 }
 
 private fun addBcImage(resourceWriter: Vk2dResourceWriter, bc: BcSprite) {
+	if (bc.index != -1) return
 	if (bc.bufferedImage != null) {
 		bc.index = resourceWriter.addImage(
 			bc.bufferedImage as BufferedImage, Vk2dImageCompression.BC7, false
 		)
+	} else {
+		bc.index = resourceWriter.addPreCompressedImage(
+			bc.data, bc.width, bc.height,
+			Vk2dImageCompression.BC7, false
+		)
 	}
-	// TODO Handle the else
 	bc.data = null
 }
 
@@ -131,6 +136,7 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 		for (sprite in effect.passiveParticleSprites) addBcImage(resourceWriter, sprite)
 	}
 	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
+	// TODO Cache BC images, especially backgrounds
 	for (background in content.battle.backgrounds) addBcImage(resourceWriter, background.sprite)
 	for (sprite in content.battle.particleSprites) addBcImage(resourceWriter, sprite.sprite)
 	for (skeleton in content.battle.skeletons) {
