@@ -14,8 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
-import static com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear;
+import static com.github.knokko.boiler.utilities.ColorPacker.*;
 import static com.github.knokko.vk2d.pipeline.PipelineTester.*;
 import static org.lwjgl.vulkan.VK10.*;
 
@@ -101,7 +100,101 @@ public class TestBlurPipeline {
 		resources.destroy();
 	}
 
-	// TODO Test downscaling, frames-in-flight, color transform, and multi-stage
+	@Test
+	public void testDownscaledBlur() {
+		PipelineTester.runTest(
+				"blur-pipeline-downscaled", new File("../image-benchmark-resources.bin"),
+				300, 350, tester -> {
+
+					resources = createResources(vk2d, staticPipelines.blur, 350, 360, 3);
+					setupBlurStages(tester, resources, 4);
+
+					Vk2dImageBatch sourceImage = staticPipelines.image.addBatch(sourceStage, 2, tester.bundle());
+					sourceImage.simpleScale(20, 30, 20f, 0);
+
+					Vk2dColorBatch backgroundColor = staticPipelines.color.addBatch(tester.stage(), 2);
+					backgroundColor.fill(0, 0, tester.stage().width, tester.stage().height, -1);
+
+					Vk2dBlurBatch blurBatch = staticPipelines.blur.addBatch(
+							tester.stage(), resources.framebuffer, resources.descriptors, 100, 150,
+							100f + sourceStage.width / 2f, 150f + sourceStage.height / 2f
+					);
+					blurBatch.noColorTransform();
+				});
+		resources.destroy();
+	}
+
+	@Test
+	public void testComplexBlur() {
+		MemoryBlock[] memoryToDestroy = { null };
+		long[] poolToDestroy = new long[1];
+		PipelineTester.runTest(
+				"blur-pipeline-complex", new File("../image-benchmark-resources.bin"),
+				500, 500, tester -> {
+
+					int sourceWidth = 500;
+					int sourceHeight = 500;
+					DescriptorCombiner combiner = new DescriptorCombiner(vk2d.boiler);
+					Vk2dBlurPipeline.Descriptors[] allDescriptors = staticPipelines.blur.claimResources(
+							3, vk2d, combiner
+					);
+					poolToDestroy[0] = combiner.build("TestBlurDescriptorPool");
+
+					MemoryCombiner memory = new MemoryCombiner(vk2d.boiler, "TestBlurMemory");
+					Vk2dBlurPipeline.Framebuffer framebuffer = staticPipelines.blur.createFramebuffer(
+							memory, VK_FORMAT_R8G8B8A8_SRGB, sourceWidth, sourceHeight, sourceWidth, sourceHeight
+					);
+					memoryToDestroy[0] = memory.build(true);
+
+					sourceStage = staticPipelines.blur.addSourceStage(tester.frame(), framebuffer, 0);
+					staticPipelines.blur.addComputeStage(
+							tester.frame(), allDescriptors[0], framebuffer,
+							19, 50, 1
+					);
+
+					Vk2dRenderStage earlyStage = staticPipelines.blur.addSourceStage(tester.frame(), framebuffer, 2);
+					staticPipelines.blur.addComputeStage(
+							tester.frame(), allDescriptors[1], framebuffer,
+							4, 50, 3
+					);
+
+					Vk2dRenderStage lateStage = staticPipelines.blur.addSourceStage(tester.frame(), framebuffer, 4);
+					staticPipelines.blur.addComputeStage(
+							tester.frame(), allDescriptors[2], framebuffer,
+							9, 50, 5
+					);
+
+					Vk2dImageBatch sourceImage = staticPipelines.image.addBatch(sourceStage, 2, tester.bundle());
+					sourceImage.simpleScale(2, 3, 30f, 0);
+
+					Vk2dImageBatch earlyImage = staticPipelines.image.addBatch(earlyStage, 2, tester.bundle());
+					staticPipelines.blur.addBatch(
+							earlyStage, framebuffer, allDescriptors[0], 0.25f, 0.5f, 250.5f, 250
+					).fixedColorTransform(rgba(0f, 0.25f, 0f, 0f), rgb(1f, 0.75f, 1f));
+					earlyImage.simpleScale(250, 5, 15f, 1);
+
+					Vk2dImageBatch lateImage = staticPipelines.image.addBatch(lateStage, 2, tester.bundle());
+					staticPipelines.blur.addBatch(
+							lateStage, framebuffer, allDescriptors[1], 0, 0, 500, 500
+					).gradientColorTransform(
+							0, -1,
+							rgba(0.5f, 0f, 0f, 0f), rgb(0.5f, 0f, 0f),
+							rgba(0f, 0.5f, 0f, 0f), rgb(0f, 0.5f, 0f),
+							rgba(0f, 0f, 0.5f, 0f), rgb(0f, 0f, 0.5f)
+					);
+					lateImage.simpleScale(250, 230, 15f, 2);
+
+					Vk2dColorBatch backgroundColor = staticPipelines.color.addBatch(tester.stage(), 2);
+					backgroundColor.fill(0, 0, tester.stage().width, tester.stage().height, -1);
+
+					staticPipelines.blur.addBatch(
+							tester.stage(), framebuffer, allDescriptors[2],
+							0, 0, 500f, 500
+					).noColorTransform();
+				});
+		memoryToDestroy[0].destroy(boiler);
+		vkDestroyDescriptorPool(boiler.vkDevice(), poolToDestroy[0], null);
+	}
 
 	@AfterAll
 	public static void cleanUpShared() {
