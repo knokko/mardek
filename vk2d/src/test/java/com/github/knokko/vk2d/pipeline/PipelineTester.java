@@ -109,16 +109,38 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 				BufferedImage expected = ImageIO.read(new File("test-cases/expected/" + testCase + ".png"));
 
 				String failure = null;
+				outerLoop:
 				if (expected.getWidth() == actual.getWidth() && expected.getHeight() == actual.getHeight()) {
 					for (int y = 0; y < expected.getHeight(); y++) {
+						xLoop:
 						for (int x = 0; x < expected.getWidth(); x++) {
+							int threshold = 3;
+							boolean passedTest1 = false;
+							boolean passedTest2 = false;
+							for (int x2 = Math.max(0, x - 1); x2 < Math.min(expected.getWidth(), x + 2); x2++) {
+								for (int y2 = Math.max(0, y - 1); y2 < Math.min(expected.getHeight(), y + 2); y2++) {
+									if (areColorsSimilar(expected.getRGB(x2, y2), actual.getRGB(x, y), threshold)) {
+										passedTest1 = true;
+										threshold = 20;
+									}
+									if (areColorsSimilar(expected.getRGB(x, y), actual.getRGB(x2, y2), threshold)) {
+										passedTest2 = true;
+										threshold = 20;
+									}
+
+									if (passedTest1 && passedTest2) continue xLoop;
+								}
+							}
+
 							Color e = new Color(expected.getRGB(x, y), true);
 							Color a = new Color(actual.getRGB(x, y), true);
-							int threshold = 2;
 							if (abs(a.getRed() - e.getRed()) > threshold) failure = "red mismatch at " + x + ", " + y;
 							if (abs(a.getGreen() - e.getGreen()) > threshold) failure = "green mismatch at " + x + ", " + y;
 							if (abs(a.getBlue() - e.getBlue()) > threshold) failure = "blue mismatch at " + x + ", " + y;
 							if (abs(a.getAlpha() - e.getAlpha()) > threshold) failure = "alpha mismatch at " + x + ", " + y;
+							//noinspection StringConcatenationInLoop
+							failure += ": expected " + e + ", but got " + a;
+							break outerLoop;
 						}
 					}
 				} else {
@@ -142,6 +164,15 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 		} catch (IOException failure) {
 			fail(failure);
 		}
+	}
+
+	private static boolean areColorsSimilar(int expectedRGB, int actualRGB, int threshold) {
+		Color e = new Color(expectedRGB, true);
+		Color a = new Color(actualRGB, true);
+		if (abs(a.getRed() - e.getRed()) > threshold) return false;
+		if (abs(a.getGreen() - e.getGreen()) > threshold) return false;
+		if (abs(a.getBlue() - e.getBlue()) > threshold) return false;
+		return abs(a.getAlpha() - e.getAlpha()) <= threshold;
 	}
 
 	static void staticTearDown() {

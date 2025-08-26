@@ -36,7 +36,7 @@ public class TestBlurPipeline {
 		DescriptorCombiner combiner = new DescriptorCombiner(vk2d.boiler);
 		Vk2dBlurPipeline.Descriptors descriptors = pipeline.claimResources(
 				1, vk2d, combiner
-		)[0]; // TODO Try multiple frames in flight
+		)[0];
 		long vkDescriptorPool = combiner.build("TestBlurDescriptorPool");
 
 		MemoryCombiner memory = new MemoryCombiner(vk2d.boiler, "TestBlurMemory");
