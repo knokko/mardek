@@ -50,7 +50,7 @@ internal fun renderInGameMenu(
 		srgbToLinear(rgb(131, 81, 37))
 	)
 
-	val clockSize = 9 * barHeight / 10
+	val clockSize = 0.9f * barHeight
 	val clockMargin = (barHeight - clockSize) / 2
 	imageBatch.simple(
 		region.maxX - clockMargin - clockSize, region.maxY - clockMargin - clockSize,

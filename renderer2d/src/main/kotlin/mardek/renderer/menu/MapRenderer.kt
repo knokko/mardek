@@ -37,8 +37,8 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 			fun renderSpriteAtMap(x: Int, y: Int, sprite: BcSprite) {
 				if (!area.flags.hasClearMap && !context.campaign.areaDiscovery.readOnly(area).isDiscovered(x, y)) return
 				val spriteScale = scale / 16f
-				val minX = minX + x * scale + scale / 2 - (spriteScale * sprite.width / 2).roundToInt()
-				val minY = minY + y * scale + scale / 2 - (spriteScale * sprite.height / 2).roundToInt()
+				val minX = minX + x * scale + scale / 2 - spriteScale * sprite.width / 2
+				val minY = minY + y * scale + scale / 2 - spriteScale * sprite.height / 2
 				imageBatch.simple(
 					minX, minY, minX + (sprite.width * spriteScale).roundToInt() - 1,
 					minY + (sprite.height * spriteScale).roundToInt() - 1, sprite.index

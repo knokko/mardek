@@ -21,30 +21,33 @@ public class Vk2dImageBatch extends Vk2dBatch {
 		this.descriptorSets = new long[initialCapacity];
 	}
 
-	public void simple(int minX, int minY, int maxX, int maxY, int imageIndex) {
-		colored(minX, minY, maxX, maxY, imageIndex, 0, -1);
+	public void simple(float minX, float minY, float boundX, float boundY, int imageIndex) {
+		colored(minX, minY, boundX, boundY, imageIndex, 0, -1);
 	}
 
-	public void colored(int minX, int minY, int maxX, int maxY, int imageIndex, int addColor, int multiplyColor) {
+	public void colored(
+			float minX, float minY, float boundX, float boundY,
+			int imageIndex, int addColor, int multiplyColor
+	) {
 		ByteBuffer vertices = putTriangles(2).vertexData()[0];
 
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
+		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(boundY));
 		vertices.putFloat(0f).putFloat(1f);
 		vertices.putInt(addColor).putInt(multiplyColor);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
+		vertices.putFloat(normalizeX(boundX)).putFloat(normalizeY(boundY));
 		vertices.putFloat(1f).putFloat(1f);
 		vertices.putInt(addColor).putInt(multiplyColor);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
+		vertices.putFloat(normalizeX(boundX)).putFloat(normalizeY(minY));
 		vertices.putFloat(1f).putFloat(0f);
 		vertices.putInt(addColor).putInt(multiplyColor);
 
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
+		vertices.putFloat(normalizeX(boundX)).putFloat(normalizeY(minY));
 		vertices.putFloat(1f).putFloat(0f);
 		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
 		vertices.putFloat(0f).putFloat(0f);
 		vertices.putInt(addColor).putInt(multiplyColor);
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
+		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(boundY));
 		vertices.putFloat(0f).putFloat(1f);
 		vertices.putInt(addColor).putInt(multiplyColor);
 
@@ -55,23 +58,22 @@ public class Vk2dImageBatch extends Vk2dBatch {
 		nextDescriptorIndex += 1;
 	}
 
-	public void simpleScale(int minX, int minY, float scale, int imageIndex) {
+	public void simpleScale(float minX, float minY, float scale, int imageIndex) {
 		coloredScale(minX, minY, scale, imageIndex, 0, -1);
 	}
 
-	public void coloredScale(int minX, int minY, float scale, int imageIndex, int addColor, int multiplyColor) {
-		int width = Math.round(scale * bundle.getImageWidth(imageIndex));
-		int height = Math.round(scale * bundle.getImageHeight(imageIndex));
-		colored(minX, minY, minX + width - 1, minY + height - 1, imageIndex, addColor, multiplyColor);
+	public void coloredScale(float minX, float minY, float scale, int imageIndex, int addColor, int multiplyColor) {
+		float width = scale * bundle.getImageWidth(imageIndex);
+		float height = scale * bundle.getImageHeight(imageIndex);
+		colored(minX, minY, minX + width, minY + height, imageIndex, addColor, multiplyColor);
 	}
 
-	public void fillWithoutDistortion(
-			int minX, int minY, int maxX, int maxY,
-			int imageIndex, int imageWidth, int imageHeight
-	) {
-		if (maxX < minX || maxY < minY) return;
+	public void fillWithoutDistortion(float minX, float minY, float boundX, float boundY, int imageIndex) {
+		if (boundX <= minX || boundY <= minY) return;
+		int imageWidth = bundle.getImageWidth(imageIndex);
+		int imageHeight = bundle.getImageHeight(imageIndex);
 		float imageAspectRatio = (float) imageWidth / imageHeight;
-		float targetAspectRatio = (1f + maxX - minX) / (1f + maxY - minY);
+		float targetAspectRatio = (boundX - minX) / (boundY - minY);
 		float minU, minV, maxU, maxV;
 
 		float relativeAspect = imageAspectRatio / targetAspectRatio;
@@ -101,23 +103,23 @@ public class Vk2dImageBatch extends Vk2dBatch {
 
 		int addColor = 0;
 		int multiplyColor = -1;
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
+		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(boundY));
 		vertices.putFloat(minU).putFloat(maxV);
 		vertices.putInt(addColor).putInt(multiplyColor);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(maxY + 1));
+		vertices.putFloat(normalizeX(boundX)).putFloat(normalizeY(boundY));
 		vertices.putFloat(maxU).putFloat(maxV);
 		vertices.putInt(addColor).putInt(multiplyColor);
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
+		vertices.putFloat(normalizeX(boundX)).putFloat(normalizeY(minY));
 		vertices.putFloat(maxU).putFloat(minV);
 		vertices.putInt(addColor).putInt(multiplyColor);
 
-		vertices.putFloat(normalizeX(maxX + 1)).putFloat(normalizeY(minY));
+		vertices.putFloat(normalizeX(boundX)).putFloat(normalizeY(minY));
 		vertices.putFloat(maxU).putFloat(minV);
 		vertices.putInt(addColor).putInt(multiplyColor);
 		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(minY));
 		vertices.putFloat(minU).putFloat(minV);
 		vertices.putInt(addColor).putInt(multiplyColor);
-		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(maxY + 1));
+		vertices.putFloat(normalizeX(minX)).putFloat(normalizeY(boundY));
 		vertices.putFloat(minU).putFloat(maxV);
 		vertices.putInt(addColor).putInt(multiplyColor);
 

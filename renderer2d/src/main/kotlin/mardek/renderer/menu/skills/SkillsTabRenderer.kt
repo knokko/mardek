@@ -17,7 +17,6 @@ import mardek.renderer.util.renderFancyMasteredText
 import mardek.state.ingame.menu.SkillsTab
 import mardek.state.util.Rectangle
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 private const val ANIMATION_PERIOD = 700_000_000L
 
@@ -81,10 +80,10 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			context.content.ui.activeStarIcon, context.content.ui.meleeAttackIcon, context.content.ui.meleeDefenseIcon,
 			context.content.ui.rangedAttackIcon, context.content.ui.rangedDefenseIcon, context.content.ui.passiveIcon
 		).withIndex()) {
-			val x = region.minX + region.width / 7 + column * 12 * characterScale
-			val width = 8 * characterScale
+			val x = region.minX + region.width / 7f + column * 12 * characterScale
+			val width = 8f * characterScale
 			val height = width * icon.height / icon.width
-			imageBatch.simple(x, iconY, x + width - 1, iconY + height - 1, icon.index)
+			imageBatch.simple(x, iconY.toFloat(), x + width, iconY + height, icon.index)
 
 			if (column == tab.skillTypeIndex && tab.inside) {
 				val midX = x + 1f * characterScale
@@ -176,8 +175,8 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		if (tab.inside) {
 			if (selectedSkill != null) {
 				imageBatch.coloredScale(
-					region.minX + region.width / 200,
-					region.minY + region.height * 2 / 5,
+					region.minX + region.width / 200f,
+					region.minY + region.height * 0.4f,
 					0.24f * region.width / selectedSkill.skill.element.thinSprite.width,
 					selectedSkill.skill.element.thinSprite.index,
 					0, rgba(1f, 1f, 1f, 0.075f),
@@ -198,12 +197,12 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 					iconScale *= 1.5f
 				}
 				imageBatch.coloredScale(
-					skillsMinX, iconY.roundToInt(), iconScale, icon.index,
+					skillsMinX.toFloat(), iconY, iconScale, icon.index,
 					0, rgba(1f, 1f, 1f, 0.7f),
 				)
 
 				if (tab.inside && row == tab.skillIndex) imageBatch.simpleScale(
-					skillsMinX - region.height / 20, baseY,
+					skillsMinX - region.height / 20f, baseY.toFloat(),
 					region.height / 2000f, context.content.ui.pointer.index
 				)
 

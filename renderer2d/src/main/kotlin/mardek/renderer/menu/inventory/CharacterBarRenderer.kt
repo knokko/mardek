@@ -75,7 +75,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 			val selectedColor = rgba(0, 30, 150, 100)
 			colorBatch.fill(startX, startY, maxX, startY + barHeight - 1, selectedColor)
 			imageBatch.simpleScale(
-				startX - 9 * scale, startY + 8 * scale,
+				startX - 9f * scale, startY + 8f * scale,
 				scale * 0.15f, context.content.ui.pointer.index
 			)
 		}
@@ -98,9 +98,18 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 		run {
 			val iconY = startY + barHeight / 2 + margin / 2
 			val iconScale = scale / 8f
-			imageBatch.simpleScale(x1, iconY, iconScale, context.content.ui.attackIcon.index)
-			imageBatch.simpleScale(x2, iconY, iconScale, context.content.ui.defIcon.index)
-			imageBatch.simpleScale(x4, iconY, iconScale, context.content.ui.rangedDefIcon.index)
+			imageBatch.simpleScale(
+				x1.toFloat(), iconY.toFloat(), iconScale,
+				context.content.ui.attackIcon.index
+			)
+			imageBatch.simpleScale(
+				x2.toFloat(), iconY.toFloat(), iconScale,
+				context.content.ui.defIcon.index
+			)
+			imageBatch.simpleScale(
+				x4.toFloat(), iconY.toFloat(), iconScale,
+				context.content.ui.rangedDefIcon.index
+			)
 			val numEffects = characterState.activeStatusEffects.size
 			if (numEffects > 0) {
 				val passedTime = System.nanoTime() - referenceTime
@@ -108,7 +117,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 				val index = (passedTime % (period * numEffects)) / period
 				val sprite = characterState.activeStatusEffects.toList()[toIntExact(index)].icon
 				imageBatch.simpleScale(
-					x4 + 9 * scale, startY + 2 * scale,
+					x4 + 9f * scale, startY + 2f * scale,
 					8f * scale / sprite.height, sprite.index
 				)
 			}

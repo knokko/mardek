@@ -72,7 +72,7 @@ internal fun renderHoverItemProperties(
 				val marginX = maxX - minX - elementScale * element.thinSprite.width
 				val marginY = tabsY - barY - elementScale * element.thinSprite.height
 				imageBatch.coloredScale(
-					(minX + marginX / 2).roundToInt(), (barY + marginY / 2).roundToInt(),
+					minX + marginX / 2f, barY + marginY / 2f,
 					elementScale, element.thinSprite.index,
 					0, rgba(1f, 1f, 1f, 0.075f)
 				)
@@ -182,7 +182,7 @@ internal fun renderHoverItemProperties(
 					}
 
 					imageBatch.coloredScale(
-						minX + 5 * scale, skillY,
+						minX + 5f * scale, skillY.toFloat(),
 						scale / 8f, skill.element.thickSprite.index,
 						0, rgba(1f, 1f, 1f, 0.75f),
 					)
@@ -210,9 +210,15 @@ internal fun renderHoverItemProperties(
 					var x = maxX - 20 * scale
 					if (skill !is ActiveSkill) x -= 2 * scale
 					if (skillSprite is BcSprite) {
-						imageBatch.simpleScale(x, skillY + 3 * scale, scale * 0.16f, skillSprite.index)
+						imageBatch.simpleScale(
+							x.toFloat(), skillY + 3f * scale,
+							scale * 0.16f, skillSprite.index
+						)
 					} else {
-						spriteBatch.simple(x, skillY + 3 * scale, scale.toFloat(), (skillSprite as KimSprite).index)
+						spriteBatch.simple(
+							x, skillY + 3 * scale, scale.toFloat(),
+							(skillSprite as KimSprite).index
+						)
 					}
 				}
 			}
