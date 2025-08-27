@@ -14,10 +14,10 @@ internal fun renderBattle(
 
 	val combatantBatch = context.addImageBatch(1000) // TODO Choose nice capacity
 	renderBattleBackground(battleContext, combatantBatch)
-	for (opponent in battleState.allOpponents()) {
+	for (opponent in battleState.allOpponents().sortedBy { it.getPosition(battleContext.battle).y }) {
 		CombatantRenderer(battleContext, combatantBatch, opponent).render()
 	}
-	for (player in battleState.allPlayers()) {
+	for (player in battleState.allPlayers().sortedBy { it.getPosition(battleContext.battle).y }) {
 		CombatantRenderer(battleContext, combatantBatch, player).render()
 	}
 

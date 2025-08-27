@@ -8,6 +8,7 @@ import mardek.content.animations.SkeletonPartCastSparkle
 import mardek.content.animations.SkeletonPartSkins
 import mardek.content.animations.SkeletonPartSwingEffect
 import mardek.content.battle.PartyLayoutPosition
+import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.CombatantState
@@ -247,8 +248,8 @@ class CombatantRenderer(
 			val corners = arrayOf(225f, 315f, 45f, 135f).map { rawAngle ->
 				val finalAngle = Math.toRadians(angle + rawAngle)
 				Vector2f(
-					shadowPosition.x + shadowRadius * coordinates.scaleX * cos(finalAngle),
-					shadowPosition.y + shadowRadius * coordinates.scaleY * sin(finalAngle)
+					shadowPosition.x + shadowRadius * coordinates.scale * cos(finalAngle),
+					shadowPosition.y + shadowRadius * coordinates.scale * sin(finalAngle)
 				)
 			}.toTypedArray()
 			batch.transformed(
@@ -264,9 +265,9 @@ class CombatantRenderer(
 		val background = element.spellCastBackground ?: return
 		val aspectRatio = background.height.toFloat() / background.width.toFloat()
 		val castRadius = 7 * shadowRadius / 11
-		val minX = shadowPosition.x - castRadius * coordinates.scaleX
-		val maxX = shadowPosition.x + castRadius * coordinates.scaleX
-		val minY = shadowPosition.y - aspectRatio * 2 * castRadius * coordinates.scaleY
+		val minX = shadowPosition.x - castRadius * coordinates.scale
+		val maxX = shadowPosition.x + castRadius * coordinates.scale
+		val minY = shadowPosition.y - aspectRatio * 2 * castRadius * coordinates.scale
 		val maxY = shadowPosition.y
 		val corners = arrayOf(
 			Vector2f(minX, minY), Vector2f(maxX, minY),
@@ -349,29 +350,11 @@ class CombatantRenderer(
 						matrix.translateX * flipX, matrix.translateY
 					).translate(entry.offsetX, entry.offsetY)
 
-					val corners = arrayOf(Pair(0f, 0f), Pair(1f, 0f), Pair(1f, 1f), Pair(0f, 1f)).map { rawCorner ->
-						val position = jomlMatrix.transformPosition(Vector2f(
-							rawCorner.first * entry.sprite.width.toFloat() / entry.scale,
-							rawCorner.second * entry.sprite.height.toFloat() / entry.scale
-						))
-
-						Vector2f(
-							coordinates.x + position.x * coordinates.scaleX,
-							coordinates.y + position.y * coordinates.scaleY
-						)
-					}.toTypedArray()
-
 					val colorTransform = mergeColorTransforms(animationPart.color, effectColorTransform)
-					batch.transformed(
-						corners[0].x, corners[0].y,
-						corners[1].x, corners[1].y,
-						corners[2].x, corners[2].y,
-						corners[3].x, corners[3].y,
-						entry.sprite.index,
-						colorTransform?.addColor ?: 0,
-						colorTransform?.multiplyColor ?: -1,
+					renderTransformedImage(
+						jomlMatrix, entry.sprite.width.toFloat() / entry.scale,
+						entry.sprite.height.toFloat() / entry.scale, entry.sprite, colorTransform
 					)
-					// TODO Maybe use batch.rotated?
 				}
 			}
 
@@ -403,31 +386,40 @@ class CombatantRenderer(
 						matrix.translateX * flipX, matrix.translateY
 					).translate(-15.35f, -14.50f) // (-15, -14) are the offset of shape 2295
 
-					val corners = arrayOf(Pair(0f, 0f), Pair(1f, 0f), Pair(1f, 1f), Pair(0f, 1f)).map { rawCorner ->
-						val position = jomlMatrix.transformPosition(Vector2f(
-							rawCorner.first * sprite.width.toFloat() / 4,
-							rawCorner.second * sprite.height.toFloat() / 4
-						))
-
-						Vector2f(
-							coordinates.x + position.x * coordinates.scaleX,
-							coordinates.y + position.y * coordinates.scaleY
-						)
-					}.toTypedArray()
-
 					val colorTransform = mergeColorTransforms(animationPart.color, effectColorTransform)
-					batch.transformed(
-						corners[0].x, corners[0].y,
-						corners[1].x, corners[1].y,
-						corners[2].x, corners[2].y,
-						corners[3].x, corners[3].y,
-						sprite.index,
-						colorTransform?.addColor ?: 0,
-						colorTransform?.multiplyColor ?: -1,
-					)
-					// TODO Maybe use batch.rotated?
+					renderTransformedImage(jomlMatrix, sprite.width / 4f, sprite.height / 4f, sprite, colorTransform)
 				}
 			}
 		}
+	}
+
+	private fun renderTransformedImage(
+		jomlMatrix: Matrix3x2f, scaleX: Float, scaleY: Float,
+		sprite: BcSprite, colors: ColorTransform?,
+	) {
+		val corners = arrayOf(
+			Pair(0f, 1f), Pair(1f, 1f),
+			Pair(1f, 0f), Pair(0f, 0f)
+		).map { rawCorner ->
+			val position = jomlMatrix.transformPosition(Vector2f(
+				rawCorner.first * scaleX,
+				rawCorner.second * scaleY,
+			))
+
+			Vector2f(
+				coordinates.x + position.x * coordinates.scale,
+				coordinates.y + position.y * coordinates.scale,
+			)
+		}
+
+		batch.transformed(
+			corners[0].x, corners[0].y,
+			corners[1].x, corners[1].y,
+			corners[2].x, corners[2].y,
+			corners[3].x, corners[3].y,
+			sprite.index,
+			colors?.addColor ?: 0,
+			colors?.multiplyColor ?: -1,
+		)
 	}
 }
