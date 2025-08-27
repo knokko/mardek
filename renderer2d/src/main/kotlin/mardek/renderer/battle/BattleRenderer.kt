@@ -22,5 +22,11 @@ internal fun renderBattle(
 	}
 
 	val colorBatch = context.addColorBatch(1000) // TODO Choose nice capacity
+	val kimBatch = context.addKim3Batch(1000) // TODO Choose nice capacity
+	val textBatch = context.addFancyTextBatch(1000) // TODO Choose nice capacity
+	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
+		region.minX, region.minY + region.height / 12, region.width, region.height / 12
+	))
+
 	return colorBatch
 }
