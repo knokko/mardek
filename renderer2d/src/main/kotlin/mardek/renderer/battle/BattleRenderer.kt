@@ -40,5 +40,9 @@ internal fun renderBattle(
 		width = region.width / 3, height = 4 * region.height / 7,
 	))
 
+	renderSkillOrItemDescription(battleContext, colorBatch, kimBatch, imageBatch, textBatch, Rectangle(
+		region.minX, region.minY + region.height / 12, region.width, region.height / 9
+	))
+
 	return colorBatch
 }
