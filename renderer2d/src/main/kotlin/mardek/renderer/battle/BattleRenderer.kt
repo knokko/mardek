@@ -44,5 +44,9 @@ internal fun renderBattle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 9
 	))
 
+	renderCurrentMoveBar(battleContext, colorBatch, kimBatch, imageBatch, textBatch, Rectangle(
+		region.minX, region.minY + region.height / 12, region.width, region.height / 16
+	))
+
 	return colorBatch
 }
