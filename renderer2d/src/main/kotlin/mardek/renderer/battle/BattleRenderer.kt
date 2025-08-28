@@ -26,12 +26,18 @@ internal fun renderBattle(
 	val kimBatch = context.addKim3Batch(1000) // TODO Choose nice capacity
 	val imageBatch = context.addImageBatch(1000) // TODO Choose nice capacity
 	val textBatch = context.addFancyTextBatch(1000) // TODO Choose nice capacity
+
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 12
 	))
 	renderActionBar(battleContext, colorBatch, ovalBatch, kimBatch, imageBatch, textBatch, Rectangle(
 		region.minX, region.boundY - region.height / 12 - region.height / 8,
 		region.width, region.height / 12
+	))
+
+	renderSkillOrItemSelection(battleContext, colorBatch, ovalBatch, kimBatch, imageBatch, textBatch, Rectangle(
+		region.minX + region.width / 3, region.minY + region.height / 5,
+		width = region.width / 3, height = 4 * region.height / 7,
 	))
 
 	return colorBatch
