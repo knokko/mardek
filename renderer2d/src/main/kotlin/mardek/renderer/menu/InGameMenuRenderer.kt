@@ -6,7 +6,6 @@ import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
 import mardek.renderer.menu.inventory.renderInventory
-import mardek.renderer.menu.skills.renderSkillsTab
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.InGameMenuState
 import mardek.state.ingame.menu.InventoryTab

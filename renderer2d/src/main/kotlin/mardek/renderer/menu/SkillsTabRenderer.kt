@@ -1,4 +1,4 @@
-package mardek.renderer.menu.skills
+package mardek.renderer.menu
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
@@ -7,8 +7,6 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.skill.ActiveSkill
 import mardek.content.skill.PassiveSkill
 import mardek.content.skill.ReactionSkill
-import mardek.renderer.menu.MenuRenderContext
-import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.renderer.util.gradientWithBorder
