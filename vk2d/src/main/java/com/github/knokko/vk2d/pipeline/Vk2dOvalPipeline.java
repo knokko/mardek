@@ -44,8 +44,8 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 		}
 	}
 
-	public Vk2dOvalBatch addBatch(Vk2dRenderStage frame, long perFrameDescriptorSet, int initialCapacity) {
-		return new Vk2dOvalBatch(this, frame, perFrameDescriptorSet, initialCapacity);
+	public Vk2dOvalBatch addBatch(Vk2dRenderStage stage, long perFrameDescriptorSet, int initialCapacity) {
+		return new Vk2dOvalBatch(this, stage, perFrameDescriptorSet, initialCapacity);
 	}
 
 	@Override

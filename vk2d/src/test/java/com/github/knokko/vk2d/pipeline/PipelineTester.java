@@ -6,6 +6,7 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.builders.BoilerBuilder;
 import com.github.knokko.boiler.commands.SingleTimeCommands;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
+import com.github.knokko.boiler.descriptors.DescriptorUpdater;
 import com.github.knokko.boiler.images.ImageBuilder;
 import com.github.knokko.boiler.images.VkbImage;
 import com.github.knokko.boiler.memory.MemoryBlock;
@@ -18,6 +19,7 @@ import com.github.knokko.vk2d.frame.Vk2dFrame;
 import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
+import org.lwjgl.system.MemoryStack;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -29,13 +31,14 @@ import java.util.function.Consumer;
 
 import static java.lang.Math.abs;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 import static org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 import static org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 import static org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 import static org.lwjgl.vulkan.VK10.VK_NULL_HANDLE;
 
-record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle bundle) {
+record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle bundle, long perFrameDescriptorSet) {
 
 	static BoilerInstance boiler;
 	static Vk2dInstance vk2d;
@@ -66,7 +69,7 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 			MemoryCombiner combiner = new MemoryCombiner(boiler, "TestColorMemory");
 			if (loader != null) loader.claimMemory(combiner);
 			PerFrameBuffer perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
-					1000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
+					1000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
 			));
 			VkbImage targetImage = combiner.addImage(new ImageBuilder(
 					"TestColorTargetImage", width, height
@@ -78,14 +81,25 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 			);
 			MemoryBlock memory = combiner.build(true);
 
-			long descriptorPool = VK_NULL_HANDLE;
+			DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
+			long[] perFrameDescriptorSet = new long[1];
+			if (vk2d.bufferDescriptorSetLayout != null) {
+				perFrameDescriptorSet = descriptors.addMultiple(vk2d.bufferDescriptorSetLayout, 1);
+			}
 			if (loader != null) {
 				loader.prepareStaging();
-				DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
 				SingleTimeCommands.submit(boiler, testCase + " ResourceBundle", recorder ->
 						loader.performStaging(recorder, descriptors)
 				).destroy();
-				descriptorPool = descriptors.build(testCase + "DescriptorBundle");
+			}
+
+			long descriptorPool = descriptors.build(testCase + "DescriptorBundle");
+			if (perFrameDescriptorSet[0] != VK_NULL_HANDLE) {
+				try (MemoryStack stack = stackPush()) {
+					DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
+					updater.writeStorageBuffer(0, perFrameDescriptorSet[0], 0, perFrameBuffer.buffer);
+					updater.update(boiler);
+				}
 			}
 
 			Vk2dFrame frame = new Vk2dFrame(perFrameBuffer, VK_NULL_HANDLE, null);
@@ -95,7 +109,7 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 			frame.stages.add(stage);
 
 			perFrameBuffer.startFrame(0);
-			render.accept(new PipelineTester(frame, stage, loader != null ? loader.finish() : null));
+			render.accept(new PipelineTester(frame, stage, loader != null ? loader.finish() : null, perFrameDescriptorSet[0]));
 			SingleTimeCommands.submit(boiler, testCase, recorder -> {
 				frame.record(recorder);
 				recorder.copyImageToBuffer(targetImage, destinationBuffer);
