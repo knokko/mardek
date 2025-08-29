@@ -4,6 +4,8 @@ import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import mardek.renderer.RenderContext
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.battle.BattleState
+import mardek.state.ingame.battle.MonsterCombatantState
+import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.util.Rectangle
 
 internal fun renderBattle(
@@ -21,11 +23,19 @@ internal fun renderBattle(
 		CombatantRenderer(battleContext, combatantBatch, player).render()
 	}
 
+	// Pretty much all components require colorBatch to be the first batch
 	val colorBatch = context.addColorBatch(1000) // TODO Choose nice capacity
+
+	// The action bar expects the oval batch to be behind the kim batch
 	val ovalBatch = context.addOvalBatch(100) // TODO Choose nice capacity
-	val kimBatch = context.addKim3Batch(1000) // TODO Choose nice capacity
+
+	// The player block renderer expects the image batch to be behind the kim batch
 	val imageBatch = context.addImageBatch(1000) // TODO Choose nice capacity
+	val kimBatch = context.addKim3Batch(1000) // TODO Choose nice capacity
 	val textBatch = context.addFancyTextBatch(1000) // TODO Choose nice capacity
+
+	// The player & monster block renderers need the lateColorBatch to be in front of everything
+	val lateColorBatch = context.addColorBatch(10) // TODO Choose nice capacity
 
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 12
@@ -47,6 +57,49 @@ internal fun renderBattle(
 	renderCurrentMoveBar(battleContext, colorBatch, kimBatch, imageBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 16
 	))
+
+	for ((index, enemy) in battleContext.battle.opponents.withIndex()) {
+		if (enemy == null) continue
+		val region = Rectangle(
+			minX = region.minX + index * region.width / 4, minY = region.minY,
+			width = region.width / 4, height = region.height / 12
+		)
+//		indicatorRenderers.add(DamageIndicatorRenderer(context, enemy))
+//		effectRenderers.add(EffectHistoryRenderer(context, enemy))
+		if (enemy is MonsterCombatantState) {
+			renderMonsterBlock(
+				battleContext, enemy, colorBatch, lateColorBatch, ovalBatch,
+				kimBatch, imageBatch, textBatch, region,
+			)
+		} else {
+			renderPlayerBlock(
+				battleContext, enemy as PlayerCombatantState, colorBatch, lateColorBatch, ovalBatch,
+				kimBatch, imageBatch, textBatch, region,
+			)
+		}
+	}
+
+	for ((index, player) in battleContext.battle.players.reversed().withIndex()) {
+		if (player == null) continue
+		val region = Rectangle(
+			minX = region.minX + index * region.width / 4,
+			minY = region.boundY - region.height / 8,
+			width = region.width / 4, height = region.height / 8,
+		)
+//		indicatorRenderers.add(DamageIndicatorRenderer(context, player))
+//		effectRenderers.add(EffectHistoryRenderer(context, player))
+		if (player is MonsterCombatantState) {
+			renderMonsterBlock(
+				battleContext, player, colorBatch, lateColorBatch, ovalBatch,
+				kimBatch, imageBatch, textBatch, region,
+			)
+		} else {
+			renderPlayerBlock(
+				battleContext, player as PlayerCombatantState, colorBatch, lateColorBatch, ovalBatch,
+				kimBatch, imageBatch, textBatch, region,
+			)
+		}
+	}
 
 	return colorBatch
 }

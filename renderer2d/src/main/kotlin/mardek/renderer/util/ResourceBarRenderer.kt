@@ -17,7 +17,7 @@ class ResourceBarRenderer(
 
 	fun renderBar(currentValue: Int, maxValue: Int) {
 		val backgroundColor = srgbToLinear(rgb(58, 43, 31))
-		val remainingWidth = currentValue * barRegion.width / maxValue
+		val remainingWidth = currentValue * (barRegion.width - 1) / maxValue
 		val entry = resourceType.chooseColor(currentValue, maxValue)
 		colorBatch.fill(
 			barRegion.minX + remainingWidth, barRegion.minY,
@@ -46,8 +46,8 @@ class ResourceBarRenderer(
 	fun renderLost(currentValue: Int, oldValue: Int, maxValue: Int, opacity: Float) {
 		if (oldValue > currentValue) {
 			colorBatch.fill(
-				barRegion.minX + currentValue * barRegion.width / maxValue, barRegion.minY,
-				barRegion.minX + oldValue * barRegion.width / maxValue,
+				barRegion.minX + currentValue * (barRegion.width - 1) / maxValue, barRegion.minY,
+				barRegion.minX + oldValue * (barRegion.width - 1) / maxValue,
 				barRegion.maxY, rgba(1f, 0f, 0f, opacity)
 			)
 		}
@@ -82,16 +82,60 @@ class ResourceBarRenderer(
 			entry.shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
 		)
 	}
-//
-//	fun renderCurrentOverBar(currentValue: Int, maxValue: Int) {
-//		val entry = resourceType.chooseColor(currentValue, maxValue)
-//		context.uiRenderer.drawString(
-//			context.resources.font, currentValue.toString(), entry.textColor, IntArray(0),
-//			barRegion.minX, barRegion.minY - barRegion.height,
-//			barRegion.maxX - barRegion.width / 10, barRegion.maxY + barRegion.height / 2,
-//			barRegion.maxY + barRegion.height / 3, 3 * barRegion.height / 2, 1, TextAlignment.RIGHT
-//		)
-//	}
+
+	fun renderCurrentOverBar(currentValue: Int, maxValue: Int) {
+		val entry = resourceType.chooseColor(currentValue, maxValue)
+		val font = context.bundle.getFont(context.content.fonts.large1.index)
+		val shadowOffset = 0.125f * barRegion.height
+		textBatch.drawShadowedString(
+			currentValue.toString(), barRegion.maxX - 0.1f * barRegion.width,
+			barRegion.maxY + barRegion.height * 0.5f, barRegion.height * 1.75f,
+			font, entry.textColor, 0, 0f, entry.shadowColor,
+			shadowOffset, shadowOffset, TextAlignment.RIGHT,
+		)
+	}
+
+	fun renderOpeningBracket() {
+		val color = srgbToLinear(rgb(208, 193, 142))
+		val width = barRegion.height / 8
+		val gap1 = barRegion.height / 7
+		val gap2 = barRegion.height / 4
+		val x1 = barRegion.minX + width + barRegion.height / 3
+		val x2 = barRegion.minX + barRegion.height / 3
+		colorBatch.fill(
+			barRegion.minX, barRegion.minY - gap1, barRegion.minX + width - 1,
+			barRegion.maxY + gap1, color
+		)
+		colorBatch.fillUnaligned(
+			x1, barRegion.minY - gap2, barRegion.minX + width, barRegion.minY,
+			barRegion.minX, barRegion.minY - gap1, x2, barRegion.minY - gap2, color
+		)
+		colorBatch.fillUnaligned(
+			x1, barRegion.boundY + gap2, barRegion.minX + width, barRegion.boundY,
+			barRegion.minX, barRegion.boundY + gap1, x2, barRegion.boundY + gap2, color
+		)
+	}
+
+	fun renderClosingBracket() {
+		val color = srgbToLinear(rgb(208, 193, 142))
+		val width = barRegion.height / 8
+		val gap1 = barRegion.height / 7
+		val gap2 = barRegion.height / 4
+		val x1 = barRegion.boundX - width - barRegion.height / 3
+		val x2 = barRegion.boundX - barRegion.height / 3
+		colorBatch.fill(
+			barRegion.boundX - width, barRegion.minY - gap1, barRegion.maxX,
+			barRegion.maxY + gap1, color
+		)
+		colorBatch.fillUnaligned(
+			x1, barRegion.minY - gap2, barRegion.boundX - width, barRegion.minY,
+			barRegion.boundX, barRegion.minY - gap1, x2, barRegion.minY - gap2, color
+		)
+		colorBatch.fillUnaligned(
+			x1, barRegion.boundY + gap2, barRegion.boundX - width, barRegion.boundY,
+			barRegion.boundX, barRegion.boundY + gap1, x2, barRegion.boundY + gap2, color
+		)
+	}
 }
 
 class ResourceColorEntry(
