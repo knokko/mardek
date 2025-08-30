@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.stats.CharacterClass
 import mardek.content.stats.Element
 import mardek.content.stats.StatModifier
@@ -33,7 +33,7 @@ class PlayableCharacter(
 	val areaSprites: DirectionalSprites,
 
 	@BitField(id = 5)
-	val battleModel: BattleModel,
+	val animations: CombatantAnimations,
 
 	@BitField(id = 6)
 	val creatureType: CreatureType,
@@ -45,7 +45,7 @@ class PlayableCharacter(
 
 	constructor() : this(
 		"", CharacterClass(), Element(), ArrayList(0),
-		DirectionalSprites(), BattleModel(), CreatureType()
+		DirectionalSprites(), CombatantAnimations(), CreatureType()
 	)
 
 	override fun toString() = name

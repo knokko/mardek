@@ -47,7 +47,7 @@ public class ImageBenchmarkResourceWriter {
 		}
 
 		OutputStream output = Files.newOutputStream(FILE.toPath());
-		writer.write(output);
+		writer.write(output, null);
 		output.close();
 	}
 }

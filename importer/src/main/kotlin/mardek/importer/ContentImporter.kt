@@ -3,7 +3,7 @@ package mardek.importer
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.Content
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.area.Direction
 import mardek.importer.area.importAreaContent
 import mardek.importer.audio.importAudioContent
@@ -32,7 +32,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	importSkillsContent(content)
 	importItemsContent(content)
 
-	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, BattleModel>()
+	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, CombatantAnimations>()
 	importBattleContent(content, playerModelMapping)
 	importClasses(content)
 	importAreaContent(content)

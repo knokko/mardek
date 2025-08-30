@@ -38,7 +38,7 @@ public class TestGlyphScratchBufferingA {
 		writer.addFont(fontInput);
 
 		ByteArrayOutputStream propagate = new ByteArrayOutputStream();
-		writer.write(propagate);
+		writer.write(propagate, null);
 
 		BoilerInstance boiler = new BoilerBuilder(
 				VK_API_VERSION_1_2, "TestUpperCaseA", 1

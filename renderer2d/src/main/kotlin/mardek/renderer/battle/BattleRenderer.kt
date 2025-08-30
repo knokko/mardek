@@ -14,13 +14,13 @@ internal fun renderBattle(
 ): Vk2dColorBatch {
 	val battleContext = BattleRenderContext(context, state, battleState)
 
-	val combatantBatch = context.addImageBatch(1000) // TODO Choose nice capacity
-	renderBattleBackground(battleContext, combatantBatch)
+	val animationPartBatch = context.addAnimationPartBatch(1000) // TODO Choose nice capacity
+	renderBattleBackground(battleContext, animationPartBatch)
 	for (opponent in battleState.allOpponents().sortedBy { it.getPosition(battleContext.battle).y }) {
-		CombatantRenderer(battleContext, combatantBatch, opponent).render()
+		CombatantRenderer(battleContext, animationPartBatch, opponent).render()
 	}
 	for (player in battleState.allPlayers().sortedBy { it.getPosition(battleContext.battle).y }) {
-		CombatantRenderer(battleContext, combatantBatch, player).render()
+		CombatantRenderer(battleContext, animationPartBatch, player).render()
 	}
 
 	// Pretty much all components require colorBatch to be the first batch

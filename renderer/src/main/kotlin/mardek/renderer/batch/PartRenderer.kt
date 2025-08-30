@@ -7,7 +7,7 @@ import com.github.knokko.boiler.descriptors.DescriptorSetLayoutBuilder
 import com.github.knokko.boiler.descriptors.DescriptorUpdater
 import com.github.knokko.boiler.images.VkbImage
 import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder
-import mardek.content.animations.ColorTransform
+import mardek.content.animation.ColorTransform
 import mardek.content.sprite.BcSprite
 import org.joml.Vector2f
 import org.lwjgl.system.MemoryStack.stackPush

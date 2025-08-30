@@ -10,14 +10,14 @@ dependencies {
 
 	compileOnly "org.lwjgl:lwjgl-freetype"
 	compileOnly "org.lwjgl:lwjgl-harfbuzz"
-	for (format in ["kim1", "kim2", "bc1", "bc7"]) {
+	for (format in ["kim1", "kim2", "bc1", "bc4", "bc7"]) {
 		compileOnly "com.github.knokko.vk-compressor:$format:$compressorVersion"
 	}
 
 	testImplementation "org.lwjgl:lwjgl-freetype"
 	testImplementation "org.lwjgl:lwjgl-harfbuzz"
 	testImplementation "org.lwjgl:lwjgl-vma"
-	for (format in ["kim1", "kim2", "bc1", "bc7"]) {
+	for (format in ["kim1", "kim2", "bc1", "bc4", "bc7"]) {
 		testImplementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
 	}
 

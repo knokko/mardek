@@ -2,7 +2,7 @@ package mardek.renderer.battle.creature
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import mardek.content.animations.Animation
-import mardek.content.animations.ColorTransform
+import mardek.content.animation.ColorTransform
 import mardek.content.animations.SkeletonPartCastSparkle
 import mardek.content.animations.SkeletonPartSkins
 import mardek.content.animations.SkeletonPartSwingEffect

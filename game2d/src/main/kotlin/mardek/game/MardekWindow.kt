@@ -23,6 +23,7 @@ import mardek.content.Content
 import mardek.renderer.PerFrameResources
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
+import mardek.renderer.animation.AnimationPartPipeline
 import mardek.renderer.area.AreaLightPipeline
 import mardek.renderer.area.AreaSpritePipeline
 import mardek.renderer.glyph.MardekGlyphPipeline
@@ -46,6 +47,7 @@ class MardekWindow(
 	private lateinit var textPipeline: MardekGlyphPipeline
 	private lateinit var areaSpritePipeline: AreaSpritePipeline
 	private lateinit var areaLightPipeline: AreaLightPipeline
+	private lateinit var animationPartPipeline: AnimationPartPipeline
 
 	private lateinit var content: Content
 	private lateinit var mainResources: Vk2dResourceBundle
@@ -86,6 +88,7 @@ class MardekWindow(
 		this.textPipeline = MardekGlyphPipeline(pipelineContext, instance)
 		this.areaSpritePipeline = AreaSpritePipeline(pipelineContext, instance)
 		this.areaLightPipeline = AreaLightPipeline(pipelineContext, instance)
+		this.animationPartPipeline = AnimationPartPipeline(pipelineContext, instance)
 		this.swapchainResources = MardekSwapchainResources(
 			boiler, pipelines.blur, window.surfaceFormat, vkRenderPass
 		)
@@ -116,8 +119,8 @@ class MardekWindow(
 			) {
 				val context = RenderContext(
 					frame, frame.swapchainStage,
-					swapchainResources.get(swapchainImage), perFrame[frameIndex],
-					pipelines, textPipeline, areaSpritePipeline, areaLightPipeline,
+					swapchainResources.get(swapchainImage), perFrame[frameIndex], pipelines,
+					textPipeline, areaSpritePipeline, areaLightPipeline, animationPartPipeline,
 					textBuffer, perFrameDescriptorSet, recorder, content, gameState,
 					currentState.campaign, mainResources
 				)
@@ -137,6 +140,7 @@ class MardekWindow(
 		synchronized(gameState.lock()) {
 			gameState.currentState = ExitState()
 		}
+		animationPartPipeline.destroy(boiler)
 		areaLightPipeline.destroy(boiler)
 		areaSpritePipeline.destroy(boiler)
 		textPipeline.destroy(boiler)

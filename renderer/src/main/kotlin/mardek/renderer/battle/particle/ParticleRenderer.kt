@@ -1,7 +1,7 @@
 package mardek.renderer.battle.particle
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
-import mardek.content.animations.ColorTransform
+import mardek.content.animation.ColorTransform
 import mardek.renderer.battle.BattleRenderContext
 import mardek.renderer.battle.transformBattleCoordinates
 import org.joml.Math.toRadians

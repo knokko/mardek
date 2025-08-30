@@ -49,7 +49,7 @@ public class Vk2dInstance {
 			if (config.image) {
 				this.smoothSampler = boiler.images.createSimpleSampler(
 						VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR,
-						VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, "Vk2dSmoothSampler"
+						VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, "Vk2dSmoothSampler"
 				);
 				DescriptorSetLayoutBuilder builder = new DescriptorSetLayoutBuilder(stack, 1);
 				builder.set(0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);

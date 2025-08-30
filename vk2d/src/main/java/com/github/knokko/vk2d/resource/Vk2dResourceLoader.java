@@ -70,13 +70,16 @@ public class Vk2dResourceLoader {
 					"Image" + index, width, height
 			).texture().format(compression.format), 0.5f);
 
-			int size;
-			if (compression == Vk2dImageCompression.NONE) size = 4 * width * height;
-			else if (compression == Vk2dImageCompression.BC1 || compression == Vk2dImageCompression.BC7) {
-				int numBlocks = nextMultipleOf(width, 4) * nextMultipleOf(height, 4) / 16;
-				if (compression == Vk2dImageCompression.BC1) size = 8 * numBlocks;
-				else size = 16 * numBlocks;
-			} else throw new UnsupportedOperationException("Unexpected compression " + compression);
+			int size = switch (compression) {
+				case NONE: yield 4 * width * height;
+				case BC1:
+				case BC4:
+				case BC7:
+					int paddedWidth = nextMultipleOf(width, 4);
+					int paddedHeight = nextMultipleOf(height, 4);
+					if (compression == Vk2dImageCompression.BC7) yield paddedWidth * paddedHeight;
+					else yield paddedWidth * paddedHeight / 2;
+			};
 			this.imageStagingBuffers[index] = stagingCombiner.addMappedBuffer(
 					size, compression.alignment, VK_BUFFER_USAGE_TRANSFER_SRC_BIT
 			);

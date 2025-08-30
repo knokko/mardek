@@ -29,7 +29,7 @@ public class TextBenchmarkResourceWriter {
 		}
 
 		OutputStream output = Files.newOutputStream(TEXT_RESOURCE_FILE.toPath());
-		writer.write(output);
+		writer.write(output, null);
 		output.close();
 	}
 }

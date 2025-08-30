@@ -131,6 +131,6 @@ public class GlyphBenchmark2 extends Vk2dWindow {
 	}
 
 	public static void main(String[] args) {
-		bootstrap("GlyphBenchmark2", 1, Vk2dValidationMode.NONE, GlyphBenchmark2::new);
+		bootstrap("GlyphBenchmark2", 1, Vk2dValidationMode.STRONG, GlyphBenchmark2::new);
 	}
 }

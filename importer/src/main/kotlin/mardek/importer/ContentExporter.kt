@@ -2,10 +2,11 @@ package mardek.importer
 
 import com.github.knokko.bitser.serialize.Bitser
 import com.github.knokko.boiler.utilities.ImageCoding
+import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
 import com.github.knokko.vk2d.resource.Vk2dImageCompression
 import com.github.knokko.vk2d.resource.Vk2dResourceWriter
 import mardek.content.Content
-import mardek.content.animations.SkeletonPartSkins
+import mardek.content.animation.AnimationNode
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
 import mardek.content.ui.Font
@@ -68,14 +69,25 @@ private fun saveIcons(outputFolder: File) {
 
 private fun addBcImage(resourceWriter: Vk2dResourceWriter, bc: BcSprite) {
 	if (bc.index != -1) return
+	val compression = when (bc.version) {
+		4 -> Vk2dImageCompression.BC4
+		7 -> Vk2dImageCompression.BC7
+		else -> throw UnsupportedOperationException("Unexpected compression BC${bc.version}")
+	}
 	if (bc.bufferedImage != null) {
-		bc.index = resourceWriter.addImage(
-			bc.bufferedImage as BufferedImage, Vk2dImageCompression.BC7, false
-		)
+		if (compression == Vk2dImageCompression.BC4) {
+			bc.index = resourceWriter.addGreyscaleImage(
+				bc.bufferedImage as BufferedImage, compression, Vk2dGreyscaleChannel.ALPHA, false
+			)
+		} else {
+			bc.index = resourceWriter.addImage(
+				bc.bufferedImage as BufferedImage, compression, false
+			)
+		}
 	} else {
 		bc.index = resourceWriter.addPreCompressedImage(
 			bc.data, bc.width, bc.height,
-			Vk2dImageCompression.BC7, false
+			compression, false
 		)
 	}
 	bc.data = null
@@ -136,24 +148,23 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 		for (sprite in effect.passiveParticleSprites) addBcImage(resourceWriter, sprite)
 	}
 	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
-	// TODO Cache BC images, especially backgrounds
-	for (background in content.battle.backgrounds) addBcImage(resourceWriter, background.sprite)
-	for (sprite in content.battle.particleSprites) addBcImage(resourceWriter, sprite.sprite)
+
+	for (animationSprite in content.battle.animationSprites) {
+		addBcImage(resourceWriter, animationSprite.image)
+	}
 	for (skeleton in content.battle.skeletons) {
-		for (part in skeleton.parts) {
-			val content = part.content
-			if (content is SkeletonPartSkins) {
-				for (skin in content.skins) {
-					for (entry in skin.entries) addBcImage(resourceWriter, entry.sprite)
-				}
-			}
+		for (animation in skeleton.animations.values) {
+			for (sprite in animation.innerSprites) addBcImage(resourceWriter, sprite.image)
 		}
 	}
+	addBcImage(resourceWriter, content.battle.noMask)
+
+	for (sprite in content.battle.particleSprites) addBcImage(resourceWriter, sprite.sprite)
 
 	for (font in content.fonts.all()) addFont(resourceWriter, font)
 
 	val output = Files.newOutputStream(File("$outputFolder/content.vk2d").toPath())
-	resourceWriter.write(output)
+	resourceWriter.write(output, File("flash/bc-cache"))
 	output.close()
 
 	Files.write(
@@ -177,7 +188,7 @@ private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
 	val output = Files.newOutputStream(File(
 		"$projectFolder/game2d/src/main/resources/mardek/game/title-screen.vk2d"
 	).toPath())
-	resourceWriter.write(output)
+	resourceWriter.write(output, File("flash/bc-cache"))
 	output.close()
 
 	Files.write(

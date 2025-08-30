@@ -6,7 +6,7 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.battle.Monster
 import mardek.content.battle.StrategyPool
 import mardek.content.characters.PlayableCharacter
@@ -259,7 +259,7 @@ sealed class CombatantState(
 		return autoEffects
 	}
 
-	abstract fun getModel(): BattleModel
+	abstract fun getAnimations(): CombatantAnimations
 
 	abstract fun getTurnOrderIcon(): KimSprite
 
@@ -344,7 +344,7 @@ class PlayerCombatantState(
 		return resistance
 	}
 
-	override fun getModel() = player.battleModel
+	override fun getAnimations() = player.animations
 
 	override fun getTurnOrderIcon() = player.areaSprites.sprites[0]
 
@@ -475,7 +475,7 @@ class MonsterCombatantState(
 		return resistance
 	}
 
-	override fun getModel() = monster.model
+	override fun getAnimations() = monster.animations
 
 	override fun getTurnOrderIcon() = monster.type.icon
 

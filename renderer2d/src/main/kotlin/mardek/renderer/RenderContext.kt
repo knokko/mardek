@@ -7,6 +7,7 @@ import com.github.knokko.vk2d.pipeline.Vk2dPipelines
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.text.Vk2dTextBuffer
 import mardek.content.Content
+import mardek.renderer.animation.AnimationPartPipeline
 import mardek.renderer.area.AreaLightPipeline
 import mardek.renderer.area.AreaSpritePipeline
 import mardek.renderer.glyph.MardekGlyphPipeline
@@ -35,6 +36,7 @@ class RenderContext(
 	val fancyTextPipeline: MardekGlyphPipeline,
 	val areaSpritePipeline: AreaSpritePipeline,
 	val areaLightPipeline: AreaLightPipeline,
+	val animationPartPipeline: AnimationPartPipeline,
 	val textBuffer: Vk2dTextBuffer,
 	val perFrameDescriptorSet: Long,
 	val recorder: CommandRecorder,
@@ -66,4 +68,6 @@ class RenderContext(
 	)
 
 	fun addAreaLightBatch(scissor: Rectangle) = areaLightPipeline.addBatch(currentStage, perFrameDescriptorSet, scissor)
+
+	fun addAnimationPartBatch(initialCapacity: Int) = animationPartPipeline.addBatch(currentStage, initialCapacity, bundle)
 }

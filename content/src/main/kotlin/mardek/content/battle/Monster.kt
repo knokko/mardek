@@ -7,7 +7,7 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.stats.*
 import mardek.content.inventory.Dreamstone
 import mardek.content.skill.ActiveSkill
@@ -20,7 +20,7 @@ class Monster(
 	val name: String,
 
 	@BitField(id = 1)
-	val model: BattleModel,
+	val animations: CombatantAnimations,
 
 	@BitField(id = 2)
 	val className: String,
@@ -124,7 +124,7 @@ class Monster(
 
 	constructor() : this(
 		name = "",
-		model = BattleModel(),
+		animations = CombatantAnimations(),
 		className = "",
 		type = CreatureType(),
 		element = Element(),
