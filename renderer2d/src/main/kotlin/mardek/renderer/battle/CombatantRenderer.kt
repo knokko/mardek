@@ -1,31 +1,21 @@
 package mardek.renderer.battle
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
-import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import mardek.content.animation.AnimationFrames
 import mardek.content.animation.ColorTransform
 import mardek.content.battle.PartyLayoutPosition
-import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.animation.CombatantAnimationContext
 import mardek.renderer.animation.renderCombatantAnimation
-import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.DamageIndicatorHealth
 import mardek.state.ingame.battle.DamageIndicatorMana
 import mardek.state.ingame.battle.MonsterCombatantState
-import mardek.state.ingame.battle.ParticleEffectState
-import org.joml.Math
 import org.joml.Matrix3x2f
-import org.joml.Vector2f
-import java.lang.Math.toIntExact
-import kotlin.math.cos
 import kotlin.math.min
-import kotlin.math.roundToInt
-import kotlin.math.sin
 
 private const val FRAME_LENGTH = 33_000_000L
 
@@ -36,7 +26,6 @@ class CombatantRenderer(
 	private val showcase: Boolean = false,
 ) {
 	private val state = context.battle.state
-	private val currentRealTime = System.nanoTime()
 	private val flipX = if (combatant.isOnPlayerSide && !showcase) 1f else -1f
 	private val effectColorTransform = mergeColorTransforms(
 		mergeColorTransforms(selectedColorTransform(), damageColorTransform()),
@@ -44,8 +33,9 @@ class CombatantRenderer(
 	)
 
 	private val animations = combatant.getAnimations()
-	private var relativeTime = currentRealTime - context.battle.startTime
+	private var relativeTime = context.renderTime - context.battle.startTime
 	private var animation: AnimationFrames? = animations["idle"]
+
 	private var coordinates = transformBattleCoordinates(
 		combatant.getPosition(context.battle), flipX, context
 	)
@@ -67,7 +57,7 @@ class CombatantRenderer(
 		if (combatant.lastPointedTo == 0L) return null
 
 		val blinkTime = 500_000_000L
-		val passedTime = currentRealTime - combatant.lastPointedTo
+		val passedTime = context.renderTime - combatant.lastPointedTo
 		if (passedTime >= blinkTime) return null
 
 		return selectedColorTransform(1f - passedTime.toFloat() / blinkTime)
@@ -76,7 +66,7 @@ class CombatantRenderer(
 	private fun skipTurnTransform(): ColorTransform? {
 		val forcedTurn = combatant.lastForcedTurn ?: return null
 		val duration = 1000_000_000L
-		val passedTime = currentRealTime - forcedTurn.time
+		val passedTime = context.renderTime - forcedTurn.time
 		if (passedTime >= duration) return null
 
 		return colorCombineTransform(1f, 1f - passedTime.toFloat() / duration, forcedTurn.color)
@@ -97,7 +87,7 @@ class CombatantRenderer(
 		}
 
 		val blinkTime = 1000_000_000L
-		val passedTime = currentRealTime - damageIndicator.time
+		val passedTime = context.renderTime - damageIndicator.time
 		if (passedTime >= blinkTime) return null
 
 		val color = if (overrideColor != 0) overrideColor
@@ -215,7 +205,7 @@ class CombatantRenderer(
 		if (state !is BattleStateMachine.CastSkill) throw Error()
 
 		val castAnimation = animations[state.skill.animation ?: "spellcast"]
-		val relativeCastTime = currentRealTime - state.startTime
+		val relativeCastTime = context.renderTime - state.startTime
 		val castTime = castAnimation.frames.size * FRAME_LENGTH
 		if (relativeCastTime < castTime) {
 			animation = castAnimation
@@ -227,7 +217,7 @@ class CombatantRenderer(
 		if (state !is BattleStateMachine.UseItem) throw Error()
 
 		val itemAnimation = animations["useitem"]
-		val relativeThrowTime = currentRealTime - state.startTime
+		val relativeThrowTime = context.renderTime - state.startTime
 		val throwTime = itemAnimation.frames.size * FRAME_LENGTH
 		if (relativeThrowTime < throwTime) {
 			animation = itemAnimation
@@ -239,7 +229,7 @@ class CombatantRenderer(
 		val lastDamage = combatant.lastDamageIndicator
 		if (combatant.isAlive() && lastDamage != null && lastDamage is DamageIndicatorHealth && lastDamage.gainedHealth < 0) {
 			val hurtAnimation = animations["hit"]
-			val sinceDamage = currentRealTime - lastDamage.time
+			val sinceDamage = context.renderTime - lastDamage.time
 			val hurtFrame = sinceDamage / FRAME_LENGTH
 			if (hurtFrame < hurtAnimation.frames.size) {
 				animation = hurtAnimation
@@ -251,7 +241,7 @@ class CombatantRenderer(
 		if (!combatant.isAlive()) {
 			if (lastDamage != null) {
 				val dieAnimation = animations["die"]
-				val sinceDeath = currentRealTime - lastDamage.time
+				val sinceDeath = context.renderTime - lastDamage.time
 				val dieFrame = sinceDeath / FRAME_LENGTH
 				if (dieFrame < dieAnimation.frames.size) {
 					animation = dieAnimation
@@ -267,7 +257,7 @@ class CombatantRenderer(
 		if (combatant.isAlive() && state is BattleStateMachine.Victory) {
 			val victoryAnimation = animations["victory"]
 			animation = victoryAnimation
-			relativeTime = min(currentRealTime - state.startTime, victoryAnimation.frames.size * FRAME_LENGTH - 1)
+			relativeTime = min(context.renderTime - state.startTime, victoryAnimation.frames.size * FRAME_LENGTH - 1)
 		}
 	}
 

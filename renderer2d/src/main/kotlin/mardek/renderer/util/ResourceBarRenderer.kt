@@ -15,30 +15,37 @@ class ResourceBarRenderer(
 	private val textBatch: Vk2dGlyphBatch,
 ) {
 
-	fun renderBar(currentValue: Int, maxValue: Int) {
+	fun renderBar(currentValue: Int, maxValue: Int, opacity: Float = 1f) {
 		val backgroundColor = srgbToLinear(rgb(58, 43, 31))
 		val remainingWidth = currentValue * (barRegion.width - 1) / maxValue
 		val entry = resourceType.chooseColor(currentValue, maxValue)
 		colorBatch.fill(
 			barRegion.minX + remainingWidth, barRegion.minY,
-			barRegion.maxX, barRegion.maxY, backgroundColor
+			barRegion.maxX, barRegion.maxY,
+			changeAlpha(backgroundColor, opacity),
 		)
+
 		colorBatch.gradient(
 			barRegion.minX, barRegion.minY, barRegion.minX + remainingWidth, barRegion.maxY,
-			entry.bottomLeftColor, entry.bottomRightColor, entry.bottomLeftColor
+			changeAlpha(entry.bottomLeftColor, opacity),
+			changeAlpha(entry.bottomRightColor, opacity),
+			changeAlpha(entry.bottomLeftColor, opacity),
 		)
 		if (entry.topGradient) {
 			colorBatch.gradient(
 				barRegion.minX, barRegion.minY + barRegion.height / 7,
 				barRegion.minX + remainingWidth, barRegion.minY + 4 * barRegion.height / 7,
-				changeAlpha(entry.topLeftColor, 100),
-				changeAlpha(entry.topRightColor, 100), entry.topLeftColor
+				changeAlpha(entry.topLeftColor, 0.4f * opacity),
+				changeAlpha(entry.topRightColor, 0.4f * opacity),
+				changeAlpha(entry.topLeftColor, opacity),
 			)
 		} else {
 			colorBatch.gradient(
 				barRegion.minX, barRegion.minY + barRegion.height / 7,
 				barRegion.minX + remainingWidth, barRegion.minY + 4 * barRegion.height / 7,
-				entry.topLeftColor, entry.topRightColor, entry.topLeftColor
+				changeAlpha(entry.topLeftColor, opacity),
+				changeAlpha(entry.topRightColor, opacity),
+				changeAlpha(entry.topLeftColor, opacity),
 			)
 		}
 	}
@@ -83,14 +90,15 @@ class ResourceBarRenderer(
 		)
 	}
 
-	fun renderCurrentOverBar(currentValue: Int, maxValue: Int) {
+	fun renderCurrentOverBar(currentValue: Int, maxValue: Int, opacity: Float = 1f) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
 		val font = context.bundle.getFont(context.content.fonts.large1.index)
 		val shadowOffset = 0.125f * barRegion.height
 		textBatch.drawShadowedString(
 			currentValue.toString(), barRegion.maxX - 0.1f * barRegion.width,
-			barRegion.maxY + barRegion.height * 0.5f, barRegion.height * 1.75f,
-			font, entry.textColor, 0, 0f, entry.shadowColor,
+			barRegion.maxY + barRegion.height * 0.5f, barRegion.height * 1.75f, font,
+			changeAlpha(entry.textColor, opacity), 0, 0f,
+			changeAlpha(entry.shadowColor, opacity),
 			shadowOffset, shadowOffset, TextAlignment.RIGHT,
 		)
 	}

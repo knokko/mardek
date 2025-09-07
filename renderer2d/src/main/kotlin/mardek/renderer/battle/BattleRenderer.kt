@@ -34,8 +34,11 @@ internal fun renderBattle(
 	val kimBatch = context.addKim3Batch(1000) // TODO Choose nice capacity
 	val textBatch = context.addFancyTextBatch(1000) // TODO Choose nice capacity
 
-	// The player & monster block renderers need the lateColorBatch to be in front of everything
-	val lateColorBatch = context.addColorBatch(10) // TODO Choose nice capacity
+	// The combatant info popup needs to render above everything else
+	val lateColorBatch = context.addColorBatch(100) // TODO Choose nice capacity
+	val lateKimBatch = context.addKim3Batch(100) // TODO Choose nice capacity
+	val lateImageBatch = context.addImageBatch(100) // TODO Choose nice capacity
+	val lateTextBatch = context.addTextBatch(100) // TODO Choose nice capacity
 
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 12
@@ -69,7 +72,7 @@ internal fun renderBattle(
 		if (enemy is MonsterCombatantState) {
 			renderMonsterBlock(
 				battleContext, enemy, colorBatch, lateColorBatch, ovalBatch,
-				kimBatch, imageBatch, textBatch, region,
+				imageBatch, textBatch, region,
 			)
 		} else {
 			renderPlayerBlock(
@@ -91,7 +94,7 @@ internal fun renderBattle(
 		if (player is MonsterCombatantState) {
 			renderMonsterBlock(
 				battleContext, player, colorBatch, lateColorBatch, ovalBatch,
-				kimBatch, imageBatch, textBatch, region,
+				imageBatch, textBatch, region,
 			)
 		} else {
 			renderPlayerBlock(
@@ -100,6 +103,18 @@ internal fun renderBattle(
 			)
 		}
 	}
+
+	renderChallengeBar(battleContext, colorBatch, imageBatch, Rectangle(
+		minX = region.minX,
+		minY = region.boundY - region.height / 16 - region.height / 8,
+		width = region.width,
+		height = region.height / 16,
+	))
+
+	renderCombatantInfoPopup(battleContext, lateColorBatch, lateKimBatch, lateImageBatch, lateTextBatch, Rectangle(
+		region.minX, region.minY + region.height / 8,
+		region.width, region.boundY - region.height / 8 - region.height / 16,
+	))
 
 	return colorBatch
 }

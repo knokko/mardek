@@ -10,7 +10,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-internal fun renderCombatantHealth(combatant: CombatantState, healthBar: ResourceBarRenderer, currentTime: Long): Int {
+internal fun renderCombatantHealth(
+	combatant: CombatantState, healthBar: ResourceBarRenderer,
+	currentTime: Long, opacity: Float = 1f
+): Int {
 	var displayedHealth = combatant.currentHealth
 	val lastDamage = combatant.lastDamageIndicator
 
@@ -25,14 +28,15 @@ internal fun renderCombatantHealth(combatant: CombatantState, healthBar: Resourc
 			else max(displayedHealth, combatant.currentHealth)
 		}
 	}
-	healthBar.renderBar(displayedHealth, combatant.maxHealth)
+	healthBar.renderBar(displayedHealth, combatant.maxHealth, opacity)
 	if (lastDamage is DamageIndicatorHealth) {
-		val progress = fadeProgress(lastDamage.time)
-		val opacity = if (progress < 1) 1.0 else if (progress < 2) 4 * (1.25 - progress) else 0.0
-		if (opacity > 0) {
+		val progress = fadeProgress(lastDamage.time).toFloat()
+		var lostOpacity = if (progress < 1) 1f else if (progress < 2) 4f * (1.25f - progress) else 0f
+		lostOpacity *= opacity
+		if (lostOpacity > 0) {
 			healthBar.renderLost(
 				displayedHealth, lastDamage.oldHealth,
-				combatant.maxHealth, opacity.toFloat()
+				combatant.maxHealth, lostOpacity
 			)
 		}
 	}
