@@ -7,6 +7,7 @@ import com.github.knokko.boiler.commands.SingleTimeCommands;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
 import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
+import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.vk2d.resource.*;
 import com.github.knokko.vk2d.text.Vk2dFont;
 import com.github.knokko.vk2d.text.Vk2dTextBuffer;
@@ -82,7 +83,13 @@ public class TestGlyphScratchBufferingD {
 
 		textBuffer.initializeDescriptorSets();
 		assertEquals(0, textBuffer.scratch(font, glyph, 0f, 123, glyphHeight, glyphHeight, true, 0f));
-		commands.submit("GlyphTransfer", textBuffer::record).awaitCompletion();
+		commands.submit("GlyphTransfer", recorder -> {
+			textBuffer.record(recorder);
+			recorder.bulkBufferBarrier(
+					ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT),
+					ResourceUsage.HOST_READ, scratchInfoBuffer, scratchIntersectionBuffer
+			);
+		}).awaitCompletion();
 
 		IntBuffer info = scratchInfoBuffer.intBuffer();
 		FloatBuffer intersections = scratchIntersectionBuffer.floatBuffer();

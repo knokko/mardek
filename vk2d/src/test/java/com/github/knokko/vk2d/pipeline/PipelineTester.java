@@ -113,6 +113,7 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 			SingleTimeCommands.submit(boiler, testCase, recorder -> {
 				frame.record(recorder);
 				recorder.copyImageToBuffer(targetImage, destinationBuffer);
+				recorder.bufferBarrier(destinationBuffer, ResourceUsage.TRANSFER_DEST, ResourceUsage.HOST_READ);
 			}).destroy();
 
 			BufferedImage actual = ImageCoding.decodeBufferedImage(

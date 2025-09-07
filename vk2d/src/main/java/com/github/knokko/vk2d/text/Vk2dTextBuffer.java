@@ -156,9 +156,14 @@ public class Vk2dTextBuffer extends Vk2dComputeStage {
 		return cache.get(font.index, glyph, offset, size, intSize, horizontal, maxOrthogonalDistance);
 	}
 
-	private void nextIntersectionBarrier(CommandRecorder recorder) {
-		ResourceUsage usage = ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT);
-		recorder.bufferBarrier(nextIntersectionIndexBuffer, usage, usage);
+	private void preIntersectionInfoBarrier(CommandRecorder recorder) {
+		ResourceUsage computeUsage = ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT);
+		recorder.bufferBarrier(nextIntersectionIndexBuffer, computeUsage, computeUsage);
+	}
+
+	private void postIntersectionInfoBarrier(CommandRecorder recorder) {
+		ResourceUsage computeUsage = ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT);
+		recorder.bufferBarrier(nextIntersectionIndexBuffer, computeUsage, ResourceUsage.HOST_READ);
 	}
 
 	public long getRenderDescriptorSet() {
@@ -209,6 +214,7 @@ public class Vk2dTextBuffer extends Vk2dComputeStage {
 			IntBuffer transferPushConstants = recorder.stack.callocInt(4);
 			transferPushConstants.put(2, cache.getCurrentFrameInFlight());
 
+			preIntersectionInfoBarrier(recorder);
 			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, instance.textTransferPipeline);
 			recorder.bindComputeDescriptors(instance.textTransferPipelineLayout, transferDescriptorSet);
 			vkCmdPushConstants(
@@ -216,7 +222,7 @@ public class Vk2dTextBuffer extends Vk2dComputeStage {
 					VK_SHADER_STAGE_COMPUTE_BIT, 0, transferPushConstants
 			);
 			vkCmdDispatch(recorder.commandBuffer, 1, 1, 1);
-			nextIntersectionBarrier(recorder);
+			postIntersectionInfoBarrier(recorder);
 			return;
 		}
 
@@ -257,6 +263,7 @@ public class Vk2dTextBuffer extends Vk2dComputeStage {
 		transferPushConstants.put(2, cache.getCurrentFrameInFlight());
 		transferPushConstants.put(3, Math.toIntExact(intersectionBuffer.size / 4L));
 
+		preIntersectionInfoBarrier(recorder);
 		vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, instance.textTransferPipeline);
 		recorder.bindComputeDescriptors(instance.textTransferPipelineLayout, transferDescriptorSet);
 		vkCmdPushConstants(
@@ -269,7 +276,7 @@ public class Vk2dTextBuffer extends Vk2dComputeStage {
 				VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT
 		);
 		recorder.bufferBarrier(nextOffsetBuffer, nextOffsetUsage, nextOffsetUsage);
-		nextIntersectionBarrier(recorder);
+		postIntersectionInfoBarrier(recorder);
 
 		recorder.bulkBufferBarrier(
 				ResourceUsage.computeBuffer(VK_ACCESS_SHADER_WRITE_BIT),
@@ -288,7 +295,5 @@ public class Vk2dTextBuffer extends Vk2dComputeStage {
 			int intSize,
 			float subpixelOffset,
 			float maxOrthogonalDistance
-	) {
-
-	}
+	) {}
 }
