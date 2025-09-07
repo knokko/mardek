@@ -17,6 +17,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
@@ -178,7 +179,7 @@ public class Vk2dTextBuffer extends Vk2dComputeStage {
 
 		long lastFontDescriptorSet = VK_NULL_HANDLE;
 
-		ByteBuffer scratchPushConstants = recorder.stack.calloc(44);
+		ByteBuffer scratchPushConstants = recorder.stack.calloc(48);
 		for (ScratchJob job : scratchJobs) {
 			if (job.font.vkDescriptorSet != lastFontDescriptorSet) {
 				lastFontDescriptorSet = job.font.vkDescriptorSet;
@@ -198,13 +199,14 @@ public class Vk2dTextBuffer extends Vk2dComputeStage {
 			scratchPushConstants.putFloat(32, job.font.getGlyphMaxY(job.glyph));
 			scratchPushConstants.putFloat(36, job.subpixelOffset);
 			scratchPushConstants.putFloat(40, job.maxOrthogonalDistance);
+			scratchPushConstants.putInt(44, job.intSize);
 
 			vkCmdPushConstants(
 					recorder.commandBuffer, instance.textScratchPipelineLayout,
 					VK_SHADER_STAGE_COMPUTE_BIT, 0, scratchPushConstants
 			);
-			// TODO Better group size
-			vkCmdDispatch(recorder.commandBuffer, job.intSize, 1, 1);
+			int numGroupsX = nextMultipleOf(job.intSize, 64) / 64;
+			vkCmdDispatch(recorder.commandBuffer, numGroupsX, 1, 1);
 		}
 
 		shouldStartFrame = true;

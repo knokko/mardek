@@ -10,6 +10,8 @@ layout(set = 1, binding = 0) readonly buffer CurveBuffer {
 	uint curveData[];
 };
 
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
 layout(push_constant) uniform PushConstants {
 	uint intersectionDataOffset;
 	uint intersectionInfoOffset;
@@ -22,6 +24,7 @@ layout(push_constant) uniform PushConstants {
 	float glyphMaxY;
 	float subpixelOffset;
 	float maxOrthogonalDistance;
+	uint numWaves;
 };
 
 float unpack(uint raw) {
@@ -44,6 +47,7 @@ float transformOrthogonal(float original) {
 
 void main() {
 	uint thisWave = gl_GlobalInvocationID.x;
+	if (thisWave >= numWaves) return;
 
 	float sizeInPixels;
 	float glyphSize, wavePosition;
