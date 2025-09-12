@@ -2,9 +2,9 @@
 ## Rewrite of the MARDEK flash game series in Kotlin
 
 ### Development environment
-#### OpenJDK
+#### OpenJDK 21+
 First of all, install OpenJDK 21.
-Later versions will probably work as well, earlier versions may or may not.
+Later versions will probably work as well, earlier versions probably not.
 After installing OpenJDK, you **should** be able to run the game by running
 ```
 ./gradlew run
