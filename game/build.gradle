@@ -60,20 +60,3 @@ tasks.register("proguard", ProGuardTask) {
 	dontwarn "com.github.knokko.boiler.buffers.MappedVkbBuffer"
 	dontwarn "com.github.knokko.boiler.utilities.ImageCoding"
 }
-
-tasks.register("run", JavaExec) {
-	group = "Run"
-	description = "Runs the game without validation layer"
-
-	classpath sourceSets.main.runtimeClasspath
-	mainClass = "mardek.game.MardekGameKt"
-}
-
-tasks.register("runValidation", JavaExec) {
-	group = "Run"
-	description = "Runs the game with the validation layer"
-
-	classpath sourceSets.main.runtimeClasspath
-	mainClass = "mardek.game.MardekGameKt"
-	args "validation"
-}

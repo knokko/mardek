@@ -1,10 +1,13 @@
 package mardek.renderer
 
+import com.github.knokko.boiler.utilities.ColorPacker.alpha
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.boiler.utilities.ColorPacker.unsigned
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import mardek.renderer.area.renderCurrentArea
 import mardek.renderer.battle.renderBattle
+import mardek.renderer.battle.renderBattleLoot
 import mardek.renderer.menu.MenuRenderContext
 import mardek.renderer.menu.determineSectionRenderRegion
 import mardek.renderer.menu.renderInGameMenu
@@ -95,9 +98,39 @@ internal fun renderInGame(context: RenderContext, state: InGameState, region: Re
 				titleColorBatch = renderCurrentArea(context, area, region)
 			}
 		} else {
-			titleColorBatch = renderBattle(context, state.campaign, battle, region)
+			val framebuffers = context.framebuffers
 			val loot = area.battleLoot
-			if (loot != null) TODO("Render battle loot")
+			if (loot == null) {
+				titleColorBatch = renderBattle(context, state.campaign, battle, region)
+			} else {
+				context.currentStage = context.pipelines.blur.addSourceStage(
+					context.frame, framebuffers.blur, -1
+				)
+				context.pipelines.blur.addComputeStage(
+					context.frame, context.perFrame.areaBlurDescriptors,
+					framebuffers.blur, 3, 50, -1
+				)
+				renderBattle(context, state.campaign, battle, region)
+
+				context.currentStage = context.frame.swapchainStage
+				val blurStrength = 240
+				val leftBlurColor = srgbToLinear(rgba(54, 37, 21, blurStrength))
+				val rightBlurColor = srgbToLinear(rgba(132, 84, 53, blurStrength))
+				val inverseBlur = 255 - blurStrength
+				val multiplyColor = rgba(inverseBlur, inverseBlur, inverseBlur, inverseBlur)
+				context.pipelines.blur.addBatch(
+					context.frame.swapchainStage,
+					framebuffers.blur, context.perFrame.areaBlurDescriptors,
+					region.minX.toFloat(), region.minY.toFloat(),
+					region.boundX.toFloat(), region.boundY.toFloat(),
+				).gradientColorTransform(
+					leftBlurColor, multiplyColor,
+					leftBlurColor, multiplyColor,
+					rightBlurColor, multiplyColor,
+					rightBlurColor, multiplyColor,
+				)
+				titleColorBatch = renderBattleLoot(context, loot, state.campaign.characterSelection.party, region)
+			}
 		}
 	}
 

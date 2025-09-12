@@ -12,23 +12,29 @@ import mardek.state.util.Rectangle
 
 fun renderButton(
 	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: MardekGlyphBatch, font: Vk2dFont,
-	showTextOutline: Boolean, text: String, isSelected: Boolean, rect: Rectangle,
-	outlineWidth: Int, textOffsetX: Int, textBaseY: Int, textHeight: Int,
+	showTextOutline: Boolean, text: String, renderLeftBorder: Boolean, isSelected: Boolean, isDisabled: Boolean,
+	rect: Rectangle, outlineWidth: Int, textOffsetX: Int, textBaseY: Int, textHeight: Int,
 ) {
 	var borderLight = srgbToLinear(rgb(255, 204, 153))
 	val borderHoverLight = srgbToLinear(rgb(152, 190, 222))
+	val borderDisabledLight = srgbToLinear(rgb(96, 67, 44))
 
 	var borderDark = srgbToLinear(rgb(101, 50, 1))
 	val borderHoverDark = srgbToLinear(rgb(31, 68, 122))
+	val borderDisabledDark = srgbToLinear(rgb(61, 40, 18))
 	var innerLightLeft = srgbToLinear(rgba(189, 111, 62, 213))
 	val innerLightHoverLeft = srgbToLinear(rgba(70, 126, 181, 197))
+	val innerLightDisabledLeft = srgbToLinear(rgba(67, 41, 22, 197))
 	var innerLightRight = srgbToLinear(rgba(152, 115, 94, 166))
 	val innerLightHoverRight = srgbToLinear(rgba(147, 152, 224, 106))
+	val innerLightDisabledRight = srgbToLinear(rgba(64, 47, 30, 106))
 
 	var innerLeft = srgbToLinear(rgba(169, 67, 1, 204))
 	val innerHoverLeft = srgbToLinear(rgba(6, 82, 155, 182))
+	val innerDisabledLeft = srgbToLinear(rgba(59, 33, 16, 182))
 	var innerRight = srgbToLinear(rgba(104, 52, 22, 142))
 	val innerHoverRight = rgba(46, 54, 193, 66)
+	val innerDisabledRight = rgba(56, 39, 23, 66)
 
 	if (isSelected) {
 		borderLight = borderHoverDark
@@ -39,42 +45,56 @@ fun renderButton(
 		innerLightRight = innerLightHoverRight
 	}
 
+	if (isDisabled) { // TODO Look into these disabled colors
+		borderLight = borderDisabledDark
+		borderDark = borderDisabledLight
+		innerLeft = innerDisabledLeft
+		innerRight = innerDisabledRight
+		innerLightLeft = innerLightDisabledLeft
+		innerLightRight = innerLightDisabledRight
+	}
+
+	var minX = rect.minX
+	if (renderLeftBorder) minX += 2 * outlineWidth
+
 	colorBatch.fill(
-		rect.minX + 2 * outlineWidth, rect.minY,
+		minX, rect.minY,
 		rect.maxX - 2 * outlineWidth, rect.minY + outlineWidth - 1, borderLight
 	)
 	colorBatch.gradient(
-		rect.minX + 2 * outlineWidth, rect.minY + outlineWidth,
+		minX, rect.minY + outlineWidth,
 		rect.maxX - 2 * outlineWidth, rect.minY + 2 * outlineWidth - 1,
 		innerLeft, innerRight, innerLeft
 	)
 	colorBatch.gradient(
-		rect.minX + 2 * outlineWidth, rect.minY + 2 * outlineWidth,
+		minX, rect.minY + 2 * outlineWidth,
 		rect.maxX - 2 * outlineWidth, rect.minY + rect.height / 2,
 		innerLightLeft, innerLightRight, innerLightLeft
 	)
 	colorBatch.gradient(
-		rect.minX + 2 * outlineWidth, rect.minY + rect.height / 2,
+		minX, rect.minY + rect.height / 2,
 		rect.maxX - 2 * outlineWidth, rect.maxY - outlineWidth,
 		innerLeft, innerRight, innerLeft
 	)
 	colorBatch.fill(
-		rect.minX + 2 * outlineWidth, rect.maxY + 1 - outlineWidth,
+		minX, rect.maxY + 1 - outlineWidth,
 		rect.maxX - 2 * outlineWidth, rect.maxY, borderDark
 	)
-	ovalBatch.complex(
-		rect.minX, rect.minY, rect.minX + 2 * outlineWidth - 1, rect.maxY,
-		rect.minX + 4f * outlineWidth, rect.minY + rect.height / 2f,
-		4f * outlineWidth, 7f * outlineWidth,
-		innerLeft, innerLeft, borderLight, borderLight, 0,
-		0.8f, 0.8f, 1f, 1f
-	)
+	if (renderLeftBorder) {
+		ovalBatch.complex(
+			rect.minX, rect.minY, rect.minX + 2 * outlineWidth - 1, rect.maxY,
+			rect.minX + 4f * outlineWidth, rect.minY + rect.height / 2f,
+			4f * outlineWidth, 0.5f * rect.height + outlineWidth,
+			innerLeft, innerLeft, borderLight, borderLight, 0,
+			0.86f, 0.86f, 1f, 1f
+		)
+	}
 	ovalBatch.complex(
 		rect.maxX + 1 - 2 * outlineWidth, rect.minY, rect.maxX, rect.maxY,
 		rect.maxX - 4f * outlineWidth, rect.minY + rect.height / 2f,
-		4f * outlineWidth, 8f * outlineWidth,
+		4f * outlineWidth, 0.5f * rect.height + outlineWidth,
 		innerRight, innerRight, borderDark, borderDark, 0,
-		0.8f, 0.8f, 1f, 1f
+		0.86f, 0.86f, 1f, 1f
 	)
 
 	var upperTextColor = srgbToLinear(rgb(248, 232, 194))
@@ -82,6 +102,11 @@ fun renderButton(
 	if (isSelected) {
 		upperTextColor = srgbToLinear(rgb(221, 238, 254))
 		lowerTextColor = srgbToLinear(rgb(164, 204, 253))
+	}
+
+	if (isDisabled) {
+		upperTextColor = srgbToLinear(rgb(102, 74, 48))
+		lowerTextColor = srgbToLinear(rgb(97, 68, 44))
 	}
 
 	val outlineColor = srgbToLinear(rgb(112, 64, 33))

@@ -129,10 +129,11 @@ internal fun renderChallengeBar(
 			}
 			val cursorWidth = 3 * height / 2
 
-			imageBatch.simple(
+			imageBatch.colored(
 				cursorX - 0.5f * cursorWidth, cursorMinY.toFloat(),
 				cursorX + 0.5f * cursorWidth, cursorMaxY.toFloat(),
 				context.content.ui.challengeCursor.index,
+				0, rgba(1f, 1f, 1f, opacity),
 			)
 		}
 	}

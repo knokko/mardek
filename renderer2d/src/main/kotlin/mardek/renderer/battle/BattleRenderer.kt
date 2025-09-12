@@ -1,9 +1,13 @@
 package mardek.renderer.battle
 
+import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import mardek.renderer.RenderContext
 import mardek.state.ingame.CampaignState
+import mardek.state.ingame.battle.BattleMoveSelectionItem
+import mardek.state.ingame.battle.BattleMoveSelectionSkill
 import mardek.state.ingame.battle.BattleState
+import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.MonsterCombatantState
 import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.util.Rectangle
@@ -36,6 +40,7 @@ internal fun renderBattle(
 
 	// The combatant info popup needs to render above everything else
 	val lateColorBatch = context.addColorBatch(100) // TODO Choose nice capacity
+	val lateOvalBatch = context.addOvalBatch(4)
 	val lateKimBatch = context.addKim3Batch(100) // TODO Choose nice capacity
 	val lateImageBatch = context.addImageBatch(100) // TODO Choose nice capacity
 	val lateTextBatch = context.addTextBatch(100) // TODO Choose nice capacity
@@ -43,10 +48,69 @@ internal fun renderBattle(
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 12
 	))
-	renderActionBar(battleContext, colorBatch, ovalBatch, kimBatch, imageBatch, textBatch, Rectangle(
+
+	val actionBarRegion = Rectangle(
 		region.minX, region.boundY - region.height / 12 - region.height / 8,
-		region.width, region.height / 12
-	))
+		region.width, computeActionBarHeight(region.height),
+	)
+
+	val stateMachine = battleContext.battle.state
+	if (stateMachine is BattleStateMachine.SelectMove) {
+		val selectedMove = stateMachine.selectedMove
+		val isChoosingSkillOrItem = when (selectedMove) {
+			is BattleMoveSelectionSkill -> selectedMove.skill != null
+			is BattleMoveSelectionItem -> selectedMove.item != null
+			else -> false
+		}
+
+		if (isChoosingSkillOrItem) {
+			renderActionBar(
+				ActionBarRenderMode.Background, battleContext, colorBatch, ovalBatch,
+				kimBatch, imageBatch, textBatch, actionBarRegion
+			)
+
+			val framebuffers = context.framebuffers
+			val battleRenderStage = context.currentStage
+
+			context.currentStage = context.pipelines.blur.addSourceStage(
+				context.frame, framebuffers.actionBarBlur, -1
+			)
+			context.pipelines.blur.addComputeStage(
+				context.frame, context.perFrame.actionBarBlurDescriptors,
+				framebuffers.actionBarBlur, 9, 50, -1
+			)
+			// TODO Determine the right capacities
+			val blurColorBatch = context.addColorBatch(100)
+			val blurOvalBatch = context.addOvalBatch(100)
+			val blurKimBatch = context.addKim3Batch(100)
+			val blurImageBatch = context.addImageBatch(100)
+			val blurTextBatch = context.addTextBatch(100)
+			renderActionBar(
+				ActionBarRenderMode.BlurredBackground, battleContext,
+				blurColorBatch, blurOvalBatch, blurKimBatch, blurImageBatch, blurTextBatch,
+				Rectangle(0, 0, actionBarRegion.width, actionBarRegion.height)
+			)
+
+			context.currentStage = battleRenderStage
+			context.pipelines.blur.addBatch(
+				battleRenderStage, framebuffers.actionBarBlur,
+				context.perFrame.actionBarBlurDescriptors,
+				actionBarRegion.minX.toFloat(), actionBarRegion.minY.toFloat(),
+				actionBarRegion.boundX.toFloat(), actionBarRegion.boundY.toFloat(),
+			).fixedColorTransform(0, rgba(1f, 1f, 1f, 0.5f))
+			renderActionBar(
+				ActionBarRenderMode.Foreground, battleContext, lateColorBatch, lateOvalBatch,
+				lateKimBatch, lateImageBatch, lateTextBatch, actionBarRegion
+			)
+		} else {
+			for (renderMode in ActionBarRenderMode.entries) {
+				renderActionBar(
+					renderMode, battleContext, colorBatch, ovalBatch,
+					kimBatch, imageBatch, textBatch, actionBarRegion
+				)
+			}
+		}
+	}
 
 	renderSkillOrItemSelection(battleContext, colorBatch, ovalBatch, kimBatch, imageBatch, textBatch, Rectangle(
 		region.minX + region.width / 3, region.minY + region.height / 5,
@@ -116,5 +180,11 @@ internal fun renderBattle(
 		region.width, region.boundY - region.height / 8 - region.height / 16,
 	))
 
+	val finishColorBatch = context.addColorBatch(2)
+	val finishTextBatch = context.addFancyTextBatch(50)
+	renderBattleFinishEffect(battleContext, finishColorBatch, finishTextBatch, region)
+
 	return colorBatch
 }
+
+internal fun computeActionBarHeight(regionHeight: Int) = regionHeight / 12

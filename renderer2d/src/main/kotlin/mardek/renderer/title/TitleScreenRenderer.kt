@@ -26,14 +26,14 @@ private fun loadInfo(): TitleScreenContent {
 	)
 }
 
-private val info = loadInfo()
+internal val titleScreenInfo = loadInfo()
 
 internal fun renderTitleScreen(context: RawRenderContext, state: TitleScreenState, region: Rectangle): Vk2dColorBatch {
 	val imageBatch = context.pipelines.image.addBatch(context.stage, 12, context.titleScreenBundle)
 	imageBatch.fillWithoutDistortion(
 		region.minX.toFloat(), region.minY.toFloat(),
 		region.boundX.toFloat(), region.boundY.toFloat(),
-		info.background.index
+		titleScreenInfo.background.index
 	)
 
 	val colorBatch = context.pipelines.color.addBatch(context.stage, 100)
@@ -41,9 +41,7 @@ internal fun renderTitleScreen(context: RawRenderContext, state: TitleScreenStat
 		context.stage, context.perFrameDescriptorSet, 48
 	)
 
-	val buttonFont = context.titleScreenBundle.getFont(info.largeFont.index)
-	val simpleFont = context.titleScreenBundle.getFont(info.smallFont.index)
-	// TODO Ditch simpleFont entirely?
+	val buttonFont = context.titleScreenBundle.getFont(titleScreenInfo.largeFont.index)
 	val glyphBatch = context.textPipeline.addBatch(
 		context.stage, 200, context.recorder,
 		context.textBuffer, context.perFrameDescriptorSet
@@ -116,7 +114,7 @@ private fun renderButton(
 	val textHeight = outerRegion.height / 22
 	renderButton(
 		colorBatch, ovalBatch, glyphBatch, font, true, text,
-		selectedButton == buttonIndex,
+		true, selectedButton == buttonIndex, false,
 		rect, outlineWidth, textOffsetX, textBaseY, textHeight
 	)
 	return rect

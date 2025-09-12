@@ -78,6 +78,7 @@ class MardekWindow(
 			PerFrameResources(
 				areaBlurDescriptors = pipelines.blur.claimResources(1, instance, descriptors)[0],
 				sectionsBlurDescriptors = pipelines.blur.claimResources(1, instance, descriptors)[0],
+				actionBarBlurDescriptors = pipelines.blur.claimResources(1, instance, descriptors)[0]
 			)
 		}.toTypedArray()
 	}
