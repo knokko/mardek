@@ -7,10 +7,17 @@ import java.nio.ByteBuffer;
 
 import static com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline.OVAL_SIZE;
 
+/**
+ * This is the batch class of {@link com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline}. See the oval pipeline docs
+ * (link is in the README) for more information.
+ */
 public class Vk2dOvalBatch extends Vk2dBatch {
 
 	public final long perFrameDescriptorSet;
 
+	/**
+	 * This method is for internal use only. Use {@link com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline#addBatch}
+	 */
 	public Vk2dOvalBatch(Vk2dOvalPipeline pipeline, Vk2dRenderStage frame, long perFrameDescriptorSet, int initialCapacity) {
 		super(pipeline, frame, initialCapacity);
 		this.perFrameDescriptorSet = perFrameDescriptorSet;
@@ -22,7 +29,7 @@ public class Vk2dOvalBatch extends Vk2dBatch {
 			int centerColor, int color0, int color1, int color2, int color3,
 			float distance0, float distance1, float distance2, float distance3
 	) {
-		BatchVertexData triangles = putTriangles(2);
+		MiniBatch triangles = putTriangles(2);
 
 		ByteBuffer oval = triangles.vertexData()[1];
 		int ovalByteOffset = Math.toIntExact(oval.position() + triangles.vertexBuffers()[1].offset - perFrameBuffer.buffer.offset);

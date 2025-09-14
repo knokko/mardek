@@ -6,6 +6,10 @@ import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 
 import java.nio.ByteBuffer;
 
+/**
+ * This is the batch class of {@link com.github.knokko.vk2d.pipeline.Vk2dKimPipeline}. See the kim pipeline docs
+ * (link is in the README) for more information.
+ */
 public class Vk2dKimBatch extends Vk2dBatch {
 
 	public final Vk2dResourceBundle bundle;
@@ -15,6 +19,9 @@ public class Vk2dKimBatch extends Vk2dBatch {
 		this.bundle = bundle;
 	}
 
+	/**
+	 * This method is for internal use only. Use {@link com.github.knokko.vk2d.pipeline.Vk2dKimPipeline#addBatch}
+	 */
 	public void simple(int minX, int minY, int maxX, int maxY, int textureIndex) {
 		int textureOffset = bundle.getFakeImageOffset(textureIndex);
 		ByteBuffer vertices = putTriangles(2).vertexData()[0];

@@ -14,7 +14,7 @@ import com.github.knokko.vk2d.frame.Vk2dComputeStage;
 import com.github.knokko.vk2d.frame.Vk2dFrame;
 import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.Vk2dInstance;
-import com.github.knokko.vk2d.batch.BatchVertexData;
+import com.github.knokko.vk2d.batch.MiniBatch;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dBlurBatch;
 import org.lwjgl.system.MemoryStack;
@@ -117,7 +117,7 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 	}
 
 	@Override
-	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, BatchVertexData miniBatch, Vk2dBatch batch) {
+	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MiniBatch miniBatch, Vk2dBatch batch) {
 		Vk2dBlurBatch blur = (Vk2dBlurBatch) batch;
 		recorder.bindGraphicsDescriptors(instance.blurPipelineLayoutSample, blur.descriptorSet);
 

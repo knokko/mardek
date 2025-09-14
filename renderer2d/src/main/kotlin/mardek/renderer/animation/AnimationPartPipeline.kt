@@ -5,7 +5,7 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData
 import com.github.knokko.vk2d.Vk2dInstance
-import com.github.knokko.vk2d.batch.BatchVertexData
+import com.github.knokko.vk2d.batch.MiniBatch
 import com.github.knokko.vk2d.batch.Vk2dBatch
 import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline
@@ -61,7 +61,7 @@ class AnimationPartPipeline(context: Vk2dPipelineContext, vk2d: Vk2dInstance) : 
 	override fun recordBatch(
 		recorder: CommandRecorder?,
 		perFrameBuffer: PerFrameBuffer?,
-		miniBatch: BatchVertexData?,
+		miniBatch: MiniBatch?,
 		batch: Vk2dBatch?
 	) {
 		var firstVertex = toIntExact((miniBatch!!.vertexBuffers[0].offset - perFrameBuffer!!.buffer.offset) / VERTEX_SIZE)

@@ -3,7 +3,6 @@ package com.github.knokko.vk2d.frame;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.images.VkbImage;
-import com.github.knokko.boiler.synchronization.ResourceUsage;
 
 import java.util.Map;
 

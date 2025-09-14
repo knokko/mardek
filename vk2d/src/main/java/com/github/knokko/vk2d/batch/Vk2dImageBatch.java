@@ -9,12 +9,19 @@ import java.util.Arrays;
 
 import static java.lang.Math.*;
 
+/**
+ * This is the batch class of {@link com.github.knokko.vk2d.pipeline.Vk2dImagePipeline}. See the image pipeline docs
+ * (link is in the README) for more information.
+ */
 public class Vk2dImageBatch extends Vk2dBatch {
 
 	private final Vk2dResourceBundle bundle;
 	public long[] descriptorSets;
 	private int nextDescriptorIndex;
 
+	/**
+	 * This method is for internal use only. Use {@link com.github.knokko.vk2d.pipeline.Vk2dImagePipeline#addBatch}
+	 */
 	public Vk2dImageBatch(Vk2dImagePipeline pipeline, Vk2dRenderStage stage, int initialCapacity, Vk2dResourceBundle bundle) {
 		super(pipeline, stage, initialCapacity);
 		this.bundle = bundle;

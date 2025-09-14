@@ -6,7 +6,7 @@ import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.memory.callbacks.CallbackUserData;
 import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.Vk2dInstance;
-import com.github.knokko.vk2d.batch.BatchVertexData;
+import com.github.knokko.vk2d.batch.MiniBatch;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dImageBatch;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
@@ -68,7 +68,7 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 	}
 
 	@Override
-	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, BatchVertexData miniBatch, Vk2dBatch batch) {
+	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MiniBatch miniBatch, Vk2dBatch batch) {
 		int firstVertex = Math.toIntExact((miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset) / VERTEX_SIZE);
 		LongBuffer pDescriptorSet = recorder.stack.callocLong(1);
 		int descriptorIndex = 0;

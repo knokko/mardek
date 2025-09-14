@@ -10,11 +10,18 @@ import java.nio.ByteBuffer;
 
 import static java.lang.Math.max;
 
+/**
+ * This is the batch class of {@link com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline}. See the glyph pipeline docs
+ * (link is in the README) for more information.
+ */
 public class Vk2dGlyphBatch extends Vk2dBatch {
 
 	public final Vk2dTextBuffer textBuffer;
 	public final long perFrameDescriptorSet;
 
+	/**
+	 * This method is for internal use only. Use {@link com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline#addBatch}
+	 */
 	public Vk2dGlyphBatch(
 			Vk2dPipeline pipeline, Vk2dRenderStage frame, int initialCapacity,
 			Vk2dTextBuffer textBuffer, long perFrameDescriptorSet
@@ -33,7 +40,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 		if (horizontalIntersections == -1 || verticalIntersections == -1) return;
 		if (maxX < 0 || maxY < 0 || minX >= this.width || minY >= this.height) return;
 
-		BatchVertexData triangles = putTriangles(2);
+		MiniBatch triangles = putTriangles(2);
 
 		ByteBuffer glyphInfo = triangles.vertexData()[1];
 		int glyphByteOffset = Math.toIntExact(glyphInfo.position() + triangles.vertexBuffers()[1].offset - perFrameBuffer.buffer.offset);

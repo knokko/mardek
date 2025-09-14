@@ -5,12 +5,19 @@ import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
 
 import java.nio.ByteBuffer;
 
+/**
+ * This is the batch class of {@link com.github.knokko.vk2d.pipeline.Vk2dBlurPipeline}. See the blur pipeline docs
+ * (link is in the README) for more information.
+ */
 public class Vk2dBlurBatch extends Vk2dBatch {
 
 	public final int textureWidth, textureHeight;
 	public final float minX, minY, boundX, boundY;
 	public final long descriptorSet;
 
+	/**
+	 * This method is for internal use only. Use {@link com.github.knokko.vk2d.pipeline.Vk2dBlurPipeline#addBatch}
+	 */
 	public Vk2dBlurBatch(
 			Vk2dPipeline pipeline, Vk2dRenderStage frame,
 			int textureWidth, int textureHeight,
