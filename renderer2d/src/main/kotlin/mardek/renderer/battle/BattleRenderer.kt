@@ -4,6 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import mardek.renderer.RenderContext
 import mardek.state.ingame.CampaignState
+import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
 import mardek.state.ingame.battle.BattleState
@@ -44,6 +45,7 @@ internal fun renderBattle(
 	val lateKimBatch = context.addKim3Batch(100) // TODO Choose nice capacity
 	val lateImageBatch = context.addImageBatch(100) // TODO Choose nice capacity
 	val lateTextBatch = context.addTextBatch(100) // TODO Choose nice capacity
+	val lateAnimationPartBatch = context.addAnimationPartBatch(100) // TODO Choose nice capacity
 
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 12
@@ -62,8 +64,14 @@ internal fun renderBattle(
 			is BattleMoveSelectionItem -> selectedMove.item != null
 			else -> false
 		}
+		val isSelectingTarget = when (selectedMove) {
+			is BattleMoveSelectionAttack -> selectedMove.target != null
+			is BattleMoveSelectionSkill -> selectedMove.target != null
+			is BattleMoveSelectionItem -> selectedMove.target != null
+			else -> false
+		}
 
-		if (isChoosingSkillOrItem) {
+		if (isChoosingSkillOrItem && !isSelectingTarget) {
 			renderActionBar(
 				ActionBarRenderMode.Background, battleContext, colorBatch, ovalBatch,
 				kimBatch, imageBatch, textBatch, actionBarRegion
@@ -102,7 +110,7 @@ internal fun renderBattle(
 				ActionBarRenderMode.Foreground, battleContext, lateColorBatch, lateOvalBatch,
 				lateKimBatch, lateImageBatch, lateTextBatch, actionBarRegion
 			)
-		} else {
+		} else if (!isSelectingTarget) {
 			for (renderMode in ActionBarRenderMode.entries) {
 				renderActionBar(
 					renderMode, battleContext, colorBatch, ovalBatch,
@@ -175,7 +183,9 @@ internal fun renderBattle(
 		height = region.height / 16,
 	))
 
-	renderCombatantInfoPopup(battleContext, lateColorBatch, lateKimBatch, lateImageBatch, lateTextBatch, Rectangle(
+	renderCombatantInfoPopup(
+		battleContext, lateColorBatch, lateKimBatch,
+		lateImageBatch, lateTextBatch, lateAnimationPartBatch, Rectangle(
 		region.minX, region.minY + region.height / 8,
 		region.width, region.boundY - region.height / 8 - region.height / 16,
 	))

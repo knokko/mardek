@@ -10,6 +10,7 @@ import com.github.knokko.vk2d.batch.Vk2dKimBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.CombatStat
+import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.state.util.Rectangle
@@ -18,7 +19,7 @@ import kotlin.math.roundToInt
 
 internal fun renderCombatantInfoPopup(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, kimBatch: Vk2dKimBatch,
-	imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, region: Rectangle,
+	imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, partBatch: AnimationPartBatch, region: Rectangle,
 ) {
 	battleContext.run {
 		val combatant = battle.openCombatantInfo ?: return
@@ -314,6 +315,6 @@ internal fun renderCombatantInfoPopup(
 			0.002f * region.height, TextAlignment.RIGHT,
 		)
 
-		CombatantRenderer(battleContext, imageBatch, combatant, true).render()
+		CombatantRenderer(battleContext, partBatch, combatant, true).render()
 	}
 }
