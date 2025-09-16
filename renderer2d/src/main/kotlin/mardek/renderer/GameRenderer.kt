@@ -23,7 +23,7 @@ fun renderGame(context: RawRenderContext) {
 	val titleBarBatch = when (state) {
 		is TitleScreenState -> renderTitleScreen(context, state, renderRegion(context.stage))
 		is GameOverState -> renderGameOver(context, state, renderRegion(context.stage))
-		else -> context.pipelines.color.addBatch(context.stage, 36)
+		else -> context.pipelines.base.color.addBatch(context.stage, 36)
 	}
 
 	renderTitleBar(context.state, titleBarBatch)
@@ -34,7 +34,7 @@ fun renderGame(context: RenderContext) {
 
 	val titleBarBatch = when (state) {
 		is InGameState -> renderInGame(context, state, renderRegion(context.frame.swapchainStage))
-		else -> context.pipelines.color.addBatch(context.frame.swapchainStage, 36)
+		else -> context.addColorBatch(36)
 	}
 
 	renderTitleBar(context.state, titleBarBatch)

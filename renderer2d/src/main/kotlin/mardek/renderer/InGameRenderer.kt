@@ -1,9 +1,7 @@
 package mardek.renderer
 
-import com.github.knokko.boiler.utilities.ColorPacker.alpha
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
-import com.github.knokko.boiler.utilities.ColorPacker.unsigned
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import mardek.renderer.area.renderCurrentArea
 import mardek.renderer.battle.renderBattle
@@ -24,11 +22,11 @@ internal fun renderInGame(context: RenderContext, state: InGameState, region: Re
 		if (battle == null) {
 			if (state.menu.shown) {
 				val framebuffers = context.framebuffers
-				val areaRenderStage = context.pipelines.blur.addSourceStage(
+				val areaRenderStage = context.pipelines.base.blur.addSourceStage(
 					context.frame, framebuffers.blur, -1
 				)
 				if (state.menu.currentTab.inside) {
-					context.currentStage = context.pipelines.blur.addSourceStage(
+					context.currentStage = context.pipelines.base.blur.addSourceStage(
 						context.frame, framebuffers.sectionBlur, -1
 					)
 
@@ -50,7 +48,7 @@ internal fun renderInGame(context: RenderContext, state: InGameState, region: Re
 						0, 0, menuRegion.width, menuRegion.height
 					))
 				}
-				val computeStage = context.pipelines.blur.addComputeStage(
+				val computeStage = context.pipelines.base.blur.addComputeStage(
 					context.frame, context.perFrame.areaBlurDescriptors,
 					framebuffers.blur, 9, 50, -1
 				)
@@ -73,7 +71,7 @@ internal fun renderInGame(context: RenderContext, state: InGameState, region: Re
 				))
 				fun multiplyColor() = rgba(1f - alpha, 1f - alpha, 1f - alpha, 0f)
 
-				context.pipelines.blur.addBatch(
+				context.pipelines.base.blur.addBatch(
 					context.frame.swapchainStage,
 					framebuffers.blur, context.perFrame.areaBlurDescriptors,
 					region.minX.toFloat(), region.minY.toFloat(),
@@ -87,7 +85,7 @@ internal fun renderInGame(context: RenderContext, state: InGameState, region: Re
 				titleColorBatch = renderInGameMenu(context, region, state.menu, state.campaign)
 				if (state.menu.currentTab.inside) {
 					val sectionRegion = determineSectionRenderRegion(region)
-					context.pipelines.blur.addBatch(
+					context.pipelines.base.blur.addBatch(
 						context.frame.swapchainStage,
 						framebuffers.sectionBlur, context.perFrame.sectionsBlurDescriptors,
 						sectionRegion.minX.toFloat(), sectionRegion.minY.toFloat(),
@@ -103,10 +101,10 @@ internal fun renderInGame(context: RenderContext, state: InGameState, region: Re
 			if (loot == null) {
 				titleColorBatch = renderBattle(context, state.campaign, battle, region)
 			} else {
-				context.currentStage = context.pipelines.blur.addSourceStage(
+				context.currentStage = context.pipelines.base.blur.addSourceStage(
 					context.frame, framebuffers.blur, -1
 				)
-				context.pipelines.blur.addComputeStage(
+				context.pipelines.base.blur.addComputeStage(
 					context.frame, context.perFrame.areaBlurDescriptors,
 					framebuffers.blur, 3, 50, -1
 				)
@@ -118,7 +116,7 @@ internal fun renderInGame(context: RenderContext, state: InGameState, region: Re
 				val rightBlurColor = srgbToLinear(rgba(132, 84, 53, blurStrength))
 				val inverseBlur = 255 - blurStrength
 				val multiplyColor = rgba(inverseBlur, inverseBlur, inverseBlur, inverseBlur)
-				context.pipelines.blur.addBatch(
+				context.pipelines.base.blur.addBatch(
 					context.frame.swapchainStage,
 					framebuffers.blur, context.perFrame.areaBlurDescriptors,
 					region.minX.toFloat(), region.minY.toFloat(),

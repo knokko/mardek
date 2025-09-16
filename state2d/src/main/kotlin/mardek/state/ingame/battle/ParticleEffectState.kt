@@ -1,6 +1,5 @@
 package mardek.state.ingame.battle
 
-import mardek.content.battle.PartyLayoutPosition
 import mardek.content.particle.ParticleEffect
 import mardek.content.particle.ParticleEmitter
 import java.lang.Math.toRadians
@@ -12,7 +11,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-class ParticleEffectState(val particle: ParticleEffect, val position: PartyLayoutPosition, val isOnPlayerSide: Boolean) {
+class ParticleEffectState(val particle: ParticleEffect, val position: CombatantRenderPosition) {
 	var startTime = 0L
 	val emitters = particle.emitters().map { ParticleEmitterState(it) }.toMutableList()
 

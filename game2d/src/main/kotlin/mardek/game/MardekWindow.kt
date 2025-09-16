@@ -20,13 +20,10 @@ import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader
 import mardek.audio.AudioUpdater
 import mardek.content.Content
+import mardek.renderer.MardekPipelines
 import mardek.renderer.PerFrameResources
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
-import mardek.renderer.animation.AnimationPartPipeline
-import mardek.renderer.area.AreaLightPipeline
-import mardek.renderer.area.AreaSpritePipeline
-import mardek.renderer.glyph.MardekGlyphPipeline
 import mardek.renderer.renderGame
 import mardek.state.ExitState
 import mardek.state.GameStateManager
@@ -44,10 +41,7 @@ class MardekWindow(
 ) : Vk2dWindow(window, capFps) {
 
 	private var totalFrames = 0L
-	private lateinit var textPipeline: MardekGlyphPipeline
-	private lateinit var areaSpritePipeline: AreaSpritePipeline
-	private lateinit var areaLightPipeline: AreaLightPipeline
-	private lateinit var animationPartPipeline: AnimationPartPipeline
+	private lateinit var mardekPipelines: MardekPipelines
 
 	private lateinit var content: Content
 	private lateinit var mainResources: Vk2dResourceBundle
@@ -86,10 +80,7 @@ class MardekWindow(
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
 		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, vkRenderPass)
-		this.textPipeline = MardekGlyphPipeline(pipelineContext, instance)
-		this.areaSpritePipeline = AreaSpritePipeline(pipelineContext, instance)
-		this.areaLightPipeline = AreaLightPipeline(pipelineContext, instance)
-		this.animationPartPipeline = AnimationPartPipeline(pipelineContext, instance)
+		this.mardekPipelines = MardekPipelines(pipelines, pipelineContext)
 		this.swapchainResources = MardekSwapchainResources(
 			boiler, pipelines.blur, window.surfaceFormat, vkRenderPass
 		)
@@ -120,15 +111,14 @@ class MardekWindow(
 			) {
 				val context = RenderContext(
 					frame, frame.swapchainStage,
-					swapchainResources.get(swapchainImage), perFrame[frameIndex], pipelines,
-					textPipeline, areaSpritePipeline, areaLightPipeline, animationPartPipeline,
-					textBuffer, perFrameDescriptorSet, recorder, content, gameState,
+					swapchainResources.get(swapchainImage), perFrame[frameIndex],
+					mardekPipelines, textBuffer, perFrameDescriptorSet, recorder, content, gameState,
 					currentState.campaign, mainResources
 				)
 				renderGame(context)
 			} else {
 				val context = RawRenderContext(
-					frame.swapchainStage, pipelines, textPipeline, textBuffer, perFrameDescriptorSet, recorder,
+					frame.swapchainStage, mardekPipelines, textBuffer, perFrameDescriptorSet, recorder,
 					null, gameState, resources
 				)
 				renderGame(context)
@@ -141,10 +131,7 @@ class MardekWindow(
 		synchronized(gameState.lock()) {
 			gameState.currentState = ExitState()
 		}
-		animationPartPipeline.destroy(boiler)
-		areaLightPipeline.destroy(boiler)
-		areaSpritePipeline.destroy(boiler)
-		textPipeline.destroy(boiler)
+		mardekPipelines.destroy(boiler)
 		if (this::mainResourceMemory.isInitialized) mainResourceMemory.destroy(boiler)
 		if (mainDescriptorPool != VK_NULL_HANDLE) {
 			stackPush().use { stack ->

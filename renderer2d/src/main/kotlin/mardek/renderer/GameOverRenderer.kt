@@ -11,7 +11,7 @@ import mardek.state.util.Rectangle
 import kotlin.math.max
 
 internal fun renderGameOver(context: RawRenderContext, state: GameOverState, region: Rectangle): Vk2dColorBatch {
-	val ovalBatch = context.pipelines.oval.addBatch(
+	val ovalBatch = context.pipelines.base.oval.addBatch(
 		context.stage, context.perFrameDescriptorSet, 2
 	)
 	val circleColor = srgbToLinear(rgb(80, 0, 0))
@@ -24,7 +24,7 @@ internal fun renderGameOver(context: RawRenderContext, state: GameOverState, reg
 		1f, 1f, 1f, 1f,
 	)
 
-	val textBatch = context.textPipeline.addBatch(
+	val textBatch = context.pipelines.fancyText.addBatch(
 		context.stage, 150, context.recorder,
 		context.textBuffer, context.perFrameDescriptorSet,
 	)
@@ -49,7 +49,7 @@ internal fun renderGameOver(context: RawRenderContext, state: GameOverState, reg
 		srgbToLinear(rgb(179, 58, 58)), TextAlignment.CENTERED,
 	)
 
-	val colorBatch = context.pipelines.color.addBatch(context.stage, 40)
+	val colorBatch = context.pipelines.base.color.addBatch(context.stage, 40)
 	val timeSinceGameOver = System.nanoTime() - state.startTime
 	val fade = max(0L, 255L - 255L * timeSinceGameOver / 5000_000_000L).toInt()
 	if (fade > 0) {

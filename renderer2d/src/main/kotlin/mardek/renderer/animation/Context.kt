@@ -4,6 +4,7 @@ import mardek.content.animation.ColorTransform
 import mardek.content.animation.SpecialAnimationNode
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
+import mardek.state.ingame.battle.CombatantRenderInfo
 import org.joml.Matrix3x2f
 
 class AnimationContext(
@@ -25,9 +26,11 @@ class CombatantAnimationContext(
 	val isSelectingMove: Boolean,
 	val meleeElement: Element?,
 	val magicElement: Element?,
+	val isMoving: Boolean,
 	val rootSkin: String?,
 	val weaponName: String?,
 	val shieldName: String?,
+	val renderInfo: CombatantRenderInfo,
 )
 
 class TransformStackEntry(

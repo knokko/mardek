@@ -125,43 +125,7 @@ sealed class CombatantState(
 	@IntegerField(expectUniform = false)
 	val statModifiers = HashMap<CombatStat, Int>()
 
-	val effectHistory = StatusEffectHistory()
-
-	val lastStatusEffectParticleEmissions = mutableMapOf<StatusEffect, Long>()
-
-	/**
-	 * The last point in time (`System.nanoTime()`) where a player pointed to this combatant as the potential target
-	 * for an attack, skill, or item. This is only used to determine whether the blue 'target selection blink' should
-	 * be rendered, and is not important for the course of the battle.
-	 */
-	var lastPointedTo = 0L
-
-	/**
-	 * The last position (normalized device coordinates) where this combatant was rendered
-	 */
-	var lastRenderedPosition = Pair(0f, 0f)
-
-	/**
-	 * This contains information that is used to render the damage indicator whenever combatants are attacked or
-	 * gain/lose health or mana.
-	 */
-	var lastDamageIndicator: DamageIndicator? = null
-
-	/**
-	 * When the turn of this combatant is forcibly skipped (e.g. due to paralysis or numbness + berserk),
-	 * `lastForcedTurn` will contain the time at which the turn was skipped, as well as the desired flash/blink
-	 * color.
-	 *
-	 * This information is used by the renderer to show the yellow/red paralysis/numbness blink/flash.
-	 */
-	var lastForcedTurn: ForcedTurnBlink? = null
-
-	/**
-	 * The position where the information block (health, mana, status effects, etc...) of this combatant was rendered
-	 * during the last frame, or null when the combatant info was not rendered last frame (e.g. because the first
-	 * frame hasn't been rendered yet)
-	 */
-	var renderedInfoBlock: Rectangle? = null
+	val renderInfo = CombatantRenderInfo()
 
 	fun getPosition(battleState: BattleState) = if (isOnPlayerSide) {
 		battleState.playerLayout.positions[battleState.players.indexOf(this)]
@@ -188,12 +152,12 @@ sealed class CombatantState(
 			if (currentHealth <= maxHealth / 5) {
 				val sosEffects = getSosEffects(context) - statusEffects
 				statusEffects.addAll(sosEffects)
-				for (effect in sosEffects) effectHistory.add(effect, currentTime)
+				for (effect in sosEffects) renderInfo.effectHistory.add(effect, currentTime)
 			}
 		} else {
 			for (effect in statusEffects - getAutoEffects(context)) {
 				statusEffects.remove(effect)
-				effectHistory.remove(effect, currentTime)
+				renderInfo.effectHistory.remove(effect, currentTime)
 			}
 		}
 	}

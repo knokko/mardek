@@ -22,7 +22,7 @@ internal fun renderMonsterBlock(
 ) {
 	battleContext.run {
 		val opacity = if (!enemy.isAlive()) {
-			val lastDamage = enemy.lastDamageIndicator
+			val lastDamage = enemy.renderInfo.lastDamageIndicator
 			if (lastDamage != null) {
 				val spentTime = renderTime - lastDamage.time
 				val vanishTime = 1_500_000_000L
@@ -125,6 +125,6 @@ internal fun renderMonsterBlock(
 		}
 
 		maybeRenderSelectionBlink(enemy, lateColorBatch, region)
-		enemy.renderedInfoBlock = region
+		enemy.renderInfo.renderedInfoBlock = region
 	}
 }

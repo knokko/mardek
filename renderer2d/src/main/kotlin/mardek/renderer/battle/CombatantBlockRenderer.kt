@@ -15,7 +15,7 @@ internal fun renderCombatantHealth(
 	currentTime: Long, opacity: Float = 1f
 ): Int {
 	var displayedHealth = combatant.currentHealth
-	val lastDamage = combatant.lastDamageIndicator
+	val lastDamage = combatant.renderInfo.lastDamageIndicator
 
 	fun fadeProgress(lastDamageTime: Long) = (currentTime - lastDamageTime).toDouble() / 2000_000_000.0
 
@@ -44,9 +44,9 @@ internal fun renderCombatantHealth(
 }
 
 internal fun maybeRenderSelectionBlink(state: CombatantState, colorBatch: Vk2dColorBatch, region: Rectangle) {
-	if (state.lastPointedTo != 0L) {
+	if (state.renderInfo.lastPointedTo != 0L) {
 		val blinkTime = 500_000_000L
-		val passedTime = System.nanoTime() - state.lastPointedTo
+		val passedTime = System.nanoTime() - state.renderInfo.lastPointedTo
 		if (passedTime < blinkTime) {
 			val intensity = 1f - passedTime.toFloat() / blinkTime.toFloat()
 			val blinkColor = rgba(0.1f, 0.1f, 0.9f, 0.5f * intensity)

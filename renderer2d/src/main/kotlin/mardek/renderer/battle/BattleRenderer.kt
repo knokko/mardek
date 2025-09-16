@@ -21,12 +21,6 @@ internal fun renderBattle(
 
 	val animationPartBatch = context.addAnimationPartBatch(1000) // TODO Choose nice capacity
 	renderBattleBackground(battleContext, animationPartBatch)
-	for (opponent in battleState.allOpponents().sortedBy { it.getPosition(battleContext.battle).y }) {
-		CombatantRenderer(battleContext, animationPartBatch, opponent).render()
-	}
-	for (player in battleState.allPlayers().sortedBy { it.getPosition(battleContext.battle).y }) {
-		CombatantRenderer(battleContext, animationPartBatch, player).render()
-	}
 
 	// Pretty much all components require colorBatch to be the first batch
 	val colorBatch = context.addColorBatch(1000) // TODO Choose nice capacity
@@ -46,6 +40,20 @@ internal fun renderBattle(
 	val lateImageBatch = context.addImageBatch(100) // TODO Choose nice capacity
 	val lateTextBatch = context.addTextBatch(100) // TODO Choose nice capacity
 	val lateAnimationPartBatch = context.addAnimationPartBatch(100) // TODO Choose nice capacity
+
+	for (opponent in battleState.allOpponents().sortedBy { it.getPosition(battleContext.battle).y }) {
+		CombatantRenderer(battleContext, animationPartBatch, opponent).render()
+		renderDamageIndicator(battleContext, imageBatch, textBatch, opponent)
+		renderEffectHistory(battleContext, opponent, imageBatch, textBatch, lateColorBatch)
+	}
+	for (player in battleState.allPlayers().sortedBy { it.getPosition(battleContext.battle).y }) {
+		CombatantRenderer(battleContext, animationPartBatch, player).render()
+		renderDamageIndicator(battleContext, imageBatch, textBatch, player)
+		renderEffectHistory(battleContext, player, imageBatch, textBatch, lateColorBatch)
+	}
+
+	renderBaseParticles(battleContext, imageBatch) // TODO Use separate particle batch?
+	renderEffectParticles(battleContext, imageBatch)
 
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 12
@@ -80,10 +88,10 @@ internal fun renderBattle(
 			val framebuffers = context.framebuffers
 			val battleRenderStage = context.currentStage
 
-			context.currentStage = context.pipelines.blur.addSourceStage(
+			context.currentStage = context.pipelines.base.blur.addSourceStage(
 				context.frame, framebuffers.actionBarBlur, -1
 			)
-			context.pipelines.blur.addComputeStage(
+			context.pipelines.base.blur.addComputeStage(
 				context.frame, context.perFrame.actionBarBlurDescriptors,
 				framebuffers.actionBarBlur, 9, 50, -1
 			)
@@ -100,7 +108,7 @@ internal fun renderBattle(
 			)
 
 			context.currentStage = battleRenderStage
-			context.pipelines.blur.addBatch(
+			context.pipelines.base.blur.addBatch(
 				battleRenderStage, framebuffers.actionBarBlur,
 				context.perFrame.actionBarBlurDescriptors,
 				actionBarRegion.minX.toFloat(), actionBarRegion.minY.toFloat(),
@@ -139,8 +147,6 @@ internal fun renderBattle(
 			minX = region.minX + index * region.width / 4, minY = region.minY,
 			width = region.width / 4, height = region.height / 12
 		)
-//		indicatorRenderers.add(DamageIndicatorRenderer(context, enemy))
-//		effectRenderers.add(EffectHistoryRenderer(context, enemy))
 		if (enemy is MonsterCombatantState) {
 			renderMonsterBlock(
 				battleContext, enemy, colorBatch, lateColorBatch, ovalBatch,
@@ -161,8 +167,6 @@ internal fun renderBattle(
 			minY = region.boundY - region.height / 8,
 			width = region.width / 4, height = region.height / 8,
 		)
-//		indicatorRenderers.add(DamageIndicatorRenderer(context, player))
-//		effectRenderers.add(EffectHistoryRenderer(context, player))
 		if (player is MonsterCombatantState) {
 			renderMonsterBlock(
 				battleContext, player, colorBatch, lateColorBatch, ovalBatch,

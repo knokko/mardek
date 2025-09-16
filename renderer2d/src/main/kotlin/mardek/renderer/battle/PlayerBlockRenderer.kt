@@ -151,6 +151,6 @@ internal fun renderPlayerBlock(
 
 		maybeRenderSelectionBlink(player, lateColorBatch, region)
 
-		player.renderedInfoBlock = region
+		player.renderInfo.renderedInfoBlock = region
 	}
 }

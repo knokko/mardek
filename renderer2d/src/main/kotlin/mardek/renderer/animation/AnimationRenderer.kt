@@ -15,6 +15,7 @@ import mardek.content.animation.SpecialAnimationNode
 import mardek.content.animation.AnimationMatrix
 import mardek.content.animation.ColorTransform
 import mardek.content.sprite.BcSprite
+import mardek.state.ingame.battle.CombatantRenderPosition
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 
@@ -49,23 +50,40 @@ private fun renderAnimationFrame(frame: AnimationFrame, context: AnimationContex
 }
 
 private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) {
-	val special = node.special ?: context.stack.last().special
+	val top = context.stack.last()
+	val special = node.special ?: top.special
+	val rawNodeMatrix = node.matrix ?: AnimationMatrix.DEFAULT
+	val (scaleX, scaleY) = if (rawNodeMatrix.hasScale) Pair(rawNodeMatrix.scaleX, rawNodeMatrix.scaleY) else Pair(
+		1f,
+		1f
+	)
+	val localMatrix = Matrix3x2f(
+		scaleX, rawNodeMatrix.rotateSkew0,
+		rawNodeMatrix.rotateSkew1, scaleY,
+		rawNodeMatrix.translateX, rawNodeMatrix.translateY
+	)
+	val globalMatrix = top.matrix.mul(localMatrix, Matrix3x2f())
+	val rawNodePosition = globalMatrix.transformPosition(Vector2f())
+	val nodePosition = CombatantRenderPosition(rawNodePosition.x, rawNodePosition.y)
 
 	val combat = context.combat
 	if (special == SpecialAnimationNode.HitPoint) {
-		// TODO mark hit point
+		combat!!.renderInfo.hitPoint = nodePosition
 		return
 	}
+
 	if (special == SpecialAnimationNode.StrikePoint) {
-		// TODO mark strike point
+		if (!combat!!.isMoving) combat.renderInfo.strikePoint = nodePosition
 		return
 	}
+
 	if (special == SpecialAnimationNode.StatusEffectPoint) {
-		// TODO mark status effect point
+		combat!!.renderInfo.statusEffectPoint = nodePosition
 		return
 	}
+
 	if (special == SpecialAnimationNode.Core) {
-		// TODO mark core
+		if (!combat!!.isMoving) combat.renderInfo.core = nodePosition
 		return
 	}
 
@@ -77,12 +95,6 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 
 	if (special == SpecialAnimationNode.TargetingCursor && combat?.isSelectedTarget != true) return
 	if (special == SpecialAnimationNode.OnTurnCursor && combat?.isSelectingMove != true) return
-
-	val matrix = node.matrix ?: AnimationMatrix.DEFAULT
-	val (scaleX, scaleY) = if (matrix.hasScale) Pair(matrix.scaleX, matrix.scaleY) else Pair(
-		1f,
-		1f
-	)
 
 	var sprite = node.sprite
 
@@ -104,18 +116,10 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		sprite = AnimationSprite(2223, backgroundSprite, 0f, 0f)
 	}
 
-	val localMatrix = Matrix3x2f(
-		scaleX, matrix.rotateSkew0,
-		matrix.rotateSkew1, scaleY,
-		matrix.translateX, matrix.translateY
-	)
-	val top = context.stack.last()
 	val colorTransform = mergeColorTransforms(node.color, top.colors)
 
 	if (sprite != null) {
-		val leafMatrix = localMatrix.translate(sprite.offsetX, sprite.offsetY, Matrix3x2f())
-		top.matrix.mul(leafMatrix, leafMatrix)
-
+		val leafMatrix = globalMatrix.translate(sprite.offsetX, sprite.offsetY, Matrix3x2f())
 		val maskSprite = if (node.mask != null) node.mask!!.sprite.image else context.noMask
 		renderTransformedImage(
 			leafMatrix, sprite.image.width.toFloat() / context.magicScale,
