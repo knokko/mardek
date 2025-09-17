@@ -1,6 +1,8 @@
 package mardek.renderer.battle
 
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
+import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import mardek.renderer.RenderContext
 import mardek.state.ingame.CampaignState
@@ -20,7 +22,10 @@ internal fun renderBattle(
 	val battleContext = BattleRenderContext(context, state, battleState)
 
 	val animationPartBatch = context.addAnimationPartBatch(1000) // TODO Choose nice capacity
-	renderBattleBackground(battleContext, animationPartBatch)
+	renderBattleBackground(battleContext, animationPartBatch, Rectangle(
+		region.minX, region.minY + region.height / 12, region.width,
+		region.height - region.height / 12 - region.height / 8,
+	))
 
 	// Pretty much all components require colorBatch to be the first batch
 	val colorBatch = context.addColorBatch(1000) // TODO Choose nice capacity
@@ -57,6 +62,10 @@ internal fun renderBattle(
 
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 12
+	))
+	renderTargetSelection(battleContext, colorBatch, ovalBatch, imageBatch, textBatch, Rectangle(
+		minX = region.minX, minY = region.minY + region.height / 12, width = region.width,
+		height = region.height - region.height / 8 - region.height / 12
 	))
 
 	val actionBarRegion = Rectangle(
@@ -141,6 +150,16 @@ internal fun renderBattle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 16
 	))
 
+	val lightBarColor = srgbToLinear(rgb(88, 74, 43))
+	val darkBarColor = srgbToLinear(rgb(37, 28, 17))
+	colorBatch.gradient(
+		region.minX, region.minY, region.maxX, region.minY + region.height / 12,
+		lightBarColor, darkBarColor, lightBarColor
+	)
+	colorBatch.gradient(
+		region.minX, region.boundY - region.height / 8, region.maxX, region.maxY,
+		darkBarColor, lightBarColor, darkBarColor,
+	)
 	for ((index, enemy) in battleContext.battle.opponents.withIndex()) {
 		if (enemy == null) continue
 		val region = Rectangle(

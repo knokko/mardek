@@ -116,7 +116,8 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		sprite = AnimationSprite(2223, backgroundSprite, 0f, 0f)
 	}
 
-	val colorTransform = mergeColorTransforms(node.color, top.colors)
+	var colorTransform = mergeColorTransforms(node.color, top.colors)
+
 
 	if (sprite != null) {
 		val leafMatrix = globalMatrix.translate(sprite.offsetX, sprite.offsetY, Matrix3x2f())
@@ -134,6 +135,9 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		for (frame in animation.frames) {
 			deltaTime -= frame.duration.inWholeNanoseconds
 			if (deltaTime < 0L) {
+				if (special == SpecialAnimationNode.OnTurnCursor || special == SpecialAnimationNode.TargetingCursor) {
+					colorTransform = node.color
+				}
 				context.stack.add(TransformStackEntry(
 					top.matrix.mul(localMatrix, localMatrix),
 					colorTransform, special, node.selectSkin ?: context.stack.last().skin,

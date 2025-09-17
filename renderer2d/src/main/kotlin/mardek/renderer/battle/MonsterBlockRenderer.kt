@@ -81,9 +81,8 @@ internal fun renderMonsterBlock(
 
 			val font = context.bundle.getFont(context.content.fonts.fat.index)
 			val textColor = srgbToLinear(rgb(238, 203, 127))
-			// TODO Parse display name overrides
 			textBatch.drawString(
-				enemy.monster.name, nameX.toFloat(), maxY.toFloat() - marginY,
+				enemy.monster.displayName, nameX.toFloat(), maxY.toFloat() - marginY,
 				0.3f * region.height, font, changeAlpha(textColor, opacity),
 			)
 		}

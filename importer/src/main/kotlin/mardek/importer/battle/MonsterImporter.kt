@@ -251,6 +251,11 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 	val mimicry = content.skills.classes.find { it.name == "Mimicry" }!!
 	val propertiesCode = parseActionScriptCode(listOf(propertiesText))
 	val mdlMap = parseActionScriptObject(propertiesCode.variableAssignments["mdlStats"]!!)
+	val namesList = parseActionScriptNestedList(mdlMap["names"]!!)
+	if (namesList !is ArrayList<*> || namesList.size != 1) {
+		throw IllegalArgumentException("Expected name list $namesList for $name")
+	}
+	val displayName = parseFlashString(namesList[0].toString(), "monster name")!!
 	val typeName = parseFlashString(mdlMap["TYPE"]!!, "monster type")!!
 	val elementName = parseFlashString(mdlMap["cElem"]!!, "monster element")!!
 
@@ -426,6 +431,7 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 
 	return Monster(
 		name = name,
+		displayName = displayName,
 		animations = animations,
 		className = parseFlashString(mdlMap["Class"]!!, "monster class")!!,
 		type = content.stats.creatureTypes.find { it.flashName == typeName }!!,

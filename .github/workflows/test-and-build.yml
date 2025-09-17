@@ -20,31 +20,25 @@ jobs:
           distribution: 'temurin'
       - name: Setup gradle
         uses: gradle/actions/setup-gradle@v4
-      - run: source ./1.4.313.0/setup-env.sh && ./gradlew test -p vk2d
+      - run: source ./1.4.313.0/setup-env.sh && ./gradlew test -p vk2d && ./gradlew test -p state2d && ./gradlew test -p renderer2d && ./gradlew test -p game2d
       - name: Store test results
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: "**/build/reports"
-      - name: Store test results VK2D
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-vk2d
-          path: "vk2d/build/reports"
       - name: Store rendering results
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: rendering-results
-          path: "game/rendering-test-results"
+          path: "game2d/rendering-test-results"
       - name: Store VK2D rendering results
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: rendering-results-vk2d
-          path: "vk2d/test-cases/actual"
+          path: "**/test-cases/actual"
       - name: Store JVM crashes
         if: failure()
         uses: actions/upload-artifact@v4
