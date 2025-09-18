@@ -61,7 +61,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		)
 
 		val turnOrderColors = arrayOf(
-			Color(158, 128, 83), // one of the turn order monster icon colors
+			Color(133, 96, 53), // one of the turn order monster icon colors
 		)
 
 		val pointerColors = arrayOf(
@@ -83,7 +83,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		)
 
 		val powersColors = arrayOf(
-			Color(11, 195, 243),
+			Color(157, 195, 243),
 		)
 
 		fun assertSelectedMove(expected: BattleMoveSelection) {
@@ -228,7 +228,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 
 		testRendering(
 			state, 800, 600, "battle-select-item1",
-			backgroundColors + pointerColors + mardekColors + elixirColors, turnOrderColors
+			backgroundColors + pointerColors + mardekColors + elixirColors, emptyArray()
 		)
 
 		// Choose elixir and 'dive into' target selection
@@ -248,7 +248,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 
 		testRendering(
 			state, 800, 600, "battle-select-item2",
-			backgroundColors + pointerColors + mardekColors, turnOrderColors + elixirColors
+			backgroundColors + pointerColors + mardekColors, emptyArray()
 		)
 
 		// Scrolling up should cause Mardek to become the target
@@ -261,7 +261,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 
 		testRendering(
 			state, 800, 600, "battle-select-item3",
-			backgroundColors + pointerColors, turnOrderColors + elixirColors
+			backgroundColors + pointerColors, turnOrderColors
 		)
 
 		// Scrolling left twice should only work once since elixirs are single-target
@@ -291,8 +291,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 
 		testRendering(
 			state, 800, 600, "battle-select-skill1",
-			backgroundColors + pointerColors + powersColors,
-			turnOrderColors + elixirColors
+			backgroundColors + pointerColors + powersColors, emptyArray()
 		)
 
 		// Scroll to frostasia
@@ -307,8 +306,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 
 		testRendering(
 			state, 800, 600, "battle-select-skill2",
-			backgroundColors + pointerColors + powersColors,
-			turnOrderColors + elixirColors
+			backgroundColors + pointerColors + powersColors, emptyArray(),
 		)
 
 		// Let 'blue targeting blink' wear off
@@ -326,8 +324,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 
 		testRendering(
 			state, 800, 600, "battle-select-skill3",
-			backgroundColors + pointerColors + mardekColors + deuganColors + arrayOf(powersColors[1]),
-			turnOrderColors + elixirColors + arrayOf(powersColors[0])
+			backgroundColors + pointerColors + mardekColors + deuganColors, emptyArray()
 		)
 
 		// Scrolling left has no effect since there is only 1 enemy
@@ -351,8 +348,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 
 		testRendering(
 			state, 800, 600, "battle-select-skill4",
-			backgroundColors + pointerColors + mardekColors + arrayOf(powersColors[1]),
-			turnOrderColors + elixirColors + arrayOf(powersColors[0])
+			backgroundColors + pointerColors + mardekColors, emptyArray()
 		)
 
 		// Scroll right again to target both Mardek and Deugan
@@ -365,8 +361,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 
 		testRendering(
 			state, 800, 600, "battle-select-skill5",
-			backgroundColors + pointerColors + arrayOf(powersColors[1]),
-			turnOrderColors + elixirColors + arrayOf(powersColors[0])
+			backgroundColors + pointerColors, emptyArray()
 		)
 
 		// Targeting multiple allies costs too much mana

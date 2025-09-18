@@ -26,7 +26,7 @@ import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.abs
 
-private val actualResultsDirectory = File("rendering-test-results/actual")
+internal val actualResultsDirectory = File("rendering-test-results/actual")
 
 private fun nearlyEquals(expectedComponent: Int, actualComponent: Int) = abs(expectedComponent - actualComponent) <= 2
 
@@ -47,9 +47,7 @@ fun TestingInstance.testRendering(
 	width: Int, height: Int, name: String,
 	expectedColors: Array<Color>, forbiddenColors: Array<Color>,
 ) {
-	if (!actualResultsDirectory.exists() && !actualResultsDirectory.mkdir()) {
-		throw RuntimeException("Failed to create $actualResultsDirectory")
-	}
+
 
 	val combiner = MemoryCombiner(boiler, "TestHelper$name")
 	val descriptorCombiner = DescriptorCombiner(boiler)

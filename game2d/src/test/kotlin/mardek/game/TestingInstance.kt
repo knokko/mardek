@@ -58,6 +58,8 @@ class TestingInstance {
 	val elixir: Item
 
 	init {
+
+
 		val builder = BoilerBuilder(
 			VK_API_VERSION_1_1, "IntegrationTests", 1
 		)
@@ -109,6 +111,10 @@ class TestingInstance {
 		elixir = content.items.items.find { it.flashName == "Elixir" }!!
 		shock = heroDeugan.characterClass.skillClass.actions.find { it.name == "Shock" }!!
 		frostasia = heroDeugan.characterClass.skillClass.actions.find { it.name == "Frostasia" }!!
+
+		if (!actualResultsDirectory.exists() && !actualResultsDirectory.mkdir()) {
+			throw RuntimeException("Failed to create $actualResultsDirectory")
+		}
 	}
 
 	fun simpleCharacterSelectionState() = CharacterSelectionState(
