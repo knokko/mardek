@@ -6,6 +6,8 @@ import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 
 import java.nio.ByteBuffer;
 
+import static java.lang.Math.*;
+
 /**
  * This is the batch class of {@link com.github.knokko.vk2d.pipeline.Vk2dKimPipeline}. See the kim pipeline docs
  * (link is in the README) for more information.
@@ -49,5 +51,43 @@ public class Vk2dKimBatch extends Vk2dBatch {
 		int width = Math.round(scale * bundle.getFakeImageWidth(textureIndex));
 		int height = Math.round(scale * bundle.getFakeImageHeight(textureIndex));
 		simple(minX, minY, minX + width - 1, minY + height - 1, textureIndex);
+	}
+
+	public void rotated(float midX, float midY, float angle, float scale, int textureIndex) {
+		float hw = 0.5f * bundle.getFakeImageWidth(textureIndex) * scale;
+		float hh = 0.5f * bundle.getFakeImageHeight(textureIndex) * scale;
+		float rawAngle = (float) toRadians(angle);
+		float sa = (float) sin(rawAngle);
+		float ca = (float) cos(rawAngle);
+		transformed(
+				round(midX - hw * ca + hh * sa), round(midY + hh * ca + hw * sa),
+				round(midX + hw * ca + hh * sa), round(midY + hh * ca - hw * sa),
+				round(midX + hw * ca - hh * sa), round(midY - hh * ca - hw * sa),
+				round(midX - hw * ca - hh * sa), round(midY - hh * ca + hw * sa),
+				textureIndex
+		);
+	}
+
+	public void transformed(
+			int x1, int y1, int x2, int y2,
+			int x3, int y3, int x4, int y4,
+			int textureIndex
+	) {
+		ByteBuffer vertices = putTriangles(2).vertexData()[0];
+		int textureOffset = bundle.getFakeImageOffset(textureIndex);
+
+		putCompressedPosition(vertices, x1, y1);
+		vertices.putFloat(0f).putFloat(1f).putInt(textureOffset);
+		putCompressedPosition(vertices, x2, y2);
+		vertices.putFloat(1f).putFloat(1f).putInt(textureOffset);
+		putCompressedPosition(vertices, x3, y3);
+		vertices.putFloat(1f).putFloat(0f).putInt(textureOffset);
+
+		putCompressedPosition(vertices, x3, y3);
+		vertices.putFloat(1f).putFloat(0f).putInt(textureOffset);
+		putCompressedPosition(vertices, x4, y4);
+		vertices.putFloat(0f).putFloat(0f).putInt(textureOffset);
+		putCompressedPosition(vertices, x1, y1);
+		vertices.putFloat(0f).putFloat(1f).putInt(textureOffset);
 	}
 }

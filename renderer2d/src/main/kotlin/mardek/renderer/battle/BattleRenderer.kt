@@ -63,6 +63,7 @@ internal fun renderBattle(
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 12
 	))
+	renderThrownItems(battleContext, kimBatch)
 	renderTargetSelection(battleContext, colorBatch, ovalBatch, imageBatch, textBatch, Rectangle(
 		minX = region.minX, minY = region.minY + region.height / 12, width = region.width,
 		height = region.height - region.height / 8 - region.height / 12

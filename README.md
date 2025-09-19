@@ -3,7 +3,7 @@
 
 ### Development environment
 #### OpenJDK 21+
-First of all, install OpenJDK 21.
+First of all, install OpenJDK **21**.
 Later versions will probably work as well, earlier versions probably not.
 After installing OpenJDK, you **should** be able to run the game by running
 ```
@@ -95,9 +95,10 @@ and replacing `VK_PRESENT_MODE_FIFO_KHR` with
 
 ### Project structure
 This project consists of several modules:
-- `audio` contains the audio player code (OpenAL) and the music.
-- `content` contains classes to model all the game content
-  (e.g. items, areas, monsters).
+- [audio](audio/README.md) contains the audio player code (OpenAL)
+  and the music.
+- [content](content/README.md) contains the classes to model all
+  the game content (e.g. items, areas, monsters).
 - `game` contains the code that launches the game and is
   basically the glue that connects all the other modules.
 - `importer` contains the code to import the Flash content.

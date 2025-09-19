@@ -17,6 +17,7 @@ import mardek.audio.AudioUpdater
 import mardek.content.Content
 import mardek.renderer.PerFrameResources
 import mardek.renderer.RenderManager
+import mardek.renderer.VideoSettings
 import mardek.state.ExitState
 import mardek.state.GameStateManager
 import org.lwjgl.system.MemoryStack
@@ -25,8 +26,10 @@ import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 
 class MardekWindow(
-	private val gameState: GameStateManager, window: VkbWindow, capFps: Boolean
-) : Vk2dWindow(window, capFps) {
+	private val gameState: GameStateManager,
+	private val videoSettings: VideoSettings,
+	window: VkbWindow,
+) : Vk2dWindow(window, videoSettings.capFps) {
 
 	private var totalFrames = 0L
 	private lateinit var renderManager: RenderManager
@@ -57,7 +60,7 @@ class MardekWindow(
 		super.setup(boiler, stack)
 		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, vkRenderPass)
 		this.renderManager = RenderManager(
-			boiler, resources, pipelineContext, pipelines,
+			boiler, videoSettings, resources, pipelineContext, pipelines,
 		)
 		this.swapchainResources = MardekSwapchainResources(
 			boiler, pipelines.blur, window.surfaceFormat, vkRenderPass
@@ -144,11 +147,10 @@ class MardekWindow(
 
 		Thread {
 			val audioUpdater = AudioUpdater(gameState)
-			val audioLoop = UpdateLoop({ loop ->
+			UpdateLoop({ loop ->
 				if (mainThread.isAlive) audioUpdater.update()
 				else loop.stop()
-			}, 10_000_000L)
-			audioLoop.run()
+			}, 10_000_000L).run()
 			audioUpdater.destroy()
 		}.start()
 	}

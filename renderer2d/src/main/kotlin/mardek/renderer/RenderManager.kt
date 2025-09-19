@@ -24,6 +24,7 @@ import java.io.InputStream
 
 class RenderManager(
 	private val boiler: BoilerInstance,
+	private val videoSettings: VideoSettings,
 	private val titleScreenResources: Vk2dResourceBundle,
 	pipelineContext: Vk2dPipelineContext,
 	basePipelines: Vk2dPipelines,
@@ -68,7 +69,7 @@ class RenderManager(
 			val context = RenderContext(
 				frame, frame.swapchainStage, framebuffers, perFrame,
 				pipelines, textBuffer, perFrameDescriptorSet, recorder, content, gameState,
-				currentState.campaign, mainResources
+				currentState.campaign, mainResources, videoSettings,
 			)
 			renderGame(context)
 		} else {

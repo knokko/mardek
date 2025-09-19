@@ -11,6 +11,7 @@ import mardek.state.ingame.menu.InGameMenuState
 import mardek.state.ingame.menu.InventoryTab
 import mardek.state.ingame.menu.MapTab
 import mardek.state.ingame.menu.SkillsTab
+import mardek.state.ingame.menu.VideoSettingsTab
 import mardek.state.util.Rectangle
 
 internal fun renderInGameMenu(
@@ -81,6 +82,7 @@ internal fun renderInGameMenu(
 	if (menu.currentTab is SkillsTab) renderSkillsTab(menuContext, submenuRectangleWithLowerBar)
 	if (menu.currentTab is InventoryTab) renderInventory(menuContext, submenuRectangleWithLowerBar)
 	if (menu.currentTab is MapTab) renderAreaMap(menuContext, submenuRectangleWithoutLowerBar)
+	if (menu.currentTab is VideoSettingsTab) renderVideoSettingsTab(menuContext, submenuRectangleWithLowerBar)
 
 	return colorBatch
 }

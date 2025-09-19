@@ -5,6 +5,7 @@ import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.WindowBuilder
 import com.github.knokko.boiler.builders.device.SimpleDeviceSelector
 import com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess
+import mardek.renderer.VideoSettings
 import org.lwjgl.sdl.SDLInit.*
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.vulkan.VK11.*
@@ -27,6 +28,8 @@ fun createBoiler(args: Array<String>): BoilerInstance {
 		SDL_PROP_APP_METADATA_TYPE_STRING, "game"
 	), "SetAppMetadataProperty")
 
+	val videoSettings = VideoSettings.load()
+
 	val boilerBuilder = BoilerBuilder(
 		VK_API_VERSION_1_1, "MardekKt", 1
 	).addWindow(WindowBuilder(
@@ -35,14 +38,9 @@ fun createBoiler(args: Array<String>): BoilerInstance {
 	boilerBuilder.useSDL(SDL_INIT_VIDEO or SDL_INIT_GAMEPAD)
 	boilerBuilder.requiredFeatures10("textureCompressionBc", VkPhysicalDeviceFeatures::textureCompressionBC)
 	boilerBuilder.featurePicker10 { stack, supportedFeatures, toEnable -> toEnable.textureCompressionBC(true) }
+	boilerBuilder.physicalDeviceSelector(MardekDeviceSelector(videoSettings))
 	boilerBuilder.doNotUseVma()
 	if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()
 	if (args.contains("api-dump")) boilerBuilder.apiDump()
-	if (args.contains("integrated")) boilerBuilder.physicalDeviceSelector(SimpleDeviceSelector(
-		VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU
-	))
-	if (args.contains("cpu")) boilerBuilder.physicalDeviceSelector(SimpleDeviceSelector(
-		VK_PHYSICAL_DEVICE_TYPE_CPU
-	))
 	return boilerBuilder.build()
 }
