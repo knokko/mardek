@@ -41,7 +41,7 @@ void main() {
 	uint y = 64 * gl_WorkGroupID.x + gl_LocalInvocationIndex;
 	if (y >= inputSize.y) return;
 
-	uint baseX = sectionLength * gl_WorkGroupID.y;
+	int baseX = int(sectionLength * gl_WorkGroupID.y);
 	if (baseX >= inputSize.x) return;
 
 	supportFilterSize(0, applySingleFilter0, DEFAULT_UNROLL);

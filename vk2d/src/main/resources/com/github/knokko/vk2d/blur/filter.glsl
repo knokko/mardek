@@ -6,7 +6,7 @@
 #define MAX_FILTER_SIZE 19
 
 #define initializeFilterWindow(base, filterSize, unroll) uint colors[2 * MAX_FILTER_SIZE + 1 + unroll];\
-	for (uint offset = filterSize; offset > 0; offset--) colors[filterSize - offset] = fetchColor(max(0, base - offset));\
+	for (int offset = filterSize; offset > 0; offset--) colors[filterSize - offset] = fetchColor(max(0, base - offset));\
 	colors[filterSize] = fetchColor(base);\
 	for (uint offset = 1; offset <= filterSize; offset++) colors[filterSize + offset] = fetchColor(min(getInputSize() - 1, base + offset));
 

@@ -10,7 +10,6 @@ import org.lwjgl.vulkan.VkPushConstantRange;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
-import static org.lwjgl.vulkan.VK10.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 
 public class Vk2dInstance {
 

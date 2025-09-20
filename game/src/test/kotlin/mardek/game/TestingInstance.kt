@@ -35,7 +35,7 @@ import mardek.state.ingame.characters.CharacterState
 import org.lwjgl.vulkan.VK10.VK_FORMAT_R8G8B8A8_SRGB
 import org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool
 import org.lwjgl.vulkan.VK10.vkDestroyRenderPass
-import org.lwjgl.vulkan.VK11.VK_API_VERSION_1_1
+import org.lwjgl.vulkan.VK13.VK_API_VERSION_1_3
 
 class TestingInstance {
 
@@ -59,10 +59,8 @@ class TestingInstance {
 	val elixir: Item
 
 	init {
-
-
 		val builder = BoilerBuilder(
-			VK_API_VERSION_1_1, "IntegrationTests", 1
+			VK_API_VERSION_1_3, "IntegrationTests", 1
 		)
 		builder.doNotUseVma()
 		builder.requiredFeatures10("textureCompressionBC") {

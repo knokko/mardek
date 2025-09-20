@@ -319,7 +319,7 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 			previousBlurTarget = sourceImage;
 			DescriptorUpdater updater = new DescriptorUpdater(stack, 5);
 			updater.writeStorageBuffer(0, stage1DescriptorSet, 0, stage1Buffer);
-			updater.writeImage(1, stage1DescriptorSet, 1, sourceImage.vkImageView, vk2d.pixelatedSampler);
+			updater.writeImage(1, stage1DescriptorSet, 1, sourceImage.vkImageView, vk2d.smoothSampler);
 			updater.writeStorageBuffer(2, stage2DescriptorSet, 0, stage1Buffer);
 			updater.writeStorageBuffer(3, stage2DescriptorSet, 1, stage2Buffer);
 			updater.writeStorageBuffer(4, sampleDescriptorSet, 0, stage2Buffer);
