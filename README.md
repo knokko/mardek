@@ -76,17 +76,20 @@ This project consists of several modules:
   and the music.
 - [content](content/README.md) contains the classes to model all
   the game content (e.g. items, areas, monsters).
-- `game` contains the code that launches the game and is
-  basically the glue that connects all the other modules.
-- `importer` contains the code to import the Flash content.
-- `input` models the game controls, which will be written by
-  `game` and read by `renderer` and `state`.
-- `renderer` ensures that the state of the game is shown on
-  your screen. It uses the Vulkan graphics API for rendering.
-- `state` models and tracks the state of the game (both in
+- [game](game/README.md) contains the code that launches the game
+  and glues all other modules.
+- [importer](importer/README.md) contains the code to parse the Flash
+  MARDEK and convert it to a 'nicer' format used by the rest of this
+  engine/project.
+- [input](input/README.md) models the keyboard/mouse events, which will
+  be read by `state` and supplied by `game`.
+- [renderer](renderer/README.md) ensures that the state of the game is 
+  shown on your screen. It uses the Vulkan graphics API for rendering.
+- [state](state/README.md) models and tracks the state of the game (both in
   the title screen and when actually in-game)
-- `ui-renderer` is a mini library for rendering UI with
-  Vulkan, and is used by `renderer`
+- [vk2d](vk2d/README.md) is a 2d rendering library that I wrote for
+  MARDEK, and is used by `renderer`. I intend to eventually move it to
+  its own GitHub repository once it matures.
 
 ### Creating releases
 To create releases that can be given to players/testers
