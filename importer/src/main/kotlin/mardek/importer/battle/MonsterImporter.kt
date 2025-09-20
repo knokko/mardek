@@ -111,7 +111,9 @@ DetermineStats();
 internal fun importMonsters(content: Content, playerModelMapping: MutableMap<String, CombatantAnimations>) {
 	val magicScale = 4
 	val battleTag = FLASH.tags.find { it.exportFileName.contains("B_MODEL") }!! as DefineSpriteTag
-	val context = AnimationImportContext(shapesDirectory = File("flash/all-flash-shapes-x$magicScale/shapes/")) // TODO Change this
+	val context = AnimationImportContext(
+		shapesDirectory = File("$projectFolder/flash/monster-shapes-x$magicScale")
+	)
 	val importedMonsters = importSkinnedAnimation(battleTag, context)
 
 	for (blacklisted in arrayOf("null", "humans!", "dummy", "Monsters", "Bosses", "Ether Clone", "")) {
@@ -216,10 +218,6 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 		} else {
 			println("Unexpected scripts for $combatantName: $monsterScripts")
 		}
-	}
-
-	for (sprite in context.shapeMapping.values) {
-		// TODO content.battle.animationSprites.add(sprite)
 	}
 }
 

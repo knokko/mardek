@@ -164,7 +164,7 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	for (font in content.fonts.all()) addFont(resourceWriter, font)
 
 	val output = Files.newOutputStream(File("$outputFolder/content.vk2d").toPath())
-	resourceWriter.write(output, File("flash/bc-cache"))
+	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))
 	output.close()
 
 	Files.write(
@@ -188,7 +188,7 @@ private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
 	val output = Files.newOutputStream(File(
 		"$projectFolder/game/src/main/resources/mardek/game/title-screen.vk2d"
 	).toPath())
-	resourceWriter.write(output, File("flash/bc-cache"))
+	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))
 	output.close()
 
 	Files.write(

@@ -7,13 +7,16 @@ import mardek.content.battle.BattleBackground
 import mardek.importer.animation.AnimationImportContext
 import mardek.importer.animation.importSkinnedAnimation
 import mardek.importer.area.FLASH
+import mardek.importer.util.projectFolder
 import java.io.File
 
 internal fun importBattleBackgrounds(content: BattleContent) {
 	val backgroundsTag1 = FLASH.tags.find { it.uniqueId == "2186" }!! as DefineSpriteTag
 	val backgroundsTag2 = FLASH.tags.find { it.uniqueId == "2204" }!! as DefineSpriteTag
 
-	val context = AnimationImportContext(shapesDirectory = File("flash/background-shapes-x4/"))
+	val context = AnimationImportContext(
+		shapesDirectory = File("$projectFolder/flash/background-shapes-x4/")
+	)
 	val backgrounds1 = importSkinnedAnimation(backgroundsTag1, context)
 	val backgrounds2 = importSkinnedAnimation(backgroundsTag2, context)
 

@@ -208,6 +208,8 @@ private fun importAnimationSprite(tag: ShapeTag, isMask: Boolean, context: Anima
 		sprite = BcSprite(image.width, image.height, if (isMask) 4 else 7)
 		sprite.bufferedImage = image
 	} catch (failed: IOException) {
+		println(expectedFile.absoluteFile)
+		println(expectedFile.exists())
 		throw RuntimeException("Failed to load shape from $expectedFile", failed)
 	}
 
