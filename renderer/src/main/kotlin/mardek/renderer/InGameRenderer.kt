@@ -1,50 +1,153 @@
 package mardek.renderer
 
-import mardek.renderer.area.AreaRenderer
-import mardek.renderer.battle.BattleRenderer
-import mardek.renderer.battle.loot.BattleLootRenderer
-import mardek.renderer.ui.InGameMenuRenderer
+import com.github.knokko.boiler.utilities.ColorPacker.rgba
+import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import mardek.renderer.area.renderCurrentArea
+import mardek.renderer.battle.renderBattle
+import mardek.renderer.battle.renderBattleLoot
+import mardek.renderer.menu.MenuRenderContext
+import mardek.renderer.menu.determineSectionRenderRegion
+import mardek.renderer.menu.renderInGameMenu
+import mardek.renderer.menu.renderInGameMenuSectionList
 import mardek.state.ingame.InGameState
+import mardek.state.util.Rectangle
 
-class InGameRenderer(
-		private val state: InGameState,
-): StateRenderer() {
+internal fun renderInGame(
+	context: RenderContext, state: InGameState, region: Rectangle
+): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
 
-	private var areaRenderer: AreaRenderer? = null
-	private var battleRenderer: BattleRenderer? = null
-	private var lootRenderer: BattleLootRenderer? = null
-	private var menuRenderer: InGameMenuRenderer? = null
+	var titleColorBatch: Vk2dColorBatch? = null
+	var titleTextBatch: Vk2dGlyphBatch? = null
 
-	override fun beforeRendering(context: RenderContext) {
-		context.resources.kim1Renderer.begin()
-		context.resources.kim2Renderer.begin()
+	val area = state.campaign.currentArea
+	if (area != null) {
+		val battle = area.activeBattle
+		if (battle == null) {
+			if (state.menu.shown) {
+				val framebuffers = context.framebuffers
+				val areaRenderStage = context.pipelines.base.blur.addSourceStage(
+					context.frame, framebuffers.blur, -1
+				)
+				if (state.menu.currentTab.inside) {
+					context.currentStage = context.pipelines.base.blur.addSourceStage(
+						context.frame, framebuffers.sectionBlur, -1
+					)
 
-		val inGameContext = InGameRenderContext(state.campaign, context)
-		val area = state.campaign.currentArea
-		areaRenderer = if (area != null && area.activeBattle == null) AreaRenderer(inGameContext, area) else null
-		battleRenderer = if (area?.activeBattle != null) BattleRenderer(inGameContext, area.activeBattle!!) else null
-		lootRenderer = if (area?.battleLoot != null) BattleLootRenderer(inGameContext) else null
-		menuRenderer = if (state.menu.shown) InGameMenuRenderer(inGameContext, state.menu) else null
+					val menuRegion = determineSectionRenderRegion(region)
+					val colorBatch = context.addColorBatch(50)
+					val textBatch = context.addFancyTextBatch(250)
 
-		areaRenderer?.beforeRendering()
-		menuRenderer?.beforeRendering()
-		battleRenderer?.beforeRendering()
-		lootRenderer?.beforeRendering()
+					// The image/sprite/oval pipelines are not needed for rendering the section list,
+					// but we still need a valid instance of MenuRenderContext
+					val ovalBatch = context.addOvalBatch(0)
+					val imageBatch = context.addImageBatch(0)
+					val spriteBatch = context.addKim3Batch(0)
 
-		context.resources.kim1Renderer.recordBeforeRenderpass(context.recorder, context.frameIndex)
+					val menuContext = MenuRenderContext(
+						context, colorBatch, ovalBatch, imageBatch, spriteBatch, textBatch,
+						state.menu, state.campaign
+					)
+					renderInGameMenuSectionList(menuContext, Rectangle(
+						0, 0, menuRegion.width, menuRegion.height
+					))
+				}
+				val computeStage = context.pipelines.base.blur.addComputeStage(
+					context.frame, context.perFrame.areaBlurDescriptors,
+					framebuffers.blur, 9, 50, -1
+				)
+				if (state.menu.currentTab.inside) {
+					computeStage.additional(
+						context.perFrame.sectionsBlurDescriptors,
+						framebuffers.sectionBlur, 9, 50
+					)
+				}
+				context.currentStage = areaRenderStage
+
+				val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
+				renderCurrentArea(context, area, areaRenderRegion)
+
+				context.currentStage = context.frame.swapchainStage
+
+				val alpha = 0.9f
+				fun addColor(brown: Float) = srgbToLinear(rgba(
+					0.4f * brown * alpha, 0.25f * brown * alpha, 0.17f * brown * alpha, 1f
+				))
+				fun multiplyColor() = rgba(1f - alpha, 1f - alpha, 1f - alpha, 0f)
+
+				context.pipelines.base.blur.addBatch(
+					context.frame.swapchainStage,
+					framebuffers.blur, context.perFrame.areaBlurDescriptors,
+					region.minX.toFloat(), region.minY.toFloat(),
+					(region.minX + region.width).toFloat(), (region.minY + region.height).toFloat(),
+				).gradientColorTransform(
+					addColor(0.4f), multiplyColor(),
+					addColor(0.4f), multiplyColor(),
+					addColor(0.95f), multiplyColor(),
+					addColor(0.95f), multiplyColor(),
+				)
+
+				val batches = renderInGameMenu(context, region, state.menu, state.campaign)
+				titleColorBatch = batches.first
+				titleTextBatch = batches.second
+
+				if (state.menu.currentTab.inside) {
+					val sectionRegion = determineSectionRenderRegion(region)
+					context.pipelines.base.blur.addBatch(
+						context.frame.swapchainStage,
+						framebuffers.sectionBlur, context.perFrame.sectionsBlurDescriptors,
+						sectionRegion.minX.toFloat(), sectionRegion.minY.toFloat(),
+						sectionRegion.maxX + 1f, sectionRegion.maxY + 1f
+					).noColorTransform()
+				}
+			} else {
+				val batches = renderCurrentArea(context, area, region)
+				titleColorBatch = batches.first
+				titleTextBatch = batches.second
+			}
+		} else {
+			val framebuffers = context.framebuffers
+			val loot = area.battleLoot
+			if (loot == null) {
+				val batches = renderBattle(context, state.campaign, battle, region)
+				titleColorBatch = batches.first
+				titleTextBatch = batches.second
+			} else {
+				context.currentStage = context.pipelines.base.blur.addSourceStage(
+					context.frame, framebuffers.blur, -1
+				)
+				context.pipelines.base.blur.addComputeStage(
+					context.frame, context.perFrame.areaBlurDescriptors,
+					framebuffers.blur, 3, 50, -1
+				)
+				renderBattle(context, state.campaign, battle, region)
+
+				context.currentStage = context.frame.swapchainStage
+				val blurStrength = 240
+				val leftBlurColor = srgbToLinear(rgba(54, 37, 21, blurStrength))
+				val rightBlurColor = srgbToLinear(rgba(132, 84, 53, blurStrength))
+				val inverseBlur = 255 - blurStrength
+				val multiplyColor = rgba(inverseBlur, inverseBlur, inverseBlur, inverseBlur)
+				context.pipelines.base.blur.addBatch(
+					context.frame.swapchainStage,
+					framebuffers.blur, context.perFrame.areaBlurDescriptors,
+					region.minX.toFloat(), region.minY.toFloat(),
+					region.boundX.toFloat(), region.boundY.toFloat(),
+				).gradientColorTransform(
+					leftBlurColor, multiplyColor,
+					leftBlurColor, multiplyColor,
+					rightBlurColor, multiplyColor,
+					rightBlurColor, multiplyColor,
+				)
+				val batches = renderBattleLoot(context, loot, state.campaign.characterSelection.party, region)
+				titleColorBatch = batches.first
+				titleTextBatch = batches.second
+			}
+		}
 	}
 
-	override fun render(context: RenderContext) {
-		context.uiRenderer.begin(
-			context.recorder, context.viewportWidth, context.viewportHeight
-		)
-		areaRenderer?.render()
-		battleRenderer?.render()
-		lootRenderer?.render()
-		menuRenderer?.render()
-
-		context.uiRenderer.end()
-		context.resources.kim1Renderer.end()
-		context.resources.kim2Renderer.end()
-	}
+	if (titleColorBatch == null) titleColorBatch = context.addColorBatch(36)
+	if (titleTextBatch == null) titleTextBatch = context.addTextBatch(25)
+	return Pair(titleColorBatch, titleTextBatch)
 }

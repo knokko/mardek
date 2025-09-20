@@ -3,6 +3,7 @@ package mardek.importer.area
 import mardek.content.Content
 import mardek.content.area.RandomAreaBattles
 import mardek.content.area.SharedEnemySelections
+import mardek.content.battle.BattleBackground
 import mardek.importer.util.ActionScriptCode
 import java.lang.Integer.parseInt
 
@@ -41,7 +42,12 @@ fun parseRandomBattle(areaCode: ActionScriptCode, content: Content): RandomAreaB
 		content.battle.backgrounds.find { it.name == parseFlashString(rawBackground, "special battle background") }!!
 	} else null
 
-	val tileset = parseFlashString(areaCode.variableAssignments["tileset"]!!, "area tileset")
+	val tileset = parseFlashString(areaCode.variableAssignments["tileset"]!!, "area tileset")!!
+
+	// The battle background list will be empty during some unit tests
+	val defaultBackground = if (content.battle.backgrounds.isEmpty()) BattleBackground(tileset, emptyArray(), 1)
+	else content.battle.backgrounds.find { it.name == tileset }!!
+
 	return RandomAreaBattles(
 		ownEnemies = ownEnemies,
 		sharedEnemies = sharedEnemies,
@@ -49,7 +55,7 @@ fun parseRandomBattle(areaCode: ActionScriptCode, content: Content): RandomAreaB
 		sharedLevelRange = sharedLevelRange,
 		minSteps = minSteps,
 		chance = chance,
-		defaultBackground = content.battle.backgrounds.find { it.name == tileset }!!,
+		defaultBackground = defaultBackground,
 		specialBackground = specialBackground
 	)
 }

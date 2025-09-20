@@ -27,7 +27,7 @@ fun main() {
 		val bitser = Bitser(false)
 		val content = importVanillaContent(bitser)
 
-		val outputFolder = File("$projectFolder/game2d/src/main/resources/mardek/game/")
+		val outputFolder = File("$projectFolder/game/src/main/resources/mardek/game/")
 		saveIcons(outputFolder)
 
 		saveTitleScreenBundle(bitser, content)
@@ -186,13 +186,13 @@ private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
 	addFont(resourceWriter, titleScreenContent.largeFont)
 
 	val output = Files.newOutputStream(File(
-		"$projectFolder/game2d/src/main/resources/mardek/game/title-screen.vk2d"
+		"$projectFolder/game/src/main/resources/mardek/game/title-screen.vk2d"
 	).toPath())
 	resourceWriter.write(output, File("flash/bc-cache"))
 	output.close()
 
 	Files.write(
-		File("$projectFolder/game2d/src/main/resources/mardek/game/title-screen.bits").toPath(),
+		File("$projectFolder/game/src/main/resources/mardek/game/title-screen.bits").toPath(),
 		bitser.serializeToBytes(titleScreenContent, Bitser.BACKWARD_COMPATIBLE)
 	)
 }

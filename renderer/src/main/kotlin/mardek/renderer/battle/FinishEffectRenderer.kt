@@ -1,34 +1,35 @@
 package mardek.renderer.battle
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
-import com.github.knokko.text.placement.TextAlignment
-import com.github.knokko.ui.renderer.Gradient
+import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.ingame.battle.BattleStateMachine
+import mardek.state.util.Rectangle
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class FinishEffectRenderer(private val context: BattleRenderContext) {
-
-	fun render() {
-		val state = context.battle.state
-		if (state is BattleStateMachine.GameOver) {
-			val spentTime = System.nanoTime() - state.startTime
+internal fun renderBattleFinishEffect(
+	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
+	textBatch: MardekGlyphBatch, region: Rectangle
+) {
+	battleContext.run {
+		val stateMachine = battle.state
+		if (stateMachine is BattleStateMachine.GameOver) {
+			val spentTime = System.nanoTime() - stateMachine.startTime
 			val fade = min(255L, 255L * spentTime / BattleStateMachine.GameOver.FADE_DURATION).toInt()
 			if (fade > 0) {
-				val rectangles = context.resources.rectangleRenderer
-				rectangles.beginBatch(context, 1)
-				rectangles.fill(
-					0, 0, context.viewportWidth, context.viewportHeight,
+				colorBatch.fill(
+					region.minX, region.minY, region.maxX, region.maxY,
 					rgba(0, 0, 0, fade)
 				)
-				rectangles.endBatch(context.recorder)
 			}
 		}
-		if (state is BattleStateMachine.Victory) {
-			val spentTime = System.nanoTime() - state.startTime
+		if (stateMachine is BattleStateMachine.Victory) {
+			val spentTime = System.nanoTime() - stateMachine.startTime
 			val time1 = 500_000_000L
-			if (spentTime > time1) {
-				var outlineColor = srgbToLinear(rgb(108, 89, 43))
+			if (spentTime > time1 && !stateMachine.shouldGoToLootMenu()) {
+				var strokeColor = srgbToLinear(rgb(108, 89, 43))
 
 				val appearDuration = 250_000_000L
 				val time2 = time1 + appearDuration
@@ -41,33 +42,41 @@ class FinishEffectRenderer(private val context: BattleRenderContext) {
 					Pair(1f, 1f - (spentTime - time2).toFloat() / fadeBackDuration.toFloat())
 				} else Pair(1f, 0f)
 
-				outlineColor = rgba(
-					normalize(red(outlineColor)) * (1f - b) + b,
-					normalize(green(outlineColor)) * (1f - b) + b,
-					normalize(blue(outlineColor)) * (1f - b) + b,
+				strokeColor = rgba(
+					normalize(red(strokeColor)) * (1f - b) + 0.6f * b,
+					normalize(green(strokeColor)) * (1f - b) + 0.5f * b,
+					normalize(blue(strokeColor)) * (1f - b) + 0.4f * b,
 					a
 				)
-				val innerColor = srgbToLinear(rgba(253, 238, 170, (255 * a).roundToInt()))
-				val outerColor = srgbToLinear(rgba(195, 131, 32, (255 * a).roundToInt()))
-				context.uiRenderer.beginBatch()
+				val innerColorA = srgbToLinear(rgba(250, 240, 180, (255 * a).roundToInt()))
+				val outerColorA = srgbToLinear(rgba(210, 150, 40, (255 * a).roundToInt()))
+				val innerColorB = srgbToLinear(rgba(250, 240, 200, (255 * a).roundToInt()))
+				val outerColorB = srgbToLinear(rgba(220, 180, 110, (255 * a).roundToInt()))
 
-				val width = context.viewportWidth
-				val height = context.viewportHeight
-				val heightA = height / 12
-				// TODO use outlineColor after text render rework
-				context.uiRenderer.drawString(
-					context.resources.font, "VICTORY!!", innerColor, IntArray(0),
-					0, 0, width, height, height / 2, heightA, 2, TextAlignment.CENTER,
-					Gradient(
-						0, height / 2 - 10 * heightA / 9, width, heightA / 2,
-						innerColor, innerColor, outerColor
-					),
-					Gradient(
-						0, height / 2 - heightA / 2, width, 11 * heightA / 5,
-						outerColor, outerColor, innerColor
+				var innerColor = innerColorA
+				var outerColor = outerColorA
+				if (a == 1f && b > 0f) {
+					// TODO Create helper function for this
+					innerColor = rgb(
+						(1f - b) * normalize(red(innerColorA)) + b * normalize(red(innerColorB)),
+						(1f - b) * normalize(green(innerColorA)) + b * normalize(green(innerColorB)),
+						(1f - b) * normalize(blue(innerColorA)) + b * normalize(blue(innerColorB)),
 					)
+					outerColor = rgb(
+						(1f - b) * normalize(red(outerColorA)) + b * normalize(red(outerColorB)),
+						(1f - b) * normalize(green(outerColorA)) + b * normalize(green(outerColorB)),
+						(1f - b) * normalize(blue(outerColorA)) + b * normalize(blue(outerColorB)),
+					)
+				}
+
+				val victoryFont = context.bundle.getFont(context.content.fonts.large2.index)
+				textBatch.drawFancyString(
+					"VICTORY!!", region.width * 0.5f, region.height * 0.5f,
+					region.height / 12f, victoryFont, outerColor, strokeColor,
+					region.height * 0.01f, TextAlignment.CENTERED,
+					outerColor, innerColor, outerColor, outerColor,
+					0.2f, 0.5f, 0.8f, 1f,
 				)
-				context.uiRenderer.endBatch()
 			}
 		}
 	}

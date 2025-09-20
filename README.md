@@ -70,29 +70,6 @@ You should install `libomp-dev`, for instance by running
 sudo apt install libomp-dev
 ```
 
-### Video settings
-Currently, there is no nice video settings UI, but there are
-some things you can tweak.
-
-#### Graphics card
-By default, the game will prefer a discrete graphics card over
-an integrated graphics card, and it will prefer an integrated
-graphics card over a CPU implementation.
-
-You can use the `integrated` program argument to let the game
-prefer an integrated graphics card (this argument is only
-useful if you have both a discrete and integrated graphics card),
-and you can use the `cpu` program argument to let the game prefer
-a CPU implementation (this only works when you actually install
-such an implementation like llvmpipe or swiftshader).
-
-#### FPS cap
-By default, the FPS is capped to the refresh rate of your monitor
-(because more FPS is useless in a game like MARDEK, and just
-wastes power). You can uncap the FPS by opening `GameWindow.kt`
-and replacing `VK_PRESENT_MODE_FIFO_KHR` with
-`VK_PRESENT_MODE_MAILBOX_KHR`.
-
 ### Project structure
 This project consists of several modules:
 - [audio](audio/README.md) contains the audio player code (OpenAL)
@@ -119,8 +96,8 @@ a GitHub Actions workflow that will generate:
 - an exe file for Windows x64
 - an executable for Linux x64
 - a (totally untested) executable for Linux arm64
-- a (totally untested) executable for MacOS x64
-- a (totally untested) executable for MacOS arm64
+- a (totally untested) executable for macOS x64
+- a (totally untested) executable for macOS arm64
 - a jar file for any OS/architecture supported by LWJGL,
   but requires OpenJDK 21+ to run
 

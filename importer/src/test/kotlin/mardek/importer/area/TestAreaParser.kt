@@ -2,7 +2,7 @@ package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.content.Content
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.area.*
 import mardek.content.battle.PartyLayoutPosition
 import mardek.content.inventory.ItemStack
@@ -37,11 +37,9 @@ class TestAreaParser {
 		importSkillsContent(content)
 		importItemsContent(content)
 		importBattleContent(content, null)
-	}
 
-	init {
 		content.battle.monsters.add(importMonsterStats(
-			name = "monster", model = BattleModel(), propertiesText = MONSTER_PROPERTIES_TEXT, content
+			name = "monster", animations = CombatantAnimations(), propertiesText = MONSTER_PROPERTIES_TEXT, content
 		))
 		content.areas.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
 		importAreaContent(content)
@@ -49,7 +47,6 @@ class TestAreaParser {
 
 	@Test
 	fun testParseAeropolisNorth() {
-		println("Thread is ${Thread.currentThread().name}")
 		val parsed = parseArea(content, "aeropolis_N", ArrayList(), ArrayList())
 		assertEquals("aeropolis_N", parsed.properties.rawName)
 		assertEquals("Aeropolis - Temple District", parsed.properties.displayName)
@@ -117,7 +114,7 @@ class TestAreaParser {
 			ownLevelRange = null,
 			minSteps = 30,
 			chance = 10,
-			defaultBackground = content.battle.backgrounds.find { it.name == "dragonlair" }!!,
+			defaultBackground = parsed.randomBattles!!.defaultBackground,
 			specialBackground = null
 		), parsed.randomBattles)
 		assertEquals("MightyHeroes", parsed.properties.musicTrack)

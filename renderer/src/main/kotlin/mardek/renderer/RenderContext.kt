@@ -1,36 +1,68 @@
 package mardek.renderer
 
 import com.github.knokko.boiler.commands.CommandRecorder
+import com.github.knokko.vk2d.frame.Vk2dRenderStage
+import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
+import com.github.knokko.vk2d.resource.Vk2dResourceBundle
+import com.github.knokko.vk2d.text.Vk2dTextBuffer
 import mardek.content.Content
-import mardek.state.GameState
-import mardek.state.SoundQueue
+import mardek.state.GameStateManager
+import mardek.state.VideoSettings
 import mardek.state.ingame.CampaignState
-import mardek.state.ingame.menu.UiUpdateContext
+import mardek.state.util.Rectangle
 
-open class RenderContext(
-	val content: Content,
-	val resources: SharedResources,
-	val state: GameState,
+class RawRenderContext(
+	val stage: Vk2dRenderStage,
+	val pipelines: MardekPipelines,
+	val textBuffer: Vk2dTextBuffer,
+	val perFrameDescriptorSet: Long,
 	val recorder: CommandRecorder,
-	val viewportWidth: Int,
-	val viewportHeight: Int,
-	val frameIndex: Int,
-	val soundQueue: SoundQueue,
-) {
-	val uiRenderer = resources.uiRenderers[frameIndex]
-}
+	val content: Content?,
+	val state: GameStateManager,
+	val titleScreenBundle: Vk2dResourceBundle,
+	val videoSettings: VideoSettings,
+	val currentFps: Long,
+)
 
-open class InGameRenderContext(
+class RenderContext(
+	val frame: Vk2dSwapchainFrame,
+	var currentStage: Vk2dRenderStage,
+	val framebuffers: MardekFramebuffers,
+	val perFrame: PerFrameResources,
+	val pipelines: MardekPipelines,
+	val textBuffer: Vk2dTextBuffer,
+	val perFrameDescriptorSet: Long,
+	val recorder: CommandRecorder,
+	val content: Content,
+	val state: GameStateManager,
 	val campaign: CampaignState,
-	context: RenderContext,
-) : RenderContext(
-	context.content, context.resources, context.state, context.recorder,
-	context.viewportWidth, context.viewportHeight,
-	context.frameIndex, context.soundQueue
+	val bundle: Vk2dResourceBundle,
+	val videoSettings: VideoSettings,
+	val currentFps: Long,
 ) {
+	fun addColorBatch(initialCapacity: Int) = pipelines.base.color.addBatch(currentStage, initialCapacity)!!
 
-	val uiContext = UiUpdateContext(
-		campaign.characterSelection, campaign.characterStates, soundQueue,
-		content.audio.fixedEffects, content.skills
+	fun addOvalBatch(initialCapacity: Int) = pipelines.base.oval.addBatch(
+		currentStage, perFrameDescriptorSet, initialCapacity
+	)!!
+
+	fun addImageBatch(initialCapacity: Int) = pipelines.base.image.addBatch(currentStage, initialCapacity, bundle)!!
+
+	fun addTextBatch(initialCapacity: Int) = pipelines.base.text.addBatch(
+		currentStage, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
+	)!!
+
+	fun addFancyTextBatch(initialCapacity: Int) = pipelines.fancyText.addBatch(
+		currentStage, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
 	)
+
+	fun addKim3Batch(initialCapacity: Int) = pipelines.base.kim3.addBatch(currentStage, initialCapacity, bundle)!!
+
+	fun addAreaSpriteBatch(initialCapacity: Int, scissor: Rectangle) = pipelines.areaSprite.addBatch(
+		currentStage, initialCapacity, bundle, perFrameDescriptorSet, scissor
+	)
+
+	fun addAreaLightBatch(scissor: Rectangle) = pipelines.areaLight.addBatch(currentStage, perFrameDescriptorSet, scissor)
+
+	fun addAnimationPartBatch(initialCapacity: Int) = pipelines.animation.addBatch(currentStage, initialCapacity, bundle)
 }

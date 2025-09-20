@@ -228,7 +228,6 @@ public class Vk2dTextBuffer extends Vk2dComputeStage {
 			return;
 		}
 
-		System.out.println("Propagate " + (cache.getNextScratchInfoIndex() / 2) + " rows");
 		if (shouldClearNextTransfer || !didInitializeNextOffsetBuffer) {
 			if (didInitializeNextOffsetBuffer) {
 				recorder.bufferBarrier(

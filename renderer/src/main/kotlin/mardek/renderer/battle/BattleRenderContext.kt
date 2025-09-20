@@ -1,16 +1,21 @@
 package mardek.renderer.battle
 
-import mardek.renderer.InGameRenderContext
+import mardek.renderer.RenderContext
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleUpdateContext
 
 class BattleRenderContext(
-	val battle: BattleState,
-	inGameContext: InGameRenderContext,
-): InGameRenderContext(inGameContext.campaign, inGameContext) {
+	val context: RenderContext,
+	val state: CampaignState,
+	val battle: BattleState
+) {
+	val renderTime = System.nanoTime()
 
 	val updateContext = BattleUpdateContext(
-		campaign.characterStates, content.audio.fixedEffects,
-		content.stats.elements.find { it.rawName == "NONE" }!!, soundQueue
+		state.characterStates,
+		context.content.audio.fixedEffects,
+		context.content.stats.elements.find { it.rawName == "NONE" }!!,
+		context.state.soundQueue,
 	)
 }

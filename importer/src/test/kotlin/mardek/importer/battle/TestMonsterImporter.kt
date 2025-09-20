@@ -1,7 +1,7 @@
 package mardek.importer.battle
 
 import mardek.content.Content
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.battle.*
 import mardek.content.stats.Element
 import mardek.content.skill.ActiveSkill
@@ -124,7 +124,7 @@ class TestMonsterImporter {
 	@Test
 	fun testParseForestFish() {
 		val forestFish = importMonsterStats(
-			"Forest Fish", BattleModel(), FOREST_FISH_PROPERTIES, content
+			"Forest Fish", CombatantAnimations(), FOREST_FISH_PROPERTIES, content
 		)
 
 		assertEquals("Flying Fish", forestFish.className)
@@ -175,7 +175,7 @@ class TestMonsterImporter {
 	@Test
 	fun testParseAbomination() {
 		val abomination = importMonsterStats(
-			"Abomination", BattleModel(), ABOMINATION_PROPERTIES, content
+			"Abomination", CombatantAnimations(), ABOMINATION_PROPERTIES, content
 		)
 
 		assertEquals("Undead", abomination.className)
@@ -255,7 +255,7 @@ class TestMonsterImporter {
 	@Test
 	fun testParseGhoul() {
 		val ghoul = importMonsterStats(
-			"Ghoul", BattleModel(), GHOUL_PROPERTIES, content
+			"Ghoul", CombatantAnimations(), GHOUL_PROPERTIES, content
 		)
 
 		assertEquals("Undead", ghoul.className)
@@ -327,7 +327,7 @@ class TestMonsterImporter {
 	@Test
 	fun testFallenPaladin() {
 		val paladin = importMonsterStats(
-			"Fallen Paladin", BattleModel(), FALLEN_PALADIN_PROPERTIES, content
+			"Fallen Paladin", CombatantAnimations(), FALLEN_PALADIN_PROPERTIES, content
 		)
 		assertEquals(2, paladin.actions.size)
 		val counterAttack = paladin.actions[0]
@@ -366,7 +366,7 @@ class TestMonsterImporter {
 	@Test
 	fun testBernardChapter3() {
 		val bernard = importMonsterStats(
-			"Bernard", BattleModel(), OVERRIDE_BERNARD_CHAPTER3, content
+			"Bernard", CombatantAnimations(), OVERRIDE_BERNARD_CHAPTER3, content
 		)
 		assertEquals(4, bernard.playerStatModifier)
 
@@ -414,7 +414,7 @@ class TestMonsterImporter {
 	@Test
 	fun testAaliaChapter3() {
 		val aalia = importMonsterStats(
-			"Aalia", BattleModel(), OVERRIDE_AALIA_CHAPTER3, content
+			"Aalia", CombatantAnimations(), OVERRIDE_AALIA_CHAPTER3, content
 		)
 		assertEquals(4, aalia.playerStatModifier)
 
@@ -461,7 +461,7 @@ class TestMonsterImporter {
 	@Test
 	fun testMysteryMan() {
 		val mystery = importMonsterStats(
-			"Mystery Man", BattleModel(), MYSTERY_MAN_PROPERTIES, content
+			"Mystery Man", CombatantAnimations(), MYSTERY_MAN_PROPERTIES, content
 		)
 
 		assertEquals(7, mystery.actions.size)
@@ -559,7 +559,7 @@ class TestMonsterImporter {
 	@Test
 	fun testAnimus() {
 		val animus = importMonsterStats(
-			"A. Animus", BattleModel(), ANIMUS_PROPERTIES, content
+			"A. Animus", CombatantAnimations(), ANIMUS_PROPERTIES, content
 		)
 
 		assertEquals(17, animus.actions.size)
@@ -687,7 +687,7 @@ class TestMonsterImporter {
 	@Test
 	fun testMasterStone() {
 		val stone = importMonsterStats(
-			"Master Stone", BattleModel(), MASTER_STONE_PROPERTIES, content
+			"Master Stone", CombatantAnimations(), MASTER_STONE_PROPERTIES, content
 		)
 
 		assertEquals(0, stone.playerStatModifier)
@@ -735,7 +735,7 @@ class TestMonsterImporter {
 	@Test
 	fun testParseMonster() {
 		val monster = importMonsterStats(
-			"monster", BattleModel(), MONSTER_PROPERTIES, content
+			"monster", CombatantAnimations(), MONSTER_PROPERTIES, content
 		)
 
 		assertEquals(2, monster.resistances.elements.size)

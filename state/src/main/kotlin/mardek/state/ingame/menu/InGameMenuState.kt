@@ -33,6 +33,7 @@ class InGameMenuState(private val state: CampaignState) {
 						if (currentTab is SkillsTab) currentTab = PartyTab()
 						if (currentTab is InventoryTab) currentTab = SkillsTab(state.characterSelection)
 						if (currentTab is MapTab) currentTab = InventoryTab()
+						if (currentTab is VideoSettingsTab) currentTab = MapTab()
 
 						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll)
 						continue
@@ -40,6 +41,7 @@ class InGameMenuState(private val state: CampaignState) {
 
 					if (event.key == InputKey.MoveDown) {
 						val oldTab = currentTab
+						if (currentTab is MapTab) currentTab = VideoSettingsTab()
 						if (currentTab is InventoryTab) currentTab = MapTab()
 						if (currentTab is SkillsTab) currentTab = InventoryTab()
 						if (currentTab is PartyTab) currentTab = SkillsTab(state.characterSelection)

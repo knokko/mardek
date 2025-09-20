@@ -1,6 +1,6 @@
 package mardek.state.ingame.inventory
 
-import mardek.content.animations.BattleModel
+import mardek.content.animation.CombatantAnimations
 import mardek.content.audio.FixedSoundEffects
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.CharacterClass
@@ -32,7 +32,7 @@ private fun createState(): CampaignState {
 	)
 	val mardek = PlayableCharacter(
 		"Mardek", mardekClass, Element(), ArrayList(),
-		DirectionalSprites(), BattleModel(), CreatureType()
+		DirectionalSprites(), CombatantAnimations(), CreatureType()
 	)
 	val mardekState = CharacterState()
 

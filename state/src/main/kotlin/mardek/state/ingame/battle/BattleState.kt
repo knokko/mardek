@@ -108,7 +108,7 @@ class BattleState(
 		if (key == InputKey.Click) {
 			val mouse = this.lastMousePosition
 			for (combatant in allPlayers() + allOpponents()) {
-				val renderRegion = combatant.renderedInfoBlock
+				val renderRegion = combatant.renderInfo.renderedInfoBlock
 				if (mouse != null && renderRegion != null && renderRegion.contains(mouse.first, mouse.second)) {
 					this.openCombatantInfo = combatant
 					break
@@ -158,7 +158,7 @@ class BattleState(
 		if (effects.removedEffects.isNotEmpty()) {
 			effects.combatant.statusEffects.removeAll(effects.removedEffects)
 			for (effect in effects.removedEffects) {
-				effects.combatant.effectHistory.remove(effect, time)
+				effects.combatant.renderInfo.effectHistory.remove(effect, time)
 			}
 			effects.removedEffects.clear()
 		}
@@ -174,14 +174,13 @@ class BattleState(
 				effects.combatant.clampHealthAndMana(context)
 
 				if (effects.combatant.currentHealth != oldHealth) {
-					effects.combatant.lastDamageIndicator = DamageIndicatorHealth(
+					effects.combatant.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
 						oldHealth = oldHealth, oldMana = effects.combatant.currentMana,
 						gainedHealth = -takeDamage.amount, element = dpt.element, overrideColor = dpt.blinkColor
 					)
 					val particle = ParticleEffectState(
 						dpt.particleEffect,
-						effects.combatant.getPosition(this),
-						effects.combatant.isOnPlayerSide
+						effects.combatant.renderInfo.statusEffectPoint,
 					)
 					particle.startTime = System.nanoTime()
 					particles.add(particle)
@@ -195,13 +194,12 @@ class BattleState(
 		if (forceMove != null && time < effects.applyNextDamageAt) return
 
 		state = if (forceMove != null) {
-			if (forceMove.blinkColor != 0) effects.combatant.lastForcedTurn = ForcedTurnBlink(forceMove.blinkColor)
+			if (forceMove.blinkColor != 0) effects.combatant.renderInfo.lastForcedTurn = ForcedTurnBlink(forceMove.blinkColor)
 			val particleEffect = forceMove.particleEffect
 			if (particleEffect != null) {
 				val particle = ParticleEffectState(
 					particleEffect,
-					effects.combatant.getPosition(this),
-					effects.combatant.isOnPlayerSide
+					effects.combatant.renderInfo.statusEffectPoint,
 				)
 				particle.startTime = System.nanoTime()
 				particles.add(particle)
@@ -253,8 +251,7 @@ class BattleState(
 				for (entry in result.targets) {
 					if (!entry.missed && state.skill != null) {
 						state.skill.particleEffect?.let { particles.add(ParticleEffectState(
-							it, entry.target.getPosition(this),
-							entry.target.isOnPlayerSide
+							it, entry.target.renderInfo.hitPoint
 						)) }
 					}
 				}
@@ -278,11 +275,7 @@ class BattleState(
 				)
 
 				for (target in state.targets) {
-					val particle = ParticleEffectState(
-						particleEffect,
-						target.getPosition(this),
-						target.isOnPlayerSide
-					)
+					val particle = ParticleEffectState(particleEffect, target.renderInfo.hitPoint)
 					particle.startTime = System.nanoTime()
 					particles.add(particle)
 				}
@@ -313,11 +306,7 @@ class BattleState(
 
 			val particleEffect = state.item.consumable?.particleEffect
 			if (particleEffect != null) {
-				val particle = ParticleEffectState(
-					particleEffect,
-					state.target.getPosition(this),
-					state.target.isOnPlayerSide
-				)
+				val particle = ParticleEffectState(particleEffect, state.target.renderInfo.hitPoint)
 				particle.startTime = System.nanoTime()
 				particles.add(particle)
 			}
@@ -332,7 +321,7 @@ class BattleState(
 			val target = entry.target
 			if (!entry.missed) {
 				if (entry.damage != 0 || entry.damageMana == 0) {
-					target.lastDamageIndicator = DamageIndicatorHealth(
+					target.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
 						oldHealth = target.currentHealth,
 						oldMana = target.currentMana,
 						gainedHealth = -entry.damage,
@@ -340,7 +329,7 @@ class BattleState(
 						overrideColor = result.overrideBlinkColor,
 					)
 				} else {
-					target.lastDamageIndicator = DamageIndicatorMana(
+					target.renderInfo.lastDamageIndicator = DamageIndicatorMana(
 						oldHealth = target.currentHealth,
 						oldMana = target.currentMana,
 						gainedMana = -entry.damageMana,
@@ -360,14 +349,14 @@ class BattleState(
 
 				if (target.isAlive()) {
 					target.statusEffects.removeAll(entry.removedEffects)
-					for (effect in entry.removedEffects) target.effectHistory.remove(effect, currentTime)
-					for (effect in entry.addedEffects) target.effectHistory.add(effect, currentTime)
+					for (effect in entry.removedEffects) target.renderInfo.effectHistory.remove(effect, currentTime)
+					for (effect in entry.addedEffects) target.renderInfo.effectHistory.add(effect, currentTime)
 				}
-			} else target.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
+			} else target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
 		}
 
 		if (result.restoreAttackerHealth != 0) {
-			attacker.lastDamageIndicator = DamageIndicatorHealth(
+			attacker.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
 				oldHealth = attacker.currentHealth,
 				oldMana = attacker.currentMana,
 				gainedHealth = result.restoreAttackerHealth,
@@ -375,7 +364,7 @@ class BattleState(
 				overrideColor = 0,
 			)
 		} else if (result.restoreAttackerMana != 0) {
-			attacker.lastDamageIndicator = DamageIndicatorMana(
+			attacker.renderInfo.lastDamageIndicator = DamageIndicatorMana(
 				oldHealth = attacker.currentHealth,
 				oldMana = attacker.currentMana,
 				gainedMana = result.restoreAttackerMana,

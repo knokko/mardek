@@ -286,5 +286,5 @@ private fun changeSelectedMove(battle: BattleState, newMove: BattleMoveSelection
 	if (oldTargets.isEmpty() && newTargets.isNotEmpty()) context.soundQueue.insert(context.sounds.ui.clickConfirm)
 	if (oldTargets.isNotEmpty() && newTargets.isEmpty()) context.soundQueue.insert(context.sounds.ui.clickCancel)
 
-	for (target in newTargets) target.lastPointedTo = System.nanoTime()
+	for (target in newTargets) target.renderInfo.lastPointedTo = System.nanoTime()
 }

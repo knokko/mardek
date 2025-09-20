@@ -5,6 +5,8 @@ import mardek.input.InputManager
 import kotlin.time.Duration
 
 interface GameState {
+	fun updateBeforeContent(input: InputManager, soundQueue: SoundQueue) = this
+
 	fun update(context: GameStateUpdateContext): GameState
 }
 

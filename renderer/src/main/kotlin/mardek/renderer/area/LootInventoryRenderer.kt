@@ -1,44 +1,44 @@
 package mardek.renderer.area
 
-import mardek.renderer.InGameRenderContext
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
+import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import mardek.state.ingame.characters.CharacterState
 
-fun renderLootInventoryGrid(
-	context: InGameRenderContext, party: List<CharacterState?>,
+private val BASE_ITEM_COLOR = srgbToLinear(rgb(193, 145, 89))
+private val CONSUMABLE_ITEM_COLOR = srgbToLinear(rgb(81, 113, 217))
+private val WEAPON_COLOR = srgbToLinear(rgb(224, 128, 80))
+private val ARMOR_COLOR = srgbToLinear(rgb(145, 209, 89))
+private val ACCESSORY_COLOR = srgbToLinear(rgb(209, 209, 89))
+
+internal fun renderLootInventoryGrid(
+	colorBatch: Vk2dColorBatch, party: List<CharacterState?>,
 	minX: Int, minY: Int, columnWidth: Int, scale: Int
 ) {
-	context.resources.colorGridRenderer.startBatch(context.recorder)
 	for ((column, characterState) in party.withIndex()) {
 		if (characterState == null) continue
 		val inventory = characterState.inventory
 		if (inventory.size % 8 != 0) throw Error("Huh? inventory size is ${inventory.size}")
 
-		val colorIndexBuffer = context.resources.colorGridRenderer.drawGrid(
-			context, minX + columnWidth * column, minY,
-			8, inventory.size / 8, 0, 2 * scale
-		)
+		for (row in 0 until 8) {
+			for (inventoryColumn in 0 until 8) {
+				val x = minX + columnWidth * column + scale * inventoryColumn
+				val y = minY + scale * row
 
-		for (row in 0 until inventory.size / 8) {
-			var indices = 0u
-			for (itemColumn in 0 until 8) {
-				var localBits = 0u
-				val itemStack = inventory[itemColumn + 8 * row]
+				val itemStack = characterState.inventory[8 * row + inventoryColumn]
 				if (itemStack != null) {
+					var slotColor = BASE_ITEM_COLOR
 					val item = itemStack.item
-					localBits = 1u
-
-					if (item.consumable != null) localBits = 2u
+					if (item.consumable != null) slotColor = CONSUMABLE_ITEM_COLOR
 					val equipment = item.equipment
 					if (equipment != null) {
-						localBits = 5u
-						if (equipment.weapon != null) localBits = 3u
-						if (equipment.armorType != null) localBits = 4u
+						slotColor = ACCESSORY_COLOR
+						if (equipment.weapon != null) slotColor = WEAPON_COLOR
+						if (equipment.armorType != null) slotColor = ARMOR_COLOR
 					}
+					colorBatch.fill(x, y, x + scale - 1, y + scale - 1, slotColor)
 				}
-				indices = indices or (localBits shl (4 * itemColumn))
 			}
-			colorIndexBuffer.put(indices.toInt())
 		}
 	}
-	context.resources.colorGridRenderer.endBatch()
 }
