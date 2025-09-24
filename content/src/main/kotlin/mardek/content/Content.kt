@@ -12,6 +12,7 @@ import mardek.content.battle.BattleContent
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.StatsContent
 import mardek.content.inventory.ItemsContent
+import mardek.content.portrait.PortraitContent
 import mardek.content.skill.SkillsContent
 import mardek.content.ui.Fonts
 import mardek.content.ui.UiSprites
@@ -42,12 +43,15 @@ class Content {
 	val playableCharacters = ArrayList<PlayableCharacter>()
 
 	@BitField(id = 7)
-	lateinit var ui: UiSprites
+	val portraits = PortraitContent()
 
 	@BitField(id = 8)
-	lateinit var fonts: Fonts
+	lateinit var ui: UiSprites
 
 	@BitField(id = 9)
+	lateinit var fonts: Fonts
+
+	@BitField(id = 10)
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	val checkpoints = HashMap<String, ByteArray>()
 

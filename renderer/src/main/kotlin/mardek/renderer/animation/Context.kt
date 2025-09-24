@@ -2,6 +2,7 @@ package mardek.renderer.animation
 
 import mardek.content.animation.ColorTransform
 import mardek.content.animation.SpecialAnimationNode
+import mardek.content.portrait.PortraitInfo
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
 import mardek.state.ingame.battle.CombatantRenderInfo
@@ -15,6 +16,7 @@ class AnimationContext(
 	val partBatch: AnimationPartBatch,
 	val noMask: BcSprite,
 	val combat: CombatantAnimationContext?,
+	val portrait: PortraitInfo?,
 ) {
 	val stack = mutableListOf(TransformStackEntry(
 		parentMatrix, parentColorTransform, null, combat?.rootSkin

@@ -22,6 +22,7 @@ import mardek.importer.particle.FLASH_FRAMES_PER_SECOND
 import java.io.File
 import java.io.IOException
 import java.lang.Integer.parseInt
+import java.util.Locale
 import javax.imageio.ImageIO
 import kotlin.time.Duration.Companion.seconds
 
@@ -49,7 +50,7 @@ private fun extractEquipmentSpecial(animation: SkinnedAnimation): SpecialAnimati
 }
 
 internal fun importAnimationNode(
-	tag: PlaceObjectTypeTag, childID: Int, animationColor: ColorTransform?, mask: AnimationMask?,
+	tag: PlaceObjectTypeTag, childID: Int, instanceName: String?, animationColor: ColorTransform?, mask: AnimationMask?,
 	initialSpecial: SpecialAnimationNode?, context: AnimationImportContext
 ): AnimationNode {
 	val animationMatrix = convertTransformationMatrix(tag.matrix)
@@ -58,26 +59,33 @@ internal fun importAnimationNode(
 	var sprite: AnimationSprite? = null
 	var special: SpecialAnimationNode? = initialSpecial
 
-	if (tag.instanceName == "HitPoint") special = SpecialAnimationNode.HitPoint
-	if (tag.instanceName == "StrikePoint") special = SpecialAnimationNode.StrikePoint
+	if (instanceName == "HitPoint") special = SpecialAnimationNode.HitPoint
+	if (instanceName == "StrikePoint") special = SpecialAnimationNode.StrikePoint
 	if (childID == 2304) special = SpecialAnimationNode.ElementalSwing
 	if (childID == 219) special = SpecialAnimationNode.ElementalCastingCircle
 	if (childID == 2232) special = SpecialAnimationNode.ElementalCastingBackground
-	if (tag.instanceName == "statusFX") special = SpecialAnimationNode.StatusEffectPoint
+	if (instanceName == "statusFX") special = SpecialAnimationNode.StatusEffectPoint
 	// TODO What's the difference between those two?
-	if (tag.instanceName == "StfxPoint") special = SpecialAnimationNode.StatusEffectPoint
-	if (tag.instanceName == "core") special = SpecialAnimationNode.Core
+	if (instanceName == "StfxPoint") special = SpecialAnimationNode.StatusEffectPoint
+	if (instanceName == "core") special = SpecialAnimationNode.Core
 	if (childID == 2311) special = SpecialAnimationNode.Exclaim
 
 	val exportName = FLASH.getExportName(tag.characterId)
 	if (exportName == "castSparkle") special = SpecialAnimationNode.ElementalCastingSparkle
 
-	if (tag.instanceName == "target_cursor") special = SpecialAnimationNode.TargetingCursor
-	if (tag.instanceName == "act_cursor") special = SpecialAnimationNode.OnTurnCursor
+	if (instanceName == "target_cursor") special = SpecialAnimationNode.TargetingCursor
+	if (instanceName == "act_cursor") special = SpecialAnimationNode.OnTurnCursor
 
-	val skipSpecial = special != null && special != SpecialAnimationNode.TargetingCursor &&
-			special != SpecialAnimationNode.OnTurnCursor && special != SpecialAnimationNode.Weapon &&
-			special != SpecialAnimationNode.Shield
+	if (instanceName == "face") special = SpecialAnimationNode.PortraitFace
+	if (instanceName == "mouth") special = SpecialAnimationNode.PortraitMouth
+	if (instanceName == "eye1" || instanceName == "eye2") special = SpecialAnimationNode.PortraitEye
+	if (instanceName == "eyebrow1" || instanceName == "eyebrow2") special = SpecialAnimationNode.PortraitEyeBrow
+	if (instanceName == "hair") special = SpecialAnimationNode.PortraitHair
+	if (childID == 947) special = SpecialAnimationNode.PortraitArmor
+	if (childID == 997) special = SpecialAnimationNode.PortraitEthnicity
+	if (childID == 1569) special = SpecialAnimationNode.PortraitRobe
+
+	val skipSpecial = special != null && special.skipChildren
 
 	if (!skipSpecial && childID != 2222) {
 		val childTag = FLASH.getCharacter(childID)
@@ -91,7 +99,7 @@ internal fun importAnimationNode(
 	var selectSkin: String? = null
 	if (tag.clipActions != null) {
 		for (clip in tag.clipActions.clipActionRecords) {
-			if (tag.instanceName == "mdl") {
+			if (instanceName == "mdl") {
 				val script = getScript(clip)
 				val prefix = "skin = "
 				val startIndex = script.indexOf(prefix)
@@ -116,6 +124,7 @@ internal fun importAnimationNode(
 		}
 	}
 
+	if (selectSkin != null) selectSkin = selectSkin.lowercase(Locale.ROOT)
 	return AnimationNode(
 		depth = tag.depth,
 		animation = animation,
@@ -144,7 +153,7 @@ internal fun importSkinnedAnimation(tag: DefineSpriteTag, context: AnimationImpo
 			var initialSpecial: SpecialAnimationNode? = null
 			val nodes = mutableListOf<AnimationNode>()
 			for (script in frame.scripts) {
-				skinsMap.computeIfAbsent(name) { mutableListOf() }.add(script)
+				skinsMap.computeIfAbsent(name.lowercase(Locale.ROOT)) { mutableListOf() }.add(script)
 
 				val content = getScript(script)
 				if (content.contains("stats.shield")) initialSpecial = SpecialAnimationNode.Shield
@@ -174,18 +183,21 @@ internal fun importSkinnedAnimation(tag: DefineSpriteTag, context: AnimationImpo
 					} else if (childTag is MorphShapeTag) {
 						println("Ignoring morph mask $childTag")
 						null
+					} else if (childTag is DefineSpriteTag && childTag.uniqueId == "1063") {
+						println("skipping eye")
+						null
 					} else throw UnsupportedOperationException("Unexpected mask $childTag")
 				} else null
 
 				var animationColor = convertColorTransform(node.colors)
 				if (animationColor == ColorTransform.DEFAULT) animationColor = null
 				nodes.add(importAnimationNode(
-					node.tag, node.childID, animationColor, mask, initialSpecial, context
+					node.tag, node.childID, node.instanceName, animationColor, mask, initialSpecial, context
 				))
 			}
 			AnimationFrame(duration = 1.seconds / FLASH_FRAMES_PER_SECOND, nodes = nodes.toTypedArray())
 		}
-		if (frames.isNotEmpty()) skins[name] = AnimationFrames(frames.toTypedArray())
+		if (frames.isNotEmpty()) skins[name.lowercase(Locale.ROOT)] = AnimationFrames(frames.toTypedArray())
 	}
 
 	val result = SkinnedAnimation(

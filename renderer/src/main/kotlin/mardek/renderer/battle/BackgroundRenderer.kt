@@ -28,6 +28,7 @@ internal fun renderBattleBackground(battleContext: BattleRenderContext, batch: A
 		partBatch = batch,
 		noMask = battleContext.context.content.battle.noMask,
 		combat = null,
+		portrait = null,
 	)
 	renderBattleBackgroundAnimation(background.nodes, animationContext)
 }

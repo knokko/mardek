@@ -315,6 +315,7 @@ class CombatantRenderer(
 				shieldName = equipment[1]?.flashName,
 				renderInfo = combatant.renderInfo,
 			),
+			portrait = null,
 		)
 
 		val modTime = relativeTime % animation.duration.inWholeNanoseconds

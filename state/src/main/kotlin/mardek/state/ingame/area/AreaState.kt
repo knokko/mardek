@@ -228,8 +228,8 @@ class AreaState(
 	private fun maybeStartRandomBattle(context: UpdateContext) {
 		val randomBattles = area.randomBattles ?: return
 		if (
-			randomBattles.chance > 0 && context.stepsSinceLastBattle > randomBattles.minSteps &&
-			rng.nextInt(150 - context.stepsSinceLastBattle) <= randomBattles.chance
+			randomBattles.chance > 0// && context.stepsSinceLastBattle > randomBattles.minSteps &&
+			//rng.nextInt(150 - context.stepsSinceLastBattle) <= randomBattles.chance
 		) {
 			fun chooseLevel(range: LevelRange) = range.min + rng.nextInt(1 + range.max - range.min)
 

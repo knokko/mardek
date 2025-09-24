@@ -25,4 +25,6 @@ class BattleBackground(
 	val id = UUID.randomUUID()!!
 
 	constructor() : this("", emptyArray<AnimationNode>(), 1)
+
+	override fun toString() = "BattleBackground($name)"
 }
