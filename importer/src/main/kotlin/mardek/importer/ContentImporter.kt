@@ -14,6 +14,7 @@ import mardek.importer.stats.importClasses
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
+import mardek.importer.portrait.importPortraits
 import mardek.importer.skills.importSkillsContent
 import mardek.importer.ui.importFonts
 import mardek.importer.ui.importUiSprites
@@ -29,6 +30,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	importAudioContent(content.audio)
 	importParticleEffects(content)
 	importStatsContent(content)
+	if (!skipMonsters) importPortraits(content)
 	importSkillsContent(content)
 	importItemsContent(content)
 

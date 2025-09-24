@@ -58,6 +58,7 @@ internal fun renderBattle(
 		renderEffectHistory(battleContext, player, imageBatch, textBatch, lateColorBatch)
 	}
 
+	renderBattlePortrait(battleContext, animationPartBatch, region)
 	renderBaseParticles(battleContext, imageBatch) // TODO Use separate particle batch?
 	renderEffectParticles(battleContext, imageBatch)
 

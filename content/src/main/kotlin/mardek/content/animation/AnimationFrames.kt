@@ -27,4 +27,6 @@ class AnimationFrames(
 	}
 
 	override fun iterator() = frames.iterator()
+
+	fun hasSpecialNode(special: SpecialAnimationNode): Boolean = frames.any { it.hasSpecialNode(special) }
 }

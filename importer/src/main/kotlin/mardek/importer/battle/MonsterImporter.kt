@@ -184,8 +184,8 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 		} else if (monsterScripts.size == 1) {
 			var monsterScript = getScript(monsterScripts[0])
 
-			if (combatantName == "Temperance") monsterScript = OVERRIDE_TEMPERANCE
-			if (combatantName == "Molestor") monsterScript = OVERRIDE_MOLESTOR
+			if (combatantName == "temperance") monsterScript = OVERRIDE_TEMPERANCE
+			if (combatantName == "molestor") monsterScript = OVERRIDE_MOLESTOR
 
 			fun addMonster(name: String, propertiesText: String) {
 				content.battle.monsters.add(importMonsterStats(
@@ -194,23 +194,23 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 			}
 
 			if (combatantName == "bartholio_e") {
-				addMonster("BartholioChapter2", OVERRIDE_BARTHOLIO_CHAPTER2)
-				addMonster("BartholioChapter3", OVERRIDE_BARTHOLIO_CHAPTER3)
+				addMonster("bartholioChapter2", OVERRIDE_BARTHOLIO_CHAPTER2)
+				addMonster("bartholioChapter3", OVERRIDE_BARTHOLIO_CHAPTER3)
 				continue
 			}
 			if (combatantName == "vennie_e") {
-				addMonster("VennieChapter2", OVERRIDE_VENNIE_CHAPTER2)
-				addMonster("VennieChapter3", OVERRIDE_VENNIE_CHAPTER3)
+				addMonster("vennieChapter2", OVERRIDE_VENNIE_CHAPTER2)
+				addMonster("vennieChapter3", OVERRIDE_VENNIE_CHAPTER3)
 				continue
 			}
 			if (combatantName == "aalia_e") {
-				addMonster("AaliaChapter2", OVERRIDE_AALIA_CHAPTER2)
-				addMonster("AaliaChapter3", OVERRIDE_AALIA_CHAPTER3)
+				addMonster("aaliaChapter2", OVERRIDE_AALIA_CHAPTER2)
+				addMonster("aaliaChapter3", OVERRIDE_AALIA_CHAPTER3)
 				continue
 			}
 			if (combatantName == "bernard_e") {
-				addMonster("BernardChapter2", OVERRIDE_BERNARD_CHAPTER2)
-				addMonster("BernardChapter3", OVERRIDE_BERNARD_CHAPTER3)
+				addMonster("bernardChapter2", OVERRIDE_BERNARD_CHAPTER2)
+				addMonster("bernardChapter3", OVERRIDE_BERNARD_CHAPTER3)
 				continue
 			}
 
@@ -278,7 +278,7 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 	)) {
 		if (statValue == null) continue
 		val stat = if (statName == "evasion") CombatStat.Evasion
-		else  CombatStat.entries.find { it.flashName == statName }!!
+		else CombatStat.entries.find { it.flashName == statName }!!
 		baseStats[stat] = parseInt(statValue)
 	}
 

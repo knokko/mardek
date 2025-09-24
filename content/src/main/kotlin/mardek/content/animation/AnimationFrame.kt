@@ -19,4 +19,6 @@ class AnimationFrame(
 	private constructor() : this(Duration.ZERO, emptyArray())
 
 	override fun iterator() = nodes.iterator()
+
+	fun hasSpecialNode(special: SpecialAnimationNode) = nodes.any { it.hasSpecial(special) }
 }

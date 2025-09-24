@@ -5,6 +5,7 @@ import mardek.game.area.TestRandomBattles
 import mardek.game.area.testDragonLairDoor
 import mardek.game.battle.*
 import mardek.game.inventory.TestCountItemOccurrences
+import mardek.game.portrait.TestSpecialPortraitNodes
 import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestTitleScreen
 import org.junit.jupiter.api.*
@@ -35,6 +36,11 @@ class IntegrationTests {
 	@Test
 	fun testBattleMoveSelection() {
 		testBattleMoveSelectionFlowAndRendering(instance)
+	}
+
+	@Test
+	fun testPortraits() {
+		TestSpecialPortraitNodes.testPresenceAndAbsence(instance)
 	}
 
 	@Test

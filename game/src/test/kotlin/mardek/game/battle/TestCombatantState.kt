@@ -80,7 +80,7 @@ object TestCombatantState {
 			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "Antibody" }!!)
 
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
-				monster = content.battle.monsters.find { it.name == "Kdestralan_Mind" }!!, level = 5
+				monster = content.battle.monsters.find { it.name == "kdestralan_mind" }!!, level = 5
 			)))
 			val battle = campaign.currentArea!!.activeBattle!!
 			val confusion = content.stats.statusEffects.find { it.niceName == "Confusion" }!!

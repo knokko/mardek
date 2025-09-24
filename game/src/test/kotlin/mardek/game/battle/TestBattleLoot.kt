@@ -150,7 +150,7 @@ object TestBattleLoot {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val demon = content.battle.monsters.find { it.name == "WarportDemon" }!!
+			val demon = content.battle.monsters.find { it.name == "warportdemon" }!!
 			val pass = content.items.plotItems.find { it.name == "Gold Warport Pass" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = demon, level = 10),
@@ -174,7 +174,7 @@ object TestBattleLoot {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val qualna = content.battle.monsters.find { it.name == "Qualna" }!!
+			val qualna = content.battle.monsters.find { it.name == "qualna" }!!
 			val stone = content.items.dreamstones.find { it.index == 16 }!!
 			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = qualna, level = 10),

@@ -7,6 +7,7 @@ import mardek.content.stats.CharacterClass
 import mardek.content.stats.Element
 import mardek.content.stats.Resistances
 import mardek.content.inventory.*
+import mardek.content.portrait.PortraitInfo
 import mardek.content.skill.SkillClass
 import mardek.content.skill.SkillsContent
 import mardek.content.sprite.DirectionalSprites
@@ -32,7 +33,7 @@ private fun createState(): CampaignState {
 	)
 	val mardek = PlayableCharacter(
 		"Mardek", mardekClass, Element(), ArrayList(),
-		DirectionalSprites(), CombatantAnimations(), CreatureType()
+		DirectionalSprites(), CombatantAnimations(), CreatureType(), PortraitInfo(),
 	)
 	val mardekState = CharacterState()
 

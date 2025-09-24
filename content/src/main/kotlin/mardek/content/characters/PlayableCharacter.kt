@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.animation.CombatantAnimations
+import mardek.content.portrait.PortraitInfo
 import mardek.content.stats.CharacterClass
 import mardek.content.stats.Element
 import mardek.content.stats.StatModifier
@@ -37,15 +38,19 @@ class PlayableCharacter(
 
 	@BitField(id = 6)
 	val creatureType: CreatureType,
-) {
 
 	@BitField(id = 7)
+	@ReferenceField(stable = false, label = "portrait info")
+	val portraitInfo: PortraitInfo,
+) {
+
+	@BitField(id = 8)
 	@StableReferenceFieldId
 	val id = UUID.randomUUID()!!
 
 	constructor() : this(
 		"", CharacterClass(), Element(), ArrayList(0),
-		DirectionalSprites(), CombatantAnimations(), CreatureType()
+		DirectionalSprites(), CombatantAnimations(), CreatureType(), PortraitInfo()
 	)
 
 	override fun toString() = name

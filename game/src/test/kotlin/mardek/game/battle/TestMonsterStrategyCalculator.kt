@@ -11,7 +11,7 @@ object TestMonsterStrategyCalculator {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val zombieShaman = content.battle.monsters.find { it.name == "CanoniaShaman" }!!
+			val zombieShaman = content.battle.monsters.find { it.name == "canoniashaman" }!!
 			val darkGift = zombieShaman.actions.find { it.name == "Dark Gift" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = zombieShaman, level = 5
@@ -34,7 +34,7 @@ object TestMonsterStrategyCalculator {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val animus = content.battle.monsters.find { it.name == "Kdestralan_Mind" }!!
+			val animus = content.battle.monsters.find { it.name == "kdestralan_mind" }!!
 			val alpha = animus.actions.find { it.name.contains("Alpha") }!!
 			val gamma = animus.actions.find { it.name.contains("Gamma") }!!
 			val omega = animus.actions.find { it.name.contains("Omega") }!!
@@ -85,7 +85,7 @@ object TestMonsterStrategyCalculator {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val masterStone = content.battle.monsters.find { it.name == "MasterStone" }!!
+			val masterStone = content.battle.monsters.find { it.name == "masterstone" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = masterStone, level = 50
 			)))
@@ -123,7 +123,7 @@ object TestMonsterStrategyCalculator {
 			mardekState.equipment[4] = firePendant
 			mardekState.equipment[5] = firePendant
 
-			val animus = content.battle.monsters.find { it.name == "Kdestralan_Mind" }!!
+			val animus = content.battle.monsters.find { it.name == "kdestralan_mind" }!!
 			val fireVortex = animus.actions.find { it.name == "Energy Vortex: Fire" }!!
 			val waterVortex = animus.actions.find { it.name == "Energy Vortex: Water" }!!
 			val shieldBreak = animus.actions.find { it.name == "Shield Breaker: Annihilation" }!!
@@ -207,7 +207,7 @@ object TestMonsterStrategyCalculator {
 			val regen = content.stats.statusEffects.find { it.niceName == "Regeneration" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			val aalia = content.battle.monsters.find { it.name == "AaliaChapter3" }!!
+			val aalia = content.battle.monsters.find { it.name == "aaliaChapter3" }!!
 			val massMeleeShield = aalia.actions.find { it.name == "Shield" }!!
 			val massMagicShield = aalia.actions.find { it.name == "M. Shield" }!!
 			val massRegen = aalia.actions.find { it.name == "Regen" }!!
@@ -251,7 +251,7 @@ object TestMonsterStrategyCalculator {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val moric = content.battle.monsters.find { it.name == "Moric" }!!
+			val moric = content.battle.monsters.find { it.name == "moric" }!!
 			val zombify = moric.actions.find { it.name == "Zombify" }!!
 			val animateDead = moric.actions.find { it.name == "Animate Dead" }!!
 
@@ -319,7 +319,7 @@ object TestMonsterStrategyCalculator {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val bernard = content.battle.monsters.find { it.name == "BernardChapter3" }!!
+			val bernard = content.battle.monsters.find { it.name == "bernardChapter3" }!!
 			val thunderstorm = bernard.actions.find { it.name == "Thunderstorm" }!!
 			val immolate = bernard.actions.find { it.name == "Immolate" }!!
 			val glaciate = bernard.actions.find { it.name == "Glaciate" }!!

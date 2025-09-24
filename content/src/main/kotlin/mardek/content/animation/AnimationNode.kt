@@ -57,18 +57,19 @@ class AnimationNode(
 	val special: SpecialAnimationNode?,
 
 	/**
-	 * For most nodes, this will be null, which means that the node renders normally.
+	 * For most nodes, this will be empty, which means that the node renders normally.
 	 *
-	 * When non-null, the node (and its children) use a grayscale image as *mask*. The alpha of any child sprite is
-	 * multiplied by the corresponding pixel of the mask.
+	 * When non-empty, the node (and its children) use a grayscale image as *mask*. The alpha of any child sprite is
+	 * multiplied by the corresponding pixel of the mask. When the mask is non-empty, it usually has just 1 frame,
+	 * but there are special animated masks like the eye (DefineSprite 1063).
 	 */
-	@BitField(id = 6, optional = true)
-	val mask: AnimationMask?,
+	@BitField(id = 6)
+	val mask: AnimationMask,
 ) {
 	@Suppress("unused")
 	private constructor() : this(
 		0, null, null, null,
-		null, null, null, null
+		null, null, null, AnimationMask(),
 	)
 
 	override fun toString(): String {
@@ -79,4 +80,7 @@ class AnimationNode(
 		result.append(")")
 		return result.toString()
 	}
+
+	fun hasSpecial(special: SpecialAnimationNode) = this.special == special ||
+			(animation != null && animation.hasSpecial(special))
 }

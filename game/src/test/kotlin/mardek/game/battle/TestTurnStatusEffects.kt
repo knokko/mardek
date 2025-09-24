@@ -249,7 +249,7 @@ object TestTurnStatusEffects {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
-				content.battle.monsters.find { it.name == "Kdestralan_Mind" }!!, 1
+				content.battle.monsters.find { it.name == "kdestralan_mind" }!!, 1
 			)))
 			val battle = campaign.currentArea!!.activeBattle!!
 

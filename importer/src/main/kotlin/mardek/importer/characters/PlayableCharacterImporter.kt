@@ -11,6 +11,7 @@ import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import mardek.importer.util.parseActionScriptResource
 import mardek.content.inventory.ItemStack
+import mardek.content.portrait.PortraitInfo
 import mardek.content.stats.CombatStat
 import java.lang.Integer.parseInt
 
@@ -39,6 +40,9 @@ internal fun importPlayableCharacters(
 
 		val name = parseFlashString(nestedCharacter[0] as String, "playable character name")!!
 		val className = parseFlashString(nestedCharacter[1] as String, "playable character class")!!
+		val areaSpritesName = parseFlashString(
+			nestedCharacter[1] as String, "playable character area sprites"
+		)!!
 		val playable = PlayableCharacter(
 			name = name,
 			characterClass = content.stats.classes.find { it.rawName == className }!!,
@@ -46,11 +50,12 @@ internal fun importPlayableCharacters(
 				it.rawName == parseFlashString(nestedCharacter[3] as String, "playable character element")!!
 			}!!,
 			baseStats = statMods,
-			areaSprites = content.areas.characterSprites.find {
-				it.name == parseFlashString(nestedCharacter[1] as String, "playable character area sprites")
-			}!!,
+			areaSprites = content.areas.characterSprites.find { it.name == areaSpritesName }!!,
 			animations = if (playerModelMapping != null) playerModelMapping[className]!! else CombatantAnimations(),
 			creatureType = content.stats.creatureTypes.find { it.flashName == "HUMAN" }!!,
+			portraitInfo = if (playerModelMapping != null) {
+				content.portraits.info.find { it.flashName == areaSpritesName }!!
+			} else PortraitInfo(),
 		)
 
 		val masteredSkills: MutableList<Skill> = (nestedCharacter[8] as ArrayList<String>).map { rawActiveName ->

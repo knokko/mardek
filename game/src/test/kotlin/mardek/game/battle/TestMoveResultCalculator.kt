@@ -294,7 +294,7 @@ object TestMoveResultCalculator {
 			attackerState.currentLevel = 50
 			attackerState.currentHealth = attackerState.determineMaxHealth(heroMardek.baseStats, emptySet())
 
-			val paladin = content.battle.monsters.find { it.name == "FallenPaladin" }!!
+			val paladin = content.battle.monsters.find { it.name == "fallenpaladin" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = paladin, level = 5)))
 
 			val battle = campaign.currentArea!!.activeBattle!!
@@ -398,7 +398,7 @@ object TestMoveResultCalculator {
 			val campaign = simpleCampaignState()
 
 			val sleepEffect = content.stats.statusEffects.find { it.niceName == "Sleep" }!!
-			val dreamFish = content.battle.monsters.find { it.name == "Dreamfish" }!!
+			val dreamFish = content.battle.monsters.find { it.name == "dreamfish" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = dreamFish, level = 5
 			)))
@@ -462,7 +462,7 @@ object TestMoveResultCalculator {
 
 			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 50), null, null,
-				Enemy(monster = content.battle.monsters.find { it.name == "Brinary" }!!, level = 50)
+				Enemy(monster = content.battle.monsters.find { it.name == "brinary" }!!, level = 50)
 			))
 
 			val battle = campaign.currentArea!!.activeBattle!!
@@ -532,7 +532,7 @@ object TestMoveResultCalculator {
 			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.equipment[0] = content.items.items.find { it.flashName == "Shadowblade" }!!
 
-			val dreamFish = content.battle.monsters.find { it.name == "Dreamfish" }!!
+			val dreamFish = content.battle.monsters.find { it.name == "dreamfish" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = dreamFish, level = 5
 			)))
@@ -591,7 +591,7 @@ object TestMoveResultCalculator {
 			val shieldEffect = content.stats.statusEffects.find { it.niceName == "Shield" }!!
 			val berserkEffect = content.stats.statusEffects.find { it.niceName == "Berserk" }!!
 
-			val smith = content.battle.monsters.find { it.name == "ZombieLocksmith" }!!
+			val smith = content.battle.monsters.find { it.name == "zombielocksmith" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = smith, level = 5)))
 			val battle = campaign.currentArea!!.activeBattle!!
 
@@ -762,7 +762,7 @@ object TestMoveResultCalculator {
 			mardekState.currentLevel = 50
 			mardekState.equipment[3] = content.items.items.find { it.flashName == "Hero's Armour" }!!
 
-			val johnny = content.battle.monsters.find { it.name == "HappyJohnny" }!!
+			val johnny = content.battle.monsters.find { it.name == "happyjohnny" }!!
 			val mimicry = content.skills.classes.find { it.name == "Mimicry" }!!
 			val thousandNeedles = mimicry.actions.find { it.name == "1000 Needles" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = johnny, level = 30)))
@@ -948,7 +948,7 @@ object TestMoveResultCalculator {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val skeleton = content.battle.monsters.find { it.name == "CharredBones" }!!
+			val skeleton = content.battle.monsters.find { it.name == "charredbones" }!!
 			val rageChord = skeleton.strategies[0].entries.find { it.chance == 10 }!!.skill!!
 			val berserk = content.stats.statusEffects.find { it.flashName == "BSK" }!!
 
@@ -1082,7 +1082,7 @@ object TestMoveResultCalculator {
 
 	fun testElixirOnSkeleton(instance: TestingInstance) {
 		instance.apply {
-			val skeleton = content.battle.monsters.find { it.name == "Skeleton" }!!
+			val skeleton = content.battle.monsters.find { it.name == "skeleton" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign, arrayOf(null, null, Enemy(skeleton, 10), null))
 			val battle = campaign.currentArea!!.activeBattle!!

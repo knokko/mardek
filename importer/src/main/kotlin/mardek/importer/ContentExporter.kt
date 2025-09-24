@@ -6,7 +6,6 @@ import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
 import com.github.knokko.vk2d.resource.Vk2dImageCompression
 import com.github.knokko.vk2d.resource.Vk2dResourceWriter
 import mardek.content.Content
-import mardek.content.animation.AnimationNode
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
 import mardek.content.ui.Font
@@ -149,7 +148,7 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	}
 	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
 
-	for (animationSprite in content.battle.animationSprites) {
+	for (animationSprite in content.battle.animationSprites + content.portraits.animationSprites) {
 		addBcImage(resourceWriter, animationSprite.image)
 	}
 	for (skeleton in content.battle.skeletons) {

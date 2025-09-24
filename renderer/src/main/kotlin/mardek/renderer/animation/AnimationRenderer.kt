@@ -14,12 +14,19 @@ import mardek.content.animation.AnimationFrame
 import mardek.content.animation.SpecialAnimationNode
 import mardek.content.animation.AnimationMatrix
 import mardek.content.animation.ColorTransform
+import mardek.content.animation.SkinnedAnimation
 import mardek.content.sprite.BcSprite
 import mardek.state.ingame.battle.CombatantRenderPosition
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
+import java.util.Locale
 
 private val referenceTime = System.nanoTime()
+
+internal fun renderPortraitAnimation(animation: SkinnedAnimation, context: AnimationContext) {
+	val frames = animation.skins[context.portrait!!.rootSkin]!!
+	for (frame in frames) renderAnimationFrame(frame, context)
+}
 
 internal fun renderBattleBackgroundAnimation(nodes: Array<AnimationNode>, context: AnimationContext) {
 	for (node in nodes) renderAnimationNode(node, context)
@@ -53,13 +60,9 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 	val top = context.stack.last()
 	val special = node.special ?: top.special
 	val rawNodeMatrix = node.matrix ?: AnimationMatrix.DEFAULT
-	val (scaleX, scaleY) = if (rawNodeMatrix.hasScale) Pair(rawNodeMatrix.scaleX, rawNodeMatrix.scaleY) else Pair(
-		1f,
-		1f
-	)
 	val localMatrix = Matrix3x2f(
-		scaleX, rawNodeMatrix.rotateSkew0,
-		rawNodeMatrix.rotateSkew1, scaleY,
+		rawNodeMatrix.getScaleX(), rawNodeMatrix.rotateSkew0,
+		rawNodeMatrix.rotateSkew1, rawNodeMatrix.getScaleY(),
 		rawNodeMatrix.translateX, rawNodeMatrix.translateY
 	)
 	val globalMatrix = top.matrix.mul(localMatrix, Matrix3x2f())
@@ -118,14 +121,25 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 
 	var colorTransform = mergeColorTransforms(node.color, top.colors)
 
-
 	if (sprite != null) {
 		val leafMatrix = globalMatrix.translate(sprite.offsetX, sprite.offsetY, Matrix3x2f())
-		val maskSprite = if (node.mask != null) node.mask!!.sprite.image else context.noMask
+		var maskSprite: BcSprite? = null
+		val mask = top.mask ?: node.mask
+		if (mask.frames.isNotEmpty()) {
+			var deltaTime = (context.renderTime - referenceTime) % mask.duration.inWholeNanoseconds
+			for (frame in mask) {
+				deltaTime -= frame.duration.inWholeNanoseconds
+				if (deltaTime < 0L) {
+					maskSprite = frame.sprite.image
+					break
+				}
+			}
+		} else maskSprite = context.noMask
+
 		renderTransformedImage(
 			leafMatrix, sprite.image.width.toFloat() / context.magicScale,
 			sprite.image.height.toFloat() / context.magicScale,
-			sprite.image, maskSprite, colorTransform, context.partBatch,
+			sprite.image, maskSprite!!, colorTransform, context.partBatch,
 		)
 	}
 
@@ -141,6 +155,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 				context.stack.add(TransformStackEntry(
 					top.matrix.mul(localMatrix, localMatrix),
 					colorTransform, special, node.selectSkin ?: context.stack.last().skin,
+					if (top.mask == null || top.mask.frames.size < node.mask.frames.size) node.mask else top.mask,
 				))
 				renderAnimationFrame(frame, context)
 				context.stack.removeLast()
@@ -157,19 +172,55 @@ private fun chooseSkin(
 
 	if (special == SpecialAnimationNode.Weapon) {
 		val weaponName = context.combat?.weaponName ?: return null
-		return skinned.skins[weaponName]
+		return skinned.skins[weaponName.lowercase(Locale.ROOT)]
 	}
 
 	if (special == SpecialAnimationNode.Shield) {
 		val shieldName = context.combat?.shieldName ?: return null
-		return skinned.skins[shieldName]
+		return skinned.skins[shieldName.lowercase(Locale.ROOT)]
+	}
+
+	if (special == SpecialAnimationNode.PortraitExpressions) {
+		return skinned.skins[context.portraitExpression!!]
+	}
+
+	if (special == SpecialAnimationNode.PortraitFace) {
+		return skinned.skins[context.portrait!!.faceSkin]
+	}
+
+	if (special == SpecialAnimationNode.PortraitHair) {
+		return skinned.skins[context.portrait!!.hairSkin]
+	}
+
+	if (special == SpecialAnimationNode.PortraitEye) {
+		return skinned.skins[context.portrait!!.eyeSkin]
+	}
+
+	if (special == SpecialAnimationNode.PortraitEyeBrow) {
+		return skinned.skins[context.portrait!!.eyeBrowSkin]
+	}
+
+	if (special == SpecialAnimationNode.PortraitMouth) {
+		return skinned.skins[context.portrait!!.mouthSkin]
+	}
+
+	if (special == SpecialAnimationNode.PortraitEthnicity) {
+		return skinned.skins[context.portrait!!.ethnicitySkin]
+	}
+
+	if (special == SpecialAnimationNode.PortraitArmor) {
+		return skinned.skins[context.portrait!!.armorSkin]
+	}
+
+	if (special == SpecialAnimationNode.PortraitRobe) {
+		return skinned.skins[context.portrait!!.robeSkin]
 	}
 
 	var animation = skinned.skins[""]
 	val expectedSkin = node.selectSkin ?: context.stack.last().skin
 	if (expectedSkin != null) animation = skinned.skins[expectedSkin]
 
-	if (animation == null) animation = skinned.skins["D"]
+	if (animation == null) animation = skinned.skins["d"]
 	if (animation == null) animation = skinned.skins[""]
 	if (animation == null) animation = skinned.skins.values.first()
 	return animation

@@ -12,6 +12,7 @@ import com.jpexs.decompiler.flash.types.ColorTransform
 internal class RawAnimationNode(
 	val tag: PlaceObjectTypeTag,
 	val childID: Int,
+	val instanceName: String?,
 	val colors: ColorTransform?,
 	val clipDepth: Int,
 )
@@ -25,12 +26,12 @@ internal class RawAnimationState(
 	fun placeObject(tag: PlaceObjectTypeTag) {
 		while (nodes.size <= tag.depth) nodes.add(null)
 
-		val (childID, colorTransform) = if (tag.characterId < 0) {
+		val (childID, instanceName, colorTransform) = if (tag.characterId < 0) {
 			val existingNode = nodes[tag.depth] ?: throw IllegalArgumentException("Unknown child node in $tag")
-			Pair(existingNode.childID, existingNode.colors)
-		} else Pair(tag.characterId, tag.colorTransform)
+			Triple(existingNode.childID, existingNode.instanceName, existingNode.colors)
+		} else Triple(tag.characterId, tag.instanceName, tag.colorTransform)
 
-		nodes[tag.depth] = RawAnimationNode(tag, childID, colorTransform, tag.clipDepth)
+		nodes[tag.depth] = RawAnimationNode(tag, childID, instanceName, colorTransform, tag.clipDepth)
 	}
 
 	fun removeObject(tag: RemoveTag) {
@@ -76,11 +77,12 @@ private class AnimationSimulator {
 
 	fun addScript(tag: DoActionTag) {
 		val script = getScript(tag)
-		if (script.trim() == "GotoAptFrame(this);") {
+		if (script.trim() == "GotoAptFrame(this);" || script.contains("!_parent._parent.stats.ethnicity")) {
 			onlyOneFramePerSkin = true
 			if (currentSkinName != "") throw IllegalStateException()
 			currentSkinName = "1"
 		}
+		if (script.startsWith("char2lips")) onlyOneFramePerSkin = true
 		currentState.addScript(tag)
 	}
 
