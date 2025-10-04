@@ -4,6 +4,7 @@ area = "lifewoodFairies_d";
 areaname = "Dreamwood - Pixie Spring";
 ambience = null;
 dungeon = "Lifewood";
+ambience = null;
 A_sprites = [{name:"Turquoise Keystone",model:"object",x:10,y:17,type:"switch_orb",colour:"turquoise",base:"gold",conv_action:1},{name:"TRANSPORT_TRIGGER",model:"_trigger",x:3,y:3,triggers:-1,WALKON:true,ExecuteScript:function()
 {
    _root.ExitDreamrealm();

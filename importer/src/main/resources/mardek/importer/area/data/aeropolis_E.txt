@@ -9,6 +9,6 @@ foes = [["AeropolisThug",null,null,null,"SOLO"],["AeropolisThug","AeropolisThug"
 btlChance = 2;
 minSteps = 5;
 levelrange = [5,20];
-musicTrack = !GameData.plotVars.ELWYEN_DATE?"Aeropolis":"SirenSong";
+musicTrack = !GameData.plotVars.ELWYEN_DATE ? "Aeropolis" : "SirenSong";
 AreaSetup({WARP:1});
 EN_ADD("Places","Aeropolis");

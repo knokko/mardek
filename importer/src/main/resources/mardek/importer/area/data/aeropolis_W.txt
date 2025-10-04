@@ -18,7 +18,7 @@ foes = [];
 btlChance = 0;
 minSteps = 5;
 levelrange = [1,1];
-musicTrack = GameData.plotVars.PLAY != 3?!GameData.plotVars.ELWYEN_DATE?"Aeropolis":"SirenSong":"none";
+musicTrack = GameData.plotVars.PLAY != 3 ? (!GameData.plotVars.ELWYEN_DATE ? "Aeropolis" : "SirenSong") : "none";
 AreaSetup({WARP:1,clearmap:1});
 EN_ADD("Places","Aeropolis");
 if(GameData.plotVars.PLAY == 3)

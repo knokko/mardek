@@ -18,7 +18,7 @@ if(GameData.CHAPTER == 3 && !GameData.plotVars.CH3TRILOBITES[1][_root.area])
 {
    A_sprites.push({name:"Trilobite Warrior",model:"trilobite2",x:28,y:33,walkspeed:50,dir:"s",elem:"WATER",conv:"c_ch3sq6"});
 }
-areaLoot = [{x:3,y:34,amount:1,item:"Mythril Ore"},{x:2,y:21,amount:10,item:"LiquidSound"},{x:1,y:12,amount:1,item:"Azure Stole +6"},{x:10,y:12,amount:1,item:"Golden Gauntlet"},{x:24,y:12,amount:1,item:"Aether Essence"},{x:29,y:11,amount:1,item:"Healthy Juice"},{x:30,y:23,amount:1,item:"SoulStone"},{x:30,y:35,amount:1,item:"Elixir"}];
+areaLoot = [{x:3,y:34,amount:1,item:"Mythril Ore"},{x:2,y:21,amount:10,item:"LiquidSound"},{x:1,y:12,amount:1,item:"Azure Stole +4"},{x:10,y:12,amount:1,item:"Gold Shield"},{x:24,y:12,amount:1,item:"Aether Essence"},{x:29,y:11,amount:1,item:"Healthy Juice"},{x:30,y:23,amount:1,item:"SoulStone"},{x:30,y:35,amount:1,item:"Elixir"}];
 foes = MONSTER_TABLES.MIASMAL_CITADEL;
 btlChance = 4;
 minSteps = 5;

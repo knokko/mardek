@@ -4,7 +4,7 @@ area = "lakequr_under";
 areaname = "Lake Qur - Underwater";
 dungeon = "LakeQur";
 ambience = {ra:40,rb:0,ga:80,gb:0,ba:100,bb:0,aa:100,ab:0};
-A_sprites = [{name:"Shaft of Light",model:"examine",x:27,y:27,walkspeed:-1,conv:"c_lakeQur"},{name:"WaterTemple",model:"DOOR2",x:3,y:8,lock:(GameData.CHAPTER >= 3?null:"magic"),dest:["lakequr_toTemple",14,38]},{name:"Cave",model:"area_transition",x:19,y:2,dest:["lakequr_cave",4,57]}];
+A_sprites = [{name:"Shaft of Light",model:"examine",x:27,y:27,walkspeed:-1,conv:"c_lakeQur"},{name:"WaterTemple",model:"DOOR2",x:3,y:8,lock:(GameData.CHAPTER >= 3 ? null : "magic"),dest:["lakequr_toTemple",14,38]},{name:"Cave",model:"area_transition",x:19,y:2,dest:["lakequr_cave",4,57]}];
 if(GameData.CHAPTER < 3)
 {
    A_sprites.push({name:"WALK_TRIGGER",model:"_trigger",x:5,y:23,triggers:-1,ExecuteScript:function()

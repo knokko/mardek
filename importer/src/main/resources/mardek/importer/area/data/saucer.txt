@@ -28,7 +28,7 @@ A_sprites = [{name:"Rohoph",model:"rohoph",x:2,y:2,walkspeed:-2,FRAME:1,dir:"dea
          }
          else if(TempVars.PossessCut == 2)
          {
-            _root.SOUL._y = _root.SOUL._y + 3;
+            _root.SOUL._y += 3;
             if(_root.SOUL._y >= _root.cont.PC.getBounds(_root).yMin)
             {
                _root.playSFX("Slam");
@@ -63,7 +63,7 @@ A_sprites = [{name:"Rohoph",model:"rohoph",x:2,y:2,walkspeed:-2,FRAME:1,dir:"dea
             }
             if(_root.SOUL != null && _root.SOUL._alpha < 100)
             {
-               _root.SOUL._alpha = _root.SOUL._alpha + 20;
+               _root.SOUL._alpha += 20;
             }
             if(this.count == 80)
             {
@@ -103,5 +103,5 @@ areaLoot = [];
 foes = [];
 btlChance = 0;
 levelrange = [1,1];
-musicTrack = plotVars.PossessCut != 10?"none":"Rohoph";
+musicTrack = plotVars.PossessCut != 10 ? "none" : "Rohoph";
 AreaSetup({clearmap:1});

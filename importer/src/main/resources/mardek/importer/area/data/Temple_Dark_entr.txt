@@ -4,7 +4,7 @@ area = "Temple_Dark_entr";
 areaname = "Dark Temple - Antechamber";
 ambience = {ra:90,rb:0,ga:60,gb:0,ba:100,bb:0,aa:100,ab:0};
 dungeon = "DarkTemple";
-A_sprites = [{name:"ENTRANCE",model:"DOOR10",x:6,y:2,dir:"n",dest:["Temple_Dark_hub",16,57]},{name:"EXIT",model:"DOOR10",x:6,y:17,dir:"s",lock:"key",key:"Eldritch Key",dest:["sandcave_ddt",16,2]}];
+A_sprites = [{name:"ENTRANCE",model:"DOOR10",x:6,y:2,dir:"n",dest:["Temple_Dark_hub",16,57]},{name:"EXIT",model:"DOOR10",x:6,y:17,dir:"s",lock:"key",key:"Eldritch Key",dest:["sandcave_dtt",16,2]}];
 if(int(GameData.plotVars.GOPE) >= 2)
 {
    A_sprites.push({name:"Gope",model:"gope",x:4,y:5,walkspeed:-1,dir:"s",elem:"EARTH",conv:"c_gope"});

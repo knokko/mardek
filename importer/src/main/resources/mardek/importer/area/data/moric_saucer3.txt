@@ -32,7 +32,7 @@ foes = MONSTER_TABLES.MORIC_SAUCER;
 btlChance = 0;
 minSteps = 5;
 levelrange = MONSTER_LEVELS.MORIC_SAUCER;
-musicTrack = DoomCounter == null?"Battleship":"Flee";
+musicTrack = DoomCounter == null ? "Battleship" : "Flee";
 AreaSetup({clearmap:1});
 if(GameData.plotVars.SLAIN_DRACELON == 1)
 {

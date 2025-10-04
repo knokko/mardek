@@ -16,7 +16,7 @@ if(GameData.plotVars.BRIEFING < 3 && !GameData.plotVars.GemMinesBandits1)
       _root.Interjection("Mardek","GemMinesBandits1","c_mines");
    }}]);
 }
-areaLoot = [{x:5,y:9,type:"item",amount:1,item:"Leather Armour"},{x:24,y:9,type:"item",amount:3,item:"Potion"},{x:35,y:7,type:"item",amount:1,item:"RingOfSTR"},{x:15,y:14,type:"item",amount:1,item:"RingOfVIT"},{x:21,y:22,type:"accs",amount:3,item:"Potion"},{x:35,y:45,type:"item",amount:1,item:"RingOfAGL"}];
+areaLoot = [{x:5,y:9,type:"item",amount:5,item:"Potion"},{x:24,y:9,type:"gold",amount:152},{x:35,y:7,type:"item",amount:1,item:"RingOfSTR"},{x:15,y:14,type:"gold",amount:17},{x:21,y:22,type:"accs",amount:1,item:"SilverPendant"},{x:35,y:45,type:"item",amount:4,item:"Potion"}];
 foes = MONSTER_TABLES.GEM_MINE;
 btlChance = 3;
 minSteps = 5;

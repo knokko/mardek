@@ -14,7 +14,7 @@ A_sprites = [{name:"TRANSPORT_TRIGGER",model:"_trigger",x:20,y:16,triggers:-1,WA
    _root.EnterDreamrealm();
    _root.WarpTrans(["lifewoodN_d",20,16]);
 }},{name:"Dream Circle",model:"object",type:"examine",x:20,y:16,walkable:true,conv:[["","It\'s a Dream Circle."]]},{name:"Cave",model:"area_transition",x:6,y:27,dest:["serpentcave1",24,17]},{name:"N",model:"area_transition",x:32,y:2,dest:["lifewood_temple",8,25],ARROW:"N"},{name:"S",model:"area_transition",x:20,y:57,dest:["lifewood3",11,3],ARROW:"S"}];
-areaLoot = [{x:10,y:45,amount:2,item:"Jade"},{x:30,y:55,amount:3,item:"MugwortJuice"},{x:37,y:52,amount:1,item:"Ancient Runestone"},{x:7,y:34,amount:1,item:"Viper Claw",monsters:[["RogueFairy",null,null,null],["Rogue Fairy",null,null,null],[16,null,null,null],"SOLO"]},{x:29,y:25,amount:1,item:"Stingstick"},{x:17,y:8,amount:1,item:"Stone Axe"}];
+areaLoot = [{x:10,y:45,amount:1,item:"Jade"},{x:30,y:55,amount:3,item:"MugwortJuice"},{x:37,y:52,amount:1,item:"Ancient Runestone"},{x:7,y:34,amount:1,item:"Viper Claw",monsters:[["RogueFairy",null,null,null],["Rogue Fairy",null,null,null],[16,null,null,null],"SOLO"]},{x:29,y:25,amount:1,item:"Leaf of Life"},{x:17,y:8,amount:1,item:"Bitterleaf"}];
 foes = MONSTER_TABLES.LIFEWOOD;
 btlChance = 3;
 minSteps = 5;

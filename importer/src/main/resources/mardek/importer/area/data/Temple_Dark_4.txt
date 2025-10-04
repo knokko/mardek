@@ -13,7 +13,7 @@ if(GameData.CHAPTER == 3 && !GameData.plotVars.CH3TRILOBITES[1][_root.area])
 {
    A_sprites.push({name:"Trilobite Warrior",model:"trilobite2",x:6,y:35,walkspeed:-1,dir:"s",elem:"WATER",conv:"c_ch3sq6"});
 }
-areaLoot = [{x:3,y:30,amount:6,item:"MotionPotion"},{x:27,y:26,amount:1,item:"Golden Conch"},{x:27,y:17,amount:1423,type:"gold"},{x:19,y:7,amount:1,item:"Ether"}];
+areaLoot = [{x:3,y:30,amount:6,item:"MotionPotion"},{x:27,y:26,amount:1,item:"Golden Conch"},{x:27,y:17,amount:1,item:"Stingstick"},{x:19,y:7,amount:1,item:"Ether"}];
 foes = MONSTER_TABLES.DARK_TEMPLE;
 btlChance = 3;
 minSteps = 5;

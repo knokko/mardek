@@ -17,13 +17,13 @@ while(d < GameData.plotVars.FireTempleTest.DONE.length)
 }
 if(GameData.plotVars.SAVIOURS_CH3 === 1 && !_doneThis)
 {
-   A_sprites.push({name:"Aalia",model:"aalia",x:9 + (!TempVars.AaliaNE001?0:1),y:6,walkspeed:-1,dir:(!TempVars.AaliaNE001?"n":"w"),elem:"LIGHT",conv:"c_Saviours"});
+   A_sprites.push({name:"Aalia",model:"aalia",x:9 + (!TempVars.AaliaNE001 ? 0 : 1),y:6,walkspeed:-1,dir:(!TempVars.AaliaNE001 ? "n" : "w"),elem:"LIGHT",conv:"c_Saviours"});
 }
 if(GameData.CHAPTER == 3 && !GameData.plotVars.CH3TRILOBITES[1][_root.area])
 {
    A_sprites.push({name:"Trilobite Warrior",model:"trilobite2",x:20,y:18,walkspeed:50,dir:"s",elem:"WATER",conv:"c_ch3sq6"});
 }
-areaLoot = [{x:18,y:19,amount:1,item:"Raptor Claw"},{x:18,y:21,amount:1,item:"PhoenixPinion"},{x:18,y:23,amount:1,item:"Mirrilixir"},{x:21,y:19,amount:1,item:"Noxious Bomb"},{x:21,y:21,amount:5,item:"Talisman of VOLKOS"},{x:21,y:23,amount:1,item:"Ruby"},{x:3,y:28,amount:1,item:"GoldRing"},{x:2,y:3,amount:1,item:"FirePendant"},{x:32,y:23,amount:1,item:"Remedy"},{x:36,y:37,amount:1,item:"Sheet Music I"},{x:34,y:4,amount:1,item:"Flametongue",monsters:[["Fire Elemental","Fire Elemental","Fire Elemental","Fire Elemental"],["Fire Elemental","Fire Elemental","Fire Elemental","Fire Elemental"],[18,18,18,18],"DEFAULT"]}];
+areaLoot = [{x:18,y:19,amount:1,item:"Raptor Claw"},{x:18,y:21,amount:1,item:"PhoenixPinion"},{x:18,y:23,amount:1,item:"Mirrilixir"},{x:21,y:19,amount:1,item:"Noxious Bomb"},{x:21,y:21,amount:5,item:"Talisman of VOLKOS"},{x:21,y:23,amount:1,item:"Ruby"},{x:3,y:28,amount:1,item:"GoldRing"},{x:2,y:3,amount:1,item:"FirePendant"},{x:32,y:23,amount:1,item:"Remedy"},{x:36,y:37,amount:5,item:"Really Cold Water"},{x:34,y:4,amount:1,item:"Flametongue",monsters:[["Fire Elemental","Fire Elemental","Fire Elemental","Fire Elemental"],["Fire Elemental","Fire Elemental","Fire Elemental","Fire Elemental"],[18,18,18,18],"DEFAULT"]}];
 foes = MONSTER_TABLES.FIRE_TEMPLE;
 btlChance = 3;
 minSteps = 5;

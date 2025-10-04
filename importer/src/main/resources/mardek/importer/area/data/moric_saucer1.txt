@@ -13,6 +13,6 @@ foes = [];
 btlChance = 0;
 minSteps = 5;
 levelrange = [1,1];
-musicTrack = DoomCounter == null?"Battleship":"Flee";
+musicTrack = DoomCounter == null ? "Battleship" : "Flee";
 AreaSetup();
 EN_ADD("Places","Moric\'s Battleship");

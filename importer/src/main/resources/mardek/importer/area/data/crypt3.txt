@@ -14,7 +14,7 @@ if(!GameData.plotVars.ZLOCKSMITH)
    A_sprites.push({name:"Zombie Locksmith",model:"zombie",x:7,y:6,walkspeed:-1,dir:"s",elem:"DARK",conv:[["angr","MRRRUUUUUHHHHHHH!!!!"],Do = function()
    {
       GameData.plotVars.ZLOCKSMITH = 1;
-      BATTLE([["ZombieLocksmith",null,null,null],["Locksmith",null,null,null],[10,null,null,null],"SOLO"],"BossBattle",true);
+      BATTLE([["ZombieLocksmith",null,null,null],["Locksmith",null,null,null],[12,null,null,null],"SOLO"],"BossBattle",true);
       return true;
    }]});
 }
@@ -22,7 +22,7 @@ if(!GameData.plotVars.CRYPT_ZOMBIE1_DEAD)
 {
    A_sprites.push({name:"Zombie Warrior",model:"zombie_warrior",x:49,y:15,walkspeed:-1,dir:"s",elem:"DARK",VOICE:"GdM_earth",conv:"c_GdM_Moric"});
 }
-areaLoot = [{x:22,y:10,amount:1,item:"BetterPotion",hidden:true},{x:7,y:2,amount:1,item:"Ancient Sword",hidden:true},{x:2,y:13,amount:1,item:"PhoenixDown",hidden:true},{x:41,y:23,amount:1,item:"Manaberry"},{x:42,y:23,amount:1,item:"Bonemail"},{x:52,y:25,amount:1,item:"MugwortJuice",hidden:true},{x:22,y:27,amount:1,item:"OnyxRing"},{x:3,y:52,amount:817,type:"gold",hidden:true},{x:37,y:32,amount:1,item:"Bonestone",hidden:true}];
+areaLoot = [{x:22,y:10,amount:3,item:"BetterPotion",hidden:true},{x:7,y:2,amount:1,item:"Ancient Sword",hidden:true},{x:2,y:13,amount:1,item:"Remedy",hidden:true},{x:41,y:23,amount:4,item:"Ether"},{x:42,y:23,amount:1,item:"Bonemail"},{x:52,y:25,amount:1,item:"MugwortJuice",hidden:true},{x:22,y:27,amount:1,item:"RingOfVIT"},{x:3,y:52,amount:317,type:"gold",hidden:true},{x:37,y:32,amount:1,item:"Bonestone",hidden:true}];
 foes = MONSTER_TABLES.CATACOMBS;
 btlChance = 3;
 minSteps = 5;

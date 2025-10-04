@@ -29,5 +29,5 @@ foes = MONSTER_TABLES.GEM_MINE;
 btlChance = 3;
 minSteps = 5;
 levelrange = MONSTER_LEVELS.GEM_MINE;
-musicTrack = GameData.plotVars.BRIEFING >= 4?"Dungeon2":"Muriance";
+musicTrack = GameData.plotVars.BRIEFING >= 4 ? "Dungeon2" : "Muriance";
 AreaSetup({WARP:1,clearmap:1});

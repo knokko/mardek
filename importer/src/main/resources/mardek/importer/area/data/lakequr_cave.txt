@@ -13,7 +13,7 @@ if(!GameData.plotVars.LAKEHAG_DEAD && GameData.CHAPTER == 2)
       DO_ACTIONS([["WALK",0,-3],["UNFREEZE"],["TALK","c_lakeQur","Lake Hag"]],"PC",true);
    }});
 }
-areaLoot = [{x:1,y:25,type:"wepn",amount:1,item:"Iron Sword"},{x:1,y:41,type:"item",amount:1,item:"Potion"},{x:15,y:44,type:"item",amount:1,item:"Ether"}];
+areaLoot = [{x:1,y:25,type:"wepn",amount:1,item:"Bronze Sword"},{x:1,y:41,type:"item",amount:3,item:"Potion"},{x:15,y:44,type:"item",amount:1,item:"Ether"}];
 foes = MONSTER_TABLES.LAKE_QUR;
 btlChance = 3;
 minSteps = 5;

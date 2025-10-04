@@ -19,3 +19,12 @@ tasks.register("exportContent", JavaExec) {
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.importer.ContentExporterKt"
 }
+
+tasks.register("importRawAreaData", JavaExec) {
+	group = "Export"
+	description = "Extracts the raw area data from JPEX, " +
+			"and exports it to importer/src/main/resources/mardek/importer/area/data-raw"
+
+	classpath sourceSets.main.runtimeClasspath
+	mainClass = "mardek.importer.area.AreaDumperKt"
+}

@@ -5,7 +5,7 @@ areaname = "Water Temple";
 ambience = null;
 dungeon = "WaterTemple";
 A_sprites = [{name:"Crystal Room",model:"DOOR13",x:7,y:2,dest:["Temple_WATER_CR",7,17]},{name:"EXIT",model:"area_transition",x:7,y:18,dest:["Temple_WATER_3",10,3],ARROW:"S"}];
-A_sprites.push({name:"Water Guardian",model:"emela_guardian",x:(!GameData.plotVars.GUARD_W_DEFEATED?7:6),y:8,walkspeed:-1,dir:(!GameData.plotVars.GUARD_W_DEFEATED?"s":"e"),elem:"WATER",conv:"c_guardians"});
+A_sprites.push({name:"Water Guardian",model:"emela_guardian",x:(!GameData.plotVars.GUARD_W_DEFEATED ? 7 : 6),y:8,walkspeed:-1,dir:(!GameData.plotVars.GUARD_W_DEFEATED ? "s" : "e"),elem:"WATER",conv:"c_guardians"});
 if(GameData.plotVars.CLAVIS == 2 && HASPLOTITEM("Water Crystal of Belfan"))
 {
    A_sprites.push({name:"Clavis",model:"clave",x:7,y:16,walkspeed:-2,dir:"e",elem:"ETHER",conv:"c_clavis"});

@@ -7,14 +7,14 @@ dungeon = null;
 A_sprites = [{name:"TALKTRIGGER",model:"talktrigger",x:3,y:2,NPC:"Barkeep",dir:"s"},{name:"Barkeep",model:"man1",x:3,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["blah","I can\'t be bothered serving you now! Get out of my bleedin\' face!"]]},{name:"Bloke",model:"common",x:8,y:5,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["grin","We\'re all BLOKES here! We all do things that GUYS do! We talk about BIRDS and CHICKS and SEX and VIOLENCE and HOW TOUGH WE ARE and, uh... SPORT and... and whatever the equivalent of cars is in this weird Fantasyesque world! Yeh!"]]},{name:"Bloke",model:"common",x:9,y:4,walkspeed:-2,dir:"s",elem:"EARTH",conv:[["grin","Wow, you sure are talking to me! Super!"]]},{name:"Bloke",model:"common",x:10,y:5,walkspeed:-2,dir:"w",elem:"EARTH",conv:[["blah","I wish there were some hot girls in here. I\'m sick of ogling these men. I thought I might be gay but I\'m not. How annoying."]]},{name:"Bloke",model:"common",x:8,y:7,walkspeed:-2,dir:"w",elem:"EARTH",conv:[["grin","When I grow up, I want to be a gruul!"]]},{name:"Bloke",model:"common",x:6,y:7,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["grin","When that guy grows up, he wants to be a gruul!"]]},{name:"Bloke",model:"common",x:0,y:6,walkspeed:-2,dir:"e",elem:"EARTH",conv:[["o_O","Hey, I just noticed the other day that girls have, like, weird things on their chests! It\'s weird! I don\'t know what they are but I wish I had some! But I don\'t! I wish I were dead."]]},{name:"Bloke",model:"common",x:6,y:4,walkspeed:-2,dir:"w",elem:"EARTH",conv:[["susp","Will there ever be a Hero as great as Social Fox was?! Will YOU be him, little soldier man?! I bet you\'ll try to be! You seem like that sort of guy, what with your minions following in your footsteps all literally-like!"]]},{name:"EXIT",model:"DOOR4",x:3,y:9,dest:["canonia",17,24]}];
 if(int(GameData.plotVars.ZACH) < 2)
 {
-   A_sprites.push({name:"Zach",model:"zach",x:1,y:3,walkspeed:-2,dir:"n",elem:"AIR",conv:"c_A_zach",PC_STATS:GET_PC_STATS("Zach")});
-   A_sprites[7].conv = [["susp","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he\'d kill his own best friend for the right price... If he had any friends, that is."]];
-   A_sprites[6].conv = [["susp","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he\'d slit his mama\'s throat for a gold piece..."]];
-   A_sprites[5].conv = [["susp","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he\'d slit his own throat for half a copper!"]];
-   A_sprites[8].conv = [["grin","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he\'d slit your throat and pay you a copper!"]];
-   A_sprites[2].conv = [["mad","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he sits on toads and plays with the Coppers."]];
-   A_sprites[3].conv = [["angr","See that guy at the bar? That\'s Zach, a mercenary. He\'s a scary black man."]];
-   A_sprites[4].conv = [["grin","I have no idea who that man is at the bar, but I bet he\'s a clown! Ooh! Or maybe, maybe a pirate! Or a robot!!"]];
+  A_sprites.push({name:"Zach",model:"zach",x:1,y:3,walkspeed:-2,dir:"n",elem:"AIR",conv:"c_A_zach",PC_STATS:GET_PC_STATS("Zach")});
+  A_sprites[7].conv = [["susp","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he\'d kill his own best friend for the right price... If he had any friends, that is."]];
+  A_sprites[6].conv = [["susp","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he\'d slit his mama\'s throat for a gold piece..."]];
+  A_sprites[5].conv = [["susp","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he\'d slit his own throat for half a copper!"]];
+  A_sprites[8].conv = [["grin","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he\'d slit your throat and pay you a copper!"]];
+  A_sprites[2].conv = [["mad","See that guy at the bar? That\'s Zach, a mercenary. I\'ve heard that he sits on toads and plays with the Coppers."]];
+  A_sprites[3].conv = [["angr","See that guy at the bar? That\'s Zach, a mercenary. He\'s a scary black man."]];
+  A_sprites[4].conv = [["grin","I have no idea who that man is at the bar, but I bet he\'s a clown! Ooh! Or maybe, maybe a pirate! Or a robot!!"]];
 }
 if(GameData.CHAPTER == 3)
 {
@@ -25,5 +25,5 @@ foes = [];
 btlChance = 0;
 minSteps = 5;
 levelrange = [1,1];
-musicTrack = !(int(GameData.plotVars.ZACH) < 2 && GameData.CHAPTER == 2)?"Canonia":"Zach";
+musicTrack = !(int(GameData.plotVars.ZACH) < 2 && GameData.CHAPTER == 2) ? "Canonia" : "Zach";
 AreaSetup({clearmap:1});

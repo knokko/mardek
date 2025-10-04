@@ -4,7 +4,7 @@ area = "DL_area4";
 areaname = "Dragon\'s Lair";
 ambience = null;
 dungeon = "DragonLair";
-A_sprites = [{name:"The Dragon",model:"dragon",x:6,y:7,walkspeed:-1,dir:"s",elem:"DARK",Static:true,conv:[["","You shouldn\'t be able to talk to me! REPORT THIS BUG PLEASE!"]]},{name:"Princess",model:"princess",x:6,y:3,walkspeed:-1,dir:"s",elem:"LIGHT",Static:true,conv:[["","You shouldn\'t be able to talk to me! REPORT THIS BUG PLEASE!"]]},{name:"S",model:"BIGDOOR0",x:6,y:40,dest:["DL_area3",15,2]},{name:"WALK_TRIGGER",model:"_trigger",x:6,y:12,triggers:1,ExecuteScript:function()
+A_sprites = [{name:"The Dragon",model:"dragon",x:6,y:7,walkspeed:-1,dir:"s",elem:"DARK",Static:1,conv:[["","You shouldn\'t be able to talk to me! REPORT THIS BUG PLEASE!"]]},{name:"Princess",model:"princess",x:6,y:3,walkspeed:-1,dir:"s",elem:"LIGHT",Static:1,conv:[["","You shouldn\'t be able to talk to me! REPORT THIS BUG PLEASE!"]]},{name:"S",model:"BIGDOOR0",x:6,y:40,dest:["DL_area3",15,2]},{name:"WALK_TRIGGER",model:"_trigger",x:6,y:12,triggers:1,ExecuteScript:function()
 {
    DO_ACTIONS([["WALK",0,-4],["UNFREEZE"],["TALK","c_HeroBabble","PC"]],"PC",true);
 }}];
@@ -12,5 +12,5 @@ areaLoot = [];
 foes = [];
 btlChance = 0;
 levelrange = MONSTER_LEVELS.DRAGON_LAIR;
-musicTrack = !TempVars.DRAGON_SLAIN?"MightyHeroes":"VictoryFanfare";
+musicTrack = !TempVars.DRAGON_SLAIN ? "MightyHeroes" : "VictoryFanfare";
 AreaSetup({clearmap:1,NoStorage:true});

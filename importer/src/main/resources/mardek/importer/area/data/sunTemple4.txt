@@ -33,15 +33,15 @@ if(GameData.plotVars.CLAVIS == null)
 }
 if(!GameData.plotVars.CH3SQ1[1]["Solakian Priest Akhmell"])
 {
-   A_sprites.push({name:"Solakian Priest Akhmell",model:"solakian",x:7,y:37,walkspeed:-1,dir:"n",elem:"EARTH",conv:"c_ch3sq1"});
+   A_sprites.push({name:"Solakian Priest Akhmell",model:"solakian",x:7,y:37,walkspeed:-1,dir:"n",elem:"LIGHT",conv:"c_ch3sq1"});
 }
 if(!GameData.plotVars.CH3SQ1[1]["Solakian Priest Mohmana"])
 {
-   A_sprites.push({name:"Solakian Priest Mohmana",model:"solakian",x:19,y:7,walkspeed:-1,dir:"n",elem:"WATER",conv:"c_ch3sq1"});
+   A_sprites.push({name:"Solakian Priest Mohmana",model:"solakian",x:19,y:7,walkspeed:-1,dir:"n",elem:"LIGHT",conv:"c_ch3sq1"});
 }
-areaLoot = [{x:10,y:29,amount:1,item:"Sun Axe"},{x:16,y:51,amount:1,item:"Iron Spear",monsters:[["BloodLizard","BloodLizard","BloodLizard",null],["Blood Lizard","Blood Lizard","Blood Lizard",null],[15,15,15,null],"TRIO"]},{x:5,y:52,amount:1,item:"BloodOpal"},{x:36,y:6,amount:1,item:"Sun Sword"},{x:49,y:8,amount:1,item:"Amethyst"},{x:55,y:31,amount:1,item:"Iron Armour",monsters:[["BloodLizard","BloodLizard","BloodLizard",null],["Blood Lizard","Blood Lizard","Blood Lizard",null],[15,15,15,null],"TRIO"]},{x:18,y:58,amount:1,item:"Dark Essence"}];
+areaLoot = [{x:10,y:29,amount:2,item:"Really Cold Water"},{x:16,y:51,amount:1,item:"Iron Spear",monsters:[["BloodLizard","BloodLizard","BloodLizard",null],["Blood Lizard","Blood Lizard","Blood Lizard",null],[15,15,15,null],"TRIO"]},{x:5,y:52,amount:1,item:"PhoenixDown"},{x:36,y:6,amount:4,item:"BetterPotion"},{x:49,y:8,amount:1,item:"Amethyst"},{x:55,y:31,amount:1,item:"Bronze Armour",monsters:[["BloodLizard","BloodLizard","BloodLizard",null],["Blood Lizard","Blood Lizard","Blood Lizard",null],[15,15,15,null],"TRIO"]},{x:18,y:58,amount:1,item:"Topaz"}];
 foes = MONSTER_TABLES.SUN_TEMPLE;
-btlChance = !GameData.plotVars.SUN_WARDSTONE?2:0;
+btlChance = !GameData.plotVars.SUN_WARDSTONE ? 2 : 0;
 minSteps = 5;
 levelrange = MONSTER_LEVELS.SUN_TEMPLE;
 musicTrack = "SunTemple";

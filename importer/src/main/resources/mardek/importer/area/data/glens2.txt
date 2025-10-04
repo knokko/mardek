@@ -8,10 +8,10 @@ A_sprites = [{name:"INTERJECTION",model:"_trigger",x:29,y:11,ExecuteScript:funct
 {
    _root.Interjection("Emela","emela1","c_A_Deugan");
 }},{name:"Trilobite Cave",model:"area_transition",x:50,y:23,dest:["trilobite1",5,10]},{name:"W",model:"area_transition",x:7,y:26,dest:["glens1",34,24],ARROW:"W"},{name:"E",model:"area_transition",x:52,y:3,dest:["WORLDMAP",1,1,"lakequr"],ARROW:"E"}];
-areaLoot = [{x:2,y:2,type:"wepn",amount:1,item:"Earth Rod"},{x:43,y:24,type:"gold",amount:356},{x:34,y:26,type:"item",amount:3,item:"Antidote"}];
+areaLoot = [{x:2,y:2,type:"wepn",amount:1,item:"Earth Rod"},{x:43,y:24,type:"gold",amount:56},{x:34,y:26,type:"item",amount:5,item:"Antidote"}];
 foes = MONSTER_TABLES.GLENS;
 btlChance = 3;
 minSteps = 5;
 levelrange = MONSTER_LEVELS.GLENS;
-musicTrack = !GameData.plotVars.SUNSET?"WorldMap":"crickets";
+musicTrack = !GameData.plotVars.SUNSET ? "WorldMap" : "crickets";
 AreaSetup({WARP:1});

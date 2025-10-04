@@ -55,7 +55,7 @@ if(GameData.CHAPTER == 3 && HASPLOTITEM("Necromantic Tome") && HasAlly("Meraeado
 if(GameData.CHAPTER != 1 && GameData.plotVars.Allies.Legion == null)
 {
    A_sprites.push({name:"ROBOT",model:"robot",x:5,y:3,walkspeed:-2,FRAME:8,dir:"inactive",elem:"NONE",conv:[["","..."]],silent:true,PC_STATS:GET_PC_STATS("Legion")});
-   A_sprites.push({name:"Metal Man",model:"object",x:5,y:3,type:"examine",conv:[["","This is Meraeador\'s Metal Man - a project that he has been working on since you were a child. You\'re honestly surprised he\'s stuck with it for so long!" + (GameData.CHAPTER != 2?" It looks almost finished as it is, though it can\'t yet move because it doesn\'t have a soul.":" It doesn\'t look like it\'s close to completion yet; it seems to be lacking vital components. How you - a mere teenager with no knowledge of engineering - can come to this conclusion is perplexing and irrelevant.")]]});
+   A_sprites.push({name:"Metal Man",model:"object",x:5,y:3,type:"examine",conv:[["","This is Meraeador\'s Metal Man - a project that he has been working on since you were a child. You\'re honestly surprised he\'s stuck with it for so long!" + (GameData.CHAPTER != 2 ? " It looks almost finished as it is, though it can\'t yet move because it doesn\'t have a soul." : " It doesn\'t look like it\'s close to completion yet; it seems to be lacking vital components. How you - a mere teenager with no knowledge of engineering - can come to this conclusion is perplexing and irrelevant.")]]});
 }
 areaLoot = [];
 foes = [];

@@ -17,7 +17,7 @@ while(d < GameData.plotVars.FireTempleTest.DONE.length)
 }
 if(GameData.plotVars.SAVIOURS_CH3 === 1 && !_doneThis)
 {
-   A_sprites.push({name:"Bartholio",model:"bartholio",x:8 + (!TempVars.BartSW001?0:1),y:7,walkspeed:-1,dir:(!TempVars.BartSW001?"n":"w"),elem:"LIGHT",conv:"c_Saviours"});
+   A_sprites.push({name:"Bartholio",model:"bartholio",x:8 + (!TempVars.BartSW001 ? 0 : 1),y:7,walkspeed:-1,dir:(!TempVars.BartSW001 ? "n" : "w"),elem:"LIGHT",conv:"c_Saviours"});
 }
 areaLoot = [{x:16,y:4,amount:1,item:"PhoenixDown"},{x:26,y:25,amount:1,item:"M Runestone"},{x:2,y:30,amount:1,item:"Ether"}];
 foes = MONSTER_TABLES.FIRE_TEMPLE;

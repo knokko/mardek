@@ -13,7 +13,7 @@ A_sprites = [{name:"TRANSPORT_TRIGGER",model:"_trigger",x:23,y:61,triggers:-1,WA
    _root.EnterDreamrealm();
    _root.WarpTrans(["canonia_woods_d",23,61]);
 }},{name:"Dream Circle",model:"object",type:"examine",x:23,y:61,walkable:true,conv:[["","It\'s a Dream Circle."]]},{name:"Shaman\'s House",model:"DOOR4",x:29,y:72,dest:["canonia_shaman",3,6]},{name:"N",model:"area_transition",x:39,y:3,dest:["WORLDMAP",1,1],ARROW:"N"},{name:"Cave",model:"area_transition",x:13,y:73,dest:["WORLDMAP",1,1,"pcave1"]}];
-areaLoot = [{x:4,y:4,type:"item",amount:1,item:"RingOfAGL+2"},{x:5,y:16,type:"item",amount:1,item:"Remedy"},{x:2,y:53,type:"item",amount:3,item:"MotionPotion"},{x:21,y:73,type:"item",amount:1,item:"Snakestone"},{x:43,y:38,type:"item",amount:1,item:"Hat"},{x:19,y:34,type:"item",amount:1,item:"Bronze Shield"}];
+areaLoot = [{x:4,y:4,type:"item",amount:3,item:"Potion"},{x:5,y:16,type:"item",amount:1,item:"Remedy"},{x:2,y:53,type:"item",amount:3,item:"MotionPotion"},{x:21,y:73,type:"item",amount:1,item:"Snakestone"},{x:43,y:38,type:"item",amount:1,item:"Hat"},{x:19,y:34,type:"item",amount:1,item:"Bronze Shield"}];
 foes = MONSTER_TABLES.CANONIA_WOODS;
 btlChance = 3;
 minSteps = 5;

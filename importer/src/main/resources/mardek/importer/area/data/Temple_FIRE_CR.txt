@@ -14,7 +14,7 @@ foes = [];
 btlChance = 0;
 minSteps = 5;
 levelrange = [1,1];
-musicTrack = GameData.plotVars.FIRE_CRYSTAL != null?"none":"Crystals";
+musicTrack = GameData.plotVars.FIRE_CRYSTAL != null ? "none" : "Crystals";
 DeadTempleCheck();
 AreaSetup({clearmap:1});
 EN_ADD("Places","Fire Temple");

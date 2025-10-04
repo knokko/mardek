@@ -30,5 +30,5 @@ areaLoot = [];
 foes = [];
 btlChance = 0;
 levelrange = [1,1];
-musicTrack = !GameData.plotVars.SUNSET?"Goznor":"none";
+musicTrack = !GameData.plotVars.SUNSET ? "Goznor" : "none";
 AreaSetup({clearmap:1});

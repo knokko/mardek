@@ -9,7 +9,7 @@ if(!GameData.plotVars.CH3SQ3[1].Ssossdj)
 {
    A_sprites.push({name:"Reptoid Warrior Ssossdj",model:"reptoid_warrior",x:22,y:21,walkspeed:40,dir:"n",elem:"EARTH",conv:"c_ch3sq3"});
 }
-areaLoot = [{x:2,y:6,amount:1,item:"Moonstone"},{x:6,y:22,amount:740,type:"gold"},{x:20,y:35,amount:1,item:"Snakestone"},{x:29,y:27,amount:1,item:"Bottle O\' Acid"},{x:43,y:21,amount:1,item:"Dark Essence"}];
+areaLoot = [{x:2,y:6,amount:1,item:"Gauntlet"},{x:6,y:22,amount:740,type:"gold"},{x:20,y:35,amount:1,item:"Iron Spear"},{x:29,y:27,amount:3,item:"Really Cold Water"},{x:43,y:21,amount:1,item:"Dark Essence"}];
 foes = MONSTER_TABLES.SANDCAVE;
 btlChance = 2;
 minSteps = 5;

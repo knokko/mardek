@@ -9,22 +9,22 @@ if(!GameData.plotVars.ANTARES)
    A_sprites.push({name:"Idol",model:"object",x:21,y:3,type:"examine",conv:[["angr","It\'s an Idol of SOLAK, God of Suns. These are sculpted by priests and enchanted with levitation magic to show their devotion to their deity, and... is it moving?! Gasp!"],Do = function()
    {
       GameData.plotVars.ANTARES = 1;
-      BATTLE([["Antares",null,null,null],["Antares",null,null,null],[15,null,null,null],"SOLO"],"BossBattle",true);
+      BATTLE([["Antares",null,null,null],["Antares",null,null,null],[20,null,null,null],"SOLO"],"BossBattle",true);
       _root.FLAVOUR.T_21_3 = null;
       return true;
    }]});
 }
 if(!GameData.plotVars.CH3SQ1[1]["Solakian Priest Djhale"])
 {
-   A_sprites.push({name:"Solakian Priest Djhale",model:"solakian",x:16,y:15,walkspeed:-1,dir:"n",elem:"AIR",conv:"c_ch3sq1"});
+   A_sprites.push({name:"Solakian Priest Djhale",model:"solakian",x:16,y:15,walkspeed:-1,dir:"n",elem:"LIGHT",conv:"c_ch3sq1"});
 }
 if(!GameData.plotVars.CH3SQ1[1]["Solakian Priest Ellavar"])
 {
-   A_sprites.push({name:"Solakian Priest Ellavar",model:"solakian",x:55,y:24,walkspeed:20,dir:"s",elem:"FIRE",conv:"c_ch3sq1"});
+   A_sprites.push({name:"Solakian Priest Ellavar",model:"solakian",x:55,y:24,walkspeed:20,dir:"s",elem:"LIGHT",conv:"c_ch3sq1"});
 }
-areaLoot = [{x:57,y:25,amount:515,type:"gold"},{x:8,y:51,amount:1,item:"Shadowblade",monsters:[["BloodLizard","BloodLizard",null,null],["Blood Lizard","Blood Lizard",null,null],[15,15,null,null],"DUO"]},{x:27,y:14,amount:1,item:"Alchemist\'s Fire"},{x:15,y:14,amount:1,item:"Ether"},{x:52,y:44,amount:3,item:"MugwortJuice"},{x:51,y:44,amount:1,item:"Sun Idol"},{x:45,y:9,amount:1,item:"Boots of Celerity",monsters:[["Griffin",null,null,null],["Griffin",null,null,null],[20,null,null,null],"SOLO"]}];
+areaLoot = [{x:57,y:25,amount:215,type:"gold"},{x:8,y:51,amount:1,item:"Sun Sword",monsters:[["BloodLizard","BloodLizard",null,null],["Blood Lizard","Blood Lizard",null,null],[15,15,null,null],"DUO"]},{x:27,y:14,amount:3,item:"Alchemist\'s Fire"},{x:15,y:14,amount:1,item:"Ether"},{x:52,y:44,amount:3,item:"Really Cold Water"},{x:51,y:44,amount:1,item:"Sun Idol"},{x:45,y:9,amount:1,item:"Boots of Celerity",monsters:[["Griffin",null,null,null],["Griffin",null,null,null],[20,null,null,null],"SOLO"]}];
 foes = MONSTER_TABLES.SUN_TEMPLE;
-btlChance = !GameData.plotVars.SUN_WARDSTONE?2:0;
+btlChance = !GameData.plotVars.SUN_WARDSTONE ? 2 : 0;
 minSteps = 5;
 levelrange = MONSTER_LEVELS.SUN_TEMPLE;
 musicTrack = "SunTemple";

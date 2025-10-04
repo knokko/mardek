@@ -18,7 +18,7 @@ A_sprites = [{name:"Turquoise Keystone",model:"object",x:37,y:4,type:"switch_orb
 {
    _root.WarpTrans(["dreamshrine3",52,0]);
 }}];
-areaLoot = [{x:0,y:5,amount:1,item:"Ether of Kings"},{x:9,y:2,amount:1,item:"Bandit Leather +5",monsters:[["Oneironaut","Oneironaut"],["Oneironaut","Oneironaut"],[30,30],"DEFAULT"]},{x:21,y:8,amount:1,item:"Elixir"},{x:29,y:8,amount:1,item:"Sapphire Bangle"},{x:25,y:2,amount:1,item:"Golden Gauntlet",monsters:[["Monster","Monster","Monster","Monster"],["Monster","Monster","Monster","Monster"],[30,30,30,30],"DEFAULT"]},{x:30,y:21,amount:1,item:"Healthy Juice"},{x:51,y:12,amount:1,item:"SoulStone"},{x:49,y:28,amount:10,item:"Manaberry"},{x:50,y:7,amount:1,item:"FigJuice"},{x:58,y:7,amount:1,item:"M Runestone"},{x:54,y:4,amount:1,item:"Rainbow Disc"}];
+areaLoot = [{x:0,y:5,amount:1,item:"Ether of Kings"},{x:9,y:2,amount:1,item:"Kind Star",monsters:[["Oneironaut","Oneironaut"],["Oneironaut","Oneironaut"],[30,30],"DEFAULT"]},{x:21,y:8,amount:1,item:"Elixir"},{x:29,y:8,amount:1,item:"Sapphire Bangle"},{x:25,y:2,amount:1,item:"Golden Gauntlet",monsters:[["Monster","Monster","Monster","Monster"],["Monster","Monster","Monster","Monster"],[30,30,30,30],"DEFAULT"]},{x:30,y:21,amount:1,item:"Healthy Juice"},{x:51,y:12,amount:1,item:"SoulStone"},{x:49,y:28,amount:10,item:"Manaberry"},{x:50,y:7,amount:1,item:"FigJuice"},{x:58,y:7,amount:1,item:"M Runestone"},{x:54,y:4,amount:1,item:"Rainbow Disc"}];
 foes = MONSTER_TABLES.DREAMSHRINE;
 btlChance = 3;
 minSteps = 5;

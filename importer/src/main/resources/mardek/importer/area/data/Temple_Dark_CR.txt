@@ -14,12 +14,12 @@ if(GameData.plotVars.EVIL_STEELE == null)
    A_sprites.push({name:"Mystery Man",model:"steele",x:7,y:7,walkspeed:-1,dir:"n",elem:"DARK",conv:"c_A_Steele",EN:["People","Mystery Man"]});
    A_sprites.push({name:"Dark Crystal",elem:"DARK",model:"ElementalCrystal",walkspeed:-2,FRAME:5,x:7,y:5,conv:[["","Ooooh!"]]});
 }
-areaLoot = !GameData.plotVars.DONE_CH3_INTRO?[]:[{x:7,y:5,amount:14,item:"Dreamstone"}];
+areaLoot = !GameData.plotVars.DONE_CH3_INTRO ? [] : [{x:7,y:5,amount:14,item:"Dreamstone"}];
 foes = [];
 btlChance = 0;
 minSteps = 5;
 levelrange = [1,1];
-musicTrack = GameData.plotVars.EVIL_STEELE != null?"DarkTemple":"Steele";
+musicTrack = GameData.plotVars.EVIL_STEELE != null ? "DarkTemple" : "Steele";
 DeadTempleCheck();
 AreaSetup({LOOT:3,WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});
 specBtlBG = "Temple_DARK_2";

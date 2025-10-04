@@ -5,7 +5,7 @@ areaname = "Aeropolis - Theatre";
 ambience = null;
 if(GameData.plotVars.PLAY == null)
 {
-   var BARTHOLIO_STATS = GameData.plotVars.Allies.Bartholio = {name:"Bartholio",model:"bartholio",level:26,exp:0,hp:[120,120],mp:[20,20],BASE:{STR:24,VIT:21,SPR:8,AGL:11},STR:24,VIT:21,SPR:8,AGL:11,Class:"Fighter",spells:[],weapon:"Starmetal Blade",shield:"none",helmet:"Horned Helm",armour:"Steel Armour",accessory:"Gauntlet",accessory2:"Emerald Bangle",learned:{},reactions:{atk:{A:"DMG+30%",S:null,D:null},def:{A:"DMG-30%",S:null,D:null}},inventory:new Array(56),element:"LIGHT",nDef:0,nMDef:0,UNSWITCHABLE:true};
+   var BARTHOLIO_STATS = GameData.plotVars.Allies.Bartholio = {name:"Bartholio",model:"bartholio",level:26,exp:0,hp:[120,120],mp:[20,20],BASE:{STR:24,VIT:21,SPR:8,AGL:11},STR:24,VIT:21,SPR:8,AGL:11,Class:"Fighter",spells:[],weapon:"Starmetal Blade",shield:"none",helmet:"Horned Helm",armour:"Iron Armour",accessory:"Gauntlet",accessory2:"Emerald Bangle",learned:{},reactions:{atk:{A:"DMG+30%",S:null,D:null},def:{A:"DMG-30%",S:null,D:null}},inventory:new Array(56),element:"LIGHT",nDef:0,nMDef:0,UNSWITCHABLE:true};
    GameData.plotVars.Allies.Bartholio.learned["Power Attack"] = 99;
    GameData.plotVars.Allies.Bartholio.inventory[0] = ["FigJuice",3];
    var AALIA_STATS = GameData.plotVars.Allies.Aalia = {name:"Aalia",model:"aalia",level:26,exp:0,hp:[120,120],mp:[20,20],BASE:{STR:10,VIT:11,SPR:24,AGL:17},STR:10,VIT:11,SPR:24,AGL:17,Class:"Healer",spells:[],weapon:"Fire Staff",shield:"none",helmet:"Regal Crown",armour:"Dark Robe",accessory:"GoldRing",accessory2:"Sapphire Bangle",learned:{},reactions:{atk:{A:"M DMG+30%",S:null,D:null},def:{A:"DMG-20%",S:null,D:null}},inventory:new Array(56),element:"LIGHT",nDef:0,nMDef:0,UNSWITCHABLE:true};

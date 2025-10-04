@@ -13,7 +13,7 @@ if(GameData.plotVars.SAUL == 1)
       DO_ACTIONS([["TALK","c_A_Saul","Saul"]],"PC");
    }});
 }
-areaLoot = [{x:28,y:46,amount:3,item:"Old Bone",hidden:true},{x:44,y:49,amount:1,item:"Human Skull",hidden:true},{x:48,y:28,amount:3,item:"Dark Essence"},{x:11,y:46,amount:1,item:"Dark Robe",hidden:true},{x:16,y:27,amount:6,item:"MotionPotion"},{x:42,y:26,amount:4,item:"HolyWater"},{x:16,y:18,amount:1,item:"Sheet Music VI"},{x:12,y:8,amount:1,item:"PhoenixDown"},{x:24,y:9,amount:1,item:"Bonemail"},{x:25,y:9,amount:5,item:"Zombie Dust"}];
+areaLoot = [{x:28,y:46,amount:3,item:"Old Bone",hidden:true},{x:44,y:49,amount:1,item:"Human Skull",hidden:true},{x:48,y:28,amount:3,item:"Dark Essence"},{x:11,y:46,amount:1,item:"Dark Robe",hidden:true},{x:16,y:27,amount:6,item:"MotionPotion"},{x:42,y:26,amount:4,item:"HolyWater"},{x:16,y:18,amount:1,item:"Sheet Music V"},{x:12,y:8,amount:1,item:"PhoenixDown"},{x:24,y:9,amount:1,item:"Bonemail"},{x:25,y:9,amount:5,item:"Zombie Dust"}];
 foes = MONSTER_TABLES.SAUL_DUNGEON;
 btlChance = 4;
 minSteps = 5;

@@ -41,7 +41,7 @@ fun importAreaContent(content: Content) {
 		val sheetImage = ImageIO.read(characterSprite)
 		val numSprites = sheetImage.width / 16
 
-		val sheet = DirectionalSprites(name.substring(0, name.length - 4), (0 until numSprites).map {
+		val sheet = DirectionalSprites(name.dropLast(4), (0 until numSprites).map {
 			compressKimSprite3(sheetImage.getSubimage(it * 16, 0, 16, sheetImage.height))
 		}.toTypedArray())
 		content.areas.characterSprites.add(sheet)
@@ -101,7 +101,9 @@ fun importAreaContent(content: Content) {
 	for ((transition, destination) in transitions) {
 		if (destination == "WORLDMAP") continue // TODO Handle this
 		if (destination == "nowhere") continue
-		transition.area = content.areas.areas.find { it.properties.rawName.lowercase(Locale.ROOT) == destination.lowercase(Locale.ROOT) }!!
+		transition.area = content.areas.areas.find {
+			it.properties.rawName.equals(destination, ignoreCase = true)
+		}!!
 	}
 }
 

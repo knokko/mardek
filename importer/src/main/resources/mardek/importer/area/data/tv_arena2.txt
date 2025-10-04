@@ -18,7 +18,7 @@ foes = [];
 btlChance = 0;
 minSteps = 5;
 levelrange = [1,1];
-musicTrack = GameData.plotVars.ARENA[GameData.CHAPTER] <= (GameData.CHAPTER != 3?20:19)?"ArenaBattle":"VictoryFanfare2";
+musicTrack = GameData.plotVars.ARENA[GameData.CHAPTER] <= (GameData.CHAPTER != 3 ? 20 : 19) ? "ArenaBattle" : "VictoryFanfare2";
 if(TempVars.ARENA_SURVIVAL_MODE)
 {
    if(TempVars.SURVIVAL_COMPETITOR == "Sslen\'ck")

@@ -9,6 +9,6 @@ areaLoot = [{x:4,y:8,amount:13,item:"Dreamstone"}];
 foes = [["Killer Cod","Killer Cod","Killer Cod","Killer Cod","DEFAULT"]];
 btlChance = 8;
 minSteps = 5;
-levelrange = [18,22];
+levelrange = [25,30];
 musicTrack = "Dungeon3";
 AreaSetup({WARP:0,LOOT:3});

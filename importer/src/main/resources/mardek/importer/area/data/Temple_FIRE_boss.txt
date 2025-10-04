@@ -4,7 +4,7 @@ area = "Temple_FIRE_boss";
 areaname = "Fire Temple";
 ambience = null;
 dungeon = "FireTemple";
-A_sprites = [{name:"Crystal Room",model:"DOOR12",x:7,y:2,dest:["Temple_FIRE_CR",7,17]},{name:"Sealed Door",model:"DOOR12",x:7,y:19,lock:(!HASPLOTITEM("Fire Crystal of Belfan")?"magic":null),dest:["Temple_FIRE_hub",9,3]}];
+A_sprites = [{name:"Crystal Room",model:"DOOR12",x:7,y:2,dest:["Temple_FIRE_CR",7,17]},{name:"Sealed Door",model:"DOOR12",x:7,y:19,lock:(!HASPLOTITEM("Fire Crystal of Belfan") ? "magic" : null),dest:["Temple_FIRE_hub",9,3]}];
 if(!GameData.plotVars.GUARD_F_DEFEATED)
 {
    A_sprites.push({name:"Fire Guardian",model:"ch3bosses",x:7,y:8,walkspeed:-2,elem:"FIRE",FRAME:0,conv:"c_guardians"});
@@ -34,5 +34,5 @@ levelrange = MONSTER_LEVELS.FIRE_TEMPLE;
 musicTrack = "FireTemple";
 DeadTempleCheck();
 AreaSetup({clearmap:1});
-specBtlBG = "Temple_FIRE_2" + (musicTrack != "DeadTemple"?"":"_dead");
+specBtlBG = "Temple_FIRE_2" + (musicTrack != "DeadTemple" ? "" : "_dead");
 EN_ADD("Places","Fire Temple");

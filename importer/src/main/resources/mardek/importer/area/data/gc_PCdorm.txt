@@ -26,7 +26,7 @@ A_sprites = [{name:"Grand Adventurers",model:"object",x:9,y:1,type:"examine",con
       DO_ACTIONS([["WALK",0,1],["WALK",-3,0],["UNFREEZE"],["TALK","c_A_Deugan","Deugan"]],"Deugan",true);
    }
 }}];
-areaLoot = [{x:2,y:2,type:"gold",amount:500}];
+areaLoot = [];
 if(GameData.CHAPTER == 2)
 {
    if(GameData.plotVars.startedProperly == 0)
@@ -55,6 +55,6 @@ if(GameData.CHAPTER == 2)
 foes = [];
 btlChance = 0;
 levelrange = [1,1];
-musicTrack = !GameData.plotVars.ELWYEN_DATE?!GameData.plotVars.SUNSET?"Castle":"none":"SirenSong";
+musicTrack = !GameData.plotVars.ELWYEN_DATE ? (!GameData.plotVars.SUNSET ? "Castle" : "none") : "SirenSong";
 AreaSetup({clearmap:1});
 EN_ADD("Places","Castle Goznor");

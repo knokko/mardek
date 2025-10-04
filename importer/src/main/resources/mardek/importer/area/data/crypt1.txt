@@ -8,7 +8,7 @@ A_sprites = [{name:"Save Crystal",model:"o_Crystal",x:19,y:35,walkspeed:-1,conv:
 {
    _root.Interjection("Mardek","EnterCatacombs","c_A_Rohoph");
 }},{name:"UP",model:"BIGDOOR3",x:19,y:13,dest:["crypt2",19,13],dir:"s"},{name:"DOWN",model:"BIGDOOR3",x:19,y:50,dest:["sewer2",3,1],dir:"s"}];
-areaLoot = [{x:19,y:19,amount:1,item:"Kettle Hat",hidden:true},{x:26,y:1,type:"gold",amount:522},{x:39,y:14,amount:1,item:"BetterPotion"},{x:31,y:21,amount:3,item:"LiquidLight"},{x:3,y:31,amount:1,item:"Potion"}];
+areaLoot = [{x:19,y:19,amount:1,item:"Kettle Hat",hidden:true},{x:26,y:1,amount:1,item:"PhoenixDown"},{x:39,y:14,amount:1,item:"MugwortJuice"},{x:31,y:21,amount:3,item:"LiquidLight"},{x:3,y:31,amount:3,item:"Potion"}];
 foes = MONSTER_TABLES.CATACOMBS;
 btlChance = 3;
 minSteps = 5;

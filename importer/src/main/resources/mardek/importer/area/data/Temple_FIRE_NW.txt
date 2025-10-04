@@ -17,7 +17,7 @@ while(d < GameData.plotVars.FireTempleTest.DONE.length)
 }
 if(GameData.plotVars.SAVIOURS_CH3 === 1 && !_doneThis)
 {
-   A_sprites.push({name:"Vennie",model:"vennie",x:22 + (!TempVars.VennieNW001?0:1),y:6,walkspeed:-1,dir:(!TempVars.VennieNW001?"n":"w"),elem:"AIR",conv:"c_Saviours"});
+   A_sprites.push({name:"Vennie",model:"vennie",x:22 + (!TempVars.VennieNW001 ? 0 : 1),y:6,walkspeed:-1,dir:(!TempVars.VennieNW001 ? "n" : "w"),elem:"AIR",conv:"c_Saviours"});
 }
 areaLoot = [{x:27,y:21,amount:1,item:"Magic Shirt"},{x:17,y:21,amount:1,item:"Fire Essence"},{x:9,y:25,amount:1,item:"PhoenixDown"},{x:1,y:9,amount:3,item:"BalloonJuice"}];
 foes = MONSTER_TABLES.FIRE_TEMPLE;

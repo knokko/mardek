@@ -4,7 +4,7 @@ area = "moric_saucer4";
 areaname = "Moric\'s Battleship - Bridge";
 ambience = null;
 dungeon = "MoricSaucer";
-A_sprites = [{name:"Moric",model:"z_socialfox",x:7,y:3,walkspeed:-2,dir:"s",elem:"EARTH",Static:true,conv:"c_GdM_Moric"},{name:"WALK_TRIGGER",model:"_trigger",x:7,y:8,triggers:-1,ExecuteScript:function()
+A_sprites = [{name:"Moric",model:"z_socialfox",x:7,y:3,walkspeed:-2,dir:"s",elem:"EARTH",conv:"c_GdM_Moric",Static:1},{name:"WALK_TRIGGER",model:"_trigger",x:7,y:8,triggers:-1,ExecuteScript:function()
 {
    if(GameData.plotVars.BEATEN_MORIC == 99)
    {
@@ -49,12 +49,12 @@ A_sprites = [{name:"Moric",model:"z_socialfox",x:7,y:3,walkspeed:-2,dir:"s",elem
          }
          else if(TempVars.MPossessCut == 3)
          {
-            _root.SOULSEAL._xscale = _root.SOULSEAL._xscale - 1;
-            _root.SOULSEAL._yscale = _root.SOULSEAL._yscale - 1;
+            _root.SOULSEAL._xscale -= 1;
+            _root.SOULSEAL._yscale -= 1;
             _root.SOULSEAL._rotation = _root.SOULSEAL._rotation + 1;
             if(_root.SOULSEAL._alpha < 100)
             {
-               _root.SOULSEAL._alpha = _root.SOULSEAL._alpha + 8;
+               _root.SOULSEAL._alpha += 8;
             }
             if(_root.SOULSEAL._width < 40)
             {
@@ -68,7 +68,7 @@ A_sprites = [{name:"Moric",model:"z_socialfox",x:7,y:3,walkspeed:-2,dir:"s",elem
          }
          else if(TempVars.MPossessCut == 2)
          {
-            _root.SOUL._y = _root.SOUL._y - 3;
+            _root.SOUL._y -= 3;
             if(_root.SOUL._y <= _root.cont.Moric.getBounds(_root).yMin - 90)
             {
                _root.playSFX("MPRestore");
@@ -109,7 +109,7 @@ A_sprites = [{name:"Moric",model:"z_socialfox",x:7,y:3,walkspeed:-2,dir:"s",elem
             }
             if(_root.SOUL != null && _root.SOUL._alpha < 100)
             {
-               _root.SOUL._alpha = _root.SOUL._alpha + 20;
+               _root.SOUL._alpha += 20;
             }
             if(this.count == 120)
             {
@@ -138,5 +138,5 @@ foes = [];
 btlChance = 0;
 minSteps = 5;
 levelrange = [1,1];
-musicTrack = DoomCounter == null?GameData.plotVars.BEATEN_MORIC != 99?"GdM":"none":"Flee";
+musicTrack = DoomCounter == null ? (GameData.plotVars.BEATEN_MORIC != 99 ? "GdM" : "none") : "Flee";
 AreaSetup({clearmap:1});
