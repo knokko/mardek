@@ -199,7 +199,7 @@ class TestAreaParser {
 
 	@Test
 	fun testParseSunTemple1() {
-		val parsed = parseArea(content, "sunTemple1", ArrayList(), ArrayList())
+		val parsed = parseArea(content, "suntemple1", ArrayList(), ArrayList())
 		assertEquals(1, parsed.chests.size)
 		assertNull(parsed.randomBattles)
 

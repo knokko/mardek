@@ -224,7 +224,7 @@ private fun importAnimationSprite(tag: ShapeTag, isMask: Boolean, context: Anima
 }
 
 internal fun findDependencies(parentNodes: List<AnimationNode>): Pair<Array<AnimationSprite>, Array<SkinnedAnimation>> {
-	val usedSprites = mutableMapOf<Int, AnimationSprite>()
+	val usedSprites = mutableMapOf<Pair<Int, Boolean>, AnimationSprite>()
 	val usedAnimations = mutableMapOf<Int, SkinnedAnimation>()
 
 	var nodesToProcess = parentNodes
@@ -243,8 +243,13 @@ internal fun findDependencies(parentNodes: List<AnimationNode>): Pair<Array<Anim
 			}
 
 			val sprite = node.sprite
-			if (sprite != null && !usedSprites.containsKey(sprite.defineShapeFlashID)) {
-				usedSprites[sprite.defineShapeFlashID] = sprite
+			if (sprite != null && !usedSprites.containsKey(Pair(sprite.defineShapeFlashID, false))) {
+				usedSprites[Pair(sprite.defineShapeFlashID, false)] = sprite
+			}
+
+			val mask = node.mask
+			if (mask != null && !usedSprites.containsKey(Pair(mask.sprite.defineShapeFlashID, true))) {
+				usedSprites[Pair(mask.sprite.defineShapeFlashID, true)] = mask.sprite
 			}
 		}
 
