@@ -56,17 +56,8 @@ internal fun renderBattleFinishEffect(
 				var innerColor = innerColorA
 				var outerColor = outerColorA
 				if (a == 1f && b > 0f) {
-					// TODO Create helper function for this
-					innerColor = rgb(
-						(1f - b) * normalize(red(innerColorA)) + b * normalize(red(innerColorB)),
-						(1f - b) * normalize(green(innerColorA)) + b * normalize(green(innerColorB)),
-						(1f - b) * normalize(blue(innerColorA)) + b * normalize(blue(innerColorB)),
-					)
-					outerColor = rgb(
-						(1f - b) * normalize(red(outerColorA)) + b * normalize(red(outerColorB)),
-						(1f - b) * normalize(green(outerColorA)) + b * normalize(green(outerColorB)),
-						(1f - b) * normalize(blue(outerColorA)) + b * normalize(blue(outerColorB)),
-					)
+					innerColor = interpolateColors(innerColorA, innerColorB, b)
+					outerColor = interpolateColors(outerColorA, outerColorB, b)
 				}
 
 				val victoryFont = context.bundle.getFont(context.content.fonts.large2.index)

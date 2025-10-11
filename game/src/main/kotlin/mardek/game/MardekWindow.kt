@@ -29,7 +29,7 @@ class MardekWindow(
 	private val gameState: GameStateManager,
 	private val videoSettings: VideoSettings,
 	window: VkbWindow,
-) : Vk2dWindow(window, videoSettings.capFps) {
+) : Vk2dWindow(window, videoSettings.capFps, videoSettings.delayRendering) {
 
 	private var totalFrames = 0L
 	private lateinit var renderManager: RenderManager
@@ -62,7 +62,7 @@ class MardekWindow(
 			boiler, videoSettings, resources, pipelineContext, pipelines,
 		)
 		this.swapchainResources = MardekSwapchainResources(
-			boiler, pipelines.blur, window.surfaceFormat, vkRenderPass
+			boiler, pipelines.blur, window.properties.surfaceFormat, vkRenderPass
 		)
 	}
 
@@ -83,7 +83,7 @@ class MardekWindow(
 			renderManager.renderFrame(
 				gameState, frame, recorder,
 				textBuffer, perFrameDescriptorSet,
-				swapchainResources.get(swapchainImage),
+				swapchainResources.getSwapchainAssociation(swapchainImage),
 				perFrame[frameIndex], fpsCounter.value,
 			)
 

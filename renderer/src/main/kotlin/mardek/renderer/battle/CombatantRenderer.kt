@@ -102,20 +102,9 @@ class CombatantRenderer(
 		if (base == null) return top
 		if (top == null) return base
 
-		val addColor = rgba(
-			normalize(red(base.addColor)) * normalize(red(top.multiplyColor)) + normalize(red(top.addColor)),
-			normalize(green(base.addColor)) * normalize(green(top.multiplyColor)) + normalize(green(top.addColor)),
-			normalize(blue(base.addColor)) * normalize(blue(top.multiplyColor)) + normalize(blue(top.addColor)),
-			normalize(alpha(base.addColor)) * normalize(alpha(top.multiplyColor)) + normalize(alpha(top.addColor)),
-		)
-		// TODO Use ColorPacker here
-		val multipleColor = rgba(
-			normalize(red(base.multiplyColor)) * normalize(red(top.multiplyColor)),
-			normalize(green(base.multiplyColor)) * normalize(green(top.multiplyColor)),
-			normalize(blue(base.multiplyColor)) * normalize(blue(top.multiplyColor)),
-			normalize(alpha(base.multiplyColor)) * normalize(alpha(top.multiplyColor)),
-		)
-		return ColorTransform(addColor = addColor, multiplyColor = multipleColor)
+		val addColor = addColors(multiplyColors(base.addColor, top.multiplyColor), top.addColor)
+		val multiplyColor = multiplyColors(base.multiplyColor, top.multiplyColor)
+		return ColorTransform(addColor = addColor, multiplyColor = multiplyColor)
 	}
 
 	fun render() {

@@ -45,8 +45,8 @@ public class GlyphBenchmark1 extends Vk2dWindow {
 		int cellSize = 3 * heightA / 2;
 		int round = 0;
 		int glyph = 0;
-		for (int y = cellSize; y < swapchainImage.height(); y += cellSize) {
-			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
+		for (int y = cellSize; y < swapchainImage.getHeight(); y += cellSize) {
+			for (int x = 0; x < swapchainImage.getWidth(); x += cellSize) {
 				Vk2dFont font = glyph % 3 == 0 ? font0 : font1;
 				if (glyph >= font.getNumGlyphs()) {
 					glyph = 0;

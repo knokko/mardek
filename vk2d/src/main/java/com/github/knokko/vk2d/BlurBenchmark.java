@@ -26,7 +26,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class BlurBenchmark extends Vk2dWindow {
 
-	SwapchainResourceManager<SwapchainResources, SwapchainResources> swapchainResources;
+	SwapchainResourceManager<SwapchainResources, Object> swapchainResources;
 	Vk2dBlurPipeline.Descriptors[] blurDescriptors;
 
 	public BlurBenchmark(VkbWindow window) {
@@ -46,11 +46,6 @@ public class BlurBenchmark extends Vk2dWindow {
 			@Override
 			public SwapchainResources createSwapchain(int width, int height, int numImages) {
 				return new SwapchainResources(boiler, window, pipelines.blur, vkRenderPass, width, height);
-			}
-
-			@Override
-			public SwapchainResources createImage(SwapchainResources swapchain, AcquiredImage image) {
-				return swapchain;
 			}
 
 			@Override
@@ -85,7 +80,7 @@ public class BlurBenchmark extends Vk2dWindow {
 			CommandRecorder recorder, AcquiredImage swapchainImage, BoilerInstance boiler
 	) {
 		printFps();
-		SwapchainResources associated = swapchainResources.get(swapchainImage);
+		SwapchainResources associated = swapchainResources.getSwapchainAssociation(swapchainImage);
 		Vk2dRenderStage sourceStage = pipelines.blur.addSourceStage(frame, associated.blur, -1);
 		pipelines.blur.addComputeStage(
 				frame, blurDescriptors[frameIndex], associated.blur,
@@ -114,7 +109,7 @@ public class BlurBenchmark extends Vk2dWindow {
 				long renderPass, int width, int height
 		) {
 			MemoryCombiner memory = new MemoryCombiner(boiler, "BlurMemory");
-			this.blur = pipeline.createFramebuffer(memory, window.surfaceFormat, width, height, width / 4, height / 4);
+			this.blur = pipeline.createFramebuffer(memory, window.properties.surfaceFormat(), width, height, width / 4, height / 4);
 			this.memoryBlock = memory.build(false);
 			this.blur.createFramebuffer(boiler, renderPass);
 		}

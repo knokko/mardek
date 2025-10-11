@@ -58,9 +58,7 @@ public class GlyphOffsetPlayground {
 		loader.claimMemory(combiner);
 		VkbImage targetImage = combiner.addImage(new ImageBuilder(
 				"TargetImage", 90, 20
-		).addUsage(
-				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
-		).format(VK_FORMAT_R8G8B8A8_SRGB), 1f);
+		).colorAttachment().addUsage(VK_IMAGE_USAGE_TRANSFER_SRC_BIT), 1f);
 		MappedVkbBuffer destinationBuffer = combiner.addMappedBuffer(
 				4L * targetImage.width * targetImage.height, 4L,
 				VK_BUFFER_USAGE_TRANSFER_DST_BIT

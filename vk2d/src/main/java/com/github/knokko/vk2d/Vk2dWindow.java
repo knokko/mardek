@@ -41,10 +41,10 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
 	public static int choosePresentMode(VkbWindow window, boolean capFps) {
 		if (capFps) return VK_PRESENT_MODE_FIFO_KHR;
-		if (window.supportedPresentModes.contains(VK_PRESENT_MODE_MAILBOX_KHR)) {
+		if (window.getSupportedPresentModes().contains(VK_PRESENT_MODE_MAILBOX_KHR)) {
 			return VK_PRESENT_MODE_MAILBOX_KHR;
 		}
-		if (window.supportedPresentModes.contains(VK_PRESENT_MODE_IMMEDIATE_KHR)) {
+		if (window.getSupportedPresentModes().contains(VK_PRESENT_MODE_IMMEDIATE_KHR)) {
 			return VK_PRESENT_MODE_IMMEDIATE_KHR;
 		}
 		System.err.println("This graphics driver doesn't appear to support any present mode with uncapped FPS");
@@ -66,7 +66,14 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
 	public Vk2dWindow(VkbWindow window, boolean capFps) {
 		super(
-				window, 2, false, choosePresentMode(window, capFps),
+				window,  false, choosePresentMode(window, capFps),
+				ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
+		);
+	}
+
+	public Vk2dWindow(VkbWindow window, boolean capFps, boolean acquireSwapchainImageWithFence) {
+		super(
+				window,  acquireSwapchainImageWithFence, choosePresentMode(window, capFps),
 				ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 		);
 	}
@@ -84,7 +91,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		setupConfig(config);
 		this.instance = new Vk2dInstance(boiler, config);
 
-		Vk2dPipelineContext pipelineContext = Vk2dPipelineContext.renderPass(boiler, window.surfaceFormat);
+		Vk2dPipelineContext pipelineContext = Vk2dPipelineContext.renderPass(boiler, window.properties.surfaceFormat());
 		this.pipelines = new Vk2dPipelines(instance, pipelineContext, config);
 		this.vkRenderPass = pipelineContext.vkRenderPass();
 
@@ -131,8 +138,8 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			@Override
 			protected Long createImage(Object swapchain, AcquiredImage swapchainImage) {
 				return boiler.images.createFramebuffer(
-						vkRenderPass, swapchainImage.width(), swapchainImage.height(),
-						"SwapchainFramebuffer", swapchainImage.image().vkImageView
+						vkRenderPass, swapchainImage.getWidth(), swapchainImage.getHeight(),
+						"SwapchainFramebuffer", swapchainImage.getImage().vkImageView
 				);
 			}
 
@@ -166,9 +173,9 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		perFrameBuffer.startFrame(frameIndex);
 
 		Map<Long, Long> framebufferMap = new HashMap<>();
-		framebufferMap.put(acquiredImage.image().vkImageView, framebuffers.get(acquiredImage));
+		framebufferMap.put(acquiredImage.getImage().vkImageView, framebuffers.getImageAssociation(acquiredImage));
 		Vk2dSwapchainFrame frame = new Vk2dSwapchainFrame(
-				acquiredImage.image(), perFrameBuffer, vkRenderPass, framebufferMap
+				acquiredImage.getImage(), perFrameBuffer, vkRenderPass, framebufferMap
 		);
 		if (textBuffer != null) frame.stages.add(textBuffer);
 		renderFrame(frame, frameIndex, recorder, acquiredImage, boiler);
@@ -222,8 +229,8 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		if (validationMode == Vk2dValidationMode.STRONG) builder.forbidValidationErrors();
 		BoilerInstance boiler = builder.addWindow(
 				new WindowBuilder(
-						1200, 800, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-				).sdlFlags(SDL_WINDOW_VULKAN | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE).hideUntilFirstFrame()
+						1200, 800, 2
+				).sdlFlags(SDL_WINDOW_VULKAN | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE).hideFirstFrames(3)
 		).useSDL().doNotUseVma().build();
 
 		WindowEventLoop eventLoop = new WindowEventLoop();

@@ -28,6 +28,7 @@ internal fun renderVideoSettingsTab(menuContext: MenuRenderContext, region: Rect
 
 		val textHeight = 0.04f * region.height
 		val baseX = region.minX + region.width * 0.1f
+
 		val device = settings.availableDevices[settings.preferredDevice] as VkPhysicalDeviceProperties
 		textBatch.drawString(
 			"*", baseX - 0.025f * region.height, region.minY + 0.21f * region.height,
@@ -38,6 +39,7 @@ internal fun renderVideoSettingsTab(menuContext: MenuRenderContext, region: Rect
 			region.minY + 0.2f * region.height, textHeight, font,
 			textColor(0, settings.availableDevices.size > 1),
 		)
+
 		textBatch.drawString(
 			"Cap FPS", baseX, region.minY + 0.3f * region.height,
 			textHeight, font, textColor(1, settings.canUncapFps),
@@ -57,6 +59,26 @@ internal fun renderVideoSettingsTab(menuContext: MenuRenderContext, region: Rect
 		imageBatch.simpleScale(
 			baseX + region.height * 0.25f, region.minY + 0.36f * region.height,
 			0.04f * region.height / toggle2.height, toggle2.index,
+		)
+
+		textBatch.drawString(
+			"*", baseX - 0.025f * region.height, region.minY + 0.51f * region.height,
+			textHeight, font, warningColor, TextAlignment.RIGHT,
+		)
+		textBatch.drawString(
+			"Frames In Flight: ${settings.framesInFlight}", baseX,
+			region.minY + 0.5f * region.height, textHeight, font,
+			textColor(3, true),
+		)
+
+		textBatch.drawString(
+			"Delay rendering", baseX, region.minY + 0.6f * region.height,
+			textHeight, font, textColor(4, true),
+		)
+		val toggle3 = if (settings.delayRendering) context.content.ui.skillToggled else context.content.ui.skillNotToggled
+		imageBatch.simpleScale(
+			baseX + region.height * 0.4f, region.minY + 0.56f * region.height,
+			0.04f * region.height / toggle3.height, toggle3.index,
 		)
 
 		textBatch.drawString(

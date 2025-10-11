@@ -32,11 +32,11 @@ fun createBoiler(args: Array<String>, videoSettings: VideoSettings): BoilerInsta
 	val boilerBuilder = BoilerBuilder(
 		VK_API_VERSION_1_1, "MardekKt", 1
 	).addWindow(WindowBuilder(
-		800, 600, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-	).hideUntilFirstFrame().sdlFlags(SDL_WINDOW_VULKAN or SDL_WINDOW_RESIZABLE or SDL_WINDOW_BORDERLESS))
+		800, 600, videoSettings.framesInFlight
+	).hideFirstFrames(3).sdlFlags(SDL_WINDOW_VULKAN or SDL_WINDOW_RESIZABLE or SDL_WINDOW_BORDERLESS))
 	boilerBuilder.useSDL(SDL_INIT_VIDEO or SDL_INIT_GAMEPAD)
 	boilerBuilder.requiredFeatures10("textureCompressionBc", VkPhysicalDeviceFeatures::textureCompressionBC)
-	boilerBuilder.featurePicker10 { stack, supportedFeatures, toEnable -> toEnable.textureCompressionBC(true) }
+	boilerBuilder.featurePicker10 { _, _, toEnable -> toEnable.textureCompressionBC(true) }
 	boilerBuilder.physicalDeviceSelector(MardekDeviceSelector(videoSettings))
 	boilerBuilder.doNotUseVma()
 	if (args.contains("validation")) boilerBuilder.validation().forbidValidationErrors()

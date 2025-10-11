@@ -12,7 +12,7 @@ class VideoSettingsTab : InGameMenuTab(true) {
 
 	override fun processKeyPress(key: InputKey, context: UiUpdateContext) {
 		if (inside) {
-			if (key == InputKey.MoveDown && selectedProperty < 2) {
+			if (key == InputKey.MoveDown && selectedProperty < 4) {
 				selectedProperty += 1
 				context.soundQueue.insert(context.sounds.ui.scroll)
 			}
@@ -51,6 +51,21 @@ class VideoSettingsTab : InGameMenuTab(true) {
 
 		if (selectedProperty == 2 && isToggle) {
 			settings.showFps = !settings.showFps
+		}
+
+		if (selectedProperty == 3) {
+			if (key == InputKey.MoveLeft && settings.framesInFlight > 1) {
+				settings.framesInFlight -= 1
+				context.soundQueue.insert(context.sounds.ui.partyScroll)
+			}
+			if (key == InputKey.MoveRight && settings.framesInFlight < 3) {
+				settings.framesInFlight += 1
+				context.soundQueue.insert(context.sounds.ui.partyScroll)
+			}
+		}
+
+		if (selectedProperty == 4 && isToggle) {
+			settings.delayRendering = !settings.delayRendering
 		}
 
 		if (wasInside && !inside) settings.save()

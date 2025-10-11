@@ -48,11 +48,11 @@ public class OvalBenchmark extends Vk2dWindow {
 
 		int cellSize = 25;
 		Random rng = new Random();
-		for (int y = 0; y < swapchainImage.height(); y += cellSize) {
-			for (int x = 0; x < swapchainImage.width(); x += cellSize) {
+		for (int y = 0; y < swapchainImage.getHeight(); y += cellSize) {
+			for (int x = 0; x < swapchainImage.getWidth(); x += cellSize) {
 				batch1.complex(
 						x, y, x + cellSize - 1, y + cellSize - 1,
-						x + cellSize / 2, y + cellSize / 2, cellSize / 2, cellSize / 2,
+						x + cellSize / 2f, y + cellSize / 2f, cellSize / 2f, cellSize / 2f,
 						rng.nextInt(), rng.nextInt(), rng.nextInt(), rng.nextInt(), rng.nextInt(),
 						0.2f, 0.4f, 0.6f, 0.8f
 				);

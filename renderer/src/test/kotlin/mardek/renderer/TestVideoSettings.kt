@@ -14,10 +14,14 @@ class TestVideoSettings {
 		assertEquals(0, settings.preferredDevice)
 		assertTrue(settings.capFps)
 		assertFalse(settings.showFps)
+		assertEquals(2, settings.framesInFlight)
+		assertFalse(settings.delayRendering)
 
 		settings.preferredDevice = 123
 		settings.capFps = false
 		settings.showFps = true
+		settings.framesInFlight = 3
+		settings.delayRendering = true
 
 		val settingsFile = Files.createTempFile("", "").toFile()
 		settingsFile.deleteOnExit()
@@ -28,5 +32,7 @@ class TestVideoSettings {
 		assertEquals(123, settings2.preferredDevice)
 		assertFalse(settings2.capFps)
 		assertTrue(settings2.showFps)
+		assertEquals(3, settings.framesInFlight)
+		assertTrue(settings.delayRendering)
 	}
 }

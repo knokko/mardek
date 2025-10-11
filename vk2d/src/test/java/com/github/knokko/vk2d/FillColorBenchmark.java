@@ -31,15 +31,15 @@ public class FillColorBenchmark extends Vk2dWindow {
 
 		Random rng = new Random();
 		int numRectangles = 10_000;
-		int minWidth = min(10, swapchainImage.width());
-		int minHeight = min(10, swapchainImage.height());
+		int minWidth = min(10, swapchainImage.getWidth());
+		int minHeight = min(10, swapchainImage.getHeight());
 
 		Vk2dColorBatch batch1 = pipelines.color.addBatch(frame.swapchainStage, 2 * numRectangles);
 		for (int counter = 0; counter < numRectangles; counter++) {
-			int minX = rng.nextInt(1 + swapchainImage.width() - minWidth);
-			int minY = rng.nextInt(1 + swapchainImage.height() - minHeight);
-			int boundWidth = swapchainImage.width() - minX;
-			int boundHeight = swapchainImage.height() - minY;
+			int minX = rng.nextInt(1 + swapchainImage.getWidth() - minWidth);
+			int minY = rng.nextInt(1 + swapchainImage.getHeight() - minHeight);
+			int boundWidth = swapchainImage.getWidth() - minX;
+			int boundHeight = swapchainImage.getHeight() - minY;
 			batch1.fill(
 					minX, minY, minX + rng.nextInt(boundWidth),
 					minY + rng.nextInt(boundHeight), rng.nextInt()

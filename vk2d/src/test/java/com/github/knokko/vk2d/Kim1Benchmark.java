@@ -42,8 +42,8 @@ public class Kim1Benchmark extends Vk2dWindow {
 		int scale = 1;
 		Vk2dKimBatch batch1 = pipelines.kim1.addBatch(frame.swapchainStage, 5000, resources);
 		for (int round = 0; round < numRounds; round++) {
-			for (int y = 0; y < swapchainImage.height(); y += 16 * scale) {
-				for (int x = 0; x < swapchainImage.width(); x += 16 * scale) {
+			for (int y = 0; y < swapchainImage.getHeight(); y += 16 * scale) {
+				for (int x = 0; x < swapchainImage.getWidth(); x += 16 * scale) {
 					batch1.simple(
 							x, y, x + 16 * scale - 1, y + 16 * scale - 1,
 							2 * rng.nextInt(resources.numFakeImages / 2)

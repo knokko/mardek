@@ -66,7 +66,7 @@ class TestingInstance {
 		builder.requiredFeatures10("textureCompressionBC") {
 			supportedFeatures -> supportedFeatures.textureCompressionBC()
 		}
-		builder.featurePicker10 { stack, supportedFeatures, enabledFeatures ->
+		builder.featurePicker10 { _, _, enabledFeatures ->
 			enabledFeatures.textureCompressionBC(true)
 		}
 		builder.defaultTimeout(5_000_000_000L)
@@ -97,7 +97,7 @@ class TestingInstance {
 		titleScreenResources = titleScreenLoader.finish()
 
 		renderManager = RenderManager(
-			boiler, VideoSettings(0, capFps = false, showFps = false),
+			boiler, VideoSettings(0, capFps = false, showFps = false, framesInFlight = 1, delayRendering = true),
 			titleScreenResources, pipelineContext, basePipelines,
 		)
 		renderManager.loadMainResources(

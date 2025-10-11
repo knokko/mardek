@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 import static org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-import static org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 import static org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 import static org.lwjgl.vulkan.VK10.VK_NULL_HANDLE;
 
@@ -73,9 +72,7 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 			));
 			VkbImage targetImage = combiner.addImage(new ImageBuilder(
 					"TestColorTargetImage", width, height
-			).format(VK_FORMAT_R8G8B8A8_SRGB).setUsage(
-					VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
-			), 1f);
+			).colorAttachment().addUsage(VK_IMAGE_USAGE_TRANSFER_SRC_BIT), 1f);
 			MappedVkbBuffer destinationBuffer = combiner.addMappedBuffer(
 					4L * targetImage.width * targetImage.height, 4L, VK_BUFFER_USAGE_TRANSFER_DST_BIT
 			);

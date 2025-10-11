@@ -40,15 +40,15 @@ public class ChaosImageBenchmark extends Vk2dWindow {
 
 		Random rng = new Random();
 		int numImages = 10_000;
-		int minWidth = min(10, swapchainImage.width());
-		int minHeight = min(10, swapchainImage.height());
+		int minWidth = min(10, swapchainImage.getWidth());
+		int minHeight = min(10, swapchainImage.getHeight());
 
 		Vk2dImageBatch batch1 = pipelines.image.addBatch(frame.swapchainStage, 2 * numImages, resources);
 		for (int counter = 0; counter < numImages; counter++) {
-			int minX = rng.nextInt(1 + swapchainImage.width() - minWidth);
-			int minY = rng.nextInt(1 + swapchainImage.height() - minHeight);
-			int boundWidth = swapchainImage.width() - minX;
-			int boundHeight = swapchainImage.height() - minY;
+			int minX = rng.nextInt(1 + swapchainImage.getWidth() - minWidth);
+			int minY = rng.nextInt(1 + swapchainImage.getHeight() - minHeight);
+			int boundWidth = swapchainImage.getWidth() - minX;
+			int boundHeight = swapchainImage.getHeight() - minY;
 			batch1.simple(
 					minX, minY, minX + rng.nextInt(boundWidth), minY + rng.nextInt(boundHeight),
 					rng.nextInt(resources.numImages)

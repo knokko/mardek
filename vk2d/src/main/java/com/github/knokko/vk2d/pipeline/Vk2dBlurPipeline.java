@@ -156,9 +156,7 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 
 		VkbImage sourceImage = memory.addImage(new ImageBuilder(
 				"BlurSourceImage", sourceWidth, sourceHeight
-		).setUsage(
-				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
-		).format(sourceFormat), 1f);
+		).colorAttachment().addUsage(VK_IMAGE_USAGE_SAMPLED_BIT).format(sourceFormat), 1f);
 
 		long alignment = instance.boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
 		VkbBuffer buffer1 = memory.addBuffer(

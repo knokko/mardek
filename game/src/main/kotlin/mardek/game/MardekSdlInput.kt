@@ -134,7 +134,7 @@ class MardekSdlInput(
 
 	fun register() {
 		assertSdlSuccess(SDL_SetWindowMinimumSize(
-			window.handle, 100, 100
+			window.properties.handle, 100, 100
 		), "SetWindowMinimumSize")
 
 		val gamepads = SDL_GetGamepads()
@@ -143,36 +143,34 @@ class MardekSdlInput(
 			assertSdlSuccess(SDL_OpenGamepad(gamepads.get()) != 0L, "OpenGamepad")
 		}
 
-		stackPush().use { stack ->
-			val windowIcon = SDL_CreateSurface(
-				16 * WINDOW_ICON_SCALE,
-				16 * WINDOW_ICON_SCALE,
+		val windowIcon = SDL_CreateSurface(
+			16 * WINDOW_ICON_SCALE,
+			16 * WINDOW_ICON_SCALE,
+			SDL_PIXELFORMAT_RGBA32
+		)
+		assertSdlSuccess(windowIcon != null, "CreateSurface")
+		windowIcon!!.pixels(rawIcons[0])
+
+		// Note: don't use assertSdlSuccess because Wayland does not always support window icons
+		SDL_SetWindowIcon(window.properties.handle, windowIcon)
+
+		for (cursorType in MardekCursor.entries) {
+			val cursorIcon = SDL_CreateSurface(
+				16 * CURSOR_SCALE,
+				16 * CURSOR_SCALE,
 				SDL_PIXELFORMAT_RGBA32
 			)
-			assertSdlSuccess(windowIcon != null, "CreateSurface")
-			windowIcon!!.pixels(rawIcons[0])
+			assertSdlSuccess(cursorIcon != null, "CreateSurface")
+			cursorIcon!!.pixels(rawIcons[1 + cursorType.ordinal])
 
-			// Note: don't use assertSdlSuccess because Wayland does not always support window icons
-			SDL_SetWindowIcon(window.handle, windowIcon)
-
-			for (cursorType in MardekCursor.entries) {
-				val cursorIcon = SDL_CreateSurface(
-					16 * CURSOR_SCALE,
-					16 * CURSOR_SCALE,
-					SDL_PIXELFORMAT_RGBA32
-				)
-				assertSdlSuccess(cursorIcon != null, "CreateSurface")
-				cursorIcon!!.pixels(rawIcons[1 + cursorType.ordinal])
-
-				val cursor = SDL_CreateColorCursor(
-					cursorIcon, 2 * CURSOR_SCALE, 2 * CURSOR_SCALE
-				)
-				assertSdlSuccess(cursor != 0L, "CreateColorCursor")
-				cursors[cursorType.ordinal] = cursor
-			}
+			val cursor = SDL_CreateColorCursor(
+				cursorIcon, 2 * CURSOR_SCALE, 2 * CURSOR_SCALE
+			)
+			assertSdlSuccess(cursor != 0L, "CreateColorCursor")
+			cursors[cursorType.ordinal] = cursor
 		}
 
-		assertSdlSuccess(SDL_AddEventWatch({ userData, rawEvent ->
+		assertSdlSuccess(SDL_AddEventWatch({ _, rawEvent ->
 			val type = SDL_Event.ntype(rawEvent)
 			if (type == SDL_EVENT_KEY_DOWN || type == SDL_EVENT_KEY_UP) {
 				val key = when (SDL_KeyboardEvent.nkey(rawEvent)) {
@@ -238,23 +236,23 @@ class MardekSdlInput(
 					stackPush().use { stack ->
 						val quitEvent = SDL_Event.calloc(stack)
 						quitEvent.type(SDL_EVENT_WINDOW_CLOSE_REQUESTED)
-						SDL_WindowEvent.nwindowID(quitEvent.address(), SDL_GetWindowID(window.handle))
+						SDL_WindowEvent.nwindowID(quitEvent.address(), SDL_GetWindowID(window.properties.handle))
 						assertSdlSuccess(SDL_PushEvent(quitEvent), "PushEvent")
 					}
 				}
 
 				val maximize = state.maximizeLocation
 				if (maximize != null && maximize.contains(x, y)) {
-					if ((SDL_GetWindowFlags(window.handle) and SDL_WINDOW_MAXIMIZED) == 0L) {
-						assertSdlSuccess(SDL_MaximizeWindow(window.handle), "MaximizeWindow")
+					if ((SDL_GetWindowFlags(window.properties.handle) and SDL_WINDOW_MAXIMIZED) == 0L) {
+						assertSdlSuccess(SDL_MaximizeWindow(window.properties.handle), "MaximizeWindow")
 					} else {
-						assertSdlSuccess(SDL_RestoreWindow(window.handle), "RestoreWindow")
+						assertSdlSuccess(SDL_RestoreWindow(window.properties.handle), "RestoreWindow")
 					}
 				}
 
 				val minus = state.minusLocation
 				if (minus != null && minus.contains(x, y)) {
-					assertSdlSuccess(SDL_MinimizeWindow(window.handle), "MinimizeWindow")
+					assertSdlSuccess(SDL_MinimizeWindow(window.properties.handle), "MinimizeWindow")
 				}
 			}
 			if (type == SDL_EVENT_MOUSE_BUTTON_UP) {
@@ -343,7 +341,7 @@ class MardekSdlInput(
 			false
 		}, 0L), "AddEventWatch")
 
-		assertSdlSuccess(SDL_SetWindowHitTest(window.handle, { handle, rawPoint, userData ->
+		assertSdlSuccess(SDL_SetWindowHitTest(window.properties.handle, { _, rawPoint, _ ->
 			val x = SDL_Point.nx(rawPoint)
 			val y = SDL_Point.ny(rawPoint)
 
