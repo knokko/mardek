@@ -18,29 +18,37 @@ class AnimationPartBatch(
 	fun transformed(
 		x1: Float, y1: Float, x2: Float, y2: Float,
 		x3: Float, y3: Float, x4: Float, y4: Float,
+		maskTx1: Float, maskTy1: Float, maskTx2: Float, maskTy2: Float,
+		maskTx3: Float, maskTy3: Float, maskTx4: Float, maskTy4: Float,
 		mainImageIndex: Int, maskImageIndex: Int,
 		addColor: Int, multiplyColor: Int,
 	) {
 		val vertices = putTriangles(2).vertexData[0]
 
-		vertices.putFloat(normalizeX(x1)).putFloat(normalizeY(y1))
+		vertices.putFloat(x1).putFloat(y1)
 		vertices.putFloat(0f).putFloat(1f)
+		vertices.putFloat(maskTx1).putFloat(maskTy1)
 		vertices.putInt(addColor).putInt(multiplyColor)
-		vertices.putFloat(normalizeX(x2)).putFloat(normalizeY(y2))
+		vertices.putFloat(x2).putFloat(y2)
 		vertices.putFloat(1f).putFloat(1f)
+		vertices.putFloat(maskTx2).putFloat(maskTy2)
 		vertices.putInt(addColor).putInt(multiplyColor)
-		vertices.putFloat(normalizeX(x3)).putFloat(normalizeY(y3))
+		vertices.putFloat(x3).putFloat(y3)
 		vertices.putFloat(1f).putFloat(0f)
+		vertices.putFloat(maskTx3).putFloat(maskTy3)
 		vertices.putInt(addColor).putInt(multiplyColor)
 
-		vertices.putFloat(normalizeX(x3)).putFloat(normalizeY(y3))
+		vertices.putFloat(x3).putFloat(y3)
 		vertices.putFloat(1f).putFloat(0f)
+		vertices.putFloat(maskTx3).putFloat(maskTy3)
 		vertices.putInt(addColor).putInt(multiplyColor)
-		vertices.putFloat(normalizeX(x4)).putFloat(normalizeY(y4))
+		vertices.putFloat(x4).putFloat(y4)
 		vertices.putFloat(0f).putFloat(0f)
+		vertices.putFloat(maskTx4).putFloat(maskTy4)
 		vertices.putInt(addColor).putInt(multiplyColor)
-		vertices.putFloat(normalizeX(x1)).putFloat(normalizeY(y1))
+		vertices.putFloat(x1).putFloat(y1)
 		vertices.putFloat(0f).putFloat(1f)
+		vertices.putFloat(maskTx1).putFloat(maskTy1)
 		vertices.putInt(addColor).putInt(multiplyColor)
 
 		if (nextDescriptorIndex >= mainDescriptorSets.size) {

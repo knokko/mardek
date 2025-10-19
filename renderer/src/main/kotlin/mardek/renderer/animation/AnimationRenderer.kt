@@ -56,15 +56,16 @@ private fun renderAnimationFrame(frame: AnimationFrame, context: AnimationContex
 	}
 }
 
+private fun toJOMLMatrix(raw: AnimationMatrix) = Matrix3x2f(
+	raw.getScaleX(), raw.rotateSkew0,
+	raw.rotateSkew1, raw.getScaleY(),
+	raw.translateX, raw.translateY
+)
+
 private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) {
 	val top = context.stack.last()
 	val special = node.special ?: top.special
-	val rawNodeMatrix = node.matrix ?: AnimationMatrix.DEFAULT
-	val localMatrix = Matrix3x2f(
-		rawNodeMatrix.getScaleX(), rawNodeMatrix.rotateSkew0,
-		rawNodeMatrix.rotateSkew1, rawNodeMatrix.getScaleY(),
-		rawNodeMatrix.translateX, rawNodeMatrix.translateY
-	)
+	val localMatrix = toJOMLMatrix(node.matrix ?: AnimationMatrix.DEFAULT)
 	val globalMatrix = top.matrix.mul(localMatrix, Matrix3x2f())
 	val rawNodePosition = globalMatrix.transformPosition(Vector2f())
 	val nodePosition = CombatantRenderPosition(rawNodePosition.x, rawNodePosition.y)
@@ -114,6 +115,10 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 	}
 	// TODO Casting sparkles
 
+	val (mask, maskMatrix) = if (top.mask == null || top.mask.frames.size < node.mask.frames.size) {
+		Pair(node.mask, top.matrix)
+	} else Pair(top.mask, top.maskMatrix)
+
 	if (special == SpecialAnimationNode.ElementalCastingBackground) {
 		val backgroundSprite = combat?.magicElement?.spellCastBackground ?: return
 		sprite = AnimationSprite(2223, backgroundSprite, 0f, 0f)
@@ -123,23 +128,41 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 
 	if (sprite != null) {
 		val leafMatrix = globalMatrix.translate(sprite.offsetX, sprite.offsetY, Matrix3x2f())
-		var maskSprite: BcSprite? = null
-		val mask = top.mask ?: node.mask
+		var maskSprite: AnimationSprite? = null
+		var leafMaskMatrix: Matrix3x2f? = null
+
 		if (mask.frames.isNotEmpty()) {
 			var deltaTime = (context.renderTime - referenceTime) % mask.duration.inWholeNanoseconds
 			for (frame in mask) {
 				deltaTime -= frame.duration.inWholeNanoseconds
 				if (deltaTime < 0L) {
-					maskSprite = frame.sprite.image
+					maskSprite = frame.sprite
+					leafMaskMatrix = maskMatrix.mul(toJOMLMatrix(frame.matrix), Matrix3x2f())
+					leafMaskMatrix.translate(
+						maskSprite.offsetX,
+						maskSprite.offsetY,
+					)
+					leafMaskMatrix.scale(
+						maskSprite.image.width.toFloat() / context.magicScale,
+						maskSprite.image.height.toFloat() / context.magicScale,
+					)
 					break
 				}
 			}
-		} else maskSprite = context.noMask
+			if (maskSprite == null) throw Error()
+		} else {
+			maskSprite = AnimationSprite(-123, context.noMask, 0f, 0f)
+			leafMaskMatrix = null
+		}
+
+		leafMatrix.scale(
+			sprite.image.width.toFloat() / context.magicScale,
+			sprite.image.height.toFloat() / context.magicScale,
+		)
 
 		renderTransformedImage(
-			leafMatrix, sprite.image.width.toFloat() / context.magicScale,
-			sprite.image.height.toFloat() / context.magicScale,
-			sprite.image, maskSprite!!, colorTransform, context.partBatch,
+			leafMatrix, sprite.image, leafMaskMatrix, maskSprite.image,
+			colorTransform, context.partBatch,
 		)
 	}
 
@@ -152,10 +175,11 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 				if (special == SpecialAnimationNode.OnTurnCursor || special == SpecialAnimationNode.TargetingCursor) {
 					colorTransform = node.color
 				}
+
 				context.stack.add(TransformStackEntry(
-					top.matrix.mul(localMatrix, localMatrix),
-					colorTransform, special, node.selectSkin ?: context.stack.last().skin,
-					if (top.mask == null || top.mask.frames.size < node.mask.frames.size) node.mask else top.mask,
+					globalMatrix, colorTransform,
+					special, node.selectSkin ?: context.stack.last().skin,
+					mask, maskMatrix,
 				))
 				renderAnimationFrame(frame, context)
 				context.stack.removeLast()
@@ -227,24 +251,36 @@ private fun chooseSkin(
 }
 
 private fun renderTransformedImage(
-	jomlMatrix: Matrix3x2f, scaleX: Float, scaleY: Float,
-	sprite: BcSprite, maskSprite: BcSprite, colors: ColorTransform?, batch: AnimationPartBatch,
+	mainMatrix: Matrix3x2f, sprite: BcSprite,
+	maskMatrix: Matrix3x2f?, maskSprite: BcSprite,
+	colors: ColorTransform?, batch: AnimationPartBatch,
 ) {
-	val corners = arrayOf(
+	val ndcMatrix = Matrix3x2f().translate(-1f, -1f).scale(2f / batch.width, 2f / batch.height)
+	if (maskMatrix != null) ndcMatrix.mul(maskMatrix, maskMatrix)
+	ndcMatrix.mul(mainMatrix, mainMatrix)
+
+	val rawCorners = arrayOf(
 		Pair(0f, 1f), Pair(1f, 1f),
 		Pair(1f, 0f), Pair(0f, 0f)
-	).map { rawCorner ->
-		jomlMatrix.transformPosition(Vector2f(
-			rawCorner.first * scaleX,
-			rawCorner.second * scaleY,
-		))
+	)
+	val corners = rawCorners.map { rawCorner ->
+		mainMatrix.transformPosition(Vector2f(rawCorner.first, rawCorner.second))
 	}
+
+	val invMask = if (maskMatrix != null) {
+		val invMaskMatrix = maskMatrix.invert()
+		corners.map { corner -> invMaskMatrix.transformPosition(Vector2f(corner)) }
+	} else rawCorners.map { Vector2f(it.first, it.second) }
 
 	batch.transformed(
 		corners[0].x, corners[0].y,
 		corners[1].x, corners[1].y,
 		corners[2].x, corners[2].y,
 		corners[3].x, corners[3].y,
+		invMask[0].x, invMask[0].y,
+		invMask[1].x, invMask[1].y,
+		invMask[2].x, invMask[2].y,
+		invMask[3].x, invMask[3].y,
 		sprite.index,
 		maskSprite.index,
 		colors?.addColor ?: 0,

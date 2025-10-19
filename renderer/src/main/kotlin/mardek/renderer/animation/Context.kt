@@ -21,7 +21,9 @@ class AnimationContext(
 	val portraitExpression: String? = null,
 ) {
 	val stack = mutableListOf(TransformStackEntry(
-		parentMatrix, parentColorTransform, null, combat?.rootSkin, null
+		parentMatrix, parentColorTransform,
+		null, combat?.rootSkin,
+		null, Matrix3x2f(),
 	))
 }
 
@@ -43,4 +45,5 @@ class TransformStackEntry(
 	val special: SpecialAnimationNode?,
 	val skin: String?,
 	val mask: AnimationMask?,
+	val maskMatrix: Matrix3x2f,
 )
