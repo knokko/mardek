@@ -13,7 +13,6 @@ enum class Direction(val deltaX: Int, val deltaY: Int, val abbreviation: String)
 	companion object {
 		fun exactDelta(deltaX: Int, deltaY: Int) = entries.find { it.deltaX == deltaX && it.deltaY == deltaY }
 
-		// TODO Test this
 		fun bestDelta(deltaX: Int, deltaY: Int): Direction? {
 			if (deltaX == 0 && deltaY == 0) return null
 			return if (abs(deltaX) > abs(deltaY)) {
