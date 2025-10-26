@@ -31,3 +31,4 @@ if(GameData.plotVars.PLAY == null)
    GameData.plotVars.PLAY = 1;
    DO_ACTIONS([["WAIT",100],["WALK",5,0],["GOTO","s1"],["UNFREEZE"],["TALK","c_play"]],"Akhmed Wobblescimitare",true);
 }
+uuid = 39afdd32-ff8c-48f5-a08d-bfe75d61e0e8;

@@ -16,3 +16,4 @@ levelrange = MONSTER_LEVELS.CATACOMBS;
 musicTrack = "Catacombs";
 AreaSetup({WARP:1});
 EN_ADD("Places","Catacombs");
+uuid = 12282fa0-ff68-4339-bb71-af9665ee9259;

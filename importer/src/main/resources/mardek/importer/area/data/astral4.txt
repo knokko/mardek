@@ -141,3 +141,4 @@ levelrange = [1,1];
 musicTrack = "Dungeon4";
 clearmap = 1;
 AreaSetup({DREAM:19000,NoSwitch:true,NO_MAP:true,clearmap:1,LOOT:3});
+uuid = 94059a9b-5d1d-4894-a545-6868e0800ee1;

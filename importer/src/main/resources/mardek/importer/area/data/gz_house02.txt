@@ -63,3 +63,4 @@ btlChance = 0;
 levelrange = [1,1];
 musicTrack = "TheInventor";
 AreaSetup({clearmap:1});
+uuid = 49bd55e9-719d-4d6c-958e-91052c6d0709;

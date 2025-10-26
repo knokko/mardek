@@ -27,3 +27,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = !(int(GameData.plotVars.ZACH) < 2 && GameData.CHAPTER == 2) ? "Canonia" : "Zach";
 AreaSetup({clearmap:1});
+uuid = ecd61874-0ada-40bb-b419-0a7b2ae9609e;

@@ -16,3 +16,4 @@ levelrange = [1,1];
 musicTrack = DoomCounter == null ? "Battleship" : "Flee";
 AreaSetup();
 EN_ADD("Places","Moric\'s Battleship");
+uuid = 06bf92a7-add6-4345-a19e-ae8022c6eb5c;

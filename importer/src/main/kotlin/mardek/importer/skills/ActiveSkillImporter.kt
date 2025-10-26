@@ -10,9 +10,10 @@ import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
+import java.util.UUID
 
 fun parseActiveSkills(
-	content: Content, rawSkills: List<Map<String, String>>, reverseTargetType: Boolean
+	context: String, content: Content, rawSkills: List<Map<String, String>>, reverseTargetType: Boolean
 ) = rawSkills.map { rawSkill ->
 	val isMelee = rawSkill["MODE"] == "\"P\""
 	val targetType = when (rawSkill["TT"]) {
@@ -59,9 +60,11 @@ fun parseActiveSkills(
 	if (particleName == "crescendo") particleName = "crescendoslash"
 	val particleEffect = if (particleName != null) content.battle.particles.find { it.name == particleName }!! else null
 
+	val name = parseFlashString(rawSkill["skill"]!!, "skill name")!!
+	val description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else ""
 	ActiveSkill(
-		name = parseFlashString(rawSkill["skill"]!!, "skill name")!!,
-		description = if (rawSkill["desc"] != null) parseFlashString(rawSkill["desc"]!!, "skill description")!! else "",
+		name = name,
+		description = description,
 		isMelee = isMelee,
 		targetType = targetType,
 		element = content.stats.elements.find { it.rawName == parseFlashString(rawSkill["elem"]!!, "element") }!!,
@@ -87,6 +90,7 @@ fun parseActiveSkills(
 		arena = !rawSkill.containsKey("ARENA"),
 		rawSongPower = rawSkill["Song"],
 		changeElement = isElementalShift,
+		id = UUID.nameUUIDFromBytes("ActiveSkillImporter$context$name$description".encodeToByteArray()),
 	)
 }
 

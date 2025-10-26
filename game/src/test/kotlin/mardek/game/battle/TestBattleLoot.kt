@@ -11,6 +11,7 @@ import mardek.input.InputKey
 import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.generateBattleLoot
@@ -213,7 +214,9 @@ object TestBattleLoot {
 
 			val soundQueue = SoundQueue()
 			val input = InputManager()
-			val context = GameStateUpdateContext(content, input, soundQueue, 10.milliseconds)
+			val context = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, soundQueue, 10.milliseconds), ""
+			)
 			campaign.update(context)
 			assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
 
@@ -281,7 +284,9 @@ object TestBattleLoot {
 
 			val soundQueue = SoundQueue()
 			val input = InputManager()
-			val context = GameStateUpdateContext(content, input, soundQueue, 10.milliseconds)
+			val context = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, soundQueue, 10.milliseconds), ""
+			)
 
 			// Fill the inventory of Deugan with junk, except slots 10 and 20
 			val deuganState = campaign.characterStates[heroDeugan]!!
@@ -349,7 +354,7 @@ object TestBattleLoot {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val state = InGameState(campaign)
+			val state = InGameState(campaign, "test")
 
 			val monsterSkinColor = Color(85, 56, 133)
 			val area = campaign.currentArea!!
@@ -391,7 +396,9 @@ object TestBattleLoot {
 
 			val input = InputManager()
 			input.postEvent(pressKeyEvent(InputKey.Interact))
-			campaign.update(GameStateUpdateContext(content, input, SoundQueue(), 1.seconds))
+			campaign.update(CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, SoundQueue(), 1.seconds), ""
+			))
 			testRendering(
 				state, 800, 450, "loot-taken",
 				baseColors + arrayOf(buttonBlurredBorderColor, gemGridColor),

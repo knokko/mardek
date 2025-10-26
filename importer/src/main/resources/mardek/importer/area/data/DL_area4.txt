@@ -14,3 +14,4 @@ btlChance = 0;
 levelrange = MONSTER_LEVELS.DRAGON_LAIR;
 musicTrack = !TempVars.DRAGON_SLAIN ? "MightyHeroes" : "VictoryFanfare";
 AreaSetup({clearmap:1,NoStorage:true});
+uuid = 7844a20b-7a64-4d59-ba9e-a8520384ef50;

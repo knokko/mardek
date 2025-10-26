@@ -20,3 +20,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.SAUL_DUNGEON;
 musicTrack = "Saul";
 AreaSetup();
+uuid = b3e695ed-fae4-4879-93d7-ec9df9208125;

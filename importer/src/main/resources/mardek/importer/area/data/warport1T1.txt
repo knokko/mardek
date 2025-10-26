@@ -45,3 +45,4 @@ levelrange = [1,1];
 musicTrack = "PleasantAir";
 AreaSetup({WARP:0,clearmap:1});
 EN_ADD("Places","GoznorWarport");
+uuid = 6312cf29-6907-44b0-a401-89bd13a570c7;

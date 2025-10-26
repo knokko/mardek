@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.VOLCANO;
 musicTrack = "Volcano";
 AreaSetup({WARP:1,clearmap:1});
+uuid = 48c8c186-b9d1-4d51-b94e-149d8d60b267;

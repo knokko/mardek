@@ -25,3 +25,4 @@ DeadTempleCheck();
 AreaSetup({WARP:0,clearmap:1});
 specBtlBG = "Temple_WATER_2";
 EN_ADD("Places","Water Temple");
+uuid = 00cf5643-f03d-4e13-8d6c-5725a1769380;

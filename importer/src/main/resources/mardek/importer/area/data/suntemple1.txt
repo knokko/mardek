@@ -40,3 +40,4 @@ levelrange = [10,15];
 musicTrack = "SunTemple";
 AreaSetup({WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});
 EN_ADD("Places","Sun Temple");
+uuid = 932248f3-e59b-4072-bc08-4a64207f9a62;

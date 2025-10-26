@@ -25,3 +25,4 @@ levelrange = MONSTER_LEVELS.SERPENT_DEN;
 musicTrack = "Dungeon2";
 AreaSetup({WARP:1});
 EN_ADD("Places","Lifewood");
+uuid = dc68db24-e85a-409a-9cb5-d8be59f9db8a;

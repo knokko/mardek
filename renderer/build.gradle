@@ -1,4 +1,5 @@
 dependencies {
+	implementation "org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.7.1"
 	for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
 	for (dependency in project.ext.vulkanRuntimeDependencies) runtimeOnly "$dependency"
 	implementation project(":content")

@@ -13,3 +13,4 @@ levelrange = [1,1];
 musicTrack = "ReptoidVillage";
 AreaSetup({WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});
 EN_ADD("Places","Xantusia");
+uuid = cb52a23a-547a-43ba-bff9-1bdab820a2f3;

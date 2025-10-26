@@ -18,3 +18,4 @@ btlChance = 0;
 levelrange = [1,1];
 musicTrack = "HymnOfYalort";
 AreaSetup({clearmap:1});
+uuid = 673c655c-8247-4b62-8a4b-0866b300ae0c;

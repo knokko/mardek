@@ -44,7 +44,7 @@ object TestActions {
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
 				gold = 123
-			))
+			), "test")
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
 			state.update(context)
@@ -144,7 +144,7 @@ object TestActions {
 				characterSelection = simpleCharacterSelectionState(),
 				characterStates = simpleCharacterStates(),
 				gold = 123
-			))
+			), "test")
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
 

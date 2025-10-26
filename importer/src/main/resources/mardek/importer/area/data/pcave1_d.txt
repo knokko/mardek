@@ -12,3 +12,4 @@ levelrange = MONSTER_LEVELS.LIFEWOOD;
 musicTrack = "Gloria_Dream";
 AreaSetup({DREAM:true,LOOT:3});
 EN_ADD("Places","Tainted Grotto");
+uuid = e90df2f7-760f-405b-919f-c7ceaea0986d;

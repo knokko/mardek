@@ -13,3 +13,4 @@ levelrange = MONSTER_LEVELS.LOST_MONASTERY;
 musicTrack = int(GameData.plotVars.VEHRNCH3) < 4 ? "Dungeon1" : "HymnOfYalort";
 AreaSetup({WARP:1});
 EN_ADD("Places","Lost Monastery");
+uuid = a451c7ae-4ace-46b9-9a87-0b741e3ed4a8;

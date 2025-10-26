@@ -14,6 +14,7 @@ import mardek.content.inventory.ItemStack
 import mardek.content.portrait.PortraitInfo
 import mardek.content.stats.CombatStat
 import java.lang.Integer.parseInt
+import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
 internal fun importPlayableCharacters(
@@ -56,6 +57,7 @@ internal fun importPlayableCharacters(
 			portraitInfo = if (playerModelMapping != null) {
 				content.portraits.info.find { it.flashName == areaSpritesName }!!
 			} else PortraitInfo(),
+			id = UUID.nameUUIDFromBytes("PlayableCharacterImporter$name$className".encodeToByteArray()),
 		)
 
 		val masteredSkills: MutableList<Skill> = (nestedCharacter[8] as ArrayList<String>).map { rawActiveName ->

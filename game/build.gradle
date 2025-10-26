@@ -70,6 +70,9 @@ tasks.register("proguard", ProGuardTask) {
 	// Some methods of MappedVkbBuffer/ImageCoding use java.awt.BufferedImage, but it's fine since I don't call them
 	dontwarn "com.github.knokko.boiler.buffers.MappedVkbBuffer"
 	dontwarn "com.github.knokko.boiler.utilities.ImageCoding"
+
+	// We don't need all serializers
+	dontwarn "kotlinx.serialization.**"
 }
 
 tasks.register("run", JavaExec) {

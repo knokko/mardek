@@ -19,3 +19,4 @@ minSteps = 5;
 levelrange = [1,1];
 AreaSetup({WARP:1,SNOW:1,clearmap:1});
 EN_ADD("Places","Lifewood");
+uuid = 111fa4e5-0ac4-4cad-a24c-ac28023076b9;

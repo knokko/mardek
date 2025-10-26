@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "Lifewood";
 AreaSetup({clearmap:1});
+uuid = e7363f9b-1607-48f2-b615-988d8a03cbe9;

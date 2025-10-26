@@ -22,3 +22,4 @@ levelrange = [11,15];
 musicTrack = "Dreamwood";
 AreaSetup({WARP:0,DREAM:2,LOOT:3,SNOW:2,clearmap:1,GlowTiles:{t6_6:312,t7_6:313,t8_6:314,t10_7:311,t12_10:311,t10_13:311,t11_18:310,t4_13:310,t2_10:310,t4_7:310,t3_18:311}});
 EN_ADD("Places","Dreamwood");
+uuid = 88881155-f27f-4997-b333-1586217db146;

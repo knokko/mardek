@@ -42,15 +42,15 @@ class PlayableCharacter(
 	@BitField(id = 7)
 	@ReferenceField(stable = false, label = "portrait info")
 	val portraitInfo: PortraitInfo,
-) {
 
 	@BitField(id = 8)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
 	constructor() : this(
-		"", CharacterClass(), Element(), ArrayList(0),
-		DirectionalSprites(), CombatantAnimations(), CreatureType(), PortraitInfo()
+		"", CharacterClass(), Element(), ArrayList(0), DirectionalSprites(),
+		CombatantAnimations(), CreatureType(), PortraitInfo(), UUID.randomUUID(),
 	)
 
 	override fun toString() = name

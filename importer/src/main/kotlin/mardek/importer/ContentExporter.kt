@@ -34,6 +34,7 @@ fun main() {
 		println("exporting campaign...")
 		saveMainContent(bitser, content, outputFolder)
 		println("exported campaign")
+
 		succeeded = true
 	} catch (failure: Throwable) {
 		failure.printStackTrace()
@@ -176,12 +177,14 @@ private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
 	val resourceWriter = Vk2dResourceWriter()
 	val titleScreenContent = TitleScreenContent(
 		background = content.ui.titleScreenBackground,
-		smallFont = content.fonts.basic1.copy(),
+		basicFont = content.fonts.basic2.copy(),
+		fatFont = content.fonts.fat.copy(),
 		largeFont = content.fonts.large2.copy(),
 	)
 
 	addBcImage(resourceWriter, titleScreenContent.background)
-	addFont(resourceWriter, titleScreenContent.smallFont)
+	addFont(resourceWriter, titleScreenContent.basicFont)
+	addFont(resourceWriter, titleScreenContent.fatFont)
 	addFont(resourceWriter, titleScreenContent.largeFont)
 
 	val output = Files.newOutputStream(File(

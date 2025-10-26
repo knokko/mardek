@@ -58,3 +58,4 @@ levelrange = [1,1];
 musicTrack = !GameData.plotVars.ELWYEN_DATE ? (!GameData.plotVars.SUNSET ? "Castle" : "none") : "SirenSong";
 AreaSetup({clearmap:1});
 EN_ADD("Places","Castle Goznor");
+uuid = 3e6e61a8-af27-4eaf-a59f-64ac9609f5b7;

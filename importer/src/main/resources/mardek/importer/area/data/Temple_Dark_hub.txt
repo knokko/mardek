@@ -17,3 +17,4 @@ levelrange = MONSTER_LEVELS.DARK_TEMPLE;
 musicTrack = "DarkTemple";
 DeadTempleCheck();
 AreaSetup({LOOT:2,WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO)});
+uuid = 396fb9bd-96ef-4bbc-b783-80fff9b21fb5;

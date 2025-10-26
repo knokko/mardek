@@ -70,7 +70,10 @@ fun importAreaBattleAssets(content: Content) {
 	val layoutsString = code.variableAssignments["foePartyLayouts"]!!
 	val rawLayoutMap = parseActionScriptObject(layoutsString)
 	for ((name, rawPositions) in rawLayoutMap) {
-		content.battle.enemyPartyLayouts.add(PartyLayout(name, parsePositions(rawPositions)))
+		content.battle.enemyPartyLayouts.add(PartyLayout(
+			name, parsePositions(rawPositions),
+			UUID.nameUUIDFromBytes("PartyLayout$name$rawPositions".encodeToByteArray()),
+		))
 	}
 
 	if (content.battle.monsters.size > 1) { // In unit tests, the size <= 1

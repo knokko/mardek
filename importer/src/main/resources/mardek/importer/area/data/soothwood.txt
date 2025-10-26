@@ -25,3 +25,4 @@ levelrange = MONSTER_LEVELS.SOOTHWOOD;
 musicTrack = "Woods";
 AreaSetup({WARP:1});
 EN_ADD("Places","Soothwood");
+uuid = 5b64b32b-0050-4cf4-a949-06c8b16efd98;

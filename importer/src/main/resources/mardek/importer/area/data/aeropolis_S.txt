@@ -48,3 +48,4 @@ levelrange = [1,1];
 musicTrack = !GameData.plotVars.ELWYEN_DATE ? "Aeropolis" : "SirenSong";
 AreaSetup({WARP:1,clearmap:1});
 EN_ADD("Places","Aeropolis");
+uuid = 95ed0658-e87b-4735-9e98-2d1d0f871476;

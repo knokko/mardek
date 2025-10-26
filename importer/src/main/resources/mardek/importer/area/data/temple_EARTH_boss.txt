@@ -21,3 +21,4 @@ DeadTempleCheck();
 AreaSetup({WARP:0,clearmap:1});
 specBtlBG = "Temple_EARTH_2";
 EN_ADD("Places","Earth Temple");
+uuid = 68b08ce0-3280-4b52-b4d1-b684032eeb72;

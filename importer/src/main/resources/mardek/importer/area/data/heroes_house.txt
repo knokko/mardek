@@ -11,3 +11,4 @@ btlChance = 0;
 levelrange = [1,1];
 musicTrack = "none";
 AreaSetup({clearmap:1});
+uuid = c4b8d38f-e05a-47d7-8505-557cf57ed699;

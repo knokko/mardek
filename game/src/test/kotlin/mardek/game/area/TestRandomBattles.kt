@@ -32,7 +32,9 @@ object TestRandomBattles {
 				val input = InputManager()
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
-				val context = GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds)
+				val context = CampaignState.UpdateContext(
+					GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+				)
 
 				while (campaign.currentArea!!.getPlayerPosition(0).y != 6) {
 					assertNull(campaign.currentArea!!.incomingRandomBattle)
@@ -62,7 +64,9 @@ object TestRandomBattles {
 				val input = InputManager()
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
-				val context = GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds)
+				val context = CampaignState.UpdateContext(
+					GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+				)
 
 				while (campaign.currentArea!!.getPlayerPosition(0).y != 2) {
 					campaign.update(context)
@@ -92,7 +96,9 @@ object TestRandomBattles {
 				val input = InputManager()
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
-				val context = GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds)
+				val context = CampaignState.UpdateContext(
+					GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+				)
 
 				while (campaign.currentArea!!.getPlayerPosition(0).y != 2) {
 					campaign.update(context)
@@ -119,7 +125,9 @@ object TestRandomBattles {
 			campaign.triggers.activeTrigger(dragonLair2.objects.walkTriggers[0])
 
 			val input = InputManager()
-			val context = GameStateUpdateContext(content, input, SoundQueue(), 600.milliseconds)
+			val context = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, SoundQueue(), 600.milliseconds), ""
+			)
 
 			input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			campaign.update(context)

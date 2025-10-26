@@ -91,7 +91,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 			assertEquals(expected, (battle.state as BattleStateMachine.SelectMove).selectedMove)
 		}
 
-		val state = InGameState(campaign)
+		val state = InGameState(campaign, "test")
 
 		val shallowColors = backgroundColors + barColors + monsterColors + mardekColors +
 				deuganColors + turnOrderColors + pointerColors

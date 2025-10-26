@@ -115,16 +115,16 @@ class StatusEffect(
 
 	@BitField(id = 30)
 	val shortName: String = niceName ?: flashName,
-) {
 
 	@Suppress("unused")
 	@BitField(id = 31)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
 	constructor() : this(
 		"", null, false, false,
-		icon = BcSprite(), textColor = 0, passiveParticleSprites = emptyArray<BcSprite>()
+		icon = BcSprite(), textColor = 0, passiveParticleSprites = emptyArray<BcSprite>(), id = UUID.randomUUID(),
 	)
 
 	override fun toString() = niceName ?: flashName

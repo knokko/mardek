@@ -16,3 +16,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.WATER_TEMPLE;
 musicTrack = "WaterTemple";
 AreaSetup({WARP:1});
+uuid = fbc5297b-b460-477e-bcd4-ed2735b3346d;

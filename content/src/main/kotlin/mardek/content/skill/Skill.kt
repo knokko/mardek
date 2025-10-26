@@ -21,11 +21,11 @@ abstract class Skill(
 	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = -1)
 	val masteryPoints: Int,
-) {
 
 	@BitField(id = 4)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
 	override fun toString() = name
 }

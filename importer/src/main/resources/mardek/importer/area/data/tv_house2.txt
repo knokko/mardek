@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "TrilobiteCave";
 AreaSetup({clearmap:1});
+uuid = a3507f02-eb1a-4bff-a9f8-e30f194d61c4;

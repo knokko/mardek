@@ -14,3 +14,4 @@ musicTrack = "WaterTemple";
 DeadTempleCheck();
 AreaSetup({WARP:1,clearmap:1});
 EN_ADD("Places","Water Temple");
+uuid = 585414c8-a97c-4291-8d97-7caba290f618;

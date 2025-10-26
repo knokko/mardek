@@ -11,6 +11,7 @@ import mardek.importer.actions.getHardcodedGlobalActionSequence
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptObjectList
 import java.lang.Integer.parseInt
+import java.util.UUID
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
 
@@ -100,7 +101,10 @@ private fun importSwitchColor(name: String): SwitchColor {
 	val onSprite = importObjectSprites("switch_orb", frameIndex = frameIndex, numFrames = 1).frames[0]
 	val gateSprite = importObjectSprites("switch_gate", frameIndex = frameIndex, numFrames = 1).frames[0]
 	val platformSprite = importObjectSprites("switch_platform", frameIndex = frameIndex, numFrames = 1).frames[0]
-	return SwitchColor(name, offSprite, onSprite, gateSprite, platformSprite)
+	return SwitchColor(
+		name, offSprite, onSprite, gateSprite, platformSprite,
+		UUID.nameUUIDFromBytes("importSwitchColor$name".encodeToByteArray()),
+	)
 }
 
 fun parseAreaEntity(
@@ -193,6 +197,7 @@ fun parseAreaEntity(
 			getHardcodedAreaActions(areaName, rawSequenceName) ?: getHardcodedGlobalActionSequence(rawSequenceName)
 		} else null
 
+		val rawID = rawEntity["uuid"]
 		return AreaTrigger(
 			name = name,
 			x = x,
@@ -202,6 +207,7 @@ fun parseAreaEntity(
 			oncePerAreaLoad = rawEntity["recurring"] == "true",
 			walkOn = if (rawWalkOn != null) { if (rawWalkOn == "true") true else null } else false,
 			actions = actionSequence,
+			id = if (rawID != null) UUID.fromString(rawID) else UUID.randomUUID(),
 		)
 	}
 
@@ -352,7 +358,7 @@ private fun parseDestination(
 	val transition = TransitionDestination(
 		area = null,
 		x = parseInt(splitDestination[1]),
-		y = try { parseInt(splitDestination[2]) } catch (complicated: NumberFormatException) {
+		y = try { parseInt(splitDestination[2]) } catch (_: NumberFormatException) {
 			println("weird split destination ${splitDestination[2]}"); -1 },
 		direction = if (dir != null) {
 			Direction.entries.find { it.abbreviation == parseFlashString(dir, "dir")!! }!!

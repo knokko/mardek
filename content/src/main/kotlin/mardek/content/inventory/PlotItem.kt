@@ -24,16 +24,16 @@ class PlotItem(
 	@BitField(id = 3, optional = true)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val cost: Int?,
-) {
 
 	@BitField(id = 4)
-	lateinit var sprite: KimSprite
+	@StableReferenceFieldId
+	val id: UUID,
+) {
 
 	@BitField(id = 5)
-	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	lateinit var sprite: KimSprite
 
-	constructor() : this("", "", null, null)
+	constructor() : this("", "", null, null, UUID.randomUUID())
 
 	override fun toString() = name
 }

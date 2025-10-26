@@ -10,6 +10,7 @@ import mardek.content.particle.ParticleEffect
 import mardek.content.stats.Element
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.StatModifierRange
+import java.util.UUID
 
 @BitStruct(backwardCompatible = true)
 class ActiveSkill(
@@ -17,6 +18,7 @@ class ActiveSkill(
 	description: String,
 	element: Element,
 	masteryPoints: Int,
+	id: UUID,
 
 	@BitField(id = 0)
 	val isMelee: Boolean,
@@ -108,13 +110,15 @@ class ActiveSkill(
 
 	@BitField(id = 22)
 	val changeElement: Boolean,
-): Skill(name, description, element, masteryPoints) {
+): Skill(name, description, element, masteryPoints, id) {
 
 	constructor() : this(
-		"", "", Element(), 0, false, SkillTargetType.Single, null,
-		0, 0, false, false, false, 0f, ArrayList(), ArrayList(),
-		ArrayList(), 0f, null, null, null, SkillCombatRequirement.OutsideCombat,
-		0, false, false, false, null, false
+		"", "", Element(), 0, UUID.randomUUID(), false,
+		SkillTargetType.Single, null, 0, 0, false,
+		false, false, 0f, ArrayList(), ArrayList(),
+		ArrayList(), 0f, null, null, null,
+		SkillCombatRequirement.OutsideCombat, 0, false, false,
+		false, null, false,
 	)
 
 	fun isPositive() = isHealing || isBuff

@@ -20,3 +20,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "HymnOfYalort";
 AreaSetup({clearmap:1});
+uuid = 5bef055b-d68d-4175-8084-f590cded71aa;

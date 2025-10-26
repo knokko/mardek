@@ -13,3 +13,4 @@ levelrange = [1,1];
 musicTrack = "TrilobiteCave";
 AreaSetup({WARP:1,clearmap:1});
 EN_ADD("Places","Trilobite Cave");
+uuid = 8c945736-9362-40c5-9708-789eda11d057;

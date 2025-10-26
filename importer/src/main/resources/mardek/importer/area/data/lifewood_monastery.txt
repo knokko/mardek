@@ -14,3 +14,4 @@ levelrange = [1,1];
 musicTrack = "Lifewood";
 AreaSetup({WARP:1,SNOW:1,clearmap:1});
 EN_ADD("Places","Lifewood");
+uuid = 6110a730-f411-43c6-bd7f-b45858837b5b;

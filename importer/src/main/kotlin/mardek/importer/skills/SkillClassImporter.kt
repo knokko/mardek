@@ -33,7 +33,12 @@ fun parseSkillClasses(
 			key = entry.key,
 			name = techName,
 			description = parseFlashString(tech["desc"]!!, "Tech desc")!!,
-			actions = ArrayList(parseActiveSkills(content, parseActionScriptObjectList(rawSkills), false)),
+			actions = ArrayList(parseActiveSkills(
+				"SkillClassImporter$techName",
+				content,
+				parseActionScriptObjectList(rawSkills),
+				false,
+			)),
 			icon = compressKimSprite3(icon)
 		)
 	}

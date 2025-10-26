@@ -32,7 +32,8 @@ internal fun importItems(content: Content, rawItems: String) {
 
 		if (typeName == "plot") {
 			content.items.plotItems.add(PlotItem(
-				name = flashName, description = description, element = element, cost = cost
+				name = flashName, description = description, element = element, cost = cost,
+				id = UUID.nameUUIDFromBytes("PlotItem$flashName$description".encodeToByteArray()),
 			))
 			continue
 		}
@@ -44,6 +45,7 @@ internal fun importItems(content: Content, rawItems: String) {
 			cost = cost,
 			equipment = parseEquipment(content, rawItem),
 			consumable = parseConsumable(content, rawItem),
+			id = UUID.nameUUIDFromBytes("ItemImporter$flashName$description".encodeToByteArray()),
 		))
 	}
 }

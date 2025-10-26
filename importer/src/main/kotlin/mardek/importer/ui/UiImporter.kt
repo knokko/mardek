@@ -46,4 +46,5 @@ internal fun importUiSprites() = UiSprites(
 	challengeCursor = importBcSprite("ChallengeCursor"),
 	dreamStoneIcon = importKimSprite("DreamStone", -1),
 	clock = importBcSprite("Clock"),
+	arrowHead = importBcSprite("ArrowHead"),
 )

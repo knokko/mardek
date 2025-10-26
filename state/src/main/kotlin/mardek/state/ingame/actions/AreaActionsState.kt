@@ -13,6 +13,7 @@ import mardek.input.InputManager
 import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.NextAreaPosition
+import mardek.state.saves.SaveSelectionState
 import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
@@ -60,6 +61,7 @@ class AreaActionsState(
 	 * follow party member 0.
 	 */
 	@BitField(id = 3)
+	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	val nextPartyPositions = Array<NextAreaPosition?>(4) { null }
 
@@ -100,6 +102,13 @@ class AreaActionsState(
 	var lastFlashTime = 0L
 		private set
 
+	/**
+	 * When the current action is `ActionSaveCampaign`, this field tracks the savefile selection of the user. The user
+	 * can either select a `SaveFile` to overwrite, or create a new `SaveFile`.
+	 */
+	var saveSelectionState: SaveSelectionState? = null
+		private set
+
 	@Suppress("unused")
 	private constructor() : this(FixedActionNode(), emptyArray(), emptyArray())
 
@@ -129,6 +138,9 @@ class AreaActionsState(
 			if (currentAction is ActionHealParty) {
 				context.healParty()
 				node = currentNode.next
+			}
+			if (currentAction is ActionSaveCampaign && saveSelectionState == null) {
+				saveSelectionState = SaveSelectionState(arrayOf(context.campaignName))
 			}
 		}
 
@@ -226,6 +238,25 @@ class AreaActionsState(
 	}
 
 	/**
+	 * The `CampaignState` will call this method after saving has succeeded (or was canceled). This will cause this
+	 * `AreaActionsState` to move on to the next action node.
+	 */
+	fun finishSaveNode() {
+		val currentNode = node as FixedActionNode
+		if (currentNode.action !is ActionSaveCampaign) {
+			throw IllegalStateException("Expected ActionSaveCampaign, but action is ${currentNode.action}")
+		}
+		node = currentNode.next
+	}
+
+	/**
+	 * Aborts the current `SaveSelectionState`, causing it to be refreshed during the next `update()`
+	 */
+	fun retrySaveNode() {
+		saveSelectionState = null
+	}
+
+	/**
 	 * This method should be called for each `InputKeyEvent` that is fired while
 	 * `areaState.actions != null && areaState.activeBattle == null`
 	 */
@@ -237,7 +268,7 @@ class AreaActionsState(
 
 		if (currentNode is FixedActionNode) {
 			val currentAction = currentNode.action
-			if (currentAction is ActionTalk) talkingKeyPress(currentAction, event)
+			if (currentAction is ActionTalk) processTalkingKeyEvent(currentAction, event)
 		}
 
 		if (currentNode is ChoiceActionNode) {
@@ -258,7 +289,7 @@ class AreaActionsState(
 		}
 	}
 
-	private fun talkingKeyPress(currentAction: ActionTalk, event: InputKeyEvent) {
+	private fun processTalkingKeyEvent(currentAction: ActionTalk, event: InputKeyEvent) {
 		if (event.key == InputKey.Interact) {
 			if (shownDialogueCharacters >= currentAction.text.length) {
 				if (!event.didRepeat) finishSimpleDialogueNode()
@@ -278,6 +309,7 @@ class AreaActionsState(
 		val input: InputManager,
 		val timeStep: Duration,
 		val soundQueue: SoundQueue,
+		val campaignName: String,
 		val healParty: () -> Unit,
 	)
 

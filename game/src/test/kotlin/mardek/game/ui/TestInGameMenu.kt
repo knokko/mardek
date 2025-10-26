@@ -16,6 +16,7 @@ import mardek.state.ingame.menu.InventoryTab
 import mardek.state.ingame.menu.MapTab
 import mardek.state.ingame.menu.PartyTab
 import mardek.state.ingame.menu.SkillsTab
+import mardek.state.saves.SavesFolderManager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
@@ -31,9 +32,9 @@ object TestInGameMenu {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val state = InGameState(campaign)
+			val state = InGameState(campaign, "test")
 			val input = InputManager()
-			val stateManager = GameStateManager(input, state)
+			val stateManager = GameStateManager(input, state, SavesFolderManager())
 			val soundQueue = SoundQueue()
 			val context = GameStateUpdateContext(content, input, soundQueue, 10.milliseconds)
 			val sounds = content.audio.fixedEffects.ui
@@ -170,9 +171,9 @@ object TestInGameMenu {
 			deugan.skillMastery[snakeBite] = 10
 			deugan.toggledSkills.add(snakeBite)
 
-			val state = InGameState(campaign)
+			val state = InGameState(campaign, "test")
 			val input = InputManager()
-			val stateManager = GameStateManager(input, state)
+			val stateManager = GameStateManager(input, state, SavesFolderManager())
 			val soundQueue = SoundQueue()
 			val context = GameStateUpdateContext(content, input, soundQueue, 10.milliseconds)
 			val sounds = content.audio.fixedEffects.ui

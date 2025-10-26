@@ -4,8 +4,10 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.BITSER
 import mardek.content.action.ActionSequence
+import java.util.UUID
 
 @BitStruct(backwardCompatible = true)
 class AreaTrigger(
@@ -55,6 +57,11 @@ class AreaTrigger(
 	@BitField(id = 7, optional = true)
 	@ReferenceField(stable = false, label = "action sequences")
 	val actions: ActionSequence?,
+
+	@BitField(id = 8)
+	@StableReferenceFieldId
+	@Suppress("unused")
+	private val id: UUID,
 ) {
 
 	init {
@@ -66,7 +73,7 @@ class AreaTrigger(
 	@Suppress("unused")
 	private constructor() : this(
 		"", 0, 0, "", false,
-		false, null, null
+		false, null, null, UUID.randomUUID(),
 	)
 
 	override fun toString() = "Trigger(x=$x, y=$y, once=$oneTimeOnly, walkOn=$walkOn, code=$flashCode)"

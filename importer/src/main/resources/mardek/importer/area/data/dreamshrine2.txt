@@ -32,3 +32,4 @@ levelrange = MONSTER_LEVELS.DREAMSHRINE;
 musicTrack = "SecretDungeon";
 AreaSetup({WARP:0,DREAM:true,LOOT:3});
 EN_ADD("Places","Dreamshrine");
+uuid = 4d39259f-f730-4d41-981b-3ffb0ddb36d5;

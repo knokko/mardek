@@ -11,3 +11,4 @@ btlChance = 0;
 levelrange = [1,1];
 musicTrack = !GameData.plotVars.ELWYEN_DATE ? (!GameData.plotVars.SUNSET ? "Castle" : "none") : "SirenSong";
 AreaSetup({clearmap:1});
+uuid = 919092c7-3b66-4b79-8fdf-0ae70b55be1f;

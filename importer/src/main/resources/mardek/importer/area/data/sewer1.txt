@@ -12,3 +12,4 @@ levelrange = MONSTER_LEVELS.SEWER1;
 musicTrack = "Dungeon1";
 AreaSetup({WARP:1});
 EN_ADD("Places","Goznor Sewers");
+uuid = 989c8ed3-6b51-43b3-9d1d-76654ed03194;

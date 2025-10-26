@@ -15,3 +15,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.GLENS;
 musicTrack = !GameData.plotVars.SUNSET ? "WorldMap" : "crickets";
 AreaSetup({WARP:1});
+uuid = 724d03af-a6a4-4b8c-9523-dd401f5bbd96;

@@ -22,11 +22,14 @@ class SwitchColor(
 
 	@BitField(id = 4)
 	val platformSprite: KimSprite,
-) {
 
 	@BitField(id = 5)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
-	internal constructor() : this("", KimSprite(), KimSprite(), KimSprite(), KimSprite())
+	internal constructor() : this(
+		"", KimSprite(), KimSprite(),
+		KimSprite(), KimSprite(), UUID.randomUUID(),
+	)
 }

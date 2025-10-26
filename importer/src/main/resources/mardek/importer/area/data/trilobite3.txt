@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.TRILOBITE_CAVE;
 musicTrack = "TrilobiteCave";
 AreaSetup({WARP:1});
+uuid = 372b716a-ba1d-4826-a722-584db78a3c1d;

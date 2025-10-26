@@ -28,3 +28,10 @@ tasks.register("importRawAreaData", JavaExec) {
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.importer.area.AreaDumperKt"
 }
+
+tasks.register("randomID", JavaExec) {
+	group = "Export"
+	description = "Print some random UUIDs"
+	classpath sourceSets.main.runtimeClasspath
+	mainClass = "mardek.importer.ids.RandomIDKt"
+}

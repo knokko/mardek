@@ -16,3 +16,4 @@ TempVars.EarthTemple_HubDoor = ["temple_EARTH_hub",19,11];
 DeadTempleCheck();
 AreaSetup({WARP:1});
 EN_ADD("Places","Earth Temple");
+uuid = 7f57c807-550d-4130-b397-0b083125abe4;

@@ -35,3 +35,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = GameData.CHAPTER <= 2 ? (GameData.plotVars.ZOMBIES != "CANONIA" ? (GameData.plotVars.SUNSET != "NIGHT" ? "Canonia" : "crickets") : "EvilStirs") : "Gloria";
 AreaSetup({clearmap:1});
+uuid = a80361f0-ef65-4bee-a242-3f76b769ada2;

@@ -23,3 +23,4 @@ musicTrack = GameData.plotVars.EVIL_STEELE != null ? "DarkTemple" : "Steele";
 DeadTempleCheck();
 AreaSetup({LOOT:3,WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});
 specBtlBG = "Temple_DARK_2";
+uuid = 989872db-5629-4568-a5bb-8fc197bd5ad3;

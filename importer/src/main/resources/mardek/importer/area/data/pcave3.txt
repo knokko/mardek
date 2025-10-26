@@ -37,3 +37,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.TAINTED_GROTTO;
 musicTrack = "Dungeon1";
 AreaSetup({WARP:1});
+uuid = 69bdada4-1fcd-4d31-b309-6a47088c9230;

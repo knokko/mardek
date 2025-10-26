@@ -8,7 +8,7 @@ A_sprites = [
     {name:"Save Crystal",model:"o_Crystal",x:3,y:3,walkspeed:-1,conv:"c_healingCrystal"},
     {name:"Entrance",model:"BIGDOOR0",x:5,y:11,dest:["nowhere",1,1],lock:"yes"},
     {name:"Exit",model:"BIGDOOR0",x:5,y:1,dest:["DL_area2",7,39]},
-    {name:"WALK_TRIGGER",model:"_trigger",x:5,y:10,WALKON:true,actionSequence:Entry}
+    {name:"WALK_TRIGGER",model:"_trigger",x:5,y:10,WALKON:true,actionSequence:Entry,uuid:7f90cf1c-f909-47f2-91bd-3717449dbdf6}
 ];
 areaLoot = [];
 foes = [["monster",null,null,null,"SOLO"],["monster","monster",null,null,"DUO"],["monster","monster","monster",null,"TRIO"]];
@@ -16,3 +16,4 @@ btlChance = 0;
 levelrange = MONSTER_LEVELS.DRAGON_LAIR;
 musicTrack = "MightyHeroes";
 AreaSetup({clearmap:1,NoStorage:true});
+uuid = 2744338f-050a-479e-9482-a3e537d898f5;

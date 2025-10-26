@@ -27,3 +27,4 @@ if(GameData.plotVars.BRIEFING < 3)
    foes = foes.concat([["Bandit",null,null,null,"SOLO"],["Bandit","Bandit",null,null,"DUO"]]);
 }
 AreaSetup({WARP:1});
+uuid = 456d9a46-35cf-4bcf-9bc7-d31460492bc7;

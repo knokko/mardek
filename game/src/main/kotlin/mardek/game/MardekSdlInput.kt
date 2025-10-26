@@ -6,13 +6,17 @@ import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
+import mardek.input.TextTypeEvent
 import mardek.renderer.FULL_BORDER_HEIGHT
 import mardek.renderer.MardekCursor
 import mardek.state.GameStateManager
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.menu.InventoryTab
+import mardek.state.title.TitleScreenState
 import org.lwjgl.sdl.SDLEvents.*
 import org.lwjgl.sdl.SDLGamepad.*
+import org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput
+import org.lwjgl.sdl.SDLKeyboard.SDL_StopTextInput
 import org.lwjgl.sdl.SDLKeycode.*
 import org.lwjgl.sdl.SDLMouse.SDL_CreateColorCursor
 import org.lwjgl.sdl.SDLMouse.SDL_HideCursor
@@ -29,6 +33,7 @@ import org.lwjgl.sdl.SDL_KeyboardEvent
 import org.lwjgl.sdl.SDL_MouseButtonEvent
 import org.lwjgl.sdl.SDL_MouseMotionEvent
 import org.lwjgl.sdl.SDL_Point
+import org.lwjgl.sdl.SDL_TextInputEvent
 import org.lwjgl.sdl.SDL_WindowEvent
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.memCalloc
@@ -90,6 +95,7 @@ class MardekSdlInput(
 	private var desiredCursor = MardekCursor.Pointer
 	private var shownCursor: MardekCursor? = null
 	private var lastCursorAction = System.nanoTime()
+	private var isTextInputEnabled = false
 
 	private val cursors = LongArray(MardekCursor.entries.size)
 
@@ -193,6 +199,8 @@ class MardekSdlInput(
 					SDLK_SPACE -> InputKey.Cheat
 					SDLK_J -> InputKey.ScrollDown
 					SDLK_K -> InputKey.ScrollUp
+					SDLK_BACKSPACE -> InputKey.BackspaceLast
+					SDLK_DELETE -> InputKey.BackspaceFirst
 					else -> null
 				}
 
@@ -204,6 +212,11 @@ class MardekSdlInput(
 						didRelease = type == SDL_EVENT_KEY_UP
 					))
 				}
+			}
+
+			if (type == SDL_EVENT_TEXT_INPUT) {
+				val typedText = SDL_TextInputEvent.ntextString(rawEvent)
+				if (typedText != null) input.postEvent(TextTypeEvent(typedText))
 			}
 
 			if (type == SDL_EVENT_MOUSE_MOTION) {
@@ -386,6 +399,16 @@ class MardekSdlInput(
 				newCursor = MardekCursor.Inventory
 				if (currentTab.pickedUpItem != null) newCursor = MardekCursor.Grab
 			}
+		}
+
+		val shouldHaveTextInput = currentState is TitleScreenState && currentState.newCampaignName != null
+		if (shouldHaveTextInput && !isTextInputEnabled) {
+			assertSdlSuccess(SDL_StartTextInput(window.properties.handle), "StartTextInput")
+			isTextInputEnabled = true
+		}
+		if (!shouldHaveTextInput && isTextInputEnabled) {
+			assertSdlSuccess(SDL_StopTextInput(window.properties.handle), "StopTextInput")
+			isTextInputEnabled = false
 		}
 
 		updateCursor(newCursor)

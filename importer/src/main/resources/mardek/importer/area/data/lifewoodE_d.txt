@@ -18,3 +18,4 @@ levelrange = MONSTER_LEVELS.LIFEWOOD;
 musicTrack = "Dreamwood";
 AreaSetup({WARP:0,DREAM:2,LOOT:3,SNOW:2,clearmap:1});
 EN_ADD("Places","Dreamwood");
+uuid = 7bd3075c-af4a-4833-87cc-f56b3988afca;

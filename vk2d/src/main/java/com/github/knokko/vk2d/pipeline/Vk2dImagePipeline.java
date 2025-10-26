@@ -13,8 +13,6 @@ import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 
-import java.nio.LongBuffer;
-
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
@@ -70,15 +68,14 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 	@Override
 	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MiniBatch miniBatch, Vk2dBatch batch) {
 		int firstVertex = Math.toIntExact((miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset) / VERTEX_SIZE);
-		LongBuffer pDescriptorSet = recorder.stack.callocLong(1);
 		int descriptorIndex = 0;
+		long oldDescriptorSet = VK_NULL_HANDLE;
 		for (int index = 0; index < miniBatch.vertexData()[0].position(); index += 6 * VERTEX_SIZE) {
-			// TODO Only switch descriptors when needed
-			pDescriptorSet.put(0, ((Vk2dImageBatch) batch).descriptorSets[descriptorIndex]);
-			vkCmdBindDescriptorSets(
-					recorder.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-					vkPipelineLayout, 0, pDescriptorSet, null
-			);
+			long nextDescriptorSet = ((Vk2dImageBatch) batch).descriptorSets[descriptorIndex];
+			if (oldDescriptorSet != nextDescriptorSet) {
+				recorder.bindGraphicsDescriptors(vkPipelineLayout, nextDescriptorSet);
+				oldDescriptorSet = nextDescriptorSet;
+			}
 			vkCmdDraw(recorder.commandBuffer, 6, 1, firstVertex, 0);
 			firstVertex += 6;
 			descriptorIndex += 1;

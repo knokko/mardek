@@ -119,3 +119,4 @@ levelrange = [1,1];
 fishes = [{name:"Wetfish",type:"ITEM",chance:80,pull:5,whim:2,HP:100,wait:100},{name:"Brinary",type:"MON",chance:20,pull:5,whim:2,HP:100,wait:80}];
 AreaSetup({clearmap:1});
 EN_ADD("Places","Goznor");
+uuid = 2d7ae731-af79-436c-ae25-41ab56d93815;

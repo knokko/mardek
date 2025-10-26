@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "ReptoidVillage";
 AreaSetup({clearmap:1});
+uuid = 1fd4c2e5-42fa-499c-8ed0-b58707bbce65;

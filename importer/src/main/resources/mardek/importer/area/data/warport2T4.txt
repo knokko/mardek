@@ -14,3 +14,4 @@ levelrange = [1,1];
 musicTrack = "PleasantAir";
 AreaSetup({WARP:0,clearmap:1});
 EN_ADD("Places","AeropolisWarport");
+uuid = 09f89f93-942a-4ef3-bcc8-4b69d49f9b16;

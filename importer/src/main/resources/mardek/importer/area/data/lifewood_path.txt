@@ -22,3 +22,4 @@ levelrange = MONSTER_LEVELS.LIFEWOOD;
 musicTrack = "Lifewood";
 AreaSetup({WARP:1,SNOW:1,clearmap:1});
 EN_ADD("Places","Lifewood");
+uuid = d79ad408-7d41-4961-84e5-104af800de9b;

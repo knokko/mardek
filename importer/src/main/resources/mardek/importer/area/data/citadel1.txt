@@ -43,3 +43,4 @@ levelrange = MONSTER_LEVELS.MIASMAL_CITADEL;
 musicTrack = "SecretDungeon";
 AreaSetup({WARP:1,clearmap:1,MIASMA:true});
 EN_ADD("Places","Miasmal Citadel");
+uuid = ef735501-5818-49d1-bc27-119710b77954;

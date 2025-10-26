@@ -13,14 +13,14 @@ class SoundEffect(
 
 	@BitField(id = 1)
 	@NestedFieldSetting(path = "", writeAsBytes = true)
-	val oggData: ByteArray
-) {
+	val oggData: ByteArray,
 
 	@BitField(id = 2)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
-	constructor() : this("", ByteArray(0))
+	constructor() : this("", ByteArray(0), UUID.randomUUID())
 
 	override fun toString() = flashName
 }

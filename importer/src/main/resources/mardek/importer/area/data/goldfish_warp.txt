@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "FallenShip";
 AreaSetup({clearmap:1});
+uuid = a6ad9e82-fd42-4141-9167-a799d27d07e6;

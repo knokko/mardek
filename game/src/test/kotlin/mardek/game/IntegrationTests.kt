@@ -7,6 +7,8 @@ import mardek.game.area.testDragonLairDoor
 import mardek.game.battle.*
 import mardek.game.inventory.TestCountItemOccurrences
 import mardek.game.portrait.TestSpecialPortraitNodes
+import mardek.game.save.TestListSaves
+import mardek.game.save.TestSaveAndLoad
 import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestTitleScreen
 import org.junit.jupiter.api.*
@@ -147,8 +149,17 @@ class IntegrationTests {
 	}
 
 	@Test
-	fun testTitleScreen() {
-		TestTitleScreen.testRendering(instance)
+	fun testNewGameFlow() {
+		TestTitleScreen.testNewGame(instance)
+	}
+
+	@Test
+	fun testLoadGameFlow() {
+		TestTitleScreen.testLoadGameWithoutCampaignsEdgeCase1(instance)
+		TestTitleScreen.testLoadGameWithoutCampaignsEdgeCase2(instance)
+		TestTitleScreen.testLoadGameMissingCampaignEdgeCase(instance)
+		TestTitleScreen.testLoadGameMissingSaveEdgeCase(instance)
+		TestTitleScreen.testLoadGameHappyFlow(instance)
 	}
 
 	@Test
@@ -200,5 +211,16 @@ class IntegrationTests {
 		TestRandomBattles.testEncountersAfter30Steps(instance)
 		TestRandomBattles.testEncountersAfter60Steps(instance)
 		TestRandomBattles.testTransferOddsToNextArea(instance)
+	}
+
+	@Test
+	fun testListSaves() {
+		TestListSaves.test(instance)
+	}
+
+	@Test
+	fun testSaveAndLoad() {
+		TestSaveAndLoad.testOverwriteVanishedSave(instance)
+		TestSaveAndLoad.testHappyFlow(instance)
 	}
 }

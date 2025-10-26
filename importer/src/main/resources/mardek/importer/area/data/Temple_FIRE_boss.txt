@@ -36,3 +36,4 @@ DeadTempleCheck();
 AreaSetup({clearmap:1});
 specBtlBG = "Temple_FIRE_2" + (musicTrack != "DeadTemple" ? "" : "_dead");
 EN_ADD("Places","Fire Temple");
+uuid = a67c40bc-9c93-4d2a-b31c-c5af1d27aea8;

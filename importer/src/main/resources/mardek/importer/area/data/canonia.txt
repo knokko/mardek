@@ -81,3 +81,4 @@ if(GameData.plotVars.VEHRN == null && GameData.CHAPTER == 2)
 }
 AreaSetup({clearmap:1});
 EN_ADD("Places","Canonia");
+uuid = 44195715-505e-4770-8526-45925970d449;

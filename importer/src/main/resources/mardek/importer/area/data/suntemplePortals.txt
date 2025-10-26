@@ -46,3 +46,4 @@ minSteps = 5;
 levelrange = [10,15];
 musicTrack = "SunTemple";
 AreaSetup({WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});
+uuid = 48b51859-02b1-4d59-ac20-7e84982c75ec;

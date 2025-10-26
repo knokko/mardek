@@ -2,13 +2,22 @@ package mardek.importer.audio
 
 import mardek.content.audio.AudioContent
 import mardek.content.audio.SoundEffect
+import java.util.UUID
 
 private fun importHitSound(audio: AudioContent, number: Int, name: String) {
-	audio.effects.add(SoundEffect("hit_$name", importSoundData("${number}_sfx_hit_$name")))
+	audio.effects.add(SoundEffect(
+		"hit_$name",
+		importSoundData("${number}_sfx_hit_$name"),
+		UUID.nameUUIDFromBytes("SoundEffectImporter.importHitSound$name".encodeToByteArray()),
+	))
 }
 
 private fun importSimpleSound(audio: AudioContent, number: Int, name: String) {
-	audio.effects.add(SoundEffect(name, importSoundData("${number}_sfx_$name")))
+	audio.effects.add(SoundEffect(
+		name,
+		importSoundData("${number}_sfx_$name"),
+		UUID.nameUUIDFromBytes("SoundEffectImporter.importSimpleSound$name".encodeToByteArray())
+	))
 }
 
 internal fun importSoundEffects(audio: AudioContent) {

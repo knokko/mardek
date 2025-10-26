@@ -18,3 +18,4 @@ musicTrack = "TrilobiteCave";
 AreaSetup({WARP:1,clearmap:1});
 EN_ADD("Places","Cambria");
 GameData.visited.cambria_exit = true;
+uuid = 1b000be4-1d09-4069-aff7-269e6b4da2d7;

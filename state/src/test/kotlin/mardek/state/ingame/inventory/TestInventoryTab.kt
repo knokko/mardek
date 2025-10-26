@@ -22,6 +22,7 @@ import mardek.state.ingame.menu.ItemReference
 import mardek.state.ingame.menu.UiUpdateContext
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 private fun createState(): CampaignState {
 	val mardekClass = CharacterClass(
@@ -32,8 +33,9 @@ private fun createState(): CampaignState {
 		armorTypes = arrayListOf(ArmorType("Sh", "Shield", EquipmentSlotType.OffHand))
 	)
 	val mardek = PlayableCharacter(
-		"Mardek", mardekClass, Element(), ArrayList(),
-		DirectionalSprites(), CombatantAnimations(), CreatureType(), PortraitInfo(),
+		"Mardek", mardekClass, Element(),
+		ArrayList(), DirectionalSprites(),
+		CombatantAnimations(), CreatureType(), PortraitInfo(), UUID.randomUUID(),
 	)
 	val mardekState = CharacterState()
 
@@ -82,7 +84,8 @@ class TestInventoryTab {
 		element = Element(),
 		cost = 123,
 		equipment = equipment,
-		consumable = null
+		consumable = null,
+		id = UUID.randomUUID(),
 	)
 
 	private fun createEquipment(

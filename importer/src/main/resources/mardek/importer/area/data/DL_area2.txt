@@ -5,7 +5,7 @@ areaname = "Dragon\'s Lair";
 ambience = null;
 dungeon = "DragonLair";
 A_sprites = [
-    {name:"INTERJECTION",model:"_trigger",x:7,y:38,WALKON:true,actionSequence:Entry},
+    {name:"INTERJECTION",model:"_trigger",x:7,y:38,WALKON:true,actionSequence:Entry,uuid:6474ba1f-6854-4f59-8ff7-796a22d3c150},
     {name:"N",model:"BIGDOOR0",x:7,y:1,dest:["DL_area3",15,34]},
     {name:"S",model:"BIGDOOR0",x:7,y:40,dest:["DL_entr",5,2]}
 ];
@@ -15,3 +15,4 @@ btlChance = 10;
 levelrange = MONSTER_LEVELS.DRAGON_LAIR;
 musicTrack = "MightyHeroes";
 AreaSetup({clearmap:1,NoStorage:true});
+uuid = b5321928-13ba-4d91-a7d2-60f4254e844f;

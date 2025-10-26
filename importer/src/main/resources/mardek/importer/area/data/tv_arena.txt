@@ -37,3 +37,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "Arena";
 AreaSetup({WARP:1,clearmap:1});
+uuid = 261d5d8b-302e-4dbf-bf6b-8bce670b5086;

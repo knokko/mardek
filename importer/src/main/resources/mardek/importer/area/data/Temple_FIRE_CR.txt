@@ -18,3 +18,4 @@ musicTrack = GameData.plotVars.FIRE_CRYSTAL != null ? "none" : "Crystals";
 DeadTempleCheck();
 AreaSetup({clearmap:1});
 EN_ADD("Places","Fire Temple");
+uuid = c9fe98b9-61fd-4cc9-96dc-d7c8d64b5982;

@@ -22,15 +22,19 @@ class StrategyPool(
 
 	@BitField(id = 1)
 	val entries: ArrayList<StrategyEntry>,
-) {
 
 	@BitField(id = 2)
 	@Suppress("unused")
 	@StableReferenceFieldId
-	private val id = UUID.randomUUID()
+	val id: UUID,
+) {
 
 	@Suppress("unused")
-	private constructor() : this(StrategyCriteria.NONE, ArrayList(0))
+	private constructor() : this(
+		StrategyCriteria.NONE,
+		ArrayList(0),
+		UUID.randomUUID(),
+	)
 
 	override fun toString() = "StrategyPool(if $criteria $entries)"
 }

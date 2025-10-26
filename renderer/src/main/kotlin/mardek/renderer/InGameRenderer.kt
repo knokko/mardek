@@ -4,6 +4,8 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import mardek.content.action.ActionSaveCampaign
+import mardek.content.action.FixedActionNode
 import mardek.renderer.area.renderCurrentArea
 import mardek.renderer.battle.renderBattle
 import mardek.renderer.battle.renderBattleLoot
@@ -11,12 +13,36 @@ import mardek.renderer.menu.MenuRenderContext
 import mardek.renderer.menu.determineSectionRenderRegion
 import mardek.renderer.menu.renderInGameMenu
 import mardek.renderer.menu.renderInGameMenuSectionList
+import mardek.renderer.save.renderSaveSelectionModal
 import mardek.state.ingame.InGameState
+import mardek.state.saves.SaveSelectionState
 import mardek.state.util.Rectangle
 
 internal fun renderInGame(
 	context: RenderContext, state: InGameState, region: Rectangle
 ): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+
+	fun renderBlurred() {
+		context.currentStage = context.frame.swapchainStage
+
+		val alpha = 0.9f
+		fun addColor(brown: Float) = srgbToLinear(rgba(
+			0.4f * brown * alpha, 0.25f * brown * alpha, 0.17f * brown * alpha, 1f
+		))
+		fun multiplyColor() = rgba(1f - alpha, 1f - alpha, 1f - alpha, 0f)
+
+		context.pipelines.base.blur.addBatch(
+			context.frame.swapchainStage,
+			context.framebuffers.blur, context.perFrame.areaBlurDescriptors,
+			region.minX.toFloat(), region.minY.toFloat(),
+			(region.minX + region.width).toFloat(), (region.minY + region.height).toFloat(),
+		).gradientColorTransform(
+			addColor(0.4f), multiplyColor(),
+			addColor(0.4f), multiplyColor(),
+			addColor(0.95f), multiplyColor(),
+			addColor(0.95f), multiplyColor(),
+		)
+	}
 
 	var titleColorBatch: Vk2dColorBatch? = null
 	var titleTextBatch: Vk2dGlyphBatch? = null
@@ -63,30 +89,11 @@ internal fun renderInGame(
 						framebuffers.sectionBlur, 9, 50
 					)
 				}
-				context.currentStage = areaRenderStage
 
+				context.currentStage = areaRenderStage
 				val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
 				renderCurrentArea(context, area, areaRenderRegion)
-
-				context.currentStage = context.frame.swapchainStage
-
-				val alpha = 0.9f
-				fun addColor(brown: Float) = srgbToLinear(rgba(
-					0.4f * brown * alpha, 0.25f * brown * alpha, 0.17f * brown * alpha, 1f
-				))
-				fun multiplyColor() = rgba(1f - alpha, 1f - alpha, 1f - alpha, 0f)
-
-				context.pipelines.base.blur.addBatch(
-					context.frame.swapchainStage,
-					framebuffers.blur, context.perFrame.areaBlurDescriptors,
-					region.minX.toFloat(), region.minY.toFloat(),
-					(region.minX + region.width).toFloat(), (region.minY + region.height).toFloat(),
-				).gradientColorTransform(
-					addColor(0.4f), multiplyColor(),
-					addColor(0.4f), multiplyColor(),
-					addColor(0.95f), multiplyColor(),
-					addColor(0.95f), multiplyColor(),
-				)
+				renderBlurred()
 
 				val batches = renderInGameMenu(context, region, state.menu, state.campaign)
 				titleColorBatch = batches.first
@@ -102,9 +109,44 @@ internal fun renderInGame(
 					).noColorTransform()
 				}
 			} else {
-				val batches = renderCurrentArea(context, area, region)
-				titleColorBatch = batches.first
-				titleTextBatch = batches.second
+				var saveSelection: SaveSelectionState? = null
+				val actions = area.actions
+				if (actions != null) {
+					val node = actions.node
+					if (node is FixedActionNode && node.action is ActionSaveCampaign) {
+						saveSelection = actions.saveSelectionState
+					}
+				}
+
+				if (saveSelection != null) {
+					val framebuffers = context.framebuffers
+					val areaRenderStage = context.pipelines.base.blur.addSourceStage(
+						context.frame, framebuffers.blur, -1
+					)
+					context.pipelines.base.blur.addComputeStage(
+						context.frame, context.perFrame.areaBlurDescriptors,
+						framebuffers.blur, 9, 50, -1
+					)
+
+					context.currentStage = areaRenderStage
+					val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
+					renderCurrentArea(context, area, areaRenderRegion)
+					renderBlurred()
+
+					val basicFont = context.bundle.getFont(context.content.fonts.basic2.index)
+					val fatFont = context.bundle.getFont(context.content.fonts.fat.index)
+					val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
+					val batches = renderSaveSelectionModal(
+						context, basicFont, fatFont, upperFont,
+						saveSelection, true, region,
+					)
+					titleColorBatch = batches.first
+					titleTextBatch = batches.second
+				} else {
+					val batches = renderCurrentArea(context, area, region)
+					titleColorBatch = batches.first
+					titleTextBatch = batches.second
+				}
 			}
 		} else {
 			val framebuffers = context.framebuffers

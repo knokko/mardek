@@ -21,3 +21,4 @@ levelrange = MONSTER_LEVELS.CANONIA_WOODS;
 musicTrack = "Woods";
 AreaSetup({WARP:1});
 EN_ADD("Places","Canonia Woods");
+uuid = eceea017-3009-4cb5-9cf5-5db56c3b8dfa;

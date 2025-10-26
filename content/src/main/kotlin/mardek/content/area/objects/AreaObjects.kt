@@ -2,6 +2,7 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 
 @BitStruct(backwardCompatible = true)
 class AreaObjects(
@@ -40,6 +41,7 @@ class AreaObjects(
 	val transitions: ArrayList<AreaTransition>,
 
 	@BitField(id = 11)
+	@ReferenceFieldTarget(label = "area triggers")
 	val walkTriggers: ArrayList<AreaTrigger>,
 ) {
 	internal constructor() : this(

@@ -105,3 +105,4 @@ btlChance = 0;
 levelrange = [1,1];
 musicTrack = plotVars.PossessCut != 10 ? "none" : "Rohoph";
 AreaSetup({clearmap:1});
+uuid = 4aef3eeb-26ba-42dc-8826-57a2cca5de58;

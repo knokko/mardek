@@ -32,10 +32,17 @@ import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.state.ingame.battle.Enemy
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
+import mardek.state.saves.SaveFile
+import mardek.state.saves.SavesFolderManager
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.lwjgl.vulkan.VK10.VK_FORMAT_R8G8B8A8_SRGB
 import org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool
 import org.lwjgl.vulkan.VK10.vkDestroyRenderPass
 import org.lwjgl.vulkan.VK13.VK_API_VERSION_1_3
+import java.io.File
+import java.nio.file.Files
+import java.util.Collections
 
 class TestingInstance {
 
@@ -57,6 +64,8 @@ class TestingInstance {
 	val shock: ActiveSkill
 	val frostasia: ActiveSkill
 	val elixir: Item
+
+	val dummySavesDirectories = Collections.synchronizedList(ArrayList<File>())
 
 	init {
 		val builder = BoilerBuilder(
@@ -166,7 +175,32 @@ class TestingInstance {
 		gold = 123
 	)
 
+	fun dummySaveManager(): SavesFolderManager {
+		val savesFolder = Files.createTempDirectory("").toFile()
+		savesFolder.deleteOnExit()
+
+		val manager = SavesFolderManager(savesFolder)
+		dummySavesDirectories.add(savesFolder)
+		return manager
+	}
+
+	fun createDummySave(saves: SavesFolderManager, campaignName: String): File {
+		val campaignState = simpleCampaignState()
+		campaignState.characterStates[heroMardek]!!.currentLevel = 1
+		campaignState.characterStates[heroDeugan]!!.currentLevel = 1
+
+		assertTrue(saves.createSave(content, campaignState, campaignName, SaveFile.Type.Crystal))
+
+		val campaignFolder = File("${saves.root}/$campaignName")
+		val saveFiles = campaignFolder.listFiles()!!
+		assertEquals(1, saveFiles.size)
+		campaignFolder.deleteOnExit()
+		saveFiles[0].deleteOnExit()
+		return saveFiles[0]
+	}
+
 	fun destroy() {
+		for (directory in dummySavesDirectories) directory.deleteRecursively()
 		renderManager.pipelines.base.destroy()
 		renderManager.cleanUp()
 		titleScreenMemory.destroy(boiler)

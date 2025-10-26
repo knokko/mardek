@@ -47,3 +47,4 @@ musicTrack = !GameData.plotVars.SUNSET ? "WorldMap" : "crickets";
 AreaSetup({clearmap:1});
 specBtlBG = "CRASHSITE";
 EN_ADD("Places","Crash Site");
+uuid = 08f910d3-3e3b-43d9-b7df-e90ef32c3a3c;

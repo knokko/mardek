@@ -19,3 +19,4 @@ btlChance = 0;
 levelrange = [1,1];
 musicTrack = !GameData.plotVars.SUNSET ? "Goznor" : "none";
 AreaSetup({clearmap:1});
+uuid = 0d86184e-23e3-4ff6-9e53-fbeb2da5d0bb;

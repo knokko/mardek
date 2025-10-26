@@ -11,3 +11,4 @@ btlChance = 4;
 levelrange = MONSTER_LEVELS.SEWER2;
 musicTrack = "Dungeon1";
 AreaSetup({WARP:1});
+uuid = d0f6cb1a-3f49-49b4-80b1-f60b8fb0726f;

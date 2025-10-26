@@ -48,7 +48,7 @@ fun parseRandomBattle(areaCode: ActionScriptCode, content: Content): RandomAreaB
 	)!!.lowercase(Locale.ROOT)
 
 	// The battle background list will be empty during some unit tests
-	val defaultBackground = if (content.battle.backgrounds.isEmpty()) BattleBackground(tileset, emptyArray(), 1)
+	val defaultBackground = if (content.battle.backgrounds.isEmpty()) BattleBackground()
 	else content.battle.backgrounds.find { it.name == tileset }!!
 
 	return RandomAreaBattles(

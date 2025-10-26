@@ -11,6 +11,7 @@ import mardek.importer.util.parseActionScriptObjectList
 import org.joml.Math.clamp
 import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
+import java.util.UUID
 import kotlin.math.roundToInt
 
 fun parseReactionSkillsAndPassiveSkills(content: Content, rawSkills: String) {
@@ -118,9 +119,11 @@ private fun parseReactionSkill(
 		}
 	}
 
+	val name = parseFlashString(rawSkill["skill"]!!, "reaction skill name")!!
+	val description = parseFlashString(rawSkill["desc"]!!, "reaction skill description")!!
 	return ReactionSkill(
-		name = parseFlashString(rawSkill["skill"]!!, "reaction skill name")!!,
-		description = parseFlashString(rawSkill["desc"]!!, "reaction skill description")!!,
+		name = name,
+		description = description,
 		type = type,
 		element = element,
 		masteryPoints = parseInt(rawSkill["AP"]!!),
@@ -139,5 +142,6 @@ private fun parseReactionSkill(
 		smitePlus = effect.containsKey("smitePLUS"),
 		soulStrike = soulstrike,
 		survivor = effect.containsKey("survivor"),
+		id = UUID.nameUUIDFromBytes("ReactionSkillImporter$name$description".encodeToByteArray()),
 	)
 }

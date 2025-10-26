@@ -56,3 +56,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.GLENS;
 AreaSetup({WARP:1});
 EN_ADD("Places","Lake Qur");
+uuid = c977fd56-fc00-4836-89e9-30d9123f25f5;

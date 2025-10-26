@@ -14,3 +14,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.SUN_TEMPLE;
 musicTrack = "SunTemple";
 AreaSetup({WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO)});
+uuid = b4392087-6020-4071-98a1-fa6b211b673d;

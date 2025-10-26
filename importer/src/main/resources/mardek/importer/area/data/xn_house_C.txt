@@ -22,3 +22,4 @@ btlChance = 0;
 minSteps = 5;
 levelrange = [1,1];
 AreaSetup({clearmap:1});
+uuid = 3a0ad78a-7a4e-4537-8793-43f31748a5ab;

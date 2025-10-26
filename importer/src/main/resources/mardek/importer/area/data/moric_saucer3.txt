@@ -39,3 +39,4 @@ if(GameData.plotVars.SLAIN_DRACELON == 1)
    _root.cont.Dracelon.DrawFrame(4);
    _root.cont.Dracelon.noactions = true;
 }
+uuid = 550809c2-2f9f-46c9-9158-354cf3829b25;

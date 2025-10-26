@@ -24,7 +24,7 @@ object TestInfoModal {
 			campaign.characterStates[heroDeugan]!!.equipment[4] = content.items.items.find { it.flashName == "Dragon Amulet" }!!
 
 			startSimpleBattle(campaign)
-			val state = InGameState(campaign)
+			val state = InGameState(campaign, "test")
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()

@@ -9,6 +9,7 @@ import mardek.input.InputKey
 import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
@@ -43,7 +44,9 @@ object TestSkills {
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
-			fun context(timeStep: Duration) = GameStateUpdateContext(content, input, soundQueue, timeStep)
+			fun context(timeStep: Duration) = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, soundQueue, timeStep), ""
+			)
 
 			campaign.update(context(1.milliseconds))
 			sleep(1000)
@@ -75,7 +78,7 @@ object TestSkills {
 				assertFalse(it.finished)
 			}
 
-			val state = InGameState(campaign)
+			val state = InGameState(campaign, "test")
 			val playerColors = arrayOf(
 				Color(129, 129, 79), // Mardek pants
 				Color(70, 117, 33), // Deugan coat
@@ -154,7 +157,9 @@ object TestSkills {
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
-			fun context(timeStep: Duration) = GameStateUpdateContext(content, input, soundQueue, timeStep)
+			fun context(timeStep: Duration) = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, soundQueue, timeStep), ""
+			)
 
 			campaign.update(context(1.milliseconds))
 			sleep(1000)
@@ -191,7 +196,7 @@ object TestSkills {
 				assertFalse(it.canDealDamage)
 			}
 
-			val state = InGameState(campaign)
+			val state = InGameState(campaign, "test")
 			val playerColors = arrayOf(
 				Color(129, 129, 79), // Mardek pants
 				Color(70, 117, 33), // Deugan coat

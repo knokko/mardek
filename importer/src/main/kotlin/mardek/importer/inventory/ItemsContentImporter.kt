@@ -4,6 +4,7 @@ import mardek.content.Content
 import mardek.content.inventory.Dreamstone
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptResource
+import java.util.UUID
 
 fun importItemsContent(content: Content) {
 	val itemData = parseActionScriptResource("mardek/importer/inventory/data.txt")
@@ -40,7 +41,9 @@ fun importItemsContent(content: Content) {
 		}
 	}
 
-	for (index in 1 .. 16) content.items.dreamstones.add(Dreamstone(index))
+	for (index in 1 .. 16) content.items.dreamstones.add(Dreamstone(
+		index, UUID.nameUUIDFromBytes("DreamStone$index".encodeToByteArray())
+	))
 }
 
 class ItemParseException(message: String): RuntimeException(message)

@@ -22,3 +22,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = DoomCounter == null ? (GameData.plotVars.BEATEN_MORIC != 99 ? "Battleship" : "none") : "Flee";
 AreaSetup({clearmap:1});
+uuid = 67da9841-77b3-47c0-b365-600dca78c5e4;

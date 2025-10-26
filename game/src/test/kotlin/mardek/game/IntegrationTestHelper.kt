@@ -17,6 +17,7 @@ import mardek.renderer.MardekFramebuffers
 import mardek.renderer.PerFrameResources
 import mardek.state.GameState
 import mardek.state.GameStateManager
+import mardek.state.saves.SavesFolderManager
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.fail
 import org.lwjgl.system.MemoryStack.stackPush
@@ -39,7 +40,8 @@ fun TestingInstance.testRendering(
 	width: Int, height: Int, name: String,
 	expectedColors: Array<Color>, forbiddenColors: Array<Color>,
 ) = testRendering(
-	GameStateManager(InputManager(), state), width, height, name, expectedColors, forbiddenColors
+	GameStateManager(InputManager(), state, SavesFolderManager()),
+	 width, height, name, expectedColors, forbiddenColors
 )
 
 fun TestingInstance.testRendering(
@@ -54,7 +56,7 @@ fun TestingInstance.testRendering(
 		4, boiler.deviceProperties.limits().minStorageBufferOffsetAlignment()
 	))
 	val perFrameBuffer = PerFrameBuffer(combiner.addMappedBuffer(
-		1000_000L, perFrameAlignment,
+		2000_000L, perFrameAlignment,
 		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
 	))
 	val textBuffer = Vk2dTextBuffer(vk2d, combiner, descriptorCombiner, 1)

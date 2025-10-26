@@ -11,3 +11,4 @@ btlChance = 10;
 levelrange = MONSTER_LEVELS.DRAGON_LAIR;
 musicTrack = "MightyHeroes";
 AreaSetup({clearmap:1,NoStorage:true});
+uuid = 1b9ee8f4-a72b-48b4-88e2-840f5ef6afd4;

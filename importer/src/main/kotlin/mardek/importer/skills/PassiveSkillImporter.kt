@@ -8,6 +8,7 @@ import mardek.importer.area.parseFlashString
 import mardek.importer.util.parseActionScriptObject
 import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
+import java.util.UUID
 
 fun parsePassiveSkill(
 	statsContent: StatsContent, skillsContent: SkillsContent, rawSkill: Map<String, String>
@@ -96,24 +97,27 @@ fun parsePassiveSkill(
 		skillClass = skillsContent.classes.find { it.key == key }!!
 	}
 
+	val name = parseFlashString(rawSkill["skill"]!!, "passive skill name")!!
+	val description = parseFlashString(rawSkill["desc"]!!, "passive skill description")!!
 	return PassiveSkill(
-			name = parseFlashString(rawSkill["skill"]!!, "passive skill name")!!,
-			description = parseFlashString(rawSkill["desc"]!!, "passive skill description")!!,
-			element = statsContent.elements.find {
-				it.rawName == parseFlashString(rawSkill["elem"]!!, "passive skill element")
-			}!!,
-			masteryPoints = parseInt(rawSkill["AP"]),
-			enablePoints = parseInt(rawSkill["RP"]),
-			hpModifier = hpModifier,
-			mpModifier = mpModifier,
-			statModifiers = statModifiers,
-			resistances = Resistances(elementalResistances, statusResistances),
-			autoEffects = autoEffects,
-			sosEffects = sosEffects,
-			experienceModifier = experienceModifier,
-			masteryModifier = masteryModifier,
-			goldModifier = goldModifier,
-			addLootChance = addLootChance,
-			skillClass = skillClass,
+		name = name,
+		description = description,
+		element = statsContent.elements.find {
+			it.rawName == parseFlashString(rawSkill["elem"]!!, "passive skill element")
+		}!!,
+		masteryPoints = parseInt(rawSkill["AP"]),
+		enablePoints = parseInt(rawSkill["RP"]),
+		hpModifier = hpModifier,
+		mpModifier = mpModifier,
+		statModifiers = statModifiers,
+		resistances = Resistances(elementalResistances, statusResistances),
+		autoEffects = autoEffects,
+		sosEffects = sosEffects,
+		experienceModifier = experienceModifier,
+		masteryModifier = masteryModifier,
+		goldModifier = goldModifier,
+		addLootChance = addLootChance,
+		skillClass = skillClass,
+		id = UUID.nameUUIDFromBytes("PassiveSkillImporter$name$description".encodeToByteArray()),
 	)
 }

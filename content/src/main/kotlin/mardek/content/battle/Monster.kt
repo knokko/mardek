@@ -119,11 +119,11 @@ class Monster(
 
 	@BitField(id = 29)
 	val rangedCounterAttacks: ArrayList<CounterAttack>,
-) {
 
 	@BitField(id = 30)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
 	constructor() : this(
 		name = "",
@@ -156,6 +156,7 @@ class Monster(
 		strategies = ArrayList(),
 		meleeCounterAttacks = ArrayList(),
 		rangedCounterAttacks = ArrayList(),
+		id = UUID.randomUUID(),
 	)
 
 	override fun toString() = name

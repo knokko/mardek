@@ -35,18 +35,18 @@ class Item(
 
 	@BitField(id = 6, optional = true)
 	val consumable: ConsumableProperties?,
-) {
 
 	@BitField(id = 7)
-	lateinit var sprite: KimSprite
+	@StableReferenceFieldId
+	val id: UUID,
+) {
 
 	@BitField(id = 8)
-	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	lateinit var sprite: KimSprite
 
 	constructor() : this(
 			"", "", ItemType(), null,
-			0, null, null
+			0, null, null, UUID.randomUUID(),
 	)
 
 	override fun toString() = flashName

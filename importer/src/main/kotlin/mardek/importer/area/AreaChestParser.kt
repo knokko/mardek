@@ -11,6 +11,7 @@ import mardek.content.inventory.PlotItem
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObjectList
 import java.lang.Integer.parseInt
+import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
 internal fun parseAreaChests(
@@ -82,6 +83,7 @@ internal fun parseAreaChests(
 	Chest(
 		x = x, y = y, sprite = sprite, hidden = hidden,
 		gold = gold, stack = stack, plotItem = plotItem,
-		dreamstone = dreamstone, battle = battle
+		dreamstone = dreamstone, battle = battle,
+		id = UUID.nameUUIDFromBytes("AreaChestParser$rawChest".encodeToByteArray()),
 	)
 }

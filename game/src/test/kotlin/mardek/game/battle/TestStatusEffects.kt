@@ -20,7 +20,7 @@ object TestStatusEffects {
 	fun testBattleRendering(instance: TestingInstance) {
 		instance.apply {
 			val campaign = simpleCampaignState()
-			val state = InGameState(campaign)
+			val state = InGameState(campaign, "test")
 			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "Auto-Regen" }!!)
 			val deuganState = campaign.characterStates[heroDeugan]!!
@@ -59,7 +59,9 @@ object TestStatusEffects {
 			val input = InputManager()
 			input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
-			val context = GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds)
+			val context = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+			)
 
 			while (campaign.currentArea!!.getPlayerPosition(0).y != 4) {
 				campaign.update(context)

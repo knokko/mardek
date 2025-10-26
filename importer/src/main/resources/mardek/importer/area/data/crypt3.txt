@@ -29,3 +29,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.CATACOMBS;
 musicTrack = "Catacombs";
 AreaSetup({WARP:1});
+uuid = cc360cac-966c-4951-9881-1eaf1f21d878;

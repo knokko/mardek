@@ -32,3 +32,4 @@ if(TempVars.ARENA_SURVIVAL_MODE)
 }
 AreaSetup({clearmap:1});
 specBtlBG = "arena";
+uuid = b743ee94-8147-4cd6-b007-8705f42f66f0;

@@ -17,6 +17,7 @@ import com.github.knokko.vk2d.text.Vk2dTextBuffer
 import mardek.content.Content
 import mardek.state.GameStateManager
 import mardek.state.VideoSettings
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.VK_NULL_HANDLE
@@ -75,23 +76,23 @@ class RenderManager(
 		framebuffers: MardekFramebuffers, perFrame: PerFrameResources, currentFps: Long,
 	) {
 		val currentState = gameState.currentState
-		if (
-			this::content.isInitialized &&
-			this::mainResources.isInitialized &&
-			currentState is InGameState
-		) {
-			val context = RenderContext(
+		val fullRenderContext = if (this::content.isInitialized && this::mainResources.isInitialized) {
+			val campaign = if (currentState is InGameState) currentState.campaign else CampaignState()
+			RenderContext(
 				frame, frame.swapchainStage, framebuffers, perFrame,
 				pipelines, textBuffer, perFrameDescriptorSet, recorder, content, gameState,
-				currentState.campaign, mainResources, videoSettings, currentFps,
+				campaign, mainResources, videoSettings, currentFps,
 			)
-			renderGame(context)
+		} else null
+
+		if (fullRenderContext != null && currentState is InGameState) {
+			renderGame(fullRenderContext)
 		} else {
-			val context = RawRenderContext(
+			val partialRenderContext = RawRenderContext(
 				frame.swapchainStage, pipelines, textBuffer, perFrameDescriptorSet, recorder,
 				null, gameState, titleScreenResources, videoSettings, currentFps,
 			)
-			renderGame(context)
+			renderGame(partialRenderContext, fullRenderContext)
 		}
 	}
 

@@ -9,6 +9,7 @@ import mardek.content.area.objects.AreaDecoration
 import mardek.importer.util.ActionScriptCode
 import mardek.importer.util.parseActionScriptResource
 import java.lang.Integer.parseInt
+import java.util.UUID
 
 internal fun parseArea(
 	content: Content, areaName: String, tilesheets: MutableList<ParsedTilesheet>,
@@ -80,6 +81,7 @@ private fun parseArea2(
 		randomBattles = randomBattles,
 		properties = properties,
 		flags = flags,
+		id = UUID.fromString(areaCode.variableAssignments["uuid"]!!),
 	)
 }
 

@@ -13,3 +13,4 @@ levelrange = MONSTER_LEVELS.ASTRAL;
 musicTrack = "Dungeon4";
 clearmap = 1;
 AreaSetup({DREAM:19000,NoSwitch:true,NO_MAP:true,LOOT:3});
+uuid = 10fb76cf-5ec7-4678-bcba-cf962892d09d;

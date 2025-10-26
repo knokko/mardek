@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.stats.*
+import java.util.UUID
 
 @BitStruct(backwardCompatible = true)
 class ReactionSkill(
@@ -13,6 +14,7 @@ class ReactionSkill(
 	description: String,
 	element: Element,
 	masteryPoints: Int,
+	id: UUID,
 
 	@BitField(id = 0)
 	val type: ReactionSkillType,
@@ -69,13 +71,16 @@ class ReactionSkill(
 
 	@BitField(id = 15)
 	val survivor: Boolean,
-): Skill(name, description, element, masteryPoints) {
+): Skill(name, description, element, masteryPoints, id) {
 
 	@Suppress("unused")
 	private constructor() : this(
-		"", "", Element(), 0, ReactionSkillType.RangedDefense, 0, null,
-		0, 0f, 0, 0, 0f, 0f, ArrayList(0),
-		ArrayList(0), ArrayList(0), ArrayList(0), false, false, false
+		"", "", Element(), 0, UUID.randomUUID(),
+		ReactionSkillType.RangedDefense, 0, null, 0,
+		0f, 0, 0, 0f, 0f,
+		ArrayList(0), ArrayList(0),
+		ArrayList(0), ArrayList(0),
+		false, false, false,
 	)
 
 	fun getElementalBonus(element: Element) = elementalBonuses.sumOf {

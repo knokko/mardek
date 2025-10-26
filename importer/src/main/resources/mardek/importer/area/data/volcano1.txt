@@ -13,3 +13,4 @@ levelrange = [1,1];
 musicTrack = "Volcano";
 AreaSetup({WARP:1,clearmap:1});
 EN_ADD("Places","Crimson Peak");
+uuid = 7b9b0c87-1059-45a6-80ea-3b303cceb177;

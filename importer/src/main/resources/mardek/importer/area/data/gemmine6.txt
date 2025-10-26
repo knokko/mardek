@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.GEM_MINE;
 musicTrack = "Dungeon2";
 AreaSetup({WARP:1,clearmap:1});
+uuid = 50302164-2e59-417a-9fe6-50f42db611ef;

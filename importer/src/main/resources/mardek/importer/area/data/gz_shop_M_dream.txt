@@ -19,3 +19,4 @@ btlChance = 0;
 levelrange = [1,1];
 musicTrack = "SecretDungeon";
 AreaSetup({clearmap:1,DREAM:true});
+uuid = 7f778ab2-a1b8-4c5d-9074-a6cf5d783d23;

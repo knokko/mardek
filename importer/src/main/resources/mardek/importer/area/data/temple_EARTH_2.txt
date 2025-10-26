@@ -15,3 +15,4 @@ musicTrack = "EarthTemple";
 DeadTempleCheck();
 AreaSetup({WARP:1});
 EN_ADD("Places","Earth Temple");
+uuid = 58ac1abb-577d-4106-b90d-7933cd491fdd;

@@ -11,3 +11,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "Aeropolis";
 AreaSetup({clearmap:1});
+uuid = 66897b94-83ba-4066-acc6-b7521b29f988;

@@ -34,3 +34,4 @@ minSteps = 5;
 levelrange = [7,9];
 musicTrack = GameData.plotVars.BEATEN_MORIC != null ? "Catacombs" : "EvilStirs";
 AreaSetup({WARP:1,clearmap:1});
+uuid = be9854b5-1241-4f42-8e90-d0d24af4ad16;

@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "Canonia";
 AreaSetup({clearmap:1});
+uuid = 97ab44b2-8623-4ea2-9d30-14dd252f1dc2;

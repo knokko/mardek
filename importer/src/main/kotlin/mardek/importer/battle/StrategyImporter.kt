@@ -11,6 +11,7 @@ import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObjectList
 import java.lang.Double.parseDouble
 import java.lang.Integer.parseInt
+import java.util.UUID
 import kotlin.math.roundToInt
 
 internal fun importMonsterStrategies(
@@ -27,7 +28,11 @@ internal fun importMonsterStrategies(
 	rawStrategies = rawStrategies.filter { it.chance != 0 }
 	val previousPools = ArrayList<StrategyPool>()
 
-	var currentPool = StrategyPool(criteria = rawStrategies[0].criteria, entries = arrayListOf(rawStrategies[0].toEntry(100)))
+	var currentPool = StrategyPool(
+		criteria = rawStrategies[0].criteria,
+		entries = arrayListOf(rawStrategies[0].toEntry(100)),
+		id = UUID.nameUUIDFromBytes("StrategyImporter$rawGambits".encodeToByteArray()),
+	)
 	var remainingChance = 100 - rawStrategies[0].chance
 	for (index in 1 until rawStrategies.size) {
 		val raw = rawStrategies[index]
@@ -36,7 +41,11 @@ internal fun importMonsterStrategies(
 			remainingChance -= currentPool.entries.last().chance
 		} else {
 			previousPools.add(currentPool)
-			currentPool = StrategyPool(criteria = raw.criteria, entries = arrayListOf(raw.toEntry(100)))
+			currentPool = StrategyPool(
+				criteria = raw.criteria,
+				entries = arrayListOf(raw.toEntry(100)),
+				id = UUID.nameUUIDFromBytes("StrategyImporter$rawGambits${previousPools.size}".encodeToByteArray()),
+			)
 			remainingChance = 100 - raw.chance
 		}
 	}

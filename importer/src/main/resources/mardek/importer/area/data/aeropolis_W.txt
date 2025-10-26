@@ -25,3 +25,4 @@ if(GameData.plotVars.PLAY == 3)
 {
    DO_ACTIONS([["WAIT",10],["WALK",1,0],["UNFREEZE"],["TALK","c_play"]],"Elwyen",true);
 }
+uuid = 86277af3-9141-44d9-a7a0-27e120781137;

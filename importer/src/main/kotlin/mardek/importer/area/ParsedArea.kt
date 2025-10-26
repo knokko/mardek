@@ -2,6 +2,7 @@ package mardek.importer.area
 
 import mardek.content.area.*
 import mardek.content.area.objects.AreaObjects
+import java.util.UUID
 
 class ParsedArea(
 	val width: Int,
@@ -13,6 +14,7 @@ class ParsedArea(
 	val randomBattles: RandomAreaBattles?,
 	val flags: AreaFlags,
 	val properties: AreaProperties,
+	val id: UUID,
 ) {
 
 	fun getTileId(x: Int, y: Int): Int? {

@@ -31,3 +31,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.GEM_MINE;
 musicTrack = GameData.plotVars.BRIEFING >= 4 ? "Dungeon2" : "Muriance";
 AreaSetup({WARP:1,clearmap:1});
+uuid = 8377b3e9-2208-49ff-8f29-cbbfbc8236a6;

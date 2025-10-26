@@ -11,3 +11,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.SANDCAVE;
 musicTrack = "SandflowCaves";
 AreaSetup({LOOT:5,WARP:false});
+uuid = 7cb36937-a21a-421c-b379-e8bc5b5411d9;

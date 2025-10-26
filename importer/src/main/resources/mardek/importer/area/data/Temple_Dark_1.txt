@@ -17,3 +17,4 @@ musicTrack = "DarkTemple";
 DeadTempleCheck();
 AreaSetup({LOOT:2,WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO)});
 EN_ADD("Places","Dark Temple");
+uuid = 418ee6e7-06a9-4622-b081-77f358484907;

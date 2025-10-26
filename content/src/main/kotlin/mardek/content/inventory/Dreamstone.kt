@@ -10,15 +10,15 @@ import java.util.*
 class Dreamstone(
 	@BitField(id = 0)
 	@IntegerField(minValue = 0, expectUniform = false)
-	val index: Int
-) {
+	val index: Int,
 
 	@BitField(id = 1)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
 	@Suppress("unused")
-	private constructor() : this(-1)
+	private constructor() : this(-1, UUID.randomUUID())
 
 	override fun toString() = "DreamStone $index"
 }

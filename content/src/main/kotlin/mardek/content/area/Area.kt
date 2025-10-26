@@ -44,15 +44,15 @@ class Area(
 
 	@BitField(id = 8)
 	val properties: AreaProperties,
-) {
 
 	@BitField(id = 9)
-	@ReferenceFieldTarget(label = "action sequences")
-	val actions = ArrayList<ActionSequence>()
+	@StableReferenceFieldId
+	val id: UUID = UUID.randomUUID()!!,
+) {
 
 	@BitField(id = 10)
-	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	@ReferenceFieldTarget(label = "action sequences")
+	val actions = ArrayList<ActionSequence>()
 
 	constructor() : this(
 		0, 0, Tilesheet(), emptyArray(), AreaObjects(), ArrayList(),

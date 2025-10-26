@@ -1,10 +1,12 @@
 package mardek.importer.audio
 
 import mardek.content.audio.*
+import java.util.UUID
 
 private fun importFixed(name: String) = SoundEffect(
 	flashName = name,
-	oggData = importSoundData(name)
+	oggData = importSoundData(name),
+	id = UUID.nameUUIDFromBytes("FixedSoundEffectImporter$name".encodeToByteArray()),
 )
 
 internal fun importFixedSoundEffects(audio: AudioContent) {

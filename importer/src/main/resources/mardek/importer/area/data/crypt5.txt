@@ -25,3 +25,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.SFCRYPT;
 musicTrack = "Catacombs";
 AreaSetup({WARP:1});
+uuid = 83ca6bba-05c1-4e6f-819a-667c592a5898;

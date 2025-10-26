@@ -17,3 +17,4 @@ levelrange = MONSTER_LEVELS.LIFEWOOD;
 musicTrack = "Gloria_Dream";
 AreaSetup({DREAM:true,LOOT:3});
 EN_ADD("Places","Canonia Woods");
+uuid = c256ba21-7894-42c8-a383-b8b150d7fa31;

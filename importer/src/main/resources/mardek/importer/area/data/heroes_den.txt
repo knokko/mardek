@@ -33,3 +33,4 @@ if(true) {
     EN_ADD("People","Deugan");
 }
 EN_ADD("Places","Heroes\' Den");
+uuid = f59bb3be-03fd-416b-a1de-eb1c07382cfd;

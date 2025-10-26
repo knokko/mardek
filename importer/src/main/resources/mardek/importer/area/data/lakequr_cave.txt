@@ -20,3 +20,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.LAKE_QUR;
 musicTrack = "Dungeon3";
 AreaSetup({WARP:1});
+uuid = 27564d2a-2b57-46ef-a872-eab1bd736e51;

@@ -20,3 +20,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = GameData.plotVars.ZACH == 4 ? "Aeropolis" : "Zach";
 AreaSetup({clearmap:1});
+uuid = ac73b377-affe-45af-bdc1-ee24388a6365;

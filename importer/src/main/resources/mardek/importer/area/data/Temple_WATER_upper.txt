@@ -29,3 +29,4 @@ levelrange = MONSTER_LEVELS.WATER_TEMPLE;
 musicTrack = "Emela";
 AreaSetup({WARP:1});
 EN_ADD("Places","Water Temple");
+uuid = b2dbe886-c9a3-48a8-b407-693fb38c79fe;

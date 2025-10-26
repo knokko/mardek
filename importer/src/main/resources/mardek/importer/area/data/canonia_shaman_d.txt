@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "Gloria_Dream";
 AreaSetup({DREAM:2,clearmap:1});
+uuid = 1dda3b13-eb1a-4fd6-9948-03d2c1181302;

@@ -18,13 +18,13 @@ class BattleBackground(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val magicScale: Int,
-) {
 
 	@BitField(id = 3)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
-	constructor() : this("", emptyArray<AnimationNode>(), 1)
+	constructor() : this("", emptyArray<AnimationNode>(), 1, UUID.randomUUID())
 
 	override fun toString() = "BattleBackground($name)"
 }

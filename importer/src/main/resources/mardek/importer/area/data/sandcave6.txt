@@ -21,3 +21,4 @@ levelrange = MONSTER_LEVELS.SANDCAVE;
 musicTrack = "SandflowCaves";
 AreaSetup({WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO)});
 EN_ADD("Places","Sandflow Caves");
+uuid = 909b3561-a692-48f9-81ce-3bbcc77c9d9c;

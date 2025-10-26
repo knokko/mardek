@@ -143,3 +143,4 @@ if(GameData.plotVars.TEpuzzle == null)
 DeadTempleCheck();
 AreaSetup({WARP:1,noscroll:true,hideparty:true,clearmap:1});
 EN_ADD("Places","Earth Temple");
+uuid = 4229bf6e-8906-4989-b722-f432d79ae754;

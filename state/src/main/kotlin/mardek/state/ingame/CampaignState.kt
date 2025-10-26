@@ -28,6 +28,8 @@ import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.state.ingame.battle.Enemy
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
+import mardek.state.saves.SaveFile
+import mardek.state.saves.SaveSelectionState
 import kotlin.time.Duration.Companion.seconds
 
 @BitStruct(backwardCompatible = true)
@@ -80,13 +82,12 @@ class CampaignState(
 	@IntegerField(expectUniform = true, minValue = 0)
 	var totalTime = 0.seconds
 
-	@Suppress("unused")
-	private constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
+	constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
 
 	var shouldOpenMenu = false
 	var gameOver = false
 
-	fun update(context: GameStateUpdateContext) {
+	fun update(context: UpdateContext) {
 		while (true) {
 			val event = context.input.consumeEvent() ?: break
 			if (event is MouseMoveEvent) {
@@ -128,7 +129,7 @@ class CampaignState(
 
 			val actions = currentArea.actions
 			if (actions != null) {
-				actions.processKeyEvent(event)
+				updateAreaActions(context, event, actions)
 				continue
 			}
 
@@ -194,9 +195,7 @@ class CampaignState(
 
 		val areaActions = currentArea?.actions
 		if (areaActions != null) {
-			areaActions.update(AreaActionsState.UpdateContext(
-				context.input, context.timeStep, context.soundQueue, this::healParty
-			))
+			updateAreaActions(context, null, areaActions)
 			if (areaActions.node == null) currentArea!!.finishActions()
 		}
 
@@ -302,6 +301,55 @@ class CampaignState(
 			playerState.currentMana = playerState.determineMaxMana(player.baseStats, emptySet())
 		}
 	}
+
+	private fun updateAreaActions(context: UpdateContext, event: InputKeyEvent?, actions: AreaActionsState) {
+		val saveSelection = actions.saveSelectionState
+		if (saveSelection != null) {
+			val saveContext = SaveSelectionState.UpdateContext(
+				context.saves,
+				context.content,
+				context.soundQueue,
+				true,
+			)
+
+			if (event != null) {
+				val outcome = saveSelection.pressKey(saveContext, event.key)
+				if (outcome.canceled) actions.finishSaveNode()
+				var failed = false
+				if (outcome.finished) {
+					if (outcome.save == null || outcome.save.file.delete()) {
+						if (context.saves.createSave(
+								context.content, this,
+								context.campaignName, SaveFile.Type.Crystal
+							)) {
+							context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickConfirm)
+							actions.finishSaveNode()
+						} else failed = true
+					} else {
+						failed = true
+					}
+				}
+				if (failed || outcome.failed) {
+					context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickReject)
+					actions.retrySaveNode()
+				}
+			} else {
+				saveSelection.update(saveContext)
+			}
+		} else if (event != null) {
+			actions.processKeyEvent(event)
+		} else {
+			actions.update(AreaActionsState.UpdateContext(
+				context.input, context.timeStep, context.soundQueue,
+				context.campaignName, this::healParty,
+			))
+		}
+	}
+
+	class UpdateContext(
+		parent: GameStateUpdateContext,
+		val campaignName: String
+	) : GameStateUpdateContext(parent)
 
 	companion object {
 

@@ -24,3 +24,4 @@ levelrange = [1,1];
 musicTrack = "DarkTemple";
 DeadTempleCheck();
 AreaSetup({LOOT:2,WARP:Boolean(GameData.plotVars.DONE_CH3_INTRO),clearmap:1});
+uuid = a8b09dff-ac05-4164-b634-7edb54cd66aa;

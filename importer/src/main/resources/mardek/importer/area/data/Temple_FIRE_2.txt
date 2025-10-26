@@ -14,3 +14,4 @@ musicTrack = "FireTemple";
 DeadTempleCheck();
 AreaSetup({WARP:1,clearmap:1});
 EN_ADD("Places","Fire Temple");
+uuid = 77e76f77-4e86-4dce-8838-9253b006b9eb;

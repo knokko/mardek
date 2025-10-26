@@ -9,6 +9,7 @@ import mardek.importer.animation.importSkinnedAnimation
 import mardek.importer.area.FLASH
 import mardek.importer.util.projectFolder
 import java.io.File
+import java.util.UUID
 
 internal fun importBattleBackgrounds(content: BattleContent) {
 	val backgroundsTag1 = FLASH.tags.find { it.uniqueId == "2186" }!! as DefineSpriteTag
@@ -40,7 +41,8 @@ internal fun importBattleBackgrounds(content: BattleContent) {
 	}
 
 	for ((name, nodes) in combined) {
-		content.backgrounds.add(BattleBackground(name, nodes, 4))
+		val id = UUID.nameUUIDFromBytes("BattleBackgroundImporter$name".encodeToByteArray())
+		content.backgrounds.add(BattleBackground(name, nodes, 4, id))
 	}
 
 	for (sprite in context.shapeMapping.values) {

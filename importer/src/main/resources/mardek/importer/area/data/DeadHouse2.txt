@@ -17,3 +17,4 @@ minSteps = 5;
 levelrange = [3,6];
 musicTrack = "Saul";
 AreaSetup({clearmap:1});
+uuid = ae34169c-d7d9-4f3d-86da-5b3c4b128b9c;

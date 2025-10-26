@@ -12,10 +12,12 @@ import mardek.content.sprite.ObjectSprites
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class TestAreaEntityParser {
 
 	private val content = Content()
+	private val testID = UUID.randomUUID()
 
 	@Test
 	fun testSingleEntitySingleKey() {
@@ -126,7 +128,7 @@ class TestAreaEntityParser {
 			"{name:\"INTERJECTION\",model:\"_trigger\",x:8,y:5,ExecuteScript:function()\n" +
 				"{\n" +
 				"   _root.Interjection(\"Mardek\",\"dreamcave1\",\"c_A_Gloria\");\n" +
-				"}}")
+				"},uuid:$testID}")
 		val expected = AreaTrigger(
 			name = "INTERJECTION",
 			x = 8,
@@ -136,6 +138,7 @@ class TestAreaEntityParser {
 			oncePerAreaLoad = false,
 			walkOn = false,
 			actions = null,
+			id = testID,
 		)
 		assertEquals(expected, actual)
 	}
@@ -156,7 +159,7 @@ class TestAreaEntityParser {
 				"}"
 
 		val actual = parseAreaEntityRaw(
-			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:true,ExecuteScript:$executeScript}"
+			"{uuid:$testID,name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:true,ExecuteScript:$executeScript}"
 		)
 		val expected = AreaTrigger(
 			name = "TRANSPORT_TRIGGER",
@@ -167,6 +170,7 @@ class TestAreaEntityParser {
 			oncePerAreaLoad = false,
 			walkOn = true,
 			actions = null,
+			id = testID,
 		)
 		assertEquals(expected, actual)
 	}
@@ -176,7 +180,7 @@ class TestAreaEntityParser {
 		val flashCode = "function(){\tDO_ACTIONS([[\"UNFREEZE\"],[\"TALK\",\"c_inventor\"]],\"PC\",true);}"
 
 		val actual = parseAreaEntityRaw(
-			"{name:\"TALK_TRIGGER\",model:\"_trigger\",x:3,y:5,triggers:1,recurring:true,ExecuteScript:$flashCode}"
+			"{uuid:$testID,name:\"TALK_TRIGGER\",model:\"_trigger\",x:3,y:5,triggers:1,recurring:true,ExecuteScript:$flashCode}"
 		)
 		val expected = AreaTrigger(
 			name = "TALK_TRIGGER",
@@ -187,6 +191,7 @@ class TestAreaEntityParser {
 			flashCode = "function(){\tDO_ACTIONS([[\"UNFREEZE\"],[\"TALK\",\"c_inventor\"]],\"PC\",true);}",
 			walkOn = false,
 			actions = null,
+			id = testID,
 		)
 		assertEquals(expected, actual)
 	}
@@ -487,7 +492,7 @@ class TestAreaEntityParser {
 				"   _root.WarpTrans([\"canonia_dreamcave_d\",8,5]);\n" +
 				"}"
 		val actual = parseAreaEntityRaw(
-			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:true,ExecuteScript:$flashCode}"
+			"{uuid:$testID,name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:true,ExecuteScript:$flashCode}"
 		)
 		val expected = AreaTrigger(
 			name = "TRANSPORT_TRIGGER",
@@ -498,6 +503,7 @@ class TestAreaEntityParser {
 			oncePerAreaLoad = false,
 			walkOn = true,
 			actions = null,
+			id = testID,
 		)
 		assertEquals(expected, actual)
 	}
@@ -516,7 +522,7 @@ class TestAreaEntityParser {
 				"   }\n" +
 				"}"
 		val actual = parseAreaEntityRaw(
-			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:Boolean(GameData.plotVars.Mardek_itj_dreamcave1),ExecuteScript:$flashCode}"
+			"{uuid:$testID,name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:Boolean(GameData.plotVars.Mardek_itj_dreamcave1),ExecuteScript:$flashCode}"
 		)
 		val expected = AreaTrigger(
 			name = "TRANSPORT_TRIGGER",
@@ -527,6 +533,7 @@ class TestAreaEntityParser {
 			oncePerAreaLoad = false,
 			walkOn = null,
 			actions = null,
+			id = testID,
 		)
 		assertEquals(expected, actual)
 	}
@@ -642,7 +649,10 @@ class TestAreaEntityParser {
 	}
 
 	private fun switchColor(name: String): SwitchColor {
-		val color = SwitchColor(name, KimSprite(), KimSprite(), KimSprite(), KimSprite())
+		val color = SwitchColor(
+			name, KimSprite(), KimSprite(),
+			KimSprite(), KimSprite(), UUID.randomUUID(),
+		)
 		content.areas.switchColors.add(color)
 		return color
 	}

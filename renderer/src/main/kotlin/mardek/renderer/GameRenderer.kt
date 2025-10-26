@@ -18,11 +18,14 @@ private fun renderRegion(swapchainStage: Vk2dRenderStage) = Rectangle(
 	swapchainStage.height - BORDER_WIDTH - FULL_BORDER_HEIGHT
 )
 
-fun renderGame(context: RawRenderContext) {
+fun renderGame(context: RawRenderContext, fullContext: RenderContext?) {
 	val state = context.state.currentState
 
 	val (titleBarBatch, textBatch) = when (state) {
-		is TitleScreenState -> renderTitleScreen(context, state, renderRegion(context.stage))
+		is TitleScreenState -> renderTitleScreen(
+			context, fullContext, state,
+			renderRegion(context.stage),
+		)
 		is GameOverState -> renderGameOver(context, state, renderRegion(context.stage))
 		else -> Pair(
 			context.pipelines.base.color.addBatch(context.stage, 36),
@@ -35,7 +38,7 @@ fun renderGame(context: RawRenderContext) {
 
 	renderTitleBar(
 		context.state, titleBarBatch, textBatch,
-		context.titleScreenBundle.getFont(titleScreenInfo.smallFont.index),
+		context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index),
 		if (context.videoSettings.showFps) context.currentFps else null,
 	)
 }

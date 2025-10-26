@@ -16,12 +16,13 @@ class PartyLayout(
 	@BitField(id = 1)
 	@NestedFieldSetting(path = "c", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	val positions: Array<PartyLayoutPosition>,
-) {
+
 	@BitField(id = 2)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
-	constructor() : this("", emptyArray())
+	constructor() : this("", emptyArray(), UUID.randomUUID())
 
 	override fun toString() = "Layout($name)"
 }

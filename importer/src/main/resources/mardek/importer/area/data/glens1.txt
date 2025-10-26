@@ -13,3 +13,4 @@ levelrange = MONSTER_LEVELS.GLENS;
 musicTrack = !GameData.plotVars.SUNSET ? "WorldMap" : "crickets";
 AreaSetup({WARP:1});
 EN_ADD("Places","Eastern Glens");
+uuid = 25c7546d-3d58-4a32-b170-24790f442572;

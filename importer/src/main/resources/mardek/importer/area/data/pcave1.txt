@@ -17,3 +17,4 @@ levelrange = [1,1];
 musicTrack = "Dungeon1";
 AreaSetup({WARP:1});
 EN_ADD("Places","Tainted Grotto");
+uuid = bc9172a8-cfd9-4f63-96ec-b78e98ae95b1;

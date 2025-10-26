@@ -58,3 +58,4 @@ levelrange = [1,1];
 musicTrack = "Dungeon2";
 AreaSetup({WARP:1,clearmap:1});
 EN_ADD("Places","Gem Mine");
+uuid = 86df1ddc-e13c-4c5d-a421-3208941e878c;

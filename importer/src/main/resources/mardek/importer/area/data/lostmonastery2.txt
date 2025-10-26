@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.LOST_MONASTERY;
 musicTrack = GameData.plotVars.VEHRNCH3 < 4 ? "Dungeon1" : "HymnOfYalort";
 AreaSetup({WARP:1});
+uuid = 6fbe8a03-0466-4b15-8b01-780087bcba9a;

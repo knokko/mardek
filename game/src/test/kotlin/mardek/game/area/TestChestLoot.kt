@@ -12,9 +12,11 @@ import mardek.input.InputManager
 import mardek.state.GameStateManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
+import mardek.state.saves.SavesFolderManager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertNull
@@ -34,9 +36,14 @@ object TestChestLoot {
 			)
 
 			val input = InputManager()
-			val state = GameStateManager(input, InGameState(campaign))
+			val state = GameStateManager(
+				input, InGameState(campaign, "test"),
+				SavesFolderManager(),
+			)
 			val soundQueue = SoundQueue()
-			val context = GameStateUpdateContext(content, input, soundQueue, 100.milliseconds)
+			val context = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, soundQueue, 100.milliseconds), ""
+			)
 			input.postEvent(pressKeyEvent(InputKey.MoveRight))
 			campaign.update(context)
 			assertNull(soundQueue.take())

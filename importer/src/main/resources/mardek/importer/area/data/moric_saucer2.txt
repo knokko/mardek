@@ -47,3 +47,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.MORIC_SAUCER;
 musicTrack = DoomCounter == null ? "Battleship" : "Flee";
 AreaSetup({LOOT:1});
+uuid = ac1fb573-b1c2-42fb-b894-677259ececab;

@@ -97,6 +97,7 @@ internal fun importAreaContent(content: Content) {
 			randomBattles = parsedArea.randomBattles,
 			flags = parsedArea.flags,
 			properties = parsedArea.properties,
+			id = parsedArea.id,
 		))
 	}
 

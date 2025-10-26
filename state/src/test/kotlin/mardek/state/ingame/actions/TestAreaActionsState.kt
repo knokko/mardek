@@ -74,7 +74,7 @@ class TestAreaActionsState {
 		)
 
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue()
+			InputManager(), 10.milliseconds, SoundQueue(), "",
 		) { fail("Attempted to heal party?") }
 
 		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections)
@@ -178,7 +178,7 @@ class TestAreaActionsState {
 		)
 
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue()
+			InputManager(), 10.milliseconds, SoundQueue(), ""
 		) { fail("Attempted to heal party?") }
 		context.input.postEvent(InputKeyEvent(
 			InputKey.Interact, didPress = true, didRepeat = false, didRelease = false
@@ -254,7 +254,7 @@ class TestAreaActionsState {
 		val oldPartyDirections = Array(4) { Direction.Left }
 
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue()
+			InputManager(), 10.milliseconds, SoundQueue(), ""
 		) { fail("Attempted to heal party?") }
 
 		context.input.postEvent(InputKeyEvent(
@@ -299,7 +299,7 @@ class TestAreaActionsState {
 			Array(4) { Direction.Up },
 		)
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue()
+			InputManager(), 10.milliseconds, SoundQueue(), ""
 		) { fail("Attempted to heal party?") }
 
 		assertEquals(0L, actions.lastFlashTime)
@@ -350,7 +350,7 @@ class TestAreaActionsState {
 		)
 
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue()
+			InputManager(), 10.milliseconds, SoundQueue(), ""
 		) { fail("Attempted to heal party?") }
 
 		assertNull(context.soundQueue.take())
@@ -387,7 +387,7 @@ class TestAreaActionsState {
 
 		var numHeals = 0
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue()
+			InputManager(), 10.milliseconds, SoundQueue(), ""
 		) { numHeals += 1 }
 
 		repeat(5) {
@@ -423,7 +423,7 @@ class TestAreaActionsState {
 			Array(4) { Direction.Up },
 		)
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue()
+			InputManager(), 10.milliseconds, SoundQueue(), ""
 		) { fail("Attempted to heal party?") }
 
 		context.input.postEvent(InputKeyEvent(

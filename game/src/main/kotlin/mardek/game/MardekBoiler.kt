@@ -32,7 +32,7 @@ fun createBoiler(args: Array<String>, videoSettings: VideoSettings): BoilerInsta
 	val boilerBuilder = BoilerBuilder(
 		VK_API_VERSION_1_1, "MardekKt", 1
 	).addWindow(WindowBuilder(
-		800, 600, videoSettings.framesInFlight
+		900, 600, videoSettings.framesInFlight
 	).hideFirstFrames(3).sdlFlags(SDL_WINDOW_VULKAN or SDL_WINDOW_RESIZABLE or SDL_WINDOW_BORDERLESS))
 	boilerBuilder.useSDL(SDL_INIT_VIDEO or SDL_INIT_GAMEPAD)
 	boilerBuilder.requiredFeatures10("textureCompressionBc", VkPhysicalDeviceFeatures::textureCompressionBC)

@@ -18,3 +18,4 @@ btlChance = 3;
 levelrange = MONSTER_LEVELS.LIFEWOOD;
 musicTrack = "Gloria_Dream";
 AreaSetup({clearmap:1,DREAM:true,LOOT:3});
+uuid = d5a49642-14a2-4d29-8e3e-a8420b6e9643;

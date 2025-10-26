@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = [1,1];
 musicTrack = "Woods";
 AreaSetup({clearmap:1});
+uuid = 22cd0edc-7205-4d29-9a06-a49f96f7c6ab;

@@ -44,16 +44,16 @@ class Chest(
 
 	@BitField(id = 8)
 	val hidden: Boolean,
-) {
 
 	@BitField(id = 9)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	val id: UUID,
+) {
 
 	@Suppress("unused")
 	private constructor() : this(
 		0, 0, ChestSprite(), 0, null,
-		null, null, null, false
+		null, null, null, false, UUID.randomUUID(),
 	)
 
 	override fun toString() = "Chest(x=$x, y=$y, gold=$gold, item=${stack ?: plotItem ?: dreamstone})"

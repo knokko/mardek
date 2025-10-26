@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.stats.*
+import java.util.UUID
 
 @BitStruct(backwardCompatible = true)
 class PassiveSkill(
@@ -13,6 +14,7 @@ class PassiveSkill(
 	description: String,
 	element: Element,
 	masteryPoints: Int,
+	id: UUID,
 
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
@@ -59,13 +61,13 @@ class PassiveSkill(
 	@BitField(id = 11, optional = true)
 	@ReferenceField(stable = false, label = "skill classes")
 	val skillClass: SkillClass?,
-): Skill(name, description, element, masteryPoints) {
+): Skill(name, description, element, masteryPoints, id) {
 
 	@Suppress("unused")
 	private constructor() : this(
-		"", "", Element(), 0, 0, 0f, 0f,
-		ArrayList(), Resistances(), HashSet(), HashSet(), 0f,
-		0, 0, 0, null
+		"", "", Element(), 0, UUID.randomUUID(), 0, 0f,
+		0f, ArrayList(), Resistances(), HashSet(), HashSet(),
+		0f, 0, 0, 0, null,
 	)
 
 	fun getModifier(stat: CombatStat): Int {

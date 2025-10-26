@@ -4,6 +4,7 @@ import com.github.knokko.boiler.window.WindowEventLoop
 import mardek.input.InputManager
 import mardek.state.VideoSettings
 import mardek.state.GameStateManager
+import mardek.state.saves.SavesFolderManager
 import mardek.state.title.TitleScreenState
 
 val mainStartTime = System.nanoTime()
@@ -18,7 +19,7 @@ fun main(args: Array<String>) {
 	val boiler = createBoiler(args, videoSettings)
 
 	val input = InputManager()
-	val state = GameStateManager(input, TitleScreenState())
+	val state = GameStateManager(input, TitleScreenState(), SavesFolderManager())
 
 	val window = MardekWindow(state, videoSettings, boiler.window())
 	val inputListener = MardekSdlInput(boiler.window(), state, input)

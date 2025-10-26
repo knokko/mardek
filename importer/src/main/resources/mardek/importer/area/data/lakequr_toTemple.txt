@@ -13,3 +13,4 @@ levelrange = MONSTER_LEVELS.WATER_TEMPLE;
 musicTrack = "Dungeon3";
 DeadTempleCheck();
 AreaSetup({WARP:1});
+uuid = 80bd40c5-a34a-4bba-a2b0-a3194bffdefa;

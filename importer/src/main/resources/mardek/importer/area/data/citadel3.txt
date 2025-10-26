@@ -15,3 +15,4 @@ minSteps = 5;
 levelrange = MONSTER_LEVELS.MIASMAL_CITADEL;
 musicTrack = "SecretDungeon";
 AreaSetup({WARP:1,MIASMA:1});
+uuid = 65384a87-c688-49e2-b91f-94f1ad467a5f;

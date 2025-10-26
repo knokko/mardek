@@ -12,3 +12,4 @@ minSteps = 5;
 levelrange = [2,4];
 musicTrack = "Dungeon2";
 AreaSetup({WARP:1,clearmap:1});
+uuid = f1406aa2-384d-4adc-b631-9d4e7b8369ae;

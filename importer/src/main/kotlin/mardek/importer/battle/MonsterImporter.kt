@@ -23,6 +23,7 @@ import mardek.importer.skills.parseActiveSkills
 import mardek.importer.util.*
 import java.io.File
 import java.lang.Integer.parseInt
+import java.util.UUID
 import kotlin.math.max
 import kotlin.math.min
 
@@ -381,7 +382,7 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 		rawActionList.add(rawTechObject)
 	}
 
-	val actions = parseActiveSkills(content, rawActionList, true)
+	val actions = parseActiveSkills("MonsterImporter$name", content, rawActionList, true)
 	val targetMap = mutableMapOf<ActiveSkill, StrategyTarget>()
 	val strategies = importMonsterStrategies(
 		propertiesCode.variableAssignments["Gambits"]!!, actions, content, targetMap
@@ -457,6 +458,7 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 		actions = ArrayList(usedActions),
 		strategies = strategies,
 		meleeCounterAttacks = meleeCounterAttacks,
-		rangedCounterAttacks = rangedCounterAttacks
+		rangedCounterAttacks = rangedCounterAttacks,
+		id = UUID.nameUUIDFromBytes("MonsterImporter$name$displayName".encodeToByteArray()),
 	)
 }

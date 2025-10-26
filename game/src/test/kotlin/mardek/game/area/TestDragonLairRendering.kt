@@ -21,7 +21,7 @@ fun testDragonLairDoor(instance: TestingInstance) {
 			characterSelection = simpleCharacterSelectionState(),
 			characterStates = simpleCharacterStates(),
 			gold = 123
-		))
+		), "test")
 
 		val doorColor = Color(60, 38, 27)
 		val hairColorDeugan = Color(195, 156, 77)

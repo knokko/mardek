@@ -44,7 +44,7 @@ internal fun renderGameOver(
 		0.2f, 0.4f, 0.6f, 0.8f,
 	)
 
-	val smallFont = context.titleScreenBundle.getFont(titleScreenInfo.smallFont.index)
+	val smallFont = context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index)
 	textBatch.drawString(
 		"Press E or Q to return to the Title Screen", region.minX + 0.5f * region.width,
 		// TODO Wrong font

@@ -18,3 +18,4 @@ musicTrack = GameData.plotVars.WATER_CRYSTAL != null ? "none" : "Crystals";
 DeadTempleCheck();
 AreaSetup({WARP:0,clearmap:1});
 EN_ADD("Places","Water Temple");
+uuid = b29c186c-8e1c-4d43-8ea2-739a7ae3d302;

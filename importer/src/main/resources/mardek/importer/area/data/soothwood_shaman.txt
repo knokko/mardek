@@ -22,3 +22,4 @@ btlChance = 0;
 levelrange = [1,1];
 musicTrack = "Woods";
 AreaSetup({clearmap:1});
+uuid = ef5e10ad-8766-4999-a478-4e9feddca481;
