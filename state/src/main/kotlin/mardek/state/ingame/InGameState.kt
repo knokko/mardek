@@ -5,8 +5,24 @@ import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.menu.InGameMenuState
 import mardek.state.title.GameOverState
 
-class InGameState(val campaign: CampaignState): GameState {
+/**
+ * When the state is an `InGameState`, the player is currently playing the game, and not e.g. in the title screen.
+ */
+class InGameState(
+	/**
+	 * The state of the game/campaign
+	 */
+	val campaign: CampaignState,
 
+	/**
+	 * The name of the campaign being played, which is used to determine the save folder location.
+	 */
+	val campaignName: String,
+): GameState {
+
+	/**
+	 * The state of the in-game menu, which tracks e.g. whether the player is currently inside the inventory.
+	 */
 	val menu = InGameMenuState(campaign)
 
 	override fun update(context: GameStateUpdateContext): GameState {

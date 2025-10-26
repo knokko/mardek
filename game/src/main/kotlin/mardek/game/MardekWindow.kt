@@ -92,6 +92,7 @@ class MardekWindow(
 	}
 
 	override fun cleanUp(boiler: BoilerInstance) {
+		renderManager.waitUntilStable()
 		super.cleanUp(boiler)
 		synchronized(gameState.lock()) {
 			gameState.currentState = ExitState()

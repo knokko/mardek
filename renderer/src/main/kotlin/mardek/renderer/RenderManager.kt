@@ -22,6 +22,7 @@ import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.VK_NULL_HANDLE
 import org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool
 import java.io.InputStream
+import java.util.concurrent.CompletableFuture
 
 class RenderManager(
 	private val boiler: BoilerInstance,
@@ -39,21 +40,33 @@ class RenderManager(
 	private lateinit var mainResources: Vk2dResourceBundle
 	private var mainDescriptorPool = VK_NULL_HANDLE
 
+	private var shouldCancelLoading = false
+	private var isLoading: CompletableFuture<Unit>? = null
+
 	fun loadMainResources(contentInput: InputStream) {
-		val loader = Vk2dResourceLoader(vk2d, contentInput)
-		val combiner = MemoryCombiner(boiler, "MainContent")
-		loader.claimMemory(combiner)
-		this.mainResourceMemory = combiner.build(false)
+		synchronized(this) {
+			if (shouldCancelLoading) return
+			isLoading = CompletableFuture()
+		}
 
-		loader.prepareStaging()
+		try {
+			val loader = Vk2dResourceLoader(vk2d, contentInput)
+			val combiner = MemoryCombiner(boiler, "MainContent")
+			loader.claimMemory(combiner)
+			this.mainResourceMemory = combiner.build(false)
 
-		val descriptors = DescriptorCombiner(boiler)
-		SingleTimeCommands.submit(boiler, "Load MainContent") { recorder ->
-			loader.performStaging(recorder, descriptors)
-		}.destroy()
+			loader.prepareStaging()
 
-		this.mainDescriptorPool = descriptors.build("MainDescriptors")
-		this.mainResources = loader.finish()
+			val descriptors = DescriptorCombiner(boiler)
+			SingleTimeCommands.submit(boiler, "Load MainContent") { recorder ->
+				loader.performStaging(recorder, descriptors)
+			}.destroy()
+
+			this.mainDescriptorPool = descriptors.build("MainDescriptors")
+			this.mainResources = loader.finish()
+		} finally {
+			isLoading!!.complete(Unit)
+		}
 	}
 
 	fun renderFrame(
@@ -79,6 +92,16 @@ class RenderManager(
 				null, gameState, titleScreenResources, videoSettings, currentFps,
 			)
 			renderGame(context)
+		}
+	}
+
+	fun waitUntilStable() {
+		synchronized(this) {
+			if (isLoading != null) {
+				try {
+					isLoading!!.get()
+				} catch (_: Throwable) {}
+			} else shouldCancelLoading = true
 		}
 	}
 
