@@ -28,7 +28,7 @@ public class Vk2dGlyphPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dGlyphPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super();
+		super(context.printBatchSizes);
 
 		this.vkPipelineLayout = instance.textIntersectionPipelineLayout;
 		try (MemoryStack stack = stackPush()) {

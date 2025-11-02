@@ -84,6 +84,10 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
 	protected abstract void setupConfig(Vk2dConfig config);
 
+	protected boolean shouldPrintBatchSizes() {
+		return false;
+	}
+
 	@Override
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
@@ -92,8 +96,9 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		this.instance = new Vk2dInstance(boiler, config);
 
 		Vk2dPipelineContext pipelineContext = Vk2dPipelineContext.renderPass(boiler, window.properties.surfaceFormat());
+		if (shouldPrintBatchSizes()) pipelineContext.printBatchSizes = true;
 		this.pipelines = new Vk2dPipelines(instance, pipelineContext, config);
-		this.vkRenderPass = pipelineContext.vkRenderPass();
+		this.vkRenderPass = pipelineContext.vkRenderPass;
 
 		try {
 			InputStream resourceInput = initialResourceBundle();

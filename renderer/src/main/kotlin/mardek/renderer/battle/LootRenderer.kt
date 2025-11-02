@@ -22,11 +22,11 @@ internal fun renderBattleLoot(
 	context: RenderContext, loot: BattleLoot,
 	party: Array<PlayableCharacter?>, region: Rectangle
 ): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
-	val colorBatch = context.addColorBatch(400) // TODO Choose nice capacity + 4 * 64
-	val ovalBatch = context.addOvalBatch(100) // TODO Choose nice capacity
-	val kimBatch = context.addKim3Batch(1000) // TODO Choose capacity
+	val colorBatch = context.addColorBatch(1000)
+	val ovalBatch = context.addOvalBatch(20)
+	val kimBatch = context.addKim3Batch(100)
 	val imageBatch = context.addImageBatch(2)
-	val textBatch = context.addFancyTextBatch(1000) // TODO Choose nice capacity
+	val textBatch = context.addFancyTextBatch(1000)
 	val itemYs = IntArray(loot.items.size + loot.plotItems.size + loot.dreamStones.size)
 
 	val scale = max(1, region.height / (11 * 16))

@@ -4,9 +4,21 @@ import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.pipelines.SimpleRenderPass;
 import static org.lwjgl.vulkan.VK10.*;
 
-public record Vk2dPipelineContext(
-		BoilerInstance boiler, long vkRenderPass, int viewMask, int colorFormat
-) {
+public class Vk2dPipelineContext {
+
+	public final BoilerInstance boiler;
+	public final long vkRenderPass;
+	public final int viewMask;
+	public final int colorFormat;
+
+	public boolean printBatchSizes;
+
+	public Vk2dPipelineContext(BoilerInstance boiler, long vkRenderPass, int viewMask, int colorFormat) {
+		this.boiler = boiler;
+		this.vkRenderPass = vkRenderPass;
+		this.viewMask = viewMask;
+		this.colorFormat = colorFormat;
+	}
 
 	public static Vk2dPipelineContext renderPass(BoilerInstance boiler, long vkRenderPass) {
 		return new Vk2dPipelineContext(boiler, vkRenderPass, 0, 0);

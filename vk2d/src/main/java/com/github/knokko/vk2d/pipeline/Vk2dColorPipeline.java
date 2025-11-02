@@ -25,13 +25,13 @@ public class Vk2dColorPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dColorPipeline(Vk2dPipelineContext context) {
-		super();
+		super(context.printBatchSizes);
 
 		try (MemoryStack stack = stackPush()) {
 			VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
 			pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8);
 
-			this.vkPipelineLayout = context.boiler().pipelines.createLayout(
+			this.vkPipelineLayout = context.boiler.pipelines.createLayout(
 					pushConstants, "Vk2dColorPipelineLayout"
 			);
 

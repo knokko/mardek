@@ -38,6 +38,10 @@ public class Vk2dRenderStage extends Vk2dStage {
 	}
 
 	public void record(CommandRecorder recorder) {
+		if (batches.isEmpty()) return;
+		if (batches.getFirst().shouldPrintBatchSizes()) {
+			System.out.println("Starting render stage with " + batches.size() + " batches");
+		}
 		recorder.bindVertexBuffers(0,  perFrameBuffer.buffer);
 		for (Vk2dBatch batch : batches) batch.record(recorder);
 	}

@@ -21,8 +21,8 @@ import mardek.state.util.Rectangle
 import kotlin.math.max
 
 internal fun renderActionBar(
-	renderMode: ActionBarRenderMode, battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
-	kimBatch: Vk2dKimBatch, imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, region: Rectangle
+	renderMode: ActionBarRenderMode, battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch?, ovalBatch: Vk2dOvalBatch,
+	kimBatch: Vk2dKimBatch, imageBatch: Vk2dImageBatch?, textBatch: Vk2dGlyphBatch?, region: Rectangle
 ) {
 	battleContext.run {
 		val stateMachine = battle.state
@@ -58,7 +58,7 @@ internal fun renderActionBar(
 
 		val player = stateMachine.onTurn
 		if (renderMode == ActionBarRenderMode.Background) {
-			imageBatch.simpleScale(
+			imageBatch!!.simpleScale(
 				region.maxX - region.height - marginY.toFloat(), iconY.toFloat(),
 				iconSize.toFloat() / player.element.thickSprite.height,
 				player.element.thickSprite.index
@@ -91,7 +91,7 @@ internal fun renderActionBar(
 
 		val pointerScale = region.height.toFloat() / context.content.ui.pointer.width
 		if (isPassive && renderMode == ActionBarRenderMode.Background) {
-			imageBatch.rotated(
+			imageBatch!!.rotated(
 				iconPositions[selectedIndex] + iconSize * 0.5f, region.minY - 0.4f * region.height,
 				270f, pointerScale, context.content.ui.pointer.index, 0, -1
 			)
@@ -102,7 +102,7 @@ internal fun renderActionBar(
 		val textColor = srgbToLinear(rgb(238, 203, 117))
 
 		if (renderMode == ActionBarRenderMode.Background) {
-			colorBatch.fillUnaligned(
+			colorBatch!!.fillUnaligned(
 				region.minX, region.maxY, lowDashX, region.maxY,
 				highDashX, region.minY, region.minX, region.minY,
 				srgbToLinear(rgba(40, 30, 20, 230)),
@@ -164,7 +164,7 @@ internal fun renderActionBar(
 				val font = context.bundle.getFont(context.content.fonts.large2.index)
 				val shadowColor = rgba(0, 0, 0, 200)
 				val shadowOffset = 0.02f * region.height
-				textBatch.drawShadowedString(
+				textBatch!!.drawShadowedString(
 					text, x + region.height.toFloat(), region.maxY - 0.25f * region.height,
 					0.45f * region.height, font, textColor,
 					rgb(0, 0, 0), 0.02f * region.height,
@@ -188,7 +188,7 @@ internal fun renderActionBar(
 			val font = context.bundle.getFont(context.content.fonts.fat.index)
 			val shadowColor = rgba(0, 0, 0, 250)
 			val shadowOffset = 0.035f * region.height
-			textBatch.drawShadowedString(
+			textBatch!!.drawShadowedString(
 				player.player.name, region.maxX - region.height - 3f * marginX,
 				region.maxY - region.height * 0.3f, region.height * 0.5f, font, textColor,
 				rgb(0, 0, 0), 0.03f * region.height, shadowColor,

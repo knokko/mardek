@@ -39,6 +39,7 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 	private final Vk2dInstance instance;
 
 	public Vk2dBlurPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
+		super(context.printBatchSizes);
 		this.instance = instance;
 		try (MemoryStack stack = stackPush()) {
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(1, stack);

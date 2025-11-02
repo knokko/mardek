@@ -55,9 +55,13 @@ class MardekWindow(
 		}.toTypedArray()
 	}
 
+	// Uncomment next line to print batch sizes
+	//override fun shouldPrintBatchSizes() = true
+
 	override fun setup(boiler: BoilerInstance, stack: MemoryStack) {
 		super.setup(boiler, stack)
 		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, vkRenderPass)
+		if (shouldPrintBatchSizes()) pipelineContext.printBatchSizes = true
 		this.renderManager = RenderManager(
 			boiler, videoSettings, resources, pipelineContext, pipelines,
 		)

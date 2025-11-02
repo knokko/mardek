@@ -16,7 +16,7 @@ import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription
 import java.lang.Math.toIntExact
 
-class AnimationPartPipeline(context: Vk2dPipelineContext, vk2d: Vk2dInstance) : Vk2dPipeline() {
+class AnimationPartPipeline(context: Vk2dPipelineContext, vk2d: Vk2dInstance) : Vk2dPipeline(context.printBatchSizes) {
 
 	private val pipelineLayout: Long
 

@@ -20,7 +20,7 @@ import static org.lwjgl.vulkan.VK10.*;
 public abstract class Vk2dPipeline {
 
 	public static GraphicsPipelineBuilder pipelineBuilder(Vk2dPipelineContext context, MemoryStack stack) {
-		var builder = new GraphicsPipelineBuilder(context.boiler(), stack);
+		var builder = new GraphicsPipelineBuilder(context.boiler, stack);
 		builder.simpleInputAssembly();
 		builder.dynamicViewports(1);
 		builder.simpleRasterization(VK_CULL_MODE_NONE);
@@ -29,10 +29,10 @@ public abstract class Vk2dPipeline {
 		builder.simpleColorBlending(1);
 		builder.dynamicStates(VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR);
 
-		if (context.vkRenderPass() == VK_NULL_HANDLE) {
-			builder.dynamicRendering(context.viewMask(), VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, context.colorFormat());
+		if (context.vkRenderPass == VK_NULL_HANDLE) {
+			builder.dynamicRendering(context.viewMask, VK_FORMAT_UNDEFINED, VK_FORMAT_UNDEFINED, context.colorFormat);
 		} else {
-			builder.ciPipeline.renderPass(context.vkRenderPass());
+			builder.ciPipeline.renderPass(context.vkRenderPass);
 		}
 
 		return builder;
@@ -57,10 +57,12 @@ public abstract class Vk2dPipeline {
 	protected long vkPipeline;
 	private final int[] bytesPerTriangle;
 	private final int[] vertexAlignments;
+	public final boolean printBatchSizes;
 
-	public Vk2dPipeline() {
+	public Vk2dPipeline(boolean printBatchSizes) {
 		this.bytesPerTriangle = Objects.requireNonNull(getBytesPerTriangle());
 		this.vertexAlignments = Objects.requireNonNull(getVertexAlignments());
+		this.printBatchSizes = printBatchSizes;
 	}
 
 	protected abstract int[] getBytesPerTriangle();

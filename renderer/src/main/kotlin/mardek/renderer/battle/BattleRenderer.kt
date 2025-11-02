@@ -22,30 +22,30 @@ internal fun renderBattle(
 ): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
 	val battleContext = BattleRenderContext(context, state, battleState)
 
-	val animationPartBatch = context.addAnimationPartBatch(1000) // TODO Choose nice capacity
+	val animationPartBatch = context.addAnimationPartBatch(1000)
 	renderBattleBackground(battleContext, animationPartBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width,
 		region.height - region.height / 12 - region.height / 8,
 	))
 
 	// Pretty much all components require colorBatch to be the first batch
-	val colorBatch = context.addColorBatch(1000) // TODO Choose nice capacity
+	val colorBatch = context.addColorBatch(1500)
 
 	// The action bar expects the oval batch to be behind the kim batch
-	val ovalBatch = context.addOvalBatch(100) // TODO Choose nice capacity
+	val ovalBatch = context.addOvalBatch(200)
 
 	// The player block renderer expects the image batch to be behind the kim batch
-	val imageBatch = context.addImageBatch(1000) // TODO Choose nice capacity
-	val kimBatch = context.addKim3Batch(1000) // TODO Choose nice capacity
-	val textBatch = context.addFancyTextBatch(1000) // TODO Choose nice capacity
+	val imageBatch = context.addImageBatch(1000)
+	val kimBatch = context.addKim3Batch(200)
+	val textBatch = context.addFancyTextBatch(2000)
 
 	// The combatant info popup needs to render above everything else
-	val lateColorBatch = context.addColorBatch(100) // TODO Choose nice capacity
+	val lateColorBatch = context.addColorBatch(100)
 	val lateOvalBatch = context.addOvalBatch(4)
-	val lateKimBatch = context.addKim3Batch(100) // TODO Choose nice capacity
-	val lateImageBatch = context.addImageBatch(100) // TODO Choose nice capacity
-	val lateTextBatch = context.addTextBatch(100) // TODO Choose nice capacity
-	val lateAnimationPartBatch = context.addAnimationPartBatch(100) // TODO Choose nice capacity
+	val lateKimBatch = context.addKim3Batch(20)
+	val lateImageBatch = context.addImageBatch(200)
+	val lateTextBatch = context.addTextBatch(2000)
+	val lateAnimationPartBatch = context.addAnimationPartBatch(200)
 
 	for (opponent in battleState.allOpponents().sortedBy { it.getPosition(battleContext.battle).y }) {
 		CombatantRenderer(battleContext, animationPartBatch, opponent).render()
@@ -107,15 +107,11 @@ internal fun renderBattle(
 				context.frame, context.perFrame.actionBarBlurDescriptors,
 				framebuffers.actionBarBlur, 9, 50, -1
 			)
-			// TODO Determine the right capacities
-			val blurColorBatch = context.addColorBatch(100)
-			val blurOvalBatch = context.addOvalBatch(100)
-			val blurKimBatch = context.addKim3Batch(100)
-			val blurImageBatch = context.addImageBatch(100)
-			val blurTextBatch = context.addTextBatch(100)
+			val blurOvalBatch = context.addOvalBatch(50)
+			val blurKimBatch = context.addKim3Batch(50)
 			renderActionBar(
 				ActionBarRenderMode.BlurredBackground, battleContext,
-				blurColorBatch, blurOvalBatch, blurKimBatch, blurImageBatch, blurTextBatch,
+				null, blurOvalBatch, blurKimBatch, null, null,
 				Rectangle(0, 0, actionBarRegion.width, actionBarRegion.height)
 			)
 

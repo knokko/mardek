@@ -44,6 +44,11 @@ public abstract class Vk2dBatch {
 		stage.batches.add(this);
 	}
 
+	@Override
+	public String toString() {
+		return getClass().getSimpleName();
+	}
+
 	private void addVertexBatch(int numTriangles) {
 		int dimensions = pipeline.getVertexDimensions();
 		MiniBatch vertices = new MiniBatch(
@@ -99,7 +104,20 @@ public abstract class Vk2dBatch {
 	public void record(CommandRecorder recorder) {
 		if (isEmpty()) return;
 		pipeline.prepareRecording(recorder, this);
-		for (MiniBatch miniBatch : vertices) pipeline.recordBatch(recorder, perFrameBuffer, miniBatch, this);
+		if (pipeline.printBatchSizes) System.out.println("Drawing " + vertices.size() + " batches: " + this);
+		for (MiniBatch miniBatch : vertices) {
+			if (pipeline.printBatchSizes && miniBatch.vertexData().length > 0) {
+				int renderedTriangles = miniBatch.vertexData()[0].position() / pipeline.getBytesPerTriangle(0);
+				long reservedTriangles = miniBatch.vertexBuffers()[0].size / pipeline.getBytesPerTriangle(0);
+				System.out.println("  " + renderedTriangles + " / " + reservedTriangles + " triangles");
+			}
+			pipeline.recordBatch(recorder, perFrameBuffer, miniBatch, this);
+		}
+		if (pipeline.printBatchSizes) System.out.println("Finished " + this);
+	}
+
+	public boolean shouldPrintBatchSizes() {
+		return pipeline.printBatchSizes;
 	}
 
 	/**

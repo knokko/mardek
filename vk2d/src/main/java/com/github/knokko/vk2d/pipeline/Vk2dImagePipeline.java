@@ -26,10 +26,10 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dImagePipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super();
+		super(context.printBatchSizes);
 
 		try (MemoryStack stack = stackPush()) {
-			this.vkPipelineLayout = context.boiler().pipelines.createLayout(
+			this.vkPipelineLayout = context.boiler.pipelines.createLayout(
 					null, "Vk2dImagePipelineLayout",
 					instance.imageDescriptorSetLayout.vkDescriptorSetLayout
 			);

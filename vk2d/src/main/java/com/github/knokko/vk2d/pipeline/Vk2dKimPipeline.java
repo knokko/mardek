@@ -24,7 +24,7 @@ public class Vk2dKimPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dKimPipeline(Vk2dPipelineContext context, Vk2dInstance instance, int version) {
-		super();
+		super(context.printBatchSizes);
 
 		try (MemoryStack stack = stackPush()) {
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(3, stack);
