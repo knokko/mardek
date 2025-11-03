@@ -38,11 +38,9 @@ internal fun renderTitleScreen(
 	state: TitleScreenState, region: Rectangle,
 ): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
 
-	// Note that state.saveSelection must be null until the content and main resources have been initialized.
-	// So when state.saveSelection is non-null, fullRenderContext must also be non-null
 	val saveSelection = state.saveSelection
-	if (saveSelection != null) {
-		val framebuffers = fullRenderContext!!.framebuffers
+	if (saveSelection != null && fullRenderContext != null) {
+		val framebuffers = fullRenderContext.framebuffers
 		val backgroundRenderStage = context.pipelines.base.blur.addSourceStage(
 			fullRenderContext.frame, framebuffers.blur, -1
 		)
