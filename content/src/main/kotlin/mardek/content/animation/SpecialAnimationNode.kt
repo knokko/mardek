@@ -2,8 +2,21 @@ package mardek.content.animation
 
 import com.github.knokko.bitser.BitEnum
 
+/**
+ * The `AnimationNode` class has a nullable field called `special` of type `SpecialAnimationNode`. When a node has a
+ * non-null `special`, it has custom rendering rules that the `AnimationRenderer` will implement.
+ *
+ * For instance, when `node.special = TargetingCursor`, the node should only be rendered if the player is currently
+ * choosing the target of a move, and is pointing to the combatant being rendered.
+ */
 @BitEnum(mode = BitEnum.Mode.Name)
 enum class SpecialAnimationNode(
+
+	/**
+	 * When an `AnimationNode` has a `SpecialAnimationNode` with `skipChildren = true`, the children of that node should
+	 * **not** be rendered. This is `true` for e.g. `HitPoint` and `StrikePoint`, which are act as marker nodes, and
+	 * shouldn't be rendered.
+	 */
 	val skipChildren: Boolean
 ) {
 	/**

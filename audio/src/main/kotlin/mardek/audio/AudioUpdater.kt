@@ -6,6 +6,13 @@ import mardek.state.ingame.InGameState
 import mardek.state.title.GameOverState
 import mardek.state.title.TitleScreenState
 
+/**
+ * The `AudioUpdater` makes sure that the sounds in the `SoundQueue` are actually drained & played.
+ * Furthermore, it ensures that the right music is played at the right time.
+ *
+ * The `MardekWindow` class will repeatedly invoke the `update()` method of this class while the game is running, and
+ * invokes the `destroy()` method when the game is closed.
+ */
 class AudioUpdater(private val stateManager: GameStateManager) {
 
 	private val manager = AudioManager()
@@ -16,6 +23,10 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 	private val titleScreen = manager.add("TitleScreen.ogg", null)
 	private val gameOver = manager.add("GameOver.ogg", null)
 
+	/**
+	 * This method should be called repeatedly as long as the game is running. The higher the update frequency, the
+	 * better the sound/music timing.
+	 */
 	fun update() {
 		val nextSound = stateManager.soundQueue.take()
 		var trackName: String? = null
@@ -43,5 +54,8 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 		}
 	}
 
+	/**
+	 * Destroys the audio subsystem. This should be called when the game is shutting down.
+	 */
 	fun destroy() = manager.destroy()
 }

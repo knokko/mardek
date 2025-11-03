@@ -47,6 +47,10 @@ class AnimationNode(
 	@BitField(id = 3, optional = true)
 	val color: ColorTransform?,
 
+	/**
+	 * When the animation renderer encounters a `SkinnedAnimation`, it will choose the `selectSkin` of the closest
+	 * ancestor with a non-null `selectSkin` as skin.
+	 */
 	@BitField(id = 4, optional = true)
 	val selectSkin: String?,
 
@@ -81,6 +85,10 @@ class AnimationNode(
 		return result.toString()
 	}
 
+	/**
+	 * Checks whether this node has the given `special`, or at least 1 child node whose special is `special`.
+	 * This method is nice for unit-testing that the import succeeded.
+	 */
 	fun hasSpecial(special: SpecialAnimationNode) = this.special == special ||
 			(animation != null && animation.hasSpecial(special))
 }

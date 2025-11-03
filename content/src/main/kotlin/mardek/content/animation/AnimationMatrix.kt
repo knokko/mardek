@@ -4,6 +4,12 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 
+/**
+ * Represents a transformation matrix that is used in animations. It contains the same data as a `Matrix3x2f` from
+ * JOML, but is structured differently. It is designed to be compact to serialize with `Bitser`.
+ *
+ * Use `AnimationRenderer.toJOMLMatrix` to convert an `AnimationMatrix` to a `Matrix3x2f`.
+ */
 @BitStruct(backwardCompatible = true)
 class AnimationMatrix(
 
@@ -24,6 +30,14 @@ class AnimationMatrix(
 	@FloatField(expectMultipleOf = 0.01, errorTolerance = 0.005)
 	val rotateSkew1: Float,
 
+	/**
+	 * - When `hasScale` is `true`, the scale of this transformation matrix is `(scaleX, scaleY)`.
+	 * - When `hasScale` is `false`, the scale of this transformation matrix is `(1, 1)`.
+	 *
+	 * This can be used to save bits: serializing (hasScale = false, scaleX = scaleY = 0) requires fewer bits
+	 * than serializing (hasScale = true, scaleX = scaleY = 1) since `Bitser` uses fewer bits to store 0.0 than to
+	 * store 1.0.
+	 */
 	@BitField(id = 4)
 	val hasScale: Boolean,
 
