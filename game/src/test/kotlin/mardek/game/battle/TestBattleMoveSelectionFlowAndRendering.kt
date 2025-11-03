@@ -379,7 +379,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 		state.update(context)
 		assertEquals(BattleStateMachine.CastSkill(
-			battle.livingPlayers()[1], listOf(battle.livingPlayers()[1]), frostasia,
+			battle.livingPlayers()[1], arrayOf(battle.livingPlayers()[1]), frostasia,
 			null, battleUpdateContext(state.campaign)
 		), battle.state)
 		assertSame(sounds.ui.scroll, soundQueue.take())

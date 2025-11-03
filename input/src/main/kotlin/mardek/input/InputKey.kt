@@ -24,15 +24,20 @@ enum class InputKey {
 	/**
 	 * The cheat key, currently used to bypass collision & avoid random battles
 	 */
-	Cheat,
+	ChatMove,
 
 	/**
 	 * A cheat key to scroll to the 'next' area (in some arbitrary area ordering)
 	 */
-	ScrollUp,
+	CheatScrollUp,
 
 	/**
 	 * A cheat key to scroll to the 'previous' area (in some arbitrary area ordering)
 	 */
-	ScrollDown
+	CheatScrollDown,
+
+	/**
+	 * A cheat key to save anywhere you want
+	 */
+	CheatSave,
 }

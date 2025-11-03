@@ -244,7 +244,7 @@ class BattleState(
 				val result = if (state.skill == null) MoveResultCalculator(context).computeBasicAttackResult(
 					state.attacker, state.target, passedChallenge
 				) else MoveResultCalculator(context).computeSkillResult(
-					state.skill, state.attacker, listOf(state.target), passedChallenge
+					state.skill, state.attacker, arrayOf(state.target), passedChallenge
 				)
 
 				applyMoveResult(context, result, state.attacker)

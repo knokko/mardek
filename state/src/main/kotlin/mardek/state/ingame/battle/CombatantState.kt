@@ -261,6 +261,9 @@ class PlayerCombatantState(
 	element = player.element,
 	isOnPlayerSide = isOnPlayerSide
 ) {
+
+	constructor() : this(PlayableCharacter(), CharacterState(), true)
+
 	override fun toString() = player.name
 
 	override fun computeMaxHealth(context: BattleUpdateContext) = determinePlayerMaxHealth(

@@ -234,7 +234,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 	}
 
 	fun computeSkillResult(
-		skill: ActiveSkill, attacker: CombatantState, targets: List<CombatantState>, passedChallenge: Boolean
+		skill: ActiveSkill, attacker: CombatantState, targets: Array<CombatantState>, passedChallenge: Boolean
 	): MoveResult {
 		val rawWeapon = attacker.getEquipment(context)[0]
 		val weapon = rawWeapon?.equipment?.weapon

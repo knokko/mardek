@@ -9,7 +9,7 @@ import java.util.*
 
 sealed class BattleSkillTarget {
 
-	abstract fun getTargets(caster: CombatantState, battle: BattleState): List<CombatantState>
+	abstract fun getTargets(caster: CombatantState, battle: BattleState): Array<CombatantState>
 
 	companion object {
 
@@ -36,7 +36,7 @@ class BattleSkillTargetSingle(
 
 	override fun toString() = target.toString()
 
-	override fun getTargets(caster: CombatantState, battle: BattleState) = listOf(target)
+	override fun getTargets(caster: CombatantState, battle: BattleState) = arrayOf(target)
 }
 
 /**
@@ -49,7 +49,8 @@ data object BattleSkillTargetAllEnemies : BattleSkillTarget() {
 	override fun getTargets(
 		caster: CombatantState,
 		battle: BattleState
-	) = if (caster.isOnPlayerSide) battle.livingOpponents() else battle.livingPlayers()
+	) = if (caster.isOnPlayerSide) battle.livingOpponents().toTypedArray()
+	else battle.livingPlayers().toTypedArray()
 }
 
 /**
@@ -62,7 +63,8 @@ data object BattleSkillTargetAllAllies : BattleSkillTarget() {
 	override fun getTargets(
 		caster: CombatantState,
 		battle: BattleState
-	) = if (caster.isOnPlayerSide) battle.livingPlayers() else battle.livingOpponents()
+	) = if (caster.isOnPlayerSide) battle.livingPlayers().toTypedArray()
+	else battle.livingOpponents().toTypedArray()
 }
 
 sealed class BattleMoveSelection {

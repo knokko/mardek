@@ -223,4 +223,19 @@ class IntegrationTests {
 		TestSaveAndLoad.testOverwriteVanishedSave(instance)
 		TestSaveAndLoad.testHappyFlow(instance)
 	}
+
+	@Test
+	fun testSaveDuringBackAttack() {
+		TestSaveAndLoad.testSaveDuringBasicAttack(instance)
+	}
+
+	@Test
+	fun testSaveDuringMagicAttack() {
+		TestSaveAndLoad.testSaveDuringMagicAttack(instance)
+	}
+
+	@Test
+	fun testSaveDuringBattleLoot() {
+		TestSaveAndLoad.testSaveDuringBattleLoot(instance)
+	}
 }

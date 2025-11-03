@@ -95,6 +95,10 @@ class CampaignState(
 			}
 			if (event !is InputKeyEvent || !event.didPress) continue
 
+			if (event.key == InputKey.CheatSave) {
+				context.saves.createSave(context.content, this, context.campaignName, SaveFile.Type.Cheat)
+			}
+
 			val currentArea = this.currentArea ?: continue
 
 			val battleLoot = currentArea.battleLoot
@@ -139,12 +143,12 @@ class CampaignState(
 				continue
 			}
 
-			if (event.key == InputKey.ScrollUp || event.key == InputKey.ScrollDown) {
+			if (event.key == InputKey.CheatScrollUp || event.key == InputKey.CheatScrollDown) {
 				val areas = context.content.areas.areas
 				val currentIndex = areas.indexOf(currentArea.area)
 
 				var nextIndex = currentIndex
-				if (event.key == InputKey.ScrollUp) nextIndex -= 1
+				if (event.key == InputKey.CheatScrollUp) nextIndex -= 1
 				else nextIndex += 1
 
 				if (nextIndex < 0) nextIndex += areas.size

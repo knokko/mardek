@@ -37,9 +37,11 @@ class RandomAreaBattles(
 	val chance: Int, // Percentage after taking 1 step?
 
 	@BitField(id = 6)
+	@ReferenceField(stable = true, label = "battle backgrounds")
 	val defaultBackground: BattleBackground,
 
 	@BitField(id = 7, optional = true)
+	@ReferenceField(stable = true, label = "battle backgrounds")
 	val specialBackground: BattleBackground?
 ) {
 

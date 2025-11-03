@@ -48,6 +48,8 @@ class BattleLoot(
 
 	var selectedElement = if (items.isEmpty()) SelectedFinish else SelectedGetAll
 
+	override fun toString() = "BattleLoot(gold=$gold, items=$items)"
+
 	fun processKeyPress(key: InputKey, context: UpdateContext): Boolean {
 		val soundEffects = context.content.audio.fixedEffects.ui
 		val oldPartyIndex = selectedPartyIndex

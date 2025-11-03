@@ -30,7 +30,7 @@ fun parseTilesheet(name: String): ParsedTilesheet {
 			if ((y - 1) % tileHeight != 0) continue
 			if ((y + tileHeight) * tileSize > tilesheet.height) continue
 
-			val encodingColor = tilesheet.getRGB(x, y - 1) // TODO Might need to divide y by tileHeight
+			val encodingColor = tilesheet.getRGB(x, y - 1)
 			val tileID = toTileID(x, y, tileHeight)
 
 			val sprites = (0 until tileHeight).map { layer ->

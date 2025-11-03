@@ -698,7 +698,7 @@ object TestMoveResultCalculator {
 					battleUpdateContext(campaign)
 				).computeSkillResult(
 					shock, battle.livingPlayers()[0],
-					listOf(battle.livingOpponents()[0]), false
+					arrayOf(battle.livingOpponents()[0]), false
 				)
 				assertSame(content.stats.elements.find { it.rawName == "AIR" }!!, result.element)
 				assertEquals(1, result.targets.size)
@@ -736,7 +736,7 @@ object TestMoveResultCalculator {
 					battleUpdateContext(campaign)
 				).computeSkillResult(
 					darkClaw, battle.livingOpponents()[0],
-					listOf(battle.livingPlayers()[0]), false
+					arrayOf(battle.livingPlayers()[0]), false
 				)
 				assertSame(content.stats.elements.find { it.rawName == "DARK" }!!, result.element)
 				assertEquals(0, result.overrideBlinkColor)
@@ -773,7 +773,7 @@ object TestMoveResultCalculator {
 					battleUpdateContext(campaign)
 				).computeSkillResult(
 					thousandNeedles, battle.livingOpponents()[0],
-					listOf(battle.livingPlayers()[0]), false
+					arrayOf(battle.livingPlayers()[0]), false
 				)
 				assertSame(content.stats.elements.find { it.rawName == "NONE" }!!, result.element)
 				assertEquals(1, result.targets.size)
@@ -805,7 +805,7 @@ object TestMoveResultCalculator {
 					battleUpdateContext(campaign)
 				).computeSkillResult(
 					pyromagia, battle.livingPlayers()[1],
-					listOf(battle.livingOpponents()[0]), false
+					arrayOf(battle.livingOpponents()[0]), false
 				)
 				assertSame(content.stats.elements.find { it.rawName == "FIRE" }!!, result.element)
 				val entry = result.targets[0]
@@ -819,7 +819,7 @@ object TestMoveResultCalculator {
 					battleUpdateContext(campaign)
 				).computeSkillResult(
 					pyromagia, battle.livingPlayers()[1],
-					listOf(battle.livingOpponents()[0]), true
+					arrayOf(battle.livingOpponents()[0]), true
 				)
 				assertSame(content.stats.elements.find { it.rawName == "FIRE" }!!, result.element)
 				val entry = result.targets[0]
@@ -858,7 +858,7 @@ object TestMoveResultCalculator {
 			repeat(1000) {
 				val result = MoveResultCalculator(
 					battleUpdateContext(campaign)
-				).computeSkillResult(recover, deuganCombat, listOf(deuganCombat), false)
+				).computeSkillResult(recover, deuganCombat, arrayOf(deuganCombat), false)
 				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
 				val entry = result.targets[0]
 				assertFalse(entry.criticalHit)
@@ -870,7 +870,7 @@ object TestMoveResultCalculator {
 			repeat(1000) {
 				val result = MoveResultCalculator(
 					battleUpdateContext(campaign)
-				).computeSkillResult(recover, deuganCombat, listOf(deuganCombat), true)
+				).computeSkillResult(recover, deuganCombat, arrayOf(deuganCombat), true)
 				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
 				val entry = result.targets[0]
 				assertFalse(entry.criticalHit)
@@ -886,7 +886,7 @@ object TestMoveResultCalculator {
 			repeat(1000) {
 				val result = MoveResultCalculator(
 					battleUpdateContext(campaign)
-				).computeSkillResult(recover, deuganCombat, listOf(deuganCombat), true)
+				).computeSkillResult(recover, deuganCombat, arrayOf(deuganCombat), true)
 				assertSame(content.stats.elements.find { it.rawName == "LIGHT" }!!, result.element)
 				val entry = result.targets[0]
 				assertFalse(entry.criticalHit)
@@ -919,7 +919,7 @@ object TestMoveResultCalculator {
 					battleUpdateContext(campaign)
 				).computeSkillResult(
 					frostasia, battle.livingPlayers()[1],
-					battle.livingOpponents(), false
+					battle.livingOpponents().toTypedArray(), false
 				)
 				assertSame(content.stats.elements.find { it.rawName == "WATER" }!!, result.element)
 				val entry = result.targets[0]
@@ -933,7 +933,7 @@ object TestMoveResultCalculator {
 					battleUpdateContext(campaign)
 				).computeSkillResult(
 					frostasia, battle.livingPlayers()[1],
-					battle.livingOpponents(), true
+					battle.livingOpponents().toTypedArray(), true
 				)
 				assertSame(content.stats.elements.find { it.rawName == "WATER" }!!, result.element)
 				val entry = result.targets[0]
@@ -962,7 +962,7 @@ object TestMoveResultCalculator {
 					battleUpdateContext(campaign)
 				).computeSkillResult(
 					rageChord, battle.livingOpponents()[0],
-					listOf(battle.livingPlayers()[1]), true
+					arrayOf(battle.livingPlayers()[1]), true
 				)
 				assertSame(content.stats.elements.find { it.rawName == "FIRE" }!!, result.element)
 				val entry = result.targets[0]
@@ -981,7 +981,7 @@ object TestMoveResultCalculator {
 					battleUpdateContext(campaign)
 				).computeSkillResult(
 					rageChord, battle.livingOpponents()[0],
-					listOf(battle.livingPlayers()[1]), true
+					arrayOf(battle.livingPlayers()[1]), true
 				)
 				assertSame(content.stats.elements.find { it.rawName == "FIRE" }!!, result.element)
 				val entry = result.targets[0]

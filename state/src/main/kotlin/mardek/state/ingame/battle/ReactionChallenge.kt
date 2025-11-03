@@ -16,7 +16,10 @@ class ReactionChallenge(
 	@IntegerField(expectUniform = true, minValue = -1, maxValue = DURATION)
 	var clickedAfter = -1L
 
-	fun wasPassed() = clickedAfter >= MIN_CLICK_AFTER && clickedAfter <= MAX_CLICK_AFTER
+	@Suppress("unused")
+	private constructor() : this(ReactionSkillType.MeleeDefense)
+
+	fun wasPassed() = clickedAfter in MIN_CLICK_AFTER..MAX_CLICK_AFTER
 
 	companion object {
 

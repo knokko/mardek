@@ -58,10 +58,10 @@ class TitleScreenState: GameState {
 			if (event is InputKeyEvent) {
 				if (event.didPress || event.didRepeat) {
 					if (newCampaignName == null && saveSelection == null) {
-						if ((event.key == InputKey.MoveUp || event.key == InputKey.ScrollUp) && selectedButton >= 0) {
+						if ((event.key == InputKey.MoveUp || event.key == InputKey.CheatScrollUp) && selectedButton >= 0) {
 							selectedButton -= 1
 						}
-						if ((event.key == InputKey.MoveDown || event.key == InputKey.ScrollDown) && selectedButton < buttons.size) {
+						if ((event.key == InputKey.MoveDown || event.key == InputKey.CheatScrollDown) && selectedButton < buttons.size) {
 							selectedButton += 1
 						}
 					}

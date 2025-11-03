@@ -179,29 +179,39 @@ class MardekSdlInput(
 		assertSdlSuccess(SDL_AddEventWatch({ _, rawEvent ->
 			val type = SDL_Event.ntype(rawEvent)
 			if (type == SDL_EVENT_KEY_DOWN || type == SDL_EVENT_KEY_UP) {
-				val key = when (SDL_KeyboardEvent.nkey(rawEvent)) {
-					SDLK_LEFT -> InputKey.MoveLeft
-					SDLK_A -> InputKey.MoveLeft
-					SDLK_UP -> InputKey.MoveUp
-					SDLK_W -> InputKey.MoveUp
-					SDLK_RIGHT -> InputKey.MoveRight
-					SDLK_D -> InputKey.MoveRight
-					SDLK_DOWN -> InputKey.MoveDown
-					SDLK_S -> InputKey.MoveDown
-					SDLK_X -> InputKey.Interact
-					SDLK_E -> InputKey.Interact
-					SDLK_Z -> InputKey.Cancel
-					SDLK_Q -> InputKey.Cancel
-					SDLK_KP_ENTER -> InputKey.ToggleMenu
-					SDLK_RETURN -> InputKey.ToggleMenu
-					SDLK_TAB -> InputKey.ToggleMenu
-					SDLK_ESCAPE -> InputKey.Escape
-					SDLK_SPACE -> InputKey.Cheat
-					SDLK_J -> InputKey.ScrollDown
-					SDLK_K -> InputKey.ScrollUp
-					SDLK_BACKSPACE -> InputKey.BackspaceLast
-					SDLK_DELETE -> InputKey.BackspaceFirst
-					else -> null
+				val modifierKey = SDL_KeyboardEvent.nmod(rawEvent).toInt()
+				val pressedKey = SDL_KeyboardEvent.nkey(rawEvent)
+				val holdsControl = (SDL_KMOD_CTRL and modifierKey) != 0
+				val key = if (holdsControl) {
+					when (pressedKey) {
+						SDLK_J -> InputKey.CheatScrollDown
+						SDLK_K -> InputKey.CheatScrollUp
+						SDLK_S -> InputKey.CheatSave
+						else -> null
+					}
+				} else {
+					when (pressedKey) {
+						SDLK_LEFT -> InputKey.MoveLeft
+						SDLK_A -> InputKey.MoveLeft
+						SDLK_UP -> InputKey.MoveUp
+						SDLK_W -> InputKey.MoveUp
+						SDLK_RIGHT -> InputKey.MoveRight
+						SDLK_D -> InputKey.MoveRight
+						SDLK_DOWN -> InputKey.MoveDown
+						SDLK_S -> InputKey.MoveDown
+						SDLK_X -> InputKey.Interact
+						SDLK_E -> InputKey.Interact
+						SDLK_Z -> InputKey.Cancel
+						SDLK_Q -> InputKey.Cancel
+						SDLK_KP_ENTER -> InputKey.ToggleMenu
+						SDLK_RETURN -> InputKey.ToggleMenu
+						SDLK_TAB -> InputKey.ToggleMenu
+						SDLK_ESCAPE -> InputKey.Escape
+						SDLK_SPACE -> InputKey.ChatMove
+						SDLK_BACKSPACE -> InputKey.BackspaceLast
+						SDLK_DELETE -> InputKey.BackspaceFirst
+						else -> null
+					}
 				}
 
 				if (key != null) {

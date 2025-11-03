@@ -26,7 +26,9 @@ sealed class BattleStateMachine {
 			NextTurnEffects::class.java,
 			SelectMove::class.java,
 			Wait::class.java,
-			MeleeAttack::class.java,
+			MeleeAttack.MoveTo::class.java,
+			MeleeAttack.Strike::class.java,
+			MeleeAttack.JumpBack::class.java,
 			CastSkill::class.java,
 			UseItem::class.java,
 			RanAway::class.java,
@@ -52,6 +54,9 @@ sealed class BattleStateMachine {
 
 	) : BattleStateMachine() {
 
+		@Suppress("unused")
+		private constructor() : this(MonsterCombatantState(), null)
+
 		@BitField(id = 2)
 		@ReferenceField(stable = true, label = "status effects")
 		val removedEffects = HashSet<StatusEffect>()
@@ -74,7 +79,10 @@ sealed class BattleStateMachine {
 			val blinkColor: Int,
 
 			val particleEffect: ParticleEffect?,
-		)
+		) {
+			@Suppress("unused")
+			private constructor() : this(Wait(), StatusEffect(), 0, null)
+		}
 
 		@BitStruct(backwardCompatible = true)
 		class TakeDamage(
@@ -85,7 +93,10 @@ sealed class BattleStateMachine {
 			@BitField(id = 1)
 			@ReferenceField(stable = true, label = "status effects")
 			val effect: StatusEffect,
-		)
+		) {
+			@Suppress("unused")
+			private constructor() : this(0, StatusEffect())
+		}
 
 		companion object {
 			const val DAMAGE_DELAY = 1_000_000_000L
@@ -102,6 +113,9 @@ sealed class BattleStateMachine {
 		val onTurn: PlayerCombatantState
 	) : BattleStateMachine() {
 		var selectedMove: BattleMoveSelection = BattleMoveSelectionAttack(null)
+
+		@Suppress("unused")
+		private constructor() : this(PlayerCombatantState())
 
 		override fun toString() = "$onTurn considers $selectedMove"
 	}
@@ -144,6 +158,11 @@ sealed class BattleStateMachine {
 	) : BattleStateMachine(), Move {
 		var startTime = System.nanoTime()
 
+		constructor() : this(
+			MonsterCombatantState(), MonsterCombatantState(),
+			null, null
+		)
+
 		override fun refreshStartTime() {
 			startTime = System.nanoTime()
 		}
@@ -170,12 +189,22 @@ sealed class BattleStateMachine {
 		@BitStruct(backwardCompatible = true)
 		class MoveTo(
 			attacker: CombatantState, target: CombatantState,
-			skill: ActiveSkill?, context: BattleUpdateContext,
-		) : MeleeAttack(
-			attacker, target, skill,
-			determineReactionChallenge(attacker, target, skill, context)
-		) {
+			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?, //context: BattleUpdateContext,
+		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
 			var finished = false
+
+			constructor(
+				attacker: CombatantState, target: CombatantState,
+				skill: ActiveSkill?, context: BattleUpdateContext,
+			) : this(attacker, target, skill,
+				determineReactionChallenge(attacker, target, skill, context)
+			)
+
+			@Suppress("unused")
+			private constructor() : this(
+				MonsterCombatantState(), MonsterCombatantState(),
+				null, null,
+			)
 		}
 
 		@BitStruct(backwardCompatible = true)
@@ -189,6 +218,12 @@ sealed class BattleStateMachine {
 			var hasDealtDamage = false
 
 			var finished = false
+
+			@Suppress("unused")
+			private constructor() : this(
+				MonsterCombatantState(), MonsterCombatantState(),
+				null, null,
+			)
 		}
 
 		@BitStruct(backwardCompatible = true)
@@ -197,6 +232,12 @@ sealed class BattleStateMachine {
 			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?,
 		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
 			var finished = false
+
+			@Suppress("unused")
+			private constructor() : this(
+				MonsterCombatantState(), MonsterCombatantState(),
+				null, null,
+			)
 		}
 	}
 
@@ -211,7 +252,7 @@ sealed class BattleStateMachine {
 
 		@BitField(id = 1)
 		@ReferenceField(stable = false, label = "combatants")
-		val targets: List<CombatantState>,
+		val targets: Array<CombatantState>,
 
 		@BitField(id = 2)
 		@ReferenceField(stable = true, label = "skills")
@@ -225,7 +266,7 @@ sealed class BattleStateMachine {
 	) : BattleStateMachine(), Move {
 		var startTime = System.nanoTime()
 
-		@BitField(id = 4)
+		@BitField(id = 4, optional = true)
 		val reactionChallenge: ReactionChallenge?
 
 		var canDealDamage = false
@@ -272,12 +313,12 @@ sealed class BattleStateMachine {
 
 		@Suppress("unused")
 		private constructor() : this(
-			MonsterCombatantState(), emptyList<CombatantState>(),
+			MonsterCombatantState(), emptyArray<CombatantState>(),
 			ActiveSkill(), null, BattleUpdateContext()
 		)
 
-		override fun equals(other: Any?) = other is CastSkill && caster === other.caster && targets == other.targets &&
-				skill === other.skill && nextElement === other.nextElement
+		override fun equals(other: Any?) = other is CastSkill && caster === other.caster &&
+				targets.contentEquals(other.targets) && skill === other.skill && nextElement === other.nextElement
 
 		override fun hashCode() = caster.hashCode() + 13 * targets.hashCode() - 31 * skill.hashCode() +
 				127 * Objects.hashCode(nextElement)
@@ -307,6 +348,9 @@ sealed class BattleStateMachine {
 		var startTime = System.nanoTime()
 
 		var canDrinkItem = false
+
+		@Suppress("unused")
+		private constructor() : this(MonsterCombatantState(), MonsterCombatantState(), Item())
 
 		override fun refreshStartTime() {
 			startTime = System.nanoTime()

@@ -70,7 +70,7 @@ object TestTitleScreen {
 			)
 
 			// 'Hover' over "New Game"
-			input.postEvent(pressKeyEvent(InputKey.ScrollDown))
+			input.postEvent(pressKeyEvent(InputKey.CheatScrollDown))
 			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
 			assertEquals(0, state.selectedButton)
 			assertNull(state.newCampaignName)

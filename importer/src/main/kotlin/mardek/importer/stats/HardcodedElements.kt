@@ -6,6 +6,7 @@ import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
 import mardek.content.stats.CombatStat
 import mardek.importer.ui.BcPacker
+import java.util.UUID
 import javax.imageio.ImageIO
 
 private fun getBcSprite(name: String): BcSprite {
@@ -27,6 +28,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingFire"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_FIRE" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundFire"),
+		id = UUID.fromString("1bfd73f6-c05c-4ae5-9257-6a8471cbdbba"),
 	)
 	val water = Element(
 		rawName = "WATER",
@@ -38,6 +40,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingWater"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_WATER" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundWater"),
+		id = UUID.fromString("e5ef0cd6-8e44-4c3f-8d63-7e38a0e96e95"),
 	)
 	val earth = Element(
 		rawName = "EARTH",
@@ -49,6 +52,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingEarth"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_EARTH" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundEarth"),
+		id = UUID.fromString("b520c012-fcd9-4f7e-a176-1bc59ff705ad"),
 	)
 	val air = Element(
 		rawName = "AIR",
@@ -60,6 +64,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingAir"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_AIR" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundAir"),
+		id = UUID.fromString("75195446-e263-485c-84c0-6a60141dcbc8"),
 	)
 	fire.setWeakAgainst(water)
 	water.setWeakAgainst(earth)
@@ -78,6 +83,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingDark"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_DARK" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundDark"),
+		id = UUID.fromString("e5a2760a-1264-4c0d-9ca4-f1bcba29d613"),
 	)
 	val light = Element(
 		rawName = "LIGHT",
@@ -89,6 +95,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingLight"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_LIGHT" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundLight"),
+		id = UUID.fromString("b7f41764-8d53-4383-8bf3-6a194d01a5a0"),
 	)
 	dark.setWeakAgainst(light)
 	light.setWeakAgainst(dark)
@@ -105,6 +112,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingFig"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_FIG" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundFig"),
+		id = UUID.fromString("d4429d7d-3608-4faa-b2a9-0e93eaeea28b"),
 	)
 	val aether = Element(
 		rawName = "ETHER",
@@ -117,6 +125,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingAether"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_ETHER" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundAether"),
+		id = UUID.fromString("d171c63f-0e4b-4a43-953e-4580269b4e43"),
 	)
 	fig.setWeakAgainst(aether)
 	aether.setWeakAgainst(fig)
@@ -134,6 +143,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingPhysical"),
 		spellCastEffect = null,
 		spellCastBackground = null,
+		id = UUID.fromString("3d1dbc94-dc04-4ec3-a2b7-0269747afb2d"),
 	))
 	content.stats.elements.add(Element(
 		rawName = "THAUMA",
@@ -145,6 +155,7 @@ fun addElements(content: Content) {
 		swingEffect = null,
 		spellCastEffect = null,
 		spellCastBackground = getBcSprite("CastBackgroundThauma"),
+		id = UUID.fromString("6a859620-744c-4588-9b60-d7a643fcd4d6"),
 	))
 	content.stats.elements.add(Element(
 		rawName = "DIVINE",
@@ -156,5 +167,6 @@ fun addElements(content: Content) {
 		swingEffect = null,
 		spellCastEffect = null,
 		spellCastBackground = null,
+		id = UUID.fromString("da8e4ad0-5c03-4f1a-9890-d6cb4a4510f7"),
 	))
 }

@@ -4,9 +4,11 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.StableReferenceFieldId
 import com.github.knokko.bitser.field.StringField
 import mardek.content.particle.ParticleEffect
 import mardek.content.sprite.BcSprite
+import java.util.UUID
 
 @BitStruct(backwardCompatible = true)
 class Element(
@@ -42,17 +44,22 @@ class Element(
 
 	@BitField(id = 9, optional = true)
 	val spellCastBackground: BcSprite?,
+
+	@BitField(id = 10)
+	@StableReferenceFieldId
+	val id: UUID,
 ) {
 
-	constructor() : this(
-		"", null, "", "", 0, BcSprite(),
-		BcSprite(), BcSprite(), null, null
-	)
-
-	@BitField(id = 10, optional = true)
+	@BitField(id = 11, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	var weakAgainst: Element? = null
 		private set
+
+	constructor() : this(
+		"", null, "", "",
+		0, BcSprite(), BcSprite(), BcSprite(),
+		null, null, UUID.randomUUID(),
+	)
 
 	fun setWeakAgainst(element: Element) {
 		if (weakAgainst != null) throw IllegalStateException("$this is already weak against $weakAgainst")

@@ -352,14 +352,14 @@ class AreaState(
 		}
 
 		if (incomingRandomBattle != null) {
-			if (input.isPressed(InputKey.Cheat)) incomingRandomBattle = null
+			if (input.isPressed(InputKey.ChatMove)) incomingRandomBattle = null
 			else if (incomingRandomBattle!!.canAvoid && input.isPressed(InputKey.Cancel)) incomingRandomBattle = null
 		}
 	}
 
 	private fun canWalkTo(input: InputManager, x: Int, y: Int): Boolean {
 		if (x < 0 || y < 0) return false
-		if (input.isPressed(InputKey.Cheat)) return true
+		if (input.isPressed(InputKey.ChatMove)) return true
 		if (!area.canWalkOnTile(x, y)) return false
 
 		// TODO Movable characters

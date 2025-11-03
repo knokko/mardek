@@ -38,7 +38,7 @@ class SaveFile private constructor(
 	val campaignName: String,
 
 	/**
-	 * The type of `SaveFile`, currently always `Type.Crystal` since that is currently the only way to create saves
+	 * The type of `SaveFile`: basically how the save file was created (typically `Type.Crystal`)
 	 */
 	val type: Type,
 
@@ -62,6 +62,11 @@ class SaveFile private constructor(
 		 * The game created this save automatically
 		 */
 		Auto,
+
+		/**
+		 * The player used Control+S to save without save crystal
+		 */
+		Cheat,
 	}
 
 	/**

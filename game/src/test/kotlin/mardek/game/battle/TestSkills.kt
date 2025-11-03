@@ -14,6 +14,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.Enemy
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
@@ -191,7 +192,7 @@ object TestSkills {
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.CastSkill)
 				assertSame(deugan, (it as BattleStateMachine.CastSkill).caster)
-				assertEquals(listOf(deugan), it.targets)
+				assertArrayEquals(arrayOf(deugan), it.targets)
 				assertSame(recover, it.skill)
 				assertFalse(it.canDealDamage)
 			}
