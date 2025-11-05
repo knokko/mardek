@@ -16,7 +16,7 @@ internal fun importBattleBackgrounds(content: BattleContent) {
 	val backgroundsTag2 = FLASH.tags.find { it.uniqueId == "2204" }!! as DefineSpriteTag
 
 	val context = AnimationImportContext(
-		shapesDirectory = File("$projectFolder/flash/background-shapes-x4/")
+		shapesDirectory = File("$projectFolder/flash/all-shapes-x4/")
 	)
 	val backgrounds1 = importSkinnedAnimation(backgroundsTag1, context)
 	val backgrounds2 = importSkinnedAnimation(backgroundsTag2, context)

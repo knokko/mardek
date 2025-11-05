@@ -21,6 +21,10 @@ import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
 fun main() {
+	if (!File("$projectFolder/flash/all-shapes-x4").exists()) {
+		throw RuntimeException("You need to run mardek.importer.converter.SvgShapeConverter first")
+	}
+
 	var succeeded = false
 	try {
 		val bitser = Bitser(false)
@@ -149,7 +153,6 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	}
 	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
 
-	// TODO DL Fix line thickness
 	for (animationSprite in content.battle.animationSprites + content.portraits.animationSprites) {
 		addBcImage(resourceWriter, animationSprite.image)
 	}

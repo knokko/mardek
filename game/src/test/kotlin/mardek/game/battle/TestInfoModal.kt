@@ -32,7 +32,6 @@ object TestInfoModal {
 
 			val monsterSkinColor = arrayOf(Color(85, 56, 133))
 			val balmungHandleColor = arrayOf(Color(255, 203, 101))
-			val amuletColor = arrayOf(Color(255, 207, 105))
 
 			val greenTextColor = arrayOf(Color(102, 255, 0))
 			val redTextColor = arrayOf(Color(255, 169, 169))
@@ -45,7 +44,7 @@ object TestInfoModal {
 			testRendering(
 				state, 1600, 900, "battle-modal-before",
 				monsterSkinColor,
-				amuletColor + redTextColor + blueTextColor
+				redTextColor + blueTextColor
 			)
 
 			var infoBlock = monster.renderInfo.renderedInfoBlock!!
@@ -60,7 +59,7 @@ object TestInfoModal {
 			testRendering(
 				state, 1600, 900, "battle-modal-monster",
 				monsterSkinColor + redTextColor + blueTextColor + greenTextColor,
-				amuletColor
+				emptyArray()
 			)
 
 			infoBlock = battle.livingPlayers()[1].renderInfo.renderedInfoBlock!!
@@ -75,7 +74,7 @@ object TestInfoModal {
 			testRendering(
 				state, 1600, 900, "battle-modal-deugan",
 				monsterSkinColor + balmungHandleColor +
-						amuletColor + redTextColor + greenTextColor + blueTextColor, emptyArray()
+						redTextColor + greenTextColor + blueTextColor, emptyArray()
 			)
 
 			input.postEvent(pressKeyEvent(InputKey.Click))

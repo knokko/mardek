@@ -25,7 +25,7 @@ internal fun importPortraits(content: Content) {
 	val rootTag = FLASH.tags.find { it is DefineSpriteTag && it.exportName == "_portrait" }!! as DefineSpriteTag
 	val magicScale = 1
 	val context = AnimationImportContext(
-		shapesDirectory = File("$projectFolder/flash/portrait-shapes-x$magicScale/")
+		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale/")
 	)
 	content.portraits.magicScale = magicScale
 	content.portraits.animations = importSkinnedAnimation(rootTag, context)

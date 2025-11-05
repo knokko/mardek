@@ -113,7 +113,7 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 	val magicScale = 4
 	val battleTag = FLASH.tags.find { it.exportFileName.contains("B_MODEL") }!! as DefineSpriteTag
 	val context = AnimationImportContext(
-		shapesDirectory = File("$projectFolder/flash/monster-shapes-x$magicScale")
+		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale")
 	)
 	val importedMonsters = importSkinnedAnimation(battleTag, context)
 

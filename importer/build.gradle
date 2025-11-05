@@ -10,6 +10,7 @@ dependencies {
 	implementation project(":content")
 	implementation project(":state")
 	implementation project(":vk2d")
+	implementation "org.apache.xmlgraphics:batik-all:1.19"
 }
 
 tasks.register("exportContent", JavaExec) {
@@ -18,6 +19,15 @@ tasks.register("exportContent", JavaExec) {
 
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.importer.ContentExporterKt"
+}
+
+tasks.register("convertSVGs", JavaExec) {
+	group = "Export"
+	description = "Converts the Flash shapes from SVG to PNG. See the comments in " +
+			"importer/converter/SvgShapeConverter.kt for more information."
+
+	classpath sourceSets.main.runtimeClasspath
+	mainClass = "mardek.importer.converter.SvgShapeConverterKt"
 }
 
 tasks.register("importRawAreaData", JavaExec) {
