@@ -153,6 +153,12 @@ sealed class BattleStateMachine {
 		@ReferenceField(stable = true, label = "skills")
 		val skill: ActiveSkill?,
 
+		/**
+		 * When the attacker and/or target are player characters, and they have relevant reaction skills,
+		 * this `reactionChallenge` will be non-null. These reaction skills will be applied if and only if this
+		 * reaction challenge is passed. Furthermore, if needed, the damage calculation will be postponed until the
+		 * outcome of the reaction challenge has been determined.
+		 */
 		@BitField(id = 3, optional = true)
 		val reactionChallenge: ReactionChallenge?,
 	) : BattleStateMachine(), Move {
@@ -224,6 +230,16 @@ sealed class BattleStateMachine {
 				MonsterCombatantState(), MonsterCombatantState(),
 				null, null,
 			)
+
+			/**
+			 * Checks whether the reaction challenge is currently *pending*. While the reaction challenge is pending,
+			 * the damage calculation must be postponed, since the outcome of the reaction challenge can influence the
+			 * damage dealt.
+			 *
+			 * When there is no reaction challenge (e.g. there are no relevant reactions), this method will always
+			 * return false.
+			 */
+			fun isReactionChallengePending() = this.reactionChallenge != null && this.reactionChallenge.isPending()
 		}
 
 		@BitStruct(backwardCompatible = true)
@@ -266,6 +282,12 @@ sealed class BattleStateMachine {
 	) : BattleStateMachine(), Move {
 		var startTime = System.nanoTime()
 
+		/**
+		 * When the caster and/or target of this skill are player characters, and they have relevant reaction skills,
+		 * this `reactionChallenge` will be non-null. These reaction skills will be applied if and only if this
+		 * reaction challenge is passed. Furthermore, if needed, the damage calculation will be postponed until the
+		 * outcome of the reaction challenge has been determined.
+		 */
 		@BitField(id = 4, optional = true)
 		val reactionChallenge: ReactionChallenge?
 
@@ -326,6 +348,16 @@ sealed class BattleStateMachine {
 		override fun refreshStartTime() {
 			startTime = System.nanoTime()
 		}
+
+		/**
+		 * Checks whether the reaction challenge is currently *pending*. While the reaction challenge is pending, the
+		 * damage calculation must be postponed, since the outcome of the reaction challenge can influence the damage
+		 * dealt.
+		 *
+		 * When there is no reaction challenge (e.g. there are no relevant reactions), this method will always return
+		 * false.
+		 */
+		fun isReactionChallengePending() = reactionChallenge != null && reactionChallenge.isPending()
 	}
 
 	/**

@@ -225,7 +225,7 @@ class IntegrationTests {
 	}
 
 	@Test
-	fun testSaveDuringBackAttack() {
+	fun testSaveDuringBasicAttack() {
 		TestSaveAndLoad.testSaveDuringBasicAttack(instance)
 	}
 

@@ -83,8 +83,7 @@ class BattleState(
 	}
 
 	fun getReactionChallenge(): ReactionChallenge? {
-		val state = this.state
-		return when (state) {
+		return when (val state = this.state) {
 			is BattleStateMachine.MeleeAttack -> state.reactionChallenge
 			is BattleStateMachine.CastSkill -> state.reactionChallenge
 			else -> null
@@ -101,9 +100,7 @@ class BattleState(
 			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, context)
 			if (key == InputKey.MoveUp || key == InputKey.MoveDown) battleScrollVertically(this, key, context)
 		}
-		if (key == InputKey.Interact && reactionChallenge != null && reactionChallenge.clickedAfter == -1L) {
-			reactionChallenge.clickedAfter = System.nanoTime() - reactionChallenge.startTime
-		}
+		if (key == InputKey.Interact && reactionChallenge != null) reactionChallenge.click()
 
 		if (key == InputKey.Click) {
 			val mouse = this.lastMousePosition
@@ -239,7 +236,7 @@ class BattleState(
 			)
 		}
 		if (state is BattleStateMachine.MeleeAttack.Strike) {
-			if (state.canDealDamage && !state.hasDealtDamage) {
+			if (state.canDealDamage && !state.hasDealtDamage && !state.isReactionChallengePending()) {
 				val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
 				val result = if (state.skill == null) MoveResultCalculator(context).computeBasicAttackResult(
 					state.attacker, state.target, passedChallenge
@@ -257,7 +254,7 @@ class BattleState(
 				}
 				state.hasDealtDamage = true
 			}
-			if (state.finished) {
+			if (state.finished && state.hasDealtDamage) {
 				this.state = BattleStateMachine.MeleeAttack.JumpBack(
 					state.attacker, state.target,
 					state.skill, state.reactionChallenge
@@ -269,7 +266,7 @@ class BattleState(
 		}
 
 		if (state is BattleStateMachine.CastSkill) {
-			if (state.canDealDamage && state.targetParticlesSpawnTime == 0L) {
+			if (state.canDealDamage && state.targetParticlesSpawnTime == 0L && !state.isReactionChallengePending()) {
 				val particleEffect = state.skill.particleEffect ?: throw UnsupportedOperationException(
 					"Ranged skills must have a particle effect"
 				)

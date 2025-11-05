@@ -213,6 +213,7 @@ object TestSaveAndLoad {
 			assertFalse(strike.finished)
 			assertSame(battle.livingPlayers()[1], strike.attacker)
 
+			strike.hasDealtDamage = true
 			strike.finished = true
 			state.update(updateContext)
 
