@@ -1,5 +1,6 @@
 package mardek.importer.animation
 
+import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.jpexs.decompiler.flash.helpers.CodeFormatting
 import com.jpexs.decompiler.flash.helpers.StringBuilderTextWriter
 import com.jpexs.decompiler.flash.tags.DefineSpriteTag
@@ -54,13 +55,14 @@ private fun extractEquipmentSpecial(animation: SkinnedAnimation): SpecialAnimati
 
 internal fun importAnimationNode(
 	tag: PlaceObjectTypeTag, childID: Int, instanceName: String?,
-	animationColor: ColorTransform?, mask: AnimationMask,
+	initialAnimationColor: ColorTransform?, mask: AnimationMask,
 	initialSpecial: SpecialAnimationNode?, context: AnimationImportContext
 ): AnimationNode {
 	val animationMatrix = convertTransformationMatrix(tag.matrix)
 
 	var animation: SkinnedAnimation? = null
 	var sprite: AnimationSprite? = null
+	var animationColor: ColorTransform? = initialAnimationColor
 	var special: SpecialAnimationNode? = initialSpecial
 
 	if (instanceName == "HitPoint") special = SpecialAnimationNode.HitPoint
@@ -107,6 +109,15 @@ internal fun importAnimationNode(
 	}
 
 	var selectSkin: String? = null
+	if (exportName == "torchlist" || childID == 516) {
+		selectSkin = "orange"
+		animationColor = ColorTransform(
+			addColor = 0,
+			multiplyColor = rgba(1f, 1f, 1f, 0.35f),
+			subtractColor = 0,
+		)
+	}
+
 	if (tag.clipActions != null) {
 		for (clip in tag.clipActions.clipActionRecords) {
 			if (instanceName == "mdl") {
@@ -121,8 +132,7 @@ internal fun importAnimationNode(
 					println("Skipping skin selection of $tag with script $script")
 				}
 			}
-			if (exportName == "torchlight") {
-				// TODO DL Fix torch (light) colors
+			if (exportName == "torchlight" || childID == 516) {
 				val script = getScript(clip)
 				val prefix = "gotoAndStop("
 				val startIndex = script.indexOf(prefix)
@@ -130,6 +140,7 @@ internal fun importAnimationNode(
 				if (startIndex != -1 && endIndex != -1) {
 					selectSkin = script.substring(startIndex + prefix.length, endIndex)
 					if (selectSkin.startsWith('"')) selectSkin = selectSkin.substring(1, selectSkin.length - 1)
+					if (selectSkin == "1") selectSkin = "orange"
 				}
 			}
 		}

@@ -36,7 +36,7 @@ internal fun importBattleBackgrounds(content: BattleContent) {
 		if (existing == null) {
 			combined[name] = firstFrame.nodes
 		} else {
-			combined[name] = (existing + firstFrame.nodes).sortedBy { it.depth }.toTypedArray()
+			combined[name] = existing + firstFrame.nodes
 		}
 	}
 

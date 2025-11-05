@@ -47,7 +47,8 @@ class CombatantRenderer(
 			normalize(green(color)) * max * intensity,
 			normalize(blue(color)) * max * intensity, 0f
 		),
-		multiplyColor = rgb(1f - max * intensity, 1f - max * intensity, 1f - max * intensity)
+		multiplyColor = rgb(1f - max * intensity, 1f - max * intensity, 1f - max * intensity),
+		subtractColor = 0,
 	)
 
 	private fun selectedColorTransform(intensity: Float) = colorCombineTransform(
@@ -104,7 +105,8 @@ class CombatantRenderer(
 
 		val addColor = addColors(multiplyColors(base.addColor, top.multiplyColor), top.addColor)
 		val multiplyColor = multiplyColors(base.multiplyColor, top.multiplyColor)
-		return ColorTransform(addColor = addColor, multiplyColor = multiplyColor)
+		val subtractColor = addColors(multiplyColors(base.subtractColor, top.multiplyColor), top.subtractColor)
+		return ColorTransform(addColor = addColor, multiplyColor = multiplyColor, subtractColor = subtractColor)
 	}
 
 	fun render() {

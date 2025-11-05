@@ -40,7 +40,9 @@ internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch:
 						.translate(relativeX, relativeY)
 						.rotate(particle.computeRotation(renderTime))
 
-					val fadeTransform = ColorTransform(0, rgba(1f, 1f, 1f, alpha))
+					val fadeTransform = ColorTransform(
+						0, rgba(1f, 1f, 1f, alpha), 0
+					)
 
 					val corners = arrayOf(
 						Pair(0f, 0f),

@@ -80,7 +80,11 @@ private class AnimationSimulator {
 
 	fun addScript(tag: DoActionTag) {
 		val script = getScript(tag)
-		if (script.trim() == "GotoAptFrame(this);" || script.contains("!_parent._parent.stats.ethnicity")) {
+		if (
+			script.trim() == "GotoAptFrame(this);" ||
+			script.contains("!_parent._parent.stats.ethnicity") ||
+			script.contains("this.noFlicker")
+		) {
 			onlyOneFramePerSkin = true
 			if (currentSkinName != "") throw IllegalStateException()
 			currentSkinName = "1"

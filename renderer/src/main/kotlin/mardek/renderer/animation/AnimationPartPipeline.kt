@@ -32,7 +32,7 @@ class AnimationPartPipeline(context: Vk2dPipelineContext, vk2d: Vk2dInstance) : 
 			vertexAttributes.get(0).set(0, 0, VK_FORMAT_R32G32_SFLOAT, 0)
 			vertexAttributes.get(1).set(1, 0, VK_FORMAT_R32G32_SFLOAT, 8)
 			vertexAttributes.get(2).set(2, 0, VK_FORMAT_R32G32_SFLOAT, 16)
-			vertexAttributes.get(3).set(3, 0, VK_FORMAT_R32G32_UINT, 24)
+			vertexAttributes.get(3).set(3, 0, VK_FORMAT_R32G32B32_UINT, 24)
 
 			val builder = pipelineBuilder(context, stack)
 			builder.simpleShaderStages(
@@ -90,7 +90,7 @@ class AnimationPartPipeline(context: Vk2dPipelineContext, vk2d: Vk2dInstance) : 
 	}
 
 	companion object {
-		const val VERTEX_SIZE = 32
+		const val VERTEX_SIZE = 36
 
 		val BYTES_PER_TRIANGLE = intArrayOf(3 * VERTEX_SIZE)
 		val VERTEX_ALIGNMENTS = intArrayOf(VERTEX_SIZE)

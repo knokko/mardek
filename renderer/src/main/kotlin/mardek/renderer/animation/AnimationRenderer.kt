@@ -281,6 +281,7 @@ private fun renderTransformedImage(
 		maskSprite.index,
 		colors?.addColor ?: 0,
 		colors?.multiplyColor ?: -1,
+		colors?.subtractColor ?: 0,
 	)
 }
 
@@ -291,5 +292,6 @@ private fun mergeColorTransforms(base: ColorTransform?, top: ColorTransform?): C
 	return ColorTransform(
 		addColor = addColors(multiplyColors(base.addColor, top.multiplyColor), top.addColor),
 		multiplyColor = multiplyColors(base.multiplyColor, top.multiplyColor),
+		subtractColor = addColors(multiplyColors(base.subtractColor, top.multiplyColor), top.subtractColor),
 	)
 }

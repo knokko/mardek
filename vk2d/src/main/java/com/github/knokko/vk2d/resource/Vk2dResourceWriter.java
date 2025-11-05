@@ -349,6 +349,7 @@ public class Vk2dResourceWriter {
 
 		MemoryCombiner combiner = new MemoryCombiner(boiler, "Bc1/4CompressionMemory");
 		Bc1Compressor compressor1 = hasBc1 ? new Bc1Compressor(boiler, combiner, combiner) : null;
+		// TODO DL Fix validation warning "vkCmdBindPipeline(): [AMD] [NVIDIA] Pipeline VkPipeline 0x50000000005[Bc4Compressor] was bound twice in the frame."
 		Bc4Compressor compressor4 = hasBc4 ? new Bc4Compressor(boiler) : null;
 
 		int maxDestinationImagePixels = 0;

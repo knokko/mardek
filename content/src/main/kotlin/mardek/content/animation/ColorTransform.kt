@@ -9,8 +9,9 @@ import com.github.knokko.bitser.field.IntegerField
  * will be transformed by a `ColorTransform` before being rendered. (At least, if at least 1 ancestor has a
  * `ColorTransform`.)
  *
- * The final pixel color will be `addColor + multiplyColor * originalPixelColor`. The `ColorPacker` class of vk-boiler
- * is used to squeeze `addColor` and `multiplyColor` into 32-bit integers.
+ * The final pixel color will be `addColor - subtractColor + multiplyColor * originalPixelColor`.
+ * The `ColorPacker` class of vk-boiler is used to squeeze `addColor`, `multiplyColor`, and `subtractColor` into
+ * 32-bit integers.
  */
 @BitStruct(backwardCompatible = true)
 class ColorTransform(
@@ -28,10 +29,17 @@ class ColorTransform(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true)
 	val multiplyColor: Int,
+
+	/**
+	 * The color that will be subtracted from the final color
+	 */
+	@BitField(id = 2)
+	@IntegerField(expectUniform = true)
+	val subtractColor: Int,
 ) {
 
 	@Suppress("unused")
-	private constructor() : this(0, 0)
+	private constructor() : this(0, 0, 0)
 
 	private fun formatComponent(color: Int, offset: Int) = String.format("%.1f", ((color shr offset) and 255) / 255f)
 
@@ -39,17 +47,19 @@ class ColorTransform(
 			"${formatComponent(color, 8)}, ${formatComponent(color, 16)}, " +
 			"${formatComponent(color, 24)})"
 
-	override fun toString() = "ColorTransform(add ${formatColor(addColor)}, multiply ${formatColor(multiplyColor)})"
+	override fun toString() = "ColorTransform(" +
+			"add ${formatColor(addColor)}, multiply ${formatColor(multiplyColor)}, " +
+			"subtract ${formatColor(subtractColor)})"
 
 	override fun equals(other: Any?) = other is ColorTransform && addColor == other.addColor &&
-			multiplyColor == other.multiplyColor
+			multiplyColor == other.multiplyColor && subtractColor == other.subtractColor
 
-	override fun hashCode() = addColor + 13 * multiplyColor
+	override fun hashCode() = addColor + 13 * multiplyColor - 37 * subtractColor
 
 	companion object {
 		/**
 		 * The default color transform that does nothing: it adds rgba(0, 0, 0, 0) and multiplies with (-1, -1, -1, -1)
 		 */
-		val DEFAULT = ColorTransform(0, -1)
+		val DEFAULT = ColorTransform(0, -1, 0)
 	}
 }
