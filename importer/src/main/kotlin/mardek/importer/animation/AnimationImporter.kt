@@ -69,7 +69,7 @@ internal fun importAnimationNode(
 	if (childID == 219) special = SpecialAnimationNode.ElementalCastingCircle
 	if (childID == 2232) special = SpecialAnimationNode.ElementalCastingBackground
 	if (instanceName == "statusFX") special = SpecialAnimationNode.StatusEffectPoint
-	// TODO What's the difference between those two?
+	// TODO CHAP2 What's the difference between those two?
 	if (instanceName == "StfxPoint") special = SpecialAnimationNode.StatusEffectPoint
 	if (instanceName == "core") special = SpecialAnimationNode.Core
 	if (childID == 2311) special = SpecialAnimationNode.Exclaim
@@ -122,6 +122,7 @@ internal fun importAnimationNode(
 				}
 			}
 			if (exportName == "torchlight") {
+				// TODO DL Fix torch (light) colors
 				val script = getScript(clip)
 				val prefix = "gotoAndStop("
 				val startIndex = script.indexOf(prefix)

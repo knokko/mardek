@@ -60,7 +60,7 @@ internal fun renderDamageIndicator(
 
 			val height = imageBatch.height / 25f
 			val unknownFont = context.bundle.getFont(context.content.fonts.basic2.index)
-			// TODO Check this
+			// TODO DL Check this
 			textBatch.drawFancyString(
 				textAmount.toString(), position.x, position.y + height * 0.5f, height,
 				unknownFont, edgeColor, rgb(0, 0, 0), height * 0.05f,

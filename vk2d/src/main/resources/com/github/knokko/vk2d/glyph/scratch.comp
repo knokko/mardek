@@ -86,7 +86,7 @@ void main() {
 		if (abs(a) > 1e-5) {
 			// Quadratic segment, solve abc formula to find roots.
 			float radicand = b * b - a * curveStart;
-			if (radicand <= 0) continue; // TODO Perhaps, I can do better when maxOrthogonalDistance > 0.0
+			if (radicand <= 0) continue; // TODO CHAP1 Perhaps, I can do better when maxOrthogonalDistance > 0.0
 
 			float s = sqrt(radicand);
 			t0 = (b - s) / a;

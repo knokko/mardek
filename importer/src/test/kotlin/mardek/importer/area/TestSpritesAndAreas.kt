@@ -108,7 +108,7 @@ class TestSpritesAndAreas {
 	@Test
 	fun testGetBigDoor() {
 		val door = importObjectSprites("BIGDOORSHEET", offsetY = 3 * 32, height = 32)
-		assertEquals(4, door.frames.size) // TODO Assert 3 instead
+		assertEquals(4, door.frames.size) // TODO CHAP1 Assert 3 instead
 		assertImageEquals(
 			"sheets/objects/BIGDOORSHEET.png", 0, 3 * 32,
 			16, 32, door.frames[0]

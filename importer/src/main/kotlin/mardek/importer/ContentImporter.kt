@@ -64,8 +64,11 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 		return state
 	}
 
+	// TODO DL Play cutscene first
 	val startChapter1 = CampaignState(
-		currentArea = AreaState(content.areas.areas.find { it.properties.rawName == "DL_entr" }!!, AreaPosition(5, 10)),
+		currentArea = AreaState(content.areas.areas.find {
+			it.properties.rawName == "DL_entr"
+		}!!, AreaPosition(5, 10)),
 		characterSelection = CharacterSelectionState(
 			hashSetOf(heroMardek.wrapped, heroDeugan.wrapped),
 			HashSet(0),

@@ -136,7 +136,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 				if (discovery.isDiscovered(x, y) || area.flags.hasClearMap) putMapColor(x, y, color)
 			}
 
-			// TODO Handle moving characters
+			// TODO CHAP1 Handle moving characters
 			for (character in area.objects.characters) {
 				putIfDiscovered(character.startX, character.startY, OBJECT_COLOR)
 			}

@@ -22,7 +22,7 @@ private fun hardcodeDragonLairEntryActions(hardcoded: MutableMap<String, Mutable
 		ActionWalk(ActionTargetWholeParty(), 5, 5, WalkSpeed.Normal),
 		ActionTalk(targetMardek, "norm", "Well Deugan, this is The Dragon's Lair."),
 		ActionTalk(targetDeugan, "grin", "Yes, Mardek, that it is! We have to get to the dragon and slay it to rescue the Princess! Tally-ho!"),
-		// TODO Give quest
+		// TODO CHAP1 Give quest
 		ActionTalk(targetMardek, "susp", "What does 'tally-ho' mean?"),
 		ActionTalk(targetDeugan, "deep", "Uhm... I'm not sure! But I've heard adventurers say it before maybe! It sounds like something they'd say!"),
 		ActionTalk(targetMardek, "grin", "Tally-ho!"),
@@ -31,7 +31,7 @@ private fun hardcodeDragonLairEntryActions(hardcoded: MutableMap<String, Mutable
 		ActionTalk(targetDeugan, "grin", "Now let's go and save that Princess! Tally-ho!"),
 		ActionTalk(targetDeugan, "norm", "Oh, but Mardek, just a reminder about things! We can \$open the menu with the TAB key% to check our stats, skills and items! And we can also \$open doors and talk to people and stuff with the E key%! Remember these things!"),
 		ActionTalk(targetDeugan, "norm", "It might be a good idea to \$read the Help section of the menu% now if you didn't read the Instructions already!"),
-		// TODO Add help section :p
+		// TODO CHAP2 Add help section :p
 		ActionTalk(targetMardek, "susp", "...Huh?"),
 		ActionTalk(targetDeugan, "grin", "Uh, I mean... Tally-ho! Let's go and slay that dragon!"),
 	))!!

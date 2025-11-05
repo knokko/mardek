@@ -362,7 +362,7 @@ class AreaState(
 		if (input.isPressed(InputKey.ChatMove)) return true
 		if (!area.canWalkOnTile(x, y)) return false
 
-		// TODO Movable characters
+		// TODO CHAP1 Movable characters
 		for (character in area.objects.characters) {
 			if (x == character.startX && y == character.startY) return false
 		}
@@ -371,7 +371,7 @@ class AreaState(
 			if (x == areaObject.x && y == areaObject.y) return false
 		}
 
-		// TODO Switch gates and platforms
+		// TODO CHAP3 Switch gates and platforms
 		return true
 	}
 

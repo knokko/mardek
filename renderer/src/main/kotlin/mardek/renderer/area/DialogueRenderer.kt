@@ -248,7 +248,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				nameRegion.maxX - nameRegion.height * 10 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "Q", "Skip",
 			)
-			// TODO Make the chat log...
+			// TODO CHAP2 Make the chat log...
 			renderBox(
 				nameRegion.maxX - nameRegion.height * 5 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "L", "Log",

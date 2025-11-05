@@ -149,7 +149,7 @@ public class Vk2dResourceLoader {
 		this.stagingMemory = stagingCombiner.build(false);
 		this.stagingCombiner = null;
 		for (MappedVkbBuffer buffer : imageStagingBuffers) {
-			// TODO Try out channels instead: Channels.newChannel(input)?
+			// TODO CHAP1 Try out channels instead: Channels.newChannel(input)?
 			byte[] bytes = new byte[Math.toIntExact(buffer.size)];
 			input.readFully(bytes);
 			buffer.byteBuffer().put(bytes);

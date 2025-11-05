@@ -126,7 +126,7 @@ public class Vk2dResourceWriter {
 			System.out.println("Too high");
 			return 1023;
 		}
-		// TODO Tune this again
+		// TODO DL Tune this again
 		return Math.toIntExact(relativeValue * 1023L / worldSize);
 	}
 

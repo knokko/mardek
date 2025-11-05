@@ -146,7 +146,7 @@ public class Vk2dGlyphBatch extends Vk2dBatch {
 			String text, float baseX, float baseY, float heightA,
 			Vk2dFont font, int fillColor, int strokeColor, float strokeWidth, TextAlignment alignment
 	) {
-		// TODO Add HB support
+		// TODO CHAP2 Add HB support
 		drawPrimitiveString(text, baseX, baseY, font, heightA, fillColor, strokeColor, strokeWidth, alignment);
 	}
 

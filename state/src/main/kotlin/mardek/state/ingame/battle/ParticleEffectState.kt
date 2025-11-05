@@ -35,8 +35,8 @@ class ParticleEffectState(val particle: ParticleEffect, val position: CombatantR
 			playedDamageSound = true
 		}
 
-		// TODO Extra sound delays
-		// TODO Quake
+		// TODO CHAP3 Extra sound delays
+		// TODO CHAP3 Quake
 		emitters.removeIf { it.update(startTime, currentTime) }
 		return playedInitialSound && playedDamageSound && emitters.isEmpty()
 	}

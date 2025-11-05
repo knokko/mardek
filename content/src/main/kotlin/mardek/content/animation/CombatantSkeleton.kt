@@ -85,7 +85,7 @@ class CombatantSkeleton(
 	}
 
 	override fun postInit(context: BitPostInit.Context) {
-		// TODO Try to push this logic into bitser
+		// TODO CHAP1 Try to push this logic into bitser
 		@Suppress("UNCHECKED_CAST")
 		this.rawAnimations.putAll(context.functionValues[CombatantSkeleton::class.java]!![0] as Map<String, ByteArray>)
 	}

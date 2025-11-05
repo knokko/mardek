@@ -13,7 +13,7 @@ class GemProperties(
 	val power: Int,
 
 	@BitField(id = 1)
-	val particleEffect: String, // TODO Turn into reference
+	val particleEffect: String, // TODO CHAP3 Turn into reference
 
 	@BitField(id = 2)
 	val inflictStatusEffects: ArrayList<PossibleStatusEffect>,

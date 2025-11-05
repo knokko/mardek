@@ -149,6 +149,7 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	}
 	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
 
+	// TODO DL Fix line thickness
 	for (animationSprite in content.battle.animationSprites + content.portraits.animationSprites) {
 		addBcImage(resourceWriter, animationSprite.image)
 	}

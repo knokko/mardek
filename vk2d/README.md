@@ -47,7 +47,7 @@ This is the only way that doesn't require any knowledge of Vulkan: it simply set
 If you know Vulkan and need a more flexible way, you can create your own `BoilerInstance` and set up your own render loop.
 (Check the source code of `Vk2dWindow.bootstrap`, it's not that much...)
 It is also possible to use vk2d without any window at all, to simply render onto a `VkImage`. In fact, many unit tests do just that.
-TODO create instructions/sample for this
+TODO CHAP1 create instructions/sample for this
 
 ## Rendering flow
 ### The simple rendering flow
@@ -57,7 +57,7 @@ In this simple flow, there are basically 2 things that you need to do:
 1. Create *batches*, for instance by using `pipelines.color.addBatch(frame.swapchainStage, initialCapacity)`.
 2. Call the methods of these batches to actually draw stuff, for instance `colorBatch.fill(minX, minY, maxX, maxY, color)`.
 
-TODO FINISH THIS
+TODO CHAP1 FINISH THIS
 
 ## Pipelines
 - [color](docs/pipeline/color.md)

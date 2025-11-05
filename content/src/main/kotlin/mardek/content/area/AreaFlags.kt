@@ -10,7 +10,7 @@ class AreaFlags(
 	 * Whether the player is allowed to use the Warp spell
 	 */
 	@BitField(id = 0)
-	val canWarp: Boolean, // TODO Special case is start of chapter 3
+	val canWarp: Boolean, // TODO CHAP2 Special case is start of chapter 3
 
 	/**
 	 * Hm... I'm not quite sure what this does... this flag is true in all kinds of places, and 162 / 258 areas

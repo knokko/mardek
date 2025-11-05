@@ -8,7 +8,7 @@ import com.github.knokko.compressor.Kim1Decompressor
 import com.github.knokko.compressor.Kim2Decompressor
 import com.github.knokko.vk2d.Kim3Compressor
 
-// TODO Save conditionally
+// TODO CHAP1 Save conditionally
 @BitStruct(backwardCompatible = true)
 class KimSprite(
 	@BitField(id = 0)

@@ -60,7 +60,7 @@ internal fun renderEffectHistory(
 			val weakColor = multiplyColors(strongColor, rgb(0.7f, 0.7f, 0.7f))
 			val unknownFont = context.bundle.getFont(context.content.fonts.basic2.index)
 
-			// TODO Check this & fix weakColor
+			// TODO DL Check this & fix weakColor
 			textBatch.drawFancyString(
 				currentEntry.effect.shortName, midX, midY, imageBatch.height / 30f, unknownFont,
 				weakColor, rgb(0, 0, 0), imageBatch.height / 150f,

@@ -115,7 +115,7 @@ public class GlyphCacheTracker {
 		else return stableIntersectionIndices.position() - 1;
 	}
 
-	// TODO Use fixed-point offset & size?
+	// TODO CHAP2 Use fixed-point offset & size?
 	private record Entry(
 			int fontIndex, int glyph, float offset,
 			float size, int intSize, boolean horizontal, float maxOrthogonalDistance

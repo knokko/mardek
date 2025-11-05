@@ -96,7 +96,7 @@ internal fun renderEffectParticles(battleContext: BattleRenderContext, imageBatc
 				Vector2f(h, h), Vector2f(-h, h)
 			).map { rawCorner ->
 				val offsetX = particle.getX(renderTime) + size * (rawCorner.x * cos(rotation) -
-						rawCorner.y * sin(rotation))// TODO + particle.combatant.getModel().skeleton.statusPoint.x
+						rawCorner.y * sin(rotation))// TODO DL + particle.combatant.getModel().skeleton.statusPoint.x
 				val offsetY = particle.getY(renderTime) + size * (rawCorner.x * sin(rotation) +
 						rawCorner.y * cos(rotation))// + particle.combatant.getModel().skeleton.statusPoint.y
 				Vector2f(

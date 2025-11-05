@@ -9,7 +9,7 @@ class AreaObjects(
 	@BitField(id = 0)
 	val characters: ArrayList<AreaCharacter>,
 
-	// TODO Code reuse: create abstract StaticAreaObject class with (x, y) that most objects extend
+	// TODO CHAP1 Code reuse: create abstract StaticAreaObject class with (x, y) that most objects extend
 	@BitField(id = 1)
 	val decorations: ArrayList<AreaDecoration>,
 

@@ -64,7 +64,7 @@ internal fun renderBattleLoot(
 				pointerScale, pointer.index,
 			)
 		}
-		// TODO Get rid of itemYs
+		// TODO DL Get rid of itemYs
 		itemYs[row] = itemY
 		row += 1
 		itemY += rowHeight
@@ -107,7 +107,7 @@ internal fun renderBattleLoot(
 	val x2 = partyMinX - 2 * scale
 	val y1 = region.minY + 12 * scale
 	val y2 = region.minY + 24 * scale
-	// TODO This one was moved to InGameRenderer blur filter. Fix colors later
+	// TODO DL This one was moved to InGameRenderer blur filter. Fix colors later
 //	colorBatch.gradient(
 //		region.minX, region.minY, region.maxX, region.maxY,
 //		leftColor, rightColor, leftColor

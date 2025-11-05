@@ -42,7 +42,7 @@ class AreaProperties(
 
 	@BitField(id = 7)
 	val snowType: AreaSnowType,
-	// TODO Dreamshrine Entrance has some GlowTiles stuff
+	// TODO CHAP3 Dreamshrine Entrance has some GlowTiles stuff
 ) {
 
 	internal constructor() : this(

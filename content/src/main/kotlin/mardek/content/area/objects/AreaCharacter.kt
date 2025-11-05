@@ -51,7 +51,7 @@ class AreaCharacter(
 	val conversationName: String?,
 
 	@BitField(id = 9, optional = true)
-	val rawConversation: String?, // TODO Work this out later
+	val rawConversation: String?, // TODO CHAP1 Work this out later
 
 	@BitField(id = 10, optional = true)
 	val encyclopediaPerson: String?,

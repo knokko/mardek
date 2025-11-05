@@ -12,6 +12,7 @@ import static java.lang.Math.max;
 
 public class Kim3Compressor {
 
+	// TODO DL Move kim3 compression to vk-compressor, after performance testing
 	public static int getWidth(int header) {
 		return header & 4095;
 	}

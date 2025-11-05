@@ -108,12 +108,13 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 			199, combat.magicElement.thinSprite, -30f, -30f
 		)
 	}
-	// TODO Casting sparkles
+	// TODO DL Casting sparkles
 
 	val (mask, maskMatrix) = if (top.mask == null || top.mask.frames.size < node.mask.frames.size) {
 		Pair(node.mask, top.matrix)
 	} else Pair(top.mask, top.maskMatrix)
 
+	// TODO DL Investigate animation glitch
 	if (special == SpecialAnimationNode.ElementalCastingBackground) {
 		val backgroundSprite = combat?.magicElement?.spellCastBackground ?: return
 		sprite = AnimationSprite(2223, backgroundSprite, 0f, 0f)

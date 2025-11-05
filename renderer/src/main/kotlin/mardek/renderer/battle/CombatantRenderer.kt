@@ -127,6 +127,8 @@ class CombatantRenderer(
 	}
 
 	private fun chooseMeleeAnimation() {
+		// TODO DL Properly support breath attack (for the dragon)
+		// TODO DL Fix positioning & clean this code up
 		if (state !is BattleStateMachine.MeleeAttack) throw Error()
 //		val rawTargetCoordinates = state.target.getPosition(context.battle)
 //		val targetFlipX = if (state.target.isOnPlayerSide) 1f else -1f

@@ -112,7 +112,7 @@ internal fun renderPlayerBlock(
 					region.width / 3, region.height / 6
 				), colorBatch, textBatch,
 			)
-			xpBar.renderBar(80, 100) // TODO proper xp
+			xpBar.renderBar(80, 100) // TODO CHAP1 proper xp
 			xpBar.renderClosingBracket()
 
 			val font = context.bundle.getFont(context.content.fonts.large1.index)

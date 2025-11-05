@@ -8,7 +8,7 @@ import mardek.content.BITSER
 
 @BitStruct(backwardCompatible = true)
 class TransitionDestination(
-	// TODO Optional worldMap
+	// TODO CHAP1 Optional worldMap
 	@BitField(id = 0, optional = true)
 	@ReferenceField(stable = false, label = "areas")
 	var area: Area?,

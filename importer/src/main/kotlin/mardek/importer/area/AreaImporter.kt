@@ -102,7 +102,7 @@ internal fun importAreaContent(content: Content) {
 	}
 
 	for ((transition, destination) in transitions) {
-		if (destination == "WORLDMAP") continue // TODO Handle this
+		if (destination == "WORLDMAP") continue // TODO CHAP1 Handle this
 		if (destination == "nowhere") continue
 		transition.area = content.areas.areas.find {
 			it.properties.rawName.equals(destination, ignoreCase = true)

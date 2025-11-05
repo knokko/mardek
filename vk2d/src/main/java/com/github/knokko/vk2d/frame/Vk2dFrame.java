@@ -41,7 +41,7 @@ public class Vk2dFrame {
 		for (Vk2dStage stage : stages) {
 			if (stage instanceof Vk2dRenderStage) {
 				Vk2dRenderStage renderStage = (Vk2dRenderStage) stage;
-				// TODO Maybe skip layout transitions when prior/next usage is already COLOR_ATTACHMENT_WRITE
+				// TODO DL Maybe skip layout transitions when prior/next usage is already COLOR_ATTACHMENT_WRITE
 				if (renderStage.isEmpty()) {
 					if (renderStage.nextUsage != null) {
 						recorder.transitionLayout(renderStage.targetImage, renderStage.priorUsage, renderStage.nextUsage);

@@ -96,7 +96,7 @@ class SavesFolderManager(
 			party = campaignState.characterSelection.party.map { it?.id }.toTypedArray(),
 			playTime = campaignState.totalTime,
 			partyLevel = partyLevel,
-			chapter = 1, // TODO Determine chapter
+			chapter = 1, // TODO CHAP2 Determine chapter
 		)
 
 		val infoBytes = savesBitser.serializeToBytes(

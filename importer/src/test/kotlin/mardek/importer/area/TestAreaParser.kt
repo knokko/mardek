@@ -171,7 +171,7 @@ class TestAreaParser {
 		assertEquals(1, parsed.objects.characters.size)
 		assertEquals("Aeropolis", parsed.properties.musicTrack)
 		assertTrue(parsed.flags.hasClearMap)
-		// TODO Add error support
+		// TODO CHAP3 Add error support
 	}
 
 	@Test
