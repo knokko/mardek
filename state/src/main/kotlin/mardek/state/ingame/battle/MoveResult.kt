@@ -1,5 +1,10 @@
 package mardek.state.ingame.battle
 
+import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.SoundEffect
 import mardek.content.stats.CombatStat
 import mardek.content.stats.Element
@@ -7,14 +12,9 @@ import mardek.content.stats.StatusEffect
 
 class MoveResult(
 	/**
-	 * The element icon that should be displayed in the damage indicator
+	 * The element icon that should be displayed in the damage indicator **of the caster/attacker**
 	 */
 	val element: Element,
-
-	/**
-	 * When non-zero, overrides the 'blink color' of the target if it takes damage
-	 */
-	val overrideBlinkColor: Int,
 
 	/**
 	 * The sounds that should be played
@@ -47,53 +47,89 @@ class MoveResult(
 		return result.toString()
 	}
 
+	@BitStruct(backwardCompatible = true)
 	class Entry(
+		/**
+		 * The element icon that should be displayed in the damage indicator **of the target**
+		 */
+		@BitField(id = 0)
+		@ReferenceField(stable = true, label = "elements")
+		val element: Element,
+
+		/**
+		 * When non-zero, overrides the 'blink color' of the target if it takes damage
+		 */
+		@BitField(id = 1)
+		@IntegerField(expectUniform = false)
+		val overrideBlinkColor: Int,
+
 		/**
 		 * The target described by this entry
 		 */
+		@BitField(id = 2)
+		@ReferenceField(stable = false, label = "combatants")
 		val target: CombatantState,
 
 		/**
 		 * The final amount of damage dealt.
 		 * When negative, the move heals the target instead
 		 */
+		@BitField(id = 3)
+		@IntegerField(expectUniform = false)
 		val damage: Int,
 
 		/**
 		 * The final amount of mana that this target will lose.
 		 * When negative, the move restores mana of the target instead.
 		 */
+		@BitField(id = 4)
+		@IntegerField(expectUniform = false)
 		val damageMana: Int,
 
 		/**
 		 * True if the attack missed, false otherwise.
 		 * When true, all other fields should be ignored.
 		 */
+		@BitField(id = 5)
 		var missed: Boolean,
 
 		/**
 		 * Whether the attack was a critical hit.
 		 * Note that the `damage` is already increased to account for this, so it should not be increased again.
 		 */
+		@BitField(id = 6)
 		var criticalHit: Boolean,
 
 		/**
 		 * The status effects that should be removed from the target. This set will only contain status effects that the
 		 * target currently has, and never contain auto-effects of the target.
 		 */
-		val removedEffects: Set<StatusEffect>,
+		@BitField(id = 7)
+		@ReferenceField(stable = true, label = "status effects")
+		val removedEffects: HashSet<StatusEffect>,
 
 		/**
 		 * The status effects that should be added to the target (resistances were already taken into account).
 		 * Note that these effects should be added **after** the effects in `removedEffects` are removed.
 		 */
-		val addedEffects: Set<StatusEffect>,
+		@BitField(id = 8)
+		@ReferenceField(stable = true, label = "status effects")
+		val addedEffects: HashSet<StatusEffect>,
 
 		/**
 		 * The stat modifiers that should be added to the target
 		 */
-		val addedStatModifiers: Map<CombatStat, Int>,
+		@BitField(id = 9)
+		@NestedFieldSetting(path = "v", fieldName = "ADDED_STAT_MODIFIER_VALUES")
+		val addedStatModifiers: HashMap<CombatStat, Int>,
 	) {
+
+		@Suppress("unused")
+		private constructor() : this(
+			Element(), 0, MonsterCombatantState(), 0, 0, false,
+			false, HashSet(), HashSet(), HashMap(),
+		)
+
 		override fun toString(): String {
 			if (missed) return "MISSED"
 			val result = StringBuilder("Entry(damage=$damage")
@@ -109,6 +145,13 @@ class MoveResult(
 			}
 			result.append(")")
 			return result.toString()
+		}
+
+		companion object {
+
+			@Suppress("unused")
+			@IntegerField(expectUniform = false)
+			private const val ADDED_STAT_MODIFIER_VALUES = false
 		}
 	}
 }

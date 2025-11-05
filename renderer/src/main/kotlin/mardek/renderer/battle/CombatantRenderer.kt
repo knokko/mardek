@@ -210,7 +210,9 @@ class CombatantRenderer(
 		if (relativeCastTime < castTime) {
 			animation = castAnimation
 			relativeTime = relativeCastTime
-		} else state.canDealDamage = true
+		} else state.hasFinishedCastingAnimation = true
+
+		if (relativeCastTime > castTime / 2L) state.canSpawnTargetParticles = true
 	}
 
 	private fun chooseItemAnimation() {

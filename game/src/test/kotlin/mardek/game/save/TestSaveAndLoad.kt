@@ -288,16 +288,16 @@ object TestSaveAndLoad {
 			battle = campaign.currentArea!!.activeBattle!!
 
 			val castSkill = battle.state as BattleStateMachine.CastSkill
-			assertFalse(castSkill.canDealDamage)
+			assertFalse(castSkill.hasFinishedCastingAnimation)
+			assertNull(castSkill.calculatedDamage)
 			assertSame(battle.livingPlayers()[1], castSkill.caster)
 			assertEquals(1, castSkill.targets.size)
 			assertSame(battle.livingOpponents()[0], castSkill.targets[0])
 			assertSame(frostasia, castSkill.skill)
-			castSkill.canDealDamage = true
+			castSkill.hasFinishedCastingAnimation = true
+			castSkill.calculatedDamage = arrayOf(null)
 			assertTrue(castSkill.startTime > beforeLoadTime)
 
-			state.update(updateContext)
-			sleep(1250)
 			state.update(updateContext)
 			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
 			sleep(750)

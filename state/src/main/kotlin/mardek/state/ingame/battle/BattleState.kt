@@ -244,7 +244,7 @@ class BattleState(
 					state.skill, state.attacker, arrayOf(state.target), passedChallenge
 				)
 
-				applyMoveResult(context, result, state.attacker)
+				applyMoveResultEntirely(context, result, state.attacker)
 				for (entry in result.targets) {
 					if (!entry.missed && state.skill != null) {
 						state.skill.particleEffect?.let { particles.add(ParticleEffectState(
@@ -266,20 +266,20 @@ class BattleState(
 		}
 
 		if (state is BattleStateMachine.CastSkill) {
-			if (state.canDealDamage && state.targetParticlesSpawnTime == 0L && !state.isReactionChallengePending()) {
+			if (state.canSpawnTargetParticles && state.targetParticlesSpawnTime == 0L && !state.hasAppliedAllDamage()) {
 				val particleEffect = state.skill.particleEffect ?: throw UnsupportedOperationException(
 					"Ranged skills must have a particle effect"
 				)
 
-				for (target in state.targets) {
+				for ((index, target) in state.targets.withIndex()) {
 					val particle = ParticleEffectState(particleEffect, target.renderInfo.hitPoint)
-					particle.startTime = System.nanoTime()
+					particle.startTime = System.nanoTime() + 250_000_000L * index
 					particles.add(particle)
 				}
 				state.targetParticlesSpawnTime = System.nanoTime()
 			}
 
-			if (state.targetParticlesSpawnTime != 0L) {
+			if (state.targetParticlesSpawnTime != 0L && !state.isReactionChallengePending() && state.calculatedDamage == null) {
 				val spentSeconds = (System.nanoTime() - state.targetParticlesSpawnTime) / 1000_000_000f
 				if (spentSeconds > state.skill.particleEffect!!.damageDelay) {
 					val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
@@ -287,10 +287,30 @@ class BattleState(
 					val result = MoveResultCalculator(context).computeSkillResult(
 						state.skill, state.caster, state.targets, passedChallenge
 					)
-
-					applyMoveResult(context, result, state.caster)
-					this.state = BattleStateMachine.NextTurn(System.nanoTime() + 750_000_000L)
+					applyMoveResultToAttacker(context, result, state.caster)
+					state.calculatedDamage = state.targets.mapIndexed { index, target ->
+						if (target != result.targets[index].target) {
+							throw Error("Target mismatch")
+						}
+						result.targets[index]
+					}.toTypedArray()
 				}
+			}
+			val calculatedDamage = state.calculatedDamage
+
+			if (calculatedDamage != null) {
+				for ((index, targetDamage) in calculatedDamage.withIndex()) {
+					if (targetDamage == null) continue
+					val spentSeconds = (System.nanoTime() - state.targetParticlesSpawnTime) / 1000_000_000f
+					if (spentSeconds > state.skill.particleEffect!!.damageDelay + 0.25 * index) {
+						applyMoveResultToTarget(context, targetDamage)
+						calculatedDamage[index] = null
+					}
+				}
+			}
+
+			if (state.hasFinishedCastingAnimation && state.hasAppliedAllDamage()) {
+				this.state = BattleStateMachine.NextTurn(System.nanoTime() + 500_000_000L)
 			}
 		}
 
@@ -298,7 +318,7 @@ class BattleState(
 			val result = MoveResultCalculator(context).computeItemResult(
 				state.item, state.thrower, state.target
 			)
-			applyMoveResult(context, result, state.thrower)
+			applyMoveResultEntirely(context, result, state.thrower)
 			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 500_000_000L)
 
 			val particleEffect = state.item.consumable?.particleEffect
@@ -310,48 +330,53 @@ class BattleState(
 		}
 	}
 
-	private fun applyMoveResult(context: BattleUpdateContext, result: MoveResult, attacker: CombatantState) {
+	private fun applyMoveResultEntirely(context: BattleUpdateContext, result: MoveResult, attacker: CombatantState) {
+		applyMoveResultToAttacker(context, result, attacker)
+		for (targetEntry in result.targets) applyMoveResultToTarget(context, targetEntry)
+	}
+
+	private fun applyMoveResultToTarget(context: BattleUpdateContext, entry: MoveResult.Entry) {
 		val currentTime = System.nanoTime()
+
+		val target = entry.target
+		if (!entry.missed) {
+			if (entry.damage != 0 || entry.damageMana == 0) {
+				target.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
+					oldHealth = target.currentHealth,
+					oldMana = target.currentMana,
+					gainedHealth = -entry.damage,
+					element = entry.element,
+					overrideColor = entry.overrideBlinkColor,
+				)
+			} else {
+				target.renderInfo.lastDamageIndicator = DamageIndicatorMana(
+					oldHealth = target.currentHealth,
+					oldMana = target.currentMana,
+					gainedMana = -entry.damageMana,
+					element = entry.element,
+					overrideColor = entry.overrideBlinkColor,
+				)
+			}
+
+			target.currentHealth -= entry.damage
+			target.currentMana -= entry.damageMana
+
+			target.statusEffects.addAll(entry.addedEffects)
+			for ((stat, modifier) in entry.addedStatModifiers) {
+				target.statModifiers[stat] = target.statModifiers.getOrDefault(stat, 0) + modifier
+			}
+			target.clampHealthAndMana(context)
+
+			if (target.isAlive()) {
+				target.statusEffects.removeAll(entry.removedEffects)
+				for (effect in entry.removedEffects) target.renderInfo.effectHistory.remove(effect, currentTime)
+				for (effect in entry.addedEffects) target.renderInfo.effectHistory.add(effect, currentTime)
+			}
+		} else target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
+	}
+
+	private fun applyMoveResultToAttacker(context: BattleUpdateContext, result: MoveResult, attacker: CombatantState) {
 		for (sound in result.sounds) context.soundQueue.insert(sound)
-
-		for (entry in result.targets) {
-			val target = entry.target
-			if (!entry.missed) {
-				if (entry.damage != 0 || entry.damageMana == 0) {
-					target.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
-						oldHealth = target.currentHealth,
-						oldMana = target.currentMana,
-						gainedHealth = -entry.damage,
-						element = result.element,
-						overrideColor = result.overrideBlinkColor,
-					)
-				} else {
-					target.renderInfo.lastDamageIndicator = DamageIndicatorMana(
-						oldHealth = target.currentHealth,
-						oldMana = target.currentMana,
-						gainedMana = -entry.damageMana,
-						element = result.element,
-						overrideColor = result.overrideBlinkColor,
-					)
-				}
-
-				target.currentHealth -= entry.damage
-				target.currentMana -= entry.damageMana
-
-				target.statusEffects.addAll(entry.addedEffects)
-				for ((stat, modifier) in entry.addedStatModifiers) {
-					target.statModifiers[stat] = target.statModifiers.getOrDefault(stat, 0) + modifier
-				}
-				target.clampHealthAndMana(context)
-
-				if (target.isAlive()) {
-					target.statusEffects.removeAll(entry.removedEffects)
-					for (effect in entry.removedEffects) target.renderInfo.effectHistory.remove(effect, currentTime)
-					for (effect in entry.addedEffects) target.renderInfo.effectHistory.add(effect, currentTime)
-				}
-			} else target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
-		}
-
 		if (result.restoreAttackerHealth != 0) {
 			attacker.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
 				oldHealth = attacker.currentHealth,

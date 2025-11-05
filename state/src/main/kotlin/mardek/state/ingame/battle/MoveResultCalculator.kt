@@ -26,7 +26,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		baseFlatDamage: Int, attackValue: Int, basicElementalBonus: Float,
 		basicHitChance: Int, basicCritChance: Int, applyDamageSplit: Boolean,
 		basicHealthDrain: Float, basicManaDrain: Float, attackElement: Element,
-		basicAddStatModifiers: MutableMap<CombatStat, Int>,
+		basicAddStatModifiers: HashMap<CombatStat, Int>,
 		basicAddEffects: MutableMap<StatusEffect, Int>,
 		basicRemoveEffects: MutableMap<StatusEffect, Int>,
 	): Entry {
@@ -135,8 +135,8 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		}
 
 		if (isMelee) hitChance -= target.getStat(CombatStat.Evasion, context)
-		val missed = hitChance <= Random.Default.nextInt(100)
-		val criticalHit = criticalChance > Random.Default.nextInt(100)
+		val missed = hitChance <= Random.nextInt(100)
+		val criticalHit = criticalChance > Random.nextInt(100)
 
 		run {
 			var floatDamage = damage.toDouble()
@@ -144,8 +144,8 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			floatDamage *= (1.0 + attackerCreatureBonus)
 			floatDamage *= (1.0 + attackerEffectBonus)
 			floatDamage *= (1.0 + attackElementBonus)
-			floatDamage *= if (isMelee) Random.Default.nextDouble(0.9, 1.1)
-			else Random.Default.nextDouble(0.7, 1.3)
+			floatDamage *= if (isMelee) Random.nextDouble(0.9, 1.1)
+			else Random.nextDouble(0.7, 1.3)
 
 			if (!isHealing) {
 				floatDamage *= max(0.0, 1.0 + extraDamageFractionTarget)
@@ -181,6 +181,8 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 
 		return Entry(
 			result = MoveResult.Entry(
+				element = attackElement,
+				overrideBlinkColor = 0,
 				target = target,
 				damage = damage,
 				damageMana = 0,
@@ -199,22 +201,22 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		val effect = it.key
 		val chance = it.value
 		if (!target.statusEffects.contains(effect)) return@filter false
-		if (chance <= Random.Default.nextInt(100)) return@filter false
+		if (chance <= Random.nextInt(100)) return@filter false
 		if (target.getAutoEffects(context).contains(effect)) return@filter false
 		true
-	}.keys
+	}.keys.toHashSet()
 
 	private fun determineAddedEffects(
 		candidates: Map<StatusEffect, Int>, target: CombatantState, removedEffects: Set<StatusEffect>
 	) = candidates.filter {
 		val effect = it.key
 		val chance = it.value
-		if (chance <= Random.Default.nextInt(100)) return@filter false
+		if (chance <= Random.nextInt(100)) return@filter false
 		if (target.statusEffects.contains(effect) && !removedEffects.contains(effect)) return@filter false
 		val resistance = target.getResistance(effect, context)
-		if (resistance > Random.Default.nextInt(100)) return@filter false
+		if (resistance > Random.nextInt(100)) return@filter false
 		true
-	}.keys
+	}.keys.toHashSet()
 
 	private fun effectListToMap(list: Collection<PossibleStatusEffect>): MutableMap<StatusEffect, Int> {
 		val map = mutableMapOf<StatusEffect, Int>()
@@ -224,10 +226,10 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		return map
 	}
 
-	private fun statListToMap(list: Collection<StatModifierRange>): MutableMap<CombatStat, Int> {
-		val map = mutableMapOf<CombatStat, Int>()
+	private fun statListToMap(list: Collection<StatModifierRange>): HashMap<CombatStat, Int> {
+		val map = HashMap<CombatStat, Int>()
 		for (entry in list) {
-			val adder = Random.Default.nextInt(entry.minAdder, 1 + entry.maxAdder)
+			val adder = Random.nextInt(entry.minAdder, 1 + entry.maxAdder)
 			map[entry.stat] = map.getOrDefault(entry.stat, 0) + adder
 		}
 		return map
@@ -285,9 +287,9 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			if (skillDamage.crescendoModifier != 0f) TODO("crescendo modifier")
 		}
 
-		val addStatModifiers = mutableMapOf<CombatStat, Int>()
+		val addStatModifiers = HashMap<CombatStat, Int>()
 		for (modifier in skill.statModifiers) {
-			val adder = Random.Default.nextInt(modifier.minAdder, modifier.maxAdder + 1)
+			val adder = Random.nextInt(modifier.minAdder, modifier.maxAdder + 1)
 			addStatModifiers[modifier.stat] = addStatModifiers.getOrDefault(modifier.stat, 0) + adder
 		}
 
@@ -351,7 +353,6 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			targets = rawEntries.map { it.result },
 			restoreAttackerHealth = rawEntries.sumOf { it.restoredHealth },
 			restoreAttackerMana = rawEntries.sumOf { it.restoredMana },
-			overrideBlinkColor = 0,
 		)
 	}
 
@@ -408,7 +409,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			basicHealthDrain = healthDrain,
 			basicManaDrain = manaDrain,
 			attackElement = attackElement,
-			basicAddStatModifiers = mutableMapOf(),
+			basicAddStatModifiers = HashMap(),
 			basicAddEffects = mutableMapOf(),
 			basicRemoveEffects = mutableMapOf(),
 		)
@@ -426,7 +427,6 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			targets = listOf(rawEntry.result),
 			restoreAttackerHealth = rawEntry.restoredHealth,
 			restoreAttackerMana = rawEntry.restoredMana,
-			overrideBlinkColor = 0,
 		)
 	}
 
@@ -454,6 +454,8 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 
 		val removedEffects = determineRemovedEffects(effectsToRemove, target)
 		val entry = MoveResult.Entry(
+			element = item.element ?: thrower.element,
+			overrideBlinkColor = consumable.blinkColor,
 			target = target,
 			damage = -restoreHealth,
 			damageMana = -restoreMana,
@@ -478,7 +480,6 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			targets = listOf(entry),
 			restoreAttackerHealth = 0,
 			restoreAttackerMana = 0,
-			overrideBlinkColor = consumable.blinkColor,
 		)
 	}
 

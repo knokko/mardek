@@ -473,7 +473,7 @@ object TestMoveResultCalculator {
 				)
 				val entry = result.targets[0]
 				assertEquals(entry.damage, result.restoreAttackerMana)
-				assertEquals(0, result.overrideBlinkColor)
+				assertEquals(0, entry.overrideBlinkColor)
 				if (!entry.criticalHit) {
 					assertTrue(entry.damage in 120 .. 160, "Expected ${entry.damage} to be 138")
 				}
@@ -739,8 +739,9 @@ object TestMoveResultCalculator {
 					arrayOf(battle.livingPlayers()[0]), false
 				)
 				assertSame(content.stats.elements.find { it.rawName == "DARK" }!!, result.element)
-				assertEquals(0, result.overrideBlinkColor)
 				val entry = result.targets[0]
+				assertSame(result.element, entry.element)
+				assertEquals(0, entry.overrideBlinkColor)
 				if (!entry.criticalHit) {
 					assertTrue(entry.damage in 300..450, "Expected ${entry.damage} to be 378")
 				}
@@ -777,8 +778,9 @@ object TestMoveResultCalculator {
 				)
 				assertSame(content.stats.elements.find { it.rawName == "NONE" }!!, result.element)
 				assertEquals(1, result.targets.size)
+				assertSame(result.element, result.targets[0].element)
 				assertEquals(1000, result.targets[0].damage)
-				assertEquals(0, result.overrideBlinkColor)
+				assertEquals(0, result.targets[0].overrideBlinkColor)
 			}
 		}
 	}
@@ -1002,13 +1004,14 @@ object TestMoveResultCalculator {
 					potion, battle.livingPlayers()[0], battle.livingPlayers()[0]
 				)
 				assertEquals("LIGHT", result.element.rawName)
-				assertEquals(rgb(100, 160, 220), result.overrideBlinkColor)
 				assertEquals(0, result.restoreAttackerHealth)
 				assertEquals(0, result.restoreAttackerMana)
 				assertEquals(1, result.targets.size)
 				assertEquals(1, result.sounds.size)
 
 				val entry = result.targets[0]
+				assertEquals("LIGHT", entry.element.rawName)
+				assertEquals(rgb(100, 160, 220), entry.overrideBlinkColor)
 				assertFalse(entry.criticalHit)
 				assertFalse(entry.missed)
 				assertEquals(-100, entry.damage)
@@ -1032,13 +1035,14 @@ object TestMoveResultCalculator {
 					ether, battle.livingPlayers()[0], battle.livingPlayers()[1]
 				)
 				assertEquals("LIGHT", result.element.properName)
-				assertEquals(rgb(100, 255, 255), result.overrideBlinkColor)
 				assertEquals(0, result.restoreAttackerHealth)
 				assertEquals(0, result.restoreAttackerMana)
 				assertEquals(1, result.targets.size)
 				assertEquals(1, result.sounds.size)
 
 				val entry = result.targets[0]
+				assertEquals("LIGHT", entry.element.properName)
+				assertEquals(rgb(100, 255, 255), entry.overrideBlinkColor)
 				assertFalse(entry.criticalHit)
 				assertFalse(entry.missed)
 				assertEquals(0, entry.damage)

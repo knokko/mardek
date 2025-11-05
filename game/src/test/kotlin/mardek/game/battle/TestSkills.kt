@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
+import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import java.lang.Thread.sleep
 import kotlin.time.Duration
@@ -189,13 +191,14 @@ object TestSkills {
 			// Deugan should take 3 damage from poison
 			assertEquals(10 - 3, deugan.currentHealth)
 			assertEquals(setOf(poison), deugan.statusEffects)
-			battle.state.let {
-				assertTrue(it is BattleStateMachine.CastSkill)
-				assertSame(deugan, (it as BattleStateMachine.CastSkill).caster)
-				assertArrayEquals(arrayOf(deugan), it.targets)
-				assertSame(recover, it.skill)
-				assertFalse(it.canDealDamage)
-			}
+			val castSkill = battle.state as BattleStateMachine.CastSkill
+			assertSame(deugan, castSkill.caster)
+			assertArrayEquals(arrayOf(deugan), castSkill.targets)
+			assertSame(recover, castSkill.skill)
+			assertNull(castSkill.reactionChallenge)
+			assertNull(castSkill.calculatedDamage)
+			assertFalse(castSkill.canSpawnTargetParticles)
+			assertEquals(0L, castSkill.targetParticlesSpawnTime)
 
 			val state = InGameState(campaign, "test")
 			val playerColors = arrayOf(
@@ -204,17 +207,25 @@ object TestSkills {
 			)
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
-			sleep(2000)
+			sleep(1000)
 			testRendering(
 				state, 800, 450, "recover1",
 				playerColors + monsterColor, emptyArray(),
 			)
-			assertTrue((battle.state as BattleStateMachine.CastSkill).canDealDamage)
-			campaign.update(context(2.seconds))
-			assertTrue((battle.state as BattleStateMachine.CastSkill).canDealDamage)
+			assertTrue(castSkill.canSpawnTargetParticles)
+
+			val beforeUpdateTime = System.nanoTime()
+			campaign.update(context(1.seconds))
+			assertTrue(castSkill.targetParticlesSpawnTime > beforeUpdateTime)
 
 			sleep(1000)
+			testRendering(
+				state, 800, 450, "recover2",
+				playerColors + monsterColor, emptyArray(),
+			)
 			campaign.update(context(1.seconds))
+			assertArrayEquals(arrayOf(null), castSkill.calculatedDamage)
+
 			assertEquals(deugan.maxHealth, deugan.currentHealth)
 			assertEquals(0, deugan.currentMana)
 			assertEquals(0, deugan.statusEffects.size)

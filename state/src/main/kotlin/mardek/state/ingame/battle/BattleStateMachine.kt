@@ -4,7 +4,9 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.serialize.BitPostInit
 import mardek.content.inventory.Item
 import mardek.content.particle.ParticleEffect
 import mardek.content.skill.ActiveSkill
@@ -279,8 +281,13 @@ sealed class BattleStateMachine {
 		val nextElement: Element?,
 
 		context: BattleUpdateContext,
-	) : BattleStateMachine(), Move {
+	) : BattleStateMachine(), Move, BitPostInit {
+
+		/**
+		 * The time (`System.nanoTime()`) at which the caster started casting the skill
+		 */
 		var startTime = System.nanoTime()
+			private set
 
 		/**
 		 * When the caster and/or target of this skill are player characters, and they have relevant reaction skills,
@@ -289,9 +296,40 @@ sealed class BattleStateMachine {
 		 * outcome of the reaction challenge has been determined.
 		 */
 		@BitField(id = 4, optional = true)
-		val reactionChallenge: ReactionChallenge?
+		var reactionChallenge: ReactionChallenge?
+			private set
 
-		var canDealDamage = false
+		/**
+		 * This field is initially null, which means that the result/effect of the skill has not been calculated yet.
+		 *
+		 * When the move result/damage has been calculated, it will be stored in this array. This array will contain
+		 * 1 entry for every target of the skill. Initially, all entries in this array will be non-null. For each
+		 * target, the damage will be applied at time `particle start time + damage delay` (note that each target has
+		 * a different `particle start time`). Once the damage has been applied to a target, the corresponding entry is
+		 * set to null, ensuring that each target only takes damage once.
+		 *
+		 * Any potential effects (e.g. life steal) will be applied to the *caster* at the same time when this array is
+		 * created,
+		 */
+		@BitField(id = 5)
+		@NestedFieldSetting(
+			path = "", optional = true,
+			sizeField = IntegerField(expectUniform = true, minValue = 1, maxValue = 4)
+		)
+		@NestedFieldSetting(path = "c", optional = true)
+		var calculatedDamage: Array<MoveResult.Entry?>? = null
+
+		/**
+		 * The renderer will set this field to true once the casting animation has progressed far enough to start
+		 * spawning the particles at the position of the (first) target.
+		 */
+		var canSpawnTargetParticles = false
+
+		/**
+		 * The renderer will set this field to true once the caster has finished its casting animation. The next turn
+		 * will be blocked until (among others) the casting animation is finished.
+		 */
+		var hasFinishedCastingAnimation = false
 
 		/**
 		 * While casing magic skills, a small particle effect (depending on the element of the skill) is spawned
@@ -302,7 +340,10 @@ sealed class BattleStateMachine {
 
 		/**
 		 * All magic skills have a particle effect that is displayed at the position of the target(s).
-		 * This field records the time at which that particle was spawned.
+		 * This field records the time at which that particle was spawned at the *first* target.
+		 * - the particle for the second target will be spawned 250ms later
+		 * - the particle for the third target will be spawned 500ms later
+		 * - the particle for the fourth target will be spawned 750ms later
 		 */
 		var targetParticlesSpawnTime = 0L
 
@@ -339,6 +380,10 @@ sealed class BattleStateMachine {
 			ActiveSkill(), null, BattleUpdateContext()
 		)
 
+		override fun postInit(context: BitPostInit.Context) {
+			if (calculatedDamage != null) reactionChallenge = null
+		}
+
 		override fun equals(other: Any?) = other is CastSkill && caster === other.caster &&
 				targets.contentEquals(other.targets) && skill === other.skill && nextElement === other.nextElement
 
@@ -357,7 +402,13 @@ sealed class BattleStateMachine {
 		 * When there is no reaction challenge (e.g. there are no relevant reactions), this method will always return
 		 * false.
 		 */
-		fun isReactionChallengePending() = reactionChallenge != null && reactionChallenge.isPending()
+		fun isReactionChallengePending() = reactionChallenge != null && reactionChallenge!!.isPending()
+
+		/**
+		 * Checks whether all skill damage/effects have been applied to all targets. The battle must not transition to
+		 * the next state until this has happened.
+		 */
+		fun hasAppliedAllDamage() = calculatedDamage != null && calculatedDamage!!.all { it == null }
 	}
 
 	/**
