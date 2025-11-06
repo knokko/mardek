@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.serialize.BitPostInit
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Dreamstone
 import mardek.content.inventory.ItemStack
@@ -33,7 +34,7 @@ class BattleLoot(
 	val itemText: String,
 
 	party: List<Any?>,
-) {
+) : BitPostInit {
 	@Suppress("unused")
 	private constructor() : this(
 		0, ArrayList(0),
@@ -49,6 +50,10 @@ class BattleLoot(
 	var selectedElement = if (items.isEmpty()) SelectedFinish else SelectedGetAll
 
 	override fun toString() = "BattleLoot(gold=$gold, items=$items)"
+
+	override fun postInit(context: BitPostInit.Context) {
+		if (items.isNotEmpty()) selectedElement = SelectedGetAll
+	}
 
 	fun processKeyPress(key: InputKey, context: UpdateContext): Boolean {
 		val soundEffects = context.content.audio.fixedEffects.ui

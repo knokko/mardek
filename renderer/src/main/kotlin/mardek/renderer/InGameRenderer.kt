@@ -167,8 +167,8 @@ internal fun renderInGame(
 
 				context.currentStage = context.frame.swapchainStage
 				val blurStrength = 240
-				val leftBlurColor = srgbToLinear(rgba(54, 37, 21, blurStrength))
-				val rightBlurColor = srgbToLinear(rgba(132, 84, 53, blurStrength))
+				val leftBlurColor = srgbToLinear(rgba(39, 26, 18, blurStrength))
+				val rightBlurColor = srgbToLinear(rgba(82, 54, 36, blurStrength))
 				val inverseBlur = 255 - blurStrength
 				val multiplyColor = rgba(inverseBlur, inverseBlur, inverseBlur, inverseBlur)
 				context.pipelines.base.blur.addBatch(

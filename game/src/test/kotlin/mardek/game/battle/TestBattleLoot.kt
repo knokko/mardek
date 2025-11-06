@@ -381,7 +381,7 @@ object TestBattleLoot {
 			val consumableGridColor = Color(81, 113, 217)
 			val buttonTextColor = Color(248, 232, 194)
 			val pointerColor = Color(0, 50, 153)
-			val buttonBlurredBorderColor = Color(135, 107, 77)
+			val buttonBlurredBorderColor = Color(130, 103, 76)
 			val sapphireColor = Color(45, 175, 255)
 			val gemGridColor = Color(209, 209, 89)
 			val baseColors = arrayOf(
