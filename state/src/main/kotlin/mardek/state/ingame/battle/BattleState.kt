@@ -266,6 +266,20 @@ class BattleState(
 		}
 
 		if (state is BattleStateMachine.CastSkill) {
+			if (!state.hasFinishedCastingAnimation) {
+				val particlePositions = state.caster.renderInfo.castingParticlePositions
+				val particleEffect = state.skill.element.spellCastEffect
+				val particleTime = System.nanoTime()
+				if (particleTime > state.lastCastParticleSpawnTime + 1000_000_000L / 90 &&
+					particlePositions.isNotEmpty() && particleEffect != null
+				) {
+					state.lastCastParticleSpawnTime = particleTime
+					for (position in particlePositions) {
+						particles.add(ParticleEffectState(particleEffect, position))
+					}
+				}
+			}
+
 			if (state.canSpawnTargetParticles && state.targetParticlesSpawnTime == 0L && !state.hasAppliedAllDamage()) {
 				val particleEffect = state.skill.particleEffect ?: throw UnsupportedOperationException(
 					"Ranged skills must have a particle effect"

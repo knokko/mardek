@@ -21,6 +21,8 @@ class CombatantRenderInfo {
 
 	var statusEffectPoint = CombatantRenderPosition(0f, 0f)
 
+	val castingParticlePositions = mutableListOf<CombatantRenderPosition>()
+
 	var core = CombatantRenderPosition(0f, 0f)
 
 	/**

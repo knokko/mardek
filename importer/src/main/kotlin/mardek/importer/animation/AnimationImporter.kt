@@ -77,7 +77,7 @@ internal fun importAnimationNode(
 	if (childID == 2311) special = SpecialAnimationNode.Exclaim
 
 	val exportName = FLASH.getExportName(tag.characterId)
-	if (exportName == "castSparkle") special = SpecialAnimationNode.ElementalCastingSparkle
+	if (exportName == "castSparkle" || childID == 494) special = SpecialAnimationNode.ElementalCastingSparkle
 
 	if (instanceName == "target_cursor") special = SpecialAnimationNode.TargetingCursor
 	if (instanceName == "act_cursor") special = SpecialAnimationNode.OnTurnCursor

@@ -90,6 +90,7 @@ private class AnimationSimulator {
 			currentSkinName = "1"
 		}
 		if (script.startsWith("char2lips")) onlyOneFramePerSkin = true
+		if (script.trim() == "gotoAndPlay(2);") currentAnimation.frames.removeFirst()
 		currentState.addScript(tag)
 	}
 
