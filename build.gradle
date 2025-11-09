@@ -30,7 +30,7 @@ allprojects {
 
 	project.ext.jomlVersion = "1.10.8"
 	project.ext.lwjglVersion = "3.4.0-SNAPSHOT"
-	project.ext.boilerVersion = "v5.0.0"
+	project.ext.boilerVersion = "v5.0.1"
 	project.ext.compressorVersion = "v0.6.0-pre7"
 	project.ext.bitserVersion = "465eeb1958"
 	project.ext.lwjglNatives = [

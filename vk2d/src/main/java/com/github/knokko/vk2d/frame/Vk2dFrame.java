@@ -41,15 +41,14 @@ public class Vk2dFrame {
 		for (Vk2dStage stage : stages) {
 			if (stage instanceof Vk2dRenderStage) {
 				Vk2dRenderStage renderStage = (Vk2dRenderStage) stage;
-				// TODO DL Maybe skip layout transitions when prior/next usage is already COLOR_ATTACHMENT_WRITE
 				if (renderStage.isEmpty()) {
-					if (renderStage.nextUsage != null) {
+					if (renderStage.nextUsage != null && !renderStage.nextUsage.equals(renderStage.priorUsage)) {
 						recorder.transitionLayout(renderStage.targetImage, renderStage.priorUsage, renderStage.nextUsage);
 					}
 					continue;
 				}
 
-				if (renderStage.nextUsage != null) {
+				if (renderStage.nextUsage != null && !ResourceUsage.COLOR_ATTACHMENT_WRITE.equals(renderStage.priorUsage)) {
 					recorder.transitionLayout(renderStage.targetImage, renderStage.priorUsage, ResourceUsage.COLOR_ATTACHMENT_WRITE);
 				}
 				if (renderPass != VK_NULL_HANDLE) {
@@ -82,7 +81,7 @@ public class Vk2dFrame {
 					recorder.endDynamicRendering();
 				}
 
-				if (renderStage.nextUsage != null) {
+				if (renderStage.nextUsage != null && !renderStage.nextUsage.equals(ResourceUsage.COLOR_ATTACHMENT_WRITE)) {
 					recorder.transitionLayout(renderStage.targetImage, ResourceUsage.COLOR_ATTACHMENT_WRITE, renderStage.nextUsage);
 				}
 			} else {
