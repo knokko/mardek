@@ -1,5 +1,6 @@
 package mardek.renderer
 
+import com.github.knokko.boiler.utilities.ColorPacker.changeAlpha
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
@@ -23,8 +24,8 @@ internal fun renderGameOver(
 		region.boundX - region.width / 5 + 1, region.boundY - region.height / 3 + 1,
 		region.minX + 0.5f * region.width, region.minY + 0.5f * region.height,
 		region.width * 0.3f, region.height / 6f,
-		circleColor, 0, 0, 0, 0,
-		1f, 1f, 1f, 1f,
+		circleColor, changeAlpha(circleColor, 150), 0, 0, 0,
+		0.1f, 1f, 1f, 1f,
 	)
 
 	val textBatch = context.pipelines.fancyText.addBatch(
@@ -32,12 +33,12 @@ internal fun renderGameOver(
 		context.textBuffer, context.perFrameDescriptorSet,
 	)
 	val titleHeight = region.height / 12f
-	val outerColor = srgbToLinear(rgb(107, 0, 0))
-	val innerColor = srgbToLinear(rgb(178, 37, 37))
+	val outerColor = srgbToLinear(rgb(153, 0, 0))
+	val innerColor = srgbToLinear(rgb(253, 53, 53))
 	val largeFont = context.titleScreenBundle.getFont(titleScreenInfo.largeFont.index)
-	val strokeColor = rgb(0, 0, 0)
+	val strokeColor = srgbToLinear(rgb(51, 0, 0))
 	textBatch.drawFancyString(
-		"GAME OVER", region.minX + 0.5f * region.width,
+		"GAME   OVER", region.minX + 0.5f * region.width,
 		region.minY + 0.5f * (region.height + titleHeight), titleHeight, largeFont,
 		outerColor, strokeColor, 0.1f * titleHeight, TextAlignment.CENTERED,
 		outerColor, innerColor, innerColor, outerColor,
@@ -47,9 +48,8 @@ internal fun renderGameOver(
 	val smallFont = context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index)
 	textBatch.drawString(
 		"Press E or Q to return to the Title Screen", region.minX + 0.5f * region.width,
-		// TODO DL Wrong font
 		region.minY + 0.65f * region.height, 0.025f * region.height, smallFont,
-		srgbToLinear(rgb(179, 58, 58)), TextAlignment.CENTERED,
+		srgbToLinear(rgb(255, 82, 82)), TextAlignment.CENTERED,
 	)
 
 	val colorBatch = context.pipelines.base.color.addBatch(context.stage, 40)
