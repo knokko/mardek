@@ -115,18 +115,17 @@ public class Vk2dResourceWriter {
 		return result;
 	}
 
-	private static int transformFont(long value, int minValue, int maxValue) {
+	private static int transformFontCoordinate(long value, int minValue, int maxValue) {
 		int worldSize = maxValue - minValue;
 		int relativeValue = Math.toIntExact(value) - minValue;
 		if (relativeValue < 0) {
-			System.out.println("Too low");
+			System.out.println("Warning: clamping font coordinate " + value + " to " + minValue);
 			return 0;
 		}
 		if (relativeValue > worldSize) {
-			System.out.println("Too high");
+			System.out.println("Warning: clamping font coordinate " + value + " to " + maxValue);
 			return 1023;
 		}
-		// TODO DL Tune this again
 		return Math.toIntExact(relativeValue * 1023L / worldSize);
 	}
 
@@ -215,18 +214,18 @@ public class Vk2dResourceWriter {
 		}
 
 		int heightA = Math.toIntExact(rawGlyphs[glyphA].maxY);
-		int minY = -heightA / 2;
-		int maxY = 2 * heightA;
+		int minY = -3 * heightA;
+		int maxY = 6 * heightA - 1;
 		FontCurve[] curves = new FontCurve[rawCurves.size()];
 		for (int index = 0; index < curves.length; index++) {
 			RawCurve raw = rawCurves.get(index);
-			int startX = transformFont(raw.startX, minY, maxY);
-			int controlX = transformFont(raw.controlX, minY, maxY);
-			int endX = transformFont(raw.endX, minY, maxY);
+			int startX = transformFontCoordinate(raw.startX, minY, maxY);
+			int controlX = transformFontCoordinate(raw.controlX, minY, maxY);
+			int endX = transformFontCoordinate(raw.endX, minY, maxY);
 			int packedX = startX | (controlX << 10) | (endX << 20);
-			int startY = transformFont(raw.startY, minY, maxY);
-			int controlY = transformFont(raw.controlY, minY, maxY);
-			int endY = transformFont(raw.endY, minY, maxY);
+			int startY = transformFontCoordinate(raw.startY, minY, maxY);
+			int controlY = transformFontCoordinate(raw.controlY, minY, maxY);
+			int endY = transformFontCoordinate(raw.endY, minY, maxY);
 			int packedY = startY | (controlY << 10) | (endY << 20);
 			curves[index] = new FontCurve(packedX, packedY);
 		}
@@ -241,7 +240,6 @@ public class Vk2dResourceWriter {
 					(float) raw.advance / heightA
 			);
 		}
-		System.out.println("max curves is " + maxCurves + " and heightA is " + heightA);
 
 		Map<Integer, Integer> charToGlyphMap = new HashMap<>();
 		try (MemoryStack stack = stackPush()) {

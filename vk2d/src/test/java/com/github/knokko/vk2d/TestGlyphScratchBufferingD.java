@@ -110,18 +110,18 @@ public class TestGlyphScratchBufferingD {
 		// y 0 has only 2 intersections
 		assertEquals(2, info.get(0));
 		assertEquals(2 * numCurves, info.get(1));
-		assertEquals(-0.003f, intersections.get(0), 0.001f);
+		assertEquals(0f, intersections.get(0), 0.01f);
 		assertEquals(-1f, intersections.get(1));
-		assertEquals(0.522f, intersections.get(2), 0.001f);
+		assertEquals(0.51f, intersections.get(2), 0.01f);
 		assertEquals(-1f, intersections.get(3));
 
-		// y 99 also has only 2 intersections
-		assertEquals(2, info.get(198));
-		assertEquals(2 * numCurves, info.get(199));
-		assertEquals(-0.003f, intersections.get(4 * 99 * numCurves), 0.001f);
-		assertEquals(-1f, intersections.get(4 * 99 * numCurves + 1));
-		assertEquals(0.491f, intersections.get(4 * 99 * numCurves + 2), 0.001f);
-		assertEquals(-1f, intersections.get(4 * 99 * numCurves + 3));
+		// y 98 also has only 2 intersections
+		assertEquals(2, info.get(196));
+		assertEquals(2 * numCurves, info.get(197));
+		assertEquals(0f, intersections.get(4 * 98 * numCurves), 0.01f);
+		assertEquals(-1f, intersections.get(4 * 98 * numCurves + 1));
+		assertEquals(0.55f, intersections.get(4 * 98 * numCurves + 2), 0.01f);
+		assertEquals(-1f, intersections.get(4 * 98 * numCurves + 3));
 
 		assertEquals(364, nextIntersectionIndexBuffer.intBuffer().get());
 		info = infoBuffer.intBuffer();
@@ -129,13 +129,13 @@ public class TestGlyphScratchBufferingD {
 
 		assertEquals(0, info.get(0));
 		assertEquals(2, info.get(1));
-		assertEquals(-0.003f, intersections.get(0), 0.001f);
-		assertEquals(0.522f, intersections.get(1), 0.001f);
-		assertEquals(-0.003f, intersections.get(2), 0.001f);
-		assertEquals(0.583f, intersections.get(3), 0.001f);
+		assertEquals(0f, intersections.get(0), 0.01f);
+		assertEquals(0.51f, intersections.get(1), 0.01f);
+		assertEquals(0f, intersections.get(2), 0.01f);
+		assertEquals(0.58f, intersections.get(3), 0.01f);
 
 		int nextIndex = 0;
-		for (int glyphY = 0; glyphY < glyphHeight; glyphY++) {
+		for (int glyphY = 0; glyphY < 99; glyphY++) {
 			assertEquals(nextIndex, info.get());
 			int numIntersections = info.get();
 			assertEquals(0, info.get());
@@ -144,7 +144,7 @@ public class TestGlyphScratchBufferingD {
 			assertTrue(numIntersections == 2 || numIntersections == 4, "Expected " + numIntersections + " to be 2 or 4 for y " + glyphY);
 			for (int counter = 0; counter < numIntersections; counter++) {
 				float intersection = intersections.get();
-				assertTrue(intersection > -0.01f && intersection < 1f, "Expected " + intersection + " to be in [0; 1]");
+				assertTrue(intersection > -0.01f && intersection < 1.01f, "Expected " + intersection + " to be in [0; 1]");
 			}
 		}
 

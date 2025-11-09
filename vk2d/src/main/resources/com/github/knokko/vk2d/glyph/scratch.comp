@@ -28,7 +28,7 @@ layout(push_constant) uniform PushConstants {
 };
 
 float unpack(uint raw) {
-	return (raw & 1023) * 2.5 / 1023.0 - 0.5;
+	return (raw & 1023) * 9.0 / 1023.0 - 3.0;
 }
 
 float transformOffset(float offset) {
