@@ -1,7 +1,6 @@
 package mardek.renderer.battle
 
 import com.github.knokko.boiler.utilities.ColorPacker.changeAlpha
-import com.github.knokko.boiler.utilities.ColorPacker.multiplyColors
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
@@ -20,17 +19,26 @@ internal fun renderEffectHistory(
 ) {
 	battleContext.run {
 		val currentEntry = combatant.renderInfo.effectHistory.get(renderTime) ?: return
-		var midX = combatant.renderInfo.statusEffectPoint.x
+		val midX = combatant.renderInfo.statusEffectPoint.x
 		var midY = combatant.renderInfo.statusEffectPoint.y
 
 		if (currentEntry.type == StatusEffectHistory.Type.Remove) {
 			midY -= currentEntry.relativeTime * imageBatch.height / 20f
-			val spriteSize = imageBatch.height / 20f
-			val sprite = currentEntry.effect.icon
+
 			val opacity = 1f - 4f * (0.5f - currentEntry.relativeTime).pow(2)
+			val backgroundSpriteSize = imageBatch.height / 12f
+			val backgroundSprite = context.content.ui.statusRemoveBackground
 			imageBatch.coloredScale(
-				midX - spriteSize * 0.5f, midY - spriteSize * 0.5f,
-				spriteSize / sprite.height, sprite.index,
+				midX - backgroundSpriteSize * 0.5f, midY - backgroundSpriteSize * 0.5f,
+				backgroundSpriteSize / backgroundSprite.height, backgroundSprite.index,
+				0, rgba(1f, 1f, 1f, opacity)
+			)
+
+			val mainSpriteSize = imageBatch.height / 20f
+			val mainSprite = currentEntry.effect.icon
+			imageBatch.coloredScale(
+				midX - mainSpriteSize * 0.5f, midY - mainSpriteSize * 0.5f,
+				mainSpriteSize / mainSprite.height, mainSprite.index,
 				0, rgba(1f, 1f, 1f, opacity)
 			)
 
@@ -53,25 +61,17 @@ internal fun renderEffectHistory(
 			val f = currentEntry.relativeTime.pow(2)
 			midY -= f * imageBatch.height / 20f
 
-			val strongColor = changeAlpha(
-				srgbToLinear(currentEntry.effect.textColor),
-				255 - (250 * f).roundToInt()
-			)
-			val weakColor = multiplyColors(strongColor, rgb(0.7f, 0.7f, 0.7f))
-			val unknownFont = context.bundle.getFont(context.content.fonts.basic2.index)
+			val alpha = 255 - (250 * f).roundToInt()
+			val innerColor = changeAlpha(srgbToLinear(currentEntry.effect.innerTextColor), alpha)
+			val outerColor = changeAlpha(srgbToLinear(currentEntry.effect.outerTextColor), alpha)
+			val effectFont = context.bundle.getFont(context.content.fonts.basic1.index)
 
-			// TODO DL Check this & fix weakColor
 			textBatch.drawFancyString(
-				currentEntry.effect.shortName, midX, midY, imageBatch.height / 30f, unknownFont,
-				weakColor, rgb(0, 0, 0), imageBatch.height / 150f,
-				TextAlignment.CENTERED, weakColor, strongColor, strongColor,
-				weakColor, 0.2f, 0.2f, 0.8f, 0.8f,
+				currentEntry.effect.shortName, midX, midY, imageBatch.height / 30f, effectFont,
+				outerColor, rgb(0, 0, 0), imageBatch.height / 200f,
+				TextAlignment.CENTERED, outerColor, innerColor, innerColor,
+				outerColor, 0.2f, 0.2f, 0.8f, 0.8f,
 			)
-//			context.uiRenderer.drawString(
-//				context.resources.font, currentEntry.effect.shortName, color, IntArray(0),
-//				midX - width / 5, 0, midX + width / 5, height,
-//				midY, height / 30, 1, TextAlignment.CENTER
-//			)
 		}
 	}
 }

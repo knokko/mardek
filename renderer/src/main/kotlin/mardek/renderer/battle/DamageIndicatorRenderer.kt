@@ -59,11 +59,10 @@ internal fun renderDamageIndicator(
 			edgeColor = changeAlpha(srgbToLinear(edgeColor), intOpacity)
 
 			val height = imageBatch.height / 25f
-			val unknownFont = context.bundle.getFont(context.content.fonts.basic2.index)
-			// TODO DL Check this
+			val damageFont = context.bundle.getFont(context.content.fonts.basic1.index)
 			textBatch.drawFancyString(
 				textAmount.toString(), position.x, position.y + height * 0.5f, height,
-				unknownFont, edgeColor, rgb(0, 0, 0), height * 0.05f,
+				damageFont, edgeColor, rgb(0, 0, 0), height * 0.15f,
 				TextAlignment.CENTERED, edgeColor, midColor, midColor, edgeColor,
 				0.2f, 0.2f, 0.8f, 0.8f,
 			)

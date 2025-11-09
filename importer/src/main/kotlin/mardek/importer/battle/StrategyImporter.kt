@@ -130,7 +130,11 @@ private fun importRawMonsterStrategy(
 
 				"no_status" -> StrategyCriteria(
 					targetMissesEffect = content.stats.statusEffects.find {
-						it.flashName == parseFlashString(rawCriteria[1].toString(), "no_status effect")!!
+						it.flashName == parseFlashString(
+							// The BRN status effect referenced by Fire Guardian's Burn move doesn't exist,
+							// Tobias probably meant Numbness instead?
+							rawCriteria[1].toString().replace("BRN", "NUM"
+						), "no_status effect")!!
 					}!!
 				)
 

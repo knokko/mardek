@@ -108,23 +108,28 @@ class StatusEffect(
 
 	@BitField(id = 28)
 	@IntegerField(expectUniform = true)
-	val textColor: Int,
+	val innerTextColor: Int,
 
 	@BitField(id = 29)
-	val passiveParticleSprites: Array<BcSprite>,
+	@IntegerField(expectUniform = true)
+	val outerTextColor: Int,
 
 	@BitField(id = 30)
+	val passiveParticleSprites: Array<BcSprite>,
+
+	@BitField(id = 31)
 	val shortName: String = niceName ?: flashName,
 
 	@Suppress("unused")
-	@BitField(id = 31)
+	@BitField(id = 32)
 	@StableReferenceFieldId
 	val id: UUID,
 ) {
 
 	constructor() : this(
 		"", null, false, false,
-		icon = BcSprite(), textColor = 0, passiveParticleSprites = emptyArray<BcSprite>(), id = UUID.randomUUID(),
+		icon = BcSprite(), innerTextColor = 0, outerTextColor = 0,
+		passiveParticleSprites = emptyArray<BcSprite>(), id = UUID.randomUUID(),
 	)
 
 	override fun toString() = niceName ?: flashName

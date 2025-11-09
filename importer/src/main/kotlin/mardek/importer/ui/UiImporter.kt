@@ -47,4 +47,5 @@ internal fun importUiSprites() = UiSprites(
 	dreamStoneIcon = importKimSprite("DreamStone", -1),
 	clock = importBcSprite("Clock"),
 	arrowHead = importBcSprite("ArrowHead"),
+	statusRemoveBackground = importBcSprite("StatusRemoveBackground"),
 )

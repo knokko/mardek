@@ -84,6 +84,9 @@ class UiSprites(
 
 	@BitField(id = 25)
 	val arrowHead: BcSprite,
+
+	@BitField(id = 26)
+	val statusRemoveBackground: BcSprite,
 ) {
 
 	@Suppress("unused")
@@ -98,6 +101,7 @@ class UiSprites(
 		KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), BcSprite(),
 		KimSprite(), BcSprite(), BcSprite(),
+		BcSprite(),
 	)
 
 	fun allKimSprites() = arrayOf(
@@ -110,5 +114,6 @@ class UiSprites(
 		activeStarIcon, meleeAttackIcon, rangedAttackIcon, meleeDefenseIcon, rangedDefenseIcon, passiveIcon,
 		mapSaveCrystal, mapDreamCircle, skillToggled, skillNotToggled, pointer,
 		titleScreenBackground, challengeCursor, clock, arrowHead,
+		statusRemoveBackground,
 	)
 }

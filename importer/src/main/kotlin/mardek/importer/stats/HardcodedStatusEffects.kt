@@ -47,7 +47,8 @@ fun addStatusEffects(content: Content) {
 			5, 0.02f, rgb(128, 221, 70)
 		),
 		icon = icon("Poison"),
-		textColor = rgb(128, 221, 70),
+		innerTextColor = rgb(128, 221, 70),
+		outerTextColor = rgb(96, 189, 38),
 		passiveParticleSprites = passiveSprites(sheet16, intArrayOf(4)),
 		id = UUID.fromString("7dbcf062-ab1c-45bb-850d-4b4b155be2ca"),
 	))
@@ -59,7 +60,8 @@ fun addStatusEffects(content: Content) {
 		disappearAfterHitChance = 100,
 		isConfusing = true,
 		icon = icon("Confusion"),
-		textColor = rgb(162, 139, 196),
+		innerTextColor = rgb(194, 171, 228),
+		outerTextColor = rgb(162, 139, 196),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("fee0b22f-b960-4029-8508-24bbb355af3a"),
 	))
@@ -71,7 +73,8 @@ fun addStatusEffects(content: Content) {
 		blocksRangedSkills = true,
 		blocksMeleeSkills = true,
 		icon = icon("Curse"),
-		textColor = rgb(110, 65, 173),
+		innerTextColor = rgb(142, 97, 205),
+		outerTextColor = rgb(110, 65, 173),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("917c2cd1-f59d-4d85-9c21-f321feb3ad07"),
 	))
@@ -83,7 +86,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = false,
 		missChance = 50,
 		icon = icon("Blind"),
-		textColor = rgb(25, 20, 133),
+		innerTextColor = rgb(57, 52, 165),
+		outerTextColor = rgb(25, 20, 133),
 		passiveParticleSprites = passiveSprites(sheet32, intArrayOf(14)),
 		id = UUID.fromString("c3d5b0e1-2bac-4497-8762-9dbd098104cb"),
 	))
@@ -94,7 +98,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = false,
 		blocksRangedSkills = true,
 		icon = icon("Silence"),
-		textColor = rgb(198, 222, 223),
+		innerTextColor = rgb(230, 254, 255),
+		outerTextColor = rgb(198, 222, 223),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("ad763dcd-4f09-4745-a770-96a0c25ccbe7"),
 	))
@@ -107,7 +112,8 @@ fun addStatusEffects(content: Content) {
 		skipTurn = StatusEffect.SkipTurn(100, 0, null),
 		disappearChancePerTurn = 25,
 		icon = icon("Sleep"),
-		textColor = rgb(195, 195, 195),
+		innerTextColor = rgb(227, 227, 227),
+		outerTextColor = rgb(195, 195, 195),
 		passiveParticleSprites = passiveSprites(sheet32, intArrayOf(16)),
 		id = UUID.fromString("f2a13009-8436-486c-a2d6-72a510d0d5f7"),
 	))
@@ -122,7 +128,8 @@ fun addStatusEffects(content: Content) {
 			content.battle.particles.find { it.name == "paralysis_jolt" }!!
 		),
 		icon = icon("Paralysis"),
-		textColor = rgb(223, 221, 42),
+		innerTextColor = rgb(255, 253, 74),
+		outerTextColor = rgb(223, 221, 42),
 		passiveParticleSprites = passiveSprites(sheet16, intArrayOf(5)),
 		id = UUID.fromString("b041e68f-1bd5-44d1-bd3b-dd04c4ee3885"),
 	))
@@ -135,7 +142,8 @@ fun addStatusEffects(content: Content) {
 		blocksMeleeSkills = true,
 		blocksBasicAttacks = true,
 		icon = icon("Numb"),
-		textColor = rgb(187, 75, 34),
+		innerTextColor = rgb(219, 107, 66),
+		outerTextColor = rgb(187, 75, 34),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("ff0f0e3e-12de-4b9f-bb5c-520dbefacf26"),
 	))
@@ -151,7 +159,8 @@ fun addStatusEffects(content: Content) {
 			rgb(18, 231, 241)
 		),
 		icon = icon("Regen"),
-		textColor = rgb(120, 223, 150),
+		innerTextColor = rgb(152, 255, 182),
+		outerTextColor = rgb(120, 223, 150),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("3f52d1ef-73a2-4f92-ac07-fd6526439968"),
 	))
@@ -162,7 +171,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = true,
 		meleeDamageReduction = 0.5f,
 		icon = icon("Shield"),
-		textColor = rgb(21, 223, 200),
+		innerTextColor = rgb(52, 223, 232),
+		outerTextColor = rgb(21, 223, 200),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("40fee21c-df5d-4f17-9c81-89cd56bb9a02"),
 	))
@@ -173,7 +183,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = true,
 		rangedDamageReduction = 0.5f,
 		icon = icon("MagicShield"),
-		textColor = rgb(165, 32, 189),
+		innerTextColor = rgb(197, 64, 221),
+		outerTextColor = rgb(165, 32, 189),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("fb56cc76-25ff-4283-8520-45caa6d8b34d"),
 	))
@@ -185,7 +196,8 @@ fun addStatusEffects(content: Content) {
 		meleeDamageModifier = 1f,
 		isReckless = true,
 		icon = icon("Berserk"),
-		textColor = rgb(136, 0, 0),
+		innerTextColor = rgb(170, 0, 0),
+		outerTextColor = rgb(136, 0, 0),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("0dada7f4-39d1-4d7d-8e71-0f5e7c32ab40"),
 	))
@@ -196,7 +208,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = true,
 		extraTurns = 1,
 		icon = icon("Haste"),
-		textColor = rgb(214, 162, 65),
+		innerTextColor = rgb(246, 194, 97),
+		outerTextColor = rgb(214, 162, 65),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("d8dfcb47-8213-45ef-af28-a95673dcf050"),
 	))
@@ -207,7 +220,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = false,
 		canWaterBreathe = true,
 		icon = icon("Aqualung"),
-		textColor = rgb(153, 255, 255),
+		innerTextColor = rgb(153, 255, 255),
+		outerTextColor = rgb(120, 200, 200),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("4f30fef7-4569-4a53-be6b-b5a959569a77"),
 	))
@@ -218,7 +232,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = false,
 		isZombie = true,
 		icon = icon("Zombie"),
-		textColor = rgb(0, 102, 102),
+		innerTextColor = rgb(0, 136, 136),
+		outerTextColor = rgb(0, 102, 102),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("5e911a15-5ecc-450b-aaf7-622ae958f24d"),
 	))
@@ -243,7 +258,8 @@ fun addStatusEffects(content: Content) {
 			effects = ArrayList(0)
 		),
 		icon = icon("Astral"),
-		textColor = rgb(68, 204, 119),
+		innerTextColor = rgb(102, 255, 153),
+		outerTextColor = rgb(68, 204, 119),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("0282808b-bb21-4ead-b5aa-17248f2ed066"),
 	))
@@ -254,7 +270,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = true,
 		hasBarskin = true,
 		icon = icon("Barskin"),
-		textColor = rgb(136, 102, 68),
+		innerTextColor = rgb(170, 136, 102),
+		outerTextColor = rgb(136, 102, 68),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("a93e2ab9-f650-4071-bea4-dae823e303b1"),
 	))
@@ -269,13 +286,26 @@ fun addStatusEffects(content: Content) {
 		),
 		disappearsAfterCombat = false,
 		icon = icon("Bleed"),
-		textColor = rgb(153, 0, 0),
+		innerTextColor = rgb(204, 0, 0),
+		outerTextColor = rgb(153, 0, 0),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("cbfd96f5-a4e1-43cb-855a-1576f0b5232e"),
 	))
 
+	val colorMap = mapOf(
+		Pair("FIRE", Pair(rgb(255, 153, 0), rgb(204, 102, 0))),
+		Pair("WATER", Pair(rgb(0, 221, 255), rgb(0, 170, 204))),
+		Pair("AIR", Pair(rgb(255, 255, 85), rgb(204, 204, 34))),
+		Pair("EARTH", Pair(rgb(102, 255, 0), rgb(51, 204, 0))),
+		Pair("LIGHT", Pair(rgb(255, 255, 255), rgb(204, 84, 204))),
+		Pair("DARK", Pair(rgb(85, 0, 95), rgb(0, 0, 0))),
+		Pair("ETHER", Pair(rgb(51, 255, 153), rgb(0, 204, 102))),
+		Pair("FIG", Pair(rgb(207, 0, 204), rgb(159, 0, 153))),
+	)
+
 	for (element in stats.elements) {
 		if (element.weakAgainst == null) continue // Skip physical and thauma
+		val (innerColor, outerColor) = colorMap[element.rawName]!!
 		stats.statusEffects.add(StatusEffect(
 			flashName = "${element.primaryChar}N1",
 			niceName = "Null ${element.properName.lowercase(Locale.ROOT)}",
@@ -283,7 +313,8 @@ fun addStatusEffects(content: Content) {
 			disappearsAfterCombat = true,
 			nullifiesElement = element,
 			icon = icon("null/${element.properName}"),
-			textColor = element.color,
+			innerTextColor = innerColor,
+			outerTextColor = outerColor,
 			passiveParticleSprites = emptyArray(),
 			id = UUID.nameUUIDFromBytes("HardcodedNull${element.rawName}".encodeToByteArray())
 		))
@@ -296,7 +327,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = true,
 		elementShell = element("FIRE"),
 		icon = icon("shell/Pyro"),
-		textColor = rgb(204, 102, 0),
+		outerTextColor = rgb(255, 153, 0),
+		innerTextColor = rgb(204, 102, 0),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("e023ca58-bfce-45b2-a005-638e5bbf07ea"),
 	))
@@ -307,7 +339,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = true,
 		elementShell = element("WATER"),
 		icon = icon("shell/Aero"),
-		textColor = rgb(0, 170, 204),
+		innerTextColor = rgb(0, 221, 255),
+		outerTextColor = rgb(0, 170, 204),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("29a52d0e-e8fa-41e1-860b-9eba1788a30d"),
 	))
@@ -318,7 +351,8 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = true,
 		elementShell = element("EARTH"),
 		icon = icon("shell/Aero"),
-		textColor = rgb(51, 204, 0),
+		innerTextColor = rgb(102, 255, 0),
+		outerTextColor = rgb(51, 204, 0),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("7deded10-364b-4d14-9e29-16796435da8b"),
 	))
@@ -329,19 +363,9 @@ fun addStatusEffects(content: Content) {
 		disappearsAfterCombat = true,
 		elementShell = element("AIR"),
 		icon = icon("shell/Aero"),
-		textColor = rgb(204, 204, 34),
+		innerTextColor = rgb(255, 255, 85),
+		outerTextColor = rgb(204, 204, 34),
 		passiveParticleSprites = emptyArray(),
 		id = UUID.fromString("2a6c42e7-f779-498a-b813-7a90d819c781"),
-	))
-
-	stats.statusEffects.add(StatusEffect(
-		flashName = "BRN",
-		niceName = "Burn?",
-		isPositive = false,
-		disappearsAfterCombat = true,
-		icon = icon("shell/Pyro"),
-		textColor = rgb(204, 51, 0),
-		passiveParticleSprites = emptyArray(),
-		id = UUID.fromString("2e21fe11-7aef-48be-ae20-e37b719612aa"),
 	))
 }
