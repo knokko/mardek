@@ -16,28 +16,52 @@ import mardek.content.sprite.ObjectSprites
 @BitStruct(backwardCompatible = true)
 class AreaDecoration(
 
+	/**
+	 * The X-coordinate of the tile where this animation is placed
+	 */
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
 
+	/**
+	 * The Y-coordinate of the tile where this animation is placed
+	 */
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
 
+	/**
+	 * The sprite/animation of this decoration, or `null` when it is invisible.
+	 */
 	@BitField(id = 2, optional = true)
 	@ReferenceField(stable = false, label = "object sprites")
 	val sprites: ObjectSprites?,
 
+	/**
+	 * The light that this decoration should emit (e.g. when it is a torch), or `null` when this decoration doesn't
+	 * emit any light.
+	 */
 	@BitField(id = 3, optional = true)
 	val light: AreaLight?,
 
+	/**
+	 * The duration of one animation frame, in milliseconds
+	 */
 	@BitField(id = 4)
 	@IntegerField(minValue = 1, expectUniform = false)
 	val timePerFrame: Int,
 
+	/**
+	 * When the player should be able to interact with this decoration, this will be the 'conversation' that was
+	 * imported from Flash. It is currently unused.
+	 */
 	@BitField(id = 5, optional = true)
 	val rawConversation: String?,
 
+	/**
+	 * When the player should be able to interact with this decoration, this will be the 'conversation name' that was
+	 * imported from Flash. It is currently unused.
+	 */
 	@BitField(id = 6, optional = true)
 	val conversationName: String?,
 ) {

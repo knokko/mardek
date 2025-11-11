@@ -6,7 +6,10 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 
-abstract class AreaSwitch(
+/**
+ * Represents a switch gate, orb, or platform. This class is convenient, since each subclass needs the same fields.
+ */
+sealed class AreaSwitch(
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "switch colors")
 	val color: SwitchColor,

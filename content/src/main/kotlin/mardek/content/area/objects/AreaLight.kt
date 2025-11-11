@@ -4,13 +4,23 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 
+/**
+ * Describes a source of light in an area.
+ */
 @BitStruct(backwardCompatible = true)
 class AreaLight(
 
+	/**
+	 * The light color, encoded using `ColorPacker`
+	 */
 	@BitField(id = 0)
 	@IntegerField(expectUniform = true)
 	val color: Int,
 
+	/**
+	 * The vertical offset between the upper edge of the tile where this light is placed, and the center of the light
+	 * emission. An offset of 16 means that the light center is 1 tile 'lower'.
+	 */
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false)
 	val offsetY: Int
