@@ -107,7 +107,6 @@ internal fun renderBattleLoot(
 		itemY += rowHeight
 	}
 
-	// TODO DL Fix acquireNextImageKHR timeout crash when the window is hidden behind another window
 	for (plotItem in loot.plotItems) {
 		kimBatch.simple(itemX - 16 * scale, itemY, scale, plotItem.sprite.index)
 		itemY += rowHeight
