@@ -1,10 +1,10 @@
 package mardek.importer.audio
 
 import mardek.content.Content
-import mardek.importer.ui.BcPacker
+import mardek.importer.util.classLoader
 
 internal fun importSoundData(name: String): ByteArray {
-	val input = BcPacker::class.java.classLoader.getResourceAsStream("mardek/importer/audio/$name.ogg")!!
+	val input = classLoader.getResourceAsStream("mardek/importer/audio/$name.ogg")!!
 	val bytes = input.readAllBytes()
 	input.close()
 	return bytes

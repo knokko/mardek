@@ -6,7 +6,7 @@ import mardek.content.sprite.BcSprite
 import mardek.content.stats.ElementalResistance
 import mardek.content.stats.Resistances
 import mardek.content.stats.StatusEffect
-import mardek.importer.ui.BcPacker
+import mardek.importer.util.classLoader
 import mardek.importer.util.loadBc7Sprite
 import java.awt.image.BufferedImage
 import java.util.*
@@ -19,17 +19,27 @@ fun addStatusEffects(content: Content) {
 	val stats = content.stats
 	fun element(properName: String) = stats.elements.find { it.properName == properName }!!
 
-	val sheet16 = ImageIO.read(BcPacker::class.java.classLoader.getResource(
+	val sheet16 = ImageIO.read(classLoader.getResource(
 		"mardek/importer/particle/sheet16.png"
 	))
-	val sheet32 = ImageIO.read(BcPacker::class.java.classLoader.getResource(
+	val sheet32 = ImageIO.read(classLoader.getResource(
 		"mardek/importer/particle/sheet32.png"
 	))
 
 	fun passiveSprites(atlas: BufferedImage, indices: IntArray) = indices.map { index ->
-		val size = if (atlas === sheet16) 16 else 32
-		val sprite = BcSprite(size, size, 7)
-		sprite.bufferedImage = atlas.getSubimage(size * (index % 10), size * (index / 10), size, size)
+		val oldSize = if (atlas === sheet16) 16 else 32
+		val newSize = oldSize + 2
+		val sprite = BcSprite(newSize, newSize, 0)
+		sprite.bufferedImage = BufferedImage(newSize, newSize, BufferedImage.TYPE_INT_ARGB)
+		val oldImage = atlas.getSubimage(oldSize * (index % 10), oldSize * (index / 10), oldSize, oldSize)
+		for (oldY in 0 until oldSize) {
+			for (oldX in 0 until oldSize) {
+				(sprite.bufferedImage as BufferedImage).setRGB(
+					oldX + 1, oldY + 1, oldImage.getRGB(oldX, oldY)
+				)
+			}
+		}
+
 		sprite
 	}.toTypedArray()
 

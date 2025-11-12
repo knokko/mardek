@@ -16,12 +16,10 @@ class BcSprite(
 	val height: Int,
 
 	@BitField(id = 2)
-	@IntegerField(expectUniform = true, minValue = 1, maxValue = 7)
+	@IntegerField(expectUniform = true, minValue = 0, maxValue = 7)
 	val version: Int,
 ) {
 	var bufferedImage: Any? = null
-
-	var postEncodeCallback: (() -> Unit)? = null
 
 	@BitField(id = 3)
 	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)

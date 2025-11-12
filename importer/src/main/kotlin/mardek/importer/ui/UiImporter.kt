@@ -2,6 +2,7 @@ package mardek.importer.ui
 
 import mardek.content.sprite.KimSprite
 import mardek.content.ui.UiSprites
+import mardek.importer.util.classLoader
 import mardek.importer.util.compressKimSprite1
 import mardek.importer.util.compressKimSprite2
 import mardek.importer.util.compressKimSprite3
@@ -10,7 +11,7 @@ import javax.imageio.ImageIO
 
 private fun importKimSprite(name: String, bitsPerPixel: Int): KimSprite {
 	val path = "mardek/importer/ui/$name.png"
-	val resource = BcPacker::class.java.classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
+	val resource = classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
 	val image = ImageIO.read(resource)
 
 	return if (bitsPerPixel == 0) compressKimSprite1(image)

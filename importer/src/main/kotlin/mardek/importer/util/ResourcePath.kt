@@ -1,5 +1,6 @@
 package mardek.importer.util
 
+import mardek.importer.area.SpritesAndAreas
 import java.io.File
 
 private fun determineResourcesFolder(): File {
@@ -9,3 +10,4 @@ private fun determineResourcesFolder(): File {
 
 val resourcesFolder = determineResourcesFolder()
 val projectFolder = resourcesFolder.parentFile.parentFile.parentFile.parentFile.absoluteFile.parentFile.parentFile!!
+val classLoader = SpritesAndAreas::class.java.classLoader!!

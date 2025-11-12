@@ -2,9 +2,10 @@ package mardek.importer.ui
 
 import mardek.content.ui.Font
 import mardek.content.ui.Fonts
+import mardek.importer.util.classLoader
 
 private fun importFont(name: String): Font {
-	val input = BcPacker::class.java.classLoader.getResourceAsStream("mardek/importer/fonts/$name.ttf")!!
+	val input = classLoader.getResourceAsStream("mardek/importer/fonts/$name.ttf")!!
 	val font = Font()
 	font.data = input.readAllBytes()
 	input.close()

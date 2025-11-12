@@ -5,12 +5,12 @@ import mardek.content.Content
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
 import mardek.content.stats.CombatStat
-import mardek.importer.ui.BcPacker
+import mardek.importer.util.classLoader
 import java.util.UUID
 import javax.imageio.ImageIO
 
 private fun getBcSprite(name: String): BcSprite {
-	val resource = BcPacker::class.java.classLoader.getResource("mardek/importer/stats/elements/${name}.png")!!
+	val resource = classLoader.getResource("mardek/importer/stats/elements/${name}.png")!!
 	val image = ImageIO.read(resource)
 	val sprite = BcSprite(image.width, image.height, 7)
 	sprite.bufferedImage = image

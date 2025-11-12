@@ -10,7 +10,7 @@ import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
 import mardek.content.ui.Font
 import mardek.content.ui.TitleScreenContent
-import mardek.importer.ui.BcPacker
+import mardek.importer.util.classLoader
 import mardek.importer.util.projectFolder
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
@@ -52,14 +52,14 @@ private fun saveIcons(outputFolder: File) {
 	val iconOutput = Files.newOutputStream(File("$outputFolder/icons.bin").toPath())
 	val imageData = ByteBuffer.allocate(4 * 16 * 16)
 
-	val itemSheet = ImageIO.read(BcPacker::class.java.classLoader.getResource(
+	val itemSheet = ImageIO.read(classLoader.getResource(
 		"mardek/importer/inventory/itemsheet_misc.png"
 	))
 	ImageCoding.encodeBufferedImage(imageData, itemSheet.getSubimage(288, 32, 16, 16))
 	iconOutput.write(imageData.array())
 
 	for (cursor in arrayOf("inventory", "pointer", "grab")) {
-		val image = ImageIO.read(BcPacker::class.java.classLoader.getResource(
+		val image = ImageIO.read(classLoader.getResource(
 			"mardek/importer/cursors/$cursor.png"
 		))
 		imageData.position(0)
@@ -74,6 +74,7 @@ private fun saveIcons(outputFolder: File) {
 private fun addBcImage(resourceWriter: Vk2dResourceWriter, bc: BcSprite) {
 	if (bc.index != -1) return
 	val compression = when (bc.version) {
+		0 -> Vk2dImageCompression.NONE
 		4 -> Vk2dImageCompression.BC4
 		7 -> Vk2dImageCompression.BC7
 		else -> throw UnsupportedOperationException("Unexpected compression BC${bc.version}")

@@ -6,9 +6,7 @@ import com.github.knokko.compressor.Kim2Compressor
 import com.github.knokko.vk2d.Kim3Compressor
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
-import mardek.importer.ui.BcPacker
 import org.lwjgl.BufferUtils
-import java.awt.Color
 import java.awt.image.BufferedImage
 import java.nio.IntBuffer
 import javax.imageio.ImageIO
@@ -42,7 +40,7 @@ fun compressKimSprite2(image: BufferedImage, bitsPerPixel: Int): KimSprite {
 }
 
 fun loadBc7Sprite(path: String): BcSprite {
-	val resource = BcPacker::class.java.classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
+	val resource = classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
 	val image = ImageIO.read(resource)
 
 	val sprite = BcSprite(image.width, image.height, 7)

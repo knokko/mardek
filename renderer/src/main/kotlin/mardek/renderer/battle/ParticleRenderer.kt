@@ -94,13 +94,13 @@ internal fun renderEffectParticles(battleContext: BattleRenderContext, imageBatc
 			val size = particle.getSize(renderTime)
 			val h = 0.5f
 			val corners = arrayOf(
-				Vector2f(-h, -h), Vector2f(h, -h),
-				Vector2f(h, h), Vector2f(-h, h)
+				Vector2f(-h, h), Vector2f(h, h),
+				Vector2f(h, -h), Vector2f(-h, -h),
 			).map { rawCorner ->
 				val offsetX = particle.getX(renderTime) + size * (rawCorner.x * cos(rotation) -
-						rawCorner.y * sin(rotation))// TODO DL + particle.combatant.getModel().skeleton.statusPoint.x
+						rawCorner.y * sin(rotation))
 				val offsetY = particle.getY(renderTime) + size * (rawCorner.x * sin(rotation) +
-						rawCorner.y * cos(rotation))// + particle.combatant.getModel().skeleton.statusPoint.y
+						rawCorner.y * cos(rotation) - 0.5f)
 				Vector2f(
 					particle.combatant.renderInfo.statusEffectPoint.x + magicScale * offsetX,
 					particle.combatant.renderInfo.statusEffectPoint.y + magicScale * offsetY
@@ -114,7 +114,7 @@ internal fun renderEffectParticles(battleContext: BattleRenderContext, imageBatc
 					corners[2].x, corners[2].y,
 					corners[3].x, corners[3].y,
 					particle.sprite.index,
-					0, rgba(1f, 1f, 1f, opacity),
+					0, rgba(1f, 1f, 1f, opacity * 0.6f),
 				)
 				false
 			} else true

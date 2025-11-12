@@ -13,7 +13,7 @@ import mardek.content.particle.ParticleSprite
 import mardek.content.particle.RadialParticleSpawnProperties
 import mardek.content.sprite.BcSprite
 import mardek.importer.area.parseFlashString
-import mardek.importer.ui.BcPacker
+import mardek.importer.util.classLoader
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import java.lang.Float.parseFloat
@@ -57,7 +57,7 @@ internal fun getParticleSprite(content: Content, rawEmitter: Map<String, String>
 	val existing = content.battle.particleSprites.find { it.name == spriteName }
 	if (existing != null) return existing
 
-	val sheet = ImageIO.read(BcPacker::class.java.classLoader.getResource(
+	val sheet = ImageIO.read(classLoader.getResource(
 		"mardek/importer/particle/sheet$spriteSize.png"
 	))
 	val numColumns = sheet.width / spriteSize
