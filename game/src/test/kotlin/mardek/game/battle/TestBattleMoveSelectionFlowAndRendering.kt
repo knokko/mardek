@@ -102,7 +102,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionAttack(target = null))
-		assertSame(sounds.ui.partyScroll, soundQueue.take())
+		assertSame(sounds.ui.scroll2, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -114,7 +114,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionSkill(skill = null, target = null))
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -126,7 +126,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionItem(item = null, target = null))
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -138,7 +138,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionWait)
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -150,7 +150,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionFlee)
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -162,7 +162,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionAttack(target = null))
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		// 'Dive' into attack target selection
@@ -192,7 +192,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveRight))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionAttack(battle.livingPlayers()[1]))
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -220,9 +220,9 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionItem(item = elixir, target = null))
 		assertSame(sounds.ui.clickCancel, soundQueue.take())
-		assertSame(sounds.ui.scroll, soundQueue.take())
-		assertSame(sounds.ui.scroll, soundQueue.take())
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertSame(sounds.ui.clickConfirm, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -256,7 +256,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveUp))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionItem(item = elixir, target = battle.livingPlayers()[0]))
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -270,7 +270,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveLeft))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionItem(item = elixir, target = battle.livingOpponents()[0]))
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		// Cancel item targeting, and go to skill selection
@@ -285,7 +285,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertSelectedMove(BattleMoveSelectionSkill(skill = shock, target = null))
 		assertSame(sounds.ui.clickCancel, soundQueue.take())
 		assertSame(sounds.ui.clickCancel, soundQueue.take())
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertSame(sounds.ui.clickConfirm, soundQueue.take())
 		assertNull(soundQueue.take())
 
@@ -300,8 +300,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveDown))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionSkill(skill = frostasia, target = null))
-		assertSame(sounds.ui.scroll, soundQueue.take())
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -343,7 +343,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertSelectedMove(BattleMoveSelectionSkill(
 			skill = frostasia, target = BattleSkillTargetSingle(battle.livingPlayers()[1])
 		))
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -356,7 +356,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		fakeInput.postEvent(releaseKeyEvent(InputKey.MoveRight))
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionSkill(skill = frostasia, target = BattleSkillTargetAllAllies))
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertNull(soundQueue.take())
 
 		testRendering(
@@ -382,7 +382,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 			battle.livingPlayers()[1], arrayOf(battle.livingPlayers()[1]), frostasia,
 			null, battleUpdateContext(state.campaign)
 		), battle.state)
-		assertSame(sounds.ui.scroll, soundQueue.take())
+		assertSame(sounds.ui.scroll1, soundQueue.take())
 		assertSame(sounds.ui.clickConfirm, soundQueue.take())
 		assertNull(soundQueue.take())
 	}

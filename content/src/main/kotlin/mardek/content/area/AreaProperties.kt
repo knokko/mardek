@@ -4,12 +4,22 @@ import com.github.knokko.bitser.BitEnum
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 
+/**
+ * The basic properties that all areas have.
+ */
 @BitStruct(backwardCompatible = true)
 class AreaProperties(
 
+	/**
+	 * The 'raw' name of the area, as imported from Flash. This name is needed for Flash importing, but otherwise not
+	 * really.
+	 */
 	@BitField(id = 0)
 	var rawName: String,
 
+	/**
+	 * The nice/display name of the area.
+	 */
 	@BitField(id = 1)
 	val displayName: String,
 
@@ -22,6 +32,10 @@ class AreaProperties(
 	@BitField(id = 2, optional = true)
 	val ambience: AreaAmbience?,
 
+	/**
+	 * The name of the music track that should be played while the player is in the area, or `null` when it is
+	 * complicated.
+	 */
 	@BitField(id = 3, optional = true)
 	val musicTrack: String?,
 
@@ -37,9 +51,15 @@ class AreaProperties(
 	@BitField(id = 5, optional = true)
 	val encyclopediaName: String?,
 
+	/**
+	 * When an area is a dreamworld area, this property determines its background color.
+	 */
 	@BitField(id = 6)
 	val dreamType: AreaDreamType,
 
+	/**
+	 * Some areas have some kind of snow, which is specified by this field
+	 */
 	@BitField(id = 7)
 	val snowType: AreaSnowType,
 	// TODO CHAP3 Dreamshrine Entrance has some GlowTiles stuff
@@ -51,13 +71,31 @@ class AreaProperties(
 	)
 }
 
+/**
+ * The types of snow behavior that areas can have
+ */
 @BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class AreaSnowType(val code: Int) {
+
+	/**
+	 * This area doesn't have any snow
+	 */
 	None(0),
+
+	/**
+	 * This area has the same snow as Lifewood
+	 */
 	Lifewood(1),
+
+	/**
+	 * This area has the same 'snow' as Dreamwood
+	 */
 	Dreamwood(2)
 }
 
+/**
+ * The types of dreamworld background that areas can have
+ */
 @BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class AreaDreamType(
 	/**
@@ -65,19 +103,34 @@ enum class AreaDreamType(
 	 */
 	val code: String
 ) {
+
+	/**
+	 * This is not a dreamworld area
+	 */
 	None(""),
+
 	/**
 	 * Uses 4849778, or #4A0072
 	 */
 	DreamcaveAndDreamshrineAndGrottoAndEarthTemple("true"),
+
 	/**
 	 * Nearly black
 	 */
 	SerpentCave("1"),
+
 	/**
 	 * No dream border
 	 */
 	DreamwoodAndCanoniaShaman("2"),
+
+	/**
+	 * The astral tunnel background
+	 */
 	AstralTunnel("19000"),
+
+	/**
+	 * The dreamwood cave background (not to be confused with the dreamwood serpent cave)
+	 */
 	DreamwoodCave("3342387")
 }

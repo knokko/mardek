@@ -9,7 +9,7 @@ internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, contex
 	if (selectedMove is BattleMoveSelectionAttack && selectedMove.target == null) {
 		if (key == InputKey.MoveLeft) state.selectedMove = BattleMoveSelectionSkill(skill = null, target = null)
 		else state.selectedMove = BattleMoveSelectionFlee
-		context.soundQueue.insert(context.sounds.ui.scroll)
+		context.soundQueue.insert(context.sounds.ui.scroll1)
 	}
 	if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) {
 		if (key == InputKey.MoveLeft && selectedMove.target.isOnPlayerSide) {
@@ -24,7 +24,7 @@ internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, contex
 	if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill == null) {
 		if (key == InputKey.MoveLeft) changeSelectedMove(battle, BattleMoveSelectionItem(item = null, target = null), context)
 		else changeSelectedMove(battle, BattleMoveSelectionAttack(target = null), context)
-		context.soundQueue.insert(context.sounds.ui.scroll)
+		context.soundQueue.insert(context.sounds.ui.scroll1)
 	}
 	if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null && selectedMove.target != null) {
 		if (selectedMove.target is BattleSkillTargetSingle) {
@@ -80,7 +80,7 @@ internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, contex
 	if (selectedMove is BattleMoveSelectionItem && selectedMove.item == null) {
 		if (key == InputKey.MoveLeft) changeSelectedMove(battle, BattleMoveSelectionWait, context)
 		else changeSelectedMove(battle, BattleMoveSelectionSkill(skill = null, target = null), context)
-		context.soundQueue.insert(context.sounds.ui.scroll)
+		context.soundQueue.insert(context.sounds.ui.scroll1)
 	}
 	if (selectedMove is BattleMoveSelectionItem && selectedMove.target != null) {
 		if (key == InputKey.MoveLeft && selectedMove.target.isOnPlayerSide) {
@@ -97,12 +97,12 @@ internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, contex
 	if (selectedMove is BattleMoveSelectionWait) {
 		if (key == InputKey.MoveLeft) changeSelectedMove(battle, BattleMoveSelectionFlee, context)
 		else changeSelectedMove(battle, BattleMoveSelectionItem(item = null, target = null), context)
-		context.soundQueue.insert(context.sounds.ui.scroll)
+		context.soundQueue.insert(context.sounds.ui.scroll1)
 	}
 	if (selectedMove is BattleMoveSelectionFlee) {
 		if (key == InputKey.MoveLeft) changeSelectedMove(battle, BattleMoveSelectionAttack(target = null), context)
 		else changeSelectedMove(battle, BattleMoveSelectionWait, context)
-		context.soundQueue.insert(context.sounds.ui.scroll)
+		context.soundQueue.insert(context.sounds.ui.scroll1)
 	}
 }
 
@@ -132,7 +132,7 @@ internal fun battleScrollVertically(battle: BattleState, key: InputKey, context:
 					if (index >= skills.size) index = 0
 				}
 				changeSelectedMove(battle, BattleMoveSelectionSkill(skill = skills[index], target = null), context)
-				context.soundQueue.insert(context.sounds.ui.scroll)
+				context.soundQueue.insert(context.sounds.ui.scroll1)
 			}
 		} else {
 			if (selectedMove.skill.targetType != SkillTargetType.Self && selectedMove.target is BattleSkillTargetSingle) {
@@ -161,7 +161,7 @@ internal fun battleScrollVertically(battle: BattleState, key: InputKey, context:
 					if (index >= items.size) index = 0
 				}
 				changeSelectedMove(battle, BattleMoveSelectionItem(item = items[index], target = null), context)
-				context.soundQueue.insert(context.sounds.ui.scroll)
+				context.soundQueue.insert(context.sounds.ui.scroll1)
 			}
 		} else {
 			val newTarget = nextTarget(key, selectedMove.target, battle)
@@ -281,7 +281,7 @@ private fun changeSelectedMove(battle: BattleState, newMove: BattleMoveSelection
 	val newTargets = newMove.targets(battle)
 
 	if (oldTargets.isNotEmpty() && newTargets.isNotEmpty() && !oldTargets.contentEquals(newTargets)) {
-		context.soundQueue.insert(context.sounds.ui.scroll)
+		context.soundQueue.insert(context.sounds.ui.scroll1)
 	}
 	if (oldTargets.isEmpty() && newTargets.isNotEmpty()) context.soundQueue.insert(context.sounds.ui.clickConfirm)
 	if (oldTargets.isNotEmpty() && newTargets.isEmpty()) context.soundQueue.insert(context.sounds.ui.clickCancel)

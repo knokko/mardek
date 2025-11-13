@@ -60,7 +60,7 @@ internal fun importObjectSprites(
 ): ObjectSprites {
 	val imageName = flashName.replace("spritesheet_", "").replace("obj_", "")
 	val imagePath = "sheets/objects/$imageName.png"
-	val input = SpritesAndAreas::class.java.getResourceAsStream(imagePath) ?:
+	val input = ParsedArea::class.java.getResourceAsStream(imagePath) ?:
 			throw IllegalArgumentException("Can't get resource $imagePath")
 	val sheetImage = ImageIO.read(input)
 	input.close()

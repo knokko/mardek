@@ -13,15 +13,29 @@ import mardek.content.inventory.Dreamstone
 import mardek.content.skill.ActiveSkill
 import java.util.UUID
 
+/**
+ * Represents a type of monster, for instance a Fungoblin. Some monsters (e.g. Lake Hag) are unique, whereas other
+ * monsters (e.g. Fungoblin) are common and can occur more than once in the same battle.
+ */
 @BitStruct(backwardCompatible = true)
 class Monster(
 
+	/**
+	 * The name of the monster, as imported from Flash. It doesn't really serve a purpose at the moment.
+	 */
 	@BitField(id = 0)
 	val name: String,
 
+	/**
+	 * The display name of the monster, which will be shown near its health bar at the top of the battle screen.
+	 */
 	@BitField(id = 1)
 	val displayName: String,
 
+	/**
+	 * This defines the appearance and animations of the monster. It is simply a combatant skeleton with an associated
+	 * skin.
+	 */
 	@BitField(id = 2)
 	val animations: CombatantAnimations,
 

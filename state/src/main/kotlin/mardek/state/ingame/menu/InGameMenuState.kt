@@ -35,7 +35,7 @@ class InGameMenuState(private val state: CampaignState) {
 						if (currentTab is MapTab) currentTab = InventoryTab()
 						if (currentTab is VideoSettingsTab) currentTab = MapTab()
 
-						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll)
+						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll1)
 						continue
 					}
 
@@ -46,7 +46,7 @@ class InGameMenuState(private val state: CampaignState) {
 						if (currentTab is SkillsTab) currentTab = InventoryTab()
 						if (currentTab is PartyTab) currentTab = SkillsTab(state.characterSelection)
 
-						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll)
+						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll1)
 						continue
 					}
 				}

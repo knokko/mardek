@@ -73,26 +73,26 @@ class SaveSelectionState(val selectableCampaigns: Array<String>) {
 
 		if (key == InputKey.MoveLeft && selectedCampaignIndex > 0) {
 			selectedCampaignIndex -= 1
-			context.soundQueue.insert(sounds.ui.partyScroll)
+			context.soundQueue.insert(sounds.ui.scroll2)
 		}
 		if (key == InputKey.MoveRight && selectedCampaignIndex + 1 < selectableCampaigns.size) {
 			selectedCampaignIndex += 1
-			context.soundQueue.insert(sounds.ui.partyScroll)
+			context.soundQueue.insert(sounds.ui.scroll2)
 		}
 
 		if (key == InputKey.MoveUp) {
 			if (selectedFileIndex == 0 && context.canSelectNewSave) {
 				selectedFileIndex = -1
-				context.soundQueue.insert(sounds.ui.scroll)
+				context.soundQueue.insert(sounds.ui.scroll1)
 			}
 			if (selectedFileIndex > 0) {
 				selectedFileIndex -= 1
-				context.soundQueue.insert(sounds.ui.scroll)
+				context.soundQueue.insert(sounds.ui.scroll1)
 			}
 		}
 		if (key == InputKey.MoveDown && selectedFileIndex + 1 < selectableFiles.size) {
 			selectedFileIndex += 1
-			context.soundQueue.insert(sounds.ui.scroll)
+			context.soundQueue.insert(sounds.ui.scroll1)
 		}
 
 		if (key == InputKey.Interact || key == InputKey.ToggleMenu) {

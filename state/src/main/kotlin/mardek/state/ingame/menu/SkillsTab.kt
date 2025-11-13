@@ -36,14 +36,14 @@ class SkillsTab(characterSelection: CharacterSelectionState): InGameMenuTab(true
 				skillTypeIndex -= 1
 				if (skillTypeIndex < 0) skillTypeIndex = 5
 				validateSkillIndex(context)
-				context.soundQueue.insert(context.sounds.ui.partyScroll)
+				context.soundQueue.insert(context.sounds.ui.scroll2)
 			}
 
 			if (key == InputKey.MoveRight) {
 				skillTypeIndex += 1
 				if (skillTypeIndex > 5) skillTypeIndex = 0
 				validateSkillIndex(context)
-				context.soundQueue.insert(context.sounds.ui.partyScroll)
+				context.soundQueue.insert(context.sounds.ui.scroll2)
 			}
 
 			val oldSkillIndex = skillIndex
@@ -57,7 +57,7 @@ class SkillsTab(characterSelection: CharacterSelectionState): InGameMenuTab(true
 				if (skillIndex < 0) skillIndex = max(0, determineSkillList(context).size - 1)
 			}
 
-			if (skillIndex != oldSkillIndex) context.soundQueue.insert(context.sounds.ui.scroll)
+			if (skillIndex != oldSkillIndex) context.soundQueue.insert(context.sounds.ui.scroll1)
 
 			if (key == InputKey.Interact) {
 				val visibleSkills = determineSkillList(context)
@@ -90,7 +90,7 @@ class SkillsTab(characterSelection: CharacterSelectionState): InGameMenuTab(true
 				if (partyIndex >= party.size) partyIndex = party.indexOfFirst { it != null }
 			}
 
-			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.scroll)
+			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.scroll1)
 		}
 
 		super.processKeyPress(key, context)

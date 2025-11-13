@@ -30,7 +30,7 @@ class TestSpritesAndAreas {
 		assertEquals(expectedWidth, actual.width)
 		assertEquals(expectedHeight, actual.height)
 
-		val expectedInput = TestSpritesAndAreas::class.java.getResourceAsStream(expectedPath)!!
+		val expectedInput = ParsedArea::class.java.getResourceAsStream(expectedPath)!!
 		val fullImage = ImageIO.read(expectedInput)
 		expectedInput.close()
 

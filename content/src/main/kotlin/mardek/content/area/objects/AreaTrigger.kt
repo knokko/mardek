@@ -9,6 +9,9 @@ import mardek.content.BITSER
 import mardek.content.action.ActionSequence
 import java.util.UUID
 
+/**
+ * An area trigger can activate an `ActionSequence` when the player steps on its tile.
+ */
 @BitStruct(backwardCompatible = true)
 class AreaTrigger(
 	/**
@@ -17,10 +20,16 @@ class AreaTrigger(
 	@BitField(id = 0)
 	val name: String,
 
+	/**
+	 * The X-coordinate of the tile containing the trigger
+	 */
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
 
+	/**
+	 * The Y-coordinate of the tile containing the trigger
+	 */
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,

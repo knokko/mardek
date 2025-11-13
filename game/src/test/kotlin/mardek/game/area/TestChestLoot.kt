@@ -87,7 +87,7 @@ object TestChestLoot {
 			input.postEvent(pressKeyEvent(InputKey.MoveLeft))
 			campaign.update(context)
 			assertEquals(1, openChest.partyIndex)
-			assertSame(content.audio.fixedEffects.ui.scroll, soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
@@ -110,7 +110,7 @@ object TestChestLoot {
 			input.postEvent(pressKeyEvent(InputKey.MoveRight))
 			campaign.update(context)
 			assertEquals(0, openChest.partyIndex)
-			assertSame(content.audio.fixedEffects.ui.scroll, soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			// Luckily, Mardek has plenty of space

@@ -71,7 +71,7 @@ class BattleLoot(
 			if (selectedPartyIndex == context.party.size) selectedPartyIndex = context.party.indexOfFirst { it != null }
 		}
 		if (oldPartyIndex != selectedPartyIndex) {
-			context.soundQueue.insert(soundEffects.scroll)
+			context.soundQueue.insert(soundEffects.scroll1)
 		}
 
 		val oldElement = selectedElement
@@ -96,7 +96,7 @@ class BattleLoot(
 			if (oldElement is SelectedFinish && items.isNotEmpty()) selectedElement = SelectedGetAll
 		}
 		if (selectedElement != oldElement) {
-			context.soundQueue.insert(soundEffects.scroll)
+			context.soundQueue.insert(soundEffects.scroll1)
 		}
 
 		if (key == InputKey.Interact) {

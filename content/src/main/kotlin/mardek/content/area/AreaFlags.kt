@@ -4,6 +4,9 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import mardek.content.BITSER
 
+/**
+ * Special properties/flags that areas can have.
+ */
 @BitStruct(backwardCompatible = true)
 class AreaFlags(
 	/**
@@ -13,7 +16,8 @@ class AreaFlags(
 	val canWarp: Boolean, // TODO CHAP2 Special case is start of chapter 3
 
 	/**
-	 * Hm... I'm not quite sure what this does... this flag is true in all kinds of places, and 162 / 258 areas
+	 * Whether this area is automatically discovered on the area map. This is typically true in civilized areas like
+	 * Goznor, and typically false in dungeons like Soothwood.
 	 */
 	@BitField(id = 1)
 	val hasClearMap: Boolean,

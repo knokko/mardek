@@ -6,6 +6,15 @@ import com.github.knokko.bitser.field.IntegerField
 import mardek.content.BITSER
 
 /**
+ * The *ambience* of the area, which is probably a color overlay over some areas at certain time, for instance a dark
+ * tint over Goznor while it is dusk or night. // TODO CHAP1 Figure this out
+ *
+ * - Goznor chapter 1 dusk ambience is                   {ra:100,rb:0,ga:80,gb:0,ba:70,bb:0,aa:100,ab:0};
+ * - Goznor chapter 2 zombie ambience is                 {ra:25,rb:0,ga:40,gb:0,ba:80,bb:0,aa:100,ab:0};
+ * - Goznor chapter 2 ambience during Canonia zombies is {ra:25,rb:0,ga:40,gb:0,ba:80,bb:0,aa:100,ab:0};
+ * - Goznor chapter 2 genric sunset is                   {ra:100,rb:0,ga:80,gb:0,ba:70,bb:0,aa:100,ab:0};
+ * - Goznor chapter 2 night ambience is                  {ra:25,rb:0,ga:40,gb:0,ba:80,bb:0,aa:100,ab:0};
+ *
  * Use the `ColorPacker` of `vk-boiler` to extract the RGBA from `colorA` and `colorB`
  */
 @BitStruct(backwardCompatible = true)

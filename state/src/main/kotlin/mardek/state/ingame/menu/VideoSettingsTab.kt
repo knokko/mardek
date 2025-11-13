@@ -14,11 +14,11 @@ class VideoSettingsTab : InGameMenuTab(true) {
 		if (inside) {
 			if (key == InputKey.MoveDown && selectedProperty < 4) {
 				selectedProperty += 1
-				context.soundQueue.insert(context.sounds.ui.scroll)
+				context.soundQueue.insert(context.sounds.ui.scroll1)
 			}
 			if (key == InputKey.MoveUp && selectedProperty > 0) {
 				selectedProperty -= 1
-				context.soundQueue.insert(context.sounds.ui.scroll)
+				context.soundQueue.insert(context.sounds.ui.scroll1)
 			}
 		}
 
@@ -30,13 +30,13 @@ class VideoSettingsTab : InGameMenuTab(true) {
 			if (key == InputKey.MoveLeft) {
 				settings.preferredDevice -= 1
 				if (settings.preferredDevice < 0) settings.preferredDevice = settings.availableDevices.size - 1
-				context.soundQueue.insert(context.sounds.ui.partyScroll)
+				context.soundQueue.insert(context.sounds.ui.scroll2)
 				settings.save()
 			}
 			if (key == InputKey.MoveRight) {
 				settings.preferredDevice += 1
 				if (settings.preferredDevice >= settings.availableDevices.size) settings.preferredDevice = 0
-				context.soundQueue.insert(context.sounds.ui.partyScroll)
+				context.soundQueue.insert(context.sounds.ui.scroll2)
 				settings.save()
 			}
 		}
@@ -56,11 +56,11 @@ class VideoSettingsTab : InGameMenuTab(true) {
 		if (selectedProperty == 3) {
 			if (key == InputKey.MoveLeft && settings.framesInFlight > 1) {
 				settings.framesInFlight -= 1
-				context.soundQueue.insert(context.sounds.ui.partyScroll)
+				context.soundQueue.insert(context.sounds.ui.scroll2)
 			}
 			if (key == InputKey.MoveRight && settings.framesInFlight < 3) {
 				settings.framesInFlight += 1
-				context.soundQueue.insert(context.sounds.ui.partyScroll)
+				context.soundQueue.insert(context.sounds.ui.scroll2)
 			}
 		}
 

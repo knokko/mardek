@@ -67,6 +67,6 @@ class ObtainedItemStack(
 			if (partyIndex == party.size) partyIndex = party.indexOfFirst { it != null }
 		}
 
-		if (partyIndex != oldPartyIndex) soundQueue.insert(sounds.ui.scroll)
+		if (partyIndex != oldPartyIndex) soundQueue.insert(sounds.ui.scroll1)
 	}
 }

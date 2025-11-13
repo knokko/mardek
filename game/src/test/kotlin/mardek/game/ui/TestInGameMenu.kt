@@ -93,7 +93,7 @@ object TestInGameMenu {
 			state.update(context)
 			assertTrue(state.menu.shown)
 			assertTrue(state.menu.currentTab is SkillsTab)
-			assertSame(sounds.scroll, soundQueue.take())
+			assertSame(sounds.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			testRendering(
@@ -105,7 +105,7 @@ object TestInGameMenu {
 			state.update(context)
 			assertTrue(state.menu.shown)
 			assertTrue(state.menu.currentTab is InventoryTab)
-			assertSame(sounds.scroll, soundQueue.take())
+			assertSame(sounds.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			val mardekState = campaign.characterStates[heroMardek]!!
@@ -125,7 +125,7 @@ object TestInGameMenu {
 			state.update(context)
 			assertTrue(state.menu.shown)
 			assertTrue(state.menu.currentTab is MapTab)
-			assertSame(sounds.scroll, soundQueue.take())
+			assertSame(sounds.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			val mapColors = arrayOf(
@@ -204,8 +204,8 @@ object TestInGameMenu {
 			assertEquals(1, (state.menu.currentTab as SkillsTab).partyIndex)
 			assertFalse(state.menu.currentTab.inside)
 			assertSame(sounds.openMenu, soundQueue.take())
-			assertSame(sounds.scroll, soundQueue.take())
-			assertSame(sounds.scroll, soundQueue.take())
+			assertSame(sounds.scroll1, soundQueue.take())
+			assertSame(sounds.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			input.postEvent(pressKeyEvent(InputKey.Interact))

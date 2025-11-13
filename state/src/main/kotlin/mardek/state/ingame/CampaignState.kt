@@ -219,6 +219,7 @@ class CampaignState(
 			val destinationArea = destination.area
 			if (destinationArea != null) {
 				currentArea = AreaState(destinationArea, AreaPosition(destination.x, destination.y))
+				// TODO DL Respect destination.direction, and test this
 			} else currentArea!!.nextTransition = null
 		}
 

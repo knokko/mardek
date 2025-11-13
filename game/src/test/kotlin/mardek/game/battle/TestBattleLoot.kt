@@ -223,14 +223,14 @@ object TestBattleLoot {
 			input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			campaign.update(context)
 			assertEquals(BattleLoot.SelectedItem(0), loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.scroll, soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			campaign.update(context)
 			assertEquals(BattleLoot.SelectedItem(1), loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.scroll, soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			// Fill inventory with junk, except slot 10
@@ -338,7 +338,7 @@ object TestBattleLoot {
 			assertEquals(ItemStack(emerald, 17), mardekState.inventory[20])
 			assertEquals(0, loot.items.size)
 			assertEquals(BattleLoot.SelectedFinish, loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.scroll, soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, soundQueue.take())
 			assertNull(soundQueue.take())
 

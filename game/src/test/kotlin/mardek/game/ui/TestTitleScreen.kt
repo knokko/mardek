@@ -420,7 +420,7 @@ object TestTitleScreen {
 			assertSame(state, state.update(updateContext))
 			assertEquals("C_many", saveSelection.getSelectedCampaign())
 			assertEquals(0, saveSelection.selectedFileIndex)
-			assertSame(sounds.partyScroll, soundQueue.take())
+			assertSame(sounds.scroll2, soundQueue.take())
 
 			// Since C_many has multiple saves, we can scroll down
 			repeat(5) {
@@ -428,7 +428,7 @@ object TestTitleScreen {
 			}
 			assertSame(state, state.update(updateContext))
 			repeat(5) {
-				assertSame(sounds.scroll, soundQueue.take())
+				assertSame(sounds.scroll1, soundQueue.take())
 			}
 			assertEquals("C_many", saveSelection.getSelectedCampaign())
 			assertEquals(5, saveSelection.selectedFileIndex)
@@ -437,7 +437,7 @@ object TestTitleScreen {
 			for (counter in 0 until 20) {
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
 				assertSame(state, state.update(updateContext))
-				if (counter < 5) assertSame(sounds.scroll, soundQueue.take())
+				if (counter < 5) assertSame(sounds.scroll1, soundQueue.take())
 				else assertNull(soundQueue.take())
 			}
 			assertEquals(0, saveSelection.selectedFileIndex)
@@ -446,7 +446,7 @@ object TestTitleScreen {
 			for (counter in 0 until 123) {
 				input.postEvent(pressKeyEvent(InputKey.MoveDown))
 				assertSame(state, state.update(updateContext))
-				if (counter < 100) assertSame(sounds.scroll, soundQueue.take())
+				if (counter < 100) assertSame(sounds.scroll1, soundQueue.take())
 				else assertNull(soundQueue.take())
 			}
 			assertEquals(100, saveSelection.selectedFileIndex)
@@ -455,7 +455,7 @@ object TestTitleScreen {
 			repeat(50) {
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
 				assertSame(state, state.update(updateContext))
-				assertSame(sounds.scroll, soundQueue.take())
+				assertSame(sounds.scroll1, soundQueue.take())
 			}
 			assertEquals(50, saveSelection.selectedFileIndex)
 

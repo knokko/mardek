@@ -204,7 +204,7 @@ class BattleState(
 			forceMove.move.refreshStartTime()
 			forceMove.move as BattleStateMachine
 		} else if (effects.combatant is PlayerCombatantState) {
-			context.soundQueue.insert(context.sounds.ui.partyScroll)
+			context.soundQueue.insert(context.sounds.ui.scroll2)
 			BattleStateMachine.SelectMove(effects.combatant)
 		} else {
 			MonsterStrategyCalculator(

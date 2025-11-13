@@ -97,25 +97,25 @@ class InventoryTab: InGameMenuTab(true) {
 			partyIndex -= 1
 			while (partyIndex >= 0 && party[partyIndex] == null) partyIndex -= 1
 			if (partyIndex < 0) partyIndex = party.indexOfLast { it != null }
-			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.partyScroll)
+			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.scroll2)
 		}
 
 		if (key == InputKey.MoveDown) {
 			partyIndex += 1
 			while (partyIndex < party.size && party[partyIndex] == null) partyIndex += 1
 			if (partyIndex >= party.size) partyIndex = party.indexOfFirst { it != null }
-			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.partyScroll)
+			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.scroll2)
 		}
 
 		if (key == InputKey.MoveLeft) {
 			descriptionIndex -= 1
 			if (descriptionIndex == -1) descriptionIndex = 2
-			context.soundQueue.insert(context.sounds.ui.scroll)
+			context.soundQueue.insert(context.sounds.ui.scroll1)
 		}
 		if (key == InputKey.MoveRight) {
 			descriptionIndex += 1
 			if (descriptionIndex == 3) descriptionIndex = 0
-			context.soundQueue.insert(context.sounds.ui.scroll)
+			context.soundQueue.insert(context.sounds.ui.scroll1)
 		}
 
 		super.processKeyPress(key, context)
