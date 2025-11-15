@@ -2,9 +2,9 @@ package mardek.state.ingame.actions
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.action.*
 import mardek.content.area.Direction
 import mardek.input.InputKey
@@ -30,7 +30,7 @@ class AreaActionsState(
 	 * The current node that is being executed, initially the root node of the action sequence.
 	 */
 	@BitField(id = 0)
-	@ClassField(root = ActionNode::class)
+	@ReferenceField(stable = true, label = "action nodes")
 	var node: ActionNode?,
 
 	partyPositions: Array<AreaPosition>,

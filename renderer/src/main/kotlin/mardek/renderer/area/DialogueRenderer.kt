@@ -54,6 +54,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val renderY = textRegion.minY - renderHeight
 
 			val animationContext = AnimationContext(
+				renderRegion = Rectangle(region.minX, region.minY, region.width, region.height - textRegionHeight),
 				renderTime = System.nanoTime(),
 				magicScale = context.content.portraits.magicScale,
 				parentMatrix = Matrix3x2f().translate(renderX, renderY).scale(-magicScale, magicScale),

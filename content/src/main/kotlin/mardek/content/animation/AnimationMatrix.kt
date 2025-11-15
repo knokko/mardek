@@ -42,11 +42,11 @@ class AnimationMatrix(
 	val hasScale: Boolean,
 
 	@BitField(id = 5)
-	@FloatField(expectMultipleOf = 0.01, errorTolerance = 0.005)
+	@FloatField(expectMultipleOf = 0.002)
 	private val scaleX: Float,
 
 	@BitField(id = 6)
-	@FloatField(expectMultipleOf = 0.01, errorTolerance = 0.005)
+	@FloatField(expectMultipleOf = 0.002)
 	private val scaleY: Float,
 ) {
 	constructor() : this(0f, 0f, 0f, 0f, false, 0f, 0f)

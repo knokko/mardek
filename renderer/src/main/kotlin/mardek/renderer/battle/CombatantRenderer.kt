@@ -15,6 +15,7 @@ import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.DamageIndicatorHealth
 import mardek.state.ingame.battle.DamageIndicatorMana
 import mardek.state.ingame.battle.MonsterCombatantState
+import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 import kotlin.math.min
 
@@ -24,6 +25,7 @@ class CombatantRenderer(
 	private val context: BattleRenderContext,
 	private val batch: AnimationPartBatch,
 	private val combatant: CombatantState,
+	private val region: Rectangle,
 	private val showcase: Boolean = false,
 ) {
 	private val state = context.battle.state
@@ -293,6 +295,7 @@ class CombatantRenderer(
 
 		val equipment = combatant.getEquipment(context.updateContext)
 		val animationContext = AnimationContext(
+			renderRegion = region,
 			renderTime = context.renderTime,
 			magicScale = 4,
 			parentMatrix = parentMatrix,

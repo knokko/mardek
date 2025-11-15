@@ -3,6 +3,7 @@ package mardek.content.action
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 
 /**
  * Represents a dialogue action where the player can *choose* what his character will say (or do). This is mostly used
@@ -52,6 +53,7 @@ class ChoiceEntry(
 	 */
 	@BitField(id = 2, optional = true)
 	@ClassField(root = ActionNode::class)
+	@ReferenceFieldTarget(label = "action nodes")
 	val next: ActionNode?,
 ) {
 

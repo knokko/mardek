@@ -154,7 +154,9 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	}
 	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
 
-	for (animationSprite in content.battle.animationSprites + content.portraits.animationSprites) {
+	for (animationSprite in content.actions.cutsceneSprites + content.battle.animationSprites +
+			content.portraits.animationSprites
+	) {
 		addBcImage(resourceWriter, animationSprite.image)
 	}
 	for (skeleton in content.battle.skeletons) {

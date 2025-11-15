@@ -71,12 +71,16 @@ internal fun renderSaveFile(
 			val member = content.playableCharacters.find { it.id == memberID } ?: continue
 
 			val animationContext = AnimationContext(
+				renderRegion = Rectangle(
+					region.minX - region.width / 10, region.minY - region.height,
+					region.width, 2 * region.height,
+				),
 				renderTime = 0L,
 				magicScale = content.portraits.magicScale,
 				parentMatrix = Matrix3x2f().translate(
-					region.minX + 1f * index * region.height,
-					region.minY - 0.22f * region.height
-				).scale(0.018f * region.height),
+					region.minX + (1f + index) * region.height,
+					region.minY - 0.15f * region.height
+				).scale(-1f, 1f).scale(0.018f * region.height),
 				parentColorTransform = null,
 				partBatch = partBatch,
 				noMask = content.battle.noMask,

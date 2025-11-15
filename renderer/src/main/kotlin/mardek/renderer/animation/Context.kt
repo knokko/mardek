@@ -7,9 +7,13 @@ import mardek.content.portrait.PortraitInfo
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
 import mardek.state.ingame.battle.CombatantRenderInfo
+import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 
+private val defaultReferenceTime = System.nanoTime()
+
 class AnimationContext(
+	val renderRegion: Rectangle,
 	val renderTime: Long,
 	val magicScale: Int,
 	parentMatrix: Matrix3x2f,
@@ -19,6 +23,7 @@ class AnimationContext(
 	val combat: CombatantAnimationContext?,
 	val portrait: PortraitInfo?,
 	val portraitExpression: String? = null,
+	val referenceTime: Long = defaultReferenceTime,
 ) {
 	val stack = mutableListOf(TransformStackEntry(
 		parentMatrix, parentColorTransform,

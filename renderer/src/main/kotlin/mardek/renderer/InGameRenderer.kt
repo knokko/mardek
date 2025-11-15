@@ -6,6 +6,7 @@ import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import mardek.content.action.ActionSaveCampaign
 import mardek.content.action.FixedActionNode
+import mardek.renderer.actions.renderCampaignActions
 import mardek.renderer.area.renderCurrentArea
 import mardek.renderer.battle.renderBattle
 import mardek.renderer.battle.renderBattleLoot
@@ -186,6 +187,13 @@ internal fun renderInGame(
 				titleColorBatch = batches.first
 				titleTextBatch = batches.second
 			}
+		}
+	} else {
+		val actions = state.campaign.actions
+		if (actions != null) {
+			val batches = renderCampaignActions(context, actions, region)
+			titleColorBatch = batches.first
+			titleTextBatch = batches.second
 		}
 	}
 

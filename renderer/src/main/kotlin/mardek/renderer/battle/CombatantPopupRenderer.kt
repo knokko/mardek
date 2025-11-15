@@ -315,6 +315,6 @@ internal fun renderCombatantInfoPopup(
 			0.002f * region.height, TextAlignment.RIGHT,
 		)
 
-		CombatantRenderer(battleContext, partBatch, combatant, true).render()
+		CombatantRenderer(battleContext, partBatch, combatant, region, true).render()
 	}
 }

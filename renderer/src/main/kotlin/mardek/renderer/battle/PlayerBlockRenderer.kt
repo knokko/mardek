@@ -24,7 +24,7 @@ internal fun renderPlayerBlock(
 	battleContext.run {
 		val nameX = run {
 			val sprite = player.element.thickSprite
-			val marginY = region.height * 0.05f
+			val marginY = region.height * 0.025f
 			val scale = (region.height - 2 * marginY) / sprite.height.toFloat()
 			val y = region.minY + marginY
 			imageBatch.coloredScale(
@@ -98,8 +98,8 @@ internal fun renderPlayerBlock(
 		run {
 			val healthBar = ResourceBarRenderer(
 				context, ResourceType.Health, Rectangle(
-					region.minX + 4 * region.height / 5, region.minY + 13 * region.height / 30,
-					region.width - 4 * region.height / 5 - region.width / 20, 2 * region.height / 12
+					region.minX + 5 * region.height / 6, region.minY + 13 * region.height / 30,
+					region.width - 5 * region.height / 6 - region.width / 20, 2 * region.height / 12
 				), colorBatch, textBatch,
 			)
 			val displayedHealth = renderCombatantHealth(player, healthBar, System.nanoTime())
@@ -138,14 +138,14 @@ internal fun renderPlayerBlock(
 		}
 
 		run {
-			val diameter = region.height - region.height / 10
-			val minY = region.minY + region.height / 20
+			val diameter = region.height - region.height / 20
+			val minY = region.minY + region.height / 40
 			val color = srgbToLinear(rgb(86, 63, 31))
 			val margin = region.height / 10
 			ovalBatch.simpleAntiAliased(
 				region.minX + margin, minY + margin,
 				region.minX + diameter - 1 - margin, minY + diameter - 1 - margin,
-				0.1f, color
+				0.2f, color
 			)
 		}
 

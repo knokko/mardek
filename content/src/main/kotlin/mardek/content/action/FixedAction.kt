@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.area.Area
 import mardek.content.audio.SoundEffect
 
 /**
@@ -24,6 +25,9 @@ sealed class FixedAction {
 			ActionPlaySound::class.java,
 			ActionHealParty::class.java,
 			ActionSaveCampaign::class.java,
+			ActionShowChapterName::class.java,
+			ActionToArea::class.java,
+			ActionPlayCutscene::class.java,
 		)
 	}
 }
@@ -150,3 +154,101 @@ class ActionHealParty() : FixedAction()
  */
 @BitStruct(backwardCompatible = true)
 class ActionSaveCampaign() : FixedAction()
+
+/**
+ * Shows the chapter name and the chapter number (using Roman numbers) in the middle of the screen. They will fade in
+ * and fade out. This action typically appears at the start of each chapter.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionShowChapterName(
+
+	/**
+	 * The chapter number (in the original game, it would be either 1, 2, or 3)
+	 */
+	@BitField(id = 0)
+	@IntegerField(expectUniform = false, minValue = 1)
+	val chapter: Int,
+
+	/**
+	 * The chapter name (e.g. "A Fallen Star")
+	 */
+	@BitField(id = 1)
+	val name: String,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(0, "")
+
+	companion object {
+
+		/**
+		 * The time (in nanoseconds) needed to transition from an alpha/opacity of 0% to 100%, or from 100% to 0%.
+		 */
+		const val FADE_DURATION = 1500_000_000L
+
+		/**
+		 * The time (in nanoseconds) during which the chapter name will be shown with its full opacity
+		 */
+		const val MAIN_DURATION = 2000_000_000L
+
+		/**
+		 * The total duration (in nanoseconds):
+		 * 1. The screen is black
+		 * 2. The chapter title appears with an alpha/opacity of ~0
+		 * 3. The alpha/opacity gradually increases to full opacity, which takes `FADE_DURATION` ns
+		 * 4. The chapter title is shown with full opacity for `MAIN_DURATION` ns
+		 * 5. The chapter title slowly fades back to alpha/opacity 0, which takes `FADE_DURATION` ns
+		 */
+		const val TOTAL_DURATION = 2 * FADE_DURATION + MAIN_DURATION
+	}
+}
+
+/**
+ * Instantly 'teleports' the player to an(other) area
+ */
+@BitStruct(backwardCompatible = true)
+class ActionToArea(
+
+	/**
+	 * The destination area
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = true, label = "areas")
+	val area: Area,
+
+	/**
+	 * The X-coordinate of the destination tile
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val x: Int,
+
+	/**
+	 * The Y-coordinate of the destination tile
+	 */
+	@BitField(id = 2)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val y: Int,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(Area(), 0, 0)
+}
+
+/**
+ * Plays a cutscene. This action is automatically finished when the cutscene is over.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionPlayCutscene(
+
+	/**
+	 * The cutscene to be played
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = true, label = "cutscenes")
+	val cutscene: Cutscene,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(Cutscene())
+}

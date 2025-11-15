@@ -5,6 +5,8 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.action.ActionToArea
+import mardek.content.action.FixedActionNode
 import mardek.content.area.Chest
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.PlotItem
@@ -14,6 +16,7 @@ import mardek.input.MouseMoveEvent
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.actions.ActivatedTriggers
 import mardek.state.ingame.actions.AreaActionsState
+import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaDiscoveryMap
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -50,18 +53,21 @@ class CampaignState(
 	var gold: Int,
 ) {
 
-	@BitField(id = 4)
+	@BitField(id = 4, optional = true)
+	var actions: CampaignActionsState? = null
+
+	@BitField(id = 5)
 	@ReferenceField(stable = true, label = "chests")
 	val openedChests = HashSet<Chest>()
 
-	@BitField(id = 5)
+	@BitField(id = 6)
 	@ReferenceField(stable = true, label = "plot items")
 	val collectedPlotItems = HashSet<PlotItem>()
 
-	@BitField(id = 6)
+	@BitField(id = 7)
 	val areaDiscovery = AreaDiscoveryMap()
 
-	@BitField(id = 7)
+	@BitField(id = 8)
 	val triggers = ActivatedTriggers()
 
 	/**
@@ -70,15 +76,15 @@ class CampaignState(
 	 * - When this variable gets larger, the probability of encountering a random battle increases.
 	 * - When this variable is too low, no random battle can be encountered.
 	 */
-	@BitField(id = 8)
+	@BitField(id = 9)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var stepsSinceLastBattle = 0
 
-	@BitField(id = 9)
+	@BitField(id = 10)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var totalSteps = 0L
 
-	@BitField(id = 10)
+	@BitField(id = 11)
 	@IntegerField(expectUniform = true, minValue = 0)
 	var totalTime = 0.seconds
 
@@ -97,6 +103,12 @@ class CampaignState(
 
 			if (event.key == InputKey.CheatSave) {
 				context.saves.createSave(context.content, this, context.campaignName, SaveFile.Type.Cheat)
+			}
+
+			val campaignActions = getCampaignActions()
+			if (campaignActions != null) {
+				campaignActions.processKeyPress(event.key)
+				continue
 			}
 
 			val currentArea = this.currentArea ?: continue
@@ -131,9 +143,9 @@ class CampaignState(
 				continue
 			}
 
-			val actions = currentArea.actions
-			if (actions != null) {
-				updateAreaActions(context, event, actions)
+			val areaActions = currentArea.actions
+			if (areaActions != null) {
+				updateAreaActions(context, event, areaActions)
 				continue
 			}
 
@@ -164,6 +176,12 @@ class CampaignState(
 			}
 
 			currentArea.processKeyPress(event.key)
+		}
+
+		val campaignActions = getCampaignActions()
+		if (campaignActions != null) {
+			campaignActions.update()
+			return
 		}
 
 		// Don't update currentArea during battles!!
@@ -285,6 +303,23 @@ class CampaignState(
 		}
 	}
 
+	private fun getCampaignActions(): CampaignActionsState? {
+		val node = this.actions?.node
+		if (currentArea != null && node != null) throw IllegalStateException(
+			"Current area ${currentArea?.area} must be null when actions $actions is non-null"
+		)
+
+		if (node is FixedActionNode) {
+			val action = node.action
+			if (action is ActionToArea) {
+				this.currentArea = AreaState(action.area, AreaPosition(action.x, action.y))
+				this.actions = null
+			}
+		}
+
+		return this.actions
+	}
+
 	fun getParty() = characterSelection.party.filterNotNull().map {
 		Pair(it, characterStates[it]!!)
 	}
@@ -307,6 +342,18 @@ class CampaignState(
 			playerState.currentHealth = playerState.determineMaxHealth(player.baseStats, emptySet())
 			playerState.currentMana = playerState.determineMaxMana(player.baseStats, emptySet())
 		}
+	}
+
+	/**
+	 * This method should be called when the player enters the campaign state/session, so either:
+	 * - when the player starts a new game, or
+	 * - when the player loads a saved game
+	 *
+	 * This method will reset some animation states.
+	 */
+	fun markSessionStart() {
+		this.actions?.markSessionStart()
+		this.currentArea?.activeBattle?.markSessionStart()
 	}
 
 	private fun updateAreaActions(context: UpdateContext, event: InputKeyEvent?, actions: AreaActionsState) {

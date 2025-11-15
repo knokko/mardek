@@ -76,6 +76,7 @@ class TitleScreenState: GameState {
 						if (outcome.finished) {
 							val campaignState = context.saves.loadSave(context.content, outcome.save!!)
 							if (campaignState != null) {
+								campaignState.markSessionStart()
 								return InGameState(campaignState, outcome.save.campaignName)
 							}
 						}
@@ -171,14 +172,14 @@ class TitleScreenState: GameState {
 
 	private fun tryToStartNewGame() {
 		if (isCampaignNameValid && lastValidatedCampaignName == newCampaignName) {
-			afterContentLoaded = { content, soundQueue ->
+			afterContentLoaded = { content, _ ->
 				afterContentLoaded = null
-				startNewGame(content, soundQueue, newCampaignName!!)
+				startNewGame(content, newCampaignName!!)
 			}
 		}
 	}
 
-	private fun startNewGame(content: Content, soundQueue: SoundQueue, campaignName: String): GameState {
+	private fun startNewGame(content: Content, campaignName: String): GameState {
 		val rawCheckpoint = content.checkpoints["chapter1"]!!
 		val bitInput = BitInputStream(ByteArrayInputStream(rawCheckpoint))
 		val campaignState = GameStateManager.bitser.deserialize(
@@ -186,7 +187,6 @@ class TitleScreenState: GameState {
 		)
 		bitInput.close()
 
-		soundQueue.insert(content.audio.fixedEffects.ui.clickConfirm)
-		return InGameState(campaignState, campaignName)
+		return StartNewGameState(this, campaignState, campaignName)
 	}
 }

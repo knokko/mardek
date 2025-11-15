@@ -63,6 +63,7 @@ class AreaObject(
 	 * interactable objects should have an action sequence, but we aren't there yet (not even close).
 	 */
 	@BitField(id = 6, optional = true)
+	@ReferenceField(stable = false, label = "action sequences")
 	val actionSequence: ActionSequence?,
 ) {
 

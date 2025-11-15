@@ -1,5 +1,8 @@
 package mardek.game.ui
 
+import mardek.content.action.ActionPlayCutscene
+import mardek.content.action.ActionShowChapterName
+import mardek.content.action.FixedActionNode
 import mardek.game.TestingInstance
 import mardek.game.pressKeyEvent
 import mardek.game.testRendering
@@ -10,6 +13,7 @@ import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.saves.SaveFile
+import mardek.state.title.StartNewGameState
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,12 +30,12 @@ import kotlin.time.Duration.Companion.milliseconds
 
 object TestTitleScreen {
 
-	private val titleBarColors = arrayOf(
+	internal val titleBarColors = arrayOf(
 		Color(73, 59, 50),
 		Color(132, 105, 83),
 	)
 
-	private val baseColors = arrayOf(
+	internal val baseColors = arrayOf(
 		Color(190, 144, 95), // Title outer outline
 		Color(69, 50, 34), // Title inner outline
 		Color(242, 183, 113), // Subtitle upper color
@@ -167,8 +171,29 @@ object TestTitleScreen {
 			)
 
 			state.selectedButton = 4
+			val beforeClickTime = System.nanoTime()
 			input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
-			val newState = state.update(context) as InGameState
+
+			val startingState = state.update(context) as StartNewGameState
+			assertSame(state, startingState.titleState)
+			assertTrue(startingState.beginButtonClickTime > beforeClickTime)
+
+			// Skip title screen fade
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
+			val newState = startingState.update(context) as InGameState
+
+			// Skip chapter name
+			assertInstanceOf<ActionShowChapterName>((newState.campaign.actions!!.node as FixedActionNode).action)
+			context.input.postEvent(pressKeyEvent(InputKey.Escape))
+			newState.update(context)
+
+			// Skip intro cutscene
+			assertInstanceOf<ActionPlayCutscene>((newState.campaign.actions!!.node as FixedActionNode).action)
+			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
+			newState.update(context)
+
+			// Finally go in-game
+			assertNull(newState.campaign.actions)
 			assertEquals("lets go", newState.campaignName)
 			assertSame(heroMardek, newState.campaign.characterSelection.party[0])
 
@@ -381,8 +406,7 @@ object TestTitleScreen {
 			assertEquals(1, saveSelection.selectableFiles.size)
 			testRendering(
 				state, 800, 450, "load-game1",
-				loadGameColors + grayBorderColors,
-				selectedButtonColors + disabledButtonColors,
+				loadGameColors + grayBorderColors, selectedButtonColors
 			)
 
 			// Let's cancel and go back
@@ -462,7 +486,7 @@ object TestTitleScreen {
 			testRendering(
 				state, 800, 450, "load-game2",
 				loadGameColors + defaultBorderColors,
-				selectedButtonColors + disabledButtonColors + grayBorderColors,
+				selectedButtonColors + grayBorderColors,
 			)
 
 			input.postEvent(pressKeyEvent(InputKey.Interact))

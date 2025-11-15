@@ -19,6 +19,7 @@ internal fun renderBattleBackground(battleContext: BattleRenderContext, batch: A
 	val clippedWidth = max(0f, renderWidth - region.width)
 	val clippedHeight = max(0f, renderHeight - region.height)
 	val animationContext = AnimationContext(
+		renderRegion = region,
 		renderTime = battleContext.renderTime,
 		magicScale = background.magicScale,
 		parentMatrix = Matrix3x2f().translate(

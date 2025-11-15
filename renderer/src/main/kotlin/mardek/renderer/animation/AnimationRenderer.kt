@@ -6,17 +6,22 @@ import mardek.content.animation.AnimationFrames
 import mardek.content.animation.AnimationNode
 import mardek.content.animation.AnimationSprite
 import mardek.content.animation.AnimationFrame
+import mardek.content.animation.AnimationMask
 import mardek.content.animation.SpecialAnimationNode
 import mardek.content.animation.AnimationMatrix
 import mardek.content.animation.ColorTransform
 import mardek.content.animation.SkinnedAnimation
 import mardek.content.sprite.BcSprite
 import mardek.state.ingame.battle.CombatantRenderPosition
+import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.util.Locale
 
-private val referenceTime = System.nanoTime()
+
+private fun noMaskSprite(context: AnimationContext) = AnimationSprite(
+	-123, context.noMask, 0f, 0f
+)
 
 internal fun renderPortraitAnimation(animation: SkinnedAnimation, context: AnimationContext) {
 	val frames = animation.skins[context.portrait!!.rootSkin]!!
@@ -25,6 +30,19 @@ internal fun renderPortraitAnimation(animation: SkinnedAnimation, context: Anima
 
 internal fun renderBattleBackgroundAnimation(nodes: Array<AnimationNode>, context: AnimationContext) {
 	for (node in nodes) renderAnimationNode(node, context)
+}
+
+internal fun renderCutsceneAnimation(frames: AnimationFrames, context: AnimationContext) {
+	renderAnimationNode(AnimationNode(
+		depth = 1,
+		animation = SkinnedAnimation(-12345, hashMapOf(Pair("", frames))),
+		sprite = null,
+		matrix = null,
+		color = null,
+		selectSkin = null,
+		special = null,
+		mask = AnimationMask(emptyArray()),
+	), context)
 }
 
 internal fun renderCombatantAnimation(
@@ -132,7 +150,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		var leafMaskMatrix: Matrix3x2f? = null
 
 		if (mask.frames.isNotEmpty()) {
-			var deltaTime = (context.renderTime - referenceTime) % mask.duration.inWholeNanoseconds
+			var deltaTime = (context.renderTime - context.referenceTime) % mask.duration.inWholeNanoseconds
 			for (frame in mask) {
 				deltaTime -= frame.duration.inWholeNanoseconds
 				if (deltaTime < 0L) {
@@ -151,7 +169,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 			}
 			if (maskSprite == null) throw Error()
 		} else {
-			maskSprite = AnimationSprite(-123, context.noMask, 0f, 0f)
+			maskSprite = noMaskSprite(context)
 			leafMaskMatrix = null
 		}
 
@@ -162,13 +180,13 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 
 		renderTransformedImage(
 			leafMatrix, sprite.image, leafMaskMatrix, maskSprite.image,
-			colorTransform, context.partBatch,
+			context.renderRegion, colorTransform, context.partBatch,
 		)
 	}
 
 	val animation = chooseSkin(node, special, context)
 	if (animation != null) {
-		var deltaTime = (context.renderTime - referenceTime) % animation.duration.inWholeNanoseconds
+		var deltaTime = (context.renderTime - context.referenceTime) % animation.duration.inWholeNanoseconds
 		for (frame in animation.frames) {
 			deltaTime -= frame.duration.inWholeNanoseconds
 			if (deltaTime < 0L) {
@@ -252,7 +270,7 @@ private fun chooseSkin(
 
 private fun renderTransformedImage(
 	mainMatrix: Matrix3x2f, sprite: BcSprite,
-	maskMatrix: Matrix3x2f?, maskSprite: BcSprite,
+	maskMatrix: Matrix3x2f?, maskSprite: BcSprite, region: Rectangle,
 	colors: ColorTransform?, batch: AnimationPartBatch,
 ) {
 	val ndcMatrix = Matrix3x2f().translate(-1f, -1f).scale(2f / batch.width, 2f / batch.height)
@@ -266,23 +284,23 @@ private fun renderTransformedImage(
 	val corners = rawCorners.map { rawCorner ->
 		mainMatrix.transformPosition(Vector2f(rawCorner.first, rawCorner.second))
 	}
-
-	val invMask = if (maskMatrix != null) {
-		val invMaskMatrix = maskMatrix.invert()
-		corners.map { corner -> invMaskMatrix.transformPosition(Vector2f(corner)) }
-	} else rawCorners.map { Vector2f(it.first, it.second) }
+	val maskCorners = if (maskMatrix != null) rawCorners.map { rawCorner ->
+		maskMatrix.transformPosition(Vector2f(rawCorner.first, rawCorner.second))
+	} else listOf(
+		Vector2f(-1f, 1f), Vector2f(1f, 1f),
+		Vector2f(1f, -1f), Vector2f(-1f, -1f),
+	)
 
 	batch.transformed(
 		corners[0].x, corners[0].y,
 		corners[1].x, corners[1].y,
 		corners[2].x, corners[2].y,
 		corners[3].x, corners[3].y,
-		invMask[0].x, invMask[0].y,
-		invMask[1].x, invMask[1].y,
-		invMask[2].x, invMask[2].y,
-		invMask[3].x, invMask[3].y,
-		sprite.index,
-		maskSprite.index,
+		maskCorners[0].x, maskCorners[0].y,
+		maskCorners[1].x, maskCorners[1].y,
+		maskCorners[2].x, maskCorners[2].y,
+		maskCorners[3].x, maskCorners[3].y,
+		sprite.index, maskSprite.index, region,
 		colors?.addColor ?: 0,
 		colors?.multiplyColor ?: -1,
 		colors?.subtractColor ?: 0,

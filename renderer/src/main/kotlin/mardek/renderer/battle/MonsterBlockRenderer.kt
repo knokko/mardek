@@ -32,7 +32,7 @@ internal fun renderMonsterBlock(
 		if (opacity <= 0f) return
 
 		val sprite = enemy.element.thickSprite
-		val marginY = region.height / 20
+		val marginY = region.height / 40
 		val desiredElementSize = region.height - 2 * marginY
 		val scale = desiredElementSize / sprite.height.toFloat()
 		imageBatch.coloredScale(
@@ -89,8 +89,8 @@ internal fun renderMonsterBlock(
 
 		val healthBar = ResourceBarRenderer(
 			context, ResourceType.Health, Rectangle(
-				region.minX + region.height / 2, region.minY + 6 * region.height / 10,
-				78 * region.width / 100 - region.height / 2, 2 * region.height / 10
+				region.minX + region.height * 5 / 9, region.minY + 6 * region.height / 10,
+				78 * region.width / 100 - region.height * 5 / 9, 2 * region.height / 10
 			), colorBatch, textBatch
 		)
 		val displayedHealth = renderCombatantHealth(enemy, healthBar, renderTime, opacity)
@@ -112,14 +112,14 @@ internal fun renderMonsterBlock(
 		}
 
 		run {
-			val diameter = region.height - region.height / 10
-			val minY = region.minY + region.height / 20
+			val diameter = region.height - region.height / 20
+			val minY = region.minY + region.height / 40
 			val color = srgbToLinear(rgb(86, 63, 31))
 			val margin = region.height / 10
 			ovalBatch.simpleAntiAliased(
 				region.minX + margin, minY + margin,
 				region.minX + diameter - 1 - margin, minY + diameter - 1 - margin,
-				0.1f, changeAlpha(color, opacity),
+				0.2f, changeAlpha(color, opacity),
 			)
 		}
 

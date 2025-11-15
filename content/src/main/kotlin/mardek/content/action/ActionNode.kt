@@ -3,6 +3,9 @@ package mardek.content.action
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
+import com.github.knokko.bitser.field.StableReferenceFieldId
+import java.util.UUID
 
 /**
  * A node in an action sequence (technically an action graph, but most 'graphs' are almost linear). Every `ActionNode`
@@ -14,6 +17,11 @@ import com.github.knokko.bitser.field.ClassField
  */
 @BitStruct(backwardCompatible = true)
 sealed class ActionNode {
+
+	@BitField(id = 0)
+	@StableReferenceFieldId
+	val id = UUID.randomUUID()!!
+
 	companion object {
 
 		@JvmStatic
@@ -43,7 +51,10 @@ class FixedActionNode(
 	 */
 	@BitField(id = 1, optional = true)
 	@ClassField(root = ActionNode::class)
+	@ReferenceFieldTarget(label = "action nodes")
 	val next: ActionNode?,
 ) : ActionNode() {
 	constructor() : this(ActionWalk(), null)
+
+	override fun toString() = "FixedNode($action)"
 }

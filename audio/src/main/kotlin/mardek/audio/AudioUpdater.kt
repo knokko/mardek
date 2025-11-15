@@ -1,5 +1,7 @@
 package mardek.audio
 
+import mardek.content.action.ActionPlayCutscene
+import mardek.content.action.FixedActionNode
 import mardek.content.audio.SoundEffect
 import mardek.state.GameStateManager
 import mardek.state.ingame.InGameState
@@ -40,6 +42,12 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 			if (state is InGameState) {
 				val area = state.campaign.currentArea?.area
 				if (area != null) trackName = area.properties.musicTrack
+
+				val campaignActionNode = state.campaign.actions?.node
+				if (campaignActionNode is FixedActionNode) {
+					val action = campaignActionNode.action
+					if (action is ActionPlayCutscene) trackName = action.cutscene.musicTrack
+				}
 			}
 		}
 

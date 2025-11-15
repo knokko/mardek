@@ -30,6 +30,7 @@ internal fun renderBattlePortrait(battleContext: BattleRenderContext, batch: Ani
 
 		val portraitInfo = stateMachine.onTurn.player.portraitInfo
 		val animationContext = AnimationContext(
+			renderRegion = fullRegion,
 			renderTime = battleContext.renderTime,
 			magicScale = context.content.portraits.magicScale,
 			parentMatrix = Matrix3x2f().translate(renderX, renderY).scale(magicScale),

@@ -3,8 +3,15 @@ package mardek.importer
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.Content
+import mardek.content.action.ActionPlayCutscene
+import mardek.content.action.ActionSequence
+import mardek.content.action.ActionShowChapterName
+import mardek.content.action.ActionToArea
+import mardek.content.action.FixedActionNode
 import mardek.content.animation.CombatantAnimations
+import mardek.importer.actions.addDummyCutscenes
 import mardek.importer.actions.hardcodeActionSequences
+import mardek.importer.actions.importCutscenes
 import mardek.importer.actions.storeHardcodedActionSequences
 import mardek.importer.area.importAreaContent
 import mardek.importer.area.importAreaSprites
@@ -21,18 +28,21 @@ import mardek.importer.skills.importSkillsContent
 import mardek.importer.ui.importFonts
 import mardek.importer.ui.importUiSprites
 import mardek.state.ingame.CampaignState
-import mardek.state.ingame.area.AreaPosition
-import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
 import java.io.ByteArrayOutputStream
 
 fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content {
+
 	val content = Content()
 	importAudioContent(content.audio)
 	importParticleEffects(content)
 	importStatsContent(content)
-	if (!skipMonsters) importPortraits(content)
+	if (!skipMonsters) {
+		importPortraits(content)
+		importCutscenes(content.actions)
+	} else addDummyCutscenes(content.actions)
 	importSkillsContent(content)
 	importItemsContent(content)
 
@@ -64,11 +74,8 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 		return state
 	}
 
-	// TODO DL Play cutscene first
 	val startChapter1 = CampaignState(
-		currentArea = AreaState(content.areas.areas.find {
-			it.properties.rawName == "DL_entr"
-		}!!, AreaPosition(5, 10)),
+		currentArea = null,
 		characterSelection = CharacterSelectionState(
 			hashSetOf(heroMardek.wrapped, heroDeugan.wrapped),
 			HashSet(0),
@@ -80,6 +87,25 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 		),
 		gold = 0
 	)
+
+	val dragonLairEntry = content.areas.areas.find { it.properties.rawName == "DL_entr" }!!
+
+	val introCutscene = content.actions.cutscenes.find { it.name == "Chapter 1 intro" }!!
+	val chapter1IntroSequence = ActionSequence(
+		name = "Chapter 1 intro",
+		root = FixedActionNode(
+			action = ActionShowChapterName(1, "A Fallen Star"),
+			next = FixedActionNode(
+				action = ActionPlayCutscene(cutscene = introCutscene),
+				next = FixedActionNode(
+					action = ActionToArea(dragonLairEntry, 5, 10),
+					next = null,
+				)
+			),
+		)
+	)
+	content.actions.global.add(chapter1IntroSequence)
+	startChapter1.actions = CampaignActionsState(chapter1IntroSequence.root)
 
 	fun addCheckpoint(name: String, state: CampaignState) {
 		val byteOutput = ByteArrayOutputStream()

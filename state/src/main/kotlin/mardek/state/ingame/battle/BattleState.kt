@@ -213,6 +213,16 @@ class BattleState(
 		}
 	}
 
+	/**
+	 * This method should be called when the player loads a save that was in a battle.
+	 *
+	 * This method will potentially reset the start of some animations.
+	 */
+	fun markSessionStart() {
+		val state = this.state
+		if (state is BattleStateMachine.Move) state.refreshStartTime()
+	}
+
 	fun update(context: BattleUpdateContext) {
 		while (true) {
 			val state = this.state

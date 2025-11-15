@@ -152,7 +152,7 @@ class MardekGlyphBatch(
 		distance0: Float, distance1: Float, distance2: Float, distance3: Float,
 		shadowColor: Int, shadowOffsetX: Float, shadowOffsetY: Float, alignment: TextAlignment,
 	) {
-		drawString(text, baseX + shadowOffsetX, baseY + shadowOffsetY, heightA, font, shadowColor)
+		drawString(text, baseX + shadowOffsetX, baseY + shadowOffsetY, heightA, font, shadowColor, alignment)
 		drawFancyString(
 			text, baseX, baseY, heightA, font, fillColor, strokeColor, strokeWidth, alignment,
 			color0, color1, color2, color3, distance0, distance1, distance2, distance3

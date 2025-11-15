@@ -10,6 +10,7 @@ import mardek.game.inventory.TestCountItemOccurrences
 import mardek.game.portrait.TestSpecialPortraitNodes
 import mardek.game.save.TestListSaves
 import mardek.game.save.TestSaveAndLoad
+import mardek.game.ui.TestCutscenes
 import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestTitleScreen
 import org.junit.jupiter.api.*
@@ -157,6 +158,11 @@ class IntegrationTests {
 	@Test
 	fun testNewGameFlow() {
 		TestTitleScreen.testNewGame(instance)
+	}
+
+	@Test
+	fun testChapter1Intro() {
+		TestCutscenes.testChapter1Intro(instance)
 	}
 
 	@Test

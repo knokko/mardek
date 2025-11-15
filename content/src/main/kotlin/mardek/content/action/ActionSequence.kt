@@ -3,6 +3,7 @@ package mardek.content.action
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 
 /**
  * An action sequence is quite literally a sequence of actions (e.g. dialogues). It is currently just a tuple
@@ -23,6 +24,7 @@ class ActionSequence(
      */
     @BitField(id = 1)
     @ClassField(root = ActionNode::class)
+    @ReferenceFieldTarget(label = "action nodes")
     val root: ActionNode,
 ) {
     @Suppress("unused")

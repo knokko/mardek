@@ -99,7 +99,8 @@ internal fun importAnimationNode(
 
 	val skipSpecial = special != null && special.skipChildren
 
-	if (!skipSpecial && childID != 2222) {
+	val blacklist = arrayOf(734, 735, 739, 740, 2222)
+	if (!skipSpecial && !blacklist.contains(childID)) {
 		val childTag = FLASH.getCharacter(childID)
 		if (childTag is DefineSpriteTag) {
 			animation = importSkinnedAnimation(childTag, context)
