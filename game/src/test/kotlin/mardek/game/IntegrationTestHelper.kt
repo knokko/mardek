@@ -48,7 +48,7 @@ fun TestingInstance.testRendering(
 	state: GameStateManager,
 	width: Int, height: Int, name: String,
 	expectedColors: Array<Color>, forbiddenColors: Array<Color>,
-) = synchronized(this) {
+) {
 	val combiner = MemoryCombiner(boiler, "TestHelper$name")
 	val descriptorCombiner = DescriptorCombiner(boiler)
 	val perFrameDescriptorSet = descriptorCombiner.addMultiple(vk2d.bufferDescriptorSetLayout, 1)
