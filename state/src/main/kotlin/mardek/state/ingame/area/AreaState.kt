@@ -34,7 +34,8 @@ class AreaState(
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "areas")
 	val area: Area,
-	initialPlayerPosition: AreaPosition
+	initialPlayerPosition: AreaPosition,
+	initialPlayerDirection: Direction = Direction.Up,
 ) {
 
 	@BitField(id = 1)
@@ -48,7 +49,7 @@ class AreaState(
 
 	@BitField(id = 3)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
-	private val playerDirections = Array(4) { Direction.Up }
+	private val playerDirections = Array(4) { initialPlayerDirection }
 
 	@BitField(id = 4, optional = true)
 	var nextPlayerPosition: NextAreaPosition? = null
@@ -83,7 +84,7 @@ class AreaState(
 	private var shouldInteract = false
 
 	@Suppress("unused")
-	private constructor() : this(Area(), AreaPosition())
+	private constructor() : this(Area(), AreaPosition(), Direction.Up)
 
 	fun processKeyPress(key: InputKey) {
 		if (key == InputKey.Interact) shouldInteract = true

@@ -2,6 +2,7 @@ package mardek.game
 
 import mardek.game.action.TestActions
 import mardek.game.area.TestChestLoot
+import mardek.game.area.TestDoors
 import mardek.game.area.TestRandomBattles
 import mardek.game.area.testDragonLairDoor
 import mardek.game.battle.*
@@ -34,6 +35,11 @@ class IntegrationTests {
 	@Test
 	fun testDragonLairDoorAndRendering() {
 		testDragonLairDoor(instance)
+	}
+
+	@Test
+	fun testFireTempleDoor() {
+		TestDoors.testFireTemple(instance)
 	}
 
 	@Test
