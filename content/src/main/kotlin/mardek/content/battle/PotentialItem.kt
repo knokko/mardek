@@ -10,9 +10,17 @@ import mardek.content.inventory.PlotItem
 import kotlin.collections.ArrayList
 import kotlin.random.Random
 
+/**
+ * A tuple (item, chance). This is used to specify the loot that monsters can drop, as well as the equipment that
+ * monsters may equip.
+ */
 @BitStruct(backwardCompatible = true)
 class PotentialItem(
 
+	/**
+	 * The item, which can be `null` in `PotentialEquipment`, which would indicate a `chance` percentage that the
+	 * monster does not carry any equipment in the corresponding equipment slot.
+	 */
 	@BitField(id = 0, optional = true)
 	@ReferenceField(stable = false, label = "items")
 	val item: Item?,
@@ -52,7 +60,7 @@ class PotentialEquipment(
 
 	fun pick(): Item? {
 		val total = entries.sumOf { it.chance }
-		val selected = Random.Default.nextInt(total)
+		val selected = Random.nextInt(total)
 
 		var current = 0
 		for (candidate in entries) {

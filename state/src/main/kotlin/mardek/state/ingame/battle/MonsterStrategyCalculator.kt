@@ -69,7 +69,7 @@ class MonsterStrategyCalculator(
 		val entries = pool.entries.filter { canChooseEntry(pool.criteria, it) }
 		val totalChance = entries.sumOf { it.chance }
 		if (totalChance == 0) return entries.random() else {
-			val selectedChance = Random.Default.nextInt(totalChance)
+			val selectedChance = Random.nextInt(totalChance)
 			var currentChance = 0
 			for (entry in entries) {
 				if (selectedChance < currentChance + entry.chance) return entry
@@ -83,7 +83,7 @@ class MonsterStrategyCalculator(
 		for (pool in monster.strategies) {
 			if (!areCriteriaSatisfied(pool)) continue
 			val totalChance = pool.entries.sumOf { it.chance }
-			if (totalChance <= Random.Default.nextInt(100)) continue
+			if (totalChance <= Random.nextInt(100)) continue
 			return pool
 		}
 
