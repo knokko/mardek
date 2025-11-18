@@ -199,6 +199,7 @@ sealed class BattleStateMachine {
 			attacker: CombatantState, target: CombatantState,
 			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?, //context: BattleUpdateContext,
 		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
+			var halfWay = false
 			var finished = false
 
 			constructor(
@@ -249,6 +250,7 @@ sealed class BattleStateMachine {
 			attacker: CombatantState, target: CombatantState,
 			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?,
 		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
+			var halfWay = false
 			var finished = false
 
 			@Suppress("unused")

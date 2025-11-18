@@ -9,6 +9,7 @@ import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.animation.CombatantAnimationContext
 import mardek.renderer.animation.renderCombatantAnimation
+import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.CombatantRenderPosition
 import mardek.state.ingame.battle.CombatantState
@@ -155,6 +156,7 @@ class CombatantRenderer(
 			val moveTime = moveAnimation.frames.size * FRAME_LENGTH
 			animation = moveAnimation
 			relativeTime = context.renderTime - state.startTime
+			if (relativeTime >= moveTime / 2L) state.halfWay = true
 			if (relativeTime >= moveTime) {
 				state.finished = true
 				relativeTime = moveTime - 1L
@@ -186,6 +188,7 @@ class CombatantRenderer(
 			val jumpTime = jumpAnimation.frames.size * FRAME_LENGTH
 
 			val relativeJumpTime = context.renderTime - state.startTime
+			if (relativeJumpTime >= jumpTime / 2L) state.halfWay = true
 			if (relativeJumpTime >= jumpTime) {
 				relativeTime = jumpTime - 1L
 				state.finished = true
@@ -319,5 +322,26 @@ class CombatantRenderer(
 		val modTime = relativeTime % animation.duration.inWholeNanoseconds
 		renderCombatantAnimation(animation, animations.skeleton.flatNodes, modTime, animationContext)
 		return
+	}
+
+	companion object {
+		fun sortByDepth(state: BattleState, combatants: List<CombatantState>): List<CombatantState> {
+			val sorted = combatants.sortedBy { it.getPosition(state).y }.toMutableList()
+
+			val machine = state.state
+			if (machine is BattleStateMachine.MeleeAttack && machine.attacker !== machine.target) {
+				var overrideDepth = machine is BattleStateMachine.MeleeAttack.Strike
+				if (machine is BattleStateMachine.MeleeAttack.MoveTo && machine.halfWay) overrideDepth = true
+				if (machine is BattleStateMachine.MeleeAttack.JumpBack && !machine.halfWay) overrideDepth = true
+
+				if (overrideDepth) {
+					sorted.remove(machine.attacker)
+					val indexTarget = sorted.indexOf(machine.target)
+					sorted.add(indexTarget + 1, machine.attacker)
+				}
+			}
+
+			return sorted
+		}
 	}
 }

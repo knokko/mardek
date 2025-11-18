@@ -47,15 +47,12 @@ internal fun renderBattle(
 	val lateTextBatch = context.addTextBatch(2000)
 	val lateAnimationPartBatch = context.addAnimationPartBatch(200)
 
-	for (opponent in battleState.allOpponents().sortedBy { it.getPosition(battleContext.battle).y }) {
-		CombatantRenderer(battleContext, animationPartBatch, opponent, region).render()
-		renderDamageIndicator(battleContext, imageBatch, textBatch, opponent)
-		renderEffectHistory(battleContext, opponent, imageBatch, textBatch, lateColorBatch)
-	}
-	for (player in battleState.allPlayers().sortedBy { it.getPosition(battleContext.battle).y }) {
-		CombatantRenderer(battleContext, animationPartBatch, player, region).render()
-		renderDamageIndicator(battleContext, imageBatch, textBatch, player)
-		renderEffectHistory(battleContext, player, imageBatch, textBatch, lateColorBatch)
+	for (combatant in CombatantRenderer.sortByDepth(
+		battleState, battleState.allOpponents() + battleState.allPlayers()
+	)) {
+		CombatantRenderer(battleContext, animationPartBatch, combatant, region).render()
+		renderDamageIndicator(battleContext, imageBatch, textBatch, combatant)
+		renderEffectHistory(battleContext, combatant, imageBatch, textBatch, lateColorBatch)
 	}
 
 	renderBattlePortrait(battleContext, animationPartBatch, region)
