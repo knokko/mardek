@@ -176,8 +176,9 @@ class BattleState(
 						gainedHealth = -takeDamage.amount, element = dpt.element, overrideColor = dpt.blinkColor
 					)
 					val particle = ParticleEffectState(
-						dpt.particleEffect,
-						effects.combatant.renderInfo.statusEffectPoint,
+						particle = dpt.particleEffect,
+						position = effects.combatant.renderInfo.statusEffectPoint,
+						mirrorX = effects.combatant.isOnPlayerSide,
 					)
 					particle.startTime = System.nanoTime()
 					particles.add(particle)
@@ -195,8 +196,9 @@ class BattleState(
 			val particleEffect = forceMove.particleEffect
 			if (particleEffect != null) {
 				val particle = ParticleEffectState(
-					particleEffect,
-					effects.combatant.renderInfo.statusEffectPoint,
+					particle = particleEffect,
+					position = effects.combatant.renderInfo.statusEffectPoint,
+					mirrorX = effects.combatant.isOnPlayerSide,
 				)
 				particle.startTime = System.nanoTime()
 				particles.add(particle)
@@ -258,7 +260,9 @@ class BattleState(
 				for (entry in result.targets) {
 					if (!entry.missed && state.skill != null) {
 						state.skill.particleEffect?.let { particles.add(ParticleEffectState(
-							it, entry.target.renderInfo.hitPoint
+							particle = it,
+							position = entry.target.renderInfo.hitPoint,
+							mirrorX = true,
 						)) }
 					}
 				}
@@ -285,7 +289,11 @@ class BattleState(
 				) {
 					state.lastCastParticleSpawnTime = particleTime
 					for (position in particlePositions) {
-						particles.add(ParticleEffectState(particleEffect, position))
+						particles.add(ParticleEffectState(
+							particle = particleEffect,
+							position = position,
+							mirrorX = true,
+						))
 					}
 				}
 			}
@@ -296,7 +304,11 @@ class BattleState(
 				)
 
 				for ((index, target) in state.targets.withIndex()) {
-					val particle = ParticleEffectState(particleEffect, target.renderInfo.hitPoint)
+					val particle = ParticleEffectState(
+						particle = particleEffect,
+						position = target.renderInfo.hitPoint,
+						mirrorX = true,
+					)
 					particle.startTime = System.nanoTime() + 250_000_000L * index
 					particles.add(particle)
 				}
@@ -347,7 +359,11 @@ class BattleState(
 
 			val particleEffect = state.item.consumable?.particleEffect
 			if (particleEffect != null) {
-				val particle = ParticleEffectState(particleEffect, state.target.renderInfo.hitPoint)
+				val particle = ParticleEffectState(
+					particle = particleEffect,
+					position = state.target.renderInfo.hitPoint,
+					mirrorX = true,
+				)
 				particle.startTime = System.nanoTime()
 				particles.add(particle)
 			}

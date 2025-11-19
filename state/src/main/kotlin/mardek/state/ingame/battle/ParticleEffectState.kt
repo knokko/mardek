@@ -11,15 +11,46 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-class ParticleEffectState(val particle: ParticleEffect, val position: CombatantRenderPosition) {
+/**
+ * Represents the state of a particle effect/emitters at a concrete position. If the `update()` method is called
+ * periodically, it will ensure that each emitter of the particle effect is activated once during each of its periods.
+ */
+class ParticleEffectState(
+	/**
+	 * The type of particle effect, for instance `pfx_flame1`. Each particle effect has a list of emitters that needs to
+	 * be activated once during each of its periods.
+	 */
+	val particle: ParticleEffect,
+
+	/**
+	 * The base position where the particle should be rendered
+	 */
+	val position: CombatantRenderPosition,
+
+	/**
+	 * When true, the particle should be mirrored over the vertical line through `position`
+	 */
+	val mirrorX: Boolean,
+) {
+
+	/**
+	 * The time (`System.nanoTime()`) at which the `update()` method was first called
+	 */
 	var startTime = 0L
+
+	/**
+	 * The concrete particle emitters
+	 */
 	val emitters = particle.emitters().map { ParticleEmitterState(it) }.toMutableList()
 
 	private var playedInitialSound = false
 	private var playedDamageSound = false
 
 	/**
-	 * Returns `true` if and only if the particle can be removed
+	 * Updates this particle state: this will activate the emitters if the time is right, and also play some sounds if
+	 * the time is right.
+	 *
+	 * Returns `true` if and only if this `ParticleEffectState` can be removed
 	 */
 	fun update(context: BattleUpdateContext, currentTime: Long): Boolean {
 		if (startTime == 0L) startTime = currentTime

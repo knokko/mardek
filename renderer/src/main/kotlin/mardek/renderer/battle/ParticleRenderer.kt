@@ -34,7 +34,9 @@ internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch:
 
 					val relativeX = particle.computeX(renderTime)
 					val relativeY = particle.computeY(renderTime)
-					val particleMatrix = Matrix3x2f().translate(
+					val particleMatrix = Matrix3x2f()
+					if (particleEffect.mirrorX) particleMatrix.scale(-1f, 1f)
+					particleMatrix.translate(
 						emitter.emitter.transform.x, emitter.emitter.transform.y
 					).rotate(toRadians(emitter.emitter.transform.rotation))
 						.translate(relativeX, relativeY)
