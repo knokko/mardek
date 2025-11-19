@@ -2,7 +2,6 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 import mardek.content.area.TransitionDestination
@@ -19,32 +18,21 @@ import mardek.content.sprite.ObjectSprites
 @BitStruct(backwardCompatible = true)
 class AreaPortal(
 
-	/**
-	 * The X-coordinate of the tile containing this portal
-	 */
-	@BitField(id = 0)
-	@IntegerField(expectUniform = false, minValue = 0)
-	val x: Int,
-
-	/**
-	 * The Y-coordinate of the tile containing this portal
-	 */
-	@BitField(id = 1)
-	@IntegerField(expectUniform = false, minValue = 0)
-	val y: Int,
+	x: Int,
+	y: Int,
 
 	/**
 	 * The destination of this portal: the player will be teleported to the destination upon stepping on the portal.
 	 */
-	@BitField(id = 2)
+	@BitField(id = 0)
 	val destination: TransitionDestination
-) {
+) : StaticAreaObject(x, y) {
 
 	/**
 	 * The sprites/animation of this portal, or `null` if the portal is invisible. This field is ignored for dream
 	 * circles.
 	 */
-	@BitField(id = 3, optional = true)
+	@BitField(id = 1, optional = true)
 	@ReferenceField(stable = false, label = "object sprites")
 	var sprites: ObjectSprites? = null
 

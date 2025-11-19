@@ -2,9 +2,7 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.BITSER
 
 /**
  * Represents a switch gate, orb, or platform. This class is convenient, since each subclass needs the same fields.
@@ -19,26 +17,11 @@ sealed class AreaSwitch(
 	@ReferenceField(stable = false, label = "switch colors")
 	val color: SwitchColor,
 
-	/**
-	 * The X-coordinate of the tile containing this switch gate, switch orb, or switch platform
-	 */
-	@BitField(id = 1)
-	@IntegerField(expectUniform = false, minValue = 0)
-	val x: Int,
-
-	/**
-	 * The Y-coordinate of the tile containing this switch gate, switch orb, or switch platform
-	 */
-	@BitField(id = 2)
-	@IntegerField(expectUniform = false, minValue = 0)
-	val y: Int,
-) {
+	x: Int,
+	y: Int,
+) : StaticAreaObject(x, y) {
 
 	override fun toString() = "${this::class.java.simpleName.substring(4)}($color, x=$x, y=$y)"
-
-	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
-
-	override fun hashCode() = BITSER.hashCode(this)
 }
 
 /**

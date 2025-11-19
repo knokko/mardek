@@ -7,7 +7,7 @@ import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
 import mardek.content.inventory.PlotItem
 import mardek.content.skill.PassiveSkill
-import mardek.state.ingame.battle.Battle
+import mardek.content.battle.Battle
 import mardek.state.ingame.characters.CharacterState
 import java.lang.IllegalArgumentException
 import kotlin.math.roundToInt

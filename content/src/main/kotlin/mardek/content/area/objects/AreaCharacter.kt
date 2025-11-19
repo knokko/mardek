@@ -4,17 +4,21 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.BITSER
+import mardek.content.action.ActionSequence
 import mardek.content.area.Direction
+import mardek.content.portrait.PortraitInfo
 import mardek.content.sprite.DirectionalSprites
+import mardek.content.sprite.ObjectSprites
+import mardek.content.stats.Element
+import java.util.UUID
 
 /**
- * Represents a non-player character inside an area. Some area characters can walk (randomly), whereas others never
- * move.
+ * Represents a non-player character (or object) inside an area. Some area characters can walk (randomly),
+ * whereas others never move.
  *
- * An `AreaCharacter` that doesn't walk is almost the same as an `AreaObject`. Currently, the difference is that
- * `AreaCharacter`s have *directional* sprites (left, right, etc...), whereas `AreaObject`s have just 1 sprite
- * (or 1 animation).
+ * Player can *not* move through `AreaCharacter`s, and can interact with *some* of them, but not all.
  */
 @BitStruct(backwardCompatible = true)
 class AreaCharacter(
@@ -26,88 +30,135 @@ class AreaCharacter(
 	val name: String,
 
 	/**
-	 * The sprites of the character, normally 2 sprites per direction .
+	 * When non-null, this character has a pair of sprites for each `Direction` in which the character may look/walk.
+	 *
+	 * Most characters have this.
+	 *
+	 * Exactly 1 of `directionalSprites` and `fixedSprites` must be non-null
 	 */
-	@BitField(id = 1)
+	@BitField(id = 1, optional = true)
 	@ReferenceField(stable = false, label = "character sprites")
-	val sprites: DirectionalSprites,
+	val directionalSprites: DirectionalSprites?,
+
+	/**
+	 * When non-null, this character always uses the same sprite or animation, regardless of the `Direction` in which
+	 * the character is looking or walking.
+	 *
+	 * This is typically used for boss characters that only have directions for 1 sprite.
+	 *
+	 * Exactly 1 of `directionalSprites` and `fixedSprites` must be non-null
+	 */
+	@BitField(id = 2, optional = true)
+	@ReferenceField(stable = false, label = "object sprites")
+	val fixedSprites: ObjectSprites?,
 
 	/**
 	 * The X-coordinate of the tile where this character will start/spawn when the player enters the area.
 	 */
-	@BitField(id = 2)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val startX: Int,
 
 	/**
 	 * The Y-coordinate of the tile where this character will start/spawn when the player enters the area.
 	 */
-	@BitField(id = 3)
+	@BitField(id = 4)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val startY: Int,
 
 	/**
-	 * The direction that this character will face when the player enters the area. Currently, a default direction of
-	 * `Down` is assumed when `startDirection == null`.
-	 */
-	@BitField(id = 4, optional = true)
-	val startDirection: Direction?,
-
-	/**
-	 * Not sure what this means. It is used by the throne, unactivated Legion, and dead Dracelon
+	 * The direction that this character will face when the player enters the area. `Down` is used as a 'default' for
+	 * objects that don't really have a direction.
 	 */
 	@BitField(id = 5)
-	val silent: Boolean,
+	val startDirection: Direction,
 
 	/**
 	 * When walkSpeed is positive, the character randomly moves around. When it's -1, the character stays at the same
 	 * position, but still shows the walking animation. When it's -2, the character doesn't move, nor does it show any
 	 * walking animation.
 	 *
-	 * When it is -2, this `AreaCharacter` is almost an `AreaObject`, with the only difference that the `AreaCharacter`
-	 * will look towards the player when the player talks to it, which an `AreaObject` will never do.
+	 * When `fixedSprites != null`, then `walkSpeed` must be -2.
 	 */
 	@BitField(id = 6)
 	@IntegerField(expectUniform = false, minValue = -2)
 	val walkSpeed: Int,
 
 	/**
-	 * The element of this character. This is imported from Flash, but currently unused.
+	 * The element of this character, which is only used in dialogues (for the element background icon). This is
+	 * only needed for characters that have dialogue.
 	 */
 	@BitField(id = 7, optional = true)
-	val element: String?,
+	@ReferenceField(stable = false, label = "elements")
+	val element: Element?,
+
+	/**
+	 * The portrait of this character, which is only used in dialogues. Note that portraits are truly optional: some
+	 * characters simply don't have one, even if they do have dialogue.
+	 */
+	@BitField(id = 8, optional = true)
+	@ReferenceField(stable = false, label = "portrait info")
+	val portrait: PortraitInfo?,
 
 	/**
 	 * The 'conversation name' that was imported from Flash. It is currently unused.
 	 */
-	@BitField(id = 8, optional = true)
+	@BitField(id = 9, optional = true)
 	val conversationName: String?,
 
 	/**
 	 * The 'conversation' that was imported from Flash. It is currently unused.
 	 */
-	@BitField(id = 9, optional = true)
+	@BitField(id = 10, optional = true)
 	val rawConversation: String?, // TODO CHAP1 Work this out later
+
+	/**
+	 * The action sequence that should be activated when the player interacts with this character. Eventually, all
+	 * interactable objects should have an action sequence, but we aren't there yet (not even close).
+	 */
+	@BitField(id = 11, optional = true)
+	@ReferenceField(stable = false, label = "action sequences")
+	val actionSequence: ActionSequence?,
 
 	/**
 	 * When `encyclopediaPerson` is non-null and the player interacts with this character, the character named
 	 * `encyclopediaPerson` should be added to the encyclopedia (unless already present).
 	 */
-	@BitField(id = 10, optional = true)
+	@BitField(id = 12, optional = true)
 	val encyclopediaPerson: String?,
+
+	/**
+	 * The unique ID of this character, which is used for (de)serialization
+	 */
+	@BitField(id = 13)
+	@StableReferenceFieldId
+	val id: UUID,
 ) {
 
-	@Suppress("unused")
-	private constructor() : this(
-		"", DirectionalSprites(), 0, 0, null, false, 0,
-		null, null, null, null
+	constructor() : this(
+		"", DirectionalSprites(), null, 0, 0, Direction.Down,
+		0, null, null, null, null,
+		null, null, UUID.randomUUID(),
 	)
 
-	override fun toString() = "Character($name, ${sprites.name}, x=$startX, y=$startY, direction=$startDirection, " +
-			"silent=$silent, walkSpeed=$walkSpeed, element=$element, " +
+	init {
+		if (conversationName != null && rawConversation != null) {
+			throw IllegalArgumentException("At most 1 of conversionName and rawConversation can be non-null")
+		}
+		if ((directionalSprites == null) == (fixedSprites == null)) {
+			throw IllegalArgumentException("Exactly 1 of directionSprites and fixedSprites must be non-null")
+		}
+		if (fixedSprites != null && walkSpeed != -2) {
+			throw IllegalArgumentException("walkSpeed must be -2 when fixedSprites != null")
+		}
+	}
+
+	override fun toString() = "Character($name, ${directionalSprites?.name ?: fixedSprites?.flashName}, " +
+			"x=$startX, y=$startY, direction=$startDirection, " +
+			"walkSpeed=$walkSpeed, element=$element, " +
 			"conversation=${conversationName ?: rawConversation}, person=$encyclopediaPerson)"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
-	override fun hashCode() = BITSER.hashCode(this)
+	override fun hashCode() = id.hashCode()
 }

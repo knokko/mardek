@@ -243,7 +243,7 @@ private fun chooseSkin(
 	}
 
 	if (special == SpecialAnimationNode.PortraitMouth) {
-		return skinned.skins[context.portraitExpression!!]
+		return skinned.skins[context.portrait!!.mouthSkin]
 	}
 
 	if (special == SpecialAnimationNode.PortraitEthnicity) {

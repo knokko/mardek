@@ -19,6 +19,9 @@ class CombatantRenderInfo {
 
 	var hitPoint = CombatantRenderPosition(0f, 0f)
 
+	/**
+	 * Render status effect particles here
+	 */
 	var statusEffectPoint = CombatantRenderPosition(0f, 0f)
 
 	val castingParticlePositions = mutableListOf<CombatantRenderPosition>()

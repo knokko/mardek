@@ -5,9 +5,12 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.action.*
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.renderPortraitAnimation
+import mardek.renderer.menu.referenceTime
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
+import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 internal fun renderDialogue(areaContext: AreaRenderContext) {
 	areaContext.run {
@@ -19,6 +22,11 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		if (actionNode is FixedActionNode) {
 			val action = actionNode.action
 			if (action is ActionTalk) talkAction = action
+			if (action is ActionParallel) {
+				for (parallelAction in action.actions) {
+					if (parallelAction is ActionTalk) talkAction = parallelAction
+				}
+			}
 		}
 
 		if (actionNode is ChoiceActionNode) {
@@ -35,6 +43,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		val portrait = when (val speaker = talkAction.speaker) {
 			is ActionTargetPlayer -> speaker.player.portraitInfo
 			is ActionTargetPartyMember -> context.campaign.characterSelection.party[speaker.index]?.portraitInfo
+			is ActionTargetAreaCharacter -> speaker.character.portrait
 			else -> null
 		}
 
@@ -161,7 +170,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				boxColor
 			)
 
-			val borderColor = srgbToLinear(rgb(73, 52, 37))
+			val borderColor = srgbToLinear(rgba(73, 52, 37, 150))
 			colorBatch.fill(
 				x, boxY + boxRadius,
 				x + borderWidth - 1, boxY + boxSize - boxRadius - 1,
@@ -256,17 +265,22 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			)
 		}
 
-		run {
-			val boxSize = textRegion.height / 4
-			val cornerRadius = textRegion.height / 24
+		if (actions.shownDialogueCharacters >= talkAction.text.length || actionNode is ChoiceActionNode) {
+			val boxSizePeriod = 1_000_000_000L
+			val relativeTime = ((System.nanoTime() - referenceTime) % boxSizePeriod).toFloat() / boxSizePeriod
+			val minBoxSize = textRegion.height * 0.24f
+			val maxBoxSize = textRegion.height * 0.26f
+			val floatBoxSize = minBoxSize + (2f * abs(0.5f - relativeTime)) * (maxBoxSize - minBoxSize)
+			val boxSize = floatBoxSize.roundToInt()
+			val cornerRadius = (minBoxSize / 6f).roundToInt()
 			val darkColor = srgbToLinear(rgb(145, 137, 112))
 			val lightColor = srgbToLinear(rgb(167, 161, 141))
 			val cornerDistances = floatArrayOf(0.6f, 0.65f, 1f, 1.05f)
 			val borderWidth = max(1, boxSize / 15)
 
-			val margin = textRegion.height / 20
-			val boxX = textRegion.maxX - boxSize - margin
-			val boxY = textRegion.maxY - boxSize - margin
+			val boxOffset = (textRegion.height * 0.03f + minBoxSize + 0.5f * (boxSize - minBoxSize)).roundToInt()
+			val boxX = textRegion.maxX - boxOffset
+			val boxY = textRegion.maxY - boxOffset
 			renderBox(
 				boxX, boxY, boxSize, borderWidth, cornerRadius, cornerDistances,
 				darkColor, "E", "",
@@ -299,6 +313,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val speakerElement = when (val speaker = talkAction.speaker) {
 				is ActionTargetPlayer -> speaker.player.element
 				is ActionTargetPartyMember -> context.campaign.characterSelection.party[speaker.index]?.element
+				is ActionTargetAreaCharacter -> speaker.character.element
 				else -> null
 			}
 
@@ -306,11 +321,15 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				val image = speakerElement.thinSprite
 				val desiredHeight = 0.8f * textRegion.height
 				val scale = desiredHeight / image.height
+
+				// TODO CHAP2 Find a less ugly way to handle this
+				val alpha = if (speakerElement.rawName == "DARK") 0.4f else 0.15f
+
 				imageBatch.coloredScale(
 					textRegion.maxX - 1.2f * desiredHeight,
 					textRegion.maxY - 0.9f * textRegion.height,
 					scale, image.index, 0,
-					rgba(1f, 1f, 1f, 0.15f),
+					rgba(1f, 1f, 1f, alpha),
 				)
 			}
 		}
@@ -320,6 +339,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				is ActionTargetPlayer -> speaker.player.name
 				is ActionTargetPartyMember -> context.campaign.characterSelection.party[speaker.index]?.name
 				is ActionTargetDialogueObject -> speaker.displayName
+				is ActionTargetAreaCharacter -> speaker.character.name
 				else -> null
 			}
 			if (displayName != null) {
@@ -337,7 +357,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		}
 
 		run {
-			val font = context.bundle.getFont(context.content.fonts.basic2.index)
+			val font = context.bundle.getFont(context.content.fonts.fat.index)
 			var baseTextColor = srgbToLinear(rgb(207, 192, 141))
 			var boldTextColor = srgbToLinear(rgb(253, 218, 116))
 			val strokeColor = srgbToLinear(rgb(41, 34, 20))

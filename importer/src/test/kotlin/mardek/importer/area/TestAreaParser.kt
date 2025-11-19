@@ -6,8 +6,7 @@ import mardek.content.animation.CombatantAnimations
 import mardek.content.area.*
 import mardek.content.battle.PartyLayoutPosition
 import mardek.content.inventory.ItemStack
-import mardek.importer.actions.hardcodeActionSequences
-import mardek.importer.actions.storeHardcodedActionSequences
+import mardek.importer.actions.HardcodedActions
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
@@ -42,21 +41,27 @@ class TestAreaParser {
 		importItemsContent(content)
 		importBattleContent(content, null)
 
-		content.battle.monsters.add(importMonsterStats(
-			name = "monster", animations = CombatantAnimations(), propertiesText = MONSTER_PROPERTIES_TEXT, content
-		))
-		content.areas.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
 		importAreaSprites(content)
 		importClasses(content)
 		importPlayableCharacters(content, null)
-		hardcodeActionSequences(content)
+		importAreaBattleContent(content)
 		importAreaContent(content)
-		storeHardcodedActionSequences(content)
+
+		content.battle.monsters.add(importMonsterStats(
+			name = "monster", animations = CombatantAnimations(), propertiesText = MONSTER_PROPERTIES_TEXT, content
+		))
+		content.battle.monsters.add(importMonsterStats(
+			name = "mightydragon", animations = CombatantAnimations(), propertiesText = MONSTER_PROPERTIES_TEXT, content
+		))
+		content.areas.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
 	}
 
 	@Test
 	fun testParseAeropolisNorth() {
-		val parsed = parseArea(content, "aeropolis_N", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(), "aeropolis_N",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals("aeropolis_N", parsed.properties.rawName)
 		assertEquals("Aeropolis - Temple District", parsed.properties.displayName)
 		assertEquals("aeropolis", parsed.tilesheet.name)
@@ -114,7 +119,12 @@ class TestAreaParser {
 
 		val monster = content.battle.monsters.find { it.name == "monster" }!!
 
-		val parsed = parseArea(content, "DL_area2", ArrayList(), ArrayList())
+		val hardcodedActions = HardcodedActions()
+		hardcodedActions.hardcodeActionSequences(content)
+		val parsed = parseArea(
+			content, hardcodedActions, "DL_area2",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals("DL_area2", parsed.properties.rawName)
 		assertEquals("Dragon's Lair", parsed.properties.displayName)
 		assertEquals("dragonlair", parsed.tilesheet.name)
@@ -159,15 +169,21 @@ class TestAreaParser {
 
 	@Test
 	fun testParseGoldfishWarp() {
-		val parsed = parseArea(content, "goldfish_warp", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(), "goldfish_warp",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals(AreaAmbience(rgba(16, 14, 10, 100), 0), parsed.properties.ambience)
 	}
 
 	@Test
 	fun testParseAirTemple() {
-		val parsed = parseArea(content, "aeropolis_N_TAIR", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(), "aeropolis_N_TAIR",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals(1, parsed.objects.transitions.size)
-		assertEquals(1, parsed.objects.objects.size)
+		assertEquals(9, parsed.objects.decorations.size)
 		assertEquals(1, parsed.objects.characters.size)
 		assertEquals("Aeropolis", parsed.properties.musicTrack)
 		assertTrue(parsed.flags.hasClearMap)
@@ -176,13 +192,19 @@ class TestAreaParser {
 
 	@Test
 	fun testParseTheatre() {
-		val parsed = parseArea(content, "aeropolis_W_theatre", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(), "aeropolis_W_theatre",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals(20, parsed.objects.characters.size)
 	}
 
 	@Test
 	fun testParseGuardPost() {
-		val parsed = parseArea(content, "guardpost", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(), "guardpost",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals(2, parsed.objects.characters.size)
 		assertEquals(2, parsed.objects.transitions.size)
 	}
@@ -190,7 +212,10 @@ class TestAreaParser {
 	@Test
 	fun testDesertCave() {
 		val yinYang = content.items.items.find { it.flashName == "Yin and Yang" }!!
-		val parsed = parseArea(content, "desertcave", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(), "desertcave",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals(1, parsed.chests.size)
 
 		val chest = parsed.chests[0]
@@ -216,7 +241,10 @@ class TestAreaParser {
 
 	@Test
 	fun testParseSunTemple1() {
-		val parsed = parseArea(content, "suntemple1", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(), "suntemple1",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals(1, parsed.chests.size)
 		assertNull(parsed.randomBattles)
 
@@ -234,7 +262,10 @@ class TestAreaParser {
 	@Test
 	fun testParseSunTemple4() {
 		val spear = content.items.items.find { it.flashName == "Iron Spear" }!!
-		val parsed = parseArea(content, "sunTemple4", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(),"sunTemple4",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals(7, parsed.chests.size)
 
 		val chest = parsed.chests[1]
@@ -259,7 +290,10 @@ class TestAreaParser {
 
 	@Test
 	fun testTaintedGrotto() {
-		val parsed = parseArea(content, "pcave3", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(), "pcave3",
+			ArrayList(), ArrayList(),
+		)
 
 		val randomBattles = parsed.randomBattles!!
 		assertSame(content.areas.enemySelections.find { it.name == "TAINTED_GROTTO" }!!, randomBattles.sharedEnemies!!)
@@ -277,7 +311,10 @@ class TestAreaParser {
 
 	@Test
 	fun testDreamcave() {
-		val parsed = parseArea(content, "canonia_dreamcave_d2", ArrayList(), ArrayList())
+		val parsed = parseArea(
+			content, HardcodedActions(), "canonia_dreamcave_d2",
+			ArrayList(), ArrayList(),
+		)
 		assertEquals(3, parsed.chests.size)
 
 		val dreamstone = parsed.chests[0]

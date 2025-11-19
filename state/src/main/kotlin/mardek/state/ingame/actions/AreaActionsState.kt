@@ -7,11 +7,14 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.action.*
 import mardek.content.area.Direction
+import mardek.content.area.objects.AreaCharacter
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.state.SoundQueue
+import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.FadingCharacter
 import mardek.state.ingame.area.NextAreaPosition
 import mardek.state.saves.SaveSelectionState
 import kotlin.math.min
@@ -88,6 +91,7 @@ class AreaActionsState(
 		private set
 
 	private var speedUpShowingCharacters = false
+	private var finishedTalkingAction = false
 
 	/**
 	 * The color of the most-recently reached `ActionFlashScreen`, or 0 if no such action has been reached (yet).
@@ -112,6 +116,51 @@ class AreaActionsState(
 	@Suppress("unused")
 	private constructor() : this(FixedActionNode(), emptyArray(), emptyArray())
 
+	private fun updateFixedNode(context: UpdateContext, currentAction: FixedAction): Boolean {
+		if (currentAction is ActionTalk) return updateTalking(context, currentAction)
+		if (currentAction is ActionWalk) return updateWalking(currentAction, context)
+		if (currentAction is ActionBattle) {
+			context.startBattle = currentAction
+			return true
+		}
+		if (currentAction is ActionFlashScreen) {
+			lastFlashColor = currentAction.color
+			lastFlashTime = System.nanoTime()
+			return true
+		}
+		if (currentAction is ActionPlaySound) {
+			context.soundQueue.insert(currentAction.sound)
+			return true
+		}
+		if (currentAction is ActionHealParty) {
+			context.healParty()
+			return true
+		}
+		if (currentAction is ActionSaveCampaign && saveSelectionState == null) {
+			saveSelectionState = SaveSelectionState(arrayOf(context.campaignName))
+		}
+		if (currentAction is ActionFadeCharacter) {
+			fadeCharacter(currentAction, context)
+			return true
+		}
+		if (currentAction is ActionRotate) {
+			rotate(currentAction, context)
+			return true
+		}
+		if (currentAction is ActionParallel) {
+			// Note that we should ALWAYS update all parallel actions, so we can NOT use something like
+			// return currentAction.actions.all { updateFixedNode(context, it) }
+			// since the .all {} method will return false as soon as the first action returns false
+			var allFinished = true
+			for (parallelAction in currentAction.actions) {
+				if (!updateFixedNode(context, parallelAction)) allFinished = false
+			}
+			return allFinished
+		}
+
+		return false
+	}
+
 	/**
 	 * This method should be called during `CampaignState.update(...)` whenever
 	 * `areaState.actions != null && areaState.activeBattle == null`
@@ -119,36 +168,13 @@ class AreaActionsState(
 	fun update(context: UpdateContext) {
 		val currentNode = node
 		if (currentNode is FixedActionNode) {
-			val currentAction = currentNode.action
-			if (currentAction is ActionTalk) updateTalking(context, currentAction)
-			if (currentAction is ActionWalk) updateWalking(currentAction)
-			if (currentAction is ActionBattle) {
-				node = currentNode.next
-				TODO("start battle")
-			}
-			if (currentAction is ActionFlashScreen) {
-				lastFlashColor = currentAction.color
-				lastFlashTime = System.nanoTime()
-				node = currentNode.next
-			}
-			if (currentAction is ActionPlaySound) {
-				context.soundQueue.insert(currentAction.sound)
-				node = currentNode.next
-			}
-			if (currentAction is ActionHealParty) {
-				context.healParty()
-				node = currentNode.next
-			}
-			if (currentAction is ActionSaveCampaign && saveSelectionState == null) {
-				saveSelectionState = SaveSelectionState(arrayOf(context.campaignName))
-			}
+			if (updateFixedNode(context, currentNode.action)) toNextNode(currentNode.next)
 		}
 
-		checkNewNode(currentNode)
 		currentTime += context.timeStep
 	}
 
-	private fun updateTalking(context: UpdateContext, currentAction: ActionTalk) {
+	private fun updateTalking(context: UpdateContext, currentAction: ActionTalk): Boolean {
 		var speedModifier = 1f
 		if (speedUpShowingCharacters) speedModifier = 20f
 		if (context.input.isPressed(InputKey.Cancel)) speedModifier = 20f
@@ -159,31 +185,22 @@ class AreaActionsState(
 			currentAction.text.length.toFloat(),
 		)
 
-		val speaker = currentAction.speaker
-		if (speaker is ActionTargetPartyMember) {
-			partyDirections[0] = Direction.bestDelta(
-				partyPositions[1].x - partyPositions[0].x,
-				partyPositions[1].y - partyPositions[0].y,
-			) ?: Direction.Down
-			for (index in 1 until partyDirections.size) {
-				partyDirections[index] = Direction.bestDelta(
-					partyPositions[index - 1].x - partyPositions[index].x,
-					partyPositions[index - 1].y - partyPositions[index].y,
-				) ?: Direction.Up
-			}
+		if (finishedTalkingAction) {
+			finishedTalkingAction = false
+			return true
 		}
 
-		if (context.input.isPressed(InputKey.Cancel) && shownDialogueCharacters >= currentAction.text.length) {
-			finishSimpleDialogueNode()
-		}
+		return context.input.isPressed(InputKey.Cancel) && shownDialogueCharacters >= currentAction.text.length
 	}
 
-	private fun updateWalking(currentAction: ActionWalk) {
+	private fun updateWalking(currentAction: ActionWalk, context: UpdateContext): Boolean {
 		val target = currentAction.target
-		if (target is ActionTargetWholeParty) updateWalkingWholeParty(currentAction)
+		if (target is ActionTargetWholeParty) return updateWalkingWholeParty(currentAction)
+		if (target is ActionTargetAreaCharacter) return updateWalkingAreaCharacter(currentAction, target.character, context)
+		throw UnsupportedOperationException("Unexpected target $target for $currentAction")
 	}
 
-	private fun updateWalkingWholeParty(currentAction: ActionWalk) {
+	private fun updateWalkingWholeParty(currentAction: ActionWalk): Boolean {
 		val next = nextPartyPositions[0]
 		if (next != null && currentTime >= next.arrivalTime) {
 			for (index in (1 until partyPositions.size).reversed()) {
@@ -203,10 +220,7 @@ class AreaActionsState(
 				currentAction.destinationX - partyPositions[0].x,
 				currentAction.destinationY - partyPositions[0].y,
 			)
-			if (nextDirection == null) {
-				node = (node as FixedActionNode).next
-				return
-			}
+			if (nextDirection == null) return true
 
 			val arrivalTime = currentTime + currentAction.speed.duration
 			nextPartyPositions[0] = NextAreaPosition(
@@ -235,6 +249,89 @@ class AreaActionsState(
 				}
 			}
 		}
+		return false
+	}
+
+	private fun updateWalkingAreaCharacter(
+		currentAction: ActionWalk,
+		character: AreaCharacter,
+		context: UpdateContext,
+	): Boolean {
+		var characterState = context.characterStates[character] ?: throw IllegalArgumentException(
+			"Missing walk area character $character"
+		)
+
+		val nextPosition = characterState.next
+		if (nextPosition != null && currentTime >= nextPosition.arrivalTime) {
+			characterState = AreaCharacterState(
+				x = nextPosition.position.x,
+				y = nextPosition.position.y,
+				direction = characterState.direction,
+				next = null,
+			)
+		}
+
+		if (characterState.next == null) {
+			val bestDirection = Direction.bestDelta(
+				currentAction.destinationX - characterState.x,
+				currentAction.destinationY - characterState.y,
+			)
+			if (bestDirection != null) {
+				characterState = AreaCharacterState(
+					x = characterState.x,
+					y = characterState.y,
+					direction = bestDirection,
+					next = NextAreaPosition(
+						position = AreaPosition(
+							x = characterState.x + bestDirection.deltaX,
+							y = characterState.y + bestDirection.deltaY,
+						),
+						startTime = currentTime,
+						arrivalTime = currentTime + currentAction.speed.duration,
+					)
+				)
+			} else {
+				context.characterStates[character] = characterState
+				return true
+			}
+		}
+
+		context.characterStates[character] = characterState
+		return false
+	}
+
+	private fun fadeCharacter(action: ActionFadeCharacter, context: UpdateContext) {
+		val character = action.target.character
+		val characterState = context.characterStates.remove(character) ?: throw IllegalArgumentException(
+			"Can't fade character $character that is not present"
+		)
+		context.fadingCharacters.add(FadingCharacter(character, characterState))
+	}
+
+	private fun rotate(action: ActionRotate, context: UpdateContext) {
+		when (val target = action.target) {
+			is ActionTargetPartyMember -> {
+				partyDirections[target.index] = action.newDirection
+			}
+
+			is ActionTargetAreaCharacter -> {
+				val oldState = context.characterStates[target.character] ?: throw IllegalArgumentException(
+					"Missing area character ${target.character}"
+				)
+				if (oldState.next != null) throw IllegalArgumentException(
+					"Cannot rotate moving area character ${target.character}"
+				)
+
+				context.characterStates[target.character] = AreaCharacterState(
+					x = oldState.x,
+					y = oldState.y,
+					direction = action.newDirection,
+					next = null
+				)
+			}
+
+			else -> throw UnsupportedOperationException("Unsupported rotate target $target")
+		}
 	}
 
 	/**
@@ -246,7 +343,7 @@ class AreaActionsState(
 		if (currentNode.action !is ActionSaveCampaign) {
 			throw IllegalStateException("Expected ActionSaveCampaign, but action is ${currentNode.action}")
 		}
-		node = currentNode.next
+		toNextNode(currentNode.next)
 	}
 
 	/**
@@ -254,6 +351,15 @@ class AreaActionsState(
 	 */
 	fun retrySaveNode() {
 		saveSelectionState = null
+	}
+
+	private fun processFixedActionKeyEvent(action: FixedAction, event: InputKeyEvent) {
+		if (action is ActionTalk) {
+			processTalkingKeyEvent(action, event)
+		}
+		if (action is ActionParallel) {
+			for (parallelAction in action.actions) processFixedActionKeyEvent(parallelAction, event)
+		}
 	}
 
 	/**
@@ -266,40 +372,31 @@ class AreaActionsState(
 		val currentNode = node
 		val key = event.key
 
-		if (currentNode is FixedActionNode) {
-			val currentAction = currentNode.action
-			if (currentAction is ActionTalk) processTalkingKeyEvent(currentAction, event)
-		}
+		if (currentNode is FixedActionNode) processFixedActionKeyEvent(currentNode.action, event)
 
 		if (currentNode is ChoiceActionNode) {
 			if (selectedChoice > 0 && key == InputKey.MoveUp) selectedChoice -= 1
 			if (selectedChoice < currentNode.options.size - 1 && key == InputKey.MoveDown) selectedChoice += 1
 			if (key == InputKey.Interact && !event.didRepeat) {
-				node = currentNode.options[selectedChoice].next
+				toNextNode(currentNode.options[selectedChoice].next)
 			}
 		}
-
-		checkNewNode(currentNode)
 	}
 
-	private fun checkNewNode(current: ActionNode?) {
-		if (current !== node) {
-			selectedChoice = 0
-			shownDialogueCharacters = 0f
-		}
+	private fun toNextNode(next: ActionNode?) {
+		this.node = next
+		this.selectedChoice = 0
+		this.shownDialogueCharacters = 0f
+		this.speedUpShowingCharacters = false
+		this.finishedTalkingAction = false
 	}
 
 	private fun processTalkingKeyEvent(currentAction: ActionTalk, event: InputKeyEvent) {
 		if (event.key == InputKey.Interact) {
 			if (shownDialogueCharacters >= currentAction.text.length) {
-				if (!event.didRepeat) finishSimpleDialogueNode()
+				if (!event.didRepeat) this.finishedTalkingAction = true
 			} else speedUpShowingCharacters = true
 		}
-	}
-
-	private fun finishSimpleDialogueNode() {
-		node = (node as FixedActionNode).next
-		speedUpShowingCharacters = false
 	}
 
 	/**
@@ -310,8 +407,12 @@ class AreaActionsState(
 		val timeStep: Duration,
 		val soundQueue: SoundQueue,
 		val campaignName: String,
+		val characterStates: MutableMap<AreaCharacter, AreaCharacterState>,
+		val fadingCharacters: MutableCollection<FadingCharacter>,
 		val healParty: () -> Unit,
-	)
+	) {
+		var startBattle: ActionBattle? = null
+	}
 
 	companion object {
 		const val FLASH_DURATION = 750_000_000L

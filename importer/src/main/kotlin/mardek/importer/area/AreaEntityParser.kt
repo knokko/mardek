@@ -6,8 +6,7 @@ import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
 import mardek.content.area.objects.*
 import mardek.content.sprite.ObjectSprites
-import mardek.importer.actions.getHardcodedAreaActions
-import mardek.importer.actions.getHardcodedGlobalActionSequence
+import mardek.importer.actions.HardcodedActions
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptObjectList
 import java.lang.Integer.parseInt
@@ -27,17 +26,17 @@ private inline fun <reified T> extract(objectList: MutableList<Any>): ArrayList<
 }
 
 fun parseAreaObjectsToList(
-	content: Content, areaName: String, rawEntities: String,
+	content: Content, hardcodedActions: HardcodedActions, areaName: String, rawEntities: String,
 	transitions: MutableList<Pair<TransitionDestination, String>>
 ) = parseActionScriptObjectList(rawEntities).map {
-	rawEntity -> parseAreaEntity(content, areaName, rawEntity, transitions)
+	rawEntity -> parseAreaEntity(content, hardcodedActions, areaName, rawEntity, transitions)
 }
 
 internal fun parseAreaObjects(
-	content: Content, areaName: String, rawEntities: String, extraDecorations: List<AreaDecoration>,
+	content: Content, hardcodedActions: HardcodedActions, areaName: String, rawEntities: String, extraDecorations: List<AreaDecoration>,
 	transitions: MutableList<Pair<TransitionDestination, String>>
 ): AreaObjects {
-	val objectList = parseAreaObjectsToList(content, areaName, rawEntities, transitions).toMutableList()
+	val objectList = parseAreaObjectsToList(content, hardcodedActions, areaName, rawEntities, transitions).toMutableList()
 	return AreaObjects(
 		transitions = extract(objectList),
 		walkTriggers = extract(objectList),
@@ -45,7 +44,6 @@ internal fun parseAreaObjects(
 		shops = extract(objectList),
 		decorations = ArrayList(extract<AreaDecoration>(objectList) + extraDecorations),
 		portals = extract(objectList),
-		objects = extract(objectList),
 		characters = extract(objectList),
 		doors = extract(objectList),
 		switchOrbs = extract(objectList),
@@ -108,9 +106,10 @@ private fun importSwitchColor(name: String): SwitchColor {
 }
 
 fun parseAreaEntity(
-	content: Content, areaName: String, rawEntity: Map<String, String>,
+	content: Content, hardcodedActions: HardcodedActions, areaName: String, rawEntity: Map<String, String>,
 	transitions: MutableList<Pair<TransitionDestination, String>>
 ): Any {
+	val rawID = rawEntity["uuid"]
 	val model = parseFlashString(rawEntity["model"]!!, "model")!!
 	val x = parseInt(rawEntity["x"])
 	val y = parseInt(rawEntity["y"])
@@ -125,8 +124,8 @@ fun parseAreaEntity(
 
 	var actionSequence: ActionSequence? = null
 	if (conversationName != null) {
-		actionSequence = getHardcodedAreaActions(areaName, conversationName) ?:
-				getHardcodedGlobalActionSequence(conversationName)
+		actionSequence = hardcodedActions.getHardcodedAreaActions(areaName, conversationName) ?:
+				hardcodedActions.getHardcodedGlobalActionSequence(conversationName)
 	}
 	val rawConversation = if (conversation != null && !conversation.startsWith('"')) conversation else null
 
@@ -148,10 +147,47 @@ fun parseAreaEntity(
 
 		if (rawType == "\"examine\"" || model == "examine") {
 			return AreaDecoration(
-					x = x, y = y, sprites = null, light = null, timePerFrame = 1,
-					rawConversation = rawConversation, conversationName = conversationName
+				x = x,
+				y = y,
+				sprites = null,
+				canWalkThrough = true,
+				light = null,
+				timePerFrame = 1,
+				rawConversation = rawConversation,
+				conversationName = conversationName,
+				actionSequence = actionSequence,
+				signType = null,
 			)
 		}
+	}
+
+	if (model == "sign") {
+		val rawFrame = rawEntity["FRAME"] ?: throw IllegalArgumentException("Invalid sign $rawEntity")
+		val firstFrame = parseInt(rawFrame)
+
+		val rawSignType = rawEntity["sign"] ?: throw IllegalArgumentException("Invalid sign $rawEntity")
+		val signType = parseFlashString(rawSignType, "sign type")!!
+
+		val spriteID = "spritesheet_sign($firstFrame, 1)"
+		var sprites = content.areas.objectSprites.find { it.flashName == spriteID }
+		if (sprites == null) {
+			sprites = importObjectSprites("spritesheet_sign", frameIndex = firstFrame, numFrames = 1)
+			sprites.flashName = spriteID
+			content.areas.objectSprites.add(sprites)
+		}
+
+		return AreaDecoration(
+			x = x,
+			y = y,
+			sprites = sprites,
+			canWalkThrough = false,
+			light = null,
+			timePerFrame = 1,
+			conversationName = conversationName,
+			rawConversation = rawConversation,
+			actionSequence = actionSequence,
+			signType = signType,
+		)
 	}
 
 	if (model == "shop") {
@@ -194,10 +230,10 @@ fun parseAreaEntity(
 		val rawSequenceName = rawEntity["actionSequence"]
 
 		val actionSequence = if (rawSequenceName != null) {
-			getHardcodedAreaActions(areaName, rawSequenceName) ?: getHardcodedGlobalActionSequence(rawSequenceName)
+			hardcodedActions.getHardcodedAreaActions(areaName, rawSequenceName) ?:
+					hardcodedActions.getHardcodedGlobalActionSequence(rawSequenceName)
 		} else null
 
-		val rawID = rawEntity["uuid"]
 		return AreaTrigger(
 			name = name,
 			x = x,
@@ -218,9 +254,6 @@ fun parseAreaEntity(
 		npcName = parseFlashString(rawEntity["NPC"]!!, "talktrigger NPC")!!
 	)
 
-
-	val silent = rawEntity["silent"] == "true"
-
 	if (model.startsWith("o_")) {
 		val spritesheetName = "obj_${model.substring(2)}"
 		var sprites = content.areas.objectSprites.find { it.flashName == spritesheetName }
@@ -228,30 +261,25 @@ fun parseAreaEntity(
 			sprites = importObjectSprites(spritesheetName)
 			content.areas.objectSprites.add(sprites)
 		}
-		return if (rawEntity["walkable"] == "true") AreaDecoration(
+		return AreaDecoration(
 			x = x,
 			y = y,
 			sprites = sprites,
+			canWalkThrough = rawEntity["walkable"] == "true",
 			light = null,
-			timePerFrame = 1,
+			timePerFrame = 200,
 			conversationName = conversationName,
-			rawConversation = rawConversation
-		) else AreaObject(
-			sprites = sprites,
-			x = x,
-			y = y,
-			conversationName = conversationName,
-			rawConversion = rawConversation,
-			signType = null,
+			rawConversation = rawConversation,
 			actionSequence = actionSequence,
+			signType = null,
 		)
 	}
 
 	val rawDir = rawEntity["dir"]
-	var direction: Direction? = null
+	var direction = Direction.Down
 	if (rawDir != null) direction = Direction.entries.find {
 		it.abbreviation == parseFlashString(rawDir, "dir")!!
-	}
+	} ?: Direction.Down
 
 	if (model.startsWith("BIGDOOR") || model.startsWith("DOOR")) {
 		val (sheetName, spriteRow, spriteHeight) = if (model.startsWith("B")) {
@@ -280,23 +308,20 @@ fun parseAreaEntity(
 	}
 
 	val rawElement = rawEntity["elem"]
-	val element = if (rawElement != null) parseFlashString(rawElement, "element")!! else null
+	val elementName = if (rawElement != null) parseFlashString(rawElement, "element")!! else null
+	val element = if (elementName != null) content.stats.elements.find { it.rawName == elementName }!! else null
 
-	var spritesheetName = "spritesheet_${parseFlashString(rawEntity["model"]!!, "model")!!}"
+	val portrait = content.portraits.info.find { it.flashName == model }
+	var spritesheetName = "spritesheet_$model"
 	if (rawEntity["Static"] == "true" || rawEntity["Static"] == "1" || rawEntity.containsKey("FRAME")) {
-		var firstFrame = 0
+		var firstFrame = 2 * direction.ordinal
 		var numFrames = 2
-
-		if (direction != null) firstFrame = 2 * direction.ordinal
 
 		val rawFrame = rawEntity["FRAME"]
 		if (rawFrame != null) {
 			firstFrame = parseInt(rawFrame)
 			numFrames = 1
 		}
-
-		val rawSignType = rawEntity["sign"]
-		val signType = if (rawSignType != null) parseFlashString(rawSignType, "sign type")!! else null
 
 		val spriteID = "$spritesheetName($firstFrame, $numFrames)"
 		var sprites = content.areas.objectSprites.find { it.flashName == spriteID }
@@ -306,14 +331,21 @@ fun parseAreaEntity(
 			content.areas.objectSprites.add(sprites)
 		}
 
-		return AreaObject(
-			sprites = sprites,
-			x = x,
-			y = y,
+		return AreaCharacter(
+			name = name,
+			directionalSprites = null,
+			fixedSprites = sprites,
+			startX = x,
+			startY = y,
+			startDirection = Direction.Down,
+			walkSpeed = -2,
+			element = element,
+			portrait = portrait,
 			conversationName = conversationName,
-			rawConversion = rawConversation,
-			signType = signType,
+			rawConversation = rawConversation,
 			actionSequence = actionSequence,
+			encyclopediaPerson = null,
+			id = if (rawID != null) UUID.fromString(rawID) else UUID.randomUUID(),
 		)
 	}
 
@@ -330,16 +362,19 @@ fun parseAreaEntity(
 	val sprites = content.areas.characterSprites.find { it.name == spritesheetName }!!
 	return AreaCharacter(
 		name = name,
-		sprites = sprites,
+		directionalSprites = sprites,
+		fixedSprites = null,
 		startX = x,
 		startY = y,
 		startDirection = direction,
-		silent = silent,
 		walkSpeed = parseInt(rawEntity["walkspeed"] ?: "-2"),
 		element = element,
+		portrait = portrait,
 		conversationName = conversationName,
 		rawConversation = rawConversation,
-		encyclopediaPerson = encyclopediaPerson
+		actionSequence = actionSequence,
+		encyclopediaPerson = encyclopediaPerson,
+		id = if (rawID != null) UUID.fromString(rawID) else UUID.randomUUID(),
 	)
 }
 

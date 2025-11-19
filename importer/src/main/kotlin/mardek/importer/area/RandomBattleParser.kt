@@ -9,7 +9,7 @@ import java.lang.Integer.parseInt
 import java.util.Locale
 
 fun parseRandomBattle(areaCode: ActionScriptCode, content: Content): RandomAreaBattles? {
-	val chance = try { parseInt(areaCode.variableAssignments["btlChance"]) } catch (complex: NumberFormatException) {
+	val chance = try { parseInt(areaCode.variableAssignments["btlChance"]) } catch (_: NumberFormatException) {
 		println("failed to parse btlChance ${areaCode.variableAssignments["btlChance"]}")
 		0
 	}
@@ -33,7 +33,7 @@ fun parseRandomBattle(areaCode: ActionScriptCode, content: Content): RandomAreaB
 		if (rawFoes.startsWith(monstersTablePrefix)) {
 			val tableName = rawFoes.substring(monstersTablePrefix.length)
 			val selection = content.areas.enemySelections.find { it.name == tableName }
-			if (selection == null && content.battle.monsters.size <= 1) Pair(null, SharedEnemySelections())
+			if (selection == null && content.battle.monsters.size <= 2) Pair(null, SharedEnemySelections())
 			else Pair(null, selection!!)
 		} else Pair(parseSelections(content.battle, rawFoes), null)
 	}

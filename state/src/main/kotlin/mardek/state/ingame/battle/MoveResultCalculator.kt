@@ -315,7 +315,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 
 		val critChance = if (skillDamage?.critChance != null) skillDamage.critChance!!
 		else if (skill.isMelee && weapon?.critChance != null) weapon.critChance
-		else if (attacker is MonsterCombatantState) attacker.monster.critChance else 0
+		else if (skill.isMelee && attacker is MonsterCombatantState) attacker.monster.critChance else 0
 
 		val rawEntries = targets.map { target ->
 			var revengeDamage = 0

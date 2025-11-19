@@ -44,7 +44,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 					minY + (sprite.height * spriteScale).roundToInt() - 1, sprite.index
 				)
 			}
-			for (element in area.objects.objects) {
+			for (element in area.objects.decorations) {
 				if (element.conversationName == "c_healingCrystal") {
 					renderSpriteAtMap(element.x, element.y, context.content.ui.mapSaveCrystal)
 				}
@@ -140,8 +140,8 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 			for (character in area.objects.characters) {
 				putIfDiscovered(character.startX, character.startY, OBJECT_COLOR)
 			}
-			for (element in area.objects.objects) {
-				if (element.conversationName == "c_healingCrystal") continue
+			for (element in area.objects.decorations) {
+				if (element.conversationName == "c_healingCrystal" || element.canWalkThrough) continue
 				putIfDiscovered(element.x, element.y, OBJECT_COLOR)
 			}
 			for (portal in area.objects.portals) {

@@ -4,6 +4,7 @@ import mardek.content.Content
 import mardek.content.area.*
 import mardek.content.sprite.ArrowSprite
 import mardek.content.sprite.DirectionalSprites
+import mardek.importer.actions.HardcodedActions
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.resourcesFolder
 import java.io.File
@@ -47,13 +48,14 @@ internal fun importAreaSprites(content: Content) {
 }
 
 internal fun importAreaContent(content: Content) {
-	importAreaBattleAssets(content)
+	val hardcodedActions = HardcodedActions()
+	hardcodedActions.hardcodeActionSequences(content)
 
 	val parsedAreas = ArrayList<ParsedArea>()
 	val parsedTilesheets = ArrayList<ParsedTilesheet>()
 	val transitions = ArrayList<Pair<TransitionDestination, String>>()
 	for (areaName in enumerateAreas(areaFolder)) {
-		parsedAreas.add(parseArea(content, areaName, parsedTilesheets, transitions))
+		parsedAreas.add(parseArea(content, hardcodedActions, areaName, parsedTilesheets, transitions))
 	}
 
 	val tileMapping = HashMap<ParsedTile, Tile>()
@@ -108,6 +110,8 @@ internal fun importAreaContent(content: Content) {
 			it.properties.rawName.equals(destination, ignoreCase = true)
 		}!!
 	}
+
+	hardcodedActions.storeHardcodedActionSequences(content)
 }
 
 internal fun enumerateAreas(areaFolder: File) = File("$areaFolder/data").list()!!.map {

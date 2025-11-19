@@ -9,6 +9,10 @@ import mardek.content.sprite.ArrowSprite
 import mardek.content.sprite.DirectionalSprites
 import mardek.content.sprite.KimSprite
 import mardek.content.sprite.ObjectSprites
+import mardek.importer.actions.HardcodedActions
+import mardek.importer.audio.importAudioContent
+import mardek.importer.particle.importParticleEffects
+import mardek.importer.stats.importStatsContent
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -18,6 +22,12 @@ class TestAreaEntityParser {
 
 	private val content = Content()
 	private val testID = UUID.randomUUID()
+
+	init {
+		importAudioContent(content.audio)
+		importParticleEffects(content)
+		importStatsContent(content)
+	}
 
 	@Test
 	fun testSingleEntitySingleKey() {
@@ -81,9 +91,15 @@ class TestAreaEntityParser {
 		assertEquals(expectedConversation, parsed1[0]["conv"])
 	}
 
-	private fun parseAreaEntityRaw(rawString: String, areaName: String = ""): Any {
+	private fun parseAreaEntityRaw(
+		rawString: String, areaName: String = "",
+		hardcodedActions: HardcodedActions = HardcodedActions()
+	): Any {
 		val transitions = ArrayList<Pair<TransitionDestination, String>>()
-		val parsedEntities = parseAreaObjectsToList(content, areaName, "[$rawString]", transitions)
+		val parsedEntities = parseAreaObjectsToList(
+			content, hardcodedActions, areaName,
+			"[$rawString]", transitions,
+		)
 		assertEquals(1, parsedEntities.size)
 
 		for ((transition, destination) in transitions) {
@@ -224,41 +240,56 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseSaveCrystal() {
-		val expected = AreaObject(
+		val hardcodedActions = HardcodedActions()
+		hardcodedActions.addDummySaveCrystalAction()
+		val expected = AreaDecoration(
 			x = 4,
 			y = 7,
 			sprites = objectSprite("obj_Crystal"),
+			canWalkThrough = false,
+			light = null,
+			timePerFrame = 200,
+			rawConversation = null,
 			conversationName = "c_healingCrystal",
-			rawConversion = null,
+			actionSequence = hardcodedActions.getHardcodedGlobalActionSequence("c_healingCrystal")!!,
 			signType = null,
-			actionSequence = content.actions.global.find { it.name == "c_healingCrystal" },
 		)
 		val actual = parseAreaEntityRaw(
-				"{name:\"Save Crystal\",model:\"o_Crystal\",x:4,y:7,walkspeed:-1,conv:\"c_healingCrystal\"}"
+			"{name:\"Save Crystal\",model:\"o_Crystal\",x:4,y:7,walkspeed:-1,conv:\"c_healingCrystal\"}",
+			hardcodedActions = hardcodedActions
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseSlainDracelon() {
-		val expected = AreaObject(
-			sprites = objectSprite("spritesheet_ch2bosses(4, 1)"),
-			x = 4,
-			y = 21,
+		val id = UUID.randomUUID()
+		val expected = AreaCharacter(
+			name = "Dracelon",
+			directionalSprites = null,
+			fixedSprites = objectSprite("spritesheet_ch2bosses(4, 1)"),
+			startX = 4,
+			startY = 21,
+			startDirection = Direction.Down,
+			walkSpeed = -2,
+			element = content.stats.elements.find { it.rawName == "EARTH" }!!,
+			portrait = null,
 			conversationName = "c_A_Rohoph",
-			rawConversion = null,
-			signType = null,
+			rawConversation = null,
 			actionSequence = null,
+			encyclopediaPerson = null,
+			id = id,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Dracelon\",model:\"ch2bosses\",x:4,y:21,walkspeed:-1,FRAME:4,silent:true," +
-						"Static:true,elem:\"EARTH\",conv:\"c_A_Rohoph\"}"
+						"Static:true,elem:\"EARTH\",conv:\"c_A_Rohoph\",uuid:$id}"
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseZombieDragon() {
+		val id = UUID.randomUUID()
 		val flashCode = "function()\n" +
 				"   {\n" +
 				"      _root.playSFX(\"dragon_roar\");\n" +
@@ -269,92 +300,124 @@ class TestAreaEntityParser {
 				"      BATTLE([[\"ZombieDragon\",null,null,null],[\"Zombie Dragon\",null,null,null],[18,null,null,null],\"DRAGON\"],\"BossBattle\",true);\n" +
 				"      return true;\n" +
 				"   }"
-		val expected = AreaObject(
-			sprites = objectSprite("spritesheet_dragon(2, 2)"),
-			x = 11,
-			y = 6,
+		val expected = AreaCharacter(
+			name = "Zombie Dragon",
+			directionalSprites = null,
+			fixedSprites = objectSprite("spritesheet_dragon(2, 2)"),
+			startX = 11,
+			startY = 6,
+			startDirection = Direction.Down,
+			walkSpeed = -2,
+			element = content.stats.elements.find { it.rawName == "DARK" }!!,
+			portrait = null,
 			conversationName = null,
-			rawConversion = "[Do = $flashCode]",
-			signType = null,
+			rawConversation = "[Do = $flashCode]",
 			actionSequence = null,
+			encyclopediaPerson = null,
+			id = id,
 		)
 		val actual = parseAreaEntityRaw(
-				"{name:\"Zombie Dragon\",model:\"dragon\",x:11,y:6,walkspeed:-1,dir:\"n\",Static:1,elem:\"DARK\",conv:[Do = $flashCode]}"
+				"{name:\"Zombie Dragon\",model:\"dragon\",x:11,y:6,walkspeed:-1,dir:\"n\",Static:1," +
+						"elem:\"DARK\",conv:[Do = $flashCode],uuid:$id}"
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseTheDragon() {
-		val expected = AreaObject(
-			sprites = objectSprite("spritesheet_dragon(0, 2)"),
-			x = 6,
-			y = 7,
+		val id = UUID.fromString("6d8a7f59-5b45-4054-8266-49eae259fdbb")
+		val expected = AreaCharacter(
+			name = "The Dragon",
+			directionalSprites = null,
+			fixedSprites = objectSprite("spritesheet_dragon(0, 2)"),
+			startX = 6,
+			startY = 7,
+			startDirection = Direction.Down,
+			walkSpeed = -2,
+			element = content.stats.elements.find { it.rawName == "DARK" }!!,
+			portrait = null,
 			conversationName = null,
-			rawConversion = "[[\"\",\"You shouldn\\'t be able to talk to me! REPORT THIS BUG PLEASE!\"]]",
-			signType = null,
+			rawConversation = "[]",
 			actionSequence = null,
+			encyclopediaPerson = null,
+			id = id,
 		)
 		val actual = parseAreaEntityRaw(
-				"{name:\"The Dragon\",model:\"dragon\",x:6,y:7,walkspeed:-1,dir:\"s\",Static:true,elem:\"DARK\"," +
-						"conv:[[\"\",\"You shouldn\\'t be able to talk to me! REPORT THIS BUG PLEASE!\"]]}"
+				"{name:\"The Dragon\",model:\"dragon\",x:6,y:7,walkspeed:-1,dir:\"s\",elem:\"DARK\"," +
+						"Static:1,conv:[],uuid:6d8a7f59-5b45-4054-8266-49eae259fdbb}"
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseMoric() {
-		val expected = AreaObject(
-			sprites = objectSprite("spritesheet_moric(1, 1)"),
-			x = 7,
-			y = 11,
+		val id = UUID.randomUUID()
+		val expected = AreaCharacter(
+			name = "Moric",
+			directionalSprites = null,
+			fixedSprites = objectSprite("spritesheet_moric(1, 1)"),
+			startX = 7,
+			startY = 11,
+			startDirection = Direction.Down,
+			walkSpeed = -2,
+			element = content.stats.elements.find { it.rawName == "EARTH" }!!,
+			portrait = null,
 			conversationName = "c_GdM_Moric",
-			rawConversion = null,
-			signType = null,
+			rawConversation = null,
 			actionSequence = null,
+			encyclopediaPerson = null,
+			id = id,
 		)
 		val actual = parseAreaEntityRaw(
-				"{name:\"Moric\",model:\"moric\",x:7,y:11,walkspeed:-2,FRAME:1,elem:\"EARTH\",conv:\"c_GdM_Moric\"}"
+				"{name:\"Moric\",model:\"moric\",x:7,y:11,walkspeed:-2,FRAME:1,elem:\"EARTH\",conv:\"c_GdM_Moric\",uuid:$id}"
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParsePriestessGail() {
+		val id = UUID.randomUUID()
 		val expected = AreaCharacter(
 			name = "Priestess Gail",
-			sprites = characterSprite("priestess"),
+			directionalSprites = characterSprite("priestess"),
+			fixedSprites = null,
 			startX = 7,
 			startY = 3,
 			startDirection = Direction.Down,
-			silent = false,
 			walkSpeed = -1,
-			element = "AIR",
+			element = content.stats.elements.find { it.rawName == "AIR" }!!,
+			portrait = null, // Portraits are tested in IntegrationTests.testAreaCharacterPortraitImporting
 			conversationName = "c_priestess",
 			rawConversation = null,
-			encyclopediaPerson = "Priestess Gail"
+			actionSequence = null,
+			encyclopediaPerson = "Priestess Gail",
+			id = id,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Priestess Gail\",model:\"priestess\",x:7,y:3,walkspeed:-1,dir:\"s\",elem:\"AIR\"," +
-						"conv:\"c_priestess\",EN:[\"People\",\"Priestess Gail\"]}"
+						"conv:\"c_priestess\",EN:[\"People\",\"Priestess Gail\"],uuid:$id}"
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseSign() {
-		val expected = AreaObject(
-			sprites = objectSprite("spritesheet_sign(10, 1)"),
+		val id = UUID.randomUUID()
+		val expected = AreaDecoration(
 			x = 26,
 			y = 26,
+			sprites = objectSprite("spritesheet_sign(10, 1)"),
+			canWalkThrough = false,
+			light = null,
+			timePerFrame = 1,
 			conversationName = null,
-			rawConversion = "[[\"\",\"CLOEST FORE THE NYHTE\"]]",
-			signType = "words",
+			rawConversation = "[[\"\",\"CLOEST FORE THE NYHTE\"]]",
 			actionSequence = null,
+			signType = "words",
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Sign\",model:\"sign\",sign:\"words\",FRAME:10,x:26,y:26,walkspeed:-2," +
-						"conv:[[\"\",\"CLOEST FORE THE NYHTE\"]]}"
+						"conv:[[\"\",\"CLOEST FORE THE NYHTE\"]],uuid:$id}"
 		)
 		assertEquals(expected, actual)
 	}
@@ -401,17 +464,25 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseStatue() {
-		val expected = AreaObject(
-			sprites = objectSprite("spritesheet_statue(6, 1)"),
-			x = 25,
-			y = 3,
+		val id = UUID.randomUUID()
+		val expected = AreaCharacter(
+			name = "Statue",
+			directionalSprites = null,
+			fixedSprites = objectSprite("spritesheet_statue(6, 1)"),
+			startX = 25,
+			startY = 3,
+			startDirection = Direction.Down,
+			walkSpeed = -2,
+			element = null,
+			portrait = null,
 			conversationName = null,
-			rawConversion = "[statueFlavour]",
-			signType = null,
+			rawConversation = "[statueFlavour]",
 			actionSequence = null,
+			encyclopediaPerson = null,
+			id = id,
 		)
 		val actual = parseAreaEntityRaw(
-				"{name:\"Statue\",model:\"statue\",x:25,y:3,walkspeed:-2,dir:\"m1\",FRAME:6,conv:[statueFlavour]}"
+				"{name:\"Statue\",model:\"statue\",x:25,y:3,walkspeed:-2,dir:\"m1\",FRAME:6,conv:[statueFlavour],uuid:$id}"
 		)
 		assertEquals(expected, actual)
 	}
@@ -540,14 +611,17 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseInvalidWarportPortal() {
-		val expected = AreaObject(
+		val expected = AreaDecoration(
 			sprites = objectSprite("obj_portal"),
 			x = 36,
 			y = 4,
+			canWalkThrough = false,
+			light = null,
+			timePerFrame = 200,
 			conversationName = null,
-			rawConversion = "[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]",
-			signType = null,
+			rawConversation = "[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]",
 			actionSequence = null,
+			signType = null,
 		)
 		val actual = parseAreaEntityRaw(
 				"{name:\"Portal\",model:\"o_portal\",x:36,y:4," +
@@ -559,8 +633,16 @@ class TestAreaEntityParser {
 	@Test
 	fun testParseWarportExamine() {
 		val expected = AreaDecoration(
-				x = 6, y = 6, sprites = objectSprite("obj_portal"), light = null, timePerFrame = 1, conversationName = null,
-				rawConversation = "[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]"
+			x = 6,
+			y = 6,
+			sprites = objectSprite("obj_portal"),
+			canWalkThrough = true,
+			light = null,
+			timePerFrame = 200,
+			conversationName = null,
+			rawConversation = "[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]",
+			actionSequence = null,
+			signType = null,
 		)
 		val actual = parseAreaEntityRaw(
 			"{name:\"Portal\",model:\"o_portal\",x:6,y:6,walkable:true," +
@@ -610,8 +692,16 @@ class TestAreaEntityParser {
 			"{name:\"Deities: What ARE they?\",model:\"object\",x:1,y:1,type:\"examine\",conv:$rawConversation}"
 		)
 		val expected = AreaDecoration(
-			x = 1, y = 1, sprites = null, light = null, timePerFrame = 1,
-			rawConversation = rawConversation, conversationName = null
+			x = 1,
+			y = 1,
+			sprites = null,
+			canWalkThrough = true,
+			light = null,
+			timePerFrame = 1,
+			rawConversation = rawConversation,
+			conversationName = null,
+			actionSequence = null,
+			signType = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -642,8 +732,16 @@ class TestAreaEntityParser {
 			"{name:\"Water\",model:\"examine\",x:8,y:30,walkspeed:-1,conv:\"c_lakeQur\"}"
 		)
 		val expected = AreaDecoration(
-			x = 8, y = 30, sprites = null, light = null, timePerFrame = 1,
-			rawConversation = null, conversationName = "c_lakeQur"
+			x = 8,
+			y = 30,
+			sprites = null,
+			canWalkThrough = true,
+			light = null,
+			timePerFrame = 1,
+			rawConversation = null,
+			conversationName = "c_lakeQur",
+			actionSequence = null,
+			signType = null,
 		)
 		assertEquals(expected, actual)
 	}

@@ -11,15 +11,15 @@ import com.github.knokko.bitser.field.ReferenceFieldTarget
 class AreaObjects(
 
 	/**
-	 * The characters that spawn in this area when the player enters this area. Characters have different sprites,
+	 * The characters that spawn in this area when the player enters this area. Most characters have different sprites,
 	 * depending on which direction they face.
 	 */
 	@BitField(id = 0)
+	@ReferenceFieldTarget(label = "area characters")
 	val characters: ArrayList<AreaCharacter>,
 
-	// TODO CHAP1 Code reuse: create abstract StaticAreaObject class with (x, y) that most objects extend
 	/**
-	 * The decorations that spawn in this area when the player enters this area. Players can walk through all
+	 * The decorations that spawn in this area when the player enters this area. Players can walk through some
 	 * decorations, and interact with some of them.
 	 */
 	@BitField(id = 1)
@@ -32,52 +32,44 @@ class AreaObjects(
 	val doors: ArrayList<AreaDoor>,
 
 	/**
-	 * The objects that spawn in this area when the player enters this area. Unlike decorations, players can
-	 * **not** move through objects. And unlike characters, the sprite/animation of objects does *not* depend on
-	 * their direction.
-	 */
-	@BitField(id = 3)
-	val objects: ArrayList<AreaObject>,
-
-	/**
 	 * The portals of this area. Portals are basically doors, except that players activate them by walking on them
 	 * rather than interacting with them.
 	 */
-	@BitField(id = 4)
+	@BitField(id = 3)
 	val portals: ArrayList<AreaPortal>,
 
 	/**
 	 * The shops in this area
 	 */
-	@BitField(id = 5)
+	@BitField(id = 4)
 	val shops: ArrayList<AreaShop>,
 
 	/**
 	 * The switch gates in this area. Switch gates will block the player when the corresponding *switch orb*
 	 * is disabled.
 	 */
-	@BitField(id = 6)
+	@BitField(id = 5)
 	val switchGates: ArrayList<AreaSwitchGate>,
 
 	/**
 	 * The switch orbs in this area. Players can interact with switch orbs to toggle the switch gates and switch
 	 * platforms.
 	 */
-	@BitField(id = 7)
+	@BitField(id = 6)
 	val switchOrbs: ArrayList<AreaSwitchOrb>,
 
 	/**
 	 * The switch platforms in this area. Switch platforms are bridges over normally-inaccessible tiles, which allow
 	 * the player to walk over the underlying tile *if* the corresponding *switch orb* is disabled.
 	 */
-	@BitField(id = 8)
+	@BitField(id = 7)
 	val switchPlatforms: ArrayList<AreaSwitchPlatform>,
 
 	/**
 	 * The 'talk triggers' in this area. Each talk trigger is linked to a character, and interacting with the talk
 	 * trigger causes the player to interact with that character.
 	 */
-	@BitField(id = 9)
+	@BitField(id = 8)
 	val talkTriggers: ArrayList<AreaTalkTrigger>,
 
 	/**
@@ -85,19 +77,20 @@ class AreaObjects(
 	 * Transitions are basically portals, except that they are displayed as 'oscillating' blue arrows rather than
 	 * portal textures.
 	 */
-	@BitField(id = 10)
+	@BitField(id = 9)
 	val transitions: ArrayList<AreaTransition>,
 
 	/**
 	 * The 'walk triggers' in this area. Walk triggers should have an action sequence, which will be activated when
 	 * the player steps on the (typically invisible) trigger.
 	 */
-	@BitField(id = 11)
+	@BitField(id = 10)
 	@ReferenceFieldTarget(label = "area triggers")
 	val walkTriggers: ArrayList<AreaTrigger>,
 ) {
 	internal constructor() : this(
-		ArrayList(), ArrayList(), ArrayList(), ArrayList(), ArrayList(), ArrayList(),
-		ArrayList(), ArrayList(), ArrayList(), ArrayList(), ArrayList(), ArrayList()
+		ArrayList(), ArrayList(), ArrayList(), ArrayList(),
+		ArrayList(), ArrayList(), ArrayList(), ArrayList(),
+		ArrayList(), ArrayList(), ArrayList(),
 	)
 }

@@ -5,7 +5,7 @@ import mardek.content.skill.ReactionSkillType
 import mardek.content.stats.CombatStat
 import mardek.content.stats.StatusEffect
 import mardek.game.TestingInstance
-import mardek.state.ingame.battle.Enemy
+import mardek.content.battle.Enemy
 import mardek.state.ingame.battle.MoveResultCalculator
 import org.junit.jupiter.api.Assertions.*
 

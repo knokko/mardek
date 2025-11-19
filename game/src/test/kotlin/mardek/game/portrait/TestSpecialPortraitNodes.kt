@@ -10,22 +10,24 @@ import org.junit.jupiter.api.assertNull
 object TestSpecialPortraitNodes {
 
 	fun testPresenceAndAbsence(instance: TestingInstance) {
-		val portraitInfo = instance.heroDeugan.portraitInfo
-		assertEquals("deugan_hero", portraitInfo.flashName)
-		assertEquals("hum", portraitInfo.rootSkin)
-		assertEquals("deugan_hero", portraitInfo.faceSkin)
-		assertEquals("deugan_hero", portraitInfo.hairSkin)
-		assertEquals("green", portraitInfo.eyeSkin)
-		assertEquals("deugan_hero", portraitInfo.eyeBrowSkin)
-		assertEquals("norm", portraitInfo.mouthSkin)
-		assertEquals("deugan_hero", portraitInfo.armorSkin)
-		assertNull(portraitInfo.robeSkin)
-		assertNull(portraitInfo.faceMask)
-		assertEquals("1", portraitInfo.ethnicitySkin)
-		assertNull(portraitInfo.voiceStyle)
-		assertNull(portraitInfo.elementalBackground)
+		val portraitInfoDeugan = instance.heroDeugan.portraitInfo
+		val portraitInfoPrincess = instance.content.portraits.info.find { it.flashName == "princess" }!!
+		assertEquals("deugan_hero", portraitInfoDeugan.flashName)
+		assertEquals("hum", portraitInfoDeugan.rootSkin)
+		assertEquals("deugan_hero", portraitInfoDeugan.faceSkin)
+		assertEquals("deugan_hero", portraitInfoDeugan.hairSkin)
+		assertEquals("green", portraitInfoDeugan.eyeSkin)
+		assertEquals("deugan_hero", portraitInfoDeugan.eyeBrowSkin)
+		assertEquals("", portraitInfoDeugan.mouthSkin)
+		assertEquals("deugan_hero", portraitInfoDeugan.armorSkin)
+		assertNull(portraitInfoDeugan.robeSkin)
+		assertNull(portraitInfoDeugan.faceMask)
+		assertEquals("1", portraitInfoDeugan.ethnicitySkin)
+		assertNull(portraitInfoDeugan.voiceStyle)
+		assertNull(portraitInfoDeugan.elementalBackground)
 
-		val portrait = instance.content.portraits.animations.skins[portraitInfo.rootSkin]!!
+		val portraitDeugan = instance.content.portraits.animations.skins[portraitInfoDeugan.rootSkin]!!
+		val portraitPrincess = instance.content.portraits.animations.skins[portraitInfoPrincess.rootSkin]!!
 		for (unexpected in arrayOf(
 			SpecialAnimationNode.HitPoint,
 			SpecialAnimationNode.StrikePoint,
@@ -42,7 +44,8 @@ object TestSpecialPortraitNodes {
 			SpecialAnimationNode.Shield,
 			SpecialAnimationNode.PortraitRobe,
 		)) {
-			assertFalse(portrait.hasSpecialNode(unexpected))
+			assertFalse(portraitDeugan.hasSpecialNode(unexpected))
+			assertFalse(portraitPrincess.hasSpecialNode(unexpected))
 		}
 
 		for (expected in arrayOf(
@@ -51,11 +54,15 @@ object TestSpecialPortraitNodes {
 			SpecialAnimationNode.PortraitHair,
 			SpecialAnimationNode.PortraitEye,
 			SpecialAnimationNode.PortraitEyeBrow,
-			SpecialAnimationNode.PortraitMouth,
 			SpecialAnimationNode.PortraitEthnicity,
 			SpecialAnimationNode.PortraitArmor,
 		)){
-			assertTrue(portrait.hasSpecialNode(expected))
+			assertTrue(portraitDeugan.hasSpecialNode(expected))
+			assertTrue(portraitPrincess.hasSpecialNode(expected))
 		}
+
+		// Mouth is only for humanoid females, and basically just for Zombie Shaman
+		assertFalse(portraitDeugan.hasSpecialNode(SpecialAnimationNode.PortraitMouth))
+		assertTrue(portraitPrincess.hasSpecialNode(SpecialAnimationNode.PortraitMouth))
 	}
 }

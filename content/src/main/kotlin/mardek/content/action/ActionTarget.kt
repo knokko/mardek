@@ -4,7 +4,9 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
+import java.util.UUID
 
 /**
  * Represents the *target* of an *action*, which is usually a player character.
@@ -20,6 +22,7 @@ sealed class ActionTarget {
 			ActionTargetPlayer::class.java,
 			ActionTargetWholeParty::class.java,
 			ActionTargetDialogueObject::class.java,
+			ActionTargetAreaCharacter::class.java,
 		)
 	}
 }
@@ -57,13 +60,17 @@ class ActionTargetPlayer(
 
 	@Suppress("unused")
 	private constructor() : this(PlayableCharacter())
+
+	override fun toString() = "Player($player)"
 }
 
 /**
  * Targets the whole party. This is often used in walking actions.
  */
 @BitStruct(backwardCompatible = true)
-class ActionTargetWholeParty : ActionTarget()
+class ActionTargetWholeParty : ActionTarget() {
+	override fun toString() = "WholeParty"
+}
 
 /**
  * This target can only be used as `speaker` in dialogue actions, which means that the 'speaker' is an object without
@@ -80,4 +87,44 @@ class ActionTargetDialogueObject(
 
 	@Suppress("unused")
 	private constructor() : this("")
+
+	override fun toString() = "DialogueObject($displayName)"
+}
+
+/**
+ * Targets an `AreaCharacter`
+ */
+@BitStruct(backwardCompatible = true)
+class ActionTargetAreaCharacter(
+	/**
+	 * The UUID of the character to target. Due to some cyclic reference issues, we can often not access the
+	 * `AreaCharacter` before constructing the `ActionTargetAreaCharacter`. Instead, we pass its ID to the constructor,
+	 * and use `ActionTargetAreaCharacter.resolve(content)` to resolve the ID...
+	 */
+	private val characterID: UUID,
+) : ActionTarget() {
+
+	constructor(character: AreaCharacter) : this() {
+		this.character = character
+	}
+
+	/**
+	 * The character to target
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "area characters")
+	var character: AreaCharacter = AreaCharacter()
+		private set
+
+	internal constructor() : this(UUID(0, 0))
+
+	override fun toString() = "AreaCharacter($character ($characterID))"
+
+	/**
+	 * This method initializes `character` to the `AreaCharacter` whose ID is `AreaCharacter`. This method should only
+	 * be needed by the importer.
+	 */
+	fun resolve(mapping: Map<UUID, AreaCharacter>) {
+		this.character = mapping[characterID]!!
+	}
 }

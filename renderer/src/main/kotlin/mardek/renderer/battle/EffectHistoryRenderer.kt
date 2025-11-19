@@ -19,8 +19,8 @@ internal fun renderEffectHistory(
 ) {
 	battleContext.run {
 		val currentEntry = combatant.renderInfo.effectHistory.get(renderTime) ?: return
-		val midX = combatant.renderInfo.statusEffectPoint.x
-		var midY = combatant.renderInfo.statusEffectPoint.y
+		val midX = combatant.renderInfo.core.x
+		var midY = combatant.renderInfo.core.y
 
 		if (currentEntry.type == StatusEffectHistory.Type.Remove) {
 			midY -= currentEntry.relativeTime * imageBatch.height / 20f

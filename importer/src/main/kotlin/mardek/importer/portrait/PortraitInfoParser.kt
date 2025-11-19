@@ -44,7 +44,7 @@ private fun parsePortraitInfo(content: Content, key: String, rawValue: String): 
 		hairSkin = parseSkin("hair") ?: flashName,
 		eyeSkin = parseSkin("eyes") ?: flashName,
 		eyeBrowSkin = parseSkin("eyebrows") ?: flashName,
-		mouthSkin = parseSkin("mouth") ?: "norm",
+		mouthSkin = parseSkin("mouth") ?: "",
 		armorSkin = parseSkin("armour") ?: flashName,
 		robeSkin = parseSkin("robe"),
 		faceMask = parseSkin("facemask"),

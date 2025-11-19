@@ -30,7 +30,7 @@ enum class SpecialAnimationNode(
 	StrikePoint(true),
 
 	/**
-	 * Don't render this. Render status effects here?
+	 * Don't render this. Render status effects here.
 	 */
 	StatusEffectPoint(true),
 

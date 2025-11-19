@@ -13,6 +13,10 @@ dependencies {
 	implementation "org.apache.xmlgraphics:batik-all:1.19"
 }
 
+test {
+	maxHeapSize = "4g"
+}
+
 tasks.register("exportContent", JavaExec) {
 	group = "Export"
 	description = "Imports the vanilla content, and exports it to game/src/main/resources/mardek/game"

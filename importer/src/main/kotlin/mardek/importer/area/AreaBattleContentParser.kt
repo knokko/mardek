@@ -58,7 +58,7 @@ internal fun parseSelections(battleContent: BattleContent, rawList: String): Arr
 	return selections
 }
 
-fun importAreaBattleAssets(content: Content) {
+fun importAreaBattleContent(content: Content) {
 	val code = parseActionScriptResource("mardek/importer/stats/monsters.txt")
 
 	val levelsString = code.variableAssignments["MONSTER_LEVELS"]!!

@@ -2,9 +2,7 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.BITSER
 import mardek.content.area.TransitionDestination
 import mardek.content.sprite.ArrowSprite
 
@@ -15,25 +13,14 @@ import mardek.content.sprite.ArrowSprite
 @BitStruct(backwardCompatible = true)
 class AreaTransition(
 
-	/**
-	 * The X-coordinate of the tile containing the area transition
-	 */
-	@BitField(id = 0)
-	@IntegerField(expectUniform = false, minValue = 0)
-	val x: Int,
-
-	/**
-	 * The Y-coordinate of the tile containing the area transition
-	 */
-	@BitField(id = 1)
-	@IntegerField(expectUniform = false, minValue = 0)
-	val y: Int,
+	x: Int,
+	y: Int,
 
 	/**
 	 * The destination of the area transition: the player will be teleported to this destination upon stepping on the
 	 * area transition
 	 */
-	@BitField(id = 2)
+	@BitField(id = 0)
 	val destination: TransitionDestination,
 
 	/**
@@ -41,17 +28,13 @@ class AreaTransition(
 	 * should be invisible. (When it is 'invisible', it could still be placed on top of a special tile, like a cave
 	 * entrance.)
 	 */
-	@BitField(id = 3, optional = true)
+	@BitField(id = 1, optional = true)
 	@ReferenceField(stable = false, label = "arrow sprites")
 	val arrow: ArrowSprite?,
-) {
+) : StaticAreaObject(x, y) {
 
 	@Suppress("unused")
 	private constructor() : this(0, 0, TransitionDestination(), null)
 
 	override fun toString() = "Transition(x=$x, y=$y, arrow=$arrow, destination=$destination)"
-
-	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
-
-	override fun hashCode() = BITSER.hashCode(this)
 }

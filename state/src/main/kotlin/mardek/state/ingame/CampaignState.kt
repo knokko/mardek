@@ -25,10 +25,10 @@ import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.area.loot.generateBattleLoot
-import mardek.state.ingame.battle.Battle
+import mardek.content.battle.Battle
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.BattleUpdateContext
-import mardek.state.ingame.battle.Enemy
+import mardek.content.battle.Enemy
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
 import mardek.state.saves.SaveFile
@@ -393,10 +393,25 @@ class CampaignState(
 		} else if (event != null) {
 			actions.processKeyEvent(event)
 		} else {
-			actions.update(AreaActionsState.UpdateContext(
-				context.input, context.timeStep, context.soundQueue,
-				context.campaignName, this::healParty,
-			))
+			val currentArea = this.currentArea!!
+			val actionsContext = AreaActionsState.UpdateContext(
+				context.input, context.timeStep, context.soundQueue, context.campaignName,
+				currentArea.characterStates, currentArea.fadingCharacters, this::healParty,
+			)
+			actions.update(actionsContext)
+
+			val maybeBattle = actionsContext.startBattle
+			if (maybeBattle != null) {
+				val areaContext = AreaState.UpdateContext(
+					context, characterSelection.party, characterStates, areaDiscovery,
+					triggers, stepsSinceLastBattle, totalSteps,
+				)
+				if (maybeBattle.overridePlayers != null) {
+					currentArea.engageBattle(areaContext, maybeBattle.battle, maybeBattle.overridePlayers!!)
+				} else {
+					currentArea.engageBattle(areaContext, maybeBattle.battle)
+				}
+			}
 		}
 	}
 

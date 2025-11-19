@@ -13,14 +13,13 @@ import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
-import mardek.state.ingame.battle.Enemy
+import mardek.content.battle.Enemy
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
-import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import java.lang.Thread.sleep

@@ -4,15 +4,27 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.area.Area
+import mardek.content.area.Direction
 import mardek.content.audio.SoundEffect
+import mardek.content.battle.Battle
+import mardek.content.characters.PlayableCharacter
+import kotlin.collections.flatMap
 
 /**
  * The *action* of a `FixedActionNode` (e.g. walking or talking)
  */
 @BitStruct(backwardCompatible = true)
 sealed class FixedAction {
+
+	/**
+	 * Gets an array containing all `ActionTarget`s used by this action. Unfortunately, this method is currently needed
+	 * for importing.
+	 */
+	abstract fun getTargets(): Array<ActionTarget>
+
 	companion object {
 
 		@JvmStatic
@@ -28,6 +40,9 @@ sealed class FixedAction {
 			ActionShowChapterName::class.java,
 			ActionToArea::class.java,
 			ActionPlayCutscene::class.java,
+			ActionFadeCharacter::class.java,
+			ActionRotate::class.java,
+			ActionParallel::class.java,
 		)
 	}
 }
@@ -69,6 +84,10 @@ class ActionWalk(
 	internal constructor() : this(
 		ActionTargetWholeParty(), 0, 0, WalkSpeed.Normal
 	)
+
+	override fun getTargets() = arrayOf(target)
+
+	override fun toString() = "ActionWalk($target, $destinationX, $destinationY, $speed)"
 }
 
 /**
@@ -100,13 +119,46 @@ class ActionTalk(
 
 	@Suppress("unused")
 	private constructor() : this(ActionTargetPartyMember(), "", "")
+
+	override fun getTargets() = arrayOf(speaker)
+
+	override fun toString() = "ActionTalk($speaker, $expression, $text)"
 }
 
 /**
  * Starts a battle, typically a boss battle
  */
 @BitStruct(backwardCompatible = true)
-class ActionBattle() : FixedAction()
+class ActionBattle(
+	/**
+	 * The information about the battle to be started
+	 */
+	@BitField(id = 0)
+	val battle: Battle,
+
+	/**
+	 * Most of the time, `overridePlayers` will be null, which means that the current party of the player will fight the
+	 * battle.
+	 *
+	 * When `overridePlayers` is non-null, the player will have to use the `overridePlayers` party to fight the battle.
+	 * This is useful for rare cases like the Muriance battle and the Cambria Arena.
+	 */
+	@BitField(id = 1)
+	@NestedFieldSetting(path = "", optional = true, sizeField = IntegerField(
+		expectUniform = true, minValue = 4, maxValue = 4
+	))
+	@NestedFieldSetting(path = "c", optional = true)
+	@ReferenceField(stable = false, label = "playable characters")
+	val overridePlayers: Array<PlayableCharacter?>?,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(Battle(), null)
+
+	override fun getTargets() = emptyArray<ActionTarget>()
+
+	override fun toString() = "ActionBattle($battle)"
+}
 
 /**
  * Creates a brief color 'flash' on top of the entire screen, e.g. the blue save crystal 'flash'.
@@ -124,6 +176,10 @@ class ActionFlashScreen(
 
 	@Suppress("unused")
 	private constructor() : this(0)
+
+	override fun getTargets() = emptyArray<ActionTarget>()
+
+	override fun toString() = "ActionFlashScreen($color)"
 }
 
 /**
@@ -135,25 +191,39 @@ class ActionPlaySound(
 	 * The sound effect to be played
 	 */
 	@BitField(id = 0)
-	@ReferenceField(stable = true, label = "sound effects")
+	@ReferenceField(stable = false, label = "sound effects")
 	val sound: SoundEffect
 ) : FixedAction() {
 
 	@Suppress("unused")
 	private constructor() : this(SoundEffect())
+
+	override fun getTargets() = emptyArray<ActionTarget>()
+
+	override fun toString() = "ActionPlaySound($sound)"
 }
 
 /**
  * Restores all health and mana of all party members, and removes all their status effects.
  */
 @BitStruct(backwardCompatible = true)
-class ActionHealParty() : FixedAction()
+class ActionHealParty() : FixedAction() {
+
+	override fun getTargets() = emptyArray<ActionTarget>()
+
+	override fun toString() = "ActionHealParty"
+}
 
 /**
  * When this action node is reached, a menu should be opened where players can save their progress.
  */
 @BitStruct(backwardCompatible = true)
-class ActionSaveCampaign() : FixedAction()
+class ActionSaveCampaign() : FixedAction() {
+
+	override fun getTargets() = emptyArray<ActionTarget>()
+
+	override fun toString() = "ActionSaveCampaign"
+}
 
 /**
  * Shows the chapter name and the chapter number (using Roman numbers) in the middle of the screen. They will fade in
@@ -178,6 +248,10 @@ class ActionShowChapterName(
 
 	@Suppress("unused")
 	private constructor() : this(0, "")
+
+	override fun getTargets() = emptyArray<ActionTarget>()
+
+	override fun toString() = "ActionShowChapterName($chapter, $name)"
 
 	companion object {
 
@@ -213,7 +287,7 @@ class ActionToArea(
 	 * The destination area
 	 */
 	@BitField(id = 0)
-	@ReferenceField(stable = true, label = "areas")
+	@ReferenceField(stable = false, label = "areas")
 	val area: Area,
 
 	/**
@@ -233,6 +307,10 @@ class ActionToArea(
 
 	@Suppress("unused")
 	private constructor() : this(Area(), 0, 0)
+
+	override fun getTargets() = emptyArray<ActionTarget>()
+
+	override fun toString() = "ActionToArea($area, $x, $y)"
 }
 
 /**
@@ -245,10 +323,91 @@ class ActionPlayCutscene(
 	 * The cutscene to be played
 	 */
 	@BitField(id = 0)
-	@ReferenceField(stable = true, label = "cutscenes")
+	@ReferenceField(stable = false, label = "cutscenes")
 	val cutscene: Cutscene,
 ) : FixedAction() {
 
 	@Suppress("unused")
 	private constructor() : this(Cutscene())
+
+	override fun getTargets() = emptyArray<ActionTarget>()
+
+	override fun toString() = "ActionPlayCutscene($cutscene)"
+}
+
+/**
+ * Gradually turns the color of an `AreaCharacter` into transparent red, and removes it once the character is completely
+ * transparent.
+ *
+ * This is typically used on the area characters of bosses after that boss is slain in combat.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionFadeCharacter(
+
+	/**
+	 * The character (typically a boss) that should fade away
+	 */
+	@BitField(id = 0)
+	@ClassField(root = ActionTarget::class)
+	val target: ActionTargetAreaCharacter
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(ActionTargetAreaCharacter())
+
+	override fun getTargets() = arrayOf<ActionTarget>(target)
+
+	override fun toString() = "ActionFadeCharacter($target)"
+}
+
+/**
+ * Rotates the target: the current direction of the target is changed to `newDirection`. The target should be a player
+ * character or area character.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionRotate(
+
+	/**
+	 * The target that should be rotated. This should be a player or area character.
+	 */
+	@BitField(id = 0)
+	@ClassField(root = ActionTarget::class)
+	val target: ActionTarget,
+
+	/**
+	 * The new direction/rotation of the target
+	 */
+	@BitField(id = 1)
+	val newDirection: Direction,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(ActionTargetPartyMember(0), Direction.Down)
+
+	override fun getTargets() = arrayOf(target)
+
+	override fun toString() = "ActionRotate($target, $newDirection)"
+}
+
+/**
+ * Represents a list of actions that should be executed at the same time (e.g. let multiple area characters walk in
+ * parallel).
+ */
+@BitStruct(backwardCompatible = true)
+class ActionParallel(
+
+	/**
+	 * The actions to be executed in parallel
+	 */
+	@BitField(id = 0)
+	@ClassField(root = FixedAction::class)
+	val actions: Array<FixedAction>
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(emptyArray())
+
+	override fun getTargets() = actions.flatMap { it.getTargets().toList() }.toTypedArray()
+
+	override fun toString() = "ActionParallel($actions)"
 }

@@ -1,5 +1,6 @@
 package mardek.game.battle
 
+import mardek.content.battle.Enemy
 import mardek.content.stats.Element
 import mardek.game.TestingInstance
 import mardek.state.ingame.battle.*
@@ -292,19 +293,25 @@ object TestMonsterStrategyCalculator {
 			}
 
 			val simpleEnemy = Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 10)
-			battle.opponents[0] = MonsterCombatantState(simpleEnemy.monster, simpleEnemy.level, false)
+			battle.opponents[0] = MonsterCombatantState(
+				simpleEnemy.monster, simpleEnemy.level, false, null
+			)
 			run {
 				val count = countAnimateDead()
 				assertTrue(count in 1000..3000, "Expected $count to be approximately 2000")
 			}
 
-			battle.opponents[1] = MonsterCombatantState(simpleEnemy.monster, simpleEnemy.level, false)
+			battle.opponents[1] = MonsterCombatantState(
+				simpleEnemy.monster, simpleEnemy.level, false, null
+			)
 			run {
 				val count = countAnimateDead()
 				assertTrue(count in 100..1000, "Expected $count to be approximately 500")
 			}
 
-			battle.opponents[2] = MonsterCombatantState(simpleEnemy.monster, simpleEnemy.level, false)
+			battle.opponents[2] = MonsterCombatantState(
+				simpleEnemy.monster, simpleEnemy.level, false, null
+			)
 			repeat(10_000) {
 				val nextMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
 				if (nextMove is BattleStateMachine.CastSkill) {

@@ -16,11 +16,16 @@ import java.util.UUID
  * the action sequence ends, and the game resumes.
  */
 @BitStruct(backwardCompatible = true)
-sealed class ActionNode {
+sealed class ActionNode() {
 
+	/**
+	 * The unique ID of this node, which is used for (de)serialization.
+	 *
+	 * It is initially `null`, but the importer should use the `generateUUIDs` method to set them.
+	 */
 	@BitField(id = 0)
 	@StableReferenceFieldId
-	val id = UUID.randomUUID()!!
+	var id: UUID? = null
 
 	companion object {
 

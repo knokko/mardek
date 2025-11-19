@@ -26,10 +26,10 @@ import mardek.state.VideoSettings
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
-import mardek.state.ingame.battle.Battle
+import mardek.content.battle.Battle
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleUpdateContext
-import mardek.state.ingame.battle.Enemy
+import mardek.content.battle.Enemy
 import mardek.state.ingame.characters.CharacterSelectionState
 import mardek.state.ingame.characters.CharacterState
 import mardek.state.saves.SaveFile

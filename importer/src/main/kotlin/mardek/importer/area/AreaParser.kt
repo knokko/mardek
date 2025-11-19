@@ -6,19 +6,20 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.content.Content
 import mardek.content.area.*
 import mardek.content.area.objects.AreaDecoration
+import mardek.importer.actions.HardcodedActions
 import mardek.importer.util.ActionScriptCode
 import mardek.importer.util.parseActionScriptResource
 import java.lang.Integer.parseInt
 import java.util.UUID
 
 internal fun parseArea(
-	content: Content, areaName: String, tilesheets: MutableList<ParsedTilesheet>,
+	content: Content, hardcodedActions: HardcodedActions, areaName: String, tilesheets: MutableList<ParsedTilesheet>,
 	transitions: MutableList<Pair<TransitionDestination, String>>
-) = parseArea2(content, parseArea1(areaName), tilesheets, transitions)
+) = parseArea2(content, hardcodedActions, parseArea1(areaName), tilesheets, transitions)
 
 private fun parseArea2(
-	content: Content, areaCode: ActionScriptCode, tilesheets: MutableList<ParsedTilesheet>,
-	transitions: MutableList<Pair<TransitionDestination, String>>
+	content: Content, hardcodedActions: HardcodedActions, areaCode: ActionScriptCode,
+	tilesheets: MutableList<ParsedTilesheet>, transitions: MutableList<Pair<TransitionDestination, String>>
 ): ParsedArea {
 	val areaSetup = areaCode.functionCalls.filter { it.first == "AreaSetup" }.map { it.second }
 	parseAssert(areaSetup.size == 1, "Expected exactly 1 AreaSetup call, but found ${areaCode.functionCalls}")
@@ -55,9 +56,9 @@ private fun parseArea2(
 				}
 
 				extraDecorations.add(AreaDecoration(
-					x = x, y = y, sprites = sprites, light = hexObject.light,
+					x = x, y = y, sprites = sprites, canWalkThrough = true, light = hexObject.light,
 					timePerFrame = 50 * hexObject.timePerFrame,
-					rawConversation = null, conversationName = null
+					rawConversation = null, conversationName = null, actionSequence = null, signType = null,
 				))
 			}
 		}
@@ -73,7 +74,7 @@ private fun parseArea2(
 		height = height,
 		tileGrid = tileGrid,
 		objects = parseAreaObjects(
-			content, properties.rawName,
+			content, hardcodedActions, properties.rawName,
 			areaCode.variableAssignments["A_sprites"]!!,
 			extraDecorations, transitions,
 		),

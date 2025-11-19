@@ -14,7 +14,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.battle.BattleStateMachine
-import mardek.state.ingame.battle.Enemy
+import mardek.content.battle.Enemy
 import mardek.state.saves.SavesFolderManager
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertEquals

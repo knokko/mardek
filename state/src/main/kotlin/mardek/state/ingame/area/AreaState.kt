@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.area.*
+import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.input.InputManager
@@ -16,10 +17,10 @@ import mardek.state.ingame.actions.AreaActionsState
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedGold
 import mardek.state.ingame.area.loot.ObtainedItemStack
-import mardek.state.ingame.battle.Battle
+import mardek.content.battle.Battle
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleUpdateContext
-import mardek.state.ingame.battle.Enemy
+import mardek.content.battle.Enemy
 import mardek.state.ingame.characters.CharacterState
 import java.lang.Math.clamp
 import kotlin.math.max
@@ -55,18 +56,28 @@ class AreaState(
 	var nextPlayerPosition: NextAreaPosition? = null
 		private set
 
-	@BitField(id = 5, optional = true)
-	var incomingRandomBattle: IncomingRandomBattle? = null
+	@BitField(id = 5)
+	@NestedFieldSetting(path = "k", fieldName = "CHARACTER_STATES_KEY_PROPERTIES")
+	internal val characterStates = HashMap<AreaCharacter, AreaCharacterState>()
 
 	@BitField(id = 6, optional = true)
+	var incomingRandomBattle: IncomingRandomBattle? = null
+
+	@BitField(id = 7, optional = true)
 	@ReferenceFieldTarget(label = "battle state")
 	var activeBattle: BattleState? = null
 
-	@BitField(id = 7, optional = true)
+	@BitField(id = 8, optional = true)
 	var battleLoot: BattleLoot? = null
 
-	@BitField(id = 8, optional = true)
+	@BitField(id = 9, optional = true)
 	var actions: AreaActionsState? = null
+
+	/**
+	 * The characters (typically bosses) that died very recently. A fading red 'aura' of it should be disabled a few
+	 * seconds after some characters die.
+	 */
+	val fadingCharacters = mutableListOf<FadingCharacter>()
 
 	private val rng = Random.Default
 
@@ -85,6 +96,17 @@ class AreaState(
 
 	@Suppress("unused")
 	private constructor() : this(Area(), AreaPosition(), Direction.Up)
+
+	init {
+		for (character in area.objects.characters) {
+			characterStates[character] = AreaCharacterState(
+				x = character.startX,
+				y = character.startY,
+				direction = character.startDirection,
+				next = null,
+			)
+		}
+	}
 
 	fun processKeyPress(key: InputKey) {
 		if (key == InputKey.Interact) shouldInteract = true
@@ -121,23 +143,31 @@ class AreaState(
 		}
 
 		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
-			val physicalElement = context.content.stats.elements.find { it.rawName == "NONE" }!!
-			context.soundQueue.insert(context.content.audio.fixedEffects.battle.engage)
-			activeBattle = BattleState(
-				battle = incomingRandomBattle!!.battle,
-				players = context.party,
-				playerLayout = context.content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
-				context = BattleUpdateContext(
-					context.characterStates,
-					context.content.audio.fixedEffects,
-					physicalElement,
-					context.soundQueue
-				)
-			)
+			engageBattle(context, incomingRandomBattle!!.battle)
 			incomingRandomBattle = null
 		}
 
 		currentTime += context.timeStep
+	}
+
+	internal fun engageBattle(
+		context: UpdateContext,
+		battle: Battle,
+		players: Array<PlayableCharacter?> = context.party,
+	) {
+		val physicalElement = context.content.stats.elements.find { it.rawName == "NONE" }!!
+		context.soundQueue.insert(context.content.audio.fixedEffects.battle.engage)
+		activeBattle = BattleState(
+			battle = battle,
+			players = players,
+			playerLayout = context.content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
+			context = BattleUpdateContext(
+				context.characterStates,
+				context.content.audio.fixedEffects,
+				physicalElement,
+				context.soundQueue
+			)
+		)
 	}
 
 	private fun interact() {
@@ -154,8 +184,33 @@ class AreaState(
 		}
 
 		for (character in area.objects.characters) {
-			if (x == character.startX && y == character.startY) {
+			if (character.startX != x || character.startY != y) continue
+			val actionSequence = character.actionSequence
+			if (actionSequence != null) {
+				actions = AreaActionsState(
+					actionSequence.root,
+					playerPositions,
+					playerDirections,
+				)
+				return
+			} else {
 				println("interact with $character")
+			}
+		}
+
+		for (decoration in area.objects.decorations) {
+			if (decoration.x != x || decoration.y != y) continue
+
+			val actionSequence = decoration.actionSequence
+			if (actionSequence != null) {
+				actions = AreaActionsState(
+					actionSequence.root,
+					playerPositions,
+					playerDirections,
+				)
+				return
+			} else {
+				println("interact with $decoration")
 			}
 		}
 
@@ -163,22 +218,6 @@ class AreaState(
 			if (x == door.x && y == door.y) {
 				openingDoor = OpeningDoor(door, currentTime + DOOR_OPEN_DURATION)
 				return
-			}
-		}
-
-		for (areaObject in area.objects.objects) {
-			if (x == areaObject.x && y == areaObject.y) {
-				val actionSequence = areaObject.actionSequence
-				if (actionSequence != null) {
-					actions = AreaActionsState(
-						actionSequence.root,
-						playerPositions,
-						playerDirections,
-					)
-					return
-				} else {
-					println("interact with $areaObject")
-				}
 			}
 		}
 
@@ -200,6 +239,12 @@ class AreaState(
 
 	fun getPlayerDirection(index: Int) = if (actions == null) playerDirections[index]
 	else actions!!.partyDirections[index]
+
+	/**
+	 * Gets the current state (position, rotation, etc...) of the given `AreaCharacter`, or `null` if the characer is
+	 * currently not present.
+	 */
+	fun getCharacterState(character: AreaCharacter) = characterStates[character]
 
 	private fun checkTransitions() {
 		for (portal in area.objects.portals) {
@@ -363,13 +408,13 @@ class AreaState(
 		if (input.isPressed(InputKey.ChatMove)) return true
 		if (!area.canWalkOnTile(x, y)) return false
 
-		// TODO CHAP1 Movable characters
 		for (character in area.objects.characters) {
-			if (x == character.startX && y == character.startY) return false
+			val characterState = characterStates[character] ?: continue
+			if (x == characterState.x && y == characterState.y) return false
 		}
 
-		for (areaObject in area.objects.objects) {
-			if (x == areaObject.x && y == areaObject.y) return false
+		for (decoration in area.objects.decorations) {
+			if (!decoration.canWalkThrough && x == decoration.x && y == decoration.y) return false
 		}
 
 		// TODO CHAP3 Switch gates and platforms
@@ -378,6 +423,10 @@ class AreaState(
 
 	companion object {
 		val DOOR_OPEN_DURATION = 500.milliseconds
+
+		@Suppress("unused")
+		@ReferenceField(stable = true, label = "area characters")
+		private val CHARACTER_STATES_KEY_PROPERTIES = false
 	}
 
 	class UpdateContext(

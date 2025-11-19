@@ -12,21 +12,21 @@ import com.github.knokko.bitser.field.ReferenceFieldTarget
 @BitStruct(backwardCompatible = true)
 class ActionSequence(
 
-    /**
-     * The name of the action sequence, which is used during importing from flash. Furthermore, the name is occasionally
-     * useful for debugging.
-     */
-    @BitField(id = 0)
-    val name: String,
+	/**
+	 * The name of the action sequence, which is used during importing from flash. Furthermore, the name is occasionally
+	 * useful for debugging.
+	 */
+	@BitField(id = 0)
+	val name: String,
 
-    /**
-     * The root node (first node) of the action sequence
-     */
-    @BitField(id = 1)
-    @ClassField(root = ActionNode::class)
-    @ReferenceFieldTarget(label = "action nodes")
-    val root: ActionNode,
+	/**
+	 * The root node (first node) of the action sequence
+	 */
+	@BitField(id = 1)
+	@ClassField(root = ActionNode::class)
+	@ReferenceFieldTarget(label = "action nodes")
+	val root: ActionNode,
 ) {
-    @Suppress("unused")
-    private constructor() : this("", FixedActionNode())
+	@Suppress("unused")
+	private constructor() : this("", FixedActionNode())
 }

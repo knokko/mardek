@@ -47,9 +47,11 @@ class PortraitInfo(
 	val eyeBrowSkin: String,
 
 	/**
-	 * It looks like this skin is sometimes used for Sprite 1059 (mouth), for instance when it is "zombie".
-	 * However, the expression ("norm", "grin", etc...) determines the skin for Sprite 1059 most of the time.
-	 * Figuring this out exactly is probably a problem for chapter 2...
+	 * The skin used for Sprite 1349, which is sort of the mouth skin. For almost all portraits, this is the empty
+	 * string, which means that the portrait has a normal mouth. But, for a couple of portraits, this is "zombie"
+	 * instead, which means a zombie mouth.
+	 *
+	 * Note that the 'normal' mouth will use the portrait expression ("norm", "grin", etc...) to select its skin.
 	 */
 	@BitField(id = 6)
 	val mouthSkin: String,

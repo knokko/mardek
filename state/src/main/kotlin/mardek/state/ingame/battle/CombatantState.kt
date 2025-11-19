@@ -18,7 +18,6 @@ import mardek.content.skill.Skill
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.*
 import mardek.state.ingame.characters.CharacterState
-import mardek.state.util.Rectangle
 import kotlin.math.max
 import kotlin.math.min
 
@@ -346,6 +345,9 @@ class MonsterCombatantState(
 	private val level: Int,
 
 	isOnPlayerSide: Boolean,
+
+	@BitField(id = 2, optional = true)
+	val overrideDisplayName: String?,
 ) : CombatantState(
 	maxHealth = determineEnemyMaxHealth(monster, level, 0, monster.initialEffects.toSet()),
 	currentHealth = determineEnemyMaxHealth(monster, level, 0, monster.initialEffects.toSet()),
@@ -358,7 +360,7 @@ class MonsterCombatantState(
 	isOnPlayerSide = isOnPlayerSide,
 ) {
 
-	@BitField(id = 2)
+	@BitField(id = 3)
 	@ReferenceField(stable = true, label = "items")
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 6, maxValue = 6))
@@ -375,7 +377,7 @@ class MonsterCombatantState(
 	 * How often each strategy has already been used in this battle.
 	 * This is needed because some strategies (e.g. Dark Gift) can only be used once per battle.
 	 */
-	@BitField(id = 3)
+	@BitField(id = 4)
 	@IntegerField(expectUniform = false, minValue = 1)
 	@NestedFieldSetting(path = "c", fieldName = "USED_STRATEGIES_KEY_PROPERTIES")
 	val usedStrategies = HashMap<StrategyPool, Int>()
@@ -386,7 +388,7 @@ class MonsterCombatantState(
 	 *
 	 * This is needed for move selection criteria that require a move to be used only on e.g. odd turns.
 	 */
-	@BitField(id = 4)
+	@BitField(id = 5)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var totalSpentTurns = 0
 
@@ -394,11 +396,11 @@ class MonsterCombatantState(
 	 * Since monsters are not allowed to cast some moves twice in a row, we need to remember the last move that was
 	 * used by the monster.
 	 */
-	@BitField(id = 5, optional = true)
+	@BitField(id = 6, optional = true)
 	@ClassField(root = BattleStateMachine::class)
 	var lastMove: BattleStateMachine.Move? = null
 
-	constructor() : this(Monster(), 0, false)
+	constructor() : this(Monster(), 0, false, null)
 
 	override fun toString() = "${monster.name} level $level"
 

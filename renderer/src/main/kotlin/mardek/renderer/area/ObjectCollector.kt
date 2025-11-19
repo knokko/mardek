@@ -26,11 +26,10 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 			val spriteIndex = (state.currentTime.inWholeMilliseconds % (decoration.timePerFrame * spritesheet.frames.size)) / decoration.timePerFrame
 
 			val sprite = spritesheet.frames[spriteIndex.toInt()]
-			renderJobs.add(SpriteRenderJob(
-				x = tileSize * decoration.x,
-				y = tileSize * decoration.y,
-				sprite = sprite
-			))
+			var y = tileSize * decoration.y
+			if (!decoration.canWalkThrough) y -= 4 * scale // TODO CHAP2 Find less dirty way to deal with this
+
+			renderJobs.add(SpriteRenderJob(x = tileSize * decoration.x, y = y, sprite = sprite))
 		}
 
 		for (door in state.area.objects.doors) {
@@ -46,16 +45,6 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 				x = tileSize * door.x,
 				y = tileSize * door.y,
 				sprite = door.sprites.frames[spriteIndex]
-			))
-		}
-
-		for (areaObject in state.area.objects.objects) {
-			val spriteIndex = (state.currentTime.inWholeMilliseconds % (200L * areaObject.sprites.frames.size)) / 200L
-
-			renderJobs.add(SpriteRenderJob(
-				x = tileSize * areaObject.x,
-				y = tileSize * areaObject.y - 4 * scale,
-				sprite = areaObject.sprites.frames[spriteIndex.toInt()]
 			))
 		}
 

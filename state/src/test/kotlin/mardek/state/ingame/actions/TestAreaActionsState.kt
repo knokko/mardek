@@ -1,9 +1,12 @@
 package mardek.state.ingame.actions
 
+import mardek.content.action.ActionFadeCharacter
 import mardek.content.action.ActionFlashScreen
 import mardek.content.action.ActionHealParty
 import mardek.content.action.ActionPlaySound
+import mardek.content.action.ActionRotate
 import mardek.content.action.ActionTalk
+import mardek.content.action.ActionTargetAreaCharacter
 import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionTargetWholeParty
 import mardek.content.action.ActionWalk
@@ -12,12 +15,15 @@ import mardek.content.action.ChoiceEntry
 import mardek.content.action.FixedActionNode
 import mardek.content.action.WalkSpeed
 import mardek.content.area.Direction
+import mardek.content.area.objects.AreaCharacter
 import mardek.content.audio.SoundEffect
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
 import mardek.state.SoundQueue
+import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.NextAreaPosition
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotSame
@@ -26,6 +32,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
 import org.junit.jupiter.api.fail
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -74,7 +81,8 @@ class TestAreaActionsState {
 		)
 
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(), "",
+			InputManager(), 10.milliseconds, SoundQueue(),
+			"", HashMap(), ArrayList(),
 		) { fail("Attempted to heal party?") }
 
 		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections)
@@ -145,6 +153,84 @@ class TestAreaActionsState {
 	}
 
 	@Test
+	fun testWalkAreaCharacter() {
+		val paladin = AreaCharacter()
+		val initialState = AreaCharacterState(
+			x = 20,
+			y = 10,
+			direction = Direction.Down,
+			next = null,
+		)
+		val characterStates = mutableMapOf(Pair(paladin, initialState))
+		val rootNode = FixedActionNode(
+			action = ActionWalk(
+				target = ActionTargetAreaCharacter(paladin),
+				destinationX = 10,
+				destinationY = 5,
+				speed = WalkSpeed.Slow,
+			),
+			next = null,
+		)
+
+		val actions = AreaActionsState(
+			rootNode,
+			Array(4) { AreaPosition() },
+			Array(4) { Direction.Up },
+		)
+
+		val context = AreaActionsState.UpdateContext(
+			InputManager(), 1.milliseconds, SoundQueue(),
+			"", characterStates, ArrayList(),
+		) { throw UnsupportedOperationException("Attempted to heal party?") }
+
+		repeat(495) {
+			actions.update(context)
+			assertEquals(AreaCharacterState(
+				x = 20,
+				y = 10,
+				direction = Direction.Left,
+				next = NextAreaPosition(
+					position = AreaPosition(19, 10),
+					startTime = Duration.ZERO,
+					arrivalTime = 500.milliseconds,
+				),
+			), characterStates[paladin]!!)
+		}
+
+		repeat(10) {
+			actions.update(context)
+		}
+
+		repeat(495) {
+			actions.update(context)
+			assertEquals(AreaCharacterState(
+				x = 19,
+				y = 10,
+				direction = Direction.Left,
+				next = NextAreaPosition(
+					position = AreaPosition(18, 10),
+					startTime = 500.milliseconds,
+					arrivalTime = 1000.milliseconds,
+				),
+			), characterStates[paladin]!!)
+		}
+
+		repeat(7000) {
+			actions.update(context)
+			val direction = characterStates[paladin]!!.direction
+			assertTrue(direction == Direction.Left || direction == Direction.Up)
+		}
+
+		assertEquals(AreaCharacterState(
+			x = 10,
+			y = 5,
+			direction = Direction.Left,
+			next = null,
+		), characterStates[paladin]!!)
+		assertNull(actions.node)
+	}
+
+	@Test
 	fun testNormalTalking() {
 		val text1 = Array(100) { "Smile" }.joinToString { it }
 		val text2 = Array(100) { "Shut up" }.joinToString { it }
@@ -178,7 +264,8 @@ class TestAreaActionsState {
 		)
 
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(), ""
+			InputManager(), 10.milliseconds, SoundQueue(),
+			"", HashMap(), ArrayList(),
 		) { fail("Attempted to heal party?") }
 		context.input.postEvent(InputKeyEvent(
 			InputKey.Interact, didPress = true, didRepeat = false, didRelease = false
@@ -216,7 +303,11 @@ class TestAreaActionsState {
 
 		// Pressing E again should move the action state to the next dialogue message
 		pressAndRelease(actions, context.input, InputKey.Interact)
-		assertTrue(actions.shownDialogueCharacters < 5f)
+		actions.update(context)
+		assertTrue(
+			actions.shownDialogueCharacters < 5f,
+			"Expected ${actions.shownDialogueCharacters} < 5"
+		)
 
 		// Wait until all characters are visible
 		repeat(2000) {
@@ -254,7 +345,8 @@ class TestAreaActionsState {
 		val oldPartyDirections = Array(4) { Direction.Left }
 
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(), ""
+			InputManager(), 10.milliseconds, SoundQueue(),
+			"", HashMap(), ArrayList(),
 		) { fail("Attempted to heal party?") }
 
 		context.input.postEvent(InputKeyEvent(
@@ -299,7 +391,8 @@ class TestAreaActionsState {
 			Array(4) { Direction.Up },
 		)
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(), ""
+			InputManager(), 10.milliseconds, SoundQueue(),
+			"", HashMap(), ArrayList(),
 		) { fail("Attempted to heal party?") }
 
 		assertEquals(0L, actions.lastFlashTime)
@@ -350,7 +443,8 @@ class TestAreaActionsState {
 		)
 
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(), ""
+			InputManager(), 10.milliseconds, SoundQueue(),
+			"", HashMap(), ArrayList(),
 		) { fail("Attempted to heal party?") }
 
 		assertNull(context.soundQueue.take())
@@ -387,7 +481,8 @@ class TestAreaActionsState {
 
 		var numHeals = 0
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(), ""
+			InputManager(), 10.milliseconds, SoundQueue(),
+			"", HashMap(), ArrayList(),
 		) { numHeals += 1 }
 
 		repeat(5) {
@@ -423,7 +518,8 @@ class TestAreaActionsState {
 			Array(4) { Direction.Up },
 		)
 		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(), ""
+			InputManager(), 10.milliseconds, SoundQueue(),
+			"", HashMap(), ArrayList(),
 		) { fail("Attempted to heal party?") }
 
 		context.input.postEvent(InputKeyEvent(
@@ -471,4 +567,96 @@ class TestAreaActionsState {
 		actions.update(context)
 		assertNull(actions.node)
 	}
+
+	@Test
+	fun testFade() {
+		val dragon = AreaCharacter()
+		val lastDragonState = AreaCharacterState(
+			x = 1,
+			y = 2,
+			direction = Direction.Left,
+			next = null,
+		)
+		val characterStates = mutableMapOf(Pair(dragon, lastDragonState))
+
+		val rootNode = FixedActionNode(
+			action = ActionFadeCharacter(ActionTargetAreaCharacter(dragon)),
+			next = null,
+		)
+
+		val context = AreaActionsState.UpdateContext(
+			InputManager(), 1.seconds, SoundQueue(),
+			"", characterStates, ArrayList(),
+		) { fail("Attempted to heal party") }
+
+		val actions = AreaActionsState(
+			rootNode,
+			Array(4) { AreaPosition() },
+			Array(4) { Direction.Right },
+		)
+
+		val beforeUpdate = System.nanoTime()
+		actions.update(context)
+
+		assertEquals(0, characterStates.size)
+		assertEquals(1, context.fadingCharacters.size)
+		val fading = context.fadingCharacters.iterator().next()
+		assertSame(dragon, fading.character)
+		assertSame(lastDragonState, fading.lastState)
+		assertTrue(fading.startFadeTime >= beforeUpdate)
+	}
+
+	@Test
+	fun testRotate() {
+		val princess = AreaCharacter()
+		val rootNode = FixedActionNode(
+			action = ActionRotate(ActionTargetPartyMember(1), Direction.Right),
+			next = FixedActionNode(
+				action = ActionRotate(
+					ActionTargetAreaCharacter(princess), Direction.Left
+				),
+				next = null,
+			)
+		)
+
+		val initialPrincessState = AreaCharacterState(
+			x = 5,
+			y = 0,
+			direction = Direction.Down,
+			next = null,
+		)
+		val characterStates = mutableMapOf(Pair(princess, initialPrincessState))
+		val actions = AreaActionsState(
+			rootNode,
+			Array(4) { AreaPosition() },
+			Array(4) { Direction.Up },
+		)
+		val context = AreaActionsState.UpdateContext(
+			InputManager(), 10.milliseconds, SoundQueue(),
+			"", characterStates, ArrayList(),
+		) { fail("Attempted to heal party?") }
+
+		// The first update should rotate the player
+		actions.update(context)
+		assertArrayEquals(arrayOf(
+			Direction.Up, Direction.Right, Direction.Up, Direction.Up
+		), actions.partyDirections)
+		assertSame(initialPrincessState, characterStates[princess])
+
+		// The second update should rotate the princess
+		actions.update(context)
+		assertArrayEquals(arrayOf(
+			Direction.Up, Direction.Right, Direction.Up, Direction.Up
+		), actions.partyDirections)
+		assertEquals(AreaCharacterState(
+			x = 5,
+			y = 0,
+			direction = Direction.Left,
+			next = null
+		), characterStates[princess])
+		assertEquals(1, characterStates.size)
+		assertNull(actions.node)
+	}
+
+	// TODO DL Test parallel walking
 }

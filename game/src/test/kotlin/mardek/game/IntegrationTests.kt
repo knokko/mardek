@@ -4,9 +4,11 @@ import mardek.game.action.TestActions
 import mardek.game.area.TestChestLoot
 import mardek.game.area.TestDoors
 import mardek.game.area.TestRandomBattles
+import mardek.game.area.testDragonLairBossBattle
 import mardek.game.area.testDragonLairDoor
 import mardek.game.battle.*
 import mardek.game.inventory.TestCountItemOccurrences
+import mardek.game.portrait.TestPortraitImporting
 import mardek.game.portrait.TestSpecialPortraitNodes
 import mardek.game.save.TestListSaves
 import mardek.game.save.TestSaveAndLoad
@@ -36,6 +38,11 @@ class IntegrationTests {
 	@Test
 	fun testDragonLairDoorAndRendering() {
 		testDragonLairDoor(instance)
+	}
+
+	@Test
+	fun testDragonLairBossBattle() {
+		testDragonLairBossBattle(instance)
 	}
 
 	@Test
@@ -249,5 +256,10 @@ class IntegrationTests {
 	@Test
 	fun testSaveDuringBattleLoot() {
 		TestSaveAndLoad.testSaveDuringBattleLoot(instance)
+	}
+
+	@Test
+	fun testAreaCharacterPortraitImporting() {
+		TestPortraitImporting.testAreaCharacterPortraits(instance)
 	}
 }

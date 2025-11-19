@@ -2,6 +2,7 @@ package mardek.state.ingame.battle
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.*
+import mardek.content.battle.Battle
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
@@ -39,7 +40,9 @@ class BattleState(
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	val opponents: Array<CombatantState?> = battle.startingEnemies.map { enemy ->
-		if (enemy != null) MonsterCombatantState(enemy.monster, enemy.level, false) else null
+		if (enemy != null) MonsterCombatantState(
+			enemy.monster, enemy.level, false, enemy.overrideDisplayName
+		) else null
 	}.toTypedArray()
 
 	@BitField(id = 4)

@@ -70,8 +70,6 @@ internal fun importAnimationNode(
 	if (childID == 2304) special = SpecialAnimationNode.ElementalSwing
 	if (childID == 219) special = SpecialAnimationNode.ElementalCastingCircle
 	if (childID == 2232) special = SpecialAnimationNode.ElementalCastingBackground
-	if (instanceName == "statusFX") special = SpecialAnimationNode.StatusEffectPoint
-	// TODO CHAP2 What's the difference between those two?
 	if (instanceName == "StfxPoint") special = SpecialAnimationNode.StatusEffectPoint
 	if (instanceName == "core") special = SpecialAnimationNode.Core
 	if (childID == 2311) special = SpecialAnimationNode.Exclaim
@@ -85,15 +83,17 @@ internal fun importAnimationNode(
 	if (instanceName == "face") special = SpecialAnimationNode.PortraitFace
 	if (instanceName == "eye1" || instanceName == "eye2") special = SpecialAnimationNode.PortraitEye
 	if (instanceName == "eyebrow1" || instanceName == "eyebrow2") special = SpecialAnimationNode.PortraitEyeBrow
-	if (instanceName == "hair") special = SpecialAnimationNode.PortraitHair
-	if (instanceName == "torso" || instanceName == "head" || instanceName == "mouth") {
+	if (instanceName == "hair" || childID == 1463) special = SpecialAnimationNode.PortraitHair
+	if (instanceName == "torso" || instanceName == "head" || instanceName == "mouth" ||
+		childID == 1059 || childID == 1348
+	) {
 		special = SpecialAnimationNode.PortraitExpressions
 	}
-	if (childID == 947) special = SpecialAnimationNode.PortraitArmor
+	if (childID == 947 || childID == 1273) special = SpecialAnimationNode.PortraitArmor
 	if (childID == 997 && initialSpecial != SpecialAnimationNode.PortraitMouth) {
 		special = SpecialAnimationNode.PortraitEthnicity
 	}
-	if (childID == 1059 || childID == 1349) special = SpecialAnimationNode.PortraitMouth
+	if (childID == 1349) special = SpecialAnimationNode.PortraitMouth
 	if (childID == 1569) special = SpecialAnimationNode.PortraitRobe
 	if (childID == 1650 || childID == 1725) special = SpecialAnimationNode.PortraitExpressions
 

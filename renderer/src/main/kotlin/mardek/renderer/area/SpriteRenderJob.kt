@@ -19,7 +19,7 @@ internal class SpriteRenderJob(
 			var renderX = region.minX + x + region.width / 2 - cameraX
 			var renderY = region.minY + y + region.height / 2 - cameraY
 			if (sprite.width >= 32) renderX -= 16 * scale
-			if (sprite.height >= 32) renderY -= 16 * scale
+			if (sprite.height >= 32) renderY -= (sprite.height - 16) * scale
 			val margin = 2 * tileSize
 			if (renderX > -margin && renderY > -margin && renderX < region.width + 2 * margin &&
 				renderY < region.height + 2 * margin

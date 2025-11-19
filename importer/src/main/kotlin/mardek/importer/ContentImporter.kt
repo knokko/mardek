@@ -10,9 +10,9 @@ import mardek.content.action.ActionToArea
 import mardek.content.action.FixedActionNode
 import mardek.content.animation.CombatantAnimations
 import mardek.importer.actions.addDummyCutscenes
-import mardek.importer.actions.hardcodeActionSequences
+import mardek.importer.actions.generateUUIDs
 import mardek.importer.actions.importCutscenes
-import mardek.importer.actions.storeHardcodedActionSequences
+import mardek.importer.area.importAreaBattleContent
 import mardek.importer.area.importAreaContent
 import mardek.importer.area.importAreaSprites
 import mardek.importer.audio.importAudioContent
@@ -51,9 +51,8 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	importClasses(content)
 	importAreaSprites(content)
 	val fatCharacters = importPlayableCharacters(content, playerModelMapping)
-	hardcodeActionSequences(content)
+	importAreaBattleContent(content)
 	importAreaContent(content)
-	storeHardcodedActionSequences(content)
 	content.ui = importUiSprites()
 	content.fonts = importFonts()
 
@@ -106,6 +105,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	)
 	content.actions.global.add(chapter1IntroSequence)
 	startChapter1.actions = CampaignActionsState(chapter1IntroSequence.root)
+	generateUUIDs(chapter1IntroSequence)
 
 	fun addCheckpoint(name: String, state: CampaignState) {
 		val byteOutput = ByteArrayOutputStream()

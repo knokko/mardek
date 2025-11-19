@@ -40,8 +40,23 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 			if (state is TitleScreenState) musicTrack = titleScreen
 			if (state is GameOverState) musicTrack = gameOver
 			if (state is InGameState) {
-				val area = state.campaign.currentArea?.area
-				if (area != null) trackName = area.properties.musicTrack
+				val areaState = state.campaign.currentArea
+				if (areaState != null) {
+					trackName = areaState.area.properties.musicTrack
+
+					val battleState = areaState.activeBattle
+					if (battleState != null) {
+						val battleMusic = battleState.battle.music
+						if (battleMusic != "battle") trackName = battleMusic
+						// TODO CHAP1 Determine whether battle music should be played
+
+						val battleLoot = areaState.battleLoot
+						if (battleLoot != null && battleMusic != "battle") {
+							trackName = "VictoryFanfare2"
+							// TODO CHAP1 Right loot music
+						}
+					}
+				}
 
 				val campaignActionNode = state.campaign.actions?.node
 				if (campaignActionNode is FixedActionNode) {

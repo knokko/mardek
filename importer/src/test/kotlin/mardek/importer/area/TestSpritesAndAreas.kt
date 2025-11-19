@@ -2,9 +2,9 @@ package mardek.importer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import mardek.content.Content
-import mardek.content.area.objects.AreaObject
+import mardek.content.area.objects.AreaCharacter
 import mardek.content.sprite.KimSprite
-import mardek.importer.actions.hardcodeActionSequences
+import mardek.importer.actions.HardcodedActions
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.characters.importPlayableCharacters
@@ -69,7 +69,7 @@ class TestSpritesAndAreas {
 		importAreaSprites(content)
 		importClasses(content)
 		importPlayableCharacters(content, null)
-		hardcodeActionSequences(content)
+		importAreaBattleContent(content)
 		importAreaContent(content)
 
 		val deugan = content.areas.characterSprites.find { it.name == "deugan_hero" }!!
@@ -135,26 +135,30 @@ class TestSpritesAndAreas {
 
 	@Test
 	fun testGetMolestor() {
-		val rawMolester = parseAreaEntity(Content(), "",
+		val content = Content()
+		importAudioContent(content.audio)
+		importParticleEffects(content)
+		importStatsContent(content)
+		val rawMolester = parseAreaEntity(content, HardcodedActions(), "",
 			parseActionScriptObjectList("[{name:\"Molestor\",model:\"ch3bosses\",x:16,y:37,walkspeed:-1,dir:\"e\",Static:true,elem:\"DARK\",BOSSCODE:\"Molestor2\",conv:[[\"norm\",\"<<demon>>Neeeeeeeheeheeheehee... Children... You do not belooooong heeeererererere...!\"],Do = function()\n" +
 				"{\n" +
 				"   BATTLE([[\"Molestor\",null,null,null],[\"Molestor\",null,null,null],[20,null,null,null],\"SOLO\"],\"battle\",true,true);\n" +
 				"   return 1;\n" +
 				"}]}]")[0], ArrayList())
 
-		assertTrue(rawMolester is AreaObject, "Expected $rawMolester to be an AreaObject")
-		val molestor = rawMolester as AreaObject
-		assertEquals("spritesheet_ch3bosses(4, 2)", molestor.sprites.flashName)
-		assertEquals(2, molestor.sprites.frames.size)
+		assertTrue(rawMolester is AreaCharacter, "Expected $rawMolester to be an AreaCharacter")
+		val molestor = rawMolester as AreaCharacter
+		assertEquals("spritesheet_ch3bosses(4, 2)", molestor.fixedSprites!!.flashName)
+		assertEquals(2, molestor.fixedSprites!!.frames.size)
 
-		assertEquals(2, molestor.sprites.frames.size)
+		assertEquals(2, molestor.fixedSprites!!.frames.size)
 		assertImageEquals(
 			"sheets/objects/ch3bosses.png", 192, 0,
-			48, 48, molestor.sprites.frames[0]
+			48, 48, molestor.fixedSprites!!.frames[0]
 		)
 		assertImageEquals(
 			"sheets/objects/ch3bosses.png", 192 + 48, 0,
-			48, 48, molestor.sprites.frames[1]
+			48, 48, molestor.fixedSprites!!.frames[1]
 		)
 	}
 

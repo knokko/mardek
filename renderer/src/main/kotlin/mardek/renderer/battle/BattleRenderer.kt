@@ -207,7 +207,7 @@ internal fun renderBattle(
 		lateImageBatch, lateTextBatch, lateAnimationPartBatch, Rectangle(
 		region.minX, region.minY + region.height / 8,
 		region.width, region.boundY - region.height / 8 - region.height / 16,
-	))
+	), region)
 
 	val finishColorBatch = context.addColorBatch(2)
 	val finishTextBatch = context.addFancyTextBatch(50)

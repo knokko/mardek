@@ -19,7 +19,8 @@ import kotlin.math.roundToInt
 
 internal fun renderCombatantInfoPopup(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, kimBatch: Vk2dKimBatch,
-	imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, partBatch: AnimationPartBatch, region: Rectangle,
+	imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, partBatch: AnimationPartBatch,
+	region: Rectangle, fullRegion: Rectangle,
 ) {
 	battleContext.run {
 		val combatant = battle.openCombatantInfo ?: return
@@ -315,6 +316,6 @@ internal fun renderCombatantInfoPopup(
 			0.002f * region.height, TextAlignment.RIGHT,
 		)
 
-		CombatantRenderer(battleContext, partBatch, combatant, region, true).render()
+		CombatantRenderer(battleContext, partBatch, combatant, fullRegion, true).render()
 	}
 }

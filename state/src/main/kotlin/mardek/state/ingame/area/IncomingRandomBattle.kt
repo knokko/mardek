@@ -3,7 +3,7 @@ package mardek.state.ingame.area
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
-import mardek.state.ingame.battle.Battle
+import mardek.content.battle.Battle
 import kotlin.time.Duration
 
 @BitStruct(backwardCompatible = true)

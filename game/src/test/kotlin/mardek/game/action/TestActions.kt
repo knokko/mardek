@@ -34,6 +34,9 @@ object TestActions {
 		Color(88, 71, 46), // Q/L buttons
 		Color(238, 203, 127), // display name color
 		Color(208, 193, 142), // line color
+	)
+
+	private val eButtonColors = arrayOf(
 		Color(145, 137, 112), // E button
 	)
 
@@ -56,7 +59,7 @@ object TestActions {
 
 			testRendering(
 				state, 1000, 800, "intro-dialogue0",
-				dragonLairColors, dialogueBoxColors
+				dragonLairColors, dialogueBoxColors + eButtonColors
 			)
 
 			// This should have no effect since the player is forced to walk
@@ -86,7 +89,7 @@ object TestActions {
 
 			testRendering(
 				state, 1000, 800, "intro-dialogue1",
-				dragonLairColors + dialogueBoxColors, emptyArray()
+				dragonLairColors + dialogueBoxColors + eButtonColors, emptyArray()
 			)
 
 			// Go to next dialogue node
@@ -107,7 +110,7 @@ object TestActions {
 			// Ideally, I would test that we render a different portrait, but I can't find reliable colors to test...
 			testRendering(
 				state, 1000, 800, "intro-dialogue2",
-				dragonLairColors + dialogueBoxColors, emptyArray()
+				dragonLairColors + dialogueBoxColors, emptyArray(),
 			)
 
 			// Skip the rest of the dialogue
@@ -123,7 +126,7 @@ object TestActions {
 			assertEquals(Direction.Up, areaState.getPlayerDirection(1))
 			testRendering(
 				state, 1000, 800, "intro-dialogue3",
-				dragonLairColors, dialogueBoxColors
+				dragonLairColors, dialogueBoxColors + eButtonColors
 			)
 
 			// Test that we can walk away now that the dialogue is over
