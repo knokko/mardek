@@ -77,17 +77,26 @@ tasks.register("proguard", ProGuardTask) {
 
 tasks.register("run", JavaExec) {
 	group = "Run"
-	description = "Runs the game without validation layer"
+	description = "Runs the game without validation layer (VK 1.0)"
 
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.game.MardekGameKt"
 }
 
-tasks.register("runValidation", JavaExec) {
+tasks.register("runBasicValidation", JavaExec) {
 	group = "Run"
-	description = "Runs the game with the validation layer"
+	description = "Runs the game with the validation layer (VK 1.0, no GPU-assisted validation)"
 
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.game.MardekGameKt"
-	args "validation"
+	args "basic-validation"
+}
+
+tasks.register("runGpuValidation", JavaExec) {
+	group = "Run"
+	description = "Runs the game with the validation layer (VK 1.2, with GPU-assisted validation)"
+
+	classpath sourceSets.main.runtimeClasspath
+	mainClass = "mardek.game.MardekGameKt"
+	args "gpu-validation"
 }

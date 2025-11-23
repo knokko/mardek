@@ -43,10 +43,15 @@ When this layer is present, you should be able to run all the unit tests:
 Furthermore, you should now be able to run the game with the
 validation layer enabled:
 ```
-./gradlew runValidation
+./gradlew runBasicValidation
 ```
-Alternative, you can run `MardekGame.kt` with a `validation`
-program argument.
+or
+```
+./gradlew runGpuValidation
+```
+(The latter will enable GPU-assisted validation, and also use VK 1.2
+instead of VK 1.0.) Alternative, you can run `MardekGame.kt` with a
+`basic-validation` or `gpu-validation` program argument.
 
 #### Flash importing
 Some content is automatically imported from the Flash game.
