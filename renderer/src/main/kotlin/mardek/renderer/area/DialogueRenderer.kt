@@ -29,9 +29,10 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			}
 		}
 
+		val choiceChar = '•'
 		if (actionNode is ChoiceActionNode) {
 			val combinedText = actionNode.options.withIndex().joinToString("\n") {
-				var text = "• " + it.value.text
+				var text = "$choiceChar " + it.value.text
 				if (it.index == actions.selectedChoice) text = "$$text%"
 				text
 			}
@@ -357,7 +358,8 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		}
 
 		run {
-			val font = context.bundle.getFont(context.content.fonts.fat.index)
+			val baseFont = context.bundle.getFont(context.content.fonts.fat.index)
+			val choiceCharFont = context.bundle.getFont(context.content.fonts.basic2.index)
 			var baseTextColor = srgbToLinear(rgb(207, 192, 141))
 			var boldTextColor = srgbToLinear(rgb(253, 218, 116))
 			val strokeColor = srgbToLinear(rgb(41, 34, 20))
@@ -385,6 +387,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			for (charIndex in 0 until textChars.size) {
 				if (remaining <= 0f) break
 				val nextChar = textChars[charIndex]
+				val font = if (nextChar == choiceChar.code) choiceCharFont else baseFont
 
 				var peekX = textX
 				for (peekIndex in charIndex until textChars.size) {
