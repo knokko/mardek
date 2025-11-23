@@ -12,6 +12,7 @@ import mardek.content.animation.AnimationMatrix
 import mardek.content.animation.ColorTransform
 import mardek.content.animation.SkinnedAnimation
 import mardek.content.sprite.BcSprite
+import mardek.state.ingame.battle.CombatantRenderInfo
 import mardek.state.ingame.battle.CombatantRenderPosition
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
@@ -70,7 +71,7 @@ private fun renderAnimationFrame(frame: AnimationFrame, context: AnimationContex
 	}
 }
 
-private fun toJOMLMatrix(raw: AnimationMatrix) = Matrix3x2f(
+internal fun toJOMLMatrix(raw: AnimationMatrix) = Matrix3x2f(
 	raw.getScaleX(), raw.rotateSkew0,
 	raw.rotateSkew1, raw.getScaleY(),
 	raw.translateX, raw.translateY
@@ -85,27 +86,49 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 	val nodePosition = CombatantRenderPosition(rawNodePosition.x, rawNodePosition.y)
 
 	val combat = context.combat
-	if (special == SpecialAnimationNode.HitPoint) {
-		combat!!.renderInfo.hitPoint = nodePosition
-		return
+
+	fun trackUnmovablePoint(
+		specialToTrack: SpecialAnimationNode,
+		get: (CombatantRenderInfo) -> CombatantRenderPosition,
+		set: (CombatantRenderInfo, CombatantRenderPosition) -> Unit,
+	): Boolean {
+		return if (special == specialToTrack) {
+			if (get(combat!!.renderInfo) == CombatantRenderPosition.DUMMY || !combat.isMoving) {
+				set(combat.renderInfo, nodePosition)
+			}
+			true
+		} else false
 	}
 
-	if (special == SpecialAnimationNode.StrikePoint) {
-		if (!combat!!.isMoving) combat.renderInfo.strikePoint = nodePosition
-		return
-	}
+	if (trackUnmovablePoint(SpecialAnimationNode.HitPoint, { it.hitPoint }) {
+		info, position -> info.hitPoint = position
+	}) return
+	if (trackUnmovablePoint(SpecialAnimationNode.StrikePoint, { it.strikePoint }) {
+		info, position -> info.strikePoint = position
+	}) return
 
 	if (special == SpecialAnimationNode.StatusEffectPoint) {
 		combat!!.renderInfo.statusEffectPoint = nodePosition
 		return
 	}
 
-	if (special == SpecialAnimationNode.Core) {
-		if (!combat!!.isMoving) combat.renderInfo.core = nodePosition
+	trackUnmovablePoint(SpecialAnimationNode.BreathSource, { it.idleBreathSource }) {
+			info, position -> info.idleBreathSource = position
+	}
+	if (special == SpecialAnimationNode.BreathSource) {
+		combat!!.renderInfo.activeBreathSource = nodePosition
 		return
 	}
 
-	// I have no clue what this one is for
+	if (trackUnmovablePoint(SpecialAnimationNode.Core, { it.core }) {
+		info, position -> info.core = position
+	}) return
+
+	if (trackUnmovablePoint(SpecialAnimationNode.BreathDistance, { it.breathDistance }) {
+			info, position -> info.breathDistance = position
+	}) return
+
+	// This one is an artifact from Deliverance (the predecessor of MARDEK), which we should ignore
 	if (special == SpecialAnimationNode.Exclaim) return
 
 	// This weird check is needed to hide a weird crystal pointer above monster heads

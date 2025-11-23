@@ -4,11 +4,13 @@ import com.github.knokko.boiler.utilities.ColorPacker.*
 import mardek.content.animation.AnimationFrames
 import mardek.content.animation.ColorTransform
 import mardek.content.battle.PartyLayoutPosition
+import mardek.content.skill.SkillTargetType
 import mardek.content.stats.Element
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.animation.CombatantAnimationContext
 import mardek.renderer.animation.renderCombatantAnimation
+import mardek.renderer.animation.toJOMLMatrix
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.CombatantRenderPosition
@@ -119,90 +121,206 @@ class CombatantRenderer(
 				PartyLayoutPosition(40, 60), flipX, context
 			)
 		} else {
-			if (state is BattleStateMachine.MeleeAttack && state.attacker === combatant) {
-				chooseMeleeAnimation()
-			} else if (state is BattleStateMachine.CastSkill && state.caster === combatant) {
-				chooseCastingAnimation()
-			} else if (state is BattleStateMachine.UseItem && state.thrower === combatant) {
-				chooseItemAnimation()
-			} else choosePassiveAnimation()
+			when (state) {
+				is BattleStateMachine.MeleeAttack if state.attacker === combatant -> {
+					chooseMeleeAnimation()
+				}
+
+				is BattleStateMachine.BreathAttack if state.attacker === combatant -> {
+					chooseBreathAnimation()
+				}
+
+				is BattleStateMachine.CastSkill if state.caster === combatant -> {
+					chooseCastingAnimation()
+				}
+
+				is BattleStateMachine.UseItem if state.thrower === combatant -> {
+					chooseItemAnimation()
+				}
+
+				else -> choosePassiveAnimation()
+			}
 		}
 
 		renderAnimation()
 	}
 
 	private fun chooseMeleeAnimation() {
-		// TODO DL Properly support breath attack (for the dragon)
-		// TODO DL Fix positioning & clean this code up
 		if (state !is BattleStateMachine.MeleeAttack) throw Error()
-//		val rawTargetCoordinates = state.target.getPosition(context.battle)
-//		val targetFlipX = if (state.target.isOnPlayerSide) 1f else -1f
-//		val targetModel = state.target.getModel()
-		val targetStrikePoint = state.target.renderInfo.strikePoint
-//		val rawStrikePosition = PartyLayoutPosition(
-//			rawTargetCoordinates.x + (flipX * targetFlipX).roundToInt() * targetStrikePoint.x.roundToInt(),
-//			rawTargetCoordinates.y + (targetModel.skeleton.groundDistance - skeleton.groundDistance).roundToInt()
-//		)
-//		val strikePosition = transformBattleCoordinates(rawStrikePosition, targetFlipX, context)
-		var strikePosition = targetStrikePoint
-		if (state.attacker.isOnPlayerSide == state.target.isOnPlayerSide) {
-			val targetX = state.target.renderInfo.core.x
-			val diffX = targetX - targetStrikePoint.x
-			strikePosition = CombatantRenderPosition(targetX + diffX, strikePosition.y)
-		}
+
+		val attacker = state.attacker.renderInfo
+		val target = state.target.renderInfo
+
+		val originTargetCoordinates = transformBattleCoordinates(
+			state.target.getPosition(context.battle), 0f, context
+		)
+
+		// We want the X-coordinate of the StrikePoint of the attacker to coincide with the HitPoint of the target
+		val strikeX = target.hitPoint.x + (attacker.core.x - attacker.strikePoint.x)
+
+		// The Y-coordinate of the attacker should simply equal the Y-coordinate of the target
+		val strikePosition = CombatantRenderPosition(strikeX, originTargetCoordinates.y)
 
 		if (state is BattleStateMachine.MeleeAttack.MoveTo) {
-			val moveAnimation = animations["moveto"]
-			val moveTime = moveAnimation.frames.size * FRAME_LENGTH
-			animation = moveAnimation
-			relativeTime = context.renderTime - state.startTime
-			if (relativeTime >= moveTime / 2L) state.halfWay = true
-			if (relativeTime >= moveTime) {
-				state.finished = true
-				relativeTime = moveTime - 1L
-			}
-
-			val movementProgress = relativeTime.toFloat() / moveTime.toFloat()
-			coordinates.x = movementProgress * strikePosition.x + (1f - movementProgress) * coordinates.x
-			coordinates.y = movementProgress * strikePosition.y + (1f - movementProgress) * coordinates.y
+			chooseMoveToAnimation(
+				strikePosition,
+				state.startTime,
+				{ state.halfWay = true },
+				{ state.finished = true },
+			)
 		}
 
 		if (state is BattleStateMachine.MeleeAttack.Strike) {
-			val strikeAnimation = animations["strike"]
-			val strikeTime = strikeAnimation.frames.size * FRAME_LENGTH
-			animation = strikeAnimation
-			relativeTime = context.renderTime - state.startTime
-
-			if (relativeTime >= strikeTime / 2) state.canDealDamage = true
-			if (relativeTime >= strikeTime) {
-				state.finished = true
-				relativeTime = strikeTime - 1L
-			}
-
-			coordinates.x = strikePosition.x
-			coordinates.y = strikePosition.y
+			chooseAttackAnimation(
+				strikePosition,
+				state.startTime,
+				"strike",
+				{ state.canDealDamage = true },
+				{ state.finished = true },
+			)
 		}
 
 		if (state is BattleStateMachine.MeleeAttack.JumpBack) {
-			val jumpAnimation = animations["jumpback"]
-			val jumpTime = jumpAnimation.frames.size * FRAME_LENGTH
+			chooseJumpBackAnimation(
+				strikePosition,
+				state.startTime,
+				{ state.halfWay = true },
+				{ state.finished = true },
+			)
+		}
+	}
 
-			val relativeJumpTime = context.renderTime - state.startTime
-			if (relativeJumpTime >= jumpTime / 2L) state.halfWay = true
-			if (relativeJumpTime >= jumpTime) {
-				relativeTime = jumpTime - 1L
-				state.finished = true
-			} else {
-				animation = jumpAnimation
-				relativeTime = relativeJumpTime
+	private fun chooseBreathAnimation() {
+		if (state !is BattleStateMachine.BreathAttack) throw Error()
 
-				var movementProgress = relativeTime.toFloat() / jumpTime.toFloat()
-				movementProgress = if (movementProgress < 0.2f) 0f
-				else (movementProgress - 0.2f) / 0.5f
-				if (movementProgress > 1f) movementProgress = 1f
-				coordinates.x = (1f - movementProgress) * strikePosition.x + movementProgress * coordinates.x
-				coordinates.y = (1f - movementProgress) * strikePosition.y + movementProgress * coordinates.y
-			}
+		val breathPosition = if (state.skill.targetType == SkillTargetType.AllEnemies) {
+			val attacker = state.attacker.renderInfo
+
+			// Position the BreathSource of the attacker such that:
+			// - The horizontal distance to the targets is roughly 40% of the region height
+			// - The Y-coordinate is slightly below the middle of the screen
+			val dummyTargetPosition = transformBattleCoordinates(
+				PartyLayoutPosition(75, 60), flipX * -1f, context
+			)
+			val breathX = dummyTargetPosition.x + 0.4f * flipX * region.height
+			CombatantRenderPosition(
+				breathX + (attacker.core.x - attacker.idleBreathSource.x),
+				region.minY + 0.525f * region.height + (attacker.core.y - attacker.idleBreathSource.y),
+			)
+		} else {
+			if (state.targets.size != 1) throw IllegalStateException(
+				"Single-target breath attacks must have exactly 1 target"
+			)
+			val attacker = state.attacker.renderInfo
+			val target = state.targets[0].renderInfo
+
+			val originTargetCoordinates = transformBattleCoordinates(
+				state.targets[0].getPosition(context.battle), 0f, context
+			)
+
+			// We want the X-coordinate of the BreathDistance of the attacker to coincide with the HitPoint of the target
+			val strikeX = target.hitPoint.x + (attacker.core.x - attacker.breathDistance.x)
+
+			// The Y-coordinate of the attacker should simply equal the Y-coordinate of the target
+			CombatantRenderPosition(strikeX, originTargetCoordinates.y)
+		}
+
+		if (state is BattleStateMachine.BreathAttack.MoveTo) {
+			chooseMoveToAnimation(
+				breathPosition,
+				state.startTime,
+				{ state.halfWay = true },
+				{ state.finished = true },
+			)
+		}
+
+		if (state is BattleStateMachine.BreathAttack.Attack) {
+			chooseAttackAnimation(
+				breathPosition,
+				state.startTime,
+				"breath",
+				{ state.canDealDamage = true },
+				{ state.finished = true },
+			)
+		}
+
+		if (state is BattleStateMachine.BreathAttack.JumpBack) {
+			chooseJumpBackAnimation(
+				breathPosition,
+				state.startTime,
+				{ state.halfWay = true },
+				{ state.finished = true },
+			)
+		}
+	}
+
+	private fun chooseMoveToAnimation(
+		attackPosition: CombatantRenderPosition,
+		startMoveTime: Long,
+		setHalfway: () -> Unit,
+		setFinished: () -> Unit,
+	) {
+		val moveAnimation = animations["moveto"]
+		val moveTime = moveAnimation.frames.size * FRAME_LENGTH
+		animation = moveAnimation
+		relativeTime = context.renderTime - startMoveTime
+		if (relativeTime >= moveTime / 2L) setHalfway()
+		if (relativeTime >= moveTime) {
+			setFinished()
+			relativeTime = moveTime - 1L
+		}
+
+		val movementProgress = relativeTime.toFloat() / moveTime.toFloat()
+		coordinates.x = movementProgress * attackPosition.x + (1f - movementProgress) * coordinates.x
+		coordinates.y = movementProgress * attackPosition.y + (1f - movementProgress) * coordinates.y
+	}
+
+	private fun chooseAttackAnimation(
+		attackPosition: CombatantRenderPosition,
+		startAttackTime: Long,
+		animationName: String,
+		setCanDealDamage: () -> Unit,
+		setFinished: () -> Unit,
+	) {
+		val breathAnimation = animations[animationName]
+		val breathTime = breathAnimation.frames.size * FRAME_LENGTH
+		animation = breathAnimation
+		relativeTime = context.renderTime - startAttackTime
+
+		if (relativeTime >= breathTime / 2) setCanDealDamage()
+		if (relativeTime >= breathTime) {
+			setFinished()
+			relativeTime = breathTime - 1L
+		}
+
+		coordinates.x = attackPosition.x
+		coordinates.y = attackPosition.y
+	}
+
+	private fun chooseJumpBackAnimation(
+		strikePosition: CombatantRenderPosition,
+		startJumpTime: Long,
+		setHalfway: () -> Unit,
+		setFinished: () -> Unit,
+	) {
+		val jumpAnimation = animations["jumpback"]
+		val jumpTime = jumpAnimation.frames.size * FRAME_LENGTH
+
+		val relativeJumpTime = context.renderTime - startJumpTime
+		if (relativeJumpTime >= jumpTime / 2L) setHalfway()
+		if (relativeJumpTime >= jumpTime) {
+			relativeTime = jumpTime - 1L
+			setFinished()
+		} else {
+			animation = jumpAnimation
+			relativeTime = relativeJumpTime
+
+			var movementProgress = relativeTime.toFloat() / jumpTime.toFloat()
+			movementProgress = if (movementProgress < 0.2f) 0f
+			else (movementProgress - 0.2f) / 0.5f
+			if (movementProgress > 1f) movementProgress = 1f
+			coordinates.x = (1f - movementProgress) * strikePosition.x + movementProgress * coordinates.x
+			coordinates.y = (1f - movementProgress) * strikePosition.y + movementProgress * coordinates.y
 		}
 	}
 
@@ -283,18 +401,24 @@ class CombatantRenderer(
 		var magicElement: Element? = null
 		var isMoving = false
 		if (stateMachine is BattleStateMachine.CastSkill && stateMachine.caster === combatant) {
-			if (stateMachine.skill.isMelee) {
-				meleeElement = stateMachine.skill.element
-				isMoving = true
-			} else magicElement = stateMachine.skill.element
+			magicElement = stateMachine.skill.element
 		}
 
-		if (stateMachine is BattleStateMachine.MeleeAttack && stateMachine.attacker === combatant) isMoving = true
+		if (stateMachine is BattleStateMachine.BreathAttack && stateMachine.attacker === combatant) {
+			isMoving = true
+		}
+
+		if (stateMachine is BattleStateMachine.MeleeAttack && stateMachine.attacker === combatant) {
+			isMoving = true
+			meleeElement = stateMachine.skill?.element ?:
+					stateMachine.attacker.getEquipment(context.updateContext)[0]?.element
+		}
 
 		val scaleX = if (combatant.isOnPlayerSide) coordinates.scale else -coordinates.scale
 		val parentMatrix = Matrix3x2f()
 			.translate(coordinates.x, coordinates.y)
 			.scale(scaleX, coordinates.scale)
+		parentMatrix.mul(toJOMLMatrix(animations.rootMatrix))
 
 		val equipment = combatant.getEquipment(context.updateContext)
 		val animationContext = AnimationContext(

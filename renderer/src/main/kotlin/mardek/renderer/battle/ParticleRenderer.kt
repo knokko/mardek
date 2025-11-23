@@ -40,7 +40,7 @@ internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch:
 						emitter.emitter.transform.x, emitter.emitter.transform.y
 					).rotate(toRadians(emitter.emitter.transform.rotation))
 						.translate(relativeX, relativeY)
-						.rotate(particle.computeRotation(renderTime))
+						.rotate(toRadians(particle.computeRotation(renderTime)))
 
 					val fadeTransform = ColorTransform(
 						0, rgba(1f, 1f, 1f, alpha), 0

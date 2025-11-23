@@ -217,6 +217,9 @@ internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
 				val nextMove = if (selectedMove.skill.isMelee) BattleStateMachine.MeleeAttack.MoveTo(
 					state.onTurn, (selectedMove.target as BattleSkillTargetSingle).target,
 					selectedMove.skill, context
+				) else if (selectedMove.skill.isBreath) BattleStateMachine.BreathAttack.MoveTo(
+					state.onTurn, selectedMove.target.getTargets(state.onTurn, battle),
+					selectedMove.skill, context
 				) else BattleStateMachine.CastSkill(
 					state.onTurn, selectedMove.target.getTargets(state.onTurn, battle),
 					selectedMove.skill, null, context

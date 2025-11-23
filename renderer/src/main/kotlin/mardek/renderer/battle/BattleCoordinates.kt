@@ -12,7 +12,7 @@ fun transformBattleCoordinates(rawPosition: PartyLayoutPosition, flipX: Float, c
 	val magicScale = computeMagicScale(context)
 
 	val rawX = 0.5f * (1f + flipX) * context.context.currentStage.width - flipX * (rawPosition.x + 38) * magicScale
-	val rawY = magicScale * (rawPosition.y + 100)
+	val rawY = magicScale * (rawPosition.y + 82)
 
 	return TransformedCoordinates(rawX, rawY, magicScale)
 }

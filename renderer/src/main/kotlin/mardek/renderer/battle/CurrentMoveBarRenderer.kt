@@ -20,6 +20,7 @@ internal fun renderCurrentMoveBar(
 		val stateMachine = battle.state
 		val currentSkill = when (stateMachine) {
 			is BattleStateMachine.MeleeAttack -> stateMachine.skill
+			is BattleStateMachine.BreathAttack -> stateMachine.skill
 			is BattleStateMachine.CastSkill -> stateMachine.skill
 			else -> null
 		}

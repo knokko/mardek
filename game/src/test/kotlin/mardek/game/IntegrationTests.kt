@@ -88,6 +88,7 @@ class IntegrationTests {
 		TestMonsterStrategyCalculator.testTargetMissesEffectAndTargetHp(instance)
 		TestMonsterStrategyCalculator.testFaintedAndFreeAllySlots(instance)
 		TestMonsterStrategyCalculator.testLowMana(instance)
+		TestMonsterStrategyCalculator.testSelectBreathAttack(instance)
 	}
 
 	@Test
@@ -194,6 +195,11 @@ class IntegrationTests {
 	@Test
 	fun testPerformRecover() {
 		TestSkills.testRecoverFlow(instance)
+	}
+
+	@Test
+	fun testPerformFireBreath() {
+		TestSkills.testFireBreathFlow(instance)
 	}
 
 	@Test

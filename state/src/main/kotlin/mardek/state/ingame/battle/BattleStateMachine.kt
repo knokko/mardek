@@ -31,6 +31,9 @@ sealed class BattleStateMachine {
 			MeleeAttack.MoveTo::class.java,
 			MeleeAttack.Strike::class.java,
 			MeleeAttack.JumpBack::class.java,
+			BreathAttack.MoveTo::class.java,
+			BreathAttack.Attack::class.java,
+			BreathAttack.JumpBack::class.java,
 			CastSkill::class.java,
 			UseItem::class.java,
 			RanAway::class.java,
@@ -197,7 +200,7 @@ sealed class BattleStateMachine {
 		@BitStruct(backwardCompatible = true)
 		class MoveTo(
 			attacker: CombatantState, target: CombatantState,
-			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?, //context: BattleUpdateContext,
+			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?,
 		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
 			var halfWay = false
 			var finished = false
@@ -257,6 +260,132 @@ sealed class BattleStateMachine {
 			private constructor() : this(
 				MonsterCombatantState(), MonsterCombatantState(),
 				null, null,
+			)
+		}
+	}
+
+	/**
+	 * A combatant is doing a (fire)breath attack, either on one target, or on a whole party.
+	 */
+	@BitStruct(backwardCompatible = true)
+	sealed class BreathAttack(
+		@BitField(id = 0)
+		@ReferenceField(stable = false, label = "combatants")
+		val attacker: CombatantState,
+
+		@BitField(id = 1)
+		@ReferenceField(stable = false, label = "combatants")
+		val targets: Array<CombatantState>,
+
+		/**
+		 * The breath skill that `attacker` is using
+		 */
+		@BitField(id = 2)
+		@ReferenceField(stable = true, label = "skills")
+		val skill: ActiveSkill,
+
+		/**
+		 * When the attacker and/or target are player characters, and they have relevant reaction skills,
+		 * this `reactionChallenge` will be non-null. These reaction skills will be applied if and only if this
+		 * reaction challenge is passed. Furthermore, if needed, the damage calculation will be postponed until the
+		 * outcome of the reaction challenge has been determined.
+		 */
+		@BitField(id = 3, optional = true)
+		val reactionChallenge: ReactionChallenge?,
+	) : BattleStateMachine(), Move {
+		var startTime = System.nanoTime()
+
+		constructor() : this(
+			MonsterCombatantState(), emptyArray(),
+			ActiveSkill(), null
+		)
+
+		override fun refreshStartTime() {
+			startTime = System.nanoTime()
+		}
+
+		companion object {
+			fun determineReactionChallenge(
+				attacker: CombatantState,
+				targets: Array<CombatantState>,
+				context: BattleUpdateContext,
+			): ReactionChallenge? {
+				var primaryType: ReactionSkillType? = null
+
+				if (targets.any { it.hasReactions(context, ReactionSkillType.RangedDefense) }) {
+					primaryType = ReactionSkillType.RangedDefense
+				}
+				if (attacker.hasReactions(context, ReactionSkillType.RangedAttack)) {
+					primaryType = ReactionSkillType.RangedAttack
+				}
+
+				return if (primaryType != null) ReactionChallenge(primaryType) else null
+			}
+		}
+
+		@BitStruct(backwardCompatible = true)
+		class MoveTo(
+			attacker: CombatantState, targets: Array<CombatantState>,
+			skill: ActiveSkill, reactionChallenge: ReactionChallenge?,
+		) : BreathAttack(attacker, targets, skill, reactionChallenge) {
+			var halfWay = false
+			var finished = false
+
+			constructor(
+				attacker: CombatantState, targets: Array<CombatantState>,
+				skill: ActiveSkill, context: BattleUpdateContext,
+			) : this(attacker, targets, skill,
+				determineReactionChallenge(attacker, targets, context)
+			)
+
+			@Suppress("unused")
+			private constructor() : this(
+				MonsterCombatantState(), emptyArray(),
+				ActiveSkill(), null,
+			)
+		}
+
+		@BitStruct(backwardCompatible = true)
+		class Attack(
+			attacker: CombatantState, targets: Array<CombatantState>,
+			skill: ActiveSkill, reactionChallenge: ReactionChallenge?,
+		) : BreathAttack(attacker, targets, skill, reactionChallenge) {
+			var canDealDamage = false
+
+			@BitField(id = 0)
+			var hasDealtDamage = false
+
+			var finished = false
+
+			@Suppress("unused")
+			private constructor() : this(
+				MonsterCombatantState(), emptyArray(),
+				ActiveSkill(), null,
+			)
+
+			/**
+			 * Checks whether the reaction challenge is currently *pending*. While the reaction challenge is pending,
+			 * the damage calculation must be postponed, since the outcome of the reaction challenge can influence the
+			 * damage dealt.
+			 *
+			 * When there is no reaction challenge (e.g. there are no relevant reactions), this method will always
+			 * return false.
+			 */
+			fun isReactionChallengePending() = this.reactionChallenge != null && this.reactionChallenge.isPending()
+		}
+
+		@BitStruct(backwardCompatible = true)
+		class JumpBack(
+			attacker: CombatantState, targets: Array<CombatantState>,
+			skill: ActiveSkill, reactionChallenge: ReactionChallenge?,
+		) : BreathAttack(attacker, targets, skill, reactionChallenge) {
+			var halfWay = false
+			var finished = false
+
+			@Suppress("unused")
+			private constructor() : this(
+				MonsterCombatantState(), emptyArray(),
+				ActiveSkill(), null,
 			)
 		}
 	}

@@ -3,6 +3,7 @@ package mardek.state.ingame.actions
 import mardek.content.action.ActionFadeCharacter
 import mardek.content.action.ActionFlashScreen
 import mardek.content.action.ActionHealParty
+import mardek.content.action.ActionParallel
 import mardek.content.action.ActionPlaySound
 import mardek.content.action.ActionRotate
 import mardek.content.action.ActionTalk
@@ -658,5 +659,103 @@ class TestAreaActionsState {
 		assertNull(actions.node)
 	}
 
-	// TODO DL Test parallel walking
+	@Test
+	fun testParallelWalking() {
+		val princess = AreaCharacter()
+		val dragon = AreaCharacter()
+
+		val rootNode = FixedActionNode(
+			action = ActionParallel(arrayOf(
+				ActionWalk(
+					target = ActionTargetAreaCharacter(princess),
+					destinationX = 4,
+					destinationY = 7,
+					speed = WalkSpeed.Slow,
+				),
+				ActionWalk(
+					target = ActionTargetAreaCharacter(dragon),
+					destinationX = 10,
+					destinationY = 3,
+					speed = WalkSpeed.Normal,
+				)
+			)),
+			next = FixedActionNode(
+				action = ActionRotate(
+					target = ActionTargetAreaCharacter(dragon),
+					newDirection = Direction.Up,
+				),
+				next = null,
+			)
+		)
+
+		val initialPrincessState = AreaCharacterState(
+			x = 5,
+			y = 30,
+			direction = Direction.Down,
+			next = null,
+		)
+		val initialDragonState = AreaCharacterState(
+			x = 10,
+			y = 33,
+			direction = Direction.Down,
+			next = null,
+		)
+		val characterStates = mutableMapOf(
+			Pair(princess, initialPrincessState),
+			Pair(dragon, initialDragonState),
+		)
+		val actions = AreaActionsState(
+			rootNode,
+			Array(4) { AreaPosition() },
+			Array(4) { Direction.Up },
+		)
+		val context = AreaActionsState.UpdateContext(
+			InputManager(), 10.milliseconds, SoundQueue(),
+			"", characterStates, ArrayList(),
+		) { fail("Attempted to heal party?") }
+
+		// The dragon should need 6 seconds to reach its destination
+		repeat(605) {
+			actions.update(context)
+			assertEquals(Direction.Up, characterStates[princess]!!.direction)
+			assertEquals(Direction.Up, characterStates[dragon]!!.direction)
+		}
+
+		assertEquals(AreaCharacterState(
+			x = 10,
+			y = 3,
+			direction = Direction.Up,
+			next = null
+		), characterStates[dragon])
+
+		// At this point, the princess should have moved only 12 tiles
+		characterStates[princess]!!.apply {
+			assertEquals(5, x)
+			assertEquals(18, y)
+			assertEquals(Direction.Up, direction)
+
+			val next = next!!
+			assertEquals(5, next.position.x)
+			assertEquals(17, next.position.y)
+		}
+
+		// The princess needs another 6 seconds
+		repeat(600) {
+			actions.update(context)
+		}
+
+		assertEquals(AreaCharacterState(
+			x = 10,
+			y = 3,
+			direction = Direction.Up,
+			next = null
+		), characterStates[dragon])
+		assertEquals(AreaCharacterState(
+			x = 4,
+			y = 7,
+			direction = Direction.Left,
+			next = null
+		), characterStates[princess])
+		assertNull(actions.node)
+	}
 }

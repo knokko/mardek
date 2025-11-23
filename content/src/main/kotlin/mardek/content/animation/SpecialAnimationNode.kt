@@ -20,19 +20,42 @@ enum class SpecialAnimationNode(
 	val skipChildren: Boolean
 ) {
 	/**
-	 * Don't render this. Something to do with the positioning of the strike animation?
+	 * Don't render this. When the `AnimationRenderer` encounters this node, it should set the corresponding
+	 * `CombatantRenderInfo.hitPoint` to the node position. The X-coordinate of the target `hitPoint` is needed in the
+	 * melee attack positioning logic.
 	 */
 	HitPoint(true),
 
 	/**
-	 * Don't render this. Something to do with the positioning of the strike animation?
+	 * Don't render this. When the `AnimationRenderer` encounters this node, it should set the corresponding
+	 * `CombatantRenderInfo.strikePoint` to the node position. The X-coordinate of the attacker `strikePoint` is
+	 * needed in the melee attack positioning logic.
 	 */
 	StrikePoint(true),
 
 	/**
-	 * Don't render this. Render status effects here.
+	 * Don't render this. Render status effects at the position of this node.
 	 */
 	StatusEffectPoint(true),
+
+	/**
+	 * Don't render this. When the `AnimationRenderer` encounters this node, it should set the corresponding
+	 * `CombatantRenderInfo.idleBreathSource` and `activeBreathSource` to the node position.
+	 *
+	 * When the attacker does a breath attack, the (fire) breath particles should spawn at `activeBreathSource`.
+	 *
+	 * Furthermore, when the attacker performs a breath attack against multiple targets, the attacker should be
+	 * positioned such that its `activeBreathSource`is at the 'BreathCentre' of the screen, which is usually near the
+	 * middle of the screen. The `idleBreathSource` is used to find the right attacker position.
+	 */
+	BreathSource(true),
+
+	/**
+	 * Don't render this. When the `AnimationRenderer` encounters this node, it should set the corresponding
+	 * `CombatantRenderInfo.breathDistance` to the node position. The X-coordinate of the attacker `breathDistance` is
+	 * needed in the sngle-target breath attack positioning logic.
+	 */
+	BreathDistance(true),
 
 	/**
 	 * This animation node should only be rendered when this combatant is being selected in targeting mode

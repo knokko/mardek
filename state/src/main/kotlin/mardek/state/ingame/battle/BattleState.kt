@@ -88,6 +88,7 @@ class BattleState(
 	fun getReactionChallenge(): ReactionChallenge? {
 		return when (val state = this.state) {
 			is BattleStateMachine.MeleeAttack -> state.reactionChallenge
+			is BattleStateMachine.BreathAttack -> state.reactionChallenge
 			is BattleStateMachine.CastSkill -> state.reactionChallenge
 			else -> null
 		}
@@ -279,6 +280,40 @@ class BattleState(
 			}
 		}
 		if (state is BattleStateMachine.MeleeAttack.JumpBack && state.finished) {
+			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 250_000_000L)
+		}
+
+		if (state is BattleStateMachine.BreathAttack.MoveTo && state.finished) {
+			this.state = BattleStateMachine.BreathAttack.Attack(
+				state.attacker, state.targets,
+				state.skill, state.reactionChallenge
+			)
+		}
+		if (state is BattleStateMachine.BreathAttack.Attack) {
+			if (state.canDealDamage && !state.hasDealtDamage && !state.isReactionChallengePending()) {
+				val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
+				val result = MoveResultCalculator(context).computeSkillResult(
+					state.skill, state.attacker, state.targets, passedChallenge
+				)
+
+				applyMoveResultEntirely(context, result, state.attacker)
+				state.skill.particleEffect?.let {
+					particles.add(ParticleEffectState(
+						particle = it,
+						position = state.attacker.renderInfo.activeBreathSource,
+						mirrorX = state.attacker.isOnPlayerSide,
+					))
+				}
+				state.hasDealtDamage = true
+			}
+			if (state.finished && state.hasDealtDamage) {
+				this.state = BattleStateMachine.BreathAttack.JumpBack(
+					state.attacker, state.targets,
+					state.skill, state.reactionChallenge
+				)
+			}
+		}
+		if (state is BattleStateMachine.BreathAttack.JumpBack && state.finished) {
 			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 250_000_000L)
 		}
 

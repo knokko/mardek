@@ -29,6 +29,7 @@ fun renderTurnOrder(
 		val stateMachine = battle.state
 		val onTurn = when (stateMachine) {
 			is BattleStateMachine.MeleeAttack -> stateMachine.attacker
+			is BattleStateMachine.BreathAttack -> stateMachine.attacker
 			is BattleStateMachine.CastSkill -> stateMachine.caster
 			is BattleStateMachine.UseItem -> stateMachine.thrower
 			is BattleStateMachine.SelectMove -> stateMachine.onTurn
@@ -38,6 +39,7 @@ fun renderTurnOrder(
 		if (slotWidth < 5) return
 		if (stateMachine is BattleStateMachine.MeleeAttack && stateMachine.skill != null) return
 		if (stateMachine is BattleStateMachine.CastSkill) return
+		if (stateMachine is BattleStateMachine.BreathAttack) return
 		if (stateMachine is BattleStateMachine.UseItem) return
 		if (stateMachine is BattleStateMachine.SelectMove) {
 			val selectedMove = stateMachine.selectedMove

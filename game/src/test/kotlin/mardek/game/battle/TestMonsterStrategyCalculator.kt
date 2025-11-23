@@ -1,6 +1,7 @@
 package mardek.game.battle
 
 import mardek.content.battle.Enemy
+import mardek.content.skill.SkillTargetType
 import mardek.content.stats.Element
 import mardek.game.TestingInstance
 import mardek.state.ingame.battle.*
@@ -386,6 +387,41 @@ object TestMonsterStrategyCalculator {
 			assertEquals(0, immolateCounter)
 			assertEquals(0, glaciateCounter)
 			assertEquals(10_000, hehCounter)
+		}
+	}
+
+	fun testSelectBreathAttack(instance: TestingInstance) {
+		instance.apply {
+			val dragon = content.battle.monsters.find { it.name == "mightydragon" }!!
+			val campaign = simpleCampaignState()
+
+			startSimpleBattle(campaign, enemies = arrayOf(null, null, Enemy(
+				monster = dragon, level = 30
+			), null))
+			val battle = campaign.currentArea!!.activeBattle!!
+			val caster = battle.livingOpponents()[0] as MonsterCombatantState
+			val context = battleUpdateContext(campaign)
+
+			var numBreathAttacks = 0
+			repeat(10_000) {
+				battle.livingOpponents()[0].currentMana = 100
+				val move = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+				if (move is BattleStateMachine.BreathAttack) {
+					assertSame(battle.livingOpponents()[0], move.attacker)
+					assertTrue(move.skill.isBreath)
+					assertFalse(move.skill.damage!!.splitDamage)
+					assertEquals(battle.allPlayers(), move.targets.toList())
+					assertEquals(SkillTargetType.AllEnemies, move.skill.targetType)
+					numBreathAttacks += 1
+				} else {
+					assertTrue(move is BattleStateMachine.MeleeAttack || move is BattleStateMachine.CastSkill)
+				}
+			}
+
+			assertTrue(
+				numBreathAttacks in 2000 .. 4000,
+				"Expected $numBreathAttacks to be approximately 3000"
+			)
 		}
 	}
 }

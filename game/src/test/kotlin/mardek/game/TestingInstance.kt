@@ -162,7 +162,7 @@ class TestingInstance {
 				music = "peak",
 				background = content.battle.backgrounds.find { it.name == "volcano" }!!
 			),
-			players = arrayOf(heroMardek, null, heroDeugan, null),
+			players = campaign.characterSelection.party,
 			playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
 			context = battleUpdateContext(campaign)
 		)

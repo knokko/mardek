@@ -4,6 +4,7 @@ import mardek.content.Content
 import mardek.content.battle.*
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
+import mardek.content.skill.SkillTargetType
 import mardek.content.stats.ElementalResistance
 import mardek.importer.area.parseFlashString
 import mardek.importer.skills.SkillParseException
@@ -23,7 +24,14 @@ internal fun importMonsterStrategies(
 		rawProperties -> importRawMonsterStrategy(rawProperties, actions, content)
 	}
 	for (raw in rawStrategies) {
-		if (raw.action != null && !targetMap.containsKey(raw.action)) targetMap[raw.action] = raw.target
+		if (raw.action != null && !targetMap.containsKey(raw.action)) {
+			targetMap[raw.action] = raw.target
+
+			// Due to a couple of inconsistencies in the Flash definitions, this work-around is needed
+			if (raw.target == StrategyTarget.AllEnemies && raw.action.targetType == SkillTargetType.AllAllies) {
+				raw.action.targetType = SkillTargetType.AllEnemies
+			}
+		}
 	}
 	rawStrategies = rawStrategies.filter { it.chance != 0 }
 	val previousPools = ArrayList<StrategyPool>()

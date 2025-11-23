@@ -14,6 +14,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.content.battle.Enemy
+import mardek.state.ingame.characters.CharacterState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -236,6 +237,125 @@ object TestSkills {
 			val selection = battle.state as BattleStateMachine.SelectMove
 			assertSame(battle.livingPlayers()[0], selection.onTurn)
 			assertEquals(BattleMoveSelectionAttack(null), selection.selectedMove)
+		}
+	}
+
+	fun testFireBreathFlow(instance: TestingInstance) {
+		instance.apply {
+			val campaign = simpleCampaignState()
+			val sslenck = content.playableCharacters.find { it.name == "Sslen'ck" }!!
+			val fireBreath = sslenck.characterClass.skillClass.actions.find { it.name == "Fire Breath" }!!
+			val monster = content.battle.monsters.find { it.name == "monster" }!!
+
+			// Make sure Sslenck has enough mana, and one-shots the monster
+			val sslenckState = CharacterState()
+			campaign.characterStates[sslenck] = sslenckState
+			sslenckState.currentLevel = 99
+			sslenckState.currentMana = 20
+			sslenckState.currentHealth = 100
+			sslenckState.skillMastery[fireBreath] = fireBreath.masteryPoints
+			sslenckState.equipment[0] = content.items.items.find { it.flashName.contains("Axe") }!!
+
+			campaign.characterSelection.party[0] = sslenck
+			campaign.characterSelection.party[1] = null
+			startSimpleBattle(campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
+
+			val input = InputManager()
+			val soundQueue = SoundQueue()
+			fun context(timeStep: Duration) = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, soundQueue, timeStep), ""
+			)
+
+			campaign.update(context(1.milliseconds))
+			sleep(1000)
+			campaign.update(context(1.seconds))
+
+			val battle = campaign.currentArea!!.activeBattle!!
+			val battleSslenck = battle.livingPlayers()[0]
+			val monsterState = battle.livingOpponents()[0]
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.SelectMove)
+				assertSame(battleSslenck, (it as BattleStateMachine.SelectMove).onTurn)
+				assertEquals(BattleMoveSelectionAttack(null), it.selectedMove)
+			}
+
+			val state = InGameState(campaign, "test")
+			val playerColors = arrayOf(
+				Color(90, 52, 22), // Armor color
+				Color(80, 136, 45), // Skin color
+			)
+			val monsterColor = arrayOf(Color(85, 56, 133))
+
+			testRendering(
+				state, 800, 450, "fire-breath0",
+				playerColors + monsterColor, emptyArray(),
+			)
+
+			input.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
+			input.postEvent(pressKeyEvent(InputKey.Interact))
+			input.postEvent(repeatKeyEvent(InputKey.Interact))
+			input.postEvent(repeatKeyEvent(InputKey.Interact))
+			input.postEvent(releaseKeyEvent(InputKey.Interact))
+			campaign.update(context(1.milliseconds))
+
+			assertEquals(1480, monsterState.currentHealth)
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.BreathAttack.MoveTo)
+				assertSame(battleSslenck, (it as BattleStateMachine.BreathAttack.MoveTo).attacker)
+				assertSame(monsterState, it.targets[0])
+				assertSame(fireBreath, it.skill)
+				assertFalse(it.finished)
+			}
+
+			sleep(1000)
+			testRendering(
+				state, 800, 450, "fire-breath1",
+				playerColors + monsterColor, emptyArray(),
+			)
+			assertTrue((battle.state as BattleStateMachine.BreathAttack.MoveTo).finished)
+			campaign.update(context(1.seconds))
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.BreathAttack.Attack)
+				assertSame(battleSslenck, (it as BattleStateMachine.BreathAttack.Attack).attacker)
+				assertSame(monsterState, it.targets[0])
+				assertSame(fireBreath, it.skill)
+				assertFalse(it.finished)
+				assertFalse(it.canDealDamage)
+			}
+
+			sleep(1500)
+			testRendering(
+				state, 800, 450, "fire-breath2",
+				playerColors + monsterColor, emptyArray()
+			)
+			assertTrue((battle.state as BattleStateMachine.BreathAttack.Attack).canDealDamage)
+			assertTrue((battle.state as BattleStateMachine.BreathAttack.Attack).finished)
+			campaign.update(context(1.seconds))
+			assertEquals(0, monsterState.currentHealth)
+			battle.state.let {
+				assertTrue(it is BattleStateMachine.BreathAttack.JumpBack)
+				assertSame(battleSslenck, (it as BattleStateMachine.BreathAttack.JumpBack).attacker)
+				assertSame(monsterState, it.targets[0])
+				assertSame(fireBreath, it.skill)
+				assertFalse(it.finished)
+			}
+
+			sleep(1000)
+			testRendering(
+				state, 800, 450, "fire-breath3",
+				playerColors + monsterColor, emptyArray(),
+			)
+			assertTrue((battle.state as BattleStateMachine.BreathAttack.JumpBack).finished)
+			campaign.update(context(1.seconds))
+			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
+
+			sleep(1000)
+			campaign.update(context(1.seconds))
+			assertSame(
+				battle.livingOpponents()[0],
+				(battle.state as BattleStateMachine.MeleeAttack.MoveTo).attacker,
+			)
 		}
 	}
 }

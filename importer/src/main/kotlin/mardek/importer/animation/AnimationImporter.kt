@@ -72,6 +72,8 @@ internal fun importAnimationNode(
 	if (childID == 2232) special = SpecialAnimationNode.ElementalCastingBackground
 	if (instanceName == "StfxPoint") special = SpecialAnimationNode.StatusEffectPoint
 	if (instanceName == "core") special = SpecialAnimationNode.Core
+	if (instanceName == "BreathSource") special = SpecialAnimationNode.BreathSource
+	if (instanceName == "BreathDistance") special = SpecialAnimationNode.BreathDistance
 	if (childID == 2311) special = SpecialAnimationNode.Exclaim
 
 	val exportName = FLASH.getExportName(tag.characterId)

@@ -29,8 +29,11 @@ class CombatantAnimations(
 	 */
 	@BitField(id = 1, optional = true)
 	val skin: String?,
+
+	@BitField(id = 2)
+	val rootMatrix: AnimationMatrix,
 ) {
-	constructor() : this(CombatantSkeleton(), "")
+	constructor() : this(CombatantSkeleton(), "", AnimationMatrix.DEFAULT)
 
 	operator fun get(name: String) = skeleton[name]
 }

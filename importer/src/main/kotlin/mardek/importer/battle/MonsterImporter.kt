@@ -2,6 +2,7 @@ package mardek.importer.battle
 
 import com.jpexs.decompiler.flash.tags.*
 import mardek.content.Content
+import mardek.content.animation.AnimationMatrix
 import mardek.content.animation.AnimationNode
 import mardek.content.animation.CombatantAnimations
 import mardek.content.animation.CombatantSkeleton
@@ -122,6 +123,7 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 	}
 
 	var skin: String? = null
+	var rootMatrix: AnimationMatrix? = null
 	for ((combatantName, rawCombatantAnimations) in importedMonsters.skins) {
 		val monsterScripts = context.scriptMapping[parseInt(battleTag.uniqueId)]!![combatantName] ?: emptyList()
 		val combatantNodes = rawCombatantAnimations.frames[0].nodes
@@ -147,6 +149,7 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 				}
 				skeletonSpriteID = animation.defineSpriteFlashID
 				skin = node.selectSkin
+				rootMatrix = node.matrix ?: throw RuntimeException("Missing root matrix for $combatantName")
 			} else {
 				flatNodes.add(node)
 			}
@@ -178,7 +181,7 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 			content.battle.skeletons.add(skeleton)
 		}
 
-		val animations = CombatantAnimations(skeleton, skin)
+		val animations = CombatantAnimations(skeleton, skin, rootMatrix!!)
 
 		if (monsterScripts.isEmpty()) {
 			playerModelMapping[combatantName] = animations
@@ -383,6 +386,9 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 	}
 
 	val actions = parseActiveSkills("MonsterImporter$name", content, rawActionList, true)
+	if (actions.any { it.isBreath }) {
+		println("test")
+	}
 	val targetMap = mutableMapOf<ActiveSkill, StrategyTarget>()
 	val strategies = importMonsterStrategies(
 		propertiesCode.variableAssignments["Gambits"]!!, actions, content, targetMap

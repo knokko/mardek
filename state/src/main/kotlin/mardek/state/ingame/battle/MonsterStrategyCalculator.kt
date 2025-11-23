@@ -44,6 +44,8 @@ class MonsterStrategyCalculator(
 			myState.currentMana -= skill.manaCost
 			return if (skill.isMelee) BattleStateMachine.MeleeAttack.MoveTo(
 				myState, (skillTarget as BattleSkillTargetSingle).target, skill, context
+			) else if (skill.isBreath) BattleStateMachine.BreathAttack.MoveTo(
+				myState, skillTarget.getTargets(myState, state), skill, context
 			) else BattleStateMachine.CastSkill(
 				myState, skillTarget.getTargets(myState, state), skill, nextElement, context
 			)
@@ -132,6 +134,7 @@ class MonsterStrategyCalculator(
 		val lastMove = myState.lastMove
 		if (!criteria.canRepeat) {
 			if (entry.skill != null && lastMove is BattleStateMachine.CastSkill && entry.skill === lastMove.skill) return false
+			if (entry.skill != null && lastMove is BattleStateMachine.BreathAttack && entry.skill == lastMove.skill) return false
 			if (entry.skill != null && lastMove is BattleStateMachine.MeleeAttack && entry.skill === lastMove.skill) return false
 			if (entry.item != null && lastMove is BattleStateMachine.UseItem && entry.item === lastMove.item) return false
 			if (entry.skill == null && entry.item == null && lastMove is BattleStateMachine.MeleeAttack && lastMove.skill == null) return false

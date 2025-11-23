@@ -116,13 +116,13 @@ class ParticleState(
 		var initialY = emitter.spawn.baseY + deltaTime * emitter.spawn.shiftY
 		var initialWidth = emitter.size.baseWidth + deltaTime * emitter.size.shiftWidth
 		var initialHeight = emitter.size.baseHeight + deltaTime * emitter.size.shiftHeight
-		var initialRotation = emitter.spawn.rotation ?: (360f * Random.Default.nextFloat())
+		var initialRotation = emitter.spawn.rotation ?: (360f * Random.nextFloat())
 		val variationX = emitter.spawn.variationX + deltaTime * emitter.spawn.shiftVariationX
 		val variationY = emitter.spawn.variationY + deltaTime * emitter.spawn.shiftVariationY
-		initialX += Random.Default.nextFloat() * variationX - 0.5f * variationX
-		initialY += Random.Default.nextFloat() * variationY - 0.5f * variationY
+		initialX += Random.nextFloat() * variationX - 0.5f * variationX
+		initialY += Random.nextFloat() * variationY - 0.5f * variationY
 
-		val sizeMultiplier = emitter.size.minSizeMultiplier + Random.Default.nextFloat() *
+		val sizeMultiplier = emitter.size.minSizeMultiplier + Random.nextFloat() *
 				(emitter.size.maxSizeMultiplier - emitter.size.minSizeMultiplier)
 		initialWidth *= sizeMultiplier
 		initialHeight *= sizeMultiplier
@@ -134,10 +134,10 @@ class ParticleState(
 		if (linear != null) {
 			val minVelocityX = linear.minVelocityX + deltaTime * linear.shiftMinVelocityX
 			val maxVelocityX = linear.maxVelocityX + deltaTime * linear.shiftMaxVelocityX
-			initialVelocityX += minVelocityX + Random.Default.nextFloat() * (maxVelocityX - minVelocityX)
+			initialVelocityX += minVelocityX + Random.nextFloat() * (maxVelocityX - minVelocityX)
 			val minVelocityY = linear.minVelocityY + deltaTime * linear.shiftMinVelocityY
 			val maxVelocityY = linear.maxVelocityY + deltaTime * linear.shiftMaxVelocityY
-			initialVelocityY += minVelocityY + Random.Default.nextFloat() * (maxVelocityY - minVelocityY)
+			initialVelocityY += minVelocityY + Random.nextFloat() * (maxVelocityY - minVelocityY)
 		}
 
 		val radial = emitter.spawn.radial
@@ -147,20 +147,20 @@ class ParticleState(
 				val startAngle = evenlySpaced + deltaTime * radial.shiftEvenlySpaced
 				val evenAngle = indexInWave * 360f / emitter.waves.particlesPerWave
 				startAngle + evenAngle
-			} else 360f * Random.Default.nextFloat()
+			} else 360f * Random.nextFloat()
 
 			if (radial.rotateToMoveDirection) initialRotation = moveDirection
 
 			val minRadius = radial.minRadius + deltaTime * radial.shiftMinRadius
 			val maxRadius = radial.maxRadius + deltaTime * radial.shiftMaxRadius
-			val radius = minRadius + Random.Default.nextFloat() * (maxRadius - minRadius)
+			val radius = minRadius + Random.nextFloat() * (maxRadius - minRadius)
 
 			val moveX = cos(toRadians(moveDirection.toDouble())).toFloat()
 			val moveY = sin(toRadians(moveDirection.toDouble())).toFloat()
 			initialX += radius * moveX
 			initialY += radius * moveY
 
-			val initialVelocity = radial.minVelocity + Random.Default.nextFloat() * (radial.maxVelocity - radial.minVelocity)
+			val initialVelocity = radial.minVelocity + Random.nextFloat() * (radial.maxVelocity - radial.minVelocity)
 			initialVelocityX += moveX * initialVelocity
 			initialVelocityY += moveY * initialVelocity
 		}

@@ -24,7 +24,7 @@ class ActiveSkill(
 	val isMelee: Boolean,
 
 	@BitField(id = 1)
-	val targetType: SkillTargetType,
+	var targetType: SkillTargetType,
 
 	@BitField(id = 2, optional = true)
 	val damage: SkillDamage?,
