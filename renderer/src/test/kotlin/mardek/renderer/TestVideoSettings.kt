@@ -14,8 +14,8 @@ class TestVideoSettings {
 		assertEquals(0, settings.preferredDevice)
 		assertTrue(settings.capFps)
 		assertFalse(settings.showFps)
-		assertEquals(2, settings.framesInFlight)
-		assertFalse(settings.delayRendering)
+		assertEquals(1, settings.framesInFlight)
+		assertTrue(settings.delayRendering)
 
 		settings.preferredDevice = 123
 		settings.capFps = false

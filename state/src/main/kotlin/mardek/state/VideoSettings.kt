@@ -38,9 +38,8 @@ class VideoSettings(
 				preferredDevice = 0,
 				capFps = true,
 				showFps = false,
-				// TODO DL Reconsider this
-				framesInFlight = 2,
-				delayRendering = false,
+				framesInFlight = 1,
+				delayRendering = true,
 			)
 
 			if (settingsFile.exists()) {
