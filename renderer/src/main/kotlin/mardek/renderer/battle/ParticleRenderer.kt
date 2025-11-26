@@ -6,6 +6,7 @@ import mardek.content.animation.ColorTransform
 import mardek.content.stats.StatusEffect
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.CustomParticle
+import mardek.state.util.Rectangle
 import org.joml.Math.toRadians
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
@@ -15,7 +16,7 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sin
 
-internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch) {
+internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch, region: Rectangle) {
 	battleContext.run {
 		if (battle.particles.isEmpty()) return
 
@@ -24,7 +25,7 @@ internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch:
 		}
 
 		for (particleEffect in battle.particles) {
-			val magicScale = computeMagicScale(battleContext)
+			val magicScale = computeMagicScale(region)
 
 			for ((index, emitter) in particleEffect.emitters.withIndex()) {
 				for (particle in emitter.particles) {
@@ -82,13 +83,13 @@ internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch:
 	}
 }
 
-internal fun renderEffectParticles(battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch) {
+internal fun renderEffectParticles(battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch, region: Rectangle) {
 	battleContext.run {
 		for (combatant in battle.livingOpponents() + battle.livingPlayers()) {
 			for (effect in combatant.statusEffects) emit(battleContext, combatant, effect)
 		}
 
-		val magicScale = computeMagicScale(battleContext)
+		val magicScale = computeMagicScale(region)
 		val renderTime = System.nanoTime()
 		battle.customParticles.removeIf { particle ->
 			val rotation = toRadians(particle.rotation)

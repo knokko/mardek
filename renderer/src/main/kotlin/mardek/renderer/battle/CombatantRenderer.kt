@@ -43,7 +43,7 @@ class CombatantRenderer(
 	private var animation: AnimationFrames? = animations["idle"]
 
 	private var coordinates = transformBattleCoordinates(
-		combatant.getPosition(context.battle), flipX, context
+		combatant.getPosition(context.battle), flipX, region
 	)
 
 	private fun colorCombineTransform(max: Float, intensity: Float, color: Int) = ColorTransform(
@@ -118,7 +118,7 @@ class CombatantRenderer(
 		if (showcase) {
 			choosePassiveAnimation()
 			coordinates = transformBattleCoordinates(
-				PartyLayoutPosition(40, 60), flipX, context
+				PartyLayoutPosition(40, 60), flipX, region
 			)
 		} else {
 			when (state) {
@@ -152,7 +152,7 @@ class CombatantRenderer(
 		val target = state.target.renderInfo
 
 		val originTargetCoordinates = transformBattleCoordinates(
-			state.target.getPosition(context.battle), 0f, context
+			state.target.getPosition(context.battle), 0f, region
 		)
 
 		// We want the X-coordinate of the StrikePoint of the attacker to coincide with the HitPoint of the target
@@ -200,12 +200,12 @@ class CombatantRenderer(
 			// - The horizontal distance to the targets is roughly 40% of the region height
 			// - The Y-coordinate is slightly below the middle of the screen
 			val dummyTargetPosition = transformBattleCoordinates(
-				PartyLayoutPosition(75, 60), flipX * -1f, context
+				PartyLayoutPosition(75, 60), flipX * -1f, region
 			)
 			val breathX = dummyTargetPosition.x + 0.4f * flipX * region.height
 			CombatantRenderPosition(
 				breathX + (attacker.core.x - attacker.idleBreathSource.x),
-				region.minY + 0.525f * region.height + (attacker.core.y - attacker.idleBreathSource.y),
+				region.minY + 0.55f * region.height + (attacker.core.y - attacker.idleBreathSource.y),
 			)
 		} else {
 			if (state.targets.size != 1) throw IllegalStateException(
@@ -215,7 +215,7 @@ class CombatantRenderer(
 			val target = state.targets[0].renderInfo
 
 			val originTargetCoordinates = transformBattleCoordinates(
-				state.targets[0].getPosition(context.battle), 0f, context
+				state.targets[0].getPosition(context.battle), 0f, region
 			)
 
 			// We want the X-coordinate of the BreathDistance of the attacker to coincide with the HitPoint of the target

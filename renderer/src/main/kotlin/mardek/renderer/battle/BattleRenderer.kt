@@ -22,11 +22,12 @@ internal fun renderBattle(
 ): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
 	val battleContext = BattleRenderContext(context, state, battleState)
 
-	val animationPartBatch = context.addAnimationPartBatch(1000)
-	renderBattleBackground(battleContext, animationPartBatch, Rectangle(
+	val mainRegion = Rectangle(
 		region.minX, region.minY + region.height / 12, region.width,
 		region.height - region.height / 12 - region.height / 8,
-	))
+	)
+	val animationPartBatch = context.addAnimationPartBatch(1000)
+	renderBattleBackground(battleContext, animationPartBatch, mainRegion)
 
 	// Pretty much all components require colorBatch to be the first batch
 	val colorBatch = context.addColorBatch(1500)
@@ -50,14 +51,14 @@ internal fun renderBattle(
 	for (combatant in CombatantRenderer.sortByDepth(
 		battleState, battleState.allOpponents() + battleState.allPlayers()
 	)) {
-		CombatantRenderer(battleContext, animationPartBatch, combatant, region).render()
+		CombatantRenderer(battleContext, animationPartBatch, combatant, mainRegion).render()
 		renderDamageIndicator(battleContext, imageBatch, textBatch, combatant)
 		renderEffectHistory(battleContext, combatant, imageBatch, textBatch, lateColorBatch)
 	}
 
 	renderBattlePortrait(battleContext, animationPartBatch, region)
-	renderBaseParticles(battleContext, imageBatch)
-	renderEffectParticles(battleContext, imageBatch)
+	renderBaseParticles(battleContext, imageBatch, mainRegion)
+	renderEffectParticles(battleContext, imageBatch, mainRegion)
 
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 12
