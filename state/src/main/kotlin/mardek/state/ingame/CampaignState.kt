@@ -262,7 +262,8 @@ class CampaignState(
 							) }.toTypedArray(),
 							chestBattle.enemyLayout,
 							chestBattle.specialMusic ?: "battle",
-							area.randomBattles!!.defaultBackground
+							area.randomBattles!!.defaultBackground,
+							false,
 						),
 						currentArea.currentTime + 1.seconds, false
 					)

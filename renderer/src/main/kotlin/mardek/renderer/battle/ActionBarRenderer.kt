@@ -29,7 +29,7 @@ internal fun renderActionBar(
 
 		val marginY = region.height / 15
 		val marginX = 3 * marginY
-		val iconPositions = IntArray(5)
+		val iconPositions = if (battle.battle.canFlee) IntArray(5) else IntArray(4)
 		val highDashX = region.minX + 2 * region.width / 3
 		val lowDashX = highDashX - region.height
 
@@ -68,6 +68,7 @@ internal fun renderActionBar(
 		run {
 			var x = lowDashX - region.height
 			for (index in 0 until 5) {
+				if (index == 4 && !battle.battle.canFlee) break
 				if (index == selectedIndex) x -= region.width / 5
 				iconPositions[index] = x
 				x -= region.height + marginX
@@ -86,7 +87,7 @@ internal fun renderActionBar(
 			renderIcon(player.player.characterClass.skillClass.icon, iconPositions[1], selectedIndex == 1)
 			renderIcon(context.content.ui.consumableIcon, iconPositions[2], selectedIndex == 2)
 			renderIcon(context.content.ui.waitIcon, iconPositions[3], selectedIndex == 3)
-			renderIcon(context.content.ui.fleeIcon, iconPositions[4], selectedIndex == 4)
+			if (battle.battle.canFlee) renderIcon(context.content.ui.fleeIcon, iconPositions[4], selectedIndex == 4)
 		}
 
 		val pointerScale = region.height.toFloat() / context.content.ui.pointer.width

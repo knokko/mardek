@@ -119,6 +119,7 @@ private fun hardcodeDragonLairRoom4Actions(
 			enemyLayout = dragonPartyLayout,
 			music = "BossBattle",
 			background = dragonLairBackground,
+			canFlee = false,
 		), null),
 		ActionFadeCharacter(targetDragon),
 		ActionTalk(targetDragon, "norm", "OH DEAR!! I HAVE BEEN SLAIN!!!"),

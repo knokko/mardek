@@ -153,14 +153,15 @@ class TestingInstance {
 	)
 
 	fun startSimpleBattle(campaign: CampaignState, enemies: Array<Enemy?> = arrayOf(
-		null, Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 10), null, null)
-	) {
+		null, Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 10), null, null
+	), canFlee: Boolean = true) {
 		campaign.currentArea!!.activeBattle = BattleState(
 			battle = Battle(
 				startingEnemies = enemies,
 				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!,
 				music = "peak",
-				background = content.battle.backgrounds.find { it.name == "volcano" }!!
+				background = content.battle.backgrounds.find { it.name == "volcano" }!!,
+				canFlee = canFlee,
 			),
 			players = campaign.characterSelection.party,
 			playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,

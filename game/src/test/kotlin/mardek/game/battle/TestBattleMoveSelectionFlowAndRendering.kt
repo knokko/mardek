@@ -387,3 +387,72 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		assertNull(soundQueue.take())
 	}
 }
+
+fun testCanNotFlee(instance: TestingInstance) {
+	instance.apply {
+		val campaign = simpleCampaignState()
+		val mardekState = campaign.characterStates[heroMardek]!!
+		val deuganState = campaign.characterStates[heroDeugan]!!
+		startSimpleBattle(campaign, canFlee = false)
+
+		val battle = campaign.currentArea!!.activeBattle!!
+
+		fun assertSelectedMove(expected: BattleMoveSelection) {
+			assertInstanceOf(BattleStateMachine.SelectMove::class.java, battle.state)
+			assertEquals(expected, (battle.state as BattleStateMachine.SelectMove).selectedMove)
+		}
+
+		val state = InGameState(campaign, "test")
+
+		val fakeInput = InputManager()
+		val soundQueue = SoundQueue()
+		val context = GameStateUpdateContext(content, fakeInput, soundQueue, 10.milliseconds)
+		val sounds = content.audio.fixedEffects
+		battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
+		state.update(context)
+		assertSelectedMove(BattleMoveSelectionAttack(target = null))
+		assertSame(sounds.ui.scroll2, soundQueue.take())
+		assertNull(soundQueue.take())
+
+		// Test that rendering doesn't crash
+		testRendering(
+			state, 800, 600, "battle-no-flee",
+			emptyArray(), emptyArray(),
+		)
+
+		// 'Scroll' to skill selection
+		fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
+		state.update(context)
+		assertSelectedMove(BattleMoveSelectionSkill(skill = null, target = null))
+		assertSame(sounds.ui.scroll1, soundQueue.take())
+		assertNull(soundQueue.take())
+
+		// 'Scroll' to item selection
+		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
+		state.update(context)
+		assertSelectedMove(BattleMoveSelectionItem(item = null, target = null))
+		assertSame(sounds.ui.scroll1, soundQueue.take())
+		assertNull(soundQueue.take())
+
+		// 'Scroll' to wait
+		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
+		state.update(context)
+		assertSelectedMove(BattleMoveSelectionWait)
+		assertSame(sounds.ui.scroll1, soundQueue.take())
+		assertNull(soundQueue.take())
+
+		// Try to scroll to flee, but go to attack, since we cannot flee
+		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveLeft))
+		state.update(context)
+		assertSelectedMove(BattleMoveSelectionAttack(null))
+		assertSame(sounds.ui.scroll1, soundQueue.take())
+		assertNull(soundQueue.take())
+
+		// Try to scroll to flee from the other direction
+		fakeInput.postEvent(repeatKeyEvent(InputKey.MoveRight))
+		state.update(context)
+		assertSelectedMove(BattleMoveSelectionWait)
+		assertSame(sounds.ui.scroll1, soundQueue.take())
+		assertNull(soundQueue.take())
+	}
+}

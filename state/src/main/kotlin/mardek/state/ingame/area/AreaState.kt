@@ -311,7 +311,7 @@ class AreaState(
 
 			val battle = Battle(
 				enemies, selection.enemyLayout, "battle",
-				randomBattles.specialBackground ?: randomBattles.defaultBackground
+				randomBattles.specialBackground ?: randomBattles.defaultBackground, true,
 			)
 
 			val averagePlayerLevel = context.party.filterNotNull().map {

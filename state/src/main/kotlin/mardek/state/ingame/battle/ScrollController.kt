@@ -8,7 +8,10 @@ internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, contex
 	val selectedMove = state.selectedMove
 	if (selectedMove is BattleMoveSelectionAttack && selectedMove.target == null) {
 		if (key == InputKey.MoveLeft) state.selectedMove = BattleMoveSelectionSkill(skill = null, target = null)
-		else state.selectedMove = BattleMoveSelectionFlee
+		else {
+			if (battle.battle.canFlee) state.selectedMove = BattleMoveSelectionFlee
+			else state.selectedMove = BattleMoveSelectionWait
+		}
 		context.soundQueue.insert(context.sounds.ui.scroll1)
 	}
 	if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) {
@@ -95,8 +98,10 @@ internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, contex
 		}
 	}
 	if (selectedMove is BattleMoveSelectionWait) {
-		if (key == InputKey.MoveLeft) changeSelectedMove(battle, BattleMoveSelectionFlee, context)
-		else changeSelectedMove(battle, BattleMoveSelectionItem(item = null, target = null), context)
+		if (key == InputKey.MoveLeft) {
+			if (battle.battle.canFlee) changeSelectedMove(battle, BattleMoveSelectionFlee, context)
+			else changeSelectedMove(battle, BattleMoveSelectionAttack(null), context)
+		} else changeSelectedMove(battle, BattleMoveSelectionItem(item = null, target = null), context)
 		context.soundQueue.insert(context.sounds.ui.scroll1)
 	}
 	if (selectedMove is BattleMoveSelectionFlee) {

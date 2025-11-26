@@ -56,6 +56,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testBattleWhereThePlayerCanNotFlee() {
+		testCanNotFlee(instance)
+	}
+
+	@Test
 	fun testPortraits() {
 		TestSpecialPortraitNodes.testPresenceAndAbsence(instance)
 	}
