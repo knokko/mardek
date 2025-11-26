@@ -3,7 +3,7 @@
 layout(location = 0) in vec2 textureCoordinates;
 layout(location = 1) in flat uint textureIndex;
 layout(location = 2) in flat uint header;
-layout(location = 3) in flat uvec4 firstColors;
+layout(location = 3) in flat uint firstColor;
 layout(location = 4) in flat uint rawBlinkColor;
 layout(location = 5) in float opacity;
 
@@ -19,7 +19,7 @@ layout(location = 0) out vec4 outColor;
 defineSampleKim3(textureData)
 
 void main() {
-	vec4 textureColor = sampleKim3(header, textureIndex, firstColors, textureCoordinates);
+	vec4 textureColor = sampleKim3(header, textureIndex, firstColor, textureCoordinates);
 	float alpha = textureColor.a * opacity;
 	vec4 blinkColor = decodeColor(rawBlinkColor);
 	vec3 rgbColor = (1.0 - blinkColor.a) * textureColor.rgb + blinkColor.a * blinkColor.rgb;

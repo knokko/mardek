@@ -29,6 +29,23 @@ public class ImageBenchmarkResourceWriter {
 		Vk2dResourceWriter writer = new Vk2dResourceWriter();
 
 		try {
+			BufferedImage colorImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+			for (int y = 0; y < 16; y++) {
+				for (int x = 0; x < 16; x++) {
+					colorImage.setRGB(x, y, -1);
+				}
+			}
+			writer.addFakeImage(colorImage, Vk2dFakeImageCompression.KIM1);
+			writer.addFakeImage(colorImage, Vk2dFakeImageCompression.KIM3);
+			BufferedImage gradientImage = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+			for (int y = 0; y < 16; y++) {
+				for (int x = 0; x < 16; x++) {
+					gradientImage.setRGB(x, y, x + 15 * y);
+				}
+			}
+			writer.addFakeImage(gradientImage, Vk2dFakeImageCompression.KIM1);
+			writer.addFakeImage(gradientImage, Vk2dFakeImageCompression.KIM3);
+
 			BufferedImage weaponSheet = ImageIO.read(Objects.requireNonNull(
 					ChaosImageBenchmark.class.getResource("images/weapons.png")
 			));

@@ -56,7 +56,7 @@ class RenderContext(
 		currentStage, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
 	)
 
-	fun addKim3Batch(initialCapacity: Int) = pipelines.base.kim3.addBatch(currentStage, initialCapacity, bundle)!!
+	fun addKim3Batch(initialCapacity: Int) = pipelines.base.kim3.addBatch(currentStage, initialCapacity, bundle, perFrameDescriptorSet)!!
 
 	fun addAreaSpriteBatch(initialCapacity: Int, scissor: Rectangle) = pipelines.areaSprite.addBatch(
 		currentStage, initialCapacity, bundle, perFrameDescriptorSet, scissor

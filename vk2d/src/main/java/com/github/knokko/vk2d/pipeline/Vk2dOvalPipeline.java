@@ -25,7 +25,7 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 	@SuppressWarnings("resource")
 	public Vk2dOvalPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
 		super(context.printBatchSizes);
-		this.vkPipelineLayout = instance.kimPipelineLayout;
+		this.vkPipelineLayout = instance.singleBufferPipelineLayout;
 
 		try (MemoryStack stack = stackPush()) {
 			var vertexAttributes = VkVertexInputAttributeDescription.calloc(2, stack);
@@ -38,7 +38,7 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 					"oval.vert.spv", "oval.frag.spv"
 			);
 			simpleVertexInput(builder, stack, vertexAttributes, VERTEX_SIZE);
-			builder.ciPipeline.layout(instance.kimPipelineLayout);
+			builder.ciPipeline.layout(instance.singleBufferPipelineLayout);
 
 			this.vkPipeline = builder.build("Vk2dOvalPipeline");
 		}

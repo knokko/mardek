@@ -46,6 +46,7 @@ public class Vk2dResourceLoader {
 	private int[] fakeOffsets;
 	private int[] fakeWidths;
 	private int[] fakeHeights;
+	private int[] fakeData;
 	private long fakeImageDescriptor;
 
 	public Vk2dResourceLoader(Vk2dInstance instance, InputStream rawInput) {
@@ -89,6 +90,7 @@ public class Vk2dResourceLoader {
 		this.fakeOffsets = new int[numFakeImages];
 		this.fakeWidths = new int[numFakeImages];
 		this.fakeHeights = new int[numFakeImages];
+		this.fakeData = new int[2 * numFakeImages];
 
 		int fakeOffset = 0;
 		for (int index = 0; index < numFakeImages; index++) {
@@ -158,6 +160,11 @@ public class Vk2dResourceLoader {
 		if (fakeStagingBuffer != null) {
 			IntBuffer fakeData = fakeStagingBuffer.intBuffer();
 			while (fakeData.hasRemaining()) fakeData.put(input.readInt());
+			for (int textureIndex = 0; textureIndex < fakeOffsets.length; textureIndex++) {
+				int textureOffset = fakeOffsets[textureIndex];
+				this.fakeData[2 * textureIndex] = fakeData.get(textureOffset);
+				this.fakeData[2 * textureIndex + 1] = fakeData.get(textureOffset + 1);
+			}
 		}
 
 		if (fontStagingBuffer != null) {
@@ -240,7 +247,8 @@ public class Vk2dResourceLoader {
 		}
 		return new Vk2dResourceBundle(
 				imageDescriptors, imageWidths, imageHeights, bundleFonts,
-				fakeImageDescriptor, fakeOffsets, fakeWidths, fakeHeights
+				fakeImageDescriptor, fakeOffsets,
+				fakeWidths, fakeHeights, fakeData
 		);
 	}
 

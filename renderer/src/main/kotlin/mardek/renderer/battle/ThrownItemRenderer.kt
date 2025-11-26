@@ -1,11 +1,11 @@
 package mardek.renderer.battle
 
-import com.github.knokko.vk2d.batch.Vk2dKimBatch
+import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import mardek.state.ingame.battle.BattleStateMachine
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-internal fun renderThrownItems(battleContext: BattleRenderContext, kimBatch: Vk2dKimBatch) {
+internal fun renderThrownItems(battleContext: BattleRenderContext, kimBatch: Vk2dKim3Batch) {
 	battleContext.run {
 		val stateMachine = battle.state
 		if (stateMachine !is BattleStateMachine.UseItem) return

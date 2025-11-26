@@ -4,7 +4,7 @@ import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.window.AcquiredImage;
 import com.github.knokko.boiler.window.VkbWindow;
-import com.github.knokko.vk2d.batch.Vk2dKimBatch;
+import com.github.knokko.vk2d.batch.Vk2dKim3Batch;
 import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame;
 
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class Kim3Benchmark extends Vk2dWindow {
 		Random rng = new Random();
 		int numRounds = 1;
 		int scale = 1;
-		Vk2dKimBatch batch1 = pipelines.kim3.addBatch(frame.swapchainStage, 5000, resources);
+		Vk2dKim3Batch batch1 = pipelines.kim3.addBatch(frame.swapchainStage, 5000, resources, perFrameDescriptorSet);
 		for (int round = 0; round < numRounds; round++) {
 			for (int y = 0; y < swapchainImage.getHeight(); y += 16 * scale) {
 				for (int x = 0; x < swapchainImage.getWidth(); x += 16 * scale) {

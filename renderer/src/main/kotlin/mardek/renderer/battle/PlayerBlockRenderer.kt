@@ -7,7 +7,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
-import com.github.knokko.vk2d.batch.Vk2dKimBatch
+import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.util.ResourceBarRenderer
@@ -19,7 +19,7 @@ import kotlin.math.roundToInt
 internal fun renderPlayerBlock(
 	battleContext: BattleRenderContext, player: PlayerCombatantState,
 	colorBatch: Vk2dColorBatch, lateColorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
-	spriteBatch: Vk2dKimBatch, imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, region: Rectangle
+	spriteBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, region: Rectangle
 ) {
 	battleContext.run {
 		val nameX = run {

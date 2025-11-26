@@ -5,7 +5,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
-import com.github.knokko.vk2d.batch.Vk2dKimBatch
+import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
@@ -19,7 +19,7 @@ import kotlin.math.roundToInt
 
 fun renderTurnOrder(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
-	kimBatch: Vk2dKimBatch, textBatch: Vk2dGlyphBatch, region: Rectangle
+	kimBatch: Vk2dKim3Batch, textBatch: Vk2dGlyphBatch, region: Rectangle
 ) {
 	battleContext.run {
 		val slotWidth = region.height

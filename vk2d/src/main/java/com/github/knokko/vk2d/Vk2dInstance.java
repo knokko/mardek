@@ -22,7 +22,8 @@ public class Vk2dInstance {
 	public final VkbDescriptorSetLayout bufferDescriptorSetLayout;
 	public final VkbDescriptorSetLayout doubleComputeBufferDescriptorLayout;
 
-	public final long kimPipelineLayout;
+	public final long singleBufferPipelineLayout;
+	public final long kim3PipelineLayout;
 
 	public final VkbDescriptorSetLayout textScratchDescriptorLayout1;
 	public final VkbDescriptorSetLayout textTransferDescriptorLayout, textIntersectionDescriptorLayout;
@@ -58,7 +59,7 @@ public class Vk2dInstance {
 				this.imageDescriptorSetLayout = null;
 			}
 
-			if (config.shouldCreateBufferPipelineLayout() || config.text || config.blur) {
+			if (config.shouldCreateBufferPipelineLayout() || config.text || config.blur || config.kim3) {
 				DescriptorSetLayoutBuilder builder = new DescriptorSetLayoutBuilder(stack, 1);
 				builder.set(
 						0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -74,12 +75,26 @@ public class Vk2dInstance {
 				pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8);
 
 				assert bufferDescriptorSetLayout != null;
-				this.kimPipelineLayout = boiler.pipelines.createLayout(
-						pushConstants, "Vk2dKimPipelineLayout",
+				this.singleBufferPipelineLayout = boiler.pipelines.createLayout(
+						pushConstants, "Vk2dSingleBufferPipelineLayout",
 						bufferDescriptorSetLayout.vkDescriptorSetLayout
 				);
 			} else {
-				this.kimPipelineLayout = VK_NULL_HANDLE;
+				this.singleBufferPipelineLayout = VK_NULL_HANDLE;
+			}
+
+			if (config.kim3) {
+				VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
+				pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8);
+
+				assert bufferDescriptorSetLayout != null;
+				this.kim3PipelineLayout = boiler.pipelines.createLayout(
+						pushConstants, "Vk2dKim3PipelineLayout",
+						bufferDescriptorSetLayout.vkDescriptorSetLayout,
+						bufferDescriptorSetLayout.vkDescriptorSetLayout
+				);
+			} else {
+				this.kim3PipelineLayout = VK_NULL_HANDLE;
 			}
 
 			if (config.text || config.blur) {
@@ -209,7 +224,8 @@ public class Vk2dInstance {
 			VkAllocationCallbacks pipelineLayoutCallbacks = CallbackUserData.PIPELINE_LAYOUT.put(stack, boiler);
 			long[] pipelineLayouts = {
 					textScratchPipelineLayout, textTransferPipelineLayout, textIntersectionPipelineLayout,
-					blurPipelineLayout1, blurPipelineLayout2, blurPipelineLayoutSample, kimPipelineLayout
+					blurPipelineLayout1, blurPipelineLayout2, blurPipelineLayoutSample,
+					singleBufferPipelineLayout, kim3PipelineLayout
 			};
 			for (long layout : pipelineLayouts) vkDestroyPipelineLayout(boiler.vkDevice(), layout, pipelineLayoutCallbacks);
 

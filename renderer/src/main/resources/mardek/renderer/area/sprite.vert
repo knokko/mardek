@@ -3,7 +3,7 @@
 layout(location = 0) out vec2 textureCoordinates;
 layout(location = 1) out flat uint textureIndex;
 layout(location = 2) out flat uint header;
-layout(location = 3) out flat uvec4 firstColors;
+layout(location = 3) out flat uint firstColor;
 layout(location = 4) out flat uint blinkColor;
 layout(location = 5) out float opacity;
 
@@ -38,13 +38,7 @@ void main() {
 	textureCoordinates = deriveTextureCoordinates(decodePosition(quad.rawMinPosition), decodePosition(quad.rawSize), scissorMin, scissorBounds);
 	textureIndex = quad.textureIndex;
 	header = textureData[textureIndex];
-	firstColors = uvec4(
-	    textureData[textureIndex + 1],
-	    textureData[textureIndex + 2],
-	    textureData[textureIndex + 3],
-	    textureData[textureIndex + 4]
-	);
-
+	firstColor = textureData[textureIndex + 1];
 	blinkColor = quad.rawBlinkColor;
 	opacity = quad.opacity;
 }

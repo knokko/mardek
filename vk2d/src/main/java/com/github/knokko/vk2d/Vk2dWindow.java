@@ -110,7 +110,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			if (loader != null) loader.claimMemory(combiner);
 			createResources(boiler, combiner, descriptors);
 			if (config.text) this.textBuffer = new Vk2dTextBuffer(instance, combiner, descriptors, numFramesInFlight);
-			if (config.oval || config.text) descriptors.addSingle(
+			if (config.oval || config.text || config.kim3) descriptors.addSingle(
 					instance.bufferDescriptorSetLayout,
 					descriptorSet -> this.perFrameDescriptorSet = descriptorSet
 			);

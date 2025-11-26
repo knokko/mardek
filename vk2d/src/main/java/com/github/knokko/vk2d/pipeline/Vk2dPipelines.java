@@ -9,7 +9,8 @@ public class Vk2dPipelines {
 	public final Vk2dColorPipeline color;
 	public final Vk2dOvalPipeline oval;
 	public final Vk2dImagePipeline image;
-	public final Vk2dKimPipeline kim1, kim3;
+	public final Vk2dKimPipeline kim1;
+	public final Vk2dKim3Pipeline kim3;
 	public final Vk2dGlyphPipeline text;
 	public final Vk2dBlurPipeline blur;
 
@@ -19,7 +20,7 @@ public class Vk2dPipelines {
 		this.oval = config.oval ? new Vk2dOvalPipeline(context, instance) : null;
 		this.image = config.image ? new Vk2dImagePipeline(context, instance) : null;
 		this.kim1 = config.kim1 ? new Vk2dKimPipeline(context, instance, 1) : null;
-		this.kim3 = config.kim3 ? new Vk2dKimPipeline(context, instance, 3) : null;
+		this.kim3 = config.kim3 ? new Vk2dKim3Pipeline(context, instance) : null;
 		this.text = config.text ? new Vk2dGlyphPipeline(context, instance) : null;
 		this.blur = config.blur ? new Vk2dBlurPipeline(context, instance) : null;
 	}

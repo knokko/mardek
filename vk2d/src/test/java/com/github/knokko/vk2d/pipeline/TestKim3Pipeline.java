@@ -1,6 +1,6 @@
 package com.github.knokko.vk2d.pipeline;
 
-import com.github.knokko.vk2d.batch.Vk2dKimBatch;
+import com.github.knokko.vk2d.batch.Vk2dKim3Batch;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ public class TestKim3Pipeline {
 				"kim-pipeline-simple",
 				new File("../image-benchmark-resources.bin"),
 				70, 50, tester -> {
-			Vk2dKimBatch batch = staticPipelines.kim3.addBatch(tester.stage(), 2, tester.bundle());
+			Vk2dKim3Batch batch = staticPipelines.kim3.addBatch(tester.stage(), 2, tester.bundle(), tester.perFrameDescriptorSet());
 			batch.simple(3, 20, 60, 45, 1);
 		});
 	}
@@ -33,7 +33,7 @@ public class TestKim3Pipeline {
 				"kim-pipeline-scale",
 				new File("../image-benchmark-resources.bin"),
 				70, 50, tester -> {
-			Vk2dKimBatch batch = staticPipelines.kim3.addBatch(tester.stage(), 2, tester.bundle());
+			Vk2dKim3Batch batch = staticPipelines.kim3.addBatch(tester.stage(), 2, tester.bundle(), tester.perFrameDescriptorSet());
 			batch.simple(5, 3, 2.5f, 1);
 		});
 	}

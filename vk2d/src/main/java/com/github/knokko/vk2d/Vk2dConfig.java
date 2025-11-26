@@ -35,6 +35,6 @@ public class Vk2dConfig {
 	public boolean blur;
 
 	public boolean shouldCreateBufferPipelineLayout() {
-		return kim1 || kim2 || kim3 || oval;
+		return kim1 || kim2 || oval;
 	}
 }

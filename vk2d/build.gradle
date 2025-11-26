@@ -93,3 +93,24 @@ tasks.register("proguard", ProGuardTask) {
 	dontwarn "com.github.knokko.boiler.buffers.MappedVkbBuffer"
 	dontwarn "com.github.knokko.boiler.utilities.ImageCoding"
 }
+
+tasks.register('generateImageBenchmarkResources', JavaExec) {
+	group = "Benchmark"
+	description = 'Generates the resources needed for e.g. Kim1Benchmark'
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.github.knokko.vk2d.ImageBenchmarkResourceWriter'
+}
+
+tasks.register('kim1Benchmark', JavaExec) {
+	group = "Benchmark"
+	description = 'Runs the kim1 benchmark'
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.github.knokko.vk2d.Kim1Benchmark'
+}
+
+tasks.register('kim3Benchmark', JavaExec) {
+	group = "Benchmark"
+	description = 'Runs the kim3 benchmark'
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.github.knokko.vk2d.Kim3Benchmark'
+}

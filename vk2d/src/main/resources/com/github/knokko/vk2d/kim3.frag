@@ -3,7 +3,7 @@
 layout(location = 0) in vec2 textureCoordinates;
 layout(location = 1) in flat uint textureIndex;
 layout(location = 2) in flat uint header;
-layout(location = 3) in flat uvec4 firstColors;
+layout(location = 3) in flat uint firstColor;
 
 layout(set = 0, binding = 0) readonly buffer TextureData {
 	uint textureData[];
@@ -17,5 +17,5 @@ layout(location = 0) out vec4 outColor;
 defineSampleKim3(textureData)
 
 void main() {
-	outColor = sampleKim3(header, textureIndex, firstColors, textureCoordinates);
+	outColor = sampleKim3(header, textureIndex, firstColor, textureCoordinates);
 }

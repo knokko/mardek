@@ -5,7 +5,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
-import com.github.knokko.vk2d.batch.Vk2dKimBatch
+import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
@@ -22,7 +22,7 @@ import kotlin.math.roundToInt
 
 internal fun renderSkillOrItemDescription(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
-	spriteBatch: Vk2dKimBatch, imageBatch: Vk2dImageBatch, textBatch: MardekGlyphBatch, region: Rectangle,
+	spriteBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch, textBatch: MardekGlyphBatch, region: Rectangle,
 ) {
 	battleContext.run {
 		val charsPerLine = (7f * region.width / region.height).roundToInt()

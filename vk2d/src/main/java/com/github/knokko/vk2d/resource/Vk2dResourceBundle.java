@@ -15,11 +15,13 @@ public class Vk2dResourceBundle {
 	private final int[] fakeImageOffsets;
 	private final int[] fakeImageWidths;
 	private final int[] fakeImageHeights;
+	private final int[] fakeImageData;
 	public final int numFakeImages;
 
 	Vk2dResourceBundle(
 			long[] imageDescriptorSets, int[] imageWidths, int[] imageHeights, Vk2dFont[] fonts,
-			long fakeImageDescriptorSet, int[] fakeImageOffsets, int[] fakeImageWidths, int[] fakeImageHeights
+			long fakeImageDescriptorSet, int[] fakeImageOffsets,
+			int[] fakeImageWidths, int[] fakeImageHeights, int[] fakeImageData
 	) {
 		this.imageDescriptorSets = imageDescriptorSets;
 		this.numImages = imageDescriptorSets.length;
@@ -31,6 +33,7 @@ public class Vk2dResourceBundle {
 		this.fakeImageOffsets = fakeImageOffsets;
 		this.fakeImageWidths = fakeImageWidths;
 		this.fakeImageHeights = fakeImageHeights;
+		this.fakeImageData = fakeImageData;
 		this.numFakeImages = fakeImageHeights.length;
 	}
 
@@ -64,5 +67,10 @@ public class Vk2dResourceBundle {
 
 	public int getFakeImageHeight(int index) {
 		return fakeImageHeights[index];
+	}
+
+	public int getFakeImageData(int textureIndex, int dataIndex) {
+		if (dataIndex < 0 || dataIndex >= 2) throw new IllegalArgumentException();
+		return fakeImageData[2 * textureIndex + dataIndex];
 	}
 }

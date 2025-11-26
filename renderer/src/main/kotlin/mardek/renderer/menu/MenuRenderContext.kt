@@ -2,7 +2,7 @@ package mardek.renderer.menu
 
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
-import com.github.knokko.vk2d.batch.Vk2dKimBatch
+import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import mardek.renderer.RenderContext
 import mardek.renderer.glyph.MardekGlyphBatch
@@ -17,7 +17,7 @@ internal class MenuRenderContext(
 	val colorBatch: Vk2dColorBatch,
 	val ovalBatch: Vk2dOvalBatch,
 	val imageBatch: Vk2dImageBatch,
-	val spriteBatch: Vk2dKimBatch,
+	val spriteBatch: Vk2dKim3Batch,
 	val textBatch: MardekGlyphBatch,
 	val menu: InGameMenuState,
 	val state: CampaignState,

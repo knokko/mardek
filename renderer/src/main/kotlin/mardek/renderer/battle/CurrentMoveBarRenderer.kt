@@ -6,7 +6,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
-import com.github.knokko.vk2d.batch.Vk2dKimBatch
+import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.util.Rectangle
@@ -14,7 +14,7 @@ import kotlin.math.max
 
 internal fun renderCurrentMoveBar(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
-	spriteBatch: Vk2dKimBatch, imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, region: Rectangle
+	spriteBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, region: Rectangle
 ) {
 	battleContext.run {
 		val stateMachine = battle.state

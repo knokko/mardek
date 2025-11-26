@@ -56,7 +56,7 @@ internal fun renderBattle(
 	}
 
 	renderBattlePortrait(battleContext, animationPartBatch, region)
-	renderBaseParticles(battleContext, imageBatch) // TODO DL Use separate particle batch?
+	renderBaseParticles(battleContext, imageBatch)
 	renderEffectParticles(battleContext, imageBatch)
 
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
