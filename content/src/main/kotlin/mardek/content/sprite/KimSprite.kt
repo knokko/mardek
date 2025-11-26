@@ -6,7 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.compressor.Kim1Decompressor
 import com.github.knokko.compressor.Kim2Decompressor
-import com.github.knokko.vk2d.Kim3Compressor
+import com.github.knokko.compressor.Kim3Compressor
 
 // TODO CHAP1 Save conditionally
 @BitStruct(backwardCompatible = true)

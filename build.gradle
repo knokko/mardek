@@ -31,7 +31,7 @@ allprojects {
 	project.ext.jomlVersion = "1.10.8"
 	project.ext.lwjglVersion = "3.4.0-SNAPSHOT"
 	project.ext.boilerVersion = "v5.1.0"
-	project.ext.compressorVersion = "v0.6.0-pre7"
+	project.ext.compressorVersion = "v0.6.0"
 	project.ext.bitserVersion = "d1c7e4b34e0fc66e99932b64f2934d05ed6ee868"
 	project.ext.lwjglNatives = [
 			"natives-linux", "natives-linux-arm32", "natives-linux-arm64",

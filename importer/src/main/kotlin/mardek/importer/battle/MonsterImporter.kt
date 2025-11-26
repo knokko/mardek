@@ -386,9 +386,6 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 	}
 
 	val actions = parseActiveSkills("MonsterImporter$name", content, rawActionList, true)
-	if (actions.any { it.isBreath }) {
-		println("test")
-	}
 	val targetMap = mutableMapOf<ActiveSkill, StrategyTarget>()
 	val strategies = importMonsterStrategies(
 		propertiesCode.variableAssignments["Gambits"]!!, actions, content, targetMap

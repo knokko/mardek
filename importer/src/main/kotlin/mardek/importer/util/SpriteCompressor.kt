@@ -3,7 +3,7 @@ package mardek.importer.util
 import com.github.knokko.boiler.utilities.ImageCoding
 import com.github.knokko.compressor.Kim1Compressor
 import com.github.knokko.compressor.Kim2Compressor
-import com.github.knokko.vk2d.Kim3Compressor
+import com.github.knokko.compressor.Kim3Compressor
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
 import org.lwjgl.BufferUtils

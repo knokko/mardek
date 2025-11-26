@@ -9,7 +9,6 @@ import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.utilities.ImageCoding;
 import com.github.knokko.compressor.*;
-import com.github.knokko.vk2d.Kim3Compressor;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.CLongBuffer;
 import org.lwjgl.PointerBuffer;
@@ -347,7 +346,6 @@ public class Vk2dResourceWriter {
 
 		MemoryCombiner combiner = new MemoryCombiner(boiler, "Bc1/4CompressionMemory");
 		Bc1Compressor compressor1 = hasBc1 ? new Bc1Compressor(boiler, combiner, combiner) : null;
-		// TODO DL Fix validation warning "vkCmdBindPipeline(): [AMD] [NVIDIA] Pipeline VkPipeline 0x50000000005[Bc4Compressor] was bound twice in the frame."
 		Bc4Compressor compressor4 = hasBc4 ? new Bc4Compressor(boiler) : null;
 
 		int maxDestinationImagePixels = 0;
@@ -389,6 +387,7 @@ public class Vk2dResourceWriter {
 			if (compressor1 != null) compressor1.performStagingTransfer(recorder);
 
 			int imageIndex = 0;
+			if (worker1 != null) worker1.bindPipeline(recorder);
 			for (Image entry : images) {
 				if (entry.compression == Vk2dImageCompression.BC1) {
 					MappedVkbBuffer source = sourceBuffers.get(imageIndex);
@@ -416,7 +415,10 @@ public class Vk2dResourceWriter {
 					);
 					imageIndex += 1;
 				}
+			}
 
+			if (worker4 != null) worker4.bindPipeline(recorder);
+			for (Image entry : images) {
 				if (entry.compression == Vk2dImageCompression.BC4) {
 					MappedVkbBuffer source = sourceBuffers.get(imageIndex);
 					ByteBuffer sourceBytes = source.byteBuffer();

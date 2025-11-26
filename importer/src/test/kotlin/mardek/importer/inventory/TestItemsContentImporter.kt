@@ -1,7 +1,7 @@
 package mardek.importer.inventory
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
-import com.github.knokko.vk2d.Kim3Decompressor
+import com.github.knokko.compressor.Kim3Decompressor
 import mardek.content.Content
 import mardek.content.inventory.EquipmentProperties
 import mardek.content.inventory.EquipmentSlotType

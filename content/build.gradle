@@ -1,5 +1,5 @@
 dependencies {
 	api "com.github.knokko:bitser:$bitserVersion"
 	compileOnly project(":vk2d")
-	for (format in ["kim1", "kim2"]) implementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
+	for (format in ["kim1", "kim2", "kim3"]) implementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
 }

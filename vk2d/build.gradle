@@ -10,14 +10,14 @@ dependencies {
 
 	compileOnly "org.lwjgl:lwjgl-freetype"
 	compileOnly "org.lwjgl:lwjgl-harfbuzz"
-	for (format in ["kim1", "kim2", "bc1", "bc4", "bc7"]) {
+	for (format in ["kim1", "kim2", "kim3", "bc1", "bc4", "bc7"]) {
 		compileOnly "com.github.knokko.vk-compressor:$format:$compressorVersion"
 	}
 
 	testImplementation "org.lwjgl:lwjgl-freetype"
 	testImplementation "org.lwjgl:lwjgl-harfbuzz"
 	testImplementation "org.lwjgl:lwjgl-vma"
-	for (format in ["kim1", "kim2", "bc1", "bc4", "bc7"]) {
+	for (format in ["kim1", "kim2", "kim3", "bc1", "bc4", "bc7"]) {
 		testImplementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
 	}
 
@@ -94,23 +94,23 @@ tasks.register("proguard", ProGuardTask) {
 	dontwarn "com.github.knokko.boiler.utilities.ImageCoding"
 }
 
-tasks.register('generateImageBenchmarkResources', JavaExec) {
+tasks.register("generateImageBenchmarkResources", JavaExec) {
 	group = "Benchmark"
-	description = 'Generates the resources needed for e.g. Kim1Benchmark'
+	description = "Generates the resources needed for e.g. Kim1Benchmark"
 	classpath = sourceSets.test.runtimeClasspath
-	mainClass = 'com.github.knokko.vk2d.ImageBenchmarkResourceWriter'
+	mainClass = "com.github.knokko.vk2d.ImageBenchmarkResourceWriter"
 }
 
-tasks.register('kim1Benchmark', JavaExec) {
+tasks.register("kim1Benchmark", JavaExec) {
 	group = "Benchmark"
-	description = 'Runs the kim1 benchmark'
+	description = "Runs the kim1 benchmark"
 	classpath = sourceSets.test.runtimeClasspath
-	mainClass = 'com.github.knokko.vk2d.Kim1Benchmark'
+	mainClass = "com.github.knokko.vk2d.Kim1Benchmark"
 }
 
-tasks.register('kim3Benchmark', JavaExec) {
+tasks.register("kim3Benchmark", JavaExec) {
 	group = "Benchmark"
-	description = 'Runs the kim3 benchmark'
+	description = "Runs the kim3 benchmark"
 	classpath = sourceSets.test.runtimeClasspath
-	mainClass = 'com.github.knokko.vk2d.Kim3Benchmark'
+	mainClass = "com.github.knokko.vk2d.Kim3Benchmark"
 }
