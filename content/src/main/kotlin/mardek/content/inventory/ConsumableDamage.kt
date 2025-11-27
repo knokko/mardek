@@ -6,19 +6,33 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.stats.Element
 
+/**
+ * For consumable items that deal damage (e.g. Liquid Lightning), this class describes their damage and element.
+ */
 @BitStruct(backwardCompatible = true)
 class ConsumableDamage(
-		@BitField(id = 0)
-		@IntegerField(expectUniform = false, minValue = 1)
-		val power: Int,
 
-		@BitField(id = 1)
-		@IntegerField(expectUniform = false, minValue = 1)
-		val spirit: Int,
+	/**
+	 * The power of the consumable. The damage is usually proportional to `power - magicDefense`.
+	 */
+	@BitField(id = 0)
+	@IntegerField(expectUniform = false, minValue = 1)
+	val power: Int,
 
-		@BitField(id = 2)
-		@ReferenceField(stable = false, label = "elements")
-		val element: Element,
+	/**
+	 * The 'spirit' of the consumable. This will be used in the damage formula, instead of the spirit of the thrower.
+	 * The damage is usually proportional to the spirit.
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false, minValue = 1)
+	val spirit: Int,
+
+	/**
+	 * The element of the damage that the consumable will deal (e.g. Air for Liquid Lightning).
+	 */
+	@BitField(id = 2)
+	@ReferenceField(stable = false, label = "elements")
+	val element: Element,
 ) {
 
 	init {

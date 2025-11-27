@@ -6,6 +6,9 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 
+/**
+ * Represents a stack of an `Item`, which is a tuple `(Item, amount)`, e.g. 4 potions.
+ */
 @BitStruct(backwardCompatible = true)
 class ItemStack(
 	@BitField(id = 0)
