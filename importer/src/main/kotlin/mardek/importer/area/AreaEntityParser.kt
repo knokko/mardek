@@ -110,6 +110,9 @@ fun parseAreaEntity(
 	transitions: MutableList<Pair<TransitionDestination, String>>
 ): Any {
 	val rawID = rawEntity["uuid"]
+	val id = if (rawID != null) UUID.fromString(rawID) else {
+		UUID.nameUUIDFromBytes((areaName + rawEntity.toString()).encodeToByteArray())
+	}
 	val model = parseFlashString(rawEntity["model"]!!, "model")!!
 	val x = parseInt(rawEntity["x"])
 	val y = parseInt(rawEntity["y"])
@@ -243,7 +246,7 @@ fun parseAreaEntity(
 			oncePerAreaLoad = rawEntity["recurring"] == "true",
 			walkOn = if (rawWalkOn != null) { if (rawWalkOn == "true") true else null } else false,
 			actions = actionSequence,
-			id = if (rawID != null) UUID.fromString(rawID) else UUID.randomUUID(),
+			id = id,
 		)
 	}
 
@@ -345,7 +348,7 @@ fun parseAreaEntity(
 			rawConversation = rawConversation,
 			actionSequence = actionSequence,
 			encyclopediaPerson = null,
-			id = if (rawID != null) UUID.fromString(rawID) else UUID.randomUUID(),
+			id = id,
 		)
 	}
 
@@ -374,7 +377,7 @@ fun parseAreaEntity(
 		rawConversation = rawConversation,
 		actionSequence = actionSequence,
 		encyclopediaPerson = encyclopediaPerson,
-		id = if (rawID != null) UUID.fromString(rawID) else UUID.randomUUID(),
+		id = id,
 	)
 }
 
