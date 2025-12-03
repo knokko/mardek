@@ -2,6 +2,8 @@ package mardek.content.area
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.content.sprite.KimSprite
 
 /**
@@ -19,6 +21,7 @@ class Tile(
 	 * - the first sprite will be drawn at `(x, y + 1 - sprites.length)`
 	 */
 	@BitField(id = 0)
+	@NestedFieldSetting(path = "", sizeField = IntegerField(minValue = 1, maxValue = 3, expectUniform = true))
 	val sprites: ArrayList<KimSprite>,
 
 	/**

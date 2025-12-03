@@ -49,7 +49,7 @@ class Item(
 	 * half this amount.
 	 */
 	@BitField(id = 4, optional = true)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false, minValue = 0, commonValues=[1000, 5000, 10000, 500])
 	val cost: Int?,
 
 	/**
@@ -95,4 +95,8 @@ class Item(
 	 * increased by equipping this weapon.
 	 */
 	fun getModifier(stat: CombatStat) = equipment?.getStat(stat) ?: 0
+
+	override fun hashCode() = id.hashCode()
+
+	override fun equals(other: Any?) = other is Item && id == other.id
 }

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.audio.SoundEffect
 import mardek.content.particle.ParticleEffect
 import mardek.content.stats.Element
@@ -30,7 +31,7 @@ class ActiveSkill(
 	val damage: SkillDamage?,
 
 	@BitField(id = 3)
-	@IntegerField(expectUniform = true, minValue = 0, maxValue = 255)
+	@IntegerField(expectUniform = true, minValue = 0, maxValue = 255, commonValues=[100, 255])
 	val accuracy: Int,
 
 	@BitField(id = 4)
@@ -122,4 +123,8 @@ class ActiveSkill(
 	)
 
 	fun isPositive() = isHealing || isBuff
+
+	override fun hashCode() = id.hashCode()
+
+	override fun equals(other: Any?) = other is ActiveSkill && id == other.id
 }

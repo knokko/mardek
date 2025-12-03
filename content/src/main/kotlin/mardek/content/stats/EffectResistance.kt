@@ -12,7 +12,7 @@ class EffectResistance(
 	val effect: StatusEffect,
 
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
+	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100, commonValues = [100])
 	val percentage: Int,
 ) {
 

@@ -55,7 +55,7 @@ class ParticleDynamics(
 	 * (continuously)
 	 */
 	@BitField(id = 6)
-	@FloatField(expectMultipleOf = 0.01)
+	@FloatField(expectMultipleOf = 0.01, commonValues = [1.0, 0.05])
 	val velocityMultiplierY: Float,
 
 	/**
@@ -63,7 +63,7 @@ class ParticleDynamics(
 	 * every second (continuously)
 	 */
 	@BitField(id = 7)
-	@FloatField(expectMultipleOf = 1.0)
+	@FloatField(expectMultipleOf = 1.0, commonValues = [1.0, 0.05])
 	val spin: Float,
 ) {
 	internal constructor() : this(

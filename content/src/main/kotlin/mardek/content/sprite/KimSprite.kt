@@ -16,16 +16,19 @@ class KimSprite(
 	var data: IntArray?,
 
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true, minValue = 1, maxValue = 3)
+	@IntegerField(expectUniform = true, minValue = 1, maxValue = 3, commonValues = [3])
 	val version: Int,
 ) {
 
 	@BitField(id = 2)
-	@IntegerField(minValue = -1, expectUniform = true)
+	@IntegerField(minValue = -1, expectUniform = false, digitSize = 3)
 	var index = -1
 
 	@BitField(id = 3)
-	@IntegerField(expectUniform = true)
+	@IntegerField(expectUniform = true, commonValues=[ // Don't question it: it just saves storage space
+		83951632, 100728848, 50397200, 67174416, 117506064, 151060496, 16842768, 134283280,
+		167837712, 184614928, 33619984, 201392144, 218169360, 234946576, 251723792
+	])
 	val header = if (data == null) 0 else data!![0]
 
 	val width: Int

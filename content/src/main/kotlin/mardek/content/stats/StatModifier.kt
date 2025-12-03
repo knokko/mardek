@@ -10,7 +10,7 @@ class StatModifier(
 	val stat: CombatStat,
 
 	@BitField(id = 1)
-	@IntegerField(expectUniform = false)
+	@IntegerField(expectUniform = false, digitSize = 2)
 	val adder: Int,
 ) {
 

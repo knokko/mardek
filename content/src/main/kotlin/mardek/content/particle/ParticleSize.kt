@@ -3,6 +3,7 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
+import com.github.knokko.bitser.field.IntegerField
 
 @BitStruct(backwardCompatible = true)
 class ParticleSize(
@@ -53,14 +54,20 @@ class ParticleSize(
 	 * The width of each particle will be multiplied by `growX` every second (continuously)
 	 */
 	@BitField(id = 6)
-	@FloatField(expectMultipleOf = 1.0)
+	@FloatField(
+		expectMultipleOf = 0.001, commonValues = [1.0],
+		expectedIntegerMultiple = IntegerField(expectUniform = false, digitSize = 3),
+	)
 	val growX: Float,
 
 	/**
 	 * The height of each particle will be multiplied by `growY` every second (continuously)
 	 */
 	@BitField(id = 7)
-	@FloatField(expectMultipleOf = 1.0)
+	@FloatField(
+		expectMultipleOf = 0.001, commonValues = [1.0],
+		expectedIntegerMultiple = IntegerField(expectUniform = false, digitSize = 3),
+	)
 	val growY: Float,
 ) {
 	internal constructor() : this(

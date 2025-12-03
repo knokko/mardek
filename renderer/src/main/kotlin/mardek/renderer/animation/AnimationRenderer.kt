@@ -72,8 +72,8 @@ private fun renderAnimationFrame(frame: AnimationFrame, context: AnimationContex
 }
 
 internal fun toJOMLMatrix(raw: AnimationMatrix) = Matrix3x2f(
-	raw.getScaleX(), raw.rotateSkew0,
-	raw.rotateSkew1, raw.getScaleY(),
+	raw.scaleX, raw.rotateSkew0,
+	raw.rotateSkew1, raw.scaleY,
 	raw.translateX, raw.translateY
 )
 

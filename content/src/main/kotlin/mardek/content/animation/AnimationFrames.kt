@@ -2,7 +2,9 @@ package mardek.content.animation
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.serialize.BitPostInit
+import com.github.knokko.bitser.BitPostInit
+import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import kotlin.time.Duration
 
 /**
@@ -11,6 +13,9 @@ import kotlin.time.Duration
 @BitStruct(backwardCompatible = true)
 class AnimationFrames(
 	@BitField(id = 0)
+	@NestedFieldSetting(path = "", sizeField = IntegerField(
+		minValue = 1, expectUniform = false, digitSize = 2, commonValues = [1]
+	))
 	val frames: Array<AnimationFrame>,
 ): BitPostInit, Iterable<AnimationFrame> {
 

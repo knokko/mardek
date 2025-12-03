@@ -1,7 +1,7 @@
 package mardek.state.title
 
 import com.github.knokko.bitser.io.BitInputStream
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import mardek.content.Content
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent

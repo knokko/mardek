@@ -2,7 +2,9 @@ package mardek.content.animation
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.serialize.BitPostInit
+import com.github.knokko.bitser.BitPostInit
+import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import kotlin.time.Duration
 
 /**
@@ -17,6 +19,9 @@ class AnimationMask(
 	 * always 0, sometimes 1, but rarely more than 1. Still, we need to support multiple frames for these rare cases.
 	 */
 	@BitField(id = 0)
+	@NestedFieldSetting(path = "", sizeField = IntegerField(
+		minValue = 0, expectUniform = false, commonValues = [0]
+	))
 	val frames: Array<AnimationMaskFrame>
 ) : BitPostInit, Iterable<AnimationMaskFrame> {
 

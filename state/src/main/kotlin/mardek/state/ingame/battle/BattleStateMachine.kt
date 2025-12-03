@@ -6,7 +6,7 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import com.github.knokko.bitser.serialize.BitPostInit
+import com.github.knokko.bitser.BitPostInit
 import mardek.content.inventory.Item
 import mardek.content.particle.ParticleEffect
 import mardek.content.skill.ActiveSkill
@@ -46,7 +46,11 @@ sealed class BattleStateMachine {
 	 * The battle should move on to the next combatant that is on turn
 	 */
 	@BitStruct(backwardCompatible = true)
-	class NextTurn(val startAt: Long) : BattleStateMachine()
+	class NextTurn(val startAt: Long) : BattleStateMachine() {
+
+		@Suppress("unused")
+		private constructor() : this(0L)
+	}
 
 	@BitStruct(backwardCompatible = true)
 	class NextTurnEffects(
@@ -295,6 +299,7 @@ sealed class BattleStateMachine {
 	) : BattleStateMachine(), Move {
 		var startTime = System.nanoTime()
 
+		@Suppress("unused")
 		constructor() : this(
 			MonsterCombatantState(), emptyArray(),
 			ActiveSkill(), null

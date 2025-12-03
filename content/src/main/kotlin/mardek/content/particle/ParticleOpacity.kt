@@ -18,7 +18,7 @@ class ParticleOpacity(
 	 * - values above 1.0 mean that the particle becomes extra bright
 	 */
 	@BitField(id = 0)
-	@FloatField(expectMultipleOf = 0.01)
+	@FloatField(expectMultipleOf = 0.1, commonValues = [1.0])
 	val initial: Float,
 
 	/**

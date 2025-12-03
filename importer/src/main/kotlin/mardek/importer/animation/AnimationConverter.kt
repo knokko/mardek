@@ -29,7 +29,6 @@ internal fun convertTransformationMatrix(matrix: MATRIX?) = if (matrix != null) 
 	translateY = matrix.translateY / 20f,
 	rotateSkew0 = matrix.rotateSkew0,
 	rotateSkew1 = matrix.rotateSkew1,
-	hasScale = matrix.hasScale,
-	scaleX = matrix.scaleX,
-	scaleY = matrix.scaleY
+	scaleX = if (matrix.hasScale) matrix.scaleX else 1f,
+	scaleY = if (matrix.hasScale) matrix.scaleY else 1f,
 ) else null

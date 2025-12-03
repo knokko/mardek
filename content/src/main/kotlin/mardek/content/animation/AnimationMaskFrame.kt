@@ -3,6 +3,7 @@ package mardek.content.animation
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.ReferenceField
 import kotlin.time.Duration
 
 /**
@@ -16,6 +17,7 @@ class AnimationMaskFrame(
 	 * animation.
 	 */
 	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "animation sprites")
 	val sprite: AnimationSprite,
 
 	/**
@@ -29,7 +31,7 @@ class AnimationMaskFrame(
 	 * all frames are imported from flash.)
 	 */
 	@BitField(id = 2)
-	@IntegerField(expectUniform = true, minValue = 1)
+	@IntegerField(expectUniform = false, minValue = 1, digitSize = 4, commonValues = [66666666])
 	val duration: Duration,
 ) {
 	@Suppress("unused")

@@ -13,7 +13,7 @@ class ElementalResistance(
 	val element: Element,
 
 	@BitField(id = 1)
-	@FloatField(expectMultipleOf = 0.05)
+	@FloatField(expectMultipleOf = 0.05, commonValues=[0.5, -1.0, 1.0, 2.0])
 	val modifier: Float
 ) {
 

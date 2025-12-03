@@ -1,10 +1,9 @@
 package mardek.content.action
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.SimpleLazyBits
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
-import mardek.content.animation.AnimationSprite
-import mardek.content.animation.SkinnedAnimation
 
 /**
  * This is the root of the *action*-related content, where *actions* can do many things, for instance:
@@ -34,19 +33,5 @@ class ActionContent {
      */
     @BitField(id = 1)
     @ReferenceFieldTarget(label = "cutscenes")
-    val cutscenes = ArrayList<Cutscene>()
-
-    /**
-     * All animation sprites that can be used by the cutscenes
-     */
-    @BitField(id = 2)
-    @ReferenceFieldTarget(label = "animation sprites")
-    val cutsceneSprites = ArrayList<AnimationSprite>()
-
-    /**
-     * All inner animations that can be used by the cutscenes
-     */
-    @BitField(id = 3)
-    @ReferenceFieldTarget(label = "skinned animations")
-    val cutsceneAnimations = ArrayList<SkinnedAnimation>()
+    val cutscenes = ArrayList<SimpleLazyBits<Cutscene>>()
 }

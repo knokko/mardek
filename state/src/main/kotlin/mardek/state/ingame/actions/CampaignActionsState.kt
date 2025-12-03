@@ -57,9 +57,22 @@ class CampaignActionsState(
 	override fun toString() = "CampaignActions($node)"
 
 	/**
+	 * By calling `action.cutscene.get()`, we will deserialize the cutscene on *this* thread, which may block this
+	 * thread for a second on slow old laptops. If we would not do this, the render thread may deserialize the cutscene,
+	 * which would block the render thread, which is undesirable...
+	 */
+	private fun makeSureRenderThreadDoesNotGetBlocked(next: ActionNode) {
+		if (next is FixedActionNode) {
+			val action = next.action
+			if (action is ActionPlayCutscene) action.cutscene.get()
+		}
+	}
+
+	/**
 	 * Transitions to the next node, and sets `currentNodeStartTime` to the current time
 	 */
 	private fun toNextNode(next: ActionNode) {
+		makeSureRenderThreadDoesNotGetBlocked(next)
 		this.node = next
 		this.currentNodeStartTime = System.nanoTime()
 		this.finishedAnimationNode = false

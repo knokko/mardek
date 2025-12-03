@@ -92,7 +92,7 @@ class StrategyEntry(
 	 * odds that this entry is chosen.
 	 */
 	@BitField(id = 3)
-	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
+	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100, commonValues = [100, 30])
 	val chance: Int,
 ) {
 	init {

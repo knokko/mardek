@@ -20,21 +20,25 @@ class ColorTransform(
 	 * The color that will be added to the final color
 	 */
 	@BitField(id = 0)
-	@IntegerField(expectUniform = true)
+	@IntegerField(expectUniform = false, digitSize = 3, commonValues=[
+		0, 16646296, 65024, 52222, 6029312, 3158064, 25600, 22272
+	])
 	val addColor: Int,
 
 	/**
 	 * The color with which the original color will be multiplied
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true)
+	@IntegerField(expectUniform = false, digitSize = 4, commonValues=[
+		-16777216, -5066062, -1, -3355444, -8355712, -6710887, -3552823, -4013374
+	])
 	val multiplyColor: Int,
 
 	/**
 	 * The color that will be subtracted from the final color
 	 */
 	@BitField(id = 2)
-	@IntegerField(expectUniform = true)
+	@IntegerField(expectUniform = false, digitSize = 3, commonValues=[0, 23007])
 	val subtractColor: Int,
 ) {
 

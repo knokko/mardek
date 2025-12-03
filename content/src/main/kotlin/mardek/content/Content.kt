@@ -1,11 +1,11 @@
 package mardek.content
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.io.BitInputStream
-import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.action.ActionContent
 import mardek.content.area.AreaContent
 import mardek.content.audio.AudioContent
@@ -61,8 +61,11 @@ class Content {
 
 	companion object {
 		fun load(resourcePath: String, bitser: Bitser): Content {
-			val input = BitInputStream(BufferedInputStream(Content::class.java.classLoader.getResourceAsStream(resourcePath)!!))
-			val assets = bitser.deserialize(Content::class.java, input, Bitser.BACKWARD_COMPATIBLE)
+			val rawInput = Content::class.java.classLoader.getResourceAsStream(resourcePath)!!
+			val input = BitInputStream(BufferedInputStream(rawInput))
+			val assets = bitser.deserialize(
+				Content::class.java, input, Bitser.BACKWARD_COMPATIBLE
+			)
 			input.close()
 
 			return assets

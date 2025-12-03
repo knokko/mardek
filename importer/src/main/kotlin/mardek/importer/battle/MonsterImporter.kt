@@ -1,5 +1,6 @@
 package mardek.importer.battle
 
+import com.github.knokko.bitser.SimpleLazyBits
 import com.jpexs.decompiler.flash.tags.*
 import mardek.content.Content
 import mardek.content.animation.AnimationMatrix
@@ -128,7 +129,7 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 		val monsterScripts = context.scriptMapping[parseInt(battleTag.uniqueId)]!![combatantName] ?: emptyList()
 		val combatantNodes = rawCombatantAnimations.frames[0].nodes
 
-		val animationMap = HashMap<String, StandaloneAnimation>()
+		val animationMap = HashMap<String, SimpleLazyBits<StandaloneAnimation>>()
 		val flatNodes = mutableListOf<AnimationNode>()
 		var skeleton: CombatantSkeleton? = null
 		var skeletonSpriteID = -1
@@ -145,7 +146,9 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 					val (innerSprites, innerAnimations) = findDependencies(
 						animationFrames.frames.flatMap { it.nodes.toList() }
 					)
-					animationMap[animationName] = StandaloneAnimation(animationFrames, innerSprites, innerAnimations)
+					animationMap[animationName] = SimpleLazyBits(StandaloneAnimation(
+						animationFrames, innerSprites, innerAnimations
+					))
 				}
 				skeletonSpriteID = animation.defineSpriteFlashID
 				skin = node.selectSkin

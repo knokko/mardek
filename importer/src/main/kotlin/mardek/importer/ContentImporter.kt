@@ -1,7 +1,7 @@
 package mardek.importer
 
 import com.github.knokko.bitser.io.BitOutputStream
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import mardek.content.Content
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionSequence
@@ -89,7 +89,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 
 	val dragonLairEntry = content.areas.areas.find { it.properties.rawName == "DL_entr" }!!
 
-	val introCutscene = content.actions.cutscenes.find { it.name == "Chapter 1 intro" }!!
+	val introCutscene = content.actions.cutscenes.find { it.get().name == "Chapter 1 intro" }!!
 	val chapter1IntroSequence = ActionSequence(
 		name = "Chapter 1 intro",
 		root = FixedActionNode(

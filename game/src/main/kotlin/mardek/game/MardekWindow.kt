@@ -1,6 +1,6 @@
 package mardek.game
 
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.descriptors.DescriptorCombiner

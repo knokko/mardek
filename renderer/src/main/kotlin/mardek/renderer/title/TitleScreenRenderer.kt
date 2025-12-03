@@ -1,7 +1,7 @@
 package mardek.renderer.title
 
 import com.github.knokko.bitser.io.BitInputStream
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear

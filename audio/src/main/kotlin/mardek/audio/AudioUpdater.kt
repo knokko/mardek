@@ -61,7 +61,7 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 				val campaignActionNode = state.campaign.actions?.node
 				if (campaignActionNode is FixedActionNode) {
 					val action = campaignActionNode.action
-					if (action is ActionPlayCutscene) trackName = action.cutscene.musicTrack
+					if (action is ActionPlayCutscene) trackName = action.cutscene.get().musicTrack
 				}
 			}
 		}

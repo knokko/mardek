@@ -19,7 +19,7 @@ abstract class Skill(
 	val element: Element,
 
 	@BitField(id = 3)
-	@IntegerField(expectUniform = false, minValue = -1)
+	@IntegerField(expectUniform = false, minValue = -1, commonValues=[0, 20])
 	val masteryPoints: Int,
 
 	@BitField(id = 4)

@@ -67,4 +67,8 @@ class Element(
 	}
 
 	override fun toString() = properName
+
+	override fun hashCode() = id.hashCode()
+
+	override fun equals(other: Any?) = other is Element && id == other.id
 }

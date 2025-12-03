@@ -24,14 +24,14 @@ class TransitionDestination(
 	 * When this destination is an area location, this will be the X-coordinate of the destination tile.
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = false, minValue = -1)
+	@IntegerField(expectUniform = false, minValue = -1, digitSize = 2)
 	val x: Int,
 
 	/**
 	 * When this destination is an area location, this will be the Y-coordinate of the destination file.
 	 */
 	@BitField(id = 2)
-	@IntegerField(expectUniform = false, minValue = -1)
+	@IntegerField(expectUniform = false, minValue = -1, digitSize = 2)
 	val y: Int,
 
 	/**

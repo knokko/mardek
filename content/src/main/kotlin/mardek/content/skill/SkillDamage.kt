@@ -12,7 +12,7 @@ class SkillDamage(
 	 * Increases attack value by flat amount, independent of weapon
 	 */
 	@BitField(id = 0)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false, minValue = 0, digitSize = 2)
 	val flatAttackValue: Int,
 
 	/**

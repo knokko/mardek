@@ -1,6 +1,6 @@
 package mardek.state
 
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import mardek.content.Content
 import mardek.input.InputManager
 import mardek.state.saves.SavesFolderManager

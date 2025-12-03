@@ -214,6 +214,7 @@ class IntegrationTests {
 
 	@Test
 	fun testInfoModal() {
+		// TODO CHAP1 Check "I noticed that when selecting commands, the one executed right before the reaction makes the menue select/exit sound."
 		TestInfoModal.testRendering(instance)
 	}
 

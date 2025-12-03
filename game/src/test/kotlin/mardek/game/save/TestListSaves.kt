@@ -1,6 +1,6 @@
 package mardek.game.save
 
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import mardek.game.TestingInstance
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SaveInfo

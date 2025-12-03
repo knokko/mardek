@@ -14,7 +14,9 @@ class AreaLight(
 	 * The light color, encoded using `ColorPacker`
 	 */
 	@BitField(id = 0)
-	@IntegerField(expectUniform = true)
+	@IntegerField(expectUniform = true, commonValues=[
+		-1771983880, -1769538982, -1771769861, -1772002818, 1342478066, 1358823424, 1694498700
+	])
 	val color: Int,
 
 	/**
@@ -22,7 +24,7 @@ class AreaLight(
 	 * emission. An offset of 16 means that the light center is 1 tile 'lower'.
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = false)
+	@IntegerField(expectUniform = false, commonValues = [5])
 	val offsetY: Int
 ) {
 

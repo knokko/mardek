@@ -29,7 +29,7 @@ class PotentialItem(
 	 * The chance to get `item`, in percentages
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true, minValue = 1, maxValue = 100)
+	@IntegerField(expectUniform = true, minValue = 1, maxValue = 100, commonValues = [100])
 	val chance: Int,
 ) {
 

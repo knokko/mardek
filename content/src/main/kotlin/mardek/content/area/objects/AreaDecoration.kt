@@ -45,7 +45,7 @@ class AreaDecoration(
 	 * The duration of one animation frame, in milliseconds
 	 */
 	@BitField(id = 3)
-	@IntegerField(minValue = 1, expectUniform = false)
+	@IntegerField(minValue = 1, expectUniform = false, commonValues = [150])
 	val timePerFrame: Int,
 
 	/**

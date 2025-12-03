@@ -2,7 +2,7 @@ package mardek.state.saves
 
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.io.BitOutputStream
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import mardek.content.Content
 import mardek.content.action.ActionSaveCampaign
 import mardek.content.action.FixedActionNode

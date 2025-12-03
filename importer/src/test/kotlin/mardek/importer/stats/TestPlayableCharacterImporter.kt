@@ -1,7 +1,7 @@
 package mardek.importer.stats
 
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.io.BitInputStream
-import com.github.knokko.bitser.serialize.Bitser
 import mardek.content.skill.ReactionSkillType
 import mardek.importer.importVanillaContent
 import mardek.state.ingame.CampaignState

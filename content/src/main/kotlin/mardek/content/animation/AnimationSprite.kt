@@ -29,14 +29,18 @@ class AnimationSprite(
 	 * The offset on the X-axis that should be applied *after* all transformation/animation matrices
 	 */
 	@BitField(id = 3)
-	@FloatField(expectMultipleOf = 0.05)
+	@FloatField(expectMultipleOf = 0.05, expectedIntegerMultiple = IntegerField(
+		expectUniform = false, digitSize = 2, minValue = -11000, maxValue = 3000
+	))
 	val offsetX: Float,
 
 	/**
 	 * The offset on the Y-axis that should be applied *after* all transformation/animation matrices
 	 */
 	@BitField(id = 4)
-	@FloatField(expectMultipleOf = 0.05)
+	@FloatField(expectMultipleOf = 0.05, expectedIntegerMultiple = IntegerField(
+		expectUniform = false, digitSize = 0, minValue = -6000, maxValue = 4000
+	))
 	val offsetY: Float,
 ) {
 	internal constructor() : this(-1, BcSprite(), 0f, 0f)

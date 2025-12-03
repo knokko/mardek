@@ -11,6 +11,7 @@ dependencies {
 	implementation project(":state")
 	implementation project(":vk2d")
 	implementation "org.apache.xmlgraphics:batik-all:1.19"
+	implementation "com.github.knokko:sample-profiler:v1.0.0"
 }
 
 test {

@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import com.github.knokko.bitser.serialize.BitPostInit
+import com.github.knokko.bitser.BitPostInit
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Dreamstone
 import mardek.content.inventory.ItemStack

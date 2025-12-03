@@ -71,7 +71,7 @@ class Monster(
 	 * modifiers (or stat-increasing equipment), these will be their effective stats.
 	 */
 	@BitField(id = 6)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false, minValue = 0, digitSize = 2)
 	val baseStats: HashMap<CombatStat, Int>,
 
 	/**

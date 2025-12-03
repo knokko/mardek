@@ -22,14 +22,14 @@ class Chest(
 	 * The X-coordinate of the tile containing this chest
 	 */
 	@BitField(id = 0)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false, minValue = 0, digitSize = 2)
 	val x: Int,
 
 	/**
 	 * The Y-coordinate of the tile containing this chest
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false, minValue = 0, digitSize = 2)
 	val y: Int,
 
 	/**

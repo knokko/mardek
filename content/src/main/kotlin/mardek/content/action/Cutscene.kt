@@ -3,8 +3,11 @@ package mardek.content.action
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.animation.AnimationFrames
+import mardek.content.animation.AnimationSprite
+import mardek.content.animation.SkinnedAnimation
 import java.util.UUID
 
 /**
@@ -55,6 +58,20 @@ class Cutscene(
 	@StableReferenceFieldId
 	val id: UUID,
 ) {
+	/**
+	 * All animation sprites that are used by this cutscene
+	 */
+	@BitField(id = 6)
+	@ReferenceFieldTarget(label = "animation sprites")
+	val sprites = ArrayList<AnimationSprite>()
+
+	/**
+	 * All inner animations that are used by this cutscene
+	 */
+	@BitField(id = 7)
+	@ReferenceFieldTarget(label = "skinned animations")
+	val innerAnimations = ArrayList<SkinnedAnimation>()
+
 	internal constructor() : this(
 		"", AnimationFrames(), 0,
 		"", emptyArray(), UUID.randomUUID(),

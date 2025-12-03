@@ -1,6 +1,7 @@
 package mardek.content.action
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.SimpleLazyBits
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
@@ -324,11 +325,11 @@ class ActionPlayCutscene(
 	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "cutscenes")
-	val cutscene: Cutscene,
+	val cutscene: SimpleLazyBits<Cutscene>,
 ) : FixedAction() {
 
 	@Suppress("unused")
-	private constructor() : this(Cutscene())
+	private constructor() : this(SimpleLazyBits(Cutscene()))
 
 	override fun getTargets() = emptyArray<ActionTarget>()
 

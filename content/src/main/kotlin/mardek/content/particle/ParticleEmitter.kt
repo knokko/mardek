@@ -3,10 +3,7 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
-import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * `ParticleEmitter`s spawn/emit one or more particles.
@@ -49,7 +46,7 @@ class ParticleEmitter(
 	 * The (maximum) lifetime of each emitted particle (in seconds)
 	 */
 	@BitField(id = 7)
-	@FloatField(expectMultipleOf = 1.0 / 30.0)
+	@FloatField(expectMultipleOf = 1.0 / 30.0, commonValues=[6.666, 3.333, 1.0, 0.666])
 	val lifeTime: Float,
 
 	/**

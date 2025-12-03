@@ -1,6 +1,6 @@
 package mardek.importer.actions
 
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
 import mardek.content.action.ChoiceActionNode

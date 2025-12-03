@@ -1,6 +1,6 @@
 package mardek.game
 
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import mardek.content.Content
 
 fun selfTest1() {

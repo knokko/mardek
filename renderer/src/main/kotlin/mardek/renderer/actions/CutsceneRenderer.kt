@@ -19,7 +19,7 @@ internal fun renderCutscene(
 ) {
 	var remainingTime = renderTime - actions.currentNodeStartTime
 	var frameIndex = -1
-	for ((currentFrameIndex, frame) in action.cutscene.frames.withIndex()) {
+	for ((currentFrameIndex, frame) in action.cutscene.get().frames.withIndex()) {
 		remainingTime -= frame.duration.inWholeNanoseconds
 		if (remainingTime < 0L) {
 			frameIndex = currentFrameIndex
@@ -30,7 +30,7 @@ internal fun renderCutscene(
 	if (frameIndex == -1) {
 		actions.finishedAnimationNode = true
 	} else {
-		for (textEntry in action.cutscene.subtitles) {
+		for (textEntry in action.cutscene.get().subtitles) {
 			if (frameIndex >= textEntry.frame) actions.cutsceneSubtitle = textEntry.text
 		}
 
@@ -49,7 +49,7 @@ internal fun renderCutscene(
 			renderRegion = region,
 			renderTime = renderTime,
 			referenceTime = actions.currentNodeStartTime,
-			magicScale = action.cutscene.magicScale,
+			magicScale = action.cutscene.get().magicScale,
 			parentMatrix = Matrix3x2f().translate(
 				region.minX + 0.5f * (renderWidth - clippedWidth),
 				region.minY + 0.5f * (renderHeight - clippedHeight),
@@ -60,7 +60,7 @@ internal fun renderCutscene(
 			combat = null,
 			portrait = null,
 		)
-		renderCutsceneAnimation(action.cutscene.frames, animationContext)
+		renderCutsceneAnimation(action.cutscene.get().frames, animationContext)
 
 		if (actions.cutsceneSubtitle.isNotEmpty()) {
 			val font = context.bundle.getFont(context.content.fonts.large2.index)

@@ -1,6 +1,6 @@
 package mardek.importer
 
-import com.github.knokko.bitser.serialize.Bitser
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.utilities.ImageCoding
 import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
 import com.github.knokko.vk2d.resource.Vk2dImageCompression
@@ -154,14 +154,18 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	}
 	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
 
-	for (animationSprite in content.actions.cutsceneSprites + content.battle.animationSprites +
-			content.portraits.animationSprites
-	) {
+	for (cutscene in content.actions.cutscenes) {
+		for (animationSprite in cutscene.get().sprites) {
+			addBcImage(resourceWriter, animationSprite.image)
+		}
+	}
+
+	for (animationSprite in content.battle.animationSprites + content.portraits.animationSprites) {
 		addBcImage(resourceWriter, animationSprite.image)
 	}
 	for (skeleton in content.battle.skeletons) {
 		for (animation in skeleton.animations.values) {
-			for (sprite in animation.innerSprites) addBcImage(resourceWriter, sprite.image)
+			for (sprite in animation.get().innerSprites) addBcImage(resourceWriter, sprite.image)
 		}
 	}
 	addBcImage(resourceWriter, content.battle.noMask)
