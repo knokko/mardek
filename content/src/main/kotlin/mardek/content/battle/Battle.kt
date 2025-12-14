@@ -39,21 +39,36 @@ class Battle(
 	val music: String,
 
 	/**
-	 * The background that will be rendered behind the combatants, typically represents the location of the battle
+	 * The music track that should be played during the loot screen after winning this battle,
+	 * typically "VictoryFanfare"
 	 */
 	@BitField(id = 3)
+	val lootMusic: String,
+
+	/**
+	 * The background that will be rendered behind the combatants, typically represents the location of the battle
+	 */
+	@BitField(id = 4)
 	@ReferenceField(stable = true, label = "battle backgrounds")
 	val background: BattleBackground,
 
 	/**
 	 * Whether the player can run away/flee from this battle
 	 */
-	@BitField(id = 6)
+	@BitField(id = 5)
 	val canFlee: Boolean,
+
+	/**
+	 * Whether this is a random battle: such battles are started randomly while the player is walking through
+	 * dungeons. This field determines whether [mardek.content.story.FixedTimelineVariables.blockRandomBattleMusic]
+	 * blocks the music of this battle.
+	 */
+	@BitField(id = 6)
+	val isRandom: Boolean,
 ) {
 	constructor() : this(
-		arrayOf(null, null, null, null),
-		PartyLayout(), "", BattleBackground(), true,
+		arrayOf(null, null, null, null), PartyLayout(),
+		"", "", BattleBackground(), true, true,
 	)
 }
 

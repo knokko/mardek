@@ -7,6 +7,7 @@ public class Vk2dPipelines {
 
 	public final Vk2dInstance instance;
 	public final Vk2dColorPipeline color;
+	public final Vk2dMultiplyPipeline multiply;
 	public final Vk2dOvalPipeline oval;
 	public final Vk2dImagePipeline image;
 	public final Vk2dKimPipeline kim1;
@@ -16,7 +17,8 @@ public class Vk2dPipelines {
 
 	public Vk2dPipelines(Vk2dInstance instance, Vk2dPipelineContext context, Vk2dConfig config) {
 		this.instance = instance;
-		this.color = config.color ? new Vk2dColorPipeline(context) : null;
+		this.color = config.color ? new Vk2dColorPipeline(context, instance) : null;
+		this.multiply = config.multiply ? new Vk2dMultiplyPipeline(context, instance) : null;
 		this.oval = config.oval ? new Vk2dOvalPipeline(context, instance) : null;
 		this.image = config.image ? new Vk2dImagePipeline(context, instance) : null;
 		this.kim1 = config.kim1 ? new Vk2dKimPipeline(context, instance, 1) : null;
@@ -26,7 +28,7 @@ public class Vk2dPipelines {
 	}
 
 	public void destroy() {
-		Vk2dPipeline[] all = { color, oval, image, kim1, kim3, text, blur };
+		Vk2dPipeline[] all = { color, multiply, oval, image, kim1, kim3, text, blur };
 		for (Vk2dPipeline pipeline : all) {
 			if (pipeline != null) pipeline.destroy(instance.boiler);
 		}

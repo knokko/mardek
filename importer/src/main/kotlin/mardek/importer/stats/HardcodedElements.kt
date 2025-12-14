@@ -145,6 +145,7 @@ fun addElements(content: Content) {
 		spellCastBackground = null,
 		id = UUID.fromString("3d1dbc94-dc04-4ec3-a2b7-0269747afb2d"),
 	))
+	content.stats.defaultWeaponElement = content.stats.elements.last()
 	content.stats.elements.add(Element(
 		rawName = "THAUMA",
 		bonusStat = null,

@@ -157,8 +157,7 @@ internal fun renderHoverItemProperties(
 
 
 			if (tab.descriptionIndex == 1 && equipment != null) {
-				val assetCharacter = context.campaign.characterSelection.party[tab.partyIndex]
-				val characterState = context.campaign.characterStates[assetCharacter]!!
+				val (_, characterState) = context.campaign.allPartyMembers()[tab.partyIndex]!!
 
 				for ((row, skill) in equipment.skills.withIndex()) {
 					val skillY = barY + 2 * scale + 28 * row * scale

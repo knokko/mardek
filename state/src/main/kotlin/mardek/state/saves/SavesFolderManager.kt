@@ -1,11 +1,8 @@
 package mardek.state.saves
 
-import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.Bitser
 import mardek.content.Content
-import mardek.content.action.ActionSaveCampaign
-import mardek.content.action.FixedActionNode
 import mardek.state.ingame.CampaignState
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -90,16 +87,16 @@ class SavesFolderManager(
 	}
 
 	fun writeSaveTo(content: Content, campaignState: CampaignState, destinationFile: File): Boolean {
-		val partyLevel = campaignState.getParty().maxOf { it.second.currentLevel }
+		val partyLevel = campaignState.usedPartyMembers().maxOf { it.state.currentLevel }
 		val saveInfo = SaveInfo(
 			areaName = campaignState.currentArea?.area?.properties?.displayName ?: "",
-			party = campaignState.characterSelection.party.map { it?.id }.toTypedArray(),
+			party = campaignState.allPartyMembers().map { it?.first?.id }.toTypedArray(),
 			playTime = campaignState.totalTime,
 			partyLevel = partyLevel,
-			chapter = 1, // TODO CHAP2 Determine chapter
+			chapter = campaignState.story.evaluate(content.story.fixedVariables.chapter) ?: -1,
 		)
 
-		val infoBytes = savesBitser.serializeToBytes(
+		val infoBytes = savesBitser.toBytes(
 			saveInfo, Bitser.BACKWARD_COMPATIBLE
 		)
 
@@ -127,24 +124,7 @@ class SavesFolderManager(
 			val rawInput = BufferedInputStream(Files.newInputStream(saveFile.file.toPath()))
 			val numInfoBytes = rawInput.read()
 			rawInput.skip(numInfoBytes.toLong())
-
-			val bitInput = BitInputStream(rawInput)
-			val campaignState = savesBitser.deserialize(
-				CampaignState::class.java, bitInput,
-				Bitser.BACKWARD_COMPATIBLE, content,
-			)
-			bitInput.close()
-			rawInput.close()
-
-			val actions = campaignState.currentArea?.actions
-			if (actions != null) {
-				val node = actions.node
-				if (node is FixedActionNode && node.action is ActionSaveCampaign) {
-					actions.node = node.next
-				}
-			}
-
-			return campaignState
+			return CampaignState.loadSave(content, rawInput)
 		} catch (failed: IOException) {
 			failed.printStackTrace()
 			return null

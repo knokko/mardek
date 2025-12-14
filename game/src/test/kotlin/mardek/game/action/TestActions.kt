@@ -2,6 +2,7 @@ package mardek.game.action
 
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetPartyMember
+import mardek.content.action.ActionToArea
 import mardek.content.action.ActionWalk
 import mardek.content.action.ChoiceActionNode
 import mardek.content.action.FixedActionNode
@@ -16,8 +17,9 @@ import mardek.input.InputKey
 import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
-import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.actions.AreaActionsState
+import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -42,12 +44,8 @@ object TestActions {
 
 	fun testIntroDialogue(instance: TestingInstance) {
 		instance.apply {
-			val state = InGameState(CampaignState(
-				currentArea = AreaState(dragonLairEntry, AreaPosition(5, 10)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			), "test")
+			val state = InGameState(simpleCampaignState(), "test")
+			state.campaign.currentArea = AreaState(dragonLairEntry, AreaPosition(5, 10))
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
 			state.update(context)
@@ -142,12 +140,8 @@ object TestActions {
 	fun testSaveCrystalCancel(instance: TestingInstance) {
 		instance.apply {
 			val areaState = AreaState(dragonLairEntry, AreaPosition(5, 3))
-			val state = InGameState(CampaignState(
-				currentArea = areaState,
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			), "test")
+			val state = InGameState(simpleCampaignState(), "test")
+			state.campaign.currentArea = areaState
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
 
@@ -251,6 +245,75 @@ object TestActions {
 			state.update(context)
 			assertNull(areaState.actions)
 			assertNull(context.soundQueue.take())
+		}
+	}
+
+	fun testAreaToArea(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(simpleCampaignState(), "")
+			assertEquals(Direction.Up, state.campaign.currentArea!!.getPlayerDirection(0))
+
+			val toHeroesDen = ActionToArea("heroes_den", 5, 6, Direction.Left)
+			toHeroesDen.resolve(content.areas.areas)
+
+			state.campaign.currentArea!!.actions = AreaActionsState(
+				node = FixedActionNode(action = toHeroesDen, next = null),
+				partyPositions = Array(4) { AreaPosition(0, 0) },
+				partyDirections = Array(4) { Direction.Up },
+			)
+
+			state.update(GameStateUpdateContext(
+				content, InputManager(), SoundQueue(), 10.milliseconds
+			))
+
+			assertSame(
+				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
+				state.campaign.currentArea!!.area,
+			)
+
+			for (index in 0 until 4) {
+				assertEquals(
+					AreaPosition(5, 6),
+					state.campaign.currentArea!!.getPlayerPosition(index),
+				)
+				assertEquals(
+					Direction.Left,
+					state.campaign.currentArea!!.getPlayerDirection(index),
+				)
+			}
+			assertNull(state.campaign.currentArea!!.actions)
+		}
+	}
+
+	fun testGlobalActionsToArea(instance: TestingInstance) {
+		instance.apply {
+			val toHeroesDen = ActionToArea("heroes_den", 5, 6, Direction.Left)
+			toHeroesDen.resolve(content.areas.areas)
+
+			val state = InGameState(simpleCampaignState(), "")
+			state.campaign.currentArea = null
+			state.campaign.actions = CampaignActionsState(FixedActionNode(action = toHeroesDen, next = null))
+
+			state.update(GameStateUpdateContext(
+				content, InputManager(), SoundQueue(), 10.milliseconds
+			))
+
+			assertSame(
+				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
+				state.campaign.currentArea!!.area,
+			)
+
+			for (index in 0 until 4) {
+				assertEquals(
+					AreaPosition(5, 6),
+					state.campaign.currentArea!!.getPlayerPosition(index),
+				)
+				assertEquals(
+					Direction.Left,
+					state.campaign.currentArea!!.getPlayerDirection(index),
+				)
+			}
+			assertNull(state.campaign.currentArea!!.actions)
 		}
 	}
 }

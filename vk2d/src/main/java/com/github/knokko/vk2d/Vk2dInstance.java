@@ -22,6 +22,7 @@ public class Vk2dInstance {
 	public final VkbDescriptorSetLayout bufferDescriptorSetLayout;
 	public final VkbDescriptorSetLayout doubleComputeBufferDescriptorLayout;
 
+	public final long colorPipelineLayout;
 	public final long singleBufferPipelineLayout;
 	public final long kim3PipelineLayout;
 
@@ -46,6 +47,18 @@ public class Vk2dInstance {
 			} else {
 				this.pixelatedSampler = VK_NULL_HANDLE;
 			}
+
+			if (config.shouldCreateColorPipelineLayout()) {
+				VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
+				pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8);
+
+				this.colorPipelineLayout = boiler.pipelines.createLayout(
+						pushConstants, "Vk2dColorPipelineLayout"
+				);
+			} else {
+				this.colorPipelineLayout = VK_NULL_HANDLE;
+			}
+
 			if (config.image) {
 				this.smoothSampler = boiler.images.createSimpleSampler(
 						VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR,
@@ -225,7 +238,7 @@ public class Vk2dInstance {
 			long[] pipelineLayouts = {
 					textScratchPipelineLayout, textTransferPipelineLayout, textIntersectionPipelineLayout,
 					blurPipelineLayout1, blurPipelineLayout2, blurPipelineLayoutSample,
-					singleBufferPipelineLayout, kim3PipelineLayout
+					colorPipelineLayout, singleBufferPipelineLayout, kim3PipelineLayout
 			};
 			for (long layout : pipelineLayouts) vkDestroyPipelineLayout(boiler.vkDevice(), layout, pipelineLayoutCallbacks);
 

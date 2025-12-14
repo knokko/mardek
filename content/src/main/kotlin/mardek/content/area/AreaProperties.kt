@@ -3,6 +3,10 @@ package mardek.content.area
 import com.github.knokko.bitser.BitEnum
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
+import mardek.content.animation.ColorTransform
+import mardek.content.story.ConstantTimelineExpression
+import mardek.content.story.TimelineExpression
 
 /**
  * The basic properties that all areas have.
@@ -24,20 +28,24 @@ class AreaProperties(
 	val displayName: String,
 
 	/**
-	 * Format is {ra:100,rb:0,ga:80,gb:0,ba:70,bb:0,aa:100,ab:0}, it looks like some foreground gradient between
-	 * colors (red=ra, green=ga, blue=ba, alpha=aa) to (red=rb, green=gb, blue=bb, alpha=ab).
+	 * The *ambience* of the area, which is a color transformation on some areas (typically open-air areas),
+	 * for instance a weak red tint over Goznor while it is dusk or night.
 	 *
-	 * It's used in, among others, Goznor night, Goznor zombie outbreak, Sauls dungeon, and Goldfish
+	 * - The Flash evening ambience is {ra:100,rb:0,ga:80,gb:0,ba:70,bb:0,aa:100,ab:0},
+	 * which is equivalent to `ColorTransform(multiplyColor=rgb(1.0, 0.8, 0.7))`
+	 * - The Flash night ambience is {ra:25,rb:0,ga:40,gb:0,ba:80,bb:0,aa:100,ab:0},
+	 * which is equivalent to `ColorTransform(multiplyColor=rgb(0.25, 0.4, 0.8))`
 	 */
-	@BitField(id = 2, optional = true)
-	val ambience: AreaAmbience?,
+	@BitField(id = 2)
+	@ClassField(root = TimelineExpression::class)
+	val ambience: TimelineExpression<ColorTransform>,
 
 	/**
-	 * The name of the music track that should be played while the player is in the area, or `null` when it is
-	 * complicated.
+	 * The name of the music track that should be played while the player is in the area.
 	 */
 	@BitField(id = 3, optional = true)
-	val musicTrack: String?,
+	@ClassField(root = TimelineExpression::class)
+	val musicTrack: TimelineExpression<String?>,
 
 	/**
 	 * All areas with the same "dungeon" will share their switch gate/platform state
@@ -66,8 +74,8 @@ class AreaProperties(
 ) {
 
 	internal constructor() : this(
-		"", "", null, null, null,
-		null, AreaDreamType.AstralTunnel, AreaSnowType.None
+		"", "", ConstantTimelineExpression(), ConstantTimelineExpression(),
+		null, null, AreaDreamType.AstralTunnel, AreaSnowType.None
 	)
 }
 

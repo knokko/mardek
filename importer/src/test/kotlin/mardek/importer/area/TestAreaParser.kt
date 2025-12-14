@@ -1,12 +1,13 @@
 package mardek.importer.area
 
-import com.github.knokko.boiler.utilities.ColorPacker.rgba
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.Content
+import mardek.content.animation.ColorTransform
 import mardek.content.animation.CombatantAnimations
 import mardek.content.area.*
 import mardek.content.battle.PartyLayoutPosition
 import mardek.content.inventory.ItemStack
-import mardek.importer.actions.HardcodedActions
+import mardek.content.story.*
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
@@ -16,6 +17,7 @@ import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
 import mardek.importer.skills.importSkillsContent
 import mardek.importer.stats.importClasses
+import mardek.importer.story.importSimpleStoryContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -44,8 +46,8 @@ class TestAreaParser {
 		importAreaSprites(content)
 		importClasses(content)
 		importPlayableCharacters(content, null)
+		importSimpleStoryContent(content.story)
 		importAreaBattleContent(content)
-		importAreaContent(content)
 
 		content.battle.monsters.add(importMonsterStats(
 			name = "monster", animations = CombatantAnimations(), propertiesText = MONSTER_PROPERTIES_TEXT, content
@@ -54,25 +56,32 @@ class TestAreaParser {
 			name = "mightydragon", animations = CombatantAnimations(), propertiesText = MONSTER_PROPERTIES_TEXT, content
 		))
 		content.areas.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
+		importAreaContent(content)
 	}
 
 	@Test
 	fun testParseAeropolisNorth() {
-		val parsed = parseArea(
-			content, HardcodedActions(), "aeropolis_N",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals("aeropolis_N", parsed.properties.rawName)
-		assertEquals("Aeropolis - Temple District", parsed.properties.displayName)
-		assertEquals("aeropolis", parsed.tilesheet.name)
-		assertEquals(47, parsed.width)
-		assertEquals(42, parsed.height)
-		assertEquals(10, parsed.getTileId(0, 0))
-		assertEquals(12, parsed.getTileId(0, 41))
-		assertNull(parsed.randomBattles)
-		assertNull(parsed.properties.musicTrack) // Special case because of Elwyen date
-		assertNull(parsed.properties.dungeon)
-		assertSame(AreaAmbience.GENERIC_EXTERNAL_AMBIENCE, parsed.properties.ambience)
+		val area = content.areas.areas.find { it.properties.rawName == "aeropolis_N" }!!
+		assertEquals("Aeropolis - Temple District", area.properties.displayName)
+		assertEquals("aeropolis", area.tilesheet.name)
+		assertEquals(47, area.width)
+		assertEquals(42, area.height)
+		assertSame(area.tilesheet.tiles[0], area.getTile(0, 0))
+		assertSame(area.tilesheet.tiles[2], area.getTile(0, 41))
+		assertNull(area.randomBattles)
+
+		@Suppress("UNCHECKED_CAST")
+		val aeropolisMusic = content.story.customVariables.find {
+			it.name == "AeropolisMusic"
+		}!! as CustomTimelineVariable<String>
+		assertEquals(ExpressionOrDefaultTimelineExpression(
+			VariableTimelineExpression(aeropolisMusic),
+			ifNull = ConstantTimelineExpression(TimelineOptionalStringValue("Aeropolis"))
+		), area.properties.musicTrack)
+		assertNull(area.properties.dungeon)
+		assertEquals(GlobalTimelineExpression(
+			content.story.globalExpressions.find { it.name == "TimeOfDayAmbienceWithDefault" }!!
+		), area.properties.ambience)
 		assertEquals(AreaFlags(
 			canWarp = true,
 			hasClearMap = true,
@@ -82,14 +91,14 @@ class TestAreaParser {
 			noMap = false,
 			miasma = false,
 			noStorage = false
-		), parsed.flags)
-		assertEquals("Aeropolis", parsed.properties.encyclopediaName)
-		assertEquals(AreaDreamType.None, parsed.properties.dreamType)
-		assertEquals(AreaSnowType.None, parsed.properties.snowType)
+		), area.flags)
+		assertEquals("Aeropolis", area.properties.encyclopediaName)
+		assertEquals(AreaDreamType.None, area.properties.dreamType)
+		assertEquals(AreaSnowType.None, area.properties.snowType)
 
-		assertEquals(15, parsed.objects.transitions.size)
-		assertEquals(1, parsed.objects.walkTriggers.size)
-		assertEquals(13, parsed.objects.characters.size)
+		assertEquals(15, area.objects.transitions.size)
+		assertEquals(1, area.objects.walkTriggers.size)
+		assertEquals(13, area.objects.characters.size)
 	}
 
 	@Test
@@ -119,17 +128,11 @@ class TestAreaParser {
 
 		val monster = content.battle.monsters.find { it.name == "monster" }!!
 
-		val hardcodedActions = HardcodedActions()
-		hardcodedActions.hardcodeActionSequences(content)
-		val parsed = parseArea(
-			content, hardcodedActions, "DL_area2",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals("DL_area2", parsed.properties.rawName)
-		assertEquals("Dragon's Lair", parsed.properties.displayName)
-		assertEquals("dragonlair", parsed.tilesheet.name)
-		assertEquals(15, parsed.width)
-		assertEquals(40, parsed.height)
+		val area = content.areas.areas.find { it.properties.rawName == "DL_area2" }!!
+		assertEquals("Dragon's Lair", area.properties.displayName)
+		assertEquals("dragonlair", area.tilesheet.name)
+		assertEquals(15, area.width)
+		assertEquals(40, area.height)
 		assertEquals(RandomAreaBattles(
 			ownEnemies = arrayListOf(
 				BattleEnemySelection(arrayListOf(monster, null, null, null), solo),
@@ -141,12 +144,17 @@ class TestAreaParser {
 			ownLevelRange = null,
 			minSteps = 30,
 			chance = 10,
-			defaultBackground = parsed.randomBattles!!.defaultBackground,
+			defaultBackground = area.randomBattles!!.defaultBackground,
 			specialBackground = null
-		), parsed.randomBattles)
-		assertEquals("MightyHeroes", parsed.properties.musicTrack)
-		assertEquals("DragonLair", parsed.properties.dungeon)
-		assertNull(parsed.properties.ambience)
+		), area.randomBattles)
+		assertEquals(
+			ConstantTimelineExpression(TimelineOptionalStringValue("MightyHeroes")),
+			area.properties.musicTrack
+		)
+		assertEquals("DragonLair", area.properties.dungeon)
+		assertEquals(ConstantTimelineExpression(
+			TimelineColorTransformValue(ColorTransform.DEFAULT)
+		), area.properties.ambience)
 		assertEquals(AreaFlags(
 			canWarp = false,
 			hasClearMap = true,
@@ -156,69 +164,74 @@ class TestAreaParser {
 			noMap = false,
 			miasma = false,
 			noStorage = true
-		), parsed.flags)
-		assertNull(parsed.properties.encyclopediaName)
-		assertEquals(AreaDreamType.None, parsed.properties.dreamType)
-		assertEquals(AreaSnowType.None, parsed.properties.snowType)
-		assertEquals(2, parsed.objects.doors.size)
-		assertEquals(1, parsed.objects.walkTriggers.size)
+		), area.flags)
+		assertNull(area.properties.encyclopediaName)
+		assertEquals(AreaDreamType.None, area.properties.dreamType)
+		assertEquals(AreaSnowType.None, area.properties.snowType)
+		assertEquals(2, area.objects.doors.size)
+		assertEquals(1, area.objects.walkTriggers.size)
 
-		assertEquals(10, parsed.objects.decorations.count { it.sprites?.flashName == "torch(2, 16)" })
-		assertEquals(10, parsed.objects.decorations.count { it.sprites?.flashName == "SkullBrazier(0, 32)" })
+		assertEquals(10, area.objects.decorations.count { it.sprites?.flashName == "torch(2, 16)" })
+		assertEquals(10, area.objects.decorations.count { it.sprites?.flashName == "SkullBrazier(0, 32)" })
+	}
+
+	@Test
+	fun testParseHeroesHouse() {
+		val area = content.areas.areas.find { it.properties.rawName == "heroes_house" }!!
+		assertEquals(ConstantTimelineExpression(TimelineColorTransformValue(
+			ColorTransform(
+				addColor = 0,
+				multiplyColor = rgb(0.01f * 66, 0.01f * 70, 0.01f * 63),
+				subtractColor = 0,
+			)
+		)), area.properties.ambience)
 	}
 
 	@Test
 	fun testParseGoldfishWarp() {
-		val parsed = parseArea(
-			content, HardcodedActions(), "goldfish_warp",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals(AreaAmbience(rgba(16, 14, 10, 100), 0), parsed.properties.ambience)
+		val area = content.areas.areas.find { it.properties.rawName == "goldfish_warp" }!!
+		assertEquals(ConstantTimelineExpression(TimelineColorTransformValue(
+			ColorTransform(
+				addColor = 0,
+				multiplyColor = rgb(0.01f * 16, 0.01f * 14, 0.01f * 10),
+				subtractColor = 0,
+			)
+		)), area.properties.ambience)
 	}
 
 	@Test
 	fun testParseAirTemple() {
-		val parsed = parseArea(
-			content, HardcodedActions(), "aeropolis_N_TAIR",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals(1, parsed.objects.transitions.size)
-		assertEquals(9, parsed.objects.decorations.size)
-		assertEquals(1, parsed.objects.characters.size)
-		assertEquals("Aeropolis", parsed.properties.musicTrack)
-		assertTrue(parsed.flags.hasClearMap)
+		val area = content.areas.areas.find { it.properties.rawName == "aeropolis_N_TAIR" }!!
+		assertEquals(1, area.objects.transitions.size)
+		assertEquals(9, area.objects.decorations.size)
+		assertEquals(1, area.objects.characters.size)
+		assertEquals(ConstantTimelineExpression(
+			TimelineOptionalStringValue("Aeropolis")
+		), area.properties.musicTrack)
+		assertTrue(area.flags.hasClearMap)
 		// TODO CHAP3 Add error support
 	}
 
 	@Test
 	fun testParseTheatre() {
-		val parsed = parseArea(
-			content, HardcodedActions(), "aeropolis_W_theatre",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals(20, parsed.objects.characters.size)
+		val area = content.areas.areas.find { it.properties.rawName == "aeropolis_W_theatre" }!!
+		assertEquals(20, area.objects.characters.size)
 	}
 
 	@Test
 	fun testParseGuardPost() {
-		val parsed = parseArea(
-			content, HardcodedActions(), "guardpost",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals(2, parsed.objects.characters.size)
-		assertEquals(2, parsed.objects.transitions.size)
+		val area = content.areas.areas.find { it.properties.rawName == "guardpost" }!!
+		assertEquals(2, area.objects.characters.size)
+		assertEquals(2, area.objects.transitions.size)
 	}
 
 	@Test
 	fun testDesertCave() {
 		val yinYang = content.items.items.find { it.flashName == "Yin and Yang" }!!
-		val parsed = parseArea(
-			content, HardcodedActions(), "desertcave",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals(1, parsed.chests.size)
+		val area = content.areas.areas.find { it.properties.rawName == "desertcave" }!!
+		assertEquals(1, area.chests.size)
 
-		val chest = parsed.chests[0]
+		val chest = area.chests[0]
 		assertEquals(6, chest.x)
 		assertEquals(3, chest.y)
 		assertEquals(0, chest.gold)
@@ -241,14 +254,11 @@ class TestAreaParser {
 
 	@Test
 	fun testParseSunTemple1() {
-		val parsed = parseArea(
-			content, HardcodedActions(), "suntemple1",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals(1, parsed.chests.size)
-		assertNull(parsed.randomBattles)
+		val area = content.areas.areas.find { it.properties.rawName == "sunTemple1" }!!
+		assertEquals(1, area.chests.size)
+		assertNull(area.randomBattles)
 
-		val chest = parsed.chests[0]
+		val chest = area.chests[0]
 		assertEquals(14, chest.x)
 		assertEquals(1, chest.y)
 		assertEquals(3000, chest.gold)
@@ -262,13 +272,10 @@ class TestAreaParser {
 	@Test
 	fun testParseSunTemple4() {
 		val spear = content.items.items.find { it.flashName == "Iron Spear" }!!
-		val parsed = parseArea(
-			content, HardcodedActions(),"sunTemple4",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals(7, parsed.chests.size)
+		val area = content.areas.areas.find { it.properties.rawName == "sunTemple4" }!!
+		assertEquals(7, area.chests.size)
 
-		val chest = parsed.chests[1]
+		val chest = area.chests[1]
 		assertEquals(16, chest.x)
 		assertEquals(51, chest.y)
 		assertEquals(0, chest.gold)
@@ -290,15 +297,12 @@ class TestAreaParser {
 
 	@Test
 	fun testTaintedGrotto() {
-		val parsed = parseArea(
-			content, HardcodedActions(), "pcave3",
-			ArrayList(), ArrayList(),
-		)
+		val area = content.areas.areas.find { it.properties.rawName == "pcave3" }!!
 
-		val randomBattles = parsed.randomBattles!!
+		val randomBattles = area.randomBattles!!
 		assertSame(content.areas.enemySelections.find { it.name == "TAINTED_GROTTO" }!!, randomBattles.sharedEnemies!!)
 
-		val chest = parsed.chests[0]
+		val chest = area.chests[0]
 		assertEquals(12, chest.x)
 		assertEquals(45, chest.y)
 		assertNull(chest.stack)
@@ -311,13 +315,10 @@ class TestAreaParser {
 
 	@Test
 	fun testDreamcave() {
-		val parsed = parseArea(
-			content, HardcodedActions(), "canonia_dreamcave_d2",
-			ArrayList(), ArrayList(),
-		)
-		assertEquals(3, parsed.chests.size)
+		val area = content.areas.areas.find { it.properties.rawName == "canonia_dreamcave_d2" }!!
+		assertEquals(3, area.chests.size)
 
-		val dreamstone = parsed.chests[0]
+		val dreamstone = area.chests[0]
 		assertEquals(2, dreamstone.x)
 		assertEquals(19, dreamstone.y)
 		assertEquals(0, dreamstone.gold)
@@ -327,7 +328,7 @@ class TestAreaParser {
 		assertNull(dreamstone.battle)
 		assertFalse(dreamstone.hidden)
 
-		val finger = parsed.chests[1]
+		val finger = area.chests[1]
 		assertEquals(4, finger.x)
 		assertEquals(19, finger.y)
 		assertEquals(0, finger.gold)
@@ -337,7 +338,7 @@ class TestAreaParser {
 		assertNull(finger.battle)
 		assertFalse(finger.hidden)
 
-		val talisman = parsed.chests[2]
+		val talisman = area.chests[2]
 		assertEquals(7, talisman.x)
 		assertEquals(2, talisman.y)
 		assertEquals(0, talisman.gold)

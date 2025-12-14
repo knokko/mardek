@@ -42,16 +42,14 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 
 		val visibleSkills = tab.determineSkillList(uiContext)
 		val selectedSkill = if (visibleSkills.isEmpty()) null else visibleSkills[tab.skillIndex]
-		val assetCharacter = context.campaign.characterSelection.party[tab.partyIndex]!!
+		val (assetCharacter, characterState) = context.campaign.allPartyMembers()[tab.partyIndex]!!
 
 		val basicFont2 = context.bundle.getFont(context.content.fonts.basic2.index)
 
 		var spriteIndex = 0
 		if ((System.nanoTime() - referenceTime) % ANIMATION_PERIOD >= ANIMATION_PERIOD / 2) spriteIndex += 1
 
-		for ((column, character) in context.campaign.characterSelection.party.withIndex()) {
-			if (character == null) continue
-
+		for ((column, character) in context.campaign.usedPartyMembers()) {
 			val x = region.boundX + characterScale * 18 * (column - 4)
 			val y = region.minY + 2 * characterScale
 			spriteBatch.simple(
@@ -250,6 +248,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		}
 
 		var lineY = headerMaxY + 2f * headerHeight
+
 		fun drawDescriptionLine(line: String) {
 			val shadowOffset = region.width * 0.001f
 			textBatch.drawShadowedString(
@@ -258,6 +257,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 				srgbToLinear(rgb(53, 42, 27)),
 				shadowOffset, shadowOffset, TextAlignment.LEFT,
 			)
+			@Suppress("AssignedValueIsNeverRead")
 			lineY += region.width * 0.025f
 		}
 
@@ -281,7 +281,6 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			basicFont2, titleTextColor, TextAlignment.RIGHT
 		)
 
-		val characterState = context.campaign.characterStates[assetCharacter]!!
 		val maxResourceValue = if (tab.skillTypeIndex == 0) {
 			characterState.determineMaxMana(assetCharacter.baseStats, characterState.activeStatusEffects)
 		} else characterState.determineSkillEnablePoints()

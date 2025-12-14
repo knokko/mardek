@@ -3,7 +3,7 @@ package mardek.renderer.area
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import mardek.state.ingame.characters.CharacterState
+import mardek.state.UsedPartyMember
 
 private val BASE_ITEM_COLOR = srgbToLinear(rgb(193, 145, 89))
 private val CONSUMABLE_ITEM_COLOR = srgbToLinear(rgb(81, 113, 217))
@@ -12,11 +12,10 @@ private val ARMOR_COLOR = srgbToLinear(rgb(145, 209, 89))
 private val ACCESSORY_COLOR = srgbToLinear(rgb(209, 209, 89))
 
 internal fun renderLootInventoryGrid(
-	colorBatch: Vk2dColorBatch, party: List<CharacterState?>,
+	colorBatch: Vk2dColorBatch, party: List<UsedPartyMember>,
 	minX: Int, minY: Int, columnWidth: Int, scale: Int
 ) {
-	for ((column, characterState) in party.withIndex()) {
-		if (characterState == null) continue
+	for ((column, _, characterState) in party) {
 		val inventory = characterState.inventory
 		if (inventory.size % 8 != 0) throw Error("Huh? inventory size is ${inventory.size}")
 

@@ -43,7 +43,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 
 		val portrait = when (val speaker = talkAction.speaker) {
 			is ActionTargetPlayer -> speaker.player.portraitInfo
-			is ActionTargetPartyMember -> context.campaign.characterSelection.party[speaker.index]?.portraitInfo
+			is ActionTargetPartyMember -> context.campaign.party[speaker.index]?.portraitInfo
 			is ActionTargetAreaCharacter -> speaker.character.portrait
 			else -> null
 		}
@@ -313,7 +313,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		run {
 			val speakerElement = when (val speaker = talkAction.speaker) {
 				is ActionTargetPlayer -> speaker.player.element
-				is ActionTargetPartyMember -> context.campaign.characterSelection.party[speaker.index]?.element
+				is ActionTargetPartyMember -> context.campaign.party[speaker.index]?.element
 				is ActionTargetAreaCharacter -> speaker.character.element
 				else -> null
 			}
@@ -338,7 +338,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		run {
 			val displayName = when (val speaker = talkAction.speaker) {
 				is ActionTargetPlayer -> speaker.player.name
-				is ActionTargetPartyMember -> context.campaign.characterSelection.party[speaker.index]?.name
+				is ActionTargetPartyMember -> context.campaign.party[speaker.index]?.name
 				is ActionTargetDialogueObject -> speaker.displayName
 				is ActionTargetAreaCharacter -> speaker.character.name
 				else -> null

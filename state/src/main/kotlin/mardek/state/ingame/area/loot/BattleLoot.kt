@@ -11,7 +11,9 @@ import mardek.content.inventory.ItemStack
 import mardek.content.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.state.GameStateUpdateContext
-import mardek.state.ingame.characters.CharacterState
+import mardek.content.characters.CharacterState
+import mardek.state.UsedPartyMember
+import mardek.state.WholeParty
 
 @BitStruct(backwardCompatible = true)
 class BattleLoot(
@@ -33,18 +35,19 @@ class BattleLoot(
 	@BitField(id = 4)
 	val itemText: String,
 
-	party: List<Any?>,
+	party: List<UsedPartyMember>,
 ) : BitPostInit {
+
 	@Suppress("unused")
 	private constructor() : this(
 		0, ArrayList(0),
 		ArrayList(0), ArrayList(0),
-		"", ArrayList(0)
+		"", listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
 	)
 
 	@BitField(id = 5)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 3)
-	var selectedPartyIndex = party.indexOfFirst { it != null }
+	var selectedPartyIndex = party[0].index
 		private set
 
 	var selectedElement = if (items.isEmpty()) SelectedFinish else SelectedGetAll
@@ -60,15 +63,15 @@ class BattleLoot(
 		val oldPartyIndex = selectedPartyIndex
 		if (key == InputKey.MoveLeft) {
 			selectedPartyIndex -= 1
-			while (selectedPartyIndex >= 0 && context.party[selectedPartyIndex] == null) selectedPartyIndex -= 1
-			if (selectedPartyIndex == -1) selectedPartyIndex = context.party.indexOfLast { it != null }
+			while (selectedPartyIndex >= 0 && context.fullParty[selectedPartyIndex] == null) selectedPartyIndex -= 1
+			if (selectedPartyIndex == -1) selectedPartyIndex = context.usedParty.last().index
 		}
 		if (key == InputKey.MoveRight) {
 			selectedPartyIndex += 1
-			while (selectedPartyIndex < context.party.size && context.party[selectedPartyIndex] == null) {
+			while (selectedPartyIndex < context.fullParty.size && context.fullParty[selectedPartyIndex] == null) {
 				selectedPartyIndex += 1
 			}
-			if (selectedPartyIndex == context.party.size) selectedPartyIndex = context.party.indexOfFirst { it != null }
+			if (selectedPartyIndex == context.fullParty.size) selectedPartyIndex = context.usedParty[0].index
 		}
 		if (oldPartyIndex != selectedPartyIndex) {
 			context.soundQueue.insert(soundEffects.scroll1)
@@ -100,7 +103,7 @@ class BattleLoot(
 		}
 
 		if (key == InputKey.Interact) {
-			val (_, memberState) = context.party[selectedPartyIndex]!!
+			val memberState = context.fullParty[selectedPartyIndex]!!.second
 			if (oldElement is SelectedGetAll && items.isNotEmpty()) {
 				var itemIndex = 0
 				while (itemIndex < items.size) {
@@ -145,6 +148,7 @@ class BattleLoot(
 
 	class UpdateContext(
 		parent: GameStateUpdateContext,
-		val party: List<Pair<PlayableCharacter, CharacterState>?>
+		val usedParty: List<UsedPartyMember>,
+		val fullParty: WholeParty,
 	) : GameStateUpdateContext(parent)
 }

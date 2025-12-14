@@ -83,7 +83,9 @@ private class AnimationSimulator {
 		if (
 			script.trim() == "GotoAptFrame(this);" ||
 			script.contains("!_parent._parent.stats.ethnicity") ||
-			script.contains("this.noFlicker")
+			script.contains("this.noFlicker") ||
+			script.contains("!_parent._parent.stats.face2") ||
+			script.contains("&& isNaN(_parent._parent.stats.face)")
 		) {
 			onlyOneFramePerSkin = true
 			if (currentSkinName != "") throw IllegalStateException()

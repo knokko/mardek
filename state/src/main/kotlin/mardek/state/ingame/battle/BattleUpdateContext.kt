@@ -4,7 +4,7 @@ import mardek.content.audio.FixedSoundEffects
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.Element
 import mardek.state.SoundQueue
-import mardek.state.ingame.characters.CharacterState
+import mardek.content.characters.CharacterState
 
 class BattleUpdateContext(
 	val characterStates: Map<PlayableCharacter, CharacterState>,

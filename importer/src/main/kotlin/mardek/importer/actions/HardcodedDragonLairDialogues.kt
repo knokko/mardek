@@ -12,6 +12,8 @@ import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetAreaCharacter
 import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionTargetWholeParty
+import mardek.content.action.ActionTimelineTransition
+import mardek.content.action.ActionToArea
 import mardek.content.action.ActionWalk
 import mardek.content.action.WalkSpeed
 import mardek.content.area.Direction
@@ -38,7 +40,6 @@ private fun hardcodeDragonLairEntryActions(hardcoded: MutableMap<String, Mutable
 		ActionRotate(targetMardek, Direction.Down),
 		ActionTalk(targetMardek, "norm", "Well Deugan, this is The Dragon's Lair."),
 		ActionTalk(targetDeugan, "grin", "Yes, Mardek, that it is! We have to get to the dragon and slay it to rescue the Princess! Tally-ho!"),
-		// TODO CHAP1 Give quest
 		ActionTalk(targetMardek, "susp", "What does 'tally-ho' mean?"),
 		ActionTalk(targetDeugan, "deep", "Uhm... I'm not sure! But I've heard adventurers say it before maybe! It sounds like something they'd say!"),
 		ActionTalk(targetMardek, "grin", "Tally-ho!"),
@@ -118,12 +119,13 @@ private fun hardcodeDragonLairRoom4Actions(
 			startingEnemies = arrayOf(dragonEnemy, null, null, null),
 			enemyLayout = dragonPartyLayout,
 			music = "BossBattle",
+			lootMusic = "VictoryFanfare2",
 			background = dragonLairBackground,
 			canFlee = false,
+			isRandom = false,
 		), null),
 		ActionFadeCharacter(targetDragon),
 		ActionTalk(targetDragon, "norm", "OH DEAR!! I HAVE BEEN SLAIN!!!"),
-		// TODO CHAP1 DONEQUEST("HEROES");
 		ActionParallel(arrayOf(
 			ActionWalk(targetPrincess, 6, 7, WalkSpeed.Slow),
 			ActionTalk(targetMardek, "grin", "Well, we beated the dragon!"),
@@ -142,7 +144,8 @@ private fun hardcodeDragonLairRoom4Actions(
 		ActionTalk(targetDeugan, "grin", "Yeh, really! My dad told me so it must be true!"),
 		ActionTalk(targetMardek, "smile",
 			"Now that we've beatened the dragon though, now what do we do?"),
-		// TODO CHAP1 Go to Hero Den
+		ActionTimelineTransition("MainTimeline", "Childhood"),
+		ActionToArea("heroes_den", 10, 6, Direction.Down),
 	))!!
 
 	hardcoded["DL_area4"] = mutableListOf(

@@ -1,8 +1,10 @@
 package mardek.state.ingame.area.loot
 
+import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
+import mardek.state.UsedPartyMember
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -15,7 +17,8 @@ class TestBattleLootSimple {
 			arrayListOf(ItemStack(Item(), 1)),
 			ArrayList(0),
 			ArrayList(0),
-			"hi", listOf(PlayableCharacter(), null, null, null)
+			"hi",
+			listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
 		)
 		assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
 	}
@@ -27,7 +30,8 @@ class TestBattleLootSimple {
 			ArrayList(0),
 			ArrayList(0),
 			ArrayList(0),
-			"hi", listOf(PlayableCharacter(), null, null, null)
+			"hi",
+			listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
 		)
 		assertEquals(BattleLoot.SelectedFinish, loot.selectedElement)
 	}

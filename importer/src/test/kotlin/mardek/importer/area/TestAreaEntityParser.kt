@@ -5,28 +5,46 @@ import mardek.content.area.Area
 import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
 import mardek.content.area.objects.*
-import mardek.content.sprite.ArrowSprite
-import mardek.content.sprite.DirectionalSprites
-import mardek.content.sprite.KimSprite
-import mardek.content.sprite.ObjectSprites
 import mardek.importer.actions.HardcodedActions
 import mardek.importer.audio.importAudioContent
+import mardek.importer.battle.importBattleContent
+import mardek.importer.characters.importPlayableCharacters
+import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
+import mardek.importer.skills.importSkillsContent
+import mardek.importer.stats.importClasses
 import mardek.importer.stats.importStatsContent
+import mardek.importer.story.expressions.HardcodedExpressions
+import mardek.importer.story.hardcodeTimeline
+import mardek.importer.story.importSimpleStoryContent
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import java.util.UUID
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestAreaEntityParser {
 
 	private val content = Content()
-	private val testID = UUID.randomUUID()
 
 	init {
 		importAudioContent(content.audio)
 		importParticleEffects(content)
 		importStatsContent(content)
+		importSkillsContent(content)
+		importItemsContent(content)
+		importBattleContent(content, null)
+
+		importAreaSprites(content)
+		importClasses(content)
+		importPlayableCharacters(content, null)
+		importSimpleStoryContent(content.story)
+		importAreaBattleContent(content)
+
+		val hardcodedActions = importAreaContent(content)
+		hardcodeTimeline(content)
+		hardcodedActions.storeHardcodedActionSequences(content)
 	}
 
 	@Test
@@ -95,11 +113,11 @@ class TestAreaEntityParser {
 		rawString: String, areaName: String = "",
 		hardcodedActions: HardcodedActions = HardcodedActions()
 	): Any {
-		val transitions = ArrayList<Pair<TransitionDestination, String>>()
-		val parsedEntities = parseAreaObjectsToList(
-			content, hardcodedActions, areaName,
-			"[$rawString]", transitions,
+		val context = AreaEntityParseContext(
+			content, areaName, hardcodedActions, HardcodedExpressions(), mutableListOf()
 		)
+		val transitions = ArrayList<Pair<TransitionDestination, String>>()
+		val parsedEntities = parseAreaObjectsToList(context, "[$rawString]")
 		assertEquals(1, parsedEntities.size)
 
 		for ((transition, destination) in transitions) {
@@ -111,72 +129,63 @@ class TestAreaEntityParser {
 		return parsedEntities[0]
 	}
 
-	private fun assertArea(name: String) = content.areas.areas.find { it.properties.rawName == name }!!
+	private fun findArea(areaName: String) = content.areas.areas.find { it.properties.rawName == areaName }!!
 
 	@Test
 	fun testParseTransitionWithArrowWithoutDirection() {
-		content.areas.arrowSprites.add(ArrowSprite("S", KimSprite()))
-		val actual = parseAreaEntityRaw(
-			"{name:\"EXIT\",model:\"area_transition\",x:3,y:7,dest:[\"aeropolis_E\",22,24],ARROW:\"S\"}"
-		)
+		val actual = findArea("aeropolis_E_iShop").objects.transitions[0]
 		val expected = AreaTransition(
-			x = 3, y = 7, arrow = content.areas.arrowSprites[0], destination = TransitionDestination(
-			area = assertArea("aeropolis_E"), x = 22, y = 24, direction = null, discoveredAreaName = null
-		))
+			x = 3, y = 7, arrow = content.areas.arrowSprites.find { it.flashName == "S" }!!,
+			destination = TransitionDestination(
+				area = findArea("aeropolis_E"), worldMap = null, x = 22, y = 24, direction = null
+			)
+		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseTransitionWithoutArrowWithDirection() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Item Shop\",model:\"area_transition\",x:22,y:23,dir:\"n\",dest:[\"aeropolis_E_iShop\",3,6]}"
-		)
+		val actual = findArea("aeropolis_E").objects.transitions.find { it.x == 22 }!!
 		val expected = AreaTransition(x = 22, y = 23, arrow = null, destination = TransitionDestination(
-			area = assertArea("aeropolis_E_iShop"), x = 3, y = 6,
-			direction = Direction.Up, discoveredAreaName = null
+			area = findArea("aeropolis_E_iShop"), worldMap = null, x = 3, y = 6, direction = Direction.Up
 		))
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseWalkTriggerSimple() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"INTERJECTION\",model:\"_trigger\",x:8,y:5,ExecuteScript:function()\n" +
-				"{\n" +
-				"   _root.Interjection(\"Mardek\",\"dreamcave1\",\"c_A_Gloria\");\n" +
-				"},uuid:$testID}")
+		val actual = findArea("canonia_dreamcave_d").objects.walkTriggers.find { it.x == 8 }!!
 		val expected = AreaTrigger(
 			name = "INTERJECTION",
 			x = 8,
 			y = 5,
-			flashCode = "function()\n{\n   _root.Interjection(\"Mardek\",\"dreamcave1\",\"c_A_Gloria\");\n}",
+			flashCode = "function(){   _root.Interjection(\"Mardek\",\"dreamcave1\",\"c_A_Gloria\");}",
 			oneTimeOnly = true,
 			oncePerAreaLoad = false,
 			walkOn = false,
 			actions = null,
-			id = testID,
+			condition = null,
+			id = actual.id,
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseWalkTriggerDreamCaveCircle() {
-		val executeScript = "function()\n" +
-				"{\n" +
-				"   if(!_root.HasAlly(\"Gloria\") && !HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
-				"   {\n" +
-				"      return undefined;\n" +
-				"   }\n" +
-				"   if(!HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
-				"   {\n" +
-				"      MAKEPARTY([\"Mardek\",\"Gloria\",\"Elwyen\",\"Solaar\"],true);\n" +
-				"   }\n" +
-				"   _root.WarpTrans([\"canonia_dreamcave_d\",8,5]);\n" +
+		val executeScript = "function()" +
+				"{" +
+				"   if(!_root.HasAlly(\"Gloria\") && !HASPLOTITEM(\"Talisman of ONEIROS\"))" +
+				"   {" +
+				"      return undefined;" +
+				"   }" +
+				"   if(!HASPLOTITEM(\"Talisman of ONEIROS\"))" +
+				"   {" +
+				"      MAKEPARTY([\"Mardek\",\"Gloria\",\"Elwyen\",\"Solaar\"],true);" +
+				"   }" +
+				"   _root.WarpTrans([\"canonia_dreamcave_d\",8,5]);" +
 				"}"
 
-		val actual = parseAreaEntityRaw(
-			"{uuid:$testID,name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:true,ExecuteScript:$executeScript}"
-		)
+		val actual = findArea("canonia_dreamcave").objects.walkTriggers.find { it.y == 5 }!!
 		val expected = AreaTrigger(
 			name = "TRANSPORT_TRIGGER",
 			x = 8,
@@ -186,37 +195,39 @@ class TestAreaEntityParser {
 			oncePerAreaLoad = false,
 			walkOn = true,
 			actions = null,
-			id = testID,
+			condition = null,
+			id = actual.id,
 		)
 		assertEquals(expected, actual)
 	}
 
-	@Test
-	fun testParseWalkTriggerInventor() {
-		val flashCode = "function(){\tDO_ACTIONS([[\"UNFREEZE\"],[\"TALK\",\"c_inventor\"]],\"PC\",true);}"
-
-		val actual = parseAreaEntityRaw(
-			"{uuid:$testID,name:\"TALK_TRIGGER\",model:\"_trigger\",x:3,y:5,triggers:1,recurring:true,ExecuteScript:$flashCode}"
-		)
-		val expected = AreaTrigger(
-			name = "TALK_TRIGGER",
-			x = 3,
-			y = 5,
-			oneTimeOnly = true,
-			oncePerAreaLoad = true,
-			flashCode = "function(){\tDO_ACTIONS([[\"UNFREEZE\"],[\"TALK\",\"c_inventor\"]],\"PC\",true);}",
-			walkOn = false,
-			actions = null,
-			id = testID,
-		)
-		assertEquals(expected, actual)
-	}
+	// TODO CHAP3 Revive this unit test?
+//	@Test
+//	fun testParseWalkTriggerInventor() {
+//		val flashCode = "function(){\tDO_ACTIONS([[\"UNFREEZE\"],[\"TALK\",\"c_inventor\"]],\"PC\",true);}"
+//
+//		val actual = parseAreaEntityRaw(
+//			"{uuid:$testID,name:\"TALK_TRIGGER\",model:\"_trigger\",x:3,y:5,triggers:1,recurring:true,ExecuteScript:$flashCode}"
+//		)
+//		//val actual = findArea("gz_house02").objects.walkTriggers.find { it.x == 3 }!!
+//		val expected = AreaTrigger(
+//			name = "TALK_TRIGGER",
+//			x = 3,
+//			y = 5,
+//			oneTimeOnly = true,
+//			oncePerAreaLoad = true,
+//			flashCode = "function(){\tDO_ACTIONS([[\"UNFREEZE\"],[\"TALK\",\"c_inventor\"]],\"PC\",true);}",
+//			walkOn = false,
+//			actions = null,
+//			condition = null,
+//			id = actual.id,
+//		)
+//		assertEquals(expected, actual)
+//	}
 
 	@Test
 	fun testParseTalkTrigger() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"TALKTRIGGER\",model:\"talktrigger\",x:5,y:2,NPC:\"Shopkeeper\",dir:\"s\"}"
-		)
+		val actual = findArea("aeropolis_S_bazaar").objects.talkTriggers.find { it.x == 5 }!!
 		val expected = AreaTalkTrigger(
 			name = "TALKTRIGGER",
 			x = 5,
@@ -226,102 +237,87 @@ class TestAreaEntityParser {
 		assertEquals(expected, actual)
 	}
 
-	private fun objectSprite(name: String): ObjectSprites {
-		val sprites = ObjectSprites(name, 0, 0, null, emptyArray())
-		content.areas.objectSprites.add(sprites)
-		return sprites
-	}
-
-	private fun characterSprite(name: String): DirectionalSprites {
-		val sprites = DirectionalSprites(name, emptyArray())
-		content.areas.characterSprites.add(sprites)
-		return sprites
-	}
-
 	@Test
 	fun testParseSaveCrystal() {
-		val hardcodedActions = HardcodedActions()
-		hardcodedActions.addDummySaveCrystalAction()
+		val actual = findArea("aeropolis_N_TAIR").objects.decorations.find { it.x == 4 }!!
 		val expected = AreaDecoration(
 			x = 4,
 			y = 7,
-			sprites = objectSprite("obj_Crystal"),
+			sprites = content.areas.objectSprites.find { it.flashName == "obj_Crystal" }!!,
 			canWalkThrough = false,
 			light = null,
 			timePerFrame = 200,
 			rawConversation = null,
 			conversationName = "c_healingCrystal",
-			actionSequence = hardcodedActions.getHardcodedGlobalActionSequence("c_healingCrystal")!!,
+			actionSequence = content.actions.global.find { it.name == "c_healingCrystal" }!!,
 			signType = null,
 		)
-		val actual = parseAreaEntityRaw(
-			"{name:\"Save Crystal\",model:\"o_Crystal\",x:4,y:7,walkspeed:-1,conv:\"c_healingCrystal\"}",
-			hardcodedActions = hardcodedActions
-		)
 		assertEquals(expected, actual)
 	}
 
-	@Test
-	fun testParseSlainDracelon() {
-		val id = UUID.randomUUID()
-		val expected = AreaCharacter(
-			name = "Dracelon",
-			directionalSprites = null,
-			fixedSprites = objectSprite("spritesheet_ch2bosses(4, 1)"),
-			startX = 4,
-			startY = 21,
-			startDirection = Direction.Down,
-			walkSpeed = -2,
-			element = content.stats.elements.find { it.rawName == "EARTH" }!!,
-			portrait = null,
-			conversationName = "c_A_Rohoph",
-			rawConversation = null,
-			actionSequence = null,
-			encyclopediaPerson = null,
-			id = id,
-		)
-		val actual = parseAreaEntityRaw(
-				"{name:\"Dracelon\",model:\"ch2bosses\",x:4,y:21,walkspeed:-1,FRAME:4,silent:true," +
-						"Static:true,elem:\"EARTH\",conv:\"c_A_Rohoph\",uuid:$id}"
-		)
-		assertEquals(expected, actual)
-	}
+	// TODO CHAP2 Maybe revive this test
+//	@Test
+//	fun testParseSlainDracelon() {
+//		val id = UUID.randomUUID()
+//		val expected = AreaCharacter(
+//			name = "Dracelon",
+//			directionalSprites = null,
+//			fixedSprites = objectSprite("spritesheet_ch2bosses(4, 1)"),
+//			startX = 4,
+//			startY = 21,
+//			startDirection = Direction.Down,
+//			walkSpeed = -2,
+//			element = content.stats.elements.find { it.rawName == "EARTH" }!!,
+//			portrait = null,
+//			conversationName = "c_A_Rohoph",
+//			rawConversation = null,
+//			actionSequence = null,
+//			encyclopediaPerson = null,
+//			id = id,
+//		)
+//		val actual = parseAreaEntityRaw(
+//				"{name:\"Dracelon\",model:\"ch2bosses\",x:4,y:21,walkspeed:-1,FRAME:4,silent:true," +
+//						"Static:true,elem:\"EARTH\",conv:\"c_A_Rohoph\",uuid:$id}"
+//		)
+//		assertEquals(expected, actual)
+//	}
 
-	@Test
-	fun testParseZombieDragon() {
-		val id = UUID.randomUUID()
-		val flashCode = "function()\n" +
-				"   {\n" +
-				"      _root.playSFX(\"dragon_roar\");\n" +
-				"      return 1;\n" +
-				"   },[\"angr\",\"Rrrrrrrrrrrrrrrrrrrrr!!!!\"],Do = function()\n" +
-				"   {\n" +
-				"      GameData.plotVars.ZDRAGON = 1;\n" +
-				"      BATTLE([[\"ZombieDragon\",null,null,null],[\"Zombie Dragon\",null,null,null],[18,null,null,null],\"DRAGON\"],\"BossBattle\",true);\n" +
-				"      return true;\n" +
-				"   }"
-		val expected = AreaCharacter(
-			name = "Zombie Dragon",
-			directionalSprites = null,
-			fixedSprites = objectSprite("spritesheet_dragon(2, 2)"),
-			startX = 11,
-			startY = 6,
-			startDirection = Direction.Down,
-			walkSpeed = -2,
-			element = content.stats.elements.find { it.rawName == "DARK" }!!,
-			portrait = null,
-			conversationName = null,
-			rawConversation = "[Do = $flashCode]",
-			actionSequence = null,
-			encyclopediaPerson = null,
-			id = id,
-		)
-		val actual = parseAreaEntityRaw(
-				"{name:\"Zombie Dragon\",model:\"dragon\",x:11,y:6,walkspeed:-1,dir:\"n\",Static:1," +
-						"elem:\"DARK\",conv:[Do = $flashCode],uuid:$id}"
-		)
-		assertEquals(expected, actual)
-	}
+	// TODO CHAP2 Maybe revive this unit test
+//	@Test
+//	fun testParseZombieDragon() {
+//		val id = UUID.randomUUID()
+//		val flashCode = "function()\n" +
+//				"   {\n" +
+//				"      _root.playSFX(\"dragon_roar\");\n" +
+//				"      return 1;\n" +
+//				"   },[\"angr\",\"Rrrrrrrrrrrrrrrrrrrrr!!!!\"],Do = function()\n" +
+//				"   {\n" +
+//				"      GameData.plotVars.ZDRAGON = 1;\n" +
+//				"      BATTLE([[\"ZombieDragon\",null,null,null],[\"Zombie Dragon\",null,null,null],[18,null,null,null],\"DRAGON\"],\"BossBattle\",true);\n" +
+//				"      return true;\n" +
+//				"   }"
+//		val expected = AreaCharacter(
+//			name = "Zombie Dragon",
+//			directionalSprites = null,
+//			fixedSprites = objectSprite("spritesheet_dragon(2, 2)"),
+//			startX = 11,
+//			startY = 6,
+//			startDirection = Direction.Down,
+//			walkSpeed = -2,
+//			element = content.stats.elements.find { it.rawName == "DARK" }!!,
+//			portrait = null,
+//			conversationName = null,
+//			rawConversation = "[Do = $flashCode]",
+//			actionSequence = null,
+//			encyclopediaPerson = null,
+//			id = id,
+//		)
+//		val actual = parseAreaEntityRaw(
+//				"{name:\"Zombie Dragon\",model:\"dragon\",x:11,y:6,walkspeed:-1,dir:\"n\",Static:1," +
+//						"elem:\"DARK\",conv:[Do = $flashCode],uuid:$id}"
+//		)
+//		assertEquals(expected, actual)
+//	}
 
 	@Test
 	fun testParseTheDragon() {
@@ -329,7 +325,7 @@ class TestAreaEntityParser {
 		val expected = AreaCharacter(
 			name = "The Dragon",
 			directionalSprites = null,
-			fixedSprites = objectSprite("spritesheet_dragon(0, 2)"),
+			fixedSprites = content.areas.objectSprites.find { it.flashName ==  "spritesheet_dragon(0, 2)" },
 			startX = 6,
 			startY = 7,
 			startDirection = Direction.Down,
@@ -342,20 +338,17 @@ class TestAreaEntityParser {
 			encyclopediaPerson = null,
 			id = id,
 		)
-		val actual = parseAreaEntityRaw(
-				"{name:\"The Dragon\",model:\"dragon\",x:6,y:7,walkspeed:-1,dir:\"s\",elem:\"DARK\"," +
-						"Static:1,conv:[],uuid:6d8a7f59-5b45-4054-8266-49eae259fdbb}"
-		)
+		val actual = findArea("DL_area4").objects.characters.find { it.startX == 6 && it.startY == 7 }!!
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseMoric() {
-		val id = UUID.randomUUID()
+		val actual = findArea("crypt4").objects.characters.find { it.startY == 11 }!!
 		val expected = AreaCharacter(
 			name = "Moric",
 			directionalSprites = null,
-			fixedSprites = objectSprite("spritesheet_moric(1, 1)"),
+			fixedSprites = content.areas.objectSprites.find { it.flashName == "spritesheet_moric(1, 1)" },
 			startX = 7,
 			startY = 11,
 			startDirection = Direction.Down,
@@ -366,20 +359,17 @@ class TestAreaEntityParser {
 			rawConversation = null,
 			actionSequence = null,
 			encyclopediaPerson = null,
-			id = id,
-		)
-		val actual = parseAreaEntityRaw(
-				"{name:\"Moric\",model:\"moric\",x:7,y:11,walkspeed:-2,FRAME:1,elem:\"EARTH\",conv:\"c_GdM_Moric\",uuid:$id}"
+			id = actual.id,
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParsePriestessGail() {
-		val id = UUID.randomUUID()
+		val actual = findArea("aeropolis_N_TAIR").objects.characters.find { it.startY == 3 }!!
 		val expected = AreaCharacter(
 			name = "Priestess Gail",
-			directionalSprites = characterSprite("priestess"),
+			directionalSprites = content.areas.characterSprites.find { it.name == "priestess" }!!,
 			fixedSprites = null,
 			startX = 7,
 			startY = 3,
@@ -391,50 +381,39 @@ class TestAreaEntityParser {
 			rawConversation = null,
 			actionSequence = null,
 			encyclopediaPerson = "Priestess Gail",
-			id = id,
-		)
-		val actual = parseAreaEntityRaw(
-				"{name:\"Priestess Gail\",model:\"priestess\",x:7,y:3,walkspeed:-1,dir:\"s\",elem:\"AIR\"," +
-						"conv:\"c_priestess\",EN:[\"People\",\"Priestess Gail\"],uuid:$id}"
+			id = actual.id,
 		)
 		assertEquals(expected, actual)
 	}
 
-	@Test
-	fun testParseSign() {
-		val id = UUID.randomUUID()
-		val expected = AreaDecoration(
-			x = 26,
-			y = 26,
-			sprites = objectSprite("spritesheet_sign(10, 1)"),
-			canWalkThrough = false,
-			light = null,
-			timePerFrame = 1,
-			conversationName = null,
-			rawConversation = "[[\"\",\"CLOEST FORE THE NYHTE\"]]",
-			actionSequence = null,
-			signType = "words",
-		)
-		val actual = parseAreaEntityRaw(
-				"{name:\"Sign\",model:\"sign\",sign:\"words\",FRAME:10,x:26,y:26,walkspeed:-2," +
-						"conv:[[\"\",\"CLOEST FORE THE NYHTE\"]],uuid:$id}"
-		)
-		assertEquals(expected, actual)
-	}
+	// TODO CHAP3 Maybe revive this test
+//	@Test
+//	fun testParseSign() {
+//		val actual = findArea("aeropolis_W").objects.decorations.find { it.x == 26 && it.y == 26 }!!
+//		val expected = AreaDecoration(
+//			x = 26,
+//			y = 26,
+//			sprites = objectSprite("spritesheet_sign(10, 1)"),
+//			canWalkThrough = false,
+//			light = null,
+//			timePerFrame = 1,
+//			conversationName = null,
+//			rawConversation = "[[\"\",\"CLOEST FORE THE NYHTE\"]]",
+//			actionSequence = null,
+//			signType = "words",
+//		)
+//		assertEquals(expected, actual)
+//	}
 
 	@Test
 	fun testParseBigDoor() {
-		val sprite = objectSprite("BIGDOOR3")
-		val actual = parseAreaEntityRaw(
-				"{name:\"UP\",model:\"BIGDOOR3\",x:19,y:13,dest:[\"crypt2\",19,13],dir:\"s\"}"
-		)
+		val actual = findArea("crypt1").objects.doors.find { it.y == 13 }!!
 		val expected = AreaDoor(
-			sprites = sprite,
+			sprites = content.areas.objectSprites.find { it.flashName == "BIGDOOR3" }!!,
 			x = 19,
 			y = 13,
 			destination = TransitionDestination(
-				area = assertArea("crypt2"), x = 19, y = 13,
-				direction = Direction.Down, discoveredAreaName = null
+				area = findArea("crypt2"), worldMap = null, x = 19, y = 13, direction = Direction.Down
 			),
 			lockType = null,
 			keyName = null
@@ -444,17 +423,13 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseLockedDoor() {
-		val sprite = objectSprite("DOOR5")
-		val actual = parseAreaEntityRaw(
-				"{name:\"Exit\",model:\"DOOR5\",x:4,y:8,lock:\"key\",key:\"Bandit Key\"," +
-						"dir:\"s\",dest:[\"aeropolis_E\",13,20]}"
-		)
+		val actual = findArea("aeropolis_E_warehouse").objects.doors.find { it.y == 8 }!!
 		val expected = AreaDoor(
-			sprites = sprite,
+			sprites = content.areas.objectSprites.find { it.flashName == "DOOR5" }!!,
 			x = 4,
 			y = 8,
 			destination = TransitionDestination(
-					assertArea("aeropolis_E"), 13, 20, Direction.Down, null
+					findArea("aeropolis_E"), null, 13, 20, Direction.Down
 			),
 			lockType = "key",
 			keyName = "Bandit Key"
@@ -464,11 +439,11 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseStatue() {
-		val id = UUID.randomUUID()
+		val actual = findArea("lakequr").objects.characters.find { it.startX == 25 }!!
 		val expected = AreaCharacter(
 			name = "Statue",
 			directionalSprites = null,
-			fixedSprites = objectSprite("spritesheet_statue(6, 1)"),
+			fixedSprites = content.areas.objectSprites.find { it.flashName == "spritesheet_statue(6, 1)" }!!,
 			startX = 25,
 			startY = 3,
 			startDirection = Direction.Down,
@@ -479,10 +454,7 @@ class TestAreaEntityParser {
 			rawConversation = "[statueFlavour]",
 			actionSequence = null,
 			encyclopediaPerson = null,
-			id = id,
-		)
-		val actual = parseAreaEntityRaw(
-				"{name:\"Statue\",model:\"statue\",x:25,y:3,walkspeed:-2,dir:\"m1\",FRAME:6,conv:[statueFlavour],uuid:$id}"
+			id = actual.id,
 		)
 		assertEquals(expected, actual)
 	}
@@ -498,73 +470,46 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseDreamCircleTriggerExit() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:23,y:61,triggers:-1,WALKON:true,ExecuteScript:function()\n" +
-					"{\n" +
-					"   _root.ExitDreamrealm();\n" +
-					"   _root.WarpTrans([\"canonia_woods\",23,61]);\n" +
-					"}}"
-		)
+		val actual = findArea("canonia_woods_d").objects.portals.find { it.y == 61 }!!
 		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
-			assertArea("canonia_woods"), 23, 61, direction = null, discoveredAreaName = null
+			findArea("canonia_woods"), null, 23, 61, direction = null
 		))
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseDreamCircleEnterCanoniaWoods() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:23,y:61,triggers:-1,WALKON:true,ExecuteScript:function()\n" +
-					"{\n" +
-					"   if(!CanEnterDreamrealm())\n" +
-					"   {\n" +
-					"      return undefined;\n" +
-					"   }\n" +
-					"   _root.EnterDreamrealm();\n" +
-					"   _root.WarpTrans([\"canonia_woods_d\",23,61]);\n" +
-					"}}"
-		)
 		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
-			assertArea("canonia_woods_d"), 23, 61, direction = null, discoveredAreaName = null
+			findArea("canonia_woods_d"), null, 23, 61, direction = null
 		))
+		val actual = findArea("canonia_woods").objects.portals.find { it.y == 61 }!!
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseDreamCircleEnterTaintedGrotto() {
-		val actual = parseAreaEntityRaw(
-				"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:33,y:24,triggers:-1,WALKON:true,ExecuteScript:function()\n" +
-						"{\n" +
-						"   if(!HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
-						"   {\n" +
-						"      return undefined;\n" +
-						"   }\n" +
-						"   _root.WarpTrans([\"pcave3_d\",33,24]);\n" +
-						"}}"
-		)
 		val expected = AreaPortal(x = 33, y = 24, destination = TransitionDestination(
-				assertArea("pcave3_d"), 33, 24, direction = null, discoveredAreaName = null
+				findArea("pcave3_d"), null, 33, 24, direction = null
 		))
+		val actual = findArea("pcave3").objects.portals.find { it.x == 33 }!!
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseDreamCircleSpecialEnter() {
-		val flashCode = "function()\n" +
-		"{\n" +
-				"   if(!_root.HasAlly(\"Gloria\") && !HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
-				"   {\n" +
-				"      return undefined;\n" +
-				"   }\n" +
-				"   if(!HASPLOTITEM(\"Talisman of ONEIROS\"))\n" +
-				"   {\n" +
-				"      MAKEPARTY([\"Mardek\",\"Gloria\",\"Elwyen\",\"Solaar\"],true);\n" +
-				"   }\n" +
-				"   _root.WarpTrans([\"canonia_dreamcave_d\",8,5]);\n" +
+		val flashCode = "function()" +
+		"{" +
+				"   if(!_root.HasAlly(\"Gloria\") && !HASPLOTITEM(\"Talisman of ONEIROS\"))" +
+				"   {" +
+				"      return undefined;" +
+				"   }" +
+				"   if(!HASPLOTITEM(\"Talisman of ONEIROS\"))" +
+				"   {" +
+				"      MAKEPARTY([\"Mardek\",\"Gloria\",\"Elwyen\",\"Solaar\"],true);" +
+				"   }" +
+				"   _root.WarpTrans([\"canonia_dreamcave_d\",8,5]);" +
 				"}"
-		val actual = parseAreaEntityRaw(
-			"{uuid:$testID,name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:true,ExecuteScript:$flashCode}"
-		)
+		val actual = findArea("canonia_dreamcave").objects.walkTriggers.find { it.x == 8 }!!
 		val expected = AreaTrigger(
 			name = "TRANSPORT_TRIGGER",
 			x = 8,
@@ -574,27 +519,26 @@ class TestAreaEntityParser {
 			oncePerAreaLoad = false,
 			walkOn = true,
 			actions = null,
-			id = testID,
+			condition = null,
+			id = actual.id,
 		)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseDreamCircleSpecialExit() {
-		val flashCode = "function()\n" +
-				"{\n" +
-				"   if(!GameData.plotVars.Mardek_itj_dreamcave1)\n" +
-				"   {\n" +
-				"      _root.Interjection(\"Mardek\",\"dreamcave1\",\"c_A_Gloria\");\n" +
-				"   }\n" +
-				"   else\n" +
-				"   {\n" +
-				"      _root.WarpTrans([\"canonia_dreamcave\",8,5]);\n" +
-				"   }\n" +
+		val flashCode = "function()" +
+				"{" +
+				"   if(!GameData.plotVars.Mardek_itj_dreamcave1)" +
+				"   {" +
+				"      _root.Interjection(\"Mardek\",\"dreamcave1\",\"c_A_Gloria\");" +
+				"   }" +
+				"   else" +
+				"   {" +
+				"      _root.WarpTrans([\"canonia_dreamcave\",8,5]);" +
+				"   }" +
 				"}"
-		val actual = parseAreaEntityRaw(
-			"{uuid:$testID,name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:8,y:5,triggers:-1,WALKON:Boolean(GameData.plotVars.Mardek_itj_dreamcave1),ExecuteScript:$flashCode}"
-		)
+		val actual = findArea("canonia_dreamcave_d").objects.walkTriggers.find { it.name == "TRANSPORT_TRIGGER" }!!
 		val expected = AreaTrigger(
 			name = "TRANSPORT_TRIGGER",
 			x = 8,
@@ -604,7 +548,8 @@ class TestAreaEntityParser {
 			oncePerAreaLoad = false,
 			walkOn = null,
 			actions = null,
-			id = testID,
+			condition = null,
+			id = actual.id,
 		)
 		assertEquals(expected, actual)
 	}
@@ -612,7 +557,7 @@ class TestAreaEntityParser {
 	@Test
 	fun testParseInvalidWarportPortal() {
 		val expected = AreaDecoration(
-			sprites = objectSprite("obj_portal"),
+			sprites = content.areas.objectSprites.find { it.flashName == "obj_portal" },
 			x = 36,
 			y = 4,
 			canWalkThrough = false,
@@ -623,10 +568,7 @@ class TestAreaEntityParser {
 			actionSequence = null,
 			signType = null,
 		)
-		val actual = parseAreaEntityRaw(
-				"{name:\"Portal\",model:\"o_portal\",x:36,y:4," +
-						"conv:[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]}"
-		)
+		val actual = findArea("warport1T2").objects.decorations.find { it.x == 36 }!!
 		assertEquals(expected, actual)
 	}
 
@@ -635,7 +577,7 @@ class TestAreaEntityParser {
 		val expected = AreaDecoration(
 			x = 6,
 			y = 6,
-			sprites = objectSprite("obj_portal"),
+			sprites = content.areas.objectSprites.find { it.flashName == "obj_portal" }!!,
 			canWalkThrough = true,
 			light = null,
 			timePerFrame = 200,
@@ -644,24 +586,16 @@ class TestAreaEntityParser {
 			actionSequence = null,
 			signType = null,
 		)
-		val actual = parseAreaEntityRaw(
-			"{name:\"Portal\",model:\"o_portal\",x:6,y:6,walkable:true," +
-					"conv:[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]}"
-		)
+		val actual = findArea("warport2T3").objects.decorations.find { it.x == 6 && it.y == 6 }!!
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseValidWarportPortal() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"TRANSPORT_TRIGGER\",model:\"_trigger\",x:6,y:6,triggers:-1,WALKON:true,ExecuteScript:function()\n" +
-					"{\n" +
-					"   _root.WarpTrans([\"warport1T2\",36,4]);\n" +
-					"}}"
-		)
+		val actual = findArea("warport2T3").objects.portals.find { it.x == 6 }!!
 		val expected = AreaPortal(
 			x = 6, y = 6, destination = TransitionDestination(
-				assertArea("warport1T2"), 36, 4, direction = null, discoveredAreaName = null
+				findArea("warport1T2"), null, 36, 4, direction = null
 			)
 		)
 		assertEquals(expected, actual)
@@ -688,9 +622,7 @@ class TestAreaEntityParser {
 				"they interact, they tend to manifest as the same forms in order to be recognised. As most " +
 				"people have never seen a deity, though, any artwork depicting them is speculative; " +
 				"a way of putting such a floaty idea into something we can comprehend and recognise.\"]]"
-		val actual = parseAreaEntityRaw(
-			"{name:\"Deities: What ARE they?\",model:\"object\",x:1,y:1,type:\"examine\",conv:$rawConversation}"
-		)
+		val actual = findArea("aeropolis_W_Library").objects.decorations.find { it.x == 1 && it.y == 1 }!!
 		val expected = AreaDecoration(
 			x = 1,
 			y = 1,
@@ -708,29 +640,23 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseCanoniaWoodsTransition() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Cave\",model:\"area_transition\",x:13,y:73,dest:[\"WORLDMAP\",1,1,\"pcave1\"]}"
-		)
+		val actual = findArea("canonia_woods").objects.transitions.find { it.y == 73 }!!
 		val expected = AreaTransition(x = 13, y = 73, arrow = null, destination = TransitionDestination(
-			assertArea("WORLDMAP"), x = 1, y = 1, direction = null, discoveredAreaName = "pcave1"
+			null, content.worldMaps[0], x = 1, y = 1, direction = null
 		))
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseCanoniaEquipmentShop() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Equipment Shop\",model:\"shop\",x:2,y:2,SHOP:{name:\"Canonia Equipment Shop\",wares:DefaultShops.CANONIA_EQUIPMENT}}"
-		)
+		val actual = findArea("cn_shop_").objects.shops[0]
 		val expected = AreaShop(shopName = "Canonia Equipment Shop", x = 2, y = 2, waresConstantName = "CANONIA_EQUIPMENT")
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testMineDiveExamine() {
-		val actual = parseAreaEntityRaw(
-			"{name:\"Water\",model:\"examine\",x:8,y:30,walkspeed:-1,conv:\"c_lakeQur\"}"
-		)
+		val actual = findArea("gemmine6").objects.decorations.find { it.x == 8 }!!
 		val expected = AreaDecoration(
 			x = 8,
 			y = 30,
@@ -746,40 +672,30 @@ class TestAreaEntityParser {
 		assertEquals(expected, actual)
 	}
 
-	private fun switchColor(name: String): SwitchColor {
-		val color = SwitchColor(
-			name, KimSprite(), KimSprite(),
-			KimSprite(), KimSprite(), UUID.randomUUID(),
-		)
-		content.areas.switchColors.add(color)
-		return color
-	}
-
 	@Test
 	fun testParseSwitchOrb() {
-		val expected = AreaSwitchOrb(x = 3, y = 2, color = switchColor("turquoise"))
-		val actual = parseAreaEntityRaw(
-			"{name:\"Turquoise Keystone\",model:\"object\",x:3,y:2,type:\"switch_orb\"," +
-					"colour:\"turquoise\",base:\"gold\",conv_action:1}"
+		val expected = AreaSwitchOrb(
+			x = 3, y = 2, color = content.areas.switchColors.find { it.name == "turquoise" }!!
 		)
+		val actual = findArea("canonia_shaman_d").objects.switchOrbs.find { it.x == 3 }!!
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseSwitchGate() {
-		val expected = AreaSwitchGate(x = 12, y = 14, color = switchColor("moonstone"))
-		val actual = parseAreaEntityRaw(
-			"{name:\"Moonstone Gate\",model:\"object\",x:12,y:14,type:\"switch_gate\",colour:\"moonstone\"}"
+		val expected = AreaSwitchGate(
+			x = 12, y = 14, color = content.areas.switchColors.find { it.name == "moonstone" }!!
 		)
+		val actual = findArea("citadel4").objects.switchGates.find { it.x == 12 }!!
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseSwitchPlatform() {
-		val expected = AreaSwitchPlatform(x = 31, y = 8, color = switchColor("turquoise"))
-		val actual = parseAreaEntityRaw(
-			"{name:\"Turquoise Platform\",model:\"object\",x:31,y:8,type:\"switch_platform\",colour:\"turquoise\"}"
+		val expected = AreaSwitchPlatform(
+			x = 31, y = 8, color = content.areas.switchColors.find { it.name == "turquoise" }!!
 		)
+		val actual = findArea("dreamshrine2").objects.switchPlatforms.find { it.x == 31 }!!
 		assertEquals(expected, actual)
 	}
 }

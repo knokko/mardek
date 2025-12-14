@@ -152,6 +152,7 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 		addBcImage(resourceWriter, effect.icon)
 		for (sprite in effect.passiveParticleSprites) addBcImage(resourceWriter, sprite)
 	}
+	for (map in content.worldMaps) addBcImage(resourceWriter, map.sprite)
 	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
 
 	for (cutscene in content.actions.cutscenes) {
@@ -180,7 +181,7 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 
 	Files.write(
 		File("$outputFolder/content.bits").toPath(),
-		bitser.serializeToBytes(content, Bitser.BACKWARD_COMPATIBLE)
+		bitser.toBytes(content, Bitser.BACKWARD_COMPATIBLE)
 	)
 }
 
@@ -206,6 +207,6 @@ private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
 
 	Files.write(
 		File("$projectFolder/game/src/main/resources/mardek/game/title-screen.bits").toPath(),
-		bitser.serializeToBytes(titleScreenContent, Bitser.BACKWARD_COMPATIBLE)
+		bitser.toBytes(titleScreenContent, Bitser.BACKWARD_COMPATIBLE)
 	)
 }

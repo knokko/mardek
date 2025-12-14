@@ -16,6 +16,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.generateBattleLoot
 import mardek.content.battle.Enemy
+import mardek.state.UsedPartyMember
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -44,7 +45,7 @@ object TestBattleLoot {
 
 			val battle = campaign.currentArea!!.activeBattle!!.battle
 			repeat(10_000) {
-				val loot = generateBattleLoot(content, battle, campaign.getParty())
+				val loot = generateBattleLoot(content, battle, campaign.usedPartyMembers())
 				totalGold += loot.gold
 				assertEquals(0, loot.plotItems.size)
 				assertEquals(0, loot.dreamStones.size)
@@ -94,7 +95,7 @@ object TestBattleLoot {
 
 			val battle = campaign.currentArea!!.activeBattle!!.battle
 			repeat(10_000) {
-				val loot = generateBattleLoot(content, battle, campaign.getParty())
+				val loot = generateBattleLoot(content, battle, campaign.usedPartyMembers())
 				totalGold += loot.gold
 			}
 
@@ -128,7 +129,7 @@ object TestBattleLoot {
 			val monsterFang = content.items.items.find { it.flashName == "Monster Fang" }!!
 			val battle = campaign.currentArea!!.activeBattle!!.battle
 			repeat(10_000) {
-				val loot = generateBattleLoot(content, battle, campaign.getParty())
+				val loot = generateBattleLoot(content, battle, campaign.usedPartyMembers())
 				if (loot.items.size == 1) {
 					assertSame(monsterFang, loot.items[0].item)
 					if (loot.items[0].amount == 2) {
@@ -161,7 +162,7 @@ object TestBattleLoot {
 
 			val battle = campaign.currentArea!!.activeBattle!!.battle
 			repeat(100) {
-				val loot = generateBattleLoot(content, battle, campaign.getParty())
+				val loot = generateBattleLoot(content, battle, campaign.usedPartyMembers())
 				assertTrue(content.battle.lootItemTexts.contains(
 					loot.itemText.replace("You ", "").replace(":", "")
 				))
@@ -185,7 +186,7 @@ object TestBattleLoot {
 
 			val battleState = campaign.currentArea!!.activeBattle!!
 			repeat(100) {
-				val loot = generateBattleLoot(content, battleState.battle, campaign.getParty())
+				val loot = generateBattleLoot(content, battleState.battle, campaign.usedPartyMembers())
 				assertTrue(content.battle.lootItemTexts.contains(
 					loot.itemText.replace("You ", "").replace(":", "")
 				))
@@ -205,7 +206,9 @@ object TestBattleLoot {
 			area.battleLoot = BattleLoot(
 				123, arrayListOf(ItemStack(ruby, 1), ItemStack(emerald, 2)),
 				ArrayList(0), ArrayList(0),
-				"bla", listOf(null, heroDeugan, null, null)
+				"bla", listOf(
+					UsedPartyMember(1, heroDeugan, campaign.characterStates[heroDeugan]!!)
+				)
 			)
 
 			val loot = area.battleLoot!!
@@ -266,6 +269,9 @@ object TestBattleLoot {
 			val onyx = content.items.items.find { it.flashName == "Onyx" }!!
 
 			val campaign = simpleCampaignState()
+			campaign.party[0] = null
+			campaign.party[1] = heroDeugan
+			campaign.party[3] = heroMardek
 			val area = campaign.currentArea!!
 			area.battleLoot = BattleLoot(
 				123, arrayListOf(
@@ -275,7 +281,7 @@ object TestBattleLoot {
 					ItemStack(onyx, 2)
 				),
 				ArrayList(0), ArrayList(0),
-				"bla", listOf(null, heroDeugan, null, heroMardek)
+				"bla", campaign.usedPartyMembers(),
 			)
 
 			val loot = area.battleLoot!!
@@ -368,7 +374,7 @@ object TestBattleLoot {
 			area.battleLoot = BattleLoot(
 				1234, arrayListOf(ItemStack(sapphire, 5)),
 				ArrayList(0), ArrayList(0),
-				"Just a test", campaign.characterSelection.party.toList()
+				"Just a test", campaign.usedPartyMembers(),
 			)
 
 			val goldColor = Color(255, 255, 0)

@@ -15,7 +15,7 @@ class InGameMenuState(private val state: CampaignState) {
 
 	fun update(input: InputManager, soundQueue: SoundQueue, content: Content) {
 		val context = UiUpdateContext(
-			state.characterSelection, state.characterStates, soundQueue,
+			state.usedPartyMembers(), state.allPartyMembers(), soundQueue,
 			content.audio.fixedEffects, content.skills
 		)
 		while (true) {
@@ -31,9 +31,12 @@ class InGameMenuState(private val state: CampaignState) {
 					if (event.key == InputKey.MoveUp) {
 						val oldTab = currentTab
 						if (currentTab is SkillsTab) currentTab = PartyTab()
-						if (currentTab is InventoryTab) currentTab = SkillsTab(state.characterSelection)
+						if (currentTab is InventoryTab) currentTab = SkillsTab(state.usedPartyMembers())
 						if (currentTab is MapTab) currentTab = InventoryTab()
-						if (currentTab is VideoSettingsTab) currentTab = MapTab()
+						if (currentTab is QuestsTab) currentTab = MapTab()
+						if (currentTab is VideoSettingsTab) {
+							currentTab = QuestsTab(state.story.getQuests(content.story))
+						}
 
 						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll1)
 						continue
@@ -41,10 +44,11 @@ class InGameMenuState(private val state: CampaignState) {
 
 					if (event.key == InputKey.MoveDown) {
 						val oldTab = currentTab
-						if (currentTab is MapTab) currentTab = VideoSettingsTab()
+						if (currentTab is QuestsTab) currentTab = VideoSettingsTab()
+						if (currentTab is MapTab) currentTab = QuestsTab(state.story.getQuests(content.story))
 						if (currentTab is InventoryTab) currentTab = MapTab()
 						if (currentTab is SkillsTab) currentTab = InventoryTab()
-						if (currentTab is PartyTab) currentTab = SkillsTab(state.characterSelection)
+						if (currentTab is PartyTab) currentTab = SkillsTab(state.usedPartyMembers())
 
 						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll1)
 						continue

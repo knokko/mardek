@@ -1,7 +1,6 @@
 package mardek.importer.stats
 
 import com.github.knokko.bitser.Bitser
-import com.github.knokko.bitser.io.BitInputStream
 import mardek.content.skill.ReactionSkillType
 import mardek.importer.importVanillaContent
 import mardek.state.ingame.CampaignState
@@ -9,17 +8,16 @@ import mardek.content.inventory.ItemStack
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.io.ByteArrayInputStream
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestPlayableCharacterImporter {
 
 	private val bitser = Bitser(false)
-	private val campaign = importVanillaContent(bitser, true)
+	private val content = importVanillaContent(bitser, true)
 
 	@Test
 	fun testImportHeroMardek() {
-		val mardek = campaign.playableCharacters.find { it.areaSprites.name == "mardek_hero" }!!
+		val mardek = content.playableCharacters.find { it.areaSprites.name == "mardek_hero" }!!
 
 		assertEquals("Mardek", mardek.name)
 		assertEquals("LIGHT", mardek.element.properName)
@@ -45,8 +43,7 @@ class TestPlayableCharacterImporter {
 		fun activeSkill(name: String) = skills.actions.find { it.name == name }!!
 		activeSkill("Smite Evil")
 
-		val input1 = BitInputStream(ByteArrayInputStream(campaign.checkpoints["chapter1"]!!))
-		val chapter1 = bitser.deserialize(CampaignState::class.java, input1, campaign, Bitser.BACKWARD_COMPATIBLE)
+		val chapter1 = CampaignState.loadChapter(content, 1)
 
 		val state = chapter1.characterStates[mardek]!!
 		assertEquals(50, state.currentLevel)
@@ -54,7 +51,7 @@ class TestPlayableCharacterImporter {
 		assertEquals(122, state.currentMana)
 		assertEquals(0, state.activeStatusEffects.size)
 
-		fun item(name: String) = campaign.items.items.find { it.flashName == name }!!
+		fun item(name: String) = content.items.items.find { it.flashName == name }!!
 		val expectedEquipment = arrayOf(
 			item("M Blade"), item("Hero's Shield"), null,
 			item("Hero's Armour"), item("Dragon Amulet"), null
@@ -65,8 +62,8 @@ class TestPlayableCharacterImporter {
 		expectedInventory[0] = ItemStack(item("Elixir"), 9)
 		assertArrayEquals(expectedInventory, state.inventory)
 
-		fun passiveSkill(name: String) = campaign.skills.passiveSkills.find { it.name == name }!!
-		fun reactionSkill(type: ReactionSkillType, name: String) = campaign.skills.reactionSkills.find {
+		fun passiveSkill(name: String) = content.skills.passiveSkills.find { it.name == name }!!
+		fun reactionSkill(type: ReactionSkillType, name: String) = content.skills.reactionSkills.find {
 			it.type == type && it.name == name
 		}!!
 

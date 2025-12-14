@@ -118,14 +118,24 @@ class ChestBattle(
 	val enemyLayout: PartyLayout,
 
 	/**
-	 * When this is null, the default battle music should be played during the battle. When non-null, the mustic track
+	 * When this is null, the default battle music should be played during the battle. When non-null, the music track
 	 * with the given name should be played instead.
 	 */
 	@BitField(id = 2, optional = true)
 	val specialMusic: String?,
+
+	/**
+	 * When this is null, the default victory music should be played after winning the battle.
+	 * When non-null, the music track with the given name should be played instead.
+	 */
+	@BitField(id = 3, optional = true)
+	val specialLootMusic: String?,
 ) {
 	@Suppress("unused")
-	private constructor() : this(arrayOf(null, null, null, null), PartyLayout(), null)
+	private constructor() : this(
+		arrayOf(null, null, null, null), PartyLayout(),
+		null, null,
+	)
 
 	override fun toString() = "ChestBattle$monsters"
 }

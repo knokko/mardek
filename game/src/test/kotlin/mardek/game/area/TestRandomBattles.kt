@@ -13,6 +13,7 @@ import mardek.state.ingame.area.AreaState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -21,13 +22,9 @@ object TestRandomBattles {
 	fun testNoEncountersBefore30Steps(instance: TestingInstance) {
 		instance.apply {
 			repeat(1000) {
-				val campaign = CampaignState(
-					currentArea = AreaState(dragonLair2, AreaPosition(7, 35)),
-					characterSelection = simpleCharacterSelectionState(),
-					characterStates = simpleCharacterStates(),
-					gold = 123
-				)
-				campaign.triggers.activeTrigger(dragonLair2.objects.walkTriggers[0])
+				val campaign = simpleCampaignState()
+				campaign.currentArea = AreaState(dragonLair2, AreaPosition(7, 35))
+				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
 				val input = InputManager()
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
@@ -52,14 +49,10 @@ object TestRandomBattles {
 		instance.apply {
 			var numEncounters = 0
 			repeat(10_000) {
-				val campaign = CampaignState(
-					currentArea = AreaState(dragonLair2, AreaPosition(7, 39)),
-					characterSelection = simpleCharacterSelectionState(),
-					characterStates = simpleCharacterStates(),
-					gold = 123
-				)
+				val campaign = simpleCampaignState()
+				campaign.currentArea = AreaState(dragonLair2, AreaPosition(7, 39))
 				campaign.stepsSinceLastBattle = 30
-				campaign.triggers.activeTrigger(dragonLair2.objects.walkTriggers[0])
+				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
 				val input = InputManager()
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
@@ -84,14 +77,10 @@ object TestRandomBattles {
 		instance.apply {
 			var numEncounters = 0
 			repeat(10_000) {
-				val campaign = CampaignState(
-					currentArea = AreaState(dragonLair2, AreaPosition(7, 39)),
-					characterSelection = simpleCharacterSelectionState(),
-					characterStates = simpleCharacterStates(),
-					gold = 123
-				)
+				val campaign = simpleCampaignState()
+				campaign.currentArea = AreaState(dragonLair2, AreaPosition(7, 39))
 				campaign.stepsSinceLastBattle = 60
-				campaign.triggers.activeTrigger(dragonLair2.objects.walkTriggers[0])
+				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
 				val input = InputManager()
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
@@ -114,15 +103,11 @@ object TestRandomBattles {
 
 	fun testTransferOddsToNextArea(instance: TestingInstance) {
 		instance.apply {
-			val campaign = CampaignState(
-				currentArea = AreaState(dragonLair2, AreaPosition(7, 39)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			)
+			val campaign = simpleCampaignState()
+			campaign.currentArea = AreaState(dragonLair2, AreaPosition(7, 39))
 			campaign.stepsSinceLastBattle = 20
 			campaign.totalSteps = 100
-			campaign.triggers.activeTrigger(dragonLair2.objects.walkTriggers[0])
+			campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
 			val input = InputManager()
 			val context = CampaignState.UpdateContext(
@@ -152,6 +137,35 @@ object TestRandomBattles {
 			assertEquals(20, campaign.stepsSinceLastBattle)
 			assertEquals(100, campaign.totalSteps)
 			assertSame(dragonLair2, campaign.currentArea!!.area)
+		}
+	}
+
+	fun testCannotOpenDoorWhileBattleIsIncoming(instance: TestingInstance) {
+		instance.apply {
+			val campaign = simpleCampaignState()
+			campaign.currentArea = AreaState(dragonLair2, AreaPosition(7, 3))
+			campaign.stepsSinceLastBattle = 500
+
+			val input = InputManager()
+			val context = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+			)
+
+			input.postEvent(pressKeyEvent(InputKey.MoveUp))
+
+			repeat(25) {
+				campaign.update(context)
+			}
+
+			assertNotNull(campaign.currentArea!!.incomingRandomBattle)
+			input.postEvent(pressKeyEvent(InputKey.Interact))
+
+			repeat(500) {
+				campaign.update(context)
+			}
+
+			assertSame(dragonLair2, campaign.currentArea!!.area)
+			assertNotNull(campaign.currentArea!!.activeBattle)
 		}
 	}
 }

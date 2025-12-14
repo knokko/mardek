@@ -42,6 +42,8 @@ class RenderContext(
 ) {
 	fun addColorBatch(initialCapacity: Int) = pipelines.base.color.addBatch(currentStage, initialCapacity)!!
 
+	fun addMultiplyBatch(initialCapacity: Int) = pipelines.base.multiply.addBatch(currentStage, initialCapacity)!!
+
 	fun addOvalBatch(initialCapacity: Int) = pipelines.base.oval.addBatch(
 		currentStage, perFrameDescriptorSet, initialCapacity
 	)!!

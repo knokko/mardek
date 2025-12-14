@@ -15,4 +15,6 @@ class ArrowSprite(
 
 	@Suppress("unused")
 	private constructor() : this("", KimSprite())
+
+	override fun toString() = "ArrowSprite($flashName)"
 }

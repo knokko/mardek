@@ -1,5 +1,6 @@
 package mardek.state.ingame.characters
 
+import mardek.content.characters.CharacterState
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
 import org.junit.jupiter.api.Assertions.assertEquals

@@ -5,8 +5,10 @@ import mardek.content.area.*
 import mardek.content.sprite.ArrowSprite
 import mardek.content.sprite.DirectionalSprites
 import mardek.importer.actions.HardcodedActions
+import mardek.importer.story.expressions.HardcodedExpressions
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.resourcesFolder
+import mardek.importer.world.hardcodeWorldMap
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
@@ -47,15 +49,19 @@ internal fun importAreaSprites(content: Content) {
 	}
 }
 
-internal fun importAreaContent(content: Content) {
+internal fun importAreaContent(content: Content): HardcodedActions {
 	val hardcodedActions = HardcodedActions()
 	hardcodedActions.hardcodeActionSequences(content)
+
+	val hardcodedExpressions = HardcodedExpressions()
+	hardcodedExpressions.hardcodeTimelineExpressions(content)
 
 	val parsedAreas = ArrayList<ParsedArea>()
 	val parsedTilesheets = ArrayList<ParsedTilesheet>()
 	val transitions = ArrayList<Pair<TransitionDestination, String>>()
 	for (areaName in enumerateAreas(areaFolder)) {
-		parsedAreas.add(parseArea(content, hardcodedActions, areaName, parsedTilesheets, transitions))
+		val context = AreaEntityParseContext(content, areaName, hardcodedActions, hardcodedExpressions, transitions)
+		parsedAreas.add(parseArea(context, parsedTilesheets))
 	}
 
 	val tileMapping = HashMap<ParsedTile, Tile>()
@@ -103,15 +109,20 @@ internal fun importAreaContent(content: Content) {
 		))
 	}
 
+	hardcodeWorldMap(content)
+
 	for ((transition, destination) in transitions) {
-		if (destination == "WORLDMAP") continue // TODO CHAP1 Handle this
+		if (destination == "WORLDMAP") {
+			transition.worldMap = content.worldMaps[0]
+			continue
+		}
 		if (destination == "nowhere") continue
 		transition.area = content.areas.areas.find {
 			it.properties.rawName.equals(destination, ignoreCase = true)
 		}!!
 	}
 
-	hardcodedActions.storeHardcodedActionSequences(content)
+	return hardcodedActions
 }
 
 internal fun enumerateAreas(areaFolder: File) = File("$areaFolder/data").list()!!.map {

@@ -76,10 +76,9 @@ internal fun renderInventoryGrid(menuContext: MenuRenderContext, startX: Int, st
 
 		val pickedItem = tab.pickedUpItem
 
-		val party = context.campaign.characterSelection.party
-		val selectedCharacter = party[tab.partyIndex]
-		if (selectedCharacter != null) {
-			val inventory = context.campaign.characterStates[selectedCharacter]!!.inventory
+		val selectedCharacterPair = context.campaign.allPartyMembers()[tab.partyIndex]
+		if (selectedCharacterPair != null) {
+			val inventory = selectedCharacterPair.second.inventory
 			for (y in 0 until 8) {
 				for (x in 0 until 8) {
 					val itemStack = inventory[x + 8 * y] ?: continue

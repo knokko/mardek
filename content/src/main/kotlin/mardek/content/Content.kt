@@ -15,8 +15,10 @@ import mardek.content.stats.StatsContent
 import mardek.content.inventory.ItemsContent
 import mardek.content.portrait.PortraitContent
 import mardek.content.skill.SkillsContent
+import mardek.content.story.StoryContent
 import mardek.content.ui.Fonts
 import mardek.content.ui.UiSprites
+import mardek.content.world.WorldMap
 import java.io.BufferedInputStream
 
 @BitStruct(backwardCompatible = true)
@@ -42,20 +44,33 @@ class Content {
 	@BitField(id = 6)
 	val actions = ActionContent()
 
+	/**
+	 * The story-related part of the content, like quests and the timeline
+	 */
 	@BitField(id = 7)
+	val story = StoryContent()
+
+	@BitField(id = 8)
 	@ReferenceFieldTarget(label = "playable characters")
 	val playableCharacters = ArrayList<PlayableCharacter>()
 
-	@BitField(id = 8)
-	val portraits = PortraitContent()
-
+	/**
+	 * All world maps in the game. Vanilla MARDEK has only 1 world map: Belfan
+	 */
 	@BitField(id = 9)
-	lateinit var ui: UiSprites
+	@ReferenceFieldTarget(label = "world maps")
+	val worldMaps = ArrayList<WorldMap>()
 
 	@BitField(id = 10)
-	lateinit var fonts: Fonts
+	val portraits = PortraitContent()
 
 	@BitField(id = 11)
+	lateinit var ui: UiSprites
+
+	@BitField(id = 12)
+	lateinit var fonts: Fonts
+
+	@BitField(id = 13)
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	val checkpoints = HashMap<String, ByteArray>()
 

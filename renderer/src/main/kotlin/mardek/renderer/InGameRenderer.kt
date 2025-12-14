@@ -183,7 +183,7 @@ internal fun renderInGame(
 					rightBlurColor, multiplyColor,
 					rightBlurColor, multiplyColor,
 				)
-				val batches = renderBattleLoot(context, loot, state.campaign.characterSelection.party, region)
+				val batches = renderBattleLoot(context, loot, state.campaign.usedPartyMembers(), region)
 				titleColorBatch = batches.first
 				titleTextBatch = batches.second
 			}

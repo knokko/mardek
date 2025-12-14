@@ -85,7 +85,7 @@ internal fun importAnimationNode(
 	if (instanceName == "face") special = SpecialAnimationNode.PortraitFace
 	if (instanceName == "eye1" || instanceName == "eye2") special = SpecialAnimationNode.PortraitEye
 	if (instanceName == "eyebrow1" || instanceName == "eyebrow2") special = SpecialAnimationNode.PortraitEyeBrow
-	if (instanceName == "hair" || childID == 1463) special = SpecialAnimationNode.PortraitHair
+	if (instanceName == "hair" || childID == 1463 || childID == 1536) special = SpecialAnimationNode.PortraitHair
 	if (instanceName == "torso" || instanceName == "head" || instanceName == "mouth" ||
 		childID == 1059 || childID == 1348
 	) {

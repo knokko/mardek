@@ -15,7 +15,6 @@ import java.util.UUID
  * usually fixed, but not always (e.g. dialogue choices or plot checks). When the next action node is `null`,
  * the action sequence ends, and the game resumes.
  */
-@BitStruct(backwardCompatible = true)
 sealed class ActionNode() {
 
 	/**

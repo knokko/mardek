@@ -24,7 +24,7 @@ internal class MenuRenderContext(
 ) {
 
 	val uiContext = UiUpdateContext(
-		state.characterSelection, state.characterStates,
-		context.state.soundQueue, context.content.audio.fixedEffects, context.content.skills
+		context.campaign.usedPartyMembers(), context.campaign.allPartyMembers(),
+		context.state.soundQueue, context.content.audio.fixedEffects, context.content.skills,
 	)
 }

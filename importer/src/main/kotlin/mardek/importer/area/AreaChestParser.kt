@@ -75,9 +75,10 @@ internal fun parseAreaChests(
 		val layout = content.battle.enemyPartyLayouts.find { it.name == layoutName }!!
 
 		val rawSpecialMusic = rawChest["specialMusic"]
-		val specialMusic = if (rawSpecialMusic == null) null else parseFlashString(rawSpecialMusic, "chest battle music")!!
+		val specialMusic = if (rawSpecialMusic == null) null
+		else parseFlashString(rawSpecialMusic, "chest battle music")!!
 
-		battle = ChestBattle(monsters, layout, specialMusic)
+		battle = ChestBattle(monsters, layout, specialMusic, "VictoryFanfare2")
 	}
 
 	Chest(

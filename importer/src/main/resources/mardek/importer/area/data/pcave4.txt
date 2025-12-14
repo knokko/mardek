@@ -25,6 +25,7 @@ else
 {
    musicTrack = "Dungeon1";
 }
+musicTrack = GrottoBossRoomMusic;
 areaLoot = [{x:12,y:2,amount:1,item:"Geojacket",hidden:true}];
 foes = [];
 btlChance = 0;

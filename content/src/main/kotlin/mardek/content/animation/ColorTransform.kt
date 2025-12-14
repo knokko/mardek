@@ -42,8 +42,7 @@ class ColorTransform(
 	val subtractColor: Int,
 ) {
 
-	@Suppress("unused")
-	private constructor() : this(0, 0, 0)
+	internal constructor() : this(0, 0, 0)
 
 	private fun formatComponent(color: Int, offset: Int) = String.format("%.1f", ((color shr offset) and 255) / 255f)
 

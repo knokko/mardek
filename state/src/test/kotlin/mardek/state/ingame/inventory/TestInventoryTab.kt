@@ -15,8 +15,7 @@ import mardek.content.stats.CreatureType
 import mardek.input.InputKey
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
-import mardek.state.ingame.characters.CharacterSelectionState
-import mardek.state.ingame.characters.CharacterState
+import mardek.content.characters.CharacterState
 import mardek.state.ingame.menu.InventoryTab
 import mardek.state.ingame.menu.ItemReference
 import mardek.state.ingame.menu.UiUpdateContext
@@ -39,16 +38,10 @@ private fun createState(): CampaignState {
 	)
 	val mardekState = CharacterState()
 
-	return CampaignState(
-		currentArea = null,
-		characterSelection = CharacterSelectionState(
-			available = hashSetOf(mardek),
-			unavailable = HashSet(0),
-			party = arrayOf(mardek, null, null, null)
-		),
-		characterStates = hashMapOf(Pair(mardek, mardekState)),
-		gold = 0
-	)
+	val campaignState = CampaignState()
+	campaignState.party[0] = mardek
+	campaignState.characterStates[mardek] = mardekState
+	return campaignState
 }
 
 class TestInventoryTab {
@@ -59,8 +52,8 @@ class TestInventoryTab {
 	private val soundQueue = SoundQueue()
 	private val tab = InventoryTab()
 	private val context = UiUpdateContext(
-		state.characterSelection, state.characterStates,
-		soundQueue, FixedSoundEffects(), SkillsContent()
+		state.usedPartyMembers(), state.allPartyMembers(),
+		soundQueue, FixedSoundEffects(), SkillsContent(),
 	)
 
 	init {

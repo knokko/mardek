@@ -92,6 +92,15 @@ internal class AudioManager {
 
 	fun playMusic(audio: Int) = play(musicSource, audio)
 
+	fun stopMusic() {
+		assertAlSuccess("alGetSourcei")
+		val currentState = assertAlSuccess(alGetSourcei(musicSource, AL_SOURCE_STATE), "alGetSourcei")
+		if (currentState == AL_PLAYING) {
+			alSourceStop(musicSource)
+			assertAlSuccess("alSourceStop")
+		}
+	}
+
 	fun playSound(audio: Int) {
 		play(soundSources[nextSoundSource], audio)
 		nextSoundSource = (nextSoundSource + 1) % soundSources.size

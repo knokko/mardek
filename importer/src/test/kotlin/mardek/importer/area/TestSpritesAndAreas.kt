@@ -14,6 +14,8 @@ import mardek.importer.particle.importParticleEffects
 import mardek.importer.stats.importStatsContent
 import mardek.importer.skills.importSkillsContent
 import mardek.importer.stats.importClasses
+import mardek.importer.story.expressions.HardcodedExpressions
+import mardek.importer.story.importSimpleStoryContent
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -69,6 +71,7 @@ class TestSpritesAndAreas {
 		importAreaSprites(content)
 		importClasses(content)
 		importPlayableCharacters(content, null)
+		importSimpleStoryContent(content.story)
 		importAreaBattleContent(content)
 		importAreaContent(content)
 
@@ -139,12 +142,16 @@ class TestSpritesAndAreas {
 		importAudioContent(content.audio)
 		importParticleEffects(content)
 		importStatsContent(content)
-		val rawMolester = parseAreaEntity(content, HardcodedActions(), "",
+		val parseContext = AreaEntityParseContext(
+			content, "", HardcodedActions(),
+			HardcodedExpressions(), mutableListOf(),
+		)
+		val rawMolester = parseAreaEntity(parseContext,
 			parseActionScriptObjectList("[{name:\"Molestor\",model:\"ch3bosses\",x:16,y:37,walkspeed:-1,dir:\"e\",Static:true,elem:\"DARK\",BOSSCODE:\"Molestor2\",conv:[[\"norm\",\"<<demon>>Neeeeeeeheeheeheehee... Children... You do not belooooong heeeererererere...!\"],Do = function()\n" +
 				"{\n" +
 				"   BATTLE([[\"Molestor\",null,null,null],[\"Molestor\",null,null,null],[20,null,null,null],\"SOLO\"],\"battle\",true,true);\n" +
 				"   return 1;\n" +
-				"}]}]")[0], ArrayList())
+				"}]}]")[0])
 
 		assertTrue(rawMolester is AreaCharacter, "Expected $rawMolester to be an AreaCharacter")
 		val molestor = rawMolester as AreaCharacter

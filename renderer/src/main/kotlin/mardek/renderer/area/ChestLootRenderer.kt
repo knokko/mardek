@@ -42,9 +42,7 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 		}
 
 		if (obtainedItemStack.itemStack != null) {
-			for ((column, character) in obtainedItemStack.party.withIndex()) {
-				if (character == null) continue
-
+			for ((column, character) in obtainedItemStack.usedParty) {
 				var spriteIndex = 0
 				val passedTime = System.nanoTime() - referenceTime
 				val animationPeriod = 700_000_000L
@@ -115,6 +113,7 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 				simpleTextColor, 0, 0f, rgb(0, 0, 0),
 				0.5f * scale, 0.5f * scale, TextAlignment.LEFT
 			)
+			@Suppress("AssignedValueIsNeverRead")
 			textY += 8 * scale
 		}
 
@@ -128,9 +127,7 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 				0.8f * scale, 0.8f * scale, TextAlignment.LEFT
 			)
 
-			for ((column, character) in obtainedItemStack.party.withIndex()) {
-				if (character == null) continue
-
+			for ((column, _, characterState) in obtainedItemStack.usedParty) {
 				val minX = rectMinX + columnWidth * column
 				if (column == obtainedItemStack.partyIndex) {
 					val borderColor = srgbToLinear(rgb(99, 128, 177))
@@ -142,7 +139,6 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 					)
 				}
 
-				val characterState = obtainedItemStack.characters[character]!!
 				val alreadyHas = characterState.countItemOccurrences(obtainedItemStack.itemStack!!.item)
 				textBatch.drawShadowedString(
 					alreadyHas.toString(), minX + 9f * scale, rectMaxY + 32f * scale, 6f * scale,
@@ -162,9 +158,10 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 		}
 
 		if (obtainedItemStack.itemStack != null) {
-			val party = obtainedItemStack.party.map { if (it != null) obtainedItemStack.characters[it]!! else null }
 			val minY = rectMaxY + 40 * scale
-			renderLootInventoryGrid(colorBatch, party, rectMinX + scale, minY, columnWidth, 2 * scale)
+			renderLootInventoryGrid(
+				colorBatch, obtainedItemStack.usedParty, rectMinX + scale, minY, columnWidth, 2 * scale
+			)
 		}
 	}
 }

@@ -77,11 +77,7 @@ class SaveFile private constructor(
 		try {
 			val input = Files.newInputStream(file.toPath())
 			input.skipNBytes(dataOffset)
-			return savesBitser.deserialize(
-				CampaignState::class.java,
-				BitInputStream(input),
-				content, Bitser.BACKWARD_COMPATIBLE,
-			)
+			return CampaignState.loadSave(content, input)
 		} catch (failed: Exception) {
 			println("Failed to load save $file: ${failed.message}")
 			return null

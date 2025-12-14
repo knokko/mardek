@@ -122,6 +122,7 @@ class RenderManager(
 	companion object {
 		fun initPipelinesConfig(config: Vk2dConfig) {
 			config.color = true
+			config.multiply = true
 			config.oval = true
 			config.image = true
 			config.kim3 = true

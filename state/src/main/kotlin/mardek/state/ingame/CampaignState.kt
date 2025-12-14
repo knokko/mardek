@@ -1,15 +1,20 @@
 package mardek.state.ingame
 
+import com.github.knokko.bitser.BitPostInit
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.io.BitInputStream
+import com.github.knokko.bitser.options.WithParameter
+import mardek.content.Content
+import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionToArea
 import mardek.content.action.FixedActionNode
 import mardek.content.area.Chest
 import mardek.content.characters.PlayableCharacter
-import mardek.content.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.MouseMoveEvent
@@ -29,29 +34,39 @@ import mardek.content.battle.Battle
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
-import mardek.state.ingame.characters.CharacterSelectionState
-import mardek.state.ingame.characters.CharacterState
+import mardek.content.characters.CharacterState
+import mardek.content.story.Timeline
+import mardek.content.story.TimelineNode
+import mardek.state.GameStateManager
+import mardek.state.UsedPartyMember
+import mardek.state.ingame.story.StoryState
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SaveSelectionState
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import kotlin.time.Duration.Companion.seconds
 
 @BitStruct(backwardCompatible = true)
-class CampaignState(
+class CampaignState : BitPostInit {
 
 	@BitField(id = 0, optional = true)
-	var currentArea: AreaState?,
+	var currentArea: AreaState? = null
 
+	/**
+	 * The characters currently in the party
+	 */
 	@BitField(id = 1)
-	val characterSelection: CharacterSelectionState,
+	@NestedFieldSetting(path = "c", optional = true)
+	@ReferenceField(stable = true, label = "playable characters")
+	val party: Array<PlayableCharacter?> = arrayOf(null, null, null, null)
 
 	@BitField(id = 2)
 	@NestedFieldSetting(path = "k", fieldName = "CHARACTER_STATES_KEY")
-	val characterStates: HashMap<PlayableCharacter, CharacterState>,
+	val characterStates = HashMap<PlayableCharacter, CharacterState>()
 
 	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 0)
-	var gold: Int,
-) {
+	var gold: Int = 0
 
 	@BitField(id = 4, optional = true)
 	var actions: CampaignActionsState? = null
@@ -60,9 +75,12 @@ class CampaignState(
 	@ReferenceField(stable = true, label = "chests")
 	val openedChests = HashSet<Chest>()
 
+	/**
+	 * The state of the timelines, from which many other states are derived. It determines among others which
+	 * playable characters are available, and influences a lot of dialogue.
+	 */
 	@BitField(id = 6)
-	@ReferenceField(stable = true, label = "plot items")
-	val collectedPlotItems = HashSet<PlotItem>()
+	val story = StoryState()
 
 	@BitField(id = 7)
 	val areaDiscovery = AreaDiscoveryMap()
@@ -88,10 +106,13 @@ class CampaignState(
 	@IntegerField(expectUniform = true, minValue = 0)
 	var totalTime = 0.seconds
 
-	constructor() : this(null, CharacterSelectionState(), HashMap(), 0)
-
 	var shouldOpenMenu = false
 	var gameOver = false
+
+	override fun postInit(context: BitPostInit.Context) {
+		val content = context.withParameters["content"] as Content
+		story.validatePartyMembers(content, party, characterStates)
+	}
 
 	fun update(context: UpdateContext) {
 		while (true) {
@@ -115,7 +136,7 @@ class CampaignState(
 
 			val battleLoot = currentArea.battleLoot
 			if (battleLoot != null) {
-				val lootContext = BattleLoot.UpdateContext(context, getParty())
+				val lootContext = BattleLoot.UpdateContext(context, usedPartyMembers(), allPartyMembers())
 				if (battleLoot.processKeyPress(event.key, lootContext)) {
 					gold += battleLoot.gold
 					currentArea.activeBattle = null
@@ -126,10 +147,9 @@ class CampaignState(
 
 			val currentBattle = currentArea.activeBattle
 			if (currentBattle != null) {
-				val physicalElement = context.content.stats.elements.find { it.rawName == "NONE" }!!
 				val context = BattleUpdateContext(
 					characterStates, context.content.audio.fixedEffects,
-					physicalElement, context.soundQueue
+					context.content.stats.defaultWeaponElement, context.soundQueue
 				)
 				currentBattle.processKeyPress(event.key, context)
 				continue
@@ -188,9 +208,9 @@ class CampaignState(
 		val activeBattle = currentArea?.activeBattle
 		if (activeBattle != null) {
 			val currentArea = this.currentArea!!
-			val physicalElement = context.content.stats.elements.find { it.rawName == "NONE" }!!
 			val battleContext = BattleUpdateContext(
-				characterStates, context.content.audio.fixedEffects, physicalElement, context.soundQueue
+				characterStates, context.content.audio.fixedEffects,
+				context.content.stats.defaultWeaponElement, context.soundQueue,
 			)
 			activeBattle.update(battleContext)
 			val battleState = activeBattle.state
@@ -205,8 +225,8 @@ class CampaignState(
 				gameOver = true
 			}
 			if (currentArea.battleLoot == null && battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
-				val loot = generateBattleLoot(context.content, activeBattle.battle, getParty())
-				collectedPlotItems.addAll(loot.plotItems)
+				val loot = generateBattleLoot(context.content, activeBattle.battle, usedPartyMembers())
+				// TODO CHAP2 Handle plot items via timeline transitions: loot.plotItems
 				currentArea.battleLoot = loot
 				for (combatant in activeBattle.allPlayers()) {
 					combatant.transferStatusBack(battleContext)
@@ -215,21 +235,29 @@ class CampaignState(
 			return
 		}
 
-		val areaActions = currentArea?.actions
+		val oldArea = currentArea
+		var areaActions = currentArea?.actions
 		if (areaActions != null) {
 			updateAreaActions(context, null, areaActions)
-			if (areaActions.node == null) currentArea!!.finishActions()
+			if (areaActions.node == null && currentArea!!.actions != null) currentArea!!.finishActions()
 		}
 
 		currentArea?.let {
 			val areaContext = AreaState.UpdateContext(
-				context, characterSelection.party, characterStates,
-				areaDiscovery, triggers, stepsSinceLastBattle, totalSteps
+				context, party, characterStates,
+				areaDiscovery, triggers, story, stepsSinceLastBattle, totalSteps
 			)
 			it.update(areaContext)
 			this.stepsSinceLastBattle = areaContext.stepsSinceLastBattle
 			this.totalSteps = areaContext.totalSteps
-			if (it.actions != null) return
+			areaActions = it.actions
+			if (areaActions != null) {
+				if (it !== oldArea) {
+					updateAreaActions(context, null, areaActions)
+					if (areaActions.node == null && it.actions != null) it.finishActions()
+				}
+				return
+			}
 		}
 
 		val destination = currentArea?.nextTransition
@@ -262,8 +290,10 @@ class CampaignState(
 							) }.toTypedArray(),
 							chestBattle.enemyLayout,
 							chestBattle.specialMusic ?: "battle",
+							chestBattle.specialLootMusic ?: "VictoryFanfare",
 							area.randomBattles!!.defaultBackground,
-							false,
+							canFlee = false,
+							isRandom = false,
 						),
 						currentArea.currentTime + 1.seconds, false
 					)
@@ -280,7 +310,7 @@ class CampaignState(
 				}
 				if (openedChest.stack != null) {
 					currentArea.obtainedItemStack = ObtainedItemStack(
-						openedChest.stack!!, null, characterSelection.party, characterStates
+						openedChest.stack!!, null, usedPartyMembers(), allPartyMembers()
 					) { didTake ->
 						currentArea.obtainedItemStack = null
 						context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickCancel)
@@ -289,11 +319,13 @@ class CampaignState(
 				}
 				if (openedChest.plotItem != null) {
 					currentArea.obtainedItemStack = ObtainedItemStack(
-						null, openedChest.plotItem, characterSelection.party, characterStates
+						null, openedChest.plotItem, usedPartyMembers(), allPartyMembers()
 					) { didTake ->
 						currentArea.obtainedItemStack = null
 						if (didTake) {
-							collectedPlotItems.add(openedChest.plotItem!!)
+							// TODO CHAP2 Replace this code with timeline variables: chest should be 'opened' if and
+							// only if its corresponding timeline is in its default state
+//							collectedPlotItems.add(openedChest.plotItem!!)
 							openedChests.add(openedChest)
 						}
 						context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickCancel)
@@ -313,7 +345,11 @@ class CampaignState(
 		if (node is FixedActionNode) {
 			val action = node.action
 			if (action is ActionToArea) {
-				this.currentArea = AreaState(action.area, AreaPosition(action.x, action.y))
+				this.currentArea = AreaState(
+					action.area,
+					AreaPosition(action.x, action.y),
+					action.direction,
+				)
 				this.actions = null
 			}
 		}
@@ -321,9 +357,21 @@ class CampaignState(
 		return this.actions
 	}
 
-	fun getParty() = characterSelection.party.filterNotNull().map {
-		Pair(it, characterStates[it]!!)
-	}
+	/**
+	 * Gets a list of party members that are currently used. Unlike `allPartyMembers`, this list does *not* include
+	 * null members/empty party slots.
+	 */
+	fun usedPartyMembers() = party.withIndex().filter {
+		it.value != null
+	}.map { UsedPartyMember(it.index, it.value!!, characterStates[it.value!!]!!) }
+
+	/**
+	 * Gets an array of length 4, where the element at index `i` is `(playableCharacter, characterState)`, or `null`
+	 * if the party member slot at index `i` is empty.
+	 */
+	fun allPartyMembers() = party.map {
+		if (it == null) null else Pair(it, characterStates[it]!!)
+	}.toTypedArray()
 
 	fun clampHealthAndMana() {
 		for ((playableCharacter, state) in characterStates) {
@@ -338,11 +386,19 @@ class CampaignState(
 	 * Restores all HP and MP of all party members, and removes all their status effects.
 	 */
 	fun healParty() {
-		for ((player, playerState) in getParty()) {
+		for ((_, player, playerState) in usedPartyMembers()) {
 			playerState.activeStatusEffects.clear()
 			playerState.currentHealth = playerState.determineMaxHealth(player.baseStats, emptySet())
 			playerState.currentMana = playerState.determineMaxMana(player.baseStats, emptySet())
 		}
+	}
+
+	/**
+	 * Transitions the current state/node of `timeline` to `newNode`, if `newNode` occurs later than the current
+	 * state/node of `timeline`. If not, nothing happens.
+	 */
+	fun performTimelineTransition(context: UpdateContext, timeline: Timeline, newNode: TimelineNode) {
+		story.transition(context.content, party, characterStates, timeline, newNode)
 	}
 
 	/**
@@ -397,15 +453,25 @@ class CampaignState(
 			val currentArea = this.currentArea!!
 			val actionsContext = AreaActionsState.UpdateContext(
 				context.input, context.timeStep, context.soundQueue, context.campaignName,
-				currentArea.characterStates, currentArea.fadingCharacters, this::healParty,
-			)
+				currentArea.characterStates, currentArea.fadingCharacters, story,
+				this::healParty
+			) { timeline, newNode -> performTimelineTransition(context, timeline, newNode) }
 			actions.update(actionsContext)
+
+			val switchArea = actionsContext.switchArea
+			if (switchArea != null) {
+				this.currentArea = AreaState(
+					switchArea.area, AreaPosition(switchArea.x, switchArea.y),
+					switchArea.direction,
+				)
+				this.actions = null
+			}
 
 			val maybeBattle = actionsContext.startBattle
 			if (maybeBattle != null) {
 				val areaContext = AreaState.UpdateContext(
-					context, characterSelection.party, characterStates, areaDiscovery,
-					triggers, stepsSinceLastBattle, totalSteps,
+					context, party, characterStates, areaDiscovery,
+					triggers, story, stepsSinceLastBattle, totalSteps,
 				)
 				if (maybeBattle.overridePlayers != null) {
 					currentArea.engageBattle(areaContext, maybeBattle.battle, maybeBattle.overridePlayers!!)
@@ -413,7 +479,38 @@ class CampaignState(
 					currentArea.engageBattle(areaContext, maybeBattle.battle)
 				}
 			}
+
+			val maybeMoney = actionsContext.setMoney
+			if (maybeMoney != null) this.gold = maybeMoney
 		}
+	}
+
+	/**
+	 * Determines the name of the music track that the `AudioUpdater` should play in the current state. This is
+	 * often the background music of the current area, but not always.
+	 */
+	fun determineMusicTrack(content: Content): String? {
+		val areaState = currentArea
+		if (areaState != null) {
+
+			val battleState = areaState.activeBattle
+			if (
+				battleState != null && (!battleState.battle.isRandom ||
+				story.evaluate(content.story.fixedVariables.blockRandomBattleMusic) == null)
+			) {
+				return if (battleState.state is BattleStateMachine.Victory) battleState.battle.lootMusic
+				else battleState.battle.music
+			}
+
+			return story.evaluate(areaState.area.properties.musicTrack)
+		}
+
+		val campaignActionNode = actions?.node
+		if (campaignActionNode is FixedActionNode) {
+			val action = campaignActionNode.action
+			if (action is ActionPlayCutscene) return action.cutscene.get().musicTrack
+		}
+		return null
 	}
 
 	class UpdateContext(
@@ -426,5 +523,37 @@ class CampaignState(
 		@Suppress("unused")
 		@ReferenceField(stable = true, label = "playable characters")
 		private val CHARACTER_STATES_KEY = false
+
+		/**
+		 * Loads the campaign state from a save file that is being read through `input`.
+		 */
+		fun loadSave(content: Content, input: InputStream): CampaignState {
+			val bitInput = BitInputStream(input)
+			val campaignState = GameStateManager.bitser.deserialize(
+				CampaignState::class.java, bitInput,
+				content,
+				Bitser.BACKWARD_COMPATIBLE,
+				WithParameter("content", content),
+			)
+			bitInput.close()
+
+			return campaignState
+		}
+
+		/**
+		 * Loads the [Content.checkpoints] with the given `name`
+		 */
+		fun loadCheckpoint(content: Content, name: String): CampaignState {
+			val rawCheckpoint = content.checkpoints[name] ?: throw IllegalArgumentException(
+				"Missing checkpoint $name: options are ${content.checkpoints}"
+			)
+			return loadSave(content, ByteArrayInputStream(rawCheckpoint))
+		}
+
+		/**
+		 * Loads the initial state of the given `chapter`, e.g. `loadChapter(content, 2)` would return the
+		 * campaign state that represents the start of chapter 2.
+		 */
+		fun loadChapter(content: Content, chapter: Int) = loadCheckpoint(content, "chapter$chapter")
 	}
 }

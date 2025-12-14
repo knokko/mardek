@@ -24,7 +24,7 @@ enum class InputKey {
 	/**
 	 * The cheat key, currently used to bypass collision & avoid random battles
 	 */
-	ChatMove,
+	CheatMove,
 
 	/**
 	 * A cheat key to scroll to the 'next' area (in some arbitrary area ordering)

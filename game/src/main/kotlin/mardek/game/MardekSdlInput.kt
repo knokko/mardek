@@ -207,7 +207,7 @@ class MardekSdlInput(
 						SDLK_RETURN -> InputKey.ToggleMenu
 						SDLK_TAB -> InputKey.ToggleMenu
 						SDLK_ESCAPE -> InputKey.Escape
-						SDLK_SPACE -> InputKey.ChatMove
+						SDLK_SPACE -> InputKey.CheatMove
 						SDLK_BACKSPACE -> InputKey.BackspaceLast
 						SDLK_DELETE -> InputKey.BackspaceFirst
 						else -> null

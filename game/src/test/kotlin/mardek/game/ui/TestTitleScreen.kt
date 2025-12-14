@@ -195,7 +195,7 @@ object TestTitleScreen {
 			// Finally go in-game
 			assertNull(newState.campaign.actions)
 			assertEquals("lets go", newState.campaignName)
-			assertSame(heroMardek, newState.campaign.characterSelection.party[0])
+			assertSame(heroMardek, newState.campaign.party[0])
 
 			val expectedAreaColors = arrayOf(
 				Color(59, 53, 68), // color between floor tiles

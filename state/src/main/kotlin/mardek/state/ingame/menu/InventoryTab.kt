@@ -5,10 +5,10 @@ import mardek.content.inventory.EquipmentSlotType
 import mardek.content.inventory.Item
 import mardek.input.InputKey
 import mardek.input.MouseMoveEvent
-import mardek.state.ingame.characters.CharacterState
+import mardek.content.characters.CharacterState
 import mardek.content.inventory.ItemStack
 
-class InventoryTab: InGameMenuTab(true) {
+class InventoryTab: InGameMenuTab() {
 
 	var partyIndex = 0
 	var descriptionIndex = 0
@@ -31,15 +31,13 @@ class InventoryTab: InGameMenuTab(true) {
 
 	override fun getText() = "Inventory"
 
+	override fun canGoInside() = true
+
 	private fun validatePartyIndex(context: UiUpdateContext) {
-		if (context.characterSelection.party[partyIndex] == null) {
-			partyIndex = context.characterSelection.party.indexOfFirst { it != null }
-			if (partyIndex == -1) throw IllegalStateException("Party must have at least 1 character at all times")
-		}
+		if (context.fullParty[partyIndex] == null) partyIndex = context.usedParty[0].index
 	}
 
 	override fun processKeyPress(key: InputKey, context: UiUpdateContext) {
-		val party = context.characterSelection.party
 		validatePartyIndex(context)
 
 		if ((inside && key == InputKey.Interact) || key == InputKey.Click) {
@@ -95,15 +93,15 @@ class InventoryTab: InGameMenuTab(true) {
 		val oldPartyIndex = partyIndex
 		if (key == InputKey.MoveUp) {
 			partyIndex -= 1
-			while (partyIndex >= 0 && party[partyIndex] == null) partyIndex -= 1
-			if (partyIndex < 0) partyIndex = party.indexOfLast { it != null }
+			while (partyIndex >= 0 && context.fullParty[partyIndex] == null) partyIndex -= 1
+			if (partyIndex < 0) partyIndex = context.usedParty.last().index
 			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.scroll2)
 		}
 
 		if (key == InputKey.MoveDown) {
 			partyIndex += 1
-			while (partyIndex < party.size && party[partyIndex] == null) partyIndex += 1
-			if (partyIndex >= party.size) partyIndex = party.indexOfFirst { it != null }
+			while (partyIndex < context.fullParty.size && context.fullParty[partyIndex] == null) partyIndex += 1
+			if (partyIndex >= context.fullParty.size) partyIndex = context.usedParty[0].index
 			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.scroll2)
 		}
 
@@ -123,10 +121,7 @@ class InventoryTab: InGameMenuTab(true) {
 
 	override fun processMouseMove(event: MouseMoveEvent, context: UiUpdateContext) {
 		validatePartyIndex(context)
-		val assetCharacter = context.characterSelection.party[partyIndex]!!
-		val currentCharacter = context.characterStates[assetCharacter] ?: throw IllegalStateException(
-			"Character ${assetCharacter.name} doesn't have a state"
-		)
+		val (assetCharacter, currentCharacter) = context.fullParty[partyIndex]!!
 		if (renderItemSlotSize <= 0) return
 		hoveringItem = null
 
@@ -138,7 +133,6 @@ class InventoryTab: InGameMenuTab(true) {
 			)
 		}
 
-		val party = context.characterSelection.party
 		if (event.newX >= renderEquipmentStartX && event.newY >= renderEquipmentStartY) {
 			val offsetX = event.newX - renderEquipmentStartX
 			val offsetY = event.newY - renderEquipmentStartY
@@ -146,11 +140,11 @@ class InventoryTab: InGameMenuTab(true) {
 			val characterIndex = offsetY / renderEquipmentCharacterSpacing
 			if (
 				slotIndex < 6 && offsetX % renderEquipmentSlotSpacing < renderEquipmentSlotSize &&
-				characterIndex < party.size && offsetY % renderEquipmentCharacterSpacing < renderEquipmentSlotSize
+				characterIndex < context.fullParty.size && offsetY % renderEquipmentCharacterSpacing < renderEquipmentSlotSize
 			) {
-				val equipmentOwner = party[characterIndex]
+				val equipmentOwner = context.fullParty[characterIndex]
 				if (equipmentOwner != null) hoveringItem = ItemReference(
-					equipmentOwner, context.characterStates[equipmentOwner]!!, -1 - slotIndex
+					equipmentOwner.first, equipmentOwner.second, -1 - slotIndex
 				)
 			}
 		}

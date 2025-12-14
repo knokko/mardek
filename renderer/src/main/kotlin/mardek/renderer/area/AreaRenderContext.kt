@@ -2,6 +2,7 @@ package mardek.renderer.area
 
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
+import com.github.knokko.vk2d.batch.Vk2dMultiplyBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import mardek.renderer.RenderContext
 import mardek.renderer.animation.AnimationPartBatch
@@ -15,6 +16,7 @@ internal class AreaRenderContext(
 	val scale: Int,
 	val region: Rectangle,
 	val spriteBatch: AreaSpriteBatch,
+	val multiplyBatch: Vk2dMultiplyBatch,
 	val portraitBackgroundBatch: Vk2dColorBatch,
 	val portraitBatch: AnimationPartBatch,
 	val colorBatch: Vk2dColorBatch,

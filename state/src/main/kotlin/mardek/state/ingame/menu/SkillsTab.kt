@@ -2,24 +2,23 @@ package mardek.state.ingame.menu
 
 import mardek.content.skill.*
 import mardek.input.InputKey
-import mardek.state.ingame.characters.CharacterSelectionState
+import mardek.state.UsedPartyMember
 import kotlin.math.max
 
 class VisibleSkill(val skill: Skill, val mastery: Int, val canToggle: Boolean, val isToggled: Boolean)
 
-class SkillsTab(characterSelection: CharacterSelectionState): InGameMenuTab(true) {
+class SkillsTab(party: List<UsedPartyMember>): InGameMenuTab() {
 
-	var partyIndex = characterSelection.party.indexOfFirst { it != null }
+	var partyIndex = party[0].index
 	var skillTypeIndex = 0
 	var skillIndex = 0
 
 	override fun getText() = "Skills"
 
+	override fun canGoInside() = true
+
 	private fun validatePartyIndex(context: UiUpdateContext) {
-		if (context.characterSelection.party[partyIndex] == null) {
-			partyIndex = context.characterSelection.party.indexOfFirst { it != null }
-			if (partyIndex == -1) throw IllegalStateException("Party must have at least 1 character at all times")
-		}
+		if (context.fullParty[partyIndex] == null) partyIndex = context.usedParty[0].index
 	}
 
 	private fun validateSkillIndex(context: UiUpdateContext) {
@@ -28,7 +27,6 @@ class SkillsTab(characterSelection: CharacterSelectionState): InGameMenuTab(true
 	}
 
 	override fun processKeyPress(key: InputKey, context: UiUpdateContext) {
-		val party = context.characterSelection.party
 		validatePartyIndex(context)
 
 		if (inside) {
@@ -64,8 +62,7 @@ class SkillsTab(characterSelection: CharacterSelectionState): InGameMenuTab(true
 				if (visibleSkills.isNotEmpty()) {
 					val entry = visibleSkills[skillIndex]
 					if (entry.canToggle) {
-						val assetCharacter = context.characterSelection.party[partyIndex]!!
-						val characterState = context.characterStates[assetCharacter]!!
+						val characterState = context.fullParty[partyIndex]!!.second
 						if (characterState.toggledSkills.contains(entry.skill)) {
 							characterState.toggledSkills.remove(entry.skill)
 							context.soundQueue.insert(context.sounds.ui.clickCancel)
@@ -80,14 +77,14 @@ class SkillsTab(characterSelection: CharacterSelectionState): InGameMenuTab(true
 			val oldPartyIndex = partyIndex
 			if (key == InputKey.MoveLeft) {
 				partyIndex -= 1
-				while (partyIndex >= 0 && party[partyIndex] == null) partyIndex -= 1
-				if (partyIndex < 0) partyIndex = party.indexOfLast { it != null }
+				while (partyIndex >= 0 && context.fullParty[partyIndex] == null) partyIndex -= 1
+				if (partyIndex < 0) partyIndex = context.usedParty.last().index
 			}
 
 			if (key == InputKey.MoveRight) {
 				partyIndex += 1
-				while (partyIndex < party.size && party[partyIndex] == null) partyIndex += 1
-				if (partyIndex >= party.size) partyIndex = party.indexOfFirst { it != null }
+				while (partyIndex < context.fullParty.size && context.fullParty[partyIndex] == null) partyIndex += 1
+				if (partyIndex >= context.fullParty.size) partyIndex = context.usedParty[0].index
 			}
 
 			if (partyIndex != oldPartyIndex) context.soundQueue.insert(context.sounds.ui.scroll1)
@@ -98,8 +95,7 @@ class SkillsTab(characterSelection: CharacterSelectionState): InGameMenuTab(true
 
 	fun determineSkillList(context: UiUpdateContext): List<VisibleSkill> {
 		validatePartyIndex(context)
-		val assetCharacter = context.characterSelection.party[partyIndex]!!
-		val characterState = context.characterStates[assetCharacter]!!
+		val (assetCharacter, characterState) = context.fullParty[partyIndex]!!
 
 		fun filterVisibleSkill(skill: Skill): Boolean {
 			val mastery = characterState.skillMastery[skill]

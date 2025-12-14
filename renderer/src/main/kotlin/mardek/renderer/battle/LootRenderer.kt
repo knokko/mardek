@@ -7,11 +7,11 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.text.TextAlignment
-import mardek.content.characters.PlayableCharacter
 import mardek.renderer.RenderContext
 import mardek.renderer.area.renderLootInventoryGrid
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderButton
+import mardek.state.UsedPartyMember
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.util.Rectangle
 import kotlin.math.max
@@ -20,7 +20,7 @@ private val referenceTime = System.nanoTime()
 
 internal fun renderBattleLoot(
 	context: RenderContext, loot: BattleLoot,
-	party: Array<PlayableCharacter?>, region: Rectangle
+	party: List<UsedPartyMember>, region: Rectangle
 ): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
 	val colorBatch = context.addColorBatch(1000)
 	val ovalBatch = context.addOvalBatch(20)
@@ -31,9 +31,7 @@ internal fun renderBattleLoot(
 	val scale = max(1, region.height / (11 * 16))
 	val partyMinX = region.boundX - 5 * scale - 18 * scale * party.size
 
-	for ((column, character) in party.withIndex()) {
-		if (character == null) continue
-
+	for ((column, character) in party) {
 		var spriteIndex = 0
 		val passedTime = System.nanoTime() - referenceTime
 		val animationPeriod = 700_000_000L
@@ -77,9 +75,8 @@ internal fun renderBattleLoot(
 			textHeight, basicFont, strongColor,
 		)
 
-		for ((column, member) in party.withIndex()) {
-			if (member == null) continue
-			val currentAmount = context.campaign.characterStates[member]!!.countItemOccurrences(itemStack.item)
+		for ((column, _, characterState) in party) {
+			val currentAmount = characterState.countItemOccurrences(itemStack.item)
 			textBatch.drawString(
 				currentAmount.toString(), partyMinX + 2 * scale + 20 * column * scale, textY,
 				textHeight, basicFont, weakColor,
@@ -238,8 +235,7 @@ internal fun renderBattleLoot(
 	}
 
 	renderLootInventoryGrid(
-		colorBatch, party.map { if (it != null) context.campaign.characterStates[it]!! else null },
-		partyMinX + scale, region.boundY - 22 * scale, 18 * scale, scale
+		colorBatch, party, partyMinX + scale, region.boundY - 22 * scale, 18 * scale, scale
 	)
 
 	return Pair(colorBatch, textBatch)

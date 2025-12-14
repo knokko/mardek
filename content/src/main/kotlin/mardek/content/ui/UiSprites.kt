@@ -87,6 +87,13 @@ class UiSprites(
 
 	@BitField(id = 26)
 	val statusRemoveBackground: BcSprite,
+
+	/**
+	 * The icon that will be displayed in the Quests tab of the in-game menu. It is displayed on the left of each
+	 * quest.
+	 */
+	@BitField(id = 27)
+	val questIcon: BcSprite,
 ) {
 
 	@Suppress("unused")
@@ -101,7 +108,7 @@ class UiSprites(
 		KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(), KimSprite(), BcSprite(),
 		KimSprite(), BcSprite(), BcSprite(),
-		BcSprite(),
+		BcSprite(), BcSprite(),
 	)
 
 	fun allKimSprites() = arrayOf(
@@ -114,6 +121,6 @@ class UiSprites(
 		activeStarIcon, meleeAttackIcon, rangedAttackIcon, meleeDefenseIcon, rangedDefenseIcon, passiveIcon,
 		mapSaveCrystal, mapDreamCircle, skillToggled, skillNotToggled, pointer,
 		titleScreenBackground, challengeCursor, clock, arrowHead,
-		statusRemoveBackground,
+		statusRemoveBackground, questIcon,
 	)
 }

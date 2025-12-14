@@ -39,7 +39,7 @@ object TestListSaves {
 				partyLevel = 34,
 				chapter = 1,
 			)
-			val validContent1 = bitser.serializeToBytes(info1, content, Bitser.BACKWARD_COMPATIBLE)
+			val validContent1 = bitser.toBytes(info1, content, Bitser.BACKWARD_COMPATIBLE)
 			val info2 = SaveInfo(
 				areaName = content.areas.areas.find { it.properties.rawName == "soothwood" }!!.properties.displayName,
 				party = arrayOf(heroMardek.id, null, null, null),
@@ -47,7 +47,7 @@ object TestListSaves {
 				partyLevel = 88,
 				chapter = 2,
 			)
-			val validContent2 = bitser.serializeToBytes(info2, content, Bitser.BACKWARD_COMPATIBLE)
+			val validContent2 = bitser.toBytes(info2, content, Bitser.BACKWARD_COMPATIBLE)
 			assertEquals(0, savesManager.getSaves("knokko").size)
 
 			createSaveFile("nope.txt", validContent2)

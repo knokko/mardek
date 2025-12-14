@@ -3,12 +3,14 @@ package mardek.state.ingame.menu
 import mardek.input.InputKey
 import mardek.state.VideoSettings
 
-class VideoSettingsTab : InGameMenuTab(true) {
+class VideoSettingsTab : InGameMenuTab() {
 
 	lateinit var settings: VideoSettings
 	var selectedProperty = 0
 
 	override fun getText() = "Video  Settings"
+
+	override fun canGoInside() = true
 
 	override fun processKeyPress(key: InputKey, context: UiUpdateContext) {
 		if (inside) {

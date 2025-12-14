@@ -14,7 +14,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.content.battle.Enemy
-import mardek.state.ingame.characters.CharacterState
+import mardek.content.characters.CharacterState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -256,8 +256,8 @@ object TestSkills {
 			sslenckState.skillMastery[fireBreath] = fireBreath.masteryPoints
 			sslenckState.equipment[0] = content.items.items.find { it.flashName.contains("Axe") }!!
 
-			campaign.characterSelection.party[0] = sslenck
-			campaign.characterSelection.party[1] = null
+			campaign.party[0] = sslenck
+			campaign.party[1] = null
 			startSimpleBattle(campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
 
 			val input = InputManager()

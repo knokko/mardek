@@ -9,12 +9,12 @@ import mardek.input.InputManager
 import mardek.state.GameState
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
-import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.content.battle.Enemy
+import mardek.state.ingame.CampaignState
 import mardek.state.saves.SavesFolderManager
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -36,12 +36,9 @@ object TestSaveAndLoad {
 			val oldSave = createDummySave(saves, "test-save-and-load")
 
 			val areaState = AreaState(dragonLairEntry, AreaPosition(3, 4))
-			val state = InGameState(CampaignState(
-				currentArea = areaState,
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 21987,
-			), "test-save-and-load")
+			val state = InGameState(simpleCampaignState(), "test-save-and-load")
+			state.campaign.currentArea = areaState
+			state.campaign.gold = 21987
 			state.campaign.characterStates[heroMardek]!!.currentLevel = 5
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 6
 
@@ -92,13 +89,12 @@ object TestSaveAndLoad {
 		instance.apply {
 			val saves = dummySaveManager()
 			val areaState = AreaState(dragonLairEntry, AreaPosition(3, 4))
-			var state: GameState = InGameState(CampaignState(
-				currentArea = areaState,
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 21987,
-			), "test-save-and-load")
-			(state as InGameState).campaign.characterStates[heroMardek]!!.currentLevel = 5
+			var state: GameState = InGameState(simpleCampaignState(), "test-save-and-load")
+			(state as InGameState).campaign.run {
+				characterStates[heroMardek]!!.currentLevel = 5
+				currentArea = areaState
+				gold = 21987
+			}
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 6
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds, saves)

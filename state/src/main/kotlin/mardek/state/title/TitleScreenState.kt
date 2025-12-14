@@ -180,13 +180,6 @@ class TitleScreenState: GameState {
 	}
 
 	private fun startNewGame(content: Content, campaignName: String): GameState {
-		val rawCheckpoint = content.checkpoints["chapter1"]!!
-		val bitInput = BitInputStream(ByteArrayInputStream(rawCheckpoint))
-		val campaignState = GameStateManager.bitser.deserialize(
-			CampaignState::class.java, bitInput, content, Bitser.BACKWARD_COMPATIBLE
-		)
-		bitInput.close()
-
-		return StartNewGameState(this, campaignState, campaignName)
+		return StartNewGameState(this, CampaignState.loadChapter(content, 1), campaignName)
 	}
 }

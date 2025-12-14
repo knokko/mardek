@@ -7,7 +7,7 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.state.util.Rectangle
 import kotlin.math.max
 
-private val SECTIONS = arrayOf("Party", "Skills", "Inventory", "Map", "Video  Settings")
+private val SECTIONS = arrayOf("Party", "Skills", "Inventory", "Map", "Quests", "Video  Settings")
 
 internal fun renderInGameMenuSectionList(menuContext: MenuRenderContext, region: Rectangle) {
 	menuContext.run {

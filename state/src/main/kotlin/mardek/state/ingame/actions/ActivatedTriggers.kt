@@ -34,7 +34,7 @@ class ActivatedTriggers {
 	 * - If this method returns `true`, the trigger should be activated. If the trigger is one-time-only, the next
 	 *   call to `activateTrigger(sameTrigger)` will return `false`.
 	 */
-	fun activeTrigger(trigger: AreaTrigger): Boolean {
+	fun activateTrigger(trigger: AreaTrigger): Boolean {
 		if (trigger.oneTimeOnly && oneTime.contains(trigger)) return false
 		if (trigger.oncePerAreaLoad && oncePerAreaLoad.contains(trigger)) return false
 

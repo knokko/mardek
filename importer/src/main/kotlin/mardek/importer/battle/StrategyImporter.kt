@@ -16,7 +16,7 @@ import java.util.UUID
 import kotlin.math.roundToInt
 
 internal fun importMonsterStrategies(
-	rawGambits: String, actions: List<ActiveSkill>, content: Content,
+	monsterName: String, rawGambits: String, actions: List<ActiveSkill>, content: Content,
 	targetMap: MutableMap<ActiveSkill, StrategyTarget>
 ): ArrayList<StrategyPool> {
 	val jsonList = parseActionScriptObjectList(rawGambits)
@@ -39,7 +39,7 @@ internal fun importMonsterStrategies(
 	var currentPool = StrategyPool(
 		criteria = rawStrategies[0].criteria,
 		entries = arrayListOf(rawStrategies[0].toEntry(100)),
-		id = UUID.nameUUIDFromBytes("StrategyImporter$rawGambits".encodeToByteArray()),
+		id = UUID.nameUUIDFromBytes("StrategyImporter$monsterName$rawGambits".encodeToByteArray()),
 	)
 	var remainingChance = 100 - rawStrategies[0].chance
 	for (index in 1 until rawStrategies.size) {
@@ -52,7 +52,7 @@ internal fun importMonsterStrategies(
 			currentPool = StrategyPool(
 				criteria = raw.criteria,
 				entries = arrayListOf(raw.toEntry(100)),
-				id = UUID.nameUUIDFromBytes("StrategyImporter$rawGambits${previousPools.size}".encodeToByteArray()),
+				id = UUID.nameUUIDFromBytes("StrategyImporter$monsterName$rawGambits${previousPools.size}".encodeToByteArray()),
 			)
 			remainingChance = 100 - raw.chance
 		}

@@ -11,6 +11,7 @@ import kotlin.math.roundToInt
 internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 	areaContext.apply {
 		val animationSize = 2
+		val currentTime = state.actions?.currentTime ?: state.currentTime
 
 		fun collectCharacter(
 			character: AreaCharacter, characterState: AreaCharacterState,
@@ -22,12 +23,12 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 				val direction = characterState.direction
 				var spriteIndex = animationSize * direction.ordinal
 				if (character.walkSpeed == -1) {
-					if (state.currentTime.inWholeMilliseconds % 1000L >= 500L) spriteIndex += 1
+					if (currentTime.inWholeMilliseconds % 1000L >= 500L) spriteIndex += 1
 				}
 				directionalSprites.sprites[spriteIndex]
 			} else {
 				val fixedSprites = character.fixedSprites!!
-				val spriteIndex = (state.currentTime.inWholeMilliseconds % (200L * fixedSprites.frames.size)) / 200L
+				val spriteIndex = (currentTime.inWholeMilliseconds % (200L * fixedSprites.frames.size)) / 200L
 				fixedSprites.frames[spriteIndex.toInt()]
 			}
 
@@ -35,7 +36,6 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			var y = tileSize * characterState.y
 			val nextPosition = characterState.next
 			if (nextPosition != null) {
-				val currentTime = state.actions?.currentTime ?: state.currentTime
 				val p = (currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
 				x = ((1 - p) * x + p * tileSize * nextPosition.position.x).roundToInt()
 				y = ((1 - p) * y + p * tileSize * nextPosition.position.y).roundToInt()
@@ -86,10 +86,7 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 		}
 
 		val actionState = state.actions
-		for ((index, character) in context.campaign.characterSelection.party.withIndex().reversed()) {
-			if (character == null) continue
-			val characterState = context.campaign.characterStates[character]!!
-
+		for ((index, character, characterState) in context.campaign.usedPartyMembers().reversed()) {
 			val oldPosition = state.getPlayerPosition(index)
 			val direction = state.getPlayerDirection(index)
 			val nextPosition = if (actionState == null) {
@@ -115,7 +112,6 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			var y = tileSize * oldPosition.y
 
 			if (nextPosition != null) {
-				val currentTime = actionState?.currentTime ?: state.currentTime
 				val p = (currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
 				x = (tileSize * ((1 - p) * oldPosition.x + p * nextPosition.position.x)).roundToInt()
 				y = (tileSize * ((1 - p) * oldPosition.y + p * nextPosition.position.y)).roundToInt()
@@ -134,9 +130,9 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 
 			val walkDamage = characterState.lastWalkDamage
 			val walkDamageDuration = 500_000_000L
-			val currentTime = System.nanoTime()
-			val (blinkColor, blinkIntensity) = if (walkDamage != null && currentTime < walkDamage.time + walkDamageDuration) {
-				val intensity = 1f - (currentTime - walkDamage.time).toFloat() / walkDamageDuration
+			val currentNanoTime = System.nanoTime()
+			val (blinkColor, blinkIntensity) = if (walkDamage != null && currentNanoTime < walkDamage.time + walkDamageDuration) {
+				val intensity = 1f - (currentNanoTime - walkDamage.time).toFloat() / walkDamageDuration
 				Pair(srgbToLinear(walkDamage.color), intensity)
 			} else Pair(0, 0f)
 			renderJobs.add(SpriteRenderJob(

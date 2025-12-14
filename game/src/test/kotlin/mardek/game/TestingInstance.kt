@@ -30,8 +30,9 @@ import mardek.content.battle.Battle
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
-import mardek.state.ingame.characters.CharacterSelectionState
-import mardek.state.ingame.characters.CharacterState
+import mardek.content.characters.CharacterState
+import mardek.content.story.TimelineNode
+import mardek.state.GameStateUpdateContext
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SavesFolderManager
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -61,11 +62,13 @@ class TestingInstance {
 	val dragonLair2: Area
 	val heroMardek: PlayableCharacter
 	val heroDeugan: PlayableCharacter
+	val childMardek: PlayableCharacter
+	val childDeugan: PlayableCharacter
 	val shock: ActiveSkill
 	val frostasia: ActiveSkill
 	val elixir: Item
 
-	val dummySavesDirectories = Collections.synchronizedList(ArrayList<File>())
+	val dummySavesDirectories: MutableList<File> = Collections.synchronizedList(ArrayList<File>())
 
 	init {
 		val builder = BoilerBuilder(
@@ -118,6 +121,8 @@ class TestingInstance {
 		dragonLair2 = content.areas.areas.find { it.properties.rawName == "DL_area2" }!!
 		heroMardek = content.playableCharacters.find { it.characterClass.rawName == "mardek_hero" }!!
 		heroDeugan = content.playableCharacters.find { it.characterClass.rawName == "deugan_hero" }!!
+		childMardek = content.playableCharacters.find { it.characterClass.rawName == "mardek_child" }!!
+		childDeugan = content.playableCharacters.find { it.characterClass.rawName == "deugan_child" }!!
 
 		elixir = content.items.items.find { it.flashName == "Elixir" }!!
 		shock = heroDeugan.characterClass.skillClass.actions.find { it.name == "Shock" }!!
@@ -127,12 +132,6 @@ class TestingInstance {
 			throw RuntimeException("Failed to create $actualResultsDirectory")
 		}
 	}
-
-	fun simpleCharacterSelectionState() = CharacterSelectionState(
-		available = hashSetOf(heroMardek, heroDeugan),
-		unavailable = HashSet(),
-		party = arrayOf(heroMardek, heroDeugan, null, null)
-	)
 
 	fun simpleCharacterStates() = run {
 		val mardekState = CharacterState()
@@ -159,22 +158,27 @@ class TestingInstance {
 			battle = Battle(
 				startingEnemies = enemies,
 				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!,
-				music = "peak",
+				music = "battle",
+				lootMusic = "VictoryFanfare",
 				background = content.battle.backgrounds.find { it.name == "volcano" }!!,
 				canFlee = canFlee,
+				isRandom = true,
 			),
-			players = campaign.characterSelection.party,
+			players = campaign.party,
 			playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
 			context = battleUpdateContext(campaign)
 		)
 	}
 
-	fun simpleCampaignState() = CampaignState(
-		currentArea = AreaState(dragonLair2, AreaPosition(10, 10)),
-		characterSelection = simpleCharacterSelectionState(),
-		characterStates = simpleCharacterStates(),
-		gold = 123
-	)
+	fun simpleCampaignState(): CampaignState {
+		val campaignState = CampaignState()
+		campaignState.story.initialize(content)
+		campaignState.story.validatePartyMembers(content, campaignState.party, campaignState.characterStates)
+		campaignState.currentArea = AreaState(dragonLair2, AreaPosition(10, 10))
+		campaignState.characterStates.putAll(simpleCharacterStates())
+		campaignState.gold = 123
+		return campaignState
+	}
 
 	fun dummySaveManager(): SavesFolderManager {
 		val savesFolder = Files.createTempDirectory("").toFile()
@@ -198,6 +202,25 @@ class TestingInstance {
 		campaignFolder.deleteOnExit()
 		saveFiles[0].deleteOnExit()
 		return saveFiles[0]
+	}
+
+	fun performTimelineTransition(
+		updateContext: GameStateUpdateContext, campaign: CampaignState,
+		timelineName: String, nodeName: String
+	) {
+		val timeline = content.story.timelines.find { it.name == timelineName }!!
+
+		fun findNode(candidate: TimelineNode): TimelineNode? {
+			if (candidate.name == nodeName) return candidate
+			for (child in candidate.children) {
+				val descendant = findNode(child)
+				if (descendant != null) return descendant
+			}
+			return null
+		}
+
+		val campaignContext = CampaignState.UpdateContext(updateContext, "")
+		campaign.performTimelineTransition(campaignContext, timeline, findNode(timeline.root)!!)
 	}
 
 	fun destroy() {

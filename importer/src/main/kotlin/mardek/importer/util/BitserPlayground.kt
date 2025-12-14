@@ -1,9 +1,7 @@
 package mardek.importer.util
 
 import com.github.knokko.bitser.Bitser
-import com.github.knokko.bitser.io.BitDebugStream
-import com.github.knokko.bitser.util.FloatDistributionTracker
-import com.github.knokko.bitser.util.IntegerDistributionTracker
+import com.github.knokko.bitser.io.DebugBitOutputStream
 import com.github.knokko.profiler.SampleProfiler
 import com.github.knokko.profiler.storage.SampleStorage
 import mardek.content.Content
@@ -24,14 +22,16 @@ fun main() {
 
 	val storage = SampleStorage.frequency()
 	val profiler = SampleProfiler(storage)
-	//profiler.start()
-	val content = bitser.deserializeFromBytes(Content::class.java, bytes, Bitser.BACKWARD_COMPATIBLE)
-	//profiler.stop()
+	profiler.start()
+	val content = bitser.fromBytes(Content::class.java, bytes, Bitser.BACKWARD_COMPATIBLE)
+	profiler.stop()
 
-	//storage.getThreadStorage(Thread.currentThread().id).print(System.out, 20, 1.0)
+	storage.getThreadStorage(Thread.currentThread().id).print(System.out, 10, 1.0)
 
-	val debugWriter = PrintWriter(Files.newOutputStream(File("content-intellij.yaml").toPath()))
-	bitser.serialize(content, BitDebugStream(ByteArrayOutputStream(), debugWriter), Bitser.BACKWARD_COMPATIBLE)
+	val debugWriter = PrintWriter(Files.newOutputStream(File("content-intellij.txt").toPath()))
+	bitser.serialize(content, DebugBitOutputStream(
+		ByteArrayOutputStream(), debugWriter, false
+	), Bitser.BACKWARD_COMPATIBLE)
 	debugWriter.flush()
 	debugWriter.close()
 //	val intDistribution = IntegerDistributionTracker()

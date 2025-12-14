@@ -21,9 +21,11 @@ import mardek.content.battle.Battle
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
-import mardek.state.ingame.characters.CharacterState
+import mardek.content.characters.CharacterState
+import mardek.state.ingame.story.StoryState
 import java.lang.Math.clamp
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.ZERO
@@ -112,41 +114,57 @@ class AreaState(
 		if (key == InputKey.Interact) shouldInteract = true
 	}
 
-	fun update(context: UpdateContext) {
-		if (obtainedItemStack != null) return
-		if (currentTime == ZERO && !area.flags.hasClearMap) {
-			context.discovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
+	private fun innerUpdate(context: UpdateContext) {
+		openingDoor?.run {
+			if (currentTime >= finishTime) {
+				nextTransition = door.destination
+				openingDoor = null
+			}
+			return
 		}
 
-		if (actions != null) {
-			currentTime += context.timeStep
+		incomingRandomBattle?.run {
+			if (context.input.isPressed(InputKey.CheatMove)) {
+				incomingRandomBattle = null
+			} else if (incomingRandomBattle!!.canAvoid && context.input.isPressed(InputKey.Cancel)) {
+				incomingRandomBattle = null
+			} else if (currentTime >= startAt) {
+				engageBattle(context, battle)
+				incomingRandomBattle = null
+			}
 			return
 		}
 
 		updatePlayerPosition(context)
+		if (incomingRandomBattle != null || nextTransition != null) return
+
 		checkTriggers(context)
 		if (actions != null) return
-		processInput(context.input)
+
+		processMovementInput(context.input)
 		if (shouldInteract) {
 			interact()
 			shouldInteract = false
 		}
-		if (actions != null) return
+	}
 
-		val openingDoor = this.openingDoor
-		if (openingDoor != null && currentTime >= openingDoor.finishTime) {
-			nextTransition = openingDoor.door.destination
-			this.openingDoor = null
-		}
-		if (obtainedGold != null && currentTime >= obtainedGold!!.showUntil) {
-			this.obtainedGold = null
-		}
-
-		if (incomingRandomBattle != null && currentTime >= incomingRandomBattle!!.startAt) {
-			engageBattle(context, incomingRandomBattle!!.battle)
-			incomingRandomBattle = null
+	/**
+	 * Updates this area state, which will, among others:
+	 * - potentially move the player character
+	 * - potentially move NPCs
+	 * - trigger random battles
+	 */
+	fun update(context: UpdateContext) {
+		if (currentTime == ZERO && !area.flags.hasClearMap) {
+			context.discovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
 		}
 
+		obtainedGold?.run {
+			if (currentTime >= showUntil) obtainedGold = null
+		}
+
+		if (obtainedItemStack != null || actions != null) return
+		innerUpdate(context)
 		currentTime += context.timeStep
 	}
 
@@ -155,7 +173,6 @@ class AreaState(
 		battle: Battle,
 		players: Array<PlayableCharacter?> = context.party,
 	) {
-		val physicalElement = context.content.stats.elements.find { it.rawName == "NONE" }!!
 		context.soundQueue.insert(context.content.audio.fixedEffects.battle.engage)
 		activeBattle = BattleState(
 			battle = battle,
@@ -164,7 +181,7 @@ class AreaState(
 			context = BattleUpdateContext(
 				context.characterStates,
 				context.content.audio.fixedEffects,
-				physicalElement,
+				context.content.stats.defaultWeaponElement,
 				context.soundQueue
 			)
 		)
@@ -299,7 +316,7 @@ class AreaState(
 		val randomBattles = area.randomBattles ?: return
 		if (
 			randomBattles.chance > 0 && context.stepsSinceLastBattle > randomBattles.minSteps &&
-			rng.nextInt(150 - context.stepsSinceLastBattle) <= randomBattles.chance
+			rng.nextInt(150 - min(149, context.stepsSinceLastBattle)) <= randomBattles.chance
 		) {
 			fun chooseLevel(range: LevelRange) = range.min + rng.nextInt(1 + range.max - range.min)
 
@@ -310,8 +327,9 @@ class AreaState(
 			}.toTypedArray()
 
 			val battle = Battle(
-				enemies, selection.enemyLayout, "battle",
-				randomBattles.specialBackground ?: randomBattles.defaultBackground, true,
+				enemies, selection.enemyLayout, "battle", "VictoryFanfare",
+				randomBattles.specialBackground ?: randomBattles.defaultBackground,
+				canFlee = true, isRandom = true,
 			)
 
 			val averagePlayerLevel = context.party.filterNotNull().map {
@@ -330,7 +348,8 @@ class AreaState(
 		for (trigger in area.objects.walkTriggers) {
 			if (trigger.walkOn != true) continue
 			if (trigger.x != playerPositions[0].x || trigger.y != playerPositions[0].y) continue
-			if (!context.triggers.activeTrigger(trigger)) continue
+			if (trigger.condition != null && !context.story.evaluate(trigger.condition!!)) continue
+			if (!context.triggers.activateTrigger(trigger)) continue
 
 			val triggerActions = trigger.actions
 			if (triggerActions != null) {
@@ -359,7 +378,7 @@ class AreaState(
 		this.actions = null
 	}
 
-	private fun processInput(input: InputManager) {
+	private fun processMovementInput(input: InputManager) {
 		if (nextPlayerPosition == null && incomingRandomBattle == null) {
 			val lastPressed = input.mostRecentlyPressed(arrayOf(
 				InputKey.MoveLeft, InputKey.MoveDown, InputKey.MoveRight, InputKey.MoveUp
@@ -396,16 +415,11 @@ class AreaState(
 				}
 			}
 		}
-
-		if (incomingRandomBattle != null) {
-			if (input.isPressed(InputKey.ChatMove)) incomingRandomBattle = null
-			else if (incomingRandomBattle!!.canAvoid && input.isPressed(InputKey.Cancel)) incomingRandomBattle = null
-		}
 	}
 
 	private fun canWalkTo(input: InputManager, x: Int, y: Int): Boolean {
 		if (x < 0 || y < 0) return false
-		if (input.isPressed(InputKey.ChatMove)) return true
+		if (input.isPressed(InputKey.CheatMove)) return true
 		if (!area.canWalkOnTile(x, y)) return false
 
 		for (character in area.objects.characters) {
@@ -422,6 +436,10 @@ class AreaState(
 	}
 
 	companion object {
+
+		/**
+		 * The time it takes to open a door in an area
+		 */
 		val DOOR_OPEN_DURATION = 500.milliseconds
 
 		@Suppress("unused")
@@ -429,12 +447,16 @@ class AreaState(
 		private val CHARACTER_STATES_KEY_PROPERTIES = false
 	}
 
+	/**
+	 * Instances of this class are needed as parameter in [AreaState.update]
+	 */
 	class UpdateContext(
 		parent: GameStateUpdateContext,
 		val party: Array<PlayableCharacter?>,
 		val characterStates: Map<PlayableCharacter, CharacterState>,
 		val discovery: AreaDiscoveryMap,
 		val triggers: ActivatedTriggers,
+		val story: StoryState,
 		var stepsSinceLastBattle: Int,
 		var totalSteps: Long,
 	) : GameStateUpdateContext(parent)

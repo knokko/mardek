@@ -49,4 +49,5 @@ internal fun importUiSprites() = UiSprites(
 	clock = importBcSprite("Clock"),
 	arrowHead = importBcSprite("ArrowHead"),
 	statusRemoveBackground = importBcSprite("StatusRemoveBackground"),
+	questIcon = importBcSprite("QuestIcon"),
 )

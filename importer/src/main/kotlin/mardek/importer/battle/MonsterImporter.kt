@@ -391,7 +391,7 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 	val actions = parseActiveSkills("MonsterImporter$name", content, rawActionList, true)
 	val targetMap = mutableMapOf<ActiveSkill, StrategyTarget>()
 	val strategies = importMonsterStrategies(
-		propertiesCode.variableAssignments["Gambits"]!!, actions, content, targetMap
+		name, propertiesCode.variableAssignments["Gambits"]!!, actions, content, targetMap
 	)
 	var meleeCounterAttacks = ArrayList<CounterAttack>(0)
 	var rangedCounterAttacks = ArrayList<CounterAttack>(0)

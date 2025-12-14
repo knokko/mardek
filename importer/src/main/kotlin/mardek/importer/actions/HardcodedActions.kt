@@ -4,6 +4,8 @@ import mardek.content.Content
 import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
 import mardek.content.action.ActionTargetAreaCharacter
+import mardek.content.action.ActionTimelineTransition
+import mardek.content.action.ActionToArea
 import mardek.content.action.ChoiceActionNode
 import mardek.content.action.FixedActionNode
 import mardek.content.area.objects.AreaCharacter
@@ -17,6 +19,7 @@ class HardcodedActions {
 		hardcoded[""] = mutableListOf()
 		hardcodeSaveCrystalActions(content, hardcoded)
 		hardcodeDragonLairActions(content, hardcoded)
+		hardcodeHeroesDenActions(hardcoded)
 	}
 
 	internal fun getHardcodedAreaActions(areaName: String, sequenceName: String) = hardcoded[areaName]?.find {
@@ -48,9 +51,12 @@ class HardcodedActions {
 
 		for (node in allActionNodes) {
 			if (node is FixedActionNode) {
-				for (target in node.action.getTargets()) {
+				val action = node.action
+				for (target in action.getTargets()) {
 					if (target is ActionTargetAreaCharacter) target.resolve(characterMapping)
 				}
+				if (action is ActionToArea) action.resolve(content.areas.areas)
+				if (action is ActionTimelineTransition) action.resolve(content.story.timelines)
 			}
 			if (node is ChoiceActionNode) {
 				val speaker = node.speaker
@@ -62,6 +68,5 @@ class HardcodedActions {
 	internal fun addDummySaveCrystalAction() {
 		hardcoded[""] = mutableListOf(ActionSequence("c_healingCrystal", FixedActionNode()))
 	}
-
 }
 

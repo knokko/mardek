@@ -10,6 +10,11 @@ public class Vk2dConfig {
 	public boolean color;
 
 	/**
+	 * Set this to {@code true} to enable the {@link com.github.knokko.vk2d.pipeline.Vk2dMultiplyPipeline}
+	 */
+	public boolean multiply;
+
+	/**
 	 * Set this to {@code true} to enable the {@link com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline}
 	 */
 	public boolean oval;
@@ -34,6 +39,16 @@ public class Vk2dConfig {
 	 */
 	public boolean blur;
 
+	/**
+	 * Whether the {@link Vk2dInstance#colorPipelineLayout} should be created
+	 */
+	public boolean shouldCreateColorPipelineLayout() {
+		return color || multiply;
+	}
+
+	/**
+	 * Whether the {@link Vk2dInstance#singleBufferPipelineLayout} should be created
+	 */
 	public boolean shouldCreateBufferPipelineLayout() {
 		return kim1 || kim2 || oval;
 	}

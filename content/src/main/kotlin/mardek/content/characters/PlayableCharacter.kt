@@ -1,8 +1,10 @@
 package mardek.content.characters
 
+import com.github.knokko.bitser.BitPostInit
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.animation.CombatantAnimations
 import mardek.content.portrait.PortraitInfo
@@ -11,6 +13,7 @@ import mardek.content.stats.Element
 import mardek.content.stats.StatModifier
 import mardek.content.sprite.DirectionalSprites
 import mardek.content.stats.CreatureType
+import mardek.content.story.FixedTimelineVariable
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -83,7 +86,39 @@ class PlayableCharacter(
 	@BitField(id = 8)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : BitPostInit {
+
+	/**
+	 * The `FixedTimelineVariable` that should be used to reference the state of this playable character
+	 */
+	@BitField(id = 9)
+	@ReferenceFieldTarget(label = "timeline variables")
+	val stateVariable = FixedTimelineVariable<CharacterState>()
+
+	/**
+	 * Whether this character can be chosen as party member. This variable is irrelevant when this playable character
+	 * is currently *forced* to be a party member (see `FixedTimelineVariables.forcedPartyMembers`)
+	 */
+	@BitField(id = 10)
+	@ReferenceFieldTarget(label = "timeline variables")
+	val isAvailable = FixedTimelineVariable<Unit>()
+
+	/**
+	 * Whether the inventory of this character can be accessed in the item storage.
+	 *
+	 * This variable is irrelevant when `isAvailable` evaluates to true, since the inventories of available party
+	 * members are always accessible.
+	 *
+	 * Likewise, this variable is irrelevant when the party member is forcibly in the party, since their inventories
+	 * are also accessible.
+	 */
+	@BitField(id = 11)
+	@ReferenceFieldTarget(label = "timeline variables")
+	val isInventoryAvailable = FixedTimelineVariable<Unit>()
+
+	init {
+		assignVariableNames()
+	}
 
 	constructor() : this(
 		"", CharacterClass(), Element(), ArrayList(0), DirectionalSprites(),
@@ -91,4 +126,14 @@ class PlayableCharacter(
 	)
 
 	override fun toString() = name
+
+	override fun postInit(context: BitPostInit.Context) {
+		assignVariableNames()
+	}
+
+	private fun assignVariableNames() {
+		stateVariable.debugName = "state of $name"
+		isAvailable.debugName = "$name is available"
+		isInventoryAvailable.debugName = "inventory of $name is available"
+	}
 }

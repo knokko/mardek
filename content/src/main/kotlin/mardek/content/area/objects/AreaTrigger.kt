@@ -2,9 +2,11 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.action.ActionSequence
+import mardek.content.story.TimelineExpression
 import java.util.UUID
 
 /**
@@ -54,10 +56,14 @@ class AreaTrigger(
 	@ReferenceField(stable = false, label = "action sequences")
 	val actions: ActionSequence?,
 
-	@BitField(id = 6)
+	@BitField(id = 6, optional = true)
+	@ClassField(root = TimelineExpression::class)
+	val condition: TimelineExpression<Boolean>?,
+
+	@BitField(id = 7)
 	@StableReferenceFieldId
 	@Suppress("unused")
-	private val id: UUID,
+	val id: UUID,
 ) : StaticAreaObject(x, y) {
 
 	init {
@@ -68,8 +74,8 @@ class AreaTrigger(
 
 	@Suppress("unused")
 	private constructor() : this(
-		"", 0, 0, "", false,
-		false, null, null, UUID.randomUUID(),
+		"", 0, 0, "", false, false,
+		null, null, null, UUID.randomUUID(),
 	)
 
 	override fun toString() = "Trigger(x=$x, y=$y, once=$oneTimeOnly, walkOn=$walkOn, code=$flashCode)"

@@ -45,12 +45,8 @@ object TestStatusEffects {
 
 	fun testPoisonAfterWalking(instance: TestingInstance) {
 		instance.apply {
-			val campaign = CampaignState(
-				currentArea = AreaState(dragonLairEntry, AreaPosition(5, 9)),
-				characterSelection = simpleCharacterSelectionState(),
-				characterStates = simpleCharacterStates(),
-				gold = 123
-			)
+			val campaign = simpleCampaignState()
+			campaign.currentArea = AreaState(dragonLairEntry, AreaPosition(5, 9))
 
 			val mardekState = campaign.characterStates[heroMardek]!!
 			assertEquals(54, mardekState.currentHealth)

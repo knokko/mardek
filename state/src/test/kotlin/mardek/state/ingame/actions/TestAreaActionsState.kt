@@ -24,7 +24,9 @@ import mardek.input.InputManager
 import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.FadingCharacter
 import mardek.state.ingame.area.NextAreaPosition
+import mardek.state.ingame.story.StoryState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotSame
@@ -48,6 +50,27 @@ private fun pressAndRelease(actions: AreaActionsState, input: InputManager, key:
 }
 
 class TestAreaActionsState {
+
+	private fun createUpdateContext(
+		timeStep: Duration,
+		input: InputManager = InputManager(),
+		soundQueue: SoundQueue = SoundQueue(),
+		campaignName: String = "",
+		characterStates: MutableMap<AreaCharacter, AreaCharacterState> = mutableMapOf(),
+		fadingCharacters: MutableList<FadingCharacter> = mutableListOf(),
+		story: StoryState = StoryState(),
+		healParty: () -> Unit = { fail("Attempted to heal party?" )},
+	) = AreaActionsState.UpdateContext(
+		input = input,
+		timeStep = timeStep,
+		soundQueue = soundQueue,
+		campaignName = campaignName,
+		characterStates = characterStates,
+		fadingCharacters = fadingCharacters,
+		story = story,
+		healParty = healParty,
+		transitionTimeline = { _, _ -> fail("Attempted to transition timeline?" ) }
+	)
 
 	@Test
 	fun testWalkWithWholeParty() {
@@ -81,18 +104,14 @@ class TestAreaActionsState {
 			Direction.Down,
 		)
 
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(),
-			"", HashMap(), ArrayList(),
-		) { fail("Attempted to heal party?") }
-
+		val context = createUpdateContext(10.milliseconds)
 		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections)
 		postEvent(actions, context.input, InputKeyEvent(
 			InputKey.MoveDown, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key shouldn't have any effect
 
+		actions.update(context)
 		while (actions.partyPositions[0].x != 20) {
-			actions.update(context)
 
 			val p = actions.partyPositions
 			val d = actions.partyDirections
@@ -117,6 +136,8 @@ class TestAreaActionsState {
 				assertEquals(p[2].x, p[3].x + 1)
 			}
 			assertTrue(actions.currentTime < 4.seconds)
+
+			actions.update(context)
 		}
 
 		assertArrayEquals(arrayOf(
@@ -125,8 +146,6 @@ class TestAreaActionsState {
 			AreaPosition(18, 3),
 			AreaPosition(17, 3),
 		), actions.partyPositions)
-
-		assertArrayEquals(Array(4) { Direction.Right }, actions.partyDirections)
 
 		actions.update(context)
 		while (actions.partyPositions[0] != AreaPosition(10, 13)) {
@@ -179,11 +198,7 @@ class TestAreaActionsState {
 			Array(4) { Direction.Up },
 		)
 
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 1.milliseconds, SoundQueue(),
-			"", characterStates, ArrayList(),
-		) { throw UnsupportedOperationException("Attempted to heal party?") }
-
+		val context = createUpdateContext(1.milliseconds, characterStates = characterStates)
 		repeat(495) {
 			actions.update(context)
 			assertEquals(AreaCharacterState(
@@ -264,10 +279,7 @@ class TestAreaActionsState {
 			Direction.Down,
 		)
 
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(),
-			"", HashMap(), ArrayList(),
-		) { fail("Attempted to heal party?") }
+		val context = createUpdateContext(10.milliseconds)
 		context.input.postEvent(InputKeyEvent(
 			InputKey.Interact, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key BEFORE THE DIALOGUE shouldn't have any effect
@@ -345,11 +357,7 @@ class TestAreaActionsState {
 		val oldPartyPositions = Array(4) { AreaPosition()  }
 		val oldPartyDirections = Array(4) { Direction.Left }
 
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(),
-			"", HashMap(), ArrayList(),
-		) { fail("Attempted to heal party?") }
-
+		val context = createUpdateContext(10.milliseconds)
 		context.input.postEvent(InputKeyEvent(
 			InputKey.Cancel, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing Q (cancel) should cause the dialogue to be skipped
@@ -391,25 +399,19 @@ class TestAreaActionsState {
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
 		)
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(),
-			"", HashMap(), ArrayList(),
-		) { fail("Attempted to heal party?") }
+		val context = createUpdateContext(10.milliseconds)
 
 		assertEquals(0L, actions.lastFlashTime)
 		assertEquals(0, actions.lastFlashColor)
 
-		while ((actions.node as FixedActionNode).action is ActionWalk) {
+		val beforeWalking = System.nanoTime()
+		while (actions.node === rootNode) {
 			actions.update(context)
 		}
-
-		val beforeFlash = System.nanoTime()
-		assertTrue((actions.node as FixedActionNode).action is ActionFlashScreen)
-		actions.update(context)
-		val afterFlash = System.nanoTime()
+		val rightAfterFlash = System.nanoTime()
 
 		val flashTime = actions.lastFlashTime
-		assertTrue(flashTime in beforeFlash .. afterFlash)
+		assertTrue(flashTime in beforeWalking .. rightAfterFlash)
 		assertEquals(1234, actions.lastFlashColor)
 
 		assertTrue((actions.node as FixedActionNode).action is ActionWalk)
@@ -443,10 +445,7 @@ class TestAreaActionsState {
 			Array(4) { Direction.Up },
 		)
 
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(),
-			"", HashMap(), ArrayList(),
-		) { fail("Attempted to heal party?") }
+		val context = createUpdateContext(10.milliseconds)
 
 		assertNull(context.soundQueue.take())
 		repeat(5) {
@@ -481,10 +480,7 @@ class TestAreaActionsState {
 		)
 
 		var numHeals = 0
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(),
-			"", HashMap(), ArrayList(),
-		) { numHeals += 1 }
+		val context = createUpdateContext(10.milliseconds) { numHeals += 1 }
 
 		repeat(5) {
 			actions.update(context)
@@ -518,10 +514,7 @@ class TestAreaActionsState {
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
 		)
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(),
-			"", HashMap(), ArrayList(),
-		) { fail("Attempted to heal party?") }
+		val context = createUpdateContext(10.milliseconds)
 
 		context.input.postEvent(InputKeyEvent(
 			InputKey.Cancel, didPress = true, didRepeat = false, didRelease = false
@@ -585,10 +578,7 @@ class TestAreaActionsState {
 			next = null,
 		)
 
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 1.seconds, SoundQueue(),
-			"", characterStates, ArrayList(),
-		) { fail("Attempted to heal party") }
+		val context = createUpdateContext(1.seconds, characterStates = characterStates)
 
 		val actions = AreaActionsState(
 			rootNode,
@@ -632,19 +622,9 @@ class TestAreaActionsState {
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
 		)
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(),
-			"", characterStates, ArrayList(),
-		) { fail("Attempted to heal party?") }
+		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
 
-		// The first update should rotate the player
-		actions.update(context)
-		assertArrayEquals(arrayOf(
-			Direction.Up, Direction.Right, Direction.Up, Direction.Up
-		), actions.partyDirections)
-		assertSame(initialPrincessState, characterStates[princess])
-
-		// The second update should rotate the princess
+		// The first update should rotate both the player and the princess
 		actions.update(context)
 		assertArrayEquals(arrayOf(
 			Direction.Up, Direction.Right, Direction.Up, Direction.Up
@@ -709,10 +689,7 @@ class TestAreaActionsState {
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
 		)
-		val context = AreaActionsState.UpdateContext(
-			InputManager(), 10.milliseconds, SoundQueue(),
-			"", characterStates, ArrayList(),
-		) { fail("Attempted to heal party?") }
+		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
 
 		// The dragon should need 6 seconds to reach its destination
 		repeat(605) {

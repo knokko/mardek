@@ -48,8 +48,8 @@ internal fun parseSelections(battleContent: BattleContent, rawList: String): Arr
 			if (rawName == "null") null
 			else {
 				val monsterName = parseFlashString(rawName as String, "monster name")!!
-				val monster = battleContent.monsters.find { it.name.lowercase(Locale.ROOT) == monsterName.lowercase(Locale.ROOT) }
-				if (monster == null && battleContent.monsters.size <= 1) null else monster!!
+				val monster = battleContent.monsters.find { it.name.equals(monsterName, ignoreCase = true) }
+				if (monster == null && battleContent.monsters.size <= 2) null else monster!!
 			}
 		}
 		selections.add(BattleEnemySelection(ArrayList(monsters), layout))

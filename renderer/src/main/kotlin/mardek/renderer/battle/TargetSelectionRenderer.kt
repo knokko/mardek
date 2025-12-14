@@ -40,9 +40,11 @@ internal fun renderTargetSelection(
 			BattleSkillTargetSingle(selectedMove.target!!)
 		} else return
 
+		val weaponElement = stateMachine.onTurn.getEquipment(updateContext)[0]!!.element ?:
+				context.content.stats.defaultWeaponElement
 		val action = when (selectedMove) {
 			is BattleMoveSelectionAttack -> {
-				Action("Attack", 0, stateMachine.onTurn.getEquipment(updateContext)[0]!!.element!!)
+				Action("Attack", 0, weaponElement)
 			}
 
 			is BattleMoveSelectionSkill -> {
@@ -53,8 +55,7 @@ internal fun renderTargetSelection(
 
 			else -> {
 				Action(
-					(selectedMove as BattleMoveSelectionItem).item!!.flashName, 0,
-					stateMachine.onTurn.getEquipment(updateContext)[0]!!.element!!
+					(selectedMove as BattleMoveSelectionItem).item!!.flashName, 0, weaponElement
 				)
 			}
 		}

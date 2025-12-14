@@ -5,6 +5,8 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.content.characters.CharacterState
+import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.CombatStat
 import mardek.renderer.menu.MenuRenderContext
 import mardek.renderer.menu.referenceTime
@@ -19,18 +21,19 @@ internal const val CHARACTER_BAR_HEIGHT = 23
 internal const val EQUIPMENT_SLOT_SIZE = 20
 
 internal fun renderCharacterBars(menuContext: MenuRenderContext, startX: Int, startY: Int, maxX: Int, scale: Int) {
-	for (index in menuContext.state.characterSelection.party.indices) {
+	for ((index, character, characterState) in menuContext.state.usedPartyMembers()) {
 		renderCharacterBar(
 			menuContext, startX, startY + index * scale * CHARACTER_BAR_HEIGHT,
-			maxX, scale, index
+			maxX, scale, index, character, characterState
 		)
 	}
 }
 
-private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, startY: Int, maxX: Int, scale: Int, partyIndex: Int) {
+private fun renderCharacterBar(
+	menuContext: MenuRenderContext, startX: Int, startY: Int, maxX: Int, scale: Int,
+	partyIndex: Int, character: PlayableCharacter, characterState: CharacterState,
+) {
 	menuContext.run {
-		val assetCharacter = state.characterSelection.party[partyIndex] ?: return
-		val characterState = state.characterStates[assetCharacter] ?: throw IllegalStateException("Missing state for $assetCharacter")
 		val barHeight = scale * CHARACTER_BAR_HEIGHT
 
 		run {
@@ -67,7 +70,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 			if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
 			spriteBatch.simple(
 				characterX, characterY, scale,
-				assetCharacter.areaSprites.sprites[spriteIndex].index
+				character.areaSprites.sprites[spriteIndex].index
 			)
 		}
 
@@ -82,7 +85,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 
 		val x1 = characterX + 16 * scale + margin / 2
 
-		val elementColor = srgbToLinear(assetCharacter.element.color)
+		val elementColor = srgbToLinear(character.element.color)
 		val lowElementColor = changeAlpha(elementColor, 150)
 		val highElementColor = changeAlpha(elementColor, 50)
 		colorBatch.gradient(
@@ -142,17 +145,17 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 			val statsHeight = 5f * scale
 
 			var attack = characterState.computeStatValue(
-				assetCharacter.baseStats, characterState.activeStatusEffects, CombatStat.Attack
+				character.baseStats, characterState.activeStatusEffects, CombatStat.Attack
 			)
 			var defense = characterState.computeStatValue(
-				assetCharacter.baseStats, characterState.activeStatusEffects, CombatStat.MeleeDefense
+				character.baseStats, characterState.activeStatusEffects, CombatStat.MeleeDefense
 			)
 			var rangedDefense = characterState.computeStatValue(
-				assetCharacter.baseStats, characterState.activeStatusEffects, CombatStat.RangedDefense
+				character.baseStats, characterState.activeStatusEffects, CombatStat.RangedDefense
 			)
 
 			val pickedItem = tab.pickedUpItem
-			if (pickedItem != null && pickedItem.getEquipmentType() != null && pickedItem.assetCharacter === assetCharacter) {
+			if (pickedItem != null && pickedItem.getEquipmentType() != null && pickedItem.assetCharacter === character) {
 				val equipment = pickedItem.get()?.item?.equipment
 				if (equipment != null) {
 					for (modifier in equipment.stats) {
@@ -190,7 +193,7 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 				shadowColor = selectedShadowColor
 			}
 			textBatch.drawShadowedString(
-				assetCharacter.name, x1 + margin * 0.5f, startY + margin + 5.5f * scale, textHeight,
+				character.name, x1 + margin * 0.5f, startY + margin + 5.5f * scale, textHeight,
 				font, textColor, 0, 0f,
 				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
 			)
@@ -210,23 +213,24 @@ private fun renderCharacterBar(menuContext: MenuRenderContext, startX: Int, star
 				barX, startY + margin * 13 / 9, baseBarWidth, barsHeight
 			), colorBatch, textBatch
 		)
-		val maxHealth = characterState.determineMaxHealth(assetCharacter.baseStats, characterState.activeStatusEffects)
+		val maxHealth = characterState.determineMaxHealth(character.baseStats, characterState.activeStatusEffects)
 		healthRenderer.renderBar(characterState.currentHealth, maxHealth)
 		healthRenderer.renderTextBelowBar(characterState.currentHealth, maxHealth)
 
 		val manaRenderer = ResourceBarRenderer(context, ResourceType.Mana, Rectangle(
 			barX, startY + margin * 37 / 8, baseBarWidth, barsHeight
 		), colorBatch, textBatch)
-		val maxMana = characterState.determineMaxMana(assetCharacter.baseStats, characterState.activeStatusEffects)
+		val maxMana = characterState.determineMaxMana(character.baseStats, characterState.activeStatusEffects)
 		manaRenderer.renderBar(characterState.currentMana, maxMana)
 		manaRenderer.renderTextBelowBar(characterState.currentMana, maxMana)
 
-		renderEquipment(this, partyIndex, startY + margin - 1, maxX, scale)
+		renderEquipment(this, partyIndex, characterState, startY + margin - 1, maxX, scale)
 	}
 }
 
 private fun renderEquipment(
-	menuContext: MenuRenderContext, partyIndex: Int, startY: Int, maxX: Int, scale: Int,
+	menuContext: MenuRenderContext, partyIndex: Int, characterState: CharacterState,
+	startY: Int, maxX: Int, scale: Int,
 ) {
 	menuContext.run {
 		val tab = menu.currentTab as InventoryTab
@@ -243,9 +247,6 @@ private fun renderEquipment(
 			tab.renderEquipmentCharacterSpacing = scale * CHARACTER_BAR_HEIGHT
 		}
 
-		val assetCharacter = context.campaign.characterSelection.party[partyIndex] ?: return
-		val characterState = context.campaign.characterStates[assetCharacter] ?:
-				throw IllegalStateException("Missing state for $assetCharacter")
 		val equipment = characterState.equipment
 
 		val pickedItem = tab.pickedUpItem

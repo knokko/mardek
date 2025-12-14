@@ -12,6 +12,9 @@ import mardek.content.area.Direction
 import mardek.content.audio.SoundEffect
 import mardek.content.battle.Battle
 import mardek.content.characters.PlayableCharacter
+import mardek.content.story.Timeline
+import mardek.content.story.TimelineNode
+import kotlin.collections.addAll
 import kotlin.collections.flatMap
 
 /**
@@ -44,6 +47,9 @@ sealed class FixedAction {
 			ActionFadeCharacter::class.java,
 			ActionRotate::class.java,
 			ActionParallel::class.java,
+			ActionTimelineTransition::class.java,
+			ActionTeleport::class.java,
+			ActionSetMoney::class.java,
 		)
 	}
 }
@@ -285,11 +291,10 @@ class ActionShowChapterName(
 class ActionToArea(
 
 	/**
-	 * The destination area
+	 * The raw name of the destination area. The destination area will be resolved upon calling `resolve(...)`, which
+	 * should happen during the importing process.
 	 */
-	@BitField(id = 0)
-	@ReferenceField(stable = false, label = "areas")
-	val area: Area,
+	private val areaName: String,
 
 	/**
 	 * The X-coordinate of the destination tile
@@ -304,14 +309,40 @@ class ActionToArea(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
+
+	/**
+	 * The initial direction in which the player will look
+	 */
+	@BitField(id = 3)
+	val direction: Direction,
 ) : FixedAction() {
 
+	/**
+	 * The destination area
+	 *
+	 * Note that this will be a 'dummy' area until `resolve(...)` has been called.
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "areas")
+	var area: Area = Area()
+		private set
+
 	@Suppress("unused")
-	private constructor() : this(Area(), 0, 0)
+	private constructor() : this("", 0, 0, Direction.Up)
 
 	override fun getTargets() = emptyArray<ActionTarget>()
 
 	override fun toString() = "ActionToArea($area, $x, $y)"
+
+	/**
+	 * This method initializes `area` to the `Area` whose raw name is `areaName`.
+	 * This method should only be needed by the importer.
+	 */
+	fun resolve(areas: Collection<Area>) {
+		this.area = areas.find { it.properties.rawName == areaName } ?: throw IllegalArgumentException(
+			"Can't find area with raw name $areaName: options are ${areas.map { it.properties.rawName }}"
+		)
+	}
 }
 
 /**
@@ -411,4 +442,131 @@ class ActionParallel(
 	override fun getTargets() = actions.flatMap { it.getTargets().toList() }.toTypedArray()
 
 	override fun toString() = "ActionParallel($actions)"
+}
+
+/**
+ * An action that transitions the story state to a new timeline node. These actions are crucial for making progress in
+ * the story.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionTimelineTransition(
+	/**
+	 * The name of the timeline whose state/node should be transitioned. The actual `timeline` will be resolved when
+	 * `resolve(...)` is called, which should be done by the importer.
+	 */
+	private val timelineName: String,
+
+	/**
+	 * The name of the timeline node to which the timeline should be transitioned. The actual `node` will be resolved
+	 * when `resolve(...)` is called, which should be done by the importer.
+	 */
+	private val nodeName: String,
+) : FixedAction() {
+
+	/**
+	 * The timeline whose state/node should be transitioned to `newNode`
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "timelines")
+	var timeline: Timeline = Timeline()
+		private set
+
+	/**
+	 * The timeline node to which the state for `timeline` should be transitioned
+	 */
+	@BitField(id = 1)
+	@ReferenceField(stable = false, label = "timeline nodes")
+	var newNode: TimelineNode = TimelineNode()
+		private set
+
+	@Suppress("unused")
+	private constructor() : this("", "")
+
+	override fun getTargets() = emptyArray<ActionTarget>()
+
+	override fun toString() = "ActionTimelineTransition($timeline -> $newNode)"
+
+	/**
+	 * This method initializes `timeline` to the `Timeline` whose name is `timelineName`, and initializes `newNode` to
+	 * the `TimelineNode` named `nodeName`. This method should only be needed by the importer.
+	 */
+	fun resolve(timelines: Collection<Timeline>) {
+		this.timeline = timelines.find { it.name == timelineName } ?: throw IllegalArgumentException(
+			"Can't find timeline with name $timelineName: options are ${timelines.map { it.name }}"
+		)
+
+		val allNodes = mutableListOf<TimelineNode>()
+		val remainingNodes = mutableListOf(this.timeline.root)
+		while (remainingNodes.isNotEmpty()) {
+			val nextNode = remainingNodes.removeLast()
+			allNodes.add(nextNode)
+			remainingNodes.addAll(nextNode.children)
+		}
+
+		this.newNode = allNodes.find { it.name == nodeName } ?: throw IllegalArgumentException(
+			"Can't find node with name $nodeName: options are ${allNodes.map { it.name }}"
+		)
+	}
+}
+
+/**
+ * Instantly teleports `target` to `(x, y)`, and lets it look to `direction`
+ */
+@BitStruct(backwardCompatible = true)
+class ActionTeleport(
+
+	/**
+	 * The character to be teleported
+	 */
+	@BitField(id = 0)
+	@ClassField(root = ActionTarget::class)
+	val target: ActionTarget,
+
+	/**
+	 * The X-coordinate of the destination
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false)
+	val x: Int,
+
+	/**
+	 * The Y-coordinate of the destination
+	 */
+	@BitField(id = 2)
+	@IntegerField(expectUniform = false)
+	val y: Int,
+
+	/**
+	 * The direction that `target` should face after being teleported
+	 */
+	@BitField(id = 3)
+	val direction: Direction,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(ActionTargetPartyMember(), 0, 0, Direction.Down)
+
+	override fun getTargets() = arrayOf(target)
+
+	override fun toString() = "ActionTeleport($target, $x, $y, $direction)"
+}
+
+/**
+ * Sets the money of the player to `amount`
+ */
+@BitStruct(backwardCompatible = true)
+class ActionSetMoney(
+
+	/**
+	 * The amount of money that the player has right after executing this action.
+	 */
+	@BitField(id = 0)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val amount: Int
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(0)
+
+	override fun getTargets() = emptyArray<ActionTarget>()
 }

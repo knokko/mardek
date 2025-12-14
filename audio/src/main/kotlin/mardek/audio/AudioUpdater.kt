@@ -1,12 +1,12 @@
 package mardek.audio
 
-import mardek.content.action.ActionPlayCutscene
-import mardek.content.action.FixedActionNode
+import mardek.content.Content
 import mardek.content.audio.SoundEffect
 import mardek.state.GameStateManager
 import mardek.state.ingame.InGameState
 import mardek.state.title.GameOverState
 import mardek.state.title.TitleScreenState
+import java.util.concurrent.CompletableFuture
 
 /**
  * The `AudioUpdater` makes sure that the sounds in the `SoundQueue` are actually drained & played.
@@ -15,7 +15,7 @@ import mardek.state.title.TitleScreenState
  * The `MardekWindow` class will repeatedly invoke the `update()` method of this class while the game is running, and
  * invokes the `destroy()` method when the game is closed.
  */
-class AudioUpdater(private val stateManager: GameStateManager) {
+class AudioUpdater(private val stateManager: GameStateManager, private val getContent: CompletableFuture<Content>) {
 
 	private val manager = AudioManager()
 
@@ -39,40 +39,23 @@ class AudioUpdater(private val stateManager: GameStateManager) {
 
 			if (state is TitleScreenState) musicTrack = titleScreen
 			if (state is GameOverState) musicTrack = gameOver
-			if (state is InGameState) {
-				val areaState = state.campaign.currentArea
-				if (areaState != null) {
-					trackName = areaState.area.properties.musicTrack
-
-					val battleState = areaState.activeBattle
-					if (battleState != null) {
-						val battleMusic = battleState.battle.music
-						if (battleMusic != "battle") trackName = battleMusic
-						// TODO CHAP1 Determine whether battle music should be played
-
-						val battleLoot = areaState.battleLoot
-						if (battleLoot != null && battleMusic != "battle") {
-							trackName = "VictoryFanfare2"
-							// TODO CHAP1 Right loot music
-						}
-					}
-				}
-
-				val campaignActionNode = state.campaign.actions?.node
-				if (campaignActionNode is FixedActionNode) {
-					val action = campaignActionNode.action
-					if (action is ActionPlayCutscene) trackName = action.cutscene.get().musicTrack
-				}
+			if (state is InGameState && getContent.isDone) {
+				trackName = state.campaign.determineMusicTrack(getContent.get())
 			}
 		}
 
 		if (trackName != null) {
-			musicTrack = musicMap.computeIfAbsent(trackName) { track -> manager.add("$track.ogg", null) }
+			musicTrack = musicMap.computeIfAbsent(trackName) {
+				track -> manager.add("$track.ogg", null)
+			}
 		}
 		if (musicTrack != null) manager.playMusic(musicTrack)
+		else manager.stopMusic()
 
 		if (nextSound != null) {
-			val soundHandle = soundMap.computeIfAbsent(nextSound) { soundEffect -> manager.add("", soundEffect.oggData) }
+			val soundHandle = soundMap.computeIfAbsent(nextSound) {
+				soundEffect -> manager.add("", soundEffect.oggData)
+			}
 			manager.playSound(soundHandle)
 		}
 	}

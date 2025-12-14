@@ -1,5 +1,6 @@
 package mardek.state.ingame.actions
 
+import com.github.knokko.bitser.BitPostInit
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
@@ -8,6 +9,8 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.action.*
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
+import mardek.content.story.Timeline
+import mardek.content.story.TimelineNode
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -16,6 +19,7 @@ import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.FadingCharacter
 import mardek.state.ingame.area.NextAreaPosition
+import mardek.state.ingame.story.StoryState
 import mardek.state.saves.SaveSelectionState
 import kotlin.math.min
 import kotlin.time.Duration
@@ -38,7 +42,7 @@ class AreaActionsState(
 
 	partyPositions: Array<AreaPosition>,
 	partyDirections: Array<Direction>,
-) {
+) : BitPostInit {
 	/**
 	 * The party member positions that this action state is currently overriding. When an action sequence starts, the
 	 * current positions of all party members are copied to `partyPositions`. When the action sequence ends, the
@@ -116,6 +120,13 @@ class AreaActionsState(
 	@Suppress("unused")
 	private constructor() : this(FixedActionNode(), emptyArray(), emptyArray())
 
+	override fun postInit(context: BitPostInit.Context) {
+		val node = this.node
+		if (node is FixedActionNode && node.action is ActionSaveCampaign) {
+			this.node = node.next
+		}
+	}
+
 	private fun updateFixedNode(context: UpdateContext, currentAction: FixedAction): Boolean {
 		if (currentAction is ActionTalk) return updateTalking(context, currentAction)
 		if (currentAction is ActionWalk) return updateWalking(currentAction, context)
@@ -147,6 +158,22 @@ class AreaActionsState(
 			rotate(currentAction, context)
 			return true
 		}
+		if (currentAction is ActionSetMoney) {
+			context.setMoney = currentAction.amount
+			return true
+		}
+		if (currentAction is ActionTeleport) {
+			teleport(currentAction, context)
+			return true
+		}
+		if (currentAction is ActionToArea) {
+			context.switchArea = currentAction
+			return true
+		}
+		if (currentAction is ActionTimelineTransition) {
+			context.transitionTimeline(currentAction.timeline, currentAction.newNode)
+			return true
+		}
 		if (currentAction is ActionParallel) {
 			// Note that we should ALWAYS update all parallel actions, so we can NOT use something like
 			// return currentAction.actions.all { updateFixedNode(context, it) }
@@ -161,16 +188,47 @@ class AreaActionsState(
 		return false
 	}
 
+	private fun teleport(action: ActionTeleport, context: UpdateContext) {
+		when (val target = action.target) {
+			is ActionTargetPartyMember -> {
+				partyPositions[target.index] = AreaPosition(action.x, action.y)
+				partyDirections[target.index] = action.direction
+			}
+			is ActionTargetAreaCharacter -> {
+				context.characterStates[target.character] = AreaCharacterState(
+					x = action.x, y = action.y, direction = action.direction, next = null
+				)
+			}
+			is ActionTargetWholeParty -> {
+				for (index in partyPositions.indices) partyPositions[index] = AreaPosition(action.x, action.y)
+				for (index in partyDirections.indices) partyDirections[index] = action.direction
+			}
+			else -> throw UnsupportedOperationException("Unsupported action target $target")
+		}
+	}
+
 	/**
 	 * This method should be called during `CampaignState.update(...)` whenever
 	 * `areaState.actions != null && areaState.activeBattle == null`
 	 */
 	fun update(context: UpdateContext) {
-		val currentNode = node
-		if (currentNode is FixedActionNode) {
-			if (updateFixedNode(context, currentNode.action)) toNextNode(currentNode.next)
+		val timeStep = context.timeStep
+		while (true) {
+			val currentNode = node
+			if (currentNode is FixedActionNode) {
+				val action = currentNode.action
+				if (updateFixedNode(context, action)) {
+					toNextNode(currentNode.next)
+					context.timeStep = ZERO
+					if (action is ActionBattle) return
+					continue
+				}
+			}
+
+			break
 		}
 
+		context.timeStep = timeStep
 		currentTime += context.timeStep
 	}
 
@@ -404,14 +462,18 @@ class AreaActionsState(
 	 */
 	class UpdateContext(
 		val input: InputManager,
-		val timeStep: Duration,
+		var timeStep: Duration,
 		val soundQueue: SoundQueue,
 		val campaignName: String,
 		val characterStates: MutableMap<AreaCharacter, AreaCharacterState>,
 		val fadingCharacters: MutableCollection<FadingCharacter>,
+		val story: StoryState,
 		val healParty: () -> Unit,
+		val transitionTimeline: (Timeline, TimelineNode) -> Unit,
 	) {
 		var startBattle: ActionBattle? = null
+		var setMoney: Int? = null
+		var switchArea: ActionToArea? = null
 	}
 
 	companion object {

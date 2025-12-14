@@ -17,7 +17,7 @@ import mardek.content.skill.ReactionSkillType
 import mardek.content.skill.Skill
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.*
-import mardek.state.ingame.characters.CharacterState
+import mardek.content.characters.CharacterState
 import kotlin.math.max
 import kotlin.math.min
 

@@ -37,13 +37,14 @@ private fun parsePortraitInfo(content: Content, key: String, rawValue: String): 
 	} else null
 
 	val flashName = key.substring(2).lowercase(Locale.ROOT)
+	val faceSkin = parseSkin("face") ?: flashName
 	return PortraitInfo(
 		flashName = flashName,
 		rootSkin = parseFlashString(properties["t"]!!, "root skin")!!.lowercase(Locale.ROOT),
-		faceSkin = parseSkin("face") ?: flashName,
-		hairSkin = parseSkin("hair") ?: flashName,
+		faceSkin = faceSkin,
+		hairSkin = parseSkin("hair") ?: faceSkin,
 		eyeSkin = parseSkin("eyes") ?: flashName,
-		eyeBrowSkin = parseSkin("eyebrows") ?: flashName,
+		eyeBrowSkin = parseSkin("eyebrows") ?: faceSkin,
 		mouthSkin = parseSkin("mouth") ?: "",
 		armorSkin = parseSkin("armour") ?: flashName,
 		robeSkin = parseSkin("robe"),

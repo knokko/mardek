@@ -148,7 +148,7 @@ class MardekWindow(
 		val mainThread = Thread.currentThread()
 
 		Thread {
-			val audioUpdater = AudioUpdater(gameState)
+			val audioUpdater = AudioUpdater(gameState, content)
 			UpdateLoop({ loop ->
 				if (mainThread.isAlive) audioUpdater.update()
 				else loop.stop()

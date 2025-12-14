@@ -3,15 +3,16 @@ package mardek.game
 import mardek.game.action.TestActions
 import mardek.game.area.TestChestLoot
 import mardek.game.area.TestDoors
+import mardek.game.area.TestDragonLair
 import mardek.game.area.TestRandomBattles
-import mardek.game.area.testDragonLairBossBattle
-import mardek.game.area.testDragonLairDoor
+import mardek.game.area.TestTimelines
 import mardek.game.battle.*
 import mardek.game.inventory.TestCountItemOccurrences
 import mardek.game.portrait.TestPortraitImporting
 import mardek.game.portrait.TestSpecialPortraitNodes
 import mardek.game.save.TestListSaves
 import mardek.game.save.TestSaveAndLoad
+import mardek.game.story.TestQuests
 import mardek.game.ui.TestCutscenes
 import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestTitleScreen
@@ -37,12 +38,17 @@ class IntegrationTests {
 
 	@Test
 	fun testDragonLairDoorAndRendering() {
-		testDragonLairDoor(instance)
+		TestDoors.testDragonLair(instance)
 	}
 
 	@Test
 	fun testDragonLairBossBattle() {
-		testDragonLairBossBattle(instance)
+		TestDragonLair.testBossBattle(instance)
+	}
+
+	@Test
+	fun testHeroesDenWalkTriggerOnlyWorksRightAfterDragonLair() {
+		TestTimelines.testHeroesDenTriggerTooLate(instance)
 	}
 
 	@Test
@@ -67,6 +73,8 @@ class IntegrationTests {
 
 	@Test
 	fun testActions() {
+		TestActions.testAreaToArea(instance)
+		TestActions.testGlobalActionsToArea(instance)
 		TestActions.testIntroDialogue(instance)
 		TestActions.testSaveCrystalCancel(instance)
 	}
@@ -242,6 +250,7 @@ class IntegrationTests {
 		TestRandomBattles.testEncountersAfter30Steps(instance)
 		TestRandomBattles.testEncountersAfter60Steps(instance)
 		TestRandomBattles.testTransferOddsToNextArea(instance)
+		TestRandomBattles.testCannotOpenDoorWhileBattleIsIncoming(instance)
 	}
 
 	@Test
@@ -273,5 +282,10 @@ class IntegrationTests {
 	@Test
 	fun testAreaCharacterPortraitImporting() {
 		TestPortraitImporting.testAreaCharacterPortraits(instance)
+	}
+
+	@Test
+	fun testHeroQuest() {
+		TestQuests.testHeroQuest(instance)
 	}
 }

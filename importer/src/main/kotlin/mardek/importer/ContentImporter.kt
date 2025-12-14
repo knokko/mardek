@@ -9,15 +9,16 @@ import mardek.content.action.ActionShowChapterName
 import mardek.content.action.ActionToArea
 import mardek.content.action.FixedActionNode
 import mardek.content.animation.CombatantAnimations
+import mardek.content.area.Direction
 import mardek.importer.actions.addDummyCutscenes
 import mardek.importer.actions.generateUUIDs
+import mardek.importer.actions.getAllActionNodesFromSequence
 import mardek.importer.actions.importCutscenes
 import mardek.importer.area.importAreaBattleContent
 import mardek.importer.area.importAreaContent
 import mardek.importer.area.importAreaSprites
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
-import mardek.importer.characters.FatPlayableCharacter
 import mardek.importer.characters.importPlayableCharacters
 import mardek.importer.stats.importClasses
 import mardek.importer.stats.importStatsContent
@@ -29,8 +30,8 @@ import mardek.importer.ui.importFonts
 import mardek.importer.ui.importUiSprites
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.actions.CampaignActionsState
-import mardek.state.ingame.characters.CharacterSelectionState
-import mardek.state.ingame.characters.CharacterState
+import mardek.importer.story.hardcodeTimeline
+import mardek.importer.story.importSimpleStoryContent
 import java.io.ByteArrayOutputStream
 
 fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content {
@@ -50,44 +51,16 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	importBattleContent(content, playerModelMapping)
 	importClasses(content)
 	importAreaSprites(content)
-	val fatCharacters = importPlayableCharacters(content, playerModelMapping)
+	importPlayableCharacters(content, playerModelMapping)
+	importSimpleStoryContent(content.story)
 	importAreaBattleContent(content)
-	importAreaContent(content)
+	val hardcodedActions = importAreaContent(content)
+	hardcodeTimeline(content)
+	hardcodedActions.storeHardcodedActionSequences(content)
 	content.ui = importUiSprites()
 	content.fonts = importFonts()
 
-	val heroMardek = fatCharacters.find { it.wrapped.areaSprites.name == "mardek_hero" }!!
-	val heroDeugan = fatCharacters.find { it.wrapped.areaSprites.name == "deugan_hero" }!!
-
-	fun initState(fat: FatPlayableCharacter): CharacterState {
-		val state = CharacterState()
-		state.currentLevel = fat.initialLevel
-		for ((index, item) in fat.initialEquipment.withIndex()) state.equipment[index] = item
-		for ((index, itemStack) in fat.initialItems.withIndex()) state.inventory[index] = itemStack
-		for (skill in fat.initialMasteredSkills) {
-			state.skillMastery[skill] = skill.masteryPoints
-		}
-		state.toggledSkills.addAll(fat.initialToggledSkills)
-		state.currentHealth = state.determineMaxHealth(fat.wrapped.baseStats, state.activeStatusEffects)
-		state.currentMana = state.determineMaxMana(fat.wrapped.baseStats, state.activeStatusEffects)
-		return state
-	}
-
-	val startChapter1 = CampaignState(
-		currentArea = null,
-		characterSelection = CharacterSelectionState(
-			hashSetOf(heroMardek.wrapped, heroDeugan.wrapped),
-			HashSet(0),
-			arrayOf(heroMardek.wrapped, heroDeugan.wrapped, null, null)
-		),
-		characterStates = hashMapOf(
-			Pair(heroMardek.wrapped, initState(heroMardek)),
-			Pair(heroDeugan.wrapped, initState(heroDeugan))
-		),
-		gold = 0
-	)
-
-	val dragonLairEntry = content.areas.areas.find { it.properties.rawName == "DL_entr" }!!
+	val startChapter1 = CampaignState()
 
 	val introCutscene = content.actions.cutscenes.find { it.get().name == "Chapter 1 intro" }!!
 	val chapter1IntroSequence = ActionSequence(
@@ -97,7 +70,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 			next = FixedActionNode(
 				action = ActionPlayCutscene(cutscene = introCutscene),
 				next = FixedActionNode(
-					action = ActionToArea(dragonLairEntry, 5, 10),
+					action = ActionToArea("DL_entr", 5, 10, Direction.Up),
 					next = null,
 				)
 			),
@@ -106,6 +79,12 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	content.actions.global.add(chapter1IntroSequence)
 	startChapter1.actions = CampaignActionsState(chapter1IntroSequence.root)
 	generateUUIDs(chapter1IntroSequence)
+	for (node in getAllActionNodesFromSequence(chapter1IntroSequence)) {
+		if (node is FixedActionNode) {
+			val action = node.action
+			if (action is ActionToArea) action.resolve(content.areas.areas)
+		}
+	}
 
 	fun addCheckpoint(name: String, state: CampaignState) {
 		val byteOutput = ByteArrayOutputStream()
