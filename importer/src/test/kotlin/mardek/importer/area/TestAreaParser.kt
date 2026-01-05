@@ -102,14 +102,6 @@ class TestAreaParser {
 	}
 
 	@Test
-	fun testDragonLairEntry() {
-		val dragonLairEntry = content.areas.areas.find { it.properties.rawName == "DL_entr" }!!
-		val triggers = dragonLairEntry.objects.walkTriggers
-		assertEquals(1, triggers.size)
-		assertNotNull(triggers[0].actions)
-	}
-
-	@Test
 	fun testParseDragonLairArea2() {
 		val solo = content.battle.enemyPartyLayouts.find { it.name == "SOLO" }!!
 		val duo = content.battle.enemyPartyLayouts.find { it.name == "DUO" }!!

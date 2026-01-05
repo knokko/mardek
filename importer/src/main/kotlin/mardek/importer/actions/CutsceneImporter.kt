@@ -41,7 +41,11 @@ private fun importIntroCutscene(content: ActionContent) {
 					.replace("\\'", "'")
 				// Note that we skip the first 30 frames because we only take "cut1a"
 				// The first 30 frames are just translucent black
-				chapter1IntroTexts.add(Cutscene.TextEntry(frameCounter - 29, storyText))
+				chapter1IntroTexts.add(Cutscene.TextEntry(frameCounter - 29, storyText, 1))
+				if (storyText.contains("greatest  Kingdoms!")) {
+					chapter1IntroTexts.add(Cutscene.TextEntry(frameCounter + 120, "(Well, what kingdom?)", 0))
+					chapter1IntroTexts.add(Cutscene.TextEntry(frameCounter + 180, "(It doesn't matter!)", 2))
+				}
 			}
 		}
 	}

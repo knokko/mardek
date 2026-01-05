@@ -42,6 +42,16 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testAreaFadeWhenOpeningDoor() {
+		TestDoors.testFade(instance)
+	}
+
+	@Test
+	fun testAreaFadeDuringAreaTransition() {
+		TestDoors.testTransitionFade(instance)
+	}
+
+	@Test
 	fun testDragonLairBossBattle() {
 		TestDragonLair.testBossBattle(instance)
 	}
@@ -75,7 +85,6 @@ class IntegrationTests {
 	fun testActions() {
 		TestActions.testAreaToArea(instance)
 		TestActions.testGlobalActionsToArea(instance)
-		TestActions.testIntroDialogue(instance)
 		TestActions.testSaveCrystalCancel(instance)
 	}
 

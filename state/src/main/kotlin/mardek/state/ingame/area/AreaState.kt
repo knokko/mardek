@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import mardek.content.action.ActionNode
 import mardek.content.area.*
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
@@ -39,11 +40,13 @@ class AreaState(
 	val area: Area,
 	initialPlayerPosition: AreaPosition,
 	initialPlayerDirection: Direction = Direction.Up,
+
+	skipFadeIn: Boolean = false,
 ) {
 
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true)
-	var currentTime = ZERO
+	var currentTime = if (skipFadeIn) DOOR_OPEN_DURATION else ZERO
 		private set
 
 	@BitField(id = 2)
@@ -115,6 +118,7 @@ class AreaState(
 	}
 
 	private fun innerUpdate(context: UpdateContext) {
+		if (nextTransition != null) return
 		openingDoor?.run {
 			if (currentTime >= finishTime) {
 				nextTransition = door.destination
@@ -187,6 +191,10 @@ class AreaState(
 		)
 	}
 
+	internal fun startActions(firstNode: ActionNode) {
+		actions = AreaActionsState(firstNode, playerPositions, playerDirections, currentTime)
+	}
+
 	private fun interact() {
 		if (nextTransition != null || nextPlayerPosition != null || openingDoor != null) return
 
@@ -204,11 +212,7 @@ class AreaState(
 			if (character.startX != x || character.startY != y) continue
 			val actionSequence = character.actionSequence
 			if (actionSequence != null) {
-				actions = AreaActionsState(
-					actionSequence.root,
-					playerPositions,
-					playerDirections,
-				)
+				startActions(actionSequence.root)
 				return
 			} else {
 				println("interact with $character")
@@ -220,11 +224,7 @@ class AreaState(
 
 			val actionSequence = decoration.actionSequence
 			if (actionSequence != null) {
-				actions = AreaActionsState(
-					actionSequence.root,
-					playerPositions,
-					playerDirections,
-				)
+				startActions(actionSequence.root)
 				return
 			} else {
 				println("interact with $decoration")
@@ -263,24 +263,23 @@ class AreaState(
 	 */
 	fun getCharacterState(character: AreaCharacter) = characterStates[character]
 
-	private fun checkTransitions() {
+	private fun findTransitions(x: Int, y: Int): TransitionDestination? {
 		for (portal in area.objects.portals) {
-			if (playerPositions[0].x == portal.x && playerPositions[0].y == portal.y) {
-				nextTransition = portal.destination
-			}
+			if (x == portal.x && y == portal.y) return portal.destination
 		}
 
 		for (transition in area.objects.transitions) {
-			if (playerPositions[0].x == transition.x && playerPositions[0].y == transition.y) {
-				nextTransition = transition.destination
-			}
+			if (x == transition.x && y == transition.y) return transition.destination
 		}
+
+		return null
 	}
 
 	private fun updatePlayerPosition(context: UpdateContext) {
 		val nextPlayerPosition = this.nextPlayerPosition
 		if (nextPlayerPosition != null && nextPlayerPosition.arrivalTime <= currentTime) {
 			context.totalSteps += 1
+			if (nextPlayerPosition.transition != null) nextTransition = nextPlayerPosition.transition
 			for (index in 1 until playerPositions.size) {
 				playerPositions[index] = playerPositions[index - 1]
 			}
@@ -291,7 +290,6 @@ class AreaState(
 					nextPlayerPosition.position.x, nextPlayerPosition.position.y
 				)
 			}
-			checkTransitions()
 			if (nextTransition != null) return
 
 			maybeStartRandomBattle(context)
@@ -356,11 +354,7 @@ class AreaState(
 
 				// Make sure walking is cancelled upon hitting a trigger
 				nextPlayerPosition = null
-				actions = AreaActionsState(
-					triggerActions.root,
-					playerPositions.clone(),
-					playerDirections.clone(),
-				)
+				startActions(triggerActions.root)
 			} else {
 				println("Hit flash trigger ${trigger.flashCode}")
 			}
@@ -374,6 +368,7 @@ class AreaState(
 		val actions = this.actions!!
 		actions.partyPositions.copyInto(playerPositions)
 		actions.partyDirections.copyInto(playerDirections)
+		currentTime = actions.currentTime
 		nextPlayerPosition = null
 		this.actions = null
 	}
@@ -396,7 +391,10 @@ class AreaState(
 				val nextY = playerPositions[0].y + moveDirection.deltaY
 				if (canWalkTo(input, nextX, nextY)) {
 					val next = NextAreaPosition(
-						AreaPosition(nextX, nextY), currentTime, currentTime + 0.2.seconds
+						AreaPosition(nextX, nextY),
+						currentTime,
+						currentTime + 0.2.seconds,
+						findTransitions(nextX, nextY),
 					)
 					nextPlayerPosition = next
 					for (index in 1 until playerPositions.size) {

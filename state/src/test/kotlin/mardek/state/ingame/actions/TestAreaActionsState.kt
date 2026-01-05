@@ -105,7 +105,7 @@ class TestAreaActionsState {
 		)
 
 		val context = createUpdateContext(10.milliseconds)
-		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections)
+		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections, Duration.ZERO)
 		postEvent(actions, context.input, InputKeyEvent(
 			InputKey.MoveDown, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key shouldn't have any effect
@@ -196,6 +196,7 @@ class TestAreaActionsState {
 			rootNode,
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
+			Duration.ZERO,
 		)
 
 		val context = createUpdateContext(1.milliseconds, characterStates = characterStates)
@@ -209,6 +210,7 @@ class TestAreaActionsState {
 					position = AreaPosition(19, 10),
 					startTime = Duration.ZERO,
 					arrivalTime = 500.milliseconds,
+					transition = null,
 				),
 			), characterStates[paladin]!!)
 		}
@@ -227,6 +229,7 @@ class TestAreaActionsState {
 					position = AreaPosition(18, 10),
 					startTime = 500.milliseconds,
 					arrivalTime = 1000.milliseconds,
+					transition = null,
 				),
 			), characterStates[paladin]!!)
 		}
@@ -284,7 +287,7 @@ class TestAreaActionsState {
 			InputKey.Interact, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key BEFORE THE DIALOGUE shouldn't have any effect
 
-		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections)
+		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections, Duration.ZERO)
 
 
 		assertNotSame(oldPartyDirections, actions.partyDirections)
@@ -362,7 +365,7 @@ class TestAreaActionsState {
 			InputKey.Cancel, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing Q (cancel) should cause the dialogue to be skipped
 
-		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections)
+		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections, Duration.ZERO)
 
 		// Holding Q for 3 seconds should be more than enough
 		repeat(300) {
@@ -398,6 +401,7 @@ class TestAreaActionsState {
 			rootNode,
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
+			Duration.ZERO,
 		)
 		val context = createUpdateContext(10.milliseconds)
 
@@ -443,6 +447,7 @@ class TestAreaActionsState {
 			rootNode,
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
+			Duration.ZERO,
 		)
 
 		val context = createUpdateContext(10.milliseconds)
@@ -477,6 +482,7 @@ class TestAreaActionsState {
 			rootNode,
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
+			Duration.ZERO,
 		)
 
 		var numHeals = 0
@@ -513,6 +519,7 @@ class TestAreaActionsState {
 			rootNode,
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
+			Duration.ZERO,
 		)
 		val context = createUpdateContext(10.milliseconds)
 
@@ -584,6 +591,7 @@ class TestAreaActionsState {
 			rootNode,
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Right },
+			Duration.ZERO,
 		)
 
 		val beforeUpdate = System.nanoTime()
@@ -621,6 +629,7 @@ class TestAreaActionsState {
 			rootNode,
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
+			Duration.ZERO,
 		)
 		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
 
@@ -688,6 +697,7 @@ class TestAreaActionsState {
 			rootNode,
 			Array(4) { AreaPosition() },
 			Array(4) { Direction.Up },
+			Duration.ZERO,
 		)
 		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
 

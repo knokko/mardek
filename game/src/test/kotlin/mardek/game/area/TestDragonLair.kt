@@ -4,6 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.action.ActionFadeCharacter
 import mardek.content.action.ActionParallel
 import mardek.content.action.ActionTalk
+import mardek.content.action.ActionToArea
 import mardek.content.action.ActionWalk
 import mardek.content.action.FixedActionNode
 import mardek.content.animation.ColorTransform
@@ -204,10 +205,28 @@ object TestDragonLair {
 				state.campaign.story.evaluate(state.campaign.currentArea!!.area.properties.ambience)
 			)
 			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
-			repeat(500) {
-				if (state.campaign.currentArea!!.area.properties.rawName == "DL_area4") {
+			repeat(200) {
+				val actionNode = state.campaign.currentArea!!.actions!!.node as FixedActionNode
+				if (actionNode.action !is ActionToArea) {
 					state.update(context)
 				}
+			}
+			fakeInput.postEvent(releaseKeyEvent(InputKey.Cancel))
+
+			// Wait until the Dragon's Lair fade-out is almost over
+			repeat(45) {
+				state.update(context)
+			}
+			assertEquals("DL_area4", state.campaign.currentArea!!.area.properties.rawName)
+			assertArrayEquals(arrayOf(heroMardek, heroDeugan, null, null), state.campaign.party)
+			testRendering(
+				state, 1000, 700, "dragon-boss4",
+				emptyArray(), baseColors + princessPortraitColors + dragonColors,
+			)
+
+			// Wait until the Heroes' Den fade-in just started
+			repeat(10) {
+				state.update(context)
 			}
 			assertArrayEquals(arrayOf(childMardek, childDeugan, null, null), state.campaign.party)
 			assertEquals("crickets", state.campaign.determineMusicTrack(content))
@@ -230,16 +249,30 @@ object TestDragonLair {
 				Color(70, 117, 33), // Tunic
 				Color(236, 197, 157), // Skin
 			)
+
 			testRendering(
-				state, 1000, 700, "dragon-boss4",
+				state, 1000, 700, "dragon-boss5",
+				emptyArray(),
+				baseColors + princessPortraitColors + dragonColors + heroesDenColors,
+			)
+
+			// Wait until the fade-out is over
+			repeat(50) {
+				state.update(context)
+			}
+
+			testRendering(
+				state, 1000, 700, "dragon-boss6",
 				heroesDenColors + childDeuganPortraitColors, dragonColors,
 			)
 
+			// Skip the Heroes' Den dialogue
+			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
 			repeat(500) {
 				state.update(context)
 			}
 			testRendering(
-				state, 1000, 700, "dragon-boss5",
+				state, 1000, 700, "dragon-boss7",
 				heroesDenColors, baseColors + childDeuganPortraitColors,
 			)
 

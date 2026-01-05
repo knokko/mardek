@@ -49,7 +49,7 @@ class CampaignActionsState(
 	 * Some cutscenes (chapter 1 intro) have subtitles. This field tracks the current subtitle that should be rendered.
 	 * The renderer is responsible for writing to this field.
 	 */
-	var cutsceneSubtitle = ""
+	var cutsceneSubtitle = Pair(1, "")
 
 	@Suppress("unused")
 	private constructor() : this(FixedActionNode())
@@ -76,7 +76,7 @@ class CampaignActionsState(
 		this.node = next
 		this.currentNodeStartTime = System.nanoTime()
 		this.finishedAnimationNode = false
-		this.cutsceneSubtitle = ""
+		this.cutsceneSubtitle = Pair(1, "")
 	}
 
 	private fun isAnimationAction(action: FixedAction) = action is ActionShowChapterName || action is ActionPlayCutscene

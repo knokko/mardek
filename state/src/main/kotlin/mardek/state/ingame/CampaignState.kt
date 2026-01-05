@@ -350,6 +350,8 @@ class CampaignState : BitPostInit {
 					AreaPosition(action.x, action.y),
 					action.direction,
 				)
+				val nextNode = node.next
+				if (nextNode != null) this.currentArea!!.startActions(nextNode)
 				this.actions = null
 			}
 		}
@@ -464,6 +466,8 @@ class CampaignState : BitPostInit {
 					switchArea.area, AreaPosition(switchArea.x, switchArea.y),
 					switchArea.direction,
 				)
+				val nextNode = (actions.node as FixedActionNode).next
+				if (nextNode != null) this.currentArea!!.startActions(nextNode)
 				this.actions = null
 			}
 

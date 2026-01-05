@@ -17,6 +17,7 @@ import mardek.input.InputManager
 import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.FadingCharacter
 import mardek.state.ingame.area.NextAreaPosition
 import mardek.state.ingame.story.StoryState
@@ -24,6 +25,7 @@ import mardek.state.saves.SaveSelectionState
 import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
 /**
@@ -42,6 +44,7 @@ class AreaActionsState(
 
 	partyPositions: Array<AreaPosition>,
 	partyDirections: Array<Direction>,
+	areaTime: Duration,
 ) : BitPostInit {
 	/**
 	 * The party member positions that this action state is currently overriding. When an action sequence starts, the
@@ -77,7 +80,7 @@ class AreaActionsState(
 	 */
 	@BitField(id = 4)
 	@IntegerField(expectUniform = true)
-	var currentTime = ZERO
+	var currentTime = areaTime
 		private set
 
 	/**
@@ -92,6 +95,14 @@ class AreaActionsState(
 	 * it up dramatically.
 	 */
 	var shownDialogueCharacters = 0f
+		private set
+
+	/**
+	 * When the current action is `ActionSwitchArea`, the game should transition to that new area... after a small
+	 * fade-out effect. If this field is non-negative, the game should transition to that area once
+	 * `currentTime >= switchAreaAt`.
+	 */
+	var switchAreaAt = (-1).seconds
 		private set
 
 	private var speedUpShowingCharacters = false
@@ -118,7 +129,7 @@ class AreaActionsState(
 		private set
 
 	@Suppress("unused")
-	private constructor() : this(FixedActionNode(), emptyArray(), emptyArray())
+	private constructor() : this(FixedActionNode(), emptyArray(), emptyArray(), ZERO)
 
 	override fun postInit(context: BitPostInit.Context) {
 		val node = this.node
@@ -167,8 +178,9 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionToArea) {
-			context.switchArea = currentAction
-			return true
+			if (switchAreaAt < ZERO) switchAreaAt = currentTime + AreaState.DOOR_OPEN_DURATION
+			if (currentTime >= switchAreaAt) context.switchArea = currentAction
+			return false
 		}
 		if (currentAction is ActionTimelineTransition) {
 			context.transitionTimeline(currentAction.timeline, currentAction.newNode)
@@ -285,7 +297,8 @@ class AreaActionsState(
 				AreaPosition(
 					partyPositions[0].x + nextDirection.deltaX,
 					partyPositions[0].y + nextDirection.deltaY,
-				), currentTime, arrivalTime
+				), currentTime, arrivalTime,
+				null,
 			)
 			partyDirections[0] = nextDirection
 
@@ -297,7 +310,9 @@ class AreaActionsState(
 				)
 				if (direction != null) {
 					// Expected case: party member walks to current position of the 'next' party member
-					nextPartyPositions[index] = NextAreaPosition(targetPosition, currentTime, arrivalTime)
+					nextPartyPositions[index] = NextAreaPosition(
+						targetPosition, currentTime, arrivalTime, null
+					)
 					partyDirections[index] = direction
 				} else {
 					// Edge case: the party member is not on a tile adjacent to the next party member
@@ -346,6 +361,7 @@ class AreaActionsState(
 						),
 						startTime = currentTime,
 						arrivalTime = currentTime + currentAction.speed.duration,
+						transition = null,
 					)
 				)
 			} else {

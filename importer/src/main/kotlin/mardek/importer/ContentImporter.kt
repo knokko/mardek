@@ -4,13 +4,20 @@ import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.Bitser
 import mardek.content.Content
 import mardek.content.action.ActionPlayCutscene
+import mardek.content.action.ActionRotate
 import mardek.content.action.ActionSequence
 import mardek.content.action.ActionShowChapterName
+import mardek.content.action.ActionTalk
+import mardek.content.action.ActionTargetPartyMember
+import mardek.content.action.ActionTargetWholeParty
 import mardek.content.action.ActionToArea
+import mardek.content.action.ActionWalk
 import mardek.content.action.FixedActionNode
+import mardek.content.action.WalkSpeed
 import mardek.content.animation.CombatantAnimations
 import mardek.content.area.Direction
 import mardek.importer.actions.addDummyCutscenes
+import mardek.importer.actions.fixedActionChain
 import mardek.importer.actions.generateUUIDs
 import mardek.importer.actions.getAllActionNodesFromSequence
 import mardek.importer.actions.importCutscenes
@@ -63,19 +70,33 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	val startChapter1 = CampaignState()
 
 	val introCutscene = content.actions.cutscenes.find { it.get().name == "Chapter 1 intro" }!!
-	val chapter1IntroSequence = ActionSequence(
-		name = "Chapter 1 intro",
-		root = FixedActionNode(
-			action = ActionShowChapterName(1, "A Fallen Star"),
-			next = FixedActionNode(
-				action = ActionPlayCutscene(cutscene = introCutscene),
-				next = FixedActionNode(
-					action = ActionToArea("DL_entr", 5, 10, Direction.Up),
-					next = null,
-				)
-			),
-		)
-	)
+	val chapter1IntroSequence = run {
+		val targetMardek = ActionTargetPartyMember(0)
+		val targetDeugan = ActionTargetPartyMember(1)
+
+		@Suppress("CanConvertToMultiDollarString")
+		val entryRoot = fixedActionChain(arrayOf(
+			ActionShowChapterName(1, "A Fallen Star"),
+			ActionPlayCutscene(cutscene = introCutscene),
+			ActionToArea("DL_entr", 5, 10, Direction.Up),
+			ActionWalk(ActionTargetWholeParty(), 5, 5, WalkSpeed.Normal),
+			ActionRotate(targetMardek, Direction.Down),
+			ActionTalk(targetMardek, "norm", "Well Deugan, this is The Dragon's Lair."),
+			ActionTalk(targetDeugan, "grin", "Yes, Mardek, that it is! We have to get to the dragon and slay it to rescue the Princess! Tally-ho!"),
+			ActionTalk(targetMardek, "susp", "What does 'tally-ho' mean?"),
+			ActionTalk(targetDeugan, "deep", "Uhm... I'm not sure! But I've heard adventurers say it before maybe! It sounds like something they'd say!"),
+			ActionTalk(targetMardek, "grin", "Tally-ho!"),
+			ActionTalk(targetDeugan, "grin", "Tally-ho! We're adventurers! En guard! Forsooth! Bloody goblins!"),
+			ActionTalk(targetMardek, "grin", "Tally-ho!"),
+			ActionTalk(targetDeugan, "grin", "Now let's go and save that Princess! Tally-ho!"),
+			ActionTalk(targetDeugan, "norm", "Oh, but Mardek, just a reminder about things! We can \$open the menu with the TAB key% to check our stats, skills and items! And we can also \$open doors and talk to people and stuff with the E key%! Remember these things!"),
+			ActionTalk(targetDeugan, "norm", "It might be a good idea to \$read the Help section of the menu% now if you didn't read the Instructions already!"),
+			// TODO CHAP2 Add help section :p
+			ActionTalk(targetMardek, "susp", "...Huh?"),
+			ActionTalk(targetDeugan, "grin", "Uh, I mean... Tally-ho! Let's go and slay that dragon!"),
+		))!!
+		ActionSequence(name = "Chapter 1 intro", root = entryRoot)
+	}
 	content.actions.global.add(chapter1IntroSequence)
 	startChapter1.actions = CampaignActionsState(chapter1IntroSequence.root)
 	generateUUIDs(chapter1IntroSequence)

@@ -19,7 +19,6 @@ class HardcodedActions {
 		hardcoded[""] = mutableListOf()
 		hardcodeSaveCrystalActions(content, hardcoded)
 		hardcodeDragonLairActions(content, hardcoded)
-		hardcodeHeroesDenActions(hardcoded)
 	}
 
 	internal fun getHardcodedAreaActions(areaName: String, sequenceName: String) = hardcoded[areaName]?.find {
@@ -63,10 +62,6 @@ class HardcodedActions {
 				if (speaker is ActionTargetAreaCharacter) speaker.resolve(characterMapping)
 			}
 		}
-	}
-
-	internal fun addDummySaveCrystalAction() {
-		hardcoded[""] = mutableListOf(ActionSequence("c_healingCrystal", FixedActionNode()))
 	}
 }
 

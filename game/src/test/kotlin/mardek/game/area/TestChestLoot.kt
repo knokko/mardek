@@ -32,7 +32,7 @@ object TestChestLoot {
 			val campaign = simpleCampaignState()
 			campaign.currentArea = AreaState(
 				content.areas.areas.find { it.properties.rawName == "soothwood" }!!,
-				AreaPosition(28, 6)
+				AreaPosition(28, 6), skipFadeIn = true
 			)
 
 			val input = InputManager()

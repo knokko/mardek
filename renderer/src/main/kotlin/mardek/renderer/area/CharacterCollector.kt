@@ -99,6 +99,7 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 							state.getPlayerPosition(index - 1),
 							nextPlayerPosition.startTime,
 							nextPlayerPosition.arrivalTime,
+							nextPlayerPosition.transition,
 						)
 					} else null
 				}

@@ -8,10 +8,12 @@ import mardek.content.action.ActionFadeCharacter
 import mardek.content.action.ActionParallel
 import mardek.content.action.ActionRotate
 import mardek.content.action.ActionSequence
+import mardek.content.action.ActionSetMoney
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetAreaCharacter
 import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionTargetWholeParty
+import mardek.content.action.ActionTeleport
 import mardek.content.action.ActionTimelineTransition
 import mardek.content.action.ActionToArea
 import mardek.content.action.ActionWalk
@@ -26,36 +28,8 @@ import java.util.UUID
 internal fun hardcodeDragonLairActions(
 	content: Content, hardcoded: MutableMap<String, MutableList<ActionSequence>>
 ) {
-	hardcodeDragonLairEntryActions(hardcoded)
 	hardcodeDragonLairRoom2Actions(hardcoded)
 	hardcodeDragonLairRoom4Actions(content, hardcoded)
-}
-
-private fun hardcodeDragonLairEntryActions(hardcoded: MutableMap<String, MutableList<ActionSequence>>) {
-	val targetMardek = ActionTargetPartyMember(0)
-	val targetDeugan = ActionTargetPartyMember(1)
-
-	val entryRoot = fixedActionChain(arrayOf(
-		ActionWalk(ActionTargetWholeParty(), 5, 5, WalkSpeed.Normal),
-		ActionRotate(targetMardek, Direction.Down),
-		ActionTalk(targetMardek, "norm", "Well Deugan, this is The Dragon's Lair."),
-		ActionTalk(targetDeugan, "grin", "Yes, Mardek, that it is! We have to get to the dragon and slay it to rescue the Princess! Tally-ho!"),
-		ActionTalk(targetMardek, "susp", "What does 'tally-ho' mean?"),
-		ActionTalk(targetDeugan, "deep", "Uhm... I'm not sure! But I've heard adventurers say it before maybe! It sounds like something they'd say!"),
-		ActionTalk(targetMardek, "grin", "Tally-ho!"),
-		ActionTalk(targetDeugan, "grin", "Tally-ho! We're adventurers! En guard! Forsooth! Bloody goblins!"),
-		ActionTalk(targetMardek, "grin", "Tally-ho!"),
-		ActionTalk(targetDeugan, "grin", "Now let's go and save that Princess! Tally-ho!"),
-		ActionTalk(targetDeugan, "norm", "Oh, but Mardek, just a reminder about things! We can \$open the menu with the TAB key% to check our stats, skills and items! And we can also \$open doors and talk to people and stuff with the E key%! Remember these things!"),
-		ActionTalk(targetDeugan, "norm", "It might be a good idea to \$read the Help section of the menu% now if you didn't read the Instructions already!"),
-		// TODO CHAP2 Add help section :p
-		ActionTalk(targetMardek, "susp", "...Huh?"),
-		ActionTalk(targetDeugan, "grin", "Uh, I mean... Tally-ho! Let's go and slay that dragon!"),
-	))!!
-
-	hardcoded["DL_entr"] = mutableListOf(
-		ActionSequence(name = "Entry", root = entryRoot)
-	)
 }
 
 private fun hardcodeDragonLairRoom2Actions(hardcoded: MutableMap<String, MutableList<ActionSequence>>) {
@@ -144,8 +118,12 @@ private fun hardcodeDragonLairRoom4Actions(
 		ActionTalk(targetDeugan, "grin", "Yeh, really! My dad told me so it must be true!"),
 		ActionTalk(targetMardek, "smile",
 			"Now that we've beatened the dragon though, now what do we do?"),
-		ActionTimelineTransition("MainTimeline", "Childhood"),
 		ActionToArea("heroes_den", 10, 6, Direction.Down),
+		ActionTimelineTransition("MainTimeline", "Childhood"),
+		ActionSetMoney(10),
+		ActionTeleport(targetDeugan, 10, 7, Direction.Up),
+		ActionTalk(targetDeugan, "norm", "It's getting late... I suppose we should head home. I bet our parents are worried!"),
+		ActionTalk(targetMardek, "grin", "Okay. Let's go back to Goznor!"),
 	))!!
 
 	hardcoded["DL_area4"] = mutableListOf(

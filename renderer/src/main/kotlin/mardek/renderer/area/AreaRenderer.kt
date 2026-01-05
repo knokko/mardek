@@ -65,6 +65,7 @@ internal fun renderCurrentArea(
 	renderChestLoot(areaContext)
 	renderDialogue(areaContext)
 	renderActionFlash(areaContext)
+	renderAreaFadeEffects(areaContext)
 
 	return Pair(areaContext.colorBatch, areaContext.textBatch)
 }

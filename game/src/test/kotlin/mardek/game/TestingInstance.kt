@@ -32,6 +32,7 @@ import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
 import mardek.content.story.TimelineNode
+import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SavesFolderManager
@@ -44,6 +45,7 @@ import org.lwjgl.vulkan.VK13.VK_API_VERSION_1_3
 import java.io.File
 import java.nio.file.Files
 import java.util.Collections
+import kotlin.time.Duration.Companion.seconds
 
 class TestingInstance {
 
@@ -174,7 +176,9 @@ class TestingInstance {
 		val campaignState = CampaignState()
 		campaignState.story.initialize(content)
 		campaignState.story.validatePartyMembers(content, campaignState.party, campaignState.characterStates)
-		campaignState.currentArea = AreaState(dragonLair2, AreaPosition(10, 10))
+		campaignState.currentArea = AreaState(
+			dragonLair2, AreaPosition(10, 10), skipFadeIn = true
+		)
 		campaignState.characterStates.putAll(simpleCharacterStates())
 		campaignState.gold = 123
 		return campaignState

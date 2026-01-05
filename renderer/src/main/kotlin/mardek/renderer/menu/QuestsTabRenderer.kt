@@ -123,6 +123,5 @@ internal fun renderQuestsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			}
 		}
 		// TODO CHAP1 Create chat log
-		// TODO CHAP1 Create area transition black fade
 	}
 }

@@ -11,6 +11,7 @@ import mardek.importer.actions.HardcodedActions
 import mardek.importer.story.expressions.HardcodedExpressions
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptObjectList
+import java.awt.Color
 import java.lang.Integer.parseInt
 import java.util.UUID
 import javax.imageio.ImageIO
@@ -62,7 +63,7 @@ internal fun parseAreaObjects(
 
 internal fun importObjectSprites(
 	flashName: String, frameIndex: Int = 0, numFrames: Int? = null,
-	offsetY: Int = 0, height: Int? = null
+	offsetY: Int = 0, height: Int? = null, skipTransparentFrames: Boolean = false,
 ): ObjectSprites {
 	val imageName = flashName.replace("spritesheet_", "").replace("obj_", "")
 	val imagePath = "sheets/objects/$imageName.png"
@@ -81,6 +82,23 @@ internal fun importObjectSprites(
 
 	val images = ((0 until (numFrames ?: (sheetImage.width / spriteWidth)))).map {
 		sheetImage.getSubimage(spriteWidth * (frameIndex + it), offsetY, spriteWidth, spriteHeight)
+	}.toMutableList()
+
+	if (skipTransparentFrames) {
+		while (images.size > 1) {
+			val lastImage = images.last()
+			var isEmpty = true
+			for (y in 0 until lastImage.height) {
+				for (x in 0 until lastImage.width) {
+					if (Color(lastImage.getRGB(x, y), true).alpha > 0) isEmpty = false
+				}
+			}
+			if (isEmpty) {
+				images.removeLast()
+			} else {
+				break
+			}
+		}
 	}
 
 	return ObjectSprites(
@@ -317,7 +335,8 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		var sprites = context.content.areas.objectSprites.find { it.flashName == spriteID }
 		if (sprites == null) {
 			sprites = importObjectSprites(
-					sheetName + "SHEET", offsetY = spriteHeight * spriteRow, height = spriteHeight
+					sheetName + "SHEET", offsetY = spriteHeight * spriteRow,
+				height = spriteHeight, skipTransparentFrames = true,
 			)
 			sprites.flashName = spriteID
 			context.content.areas.objectSprites.add(sprites)

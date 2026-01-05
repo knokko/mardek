@@ -197,13 +197,18 @@ object TestTitleScreen {
 			assertEquals("lets go", newState.campaignName)
 			assertSame(heroMardek, newState.campaign.party[0])
 
+			// Skip fade-in effect
+			repeat(5) {
+				newState.update(context)
+			}
+
 			val expectedAreaColors = arrayOf(
 				Color(59, 53, 68), // color between floor tiles
 			)
 			testRendering(
 				newState, 800, 450, "new-game7",
 				expectedAreaColors + titleBarColors,
-				baseColors + textInputColors + disabledButtonColors,
+				textInputColors + disabledButtonColors,
 			)
 
 			assertTrue(saveFile.delete())

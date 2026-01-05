@@ -1,9 +1,7 @@
 package mardek.game.action
 
 import mardek.content.action.ActionTalk
-import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionToArea
-import mardek.content.action.ActionWalk
 import mardek.content.action.ChoiceActionNode
 import mardek.content.action.FixedActionNode
 import mardek.content.area.Direction
@@ -28,114 +26,20 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import java.lang.Thread.sleep
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestActions {
 
-	private val dialogueBoxColors = arrayOf(
+	val dialogueBoxColors = arrayOf(
 		Color(88, 71, 46), // Q/L buttons
 		Color(238, 203, 127), // display name color
 		Color(208, 193, 142), // line color
 	)
 
-	private val eButtonColors = arrayOf(
+	val eButtonColors = arrayOf(
 		Color(145, 137, 112), // E button
 	)
-
-	fun testIntroDialogue(instance: TestingInstance) {
-		instance.apply {
-			val state = InGameState(simpleCampaignState(), "test")
-			state.campaign.currentArea = AreaState(dragonLairEntry, AreaPosition(5, 10))
-
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
-			state.update(context)
-
-			val dragonLairColors = arrayOf(
-				Color(13, 0, 22), // background color
-				Color(77, 69, 95), // brick color
-			)
-
-			testRendering(
-				state, 1000, 800, "intro-dialogue0",
-				dragonLairColors, dialogueBoxColors + eButtonColors
-			)
-
-			// This should have no effect since the player is forced to walk
-			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
-
-			val areaState = state.campaign.currentArea!!
-			val actions = areaState.actions!!
-			assertTrue(actions.node is FixedActionNode)
-			assertTrue((actions.node as FixedActionNode).action is ActionWalk)
-
-			repeat(500) {
-				state.update(context)
-			}
-
-			val mardekTalk1 = (actions.node as FixedActionNode).action as ActionTalk
-			assertEquals(ActionTargetPartyMember(0), mardekTalk1.speaker)
-			assertEquals("norm", mardekTalk1.expression)
-			assertEquals("Well Deugan, this is The Dragon's Lair.", mardekTalk1.text)
-			assertEquals(actions.shownDialogueCharacters, mardekTalk1.text.length.toFloat())
-
-			assertEquals(AreaPosition(5, 5), areaState.getPlayerPosition(0))
-			assertEquals(AreaPosition(5, 5), actions.partyPositions[0])
-			assertEquals(Direction.Down, areaState.getPlayerDirection(0))
-			assertEquals(Direction.Down, actions.partyDirections[0])
-			assertEquals(AreaPosition(5, 6), actions.partyPositions[1])
-			assertEquals(Direction.Up, actions.partyDirections[1])
-
-			testRendering(
-				state, 1000, 800, "intro-dialogue1",
-				dragonLairColors + dialogueBoxColors + eButtonColors, emptyArray()
-			)
-
-			// Go to next dialogue node
-			context.input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
-			context.input.postEvent(pressKeyEvent(InputKey.Interact))
-			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
-			state.update(context)
-
-			val deuganTalk1 = (actions.node as FixedActionNode).action as ActionTalk
-			assertEquals(ActionTargetPartyMember(1), deuganTalk1.speaker)
-			assertEquals("grin", deuganTalk1.expression)
-			assertEquals("Well Deugan, this is The Dragon's Lair.", mardekTalk1.text)
-			assertTrue(
-				actions.shownDialogueCharacters < 5f,
-				"Expected ${actions.shownDialogueCharacters} to be small",
-			)
-
-			// Ideally, I would test that we render a different portrait, but I can't find reliable colors to test...
-			testRendering(
-				state, 1000, 800, "intro-dialogue2",
-				dragonLairColors + dialogueBoxColors, emptyArray(),
-			)
-
-			// Skip the rest of the dialogue
-			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
-			repeat(500) {
-				state.update(context)
-			}
-
-			assertNull(areaState.actions)
-			assertEquals(AreaPosition(5, 5), areaState.getPlayerPosition(0))
-			assertEquals(Direction.Down, areaState.getPlayerDirection(0))
-			assertEquals(AreaPosition(5, 6), areaState.getPlayerPosition(1))
-			assertEquals(Direction.Up, areaState.getPlayerDirection(1))
-			testRendering(
-				state, 1000, 800, "intro-dialogue3",
-				dragonLairColors, dialogueBoxColors + eButtonColors
-			)
-
-			// Test that we can walk away now that the dialogue is over
-			context.input.postEvent(pressKeyEvent(InputKey.MoveRight))
-			repeat(200) {
-				state.update(context)
-			}
-
-			assertEquals(AreaPosition(10, 5), areaState.getPlayerPosition(0))
-		}
-	}
 
 	fun testSaveCrystalCancel(instance: TestingInstance) {
 		instance.apply {
@@ -260,11 +164,18 @@ object TestActions {
 				node = FixedActionNode(action = toHeroesDen, next = null),
 				partyPositions = Array(4) { AreaPosition(0, 0) },
 				partyDirections = Array(4) { Direction.Up },
+				areaTime = Duration.ZERO
 			)
 
-			state.update(GameStateUpdateContext(
+			val context = GameStateUpdateContext(
 				content, InputManager(), SoundQueue(), 10.milliseconds
-			))
+			)
+			state.update(context)
+
+			// Wait until the fade is over
+			repeat(60) {
+				state.update(context)
+			}
 
 			assertSame(
 				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,

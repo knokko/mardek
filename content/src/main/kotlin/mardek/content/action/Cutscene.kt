@@ -96,9 +96,19 @@ class Cutscene(
 		 */
 		@BitField(id = 1)
 		val text: String,
+
+		/**
+		 * The subtitle index:
+		 * - 0 means on the bottom-left of the screen
+		 * - 1 means on the bottom-middle of the screen
+		 * - 2 means on the bottom-right of the screen
+		 */
+		@BitField(id = 2)
+		@IntegerField(expectUniform = true, minValue = 0, maxValue = 2, commonValues = [1])
+		val index: Int,
 	) {
 
 		@Suppress("unused")
-		private constructor() : this(0, "")
+		private constructor() : this(0, "", 0)
 	}
 }

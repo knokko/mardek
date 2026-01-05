@@ -3,6 +3,7 @@ package mardek.state.ingame.area
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import mardek.content.area.TransitionDestination
 import kotlin.time.Duration
 
 @BitStruct(backwardCompatible = true)
@@ -18,10 +19,13 @@ class NextAreaPosition(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = true)
 	val arrivalTime: Duration,
+
+	@BitField(id = 3, optional = true)
+	val transition: TransitionDestination?,
 ) {
 
 	@Suppress("unused")
-	private constructor() : this(AreaPosition(), Duration.ZERO, Duration.ZERO)
+	private constructor() : this(AreaPosition(), Duration.ZERO, Duration.ZERO, null)
 
 	override fun toString() = "($position at $arrivalTime)"
 }

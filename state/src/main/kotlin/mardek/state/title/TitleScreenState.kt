@@ -160,8 +160,10 @@ class TitleScreenState: GameState {
 			newCampaignName = null
 			saveSelection = null
 			afterContentLoaded = { _, _ ->
-				saveSelection = SaveSelectionState(availableCampaigns!!)
-				afterContentLoaded = null
+				if (availableCampaigns!!.isNotEmpty()) {
+					saveSelection = SaveSelectionState(availableCampaigns!!)
+					afterContentLoaded = null
+				}
 				this
 			}
 		}

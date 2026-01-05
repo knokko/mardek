@@ -88,7 +88,9 @@ object TestSaveAndLoad {
 	fun testHappyFlow(instance: TestingInstance) {
 		instance.apply {
 			val saves = dummySaveManager()
-			val areaState = AreaState(dragonLairEntry, AreaPosition(3, 4))
+			val areaState = AreaState(
+				dragonLairEntry, AreaPosition(3, 4), skipFadeIn = true
+			)
 			var state: GameState = InGameState(simpleCampaignState(), "test-save-and-load")
 			(state as InGameState).campaign.run {
 				characterStates[heroMardek]!!.currentLevel = 5
