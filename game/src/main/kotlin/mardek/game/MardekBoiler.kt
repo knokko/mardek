@@ -31,12 +31,14 @@ fun createBoiler(args: Array<String>, videoSettings: VideoSettings): BoilerInsta
 	), "SetAppMetadataProperty")
 
 	val apiVersion = if (args.contains("gpu-validation")) VK_API_VERSION_1_2 else VK_API_VERSION_1_0
-	val boilerBuilder = BoilerBuilder(apiVersion, "MardekKt", 1)
-		.addWindow(WindowBuilder(
+	val boilerBuilder = BoilerBuilder(apiVersion, "MardekKt", 1).addWindow(
+		WindowBuilder(
 			900, 600, videoSettings.framesInFlight
 		)
-		.hideFirstFrames(3)
-		.sdlFlags(SDL_WINDOW_VULKAN or SDL_WINDOW_RESIZABLE or SDL_WINDOW_BORDERLESS))
+			.hideFirstFrames(3)
+			.sdlFlags(SDL_WINDOW_VULKAN or SDL_WINDOW_RESIZABLE or SDL_WINDOW_BORDERLESS)
+			.printSurfaceFormats()
+	)
 	boilerBuilder.useSDL(SDL_INIT_VIDEO or SDL_INIT_GAMEPAD)
 	boilerBuilder.requiredFeatures10("textureCompressionBc", VkPhysicalDeviceFeatures::textureCompressionBC)
 	boilerBuilder.featurePicker10 { _, _, toEnable -> toEnable.textureCompressionBC(true) }

@@ -14,6 +14,7 @@ fun main(args: Array<String>) {
 		selfTest1()
 		return
 	}
+	configureLogging(args)
 
 	val videoSettings = VideoSettings.load()
 	val boiler = createBoiler(args, videoSettings)

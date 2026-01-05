@@ -98,7 +98,7 @@ jobs:
       - run: cd with-correct-natives && jar -cfM ../mardek-dir/mardek.jar *
       - run: curl -L -o warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }} https://github.com/knokko/warp/releases/download/v0.4.6/warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }}
       - run: chmod 777 ./warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }}
-      - run: ./warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }} --arch ${{ matrix.os.architecture }} --input-dir ./mardek-dir --exec bin/${{ matrix.os.java }} --output mardek${{ matrix.os.extension }} --use-temp-directory --exec-args "${{ matrix.os.jvmArgs }}-jar %APP_DIR%/mardek.jar %ARGS%"
+      - run: ./warp-packer-${{ matrix.os.name }}${{ matrix.os.extension }} --arch ${{ matrix.os.architecture }} --input-dir ./mardek-dir --exec bin/${{ matrix.os.java }} --output mardek${{ matrix.os.extension }} --use-temp-directory --exec-args "${{ matrix.os.jvmArgs }}-jar %APP_DIR%/mardek.jar enable-logging %ARGS%"
       - run: ./mardek${{ matrix.os.extension }} self-test1
       - uses: actions/upload-artifact@v4
         with:

@@ -18,3 +18,5 @@ val SAVES_DIRECTORY = File("$STORAGE_DIRECTORY/saves")
  * The file where the video settings will be stored
  */
 val VIDEO_SETTINGS_FILE = File("$STORAGE_DIRECTORY/video-settings")
+
+val LOGS_DIRECTORY = File("$STORAGE_DIRECTORY/logs")
