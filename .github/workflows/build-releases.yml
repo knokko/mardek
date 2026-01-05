@@ -104,6 +104,10 @@ jobs:
         with:
           name: mardek-${{ matrix.os.architecture }}
           path: mardek${{ matrix.os.extension }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mardek-zip-${{ matrix.os.architecture }}
+          path: mardek-dir
 
   self-test:
     runs-on: ${{ matrix.os.name }}
