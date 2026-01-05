@@ -3,6 +3,7 @@ package mardek.content.animation
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import java.util.Locale
 
 /**
  * Represents a color-transformation (in an animation). When an `AnimationSprite` is rendered, the color of each pixel
@@ -44,7 +45,9 @@ class ColorTransform(
 
 	internal constructor() : this(0, 0, 0)
 
-	private fun formatComponent(color: Int, offset: Int) = String.format("%.1f", ((color shr offset) and 255) / 255f)
+	private fun formatComponent(color: Int, offset: Int) = String.format(
+		Locale.ROOT, "%.1f", ((color shr offset) and 255) / 255f
+	)
 
 	private fun formatColor(color: Int) = "(${formatComponent(color, 0)}, " +
 			"${formatComponent(color, 8)}, ${formatComponent(color, 16)}, " +

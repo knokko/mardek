@@ -14,6 +14,7 @@ import mardek.renderer.util.renderButton
 import mardek.state.UsedPartyMember
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.util.Rectangle
+import java.util.Locale
 import kotlin.math.max
 
 private val referenceTime = System.nanoTime()
@@ -191,8 +192,9 @@ internal fun renderBattleLoot(
 		val goldTextHeight = 7f * scale
 		val goldShadowOffset = 0.08f * goldTextHeight
 		textBatch.drawShadowedString(
-			String.format("%,d", context.campaign.gold), region.minX + 27f * scale, goldTextY,
-			goldTextHeight, goldFont, goldTextColor,0, 0f, goldShadowColor,
+			String.format(Locale.ROOT, "%,d", context.campaign.gold),
+			region.minX + 27f * scale, goldTextY, goldTextHeight,
+			goldFont, goldTextColor,0, 0f, goldShadowColor,
 			goldShadowOffset, goldShadowOffset, TextAlignment.LEFT,
 		)
 		textBatch.drawShadowedString(

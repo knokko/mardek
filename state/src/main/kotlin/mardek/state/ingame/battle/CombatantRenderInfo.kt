@@ -2,6 +2,7 @@ package mardek.state.ingame.battle
 
 import mardek.content.stats.StatusEffect
 import mardek.state.util.Rectangle
+import java.util.Locale
 
 class CombatantRenderInfo {
 	val effectHistory = StatusEffectHistory()
@@ -112,7 +113,7 @@ class CombatantRenderPosition(
 	 */
 	val y: Float
 ) {
-	override fun toString() = String.format("(%.1f, %.1f)", x, y)
+	override fun toString() = String.format(Locale.ROOT, "(%.1f, %.1f)", x, y)
 
 	companion object {
 
