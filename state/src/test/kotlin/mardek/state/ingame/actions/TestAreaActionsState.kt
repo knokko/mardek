@@ -51,11 +51,16 @@ private fun pressAndRelease(actions: AreaActionsState, input: InputManager, key:
 
 class TestAreaActionsState {
 
+	private var currentTime = Duration.ZERO
+
 	private fun createUpdateContext(
 		timeStep: Duration,
 		input: InputManager = InputManager(),
 		soundQueue: SoundQueue = SoundQueue(),
 		campaignName: String = "",
+		partyPositions: Array<AreaPosition> = Array(4) { AreaPosition() },
+		partyDirections: Array<Direction> = Array(4) { Direction.Up },
+		currentTime: Duration = Duration.ZERO,
 		characterStates: MutableMap<AreaCharacter, AreaCharacterState> = mutableMapOf(),
 		fadingCharacters: MutableList<FadingCharacter> = mutableListOf(),
 		story: StoryState = StoryState(),
@@ -65,12 +70,21 @@ class TestAreaActionsState {
 		timeStep = timeStep,
 		soundQueue = soundQueue,
 		campaignName = campaignName,
+		partyPositions = partyPositions,
+		partyDirections = partyDirections,
+		currentTime = currentTime,
 		characterStates = characterStates,
 		fadingCharacters = fadingCharacters,
 		story = story,
 		healParty = healParty,
 		transitionTimeline = { _, _ -> fail("Attempted to transition timeline?" ) }
 	)
+
+	private fun update(actions: AreaActionsState, context: AreaActionsState.UpdateContext) {
+		context.currentTime = currentTime
+		actions.update(context)
+		currentTime += context.timeStep
+	}
 
 	@Test
 	fun testWalkWithWholeParty() {
@@ -91,53 +105,53 @@ class TestAreaActionsState {
 				next = null
 			)
 		)
-		val oldPartyPositions = arrayOf(
+		val partyPositions = arrayOf(
 			AreaPosition(2, 3),
 			AreaPosition(2, 2),
 			AreaPosition(1, 2),
 			AreaPosition(1, 1),
 		)
-		val oldPartyDirections = arrayOf(
+		val partyDirections = arrayOf(
 			Direction.Down,
 			Direction.Down,
 			Direction.Right,
 			Direction.Down,
 		)
 
-		val context = createUpdateContext(10.milliseconds)
-		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections, Duration.ZERO)
+		val context = createUpdateContext(
+			10.milliseconds, partyPositions = partyPositions, partyDirections = partyDirections
+		)
+		val actions = AreaActionsState(rootNode)
 		postEvent(actions, context.input, InputKeyEvent(
 			InputKey.MoveDown, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key shouldn't have any effect
 
-		actions.update(context)
-		while (actions.partyPositions[0].x != 20) {
+		update(actions, context)
+		while (partyPositions[0].x != 20) {
 
-			val p = actions.partyPositions
-			val d = actions.partyDirections
-			assertEquals(3, p[0].y)
-			assertEquals(Direction.Right, d[0])
+			assertEquals(3, partyPositions[0].y)
+			assertEquals(Direction.Right, partyDirections[0])
 
-			if (p[0].x > 2) {
-				assertEquals(3, p[1].y)
-				assertEquals(Direction.Right, d[1])
-				assertEquals(p[0].x, p[1].x + 1)
+			if (partyPositions[0].x > 2) {
+				assertEquals(3, partyPositions[1].y)
+				assertEquals(Direction.Right, partyDirections[1])
+				assertEquals(partyPositions[0].x, partyPositions[1].x + 1)
 			}
 
-			if (p[0].x > 3) {
-				assertEquals(3, p[2].y)
-				assertEquals(Direction.Right, d[2])
-				assertEquals(p[1].x, p[2].x + 1)
+			if (partyPositions[0].x > 3) {
+				assertEquals(3, partyPositions[2].y)
+				assertEquals(Direction.Right, partyDirections[2])
+				assertEquals(partyPositions[1].x, partyPositions[2].x + 1)
 			}
 
-			if (p[0].x > 4) {
-				assertEquals(3, p[3].y)
-				assertEquals(Direction.Right, d[3])
-				assertEquals(p[2].x, p[3].x + 1)
+			if (partyPositions[0].x > 4) {
+				assertEquals(3, partyPositions[3].y)
+				assertEquals(Direction.Right, partyDirections[3])
+				assertEquals(partyPositions[2].x, partyPositions[3].x + 1)
 			}
-			assertTrue(actions.currentTime < 4.seconds)
+			assertTrue(currentTime < 4.seconds)
 
-			actions.update(context)
+			update(actions, context)
 		}
 
 		assertArrayEquals(arrayOf(
@@ -145,28 +159,25 @@ class TestAreaActionsState {
 			AreaPosition(19, 3),
 			AreaPosition(18, 3),
 			AreaPosition(17, 3),
-		), actions.partyPositions)
+		), partyPositions)
 
-		actions.update(context)
-		while (actions.partyPositions[0] != AreaPosition(10, 13)) {
-			val p = actions.partyPositions
-			val d = actions.partyDirections
+		update(actions, context)
+		while (partyPositions[0] != AreaPosition(10, 13)) {
+			assertTrue(partyDirections[0] == Direction.Left || partyDirections[0] == Direction.Down)
 
-			assertTrue(d[0] == Direction.Left || d[0] == Direction.Down)
+			if (partyPositions[0].x < 18) {
+				assertEquals(partyPositions[2], AreaPosition(partyPositions[0].x + 1, partyPositions[0].y - 1))
+				assertEquals(partyPositions[3], AreaPosition(partyPositions[1].x + 1, partyPositions[1].y - 1))
+				assertTrue(partyPositions[0].x == partyPositions[1].x || partyPositions[0].y == partyPositions[1].y)
+				assertTrue(partyPositions[0].x == partyPositions[1].x - 1 || partyPositions[0].y == partyPositions[1].y + 1)
 
-			if (p[0].x < 18) {
-				assertEquals(p[2], AreaPosition(p[0].x + 1, p[0].y - 1))
-				assertEquals(p[3], AreaPosition(p[1].x + 1, p[1].y - 1))
-				assertTrue(p[0].x == p[1].x || p[0].y == p[1].y)
-				assertTrue(p[0].x == p[1].x - 1 || p[0].y == p[1].y + 1)
-
-				assertTrue(d[1] == Direction.Left || d[1] == Direction.Down)
-				assertEquals(d[0], d[2])
-				assertEquals(d[1], d[3])
+				assertTrue(partyDirections[1] == Direction.Left || partyDirections[1] == Direction.Down)
+				assertEquals(partyDirections[0], partyDirections[2])
+				assertEquals(partyDirections[1], partyDirections[3])
 			}
 
-			assertTrue(actions.currentTime < 19.seconds)
-			actions.update(context)
+			assertTrue(currentTime < 19.seconds)
+			update(actions, context)
 		}
 
 		assertNull(actions.node)
@@ -192,16 +203,11 @@ class TestAreaActionsState {
 			next = null,
 		)
 
-		val actions = AreaActionsState(
-			rootNode,
-			Array(4) { AreaPosition() },
-			Array(4) { Direction.Up },
-			Duration.ZERO,
-		)
+		val actions = AreaActionsState(rootNode)
 
 		val context = createUpdateContext(1.milliseconds, characterStates = characterStates)
 		repeat(495) {
-			actions.update(context)
+			update(actions, context)
 			assertEquals(AreaCharacterState(
 				x = 20,
 				y = 10,
@@ -216,11 +222,11 @@ class TestAreaActionsState {
 		}
 
 		repeat(10) {
-			actions.update(context)
+			update(actions, context)
 		}
 
 		repeat(495) {
-			actions.update(context)
+			update(actions, context)
 			assertEquals(AreaCharacterState(
 				x = 19,
 				y = 10,
@@ -235,7 +241,7 @@ class TestAreaActionsState {
 		}
 
 		repeat(7000) {
-			actions.update(context)
+			update(actions, context)
 			val direction = characterStates[paladin]!!.direction
 			assertTrue(direction == Direction.Left || direction == Direction.Up)
 		}
@@ -269,35 +275,16 @@ class TestAreaActionsState {
 			)
 		)
 
-		val oldPartyPositions = arrayOf(
-			AreaPosition(10, 5),
-			AreaPosition(11, 5),
-			AreaPosition(12, 5),
-			AreaPosition(12, 6),
-		)
-		val oldPartyDirections = arrayOf(
-			Direction.Down,
-			Direction.Down,
-			Direction.Up,
-			Direction.Down,
-		)
-
 		val context = createUpdateContext(10.milliseconds)
 		context.input.postEvent(InputKeyEvent(
 			InputKey.Interact, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key BEFORE THE DIALOGUE shouldn't have any effect
 
-		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections, Duration.ZERO)
-
-
-		assertNotSame(oldPartyDirections, actions.partyDirections)
-		assertArrayEquals(oldPartyDirections, actions.partyDirections)
-		actions.update(context)
-		assertNotSame(oldPartyPositions, actions.partyPositions)
-		assertArrayEquals(oldPartyPositions, actions.partyPositions)
+		val actions = AreaActionsState(rootNode)
+		update(actions, context)
 
 		repeat(200) {
-			actions.update(context)
+			update(actions, context)
 		}
 		assertTrue(2 * actions.shownDialogueCharacters < text1.length)
 
@@ -306,20 +293,20 @@ class TestAreaActionsState {
 		)) // Releasing the E key should do nothing... yet
 
 		repeat(200) {
-			actions.update(context)
+			update(actions, context)
 		}
 		assertTrue(2 * actions.shownDialogueCharacters < text1.length)
 
 		pressAndRelease(actions, context.input, InputKey.Interact)
 
 		repeat(200) {
-			actions.update(context)
+			update(actions, context)
 		}
 		assertEquals(actions.shownDialogueCharacters, text1.length.toFloat())
 
 		// Pressing E again should move the action state to the next dialogue message
 		pressAndRelease(actions, context.input, InputKey.Interact)
-		actions.update(context)
+		update(actions, context)
 		assertTrue(
 			actions.shownDialogueCharacters < 5f,
 			"Expected ${actions.shownDialogueCharacters} < 5"
@@ -327,13 +314,13 @@ class TestAreaActionsState {
 
 		// Wait until all characters are visible
 		repeat(2000) {
-			actions.update(context)
+			update(actions, context)
 		}
 		assertEquals(text2.length.toFloat(), actions.shownDialogueCharacters)
 
 		// End the dialogue
 		pressAndRelease(actions, context.input, InputKey.Interact)
-		actions.update(context)
+		update(actions, context)
 		assertNull(actions.node)
 	}
 
@@ -357,19 +344,16 @@ class TestAreaActionsState {
 			)
 		)
 
-		val oldPartyPositions = Array(4) { AreaPosition()  }
-		val oldPartyDirections = Array(4) { Direction.Left }
-
 		val context = createUpdateContext(10.milliseconds)
 		context.input.postEvent(InputKeyEvent(
 			InputKey.Cancel, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing Q (cancel) should cause the dialogue to be skipped
 
-		val actions = AreaActionsState(rootNode, oldPartyPositions, oldPartyDirections, Duration.ZERO)
+		val actions = AreaActionsState(rootNode)
 
 		// Holding Q for 3 seconds should be more than enough
 		repeat(300) {
-			actions.update(context)
+			update(actions, context)
 		}
 		assertNull(actions.node)
 	}
@@ -397,12 +381,7 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(
-			rootNode,
-			Array(4) { AreaPosition() },
-			Array(4) { Direction.Up },
-			Duration.ZERO,
-		)
+		val actions = AreaActionsState(rootNode)
 		val context = createUpdateContext(10.milliseconds)
 
 		assertEquals(0L, actions.lastFlashTime)
@@ -410,7 +389,7 @@ class TestAreaActionsState {
 
 		val beforeWalking = System.nanoTime()
 		while (actions.node === rootNode) {
-			actions.update(context)
+			update(actions, context)
 		}
 		val rightAfterFlash = System.nanoTime()
 
@@ -421,7 +400,7 @@ class TestAreaActionsState {
 		assertTrue((actions.node as FixedActionNode).action is ActionWalk)
 
 		while (actions.node != null) {
-			actions.update(context)
+			update(actions, context)
 			assertEquals(flashTime, actions.lastFlashTime)
 			assertEquals(1234, actions.lastFlashColor)
 		}
@@ -443,18 +422,13 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(
-			rootNode,
-			Array(4) { AreaPosition() },
-			Array(4) { Direction.Up },
-			Duration.ZERO,
-		)
+		val actions = AreaActionsState(rootNode)
 
 		val context = createUpdateContext(10.milliseconds)
 
 		assertNull(context.soundQueue.take())
 		repeat(5) {
-			actions.update(context)
+			update(actions, context)
 		}
 
 		assertSame(sound, context.soundQueue.take())
@@ -478,18 +452,13 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(
-			rootNode,
-			Array(4) { AreaPosition() },
-			Array(4) { Direction.Up },
-			Duration.ZERO,
-		)
+		val actions = AreaActionsState(rootNode)
 
 		var numHeals = 0
 		val context = createUpdateContext(10.milliseconds) { numHeals += 1 }
 
 		repeat(5) {
-			actions.update(context)
+			update(actions, context)
 		}
 
 		assertEquals(1, numHeals)
@@ -515,12 +484,7 @@ class TestAreaActionsState {
 			)
 		)
 
-		val actions = AreaActionsState(
-			rootNode,
-			Array(4) { AreaPosition() },
-			Array(4) { Direction.Up },
-			Duration.ZERO,
-		)
+		val actions = AreaActionsState(rootNode)
 		val context = createUpdateContext(10.milliseconds)
 
 		context.input.postEvent(InputKeyEvent(
@@ -528,44 +492,44 @@ class TestAreaActionsState {
 		)) // Cancel shouldn't do anything in choice dialogue nodes
 
 		repeat(10) {
-			actions.update(context)
+			update(actions, context)
 			assertEquals(0, actions.selectedChoice)
 		}
 
 		pressAndRelease(actions, context.input, InputKey.MoveDown)
 		repeat(10) {
-			actions.update(context)
+			update(actions, context)
 			assertEquals(1, actions.selectedChoice)
 		}
 
 		pressAndRelease(actions, context.input, InputKey.MoveUp)
-		actions.update(context)
+		update(actions, context)
 		assertEquals(0, actions.selectedChoice)
 
 		pressAndRelease(actions, context.input, InputKey.MoveDown)
-		actions.update(context)
+		update(actions, context)
 		assertEquals(1, actions.selectedChoice)
 
 		pressAndRelease(actions, context.input, InputKey.MoveDown)
-		actions.update(context)
+		update(actions, context)
 		assertEquals(2, actions.selectedChoice)
 
 		assertSame(rootNode, actions.node)
 		pressAndRelease(actions, context.input, InputKey.Interact)
-		actions.update(context)
+		update(actions, context)
 		assertEquals(0, actions.selectedChoice)
 		assertNotSame(rootNode, actions.node)
 
 		pressAndRelease(actions, context.input, InputKey.MoveUp)
-		actions.update(context)
+		update(actions, context)
 		assertEquals(0, actions.selectedChoice)
 
 		pressAndRelease(actions, context.input, InputKey.MoveDown)
-		actions.update(context)
+		update(actions, context)
 		assertEquals(1, actions.selectedChoice)
 
 		pressAndRelease(actions, context.input, InputKey.Interact)
-		actions.update(context)
+		update(actions, context)
 		assertNull(actions.node)
 	}
 
@@ -587,15 +551,10 @@ class TestAreaActionsState {
 
 		val context = createUpdateContext(1.seconds, characterStates = characterStates)
 
-		val actions = AreaActionsState(
-			rootNode,
-			Array(4) { AreaPosition() },
-			Array(4) { Direction.Right },
-			Duration.ZERO,
-		)
+		val actions = AreaActionsState(rootNode)
 
 		val beforeUpdate = System.nanoTime()
-		actions.update(context)
+		update(actions, context)
 
 		assertEquals(0, characterStates.size)
 		assertEquals(1, context.fadingCharacters.size)
@@ -625,19 +584,15 @@ class TestAreaActionsState {
 			next = null,
 		)
 		val characterStates = mutableMapOf(Pair(princess, initialPrincessState))
-		val actions = AreaActionsState(
-			rootNode,
-			Array(4) { AreaPosition() },
-			Array(4) { Direction.Up },
-			Duration.ZERO,
-		)
+		val actions = AreaActionsState(rootNode)
+
 		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
 
 		// The first update should rotate both the player and the princess
-		actions.update(context)
+		update(actions, context)
 		assertArrayEquals(arrayOf(
 			Direction.Up, Direction.Right, Direction.Up, Direction.Up
-		), actions.partyDirections)
+		), context.partyDirections)
 		assertEquals(AreaCharacterState(
 			x = 5,
 			y = 0,
@@ -693,17 +648,12 @@ class TestAreaActionsState {
 			Pair(princess, initialPrincessState),
 			Pair(dragon, initialDragonState),
 		)
-		val actions = AreaActionsState(
-			rootNode,
-			Array(4) { AreaPosition() },
-			Array(4) { Direction.Up },
-			Duration.ZERO,
-		)
+		val actions = AreaActionsState(rootNode)
 		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
 
 		// The dragon should need 6 seconds to reach its destination
 		repeat(605) {
-			actions.update(context)
+			update(actions, context)
 			assertEquals(Direction.Up, characterStates[princess]!!.direction)
 			assertEquals(Direction.Up, characterStates[dragon]!!.direction)
 		}
@@ -728,7 +678,7 @@ class TestAreaActionsState {
 
 		// The princess needs another 6 seconds
 		repeat(600) {
-			actions.update(context)
+			update(actions, context)
 		}
 
 		assertEquals(AreaCharacterState(

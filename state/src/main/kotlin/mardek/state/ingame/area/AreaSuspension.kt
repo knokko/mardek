@@ -143,7 +143,7 @@ class AreaSuspensionActions(
 	@Suppress("unused")
 	private constructor() : this(AreaActionsState())
 
-	override fun shouldUpdateCurrentTime() = false // TODO CHAP1 Change to `true` after refactor
+	override fun shouldUpdateCurrentTime() = true
 }
 
 /**

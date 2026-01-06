@@ -42,26 +42,7 @@ class AreaActionsState(
 	@ReferenceField(stable = true, label = "action nodes")
 	var node: ActionNode?,
 
-	partyPositions: Array<AreaPosition>,
-	partyDirections: Array<Direction>,
-	areaTime: Duration,
 ) : BitPostInit {
-	/**
-	 * The party member positions that this action state is currently overriding. When an action sequence starts, the
-	 * current positions of all party members are copied to `partyPositions`. When the action sequence ends, the
-	 * `partyPositions` are copied to the player positions of the `AreaState`. (This seems useless, but has some
-	 * serialization benefits.)
-	 */
-	@BitField(id = 1)
-	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
-	val partyPositions: Array<AreaPosition> = partyPositions.clone()
-
-	/**
-	 * The party member directions that this action state is currently overriding. It works like `partyPositions`.
-	 */
-	@BitField(id = 2)
-	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
-	val partyDirections: Array<Direction> = partyDirections.clone()
 
 	/**
 	 * `nextPartyPositions(i)` indicates the position to which the party member at index `i` is currently walking, or
@@ -70,18 +51,10 @@ class AreaActionsState(
 	 * Unlike in `AreaState`, every party member can walk independently of each other, and do *not necessarily*
 	 * follow party member 0.
 	 */
-	@BitField(id = 3)
+	@BitField(id = 1)
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	val nextPartyPositions = Array<NextAreaPosition?>(4) { null }
-
-	/**
-	 * The in-game time that has elapsed since the action sequence started
-	 */
-	@BitField(id = 4)
-	@IntegerField(expectUniform = true)
-	var currentTime = areaTime
-		private set
 
 	/**
 	 * When inside a choice dialogue, this is the index of the currently selected option. Otherwise, this should be 0.
@@ -128,7 +101,7 @@ class AreaActionsState(
 	var saveSelectionState: SaveSelectionState? = null
 		private set
 
-	internal constructor() : this(FixedActionNode(), emptyArray(), emptyArray(), ZERO)
+	internal constructor() : this(FixedActionNode())
 
 	override fun postInit(context: BitPostInit.Context) {
 		val node = this.node
@@ -177,8 +150,8 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionToArea) {
-			if (switchAreaAt < ZERO) switchAreaAt = currentTime + AreaState.DOOR_OPEN_DURATION
-			if (currentTime >= switchAreaAt) context.switchArea = currentAction
+			if (switchAreaAt < ZERO) switchAreaAt = context.currentTime + AreaState.DOOR_OPEN_DURATION
+			if (context.currentTime >= switchAreaAt) context.switchArea = currentAction
 			return false
 		}
 		if (currentAction is ActionTimelineTransition) {
@@ -202,8 +175,8 @@ class AreaActionsState(
 	private fun teleport(action: ActionTeleport, context: UpdateContext) {
 		when (val target = action.target) {
 			is ActionTargetPartyMember -> {
-				partyPositions[target.index] = AreaPosition(action.x, action.y)
-				partyDirections[target.index] = action.direction
+				context.partyPositions[target.index] = AreaPosition(action.x, action.y)
+				context.partyDirections[target.index] = action.direction
 			}
 			is ActionTargetAreaCharacter -> {
 				context.characterStates[target.character] = AreaCharacterState(
@@ -211,8 +184,12 @@ class AreaActionsState(
 				)
 			}
 			is ActionTargetWholeParty -> {
-				for (index in partyPositions.indices) partyPositions[index] = AreaPosition(action.x, action.y)
-				for (index in partyDirections.indices) partyDirections[index] = action.direction
+				for (index in context.partyPositions.indices) {
+					context.partyPositions[index] = AreaPosition(action.x, action.y)
+				}
+				for (index in context.partyDirections.indices) {
+					context.partyDirections[index] = action.direction
+				}
 			}
 			else -> throw UnsupportedOperationException("Unsupported action target $target")
 		}
@@ -240,7 +217,6 @@ class AreaActionsState(
 		}
 
 		context.timeStep = timeStep
-		currentTime += context.timeStep
 	}
 
 	private fun updateTalking(context: UpdateContext, currentAction: ActionTalk): Boolean {
@@ -264,59 +240,59 @@ class AreaActionsState(
 
 	private fun updateWalking(currentAction: ActionWalk, context: UpdateContext): Boolean {
 		val target = currentAction.target
-		if (target is ActionTargetWholeParty) return updateWalkingWholeParty(currentAction)
+		if (target is ActionTargetWholeParty) return updateWalkingWholeParty(context, currentAction)
 		if (target is ActionTargetAreaCharacter) return updateWalkingAreaCharacter(currentAction, target.character, context)
 		throw UnsupportedOperationException("Unexpected target $target for $currentAction")
 	}
 
-	private fun updateWalkingWholeParty(currentAction: ActionWalk): Boolean {
+	private fun updateWalkingWholeParty(context: UpdateContext, currentAction: ActionWalk): Boolean {
 		val next = nextPartyPositions[0]
-		if (next != null && currentTime >= next.arrivalTime) {
-			for (index in (1 until partyPositions.size).reversed()) {
-				partyPositions[index] = partyPositions[index - 1]
-				partyDirections[index] = partyDirections[index - 1]
+		if (next != null && context.currentTime >= next.arrivalTime) {
+			for (index in (1 until context.partyPositions.size).reversed()) {
+				context.partyPositions[index] = context.partyPositions[index - 1]
+				context.partyDirections[index] = context.partyDirections[index - 1]
 			}
-			partyDirections[0] = Direction.exactDelta(
-				next.position.x - partyPositions[0].x,
-				next.position.y - partyPositions[0].y
-			) ?: partyDirections[0]
-			partyPositions[0] = next.position
+			context.partyDirections[0] = Direction.exactDelta(
+				next.position.x - context.partyPositions[0].x,
+				next.position.y - context.partyPositions[0].y
+			) ?: context.partyDirections[0]
+			context.partyPositions[0] = next.position
 			nextPartyPositions[0] = null
 		}
 
 		if (nextPartyPositions[0] == null) {
 			val nextDirection = Direction.bestDelta(
-				currentAction.destinationX - partyPositions[0].x,
-				currentAction.destinationY - partyPositions[0].y,
+				currentAction.destinationX - context.partyPositions[0].x,
+				currentAction.destinationY - context.partyPositions[0].y,
 			)
 			if (nextDirection == null) return true
 
-			val arrivalTime = currentTime + currentAction.speed.duration
+			val arrivalTime = context.currentTime + currentAction.speed.duration
 			nextPartyPositions[0] = NextAreaPosition(
 				AreaPosition(
-					partyPositions[0].x + nextDirection.deltaX,
-					partyPositions[0].y + nextDirection.deltaY,
-				), currentTime, arrivalTime,
+					context.partyPositions[0].x + nextDirection.deltaX,
+					context.partyPositions[0].y + nextDirection.deltaY,
+				), context.currentTime, arrivalTime,
 				null,
 			)
-			partyDirections[0] = nextDirection
+			context.partyDirections[0] = nextDirection
 
-			for (index in 1 until partyPositions.size) {
-				val targetPosition = partyPositions[index - 1]
+			for (index in 1 until context.partyPositions.size) {
+				val targetPosition = context.partyPositions[index - 1]
 				val direction = Direction.exactDelta(
-					targetPosition.x - partyPositions[index].x,
-					targetPosition.y - partyPositions[index].y,
+					targetPosition.x - context.partyPositions[index].x,
+					targetPosition.y - context.partyPositions[index].y,
 				)
 				if (direction != null) {
 					// Expected case: party member walks to current position of the 'next' party member
 					nextPartyPositions[index] = NextAreaPosition(
-						targetPosition, currentTime, arrivalTime, null
+						targetPosition, context.currentTime, arrivalTime, null
 					)
-					partyDirections[index] = direction
+					context.partyDirections[index] = direction
 				} else {
 					// Edge case: the party member is not on a tile adjacent to the next party member
 					// 'solve' this discontinuity by 'teleporting' the party member
-					partyPositions[index] = targetPosition
+					context.partyPositions[index] = targetPosition
 					nextPartyPositions[index] = null
 				}
 			}
@@ -334,7 +310,7 @@ class AreaActionsState(
 		)
 
 		val nextPosition = characterState.next
-		if (nextPosition != null && currentTime >= nextPosition.arrivalTime) {
+		if (nextPosition != null && context.currentTime >= nextPosition.arrivalTime) {
 			characterState = AreaCharacterState(
 				x = nextPosition.position.x,
 				y = nextPosition.position.y,
@@ -358,8 +334,8 @@ class AreaActionsState(
 							x = characterState.x + bestDirection.deltaX,
 							y = characterState.y + bestDirection.deltaY,
 						),
-						startTime = currentTime,
-						arrivalTime = currentTime + currentAction.speed.duration,
+						startTime = context.currentTime,
+						arrivalTime = context.currentTime + currentAction.speed.duration,
 						transition = null,
 					)
 				)
@@ -384,7 +360,7 @@ class AreaActionsState(
 	private fun rotate(action: ActionRotate, context: UpdateContext) {
 		when (val target = action.target) {
 			is ActionTargetPartyMember -> {
-				partyDirections[target.index] = action.newDirection
+				context.partyDirections[target.index] = action.newDirection
 			}
 
 			is ActionTargetAreaCharacter -> {
@@ -480,6 +456,9 @@ class AreaActionsState(
 		var timeStep: Duration,
 		val soundQueue: SoundQueue,
 		val campaignName: String,
+		val partyPositions: Array<AreaPosition>,
+		val partyDirections: Array<Direction>,
+		var currentTime: Duration,
 		val characterStates: MutableMap<AreaCharacter, AreaCharacterState>,
 		val fadingCharacters: MutableCollection<FadingCharacter>,
 		val story: StoryState,

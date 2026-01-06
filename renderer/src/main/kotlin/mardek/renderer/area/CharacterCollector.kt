@@ -13,7 +13,6 @@ import kotlin.math.roundToInt
 internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 	areaContext.apply {
 		val animationSize = 2
-		val currentTime = state.determineCurrentTime()
 
 		fun collectCharacter(
 			character: AreaCharacter, characterState: AreaCharacterState,
@@ -25,12 +24,12 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 				val direction = characterState.direction
 				var spriteIndex = animationSize * direction.ordinal
 				if (character.walkSpeed == -1) {
-					if (currentTime.inWholeMilliseconds % 1000L >= 500L) spriteIndex += 1
+					if (state.currentTime.inWholeMilliseconds % 1000L >= 500L) spriteIndex += 1
 				}
 				directionalSprites.sprites[spriteIndex]
 			} else {
 				val fixedSprites = character.fixedSprites!!
-				val spriteIndex = (currentTime.inWholeMilliseconds % (200L * fixedSprites.frames.size)) / 200L
+				val spriteIndex = (state.currentTime.inWholeMilliseconds % (200L * fixedSprites.frames.size)) / 200L
 				fixedSprites.frames[spriteIndex.toInt()]
 			}
 
@@ -38,7 +37,7 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			var y = tileSize * characterState.y
 			val nextPosition = characterState.next
 			if (nextPosition != null) {
-				val p = (currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
+				val p = (state.currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
 				x = ((1 - p) * x + p * tileSize * nextPosition.position.x).roundToInt()
 				y = ((1 - p) * y + p * tileSize * nextPosition.position.y).roundToInt()
 			}
@@ -113,7 +112,7 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			var y = tileSize * oldPosition.y
 
 			if (nextPosition != null) {
-				val p = (currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
+				val p = (state.currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
 				x = (tileSize * ((1 - p) * oldPosition.x + p * nextPosition.position.x)).roundToInt()
 				y = (tileSize * ((1 - p) * oldPosition.y + p * nextPosition.position.y)).roundToInt()
 

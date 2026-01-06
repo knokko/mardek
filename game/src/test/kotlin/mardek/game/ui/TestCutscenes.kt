@@ -142,11 +142,9 @@ object TestCutscenes {
 			assertEquals(actions.shownDialogueCharacters, mardekTalk1.text.length.toFloat())
 
 			assertEquals(AreaPosition(5, 5), areaState.getPlayerPosition(0))
-			assertEquals(AreaPosition(5, 5), actions.partyPositions[0])
 			assertEquals(Direction.Down, areaState.getPlayerDirection(0))
-			assertEquals(Direction.Down, actions.partyDirections[0])
-			assertEquals(AreaPosition(5, 6), actions.partyPositions[1])
-			assertEquals(Direction.Up, actions.partyDirections[1])
+			assertEquals(AreaPosition(5, 6), areaState.getPlayerPosition(1))
+			assertEquals(Direction.Up, areaState.getPlayerDirection(1))
 
 			testRendering(
 				igState, 1000, 800, "intro-dialogue2",

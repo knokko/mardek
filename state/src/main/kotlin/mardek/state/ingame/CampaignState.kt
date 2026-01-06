@@ -244,7 +244,7 @@ class CampaignState : BitPostInit {
 					if (newArea != null) {
 						val newSuspension = newArea.suspension
 						if (newSuspension is AreaSuspensionActions && newSuspension.actions.node == null) {
-							newArea.finishActions()
+							newArea.suspension = null
 						}
 					}
 				}
@@ -267,7 +267,7 @@ class CampaignState : BitPostInit {
 					if (areaState !== oldArea) {
 						updateAreaActions(context, null, suspension.actions)
 						if (suspension.actions.node == null && areaState.suspension === suspension) {
-							areaState.finishActions()
+							areaState.suspension = null
 						}
 					}
 				}
@@ -368,7 +368,9 @@ class CampaignState : BitPostInit {
 					action.direction,
 				)
 				val nextNode = node.next
-				if (nextNode != null) this.currentArea!!.startActions(nextNode)
+				if (nextNode != null) {
+					this.currentArea!!.suspension = AreaSuspensionActions(AreaActionsState(nextNode))
+				}
 				this.actions = null
 			}
 		}
@@ -476,7 +478,8 @@ class CampaignState : BitPostInit {
 			val currentArea = this.currentArea!!
 			val actionsContext = AreaActionsState.UpdateContext(
 				context.input, context.timeStep, context.soundQueue, context.campaignName,
-				currentArea.characterStates, currentArea.fadingCharacters, story,
+				currentArea.playerPositions, currentArea.playerDirections,
+				currentArea.currentTime, currentArea.characterStates, currentArea.fadingCharacters, story,
 				this::healParty
 			) { timeline, newNode -> performTimelineTransition(context, timeline, newNode) }
 			actions.update(actionsContext)
@@ -488,7 +491,9 @@ class CampaignState : BitPostInit {
 					switchArea.direction,
 				)
 				val nextNode = (actions.node as FixedActionNode).next
-				if (nextNode != null) this.currentArea!!.startActions(nextNode)
+				if (nextNode != null) {
+					this.currentArea!!.suspension = AreaSuspensionActions(AreaActionsState(nextNode))
+				}
 				this.actions = null
 			}
 

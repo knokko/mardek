@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import java.lang.Thread.sleep
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestActions {
@@ -164,9 +163,6 @@ object TestActions {
 
 			state.campaign.currentArea!!.suspension = AreaSuspensionActions(AreaActionsState(
 				node = FixedActionNode(action = toHeroesDen, next = null),
-				partyPositions = Array(4) { AreaPosition(0, 0) },
-				partyDirections = Array(4) { Direction.Up },
-				areaTime = Duration.ZERO
 			))
 
 			val context = GameStateUpdateContext(

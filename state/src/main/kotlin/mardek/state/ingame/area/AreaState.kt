@@ -6,7 +6,6 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.action.ActionNode
 import mardek.content.area.*
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
@@ -50,11 +49,11 @@ class AreaState(
 
 	@BitField(id = 2)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
-	private val playerPositions = Array(4) { initialPlayerPosition }
+	internal val playerPositions = Array(4) { initialPlayerPosition }
 
 	@BitField(id = 3)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
-	private val playerDirections = Array(4) { initialPlayerDirection }
+	internal val playerDirections = Array(4) { initialPlayerDirection }
 
 	@BitField(id = 5)
 	@NestedFieldSetting(path = "k", fieldName = "CHARACTER_STATES_KEY_PROPERTIES")
@@ -155,12 +154,6 @@ class AreaState(
 		), nextActions = if (oldSuspension is AreaSuspensionActions) oldSuspension.actions else null)
 	}
 
-	internal fun startActions(firstNode: ActionNode) {
-		suspension = AreaSuspensionActions(AreaActionsState(
-			firstNode, playerPositions, playerDirections, currentTime
-		))
-	}
-
 	private fun interact() {
 		val x = playerPositions[0].x + playerDirections[0].deltaX
 		val y = playerPositions[0].y + playerDirections[0].deltaY
@@ -176,7 +169,7 @@ class AreaState(
 			if (character.startX != x || character.startY != y) continue
 			val actionSequence = character.actionSequence
 			if (actionSequence != null) {
-				startActions(actionSequence.root)
+				suspension = AreaSuspensionActions(AreaActionsState(actionSequence.root))
 				return
 			} else {
 				println("interact with $character")
@@ -188,7 +181,7 @@ class AreaState(
 
 			val actionSequence = decoration.actionSequence
 			if (actionSequence != null) {
-				startActions(actionSequence.root)
+				suspension = AreaSuspensionActions(AreaActionsState(actionSequence.root))
 				return
 			} else {
 				println("interact with $decoration")
@@ -215,20 +208,9 @@ class AreaState(
 		}
 	}
 
-	fun getPlayerPosition(index: Int) = when (val suspension = this.suspension) {
-		is AreaSuspensionActions -> suspension.actions.partyPositions[index]
-		else -> playerPositions[index]
-	}
+	fun getPlayerPosition(index: Int) = playerPositions[index]
 
-	fun getPlayerDirection(index: Int) = when (val suspension = this.suspension) {
-		is AreaSuspensionActions -> suspension.actions.partyDirections[index]
-		else -> playerDirections[index]
-	}
-
-	fun determineCurrentTime() = when (val suspension = this.suspension) {
-		is AreaSuspensionActions -> suspension.actions.currentTime
-		else -> currentTime // TODO CHAP1 Get rid of this annoying code
-	}
+	fun getPlayerDirection(index: Int) = playerDirections[index]
 
 	/**
 	 * Gets the current state (position, rotation, etc...) of the given `AreaCharacter`, or `null` if the character is
@@ -350,7 +332,7 @@ class AreaState(
 
 			val triggerActions = trigger.actions
 			if (triggerActions != null) {
-				startActions(triggerActions.root)
+				suspension = AreaSuspensionActions(AreaActionsState(triggerActions.root))
 			} else {
 				println("Hit flash trigger ${trigger.flashCode}")
 			}
@@ -358,14 +340,6 @@ class AreaState(
 			// Make sure it can't get overwritten by any other trigger
 			return
 		}
-	}
-
-	internal fun finishActions() {
-		val actions = (suspension as AreaSuspensionActions).actions
-		actions.partyPositions.copyInto(playerPositions)
-		actions.partyDirections.copyInto(playerDirections)
-		currentTime = actions.currentTime
-		suspension = null
 	}
 
 	internal fun processMouseMove(event: MouseMoveEvent) {

@@ -11,22 +11,21 @@ import kotlin.time.Duration
 
 internal fun renderAreaFadeEffects(areaContext: AreaRenderContext) {
 	areaContext.apply {
-		val currentTime = state.determineCurrentTime()
-		val fadeIn = min(1.0, currentTime / AreaState.DOOR_OPEN_DURATION).toFloat()
+		val fadeIn = min(1.0, state.currentTime / AreaState.DOOR_OPEN_DURATION).toFloat()
 		var fadeOut = 1f
 
 		when (val suspension = state.suspension) {
 			is AreaSuspensionOpeningDoor -> {
-				fadeOut = ((suspension.finishTime - currentTime) / AreaState.DOOR_OPEN_DURATION).toFloat()
+				fadeOut = ((suspension.finishTime - state.currentTime) / AreaState.DOOR_OPEN_DURATION).toFloat()
 			}
 			is AreaSuspensionActions -> {
 				if (suspension.actions.switchAreaAt >= Duration.ZERO) {
-					fadeOut = ((suspension.actions.switchAreaAt - currentTime) / AreaState.DOOR_OPEN_DURATION).toFloat()
+					fadeOut = ((suspension.actions.switchAreaAt - state.currentTime) / AreaState.DOOR_OPEN_DURATION).toFloat()
 				}
 			}
 			is AreaSuspensionPlayerWalking -> {
 				if (suspension.destination.transition != null) {
-					fadeOut = ((suspension.destination.arrivalTime - currentTime) / WalkSpeed.Normal.duration).toFloat()
+					fadeOut = ((suspension.destination.arrivalTime - state.currentTime) / WalkSpeed.Normal.duration).toFloat()
 				}
 			}
 			else -> {}

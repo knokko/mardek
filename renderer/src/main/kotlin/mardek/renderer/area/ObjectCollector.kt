@@ -9,7 +9,6 @@ import kotlin.math.sin
 
 internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 	areaContext.apply {
-		val currentTime = state.determineCurrentTime()
 		val suspension = state.suspension
 		for (chest in state.area.chests) {
 			if (chest.hidden) continue
@@ -26,7 +25,7 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 
 		for (decoration in state.area.objects.decorations) {
 			val spritesheet = decoration.sprites ?: continue
-			val spriteIndex = (currentTime.inWholeMilliseconds % (decoration.timePerFrame * spritesheet.frames.size)) / decoration.timePerFrame
+			val spriteIndex = (state.currentTime.inWholeMilliseconds % (decoration.timePerFrame * spritesheet.frames.size)) / decoration.timePerFrame
 
 			val sprite = spritesheet.frames[spriteIndex.toInt()]
 			var y = tileSize * decoration.y
@@ -41,7 +40,7 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 
 			if (openingDoor != null && door == openingDoor.door) {
 				val startTime = openingDoor.finishTime - AreaState.DOOR_OPEN_DURATION
-				val progress = (currentTime - startTime) / AreaState.DOOR_OPEN_DURATION
+				val progress = (state.currentTime - startTime) / AreaState.DOOR_OPEN_DURATION
 				spriteIndex = min((door.sprites.frames.size * progress).toInt(), door.sprites.frames.size - 1)
 			}
 			renderJobs.add(SpriteRenderJob(
@@ -63,7 +62,7 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 				continue
 			}
 
-			val spriteIndex = (currentTime.inWholeMilliseconds % (15000L * spritesheet.frames.size)) / 15000L
+			val spriteIndex = (state.currentTime.inWholeMilliseconds % (15000L * spritesheet.frames.size)) / 15000L
 			renderJobs.add(SpriteRenderJob(
 				x = tileSize * portal.x,
 				y = tileSize * portal.y,
@@ -99,7 +98,7 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 			val arrow = transition.arrow ?: continue
 
 			val period = 1000
-			val relativeTime = currentTime.inWholeMilliseconds % period
+			val relativeTime = state.currentTime.inWholeMilliseconds % period
 			val opacity = 0.5 + 0.5 * sin(2 * PI * relativeTime / period)
 			renderJobs.add(SpriteRenderJob(
 				x = tileSize * transition.x,
