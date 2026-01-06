@@ -9,6 +9,7 @@ import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.state.ingame.battle.MonsterCombatantState
@@ -45,7 +46,7 @@ internal fun renderMonsterBlock(
 		val numEffects = enemy.statusEffects.size
 		if (numEffects > 0) {
 			val switchPeriod = 500_000_000L
-			val relativeTime = (renderTime - battle.startTime) % (numEffects * switchPeriod)
+			val relativeTime = (renderTime - referenceTime) % (numEffects * switchPeriod)
 			val index = (relativeTime / switchPeriod).toInt()
 			val sprite = enemy.statusEffects.toList()[index].icon
 			val desiredSize = 2 * region.height / 5

@@ -141,12 +141,7 @@ class CampaignState : BitPostInit {
 					val battleLoot = suspension.loot
 					if (battleLoot != null) {
 						val lootContext = BattleLoot.UpdateContext(context, usedPartyMembers(), allPartyMembers())
-						if (battleLoot.processKeyPress(event.key, lootContext)) {
-							gold += battleLoot.gold
-							currentArea.suspension = if (suspension.nextActions != null) {
-								AreaSuspensionActions(suspension.nextActions)
-							} else null
-						}
+						battleLoot.processKeyPress(event.key, lootContext)
 						continue
 					}
 
@@ -233,6 +228,14 @@ class CampaignState : BitPostInit {
 						for (combatant in suspension.battle.allPlayers()) {
 							combatant.transferStatusBack(battleContext)
 						}
+					}
+					val loot = suspension.loot
+					if (loot != null && loot.finishAt != 0L && System.nanoTime() > loot.finishAt) {
+						gold += loot.gold
+						oldArea.suspension = if (suspension.nextActions != null) {
+							AreaSuspensionActions(suspension.nextActions)
+						} else null
+						oldArea.finishedBattleAt = oldArea.currentTime
 					}
 					return
 				}

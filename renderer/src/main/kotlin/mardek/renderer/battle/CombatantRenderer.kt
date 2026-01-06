@@ -11,6 +11,7 @@ import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.animation.CombatantAnimationContext
 import mardek.renderer.animation.renderCombatantAnimation
 import mardek.renderer.animation.toJOMLMatrix
+import mardek.renderer.menu.referenceTime
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.CombatantRenderPosition
@@ -39,7 +40,7 @@ class CombatantRenderer(
 	)
 
 	private val animations = combatant.getAnimations()
-	private var relativeTime = context.renderTime - context.battle.startTime
+	private var relativeTime = context.renderTime - referenceTime
 	private var animation: AnimationFrames? = animations["idle"]
 
 	private var coordinates = transformBattleCoordinates(

@@ -82,6 +82,14 @@ class AreaState(
 
 	var obtainedGold: ObtainedGold? = null
 
+	/**
+	 * The value of `currentTime` when the last battle was finished. This is used to render a small fade-in right after
+	 * claiming the battle loot.
+	 *
+	 * When no battle was finished this session, it is a negative number, which should be ignored.
+	 */
+	var finishedBattleAt = -(1.seconds)
+
 	private var shouldInteract = false
 
 	@Suppress("unused")
@@ -120,6 +128,7 @@ class AreaState(
 		when (val suspension = this.suspension) {
 			is AreaSuspensionPlayerWalking -> updatePlayerPosition(context, suspension.destination)
 			is AreaSuspensionIncomingRandomBattle -> updateIncomingRandomBattle(context, suspension)
+			is AreaSuspensionIncomingBattle -> updateIncomingBattle(context, suspension)
 			is AreaSuspensionBattle -> {} // handled by CampaignState
 			is AreaSuspensionActions -> {} // handled by CampaignState
 			is AreaSuspensionTransition -> {} // handled by CampaignState
@@ -138,20 +147,9 @@ class AreaState(
 		battle: Battle,
 		players: Array<PlayableCharacter?> = context.party,
 	) {
-		context.soundQueue.insert(context.content.audio.fixedEffects.battle.engage)
-
 		val oldSuspension = suspension
-		suspension = AreaSuspensionBattle(BattleState(
-			battle = battle,
-			players = players,
-			playerLayout = context.content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
-			context = BattleUpdateContext(
-				context.characterStates,
-				context.content.audio.fixedEffects,
-				context.content.stats.defaultWeaponElement,
-				context.soundQueue
-			)
-		), nextActions = if (oldSuspension is AreaSuspensionActions) oldSuspension.actions else null)
+		val nextActions = if (oldSuspension is AreaSuspensionActions) oldSuspension.actions else null
+		suspension = AreaSuspensionIncomingBattle(battle, currentTime + 500.milliseconds, players, nextActions)
 	}
 
 	private fun interact() {
@@ -273,7 +271,24 @@ class AreaState(
 		} else if (incoming.canAvoid && context.input.isPressed(InputKey.Cancel)) {
 			suspension = null
 		} else if (currentTime >= incoming.startAt) {
+			context.soundQueue.insert(context.content.audio.fixedEffects.battle.engage)
 			engageBattle(context, incoming.battle)
+		}
+	}
+
+	private fun updateIncomingBattle(context: UpdateContext, incomingBattle: AreaSuspensionIncomingBattle) {
+		if (currentTime >= incomingBattle.startAt) {
+			suspension = AreaSuspensionBattle(BattleState(
+				battle = incomingBattle.battle,
+				players = incomingBattle.players,
+				playerLayout = context.content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
+				context = BattleUpdateContext(
+					context.characterStates,
+					context.content.audio.fixedEffects,
+					context.content.stats.defaultWeaponElement,
+					context.soundQueue
+				)
+			), nextActions = incomingBattle.nextActions)
 		}
 	}
 

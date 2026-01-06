@@ -67,6 +67,7 @@ internal fun renderCurrentArea(
 	renderDialogue(areaContext)
 	renderActionFlash(areaContext)
 	renderAreaFadeEffects(areaContext)
+	renderAreaIncomingBattleFlicker(areaContext)
 
 	return Pair(areaContext.colorBatch, areaContext.textBatch)
 }

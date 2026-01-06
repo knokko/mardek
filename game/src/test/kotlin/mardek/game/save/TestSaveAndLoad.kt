@@ -16,7 +16,6 @@ import mardek.state.ingame.battle.BattleStateMachine
 import mardek.content.battle.Enemy
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
-import mardek.state.ingame.area.AreaSuspensionIncomingRandomBattle
 import mardek.state.saves.SavesFolderManager
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -332,7 +331,7 @@ object TestSaveAndLoad {
 			sleep(750)
 			state.update(updateContext)
 			assertInstanceOf<BattleStateMachine.Victory>(battle.state)
-			sleep(2000)
+			sleep(3000)
 			state.update(updateContext)
 
 			var loot = (campaign.currentArea!!.suspension as AreaSuspensionBattle).loot!!
@@ -377,6 +376,11 @@ object TestSaveAndLoad {
 				state.update(updateContext)
 			}
 
+			assertTrue(campaign.currentArea!!.suspension is AreaSuspensionBattle)
+
+			// Await fade-out
+			sleep(600)
+			state.update(updateContext)
 			assertFalse(campaign.currentArea!!.suspension is AreaSuspensionBattle)
 
 			saves.root.deleteRecursively()

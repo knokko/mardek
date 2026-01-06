@@ -101,6 +101,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		val context = GameStateUpdateContext(content, fakeInput, soundQueue, 10.milliseconds)
 		val sounds = content.audio.fixedEffects
 		battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
+		battle.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionAttack(target = null))
 		assertSame(sounds.ui.scroll2, soundQueue.take())
@@ -408,6 +409,7 @@ fun testCanNotFlee(instance: TestingInstance) {
 		val context = GameStateUpdateContext(content, fakeInput, soundQueue, 10.milliseconds)
 		val sounds = content.audio.fixedEffects
 		battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
+		battle.startTime = System.nanoTime() - 1000_000_000L // Skip battle fade-in
 		state.update(context)
 		assertSelectedMove(BattleMoveSelectionAttack(target = null))
 		assertSame(sounds.ui.scroll2, soundQueue.take())

@@ -6,6 +6,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch
+import mardek.renderer.menu.referenceTime
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
@@ -74,7 +75,7 @@ fun renderTurnOrder(
 		val lightEnemyColor = srgbToLinear(rgba(155, 87, 84, 200))
 		val onTurnColor = run {
 			val period = 1_500_000_000L
-			val relative = (System.nanoTime() - battle.startTime) % period
+			val relative = (renderTime - referenceTime) % period
 			val intensity = cos(relative * 2 * PI / period)
 			rgba(200, 200, 50, (60 + 50 * intensity).roundToInt())
 		}

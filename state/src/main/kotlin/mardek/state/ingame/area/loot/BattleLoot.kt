@@ -52,13 +52,22 @@ class BattleLoot(
 
 	var selectedElement = if (items.isEmpty()) SelectedFinish else SelectedGetAll
 
+	/**
+	 * The loot menu should close when `finishAt != 0L && System.nanoTime() >= finishAt`.
+	 *
+	 * When `finishAt != 0L && System.nanoTime() < finishAt`, the loot menu should be frozen, while a fade-out is being
+	 * shown.
+	 */
+	var finishAt = 0L
+
 	override fun toString() = "BattleLoot(gold=$gold, items=$items)"
 
 	override fun postInit(context: BitPostInit.Context) {
 		if (items.isNotEmpty()) selectedElement = SelectedGetAll
 	}
 
-	fun processKeyPress(key: InputKey, context: UpdateContext): Boolean {
+	fun processKeyPress(key: InputKey, context: UpdateContext) {
+		if (finishAt != 0L) return
 		val soundEffects = context.content.audio.fixedEffects.ui
 		val oldPartyIndex = selectedPartyIndex
 		if (key == InputKey.MoveLeft) {
@@ -131,11 +140,9 @@ class BattleLoot(
 			}
 			if (oldElement is SelectedFinish) {
 				context.soundQueue.insert(soundEffects.clickConfirm)
-				return true
+				finishAt = System.nanoTime() + FADE_OUT_DURATION
 			}
 		}
-
-		return false
 	}
 
 	sealed class SelectedElement
@@ -151,4 +158,8 @@ class BattleLoot(
 		val usedParty: List<UsedPartyMember>,
 		val fullParty: WholeParty,
 	) : GameStateUpdateContext(parent)
+
+	companion object {
+		const val FADE_OUT_DURATION = 500_000_000L
+	}
 }

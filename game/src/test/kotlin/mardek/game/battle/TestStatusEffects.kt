@@ -29,6 +29,7 @@ object TestStatusEffects {
 
 			startSimpleBattle(campaign)
 			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			battle.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
 			val monster = battle.livingOpponents()[0]
 			monster.statusEffects.add(content.stats.statusEffects.find { it.flashName == "PAR" }!!)
 

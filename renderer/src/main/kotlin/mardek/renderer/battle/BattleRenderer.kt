@@ -213,6 +213,7 @@ internal fun renderBattle(
 	val finishColorBatch = context.addColorBatch(2)
 	val finishTextBatch = context.addFancyTextBatch(50)
 	renderBattleFinishEffect(battleContext, finishColorBatch, finishTextBatch, region)
+	renderBattleFadeIn(battleContext, finishColorBatch, region)
 
 	return Pair(colorBatch, textBatch)
 }

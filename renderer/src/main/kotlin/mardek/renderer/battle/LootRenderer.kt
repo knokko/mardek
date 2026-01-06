@@ -240,5 +240,15 @@ internal fun renderBattleLoot(
 		colorBatch, party, partyMinX + scale, region.boundY - 22 * scale, 18 * scale, scale
 	)
 
+	if (loot.finishAt != 0L) {
+		val fade = 1f - (loot.finishAt - System.nanoTime()) / BattleLoot.FADE_OUT_DURATION.toFloat()
+		if (fade > 0.001f) {
+			context.addColorBatch(2).fill(
+				region.minX, region.minY, region.maxX, region.maxY,
+				rgba(0f, 0f, 0f, fade),
+			)
+		}
+	}
+
 	return Pair(colorBatch, textBatch)
 }

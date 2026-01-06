@@ -49,7 +49,13 @@ class BattleState(
 	@ClassField(root = BattleStateMachine::class)
 	var state: BattleStateMachine = BattleStateMachine.NextTurn(System.nanoTime() + 750_000_000L)
 
-	val startTime = System.nanoTime()
+	/**
+	 * The result of `System.nanoTime()` when the battle started. This variable is used to render the fade-in effect at
+	 * the start of each battle.
+	 *
+	 * This variable is mutable, which allows unit tests to manipulate it.
+	 */
+	var startTime = System.nanoTime()
 
 	val particles = mutableListOf<ParticleEffectState>()
 

@@ -10,6 +10,7 @@ import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.state.ingame.battle.PlayerCombatantState
@@ -36,7 +37,7 @@ internal fun renderPlayerBlock(
 
 		run {
 			val period = 1_000_000_000L
-			val inPeriod = (System.nanoTime() - battle.startTime) % period
+			val inPeriod = (System.nanoTime() - referenceTime) % period
 			val walkingSprite = player.player.areaSprites.sprites[if (inPeriod < 500_000_000L) 0 else 1]
 			val scale = 0.5f * region.height / walkingSprite.height
 			spriteBatch.simple(
@@ -48,7 +49,7 @@ internal fun renderPlayerBlock(
 			val numEffects = player.statusEffects.size
 			if (numEffects > 0) {
 				val switchPeriod = 500_000_000L
-				val relativeTime = (System.nanoTime() - battle.startTime) % (numEffects * switchPeriod)
+				val relativeTime = (System.nanoTime() - referenceTime) % (numEffects * switchPeriod)
 				val index = (relativeTime / switchPeriod).toInt()
 				val sprite = player.statusEffects.toList()[index].icon
 				val desiredSize = region.height / 3

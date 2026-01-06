@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNotNull
 import java.awt.Color
+import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestDragonLair {
@@ -98,7 +99,7 @@ object TestDragonLair {
 			// Wait until we can select a move
 			assertEquals("BossBattle", state.campaign.determineMusicTrack(content))
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-			Thread.sleep(1000)
+			sleep(1000)
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Cancel))
 			state.update(context)
 
@@ -122,11 +123,11 @@ object TestDragonLair {
 			state.update(context)
 
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-			Thread.sleep(1000)
+			sleep(1000)
 			state.update(context)
 
 			assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
-			Thread.sleep(2000)
+			sleep(3000)
 			state.update(context)
 
 			// Claim battle loot
@@ -135,12 +136,18 @@ object TestDragonLair {
 			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(context)
+
+			// Await battle loot fade-out
+			sleep(600)
+			state.update(context)
 			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
 
 			// Wait 1 second for the dragon to fade away
 			val actions = (state.campaign.currentArea!!.suspension as AreaSuspensionActions).actions
+			assertInstanceOf<ActionFadeCharacter>((actions.node as FixedActionNode).action)
+			state.update(context)
 			assertInstanceOf<ActionTalk>((actions.node as FixedActionNode).action)
-			Thread.sleep(1000)
+			sleep(1000)
 			repeat(100) {
 				state.update(context)
 			}

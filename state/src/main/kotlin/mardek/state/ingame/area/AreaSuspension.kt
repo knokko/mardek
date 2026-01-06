@@ -3,11 +3,13 @@ package mardek.state.ingame.area
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.area.Chest
 import mardek.content.area.TransitionDestination
 import mardek.content.area.objects.AreaDoor
 import mardek.content.battle.Battle
+import mardek.content.characters.PlayableCharacter
 import mardek.state.ingame.actions.AreaActionsState
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedItemStack
@@ -30,6 +32,7 @@ sealed class AreaSuspension {
 		private val BITSER_HIERARCHY = arrayOf(
 			AreaSuspensionPlayerWalking::class.java,
 			AreaSuspensionIncomingRandomBattle::class.java,
+			AreaSuspensionIncomingBattle::class.java,
 			AreaSuspensionBattle::class.java,
 			AreaSuspensionActions::class.java,
 			// The state should never be AreaSuspensionTransition outside CampaignState.update()
@@ -91,6 +94,54 @@ class AreaSuspensionIncomingRandomBattle(
 
 	@Suppress("unused")
 	private constructor() : this(Battle(), Duration.ZERO, false)
+
+	override fun shouldUpdateCurrentTime() = true
+}
+
+/**
+ * The area state is suspended because a battle will start soon. During this suspension, the screen will flicker black.
+ */
+@BitStruct(backwardCompatible = true)
+class AreaSuspensionIncomingBattle(
+
+	/**
+	 * The battle that will start soon
+	 */
+	@BitField(id = 0)
+	val battle: Battle,
+
+	/**
+	 * The time at which the battle will really start.
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = true)
+	val startAt: Duration,
+
+	/**
+	 * The players that will join the battle. This is almost always equal to the current party, but there are some
+	 * exceptions (e.g. the Muriance fight in chapter 2).
+	 */
+	@BitField(id = 2)
+	@NestedFieldSetting(path = "c", optional = true)
+	@ReferenceField(stable = true, label = "playable characters")
+	val players: Array<PlayableCharacter?>,
+
+	/**
+	 * The next actions, after the player wins this battle. This is usually `null`, but needed for special
+	 * actions/dialogue after some boss battles.
+	 */
+	@BitField(id = 3, optional = true)
+	val nextActions: AreaActionsState?,
+) : AreaSuspension() {
+
+	/**
+	 * A prediction of the value returned by `System.nanoTime()` if it were invoked at `startAt`. This field is only
+	 * used & populated by the renderer.
+	 */
+	var estimatedNanoStartAt = 0L
+
+	@Suppress("unused")
+	private constructor() : this(Battle(), Duration.ZERO, emptyArray(), null)
 
 	override fun shouldUpdateCurrentTime() = true
 }

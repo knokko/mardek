@@ -22,8 +22,10 @@ import mardek.state.ingame.battle.BattleState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
+import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -356,6 +358,11 @@ object TestBattleLoot {
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			assertSame(loot, (area.suspension as AreaSuspensionBattle).loot)
 			campaign.update(context)
+			assertInstanceOf<AreaSuspensionBattle>(area.suspension)
+
+			// Await fade-out
+			sleep(600)
+			campaign.update(context)
 			assertNull(area.suspension)
 		}
 	}
@@ -368,6 +375,9 @@ object TestBattleLoot {
 
 			val monsterSkinColor = Color(85, 56, 133)
 			val area = campaign.currentArea!!
+
+			// Skip fade-in
+			(area.suspension as AreaSuspensionBattle).battle.startTime = System.nanoTime() - 1000_000_000L
 
 			testRendering(
 				state, 800, 450, "loot-before",
