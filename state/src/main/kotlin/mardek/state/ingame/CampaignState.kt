@@ -312,15 +312,6 @@ class CampaignState : BitPostInit {
 								return
 							}
 
-							if (openedChest.gold > 0) {
-								openedChests.add(openedChest)
-								areaState.obtainedGold = ObtainedGold(
-									openedChest.x, openedChest.y, openedChest.gold,
-									areaState.currentTime + 1.seconds
-								)
-								// TODO CHAP1 Test that we close the chest
-								gold += openedChest.gold
-							}
 							if (openedChest.stack != null) {
 								suspension.obtainedItem = ObtainedItemStack(
 									openedChest.stack!!, null, usedPartyMembers(), allPartyMembers()
@@ -344,6 +335,15 @@ class CampaignState : BitPostInit {
 									context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickCancel)
 								}
 							}
+							if (openedChest.gold > 0) {
+								openedChests.add(openedChest)
+								areaState.obtainedGold = ObtainedGold(
+									openedChest.x, openedChest.y, openedChest.gold,
+									areaState.currentTime + 1.seconds
+								)
+								gold += openedChest.gold
+							}
+							if (suspension.obtainedItem == null) areaState.suspension = null
 							// TODO CHAP3 dreamstone in chest
 						} else areaState.suspension = null
 					}

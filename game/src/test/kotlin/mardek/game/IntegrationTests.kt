@@ -176,6 +176,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testChestGold() {
+		TestChestLoot.testChestWithGold(instance)
+	}
+
+	@Test
 	fun testInGameMenu() {
 		TestInGameMenu.testOpeningAndScrolling(instance)
 	}

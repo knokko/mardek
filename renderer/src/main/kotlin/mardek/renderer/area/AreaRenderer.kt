@@ -39,6 +39,7 @@ internal fun renderCurrentArea(
 
 	val spriteBatch = context.addAreaSpriteBatch(3000, scissor)
 	val multiplyBatch = context.addMultiplyBatch(2)
+	val lateSpriteBatch = context.addAreaSpriteBatch(2, scissor)
 	val portraitBackgroundBatch = context.addColorBatch(100)
 	val portraitBatch = context.addAnimationPartBatch(200)
 	val colorBatch = context.addColorBatch(500)
@@ -47,7 +48,7 @@ internal fun renderCurrentArea(
 	val textBatch = context.addFancyTextBatch(1000)
 	val areaContext = AreaRenderContext(
 		context, state, scale, region, spriteBatch, multiplyBatch,
-		portraitBackgroundBatch, portraitBatch,
+		lateSpriteBatch, portraitBackgroundBatch, portraitBatch,
 		colorBatch, imageBatch, ovalBatch, textBatch,
 		scissorLeft, scissor
 	)

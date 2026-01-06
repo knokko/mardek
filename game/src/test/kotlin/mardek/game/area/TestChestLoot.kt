@@ -1,5 +1,6 @@
 package mardek.game.area
 
+import mardek.content.area.Direction
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
 import mardek.game.TestingInstance
@@ -139,6 +140,65 @@ object TestChestLoot {
 			campaign.update(context)
 			assertFalse(campaign.currentArea!!.suspension is AreaSuspensionOpeningChest)
 			assertNull(soundQueue.take())
+		}
+	}
+
+	fun testChestWithGold(instance: TestingInstance) {
+		instance.apply {
+			val campaign = simpleCampaignState()
+			campaign.currentArea = AreaState(
+				content.areas.areas.find { it.properties.rawName == "lakequr_cave2" }!!,
+				AreaPosition(5, 48), Direction.Down, skipFadeIn = true
+			)
+
+			val input = InputManager()
+			val state = GameStateManager(
+				input, InGameState(campaign, "test"),
+				SavesFolderManager(),
+			)
+			val soundQueue = SoundQueue()
+			val context = CampaignState.UpdateContext(
+				GameStateUpdateContext(content, input, soundQueue, 100.milliseconds), ""
+			)
+
+			val partyColors = arrayOf(
+				Color(32, 75, 101), // Mardek armor
+				Color(7, 49, 16), // Deugan robe
+			)
+			val areaColors = arrayOf(
+				Color(1, 2, 8), // Cave wall color
+				Color(46, 104, 117), // Cave floor color
+				Color(7, 17, 16), // Chest color
+			)
+			val goldColors = arrayOf(
+				Color(255, 255, 0), // Gold icon
+				Color(187, 149, 38), // Gold text
+			)
+			testRendering(
+				state, 900, 450, "chest-gold-before-open",
+				areaColors + partyColors, goldColors
+			)
+
+			input.postEvent(pressKeyEvent(InputKey.Interact))
+			assertEquals(123, campaign.gold)
+			campaign.update(context)
+			assertEquals(123 + 56, campaign.gold)
+			assertSame(content.audio.fixedEffects.openChest, soundQueue.take())
+			assertNull(soundQueue.take())
+			assertNull(campaign.currentArea!!.suspension)
+
+			testRendering(
+				state, 900, 450, "chest-gold-after-open",
+				goldColors + partyColors + areaColors, emptyArray(),
+			)
+
+			// Test that the chest cannot be opened again
+			input.postEvent(releaseKeyEvent(InputKey.Interact))
+			input.postEvent(pressKeyEvent(InputKey.Interact))
+			campaign.update(context)
+			assertEquals(123 + 56, campaign.gold)
+			assertNull(soundQueue.take())
+			assertNull(campaign.currentArea!!.suspension)
 		}
 	}
 }
