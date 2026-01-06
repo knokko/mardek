@@ -11,6 +11,7 @@ import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.AreaSuspensionBattle
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.awt.Color
 import kotlin.time.Duration.Companion.milliseconds
@@ -27,7 +28,7 @@ object TestStatusEffects {
 			deuganState.activeStatusEffects.add(content.stats.statusEffects.find { it.flashName == "PSN" }!!)
 
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val monster = battle.livingOpponents()[0]
 			monster.statusEffects.add(content.stats.statusEffects.find { it.flashName == "PAR" }!!)
 

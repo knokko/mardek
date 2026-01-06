@@ -10,11 +10,13 @@ import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.AreaSuspensionBattle
+import mardek.state.ingame.area.AreaSuspensionIncomingRandomBattle
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.assertNotNull
-import org.junit.jupiter.api.assertNull
+import org.junit.jupiter.api.assertInstanceOf
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestRandomBattles {
@@ -34,8 +36,8 @@ object TestRandomBattles {
 				)
 
 				while (campaign.currentArea!!.getPlayerPosition(0).y != 6) {
-					assertNull(campaign.currentArea!!.incomingRandomBattle)
-					assertNull(campaign.currentArea!!.activeBattle)
+					assertFalse(campaign.currentArea!!.suspension is AreaSuspensionIncomingRandomBattle)
+					assertFalse(campaign.currentArea!!.suspension is AreaSuspensionBattle)
 					campaign.update(context)
 				}
 
@@ -63,10 +65,10 @@ object TestRandomBattles {
 
 				while (campaign.currentArea!!.getPlayerPosition(0).y != 2) {
 					campaign.update(context)
-					if (campaign.currentArea!!.incomingRandomBattle != null) break
+					if (campaign.currentArea!!.suspension is AreaSuspensionIncomingRandomBattle) break
 				}
 
-				if (campaign.currentArea!!.incomingRandomBattle != null) numEncounters += 1
+				if (campaign.currentArea!!.suspension is AreaSuspensionIncomingRandomBattle) numEncounters += 1
 			}
 
 			assertTrue(numEncounters in 9740 .. 9940, "Expected $numEncounters to be 9840")
@@ -91,10 +93,10 @@ object TestRandomBattles {
 
 				while (campaign.currentArea!!.getPlayerPosition(0).y != 2) {
 					campaign.update(context)
-					if (campaign.currentArea!!.incomingRandomBattle != null) break
+					if (campaign.currentArea!!.suspension is AreaSuspensionIncomingRandomBattle) break
 				}
 
-				if (campaign.currentArea!!.incomingRandomBattle != null) numEncounters += 1
+				if (campaign.currentArea!!.suspension is AreaSuspensionIncomingRandomBattle) numEncounters += 1
 			}
 
 			assertTrue(numEncounters in 9950 .. 9995, "Expected $numEncounters to be 9980")
@@ -157,7 +159,7 @@ object TestRandomBattles {
 				campaign.update(context)
 			}
 
-			assertNotNull(campaign.currentArea!!.incomingRandomBattle)
+			assertInstanceOf<AreaSuspensionIncomingRandomBattle>(campaign.currentArea!!.suspension)
 			input.postEvent(pressKeyEvent(InputKey.Interact))
 
 			repeat(500) {
@@ -165,7 +167,7 @@ object TestRandomBattles {
 			}
 
 			assertSame(dragonLair2, campaign.currentArea!!.area)
-			assertNotNull(campaign.currentArea!!.activeBattle)
+			assertInstanceOf<AreaSuspensionBattle>(campaign.currentArea!!.suspension)
 		}
 	}
 }

@@ -4,6 +4,7 @@ import mardek.content.battle.Enemy
 import mardek.content.skill.SkillTargetType
 import mardek.content.stats.Element
 import mardek.game.TestingInstance
+import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.*
 import org.junit.jupiter.api.Assertions.*
 
@@ -18,7 +19,7 @@ object TestMonsterStrategyCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = zombieShaman, level = 5
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
 			val context = battleUpdateContext(campaign)
 
@@ -43,7 +44,7 @@ object TestMonsterStrategyCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = animus, level = 50
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
 			val context = battleUpdateContext(campaign)
 
@@ -91,7 +92,7 @@ object TestMonsterStrategyCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = masterStone, level = 50
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
 			val context = battleUpdateContext(campaign)
 
@@ -133,7 +134,7 @@ object TestMonsterStrategyCalculator {
 			startSimpleBattle(campaign,  enemies = arrayOf(null, null, null, Enemy(
 				monster = animus, level = 50
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
 			caster.statusEffects.add(magicShield)
 			val context = battleUpdateContext(campaign)
@@ -218,7 +219,7 @@ object TestMonsterStrategyCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(Enemy(monster = monster, level = 50), null, null, Enemy(
 				monster = aalia, level = 30
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			battle.livingOpponents()[0].statusEffects.add(magicShield)
 			val caster = battle.livingOpponents()[1] as MonsterCombatantState
 			val context = battleUpdateContext(campaign)
@@ -260,7 +261,7 @@ object TestMonsterStrategyCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = moric, level = 30
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
 			val context = battleUpdateContext(campaign)
 
@@ -336,7 +337,7 @@ object TestMonsterStrategyCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, Enemy(
 				monster = bernard, level = 30
 			), null))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
 			val context = battleUpdateContext(campaign)
 
@@ -398,7 +399,7 @@ object TestMonsterStrategyCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, Enemy(
 				monster = dragon, level = 30
 			), null))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
 			val context = battleUpdateContext(campaign)
 

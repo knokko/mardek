@@ -24,8 +24,7 @@ class NextAreaPosition(
 	val transition: TransitionDestination?,
 ) {
 
-	@Suppress("unused")
-	private constructor() : this(AreaPosition(), Duration.ZERO, Duration.ZERO, null)
+	internal constructor() : this(AreaPosition(), Duration.ZERO, Duration.ZERO, null)
 
 	override fun toString() = "($position at $arrivalTime)"
 }

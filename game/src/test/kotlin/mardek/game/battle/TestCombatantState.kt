@@ -3,6 +3,7 @@ package mardek.game.battle
 import mardek.content.stats.CombatStat
 import mardek.game.TestingInstance
 import mardek.content.battle.Enemy
+import mardek.state.ingame.area.AreaSuspensionBattle
 import org.junit.jupiter.api.Assertions.assertEquals
 
 object TestCombatantState {
@@ -16,7 +17,7 @@ object TestCombatantState {
 			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "AGL+1" }!!)
 
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val mardekCombatState = battle.livingPlayers()[0]
 			mardekCombatState.statModifiers[CombatStat.Agility] = 12
@@ -44,7 +45,7 @@ object TestCombatantState {
 			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "Resist FIRE" }!!)
 
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val mardekCombatState = battle.livingPlayers()[0]
 			val astralForm = content.stats.statusEffects.find { it.niceName == "Astral" }!!
@@ -82,7 +83,7 @@ object TestCombatantState {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = content.battle.monsters.find { it.name == "kdestralan_mind" }!!, level = 5
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val confusion = content.stats.statusEffects.find { it.niceName == "Confusion" }!!
 			val poison = content.stats.statusEffects.find { it.niceName == "Poison" }!!
 
@@ -103,7 +104,7 @@ object TestCombatantState {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = content.battle.monsters.find { it.name == "monster" }!!, level = 5
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val confusion = content.stats.statusEffects.find { it.niceName == "Confusion" }!!
 			val poison = content.stats.statusEffects.find { it.niceName == "Poison" }!!
 

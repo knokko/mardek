@@ -4,6 +4,8 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import mardek.content.area.objects.AreaCharacter
 import mardek.state.ingame.area.AreaCharacterState
+import mardek.state.ingame.area.AreaSuspensionActions
+import mardek.state.ingame.area.AreaSuspensionPlayerWalking
 import mardek.state.ingame.area.NextAreaPosition
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -11,7 +13,7 @@ import kotlin.math.roundToInt
 internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 	areaContext.apply {
 		val animationSize = 2
-		val currentTime = state.actions?.currentTime ?: state.currentTime
+		val currentTime = state.determineCurrentTime()
 
 		fun collectCharacter(
 			character: AreaCharacter, characterState: AreaCharacterState,
@@ -85,26 +87,24 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			} else true
 		}
 
-		val actionState = state.actions
 		for ((index, character, characterState) in context.campaign.usedPartyMembers().reversed()) {
 			val oldPosition = state.getPlayerPosition(index)
 			val direction = state.getPlayerDirection(index)
-			val nextPosition = if (actionState == null) {
-				val nextPlayerPosition = state.nextPlayerPosition
-				if (index == 0) {
-					nextPlayerPosition
-				} else {
-					if (nextPlayerPosition != null) {
+			val nextPosition = when (val suspension = state.suspension) {
+				is AreaSuspensionActions -> suspension.actions.nextPartyPositions[index]
+				is AreaSuspensionPlayerWalking -> {
+					if (index == 0) {
+						suspension.destination
+					} else {
 						NextAreaPosition(
 							state.getPlayerPosition(index - 1),
-							nextPlayerPosition.startTime,
-							nextPlayerPosition.arrivalTime,
-							nextPlayerPosition.transition,
+							suspension.destination.startTime,
+							suspension.destination.arrivalTime,
+							suspension.destination.transition,
 						)
-					} else null
+					}
 				}
-			} else {
-				actionState.nextPartyPositions[index]
+				else -> null
 			}
 
 			var spriteIndex = 0

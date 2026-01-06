@@ -6,6 +6,7 @@ import mardek.content.stats.CombatStat
 import mardek.content.stats.StatusEffect
 import mardek.game.TestingInstance
 import mardek.content.battle.Enemy
+import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.MoveResultCalculator
 import org.junit.jupiter.api.Assertions.*
 
@@ -25,7 +26,7 @@ object TestMoveResultCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = content.battle.monsters.find { it.name == "monster" }!!, level = 5
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			var critCounter = 0
 			repeat(10_000) {
@@ -78,7 +79,7 @@ object TestMoveResultCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = monster, level = 30
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			var critCounter = 0
 			repeat(10_000) {
@@ -160,7 +161,7 @@ object TestMoveResultCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = monster, level = 5
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
@@ -204,7 +205,7 @@ object TestMoveResultCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = monster, level = 5
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val targetEquipment = campaign.characterStates[heroMardek]!!.equipment
 			val attackerEquipment = campaign.characterStates[heroDeugan]!!.equipment
@@ -297,7 +298,7 @@ object TestMoveResultCalculator {
 			val paladin = content.battle.monsters.find { it.name == "fallenpaladin" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = paladin, level = 5)))
 
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			battle.livingOpponents()[0].statModifiers[CombatStat.MeleeDefense] = 10
 
 			val dark = content.stats.elements.find { it.rawName == "DARK" }!!
@@ -361,7 +362,7 @@ object TestMoveResultCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = monster, level = 5
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			assertEquals(3, battle.livingPlayers()[0].statusEffects.size)
 			assertTrue(battle.livingPlayers()[0].statusEffects.contains(shieldEffect))
 
@@ -402,7 +403,7 @@ object TestMoveResultCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = dreamFish, level = 5
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			// Dreamfish attacks have 100% chance to apply sleep
 			repeat(100) {
@@ -465,7 +466,7 @@ object TestMoveResultCalculator {
 				Enemy(monster = content.battle.monsters.find { it.name == "brinary" }!!, level = 50)
 			))
 
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
@@ -503,7 +504,7 @@ object TestMoveResultCalculator {
 				Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 100), null, null, null
 			))
 
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
@@ -536,7 +537,7 @@ object TestMoveResultCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = dreamFish, level = 5
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			// Dreamfish has 50% evasion and Shadowblade has 97% accuracy
 			var missCounter = 0
@@ -593,7 +594,7 @@ object TestMoveResultCalculator {
 
 			val smith = content.battle.monsters.find { it.name == "zombielocksmith" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = smith, level = 5)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(10_000) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
@@ -641,7 +642,7 @@ object TestMoveResultCalculator {
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(100) {
 				val mardekHit = MoveResultCalculator(
@@ -690,7 +691,7 @@ object TestMoveResultCalculator {
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			var stunCounter = 0
 			repeat(10_000) {
@@ -728,7 +729,7 @@ object TestMoveResultCalculator {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			val darkClaw = monster.actions.find { it.name == "Dark Claw" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 30)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			var blindCounter = 0
 			repeat(10_000) {
@@ -767,7 +768,7 @@ object TestMoveResultCalculator {
 			val mimicry = content.skills.classes.find { it.name == "Mimicry" }!!
 			val thousandNeedles = mimicry.actions.find { it.name == "1000 Needles" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = johnny, level = 30)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(10_000) {
 				val result = MoveResultCalculator(
@@ -800,7 +801,7 @@ object TestMoveResultCalculator {
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
@@ -852,7 +853,7 @@ object TestMoveResultCalculator {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
 
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val deuganCombat = battle.livingPlayers()[1]
 			deuganCombat.statusEffects.add(paralysis)
 			deuganCombat.statusEffects.add(regeneration)
@@ -914,7 +915,7 @@ object TestMoveResultCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = monster, level = 10), null, null, Enemy(monster = monster, level = 1))
 			)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
@@ -957,7 +958,7 @@ object TestMoveResultCalculator {
 			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = skeleton, level = 10), null, null, null
 			))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(1000) {
 				val result = MoveResultCalculator(
@@ -997,7 +998,7 @@ object TestMoveResultCalculator {
 			val potion = content.items.items.find { it.flashName == "Potion" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(1000) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
@@ -1028,7 +1029,7 @@ object TestMoveResultCalculator {
 			val ether = content.items.items.find { it.flashName == "Ether" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(1000) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(
@@ -1059,7 +1060,7 @@ object TestMoveResultCalculator {
 			val elixir = content.items.items.find { it.flashName == "Elixir" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val combatDeugan = battle.livingPlayers()[1]
 			combatDeugan.currentHealth = 200
@@ -1089,7 +1090,7 @@ object TestMoveResultCalculator {
 			val skeleton = content.battle.monsters.find { it.name == "skeleton" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign, arrayOf(null, null, Enemy(skeleton, 10), null))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val combatSkeleton = battle.livingOpponents()[0]
 			combatSkeleton.currentHealth = 200
@@ -1119,7 +1120,7 @@ object TestMoveResultCalculator {
 			val phoenixDown = content.items.items.find { it.flashName == "PhoenixDown" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val combatMardek = battle.livingPlayers()[0]
 			combatMardek.currentHealth = 0
@@ -1151,7 +1152,7 @@ object TestMoveResultCalculator {
 
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val combatMardek = battle.livingPlayers()[0]
 			combatMardek.statusEffects.add(poison)
@@ -1191,7 +1192,7 @@ object TestMoveResultCalculator {
 
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val combatMardek = battle.livingPlayers()[0]
 			combatMardek.statusEffects.add(poison)
@@ -1218,7 +1219,7 @@ object TestMoveResultCalculator {
 
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val combatMardek = battle.livingPlayers()[0]
 			combatMardek.statusEffects.add(berserk)
@@ -1251,7 +1252,7 @@ object TestMoveResultCalculator {
 
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(1000) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeItemResult(

@@ -1,6 +1,7 @@
 package mardek.game.battle
 
 import mardek.game.TestingInstance
+import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.CombatantState
 import org.junit.jupiter.api.Assertions.assertEquals
 
@@ -15,7 +16,7 @@ object TestBattleState {
 			deuganState.currentHealth = deuganState.determineMaxHealth(heroDeugan.baseStats, deuganState.activeStatusEffects)
 			startSimpleBattle(campaign)
 
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			assertEquals(listOf(battle.allPlayers()[1]), battle.livingPlayers())
 			assertEquals(2, battle.allPlayers().size)
 

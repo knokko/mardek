@@ -21,13 +21,14 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.AreaSuspensionActions
+import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleStateMachine
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNotNull
-import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -85,13 +86,13 @@ object TestDragonLair {
 			repeat(5000) {
 				state.update(context)
 			}
-			state.campaign.currentArea!!.actions!!.node!!.run {
+			(state.campaign.currentArea!!.suspension as AreaSuspensionBattle).nextActions!!.node!!.run {
 				val fixed = this as FixedActionNode
 				assertInstanceOf<ActionFadeCharacter>(fixed.action)
 			}
 
 			// Let's make the battle short
-			val battleState = state.campaign.currentArea!!.activeBattle!!
+			val battleState = (state.campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			battleState.livingOpponents()[0].currentHealth = 1
 
 			// Wait until we can select a move
@@ -129,16 +130,15 @@ object TestDragonLair {
 			state.update(context)
 
 			// Claim battle loot
-			assertNotNull(state.campaign.currentArea!!.battleLoot)
+			assertNotNull((state.campaign.currentArea!!.suspension as AreaSuspensionBattle).loot)
 			assertEquals("VictoryFanfare2", state.campaign.determineMusicTrack(content))
 			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(context)
-			assertNull(state.campaign.currentArea!!.battleLoot)
 			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
 
 			// Wait 1 second for the dragon to fade away
-			val actions = state.campaign.currentArea!!.actions!!
+			val actions = (state.campaign.currentArea!!.suspension as AreaSuspensionActions).actions
 			assertInstanceOf<ActionTalk>((actions.node as FixedActionNode).action)
 			Thread.sleep(1000)
 			repeat(100) {
@@ -206,7 +206,7 @@ object TestDragonLair {
 			)
 			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
 			repeat(200) {
-				val actionNode = state.campaign.currentArea!!.actions!!.node as FixedActionNode
+				val actionNode = (state.campaign.currentArea!!.suspension as AreaSuspensionActions).actions.node as FixedActionNode
 				if (actionNode.action !is ActionToArea) {
 					state.update(context)
 				}

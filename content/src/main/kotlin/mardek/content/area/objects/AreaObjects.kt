@@ -29,6 +29,7 @@ class AreaObjects(
 	 * The doors of this area. Players can interact with doors to go to the destination of that door.
 	 */
 	@BitField(id = 2)
+	@ReferenceFieldTarget(label = "doors")
 	val doors: ArrayList<AreaDoor>,
 
 	/**

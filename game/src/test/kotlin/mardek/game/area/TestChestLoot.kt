@@ -16,8 +16,10 @@ import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.AreaSuspensionOpeningChest
 import mardek.state.saves.SavesFolderManager
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
@@ -80,7 +82,7 @@ object TestChestLoot {
 				lootColors + partyColors, areaColors
 			)
 
-			val openChest = campaign.currentArea!!.obtainedItemStack!!
+			val openChest = (campaign.currentArea!!.suspension as AreaSuspensionOpeningChest).obtainedItem!!
 			assertEquals(0, openChest.partyIndex)
 
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
@@ -118,7 +120,7 @@ object TestChestLoot {
 			input.postEvent(releaseKeyEvent(InputKey.MoveRight))
 			input.postEvent(pressKeyEvent(InputKey.Interact))
 			assertEquals(0, mardekState.countItemOccurrences(potion))
-			assertSame(openChest, campaign.currentArea!!.obtainedItemStack)
+			assertSame(openChest, (campaign.currentArea!!.suspension as AreaSuspensionOpeningChest).obtainedItem)
 			assertEquals(0, campaign.openedChests.size)
 			campaign.update(context)
 			assertSame(content.audio.fixedEffects.ui.clickCancel, soundQueue.take())
@@ -126,7 +128,7 @@ object TestChestLoot {
 			assertEquals(1, mardekState.countItemOccurrences(potion))
 
 			assertEquals(1, campaign.openedChests.size)
-			assertNull(campaign.currentArea!!.obtainedItemStack)
+			assertNull(campaign.currentArea!!.suspension)
 			testRendering(
 				state, 900, 450, "chest-after-close",
 				areaColors + partyColors, lootColors
@@ -135,7 +137,7 @@ object TestChestLoot {
 			// Check that the chest can't be opened again
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			campaign.update(context)
-			assertNull(campaign.currentArea!!.obtainedItemStack)
+			assertFalse(campaign.currentArea!!.suspension is AreaSuspensionOpeningChest)
 			assertNull(soundQueue.take())
 		}
 	}

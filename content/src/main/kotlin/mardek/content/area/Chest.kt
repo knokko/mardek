@@ -86,8 +86,7 @@ class Chest(
 	val id: UUID,
 ) {
 
-	@Suppress("unused")
-	private constructor() : this(
+	constructor() : this(
 		0, 0, ChestSprite(), 0, null,
 		null, null, null, false, UUID.randomUUID(),
 	)

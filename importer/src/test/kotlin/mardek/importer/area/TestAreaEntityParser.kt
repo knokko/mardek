@@ -409,6 +409,7 @@ class TestAreaEntityParser {
 	fun testParseBigDoor() {
 		val actual = findArea("crypt1").objects.doors.find { it.y == 13 }!!
 		val expected = AreaDoor(
+			id = actual.id,
 			sprites = content.areas.objectSprites.find { it.flashName == "BIGDOOR3" }!!,
 			x = 19,
 			y = 13,
@@ -425,6 +426,7 @@ class TestAreaEntityParser {
 	fun testParseLockedDoor() {
 		val actual = findArea("aeropolis_E_warehouse").objects.doors.find { it.y == 8 }!!
 		val expected = AreaDoor(
+			id = actual.id,
 			sprites = content.areas.objectSprites.find { it.flashName == "DOOR5" }!!,
 			x = 4,
 			y = 8,

@@ -2,13 +2,15 @@ package mardek.renderer.area
 
 import mardek.content.area.AreaDreamType
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.AreaSuspensionOpeningDoor
 import kotlin.math.PI
 import kotlin.math.min
 import kotlin.math.sin
 
 internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 	areaContext.apply {
-		val currentTime = state.actions?.currentTime ?: state.currentTime
+		val currentTime = state.determineCurrentTime()
+		val suspension = state.suspension
 		for (chest in state.area.chests) {
 			if (chest.hidden) continue
 			val sprite = if (context.campaign.openedChests.contains(chest)) {
@@ -35,7 +37,7 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 
 		for (door in state.area.objects.doors) {
 			var spriteIndex = 0
-			val openingDoor = state.openingDoor
+			val openingDoor = suspension as? AreaSuspensionOpeningDoor
 
 			if (openingDoor != null && door == openingDoor.door) {
 				val startTime = openingDoor.finishTime - AreaState.DOOR_OPEN_DURATION

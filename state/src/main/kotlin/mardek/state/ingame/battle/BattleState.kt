@@ -68,8 +68,7 @@ class BattleState(
 	 */
 	var openCombatantInfo: CombatantState? = null
 
-	@Suppress("unused")
-	internal constructor() : this(Battle(), arrayOf(null, null, null, null), PartyLayout(), BattleUpdateContext())
+	constructor() : this(Battle(), arrayOf(null, null, null, null), PartyLayout(), BattleUpdateContext())
 
 	fun allPlayers() = players.filterNotNull()
 

@@ -13,6 +13,7 @@ import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptObjectList
 import java.awt.Color
 import java.lang.Integer.parseInt
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
@@ -342,6 +343,9 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			context.content.areas.objectSprites.add(sprites)
 		}
 		return AreaDoor(
+			id = UUID.nameUUIDFromBytes(
+				"${context.areaName}$rawEntity".toByteArray(StandardCharsets.UTF_8)
+			),
 			sprites = sprites,
 			x = x,
 			y = y,

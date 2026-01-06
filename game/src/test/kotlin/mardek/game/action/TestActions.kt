@@ -20,7 +20,9 @@ import mardek.state.ingame.actions.AreaActionsState
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.AreaSuspensionActions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertNull
@@ -77,7 +79,7 @@ object TestActions {
 				dragonLairColors, dialogueBoxColors + choiceColors
 			)
 
-			assertNull(areaState.actions)
+			assertNull(areaState.suspension)
 			assertNull(context.soundQueue.take())
 
 			// Give mardek some 'damage', which should get cured by the save crystal
@@ -92,7 +94,7 @@ object TestActions {
 			}
 			sleep(1000) // Wait until the annoying blue flash is gone to prevent testRendering from getting flaky
 
-			val actions = areaState.actions!!
+			val actions = (areaState.suspension as AreaSuspensionActions).actions
 			val talkNode1 = (actions.node as FixedActionNode).action as ActionTalk
 			assertTrue(
 				actions.shownDialogueCharacters < talkNode1.text.length * 0.4f,
@@ -147,7 +149,7 @@ object TestActions {
 			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(context)
-			assertNull(areaState.actions)
+			assertFalse(areaState.suspension is AreaSuspensionActions)
 			assertNull(context.soundQueue.take())
 		}
 	}
@@ -160,12 +162,12 @@ object TestActions {
 			val toHeroesDen = ActionToArea("heroes_den", 5, 6, Direction.Left)
 			toHeroesDen.resolve(content.areas.areas)
 
-			state.campaign.currentArea!!.actions = AreaActionsState(
+			state.campaign.currentArea!!.suspension = AreaSuspensionActions(AreaActionsState(
 				node = FixedActionNode(action = toHeroesDen, next = null),
 				partyPositions = Array(4) { AreaPosition(0, 0) },
 				partyDirections = Array(4) { Direction.Up },
 				areaTime = Duration.ZERO
-			)
+			))
 
 			val context = GameStateUpdateContext(
 				content, InputManager(), SoundQueue(), 10.milliseconds
@@ -192,7 +194,7 @@ object TestActions {
 					state.campaign.currentArea!!.getPlayerDirection(index),
 				)
 			}
-			assertNull(state.campaign.currentArea!!.actions)
+			assertNull(state.campaign.currentArea!!.suspension)
 		}
 	}
 
@@ -224,7 +226,7 @@ object TestActions {
 					state.campaign.currentArea!!.getPlayerDirection(index),
 				)
 			}
-			assertNull(state.campaign.currentArea!!.actions)
+			assertNull(state.campaign.currentArea!!.suspension)
 		}
 	}
 }

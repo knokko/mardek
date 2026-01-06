@@ -19,6 +19,7 @@ import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.title.StartNewGameState
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -126,7 +127,7 @@ object TestCutscenes {
 			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
 
 			val areaState = igState.campaign.currentArea!!
-			val actions = areaState.actions!!
+			val actions = (areaState.suspension as AreaSuspensionActions).actions
 			assertTrue(actions.node is FixedActionNode)
 			assertTrue((actions.node as FixedActionNode).action is ActionWalk)
 
@@ -179,7 +180,7 @@ object TestCutscenes {
 				igState.update(context)
 			}
 
-			assertNull(areaState.actions)
+			assertNull(areaState.suspension)
 			assertEquals(AreaPosition(5, 5), areaState.getPlayerPosition(0))
 			assertEquals(Direction.Down, areaState.getPlayerDirection(0))
 			assertEquals(AreaPosition(5, 6), areaState.getPlayerPosition(1))

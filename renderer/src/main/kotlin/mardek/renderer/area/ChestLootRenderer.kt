@@ -6,12 +6,16 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderDescription
+import mardek.state.ingame.area.AreaSuspensionOpeningChest
 
 private val referenceTime = System.nanoTime()
 
 internal fun renderChestLoot(areaContext: AreaRenderContext) {
 	areaContext.run {
-		val obtainedItemStack = state.obtainedItemStack ?: return
+		val suspension = state.suspension
+		val obtainedItemStack = if (suspension is AreaSuspensionOpeningChest) suspension.obtainedItem else null
+		if (obtainedItemStack == null) return
+
 		val sprite = if (obtainedItemStack.itemStack != null) obtainedItemStack.itemStack!!.item.sprite
 		else obtainedItemStack.plotItem!!.sprite
 

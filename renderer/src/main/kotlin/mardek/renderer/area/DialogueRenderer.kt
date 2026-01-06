@@ -6,6 +6,7 @@ import mardek.content.action.*
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.renderPortraitAnimation
 import mardek.renderer.menu.referenceTime
+import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 import kotlin.math.abs
@@ -14,7 +15,8 @@ import kotlin.math.roundToInt
 
 internal fun renderDialogue(areaContext: AreaRenderContext) {
 	areaContext.run {
-		val actions = state.actions ?: return
+		val suspension = state.suspension
+		val actions = if (suspension is AreaSuspensionActions) suspension.actions else return
 		val actionNode = actions.node ?: return
 
 		var talkAction: ActionTalk? = null

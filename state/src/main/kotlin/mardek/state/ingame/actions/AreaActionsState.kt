@@ -128,8 +128,7 @@ class AreaActionsState(
 	var saveSelectionState: SaveSelectionState? = null
 		private set
 
-	@Suppress("unused")
-	private constructor() : this(FixedActionNode(), emptyArray(), emptyArray(), ZERO)
+	internal constructor() : this(FixedActionNode(), emptyArray(), emptyArray(), ZERO)
 
 	override fun postInit(context: BitPostInit.Context) {
 		val node = this.node

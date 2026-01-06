@@ -2,10 +2,10 @@ package mardek.state.ingame.area
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
-import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.action.ActionNode
 import mardek.content.area.*
 import mardek.content.area.objects.AreaCharacter
@@ -15,14 +15,13 @@ import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.actions.ActivatedTriggers
 import mardek.state.ingame.actions.AreaActionsState
-import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedGold
-import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.content.battle.Battle
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
+import mardek.input.MouseMoveEvent
 import mardek.state.ingame.story.StoryState
 import java.lang.Math.clamp
 import kotlin.math.max
@@ -57,26 +56,22 @@ class AreaState(
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	private val playerDirections = Array(4) { initialPlayerDirection }
 
-	@BitField(id = 4, optional = true)
-	var nextPlayerPosition: NextAreaPosition? = null
-		private set
-
 	@BitField(id = 5)
 	@NestedFieldSetting(path = "k", fieldName = "CHARACTER_STATES_KEY_PROPERTIES")
 	internal val characterStates = HashMap<AreaCharacter, AreaCharacterState>()
 
+	/**
+	 * This field tracks whether the area state is currently *suspended*. When the state is suspended, the player
+	 * temporarily loses control of its party. For instance:
+	 * - The state is suspended while a playable character is walking, which means that the player cannot move the
+	 * characters again until they reach the next tile.
+	 * - The state is suspended during dialogues, which means that the player cannot move the party during dialogues.
+	 * (Note that characters will move automatically during some dialogues though.)
+	 * - The state is also suspended during battles...
+	 */
 	@BitField(id = 6, optional = true)
-	var incomingRandomBattle: IncomingRandomBattle? = null
-
-	@BitField(id = 7, optional = true)
-	@ReferenceFieldTarget(label = "battle state")
-	var activeBattle: BattleState? = null
-
-	@BitField(id = 8, optional = true)
-	var battleLoot: BattleLoot? = null
-
-	@BitField(id = 9, optional = true)
-	var actions: AreaActionsState? = null
+	@ClassField(root = AreaSuspension::class)
+	var suspension: AreaSuspension? = null
 
 	/**
 	 * The characters (typically bosses) that died very recently. A fading red 'aura' of it should be disabled a few
@@ -86,16 +81,7 @@ class AreaState(
 
 	private val rng = Random.Default
 
-	var nextTransition: TransitionDestination? = null
-
-	var openedChest: Chest? = null
-
-	var openingDoor: OpeningDoor? = null
-		private set
-
 	var obtainedGold: ObtainedGold? = null
-
-	var obtainedItemStack: ObtainedItemStack? = null
 
 	private var shouldInteract = false
 
@@ -117,41 +103,6 @@ class AreaState(
 		if (key == InputKey.Interact) shouldInteract = true
 	}
 
-	private fun innerUpdate(context: UpdateContext) {
-		if (nextTransition != null) return
-		openingDoor?.run {
-			if (currentTime >= finishTime) {
-				nextTransition = door.destination
-				openingDoor = null
-			}
-			return
-		}
-
-		incomingRandomBattle?.run {
-			if (context.input.isPressed(InputKey.CheatMove)) {
-				incomingRandomBattle = null
-			} else if (incomingRandomBattle!!.canAvoid && context.input.isPressed(InputKey.Cancel)) {
-				incomingRandomBattle = null
-			} else if (currentTime >= startAt) {
-				engageBattle(context, battle)
-				incomingRandomBattle = null
-			}
-			return
-		}
-
-		updatePlayerPosition(context)
-		if (incomingRandomBattle != null || nextTransition != null) return
-
-		checkTriggers(context)
-		if (actions != null) return
-
-		processMovementInput(context.input)
-		if (shouldInteract) {
-			interact()
-			shouldInteract = false
-		}
-	}
-
 	/**
 	 * Updates this area state, which will, among others:
 	 * - potentially move the player character
@@ -167,9 +118,20 @@ class AreaState(
 			if (currentTime >= showUntil) obtainedGold = null
 		}
 
-		if (obtainedItemStack != null || actions != null) return
-		innerUpdate(context)
-		currentTime += context.timeStep
+		when (val suspension = this.suspension) {
+			is AreaSuspensionPlayerWalking -> updatePlayerPosition(context, suspension.destination)
+			is AreaSuspensionIncomingRandomBattle -> updateIncomingRandomBattle(context, suspension)
+			is AreaSuspensionBattle -> {} // handled by CampaignState
+			is AreaSuspensionActions -> {} // handled by CampaignState
+			is AreaSuspensionTransition -> {} // handled by CampaignState
+			is AreaSuspensionOpeningDoor -> updateOpeningDoor(suspension)
+			is AreaSuspensionOpeningChest -> {} // handled by CampaignState
+			null -> {} // handled in the next line of code
+		}
+
+		if (suspension == null) updateWithoutSuspension(context)
+		if (suspension?.shouldUpdateCurrentTime() != false) currentTime += context.timeStep
+		shouldInteract = false
 	}
 
 	internal fun engageBattle(
@@ -178,7 +140,9 @@ class AreaState(
 		players: Array<PlayableCharacter?> = context.party,
 	) {
 		context.soundQueue.insert(context.content.audio.fixedEffects.battle.engage)
-		activeBattle = BattleState(
+
+		val oldSuspension = suspension
+		suspension = AreaSuspensionBattle(BattleState(
 			battle = battle,
 			players = players,
 			playerLayout = context.content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
@@ -188,22 +152,22 @@ class AreaState(
 				context.content.stats.defaultWeaponElement,
 				context.soundQueue
 			)
-		)
+		), nextActions = if (oldSuspension is AreaSuspensionActions) oldSuspension.actions else null)
 	}
 
 	internal fun startActions(firstNode: ActionNode) {
-		actions = AreaActionsState(firstNode, playerPositions, playerDirections, currentTime)
+		suspension = AreaSuspensionActions(AreaActionsState(
+			firstNode, playerPositions, playerDirections, currentTime
+		))
 	}
 
 	private fun interact() {
-		if (nextTransition != null || nextPlayerPosition != null || openingDoor != null) return
-
 		val x = playerPositions[0].x + playerDirections[0].deltaX
 		val y = playerPositions[0].y + playerDirections[0].deltaY
 
 		for (chest in area.chests) {
 			if (x == chest.x && y == chest.y) {
-				openedChest = chest
+				suspension = AreaSuspensionOpeningChest(chest)
 				return
 			}
 		}
@@ -233,7 +197,7 @@ class AreaState(
 
 		for (door in area.objects.doors) {
 			if (x == door.x && y == door.y) {
-				openingDoor = OpeningDoor(door, currentTime + DOOR_OPEN_DURATION)
+				suspension = AreaSuspensionOpeningDoor(door, currentTime + DOOR_OPEN_DURATION)
 				return
 			}
 		}
@@ -251,14 +215,23 @@ class AreaState(
 		}
 	}
 
-	fun getPlayerPosition(index: Int) = if (actions == null) playerPositions[index]
-	else actions!!.partyPositions[index]
+	fun getPlayerPosition(index: Int) = when (val suspension = this.suspension) {
+		is AreaSuspensionActions -> suspension.actions.partyPositions[index]
+		else -> playerPositions[index]
+	}
 
-	fun getPlayerDirection(index: Int) = if (actions == null) playerDirections[index]
-	else actions!!.partyDirections[index]
+	fun getPlayerDirection(index: Int) = when (val suspension = this.suspension) {
+		is AreaSuspensionActions -> suspension.actions.partyDirections[index]
+		else -> playerDirections[index]
+	}
+
+	fun determineCurrentTime() = when (val suspension = this.suspension) {
+		is AreaSuspensionActions -> suspension.actions.currentTime
+		else -> currentTime // TODO CHAP1 Get rid of this annoying code
+	}
 
 	/**
-	 * Gets the current state (position, rotation, etc...) of the given `AreaCharacter`, or `null` if the characer is
+	 * Gets the current state (position, rotation, etc...) of the given `AreaCharacter`, or `null` if the character is
 	 * currently not present.
 	 */
 	fun getCharacterState(character: AreaCharacter) = characterStates[character]
@@ -275,22 +248,24 @@ class AreaState(
 		return null
 	}
 
-	private fun updatePlayerPosition(context: UpdateContext) {
-		val nextPlayerPosition = this.nextPlayerPosition
-		if (nextPlayerPosition != null && nextPlayerPosition.arrivalTime <= currentTime) {
+	private fun updatePlayerPosition(context: UpdateContext, nextPlayerPosition: NextAreaPosition) {
+		if (nextPlayerPosition.arrivalTime <= currentTime) {
 			context.totalSteps += 1
-			if (nextPlayerPosition.transition != null) nextTransition = nextPlayerPosition.transition
+
 			for (index in 1 until playerPositions.size) {
 				playerPositions[index] = playerPositions[index - 1]
 			}
 			playerPositions[0] = nextPlayerPosition.position
-			this.nextPlayerPosition = null
 			if (!area.flags.hasClearMap) {
 				context.discovery.readWrite(area).discover(
 					nextPlayerPosition.position.x, nextPlayerPosition.position.y
 				)
 			}
-			if (nextTransition != null) return
+
+			if (nextPlayerPosition.transition != null) {
+				suspension = AreaSuspensionTransition(nextPlayerPosition.transition)
+				return
+			} else suspension = null
 
 			maybeStartRandomBattle(context)
 
@@ -307,6 +282,30 @@ class AreaState(
 					state.lastWalkDamage = CharacterState.WalkDamage(walkDamage.blinkColor)
 				}
 			}
+		}
+	}
+
+	private fun updateIncomingRandomBattle(context: UpdateContext, incoming: AreaSuspensionIncomingRandomBattle) {
+		if (context.input.isPressed(InputKey.CheatMove)) {
+			suspension = null
+		} else if (incoming.canAvoid && context.input.isPressed(InputKey.Cancel)) {
+			suspension = null
+		} else if (currentTime >= incoming.startAt) {
+			engageBattle(context, incoming.battle)
+		}
+	}
+
+	private fun updateOpeningDoor(opening: AreaSuspensionOpeningDoor) {
+		if (currentTime >= opening.finishTime) suspension = AreaSuspensionTransition(opening.door.destination)
+	}
+
+	private fun updateWithoutSuspension(context: UpdateContext) {
+		checkTriggers(context)
+		if (suspension != null) return
+		processMovementInput(context.input)
+		if (suspension == null && shouldInteract) {
+			interact()
+			shouldInteract = false
 		}
 	}
 
@@ -336,7 +335,7 @@ class AreaState(
 			val averageMonsterLevel = enemies.filterNotNull().map { it.level }.average()
 			val canAvoid = averagePlayerLevel > 2 + averageMonsterLevel
 
-			incomingRandomBattle = IncomingRandomBattle(battle, currentTime + 1.seconds, canAvoid)
+			suspension = AreaSuspensionIncomingRandomBattle(battle, currentTime + 1.seconds, canAvoid)
 			context.soundQueue.insert(context.content.audio.fixedEffects.battle.encounter)
 			context.stepsSinceLastBattle = 0
 		} else context.stepsSinceLastBattle += 1
@@ -351,9 +350,6 @@ class AreaState(
 
 			val triggerActions = trigger.actions
 			if (triggerActions != null) {
-
-				// Make sure walking is cancelled upon hitting a trigger
-				nextPlayerPosition = null
 				startActions(triggerActions.root)
 			} else {
 				println("Hit flash trigger ${trigger.flashCode}")
@@ -365,52 +361,56 @@ class AreaState(
 	}
 
 	internal fun finishActions() {
-		val actions = this.actions!!
+		val actions = (suspension as AreaSuspensionActions).actions
 		actions.partyPositions.copyInto(playerPositions)
 		actions.partyDirections.copyInto(playerDirections)
 		currentTime = actions.currentTime
-		nextPlayerPosition = null
-		this.actions = null
+		suspension = null
+	}
+
+	internal fun processMouseMove(event: MouseMoveEvent) {
+		when (val suspension = this.suspension) {
+			is AreaSuspensionBattle -> suspension.battle.processMouseMove(event)
+			else -> {}
+		}
 	}
 
 	private fun processMovementInput(input: InputManager) {
-		if (nextPlayerPosition == null && incomingRandomBattle == null) {
-			val lastPressed = input.mostRecentlyPressed(arrayOf(
-				InputKey.MoveLeft, InputKey.MoveDown, InputKey.MoveRight, InputKey.MoveUp
-			))
-			val moveDirection = when (lastPressed) {
-				InputKey.MoveLeft -> Direction.Left
-				InputKey.MoveDown -> Direction.Down
-				InputKey.MoveRight -> Direction.Right
-				InputKey.MoveUp -> Direction.Up
-				else -> null
-			}
+		val lastPressed = input.mostRecentlyPressed(arrayOf(
+			InputKey.MoveLeft, InputKey.MoveDown, InputKey.MoveRight, InputKey.MoveUp
+		))
+		val moveDirection = when (lastPressed) {
+			InputKey.MoveLeft -> Direction.Left
+			InputKey.MoveDown -> Direction.Down
+			InputKey.MoveRight -> Direction.Right
+			InputKey.MoveUp -> Direction.Up
+			else -> null
+		}
 
-			if (moveDirection != null) {
-				val nextX = playerPositions[0].x + moveDirection.deltaX
-				val nextY = playerPositions[0].y + moveDirection.deltaY
-				if (canWalkTo(input, nextX, nextY)) {
-					val next = NextAreaPosition(
-						AreaPosition(nextX, nextY),
-						currentTime,
-						currentTime + 0.2.seconds,
-						findTransitions(nextX, nextY),
+		if (moveDirection != null) {
+			val nextX = playerPositions[0].x + moveDirection.deltaX
+			val nextY = playerPositions[0].y + moveDirection.deltaY
+			if (canWalkTo(input, nextX, nextY)) {
+				val next = NextAreaPosition(
+					AreaPosition(nextX, nextY),
+					currentTime,
+					currentTime + 0.2.seconds,
+					findTransitions(nextX, nextY),
+				)
+				suspension = AreaSuspensionPlayerWalking(next)
+				for (index in 1 until playerPositions.size) {
+					val walkDirection = Direction.exactDelta(
+						playerPositions[index - 1].x - playerPositions[index].x,
+						playerPositions[index - 1].y - playerPositions[index].y,
 					)
-					nextPlayerPosition = next
-					for (index in 1 until playerPositions.size) {
-						val walkDirection = Direction.exactDelta(
-							playerPositions[index - 1].x - playerPositions[index].x,
-							playerPositions[index - 1].y - playerPositions[index].y,
-						)
-						playerDirections[index] = walkDirection ?: playerDirections[index - 1]
-					}
-					playerDirections[0] = Direction.exactDelta(
-						next.position.x - playerPositions[0].x,
-						next.position.y - playerPositions[0].y
-					)!!
-				} else {
-					playerDirections[0] = moveDirection
+					playerDirections[index] = walkDirection ?: playerDirections[index - 1]
 				}
+				playerDirections[0] = Direction.exactDelta(
+					next.position.x - playerPositions[0].x,
+					next.position.y - playerPositions[0].y
+				)!!
+			} else {
+				playerDirections[0] = moveDirection
 			}
 		}
 	}

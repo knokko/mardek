@@ -4,7 +4,6 @@ import mardek.game.TestingInstance
 import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
-import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -32,7 +31,7 @@ object TestTimelines {
 			repeat(10) {
 				state.update(updateContext)
 			}
-			assertNull(state.campaign.currentArea!!.actions)
+			assertNull(state.campaign.currentArea!!.suspension)
 		}
 	}
 }

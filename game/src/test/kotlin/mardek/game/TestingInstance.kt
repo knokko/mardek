@@ -32,8 +32,8 @@ import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
 import mardek.content.story.TimelineNode
-import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
+import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SavesFolderManager
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -45,7 +45,6 @@ import org.lwjgl.vulkan.VK13.VK_API_VERSION_1_3
 import java.io.File
 import java.nio.file.Files
 import java.util.Collections
-import kotlin.time.Duration.Companion.seconds
 
 class TestingInstance {
 
@@ -156,7 +155,7 @@ class TestingInstance {
 	fun startSimpleBattle(campaign: CampaignState, enemies: Array<Enemy?> = arrayOf(
 		null, Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 10), null, null
 	), canFlee: Boolean = true) {
-		campaign.currentArea!!.activeBattle = BattleState(
+		campaign.currentArea!!.suspension = AreaSuspensionBattle(BattleState(
 			battle = Battle(
 				startingEnemies = enemies,
 				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!,
@@ -169,7 +168,7 @@ class TestingInstance {
 			players = campaign.party,
 			playerLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
 			context = battleUpdateContext(campaign)
-		)
+		))
 	}
 
 	fun simpleCampaignState(): CampaignState {

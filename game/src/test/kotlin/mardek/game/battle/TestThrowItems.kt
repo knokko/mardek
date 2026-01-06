@@ -11,6 +11,7 @@ import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -48,7 +49,7 @@ object TestThrowItems {
 			sleep(1000)
 			campaign.update(context(1.seconds))
 
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 			val deugan = battle.livingPlayers()[1]
 
 			input.postEvent(pressKeyEvent(InputKey.MoveLeft))

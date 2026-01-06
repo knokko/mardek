@@ -16,6 +16,8 @@ import mardek.renderer.menu.renderInGameMenu
 import mardek.renderer.menu.renderInGameMenuSectionList
 import mardek.renderer.save.renderSaveSelectionModal
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.area.AreaSuspensionActions
+import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.saves.SaveSelectionState
 import mardek.state.util.Rectangle
 
@@ -50,8 +52,8 @@ internal fun renderInGame(
 
 	val area = state.campaign.currentArea
 	if (area != null) {
-		val battle = area.activeBattle
-		if (battle == null) {
+		val suspension = area.suspension
+		if (suspension !is AreaSuspensionBattle) {
 			if (state.menu.shown) {
 				val framebuffers = context.framebuffers
 				val areaRenderStage = context.pipelines.base.blur.addSourceStage(
@@ -111,11 +113,10 @@ internal fun renderInGame(
 				}
 			} else {
 				var saveSelection: SaveSelectionState? = null
-				val actions = area.actions
-				if (actions != null) {
-					val node = actions.node
+				if (suspension is AreaSuspensionActions) {
+					val node = suspension.actions.node
 					if (node is FixedActionNode && node.action is ActionSaveCampaign) {
-						saveSelection = actions.saveSelectionState
+						saveSelection = suspension.actions.saveSelectionState
 					}
 				}
 
@@ -151,9 +152,9 @@ internal fun renderInGame(
 			}
 		} else {
 			val framebuffers = context.framebuffers
-			val loot = area.battleLoot
+			val loot = suspension.loot
 			if (loot == null) {
-				val batches = renderBattle(context, state.campaign, battle, region)
+				val batches = renderBattle(context, state.campaign, suspension.battle, region)
 				titleColorBatch = batches.first
 				titleTextBatch = batches.second
 			} else {
@@ -164,7 +165,7 @@ internal fun renderInGame(
 					context.frame, context.perFrame.areaBlurDescriptors,
 					framebuffers.blur, 3, 50, -1
 				)
-				renderBattle(context, state.campaign, battle, region)
+				renderBattle(context, state.campaign, suspension.battle, region)
 
 				context.currentStage = context.frame.swapchainStage
 				val blurStrength = 240

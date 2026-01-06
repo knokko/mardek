@@ -5,6 +5,7 @@ import mardek.content.stats.StatusEffect
 import mardek.game.TestingInstance
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.content.battle.Enemy
+import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.computeStatusEffectsBeforeTurn
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -21,7 +22,7 @@ object TestTurnStatusEffects {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			repeat(100) {
 				val effects = computeStatusEffectsBeforeTurn(
@@ -39,7 +40,7 @@ object TestTurnStatusEffects {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val monster = battle.livingOpponents()[0]
 			val paralysis = content.stats.statusEffects.find { it.flashName == "PAR" }!!
@@ -70,7 +71,7 @@ object TestTurnStatusEffects {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val monster = battle.livingOpponents()[0]
 			val sleep = content.stats.statusEffects.find { it.flashName == "SLP" }!!
@@ -103,7 +104,7 @@ object TestTurnStatusEffects {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
 			val mardek = battle.livingPlayers()[0]
@@ -135,7 +136,7 @@ object TestTurnStatusEffects {
 			val campaign = simpleCampaignState()
 			campaign.characterStates[heroMardek]!!.currentLevel = 50
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
 			val mardek = battle.livingPlayers()[0]
@@ -163,7 +164,7 @@ object TestTurnStatusEffects {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val regeneration = content.stats.statusEffects.find { it.flashName == "RGN" }!!
 			val mardek = battle.livingPlayers()[0]
@@ -191,7 +192,7 @@ object TestTurnStatusEffects {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val monster = battle.livingOpponents()[0]
 			assertEquals(1480, monster.maxHealth)
@@ -251,7 +252,7 @@ object TestTurnStatusEffects {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				content.battle.monsters.find { it.name == "kdestralan_mind" }!!, 1
 			)))
-			val battle = campaign.currentArea!!.activeBattle!!
+			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
 
 			val animus = battle.livingOpponents()[0]
 
