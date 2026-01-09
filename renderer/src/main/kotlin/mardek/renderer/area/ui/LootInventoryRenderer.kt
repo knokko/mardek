@@ -1,4 +1,4 @@
-package mardek.renderer.area
+package mardek.renderer.area.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear

@@ -18,7 +18,7 @@ internal class AreaRenderContext(
 	val spriteBatch: AreaSpriteBatch,
 	val multiplyBatch: Vk2dMultiplyBatch,
 	val lateSpriteBatch: AreaSpriteBatch,
-	val portraitBackgroundBatch: Vk2dColorBatch,
+	val lightBatch: AreaLightBatch,
 	val portraitBatch: AnimationPartBatch,
 	val colorBatch: Vk2dColorBatch,
 	val imageBatch: Vk2dImageBatch,

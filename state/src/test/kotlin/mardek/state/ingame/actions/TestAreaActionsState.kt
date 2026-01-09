@@ -18,6 +18,7 @@ import mardek.content.action.WalkSpeed
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.audio.SoundEffect
+import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -73,6 +74,7 @@ class TestAreaActionsState {
 		partyPositions = partyPositions,
 		partyDirections = partyDirections,
 		currentTime = currentTime,
+		party = arrayOf(PlayableCharacter(), null, null, null),
 		characterStates = characterStates,
 		fadingCharacters = fadingCharacters,
 		story = story,

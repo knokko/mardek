@@ -8,7 +8,7 @@ import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
-import mardek.renderer.area.renderLootInventoryGrid
+import mardek.renderer.area.ui.renderLootInventoryGrid
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderButton
 import mardek.state.UsedPartyMember

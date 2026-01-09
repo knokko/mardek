@@ -482,8 +482,8 @@ class CampaignState : BitPostInit {
 			val actionsContext = AreaActionsState.UpdateContext(
 				context.input, context.timeStep, context.soundQueue, context.campaignName,
 				currentArea.playerPositions, currentArea.playerDirections,
-				currentArea.currentTime, currentArea.characterStates, currentArea.fadingCharacters, story,
-				this::healParty
+				currentArea.currentTime, party, currentArea.characterStates, currentArea.fadingCharacters,
+				story, this::healParty
 			) { timeline, newNode -> performTimelineTransition(context, timeline, newNode) }
 			actions.update(actionsContext)
 

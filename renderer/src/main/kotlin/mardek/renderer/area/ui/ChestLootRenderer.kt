@@ -1,9 +1,10 @@
-package mardek.renderer.area
+package mardek.renderer.area.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.area.AreaRenderContext
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderDescription
 import mardek.state.ingame.area.AreaSuspensionOpeningChest

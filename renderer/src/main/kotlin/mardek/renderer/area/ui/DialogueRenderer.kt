@@ -1,10 +1,13 @@
-package mardek.renderer.area
+package mardek.renderer.area.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.vk2d.text.TextAlignment
+import com.github.knokko.vk2d.text.Vk2dFont
 import mardek.content.action.*
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.renderPortraitAnimation
+import mardek.renderer.area.AreaRenderContext
+import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.renderer.menu.referenceTime
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.util.Rectangle
@@ -12,6 +15,8 @@ import org.joml.Matrix3x2f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
+
+private const val CHOICE_CHAR = '•'
 
 internal fun renderDialogue(areaContext: AreaRenderContext) {
 	areaContext.run {
@@ -31,10 +36,9 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			}
 		}
 
-		val choiceChar = '•'
 		if (actionNode is ChoiceActionNode) {
 			val combinedText = actionNode.options.withIndex().joinToString("\n") {
-				var text = "$choiceChar " + it.value.text
+				var text = "$CHOICE_CHAR " + it.value.text
 				if (it.index == actions.selectedChoice) text = "$$text%"
 				text
 			}
@@ -117,34 +121,50 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val diagonalX1 = nameRegion.maxX - nameRegion.height * 3
 			val diagonalHeight = region.height / 25
 			val diagonalX2 = diagonalX1 + diagonalHeight
-			portraitBackgroundBatch.fill(
+			colorBatch.fill(
 				nameRegion.minX, nameRegion.minY, diagonalX1 - 1,
 				nameRegion.minY + lineWidth - 1, borderColor,
 			)
-			portraitBackgroundBatch.fill(
+			colorBatch.fill(
 				nameRegion.minX, nameRegion.boundY - lineWidth,
 				nameRegion.maxX, nameRegion.maxY, borderColor,
 			)
-			portraitBackgroundBatch.fill(
+			colorBatch.fill(
 				nameRegion.minX, nameRegion.minY + lineWidth,
 				nameRegion.maxX, nameRegion.maxY - lineWidth, backgroundColor,
 			)
-			portraitBackgroundBatch.fill(
+			colorBatch.fill(
 				diagonalX2, nameRegion.minY - diagonalHeight,
 				nameRegion.maxX, nameRegion.minY + lineWidth - 1 - diagonalHeight, borderColor,
 			)
-			portraitBackgroundBatch.fillUnaligned(
+			colorBatch.fillUnaligned(
 				diagonalX1, nameRegion.minY + lineWidth,
 				diagonalX2, nameRegion.minY + lineWidth + 1 - diagonalHeight,
 				diagonalX2, nameRegion.minY - diagonalHeight,
 				diagonalX1, nameRegion.minY, borderColor,
 			)
-			portraitBackgroundBatch.fillUnaligned(
+			colorBatch.fillUnaligned(
 				diagonalX1 + 1, nameRegion.minY + lineWidth,
 				nameRegion.boundX, nameRegion.minY + lineWidth,
 				nameRegion.boundX, nameRegion.minY + lineWidth - diagonalHeight,
 				diagonalX2 + 1, nameRegion.minY + lineWidth - diagonalHeight, backgroundColor
 			)
+
+			if (actions.showChatLog) {
+				val weakerBackgroundColor = multiplyAlpha(backgroundColor, 0.9f)
+				colorBatch.fillUnaligned(
+					region.minX, nameRegion.minY,
+					diagonalX1, nameRegion.minY,
+					diagonalX2, nameRegion.minY - diagonalHeight,
+					region.minX, nameRegion.minY - diagonalHeight,
+					weakerBackgroundColor,
+				)
+				colorBatch.fill(
+					region.minX, region.minY, region.maxX, nameRegion.minY - diagonalHeight - 1,
+					weakerBackgroundColor
+				)
+				renderChatLog(areaContext, actions)
+			}
 		}
 
 		fun renderBox(
@@ -261,7 +281,6 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				nameRegion.maxX - nameRegion.height * 10 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "Q", "Skip",
 			)
-			// TODO CHAP2 Make the chat log...
 			renderBox(
 				nameRegion.maxX - nameRegion.height * 5 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "L", "Log",
@@ -313,12 +332,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		}
 
 		run {
-			val speakerElement = when (val speaker = talkAction.speaker) {
-				is ActionTargetPlayer -> speaker.player.element
-				is ActionTargetPartyMember -> context.campaign.party[speaker.index]?.element
-				is ActionTargetAreaCharacter -> speaker.character.element
-				else -> null
-			}
+			val speakerElement = talkAction.speaker.getElement(context.campaign.party)
 
 			if (speakerElement != null) {
 				val image = speakerElement.thinSprite
@@ -338,13 +352,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		}
 
 		run {
-			val displayName = when (val speaker = talkAction.speaker) {
-				is ActionTargetPlayer -> speaker.player.name
-				is ActionTargetPartyMember -> context.campaign.party[speaker.index]?.name
-				is ActionTargetDialogueObject -> speaker.displayName
-				is ActionTargetAreaCharacter -> speaker.character.name
-				else -> null
-			}
+			val displayName = talkAction.speaker.getDisplayName(context.campaign.party)
 			if (displayName != null) {
 				val shadowOffset = nameRegion.height * 0.04f
 				val textColor = srgbToLinear(rgb(238, 203, 127))
@@ -375,64 +383,92 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 
 			val baseTextX = textRegion.minX + textRegion.height * 0.1f
 			val maxTextX = textRegion.maxX - textRegion.height * 0.1f
-			var textX = baseTextX
-			var textY = textRegion.minY + textRegion.height * 0.2f
-
+			val minTextY = textRegion.minY + textRegion.height * 0.2f
 			val textHeight = textRegion.height * 0.09f
 			val strokeWidth = textRegion.height * 0.01f
 
-			var remaining = actions.shownDialogueCharacters
-			if (actionNode is ChoiceActionNode) remaining = talkAction.text.length.toFloat()
-			val textChars = text.chars().toArray()
+			var shownCharacters = actions.shownDialogueCharacters
+			if (actionNode is ChoiceActionNode) shownCharacters = talkAction.text.length.toFloat()
 
-			var isBold = false
-			for (charIndex in 0 until textChars.size) {
-				if (remaining <= 0f) break
-				val nextChar = textChars[charIndex]
-				val font = if (nextChar == choiceChar.code) choiceCharFont else baseFont
+			val implicitLineSpacing = 0.14f * textRegion.height
+			val explicitLineSpacing = 0.17f * textRegion.height
 
-				var peekX = textX
-				for (peekIndex in charIndex until textChars.size) {
-					val peekChar = textChars[peekIndex]
-					if (peekChar == ' '.code || peekChar == '\n'.code) break
-					if (peekChar == '%'.code || peekChar == '$'.code) continue
-
-					val peekGlyph = font.getGlyphForChar(peekChar)
-					peekX += textHeight * font.getGlyphAdvance(peekGlyph)
-					if (peekX > maxTextX) {
-						textX = baseTextX
-						textY += 0.14f * textRegion.height
-						break
-					}
-				}
-
-				if (nextChar == '\n'.code) {
-					textX = baseTextX
-					textY += 0.17f * textRegion.height
-					continue
-				}
-
-				if (nextChar == '$'.code) {
-					isBold = true
-					continue
-				}
-
-				if (nextChar == '%'.code) {
-					isBold = false
-					continue
-				}
-
-				val textColor = if (isBold) boldTextColor else baseTextColor
-				val glyph = font.getGlyphForChar(nextChar)
-				textBatch.glyphAt(
-					textX, textY, font, textHeight, glyph,
-					textColor, strokeColor, strokeWidth
-				)
-
-				textX += textHeight * font.getGlyphAdvance(glyph)
-
-				remaining -= 1f
-			}
+			renderDialogueLines(
+				text, shownCharacters, baseTextX, baseTextX, maxTextX,
+				minTextY, textRegion.maxY.toFloat(),
+				textHeight, implicitLineSpacing, explicitLineSpacing, textBatch,
+				baseFont, choiceCharFont, baseTextColor, boldTextColor, strokeColor, strokeWidth,
+			)
 		}
 	}
+}
+
+internal fun renderDialogueLines(
+	text: String, shownCharacters: Float,
+	minTextX: Float, firstTextX: Float, maxTextX: Float,
+	minTextY: Float, maxLineY: Float, textHeight: Float,
+	implicitLineSpacing: Float,
+	explicitLineSpacing: Float,
+	textBatch: MardekGlyphBatch,
+	baseFont: Vk2dFont, choiceCharFont: Vk2dFont,
+	baseTextColor: Int, boldTextColor: Int,
+	strokeColor: Int, strokeWidth: Float,
+) : Float {
+	var textX = firstTextX
+	var textY = minTextY
+
+	var remaining = shownCharacters
+	val textChars = text.chars().toArray()
+
+	var isBold = false
+	for (charIndex in 0 until textChars.size) {
+		if (remaining <= 0f) break
+		val nextChar = textChars[charIndex]
+		val font = if (nextChar == CHOICE_CHAR.code) choiceCharFont else baseFont
+
+		var peekX = textX
+		for (peekIndex in charIndex until textChars.size) {
+			val peekChar = textChars[peekIndex]
+			if (peekChar == ' '.code || peekChar == '\n'.code) break
+			if (peekChar == '%'.code || peekChar == '$'.code) continue
+
+			val peekGlyph = font.getGlyphForChar(peekChar)
+			peekX += textHeight * font.getGlyphAdvance(peekGlyph)
+			if (peekX > maxTextX) {
+				textX = minTextX
+				textY += implicitLineSpacing
+				break
+			}
+		}
+
+		if (nextChar == '\n'.code) {
+			textX = minTextX
+			textY += 0.17f * explicitLineSpacing
+			continue
+		}
+
+		if (nextChar == '$'.code) {
+			isBold = true
+			continue
+		}
+
+		if (nextChar == '%'.code) {
+			isBold = false
+			continue
+		}
+
+		if (textY > maxLineY) break
+		val textColor = if (isBold) boldTextColor else baseTextColor
+		val glyph = font.getGlyphForChar(nextChar)
+		textBatch.glyphAt(
+			textX, textY, font, textHeight, glyph,
+			textColor, strokeColor, strokeWidth
+		)
+
+		textX += textHeight * font.getGlyphAdvance(glyph)
+
+		remaining -= 1f
+	}
+
+	return textY
 }

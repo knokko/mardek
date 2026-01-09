@@ -1,6 +1,7 @@
 package mardek.game
 
 import mardek.game.action.TestActions
+import mardek.game.action.TestChatLog
 import mardek.game.area.TestChestLoot
 import mardek.game.area.TestDoors
 import mardek.game.area.TestDragonLair
@@ -302,4 +303,11 @@ class IntegrationTests {
 	fun testHeroQuest() {
 		TestQuests.testHeroQuest(instance)
 	}
+
+	@Test
+	fun testSequentialChatLog() {
+		TestChatLog.testSequential(instance)
+	}
+
+	// TODO CHAP1 Test choice dialogue chat log
 }

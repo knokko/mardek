@@ -24,7 +24,7 @@ import java.util.UUID
 class AreaCharacter(
 
 	/**
-	 * The name of the character (as imported from Flash). It is currently unused.
+	 * The name of the character (as imported from Flash). It is currently only used in dialogues.
 	 */
 	@BitField(id = 0)
 	val name: String,

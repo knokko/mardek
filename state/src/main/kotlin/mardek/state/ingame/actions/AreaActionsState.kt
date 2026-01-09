@@ -9,6 +9,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.action.*
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
+import mardek.content.characters.PlayableCharacter
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
 import mardek.input.InputKey
@@ -55,6 +56,18 @@ class AreaActionsState(
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	val nextPartyPositions = Array<NextAreaPosition?>(4) { null }
+
+	/**
+	 * The chat log, which contains all the previously-encountered dialogue of the current action sequence.
+	 */
+	@BitField(id = 2)
+	val chatLog = ArrayList<ChatLogEntry>()
+
+	/**
+	 * Whether the chat log should be shown during talk/dialogue actions.
+	 * The player can toggle this by pressing the L key.
+	 */
+	var showChatLog = false
 
 	/**
 	 * When inside a choice dialogue, this is the index of the currently selected option. Otherwise, this should be 0.
@@ -111,7 +124,17 @@ class AreaActionsState(
 	}
 
 	private fun updateFixedNode(context: UpdateContext, currentAction: FixedAction): Boolean {
-		if (currentAction is ActionTalk) return updateTalking(context, currentAction)
+		if (currentAction is ActionTalk) {
+			val finishedMessage = updateTalking(context, currentAction)
+			if (finishedMessage) {
+				chatLog.add(ChatLogEntry(
+					speaker = currentAction.speaker.getDisplayName(context.party) ?: "no-one?",
+					speakerElement = currentAction.speaker.getElement(context.party),
+					text = currentAction.text,
+				))
+			}
+			return finishedMessage
+		}
 		if (currentAction is ActionWalk) return updateWalking(currentAction, context)
 		if (currentAction is ActionBattle) {
 			context.startBattle = currentAction
@@ -421,6 +444,8 @@ class AreaActionsState(
 		val currentNode = node
 		val key = event.key
 
+		if (key == InputKey.ToggleChatLog) showChatLog = !showChatLog
+
 		if (currentNode is FixedActionNode) processFixedActionKeyEvent(currentNode.action, event)
 
 		if (currentNode is ChoiceActionNode) {
@@ -459,6 +484,7 @@ class AreaActionsState(
 		val partyPositions: Array<AreaPosition>,
 		val partyDirections: Array<Direction>,
 		var currentTime: Duration,
+		val party: Array<PlayableCharacter?>,
 		val characterStates: MutableMap<AreaCharacter, AreaCharacterState>,
 		val fadingCharacters: MutableCollection<FadingCharacter>,
 		val story: StoryState,

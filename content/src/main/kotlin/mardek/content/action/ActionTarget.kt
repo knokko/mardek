@@ -6,18 +6,38 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
+import mardek.content.stats.Element
 import java.util.UUID
 
 /**
  * Represents the *target* of an *action*, which is usually a player character.
+ * - In a dialogue/talk action, the target is the speaker
+ * - In a walk action, the target is the (playable) character that is supposed to walk
  */
 @BitStruct(backwardCompatible = true)
 sealed class ActionTarget {
+
+	/**
+	 * Gets the display name of this action target, which should be used when the target is used in a dialogue/talk
+	 * action.
+	 *
+	 * This method returns `null` when this target is missing, or is not supposed to be used as dialogue target.
+	 */
+	abstract fun getDisplayName(party: Array<PlayableCharacter?>): String?
+
+	/**
+	 * Gets the element of this action target, which should be used when the target is used in a dialogue/talk
+	 * action.
+	 *
+	 * This method returns `null` when this target is missing, or does not have an element (e.g. save crystal).
+	 */
+	abstract fun getElement(party: Array<PlayableCharacter?>): Element?
+
 	companion object {
 
 		@JvmStatic
 		@Suppress("unused")
-		val BITSER_HIERARCHY = arrayOf(
+		private val BITSER_HIERARCHY = arrayOf(
 			ActionTargetPartyMember::class.java,
 			ActionTargetPlayer::class.java,
 			ActionTargetWholeParty::class.java,
@@ -45,6 +65,10 @@ class ActionTargetPartyMember(
 	override fun equals(other: Any?) = other is ActionTargetPartyMember && this.index == other.index
 
 	override fun hashCode() = index
+
+	override fun getDisplayName(party: Array<PlayableCharacter?>) = party[index]?.name
+
+	override fun getElement(party: Array<PlayableCharacter?>) = party[index]?.element
 }
 
 /**
@@ -62,6 +86,10 @@ class ActionTargetPlayer(
 	private constructor() : this(PlayableCharacter())
 
 	override fun toString() = "Player($player)"
+
+	override fun getDisplayName(party: Array<PlayableCharacter?>) = player.name
+
+	override fun getElement(party: Array<PlayableCharacter?>) = player.element
 }
 
 /**
@@ -70,6 +98,10 @@ class ActionTargetPlayer(
 @BitStruct(backwardCompatible = true)
 class ActionTargetWholeParty : ActionTarget() {
 	override fun toString() = "WholeParty"
+
+	override fun getDisplayName(party: Array<PlayableCharacter?>) = "everyone"
+
+	override fun getElement(party: Array<PlayableCharacter?>) = null
 }
 
 /**
@@ -89,6 +121,10 @@ class ActionTargetDialogueObject(
 	private constructor() : this("")
 
 	override fun toString() = "DialogueObject($displayName)"
+
+	override fun getDisplayName(party: Array<PlayableCharacter?>) = displayName
+
+	override fun getElement(party: Array<PlayableCharacter?>) = null
 }
 
 /**
@@ -119,6 +155,10 @@ class ActionTargetAreaCharacter(
 	internal constructor() : this(UUID(0, 0))
 
 	override fun toString() = "AreaCharacter($character ($characterID))"
+
+	override fun getDisplayName(party: Array<PlayableCharacter?>) = character.name
+
+	override fun getElement(party: Array<PlayableCharacter?>) = character.element
 
 	/**
 	 * This method initializes `character` to the `AreaCharacter` whose ID is `AreaCharacter`. This method should only

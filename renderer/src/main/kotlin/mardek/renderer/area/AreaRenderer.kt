@@ -3,6 +3,8 @@ package mardek.renderer.area
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import mardek.renderer.RenderContext
+import mardek.renderer.area.ui.renderChestLoot
+import mardek.renderer.area.ui.renderDialogue
 import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
 import kotlin.math.max
@@ -40,15 +42,15 @@ internal fun renderCurrentArea(
 	val spriteBatch = context.addAreaSpriteBatch(3000, scissor)
 	val multiplyBatch = context.addMultiplyBatch(2)
 	val lateSpriteBatch = context.addAreaSpriteBatch(2, scissor)
-	val portraitBackgroundBatch = context.addColorBatch(100)
-	val portraitBatch = context.addAnimationPartBatch(200)
-	val colorBatch = context.addColorBatch(500)
+	val lightBatch = context.addAreaLightBatch(scissor)
+	val colorBatch = context.addColorBatch(600)
 	val ovalBatch = context.addOvalBatch(24)
 	val imageBatch = context.addImageBatch(2)
 	val textBatch = context.addFancyTextBatch(1000)
+	val portraitBatch = context.addAnimationPartBatch(200)
 	val areaContext = AreaRenderContext(
 		context, state, scale, region, spriteBatch, multiplyBatch,
-		lateSpriteBatch, portraitBackgroundBatch, portraitBatch,
+		lateSpriteBatch, lightBatch, portraitBatch,
 		colorBatch, imageBatch, ovalBatch, textBatch,
 		scissorLeft, scissor
 	)

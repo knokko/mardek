@@ -122,6 +122,5 @@ internal fun renderQuestsTab(menuContext: MenuRenderContext, region: Rectangle) 
 				}
 			}
 		}
-		// TODO CHAP1 Create chat log
 	}
 }

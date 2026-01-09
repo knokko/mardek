@@ -75,14 +75,13 @@ object TestThrowItems {
 				Color(129, 129, 79), // Mardek pants
 				Color(70, 117, 33), // Deugan coat
 			)
-			val turnOrderColor = arrayOf(Color(132, 96, 53))
 			val elixirColor = arrayOf(Color(247, 236, 0))
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
 			sleep(1000)
 			testRendering(
 				state, 800, 450, "elixir1",
-				playerColors + monsterColor + elixirColor, turnOrderColor
+				playerColors + monsterColor + elixirColor, emptyArray(),
 			)
 			assertTrue((battle.state as BattleStateMachine.UseItem).canDrinkItem)
 			campaign.update(context(1.seconds))
