@@ -5,6 +5,7 @@ import com.github.knokko.bitser.io.DebugBitOutputStream
 import com.github.knokko.profiler.SampleProfiler
 import com.github.knokko.profiler.storage.SampleStorage
 import mardek.content.Content
+import mardek.content.stats.CombatStat
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -20,15 +21,15 @@ fun main() {
 	val bytes = contentInput.readAllBytes()
 	contentInput.close()
 
-	val storage = SampleStorage.frequency()
-	val profiler = SampleProfiler(storage)
-	profiler.start()
+//	val storage = SampleStorage.frequency()
+//	val profiler = SampleProfiler(storage)
+//	profiler.start()
 	val content = bitser.fromBytes(Content::class.java, bytes, Bitser.BACKWARD_COMPATIBLE)
-	profiler.stop()
+//	profiler.stop()
+//
+//	storage.getThreadStorage(Thread.currentThread().id).print(System.out, 10, 1.0)
 
-	storage.getThreadStorage(Thread.currentThread().id).print(System.out, 10, 1.0)
-
-	val debugWriter = PrintWriter(Files.newOutputStream(File("content-intellij.txt").toPath()))
+	val debugWriter = PrintWriter(Files.newOutputStream(File("content-debug.txt").toPath()))
 	bitser.serialize(content, DebugBitOutputStream(
 		ByteArrayOutputStream(), debugWriter, false
 	), Bitser.BACKWARD_COMPATIBLE)

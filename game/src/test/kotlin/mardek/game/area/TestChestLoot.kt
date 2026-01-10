@@ -30,7 +30,7 @@ object TestChestLoot {
 
 	fun testControlsAndRendering(instance: TestingInstance) {
 		instance.apply {
-			val potion = content.items.items.find { it.flashName == "Potion" }!!
+			val potion = content.items.items.find { it.displayName == "Potion" }!!
 
 			val campaign = simpleCampaignState()
 			campaign.currentArea = AreaState(

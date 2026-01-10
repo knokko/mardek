@@ -83,7 +83,7 @@ internal fun renderActionBar(
 					icon.index,
 				)
 			}
-			renderIcon(player.getEquipment(updateContext)[0]!!.sprite, iconPositions[0], selectedIndex == 0)
+			renderIcon(player.getWeapon(updateContext)!!.sprite, iconPositions[0], selectedIndex == 0)
 			renderIcon(player.player.characterClass.skillClass.icon, iconPositions[1], selectedIndex == 1)
 			renderIcon(context.content.ui.consumableIcon, iconPositions[2], selectedIndex == 2)
 			renderIcon(context.content.ui.waitIcon, iconPositions[3], selectedIndex == 3)

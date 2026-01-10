@@ -101,16 +101,16 @@ class SkillsTab(party: List<UsedPartyMember>): InGameMenuTab() {
 			val mastery = characterState.skillMastery[skill]
 			if (mastery != null && mastery > 0) return true
 
-			return characterState.equipment.any {
-				item -> item?.equipment != null && item.equipment!!.skills.contains(skill)
+			return characterState.equipment.values.any {
+				item -> item.equipment != null && item.equipment!!.skills.contains(skill)
 			}
 		}
 
 		fun mapVisibleSkill(skill: Skill): VisibleSkill {
 			val mastery = characterState.skillMastery[skill] ?: 0
 
-			var canToggle = (if (mastery >= skill.masteryPoints) true else characterState.equipment.any {
-				item -> item?.equipment != null && item.equipment!!.skills.contains(skill)
+			var canToggle = (if (mastery >= skill.masteryPoints) true else characterState.equipment.values.any {
+				item -> item.equipment != null && item.equipment!!.skills.contains(skill)
 			}) && skill !is ActiveSkill
 			if (canToggle && !characterState.toggledSkills.contains(skill)) {
 				if (skill is PassiveSkill) {

@@ -1,10 +1,7 @@
 package mardek.renderer.menu.inventory
 
-import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import com.github.knokko.boiler.utilities.ColorPacker.rgba
-import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
-import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.menu.MenuRenderContext
+import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.util.Rectangle
 import kotlin.math.max
 import kotlin.math.min
@@ -20,25 +17,26 @@ internal fun renderInventory(menuContext: MenuRenderContext, region: Rectangle) 
 	val gridOffset = 2 + 3 * scale + 8 * scale * SIMPLE_SLOT_SIZE
 
 	val gridStartX = region.boundX - gridOffset
-	renderInventoryGrid(menuContext, gridStartX, region.boundY - gridOffset, scale)
-	renderCharacterBars(menuContext, region.minX + 5 * scale, region.minY + 3 * scale, region.maxX, scale)
-	if (gridStartX >= 30 * scale) {
-		val startY = region.boundY - gridOffset
-		val maxX = min(200 * scale, gridStartX - 2 * scale)
-		renderHoverItemProperties(menuContext, region.minX, startY, maxX, region.maxY, scale)
-	}
 	menuContext.run {
-		val goldX = (region.minX + region.maxX) * 2 / 3
-		spriteBatch.simple(
-			goldX, region.minY - 20 * scale,
-			scale, context.content.ui.goldIcon.index,
+		val tab = menu.currentTab as InventoryTab
+		val inventoryContext = InventoryRenderContext(context, colorBatch, spriteBatch, imageBatch, lateColorBatch, textBatch)
+		val (_, characterState) = state.allPartyMembers()[tab.interaction.partyIndex]!!
+		tab.equipmentRenderInfo = renderCharacterBars(
+			inventoryContext, tab.interaction, state.usedPartyMembers(),
+			region.minX + 5 * scale, region.minY + 3 * scale, region.maxX, scale,
 		)
-		textBatch.drawShadowedString(
-			state.gold.toString(), goldX + 20f * scale, region.minY - 6f * scale,
-			10f * scale, context.bundle.getFont(context.content.fonts.large1.index),
-			srgbToLinear(rgb(255, 225, 124)), 0, 0f,
-			srgbToLinear(rgba(83, 66, 50, 100)), 1.5f * scale,
-			1.5f * scale, TextAlignment.LEFT,
+		if (gridStartX >= 30 * scale) {
+			val startY = region.boundY - gridOffset
+			val maxX = min(200 * scale, gridStartX - 2 * scale)
+			renderHoverItemProperties(
+				inventoryContext, tab.interaction, characterState,
+				region.minX, startY, maxX, region.maxY, scale,
+			)
+		}
+		renderInventoryOverlay(inventoryContext, region, scale, state, tab)
+		tab.gridRenderInfo = renderItemGrid(
+			inventoryContext, characterState.inventory, tab.interaction,
+			gridStartX, region.boundY - gridOffset, scale,
 		)
 	}
 }

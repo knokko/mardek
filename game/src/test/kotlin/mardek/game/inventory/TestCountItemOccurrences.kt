@@ -8,14 +8,14 @@ object TestCountItemOccurrences {
 
 	fun testMixed(instance: TestingInstance) {
 		instance.apply {
-			val amethyst = content.items.items.find { it.flashName == "Amethyst" }!!
-			val elixir = content.items.items.find { it.flashName == "Elixir" }!!
-			val ruby = content.items.items.find { it.flashName == "Ruby" }!!
+			val amethyst = content.items.items.find { it.displayName == "Amethyst" }!!
+			val elixir = content.items.items.find { it.displayName == "Elixir" }!!
+			val ruby = content.items.items.find { it.displayName == "Ruby" }!!
 			val campaign = simpleCampaignState()
 
 			val mardekState = campaign.characterStates[heroMardek]!!
-			mardekState.equipment[4] = amethyst
-			mardekState.equipment[5] = ruby
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = amethyst
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[5]] = ruby
 
 			mardekState.inventory[4] = ItemStack(amethyst, 1)
 			mardekState.inventory[20] = ItemStack(amethyst, 12)

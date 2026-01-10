@@ -25,6 +25,7 @@ import mardek.importer.skills.parseActiveSkills
 import mardek.importer.util.*
 import java.io.File
 import java.lang.Integer.parseInt
+import java.util.EnumMap
 import java.util.UUID
 import kotlin.math.max
 import kotlin.math.min
@@ -111,7 +112,7 @@ loot = [["Dark Essence",100]];
 DetermineStats();
 """
 
-internal fun importMonsters(content: Content, playerModelMapping: MutableMap<String, CombatantAnimations>) {
+internal fun importMonsters(content: Content, playerModelMapping: MutableMap<String, CombatantAnimations>?) {
 	val magicScale = 4
 	val battleTag = FLASH.tags.find { it.exportFileName.contains("B_MODEL") }!! as DefineSpriteTag
 	val context = AnimationImportContext(
@@ -187,8 +188,9 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 		val animations = CombatantAnimations(skeleton, skin, rootMatrix!!)
 
 		if (monsterScripts.isEmpty()) {
-			playerModelMapping[combatantName] = animations
+			if (playerModelMapping != null) playerModelMapping[combatantName] = animations
 		} else if (monsterScripts.size == 1) {
+			if (playerModelMapping != null) continue
 			var monsterScript = getScript(monsterScripts[0])
 
 			if (combatantName == "temperance") monsterScript = OVERRIDE_TEMPERANCE
@@ -236,7 +238,7 @@ private fun parsePotentialEquipment(equipmentText: String?, itemAssets: ItemsCon
 	val itemCounter = HashMap<Item?, Int>()
 	for (rawEntry in rawEquipmentList) {
 		val itemName = parseFlashString(rawEntry.toString(), "monster equipment entry")!!
-		val item = if (itemName == "none") null else itemAssets.items.find { it.flashName == itemName }!!
+		val item = if (itemName == "none") null else itemAssets.items.find { it.displayName == itemName }!!
 		itemCounter[item] = (itemCounter[item] ?: 0) + 1
 	}
 
@@ -319,12 +321,12 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 				val index = parseInt(lootPair[2].toString())
 				dreamLoot.add(content.items.dreamstones.find { it.index == index }!!)
 			} else {
-				val item = content.items.items.find { it.flashName == itemName }
+				val item = content.items.items.find { it.displayName == itemName }
 				if (item != null) {
 					val amount = if (lootPair.size == 2) 1 else parseInt(lootPair[2].toString())
 					repeat(amount) { loot.add(PotentialItem(item, chance)) }
 				} else {
-					val plotItem = content.items.plotItems.find { it.name == itemName }!!
+					val plotItem = content.items.plotItems.find { it.displayName == itemName }!!
 					plotLoot.add(PotentialPlotItem(plotItem, chance))
 				}
 			}
@@ -441,7 +443,7 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 		className = parseFlashString(mdlMap["Class"]!!, "monster class")!!,
 		type = content.stats.creatureTypes.find { it.flashName == typeName }!!,
 		element = content.stats.elements.find { it.rawName == elementName }!!,
-		baseStats = baseStats,
+		baseStats = EnumMap(baseStats),
 		playerStatModifier = playerStatModifier,
 		hpPerLevel = parseInt(mdlMap["hpGrowth"]!!),
 		attackPerLevelNumerator = attackPerLevelNumerator,

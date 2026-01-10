@@ -4,17 +4,23 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.inventory.ItemStack
-import mardek.renderer.menu.MenuRenderContext
 import mardek.renderer.util.gradientWithBorder
-import mardek.state.ingame.menu.InventoryTab
+import mardek.state.ingame.menu.inventory.InventoryInteractionState
+import mardek.state.ingame.menu.inventory.InventorySlotReference
+import mardek.state.ingame.menu.inventory.ItemGridRenderInfo
 
 internal const val SIMPLE_SLOT_SIZE = 18
 private val LINE_COLOR = srgbToLinear(rgb(179, 162, 116))
 private val LIGHT_SLOT_COLOR = srgbToLinear(rgb(100, 80, 48))
 private val DARK_SLOT_COLOR = srgbToLinear(rgb(74, 48, 30))
 
-internal fun renderInventoryGrid(menuContext: MenuRenderContext, startX: Int, startY: Int, scale: Int) {
-	menuContext.run {
+internal fun renderItemGrid(
+	inventoryContext: InventoryRenderContext,
+	inventory: Array<ItemStack?>,
+	interaction: InventoryInteractionState,
+	startX: Int, startY: Int, scale: Int,
+) : ItemGridRenderInfo {
+	inventoryContext.run {
 		val fullSlotSize = scale * SIMPLE_SLOT_SIZE
 		val size = 8 * fullSlotSize + 2
 
@@ -41,63 +47,58 @@ internal fun renderInventoryGrid(menuContext: MenuRenderContext, startX: Int, st
 			)
 		}
 
-		val tab = menu.currentTab as InventoryTab
-		val hoveredItem = tab.hoveringItem
-		if (hoveredItem != null) {
+		val hoveringItem = interaction.hoveredSlot
+		if (hoveringItem is InventorySlotReference && hoveringItem.inventory === inventory) {
 			val hoverLineColor = srgbToLinear(rgb(165, 205, 254))
 			val hoverLightColor = srgbToLinear(rgb(25, 68, 118))
 			val hoverDarkColor = srgbToLinear(rgb(64, 43, 36))
-			if (hoveredItem.slotIndex >= 0) {
-				val slotX = hoveredItem.slotIndex % 8
-				val slotY = hoveredItem.slotIndex / 8
+			val slotX = hoveringItem.index % 8
+			val slotY = hoveringItem.index / 8
 
-				val x = startX + 1 + slotX * fullSlotSize
-				val y = startY + 1 + slotY * fullSlotSize
-				val maxX = x + fullSlotSize - 1
-				val maxY = y + fullSlotSize - 1
-				gradientWithBorder(
-					colorBatch, x, y, maxX, maxY, 1, 1, hoverLineColor,
-					hoverLightColor, hoverLightColor, hoverDarkColor
-				)
-			}
+			val x = startX + 1 + slotX * fullSlotSize
+			val y = startY + 1 + slotY * fullSlotSize
+			val maxX = x + fullSlotSize - 1
+			val maxY = y + fullSlotSize - 1
+			gradientWithBorder(
+				colorBatch, x, y, maxX, maxY, 1, 1, hoverLineColor,
+				hoverLightColor, hoverLightColor, hoverDarkColor
+			)
 		}
 
 		val font = context.bundle.getFont(context.content.fonts.basic2.index)
-		fun renderAmount(stack: ItemStack, itemX: Int, itemY: Int) {
+		fun renderAmount(stack: ItemStack, itemX: Int, itemY: Int, itemScale: Int) {
 			if (stack.amount == 1) return
 
 			val textColor = srgbToLinear(rgb(238, 203, 127))
 			val shadowColor = rgb(0, 0, 0)
 			textBatch.drawString(
-				stack.amount.toString(), itemX + 12f * scale, itemY + 15f * scale, 6f * scale,
-				font, textColor, shadowColor, 1.0f * scale, TextAlignment.CENTERED
+				stack.amount.toString(), itemX + 12f * itemScale, itemY + 15f * itemScale, 6f * itemScale,
+				font, textColor, shadowColor, 1.0f * itemScale, TextAlignment.CENTERED
 			)
 		}
 
-		val pickedItem = tab.pickedUpItem
-
-		val selectedCharacterPair = context.campaign.allPartyMembers()[tab.partyIndex]
-		if (selectedCharacterPair != null) {
-			val inventory = selectedCharacterPair.second.inventory
-			for (y in 0 until 8) {
-				for (x in 0 until 8) {
-					val itemStack = inventory[x + 8 * y] ?: continue
-					if (pickedItem != null && itemStack === pickedItem.get()) continue
-					val itemX = startX + 1 + fullSlotSize * x + scale
-					val itemY = startY + 1 + fullSlotSize * y + scale
-					spriteBatch.simple(itemX, itemY, scale, itemStack.item.sprite.index)
-					renderAmount(itemStack, itemX, itemY)
-				}
+		val pickedUpItem = context.campaign.cursorItemStack
+		for (y in 0 until 8) {
+			for (x in 0 until 8) {
+				val itemStack = inventory[x + 8 * y] ?: continue
+				val itemX = startX + 1 + fullSlotSize * x + scale
+				val itemY = startY + 1 + fullSlotSize * y + scale
+				spriteBatch.simple(itemX, itemY, scale, itemStack.item.sprite.index)
+				renderAmount(itemStack, itemX, itemY, scale)
 			}
 		}
 
-		if (pickedItem != null && tab.mouseX >= 0 && tab.mouseY >= 0) {
-			spriteBatch.simple(tab.mouseX, tab.mouseY, scale, pickedItem.get()!!.item.sprite.index)
-			renderAmount(pickedItem.get()!!, tab.mouseX, tab.mouseY)
+		if (pickedUpItem != null && interaction.mouseX >= 0 && interaction.mouseY >= 0) {
+			val itemX = interaction.mouseX - 10
+			val itemY = interaction.mouseY - 10
+			val itemScale = 3
+			spriteBatch.simple(
+				itemX, itemY, itemScale,
+				pickedUpItem.item.sprite.index,
+			)
+			renderAmount(pickedUpItem, itemX, itemY + itemScale, itemScale)
 		}
 
-		tab.renderItemsStartX = startX + 1
-		tab.renderItemsStartY = startY + 1
-		tab.renderItemSlotSize = fullSlotSize
+		return ItemGridRenderInfo(startX + 1, startY + 1, fullSlotSize)
 	}
 }

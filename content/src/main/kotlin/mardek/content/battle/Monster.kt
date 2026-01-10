@@ -11,6 +11,7 @@ import mardek.content.animation.CombatantAnimations
 import mardek.content.stats.*
 import mardek.content.inventory.Dreamstone
 import mardek.content.skill.ActiveSkill
+import java.util.EnumMap
 import java.util.UUID
 
 /**
@@ -72,7 +73,7 @@ class Monster(
 	 */
 	@BitField(id = 6)
 	@IntegerField(expectUniform = false, minValue = 0, digitSize = 2)
-	val baseStats: HashMap<CombatStat, Int>,
+	val baseStats: EnumMap<CombatStat, Int>,
 
 	/**
 	 * For almost all monsters, the `playerStatModifier` is 0, which means that the maximum HP/MP of the monster are
@@ -275,7 +276,10 @@ class Monster(
 		className = "",
 		type = CreatureType(),
 		element = Element(),
-		baseStats = hashMapOf(Pair(CombatStat.MaxHealth, 1), Pair(CombatStat.MaxMana, 1)),
+		baseStats = EnumMap(mapOf(
+			Pair(CombatStat.MaxHealth, 1),
+			Pair(CombatStat.MaxMana, 1),
+		)),
 		playerStatModifier = 0,
 		hpPerLevel = 0,
 		attackPerLevelNumerator = 0,

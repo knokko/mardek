@@ -43,7 +43,7 @@ internal fun renderSkillOrItemDescription(
 			} else if (selectedMove is BattleMoveSelectionItem && selectedMove.item != null && selectedMove.target == null) {
 				val item = selectedMove.item!!
 				SelectedDescriptionElement(
-					name = item.flashName, sprite = item.sprite, image = null,
+					name = item.displayName, sprite = item.sprite, image = null,
 					description = item.description, currentMastery = null, maxMastery = null
 				)
 			} else return

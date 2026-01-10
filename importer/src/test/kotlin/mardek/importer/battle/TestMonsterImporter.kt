@@ -1,6 +1,6 @@
 package mardek.importer.battle
 
-import mardek.content.Content
+import com.github.knokko.bitser.Bitser
 import mardek.content.animation.CombatantAnimations
 import mardek.content.battle.*
 import mardek.content.stats.Element
@@ -9,11 +9,7 @@ import mardek.content.stats.ElementalResistance
 import mardek.content.skill.SkillTargetType
 import mardek.content.stats.CombatStat
 import mardek.content.stats.PossibleStatusEffect
-import mardek.importer.audio.importAudioContent
-import mardek.importer.stats.importStatsContent
-import mardek.importer.inventory.importItemsContent
-import mardek.importer.particle.importParticleEffects
-import mardek.importer.skills.importSkillsContent
+import mardek.importer.importVanillaContent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -89,17 +85,9 @@ DetermineStats();
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestMonsterImporter {
 
-	private val content = Content()
+	private val content = importVanillaContent(Bitser(true), skipMonsters = true)
 
-	init {
-		importAudioContent(content.audio)
-		importParticleEffects(content)
-		importStatsContent(content)
-		importSkillsContent(content)
-		importItemsContent(content)
-	}
-
-	private fun getItem(name: String) = content.items.items.find { it.flashName == name }!!
+	private fun getItem(name: String) = content.items.items.find { it.displayName == name }!!
 
 	private fun getStatValue(monster: Monster, name: String) = monster.baseStats[CombatStat.entries.find { it.flashName == name }!!] ?: 0
 

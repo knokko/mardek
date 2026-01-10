@@ -85,7 +85,7 @@ class Area(
 	 */
 	@BitField(id = 9)
 	@StableReferenceFieldId
-	val id: UUID = UUID.randomUUID()!!,
+	val id: UUID,
 ) {
 
 	/**
@@ -98,7 +98,7 @@ class Area(
 
 	constructor() : this(
 		0, 0, Tilesheet(), emptyArray(), AreaObjects(), ArrayList(),
-		null, AreaFlags(), AreaProperties()
+		null, AreaFlags(), AreaProperties(), UUID.randomUUID(),
 	)
 
 	override fun toString() = properties.displayName

@@ -1,21 +1,17 @@
 package mardek.importer.area
 
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import mardek.content.Content
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.sprite.KimSprite
 import mardek.importer.actions.HardcodedActions
 import mardek.importer.audio.importAudioContent
-import mardek.importer.battle.importBattleContent
-import mardek.importer.characters.importPlayableCharacters
+import mardek.importer.importVanillaContent
 import mardek.importer.inventory.assertDecompressedKim3Equals
-import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
 import mardek.importer.stats.importStatsContent
-import mardek.importer.skills.importSkillsContent
-import mardek.importer.stats.importClasses
 import mardek.importer.story.expressions.HardcodedExpressions
-import mardek.importer.story.importSimpleStoryContent
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -61,19 +57,7 @@ class TestSpritesAndAreas {
 
 	@Test
 	fun testImportCharacterSprites() {
-		val content = Content()
-		importAudioContent(content.audio)
-		importParticleEffects(content)
-		importStatsContent(content)
-		importSkillsContent(content)
-		importItemsContent(content)
-		importBattleContent(content, null)
-		importAreaSprites(content)
-		importClasses(content)
-		importPlayableCharacters(content, null)
-		importSimpleStoryContent(content.story)
-		importAreaBattleContent(content)
-		importAreaContent(content)
+		val content = importVanillaContent(Bitser(false), skipMonsters = true)
 
 		val deugan = content.areas.characterSprites.find { it.name == "deugan_hero" }!!
 		assertEquals("deugan_hero", deugan.name)

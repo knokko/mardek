@@ -17,30 +17,44 @@ import java.util.*
  */
 @BitStruct(backwardCompatible = true)
 class Item(
+
+	/**
+	 * The unique ID of the item, which is used for (de)serialization.
+	 */
+	@BitField(id = 0)
+	@StableReferenceFieldId
+	val id: UUID,
+
 	/**
 	 * The display name of the item, as imported from Flash.
 	 */
-	@BitField(id = 0)
-	val flashName: String,
+	@BitField(id = 1)
+	val displayName: String,
+
+	/**
+	 * The inventory sprite of this item
+	 */
+	@BitField(id = 2)
+	val sprite: KimSprite,
 
 	/**
 	 * The description of the item.
 	 */
-	@BitField(id = 1)
+	@BitField(id = 3)
 	val description: String,
 
 	/**
 	 * The type/category of the item. This is displayed in the inventory UI, and determines whether the item can be
 	 * stacked.
 	 */
-	@BitField(id = 2)
+	@BitField(id = 4)
 	@ReferenceField(stable = false, label = "item types")
 	val type: ItemType,
 
 	/**
 	 * The element of the item, or `null` for boring items without element.
 	 */
-	@BitField(id = 3, optional = true)
+	@BitField(id = 5, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element?,
 
@@ -48,7 +62,7 @@ class Item(
 	 * The price/cost of the item. It costs this amount to buy the item in a store. The player can sell the item for
 	 * half this amount.
 	 */
-	@BitField(id = 4, optional = true)
+	@BitField(id = 6, optional = true)
 	@IntegerField(expectUniform = false, minValue = 0, commonValues=[1000, 5000, 10000, 500])
 	val cost: Int?,
 
@@ -56,36 +70,23 @@ class Item(
 	 * This field will be non-null if and only if this item can be equipped. If so, it specifies the properties that
 	 * only equippable items have.
 	 */
-	@BitField(id = 5, optional = true)
+	@BitField(id = 7, optional = true)
 	val equipment: EquipmentProperties?,
 
 	/**
 	 * This field will be non-null if and only if this item can be consumed (e.g. potions). If so, it specifies the
 	 * properties that only consumable items have.
 	 */
-	@BitField(id = 6, optional = true)
+	@BitField(id = 8, optional = true)
 	val consumable: ConsumableProperties?,
-
-	/**
-	 * The unique ID of the item, which is used for (de)serialization.
-	 */
-	@BitField(id = 7)
-	@StableReferenceFieldId
-	val id: UUID,
 ) {
 
-	/**
-	 * The inventory sprite of the item
-	 */
-	@BitField(id = 8)
-	lateinit var sprite: KimSprite
-
 	constructor() : this(
-			"", "", ItemType(), null,
-			0, null, null, UUID.randomUUID(),
+		UUID.randomUUID(), "", KimSprite(), "",
+		ItemType(), null, 0, null, null,
 	)
 
-	override fun toString() = flashName
+	override fun toString() = displayName
 
 	/**
 	 * If this item is not equippable, this method returns 0.

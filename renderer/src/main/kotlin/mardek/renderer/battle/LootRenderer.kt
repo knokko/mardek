@@ -68,7 +68,7 @@ internal fun renderBattleLoot(
 		}
 		val textY = itemY + 10 * scale
 		textBatch.drawString(
-			itemStack.item.flashName, region.minX + 33 * scale, textY,
+			itemStack.item.displayName, region.minX + 33 * scale, textY,
 			textHeight * 2 / 3, basicFont, strongColor,
 		)
 		textBatch.drawString(

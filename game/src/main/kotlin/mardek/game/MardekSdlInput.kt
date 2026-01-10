@@ -11,13 +11,14 @@ import mardek.renderer.FULL_BORDER_HEIGHT
 import mardek.renderer.MardekCursor
 import mardek.state.GameStateManager
 import mardek.state.ingame.InGameState
-import mardek.state.ingame.menu.InventoryTab
+import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.title.TitleScreenState
 import org.lwjgl.sdl.SDLEvents.*
 import org.lwjgl.sdl.SDLGamepad.*
 import org.lwjgl.sdl.SDLKeyboard.SDL_StartTextInput
 import org.lwjgl.sdl.SDLKeyboard.SDL_StopTextInput
 import org.lwjgl.sdl.SDLKeycode.*
+import org.lwjgl.sdl.SDLMouse.SDL_BUTTON_RIGHT
 import org.lwjgl.sdl.SDLMouse.SDL_CreateColorCursor
 import org.lwjgl.sdl.SDLMouse.SDL_HideCursor
 import org.lwjgl.sdl.SDLMouse.SDL_SetCursor
@@ -249,8 +250,11 @@ class MardekSdlInput(
 
 			if (type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
 				lastCursorAction = System.nanoTime()
+
+				val rawButton = SDL_MouseButtonEvent.nbutton(rawEvent).toInt()
 				input.postEvent(InputKeyEvent(
-					InputKey.Click, didPress = true, didRepeat = false, didRelease = false
+					if (rawButton == SDL_BUTTON_RIGHT) InputKey.SplitClick else InputKey.Click,
+					didPress = true, didRepeat = false, didRelease = false
 				))
 
 				val x = SDL_MouseButtonEvent.nx(rawEvent).toInt()
@@ -282,8 +286,10 @@ class MardekSdlInput(
 			}
 			if (type == SDL_EVENT_MOUSE_BUTTON_UP) {
 				lastCursorAction = System.nanoTime()
+				val rawButton = SDL_MouseButtonEvent.nbutton(rawEvent).toInt()
 				input.postEvent(InputKeyEvent(
-					InputKey.Click, didPress = false, didRepeat = false, didRelease = true
+					if (rawButton == SDL_BUTTON_RIGHT) InputKey.SplitClick else InputKey.Click,
+					didPress = false, didRepeat = false, didRelease = true
 				))
 			}
 
@@ -408,7 +414,7 @@ class MardekSdlInput(
 			val currentTab = currentState.menu.currentTab
 			if (currentTab is InventoryTab) {
 				newCursor = MardekCursor.Inventory
-				if (currentTab.pickedUpItem != null) newCursor = MardekCursor.Grab
+				if (currentState.campaign.cursorItemStack != null) newCursor = MardekCursor.Grab
 			}
 		}
 

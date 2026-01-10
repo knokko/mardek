@@ -9,6 +9,7 @@ import mardek.game.area.TestRandomBattles
 import mardek.game.area.TestTimelines
 import mardek.game.battle.*
 import mardek.game.inventory.TestCountItemOccurrences
+import mardek.game.inventory.TestValidateEquipment
 import mardek.game.portrait.TestPortraitImporting
 import mardek.game.portrait.TestSpecialPortraitNodes
 import mardek.game.save.TestListSaves
@@ -16,6 +17,7 @@ import mardek.game.save.TestSaveAndLoad
 import mardek.game.story.TestQuests
 import mardek.game.ui.TestCutscenes
 import mardek.game.ui.TestInGameMenu
+import mardek.game.ui.TestInventory
 import mardek.game.ui.TestTitleScreen
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.parallel.Execution
@@ -184,6 +186,42 @@ class IntegrationTests {
 	@Test
 	fun testInGameMenu() {
 		TestInGameMenu.testOpeningAndScrolling(instance)
+	}
+
+	@Test
+	fun testDragInventoryEquipment() {
+		TestInventory.testMoveEquipment(instance)
+	}
+
+	@Test
+	fun testEquipmentSlotDefinitions() {
+		TestValidateEquipment.testEquipmentSlotDefinitions(instance)
+	}
+
+	@Test
+	fun testEquipmentStatsHints() {
+		TestInventory.testEquipmentStatsHints(instance)
+	}
+
+	@Test
+	fun testInventoryDiscard() {
+		TestInventory.testDiscardItem(instance)
+	}
+
+	@Test
+	fun testInventorySplitStack() {
+		TestInventory.testSplitItemStack(instance)
+	}
+
+	@Test
+	fun testInventoryConsumeItems() {
+		TestInventory.testConsumeItems(instance)
+	}
+
+	@Test
+	fun testValidateEquipmentDuringInitialization() {
+		TestValidateEquipment.testInvalidEquipmentIsErased(instance)
+		TestValidateEquipment.testEquipmentInSlotsOfSomeoneElse(instance)
 	}
 
 	@Test

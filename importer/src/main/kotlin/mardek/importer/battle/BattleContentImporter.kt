@@ -1,13 +1,12 @@
 package mardek.importer.battle
 
 import mardek.content.Content
-import mardek.content.animation.CombatantAnimations
 import java.awt.image.BufferedImage
 
-internal fun importBattleContent(content: Content, playerModelMapping: MutableMap<String, CombatantAnimations>?) {
-	if (playerModelMapping != null) {
+internal fun importBattleContent(content: Content, importMonsters: Boolean) {
+	if (importMonsters) {
 		importBattleBackgrounds(content.battle)
-		importMonsters(content, playerModelMapping)
+		importMonsters(content, null)
 	}
 	importLootTexts(content.battle)
 

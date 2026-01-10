@@ -2,6 +2,7 @@ package mardek.state.saves
 
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.Bitser
+import com.github.knokko.bitser.exceptions.BitserException
 import mardek.content.Content
 import mardek.state.ingame.CampaignState
 import java.io.BufferedInputStream
@@ -126,6 +127,9 @@ class SavesFolderManager(
 			rawInput.skip(numInfoBytes.toLong())
 			return CampaignState.loadSave(content, rawInput)
 		} catch (failed: IOException) {
+			failed.printStackTrace()
+			return null
+		} catch (failed: BitserException) {
 			failed.printStackTrace()
 			return null
 		}

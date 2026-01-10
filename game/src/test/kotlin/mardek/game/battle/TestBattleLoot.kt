@@ -36,7 +36,7 @@ object TestBattleLoot {
 			val campaign = simpleCampaignState()
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
-			val monsterFang = content.items.items.find { it.flashName == "Monster Fang" }!!
+			val monsterFang = content.items.items.find { it.displayName == "Monster Fang" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = monster, level = 10),
 				null, null,
@@ -130,7 +130,7 @@ object TestBattleLoot {
 			var numSingleFangs = 0
 			var numDoubleFangs = 0
 
-			val monsterFang = content.items.items.find { it.flashName == "Monster Fang" }!!
+			val monsterFang = content.items.items.find { it.displayName == "Monster Fang" }!!
 			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle.battle
 			repeat(10_000) {
 				val loot = generateBattleLoot(content, battle, campaign.usedPartyMembers())
@@ -157,7 +157,7 @@ object TestBattleLoot {
 			val campaign = simpleCampaignState()
 
 			val demon = content.battle.monsters.find { it.name == "warportdemon" }!!
-			val pass = content.items.plotItems.find { it.name == "Gold Warport Pass" }!!
+			val pass = content.items.plotItems.find { it.displayName == "Gold Warport Pass" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(
 				Enemy(monster = demon, level = 10),
 				null, null,
@@ -202,8 +202,8 @@ object TestBattleLoot {
 
 	fun testTakeSingle(instance: TestingInstance) {
 		instance.apply {
-			val ruby = content.items.items.find { it.flashName == "Ruby" }!!
-			val emerald = content.items.items.find { it.flashName == "Emerald" }!!
+			val ruby = content.items.items.find { it.displayName == "Ruby" }!!
+			val emerald = content.items.items.find { it.displayName == "Emerald" }!!
 
 			val campaign = simpleCampaignState()
 			val area = campaign.currentArea!!
@@ -268,10 +268,10 @@ object TestBattleLoot {
 
 	fun testTakeAll(instance: TestingInstance) {
 		instance.apply {
-			val ruby = content.items.items.find { it.flashName == "Ruby" }!!
-			val emerald = content.items.items.find { it.flashName == "Emerald" }!!
-			val topaz = content.items.items.find { it.flashName == "Topaz" }!!
-			val onyx = content.items.items.find { it.flashName == "Onyx" }!!
+			val ruby = content.items.items.find { it.displayName == "Ruby" }!!
+			val emerald = content.items.items.find { it.displayName == "Emerald" }!!
+			val topaz = content.items.items.find { it.displayName == "Topaz" }!!
+			val onyx = content.items.items.find { it.displayName == "Onyx" }!!
 
 			val campaign = simpleCampaignState()
 			campaign.party[0] = null
@@ -384,7 +384,7 @@ object TestBattleLoot {
 				arrayOf(monsterSkinColor), emptyArray()
 			)
 
-			val sapphire = content.items.items.find { it.flashName == "Sapphire" }!!
+			val sapphire = content.items.items.find { it.displayName == "Sapphire" }!!
 			(area.suspension as AreaSuspensionBattle).loot = BattleLoot(
 				1234, arrayListOf(ItemStack(sapphire, 5)),
 				ArrayList(0), ArrayList(0),

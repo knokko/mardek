@@ -69,7 +69,7 @@ internal fun renderCurrentMoveBar(
 
 		val textX = region.minX + region.width * 0.25f + 1.15f * region.height
 		val textColor = srgbToLinear(rgb(238, 203, 127))
-		val name = currentSkill?.name ?: currentItem!!.flashName
+		val name = currentSkill?.name ?: currentItem!!.displayName
 		val font = context.bundle.getFont(context.content.fonts.fat.index)
 		textBatch.drawString(
 			name, textX, region.maxY - region.height * 0.25f, 0.45f * region.height,

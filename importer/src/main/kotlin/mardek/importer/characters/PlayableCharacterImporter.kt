@@ -15,7 +15,7 @@ import java.util.UUID
 
 @Suppress("UNCHECKED_CAST")
 internal fun importPlayableCharacters(
-	content: Content, playerModelMapping: Map<String, CombatantAnimations>?
+	content: Content, playerModelMapping: Map<String, CombatantAnimations>
 ) {
 	val flashCode = parseActionScriptResource("mardek/importer/stats/playable-characters.txt")
 
@@ -48,9 +48,9 @@ internal fun importPlayableCharacters(
 			}!!,
 			baseStats = statMods,
 			areaSprites = content.areas.characterSprites.find { it.name == areaSpritesName }!!,
-			animations = if (playerModelMapping != null) playerModelMapping[className]!! else CombatantAnimations(),
+			animations = if (playerModelMapping.isNotEmpty()) playerModelMapping[className]!! else CombatantAnimations(),
 			creatureType = content.stats.creatureTypes.find { it.flashName == "HUMAN" }!!,
-			portraitInfo = if (playerModelMapping != null) {
+			portraitInfo = if (content.portraits.info.isNotEmpty()) {
 				content.portraits.info.find { it.flashName == areaSpritesName }!!
 			} else PortraitInfo(),
 			id = UUID.nameUUIDFromBytes("PlayableCharacterImporter$name$className".encodeToByteArray()),

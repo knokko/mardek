@@ -122,9 +122,9 @@ object TestMonsterStrategyCalculator {
 
 			val magicShield = content.stats.statusEffects.find { it.niceName == "M.Shield" }!!
 			val mardekState = campaign.characterStates[heroMardek]!!
-			val firePendant = content.items.items.find { it.flashName == "FirePendant" }!!
-			mardekState.equipment[4] = firePendant
-			mardekState.equipment[5] = firePendant
+			val firePendant = content.items.items.find { it.displayName == "FirePendant" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = firePendant
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[5]] = firePendant
 
 			val animus = content.battle.monsters.find { it.name == "kdestralan_mind" }!!
 			val fireVortex = animus.actions.find { it.name == "Energy Vortex: Fire" }!!

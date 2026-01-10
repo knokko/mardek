@@ -74,7 +74,7 @@ object TestMoveResultCalculator {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			val equipment = campaign.characterStates[instance.heroMardek]!!.equipment
+			val equipment = campaign.characterStates[heroMardek]!!.equipment
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
 				monster = monster, level = 30
@@ -117,7 +117,7 @@ object TestMoveResultCalculator {
 			}
 
 			// Hero's Coat gives 45 armor, so only 10% of damage left since monster attack is 50
-			equipment[2] = content.items.items.find { it.flashName == "Hero's Coat" }!!
+			equipment[heroMardek.characterClass.equipmentSlots[3]] = content.items.items.find { it.displayName == "Hero's Coat" }!!
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
@@ -130,7 +130,7 @@ object TestMoveResultCalculator {
 			}
 
 			// Hero's Armour gives 50 armor, so no damage is left
-			equipment[3] = content.items.items.find { it.flashName == "Hero's Armour" }!!
+			equipment[heroMardek.characterClass.equipmentSlots[3]] = content.items.items.find { it.displayName == "Hero's Armour" }!!
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
@@ -141,7 +141,7 @@ object TestMoveResultCalculator {
 			}
 
 			// When we give Mardek even more armour, the damage should stay 0
-			equipment[4] = content.items.items.find { it.flashName == "Emerald Bangle" }!!
+			equipment[heroMardek.characterClass.equipmentSlots[4]] = content.items.items.find { it.displayName == "Emerald Bangle" }!!
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingOpponents()[0], battle.livingPlayers()[0], true
@@ -210,7 +210,7 @@ object TestMoveResultCalculator {
 			val targetEquipment = campaign.characterStates[heroMardek]!!.equipment
 			val attackerEquipment = campaign.characterStates[heroDeugan]!!.equipment
 			val fire = content.stats.elements.find { it.rawName == "FIRE" }!!
-			attackerEquipment[0] = content.items.items.find { it.flashName == "Firefang" }!!
+			attackerEquipment[heroDeugan.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "Firefang" }!!
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[1], battle.livingPlayers()[0], true
@@ -223,9 +223,9 @@ object TestMoveResultCalculator {
 			}
 
 			// They should give +30% fire damage together
-			attackerEquipment[2] = content.items.items.find { it.flashName == "Feather Crest" }!!
+			attackerEquipment[heroDeugan.characterClass.equipmentSlots[2]] = content.items.items.find { it.displayName == "Feather Crest" }!!
 			for (index in arrayOf(4, 5)) {
-				attackerEquipment[index] = content.items.items.find { it.flashName == "FireOpal" }!!
+				attackerEquipment[heroDeugan.characterClass.equipmentSlots[index]] = content.items.items.find { it.displayName == "FireOpal" }!!
 			}
 
 			repeat(100) {
@@ -255,7 +255,7 @@ object TestMoveResultCalculator {
 			}
 
 			// This should give an extra 50% fire resistance, for a total of 100% resistance
-			targetEquipment[4] = content.items.items.find { it.flashName == "FirePendant" }!!
+			targetEquipment[heroMardek.characterClass.equipmentSlots[4]] = content.items.items.find { it.displayName == "FirePendant" }!!
 
 			repeat(10_000) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
@@ -266,10 +266,11 @@ object TestMoveResultCalculator {
 			}
 
 			// This should give an extra 110% fire resistance, for a total of 210%
-			targetEquipment[3] = content.items.items.find { it.flashName == "Flamemail" }!!
+			val flamemail = content.items.items.find { it.displayName == "Flamemail" }!!
+			targetEquipment[heroMardek.characterClass.equipmentSlots[3]] = flamemail
 
 			// To make it a nice predictable jump of 110%, compensate the armor of Flamemail
-			battle.livingPlayers()[1].statModifiers[CombatStat.Attack] = targetEquipment[3]!!.equipment!!.stats.find {
+			battle.livingPlayers()[1].statModifiers[CombatStat.Attack] = flamemail.equipment!!.stats.find {
 				it.stat == CombatStat.MeleeDefense
 			}!!.adder
 			repeat(100) {
@@ -291,7 +292,7 @@ object TestMoveResultCalculator {
 
 			val drainHp = content.skills.reactionSkills.find { it.name == "Drain HP 10%" }!!
 			val attackerState = campaign.characterStates[heroMardek]!!
-			attackerState.equipment[0] = content.items.items.find { it.flashName == "Shadowblade" }!!
+			attackerState.equipment[heroMardek.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "Shadowblade" }!!
 			attackerState.currentLevel = 50
 			attackerState.currentHealth = attackerState.determineMaxHealth(heroMardek.baseStats, emptySet())
 
@@ -331,7 +332,7 @@ object TestMoveResultCalculator {
 
 			// Blood Sword has 5 attack more than Shadowblade, which we compensate
 			battle.livingPlayers()[0].statModifiers[CombatStat.Attack] = -5
-			attackerState.equipment[0] = content.items.items.find { it.flashName == "Blood Sword" }!!
+			attackerState.equipment[heroMardek.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "Blood Sword" }!!
 			repeat(100) {
 				val result = MoveResultCalculator(battleUpdateContext(campaign)).computeBasicAttackResult(
 					battle.livingPlayers()[0], battle.livingOpponents()[0], true
@@ -351,7 +352,7 @@ object TestMoveResultCalculator {
 			val campaign = simpleCampaignState()
 
 			val mardekEquipment = campaign.characterStates[heroMardek]!!.equipment
-			mardekEquipment[2] = content.items.items.find { it.flashName == "Cursed Beret" }!!
+			mardekEquipment[heroMardek.characterClass.equipmentSlots[2]] = content.items.items.find { it.displayName == "Cursed Beret" }!!
 
 			val deuganState = campaign.characterStates[heroDeugan]!!
 			val shieldBreakReaction = content.skills.reactionSkills.find { it.name == "Shield Break 10%" }!!
@@ -426,10 +427,10 @@ object TestMoveResultCalculator {
 			}
 
 			// Give Mardek 2 * 20% = 40% sleep resistance
-			val bodyCrystal = content.items.items.find { it.flashName == "Body Crystal" }!!
+			val bodyCrystal = content.items.items.find { it.displayName == "Body Crystal" }!!
 			val equipment = campaign.characterStates[heroMardek]!!.equipment
-			equipment[4] = bodyCrystal
-			equipment[5] = bodyCrystal
+			equipment[heroMardek.characterClass.equipmentSlots[4]] = bodyCrystal
+			equipment[heroMardek.characterClass.equipmentSlots[5]] = bodyCrystal
 
 			var sleepCounter = 0
 			repeat(10_000) {
@@ -452,11 +453,12 @@ object TestMoveResultCalculator {
 
 			// Give Mardek a wand and a lot of mana
 			val attackerState = campaign.characterStates[heroMardek]!!
-			attackerState.equipment[0] = content.items.items.find { it.flashName == "Water Rod" }!!
-			attackerState.equipment[2] = content.items.items.find { it.flashName == "Silver Circlet" }!!
-			attackerState.equipment[3] = content.items.items.find { it.flashName == "Turquoise Armour" }!!
-			attackerState.equipment[4] = content.items.items.find { it.flashName == "Sapphire Bangle" }!!
-			attackerState.equipment[5] = content.items.items.find { it.flashName == "Sapphire Bangle" }!!
+			val slots = heroMardek.characterClass.equipmentSlots
+			attackerState.equipment[slots[0]] = content.items.items.find { it.displayName == "Water Rod" }!!
+			attackerState.equipment[slots[2]] = content.items.items.find { it.displayName == "Silver Circlet" }!!
+			attackerState.equipment[slots[3]] = content.items.items.find { it.displayName == "Turquoise Armour" }!!
+			attackerState.equipment[slots[4]] = content.items.items.find { it.displayName == "Sapphire Bangle" }!!
+			attackerState.equipment[slots[5]] = content.items.items.find { it.displayName == "Sapphire Bangle" }!!
 			attackerState.currentLevel = 50
 			attackerState.currentHealth = attackerState.determineMaxHealth(heroMardek.baseStats, emptySet())
 			attackerState.currentMana = attackerState.determineMaxMana(heroMardek.baseStats, emptySet())
@@ -531,7 +533,7 @@ object TestMoveResultCalculator {
 			val campaign = simpleCampaignState()
 
 			val mardekState = campaign.characterStates[heroMardek]!!
-			mardekState.equipment[0] = content.items.items.find { it.flashName == "Shadowblade" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "Shadowblade" }!!
 
 			val dreamFish = content.battle.monsters.find { it.name == "dreamfish" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
@@ -638,7 +640,7 @@ object TestMoveResultCalculator {
 			mardekState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "Nullify Physical" }!!)
 			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "DMG Soak 200" }!!)
-			deuganState.equipment[2] = content.items.items.find { it.flashName == "Hero's Coat" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[3]] = content.items.items.find { it.displayName == "Hero's Coat" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(monster = monster, level = 1)))
@@ -723,8 +725,8 @@ object TestMoveResultCalculator {
 
 			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.currentLevel = 50
-			mardekState.equipment[1] = content.items.items.find { it.flashName == "Hero's Shield" }!!
-			mardekState.equipment[3] = content.items.items.find { it.flashName == "Hero's Armour" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[1]] = content.items.items.find { it.displayName == "Hero's Shield" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[3]] = content.items.items.find { it.displayName == "Hero's Armour" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			val darkClaw = monster.actions.find { it.name == "Dark Claw" }!!
@@ -762,7 +764,7 @@ object TestMoveResultCalculator {
 
 			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.currentLevel = 50
-			mardekState.equipment[3] = content.items.items.find { it.flashName == "Hero's Armour" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[3]] = content.items.items.find { it.displayName == "Hero's Armour" }!!
 
 			val johnny = content.battle.monsters.find { it.name == "happyjohnny" }!!
 			val mimicry = content.skills.classes.find { it.name == "Mimicry" }!!
@@ -793,9 +795,9 @@ object TestMoveResultCalculator {
 			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.currentLevel = 50
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG+30%" }!!)
-			deuganState.equipment[0] = content.items.items.find { it.flashName == "Balmung" }!!
-			deuganState.equipment[3] = content.items.items.find { it.flashName == "Hero's Coat" }!!
-			deuganState.equipment[4] = content.items.items.find { it.flashName == "Dragon Amulet" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "Balmung" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[3]] = content.items.items.find { it.displayName == "Hero's Coat" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[4]] = content.items.items.find { it.displayName == "Dragon Amulet" }!!
 
 			val pyromagia = heroDeugan.characterClass.skillClass.actions.find { it.name == "Pyromagia" }!!
 
@@ -846,7 +848,7 @@ object TestMoveResultCalculator {
 			deuganState.activeStatusEffects.add(poison)
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG+30%" }!!)
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "Nullify Magic" }!!)
-			deuganState.equipment[0] = content.items.items.find { it.flashName == "Balmung" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "Balmung" }!!
 
 			val recover = heroDeugan.characterClass.skillClass.actions.find { it.name == "Recover" }!!
 
@@ -883,7 +885,7 @@ object TestMoveResultCalculator {
 			}
 
 			// Increasing magic resistance should NOT decrease healing power
-			deuganState.equipment[3] = content.items.items.find { it.flashName == "Hero's Shield" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[1]] = content.items.items.find { it.displayName == "Hero's Shield" }!!
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG-30%" }!!)
 
 			repeat(1000) {
@@ -907,9 +909,9 @@ object TestMoveResultCalculator {
 			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.currentLevel = 50
 			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "M DMG+30%" }!!)
-			deuganState.equipment[0] = content.items.items.find { it.flashName == "Balmung" }!!
-			deuganState.equipment[3] = content.items.items.find { it.flashName == "Hero's Coat" }!!
-			deuganState.equipment[4] = content.items.items.find { it.flashName == "Dragon Amulet" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "Balmung" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[3]] = content.items.items.find { it.displayName == "Hero's Coat" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[4]] = content.items.items.find { it.displayName == "Dragon Amulet" }!!
 
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(
@@ -995,7 +997,7 @@ object TestMoveResultCalculator {
 
 	fun testPotion(instance: TestingInstance) {
 		instance.apply {
-			val potion = content.items.items.find { it.flashName == "Potion" }!!
+			val potion = content.items.items.find { it.displayName == "Potion" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
 			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
@@ -1026,7 +1028,7 @@ object TestMoveResultCalculator {
 
 	fun testEther(instance: TestingInstance) {
 		instance.apply {
-			val ether = content.items.items.find { it.flashName == "Ether" }!!
+			val ether = content.items.items.find { it.displayName == "Ether" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
 			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
@@ -1057,7 +1059,7 @@ object TestMoveResultCalculator {
 
 	fun testElixir(instance: TestingInstance) {
 		instance.apply {
-			val elixir = content.items.items.find { it.flashName == "Elixir" }!!
+			val elixir = content.items.items.find { it.displayName == "Elixir" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
 			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
@@ -1117,7 +1119,7 @@ object TestMoveResultCalculator {
 
 	fun testPhoenixDown(instance: TestingInstance) {
 		instance.apply {
-			val phoenixDown = content.items.items.find { it.flashName == "PhoenixDown" }!!
+			val phoenixDown = content.items.items.find { it.displayName == "PhoenixDown" }!!
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)
 			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
@@ -1146,7 +1148,7 @@ object TestMoveResultCalculator {
 
 	fun testAntidote(instance: TestingInstance) {
 		instance.apply {
-			val antidote = content.items.items.find { it.flashName == "Antidote" }!!
+			val antidote = content.items.items.find { it.displayName == "Antidote" }!!
 			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
 			val paralysis = content.stats.statusEffects.find { it.flashName == "PAR" }!!
 
@@ -1185,7 +1187,7 @@ object TestMoveResultCalculator {
 
 	fun testRemedy(instance: TestingInstance) {
 		instance.apply {
-			val remedy = content.items.items.find { it.flashName == "Remedy" }!!
+			val remedy = content.items.items.find { it.displayName == "Remedy" }!!
 			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
 			val paralysis = content.stats.statusEffects.find { it.flashName == "PAR" }!!
 			val shield = content.stats.statusEffects.find { it.flashName == "PSH" }!!
@@ -1214,7 +1216,7 @@ object TestMoveResultCalculator {
 
 	fun testAngryJuice(instance: TestingInstance) {
 		instance.apply {
-			val angryJuice = content.items.items.find { it.flashName == "Angry Juice" }!!
+			val angryJuice = content.items.items.find { it.displayName == "Angry Juice" }!!
 			val berserk = content.stats.statusEffects.find { it.flashName == "BSK" }!!
 
 			val campaign = simpleCampaignState()
@@ -1248,7 +1250,7 @@ object TestMoveResultCalculator {
 
 	fun testMagicDrink(instance: TestingInstance) {
 		instance.apply {
-			val magicDrink = content.items.items.find { it.flashName == "Magic Drink" }!!
+			val magicDrink = content.items.items.find { it.displayName == "Magic Drink" }!!
 
 			val campaign = simpleCampaignState()
 			startSimpleBattle(campaign)

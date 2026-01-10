@@ -22,7 +22,7 @@ object TestInfoModal {
 	fun testRendering(instance: TestingInstance) {
 		instance.apply {
 			val campaign = simpleCampaignState()
-			campaign.characterStates[heroDeugan]!!.equipment[4] = content.items.items.find { it.flashName == "Dragon Amulet" }!!
+			campaign.characterStates[heroDeugan]!!.equipment[heroDeugan.characterClass.equipmentSlots[4]] = content.items.items.find { it.displayName == "Dragon Amulet" }!!
 
 			startSimpleBattle(campaign)
 			val state = InGameState(campaign, "test")

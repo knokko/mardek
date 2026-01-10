@@ -26,7 +26,9 @@ import mardek.importer.area.importAreaContent
 import mardek.importer.area.importAreaSprites
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
+import mardek.importer.battle.importMonsters
 import mardek.importer.characters.importPlayableCharacters
+import mardek.importer.inventory.hardcodeItemTypes
 import mardek.importer.stats.importClasses
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
@@ -52,13 +54,15 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 		importCutscenes(content.actions)
 	} else addDummyCutscenes(content.actions)
 	importSkillsContent(content)
-	importItemsContent(content)
+	val fatItemTypes = hardcodeItemTypes(content)
 
-	val playerModelMapping = if (skipMonsters) null else mutableMapOf<String, CombatantAnimations>()
-	importBattleContent(content, playerModelMapping)
-	importClasses(content)
+	val playerModelMapping = mutableMapOf<String, CombatantAnimations>()
+	importClasses(content, fatItemTypes)
 	importAreaSprites(content)
+	if (!skipMonsters) importMonsters(content, playerModelMapping)
 	importPlayableCharacters(content, playerModelMapping)
+	importItemsContent(content, fatItemTypes)
+	importBattleContent(content, !skipMonsters)
 	importSimpleStoryContent(content.story)
 	importAreaBattleContent(content)
 	val hardcodedActions = importAreaContent(content)

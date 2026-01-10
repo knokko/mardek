@@ -5,7 +5,16 @@ enum class InputKey {
 	MoveUp,
 	MoveRight,
 	MoveDown,
+
+	/**
+	 * Basic click with the left mouse button
+	 */
 	Click,
+
+	/**
+	 * A click with the right mouse button, which should split item stacks
+	 */
+	SplitClick,
 
 	/**
 	 * The primary interact button that is used for talking to people, opening doors and chests, etc...
@@ -16,6 +25,10 @@ enum class InputKey {
 	 * The cancel button, which can be used to exit UI menu's, and can also be used to skep dialogue.
 	 */
 	Cancel,
+
+	/**
+	 * The button to toggle the in-game menu (Tab or Enter)
+	 */
 	ToggleMenu,
 	Escape,
 

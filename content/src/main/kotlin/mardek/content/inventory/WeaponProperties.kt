@@ -12,43 +12,42 @@ import mardek.content.stats.CreatureTypeBonus
 
 @BitStruct(backwardCompatible = true)
 class WeaponProperties(
+
 	@BitField(id = 0)
-	@ReferenceField(stable = false, label = "weapon types")
-	val type: WeaponType,
+	@IntegerField(expectUniform = true, minValue = 0, maxValue = 999)
+	val hitChance: Int,
 
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val critChance: Int,
 
 	@BitField(id = 2)
-	@IntegerField(expectUniform = true, minValue = 0, maxValue = 999)
-	val hitChance: Int,
-
-	@BitField(id = 3)
 	@FloatField(expectMultipleOf = 0.1)
 	val hpDrain: Float,
 
-	@BitField(id = 4)
+	@BitField(id = 3)
 	@FloatField(expectMultipleOf = 0.1)
 	val mpDrain: Float,
 
-	@BitField(id = 5)
+	@BitField(id = 4)
 	val effectiveAgainstCreatureTypes: ArrayList<CreatureTypeBonus>,
 
-	@BitField(id = 6)
+	@BitField(id = 5)
 	val effectiveAgainstElements: ArrayList<ElementalDamageBonus>,
 
-	@BitField(id = 7)
+	@BitField(id = 6)
 	val addEffects: ArrayList<PossibleStatusEffect>,
 
-	@BitField(id = 8, optional = true)
+	@BitField(id = 7, optional = true)
 	@ReferenceField(stable = false, label = "sound effects")
 	val hitSound: SoundEffect?,
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(
-			WeaponType(), 0, 0, 0f, 0f, ArrayList(0),
-			ArrayList(0), ArrayList(0), null
+			0, 0, 0f, 0f,
+		ArrayList(0),
+		ArrayList(0),
+		ArrayList(0), null,
 	)
 }

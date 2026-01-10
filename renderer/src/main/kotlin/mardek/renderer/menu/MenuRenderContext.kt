@@ -18,6 +18,7 @@ internal class MenuRenderContext(
 	val ovalBatch: Vk2dOvalBatch,
 	val imageBatch: Vk2dImageBatch,
 	val spriteBatch: Vk2dKim3Batch,
+	val lateColorBatch: Vk2dColorBatch,
 	val textBatch: MardekGlyphBatch,
 	val menu: InGameMenuState,
 	val state: CampaignState,
@@ -26,5 +27,7 @@ internal class MenuRenderContext(
 	val uiContext = UiUpdateContext(
 		context.campaign.usedPartyMembers(), context.campaign.allPartyMembers(),
 		context.state.soundQueue, context.content.audio.fixedEffects, context.content.skills,
+		{ context.campaign.cursorItemStack },
+		{ newCursorStack -> context.campaign.cursorItemStack = newCursorStack },
 	)
 }

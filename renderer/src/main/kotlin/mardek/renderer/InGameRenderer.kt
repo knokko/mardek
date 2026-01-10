@@ -73,9 +73,10 @@ internal fun renderInGame(
 					val ovalBatch = context.addOvalBatch(0)
 					val imageBatch = context.addImageBatch(0)
 					val spriteBatch = context.addKim3Batch(0)
+					val lateColorBatch = context.addColorBatch(0)
 
 					val menuContext = MenuRenderContext(
-						context, colorBatch, ovalBatch, imageBatch, spriteBatch, textBatch,
+						context, colorBatch, ovalBatch, imageBatch, spriteBatch, lateColorBatch, textBatch,
 						state.menu, state.campaign
 					)
 					renderInGameMenuSectionList(menuContext, Rectangle(

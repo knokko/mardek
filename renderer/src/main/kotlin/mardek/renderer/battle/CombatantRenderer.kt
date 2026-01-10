@@ -412,7 +412,7 @@ class CombatantRenderer(
 		if (stateMachine is BattleStateMachine.MeleeAttack && stateMachine.attacker === combatant) {
 			isMoving = true
 			meleeElement = stateMachine.skill?.element ?:
-					stateMachine.attacker.getEquipment(context.updateContext)[0]?.element
+					stateMachine.attacker.getWeapon(context.updateContext)?.element
 		}
 
 		val scaleX = if (combatant.isOnPlayerSide) coordinates.scale else -coordinates.scale
@@ -421,7 +421,6 @@ class CombatantRenderer(
 			.scale(scaleX, coordinates.scale)
 		parentMatrix.mul(toJOMLMatrix(animations.rootMatrix))
 
-		val equipment = combatant.getEquipment(context.updateContext)
 		val animationContext = AnimationContext(
 			renderRegion = region,
 			renderTime = context.renderTime,
@@ -437,8 +436,10 @@ class CombatantRenderer(
 				magicElement = magicElement,
 				isMoving = isMoving,
 				rootSkin = animations.skin,
-				weaponName = equipment[0]?.flashName,
-				shieldName = equipment[1]?.flashName,
+				weaponName = combatant.getWeapon(context.updateContext)?.displayName,
+				shieldName = combatant.getEquipment(context.updateContext).find {
+					it?.type?.displayName?.contains("SHIELD") ?: false
+				}?.displayName,
 				renderInfo = combatant.renderInfo,
 			),
 			portrait = null,

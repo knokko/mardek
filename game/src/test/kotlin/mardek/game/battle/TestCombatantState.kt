@@ -13,7 +13,7 @@ object TestCombatantState {
 			val campaign = simpleCampaignState()
 
 			val mardekState = campaign.characterStates[heroMardek]!!
-			mardekState.equipment[4] = content.items.items.find { it.flashName == "Boots of Celerity" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = content.items.items.find { it.displayName == "Boots of Celerity" }!!
 			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "AGL+1" }!!)
 
 			startSimpleBattle(campaign)
@@ -41,7 +41,7 @@ object TestCombatantState {
 			val campaign = simpleCampaignState()
 
 			val mardekState = campaign.characterStates[heroMardek]!!
-			mardekState.equipment[4] = content.items.items.find { it.flashName == "FirePendant" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = content.items.items.find { it.displayName == "FirePendant" }!!
 			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "Resist FIRE" }!!)
 
 			startSimpleBattle(campaign)
@@ -77,7 +77,7 @@ object TestCombatantState {
 			val campaign = simpleCampaignState()
 
 			val mardekState = campaign.characterStates[heroMardek]!!
-			mardekState.equipment[4] = content.items.items.find { it.flashName == "Amethyst" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = content.items.items.find { it.displayName == "Amethyst" }!!
 			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "Antibody" }!!)
 
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(

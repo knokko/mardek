@@ -2,9 +2,10 @@ package mardek.content.inventory
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.IntegerField
 
 /**
- * Represents a type of item, e.g. WEAPON and MISCELLANEOUS
+ * Represents a type of item, e.g. `WEAPON: GREATSWORD` and `MISCELLANEOUS`
  */
 @BitStruct(backwardCompatible = true)
 class ItemType(
@@ -13,17 +14,18 @@ class ItemType(
 	 * The display name of the item type, as imported from Flash. It is displayed in the inventory UI.
 	 */
 	@BitField(id = 0)
-	val flashName: String,
+	val displayName: String,
 
 	/**
-	 * Whether the item can *stack*: whether the `amount` can be larger than 1 for an `ItemStack` with an item of this
-	 * type. In vanilla, miscellaneous items can be stacked, whereas equippable items cannot be stacked.
+	 * The color that represents this item in the minified inventory grid that is shown below each character in the
+	 * chest/battle loot screen. (For instance, weapons are red, armor is green, and accessories are orange.)
 	 */
 	@BitField(id = 1)
-	val canStack: Boolean
+	@IntegerField(expectUniform = true)
+	val gridColor: Int,
 ) {
 
-	internal constructor() : this("", false)
+	constructor() : this("", 0)
 
-	override fun toString() = flashName
+	override fun toString() = displayName
 }

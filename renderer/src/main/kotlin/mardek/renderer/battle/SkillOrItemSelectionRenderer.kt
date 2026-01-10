@@ -46,7 +46,7 @@ internal fun renderSkillOrItemSelection(
 					it != null && it.item.consumable != null
 				}.mapNotNull { it!!.item }.toSet()
 				itemSet.map { item -> SkillOrItemEntry(
-					sprite = item.sprite, image = null, name = item.flashName,
+					sprite = item.sprite, image = null, name = item.displayName,
 					rightNumber = playerState.inventory.sumOf { if (it != null && it.item === item) it.amount else 0 },
 					isSelected = selectedMove.item === item
 				) }

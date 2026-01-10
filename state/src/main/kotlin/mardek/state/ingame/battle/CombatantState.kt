@@ -18,6 +18,7 @@ import mardek.content.skill.Skill
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.*
 import mardek.content.characters.CharacterState
+import java.util.EnumMap
 import kotlin.math.max
 import kotlin.math.min
 
@@ -122,7 +123,7 @@ sealed class CombatantState(
 	 */
 	@BitField(id = 8)
 	@IntegerField(expectUniform = false)
-	val statModifiers = HashMap<CombatStat, Int>()
+	val statModifiers = EnumMap<CombatStat, Int>(CombatStat::class.java)
 
 	val renderInfo = CombatantRenderInfo()
 
@@ -135,6 +136,8 @@ sealed class CombatantState(
 	abstract fun computeMaxMana(context: BattleUpdateContext): Int
 
 	abstract fun getEquipment(context: BattleUpdateContext): Array<Item?>
+
+	abstract fun getWeapon(context: BattleUpdateContext): Item?
 
 	abstract fun getNatural(stat: CombatStat): Int
 
@@ -277,7 +280,11 @@ class PlayerCombatantState(
 		statusEffects
 	)
 
-	override fun getEquipment(context: BattleUpdateContext) = context.characterStates[player]!!.equipment
+	override fun getEquipment(context: BattleUpdateContext) = context.characterStates[player]!!.equipment.values.toTypedArray<Item?>()
+
+	override fun getWeapon(context: BattleUpdateContext) = getEquipment(context).find {
+		it != null && it.type.displayName.contains("WEAPON")
+	}
 
 	override fun getNatural(stat: CombatStat): Int {
 		var result = 0
@@ -413,6 +420,8 @@ class MonsterCombatantState(
 	)
 
 	override fun getEquipment(context: BattleUpdateContext) = equipment
+
+	override fun getWeapon(context: BattleUpdateContext) = equipment[0]
 
 	override fun getNatural(stat: CombatStat) = monster.baseStats.getOrDefault(stat, 0)
 

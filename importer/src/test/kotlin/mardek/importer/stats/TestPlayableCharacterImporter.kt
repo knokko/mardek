@@ -30,10 +30,10 @@ class TestPlayableCharacterImporter {
 		val hero = mardek.characterClass
 		assertEquals("mardek_hero", hero.rawName)
 		assertEquals("Hero", hero.displayName)
-		assertEquals("SWORD", hero.weaponType!!.flashName)
-		assertEquals(4, hero.armorTypes.size)
-		assertNotNull(hero.armorTypes.find { it.name == "FULL HELM" })
-		assertNotNull(hero.armorTypes.find { it.name == "HEAVY ARMOUR" })
+		assertEquals("WEAPON: SWORD", hero.equipmentSlots[0].itemTypes.first().displayName)
+		assertEquals("SHIELD", hero.equipmentSlots[1].itemTypes.joinToString())
+		assertEquals("HELMET: FULL HELM", hero.equipmentSlots[2].itemTypes.joinToString())
+		assertTrue(hero.equipmentSlots[3].itemTypes.any { it.displayName == "ARMOUR: HEAVY" })
 
 		val skills = hero.skillClass
 		assertEquals("Hero", skills.key)
@@ -51,12 +51,14 @@ class TestPlayableCharacterImporter {
 		assertEquals(122, state.currentMana)
 		assertEquals(0, state.activeStatusEffects.size)
 
-		fun item(name: String) = content.items.items.find { it.flashName == name }!!
-		val expectedEquipment = arrayOf(
-			item("M Blade"), item("Hero's Shield"), null,
-			item("Hero's Armour"), item("Dragon Amulet"), null
+		fun item(name: String) = content.items.items.find { it.displayName == name }!!
+		val expectedEquipment = mapOf(
+			Pair(hero.equipmentSlots[0], item("M Blade")),
+			Pair(hero.equipmentSlots[1], item("Hero's Shield")),
+			Pair(hero.equipmentSlots[3], item("Hero's Armour")),
+			Pair(hero.equipmentSlots[4], item("Dragon Amulet")),
 		)
-		assertArrayEquals(expectedEquipment, state.equipment)
+		assertEquals(expectedEquipment, state.equipment)
 
 		val expectedInventory = Array<ItemStack?>(64) { null }
 		expectedInventory[0] = ItemStack(item("Elixir"), 9)

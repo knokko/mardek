@@ -47,8 +47,9 @@ object TestDragonLair {
 			state.campaign.healParty()
 
 			// Make sure Deugan has more agility than the dragon
-			deuganState.equipment[4] = content.items.items.find { it.flashName == "Boots of Celerity" }!!
-			deuganState.equipment[5] = deuganState.equipment[4]
+			val boots = content.items.items.find { it.displayName == "Boots of Celerity" }!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[4]] = boots
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[5]] = boots
 
 			val dummySoundQueue = SoundQueue()
 			val fakeInput = InputManager()

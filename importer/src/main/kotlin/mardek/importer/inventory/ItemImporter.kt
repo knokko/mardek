@@ -6,6 +6,7 @@ import mardek.content.stats.*
 import mardek.content.inventory.*
 import mardek.content.skill.*
 import mardek.importer.area.parseFlashString
+import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObject
 import mardek.importer.util.parseActionScriptObjectList
@@ -15,12 +16,18 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
-internal fun importItems(content: Content, rawItems: String) {
+internal fun importItems(content: Content, rawItems: String, fatItemTypes: List<FatItemType>, sheets: ItemSheets) {
 	for (rawItem in parseActionScriptObjectList(rawItems)) {
 		val rawElement = rawItem["elem"]
-		val typeName = parseFlashString(rawItem["type"]!!, "item type")!!
+		var typeName = parseFlashString(rawItem["type"]!!, "item type")!!
 		if (typeName == "rods" || typeName == "bait" || typeName == "fish") continue
 		if (typeName == "gold" || typeName == "none") continue
+		if (typeName == "wepn") typeName = parseFlashString(rawItem["wpnType"]!!, "weapon type")!!
+		if (typeName == "armr" || typeName == "helm") {
+			val rawArmorType = rawItem["amrType"]!!
+			typeName = if (rawArmorType == "3") "Ar3" else parseFlashString(rawArmorType, "armor type")!!
+		}
+		if (typeName == "shld") typeName = "Sh"
 
 		val rawCost = parseInt(rawItem["cost"])
 		val cost = if (rawCost >= 0) rawCost else null
@@ -32,20 +39,29 @@ internal fun importItems(content: Content, rawItems: String) {
 
 		if (typeName == "plot") {
 			content.items.plotItems.add(PlotItem(
-				name = flashName, description = description, element = element, cost = cost,
-				id = UUID.nameUUIDFromBytes("PlotItem$flashName$description".encodeToByteArray()),
+				displayName = flashName,
+				sprite = compressKimSprite3(sheets.mapping["misc"]!!.getNext(4)),
+				description = description,
+				element = element,
+				cost = cost,
 			))
 			continue
 		}
+
+		val fatType = fatItemTypes.find { it.flashName == typeName } ?: throw IllegalArgumentException(
+			"Can't find fat item type named $typeName: options are ${fatItemTypes.map { it.flashName }}"
+		)
+		val bufferedSprite = sheets.mapping[fatType.sheetName]!!.getNext(fatType.sheetRow)
 		content.items.items.add(Item(
-			flashName = flashName,
+			id = UUID.nameUUIDFromBytes("ItemImporter$flashName$description".encodeToByteArray()),
+			displayName = flashName,
+			sprite = compressKimSprite3(bufferedSprite),
 			description = description,
-			type = content.items.itemTypes.find { it.flashName == typeName }!!,
+			type = content.items.itemTypes.find { it.displayName == fatType.displayName }!!,
 			element = element,
 			cost = cost,
 			equipment = parseEquipment(content, rawItem),
 			consumable = parseConsumable(content, rawItem),
-			id = UUID.nameUUIDFromBytes("ItemImporter$flashName$description".encodeToByteArray()),
 		))
 	}
 }
@@ -118,13 +134,13 @@ private fun parseEquipment(content: Content, rawItem: Map<String, String>): Equi
 		if (rawValue != null && rawValue != "0") stats.add(StatModifier(stat, parseInt(rawValue)))
 	}
 
-	var rawArmorType = rawItem["amrType"]
-	if (rawArmorType == "3") rawArmorType = "\"Ar3\""
-	val armorType = if (rawArmorType != null) content.items.armorTypes.find {
-		it.key == parseFlashString(rawArmorType, "armor type")
-	}!! else null
-
 	val rawOnlyUser = rawItem["only_user"]
+	val onlyUser = if (rawOnlyUser != null) {
+		val name = parseFlashString(rawOnlyUser, "only_user")!!
+		content.playableCharacters.find { it.areaSprites.name == name } ?: throw RuntimeException(
+			"Can't find $name: options are ${content.playableCharacters.map { it.areaSprites.name }}"
+		)
+	} else null
 
 	return EquipmentProperties(
 		skills = parseSkills(content.skills, rawItem["skills"]),
@@ -133,9 +149,8 @@ private fun parseEquipment(content: Content, rawItem: Map<String, String>): Equi
 		resistances = Resistances(elementalResistances, statusResistances),
 		autoEffects = autoEffects,
 		weapon = parseWeaponProperties(content, rawItem),
-		armorType = armorType,
 		gem = parseGemProperties(content.stats, rawItem),
-		onlyUser = if (rawOnlyUser != null) parseFlashString(rawOnlyUser, "only_user")!! else null,
+		onlyUser = onlyUser,
 		charismaticPerformanceChance = charismaticPerformanceChance,
 	)
 }
@@ -168,8 +183,7 @@ private fun parseSkills(skillsContent: SkillsContent, rawSkills: String?): Array
 }
 
 private fun parseWeaponProperties(content: Content, rawItem: Map<String, String>): WeaponProperties? {
-	val rawWeaponType = rawItem["wpnType"] ?: return null
-	val weaponType = content.items.weaponTypes.find { it.flashName == parseFlashString(rawWeaponType, "weapon type") }!!
+	if (rawItem["wpnType"] == null) return null
 
 	val creatureBonuses = ArrayList<CreatureTypeBonus>(0)
 	val rawRaceBonuses = rawItem["typeBonus"]
@@ -208,7 +222,6 @@ private fun parseWeaponProperties(content: Content, rawItem: Map<String, String>
 	} else null
 
 	return WeaponProperties(
-		type = weaponType,
 		critChance = parseInt(rawItem["critical"]),
 		hitChance = parseInt(rawItem["hit"]),
 		hpDrain = if (rawItem["HP_DRAIN"] == "true") 1f else 0f,
@@ -332,7 +345,12 @@ private fun parseConsumable(content: Content, rawItem: Map<String, String>): Con
 		}
 	}
 
-	var particleName = if (rawItem["name"] == "\"Oxyale\"") null
+	if (actionType == "add_status") {
+		val effectName = rawAction.substring("[\"add_status\",[\"".length, rawAction.length - 3)
+		addStatusEffects.add(PossibleStatusEffect(content.stats.statusEffects.find { it.flashName == effectName }!!, 100))
+	}
+
+	var particleName: String? = if (rawItem["name"] == "\"Oxyale\"") "potion"
 	else parseFlashString(particleEffect!!, "consumable pfx")!!
 	if (particleName == "Remedy") particleName = "cleanse"
 	if (particleName == "rainbow") particleName = null

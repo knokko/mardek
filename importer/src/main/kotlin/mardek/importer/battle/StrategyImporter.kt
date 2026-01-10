@@ -84,7 +84,7 @@ private fun importRawMonsterStrategy(
 			val mimicry = content.skills.classes.find { it.name == "Mimicry" }!!
 			val legionAction = mimicry.actions.find { it.name == skillName }
 			if (legionAction != null) Pair(legionAction, null) else {
-				val item = content.items.items.find { it.flashName == skillName } ?:
+				val item = content.items.items.find { it.displayName == skillName } ?:
 						throw SkillParseException("Can't find skill $skillName")
 				Pair(null, item)
 			}

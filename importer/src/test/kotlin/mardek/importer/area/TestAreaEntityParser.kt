@@ -1,22 +1,13 @@
 package mardek.importer.area
 
-import mardek.content.Content
+import com.github.knokko.bitser.Bitser
 import mardek.content.area.Area
 import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
 import mardek.content.area.objects.*
 import mardek.importer.actions.HardcodedActions
-import mardek.importer.audio.importAudioContent
-import mardek.importer.battle.importBattleContent
-import mardek.importer.characters.importPlayableCharacters
-import mardek.importer.inventory.importItemsContent
-import mardek.importer.particle.importParticleEffects
-import mardek.importer.skills.importSkillsContent
-import mardek.importer.stats.importClasses
-import mardek.importer.stats.importStatsContent
+import mardek.importer.importVanillaContent
 import mardek.importer.story.expressions.HardcodedExpressions
-import mardek.importer.story.hardcodeTimeline
-import mardek.importer.story.importSimpleStoryContent
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -26,26 +17,7 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestAreaEntityParser {
 
-	private val content = Content()
-
-	init {
-		importAudioContent(content.audio)
-		importParticleEffects(content)
-		importStatsContent(content)
-		importSkillsContent(content)
-		importItemsContent(content)
-		importBattleContent(content, null)
-
-		importAreaSprites(content)
-		importClasses(content)
-		importPlayableCharacters(content, null)
-		importSimpleStoryContent(content.story)
-		importAreaBattleContent(content)
-
-		val hardcodedActions = importAreaContent(content)
-		hardcodeTimeline(content)
-		hardcodedActions.storeHardcodedActionSequences(content)
-	}
+	private val content = importVanillaContent(Bitser(true), skipMonsters = true)
 
 	@Test
 	fun testSingleEntitySingleKey() {

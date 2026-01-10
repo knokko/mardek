@@ -12,7 +12,7 @@ import mardek.state.GameStateManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
-import mardek.state.ingame.menu.InventoryTab
+import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.ingame.menu.MapTab
 import mardek.state.ingame.menu.PartyTab
 import mardek.state.ingame.menu.SkillsTab
@@ -109,11 +109,11 @@ object TestInGameMenu {
 			assertNull(soundQueue.take())
 
 			val mardekState = campaign.characterStates[heroMardek]!!
-			mardekState.inventory[5] = ItemStack(content.items.items.find { it.flashName == "Potion" }!!, 1)
+			mardekState.inventory[5] = ItemStack(content.items.items.find { it.displayName == "Potion" }!!, 1)
 			mardekState.activeStatusEffects.add(content.stats.statusEffects.find { it.flashName == "NUM" }!!)
 			val deuganState = campaign.characterStates[heroDeugan]!!
-			deuganState.equipment[3] = content.items.items.find { it.flashName == "Hero's Coat" }!!
-			deuganState.inventory[0] = ItemStack(content.items.items.find { it.flashName == "MugwortJuice" }!!, 1)
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[3]] = content.items.items.find { it.displayName == "Hero's Coat" }!!
+			deuganState.inventory[0] = ItemStack(content.items.items.find { it.displayName == "MugwortJuice" }!!, 1)
 
 			val mugwortJuiceColor = arrayOf(Color(101, 141, 0))
 			testRendering(

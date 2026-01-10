@@ -103,7 +103,7 @@ class StrategyEntry(
 	@Suppress("unused")
 	private constructor() : this(null, null, StrategyTarget.Self, 0)
 
-	override fun toString() = "$chance% ${skill?.name ?: item?.flashName ?: "Attack"}"
+	override fun toString() = "$chance% ${skill?.name ?: item?.displayName ?: "Attack"}"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

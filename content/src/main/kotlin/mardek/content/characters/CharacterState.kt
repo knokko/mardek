@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.inventory.EquipmentSlot
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
 import mardek.content.skill.ActiveSkill
@@ -58,17 +59,13 @@ class CharacterState {
 	val activeStatusEffects = HashSet<StatusEffect>()
 
 	/**
-	 * The current equipment of the player:
-	 * - index 0 is the main hand
-	 * - index 1 is the offhand
-	 * - index 2 is the helmet
-	 * - index 3 is the chestplate
-	 * - index 4 and 5 are the accessory slots
+	 * The current equipment of the player. It maps each equipment slot of the player to the item equipped in that slot.
+	 * When an equipment slot is empty, it won't be present as key in this map.
 	 */
 	@BitField(id = 4)
-	@ReferenceField(stable = true, label = "items")
-	@NestedFieldSetting(path = "c", optional = true)
-	val equipment = Array<Item?>(6) { null }
+	@NestedFieldSetting(path = "k", fieldName = "EQUIPMENT_KEY_PROPERTIES")
+	@NestedFieldSetting(path = "v", fieldName = "EQUIPMENT_VALUE_PROPERTIES")
+	val equipment = HashMap<EquipmentSlot, Item>()
 
 	/**
 	 * The current inventory of the player, where the item in slot (x, y) is stored at index `x + 8 * y`.
@@ -102,6 +99,23 @@ class CharacterState {
 	var lastWalkDamage: WalkDamage? = null
 
 	/**
+	 * This method should be called after a `CharacterState` is initialized. It will find all items that the
+	 * given playable character is no longer allowed to equipment, and send them to the item storage.
+	 */
+	fun initialize(character: PlayableCharacter, itemStorage: ArrayList<ItemStack?>) {
+		val iterator = equipment.iterator()
+		while (iterator.hasNext()) {
+			val (slot, equippedItem) = iterator.next()
+			if (!character.characterClass.equipmentSlots.contains(slot) ||
+				!slot.isAllowed(equippedItem, character)
+			) {
+				iterator.remove()
+				itemStorage.add(ItemStack(equippedItem, 1))
+			}
+		}
+	}
+
+	/**
 	 * Computes the value that this character has for the given `stat`. For instance, if `stat == CombatStat.Attack`,
 	 * this method computes the current ATK of the character.
 	 * - `base` should be the `baseStats` of the corresponding `PlayableCharacter`
@@ -115,9 +129,7 @@ class CharacterState {
 		for (modifier in base) {
 			if (modifier.stat == stat) total += modifier.adder
 		}
-		for (item in equipment) {
-			if (item != null) total += item.getModifier(stat)
-		}
+		for (item in equipment.values) total += item.getModifier(stat)
 		for (skill in toggledSkills) {
 			if (skill is PassiveSkill) total += skill.getModifier(stat)
 		}
@@ -178,8 +190,8 @@ class CharacterState {
 	 */
 	fun determineAutoEffects(): Set<StatusEffect> {
 		val effects = HashSet<StatusEffect>()
-		for (item in equipment) {
-			val equipment = item?.equipment ?: continue
+		for (item in equipment.values) {
+			val equipment = item.equipment ?: continue
 			effects.addAll(equipment.autoEffects)
 		}
 		for (skill in toggledSkills) {
@@ -197,7 +209,7 @@ class CharacterState {
 	fun canCastSkill(skill: ActiveSkill): Boolean {
 		val mastery = skillMastery[skill]
 		if (mastery != null && mastery >= skill.masteryPoints) return true
-		return equipment.any { it?.equipment != null && it.equipment.skills.contains(skill) }
+		return equipment.values.any { it.equipment != null && it.equipment.skills.contains(skill) }
 	}
 
 	/**
@@ -205,7 +217,7 @@ class CharacterState {
 	 */
 	fun countItemOccurrences(item: Item): Int {
 		var count = 0
-		for (candidate in equipment) {
+		for (candidate in equipment.values) {
 			if (candidate === item) count += 1
 		}
 
@@ -268,6 +280,14 @@ class CharacterState {
 		@Suppress("unused")
 		@IntegerField(expectUniform = false, minValue = 1)
 		private const val SKILL_MASTERY_VALUE = false
+
+		@Suppress("unused")
+		@ReferenceField(stable = true, label = "equipment slots")
+		private const val EQUIPMENT_KEY_PROPERTIES = false
+
+		@Suppress("unused")
+		@ReferenceField(stable = true, label = "items")
+		private const val EQUIPMENT_VALUE_PROPERTIES = false
 
 		/**
 		 * Determines the maximum health of a playable character, based on its `level` and `vitality`, as well as a

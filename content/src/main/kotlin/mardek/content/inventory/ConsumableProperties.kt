@@ -5,9 +5,13 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.characters.CharacterState
+import mardek.content.characters.PlayableCharacter
 import mardek.content.particle.ParticleEffect
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.StatModifierRange
+import kotlin.math.min
+import kotlin.random.Random
 
 /**
  * The properties that only consumable items have.
@@ -105,4 +109,64 @@ class ConsumableProperties(
 	 * - When a player selects a negative consumable, the target selection will initially target an enemy.
 	 */
 	fun isPositive() = damage == null && addStatusEffects.all { it.effect.isPositive }
+
+	/**
+	 * Attempts to consume this item *outside* combat.
+	 * - If this method returns `false`, this item can *not* be consumed by `target`, so it should *stay* in the
+	 * inventory.
+	 * - If this method returns `true`, this item was consumed, so it should be removed from the inventory.
+	 */
+	fun consumeOutsideBattle(target: PlayableCharacter, targetState: CharacterState): Boolean {
+		val maxHealth = targetState.determineMaxHealth(target.baseStats, targetState.activeStatusEffects)
+		val maxMana = targetState.determineMaxMana(target.baseStats, targetState.activeStatusEffects)
+
+		var didSomething = false
+		if (this.isFullCure) {
+			if (targetState.currentHealth < maxHealth) {
+				targetState.currentHealth = maxHealth
+				didSomething = true
+			}
+			if (targetState.currentMana < maxMana) {
+				targetState.currentMana = maxMana
+				didSomething = true
+			}
+		}
+
+		if (this.restoreHealth > 0 && targetState.currentHealth < maxHealth) {
+			targetState.currentHealth = min(targetState.currentHealth + this.restoreHealth, maxHealth)
+			didSomething = true
+		}
+
+		if (this.restoreMana > 0 && targetState.currentMana < maxMana) {
+			targetState.currentMana = min(targetState.currentMana + this.restoreMana, maxMana)
+			didSomething = true
+		}
+
+		val rng = Random.Default
+		for (addEffect in this.addStatusEffects) {
+			if (addEffect.effect.disappearsAfterCombat) continue
+			if (targetState.activeStatusEffects.contains(addEffect.effect)) continue
+			if (!addEffect.effect.isPositive) continue
+
+			didSomething = true
+			if (rng.nextInt(100) < addEffect.chance) {
+				targetState.activeStatusEffects.add(addEffect.effect)
+			}
+		}
+
+		for (removeEffect in this.removeStatusEffects) {
+			if (!targetState.activeStatusEffects.contains(removeEffect.effect)) continue
+
+			didSomething = true
+			if (rng.nextInt(100) < removeEffect.chance) {
+				targetState.activeStatusEffects.remove(removeEffect.effect)
+			}
+		}
+
+		if (this.removeNegativeStatusEffects && targetState.activeStatusEffects.removeIf { !it.isPositive }) {
+			didSomething = true
+		}
+
+		return didSomething
+	}
 }

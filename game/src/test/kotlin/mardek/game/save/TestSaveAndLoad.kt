@@ -335,7 +335,7 @@ object TestSaveAndLoad {
 			state.update(updateContext)
 
 			var loot = (campaign.currentArea!!.suspension as AreaSuspensionBattle).loot!!
-			val sorcerer = content.items.items.find { it.flashName == "Sorcerer's Soul" }!!
+			val sorcerer = content.items.items.find { it.displayName == "Sorcerer's Soul" }!!
 			// The loot should be: Sorcerer's Soul, Scarab of Protection, Elixir, PhoenixPinion
 			assertEquals(4, loot.items.size)
 			assertTrue(loot.items.contains(ItemStack(sorcerer, 1)))

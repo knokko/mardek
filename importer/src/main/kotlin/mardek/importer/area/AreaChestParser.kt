@@ -38,9 +38,9 @@ internal fun parseAreaChests(
 	} else if (rawItem == "Dreamstone") {
 		dreamstone = content.items.dreamstones.find { it.index == amount }!!
 	} else {
-		val item = content.items.items.find { it.flashName == rawItem }
+		val item = content.items.items.find { it.displayName == rawItem }
 		if (item == null || rawChest["type"] == "\"plot\"") {
-			plotItem = content.items.plotItems.find { it.name == rawItem }!!
+			plotItem = content.items.plotItems.find { it.displayName == rawItem }!!
 		} else stack = ItemStack(item, amount)
 	}
 

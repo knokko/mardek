@@ -28,13 +28,11 @@ class ObtainedItemStack(
 			val inventory = characterState.inventory
 
 			var done = false
-			if (itemStack!!.item.type.canStack) {
-				for ((index, existingStack) in inventory.withIndex()) {
-					if (existingStack != null && existingStack.item == itemStack.item) {
-						inventory[index] = ItemStack(itemStack.item, existingStack.amount + itemStack.amount)
-						done = true
-						break
-					}
+			for ((index, existingStack) in inventory.withIndex()) {
+				if (existingStack != null && existingStack.item == itemStack!!.item) {
+					inventory[index] = ItemStack(itemStack.item, existingStack.amount + itemStack.amount)
+					done = true
+					break
 				}
 			}
 

@@ -34,6 +34,7 @@ import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
+import mardek.content.inventory.ItemStack
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
 import mardek.state.GameStateManager
@@ -110,12 +111,29 @@ class CampaignState : BitPostInit {
 	@IntegerField(expectUniform = true, minValue = 0)
 	var totalTime = 0.seconds
 
+	/**
+	 * The items that are currently in the item storage, which the player can access via a save crystal. This list
+	 * starts empty, but will grow larger if needed.
+	 */
+	@BitField(id = 12)
+	@NestedFieldSetting(path = "c", optional = true)
+	val itemStorage = ArrayList<ItemStack?>()
+
+	/**
+	 * The item stack that is currently grabbed by the cursor (e.g. in the inventory tab).
+	 */
+	@BitField(id = 13, optional = true)
+	var cursorItemStack: ItemStack? = null
+
 	var shouldOpenMenu = false
 	var gameOver = false
 
 	override fun postInit(context: BitPostInit.Context) {
 		val content = context.withParameters["content"] as Content
 		story.validatePartyMembers(content, party, characterStates)
+		for ((character, state) in characterStates) {
+			state.initialize(character, itemStorage)
+		}
 	}
 
 	fun update(context: UpdateContext) {

@@ -12,6 +12,7 @@ import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
 import mardek.importer.characters.importPlayableCharacters
+import mardek.importer.inventory.hardcodeItemTypes
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
 import mardek.importer.particle.importParticleEffects
@@ -40,12 +41,16 @@ class TestAreaParser {
 		importParticleEffects(content)
 		importStatsContent(content)
 		importSkillsContent(content)
-		importItemsContent(content)
-		importBattleContent(content, null)
 
+		val fatItemTypes = hardcodeItemTypes(content)
+		val playerModelMapping = mutableMapOf<String, CombatantAnimations>()
+
+		importClasses(content, fatItemTypes)
 		importAreaSprites(content)
-		importClasses(content)
-		importPlayableCharacters(content, null)
+		importPlayableCharacters(content, playerModelMapping)
+		importItemsContent(content, fatItemTypes)
+		importBattleContent(content, false)
+
 		importSimpleStoryContent(content.story)
 		importAreaBattleContent(content)
 
@@ -219,7 +224,7 @@ class TestAreaParser {
 
 	@Test
 	fun testDesertCave() {
-		val yinYang = content.items.items.find { it.flashName == "Yin and Yang" }!!
+		val yinYang = content.items.items.find { it.displayName == "Yin and Yang" }!!
 		val area = content.areas.areas.find { it.properties.rawName == "desertcave" }!!
 		assertEquals(1, area.chests.size)
 
@@ -263,7 +268,7 @@ class TestAreaParser {
 
 	@Test
 	fun testParseSunTemple4() {
-		val spear = content.items.items.find { it.flashName == "Iron Spear" }!!
+		val spear = content.items.items.find { it.displayName == "Iron Spear" }!!
 		val area = content.areas.areas.find { it.properties.rawName == "sunTemple4" }!!
 		assertEquals(7, area.chests.size)
 
@@ -299,7 +304,7 @@ class TestAreaParser {
 		assertEquals(45, chest.y)
 		assertNull(chest.stack)
 		assertEquals(0, chest.gold)
-		assertSame(content.items.plotItems.find { it.name == "Trilobite Key I" }!!, chest.plotItem)
+		assertSame(content.items.plotItems.find { it.displayName == "Trilobite Key I" }!!, chest.plotItem)
 		assertTrue(chest.hidden)
 		assertNull(chest.dreamstone)
 		assertNull(chest.battle)
@@ -324,7 +329,7 @@ class TestAreaParser {
 		assertEquals(4, finger.x)
 		assertEquals(19, finger.y)
 		assertEquals(0, finger.gold)
-		assertEquals(ItemStack(content.items.items.find { it.flashName == "Yggdrasil's Finger" }!!, 1), finger.stack)
+		assertEquals(ItemStack(content.items.items.find { it.displayName == "Yggdrasil's Finger" }!!, 1), finger.stack)
 		assertNull(finger.plotItem)
 		assertNull(finger.dreamstone)
 		assertNull(finger.battle)
@@ -335,7 +340,7 @@ class TestAreaParser {
 		assertEquals(2, talisman.y)
 		assertEquals(0, talisman.gold)
 		assertNull(talisman.stack)
-		assertSame(content.items.plotItems.find { it.name == "Talisman of ONEIROS" }!!, talisman.plotItem)
+		assertSame(content.items.plotItems.find { it.displayName == "Talisman of ONEIROS" }!!, talisman.plotItem)
 		assertNull(talisman.dreamstone)
 		assertNull(talisman.battle)
 		assertFalse(talisman.hidden)

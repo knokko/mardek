@@ -183,7 +183,7 @@ internal fun renderCombatantInfoPopup(
 			var extra = combatant.getStat(stat, updateContext) - combatant.getNatural(stat)
 			run {
 				val equipment = combatant.getEquipment(updateContext)
-				val weapon = equipment[0]?.equipment
+				val weapon = combatant.getWeapon(updateContext)?.equipment
 				if (stat == CombatStat.Attack && weapon != null) extra -= weapon.getStat(stat)
 				if (stat == CombatStat.MeleeDefense || stat == CombatStat.RangedDefense) {
 					for (potentialArmor in equipment) {
@@ -237,7 +237,7 @@ internal fun renderCombatantInfoPopup(
 			for ((index, item) in combatant.getEquipment(updateContext).withIndex()) {
 				val shadowOffset = 0.1f * textHeight
 				textBatch.drawShadowedString(
-					item?.flashName ?: "-", baseX + 0.09f * region.height, baseY + index * offsetY,
+					item?.displayName ?: "-", baseX + 0.09f * region.height, baseY + index * offsetY,
 					textHeight, unknownFont, baseTextColor, 0, 0f,
 					shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
 				)

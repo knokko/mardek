@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.*
 import mardek.content.skill.Skill
 
@@ -57,49 +58,34 @@ class EquipmentProperties(
 	val weapon: WeaponProperties?,
 
 	/**
-	 * This field must be non-null if and only if this item is an armor piece. If so, field specifies the armor type
-	 * of this item, which determines which players can carry the armor, and in which equipment slot.
+	 * If this field is non-null, it allows Legion to cast Gemsplosion when this item is equipped. These `GemProperties`
+	 * determine the power and the element when Legion casts Gemsplosion.
 	 */
 	@BitField(id = 6, optional = true)
-	@ReferenceField(stable = false, label = "armor types")
-	val armorType: ArmorType?,
-
-	/**
-	 * This field must be non-null if and only if this item is a gemstone. If so, it specifies the gemsplosion power &
-	 * element of the item.
-	 */
-	@BitField(id = 7, optional = true)
 	val gem: GemProperties?,
 
 	/**
-	 * When this field is non-null, this item can only be equipped by the player with this name. This is used for e.g.
+	 * When this field is non-null, this item can only be equipped by this playable character. This is used for e.g.
 	 * Righteous Glory, which can only be equipped by Vehrn.
 	 */
-	@BitField(id = 8, optional = true)
-	val onlyUser: String?, // TODO CHAP2 turn into reference
+	@BitField(id = 7, optional = true)
+	@ReferenceField(stable = false, label = "playable characters")
+	val onlyUser: PlayableCharacter?,
 
 	/**
 	 * The chance of having the same effect as the charismatic performance skill. TODO CHAP3 work this out
 	 */
-	@BitField(id = 9)
+	@BitField(id = 8)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val charismaticPerformanceChance: Int,
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(
-		ArrayList(0), ArrayList(0), ArrayList(0), Resistances(), ArrayList(0),
-		null, null, null, null, 0
+		ArrayList(0), ArrayList(0),
+		ArrayList(0), Resistances(), ArrayList(0),
+		null, null, null, 0,
 	)
-
-	/**
-	 * The equipment slot in which this item can be carried.
-	 */
-	fun getSlotType(): EquipmentSlotType {
-		if (weapon != null) return EquipmentSlotType.MainHand
-		if (armorType == null) return EquipmentSlotType.Accessory
-		return armorType.slot
-	}
 
 	/**
 	 * If someone were to equip this item, this method compute by how much the given `stat` of that person would be

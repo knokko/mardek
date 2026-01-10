@@ -11,6 +11,7 @@ import mardek.content.stats.Element
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.StatModifierRange
 import mardek.content.stats.StatusEffect
+import java.util.EnumMap
 import kotlin.collections.set
 import kotlin.math.max
 import kotlin.math.min
@@ -26,7 +27,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		baseFlatDamage: Int, attackValue: Int, basicElementalBonus: Float,
 		basicHitChance: Int, basicCritChance: Int, applyDamageSplit: Boolean,
 		basicHealthDrain: Float, basicManaDrain: Float, attackElement: Element,
-		basicAddStatModifiers: HashMap<CombatStat, Int>,
+		basicAddStatModifiers: EnumMap<CombatStat, Int>,
 		basicAddEffects: MutableMap<StatusEffect, Int>,
 		basicRemoveEffects: MutableMap<StatusEffect, Int>,
 	): Entry {
@@ -35,7 +36,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		val multiplier = if (multiplierStat != null) attacker.getStat(multiplierStat, context) else 1
 		var damage = max(0, attackValue - defense) * multiplier * (attacker.getLevel(context) + 5)
 
-		val rawWeapon = attacker.getEquipment(context)[0]
+		val rawWeapon = attacker.getWeapon(context)
 		val weapon = rawWeapon?.equipment?.weapon
 		var hasSmitePlus = false
 		var extraDamageFractionAttacker = 0f
@@ -226,8 +227,8 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		return map
 	}
 
-	private fun statListToMap(list: Collection<StatModifierRange>): HashMap<CombatStat, Int> {
-		val map = HashMap<CombatStat, Int>()
+	private fun statListToMap(list: Collection<StatModifierRange>): EnumMap<CombatStat, Int> {
+		val map = EnumMap<CombatStat, Int>(CombatStat::class.java)
 		for (entry in list) {
 			val adder = Random.nextInt(entry.minAdder, 1 + entry.maxAdder)
 			map[entry.stat] = map.getOrDefault(entry.stat, 0) + adder
@@ -238,7 +239,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 	fun computeSkillResult(
 		skill: ActiveSkill, attacker: CombatantState, targets: Array<CombatantState>, passedChallenge: Boolean
 	): MoveResult {
-		val rawWeapon = attacker.getEquipment(context)[0]
+		val rawWeapon = attacker.getWeapon(context)
 		val weapon = rawWeapon?.equipment?.weapon
 
 		val skillDamage = skill.damage
@@ -287,7 +288,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			if (skillDamage.crescendoModifier != 0f) TODO("crescendo modifier")
 		}
 
-		val addStatModifiers = HashMap<CombatStat, Int>()
+		val addStatModifiers = EnumMap<CombatStat, Int>(CombatStat::class.java)
 		for (modifier in skill.statModifiers) {
 			val adder = Random.nextInt(modifier.minAdder, modifier.maxAdder + 1)
 			addStatModifiers[modifier.stat] = addStatModifiers.getOrDefault(modifier.stat, 0) + adder
@@ -309,7 +310,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		var sound = skill.particleEffect?.damageSound
 		if (sound == null && skill.isMelee) {
 			sound = skill.particleEffect?.initialSound
-			if (sound == null && weapon != null) sound = weapon.hitSound ?: weapon.type.soundEffect
+			if (sound == null && weapon != null) sound = weapon.hitSound
 			if (sound == null) sound = context.sounds.battle.punch
 		}
 
@@ -360,7 +361,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 	fun computeBasicAttackResult(
 		attacker: CombatantState, target: CombatantState, passedChallenge: Boolean
 	): MoveResult {
-		val rawWeapon = attacker.getEquipment(context)[0]
+		val rawWeapon = attacker.getWeapon(context)
 		val weapon = rawWeapon?.equipment?.weapon
 
 		val hitChance: Int
@@ -376,7 +377,6 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			manaDrain = weapon.mpDrain
 			attackElement = rawWeapon.element ?: context.physicalElement
 			if (weapon.hitSound != null) sound = weapon.hitSound!!
-			else if (weapon.type.soundEffect != null) sound = weapon.type.soundEffect!!
 		} else {
 			hitChance = 100
 			critChance = 0
@@ -410,7 +410,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			basicHealthDrain = healthDrain,
 			basicManaDrain = manaDrain,
 			attackElement = attackElement,
-			basicAddStatModifiers = HashMap(),
+			basicAddStatModifiers = EnumMap(CombatStat::class.java),
 			basicAddEffects = mutableMapOf(),
 			basicRemoveEffects = mutableMapOf(),
 		)
@@ -432,7 +432,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 	}
 
 	fun computeItemResult(item: Item, thrower: CombatantState, target: CombatantState): MoveResult {
-		val consumable = item.consumable ?: throw IllegalArgumentException("Item ${item.flashName} is not consumable")
+		val consumable = item.consumable ?: throw IllegalArgumentException("Item ${item.displayName} is not consumable")
 		var (restoreHealth, restoreMana) = if (consumable.isFullCure) {
 			Pair(target.maxHealth - target.currentHealth, target.maxMana - target.currentMana)
 		} else Pair(consumable.restoreHealth, consumable.restoreMana)

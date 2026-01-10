@@ -16,9 +16,12 @@ import mardek.input.InputKey
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.content.characters.CharacterState
-import mardek.state.ingame.menu.InventoryTab
-import mardek.state.ingame.menu.ItemReference
+import mardek.content.sprite.KimSprite
+import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.ingame.menu.UiUpdateContext
+import mardek.state.ingame.menu.inventory.EquipmentSlotReference
+import mardek.state.ingame.menu.inventory.InventorySlotReference
+import mardek.state.ingame.menu.inventory.ItemSlotReference
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -28,8 +31,32 @@ private fun createState(): CampaignState {
 		rawName = "knight",
 		displayName = "Royal Knight",
 		skillClass = SkillClass(),
-		weaponType = WeaponType(),
-		armorTypes = arrayListOf(ArmorType("Sh", "Shield", EquipmentSlotType.OffHand))
+		equipmentSlots = arrayOf(
+			EquipmentSlot(
+				id = UUID.randomUUID(),
+				displayName = "",
+				itemTypes = arrayOf(ItemType()),
+				canBeEmpty = false,
+			),
+			EquipmentSlot(
+				id = UUID.randomUUID(),
+				displayName = "",
+				itemTypes = arrayOf(ItemType()),
+				canBeEmpty = true,
+			),
+			EquipmentSlot(
+				id = UUID.randomUUID(),
+				displayName = "",
+				itemTypes = arrayOf(ItemType()),
+				canBeEmpty = true,
+			),
+			EquipmentSlot(
+				id = UUID.randomUUID(),
+				displayName = "",
+				itemTypes = arrayOf(ItemType()),
+				canBeEmpty = true,
+			),
+		),
 	)
 	val mardek = PlayableCharacter(
 		"Mardek", mardekClass, Element(),
@@ -54,37 +81,41 @@ class TestInventoryTab {
 	private val context = UiUpdateContext(
 		state.usedPartyMembers(), state.allPartyMembers(),
 		soundQueue, FixedSoundEffects(), SkillsContent(),
+		{ state.cursorItemStack }, { newStack -> state.cursorItemStack = newStack },
 	)
 
 	init {
 		tab.inside = true
 	}
 
-	private fun putStack(index: Int, stack: ItemStack): ItemReference {
+	private fun putStack(index: Int, stack: ItemStack): ItemSlotReference {
 		mardekState.inventory[index] = stack
-		return ItemReference(mardek, mardekState, index)
+		return InventorySlotReference(mardekState.inventory, index)
 	}
 
-	private fun putEquipment(index: Int, item: Item): ItemReference {
-		mardekState.equipment[index] = item
-		return ItemReference(mardek, mardekState, -index - 1)
+	private fun putEquipment(index: Int, item: Item): EquipmentSlotReference {
+		mardekState.equipment[mardek.characterClass.equipmentSlots[index]] = item
+		return EquipmentSlotReference(
+			mardek, mardekState.equipment, mardek.characterClass.equipmentSlots[index]
+		)
 	}
 
-	private fun createEquipmentItem(equipment: EquipmentProperties) = Item(
-		flashName = "some-equipment",
+	private fun createEquipmentItem(equipment: EquipmentProperties, type: ItemType) = Item(
+		id = UUID.randomUUID(),
+		displayName = "some-equipment",
+		sprite = KimSprite(),
 		description = "the description",
-		type = ItemType("lala", false),
+		type = type,
 		element = Element(),
 		cost = 123,
 		equipment = equipment,
 		consumable = null,
-		id = UUID.randomUUID(),
 	)
 
 	private fun createEquipment(
 		weapon: WeaponProperties? = null,
-		armorType: ArmorType? = null,
-		onlyUser: String? = null
+		armorType: ItemType,
+		onlyUser: PlayableCharacter? = null
 	) = createEquipmentItem(EquipmentProperties(
 		skills = ArrayList(0),
 		stats = ArrayList(0),
@@ -92,35 +123,33 @@ class TestInventoryTab {
 		resistances = Resistances(),
 		autoEffects = ArrayList(0),
 		weapon = weapon,
-		armorType = armorType,
 		gem = null,
 		onlyUser = onlyUser,
 		charismaticPerformanceChance = 0
-	))
+	), armorType)
 
-	private fun createWeapon(type: WeaponType) = createEquipment(weapon = WeaponProperties(
-		type = type,
-		critChance = 0,
+	private fun createWeapon(type: ItemType) = createEquipment(weapon = WeaponProperties(
 		hitChance = 100,
+		critChance = 0,
 		hpDrain = 0f,
 		mpDrain = 0f,
 		effectiveAgainstCreatureTypes = ArrayList(0),
 		effectiveAgainstElements = ArrayList(0),
 		addEffects = ArrayList(0),
 		hitSound = null
-	))
+	), type)
 
 	@Test
 	fun testInsertItemIntoEmptySlot() {
 		val item = Item()
 
-		tab.pickedUpItem = putStack(10, ItemStack(item, 3))
-		tab.hoveringItem = ItemReference(mardek, mardekState, 11)
+		state.cursorItemStack = ItemStack(item, 3)
+		tab.interaction.hoveredSlot = InventorySlotReference(mardekState.inventory, 11)
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
 
-		assertNull(tab.pickedUpItem)
-		assertEquals(tab.hoveringItem, ItemReference(mardek, mardekState, 11))
+		assertNull(state.cursorItemStack)
+		assertEquals(tab.interaction.hoveredSlot, InventorySlotReference(mardekState.inventory, 11))
 		assertNull(mardekState.inventory[10])
 		assertEquals(ItemStack(item, 3), mardekState.inventory[11])
 	}
@@ -129,122 +158,129 @@ class TestInventoryTab {
 	fun testPickItemWithNothingOnCursor() {
 		val item = Item()
 
-		tab.hoveringItem = putStack(5, ItemStack(item, 1))
+		tab.interaction.hoveredSlot = putStack(5, ItemStack(item, 1))
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(tab.hoveringItem, tab.pickedUpItem)
+		assertNull(tab.interaction.hoveredSlot!!.get())
+		assertEquals(ItemStack(item, 1), state.cursorItemStack)
 	}
 
 	@Test
 	fun testCanUnEquipShield() {
-		val shield = createEquipment(armorType = mardek.characterClass.armorTypes.first())
+		val shield = createEquipment(armorType = mardek.characterClass.equipmentSlots[1].itemTypes.first())
 
-		tab.hoveringItem = putEquipment(1, shield)
-		assertEquals(shield, mardekState.equipment[1])
+		tab.interaction.hoveredSlot = putEquipment(1, shield)
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(tab.hoveringItem, tab.pickedUpItem)
+		assertNull(mardekState.equipment[mardek.characterClass.equipmentSlots[0]])
+		assertNull(tab.interaction.hoveredSlot!!.get())
+		assertEquals(ItemStack(shield, 1), state.cursorItemStack)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
-		assertNull(tab.pickedUpItem)
-		assertEquals(ItemStack(shield, 1), tab.hoveringItem!!.get())
+		assertNull(state.cursorItemStack)
+		assertEquals(ItemStack(shield, 1), tab.interaction.hoveredSlot!!.get())
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(tab.hoveringItem, tab.pickedUpItem)
+		assertNull(tab.interaction.hoveredSlot!!.get())
+		assertEquals(ItemStack(shield, 1), state.cursorItemStack)
 
-		tab.hoveringItem = ItemReference(mardek, mardekState, 5)
+		tab.interaction.hoveredSlot = InventorySlotReference(mardekState.inventory, 5)
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
-		assertNull(tab.pickedUpItem)
+		assertNull(state.cursorItemStack)
 		assertEquals(ItemStack(shield, 1), mardekState.inventory[5])
-		assertNull(mardekState.equipment[1])
+		assertNull(mardekState.equipment[mardek.characterClass.equipmentSlots[1]])
 	}
 
 	@Test
 	fun testCanNotPutShieldInArmorSlot() {
-		val shield = createEquipment(armorType = mardek.characterClass.armorTypes.first())
+		val shield = createEquipment(armorType = mardek.characterClass.equipmentSlots[1].itemTypes.first())
 
-		tab.hoveringItem = putEquipment(1, shield)
-		assertEquals(shield, mardekState.equipment[1])
+		tab.interaction.hoveredSlot = putEquipment(1, shield)
+		assertEquals(shield, mardekState.equipment[mardek.characterClass.equipmentSlots[1]])
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(tab.hoveringItem, tab.pickedUpItem)
 
-		tab.hoveringItem = ItemReference(mardek, mardekState, -4)
+		tab.interaction.hoveredSlot = EquipmentSlotReference(
+			mardek, mardekState.equipment, mardek.characterClass.equipmentSlots[3]
+		)
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
-		assertEquals(ItemReference(mardek, mardekState, -2), tab.pickedUpItem)
-		assertEquals(shield, mardekState.equipment[1])
-		assertNull(mardekState.equipment[3])
+		assertEquals(ItemStack(shield, 1), state.cursorItemStack)
+		assertNull(mardekState.equipment[mardek.characterClass.equipmentSlots[1]])
+		assertNull(mardekState.equipment[mardek.characterClass.equipmentSlots[3]])
 	}
 
 	@Test
 	fun testCanNotPutShieldInWeaponSlot() {
-		val shield = createEquipment(armorType = mardek.characterClass.armorTypes.first())
-		val weapon = createWeapon(mardek.characterClass.weaponType!!)
-		tab.hoveringItem = putEquipment(0, weapon)
-		tab.pickedUpItem = putEquipment(1, shield)
+		val shield = createEquipment(armorType = mardek.characterClass.equipmentSlots[1].itemTypes.first())
+		val weapon = createWeapon(mardek.characterClass.equipmentSlots[0].itemTypes.first())
+		tab.interaction.hoveredSlot = putEquipment(0, weapon)
+		state.cursorItemStack = ItemStack(shield, 1)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
-		assertEquals(ItemStack(shield, 1), tab.pickedUpItem!!.get())
-		assertEquals(ItemStack(weapon, 1), tab.hoveringItem!!.get())
+		assertEquals(ItemStack(shield, 1), state.cursorItemStack)
+		assertEquals(ItemStack(weapon, 1), tab.interaction.hoveredSlot!!.get())
 	}
 
 	@Test
 	fun testSwapWeapons() {
-		val oldWeapon = createWeapon(mardek.characterClass.weaponType!!)
-		val newWeapon = createWeapon(mardek.characterClass.weaponType!!)
-		tab.pickedUpItem = putStack(0, ItemStack(newWeapon, 1))
-		tab.hoveringItem = putEquipment(0, oldWeapon)
+		val weaponType = mardek.characterClass.equipmentSlots[0].itemTypes.first()
+		val oldWeapon = createWeapon(weaponType)
+		val newWeapon = createWeapon(weaponType)
+		state.cursorItemStack = ItemStack(newWeapon, 1)
+		tab.interaction.hoveredSlot = putEquipment(0, oldWeapon)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(ItemStack(oldWeapon, 1), tab.pickedUpItem!!.get())
-		assertEquals(ItemStack(newWeapon, 1), tab.hoveringItem!!.get())
-		assertSame(newWeapon, mardekState.equipment[0])
-		assertSame(oldWeapon, mardekState.inventory[0]!!.item)
+		assertEquals(ItemStack(oldWeapon, 1), state.cursorItemStack)
+		assertEquals(ItemStack(newWeapon, 1), tab.interaction.hoveredSlot!!.get())
+		assertSame(newWeapon, mardekState.equipment[mardek.characterClass.equipmentSlots[0]])
 	}
 
 	@Test
 	fun testCanNotTakeWeapon() {
-		val weapon = createWeapon(mardek.characterClass.weaponType!!)
-		tab.hoveringItem = putEquipment(0, weapon)
+		val weapon = createWeapon(mardek.characterClass.equipmentSlots[0].itemTypes.first())
+		tab.interaction.hoveredSlot = putEquipment(0, weapon)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
-		assertSame(weapon, mardekState.equipment[0])
-		assertNull(tab.pickedUpItem)
+		assertSame(weapon, mardekState.equipment[mardek.characterClass.equipmentSlots[0]])
+		assertNull(state.cursorItemStack)
 	}
 
 	@Test
 	fun testCanNotEquipWrongWeapon() {
-		val goodWeapon = createWeapon(mardek.characterClass.weaponType!!)
-		val wrongWeapon = createWeapon(WeaponType())
-		tab.hoveringItem = putEquipment(0, goodWeapon)
-		tab.pickedUpItem = putStack(12, ItemStack(wrongWeapon, 1))
+		val goodWeapon = createWeapon(mardek.characterClass.equipmentSlots[0].itemTypes.first())
+		val wrongWeapon = createWeapon(ItemType())
+		tab.interaction.hoveredSlot = putEquipment(0, goodWeapon)
+		state.cursorItemStack = ItemStack(wrongWeapon, 1)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
-		assertSame(goodWeapon, mardekState.equipment[0])
+		assertSame(goodWeapon, mardekState.equipment[mardek.characterClass.equipmentSlots[0]])
 	}
 
 	@Test
 	fun testRespectOnlyUser() {
-		val badShield = createEquipment(armorType = mardek.characterClass.armorTypes.first(), onlyUser = "Emela")
-		val goodShield = createEquipment(armorType = mardek.characterClass.armorTypes.first(), onlyUser = "Mardek")
-		tab.pickedUpItem = putStack(3, ItemStack(badShield, 1))
-		tab.hoveringItem = ItemReference(mardek, mardekState, -2)
+		val shieldType = mardek.characterClass.equipmentSlots[1].itemTypes.first()
+		val badShield = createEquipment(armorType = shieldType, onlyUser = PlayableCharacter())
+		val goodShield = createEquipment(armorType = shieldType, onlyUser = mardek)
+		state.cursorItemStack = ItemStack(badShield, 1)
+		tab.interaction.hoveredSlot = EquipmentSlotReference(
+			mardek, mardekState.equipment, mardek.characterClass.equipmentSlots[1]
+		)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
-		assertNull(mardekState.equipment[1])
+		assertNull(mardekState.equipment[mardek.characterClass.equipmentSlots[1]])
 
-		tab.pickedUpItem = putStack(2, ItemStack(goodShield, 1))
+		state.cursorItemStack = ItemStack(goodShield, 1)
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
-		assertSame(goodShield, mardekState.equipment[1])
+		assertSame(goodShield, mardekState.equipment[mardek.characterClass.equipmentSlots[1]])
 	}
 }

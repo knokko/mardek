@@ -11,10 +11,17 @@ import mardek.content.BITSER
  */
 @BitStruct(backwardCompatible = true)
 class ItemStack(
+
+	/**
+	 * The item
+	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "items")
 	val item: Item,
 
+	/**
+	 * The stack size/amount. This must be positive.
+	 */
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val amount: Int
@@ -31,4 +38,15 @@ class ItemStack(
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
 	override fun hashCode() = BITSER.hashCode(this)
+
+	/**
+	 * Returns an `ItemStack` with the same `item` as this stack, but whose amount is `this.amount - 1`. When
+	 * `this.amount == 1`, this method returns `null` instead.
+	 */
+	fun decremented() = if (amount > 1) ItemStack(item, amount - 1) else null
+
+	/**
+	 * Returns an `ItemStack` with the same `item` as this stack, but whose amount is `this.amount + 1`.
+	 */
+	fun incremented() = ItemStack(item, amount + 1)
 }

@@ -68,7 +68,7 @@ private fun dragonLairTimeline(content: Content) = TimelineNode(
 	isAbstract = false,
 )
 
-private fun getItem(content: Content, name: String) = content.items.items.find { it.flashName == name }!!
+private fun getItem(content: Content, name: String) = content.items.items.find { it.displayName == name }!!
 
 private fun masterSkill(player: PlayableCharacter, state: CharacterState, skillName: String) {
 	val skill = player.characterClass.skillClass.actions.find { it.name == skillName }!!
@@ -92,10 +92,10 @@ private fun masterSkill(
 private fun initialHeroMardekState(content: Content): CharacterState {
 	val heroMardek = getPlayer(content, "mardek_hero")
 	val state = CharacterState()
-	state.equipment[0] = getItem(content, "M Blade")
-	state.equipment[1] = getItem(content, "Hero's Shield")
-	state.equipment[3] = getItem(content, "Hero's Armour")
-	state.equipment[4] = getItem(content, "Dragon Amulet")
+	forceEquipment(heroMardek, state, 0, getItem(content, "M Blade"))
+	forceEquipment(heroMardek, state, 1, getItem(content, "Hero's Shield"))
+	forceEquipment(heroMardek, state, 3, getItem(content, "Hero's Armour"))
+	forceEquipment(heroMardek, state, 4, getItem(content, "Dragon Amulet"))
 	state.inventory[0] = ItemStack(getItem(content, "Elixir"), 9)
 	masterSkill(heroMardek, state, "Shock")
 	masterSkill(heroMardek, state, "Smite Evil")
@@ -119,10 +119,10 @@ private fun initialHeroMardekState(content: Content): CharacterState {
 private fun initialHeroDeuganState(content: Content): CharacterState {
 	val heroDeugan = getPlayer(content, "deugan_hero")
 	val state = CharacterState()
-	state.equipment[0] = getItem(content, "Balmung")
-	state.equipment[3] = getItem(content, "Hero's Coat")
-	state.equipment[4] = getItem(content, "Dragon Amulet")
-	state.inventory[0] = ItemStack(getItem(content, "Dragon Amulet"), 9)
+	forceEquipment(heroDeugan, state, 0, getItem(content, "Balmung"))
+	forceEquipment(heroDeugan, state, 3, getItem(content, "Hero's Coat"))
+	forceEquipment(heroDeugan, state, 4, getItem(content, "Dragon Amulet"))
+	state.inventory[0] = ItemStack(getItem(content, "Elixir"), 9)
 	masterSkill(heroDeugan, state, "Shock")
 	masterSkill(heroDeugan, state, "Pyromagia")
 	masterSkill(heroDeugan, state, "Frostasia")
@@ -191,8 +191,8 @@ private fun addWorldMapNode(content: Content, name: String) = TimelineAssignment
 private fun initialChildMardekState(content: Content): CharacterState {
 	val childMardek = getPlayer(content, "mardek_child")
 	val state = CharacterState()
-	state.equipment[0] = getItem(content, "Stick")
-	state.equipment[3] = getItem(content, "Tunic")
+	forceEquipment(childMardek, state, 0, getItem(content, "Stick"))
+	forceEquipment(childMardek, state, 3, getItem(content, "Tunic"))
 	state.currentLevel = 1
 	state.currentHealth = state.determineMaxHealth(childMardek.baseStats, state.activeStatusEffects)
 	state.currentMana = state.determineMaxMana(childMardek.baseStats, state.activeStatusEffects)
@@ -202,8 +202,8 @@ private fun initialChildMardekState(content: Content): CharacterState {
 private fun initialChildDeuganState(content: Content): CharacterState {
 	val childDeugan = getPlayer(content, "deugan_child")
 	val state = CharacterState()
-	state.equipment[0] = getItem(content, "Big Stick")
-	state.equipment[3] = getItem(content, "Tunic")
+	forceEquipment(childDeugan, state, 0, getItem(content, "Big Stick"))
+	forceEquipment(childDeugan, state, 3, getItem(content, "Tunic"))
 	state.currentLevel = 1
 	state.currentHealth = state.determineMaxHealth(childDeugan.baseStats, state.activeStatusEffects)
 	state.currentMana = state.determineMaxMana(childDeugan.baseStats, state.activeStatusEffects)

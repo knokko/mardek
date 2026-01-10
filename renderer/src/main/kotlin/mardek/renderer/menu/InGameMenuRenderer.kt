@@ -9,7 +9,7 @@ import mardek.renderer.RenderContext
 import mardek.renderer.menu.inventory.renderInventory
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.InGameMenuState
-import mardek.state.ingame.menu.InventoryTab
+import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.ingame.menu.MapTab
 import mardek.state.ingame.menu.QuestsTab
 import mardek.state.ingame.menu.SkillsTab
@@ -23,6 +23,7 @@ internal fun renderInGameMenu(
 	val ovalBatch = context.addOvalBatch(100)
 	val spriteBatch = context.addKim3Batch(1000) // The inventory tab could use a lot of sprites
 	val imageBatch = context.addImageBatch(100)
+	val lateColorBatch = context.addColorBatch(20) // Only needed for inventory tooltips
 	val textBatch = context.addFancyTextBatch(2000)
 	val barColor = srgbToLinear(rgb(24, 14, 10))
 	val barHeight = determineBarHeight(region)
@@ -72,7 +73,9 @@ internal fun renderInGameMenu(
 		srgbToLinear(rgb(238, 203, 127)), TextAlignment.RIGHT
 	)
 
-	val menuContext = MenuRenderContext(context, colorBatch, ovalBatch, imageBatch, spriteBatch, textBatch, menu, state)
+	val menuContext = MenuRenderContext(
+		context, colorBatch, ovalBatch, imageBatch, spriteBatch, lateColorBatch, textBatch, menu, state
+	)
 	if (!menu.currentTab.inside) {
 		renderInGameMenuSectionList(menuContext, Rectangle(
 			region.maxX - selectionWidth, region.minY + barHeight, selectionWidth, region.height - 2 * barHeight

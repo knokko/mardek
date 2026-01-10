@@ -94,6 +94,18 @@ class UiSprites(
 	 */
 	@BitField(id = 27)
 	val questIcon: BcSprite,
+
+	@BitField(id = 28)
+	val closedThrashIcon: KimSprite,
+
+	@BitField(id = 29)
+	val openThrashIcon: KimSprite,
+
+	@BitField(id = 30)
+	val sortIcon1: KimSprite,
+
+	@BitField(id = 31)
+	val sortIcon2: KimSprite,
 ) {
 
 	@Suppress("unused")
@@ -109,11 +121,13 @@ class UiSprites(
 		KimSprite(), KimSprite(), KimSprite(), BcSprite(),
 		KimSprite(), BcSprite(), BcSprite(),
 		BcSprite(), BcSprite(),
+		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 	)
 
 	fun allKimSprites() = arrayOf(
 		goldIcon, mapChest, blueAlertBalloon, redAlertBalloon,
-		consumableIcon, waitIcon, fleeIcon, dreamStoneIcon
+		consumableIcon, waitIcon, fleeIcon, dreamStoneIcon,
+		closedThrashIcon, openThrashIcon, sortIcon1, sortIcon2,
 	)
 
 	fun allBcSprites() = arrayOf(

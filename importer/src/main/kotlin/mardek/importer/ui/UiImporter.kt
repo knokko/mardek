@@ -3,20 +3,16 @@ package mardek.importer.ui
 import mardek.content.sprite.KimSprite
 import mardek.content.ui.UiSprites
 import mardek.importer.util.classLoader
-import mardek.importer.util.compressKimSprite1
-import mardek.importer.util.compressKimSprite2
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.loadBc7Sprite
 import javax.imageio.ImageIO
 
-private fun importKimSprite(name: String, bitsPerPixel: Int): KimSprite {
+private fun importKimSprite(name: String): KimSprite {
 	val path = "mardek/importer/ui/$name.png"
 	val resource = classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
 	val image = ImageIO.read(resource)
 
-	return if (bitsPerPixel == 0) compressKimSprite1(image)
-	else if (bitsPerPixel == -1) compressKimSprite3(image)
-	else compressKimSprite2(image, bitsPerPixel)
+	return compressKimSprite3(image)
 }
 
 private fun importBcSprite(name: String) = loadBc7Sprite("mardek/importer/ui/$name.png")
@@ -31,23 +27,27 @@ internal fun importUiSprites() = UiSprites(
 	meleeDefenseIcon = importBcSprite("MeleeDefenseIcon"),
 	rangedDefenseIcon = importBcSprite("RangedDefenseIcon"),
 	passiveIcon = importBcSprite("PassiveIcon"),
-	goldIcon = importKimSprite("Gold", -1),
-	mapChest = importKimSprite("MapChest", -1),
+	goldIcon = importKimSprite("Gold"),
+	mapChest = importKimSprite("MapChest"),
 	mapSaveCrystal = importBcSprite("MapSaveCrystal"),
 	mapDreamCircle = importBcSprite("MapDreamCircle"),
 	skillToggled = importBcSprite("SkillToggled"),
 	skillNotToggled = importBcSprite("SkillNotToggled"),
 	pointer = importBcSprite("HorizontalPointer"),
 	titleScreenBackground = importBcSprite("TitleScreenBackground"),
-	blueAlertBalloon = importKimSprite("BlueAlertBalloon", -1),
-	redAlertBalloon = importKimSprite("RedAlertBalloon", -1),
-	consumableIcon = importKimSprite("Consumable", -1),
-	waitIcon = importKimSprite("Wait", -1),
-	fleeIcon = importKimSprite("Flee", -1),
+	blueAlertBalloon = importKimSprite("BlueAlertBalloon"),
+	redAlertBalloon = importKimSprite("RedAlertBalloon"),
+	consumableIcon = importKimSprite("Consumable"),
+	waitIcon = importKimSprite("Wait"),
+	fleeIcon = importKimSprite("Flee"),
 	challengeCursor = importBcSprite("ChallengeCursor"),
-	dreamStoneIcon = importKimSprite("DreamStone", -1),
+	dreamStoneIcon = importKimSprite("DreamStone"),
 	clock = importBcSprite("Clock"),
 	arrowHead = importBcSprite("ArrowHead"),
 	statusRemoveBackground = importBcSprite("StatusRemoveBackground"),
 	questIcon = importBcSprite("QuestIcon"),
+	closedThrashIcon = importKimSprite("ClosedThrash"),
+	openThrashIcon = importKimSprite("OpenThrash"),
+	sortIcon1 = importKimSprite("Sort1"),
+	sortIcon2 = importKimSprite("Sort2"),
 )

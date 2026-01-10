@@ -81,7 +81,7 @@ class PlayableCharacter(
 	val portraitInfo: PortraitInfo,
 
 	/**
-	 * The unique ID of the playable character, which is used for (de)serialization.
+	 * The unique ID of this playable character, which is used for (de)serialization.
 	 */
 	@BitField(id = 8)
 	@StableReferenceFieldId

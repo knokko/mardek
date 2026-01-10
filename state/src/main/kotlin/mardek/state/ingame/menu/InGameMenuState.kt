@@ -7,6 +7,7 @@ import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
+import mardek.state.ingame.menu.inventory.InventoryTab
 
 class InGameMenuState(private val state: CampaignState) {
 
@@ -16,7 +17,9 @@ class InGameMenuState(private val state: CampaignState) {
 	fun update(input: InputManager, soundQueue: SoundQueue, content: Content) {
 		val context = UiUpdateContext(
 			state.usedPartyMembers(), state.allPartyMembers(), soundQueue,
-			content.audio.fixedEffects, content.skills
+			content.audio.fixedEffects, content.skills,
+			{ state.cursorItemStack },
+			{ newCursorStack -> state.cursorItemStack = newCursorStack },
 		)
 		while (true) {
 			val event = input.consumeEvent() ?: break

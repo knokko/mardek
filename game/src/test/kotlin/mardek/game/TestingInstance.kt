@@ -82,7 +82,9 @@ class TestingInstance {
 		builder.featurePicker10 { _, _, enabledFeatures ->
 			enabledFeatures.textureCompressionBC(true)
 		}
-		builder.defaultTimeout(5_000_000_000L)
+
+		// This ridiculously long timeout of 1 minute is sometimes needed in GitHub Actions
+		builder.defaultTimeout(60_000_000_000L)
 		boiler = builder.validation(ValidationFeatures(
 			true, false, false, true
 		)).forbidValidationErrors().build()
@@ -125,7 +127,7 @@ class TestingInstance {
 		childMardek = content.playableCharacters.find { it.characterClass.rawName == "mardek_child" }!!
 		childDeugan = content.playableCharacters.find { it.characterClass.rawName == "deugan_child" }!!
 
-		elixir = content.items.items.find { it.flashName == "Elixir" }!!
+		elixir = content.items.items.find { it.displayName == "Elixir" }!!
 		shock = heroDeugan.characterClass.skillClass.actions.find { it.name == "Shock" }!!
 		frostasia = heroDeugan.characterClass.skillClass.actions.find { it.name == "Frostasia" }!!
 
@@ -136,10 +138,10 @@ class TestingInstance {
 
 	fun simpleCharacterStates() = run {
 		val mardekState = CharacterState()
-		mardekState.equipment[0] = content.items.items.find { it.flashName == "M Blade" }!!
+		mardekState.equipment[heroMardek.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "M Blade" }!!
 		mardekState.currentHealth = mardekState.determineMaxHealth(heroMardek.baseStats, emptySet())
 		val deuganState = CharacterState()
-		deuganState.equipment[0] = content.items.items.find { it.flashName == "Balmung" }!!
+		deuganState.equipment[heroDeugan.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "Balmung" }!!
 		deuganState.inventory[0] = ItemStack(elixir, 1)
 		deuganState.skillMastery[shock] = shock.masteryPoints
 		deuganState.skillMastery[frostasia] = frostasia.masteryPoints

@@ -35,8 +35,9 @@ object TestBasicAttacks {
 			// Make sure Mardek gets on turn first, since his sword cannot miss
 			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.currentLevel = 50
-			mardekState.equipment[4] = content.items.items.find { it.flashName == "RingOfAGL+2" }!!
-			mardekState.equipment[5] = mardekState.equipment[4]
+			val ring = content.items.items.find { it.displayName == "RingOfAGL+2" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = ring
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[5]] = ring
 
 			startSimpleBattle(campaign)
 

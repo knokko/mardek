@@ -100,8 +100,8 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 		val simpleTextColor = srgbToLinear(rgb(208, 193, 142))
 		if (obtainedItemStack.plotItem != null) brightTextColor = goldColor
 		val (itemName, description) = if (obtainedItemStack.itemStack != null) {
-			Pair(obtainedItemStack.itemStack!!.item.flashName, obtainedItemStack.itemStack!!.item.description)
-		} else Pair(obtainedItemStack.plotItem!!.name, obtainedItemStack.plotItem!!.description)
+			Pair(obtainedItemStack.itemStack!!.item.displayName, obtainedItemStack.itemStack!!.item.description)
+		} else Pair(obtainedItemStack.plotItem!!.displayName, obtainedItemStack.plotItem!!.description)
 
 		val font = context.bundle.getFont(context.content.fonts.basic2.index)
 		textBatch.drawShadowedString(

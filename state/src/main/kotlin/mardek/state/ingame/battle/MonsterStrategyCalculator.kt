@@ -28,7 +28,7 @@ class MonsterStrategyCalculator(
 
 		val item = entry.item
 		if (item != null) {
-			val target = chooseSingleTarget(entry, pool.criteria, "item ${item.flashName}")
+			val target = chooseSingleTarget(entry, pool.criteria, "item ${item.displayName}")
 			return BattleStateMachine.UseItem(myState, target, item)
 		}
 

@@ -2,7 +2,7 @@ package mardek.renderer.menu.inventory
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.vk2d.text.TextAlignment
-import mardek.content.inventory.EquipmentSlotType
+import mardek.content.characters.CharacterState
 import mardek.content.skill.ActiveSkill
 import mardek.content.skill.PassiveSkill
 import mardek.content.skill.ReactionSkill
@@ -10,20 +10,22 @@ import mardek.content.skill.ReactionSkillType
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.CombatStat
-import mardek.renderer.menu.MenuRenderContext
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.renderer.util.renderDescription
 import mardek.renderer.util.renderFancyMasteredText
-import mardek.state.ingame.menu.InventoryTab
+import mardek.state.ingame.menu.inventory.InventoryInteractionState
 import mardek.state.util.Rectangle
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 internal fun renderHoverItemProperties(
-	menuContext: MenuRenderContext, minX: Int, startY: Int, maxX: Int, maxY: Int, scale: Int,
+	inventoryContext: InventoryRenderContext,
+	interaction: InventoryInteractionState,
+	selectedCharacterState: CharacterState,
+	minX: Int, startY: Int, maxX: Int, maxY: Int, scale: Int,
 ) {
-	menuContext.run {
+	inventoryContext.run {
 		val width = 1 + maxX - minX
 		val barY = startY + scale * SIMPLE_SLOT_SIZE
 		val tabsY = maxY - 15 * scale
@@ -51,11 +53,10 @@ internal fun renderHoverItemProperties(
 		val lineColorLight = srgbToLinear(rgb(208, 193, 142))
 		val lineColorDark = srgbToLinear(rgb(140, 94, 47))
 
-		val tab = menu.currentTab as InventoryTab
-		val hoverItem = tab.hoveringItem?.get()
+		val hoverItem = interaction.hoveredSlot?.get()?.item
 		if (hoverItem != null) {
-			val equipment = hoverItem.item.equipment
-			val element = hoverItem.item.element
+			val equipment = hoverItem.equipment
+			val element = hoverItem.element
 			if (element != null) {
 				val elementColor = srgbToLinear(element.color)
 				val lowElementColor = changeAlpha(elementColor, 100)
@@ -101,24 +102,10 @@ internal fun renderHoverItemProperties(
 
 			val textMinX = 5 * scale
 			var textY = barY + 13 * scale
-			if (tab.descriptionIndex == 0) {
-				var highText = ""
-				if (equipment != null) {
-					if (equipment.weapon != null) highText = "WEAPON: ${equipment.weapon!!.type.flashName}"
-					if (equipment.armorType != null) {
-						highText = equipment.armorType!!.name
-						if (tab.hoveringItem!!.getEquipmentType() == EquipmentSlotType.Body) highText = "ARMOUR: $highText"
-						if (tab.hoveringItem!!.getEquipmentType() == EquipmentSlotType.Head) highText = "HELMET: $highText"
-					}
-					if (equipment.gem != null) highText = "GEMSTONE"
-					if (highText.isEmpty()) highText = "ACCESSORY"
-				}
-				if (hoverItem.item.consumable != null) highText = "EXPENDABLE ITEM"
-				if (highText.isEmpty()) highText = "MISCELLANEOUS ITEM"
-
+			if (interaction.descriptionIndex == 0) {
 				val descriptionHeight = 6f * scale
 				textBatch.drawShadowedString(
-					highText, textMinX.toFloat(), textY.toFloat(),
+					hoverItem.type.displayName, textMinX.toFloat(), textY.toFloat(),
 					descriptionHeight, basicFont, baseTextColor,
 					strokeColor, strokeFactor * descriptionHeight,
 					shadowColor, shadowFactor * descriptionHeight,
@@ -127,7 +114,7 @@ internal fun renderHoverItemProperties(
 				textY += 20 * scale
 
 				for (stat in baseStats) {
-					val adder = hoverItem.item.getModifier(stat)
+					val adder = hoverItem.getModifier(stat)
 					if (adder != 0) {
 						textBatch.drawShadowedString(
 							"${stat.flashName}: $adder", textMinX.toFloat(), textY.toFloat(),
@@ -152,13 +139,10 @@ internal fun renderHoverItemProperties(
 					textY += 8 * scale
 				}
 
-				renderDescription(hoverItem.item.description, 35, ::drawLine)
+				renderDescription(hoverItem.description, 35, ::drawLine)
 			}
 
-
-			if (tab.descriptionIndex == 1 && equipment != null) {
-				val (_, characterState) = context.campaign.allPartyMembers()[tab.partyIndex]!!
-
+			if (interaction.descriptionIndex == 1 && equipment != null) {
 				for ((row, skill) in equipment.skills.withIndex()) {
 					val skillY = barY + 2 * scale + 28 * row * scale
 
@@ -169,7 +153,7 @@ internal fun renderHoverItemProperties(
 						nameHeight, basicFont, nameColor,
 					)
 
-					val skillMastery = characterState.skillMastery[skill] ?: 0
+					val skillMastery = selectedCharacterState.skillMastery[skill] ?: 0
 					if (skillMastery < skill.masteryPoints) {
 						val masteryRenderer = ResourceBarRenderer(
 							context, ResourceType.SkillMastery, Rectangle(
@@ -222,7 +206,7 @@ internal fun renderHoverItemProperties(
 				}
 			}
 
-			if (tab.descriptionIndex == 2) {
+			if (interaction.descriptionIndex == 2) {
 
 				textY = barY + 10 * scale
 				fun addLine(text: String, color: Int) {
@@ -238,7 +222,7 @@ internal fun renderHoverItemProperties(
 				}
 
 				for (stat in baseStats) {
-					val adder = hoverItem.item.getModifier(stat)
+					val adder = hoverItem.getModifier(stat)
 					if (adder != 0) addLine("${stat.flashName}: $adder", lineColorLight)
 				}
 
@@ -246,7 +230,7 @@ internal fun renderHoverItemProperties(
 				if (weapon != null) addLine("Critical chance: ${weapon.critChance}%", lineColorLight)
 
 				if (equipment?.onlyUser != null) {
-					addLine("ONLY USABLE BY ${equipment.onlyUser!!.uppercase()}", lineColorLight)
+					addLine("ONLY USABLE BY ${equipment.onlyUser!!.name.uppercase()}", lineColorLight)
 				}
 
 				if (element != null) addLine("${element.properName} Elemental", lineColorLight)
@@ -315,12 +299,10 @@ internal fun renderHoverItemProperties(
 		val tabX2 = tabX1 + tabWidth + 2 * scale
 		val tabX3 = tabX2 + tabWidth + 2 * scale
 
-
-
 		fun drawTab(text: String, index: Int, x: Int) {
 			var lineColor = lineColorDark
 			var textColor = srgbToLinear(rgb(110, 101, 95))
-			if (tab.descriptionIndex == index) {
+			if (interaction.descriptionIndex == index) {
 				fun mix(left: Float) = rgb(
 					left * normalize(red(midColorLight)) + (1f - left) * normalize(red(midColorDark)),
 					left * normalize(green(midColorLight)) + (1f - left) * normalize(green(midColorDark)),
@@ -351,16 +333,15 @@ internal fun renderHoverItemProperties(
 
 		colorBatch.fill(
 			minX, tabsY,
-			if (tab.descriptionIndex == 0) tabX1 else tabX2, tabsY, lineColorLight
+			if (interaction.descriptionIndex == 0) tabX1 else tabX2, tabsY, lineColorLight
 		)
 		colorBatch.fill((
-				if (tab.descriptionIndex == 1) tabX2 else tabX1) + tabWidth, tabsY,
+				if (interaction.descriptionIndex == 1) tabX2 else tabX1) + tabWidth, tabsY,
 			tabX3, tabsY, lineColorLight
 		)
-		if (tab.descriptionIndex != 2) colorBatch.fill(
+		if (interaction.descriptionIndex != 2) colorBatch.fill(
 			tabX2 + tabWidth, tabsY,
 			tabX3 + tabWidth, tabsY, lineColorLight
 		)
 	}
-
 }

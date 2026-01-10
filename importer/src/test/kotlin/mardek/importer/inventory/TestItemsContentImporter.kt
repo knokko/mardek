@@ -1,18 +1,13 @@
 package mardek.importer.inventory
 
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.compressor.Kim3Decompressor
-import mardek.content.Content
 import mardek.content.inventory.EquipmentProperties
-import mardek.content.inventory.EquipmentSlotType
 import mardek.content.inventory.Item
 import mardek.content.skill.*
-import mardek.importer.audio.importAudioContent
-import mardek.importer.particle.importParticleEffects
-import mardek.importer.stats.importStatsContent
-import mardek.importer.skills.importSkillsContent
+import mardek.importer.importVanillaContent
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.lwjgl.system.MemoryUtil.memCalloc
@@ -58,44 +53,14 @@ internal fun assertSpriteEquals(sheetName: String, x: Int, y: Int, compressedSpr
 class TestItemsContentImporter {
 
 	private val margin = 1e-4f
-
-	private val content = Content()
-
-	@BeforeAll
-	fun importItems() {
-		importAudioContent(content.audio)
-		importParticleEffects(content)
-		importStatsContent(content)
-		importSkillsContent(content)
-		importItemsContent(content)
-	}
-
-	@Test
-	fun testImportSword() {
-		assertEquals(content.audio.effects.find { it.flashName == "hit_MARTIAL" }!!, content.items.weaponTypes.find { it.flashName == "SWORD" }!!.soundEffect)
-	}
-
-	@Test
-	fun testImportGreatAxe() {
-		assertNull(content.items.weaponTypes.find { it.flashName == "GREATAXE" }!!.soundEffect)
-	}
+	private val content = importVanillaContent(Bitser(false), skipMonsters = true)
 
 	@Test
 	fun testImportMediumArmor() {
-		assertEquals("MEDIUM ARMOUR", content.items.armorTypes.find { it.key == "Ar2" }!!.name)
+		assertEquals(1, content.items.itemTypes.count { it.displayName == "ARMOUR: MEDIUM" })
 	}
 
-	@Test
-	fun testGems() {
-		assertTrue(content.items.itemTypes.find { it.flashName == "gems" }!!.canStack)
-	}
-
-	@Test
-	fun testWeapons() {
-		assertFalse(content.items.itemTypes.find { it.flashName == "wepn" }!!.canStack)
-	}
-
-	private fun getItem(name: String) = content.items.items.find { it.flashName == name }!!
+	private fun getItem(name: String) = content.items.items.find { it.displayName == name }!!
 
 	private fun getStatModifier(name: String, equipment: EquipmentProperties) = equipment.stats.find {
 		it.stat.flashName == name
@@ -115,8 +80,7 @@ class TestItemsContentImporter {
 		val equipment = blade.equipment!!
 		val weapon = equipment.weapon!!
 
-		assertEquals("wepn", blade.type.flashName)
-		assertEquals("SWORD", weapon.type.flashName)
+		assertEquals("WEAPON: SWORD", blade.type.displayName)
 		assertEquals(45, getStatModifier("ATK", equipment))
 		assertEquals(5, getStatModifier("STR", equipment))
 		assertEquals(-5, getStatModifier("VIT", equipment))
@@ -148,12 +112,10 @@ class TestItemsContentImporter {
 	fun testGoldenHelmet() {
 		val helmet = getItem("Golden M Helm")
 		val equipment = helmet.equipment!!
-		assertEquals("helm", helmet.type.flashName)
+		assertEquals("HELMET: FULL HELM", helmet.type.displayName)
 		assertEquals(6, getStatModifier("DEF", equipment))
 		assertEquals(3, getStatModifier("MDEF", equipment))
 		assertEquals(20000, helmet.cost)
-		assertEquals("FULL HELM", equipment.armorType!!.name)
-		assertEquals(EquipmentSlotType.Head, equipment.getSlotType())
 
 		assertEquals(1, getStatModifier("STR", equipment))
 		assertEquals(1, getStatModifier("VIT", equipment))
@@ -167,7 +129,11 @@ class TestItemsContentImporter {
 		assertEquals("LIGHT", equipment.elementalBonuses[0].element.properName)
 		assertEquals(0.2f, equipment.elementalBonuses[0].modifier, margin)
 
-		assertEquals("Mardek", equipment.onlyUser)
+		println(content.playableCharacters.map { it.areaSprites.name })
+		assertEquals(
+			content.playableCharacters.find { it.areaSprites.name == "mardek" }!!,
+			equipment.onlyUser
+		)
 		assertEquals("A golden helmet fashioned specifically for Mardek. The M-shaped visor looks sort of silly, but Mardek insists on it because he doesn\'t take life too seriously anyway and thinks it\'s rather fitting. ON HIS HEAD!!! ...Get it?!?1 Never mind.", helmet.description)
 
 		assertEquals(2, equipment.skills.size)
@@ -186,16 +152,14 @@ class TestItemsContentImporter {
 	fun testSilverPendant() {
 		val pendant = getItem("SilverPendant")
 		val equipment = pendant.equipment!!
-		assertNull(equipment.armorType)
 		assertNull(equipment.weapon)
 		assertNull(pendant.consumable)
-		assertEquals(EquipmentSlotType.Accessory, equipment.getSlotType())
+		assertEquals("ACCESSORY", pendant.type.displayName)
 
 		assertEquals(1, equipment.stats.size)
 		assertEquals(3, getStatModifier("MDEF", equipment))
 
 		assertEquals(100, pendant.cost)
-		assertEquals("accs", pendant.type.flashName)
 		assertEquals("LIGHT", pendant.element!!.properName)
 
 		assertEquals(1, equipment.resistances.elements.size)
@@ -218,8 +182,7 @@ class TestItemsContentImporter {
 		val equipment = axe.equipment!!
 		val weapon = equipment.weapon!!
 
-		assertEquals("wepn", axe.type.flashName)
-		assertEquals("GREATAXE", weapon.type.flashName)
+		assertEquals("WEAPON: GREATAXE", axe.type.displayName)
 		assertEquals(46, getStatModifier("ATK", equipment))
 		assertEquals(4, weapon.critChance)
 		assertEquals(95, weapon.hitChance)
@@ -256,10 +219,9 @@ class TestItemsContentImporter {
 		val equipment = aquamarine.equipment!!
 		val gem = equipment.gem!!
 
-		assertEquals("gems", aquamarine.type.flashName)
 		assertEquals(800, aquamarine.cost)
 		assertEquals("WATER", aquamarine.element!!.properName)
-		assertEquals(EquipmentSlotType.Accessory, equipment.getSlotType())
+		assertEquals("GEMSTONE", aquamarine.type.displayName)
 
 		assertEquals(1, equipment.resistances.elements.size)
 		assertSame(aquamarine.element, equipment.resistances.elements[0].element)
@@ -317,7 +279,7 @@ class TestItemsContentImporter {
 	@Test
 	fun testEveningStar() {
 		val eveningStar = getItem("EveningStar")
-		assertEquals("gems", eveningStar.type.flashName)
+		assertEquals("GEMSTONE", eveningStar.type.displayName)
 		assertEquals(40000, eveningStar.cost)
 		assertEquals("THAUMA", eveningStar.element!!.properName)
 
@@ -352,7 +314,7 @@ class TestItemsContentImporter {
 		val water = content.stats.elements.find { it.properName == "WATER" }!!
 
 		val firePendant = getItem("FirePendant")
-		assertEquals("accs", firePendant.type.flashName)
+		assertEquals("ACCESSORY", firePendant.type.displayName)
 		assertEquals(300, firePendant.cost)
 		assertSame(fire, firePendant.element)
 
@@ -365,7 +327,7 @@ class TestItemsContentImporter {
 	@Test
 	fun testElixir() {
 		val elixir = getItem("Elixir")
-		assertEquals("item", elixir.type.flashName)
+		assertEquals("EXPENDABLE ITEM", elixir.type.displayName)
 		assertEquals(9999, elixir.cost)
 		assertNull(elixir.element)
 
@@ -381,7 +343,7 @@ class TestItemsContentImporter {
 	@Test
 	fun testPhoenixDown() {
 		val phoenixDown = getItem("PhoenixDown")
-		assertEquals("item", phoenixDown.type.flashName)
+		assertEquals("EXPENDABLE ITEM", phoenixDown.type.displayName)
 		assertEquals(500, phoenixDown.cost)
 		assertNull(phoenixDown.element)
 
@@ -396,7 +358,7 @@ class TestItemsContentImporter {
 	@Test
 	fun testMirrilixir() {
 		val mirrilixir = getItem("Mirrilixir")
-		assertEquals("item", mirrilixir.type.flashName)
+		assertEquals("EXPENDABLE ITEM", mirrilixir.type.displayName)
 		assertEquals(5000, mirrilixir.cost)
 		assertNull(mirrilixir.element)
 
@@ -416,7 +378,7 @@ class TestItemsContentImporter {
 	@Test
 	fun testEtherOfQueens() {
 		val ether = getItem("Ether of Queens")
-		assertEquals("item", ether.type.flashName)
+		assertEquals("EXPENDABLE ITEM", ether.type.displayName)
 		assertEquals(3000, ether.cost)
 		assertNull(ether.element)
 
@@ -432,7 +394,7 @@ class TestItemsContentImporter {
 	@Test
 	fun testAlchemistsFire() {
 		val alchemistsFire = getItem("Alchemist's Fire")
-		assertEquals("item", alchemistsFire.type.flashName)
+		assertEquals("EXPENDABLE ITEM", alchemistsFire.type.displayName)
 		assertEquals("FIRE", alchemistsFire.element!!.properName)
 		assertEquals(500, alchemistsFire.cost)
 
@@ -468,7 +430,7 @@ class TestItemsContentImporter {
 	@Test
 	fun testPotion() {
 		val potion = getItem("Potion")
-		assertEquals("item", potion.type.flashName)
+		assertEquals("EXPENDABLE ITEM", potion.type.displayName)
 		assertEquals(30, potion.cost)
 		assertNull(potion.element)
 
@@ -483,7 +445,7 @@ class TestItemsContentImporter {
 	@Test
 	fun testPowerDrink() {
 		val powerDrink = getItem("Power Drink")
-		assertEquals("item", powerDrink.type.flashName)
+		assertEquals("EXPENDABLE ITEM", powerDrink.type.displayName)
 		assertEquals(2000, powerDrink.cost)
 
 		val consumable = powerDrink.consumable!!
@@ -522,7 +484,7 @@ class TestItemsContentImporter {
 	@Test
 	fun testLiquidSound() {
 		val liquidSound = getItem("LiquidSound")
-		assertEquals("item", liquidSound.type.flashName)
+		assertEquals("EXPENDABLE ITEM", liquidSound.type.displayName)
 		assertEquals(20, liquidSound.cost)
 
 		val consumable = liquidSound.consumable!!
@@ -538,7 +500,7 @@ class TestItemsContentImporter {
 
 	@Test
 	fun testFireCrystal() {
-		val crystal = content.items.plotItems.find { it.name == "Fire Crystal of Belfan" }!!
+		val crystal = content.items.plotItems.find { it.displayName == "Fire Crystal of Belfan" }!!
 		assertEquals(
 			"An Artefact of the Gods. It is essentially crystalised elemental energy, and one of the " +
 					"planet's 'organs', of a sort. This particular crystal is the source of all heat and " +
@@ -550,7 +512,7 @@ class TestItemsContentImporter {
 
 	@Test
 	fun testTrilobiteKey() {
-		val key = content.items.plotItems.find { it.name == "Trilobite Key III" }!!
+		val key = content.items.plotItems.find { it.displayName == "Trilobite Key III" }!!
 		assertEquals("A key shaped like... a trilobite?", key.description)
 		assertNull(key.element)
 		assertEquals(1000, key.cost)

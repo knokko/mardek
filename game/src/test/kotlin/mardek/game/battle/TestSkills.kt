@@ -41,8 +41,9 @@ object TestSkills {
 			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.currentLevel = 50
 			mardekState.currentMana = 20
-			mardekState.equipment[4] = content.items.items.find { it.flashName == "RingOfAGL+2" }!!
-			mardekState.equipment[5] = mardekState.equipment[4]
+			val ring = content.items.items.find { it.displayName == "RingOfAGL+2" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = ring
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[5]] = ring
 
 			startSimpleBattle(campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
 
@@ -255,7 +256,7 @@ object TestSkills {
 			sslenckState.currentMana = 20
 			sslenckState.currentHealth = 100
 			sslenckState.skillMastery[fireBreath] = fireBreath.masteryPoints
-			sslenckState.equipment[0] = content.items.items.find { it.flashName.contains("Axe") }!!
+			sslenckState.equipment[sslenck.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName.contains("Axe") }!!
 
 			campaign.party[0] = sslenck
 			campaign.party[1] = null
