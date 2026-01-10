@@ -11,7 +11,7 @@ import mardek.renderer.FULL_BORDER_HEIGHT
 import mardek.renderer.MardekCursor
 import mardek.state.GameStateManager
 import mardek.state.ingame.InGameState
-import mardek.state.ingame.menu.InventoryTab
+import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.title.TitleScreenState
 import org.lwjgl.sdl.SDLEvents.*
 import org.lwjgl.sdl.SDLGamepad.*
@@ -408,7 +408,7 @@ class MardekSdlInput(
 			val currentTab = currentState.menu.currentTab
 			if (currentTab is InventoryTab) {
 				newCursor = MardekCursor.Inventory
-				if (currentTab.pickedUpItem != null) newCursor = MardekCursor.Grab
+				if (currentTab.interaction.pickedUpItem != null) newCursor = MardekCursor.Grab
 			}
 		}
 

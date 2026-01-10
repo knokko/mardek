@@ -8,32 +8,41 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.CombatStat
-import mardek.renderer.menu.MenuRenderContext
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.renderer.util.gradientWithBorder
-import mardek.state.ingame.menu.InventoryTab
+import mardek.state.UsedPartyMember
+import mardek.state.ingame.menu.inventory.EquipmentRowRenderInfo
+import mardek.state.ingame.menu.inventory.InventoryInteractionState
 import mardek.state.util.Rectangle
 import java.lang.Math.toIntExact
 
 internal const val CHARACTER_BAR_HEIGHT = 23
 internal const val EQUIPMENT_SLOT_SIZE = 20
 
-internal fun renderCharacterBars(menuContext: MenuRenderContext, startX: Int, startY: Int, maxX: Int, scale: Int) {
-	for ((index, character, characterState) in menuContext.state.usedPartyMembers()) {
-		renderCharacterBar(
-			menuContext, startX, startY + index * scale * CHARACTER_BAR_HEIGHT,
-			maxX, scale, index, character, characterState
-		)
+internal fun renderCharacterBars(
+	inventoryContext: InventoryRenderContext,
+	interaction: InventoryInteractionState,
+	owners: List<UsedPartyMember>,
+	startX: Int, startY: Int, maxX: Int, scale: Int
+): Collection<EquipmentRowRenderInfo> {
+	val renderInfo = mutableListOf<EquipmentRowRenderInfo>()
+	for ((index, character, characterState) in owners) {
+		renderInfo.add(renderCharacterBar(
+			inventoryContext, startX, startY + index * scale * CHARACTER_BAR_HEIGHT,
+			maxX, scale, interaction, index == interaction.partyIndex, character, characterState
+		))
 	}
+	return renderInfo
 }
 
 private fun renderCharacterBar(
-	menuContext: MenuRenderContext, startX: Int, startY: Int, maxX: Int, scale: Int,
-	partyIndex: Int, character: PlayableCharacter, characterState: CharacterState,
-) {
-	menuContext.run {
+	inventoryContext: InventoryRenderContext, startX: Int, startY: Int, maxX: Int, scale: Int,
+	interaction: InventoryInteractionState, isSelected: Boolean,
+	character: PlayableCharacter, characterState: CharacterState,
+): EquipmentRowRenderInfo {
+	inventoryContext.run {
 		val barHeight = scale * CHARACTER_BAR_HEIGHT
 
 		run {
@@ -59,8 +68,6 @@ private fun renderCharacterBar(
 			)
 		}
 
-		val tab = menu.currentTab as InventoryTab
-
 		val characterX = startX + margin + margin / 2
 		val characterY = startY + margin + scale
 		run {
@@ -74,7 +81,7 @@ private fun renderCharacterBar(
 			)
 		}
 
-		if (partyIndex == tab.partyIndex) {
+		if (isSelected) {
 			val selectedColor = rgba(0, 30, 150, 100)
 			colorBatch.fill(startX, startY, maxX, startY + barHeight - 1, selectedColor)
 			imageBatch.simpleScale(
@@ -137,7 +144,7 @@ private fun renderCharacterBar(
 			val statsY = startY + barHeight - margin * 1.33f
 			var statsColor = baseTextColor
 			var shadowColor = baseShadowColor
-			if (tab.partyIndex == partyIndex) {
+			if (isSelected) {
 				statsColor = selectedTextColor
 				shadowColor = selectedShadowColor
 			}
@@ -154,8 +161,8 @@ private fun renderCharacterBar(
 				character.baseStats, characterState.activeStatusEffects, CombatStat.RangedDefense
 			)
 
-			val pickedItem = tab.pickedUpItem
-			if (pickedItem != null && pickedItem.getEquipmentType() != null && pickedItem.assetCharacter === character) {
+			val pickedItem = interaction.pickedUpItem
+			if (pickedItem != null && pickedItem.getEquipmentType() != null && pickedItem.owner === character) {
 				val equipment = pickedItem.get()?.item?.equipment
 				if (equipment != null) {
 					for (modifier in equipment.stats) {
@@ -188,7 +195,7 @@ private fun renderCharacterBar(
 		run {
 			var textColor = baseTextColor
 			var shadowColor = baseShadowColor
-			if (tab.partyIndex == partyIndex) {
+			if (isSelected) {
 				textColor = selectedTextColor
 				shadowColor = selectedShadowColor
 			}
@@ -224,34 +231,29 @@ private fun renderCharacterBar(
 		manaRenderer.renderBar(characterState.currentMana, maxMana)
 		manaRenderer.renderTextBelowBar(characterState.currentMana, maxMana)
 
-		renderEquipment(this, partyIndex, characterState, startY + margin - 1, maxX, scale)
+		return renderEquipment(
+			this, interaction,
+			character, characterState,
+			startY + margin - 1, maxX, scale,
+		)
 	}
 }
 
 private fun renderEquipment(
-	menuContext: MenuRenderContext, partyIndex: Int, characterState: CharacterState,
+	inventoryContext: InventoryRenderContext,
+	interaction: InventoryInteractionState,
+	owner: PlayableCharacter,
+	ownerState: CharacterState,
 	startY: Int, maxX: Int, scale: Int,
-) {
-	menuContext.run {
-		val tab = menu.currentTab as InventoryTab
-
+) : EquipmentRowRenderInfo {
+	inventoryContext.run {
 		val startX = maxX - 6 * scale * EQUIPMENT_SLOT_SIZE
 		val largeSlotSize = scale * EQUIPMENT_SLOT_SIZE
 		val slotSize = scale * SIMPLE_SLOT_SIZE
 
-		if (partyIndex == 0) {
-			tab.renderEquipmentStartX = startX
-			tab.renderEquipmentStartY = startY
-			tab.renderEquipmentSlotSize = slotSize
-			tab.renderEquipmentSlotSpacing = largeSlotSize
-			tab.renderEquipmentCharacterSpacing = scale * CHARACTER_BAR_HEIGHT
-		}
-
-		val equipment = characterState.equipment
-
-		val pickedItem = tab.pickedUpItem
+		val pickedItem = interaction.pickedUpItem
 		val lineColor = srgbToLinear(rgb(208, 193, 142))
-		for ((column, item) in equipment.withIndex()) {
+		for ((column, item) in ownerState.equipment.withIndex()) {
 			val minX = startX + column * largeSlotSize
 			val maxX = minX + slotSize - 1
 			val maxY = startY + slotSize - 1
@@ -259,7 +261,7 @@ private fun renderEquipment(
 			colorBatch.fill(minX, maxY, maxX, maxY, lineColor)
 			colorBatch.fill(minX, startY, minX, maxY, lineColor)
 			colorBatch.fill(maxX, startY, maxX, maxY, lineColor)
-			if (pickedItem != null && (-pickedItem.slotIndex - 1) == column && pickedItem.characterState == characterState) continue
+			if (pickedItem != null && (-pickedItem.slotIndex - 1) == column && pickedItem.owner === owner) continue
 			if (item != null) spriteBatch.simple(
 				minX + scale, startY + scale,
 				scale.toFloat(), item.sprite.index
@@ -269,8 +271,8 @@ private fun renderEquipment(
 		var hoverLineColor = srgbToLinear(rgb(165, 205, 254))
 		var hoverLightColor = srgbToLinear(rgb(25, 68, 118))
 		var hoverDarkColor = srgbToLinear(rgb(64, 43, 36))
-		val hoveredItem = tab.hoveringItem
-		if (hoveredItem != null && hoveredItem.slotIndex < 0 && hoveredItem.characterState == characterState) {
+		val hoveredItem = interaction.hoveringItem
+		if (hoveredItem != null && hoveredItem.slotIndex < 0 && hoveredItem.owner === owner) {
 			if (pickedItem != null && pickedItem != hoveredItem && !hoveredItem.canInsert(pickedItem.get()!!.item)) {
 				hoverLineColor = srgbToLinear(rgb(255, 162, 162))
 				hoverDarkColor = srgbToLinear(rgb(134, 107, 90))
@@ -284,5 +286,14 @@ private fun renderEquipment(
 				hoverLineColor, hoverLightColor, hoverLightColor, hoverDarkColor
 			)
 		}
+
+		return EquipmentRowRenderInfo(
+			startX = startX,
+			startY = startY,
+			slotSize = slotSize,
+			slotSpacing = largeSlotSize,
+			owner = owner,
+			ownerState = ownerState,
+		)
 	}
 }

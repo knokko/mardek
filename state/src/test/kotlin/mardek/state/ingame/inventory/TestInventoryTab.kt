@@ -16,8 +16,8 @@ import mardek.input.InputKey
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.content.characters.CharacterState
-import mardek.state.ingame.menu.InventoryTab
-import mardek.state.ingame.menu.ItemReference
+import mardek.state.ingame.menu.inventory.InventoryTab
+import mardek.state.ingame.menu.inventory.ItemReference
 import mardek.state.ingame.menu.UiUpdateContext
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -114,13 +114,13 @@ class TestInventoryTab {
 	fun testInsertItemIntoEmptySlot() {
 		val item = Item()
 
-		tab.pickedUpItem = putStack(10, ItemStack(item, 3))
-		tab.hoveringItem = ItemReference(mardek, mardekState, 11)
+		tab.interaction.pickedUpItem = putStack(10, ItemStack(item, 3))
+		tab.interaction.hoveringItem = ItemReference(mardek, mardekState, 11)
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
 
-		assertNull(tab.pickedUpItem)
-		assertEquals(tab.hoveringItem, ItemReference(mardek, mardekState, 11))
+		assertNull(tab.interaction.pickedUpItem)
+		assertEquals(tab.interaction.hoveringItem, ItemReference(mardek, mardekState, 11))
 		assertNull(mardekState.inventory[10])
 		assertEquals(ItemStack(item, 3), mardekState.inventory[11])
 	}
@@ -129,35 +129,35 @@ class TestInventoryTab {
 	fun testPickItemWithNothingOnCursor() {
 		val item = Item()
 
-		tab.hoveringItem = putStack(5, ItemStack(item, 1))
+		tab.interaction.hoveringItem = putStack(5, ItemStack(item, 1))
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(tab.hoveringItem, tab.pickedUpItem)
+		assertEquals(tab.interaction.hoveringItem, tab.interaction.pickedUpItem)
 	}
 
 	@Test
 	fun testCanUnEquipShield() {
 		val shield = createEquipment(armorType = mardek.characterClass.armorTypes.first())
 
-		tab.hoveringItem = putEquipment(1, shield)
+		tab.interaction.hoveringItem = putEquipment(1, shield)
 		assertEquals(shield, mardekState.equipment[1])
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(tab.hoveringItem, tab.pickedUpItem)
+		assertEquals(tab.interaction.hoveringItem, tab.interaction.pickedUpItem)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
-		assertNull(tab.pickedUpItem)
-		assertEquals(ItemStack(shield, 1), tab.hoveringItem!!.get())
+		assertNull(tab.interaction.pickedUpItem)
+		assertEquals(ItemStack(shield, 1), tab.interaction.hoveringItem!!.get())
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(tab.hoveringItem, tab.pickedUpItem)
+		assertEquals(tab.interaction.hoveringItem, tab.interaction.pickedUpItem)
 
-		tab.hoveringItem = ItemReference(mardek, mardekState, 5)
+		tab.interaction.hoveringItem = ItemReference(mardek, mardekState, 5)
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
-		assertNull(tab.pickedUpItem)
+		assertNull(tab.interaction.pickedUpItem)
 		assertEquals(ItemStack(shield, 1), mardekState.inventory[5])
 		assertNull(mardekState.equipment[1])
 	}
@@ -166,16 +166,19 @@ class TestInventoryTab {
 	fun testCanNotPutShieldInArmorSlot() {
 		val shield = createEquipment(armorType = mardek.characterClass.armorTypes.first())
 
-		tab.hoveringItem = putEquipment(1, shield)
+		tab.interaction.hoveringItem = putEquipment(1, shield)
 		assertEquals(shield, mardekState.equipment[1])
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(tab.hoveringItem, tab.pickedUpItem)
+		assertEquals(tab.interaction.hoveringItem, tab.interaction.pickedUpItem)
 
-		tab.hoveringItem = ItemReference(mardek, mardekState, -4)
+		tab.interaction.hoveringItem = ItemReference(mardek, mardekState, -4)
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
-		assertEquals(ItemReference(mardek, mardekState, -2), tab.pickedUpItem)
+		assertEquals(
+			ItemReference(mardek, mardekState, -2),
+			tab.interaction.pickedUpItem
+		)
 		assertEquals(shield, mardekState.equipment[1])
 		assertNull(mardekState.equipment[3])
 	}
@@ -184,26 +187,26 @@ class TestInventoryTab {
 	fun testCanNotPutShieldInWeaponSlot() {
 		val shield = createEquipment(armorType = mardek.characterClass.armorTypes.first())
 		val weapon = createWeapon(mardek.characterClass.weaponType!!)
-		tab.hoveringItem = putEquipment(0, weapon)
-		tab.pickedUpItem = putEquipment(1, shield)
+		tab.interaction.hoveringItem = putEquipment(0, weapon)
+		tab.interaction.pickedUpItem = putEquipment(1, shield)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
-		assertEquals(ItemStack(shield, 1), tab.pickedUpItem!!.get())
-		assertEquals(ItemStack(weapon, 1), tab.hoveringItem!!.get())
+		assertEquals(ItemStack(shield, 1), tab.interaction.pickedUpItem!!.get())
+		assertEquals(ItemStack(weapon, 1), tab.interaction.hoveringItem!!.get())
 	}
 
 	@Test
 	fun testSwapWeapons() {
 		val oldWeapon = createWeapon(mardek.characterClass.weaponType!!)
 		val newWeapon = createWeapon(mardek.characterClass.weaponType!!)
-		tab.pickedUpItem = putStack(0, ItemStack(newWeapon, 1))
-		tab.hoveringItem = putEquipment(0, oldWeapon)
+		tab.interaction.pickedUpItem = putStack(0, ItemStack(newWeapon, 1))
+		tab.interaction.hoveringItem = putEquipment(0, oldWeapon)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickConfirm, soundQueue.take())
-		assertEquals(ItemStack(oldWeapon, 1), tab.pickedUpItem!!.get())
-		assertEquals(ItemStack(newWeapon, 1), tab.hoveringItem!!.get())
+		assertEquals(ItemStack(oldWeapon, 1), tab.interaction.pickedUpItem!!.get())
+		assertEquals(ItemStack(newWeapon, 1), tab.interaction.hoveringItem!!.get())
 		assertSame(newWeapon, mardekState.equipment[0])
 		assertSame(oldWeapon, mardekState.inventory[0]!!.item)
 	}
@@ -211,20 +214,20 @@ class TestInventoryTab {
 	@Test
 	fun testCanNotTakeWeapon() {
 		val weapon = createWeapon(mardek.characterClass.weaponType!!)
-		tab.hoveringItem = putEquipment(0, weapon)
+		tab.interaction.hoveringItem = putEquipment(0, weapon)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
 		assertSame(weapon, mardekState.equipment[0])
-		assertNull(tab.pickedUpItem)
+		assertNull(tab.interaction.pickedUpItem)
 	}
 
 	@Test
 	fun testCanNotEquipWrongWeapon() {
 		val goodWeapon = createWeapon(mardek.characterClass.weaponType!!)
 		val wrongWeapon = createWeapon(WeaponType())
-		tab.hoveringItem = putEquipment(0, goodWeapon)
-		tab.pickedUpItem = putStack(12, ItemStack(wrongWeapon, 1))
+		tab.interaction.hoveringItem = putEquipment(0, goodWeapon)
+		tab.interaction.pickedUpItem = putStack(12, ItemStack(wrongWeapon, 1))
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
@@ -235,14 +238,14 @@ class TestInventoryTab {
 	fun testRespectOnlyUser() {
 		val badShield = createEquipment(armorType = mardek.characterClass.armorTypes.first(), onlyUser = "Emela")
 		val goodShield = createEquipment(armorType = mardek.characterClass.armorTypes.first(), onlyUser = "Mardek")
-		tab.pickedUpItem = putStack(3, ItemStack(badShield, 1))
-		tab.hoveringItem = ItemReference(mardek, mardekState, -2)
+		tab.interaction.pickedUpItem = putStack(3, ItemStack(badShield, 1))
+		tab.interaction.hoveringItem = ItemReference(mardek, mardekState, -2)
 
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickReject, soundQueue.take())
 		assertNull(mardekState.equipment[1])
 
-		tab.pickedUpItem = putStack(2, ItemStack(goodShield, 1))
+		tab.interaction.pickedUpItem = putStack(2, ItemStack(goodShield, 1))
 		tab.processKeyPress(InputKey.Interact, context)
 		assertSame(context.sounds.ui.clickCancel, soundQueue.take())
 		assertSame(goodShield, mardekState.equipment[1])

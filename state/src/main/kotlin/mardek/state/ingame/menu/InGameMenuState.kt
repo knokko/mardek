@@ -7,6 +7,7 @@ import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
+import mardek.state.ingame.menu.inventory.InventoryTab
 
 class InGameMenuState(private val state: CampaignState) {
 

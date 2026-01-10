@@ -9,7 +9,7 @@ import mardek.renderer.RenderContext
 import mardek.renderer.menu.inventory.renderInventory
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.InGameMenuState
-import mardek.state.ingame.menu.InventoryTab
+import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.ingame.menu.MapTab
 import mardek.state.ingame.menu.QuestsTab
 import mardek.state.ingame.menu.SkillsTab

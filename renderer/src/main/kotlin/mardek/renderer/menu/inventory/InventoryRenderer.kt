@@ -5,6 +5,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.menu.MenuRenderContext
+import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.util.Rectangle
 import kotlin.math.max
 import kotlin.math.min
@@ -20,14 +21,26 @@ internal fun renderInventory(menuContext: MenuRenderContext, region: Rectangle) 
 	val gridOffset = 2 + 3 * scale + 8 * scale * SIMPLE_SLOT_SIZE
 
 	val gridStartX = region.boundX - gridOffset
-	renderInventoryGrid(menuContext, gridStartX, region.boundY - gridOffset, scale)
-	renderCharacterBars(menuContext, region.minX + 5 * scale, region.minY + 3 * scale, region.maxX, scale)
-	if (gridStartX >= 30 * scale) {
-		val startY = region.boundY - gridOffset
-		val maxX = min(200 * scale, gridStartX - 2 * scale)
-		renderHoverItemProperties(menuContext, region.minX, startY, maxX, region.maxY, scale)
-	}
 	menuContext.run {
+		val tab = menu.currentTab as InventoryTab
+		val inventoryContext = InventoryRenderContext(context, colorBatch, spriteBatch, imageBatch, textBatch)
+		val (_, characterState) = state.allPartyMembers()[tab.interaction.partyIndex]!!
+		tab.gridRenderInfo = renderItemGrid(
+			inventoryContext, characterState.inventory, tab.interaction,
+			gridStartX, region.boundY - gridOffset, scale,
+		)
+		tab.equipmentRenderInfo = renderCharacterBars(
+			inventoryContext, tab.interaction, state.usedPartyMembers(),
+			region.minX + 5 * scale, region.minY + 3 * scale, region.maxX, scale,
+		)
+		if (gridStartX >= 30 * scale) {
+			val startY = region.boundY - gridOffset
+			val maxX = min(200 * scale, gridStartX - 2 * scale)
+			renderHoverItemProperties(
+				inventoryContext, tab.interaction, characterState,
+				region.minX, startY, maxX, region.maxY, scale,
+			)
+		}
 		val goldX = (region.minX + region.maxX) * 2 / 3
 		spriteBatch.simple(
 			goldX, region.minY - 20 * scale,
