@@ -50,6 +50,7 @@ sealed class FixedAction {
 			ActionTimelineTransition::class.java,
 			ActionTeleport::class.java,
 			ActionSetMoney::class.java,
+			ActionItemStorage::class.java,
 		)
 	}
 }
@@ -568,5 +569,14 @@ class ActionSetMoney(
 	@Suppress("unused")
 	private constructor() : this(0)
 
+	override fun getTargets() = emptyArray<ActionTarget>()
+}
+
+/**
+ * Opens the item storage: a large inventory that the player can only access at save crystals. It is typically used
+ * for storing items when the inventories of the playable characters are (almost) full.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionItemStorage : FixedAction() {
 	override fun getTargets() = emptyArray<ActionTarget>()
 }

@@ -200,12 +200,13 @@ class ItemStorageSlotReference(
 	val index: Int,
 ) : ItemSlotReference() {
 
-	override fun get() = storage[index]
+	override fun get() = if (index < storage.size) storage[index] else null
 
 	override fun swap(
 		cursorStack: ItemStack?,
 		sounds: FixedSoundEffects
 	): ItemSwapResult {
+		while (index >= storage.size) storage.add(null)
 		val oldStack = storage[index]
 		val (newStack, result) = simpleSwap(oldStack, cursorStack, sounds)
 		storage[index] = newStack
@@ -216,6 +217,7 @@ class ItemStorageSlotReference(
 		cursorStack: ItemStack?,
 		sounds: FixedSoundEffects
 	): ItemSwapResult {
+		while (index >= storage.size) storage.add(null)
 		val oldStack = storage[index]
 		val (newStack, result) = simpleTakeSimple(oldStack, cursorStack, sounds)
 		storage[index] = newStack

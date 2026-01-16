@@ -2,7 +2,6 @@ package mardek.game.action
 
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionToArea
-import mardek.content.action.ChoiceActionNode
 import mardek.content.action.FixedActionNode
 import mardek.content.area.Direction
 import mardek.content.stats.StatusEffect
@@ -130,8 +129,7 @@ object TestActions {
 			}
 			assertEquals(0f, actions.shownDialogueCharacters)
 
-			val choiceNode = actions.node as ChoiceActionNode
-			assertEquals(2, choiceNode.options.size) // Only "Save" and "Exit" at this point
+			assertEquals(2, actions.choiceOptions.size) // Only "Save" and "Exit" at this point
 			assertEquals(0, actions.selectedChoice)
 
 			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))

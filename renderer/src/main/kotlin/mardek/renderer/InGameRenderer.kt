@@ -4,10 +4,12 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import mardek.content.action.ActionItemStorage
 import mardek.content.action.ActionSaveCampaign
 import mardek.content.action.FixedActionNode
 import mardek.renderer.actions.renderCampaignActions
 import mardek.renderer.area.renderCurrentArea
+import mardek.renderer.area.ui.storage.renderItemStorage
 import mardek.renderer.battle.renderBattle
 import mardek.renderer.battle.renderBattleLoot
 import mardek.renderer.menu.MenuRenderContext
@@ -16,6 +18,7 @@ import mardek.renderer.menu.renderInGameMenu
 import mardek.renderer.menu.renderInGameMenuSectionList
 import mardek.renderer.save.renderSaveSelectionModal
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.actions.ItemStorageInteractionState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.saves.SaveSelectionState
@@ -114,13 +117,18 @@ internal fun renderInGame(
 				}
 			} else {
 				var saveSelection: SaveSelectionState? = null
+				var itemStorage: ItemStorageInteractionState? = null
 				if (suspension is AreaSuspensionActions) {
 					val node = suspension.actions.node
 					if (node is FixedActionNode && node.action is ActionSaveCampaign) {
 						saveSelection = suspension.actions.saveSelectionState
 					}
+					if (node is FixedActionNode && node.action is ActionItemStorage) {
+						itemStorage = suspension.actions.itemStorageInteraction
+					}
 				}
 
+				val batches: Pair<Vk2dColorBatch, Vk2dGlyphBatch>
 				if (saveSelection != null) {
 					val framebuffers = context.framebuffers
 					val areaRenderStage = context.pipelines.base.blur.addSourceStage(
@@ -139,17 +147,17 @@ internal fun renderInGame(
 					val basicFont = context.bundle.getFont(context.content.fonts.basic2.index)
 					val fatFont = context.bundle.getFont(context.content.fonts.fat.index)
 					val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
-					val batches = renderSaveSelectionModal(
+					batches = renderSaveSelectionModal(
 						context, basicFont, fatFont, upperFont,
 						saveSelection, true, region,
 					)
-					titleColorBatch = batches.first
-					titleTextBatch = batches.second
+				} else if (itemStorage != null) {
+					batches = renderItemStorage(context, itemStorage, region)
 				} else {
-					val batches = renderCurrentArea(context, area, region)
-					titleColorBatch = batches.first
-					titleTextBatch = batches.second
+					batches = renderCurrentArea(context, area, region)
 				}
+				titleColorBatch = batches.first
+				titleTextBatch = batches.second
 			}
 		} else {
 			val framebuffers = context.framebuffers

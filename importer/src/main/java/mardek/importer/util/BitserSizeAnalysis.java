@@ -1,5 +1,6 @@
 package mardek.importer.util;
 
+import com.github.knokko.bitser.RecursionNode;
 import com.github.knokko.bitser.io.BitOutputStream;
 
 import java.io.IOException;
@@ -38,37 +39,38 @@ public class BitserSizeAnalysis extends BitOutputStream {
 	}
 
 	@Override
-	public void pushContext(String context, int counter) {
-		if (!current.children.containsKey(context)) {
-			current.children.put(context, new Node(current, context));
-		}
-
-		current = current.children.get(context);
-		current.startTime = System.nanoTime();
-		current.startBits = bitsSoFar;
+	public void pushContext(RecursionNode node, String fieldName) {
+		// TODO CHAP1 Maybe fix this, otherwise remove BitserSizeAnalysis
+//		if (!current.children.containsKey(node)) {
+//			current.children.put(context, new Node(current, context));
+//		}
+//
+//		current = current.children.get(context);
+//		current.startTime = System.nanoTime();
+//		current.startBits = bitsSoFar;
 	}
 
 	@Override
-	public void popContext(String context, int counter) {
+	public void popContext(RecursionNode node, String fieldName) {
 		current.spentTime += System.nanoTime() - current.startTime;
 		current.spentBits += bitsSoFar - current.startBits;
 		current = current.parent;
 	}
 
-	@Override
-	public void prepareProperty(String fieldName, int counter) {
-		pushContext(fieldName, counter);
-	}
-
-	@Override
-	public void finishProperty() {
-		popContext(null, 0);
-	}
-
-	@Override
-	public void finish() {
-		popContext(null, 0);
-	}
+//	@Override
+//	public void prepareProperty(String fieldName, int counter) {
+//		pushContext(fieldName, counter);
+//	}
+//
+//	@Override
+//	public void finishProperty() {
+//		popContext(null, 0);
+//	}
+//
+//	@Override
+//	public void finish() {
+//		popContext(null, 0);
+//	}
 
 	public static class Node {
 

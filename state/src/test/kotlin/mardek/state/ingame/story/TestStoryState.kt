@@ -96,8 +96,9 @@ class TestStoryState {
 		needsActivation = true,
 	)
 
-	private val mainNodeA = simpleNode(name = "MainNodeA",)
-	private val mainNodeBA = simpleNode(name = "MainNodeBA",)
+	private val simpleState = CharacterState()
+	private val mainNodeA = simpleNode(name = "MainNodeA")
+	private val mainNodeBA = simpleNode(name = "MainNodeBA")
 	private val mainNodeB = simpleNode(
 		name = "MainNodeB",
 		children = arrayOf(mainNodeBA),
@@ -144,7 +145,7 @@ class TestStoryState {
 		children = arrayOf(mainNodeDA),
 		variables = arrayOf(
 			TimelineAssignment(deugan.isAvailable, TimelineUnitValue()),
-			TimelineAssignment(deugan.stateVariable, TimelineCharacterStateValue(CharacterState())),
+			TimelineAssignment(deugan.stateVariable, TimelineCharacterStateValue(simpleState)),
 		)
 	)
 	private val mainNodeEA = simpleNode(
@@ -173,7 +174,7 @@ class TestStoryState {
 				content.story.fixedVariables.forcedPartyMembers[0],
 				TimelineOptionalPlayerValue(mardek),
 			),
-			TimelineAssignment(mardek.stateVariable, TimelineCharacterStateValue(CharacterState())),
+			TimelineAssignment(mardek.stateVariable, TimelineCharacterStateValue(simpleState)),
 		),
 	)
 	private val mainTimeline = Timeline(
@@ -190,6 +191,8 @@ class TestStoryState {
 	)
 
 	init {
+		simpleState.currentHealth = 5
+		simpleState.currentLevel = 1
 		content.story.timelines.add(mainTimeline)
 		content.story.timelines.add(needsTimeline)
 		state.story.initialize(content)
@@ -221,12 +224,12 @@ class TestStoryState {
 
 		state.performTimelineTransition(updateContext, mainTimeline, mainNodeD)
 		assertArrayEquals(arrayOf(mardek, null, deugan, null), state.party)
-		assertEquals(CharacterState().currentHealth, state.characterStates[mardek]!!.currentHealth)
+		assertEquals(5, state.characterStates[mardek]!!.currentHealth)
 		assertEquals(12345, state.characterStates[deugan]!!.currentHealth)
 
 		state.performTimelineTransition(updateContext, mainTimeline, mainNodeDA)
 		assertArrayEquals(arrayOf(mardek, deugan, null, null), state.party)
-		assertEquals(CharacterState().currentHealth, state.characterStates[mardek]!!.currentHealth)
+		assertEquals(5, state.characterStates[mardek]!!.currentHealth)
 		assertEquals(12345, state.characterStates[deugan]!!.currentHealth)
 
 		assertThrows<IllegalStateException> {

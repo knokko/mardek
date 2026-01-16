@@ -18,6 +18,7 @@ import mardek.game.story.TestQuests
 import mardek.game.ui.TestCutscenes
 import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestInventory
+import mardek.game.ui.TestItemStorage
 import mardek.game.ui.TestTitleScreen
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.parallel.Execution
@@ -347,5 +348,14 @@ class IntegrationTests {
 		TestChatLog.testSequential(instance)
 	}
 
+	@Test
+	fun testItemStoragePut() {
+		TestItemStorage.testPutTunicInStorage(instance)
+	}
+
+	@Test
+	fun testItemStorageTake() {
+		TestItemStorage.testTakeTunicFromStorage(instance)
+	}
 	// TODO CHAP1 Test choice dialogue chat log
 }

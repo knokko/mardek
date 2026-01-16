@@ -13,5 +13,4 @@ internal class InventoryRenderContext(
 	val imageBatch: Vk2dImageBatch,
 	val lateColorBatch: Vk2dColorBatch,
 	val textBatch: MardekGlyphBatch,
-) {
-}
+)

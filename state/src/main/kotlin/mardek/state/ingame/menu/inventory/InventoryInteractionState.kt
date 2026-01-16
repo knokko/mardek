@@ -54,14 +54,16 @@ class InventoryInteractionState {
 	}
 
 	fun processMouseMove(
-		newX: Int, newY: Int, gridRenderInfo: ItemGridRenderInfo,
+		newX: Int, newY: Int, gridRenderInfo: ItemGridRenderInfo?,
 		equipmentRenderInfo: Collection<EquipmentRowRenderInfo>,
-		currentCharacterState: CharacterState,
+		currentCharacterState: CharacterState?,
 	) {
 		hoveredSlot = null
 
-		val gridSlotIndex = gridRenderInfo.determineSlotIndex(newX, newY)
-		if (gridSlotIndex != -1) hoveredSlot = InventorySlotReference(currentCharacterState.inventory, gridSlotIndex)
+		val gridSlotIndex = gridRenderInfo?.determineSlotIndex(newX, newY) ?: -1
+		if (currentCharacterState != null && gridSlotIndex != -1) {
+			hoveredSlot = InventorySlotReference(currentCharacterState.inventory, gridSlotIndex)
+		}
 
 		for (renderInfo in equipmentRenderInfo) {
 			val slotIndex = renderInfo.determineSlotIndex(newX, newY)

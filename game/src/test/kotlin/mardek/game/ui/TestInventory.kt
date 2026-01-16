@@ -27,12 +27,16 @@ object TestInventory {
 	fun testMoveEquipment(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(CampaignState.loadChapter(content, 1), "")
-			assertSame(
-				content.items.items.find { it.displayName == "Hero's Armour" }!!,
-				state.campaign.characterStates[heroMardek]!!.equipment[heroMardek.characterClass.equipmentSlots[3]]
-			)
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds)
 
+			// This function is a sanity check, that used to fail non-deterministically due to an epic bug
+			fun assertHasHeroArmour() {
+				assertSame(
+					content.items.items.find { it.displayName == "Hero's Armour" }!!,
+					state.campaign.characterStates[heroMardek]!!.equipment[heroMardek.characterClass.equipmentSlots[3]]
+				)
+			}
+
+			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds)
 			context.input.postEvent(pressKeyEvent(InputKey.Interact)) // Skip chapter number
 			context.input.postEvent(repeatKeyEvent(InputKey.Interact)) // Skip intro cutscene
 			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
@@ -73,10 +77,12 @@ object TestInventory {
 			)
 
 			// Create render info
+			assertHasHeroArmour()
 			testRendering(
 				state, 900, 700, "inventory-drag1",
 				baseColors, forbiddenSlotColor,
 			)
+			assertHasHeroArmour()
 			val tab = state.menu.currentTab as InventoryTab
 
 			val mardekRenderInfo = tab.equipmentRenderInfo.toList()[0]
@@ -88,7 +94,9 @@ object TestInventory {
 				mardekRenderInfo.startX + 4 * mardekRenderInfo.slotSpacing, mardekRenderInfo.startY
 			))
 			context.input.postEvent(pressKeyEvent(InputKey.Click))
+			assertHasHeroArmour()
 			state.update(context)
+			assertHasHeroArmour()
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
@@ -99,7 +107,9 @@ object TestInventory {
 			context.input.postEvent(MouseMoveEvent(gridRenderInfo.startX, gridRenderInfo.startY))
 			context.input.postEvent(pressKeyEvent(InputKey.Click))
 			context.input.postEvent(releaseKeyEvent(InputKey.Click))
+			assertHasHeroArmour()
 			state.update(context)
+			assertHasHeroArmour()
 			assertSame(content.audio.fixedEffects.ui.scroll2, context.soundQueue.take())
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
@@ -110,7 +120,9 @@ object TestInventory {
 			))
 			context.input.postEvent(pressKeyEvent(InputKey.Click))
 			context.input.postEvent(releaseKeyEvent(InputKey.Click))
+			assertHasHeroArmour()
 			state.update(context)
+			assertHasHeroArmour()
 			assertSame(content.audio.fixedEffects.ui.clickCancel, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
 
@@ -123,7 +135,9 @@ object TestInventory {
 			))
 			context.input.postEvent(pressKeyEvent(InputKey.Click))
 			context.input.postEvent(releaseKeyEvent(InputKey.Click))
+			assertHasHeroArmour()
 			state.update(context)
+			assertHasHeroArmour()
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
 			assertSame(content.audio.fixedEffects.ui.clickCancel, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
@@ -131,7 +145,9 @@ object TestInventory {
 			// Attempt to grab the sword of Mardek, which is forbidden
 			context.input.postEvent(MouseMoveEvent(mardekRenderInfo.startX, mardekRenderInfo.startY))
 			context.input.postEvent(pressKeyEvent(InputKey.Click))
+			assertHasHeroArmour()
 			state.update(context)
+			assertHasHeroArmour()
 			assertSame(content.audio.fixedEffects.ui.clickReject, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
 
@@ -144,7 +160,9 @@ object TestInventory {
 				deuganRenderInfo.startX + deuganRenderInfo.slotSpacing, deuganRenderInfo.startY
 			))
 			context.input.postEvent(pressKeyEvent(InputKey.Click))
+			assertHasHeroArmour()
 			state.update(context)
+			assertHasHeroArmour()
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
 			assertSame(content.audio.fixedEffects.ui.clickReject, context.soundQueue.take())
 			assertNull(context.soundQueue.take())

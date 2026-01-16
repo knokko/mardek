@@ -17,6 +17,7 @@ import mardek.content.action.FixedActionNode
 import mardek.content.action.WalkSpeed
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
+import mardek.content.audio.FixedSoundEffects
 import mardek.content.audio.SoundEffect
 import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
@@ -40,9 +41,42 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
+private fun createUpdateContext(
+	timeStep: Duration,
+	input: InputManager = InputManager(),
+	soundQueue: SoundQueue = SoundQueue(),
+	campaignName: String = "",
+	partyPositions: Array<AreaPosition> = Array(4) { AreaPosition() },
+	partyDirections: Array<Direction> = Array(4) { Direction.Up },
+	currentTime: Duration = Duration.ZERO,
+	characterStates: MutableMap<AreaCharacter, AreaCharacterState> = mutableMapOf(),
+	fadingCharacters: MutableList<FadingCharacter> = mutableListOf(),
+	story: StoryState = StoryState(),
+	healParty: () -> Unit = { fail("Attempted to heal party?" )},
+) = AreaActionsState.UpdateContext(
+	input = input,
+	timeStep = timeStep,
+	soundQueue = soundQueue,
+	sounds = FixedSoundEffects(),
+	campaignName = campaignName,
+	partyPositions = partyPositions,
+	partyDirections = partyDirections,
+	currentTime = currentTime,
+	party = arrayOf(PlayableCharacter(), null, null, null),
+	characterStates = characterStates,
+	playableCharacterStates = emptyMap(),
+	fadingCharacters = fadingCharacters,
+	story = story,
+	itemStorage = ArrayList(0),
+	healParty = healParty,
+	transitionTimeline = { _, _ -> fail("Attempted to transition timeline?" ) },
+	getCursorStack = { fail("Attempted to get cursor stack?") },
+	setCursorStack = { _ -> fail("Attempted to get cursor stack?") },
+)
+
 private fun postEvent(actions: AreaActionsState, input: InputManager, event: InputKeyEvent) {
 	input.postEvent(event)
-	actions.processKeyEvent(event)
+	actions.processKeyEvent(createUpdateContext(1.milliseconds), event)
 }
 
 private fun pressAndRelease(actions: AreaActionsState, input: InputManager, key: InputKey) {
@@ -53,34 +87,6 @@ private fun pressAndRelease(actions: AreaActionsState, input: InputManager, key:
 class TestAreaActionsState {
 
 	private var currentTime = Duration.ZERO
-
-	private fun createUpdateContext(
-		timeStep: Duration,
-		input: InputManager = InputManager(),
-		soundQueue: SoundQueue = SoundQueue(),
-		campaignName: String = "",
-		partyPositions: Array<AreaPosition> = Array(4) { AreaPosition() },
-		partyDirections: Array<Direction> = Array(4) { Direction.Up },
-		currentTime: Duration = Duration.ZERO,
-		characterStates: MutableMap<AreaCharacter, AreaCharacterState> = mutableMapOf(),
-		fadingCharacters: MutableList<FadingCharacter> = mutableListOf(),
-		story: StoryState = StoryState(),
-		healParty: () -> Unit = { fail("Attempted to heal party?" )},
-	) = AreaActionsState.UpdateContext(
-		input = input,
-		timeStep = timeStep,
-		soundQueue = soundQueue,
-		campaignName = campaignName,
-		partyPositions = partyPositions,
-		partyDirections = partyDirections,
-		currentTime = currentTime,
-		party = arrayOf(PlayableCharacter(), null, null, null),
-		characterStates = characterStates,
-		fadingCharacters = fadingCharacters,
-		story = story,
-		healParty = healParty,
-		transitionTimeline = { _, _ -> fail("Attempted to transition timeline?" ) }
-	)
 
 	private fun update(actions: AreaActionsState, context: AreaActionsState.UpdateContext) {
 		context.currentTime = currentTime

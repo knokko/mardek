@@ -139,7 +139,15 @@ class CampaignState : BitPostInit {
 	fun update(context: UpdateContext) {
 		while (true) {
 			val event = context.input.consumeEvent() ?: break
-			if (event is MouseMoveEvent) this.currentArea?.processMouseMove(event)
+			if (event is MouseMoveEvent) {
+				currentArea?.let {
+					it.processMouseMove(event)
+					val suspension = it.suspension
+					if (suspension is AreaSuspensionActions) {
+						updateAreaActions(context, null, event, suspension.actions)
+					}
+				}
+			}
 			if (event !is InputKeyEvent || !event.didPress) continue
 
 			if (event.key == InputKey.CheatSave) {
@@ -177,7 +185,7 @@ class CampaignState : BitPostInit {
 				}
 
 				is AreaSuspensionActions -> {
-					updateAreaActions(context, event, suspension.actions)
+					updateAreaActions(context, event, null, suspension.actions)
 				}
 
 				else -> {
@@ -259,7 +267,7 @@ class CampaignState : BitPostInit {
 				}
 
 				is AreaSuspensionActions -> {
-					updateAreaActions(context, null, suspension.actions)
+					updateAreaActions(context, null, null, suspension.actions)
 
 					val newArea = currentArea
 					if (newArea != null) {
@@ -286,7 +294,7 @@ class CampaignState : BitPostInit {
 			when (val suspension = areaState.suspension) {
 				is AreaSuspensionActions -> {
 					if (areaState !== oldArea) {
-						updateAreaActions(context, null, suspension.actions)
+						updateAreaActions(context, null, null, suspension.actions)
 						if (suspension.actions.node == null && areaState.suspension === suspension) {
 							areaState.suspension = null
 						}
@@ -459,7 +467,20 @@ class CampaignState : BitPostInit {
 		}
 	}
 
-	private fun updateAreaActions(context: UpdateContext, event: InputKeyEvent?, actions: AreaActionsState) {
+	private fun updateAreaActions(
+		context: UpdateContext, event: InputKeyEvent?, mouseEvent: MouseMoveEvent?, actions: AreaActionsState
+	) {
+		val currentArea = this.currentArea!!
+		val actionsContext = AreaActionsState.UpdateContext(
+			context.input, context.timeStep, context.soundQueue, context.content.audio.fixedEffects,
+			context.campaignName, currentArea.playerPositions,
+			currentArea.playerDirections, currentArea.currentTime, party, currentArea.characterStates,
+			characterStates, currentArea.fadingCharacters,
+			story, itemStorage, this::healParty,
+			{ timeline, newNode -> performTimelineTransition(context, timeline, newNode) },
+			{ cursorItemStack }, { newStack -> this.cursorItemStack = newStack },
+		)
+
 		val saveSelection = actions.saveSelectionState
 		if (saveSelection != null) {
 			val saveContext = SaveSelectionState.UpdateContext(
@@ -494,15 +515,10 @@ class CampaignState : BitPostInit {
 				saveSelection.update(saveContext)
 			}
 		} else if (event != null) {
-			actions.processKeyEvent(event)
+			actions.processKeyEvent(actionsContext, event)
+		} else if (mouseEvent != null) {
+			actions.processMouseMove(actionsContext, mouseEvent)
 		} else {
-			val currentArea = this.currentArea!!
-			val actionsContext = AreaActionsState.UpdateContext(
-				context.input, context.timeStep, context.soundQueue, context.campaignName,
-				currentArea.playerPositions, currentArea.playerDirections,
-				currentArea.currentTime, party, currentArea.characterStates, currentArea.fadingCharacters,
-				story, this::healParty
-			) { timeline, newNode -> performTimelineTransition(context, timeline, newNode) }
 			actions.update(actionsContext)
 
 			val switchArea = actionsContext.switchArea

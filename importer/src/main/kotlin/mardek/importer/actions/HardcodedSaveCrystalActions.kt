@@ -3,6 +3,8 @@ package mardek.importer.actions
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.Content
 import mardek.content.action.*
+import mardek.content.story.DefinedVariableTimelineCondition
+import mardek.content.story.NegateTimelineCondition
 
 internal fun hardcodeSaveCrystalActions(content: Content, hardcoded: Map<String, MutableList<ActionSequence>>) {
 	val entryRoot = FixedActionNode(
@@ -25,6 +27,12 @@ internal fun hardcodeSaveCrystalActions(content: Content, hardcoded: Map<String,
 								action = ActionSaveCampaign(),
 								next = null
 							)),
+							ChoiceEntry(text = "Item storage...", next = FixedActionNode(
+								action = ActionItemStorage(),
+								next = null
+							), condition = NegateTimelineCondition(DefinedVariableTimelineCondition(
+								content.story.fixedVariables.blockItemStorage
+							))),
 							ChoiceEntry(text = "Exit...", next = null)
 						)
 					)

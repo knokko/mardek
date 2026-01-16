@@ -9,12 +9,16 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.action.*
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
+import mardek.content.audio.FixedSoundEffects
+import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
+import mardek.content.inventory.ItemStack
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
+import mardek.input.MouseMoveEvent
 import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
@@ -70,6 +74,12 @@ class AreaActionsState(
 	var showChatLog = false
 
 	/**
+	 * When the player encounters a [ChoiceActionNode], this variable is set to all choice entries whose
+	 * [ChoiceEntry.condition] evaluates to `true`.
+	 */
+	var choiceOptions = emptyList<ChoiceEntry>()
+
+	/**
 	 * When inside a choice dialogue, this is the index of the currently selected option. Otherwise, this should be 0.
 	 */
 	var selectedChoice = 0
@@ -114,12 +124,34 @@ class AreaActionsState(
 	var saveSelectionState: SaveSelectionState? = null
 		private set
 
+	/**
+	 * When the current action is `ActionItemStorage`, this field tracks the interaction state for the item storage.
+	 */
+	var itemStorageInteraction: ItemStorageInteractionState? = null
+		private set
+
 	internal constructor() : this(FixedActionNode())
 
 	override fun postInit(context: BitPostInit.Context) {
 		val node = this.node
 		if (node is FixedActionNode && node.action is ActionSaveCampaign) {
 			this.node = node.next
+		}
+	}
+
+	private fun initChoices(context: UpdateContext) {
+		val node = this.node
+		if (choiceOptions.isEmpty() && node is ChoiceActionNode) {
+			choiceOptions = node.options.filter { context.story.evaluate(it.condition) }
+			if (choiceOptions.isEmpty()) throw IllegalStateException("Not a single choice entry: ${node.options}")
+		}
+	}
+
+	private fun initItemStorageInteraction() {
+		node?.let { node ->
+			if (node is FixedActionNode && node.action is ActionItemStorage && itemStorageInteraction == null) {
+				itemStorageInteraction = ItemStorageInteractionState()
+			}
 		}
 	}
 
@@ -239,6 +271,8 @@ class AreaActionsState(
 			break
 		}
 
+		initChoices(context)
+		initItemStorageInteraction()
 		context.timeStep = timeStep
 	}
 
@@ -425,12 +459,16 @@ class AreaActionsState(
 		saveSelectionState = null
 	}
 
-	private fun processFixedActionKeyEvent(action: FixedAction, event: InputKeyEvent) {
+	private fun processFixedActionKeyEvent(context: UpdateContext, action: FixedAction, event: InputKeyEvent) {
 		if (action is ActionTalk) {
 			processTalkingKeyEvent(action, event)
 		}
 		if (action is ActionParallel) {
-			for (parallelAction in action.actions) processFixedActionKeyEvent(parallelAction, event)
+			for (parallelAction in action.actions) processFixedActionKeyEvent(context, parallelAction, event)
+		}
+		if (action is ActionItemStorage && event.key == InputKey.Cancel) {
+			context.soundQueue.insert(context.sounds.ui.clickCancel)
+			toNextNode((node as FixedActionNode).next)
 		}
 	}
 
@@ -438,7 +476,7 @@ class AreaActionsState(
 	 * This method should be called for each `InputKeyEvent` that is fired while
 	 * `areaState.actions != null && areaState.activeBattle == null`
 	 */
-	fun processKeyEvent(event: InputKeyEvent) {
+	fun processKeyEvent(context: UpdateContext, event: InputKeyEvent) {
 		if (!event.didPress) return
 
 		val currentNode = node
@@ -446,19 +484,31 @@ class AreaActionsState(
 
 		if (key == InputKey.ToggleChatLog) showChatLog = !showChatLog
 
-		if (currentNode is FixedActionNode) processFixedActionKeyEvent(currentNode.action, event)
+		if (currentNode is FixedActionNode) {
+			initItemStorageInteraction()
+			processFixedActionKeyEvent(context, currentNode.action, event)
+		}
 
 		if (currentNode is ChoiceActionNode) {
+			initChoices(context)
 			if (selectedChoice > 0 && key == InputKey.MoveUp) selectedChoice -= 1
-			if (selectedChoice < currentNode.options.size - 1 && key == InputKey.MoveDown) selectedChoice += 1
+			if (selectedChoice < choiceOptions.size - 1 && key == InputKey.MoveDown) selectedChoice += 1
 			if (key == InputKey.Interact && !event.didRepeat) {
-				toNextNode(currentNode.options[selectedChoice].next)
+				toNextNode(choiceOptions[selectedChoice].next)
 			}
 		}
+
+		itemStorageInteraction?.processKeyPress(context, event.key)
+	}
+
+	fun processMouseMove(context: UpdateContext, event: MouseMoveEvent) {
+		initItemStorageInteraction()
+		itemStorageInteraction?.processMouseMove(context, event.newX, event.newY)
 	}
 
 	private fun toNextNode(next: ActionNode?) {
 		this.node = next
+		this.choiceOptions = emptyList()
 		this.selectedChoice = 0
 		this.shownDialogueCharacters = 0f
 		this.speedUpShowingCharacters = false
@@ -480,16 +530,21 @@ class AreaActionsState(
 		val input: InputManager,
 		var timeStep: Duration,
 		val soundQueue: SoundQueue,
+		val sounds: FixedSoundEffects,
 		val campaignName: String,
 		val partyPositions: Array<AreaPosition>,
 		val partyDirections: Array<Direction>,
 		var currentTime: Duration,
 		val party: Array<PlayableCharacter?>,
 		val characterStates: MutableMap<AreaCharacter, AreaCharacterState>,
+		val playableCharacterStates: Map<PlayableCharacter, CharacterState>,
 		val fadingCharacters: MutableCollection<FadingCharacter>,
 		val story: StoryState,
+		val itemStorage: MutableList<ItemStack?>,
 		val healParty: () -> Unit,
 		val transitionTimeline: (Timeline, TimelineNode) -> Unit,
+		val getCursorStack: () -> ItemStack?,
+		val setCursorStack: (newStack: ItemStack?) -> Unit,
 	) {
 		var startBattle: ActionBattle? = null
 		var setMoney: Int? = null

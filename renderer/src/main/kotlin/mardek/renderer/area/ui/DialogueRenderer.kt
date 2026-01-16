@@ -37,7 +37,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		}
 
 		if (actionNode is ChoiceActionNode) {
-			val combinedText = actionNode.options.withIndex().joinToString("\n") {
+			val combinedText = actions.choiceOptions.withIndex().joinToString("\n") {
 				var text = "$CHOICE_CHAR " + it.value.text
 				if (it.index == actions.selectedChoice) text = "$$text%"
 				text
@@ -443,7 +443,7 @@ internal fun renderDialogueLines(
 
 		if (nextChar == '\n'.code) {
 			textX = minTextX
-			textY += 0.17f * explicitLineSpacing
+			textY += explicitLineSpacing
 			continue
 		}
 

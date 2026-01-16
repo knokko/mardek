@@ -33,7 +33,10 @@ internal fun renderInventory(menuContext: MenuRenderContext, region: Rectangle) 
 				region.minX, startY, maxX, region.maxY, scale,
 			)
 		}
-		renderInventoryOverlay(inventoryContext, region, scale, state, tab)
+		tab.thrashRegion = renderInventoryOverlay(
+			inventoryContext, region, scale, state, tab.interaction,
+			tab.equipmentRenderInfo, tab.thrashRegion,
+		)
 		tab.gridRenderInfo = renderItemGrid(
 			inventoryContext, characterState.inventory, tab.interaction,
 			gridStartX, region.boundY - gridOffset, scale,

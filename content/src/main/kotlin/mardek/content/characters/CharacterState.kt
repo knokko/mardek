@@ -295,7 +295,7 @@ class CharacterState {
 		 */
 		fun determineMaxHealth(
 			level: Int, vitality: Int, modifier: Float, extra: Int
-		) = max(1, ((1f + modifier) * (3 * vitality + 2 * vitality * level + extra)).roundToInt())
+		) = max(1, ((1f + modifier) * (3f * vitality + 2f * vitality * level + extra)).toInt())
 
 		/**
 		 * Determines the maximum mana of a playable character, based on its `level` and `spirit`, as well as a
@@ -303,7 +303,7 @@ class CharacterState {
 		 */
 		fun determineMaxMana(
 			level: Int, spirit: Int, modifier: Float, extra: Int
-		) = max(0, ((1f + modifier) * (spirit * 17 / 6 + spirit * level / 6 + extra)).roundToInt())
+		) = max(0, ((1f + modifier) * (spirit * 17f / 6f + spirit * level / 6f + extra)).toInt())
 	}
 
 	/**

@@ -9,6 +9,7 @@ import mardek.content.Content
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.story.*
+import mardek.state.GameStateManager
 
 /**
  * The story-related part of the [mardek.state.ingame.CampaignState], which determines among others which
@@ -51,13 +52,19 @@ class StoryState : BitPostInit {
 	) {
 		val nodes = relevantNodes()
 
+		fun copyDefaultState(character: PlayableCharacter): CharacterState {
+			val contentState = evaluate(character.stateVariable, nodes) ?:
+					throw IllegalStateException("Missing default state for forced $character")
+
+			return GameStateManager.bitser.deepCopy(contentState)
+		}
+
 		for ((partyIndex, variable) in content.story.fixedVariables.forcedPartyMembers.withIndex()) {
 			val forcedMember = evaluate(variable, nodes)
 			if (forcedMember != null) {
 				party[partyIndex] = forcedMember
 				if (!characterStates.containsKey(forcedMember)) {
-					characterStates[forcedMember] = evaluate(forcedMember.stateVariable, nodes) ?:
-							throw IllegalStateException("Missing default state for forced $forcedMember")
+					characterStates[forcedMember] = copyDefaultState(forcedMember)
 				}
 
 				for ((otherPartyIndex, otherVariable) in content.story.fixedVariables.forcedPartyMembers.withIndex()) {
@@ -82,8 +89,7 @@ class StoryState : BitPostInit {
 			if (evaluate(playableCharacter.isAvailable, nodes) != null ||
 				evaluate(playableCharacter.isInventoryAvailable) != null
 			) {
-				characterStates[playableCharacter] = evaluate(playableCharacter.stateVariable, nodes) ?:
-						throw IllegalStateException("Missing default state for $playableCharacter")
+				characterStates[playableCharacter] = copyDefaultState(playableCharacter)
 			}
 		}
 	}
