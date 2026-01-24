@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.story.ConstantTimelineExpression
 import mardek.content.story.TimelineBooleanValue
 import mardek.content.story.TimelineExpression
+import java.util.UUID
 
 /**
  * Represents a dialogue action where the player can *choose* what his character will say (or do). This is mostly used
@@ -14,6 +15,8 @@ import mardek.content.story.TimelineExpression
  */
 @BitStruct(backwardCompatible = true)
 class ChoiceActionNode(
+
+	id: UUID,
 
 	/**
 	 * The character whose portrait will be shown when the choices are presented
@@ -32,11 +35,14 @@ class ChoiceActionNode(
 	 * The options from which the player can choose
 	 */
 	@BitField(id = 2)
-	val options: Array<ChoiceEntry>
-) : ActionNode() {
+	val options: Array<ChoiceEntry>,
+) : ActionNode(id) {
 
 	@Suppress("unused")
-	private constructor() : this(ActionTargetPartyMember(), "", emptyArray())
+	private constructor() : this(
+		UUID(0, 0), ActionTargetPartyMember(),
+		"", emptyArray(),
+	)
 }
 
 /**

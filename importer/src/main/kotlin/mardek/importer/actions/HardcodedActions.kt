@@ -32,7 +32,6 @@ class HardcodedActions {
 
 		for ((areaName, actionSequences) in hardcoded) {
 			for (sequence in actionSequences) {
-				generateUUIDs(sequence)
 				allActionNodes.addAll(getAllActionNodesFromSequence(sequence))
 			}
 			if (areaName == "") {

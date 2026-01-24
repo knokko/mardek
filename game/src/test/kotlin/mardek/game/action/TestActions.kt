@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import java.lang.Thread.sleep
+import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestActions {
@@ -160,7 +161,7 @@ object TestActions {
 			toHeroesDen.resolve(content.areas.areas)
 
 			state.campaign.currentArea!!.suspension = AreaSuspensionActions(AreaActionsState(
-				node = FixedActionNode(action = toHeroesDen, next = null),
+				node = FixedActionNode(id = UUID.randomUUID(), action = toHeroesDen, next = null),
 			))
 
 			val context = GameStateUpdateContext(
@@ -199,7 +200,9 @@ object TestActions {
 
 			val state = InGameState(simpleCampaignState(), "")
 			state.campaign.currentArea = null
-			state.campaign.actions = CampaignActionsState(FixedActionNode(action = toHeroesDen, next = null))
+			state.campaign.actions = CampaignActionsState(FixedActionNode(
+				id = UUID.randomUUID(), action = toHeroesDen, next = null
+			))
 
 			state.update(GameStateUpdateContext(
 				content, InputManager(), SoundQueue(), 10.milliseconds

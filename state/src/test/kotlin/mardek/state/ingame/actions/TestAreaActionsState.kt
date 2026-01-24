@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
 import org.junit.jupiter.api.fail
+import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -97,6 +98,7 @@ class TestAreaActionsState {
 	@Test
 	fun testWalkWithWholeParty() {
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionWalk(
 				ActionTargetWholeParty(),
 				20,
@@ -104,6 +106,7 @@ class TestAreaActionsState {
 				WalkSpeed.Normal,
 			),
 			next = FixedActionNode(
+				id = UUID.randomUUID(),
 				action = ActionWalk(
 					ActionTargetWholeParty(),
 					10,
@@ -202,6 +205,7 @@ class TestAreaActionsState {
 		)
 		val characterStates = mutableMapOf(Pair(paladin, initialState))
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionWalk(
 				target = ActionTargetAreaCharacter(paladin),
 				destinationX = 10,
@@ -268,12 +272,14 @@ class TestAreaActionsState {
 		val text1 = Array(100) { "Smile" }.joinToString { it }
 		val text2 = Array(100) { "Shut up" }.joinToString { it }
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionTalk(
 				speaker = ActionTargetPartyMember(0),
 				expression = "grin",
 				text = text1,
 			),
 			next = FixedActionNode(
+				id = UUID.randomUUID(),
 				action = ActionTalk(
 					speaker = ActionTargetPartyMember(1),
 					expression = "norm",
@@ -337,12 +343,14 @@ class TestAreaActionsState {
 		val text1 = Array(100) { "Smile" }.joinToString { it }
 		val text2 = Array(100) { "Shut up" }.joinToString { it }
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionTalk(
 				speaker = ActionTargetPartyMember(0),
 				expression = "grin",
 				text = text1,
 			),
 			next = FixedActionNode(
+				id = UUID.randomUUID(),
 				action = ActionTalk(
 					speaker = ActionTargetPartyMember(1),
 					expression = "norm",
@@ -369,6 +377,7 @@ class TestAreaActionsState {
 	@Test
 	fun testFlashScreen() {
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionWalk(
 				target = ActionTargetWholeParty(),
 				destinationX = 1,
@@ -376,8 +385,10 @@ class TestAreaActionsState {
 				speed = WalkSpeed.Normal,
 			),
 			next = FixedActionNode(
+				id = UUID.randomUUID(),
 				action = ActionFlashScreen(color = 1234),
 				next = FixedActionNode(
+					id = UUID.randomUUID(),
 					action = ActionWalk(
 						target = ActionTargetWholeParty(),
 						destinationX = 0,
@@ -418,8 +429,10 @@ class TestAreaActionsState {
 	fun testPlaySound() {
 		val sound = SoundEffect()
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionPlaySound(sound),
 			next = FixedActionNode(
+				id = UUID.randomUUID(),
 				action = ActionWalk(
 					target = ActionTargetWholeParty(),
 					destinationX = 0,
@@ -448,8 +461,10 @@ class TestAreaActionsState {
 	@Test
 	fun testHealParty() {
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionHealParty(),
 			next = FixedActionNode(
+				id = UUID.randomUUID(),
 				action = ActionWalk(
 					target = ActionTargetWholeParty(),
 					destinationX = 0,
@@ -476,12 +491,14 @@ class TestAreaActionsState {
 	@Test
 	fun testDialogueChoices() {
 		val rootNode = ChoiceActionNode(
+			id = UUID.randomUUID(),
 			speaker = ActionTargetPartyMember(1),
 			expression = "susp",
 			options = arrayOf(
 				ChoiceEntry(text = "shut up", next = null),
 				ChoiceEntry(text = "let's move on", next = null),
 				ChoiceEntry(text = "respond", next = ChoiceActionNode(
+					id = UUID.randomUUID(),
 					speaker = ActionTargetPartyMember(0),
 					expression = "norm",
 					options = arrayOf(
@@ -553,6 +570,7 @@ class TestAreaActionsState {
 		val characterStates = mutableMapOf(Pair(dragon, lastDragonState))
 
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionFadeCharacter(ActionTargetAreaCharacter(dragon)),
 			next = null,
 		)
@@ -576,8 +594,10 @@ class TestAreaActionsState {
 	fun testRotate() {
 		val princess = AreaCharacter()
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionRotate(ActionTargetPartyMember(1), Direction.Right),
 			next = FixedActionNode(
+				id = UUID.randomUUID(),
 				action = ActionRotate(
 					ActionTargetAreaCharacter(princess), Direction.Left
 				),
@@ -617,6 +637,7 @@ class TestAreaActionsState {
 		val dragon = AreaCharacter()
 
 		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
 			action = ActionParallel(arrayOf(
 				ActionWalk(
 					target = ActionTargetAreaCharacter(princess),
@@ -632,6 +653,7 @@ class TestAreaActionsState {
 				)
 			)),
 			next = FixedActionNode(
+				id = UUID.randomUUID(),
 				action = ActionRotate(
 					target = ActionTargetAreaCharacter(dragon),
 					newDirection = Direction.Up,

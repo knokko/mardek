@@ -4,6 +4,6 @@ import java.util.UUID
 
 fun main() {
 	repeat(100) {
-		println(UUID.randomUUID().toString())
+		println("UUID.fromString(\"${UUID.randomUUID()}\"),")
 	}
 }

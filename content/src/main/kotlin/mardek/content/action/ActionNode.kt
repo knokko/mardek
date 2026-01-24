@@ -15,16 +15,15 @@ import java.util.UUID
  * usually fixed, but not always (e.g. dialogue choices or plot checks). When the next action node is `null`,
  * the action sequence ends, and the game resumes.
  */
-sealed class ActionNode() {
+sealed class ActionNode(
 
 	/**
 	 * The unique ID of this node, which is used for (de)serialization.
-	 *
-	 * It is initially `null`, but the importer should use the `generateUUIDs` method to set them.
 	 */
 	@BitField(id = 0)
 	@StableReferenceFieldId
-	var id: UUID? = null
+	val id: UUID,
+) {
 
 	companion object {
 
@@ -43,6 +42,8 @@ sealed class ActionNode() {
 @BitStruct(backwardCompatible = true)
 class FixedActionNode(
 
+	id: UUID,
+
 	/**
 	 * The action to be executed when this node is reached
 	 */
@@ -57,8 +58,8 @@ class FixedActionNode(
 	@ClassField(root = ActionNode::class)
 	@ReferenceFieldTarget(label = "action nodes")
 	val next: ActionNode?,
-) : ActionNode() {
-	constructor() : this(ActionWalk(), null)
+) : ActionNode(id) {
+	constructor() : this(UUID(0, 0), ActionWalk(), null)
 
 	override fun toString() = "FixedNode($action)"
 }

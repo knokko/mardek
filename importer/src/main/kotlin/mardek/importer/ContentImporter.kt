@@ -18,7 +18,6 @@ import mardek.content.animation.CombatantAnimations
 import mardek.content.area.Direction
 import mardek.importer.actions.addDummyCutscenes
 import mardek.importer.actions.fixedActionChain
-import mardek.importer.actions.generateUUIDs
 import mardek.importer.actions.getAllActionNodesFromSequence
 import mardek.importer.actions.importCutscenes
 import mardek.importer.area.importAreaBattleContent
@@ -42,6 +41,7 @@ import mardek.state.ingame.actions.CampaignActionsState
 import mardek.importer.story.hardcodeTimeline
 import mardek.importer.story.importSimpleStoryContent
 import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content {
 
@@ -98,12 +98,29 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 			// TODO CHAP2 Add help section :p
 			ActionTalk(targetMardek, "susp", "...Huh?"),
 			ActionTalk(targetDeugan, "grin", "Uh, I mean... Tally-ho! Let's go and slay that dragon!"),
+		), arrayOf(
+			UUID.fromString("6529c1ea-9723-4c5c-aef3-a21bed194a0f"),
+			UUID.fromString("d7ffc98c-4242-4a0e-aee0-94928ed5d641"),
+			UUID.fromString("d995719d-f8d1-4325-8585-562b98008dd9"),
+			UUID.fromString("ac7841da-28d9-4b7c-a6d5-8c60c19def85"),
+			UUID.fromString("9b380007-5cff-4252-a1d5-4f7d7f701209"),
+			UUID.fromString("a411267d-4b4c-471a-af81-c7b924ee9c24"),
+			UUID.fromString("c5502158-531c-451a-92c7-a59c635b2012"),
+			UUID.fromString("85fbd941-f7c8-40ef-88ec-a80366e0cc5d"),
+			UUID.fromString("9d8dd7bd-3dfa-49ff-bd91-2f32b63ccc1b"),
+			UUID.fromString("bf3c99d1-1db6-4aa9-ab72-f2463468e8d5"),
+			UUID.fromString("b8e555e8-09c4-4525-a41d-4b5e7cb15d77"),
+			UUID.fromString("c305ce9e-7e6a-4a50-a83a-7372b3502a28"),
+			UUID.fromString("af25ed4f-b5a0-4ee6-b919-b55e40fdfac6"),
+			UUID.fromString("47a462a4-8600-4255-9677-0827316c4e59"),
+			UUID.fromString("d5dedffd-edbf-4b57-80ed-fbdb16fa5ead"),
+			UUID.fromString("3f3b309d-8e94-4b18-9ad3-623fccf7b483"),
+			UUID.fromString("50cb7de9-ca41-4924-b011-448610560807"),
 		))!!
 		ActionSequence(name = "Chapter 1 intro", root = entryRoot)
 	}
 	content.actions.global.add(chapter1IntroSequence)
 	startChapter1.actions = CampaignActionsState(chapter1IntroSequence.root)
-	generateUUIDs(chapter1IntroSequence)
 	for (node in getAllActionNodesFromSequence(chapter1IntroSequence)) {
 		if (node is FixedActionNode) {
 			val action = node.action
