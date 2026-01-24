@@ -57,6 +57,7 @@ class Chest(
 	 * stack, or if it contains a plot item
 	 */
 	@BitField(id = 5, optional = true)
+	@ReferenceField(stable = false, label = "plot items")
 	val plotItem: PlotItem?,
 
 	/**

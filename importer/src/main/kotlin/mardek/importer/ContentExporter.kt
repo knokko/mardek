@@ -111,68 +111,15 @@ private fun addFont(resourceWriter: Vk2dResourceWriter, font: Font) {
 private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File) {
 	val resourceWriter = Vk2dResourceWriter()
 
-	for (sheet in content.areas.tilesheets) {
-		for (tile in sheet.tiles) {
-			for (sprite in tile.sprites) addKimImage(resourceWriter, sprite)
-		}
-		for (sprite in sheet.waterSprites) addKimImage(resourceWriter, sprite)
-	}
-	for (switchColor in content.areas.switchColors) {
-		addKimImage(resourceWriter, switchColor.onSprite)
-		addKimImage(resourceWriter, switchColor.offSprite)
-		addKimImage(resourceWriter, switchColor.gateSprite)
-		addKimImage(resourceWriter, switchColor.platformSprite)
-	}
-	for (characterSprite in content.areas.characterSprites) {
-		for (sprite in characterSprite.sprites) addKimImage(resourceWriter, sprite)
-	}
-	for (objectSprite in content.areas.objectSprites) {
-		for (frame in objectSprite.frames) addKimImage(resourceWriter, frame)
-	}
-	for (arrowSprite in content.areas.arrowSprites) addKimImage(resourceWriter, arrowSprite.sprite)
-	for (chestSprite in content.areas.chestSprites) {
-		addKimImage(resourceWriter, chestSprite.baseSprite)
-		addKimImage(resourceWriter, chestSprite.openedSprite)
-	}
-	for (creatureType in content.stats.creatureTypes) addKimImage(resourceWriter, creatureType.icon)
-	for (skillClass in content.skills.classes) addKimImage(resourceWriter, skillClass.icon)
-	for (item in content.items.items) addKimImage(resourceWriter, item.sprite)
-	for (item in content.items.plotItems) addKimImage(resourceWriter, item.sprite)
-	for (sprite in content.ui.allKimSprites()) addKimImage(resourceWriter, sprite)
+	val allKimSprites = ArrayList<KimSprite>()
+	val allBcSprites = ArrayList<BcSprite>()
+	val collectionMapping = HashMap<Class<*>, Collection<Any>>()
+	collectionMapping[KimSprite::class.java] = allKimSprites
+	collectionMapping[BcSprite::class.java] = allBcSprites
+	bitser.collectInstances(content, collectionMapping)
 
-	for (element in content.stats.elements) {
-		val swingSprite = element.swingEffect
-		if (swingSprite != null) addBcImage(resourceWriter, swingSprite)
-		addBcImage(resourceWriter, element.thickSprite)
-		addBcImage(resourceWriter, element.thinSprite)
-		val castSprite = element.spellCastBackground
-		if (castSprite != null) addBcImage(resourceWriter, castSprite)
-	}
-	for (effect in content.stats.statusEffects) {
-		addBcImage(resourceWriter, effect.icon)
-		for (sprite in effect.passiveParticleSprites) addBcImage(resourceWriter, sprite)
-	}
-	for (map in content.worldMaps) addBcImage(resourceWriter, map.sprite)
-	for (sprite in content.ui.allBcSprites()) addBcImage(resourceWriter, sprite)
-
-	for (cutscene in content.actions.cutscenes) {
-		for (animationSprite in cutscene.get().sprites) {
-			addBcImage(resourceWriter, animationSprite.image)
-		}
-	}
-
-	for (animationSprite in content.battle.animationSprites + content.portraits.animationSprites) {
-		addBcImage(resourceWriter, animationSprite.image)
-	}
-	for (skeleton in content.battle.skeletons) {
-		for (animation in skeleton.animations.values) {
-			for (sprite in animation.get().innerSprites) addBcImage(resourceWriter, sprite.image)
-		}
-	}
-	addBcImage(resourceWriter, content.battle.noMask)
-
-	for (sprite in content.battle.particleSprites) addBcImage(resourceWriter, sprite.sprite)
-
+	for (sprite in allKimSprites) addKimImage(resourceWriter, sprite)
+	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
 	for (font in content.fonts.all()) addFont(resourceWriter, font)
 
 	val output = Files.newOutputStream(File("$outputFolder/content.vk2d").toPath())

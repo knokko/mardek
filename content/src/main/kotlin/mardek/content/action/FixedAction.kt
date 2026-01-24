@@ -15,19 +15,12 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
 import kotlin.collections.addAll
-import kotlin.collections.flatMap
 
 /**
  * The *action* of a `FixedActionNode` (e.g. walking or talking)
  */
 @BitStruct(backwardCompatible = true)
 sealed class FixedAction {
-
-	/**
-	 * Gets an array containing all `ActionTarget`s used by this action. Unfortunately, this method is currently needed
-	 * for importing.
-	 */
-	abstract fun getTargets(): Array<ActionTarget>
 
 	companion object {
 
@@ -93,8 +86,6 @@ class ActionWalk(
 		ActionTargetWholeParty(), 0, 0, WalkSpeed.Normal
 	)
 
-	override fun getTargets() = arrayOf(target)
-
 	override fun toString() = "ActionWalk($target, $destinationX, $destinationY, $speed)"
 }
 
@@ -127,8 +118,6 @@ class ActionTalk(
 
 	@Suppress("unused")
 	private constructor() : this(ActionTargetPartyMember(), "", "")
-
-	override fun getTargets() = arrayOf(speaker)
 
 	override fun toString() = "ActionTalk($speaker, $expression, $text)"
 }
@@ -163,8 +152,6 @@ class ActionBattle(
 	@Suppress("unused")
 	private constructor() : this(Battle(), null)
 
-	override fun getTargets() = emptyArray<ActionTarget>()
-
 	override fun toString() = "ActionBattle($battle)"
 }
 
@@ -185,8 +172,6 @@ class ActionFlashScreen(
 	@Suppress("unused")
 	private constructor() : this(0)
 
-	override fun getTargets() = emptyArray<ActionTarget>()
-
 	override fun toString() = "ActionFlashScreen($color)"
 }
 
@@ -206,8 +191,6 @@ class ActionPlaySound(
 	@Suppress("unused")
 	private constructor() : this(SoundEffect())
 
-	override fun getTargets() = emptyArray<ActionTarget>()
-
 	override fun toString() = "ActionPlaySound($sound)"
 }
 
@@ -217,8 +200,6 @@ class ActionPlaySound(
 @BitStruct(backwardCompatible = true)
 class ActionHealParty() : FixedAction() {
 
-	override fun getTargets() = emptyArray<ActionTarget>()
-
 	override fun toString() = "ActionHealParty"
 }
 
@@ -227,8 +208,6 @@ class ActionHealParty() : FixedAction() {
  */
 @BitStruct(backwardCompatible = true)
 class ActionSaveCampaign() : FixedAction() {
-
-	override fun getTargets() = emptyArray<ActionTarget>()
 
 	override fun toString() = "ActionSaveCampaign"
 }
@@ -256,8 +235,6 @@ class ActionShowChapterName(
 
 	@Suppress("unused")
 	private constructor() : this(0, "")
-
-	override fun getTargets() = emptyArray<ActionTarget>()
 
 	override fun toString() = "ActionShowChapterName($chapter, $name)"
 
@@ -331,8 +308,6 @@ class ActionToArea(
 	@Suppress("unused")
 	private constructor() : this("", 0, 0, Direction.Up)
 
-	override fun getTargets() = emptyArray<ActionTarget>()
-
 	override fun toString() = "ActionToArea($area, $x, $y)"
 
 	/**
@@ -363,8 +338,6 @@ class ActionPlayCutscene(
 	@Suppress("unused")
 	private constructor() : this(SimpleLazyBits(Cutscene()))
 
-	override fun getTargets() = emptyArray<ActionTarget>()
-
 	override fun toString() = "ActionPlayCutscene($cutscene)"
 }
 
@@ -387,8 +360,6 @@ class ActionFadeCharacter(
 
 	@Suppress("unused")
 	private constructor() : this(ActionTargetAreaCharacter())
-
-	override fun getTargets() = arrayOf<ActionTarget>(target)
 
 	override fun toString() = "ActionFadeCharacter($target)"
 }
@@ -417,8 +388,6 @@ class ActionRotate(
 	@Suppress("unused")
 	private constructor() : this(ActionTargetPartyMember(0), Direction.Down)
 
-	override fun getTargets() = arrayOf(target)
-
 	override fun toString() = "ActionRotate($target, $newDirection)"
 }
 
@@ -439,8 +408,6 @@ class ActionParallel(
 
 	@Suppress("unused")
 	private constructor() : this(emptyArray())
-
-	override fun getTargets() = actions.flatMap { it.getTargets().toList() }.toTypedArray()
 
 	override fun toString() = "ActionParallel($actions)"
 }
@@ -482,8 +449,6 @@ class ActionTimelineTransition(
 
 	@Suppress("unused")
 	private constructor() : this("", "")
-
-	override fun getTargets() = emptyArray<ActionTarget>()
 
 	override fun toString() = "ActionTimelineTransition($timeline -> $newNode)"
 
@@ -547,8 +512,6 @@ class ActionTeleport(
 	@Suppress("unused")
 	private constructor() : this(ActionTargetPartyMember(), 0, 0, Direction.Down)
 
-	override fun getTargets() = arrayOf(target)
-
 	override fun toString() = "ActionTeleport($target, $x, $y, $direction)"
 }
 
@@ -568,8 +531,6 @@ class ActionSetMoney(
 
 	@Suppress("unused")
 	private constructor() : this(0)
-
-	override fun getTargets() = emptyArray<ActionTarget>()
 }
 
 /**
@@ -577,6 +538,4 @@ class ActionSetMoney(
  * for storing items when the inventories of the playable characters are (almost) full.
  */
 @BitStruct(backwardCompatible = true)
-class ActionItemStorage : FixedAction() {
-	override fun getTargets() = emptyArray<ActionTarget>()
-}
+class ActionItemStorage : FixedAction()

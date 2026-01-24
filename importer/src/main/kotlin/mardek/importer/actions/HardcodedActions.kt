@@ -1,13 +1,11 @@
 package mardek.importer.actions
 
+import com.github.knokko.bitser.Bitser
 import mardek.content.Content
-import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
 import mardek.content.action.ActionTargetAreaCharacter
 import mardek.content.action.ActionTimelineTransition
 import mardek.content.action.ActionToArea
-import mardek.content.action.ChoiceActionNode
-import mardek.content.action.FixedActionNode
 import mardek.content.area.objects.AreaCharacter
 import java.util.UUID
 
@@ -28,12 +26,7 @@ class HardcodedActions {
 	internal fun getHardcodedGlobalActionSequence(name: String) = getHardcodedAreaActions("", name)
 
 	internal fun storeHardcodedActionSequences(content: Content) {
-		val allActionNodes = mutableListOf<ActionNode>()
-
 		for ((areaName, actionSequences) in hardcoded) {
-			for (sequence in actionSequences) {
-				allActionNodes.addAll(getAllActionNodesFromSequence(sequence))
-			}
 			if (areaName == "") {
 				content.actions.global.addAll(actionSequences)
 			} else {
@@ -41,26 +34,27 @@ class HardcodedActions {
 				area.actions.addAll(actionSequences)
 			}
 		}
+	}
+
+	internal fun resolveIncompleteActions(content: Content) {
+		val bitser = Bitser(false)
+		val allAreaTargets = mutableListOf<ActionTargetAreaCharacter>()
+		val allToAreaActions = mutableListOf<ActionToArea>()
+		val allTimelineTransitions = mutableListOf<ActionTimelineTransition>()
+		val collectedInstances = mutableMapOf<Class<*>, Collection<*>>()
+		collectedInstances[ActionTargetAreaCharacter::class.java] = allAreaTargets
+		collectedInstances[ActionToArea::class.java] = allToAreaActions
+		collectedInstances[ActionTimelineTransition::class.java] = allTimelineTransitions
+		bitser.collectInstances(content, collectedInstances)
 
 		val characterMapping = mutableMapOf<UUID, AreaCharacter>()
 		for (area in content.areas.areas) {
 			for (character in area.objects.characters) characterMapping[character.id] = character
 		}
 
-		for (node in allActionNodes) {
-			if (node is FixedActionNode) {
-				val action = node.action
-				for (target in action.getTargets()) {
-					if (target is ActionTargetAreaCharacter) target.resolve(characterMapping)
-				}
-				if (action is ActionToArea) action.resolve(content.areas.areas)
-				if (action is ActionTimelineTransition) action.resolve(content.story.timelines)
-			}
-			if (node is ChoiceActionNode) {
-				val speaker = node.speaker
-				if (speaker is ActionTargetAreaCharacter) speaker.resolve(characterMapping)
-			}
-		}
+		for (target in allAreaTargets) target.resolve(characterMapping)
+		for (toArea in allToAreaActions) toArea.resolve(content.areas.areas)
+		for (transition in allTimelineTransitions) transition.resolve(content.story.timelines)
 	}
 }
 

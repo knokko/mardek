@@ -57,6 +57,7 @@ class PlayableCharacter(
 	 * The sprites that will be rendered when this character is walking around in an area.
 	 */
 	@BitField(id = 4)
+	@ReferenceField(stable = false, label = "character sprites")
 	val areaSprites: DirectionalSprites,
 
 	/**
@@ -70,6 +71,7 @@ class PlayableCharacter(
 	 * The creature type of the playable character, which is almost always HUMAN.
 	 */
 	@BitField(id = 6)
+	@ReferenceField(stable = false, label = "creature types")
 	val creatureType: CreatureType,
 
 	/**

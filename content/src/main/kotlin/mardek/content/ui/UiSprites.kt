@@ -123,18 +123,4 @@ class UiSprites(
 		BcSprite(), BcSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 	)
-
-	fun allKimSprites() = arrayOf(
-		goldIcon, mapChest, blueAlertBalloon, redAlertBalloon,
-		consumableIcon, waitIcon, fleeIcon, dreamStoneIcon,
-		closedThrashIcon, openThrashIcon, sortIcon1, sortIcon2,
-	)
-
-	fun allBcSprites() = arrayOf(
-		attackIcon, defIcon, rangedDefIcon,
-		activeStarIcon, meleeAttackIcon, rangedAttackIcon, meleeDefenseIcon, rangedDefenseIcon, passiveIcon,
-		mapSaveCrystal, mapDreamCircle, skillToggled, skillNotToggled, pointer,
-		titleScreenBackground, challengeCursor, clock, arrowHead,
-		statusRemoveBackground, questIcon,
-	)
 }

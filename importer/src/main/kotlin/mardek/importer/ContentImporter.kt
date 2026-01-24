@@ -12,13 +12,11 @@ import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionTargetWholeParty
 import mardek.content.action.ActionToArea
 import mardek.content.action.ActionWalk
-import mardek.content.action.FixedActionNode
 import mardek.content.action.WalkSpeed
 import mardek.content.animation.CombatantAnimations
 import mardek.content.area.Direction
 import mardek.importer.actions.addDummyCutscenes
 import mardek.importer.actions.fixedActionChain
-import mardek.importer.actions.getAllActionNodesFromSequence
 import mardek.importer.actions.importCutscenes
 import mardek.importer.area.importAreaBattleContent
 import mardek.importer.area.importAreaContent
@@ -121,12 +119,8 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	}
 	content.actions.global.add(chapter1IntroSequence)
 	startChapter1.actions = CampaignActionsState(chapter1IntroSequence.root)
-	for (node in getAllActionNodesFromSequence(chapter1IntroSequence)) {
-		if (node is FixedActionNode) {
-			val action = node.action
-			if (action is ActionToArea) action.resolve(content.areas.areas)
-		}
-	}
+
+	hardcodedActions.resolveIncompleteActions(content)
 
 	fun addCheckpoint(name: String, state: CampaignState) {
 		val byteOutput = ByteArrayOutputStream()
