@@ -17,14 +17,14 @@ class AreaCharacterState(
 	 * The X-coordinate of the tile on which this character is standing
 	 */
 	@BitField(id = 0)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false)
 	val x: Int,
 
 	/**
 	 * The Y-coordinate of the tile on which this character is standing
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false)
 	val y: Int,
 
 	/**

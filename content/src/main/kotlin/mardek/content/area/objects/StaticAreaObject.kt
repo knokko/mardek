@@ -15,14 +15,14 @@ abstract class StaticAreaObject(
 	 * The X-coordinate of the tile where this object is placed
 	 */
 	@BitField(id = 0)
-	@IntegerField(expectUniform = false, minValue = 0, digitSize = 2)
+	@IntegerField(expectUniform = false, digitSize = 2)
 	val x: Int,
 
 	/**
 	 * The Y-coordinate of the tile where this object is placed
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = false, minValue = 0, digitSize = 2)
+	@IntegerField(expectUniform = false, digitSize = 2)
 	val y: Int,
 ) {
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)

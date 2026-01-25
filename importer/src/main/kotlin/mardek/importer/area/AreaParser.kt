@@ -30,7 +30,7 @@ private fun parseArea2(
 	val flags = parseAreaFlags(areaSetupMap)
 
 	val randomBattles = parseRandomBattle(areaCode, context.content)
-	val (width, height, tileGrid) = parseAreaMap(areaCode.variableAssignments["map"]!!)
+	var (width, height, tileGrid) = parseAreaMap(areaCode.variableAssignments["map"]!!)
 
 	val tilesheetName = parseFlashString(areaCode.variableAssignments["tileset"]!!, "tileset name")!!
 	var tilesheet = tilesheets.find { it.name == tilesheetName }
@@ -70,10 +70,59 @@ private fun parseArea2(
 	val rawChestID = parseInt(areaSetupMap["LOOT"] ?: "0")
 	val chestType = context.content.areas.chestSprites.find { it.flashID == rawChestID }!!
 
+	var minTileX = 0
+	var minTileY = 0
+
+	if (areaCode.variableAssignments.containsKey("leftBorderTile")) {
+		val leftTile = parseInt(areaCode.variableAssignments["leftBorderTile"])
+		val oldWidth = width
+		val oldTileGrid = tileGrid
+		width += 1
+		minTileX = -1
+		tileGrid = IntArray(width * height)
+		for (y in 0 until height) {
+			tileGrid[y * width] = leftTile
+			oldTileGrid.copyInto(
+				destination = tileGrid, destinationOffset = 1 + y * width,
+				startIndex = y * oldWidth, endIndex = (1 + y) * oldWidth
+			)
+		}
+	}
+
+	if (areaCode.variableAssignments.containsKey("rightBorderTile")) {
+		val rightTile = parseInt(areaCode.variableAssignments["rightBorderTile"])
+		val oldWidth = width
+		val oldTileGrid = tileGrid
+		width += 1
+		tileGrid = IntArray(width * height)
+		for (y in 0 until height) {
+			tileGrid[y * width + oldWidth] = rightTile
+			oldTileGrid.copyInto(
+				destination = tileGrid, destinationOffset = y * width,
+				startIndex = y * oldWidth, endIndex = (1 + y) * oldWidth
+			)
+		}
+	}
+
+	if (areaCode.variableAssignments.containsKey("upBorderTile")) {
+		val upperTile = parseInt(areaCode.variableAssignments["upBorderTile"])
+		height += 1
+		minTileY = -1
+		tileGrid = IntArray(width) { upperTile } + tileGrid
+	}
+
+	if (areaCode.variableAssignments.containsKey("lowBorderTile")) {
+		val lowerTile = parseInt(areaCode.variableAssignments["lowBorderTile"])
+		height += 1
+		tileGrid += IntArray(width) { lowerTile }
+	}
+
 	return ParsedArea(
 		tilesheet = tilesheet,
 		width = width,
 		height = height,
+		minTileX = minTileX,
+		minTileY = minTileY,
 		tileGrid = tileGrid,
 		objects = parseAreaObjects(context, areaCode.variableAssignments["A_sprites"]!!, extraDecorations),
 		chests = if (rawAreaLoot != null) {

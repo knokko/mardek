@@ -6,14 +6,12 @@ import kotlin.math.min
 
 internal fun renderTiles(areaContext: AreaRenderContext) {
 	areaContext.apply {
-		val minTileX = max(0, (cameraX - region.width / 2) / tileSize)
-		val minTileY = max(0, (cameraY - region.height / 2) / tileSize)
-		val maxTileX = min(state.area.width - 1, 1 + (cameraX + region.width / 2) / tileSize)
-		val maxTileY = min(state.area.height - 1, 1 + (cameraY + region.height / 2) / tileSize)
+		val minTileX = (cameraX - region.width / 2) / tileSize - 1
+		val minTileY = (cameraY - region.height / 2) / tileSize - 1
+		val maxTileX = 1 + (cameraX + region.width / 2) / tileSize
+		val maxTileY = 1 + (cameraY + region.height / 2) / tileSize
 		for (tileX in minTileX .. maxTileX) {
 			for (tileY in minTileY .. maxTileY) {
-				if (tileY + 1 >= state.area.height) continue
-
 				val renderX = tileX * tileSize
 				val renderY = tileY * tileSize
 
@@ -25,7 +23,6 @@ internal fun renderTiles(areaContext: AreaRenderContext) {
 					))
 				}
 
-				if (tileY + 2 >= state.area.height) continue
 				val highTile = state.area.getTile(tileX, tileY + 2)
 				if (highTile.sprites.size > 2) {
 					val sprite = highTile.sprites[highTile.sprites.size - 3]
@@ -39,12 +36,14 @@ internal fun renderTiles(areaContext: AreaRenderContext) {
 		renderJobs.sort()
 
 		if (state.area.flags.noMovingCamera) {
-			val minCameraX = region.width / 2 - scissorLeft
-			val maxCameraX = state.area.width * tileSize - region.width / 2 + scissorLeft
-			if (state.area.width * tileSize > region.width) cameraX = min(maxCameraX, max(minCameraX, cameraX))
-			if (state.area.height * tileSize > region.height) {
+			val minCameraX = state.area.minTileX * tileSize + region.width / 2 - scissorLeft
+			val maxCameraX = (1 + state.area.maxTileX) * tileSize - region.width / 2 + scissorLeft
+			if ((1 + state.area.maxTileX) * tileSize > region.width) {
+				cameraX = min(maxCameraX, max(minCameraX, cameraX))
+			}
+			if ((1 + state.area.maxTileY) * tileSize > region.height) {
 				cameraY = min(
-					state.area.height * tileSize - region.height / 2,
+					(1 + state.area.maxTileY) * tileSize - region.height / 2,
 					max(region.height / 2, cameraY)
 				)
 			}

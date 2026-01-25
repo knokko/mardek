@@ -128,8 +128,8 @@ class TestAreaParser {
 		val area = content.areas.areas.find { it.properties.rawName == "DL_area2" }!!
 		assertEquals("Dragon's Lair", area.properties.displayName)
 		assertEquals("dragonlair", area.tilesheet.name)
-		assertEquals(15, area.width)
-		assertEquals(40, area.height)
+		assertEquals(17, area.width)
+		assertEquals(42, area.height)
 		assertEquals(RandomAreaBattles(
 			ownEnemies = arrayListOf(
 				BattleEnemySelection(arrayListOf(monster, null, null, null), solo),

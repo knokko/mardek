@@ -89,7 +89,7 @@ class AreaObjects(
 	@ReferenceFieldTarget(label = "area triggers")
 	val walkTriggers: ArrayList<AreaTrigger>,
 ) {
-	internal constructor() : this(
+	constructor() : this(
 		ArrayList(), ArrayList(), ArrayList(), ArrayList(),
 		ArrayList(), ArrayList(), ArrayList(), ArrayList(),
 		ArrayList(), ArrayList(), ArrayList(),

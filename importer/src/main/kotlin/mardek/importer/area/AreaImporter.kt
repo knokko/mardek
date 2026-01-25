@@ -98,6 +98,8 @@ internal fun importAreaContent(content: Content): HardcodedActions {
 		content.areas.areas.add(Area(
 			width = parsedArea.width,
 			height = parsedArea.height,
+			minTileX = parsedArea.minTileX,
+			minTileY = parsedArea.minTileY,
 			tilesheet = tilesheet,
 			tileGrid = tileGrid,
 			objects = parsedArea.objects,

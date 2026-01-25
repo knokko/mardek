@@ -208,7 +208,7 @@ class CampaignState : BitPostInit {
 
 						var nextPosition = currentArea.getPlayerPosition(0)
 						val nextArea = areas[nextIndex]
-						if (nextPosition.x > 5 + nextArea.width || nextPosition.y > 3 + nextArea.height) {
+						if (nextPosition.x > 6 + nextArea.maxTileX || nextPosition.y > 4 + nextArea.maxTileY) {
 							nextPosition = AreaPosition(3, 3)
 						}
 						this.currentArea = AreaState(nextArea, nextPosition)

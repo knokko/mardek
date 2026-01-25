@@ -8,11 +8,11 @@ import com.github.knokko.bitser.field.IntegerField
 class AreaPosition(
 
 	@BitField(id = 0)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false)
 	val x: Int,
 
 	@BitField(id = 1)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false)
 	val y: Int
 ) {
 

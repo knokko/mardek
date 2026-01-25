@@ -73,7 +73,7 @@ class AreaProperties(
 	// TODO CHAP3 Dreamshrine Entrance has some GlowTiles stuff
 ) {
 
-	internal constructor() : this(
+	constructor() : this(
 		"", "", ConstantTimelineExpression(), ConstantTimelineExpression(),
 		null, null, AreaDreamType.AstralTunnel, AreaSnowType.None
 	)

@@ -56,14 +56,14 @@ class AreaCharacter(
 	 * The X-coordinate of the tile where this character will start/spawn when the player enters the area.
 	 */
 	@BitField(id = 3)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false)
 	val startX: Int,
 
 	/**
 	 * The Y-coordinate of the tile where this character will start/spawn when the player enters the area.
 	 */
 	@BitField(id = 4)
-	@IntegerField(expectUniform = false, minValue = 0)
+	@IntegerField(expectUniform = false)
 	val startY: Int,
 
 	/**

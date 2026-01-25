@@ -24,21 +24,22 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 	menuContext.apply {
 		val shouldBlink = ((System.nanoTime() - referenceTime) % BLINK_PERIOD) >= BLINK_PERIOD / 2
 		val scale = min(region.width, region.height) / 70
-		val renderWidth = scale * (context.campaign.currentArea?.area?.width ?: 0)
-		val renderHeight = scale * (context.campaign.currentArea?.area?.height ?: 0)
+
+		val area = state.currentArea?.area ?: return
+		val renderWidth = scale * area.width
+		val renderHeight = scale * (1 + area.height)
 		val minX = region.minX + (region.width - renderWidth) / 2
 		val minY = region.minY + (region.height - renderHeight) / 2
 
 		if (scale <= 0) return
-		val area = state.currentArea?.area ?: return
 
 		if (shouldBlink) {
 
 			fun renderSpriteAtMap(x: Int, y: Int, sprite: BcSprite) {
 				if (!area.flags.hasClearMap && !context.campaign.areaDiscovery.readOnly(area).isDiscovered(x, y)) return
 				val spriteScale = scale / 16f
-				val minX = minX + x * scale + scale / 2 - spriteScale * sprite.width / 2
-				val minY = minY + y * scale + scale / 2 - spriteScale * sprite.height / 2
+				val minX = minX + (x - area.minTileX) * scale + scale / 2 - spriteScale * sprite.width / 2
+				val minY = minY + (y - area.minTileY) * scale + scale / 2 - spriteScale * sprite.height / 2
 				imageBatch.simple(
 					minX, minY, minX + (sprite.width * spriteScale).roundToInt() - 1,
 					minY + (sprite.height * spriteScale).roundToInt() - 1, sprite.index
@@ -109,16 +110,15 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 		}
 
 		fun putMapColor(tileX: Int, tileY: Int, color: Int) {
-			val slotX = minX + tileX * scale
-			val slotY = minY + tileY * scale
+			val slotX = minX + (tileX - area.minTileX) * scale
+			val slotY = minY + (tileY - area.minTileY) * scale
 			colorBatch.fill(slotX, slotY, slotX + scale - 1, slotY + scale - 1, color)
 		}
 		val discovery = context.campaign.areaDiscovery.readOnly(area)
-		for (y in 0 .. area.height) {
-			for (x in 0 until area.width) {
+		for (y in area.minTileY .. 1 + area.maxTileY) {
+			for (x in area.minTileX .. area.maxTileX) {
 				val color = if ((discovery.isDiscovered(x, y) || area.flags.hasClearMap) && !area.flags.noMap) {
-					val waterType = if (y < area.height) area.getTile(x, y).waterType else WaterType.None
-					when (waterType) {
+					when (area.getTile(x, y).waterType) {
 						WaterType.Water -> WATER_COLOR
 						WaterType.Lava -> LAVA_COLOR
 						else -> if (area.canWalkOnTile(x, y)) ACCESSIBLE_TERRAIN_COLOR else INACCESSIBLE_TERRAIN_COLOR
@@ -159,5 +159,12 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 			for (door in area.objects.doors) putIfDiscovered(door.x, door.y, DOOR_COLOR)
 			for (transition in area.objects.transitions) putIfDiscovered(transition.x, transition.y, DOOR_COLOR)
 		}
+
+		val font = context.bundle.getFont(context.content.fonts.basic2.index)
+		textBatch.drawString(
+			area.properties.displayName, region.minX + 0.02f * region.height,
+			region.maxY + 0.075f * region.height, 0.04f * region.height,
+			font, srgbToLinear(rgb(238, 203, 127)),
+		)
 	}
 }

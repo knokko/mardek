@@ -62,7 +62,7 @@ class AreaFlags(
 	val noStorage: Boolean,
 ) {
 
-	internal constructor() : this(
+	constructor() : this(
 		false, false, false, false,
 		false, false, false, false
 	)

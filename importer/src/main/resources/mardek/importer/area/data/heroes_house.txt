@@ -1,4 +1,8 @@
 map = [[12,12,12,27,17],[22,11,11,11,11],[11,11,24,25,23],[11,11,11,11,11],[11,11,11,11,11],[11,11,11,11,22]];
+leftBorderTile = 10;
+rightBorderTile = 10;
+upBorderTile = 10;
+lowBorderTile = 10;
 tileset = "interior1";
 area = "heroes_house";
 areaname = "Heroes\' Den - Abandoned House";

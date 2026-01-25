@@ -7,6 +7,8 @@ import java.util.UUID
 class ParsedArea(
 	val width: Int,
 	val height: Int,
+	val minTileX: Int,
+	val minTileY: Int,
 	val tilesheet: ParsedTilesheet,
 	val tileGrid: IntArray,
 	val objects: AreaObjects,

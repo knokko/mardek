@@ -405,7 +405,6 @@ class AreaState(
 	}
 
 	private fun canWalkTo(input: InputManager, x: Int, y: Int): Boolean {
-		if (x < 0 || y < 0) return false
 		if (input.isPressed(InputKey.CheatMove)) return true
 		if (!area.canWalkOnTile(x, y)) return false
 
