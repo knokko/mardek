@@ -68,7 +68,7 @@ class AreaTrigger(
 
 	init {
 		if ((flashCode == null) == (actions == null)) {
-			throw IllegalArgumentException("Exactly 1 of `flashCode` and `actions` must be non-null")
+			throw IllegalArgumentException("Exactly 1 of `flashCode` and `actions` must be non-null: $flashCode")
 		}
 	}
 

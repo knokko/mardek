@@ -2,6 +2,7 @@ package mardek.importer.util
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.util.ArrayList
 
 class TestActionScriptParser {
 
@@ -36,5 +37,11 @@ class TestActionScriptParser {
 	@Test
 	fun testParseEmptyObject() {
 		assertEquals(0, parseActionScriptObject("{}").size)
+	}
+
+	@Test
+	fun julioRegressionTest() {
+		val actual = parseActionScriptNestedList("[[\"\",\"\\\"Oh, Julio!\\\" moaned Cynthia as she caressed his rippling muscles slenderly. \\\"I love you! I love you, I love you, I love you!\\\"\"],[\"\",\"\\\"But... this is not right. This cannot be.\\\" They both knew that their fathers would be appalled, yet they did not give but a damn. \\\"I\\'ll show you something else that cannot be!\\\" grunted Julio sexily, eyes blazing with fiery passion, as he dropped his fashionable pantaloons. \\\"My gosh! It\\'s so-\"],[\"\",\"(Ahem. Not your sort of thing, really.)\"]]")
+		assertEquals(arrayListOf("\"\"", "\"(Ahem. Not your sort of thing, really.)\""), (actual as ArrayList<*>)[2])
 	}
 }

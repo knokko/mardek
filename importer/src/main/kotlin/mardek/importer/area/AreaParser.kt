@@ -60,7 +60,7 @@ private fun parseArea2(
 				extraDecorations.add(AreaDecoration(
 					x = x, y = y, sprites = sprites, canWalkThrough = true, light = hexObject.light,
 					timePerFrame = 50 * hexObject.timePerFrame,
-					rawConversation = null, conversationName = null, actionSequence = null, signType = null,
+					ownActions = null, conversationName = null, sharedActionSequence = null, signType = null,
 				))
 			}
 		}

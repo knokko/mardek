@@ -27,8 +27,10 @@ fun parseActionScriptNestedList(rawList: String): Any {
 		return current
 	}
 
-	for (character in content) {
-		if (character == '"'.code) insideString = !insideString
+	for ((charIndex, character) in content.withIndex()) {
+		if (character == '"'.code && (charIndex == 0 || content[charIndex - 1] != '\\'.code)) {
+			insideString = !insideString
+		}
 
 		if (!insideString) {
 			if (character == '['.code) {
@@ -224,7 +226,7 @@ private enum class ParseState(val isDeep: Boolean) {
 class ActionScriptCode(val variableAssignments: Map<String, String>, val functionCalls: List<Pair<String, String>>)
 
 fun parseActionScriptResource(path: String): ActionScriptCode {
-	val scanner = Scanner(HexObject::class.java.classLoader.getResourceAsStream(path))
+	val scanner = Scanner(HexObject::class.java.classLoader.getResourceAsStream(path)!!)
 	val lines = mutableListOf<String>()
 	while (scanner.hasNextLine()) lines.add(scanner.nextLine())
 	scanner.close()

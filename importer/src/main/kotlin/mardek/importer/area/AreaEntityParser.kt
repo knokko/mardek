@@ -1,15 +1,22 @@
 package mardek.importer.area
 
 import mardek.content.Content
+import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
+import mardek.content.action.ActionTalk
+import mardek.content.action.ActionTarget
+import mardek.content.action.ActionTargetDialogueObject
+import mardek.content.action.FixedAction
 import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
 import mardek.content.area.objects.*
 import mardek.content.sprite.ObjectSprites
 import mardek.content.story.TimelineExpression
 import mardek.importer.actions.HardcodedActions
+import mardek.importer.actions.fixedActionChain
 import mardek.importer.story.expressions.HardcodedExpressions
 import mardek.importer.util.compressKimSprite3
+import mardek.importer.util.parseActionScriptNestedList
 import mardek.importer.util.parseActionScriptObjectList
 import java.awt.Color
 import java.lang.Integer.parseInt
@@ -132,6 +139,28 @@ private fun importSwitchColor(name: String): SwitchColor {
 	)
 }
 
+private fun attemptToExtractSimpleDialogue(
+	speaker: ActionTarget, sharedActions: ActionSequence?, rawDialogue: String?, baseID: UUID
+): ActionNode? {
+	if (rawDialogue == null || sharedActions != null) return null
+	val conversationList = parseActionScriptNestedList(rawDialogue)
+	if (conversationList is ArrayList<*>) {
+		val actions: Array<FixedAction> = conversationList.map {
+			if (it !is ArrayList<*>) return null
+			ActionTalk(
+				speaker = speaker,
+				expression = parseFlashString(it[0].toString(), "dialogue expression") ?: return null,
+				text = parseFlashString(it[1].toString(), "dialogue text") ?: return null,
+			)
+		}.toTypedArray()
+		val ids = actions.indices.map {
+			UUID(baseID.mostSignificantBits - it, baseID.leastSignificantBits + it)
+		}.toTypedArray()
+		return fixedActionChain(actions, ids)!!
+	}
+	return null
+}
+
 internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<String, String>): Any {
 	val rawID = rawEntity["uuid"]
 	val id = if (rawID != null) UUID.fromString(rawID) else {
@@ -180,9 +209,12 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 				canWalkThrough = true,
 				light = null,
 				timePerFrame = 1,
-				rawConversation = rawConversation,
+				ownActions = attemptToExtractSimpleDialogue(
+					ActionTargetDialogueObject(name),
+					actionSequence, rawConversation, id,
+				),
 				conversationName = conversationName,
-				actionSequence = actionSequence,
+				sharedActionSequence = actionSequence,
 				signType = null,
 			)
 		}
@@ -210,9 +242,12 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			canWalkThrough = false,
 			light = null,
 			timePerFrame = 1,
+			ownActions = attemptToExtractSimpleDialogue(
+				ActionTargetDialogueObject(name),
+				actionSequence, rawConversation, id,
+			),
 			conversationName = conversationName,
-			rawConversation = rawConversation,
-			actionSequence = actionSequence,
+			sharedActionSequence = actionSequence,
 			signType = signType,
 		)
 	}
@@ -263,7 +298,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 					context.actions.getHardcodedGlobalActionSequence(rawSequenceName)
 		} else null
 
-		val rawConditionName = rawEntity["timelineCondition"] // TODO Test this
+		val rawConditionName = rawEntity["timelineCondition"] // TODO CHAP1 Test this
 		val timelineCondition = if (rawConditionName != null) {
 			val condition = context.expressions.getHardcodedAreaExpressions(
 				context.areaName, rawConditionName
@@ -308,9 +343,12 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			canWalkThrough = rawEntity["walkable"] == "true",
 			light = null,
 			timePerFrame = 200,
+			ownActions = attemptToExtractSimpleDialogue(
+				ActionTargetDialogueObject(name),
+				actionSequence, rawConversation, id,
+			),
 			conversationName = conversationName,
-			rawConversation = rawConversation,
-			actionSequence = actionSequence,
+			sharedActionSequence = actionSequence,
 			signType = null,
 		)
 	}

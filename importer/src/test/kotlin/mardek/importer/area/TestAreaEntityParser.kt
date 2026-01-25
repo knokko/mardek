@@ -1,6 +1,9 @@
 package mardek.importer.area
 
 import com.github.knokko.bitser.Bitser
+import mardek.content.action.ActionTalk
+import mardek.content.action.ActionTargetDialogueObject
+import mardek.content.action.FixedActionNode
 import mardek.content.area.Area
 import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
@@ -10,8 +13,11 @@ import mardek.importer.importVanillaContent
 import mardek.importer.story.expressions.HardcodedExpressions
 import mardek.importer.util.parseActionScriptObjectList
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertNull
 import java.util.UUID
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -219,9 +225,9 @@ class TestAreaEntityParser {
 			canWalkThrough = false,
 			light = null,
 			timePerFrame = 200,
-			rawConversation = null,
+			ownActions = null,
 			conversationName = "c_healingCrystal",
-			actionSequence = content.actions.global.find { it.name == "c_healingCrystal" }!!,
+			sharedActionSequence = content.actions.global.find { it.name == "c_healingCrystal" }!!,
 			signType = null,
 		)
 		assertEquals(expected, actual)
@@ -530,6 +536,7 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseInvalidWarportPortal() {
+		val actual = findArea("warport1T2").objects.decorations.find { it.x == 36 }!!
 		val expected = AreaDecoration(
 			sprites = content.areas.objectSprites.find { it.flashName == "obj_portal" },
 			x = 36,
@@ -538,16 +545,22 @@ class TestAreaEntityParser {
 			light = null,
 			timePerFrame = 200,
 			conversationName = null,
-			rawConversation = "[[\"\",\"We hope you enjoyed your trip. Please leave the arrivals area.\"]]",
-			actionSequence = null,
+			ownActions = actual.ownActions!!,
+			sharedActionSequence = null,
 			signType = null,
 		)
-		val actual = findArea("warport1T2").objects.decorations.find { it.x == 36 }!!
+		val rootNode = actual.ownActions!!
+		assertNull((rootNode as FixedActionNode).next)
+		val action = rootNode.action as ActionTalk
+		assertEquals(ActionTargetDialogueObject("Portal"), action.speaker)
+		assertEquals("", action.expression)
+		assertEquals("We hope you enjoyed your trip. Please leave the arrivals area.", action.text)
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseWarportExamine() {
+		val actual = findArea("warport2T3").objects.decorations.find { it.x == 6 && it.y == 6 }!!
 		val expected = AreaDecoration(
 			x = 6,
 			y = 6,
@@ -555,12 +568,17 @@ class TestAreaEntityParser {
 			canWalkThrough = true,
 			light = null,
 			timePerFrame = 200,
+			ownActions = actual.ownActions!!,
 			conversationName = null,
-			rawConversation = "[[\"\",\"It\\'s a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That\\'d be RAD.\"]]",
-			actionSequence = null,
+			sharedActionSequence = null,
 			signType = null,
 		)
-		val actual = findArea("warport2T3").objects.decorations.find { it.x == 6 && it.y == 6 }!!
+		val rootNode = actual.ownActions!!
+		assertNull((rootNode as FixedActionNode).next)
+		val action = rootNode.action as ActionTalk
+		assertEquals(ActionTargetDialogueObject("Portal"), action.speaker)
+		assertEquals("", action.expression)
+		assertEquals("It's a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That'd be RAD.", action.text)
 		assertEquals(expected, actual)
 	}
 
@@ -577,25 +595,6 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseBook() {
-		val rawConversation = "[[\"\",\"Deities are entities on a higher level of existence than we mere mortals. " +
-				"They are the overseers of the universe; eternal benefactors who watch, maintain and create " +
-				"the world and creatures around us. They come in three major types.\"],[\"\",\"There are the " +
-				"Higher Creator Deities, such as YALORT, who design creatures and worlds, shaping the elements " +
-				"of the universe to their desires. They cannot cause anything to appear; they can merely mould " +
-				"what already exists.\"],[\"\",\"The Mid-Level Elemental Deities represent and have control over " +
-				"one single element in particular. They have supreme power over that element, so they are the " +
-				"ones that grant its use to the Creators. They are the makers of the crystals.\"],[\"\",\"The " +
-				"Lesser Archetype Deities are formed from minds, filling niches that society needs to be fulfilled. " +
-				"They represent standards of what people should be (and as such they are not omnipotent or perfect, " +
-				"\\'out of reach\\'), or they exist as things to worship to for certain specific needs" +
-				".\"],[\"\",\"The names of deities should always be fully capitalised. However, the words to " +
-				"refer to their followers do not follow this rule; YALORT\\'s followers are Yalortians, for " +
-				"example, not YALORTians or YALORTIANS. This is because the capitals show the power of the " +
-				"deity\\'s name; derived forms are no longer the name of the deity and lose their power" +
-				".\"],[\"\",\"Deities are non-physical entities, and are as such formless. However, when " +
-				"they interact, they tend to manifest as the same forms in order to be recognised. As most " +
-				"people have never seen a deity, though, any artwork depicting them is speculative; " +
-				"a way of putting such a floaty idea into something we can comprehend and recognise.\"]]"
 		val actual = findArea("aeropolis_W_Library").objects.decorations.find { it.x == 1 && it.y == 1 }!!
 		val expected = AreaDecoration(
 			x = 1,
@@ -604,11 +603,27 @@ class TestAreaEntityParser {
 			canWalkThrough = true,
 			light = null,
 			timePerFrame = 1,
-			rawConversation = rawConversation,
+			ownActions = actual.ownActions!!,
 			conversationName = null,
-			actionSequence = null,
+			sharedActionSequence = null,
 			signType = null,
 		)
+		val rootNode = actual.ownActions!!
+		assertNotNull((rootNode as FixedActionNode).next)
+		var action = rootNode.action as ActionTalk
+		assertEquals(ActionTargetDialogueObject("Deities: What ARE they?"), action.speaker)
+		assertEquals("", action.expression)
+		assertTrue(action.text.startsWith("Deities are entities on a higher level of existence than we mere"))
+
+		var lastNode = rootNode.next
+		while (true) {
+			val next = (lastNode as FixedActionNode).next ?: break
+			lastNode = next
+		}
+		action = lastNode.action as ActionTalk
+		assertEquals(ActionTargetDialogueObject("Deities: What ARE they?"), action.speaker)
+		assertEquals("", action.expression)
+		assertTrue(action.text.startsWith("Deities are non-physical entities,"))
 		assertEquals(expected, actual)
 	}
 
@@ -638,9 +653,9 @@ class TestAreaEntityParser {
 			canWalkThrough = true,
 			light = null,
 			timePerFrame = 1,
-			rawConversation = null,
+			ownActions = null,
 			conversationName = "c_lakeQur",
-			actionSequence = null,
+			sharedActionSequence = null,
 			signType = null,
 		)
 		assertEquals(expected, actual)

@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.Element
@@ -32,6 +33,10 @@ sealed class ActionTarget {
 	 * This method returns `null` when this target is missing, or does not have an element (e.g. save crystal).
 	 */
 	abstract fun getElement(party: Array<PlayableCharacter?>): Element?
+
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
+
+	override fun hashCode() = BITSER.hashCode(this)
 
 	companion object {
 

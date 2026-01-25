@@ -357,5 +357,10 @@ class IntegrationTests {
 	fun testItemStorageTake() {
 		TestItemStorage.testTakeTunicFromStorage(instance)
 	}
+
+	@Test
+	fun testHeroesHouseWritings() {
+		TestActions.testHeroesHouseWritings(instance)
+	}
 	// TODO CHAP1 Test choice dialogue chat log
 }

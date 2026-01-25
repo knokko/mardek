@@ -177,9 +177,9 @@ class AreaState(
 		for (decoration in area.objects.decorations) {
 			if (decoration.x != x || decoration.y != y) continue
 
-			val actionSequence = decoration.actionSequence
-			if (actionSequence != null) {
-				suspension = AreaSuspensionActions(AreaActionsState(actionSequence.root))
+			val rootAction = decoration.sharedActionSequence?.root ?: decoration.ownActions
+			if (rootAction != null) {
+				suspension = AreaSuspensionActions(AreaActionsState(rootAction))
 				return
 			} else {
 				println("interact with $decoration")

@@ -2,8 +2,11 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
+import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
 import mardek.content.sprite.ObjectSprites
 
@@ -49,11 +52,16 @@ class AreaDecoration(
 	val timePerFrame: Int,
 
 	/**
-	 * When the player should be able to interact with this decoration, this will be the 'conversation' that was
-	 * imported from Flash. It is currently unused.
+	 * The action that should be activated when the player interacts with this decoration, or `null` when the
+	 * player cannot interact with this decoration (or I haven't implemented it yet), or when `sharedActionSequence`
+	 * is used instead.
+	 *
+	 * This action node is 'owned' by this decoration, and *not* shared with anything else.
 	 */
 	@BitField(id = 4, optional = true)
-	val rawConversation: String?,
+	@ClassField(root = ActionNode::class)
+	@ReferenceFieldTarget(label = "action nodes")
+	val ownActions: ActionNode?,
 
 	/**
 	 * When the player should be able to interact with this decoration, this will be the 'conversation name' that was
@@ -64,11 +72,14 @@ class AreaDecoration(
 
 	/**
 	 * The action sequence that should be activated when the player interacts with this decoration, or `null` when the
-	 * player cannot interact with this decoration (or I haven't implemented it yet).
+	 * player cannot interact with this decoration (or I haven't implemented it yet), or when `ownActions` is
+	 * used instead.
+	 *
+	 * This must be a reference to either an area action sequence, or to a global action sequence.
 	 */
 	@BitField(id = 6, optional = true)
 	@ReferenceField(stable = false, label = "action sequences")
-	val actionSequence: ActionSequence?,
+	val sharedActionSequence: ActionSequence?,
 
 	/**
 	 * When this object is a sign, this field determines which kind of sign.
@@ -83,5 +94,5 @@ class AreaDecoration(
 		null, null, null, null,
 	)
 
-	override fun toString() = "Decoration(x=$x, y=$y, sheet=${sprites?.flashName}, conversation=$rawConversation)"
+	override fun toString() = "Decoration(x=$x, y=$y, sheet=${sprites?.flashName})"
 }

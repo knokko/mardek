@@ -1,6 +1,7 @@
 package mardek.game.action
 
 import mardek.content.action.ActionTalk
+import mardek.content.action.ActionTargetDialogueObject
 import mardek.content.action.ActionToArea
 import mardek.content.action.FixedActionNode
 import mardek.content.area.Direction
@@ -20,6 +21,7 @@ import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
+import mardek.state.saves.SaveFile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
@@ -224,6 +226,39 @@ object TestActions {
 				)
 			}
 			assertNull(state.campaign.currentArea!!.suspension)
+		}
+	}
+
+	fun testHeroesHouseWritings(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(simpleCampaignState(), "")
+			state.campaign.currentArea = AreaState(
+				area = content.areas.areas.find { it.properties.rawName == "heroes_house" }!!,
+				initialPlayerPosition = AreaPosition(3, 1),
+				initialPlayerDirection = Direction.Up,
+			)
+
+			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			state.update(context)
+			assertNull(state.campaign.currentArea!!.suspension)
+
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
+			state.update(context)
+			val suspension = state.campaign.currentArea!!.suspension as AreaSuspensionActions
+			val node = suspension.actions.node as FixedActionNode
+			val action = node.action as ActionTalk
+			assertEquals("", action.expression)
+			assertEquals(ActionTargetDialogueObject("Advenshers"), action.speaker)
+			assertTrue(action.text.startsWith("It's a scrapbook containing Mardek and Deugan's"))
+
+			// Test that this doesn't crash
+			for (characterState in state.campaign.characterStates.values) {
+				characterState.currentLevel = 1
+			}
+			context.saves.createSave(
+				context.content, state.campaign,
+				state.campaignName, SaveFile.Type.Cheat,
+			)
 		}
 	}
 }
