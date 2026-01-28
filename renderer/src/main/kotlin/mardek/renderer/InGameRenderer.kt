@@ -23,6 +23,7 @@ import mardek.state.ingame.actions.ItemStorageInteractionState
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
+import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveSelectionState
 import mardek.state.util.Rectangle
 
@@ -55,154 +56,159 @@ internal fun renderInGame(
 	var titleColorBatch: Vk2dColorBatch? = null
 	var titleTextBatch: Vk2dGlyphBatch? = null
 
-	val stateMachine = state.campaign.state
-	if (stateMachine is AreaState) {
-		val suspension = stateMachine.suspension
-		if (suspension !is AreaSuspensionBattle) {
-			if (state.menu.shown) {
-				val framebuffers = context.framebuffers
-				val areaRenderStage = context.pipelines.base.blur.addSourceStage(
-					context.frame, framebuffers.blur, -1
-				)
-				if (state.menu.currentTab.inside) {
-					context.currentStage = context.pipelines.base.blur.addSourceStage(
-						context.frame, framebuffers.sectionBlur, -1
-					)
-
-					val menuRegion = determineSectionRenderRegion(region)
-					val colorBatch = context.addColorBatch(50)
-					val textBatch = context.addFancyTextBatch(250)
-
-					// The image/sprite/oval pipelines are not needed for rendering the section list,
-					// but we still need a valid instance of MenuRenderContext
-					val ovalBatch = context.addOvalBatch(0)
-					val imageBatch = context.addImageBatch(0)
-					val spriteBatch = context.addKim3Batch(0)
-					val lateColorBatch = context.addColorBatch(0)
-
-					val menuContext = MenuRenderContext(
-						context, colorBatch, ovalBatch, imageBatch, spriteBatch, lateColorBatch, textBatch,
-						state.menu, state.campaign
-					)
-					renderInGameMenuSectionList(menuContext, Rectangle(
-						0, 0, menuRegion.width, menuRegion.height
-					))
-				}
-				val computeStage = context.pipelines.base.blur.addComputeStage(
-					context.frame, context.perFrame.areaBlurDescriptors,
-					framebuffers.blur, 9, 50, -1
-				)
-				if (state.menu.currentTab.inside) {
-					computeStage.additional(
-						context.perFrame.sectionsBlurDescriptors,
-						framebuffers.sectionBlur, 9, 50
-					)
-				}
-
-				context.currentStage = areaRenderStage
-				val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
-				renderCurrentArea(context, stateMachine, areaRenderRegion)
-				renderBlurred()
-
-				val batches = renderInGameMenu(context, region, state.menu, state.campaign)
-				titleColorBatch = batches.first
-				titleTextBatch = batches.second
-
-				if (state.menu.currentTab.inside) {
-					val sectionRegion = determineSectionRenderRegion(region)
-					context.pipelines.base.blur.addBatch(
-						context.frame.swapchainStage,
-						framebuffers.sectionBlur, context.perFrame.sectionsBlurDescriptors,
-						sectionRegion.minX.toFloat(), sectionRegion.minY.toFloat(),
-						sectionRegion.maxX + 1f, sectionRegion.maxY + 1f
-					).noColorTransform()
-				}
-			} else {
-				var saveSelection: SaveSelectionState? = null
-				var itemStorage: ItemStorageInteractionState? = null
-				if (suspension is AreaSuspensionActions) {
-					val node = suspension.actions.node
-					if (node is FixedActionNode && node.action is ActionSaveCampaign) {
-						saveSelection = suspension.actions.saveSelectionState
-					}
-					if (node is FixedActionNode && node.action is ActionItemStorage) {
-						itemStorage = suspension.actions.itemStorageInteraction
-					}
-				}
-
-				val batches: Pair<Vk2dColorBatch, Vk2dGlyphBatch>
-				if (saveSelection != null) {
+	when (val stateMachine = state.campaign.state) {
+		is AreaState -> {
+			val suspension = stateMachine.suspension
+			if (suspension !is AreaSuspensionBattle) {
+				if (state.menu.shown) {
 					val framebuffers = context.framebuffers
 					val areaRenderStage = context.pipelines.base.blur.addSourceStage(
 						context.frame, framebuffers.blur, -1
 					)
-					context.pipelines.base.blur.addComputeStage(
+					if (state.menu.currentTab.inside) {
+						context.currentStage = context.pipelines.base.blur.addSourceStage(
+							context.frame, framebuffers.sectionBlur, -1
+						)
+
+						val menuRegion = determineSectionRenderRegion(region)
+						val colorBatch = context.addColorBatch(50)
+						val textBatch = context.addFancyTextBatch(250)
+
+						// The image/sprite/oval pipelines are not needed for rendering the section list,
+						// but we still need a valid instance of MenuRenderContext
+						val ovalBatch = context.addOvalBatch(0)
+						val imageBatch = context.addImageBatch(0)
+						val spriteBatch = context.addKim3Batch(0)
+						val lateColorBatch = context.addColorBatch(0)
+
+						val menuContext = MenuRenderContext(
+							context, colorBatch, ovalBatch, imageBatch, spriteBatch, lateColorBatch, textBatch,
+							state.menu, state.campaign
+						)
+						renderInGameMenuSectionList(menuContext, Rectangle(
+							0, 0, menuRegion.width, menuRegion.height
+						))
+					}
+					val computeStage = context.pipelines.base.blur.addComputeStage(
 						context.frame, context.perFrame.areaBlurDescriptors,
 						framebuffers.blur, 9, 50, -1
 					)
+					if (state.menu.currentTab.inside) {
+						computeStage.additional(
+							context.perFrame.sectionsBlurDescriptors,
+							framebuffers.sectionBlur, 9, 50
+						)
+					}
 
 					context.currentStage = areaRenderStage
 					val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
 					renderCurrentArea(context, stateMachine, areaRenderRegion)
 					renderBlurred()
 
-					val basicFont = context.bundle.getFont(context.content.fonts.basic2.index)
-					val fatFont = context.bundle.getFont(context.content.fonts.fat.index)
-					val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
-					batches = renderSaveSelectionModal(
-						context, basicFont, fatFont, upperFont,
-						saveSelection, true, region,
-					)
-				} else if (itemStorage != null) {
-					batches = renderItemStorage(context, itemStorage, region)
-				} else {
-					batches = renderCurrentArea(context, stateMachine, region)
-				}
-				titleColorBatch = batches.first
-				titleTextBatch = batches.second
-			}
-		} else {
-			val framebuffers = context.framebuffers
-			val loot = suspension.loot
-			if (loot == null) {
-				val batches = renderBattle(context, state.campaign, suspension.battle, region)
-				titleColorBatch = batches.first
-				titleTextBatch = batches.second
-			} else {
-				context.currentStage = context.pipelines.base.blur.addSourceStage(
-					context.frame, framebuffers.blur, -1
-				)
-				context.pipelines.base.blur.addComputeStage(
-					context.frame, context.perFrame.areaBlurDescriptors,
-					framebuffers.blur, 3, 50, -1
-				)
-				renderBattle(context, state.campaign, suspension.battle, region)
+					val batches = renderInGameMenu(context, region, state.menu, state.campaign)
+					titleColorBatch = batches.first
+					titleTextBatch = batches.second
 
-				context.currentStage = context.frame.swapchainStage
-				val blurStrength = 240
-				val leftBlurColor = srgbToLinear(rgba(39, 26, 18, blurStrength))
-				val rightBlurColor = srgbToLinear(rgba(82, 54, 36, blurStrength))
-				val inverseBlur = 255 - blurStrength
-				val multiplyColor = rgba(inverseBlur, inverseBlur, inverseBlur, inverseBlur)
-				context.pipelines.base.blur.addBatch(
-					context.frame.swapchainStage,
-					framebuffers.blur, context.perFrame.areaBlurDescriptors,
-					region.minX.toFloat(), region.minY.toFloat(),
-					region.boundX.toFloat(), region.boundY.toFloat(),
-				).gradientColorTransform(
-					leftBlurColor, multiplyColor,
-					leftBlurColor, multiplyColor,
-					rightBlurColor, multiplyColor,
-					rightBlurColor, multiplyColor,
-				)
-				val batches = renderBattleLoot(context, loot, state.campaign.usedPartyMembers(), region)
-				titleColorBatch = batches.first
-				titleTextBatch = batches.second
+					if (state.menu.currentTab.inside) {
+						val sectionRegion = determineSectionRenderRegion(region)
+						context.pipelines.base.blur.addBatch(
+							context.frame.swapchainStage,
+							framebuffers.sectionBlur, context.perFrame.sectionsBlurDescriptors,
+							sectionRegion.minX.toFloat(), sectionRegion.minY.toFloat(),
+							sectionRegion.maxX + 1f, sectionRegion.maxY + 1f
+						).noColorTransform()
+					}
+				} else {
+					var saveSelection: SaveSelectionState? = null
+					var itemStorage: ItemStorageInteractionState? = null
+					if (suspension is AreaSuspensionActions) {
+						val node = suspension.actions.node
+						if (node is FixedActionNode && node.action is ActionSaveCampaign) {
+							saveSelection = suspension.actions.saveSelectionState
+						}
+						if (node is FixedActionNode && node.action is ActionItemStorage) {
+							itemStorage = suspension.actions.itemStorageInteraction
+						}
+					}
+
+					val batches: Pair<Vk2dColorBatch, Vk2dGlyphBatch>
+					if (saveSelection != null) {
+						val framebuffers = context.framebuffers
+						val areaRenderStage = context.pipelines.base.blur.addSourceStage(
+							context.frame, framebuffers.blur, -1
+						)
+						context.pipelines.base.blur.addComputeStage(
+							context.frame, context.perFrame.areaBlurDescriptors,
+							framebuffers.blur, 9, 50, -1
+						)
+
+						context.currentStage = areaRenderStage
+						val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
+						renderCurrentArea(context, stateMachine, areaRenderRegion)
+						renderBlurred()
+
+						val basicFont = context.bundle.getFont(context.content.fonts.basic2.index)
+						val fatFont = context.bundle.getFont(context.content.fonts.fat.index)
+						val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
+						batches = renderSaveSelectionModal(
+							context, basicFont, fatFont, upperFont,
+							saveSelection, true, region,
+						)
+					} else if (itemStorage != null) {
+						batches = renderItemStorage(context, itemStorage, region)
+					} else {
+						batches = renderCurrentArea(context, stateMachine, region)
+					}
+					titleColorBatch = batches.first
+					titleTextBatch = batches.second
+				}
+			} else {
+				val framebuffers = context.framebuffers
+				val loot = suspension.loot
+				if (loot == null) {
+					val batches = renderBattle(context, state.campaign, suspension.battle, region)
+					titleColorBatch = batches.first
+					titleTextBatch = batches.second
+				} else {
+					context.currentStage = context.pipelines.base.blur.addSourceStage(
+						context.frame, framebuffers.blur, -1
+					)
+					context.pipelines.base.blur.addComputeStage(
+						context.frame, context.perFrame.areaBlurDescriptors,
+						framebuffers.blur, 3, 50, -1
+					)
+					renderBattle(context, state.campaign, suspension.battle, region)
+
+					context.currentStage = context.frame.swapchainStage
+					val blurStrength = 240
+					val leftBlurColor = srgbToLinear(rgba(39, 26, 18, blurStrength))
+					val rightBlurColor = srgbToLinear(rgba(82, 54, 36, blurStrength))
+					val inverseBlur = 255 - blurStrength
+					val multiplyColor = rgba(inverseBlur, inverseBlur, inverseBlur, inverseBlur)
+					context.pipelines.base.blur.addBatch(
+						context.frame.swapchainStage,
+						framebuffers.blur, context.perFrame.areaBlurDescriptors,
+						region.minX.toFloat(), region.minY.toFloat(),
+						region.boundX.toFloat(), region.boundY.toFloat(),
+					).gradientColorTransform(
+						leftBlurColor, multiplyColor,
+						leftBlurColor, multiplyColor,
+						rightBlurColor, multiplyColor,
+						rightBlurColor, multiplyColor,
+					)
+					val batches = renderBattleLoot(context, loot, state.campaign.usedPartyMembers(), region)
+					titleColorBatch = batches.first
+					titleTextBatch = batches.second
+				}
 			}
 		}
-	} else {
-		if (stateMachine is CampaignActionsState) {
+		is CampaignActionsState -> {
 			val batches = renderCampaignActions(context, stateMachine, region)
+			titleColorBatch = batches.first
+			titleTextBatch = batches.second
+		}
+		is WorldMapState -> {
+			val batches = renderWorldMap(context, stateMachine, region)
 			titleColorBatch = batches.first
 			titleTextBatch = batches.second
 		}

@@ -14,7 +14,9 @@ import mardek.content.Content
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionToArea
 import mardek.content.action.FixedActionNode
+import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Chest
+import mardek.content.area.WorldMapTransitionDestination
 import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
@@ -46,6 +48,8 @@ import mardek.state.ingame.area.AreaSuspensionIncomingRandomBattle
 import mardek.state.ingame.area.AreaSuspensionOpeningChest
 import mardek.state.ingame.area.AreaSuspensionTransition
 import mardek.state.ingame.story.StoryState
+import mardek.state.ingame.worldmap.AreaExitPoint
+import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SaveSelectionState
 import java.io.ByteArrayInputStream
@@ -169,10 +173,11 @@ class CampaignState : BitPostInit {
 				continue
 			}
 
-			val currentArea = this.state
-			if (currentArea !is AreaState) continue
+			val originalState = this.state
+			if (originalState is WorldMapState && !event.didRepeat) originalState.pressKey(story, event.key)
+			if (originalState !is AreaState) continue
 
-			when (val suspension = currentArea.suspension) {
+			when (val suspension = originalState.suspension) {
 				is AreaSuspensionBattle -> {
 					val battleLoot = suspension.loot
 					if (battleLoot != null) {
@@ -207,7 +212,7 @@ class CampaignState : BitPostInit {
 
 					if (event.key == InputKey.CheatScrollUp || event.key == InputKey.CheatScrollDown) {
 						val areas = context.content.areas.areas
-						val currentIndex = areas.indexOf(currentArea.area)
+						val currentIndex = areas.indexOf(originalState.area)
 
 						var nextIndex = currentIndex
 						if (event.key == InputKey.CheatScrollUp) nextIndex -= 1
@@ -216,7 +221,7 @@ class CampaignState : BitPostInit {
 						if (nextIndex < 0) nextIndex += areas.size
 						if (nextIndex >= areas.size) nextIndex -= areas.size
 
-						var nextPosition = currentArea.getPlayerPosition(0)
+						var nextPosition = originalState.getPlayerPosition(0)
 						val nextArea = areas[nextIndex]
 						if (nextPosition.x > 6 + nextArea.maxTileX || nextPosition.y > 4 + nextArea.maxTileY) {
 							nextPosition = AreaPosition(3, 3)
@@ -225,7 +230,7 @@ class CampaignState : BitPostInit {
 						continue
 					}
 
-					currentArea.processKeyPress(event.key)
+					originalState.processKeyPress(event.key)
 				}
 			}
 		}
@@ -236,9 +241,9 @@ class CampaignState : BitPostInit {
 			return
 		}
 
-		val oldArea = this.state
-		if (oldArea is AreaState) {
-			when (val suspension = oldArea.suspension) {
+		val oldState = this.state
+		if (oldState is AreaState) {
+			when (val suspension = oldState.suspension) {
 				is AreaSuspensionBattle -> {
 					val battleContext = BattleUpdateContext(
 						characterStates, context.content.audio.fixedEffects,
@@ -248,7 +253,7 @@ class CampaignState : BitPostInit {
 
 					val battleState = suspension.battle.state
 					if (battleState is BattleStateMachine.RanAway) {
-						oldArea.suspension = null
+						oldState.suspension = null
 						context.soundQueue.insert(context.content.audio.fixedEffects.battle.flee)
 						for (combatant in suspension.battle.allPlayers()) {
 							combatant.transferStatusBack(battleContext)
@@ -268,10 +273,10 @@ class CampaignState : BitPostInit {
 					val loot = suspension.loot
 					if (loot != null && loot.finishAt != 0L && System.nanoTime() > loot.finishAt) {
 						gold += loot.gold
-						oldArea.suspension = if (suspension.nextActions != null) {
+						oldState.suspension = if (suspension.nextActions != null) {
 							AreaSuspensionActions(suspension.nextActions)
 						} else null
-						oldArea.finishedBattleAt = oldArea.currentTime
+						oldState.finishedBattleAt = oldState.currentTime
 					}
 					return
 				}
@@ -279,16 +284,30 @@ class CampaignState : BitPostInit {
 				is AreaSuspensionActions -> {
 					updateAreaActions(context, null, null, suspension.actions)
 
-					val newArea = this.state
-					if (newArea is AreaState) {
-						val newSuspension = newArea.suspension
+					val currentState = this.state
+					if (currentState is AreaState) {
+						val newSuspension = currentState.suspension
 						if (newSuspension is AreaSuspensionActions && newSuspension.actions.node == null) {
-							newArea.suspension = null
+							currentState.suspension = null
 						}
 					}
 				}
 
 				else -> {}
+			}
+		}
+
+		if (oldState is WorldMapState) {
+			val entrance = oldState.update(
+				context.content.audio.fixedEffects,
+				context.soundQueue, context.timeStep,
+			)
+			if (entrance != null) {
+				this.state = AreaState(
+					entrance.area,
+					AreaPosition(entrance.x, entrance.y),
+					entrance.direction,
+				)
 			}
 		}
 
@@ -304,7 +323,7 @@ class CampaignState : BitPostInit {
 
 			when (val suspension = areaState.suspension) {
 				is AreaSuspensionActions -> {
-					if (areaState !== oldArea) {
+					if (areaState !== oldState) {
 						updateAreaActions(context, null, null, suspension.actions)
 						if (suspension.actions.node == null && areaState.suspension === suspension) {
 							areaState.suspension = null
@@ -312,14 +331,21 @@ class CampaignState : BitPostInit {
 					}
 				}
 				is AreaSuspensionTransition -> {
-					val destination = suspension.destination
-					val destinationArea = destination.area
-					if (destinationArea != null) {
-						this.state = AreaState(
-							destinationArea, AreaPosition(destination.x, destination.y),
-							destination.direction ?: (this.state as AreaState).getPlayerDirection(0),
-						)
-					} else areaState.suspension = null // TODO CHAP1 Support world map
+					when (val destination = suspension.destination) {
+						is AreaTransitionDestination -> {
+							this.state = AreaState(
+								destination.area, AreaPosition(destination.x, destination.y),
+								destination.direction ?: (this.state as AreaState).getPlayerDirection(0),
+							)
+						}
+						is WorldMapTransitionDestination -> {
+							val exitPosition = areaState.getPlayerPosition(0)
+							val exitPoint = AreaExitPoint(areaState.area, exitPosition.x, exitPosition.y)
+							this.state = WorldMapState(
+								destination.worldMap, destination.node, exitPoint,
+							)
+						}
+					}
 				}
 				is AreaSuspensionOpeningChest -> {
 					if (suspension.obtainedItem == null) {
@@ -570,29 +596,41 @@ class CampaignState : BitPostInit {
 	 * often the background music of the current area, but not always.
 	 */
 	fun determineMusicTrack(content: Content): String? {
-		val areaState = this.state
-		if (areaState is AreaState) {
-			val suspension = areaState.suspension
-			if (suspension is AreaSuspensionBattle) {
-				val battleState = suspension.battle
-				if (
-					!battleState.battle.isRandom ||
-							story.evaluate(content.story.fixedVariables.blockRandomBattleMusic) == null
-				) {
-					return if (battleState.state is BattleStateMachine.Victory) battleState.battle.lootMusic
-					else battleState.battle.music
+		return when (val state = this.state) {
+			is AreaState -> {
+				val suspension = state.suspension
+				if (suspension is AreaSuspensionBattle) {
+					val battleState = suspension.battle
+					if (
+						!battleState.battle.isRandom ||
+						story.evaluate(content.story.fixedVariables.blockRandomBattleMusic) == null
+					) {
+						return if (battleState.state is BattleStateMachine.Victory) battleState.battle.lootMusic
+						else battleState.battle.music
+					}
+				}
+
+				story.evaluate(state.area.properties.musicTrack)
+			}
+
+			is CampaignActionsState -> {
+				when (val node = state.node) {
+					is FixedActionNode -> {
+						val action = node.action
+						if (action is ActionPlayCutscene) action.cutscene.get().musicTrack else null
+					}
+					else -> null
 				}
 			}
 
-			return story.evaluate(areaState.area.properties.musicTrack)
-		}
+			is WorldMapState -> {
+				story.evaluate(state.map.music)
+			}
 
-		val campaignActionNode = if (areaState is CampaignActionsState) areaState.node else null
-		if (campaignActionNode is FixedActionNode) {
-			val action = campaignActionNode.action
-			if (action is ActionPlayCutscene) return action.cutscene.get().musicTrack
+			else -> {
+				throw UnsupportedOperationException("Unexpected camapign state machine $state")
+			}
 		}
-		return null
 	}
 
 	class UpdateContext(

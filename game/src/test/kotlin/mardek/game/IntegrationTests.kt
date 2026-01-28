@@ -20,6 +20,7 @@ import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestInventory
 import mardek.game.ui.TestItemStorage
 import mardek.game.ui.TestTitleScreen
+import mardek.game.ui.TestWorldMap
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -362,5 +363,11 @@ class IntegrationTests {
 	fun testHeroesHouseWritings() {
 		TestActions.testHeroesHouseWritings(instance)
 	}
+
+	@Test
+	fun testWorldMapBeforeSoothwood() {
+		TestWorldMap.testBeforeSoothwood(instance)
+	}
+
 	// TODO CHAP1 Test choice dialogue chat log
 }

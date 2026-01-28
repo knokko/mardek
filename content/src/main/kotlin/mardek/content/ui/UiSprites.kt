@@ -106,6 +106,18 @@ class UiSprites(
 
 	@BitField(id = 31)
 	val sortIcon2: KimSprite,
+
+	@BitField(id = 32)
+	val worldMapScroll: BcSprite,
+
+	@BitField(id = 33)
+	val worldMapCurrentArea: BcSprite,
+
+	@BitField(id = 34)
+	val worldMapDiscoveredArea: BcSprite,
+
+	@BitField(id = 35)
+	val worldMapBlockedArea: BcSprite,
 ) {
 
 	@Suppress("unused")
@@ -122,5 +134,7 @@ class UiSprites(
 		KimSprite(), BcSprite(), BcSprite(),
 		BcSprite(), BcSprite(),
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
+		BcSprite(), BcSprite(),
+		BcSprite(), BcSprite(),
 	)
 }

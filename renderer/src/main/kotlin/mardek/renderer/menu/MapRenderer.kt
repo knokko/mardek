@@ -3,6 +3,7 @@ package mardek.renderer.menu
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.WaterType
 import mardek.content.sprite.BcSprite
 import mardek.state.ingame.area.AreaState
@@ -55,8 +56,8 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 				}
 			}
 			for (portal in area.objects.portals) {
-				val destination = portal.destination.area ?: continue
-				if (destination.properties.dreamType != area.properties.dreamType) {
+				val destination = portal.destination
+				if (destination is AreaTransitionDestination && destination.area.properties.dreamType != area.properties.dreamType) {
 					renderSpriteAtMap(portal.x, portal.y, context.content.ui.mapDreamCircle)
 				}
 			}
@@ -149,8 +150,8 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 				putIfDiscovered(element.x, element.y, OBJECT_COLOR)
 			}
 			for (portal in area.objects.portals) {
-				val destination = portal.destination.area
-				if (destination == null || destination.properties.dreamType == area.properties.dreamType) {
+				val destination = portal.destination
+				if (destination !is AreaTransitionDestination || destination.area.properties.dreamType == area.properties.dreamType) {
 					putIfDiscovered(portal.x, portal.y, OBJECT_COLOR)
 				}
 			}

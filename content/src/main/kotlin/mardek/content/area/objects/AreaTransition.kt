@@ -2,7 +2,9 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.TransitionDestination
 import mardek.content.sprite.ArrowSprite
 
@@ -21,6 +23,7 @@ class AreaTransition(
 	 * area transition
 	 */
 	@BitField(id = 0)
+	@ClassField(root = TransitionDestination::class)
 	val destination: TransitionDestination,
 
 	/**
@@ -34,7 +37,7 @@ class AreaTransition(
 ) : StaticAreaObject(x, y) {
 
 	@Suppress("unused")
-	private constructor() : this(0, 0, TransitionDestination(), null)
+	private constructor() : this(0, 0, AreaTransitionDestination(), null)
 
 	override fun toString() = "Transition(x=$x, y=$y, arrow=$arrow, destination=$destination)"
 }

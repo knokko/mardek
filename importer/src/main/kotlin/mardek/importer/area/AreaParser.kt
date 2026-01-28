@@ -174,6 +174,14 @@ internal fun parseAreaProperties(content: Content, areaCode: ActionScriptCode, a
 }
 
 @Suppress("UNCHECKED_CAST")
+fun timeOfDayMusic(content: Content, dayMusic: String) = ExpressionOrDefaultTimelineExpression(
+	GlobalTimelineExpression(content.story.globalExpressions.find {
+		it.name == "TimeOfDayMusic"
+	}!! as GlobalExpression<String?>),
+	ConstantTimelineExpression(TimelineOptionalStringValue(dayMusic))
+)
+
+@Suppress("UNCHECKED_CAST")
 private fun parseMusicTrack(content: Content, raw: String): TimelineExpression<String?> {
 	if (raw == "\"none\"") return ConstantTimelineExpression(TimelineOptionalStringValue(null))
 	if (raw.startsWith('"') && raw.endsWith('"')) {
@@ -182,18 +190,11 @@ private fun parseMusicTrack(content: Content, raw: String): TimelineExpression<S
 		)
 	}
 
-	fun timeOfDayMusic(dayMusic: String) = ExpressionOrDefaultTimelineExpression(
-		GlobalTimelineExpression(content.story.globalExpressions.find {
-			it.name == "TimeOfDayMusic"
-		}!! as GlobalExpression<String?>),
-		ConstantTimelineExpression(TimelineOptionalStringValue(dayMusic))
-	)
-
 	fun variableOrTimeOfDayMusic(variableName: String, defaultMusic: String) = ExpressionOrDefaultTimelineExpression(
 		VariableTimelineExpression(content.story.customVariables.find {
 			it.name == variableName
 		}!! as CustomTimelineVariable<String?>),
-		timeOfDayMusic(defaultMusic)
+		timeOfDayMusic(content, defaultMusic)
 	)
 
 	fun variableOrDefaultMusic(variableName: String, defaultMusic: String) = ExpressionOrDefaultTimelineExpression(
@@ -227,10 +228,10 @@ private fun parseMusicTrack(content: Content, raw: String): TimelineExpression<S
 	)
 
 	if (raw == "!GameData.plotVars.SUNSET ? \"WorldMap\" : \"crickets\"") {
-		return timeOfDayMusic("WorldMap")
+		return timeOfDayMusic(content, "WorldMap")
 	}
 	if (raw == "!GameData.plotVars.SUNSET ? \"Goznor\" : \"none\"") {
-		return timeOfDayMusic("Goznor")
+		return timeOfDayMusic(content, "Goznor")
 	}
 	if (raw == "GoznorMusicExpression") {
 		// TODO CHAP2 Change to "EvilStirs" during zombie outbreak

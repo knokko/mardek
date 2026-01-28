@@ -2,6 +2,7 @@ package mardek.state.ingame.area
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.area.TransitionDestination
 import kotlin.time.Duration
@@ -21,6 +22,7 @@ class NextAreaPosition(
 	val arrivalTime: Duration,
 
 	@BitField(id = 3, optional = true)
+	@ClassField(root = TransitionDestination::class)
 	val transition: TransitionDestination?,
 ) {
 

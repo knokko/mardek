@@ -1,6 +1,7 @@
 package mardek.renderer.area
 
 import mardek.content.area.AreaDreamType
+import mardek.content.area.AreaTransitionDestination
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionOpeningDoor
 import kotlin.math.PI
@@ -54,11 +55,11 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 			val spritesheet = portal.sprites ?: continue
 
 			val isDream = state.area.properties.dreamType != AreaDreamType.None
-			val destinationArea = portal.destination.area
+			val destination = portal.destination
 
 			// When exactly 1 of the current area and destination is a dream area, the portal must be a dream circle
 			// Hence we should not render the portal texture
-			if (destinationArea != null && isDream != (destinationArea.properties.dreamType != AreaDreamType.None)) {
+			if (destination is AreaTransitionDestination && isDream != (destination.area.properties.dreamType != AreaDreamType.None)) {
 				continue
 			}
 

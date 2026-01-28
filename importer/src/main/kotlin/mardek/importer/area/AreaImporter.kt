@@ -9,6 +9,7 @@ import mardek.importer.story.expressions.HardcodedExpressions
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.resourcesFolder
 import mardek.importer.world.hardcodeWorldMap
+import mardek.state.saves.savesBitser
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
@@ -58,9 +59,8 @@ internal fun importAreaContent(content: Content): HardcodedActions {
 
 	val parsedAreas = ArrayList<ParsedArea>()
 	val parsedTilesheets = ArrayList<ParsedTilesheet>()
-	val transitions = ArrayList<Pair<TransitionDestination, String>>()
 	for (areaName in enumerateAreas(areaFolder)) {
-		val context = AreaEntityParseContext(content, areaName, hardcodedActions, hardcodedExpressions, transitions)
+		val context = AreaEntityParseContext(content, areaName, hardcodedActions, hardcodedExpressions)
 		parsedAreas.add(parseArea(context, parsedTilesheets))
 	}
 
@@ -113,16 +113,15 @@ internal fun importAreaContent(content: Content): HardcodedActions {
 
 	hardcodeWorldMap(content)
 
-	for ((transition, destination) in transitions) {
-		if (destination == "WORLDMAP") {
-			transition.worldMap = content.worldMaps[0]
-			continue
-		}
-		if (destination == "nowhere") continue
-		transition.area = content.areas.areas.find {
-			it.properties.rawName.equals(destination, ignoreCase = true)
-		}!!
-	}
+	val collectedInstances = HashMap<Class<*>, Collection<*>>()
+	val worldMapDestinations = ArrayList<WorldMapTransitionDestination>()
+	val areaDestinations = ArrayList<AreaTransitionDestination>()
+	collectedInstances[WorldMapTransitionDestination::class.java] = worldMapDestinations
+	collectedInstances[AreaTransitionDestination::class.java] = areaDestinations
+	savesBitser.collectInstances(content.areas, collectedInstances)
+
+	for (destination in worldMapDestinations) destination.resolve(content.areas, content.worldMaps[0])
+	for (destination in areaDestinations) destination.resolve(content.areas)
 
 	return hardcodedActions
 }

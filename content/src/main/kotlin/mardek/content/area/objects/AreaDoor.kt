@@ -2,8 +2,10 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.TransitionDestination
 import mardek.content.sprite.ObjectSprites
 import java.util.UUID
@@ -36,6 +38,7 @@ class AreaDoor(
 	 * The player will be 'moved' to this location after interacting with the door
 	 */
 	@BitField(id = 2)
+	@ClassField(root = TransitionDestination::class)
 	val destination: TransitionDestination,
 
 	/**
@@ -54,7 +57,7 @@ class AreaDoor(
 
 	constructor() : this(
 		UUID.randomUUID(), ObjectSprites(),
-		0, 0, TransitionDestination(), null, null,
+		0, 0, AreaTransitionDestination(), null, null,
 	)
 
 	override fun toString() = "${sprites.flashName}(x=$x, y=$y, lockType=$lockType," +

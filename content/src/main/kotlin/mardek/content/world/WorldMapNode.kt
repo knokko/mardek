@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.area.Area
+import mardek.content.area.Direction
 import mardek.content.story.FixedTimelineVariable
 import java.util.UUID
 
@@ -26,25 +27,30 @@ class WorldMapNode(
 	val id: UUID,
 
 	/**
-	 * The area that the player can enter by pressing the interact key while standing on this ndoe.
-	 */
-	@BitField(id = 1)
-	@ReferenceField(stable = false, label = "areas")
-	val area: Area,
-
-	/**
 	 * The X-coordinate of this node, on the `sprite` of its `WorldMap`.
 	 */
-	@BitField(id = 2)
+	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val x: Int,
 
 	/**
 	 * The Y-coordinate of this node, on the `sprite` of its `WorldMap`.
 	 */
-	@BitField(id = 3)
+	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val y: Int,
+
+	/**
+	 * The positions where the player can enter the area. Some areas have only 1 entrance (e.g. Goznor),
+	 * whereas other areas have multiple (e.g. Soothwood has both an east entrance and a west entrance). The selected
+	 * entrance depends on the direction that the player came from, take Soothwood as an example:
+	 * - If the player goes from Goznor to Soothwood, the east entrance is used.
+	 * - If the player goes from Crash site to Soothwood, the west entrance is used.
+	 * - If the player just exited the Soothwood, or warped out, the nearest entrance will be used.
+	 */
+	@BitField(id = 3)
+	@ReferenceFieldTarget(label = "world map entrances")
+	val entrances: Array<Entrance>,
 ) : BitPostInit {
 
 	/**
@@ -55,12 +61,63 @@ class WorldMapNode(
 	val wasDiscovered = FixedTimelineVariable<Unit>()
 
 	init {
-		wasDiscovered.debugName = "${area.properties.displayName} was discovered"
+		if (entrances.isNotEmpty()) {
+			wasDiscovered.debugName = "${entrances[0].area.properties.displayName} was discovered"
+		}
 	}
 
-	internal constructor() : this(UUID(0, 0), Area(), 0, 0)
+	constructor() : this(UUID(0, 0), 0, 0, emptyArray())
+
+	override fun toString() = if (entrances.isNotEmpty()) "dummy" else entrances[0].area.properties.displayName
 
 	override fun postInit(context: BitPostInit.Context) {
-		wasDiscovered.debugName = "${area.properties.displayName} was discovered"
+		wasDiscovered.debugName = "${entrances[0].area.properties.displayName} was discovered"
+	}
+
+	/**
+	 * Represents a position where the player can enter the area. Some areas have only 1 entrance (e.g. Goznor),
+	 * whereas other areas have multiple (e.g. Soothwood has both an east entrance and a west entrance).
+	 */
+	@BitStruct(backwardCompatible = true)
+	class Entrance(
+
+		/**
+		 * The unique ID of this entrance, which is used for (de)serialization.
+		 */
+		@BitField(id = 0)
+		@StableReferenceFieldId
+		val id: UUID,
+
+		/**
+		 * The area that the player will enter
+		 */
+		@BitField(id = 1)
+		@ReferenceField(stable = false, label = "areas")
+		val area: Area,
+
+		/**
+		 * The X-coordinate where the player will enter the area
+		 */
+		@BitField(id = 2)
+		@IntegerField(expectUniform = false)
+		val x: Int,
+
+		/**
+		 * The Y-coordinate where the player will enter the area
+		 */
+		@BitField(id = 3)
+		@IntegerField(expectUniform = false)
+		val y: Int,
+
+		/**
+		 * The direction that the player will face upon entering the area
+		 */
+		@BitField(id = 4)
+		val direction: Direction,
+	) {
+
+		constructor() : this(UUID.randomUUID(), Area(), 0, 0, Direction.Up)
+
+		override fun toString() = "${area.properties.rawName}($x, $y)"
 	}
 }

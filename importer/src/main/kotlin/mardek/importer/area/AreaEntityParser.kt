@@ -7,8 +7,10 @@ import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTarget
 import mardek.content.action.ActionTargetDialogueObject
 import mardek.content.action.FixedAction
+import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
+import mardek.content.area.WorldMapTransitionDestination
 import mardek.content.area.objects.*
 import mardek.content.sprite.ObjectSprites
 import mardek.content.story.TimelineExpression
@@ -41,7 +43,6 @@ internal class AreaEntityParseContext(
 	val areaName: String,
 	val actions: HardcodedActions,
 	val expressions: HardcodedExpressions,
-	val transitions: MutableList<Pair<TransitionDestination, String>>,
 )
 
 internal fun parseAreaObjectsToList(
@@ -263,7 +264,9 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		arrow = if (rawEntity["ARROW"] != null) context.content.areas.arrowSprites.find {
 			it.flashName == parseFlashString(rawEntity["ARROW"]!!, "ARROW")!!
 		}!! else null,
-		destination = parseDestination(rawEntity["dest"]!!, rawEntity["dir"], context.transitions)
+		destination = parseDestination(
+			rawEntity["dest"]!!, rawEntity["dir"], context.areaName
+		)
 	)
 
 	if (model == "_trigger") {
@@ -273,7 +276,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			val startIndex = flashCode.indexOf(warpPrefix) + warpPrefix.length
 			val endIndex = flashCode.indexOf(")", startIndex)
 			val destination = parseDestination(
-				flashCode.substring(startIndex, endIndex), null, context.transitions
+				flashCode.substring(startIndex, endIndex), null, context.areaName
 			)
 			val numSemicolons = flashCode.count { it == ';' }
 			var isSimplePortalOrDreamCircle = numSemicolons == 1
@@ -364,7 +367,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			Triple("BIGDOOR", parseInt(model.substring(7)), 32)
 		} else Triple("DOOR", parseInt(model.substring(4)), 16)
 		val destination = parseDestination(
-			rawEntity["dest"]!!, rawEntity["dir"], context.transitions
+			rawEntity["dest"]!!, rawEntity["dir"], context.areaName
 		)
 		val lockType = if (rawEntity.containsKey("lock")) {
 			parseFlashString(rawEntity["lock"]!!, "lock")
@@ -466,9 +469,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 	)
 }
 
-private fun parseDestination(
-		rawDestination: String, dir: String?, transitions: MutableList<Pair<TransitionDestination, String>>
-): TransitionDestination {
+private fun parseDestination(rawDestination: String, dir: String?, currentAreaName: String): TransitionDestination {
 	parseAssert(rawDestination.startsWith("["), "Expected dest $rawDestination to start with [")
 	parseAssert(rawDestination.endsWith("]"), "Expected dest $rawDestination to end with ]")
 
@@ -477,10 +478,11 @@ private fun parseDestination(
 		splitDestination.size == 3 || splitDestination.size == 4,
 		"Expected $rawDestination to have 2 or 3 ','s"
 	)
-	val areaName = parseFlashString(splitDestination[0], "transition destination")
-	val transition = TransitionDestination(
-		area = null,
-		worldMap = null,
+	var areaName = parseFlashString(splitDestination[0], "transition destination")!!
+	if (areaName == "nowhere") areaName = "goznor"
+	val destination = if (areaName == "WORLDMAP") WorldMapTransitionDestination(currentAreaName)
+	else AreaTransitionDestination(
+		areaName = areaName,
 		x = parseInt(splitDestination[1]),
 		y = try { parseInt(splitDestination[2]) } catch (_: NumberFormatException) {
 			println("weird split destination ${splitDestination[2]}"); -1 },
@@ -489,8 +491,7 @@ private fun parseDestination(
 		} else null,
 	)
 
-	if (areaName != null) transitions.add(Pair(transition, areaName))
-	return transition
+	return destination
 }
 
 private fun parseShop(rawShop: String): Pair<String, String> {

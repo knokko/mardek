@@ -130,7 +130,7 @@ class TestSpritesAndAreas {
 		importStatsContent(content)
 		val parseContext = AreaEntityParseContext(
 			content, "", HardcodedActions(),
-			HardcodedExpressions(), mutableListOf(),
+			HardcodedExpressions(),
 		)
 		val rawMolester = parseAreaEntity(parseContext,
 			parseActionScriptObjectList("[{name:\"Molestor\",model:\"ch3bosses\",x:16,y:37,walkspeed:-1,dir:\"e\",Static:true,elem:\"DARK\",BOSSCODE:\"Molestor2\",conv:[[\"norm\",\"<<demon>>Neeeeeeeheeheeheehee... Children... You do not belooooong heeeererererere...!\"],Do = function()\n" +

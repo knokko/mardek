@@ -2,8 +2,10 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
+import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.TransitionDestination
 import mardek.content.sprite.ObjectSprites
 
@@ -25,6 +27,7 @@ class AreaPortal(
 	 * The destination of this portal: the player will be teleported to the destination upon stepping on the portal.
 	 */
 	@BitField(id = 0)
+	@ClassField(root = TransitionDestination::class)
 	val destination: TransitionDestination
 ) : StaticAreaObject(x, y) {
 
@@ -37,7 +40,7 @@ class AreaPortal(
 	var sprites: ObjectSprites? = null
 
 	@Suppress("unused")
-	private constructor() : this(0, 0, TransitionDestination())
+	private constructor() : this(0, 0, AreaTransitionDestination())
 
 	override fun toString() = "Portal(x=$x, y=$y, destination=$destination)"
 

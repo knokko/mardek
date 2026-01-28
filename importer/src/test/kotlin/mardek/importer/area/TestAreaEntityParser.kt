@@ -4,9 +4,9 @@ import com.github.knokko.bitser.Bitser
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDialogueObject
 import mardek.content.action.FixedActionNode
-import mardek.content.area.Area
+import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Direction
-import mardek.content.area.TransitionDestination
+import mardek.content.area.WorldMapTransitionDestination
 import mardek.content.area.objects.*
 import mardek.importer.actions.HardcodedActions
 import mardek.importer.importVanillaContent
@@ -24,6 +24,12 @@ import java.util.UUID
 class TestAreaEntityParser {
 
 	private val content = importVanillaContent(Bitser(true), skipMonsters = true)
+
+	private fun areaDestination(name: String, x: Int, y: Int, direction: Direction?): AreaTransitionDestination {
+		val destination = AreaTransitionDestination(name, x, y, direction)
+		destination.resolve(content.areas)
+		return destination
+	}
 
 	@Test
 	fun testSingleEntitySingleKey() {
@@ -91,19 +97,9 @@ class TestAreaEntityParser {
 		rawString: String, areaName: String = "",
 		hardcodedActions: HardcodedActions = HardcodedActions()
 	): Any {
-		val context = AreaEntityParseContext(
-			content, areaName, hardcodedActions, HardcodedExpressions(), mutableListOf()
-		)
-		val transitions = ArrayList<Pair<TransitionDestination, String>>()
+		val context = AreaEntityParseContext(content, areaName, hardcodedActions, HardcodedExpressions())
 		val parsedEntities = parseAreaObjectsToList(context, "[$rawString]")
 		assertEquals(1, parsedEntities.size)
-
-		for ((transition, destination) in transitions) {
-			val area = Area()
-			area.properties.rawName = destination
-			transition.area = area
-			content.areas.areas.add(area)
-		}
 		return parsedEntities[0]
 	}
 
@@ -114,8 +110,8 @@ class TestAreaEntityParser {
 		val actual = findArea("aeropolis_E_iShop").objects.transitions[0]
 		val expected = AreaTransition(
 			x = 3, y = 7, arrow = content.areas.arrowSprites.find { it.flashName == "S" }!!,
-			destination = TransitionDestination(
-				area = findArea("aeropolis_E"), worldMap = null, x = 22, y = 24, direction = null
+			destination = areaDestination(
+				"aeropolis_E", x = 22, y = 24, direction = null
 			)
 		)
 		assertEquals(expected, actual)
@@ -124,8 +120,8 @@ class TestAreaEntityParser {
 	@Test
 	fun testParseTransitionWithoutArrowWithDirection() {
 		val actual = findArea("aeropolis_E").objects.transitions.find { it.x == 22 }!!
-		val expected = AreaTransition(x = 22, y = 23, arrow = null, destination = TransitionDestination(
-			area = findArea("aeropolis_E_iShop"), worldMap = null, x = 3, y = 6, direction = Direction.Up
+		val expected = AreaTransition(x = 22, y = 23, arrow = null, destination = areaDestination(
+			"aeropolis_E_iShop", x = 3, y = 6, direction = Direction.Up
 		))
 		assertEquals(expected, actual)
 	}
@@ -391,9 +387,7 @@ class TestAreaEntityParser {
 			sprites = content.areas.objectSprites.find { it.flashName == "BIGDOOR3" }!!,
 			x = 19,
 			y = 13,
-			destination = TransitionDestination(
-				area = findArea("crypt2"), worldMap = null, x = 19, y = 13, direction = Direction.Down
-			),
+			destination = areaDestination("crypt2", x = 19, y = 13, direction = Direction.Down),
 			lockType = null,
 			keyName = null
 		)
@@ -408,9 +402,7 @@ class TestAreaEntityParser {
 			sprites = content.areas.objectSprites.find { it.flashName == "DOOR5" }!!,
 			x = 4,
 			y = 8,
-			destination = TransitionDestination(
-					findArea("aeropolis_E"), null, 13, 20, Direction.Down
-			),
+			destination = areaDestination("aeropolis_E", 13, 20, Direction.Down),
 			lockType = "key",
 			keyName = "Bandit Key"
 		)
@@ -451,16 +443,16 @@ class TestAreaEntityParser {
 	@Test
 	fun testParseDreamCircleTriggerExit() {
 		val actual = findArea("canonia_woods_d").objects.portals.find { it.y == 61 }!!
-		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
-			findArea("canonia_woods"), null, 23, 61, direction = null
+		val expected = AreaPortal(x = 23, y = 61, destination = areaDestination(
+			"canonia_woods", 23, 61, direction = null
 		))
 		assertEquals(expected, actual)
 	}
 
 	@Test
 	fun testParseDreamCircleEnterCanoniaWoods() {
-		val expected = AreaPortal(x = 23, y = 61, destination = TransitionDestination(
-			findArea("canonia_woods_d"), null, 23, 61, direction = null
+		val expected = AreaPortal(x = 23, y = 61, destination = areaDestination(
+			"canonia_woods_d", 23, 61, direction = null
 		))
 		val actual = findArea("canonia_woods").objects.portals.find { it.y == 61 }!!
 		assertEquals(expected, actual)
@@ -468,8 +460,8 @@ class TestAreaEntityParser {
 
 	@Test
 	fun testParseDreamCircleEnterTaintedGrotto() {
-		val expected = AreaPortal(x = 33, y = 24, destination = TransitionDestination(
-				findArea("pcave3_d"), null, 33, 24, direction = null
+		val expected = AreaPortal(x = 33, y = 24, destination = areaDestination(
+				"pcave3_d", 33, 24, direction = null
 		))
 		val actual = findArea("pcave3").objects.portals.find { it.x == 33 }!!
 		assertEquals(expected, actual)
@@ -586,8 +578,8 @@ class TestAreaEntityParser {
 	fun testParseValidWarportPortal() {
 		val actual = findArea("warport2T3").objects.portals.find { it.x == 6 }!!
 		val expected = AreaPortal(
-			x = 6, y = 6, destination = TransitionDestination(
-				findArea("warport1T2"), null, 36, 4, direction = null
+			x = 6, y = 6, destination = areaDestination(
+				"warport1T2", 36, 4, direction = null
 			)
 		)
 		assertEquals(expected, actual)
@@ -630,9 +622,10 @@ class TestAreaEntityParser {
 	@Test
 	fun testParseCanoniaWoodsTransition() {
 		val actual = findArea("canonia_woods").objects.transitions.find { it.y == 73 }!!
-		val expected = AreaTransition(x = 13, y = 73, arrow = null, destination = TransitionDestination(
-			null, content.worldMaps[0], x = 1, y = 1, direction = null
+		val expected = AreaTransition(x = 13, y = 73, arrow = null, destination = WorldMapTransitionDestination(
+			"canonia_woods"
 		))
+		(expected.destination as WorldMapTransitionDestination).resolve(content.areas, content.worldMaps[0])
 		assertEquals(expected, actual)
 	}
 

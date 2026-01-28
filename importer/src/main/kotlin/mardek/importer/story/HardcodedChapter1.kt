@@ -182,7 +182,7 @@ private fun childhoodTimeline(content: Content) = TimelineNode(
 
 private fun addWorldMapNode(content: Content, name: String) = TimelineAssignment(
 	content.worldMaps.find { it.name == "Belfan" }!!.nodes.find {
-		it.area.properties.displayName == name
+		it.entrances[0].area.properties.displayName == name
 	}!!.wasDiscovered,
 	TimelineUnitValue(),
 	appliesToFutureNodes = true,

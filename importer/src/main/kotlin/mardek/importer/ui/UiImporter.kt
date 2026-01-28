@@ -50,4 +50,8 @@ internal fun importUiSprites() = UiSprites(
 	openThrashIcon = importKimSprite("OpenThrash"),
 	sortIcon1 = importKimSprite("Sort1"),
 	sortIcon2 = importKimSprite("Sort2"),
+	worldMapScroll = loadBc7Sprite("mardek/importer/world/AreaNameScroll.png"),
+	worldMapCurrentArea = loadBc7Sprite("mardek/importer/world/CurrentAreaNode.png"),
+	worldMapDiscoveredArea = loadBc7Sprite("mardek/importer/world/DiscoveredAreaNode.png"),
+	worldMapBlockedArea = loadBc7Sprite("mardek/importer/world/BlockedAreaNode.png"),
 )

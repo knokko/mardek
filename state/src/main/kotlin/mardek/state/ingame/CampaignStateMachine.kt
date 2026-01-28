@@ -2,6 +2,7 @@ package mardek.state.ingame
 
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.worldmap.WorldMapState
 
 /**
  * The possible states of a campaign: `AreaState`, `CampaignActionsState`, or `WorldMapState`
@@ -13,6 +14,7 @@ open class CampaignStateMachine {
 		private val BITSER_HIERARCHY = arrayOf(
 			AreaState::class.java,
 			CampaignActionsState::class.java,
+			WorldMapState::class.java,
 		)
 	}
 }
