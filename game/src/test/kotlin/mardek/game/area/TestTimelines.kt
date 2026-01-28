@@ -23,7 +23,7 @@ object TestTimelines {
 				"MainTimeline", "Searching for the fallen 'star'"
 			)
 
-			state.campaign.currentArea = AreaState(
+			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
 				AreaPosition(10, 6)
 			)
@@ -31,7 +31,7 @@ object TestTimelines {
 			repeat(10) {
 				state.update(updateContext)
 			}
-			assertNull(state.campaign.currentArea!!.suspension)
+			assertNull((state.campaign.state as AreaState).suspension)
 		}
 	}
 }

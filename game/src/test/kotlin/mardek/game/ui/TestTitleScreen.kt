@@ -12,6 +12,8 @@ import mardek.input.TextTypeEvent
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.actions.CampaignActionsState
+import mardek.state.ingame.area.AreaState
 import mardek.state.saves.SaveFile
 import mardek.state.title.StartNewGameState
 import mardek.state.title.TitleScreenState
@@ -183,17 +185,17 @@ object TestTitleScreen {
 			val newState = startingState.update(context) as InGameState
 
 			// Skip chapter name
-			assertInstanceOf<ActionShowChapterName>((newState.campaign.actions!!.node as FixedActionNode).action)
+			assertInstanceOf<ActionShowChapterName>(((newState.campaign.state as CampaignActionsState).node as FixedActionNode).action)
 			context.input.postEvent(pressKeyEvent(InputKey.Escape))
 			newState.update(context)
 
 			// Skip intro cutscene
-			assertInstanceOf<ActionPlayCutscene>((newState.campaign.actions!!.node as FixedActionNode).action)
+			assertInstanceOf<ActionPlayCutscene>(((newState.campaign.state as CampaignActionsState).node as FixedActionNode).action)
 			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
 			newState.update(context)
 
 			// Finally go in-game
-			assertNull(newState.campaign.actions)
+			assertInstanceOf<AreaState>(newState.campaign.state)
 			assertEquals("lets go", newState.campaignName)
 			assertSame(heroMardek, newState.campaign.party[0])
 

@@ -25,18 +25,18 @@ object TestDoors {
 		instance.apply {
 			val hub = content.areas.areas.find { it.properties.rawName == "Temple_FIRE_hub" }!!
 			val state = InGameState(CampaignState(), "test")
-			state.campaign.currentArea = AreaState(
+			state.campaign.state = AreaState(
 				hub, AreaPosition(17, 12), Direction.Up
 			)
 
-			assertEquals(Direction.Up, state.campaign.currentArea!!.getPlayerDirection(0))
+			assertEquals(Direction.Up, (state.campaign.state as AreaState).getPlayerDirection(0))
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 2.seconds)
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(context)
 			state.update(context)
 
-			val newAreaState = state.campaign.currentArea!!
+			val newAreaState = (state.campaign.state as AreaState)
 			println("new area state is $newAreaState")
 			assertEquals("Temple_FIRE_SE", newAreaState.area.properties.rawName)
 			assertEquals(AreaPosition(3, 3), newAreaState.getPlayerPosition(0))
@@ -47,7 +47,7 @@ object TestDoors {
 	fun testDragonLair(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
-			state.campaign.currentArea = AreaState(
+			state.campaign.state = AreaState(
 				dragonLairEntry, AreaPosition(5, 8), skipFadeIn = true
 			)
 
@@ -93,7 +93,7 @@ object TestDoors {
 			fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
 
 			repeat(2000) {
-				val areaState = state.campaign.currentArea!!
+				val areaState = (state.campaign.state as AreaState)
 				if (areaState.area.properties.rawName == "DL_entr") {
 					assertEquals(AreaPosition(5, 2), areaState.getPlayerPosition(0))
 					assertEquals(Direction.Up, areaState.getPlayerDirection(0))
@@ -121,7 +121,7 @@ object TestDoors {
 	fun testFade(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
-			state.campaign.currentArea = AreaState(
+			state.campaign.state = AreaState(
 				dragonLairEntry, AreaPosition(5, 2), Direction.Up
 			)
 
@@ -149,7 +149,7 @@ object TestDoors {
 				state.update(context)
 				assertEquals(
 					AreaPosition(5, 2),
-					state.campaign.currentArea!!.getPlayerPosition(0),
+					(state.campaign.state as AreaState).getPlayerPosition(0),
 				)
 			}
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
@@ -164,7 +164,7 @@ object TestDoors {
 			}
 			assertEquals(
 				AreaPosition(7, 39),
-				state.campaign.currentArea!!.getPlayerPosition(0),
+				(state.campaign.state as AreaState).getPlayerPosition(0),
 			)
 			testRendering(
 				state, 1000, 800, "door-fade2",
@@ -184,7 +184,7 @@ object TestDoors {
 	fun testTransitionFade(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			state.campaign.currentArea = AreaState(
+			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "tv_house2" }!!,
 				AreaPosition(3, 5),
 				Direction.Down,
@@ -209,7 +209,7 @@ object TestDoors {
 			context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			assertSame(
 				content.areas.areas.find { it.properties.rawName == "tv_house2" },
-				state.campaign.currentArea!!.area,
+				(state.campaign.state as AreaState).area,
 			)
 			testRendering(
 				state, 500, 400, "transition-fade1",
@@ -231,7 +231,7 @@ object TestDoors {
 			}
 			assertSame(
 				content.areas.areas.find { it.properties.rawName == "trilobiteville" }!!,
-				state.campaign.currentArea!!.area,
+				(state.campaign.state as AreaState).area,
 			)
 			testRendering(
 				state, 500, 400, "transition-fade3",

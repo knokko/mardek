@@ -15,6 +15,7 @@ import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
+import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -57,7 +58,7 @@ object TestSkills {
 			sleep(1000)
 			campaign.update(context(1.seconds))
 
-			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			val mardek = battle.livingPlayers()[0]
 			val monsterState = battle.livingOpponents()[0]
 			battle.state.let {
@@ -171,7 +172,7 @@ object TestSkills {
 			campaign.update(context(1.seconds))
 			campaign.update(context(1.milliseconds))
 
-			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			val deugan = battle.livingPlayers()[1]
 			battle.state.let {
 				assertInstanceOf<BattleStateMachine.SelectMove>(it)
@@ -272,7 +273,7 @@ object TestSkills {
 			sleep(1000)
 			campaign.update(context(1.seconds))
 
-			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			val battleSslenck = battle.livingPlayers()[0]
 			val monsterState = battle.livingOpponents()[0]
 			battle.state.let {

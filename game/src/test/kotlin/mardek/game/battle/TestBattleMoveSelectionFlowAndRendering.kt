@@ -10,6 +10,7 @@ import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.*
 import org.junit.jupiter.api.Assertions.*
@@ -28,7 +29,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		deuganState.currentMana = 20
 		startSimpleBattle(campaign)
 
-		val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+		val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 
 		val backgroundColors = arrayOf(
 			Color(198, 4, 0), // one of the lava colors
@@ -395,7 +396,7 @@ fun testCanNotFlee(instance: TestingInstance) {
 		val campaign = simpleCampaignState()
 		startSimpleBattle(campaign, canFlee = false)
 
-		val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+		val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 
 		fun assertSelectedMove(expected: BattleMoveSelection) {
 			assertInstanceOf(BattleStateMachine.SelectMove::class.java, battle.state)

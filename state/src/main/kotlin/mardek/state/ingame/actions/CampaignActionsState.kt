@@ -9,6 +9,7 @@ import mardek.content.action.ActionShowChapterName
 import mardek.content.action.FixedAction
 import mardek.content.action.FixedActionNode
 import mardek.input.InputKey
+import mardek.state.ingame.CampaignStateMachine
 
 /**
  * If a campaign action sequence is currently in progress, the `actions` field of the current `CampaignState` will be
@@ -27,7 +28,7 @@ class CampaignActionsState(
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "action nodes")
 	var node: ActionNode,
-) {
+) : CampaignStateMachine() {
 
 	/**
 	 * The time at which the current `node` was activated/started: when the state transitions to a new node, this

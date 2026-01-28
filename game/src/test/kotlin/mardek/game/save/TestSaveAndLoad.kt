@@ -38,7 +38,7 @@ object TestSaveAndLoad {
 
 			val areaState = AreaState(dragonLairEntry, AreaPosition(3, 4))
 			val state = InGameState(simpleCampaignState(), "test-save-and-load")
-			state.campaign.currentArea = areaState
+			state.campaign.state = areaState
 			state.campaign.gold = 21987
 			state.campaign.characterStates[heroMardek]!!.currentLevel = 5
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 6
@@ -58,7 +58,7 @@ object TestSaveAndLoad {
 			// Choose save
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			assertSame(state, state.update(context))
-			val actions = (state.campaign.currentArea!!.suspension as AreaSuspensionActions).actions
+			val actions = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions
 
 			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			assertSame(state, state.update(context))
@@ -82,7 +82,7 @@ object TestSaveAndLoad {
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			assertSame(state, state.update(context))
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
-			assertFalse(state.campaign.currentArea!!.suspension is AreaSuspensionActions)
+			assertFalse((state.campaign.state as AreaState).suspension is AreaSuspensionActions)
 		}
 	}
 
@@ -95,7 +95,7 @@ object TestSaveAndLoad {
 			var state: GameState = InGameState(simpleCampaignState(), "test-save-and-load")
 			(state as InGameState).campaign.run {
 				characterStates[heroMardek]!!.currentLevel = 5
-				currentArea = areaState
+				this.state = areaState
 				gold = 21987
 			}
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 6
@@ -120,7 +120,7 @@ object TestSaveAndLoad {
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			assertSame(state, state.update(context))
 
-			assertNull(state.campaign.currentArea!!.suspension)
+			assertNull((state.campaign.state as AreaState).suspension)
 
 			// Go to the title screen
 			state = TitleScreenState()
@@ -140,7 +140,7 @@ object TestSaveAndLoad {
 			assertEquals(5, state.campaign.characterStates[heroMardek]!!.currentLevel)
 			assertEquals(6, state.campaign.characterStates[heroDeugan]!!.currentLevel)
 			state.update(context)
-			assertNull(state.campaign.currentArea!!.suspension)
+			assertNull((state.campaign.state as AreaState).suspension)
 
 			val dragonLairColors = arrayOf(
 				Color(13, 0, 22), // background color
@@ -173,7 +173,7 @@ object TestSaveAndLoad {
 			state.update(updateContext)
 
 			// Do a basic attack on the first monster
-			var battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			var battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 
 			sleep(750)
 			state.update(updateContext)
@@ -197,7 +197,7 @@ object TestSaveAndLoad {
 			state = state.update(updateContext)
 
 			campaign = (state as InGameState).campaign
-			battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 
 			val moveTo = battle.state as BattleStateMachine.MeleeAttack.MoveTo
 			assertFalse(moveTo.finished)
@@ -248,7 +248,7 @@ object TestSaveAndLoad {
 			state.update(updateContext)
 
 			// Ues Frostasia on the first monster
-			var battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			var battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 
 			sleep(750)
 			state.update(updateContext)
@@ -284,7 +284,7 @@ object TestSaveAndLoad {
 			state = state.update(updateContext)
 
 			campaign = (state as InGameState).campaign
-			battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 
 			val castSkill = battle.state as BattleStateMachine.CastSkill
 			assertFalse(castSkill.hasFinishedCastingAnimation)
@@ -324,7 +324,7 @@ object TestSaveAndLoad {
 			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds, saves)
 			state.update(updateContext)
 
-			var battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			var battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			battle.livingOpponents()[0].currentHealth = 0
 
 			state.update(updateContext)
@@ -334,7 +334,7 @@ object TestSaveAndLoad {
 			sleep(3000)
 			state.update(updateContext)
 
-			var loot = (campaign.currentArea!!.suspension as AreaSuspensionBattle).loot!!
+			var loot = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).loot!!
 			val sorcerer = content.items.items.find { it.displayName == "Sorcerer's Soul" }!!
 			// The loot should be: Sorcerer's Soul, Scarab of Protection, Elixir, PhoenixPinion
 			assertEquals(4, loot.items.size)
@@ -363,8 +363,8 @@ object TestSaveAndLoad {
 			state = state.update(updateContext)
 
 			campaign = (state as InGameState).campaign
-			battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
-			loot = (campaign.currentArea!!.suspension as AreaSuspensionBattle).loot!!
+			battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
+			loot = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).loot!!
 
 			assertInstanceOf<BattleStateMachine.Victory>(battle.state)
 			assertEquals(3, loot.items.size)
@@ -376,12 +376,12 @@ object TestSaveAndLoad {
 				state.update(updateContext)
 			}
 
-			assertTrue(campaign.currentArea!!.suspension is AreaSuspensionBattle)
+			assertTrue((campaign.state as AreaState).suspension is AreaSuspensionBattle)
 
 			// Await fade-out
 			sleep(600)
 			state.update(updateContext)
-			assertFalse(campaign.currentArea!!.suspension is AreaSuspensionBattle)
+			assertFalse((campaign.state as AreaState).suspension is AreaSuspensionBattle)
 
 			saves.root.deleteRecursively()
 		}

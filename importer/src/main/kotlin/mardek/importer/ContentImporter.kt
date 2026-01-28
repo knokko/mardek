@@ -118,7 +118,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 		ActionSequence(name = "Chapter 1 intro", root = entryRoot)
 	}
 	content.actions.global.add(chapter1IntroSequence)
-	startChapter1.actions = CampaignActionsState(chapter1IntroSequence.root)
+	startChapter1.state = CampaignActionsState(chapter1IntroSequence.root)
 
 	hardcodedActions.resolveIncompleteActions(content)
 

@@ -17,6 +17,7 @@ import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.generateBattleLoot
 import mardek.content.battle.Enemy
 import mardek.state.UsedPartyMember
+import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleState
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -47,7 +48,7 @@ object TestBattleLoot {
 			var numDoubleFangs = 0
 			var totalGold = 0
 
-			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle.battle
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle.battle
 			repeat(10_000) {
 				val loot = generateBattleLoot(content, battle, campaign.usedPartyMembers())
 				totalGold += loot.gold
@@ -97,7 +98,7 @@ object TestBattleLoot {
 
 			var totalGold = 0
 
-			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle.battle
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle.battle
 			repeat(10_000) {
 				val loot = generateBattleLoot(content, battle, campaign.usedPartyMembers())
 				totalGold += loot.gold
@@ -131,7 +132,7 @@ object TestBattleLoot {
 			var numDoubleFangs = 0
 
 			val monsterFang = content.items.items.find { it.displayName == "Monster Fang" }!!
-			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle.battle
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle.battle
 			repeat(10_000) {
 				val loot = generateBattleLoot(content, battle, campaign.usedPartyMembers())
 				if (loot.items.size == 1) {
@@ -164,7 +165,7 @@ object TestBattleLoot {
 				Enemy(monster = demon, level = 5)
 			))
 
-			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle.battle
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle.battle
 			repeat(100) {
 				val loot = generateBattleLoot(content, battle, campaign.usedPartyMembers())
 				assertTrue(content.battle.lootItemTexts.contains(
@@ -188,7 +189,7 @@ object TestBattleLoot {
 				Enemy(monster = qualna, level = 5)
 			))
 
-			val battleState = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			val battleState = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			repeat(100) {
 				val loot = generateBattleLoot(content, battleState.battle, campaign.usedPartyMembers())
 				assertTrue(content.battle.lootItemTexts.contains(
@@ -206,7 +207,7 @@ object TestBattleLoot {
 			val emerald = content.items.items.find { it.displayName == "Emerald" }!!
 
 			val campaign = simpleCampaignState()
-			val area = campaign.currentArea!!
+			val area = (campaign.state as AreaState)
 			area.suspension = AreaSuspensionBattle(BattleState())
 			val loot = BattleLoot(
 				123, arrayListOf(ItemStack(ruby, 1), ItemStack(emerald, 2)),
@@ -277,7 +278,7 @@ object TestBattleLoot {
 			campaign.party[0] = null
 			campaign.party[1] = heroDeugan
 			campaign.party[3] = heroMardek
-			val area = campaign.currentArea!!
+			val area = (campaign.state as AreaState)
 			val loot = BattleLoot(
 				123, arrayListOf(
 					ItemStack(ruby, 1),
@@ -374,7 +375,7 @@ object TestBattleLoot {
 			val state = InGameState(campaign, "test")
 
 			val monsterSkinColor = Color(85, 56, 133)
-			val area = campaign.currentArea!!
+			val area = (campaign.state as AreaState)
 
 			// Skip fade-in
 			(area.suspension as AreaSuspensionBattle).battle.startTime = System.nanoTime() - 1000_000_000L

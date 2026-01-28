@@ -19,6 +19,7 @@ import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.title.StartNewGameState
 import mardek.state.title.TitleScreenState
@@ -126,7 +127,7 @@ object TestCutscenes {
 			// This should have no effect since the player is forced to walk
 			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
 
-			val areaState = igState.campaign.currentArea!!
+			val areaState = (igState.campaign.state as AreaState)
 			val actions = (areaState.suspension as AreaSuspensionActions).actions
 			assertTrue(actions.node is FixedActionNode)
 			assertTrue((actions.node as FixedActionNode).action is ActionWalk)

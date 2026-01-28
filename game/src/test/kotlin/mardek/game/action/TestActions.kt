@@ -48,7 +48,7 @@ object TestActions {
 		instance.apply {
 			val areaState = AreaState(dragonLairEntry, AreaPosition(5, 3))
 			val state = InGameState(simpleCampaignState(), "test")
-			state.campaign.currentArea = areaState
+			state.campaign.state = areaState
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
 
@@ -157,12 +157,12 @@ object TestActions {
 	fun testAreaToArea(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			assertEquals(Direction.Up, state.campaign.currentArea!!.getPlayerDirection(0))
+			assertEquals(Direction.Up, (state.campaign.state as AreaState).getPlayerDirection(0))
 
 			val toHeroesDen = ActionToArea("heroes_den", 5, 6, Direction.Left)
 			toHeroesDen.resolve(content.areas.areas)
 
-			state.campaign.currentArea!!.suspension = AreaSuspensionActions(AreaActionsState(
+			(state.campaign.state as AreaState).suspension = AreaSuspensionActions(AreaActionsState(
 				node = FixedActionNode(id = UUID.randomUUID(), action = toHeroesDen, next = null),
 			))
 
@@ -178,20 +178,20 @@ object TestActions {
 
 			assertSame(
 				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
-				state.campaign.currentArea!!.area,
+				(state.campaign.state as AreaState).area,
 			)
 
 			for (index in 0 until 4) {
 				assertEquals(
 					AreaPosition(5, 6),
-					state.campaign.currentArea!!.getPlayerPosition(index),
+					(state.campaign.state as AreaState).getPlayerPosition(index),
 				)
 				assertEquals(
 					Direction.Left,
-					state.campaign.currentArea!!.getPlayerDirection(index),
+					(state.campaign.state as AreaState).getPlayerDirection(index),
 				)
 			}
-			assertNull(state.campaign.currentArea!!.suspension)
+			assertNull((state.campaign.state as AreaState).suspension)
 		}
 	}
 
@@ -201,8 +201,7 @@ object TestActions {
 			toHeroesDen.resolve(content.areas.areas)
 
 			val state = InGameState(simpleCampaignState(), "")
-			state.campaign.currentArea = null
-			state.campaign.actions = CampaignActionsState(FixedActionNode(
+			state.campaign.state = CampaignActionsState(FixedActionNode(
 				id = UUID.randomUUID(), action = toHeroesDen, next = null
 			))
 
@@ -212,27 +211,27 @@ object TestActions {
 
 			assertSame(
 				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
-				state.campaign.currentArea!!.area,
+				(state.campaign.state as AreaState).area,
 			)
 
 			for (index in 0 until 4) {
 				assertEquals(
 					AreaPosition(5, 6),
-					state.campaign.currentArea!!.getPlayerPosition(index),
+					(state.campaign.state as AreaState).getPlayerPosition(index),
 				)
 				assertEquals(
 					Direction.Left,
-					state.campaign.currentArea!!.getPlayerDirection(index),
+					(state.campaign.state as AreaState).getPlayerDirection(index),
 				)
 			}
-			assertNull(state.campaign.currentArea!!.suspension)
+			assertNull((state.campaign.state as AreaState).suspension)
 		}
 	}
 
 	fun testHeroesHouseWritings(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			state.campaign.currentArea = AreaState(
+			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "heroes_house" }!!,
 				initialPlayerPosition = AreaPosition(3, 1),
 				initialPlayerDirection = Direction.Up,
@@ -240,11 +239,11 @@ object TestActions {
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
 			state.update(context)
-			assertNull(state.campaign.currentArea!!.suspension)
+			assertNull((state.campaign.state as AreaState).suspension)
 
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(context)
-			val suspension = state.campaign.currentArea!!.suspension as AreaSuspensionActions
+			val suspension = (state.campaign.state as AreaState).suspension as AreaSuspensionActions
 			val node = suspension.actions.node as FixedActionNode
 			val action = node.action as ActionTalk
 			assertEquals("", action.expression)

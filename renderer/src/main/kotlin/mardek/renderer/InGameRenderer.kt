@@ -18,7 +18,9 @@ import mardek.renderer.menu.renderInGameMenu
 import mardek.renderer.menu.renderInGameMenuSectionList
 import mardek.renderer.save.renderSaveSelectionModal
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.actions.ItemStorageInteractionState
+import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.saves.SaveSelectionState
@@ -53,9 +55,9 @@ internal fun renderInGame(
 	var titleColorBatch: Vk2dColorBatch? = null
 	var titleTextBatch: Vk2dGlyphBatch? = null
 
-	val area = state.campaign.currentArea
-	if (area != null) {
-		val suspension = area.suspension
+	val stateMachine = state.campaign.state
+	if (stateMachine is AreaState) {
+		val suspension = stateMachine.suspension
 		if (suspension !is AreaSuspensionBattle) {
 			if (state.menu.shown) {
 				val framebuffers = context.framebuffers
@@ -99,7 +101,7 @@ internal fun renderInGame(
 
 				context.currentStage = areaRenderStage
 				val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
-				renderCurrentArea(context, area, areaRenderRegion)
+				renderCurrentArea(context, stateMachine, areaRenderRegion)
 				renderBlurred()
 
 				val batches = renderInGameMenu(context, region, state.menu, state.campaign)
@@ -141,7 +143,7 @@ internal fun renderInGame(
 
 					context.currentStage = areaRenderStage
 					val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
-					renderCurrentArea(context, area, areaRenderRegion)
+					renderCurrentArea(context, stateMachine, areaRenderRegion)
 					renderBlurred()
 
 					val basicFont = context.bundle.getFont(context.content.fonts.basic2.index)
@@ -154,7 +156,7 @@ internal fun renderInGame(
 				} else if (itemStorage != null) {
 					batches = renderItemStorage(context, itemStorage, region)
 				} else {
-					batches = renderCurrentArea(context, area, region)
+					batches = renderCurrentArea(context, stateMachine, region)
 				}
 				titleColorBatch = batches.first
 				titleTextBatch = batches.second
@@ -199,9 +201,8 @@ internal fun renderInGame(
 			}
 		}
 	} else {
-		val actions = state.campaign.actions
-		if (actions != null) {
-			val batches = renderCampaignActions(context, actions, region)
+		if (stateMachine is CampaignActionsState) {
+			val batches = renderCampaignActions(context, stateMachine, region)
 			titleColorBatch = batches.first
 			titleTextBatch = batches.second
 		}

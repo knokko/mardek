@@ -28,7 +28,7 @@ object TestStatusEffects {
 			deuganState.activeStatusEffects.add(content.stats.statusEffects.find { it.flashName == "PSN" }!!)
 
 			startSimpleBattle(campaign)
-			val battle = (campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			battle.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
 			val monster = battle.livingOpponents()[0]
 			monster.statusEffects.add(content.stats.statusEffects.find { it.flashName == "PAR" }!!)
@@ -48,7 +48,7 @@ object TestStatusEffects {
 	fun testPoisonAfterWalking(instance: TestingInstance) {
 		instance.apply {
 			val campaign = simpleCampaignState()
-			campaign.currentArea = AreaState(dragonLairEntry, AreaPosition(5, 9))
+			campaign.state = AreaState(dragonLairEntry, AreaPosition(5, 9))
 
 			val mardekState = campaign.characterStates[heroMardek]!!
 			assertEquals(54, mardekState.currentHealth)
@@ -61,7 +61,7 @@ object TestStatusEffects {
 				GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
 			)
 
-			while (campaign.currentArea!!.getPlayerPosition(0).y != 4) {
+			while ((campaign.state as AreaState).getPlayerPosition(0).y != 4) {
 				campaign.update(context)
 			}
 

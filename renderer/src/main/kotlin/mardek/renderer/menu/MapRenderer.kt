@@ -5,6 +5,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.area.WaterType
 import mardek.content.sprite.BcSprite
+import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -25,7 +26,10 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 		val shouldBlink = ((System.nanoTime() - referenceTime) % BLINK_PERIOD) >= BLINK_PERIOD / 2
 		val scale = min(region.width, region.height) / 70
 
-		val area = state.currentArea?.area ?: return
+		val areaState = state.state
+		if (areaState !is AreaState) return
+		val area = areaState.area
+
 		val renderWidth = scale * area.width
 		val renderHeight = scale * (1 + area.height)
 		val minX = region.minX + (region.width - renderWidth) / 2
@@ -129,7 +133,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 		}
 
 		if (shouldBlink) {
-			val playerPosition = state.currentArea!!.getPlayerPosition(0)
+			val playerPosition = areaState.getPlayerPosition(0)
 			putMapColor(playerPosition.x, playerPosition.y, PLAYER_COLOR)
 
 			fun putIfDiscovered(x: Int, y: Int, color: Int) {

@@ -51,7 +51,7 @@ object TestItemStorage {
 				"MainTimeline", "Searching for the fallen 'star'"
 			)
 
-			state.campaign.currentArea = AreaState(
+			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
 				AreaPosition(10, 3)
 			)
@@ -94,7 +94,7 @@ object TestItemStorage {
 				selectedSlotColors + tunicColors + huffPuffColors,
 			)
 
-			val actions = (state.campaign.currentArea!!.suspension as AreaSuspensionActions).actions
+			val actions = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions
 			val interaction = actions.itemStorageInteraction!!
 			val mardekSlotRegion = interaction.renderedCharacters[0].region
 
@@ -209,7 +209,7 @@ object TestItemStorage {
 				selectedSlotColors + huffPuffColors + forbiddenSlotColor + equalStatColor,
 			)
 
-			val actions = (state.campaign.currentArea!!.suspension as AreaSuspensionActions).actions
+			val actions = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions
 			val interaction = actions.itemStorageInteraction!!
 			val deuganSlotRegion = interaction.renderedCharacters[1].region
 

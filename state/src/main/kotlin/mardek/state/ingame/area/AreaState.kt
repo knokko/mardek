@@ -21,6 +21,7 @@ import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
 import mardek.input.MouseMoveEvent
+import mardek.state.ingame.CampaignStateMachine
 import mardek.state.ingame.story.StoryState
 import java.lang.Math.clamp
 import kotlin.math.max
@@ -40,7 +41,7 @@ class AreaState(
 	initialPlayerDirection: Direction = Direction.Up,
 
 	skipFadeIn: Boolean = false,
-) {
+) : CampaignStateMachine() {
 
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true)

@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitPostInit
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
@@ -54,8 +55,15 @@ import kotlin.time.Duration.Companion.seconds
 @BitStruct(backwardCompatible = true)
 class CampaignState : BitPostInit {
 
-	@BitField(id = 0, optional = true)
-	var currentArea: AreaState? = null
+	/**
+	 * The (primary) state (machine) of the campaign state. The campaign is always in one of the following states:
+	 * - Inside an area
+	 * - Outside an area, in a global action sequence
+	 * - Outside an area, on the world map
+	 */
+	@BitField(id = 0)
+	@ClassField(root = CampaignStateMachine::class)
+	var state: CampaignStateMachine = CampaignActionsState(FixedActionNode())
 
 	/**
 	 * The characters currently in the party
@@ -73,10 +81,7 @@ class CampaignState : BitPostInit {
 	@IntegerField(expectUniform = false, minValue = 0)
 	var gold: Int = 0
 
-	@BitField(id = 4, optional = true)
-	var actions: CampaignActionsState? = null
-
-	@BitField(id = 5)
+	@BitField(id = 4)
 	@ReferenceField(stable = true, label = "chests")
 	val openedChests = HashSet<Chest>()
 
@@ -84,13 +89,13 @@ class CampaignState : BitPostInit {
 	 * The state of the timelines, from which many other states are derived. It determines among others which
 	 * playable characters are available, and influences a lot of dialogue.
 	 */
-	@BitField(id = 6)
+	@BitField(id = 5)
 	val story = StoryState()
 
-	@BitField(id = 7)
+	@BitField(id = 6)
 	val areaDiscovery = AreaDiscoveryMap()
 
-	@BitField(id = 8)
+	@BitField(id = 7)
 	val triggers = ActivatedTriggers()
 
 	/**
@@ -99,15 +104,15 @@ class CampaignState : BitPostInit {
 	 * - When this variable gets larger, the probability of encountering a random battle increases.
 	 * - When this variable is too low, no random battle can be encountered.
 	 */
-	@BitField(id = 9)
+	@BitField(id = 8)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var stepsSinceLastBattle = 0
 
-	@BitField(id = 10)
+	@BitField(id = 9)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var totalSteps = 0L
 
-	@BitField(id = 11)
+	@BitField(id = 10)
 	@IntegerField(expectUniform = true, minValue = 0)
 	var totalTime = 0.seconds
 
@@ -115,14 +120,14 @@ class CampaignState : BitPostInit {
 	 * The items that are currently in the item storage, which the player can access via a save crystal. This list
 	 * starts empty, but will grow larger if needed.
 	 */
-	@BitField(id = 12)
+	@BitField(id = 11)
 	@NestedFieldSetting(path = "c", optional = true)
 	val itemStorage = ArrayList<ItemStack?>()
 
 	/**
 	 * The item stack that is currently grabbed by the cursor (e.g. in the inventory tab).
 	 */
-	@BitField(id = 13, optional = true)
+	@BitField(id = 12, optional = true)
 	var cursorItemStack: ItemStack? = null
 
 	var shouldOpenMenu = false
@@ -140,11 +145,15 @@ class CampaignState : BitPostInit {
 		while (true) {
 			val event = context.input.consumeEvent() ?: break
 			if (event is MouseMoveEvent) {
-				currentArea?.let {
-					it.processMouseMove(event)
-					val suspension = it.suspension
-					if (suspension is AreaSuspensionActions) {
-						updateAreaActions(context, null, event, suspension.actions)
+				when (val state = this.state) {
+					is AreaState -> {
+						state.processMouseMove(event)
+						when (val suspension = state.suspension) {
+							is AreaSuspensionActions -> {
+								updateAreaActions(context, null, event, suspension.actions)
+							}
+							else -> {}
+						}
 					}
 				}
 			}
@@ -160,7 +169,8 @@ class CampaignState : BitPostInit {
 				continue
 			}
 
-			val currentArea = this.currentArea ?: continue
+			val currentArea = this.state
+			if (currentArea !is AreaState) continue
 
 			when (val suspension = currentArea.suspension) {
 				is AreaSuspensionBattle -> {
@@ -211,7 +221,7 @@ class CampaignState : BitPostInit {
 						if (nextPosition.x > 6 + nextArea.maxTileX || nextPosition.y > 4 + nextArea.maxTileY) {
 							nextPosition = AreaPosition(3, 3)
 						}
-						this.currentArea = AreaState(nextArea, nextPosition)
+						this.state = AreaState(nextArea, nextPosition)
 						continue
 					}
 
@@ -226,8 +236,8 @@ class CampaignState : BitPostInit {
 			return
 		}
 
-		val oldArea = currentArea
-		if (oldArea != null) {
+		val oldArea = this.state
+		if (oldArea is AreaState) {
 			when (val suspension = oldArea.suspension) {
 				is AreaSuspensionBattle -> {
 					val battleContext = BattleUpdateContext(
@@ -269,8 +279,8 @@ class CampaignState : BitPostInit {
 				is AreaSuspensionActions -> {
 					updateAreaActions(context, null, null, suspension.actions)
 
-					val newArea = currentArea
-					if (newArea != null) {
+					val newArea = this.state
+					if (newArea is AreaState) {
 						val newSuspension = newArea.suspension
 						if (newSuspension is AreaSuspensionActions && newSuspension.actions.node == null) {
 							newArea.suspension = null
@@ -282,7 +292,8 @@ class CampaignState : BitPostInit {
 			}
 		}
 
-		currentArea?.let { areaState ->
+		val areaState = this.state
+		if (areaState is AreaState) {
 			val areaContext = AreaState.UpdateContext(
 				context, party, characterStates,
 				areaDiscovery, triggers, story, stepsSinceLastBattle, totalSteps
@@ -304,9 +315,9 @@ class CampaignState : BitPostInit {
 					val destination = suspension.destination
 					val destinationArea = destination.area
 					if (destinationArea != null) {
-						currentArea = AreaState(
+						this.state = AreaState(
 							destinationArea, AreaPosition(destination.x, destination.y),
-							destination.direction ?: currentArea!!.getPlayerDirection(0),
+							destination.direction ?: (this.state as AreaState).getPlayerDirection(0),
 						)
 					} else areaState.suspension = null // TODO CHAP1 Support world map
 				}
@@ -383,28 +394,28 @@ class CampaignState : BitPostInit {
 	}
 
 	private fun getCampaignActions(): CampaignActionsState? {
-		val node = this.actions?.node
-		if (currentArea != null && node != null) throw IllegalStateException(
-			"Current area ${currentArea?.area} must be null when actions $actions is non-null"
-		)
+		val currentState = this.state
+		val node = if (currentState is CampaignActionsState) currentState.node else null
 
 		if (node is FixedActionNode) {
 			val action = node.action
 			if (action is ActionToArea) {
-				this.currentArea = AreaState(
+				this.state = AreaState(
 					action.area,
 					AreaPosition(action.x, action.y),
 					action.direction,
 				)
 				val nextNode = node.next
 				if (nextNode != null) {
-					this.currentArea!!.suspension = AreaSuspensionActions(AreaActionsState(nextNode))
+					(this.state as AreaState).suspension = AreaSuspensionActions(AreaActionsState(nextNode))
 				}
-				this.actions = null
 			}
 		}
 
-		return this.actions
+		return when (val nextState = this.state) {
+			is CampaignActionsState -> nextState
+			else -> null
+		}
 	}
 
 	/**
@@ -459,18 +470,21 @@ class CampaignState : BitPostInit {
 	 * This method will reset some animation states.
 	 */
 	fun markSessionStart() {
-		this.actions?.markSessionStart()
-
-		when (val suspension = this.currentArea?.suspension) {
-			is AreaSuspensionBattle -> suspension.battle.markSessionStart()
-			else -> {}
+		when (val currentState = this.state) {
+			is CampaignActionsState -> currentState.markSessionStart()
+			is AreaState -> {
+				when (val suspension = currentState.suspension) {
+					is AreaSuspensionBattle -> suspension.battle.markSessionStart()
+					else -> {}
+				}
+			}
 		}
 	}
 
 	private fun updateAreaActions(
 		context: UpdateContext, event: InputKeyEvent?, mouseEvent: MouseMoveEvent?, actions: AreaActionsState
 	) {
-		val currentArea = this.currentArea!!
+		val currentArea = this.state as AreaState
 		val actionsContext = AreaActionsState.UpdateContext(
 			context.input, context.timeStep, context.soundQueue, context.content.audio.fixedEffects,
 			context.campaignName, currentArea.playerPositions,
@@ -523,15 +537,14 @@ class CampaignState : BitPostInit {
 
 			val switchArea = actionsContext.switchArea
 			if (switchArea != null) {
-				this.currentArea = AreaState(
+				this.state = AreaState(
 					switchArea.area, AreaPosition(switchArea.x, switchArea.y),
 					switchArea.direction,
 				)
 				val nextNode = (actions.node as FixedActionNode).next
 				if (nextNode != null) {
-					this.currentArea!!.suspension = AreaSuspensionActions(AreaActionsState(nextNode))
+					(this.state as AreaState).suspension = AreaSuspensionActions(AreaActionsState(nextNode))
 				}
-				this.actions = null
 			}
 
 			val maybeBattle = actionsContext.startBattle
@@ -557,9 +570,8 @@ class CampaignState : BitPostInit {
 	 * often the background music of the current area, but not always.
 	 */
 	fun determineMusicTrack(content: Content): String? {
-		val areaState = currentArea
-		if (areaState != null) {
-
+		val areaState = this.state
+		if (areaState is AreaState) {
 			val suspension = areaState.suspension
 			if (suspension is AreaSuspensionBattle) {
 				val battleState = suspension.battle
@@ -575,7 +587,7 @@ class CampaignState : BitPostInit {
 			return story.evaluate(areaState.area.properties.musicTrack)
 		}
 
-		val campaignActionNode = actions?.node
+		val campaignActionNode = if (areaState is CampaignActionsState) areaState.node else null
 		if (campaignActionNode is FixedActionNode) {
 			val action = campaignActionNode.action
 			if (action is ActionPlayCutscene) return action.cutscene.get().musicTrack

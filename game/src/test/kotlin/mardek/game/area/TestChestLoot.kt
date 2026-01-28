@@ -33,7 +33,7 @@ object TestChestLoot {
 			val potion = content.items.items.find { it.displayName == "Potion" }!!
 
 			val campaign = simpleCampaignState()
-			campaign.currentArea = AreaState(
+			campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "soothwood" }!!,
 				AreaPosition(28, 6), skipFadeIn = true
 			)
@@ -83,7 +83,7 @@ object TestChestLoot {
 				lootColors + partyColors, areaColors
 			)
 
-			val openChest = (campaign.currentArea!!.suspension as AreaSuspensionOpeningChest).obtainedItem!!
+			val openChest = ((campaign.state as AreaState).suspension as AreaSuspensionOpeningChest).obtainedItem!!
 			assertEquals(0, openChest.partyIndex)
 
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
@@ -121,7 +121,7 @@ object TestChestLoot {
 			input.postEvent(releaseKeyEvent(InputKey.MoveRight))
 			input.postEvent(pressKeyEvent(InputKey.Interact))
 			assertEquals(0, mardekState.countItemOccurrences(potion))
-			assertSame(openChest, (campaign.currentArea!!.suspension as AreaSuspensionOpeningChest).obtainedItem)
+			assertSame(openChest, ((campaign.state as AreaState).suspension as AreaSuspensionOpeningChest).obtainedItem)
 			assertEquals(0, campaign.openedChests.size)
 			campaign.update(context)
 			assertSame(content.audio.fixedEffects.ui.clickCancel, soundQueue.take())
@@ -129,7 +129,7 @@ object TestChestLoot {
 			assertEquals(1, mardekState.countItemOccurrences(potion))
 
 			assertEquals(1, campaign.openedChests.size)
-			assertNull(campaign.currentArea!!.suspension)
+			assertNull((campaign.state as AreaState).suspension)
 			testRendering(
 				state, 900, 450, "chest-after-close",
 				areaColors + partyColors, lootColors
@@ -138,7 +138,7 @@ object TestChestLoot {
 			// Check that the chest can't be opened again
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			campaign.update(context)
-			assertFalse(campaign.currentArea!!.suspension is AreaSuspensionOpeningChest)
+			assertFalse((campaign.state as AreaState).suspension is AreaSuspensionOpeningChest)
 			assertNull(soundQueue.take())
 		}
 	}
@@ -146,7 +146,7 @@ object TestChestLoot {
 	fun testChestWithGold(instance: TestingInstance) {
 		instance.apply {
 			val campaign = simpleCampaignState()
-			campaign.currentArea = AreaState(
+			campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "lakequr_cave2" }!!,
 				AreaPosition(5, 48), Direction.Down, skipFadeIn = true
 			)
@@ -185,7 +185,7 @@ object TestChestLoot {
 			assertEquals(123 + 56, campaign.gold)
 			assertSame(content.audio.fixedEffects.openChest, soundQueue.take())
 			assertNull(soundQueue.take())
-			assertNull(campaign.currentArea!!.suspension)
+			assertNull((campaign.state as AreaState).suspension)
 
 			testRendering(
 				state, 900, 450, "chest-gold-after-open",
@@ -198,7 +198,7 @@ object TestChestLoot {
 			campaign.update(context)
 			assertEquals(123 + 56, campaign.gold)
 			assertNull(soundQueue.take())
-			assertNull(campaign.currentArea!!.suspension)
+			assertNull((campaign.state as AreaState).suspension)
 		}
 	}
 }

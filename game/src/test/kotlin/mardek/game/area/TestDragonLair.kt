@@ -39,7 +39,7 @@ object TestDragonLair {
 		instance.apply {
 			val area = content.areas.areas.find { it.properties.rawName == "DL_area4" }!!
 			val state = InGameState(simpleCampaignState(), "test")
-			state.campaign.currentArea = AreaState(area, AreaPosition(6, 20))
+			state.campaign.state = AreaState(area, AreaPosition(6, 20))
 
 			// Make sure Deugan has enough mana to cast Frostasia
 			val deuganState = state.campaign.characterStates[heroDeugan]!!
@@ -88,13 +88,13 @@ object TestDragonLair {
 			repeat(5000) {
 				state.update(context)
 			}
-			(state.campaign.currentArea!!.suspension as AreaSuspensionBattle).nextActions!!.node!!.run {
+			((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).nextActions!!.node!!.run {
 				val fixed = this as FixedActionNode
 				assertInstanceOf<ActionFadeCharacter>(fixed.action)
 			}
 
 			// Let's make the battle short
-			val battleState = (state.campaign.currentArea!!.suspension as AreaSuspensionBattle).battle
+			val battleState = ((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			battleState.livingOpponents()[0].currentHealth = 1
 
 			// Wait until we can select a move
@@ -132,7 +132,7 @@ object TestDragonLair {
 			state.update(context)
 
 			// Claim battle loot
-			assertNotNull((state.campaign.currentArea!!.suspension as AreaSuspensionBattle).loot)
+			assertNotNull(((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).loot)
 			assertEquals("VictoryFanfare2", state.campaign.determineMusicTrack(content))
 			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
@@ -144,7 +144,7 @@ object TestDragonLair {
 			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
 
 			// Wait 1 second for the dragon to fade away
-			val actions = (state.campaign.currentArea!!.suspension as AreaSuspensionActions).actions
+			val actions = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions
 			assertInstanceOf<ActionFadeCharacter>((actions.node as FixedActionNode).action)
 			state.update(context)
 			assertInstanceOf<ActionTalk>((actions.node as FixedActionNode).action)
@@ -191,7 +191,7 @@ object TestDragonLair {
 				y = 7,
 				direction = Direction.Down,
 				next = null,
-			), state.campaign.currentArea!!.getCharacterState(princess))
+			), (state.campaign.state as AreaState).getCharacterState(princess))
 			assertSame(parallelActions, (actions.node as FixedActionNode).action)
 
 			// Now, press E again to finish this dialogue node
@@ -210,11 +210,11 @@ object TestDragonLair {
 			assertArrayEquals(arrayOf(heroMardek, heroDeugan, null, null), state.campaign.party)
 			assertEquals(
 				ColorTransform(0, -1, 0),
-				state.campaign.story.evaluate(state.campaign.currentArea!!.area.properties.ambience)
+				state.campaign.story.evaluate((state.campaign.state as AreaState).area.properties.ambience)
 			)
 			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
 			repeat(200) {
-				val actionNode = (state.campaign.currentArea!!.suspension as AreaSuspensionActions).actions.node as FixedActionNode
+				val actionNode = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions.node as FixedActionNode
 				if (actionNode.action !is ActionToArea) {
 					state.update(context)
 				}
@@ -225,7 +225,7 @@ object TestDragonLair {
 			repeat(45) {
 				state.update(context)
 			}
-			assertEquals("DL_area4", state.campaign.currentArea!!.area.properties.rawName)
+			assertEquals("DL_area4", (state.campaign.state as AreaState).area.properties.rawName)
 			assertArrayEquals(arrayOf(heroMardek, heroDeugan, null, null), state.campaign.party)
 			testRendering(
 				state, 1000, 700, "dragon-boss4",
@@ -242,7 +242,7 @@ object TestDragonLair {
 				ColorTransform(
 					0, rgb(1f, 0.01f * 80, 0.01f * 70), 0
 				),
-				state.campaign.story.evaluate(state.campaign.currentArea!!.area.properties.ambience)
+				state.campaign.story.evaluate((state.campaign.state as AreaState).area.properties.ambience)
 			)
 
 			val heroesDenColors = arrayOf(
@@ -286,7 +286,7 @@ object TestDragonLair {
 
 			assertEquals(
 				AreaPosition(10, 6),
-				state.campaign.currentArea!!.getPlayerPosition(0)
+				(state.campaign.state as AreaState).getPlayerPosition(0)
 			)
 
 			fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
@@ -295,7 +295,7 @@ object TestDragonLair {
 			}
 			assertEquals(
 				AreaPosition(9, 6),
-				state.campaign.currentArea!!.getPlayerPosition(0)
+				(state.campaign.state as AreaState).getPlayerPosition(0)
 			)
 		}
 	}

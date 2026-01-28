@@ -5,6 +5,7 @@ import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.exceptions.BitserException
 import mardek.content.Content
 import mardek.state.ingame.CampaignState
+import mardek.state.ingame.area.AreaState
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -89,8 +90,12 @@ class SavesFolderManager(
 
 	fun writeSaveTo(content: Content, campaignState: CampaignState, destinationFile: File): Boolean {
 		val partyLevel = campaignState.usedPartyMembers().maxOf { it.state.currentLevel }
+		val areaName = when (val state = campaignState.state) {
+			is AreaState -> state.area.properties.displayName
+			else -> ""
+		}
 		val saveInfo = SaveInfo(
-			areaName = campaignState.currentArea?.area?.properties?.displayName ?: "",
+			areaName = areaName,
 			party = campaignState.allPartyMembers().map { it?.first?.id }.toTypedArray(),
 			playTime = campaignState.totalTime,
 			partyLevel = partyLevel,

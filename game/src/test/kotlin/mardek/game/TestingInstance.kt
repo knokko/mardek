@@ -157,7 +157,7 @@ class TestingInstance {
 	fun startSimpleBattle(campaign: CampaignState, enemies: Array<Enemy?> = arrayOf(
 		null, Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 10), null, null
 	), canFlee: Boolean = true) {
-		campaign.currentArea!!.suspension = AreaSuspensionBattle(BattleState(
+		(campaign.state as AreaState).suspension = AreaSuspensionBattle(BattleState(
 			battle = Battle(
 				startingEnemies = enemies,
 				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!,
@@ -177,7 +177,7 @@ class TestingInstance {
 		val campaignState = CampaignState()
 		campaignState.story.initialize(content)
 		campaignState.story.validatePartyMembers(content, campaignState.party, campaignState.characterStates)
-		campaignState.currentArea = AreaState(
+		campaignState.state = AreaState(
 			dragonLair2, AreaPosition(10, 10), skipFadeIn = true
 		)
 		campaignState.characterStates.putAll(simpleCharacterStates())
