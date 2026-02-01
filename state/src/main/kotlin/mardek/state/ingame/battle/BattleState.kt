@@ -87,7 +87,6 @@ class BattleState(
 	internal fun confirmMove(context: BattleUpdateContext, newState: BattleStateMachine) {
 		this.state = newState
 		if (newState is BattleStateMachine.Wait) context.soundQueue.insert(context.sounds.ui.clickCancel)
-		else context.soundQueue.insert(context.sounds.ui.clickConfirm)
 	}
 
 	fun getReactionChallenge(): ReactionChallenge? {
