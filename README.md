@@ -103,6 +103,7 @@ To create releases that can be given to players/testers
 you should simply push your code to GitHub. This repository has
 a GitHub Actions workflow that will generate:
 - an exe file for Windows x64
+- a (totally untested) executable for Windows arm64
 - an executable for Linux x64
 - a (totally untested) executable for Linux arm64
 - a (totally untested) executable for macOS x64
