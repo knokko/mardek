@@ -18,6 +18,7 @@ jobs:
       - name: Setup gradle
         uses: gradle/actions/setup-gradle@v4
       - run: source ./1.4.335.0/setup-env.sh && ./gradlew test
+      - run: ./gradlew checkIntegrationTestScreenshots
       - name: Store test results
         if: failure()
         uses: actions/upload-artifact@v4
@@ -61,6 +62,7 @@ jobs:
       - name: Setup gradle
         uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew test
+      - run: ./gradlew checkIntegrationTestScreenshots
       - name: Store test results
         if: failure()
         uses: actions/upload-artifact@v4

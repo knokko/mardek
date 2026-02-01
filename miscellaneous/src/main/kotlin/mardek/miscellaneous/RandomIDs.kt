@@ -1,4 +1,4 @@
-package mardek.importer.ids
+package mardek.miscellaneous
 
 import java.util.UUID
 

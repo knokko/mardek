@@ -1,0 +1,13 @@
+tasks.register("randomIDs", JavaExec) {
+	group = "Miscellaneous"
+	description = "Print some random UUIDs"
+	classpath sourceSets.main.runtimeClasspath
+	mainClass = "mardek.miscellaneous.RandomIDsKt"
+}
+
+tasks.register("checkIntegrationTestScreenshots", JavaExec) {
+	group = "Miscellaneous"
+	description = "GitHub Actions job to check whether the "
+	classpath sourceSets.main.runtimeClasspath
+	mainClass = "mardek.miscellaneous.CheckIntegrationTestScreenshotsKt"
+}
