@@ -47,6 +47,13 @@ class AreaActionsState(
 	@ReferenceField(stable = true, label = "action nodes")
 	var node: ActionNode?,
 
+	/**
+	 * When the player initiated this `AreaActionsState` by interacting with an area object or character,
+	 * this field will contain some information about that object,
+	 * which can be used by [ActionTargetDefaultDialogueObject].
+	 */
+	@BitField(id = 1, optional = true)
+	val defaultDialogueObject: ActionTargetData?,
 ) : BitPostInit {
 
 	/**
@@ -56,7 +63,7 @@ class AreaActionsState(
 	 * Unlike in `AreaState`, every party member can walk independently of each other, and do *not necessarily*
 	 * follow party member 0.
 	 */
-	@BitField(id = 1)
+	@BitField(id = 2)
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 4, maxValue = 4))
 	val nextPartyPositions = Array<NextAreaPosition?>(4) { null }
@@ -64,8 +71,28 @@ class AreaActionsState(
 	/**
 	 * The chat log, which contains all the previously-encountered dialogue of the current action sequence.
 	 */
-	@BitField(id = 2)
+	@BitField(id = 3)
 	val chatLog = ArrayList<ChatLogEntry>()
+
+	/**
+	 * The current overlay color, which should be rendered on top of the area and potential dialogues. This is
+	 * initially 0 (fully transparent), but can be changed by [ActionSetOverlayColor].
+	 *
+	 * If the current action is an [ActionSetOverlayColor], this field will store the *old* overlay color. It will
+	 * only be updated once the action is completed.
+	 */
+	@BitField(id = 4)
+	@IntegerField(expectUniform = true, commonValues = [0])
+	var overlayColor: Int = 0
+
+	/**
+	 * The value of [AreaState.currentTime] when the most recent [ActionSetOverlayColor] was encountered. This field is
+	 * used by the renderer to render overlay transitions, and by this class to determine when it should move on to the
+	 * next node.
+	 */
+	@BitField(id = 5)
+	@IntegerField(expectUniform = false)
+	var startOverlayTransitionTime = ZERO
 
 	/**
 	 * Whether the chat log should be shown during talk/dialogue actions.
@@ -130,7 +157,7 @@ class AreaActionsState(
 	var itemStorageInteraction: ItemStorageInteractionState? = null
 		private set
 
-	internal constructor() : this(FixedActionNode())
+	internal constructor() : this(FixedActionNode(), null)
 
 	override fun postInit(context: BitPostInit.Context) {
 		val node = this.node
@@ -160,8 +187,12 @@ class AreaActionsState(
 			val finishedMessage = updateTalking(context, currentAction)
 			if (finishedMessage) {
 				chatLog.add(ChatLogEntry(
-					speaker = currentAction.speaker.getDisplayName(context.party) ?: "no-one?",
-					speakerElement = currentAction.speaker.getElement(context.party),
+					speaker = currentAction.speaker.getDisplayName(
+						defaultDialogueObject, context.party
+					) ?: "no-one?",
+					speakerElement = currentAction.speaker.getElement(
+						defaultDialogueObject, context.party
+					),
 					text = currentAction.text,
 				))
 			}
@@ -213,6 +244,9 @@ class AreaActionsState(
 			context.transitionTimeline(currentAction.timeline, currentAction.newNode)
 			return true
 		}
+		if (currentAction is ActionSetOverlayColor) {
+			return context.currentTime >= startOverlayTransitionTime + currentAction.transitionTime
+		}
 		if (currentAction is ActionParallel) {
 			// Note that we should ALWAYS update all parallel actions, so we can NOT use something like
 			// return currentAction.actions.all { updateFixedNode(context, it) }
@@ -261,7 +295,7 @@ class AreaActionsState(
 			if (currentNode is FixedActionNode) {
 				val action = currentNode.action
 				if (updateFixedNode(context, action)) {
-					toNextNode(currentNode.next)
+					toNextNode(context.currentTime, currentNode.next)
 					context.timeStep = ZERO
 					if (action is ActionBattle) return
 					continue
@@ -444,12 +478,12 @@ class AreaActionsState(
 	 * The `CampaignState` will call this method after saving has succeeded (or was canceled). This will cause this
 	 * `AreaActionsState` to move on to the next action node.
 	 */
-	fun finishSaveNode() {
+	fun finishSaveNode(currentTime: Duration) {
 		val currentNode = node as FixedActionNode
 		if (currentNode.action !is ActionSaveCampaign) {
 			throw IllegalStateException("Expected ActionSaveCampaign, but action is ${currentNode.action}")
 		}
-		toNextNode(currentNode.next)
+		toNextNode(currentTime, currentNode.next)
 	}
 
 	/**
@@ -468,7 +502,7 @@ class AreaActionsState(
 		}
 		if (action is ActionItemStorage && event.key == InputKey.Cancel) {
 			context.soundQueue.insert(context.sounds.ui.clickCancel)
-			toNextNode((node as FixedActionNode).next)
+			toNextNode(context.currentTime, (node as FixedActionNode).next)
 		}
 	}
 
@@ -494,7 +528,7 @@ class AreaActionsState(
 			if (selectedChoice > 0 && key == InputKey.MoveUp) selectedChoice -= 1
 			if (selectedChoice < choiceOptions.size - 1 && key == InputKey.MoveDown) selectedChoice += 1
 			if (key == InputKey.Interact && !event.didRepeat) {
-				toNextNode(choiceOptions[selectedChoice].next)
+				toNextNode(context.currentTime, choiceOptions[selectedChoice].next)
 			}
 		}
 
@@ -506,13 +540,21 @@ class AreaActionsState(
 		itemStorageInteraction?.processMouseMove(context, event.newX, event.newY)
 	}
 
-	private fun toNextNode(next: ActionNode?) {
+	private fun toNextNode(currentTime: Duration, next: ActionNode?) {
+		val old = this.node
+		if (old is FixedActionNode) {
+			val action = old.action
+			if (action is ActionSetOverlayColor) this.overlayColor = action.color
+		}
 		this.node = next
 		this.choiceOptions = emptyList()
 		this.selectedChoice = 0
 		this.shownDialogueCharacters = 0f
 		this.speedUpShowingCharacters = false
 		this.finishedTalkingAction = false
+		if (next is FixedActionNode && next.action is ActionSetOverlayColor) {
+			this.startOverlayTransitionTime = currentTime
+		}
 	}
 
 	private fun processTalkingKeyEvent(currentAction: ActionTalk, event: InputKeyEvent) {

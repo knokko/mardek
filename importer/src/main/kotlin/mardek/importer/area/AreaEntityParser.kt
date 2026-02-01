@@ -4,8 +4,7 @@ import mardek.content.Content
 import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
 import mardek.content.action.ActionTalk
-import mardek.content.action.ActionTarget
-import mardek.content.action.ActionTargetDialogueObject
+import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.FixedAction
 import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Direction
@@ -13,6 +12,8 @@ import mardek.content.area.TransitionDestination
 import mardek.content.area.WorldMapTransitionDestination
 import mardek.content.area.objects.*
 import mardek.content.sprite.ObjectSprites
+import mardek.content.story.ConstantTimelineExpression
+import mardek.content.story.TimelineBooleanValue
 import mardek.content.story.TimelineExpression
 import mardek.importer.actions.HardcodedActions
 import mardek.importer.actions.fixedActionChain
@@ -141,7 +142,7 @@ private fun importSwitchColor(name: String): SwitchColor {
 }
 
 private fun attemptToExtractSimpleDialogue(
-	speaker: ActionTarget, sharedActions: ActionSequence?, rawDialogue: String?, baseID: UUID
+	sharedActions: ActionSequence?, rawDialogue: String?, baseID: UUID
 ): ActionNode? {
 	if (rawDialogue == null || sharedActions != null) return null
 	val conversationList = parseActionScriptNestedList(rawDialogue)
@@ -149,7 +150,7 @@ private fun attemptToExtractSimpleDialogue(
 		val actions: Array<FixedAction> = conversationList.map {
 			if (it !is ArrayList<*>) return null
 			ActionTalk(
-				speaker = speaker,
+				speaker = ActionTargetDefaultDialogueObject(),
 				expression = parseFlashString(it[0].toString(), "dialogue expression") ?: return null,
 				text = parseFlashString(it[1].toString(), "dialogue text") ?: return null,
 			)
@@ -211,12 +212,12 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 				light = null,
 				timePerFrame = 1,
 				ownActions = attemptToExtractSimpleDialogue(
-					ActionTargetDialogueObject(name),
 					actionSequence, rawConversation, id,
 				),
 				conversationName = conversationName,
 				sharedActionSequence = actionSequence,
 				signType = null,
+				displayName = name,
 			)
 		}
 	}
@@ -244,12 +245,12 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			light = null,
 			timePerFrame = 1,
 			ownActions = attemptToExtractSimpleDialogue(
-				ActionTargetDialogueObject(name),
 				actionSequence, rawConversation, id,
 			),
 			conversationName = conversationName,
 			sharedActionSequence = actionSequence,
 			signType = signType,
+			displayName = name,
 		)
 	}
 
@@ -347,12 +348,12 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			light = null,
 			timePerFrame = 200,
 			ownActions = attemptToExtractSimpleDialogue(
-				ActionTargetDialogueObject(name),
 				actionSequence, rawConversation, id,
 			),
 			conversationName = conversationName,
 			sharedActionSequence = actionSequence,
 			signType = null,
+			displayName = name,
 		)
 	}
 
@@ -369,9 +370,48 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		val destination = parseDestination(
 			rawEntity["dest"]!!, rawEntity["dir"], context.areaName
 		)
-		val lockType = if (rawEntity.containsKey("lock")) {
-			parseFlashString(rawEntity["lock"]!!, "lock")
+
+		val canOpen: TimelineExpression<Boolean>
+		val cannotOpenActions: ActionSequence?
+		val rawLock = rawEntity["lock"]
+
+		val keyName = if (rawEntity.containsKey("key")) {
+			parseFlashString(rawEntity["key"]!!, "key")!!
 		} else null
+
+		if (rawLock == null || rawLock == "null") {
+			canOpen = ConstantTimelineExpression(TimelineBooleanValue(true))
+			cannotOpenActions = null
+		} else {
+			if (rawLock.startsWith('"') && rawLock.endsWith('"')) {
+				val lockType = rawLock.substring(1, rawLock.length - 1)
+				if (keyName == null) {
+					val condition = context.expressions.getHardcodedAreaExpressions(
+						context.areaName, "lock_$lockType"
+					) ?: context.expressions.getHardcodedGlobalExpressions("lock_$lockType")
+					if (condition == null) {
+						canOpen = ConstantTimelineExpression(TimelineBooleanValue(false))
+					} else {
+						@Suppress("UNCHECKED_CAST")
+						canOpen = condition as TimelineExpression<Boolean>
+					}
+				} else {
+					val key = context.content.items.plotItems.find { it.displayName == keyName } ?:
+							throw RuntimeException("Can't find key $keyName")
+					// TODO CHAP2 Use the key
+					println("Should use key $key for lock $rawLock")
+					canOpen = ConstantTimelineExpression(TimelineBooleanValue(false))
+				}
+
+				cannotOpenActions = context.actions.getHardcodedAreaActions(
+					context.areaName, "lock_$lockType"
+				) ?: context.actions.getHardcodedGlobalActionSequence("lock_$lockType")
+			} else {
+				println("Can't handle complex lock $rawLock")
+				canOpen = ConstantTimelineExpression(TimelineBooleanValue(true))
+				cannotOpenActions = null
+			}
+		}
 
 		val spriteID = sheetName + spriteRow
 		var sprites = context.content.areas.objectSprites.find { it.flashName == spriteID }
@@ -391,10 +431,9 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			x = x,
 			y = y,
 			destination = destination,
-			lockType = lockType,
-			keyName = if (rawEntity.containsKey("key")) {
-				parseFlashString(rawEntity["key"]!!, "key")!!
-			} else null
+			canOpen = canOpen,
+			cannotOpenActions = cannotOpenActions,
+			displayName = name,
 		)
 	}
 

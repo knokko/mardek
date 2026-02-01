@@ -4,7 +4,23 @@ area = "goznor";
 areaname = "Goznor";
 ambience = GenericExternalAmbience();
 dungeon = null;
-A_sprites = [{name:"Monastery",model:"BIGDOOR3",x:18,y:13,dest:["gz_monastery",3,9]},{name:"Barracks",model:"DOOR0",x:5,y:6,dest:["gz_barracks",3,11]},{name:"House",model:"DOOR0",x:8,y:14,dest:["gz_house01",1,4]},{name:"Accessory Shop",model:"DOOR0",x:2,y:15,dest:["gz_shop_Ac",2,6]},{name:"Mardek\'s House",model:"DOOR0",x:5,y:20,dest:["gz_Mhouse1",4,5]},{name:"Deugan\'s House",model:"DOOR0",x:9,y:20,dest:["gz_Dhouse",3,6]},{name:"Magic Shop",model:"DOOR0",x:35,y:20,dest:["gz_shop_M",2,6]},{name:"Item Shop",model:"DOOR0",x:29,y:14,dest:["gz_shop_I",2,6]},{name:"Inn",model:"DOOR0",x:36,y:15,dest:["gz_inn",3,6]},{name:"Weapon Shop",model:"DOOR0",x:31,y:10,dest:["gz_shop_W",2,6],lock:(GameData.CHAPTER != 3 ? null : "lock")},{name:"Armour Shop",model:"DOOR0",x:37,y:10,dest:["gz_shop_Ar",2,6]},{name:"House",model:"DOOR0",x:35,y:3,dest:["gz_house02",3,5]},{name:"Sewers",model:"area_transition",x:21,y:1,dir:"s",dest:["sewer1",14,9]},{name:"S",model:"area_transition",x:18,y:22,dest:["WORLDMAP",1,1],ARROW:"S"},{name:"Save Crystal",model:"o_Crystal",x:21,y:14,walkspeed:-1,conv:"c_healingCrystal"}];
+A_sprites = [
+    {name:"Monastery",model:"BIGDOOR3",x:18,y:13,dest:["gz_monastery",3,9]},
+    {name:"Barracks",model:"DOOR0",x:5,y:6,dest:["gz_barracks",3,11],lock:"night"},
+    {name:"House",model:"DOOR0",x:8,y:14,dest:["gz_house01",1,4],lock:"night"},
+    {name:"Accessory Shop",model:"DOOR0",x:2,y:15,dest:["gz_shop_Ac",2,6],lock:"night"},
+    {name:"Mardek\'s House",model:"DOOR0",x:5,y:20,dest:["gz_Mhouse1",4,5],lock:"mardek_house"},
+    {name:"Deugan\'s House",model:"DOOR0",x:9,y:20,dest:["gz_Dhouse",3,6],lock:"night"},
+    {name:"Magic Shop",model:"DOOR0",x:35,y:20,dest:["gz_shop_M",2,6],lock:"night"},
+    {name:"Item Shop",model:"DOOR0",x:29,y:14,dest:["gz_shop_I",2,6],lock:"night"},
+    {name:"Inn",model:"DOOR0",x:36,y:15,dest:["gz_inn",3,6],lock:"night"},
+    {name:"Weapon Shop",model:"DOOR0",x:31,y:10,dest:["gz_shop_W",2,6],lock:"weapon_shop"},
+    {name:"Armour Shop",model:"DOOR0",x:37,y:10,dest:["gz_shop_Ar",2,6],lock:"night"},
+    {name:"House",model:"DOOR0",x:35,y:3,dest:["gz_house02",3,5],lock:"night"},
+    {name:"Sewers",model:"area_transition",x:21,y:1,dir:"s",dest:["sewer1",14,9]},
+    {name:"S",model:"area_transition",x:18,y:22,dest:["WORLDMAP",1,1],ARROW:"S"},
+    {name:"Save Crystal",model:"o_Crystal",x:21,y:14,walkspeed:-1,conv:"c_healingCrystal"}
+];
 musicTrack = GoznorMusicExpression;
 if(GameData.CHAPTER == 1)
 {

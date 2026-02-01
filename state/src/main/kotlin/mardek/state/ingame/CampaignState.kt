@@ -433,7 +433,9 @@ class CampaignState : BitPostInit {
 				)
 				val nextNode = node.next
 				if (nextNode != null) {
-					(this.state as AreaState).suspension = AreaSuspensionActions(AreaActionsState(nextNode))
+					(this.state as AreaState).suspension = AreaSuspensionActions(
+						AreaActionsState(nextNode, null)
+					)
 				}
 			}
 		}
@@ -532,7 +534,7 @@ class CampaignState : BitPostInit {
 
 			if (event != null) {
 				val outcome = saveSelection.pressKey(saveContext, event.key)
-				if (outcome.canceled) actions.finishSaveNode()
+				if (outcome.canceled) actions.finishSaveNode(currentArea.currentTime)
 				var failed = false
 				if (outcome.finished) {
 					if (outcome.save == null || outcome.save.file.delete()) {
@@ -541,7 +543,7 @@ class CampaignState : BitPostInit {
 								context.campaignName, SaveFile.Type.Crystal
 							)) {
 							context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickConfirm)
-							actions.finishSaveNode()
+							actions.finishSaveNode(currentArea.currentTime)
 						} else failed = true
 					} else {
 						failed = true
@@ -569,7 +571,9 @@ class CampaignState : BitPostInit {
 				)
 				val nextNode = (actions.node as FixedActionNode).next
 				if (nextNode != null) {
-					(this.state as AreaState).suspension = AreaSuspensionActions(AreaActionsState(nextNode))
+					(this.state as AreaState).suspension = AreaSuspensionActions(AreaActionsState(
+						nextNode, actions.defaultDialogueObject
+					))
 				}
 			}
 

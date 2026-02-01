@@ -215,12 +215,29 @@ private fun beforeFallingStar(content: Content) = TimelineNode(
 	id = UUID.fromString("f6877e8f-2111-47f0-95e9-4edc546efa4c"),
 	name = "Night before the falling 'star'",
 	children = arrayOf(
+		withDeuganBeforeFallingStar(content),
 		droppedDeuganBeforeFallingStar(content),
 	),
 	variables = arrayOf(
 		TimelineAssignment(
 			content.story.customVariables.find { it.name == "TimeOfDay" }!! as CustomTimelineVariable<String>,
 			TimelineStringValue("Evening")
+		),
+	),
+	isAbstract = true,
+)
+
+@Suppress("UNCHECKED_CAST")
+private fun withDeuganBeforeFallingStar(content: Content) = TimelineNode(
+	id = UUID.fromString("e2f1c5b3-39c2-4cf3-b725-72f81c3763ef"),
+	name = "Night before the falling 'star', before Deugan goes home",
+	children = arrayOf(),
+	variables = arrayOf(
+		TimelineAssignment(
+			content.story.customVariables.find {
+				it.name == "WithDeuganBeforeFallingStar"
+			}!! as CustomTimelineVariable<Unit>,
+			TimelineUnitValue(),
 		),
 	),
 	isAbstract = false,

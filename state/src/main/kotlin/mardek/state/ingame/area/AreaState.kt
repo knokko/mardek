@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.action.ActionTargetData
 import mardek.content.area.*
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
@@ -153,7 +154,7 @@ class AreaState(
 		suspension = AreaSuspensionIncomingBattle(battle, currentTime + 500.milliseconds, players, nextActions)
 	}
 
-	private fun interact() {
+	private fun interact(context: UpdateContext) {
 		val x = playerPositions[0].x + playerDirections[0].deltaX
 		val y = playerPositions[0].y + playerDirections[0].deltaY
 
@@ -168,7 +169,10 @@ class AreaState(
 			if (character.startX != x || character.startY != y) continue
 			val actionSequence = character.actionSequence
 			if (actionSequence != null) {
-				suspension = AreaSuspensionActions(AreaActionsState(actionSequence.root))
+				suspension = AreaSuspensionActions(AreaActionsState(
+					actionSequence.root,
+					ActionTargetData(character.name, character.element),
+				))
 				return
 			} else {
 				println("interact with $character")
@@ -180,7 +184,11 @@ class AreaState(
 
 			val rootAction = decoration.sharedActionSequence?.root ?: decoration.ownActions
 			if (rootAction != null) {
-				suspension = AreaSuspensionActions(AreaActionsState(rootAction))
+				suspension = AreaSuspensionActions(AreaActionsState(
+					rootAction, ActionTargetData(
+						decoration.displayName ?: "ERROR", null
+					)
+				))
 				return
 			} else {
 				println("interact with $decoration")
@@ -189,7 +197,15 @@ class AreaState(
 
 		for (door in area.objects.doors) {
 			if (x == door.x && y == door.y) {
-				suspension = AreaSuspensionOpeningDoor(door, currentTime + DOOR_OPEN_DURATION)
+				suspension = if (context.story.evaluate(door.canOpen)) {
+					AreaSuspensionOpeningDoor(door, currentTime + DOOR_OPEN_DURATION)
+				} else {
+					AreaSuspensionActions(AreaActionsState(
+						door.cannotOpenActions!!.root, ActionTargetData(
+							door.displayName, null
+						)
+					))
+				}
 				return
 			}
 		}
@@ -302,7 +318,7 @@ class AreaState(
 		if (suspension != null) return
 		processMovementInput(context.input)
 		if (suspension == null && shouldInteract) {
-			interact()
+			interact(context)
 			shouldInteract = false
 		}
 	}
@@ -348,7 +364,10 @@ class AreaState(
 
 			val triggerActions = trigger.actions
 			if (triggerActions != null) {
-				suspension = AreaSuspensionActions(AreaActionsState(triggerActions.root))
+				suspension = AreaSuspensionActions(AreaActionsState(
+					triggerActions.root,
+					ActionTargetData(trigger.name, null),
+				))
 			} else {
 				println("Hit flash trigger ${trigger.flashCode}")
 			}

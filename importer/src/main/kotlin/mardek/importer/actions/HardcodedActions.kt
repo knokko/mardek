@@ -15,7 +15,9 @@ class HardcodedActions {
 
 	internal fun hardcodeActionSequences(content: Content) {
 		hardcoded[""] = mutableListOf()
+		hardcoded["goznor"] = mutableListOf()
 		hardcodeSaveCrystalActions(content, hardcoded)
+		hardcodeDoorActions(hardcoded)
 		hardcodeDragonLairActions(content, hardcoded)
 	}
 

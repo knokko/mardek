@@ -86,13 +86,19 @@ class AreaDecoration(
 	 */
 	@BitField(id = 7, optional = true)
 	val signType: String?,
+
+	/**
+	 * The display name of this decoration, which is only used when the player starts a dialogue with this decoration.
+	 */
+	@BitField(id = 8, optional = true)
+	val displayName: String?,
 ) : StaticAreaObject(x, y) {
 
 	@Suppress("unused")
 	private constructor() : this(
 		0, 0, null, false, null, 1,
-		null, null, null, null,
+		null, null, null, null, null,
 	)
 
-	override fun toString() = "Decoration(x=$x, y=$y, sheet=${sprites?.flashName})"
+	override fun toString() = "Decoration(x=$x, y=$y, sheet=${sprites?.flashName}, name=$displayName)"
 }

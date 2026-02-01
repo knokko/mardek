@@ -332,7 +332,9 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		}
 
 		run {
-			val speakerElement = talkAction.speaker.getElement(context.campaign.party)
+			val speakerElement = talkAction.speaker.getElement(
+				actions.defaultDialogueObject, context.campaign.party
+			)
 
 			if (speakerElement != null) {
 				val image = speakerElement.thinSprite
@@ -352,7 +354,9 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		}
 
 		run {
-			val displayName = talkAction.speaker.getDisplayName(context.campaign.party)
+			val displayName = talkAction.speaker.getDisplayName(
+				actions.defaultDialogueObject, context.campaign.party
+			)
 			if (displayName != null) {
 				val shadowOffset = nameRegion.height * 0.04f
 				val textColor = srgbToLinear(rgb(238, 203, 127))

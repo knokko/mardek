@@ -2,12 +2,15 @@ package mardek.importer.area
 
 import com.github.knokko.bitser.Bitser
 import mardek.content.action.ActionTalk
+import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.ActionTargetDialogueObject
 import mardek.content.action.FixedActionNode
 import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Direction
 import mardek.content.area.WorldMapTransitionDestination
 import mardek.content.area.objects.*
+import mardek.content.story.ConstantTimelineExpression
+import mardek.content.story.TimelineBooleanValue
 import mardek.importer.actions.HardcodedActions
 import mardek.importer.importVanillaContent
 import mardek.importer.story.expressions.HardcodedExpressions
@@ -225,6 +228,7 @@ class TestAreaEntityParser {
 			conversationName = "c_healingCrystal",
 			sharedActionSequence = content.actions.global.find { it.name == "c_healingCrystal" }!!,
 			signType = null,
+			displayName = "Save Crystal",
 		)
 		assertEquals(expected, actual)
 	}
@@ -388,8 +392,9 @@ class TestAreaEntityParser {
 			x = 19,
 			y = 13,
 			destination = areaDestination("crypt2", x = 19, y = 13, direction = Direction.Down),
-			lockType = null,
-			keyName = null
+			canOpen = ConstantTimelineExpression(TimelineBooleanValue(true)),
+			cannotOpenActions = null,
+			displayName = "UP"
 		)
 		assertEquals(expected, actual)
 	}
@@ -403,8 +408,10 @@ class TestAreaEntityParser {
 			x = 4,
 			y = 8,
 			destination = areaDestination("aeropolis_E", 13, 20, Direction.Down),
-			lockType = "key",
-			keyName = "Bandit Key"
+			// TODO CHAP2 Allow doors to be opened, with the right key
+			canOpen = ConstantTimelineExpression(TimelineBooleanValue(false)),
+			cannotOpenActions = null,
+			displayName = "Exit",
 		)
 		assertEquals(expected, actual)
 	}
@@ -540,11 +547,12 @@ class TestAreaEntityParser {
 			ownActions = actual.ownActions!!,
 			sharedActionSequence = null,
 			signType = null,
+			displayName = "Portal",
 		)
 		val rootNode = actual.ownActions!!
 		assertNull((rootNode as FixedActionNode).next)
 		val action = rootNode.action as ActionTalk
-		assertEquals(ActionTargetDialogueObject("Portal"), action.speaker)
+		assertEquals(ActionTargetDefaultDialogueObject(), action.speaker)
 		assertEquals("", action.expression)
 		assertEquals("We hope you enjoyed your trip. Please leave the arrivals area.", action.text)
 		assertEquals(expected, actual)
@@ -564,11 +572,12 @@ class TestAreaEntityParser {
 			conversationName = null,
 			sharedActionSequence = null,
 			signType = null,
+			displayName = "Portal",
 		)
 		val rootNode = actual.ownActions!!
 		assertNull((rootNode as FixedActionNode).next)
 		val action = rootNode.action as ActionTalk
-		assertEquals(ActionTargetDialogueObject("Portal"), action.speaker)
+		assertEquals(ActionTargetDefaultDialogueObject(), action.speaker)
 		assertEquals("", action.expression)
 		assertEquals("It's a Warport Portal!!! Maybe you should get a keychain of one of these to show to your pals?!? That'd be RAD.", action.text)
 		assertEquals(expected, actual)
@@ -599,11 +608,12 @@ class TestAreaEntityParser {
 			conversationName = null,
 			sharedActionSequence = null,
 			signType = null,
+			displayName = "Deities: What ARE they?",
 		)
 		val rootNode = actual.ownActions!!
 		assertNotNull((rootNode as FixedActionNode).next)
 		var action = rootNode.action as ActionTalk
-		assertEquals(ActionTargetDialogueObject("Deities: What ARE they?"), action.speaker)
+		assertEquals(ActionTargetDefaultDialogueObject(), action.speaker)
 		assertEquals("", action.expression)
 		assertTrue(action.text.startsWith("Deities are entities on a higher level of existence than we mere"))
 
@@ -613,7 +623,7 @@ class TestAreaEntityParser {
 			lastNode = next
 		}
 		action = lastNode.action as ActionTalk
-		assertEquals(ActionTargetDialogueObject("Deities: What ARE they?"), action.speaker)
+		assertEquals(ActionTargetDefaultDialogueObject(), action.speaker)
 		assertEquals("", action.expression)
 		assertTrue(action.text.startsWith("Deities are non-physical entities,"))
 		assertEquals(expected, actual)
@@ -650,6 +660,7 @@ class TestAreaEntityParser {
 			conversationName = "c_lakeQur",
 			sharedActionSequence = null,
 			signType = null,
+			displayName = "Water",
 		)
 		assertEquals(expected, actual)
 	}

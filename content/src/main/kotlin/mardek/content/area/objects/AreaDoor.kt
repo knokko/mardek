@@ -5,9 +5,13 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.action.ActionSequence
 import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.TransitionDestination
 import mardek.content.sprite.ObjectSprites
+import mardek.content.story.ConstantTimelineExpression
+import mardek.content.story.TimelineBooleanValue
+import mardek.content.story.TimelineExpression
 import java.util.UUID
 
 /**
@@ -42,24 +46,34 @@ class AreaDoor(
 	val destination: TransitionDestination,
 
 	/**
-	 * The 'type' of lock that this door has, or `null` when this door isn't locked. Note that this hasn't been
-	 * implemented yet.
+	 * Whether the player is allowed to open this door, which may depend on the state of the story/timeline
+	 * (e.g. the door might be locked at night, or require a Plot Item to open).
 	 */
-	@BitField(id = 3, optional = true)
-	val lockType: String?,
+	@BitField(id = 3)
+	@ClassField(root = TimelineExpression::class)
+	val canOpen: TimelineExpression<Boolean>,
 
 	/**
-	 * Only relevant when lockType == "key"
+	 * The action sequence that should be activated whenever [canOpen] yields `false`. This must be non-null, unless
+	 * [canOpen] always yields `true`.
 	 */
 	@BitField(id = 4, optional = true)
-	val keyName: String?,
+	@ReferenceField(stable = false, label = "action sequences")
+	val cannotOpenActions: ActionSequence?,
+
+	/**
+	 * The display name of the door, as imported from Flash. This is used in locked door dialogues.
+	 */
+	@BitField(id = 5)
+	val displayName: String,
 ) : StaticAreaObject(x, y) {
 
 	constructor() : this(
-		UUID.randomUUID(), ObjectSprites(),
-		0, 0, AreaTransitionDestination(), null, null,
+		UUID.randomUUID(), ObjectSprites(), 0, 0, AreaTransitionDestination(),
+		ConstantTimelineExpression(TimelineBooleanValue(true)),
+		null, "",
 	)
 
-	override fun toString() = "${sprites.flashName}(x=$x, y=$y, lockType=$lockType," +
-			"${if (keyName != null) " key=$keyName" else ""}, destination=$destination)"
+	override fun toString() = "${sprites.flashName}(x=$x, y=$y, " +
+			"actions=${cannotOpenActions?.name}, destination=$destination, name=$displayName)"
 }

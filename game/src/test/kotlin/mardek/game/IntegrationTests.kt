@@ -2,6 +2,7 @@ package mardek.game
 
 import mardek.game.action.TestActions
 import mardek.game.action.TestChatLog
+import mardek.game.action.TestLocks
 import mardek.game.area.TestChestLoot
 import mardek.game.area.TestDoors
 import mardek.game.area.TestDragonLair
@@ -367,6 +368,21 @@ class IntegrationTests {
 	@Test
 	fun testWorldMapBeforeSoothwood() {
 		TestWorldMap.testBeforeSoothwood(instance)
+	}
+
+	@Test
+	fun testSimpleLocks() {
+		TestLocks.testFakeDragonLairEntryLock(instance)
+		TestLocks.testMonasteryIsNotLockedAtNight(instance)
+		TestLocks.testShopsAreLockedAtNight(instance)
+		TestLocks.testSewerDoorIsLockedDuringChapter1(instance)
+		// TODO CHAP1 Test houses are open during the day
+		// TODO CHAP1 Fix epic bug where bitser overrules the timeline non-abstract descendant
+	}
+
+	@Test
+	fun testDropDeuganBeforeFallingStar() {
+		TestLocks.testMardekHouseLockToDropDeugan(instance)
 	}
 
 	// TODO CHAP1 Test choice dialogue chat log

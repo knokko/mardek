@@ -9,6 +9,7 @@ internal class HardcodedExpressions {
 	internal fun hardcodeTimelineExpressions(content: Content) {
 		hardcoded[""] = mutableListOf()
 		hardcodeHeroesDenExpressions(content, hardcoded)
+		hardcodeGoznorExpressions(content, hardcoded)
 	}
 
 	internal fun getHardcodedAreaExpressions(areaName: String, expressionName: String) = hardcoded[areaName]?.find {

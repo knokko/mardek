@@ -15,6 +15,7 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
 import kotlin.collections.addAll
+import kotlin.time.Duration
 
 /**
  * The *action* of a `FixedActionNode` (e.g. walking or talking)
@@ -44,6 +45,7 @@ sealed class FixedAction {
 			ActionTeleport::class.java,
 			ActionSetMoney::class.java,
 			ActionItemStorage::class.java,
+			ActionSetOverlayColor::class.java,
 		)
 	}
 }
@@ -539,3 +541,30 @@ class ActionSetMoney(
  */
 @BitStruct(backwardCompatible = true)
 class ActionItemStorage : FixedAction()
+
+/**
+ * (Gradually) changes the overlay color to [color] for the remainder of the `AreaActionsState`, or until the next
+ * [ActionSetOverlayColor] is encountered.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionSetOverlayColor(
+	/**
+	 * The new overlay color
+	 */
+	@BitField(id = 0)
+	@IntegerField(expectUniform = true, commonValues = [0])
+	val color: Int,
+
+	/**
+	 * - When this is `Duration.ZERO`, the overlay color is instantly changed to [color]
+	 * - When this is positive, the overlay color is gradually transitioned from the old color to [color],
+	 * which takes `transitionTime` time
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val transitionTime: Duration,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(0, Duration.ZERO)
+}

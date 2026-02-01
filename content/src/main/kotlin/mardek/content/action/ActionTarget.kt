@@ -24,7 +24,7 @@ sealed class ActionTarget {
 	 *
 	 * This method returns `null` when this target is missing, or is not supposed to be used as dialogue target.
 	 */
-	abstract fun getDisplayName(party: Array<PlayableCharacter?>): String?
+	abstract fun getDisplayName(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>): String?
 
 	/**
 	 * Gets the element of this action target, which should be used when the target is used in a dialogue/talk
@@ -32,7 +32,7 @@ sealed class ActionTarget {
 	 *
 	 * This method returns `null` when this target is missing, or does not have an element (e.g. save crystal).
 	 */
-	abstract fun getElement(party: Array<PlayableCharacter?>): Element?
+	abstract fun getElement(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>): Element?
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
@@ -48,6 +48,7 @@ sealed class ActionTarget {
 			ActionTargetWholeParty::class.java,
 			ActionTargetDialogueObject::class.java,
 			ActionTargetAreaCharacter::class.java,
+			ActionTargetDefaultDialogueObject::class.java,
 		)
 	}
 }
@@ -71,9 +72,13 @@ class ActionTargetPartyMember(
 
 	override fun hashCode() = index
 
-	override fun getDisplayName(party: Array<PlayableCharacter?>) = party[index]?.name
+	override fun getDisplayName(
+		defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>
+	) = party[index]?.name
 
-	override fun getElement(party: Array<PlayableCharacter?>) = party[index]?.element
+	override fun getElement(
+		defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>
+	) = party[index]?.element
 }
 
 /**
@@ -92,9 +97,9 @@ class ActionTargetPlayer(
 
 	override fun toString() = "Player($player)"
 
-	override fun getDisplayName(party: Array<PlayableCharacter?>) = player.name
+	override fun getDisplayName(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = player.name
 
-	override fun getElement(party: Array<PlayableCharacter?>) = player.element
+	override fun getElement(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = player.element
 }
 
 /**
@@ -104,9 +109,11 @@ class ActionTargetPlayer(
 class ActionTargetWholeParty : ActionTarget() {
 	override fun toString() = "WholeParty"
 
-	override fun getDisplayName(party: Array<PlayableCharacter?>) = "everyone"
+	override fun getDisplayName(
+		defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>
+	) = "everyone"
 
-	override fun getElement(party: Array<PlayableCharacter?>) = null
+	override fun getElement(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = null
 }
 
 /**
@@ -127,9 +134,11 @@ class ActionTargetDialogueObject(
 
 	override fun toString() = "DialogueObject($displayName)"
 
-	override fun getDisplayName(party: Array<PlayableCharacter?>) = displayName
+	override fun getDisplayName(
+		defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>
+	) = displayName
 
-	override fun getElement(party: Array<PlayableCharacter?>) = null
+	override fun getElement(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = null
 }
 
 /**
@@ -161,9 +170,13 @@ class ActionTargetAreaCharacter(
 
 	override fun toString() = "AreaCharacter($character ($characterID))"
 
-	override fun getDisplayName(party: Array<PlayableCharacter?>) = character.name
+	override fun getDisplayName(
+		defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>
+	) = character.name
 
-	override fun getElement(party: Array<PlayableCharacter?>) = character.element
+	override fun getElement(
+		defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>
+	) = character.element
 
 	/**
 	 * This method initializes `character` to the `AreaCharacter` whose ID is `AreaCharacter`. This method should only
@@ -172,4 +185,43 @@ class ActionTargetAreaCharacter(
 	fun resolve(mapping: Map<UUID, AreaCharacter>) {
 		this.character = mapping[characterID]!!
 	}
+}
+
+/**
+ * This is a special target that can only be used when the player is interacting with an area object or character.
+ * This target will refer to that area object.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionTargetDefaultDialogueObject : ActionTarget() {
+
+	override fun getDisplayName(
+		defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>
+	) = defaultObject!!.displayName
+
+	override fun getElement(
+		defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>
+	) = defaultObject!!.element
+}
+
+/**
+ * This class stores all the data needed by [ActionTargetDefaultDialogueObject]. An instance of this class is stored
+ * in `AreaActionsState`.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionTargetData(
+	/**
+	 * The display name that will be returned by [ActionTargetDefaultDialogueObject.getDisplayName]
+	 */
+	@BitField(id = 0)
+	val displayName: String,
+
+	/**
+	 * The element that will be returned by [ActionTargetDefaultDialogueObject.getElement]
+	 */
+	@BitField(id = 1, optional = true)
+	@ReferenceField(stable = true, label = "elements")
+	val element: Element?,
+) {
+	@Suppress("unused")
+	private constructor() : this("", null)
 }

@@ -6,6 +6,7 @@ import mardek.content.action.ActionHealParty
 import mardek.content.action.ActionParallel
 import mardek.content.action.ActionPlaySound
 import mardek.content.action.ActionRotate
+import mardek.content.action.ActionSetOverlayColor
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetAreaCharacter
 import mardek.content.action.ActionTargetPartyMember
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import org.junit.jupiter.api.fail
 import java.util.UUID
@@ -132,7 +134,7 @@ class TestAreaActionsState {
 		val context = createUpdateContext(
 			10.milliseconds, partyPositions = partyPositions, partyDirections = partyDirections
 		)
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 		postEvent(actions, context.input, InputKeyEvent(
 			InputKey.MoveDown, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key shouldn't have any effect
@@ -215,7 +217,7 @@ class TestAreaActionsState {
 			next = null,
 		)
 
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 
 		val context = createUpdateContext(1.milliseconds, characterStates = characterStates)
 		repeat(495) {
@@ -294,7 +296,7 @@ class TestAreaActionsState {
 			InputKey.Interact, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key BEFORE THE DIALOGUE shouldn't have any effect
 
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 		update(actions, context)
 
 		repeat(200) {
@@ -365,7 +367,7 @@ class TestAreaActionsState {
 			InputKey.Cancel, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing Q (cancel) should cause the dialogue to be skipped
 
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 
 		// Holding Q for 3 seconds should be more than enough
 		repeat(300) {
@@ -400,7 +402,7 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(10.milliseconds)
 
 		assertEquals(0L, actions.lastFlashTime)
@@ -443,7 +445,7 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 
 		val context = createUpdateContext(10.milliseconds)
 
@@ -475,7 +477,7 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 
 		var numHeals = 0
 		val context = createUpdateContext(10.milliseconds) { numHeals += 1 }
@@ -509,7 +511,7 @@ class TestAreaActionsState {
 			)
 		)
 
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(10.milliseconds)
 
 		context.input.postEvent(InputKeyEvent(
@@ -577,7 +579,7 @@ class TestAreaActionsState {
 
 		val context = createUpdateContext(1.seconds, characterStates = characterStates)
 
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 
 		val beforeUpdate = System.nanoTime()
 		update(actions, context)
@@ -612,7 +614,7 @@ class TestAreaActionsState {
 			next = null,
 		)
 		val characterStates = mutableMapOf(Pair(princess, initialPrincessState))
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 
 		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
 
@@ -678,7 +680,7 @@ class TestAreaActionsState {
 			Pair(princess, initialPrincessState),
 			Pair(dragon, initialDragonState),
 		)
-		val actions = AreaActionsState(rootNode)
+		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
 
 		// The dragon should need 6 seconds to reach its destination
@@ -723,6 +725,72 @@ class TestAreaActionsState {
 			direction = Direction.Left,
 			next = null
 		), characterStates[princess])
+		assertNull(actions.node)
+	}
+
+	@Test
+	fun testSetOverlayColor() {
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionWalk(
+				target = ActionTargetWholeParty(),
+				destinationX = 5,
+				destinationY = 0,
+				speed = WalkSpeed.Normal,
+			),
+			next = FixedActionNode(
+				id = UUID.randomUUID(),
+				action = ActionSetOverlayColor(
+					color = 1234, transitionTime = 300.milliseconds
+				),
+				next = FixedActionNode(
+					id = UUID.randomUUID(),
+					action = ActionWalk(
+						target = ActionTargetWholeParty(),
+						destinationX = 0,
+						destinationY = 0,
+						speed = WalkSpeed.Normal,
+					),
+					next = FixedActionNode(
+						id = UUID.randomUUID(),
+						action = ActionSetOverlayColor(color = 0, transitionTime = 1.seconds),
+						next = null,
+					),
+				),
+			),
+		)
+
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(10.milliseconds)
+
+		repeat(100) {
+			update(actions, context)
+			assertEquals(Duration.ZERO, actions.startOverlayTransitionTime)
+			assertEquals(0, actions.overlayColor)
+			assertInstanceOf<ActionWalk>((actions.node as FixedActionNode).action)
+		}
+
+		repeat(30) {
+			update(actions, context)
+			assertEquals(1.seconds, actions.startOverlayTransitionTime)
+			assertEquals(0, actions.overlayColor)
+			assertInstanceOf<ActionSetOverlayColor>((actions.node as FixedActionNode).action)
+		}
+
+		repeat(100) {
+			update(actions, context)
+			assertEquals(1234, actions.overlayColor)
+			assertInstanceOf<ActionWalk>((actions.node as FixedActionNode).action)
+		}
+
+		repeat(100) {
+			update(actions, context)
+			assertEquals(2300.milliseconds, actions.startOverlayTransitionTime)
+			assertEquals(1234, actions.overlayColor)
+			assertInstanceOf<ActionSetOverlayColor>((actions.node as FixedActionNode).action)
+		}
+
+		update(actions, context)
 		assertNull(actions.node)
 	}
 }

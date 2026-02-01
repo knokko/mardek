@@ -241,11 +241,11 @@ class DefinedVariableTimelineCondition(
 	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "timeline variables")
-	val variable: TimelineVariable<Unit>,
+	val variable: TimelineVariable<*>,
 ) : TimelineExpression<Boolean>() {
 
 	@Suppress("unused")
-	private constructor() : this(FixedTimelineVariable())
+	private constructor() : this(FixedTimelineVariable<Unit>())
 
 	override fun toString() = "($variable is defined)"
 }

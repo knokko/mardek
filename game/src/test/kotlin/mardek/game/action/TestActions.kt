@@ -1,7 +1,7 @@
 package mardek.game.action
 
 import mardek.content.action.ActionTalk
-import mardek.content.action.ActionTargetDialogueObject
+import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.ActionToArea
 import mardek.content.action.FixedActionNode
 import mardek.content.area.Direction
@@ -164,6 +164,7 @@ object TestActions {
 
 			(state.campaign.state as AreaState).suspension = AreaSuspensionActions(AreaActionsState(
 				node = FixedActionNode(id = UUID.randomUUID(), action = toHeroesDen, next = null),
+				defaultDialogueObject = null,
 			))
 
 			val context = GameStateUpdateContext(
@@ -247,7 +248,10 @@ object TestActions {
 			val node = suspension.actions.node as FixedActionNode
 			val action = node.action as ActionTalk
 			assertEquals("", action.expression)
-			assertEquals(ActionTargetDialogueObject("Advenshers"), action.speaker)
+			assertEquals(ActionTargetDefaultDialogueObject(), action.speaker)
+			assertEquals("Advenshers", action.speaker.getDisplayName(
+				suspension.actions.defaultDialogueObject, state.campaign.party
+			))
 			assertTrue(action.text.startsWith("It's a scrapbook containing Mardek and Deugan's"))
 
 			// Test that this doesn't crash

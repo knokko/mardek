@@ -68,6 +68,7 @@ internal fun renderCurrentArea(
 	renderChestLoot(areaContext)
 	renderDialogue(areaContext)
 	renderActionFlash(areaContext)
+	renderActionOverlayColor(areaContext)
 	renderAreaFadeEffects(areaContext)
 	renderAreaIncomingBattleFlicker(areaContext)
 
