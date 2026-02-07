@@ -1,3 +1,4 @@
+import org.gradle.internal.os.OperatingSystem
 import proguard.gradle.ProGuardTask
 
 apply plugin: "com.gradleup.shadow"
@@ -81,6 +82,12 @@ tasks.register("run", JavaExec) {
 
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.game.MardekGameKt"
+
+	if (OperatingSystem.current().isMacOsX()) {
+		jvmArgs "-XstartOnFirstThread"
+		systemProperty "org.lwjgl.librarypath", "/usr/local/lib"
+		systemProperty "org.lwjgl.vulkan.libname", "libvulkan.1.dylib"
+	}
 }
 
 tasks.register("runBasicValidation", JavaExec) {
@@ -90,6 +97,12 @@ tasks.register("runBasicValidation", JavaExec) {
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.game.MardekGameKt"
 	args "basic-validation"
+
+	if (OperatingSystem.current().isMacOsX()) {
+		jvmArgs "-XstartOnFirstThread"
+		systemProperty "org.lwjgl.librarypath", "/usr/local/lib"
+		systemProperty "org.lwjgl.vulkan.libname", "libvulkan.1.dylib"
+	}
 }
 
 tasks.register("runGpuValidation", JavaExec) {
@@ -99,4 +112,10 @@ tasks.register("runGpuValidation", JavaExec) {
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.game.MardekGameKt"
 	args "gpu-validation"
+
+	if (OperatingSystem.current().isMacOsX()) {
+		jvmArgs "-XstartOnFirstThread"
+		systemProperty "org.lwjgl.librarypath", "/usr/local/lib"
+		systemProperty "org.lwjgl.vulkan.libname", "libvulkan.1.dylib"
+	}
 }
