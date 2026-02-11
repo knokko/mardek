@@ -3,7 +3,9 @@ package mardek.content.portrait
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.stats.Element
+import java.util.UUID
 
 /**
  * A portrait info entry extracted from the DoAction script of frame 1729 (_portrait)
@@ -93,11 +95,19 @@ class PortraitInfo(
 	@BitField(id = 12, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	val elementalBackground: Element?,
+
+	/**
+	 * The unique ID of this portrait, which is used for (de)serialization
+	 */
+	@BitField(id = 13)
+	@StableReferenceFieldId
+	val id: UUID,
 ) {
 
 	constructor() : this(
 		"", "", "", "", "", "", "",
-		"", null, null, "", null, null
+		"", null, null, "", null, null,
+		UUID(0, 0),
 	)
 
 	override fun toString() = "Portrait($flashName)"

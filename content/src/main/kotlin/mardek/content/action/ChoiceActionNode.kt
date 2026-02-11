@@ -26,22 +26,16 @@ class ChoiceActionNode(
 	val speaker: ActionTarget,
 
 	/**
-	 * The portrait expression (e.g. "norm" or "susp")
-	 */
-	@BitField(id = 1)
-	val expression: String,
-
-	/**
 	 * The options from which the player can choose
 	 */
-	@BitField(id = 2)
+	@BitField(id = 1)
 	val options: Array<ChoiceEntry>,
 ) : ActionNode(id) {
 
 	@Suppress("unused")
 	private constructor() : this(
-		UUID(0, 0), ActionTargetPartyMember(),
-		"", emptyArray(),
+		UUID(0, 0),
+		ActionTargetPartyMember(), emptyArray(),
 	)
 }
 
@@ -52,15 +46,21 @@ class ChoiceActionNode(
 class ChoiceEntry(
 
 	/**
-	 * The text of this dialogue choice option
+	 * The portrait expression (e.g. "norm" or "susp")
 	 */
 	@BitField(id = 0)
+	val expression: String,
+
+	/**
+	 * The text of this dialogue choice option
+	 */
+	@BitField(id = 1)
 	val text: String,
 
 	/**
 	 * The next action node *when this option is chosen*. When `null`, choosing this option ends the dialogue.
 	 */
-	@BitField(id = 1, optional = true)
+	@BitField(id = 2, optional = true)
 	@ClassField(root = ActionNode::class)
 	@ReferenceFieldTarget(label = "action nodes")
 	val next: ActionNode?,
@@ -68,7 +68,7 @@ class ChoiceEntry(
 	/**
 	 * This option is only visible/selectable when this condition evaluates to true.
 	 */
-	@BitField(id = 2)
+	@BitField(id = 3)
 	@ClassField(root = TimelineExpression::class)
 	val condition: TimelineExpression<Boolean> = ConstantTimelineExpression(
 		TimelineBooleanValue(true)
@@ -76,7 +76,7 @@ class ChoiceEntry(
 ) {
 
 	@Suppress("unused")
-	private constructor() : this("", null)
+	private constructor() : this("", "", null)
 
 	override fun toString() = "Choice($text)"
 }

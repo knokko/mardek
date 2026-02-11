@@ -42,7 +42,9 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				if (it.index == actions.selectedChoice) text = "$$text%"
 				text
 			}
-			talkAction = ActionTalk(actionNode.speaker, actionNode.expression, combinedText)
+			talkAction = ActionTalk(
+				actionNode.speaker, actions.choiceOptions[actions.selectedChoice].expression, combinedText
+			)
 		}
 
 		if (talkAction == null) return
@@ -51,6 +53,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			is ActionTargetPlayer -> speaker.player.portraitInfo
 			is ActionTargetPartyMember -> context.campaign.party[speaker.index]?.portraitInfo
 			is ActionTargetAreaCharacter -> speaker.character.portrait
+			is ActionTargetDefaultDialogueObject -> actions.defaultDialogueObject?.portraitInfo
 			else -> null
 		}
 

@@ -166,13 +166,23 @@ class AreaState(
 		}
 
 		for (character in area.objects.characters) {
-			if (character.startX != x || character.startY != y) continue
-			val actionSequence = character.actionSequence
-			if (actionSequence != null) {
-				suspension = AreaSuspensionActions(AreaActionsState(
-					actionSequence.root,
-					ActionTargetData(character.name, character.element),
+			val characterState = characterStates[character] ?: continue
+			if (characterState.next != null || characterState.x != x || characterState.y != y) continue
+			val rootAction = character.sharedActionSequence?.root ?: character.ownActions
+			if (rootAction != null) {
+				val newSuspension = AreaSuspensionActions(AreaActionsState(
+					rootAction, ActionTargetData(
+						character.name, character.element, character.portrait
+					)
 				))
+
+				val overrideDirection = Direction.bestDelta(
+					playerPositions[0].x - x, playerPositions[0].y - y
+				)!!
+				newSuspension.actions.overrideCharacterStates[character] = AreaCharacterState(
+					x = x, y = y, direction = overrideDirection, next = null
+				)
+				suspension = newSuspension
 				return
 			} else {
 				println("interact with $character")
@@ -186,7 +196,7 @@ class AreaState(
 			if (rootAction != null) {
 				suspension = AreaSuspensionActions(AreaActionsState(
 					rootAction, ActionTargetData(
-						decoration.displayName ?: "ERROR", null
+						decoration.displayName ?: "ERROR", null, null
 					)
 				))
 				return
@@ -202,7 +212,7 @@ class AreaState(
 				} else {
 					AreaSuspensionActions(AreaActionsState(
 						door.cannotOpenActions!!.root, ActionTargetData(
-							door.displayName, null
+							door.displayName, null, null
 						)
 					))
 				}
@@ -231,7 +241,14 @@ class AreaState(
 	 * Gets the current state (position, rotation, etc...) of the given `AreaCharacter`, or `null` if the character is
 	 * currently not present.
 	 */
-	fun getCharacterState(character: AreaCharacter) = characterStates[character]
+	fun getCharacterState(character: AreaCharacter): AreaCharacterState? {
+		val suspension = this.suspension
+		if (suspension is AreaSuspensionActions) {
+			val overrideStates = suspension.actions.overrideCharacterStates
+			if (overrideStates.containsKey(character)) return overrideStates[character]
+		}
+		return characterStates[character]
+	}
 
 	private fun findTransitions(x: Int, y: Int): TransitionDestination? {
 		for (portal in area.objects.portals) {
@@ -366,7 +383,7 @@ class AreaState(
 			if (triggerActions != null) {
 				suspension = AreaSuspensionActions(AreaActionsState(
 					triggerActions.root,
-					ActionTargetData(trigger.name, null),
+					ActionTargetData(trigger.name, null, null),
 				))
 			} else {
 				println("Hit flash trigger ${trigger.flashCode}")

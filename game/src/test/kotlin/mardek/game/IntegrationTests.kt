@@ -377,7 +377,6 @@ class IntegrationTests {
 		TestLocks.testShopsAreLockedAtNight(instance)
 		TestLocks.testSewerDoorIsLockedDuringChapter1(instance)
 		// TODO CHAP1 Test houses are open during the day
-		// TODO CHAP1 Fix epic bug where bitser overrules the timeline non-abstract descendant
 	}
 
 	@Test
@@ -385,5 +384,15 @@ class IntegrationTests {
 		TestLocks.testMardekHouseLockToDropDeugan(instance)
 	}
 
-	// TODO CHAP1 Test choice dialogue chat log
+	@Test
+	fun testGallovarChoiceDialogueChatLog() {
+		TestChatLog.testGallovarChoiceChapter1(instance)
+	}
+
+	@Test
+	fun testGeorgeBlockadeDuringChapter1Night() {
+		TestTimelines.testGeorgeBlockadeDuringChapter1Night(instance)
+		// TODO CHAP1 Test that George is not present during the day
+		// TODO CHAP2 Test that George is not present during the nights of chapter 2
+	}
 }

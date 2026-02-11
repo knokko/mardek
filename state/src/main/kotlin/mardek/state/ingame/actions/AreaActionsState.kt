@@ -95,6 +95,20 @@ class AreaActionsState(
 	var startOverlayTransitionTime = ZERO
 
 	/**
+	 * This map can be used to overrule the states of [AreaCharacter]s inside the area, until all actions are over.
+	 *
+	 * When this map contains an entry `(character, state)`, then `areaState.getCharacterState(character)` will return
+	 * `state`, even when `state` is `null`.
+	 *
+	 * This map is convenient for adding e.g. characters that should disappear after the action sequence is over, or
+	 * for temporarily moving/rotating characters, without risking that anything persists.
+	 */
+	@BitField(id = 6)
+	@NestedFieldSetting(path = "k", fieldName = "OVERRIDE_CHARACTER_STATES_KEYS")
+	@NestedFieldSetting(path = "v", optional = true)
+	val overrideCharacterStates = HashMap<AreaCharacter, AreaCharacterState?>()
+
+	/**
 	 * Whether the chat log should be shown during talk/dialogue actions.
 	 * The player can toggle this by pressing the L key.
 	 */
@@ -528,6 +542,11 @@ class AreaActionsState(
 			if (selectedChoice > 0 && key == InputKey.MoveUp) selectedChoice -= 1
 			if (selectedChoice < choiceOptions.size - 1 && key == InputKey.MoveDown) selectedChoice += 1
 			if (key == InputKey.Interact && !event.didRepeat) {
+				chatLog.add(ChatLogEntry(
+					speaker = currentNode.speaker.getDisplayName(defaultDialogueObject, context.party) ?: "",
+					speakerElement = currentNode.speaker.getElement(defaultDialogueObject, context.party),
+					text = choiceOptions[selectedChoice].text,
+				))
 				toNextNode(context.currentTime, choiceOptions[selectedChoice].next)
 			}
 		}
@@ -595,5 +614,9 @@ class AreaActionsState(
 
 	companion object {
 		const val FLASH_DURATION = 750_000_000L
+
+		@Suppress("unused")
+		@ReferenceField(stable = true, label = "area characters")
+		const val OVERRIDE_CHARACTER_STATES_KEYS = false
 	}
 }

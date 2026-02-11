@@ -20,28 +20,27 @@ internal fun hardcodeSaveCrystalActions(content: Content, hardcoded: Map<String,
 				next = FixedActionNode(
 					id = UUID.fromString("8d555bcd-9568-491d-81c8-8e5c663a0b00"),
 					action = ActionTalk(
-						speaker = ActionTargetDialogueObject("Save Crystal"),
+						speaker = ActionTargetDefaultDialogueObject(),
 						expression = "",
 						text = "A soothing light washes over you... Your wounds are healed. Would you like to save?",
 					),
 					next = ChoiceActionNode(
 						id = UUID.fromString("6c7a13b7-7242-4557-9926-104f71d5b6aa"),
 						speaker = ActionTargetPartyMember(0),
-						expression = "norm",
 						options = arrayOf(
-							ChoiceEntry(text = "Save...", next = FixedActionNode(
+							ChoiceEntry("norm", text = "Save...", next = FixedActionNode(
 								id = UUID.fromString("48cc1a8a-99d9-484d-984f-90d4c2de28aa"),
 								action = ActionSaveCampaign(),
 								next = null
 							)),
-							ChoiceEntry(text = "Item storage...", next = FixedActionNode(
+							ChoiceEntry("norm", text = "Item storage...", next = FixedActionNode(
 								id = UUID.fromString("80617055-9f71-40d3-b115-3786738c7377"),
 								action = ActionItemStorage(),
 								next = null
 							), condition = NegateTimelineCondition(DefinedVariableTimelineCondition(
 								content.story.fixedVariables.blockItemStorage
 							))),
-							ChoiceEntry(text = "Exit...", next = null)
+							ChoiceEntry("norm", text = "Exit...", next = null)
 						)
 					)
 				)

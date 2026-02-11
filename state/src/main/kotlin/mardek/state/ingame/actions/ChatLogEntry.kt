@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.stats.Element
+import mardek.state.saves.savesBitser
 
 /**
  * Represents an entry of [AreaActionsState.chatLog].
@@ -34,4 +35,10 @@ class ChatLogEntry(
 
 	@Suppress("unused")
 	private constructor() : this("", null, "")
+
+	override fun equals(other: Any?) = savesBitser.deepEquals(this, other)
+
+	override fun hashCode() = savesBitser.hashCode(this)
+
+	override fun toString() = "ChatLogEntry($speaker, $speakerElement, $text)"
 }

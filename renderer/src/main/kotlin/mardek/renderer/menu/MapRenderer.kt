@@ -51,7 +51,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 				)
 			}
 			for (element in area.objects.decorations) {
-				if (element.conversationName == "c_healingCrystal") {
+				if (element.sharedActionSequence?.name == "c_healingCrystal") { // TODO CHAP3 Find more reliable way
 					renderSpriteAtMap(element.x, element.y, context.content.ui.mapSaveCrystal)
 				}
 			}
@@ -146,7 +146,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 				putIfDiscovered(character.startX, character.startY, OBJECT_COLOR)
 			}
 			for (element in area.objects.decorations) {
-				if (element.conversationName == "c_healingCrystal" || element.canWalkThrough) continue
+				if (element.sharedActionSequence?.name == "c_healingCrystal" || element.canWalkThrough) continue
 				putIfDiscovered(element.x, element.y, OBJECT_COLOR)
 			}
 			for (portal in area.objects.portals) {

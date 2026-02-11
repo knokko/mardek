@@ -246,7 +246,7 @@ private fun chooseSkin(
 	}
 
 	if (special == SpecialAnimationNode.PortraitExpressions) {
-		return skinned.skins[context.portraitExpression!!]
+		return skinned.skins[context.portraitExpression!!.lowercase(Locale.ROOT)]
 	}
 
 	if (special == SpecialAnimationNode.PortraitFace) {

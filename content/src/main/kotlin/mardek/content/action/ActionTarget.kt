@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
+import mardek.content.portrait.PortraitInfo
 import mardek.content.stats.Element
 import java.util.UUID
 
@@ -189,7 +190,7 @@ class ActionTargetAreaCharacter(
 
 /**
  * This is a special target that can only be used when the player is interacting with an area object or character.
- * This target will refer to that area object.
+ * This target will refer to that area object/character.
  */
 @BitStruct(backwardCompatible = true)
 class ActionTargetDefaultDialogueObject : ActionTarget() {
@@ -221,7 +222,14 @@ class ActionTargetData(
 	@BitField(id = 1, optional = true)
 	@ReferenceField(stable = true, label = "elements")
 	val element: Element?,
+
+	/**
+	 * The portrait of this character (if present)
+	 */
+	@BitField(id = 2, optional = true)
+	@ReferenceField(stable = false, label = "portrait info")
+	val portraitInfo: PortraitInfo?,
 ) {
 	@Suppress("unused")
-	private constructor() : this("", null)
+	private constructor() : this("", null, null)
 }

@@ -64,40 +64,33 @@ class AreaDecoration(
 	val ownActions: ActionNode?,
 
 	/**
-	 * When the player should be able to interact with this decoration, this will be the 'conversation name' that was
-	 * imported from Flash. It is currently unused.
-	 */
-	@BitField(id = 5, optional = true)
-	val conversationName: String?,
-
-	/**
 	 * The action sequence that should be activated when the player interacts with this decoration, or `null` when the
 	 * player cannot interact with this decoration (or I haven't implemented it yet), or when `ownActions` is
 	 * used instead.
 	 *
 	 * This must be a reference to either an area action sequence, or to a global action sequence.
 	 */
-	@BitField(id = 6, optional = true)
+	@BitField(id = 5, optional = true)
 	@ReferenceField(stable = false, label = "action sequences")
 	val sharedActionSequence: ActionSequence?,
 
 	/**
 	 * When this object is a sign, this field determines which kind of sign.
 	 */
-	@BitField(id = 7, optional = true)
+	@BitField(id = 6, optional = true)
 	val signType: String?,
 
 	/**
 	 * The display name of this decoration, which is only used when the player starts a dialogue with this decoration.
 	 */
-	@BitField(id = 8, optional = true)
+	@BitField(id = 7, optional = true)
 	val displayName: String?,
 ) : StaticAreaObject(x, y) {
 
 	@Suppress("unused")
 	private constructor() : this(
 		0, 0, null, false, null, 1,
-		null, null, null, null, null,
+		null, null, null, null,
 	)
 
 	override fun toString() = "Decoration(x=$x, y=$y, sheet=${sprites?.flashName}, name=$displayName)"

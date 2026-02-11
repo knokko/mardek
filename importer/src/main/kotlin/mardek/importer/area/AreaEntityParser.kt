@@ -158,6 +158,7 @@ private fun attemptToExtractSimpleDialogue(
 		val ids = actions.indices.map {
 			UUID(baseID.mostSignificantBits - it, baseID.leastSignificantBits + it)
 		}.toTypedArray()
+		if (conversationList.isEmpty()) return null
 		return fixedActionChain(actions, ids)!!
 	}
 	return null
@@ -214,7 +215,6 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 				ownActions = attemptToExtractSimpleDialogue(
 					actionSequence, rawConversation, id,
 				),
-				conversationName = conversationName,
 				sharedActionSequence = actionSequence,
 				signType = null,
 				displayName = name,
@@ -247,7 +247,6 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			ownActions = attemptToExtractSimpleDialogue(
 				actionSequence, rawConversation, id,
 			),
-			conversationName = conversationName,
 			sharedActionSequence = actionSequence,
 			signType = signType,
 			displayName = name,
@@ -350,7 +349,6 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			ownActions = attemptToExtractSimpleDialogue(
 				actionSequence, rawConversation, id,
 			),
-			conversationName = conversationName,
 			sharedActionSequence = actionSequence,
 			signType = null,
 			displayName = name,
@@ -441,7 +439,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 	val elementName = if (rawElement != null) parseFlashString(rawElement, "element")!! else null
 	val element = if (elementName != null) context.content.stats.elements.find { it.rawName == elementName }!! else null
 
-	val portrait = context.content.portraits.info.find { it.flashName == model }
+	val portrait = context.content.portraits.info.find { it.flashName.equals(model, ignoreCase = true) }
 	var spritesheetName = "spritesheet_$model"
 	if (rawEntity["Static"] == "true" || rawEntity["Static"] == "1" || rawEntity.containsKey("FRAME")) {
 		var firstFrame = 2 * direction.ordinal
@@ -471,9 +469,10 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			walkSpeed = -2,
 			element = element,
 			portrait = portrait,
-			conversationName = conversationName,
-			rawConversation = rawConversation,
-			actionSequence = actionSequence,
+			ownActions = attemptToExtractSimpleDialogue(
+				actionSequence, rawConversation, id
+			),
+			sharedActionSequence = actionSequence,
 			encyclopediaPerson = null,
 			id = id,
 		)
@@ -500,9 +499,10 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		walkSpeed = parseInt(rawEntity["walkspeed"] ?: "-2"),
 		element = element,
 		portrait = portrait,
-		conversationName = conversationName,
-		rawConversation = rawConversation,
-		actionSequence = actionSequence,
+		ownActions = attemptToExtractSimpleDialogue(
+			actionSequence, rawConversation, id
+		),
+		sharedActionSequence = actionSequence,
 		encyclopediaPerson = encyclopediaPerson,
 		id = id,
 	)

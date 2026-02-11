@@ -7,6 +7,7 @@ import mardek.importer.util.parseActionScriptCode
 import mardek.importer.util.parseActionScriptObject
 import java.lang.Integer.parseInt
 import java.util.Locale
+import java.util.UUID
 
 internal fun parsePortraitScript(content: Content, script: String) {
 	val code = parseActionScriptCode(script.split("\n"))
@@ -52,5 +53,6 @@ private fun parsePortraitInfo(content: Content, key: String, rawValue: String): 
 		ethnicitySkin = parseSkin("ethnicity") ?: "1",
 		voiceStyle = parseSkin("voice"),
 		elementalBackground = element,
+		id = UUID.nameUUIDFromBytes("portrait$key".encodeToByteArray()),
 	)
 }

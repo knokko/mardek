@@ -495,17 +495,15 @@ class TestAreaActionsState {
 		val rootNode = ChoiceActionNode(
 			id = UUID.randomUUID(),
 			speaker = ActionTargetPartyMember(1),
-			expression = "susp",
 			options = arrayOf(
-				ChoiceEntry(text = "shut up", next = null),
-				ChoiceEntry(text = "let's move on", next = null),
-				ChoiceEntry(text = "respond", next = ChoiceActionNode(
+				ChoiceEntry(expression = "susp", text = "shut up", next = null),
+				ChoiceEntry(expression = "susp", text = "let's move on", next = null),
+				ChoiceEntry(expression = "susp", text = "respond", next = ChoiceActionNode(
 					id = UUID.randomUUID(),
 					speaker = ActionTargetPartyMember(0),
-					expression = "norm",
 					options = arrayOf(
-						ChoiceEntry(text = "hello to you", next = null),
-						ChoiceEntry(text = "let's kill some zombies", next = null),
+						ChoiceEntry(expression = "norm", text = "hello to you", next = null),
+						ChoiceEntry(expression = "norm", text = "let's kill some zombies", next = null),
 					)
 				)),
 			)

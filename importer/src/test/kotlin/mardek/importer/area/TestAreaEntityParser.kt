@@ -3,7 +3,6 @@ package mardek.importer.area
 import com.github.knokko.bitser.Bitser
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDefaultDialogueObject
-import mardek.content.action.ActionTargetDialogueObject
 import mardek.content.action.FixedActionNode
 import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Direction
@@ -225,7 +224,6 @@ class TestAreaEntityParser {
 			light = null,
 			timePerFrame = 200,
 			ownActions = null,
-			conversationName = "c_healingCrystal",
 			sharedActionSequence = content.actions.global.find { it.name == "c_healingCrystal" }!!,
 			signType = null,
 			displayName = "Save Crystal",
@@ -310,9 +308,8 @@ class TestAreaEntityParser {
 			walkSpeed = -2,
 			element = content.stats.elements.find { it.rawName == "DARK" }!!,
 			portrait = null,
-			conversationName = null,
-			rawConversation = "[]",
-			actionSequence = null,
+			ownActions = null,
+			sharedActionSequence = null,
 			encyclopediaPerson = null,
 			id = id,
 		)
@@ -333,9 +330,8 @@ class TestAreaEntityParser {
 			walkSpeed = -2,
 			element = content.stats.elements.find { it.rawName == "EARTH" }!!,
 			portrait = null,
-			conversationName = "c_GdM_Moric",
-			rawConversation = null,
-			actionSequence = null,
+			ownActions = null, // TODO CHAP2 Test the right actions
+			sharedActionSequence = null,
 			encyclopediaPerson = null,
 			id = actual.id,
 		)
@@ -355,9 +351,8 @@ class TestAreaEntityParser {
 			walkSpeed = -1,
 			element = content.stats.elements.find { it.rawName == "AIR" }!!,
 			portrait = null, // Portraits are tested in IntegrationTests.testAreaCharacterPortraitImporting
-			conversationName = "c_priestess",
-			rawConversation = null,
-			actionSequence = null,
+			ownActions = null, // TODO CHAP3 Fix this dialogue
+			sharedActionSequence = null,
 			encyclopediaPerson = "Priestess Gail",
 			id = actual.id,
 		)
@@ -429,9 +424,8 @@ class TestAreaEntityParser {
 			walkSpeed = -2,
 			element = null,
 			portrait = null,
-			conversationName = null,
-			rawConversation = "[statueFlavour]",
-			actionSequence = null,
+			ownActions = null,
+			sharedActionSequence = null, // TODO CHAP2 Implement this
 			encyclopediaPerson = null,
 			id = actual.id,
 		)
@@ -543,7 +537,6 @@ class TestAreaEntityParser {
 			canWalkThrough = false,
 			light = null,
 			timePerFrame = 200,
-			conversationName = null,
 			ownActions = actual.ownActions!!,
 			sharedActionSequence = null,
 			signType = null,
@@ -569,7 +562,6 @@ class TestAreaEntityParser {
 			light = null,
 			timePerFrame = 200,
 			ownActions = actual.ownActions!!,
-			conversationName = null,
 			sharedActionSequence = null,
 			signType = null,
 			displayName = "Portal",
@@ -605,7 +597,6 @@ class TestAreaEntityParser {
 			light = null,
 			timePerFrame = 1,
 			ownActions = actual.ownActions!!,
-			conversationName = null,
 			sharedActionSequence = null,
 			signType = null,
 			displayName = "Deities: What ARE they?",
@@ -656,8 +647,7 @@ class TestAreaEntityParser {
 			canWalkThrough = true,
 			light = null,
 			timePerFrame = 1,
-			ownActions = null,
-			conversationName = "c_lakeQur",
+			ownActions = null, // TODO CHAP2 Implement this
 			sharedActionSequence = null,
 			signType = null,
 			displayName = "Water",

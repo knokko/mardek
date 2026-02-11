@@ -2,10 +2,13 @@ package mardek.content.area.objects
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.BITSER
+import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
 import mardek.content.area.Direction
 import mardek.content.portrait.PortraitInfo
@@ -101,36 +104,35 @@ class AreaCharacter(
 	val portrait: PortraitInfo?,
 
 	/**
-	 * The 'conversation name' that was imported from Flash. It is currently unused.
+	 * The action that should be activated when the player interacts with this character, or `null` when
+	 * `sharedActionSequence` should be used instead (or `null` when it's not yet properly imported).
 	 */
 	@BitField(id = 9, optional = true)
-	val conversationName: String?,
+	@ClassField(root = ActionNode::class)
+	@ReferenceFieldTarget(label = "action nodes")
+	val ownActions: ActionNode?,
 
 	/**
-	 * The 'conversation' that was imported from Flash. It is currently unused.
+	 * The action sequence that should be activated when the player interacts with this character, or `null` when
+	 * `ownActions` should be used instead (or `null` when it's not yet properly imported).
+	 *
+	 * This must be a reference to either an area action sequence, or to a global action sequence.
 	 */
 	@BitField(id = 10, optional = true)
-	val rawConversation: String?, // TODO CHAP1 Work this out later
-
-	/**
-	 * The action sequence that should be activated when the player interacts with this character. Eventually, all
-	 * interactable objects should have an action sequence, but we aren't there yet (not even close).
-	 */
-	@BitField(id = 11, optional = true)
 	@ReferenceField(stable = false, label = "action sequences")
-	val actionSequence: ActionSequence?,
+	val sharedActionSequence: ActionSequence?,
 
 	/**
 	 * When `encyclopediaPerson` is non-null and the player interacts with this character, the character named
 	 * `encyclopediaPerson` should be added to the encyclopedia (unless already present).
 	 */
-	@BitField(id = 12, optional = true)
+	@BitField(id = 11, optional = true)
 	val encyclopediaPerson: String?,
 
 	/**
 	 * The unique ID of this character, which is used for (de)serialization
 	 */
-	@BitField(id = 13)
+	@BitField(id = 12)
 	@StableReferenceFieldId
 	val id: UUID,
 ) {
@@ -138,12 +140,12 @@ class AreaCharacter(
 	constructor() : this(
 		"", DirectionalSprites(), null, 0, 0, Direction.Down,
 		0, null, null, null, null,
-		null, null, UUID.randomUUID(),
+		null, UUID.randomUUID(),
 	)
 
 	init {
-		if (conversationName != null && rawConversation != null) {
-			throw IllegalArgumentException("At most 1 of conversionName and rawConversation can be non-null")
+		if (ownActions != null && sharedActionSequence != null) {
+			throw IllegalArgumentException("At most 1 of ownActions and sharedActionSequence can be non-null")
 		}
 		if ((directionalSprites == null) == (fixedSprites == null)) {
 			throw IllegalArgumentException("Exactly 1 of directionSprites and fixedSprites must be non-null")
@@ -155,8 +157,7 @@ class AreaCharacter(
 
 	override fun toString() = "Character($name, ${directionalSprites?.name ?: fixedSprites?.flashName}, " +
 			"x=$startX, y=$startY, direction=$startDirection, " +
-			"walkSpeed=$walkSpeed, element=$element, " +
-			"conversation=${conversationName ?: rawConversation}, person=$encyclopediaPerson)"
+			"walkSpeed=$walkSpeed, element=$element, person=$encyclopediaPerson)"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

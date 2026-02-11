@@ -31,10 +31,16 @@ internal fun renderChatLog(areaContext: AreaRenderContext, actions: AreaActionsS
 				entry.speaker, minTextX, textY,
 				heightA, baseFont, nameColor
 			)
+
+			var textX = minTextX + 0.003f * region.height
+			for (textChar in entry.speaker) {
+				val glyph = baseFont.getGlyphForChar(textChar.code)
+				textX += heightA * baseFont.getGlyphAdvance(glyph)
+			}
+
 			textY = renderDialogueLines(
 				": ${entry.text}", entry.text.length.toFloat() + 2f,
-				minTextX, region.minX + (0.01f + 0.014f * entry.speaker.length) * region.height,
-				region.maxX - 0.05f * region.height, textY, maxLineY,
+				minTextX, textX, region.maxX - 0.05f * region.height, textY, maxLineY,
 				heightA, lineSpacing, lineSpacing,
 				textBatch, baseFont, baseFont, baseColor, boldColor,
 				0, 0f
