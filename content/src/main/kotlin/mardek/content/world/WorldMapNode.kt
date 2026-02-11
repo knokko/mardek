@@ -68,7 +68,7 @@ class WorldMapNode(
 
 	constructor() : this(UUID(0, 0), 0, 0, emptyArray())
 
-	override fun toString() = if (entrances.isNotEmpty()) "dummy" else entrances[0].area.properties.displayName
+	override fun toString() = if (entrances.isEmpty()) "dummy" else entrances[0].area.properties.displayName
 
 	override fun postInit(context: BitPostInit.Context) {
 		wasDiscovered.debugName = "${entrances[0].area.properties.displayName} was discovered"
