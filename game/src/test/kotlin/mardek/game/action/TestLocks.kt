@@ -218,7 +218,7 @@ object TestLocks {
 	fun testMardekHouseLockToDropDeugan(instance: TestingInstance) {
 		instance.apply {
 			val goznorColors = arrayOf(
-				Color(77, 90, 95), // Water
+				Color(150, 100, 59), // Path
 				Color(104, 103, 42), // Grass
 			)
 			val mardekHairColor = arrayOf(Color(102, 38, 0))

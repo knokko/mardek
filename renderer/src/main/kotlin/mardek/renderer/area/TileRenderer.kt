@@ -62,9 +62,16 @@ internal fun renderTiles(areaContext: AreaRenderContext) {
 					}
 
 					val waterSprite = state.area.tilesheet.waterSprites[waterType.ordinal]
-					spriteBatch.draw(backgroundSprite, renderX, renderY, scale)
-					val opacity = if (waterType == WaterType.Water) 0.3f else 1f
-					spriteBatch.draw(waterSprite, renderX, renderY, scale, opacity = opacity)
+
+					if (waterType == WaterType.Water) {
+						simpleWaterBatch.draw(
+							backgroundSprite, waterSprite,
+							renderX, renderY, tileX, tileY,
+						)
+					} else {
+						spriteBatch.draw(backgroundSprite, renderX, renderY, scale)
+						spriteBatch.draw(waterSprite, renderX, renderY, scale)
+					}
 				}
 
 				val sprite = state.area.getTile(tileX, tileY).sprites.last()

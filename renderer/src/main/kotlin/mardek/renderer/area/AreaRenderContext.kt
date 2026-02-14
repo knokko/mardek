@@ -6,6 +6,7 @@ import com.github.knokko.vk2d.batch.Vk2dMultiplyBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import mardek.renderer.RenderContext
 import mardek.renderer.animation.AnimationPartBatch
+import mardek.renderer.area.water.SimpleWaterBatch
 import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
@@ -15,6 +16,7 @@ internal class AreaRenderContext(
 	val state: AreaState,
 	val scale: Int,
 	val region: Rectangle,
+	val simpleWaterBatch: SimpleWaterBatch,
 	val spriteBatch: AreaSpriteBatch,
 	val multiplyBatch: Vk2dMultiplyBatch,
 	val lateSpriteBatch: AreaSpriteBatch,
