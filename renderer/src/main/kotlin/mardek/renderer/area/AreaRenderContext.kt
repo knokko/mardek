@@ -1,13 +1,6 @@
 package mardek.renderer.area
 
-import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dImageBatch
-import com.github.knokko.vk2d.batch.Vk2dMultiplyBatch
-import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import mardek.renderer.RenderContext
-import mardek.renderer.animation.AnimationPartBatch
-import mardek.renderer.area.water.SimpleWaterBatch
-import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
 
@@ -16,16 +9,6 @@ internal class AreaRenderContext(
 	val state: AreaState,
 	val scale: Int,
 	val region: Rectangle,
-	val simpleWaterBatch: SimpleWaterBatch,
-	val spriteBatch: AreaSpriteBatch,
-	val multiplyBatch: Vk2dMultiplyBatch,
-	val lateSpriteBatch: AreaSpriteBatch,
-	val lightBatch: AreaLightBatch,
-	val portraitBatch: AnimationPartBatch,
-	val colorBatch: Vk2dColorBatch,
-	val imageBatch: Vk2dImageBatch,
-	val ovalBatch: Vk2dOvalBatch,
-	val textBatch: MardekGlyphBatch,
 	val scissorLeft: Int,
 	val scissor: Rectangle,
 ) {
@@ -35,4 +18,32 @@ internal class AreaRenderContext(
 	val tileSize = 16 * scale
 
 	val renderJobs = mutableListOf<SpriteRenderJob>()
+
+	val simpleWaterBatch = context.addSimpleWaterBatch(1000, scissor, scale)
+
+	/**
+	 * Used for all tiles and area characters
+	 */
+	val spriteBatch = context.addAreaSpriteBatch(3000, scissor)
+	val lightBatch = context.addAreaLightBatch(scissor)
+
+	/**
+	 * Used for area ambience
+	 */
+	val multiplyBatch = context.addMultiplyBatch(2)
+
+	/**
+	 * Used for rendering obtained gold
+	 */
+	val goldSpriteBatch = context.addAreaSpriteBatch(2, scissor)
+	val actionsImageBatch = context.addImageBatch(2)
+
+	/**
+	 * Used for chest loot and dialogues
+	 */
+	val uiColorBatch = context.addColorBatch(600)
+	val dialogueOvalBatch = context.addOvalBatch(24)
+	val dialogueElementBatch = context.addImageBatch(2)
+	val textBatch = context.addFancyTextBatch(1000)
+	val portraitBatch = context.addAnimationPartBatch(200)
 }

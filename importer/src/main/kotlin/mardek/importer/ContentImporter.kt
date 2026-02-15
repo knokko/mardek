@@ -49,7 +49,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	importStatsContent(content)
 	if (!skipMonsters) {
 		importPortraits(content)
-		importCutscenes(content.actions)
+		importCutscenes(content)
 	} else addDummyCutscenes(content.actions)
 	importSkillsContent(content)
 	val fatItemTypes = hardcodeItemTypes(content)
@@ -71,7 +71,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 
 	val startChapter1 = CampaignState()
 
-	val introCutscene = content.actions.cutscenes.find { it.get().name == "Chapter 1 intro" }!!
+	val introCutscene = content.actions.cutscenes.find { it.name == "Chapter 1 intro" }!!
 	val chapter1IntroSequence = run {
 		val targetMardek = ActionTargetPartyMember(0)
 		val targetDeugan = ActionTargetPartyMember(1)

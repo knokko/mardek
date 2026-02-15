@@ -90,7 +90,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		run {
 			val highColor = srgbToLinear(rgba(109, 91, 52, 242))
 			val lowColor = srgbToLinear(rgba(24, 14, 10, 230))
-			colorBatch.gradient(
+			uiColorBatch.gradient(
 				textRegion.minX, textRegion.minY, textRegion.maxX, textRegion.maxY,
 				lowColor, lowColor, highColor,
 			)
@@ -105,10 +105,10 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val minY = textRegion.minY + offset
 			val maxX = textRegion.maxX - offset
 			val maxY = textRegion.maxY - offset
-			colorBatch.fill(minX, minY, maxX, minY + lineWidth - 1, lineColor)
-			colorBatch.fill(minX, minY, minX + lineWidth - 1, maxY, lineColor)
-			colorBatch.fill(minX, maxY + 1 - lineWidth, maxX, maxY, lineColor)
-			colorBatch.fill(maxX + 1 - lineWidth, minY, maxX, maxY, lineColor)
+			uiColorBatch.fill(minX, minY, maxX, minY + lineWidth - 1, lineColor)
+			uiColorBatch.fill(minX, minY, minX + lineWidth - 1, maxY, lineColor)
+			uiColorBatch.fill(minX, maxY + 1 - lineWidth, maxX, maxY, lineColor)
+			uiColorBatch.fill(maxX + 1 - lineWidth, minY, maxX, maxY, lineColor)
 		}
 
 		val nameRegionHeight = region.height / 12
@@ -124,29 +124,29 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val diagonalX1 = nameRegion.maxX - nameRegion.height * 3
 			val diagonalHeight = region.height / 25
 			val diagonalX2 = diagonalX1 + diagonalHeight
-			colorBatch.fill(
+			uiColorBatch.fill(
 				nameRegion.minX, nameRegion.minY, diagonalX1 - 1,
 				nameRegion.minY + lineWidth - 1, borderColor,
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				nameRegion.minX, nameRegion.boundY - lineWidth,
 				nameRegion.maxX, nameRegion.maxY, borderColor,
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				nameRegion.minX, nameRegion.minY + lineWidth,
 				nameRegion.maxX, nameRegion.maxY - lineWidth, backgroundColor,
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				diagonalX2, nameRegion.minY - diagonalHeight,
 				nameRegion.maxX, nameRegion.minY + lineWidth - 1 - diagonalHeight, borderColor,
 			)
-			colorBatch.fillUnaligned(
+			uiColorBatch.fillUnaligned(
 				diagonalX1, nameRegion.minY + lineWidth,
 				diagonalX2, nameRegion.minY + lineWidth + 1 - diagonalHeight,
 				diagonalX2, nameRegion.minY - diagonalHeight,
 				diagonalX1, nameRegion.minY, borderColor,
 			)
-			colorBatch.fillUnaligned(
+			uiColorBatch.fillUnaligned(
 				diagonalX1 + 1, nameRegion.minY + lineWidth,
 				nameRegion.boundX, nameRegion.minY + lineWidth,
 				nameRegion.boundX, nameRegion.minY + lineWidth - diagonalHeight,
@@ -155,14 +155,14 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 
 			if (actions.showChatLog) {
 				val weakerBackgroundColor = multiplyAlpha(backgroundColor, 0.9f)
-				colorBatch.fillUnaligned(
+				uiColorBatch.fillUnaligned(
 					region.minX, nameRegion.minY,
 					diagonalX1, nameRegion.minY,
 					diagonalX2, nameRegion.minY - diagonalHeight,
 					region.minX, nameRegion.minY - diagonalHeight,
 					weakerBackgroundColor,
 				)
-				colorBatch.fill(
+				uiColorBatch.fill(
 					region.minX, region.minY, region.maxX, nameRegion.minY - diagonalHeight - 1,
 					weakerBackgroundColor
 				)
@@ -180,39 +180,39 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val shadowColor = rgb(0, 0, 0)
 			val shadowOffset = boxSize * 0.08f
 
-			colorBatch.fill(
+			uiColorBatch.fill(
 				x + boxRadius, boxY + borderWidth,
 				x + boxSize - 1 - boxRadius, boxY + boxSize - 1 - borderWidth,
 				boxColor,
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				x + borderWidth, boxY + boxRadius,
 				x + boxRadius - 1, boxY + boxSize - 1 - boxRadius,
 				boxColor
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				x + boxSize - boxRadius, boxY + boxRadius,
 				x + boxSize - 1 - borderWidth, boxY + boxSize - 1 - boxRadius,
 				boxColor
 			)
 
 			val borderColor = srgbToLinear(rgba(73, 52, 37, 150))
-			colorBatch.fill(
+			uiColorBatch.fill(
 				x, boxY + boxRadius,
 				x + borderWidth - 1, boxY + boxSize - boxRadius - 1,
 				borderColor,
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				x + boxSize - borderWidth, boxY + boxRadius,
 				x + boxSize - 1, boxY + boxSize - boxRadius - 1,
 				borderColor,
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				x + boxRadius, boxY,
 				x + boxSize - boxRadius - 1, boxY + borderWidth - 1,
 				borderColor,
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				x + boxRadius, boxY + boxSize - borderWidth,
 				x + boxSize - boxRadius - 1, boxY + boxSize - 1,
 				borderColor,
@@ -221,7 +221,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val r = boxRadius.toFloat()
 
 			fun renderQuarterOval(minX: Int, minY: Int, maxX: Int, maxY: Int, centerX: Float, centerY: Float) {
-				ovalBatch.complex(
+				dialogueOvalBatch.complex(
 					minX, minY, maxX, maxY, centerX, centerY, r, r,
 					boxColor, boxColor, borderColor, borderColor, 0,
 					cornerDistances[0], cornerDistances[1],
@@ -310,23 +310,23 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				boxX, boxY, boxSize, borderWidth, cornerRadius, cornerDistances,
 				darkColor, "E", "",
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				boxX + 5 * borderWidth / 2, boxY + 4 * borderWidth,
 				boxX + boxSize - 1 - 5 * borderWidth / 2, boxY + 5 * boxSize / 9, lightColor
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				boxX + 4 * borderWidth, boxY + 5 * borderWidth / 2,
 				boxX + boxSize - 1 - 4 * borderWidth, boxY + 4 * borderWidth - 1, lightColor
 			)
 
 			val radius = borderWidth * 1.5f
-			ovalBatch.aliased(
+			dialogueOvalBatch.aliased(
 				boxX + 5 * borderWidth / 2, boxY + 5 * borderWidth / 2,
 				boxX + 4 * borderWidth - 1, boxY + 4 * borderWidth - 1,
 				boxX + 4f * borderWidth, boxY + 4f * borderWidth,
 				radius, radius, lightColor,
 			)
-			ovalBatch.aliased(
+			dialogueOvalBatch.aliased(
 				boxX + boxSize - 4 * borderWidth - 1, boxY + 5 * borderWidth / 2,
 				boxX + boxSize - 5 * borderWidth / 2 - 1, boxY + 4 * borderWidth - 1,
 				boxX + boxSize - 4f * borderWidth, boxY + 4f * borderWidth,
@@ -347,7 +347,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				// TODO CHAP2 Find a less ugly way to handle this
 				val alpha = if (speakerElement.rawName == "DARK") 0.4f else 0.15f
 
-				imageBatch.coloredScale(
+				dialogueElementBatch.coloredScale(
 					textRegion.maxX - 1.2f * desiredHeight,
 					textRegion.maxY - 0.9f * textRegion.height,
 					scale, image.index, 0,

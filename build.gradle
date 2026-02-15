@@ -32,7 +32,7 @@ allprojects {
 	project.ext.lwjglVersion = "3.4.0"
 	project.ext.boilerVersion = "v5.2.0"
 	project.ext.compressorVersion = "v0.6.0"
-	project.ext.bitserVersion = "3526b6a08778fd199b73430a278cc2a53aa02b0b"
+	project.ext.bitserVersion = "2c504db38a38bacda8747cd3a4af9196fdfcbe84"
 	project.ext.lwjglNatives = [
 			"natives-linux", "natives-linux-arm32", "natives-linux-arm64",
 			"natives-linux-ppc64le", "natives-linux-riscv64", "natives-freebsd",

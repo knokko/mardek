@@ -1,14 +1,14 @@
 package mardek.content.action
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.SimpleLazyBits
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
-import com.github.knokko.bitser.field.ReferenceFieldTarget
+import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
-import mardek.content.animation.AnimationFrames
-import mardek.content.animation.AnimationSprite
-import mardek.content.animation.SkinnedAnimation
+import mardek.content.audio.SoundEffect
 import java.util.UUID
+import kotlin.time.Duration
 
 /**
  * A cutscene, for instance the chapter 1 intro cutscene
@@ -16,99 +16,58 @@ import java.util.UUID
 @BitStruct(backwardCompatible = true)
 class Cutscene(
 	/**
-	 * The name of the cutscene, which is useful for debugging and editing
+	 * The unique ID of the cutscene, which is used for (de)serialization
 	 */
 	@BitField(id = 0)
+	@StableReferenceFieldId
+	val id: UUID,
+
+	/**
+	 * The name of the cutscene, which is useful for debugging and editing
+	 */
+	@BitField(id = 1)
 	val name: String,
 
 	/**
-	 * The animation frames of this cutscene
-	 */
-	@BitField(id = 1)
-	val frames: AnimationFrames,
-
-	/**
-	 * The 'magic scale' of this cutscene. When the textures of this cutscene are imported from Flash, their width
-	 * and height are multiplied by `magicScale`. This is needed because the flash textures are SVGs, which are
-	 * converted to PNGs because this engine cannot handle SVGs. Using a larger `magicScale` will give a higher-quality
-	 * texture, but also requires more disk space and (video) memory.
-	 *
-	 * We need to remember this magic scale because the renderer needs it to interpret some transformations correctly.
+	 * The payload/content of this cutscene, which is *lazy* to reduce the loading time of the game
 	 */
 	@BitField(id = 2)
-	@IntegerField(expectUniform = false, minValue = 1)
-	val magicScale: Int,
+	val payload: SimpleLazyBits<CutscenePayload>,
 
 	/**
-	 * The name of the music track that should be played during the cutscene.
+	 * The sounds that should be played during this cutscene
 	 */
 	@BitField(id = 3)
-	val musicTrack: String,
-
-	/**
-	 * Some cutscenes (currently just the chapter 1 intro) have subtitles below the cutscene.
-	 */
-	@BitField(id = 4)
-	val subtitles: Array<TextEntry>,
-
-	/**
-	 * The unique ID of the cutscene, which is used for (de)serialization
-	 */
-	@BitField(id = 5)
-	@StableReferenceFieldId
-	val id: UUID,
+	val sounds: Array<SoundEntry>,
 ) {
-	/**
-	 * All animation sprites that are used by this cutscene
-	 */
-	@BitField(id = 6)
-	@ReferenceFieldTarget(label = "animation sprites")
-	val sprites = ArrayList<AnimationSprite>()
-
-	/**
-	 * All inner animations that are used by this cutscene
-	 */
-	@BitField(id = 7)
-	@ReferenceFieldTarget(label = "skinned animations")
-	val innerAnimations = ArrayList<SkinnedAnimation>()
 
 	internal constructor() : this(
-		"", AnimationFrames(), 0,
-		"", emptyArray(), UUID.randomUUID(),
+		UUID(0, 0), "",
+		SimpleLazyBits(CutscenePayload()), emptyArray(),
 	)
 
 	/**
-	 * Represents a text/subtitle under a cutscene
+	 * A sound effect that should be played after a fixed amount of time, since the start of the cutscene
 	 */
 	@BitStruct(backwardCompatible = true)
-	class TextEntry(
+	class SoundEntry(
 
 		/**
-		 * The first frame where this subtitle should be rendered. The renderer will keep rendering it until the next
-		 * `TextEntry` overwrites it.
+		 * The sound should be played at `cutsceneStartTime + delay`
 		 */
 		@BitField(id = 0)
-		@IntegerField(expectUniform = false, minValue = 1)
-		val frame: Int,
+		@IntegerField(expectUniform = false, minValue = 0)
+		val delay: Duration,
 
 		/**
-		 * The text of this subtitle entry
+		 * The sound effect to be played after the `delay`
 		 */
 		@BitField(id = 1)
-		val text: String,
-
-		/**
-		 * The subtitle index:
-		 * - 0 means on the bottom-left of the screen
-		 * - 1 means on the bottom-middle of the screen
-		 * - 2 means on the bottom-right of the screen
-		 */
-		@BitField(id = 2)
-		@IntegerField(expectUniform = true, minValue = 0, maxValue = 2, commonValues = [1])
-		val index: Int,
+		@ReferenceField(stable = false, label = "sound effects")
+		val sound: SoundEffect,
 	) {
 
 		@Suppress("unused")
-		private constructor() : this(0, "", 0)
+		private constructor() : this(Duration.ZERO, SoundEffect())
 	}
 }

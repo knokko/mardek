@@ -3,6 +3,9 @@ package mardek.renderer.area
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import mardek.renderer.RenderContext
+import mardek.renderer.area.ui.renderActionBackgroundImage
+import mardek.renderer.area.ui.renderActionFlash
+import mardek.renderer.area.ui.renderActionOverlayColor
 import mardek.renderer.area.ui.renderChestLoot
 import mardek.renderer.area.ui.renderDialogue
 import mardek.state.ingame.area.AreaState
@@ -39,23 +42,7 @@ internal fun renderCurrentArea(
 		scissor = Rectangle(region.minX + scissorLeft, region.minY, region.width - 2 * scissorLeft, region.height)
 	}
 
-	val simpleWaterBatch = context.addSimpleWaterBatch(1000, scissor, scale)
-	val spriteBatch = context.addAreaSpriteBatch(3000, scissor)
-	val multiplyBatch = context.addMultiplyBatch(2)
-	val lateSpriteBatch = context.addAreaSpriteBatch(2, scissor)
-	val lightBatch = context.addAreaLightBatch(scissor)
-	val colorBatch = context.addColorBatch(600)
-	val ovalBatch = context.addOvalBatch(24)
-	val imageBatch = context.addImageBatch(2)
-	val textBatch = context.addFancyTextBatch(1000)
-	val portraitBatch = context.addAnimationPartBatch(200)
-	val areaContext = AreaRenderContext(
-		context, state, scale, region,
-		simpleWaterBatch, spriteBatch, multiplyBatch,
-		lateSpriteBatch, lightBatch, portraitBatch,
-		colorBatch, imageBatch, ovalBatch, textBatch,
-		scissorLeft, scissor
-	)
+	val areaContext = AreaRenderContext(context, state, scale, region, scissorLeft, scissor)
 
 	collectAreaObjects(areaContext)
 	collectAreaCharacters(areaContext)
@@ -68,11 +55,12 @@ internal fun renderCurrentArea(
 	renderAreaLights(areaContext)
 	renderAreaAmbience(areaContext)
 	renderChestLoot(areaContext)
+	renderActionBackgroundImage(areaContext)
 	renderDialogue(areaContext)
 	renderActionFlash(areaContext)
 	renderActionOverlayColor(areaContext)
 	renderAreaFadeEffects(areaContext)
 	renderAreaIncomingBattleFlicker(areaContext)
 
-	return Pair(areaContext.colorBatch, areaContext.textBatch)
+	return Pair(areaContext.uiColorBatch, areaContext.textBatch)
 }

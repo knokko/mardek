@@ -18,7 +18,7 @@ internal fun renderCutscene(
 	context: RenderContext, actions: CampaignActionsState, action: ActionPlayCutscene,
 	renderTime: Long, region: Rectangle, createTextBatch: (capacity: Int) -> MardekGlyphBatch,
 ) {
-	val allFrames = action.cutscene.get().frames
+	val allFrames = action.cutscene.payload.get().frames
 	var remainingTime = renderTime - actions.currentNodeStartTime
 	var frameIndex = -1
 	for ((currentFrameIndex, frame) in allFrames.withIndex()) {
@@ -32,7 +32,7 @@ internal fun renderCutscene(
 	if (frameIndex == -1) {
 		actions.finishedAnimationNode = true
 	} else {
-		for (textEntry in action.cutscene.get().subtitles) {
+		for (textEntry in action.cutscene.payload.get().subtitles) {
 			if (frameIndex >= textEntry.frame) actions.cutsceneSubtitle = Pair(textEntry.index, textEntry.text)
 		}
 
@@ -51,7 +51,7 @@ internal fun renderCutscene(
 			renderRegion = region,
 			renderTime = renderTime,
 			referenceTime = actions.currentNodeStartTime,
-			magicScale = action.cutscene.get().magicScale,
+			magicScale = action.cutscene.payload.get().magicScale,
 			parentMatrix = Matrix3x2f().translate(
 				region.minX + 0.5f * (renderWidth - clippedWidth),
 				region.minY + 0.5f * (renderHeight - clippedHeight),

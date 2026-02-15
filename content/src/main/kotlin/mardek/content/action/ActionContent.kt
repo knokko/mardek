@@ -1,9 +1,9 @@
 package mardek.content.action
 
 import com.github.knokko.bitser.BitStruct
-import com.github.knokko.bitser.SimpleLazyBits
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import mardek.content.sprite.NamedSprite
 
 /**
  * This is the root of the *action*-related content, where *actions* can do many things, for instance:
@@ -33,5 +33,12 @@ class ActionContent {
      */
     @BitField(id = 1)
     @ReferenceFieldTarget(label = "cutscenes")
-    val cutscenes = ArrayList<SimpleLazyBits<Cutscene>>()
+    val cutscenes = ArrayList<Cutscene>()
+
+    /**
+     * This list contains all named BC images that can be used by [ActionSetBackgroundImage]s
+     */
+    @BitField(id = 2)
+    @ReferenceFieldTarget(label = "action background images")
+    val backgroundImages = ArrayList<NamedSprite>()
 }

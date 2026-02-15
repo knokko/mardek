@@ -3,6 +3,7 @@ package mardek.content.action
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
+import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 
 /**
@@ -23,10 +24,14 @@ class ActionSequence(
 	 * The root node (first node) of the action sequence
 	 */
 	@BitField(id = 1)
-	@ClassField(root = ActionNode::class)
-	@ReferenceFieldTarget(label = "action nodes")
+	@ReferenceField(stable = false, label = "action nodes")
 	val root: ActionNode,
 ) {
+	internal constructor() : this("", FixedActionNode())
+
+	@BitField(id = 2)
 	@Suppress("unused")
-	private constructor() : this("", FixedActionNode())
+	@ClassField(root = ActionNode::class)
+	@ReferenceFieldTarget(label = "action nodes")
+	private fun getAllNodes() = root.getAllChildNodes()
 }

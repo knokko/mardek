@@ -3,7 +3,7 @@ package mardek.content.action
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
-import com.github.knokko.bitser.field.ReferenceFieldTarget
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.story.ConstantTimelineExpression
 import mardek.content.story.TimelineBooleanValue
 import mardek.content.story.TimelineExpression
@@ -37,6 +37,8 @@ class ChoiceActionNode(
 		UUID(0, 0),
 		ActionTargetPartyMember(), emptyArray(),
 	)
+
+	override fun getDirectChildNodes() = options.mapNotNull { it.next }
 }
 
 /**
@@ -61,8 +63,7 @@ class ChoiceEntry(
 	 * The next action node *when this option is chosen*. When `null`, choosing this option ends the dialogue.
 	 */
 	@BitField(id = 2, optional = true)
-	@ClassField(root = ActionNode::class)
-	@ReferenceFieldTarget(label = "action nodes")
+	@ReferenceField(stable = false, label = "action nodes")
 	val next: ActionNode?,
 
 	/**

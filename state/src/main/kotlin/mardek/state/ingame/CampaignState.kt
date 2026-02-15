@@ -13,6 +13,7 @@ import com.github.knokko.bitser.options.WithParameter
 import mardek.content.Content
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionToArea
+import mardek.content.action.ActionToGlobalActions
 import mardek.content.action.FixedActionNode
 import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Chest
@@ -237,7 +238,7 @@ class CampaignState : BitPostInit {
 
 		val campaignActions = getCampaignActions()
 		if (campaignActions != null) {
-			campaignActions.update()
+			campaignActions.update(context.soundQueue, context.timeStep)
 			return
 		}
 
@@ -283,6 +284,12 @@ class CampaignState : BitPostInit {
 
 				is AreaSuspensionActions -> {
 					updateAreaActions(context, null, null, suspension.actions)
+					run {
+						val node = suspension.actions.node
+						if (node is FixedActionNode && node.action is ActionToGlobalActions) {
+							this.state = CampaignActionsState(node.next!!)
+						}
+					}
 
 					val currentState = this.state
 					if (currentState is AreaState) {
@@ -614,6 +621,11 @@ class CampaignState : BitPostInit {
 					}
 				}
 
+				if (suspension is AreaSuspensionActions) {
+					val overrideMusic = suspension.actions.overrideMusic
+					if (overrideMusic != null) return overrideMusic
+				}
+
 				story.evaluate(state.area.properties.musicTrack)
 			}
 
@@ -621,7 +633,7 @@ class CampaignState : BitPostInit {
 				when (val node = state.node) {
 					is FixedActionNode -> {
 						val action = node.action
-						if (action is ActionPlayCutscene) action.cutscene.get().musicTrack else null
+						if (action is ActionPlayCutscene) action.cutscene.payload.get().musicTrack else null
 					}
 					else -> null
 				}

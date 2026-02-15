@@ -213,6 +213,10 @@ class StoryState : BitPostInit {
 			}
 			return evaluate(expression.defaultOutput, nodes)
 		}
+		if (expression is IfElseTimelineExpression) {
+			return if (evaluate(expression.condition, nodes)) evaluate(expression.ifTrue, nodes)
+			else evaluate(expression.ifFalse, nodes)
+		}
 		if (expression is NegateTimelineCondition) {
 			@Suppress("UNCHECKED_CAST")
 			return !evaluate(expression.operand, nodes) as T

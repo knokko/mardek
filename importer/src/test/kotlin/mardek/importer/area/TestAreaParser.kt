@@ -8,6 +8,7 @@ import mardek.content.area.*
 import mardek.content.battle.PartyLayoutPosition
 import mardek.content.inventory.ItemStack
 import mardek.content.story.*
+import mardek.importer.actions.addDummyCutscenes
 import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
@@ -37,6 +38,7 @@ class TestAreaParser {
 	private val content = Content()
 
 	init {
+		addDummyCutscenes(content.actions)
 		importAudioContent(content.audio)
 		importParticleEffects(content)
 		importStatsContent(content)

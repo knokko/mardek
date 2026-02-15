@@ -153,6 +153,15 @@ class ActionTargetAreaCharacter(
 	 * and use `ActionTargetAreaCharacter.resolve(content)` to resolve the ID...
 	 */
 	private val characterID: UUID,
+
+	/**
+	 * When this target is moved or rotated during an [ActionWalk] or [ActionRotate], this field determines whether the
+	 * movement or rotation *persists* after the current `AreaActionsState` is finished.
+	 *
+	 * When this is `false`, the movement and rotations will be 'rolled back' after the `AreaActionsState` is over.
+	 */
+	@BitField(id = 1)
+	val persistent: Boolean = true,
 ) : ActionTarget() {
 
 	constructor(character: AreaCharacter) : this() {

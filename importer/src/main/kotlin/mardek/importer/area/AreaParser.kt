@@ -182,6 +182,12 @@ fun timeOfDayMusic(content: Content, dayMusic: String) = ExpressionOrDefaultTime
 	ConstantTimelineExpression(TimelineOptionalStringValue(dayMusic))
 )
 
+fun onlyDayMusic(content: Content, dayMusic: String) = IfElseTimelineExpression(
+	DefinedVariableTimelineCondition(content.story.customVariables.find { it.name == "TimeOfDay" }!!),
+	ConstantTimelineExpression(TimelineOptionalStringValue(null)),
+	ConstantTimelineExpression(TimelineOptionalStringValue(dayMusic)),
+)
+
 @Suppress("UNCHECKED_CAST")
 private fun parseMusicTrack(content: Content, raw: String): TimelineExpression<String?> {
 	if (raw == "\"none\"") return ConstantTimelineExpression(TimelineOptionalStringValue(null))
@@ -232,7 +238,7 @@ private fun parseMusicTrack(content: Content, raw: String): TimelineExpression<S
 		return timeOfDayMusic(content, "WorldMap")
 	}
 	if (raw == "!GameData.plotVars.SUNSET ? \"Goznor\" : \"none\"") {
-		return timeOfDayMusic(content, "Goznor")
+		return onlyDayMusic(content, "Goznor")
 	}
 	if (raw == "GoznorMusicExpression") {
 		// TODO CHAP2 Change to "EvilStirs" during zombie outbreak

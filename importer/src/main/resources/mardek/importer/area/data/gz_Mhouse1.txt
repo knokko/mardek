@@ -11,7 +11,8 @@ dungeon = null;
 A_sprites = [
     {name:"Stairs Up",model:"DOOR0",x:6,y:0,dest:["gz_Mhouse2",3,5]},
     {name:"EXIT",model:"DOOR0",x:4,y:6,dest:["goznor",5,21]},
-    {name:"Lilanea",model:"lilanea",x:3,y:2,walkspeed:-2,dir:"w",elem:"AIR",EN:["People","Lilanea"],conv:"mother"}
+    {name:"Lilanea",model:"lilanea",x:3,y:2,walkspeed:-2,dir:"w",elem:"AIR",EN:["People","Lilanea"],conv:"mother",uuid:3993b751-bd8c-46a1-92ae-18bbda25aa48},
+    {name:"WALK_TRIGGER",model:"_trigger",x:4,y:5,WALKON:true,actionSequence:AfterDragonLair,timelineCondition:RightAfterDragonLair,uuid:13ee901f-9ade-4915-95e4-0916f0d1861a}
 ];
 if(GameData.CHAPTER == 1)
 {

@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
@@ -108,8 +109,7 @@ class AreaCharacter(
 	 * `sharedActionSequence` should be used instead (or `null` when it's not yet properly imported).
 	 */
 	@BitField(id = 9, optional = true)
-	@ClassField(root = ActionNode::class)
-	@ReferenceFieldTarget(label = "action nodes")
+	@ReferenceField(stable = false, label = "action nodes")
 	val ownActions: ActionNode?,
 
 	/**
@@ -162,4 +162,11 @@ class AreaCharacter(
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
 	override fun hashCode() = id.hashCode()
+
+	@BitField(id = 13)
+	@Suppress("unused")
+	@ClassField(root = ActionNode::class)
+	@ReferenceFieldTarget(label = "action nodes")
+	@NestedFieldSetting(path = "", optional = true)
+	private fun getAllActionNodes() = ownActions?.getAllChildNodes()
 }

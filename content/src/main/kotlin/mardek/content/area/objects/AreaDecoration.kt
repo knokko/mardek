@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.action.ActionNode
@@ -59,8 +60,7 @@ class AreaDecoration(
 	 * This action node is 'owned' by this decoration, and *not* shared with anything else.
 	 */
 	@BitField(id = 4, optional = true)
-	@ClassField(root = ActionNode::class)
-	@ReferenceFieldTarget(label = "action nodes")
+	@ReferenceField(stable = false, label = "action nodes")
 	val ownActions: ActionNode?,
 
 	/**
@@ -94,4 +94,11 @@ class AreaDecoration(
 	)
 
 	override fun toString() = "Decoration(x=$x, y=$y, sheet=${sprites?.flashName}, name=$displayName)"
+
+	@BitField(id = 8)
+	@Suppress("unused")
+	@ClassField(root = ActionNode::class)
+	@ReferenceFieldTarget(label = "action nodes")
+	@NestedFieldSetting(path = "", optional = true)
+	private fun getAllActionNodes() = ownActions?.getAllChildNodes()
 }

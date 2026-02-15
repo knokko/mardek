@@ -3,7 +3,7 @@ package mardek.content.action
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
-import com.github.knokko.bitser.field.ReferenceFieldTarget
+import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import java.util.UUID
 
@@ -24,6 +24,18 @@ sealed class ActionNode(
 	@StableReferenceFieldId
 	val id: UUID,
 ) {
+
+	fun getAllChildNodes(): HashSet<ActionNode> {
+		val collectedNodes = HashSet<ActionNode>()
+		val nodesToProcess = arrayListOf(this)
+		while (nodesToProcess.isNotEmpty()) {
+			val nextNode = nodesToProcess.removeLast()
+			if (collectedNodes.add(nextNode)) nodesToProcess.addAll(nextNode.getDirectChildNodes())
+		}
+		return collectedNodes
+	}
+
+	abstract fun getDirectChildNodes(): Collection<ActionNode>
 
 	companion object {
 
@@ -55,11 +67,12 @@ class FixedActionNode(
 	 * The next action node, or `null` to indicate that this is the last node in the action sequence
 	 */
 	@BitField(id = 1, optional = true)
-	@ClassField(root = ActionNode::class)
-	@ReferenceFieldTarget(label = "action nodes")
+	@ReferenceField(stable = false, label = "action nodes")
 	val next: ActionNode?,
 ) : ActionNode(id) {
 	constructor() : this(UUID(0, 0), ActionWalk(), null)
 
 	override fun toString() = "FixedNode($action)"
+
+	override fun getDirectChildNodes() = if (next == null) emptyList() else listOf(next)
 }

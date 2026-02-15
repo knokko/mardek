@@ -78,7 +78,7 @@ private class AnimationSimulator {
 		}
 	}
 
-	fun addScript(tag: DoActionTag) {
+	fun addScript(parent: DefineSpriteTag, tag: DoActionTag) {
 		val script = getScript(tag)
 		if (
 			script.trim() == "GotoAptFrame(this);" ||
@@ -92,7 +92,7 @@ private class AnimationSimulator {
 			if (currentSkinName != "") throw IllegalStateException()
 			currentSkinName = "1"
 		}
-		if (script.startsWith("char2lips")) onlyOneFramePerSkin = true
+		if (script.startsWith("char2lips") || parent.characterId == 802) onlyOneFramePerSkin = true
 		if (script.trim() == "gotoAndPlay(2);") currentAnimation.frames.removeFirst()
 		currentState.addScript(tag)
 	}
@@ -110,7 +110,7 @@ internal fun simulateAnimations(parent: DefineSpriteTag): Map<String, RawAnimati
 			is FrameLabelTag -> simulator.setLabel(tag.name)
 			is PlaceObjectTypeTag -> simulator.currentState.placeObject(tag)
 			is RemoveTag -> simulator.currentState.removeObject(tag)
-			is DoActionTag -> simulator.addScript(tag)
+			is DoActionTag -> simulator.addScript(parent, tag)
 			is SoundStreamHeadTypeTag -> {}
 			else -> println("WARNING: unexpected tag $tag in $parent")
 		}

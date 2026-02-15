@@ -60,7 +60,7 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 			}
 		}
 
-		colorBatch.fill(
+		uiColorBatch.fill(
 			region.minX, region.minY, region.maxX, region.maxY,
 			srgbToLinear(rgba(37, 26, 17, 254))
 		)
@@ -69,7 +69,7 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 		val rightColor = srgbToLinear(rgb(107, 88, 50))
 		val upColor = srgbToLinear(rgb(58, 48, 43))
 		gradientWithBorder(
-			colorBatch, rectMinX, rectMinY, rectMaxX, rectMaxY, 1, 1,
+			uiColorBatch, rectMinX, rectMinY, rectMaxX, rectMaxY, 1, 1,
 			srgbToLinear(rgb(155, 138, 95)),
 			leftColor, rightColor, upColor
 		)
@@ -77,19 +77,19 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 		val goldColor = srgbToLinear(rgb(255, 204, 0))
 		if (obtainedItemStack.plotItem != null) {
 			val margin = 2 * scale
-			colorBatch.fill(
+			uiColorBatch.fill(
 				rectMinX - margin, rectMinY - margin,
 				rectMaxX + margin, rectMinY - margin, goldColor
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				rectMinX - margin, rectMaxY + margin,
 				rectMaxX + margin, rectMaxY + margin, goldColor
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				rectMinX - margin, rectMinY - margin,
 				rectMinX - margin, rectMaxY + margin, goldColor
 			)
-			colorBatch.fill(
+			uiColorBatch.fill(
 				rectMaxX + margin, rectMinY - margin,
 				rectMaxX + margin, rectMaxY + margin, goldColor
 			)
@@ -138,7 +138,7 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 					val borderColor = srgbToLinear(rgb(99, 128, 177))
 					val lowColor = srgbToLinear(rgb(19, 65, 114))
 					gradientWithBorder(
-						colorBatch, minX, rectMaxY + 3 * scale,
+						uiColorBatch, minX, rectMaxY + 3 * scale,
 						minX + 18 * scale + 1, rectMaxY + 21 * scale + 1,
 						1, 1, borderColor, lowColor, lowColor, 0
 					)
@@ -165,7 +165,7 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 		if (obtainedItemStack.itemStack != null) {
 			val minY = rectMaxY + 40 * scale
 			renderLootInventoryGrid(
-				colorBatch, obtainedItemStack.usedParty, rectMinX + scale, minY, columnWidth, 2 * scale
+				uiColorBatch, obtainedItemStack.usedParty, rectMinX + scale, minY, columnWidth, 2 * scale
 			)
 		}
 	}

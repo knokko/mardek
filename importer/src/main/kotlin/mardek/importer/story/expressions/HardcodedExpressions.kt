@@ -8,7 +8,7 @@ internal class HardcodedExpressions {
 
 	internal fun hardcodeTimelineExpressions(content: Content) {
 		hardcoded[""] = mutableListOf()
-		hardcodeHeroesDenExpressions(content, hardcoded)
+		hardcodeChapter1Expressions(content, hardcoded)
 		hardcodeGoznorExpressions(content, hardcoded)
 	}
 

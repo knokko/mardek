@@ -13,6 +13,7 @@ import mardek.content.audio.FixedSoundEffects
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.ItemStack
+import mardek.content.sprite.NamedSprite
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
 import mardek.input.InputKey
@@ -107,6 +108,21 @@ class AreaActionsState(
 	@NestedFieldSetting(path = "k", fieldName = "OVERRIDE_CHARACTER_STATES_KEYS")
 	@NestedFieldSetting(path = "v", optional = true)
 	val overrideCharacterStates = HashMap<AreaCharacter, AreaCharacterState?>()
+
+	/**
+	 * When non-null, this overrides the background music track that should be played. When null, the area background
+	 * music will be played (as usual). Use [ActionSetMusic] to change this field.
+	 */
+	@BitField(id = 7, optional = true)
+	var overrideMusic: String? = null
+
+	/**
+	 * When non-null, this image will be rendered in front of the area and its characters, but below the dialogue.
+	 * Use [ActionSetBackgroundImage] to change this field.
+	 */
+	@BitField(id = 8, optional = true)
+	@ReferenceField(stable = true, label = "action background images")
+	var backgroundImage: NamedSprite? = null
 
 	/**
 	 * Whether the chat log should be shown during talk/dialogue actions.
@@ -261,6 +277,14 @@ class AreaActionsState(
 		if (currentAction is ActionSetOverlayColor) {
 			return context.currentTime >= startOverlayTransitionTime + currentAction.transitionTime
 		}
+		if (currentAction is ActionSetMusic) {
+			this.overrideMusic = currentAction.newMusicTrack
+			return true
+		}
+		if (currentAction is ActionSetBackgroundImage) {
+			this.backgroundImage = currentAction.newBackgroundImage
+			return true
+		}
 		if (currentAction is ActionParallel) {
 			// Note that we should ALWAYS update all parallel actions, so we can NOT use something like
 			// return currentAction.actions.all { updateFixedNode(context, it) }
@@ -275,6 +299,15 @@ class AreaActionsState(
 		return false
 	}
 
+	private fun setAreaCharacterState(
+		context: UpdateContext,
+		target: ActionTargetAreaCharacter,
+		nextState: AreaCharacterState,
+	) {
+		if (target.persistent) context.characterStates[target.character] = nextState
+		else overrideCharacterStates[target.character] = nextState
+	}
+
 	private fun teleport(action: ActionTeleport, context: UpdateContext) {
 		when (val target = action.target) {
 			is ActionTargetPartyMember -> {
@@ -282,9 +315,9 @@ class AreaActionsState(
 				context.partyDirections[target.index] = action.direction
 			}
 			is ActionTargetAreaCharacter -> {
-				context.characterStates[target.character] = AreaCharacterState(
+				setAreaCharacterState(context, target, AreaCharacterState(
 					x = action.x, y = action.y, direction = action.direction, next = null
-				)
+				))
 			}
 			is ActionTargetWholeParty -> {
 				for (index in context.partyPositions.indices) {
@@ -346,7 +379,8 @@ class AreaActionsState(
 	private fun updateWalking(currentAction: ActionWalk, context: UpdateContext): Boolean {
 		val target = currentAction.target
 		if (target is ActionTargetWholeParty) return updateWalkingWholeParty(context, currentAction)
-		if (target is ActionTargetAreaCharacter) return updateWalkingAreaCharacter(currentAction, target.character, context)
+		if (target is ActionTargetAreaCharacter) return updateWalkingAreaCharacter(currentAction, target, context)
+		if (target is ActionTargetPartyMember) return updateWalkingPartyMember(currentAction, target.index, context)
 		throw UnsupportedOperationException("Unexpected target $target for $currentAction")
 	}
 
@@ -407,11 +441,11 @@ class AreaActionsState(
 
 	private fun updateWalkingAreaCharacter(
 		currentAction: ActionWalk,
-		character: AreaCharacter,
+		target: ActionTargetAreaCharacter,
 		context: UpdateContext,
 	): Boolean {
-		var characterState = context.characterStates[character] ?: throw IllegalArgumentException(
-			"Missing walk area character $character"
+		var characterState = context.characterStates[target.character] ?: throw IllegalArgumentException(
+			"Missing walk area character ${target.character}"
 		)
 
 		val nextPosition = characterState.next
@@ -445,13 +479,56 @@ class AreaActionsState(
 					)
 				)
 			} else {
-				context.characterStates[character] = characterState
+				setAreaCharacterState(context, target, characterState)
 				return true
 			}
 		}
 
-		context.characterStates[character] = characterState
+		setAreaCharacterState(context, target, characterState)
 		return false
+	}
+
+	private fun updateWalkingPartyMember(
+		currentAction: ActionWalk,
+		index: Int,
+		context: UpdateContext,
+	): Boolean {
+		var position = context.partyPositions[index]
+		var nextPosition = nextPartyPositions[index]
+
+		if (nextPosition != null && context.currentTime >= nextPosition.arrivalTime) {
+			position = AreaPosition(
+				x = nextPosition.position.x,
+				y = nextPosition.position.y,
+			)
+			nextPosition = null
+		}
+
+		var finished = false
+		if (nextPosition == null) {
+			val bestDirection = Direction.bestDelta(
+				currentAction.destinationX - position.x,
+				currentAction.destinationY - position.y,
+			)
+			if (bestDirection != null) {
+				nextPosition = NextAreaPosition(
+					position = AreaPosition(
+						x = position.x + bestDirection.deltaX,
+						y = position.y + bestDirection.deltaY,
+					),
+					startTime = context.currentTime,
+					arrivalTime = context.currentTime + currentAction.speed.duration,
+					transition = null,
+				)
+				context.partyDirections[index] = bestDirection
+			} else {
+				finished = true
+			}
+		}
+
+		context.partyPositions[index] = position
+		nextPartyPositions[index] = nextPosition
+		return finished
 	}
 
 	private fun fadeCharacter(action: ActionFadeCharacter, context: UpdateContext) {
@@ -476,12 +553,12 @@ class AreaActionsState(
 					"Cannot rotate moving area character ${target.character}"
 				)
 
-				context.characterStates[target.character] = AreaCharacterState(
+				setAreaCharacterState(context, target, AreaCharacterState(
 					x = oldState.x,
 					y = oldState.y,
 					direction = action.newDirection,
 					next = null
-				)
+				))
 			}
 
 			else -> throw UnsupportedOperationException("Unsupported rotate target $target")

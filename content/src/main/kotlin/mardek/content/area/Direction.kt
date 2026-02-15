@@ -26,7 +26,13 @@ enum class Direction(val deltaX: Int, val deltaY: Int, val abbreviation: String)
 	/**
 	 * Left/west (negative X)
 	 */
-	Left(-1, 0, "w");
+	Left(-1, 0, "w"),
+
+	/**
+	 * This pseudo-direction is used to tell that a character should show its sleeping animation rather than its
+	 * standing animation.
+	 */
+	Sleep(-12345, 123456, "l");
 
 	companion object {
 

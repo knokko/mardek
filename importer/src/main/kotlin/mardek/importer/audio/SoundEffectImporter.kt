@@ -30,6 +30,7 @@ internal fun importSoundEffects(audio: AudioContent) {
 
 	importSimpleSound(audio, 1, "slash2")
 	importSimpleSound(audio, 8, "bubble1b")
+	importSimpleSound(audio, 26, "boom3")
 	importSimpleSound(audio, 5395, "Bubble")
 	importSimpleSound(audio, 5397, "buy")
 	importSimpleSound(audio, 5398, "Cure")

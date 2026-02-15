@@ -8,7 +8,7 @@ internal fun renderObtainedGold(areaContext: AreaRenderContext) {
 		val obtainedGold = state.obtainedGold ?: return
 		val baseX = region.minX + tileSize * obtainedGold.chestX + region.width / 2 - cameraX
 		val baseY = region.minY + tileSize * obtainedGold.chestY + region.height / 2 - cameraY - 4 * scale
-		lateSpriteBatch.draw(
+		goldSpriteBatch.draw(
 			context.content.ui.goldIcon,
 			baseX - tileSize * 19 / 32,
 			baseY - tileSize * 17 / 32,

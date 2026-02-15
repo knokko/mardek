@@ -3,6 +3,7 @@ package mardek.game
 import mardek.game.action.TestActions
 import mardek.game.action.TestChatLog
 import mardek.game.action.TestLocks
+import mardek.game.action.TestMardekHouseActions
 import mardek.game.area.TestChestLoot
 import mardek.game.area.TestDoors
 import mardek.game.area.TestDragonLair
@@ -394,5 +395,15 @@ class IntegrationTests {
 		TestTimelines.testGeorgeBlockadeDuringChapter1Night(instance)
 		// TODO CHAP1 Test that George is not present during the day
 		// TODO CHAP2 Test that George is not present during the nights of chapter 2
+	}
+
+	@Test
+	fun testMotherDialogueAfterDragonLair() {
+		TestMardekHouseActions.testMotherDialogueAfterDragonLair(instance)
+	}
+
+	@Test
+	fun testFallingStarCutsceneAndDialogue() {
+		TestMardekHouseActions.testFallingStarCutsceneAndDialogue(instance)
 	}
 }

@@ -9,7 +9,9 @@ import mardek.content.action.ActionShowChapterName
 import mardek.content.action.FixedAction
 import mardek.content.action.FixedActionNode
 import mardek.input.InputKey
+import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignStateMachine
+import kotlin.time.Duration
 
 /**
  * If a campaign action sequence is currently in progress, the `actions` field of the current `CampaignState` will be
@@ -52,6 +54,8 @@ class CampaignActionsState(
 	 */
 	var cutsceneSubtitle = Pair(1, "")
 
+	private var passedCutsceneTime = Duration.ZERO
+
 	@Suppress("unused")
 	private constructor() : this(FixedActionNode())
 
@@ -65,7 +69,7 @@ class CampaignActionsState(
 	private fun makeSureRenderThreadDoesNotGetBlocked(next: ActionNode) {
 		if (next is FixedActionNode) {
 			val action = next.action
-			if (action is ActionPlayCutscene) action.cutscene.get()
+			if (action is ActionPlayCutscene) action.cutscene.payload.get()
 		}
 	}
 
@@ -78,6 +82,7 @@ class CampaignActionsState(
 		this.currentNodeStartTime = System.nanoTime()
 		this.finishedAnimationNode = false
 		this.cutsceneSubtitle = Pair(1, "")
+		this.passedCutsceneTime = Duration.ZERO
 	}
 
 	private fun isAnimationAction(action: FixedAction) = action is ActionShowChapterName || action is ActionPlayCutscene
@@ -85,12 +90,23 @@ class CampaignActionsState(
 	/**
 	 * The `CampaignState` should call this method during each of its own `update()`s
 	 */
-	fun update() {
+	fun update(soundQueue: SoundQueue, spentTime: Duration) {
 		val currentNode = this.node
 		if (currentNode is FixedActionNode) {
-			if (isAnimationAction(currentNode.action) && this.finishedAnimationNode) toNextNode(currentNode.next ?:
+			val action = currentNode.action
+			if (isAnimationAction(action) && this.finishedAnimationNode) toNextNode(currentNode.next ?:
 					throw IllegalArgumentException("${currentNode.action} must have a next node")
 			)
+			if (action is ActionPlayCutscene) {
+				val oldPassedTime = passedCutsceneTime
+				passedCutsceneTime += spentTime
+
+				for (potentialSound in action.cutscene.sounds) {
+					if (potentialSound.delay > oldPassedTime && potentialSound.delay <= passedCutsceneTime) {
+						soundQueue.insert(potentialSound.sound)
+					}
+				}
+			}
 		}
 	}
 

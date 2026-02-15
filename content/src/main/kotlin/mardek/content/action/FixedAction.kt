@@ -1,7 +1,6 @@
 package mardek.content.action
 
 import com.github.knokko.bitser.BitStruct
-import com.github.knokko.bitser.SimpleLazyBits
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
@@ -12,6 +11,7 @@ import mardek.content.area.Direction
 import mardek.content.audio.SoundEffect
 import mardek.content.battle.Battle
 import mardek.content.characters.PlayableCharacter
+import mardek.content.sprite.NamedSprite
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
 import kotlin.collections.addAll
@@ -46,6 +46,9 @@ sealed class FixedAction {
 			ActionSetMoney::class.java,
 			ActionItemStorage::class.java,
 			ActionSetOverlayColor::class.java,
+			ActionSetMusic::class.java,
+			ActionSetBackgroundImage::class.java,
+			ActionToGlobalActions::class.java,
 		)
 	}
 }
@@ -334,11 +337,11 @@ class ActionPlayCutscene(
 	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "cutscenes")
-	val cutscene: SimpleLazyBits<Cutscene>,
+	val cutscene: Cutscene,
 ) : FixedAction() {
 
 	@Suppress("unused")
-	private constructor() : this(SimpleLazyBits(Cutscene()))
+	private constructor() : this(Cutscene())
 
 	override fun toString() = "ActionPlayCutscene($cutscene)"
 }
@@ -568,3 +571,49 @@ class ActionSetOverlayColor(
 	@Suppress("unused")
 	private constructor() : this(0, Duration.ZERO)
 }
+
+/**
+ * Overrides the music truck that should be played for the remainder of the `AreaActionsState`, or until the next
+ * [ActionSetMusic] is encountered. In the meantime, the background music of the current area will **not** be played.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionSetMusic(
+
+	/**
+	 * The new music track that should be played, or `null` to start playing the background music of the current area
+	 * again.
+	 */
+	@BitField(id = 0, optional = true)
+	val newMusicTrack: String?
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(null)
+}
+
+/**
+ * Sets the background image of the current `AreaActionsState`. When non-null, this background image will be rendered
+ * in front of the current area and its characters, but behind the dialogue. The background image of each
+ * `AreaActionsState` is initially `null`.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionSetBackgroundImage(
+
+	/**
+	 * The new background image, or `null` to stop rendering the current background image.
+	 */
+	@BitField(id = 0, optional = true)
+	@ReferenceField(stable = false, label = "action background images")
+	val newBackgroundImage: NamedSprite?,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(null)
+}
+
+/**
+ * When this action is encountered during an `AreaActionsState`, the campaign state will leave the current area, and it
+ * will become a `CampaignActionsState`, which will handle the remaining action nodes.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionToGlobalActions : FixedAction()

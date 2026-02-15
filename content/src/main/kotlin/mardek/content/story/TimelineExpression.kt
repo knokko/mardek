@@ -26,6 +26,7 @@ sealed class TimelineExpression<T> {
 
 			ExpressionOrDefaultTimelineExpression::class.java,
 			SwitchCaseTimelineExpression::class.java,
+			IfElseTimelineExpression::class.java,
 
 			NegateTimelineCondition::class.java,
 			AndTimelineCondition::class.java,
@@ -187,6 +188,46 @@ class SwitchCaseTimelineExpression<I, O>(
 		override fun toString() = "$inputToMatch -> $outputWhenInputMatches"
 	}
 }
+
+/**
+ * A timeline expression that evaluates to [ifTrue] if [condition] evaluates to true, and evaluates to [ifFalse]
+ * otherwise.
+ */
+@BitStruct(backwardCompatible = true)
+class IfElseTimelineExpression<T>(
+
+	/**
+	 * The condition that determines whether this expression evaluates to [ifTrue], or to [ifFalse]
+	 */
+	@BitField(id = 0)
+	@ClassField(root = TimelineExpression::class)
+	val condition: TimelineExpression<Boolean>,
+
+	/**
+	 * The expression to which this expression evaluates if [condition] evaluates to `true`
+	 */
+	@BitField(id = 1)
+	@ClassField(root = TimelineExpression::class)
+	val ifTrue: TimelineExpression<T>,
+
+	/**
+	 * The expression to which this expression evaluates if [condition] evaluates to `false`
+	 */
+	@BitField(id = 2)
+	@ClassField(root = TimelineExpression::class)
+	val ifFalse: TimelineExpression<T>,
+) : TimelineExpression<T>() {
+
+	@Suppress("unused", "UNCHECKED_CAST")
+	private constructor() : this(
+		ConstantTimelineExpression(TimelineBooleanValue(false)),
+		ConstantTimelineExpression(TimelineUnitValue()) as TimelineExpression<T>,
+		ConstantTimelineExpression(TimelineUnitValue()) as TimelineExpression<T>,
+	)
+
+	override fun toString() = "if($condition) { $ifTrue } else { $ifFalse }"
+}
+
 
 /**
  * A timeline expression that evaluates to `true` if and only if `operand` evaluates to **false**.
