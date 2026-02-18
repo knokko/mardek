@@ -39,7 +39,7 @@ object TestDragonLair {
 		instance.apply {
 			val area = content.areas.areas.find { it.properties.rawName == "DL_area4" }!!
 			val state = InGameState(simpleCampaignState(), "test")
-			state.campaign.state = AreaState(area, AreaPosition(6, 20))
+			state.campaign.state = AreaState(area, state.campaign.story, AreaPosition(6, 20))
 
 			// Make sure Deugan has enough mana to cast Frostasia
 			val deuganState = state.campaign.characterStates[heroDeugan]!!

@@ -1,5 +1,6 @@
 package mardek.importer.area
 
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.area.*
 import mardek.content.sprite.ArrowSprite
@@ -9,7 +10,6 @@ import mardek.importer.story.expressions.HardcodedExpressions
 import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.resourcesFolder
 import mardek.importer.world.hardcodeWorldMap
-import mardek.state.saves.savesBitser
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
@@ -118,7 +118,7 @@ internal fun importAreaContent(content: Content): HardcodedActions {
 	val areaDestinations = ArrayList<AreaTransitionDestination>()
 	collectedInstances[WorldMapTransitionDestination::class.java] = worldMapDestinations
 	collectedInstances[AreaTransitionDestination::class.java] = areaDestinations
-	savesBitser.collectInstances(content.areas, collectedInstances)
+	BITSER.collectInstances(content.areas, collectedInstances, hashMapOf())
 
 	for (destination in worldMapDestinations) destination.resolve(content.areas, content.worldMaps[0])
 	for (destination in areaDestinations) destination.resolve(content.areas)

@@ -1,6 +1,5 @@
 package mardek.game
 
-import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
@@ -14,6 +13,7 @@ import com.github.knokko.vk2d.Vk2dWindow
 import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import mardek.audio.AudioUpdater
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.renderer.PerFrameResources
 import mardek.renderer.RenderManager
@@ -110,7 +110,7 @@ class MardekWindow(
 
 		Thread {
 			try {
-				content.complete(Content.load("mardek/game/content.bits", Bitser(false)))
+				content.complete(Content.load("mardek/game/content.bits", BITSER))
 				println("Loaded content after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 				renderManager.content = content.get()
 			} catch (failed: Throwable) {

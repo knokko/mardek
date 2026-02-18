@@ -2,10 +2,8 @@ package mardek.importer.util
 
 import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.io.DebugBitOutputStream
-import com.github.knokko.profiler.SampleProfiler
-import com.github.knokko.profiler.storage.SampleStorage
+import mardek.content.BITSER
 import mardek.content.Content
-import mardek.content.stats.CombatStat
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -13,8 +11,6 @@ import java.io.PrintWriter
 import java.nio.file.Files
 
 fun main() {
-	val bitser = Bitser(true)
-
 	val contentInput = BufferedInputStream(Files.newInputStream(File(
 		"$projectFolder/game/src/main/resources/mardek/game/content.bits").toPath()
 	))
@@ -24,13 +20,13 @@ fun main() {
 //	val storage = SampleStorage.frequency()
 //	val profiler = SampleProfiler(storage)
 //	profiler.start()
-	val content = bitser.fromBytes(Content::class.java, bytes, Bitser.BACKWARD_COMPATIBLE)
+	val content = BITSER.fromBytes(Content::class.java, bytes, Bitser.BACKWARD_COMPATIBLE)
 //	profiler.stop()
 //
 //	storage.getThreadStorage(Thread.currentThread().id).print(System.out, 10, 1.0)
 
 	val debugWriter = PrintWriter(Files.newOutputStream(File("content-debug.txt").toPath()))
-	bitser.serialize(content, DebugBitOutputStream(
+	BITSER.serialize(content, DebugBitOutputStream(
 		ByteArrayOutputStream(), debugWriter, false
 	), Bitser.BACKWARD_COMPATIBLE)
 	debugWriter.flush()

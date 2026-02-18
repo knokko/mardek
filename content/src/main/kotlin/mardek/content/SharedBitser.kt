@@ -2,4 +2,7 @@ package mardek.content
 
 import com.github.knokko.bitser.Bitser
 
-internal val BITSER = Bitser(true)
+/**
+ * This is just an instance of [BITSER] that is used throughout the project as 'singleton'.
+ */
+val BITSER = Bitser()

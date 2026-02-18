@@ -9,6 +9,7 @@ import mardek.game.area.TestDoors
 import mardek.game.area.TestDragonLair
 import mardek.game.area.TestRandomBattles
 import mardek.game.area.TestTimelines
+import mardek.game.area.TestWalking
 import mardek.game.battle.*
 import mardek.game.inventory.TestCountItemOccurrences
 import mardek.game.inventory.TestValidateEquipment
@@ -377,7 +378,7 @@ class IntegrationTests {
 		TestLocks.testMonasteryIsNotLockedAtNight(instance)
 		TestLocks.testShopsAreLockedAtNight(instance)
 		TestLocks.testSewerDoorIsLockedDuringChapter1(instance)
-		// TODO CHAP1 Test houses are open during the day
+		TestLocks.testWeaponShopIsOpenDuringTheDay(instance)
 	}
 
 	@Test
@@ -393,7 +394,8 @@ class IntegrationTests {
 	@Test
 	fun testGeorgeBlockadeDuringChapter1Night() {
 		TestTimelines.testGeorgeBlockadeDuringChapter1Night(instance)
-		// TODO CHAP1 Test that George is not present during the day
+		TestTimelines.testGeorgeIsGoneDuringChapter1Day(instance)
+		TestTimelines.testGeorgeBlockadeDuringLastChapter1Night(instance)
 		// TODO CHAP2 Test that George is not present during the nights of chapter 2
 	}
 
@@ -405,5 +407,15 @@ class IntegrationTests {
 	@Test
 	fun testFallingStarCutsceneAndDialogue() {
 		TestMardekHouseActions.testFallingStarCutsceneAndDialogue(instance)
+	}
+
+	@Test
+	fun testExportingRemovesImageData() {
+		ExportingTests.testImageDataWasRemoved(instance)
+	}
+
+	@Test
+	fun testRandomNpcWalking() {
+		TestWalking.testRandomNpcWalking(instance)
 	}
 }

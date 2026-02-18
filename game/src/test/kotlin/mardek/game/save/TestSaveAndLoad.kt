@@ -36,8 +36,11 @@ object TestSaveAndLoad {
 			val saves = dummySaveManager()
 			val oldSave = createDummySave(saves, "test-save-and-load")
 
-			val areaState = AreaState(dragonLairEntry, AreaPosition(3, 4))
 			val state = InGameState(simpleCampaignState(), "test-save-and-load")
+			val areaState = AreaState(
+				dragonLairEntry, state.campaign.story,
+				AreaPosition(3, 4),
+			)
 			state.campaign.state = areaState
 			state.campaign.gold = 21987
 			state.campaign.characterStates[heroMardek]!!.currentLevel = 5
@@ -89,11 +92,12 @@ object TestSaveAndLoad {
 	fun testHappyFlow(instance: TestingInstance) {
 		instance.apply {
 			val saves = dummySaveManager()
-			val areaState = AreaState(
-				dragonLairEntry, AreaPosition(3, 4), skipFadeIn = true
-			)
 			var state: GameState = InGameState(simpleCampaignState(), "test-save-and-load")
-			(state as InGameState).campaign.run {
+			val areaState = AreaState(
+				dragonLairEntry, (state as InGameState).campaign.story,
+				AreaPosition(3, 4), skipFadeIn = true,
+			)
+			state.campaign.run {
 				characterStates[heroMardek]!!.currentLevel = 5
 				this.state = areaState
 				gold = 21987

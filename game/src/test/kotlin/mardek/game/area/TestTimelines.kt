@@ -1,5 +1,7 @@
 package mardek.game.area
 
+import mardek.content.action.ActionTalk
+import mardek.content.action.FixedActionNode
 import mardek.game.TestingInstance
 import mardek.game.pressKeyEvent
 import mardek.input.InputKey
@@ -11,7 +13,6 @@ import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -30,7 +31,7 @@ object TestTimelines {
 
 			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
-				AreaPosition(10, 6)
+				state.campaign.story, AreaPosition(10, 6)
 			)
 
 			repeat(10) {
@@ -52,7 +53,7 @@ object TestTimelines {
 
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				AreaPosition(34, 7)
+				state.campaign.story, AreaPosition(34, 7)
 			)
 			state.campaign.state = areaState
 
@@ -67,8 +68,78 @@ object TestTimelines {
 			// Test that we can interact with George
 			assertNull(areaState.suspension)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			repeat(3) {
+				state.update(updateContext)
+			}
+			val actions = (areaState.suspension as AreaSuspensionActions).actions
+			assertEquals(
+				"You're out late there, boys! Shouldn't you be going back home to bed? " +
+						"Your parents are probably worried!",
+				((actions.node as FixedActionNode).action as ActionTalk).text,
+			)
+		}
+	}
+
+	fun testGeorgeIsGoneDuringChapter1Day(instance: TestingInstance) {
+		instance.apply {
+			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val state = InGameState(simpleCampaignState(), "")
+
+			performTimelineTransition(
+				updateContext, state.campaign,
+				"MainTimeline", "Searching for the fallen 'star'",
+			)
+
+			val areaState = AreaState(
+				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
+				state.campaign.story, AreaPosition(34, 7)
+			)
+			state.campaign.state = areaState
+
+			// Test that we can NOT interact with George
+			assertNull(areaState.suspension)
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(updateContext)
-			assertInstanceOf<AreaSuspensionActions>(areaState.suspension)
+			assertNull(areaState.suspension)
+
+			// Test that we can walk through not-existing George
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveUp))
+			repeat(100) {
+				state.update(updateContext)
+			}
+			assertEquals(AreaPosition(34, 4), areaState.getPlayerPosition(0))
+		}
+	}
+
+	fun testGeorgeBlockadeDuringLastChapter1Night(instance: TestingInstance) {
+		instance.apply {
+			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val state = InGameState(simpleCampaignState(), "")
+
+			performTimelineTransition(
+				updateContext, state.campaign,
+				"MainTimeline", "After the conversation in Rohophs saucer is finished",
+			)
+
+			val areaState = AreaState(
+				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
+				state.campaign.story, AreaPosition(34, 7)
+			)
+			state.campaign.state = areaState
+
+			// Test that we can interact with George, and that we get the right dialogue
+			assertNull(areaState.suspension)
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			repeat(3) {
+				state.update(updateContext)
+			}
+
+			val actions = (areaState.suspension as AreaSuspensionActions).actions
+			assertEquals(
+				"Hello there, boys! Back from another adventure again? I'm just, uh... " +
+						"just wandering the streets. Yes, there's nothing suspicious about THAT, is there?",
+				((actions.node as FixedActionNode).action as ActionTalk).text,
+			)
 		}
 	}
 }

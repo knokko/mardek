@@ -1,6 +1,7 @@
 package mardek.state.ingame.area.discovery
 
 import com.github.knokko.bitser.Bitser
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.area.Area
 import mardek.content.area.AreaFlags
@@ -9,7 +10,6 @@ import mardek.content.area.Tilesheet
 import mardek.content.area.objects.AreaObjects
 import mardek.state.ingame.area.AreaDiscovery
 import mardek.state.ingame.area.AreaDiscoveryMap
-import mardek.state.saves.savesBitser
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -58,7 +58,7 @@ class TestAreaDiscoveryMap {
 
 		val content = Content()
 		content.areas.areas.add(largeArea)
-		val copied = savesBitser.stupidDeepCopy(mapping, Bitser.BACKWARD_COMPATIBLE, content)
+		val copied = BITSER.stupidDeepCopy(mapping, Bitser.BACKWARD_COMPATIBLE, content)
 		check(copied)
 	}
 
@@ -75,11 +75,11 @@ class TestAreaDiscoveryMap {
 
 		val oldContent = Content()
 		oldContent.areas.areas.add(largeArea)
-		val bytes = savesBitser.toBytes(mapping, Bitser.BACKWARD_COMPATIBLE, oldContent)
+		val bytes = BITSER.toBytes(mapping, Bitser.BACKWARD_COMPATIBLE, oldContent)
 
 		val newContent = Content()
 		newContent.areas.areas.add(smallArea)
-		val copied = savesBitser.fromBytes(
+		val copied = BITSER.fromBytes(
 			AreaDiscoveryMap::class.java, bytes,
 			Bitser.BACKWARD_COMPATIBLE, newContent,
 		)
@@ -99,11 +99,11 @@ class TestAreaDiscoveryMap {
 
 		val oldContent = Content()
 		oldContent.areas.areas.add(smallArea)
-		val bytes = savesBitser.toBytes(mapping, Bitser.BACKWARD_COMPATIBLE, oldContent)
+		val bytes = BITSER.toBytes(mapping, Bitser.BACKWARD_COMPATIBLE, oldContent)
 
 		val newContent = Content()
 		newContent.areas.areas.add(largeArea)
-		val copied = savesBitser.fromBytes(
+		val copied = BITSER.fromBytes(
 			AreaDiscoveryMap::class.java, bytes,
 			Bitser.BACKWARD_COMPATIBLE, newContent,
 		)

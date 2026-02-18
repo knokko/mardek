@@ -1,6 +1,5 @@
 package mardek.importer.stats
 
-import com.github.knokko.bitser.Bitser
 import mardek.content.skill.ReactionSkillType
 import mardek.importer.importVanillaContent
 import mardek.state.ingame.CampaignState
@@ -12,8 +11,7 @@ import org.junit.jupiter.api.TestInstance
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestPlayableCharacterImporter {
 
-	private val bitser = Bitser(false)
-	private val content = importVanillaContent(bitser, true)
+	private val content = importVanillaContent(true)
 
 	@Test
 	fun testImportHeroMardek() {

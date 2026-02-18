@@ -141,9 +141,9 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 				if (discovery.isDiscovered(x, y) || area.flags.hasClearMap) putMapColor(x, y, color)
 			}
 
-			// TODO CHAP1 Handle moving characters
 			for (character in area.objects.characters) {
-				putIfDiscovered(character.startX, character.startY, OBJECT_COLOR)
+				val characterState = areaState.getCharacterState(character) ?: continue
+				putIfDiscovered(characterState.x, characterState.y, OBJECT_COLOR)
 			}
 			for (element in area.objects.decorations) {
 				if (element.sharedActionSequence?.name == "c_healingCrystal" || element.canWalkThrough) continue

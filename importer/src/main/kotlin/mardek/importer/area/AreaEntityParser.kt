@@ -188,6 +188,16 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 	}
 	val rawConversation = if (conversation != null && !conversation.startsWith('"')) conversation else null
 
+	val rawConditionName = rawEntity["timelineCondition"]
+	val timelineCondition = if (rawConditionName != null) {
+		val condition = context.expressions.getHardcodedAreaExpressions(
+			context.areaName, rawConditionName
+		) ?: context.expressions.getHardcodedGlobalExpressions(rawConditionName)!!
+
+		@Suppress("UNCHECKED_CAST")
+		condition as TimelineExpression<Boolean>
+	} else null
+
 	if (model == "object" || model == "examine") {
 		val rawType = rawEntity["type"]
 		val rawColor = rawEntity["colour"]
@@ -301,15 +311,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 					context.actions.getHardcodedGlobalActionSequence(rawSequenceName)
 		} else null
 
-		val rawConditionName = rawEntity["timelineCondition"] // TODO CHAP1 Test this
-		val timelineCondition = if (rawConditionName != null) {
-			val condition = context.expressions.getHardcodedAreaExpressions(
-				context.areaName, rawConditionName
-			) ?: context.expressions.getHardcodedGlobalExpressions(rawConditionName)!!
 
-			@Suppress("UNCHECKED_CAST")
-			condition as TimelineExpression<Boolean>
-		} else null
 
 		return AreaTrigger(
 			name = name,
@@ -357,7 +359,8 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 
 	val rawDir = rawEntity["dir"]
 	var direction = Direction.Down
-	if (rawDir != null) direction = Direction.entries.find {
+	if (rawDir == "RDir()") direction = Direction.Random
+	else if (rawDir != null) direction = Direction.entries.find {
 		it.abbreviation == parseFlashString(rawDir, "dir")!!
 	} ?: Direction.Down
 
@@ -460,13 +463,14 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		}
 
 		return AreaCharacter(
+			id = id,
 			name = name,
 			directionalSprites = null,
 			fixedSprites = sprites,
 			startX = x,
 			startY = y,
 			startDirection = Direction.Down,
-			walkSpeed = -2,
+			walkBehavior = WalkBehavior(0f, false),
 			element = element,
 			portrait = portrait,
 			ownActions = attemptToExtractSimpleDialogue(
@@ -474,7 +478,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			),
 			sharedActionSequence = actionSequence,
 			encyclopediaPerson = null,
-			id = id,
+			condition = timelineCondition,
 		)
 	}
 
@@ -489,14 +493,17 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 
 	spritesheetName = spritesheetName.replace("spritesheet_", "")
 	val sprites = context.content.areas.characterSprites.find { it.name == spritesheetName }!!
+	val rawWalkSpeed = parseInt(rawEntity["walkspeed"] ?: "-2")
+	val movesPerSecond = if (rawWalkSpeed > 0) 30f / rawWalkSpeed else 0f
 	return AreaCharacter(
+		id = id,
 		name = name,
 		directionalSprites = sprites,
 		fixedSprites = null,
 		startX = x,
 		startY = y,
 		startDirection = direction,
-		walkSpeed = parseInt(rawEntity["walkspeed"] ?: "-2"),
+		walkBehavior = WalkBehavior(movesPerSecond, rawWalkSpeed == -1),
 		element = element,
 		portrait = portrait,
 		ownActions = attemptToExtractSimpleDialogue(
@@ -504,7 +511,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		),
 		sharedActionSequence = actionSequence,
 		encyclopediaPerson = encyclopediaPerson,
-		id = id,
+		condition = timelineCondition,
 	)
 }
 

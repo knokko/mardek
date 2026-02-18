@@ -1,6 +1,5 @@
 package mardek.game
 
-import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.instance.ValidationFeatures
@@ -14,6 +13,7 @@ import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.area.Area
 import mardek.content.characters.PlayableCharacter
@@ -48,8 +48,7 @@ import java.util.Collections
 
 class TestingInstance {
 
-	val bitser = Bitser(true)
-	val content = Content.load("mardek/game/content.bits", bitser)
+	val content = Content.load("mardek/game/content.bits", BITSER)
 
 	val boiler: BoilerInstance
 	val pipelineContext: Vk2dPipelineContext
@@ -178,7 +177,8 @@ class TestingInstance {
 		campaignState.story.initialize(content)
 		campaignState.story.validatePartyMembers(content, campaignState.party, campaignState.characterStates)
 		campaignState.state = AreaState(
-			dragonLair2, AreaPosition(10, 10), skipFadeIn = true
+			dragonLair2, campaignState.story,
+			AreaPosition(10, 10), skipFadeIn = true
 		)
 		campaignState.characterStates.putAll(simpleCharacterStates())
 		campaignState.gold = 123

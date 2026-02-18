@@ -32,7 +32,13 @@ enum class Direction(val deltaX: Int, val deltaY: Int, val abbreviation: String)
 	 * This pseudo-direction is used to tell that a character should show its sleeping animation rather than its
 	 * standing animation.
 	 */
-	Sleep(-12345, 123456, "l");
+	Sleep(-12345, 123456, "l"),
+
+	/**
+	 * This pseudo-direction is used to tell that an area character is supposed to
+	 * spawn with a random initial direction.
+	 */
+	Random(-4383, 82874, "r");
 
 	companion object {
 
@@ -40,7 +46,7 @@ enum class Direction(val deltaX: Int, val deltaY: Int, val abbreviation: String)
 		 * Find the `Direction` with the given `deltaX` and `deltaY`. Returns `null` when no such direction exists.
 		 * For instance, `exactDelta(1, 0)` would return `Direction.Right`, whereas `exactDelta(2, 0)` returns `null`.
 		 */
-		fun exactDelta(deltaX: Int, deltaY: Int) = entries.find { it.deltaX == deltaX && it.deltaY == deltaY }
+		fun exactDelta(deltaX: Int, deltaY: Int) = allProper().find { it.deltaX == deltaX && it.deltaY == deltaY }
 
 		/**
 		 * Find the `Direction` that is closest to the vector `(deltaX, deltaY)`, with arbitrary tie-breaking.
@@ -57,5 +63,12 @@ enum class Direction(val deltaX: Int, val deltaY: Int, val abbreviation: String)
 				if (deltaY > 0) Down else Up
 			}
 		}
+
+		/**
+		 * Returns all the 'proper' directions (down, left, up, right).
+		 *
+		 * This method does **not** return the pseudo directions like `Sleep`
+		 */
+		fun allProper() = arrayOf(Down, Left, Up, Right)
 	}
 }

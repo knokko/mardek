@@ -2,6 +2,7 @@ package mardek.content.sprite
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.FunctionContext
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 
@@ -21,8 +22,7 @@ class BcSprite(
 ) {
 	var bufferedImage: Any? = null
 
-	@BitField(id = 3)
-	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
+	@BitField(id = 3, readsMethodResult = true)
 	var data: ByteArray? = null
 
 	@BitField(id = 4)
@@ -30,4 +30,11 @@ class BcSprite(
 	var index = -1
 
 	constructor() : this(0, 0, 0)
+
+	@BitField(id = 3)
+	@Suppress("unused")
+	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
+	private fun saveData(context: FunctionContext): ByteArray? {
+		return if (context.withParameters.containsKey("exporting")) null else data
+	}
 }

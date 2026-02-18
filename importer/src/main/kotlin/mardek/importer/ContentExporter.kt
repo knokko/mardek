@@ -1,10 +1,12 @@
 package mardek.importer
 
 import com.github.knokko.bitser.Bitser
+import com.github.knokko.bitser.options.WithParameter
 import com.github.knokko.boiler.utilities.ImageCoding
 import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
 import com.github.knokko.vk2d.resource.Vk2dImageCompression
 import com.github.knokko.vk2d.resource.Vk2dResourceWriter
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
@@ -27,16 +29,15 @@ fun main() {
 
 	var succeeded = false
 	try {
-		val bitser = Bitser(false)
-		val content = importVanillaContent(bitser)
+		val content = importVanillaContent()
 
 		val outputFolder = File("$projectFolder/game/src/main/resources/mardek/game/")
 		saveIcons(outputFolder)
 
-		saveTitleScreenBundle(bitser, content)
+		saveTitleScreenBundle(content)
 
 		println("exporting campaign...")
-		saveMainContent(bitser, content, outputFolder)
+		saveMainContent(content, outputFolder)
 		println("exported campaign")
 
 		succeeded = true
@@ -95,20 +96,17 @@ private fun addBcImage(resourceWriter: Vk2dResourceWriter, bc: BcSprite) {
 			compression, false
 		)
 	}
-	bc.data = null
 }
 
 private fun addKimImage(resourceWriter: Vk2dResourceWriter, kim: KimSprite) {
 	kim.index = resourceWriter.addFakeImage(kim.width, kim.height, kim.data)
-	kim.data = null
 }
 
 private fun addFont(resourceWriter: Vk2dResourceWriter, font: Font) {
 	font.index = resourceWriter.addFont(ByteArrayInputStream(font.data))
-	font.data = null
 }
 
-private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File) {
+private fun saveMainContent(content: Content, outputFolder: File) {
 	val resourceWriter = Vk2dResourceWriter()
 
 	val allKimSprites = ArrayList<KimSprite>()
@@ -116,7 +114,7 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 	val collectionMapping = HashMap<Class<*>, Collection<Any>>()
 	collectionMapping[KimSprite::class.java] = allKimSprites
 	collectionMapping[BcSprite::class.java] = allBcSprites
-	bitser.collectInstances(content, collectionMapping)
+	BITSER.collectInstances(content, collectionMapping, hashMapOf())
 
 	for (sprite in allKimSprites) addKimImage(resourceWriter, sprite)
 	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
@@ -128,11 +126,14 @@ private fun saveMainContent(bitser: Bitser, content: Content, outputFolder: File
 
 	Files.write(
 		File("$outputFolder/content.bits").toPath(),
-		bitser.toBytes(content, Bitser.BACKWARD_COMPATIBLE)
+		BITSER.toBytes(
+			content, Bitser.BACKWARD_COMPATIBLE,
+			WithParameter("exporting", null)
+		)
 	)
 }
 
-private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
+private fun saveTitleScreenBundle(content: Content) {
 	val resourceWriter = Vk2dResourceWriter()
 	val titleScreenContent = TitleScreenContent(
 		background = content.ui.titleScreenBackground,
@@ -154,6 +155,9 @@ private fun saveTitleScreenBundle(bitser: Bitser, content: Content) {
 
 	Files.write(
 		File("$projectFolder/game/src/main/resources/mardek/game/title-screen.bits").toPath(),
-		bitser.toBytes(titleScreenContent, Bitser.BACKWARD_COMPATIBLE)
+		BITSER.toBytes(
+			titleScreenContent, Bitser.BACKWARD_COMPATIBLE,
+			WithParameter("exporting", null),
+		)
 	)
 }

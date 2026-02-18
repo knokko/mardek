@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.action.ActionTargetData
+import mardek.content.action.WalkSpeed
 import mardek.content.area.*
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
@@ -38,6 +39,9 @@ class AreaState(
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "areas")
 	val area: Area,
+
+	story: StoryState?,
+
 	initialPlayerPosition: AreaPosition,
 	initialPlayerDirection: Direction = Direction.Up,
 
@@ -95,16 +99,22 @@ class AreaState(
 	private var shouldInteract = false
 
 	@Suppress("unused")
-	private constructor() : this(Area(), AreaPosition(), Direction.Up)
+	private constructor() : this(Area(), null, AreaPosition(), Direction.Up)
 
 	init {
-		for (character in area.objects.characters) {
-			characterStates[character] = AreaCharacterState(
-				x = character.startX,
-				y = character.startY,
-				direction = character.startDirection,
-				next = null,
-			)
+		if (story != null) {
+			for (character in area.objects.characters) {
+				if (character.condition == null || story.evaluate(character.condition!!)) {
+					var direction = character.startDirection
+					if (direction == Direction.Random) direction = Direction.allProper().random()
+					characterStates[character] = AreaCharacterState(
+						x = character.startX,
+						y = character.startY,
+						direction = direction,
+						next = null,
+					)
+				}
+			}
 		}
 	}
 
@@ -140,6 +150,7 @@ class AreaState(
 		}
 
 		if (suspension == null) updateWithoutSuspension(context)
+		if (suspension !is AreaSuspensionBattle) updateNPCs(context)
 		if (suspension?.shouldUpdateCurrentTime() != false) currentTime += context.timeStep
 		shouldInteract = false
 	}
@@ -152,6 +163,51 @@ class AreaState(
 		val oldSuspension = suspension
 		val nextActions = if (oldSuspension is AreaSuspensionActions) oldSuspension.actions else null
 		suspension = AreaSuspensionIncomingBattle(battle, currentTime + 500.milliseconds, players, nextActions)
+	}
+
+	private fun updateNPCs(context: UpdateContext) {
+		val stateChanges = mutableMapOf<AreaCharacter, AreaCharacterState>()
+
+		val rng = Random.Default
+		for ((npc, state) in characterStates) {
+			if (state.next != null) {
+				if (state.next.arrivalTime <= currentTime) {
+					stateChanges[npc] = AreaCharacterState(
+						x = state.next.position.x,
+						y = state.next.position.y,
+						direction = Direction.exactDelta(
+							state.next.position.x - state.x, state.next.position.y - state.y
+						)!!,
+						next = null,
+					)
+				}
+				continue
+			}
+
+			if (npc.walkBehavior.movesPerSecond <= 0f) continue
+
+			val updatesPerSecond = 1.seconds / context.timeStep
+			val walkChance = npc.walkBehavior.movesPerSecond / updatesPerSecond
+			if (rng.nextDouble() >= walkChance) continue
+
+			val candidateDirections = Direction.allProper().toMutableList()
+			while (candidateDirections.isNotEmpty() && !stateChanges.containsKey(npc)) {
+				val direction = candidateDirections.removeAt(rng.nextInt(candidateDirections.size))
+				val destination = AreaPosition(state.x + direction.deltaX, state.y + direction.deltaY)
+				if (shouldAllowNpcMove(this, context.openedChests, npc, destination)) {
+					val walkTime = WalkSpeed.Slow.duration
+					val next = NextAreaPosition(
+						destination, currentTime,
+						currentTime + walkTime, null,
+					)
+					stateChanges[npc] = AreaCharacterState(state.x, state.y, direction, next)
+				}
+			}
+		}
+
+		for ((npc, newState) in stateChanges) {
+			characterStates[npc] = newState
+		}
 	}
 
 	private fun interact(context: UpdateContext) {
@@ -416,7 +472,7 @@ class AreaState(
 		if (moveDirection != null) {
 			val nextX = playerPositions[0].x + moveDirection.deltaX
 			val nextY = playerPositions[0].y + moveDirection.deltaY
-			if (canWalkTo(input, nextX, nextY)) {
+			if (canPlayerWalkTo(input, nextX, nextY)) {
 				val next = NextAreaPosition(
 					AreaPosition(nextX, nextY),
 					currentTime,
@@ -441,13 +497,24 @@ class AreaState(
 		}
 	}
 
-	private fun canWalkTo(input: InputManager, x: Int, y: Int): Boolean {
+	private fun canPlayerWalkTo(input: InputManager, x: Int, y: Int): Boolean {
 		if (input.isPressed(InputKey.CheatMove)) return true
+		return canWalkTo(x, y)
+	}
+
+	fun canWalkTo(position: AreaPosition) = canWalkTo(position.x, position.y)
+
+	fun canWalkTo(x: Int, y: Int): Boolean {
 		if (!area.canWalkOnTile(x, y)) return false
 
 		for (character in area.objects.characters) {
 			val characterState = characterStates[character] ?: continue
-			if (x == characterState.x && y == characterState.y) return false
+			val next = characterState.next
+			if (next != null) {
+				if (x == next.position.x && y == next.position.y) return false
+			} else {
+				if (x == characterState.x && y == characterState.y) return false
+			}
 		}
 
 		for (decoration in area.objects.decorations) {
@@ -480,6 +547,7 @@ class AreaState(
 		val discovery: AreaDiscoveryMap,
 		val triggers: ActivatedTriggers,
 		val story: StoryState,
+		val openedChests: Set<Chest>,
 		var stepsSinceLastBattle: Int,
 		var totalSteps: Long,
 	) : GameStateUpdateContext(parent)

@@ -22,7 +22,18 @@ A_sprites = [
     {name:"Save Crystal",model:"o_Crystal",x:21,y:14,walkspeed:-1,conv:"c_healingCrystal"},
     {name:"Bernardo",model:"soldier",x:4,y:7,walkspeed:-1,dir:"s",elem:"FIRE",conv:"guard_bernardo"},
     {name:"Marcellus",model:"soldier",x:6,y:7,walkspeed:-1,dir:"s",elem:"EARTH",conv:"guard_marcellus"},
-    {name:"George",model:"common",x:34,y:6,walkspeed:-1,dir:"s",elem:"EARTH",conv:"blocking_george"}
+
+    {name:"George",model:"common",x:34,y:6,walkspeed:-1,dir:"s",elem:"EARTH",conv:"blocking_george",timelineCondition:Chapter1Night},
+
+    {name:"George",model:"common",x:34,y:11,walkspeed:40,dir:"s",elem:"EARTH",conv:[["deep","I, uh... I do believe I\'ve forgotten where I live! I can\'t find my house anywhere! I\'m sure I\'ll find it if I wander around this general area for a while longer though. Yes, I\'m sure things will turn out well!"]],timelineCondition:Chapter1Day},
+    {name:"Bearded Man",model:"man2",x:5,y:12,walkspeed:40,dir:RDir(),elem:"FIRE",conv:[["norm","Hey look! I have a beard! You little kiddiwinks can\'t grow beards, so I WIN. HELL YEH!!"]],timelineCondition:Chapter1Day},
+    {name:"Middle-aged Woman",model:"woman2",x:2,y:22,walkspeed:60,dir:RDir(),elem:"EARTH",conv:[["norm","Did you see that weird star that seemed to fall from the sky and into the ground over across the woods? In all my years, I\'ve never seen anything like THAT before!"]],timelineCondition:Chapter1Day},
+    {name:"Jered",model:"boy",x:9,y:16,walkspeed:10,dir:RDir(),elem:"EARTH",conv:[["norm","\'Allo, Mardek and Deugan! I bet you\'re going adventuring today again... I never get to go adventuring because me mum won\'t let me!"]],timelineCondition:Chapter1Day},
+    {name:"Adventurer",model:"woman4",x:15,y:15,walkspeed:40,dir:RDir(),elem:"AIR",conv:[["susp","Do all the children talk to strange adults in this little village? Scarper, chum. An Adventurer like me has nothing to say to you!"]],timelineCondition:Chapter1Day},
+    {name:"Old Lady",model:"woman3",x:22,y:16,walkspeed:90,dir:RDir(),elem:"EARTH",conv:[["norm","Back in my day, we didn\'t have stars falling from the heavens! Lord no! Stars were much better behaved back in the good old days, not like these rowdy, rebellious stars you kids look at these days! They\'ll be the death of us all, I swear!"]],timelineCondition:Chapter1Day},
+    {name:"Middle-aged Man",model:"man1",x:30,y:16,walkspeed:40,dir:RDir(),elem:"EARTH",conv:[["norm","I\'m so middle-aged that I don\'t care much for falling stars. I just don\'t get excited like you wee sprogs do, you see. You\'ll understand when you\'re older."]],timelineCondition:Chapter1Day},
+    {name:"Woman",model:"woman",x:32,y:18,walkspeed:40,dir:RDir(),elem:"WATER",conv:[["norm","Yes? What do you want, boys? If you\'re after some more sweet, sweet cocoa biscuits, I\'m sorry but I\'ve got none to give to you today!"]],timelineCondition:Chapter1Day},
+    {name:"Old Man",model:"man3",x:34,y:22,walkspeed:90,dir:RDir(),elem:"AIR",conv:[["norm","If I were any younger, I\'d go and look at where that star landed meself! I just knows it\'s somethin\' special! But since me old bones are too feeble, I\'d never survive the walk through them woods..."],["grin","You little whippersnappers look rip-rarin\' to go and explore, though! Tell me all about what you find when you get back!"]],timelineCondition:Chapter1Day}
 ];
 musicTrack = GoznorMusicExpression;
 if(GameData.CHAPTER == 1)

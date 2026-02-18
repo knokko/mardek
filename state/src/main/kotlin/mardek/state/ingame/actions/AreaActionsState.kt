@@ -339,6 +339,11 @@ class AreaActionsState(
 		val timeStep = context.timeStep
 		while (true) {
 			val currentNode = node
+			if (currentNode is TimelineActionNode) {
+				toNextNode(context.currentTime, context.story.evaluate(currentNode.expression))
+				continue
+			}
+
 			if (currentNode is FixedActionNode) {
 				val action = currentNode.action
 				if (updateFixedNode(context, action)) {

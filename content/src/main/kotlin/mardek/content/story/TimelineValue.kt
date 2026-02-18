@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
+import mardek.content.action.ActionNode
 import mardek.content.animation.ColorTransform
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
@@ -41,6 +42,7 @@ sealed class TimelineValue<T> {
 			TimelineCharacterStateValue::class.java,
 			TimelineColorTransformValue::class.java,
 			TimelineOptionalColorTransformValue::class.java,
+			TimelineActionNodeValue::class.java,
 		)
 	}
 }
@@ -217,6 +219,29 @@ class TimelineOptionalColorTransformValue(
 	@BitField(id = 0, optional = true)
 	val value: ColorTransform?
 ) : TimelineValue<ColorTransform?>() {
+
+	@Suppress("unused")
+	private constructor() : this(null)
+
+	override fun get() = value
+}
+
+/**
+ * A `TimelineValue` that wraps a nullable `ActionNode`.
+ *
+ * Such values are used in `TimelineActionNode`s, which are crucial for complex dialogues that depend on the
+ * story/timeline state.
+ */
+@BitStruct(backwardCompatible = true)
+class TimelineActionNodeValue(
+
+	/**
+	 * The wrapped action node, or `null`
+	 */
+	@BitField(id = 0, optional = true)
+	@ReferenceField(stable = false, label = "action nodes")
+	val value: ActionNode?
+) : TimelineValue<ActionNode?>() {
 
 	@Suppress("unused")
 	private constructor() : this(null)

@@ -2,17 +2,16 @@ package mardek.content.sprite
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.FunctionContext
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.compressor.Kim1Decompressor
 import com.github.knokko.compressor.Kim2Decompressor
 import com.github.knokko.compressor.Kim3Compressor
 
-// TODO CHAP1 Save conditionally
 @BitStruct(backwardCompatible = true)
 class KimSprite(
-	@BitField(id = 0)
-	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
+	@BitField(id = 0, readsMethodResult = true)
 	var data: IntArray?,
 
 	@BitField(id = 1)
@@ -50,4 +49,12 @@ class KimSprite(
 	}
 
 	constructor() : this(null, 1)
+
+	@BitField(id = 0)
+	@Suppress("unused")
+	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
+	private fun saveData(context: FunctionContext): IntArray? {
+		return if (context.withParameters.containsKey("exporting")) null
+		else data
+	}
 }

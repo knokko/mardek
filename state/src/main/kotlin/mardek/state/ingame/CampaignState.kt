@@ -10,6 +10,7 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.options.WithParameter
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionToArea
@@ -41,7 +42,6 @@ import mardek.content.characters.CharacterState
 import mardek.content.inventory.ItemStack
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
-import mardek.state.GameStateManager
 import mardek.state.UsedPartyMember
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
@@ -227,7 +227,7 @@ class CampaignState : BitPostInit {
 						if (nextPosition.x > 6 + nextArea.maxTileX || nextPosition.y > 4 + nextArea.maxTileY) {
 							nextPosition = AreaPosition(3, 3)
 						}
-						this.state = AreaState(nextArea, nextPosition)
+						this.state = AreaState(nextArea, story, nextPosition)
 						continue
 					}
 
@@ -311,7 +311,7 @@ class CampaignState : BitPostInit {
 			)
 			if (entrance != null) {
 				this.state = AreaState(
-					entrance.area,
+					entrance.area, story,
 					AreaPosition(entrance.x, entrance.y),
 					entrance.direction,
 				)
@@ -320,10 +320,7 @@ class CampaignState : BitPostInit {
 
 		val areaState = this.state
 		if (areaState is AreaState) {
-			val areaContext = AreaState.UpdateContext(
-				context, party, characterStates,
-				areaDiscovery, triggers, story, stepsSinceLastBattle, totalSteps
-			)
+			val areaContext = areaUpdateContext(context)
 			areaState.update(areaContext)
 			this.stepsSinceLastBattle = areaContext.stepsSinceLastBattle
 			this.totalSteps = areaContext.totalSteps
@@ -341,7 +338,8 @@ class CampaignState : BitPostInit {
 					when (val destination = suspension.destination) {
 						is AreaTransitionDestination -> {
 							this.state = AreaState(
-								destination.area, AreaPosition(destination.x, destination.y),
+								destination.area, story,
+								AreaPosition(destination.x, destination.y),
 								destination.direction ?: (this.state as AreaState).getPlayerDirection(0),
 							)
 						}
@@ -434,7 +432,7 @@ class CampaignState : BitPostInit {
 			val action = node.action
 			if (action is ActionToArea) {
 				this.state = AreaState(
-					action.area,
+					action.area, story,
 					AreaPosition(action.x, action.y),
 					action.direction,
 				)
@@ -573,7 +571,7 @@ class CampaignState : BitPostInit {
 			val switchArea = actionsContext.switchArea
 			if (switchArea != null) {
 				this.state = AreaState(
-					switchArea.area, AreaPosition(switchArea.x, switchArea.y),
+					switchArea.area, story, AreaPosition(switchArea.x, switchArea.y),
 					switchArea.direction,
 				)
 				val nextNode = (actions.node as FixedActionNode).next
@@ -586,10 +584,7 @@ class CampaignState : BitPostInit {
 
 			val maybeBattle = actionsContext.startBattle
 			if (maybeBattle != null) {
-				val areaContext = AreaState.UpdateContext(
-					context, party, characterStates, areaDiscovery,
-					triggers, story, stepsSinceLastBattle, totalSteps,
-				)
+				val areaContext = areaUpdateContext(context)
 				if (maybeBattle.overridePlayers != null) {
 					currentArea.engageBattle(areaContext, maybeBattle.battle, maybeBattle.overridePlayers!!)
 				} else {
@@ -649,6 +644,12 @@ class CampaignState : BitPostInit {
 		}
 	}
 
+	private fun areaUpdateContext(context: UpdateContext) = AreaState.UpdateContext(
+		context, party, characterStates,
+		areaDiscovery, triggers, story, openedChests,
+		stepsSinceLastBattle, totalSteps,
+	)
+
 	class UpdateContext(
 		parent: GameStateUpdateContext,
 		val campaignName: String
@@ -665,7 +666,7 @@ class CampaignState : BitPostInit {
 		 */
 		fun loadSave(content: Content, input: InputStream): CampaignState {
 			val bitInput = BitInputStream(input)
-			val campaignState = GameStateManager.bitser.deserialize(
+			val campaignState = BITSER.deserialize(
 				CampaignState::class.java, bitInput,
 				content,
 				Bitser.BACKWARD_COMPATIBLE,

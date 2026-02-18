@@ -1,6 +1,5 @@
 package mardek.importer.inventory
 
-import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.compressor.Kim3Decompressor
 import mardek.content.inventory.EquipmentProperties
@@ -53,7 +52,7 @@ internal fun assertSpriteEquals(sheetName: String, x: Int, y: Int, compressedSpr
 class TestItemsContentImporter {
 
 	private val margin = 1e-4f
-	private val content = importVanillaContent(Bitser(false), skipMonsters = true)
+	private val content = importVanillaContent(skipMonsters = true)
 
 	@Test
 	fun testImportMediumArmor() {

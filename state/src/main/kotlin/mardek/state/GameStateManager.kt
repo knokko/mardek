@@ -1,6 +1,5 @@
 package mardek.state
 
-import com.github.knokko.bitser.Bitser
 import mardek.content.Content
 import mardek.input.InputManager
 import mardek.state.saves.SavesFolderManager
@@ -43,9 +42,5 @@ class GameStateManager(
 		} else {
 			this.currentState = this.currentState.updateBeforeContent(input, soundQueue, saves)
 		}
-	}
-
-	companion object {
-		val bitser = Bitser(true)
 	}
 }

@@ -1,6 +1,6 @@
 package mardek.importer.actions
 
-import com.github.knokko.bitser.Bitser
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.action.ActionSequence
 import mardek.content.action.ActionTargetAreaCharacter
@@ -42,7 +42,6 @@ class HardcodedActions {
 	}
 
 	internal fun resolveIncompleteActions(content: Content) {
-		val bitser = Bitser(false)
 		val allAreaTargets = mutableListOf<ActionTargetAreaCharacter>()
 		val allToAreaActions = mutableListOf<ActionToArea>()
 		val allTimelineTransitions = mutableListOf<ActionTimelineTransition>()
@@ -50,7 +49,7 @@ class HardcodedActions {
 		collectedInstances[ActionTargetAreaCharacter::class.java] = allAreaTargets
 		collectedInstances[ActionToArea::class.java] = allToAreaActions
 		collectedInstances[ActionTimelineTransition::class.java] = allTimelineTransitions
-		bitser.collectInstances(content, collectedInstances)
+		BITSER.collectInstances(content, collectedInstances, hashMapOf())
 
 		val characterMapping = mutableMapOf<UUID, AreaCharacter>()
 		for (area in content.areas.areas) {

@@ -36,7 +36,7 @@ object TestLocks {
 				content, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			state.campaign.state = AreaState(
-				dragonLairEntry,
+				dragonLairEntry, state.campaign.story,
 				AreaPosition(5, 10),
 				Direction.Down,
 			)
@@ -96,7 +96,7 @@ object TestLocks {
 			)
 			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				AreaPosition(18, 14),
+				state.campaign.story, AreaPosition(18, 14),
 				Direction.Up,
 			)
 
@@ -129,7 +129,7 @@ object TestLocks {
 			)
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				AreaPosition(31, 11),
+				state.campaign.story, AreaPosition(31, 11),
 				Direction.Up,
 			)
 			state.campaign.state = areaState
@@ -188,11 +188,11 @@ object TestLocks {
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
-				"MainTimeline", "Night before the falling 'star'"
+				"MainTimeline", "Searching for the fallen 'star'"
 			)
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "sewer1" }!!,
-				AreaPosition(14, 2),
+				state.campaign.story, AreaPosition(14, 2),
 				Direction.Up,
 			)
 			state.campaign.state = areaState
@@ -236,7 +236,7 @@ object TestLocks {
 			)
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				AreaPosition(5, 22),
+				state.campaign.story, AreaPosition(5, 22),
 				Direction.Up,
 			)
 			state.campaign.state = areaState
@@ -302,6 +302,34 @@ object TestLocks {
 				state.update(updateContext)
 			}
 			assertEquals("gz_Mhouse1", (state.campaign.state as AreaState).area.properties.rawName)
+		}
+	}
+
+	fun testWeaponShopIsOpenDuringTheDay(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(simpleCampaignState(), "")
+			val updateContext = GameStateUpdateContext(
+				content, InputManager(), SoundQueue(), 100.milliseconds
+			)
+			performTimelineTransition(
+				updateContext, state.campaign,
+				"MainTimeline", "Searching for the fallen 'star'"
+			)
+			state.campaign.state = AreaState(
+				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
+				state.campaign.story, AreaPosition(31, 11),
+				Direction.Up,
+			)
+
+			// Enter the weapon shop
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			repeat(10) {
+				state.update(updateContext)
+			}
+			assertSame(
+				content.areas.areas.find { it.properties.rawName == "gz_shop_W" }!!,
+				(state.campaign.state as AreaState).area,
+			)
 		}
 	}
 }

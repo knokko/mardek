@@ -2,17 +2,13 @@ package mardek.state.saves
 
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.Bitser
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.state.ingame.CampaignState
 import java.io.File
 import java.lang.Long.parseLong
 import java.nio.file.Files
 import java.util.Locale
-
-/**
- * The `Bitser` instance that is used to decode/encode `SaveInfo`s and load/save `SaveFile`s
- */
-val savesBitser = Bitser(true)
 
 /**
  * Each `SaveFile` contains the data about 1 campaign at 1 time instant. Players can start the game by either starting
@@ -110,7 +106,7 @@ class SaveFile private constructor(
 				val input = Files.newInputStream(file.toPath())
 				val infoSize = input.read().toUByte()
 				val dataOffset = infoSize.toLong() + 1L
-				val info = savesBitser.deserialize(
+				val info = BITSER.deserialize(
 					SaveInfo::class.java,
 					BitInputStream(input),
 					Bitser.BACKWARD_COMPATIBLE,

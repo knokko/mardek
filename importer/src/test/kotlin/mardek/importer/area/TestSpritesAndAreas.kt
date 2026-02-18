@@ -57,7 +57,7 @@ class TestSpritesAndAreas {
 
 	@Test
 	fun testImportCharacterSprites() {
-		val content = importVanillaContent(Bitser(false), skipMonsters = true)
+		val content = importVanillaContent(skipMonsters = true)
 
 		val deugan = content.areas.characterSprites.find { it.name == "deugan_hero" }!!
 		assertEquals("deugan_hero", deugan.name)

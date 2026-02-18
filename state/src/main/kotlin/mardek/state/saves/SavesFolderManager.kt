@@ -3,6 +3,7 @@ package mardek.state.saves
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.exceptions.BitserException
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaState
@@ -102,7 +103,7 @@ class SavesFolderManager(
 			chapter = campaignState.story.evaluate(content.story.fixedVariables.chapter) ?: -1,
 		)
 
-		val infoBytes = savesBitser.toBytes(
+		val infoBytes = BITSER.toBytes(
 			saveInfo, Bitser.BACKWARD_COMPATIBLE
 		)
 
@@ -114,7 +115,7 @@ class SavesFolderManager(
 			rawOutput.write(infoBytes)
 
 			val bitOutput = BitOutputStream(rawOutput)
-			savesBitser.serialize(campaignState, bitOutput, content, Bitser.BACKWARD_COMPATIBLE)
+			BITSER.serialize(campaignState, bitOutput, content, Bitser.BACKWARD_COMPATIBLE)
 			bitOutput.finish()
 			rawOutput.flush()
 			rawOutput.close()

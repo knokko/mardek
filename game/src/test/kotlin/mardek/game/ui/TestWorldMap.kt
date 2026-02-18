@@ -30,6 +30,7 @@ object TestWorldMap {
 			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
+				story = state.campaign.story,
 				initialPlayerPosition = AreaPosition(6, 13),
 				initialPlayerDirection = Direction.Up,
 			)

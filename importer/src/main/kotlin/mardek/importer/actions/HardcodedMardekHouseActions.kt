@@ -21,9 +21,14 @@ import mardek.content.action.ActionWalk
 import mardek.content.action.ChoiceActionNode
 import mardek.content.action.ChoiceEntry
 import mardek.content.action.FixedActionNode
+import mardek.content.action.TimelineActionNode
 import mardek.content.action.WalkSpeed
 import mardek.content.area.Direction
 import mardek.content.sprite.NamedSprite
+import mardek.content.story.ConstantTimelineExpression
+import mardek.content.story.DefinedVariableTimelineCondition
+import mardek.content.story.IfElseTimelineExpression
+import mardek.content.story.TimelineActionNodeValue
 import mardek.importer.util.loadBc7Sprite
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
@@ -31,17 +36,70 @@ import kotlin.time.Duration.Companion.seconds
 internal fun hardcodeMardekHouseActions(
 	content: Content, hardcoded: MutableMap<String, MutableList<ActionSequence>>
 ) {
-	val motherRoot = FixedActionNode( // TODO CHAP1 Change this, depending on the timeline state
-		id = UUID.fromString("b436e5c5-3163-4576-86d3-df4c435934c6"),
-		action = ActionTalk(
-			speaker = ActionTargetDefaultDialogueObject(),
-			expression = "smile",
-			text = "Sweet dreams, dear."
-		),
-		next = null,
+	val timeOfDay = content.story.customVariables.find { it.name == "TimeOfDay" }!!
+	val fallenStarQuest = content.story.quests.find { it.tabName == "The Fallen Star" }!!
+	val targetMardek = ActionTargetPartyMember(0)
+
+	val motherRoot = TimelineActionNode( // TODO CHAP2 Add the chapter 2 cases
+		id = UUID.fromString("e724fd84-61cc-4209-bf61-1614e28f27a2"),
+		expression = IfElseTimelineExpression(
+			condition = DefinedVariableTimelineCondition(timeOfDay),
+			ifTrue = IfElseTimelineExpression(
+				condition = DefinedVariableTimelineCondition(fallenStarQuest.wasCompleted),
+				ifTrue = ConstantTimelineExpression(TimelineActionNodeValue(fixedActionChain(
+					actions = arrayOf(
+						ActionTalk(
+							speaker = ActionTargetDefaultDialogueObject(),
+							expression = "norm",
+							text = "Hello again, dear. You're back a bit late today...",
+						),
+						ActionTalk(
+							speaker = targetMardek,
+							expression = "susp",
+							text = "I am...? Well, it feels like I've barely been gone any time at all!",
+						),
+						ActionTalk(
+							speaker = ActionTargetDefaultDialogueObject(),
+							expression = "norm",
+							text = "Oh well. Time does fly when you're having fun.",
+						),
+						ActionTalk(
+							speaker = ActionTargetDefaultDialogueObject(),
+							expression = "norm",
+							text = "But you should go to bed, Mardek! It IS pretty late. " +
+									"So nighty night, dear, and sweet dreams!",
+						),
+					),
+					ids = arrayOf(
+						UUID.fromString("fc96a905-44b1-4ca2-8e4a-b7e42fc7ecfb"),
+						UUID.fromString("90444319-7ee7-4769-bf4e-b069ddd35b2c"),
+						UUID.fromString("a02a7a47-5dc9-40a9-b3de-962c81b2c000"),
+						UUID.fromString("ce535196-5687-4598-8f4f-740acfb508c3"),
+					),
+				))),
+				ifFalse = ConstantTimelineExpression(TimelineActionNodeValue(FixedActionNode(
+					id = UUID.fromString("b436e5c5-3163-4576-86d3-df4c435934c6"),
+					action = ActionTalk(
+						speaker = ActionTargetDefaultDialogueObject(),
+						expression = "smile",
+						text = "Sweet dreams, dear.",
+					),
+					next = null
+				))),
+			),
+			ifFalse = ConstantTimelineExpression(TimelineActionNodeValue(FixedActionNode(
+				id = UUID.fromString("51b51a45-e908-48f3-8ee1-ac55b5a0d32c"),
+				action = ActionTalk(
+					speaker = ActionTargetDefaultDialogueObject(),
+					expression = "norm",
+					text = "Oh, good morning dear. You and Deugan are going out on another adventure again, right? " +
+							"Have fun with that, but mind you don't hurt yourselves!",
+				),
+				next = null
+			)))
+		)
 	)
 
-	val targetMardek = ActionTargetPartyMember(0)
 	val targetMother = ActionTargetAreaCharacter(UUID.fromString(
 		"3993b751-bd8c-46a1-92ae-18bbda25aa48"
 	), persistent = false)

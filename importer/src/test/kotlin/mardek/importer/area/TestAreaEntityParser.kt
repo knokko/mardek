@@ -1,6 +1,5 @@
 package mardek.importer.area
 
-import com.github.knokko.bitser.Bitser
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.FixedActionNode
@@ -25,7 +24,7 @@ import java.util.UUID
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestAreaEntityParser {
 
-	private val content = importVanillaContent(Bitser(true), skipMonsters = true)
+	private val content = importVanillaContent(skipMonsters = true)
 
 	private fun areaDestination(name: String, x: Int, y: Int, direction: Direction?): AreaTransitionDestination {
 		val destination = AreaTransitionDestination(name, x, y, direction)
@@ -299,19 +298,20 @@ class TestAreaEntityParser {
 	fun testParseTheDragon() {
 		val id = UUID.fromString("6d8a7f59-5b45-4054-8266-49eae259fdbb")
 		val expected = AreaCharacter(
+			id = id,
 			name = "The Dragon",
 			directionalSprites = null,
 			fixedSprites = content.areas.objectSprites.find { it.flashName ==  "spritesheet_dragon(0, 2)" },
 			startX = 6,
 			startY = 7,
 			startDirection = Direction.Down,
-			walkSpeed = -2,
+			walkBehavior = WalkBehavior(movesPerSecond = 0f, showAnimationWhileStandingStill = false),
 			element = content.stats.elements.find { it.rawName == "DARK" }!!,
 			portrait = null,
 			ownActions = null,
 			sharedActionSequence = null,
 			encyclopediaPerson = null,
-			id = id,
+			condition = null,
 		)
 		val actual = findArea("DL_area4").objects.characters.find { it.startX == 6 && it.startY == 7 }!!
 		assertEquals(expected, actual)
@@ -321,19 +321,20 @@ class TestAreaEntityParser {
 	fun testParseMoric() {
 		val actual = findArea("crypt4").objects.characters.find { it.startY == 11 }!!
 		val expected = AreaCharacter(
+			id = actual.id,
 			name = "Moric",
 			directionalSprites = null,
 			fixedSprites = content.areas.objectSprites.find { it.flashName == "spritesheet_moric(1, 1)" },
 			startX = 7,
 			startY = 11,
 			startDirection = Direction.Down,
-			walkSpeed = -2,
+			walkBehavior = WalkBehavior(movesPerSecond = 0f, showAnimationWhileStandingStill = false),
 			element = content.stats.elements.find { it.rawName == "EARTH" }!!,
 			portrait = null,
 			ownActions = null, // TODO CHAP2 Test the right actions
 			sharedActionSequence = null,
 			encyclopediaPerson = null,
-			id = actual.id,
+			condition = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -342,19 +343,20 @@ class TestAreaEntityParser {
 	fun testParsePriestessGail() {
 		val actual = findArea("aeropolis_N_TAIR").objects.characters.find { it.startY == 3 }!!
 		val expected = AreaCharacter(
+			id = actual.id,
 			name = "Priestess Gail",
 			directionalSprites = content.areas.characterSprites.find { it.name == "priestess" }!!,
 			fixedSprites = null,
 			startX = 7,
 			startY = 3,
 			startDirection = Direction.Down,
-			walkSpeed = -1,
+			walkBehavior = WalkBehavior(movesPerSecond = 0f, showAnimationWhileStandingStill = true),
 			element = content.stats.elements.find { it.rawName == "AIR" }!!,
 			portrait = null, // Portraits are tested in IntegrationTests.testAreaCharacterPortraitImporting
 			ownActions = null, // TODO CHAP3 Fix this dialogue
 			sharedActionSequence = null,
 			encyclopediaPerson = "Priestess Gail",
-			id = actual.id,
+			condition = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -415,19 +417,20 @@ class TestAreaEntityParser {
 	fun testParseStatue() {
 		val actual = findArea("lakequr").objects.characters.find { it.startX == 25 }!!
 		val expected = AreaCharacter(
+			id = actual.id,
 			name = "Statue",
 			directionalSprites = null,
 			fixedSprites = content.areas.objectSprites.find { it.flashName == "spritesheet_statue(6, 1)" }!!,
 			startX = 25,
 			startY = 3,
 			startDirection = Direction.Down,
-			walkSpeed = -2,
+			walkBehavior = WalkBehavior(movesPerSecond = 0f, showAnimationWhileStandingStill = false),
 			element = null,
 			portrait = null,
 			ownActions = null,
 			sharedActionSequence = null, // TODO CHAP2 Implement this
 			encyclopediaPerson = null,
-			id = actual.id,
+			condition = null,
 		)
 		assertEquals(expected, actual)
 	}

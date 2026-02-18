@@ -25,6 +25,10 @@ sealed class ActionNode(
 	val id: UUID,
 ) {
 
+	/**
+	 * Gets all child nodes and descendant nodes of this node (also including this node itself). This is useful for
+	 * collecting all reference targets.
+	 */
 	fun getAllChildNodes(): HashSet<ActionNode> {
 		val collectedNodes = HashSet<ActionNode>()
 		val nodesToProcess = arrayListOf(this)
@@ -35,7 +39,7 @@ sealed class ActionNode(
 		return collectedNodes
 	}
 
-	abstract fun getDirectChildNodes(): Collection<ActionNode>
+	internal abstract fun getDirectChildNodes(): Collection<ActionNode>
 
 	companion object {
 
@@ -44,6 +48,7 @@ sealed class ActionNode(
 		val BITSER_HIERARCHY = arrayOf(
 			FixedActionNode::class.java,
 			ChoiceActionNode::class.java,
+			TimelineActionNode::class.java,
 		)
 	}
 }

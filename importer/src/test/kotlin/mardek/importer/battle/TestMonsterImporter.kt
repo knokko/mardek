@@ -1,6 +1,5 @@
 package mardek.importer.battle
 
-import com.github.knokko.bitser.Bitser
 import mardek.content.animation.CombatantAnimations
 import mardek.content.battle.*
 import mardek.content.stats.Element
@@ -85,7 +84,7 @@ DetermineStats();
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestMonsterImporter {
 
-	private val content = importVanillaContent(Bitser(true), skipMonsters = true)
+	private val content = importVanillaContent(skipMonsters = true)
 
 	private fun getItem(name: String) = content.items.items.find { it.displayName == name }!!
 

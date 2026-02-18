@@ -1,6 +1,7 @@
 package mardek.game.save
 
 import com.github.knokko.bitser.Bitser
+import mardek.content.BITSER
 import mardek.game.TestingInstance
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SaveInfo
@@ -31,7 +32,6 @@ object TestListSaves {
 				file.deleteOnExit()
 			}
 
-			val bitser = Bitser(false)
 			val info1 = SaveInfo(
 				areaName = "",
 				party = arrayOf(null, heroDeugan.id, null, heroMardek.id),
@@ -39,7 +39,7 @@ object TestListSaves {
 				partyLevel = 34,
 				chapter = 1,
 			)
-			val validContent1 = bitser.toBytes(info1, content, Bitser.BACKWARD_COMPATIBLE)
+			val validContent1 = BITSER.toBytes(info1, content, Bitser.BACKWARD_COMPATIBLE)
 			val info2 = SaveInfo(
 				areaName = content.areas.areas.find { it.properties.rawName == "soothwood" }!!.properties.displayName,
 				party = arrayOf(heroMardek.id, null, null, null),
@@ -47,7 +47,7 @@ object TestListSaves {
 				partyLevel = 88,
 				chapter = 2,
 			)
-			val validContent2 = bitser.toBytes(info2, content, Bitser.BACKWARD_COMPATIBLE)
+			val validContent2 = BITSER.toBytes(info2, content, Bitser.BACKWARD_COMPATIBLE)
 			assertEquals(0, savesManager.getSaves("knokko").size)
 
 			createSaveFile("nope.txt", validContent2)
@@ -66,11 +66,11 @@ object TestListSaves {
 
 			assertEquals(-123456L, saves[0].timestamp)
 			assertEquals(SaveFile.Type.Auto, saves[0].type)
-			assertTrue(bitser.deepEquals(info1, saves[0].info))
+			assertTrue(BITSER.deepEquals(info1, saves[0].info))
 
 			assertEquals(8765L, saves[1].timestamp)
 			assertEquals(SaveFile.Type.Crystal, saves[1].type)
-			assertTrue(bitser.deepEquals(info2, saves[1].info))
+			assertTrue(BITSER.deepEquals(info2, saves[1].info))
 
 			campaignDirectory.deleteRecursively()
 		}

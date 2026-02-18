@@ -25,7 +25,10 @@ object TestRandomBattles {
 		instance.apply {
 			repeat(1000) {
 				val campaign = simpleCampaignState()
-				campaign.state = AreaState(dragonLair2, AreaPosition(7, 35))
+				campaign.state = AreaState(
+					dragonLair2, campaign.story,
+					AreaPosition(7, 35),
+				)
 				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
 				val input = InputManager()
@@ -52,7 +55,10 @@ object TestRandomBattles {
 			var numEncounters = 0
 			repeat(10_000) {
 				val campaign = simpleCampaignState()
-				campaign.state = AreaState(dragonLair2, AreaPosition(7, 39))
+				campaign.state = AreaState(
+					dragonLair2, campaign.story,
+					AreaPosition(7, 39),
+				)
 				campaign.stepsSinceLastBattle = 30
 				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
@@ -80,7 +86,10 @@ object TestRandomBattles {
 			var numEncounters = 0
 			repeat(10_000) {
 				val campaign = simpleCampaignState()
-				campaign.state = AreaState(dragonLair2, AreaPosition(7, 39))
+				campaign.state = AreaState(
+					dragonLair2, campaign.story,
+					AreaPosition(7, 39),
+				)
 				campaign.stepsSinceLastBattle = 60
 				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
@@ -106,7 +115,10 @@ object TestRandomBattles {
 	fun testTransferOddsToNextArea(instance: TestingInstance) {
 		instance.apply {
 			val campaign = simpleCampaignState()
-			campaign.state = AreaState(dragonLair2, AreaPosition(7, 39))
+			campaign.state = AreaState(
+				dragonLair2, campaign.story,
+				AreaPosition(7, 39),
+			)
 			campaign.stepsSinceLastBattle = 20
 			campaign.totalSteps = 100
 			campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
@@ -145,7 +157,10 @@ object TestRandomBattles {
 	fun testCannotOpenDoorWhileBattleIsIncoming(instance: TestingInstance) {
 		instance.apply {
 			val campaign = simpleCampaignState()
-			campaign.state = AreaState(dragonLair2, AreaPosition(7, 3))
+			campaign.state = AreaState(
+				dragonLair2, campaign.story,
+				AreaPosition(7, 3),
+			)
 			campaign.stepsSinceLastBattle = 500
 
 			val input = InputManager()

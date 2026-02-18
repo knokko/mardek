@@ -86,7 +86,8 @@ private class AnimationSimulator {
 			script.contains("this.noFlicker") ||
 			script.contains("!_parent._parent.stats.face2") ||
 			script.contains("&& isNaN(_parent._parent.stats.face)") ||
-			script.contains("!_loc3_.hair ? (!_loc3_.face ? 1 : _loc3_.face) : _loc3_.hair")
+			script.contains("!_loc3_.hair ? (!_loc3_.face ? 1 : _loc3_.face) : _loc3_.hair") ||
+			script.contains("!_parent._parent.stats.hair ?")
 		) {
 			onlyOneFramePerSkin = true
 			if (currentSkinName != "") throw IllegalStateException()

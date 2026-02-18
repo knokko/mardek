@@ -11,6 +11,7 @@ import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.text.TextAlignment
 import com.github.knokko.vk2d.text.Vk2dFont
+import mardek.content.BITSER
 import mardek.content.ui.TitleScreenContent
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
@@ -24,7 +25,7 @@ import kotlin.math.roundToInt
 
 private fun loadInfo(): TitleScreenContent {
 	val input = RenderContext::class.java.classLoader.getResourceAsStream("mardek/game/title-screen.bits")!!
-	return Bitser(false).deserialize(
+	return BITSER.deserialize(
 		TitleScreenContent::class.java,
 		BitInputStream(input),
 		Bitser.BACKWARD_COMPATIBLE,

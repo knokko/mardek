@@ -46,8 +46,11 @@ object TestActions {
 
 	fun testSaveCrystalCancel(instance: TestingInstance) {
 		instance.apply {
-			val areaState = AreaState(dragonLairEntry, AreaPosition(5, 3))
 			val state = InGameState(simpleCampaignState(), "test")
+			val areaState = AreaState(
+				dragonLairEntry, state.campaign.story,
+				AreaPosition(5, 3),
+			)
 			state.campaign.state = areaState
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
@@ -234,6 +237,7 @@ object TestActions {
 			val state = InGameState(simpleCampaignState(), "")
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "heroes_house" }!!,
+				story = state.campaign.story,
 				initialPlayerPosition = AreaPosition(3, 1),
 				initialPlayerDirection = Direction.Up,
 			)

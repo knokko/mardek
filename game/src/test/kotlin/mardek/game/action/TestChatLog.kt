@@ -106,7 +106,7 @@ object TestChatLog {
 			)
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "gz_monastery" }!!,
-				AreaPosition(2, 5),
+				state.campaign.story, AreaPosition(2, 5),
 				Direction.Right,
 			)
 			state.campaign.state = areaState

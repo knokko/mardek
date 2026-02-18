@@ -1,7 +1,7 @@
 package mardek.importer
 
-import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.Bitser
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionRotate
@@ -38,10 +38,9 @@ import mardek.state.ingame.CampaignState
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.importer.story.hardcodeTimeline
 import mardek.importer.story.importSimpleStoryContent
-import java.io.ByteArrayOutputStream
 import java.util.UUID
 
-fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content {
+fun importVanillaContent(skipMonsters: Boolean = false): Content {
 
 	val content = Content()
 	importAudioContent(content.audio)
@@ -123,11 +122,7 @@ fun importVanillaContent(bitser: Bitser, skipMonsters: Boolean = false): Content
 	hardcodedActions.resolveIncompleteActions(content)
 
 	fun addCheckpoint(name: String, state: CampaignState) {
-		val byteOutput = ByteArrayOutputStream()
-		val bitOutput = BitOutputStream(byteOutput)
-		bitser.serialize(state, bitOutput, content, Bitser.BACKWARD_COMPATIBLE)
-		bitOutput.finish()
-		content.checkpoints[name] = byteOutput.toByteArray()
+		content.checkpoints[name] = BITSER.toBytes(state, content, Bitser.BACKWARD_COMPATIBLE)
 	}
 
 	addCheckpoint("chapter1", startChapter1)

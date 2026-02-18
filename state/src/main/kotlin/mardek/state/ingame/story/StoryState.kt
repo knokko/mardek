@@ -5,11 +5,11 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.story.*
-import mardek.state.GameStateManager
 
 /**
  * The story-related part of the [mardek.state.ingame.CampaignState], which determines among others which
@@ -56,7 +56,7 @@ class StoryState : BitPostInit {
 			val contentState = evaluate(character.stateVariable, nodes) ?:
 					throw IllegalStateException("Missing default state for forced $character")
 
-			return GameStateManager.bitser.deepCopy(contentState)
+			return BITSER.deepCopy(contentState)
 		}
 
 		for ((partyIndex, variable) in content.story.fixedVariables.forcedPartyMembers.withIndex()) {

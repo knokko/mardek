@@ -20,12 +20,23 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 		) {
 			val directionalSprites = character.directionalSprites
 
+			var x = tileSize * characterState.x
+			var y = tileSize * characterState.y
+			val nextPosition = characterState.next
+			var useAlternativeWalkingSprite = false
+			if (nextPosition != null) {
+				val p = (state.currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
+				x = ((1 - p) * x + p * tileSize * nextPosition.position.x).roundToInt()
+				y = ((1 - p) * y + p * tileSize * nextPosition.position.y).roundToInt()
+				if (p in 0.25 ..< 0.75) useAlternativeWalkingSprite = true
+			}
+
 			val sprite = if (directionalSprites != null) {
 				val direction = characterState.direction
 				var spriteIndex = animationSize * direction.ordinal
-				if (character.walkSpeed == -1) {
+				if (character.walkBehavior.showAnimationWhileStandingStill) {
 					if (state.currentTime.inWholeMilliseconds % 1000L >= 500L) spriteIndex += 1
-				}
+				} else if (useAlternativeWalkingSprite) spriteIndex += 1
 				directionalSprites.sprites[spriteIndex]
 			} else {
 				val fixedSprites = character.fixedSprites!!
@@ -33,14 +44,6 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 				fixedSprites.frames[spriteIndex.toInt()]
 			}
 
-			var x = tileSize * characterState.x
-			var y = tileSize * characterState.y
-			val nextPosition = characterState.next
-			if (nextPosition != null) {
-				val p = (state.currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
-				x = ((1 - p) * x + p * tileSize * nextPosition.position.x).roundToInt()
-				y = ((1 - p) * y + p * tileSize * nextPosition.position.y).roundToInt()
-			}
 			renderJobs.add(SpriteRenderJob(
 				x = x + offsetX,
 				y = y - 4 * scale,
