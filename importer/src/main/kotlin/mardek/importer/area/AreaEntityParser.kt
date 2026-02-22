@@ -327,12 +327,18 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		)
 	}
 
-	if (model == "talktrigger") return AreaTalkTrigger(
-		name = name,
-		x = x,
-		y = y,
-		npcName = parseFlashString(rawEntity["NPC"]!!, "talktrigger NPC")!!
-	)
+	if (model == "talktrigger") {
+		val talkX = if (rawEntity.containsKey("talkX")) parseInt(rawEntity["talkX"]) else -1
+		val talkY = if (rawEntity.containsKey("talkY")) parseInt(rawEntity["talkY"]) else -1
+		return AreaTalkTrigger(
+			name = name,
+			x = x,
+			y = y,
+			talkX = talkX,
+			talkY = talkY,
+			condition = timelineCondition,
+		)
+	}
 
 	if (model.startsWith("o_")) {
 		val spritesheetName = "obj_${model.substring(2)}"

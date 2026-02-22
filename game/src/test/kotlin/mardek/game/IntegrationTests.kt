@@ -4,10 +4,12 @@ import mardek.game.action.TestActions
 import mardek.game.action.TestChatLog
 import mardek.game.action.TestLocks
 import mardek.game.action.TestMardekHouseActions
+import mardek.game.area.TestDreamCircles
 import mardek.game.area.TestChestLoot
 import mardek.game.area.TestDoors
 import mardek.game.area.TestDragonLair
 import mardek.game.area.TestRandomBattles
+import mardek.game.area.TestTalkTriggers
 import mardek.game.area.TestTimelines
 import mardek.game.area.TestWalking
 import mardek.game.battle.*
@@ -417,5 +419,15 @@ class IntegrationTests {
 	@Test
 	fun testRandomNpcWalking() {
 		TestWalking.testRandomNpcWalking(instance)
+	}
+
+	@Test
+	fun testGoznorAccessoryShopTalkTrigger() {
+		TestTalkTriggers.testGoznorAccessoryShop(instance)
+	}
+
+	@Test
+	fun testDreamCircleInChapter1MagicShop() {
+		TestDreamCircles.testDreamCircleInMagicShopChapter1(instance)
 	}
 }

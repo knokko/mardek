@@ -4,6 +4,7 @@ import mardek.content.Content
 import mardek.content.action.ActionSequence
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDefaultDialogueObject
+import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.FixedActionNode
 import mardek.content.action.TimelineActionNode
 import mardek.content.story.ConstantTimelineExpression
@@ -135,4 +136,53 @@ internal fun hardcodeGoznorDialogues(
 		ActionSequence(name = "guard_marcellus", root = marcellusRoot),
 		ActionSequence(name = "blocking_george", root = georgeRoot),
 	))
+
+	val jacquesRoot = fixedActionChain(
+		actions = arrayOf(
+			ActionTalk(
+				speaker = ActionTargetDefaultDialogueObject(),
+				expression = "smile",
+				text = "Ah, Mardek and Deugan! 'Ow nice it iz to see you zis day! And you come at good timing, too, " +
+						"as I 'ave news for you concerning your faazer!"
+			),
+			ActionTalk(
+				speaker = ActionTargetPartyMember(0),
+				expression = "shok",
+				text = "You know something about my dad?!?",
+			),
+			ActionTalk(
+				speaker = ActionTargetDefaultDialogueObject(),
+				expression = "deep",
+				text = "Aah, I do not know much, but I 'eard from one of zee soldiers " +
+						"zat he was sighted in Nole'Oth... Zee frozen Northern Wastes.",
+			),
+			ActionTalk(
+				speaker = ActionTargetDefaultDialogueObject(),
+				expression = "grin",
+				text = "Zis iz good! It means 'e still lives! 'E seems to be on some kind of epic zhournee, a quest, " +
+						"and knowing 'im, 'e should 'ave it finished soon and will surely be back in no time!",
+			),
+			ActionTalk(
+				speaker = ActionTargetPartyMember(0),
+				expression = "grin",
+				text = "Well, I hope so!",
+			),
+			ActionTalk(
+				speaker = ActionTargetDefaultDialogueObject(),
+				expression = "grin",
+				text = "We all can but 'ope... Enki was a great man, though... 'E will be back soon, " +
+						"I am sure of zis! And when 'e returns, " +
+						"I am sure 'e will 'ave many gifts to give and tales to tell!"
+			),
+		),
+		ids = arrayOf(
+			UUID.fromString("c1878482-2868-4c39-bf52-99e6c90564e0"),
+			UUID.fromString("4c1bb4ba-f6fa-4e6f-a778-7a5a426e2a11"),
+			UUID.fromString("acdbb3d5-1346-4cb4-baa5-00435bd078fc"),
+			UUID.fromString("4b212299-a45a-4cb4-9108-333b2473e7bd"),
+			UUID.fromString("a539cb3a-6458-45b2-bf70-4310fa17adc2"),
+			UUID.fromString("76777d4a-3793-4c98-b304-93a96511e3d3"),
+		)
+	)!!
+	hardcoded["gz_barracks"] = mutableListOf(ActionSequence(name = "jacques", root = jacquesRoot))
 }

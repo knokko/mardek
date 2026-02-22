@@ -207,7 +207,9 @@ class TestAreaEntityParser {
 			name = "TALKTRIGGER",
 			x = 5,
 			y = 2,
-			npcName = "Shopkeeper"
+			talkX = 5,
+			talkY = 1,
+			condition = null,
 		)
 		assertEquals(expected, actual)
 	}

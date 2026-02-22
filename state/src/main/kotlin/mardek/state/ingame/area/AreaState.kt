@@ -211,8 +211,16 @@ class AreaState(
 	}
 
 	private fun interact(context: UpdateContext) {
-		val x = playerPositions[0].x + playerDirections[0].deltaX
-		val y = playerPositions[0].y + playerDirections[0].deltaY
+		var x = playerPositions[0].x + playerDirections[0].deltaX
+		var y = playerPositions[0].y + playerDirections[0].deltaY
+
+		for (trigger in area.objects.talkTriggers) {
+			if (x != trigger.x || y != trigger.y) continue
+			val condition = trigger.condition
+			if (condition != null && !context.story.evaluate(condition)) continue
+			x = trigger.talkX
+			y = trigger.talkY
+		}
 
 		for (chest in area.chests) {
 			if (x == chest.x && y == chest.y) {
@@ -283,10 +291,6 @@ class AreaState(
 		for (orb in area.objects.switchOrbs) {
 			if (x == orb.x && y == orb.y) println("switch color " + orb.color)
 		}
-
-		for (trigger in area.objects.talkTriggers) {
-			if (x == trigger.x && y == trigger.y) println("trigger $trigger")
-		}
 	}
 
 	fun getPlayerPosition(index: Int) = playerPositions[index]
@@ -308,7 +312,13 @@ class AreaState(
 
 	private fun findTransitions(x: Int, y: Int): TransitionDestination? {
 		for (portal in area.objects.portals) {
-			if (x == portal.x && y == portal.y) return portal.destination
+			if (x == portal.x && y == portal.y) {
+				val destination = portal.destination
+				if (destination is AreaTransitionDestination &&
+					destination.area.properties.dreamType != AreaDreamType.None
+				) continue // TODO CHAP3 Handle this properly
+				return destination
+			}
 		}
 
 		for (transition in area.objects.transitions) {

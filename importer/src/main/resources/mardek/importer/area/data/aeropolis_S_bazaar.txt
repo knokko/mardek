@@ -3,7 +3,7 @@ tileset = "interior6";
 area = "aeropolis_S_bazaar";
 areaname = "Aeropolis - Bazaar";
 ambience = null;
-A_sprites = [{name:"TALKTRIGGER",model:"talktrigger",x:5,y:2,NPC:"Shopkeeper",dir:"s"},{name:"Shopkeeper",model:"arab2",x:5,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["angr","What do YOU want?! Wares to buy? I\'ll give YOU wares to buy! BUT NOT FOR FREE!!"],Do = function()
+A_sprites = [{name:"TALKTRIGGER",model:"talktrigger",x:5,y:2,talkX:5,talkY:1,dir:"s"},{name:"Shopkeeper",model:"arab2",x:5,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["angr","What do YOU want?! Wares to buy? I\'ll give YOU wares to buy! BUT NOT FOR FREE!!"],Do = function()
 {
    _root.OpenShop({name:"Aeropolis Bazaar",wares:_root.DefaultShops.AERO_BAZAAR});
    return 1;
