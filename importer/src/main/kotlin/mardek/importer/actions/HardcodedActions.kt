@@ -26,6 +26,7 @@ class HardcodedActions {
 		hardcodeGoznorHouse1Dialogues(hardcoded)
 		hardcodeGoznorInnActions(hardcoded)
 		hardcodeWeaponShopActions(hardcoded)
+		hardcodeInventorLabActions(content, hardcoded)
 	}
 
 	internal fun getHardcodedAreaActions(areaName: String, sequenceName: String) = hardcoded[areaName]?.find {

@@ -2,6 +2,7 @@ package mardek.importer.util
 
 import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.io.DebugBitOutputStream
+import com.github.knokko.bitser.options.AnalyzePerformance
 import mardek.content.BITSER
 import mardek.content.Content
 import java.io.BufferedInputStream
@@ -20,17 +21,19 @@ fun main() {
 //	val storage = SampleStorage.frequency()
 //	val profiler = SampleProfiler(storage)
 //	profiler.start()
-	val content = BITSER.fromBytes(Content::class.java, bytes, Bitser.BACKWARD_COMPATIBLE)
+	val performance = AnalyzePerformance()
+	val content = BITSER.fromBytes(Content::class.java, bytes, Bitser.BACKWARD_COMPATIBLE, performance)
+	println(performance)
 //	profiler.stop()
 //
 //	storage.getThreadStorage(Thread.currentThread().id).print(System.out, 10, 1.0)
 
-	val debugWriter = PrintWriter(Files.newOutputStream(File("content-debug.txt").toPath()))
-	BITSER.serialize(content, DebugBitOutputStream(
-		ByteArrayOutputStream(), debugWriter, false
-	), Bitser.BACKWARD_COMPATIBLE)
-	debugWriter.flush()
-	debugWriter.close()
+//	val debugWriter = PrintWriter(Files.newOutputStream(File("content-debug.txt").toPath()))
+//	BITSER.serialize(content, DebugBitOutputStream(
+//		ByteArrayOutputStream(), debugWriter, false
+//	), Bitser.BACKWARD_COMPATIBLE)
+//	debugWriter.flush()
+//	debugWriter.close()
 //	val intDistribution = IntegerDistributionTracker()
 //	val floatDistribution = FloatDistributionTracker()
 //	val sizeAnalysis = BitserSizeAnalysis(ByteArrayOutputStream())
@@ -46,5 +49,4 @@ fun main() {
 //		PrintWriter(System.out), 20, 5, 10,
 //		doubleArrayOf(0.0, 0.001, 0.002, 0.01, 0.05, 0.1)
 //	)
-	// TODO CHAP1 Make tile grids lazy
 }

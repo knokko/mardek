@@ -177,7 +177,7 @@ class TestingInstance {
 		campaignState.story.initialize(content)
 		campaignState.story.validatePartyMembers(content, campaignState.party, campaignState.characterStates)
 		campaignState.state = AreaState(
-			dragonLair2, campaignState.story,
+			dragonLair2, campaignState.story, campaignState.expressionContext(),
 			AreaPosition(10, 10), skipFadeIn = true
 		)
 		campaignState.characterStates.putAll(simpleCharacterStates())

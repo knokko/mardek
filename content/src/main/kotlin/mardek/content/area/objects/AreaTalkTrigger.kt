@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
-import mardek.content.story.TimelineExpression
+import mardek.content.expression.StateExpression
 
 /**
  * When a talk trigger is placed at (x, y), the player can interact with the tile (x, y), causing the player to
@@ -44,8 +44,8 @@ class AreaTalkTrigger(
 	 * When `null`, players can always interact with this trigger.
 	 */
 	@BitField(id = 3, optional = true)
-	@ClassField(root = TimelineExpression::class)
-	val condition: TimelineExpression<Boolean>?,
+	@ClassField(root = StateExpression::class)
+	val condition: StateExpression<Boolean>?,
 ) : StaticAreaObject(x, y) {
 
 	@Suppress("unused")

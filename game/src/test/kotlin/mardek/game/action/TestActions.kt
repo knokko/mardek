@@ -48,7 +48,7 @@ object TestActions {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
 			val areaState = AreaState(
-				dragonLairEntry, state.campaign.story,
+				dragonLairEntry, state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(5, 3),
 			)
 			state.campaign.state = areaState
@@ -238,6 +238,7 @@ object TestActions {
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "heroes_house" }!!,
 				story = state.campaign.story,
+				expressionContext = state.campaign.expressionContext(),
 				initialPlayerPosition = AreaPosition(3, 1),
 				initialPlayerDirection = Direction.Up,
 			)

@@ -45,7 +45,7 @@ class FixedTimelineVariable<T>() : TimelineVariable<T>() {
 
 /**
  * A named timeline variable without special meaning for the engine. Custom timeline variables can be used in
- * [TimelineExpression]s and assigned by [TimelineNode]s (just like fixed timeline variables).
+ * [mardek.content.expression.StateExpression]s and assigned by [TimelineNode]s (just like fixed timeline variables).
  */
 @BitStruct(backwardCompatible = true)
 class CustomTimelineVariable<T>(

@@ -3,6 +3,7 @@ package mardek.content.story
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import mardek.content.expression.GlobalExpression
 
 /**
  * The story-related part of the `Content`

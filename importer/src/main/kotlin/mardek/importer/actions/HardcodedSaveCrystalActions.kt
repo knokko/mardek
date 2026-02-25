@@ -3,8 +3,8 @@ package mardek.importer.actions
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.Content
 import mardek.content.action.*
-import mardek.content.story.DefinedVariableTimelineCondition
-import mardek.content.story.NegateTimelineCondition
+import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.NegateStateCondition
 import java.util.UUID
 
 internal fun hardcodeSaveCrystalActions(content: Content, hardcoded: Map<String, MutableList<ActionSequence>>) {
@@ -37,7 +37,7 @@ internal fun hardcodeSaveCrystalActions(content: Content, hardcoded: Map<String,
 								id = UUID.fromString("80617055-9f71-40d3-b115-3786738c7377"),
 								action = ActionItemStorage(),
 								next = null
-							), condition = NegateTimelineCondition(DefinedVariableTimelineCondition(
+							), condition = NegateStateCondition(DefinedVariableStateCondition(
 								content.story.fixedVariables.blockItemStorage
 							))),
 							ChoiceEntry("norm", text = "Exit...", next = null)

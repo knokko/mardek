@@ -26,7 +26,8 @@ object TestDreamCircles {
 			)
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "gz_shop_M" }!!,
-				state.campaign.story, AreaPosition(7, 3)
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(7, 3)
 			)
 			state.campaign.state = areaState
 

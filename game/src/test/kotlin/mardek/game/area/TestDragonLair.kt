@@ -39,7 +39,10 @@ object TestDragonLair {
 		instance.apply {
 			val area = content.areas.areas.find { it.properties.rawName == "DL_area4" }!!
 			val state = InGameState(simpleCampaignState(), "test")
-			state.campaign.state = AreaState(area, state.campaign.story, AreaPosition(6, 20))
+			state.campaign.state = AreaState(
+				area, state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(6, 20),
+			)
 
 			// Make sure Deugan has enough mana to cast Frostasia
 			val deuganState = state.campaign.characterStates[heroDeugan]!!
@@ -210,7 +213,10 @@ object TestDragonLair {
 			assertArrayEquals(arrayOf(heroMardek, heroDeugan, null, null), state.campaign.party)
 			assertEquals(
 				ColorTransform(0, -1, 0),
-				state.campaign.story.evaluate((state.campaign.state as AreaState).area.properties.ambience)
+				state.campaign.story.evaluate(
+					(state.campaign.state as AreaState).area.properties.ambience,
+					state.campaign.expressionContext(),
+				)
 			)
 			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
 			repeat(200) {
@@ -242,7 +248,10 @@ object TestDragonLair {
 				ColorTransform(
 					0, rgb(1f, 0.01f * 80, 0.01f * 70), 0
 				),
-				state.campaign.story.evaluate((state.campaign.state as AreaState).area.properties.ambience)
+				state.campaign.story.evaluate(
+					(state.campaign.state as AreaState).area.properties.ambience,
+					state.campaign.expressionContext(),
+				)
 			)
 
 			val heroesDenColors = arrayOf(

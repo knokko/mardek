@@ -36,9 +36,8 @@ object TestLocks {
 				content, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			state.campaign.state = AreaState(
-				dragonLairEntry, state.campaign.story,
-				AreaPosition(5, 10),
-				Direction.Down,
+				dragonLairEntry, state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(5, 10), Direction.Down,
 			)
 			state.campaign.characterStates[heroMardek]!!.currentLevel = 50
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 50
@@ -96,8 +95,8 @@ object TestLocks {
 			)
 			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				state.campaign.story, AreaPosition(18, 14),
-				Direction.Up,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(18, 14), Direction.Up,
 			)
 
 			// Open the monastery door
@@ -129,8 +128,8 @@ object TestLocks {
 			)
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				state.campaign.story, AreaPosition(31, 11),
-				Direction.Up,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(31, 11), Direction.Up,
 			)
 			state.campaign.state = areaState
 
@@ -192,8 +191,8 @@ object TestLocks {
 			)
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "sewer1" }!!,
-				state.campaign.story, AreaPosition(14, 2),
-				Direction.Up,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(14, 2), Direction.Up,
 			)
 			state.campaign.state = areaState
 
@@ -236,8 +235,8 @@ object TestLocks {
 			)
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				state.campaign.story, AreaPosition(5, 22),
-				Direction.Up,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(5, 22), Direction.Up,
 			)
 			state.campaign.state = areaState
 
@@ -317,8 +316,8 @@ object TestLocks {
 			)
 			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				state.campaign.story, AreaPosition(31, 11),
-				Direction.Up,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(31, 11), Direction.Up,
 			)
 
 			// Enter the weapon shop

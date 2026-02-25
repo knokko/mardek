@@ -48,7 +48,7 @@ sealed class ActionNode(
 		val BITSER_HIERARCHY = arrayOf(
 			FixedActionNode::class.java,
 			ChoiceActionNode::class.java,
-			TimelineActionNode::class.java,
+			ExpressionActionNode::class.java,
 		)
 	}
 }

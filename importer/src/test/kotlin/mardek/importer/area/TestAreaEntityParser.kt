@@ -7,8 +7,8 @@ import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Direction
 import mardek.content.area.WorldMapTransitionDestination
 import mardek.content.area.objects.*
-import mardek.content.story.ConstantTimelineExpression
-import mardek.content.story.TimelineBooleanValue
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.ExpressionBooleanValue
 import mardek.importer.actions.HardcodedActions
 import mardek.importer.importVanillaContent
 import mardek.importer.story.expressions.HardcodedExpressions
@@ -391,7 +391,7 @@ class TestAreaEntityParser {
 			x = 19,
 			y = 13,
 			destination = areaDestination("crypt2", x = 19, y = 13, direction = Direction.Down),
-			canOpen = ConstantTimelineExpression(TimelineBooleanValue(true)),
+			canOpen = ConstantStateExpression(ExpressionBooleanValue(true)),
 			cannotOpenActions = null,
 			displayName = "UP"
 		)
@@ -408,7 +408,7 @@ class TestAreaEntityParser {
 			y = 8,
 			destination = areaDestination("aeropolis_E", 13, 20, Direction.Down),
 			// TODO CHAP2 Allow doors to be opened, with the right key
-			canOpen = ConstantTimelineExpression(TimelineBooleanValue(false)),
+			canOpen = ConstantStateExpression(ExpressionBooleanValue(false)),
 			cannotOpenActions = null,
 			displayName = "Exit",
 		)

@@ -2,6 +2,7 @@ package mardek.game
 
 import mardek.game.action.TestActions
 import mardek.game.action.TestChatLog
+import mardek.game.action.TestInventorLabActions
 import mardek.game.action.TestLocks
 import mardek.game.action.TestMardekHouseActions
 import mardek.game.area.TestDreamCircles
@@ -350,6 +351,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testChildhoodQuests() {
+		TestQuests.testChildhoodQuests(instance)
+	}
+
+	@Test
 	fun testSequentialChatLog() {
 		TestChatLog.testSequential(instance)
 	}
@@ -429,5 +435,10 @@ class IntegrationTests {
 	@Test
 	fun testDreamCircleInChapter1MagicShop() {
 		TestDreamCircles.testDreamCircleInMagicShopChapter1(instance)
+	}
+
+	@Test
+	fun testLeadPipeQuest() {
+		TestInventorLabActions.testLeadPipeQuest(instance)
 	}
 }

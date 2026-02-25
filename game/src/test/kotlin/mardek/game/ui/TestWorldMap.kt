@@ -31,6 +31,7 @@ object TestWorldMap {
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
 				story = state.campaign.story,
+				expressionContext = state.campaign.expressionContext(),
 				initialPlayerPosition = AreaPosition(6, 13),
 				initialPlayerDirection = Direction.Up,
 			)

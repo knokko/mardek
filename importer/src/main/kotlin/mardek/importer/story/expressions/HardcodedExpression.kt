@@ -1,8 +1,8 @@
 package mardek.importer.story.expressions
 
-import mardek.content.story.TimelineExpression
+import mardek.content.expression.StateExpression
 
 class HardcodedExpression(
 	val name: String,
-	val expression: TimelineExpression<*>
+	val expression: StateExpression<*>
 )

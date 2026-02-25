@@ -35,7 +35,8 @@ object TestChestLoot {
 			val campaign = simpleCampaignState()
 			campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "soothwood" }!!,
-				campaign.story, AreaPosition(28, 6), skipFadeIn = true
+				campaign.story, campaign.expressionContext(),
+				AreaPosition(28, 6), skipFadeIn = true,
 			)
 
 			val input = InputManager()
@@ -148,7 +149,8 @@ object TestChestLoot {
 			val campaign = simpleCampaignState()
 			campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "lakequr_cave2" }!!,
-				campaign.story, AreaPosition(5, 48), Direction.Down, skipFadeIn = true
+				campaign.story, campaign.expressionContext(),
+				AreaPosition(5, 48), Direction.Down, skipFadeIn = true
 			)
 
 			val input = InputManager()

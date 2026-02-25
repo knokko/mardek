@@ -5,8 +5,8 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import mardek.content.animation.ColorTransform
-import mardek.content.story.ConstantTimelineExpression
-import mardek.content.story.TimelineExpression
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.StateExpression
 
 /**
  * The basic properties that all areas have.
@@ -37,15 +37,15 @@ class AreaProperties(
 	 * which is equivalent to `ColorTransform(multiplyColor=rgb(0.25, 0.4, 0.8))`
 	 */
 	@BitField(id = 2)
-	@ClassField(root = TimelineExpression::class)
-	val ambience: TimelineExpression<ColorTransform>,
+	@ClassField(root = StateExpression::class)
+	val ambience: StateExpression<ColorTransform>,
 
 	/**
 	 * The name of the music track that should be played while the player is in the area.
 	 */
 	@BitField(id = 3, optional = true)
-	@ClassField(root = TimelineExpression::class)
-	val musicTrack: TimelineExpression<String?>,
+	@ClassField(root = StateExpression::class)
+	val musicTrack: StateExpression<String?>,
 
 	/**
 	 * All areas with the same "dungeon" will share their switch gate/platform state
@@ -74,7 +74,7 @@ class AreaProperties(
 ) {
 
 	constructor() : this(
-		"", "", ConstantTimelineExpression(), ConstantTimelineExpression(),
+		"", "", ConstantStateExpression(), ConstantStateExpression(),
 		null, null, AreaDreamType.AstralTunnel, AreaSnowType.None
 	)
 }

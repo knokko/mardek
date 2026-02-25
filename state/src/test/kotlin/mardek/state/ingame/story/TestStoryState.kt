@@ -6,11 +6,11 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.story.FixedTimelineVariable
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineAssignment
-import mardek.content.story.TimelineCharacterStateValue
-import mardek.content.story.TimelineIntValue
+import mardek.content.expression.ExpressionCharacterStateValue
+import mardek.content.expression.ExpressionIntValue
 import mardek.content.story.TimelineNode
-import mardek.content.story.TimelineOptionalPlayerValue
-import mardek.content.story.TimelineUnitValue
+import mardek.content.expression.ExpressionOptionalPlayerValue
+import mardek.content.expression.ExpressionUnitValue
 import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
@@ -52,7 +52,7 @@ class TestStoryState {
 	private val needsNodeA = simpleNode(
 		name = "NeedsNodeA",
 		variables = arrayOf(
-			TimelineAssignment(simpleIntVariable, TimelineIntValue(35), priority = 10)
+			TimelineAssignment(simpleIntVariable, ExpressionIntValue(35), priority = 10)
 		)
 	)
 	private val needsNodeBA = simpleNode(
@@ -60,7 +60,7 @@ class TestStoryState {
 		variables = arrayOf(
 			TimelineAssignment(
 				simpleIntVariable,
-				TimelineIntValue(3),
+				ExpressionIntValue(3),
 				appliesToFutureNodes = true,
 				priority = 4,
 			)
@@ -72,7 +72,7 @@ class TestStoryState {
 		variables = arrayOf(
 			TimelineAssignment(
 				simpleIntVariable,
-				TimelineIntValue(-3),
+				ExpressionIntValue(-3),
 				appliesToFutureNodes = true,
 				priority = 5,
 			)
@@ -103,7 +103,7 @@ class TestStoryState {
 		name = "MainNodeB",
 		children = arrayOf(mainNodeBA),
 		variables = arrayOf(
-			TimelineAssignment(simpleIntVariable, TimelineIntValue(5), priority = 1)
+			TimelineAssignment(simpleIntVariable, ExpressionIntValue(5), priority = 1)
 		),
 	)
 	private val mainNodeCA = simpleNode(
@@ -111,7 +111,7 @@ class TestStoryState {
 		variables = arrayOf(
 			TimelineAssignment(
 				simpleIntVariable,
-				TimelineIntValue(8),
+				ExpressionIntValue(8),
 				appliesToFutureNodes = true,
 				priority = 2
 			)
@@ -126,7 +126,7 @@ class TestStoryState {
 		variables = arrayOf(
 			TimelineAssignment(
 				content.story.fixedVariables.forcedPartyMembers[2],
-				TimelineOptionalPlayerValue(deugan),
+				ExpressionOptionalPlayerValue(deugan),
 			),
 		)
 	)
@@ -136,7 +136,7 @@ class TestStoryState {
 		variables = arrayOf(
 			TimelineAssignment(
 				content.story.fixedVariables.forcedPartyMembers[1],
-				TimelineOptionalPlayerValue(deugan),
+				ExpressionOptionalPlayerValue(deugan),
 			),
 		)
 	)
@@ -144,8 +144,8 @@ class TestStoryState {
 		name = "MainNodeD",
 		children = arrayOf(mainNodeDA),
 		variables = arrayOf(
-			TimelineAssignment(deugan.isAvailable, TimelineUnitValue()),
-			TimelineAssignment(deugan.stateVariable, TimelineCharacterStateValue(simpleState)),
+			TimelineAssignment(deugan.isAvailable, ExpressionUnitValue()),
+			TimelineAssignment(deugan.stateVariable, ExpressionCharacterStateValue(simpleState)),
 		)
 	)
 	private val mainNodeEA = simpleNode(
@@ -156,25 +156,25 @@ class TestStoryState {
 		name = "MainNodeE",
 		children = arrayOf(mainNodeEA),
 		variables = arrayOf(
-			TimelineAssignment(simpleIntVariable, TimelineIntValue(1), priority = 1)
+			TimelineAssignment(simpleIntVariable, ExpressionIntValue(1), priority = 1)
 		),
 	)
 	private val mainNodeF = simpleNode(
 		name = "MainNodeF",
 		variables = arrayOf(
-			TimelineAssignment(simpleIntVariable, TimelineIntValue(2), priority = 2)
+			TimelineAssignment(simpleIntVariable, ExpressionIntValue(2), priority = 2)
 		),
 	)
 	private val mainRoot = simpleNode(
 		name = "MainRoot",
 		children = arrayOf(mainNodeA, mainNodeB, mainNodeC, mainNodeD, mainNodeE, mainNodeF),
 		variables = arrayOf(
-			TimelineAssignment(simpleIntVariable, TimelineIntValue(12)),
+			TimelineAssignment(simpleIntVariable, ExpressionIntValue(12)),
 			TimelineAssignment(
 				content.story.fixedVariables.forcedPartyMembers[0],
-				TimelineOptionalPlayerValue(mardek),
+				ExpressionOptionalPlayerValue(mardek),
 			),
-			TimelineAssignment(mardek.stateVariable, TimelineCharacterStateValue(simpleState)),
+			TimelineAssignment(mardek.stateVariable, ExpressionCharacterStateValue(simpleState)),
 		),
 	)
 	private val mainTimeline = Timeline(
@@ -306,7 +306,7 @@ class TestStoryState {
 			root = simpleNode(
 				"activated root -1",
 				variables = arrayOf(
-					TimelineAssignment(simpleIntVariable, TimelineIntValue(17), priority = 10)
+					TimelineAssignment(simpleIntVariable, ExpressionIntValue(17), priority = 10)
 				)
 			),
 			needsActivation = true,

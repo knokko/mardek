@@ -12,9 +12,9 @@ import mardek.content.area.TransitionDestination
 import mardek.content.area.WorldMapTransitionDestination
 import mardek.content.area.objects.*
 import mardek.content.sprite.ObjectSprites
-import mardek.content.story.ConstantTimelineExpression
-import mardek.content.story.TimelineBooleanValue
-import mardek.content.story.TimelineExpression
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.ExpressionBooleanValue
+import mardek.content.expression.StateExpression
 import mardek.importer.actions.HardcodedActions
 import mardek.importer.actions.fixedActionChain
 import mardek.importer.story.expressions.HardcodedExpressions
@@ -195,7 +195,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		) ?: context.expressions.getHardcodedGlobalExpressions(rawConditionName)!!
 
 		@Suppress("UNCHECKED_CAST")
-		condition as TimelineExpression<Boolean>
+		condition as StateExpression<Boolean>
 	} else null
 
 	if (model == "object" || model == "examine") {
@@ -378,7 +378,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			rawEntity["dest"]!!, rawEntity["dir"], context.areaName
 		)
 
-		val canOpen: TimelineExpression<Boolean>
+		val canOpen: StateExpression<Boolean>
 		val cannotOpenActions: ActionSequence?
 		val rawLock = rawEntity["lock"]
 
@@ -387,7 +387,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		} else null
 
 		if (rawLock == null || rawLock == "null") {
-			canOpen = ConstantTimelineExpression(TimelineBooleanValue(true))
+			canOpen = ConstantStateExpression(ExpressionBooleanValue(true))
 			cannotOpenActions = null
 		} else {
 			if (rawLock.startsWith('"') && rawLock.endsWith('"')) {
@@ -397,17 +397,17 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 						context.areaName, "lock_$lockType"
 					) ?: context.expressions.getHardcodedGlobalExpressions("lock_$lockType")
 					if (condition == null) {
-						canOpen = ConstantTimelineExpression(TimelineBooleanValue(false))
+						canOpen = ConstantStateExpression(ExpressionBooleanValue(false))
 					} else {
 						@Suppress("UNCHECKED_CAST")
-						canOpen = condition as TimelineExpression<Boolean>
+						canOpen = condition as StateExpression<Boolean>
 					}
 				} else {
 					val key = context.content.items.plotItems.find { it.displayName == keyName } ?:
 							throw RuntimeException("Can't find key $keyName")
 					// TODO CHAP2 Use the key
 					println("Should use key $key for lock $rawLock")
-					canOpen = ConstantTimelineExpression(TimelineBooleanValue(false))
+					canOpen = ConstantStateExpression(ExpressionBooleanValue(false))
 				}
 
 				cannotOpenActions = context.actions.getHardcodedAreaActions(
@@ -415,7 +415,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 				) ?: context.actions.getHardcodedGlobalActionSequence("lock_$lockType")
 			} else {
 				println("Can't handle complex lock $rawLock")
-				canOpen = ConstantTimelineExpression(TimelineBooleanValue(true))
+				canOpen = ConstantStateExpression(ExpressionBooleanValue(true))
 				cannotOpenActions = null
 			}
 		}
@@ -488,7 +488,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		)
 	}
 
-	val rawPerson = rawEntity["EN"]
+	val rawPerson = rawEntity["EN"] // TODO CHAP1 Add to 'examine' objects?
 	val encyclopediaPerson = if (rawPerson != null) {
 		val prefix = "[\"People\",\""
 		val suffix = "\"]"

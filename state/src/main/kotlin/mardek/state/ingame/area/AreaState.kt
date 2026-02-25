@@ -41,6 +41,7 @@ class AreaState(
 	val area: Area,
 
 	story: StoryState?,
+	expressionContext: StoryState.ExpressionContext?,
 
 	initialPlayerPosition: AreaPosition,
 	initialPlayerDirection: Direction = Direction.Up,
@@ -99,12 +100,15 @@ class AreaState(
 	private var shouldInteract = false
 
 	@Suppress("unused")
-	private constructor() : this(Area(), null, AreaPosition(), Direction.Up)
+	private constructor() : this(
+		Area(), null, null,
+		AreaPosition(), Direction.Up,
+	)
 
 	init {
-		if (story != null) {
+		if (story != null && expressionContext != null) {
 			for (character in area.objects.characters) {
-				if (character.condition == null || story.evaluate(character.condition!!)) {
+				if (character.condition == null || story.evaluate(character.condition!!, expressionContext)) {
 					var direction = character.startDirection
 					if (direction == Direction.Random) direction = Direction.allProper().random()
 					characterStates[character] = AreaCharacterState(
@@ -217,7 +221,7 @@ class AreaState(
 		for (trigger in area.objects.talkTriggers) {
 			if (x != trigger.x || y != trigger.y) continue
 			val condition = trigger.condition
-			if (condition != null && !context.story.evaluate(condition)) continue
+			if (condition != null && !context.story.evaluate(condition, context.expressionContext)) continue
 			x = trigger.talkX
 			y = trigger.talkY
 		}
@@ -271,7 +275,7 @@ class AreaState(
 
 		for (door in area.objects.doors) {
 			if (x == door.x && y == door.y) {
-				suspension = if (context.story.evaluate(door.canOpen)) {
+				suspension = if (context.story.evaluate(door.canOpen, context.expressionContext)) {
 					AreaSuspensionOpeningDoor(door, currentTime + DOOR_OPEN_DURATION)
 				} else {
 					AreaSuspensionActions(AreaActionsState(
@@ -442,7 +446,9 @@ class AreaState(
 		for (trigger in area.objects.walkTriggers) {
 			if (trigger.walkOn != true) continue
 			if (trigger.x != playerPositions[0].x || trigger.y != playerPositions[0].y) continue
-			if (trigger.condition != null && !context.story.evaluate(trigger.condition!!)) continue
+			if (trigger.condition != null && !context.story.evaluate(
+					trigger.condition!!, context.expressionContext
+			)) continue
 			if (!context.triggers.activateTrigger(trigger)) continue
 
 			val triggerActions = trigger.actions
@@ -557,6 +563,7 @@ class AreaState(
 		val discovery: AreaDiscoveryMap,
 		val triggers: ActivatedTriggers,
 		val story: StoryState,
+		val expressionContext: StoryState.ExpressionContext,
 		val openedChests: Set<Chest>,
 		var stepsSinceLastBattle: Int,
 		var totalSteps: Long,

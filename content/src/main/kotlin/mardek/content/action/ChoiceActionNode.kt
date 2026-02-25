@@ -4,9 +4,9 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.story.ConstantTimelineExpression
-import mardek.content.story.TimelineBooleanValue
-import mardek.content.story.TimelineExpression
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.ExpressionBooleanValue
+import mardek.content.expression.StateExpression
 import java.util.UUID
 
 /**
@@ -70,9 +70,9 @@ class ChoiceEntry(
 	 * This option is only visible/selectable when this condition evaluates to true.
 	 */
 	@BitField(id = 3)
-	@ClassField(root = TimelineExpression::class)
-	val condition: TimelineExpression<Boolean> = ConstantTimelineExpression(
-		TimelineBooleanValue(true)
+	@ClassField(root = StateExpression::class)
+	val condition: StateExpression<Boolean> = ConstantStateExpression(
+		ExpressionBooleanValue(true)
 	),
 ) {
 

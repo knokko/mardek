@@ -12,6 +12,7 @@ import mardek.content.area.objects.AreaCharacter
 import mardek.content.audio.FixedSoundEffects
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
+import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
 import mardek.content.sprite.NamedSprite
 import mardek.content.story.Timeline
@@ -187,6 +188,14 @@ class AreaActionsState(
 	var itemStorageInteraction: ItemStorageInteractionState? = null
 		private set
 
+	/**
+	 * The [ItemNotification] that should be shown, or `null` if no item notification should be shown.
+	 *
+	 * Note that when this is non-null, it does not necessarily mean that an item notification should be rendered, e.g.
+	 * because it is too old.
+	 */
+	var itemNotification: ItemNotification? = null
+
 	internal constructor() : this(FixedActionNode(), null)
 
 	override fun postInit(context: BitPostInit.Context) {
@@ -199,7 +208,9 @@ class AreaActionsState(
 	private fun initChoices(context: UpdateContext) {
 		val node = this.node
 		if (choiceOptions.isEmpty() && node is ChoiceActionNode) {
-			choiceOptions = node.options.filter { context.story.evaluate(it.condition) }
+			choiceOptions = node.options.filter {
+				context.story.evaluate(it.condition, context.expressionContext)
+			}
 			if (choiceOptions.isEmpty()) throw IllegalStateException("Not a single choice entry: ${node.options}")
 		}
 	}
@@ -259,6 +270,24 @@ class AreaActionsState(
 		}
 		if (currentAction is ActionSetMoney) {
 			context.setMoney = currentAction.amount
+			return true
+		}
+		if (currentAction is ActionTakeItem) {
+			context.takeItem(currentAction.item, currentAction.amount)
+			itemNotification = ItemNotification(
+				ItemStack(currentAction.item, currentAction.amount),
+				ItemNotification.Operation.Lost,
+				context.currentTime,
+			)
+			return true
+		}
+		if (currentAction is ActionGiveItem) {
+			context.giveItem(currentAction.item, currentAction.amount)
+			itemNotification = ItemNotification(
+				ItemStack(currentAction.item, currentAction.amount),
+				ItemNotification.Operation.Acquire,
+				context.currentTime,
+			)
 			return true
 		}
 		if (currentAction is ActionTeleport) {
@@ -339,8 +368,10 @@ class AreaActionsState(
 		val timeStep = context.timeStep
 		while (true) {
 			val currentNode = node
-			if (currentNode is TimelineActionNode) {
-				toNextNode(context.currentTime, context.story.evaluate(currentNode.expression))
+			if (currentNode is ExpressionActionNode) {
+				toNextNode(context.currentTime, context.story.evaluate(
+					currentNode.expression, context.expressionContext
+				))
 				continue
 			}
 
@@ -684,6 +715,7 @@ class AreaActionsState(
 		val fadingCharacters: MutableCollection<FadingCharacter>,
 		val story: StoryState,
 		val itemStorage: MutableList<ItemStack?>,
+		val expressionContext: StoryState.ExpressionContext,
 		val healParty: () -> Unit,
 		val transitionTimeline: (Timeline, TimelineNode) -> Unit,
 		val getCursorStack: () -> ItemStack?,
@@ -692,6 +724,70 @@ class AreaActionsState(
 		var startBattle: ActionBattle? = null
 		var setMoney: Int? = null
 		var switchArea: ActionToArea? = null
+
+		/**
+		 * The implementation for [ActionTakeItem]
+		 */
+		internal fun takeItem(item: Item, amount: Int) {
+			var remaining = amount
+			for (partyCharacter in party.filterNotNull()) {
+				val inventory = playableCharacterStates[partyCharacter]!!.inventory
+				for ((itemIndex, oldStack) in inventory.withIndex()) {
+					if (oldStack == null || oldStack.item !== item) continue
+					if (oldStack.amount > remaining) {
+						inventory[itemIndex] = ItemStack(item, oldStack.amount - remaining)
+						return
+					} else {
+						inventory[itemIndex] = null
+						remaining -= oldStack.amount
+						if (remaining == 0) return
+					}
+				}
+			}
+			for (partyCharacter in party.filterNotNull()) {
+				val equipment = playableCharacterStates[partyCharacter]!!.equipment
+				equipment.entries.removeIf { (slot, equipped) ->
+					if (remaining == 0 || !slot.canBeEmpty) return@removeIf false
+					if (equipped === item) {
+						remaining -= 1
+						return@removeIf true
+					}
+					return@removeIf false
+				}
+			}
+		}
+
+		/**
+		 * The implementation for [ActionGiveItem]
+		 */
+		internal fun giveItem(item: Item, amount: Int) {
+			for (partyCharacter in party.filterNotNull()) {
+				val inventory = playableCharacterStates[partyCharacter]!!.inventory
+				for ((itemIndex, oldStack) in inventory.withIndex()) {
+					if (oldStack == null) {
+						inventory[itemIndex] = ItemStack(item, amount)
+						return
+					}
+					if (oldStack.item === item) {
+						inventory[itemIndex] = ItemStack(item, oldStack.amount + amount)
+						return
+					}
+				}
+			}
+
+			for ((itemIndex, oldStack) in itemStorage.withIndex()) {
+				if (oldStack == null) {
+					itemStorage[itemIndex] = ItemStack(item, amount)
+					return
+				}
+				if (oldStack.item === item) {
+					itemStorage[itemIndex] = ItemStack(item, oldStack.amount + amount)
+					return
+				}
+			}
+
+			itemStorage.add(ItemStack(item, amount))
+		}
 	}
 
 	companion object {
@@ -699,6 +795,6 @@ class AreaActionsState(
 
 		@Suppress("unused")
 		@ReferenceField(stable = true, label = "area characters")
-		const val OVERRIDE_CHARACTER_STATES_KEYS = false
+		private const val OVERRIDE_CHARACTER_STATES_KEYS = false
 	}
 }

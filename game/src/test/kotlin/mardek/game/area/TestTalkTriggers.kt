@@ -30,7 +30,8 @@ object TestTalkTriggers {
 
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "gz_shop_Ac" }!!,
-				state.campaign.story, AreaPosition(2, 3), Direction.Up,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(2, 3), Direction.Up,
 			)
 			state.campaign.state = areaState
 

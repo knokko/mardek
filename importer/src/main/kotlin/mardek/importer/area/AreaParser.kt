@@ -7,6 +7,18 @@ import mardek.content.Content
 import mardek.content.animation.ColorTransform
 import mardek.content.area.*
 import mardek.content.area.objects.AreaDecoration
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.ExpressionOrDefaultStateExpression
+import mardek.content.expression.GlobalExpression
+import mardek.content.expression.GlobalStateExpression
+import mardek.content.expression.IfElseStateExpression
+import mardek.content.expression.SwitchCaseStateExpression
+import mardek.content.expression.StateExpression
+import mardek.content.expression.ExpressionColorTransformValue
+import mardek.content.expression.ExpressionOptionalStringValue
+import mardek.content.expression.ExpressionStringValue
+import mardek.content.expression.VariableStateExpression
 import mardek.content.story.*
 import mardek.importer.util.ActionScriptCode
 import mardek.importer.util.parseActionScriptResource
@@ -175,62 +187,62 @@ internal fun parseAreaProperties(content: Content, areaCode: ActionScriptCode, a
 }
 
 @Suppress("UNCHECKED_CAST")
-fun timeOfDayMusic(content: Content, dayMusic: String) = ExpressionOrDefaultTimelineExpression(
-	GlobalTimelineExpression(content.story.globalExpressions.find {
+fun timeOfDayMusic(content: Content, dayMusic: String) = ExpressionOrDefaultStateExpression(
+	GlobalStateExpression(content.story.globalExpressions.find {
 		it.name == "TimeOfDayMusic"
 	}!! as GlobalExpression<String?>),
-	ConstantTimelineExpression(TimelineOptionalStringValue(dayMusic))
+	ConstantStateExpression(ExpressionOptionalStringValue(dayMusic))
 )
 
-fun onlyDayMusic(content: Content, dayMusic: String) = IfElseTimelineExpression(
-	DefinedVariableTimelineCondition(content.story.customVariables.find { it.name == "TimeOfDay" }!!),
-	ConstantTimelineExpression(TimelineOptionalStringValue(null)),
-	ConstantTimelineExpression(TimelineOptionalStringValue(dayMusic)),
+fun onlyDayMusic(content: Content, dayMusic: String) = IfElseStateExpression(
+	DefinedVariableStateCondition(content.story.customVariables.find { it.name == "TimeOfDay" }!!),
+	ConstantStateExpression(ExpressionOptionalStringValue(null)),
+	ConstantStateExpression(ExpressionOptionalStringValue(dayMusic)),
 )
 
 @Suppress("UNCHECKED_CAST")
-private fun parseMusicTrack(content: Content, raw: String): TimelineExpression<String?> {
-	if (raw == "\"none\"") return ConstantTimelineExpression(TimelineOptionalStringValue(null))
+private fun parseMusicTrack(content: Content, raw: String): StateExpression<String?> {
+	if (raw == "\"none\"") return ConstantStateExpression(ExpressionOptionalStringValue(null))
 	if (raw.startsWith('"') && raw.endsWith('"')) {
-		return ConstantTimelineExpression(
-			TimelineOptionalStringValue(raw.substring(1, raw.length - 1))
+		return ConstantStateExpression(
+			ExpressionOptionalStringValue(raw.substring(1, raw.length - 1))
 		)
 	}
 
-	fun variableOrTimeOfDayMusic(variableName: String, defaultMusic: String) = ExpressionOrDefaultTimelineExpression(
-		VariableTimelineExpression(content.story.customVariables.find {
+	fun variableOrTimeOfDayMusic(variableName: String, defaultMusic: String) = ExpressionOrDefaultStateExpression(
+		VariableStateExpression(content.story.customVariables.find {
 			it.name == variableName
 		}!! as CustomTimelineVariable<String?>),
 		timeOfDayMusic(content, defaultMusic)
 	)
 
-	fun variableOrDefaultMusic(variableName: String, defaultMusic: String) = ExpressionOrDefaultTimelineExpression(
-		VariableTimelineExpression(content.story.customVariables.find {
+	fun variableOrDefaultMusic(variableName: String, defaultMusic: String) = ExpressionOrDefaultStateExpression(
+		VariableStateExpression(content.story.customVariables.find {
 			it.name == variableName
 		}!! as CustomTimelineVariable<String?>),
-		ConstantTimelineExpression(TimelineOptionalStringValue(defaultMusic))
+		ConstantStateExpression(ExpressionOptionalStringValue(defaultMusic))
 	)
 
-	fun castleGoznorMusic(variableName: String) = ExpressionOrDefaultTimelineExpression(
-		VariableTimelineExpression(content.story.customVariables.find {
+	fun castleGoznorMusic(variableName: String) = ExpressionOrDefaultStateExpression(
+		VariableStateExpression(content.story.customVariables.find {
 			it.name == variableName
 		}!! as CustomTimelineVariable<String?>),
-		SwitchCaseTimelineExpression(
-			input = ExpressionOrDefaultTimelineExpression(
-				VariableTimelineExpression(content.story.customVariables.find {
+		SwitchCaseStateExpression(
+			input = ExpressionOrDefaultStateExpression(
+				VariableStateExpression(content.story.customVariables.find {
 					it.name == "TimeOfDay"
 				}!! as CustomTimelineVariable<String?>),
-				ConstantTimelineExpression(TimelineOptionalStringValue("Day"))
+				ConstantStateExpression(ExpressionOptionalStringValue("Day"))
 			),
 			cases = arrayOf(
-				SwitchCaseTimelineExpression.Case(
-					inputToMatch = ConstantTimelineExpression(TimelineOptionalStringValue("Day")),
-					outputWhenInputMatches = ConstantTimelineExpression(
-						TimelineStringValue("Castle")
+				SwitchCaseStateExpression.Case(
+					inputToMatch = ConstantStateExpression(ExpressionOptionalStringValue("Day")),
+					outputWhenInputMatches = ConstantStateExpression(
+						ExpressionStringValue("Castle")
 					)
 				)
 			),
-			defaultOutput = ConstantTimelineExpression(TimelineOptionalStringValue(null))
+			defaultOutput = ConstantStateExpression(ExpressionOptionalStringValue(null))
 		)
 	)
 
@@ -359,14 +371,14 @@ private fun parseMusicTrack(content: Content, raw: String): TimelineExpression<S
 	throw RuntimeException("Unexpected music track $raw")
 }
 
-private fun parseAmbience(content: Content, raw: String?): TimelineExpression<ColorTransform> {
-	if (raw == null || raw == "null") return ConstantTimelineExpression(
-		TimelineColorTransformValue(ColorTransform.DEFAULT)
+private fun parseAmbience(content: Content, raw: String?): StateExpression<ColorTransform> {
+	if (raw == null || raw == "null") return ConstantStateExpression(
+		ExpressionColorTransformValue(ColorTransform.DEFAULT)
 	)
 
 	@Suppress("UNCHECKED_CAST")
 	if (raw == "GenericExternalAmbience()") {
-		return GlobalTimelineExpression(content.story.globalExpressions.find {
+		return GlobalStateExpression(content.story.globalExpressions.find {
 			it.name == "TimeOfDayAmbienceWithDefault"
 		}!! as GlobalExpression<ColorTransform>)
 	}
@@ -379,16 +391,16 @@ private fun parseAmbience(content: Content, raw: String?): TimelineExpression<Co
 		val dayAmbience = parseRawAmbience(raw.substring("GenericExternalAmbience(".length, raw.length - 1))
 
 		@Suppress("UNCHECKED_CAST")
-		val darkAmbience = GlobalTimelineExpression(content.story.globalExpressions.find {
+		val darkAmbience = GlobalStateExpression(content.story.globalExpressions.find {
 			it.name == "TimeOfDayAmbienceWithoutDefault"
 		}!! as GlobalExpression<ColorTransform?>)
-		return ExpressionOrDefaultTimelineExpression(darkAmbience, dayAmbience)
+		return ExpressionOrDefaultStateExpression(darkAmbience, dayAmbience)
 	}
 
 	throw RuntimeException("can't deal with ambience $raw")
 }
 
-private fun parseRawAmbience(raw: String): TimelineExpression<ColorTransform> {
+private fun parseRawAmbience(raw: String): StateExpression<ColorTransform> {
 	val rawPairs = raw.substring(1, raw.length - 1).split(",")
 	val pairs = rawPairs.map {
 		val rawSplit = it.split(":")
@@ -397,11 +409,15 @@ private fun parseRawAmbience(raw: String): TimelineExpression<ColorTransform> {
 	val map = mutableMapOf(*pairs.toTypedArray())
 
 	fun mul(key: String) = 0.01f * map[key]!!.toFloat()
-	return ConstantTimelineExpression(TimelineColorTransformValue(ColorTransform(
-		addColor = rgba(map["rb"]!!, map["gb"]!!, map["bb"]!!, map["ab"]!!),
-		multiplyColor = rgba(mul("ra"), mul("ga"), mul("ba"), mul("aa")),
-		subtractColor = 0,
-	)))
+	return ConstantStateExpression(
+		ExpressionColorTransformValue(
+			ColorTransform(
+				addColor = rgba(map["rb"]!!, map["gb"]!!, map["bb"]!!, map["ab"]!!),
+				multiplyColor = rgba(mul("ra"), mul("ga"), mul("ba"), mul("aa")),
+				subtractColor = 0,
+			)
+		)
+	)
 }
 
 private fun parseArea1(areaName: String) = parseActionScriptResource("mardek/importer/area/data/$areaName.txt")

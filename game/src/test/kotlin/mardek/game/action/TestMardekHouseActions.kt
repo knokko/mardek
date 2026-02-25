@@ -40,8 +40,8 @@ object TestMardekHouseActions {
 			)
 			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				state.campaign.story, AreaPosition(5, 21),
-				Direction.Up,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(5, 21), Direction.Up,
 			)
 
 			// Enter the door
@@ -169,8 +169,8 @@ object TestMardekHouseActions {
 			)
 			var areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "gz_Mhouse2" }!!,
-				state.campaign.story, AreaPosition(1, 1),
-				Direction.Up,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(1, 1), Direction.Up,
 			)
 			state.campaign.state = areaState
 

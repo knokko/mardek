@@ -6,6 +6,12 @@ import mardek.content.animation.ColorTransform
 import mardek.content.animation.CombatantAnimations
 import mardek.content.area.*
 import mardek.content.battle.PartyLayoutPosition
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.ExpressionOrDefaultStateExpression
+import mardek.content.expression.GlobalStateExpression
+import mardek.content.expression.ExpressionColorTransformValue
+import mardek.content.expression.ExpressionOptionalStringValue
+import mardek.content.expression.VariableStateExpression
 import mardek.content.inventory.ItemStack
 import mardek.content.story.*
 import mardek.importer.actions.addDummyCutscenes
@@ -81,14 +87,16 @@ class TestAreaParser {
 		val aeropolisMusic = content.story.customVariables.find {
 			it.name == "AeropolisMusic"
 		}!! as CustomTimelineVariable<String>
-		assertEquals(ExpressionOrDefaultTimelineExpression(
-			VariableTimelineExpression(aeropolisMusic),
-			ifNull = ConstantTimelineExpression(TimelineOptionalStringValue("Aeropolis"))
-		), area.properties.musicTrack)
+		assertEquals(
+			ExpressionOrDefaultStateExpression(
+				VariableStateExpression(aeropolisMusic),
+				ifNull = ConstantStateExpression(ExpressionOptionalStringValue("Aeropolis"))
+			), area.properties.musicTrack)
 		assertNull(area.properties.dungeon)
-		assertEquals(GlobalTimelineExpression(
-			content.story.globalExpressions.find { it.name == "TimeOfDayAmbienceWithDefault" }!!
-		), area.properties.ambience)
+		assertEquals(
+			GlobalStateExpression(
+				content.story.globalExpressions.find { it.name == "TimeOfDayAmbienceWithDefault" }!!
+			), area.properties.ambience)
 		assertEquals(AreaFlags(
 			canWarp = true,
 			hasClearMap = true,
@@ -147,13 +155,14 @@ class TestAreaParser {
 			specialBackground = null
 		), area.randomBattles)
 		assertEquals(
-			ConstantTimelineExpression(TimelineOptionalStringValue("MightyHeroes")),
+			ConstantStateExpression(ExpressionOptionalStringValue("MightyHeroes")),
 			area.properties.musicTrack
 		)
 		assertEquals("DragonLair", area.properties.dungeon)
-		assertEquals(ConstantTimelineExpression(
-			TimelineColorTransformValue(ColorTransform.DEFAULT)
-		), area.properties.ambience)
+		assertEquals(
+			ConstantStateExpression(
+				ExpressionColorTransformValue(ColorTransform.DEFAULT)
+			), area.properties.ambience)
 		assertEquals(AreaFlags(
 			canWarp = false,
 			hasClearMap = true,
@@ -177,25 +186,31 @@ class TestAreaParser {
 	@Test
 	fun testParseHeroesHouse() {
 		val area = content.areas.areas.find { it.properties.rawName == "heroes_house" }!!
-		assertEquals(ConstantTimelineExpression(TimelineColorTransformValue(
-			ColorTransform(
-				addColor = 0,
-				multiplyColor = rgb(0.01f * 66, 0.01f * 70, 0.01f * 63),
-				subtractColor = 0,
-			)
-		)), area.properties.ambience)
+		assertEquals(
+			ConstantStateExpression(
+				ExpressionColorTransformValue(
+					ColorTransform(
+						addColor = 0,
+						multiplyColor = rgb(0.01f * 66, 0.01f * 70, 0.01f * 63),
+						subtractColor = 0,
+					)
+				)
+			), area.properties.ambience)
 	}
 
 	@Test
 	fun testParseGoldfishWarp() {
 		val area = content.areas.areas.find { it.properties.rawName == "goldfish_warp" }!!
-		assertEquals(ConstantTimelineExpression(TimelineColorTransformValue(
-			ColorTransform(
-				addColor = 0,
-				multiplyColor = rgb(0.01f * 16, 0.01f * 14, 0.01f * 10),
-				subtractColor = 0,
-			)
-		)), area.properties.ambience)
+		assertEquals(
+			ConstantStateExpression(
+				ExpressionColorTransformValue(
+					ColorTransform(
+						addColor = 0,
+						multiplyColor = rgb(0.01f * 16, 0.01f * 14, 0.01f * 10),
+						subtractColor = 0,
+					)
+				)
+			), area.properties.ambience)
 	}
 
 	@Test
@@ -204,9 +219,10 @@ class TestAreaParser {
 		assertEquals(1, area.objects.transitions.size)
 		assertEquals(9, area.objects.decorations.size)
 		assertEquals(1, area.objects.characters.size)
-		assertEquals(ConstantTimelineExpression(
-			TimelineOptionalStringValue("Aeropolis")
-		), area.properties.musicTrack)
+		assertEquals(
+			ConstantStateExpression(
+				ExpressionOptionalStringValue("Aeropolis")
+			), area.properties.musicTrack)
 		assertTrue(area.flags.hasClearMap)
 		// TODO CHAP3 Add error support
 	}

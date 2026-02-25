@@ -51,7 +51,7 @@ object TestWalking {
 					"Searching for the fallen 'star'"
 				)
 				val areaState = AreaState(
-					goznor, state.campaign.story,
+					goznor, state.campaign.story, state.campaign.expressionContext(),
 					AreaPosition(11, 16),
 				)
 				state.campaign.state = areaState

@@ -6,11 +6,11 @@ import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.FixedActionNode
-import mardek.content.action.TimelineActionNode
-import mardek.content.story.ConstantTimelineExpression
-import mardek.content.story.DefinedVariableTimelineCondition
-import mardek.content.story.IfElseTimelineExpression
-import mardek.content.story.TimelineActionNodeValue
+import mardek.content.action.ExpressionActionNode
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.IfElseStateExpression
+import mardek.content.expression.ExpressionActionNodeValue
 import java.util.UUID
 
 internal fun hardcodeGoznorDialogues(
@@ -18,11 +18,11 @@ internal fun hardcodeGoznorDialogues(
 ) {
 	val timeOfDay = content.story.customVariables.find { it.name == "TimeOfDay" }!!
 	// TODO CHAP2 CHAP3 Change dialogue based on timeline state
-	val bernardoRoot = TimelineActionNode(
+	val bernardoRoot = ExpressionActionNode(
 		id = UUID.fromString("83bd105b-5ef1-43c8-9951-93306c1ce719"),
-		expression = IfElseTimelineExpression(
-			condition = DefinedVariableTimelineCondition(timeOfDay),
-			ifTrue = ConstantTimelineExpression(TimelineActionNodeValue(
+		expression = IfElseStateExpression(
+			condition = DefinedVariableStateCondition(timeOfDay),
+			ifTrue = ConstantStateExpression(ExpressionActionNodeValue(
 				FixedActionNode(
 					id = UUID.fromString("6aa38b43-eb40-4d5e-b5ae-0a94593fe4f8"),
 					action = ActionTalk(
@@ -32,7 +32,7 @@ internal fun hardcodeGoznorDialogues(
 					), next = null
 				)
 			)),
-			ifFalse = ConstantTimelineExpression(TimelineActionNodeValue(
+			ifFalse = ConstantStateExpression(ExpressionActionNodeValue(
 				FixedActionNode(
 					id = UUID.fromString("8daefee4-c263-401d-9cbe-c2022cf6ae30"),
 					action = ActionTalk(
@@ -44,11 +44,11 @@ internal fun hardcodeGoznorDialogues(
 			)),
 		)
 	)
-	val marcellusRoot = TimelineActionNode(
+	val marcellusRoot = ExpressionActionNode(
 		id = UUID.fromString("965227b5-0588-4ded-860e-66921fa9070d"),
-		expression = IfElseTimelineExpression(
-			condition = DefinedVariableTimelineCondition(timeOfDay),
-			ifTrue = ConstantTimelineExpression(TimelineActionNodeValue(fixedActionChain(
+		expression = IfElseStateExpression(
+			condition = DefinedVariableStateCondition(timeOfDay),
+			ifTrue = ConstantStateExpression(ExpressionActionNodeValue(fixedActionChain(
 				actions = arrayOf(
 					ActionTalk(
 						speaker = ActionTargetDefaultDialogueObject(),
@@ -69,7 +69,7 @@ internal fun hardcodeGoznorDialogues(
 					UUID.fromString("6db2547d-9d99-4380-abec-22e5ee8fa385"),
 				),
 			)!!)),
-			ifFalse = ConstantTimelineExpression(TimelineActionNodeValue(FixedActionNode(
+			ifFalse = ConstantStateExpression(ExpressionActionNodeValue(FixedActionNode(
 				id = UUID.fromString("c039737b-bd9c-417e-b6f3-eb2fd86d1617"),
 				action = ActionTalk(
 					speaker = ActionTargetDefaultDialogueObject(),
@@ -80,11 +80,11 @@ internal fun hardcodeGoznorDialogues(
 		)
 	)
 	val fallenStarQuest = content.story.quests.find { it.tabName == "The Fallen Star" }!!
-	val georgeRoot = TimelineActionNode(
+	val georgeRoot = ExpressionActionNode(
 		id = UUID.fromString("d1642cb8-a4d0-41a2-9faf-a6d856620d90"),
-		expression = IfElseTimelineExpression(
-			condition = DefinedVariableTimelineCondition(fallenStarQuest.wasCompleted),
-			ifTrue = ConstantTimelineExpression(TimelineActionNodeValue(
+		expression = IfElseStateExpression(
+			condition = DefinedVariableStateCondition(fallenStarQuest.wasCompleted),
+			ifTrue = ConstantStateExpression(ExpressionActionNodeValue(
 				fixedActionChain(
 					actions = arrayOf(
 						ActionTalk(
@@ -100,7 +100,7 @@ internal fun hardcodeGoznorDialogues(
 					),
 				)!!
 			)),
-			ifFalse = ConstantTimelineExpression(TimelineActionNodeValue(
+			ifFalse = ConstantStateExpression(ExpressionActionNodeValue(
 				fixedActionChain(
 					actions = arrayOf(
 						ActionTalk(

@@ -38,7 +38,7 @@ object TestSaveAndLoad {
 
 			val state = InGameState(simpleCampaignState(), "test-save-and-load")
 			val areaState = AreaState(
-				dragonLairEntry, state.campaign.story,
+				dragonLairEntry, state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(3, 4),
 			)
 			state.campaign.state = areaState
@@ -95,6 +95,7 @@ object TestSaveAndLoad {
 			var state: GameState = InGameState(simpleCampaignState(), "test-save-and-load")
 			val areaState = AreaState(
 				dragonLairEntry, (state as InGameState).campaign.story,
+				state.campaign.expressionContext(),
 				AreaPosition(3, 4), skipFadeIn = true,
 			)
 			state.campaign.run {

@@ -123,10 +123,13 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 		for (y in area.minTileY .. 1 + area.maxTileY) {
 			for (x in area.minTileX .. area.maxTileX) {
 				val color = if ((discovery.isDiscovered(x, y) || area.flags.hasClearMap) && !area.flags.noMap) {
-					when (area.getTile(x, y).waterType) {
+					if (area.canWalkOnTile(x, y)) {
+						if (area.getTile(x, y).waterType == WaterType.None) ACCESSIBLE_TERRAIN_COLOR
+						else INACCESSIBLE_TERRAIN_COLOR
+					} else when (area.getTile(x, y).waterType) {
 						WaterType.Water -> WATER_COLOR
 						WaterType.Lava -> LAVA_COLOR
-						else -> if (area.canWalkOnTile(x, y)) ACCESSIBLE_TERRAIN_COLOR else INACCESSIBLE_TERRAIN_COLOR
+						else -> INACCESSIBLE_TERRAIN_COLOR
 					}
 				} else UNEXPLORED_COLOR
 				putMapColor(x, y, color)

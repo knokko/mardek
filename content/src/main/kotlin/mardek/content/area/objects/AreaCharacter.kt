@@ -16,9 +16,9 @@ import mardek.content.portrait.PortraitInfo
 import mardek.content.sprite.DirectionalSprites
 import mardek.content.sprite.ObjectSprites
 import mardek.content.stats.Element
-import mardek.content.story.ConstantTimelineExpression
-import mardek.content.story.TimelineBooleanValue
-import mardek.content.story.TimelineExpression
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.ExpressionBooleanValue
+import mardek.content.expression.StateExpression
 import java.util.UUID
 
 /**
@@ -145,15 +145,15 @@ class AreaCharacter(
 	 * if their `condition` evaluates to `true`, or if it's `null`.
 	 */
 	@BitField(id = 13, optional = true)
-	@ClassField(root = TimelineExpression::class)
-	val condition: TimelineExpression<Boolean>?,
+	@ClassField(root = StateExpression::class)
+	val condition: StateExpression<Boolean>?,
 ) {
 
 	constructor() : this(
 		UUID(0, 0), "", DirectionalSprites(), null,
 		0, 0, Direction.Down, WalkBehavior(), null,
 		null, null, null,
-		null, ConstantTimelineExpression(TimelineBooleanValue(true)),
+		null, ConstantStateExpression(ExpressionBooleanValue(true)),
 	)
 
 	init {

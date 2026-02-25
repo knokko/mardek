@@ -31,7 +31,8 @@ object TestTimelines {
 
 			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
-				state.campaign.story, AreaPosition(10, 6)
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(10, 6),
 			)
 
 			repeat(10) {
@@ -53,7 +54,8 @@ object TestTimelines {
 
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				state.campaign.story, AreaPosition(34, 7)
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(34, 7)
 			)
 			state.campaign.state = areaState
 
@@ -92,7 +94,8 @@ object TestTimelines {
 
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				state.campaign.story, AreaPosition(34, 7)
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(34, 7),
 			)
 			state.campaign.state = areaState
 
@@ -123,7 +126,8 @@ object TestTimelines {
 
 			val areaState = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
-				state.campaign.story, AreaPosition(34, 7)
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(34, 7),
 			)
 			state.campaign.state = areaState
 

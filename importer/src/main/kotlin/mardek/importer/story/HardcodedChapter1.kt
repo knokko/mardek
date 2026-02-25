@@ -9,12 +9,12 @@ import mardek.content.story.CustomTimelineVariable
 import mardek.content.story.Quest
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineAssignment
-import mardek.content.story.TimelineCharacterStateValue
-import mardek.content.story.TimelineIntValue
+import mardek.content.expression.ExpressionCharacterStateValue
+import mardek.content.expression.ExpressionIntValue
 import mardek.content.story.TimelineNode
-import mardek.content.story.TimelineOptionalPlayerValue
-import mardek.content.story.TimelineStringValue
-import mardek.content.story.TimelineUnitValue
+import mardek.content.expression.ExpressionOptionalPlayerValue
+import mardek.content.expression.ExpressionStringValue
+import mardek.content.expression.ExpressionUnitValue
 import java.util.UUID
 
 internal fun hardcodeChapter1Timeline(content: Content): TimelineNode {
@@ -27,7 +27,7 @@ internal fun hardcodeChapter1Timeline(content: Content): TimelineNode {
 			childhoodTimeline(content),
 		),
 		variables = arrayOf(
-			TimelineAssignment(content.story.fixedVariables.chapter, TimelineIntValue(1))
+			TimelineAssignment(content.story.fixedVariables.chapter, ExpressionIntValue(1))
 		),
 		isAbstract = true,
 	)
@@ -42,27 +42,27 @@ private fun dragonLairTimeline(content: Content) = TimelineNode(
 	name = "Dragon's Lair",
 	children = arrayOf(),
 	variables = arrayOf(
-		TimelineAssignment(content.story.fixedVariables.blockItemStorage, TimelineUnitValue()),
-		TimelineAssignment(content.story.fixedVariables.blockRandomBattleMusic, TimelineUnitValue()),
+		TimelineAssignment(content.story.fixedVariables.blockItemStorage, ExpressionUnitValue()),
+		TimelineAssignment(content.story.fixedVariables.blockRandomBattleMusic, ExpressionUnitValue()),
 		TimelineAssignment(
 			content.story.fixedVariables.forcedPartyMembers[0],
-			TimelineOptionalPlayerValue(getPlayer(content, "mardek_hero")),
+			ExpressionOptionalPlayerValue(getPlayer(content, "mardek_hero")),
 		),
 		TimelineAssignment(
 			content.story.fixedVariables.forcedPartyMembers[1],
-			TimelineOptionalPlayerValue(getPlayer(content, "deugan_hero")),
+			ExpressionOptionalPlayerValue(getPlayer(content, "deugan_hero")),
 		),
 		TimelineAssignment(
 			getPlayer(content, "mardek_hero").stateVariable,
-			TimelineCharacterStateValue(initialHeroMardekState(content))
+			ExpressionCharacterStateValue(initialHeroMardekState(content))
 		),
 		TimelineAssignment(
 			getPlayer(content, "deugan_hero").stateVariable,
-			TimelineCharacterStateValue(initialHeroDeuganState(content))
+			ExpressionCharacterStateValue(initialHeroDeuganState(content))
 		),
 		TimelineAssignment(
 			content.story.quests.find { it.tabName == "Hero Quest!" }!!.isActive,
-			TimelineUnitValue(),
+			ExpressionUnitValue(),
 		),
 	),
 	isAbstract = false,
@@ -156,23 +156,23 @@ private fun childhoodTimeline(content: Content) = TimelineNode(
 	variables = arrayOf(
 		TimelineAssignment(
 			content.story.quests.find { it.tabName == "Hero Quest!" }!!.wasCompleted,
-			TimelineUnitValue(), appliesToFutureNodes = true,
+			ExpressionUnitValue(), appliesToFutureNodes = true,
 		),
 		TimelineAssignment(
 			content.story.fixedVariables.forcedPartyMembers[0],
-			TimelineOptionalPlayerValue(getPlayer(content, "mardek_child")),
+			ExpressionOptionalPlayerValue(getPlayer(content, "mardek_child")),
 		),
 		TimelineAssignment(
 			content.story.fixedVariables.forcedPartyMembers[1],
-			TimelineOptionalPlayerValue(getPlayer(content, "deugan_child")),
+			ExpressionOptionalPlayerValue(getPlayer(content, "deugan_child")),
 		),
 		TimelineAssignment(
 			getPlayer(content, "mardek_child").stateVariable,
-			TimelineCharacterStateValue(initialChildMardekState(content))
+			ExpressionCharacterStateValue(initialChildMardekState(content))
 		),
 		TimelineAssignment(
 			getPlayer(content, "deugan_child").stateVariable,
-			TimelineCharacterStateValue(initialChildDeuganState(content))
+			ExpressionCharacterStateValue(initialChildDeuganState(content))
 		),
 		addWorldMapNode(content, "Heroes' Den"),
 		addWorldMapNode(content, "Goznor")
@@ -184,7 +184,7 @@ private fun addWorldMapNode(content: Content, name: String) = TimelineAssignment
 	content.worldMaps.find { it.name == "Belfan" }!!.nodes.find {
 		it.entrances[0].area.properties.displayName == name
 	}!!.wasDiscovered,
-	TimelineUnitValue(),
+	ExpressionUnitValue(),
 	appliesToFutureNodes = true,
 )
 
@@ -221,7 +221,7 @@ private fun beforeFallingStar(content: Content) = TimelineNode(
 	variables = arrayOf(
 		TimelineAssignment(
 			content.story.customVariables.find { it.name == "TimeOfDay" }!! as CustomTimelineVariable<String>,
-			TimelineStringValue("Evening")
+			ExpressionStringValue("Evening")
 		),
 	),
 	isAbstract = true,
@@ -237,7 +237,7 @@ private fun withDeuganBeforeFallingStar(content: Content) = TimelineNode(
 			content.story.customVariables.find {
 				it.name == "WithDeuganBeforeFallingStar"
 			}!! as CustomTimelineVariable<Unit>,
-			TimelineUnitValue(),
+			ExpressionUnitValue(),
 		),
 	),
 	isAbstract = false,
@@ -250,12 +250,12 @@ private fun droppedDeuganBeforeFallingStar(content: Content) = TimelineNode(
 	variables = arrayOf(
 		TimelineAssignment(
 			content.story.fixedVariables.forcedPartyMembers[1],
-			TimelineOptionalPlayerValue(null),
+			ExpressionOptionalPlayerValue(null),
 			priority = 1,
 		),
 		TimelineAssignment(
 			content.playableCharacters.find { it.areaSprites.name == "deugan_child" }!!.isInventoryAvailable,
-			TimelineUnitValue(),
+			ExpressionUnitValue(),
 		),
 	),
 	isAbstract = false,
@@ -269,7 +269,7 @@ private fun searchingFallenStar(content: Content) = TimelineNode(
 		addWorldMapNode(content, "Soothwood"),
 		TimelineAssignment(
 			content.story.quests.find { it.tabName == "The Fallen Star" }!!.isActive,
-			TimelineUnitValue(),
+			ExpressionUnitValue(),
 		),
 	),
 	activatesTimelines = arrayOf(content.story.timelines.find { it.name == "LeadPipeQuestTimeline" }!!),
@@ -301,7 +301,7 @@ private fun leadPipeAccepted(quest: Quest) = TimelineNode(
 	name = "Accepted Pipe Quest",
 	children = arrayOf(),
 	variables = arrayOf(
-		TimelineAssignment(quest.isActive, TimelineUnitValue())
+		TimelineAssignment(quest.isActive, ExpressionUnitValue())
 	),
 	isAbstract = false,
 )
@@ -311,7 +311,7 @@ private fun leadPipeFinished(quest: Quest) = TimelineNode(
 	name = "Finished Pipe Quest",
 	children = arrayOf(),
 	variables = arrayOf(
-		TimelineAssignment(quest.wasCompleted, TimelineUnitValue())
+		TimelineAssignment(quest.wasCompleted, ExpressionUnitValue())
 	),
 	ignoresTimelineActivation = true,
 	isAbstract = false,
@@ -327,11 +327,11 @@ private fun afterRohoph(content: Content) = TimelineNode(
 	variables = arrayOf(
 		TimelineAssignment(
 			content.story.customVariables.find { it.name == "TimeOfDay" }!! as CustomTimelineVariable<String>,
-			TimelineStringValue("Evening")
+			ExpressionStringValue("Evening")
 		),
 		TimelineAssignment(
 			content.story.quests.find { it.tabName == "The Fallen Star" }!!.wasCompleted,
-			TimelineUnitValue(),
+			ExpressionUnitValue(),
 			appliesToFutureNodes = true,
 		),
 	),
@@ -345,11 +345,11 @@ private fun droppedDeuganAfterRohoph(content: Content) = TimelineNode(
 	variables = arrayOf(
 		TimelineAssignment(
 			content.story.fixedVariables.forcedPartyMembers[1],
-			TimelineOptionalPlayerValue(null),
+			ExpressionOptionalPlayerValue(null),
 		),
 		TimelineAssignment(
 			content.playableCharacters.find { it.areaSprites.name == "deugan_child" }!!.isInventoryAvailable,
-			TimelineUnitValue(),
+			ExpressionUnitValue(),
 		),
 	),
 	isAbstract = false,

@@ -61,7 +61,7 @@ class Area(
 	 */
 	@BitField(id = 5)
 	@ReferenceField(stable = false, label = "tiles")
-	private val tileGrid: Array<Tile>,
+	private val tileGrid: Array<Tile>, // TODO CHAP1 Make this lazy
 
 	/**
 	 * The *objects* in this area: non-player characters, doors, portals, etc...

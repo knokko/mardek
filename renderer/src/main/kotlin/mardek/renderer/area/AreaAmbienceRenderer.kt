@@ -4,7 +4,9 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 
 internal fun renderAreaAmbience(areaContext: AreaRenderContext) {
 	areaContext.apply {
-		val ambience = context.campaign.story.evaluate(area.properties.ambience)
+		val ambience = context.campaign.story.evaluate(
+			area.properties.ambience, context.campaign.expressionContext()
+		)
 		if (ambience.addColor != 0) {
 			// TODO CHAP2 Implement this: use dual source blending for this?
 			throw UnsupportedOperationException("Ambience addColor is not yet supported")

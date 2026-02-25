@@ -2,11 +2,13 @@ package mardek.state.ingame.actions
 
 import mardek.content.action.ActionFadeCharacter
 import mardek.content.action.ActionFlashScreen
+import mardek.content.action.ActionGiveItem
 import mardek.content.action.ActionHealParty
 import mardek.content.action.ActionParallel
 import mardek.content.action.ActionPlaySound
 import mardek.content.action.ActionRotate
 import mardek.content.action.ActionSetOverlayColor
+import mardek.content.action.ActionTakeItem
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetAreaCharacter
 import mardek.content.action.ActionTargetPartyMember
@@ -20,7 +22,11 @@ import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.audio.FixedSoundEffects
 import mardek.content.audio.SoundEffect
+import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
+import mardek.content.inventory.EquipmentSlot
+import mardek.content.inventory.Item
+import mardek.content.inventory.ItemStack
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -32,6 +38,7 @@ import mardek.state.ingame.area.NextAreaPosition
 import mardek.state.ingame.story.StoryState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -51,6 +58,8 @@ private fun createUpdateContext(
 	campaignName: String = "",
 	partyPositions: Array<AreaPosition> = Array(4) { AreaPosition() },
 	partyDirections: Array<Direction> = Array(4) { Direction.Up },
+	party: Array<PlayableCharacter?> = arrayOf(PlayableCharacter(), null, null, null),
+	playableCharacterStates: Map<PlayableCharacter, CharacterState> = emptyMap(),
 	currentTime: Duration = Duration.ZERO,
 	characterStates: MutableMap<AreaCharacter, AreaCharacterState> = mutableMapOf(),
 	fadingCharacters: MutableList<FadingCharacter> = mutableListOf(),
@@ -65,11 +74,14 @@ private fun createUpdateContext(
 	partyPositions = partyPositions,
 	partyDirections = partyDirections,
 	currentTime = currentTime,
-	party = arrayOf(PlayableCharacter(), null, null, null),
+	party = party,
 	characterStates = characterStates,
-	playableCharacterStates = emptyMap(),
+	playableCharacterStates = playableCharacterStates,
 	fadingCharacters = fadingCharacters,
 	story = story,
+	expressionContext = StoryState.ExpressionContext(
+		countItemInInventory = { _ -> fail("Attempted to count items?")}
+	),
 	itemStorage = ArrayList(0),
 	healParty = healParty,
 	transitionTimeline = { _, _ -> fail("Attempted to transition timeline?" ) },
@@ -790,5 +802,256 @@ class TestAreaActionsState {
 
 		update(actions, context)
 		assertNull(actions.node)
+	}
+
+	@Test
+	fun testTakeItems() {
+		val fairy = Item()
+		val otherItem = Item()
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionTakeItem(fairy, 10),
+			next = null,
+		)
+
+		val member1 = PlayableCharacter()
+		val member2 = PlayableCharacter()
+
+		val state1 = CharacterState()
+		val state2 = CharacterState()
+
+		val slot1 = EquipmentSlot(UUID.randomUUID(), "", emptyArray(), true)
+		val slot2 = EquipmentSlot(UUID.randomUUID(), "", emptyArray(), true)
+		val slot3 = EquipmentSlot(UUID.randomUUID(), "", emptyArray(), false)
+
+		state1.inventory[1] = ItemStack(otherItem, 2)
+		state1.inventory[3] = ItemStack(fairy, 1)
+		state1.inventory[4] = ItemStack(fairy, 2)
+		state1.equipment[slot1] = otherItem
+		state1.equipment[slot2] = fairy
+		state1.equipment[slot3] = fairy
+
+		state2.inventory[4] = ItemStack(fairy, 5)
+		state2.equipment[slot1] = fairy
+		state2.equipment[slot2] = fairy
+
+		val characterStates = mapOf(Pair(member1, state1), Pair(member2, state2))
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(
+			10.milliseconds,
+			party = arrayOf(member1, null, null, member2),
+			playableCharacterStates = characterStates,
+		)
+		update(actions, context)
+
+		assertEquals(ItemStack(otherItem, 2), state1.inventory[1])
+		assertNull(state1.inventory[3])
+		assertNull(state1.inventory[4])
+		assertSame(otherItem, state1.equipment[slot1])
+		assertFalse(state1.equipment.containsKey(slot2))
+		assertSame(fairy, state1.equipment[slot3]) // Note that slot3 must NOT be empty
+
+		assertNull(state2.inventory[4])
+		assertEquals(1, state2.equipment.size)
+		assertSame(fairy, state2.equipment.values.iterator().next())
+	}
+
+	@Test
+	fun testGiveItemsToFirstInventoryNewStack() {
+		val reward = Item()
+		val otherItem = Item()
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionGiveItem(reward, 10),
+			next = null,
+		)
+
+		val member = PlayableCharacter()
+		val state = CharacterState()
+		state.inventory[0] = ItemStack(otherItem, 1)
+
+		val characterStates = mapOf(Pair(member, state))
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(
+			10.milliseconds,
+			party = arrayOf(member, null, null, null),
+			playableCharacterStates = characterStates,
+		)
+		update(actions, context)
+		assertEquals(ItemStack(otherItem, 1), state.inventory[0])
+		assertEquals(ItemStack(reward, 10), state.inventory[1])
+		assertNull(state.inventory[2])
+		assertTrue(context.itemStorage.isEmpty())
+	}
+
+	@Test
+	fun testGiveItemsToFirstInventoryExistingStack() {
+		val reward = Item()
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionGiveItem(reward, 10),
+			next = null,
+		)
+
+		val member = PlayableCharacter()
+		val state = CharacterState()
+		state.inventory[0] = ItemStack(reward, 1)
+
+		val characterStates = mapOf(Pair(member, state))
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(
+			10.milliseconds,
+			party = arrayOf(member, null, null, null),
+			playableCharacterStates = characterStates,
+		)
+		update(actions, context)
+		assertEquals(ItemStack(reward, 11), state.inventory[0])
+		assertNull(state.inventory[1])
+		assertTrue(context.itemStorage.isEmpty())
+	}
+
+	@Test
+	fun testGiveItemsToSecondInventoryNewStack() {
+		val reward = Item()
+		val otherItem = Item()
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionGiveItem(reward, 10),
+			next = null,
+		)
+
+		val member1 = PlayableCharacter()
+		val member2 = PlayableCharacter()
+
+		val state1 = CharacterState()
+		val state2 = CharacterState()
+
+		state1.inventory.fill(ItemStack(otherItem, 123))
+
+		val characterStates = mapOf(Pair(member1, state1), Pair(member2, state2))
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(
+			10.milliseconds,
+			party = arrayOf(member1, null, null, member2),
+			playableCharacterStates = characterStates,
+		)
+		update(actions, context)
+
+		assertEquals(ItemStack(reward, 10), state2.inventory[0])
+		assertNull(state2.inventory[1])
+	}
+
+	@Test
+	fun testGiveItemsToSecondInventoryExistingStack() {
+		val reward = Item()
+		val otherItem = Item()
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionGiveItem(reward, 10),
+			next = null,
+		)
+
+		val member1 = PlayableCharacter()
+		val member2 = PlayableCharacter()
+
+		val state1 = CharacterState()
+		val state2 = CharacterState()
+
+		state1.inventory.fill(ItemStack(otherItem, 123))
+		state2.inventory[0] = ItemStack(reward, 5)
+
+		val characterStates = mapOf(Pair(member1, state1), Pair(member2, state2))
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(
+			10.milliseconds,
+			party = arrayOf(member1, null, null, member2),
+			playableCharacterStates = characterStates,
+		)
+		update(actions, context)
+
+		assertEquals(ItemStack(reward, 15), state2.inventory[0])
+		assertNull(state2.inventory[1])
+	}
+
+	@Test
+	fun testGiveItemsToItemStorageNewStack() {
+		val reward = Item()
+		val otherItem = Item()
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionGiveItem(reward, 10),
+			next = null,
+		)
+
+		val member = PlayableCharacter()
+		val state = CharacterState()
+		state.inventory.fill(ItemStack(otherItem, 1))
+
+		val characterStates = mapOf(Pair(member, state))
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(
+			10.milliseconds,
+			party = arrayOf(member, null, null, null),
+			playableCharacterStates = characterStates,
+		)
+		context.itemStorage.add(null)
+		context.itemStorage.add(null)
+		update(actions, context)
+		assertEquals(0, state.countItemOccurrences(reward))
+		assertEquals(listOf(ItemStack(reward, 10), null), context.itemStorage)
+	}
+
+	@Test
+	fun testGiveItemsToItemStorageExistingStack() {
+		val reward = Item()
+		val otherItem = Item()
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionGiveItem(reward, 10),
+			next = null,
+		)
+
+		val member = PlayableCharacter()
+		val state = CharacterState()
+		state.inventory.fill(ItemStack(otherItem, 1))
+
+		val characterStates = mapOf(Pair(member, state))
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(
+			10.milliseconds,
+			party = arrayOf(member, null, null, null),
+			playableCharacterStates = characterStates,
+		)
+		context.itemStorage.add(ItemStack(reward, 5))
+		context.itemStorage.add(null)
+		update(actions, context)
+		assertEquals(0, state.countItemOccurrences(reward))
+		assertEquals(listOf(ItemStack(reward, 15), null), context.itemStorage)
+	}
+
+	@Test
+	fun testGiveItemsToItemStorageExpand() {
+		val reward = Item()
+		val otherItem = Item()
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionGiveItem(reward, 10),
+			next = null,
+		)
+
+		val member = PlayableCharacter()
+		val state = CharacterState()
+		state.inventory.fill(ItemStack(otherItem, 1))
+
+		val characterStates = mapOf(Pair(member, state))
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(
+			10.milliseconds,
+			party = arrayOf(member, null, null, null),
+			playableCharacterStates = characterStates,
+		)
+		update(actions, context)
+		assertEquals(0, state.countItemOccurrences(reward))
+		assertEquals(listOf(ItemStack(reward, 10)), context.itemStorage)
 	}
 }

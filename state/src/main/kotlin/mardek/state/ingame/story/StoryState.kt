@@ -9,6 +9,20 @@ import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
+import mardek.content.expression.AndStateCondition
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.ExpressionBooleanValue
+import mardek.content.expression.ExpressionOrDefaultStateExpression
+import mardek.content.expression.GlobalStateExpression
+import mardek.content.expression.IfElseStateExpression
+import mardek.content.expression.NegateStateCondition
+import mardek.content.expression.SwitchCaseStateExpression
+import mardek.content.expression.StateExpression
+import mardek.content.expression.ExpressionValue
+import mardek.content.expression.ItemCountStateCondition
+import mardek.content.expression.VariableStateExpression
+import mardek.content.inventory.Item
 import mardek.content.story.*
 
 /**
@@ -180,7 +194,7 @@ class StoryState : BitPostInit {
 			if (assignment.priority < mostImportantPriority) continue
 
 			@Suppress("UNCHECKED_CAST")
-			mostImportantValue = (assignment.value as TimelineValue<T>).get()
+			mostImportantValue = (assignment.value as ExpressionValue<T>).get()
 			mostImportantConflict = assignment.priority == mostImportantPriority
 			mostImportantPriority = assignment.priority
 		}
@@ -191,43 +205,52 @@ class StoryState : BitPostInit {
 		return mostImportantValue
 	}
 
-	private fun <T> evaluate(expression: TimelineExpression<T>, nodes: RelevantNodes): T {
+	private fun <T> evaluate(expression: StateExpression<T>, context: ExpressionContext, nodes: RelevantNodes): T {
 		// TODO CHAP3 Make iterative rather than recursive
-		if (expression is ConstantTimelineExpression) return expression.fixedValue.get()
-		if (expression is GlobalTimelineExpression) return evaluate(expression.global.expression, nodes)
-		if (expression is VariableTimelineExpression<*>) {
+		if (expression is ConstantStateExpression) return expression.fixedValue.get()
+		if (expression is GlobalStateExpression) return evaluate(expression.global.expression, context, nodes)
+		if (expression is VariableStateExpression<*>) {
 			val value = evaluate(expression.variable, nodes)
 			@Suppress("UNCHECKED_CAST")
 			return value as T
 		}
-		if (expression is ExpressionOrDefaultTimelineExpression) {
-			val potentialResult = evaluate(expression.expression, nodes)
-			return potentialResult ?: evaluate(expression.ifNull, nodes)
+		if (expression is ExpressionOrDefaultStateExpression) {
+			val potentialResult = evaluate(expression.expression, context, nodes)
+			return potentialResult ?: evaluate(expression.ifNull, context, nodes)
 		}
-		if (expression is SwitchCaseTimelineExpression<*, T>) {
-			val input = evaluate(expression.input, nodes)
+		if (expression is SwitchCaseStateExpression<*, T>) {
+			val input = evaluate(expression.input, context, nodes)
 			for (switchCase in expression.cases) {
-				if (input == evaluate(switchCase.inputToMatch, nodes)) {
-					return evaluate(switchCase.outputWhenInputMatches, nodes)
+				if (input == evaluate(switchCase.inputToMatch, context, nodes)) {
+					return evaluate(switchCase.outputWhenInputMatches, context, nodes)
 				}
 			}
-			return evaluate(expression.defaultOutput, nodes)
+			return evaluate(expression.defaultOutput, context, nodes)
 		}
-		if (expression is IfElseTimelineExpression) {
-			return if (evaluate(expression.condition, nodes)) evaluate(expression.ifTrue, nodes)
-			else evaluate(expression.ifFalse, nodes)
+		if (expression is IfElseStateExpression) {
+			return if (evaluate(expression.condition, context, nodes)) evaluate(expression.ifTrue, context, nodes)
+			else evaluate(expression.ifFalse, context, nodes)
 		}
-		if (expression is NegateTimelineCondition) {
+		if (expression is NegateStateCondition) {
 			@Suppress("UNCHECKED_CAST")
-			return !evaluate(expression.operand, nodes) as T
+			return !evaluate(expression.operand, context, nodes) as T
 		}
-		if (expression is AndTimelineCondition) {
+		if (expression is AndStateCondition) {
 			@Suppress("UNCHECKED_CAST")
-			return expression.operands.all { evaluate(it, nodes) } as T
+			return expression.operands.all { evaluate(it, context, nodes) } as T
 		}
-		if (expression is DefinedVariableTimelineCondition) {
+		if (expression is DefinedVariableStateCondition) {
 			@Suppress("UNCHECKED_CAST")
 			return (evaluate(expression.variable) != null) as T
+		}
+		if (expression is ItemCountStateCondition) {
+			val amount = context.countItemInInventory(expression.item)
+			@Suppress("UNCHECKED_CAST")
+			if (amount < expression.minAmount) return false as T
+			@Suppress("UNCHECKED_CAST")
+			if (expression.maxAmount != null && amount > expression.maxAmount!!) return false as T
+			@Suppress("UNCHECKED_CAST")
+			return true as T
 		}
 		throw UnsupportedOperationException(
 			"Unsupported expression type ${expression.javaClass} : $expression"
@@ -243,13 +266,13 @@ class StoryState : BitPostInit {
 	fun <T> evaluate(variable: TimelineVariable<T>) = evaluate(variable, relevantNodes())
 
 	/**
-	 * *Evaluates* the given `expression` (based on the current story state), and returns its resulting value.
+	 * *Evaluates* the given `expression` (based on the current campaign state), and returns its resulting value.
 	 *
-	 * Calling `evaluate(expression)` multiple times for the same expression will yield the same result, as long as the
-	 * story state stays in the same timeline nodes.
+	 * Calling `evaluate(expression, context)` multiple times for the same expression will yield the same result,
+	 * as long as the `context` doesn't change, and the story state stays in the same timeline nodes.
 	 */
-	fun <T> evaluate(expression: TimelineExpression<T>): T {
-		return evaluate(expression, relevantNodes())
+	fun <T> evaluate(expression: StateExpression<T>, context: ExpressionContext): T {
+		return evaluate(expression, context, relevantNodes())
 	}
 
 	/**
@@ -304,5 +327,19 @@ class StoryState : BitPostInit {
 	private class RelevantNodes(
 		val active: Collection<TimelineNode>,
 		val past: Collection<TimelineAssignment<*>>
+	)
+
+	/**
+	 * The context parameter that is required by [StoryState.evaluate] (because it sometimes needs to know some
+	 * non-story information).
+	 */
+	class ExpressionContext(
+		/**
+		 * Count how many instances of `item` the current party members have in their inventory.
+		 * - This does *not* count items in the item storage.
+		 * - This only counts items of the current party members.
+		 * - This *does* count equipped items.
+		 */
+		val countItemInInventory: (item: Item) -> Int,
 	)
 }

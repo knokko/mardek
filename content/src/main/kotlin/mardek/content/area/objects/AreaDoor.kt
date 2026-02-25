@@ -9,9 +9,9 @@ import mardek.content.action.ActionSequence
 import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.TransitionDestination
 import mardek.content.sprite.ObjectSprites
-import mardek.content.story.ConstantTimelineExpression
-import mardek.content.story.TimelineBooleanValue
-import mardek.content.story.TimelineExpression
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.ExpressionBooleanValue
+import mardek.content.expression.StateExpression
 import java.util.UUID
 
 /**
@@ -50,8 +50,8 @@ class AreaDoor(
 	 * (e.g. the door might be locked at night, or require a Plot Item to open).
 	 */
 	@BitField(id = 3)
-	@ClassField(root = TimelineExpression::class)
-	val canOpen: TimelineExpression<Boolean>,
+	@ClassField(root = StateExpression::class)
+	val canOpen: StateExpression<Boolean>,
 
 	/**
 	 * The action sequence that should be activated whenever [canOpen] yields `false`. This must be non-null, unless
@@ -70,7 +70,7 @@ class AreaDoor(
 
 	constructor() : this(
 		UUID.randomUUID(), ObjectSprites(), 0, 0, AreaTransitionDestination(),
-		ConstantTimelineExpression(TimelineBooleanValue(true)),
+		ConstantStateExpression(ExpressionBooleanValue(true)),
 		null, "",
 	)
 

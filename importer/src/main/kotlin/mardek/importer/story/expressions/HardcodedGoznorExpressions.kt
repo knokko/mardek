@@ -2,8 +2,8 @@ package mardek.importer.story.expressions
 
 import mardek.content.Content
 import mardek.content.story.CustomTimelineVariable
-import mardek.content.story.DefinedVariableTimelineCondition
-import mardek.content.story.NegateTimelineCondition
+import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.NegateStateCondition
 
 @Suppress("UNCHECKED_CAST")
 internal fun hardcodeGoznorExpressions(
@@ -19,16 +19,16 @@ internal fun hardcodeGoznorExpressions(
 	hardcoded["goznor"] = mutableListOf(
 		HardcodedExpression(
 			name = "lock_mardek_house",
-			expression = NegateTimelineCondition(DefinedVariableTimelineCondition(withDeugan)),
+			expression = NegateStateCondition(DefinedVariableStateCondition(withDeugan)),
 		),
 		HardcodedExpression(
 			name = "lock_night",
-			expression = NegateTimelineCondition(DefinedVariableTimelineCondition(timeOfDay)),
+			expression = NegateStateCondition(DefinedVariableStateCondition(timeOfDay)),
 		),
 		HardcodedExpression(
 			name = "lock_weapon_shop",
 			// TODO CHAP3 Close during chapter 3
-			expression = NegateTimelineCondition(DefinedVariableTimelineCondition(timeOfDay)),
+			expression = NegateStateCondition(DefinedVariableStateCondition(timeOfDay)),
 		),
 	)
 }

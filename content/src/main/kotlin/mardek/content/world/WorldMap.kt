@@ -6,9 +6,9 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.sprite.BcSprite
-import mardek.content.story.ConstantTimelineExpression
-import mardek.content.story.TimelineExpression
-import mardek.content.story.TimelineOptionalStringValue
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.StateExpression
+import mardek.content.expression.ExpressionOptionalStringValue
 import java.util.UUID
 
 /**
@@ -41,8 +41,8 @@ class WorldMap(
 	 * The name of the music track that should be played while the player is on this world map
 	 */
 	@BitField(id = 3)
-	@ClassField(root = TimelineExpression::class)
-	val music: TimelineExpression<String?>,
+	@ClassField(root = StateExpression::class)
+	val music: StateExpression<String?>,
 
 	/**
 	 * All the nodes (areas) on this world map
@@ -60,7 +60,7 @@ class WorldMap(
 
 	constructor() : this(
 		UUID.randomUUID(), "", BcSprite(),
-		ConstantTimelineExpression(TimelineOptionalStringValue(null)),
+		ConstantStateExpression(ExpressionOptionalStringValue(null)),
 		arrayOf(), arrayOf(),
 	)
 }

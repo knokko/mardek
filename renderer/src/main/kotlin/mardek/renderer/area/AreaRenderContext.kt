@@ -42,6 +42,11 @@ internal class AreaRenderContext(
 	 * Used for chest loot and dialogues
 	 */
 	val uiColorBatch = context.addColorBatch(600)
+
+	/**
+	 * Used for rendering obtained/lost items during dialogues
+	 */
+	val itemNotificationBatch = context.addAreaSpriteBatch(2, scissor)
 	val dialogueOvalBatch = context.addOvalBatch(24)
 	val dialogueElementBatch = context.addImageBatch(2)
 	val textBatch = context.addFancyTextBatch(1000)

@@ -26,7 +26,7 @@ object TestRandomBattles {
 			repeat(1000) {
 				val campaign = simpleCampaignState()
 				campaign.state = AreaState(
-					dragonLair2, campaign.story,
+					dragonLair2, campaign.story, campaign.expressionContext(),
 					AreaPosition(7, 35),
 				)
 				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
@@ -56,7 +56,7 @@ object TestRandomBattles {
 			repeat(10_000) {
 				val campaign = simpleCampaignState()
 				campaign.state = AreaState(
-					dragonLair2, campaign.story,
+					dragonLair2, campaign.story, campaign.expressionContext(),
 					AreaPosition(7, 39),
 				)
 				campaign.stepsSinceLastBattle = 30
@@ -87,7 +87,7 @@ object TestRandomBattles {
 			repeat(10_000) {
 				val campaign = simpleCampaignState()
 				campaign.state = AreaState(
-					dragonLair2, campaign.story,
+					dragonLair2, campaign.story, campaign.expressionContext(),
 					AreaPosition(7, 39),
 				)
 				campaign.stepsSinceLastBattle = 60
@@ -116,7 +116,7 @@ object TestRandomBattles {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			campaign.state = AreaState(
-				dragonLair2, campaign.story,
+				dragonLair2, campaign.story, campaign.expressionContext(),
 				AreaPosition(7, 39),
 			)
 			campaign.stepsSinceLastBattle = 20
@@ -158,7 +158,7 @@ object TestRandomBattles {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			campaign.state = AreaState(
-				dragonLair2, campaign.story,
+				dragonLair2, campaign.story, campaign.expressionContext(),
 				AreaPosition(7, 3),
 			)
 			campaign.stepsSinceLastBattle = 500

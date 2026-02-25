@@ -26,7 +26,7 @@ object TestDoors {
 			val hub = content.areas.areas.find { it.properties.rawName == "Temple_FIRE_hub" }!!
 			val state = InGameState(CampaignState(), "test")
 			state.campaign.state = AreaState(
-				hub, state.campaign.story,
+				hub, state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(17, 12), Direction.Up
 			)
 
@@ -49,7 +49,7 @@ object TestDoors {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
 			state.campaign.state = AreaState(
-				dragonLairEntry, state.campaign.story,
+				dragonLairEntry, state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(5, 8), skipFadeIn = true
 			)
 
@@ -124,7 +124,7 @@ object TestDoors {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
 			state.campaign.state = AreaState(
-				dragonLairEntry, state.campaign.story,
+				dragonLairEntry, state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(5, 2), Direction.Up
 			)
 
@@ -189,8 +189,8 @@ object TestDoors {
 			val state = InGameState(simpleCampaignState(), "")
 			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "tv_house2" }!!,
-				state.campaign.story, AreaPosition(3, 5),
-				Direction.Down, skipFadeIn = true,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(3, 5), Direction.Down, skipFadeIn = true,
 			)
 
 			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)

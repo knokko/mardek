@@ -6,6 +6,7 @@ import mardek.renderer.RenderContext
 import mardek.renderer.area.ui.renderActionBackgroundImage
 import mardek.renderer.area.ui.renderActionFlash
 import mardek.renderer.area.ui.renderActionOverlayColor
+import mardek.renderer.area.ui.renderActionsItemNotification
 import mardek.renderer.area.ui.renderChestLoot
 import mardek.renderer.area.ui.renderDialogue
 import mardek.state.ingame.area.AreaState
@@ -57,6 +58,7 @@ internal fun renderCurrentArea(
 	renderChestLoot(areaContext)
 	renderActionBackgroundImage(areaContext)
 	renderDialogue(areaContext)
+	renderActionsItemNotification(areaContext)
 	renderActionFlash(areaContext)
 	renderActionOverlayColor(areaContext)
 	renderAreaFadeEffects(areaContext)

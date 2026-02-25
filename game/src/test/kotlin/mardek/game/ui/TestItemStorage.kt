@@ -53,7 +53,8 @@ object TestItemStorage {
 
 			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
-				state.campaign.story, AreaPosition(10, 3)
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(10, 3),
 			)
 
 			// Interact with the save crystal

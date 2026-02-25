@@ -21,14 +21,14 @@ import mardek.content.action.ActionWalk
 import mardek.content.action.ChoiceActionNode
 import mardek.content.action.ChoiceEntry
 import mardek.content.action.FixedActionNode
-import mardek.content.action.TimelineActionNode
+import mardek.content.action.ExpressionActionNode
 import mardek.content.action.WalkSpeed
 import mardek.content.area.Direction
 import mardek.content.sprite.NamedSprite
-import mardek.content.story.ConstantTimelineExpression
-import mardek.content.story.DefinedVariableTimelineCondition
-import mardek.content.story.IfElseTimelineExpression
-import mardek.content.story.TimelineActionNodeValue
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.IfElseStateExpression
+import mardek.content.expression.ExpressionActionNodeValue
 import mardek.importer.util.loadBc7Sprite
 import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
@@ -40,13 +40,13 @@ internal fun hardcodeMardekHouseActions(
 	val fallenStarQuest = content.story.quests.find { it.tabName == "The Fallen Star" }!!
 	val targetMardek = ActionTargetPartyMember(0)
 
-	val motherRoot = TimelineActionNode( // TODO CHAP2 Add the chapter 2 cases
+	val motherRoot = ExpressionActionNode( // TODO CHAP2 Add the chapter 2 cases
 		id = UUID.fromString("e724fd84-61cc-4209-bf61-1614e28f27a2"),
-		expression = IfElseTimelineExpression(
-			condition = DefinedVariableTimelineCondition(timeOfDay),
-			ifTrue = IfElseTimelineExpression(
-				condition = DefinedVariableTimelineCondition(fallenStarQuest.wasCompleted),
-				ifTrue = ConstantTimelineExpression(TimelineActionNodeValue(fixedActionChain(
+		expression = IfElseStateExpression(
+			condition = DefinedVariableStateCondition(timeOfDay),
+			ifTrue = IfElseStateExpression(
+				condition = DefinedVariableStateCondition(fallenStarQuest.wasCompleted),
+				ifTrue = ConstantStateExpression(ExpressionActionNodeValue(fixedActionChain(
 					actions = arrayOf(
 						ActionTalk(
 							speaker = ActionTargetDefaultDialogueObject(),
@@ -77,7 +77,7 @@ internal fun hardcodeMardekHouseActions(
 						UUID.fromString("ce535196-5687-4598-8f4f-740acfb508c3"),
 					),
 				))),
-				ifFalse = ConstantTimelineExpression(TimelineActionNodeValue(FixedActionNode(
+				ifFalse = ConstantStateExpression(ExpressionActionNodeValue(FixedActionNode(
 					id = UUID.fromString("b436e5c5-3163-4576-86d3-df4c435934c6"),
 					action = ActionTalk(
 						speaker = ActionTargetDefaultDialogueObject(),
@@ -87,7 +87,7 @@ internal fun hardcodeMardekHouseActions(
 					next = null
 				))),
 			),
-			ifFalse = ConstantTimelineExpression(TimelineActionNodeValue(FixedActionNode(
+			ifFalse = ConstantStateExpression(ExpressionActionNodeValue(FixedActionNode(
 				id = UUID.fromString("51b51a45-e908-48f3-8ee1-ac55b5a0d32c"),
 				action = ActionTalk(
 					speaker = ActionTargetDefaultDialogueObject(),

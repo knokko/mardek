@@ -5,9 +5,11 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.expression.ExpressionUnitValue
+import mardek.content.expression.ExpressionValue
 
 /**
- * Represents the assignment of a `TimelineValue` to a `TimelineVariable`.
+ * Represents the assignment of a [ExpressionValue] to a [TimelineVariable].
  */
 @BitStruct(backwardCompatible = true)
 class TimelineAssignment<T>(
@@ -23,8 +25,8 @@ class TimelineAssignment<T>(
 	 * The `value` that will be assigned to `variable`
 	 */
 	@BitField(id = 1)
-	@ClassField(root = TimelineValue::class)
-	val value: TimelineValue<T>,
+	@ClassField(root = ExpressionValue::class)
+	val value: ExpressionValue<T>,
 
 	/**
 	 * Most timeline assignments have `appliesToFutureNodes = false`, which means that the variable assignment is
@@ -55,7 +57,7 @@ class TimelineAssignment<T>(
 ) {
 
 	@Suppress("UNCHECKED_CAST", "unused")
-	private constructor() : this(CustomTimelineVariable<T>(), TimelineUnitValue() as TimelineValue<T>)
+	private constructor() : this(CustomTimelineVariable<T>(), ExpressionUnitValue() as ExpressionValue<T>)
 
 	override fun toString() = "$variable := $value"
 }

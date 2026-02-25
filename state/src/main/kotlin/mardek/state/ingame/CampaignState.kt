@@ -227,7 +227,7 @@ class CampaignState : BitPostInit {
 						if (nextPosition.x > 6 + nextArea.maxTileX || nextPosition.y > 4 + nextArea.maxTileY) {
 							nextPosition = AreaPosition(3, 3)
 						}
-						this.state = AreaState(nextArea, story, nextPosition)
+						this.state = AreaState(nextArea, story, expressionContext(), nextPosition)
 						continue
 					}
 
@@ -311,7 +311,7 @@ class CampaignState : BitPostInit {
 			)
 			if (entrance != null) {
 				this.state = AreaState(
-					entrance.area, story,
+					entrance.area, story, expressionContext(),
 					AreaPosition(entrance.x, entrance.y),
 					entrance.direction,
 				)
@@ -338,7 +338,7 @@ class CampaignState : BitPostInit {
 					when (val destination = suspension.destination) {
 						is AreaTransitionDestination -> {
 							this.state = AreaState(
-								destination.area, story,
+								destination.area, story, expressionContext(),
 								AreaPosition(destination.x, destination.y),
 								destination.direction ?: (this.state as AreaState).getPlayerDirection(0),
 							)
@@ -432,7 +432,7 @@ class CampaignState : BitPostInit {
 			val action = node.action
 			if (action is ActionToArea) {
 				this.state = AreaState(
-					action.area, story,
+					action.area, story, expressionContext(),
 					AreaPosition(action.x, action.y),
 					action.direction,
 				)
@@ -523,7 +523,7 @@ class CampaignState : BitPostInit {
 			context.campaignName, currentArea.playerPositions,
 			currentArea.playerDirections, currentArea.currentTime, party, currentArea.characterStates,
 			characterStates, currentArea.fadingCharacters,
-			story, itemStorage, this::healParty,
+			story, itemStorage, expressionContext(), this::healParty,
 			{ timeline, newNode -> performTimelineTransition(context, timeline, newNode) },
 			{ cursorItemStack }, { newStack -> this.cursorItemStack = newStack },
 		)
@@ -571,7 +571,8 @@ class CampaignState : BitPostInit {
 			val switchArea = actionsContext.switchArea
 			if (switchArea != null) {
 				this.state = AreaState(
-					switchArea.area, story, AreaPosition(switchArea.x, switchArea.y),
+					switchArea.area, story, expressionContext(),
+					AreaPosition(switchArea.x, switchArea.y),
 					switchArea.direction,
 				)
 				val nextNode = (actions.node as FixedActionNode).next
@@ -621,7 +622,7 @@ class CampaignState : BitPostInit {
 					if (overrideMusic != null) return overrideMusic
 				}
 
-				story.evaluate(state.area.properties.musicTrack)
+				story.evaluate(state.area.properties.musicTrack, expressionContext())
 			}
 
 			is CampaignActionsState -> {
@@ -635,7 +636,7 @@ class CampaignState : BitPostInit {
 			}
 
 			is WorldMapState -> {
-				story.evaluate(state.map.music)
+				story.evaluate(state.map.music, expressionContext())
 			}
 
 			else -> {
@@ -646,8 +647,15 @@ class CampaignState : BitPostInit {
 
 	private fun areaUpdateContext(context: UpdateContext) = AreaState.UpdateContext(
 		context, party, characterStates,
-		areaDiscovery, triggers, story, openedChests,
+		areaDiscovery, triggers, story, expressionContext(), openedChests,
 		stepsSinceLastBattle, totalSteps,
+	)
+
+	/**
+	 * Generates a [StoryState.ExpressionContext] that is needed for [StoryState.evaluate]
+	 */
+	fun expressionContext() = StoryState.ExpressionContext(
+		countItemInInventory = { itemToCount -> usedPartyMembers().sumOf { it.state.countItemOccurrences(itemToCount) }}
 	)
 
 	class UpdateContext(

@@ -49,7 +49,7 @@ object TestStatusEffects {
 		instance.apply {
 			val campaign = simpleCampaignState()
 			campaign.state = AreaState(
-				dragonLairEntry, campaign.story,
+				dragonLairEntry, campaign.story, campaign.expressionContext(),
 				AreaPosition(5, 9),
 			)
 

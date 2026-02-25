@@ -6,7 +6,7 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.action.ActionSequence
-import mardek.content.story.TimelineExpression
+import mardek.content.expression.StateExpression
 import java.util.UUID
 
 /**
@@ -57,8 +57,8 @@ class AreaTrigger(
 	val actions: ActionSequence?,
 
 	@BitField(id = 6, optional = true)
-	@ClassField(root = TimelineExpression::class)
-	val condition: TimelineExpression<Boolean>?,
+	@ClassField(root = StateExpression::class)
+	val condition: StateExpression<Boolean>?,
 
 	@BitField(id = 7)
 	@StableReferenceFieldId

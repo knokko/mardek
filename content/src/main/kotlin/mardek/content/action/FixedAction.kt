@@ -11,6 +11,7 @@ import mardek.content.area.Direction
 import mardek.content.audio.SoundEffect
 import mardek.content.battle.Battle
 import mardek.content.characters.PlayableCharacter
+import mardek.content.inventory.Item
 import mardek.content.sprite.NamedSprite
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
@@ -49,6 +50,8 @@ sealed class FixedAction {
 			ActionSetMusic::class.java,
 			ActionSetBackgroundImage::class.java,
 			ActionToGlobalActions::class.java,
+			ActionTakeItem::class.java,
+			ActionGiveItem::class.java,
 		)
 	}
 }
@@ -617,3 +620,58 @@ class ActionSetBackgroundImage(
  */
 @BitStruct(backwardCompatible = true)
 class ActionToGlobalActions : FixedAction()
+
+/**
+ * Takes [amount] occurrences of [item] from the inventories of the current party members.
+ * - This will only take items from the playable characters that are currently in the party.
+ * - This will try to take items from their main inventory rather than their equipment, but equipped items will be
+ * taken if their normal inventories don't have [amount] [item]s.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionTakeItem(
+
+	/**
+	 * The item that should be taken/removed from the party inventories
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "items")
+	val item: Item,
+
+	/**
+	 * The number of instances/occurrences of [item] that should be taken/removed
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false, minValue = 1)
+	val amount: Int,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(Item(), 0)
+}
+
+/**
+ * Gives [amount] occurrences of [item] to the player. An attempt will be made to put the item in the inventories of the
+ * current party members. But, if no space is left in their inventory, the [item]s will be added to the item storage
+ * (which has endless space in this MARDEK rewrite).
+ */
+@BitStruct(backwardCompatible = true)
+class ActionGiveItem(
+
+	/**
+	 * The item that should be given to the player
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "items")
+	val item: Item,
+
+	/**
+	 * The number of instances/occurrences of [item] that should be given
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false, minValue = 1)
+	val amount: Int,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(Item(), 0)
+}

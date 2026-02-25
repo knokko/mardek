@@ -25,7 +25,7 @@ class SkinnedAnimation(
 	 * The skins of this animation.
 	 */
 	@BitField(id = 1)
-	val skins: HashMap<String, AnimationFrames>,
+	val skins: HashMap<String, AnimationFrames>, // TODO CHAP1 Make the values lazy
 ) {
 
 	@Suppress("unused")
