@@ -9,25 +9,19 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.action.*
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
-import mardek.content.audio.FixedSoundEffects
-import mardek.content.characters.CharacterState
-import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
 import mardek.content.sprite.NamedSprite
-import mardek.content.story.Timeline
-import mardek.content.story.TimelineNode
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
-import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
-import mardek.state.SoundQueue
 import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.FadingCharacter
 import mardek.state.ingame.area.NextAreaPosition
-import mardek.state.ingame.story.StoryState
+import mardek.state.saves.SaveFile
 import mardek.state.saves.SaveSelectionState
 import kotlin.math.min
 import kotlin.time.Duration
@@ -176,17 +170,22 @@ class AreaActionsState(
 		private set
 
 	/**
-	 * When the current action is `ActionSaveCampaign`, this field tracks the savefile selection of the user. The user
+	 * When the current action is [ActionSaveCampaign], this field tracks the savefile selection of the user. The user
 	 * can either select a `SaveFile` to overwrite, or create a new `SaveFile`.
 	 */
 	var saveSelectionState: SaveSelectionState? = null
 		private set
 
 	/**
-	 * When the current action is `ActionItemStorage`, this field tracks the interaction state for the item storage.
+	 * When the current action is [ActionItemStorage], this field tracks the interaction state for the item storage.
 	 */
 	var itemStorageInteraction: ItemStorageInteractionState? = null
 		private set
+
+	/**
+	 * When the current action is [ActionShop], this field tracks the interaction state with the shop
+	 */
+	var shopInteraction: ShopInteractionState? = null
 
 	/**
 	 * The [ItemNotification] that should be shown, or `null` if no item notification should be shown.
@@ -209,16 +208,19 @@ class AreaActionsState(
 		val node = this.node
 		if (choiceOptions.isEmpty() && node is ChoiceActionNode) {
 			choiceOptions = node.options.filter {
-				context.story.evaluate(it.condition, context.expressionContext)
+				context.campaign.story.evaluate(it.condition, context.campaign.expressionContext())
 			}
 			if (choiceOptions.isEmpty()) throw IllegalStateException("Not a single choice entry: ${node.options}")
 		}
 	}
 
-	private fun initItemStorageInteraction() {
+	private fun initInventoryInteractionStates() {
 		node?.let { node ->
 			if (node is FixedActionNode && node.action is ActionItemStorage && itemStorageInteraction == null) {
 				itemStorageInteraction = ItemStorageInteractionState()
+			}
+			if (node is FixedActionNode && node.action is ActionShop && shopInteraction == null) {
+				shopInteraction = ShopInteractionState((node.action as ActionShop).shop)
 			}
 		}
 	}
@@ -229,10 +231,10 @@ class AreaActionsState(
 			if (finishedMessage) {
 				chatLog.add(ChatLogEntry(
 					speaker = currentAction.speaker.getDisplayName(
-						defaultDialogueObject, context.party
+						defaultDialogueObject, context.campaign.party
 					) ?: "no-one?",
 					speakerElement = currentAction.speaker.getElement(
-						defaultDialogueObject, context.party
+						defaultDialogueObject, context.campaign.party
 					),
 					text = currentAction.text,
 				))
@@ -241,7 +243,11 @@ class AreaActionsState(
 		}
 		if (currentAction is ActionWalk) return updateWalking(currentAction, context)
 		if (currentAction is ActionBattle) {
-			context.startBattle = currentAction
+			if (currentAction.overridePlayers == null) {
+				context.areaState.engageBattle(context, currentAction.battle)
+			} else {
+				context.areaState.engageBattle(context, currentAction.battle, currentAction.overridePlayers!!)
+			}
 			return true
 		}
 		if (currentAction is ActionFlashScreen) {
@@ -254,11 +260,17 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionHealParty) {
-			context.healParty()
+			context.campaign.healParty()
 			return true
 		}
-		if (currentAction is ActionSaveCampaign && saveSelectionState == null) {
-			saveSelectionState = SaveSelectionState(arrayOf(context.campaignName))
+		if (currentAction is ActionSaveCampaign) {
+			if (saveSelectionState == null) saveSelectionState = SaveSelectionState(
+				arrayOf(context.campaignName)
+			)
+			if (saveSelectionState!!.update(SaveSelectionState.UpdateContext(
+				context.saves, context.content,
+				context.soundQueue, true,
+			))) saveSelectionState = null
 		}
 		if (currentAction is ActionFadeCharacter) {
 			fadeCharacter(currentAction, context)
@@ -269,7 +281,7 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionSetMoney) {
-			context.setMoney = currentAction.amount
+			context.campaign.gold = currentAction.amount
 			return true
 		}
 		if (currentAction is ActionTakeItem) {
@@ -277,7 +289,7 @@ class AreaActionsState(
 			itemNotification = ItemNotification(
 				ItemStack(currentAction.item, currentAction.amount),
 				ItemNotification.Operation.Lost,
-				context.currentTime,
+				context.areaState.currentTime,
 			)
 			return true
 		}
@@ -286,7 +298,7 @@ class AreaActionsState(
 			itemNotification = ItemNotification(
 				ItemStack(currentAction.item, currentAction.amount),
 				ItemNotification.Operation.Acquire,
-				context.currentTime,
+				context.areaState.currentTime,
 			)
 			return true
 		}
@@ -295,16 +307,36 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionToArea) {
-			if (switchAreaAt < ZERO) switchAreaAt = context.currentTime + AreaState.DOOR_OPEN_DURATION
-			if (context.currentTime >= switchAreaAt) context.switchArea = currentAction
+			if (switchAreaAt < ZERO) switchAreaAt = context.areaState.currentTime + AreaState.DOOR_OPEN_DURATION
+			if (context.areaState.currentTime >= switchAreaAt) {
+				val nextState = AreaState(
+					currentAction.area, context.campaign.story, context.campaign.expressionContext(),
+					AreaPosition(currentAction.x, currentAction.y),
+					currentAction.direction,
+				)
+				context.campaign.state = nextState
+				val nextNode = (node as FixedActionNode).next
+				if (nextNode != null) {
+					nextState.suspension = AreaSuspensionActions(AreaActionsState(
+						nextNode, defaultDialogueObject
+					))
+				}
+			}
+			return false
+		}
+		if (currentAction is ActionToGlobalActions) {
+			context.campaign.state = CampaignActionsState((this.node as FixedActionNode).next!!)
 			return false
 		}
 		if (currentAction is ActionTimelineTransition) {
-			context.transitionTimeline(currentAction.timeline, currentAction.newNode)
+			context.campaign.story.transition(
+				context.content, context.campaign.party, context.campaign.characterStates,
+				currentAction.timeline, currentAction.newNode,
+			)
 			return true
 		}
 		if (currentAction is ActionSetOverlayColor) {
-			return context.currentTime >= startOverlayTransitionTime + currentAction.transitionTime
+			return context.areaState.currentTime >= startOverlayTransitionTime + currentAction.transitionTime
 		}
 		if (currentAction is ActionSetMusic) {
 			this.overrideMusic = currentAction.newMusicTrack
@@ -313,6 +345,10 @@ class AreaActionsState(
 		if (currentAction is ActionSetBackgroundImage) {
 			this.backgroundImage = currentAction.newBackgroundImage
 			return true
+		}
+		if (shopInteraction != null) {
+			shopInteraction!!.update(context)
+			return false
 		}
 		if (currentAction is ActionParallel) {
 			// Note that we should ALWAYS update all parallel actions, so we can NOT use something like
@@ -333,15 +369,15 @@ class AreaActionsState(
 		target: ActionTargetAreaCharacter,
 		nextState: AreaCharacterState,
 	) {
-		if (target.persistent) context.characterStates[target.character] = nextState
+		if (target.persistent) context.areaState.characterStates[target.character] = nextState
 		else overrideCharacterStates[target.character] = nextState
 	}
 
 	private fun teleport(action: ActionTeleport, context: UpdateContext) {
 		when (val target = action.target) {
 			is ActionTargetPartyMember -> {
-				context.partyPositions[target.index] = AreaPosition(action.x, action.y)
-				context.partyDirections[target.index] = action.direction
+				context.areaState.playerPositions[target.index] = AreaPosition(action.x, action.y)
+				context.areaState.playerDirections[target.index] = action.direction
 			}
 			is ActionTargetAreaCharacter -> {
 				setAreaCharacterState(context, target, AreaCharacterState(
@@ -349,11 +385,11 @@ class AreaActionsState(
 				))
 			}
 			is ActionTargetWholeParty -> {
-				for (index in context.partyPositions.indices) {
-					context.partyPositions[index] = AreaPosition(action.x, action.y)
+				for (index in context.areaState.playerPositions.indices) {
+					context.areaState.playerPositions[index] = AreaPosition(action.x, action.y)
 				}
-				for (index in context.partyDirections.indices) {
-					context.partyDirections[index] = action.direction
+				for (index in context.areaState.playerDirections.indices) {
+					context.areaState.playerDirections[index] = action.direction
 				}
 			}
 			else -> throw UnsupportedOperationException("Unsupported action target $target")
@@ -364,13 +400,12 @@ class AreaActionsState(
 	 * This method should be called during `CampaignState.update(...)` whenever
 	 * `areaState.actions != null && areaState.activeBattle == null`
 	 */
-	fun update(context: UpdateContext) {
-		val timeStep = context.timeStep
+	internal fun update(context: UpdateContext) {
 		while (true) {
 			val currentNode = node
 			if (currentNode is ExpressionActionNode) {
-				toNextNode(context.currentTime, context.story.evaluate(
-					currentNode.expression, context.expressionContext
+				toNextNode(context.areaState.currentTime, context.campaign.story.evaluate(
+					currentNode.expression, context.campaign.expressionContext(),
 				))
 				continue
 			}
@@ -378,8 +413,7 @@ class AreaActionsState(
 			if (currentNode is FixedActionNode) {
 				val action = currentNode.action
 				if (updateFixedNode(context, action)) {
-					toNextNode(context.currentTime, currentNode.next)
-					context.timeStep = ZERO
+					toNextNode(context.areaState.currentTime, currentNode.next)
 					if (action is ActionBattle) return
 					continue
 				}
@@ -389,8 +423,9 @@ class AreaActionsState(
 		}
 
 		initChoices(context)
-		initItemStorageInteraction()
-		context.timeStep = timeStep
+		initInventoryInteractionStates()
+
+		if (node == null) context.areaState.suspension = null
 	}
 
 	private fun updateTalking(context: UpdateContext, currentAction: ActionTalk): Boolean {
@@ -422,52 +457,52 @@ class AreaActionsState(
 
 	private fun updateWalkingWholeParty(context: UpdateContext, currentAction: ActionWalk): Boolean {
 		val next = nextPartyPositions[0]
-		if (next != null && context.currentTime >= next.arrivalTime) {
-			for (index in (1 until context.partyPositions.size).reversed()) {
-				context.partyPositions[index] = context.partyPositions[index - 1]
-				context.partyDirections[index] = context.partyDirections[index - 1]
+		if (next != null && context.areaState.currentTime >= next.arrivalTime) {
+			for (index in (1 until context.areaState.playerPositions.size).reversed()) {
+				context.areaState.playerPositions[index] = context.areaState.playerPositions[index - 1]
+				context.areaState.playerDirections[index] = context.areaState.playerDirections[index - 1]
 			}
-			context.partyDirections[0] = Direction.exactDelta(
-				next.position.x - context.partyPositions[0].x,
-				next.position.y - context.partyPositions[0].y
-			) ?: context.partyDirections[0]
-			context.partyPositions[0] = next.position
+			context.areaState.playerDirections[0] = Direction.exactDelta(
+				next.position.x - context.areaState.playerPositions[0].x,
+				next.position.y - context.areaState.playerPositions[0].y
+			) ?: context.areaState.playerDirections[0]
+			context.areaState.playerPositions[0] = next.position
 			nextPartyPositions[0] = null
 		}
 
 		if (nextPartyPositions[0] == null) {
 			val nextDirection = Direction.bestDelta(
-				currentAction.destinationX - context.partyPositions[0].x,
-				currentAction.destinationY - context.partyPositions[0].y,
+				currentAction.destinationX - context.areaState.playerPositions[0].x,
+				currentAction.destinationY - context.areaState.playerPositions[0].y,
 			)
 			if (nextDirection == null) return true
 
-			val arrivalTime = context.currentTime + currentAction.speed.duration
+			val arrivalTime = context.areaState.currentTime + currentAction.speed.duration
 			nextPartyPositions[0] = NextAreaPosition(
 				AreaPosition(
-					context.partyPositions[0].x + nextDirection.deltaX,
-					context.partyPositions[0].y + nextDirection.deltaY,
-				), context.currentTime, arrivalTime,
+					context.areaState.playerPositions[0].x + nextDirection.deltaX,
+					context.areaState.playerPositions[0].y + nextDirection.deltaY,
+				), context.areaState.currentTime, arrivalTime,
 				null,
 			)
-			context.partyDirections[0] = nextDirection
+			context.areaState.playerDirections[0] = nextDirection
 
-			for (index in 1 until context.partyPositions.size) {
-				val targetPosition = context.partyPositions[index - 1]
+			for (index in 1 until context.areaState.playerPositions.size) {
+				val targetPosition = context.areaState.playerPositions[index - 1]
 				val direction = Direction.exactDelta(
-					targetPosition.x - context.partyPositions[index].x,
-					targetPosition.y - context.partyPositions[index].y,
+					targetPosition.x - context.areaState.playerPositions[index].x,
+					targetPosition.y - context.areaState.playerPositions[index].y,
 				)
 				if (direction != null) {
 					// Expected case: party member walks to current position of the 'next' party member
 					nextPartyPositions[index] = NextAreaPosition(
-						targetPosition, context.currentTime, arrivalTime, null
+						targetPosition, context.areaState.currentTime, arrivalTime, null
 					)
-					context.partyDirections[index] = direction
+					context.areaState.playerDirections[index] = direction
 				} else {
 					// Edge case: the party member is not on a tile adjacent to the next party member
 					// 'solve' this discontinuity by 'teleporting' the party member
-					context.partyPositions[index] = targetPosition
+					context.areaState.playerPositions[index] = targetPosition
 					nextPartyPositions[index] = null
 				}
 			}
@@ -480,12 +515,12 @@ class AreaActionsState(
 		target: ActionTargetAreaCharacter,
 		context: UpdateContext,
 	): Boolean {
-		var characterState = context.characterStates[target.character] ?: throw IllegalArgumentException(
+		var characterState = context.areaState.characterStates[target.character] ?: throw IllegalArgumentException(
 			"Missing walk area character ${target.character}"
 		)
 
 		val nextPosition = characterState.next
-		if (nextPosition != null && context.currentTime >= nextPosition.arrivalTime) {
+		if (nextPosition != null && context.areaState.currentTime >= nextPosition.arrivalTime) {
 			characterState = AreaCharacterState(
 				x = nextPosition.position.x,
 				y = nextPosition.position.y,
@@ -509,8 +544,8 @@ class AreaActionsState(
 							x = characterState.x + bestDirection.deltaX,
 							y = characterState.y + bestDirection.deltaY,
 						),
-						startTime = context.currentTime,
-						arrivalTime = context.currentTime + currentAction.speed.duration,
+						startTime = context.areaState.currentTime,
+						arrivalTime = context.areaState.currentTime + currentAction.speed.duration,
 						transition = null,
 					)
 				)
@@ -529,10 +564,10 @@ class AreaActionsState(
 		index: Int,
 		context: UpdateContext,
 	): Boolean {
-		var position = context.partyPositions[index]
+		var position = context.areaState.playerPositions[index]
 		var nextPosition = nextPartyPositions[index]
 
-		if (nextPosition != null && context.currentTime >= nextPosition.arrivalTime) {
+		if (nextPosition != null && context.areaState.currentTime >= nextPosition.arrivalTime) {
 			position = AreaPosition(
 				x = nextPosition.position.x,
 				y = nextPosition.position.y,
@@ -552,37 +587,37 @@ class AreaActionsState(
 						x = position.x + bestDirection.deltaX,
 						y = position.y + bestDirection.deltaY,
 					),
-					startTime = context.currentTime,
-					arrivalTime = context.currentTime + currentAction.speed.duration,
+					startTime = context.areaState.currentTime,
+					arrivalTime = context.areaState.currentTime + currentAction.speed.duration,
 					transition = null,
 				)
-				context.partyDirections[index] = bestDirection
+				context.areaState.playerDirections[index] = bestDirection
 			} else {
 				finished = true
 			}
 		}
 
-		context.partyPositions[index] = position
+		context.areaState.playerPositions[index] = position
 		nextPartyPositions[index] = nextPosition
 		return finished
 	}
 
 	private fun fadeCharacter(action: ActionFadeCharacter, context: UpdateContext) {
 		val character = action.target.character
-		val characterState = context.characterStates.remove(character) ?: throw IllegalArgumentException(
+		val characterState = context.areaState.characterStates.remove(character) ?: throw IllegalArgumentException(
 			"Can't fade character $character that is not present"
 		)
-		context.fadingCharacters.add(FadingCharacter(character, characterState))
+		context.areaState.fadingCharacters.add(FadingCharacter(character, characterState))
 	}
 
 	private fun rotate(action: ActionRotate, context: UpdateContext) {
 		when (val target = action.target) {
 			is ActionTargetPartyMember -> {
-				context.partyDirections[target.index] = action.newDirection
+				context.areaState.playerDirections[target.index] = action.newDirection
 			}
 
 			is ActionTargetAreaCharacter -> {
-				val oldState = context.characterStates[target.character] ?: throw IllegalArgumentException(
+				val oldState = context.areaState.characterStates[target.character] ?: throw IllegalArgumentException(
 					"Missing area character ${target.character}"
 				)
 				if (oldState.next != null) throw IllegalArgumentException(
@@ -613,13 +648,6 @@ class AreaActionsState(
 		toNextNode(currentTime, currentNode.next)
 	}
 
-	/**
-	 * Aborts the current `SaveSelectionState`, causing it to be refreshed during the next `update()`
-	 */
-	fun retrySaveNode() {
-		saveSelectionState = null
-	}
-
 	private fun processFixedActionKeyEvent(context: UpdateContext, action: FixedAction, event: InputKeyEvent) {
 		if (action is ActionTalk) {
 			processTalkingKeyEvent(action, event)
@@ -628,16 +656,16 @@ class AreaActionsState(
 			for (parallelAction in action.actions) processFixedActionKeyEvent(context, parallelAction, event)
 		}
 		if (action is ActionItemStorage && event.key == InputKey.Cancel) {
-			context.soundQueue.insert(context.sounds.ui.clickCancel)
-			toNextNode(context.currentTime, (node as FixedActionNode).next)
+			context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickCancel)
+			toNextNode(context.areaState.currentTime, (node as FixedActionNode).next)
 		}
 	}
 
 	/**
 	 * This method should be called for each `InputKeyEvent` that is fired while
-	 * `areaState.actions != null && areaState.activeBattle == null`
+	 * `areaState.suspension is AreaSuspensionActions`
 	 */
-	fun processKeyEvent(context: UpdateContext, event: InputKeyEvent) {
+	internal fun processKeyEvent(context: UpdateContext, event: InputKeyEvent) {
 		if (!event.didPress) return
 
 		val currentNode = node
@@ -646,7 +674,7 @@ class AreaActionsState(
 		if (key == InputKey.ToggleChatLog) showChatLog = !showChatLog
 
 		if (currentNode is FixedActionNode) {
-			initItemStorageInteraction()
+			initInventoryInteractionStates()
 			processFixedActionKeyEvent(context, currentNode.action, event)
 		}
 
@@ -656,20 +684,56 @@ class AreaActionsState(
 			if (selectedChoice < choiceOptions.size - 1 && key == InputKey.MoveDown) selectedChoice += 1
 			if (key == InputKey.Interact && !event.didRepeat) {
 				chatLog.add(ChatLogEntry(
-					speaker = currentNode.speaker.getDisplayName(defaultDialogueObject, context.party) ?: "",
-					speakerElement = currentNode.speaker.getElement(defaultDialogueObject, context.party),
+					speaker = currentNode.speaker.getDisplayName(
+						defaultDialogueObject, context.campaign.party
+					) ?: "",
+					speakerElement = currentNode.speaker.getElement(
+						defaultDialogueObject, context.campaign.party
+					),
 					text = choiceOptions[selectedChoice].text,
 				))
-				toNextNode(context.currentTime, choiceOptions[selectedChoice].next)
+				toNextNode(context.areaState.currentTime, choiceOptions[selectedChoice].next)
 			}
 		}
 
 		itemStorageInteraction?.processKeyPress(context, event.key)
+		if (shopInteraction?.processKeyPress(context, event.key) == true) {
+			toNextNode(context.areaState.currentTime, (node as FixedActionNode).next)
+		}
+
+		saveSelectionState?.let {
+			val outcome = it.pressKey(SaveSelectionState.UpdateContext(
+				context.saves, context.content,
+				context.soundQueue, true,
+			), event.key)
+			if (outcome.canceled) finishSaveNode(context.areaState.currentTime)
+
+			var failed = false
+			if (outcome.finished) {
+				if (outcome.save == null || outcome.save.file.delete()) {
+					if (context.saves.createSave(
+						context.content, context.campaign,
+						context.campaignName, SaveFile.Type.Crystal
+					)) {
+						context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickConfirm)
+						finishSaveNode(context.areaState.currentTime)
+					} else failed = true
+				} else {
+					failed = true
+				}
+			}
+
+			if (failed || outcome.failed) {
+				context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickReject)
+				saveSelectionState = null // Forces a retry
+			}
+		}
 	}
 
-	fun processMouseMove(context: UpdateContext, event: MouseMoveEvent) {
-		initItemStorageInteraction()
+	internal fun processMouseMove(context: UpdateContext, event: MouseMoveEvent) {
+		initInventoryInteractionStates()
 		itemStorageInteraction?.processMouseMove(context, event.newX, event.newY)
+		shopInteraction?.processMouseMove(context, event.newX, event.newY)
 	}
 
 	private fun toNextNode(currentTime: Duration, next: ActionNode?) {
@@ -687,6 +751,9 @@ class AreaActionsState(
 		if (next is FixedActionNode && next.action is ActionSetOverlayColor) {
 			this.startOverlayTransitionTime = currentTime
 		}
+		this.itemStorageInteraction = null
+		this.shopInteraction = null
+		this.saveSelectionState = null
 	}
 
 	private fun processTalkingKeyEvent(currentAction: ActionTalk, event: InputKeyEvent) {
@@ -700,38 +767,18 @@ class AreaActionsState(
 	/**
 	 * This class contains the 'parameters' that should be supplied to `AreaActionsState.update(context)`
 	 */
-	class UpdateContext(
-		val input: InputManager,
-		var timeStep: Duration,
-		val soundQueue: SoundQueue,
-		val sounds: FixedSoundEffects,
-		val campaignName: String,
-		val partyPositions: Array<AreaPosition>,
-		val partyDirections: Array<Direction>,
-		var currentTime: Duration,
-		val party: Array<PlayableCharacter?>,
-		val characterStates: MutableMap<AreaCharacter, AreaCharacterState>,
-		val playableCharacterStates: Map<PlayableCharacter, CharacterState>,
-		val fadingCharacters: MutableCollection<FadingCharacter>,
-		val story: StoryState,
-		val itemStorage: MutableList<ItemStack?>,
-		val expressionContext: StoryState.ExpressionContext,
-		val healParty: () -> Unit,
-		val transitionTimeline: (Timeline, TimelineNode) -> Unit,
-		val getCursorStack: () -> ItemStack?,
-		val setCursorStack: (newStack: ItemStack?) -> Unit,
-	) {
-		var startBattle: ActionBattle? = null
-		var setMoney: Int? = null
-		var switchArea: ActionToArea? = null
+	internal class UpdateContext(
+		parent: AreaState.UpdateContext,
+		val areaState: AreaState,
+	) : AreaState.UpdateContext(parent, parent.campaign) {
 
 		/**
 		 * The implementation for [ActionTakeItem]
 		 */
 		internal fun takeItem(item: Item, amount: Int) {
 			var remaining = amount
-			for (partyCharacter in party.filterNotNull()) {
-				val inventory = playableCharacterStates[partyCharacter]!!.inventory
+			for (partyCharacter in campaign.party.filterNotNull()) {
+				val inventory = campaign.characterStates[partyCharacter]!!.inventory
 				for ((itemIndex, oldStack) in inventory.withIndex()) {
 					if (oldStack == null || oldStack.item !== item) continue
 					if (oldStack.amount > remaining) {
@@ -744,8 +791,8 @@ class AreaActionsState(
 					}
 				}
 			}
-			for (partyCharacter in party.filterNotNull()) {
-				val equipment = playableCharacterStates[partyCharacter]!!.equipment
+			for (partyCharacter in campaign.party.filterNotNull()) {
+				val equipment = campaign.characterStates[partyCharacter]!!.equipment
 				equipment.entries.removeIf { (slot, equipped) ->
 					if (remaining == 0 || !slot.canBeEmpty) return@removeIf false
 					if (equipped === item) {
@@ -761,8 +808,8 @@ class AreaActionsState(
 		 * The implementation for [ActionGiveItem]
 		 */
 		internal fun giveItem(item: Item, amount: Int) {
-			for (partyCharacter in party.filterNotNull()) {
-				val inventory = playableCharacterStates[partyCharacter]!!.inventory
+			for (partyCharacter in campaign.party.filterNotNull()) {
+				val inventory = campaign.characterStates[partyCharacter]!!.inventory
 				for ((itemIndex, oldStack) in inventory.withIndex()) {
 					if (oldStack == null) {
 						inventory[itemIndex] = ItemStack(item, amount)
@@ -775,22 +822,26 @@ class AreaActionsState(
 				}
 			}
 
-			for ((itemIndex, oldStack) in itemStorage.withIndex()) {
+			for ((itemIndex, oldStack) in campaign.itemStorage.withIndex()) {
 				if (oldStack == null) {
-					itemStorage[itemIndex] = ItemStack(item, amount)
+					campaign.itemStorage[itemIndex] = ItemStack(item, amount)
 					return
 				}
 				if (oldStack.item === item) {
-					itemStorage[itemIndex] = ItemStack(item, oldStack.amount + amount)
+					campaign.itemStorage[itemIndex] = ItemStack(item, oldStack.amount + amount)
 					return
 				}
 			}
 
-			itemStorage.add(ItemStack(item, amount))
+			campaign.itemStorage.add(ItemStack(item, amount))
 		}
 	}
 
 	companion object {
+
+		/**
+		 * The duration of 'flashes' initialized by [ActionFlashScreen], in nanoseconds
+		 */
 		const val FLASH_DURATION = 750_000_000L
 
 		@Suppress("unused")

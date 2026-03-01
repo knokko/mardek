@@ -57,7 +57,7 @@ internal fun renderItemStorageCharacterSlots(
 				val animationPeriod = 700_000_000L
 				if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
 
-				spriteBatch.simple(
+				simpleSpriteBatch!!.simple(
 					baseX + scale, baseY + 2 * scale - 1, scale,
 					character.areaSprites.sprites[spriteIndex].index
 				)

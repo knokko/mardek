@@ -9,6 +9,8 @@ sealed class DamageIndicator(
 	val time = System.nanoTime()
 }
 
+// TODO CHAP1 Make sure the "Miss" text is actually rendered
+// TODO CHAP1 Don't show the '0' healing when using antidotes
 class DamageIndicatorMiss(oldHealth: Int, oldMana: Int) : DamageIndicator(oldHealth, oldMana)
 
 class DamageIndicatorHealth(

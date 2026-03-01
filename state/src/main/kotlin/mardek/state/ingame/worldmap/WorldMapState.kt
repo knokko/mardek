@@ -7,9 +7,14 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.FixedSoundEffects
 import mardek.content.world.WorldMap
 import mardek.content.world.WorldMapNode
+import mardek.input.Event
 import mardek.input.InputKey
+import mardek.input.InputKeyEvent
 import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.CampaignStateMachine
+import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.story.StoryState
 import java.lang.Math.toDegrees
 import kotlin.math.abs
@@ -98,7 +103,7 @@ class WorldMapState(
 	 * If this method returns `null`, the player stays on the world map. If this method returns a non-null entrance,
 	 * the player should leave the world map, and enter an area through that entrance.
 	 */
-	fun update(sounds: FixedSoundEffects, soundQueue: SoundQueue, timeStep: Duration): WorldMapNode.Entrance? {
+	private fun update(sounds: FixedSoundEffects, soundQueue: SoundQueue, timeStep: Duration): WorldMapNode.Entrance? {
 		exiting?.run {
 			if (currentTime >= exitAt) return entrance
 		}
@@ -116,7 +121,7 @@ class WorldMapState(
 	/**
 	 * This method should be called whenever the player presses a key, while the player is on the world map.
 	 */
-	fun pressKey(storyState: StoryState, key: InputKey) {
+	private fun pressKey(storyState: StoryState, key: InputKey) {
 		if (nextNode != null || exiting != null) return
 
 		if (key == InputKey.Interact) {
@@ -185,6 +190,32 @@ class WorldMapState(
 		}
 
 		return
+	}
+
+	override fun processEvent(
+		event: Event,
+		campaignContext: CampaignState.UpdateContext,
+		campaign: CampaignState
+	) {
+		if (event is InputKeyEvent && event.didPress && !event.didRepeat) pressKey(campaign.story, event.key)
+	}
+
+	override fun update(
+		campaignContext: CampaignState.UpdateContext,
+		campaign: CampaignState
+	) {
+		val nextEntrance = update(
+			campaignContext.content.audio.fixedEffects,
+			campaignContext.soundQueue, campaignContext.timeStep,
+		)
+		if (nextEntrance != null) {
+			campaign.state = AreaState(
+				nextEntrance.area, campaign.story,
+				campaign.expressionContext(),
+				AreaPosition(nextEntrance.x, nextEntrance.y),
+				nextEntrance.direction,
+			)
+		}
 	}
 
 	companion object {

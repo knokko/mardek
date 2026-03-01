@@ -23,7 +23,22 @@ class ItemGridRenderInfo(
 	/**
 	 * The slot size (width = height) of each inventory slot, including the border of the slot.
 	 */
-	val slotSize: Int
+	val slotSize: Int,
+
+	/**
+	 * The number of rendered slot rows (always 8 for player inventories)
+	 */
+	val numRows: Int,
+
+	/**
+	 * The number of rendered slot columns (always 8 for player inventories)
+	 */
+	val numColumns: Int,
+
+	/**
+	 * The index of the 'last' slot that was rendered, which is typically `numRows * numColumns - 1`, but not always.
+	 */
+	val maxSlotIndex: Int,
 ) {
 
 	/**
@@ -34,7 +49,10 @@ class ItemGridRenderInfo(
 		if (x >= startX && y >= startY && slotSize > 0) {
 			val slotX = (x - startX) / slotSize
 			val slotY = (y - startY) / slotSize
-			if (slotX < 8 && slotY < 8) return slotX + 8 * slotY
+			if (slotX < numColumns && slotY < numRows) {
+				val slotIndex = slotX + numColumns * slotY
+				if (slotIndex <= maxSlotIndex) return slotIndex
+			}
 		}
 		return -1
 	}

@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.area.Area
+import mardek.content.area.AreaShop
 import mardek.content.area.Direction
 import mardek.content.audio.SoundEffect
 import mardek.content.battle.Battle
@@ -52,6 +53,7 @@ sealed class FixedAction {
 			ActionToGlobalActions::class.java,
 			ActionTakeItem::class.java,
 			ActionGiveItem::class.java,
+			ActionShop::class.java,
 		)
 	}
 }
@@ -417,7 +419,7 @@ class ActionParallel(
 	@Suppress("unused")
 	private constructor() : this(emptyArray())
 
-	override fun toString() = "ActionParallel($actions)"
+	override fun toString() = "ActionParallel(${actions.contentToString()})"
 }
 
 /**
@@ -674,4 +676,22 @@ class ActionGiveItem(
 
 	@Suppress("unused")
 	private constructor() : this(Item(), 0)
+}
+
+/**
+ * Lets the player open a shop UI/inventory. This action is typically used by shopkeeper NPCs.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionShop(
+
+	/**
+	 * The shop to be opened
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "shops")
+	val shop: AreaShop
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(AreaShop())
 }

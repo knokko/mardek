@@ -5,6 +5,7 @@ import mardek.game.action.TestChatLog
 import mardek.game.action.TestInventorLabActions
 import mardek.game.action.TestLocks
 import mardek.game.action.TestMardekHouseActions
+import mardek.game.action.TestShops
 import mardek.game.area.TestDreamCircles
 import mardek.game.area.TestChestLoot
 import mardek.game.area.TestDoors
@@ -440,5 +441,10 @@ class IntegrationTests {
 	@Test
 	fun testLeadPipeQuest() {
 		TestInventorLabActions.testLeadPipeQuest(instance)
+	}
+
+	@Test
+	fun testGoznorItemShop() {
+		TestShops.testGoznorItemsChapter1(instance)
 	}
 }

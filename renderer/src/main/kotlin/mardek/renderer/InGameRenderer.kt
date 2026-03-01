@@ -6,9 +6,11 @@ import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import mardek.content.action.ActionItemStorage
 import mardek.content.action.ActionSaveCampaign
+import mardek.content.action.ActionShop
 import mardek.content.action.FixedActionNode
 import mardek.renderer.actions.renderCampaignActions
 import mardek.renderer.area.renderCurrentArea
+import mardek.renderer.area.ui.shop.renderShopUi
 import mardek.renderer.area.ui.storage.renderItemStorage
 import mardek.renderer.battle.renderBattle
 import mardek.renderer.battle.renderBattleLoot
@@ -20,6 +22,7 @@ import mardek.renderer.save.renderSaveSelectionModal
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.actions.ItemStorageInteractionState
+import mardek.state.ingame.actions.ShopInteractionState
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
@@ -121,13 +124,19 @@ internal fun renderInGame(
 				} else {
 					var saveSelection: SaveSelectionState? = null
 					var itemStorage: ItemStorageInteractionState? = null
+					var shopState: ShopInteractionState? = null
 					if (suspension is AreaSuspensionActions) {
 						val node = suspension.actions.node
-						if (node is FixedActionNode && node.action is ActionSaveCampaign) {
-							saveSelection = suspension.actions.saveSelectionState
-						}
-						if (node is FixedActionNode && node.action is ActionItemStorage) {
-							itemStorage = suspension.actions.itemStorageInteraction
+						if (node is FixedActionNode) {
+							if (node.action is ActionSaveCampaign) {
+								saveSelection = suspension.actions.saveSelectionState
+							}
+							if (node.action is ActionItemStorage) {
+								itemStorage = suspension.actions.itemStorageInteraction
+							}
+							if (node.action is ActionShop) {
+								shopState = suspension.actions.shopInteraction
+							}
 						}
 					}
 
@@ -156,6 +165,8 @@ internal fun renderInGame(
 						)
 					} else if (itemStorage != null) {
 						batches = renderItemStorage(context, itemStorage, region)
+					} else if (shopState != null) {
+						batches = renderShopUi(context, shopState, region)
 					} else {
 						batches = renderCurrentArea(context, stateMachine, region)
 					}

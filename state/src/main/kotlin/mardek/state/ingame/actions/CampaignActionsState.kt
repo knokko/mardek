@@ -6,11 +6,18 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.action.ActionNode
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionShowChapterName
+import mardek.content.action.ActionToArea
 import mardek.content.action.FixedAction
 import mardek.content.action.FixedActionNode
+import mardek.input.Event
 import mardek.input.InputKey
+import mardek.input.InputKeyEvent
 import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.CampaignStateMachine
+import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.AreaState
+import mardek.state.ingame.area.AreaSuspensionActions
 import kotlin.time.Duration
 
 /**
@@ -90,7 +97,7 @@ class CampaignActionsState(
 	/**
 	 * The `CampaignState` should call this method during each of its own `update()`s
 	 */
-	fun update(soundQueue: SoundQueue, spentTime: Duration) {
+	private fun update(soundQueue: SoundQueue, spentTime: Duration) {
 		val currentNode = this.node
 		if (currentNode is FixedActionNode) {
 			val action = currentNode.action
@@ -125,7 +132,7 @@ class CampaignActionsState(
 	 * The `CampaignState` should propagate pressed keys whenever a key is pressed while a `CampaignActionsState` is
 	 * active
 	 */
-	fun processKeyPress(key: InputKey) {
+	private fun processKeyPress(key: InputKey) {
 		val currentNode = this.node
 		if (currentNode is FixedActionNode) {
 			val isSkipKey = key == InputKey.Interact || key == InputKey.Cancel || key == InputKey.Escape ||
@@ -135,5 +142,41 @@ class CampaignActionsState(
 				"${currentNode.action} must have a non-null next node"
 			))
 		}
+	}
+
+	private fun maybeGoToAreaState(campaign: CampaignState) {
+		node.let {
+			if (it is FixedActionNode && it.action is ActionToArea) {
+				val action = it.action as ActionToArea
+				val nextState = AreaState(
+					action.area, campaign.story, campaign.expressionContext(),
+					AreaPosition(action.x, action.y),
+					action.direction,
+				)
+				campaign.state = nextState
+				if (it.next != null) {
+					nextState.suspension = AreaSuspensionActions(
+						AreaActionsState(it.next, null)
+					)
+				}
+			}
+		}
+	}
+
+	override fun processEvent(
+		event: Event,
+		campaignContext: CampaignState.UpdateContext,
+		campaign: CampaignState
+	) {
+		if (event is InputKeyEvent && event.didPress) processKeyPress(event.key)
+		maybeGoToAreaState(campaign)
+	}
+
+	override fun update(
+		campaignContext: CampaignState.UpdateContext,
+		campaign: CampaignState
+	) {
+		update(campaignContext.soundQueue, campaignContext.timeStep)
+		maybeGoToAreaState(campaign)
 	}
 }

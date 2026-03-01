@@ -29,8 +29,7 @@ internal fun importItems(content: Content, rawItems: String, fatItemTypes: List<
 		}
 		if (typeName == "shld") typeName = "Sh"
 
-		val rawCost = parseInt(rawItem["cost"])
-		val cost = if (rawCost >= 0) rawCost else null
+		val cost = parseInt(rawItem["cost"])
 		val flashName = parseFlashString(rawItem["name"]!!, "item name")!!
 		val description = parseFlashString(rawItem["desc"]!!, "item description")!!
 		val element = if (rawElement != null) content.stats.elements.find {
@@ -43,7 +42,7 @@ internal fun importItems(content: Content, rawItems: String, fatItemTypes: List<
 				sprite = compressKimSprite3(sheets.mapping["misc"]!!.getNext(4)),
 				description = description,
 				element = element,
-				cost = cost,
+				cost = if (cost >= 0) cost else null,
 			))
 			continue
 		}

@@ -3,6 +3,7 @@ package mardek.content.area
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import mardek.content.area.AreaShop
 import mardek.content.area.objects.SwitchColor
 import mardek.content.sprite.ArrowSprite
 import mardek.content.sprite.DirectionalSprites
@@ -74,9 +75,16 @@ class AreaContent {
 	val enemySelections = ArrayList<SharedEnemySelections>()
 
 	/**
-	 * The list of areas
+	 * All the shop definitions: area entities can 'open' shops by using area actions
 	 */
 	@BitField(id = 8)
+	@ReferenceFieldTarget(label = "shops")
+	val shops = ArrayList<AreaShop>()
+
+	/**
+	 * The list of areas
+	 */
+	@BitField(id = 9)
 	@ReferenceFieldTarget(label = "areas")
 	val areas = ArrayList<Area>()
 }

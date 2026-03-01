@@ -21,7 +21,7 @@ internal fun renderCombatantInfoPopup(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, kimBatch: Vk2dKim3Batch,
 	imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, partBatch: AnimationPartBatch,
 	region: Rectangle, fullRegion: Rectangle,
-) {
+) { // TODO CHAP1 Make sure elemental resistances are NOT hidden behind the combatant (e.g. dragon in 4k)
 	battleContext.run {
 		val combatant = battle.openCombatantInfo ?: return
 

@@ -19,7 +19,10 @@ internal fun renderInventory(menuContext: MenuRenderContext, region: Rectangle) 
 	val gridStartX = region.boundX - gridOffset
 	menuContext.run {
 		val tab = menu.currentTab as InventoryTab
-		val inventoryContext = InventoryRenderContext(context, colorBatch, spriteBatch, imageBatch, lateColorBatch, textBatch)
+		val inventoryContext = InventoryRenderContext(
+			context, colorBatch, spriteBatch,
+			null, imageBatch, lateColorBatch, textBatch,
+		)
 		val (_, characterState) = state.allPartyMembers()[tab.interaction.partyIndex]!!
 		tab.equipmentRenderInfo = renderCharacterBars(
 			inventoryContext, tab.interaction, state.usedPartyMembers(),
@@ -27,7 +30,7 @@ internal fun renderInventory(menuContext: MenuRenderContext, region: Rectangle) 
 		)
 		if (gridStartX >= 30 * scale) {
 			val startY = region.boundY - gridOffset
-			val maxX = min(200 * scale, gridStartX - 2 * scale)
+			val maxX = min(region.minX + 200 * scale, gridStartX - 2 * scale)
 			renderHoverItemProperties(
 				inventoryContext, tab.interaction, characterState,
 				region.minX, startY, maxX, region.maxY, scale,

@@ -20,6 +20,7 @@ import mardek.state.saves.SaveFile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -207,6 +208,7 @@ object TestChatLog {
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(updateContext)
 
+			assertNull(areaState.suspension)
 			gallovarState = areaState.getCharacterState(gallovarCharacter)!!
 			assertEquals(Direction.Down, gallovarState.direction)
 			assertEquals(3, gallovarState.x)

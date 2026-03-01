@@ -92,48 +92,49 @@ class ItemStorageInteractionState {
 		} else false
 	}
 
-	fun processKeyPress(context: AreaActionsState.UpdateContext, key: InputKey) {
-		inventory.processScroll(context.sounds, context.soundQueue, key)
+	internal fun processKeyPress(context: AreaActionsState.UpdateContext, key: InputKey) {
+		val sounds = context.content.audio.fixedEffects
+		inventory.processScroll(sounds, context.soundQueue, key)
 		if (key == InputKey.MoveUp && storagePage > 0) {
 			storagePage -= 1
-			context.soundQueue.insert(context.sounds.ui.scroll2)
+			context.soundQueue.insert(sounds.ui.scroll2)
 		}
-		if (key == InputKey.MoveDown && canScrollToNextPage(context.itemStorage)) {
+		if (key == InputKey.MoveDown && canScrollToNextPage(context.campaign.itemStorage)) {
 			storagePage += 1
-			context.soundQueue.insert(context.sounds.ui.scroll2)
+			context.soundQueue.insert(sounds.ui.scroll2)
 		}
 
 		if (key == InputKey.Click) {
 			inventory.hoveredSlot?.let {
-				val swapResult = it.swap(context.getCursorStack(), context.sounds)
+				val swapResult = it.swap(context.campaign.cursorItemStack, sounds)
 				if (swapResult.sound != null) context.soundQueue.insert(swapResult.sound)
-				context.setCursorStack(swapResult.newCursorStack)
+				context.campaign.cursorItemStack = swapResult.newCursorStack
 			}
 
 			if (hoveredCharacter != null) {
 				selectedCharacter = Pair(
-					hoveredCharacter!!, context.playableCharacterStates[hoveredCharacter!!]!!
+					hoveredCharacter!!, context.campaign.characterStates[hoveredCharacter!!]!!
 				)
 			}
 
 			thrashRegion?.let {
 				if (it.contains(inventory.mouseX, inventory.mouseY)) {
-					context.setCursorStack(null)
-					context.soundQueue.insert(context.sounds.ui.clickCancel)
+					context.campaign.cursorItemStack = null
+					context.soundQueue.insert(sounds.ui.clickCancel)
 				}
 			}
 		}
 
 		if (key == InputKey.SplitClick) {
 			inventory.hoveredSlot?.let {
-				val swapResult = it.takeSingle(context.getCursorStack(), context.sounds)
+				val swapResult = it.takeSingle(context.campaign.cursorItemStack, sounds)
 				if (swapResult.sound != null) context.soundQueue.insert(swapResult.sound)
-				context.setCursorStack(swapResult.newCursorStack)
+				context.campaign.cursorItemStack = swapResult.newCursorStack
 			}
 		}
 	}
 
-	fun processMouseMove(context: AreaActionsState.UpdateContext, newX: Int, newY: Int) {
+	internal fun processMouseMove(context: AreaActionsState.UpdateContext, newX: Int, newY: Int) {
 		inventory.processMouseMove(
 			newX, newY, renderedCharacterInventory,
 			if (renderedCharacterBar != null) listOf(renderedCharacterBar!!) else emptyList(),
@@ -145,7 +146,7 @@ class ItemStorageInteractionState {
 			if (potentialCharacter.region.contains(newX, newY)) hoveredCharacter = potentialCharacter.character
 		}
 
-		updateHoveredStorageSlot(context.itemStorage)
+		updateHoveredStorageSlot(context.campaign.itemStorage)
 	}
 
 	/**

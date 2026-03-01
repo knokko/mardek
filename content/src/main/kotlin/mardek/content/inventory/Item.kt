@@ -62,9 +62,9 @@ class Item(
 	 * The price/cost of the item. It costs this amount to buy the item in a store. The player can sell the item for
 	 * half this amount.
 	 */
-	@BitField(id = 6, optional = true)
+	@BitField(id = 6)
 	@IntegerField(expectUniform = false, minValue = 0, commonValues=[1000, 5000, 10000, 500])
-	val cost: Int?,
+	val cost: Int,
 
 	/**
 	 * This field will be non-null if and only if this item can be equipped. If so, it specifies the properties that

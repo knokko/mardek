@@ -18,7 +18,7 @@ internal fun renderItemStorage(
 	context: RenderContext, state: ItemStorageInteractionState, region: Rectangle
 ) = state.run {
 	val colorBatch = context.addColorBatch(5000) // There are quite some slots to render...
-	val spriteBatch = context.addKim3Batch(200) // Character slots, item slots, equipment slots...
+	val spriteBatch = context.addKim3Batch(500) // Character slots, item slots, equipment slots...
 	val imageBatch = context.addImageBatch(50) // Only a couple of icons
 	val lateColorBatch = context.addColorBatch(2) // Only for equipment slot name tooltips
 	val textBatch = context.addFancyTextBatch(5000) // Item descriptions can be long
@@ -43,31 +43,28 @@ internal fun renderItemStorage(
 		srgbToLinear(rgb(32, 20, 14)),
 	)
 
-	val numItemColumns = 15
-	val numItemRows = 13
-
 	val startStorageX = region.minX + region.width / 50
 	val boundItemsX = splitX - region.width / 70
 	val startStorageY = barY + region.height / 40
 	val verticalItemsSpace = 9 * region.height / 10
 	val baseSlotSize = 18
 	val itemScale = min(
-		(boundItemsX - startStorageX) / baseSlotSize / numItemColumns,
-		verticalItemsSpace / baseSlotSize / numItemRows,
+		(boundItemsX - startStorageX) / baseSlotSize / 15,
+		verticalItemsSpace / baseSlotSize / 13,
 	)
 
 	val inventoryContext = InventoryRenderContext(
-		context, colorBatch, spriteBatch, imageBatch, lateColorBatch, textBatch
+		context, colorBatch, spriteBatch, null, imageBatch, lateColorBatch, textBatch
 	)
-
-	val storageRegion = Rectangle(
-		startStorageX, startStorageY,
-		boundItemsX - startStorageX, 3 * baseSlotSize * itemScale,
-	)
-	renderedStorageInventory = renderItemStorageInventory(inventoryContext, itemScale, storageRegion, state)
-	updateHoveredStorageSlot(context.campaign.itemStorage)
 
 	if (itemScale >= 1) {
+		val storageRegion = Rectangle(
+			startStorageX, startStorageY,
+			boundItemsX - startStorageX, 3 * baseSlotSize * itemScale,
+		)
+		renderedStorageInventory = renderItemStorageInventory(inventoryContext, itemScale, storageRegion, state)
+		updateHoveredStorageSlot(context.campaign.itemStorage)
+
 		val fullSlotSize = baseSlotSize * itemScale
 
 		if (selectedCharacter != null) {

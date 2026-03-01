@@ -18,9 +18,9 @@ private val DARK_SLOT_COLOR = srgbToLinear(rgb(74, 48, 30))
 
 internal fun renderItemStackAmount(
 	stack: ItemStack, itemX: Int, itemY: Int, itemScale: Int,
-	textBatch: MardekGlyphBatch, font: Vk2dFont,
+	textBatch: MardekGlyphBatch, font: Vk2dFont, skipOne: Boolean = true
 ) {
-	if (stack.amount == 1) return
+	if (stack.amount == 1 && skipOne) return
 
 	val textColor = srgbToLinear(rgb(238, 203, 127))
 	val shadowColor = rgb(0, 0, 0)
@@ -88,7 +88,8 @@ internal fun renderItemGrid(
 				val itemStack = inventory[x + 8 * y] ?: continue
 				val itemX = startX + 1 + fullSlotSize * x + scale
 				val itemY = startY + 1 + fullSlotSize * y + scale
-				spriteBatch.simple(itemX, itemY, scale, itemStack.item.sprite.index)
+				simpleSpriteBatch?.simple(itemX, itemY, scale, itemStack.item.sprite.index)
+				areaSpriteBatch?.draw(itemStack.item.sprite, itemX, itemY, scale)
 				renderItemStackAmount(itemStack, itemX, itemY, scale, textBatch, font)
 			}
 		}
@@ -108,6 +109,6 @@ internal fun renderItemGrid(
 			)
 		}
 
-		return ItemGridRenderInfo(startX + 1, startY + 1, fullSlotSize)
+		return ItemGridRenderInfo(startX + 1, startY + 1, fullSlotSize, 8, 8, 63)
 	}
 }

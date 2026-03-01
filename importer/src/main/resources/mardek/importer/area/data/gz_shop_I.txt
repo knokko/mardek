@@ -1,10 +1,19 @@
 map = [[17,12,12,12,12],[24,11,11,11,22],[111,111,111,111,111],[11,11,11,11,11],[11,11,11,11,11],[11,11,11,11,11],[22,11,11,11,22]];
+leftBorderTile = 10;
+rightBorderTile = 10;
+upBorderTile = 10;
+lowBorderTile = 10;
 tileset = "interior1";
 area = "gz_shop_I";
 areaname = "Goznor - Item Shop";
 ambience = null;
 dungeon = null;
-A_sprites = [{name:"Item Shop",model:"shop",x:2,y:2,SHOP:{name:"Goznor Item Shop",wares:DefaultShops.ITEMS_L1}},{name:"Shopkeeper",model:"mugbert_adult",x:2,y:1,walkspeed:-1,dir:"s",elem:"EARTH",conv:[["norm","WORDS."]]},{name:"EXIT",model:"DOOR0",x:2,y:7,dest:["goznor",29,15]}];
+A_sprites = [
+	{name:"Item Shop",model:"shop",x:2,y:2,uuid:aa5b0942-2801-4e3a-8e79-440ae8207c2b},
+	{name:"Shopkeeper",model:"man1",x:2,y:1,walkspeed:-1,dir:"s",timelineCondition:Chapter1Day},
+	{name:"Shopkeeper",model:"mugbert_teen",x:2,y:1,walkspeed:-1,dir:"s",timelineCondition:Chapter2},
+	{name:"EXIT",model:"DOOR0",x:2,y:7,dest:["goznor",29,15]}
+];
 areaLoot = [];
 foes = [];
 btlChance = 0;

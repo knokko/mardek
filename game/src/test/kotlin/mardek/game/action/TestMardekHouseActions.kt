@@ -32,7 +32,7 @@ object TestMardekHouseActions {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, InputManager(), SoundQueue(), 10.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -53,7 +53,7 @@ object TestMardekHouseActions {
 			// Which should automatically enter the action sequence where Mardek talks to his mum
 			// Pressing the right arrow key does *not* prevent this
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveRight))
-			repeat(50) {
+			repeat(500) {
 				state.update(updateContext)
 			}
 			assertNull(state.campaign.determineMusicTrack(content))
@@ -68,7 +68,7 @@ object TestMardekHouseActions {
 			// Skip the dialogue until the first choice node
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Cancel))
-			repeat(50) {
+			repeat(500) {
 				state.update(updateContext)
 			}
 
@@ -79,7 +79,7 @@ object TestMardekHouseActions {
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
 
 			// Skip until the second/last choice node
-			repeat(50) {
+			repeat(500) {
 				state.update(updateContext)
 			}
 			assertInstanceOf<ChoiceActionNode>(actions.node)
@@ -89,7 +89,7 @@ object TestMardekHouseActions {
 
 			// Skip until the Enki music starts playing
 			@Suppress("unused")
-			for (counter in 0 until 50) {
+			for (counter in 0 until 500) {
 				state.update(updateContext)
 				if (actions.overrideMusic != null) break
 			}
@@ -120,7 +120,7 @@ object TestMardekHouseActions {
 
 			// Skip until the Enki music stops
 			@Suppress("unused")
-			for (counter in 0 until 50) {
+			for (counter in 0 until 500) {
 				state.update(updateContext)
 				if (actions.backgroundImage == null) break
 			}
@@ -134,7 +134,7 @@ object TestMardekHouseActions {
 			)
 
 			// Skip until the dialogue is finished
-			repeat(50) {
+			repeat(500) {
 				state.update(updateContext)
 			}
 
@@ -145,11 +145,11 @@ object TestMardekHouseActions {
 
 			// Move back to the door, and check that the cutscene does NOT trigger again
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			repeat(20) {
+			repeat(200) {
 				state.update(updateContext)
 			}
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveRight))
-			repeat(20) {
+			repeat(200) {
 				state.update(updateContext)
 			}
 			assertNull(areaState.suspension)
@@ -216,9 +216,7 @@ object TestMardekHouseActions {
 			// Force the cutscene to end
 			campaignActions.finishedAnimationNode = true
 			assertEquals(1, state.campaign.usedPartyMembers().size)
-			repeat(3) {
-				state.update(updateContext)
-			}
+			state.update(updateContext)
 
 			areaState = state.campaign.state as AreaState
 			assertEquals(Direction.Sleep, areaState.getPlayerDirection(0))

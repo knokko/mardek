@@ -38,7 +38,6 @@ object TestDoors {
 			state.update(context)
 
 			val newAreaState = (state.campaign.state as AreaState)
-			println("new area state is $newAreaState")
 			assertEquals("Temple_FIRE_SE", newAreaState.area.properties.rawName)
 			assertEquals(AreaPosition(3, 3), newAreaState.getPlayerPosition(0))
 			assertEquals(Direction.Down, newAreaState.getPlayerDirection(0))

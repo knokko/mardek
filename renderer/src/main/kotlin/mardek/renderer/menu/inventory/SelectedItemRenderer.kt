@@ -3,6 +3,7 @@ package mardek.renderer.menu.inventory
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.characters.CharacterState
+import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
 import mardek.content.skill.PassiveSkill
 import mardek.content.skill.ReactionSkill
@@ -24,6 +25,7 @@ internal fun renderHoverItemProperties(
 	interaction: InventoryInteractionState,
 	selectedCharacterState: CharacterState,
 	minX: Int, startY: Int, maxX: Int, maxY: Int, scale: Int,
+	defaultHoverItem: Item? = null,
 ) {
 	inventoryContext.run {
 		val width = 1 + maxX - minX
@@ -34,7 +36,7 @@ internal fun renderHoverItemProperties(
 		val barColorDark = srgbToLinear(rgb(66, 56, 48))
 		colorBatch.gradient(
 			minX, startY, maxX, barY,
-		barColorLight, barColorLight, barColorDark
+			barColorLight, barColorLight, barColorDark
 		)
 
 		val midColorLight = srgbToLinear(rgb(91, 74, 43))
@@ -53,7 +55,7 @@ internal fun renderHoverItemProperties(
 		val lineColorLight = srgbToLinear(rgb(208, 193, 142))
 		val lineColorDark = srgbToLinear(rgb(140, 94, 47))
 
-		val hoverItem = interaction.hoveredSlot?.get()?.item
+		val hoverItem = interaction.hoveredSlot?.get()?.item ?: defaultHoverItem
 		if (hoverItem != null) {
 			val equipment = hoverItem.equipment
 			val element = hoverItem.element
@@ -198,10 +200,11 @@ internal fun renderHoverItemProperties(
 							scale * 0.16f, skillSprite.index
 						)
 					} else {
-						spriteBatch.simple(
+						simpleSpriteBatch?.simple(
 							x, skillY + 3 * scale, scale.toFloat(),
 							(skillSprite as KimSprite).index
 						)
+						areaSpriteBatch?.draw(skillSprite as KimSprite, x, skillY + 3 * scale, scale.toFloat())
 					}
 				}
 			}

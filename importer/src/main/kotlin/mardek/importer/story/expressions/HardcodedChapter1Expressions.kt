@@ -2,7 +2,9 @@ package mardek.importer.story.expressions
 
 import mardek.content.Content
 import mardek.content.expression.AndStateCondition
+import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.ExpressionBooleanValue
 import mardek.content.expression.NegateStateCondition
 
 internal fun hardcodeChapter1Expressions(
@@ -27,4 +29,8 @@ internal fun hardcodeChapter1Expressions(
 	hardcoded[""]!!.add(HardcodedExpression(
 		name = "Chapter1Day", expression = DefinedVariableStateCondition(fallenStarQuest.isActive))
 	)
+	hardcoded[""]!!.add(HardcodedExpression( // TODO CHAP2 Implement this
+		name = "Chapter2", expression = ConstantStateExpression(ExpressionBooleanValue(false)))
+	)
+	// TODO CHAP3 Replace Mugbert in item shop
 }

@@ -40,37 +40,31 @@ class AreaObjects(
 	val portals: ArrayList<AreaPortal>,
 
 	/**
-	 * The shops in this area
-	 */
-	@BitField(id = 4)
-	val shops: ArrayList<AreaShop>,
-
-	/**
 	 * The switch gates in this area. Switch gates will block the player when the corresponding *switch orb*
 	 * is disabled.
 	 */
-	@BitField(id = 5)
+	@BitField(id = 4)
 	val switchGates: ArrayList<AreaSwitchGate>,
 
 	/**
 	 * The switch orbs in this area. Players can interact with switch orbs to toggle the switch gates and switch
 	 * platforms.
 	 */
-	@BitField(id = 6)
+	@BitField(id = 5)
 	val switchOrbs: ArrayList<AreaSwitchOrb>,
 
 	/**
 	 * The switch platforms in this area. Switch platforms are bridges over normally-inaccessible tiles, which allow
 	 * the player to walk over the underlying tile *if* the corresponding *switch orb* is disabled.
 	 */
-	@BitField(id = 7)
+	@BitField(id = 6)
 	val switchPlatforms: ArrayList<AreaSwitchPlatform>,
 
 	/**
 	 * The 'talk triggers' in this area. Each talk trigger is linked to a character, and interacting with the talk
 	 * trigger causes the player to interact with that character.
 	 */
-	@BitField(id = 8)
+	@BitField(id = 7)
 	val talkTriggers: ArrayList<AreaTalkTrigger>,
 
 	/**
@@ -78,20 +72,20 @@ class AreaObjects(
 	 * Transitions are basically portals, except that they are displayed as 'oscillating' blue arrows rather than
 	 * portal textures.
 	 */
-	@BitField(id = 9)
+	@BitField(id = 8)
 	val transitions: ArrayList<AreaTransition>,
 
 	/**
 	 * The 'walk triggers' in this area. Walk triggers should have an action sequence, which will be activated when
 	 * the player steps on the (typically invisible) trigger.
 	 */
-	@BitField(id = 10)
+	@BitField(id = 9)
 	@ReferenceFieldTarget(label = "area triggers")
 	val walkTriggers: ArrayList<AreaTrigger>,
 ) {
 	constructor() : this(
 		ArrayList(), ArrayList(), ArrayList(), ArrayList(),
-		ArrayList(), ArrayList(), ArrayList(), ArrayList(),
+		ArrayList(), ArrayList(), ArrayList(),
 		ArrayList(), ArrayList(), ArrayList(),
 	)
 }

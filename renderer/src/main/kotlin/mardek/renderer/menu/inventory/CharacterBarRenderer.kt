@@ -97,9 +97,13 @@ private fun renderCharacterBar(
 			val animationPeriod = 700_000_000L
 			if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
 
-			spriteBatch.simple(
+			simpleSpriteBatch?.simple(
 				characterX, characterY, scale,
-				character.areaSprites.sprites[spriteIndex].index
+				character.areaSprites.sprites[spriteIndex].index,
+			)
+			areaSpriteBatch?.draw(
+				character.areaSprites.sprites[spriteIndex],
+				characterX, characterY, scale,
 			)
 		}
 
@@ -335,10 +339,13 @@ private fun renderEquipment(
 			colorBatch.fill(minX, startY, minX, maxY, lineColor)
 			colorBatch.fill(maxX, startY, maxX, maxY, lineColor)
 			val item = ownerState.equipment[slot]
-			if (item != null) spriteBatch.simple(
-				minX + scale, startY + scale,
-				scale.toFloat(), item.sprite.index
-			)
+			if (item != null) {
+				simpleSpriteBatch?.simple(
+					minX + scale, startY + scale,
+					scale.toFloat(), item.sprite.index,
+				)
+				areaSpriteBatch?.draw(item.sprite, minX + scale, startY + scale, scale.toFloat())
+			}
 		}
 
 		var hoverLineColor = srgbToLinear(rgb(165, 205, 254))

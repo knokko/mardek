@@ -18,10 +18,11 @@ internal fun renderInventoryOverlay(
 ): Rectangle {
 	inventoryContext.apply {
 		val goldX = (region.minX + region.maxX) * 3 / 4
-		spriteBatch.simple(
+		simpleSpriteBatch?.simple(
 			goldX, region.minY - 20 * scale,
 			scale, context.content.ui.goldIcon.index,
 		)
+		areaSpriteBatch?.draw(context.content.ui.goldIcon, goldX, region.minY - 20 * scale, scale)
 		textBatch.drawShadowedString(
 			state.gold.toString(), goldX + 20f * scale, region.minY - 6f * scale,
 			10f * scale, context.bundle.getFont(context.content.fonts.large1.index),
@@ -56,7 +57,8 @@ internal fun renderInventoryOverlay(
 			val minX = region.minX + region.height * 2 / 5 + offsetX
 			val minY = region.minY - region.height / 12
 			val scale = iconHeight / icon.height
-			spriteBatch.simple(minX, minY, scale, icon.index)
+			simpleSpriteBatch?.simple(minX, minY, scale, icon.index)
+			areaSpriteBatch?.draw(icon, minX, minY, scale)
 			return Rectangle(minX, minY, (scale * icon.width).roundToInt(), (scale * icon.height).roundToInt())
 		}
 		val newThrashRegion = renderIcon(thrashIcon, 0)

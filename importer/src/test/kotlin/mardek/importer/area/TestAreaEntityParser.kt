@@ -1,5 +1,7 @@
 package mardek.importer.area
 
+import mardek.content.BITSER
+import mardek.content.action.ActionShop
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.FixedActionNode
@@ -636,9 +638,26 @@ class TestAreaEntityParser {
 	}
 
 	@Test
-	fun testParseCanoniaEquipmentShop() {
-		val actual = findArea("cn_shop_").objects.shops[0]
-		val expected = AreaShop(shopName = "Canonia Equipment Shop", x = 2, y = 2, waresConstantName = "CANONIA_EQUIPMENT")
+	fun testParseGoznorItemShop() {
+		val actual = findArea("gz_shop_I").objects.decorations[0]
+		val shop = content.areas.shops.find { it.name == "Goznor Item Shop" }!!
+		assertTrue(BITSER.deepEquals(FixedActionNode(
+			id = actual.ownActions!!.id,
+			action = ActionShop(shop),
+			next = null,
+		), actual.ownActions))
+		val expected = AreaDecoration(
+			x = 2,
+			y = 2,
+			sprites = null,
+			canWalkThrough = true,
+			light = null,
+			timePerFrame = 1,
+			ownActions = actual.ownActions,
+			sharedActionSequence = null,
+			signType = null,
+			displayName = "Item Shop",
+		)
 		assertEquals(expected, actual)
 	}
 

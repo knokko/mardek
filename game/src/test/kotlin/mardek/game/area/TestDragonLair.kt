@@ -143,13 +143,13 @@ object TestDragonLair {
 
 			// Await battle loot fade-out
 			sleep(600)
+			assertEquals(0, (state.campaign.state as AreaState).fadingCharacters.size)
 			state.update(context)
 			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
 
 			// Wait 1 second for the dragon to fade away
 			val actions = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions
-			assertInstanceOf<ActionFadeCharacter>((actions.node as FixedActionNode).action)
-			state.update(context)
+			assertEquals(1, (state.campaign.state as AreaState).fadingCharacters.size)
 			assertInstanceOf<ActionTalk>((actions.node as FixedActionNode).action)
 			sleep(1000)
 			repeat(100) {

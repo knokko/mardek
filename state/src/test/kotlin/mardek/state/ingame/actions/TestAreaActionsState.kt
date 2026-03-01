@@ -1,5 +1,6 @@
 package mardek.state.ingame.actions
 
+import mardek.content.Content
 import mardek.content.action.ActionFadeCharacter
 import mardek.content.action.ActionFlashScreen
 import mardek.content.action.ActionGiveItem
@@ -18,34 +19,38 @@ import mardek.content.action.ChoiceActionNode
 import mardek.content.action.ChoiceEntry
 import mardek.content.action.FixedActionNode
 import mardek.content.action.WalkSpeed
+import mardek.content.area.Area
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
-import mardek.content.audio.FixedSoundEffects
 import mardek.content.audio.SoundEffect
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.EquipmentSlot
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
+import mardek.content.stats.CombatStat
+import mardek.content.stats.StatModifier
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
+import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
+import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.FadingCharacter
 import mardek.state.ingame.area.NextAreaPosition
-import mardek.state.ingame.story.StoryState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
-import org.junit.jupiter.api.fail
 import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -60,34 +65,36 @@ private fun createUpdateContext(
 	partyDirections: Array<Direction> = Array(4) { Direction.Up },
 	party: Array<PlayableCharacter?> = arrayOf(PlayableCharacter(), null, null, null),
 	playableCharacterStates: Map<PlayableCharacter, CharacterState> = emptyMap(),
-	currentTime: Duration = Duration.ZERO,
-	characterStates: MutableMap<AreaCharacter, AreaCharacterState> = mutableMapOf(),
-	fadingCharacters: MutableList<FadingCharacter> = mutableListOf(),
-	story: StoryState = StoryState(),
-	healParty: () -> Unit = { fail("Attempted to heal party?" )},
-) = AreaActionsState.UpdateContext(
-	input = input,
-	timeStep = timeStep,
-	soundQueue = soundQueue,
-	sounds = FixedSoundEffects(),
-	campaignName = campaignName,
-	partyPositions = partyPositions,
-	partyDirections = partyDirections,
-	currentTime = currentTime,
-	party = party,
-	characterStates = characterStates,
-	playableCharacterStates = playableCharacterStates,
-	fadingCharacters = fadingCharacters,
-	story = story,
-	expressionContext = StoryState.ExpressionContext(
-		countItemInInventory = { _ -> fail("Attempted to count items?")}
-	),
-	itemStorage = ArrayList(0),
-	healParty = healParty,
-	transitionTimeline = { _, _ -> fail("Attempted to transition timeline?" ) },
-	getCursorStack = { fail("Attempted to get cursor stack?") },
-	setCursorStack = { _ -> fail("Attempted to get cursor stack?") },
-)
+	characterStates: Map<AreaCharacter, AreaCharacterState> = mutableMapOf(),
+	fadingCharacters: List<FadingCharacter> = mutableListOf(),
+): AreaActionsState.UpdateContext {
+
+	val content = Content()
+	val areaState = AreaState(
+		Area(), null, null,
+		partyPositions[0], partyDirections[0],
+	)
+	partyPositions.copyInto(areaState.playerPositions)
+	partyDirections.copyInto(areaState.playerDirections)
+	areaState.fadingCharacters.addAll(fadingCharacters)
+	areaState.characterStates.putAll(characterStates)
+
+	val campaign = CampaignState()
+	campaign.state = areaState
+	party.copyInto(campaign.party)
+	campaign.characterStates.putAll(playableCharacterStates)
+
+	return AreaActionsState.UpdateContext(
+		parent = AreaState.UpdateContext(
+			parent = CampaignState.UpdateContext(
+				parent = GameStateUpdateContext(content, input, soundQueue, timeStep),
+				campaignName = campaignName,
+			),
+			campaign = campaign,
+		),
+		areaState = areaState,
+	)
+}
 
 private fun postEvent(actions: AreaActionsState, input: InputManager, event: InputKeyEvent) {
 	input.postEvent(event)
@@ -101,12 +108,9 @@ private fun pressAndRelease(actions: AreaActionsState, input: InputManager, key:
 
 class TestAreaActionsState {
 
-	private var currentTime = Duration.ZERO
-
 	private fun update(actions: AreaActionsState, context: AreaActionsState.UpdateContext) {
-		context.currentTime = currentTime
 		actions.update(context)
-		currentTime += context.timeStep
+		context.areaState.currentTime += context.timeStep
 	}
 
 	@Test
@@ -130,51 +134,55 @@ class TestAreaActionsState {
 				next = null
 			)
 		)
-		val partyPositions = arrayOf(
-			AreaPosition(2, 3),
-			AreaPosition(2, 2),
-			AreaPosition(1, 2),
-			AreaPosition(1, 1),
-		)
-		val partyDirections = arrayOf(
-			Direction.Down,
-			Direction.Down,
-			Direction.Right,
-			Direction.Down,
-		)
 
 		val context = createUpdateContext(
-			10.milliseconds, partyPositions = partyPositions, partyDirections = partyDirections
+			10.milliseconds,
+			partyPositions = arrayOf(
+				AreaPosition(2, 3),
+				AreaPosition(2, 2),
+				AreaPosition(1, 2),
+				AreaPosition(1, 1),
+			),
+			partyDirections = arrayOf(
+				Direction.Down,
+				Direction.Down,
+				Direction.Right,
+				Direction.Down,
+			),
 		)
+
 		val actions = AreaActionsState(rootNode, null)
 		postEvent(actions, context.input, InputKeyEvent(
 			InputKey.MoveDown, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key shouldn't have any effect
 
 		update(actions, context)
-		while (partyPositions[0].x != 20) {
+		while (context.areaState.playerPositions[0].x != 20) {
 
-			assertEquals(3, partyPositions[0].y)
-			assertEquals(Direction.Right, partyDirections[0])
+			assertEquals(3, context.areaState.playerPositions[0].y)
+			assertEquals(Direction.Right, context.areaState.playerDirections[0])
 
-			if (partyPositions[0].x > 2) {
-				assertEquals(3, partyPositions[1].y)
-				assertEquals(Direction.Right, partyDirections[1])
-				assertEquals(partyPositions[0].x, partyPositions[1].x + 1)
+			if (context.areaState.playerPositions[0].x > 2) {
+				assertEquals(3, context.areaState.playerPositions[1].y)
+				assertEquals(Direction.Right, context.areaState.playerDirections[1])
+				assertEquals(context.areaState.playerPositions[0].x, context.areaState.playerPositions[1].x + 1)
 			}
 
-			if (partyPositions[0].x > 3) {
-				assertEquals(3, partyPositions[2].y)
-				assertEquals(Direction.Right, partyDirections[2])
-				assertEquals(partyPositions[1].x, partyPositions[2].x + 1)
+			if (context.areaState.playerPositions[0].x > 3) {
+				assertEquals(3, context.areaState.playerPositions[2].y)
+				assertEquals(Direction.Right, context.areaState.playerDirections[2])
+				assertEquals(context.areaState.playerPositions[1].x, context.areaState.playerPositions[2].x + 1)
 			}
 
-			if (partyPositions[0].x > 4) {
-				assertEquals(3, partyPositions[3].y)
-				assertEquals(Direction.Right, partyDirections[3])
-				assertEquals(partyPositions[2].x, partyPositions[3].x + 1)
+			if (context.areaState.playerPositions[0].x > 4) {
+				assertEquals(3, context.areaState.playerPositions[3].y)
+				assertEquals(Direction.Right, context.areaState.playerDirections[3])
+				assertEquals(
+					context.areaState.playerPositions[2].x,
+					context.areaState.playerPositions[3].x + 1,
+				)
 			}
-			assertTrue(currentTime < 4.seconds)
+			assertTrue(context.areaState.currentTime < 4.seconds)
 
 			update(actions, context)
 		}
@@ -184,24 +192,52 @@ class TestAreaActionsState {
 			AreaPosition(19, 3),
 			AreaPosition(18, 3),
 			AreaPosition(17, 3),
-		), partyPositions)
+		), context.areaState.playerPositions)
 
 		update(actions, context)
-		while (partyPositions[0] != AreaPosition(10, 13)) {
-			assertTrue(partyDirections[0] == Direction.Left || partyDirections[0] == Direction.Down)
+		while (context.areaState.playerPositions[0] != AreaPosition(10, 13)) {
+			assertTrue(
+				context.areaState.playerDirections[0] == Direction.Left ||
+						context.areaState.playerDirections[0] == Direction.Down
+			)
 
-			if (partyPositions[0].x < 18) {
-				assertEquals(partyPositions[2], AreaPosition(partyPositions[0].x + 1, partyPositions[0].y - 1))
-				assertEquals(partyPositions[3], AreaPosition(partyPositions[1].x + 1, partyPositions[1].y - 1))
-				assertTrue(partyPositions[0].x == partyPositions[1].x || partyPositions[0].y == partyPositions[1].y)
-				assertTrue(partyPositions[0].x == partyPositions[1].x - 1 || partyPositions[0].y == partyPositions[1].y + 1)
+			if (context.areaState.playerPositions[0].x < 18) {
+				assertEquals(
+					context.areaState.playerPositions[2], AreaPosition(
+						context.areaState.playerPositions[0].x + 1,
+						context.areaState.playerPositions[0].y - 1,
+					)
+				)
+				assertEquals(
+					context.areaState.playerPositions[3], AreaPosition(
+						context.areaState.playerPositions[1].x + 1,
+						context.areaState.playerPositions[1].y - 1,
+					)
+				)
+				assertTrue(
+					context.areaState.playerPositions[0].x == context.areaState.playerPositions[1].x ||
+							context.areaState.playerPositions[0].y == context.areaState.playerPositions[1].y
+				)
+				assertTrue(
+					context.areaState.playerPositions[0].x == context.areaState.playerPositions[1].x - 1 ||
+							context.areaState.playerPositions[0].y == context.areaState.playerPositions[1].y + 1
+				)
 
-				assertTrue(partyDirections[1] == Direction.Left || partyDirections[1] == Direction.Down)
-				assertEquals(partyDirections[0], partyDirections[2])
-				assertEquals(partyDirections[1], partyDirections[3])
+				assertTrue(
+					context.areaState.playerDirections[1] == Direction.Left ||
+							context.areaState.playerDirections[1] == Direction.Down
+				)
+				assertEquals(
+					context.areaState.playerDirections[0],
+					context.areaState.playerDirections[2],
+				)
+				assertEquals(
+					context.areaState.playerDirections[1],
+					context.areaState.playerDirections[3],
+				)
 			}
 
-			assertTrue(currentTime < 19.seconds)
+			assertTrue(context.areaState.currentTime < 19.seconds)
 			update(actions, context)
 		}
 
@@ -217,7 +253,6 @@ class TestAreaActionsState {
 			direction = Direction.Down,
 			next = null,
 		)
-		val characterStates = mutableMapOf(Pair(paladin, initialState))
 		val rootNode = FixedActionNode(
 			id = UUID.randomUUID(),
 			action = ActionWalk(
@@ -231,7 +266,7 @@ class TestAreaActionsState {
 
 		val actions = AreaActionsState(rootNode, null)
 
-		val context = createUpdateContext(1.milliseconds, characterStates = characterStates)
+		val context = createUpdateContext(1.milliseconds, characterStates = mutableMapOf(Pair(paladin, initialState)))
 		repeat(495) {
 			update(actions, context)
 			assertEquals(AreaCharacterState(
@@ -244,7 +279,7 @@ class TestAreaActionsState {
 					arrivalTime = 500.milliseconds,
 					transition = null,
 				),
-			), characterStates[paladin]!!)
+			), context.areaState.characterStates[paladin]!!)
 		}
 
 		repeat(10) {
@@ -263,12 +298,12 @@ class TestAreaActionsState {
 					arrivalTime = 1000.milliseconds,
 					transition = null,
 				),
-			), characterStates[paladin]!!)
+			), context.areaState.characterStates[paladin]!!)
 		}
 
 		repeat(7000) {
 			update(actions, context)
-			val direction = characterStates[paladin]!!.direction
+			val direction = context.areaState.characterStates[paladin]!!.direction
 			assertTrue(direction == Direction.Left || direction == Direction.Up)
 		}
 
@@ -277,7 +312,7 @@ class TestAreaActionsState {
 			y = 5,
 			direction = Direction.Left,
 			next = null,
-		), characterStates[paladin]!!)
+		), context.areaState.characterStates[paladin]!!)
 		assertNull(actions.node)
 	}
 
@@ -490,16 +525,24 @@ class TestAreaActionsState {
 		)
 
 		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(10.milliseconds)
 
-		var numHeals = 0
-		val context = createUpdateContext(10.milliseconds) { numHeals += 1 }
-
+		assertNotEquals(0, context.campaign.party.size)
+		for (partyMember in context.campaign.party.filterNotNull()) {
+			partyMember.baseStats.add(StatModifier(CombatStat.Vitality, 20))
+			val state = CharacterState()
+			state.currentHealth = 1
+			state.currentLevel = 50
+			context.campaign.characterStates[partyMember] = state
+		}
 		repeat(5) {
 			update(actions, context)
 		}
 
-		assertEquals(1, numHeals)
 		assertTrue((actions.node as FixedActionNode).action is ActionWalk)
+		for (partyMember in context.campaign.usedPartyMembers()) {
+			assertNotEquals(1, partyMember.state.currentHealth)
+		}
 	}
 
 	@Test
@@ -579,7 +622,6 @@ class TestAreaActionsState {
 			direction = Direction.Left,
 			next = null,
 		)
-		val characterStates = mutableMapOf(Pair(dragon, lastDragonState))
 
 		val rootNode = FixedActionNode(
 			id = UUID.randomUUID(),
@@ -587,16 +629,18 @@ class TestAreaActionsState {
 			next = null,
 		)
 
-		val context = createUpdateContext(1.seconds, characterStates = characterStates)
+		val context = createUpdateContext(
+			1.seconds, characterStates = mutableMapOf(Pair(dragon, lastDragonState))
+		)
 
 		val actions = AreaActionsState(rootNode, null)
 
 		val beforeUpdate = System.nanoTime()
 		update(actions, context)
 
-		assertEquals(0, characterStates.size)
-		assertEquals(1, context.fadingCharacters.size)
-		val fading = context.fadingCharacters.iterator().next()
+		assertEquals(0, context.areaState.characterStates.size)
+		assertEquals(1, context.areaState.fadingCharacters.size)
+		val fading = context.areaState.fadingCharacters.iterator().next()
 		assertSame(dragon, fading.character)
 		assertSame(lastDragonState, fading.lastState)
 		assertTrue(fading.startFadeTime >= beforeUpdate)
@@ -623,23 +667,24 @@ class TestAreaActionsState {
 			direction = Direction.Down,
 			next = null,
 		)
-		val characterStates = mutableMapOf(Pair(princess, initialPrincessState))
 		val actions = AreaActionsState(rootNode, null)
 
-		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
+		val context = createUpdateContext(
+			10.milliseconds, characterStates = mapOf(Pair(princess, initialPrincessState))
+		)
 
 		// The first update should rotate both the player and the princess
 		update(actions, context)
 		assertArrayEquals(arrayOf(
 			Direction.Up, Direction.Right, Direction.Up, Direction.Up
-		), context.partyDirections)
+		), context.areaState.playerDirections)
 		assertEquals(AreaCharacterState(
 			x = 5,
 			y = 0,
 			direction = Direction.Left,
 			next = null
-		), characterStates[princess])
-		assertEquals(1, characterStates.size)
+		), context.areaState.characterStates[princess])
+		assertEquals(1, context.areaState.characterStates.size)
 		assertNull(actions.node)
 	}
 
@@ -686,18 +731,17 @@ class TestAreaActionsState {
 			direction = Direction.Down,
 			next = null,
 		)
-		val characterStates = mutableMapOf(
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(10.milliseconds, characterStates = mutableMapOf(
 			Pair(princess, initialPrincessState),
 			Pair(dragon, initialDragonState),
-		)
-		val actions = AreaActionsState(rootNode, null)
-		val context = createUpdateContext(10.milliseconds, characterStates = characterStates)
+		))
 
 		// The dragon should need 6 seconds to reach its destination
 		repeat(605) {
 			update(actions, context)
-			assertEquals(Direction.Up, characterStates[princess]!!.direction)
-			assertEquals(Direction.Up, characterStates[dragon]!!.direction)
+			assertEquals(Direction.Up, context.areaState.characterStates[princess]!!.direction)
+			assertEquals(Direction.Up, context.areaState.characterStates[dragon]!!.direction)
 		}
 
 		assertEquals(AreaCharacterState(
@@ -705,10 +749,10 @@ class TestAreaActionsState {
 			y = 3,
 			direction = Direction.Up,
 			next = null
-		), characterStates[dragon])
+		), context.areaState.characterStates[dragon])
 
 		// At this point, the princess should have moved only 12 tiles
-		characterStates[princess]!!.apply {
+		context.areaState.characterStates[princess]!!.apply {
 			assertEquals(5, x)
 			assertEquals(18, y)
 			assertEquals(Direction.Up, direction)
@@ -728,13 +772,13 @@ class TestAreaActionsState {
 			y = 3,
 			direction = Direction.Up,
 			next = null
-		), characterStates[dragon])
+		), context.areaState.characterStates[dragon])
 		assertEquals(AreaCharacterState(
 			x = 4,
 			y = 7,
 			direction = Direction.Left,
 			next = null
-		), characterStates[princess])
+		), context.areaState.characterStates[princess])
 		assertNull(actions.node)
 	}
 
@@ -881,7 +925,7 @@ class TestAreaActionsState {
 		assertEquals(ItemStack(otherItem, 1), state.inventory[0])
 		assertEquals(ItemStack(reward, 10), state.inventory[1])
 		assertNull(state.inventory[2])
-		assertTrue(context.itemStorage.isEmpty())
+		assertTrue(context.campaign.itemStorage.isEmpty())
 	}
 
 	@Test
@@ -907,7 +951,7 @@ class TestAreaActionsState {
 		update(actions, context)
 		assertEquals(ItemStack(reward, 11), state.inventory[0])
 		assertNull(state.inventory[1])
-		assertTrue(context.itemStorage.isEmpty())
+		assertTrue(context.campaign.itemStorage.isEmpty())
 	}
 
 	@Test
@@ -994,11 +1038,14 @@ class TestAreaActionsState {
 			party = arrayOf(member, null, null, null),
 			playableCharacterStates = characterStates,
 		)
-		context.itemStorage.add(null)
-		context.itemStorage.add(null)
+		context.campaign.itemStorage.add(null)
+		context.campaign.itemStorage.add(null)
 		update(actions, context)
 		assertEquals(0, state.countItemOccurrences(reward))
-		assertEquals(listOf(ItemStack(reward, 10), null), context.itemStorage)
+		assertEquals(
+			listOf(ItemStack(reward, 10), null),
+			context.campaign.itemStorage,
+		)
 	}
 
 	@Test
@@ -1022,11 +1069,14 @@ class TestAreaActionsState {
 			party = arrayOf(member, null, null, null),
 			playableCharacterStates = characterStates,
 		)
-		context.itemStorage.add(ItemStack(reward, 5))
-		context.itemStorage.add(null)
+		context.campaign.itemStorage.add(ItemStack(reward, 5))
+		context.campaign.itemStorage.add(null)
 		update(actions, context)
 		assertEquals(0, state.countItemOccurrences(reward))
-		assertEquals(listOf(ItemStack(reward, 15), null), context.itemStorage)
+		assertEquals(
+			listOf(ItemStack(reward, 15), null),
+			context.campaign.itemStorage,
+		)
 	}
 
 	@Test
@@ -1052,6 +1102,6 @@ class TestAreaActionsState {
 		)
 		update(actions, context)
 		assertEquals(0, state.countItemOccurrences(reward))
-		assertEquals(listOf(ItemStack(reward, 10)), context.itemStorage)
+		assertEquals(listOf(ItemStack(reward, 10)), context.campaign.itemStorage)
 	}
 }

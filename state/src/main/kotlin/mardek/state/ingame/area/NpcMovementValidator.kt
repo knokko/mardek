@@ -64,7 +64,7 @@ internal fun shouldAllowNpcMove(
 	// and we don't allow NPCs to occupy the only tile from which the player can interact with something
 	val interactionPoints = (ao.decorations.filter {
 		it.ownActions != null || it.sharedActionSequence != null
-	} + ao.doors + ao.shops + ao.switchOrbs + ao.talkTriggers).map { it.position() }.toMutableList()
+	} + ao.doors + ao.switchOrbs + ao.talkTriggers).map { it.position() }.toMutableList()
 
 	interactionPoints.addAll(currentState.area.chests.filter {
 		!openedChests.contains(it)

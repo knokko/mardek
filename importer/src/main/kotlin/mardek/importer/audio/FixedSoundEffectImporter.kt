@@ -19,6 +19,7 @@ internal fun importFixedSoundEffects(audio: AudioContent) {
 			scroll2 = importFixed("2_sfx_menuSwish"),
 			toggleSkill = importFixed("6_sfx_menuBlip2"),
 			openMenu = importFixed("3_sfx_menuOpen"),
+			trade = importFixed("5397_sfx_buy"),
 		),
 		battle = BattleSoundEffects(
 			flee = importFixed("sfx_Escape"),

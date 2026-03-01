@@ -3,9 +3,11 @@ package mardek.importer.area
 import mardek.content.Content
 import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
+import mardek.content.action.ActionShop
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.FixedAction
+import mardek.content.action.FixedActionNode
 import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Direction
 import mardek.content.area.TransitionDestination
@@ -60,7 +62,6 @@ internal fun parseAreaObjects(
 		transitions = extract(objectList),
 		walkTriggers = extract(objectList),
 		talkTriggers = extract(objectList),
-		shops = extract(objectList),
 		decorations = ArrayList(extract<AreaDecoration>(objectList) + extraDecorations),
 		portals = extract(objectList),
 		characters = extract(objectList),
@@ -264,8 +265,19 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 	}
 
 	if (model == "shop") {
-		val (shopName, waresConstantName) = parseShop(rawEntity["SHOP"]!!)
-		return AreaShop(shopName = shopName, x = x, y = y, waresConstantName = waresConstantName)
+		val shopAction = if (rawEntity.containsKey("uuid")) {
+			val id = UUID.fromString(rawEntity["uuid"])
+			val shop = context.content.areas.shops.find { it.id == id }!!
+			FixedActionNode(
+				id = UUID(id.leastSignificantBits, id.mostSignificantBits),
+				action = ActionShop(shop),
+				next = null,
+			)
+		} else null
+		return AreaDecoration(
+			x = x, y = y, sprites = null, canWalkThrough = true, light = null, timePerFrame = 1,
+			ownActions = shopAction, sharedActionSequence = null, signType = null, displayName = name,
+		)
 	}
 
 	if (model == "area_transition") return AreaTransition(
@@ -544,17 +556,4 @@ private fun parseDestination(rawDestination: String, dir: String?, currentAreaNa
 	)
 
 	return destination
-}
-
-private fun parseShop(rawShop: String): Pair<String, String> {
-	val separator = ",wares:DefaultShops."
-	val prefix = "{name:"
-	val index1 = rawShop.indexOf(separator)
-	parseAssert(index1 >= 0, "Expected $rawShop to contain $separator")
-	parseAssert(rawShop.startsWith(prefix), "Expected $rawShop to start with $prefix")
-	parseAssert(rawShop.endsWith('}'), "Expected $rawShop to end with }")
-
-	val name = parseFlashString(rawShop.substring(prefix.length, index1), "shop name")!!
-	val wares = rawShop.substring(index1 + separator.length, rawShop.length - 1)
-	return Pair(name, wares)
 }

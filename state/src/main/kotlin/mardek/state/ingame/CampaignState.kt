@@ -13,31 +13,17 @@ import com.github.knokko.bitser.options.WithParameter
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.action.ActionPlayCutscene
-import mardek.content.action.ActionToArea
-import mardek.content.action.ActionToGlobalActions
 import mardek.content.action.FixedActionNode
-import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Chest
-import mardek.content.area.WorldMapTransitionDestination
 import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
-import mardek.input.MouseMoveEvent
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.actions.ActivatedTriggers
-import mardek.state.ingame.actions.AreaActionsState
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaDiscoveryMap
-import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
-import mardek.state.ingame.area.loot.BattleLoot
-import mardek.state.ingame.area.loot.ObtainedGold
-import mardek.state.ingame.area.loot.ObtainedItemStack
-import mardek.state.ingame.area.loot.generateBattleLoot
-import mardek.content.battle.Battle
 import mardek.state.ingame.battle.BattleStateMachine
-import mardek.state.ingame.battle.BattleUpdateContext
-import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
 import mardek.content.inventory.ItemStack
 import mardek.content.story.Timeline
@@ -45,14 +31,10 @@ import mardek.content.story.TimelineNode
 import mardek.state.UsedPartyMember
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
-import mardek.state.ingame.area.AreaSuspensionIncomingRandomBattle
-import mardek.state.ingame.area.AreaSuspensionOpeningChest
-import mardek.state.ingame.area.AreaSuspensionTransition
+import mardek.state.ingame.area.ShopsStates
 import mardek.state.ingame.story.StoryState
-import mardek.state.ingame.worldmap.AreaExitPoint
 import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveFile
-import mardek.state.saves.SaveSelectionState
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import kotlin.time.Duration.Companion.seconds
@@ -135,6 +117,12 @@ class CampaignState : BitPostInit {
 	@BitField(id = 12, optional = true)
 	var cursorItemStack: ItemStack? = null
 
+	/**
+	 * The states (inventories) of all the shops and traders.
+	 */
+	@BitField(id = 13)
+	val shops = ShopsStates()
+
 	var shouldOpenMenu = false
 	var gameOver = false
 
@@ -149,305 +137,17 @@ class CampaignState : BitPostInit {
 	fun update(context: UpdateContext) {
 		while (true) {
 			val event = context.input.consumeEvent() ?: break
-			if (event is MouseMoveEvent) {
-				when (val state = this.state) {
-					is AreaState -> {
-						state.processMouseMove(event)
-						when (val suspension = state.suspension) {
-							is AreaSuspensionActions -> {
-								updateAreaActions(context, null, event, suspension.actions)
-							}
-							else -> {}
-						}
-					}
-				}
-			}
-			if (event !is InputKeyEvent || !event.didPress) continue
-
-			if (event.key == InputKey.CheatSave) {
+			if (event is InputKeyEvent && event.didPress && event.key == InputKey.CheatSave) {
 				context.saves.createSave(context.content, this, context.campaignName, SaveFile.Type.Cheat)
 			}
 
-			val campaignActions = getCampaignActions()
-			if (campaignActions != null) {
-				campaignActions.processKeyPress(event.key)
-				continue
-			}
-
-			val originalState = this.state
-			if (originalState is WorldMapState && !event.didRepeat) originalState.pressKey(story, event.key)
-			if (originalState !is AreaState) continue
-
-			when (val suspension = originalState.suspension) {
-				is AreaSuspensionBattle -> {
-					val battleLoot = suspension.loot
-					if (battleLoot != null) {
-						val lootContext = BattleLoot.UpdateContext(context, usedPartyMembers(), allPartyMembers())
-						battleLoot.processKeyPress(event.key, lootContext)
-						continue
-					}
-
-					val context = BattleUpdateContext(
-						characterStates, context.content.audio.fixedEffects,
-						context.content.stats.defaultWeaponElement, context.soundQueue
-					)
-					suspension.battle.processKeyPress(event.key, context)
-				}
-
-				is AreaSuspensionOpeningChest -> {
-					suspension.obtainedItem?.processKeyPress(
-						event.key, context.content.audio.fixedEffects, context.soundQueue
-					)
-				}
-
-				is AreaSuspensionActions -> {
-					updateAreaActions(context, event, null, suspension.actions)
-				}
-
-				else -> {
-					if (event.key == InputKey.ToggleMenu) {
-						shouldOpenMenu = true
-						context.soundQueue.insert(context.content.audio.fixedEffects.ui.openMenu)
-						continue
-					}
-
-					if (event.key == InputKey.CheatScrollUp || event.key == InputKey.CheatScrollDown) {
-						val areas = context.content.areas.areas
-						val currentIndex = areas.indexOf(originalState.area)
-
-						var nextIndex = currentIndex
-						if (event.key == InputKey.CheatScrollUp) nextIndex -= 1
-						else nextIndex += 1
-
-						if (nextIndex < 0) nextIndex += areas.size
-						if (nextIndex >= areas.size) nextIndex -= areas.size
-
-						var nextPosition = originalState.getPlayerPosition(0)
-						val nextArea = areas[nextIndex]
-						if (nextPosition.x > 6 + nextArea.maxTileX || nextPosition.y > 4 + nextArea.maxTileY) {
-							nextPosition = AreaPosition(3, 3)
-						}
-						this.state = AreaState(nextArea, story, expressionContext(), nextPosition)
-						continue
-					}
-
-					originalState.processKeyPress(event.key)
-				}
-			}
+			state.processEvent(event, context, this)
 		}
 
-		val campaignActions = getCampaignActions()
-		if (campaignActions != null) {
-			campaignActions.update(context.soundQueue, context.timeStep)
-			return
-		}
-
-		val oldState = this.state
-		if (oldState is AreaState) {
-			when (val suspension = oldState.suspension) {
-				is AreaSuspensionBattle -> {
-					val battleContext = BattleUpdateContext(
-						characterStates, context.content.audio.fixedEffects,
-						context.content.stats.defaultWeaponElement, context.soundQueue,
-					)
-					suspension.battle.update(battleContext)
-
-					val battleState = suspension.battle.state
-					if (battleState is BattleStateMachine.RanAway) {
-						oldState.suspension = null
-						context.soundQueue.insert(context.content.audio.fixedEffects.battle.flee)
-						for (combatant in suspension.battle.allPlayers()) {
-							combatant.transferStatusBack(battleContext)
-						}
-					}
-					if (battleState is BattleStateMachine.GameOver && battleState.shouldGoToGameOverMenu()) {
-						gameOver = true
-					}
-					if (suspension.loot == null && battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
-						val loot = generateBattleLoot(context.content, suspension.battle.battle, usedPartyMembers())
-						// TODO CHAP2 Handle plot items via timeline transitions: loot.plotItems
-						suspension.loot = loot
-						for (combatant in suspension.battle.allPlayers()) {
-							combatant.transferStatusBack(battleContext)
-						}
-					}
-					val loot = suspension.loot
-					if (loot != null && loot.finishAt != 0L && System.nanoTime() > loot.finishAt) {
-						gold += loot.gold
-						oldState.suspension = if (suspension.nextActions != null) {
-							AreaSuspensionActions(suspension.nextActions)
-						} else null
-						oldState.finishedBattleAt = oldState.currentTime
-					}
-					return
-				}
-
-				is AreaSuspensionActions -> {
-					updateAreaActions(context, null, null, suspension.actions)
-					run {
-						val node = suspension.actions.node
-						if (node is FixedActionNode && node.action is ActionToGlobalActions) {
-							this.state = CampaignActionsState(node.next!!)
-						}
-					}
-
-					val currentState = this.state
-					if (currentState is AreaState) {
-						val newSuspension = currentState.suspension
-						if (newSuspension is AreaSuspensionActions && newSuspension.actions.node == null) {
-							currentState.suspension = null
-						}
-					}
-				}
-
-				else -> {}
-			}
-		}
-
-		if (oldState is WorldMapState) {
-			val entrance = oldState.update(
-				context.content.audio.fixedEffects,
-				context.soundQueue, context.timeStep,
-			)
-			if (entrance != null) {
-				this.state = AreaState(
-					entrance.area, story, expressionContext(),
-					AreaPosition(entrance.x, entrance.y),
-					entrance.direction,
-				)
-			}
-		}
-
-		val areaState = this.state
-		if (areaState is AreaState) {
-			val areaContext = areaUpdateContext(context)
-			areaState.update(areaContext)
-			this.stepsSinceLastBattle = areaContext.stepsSinceLastBattle
-			this.totalSteps = areaContext.totalSteps
-
-			when (val suspension = areaState.suspension) {
-				is AreaSuspensionActions -> {
-					if (areaState !== oldState) {
-						updateAreaActions(context, null, null, suspension.actions)
-						if (suspension.actions.node == null && areaState.suspension === suspension) {
-							areaState.suspension = null
-						}
-					}
-				}
-				is AreaSuspensionTransition -> {
-					when (val destination = suspension.destination) {
-						is AreaTransitionDestination -> {
-							this.state = AreaState(
-								destination.area, story, expressionContext(),
-								AreaPosition(destination.x, destination.y),
-								destination.direction ?: (this.state as AreaState).getPlayerDirection(0),
-							)
-						}
-						is WorldMapTransitionDestination -> {
-							val exitPosition = areaState.getPlayerPosition(0)
-							val exitPoint = AreaExitPoint(areaState.area, exitPosition.x, exitPosition.y)
-							this.state = WorldMapState(
-								destination.worldMap, destination.node, exitPoint,
-							)
-						}
-					}
-				}
-				is AreaSuspensionOpeningChest -> {
-					if (suspension.obtainedItem == null) {
-						val openedChest = suspension.chest
-						if (!openedChests.contains(openedChest)) {
-							context.soundQueue.insert(context.content.audio.fixedEffects.openChest)
-							val chestBattle = openedChest.battle
-							if (chestBattle != null) {
-								val area = areaState.area
-								areaState.suspension = AreaSuspensionIncomingRandomBattle(
-									Battle(
-										chestBattle.monsters.map {
-											if (it == null) null else Enemy(
-												context.content.battle.monsters.find { candidate ->
-													candidate.name == it.name1
-												}!!,
-												it.level
-											)
-										}.toTypedArray(),
-										chestBattle.enemyLayout,
-										chestBattle.specialMusic ?: "battle",
-										chestBattle.specialLootMusic ?: "VictoryFanfare",
-										area.randomBattles!!.defaultBackground,
-										canFlee = false,
-										isRandom = false,
-									),
-									areaState.currentTime + 1.seconds, false
-								)
-								openedChests.add(openedChest)
-								return
-							}
-
-							if (openedChest.stack != null) {
-								suspension.obtainedItem = ObtainedItemStack(
-									openedChest.stack!!, null, usedPartyMembers(), allPartyMembers()
-								) { didTake ->
-									areaState.suspension = null
-									context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickCancel)
-									if (didTake) openedChests.add(openedChest)
-								}
-							}
-							if (openedChest.plotItem != null) {
-								suspension.obtainedItem = ObtainedItemStack(
-									null, openedChest.plotItem, usedPartyMembers(), allPartyMembers()
-								) { didTake ->
-									areaState.suspension = null
-									if (didTake) {
-										// TODO CHAP2 Replace this code with timeline variables: chest should be 'opened' if and
-										// only if its corresponding timeline is in its default state
-//							collectedPlotItems.add(openedChest.plotItem!!)
-										openedChests.add(openedChest)
-									}
-									context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickCancel)
-								}
-							}
-							if (openedChest.gold > 0) {
-								openedChests.add(openedChest)
-								areaState.obtainedGold = ObtainedGold(
-									openedChest.x, openedChest.y, openedChest.gold,
-									areaState.currentTime + 1.seconds
-								)
-								gold += openedChest.gold
-							}
-							if (suspension.obtainedItem == null) areaState.suspension = null
-							// TODO CHAP3 dreamstone in chest
-						} else areaState.suspension = null
-					}
-				}
-				else -> {}
-			}
-		}
-	}
-
-	private fun getCampaignActions(): CampaignActionsState? {
-		val currentState = this.state
-		val node = if (currentState is CampaignActionsState) currentState.node else null
-
-		if (node is FixedActionNode) {
-			val action = node.action
-			if (action is ActionToArea) {
-				this.state = AreaState(
-					action.area, story, expressionContext(),
-					AreaPosition(action.x, action.y),
-					action.direction,
-				)
-				val nextNode = node.next
-				if (nextNode != null) {
-					(this.state as AreaState).suspension = AreaSuspensionActions(
-						AreaActionsState(nextNode, null)
-					)
-				}
-			}
-		}
-
-		return when (val nextState = this.state) {
-			is CampaignActionsState -> nextState
-			else -> null
+		while (true) {
+			val oldState = this.state
+			oldState.update(context, this)
+			if (this.state === oldState) break
 		}
 	}
 
@@ -514,90 +214,6 @@ class CampaignState : BitPostInit {
 		}
 	}
 
-	private fun updateAreaActions(
-		context: UpdateContext, event: InputKeyEvent?, mouseEvent: MouseMoveEvent?, actions: AreaActionsState
-	) {
-		val currentArea = this.state as AreaState
-		val actionsContext = AreaActionsState.UpdateContext(
-			context.input, context.timeStep, context.soundQueue, context.content.audio.fixedEffects,
-			context.campaignName, currentArea.playerPositions,
-			currentArea.playerDirections, currentArea.currentTime, party, currentArea.characterStates,
-			characterStates, currentArea.fadingCharacters,
-			story, itemStorage, expressionContext(), this::healParty,
-			{ timeline, newNode -> performTimelineTransition(context, timeline, newNode) },
-			{ cursorItemStack }, { newStack -> this.cursorItemStack = newStack },
-		)
-
-		val saveSelection = actions.saveSelectionState
-		if (saveSelection != null) {
-			val saveContext = SaveSelectionState.UpdateContext(
-				context.saves,
-				context.content,
-				context.soundQueue,
-				true,
-			)
-
-			if (event != null) {
-				val outcome = saveSelection.pressKey(saveContext, event.key)
-				if (outcome.canceled) actions.finishSaveNode(currentArea.currentTime)
-				var failed = false
-				if (outcome.finished) {
-					if (outcome.save == null || outcome.save.file.delete()) {
-						if (context.saves.createSave(
-								context.content, this,
-								context.campaignName, SaveFile.Type.Crystal
-							)) {
-							context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickConfirm)
-							actions.finishSaveNode(currentArea.currentTime)
-						} else failed = true
-					} else {
-						failed = true
-					}
-				}
-				if (failed || outcome.failed) {
-					context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickReject)
-					actions.retrySaveNode()
-				}
-			} else {
-				saveSelection.update(saveContext)
-			}
-		} else if (event != null) {
-			actions.processKeyEvent(actionsContext, event)
-		} else if (mouseEvent != null) {
-			actions.processMouseMove(actionsContext, mouseEvent)
-		} else {
-			actions.update(actionsContext)
-
-			val switchArea = actionsContext.switchArea
-			if (switchArea != null) {
-				this.state = AreaState(
-					switchArea.area, story, expressionContext(),
-					AreaPosition(switchArea.x, switchArea.y),
-					switchArea.direction,
-				)
-				val nextNode = (actions.node as FixedActionNode).next
-				if (nextNode != null) {
-					(this.state as AreaState).suspension = AreaSuspensionActions(AreaActionsState(
-						nextNode, actions.defaultDialogueObject
-					))
-				}
-			}
-
-			val maybeBattle = actionsContext.startBattle
-			if (maybeBattle != null) {
-				val areaContext = areaUpdateContext(context)
-				if (maybeBattle.overridePlayers != null) {
-					currentArea.engageBattle(areaContext, maybeBattle.battle, maybeBattle.overridePlayers!!)
-				} else {
-					currentArea.engageBattle(areaContext, maybeBattle.battle)
-				}
-			}
-
-			val maybeMoney = actionsContext.setMoney
-			if (maybeMoney != null) this.gold = maybeMoney
-		}
-	}
-
 	/**
 	 * Determines the name of the music track that the `AudioUpdater` should play in the current state. This is
 	 * often the background music of the current area, but not always.
@@ -640,16 +256,10 @@ class CampaignState : BitPostInit {
 			}
 
 			else -> {
-				throw UnsupportedOperationException("Unexpected camapign state machine $state")
+				throw UnsupportedOperationException("Unexpected campaign state machine $state")
 			}
 		}
 	}
-
-	private fun areaUpdateContext(context: UpdateContext) = AreaState.UpdateContext(
-		context, party, characterStates,
-		areaDiscovery, triggers, story, expressionContext(), openedChests,
-		stepsSinceLastBattle, totalSteps,
-	)
 
 	/**
 	 * Generates a [StoryState.ExpressionContext] that is needed for [StoryState.evaluate]
@@ -658,7 +268,7 @@ class CampaignState : BitPostInit {
 		countItemInInventory = { itemToCount -> usedPartyMembers().sumOf { it.state.countItemOccurrences(itemToCount) }}
 	)
 
-	class UpdateContext(
+	open class UpdateContext(
 		parent: GameStateUpdateContext,
 		val campaignName: String
 	) : GameStateUpdateContext(parent)

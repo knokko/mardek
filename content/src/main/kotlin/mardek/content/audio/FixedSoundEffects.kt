@@ -88,10 +88,18 @@ class UiSoundEffects(
 	@BitField(id = 6)
 	@ReferenceFieldTarget(label = "sound effects")
 	val openMenu: SoundEffect,
+
+	/**
+	 * The sound effect that is played when the player buys or sells an item (in a shop)
+	 */
+	@BitField(id = 7)
+	@ReferenceFieldTarget(label = "sound effects")
+	val trade: SoundEffect,
 ) {
 	internal constructor() : this(
-		SoundEffect(), SoundEffect(), SoundEffect(), SoundEffect(), SoundEffect(),
-		SoundEffect(), SoundEffect()
+		SoundEffect(), SoundEffect(), SoundEffect(),
+		SoundEffect(), SoundEffect(),
+		SoundEffect(), SoundEffect(), SoundEffect(),
 	)
 }
 

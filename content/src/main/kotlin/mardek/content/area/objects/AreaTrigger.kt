@@ -56,10 +56,16 @@ class AreaTrigger(
 	@ReferenceField(stable = false, label = "action sequences")
 	val actions: ActionSequence?,
 
+	/**
+	 * When non-null, this trigger can only be activated when the condition evaluates to `true`.
+	 */
 	@BitField(id = 6, optional = true)
 	@ClassField(root = StateExpression::class)
 	val condition: StateExpression<Boolean>?,
 
+	/**
+	 * The unique ID of this trigger, which is used for (de)serialization
+	 */
 	@BitField(id = 7)
 	@StableReferenceFieldId
 	@Suppress("unused")

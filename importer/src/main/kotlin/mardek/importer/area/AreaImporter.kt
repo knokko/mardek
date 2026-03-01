@@ -56,6 +56,7 @@ internal fun importAreaContent(content: Content): HardcodedActions {
 
 	val hardcodedExpressions = HardcodedExpressions()
 	hardcodedExpressions.hardcodeTimelineExpressions(content)
+	hardcodeShops(content)
 
 	val parsedAreas = ArrayList<ParsedArea>()
 	val parsedTilesheets = ArrayList<ParsedTilesheet>()
