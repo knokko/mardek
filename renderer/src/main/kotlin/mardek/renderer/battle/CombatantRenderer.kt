@@ -119,7 +119,7 @@ class CombatantRenderer(
 		if (showcase) {
 			choosePassiveAnimation()
 			coordinates = transformBattleCoordinates(
-				PartyLayoutPosition(40, 60), flipX, region
+				PartyLayoutPosition(12, 35), -1f, region
 			)
 		} else {
 			when (state) {
@@ -393,7 +393,7 @@ class CombatantRenderer(
 		val stateMachine = context.battle.state
 		var isSelectedTarget = false
 		var isSelectingMove = false
-		if (stateMachine is BattleStateMachine.SelectMove) {
+		if (stateMachine is BattleStateMachine.SelectMove && !showcase) {
 			isSelectingMove = stateMachine.onTurn === combatant
 			isSelectedTarget = stateMachine.selectedMove.targets(context.battle).contains(combatant)
 		}
@@ -401,21 +401,21 @@ class CombatantRenderer(
 		var meleeElement: Element? = null
 		var magicElement: Element? = null
 		var isMoving = false
-		if (stateMachine is BattleStateMachine.CastSkill && stateMachine.caster === combatant) {
+		if (stateMachine is BattleStateMachine.CastSkill && stateMachine.caster === combatant && !showcase) {
 			magicElement = stateMachine.skill.element
 		}
 
-		if (stateMachine is BattleStateMachine.BreathAttack && stateMachine.attacker === combatant) {
+		if (stateMachine is BattleStateMachine.BreathAttack && stateMachine.attacker === combatant && !showcase) {
 			isMoving = true
 		}
 
-		if (stateMachine is BattleStateMachine.MeleeAttack && stateMachine.attacker === combatant) {
+		if (stateMachine is BattleStateMachine.MeleeAttack && stateMachine.attacker === combatant && !showcase) {
 			isMoving = true
 			meleeElement = stateMachine.skill?.element ?:
 					stateMachine.attacker.getWeapon(context.updateContext)?.element
 		}
 
-		val scaleX = if (combatant.isOnPlayerSide) coordinates.scale else -coordinates.scale
+		val scaleX = if (combatant.isOnPlayerSide && !showcase) coordinates.scale else -coordinates.scale
 		val parentMatrix = Matrix3x2f()
 			.translate(coordinates.x, coordinates.y)
 			.scale(scaleX, coordinates.scale)
