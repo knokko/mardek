@@ -106,8 +106,9 @@ class IntegrationTests {
 	}
 
 	@Test
-	fun testCombatantReference() {
+	fun testCombatantState() {
 		TestCombatantState.testGetStat(instance)
+		TestCombatantState.testGetEquipment(instance)
 		TestCombatantState.testGetElementalResistance(instance)
 		TestCombatantState.testGetEffectResistance(instance)
 		TestCombatantState.testTransferStatusBack(instance)

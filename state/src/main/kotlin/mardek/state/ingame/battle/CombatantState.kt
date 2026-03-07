@@ -280,7 +280,10 @@ class PlayerCombatantState(
 		statusEffects
 	)
 
-	override fun getEquipment(context: BattleUpdateContext) = context.characterStates[player]!!.equipment.values.toTypedArray<Item?>()
+	override fun getEquipment(context: BattleUpdateContext): Array<Item?> {
+		val equipment = context.characterStates[player]!!.equipment
+		return player.characterClass.equipmentSlots.map { equipment[it] }.toTypedArray()
+	}
 
 	override fun getWeapon(context: BattleUpdateContext) = getEquipment(context).find {
 		it != null && it.type.displayName.contains("WEAPON")

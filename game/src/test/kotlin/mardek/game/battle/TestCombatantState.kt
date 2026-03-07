@@ -5,6 +5,7 @@ import mardek.game.TestingInstance
 import mardek.content.battle.Enemy
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 
 object TestCombatantState {
@@ -34,6 +35,26 @@ object TestCombatantState {
 			monsterState.statModifiers[CombatStat.Agility] = -5
 			// 8 base agility minus 5
 			assertEquals(3, monsterState.getStat(CombatStat.Agility, battleUpdateContext(campaign)))
+		}
+	}
+
+	fun testGetEquipment(instance: TestingInstance) {
+		instance.apply {
+			val campaign = simpleCampaignState()
+
+			val sword = content.items.items.find { it.displayName == "M Blade" }!!
+			val boots = content.items.items.find { it.displayName == "Boots of Celerity" }!!
+			val mardekState = campaign.characterStates[heroMardek]!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = boots
+
+			startSimpleBattle(campaign)
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
+
+			val mardekCombatState = battle.livingPlayers()[0]
+			assertArrayEquals(
+				arrayOf(sword, null, null, null, boots, null),
+				mardekCombatState.getEquipment(battleUpdateContext(campaign)),
+			)
 		}
 	}
 
