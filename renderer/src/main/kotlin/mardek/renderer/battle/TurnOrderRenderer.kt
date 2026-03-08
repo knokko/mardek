@@ -29,11 +29,12 @@ fun renderTurnOrder(
 
 		val stateMachine = battle.state
 		val onTurn = when (stateMachine) {
+			is BattleStateMachine.NextTurnEffects -> stateMachine.combatant
+			is BattleStateMachine.SelectMove -> stateMachine.onTurn
 			is BattleStateMachine.MeleeAttack -> stateMachine.attacker
 			is BattleStateMachine.BreathAttack -> stateMachine.attacker
 			is BattleStateMachine.CastSkill -> stateMachine.caster
 			is BattleStateMachine.UseItem -> stateMachine.thrower
-			is BattleStateMachine.SelectMove -> stateMachine.onTurn
 			else -> null
 		}
 
