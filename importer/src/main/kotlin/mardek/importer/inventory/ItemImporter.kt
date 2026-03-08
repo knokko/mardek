@@ -216,9 +216,24 @@ private fun parseWeaponProperties(content: Content, rawItem: Map<String, String>
 	val rawSound = rawItem["hit_sfx"]
 	val hitSound = if (rawSound != null) {
 		val soundName = parseFlashString(rawSound, "weapon hit sound")!!
-		if (soundName == "punch") content.audio.fixedEffects.battle.punch
-		else content.audio.effects.find { it.flashName == soundName }!!
-	} else null
+		if (soundName != "punch") content.audio.effects.find { it.flashName == soundName }!!
+		else null
+	} else {
+		val soundName = when (parseFlashString(rawItem["wpnType"]!!, "wpnType")) {
+			"SWORD" -> "MARTIAL"
+			"DAGGER" -> "MARTIAL"
+			"AXE" -> "MARTIAL"
+			"GREATSWORD" -> "2HSWORDS"
+			"SPEAR" -> "POLEARMS"
+			"STAFF" -> "STAVES"
+			"WAND" -> "MARTIAL"
+			"GUN" -> "GUNS"
+			"BLASTER" -> "GUNS"
+			"CLAW" -> "POLEARMS"
+			else -> null
+		}
+		if (soundName == null) null else content.audio.effects.find { it.flashName == "hit_$soundName" }!!
+	}
 
 	return WeaponProperties(
 		critChance = parseInt(rawItem["critical"]),

@@ -88,6 +88,7 @@ class TestItemsContentImporter {
 		assertEquals(97, weapon.hitChance)
 		assertEquals(3000, blade.cost)
 		assertEquals("DARK", blade.element!!.properName)
+		assertSame(content.audio.effects.find { it.flashName == "hit_MARTIAL" }!!, weapon.hitSound)
 
 		assertEquals(1, weapon.addEffects.size)
 		assertEquals("Curse", weapon.addEffects[0].effect.niceName)
