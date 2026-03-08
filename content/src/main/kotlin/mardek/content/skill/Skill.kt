@@ -28,4 +28,8 @@ abstract class Skill(
 ) {
 
 	override fun toString() = name
+
+	override fun equals(other: Any?) = other is Skill && this.id == other.id
+
+	override fun hashCode() = id.hashCode()
 }

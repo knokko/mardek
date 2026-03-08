@@ -25,6 +25,10 @@ sealed class ActionNode(
 	val id: UUID,
 ) {
 
+	override fun equals(other: Any?) = other is ActionNode && this.id == other.id
+
+	override fun hashCode() = id.hashCode()
+
 	/**
 	 * Gets all child nodes and descendant nodes of this node (also including this node itself). This is useful for
 	 * collecting all reference targets.

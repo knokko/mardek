@@ -15,7 +15,6 @@ import mardek.content.stats.CombatStat
 import mardek.content.stats.StatModifier
 import mardek.content.stats.StatusEffect
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 /**
  * Represents the state of a `PlayableCharacter`. This class is part of `mardek.content` rather than `mardek.state`
