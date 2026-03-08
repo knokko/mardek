@@ -152,7 +152,9 @@ private fun parseSpawnProperties(rawEmitter: Map<String, String>): ParticleSpawn
 	} else 1f
 
 	val rawRotation = rawEmitter["rot"]!!
-	val rotation = if (rawRotation == "\"R\"" || rawRotation == "\"theta\"") null else parseFloat(rawRotation)
+	val (rotation, rotationVariation) = if (rawRotation == "\"R\"" || rawRotation == "\"theta\"") {
+		Pair(180f, 360f)
+	} else Pair(parseFloat(rawRotation), 0f)
 
 	val (linear, radial) = if (rawEmitter["mode"] == "RADIAL") {
 		Pair(null, parseRadialProperties(rawEmitter))
@@ -162,8 +164,10 @@ private fun parseSpawnProperties(rawEmitter: Map<String, String>): ParticleSpawn
 
 	return ParticleSpawnProperties(
 		baseX = baseX, baseY = baseY, shiftX = shiftX, shiftY = shiftY,
-		variationX = variationX, variationY = variationY, shiftVariationX = shiftVariationX, shiftVariationY = shiftVariationY,
-		rotation = rotation, rotationMultiplier = rotationMultiplier, linear = linear, radial = radial
+		variationX = variationX, variationY = variationY,
+		shiftVariationX = shiftVariationX, shiftVariationY = shiftVariationY,
+		rotation = rotation, rotationVariation = rotationVariation, rotationMultiplier = rotationMultiplier,
+		linear = linear, radial = radial,
 	)
 }
 
@@ -413,7 +417,9 @@ private fun parseParticleSize(rawEmitter: Map<String, String>): ParticleSize {
 		minSizeMultiplier = minMultiplier,
 		maxSizeMultiplier = maxMultiplier,
 		growX = flashGrow[0].pow(FLASH_FRAMES_PER_SECOND),
-		growY = flashGrow[1].pow(FLASH_FRAMES_PER_SECOND)
+		growY = flashGrow[1].pow(FLASH_FRAMES_PER_SECOND),
+		dynamicGrowX = 0f,
+		dynamicGrowY = 0f,
 	)
 }
 

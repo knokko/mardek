@@ -13,4 +13,6 @@ class ParticleSprite(
 	val sprite: BcSprite,
 ) {
 	internal constructor() : this("", BcSprite())
+
+	override fun toString() = name
 }

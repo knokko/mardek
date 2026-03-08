@@ -36,11 +36,11 @@ class EmissionWaves(
 	val particlesPerWave: Int,
 
 	/**
-	 * The number of rounds/periods
+	 * The number of rounds/periods, or `null` to indicate that there will be infinitely many rounds
 	 */
-	@BitField(id = 4)
+	@BitField(id = 4, optional = true)
 	@IntegerField(expectUniform = false, minValue = 0)
-	val numRounds: Int,
+	val numRounds: Int?,
 ) {
 
 	init {

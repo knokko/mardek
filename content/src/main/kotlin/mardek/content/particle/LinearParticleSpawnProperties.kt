@@ -62,8 +62,7 @@ class LinearParticleSpawnProperties(
 	@FloatField(expectMultipleOf = 0.1)
 	val shiftMaxVelocityY: Float,
 ) {
-	@Suppress("unused")
-	private constructor() : this(
+	constructor() : this(
 		0f, 0f, 0f, 0f,
 		0f, 0f, 0f, 0f
 	)

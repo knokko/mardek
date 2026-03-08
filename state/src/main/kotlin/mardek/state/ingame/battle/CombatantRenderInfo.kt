@@ -10,6 +10,13 @@ class CombatantRenderInfo {
 	val lastStatusEffectParticleEmissions = mutableMapOf<StatusEffect, Long>()
 
 	/**
+	 * For each status effect that this combatant currently has, this mapping tracks the state of its particle emitters.
+	 * Entries are inserted during the first frame where the combatant has the corresponding status effect, and are
+	 * deleted during the first frame where the combatant no longer has the status effect.
+	 */
+	val statusEffectParticles = mutableMapOf<StatusEffect, EffectParticlesState>()
+
+	/**
 	 * The last point in time (`System.nanoTime()`) where a player pointed to this combatant as the potential target
 	 * for an attack, skill, or item. This is only used to determine whether the blue 'target selection blink' should
 	 * be rendered, and is not important for the course of the battle.

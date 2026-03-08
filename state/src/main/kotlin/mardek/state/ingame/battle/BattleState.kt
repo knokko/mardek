@@ -59,8 +59,6 @@ class BattleState(
 
 	val particles = mutableListOf<ParticleEffectState>()
 
-	val customParticles = mutableListOf<CustomParticle>()
-
 	/**
 	 * The last mouse position that was detected (after receiving a `MouseMoveEvent`), in pixels
 	 */

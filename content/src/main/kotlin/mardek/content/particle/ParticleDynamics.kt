@@ -66,8 +66,8 @@ class ParticleDynamics(
 	@FloatField(expectMultipleOf = 1.0, commonValues = [1.0, 0.05])
 	val spin: Float,
 ) {
-	internal constructor() : this(
+	constructor() : this(
 		0f, 0f, 0f, 0f,
-		0f, 0f, 0f, 0f
+		0f, 1f, 1f, 0f
 	)
 }

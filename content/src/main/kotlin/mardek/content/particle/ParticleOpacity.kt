@@ -36,7 +36,7 @@ class ParticleOpacity(
 	@FloatField(expectMultipleOf = 0.1)
 	val limit: Float?,
 ) {
-	internal constructor() : this(0f, 0f, null)
+	constructor() : this(1f, 0f, null)
 
 	fun compute(timeSinceSpawn: Float): Float {
 		val uncappedResult = initial + grow * timeSinceSpawn

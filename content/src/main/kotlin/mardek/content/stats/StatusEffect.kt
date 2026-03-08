@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.particle.ParticleEffect
+import mardek.content.particle.ParticleEmitter
 import mardek.content.sprite.BcSprite
 import java.util.*
 import kotlin.collections.ArrayList
@@ -115,7 +116,7 @@ class StatusEffect(
 	val outerTextColor: Int,
 
 	@BitField(id = 30)
-	val passiveParticleSprites: Array<BcSprite>,
+	val particleEmitters: Array<ParticleEmitter> = emptyArray(),
 
 	@BitField(id = 31)
 	val shortName: String = niceName ?: flashName,
@@ -128,8 +129,7 @@ class StatusEffect(
 
 	constructor() : this(
 		"", null, false, false,
-		icon = BcSprite(), innerTextColor = 0, outerTextColor = 0,
-		passiveParticleSprites = emptyArray<BcSprite>(), id = UUID.randomUUID(),
+		icon = BcSprite(), innerTextColor = 0, outerTextColor = 0, id = UUID.randomUUID(),
 	)
 
 	override fun toString() = niceName ?: flashName

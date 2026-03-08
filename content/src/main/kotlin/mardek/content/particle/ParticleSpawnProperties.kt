@@ -74,30 +74,39 @@ class ParticleSpawnProperties(
 	val shiftVariationY: Float,
 
 	/**
-	 * When `rotation` is `null`, the initial rotation of each particle is random. Otherwise, the
-	 * initial rotation of each particle is `rotation`. However, this property is ignored when
-	 * this emitter is radial and `rotateToMoveDirection` is true.
+	 * The initial rotation of each particle is somewhere between `rotation - rotationVariation / 2` and
+	 * `rotation + rotationVariation / 2` degrees.
+	 *
+	 * However, this property is ignored when this emitter is radial and `rotateToMoveDirection` is true.
 	 */
-	@BitField(id = 8, optional = true)
+	@BitField(id = 8)
 	@FloatField(expectMultipleOf = 1.0)
-	val rotation: Float?,
+	val rotation: Float,
+
+	/**
+	 * The random variation to the initial rotation: the initial rotation is increased by a random number between
+	 * `-rotationVariation` and `rotationVariation`.
+	 */
+	@BitField(id = 9)
+	@FloatField(expectMultipleOf = 1.0)
+	val rotationVariation: Float,
 
 	/**
 	 * The `rotation` of new particles is multiplied by `rotationMultiplier` every second (continuously)
 	 */
-	@BitField(id = 9)
+	@BitField(id = 10)
 	@FloatField(expectMultipleOf = 1.0)
 	val rotationMultiplier: Float,
 
-	@BitField(id = 10, optional = true)
+	@BitField(id = 11, optional = true)
 	val linear: LinearParticleSpawnProperties?,
 
-	@BitField(id = 11, optional = true)
+	@BitField(id = 12, optional = true)
 	val radial: RadialParticleSpawnProperties?,
 ) {
 	internal constructor() : this(
 		0f, 0f, 0f, 0f,
 		0f, 0f, 0f, 0f,
-		null, 0f, null, null
+		0f, 0f, 0f, null, null
 	)
 }

@@ -69,9 +69,24 @@ class ParticleSize(
 		expectedIntegerMultiple = IntegerField(expectUniform = false, digitSize = 3),
 	)
 	val growY: Float,
+
+	/**
+	 * The `growX` of each particle will be increased by `dynamicGrowX` every second (continuously)
+	 */
+	@BitField(id = 8)
+	@FloatField(expectMultipleOf = 0.1, commonValues = [1.0])
+	val dynamicGrowX: Float,
+
+	/**
+	 * The `growY` of each particle will be increased by `dynamicGrowY` every second (continuously)
+	 */
+	@BitField(id = 9)
+	@FloatField(expectMultipleOf = 0.1, commonValues = [1.0])
+	val dynamicGrowY: Float,
 ) {
 	internal constructor() : this(
 		0f, 0f, 0f, 0f,
-		0f, 0f, 0f, 0f
+		0f, 0f, 0f, 0f,
+		0f, 0f,
 	)
 }

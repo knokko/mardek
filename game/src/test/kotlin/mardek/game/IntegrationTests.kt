@@ -448,4 +448,12 @@ class IntegrationTests {
 	fun testGoznorItemShop() {
 		TestShops.testGoznorItemsChapter1(instance)
 	}
+
+	@Test
+	fun testParticles() {
+		TestParticles.testPoison(instance)
+		TestParticles.testBlindness(instance)
+		TestParticles.testSleep(instance)
+		TestParticles.testParalysis(instance)
+	}
 }

@@ -79,9 +79,11 @@ class ParticleEmitterState(
 	val particles = mutableListOf<ParticleState>()
 	var numSpawnedWaves = 0
 
-	internal fun update(startTime: Long, currentTime: Long): Boolean {
+	fun update(startTime: Long, currentTime: Long): Boolean {
 		val passedSeconds = (currentTime - startTime) / 1000_000_000f
-		val expectedSpawnedWaves = min(emitter.waves.numRounds, 1 + ((passedSeconds - emitter.waves.delay) / emitter.waves.period).toInt())
+		val maxEmitterRounds = emitter.waves.numRounds
+		var expectedSpawnedWaves = 1 + ((passedSeconds - emitter.waves.delay) / emitter.waves.period).toInt()
+		if (maxEmitterRounds != null) expectedSpawnedWaves = min(maxEmitterRounds, expectedSpawnedWaves)
 		while (numSpawnedWaves < expectedSpawnedWaves) {
 			val deltaTime = emitter.waves.delay + numSpawnedWaves * emitter.waves.period
 			for (index in 0 until emitter.waves.particlesPerWave) {
@@ -91,7 +93,7 @@ class ParticleEmitterState(
 		}
 
 		particles.removeIf { it.hasExpired(currentTime) }
-		return particles.isEmpty() && numSpawnedWaves >= emitter.waves.numRounds
+		return maxEmitterRounds != null && particles.isEmpty() && numSpawnedWaves >= maxEmitterRounds
 	}
 }
 
@@ -116,7 +118,8 @@ class ParticleState(
 		var initialY = emitter.spawn.baseY + deltaTime * emitter.spawn.shiftY
 		var initialWidth = emitter.size.baseWidth + deltaTime * emitter.size.shiftWidth
 		var initialHeight = emitter.size.baseHeight + deltaTime * emitter.size.shiftHeight
-		var initialRotation = emitter.spawn.rotation ?: (360f * Random.nextFloat())
+		val variationR = emitter.spawn.rotationVariation
+		var initialRotation = emitter.spawn.rotation + Random.nextFloat() * variationR - 0.5f * variationR
 		val variationX = emitter.spawn.variationX + deltaTime * emitter.spawn.shiftVariationX
 		val variationY = emitter.spawn.variationY + deltaTime * emitter.spawn.shiftVariationY
 		initialX += Random.nextFloat() * variationX - 0.5f * variationX
@@ -254,4 +257,43 @@ class ParticleState(
 		val t = (renderTime - spawnTime) / 1000_000_000f
 		return initialRotation + t * emitter.dynamics.spin
 	}
+
+	private fun computeSize(renderTime: Long, initialSize: Float, grow: Float, dynamicGrow: Float): Float {
+		if (grow == 1f && dynamicGrow == 0f) return initialSize
+
+		val t = (renderTime - spawnTime) / 1000_000_000.0
+		if (dynamicGrow == 0f) return (initialSize * grow.toDouble().pow(t)).toFloat()
+
+		/*
+		 * The recurrence formula for the size is:
+		 *
+		 * s[t] = s[t-1] * g[t-1] where
+		 *   g[t] = g[t-1] + g_s = g[0] + t * g_s
+		 *
+		 * So s[t] = s[t-1] * (g[0] + (t-1) * g_s) =
+		 *     s[0] * g[0] * (g[0] + g_s) * (g[0] + 2g_s) * (g[0] + 3g_s) * ... * (g[0] + (t-1)g_s)
+		 *
+		 * According to AI, this is a multiplicative, first-order, non-linear recurrence, which does not have a nice
+		 * characteristic equation that can be used to solve it. It looks like this formula does not really have an
+		 * exact closed-form expression, so let's compute it step-by-step instead.
+		 */
+		val numSteps = (t * 30).toInt()
+		var size = initialSize
+		for (step in 0 until numSteps) {
+			size *= (grow + step * dynamicGrow / 30)
+		}
+		val nextSize = size * (grow + numSteps * dynamicGrow / 30)
+		val remainingTime = t - numSteps / 30.0
+		val factor = remainingTime * 30.0
+		return ((1.0 - factor) * size + factor * nextSize).toFloat()
+	}
+
+	fun computeWidth(renderTime: Long) = computeSize(
+		renderTime, initialWidth, emitter.size.growX, emitter.size.dynamicGrowX
+	) // TODO CHAP1 Improve Strike particles
+	// TODO CHAP1 Improve the crystal pointer that points down to "Attack", "Powers", etc...
+
+	fun computeHeight(renderTime: Long) = computeSize(
+		renderTime, initialHeight, emitter.size.growY, emitter.size.dynamicGrowY
+	)
 }

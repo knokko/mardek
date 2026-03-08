@@ -48,7 +48,8 @@ class TestParticleEffectImporter {
 		assertEquals(8, emitter.waves.particlesPerWave)
 		assertEquals(0.5f, emitter.size.minSizeMultiplier)
 		assertEquals(1.5f, emitter.size.maxSizeMultiplier)
-		assertNull(emitter.spawn.rotation)
+		assertEquals(180f, emitter.spawn.rotation)
+		assertEquals(360f, emitter.spawn.rotationVariation)
 		assertSame(content.audio.effects.find { it.flashName == "slash2" }!!, emitter.waves.delayedSound)
 	}
 

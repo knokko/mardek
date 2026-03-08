@@ -37,5 +37,5 @@ class EmitterTransform(
 	@FloatField(expectMultipleOf = 1.0)
 	val rotation: Float,
 ) {
-	internal constructor() : this(0f, 0f, 0f)
+	constructor() : this(0f, 0f, 0f)
 }
