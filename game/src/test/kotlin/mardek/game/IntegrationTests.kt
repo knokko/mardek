@@ -274,6 +274,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testPerformHuffPuff() {
+		TestSkills.testHuffPuffFlow(instance)
+	}
+
+	@Test
 	fun testPerformFireBreath() {
 		TestSkills.testFireBreathFlow(instance)
 	}

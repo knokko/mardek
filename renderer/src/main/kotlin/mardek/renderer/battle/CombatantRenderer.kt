@@ -401,7 +401,9 @@ class CombatantRenderer(
 		var meleeElement: Element? = null
 		var magicElement: Element? = null
 		var isMoving = false
-		if (stateMachine is BattleStateMachine.CastSkill && stateMachine.caster === combatant && !showcase) {
+		if (stateMachine is BattleStateMachine.CastSkill && stateMachine.caster === combatant &&
+			!showcase && stateMachine.skill.particleEffect != null
+		) {
 			magicElement = stateMachine.skill.element
 		}
 

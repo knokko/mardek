@@ -339,25 +339,26 @@ class BattleState(
 			}
 
 			if (state.canSpawnTargetParticles && state.targetParticlesSpawnTime == 0L && !state.hasAppliedAllDamage()) {
-				val particleEffect = state.skill.particleEffect ?: throw UnsupportedOperationException(
-					"Ranged skills must have a particle effect"
-				)
-
-				for ((index, target) in state.targets.withIndex()) {
-					val particle = ParticleEffectState(
-						particle = particleEffect,
-						position = target.renderInfo.hitPoint,
-						mirrorX = true,
-					)
-					particle.startTime = System.nanoTime() + 250_000_000L * index
-					particles.add(particle)
+				val particleEffect = state.skill.particleEffect
+				if (particleEffect != null) {
+					for ((index, target) in state.targets.withIndex()) {
+						val particle = ParticleEffectState(
+							particle = particleEffect,
+							position = target.renderInfo.hitPoint,
+							mirrorX = true,
+						)
+						particle.startTime = System.nanoTime() + 250_000_000L * index
+						particles.add(particle)
+					}
 				}
+
 				state.targetParticlesSpawnTime = System.nanoTime()
 			}
 
+			val damageDelay = state.skill.particleEffect?.damageDelay ?: 0f
 			if (state.targetParticlesSpawnTime != 0L && !state.isReactionChallengePending() && state.calculatedDamage == null) {
 				val spentSeconds = (System.nanoTime() - state.targetParticlesSpawnTime) / 1000_000_000f
-				if (spentSeconds > state.skill.particleEffect!!.damageDelay) {
+				if (spentSeconds > damageDelay) {
 					val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
 
 					val result = MoveResultCalculator(context).computeSkillResult(
@@ -378,7 +379,7 @@ class BattleState(
 				for ((index, targetDamage) in calculatedDamage.withIndex()) {
 					if (targetDamage == null) continue
 					val spentSeconds = (System.nanoTime() - state.targetParticlesSpawnTime) / 1000_000_000f
-					if (spentSeconds > state.skill.particleEffect!!.damageDelay + 0.25 * index) {
+					if (spentSeconds > damageDelay + 0.25 * index) {
 						applyMoveResultToTarget(context, targetDamage)
 						calculatedDamage[index] = null
 					}

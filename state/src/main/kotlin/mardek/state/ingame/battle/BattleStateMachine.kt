@@ -399,7 +399,7 @@ sealed class BattleStateMachine {
 	 * A combatant is casting a ranged skill
 	 */
 	@BitStruct(backwardCompatible = true)
-	class CastSkill( // TODO CHAP1 Handle huff-puff
+	class CastSkill(
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "combatants")
 		val caster: CombatantState,

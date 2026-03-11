@@ -152,7 +152,6 @@ object TestSkills {
 			val recover = heroDeugan.characterClass.skillClass.actions.find { it.name == "Recover" }!!
 			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
 
-			// Make sure Mardek gets on turn first, since his sword cannot miss
 			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.currentHealth = 10
 			deuganState.currentMana = 20
@@ -240,6 +239,100 @@ object TestSkills {
 			val selection = battle.state as BattleStateMachine.SelectMove
 			assertSame(battle.livingPlayers()[0], selection.onTurn)
 			assertEquals(BattleMoveSelectionAttack(null), selection.selectedMove)
+		}
+	}
+
+	fun testHuffPuffFlow(instance: TestingInstance) {
+		instance.apply {
+			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val state = InGameState(simpleCampaignState(), "puff")
+
+			performTimelineTransition(
+				updateContext, state.campaign,
+				"MainTimeline", "Searching for the fallen 'star'"
+			)
+
+			val huffPuff = childMardek.characterClass.skillClass.actions.find { it.name == "Huff-Puff" }!!
+
+			val mardekState = state.campaign.characterStates[childMardek]!!
+			assertEquals(50, mardekState.determineMaxHealth(
+				childMardek.baseStats, emptySet()
+			))
+			mardekState.currentHealth = 40
+			mardekState.currentMana = 10
+			mardekState.equipment[childMardek.characterClass.equipmentSlots[3]] = content.items.items.find {
+				it.displayName == "Tunic"
+			}!!
+
+			startSimpleBattle(state.campaign)
+
+			state.update(updateContext)
+			sleep(1000)
+			repeat(101) {
+				state.update(updateContext)
+			}
+
+			val battle = ((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
+			val mardek = battle.livingPlayers()[0]
+			battle.state.let {
+				assertInstanceOf<BattleStateMachine.SelectMove>(it)
+				assertSame(mardek, it.onTurn)
+				assertEquals(BattleMoveSelectionAttack(null), it.selectedMove)
+			}
+
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveUp))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveUp))
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(repeatKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			state.update(updateContext)
+
+			assertEquals(40, mardek.currentHealth)
+			val castSkill = battle.state as BattleStateMachine.CastSkill
+			assertSame(mardek, castSkill.caster)
+			assertArrayEquals(arrayOf(mardek), castSkill.targets)
+			assertSame(huffPuff, castSkill.skill)
+			assertNull(castSkill.reactionChallenge)
+			assertNull(castSkill.calculatedDamage)
+			assertFalse(castSkill.canSpawnTargetParticles)
+			assertEquals(0L, castSkill.targetParticlesSpawnTime)
+
+			val playerColors = arrayOf(
+				Color(255, 204, 153), // Skin color
+				Color(195, 157, 79), // Deugan hair
+			)
+			val monsterColor = arrayOf(Color(85, 56, 133))
+
+			sleep(1000)
+			testRendering(
+				state, 800, 450, "huff-puff1",
+				playerColors + monsterColor, emptyArray(),
+			)
+			assertTrue(castSkill.canSpawnTargetParticles)
+
+			val beforeUpdateTime = System.nanoTime()
+			repeat(100) {
+				state.update(updateContext)
+			}
+			assertTrue(castSkill.targetParticlesSpawnTime > beforeUpdateTime)
+
+			sleep(1000)
+			testRendering(
+				state, 800, 450, "huff-puff2",
+				playerColors + monsterColor, emptyArray(),
+			)
+			repeat(100) {
+				state.update(updateContext)
+			}
+			assertArrayEquals(arrayOf(null), castSkill.calculatedDamage)
+
+			assertEquals(50, mardek.currentHealth)
+			assertEquals(6, mardek.currentMana)
+			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
 		}
 	}
 
