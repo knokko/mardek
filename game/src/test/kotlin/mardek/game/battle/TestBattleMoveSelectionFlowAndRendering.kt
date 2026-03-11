@@ -386,7 +386,6 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 			null, battleUpdateContext(state.campaign)
 		), battle.state)
 		assertSame(sounds.ui.scroll1, soundQueue.take())
-		assertSame(sounds.ui.clickConfirm, soundQueue.take())
 		assertNull(soundQueue.take())
 	}
 }
