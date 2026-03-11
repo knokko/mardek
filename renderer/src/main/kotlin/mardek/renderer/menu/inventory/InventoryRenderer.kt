@@ -27,6 +27,7 @@ internal fun renderInventory(menuContext: MenuRenderContext, region: Rectangle) 
 		tab.equipmentRenderInfo = renderCharacterBars(
 			inventoryContext, tab.interaction, state.usedPartyMembers(),
 			region.minX + 5 * scale, region.minY + 3 * scale, region.maxX, scale,
+			forbidSelectedPointer = !tab.inside,
 		)
 		if (gridStartX >= 30 * scale) {
 			val startY = region.boundY - gridOffset

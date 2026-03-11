@@ -90,7 +90,7 @@ internal class AudioManager {
 		buffer
 	}
 
-	fun playMusic(audio: Int) = play(musicSource, audio)
+	fun playMusic(audio: Int) = play(musicSource, audio) // TODO CHAP1 Audio looping
 
 	fun stopMusic() {
 		assertAlSuccess("alGetSourcei")

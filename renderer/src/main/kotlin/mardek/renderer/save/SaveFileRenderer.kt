@@ -21,6 +21,7 @@ import mardek.content.Content
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.animation.renderPortraitAnimation
+import mardek.renderer.menu.determinePointerOffset
 import mardek.renderer.util.gradientWithBorder
 import mardek.state.saves.SaveFile
 import mardek.state.util.Rectangle
@@ -98,7 +99,7 @@ internal fun renderSaveFile(
 		val pointerX = region.minX - 1.4f * pointerHeight
 		val pointerImage = content.ui.pointer
 		imageBatch.simpleScale(
-			pointerX, pointerY,
+			pointerX + 0.1f * region.height * determinePointerOffset(), pointerY,
 			pointerHeight / pointerImage.height,
 			pointerImage.index,
 		)

@@ -60,10 +60,14 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			if (column == tab.partyIndex) {
 				selectedCharacterX = x - characterScale - 1
 				selectedCharacterY = y - characterScale - 1
-				imageBatch.rotated(
-					x + 8f * characterScale, y - 5f * characterScale, 270f, 0.1f * characterScale,
-					context.content.ui.pointer.index, 0, -1
-				)
+				if (!tab.inside) {
+					imageBatch.rotated(
+						x + 8f * characterScale,
+						y - 5f * characterScale + 2f * characterScale * determinePointerOffset(),
+						270f, 0.1f * characterScale,
+						context.content.ui.pointer.index, 0, -1,
+					)
+				}
 			}
 		}
 
@@ -82,10 +86,10 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			imageBatch.simple(x, iconY.toFloat(), x + width, iconY + height, icon.index)
 
 			if (column == tab.skillTypeIndex && tab.inside) {
-				val midX = x + 1f * characterScale
-				val midY = iconY + 1f * characterScale
 				imageBatch.rotated(
-					midX, midY, -45f, characterScale / 16f,
+					x + 1.5f * characterScale * determinePointerOffset(),
+					iconY + 1.5f * characterScale * determinePointerOffset(),
+					-45f, characterScale / 16f,
 					context.content.ui.pointer.index, 0, -1
 				)
 			}
@@ -198,8 +202,8 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 				)
 
 				if (tab.inside && row == tab.skillIndex) imageBatch.simpleScale(
-					skillsMinX - region.height / 20f, baseY.toFloat(),
-					region.height / 2000f, context.content.ui.pointer.index
+					skillsMinX - region.height * 0.05f + 0.01f * region.height * determinePointerOffset(),
+					baseY.toFloat(), region.height / 2000f, context.content.ui.pointer.index,
 				)
 
 				if (skillEntry.mastery >= skill.masteryPoints) {

@@ -65,13 +65,13 @@ object TestInventory {
 			val baseColors = arrayOf(
 				Color(177, 171, 171, 255), // Hero Mardek sprite armor
 				Color(91, 141, 46), // Hero Deugan sprite robe
-				Color(51, 51, 204), // Crystal pointer
 				Color(233, 233, 233), // Hero Armour
 				Color(255, 204, 102), // Balmung
 				Color(183, 142, 0), // Elixir
 				Color(179, 162, 117), // Item grid border color
 				Color(141, 103, 49), // Clock color
 			)
+			val crystalPointerColor = arrayOf(Color(51, 51, 204))
 			val forbiddenSlotColor = arrayOf(
 				Color(255, 162, 162),
 			)
@@ -80,7 +80,7 @@ object TestInventory {
 			assertHasHeroArmour()
 			testRendering(
 				state, 900, 700, "inventory-drag1",
-				baseColors, forbiddenSlotColor,
+				baseColors, forbiddenSlotColor + crystalPointerColor,
 			)
 			assertHasHeroArmour()
 			val tab = state.menu.currentTab as InventoryTab
@@ -170,7 +170,7 @@ object TestInventory {
 			// Should render the slot red
 			testRendering(
 				state, 900, 700, "inventory-drag2",
-				baseColors + forbiddenSlotColor, emptyArray(),
+				baseColors + forbiddenSlotColor + crystalPointerColor, emptyArray(),
 			)
 
 			fun assertEquipment(owner: PlayableCharacter, slot: Int, itemName: String?) {

@@ -8,6 +8,7 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.CombatStat
+import mardek.renderer.menu.determinePointerOffset
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
@@ -31,13 +32,15 @@ internal fun renderCharacterBars(
 	inventoryContext: InventoryRenderContext,
 	interaction: InventoryInteractionState,
 	owners: List<UsedPartyMember>,
-	startX: Int, startY: Int, maxX: Int, scale: Int
+	startX: Int, startY: Int, maxX: Int, scale: Int,
+	forbidSelectedPointer: Boolean = false,
 ): Collection<EquipmentRowRenderInfo> {
 	val renderInfo = mutableListOf<EquipmentRowRenderInfo>()
 	for ((index, character, characterState) in owners) {
 		renderInfo.add(renderCharacterBar(
 			inventoryContext, startX, startY + index * scale * CHARACTER_BAR_HEIGHT,
-			maxX, scale, interaction, index == interaction.partyIndex, character, characterState
+			maxX, scale, interaction, index == interaction.partyIndex,
+			forbidSelectedPointer, character, characterState,
 		))
 	}
 	return renderInfo
@@ -45,7 +48,7 @@ internal fun renderCharacterBars(
 
 private fun renderCharacterBar(
 	inventoryContext: InventoryRenderContext, startX: Int, startY: Int, maxX: Int, scale: Int,
-	interaction: InventoryInteractionState, isSelected: Boolean,
+	interaction: InventoryInteractionState, isSelected: Boolean, forbidSelectedPointer: Boolean,
 	character: PlayableCharacter, characterState: CharacterState,
 ): EquipmentRowRenderInfo {
 	inventoryContext.run {
@@ -110,10 +113,12 @@ private fun renderCharacterBar(
 		if (isSelected) {
 			val selectedColor = rgba(0, 30, 150, 100)
 			colorBatch.fill(startX, startY, maxX, startY + barHeight - 1, selectedColor)
-			imageBatch.simpleScale(
-				startX - 9f * scale, startY + 8f * scale,
-				scale * 0.15f, context.content.ui.pointer.index
-			)
+			if (!forbidSelectedPointer) {
+				imageBatch.simpleScale(
+					startX - 12f * scale + 3f * scale * determinePointerOffset(), startY + 8f * scale,
+					scale * 0.15f, context.content.ui.pointer.index
+				)
+			}
 		}
 
 		val x1 = characterX + 16 * scale + margin / 2

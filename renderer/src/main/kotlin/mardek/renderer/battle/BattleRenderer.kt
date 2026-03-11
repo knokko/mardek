@@ -42,7 +42,7 @@ internal fun renderBattle(
 
 	// The combatant info popup needs to render above everything else
 	val lateColorBatch = context.addColorBatch(100)
-	val lateOvalBatch = context.addOvalBatch(4)
+	val lateOvalBatch = context.addOvalBatch(6)
 	val lateKimBatch = context.addKim3Batch(20)
 	val lateImageBatch = context.addImageBatch(200)
 	val lateTextBatch = context.addTextBatch(2000)
@@ -93,7 +93,7 @@ internal fun renderBattle(
 		if (isChoosingSkillOrItem && !isSelectingTarget) {
 			renderActionBar(
 				ActionBarRenderMode.Background, battleContext, colorBatch, ovalBatch,
-				kimBatch, imageBatch, textBatch, actionBarRegion
+				lateOvalBatch, kimBatch, imageBatch, textBatch, actionBarRegion
 			)
 
 			val framebuffers = context.framebuffers
@@ -110,7 +110,7 @@ internal fun renderBattle(
 			val blurKimBatch = context.addKim3Batch(50)
 			renderActionBar(
 				ActionBarRenderMode.BlurredBackground, battleContext,
-				null, blurOvalBatch, blurKimBatch, null, null,
+				null, blurOvalBatch, lateOvalBatch, blurKimBatch, null, null,
 				Rectangle(0, 0, actionBarRegion.width, actionBarRegion.height)
 			)
 
@@ -123,13 +123,13 @@ internal fun renderBattle(
 			).fixedColorTransform(0, rgba(1f, 1f, 1f, 0.5f))
 			renderActionBar(
 				ActionBarRenderMode.Foreground, battleContext, lateColorBatch, lateOvalBatch,
-				lateKimBatch, lateImageBatch, lateTextBatch, actionBarRegion
+				lateOvalBatch, lateKimBatch, lateImageBatch, lateTextBatch, actionBarRegion,
 			)
 		} else if (!isSelectingTarget) {
 			for (renderMode in ActionBarRenderMode.entries) {
 				renderActionBar(
-					renderMode, battleContext, colorBatch, ovalBatch,
-					kimBatch, imageBatch, textBatch, actionBarRegion
+					renderMode, battleContext, colorBatch, ovalBatch, lateOvalBatch,
+					kimBatch, imageBatch, textBatch, actionBarRegion,
 				)
 			}
 		}

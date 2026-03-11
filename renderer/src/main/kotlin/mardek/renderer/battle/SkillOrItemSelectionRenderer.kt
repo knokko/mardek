@@ -11,6 +11,7 @@ import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
+import mardek.renderer.menu.determinePointerOffset
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
 import mardek.state.ingame.battle.BattleStateMachine
@@ -109,7 +110,7 @@ internal fun renderSkillOrItemSelection(
 				val pointer = context.content.ui.pointer
 				val scale = 0.9f * entryHeight / pointer.height.toFloat()
 				val width = scale * pointer.width
-				val x = region.minX + marginX * 0.6f - width
+				val x = region.minX + marginX * 0.6f - width + 0.015f * region.height * determinePointerOffset()
 				imageBatch.simpleScale(x, minY + 0.1f * entryHeight, scale, pointer.index)
 			}
 

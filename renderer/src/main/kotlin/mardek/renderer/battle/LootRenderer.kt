@@ -9,6 +9,7 @@ import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
 import mardek.renderer.area.ui.renderLootInventoryGrid
+import mardek.renderer.menu.determinePointerOffset
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderButton
 import mardek.state.UsedPartyMember
@@ -47,6 +48,7 @@ internal fun renderBattleLoot(
 	val selectedElement = loot.selectedElement
 	val pointer = context.content.ui.pointer
 	val pointerScale = 6f * scale / pointer.height
+	val pointerOffset = 0.0075f * region.height * determinePointerOffset()
 	val rowHeight = 18 * scale
 	val itemX = region.minX + 30 * scale
 	var itemY = region.minY + 40 * scale
@@ -86,7 +88,7 @@ internal fun renderBattleLoot(
 
 		if (selectedElement is BattleLoot.SelectedItem && row == selectedElement.index) {
 			imageBatch.simpleScale(
-				itemX - 25f * scale, itemY + 5f * scale,
+				itemX - 26f * scale + pointerOffset, itemY + 5f * scale,
 				pointerScale, pointer.index,
 			)
 
@@ -120,14 +122,14 @@ internal fun renderBattleLoot(
 
 	if (selectedElement is BattleLoot.SelectedGetAll) {
 		imageBatch.simpleScale(
-			region.minX + 3f * scale, region.minY + 28f * scale,
+			region.minX + pointerOffset, region.minY + 28f * scale,
 			pointerScale, pointer.index,
 		)
 	}
 
 	if (selectedElement is BattleLoot.SelectedFinish) {
 		imageBatch.simpleScale(
-			region.minX + 3f * scale, region.boundY - 33f * scale,
+			region.minX + pointerOffset, region.boundY - 33f * scale,
 			pointerScale, pointer.index,
 		)
 	}

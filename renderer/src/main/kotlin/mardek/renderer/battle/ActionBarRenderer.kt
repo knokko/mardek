@@ -1,6 +1,7 @@
 package mardek.renderer.battle
 
 import com.github.knokko.boiler.utilities.ColorPacker.changeAlpha
+import com.github.knokko.boiler.utilities.ColorPacker.multiplyAlpha
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
@@ -11,6 +12,7 @@ import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.KimSprite
+import mardek.renderer.menu.determinePointerOffset
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleMoveSelectionFlee
 import mardek.state.ingame.battle.BattleMoveSelectionItem
@@ -21,8 +23,9 @@ import mardek.state.util.Rectangle
 import kotlin.math.max
 
 internal fun renderActionBar(
-	renderMode: ActionBarRenderMode, battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch?, ovalBatch: Vk2dOvalBatch,
-	kimBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch?, textBatch: Vk2dGlyphBatch?, region: Rectangle
+	renderMode: ActionBarRenderMode, battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch?,
+	ovalBatch: Vk2dOvalBatch, lateOvalBatch: Vk2dOvalBatch,
+	kimBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch?, textBatch: Vk2dGlyphBatch?, region: Rectangle,
 ) {
 	battleContext.run {
 		val stateMachine = battle.state
@@ -93,8 +96,9 @@ internal fun renderActionBar(
 		val pointerScale = region.height.toFloat() / context.content.ui.pointer.width
 		if (isPassive && renderMode == ActionBarRenderMode.Background) {
 			imageBatch!!.rotated(
-				iconPositions[selectedIndex] + iconSize * 0.5f, region.minY - 0.4f * region.height,
-				270f, pointerScale, context.content.ui.pointer.index, 0, -1
+				iconPositions[selectedIndex] + iconSize * 0.5f,
+				region.minY - 0.4f * region.height + 0.1f * region.height * determinePointerOffset(),
+				270f, pointerScale, context.content.ui.pointer.index, 0, -1,
 			)
 		}
 
@@ -151,6 +155,15 @@ internal fun renderActionBar(
 					x + radius, region.minY + marginY + radius, radius, radius,
 					circleColor, circleColor, brightCircleColor, selectedLineColor, 0,
 					0.8f, 0.95f, 1f, 1.15f,
+				)
+				val outerColor = changeAlpha(brightCircleColor, 0.3f + 0.3f * determinePointerOffset())
+				val fadingColor = multiplyAlpha(outerColor, 0.2f)
+				lateOvalBatch.complex(
+					x - region.height, region.minY - region.height,
+					x + 2 * region.height, region.maxY + region.height,
+					x + radius, region.minY + marginY + radius, radius, radius,
+					0, 0, outerColor, fadingColor, 0,
+					0.95f, 1f, 1.5f, 1.5f,
 				)
 
 				val text = when (selectedIndex) {

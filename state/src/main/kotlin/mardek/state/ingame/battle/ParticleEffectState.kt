@@ -291,7 +291,6 @@ class ParticleState(
 	fun computeWidth(renderTime: Long) = computeSize(
 		renderTime, initialWidth, emitter.size.growX, emitter.size.dynamicGrowX
 	)
-	// TODO CHAP1 Improve the crystal pointer that points down to "Attack", "Powers", etc...
 
 	fun computeHeight(renderTime: Long) = computeSize(
 		renderTime, initialHeight, emitter.size.growY, emitter.size.dynamicGrowY
