@@ -23,7 +23,7 @@ fun main() {
 //	profiler.start()
 	val performance = AnalyzePerformance()
 	val content = BITSER.fromBytes(Content::class.java, bytes, Bitser.BACKWARD_COMPATIBLE, performance)
-	println(performance)
+	println(performance.stages)
 //	profiler.stop()
 //
 //	storage.getThreadStorage(Thread.currentThread().id).print(System.out, 10, 1.0)

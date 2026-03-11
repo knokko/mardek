@@ -1,8 +1,11 @@
 package mardek.content.animation
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.LazyReferences
+import com.github.knokko.bitser.field.NestedFieldSetting
 
 /**
  * Represents an animation that is possibly *skinned*. When a skinned animation is being rendered, the renderer will
@@ -25,7 +28,8 @@ class SkinnedAnimation(
 	 * The skins of this animation.
 	 */
 	@BitField(id = 1)
-	val skins: HashMap<String, AnimationFrames>, // TODO CHAP1 Make the values lazy
+	@NestedFieldSetting(path = "v", fieldName = "SKINS_VALUES_PROPERTIES")
+	val skins: HashMap<String, ReferenceLazyBits<AnimationFrames>>,
 ) {
 
 	@Suppress("unused")
@@ -37,5 +41,12 @@ class SkinnedAnimation(
 	 * Checks whether any of the skins has at least 1 (child) node whose special is `special`. This method is nice for
 	 * unit-testing that the import succeeded.
 	 */
-	fun hasSpecial(special: SpecialAnimationNode) = skins.values.any { it.hasSpecialNode(special) }
+	fun hasSpecial(special: SpecialAnimationNode) = skins.values.any { it.get().hasSpecialNode(special) }
+
+	companion object {
+
+		@Suppress("unused")
+		@LazyReferences(labels = ["animation sprites", "skinned animations"])
+		private const val SKINS_VALUES_PROPERTIES = false
+	}
 }

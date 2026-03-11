@@ -1,5 +1,6 @@
 package mardek.importer.animation
 
+import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.jpexs.decompiler.flash.helpers.CodeFormatting
 import com.jpexs.decompiler.flash.helpers.StringBuilderTextWriter
@@ -39,7 +40,7 @@ internal fun getScript(source: ASMSource): String {
 
 private fun extractEquipmentSpecial(animation: SkinnedAnimation): SpecialAnimationNode? {
 	for (childFrames in animation.skins.values) {
-		for (frame in childFrames.frames) {
+		for (frame in childFrames.get().frames) {
 			for (node in frame.nodes) {
 				if (node.animation == null) {
 					if (node.special == SpecialAnimationNode.Weapon || node.special == SpecialAnimationNode.Shield) {
@@ -168,7 +169,7 @@ internal fun importSkinnedAnimation(tag: DefineSpriteTag, context: AnimationImpo
 	if (existing != null) return existing
 
 	val rawSkins = simulateAnimations(tag)
-	val skins = HashMap<String, AnimationFrames>()
+	val skins = HashMap<String, ReferenceLazyBits<AnimationFrames>>()
 
 	val skinsMap = mutableMapOf<String, MutableList<DoActionTag>>()
 	context.scriptMapping[tagID] = skinsMap
@@ -244,7 +245,9 @@ internal fun importSkinnedAnimation(tag: DefineSpriteTag, context: AnimationImpo
 			}
 			AnimationFrame(duration = 1.seconds / FLASH_FRAMES_PER_SECOND, nodes = nodes.toTypedArray())
 		}
-		if (frames.isNotEmpty()) skins[name.lowercase(Locale.ROOT)] = AnimationFrames(frames.toTypedArray())
+		if (frames.isNotEmpty()) {
+			skins[name.lowercase(Locale.ROOT)] = ReferenceLazyBits(AnimationFrames(frames.toTypedArray()))
+		}
 	}
 
 	val result = SkinnedAnimation(
@@ -295,7 +298,7 @@ internal fun findDependencies(parentNodes: List<AnimationNode>): Pair<Array<Anim
 			if (animation != null && !usedAnimations.containsKey(animation.defineSpriteFlashID)) {
 				usedAnimations[animation.defineSpriteFlashID] = animation
 				for (frames in animation.skins.values) {
-					for (frame in frames) {
+					for (frame in frames.get()) {
 						for (childNode in frame.nodes) nextNodes.add(childNode)
 					}
 				}

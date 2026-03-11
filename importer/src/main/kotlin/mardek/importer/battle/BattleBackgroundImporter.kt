@@ -24,14 +24,14 @@ internal fun importBattleBackgrounds(content: BattleContent) {
 	val combined = mutableMapOf<String, Array<AnimationNode>>()
 	for ((name, frames) in backgrounds1.skins) {
 		if (name.isEmpty()) continue
-		val firstFrame = frames.frames[0]
+		val firstFrame = frames.get().frames[0]
 		combined[name] = firstFrame.nodes
 	}
 
 	for ((name, frames) in backgrounds2.skins) {
 		if (name.isEmpty()) continue
 
-		val firstFrame = frames.frames[0]
+		val firstFrame = frames.get().frames[0]
 		val existing = combined[name]
 		if (existing == null) {
 			combined[name] = firstFrame.nodes

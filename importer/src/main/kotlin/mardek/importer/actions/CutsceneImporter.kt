@@ -57,7 +57,7 @@ private fun importIntroCutscene(content: ActionContent) {
 		id = UUID.fromString("9fbfa37e-b304-4e94-aee8-037ca3b6b4ad"),
 		name = "Chapter 1 intro",
 		payload = SimpleLazyBits(CutscenePayload(
-			frames = chapter1IntroUseful,
+			frames = chapter1IntroUseful.get(),
 			magicScale = magicScale,
 			musicTrack = "Intro",
 			subtitles = chapter1IntroTexts.toTypedArray(),
@@ -90,7 +90,7 @@ private fun importFallingStarCutscene(content: Content) {
 		id = UUID.fromString("79f85f55-5321-415d-a12e-1d58f32f3191"),
 		name = "Falling Star",
 		payload = SimpleLazyBits(CutscenePayload(
-			frames = fallingStarUseful,
+			frames = fallingStarUseful.get(),
 			magicScale = magicScale,
 			musicTrack = null,
 			subtitles = emptyArray(),
