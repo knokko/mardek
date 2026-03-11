@@ -421,15 +421,10 @@ class BattleState(
 
 		val target = entry.target
 		if (!entry.missed) {
-			if (entry.damage != 0 || entry.damageMana == 0) {
-				target.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
-					oldHealth = target.currentHealth,
-					oldMana = target.currentMana,
-					gainedHealth = -entry.damage,
-					element = entry.element,
-					overrideColor = entry.overrideBlinkColor,
-				)
-			} else {
+
+			// We can only show 1 damage indicator (otherwise, they overlap), so we should choose the best one
+			// 1. If mana damage was dealt, but no health damage, we show the mana damage
+			if (entry.damageMana != 0 && entry.damage == 0) {
 				target.renderInfo.lastDamageIndicator = DamageIndicatorMana(
 					oldHealth = target.currentHealth,
 					oldMana = target.currentMana,
@@ -437,6 +432,24 @@ class BattleState(
 					element = entry.element,
 					overrideColor = entry.overrideBlinkColor,
 				)
+			} else {
+				val isNotSpecial = entry.addedEffects.isEmpty() && entry.removedEffects.isEmpty() &&
+						entry.addedStatModifiers.isEmpty()
+
+				// 2. If health damage was dealt, we always show the health damage
+				// 3. If no health damage was dealt, but something else *did* happen, we show nothing here.
+				//    In such cases, this other effect will be visualized by another part of the renderer.
+				// 4. If no health damage was dealt, but nothing else happened either, it was probably an attack that
+				//    was too weak to deal any damage. In such cases, we explicitly show that it did 0 damage.
+				if (entry.damage != 0 || isNotSpecial) {
+					target.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
+						oldHealth = target.currentHealth,
+						oldMana = target.currentMana,
+						gainedHealth = -entry.damage,
+						element = entry.element,
+						overrideColor = entry.overrideBlinkColor,
+					)
+				}
 			}
 
 			target.currentHealth -= entry.damage
