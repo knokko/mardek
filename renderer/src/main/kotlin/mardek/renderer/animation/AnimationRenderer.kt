@@ -12,6 +12,7 @@ import mardek.content.animation.AnimationMatrix
 import mardek.content.animation.ColorTransform
 import mardek.content.animation.SkinnedAnimation
 import mardek.content.sprite.BcSprite
+import mardek.state.ingame.battle.AnimationEmitterState
 import mardek.state.ingame.battle.CombatantRenderInfo
 import mardek.state.ingame.battle.CombatantRenderPosition
 import mardek.state.util.Rectangle
@@ -43,6 +44,7 @@ internal fun renderCutsceneAnimation(frames: AnimationFrames, context: Animation
 		selectSkin = null,
 		special = null,
 		mask = AnimationMask(emptyArray()),
+		particleEmitters = emptyArray(),
 	), context)
 }
 
@@ -227,6 +229,16 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 				break
 			}
 		}
+	}
+
+	for (emitter in node.particleEmitters) {
+		val renderInfo = context.combat?.renderInfo ?: continue
+		val state = renderInfo.animationParticles.computeIfAbsent(
+			emitter, ::AnimationEmitterState
+		)
+
+		val position = globalMatrix.transformPosition(Vector2f(0f, 0f))
+		state.positions.add(CombatantRenderPosition(position.x, position.y))
 	}
 }
 

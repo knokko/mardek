@@ -3,6 +3,7 @@ package mardek.content.animation
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.particle.ParticleEmitter
 
 /**
  * Represents a node in an animation graph, which is typically a PlaceObject2 tag in Flash. An animation node will
@@ -69,11 +70,19 @@ class AnimationNode(
 	 */
 	@BitField(id = 6)
 	val mask: AnimationMask,
+
+	/**
+	 * The particle emitters that should spawn particles at this node. This is a very rare feature that is used by the
+	 * tails of fume rats to generate smoke. I don't know whether any other monster uses it.
+	 */
+	@BitField(id = 7)
+	@ReferenceField(stable = false, label = "animation particle emitters")
+	val particleEmitters: Array<ParticleEmitter>,
 ) {
 	@Suppress("unused")
 	private constructor() : this(
 		0, null, null, null,
-		null, null, null, AnimationMask(),
+		null, null, null, AnimationMask(), emptyArray(),
 	)
 
 	override fun toString(): String {
@@ -81,6 +90,7 @@ class AnimationNode(
 		if (animation != null) result.append(", animation=$animation")
 		if (sprite != null) result.append(", sprite=$sprite")
 		if (selectSkin != null) result.append(", skin=$selectSkin")
+		if (particleEmitters.isNotEmpty()) result.append(", #particles=${particleEmitters.size}")
 		result.append(")")
 		return result.toString()
 	}

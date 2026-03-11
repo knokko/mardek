@@ -86,6 +86,29 @@ internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch:
 	}
 }
 
+internal fun renderAnimationParticles(battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch, region: Rectangle) {
+	battleContext.run {
+		val magicScale = computeMagicScale(region)
+		val renderTime = System.nanoTime()
+
+		for (combatant in battle.livingOpponents() + battle.livingPlayers()) {
+			for (state in combatant.renderInfo.animationParticles.values) {
+				if (state.firstRenderTime == 0L) state.firstRenderTime = renderTime
+				state.emitterState.update(state.firstRenderTime, renderTime)
+
+				for (position in state.positions)	{
+					renderParticleEmitter(
+						state.emitterState, 0,
+						renderTime, imageBatch, magicScale,
+						position.x, position.y,
+						null, false,
+					)
+				}
+			}
+		}
+	}
+}
+
 internal fun renderEffectParticles(battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch, region: Rectangle) {
 	battleContext.run {
 		val magicScale = computeMagicScale(region)

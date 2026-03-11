@@ -3,10 +3,12 @@ package mardek.importer.animation
 import com.jpexs.decompiler.flash.tags.DoActionTag
 import mardek.content.animation.AnimationSprite
 import mardek.content.animation.SkinnedAnimation
+import mardek.content.particle.ParticleEmitter
 import java.io.File
 
 class AnimationImportContext(
 	val shapesDirectory: File,
+	val particleEmitters: Map<String, ParticleEmitter>
 ) {
 	val shapeMapping = mutableMapOf<Pair<Int, Boolean>, AnimationSprite>()
 	val spriteMapping = mutableMapOf<Int, SkinnedAnimation>()

@@ -446,7 +446,12 @@ class CombatantRenderer(
 		)
 
 		val modTime = relativeTime % animation.duration.inWholeNanoseconds
+
+		for (state in combatant.renderInfo.animationParticles.values) {
+			state.positions.clear()
+		}
 		renderCombatantAnimation(animation, animations.skeleton.flatNodes, modTime, animationContext)
+		combatant.renderInfo.animationParticles.values.removeIf { it.positions.isEmpty() }
 		return
 	}
 

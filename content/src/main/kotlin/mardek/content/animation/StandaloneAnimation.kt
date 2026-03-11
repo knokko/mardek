@@ -3,6 +3,8 @@ package mardek.content.animation
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import mardek.content.particle.ParticleEmitter
+import mardek.content.particle.ParticleSprite
 
 /**
  * Represents an animation that can be (de)serialized independently. This is basically an instance of `AnimationFrames`,
@@ -36,7 +38,20 @@ class StandaloneAnimation(
 	@Suppress("unused")
 	@ReferenceFieldTarget(label = "skinned animations")
 	private val innerAnimations: Array<SkinnedAnimation>,
+
+	@BitField(id = 3)
+	@Suppress("unused")
+	@ReferenceFieldTarget(label = "particle sprites")
+	private val particleSprites: Array<ParticleSprite>,
+
+	@BitField(id = 4)
+	@Suppress("unused")
+	@ReferenceFieldTarget(label = "animation particle emitters")
+	private val particleEmitters: Array<ParticleEmitter>,
 ) {
 	@Suppress("unused")
-	private constructor() : this(AnimationFrames(), emptyArray(), emptyArray())
+	private constructor() : this(
+		AnimationFrames(), emptyArray(), emptyArray(),
+		emptyArray(), emptyArray(),
+	)
 }

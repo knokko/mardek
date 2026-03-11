@@ -13,6 +13,15 @@ import mardek.content.stats.*
 import mardek.content.inventory.Dreamstone
 import mardek.content.inventory.ItemsContent
 import mardek.content.inventory.Item
+import mardek.content.particle.EmissionWaves
+import mardek.content.particle.EmitterTransform
+import mardek.content.particle.LinearParticleSpawnProperties
+import mardek.content.particle.ParticleDynamics
+import mardek.content.particle.ParticleEmitter
+import mardek.content.particle.ParticleOpacity
+import mardek.content.particle.ParticleSize
+import mardek.content.particle.ParticleSpawnProperties
+import mardek.content.particle.ParticleSprite
 import mardek.content.skill.ActiveSkill
 import mardek.importer.animation.AnimationImportContext
 import mardek.importer.animation.findDependencies
@@ -112,11 +121,51 @@ loot = [["Dark Essence",100]];
 DetermineStats();
 """
 
+private fun fumeRatParticleEmitter(particleSprite: ParticleSprite) = ParticleEmitter(
+	transform = EmitterTransform(),
+	sprite = particleSprite,
+	waves = EmissionWaves(
+		delay = 0f, delayedSound = null, period = 12f / 30f,
+		particlesPerWave = 1, numRounds = null,
+	),
+	spawn = ParticleSpawnProperties(
+		baseX = 0f, baseY = 0f,
+		shiftX = 0f,
+		shiftY = 0f,
+		variationX = 6f, variationY = 6f,
+		shiftVariationX = 0f, shiftVariationY = 0f,
+		rotation = 0f, rotationVariation = 0f, rotationMultiplier = 1f,
+		linear = LinearParticleSpawnProperties(
+			minVelocityX = 0f, minVelocityY = -42f,
+			shiftMinVelocityX = 0f, shiftMinVelocityY = 0f,
+			maxVelocityX = 0f, maxVelocityY = -42f,
+			shiftMaxVelocityX = 0f, shiftMaxVelocityY = 0f,
+		),
+		radial = null,
+	),
+	dynamics = ParticleDynamics(),
+	size = ParticleSize(
+		baseWidth = 5f, baseHeight = 4f,
+		shiftWidth = 0f, shiftHeight = 0f,
+		minSizeMultiplier = 1f, maxSizeMultiplier = 1f,
+		growX = 3f, growY = 3.5f,
+		dynamicGrowX = 0f, dynamicGrowY = 0f,
+	),
+	opacity = ParticleOpacity(initial = 1f, grow = -0.6f, limit = null),
+	lifeTime = 2f,
+	mirror = false,
+)
+
 internal fun importMonsters(content: Content, playerModelMapping: MutableMap<String, CombatantAnimations>?) {
 	val magicScale = 4
 	val battleTag = FLASH.tags.find { it.exportFileName.contains("B_MODEL") }!! as DefineSpriteTag
+	val fumeratSmokeSprite = ParticleSprite(
+		"FumeratSmoke", loadBc7Sprite("mardek/importer/particle/fumeratSmoke.png")
+	)
+	val fumeratSmokeEmitter = fumeRatParticleEmitter(fumeratSmokeSprite)
 	val context = AnimationImportContext(
-		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale")
+		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale"),
+		particleEmitters = mapOf(Pair("FumeRatSmoke", fumeratSmokeEmitter)),
 	)
 	val importedMonsters = importSkinnedAnimation(battleTag, context)
 
@@ -147,8 +196,12 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 					val (innerSprites, innerAnimations) = findDependencies(
 						animationFrames.frames.flatMap { it.nodes.toList() }
 					)
+					val (particleSprites, particleEmitters) = if (animation.defineSpriteFlashID == 3284) {
+						Pair(arrayOf(fumeratSmokeSprite), arrayOf(fumeratSmokeEmitter))
+					} else Pair(emptyArray(), emptyArray())
 					animationMap[animationName] = SimpleLazyBits(StandaloneAnimation(
-						animationFrames, innerSprites, innerAnimations
+						animationFrames, innerSprites, innerAnimations,
+						particleSprites, particleEmitters
 					))
 				}
 				skeletonSpriteID = animation.defineSpriteFlashID

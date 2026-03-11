@@ -1,5 +1,6 @@
 package mardek.state.ingame.battle
 
+import mardek.content.particle.ParticleEmitter
 import mardek.content.stats.StatusEffect
 import mardek.state.util.Rectangle
 import java.util.Locale
@@ -7,14 +8,21 @@ import java.util.Locale
 class CombatantRenderInfo {
 	val effectHistory = StatusEffectHistory()
 
-	val lastStatusEffectParticleEmissions = mutableMapOf<StatusEffect, Long>()
-
 	/**
 	 * For each status effect that this combatant currently has, this mapping tracks the state of its particle emitters.
 	 * Entries are inserted during the first frame where the combatant has the corresponding status effect, and are
 	 * deleted during the first frame where the combatant no longer has the status effect.
 	 */
 	val statusEffectParticles = mutableMapOf<StatusEffect, EffectParticlesState>()
+
+	/**
+	 * For each particle emitter used by the animations of this combatant, this mapping tracks the state of the
+	 * particle emitter, as well as all the positions at which the particles should be rendered.
+	 *
+	 * All particle positions are recomputed during each frame, by the renderer. The renderer also makes sure that
+	 * irrelevant entries are eventually deleted.
+	 */
+	val animationParticles = mutableMapOf<ParticleEmitter, AnimationEmitterState>()
 
 	/**
 	 * The last point in time (`System.nanoTime()`) where a player pointed to this combatant as the potential target
@@ -131,4 +139,27 @@ class CombatantRenderPosition(
 		 */
 		val DUMMY = CombatantRenderPosition(-123f, -456f)
 	}
+}
+
+/**
+ * The state of a [ParticleEmitter] of an [mardek.content.animation.AnimationNode]. This tracks the emitter state, as
+ * well as all the positions where its node is being rendered.
+ */
+class AnimationEmitterState(emitter: ParticleEmitter) {
+
+	/**
+	 * The state of the emitter (shared by all positions)
+	 */
+	val emitterState = ParticleEmitterState(emitter)
+
+	/**
+	 * All the positions where the emitter and its particles should be rendered. This list usually has a size of 1,
+	 * but this is not required.
+	 */
+	val positions = mutableListOf<CombatantRenderPosition>()
+
+	/**
+	 * The first time instant (`System.nanoTime()`) where this emitter was rendered/updated.
+	 */
+	var firstRenderTime = 0L
 }

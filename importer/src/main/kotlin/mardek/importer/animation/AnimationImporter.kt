@@ -20,6 +20,7 @@ import mardek.content.animation.AnimationMatrix
 import mardek.content.animation.ColorTransform
 import mardek.content.animation.SkinnedAnimation
 import mardek.content.animation.SpecialAnimationNode
+import mardek.content.particle.ParticleEmitter
 import mardek.content.sprite.BcSprite
 import mardek.importer.area.FLASH
 import mardek.importer.particle.FLASH_FRAMES_PER_SECOND
@@ -64,6 +65,7 @@ internal fun importAnimationNode(
 	var sprite: AnimationSprite? = null
 	var animationColor: ColorTransform? = initialAnimationColor
 	var special: SpecialAnimationNode? = initialSpecial
+	var emitters: Array<ParticleEmitter> = emptyArray()
 
 	if (instanceName == "HitPoint") special = SpecialAnimationNode.HitPoint
 	if (instanceName == "StrikePoint") special = SpecialAnimationNode.StrikePoint
@@ -75,6 +77,7 @@ internal fun importAnimationNode(
 	if (instanceName == "BreathSource") special = SpecialAnimationNode.BreathSource
 	if (instanceName == "BreathDistance") special = SpecialAnimationNode.BreathDistance
 	if (childID == 2311) special = SpecialAnimationNode.Exclaim
+	if (childID == 3278) emitters = arrayOf(context.particleEmitters["FumeRatSmoke"]!!)
 
 	val exportName = FLASH.getExportName(tag.characterId)
 	if (exportName == "castSparkle" || childID == 494) special = SpecialAnimationNode.ElementalCastingSparkle
@@ -101,7 +104,7 @@ internal fun importAnimationNode(
 
 	val skipSpecial = special != null && special.skipChildren
 
-	val blacklist = arrayOf(734, 735, 739, 740, 2222)
+	val blacklist = arrayOf(734, 735, 739, 740, 2222, 3278)
 	if (!skipSpecial && !blacklist.contains(childID)) {
 		val childTag = FLASH.getCharacter(childID)
 		if (childTag is DefineSpriteTag) {
@@ -159,6 +162,7 @@ internal fun importAnimationNode(
 		special = special,
 		selectSkin = selectSkin,
 		mask = mask,
+		particleEmitters = emitters,
 	)
 }
 

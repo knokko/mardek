@@ -26,7 +26,8 @@ private fun importIntroCutscene(content: ActionContent) {
 	val magicScale = 4
 
 	val context = AnimationImportContext(
-		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale/")
+		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale/"),
+		particleEmitters = emptyMap(),
 	)
 
 	val chapter1IntroTag = FLASH.tags.find { it is DefineSpriteTag && it.exportName == "CUTSCENE1" }!! as DefineSpriteTag
@@ -79,7 +80,8 @@ private fun importFallingStarCutscene(content: Content) {
 	val magicScale = 2
 
 	val context = AnimationImportContext(
-		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale/")
+		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale/"),
+		particleEmitters = emptyMap(),
 	)
 
 	val fallingStarTag = FLASH.tags.find { it is DefineSpriteTag && it.exportName == "CUTSCENE2" }!! as DefineSpriteTag

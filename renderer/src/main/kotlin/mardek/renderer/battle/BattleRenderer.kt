@@ -58,6 +58,7 @@ internal fun renderBattle(
 
 	renderBattlePortrait(battleContext, animationPartBatch, region)
 	renderBaseParticles(battleContext, imageBatch, mainRegion)
+	renderAnimationParticles(battleContext, imageBatch, mainRegion)
 	renderEffectParticles(battleContext, imageBatch, mainRegion)
 
 	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
