@@ -10,7 +10,9 @@ import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.DamageIndicatorHealth
 import mardek.state.ingame.battle.DamageIndicatorMana
+import mardek.state.ingame.battle.DamageIndicatorMiss
 import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -22,12 +24,17 @@ internal fun renderDamageIndicator(
 ) {
 	val indicator = combatant.renderInfo.lastDamageIndicator ?: return
 	val position = combatant.renderInfo.hitPoint
-	val opacity = 1f - (System.nanoTime() - indicator.time) / DURATION.toFloat()
-	if (opacity <= 0f) return
-	val intOpacity = (sqrt(opacity) * 255f).roundToInt()
-	if (intOpacity <= 0) return
 
-	battleContext.run {
+	val font = battleContext.context.bundle.getFont(
+		battleContext.context.content.fonts.basic1.index
+	)
+
+	if (indicator is DamageIndicatorHealth || indicator is DamageIndicatorMana) {
+		val opacity = 1f - (System.nanoTime() - indicator.time) / DURATION.toFloat()
+		if (opacity <= 0f) return
+		val intOpacity = (sqrt(opacity) * 255f).roundToInt()
+		if (intOpacity <= 0) return
+
 		val element = when (indicator) {
 			is DamageIndicatorHealth -> indicator.element
 			is DamageIndicatorMana -> indicator.element
@@ -43,29 +50,56 @@ internal fun renderDamageIndicator(
 			)
 		}
 
-		if (indicator is DamageIndicatorHealth || indicator is DamageIndicatorMana) {
-			val textAmount = if (indicator is DamageIndicatorHealth) abs(indicator.gainedHealth)
-			else abs((indicator as DamageIndicatorMana).gainedMana)
+		val textAmount = if (indicator is DamageIndicatorHealth) abs(indicator.gainedHealth)
+		else abs((indicator as DamageIndicatorMana).gainedMana)
 
-			var (midColor, edgeColor) = if (indicator is DamageIndicatorHealth) {
-				if (indicator.gainedHealth <= 0) Pair(rgb(232, 222, 210), rgb(180, 154, 110))
-				else Pair(rgb(208, 255, 138), rgb(128, 231, 58))
-			} else {
-				if ((indicator as DamageIndicatorMana).gainedMana >= 0) {
-					Pair(rgb(199, 255, 255), rgb(119, 238, 255))
-				} else Pair(rgb(255, 170, 255), rgb(182, 90, 192))
-			}
-			midColor = changeAlpha(srgbToLinear(midColor), intOpacity)
-			edgeColor = changeAlpha(srgbToLinear(edgeColor), intOpacity)
-
-			val height = imageBatch.height / 25f
-			val damageFont = context.bundle.getFont(context.content.fonts.basic1.index)
-			textBatch.drawFancyString(
-				textAmount.toString(), position.x, position.y + height * 0.5f, height,
-				damageFont, edgeColor, rgb(0, 0, 0), height * 0.15f,
-				TextAlignment.CENTERED, edgeColor, midColor, midColor, edgeColor,
-				0.2f, 0.2f, 0.8f, 0.8f,
-			)
+		var (midColor, edgeColor) = if (indicator is DamageIndicatorHealth) {
+			if (indicator.gainedHealth <= 0) Pair(rgb(232, 222, 210), rgb(180, 154, 110))
+			else Pair(rgb(208, 255, 138), rgb(128, 231, 58))
+		} else {
+			if ((indicator as DamageIndicatorMana).gainedMana >= 0) {
+				Pair(rgb(199, 255, 255), rgb(119, 238, 255))
+			} else Pair(rgb(255, 170, 255), rgb(182, 90, 192))
 		}
+		midColor = changeAlpha(srgbToLinear(midColor), intOpacity)
+		edgeColor = changeAlpha(srgbToLinear(edgeColor), intOpacity)
+
+		val height = imageBatch.height / 25f
+
+		textBatch.drawFancyString(
+			textAmount.toString(), position.x, position.y + height * 0.5f, height,
+			font, edgeColor, rgb(0, 0, 0), height * 0.15f,
+			TextAlignment.CENTERED, edgeColor, midColor, midColor, edgeColor,
+			0.2f, 0.2f, 0.8f, 0.8f,
+		)
+	}
+
+	if (indicator is DamageIndicatorMiss) {
+		val jumpDuration = 250_000_000L
+		val fadeDuration = 750_000_000L
+		val passedTime = System.nanoTime() - indicator.time
+
+		val baseOffsetY = 0.04f * imageBatch.height
+		val (opacity, offsetY) = if (passedTime <= jumpDuration) {
+			val relativeTime = passedTime.toFloat() / jumpDuration
+			val fromMidTime = 0.5f - relativeTime
+			Pair(1f, baseOffsetY + (0.25f - fromMidTime.pow(2)) * 0.05f * imageBatch.height)
+		} else {
+			Pair(1f - (passedTime - jumpDuration).toFloat() / fadeDuration, baseOffsetY)
+		}
+
+		if (opacity <= 0f) return
+		val intOpacity = (255 * opacity).roundToInt()
+		if (intOpacity <= 0) return
+
+		val textHeight = 0.04f * imageBatch.height
+		val midColor = srgbToLinear(rgba(229, 219, 208, intOpacity))
+		val edgeColor = srgbToLinear(rgba(180, 150, 104, intOpacity))
+		textBatch.drawFancyString(
+			"Miss", position.x, position.y - offsetY, textHeight,
+			font, edgeColor, rgb(0, 0, 0), textHeight * 0.15f,
+			TextAlignment.CENTERED, edgeColor, midColor, midColor, edgeColor,
+			0.2f, 0.2f, 0.8f, 0.8f,
+		)
 	}
 }

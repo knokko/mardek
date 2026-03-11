@@ -466,7 +466,9 @@ class BattleState(
 				for (effect in entry.removedEffects) target.renderInfo.effectHistory.remove(effect, currentTime)
 				for (effect in entry.addedEffects) target.renderInfo.effectHistory.add(effect, currentTime)
 			}
-		} else target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
+		} else {
+			target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
+		}
 	}
 
 	private fun applyMoveResultToAttacker(context: BattleUpdateContext, result: MoveResult, attacker: CombatantState) {
