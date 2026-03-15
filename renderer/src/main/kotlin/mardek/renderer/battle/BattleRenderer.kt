@@ -197,6 +197,7 @@ internal fun renderBattle(
 		}
 	}
 
+	renderLevelUps(battleContext, textBatch, region)
 	renderChallengeBar(battleContext, colorBatch, imageBatch, Rectangle(
 		minX = region.minX,
 		minY = region.boundY - region.height / 16 - region.height / 8,

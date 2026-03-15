@@ -118,8 +118,13 @@ class Monster(
 	val critChance: Int,
 
 	/**
-	 * This has something to do with the amount of EXP that the player gains by killing this monster.
-	 * TODO CHAP1 Figure this out
+	 * The base amount of experience that a player gains by slaying this monster. This amount will be multiplied by
+	 * `monster level / player level` to ensure that higher-level monsters grant more EXP. Note that the slayer will
+	 * still get the standard EXP for doing an attack.
+	 *
+	 * The *other* living players will get half of this amount instead.
+	 *
+	 * If this monster is killed by a status effect instead of a direct attack, all players will get the full amount.
 	 */
 	@BitField(id = 12)
 	@IntegerField(expectUniform = false, minValue = 0)

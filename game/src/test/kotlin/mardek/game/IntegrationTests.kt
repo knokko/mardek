@@ -460,4 +460,16 @@ class IntegrationTests {
 		TestParticles.testSleep(instance)
 		TestParticles.testParalysis(instance)
 	}
+
+	@Test
+	fun testExperience() {
+		TestExperience.testNoExperienceFromPlayerDeath(instance)
+		TestExperience.testKilledByStatusEffectExperience(instance)
+		TestExperience.testExperienceForNextLevel(instance)
+	}
+
+	@Test
+	fun testLevelUp() {
+		TestExperience.testLevelUp(instance)
+	}
 }

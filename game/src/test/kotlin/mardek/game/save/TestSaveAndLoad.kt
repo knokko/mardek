@@ -319,8 +319,6 @@ object TestSaveAndLoad {
 			saves.root.deleteOnExit()
 
 			var campaign = simpleCampaignState()
-			campaign.characterStates[heroMardek]!!.currentLevel = 1
-			campaign.characterStates[heroDeugan]!!.currentLevel = 1
 			var state: GameState = InGameState(campaign, "TestSaveDuringLoot")
 
 			val animus = content.battle.monsters.find { it.name == "kdestralan_mind" }!!

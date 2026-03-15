@@ -112,7 +112,7 @@ object TestTurnStatusEffects {
 			mardek.statusEffects.add(poison)
 			mardek.statModifiers[CombatStat.Vitality] = -10
 			mardek.clampHealthAndMana(battleUpdateContext(campaign))
-			assertEquals(24, mardek.maxHealth)
+			assertEquals(40, mardek.maxHealth)
 
 			repeat(100) {
 				val effects = computeStatusEffectsBeforeTurn(
@@ -171,7 +171,7 @@ object TestTurnStatusEffects {
 			val mardek = battle.livingPlayers()[0]
 			mardek.statusEffects.add(regeneration)
 			mardek.clampHealthAndMana(battleUpdateContext(campaign))
-			assertEquals(54, mardek.maxHealth)
+			assertEquals(90, mardek.maxHealth)
 
 			repeat(100) {
 				val effects = computeStatusEffectsBeforeTurn(
@@ -184,7 +184,7 @@ object TestTurnStatusEffects {
 
 				val takeDamage = effects.takeDamage[0]
 				assertSame(regeneration, takeDamage.effect)
-				assertEquals(-5, takeDamage.amount)
+				assertEquals(-9, takeDamage.amount) // 10% of 90
 			}
 		}
 	}

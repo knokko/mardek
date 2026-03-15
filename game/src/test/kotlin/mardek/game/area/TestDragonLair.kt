@@ -24,11 +24,13 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleStateMachine
+import mardek.state.ingame.battle.PlayerCombatantState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
@@ -53,6 +55,13 @@ object TestDragonLair {
 			val boots = content.items.items.find { it.displayName == "Boots of Celerity" }!!
 			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[4]] = boots
 			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[5]] = boots
+
+			val mardekState = state.campaign.characterStates[heroMardek]!!
+			mardekState.currentLevel = 50
+
+			val expSkill = content.skills.passiveSkills.find { it.name == "EXP+40%" }!!
+			mardekState.toggledSkills.add(expSkill)
+			deuganState.toggledSkills.add(expSkill)
 
 			val dummySoundQueue = SoundQueue()
 			val fakeInput = InputManager()
@@ -119,12 +128,26 @@ object TestDragonLair {
 				fakeInput.postEvent(releaseKeyEvent(key))
 			}
 
+			// No EXP should have been gained, yet
+			val mardekCombatState = battleState.livingPlayers()[0] as PlayerCombatantState
+			val deuganCombatState = battleState.livingPlayers()[1] as PlayerCombatantState
+			assertNull(mardekCombatState.experienceIndicators.getEntryToDisplay(System.nanoTime()))
+			assertNull(deuganCombatState.experienceIndicators.getEntryToDisplay(System.nanoTime()))
+
 			assertInstanceOf<BattleStateMachine.CastSkill>(battleState.state)
 			val castState = battleState.state as BattleStateMachine.CastSkill
 			castState.hasFinishedCastingAnimation = true
 			castState.canSpawnTargetParticles = true
 			castState.targetParticlesSpawnTime = System.nanoTime() - 5_000_000_000L
 			state.update(context)
+
+			// Expected EXP, checked against vanilla
+			assertEquals(5600, mardekCombatState.experienceIndicators.getEntryToDisplay(
+				System.nanoTime()
+			)!!.amount)
+			assertEquals(11312, deuganCombatState.experienceIndicators.getEntryToDisplay(
+				System.nanoTime()
+			)!!.amount)
 
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
 			sleep(1000)

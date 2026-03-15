@@ -196,9 +196,6 @@ object TestChatLog {
 			), actions.chatLog)
 
 			// Test that this doesn't crash
-			for (characterState in state.campaign.characterStates.values) {
-				characterState.currentLevel = 1
-			}
 			dummySaveManager().createSave(
 				content, state.campaign,
 				"DoNotCrash", SaveFile.Type.Cheat,

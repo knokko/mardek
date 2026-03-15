@@ -138,8 +138,11 @@ class TestingInstance {
 	fun simpleCharacterStates() = run {
 		val mardekState = CharacterState()
 		mardekState.equipment[heroMardek.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "M Blade" }!!
+		mardekState.currentLevel = 1
 		mardekState.currentHealth = mardekState.determineMaxHealth(heroMardek.baseStats, emptySet())
+
 		val deuganState = CharacterState()
+		deuganState.currentLevel = 1
 		deuganState.equipment[heroDeugan.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName == "Balmung" }!!
 		deuganState.inventory[0] = ItemStack(elixir, 1)
 		deuganState.skillMastery[shock] = shock.masteryPoints
@@ -196,8 +199,6 @@ class TestingInstance {
 
 	fun createDummySave(saves: SavesFolderManager, campaignName: String): File {
 		val campaignState = simpleCampaignState()
-		campaignState.characterStates[heroMardek]!!.currentLevel = 1
-		campaignState.characterStates[heroDeugan]!!.currentLevel = 1
 
 		assertTrue(saves.createSave(content, campaignState, campaignName, SaveFile.Type.Crystal))
 

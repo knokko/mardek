@@ -54,7 +54,7 @@ object TestStatusEffects {
 			)
 
 			val mardekState = campaign.characterStates[heroMardek]!!
-			assertEquals(54, mardekState.currentHealth)
+			assertEquals(90, mardekState.currentHealth)
 			mardekState.activeStatusEffects.add(content.stats.statusEffects.find { it.flashName == "PSN" }!!)
 
 			val input = InputManager()
@@ -68,8 +68,8 @@ object TestStatusEffects {
 				campaign.update(context)
 			}
 
-			// Mardek should have taken 1 damage from poison
-			assertEquals(53, mardekState.currentHealth)
+			// Mardek should have taken 2 damage from poison, since 0.02 * 90 = 1.8, which is rounded to 2
+			assertEquals(88, mardekState.currentHealth)
 		}
 	}
 }

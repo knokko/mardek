@@ -132,7 +132,7 @@ class TestMonsterImporter {
 		assertEquals(6, forestFish.hpPerLevel)
 		assertEquals(3, forestFish.attackPerLevelNumerator)
 		assertEquals(2, forestFish.attackPerLevelDenominator)
-		assertEquals(100, forestFish.experience)
+		assertEquals(200, forestFish.experience)
 		assertEquals(3, forestFish.resistances.elements.size)
 		assertEquals(0.2f, getElementalResistance(forestFish, "EARTH"), 0.01f)
 		assertEquals(0.2f, getElementalResistance(forestFish, "WATER"), 0.01f)
@@ -183,7 +183,7 @@ class TestMonsterImporter {
 		assertEquals(18, abomination.hpPerLevel)
 		assertEquals(0, abomination.attackPerLevelNumerator)
 		assertEquals(0, abomination.attackPerLevelDenominator)
-		assertEquals(160, abomination.experience)
+		assertEquals(320, abomination.experience)
 
 		assertEquals(4, abomination.resistances.elements.size)
 		assertEquals(-1f, getElementalResistance(abomination, "LIGHT"), 0.01f)
@@ -262,7 +262,7 @@ class TestMonsterImporter {
 		assertEquals(19, ghoul.hpPerLevel)
 		assertEquals(0, ghoul.attackPerLevelNumerator)
 		assertEquals(0, ghoul.attackPerLevelDenominator)
-		assertEquals(150, ghoul.experience)
+		assertEquals(300, ghoul.experience)
 
 		assertEquals(4, ghoul.resistances.elements.size)
 		assertEquals(-1f, getElementalResistance(ghoul, "LIGHT"), 0.01f)

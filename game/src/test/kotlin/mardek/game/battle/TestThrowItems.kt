@@ -32,7 +32,6 @@ object TestThrowItems {
 		instance.apply {
 			val campaign = simpleCampaignState()
 
-			// Make sure Mardek gets on turn first, since his sword cannot miss
 			val deuganState = campaign.characterStates[heroDeugan]!!
 			deuganState.currentHealth = 10
 			deuganState.currentMana = 20
@@ -85,6 +84,7 @@ object TestThrowItems {
 				playerColors + monsterColor + elixirColor, emptyArray(),
 			)
 			assertTrue((battle.state as BattleStateMachine.UseItem).canDrinkItem)
+
 			campaign.update(context(1.seconds))
 
 			assertEquals(deugan.maxHealth, deugan.currentHealth)
@@ -97,6 +97,10 @@ object TestThrowItems {
 			val selection = battle.state as BattleStateMachine.SelectMove
 			assertSame(battle.livingPlayers()[0], selection.onTurn)
 			assertEquals(BattleMoveSelectionAttack(null), selection.selectedMove)
+
+			// Consuming items shouldn't grant any experience
+			assertEquals(0, deuganState.experienceToNextLevel)
+			assertEquals(0, campaign.characterStates[heroMardek]!!.experienceToNextLevel)
 		}
 	}
 }

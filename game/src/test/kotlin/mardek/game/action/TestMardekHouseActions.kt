@@ -111,8 +111,6 @@ object TestMardekHouseActions {
 			)
 
 			// Test that saving now doesn't cause a crash
-			state.campaign.characterStates[heroMardek]!!.currentLevel = 1
-			state.campaign.characterStates[heroDeugan]!!.currentLevel = 1
 			dummySaveManager().createSave(
 				content, state.campaign,
 				"don't crash", SaveFile.Type.Cheat,

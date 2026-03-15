@@ -46,6 +46,9 @@ object TestSkills {
 			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = ring
 			mardekState.equipment[heroMardek.characterClass.equipmentSlots[5]] = ring
 
+			val deuganState = campaign.characterStates[heroDeugan]!!
+			deuganState.currentLevel = 5
+
 			startSimpleBattle(campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
 
 			val input = InputManager()
@@ -107,6 +110,9 @@ object TestSkills {
 				assertFalse(it.canDealDamage)
 			}
 
+			assertEquals(0, mardekState.experienceToNextLevel)
+			assertEquals(0, deuganState.experienceToNextLevel)
+
 			sleep(1000)
 			testRendering(
 				state, 800, 450, "smite-evil2",
@@ -123,6 +129,13 @@ object TestSkills {
 				assertSame(smiteEvil, it.skill)
 				assertFalse(it.finished)
 			}
+
+			// - Base EXP of monster is 300 * 2 = 600
+			// - Monster is level 10, Deugan level 5, Mardek level 50
+			// - Basic attacks should grant 200 * monster level / player level EXP
+			// - Kills should grant half of the XP to other players
+			assertEquals((600 + 200) * 10 / 50, mardekState.experienceToNextLevel)
+			assertEquals(600 / 2 * 10 / 5, deuganState.experienceToNextLevel)
 
 			sleep(1000)
 			testRendering(
@@ -190,8 +203,9 @@ object TestSkills {
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			campaign.update(context(1.milliseconds))
 
-			// Deugan should take 3 damage from poison
-			assertEquals(10 - 3, deugan.currentHealth)
+			// Deugan should take 4 damage from poison (5% of 80)
+			assertEquals(80, deugan.maxHealth)
+			assertEquals(10 - 4, deugan.currentHealth)
 			assertEquals(setOf(poison), deugan.statusEffects)
 			val castSkill = battle.state as BattleStateMachine.CastSkill
 			assertSame(deugan, castSkill.caster)

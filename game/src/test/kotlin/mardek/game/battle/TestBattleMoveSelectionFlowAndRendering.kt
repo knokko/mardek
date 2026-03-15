@@ -27,6 +27,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		deuganState.currentHealth = deuganState.determineMaxHealth(heroDeugan.baseStats, deuganState.activeStatusEffects)
 		mardekState.currentMana = mardekState.determineMaxMana(heroMardek.baseStats, deuganState.activeStatusEffects)
 		deuganState.currentMana = 20
+		mardekState.gainExperience(500)
 		startSimpleBattle(campaign)
 
 		val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
@@ -43,7 +44,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 			Color(207, 230, 56), // half health bar text color
 			Color(38, 109, 129), // mana bar color
 			Color(34, 247, 255), // mana bar text color
-			Color(181, 146, 70), // xp bar color
+			Color(168, 130, 57), // xp bar color
 			Color(251, 225, 99), // xp bar text color
 			Color(59, 42, 28), // bar background color
 		)

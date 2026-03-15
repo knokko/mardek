@@ -13,8 +13,10 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
+import mardek.state.ingame.battle.ExperienceIndicators
 import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.util.Rectangle
+import kotlin.math.pow
 import kotlin.math.roundToInt
 
 internal fun renderPlayerBlock(
@@ -113,7 +115,8 @@ internal fun renderPlayerBlock(
 					region.width / 3, region.height / 6
 				), colorBatch, textBatch,
 			)
-			xpBar.renderBar(80, 100) // TODO CHAP1 proper xp
+			val playerState = state.characterStates[player.player]!!
+			xpBar.renderBar(playerState.experienceToNextLevel, playerState.experienceForNextLevel())
 			xpBar.renderClosingBracket()
 
 			val font = context.bundle.getFont(context.content.fonts.large1.index)
@@ -136,6 +139,33 @@ internal fun renderPlayerBlock(
 			manaBar.renderCurrentOverBar(player.currentMana, player.maxMana)
 			manaBar.renderOpeningBracket()
 			manaBar.renderClosingBracket()
+
+			val recentExp = player.experienceIndicators.getEntryToDisplay(renderTime)
+			if (recentExp != null) {
+				var passedTime = renderTime - recentExp.startTime
+				var offsetY = 0f
+				var alpha = 255
+				if (passedTime < ExperienceIndicators.JUMP_DURATION) {
+					val relativeTime = passedTime.toFloat() / ExperienceIndicators.JUMP_DURATION
+					val fromMidTime = 0.5f - relativeTime
+					offsetY = (0.25f - fromMidTime.pow(2)) * 0.5f * region.height
+				}
+				passedTime -= ExperienceIndicators.JUMP_DURATION + ExperienceIndicators.STABLE_DURATION
+				if (passedTime > 0) {
+					alpha = (255f * (1f - passedTime.toFloat() / ExperienceIndicators.FADE_DURATION)).roundToInt()
+				}
+
+				if (alpha > 0) {
+					val fatFont = context.bundle.getFont(context.content.fonts.basic1.index)
+					textBatch.drawString(
+						"+${recentExp.amount} EXP", region.minX + 0.2f * region.height,
+						region.minY + 0.2f * region.height - offsetY, 0.2f * region.height, fatFont,
+						srgbToLinear(rgba(254, 201, 9, alpha)),
+						srgbToLinear(rgba(38, 16, 9, alpha)),
+						0.025f * region.height, TextAlignment.LEFT,
+					)
+				}
+			}
 		}
 
 		run {

@@ -286,9 +286,6 @@ object TestShops {
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
 
 			// Test that this doesn't crash
-			for (characterState in state.campaign.characterStates.values) {
-				characterState.currentLevel = 1
-			}
 			updateContext.saves.createSave(
 				updateContext.content, state.campaign,
 				state.campaignName, SaveFile.Type.Cheat,
