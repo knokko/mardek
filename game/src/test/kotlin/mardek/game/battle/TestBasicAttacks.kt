@@ -40,6 +40,9 @@ object TestBasicAttacks {
 			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = ring
 			mardekState.equipment[heroMardek.characterClass.equipmentSlots[5]] = ring
 
+			val deuganState = campaign.characterStates[heroDeugan]!!
+			deuganState.currentLevel = 20
+
 			startSimpleBattle(campaign)
 
 			val input = InputManager()
@@ -98,6 +101,9 @@ object TestBasicAttacks {
 				assertFalse(it.canDealDamage)
 			}
 
+			assertEquals(0, mardekState.experienceToNextLevel)
+			assertEquals(0, deuganState.experienceToNextLevel)
+
 			sleep(1000)
 			testRendering(
 				state, 800, 450, "basic-attack2",
@@ -114,6 +120,13 @@ object TestBasicAttacks {
 				assertNull(it.skill)
 				assertFalse(it.finished)
 			}
+
+			// - Base EXP of monster is 300 * 2 = 600
+			// - Monster is level 10, Deugan level 20, Mardek level 50
+			// - Basic attacks should grant 100 * monster level / player level EXP
+			// - Kills should grant half of the XP to other players
+			assertEquals((600 + 100) * 10 / 50, mardekState.experienceToNextLevel)
+			assertEquals(600 / 2 * 10 / 20, deuganState.experienceToNextLevel)
 
 			sleep(1000)
 			testRendering(

@@ -1,0 +1,100 @@
+function GiveEXP(amount, receiver, target)
+{
+   if(receiver.dying || receiver.stats == null || receiver == null)
+   {
+      return undefined;
+   }
+   trace(receiver.stats.REACT.PASSIVE.expmult);
+   var _loc4_ = int(int(amount * (target.stats.level / receiver.stats.level)) * 2 * (1 + Num(receiver.stats.REACT.PASSIVE.expmult)));
+   if(_loc4_ < 0)
+   {
+      _loc4_ = 0;
+   }
+   if(receiver._name.substr(0,1) == "p")
+   {
+      if(BA.exp_stash[receiver._name] == null)
+      {
+         BA.exp_stash[receiver._name] = 0;
+      }
+      BA.exp_stash[receiver._name] += _loc4_;
+      BA.exp_delay = 2;
+   }
+   receiver.stats.exp = int(receiver.stats.exp + _loc4_);
+   var _loc3_ = false;
+   var _loc5_ = {hp:receiver.stats.hp[1],mp:receiver.stats.mp[1]};
+   if(receiver.stats.exp && receiver.stats.level < 100)
+   {
+      while(receiver.stats.exp >= receiver.stats.level * 1000)
+      {
+         receiver.stats.exp -= receiver.stats.level * 1000;
+         receiver.stats.level = receiver.stats.level + 1;
+         _loc3_ = true;
+      }
+   }
+   if(receiver.stats.level > 100)
+   {
+      receiver.stats.level = 100;
+   }
+   if(_loc3_)
+   {
+      _root.calculateStats(receiver.stats);
+      receiver.stats.hp[0] += receiver.stats.hp[1] - _loc5_.hp;
+      receiver.stats.mp[0] += receiver.stats.mp[1] - _loc5_.mp;
+      _root.Flash(receiver.mdl,[255,238,85]);
+      _root.DamageNumber(receiver._x,receiver._y,"Level Up!",16641951,"Level " + receiver.stats.level);
+      _root.playSFX("LevelUp");
+      if(receiver.stats.name == "Mardek")
+      {
+         _root.SetBadgeStat("MardekLevel",receiver.stats.level,"MAX");
+      }
+   }
+}
+function onDie()
+{
+   if(moving)
+   {
+      return undefined;
+   }
+   ...
+   if(SIDE == "e")
+   {
+      _loc5_ = !stats.mdlStats.EXP ? 100 : stats.mdlStats.EXP;
+      if(_root.Acting != this && _root.Acting.SIDE == "p")
+      {
+         _root.GiveEXP(_loc5_,_root.Acting,this);
+      }
+      _loc4_ = 1;
+      while(_loc4_ <= 4)
+      {
+         _loc3_ = _root.BA["p" + _loc4_];
+         if(_loc3_._visible && _root.Acting != _loc3_)
+         {
+            _root.GiveEXP(_loc5_ / 2,_loc3_,_root.Target);
+         }
+         _loc4_ = _loc4_ + 1;
+      }
+   }
+}
+function CastSpell2b(dontEndTurn, t, pfx)
+{
+   ...
+   if(!_loc2_.buff && !_loc2_.cannot_miss && (_loc2_.accuracy != null && Math.random() * 100 > _loc2_.accuracy + int(REACTION_USING.accuracy) || Math.random() * 100 <= int(REACTION_USING.evade) && !TECH_USING.BREATH || Target.mdlStats.evasion && Math.random() * 100 <= Target.mdlStats.evasion && _loc2_.MODE == "P"))
+   {
+      _root.DamageNumber(Target._x,Target._y,"<p align=\'center\'>Miss</p>",null);
+      _root.playSFX("Miss");
+      if(_loc2_.MODE == "P")
+      {
+         CS_MISSED = true;
+      }
+      return undefined;
+   }
+   if(endturn)
+   {
+      return undefined;
+   }
+   if(!GIVEN_XP && Acting.SIDE != "e")
+   {
+      GiveEXP(50,Acting,Target);
+   }
+   ...
+}

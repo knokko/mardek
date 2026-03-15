@@ -21,6 +21,7 @@ import mardek.content.characters.CharacterState
 import java.util.EnumMap
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 private fun determinePlayerMaxHealth(
 	player: PlayableCharacter, characterState: CharacterState,
@@ -233,6 +234,19 @@ sealed class CombatantState(
 
 	open fun transferStatusBack(context: BattleUpdateContext) {}
 
+	/**
+	 * Gives experience to this combatant.
+	 *
+	 * When this combatant is a player, their [CharacterState.gainExperience] method will be invoked, and their
+	 * current HP/MP may be increased (in case of a level-up). Furthermore, this will cause a 'gained XP' indicator to
+	 * be rendered.
+	 *
+	 * If this player has skills that increase their EXP gain, this method will increase [rawAmount] accordingly.
+	 *
+	 * When this combatant is a monster, this method does nothing.
+	 */
+	open fun gainExperience(context: BattleUpdateContext, rawAmount: Int) {}
+
 	companion object {
 
 		@JvmStatic
@@ -263,6 +277,19 @@ class PlayerCombatantState(
 	element = player.element,
 	isOnPlayerSide = isOnPlayerSide
 ) {
+
+	/**
+	 * This field tracks the recently-gained experience of this player, and helps the renderer with deciding how to
+	 * display it.
+	 */
+	val experienceIndicators = ExperienceIndicators()
+
+	/**
+	 * The most recent level-up that happened during this battle, or `null` if no level-up has happened yet.
+	 * When this is non-null and not too long ago, the renderer should display a "Level up" indicator at the character
+	 */
+	var lastLevelUp: LevelUpIndicator? = null // TODO CHAP1 Actually render this
+		private set
 
 	constructor() : this(PlayableCharacter(), CharacterState(), true)
 
@@ -340,6 +367,32 @@ class PlayerCombatantState(
 		maxMana = characterState.determineMaxMana(player.baseStats, statusEffects)
 		currentMana = max(0, min(currentMana, maxMana))
 		characterState.currentMana = currentMana
+	}
+
+	override fun gainExperience(context: BattleUpdateContext, rawAmount: Int) {
+		val state = context.characterStates[player]!!
+		var expFactor = 1f
+		for (skill in state.toggledSkills) {
+			if (skill is PassiveSkill) expFactor += skill.experienceModifier
+		}
+		val amount = (expFactor * rawAmount / getLevel(context)).roundToInt()
+
+		val oldLevel = state.currentLevel
+		val oldMaxHealth = maxHealth
+		val oldMaxMana = maxMana
+
+		state.gainExperience(amount)
+		experienceIndicators.queuedAmount += amount
+
+		if (state.currentLevel > oldLevel) {
+			clampHealthAndMana(context) // Recompute maxHealth and maxMana
+			currentHealth += maxHealth - oldMaxHealth
+			currentMana += maxMana - oldMaxMana
+			clampHealthAndMana(context)
+
+			context.soundQueue.insert(context.sounds.battle.levelUp)
+			lastLevelUp = LevelUpIndicator(System.nanoTime(), state.currentLevel)
+		}
 	}
 }
 
@@ -426,7 +479,7 @@ class MonsterCombatantState(
 
 	override fun getWeapon(context: BattleUpdateContext) = equipment[0]
 
-	override fun getNatural(stat: CombatStat) = monster.baseStats.getOrDefault(stat, 0)
+	override fun getNatural(stat: CombatStat) = monster.baseStats.getOrDefault(stat, 0)!!
 
 	override fun getStat(stat: CombatStat, context: BattleUpdateContext): Int {
 		return monster.baseStats.getOrDefault(stat, 0) + statModifiers.getOrDefault(stat, 0)

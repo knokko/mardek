@@ -28,6 +28,7 @@ internal fun importFixedSoundEffects(audio: AudioContent) {
 			critical = importFixed("5420_sfx_Slam"),
 			encounter = importFixed("5428_sfx_bading1"),
 			engage = importFixed("5424_sfx_Attack2"),
+			levelUp = importFixed("5429_sfx_LevelUp"),
 		),
 		openChest = importFixed("5411_sfx_Open1"),
 		saveCrystal = importFixed("5434_sfx_Healing1"),

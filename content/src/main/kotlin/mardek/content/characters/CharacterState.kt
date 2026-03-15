@@ -42,18 +42,26 @@ class CharacterState {
 	var currentMana = 0
 
 	/**
-	 * The current level of the player. TODO CHAP1 Add experience field
+	 * The current level of the player, which determines e.g. the maximum health, mana, and skill enable points.
 	 */
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 1)
 	var currentLevel = 0
 
 	/**
+	 * The amount of experience points that this character has gained since reaching [currentLevel]. TODO CHAP1 Finish
+	 */
+	@BitField(id = 3)
+	@IntegerField(expectUniform = false, minValue = 0)
+	var experienceToNextLevel = 0
+		private set
+
+	/**
 	 * The status effects that the player currently has, *outside of combat*. This should only contain *persistent*
 	 * status effects. Note that the battle state is responsible for tracking the in-battle status effects. Only the
 	 * *persistent* status effects are transferred after the battle ends.
 	 */
-	@BitField(id = 3)
+	@BitField(id = 4)
 	@ReferenceField(stable = true, label = "status effects")
 	val activeStatusEffects = HashSet<StatusEffect>()
 
@@ -61,7 +69,7 @@ class CharacterState {
 	 * The current equipment of the player. It maps each equipment slot of the player to the item equipped in that slot.
 	 * When an equipment slot is empty, it won't be present as key in this map.
 	 */
-	@BitField(id = 4)
+	@BitField(id = 5)
 	@NestedFieldSetting(path = "k", fieldName = "EQUIPMENT_KEY_PROPERTIES")
 	@NestedFieldSetting(path = "v", fieldName = "EQUIPMENT_VALUE_PROPERTIES")
 	val equipment = HashMap<EquipmentSlot, Item>()
@@ -69,7 +77,7 @@ class CharacterState {
 	/**
 	 * The current inventory of the player, where the item in slot (x, y) is stored at index `x + 8 * y`.
 	 */
-	@BitField(id = 5)
+	@BitField(id = 6)
 	@NestedFieldSetting(path = "c", optional = true)
 	val inventory = Array<ItemStack?>(64) { null }
 
@@ -78,7 +86,7 @@ class CharacterState {
 	 * least 1 mastery point, and maps such skills to the exact number of mastery points for that skill. When
 	 * `characterState.skillMastery.get(skill) >= skill.masteryPoints`, the player has mastered the skill.
 	 */
-	@BitField(id = 6)
+	@BitField(id = 7)
 	@NestedFieldSetting(path = "k", fieldName = "SKILL_MASTERY_KEY")
 	@NestedFieldSetting(path = "v", fieldName = "SKILL_MASTERY_VALUE")
 	val skillMastery = HashMap<Skill, Int>()
@@ -87,7 +95,7 @@ class CharacterState {
 	 * The set of reaction & passive skills that are currently toggled (enabled) for this player. Reaction skills and
 	 * passive skills don't do anything if they are not toggled.
 	 */
-	@BitField(id = 7)
+	@BitField(id = 8)
 	@ReferenceField(stable = true, label = "skills")
 	val toggledSkills = HashSet<Skill>()
 
@@ -268,6 +276,23 @@ class CharacterState {
 		}
 
 		return false
+	}
+
+	/**
+	 * Determines the amount of experience that is needed to go from level `currentLevel` to `currentLevel + 1`.
+	 * This method ignores [experienceToNextLevel].
+	 */
+	fun experienceForNextLevel() = currentLevel * 1000
+
+	/**
+	 * Increases [experienceToNextLevel] by [amount], possibly causing the player to get a level-up.
+	 */
+	fun gainExperience(amount: Int) {
+		experienceToNextLevel += amount
+		while (experienceToNextLevel >= experienceForNextLevel()) {
+			experienceToNextLevel -= experienceForNextLevel()
+			currentLevel += 1
+		}
 	}
 
 	companion object {

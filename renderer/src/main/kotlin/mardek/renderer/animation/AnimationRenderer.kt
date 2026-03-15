@@ -148,7 +148,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 
 	if (special == SpecialAnimationNode.ElementalCastingCircle) {
 		if (combat?.magicElement == null) return
-		sprite = AnimationSprite(
+		sprite = AnimationSprite( // TODO CHAP1 Make sure its always rendered *behind* the combatant
 			199, combat.magicElement.thinSprite, -30f, -30f
 		)
 	}
@@ -162,7 +162,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		Pair(node.mask, top.matrix)
 	} else Pair(top.mask, top.maskMatrix)
 
-	if (special == SpecialAnimationNode.ElementalCastingBackground) {
+	if (special == SpecialAnimationNode.ElementalCastingBackground) { // TODO CHAP1 Make sure its always rendered *in font* of the combatant
 		val backgroundSprite = combat?.magicElement?.spellCastBackground ?: return
 		sprite = AnimationSprite(2223, backgroundSprite, 0f, 0f)
 	}

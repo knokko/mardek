@@ -502,7 +502,9 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 		attackPerLevelNumerator = attackPerLevelNumerator,
 		attackPerLevelDenominator = attackPerLevelDenominator,
 		critChance = parseInt(mdlMap["critical"]!!),
-		experience = parseInt(mdlMap["EXP"]!!),
+
+		// Before you ask: in the vanilla GiveEXP function, the amount is always multiplied by 2 for some reason
+		experience = 2 * parseInt(mdlMap["EXP"]!!),
 		loot = loot,
 		plotLoot = plotLoot,
 		dreamLoot = dreamLoot,

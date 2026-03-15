@@ -260,9 +260,6 @@ object TestActions {
 			assertTrue(action.text.startsWith("It's a scrapbook containing Mardek and Deugan's"))
 
 			// Test that this doesn't crash
-			for (characterState in state.campaign.characterStates.values) {
-				characterState.currentLevel = 1
-			}
 			context.saves.createSave(
 				context.content, state.campaign,
 				state.campaignName, SaveFile.Type.Cheat,

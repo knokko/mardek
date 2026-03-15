@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.*
 import mardek.content.battle.Battle
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
+import mardek.content.skill.ActiveSkill
 import mardek.input.InputKey
 import mardek.input.MouseMoveEvent
 import kotlin.collections.component1
@@ -188,7 +189,17 @@ class BattleState(
 					)
 					particle.startTime = System.nanoTime()
 					particles.add(particle)
-					if (!effects.combatant.isAlive()) state = BattleStateMachine.NextTurn(time + 1000_000_000L)
+					if (!effects.combatant.isAlive()) {
+						state = BattleStateMachine.NextTurn(time + 1000_000_000L)
+						if (!effects.combatant.isOnPlayerSide && effects.combatant is MonsterCombatantState) {
+							for (player in livingPlayers()) {
+								player.gainExperience(
+									context, effects.combatant.monster.experience *
+											effects.combatant.getLevel(context)
+								)
+							}
+						}
+					}
 				}
 			}
 			return
@@ -262,7 +273,7 @@ class BattleState(
 					state.skill, state.attacker, arrayOf(state.target), passedChallenge
 				)
 
-				applyMoveResultEntirely(context, result, state.attacker)
+				applyMoveResultEntirely(context, result, state.attacker, state.skill, false)
 				for (entry in result.targets) {
 					if (!entry.missed && state.skill != null) {
 						state.skill.particleEffect?.let { particles.add(ParticleEffectState(
@@ -298,7 +309,7 @@ class BattleState(
 					state.skill, state.attacker, state.targets, passedChallenge
 				)
 
-				applyMoveResultEntirely(context, result, state.attacker)
+				applyMoveResultEntirely(context, result, state.attacker, state.skill, false)
 				state.skill.particleEffect?.let {
 					particles.add(ParticleEffectState(
 						particle = it,
@@ -364,7 +375,7 @@ class BattleState(
 					val result = MoveResultCalculator(context).computeSkillResult(
 						state.skill, state.caster, state.targets, passedChallenge
 					)
-					applyMoveResultToAttacker(context, result, state.caster)
+					applyMoveResultToAttacker(context, result, state.caster, state.skill, false)
 					state.calculatedDamage = state.targets.mapIndexed { index, target ->
 						if (target != result.targets[index].target) {
 							throw Error("Target mismatch")
@@ -380,7 +391,7 @@ class BattleState(
 					if (targetDamage == null) continue
 					val spentSeconds = (System.nanoTime() - state.targetParticlesSpawnTime) / 1000_000_000f
 					if (spentSeconds > damageDelay + 0.25 * index) {
-						applyMoveResultToTarget(context, targetDamage)
+						applyMoveResultToTarget(context, targetDamage, state.caster)
 						calculatedDamage[index] = null
 					}
 				}
@@ -395,7 +406,7 @@ class BattleState(
 			val result = MoveResultCalculator(context).computeItemResult(
 				state.item, state.thrower, state.target
 			)
-			applyMoveResultEntirely(context, result, state.thrower)
+			applyMoveResultEntirely(context, result, state.thrower, null, true)
 			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 500_000_000L)
 
 			val particleEffect = state.item.consumable?.particleEffect
@@ -411,12 +422,17 @@ class BattleState(
 		}
 	}
 
-	private fun applyMoveResultEntirely(context: BattleUpdateContext, result: MoveResult, attacker: CombatantState) {
-		applyMoveResultToAttacker(context, result, attacker)
-		for (targetEntry in result.targets) applyMoveResultToTarget(context, targetEntry)
+	private fun applyMoveResultEntirely(
+		context: BattleUpdateContext, result: MoveResult,
+		attacker: CombatantState, skill: ActiveSkill?, isConsumable: Boolean,
+	) {
+		applyMoveResultToAttacker(context, result, attacker, skill, isConsumable)
+		for (targetEntry in result.targets) applyMoveResultToTarget(context, targetEntry, attacker)
 	}
 
-	private fun applyMoveResultToTarget(context: BattleUpdateContext, entry: MoveResult.Entry) {
+	private fun applyMoveResultToTarget(
+		context: BattleUpdateContext, entry: MoveResult.Entry, attacker: CombatantState
+	) {
 		val currentTime = System.nanoTime()
 
 		val target = entry.target
@@ -465,13 +481,27 @@ class BattleState(
 				target.statusEffects.removeAll(entry.removedEffects)
 				for (effect in entry.removedEffects) target.renderInfo.effectHistory.remove(effect, currentTime)
 				for (effect in entry.addedEffects) target.renderInfo.effectHistory.add(effect, currentTime)
+			} else {
+				if (target is MonsterCombatantState) {
+					attacker.gainExperience(context, target.monster.experience * target.getLevel(context))
+					for (player in livingPlayers()) {
+						if (player !== attacker && target.isOnPlayerSide != player.isOnPlayerSide) {
+							player.gainExperience(
+								context, target.monster.experience * target.getLevel(context) / 2
+							)
+						}
+					}
+				}
 			}
 		} else {
 			target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
 		}
 	}
 
-	private fun applyMoveResultToAttacker(context: BattleUpdateContext, result: MoveResult, attacker: CombatantState) {
+	private fun applyMoveResultToAttacker(
+		context: BattleUpdateContext, result: MoveResult,
+		attacker: CombatantState, skill: ActiveSkill?, isConsumable: Boolean,
+	) {
 		for (sound in result.sounds) context.soundQueue.insert(sound)
 		if (result.restoreAttackerHealth != 0) {
 			attacker.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
@@ -495,6 +525,13 @@ class BattleState(
 		attacker.clampHealthAndMana(context)
 		if (attacker.isAlive() && attacker.currentHealth <= attacker.maxHealth / 5) {
 			attacker.statusEffects.addAll(attacker.getSosEffects(context))
+		}
+
+		val notMissedTargets = result.targets.filter { !it.missed }
+		if (!isConsumable && notMissedTargets.isNotEmpty()) {
+			var gainedExperience = 100 * notMissedTargets.maxOf { it.target.getLevel(context) }
+			if (skill != null && skill.isMelee) gainedExperience *= 2
+			attacker.gainExperience(context, gainedExperience)
 		}
 	}
 }
