@@ -568,7 +568,11 @@ class AreaState(
 			context.campaign.gameOver = true
 		}
 		if (suspension.loot == null && battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
-			val loot = generateBattleLoot(context.content, suspension.battle.battle, context.campaign.usedPartyMembers())
+			val loot = generateBattleLoot(
+				context.content, suspension.battle.battle,
+				context.campaign.usedPartyMembers(),
+				suspension.battle.allPlayers()
+			)
 			// TODO CHAP2 Handle plot items via timeline transitions: loot.plotItems
 			suspension.loot = loot
 			for (combatant in suspension.battle.allPlayers()) {

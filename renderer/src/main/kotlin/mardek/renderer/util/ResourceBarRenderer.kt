@@ -72,21 +72,23 @@ class ResourceBarRenderer(
 		)
 	}
 
-	fun renderTextOverBar(currentValue: Int, maxValue: Int) {
+	fun renderTextOverBar(currentValue: Int, maxValue: Int, opacity: Float = 1f) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
 		val splitX = barRegion.minX + barRegion.width * 5f / 9f
 		val marginX = barRegion.width / 30f
 		val font = context.bundle.getFont(context.content.fonts.large1.index)
 		val shadowOffset = 0.125f * barRegion.height
+		val textColor = multiplyAlpha(entry.textColor, opacity)
+		val shadowColor = multiplyAlpha(entry.shadowColor, opacity)
 		textBatch.drawShadowedString(
 			currentValue.toString(), splitX - marginX, barRegion.maxY + barRegion.height * 0.33f,
-			1.75f * barRegion.height, font, entry.textColor, 0, 0f,
-			entry.shadowColor, shadowOffset, shadowOffset, TextAlignment.RIGHT
+			1.75f * barRegion.height, font, textColor, 0, 0f,
+			shadowColor, shadowOffset, shadowOffset, TextAlignment.RIGHT
 		)
 		textBatch.drawShadowedString(
 			maxValue.toString(), splitX + marginX, barRegion.maxY + barRegion.height * 0.2f,
-			1.33f * barRegion.height, font, entry.textColor, 0, 0f,
-			entry.shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
+			1.33f * barRegion.height, font, textColor, 0, 0f,
+			shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
 		)
 	}
 

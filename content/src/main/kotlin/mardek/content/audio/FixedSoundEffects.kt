@@ -154,9 +154,15 @@ class BattleSoundEffects(
 	 */
 	@BitField(id = 6)
 	val levelUp: SoundEffect,
+
+	/**
+	 * The sound effect when a player masters a skill
+	 */
+	@BitField(id = 7)
+	val masteredSkill: SoundEffect,
 ) {
 	internal constructor() : this(
 		SoundEffect(), SoundEffect(), SoundEffect(), SoundEffect(),
-		SoundEffect(), SoundEffect(), SoundEffect(),
+		SoundEffect(), SoundEffect(), SoundEffect(), SoundEffect(),
 	)
 }

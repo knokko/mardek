@@ -18,6 +18,7 @@ import mardek.content.skill.Skill
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.*
 import mardek.content.characters.CharacterState
+import mardek.content.skill.ActiveSkill
 import java.util.EnumMap
 import kotlin.math.max
 import kotlin.math.min
@@ -247,6 +248,24 @@ sealed class CombatantState(
 	 */
 	open fun gainExperience(context: BattleUpdateContext, rawAmount: Int) {}
 
+	/**
+	 * - For players, this increments the mastery points of the toggled unmastered reaction skills of the given type.
+	 * - For monsters, this does nothing.
+	 */
+	open fun incrementReactionSkillsMastery(context: BattleUpdateContext, type: ReactionSkillType) {}
+
+	/**
+	 * - For players, this increments the mastery points of all the toggled unmastered passive skills.
+	 * - For monsters, this does nothing.
+	 */
+	open fun incrementPassiveSkillsMastery(context: BattleUpdateContext) {}
+
+	/**
+	 * - For players, this increments the mastery points of `skill`.
+	 * - For monsters, this does nothing.
+	 */
+	open fun incrementActiveSkillMastery(context: BattleUpdateContext, skill: ActiveSkill) {}
+
 	companion object {
 
 		@JvmStatic
@@ -277,6 +296,10 @@ class PlayerCombatantState(
 	element = player.element,
 	isOnPlayerSide = isOnPlayerSide
 ) {
+
+	@BitField(id = 1)
+	@ReferenceField(stable = true, label = "skills")
+	val masteredSkillsThisBattle = HashSet<Skill>()
 
 	/**
 	 * This field tracks the recently-gained experience of this player, and helps the renderer with deciding how to
@@ -393,6 +416,39 @@ class PlayerCombatantState(
 			context.soundQueue.insert(context.sounds.battle.levelUp)
 			lastLevelUp = LevelUpIndicator(System.nanoTime(), state.currentLevel)
 		}
+	}
+
+	private fun incrementSkillMastery(context: BattleUpdateContext, playerState: CharacterState, skill: Skill) {
+		val oldMastery = playerState.skillMastery[skill] ?: 0
+		if (oldMastery < skill.masteryPoints) {
+			val newMastery = oldMastery + 1
+			playerState.skillMastery[skill] = newMastery
+			if (newMastery == skill.masteryPoints) {
+				masteredSkillsThisBattle.add(skill)
+				context.soundQueue.insert(context.sounds.battle.masteredSkill)
+			}
+		}
+	}
+
+	override fun incrementReactionSkillsMastery(context: BattleUpdateContext, type: ReactionSkillType) {
+		val playerState = context.characterStates[player]!!
+		for (skill in playerState.toggledSkills) {
+			if (skill is ReactionSkill && skill.type == type) {
+				incrementSkillMastery(context, playerState, skill)
+			}
+		}
+	}
+
+	override fun incrementPassiveSkillsMastery(context: BattleUpdateContext) {
+		val playerState = context.characterStates[player]!!
+		for (skill in playerState.toggledSkills) {
+			if (skill is PassiveSkill) incrementSkillMastery(context, playerState, skill)
+		}
+	}
+
+	override fun incrementActiveSkillMastery(context: BattleUpdateContext, skill: ActiveSkill) {
+		val playerState = context.characterStates[player]!!
+		incrementSkillMastery(context, playerState, skill)
 	}
 }
 

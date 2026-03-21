@@ -9,6 +9,8 @@ import mardek.renderer.animation.renderPortraitAnimation
 import mardek.renderer.area.AreaRenderContext
 import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.renderer.menu.referenceTime
+import mardek.renderer.util.renderBoxButton
+import mardek.renderer.util.renderInnerBoxButton
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
@@ -170,108 +172,6 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			}
 		}
 
-		fun renderBox(
-			x: Int, boxY: Int, boxSize: Int, borderWidth: Int, boxRadius: Int, cornerDistances: FloatArray,
-			boxColor: Int, token: String, label: String,
-		) {
-			val tokenFont = context.bundle.getFont(context.content.fonts.basic2.index)
-			val labelFont = context.bundle.getFont(context.content.fonts.large1.index)
-			val textColor = srgbToLinear(rgb(186, 146, 77))
-			val shadowColor = rgb(0, 0, 0)
-			val shadowOffset = boxSize * 0.08f
-
-			uiColorBatch.fill(
-				x + boxRadius, boxY + borderWidth,
-				x + boxSize - 1 - boxRadius, boxY + boxSize - 1 - borderWidth,
-				boxColor,
-			)
-			uiColorBatch.fill(
-				x + borderWidth, boxY + boxRadius,
-				x + boxRadius - 1, boxY + boxSize - 1 - boxRadius,
-				boxColor
-			)
-			uiColorBatch.fill(
-				x + boxSize - boxRadius, boxY + boxRadius,
-				x + boxSize - 1 - borderWidth, boxY + boxSize - 1 - boxRadius,
-				boxColor
-			)
-
-			val borderColor = srgbToLinear(rgba(73, 52, 37, 150))
-			uiColorBatch.fill(
-				x, boxY + boxRadius,
-				x + borderWidth - 1, boxY + boxSize - boxRadius - 1,
-				borderColor,
-			)
-			uiColorBatch.fill(
-				x + boxSize - borderWidth, boxY + boxRadius,
-				x + boxSize - 1, boxY + boxSize - boxRadius - 1,
-				borderColor,
-			)
-			uiColorBatch.fill(
-				x + boxRadius, boxY,
-				x + boxSize - boxRadius - 1, boxY + borderWidth - 1,
-				borderColor,
-			)
-			uiColorBatch.fill(
-				x + boxRadius, boxY + boxSize - borderWidth,
-				x + boxSize - boxRadius - 1, boxY + boxSize - 1,
-				borderColor,
-			)
-
-			val r = boxRadius.toFloat()
-
-			fun renderQuarterOval(minX: Int, minY: Int, maxX: Int, maxY: Int, centerX: Float, centerY: Float) {
-				dialogueOvalBatch.complex(
-					minX, minY, maxX, maxY, centerX, centerY, r, r,
-					boxColor, boxColor, borderColor, borderColor, 0,
-					cornerDistances[0], cornerDistances[1],
-					cornerDistances[2], cornerDistances[3],
-				)
-			}
-
-			renderQuarterOval(
-				x, boxY,x + boxRadius - 1, boxY + boxRadius - 1,
-				x + r, boxY + r,
-			)
-			renderQuarterOval(
-				x, boxY + boxSize - boxRadius,x + boxRadius - 1, boxY + boxSize - 1,
-				x + r, boxY + boxSize - r,
-			)
-			renderQuarterOval(
-				x + boxSize - boxRadius, boxY,x + boxSize - 1, boxY + boxRadius - 1,
-				x + boxSize - r, boxY + r,
-			)
-			renderQuarterOval(
-				x + boxSize - boxRadius - 1, boxY + boxSize - boxRadius,
-				x + boxSize - 1, boxY + boxSize - 1,
-				x + boxSize - r, boxY + boxSize - r,
-			)
-
-			val tokenBaseX = x + boxSize * 0.45f
-			val textY = boxY + boxSize * 0.7f
-			val textHeight = boxSize * 0.5f
-			if (label.isEmpty()) {
-				val highColor = srgbToLinear(rgb(109, 93, 81))
-				textBatch.drawFancyString(
-					token, tokenBaseX, textY + 0.1f * boxSize, textHeight, tokenFont,
-					borderColor, 0, 0f, TextAlignment.CENTERED,
-					borderColor, highColor, highColor, highColor,
-					0.5f, 0.5f, 1f, 1f,
-				)
-			} else {
-				textBatch.drawShadowedString(
-					token, tokenBaseX, textY, textHeight,
-					tokenFont, textColor, 0, 0f, shadowColor,
-					shadowOffset, shadowOffset, TextAlignment.CENTERED,
-				)
-				textBatch.drawShadowedString(
-					label, x + boxSize * 1.3f, textY, textHeight,
-					labelFont, textColor, 0, 0f, shadowColor,
-					shadowOffset, shadowOffset, TextAlignment.LEFT,
-				)
-			}
-		}
-
 		run {
 			val boxY = nameRegion.minY - nameRegion.height * 3 / 8
 			val boxSize = nameRegion.height * 3 / 8
@@ -280,57 +180,31 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val boxColor = srgbToLinear(rgb(88, 71, 47))
 			val cornerDistances = floatArrayOf(0.85f, 0.9f, 1.0f, 1.05f)
 
-			renderBox(
+			renderInnerBoxButton(
+				uiColorBatch, dialogueOvalBatch, textBatch, context.bundle, context.content.fonts,
 				nameRegion.maxX - nameRegion.height * 10 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "Q", "Skip",
 			)
-			renderBox(
+			renderInnerBoxButton(
+				uiColorBatch, dialogueOvalBatch, textBatch, context.bundle, context.content.fonts,
 				nameRegion.maxX - nameRegion.height * 5 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "L", "Log",
 			)
 		}
 
 		if (actions.shownDialogueCharacters >= talkAction.text.length || actionNode is ChoiceActionNode) {
-			val boxSizePeriod = 1_000_000_000L
-			val relativeTime = ((System.nanoTime() - referenceTime) % boxSizePeriod).toFloat() / boxSizePeriod
 			val minBoxSize = textRegion.height * 0.24f
 			val maxBoxSize = textRegion.height * 0.26f
+			val boxSizePeriod = 1_000_000_000L
+			val relativeTime = ((System.nanoTime() - referenceTime) % boxSizePeriod).toFloat() / boxSizePeriod
 			val floatBoxSize = minBoxSize + (2f * abs(0.5f - relativeTime)) * (maxBoxSize - minBoxSize)
 			val boxSize = floatBoxSize.roundToInt()
-			val cornerRadius = (minBoxSize / 6f).roundToInt()
-			val darkColor = srgbToLinear(rgb(145, 137, 112))
-			val lightColor = srgbToLinear(rgb(167, 161, 141))
-			val cornerDistances = floatArrayOf(0.6f, 0.65f, 1f, 1.05f)
-			val borderWidth = max(1, boxSize / 15)
-
 			val boxOffset = (textRegion.height * 0.03f + minBoxSize + 0.5f * (boxSize - minBoxSize)).roundToInt()
 			val boxX = textRegion.maxX - boxOffset
 			val boxY = textRegion.maxY - boxOffset
-			renderBox(
-				boxX, boxY, boxSize, borderWidth, cornerRadius, cornerDistances,
-				darkColor, "E", "",
-			)
-			uiColorBatch.fill(
-				boxX + 5 * borderWidth / 2, boxY + 4 * borderWidth,
-				boxX + boxSize - 1 - 5 * borderWidth / 2, boxY + 5 * boxSize / 9, lightColor
-			)
-			uiColorBatch.fill(
-				boxX + 4 * borderWidth, boxY + 5 * borderWidth / 2,
-				boxX + boxSize - 1 - 4 * borderWidth, boxY + 4 * borderWidth - 1, lightColor
-			)
-
-			val radius = borderWidth * 1.5f
-			dialogueOvalBatch.aliased(
-				boxX + 5 * borderWidth / 2, boxY + 5 * borderWidth / 2,
-				boxX + 4 * borderWidth - 1, boxY + 4 * borderWidth - 1,
-				boxX + 4f * borderWidth, boxY + 4f * borderWidth,
-				radius, radius, lightColor,
-			)
-			dialogueOvalBatch.aliased(
-				boxX + boxSize - 4 * borderWidth - 1, boxY + 5 * borderWidth / 2,
-				boxX + boxSize - 5 * borderWidth / 2 - 1, boxY + 4 * borderWidth - 1,
-				boxX + boxSize - 4f * borderWidth, boxY + 4f * borderWidth,
-				radius, radius, lightColor,
+			renderBoxButton(
+				uiColorBatch, dialogueOvalBatch, textBatch, context.bundle, context.content.fonts,
+				minBoxSize, boxX, boxY
 			)
 		}
 

@@ -7,7 +7,11 @@ import mardek.content.inventory.ItemStack
 import mardek.content.inventory.PlotItem
 import mardek.content.skill.PassiveSkill
 import mardek.content.battle.Battle
+import mardek.content.characters.PlayableCharacter
+import mardek.content.skill.Skill
 import mardek.state.UsedPartyMember
+import mardek.state.ingame.battle.CombatantState
+import mardek.state.ingame.battle.PlayerCombatantState
 import java.lang.IllegalArgumentException
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -28,7 +32,7 @@ private fun getModifiers(party: List<UsedPartyMember>): Pair<Int, Int> {
 
 fun generateBattleLoot(
 	content: Content, battle: Battle,
-	party: List<UsedPartyMember>
+	party: List<UsedPartyMember>, combatants: List<CombatantState>
 ): BattleLoot {
 	val (goldModifier, extraLootChance) = getModifiers(party)
 
@@ -62,8 +66,16 @@ fun generateBattleLoot(
 	val foundItems = items.isNotEmpty() || plotItems.isNotEmpty() || dreamStones.isNotEmpty()
 	val itemText = if (foundItems) "You ${content.battle.lootItemTexts.random()}:"
 	else content.battle.lootNoItemTexts.random()
+
+	val mastery = HashMap<PlayableCharacter, HashSet<Skill>>()
+	for (combatant in combatants) {
+		if (combatant is PlayerCombatantState) {
+			mastery[combatant.player] = combatant.masteredSkillsThisBattle
+		}
+	}
+
 	return BattleLoot(
 		gold, ArrayList(items.entries.map { ItemStack(it.key, it.value) }),
-		ArrayList(plotItems), ArrayList(dreamStones), itemText, party
+		ArrayList(plotItems), ArrayList(dreamStones), itemText, mastery, party
 	)
 }

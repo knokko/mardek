@@ -214,8 +214,11 @@ class CharacterState {
 	 * Check whether this character should be allowed to cast `skill`. Casting skills is allowed when either:
 	 * - this character has *mastered* the skill, or when
 	 * - the equipment of this character allows the skill to be cast
+	 *
+	 * This method does *not* check whether the character has enough mana to cast the skill, nor whether any status
+	 * effects would prevent the character from casting the skill.
 	 */
-	fun canCastSkill(skill: ActiveSkill): Boolean {
+	fun canRememberSkill(skill: ActiveSkill): Boolean {
 		val mastery = skillMastery[skill]
 		if (mastery != null && mastery >= skill.masteryPoints) return true
 		return equipment.values.any { it.equipment != null && it.equipment.skills.contains(skill) }

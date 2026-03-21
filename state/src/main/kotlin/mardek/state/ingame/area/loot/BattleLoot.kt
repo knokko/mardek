@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.BitPostInit
+import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Dreamstone
 import mardek.content.inventory.ItemStack
@@ -12,6 +13,7 @@ import mardek.content.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.state.GameStateUpdateContext
 import mardek.content.characters.CharacterState
+import mardek.content.skill.Skill
 import mardek.state.UsedPartyMember
 import mardek.state.WholeParty
 
@@ -35,6 +37,11 @@ class BattleLoot(
 	@BitField(id = 4)
 	val itemText: String,
 
+	@BitField(id = 5)
+	@NestedFieldSetting(path = "k", fieldName = "MASTERED_SKILLS_KEYS")
+	@NestedFieldSetting(path = "vc", fieldName = "MASTERED_SKILLS_VALUES")
+	val masteredSkills: HashMap<PlayableCharacter, HashSet<Skill>>,
+
 	party: List<UsedPartyMember>,
 ) : BitPostInit {
 
@@ -42,15 +49,19 @@ class BattleLoot(
 	private constructor() : this(
 		0, ArrayList(0),
 		ArrayList(0), ArrayList(0),
-		"", listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
+		"", HashMap(),
+		listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
 	)
 
-	@BitField(id = 5)
+	@BitField(id = 6)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 3)
 	var selectedPartyIndex = party[0].index
 		private set
 
 	var selectedElement = if (items.isEmpty()) SelectedFinish else SelectedGetAll
+
+	var showMasteryScreen = false
+		private set
 
 	/**
 	 * The loot menu should close when `finishAt != 0L && System.nanoTime() >= finishAt`.
@@ -68,6 +79,15 @@ class BattleLoot(
 
 	fun processKeyPress(key: InputKey, context: UpdateContext) {
 		if (finishAt != 0L) return
+		if (showMasteryScreen) {
+			if (key == InputKey.Interact || key == InputKey.Cancel ||
+				key == InputKey.ToggleMenu || key == InputKey.Escape
+			) {
+				finishAt = System.nanoTime() + FADE_OUT_DURATION
+			}
+			return
+		}
+
 		val soundEffects = context.content.audio.fixedEffects.ui
 		val oldPartyIndex = selectedPartyIndex
 		if (key == InputKey.MoveLeft) {
@@ -140,7 +160,12 @@ class BattleLoot(
 			}
 			if (oldElement is SelectedFinish) {
 				context.soundQueue.insert(soundEffects.clickConfirm)
-				finishAt = System.nanoTime() + FADE_OUT_DURATION
+				if (masteredSkills.any { it.value.isNotEmpty() }) {
+					showMasteryScreen = true
+					context.soundQueue.insert(context.content.audio.fixedEffects.battle.masteredSkill)
+				} else {
+					finishAt = System.nanoTime() + FADE_OUT_DURATION
+				}
 			}
 		}
 	}
@@ -161,5 +186,13 @@ class BattleLoot(
 
 	companion object {
 		const val FADE_OUT_DURATION = 500_000_000L
+
+		@Suppress("unused")
+		@ReferenceField(stable = true, label = "playable characters")
+		private const val MASTERED_SKILLS_KEYS = false
+
+		@Suppress("unused")
+		@ReferenceField(stable = true, label = "skills")
+		private const val MASTERED_SKILLS_VALUES = false
 	}
 }

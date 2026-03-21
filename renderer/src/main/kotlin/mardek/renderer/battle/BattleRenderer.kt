@@ -38,12 +38,14 @@ internal fun renderBattle(
 	// The player block renderer expects the image batch to be behind the kim batch
 	val imageBatch = context.addImageBatch(1000)
 	val kimBatch = context.addKim3Batch(200)
+	val spriteBatch = context.addAreaSpriteBatch(20, region)
 	val textBatch = context.addFancyTextBatch(2000)
 
 	// The combatant info popup needs to render above everything else
 	val lateColorBatch = context.addColorBatch(100)
 	val lateOvalBatch = context.addOvalBatch(6)
 	val lateKimBatch = context.addKim3Batch(20)
+	val lateSpriteBatch = context.addAreaSpriteBatch(20, region)
 	val lateImageBatch = context.addImageBatch(200)
 	val lateTextBatch = context.addTextBatch(2000)
 	val lateAnimationPartBatch = context.addAnimationPartBatch(200)
@@ -93,7 +95,7 @@ internal fun renderBattle(
 		if (isChoosingSkillOrItem && !isSelectingTarget) {
 			renderActionBar(
 				ActionBarRenderMode.Background, battleContext, colorBatch, ovalBatch,
-				lateOvalBatch, kimBatch, imageBatch, textBatch, actionBarRegion
+				lateOvalBatch, spriteBatch, imageBatch, textBatch, actionBarRegion
 			)
 
 			val framebuffers = context.framebuffers
@@ -107,10 +109,10 @@ internal fun renderBattle(
 				framebuffers.actionBarBlur, 9, 50, -1
 			)
 			val blurOvalBatch = context.addOvalBatch(50)
-			val blurKimBatch = context.addKim3Batch(50)
+			val blurSpriteBatch = context.addAreaSpriteBatch(50, region)
 			renderActionBar(
 				ActionBarRenderMode.BlurredBackground, battleContext,
-				null, blurOvalBatch, lateOvalBatch, blurKimBatch, null, null,
+				null, blurOvalBatch, lateOvalBatch, blurSpriteBatch, null, null,
 				Rectangle(0, 0, actionBarRegion.width, actionBarRegion.height)
 			)
 
@@ -123,13 +125,13 @@ internal fun renderBattle(
 			).fixedColorTransform(0, rgba(1f, 1f, 1f, 0.5f))
 			renderActionBar(
 				ActionBarRenderMode.Foreground, battleContext, lateColorBatch, lateOvalBatch,
-				lateOvalBatch, lateKimBatch, lateImageBatch, lateTextBatch, actionBarRegion,
+				lateOvalBatch, lateSpriteBatch, lateImageBatch, lateTextBatch, actionBarRegion,
 			)
 		} else if (!isSelectingTarget) {
 			for (renderMode in ActionBarRenderMode.entries) {
 				renderActionBar(
 					renderMode, battleContext, colorBatch, ovalBatch, lateOvalBatch,
-					kimBatch, imageBatch, textBatch, actionBarRegion,
+					spriteBatch, imageBatch, textBatch, actionBarRegion,
 				)
 			}
 		}
@@ -144,7 +146,7 @@ internal fun renderBattle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 9
 	))
 
-	renderCurrentMoveBar(battleContext, colorBatch, kimBatch, imageBatch, textBatch, Rectangle(
+	renderCurrentMoveBar(battleContext, colorBatch, spriteBatch, imageBatch, textBatch, Rectangle(
 		region.minX, region.minY + region.height / 12, region.width, region.height / 16
 	))
 

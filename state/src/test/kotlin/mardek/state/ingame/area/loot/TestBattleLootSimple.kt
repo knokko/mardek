@@ -18,6 +18,7 @@ class TestBattleLootSimple {
 			ArrayList(0),
 			ArrayList(0),
 			"hi",
+			HashMap(),
 			listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
 		)
 		assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
@@ -31,6 +32,7 @@ class TestBattleLootSimple {
 			ArrayList(0),
 			ArrayList(0),
 			"hi",
+			HashMap(),
 			listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
 		)
 		assertEquals(BattleLoot.SelectedFinish, loot.selectedElement)

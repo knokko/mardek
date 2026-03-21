@@ -10,6 +10,7 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
 import mardek.renderer.area.ui.renderLootInventoryGrid
 import mardek.renderer.menu.determinePointerOffset
+import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderButton
 import mardek.state.UsedPartyMember
@@ -17,8 +18,6 @@ import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.util.Rectangle
 import java.util.Locale
 import kotlin.math.max
-
-private val referenceTime = System.nanoTime()
 
 internal fun renderBattleLoot(
 	context: RenderContext, loot: BattleLoot,
@@ -241,16 +240,6 @@ internal fun renderBattleLoot(
 	renderLootInventoryGrid(
 		colorBatch, party, partyMinX + scale, region.boundY - 22 * scale, 18 * scale, scale
 	)
-
-	if (loot.finishAt != 0L) {
-		val fade = 1f - (loot.finishAt - System.nanoTime()) / BattleLoot.FADE_OUT_DURATION.toFloat()
-		if (fade > 0.001f) {
-			context.addColorBatch(2).fill(
-				region.minX, region.minY, region.maxX, region.maxY,
-				rgba(0f, 0f, 0f, fade),
-			)
-		}
-	}
 
 	return Pair(colorBatch, textBatch)
 }

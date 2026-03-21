@@ -126,7 +126,7 @@ internal fun battleScrollVertically(battle: BattleState, key: InputKey, context:
 
 	if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null) {
 		if (selectedMove.target == null) {
-			val skills = player.characterClass.skillClass.actions.filter { playerState.canCastSkill(it) }
+			val skills = player.characterClass.skillClass.actions.filter { playerState.canRememberSkill(it) }
 			if (skills.size > 1) {
 				var index = skills.indexOf(selectedMove.skill)
 				if (key == InputKey.MoveUp) {
@@ -185,7 +185,11 @@ internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
 	if (selectedMove is BattleMoveSelectionAttack) {
 		val target = selectedMove.target
 		if (target == null) {
-			changeSelectedMove(battle, BattleMoveSelectionAttack(target = firstEnemyTarget), context)
+			if (state.onTurn.statusEffects.none { it.blocksBasicAttacks }) {
+				changeSelectedMove(battle, BattleMoveSelectionAttack(target = firstEnemyTarget), context)
+			} else {
+				context.soundQueue.insert(context.sounds.ui.clickReject)
+			}
 		} else {
 			battle.confirmMove(context, BattleStateMachine.MeleeAttack.MoveTo(
 				state.onTurn, target, null, context
@@ -194,8 +198,12 @@ internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
 	}
 	if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill == null) {
 		val playerState = context.characterStates[state.onTurn.player]!!
-		val skill = state.onTurn.player.characterClass.skillClass.actions.firstOrNull { playerState.canCastSkill(it) }
-		if (skill != null) {
+		val skill = state.onTurn.player.characterClass.skillClass.actions.firstOrNull {
+			playerState.canRememberSkill(it)
+		}
+		val blockedByStatusEffects = state.onTurn.statusEffects.any { it.blocksMeleeSkills } &&
+				state.onTurn.statusEffects.any { it.blocksRangedSkills }
+		if (skill != null && !blockedByStatusEffects) {
 			changeSelectedMove(battle, BattleMoveSelectionSkill(skill = skill, target = null), context)
 			context.soundQueue.insert(context.sounds.ui.clickConfirm)
 		} else context.soundQueue.insert(context.sounds.ui.clickReject)

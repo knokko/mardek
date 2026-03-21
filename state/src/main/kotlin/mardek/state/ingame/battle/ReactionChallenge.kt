@@ -36,6 +36,22 @@ class ReactionChallenge(
 	fun wasPassed() = clickedAfter in MIN_CLICK_AFTER..MAX_CLICK_AFTER
 
 	/**
+	 * Marks this reaction challenge as 'passed': subsequent calls to [wasPassed] will return `true`. This method
+	 * should only be used during unit tests.
+	 */
+	fun forciblyPass() {
+		clickedAfter = MIN_CLICK_AFTER
+	}
+
+	/**
+	 * Marks this reaction challenge as 'failed': subsequent calls to [wasPassed] and [isPending]
+	 * will return `false`. This method should only be used during unit tests.
+	 */
+	fun forciblyFail() {
+		clickedAfter = 1L
+	}
+
+	/**
 	 * Return true if the challenge is pending: when the outcome of the reaction challenge is not yet known. The
 	 * challenge is pending when:
 	 * - the player has not clicked yet, and

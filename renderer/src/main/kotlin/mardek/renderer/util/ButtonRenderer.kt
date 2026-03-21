@@ -6,12 +6,18 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.text.TextAlignment
 import com.github.knokko.vk2d.text.Vk2dFont
+import mardek.content.ui.Fonts
 import mardek.renderer.glyph.MardekGlyphBatch
+import mardek.renderer.menu.referenceTime
 import mardek.state.util.Rectangle
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.roundToInt
 
-fun renderButton(
+internal fun renderButton(
 	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: MardekGlyphBatch, font: Vk2dFont,
 	showTextOutline: Boolean, text: String, renderLeftBorder: Boolean, isSelected: Boolean, isDisabled: Boolean,
 	rect: Rectangle, outlineWidth: Int, textOffsetX: Int, textBaseY: Int, textHeight: Int,
@@ -115,5 +121,154 @@ fun renderButton(
 		outlineColor, outlineWidth, TextAlignment.LEFT,
 		lowerTextColor, upperTextColor, upperTextColor, upperTextColor,
 		0.5f, 0.5f, 0.5f, 0.5f
+	)
+}
+
+internal fun renderInnerBoxButton(
+	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, textBatch: MardekGlyphBatch,
+	bundle: Vk2dResourceBundle, fonts: Fonts,
+	x: Int, boxY: Int, boxSize: Int, borderWidth: Int, boxRadius: Int, cornerDistances: FloatArray,
+	boxColor: Int, token: String, label: String,
+) {
+	val tokenFont = bundle.getFont(fonts.basic2.index)
+	val labelFont = bundle.getFont(fonts.large1.index)
+	val textColor = srgbToLinear(rgb(186, 146, 77))
+	val shadowColor = rgb(0, 0, 0)
+	val shadowOffset = boxSize * 0.08f
+
+	colorBatch.fill(
+		x + boxRadius, boxY + borderWidth,
+		x + boxSize - 1 - boxRadius, boxY + boxSize - 1 - borderWidth,
+		boxColor,
+	)
+	colorBatch.fill(
+		x + borderWidth, boxY + boxRadius,
+		x + boxRadius - 1, boxY + boxSize - 1 - boxRadius,
+		boxColor
+	)
+	colorBatch.fill(
+		x + boxSize - boxRadius, boxY + boxRadius,
+		x + boxSize - 1 - borderWidth, boxY + boxSize - 1 - boxRadius,
+		boxColor
+	)
+
+	val borderColor = srgbToLinear(rgba(73, 52, 37, 150))
+	colorBatch.fill(
+		x, boxY + boxRadius,
+		x + borderWidth - 1, boxY + boxSize - boxRadius - 1,
+		borderColor,
+	)
+	colorBatch.fill(
+		x + boxSize - borderWidth, boxY + boxRadius,
+		x + boxSize - 1, boxY + boxSize - boxRadius - 1,
+		borderColor,
+	)
+	colorBatch.fill(
+		x + boxRadius, boxY,
+		x + boxSize - boxRadius - 1, boxY + borderWidth - 1,
+		borderColor,
+	)
+	colorBatch.fill(
+		x + boxRadius, boxY + boxSize - borderWidth,
+		x + boxSize - boxRadius - 1, boxY + boxSize - 1,
+		borderColor,
+	)
+
+	val r = boxRadius.toFloat()
+
+	fun renderQuarterOval(minX: Int, minY: Int, maxX: Int, maxY: Int, centerX: Float, centerY: Float) {
+		ovalBatch.complex(
+			minX, minY, maxX, maxY, centerX, centerY, r, r,
+			boxColor, boxColor, borderColor, borderColor, 0,
+			cornerDistances[0], cornerDistances[1],
+			cornerDistances[2], cornerDistances[3],
+		)
+	}
+
+	renderQuarterOval(
+		x, boxY,x + boxRadius - 1, boxY + boxRadius - 1,
+		x + r, boxY + r,
+	)
+	renderQuarterOval(
+		x, boxY + boxSize - boxRadius,x + boxRadius - 1, boxY + boxSize - 1,
+		x + r, boxY + boxSize - r,
+	)
+	renderQuarterOval(
+		x + boxSize - boxRadius, boxY,x + boxSize - 1, boxY + boxRadius - 1,
+		x + boxSize - r, boxY + r,
+	)
+	renderQuarterOval(
+		x + boxSize - boxRadius - 1, boxY + boxSize - boxRadius,
+		x + boxSize - 1, boxY + boxSize - 1,
+		x + boxSize - r, boxY + boxSize - r,
+	)
+
+	val tokenBaseX = x + boxSize * 0.45f
+	val textY = boxY + boxSize * 0.7f
+	val textHeight = boxSize * 0.5f
+	if (label.isEmpty()) {
+		val highColor = srgbToLinear(rgb(109, 93, 81))
+		textBatch.drawFancyString(
+			token, tokenBaseX, textY + 0.1f * boxSize, textHeight, tokenFont,
+			borderColor, 0, 0f, TextAlignment.CENTERED,
+			borderColor, highColor, highColor, highColor,
+			0.5f, 0.5f, 1f, 1f,
+		)
+	} else {
+		textBatch.drawShadowedString(
+			token, tokenBaseX, textY, textHeight,
+			tokenFont, textColor, 0, 0f, shadowColor,
+			shadowOffset, shadowOffset, TextAlignment.CENTERED,
+		)
+		textBatch.drawShadowedString(
+			label, x + boxSize * 1.3f, textY, textHeight,
+			labelFont, textColor, 0, 0f, shadowColor,
+			shadowOffset, shadowOffset, TextAlignment.LEFT,
+		)
+	}
+}
+
+internal fun renderBoxButton(
+	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, textBatch: MardekGlyphBatch,
+	bundle: Vk2dResourceBundle, fonts: Fonts,
+	minBoxSize: Float, boxX: Int, boxY: Int,
+) {
+	val boxSizePeriod = 1_000_000_000L
+	val relativeTime = ((System.nanoTime() - referenceTime) % boxSizePeriod).toFloat() / boxSizePeriod
+	val maxBoxSize = 1.083f * minBoxSize
+	val floatBoxSize = minBoxSize + (2f * abs(0.5f - relativeTime)) * (maxBoxSize - minBoxSize)
+	val boxSize = floatBoxSize.roundToInt()
+	val cornerRadius = (minBoxSize / 6f).roundToInt()
+	val darkColor = srgbToLinear(rgb(145, 137, 112))
+	val lightColor = srgbToLinear(rgb(167, 161, 141))
+	val cornerDistances = floatArrayOf(0.6f, 0.65f, 1f, 1.05f)
+	val borderWidth = max(1, boxSize / 15)
+
+	renderInnerBoxButton(
+		colorBatch, ovalBatch, textBatch, bundle, fonts,
+		boxX, boxY, boxSize, borderWidth, cornerRadius, cornerDistances,
+		darkColor, "E", "",
+	)
+	colorBatch.fill(
+		boxX + 5 * borderWidth / 2, boxY + 4 * borderWidth,
+		boxX + boxSize - 1 - 5 * borderWidth / 2, boxY + 5 * boxSize / 9, lightColor
+	)
+	colorBatch.fill(
+		boxX + 4 * borderWidth, boxY + 5 * borderWidth / 2,
+		boxX + boxSize - 1 - 4 * borderWidth, boxY + 4 * borderWidth - 1, lightColor
+	)
+
+	val radius = borderWidth * 1.5f
+	ovalBatch.aliased(
+		boxX + 5 * borderWidth / 2, boxY + 5 * borderWidth / 2,
+		boxX + 4 * borderWidth - 1, boxY + 4 * borderWidth - 1,
+		boxX + 4f * borderWidth, boxY + 4f * borderWidth,
+		radius, radius, lightColor,
+	)
+	ovalBatch.aliased(
+		boxX + boxSize - 4 * borderWidth - 1, boxY + 5 * borderWidth / 2,
+		boxX + boxSize - 5 * borderWidth / 2 - 1, boxY + 4 * borderWidth - 1,
+		boxX + boxSize - 4f * borderWidth, boxY + 4f * borderWidth,
+		radius, radius, lightColor,
 	)
 }

@@ -6,6 +6,7 @@ import mardek.content.battle.Battle
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
 import mardek.content.skill.ActiveSkill
+import mardek.content.skill.ReactionSkillType
 import mardek.input.InputKey
 import mardek.input.MouseMoveEvent
 import kotlin.collections.component1
@@ -140,7 +141,10 @@ class BattleState(
 	private fun nextCombatantOnTurn(context: BattleUpdateContext): CombatantState? {
 		val combatants = livingPlayers() + livingOpponents()
 		if (combatants.none { it.isOnPlayerSide }) state = BattleStateMachine.GameOver()
-		if (combatants.none { !it.isOnPlayerSide }) state = BattleStateMachine.Victory()
+		if (combatants.none { !it.isOnPlayerSide }) {
+			state = BattleStateMachine.Victory()
+			for (combatant in combatants) combatant.incrementPassiveSkillsMastery(context)
+		}
 		if (state is BattleStateMachine.GameOver || state is BattleStateMachine.Victory) return null
 
 		val simulator = TurnOrderSimulator(this, context)
@@ -259,6 +263,7 @@ class BattleState(
 		if (state is BattleStateMachine.NextTurnEffects) prepareNextTurn(context, state)
 
 		if (state is BattleStateMachine.MeleeAttack.MoveTo && state.finished) {
+			if (state.skill != null) state.attacker.incrementActiveSkillMastery(context, state.skill)
 			this.state = BattleStateMachine.MeleeAttack.Strike(
 				state.attacker, state.target,
 				state.skill, state.reactionChallenge
@@ -272,6 +277,11 @@ class BattleState(
 				) else MoveResultCalculator(context).computeSkillResult(
 					state.skill, state.attacker, arrayOf(state.target), passedChallenge
 				)
+
+				if (passedChallenge) {
+					state.attacker.incrementReactionSkillsMastery(context, ReactionSkillType.MeleeAttack)
+					state.target.incrementReactionSkillsMastery(context, ReactionSkillType.MeleeDefense)
+				}
 
 				applyMoveResultEntirely(context, result, state.attacker, state.skill, false)
 				for (entry in result.targets) {
@@ -308,6 +318,13 @@ class BattleState(
 				val result = MoveResultCalculator(context).computeSkillResult(
 					state.skill, state.attacker, state.targets, passedChallenge
 				)
+
+				if (passedChallenge) {
+					state.attacker.incrementReactionSkillsMastery(context, ReactionSkillType.RangedAttack)
+					for (target in state.targets) {
+						target.incrementReactionSkillsMastery(context, ReactionSkillType.RangedDefense)
+					}
+				}
 
 				applyMoveResultEntirely(context, result, state.attacker, state.skill, false)
 				state.skill.particleEffect?.let {
@@ -375,6 +392,14 @@ class BattleState(
 					val result = MoveResultCalculator(context).computeSkillResult(
 						state.skill, state.caster, state.targets, passedChallenge
 					)
+
+					if (passedChallenge) {
+						state.caster.incrementReactionSkillsMastery(context, ReactionSkillType.RangedAttack)
+						for (target in state.targets) {
+							target.incrementReactionSkillsMastery(context, ReactionSkillType.RangedDefense)
+						}
+					}
+
 					applyMoveResultToAttacker(context, result, state.caster, state.skill, false)
 					state.calculatedDamage = state.targets.mapIndexed { index, target ->
 						if (target != result.targets[index].target) {
@@ -382,8 +407,10 @@ class BattleState(
 						}
 						result.targets[index]
 					}.toTypedArray()
+					state.caster.incrementActiveSkillMastery(context, state.skill)
 				}
 			}
+
 			val calculatedDamage = state.calculatedDamage
 
 			if (calculatedDamage != null) {

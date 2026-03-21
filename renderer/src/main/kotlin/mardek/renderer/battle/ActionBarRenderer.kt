@@ -8,10 +8,10 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
-import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.KimSprite
+import mardek.renderer.area.AreaSpriteBatch
 import mardek.renderer.menu.determinePointerOffset
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleMoveSelectionFlee
@@ -25,7 +25,7 @@ import kotlin.math.max
 internal fun renderActionBar(
 	renderMode: ActionBarRenderMode, battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch?,
 	ovalBatch: Vk2dOvalBatch, lateOvalBatch: Vk2dOvalBatch,
-	kimBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch?, textBatch: Vk2dGlyphBatch?, region: Rectangle,
+	spriteBatch: AreaSpriteBatch, imageBatch: Vk2dImageBatch?, textBatch: Vk2dGlyphBatch?, region: Rectangle,
 ) {
 	battleContext.run {
 		val stateMachine = battle.state
@@ -33,6 +33,7 @@ internal fun renderActionBar(
 		val marginY = region.height / 15
 		val marginX = 3 * marginY
 		val iconPositions = if (battle.battle.canFlee) IntArray(5) else IntArray(4)
+		val disabledPositions = mutableSetOf<Int>()
 		val highDashX = region.minX + 2 * region.width / 3
 		val lowDashX = highDashX - region.height
 
@@ -77,13 +78,21 @@ internal fun renderActionBar(
 				x -= region.height + marginX
 			}
 
+			if (player.statusEffects.any { it.blocksBasicAttacks }) disabledPositions.add(iconPositions[0])
+			if (player.statusEffects.any { it.blocksMeleeSkills } && player.statusEffects.any { it.blocksRangedSkills }) {
+				disabledPositions.add(iconPositions[1])
+			}
+			if (!state.characterStates[player.player]!!.inventory.any { it != null && it.item.consumable != null }) {
+				disabledPositions.add(iconPositions[2])
+			}
+
 			fun renderIcon(icon: KimSprite, x: Int, selected: Boolean) {
 				if (selected && renderMode != ActionBarRenderMode.Foreground) return
 				if (!selected && renderMode != ActionBarRenderMode.BlurredBackground) return
-				kimBatch.simple(
-					x, iconY,
+				spriteBatch.draw(
+					icon, x, iconY,
 					iconSize.toFloat() / icon.height,
-					icon.index,
+					0, if (disabledPositions.contains(x)) 0.1f else 1f,
 				)
 			}
 			renderIcon(player.getWeapon(updateContext)!!.sprite, iconPositions[0], selectedIndex == 0)
@@ -146,9 +155,14 @@ internal fun renderActionBar(
 		for (x in iconPositions) {
 			val radius = 0.5f * region.height - marginY
 			if (x == iconPositions[selectedIndex] && renderMode == ActionBarRenderMode.Foreground) {
-				val circleColor = srgbToLinear(rgb(37, 58, 107))
-				val brightCircleColor = srgbToLinear(rgb(6, 82, 155))
-				val selectedLineColor = srgbToLinear(rgb(165, 205, 255))
+				var circleColor = srgbToLinear(rgb(37, 58, 107))
+				var brightCircleColor = srgbToLinear(rgb(6, 82, 155))
+				var selectedLineColor = srgbToLinear(rgb(165, 205, 255))
+				if (disabledPositions.contains(x)) {
+					circleColor = srgbToLinear(rgb(33, 34, 45))
+					brightCircleColor = circleColor
+					selectedLineColor = srgbToLinear(rgb(66, 90, 116))
+				}
 				ovalBatch.complex(
 					x - region.height, region.minY - region.height,
 					x + 2 * region.height, region.maxY + region.height,
@@ -178,21 +192,29 @@ internal fun renderActionBar(
 				val font = context.bundle.getFont(context.content.fonts.large2.index)
 				val shadowColor = rgba(0, 0, 0, 200)
 				val shadowOffset = 0.02f * region.height
+				var useTextColor = textColor
+				if (disabledPositions.contains(x)) useTextColor = multiplyAlpha(useTextColor, 0.15f)
 				textBatch!!.drawShadowedString(
 					text, x + region.height.toFloat(), region.maxY - 0.25f * region.height,
-					0.45f * region.height, font, textColor,
+					0.45f * region.height, font, useTextColor,
 					rgb(0, 0, 0), 0.02f * region.height,
 					shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
 				)
 			}
 
 			if (x != iconPositions[selectedIndex] && renderMode == ActionBarRenderMode.BlurredBackground) {
-				val circleColor = srgbToLinear(rgb(89, 69, 46))
-				val brightCircleColor = srgbToLinear(rgb(137, 107, 67))
+				var circleColor = srgbToLinear(rgb(89, 69, 46))
+				var brightCircleColor = srgbToLinear(rgb(137, 107, 67))
+				var ovalLineColor = lineColor
+				if (disabledPositions.contains(x)) {
+					circleColor = srgbToLinear(rgb(48, 37, 27))
+					brightCircleColor = circleColor
+					ovalLineColor = srgbToLinear(rgb(108, 93, 66))
+				}
 				ovalBatch.complex(
 					x - 1, region.minY, x + region.height, region.maxY,
 					x + radius, region.minY + marginY + radius, radius, radius,
-					circleColor, circleColor, brightCircleColor, lineColor, 0,
+					circleColor, circleColor, brightCircleColor, ovalLineColor, 0,
 					0.85f, 0.95f, 1f, 1.05f,
 				)
 			}

@@ -14,6 +14,7 @@ import mardek.renderer.area.ui.shop.renderShopUi
 import mardek.renderer.area.ui.storage.renderItemStorage
 import mardek.renderer.battle.renderBattle
 import mardek.renderer.battle.renderBattleLoot
+import mardek.renderer.battle.renderMasteryScreen
 import mardek.renderer.menu.MenuRenderContext
 import mardek.renderer.menu.determineSectionRenderRegion
 import mardek.renderer.menu.renderInGameMenu
@@ -26,6 +27,7 @@ import mardek.state.ingame.actions.ShopInteractionState
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
+import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveSelectionState
 import mardek.state.util.Rectangle
@@ -207,7 +209,20 @@ internal fun renderInGame(
 						rightBlurColor, multiplyColor,
 						rightBlurColor, multiplyColor,
 					)
-					val batches = renderBattleLoot(context, loot, state.campaign.usedPartyMembers(), region)
+					val batches = if (loot.showMasteryScreen) {
+						renderMasteryScreen(context, loot, state.campaign.usedPartyMembers(), region)
+					} else renderBattleLoot(context, loot, state.campaign.usedPartyMembers(), region)
+
+					if (loot.finishAt != 0L) {
+						val fade = 1f - (loot.finishAt - System.nanoTime()) / BattleLoot.FADE_OUT_DURATION.toFloat()
+						if (fade > 0.001f) {
+							context.addColorBatch(2).fill(
+								region.minX, region.minY, region.maxX, region.maxY,
+								rgba(0f, 0f, 0f, fade),
+							)
+						}
+					}
+
 					titleColorBatch = batches.first
 					titleTextBatch = batches.second
 				}

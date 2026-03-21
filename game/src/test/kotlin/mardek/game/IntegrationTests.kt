@@ -84,6 +84,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testDisabledActionBarButtons() {
+		TestActionBar.testDisabledButtons(instance)
+	}
+
+	@Test
 	fun testBattleWhereThePlayerCanNotFlee() {
 		testCanNotFlee(instance)
 	}
@@ -471,5 +476,20 @@ class IntegrationTests {
 	@Test
 	fun testLevelUp() {
 		TestExperience.testLevelUp(instance)
+	}
+
+	@Test
+	fun testBasicAttackReactionSkillsMastery() {
+		TestMastery.testReactionSkillsMasteryBasicAttack(instance)
+	}
+
+	@Test
+	fun testStrikeSkillMastery() {
+		TestMastery.testReactionSkillsMasteryStrike(instance)
+	}
+
+	@Test
+	fun testPassiveSkillsMastery() {
+		TestMastery.testPassiveSkillsMastery(instance)
 	}
 }

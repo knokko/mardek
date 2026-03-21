@@ -1,5 +1,6 @@
 package mardek.renderer.menu
 
+import com.github.knokko.boiler.utilities.ColorPacker.multiplyAlpha
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
@@ -192,13 +193,15 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 
 				var iconScale = 0.03f * region.height / icon.height
 				var iconY = baseY.toFloat()
+				var iconAlpha = 0.7f
 				if (skill is ActiveSkill) {
 					iconY -= 0.25f * iconScale * icon.height
 					iconScale *= 1.5f
-				}
+					if (!characterState.canRememberSkill(skill)) iconAlpha = 0.1f
+				} else if (!skillEntry.canToggle) iconAlpha = 0.1f
 				imageBatch.coloredScale(
 					skillsMinX.toFloat(), iconY, iconScale, icon.index,
-					0, rgba(1f, 1f, 1f, 0.7f),
+					0, rgba(1f, 1f, 1f, iconAlpha),
 				)
 
 				if (tab.inside && row == tab.skillIndex) imageBatch.simpleScale(
@@ -335,6 +338,13 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 				if (selectedSkill != null && selectedSkill.skill === skill) {
 					rowTextColor = srgbToLinear(rgb(240, 224, 185))
 				}
+
+				val alphaFactor = if (skill is ActiveSkill) {
+					if (characterState.canRememberSkill(skill)) 1f else 0.2f
+				} else {
+					if (skillEntry.canToggle) 1f else 0.2f
+				}
+				rowTextColor = multiplyAlpha(rowTextColor, alphaFactor)
 				textBatch.drawString(
 					skill.name, skillsMinX + region.height / 20, baseY + region.height / 33,
 					region.height / 35, basicFont2, rowTextColor
@@ -366,8 +376,8 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 						context, ResourceType.SkillMastery, masteryRegion,
 						colorBatch, textBatch
 					)
-					masteryBar.renderBar(skillEntry.mastery, skill.masteryPoints)
-					masteryBar.renderTextOverBar(skillEntry.mastery, skill.masteryPoints)
+					masteryBar.renderBar(skillEntry.mastery, skill.masteryPoints, alphaFactor)
+					masteryBar.renderTextOverBar(skillEntry.mastery, skill.masteryPoints, alphaFactor)
 				}
 			}
 		}

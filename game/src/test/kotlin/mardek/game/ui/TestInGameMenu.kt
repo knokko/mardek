@@ -168,7 +168,11 @@ object TestInGameMenu {
 			val campaign = simpleCampaignState()
 			val deugan = campaign.characterStates[heroDeugan]!!
 			val snakeBite = content.skills.reactionSkills.find { it.name == "Snakebite" }!!
+			val smiteEvil = heroDeugan.characterClass.skillClass.actions.find { it.name == "Smite Evil" }!!
+			val increaseDamage = content.skills.reactionSkills.find { it.name == "DMG+50%" }!!
 			deugan.skillMastery[snakeBite] = 10
+			deugan.skillMastery[smiteEvil] = 10
+			deugan.skillMastery[increaseDamage] = 10
 			deugan.toggledSkills.add(snakeBite)
 
 			val state = InGameState(campaign, "test")
@@ -221,6 +225,9 @@ object TestInGameMenu {
 				Color(34, 247, 255), // Mana text color
 				Color(229, 228, 136), // Mastery text border color
 			)
+			val disabledColors = arrayOf(
+				Color(124, 60, 49), // Disabled mastery bar color
+			)
 			val reactionColors = arrayOf(
 				Color(159, 39, 30), // Mastery bar color
 				Color(26, 219, 87), // Toggled color
@@ -229,7 +236,7 @@ object TestInGameMenu {
 
 			testRendering(
 				stateManager, 1600, 900, "skills-deugan-active",
-				baseColors + actionColors, reactionColors + rpColor
+				baseColors + actionColors + disabledColors, reactionColors + rpColor
 			)
 
 			input.postEvent(pressKeyEvent(InputKey.MoveDown))
@@ -246,7 +253,7 @@ object TestInGameMenu {
 			assertEquals(1, (state.menu.currentTab as SkillsTab).skillIndex)
 			testRendering(
 				stateManager, 1600, 900, "skills-deugan-reactions",
-				baseColors + reactionColors + rpColor, actionColors
+				baseColors + reactionColors + rpColor + disabledColors, actionColors
 			)
 
 			input.postEvent(repeatKeyEvent(InputKey.MoveRight))
@@ -259,7 +266,7 @@ object TestInGameMenu {
 			assertEquals(0, (state.menu.currentTab as SkillsTab).skillIndex)
 			testRendering(
 				stateManager, 1600, 900, "skills-deugan-passives",
-				baseColors + rpColor, actionColors + reactionColors
+				baseColors + rpColor, actionColors + reactionColors + disabledColors
 			)
 
 			input.postEvent(pressKeyEvent(InputKey.Cancel))

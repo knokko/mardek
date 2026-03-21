@@ -158,14 +158,14 @@ class TestingInstance {
 
 	fun startSimpleBattle(campaign: CampaignState, enemies: Array<Enemy?> = arrayOf(
 		null, Enemy(monster = content.battle.monsters.find { it.name == "monster" }!!, level = 10), null, null
-	), canFlee: Boolean = true) {
+	), canFlee: Boolean = true, backgroundName: String = "volcano") {
 		(campaign.state as AreaState).suspension = AreaSuspensionBattle(BattleState(
 			battle = Battle(
 				startingEnemies = enemies,
 				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!,
 				music = "battle",
 				lootMusic = "VictoryFanfare",
-				background = content.battle.backgrounds.find { it.name == "volcano" }!!,
+				background = content.battle.backgrounds.find { it.name == backgroundName }!!,
 				canFlee = canFlee,
 				isRandom = true,
 			),

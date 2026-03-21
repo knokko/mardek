@@ -35,7 +35,7 @@ internal fun renderSkillOrItemSelection(
 
 			val selectedMove = stateMachine.selectedMove
 			if (selectedMove is BattleMoveSelectionSkill && selectedMove.skill != null && selectedMove.target == null) {
-				val skills = player.characterClass.skillClass.actions.filter { playerState.canCastSkill(it) }
+				val skills = player.characterClass.skillClass.actions.filter { playerState.canRememberSkill(it) }
 				skills.map { skill -> SkillOrItemEntry(
 					sprite = null, image = skill.element.thickSprite, name = skill.name,
 					rightNumber = if (skill.manaCost > 0) skill.manaCost else null,
