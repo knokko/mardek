@@ -23,22 +23,41 @@ class ParticleEmitter(
 	@BitField(id = 0)
 	val transform: EmitterTransform,
 
+	/**
+	 * The sprite of this particle emitter, which will be rendered at the position of all its emitted particles.
+	 */
 	@BitField(id = 1)
 	@ReferenceField(stable = false, label = "particle sprites")
 	val sprite: ParticleSprite,
 
+	/**
+	 * The *waves* of this particle emitter. This determines how often this emitter spawns particles, as well as the
+	 * time between each 'wave'.
+	 */
 	@BitField(id = 2)
 	val waves: EmissionWaves,
 
+	/**
+	 * The initial position, rotation, and velocity of newly spawned particles
+	 */
 	@BitField(id = 3)
 	val spawn: ParticleSpawnProperties,
 
+	/**
+	 * The dynamics (e.g. acceleration and radial acceleration) of the particles
+	 */
 	@BitField(id = 4)
 	val dynamics: ParticleDynamics,
 
+	/**
+	 * The sizes of the particles, and their growth/shrink behavior
+	 */
 	@BitField(id = 5)
 	val size: ParticleSize,
 
+	/**
+	 * The initial velocity of the particles, and their fade behavior
+	 */
 	@BitField(id = 6)
 	val opacity: ParticleOpacity,
 

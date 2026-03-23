@@ -4,6 +4,10 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 
+/**
+ * This class describes the position and orientation of its [ParticleEmitter], which is the base for the positions and
+ * orientations of the emitted particles.
+ */
 @BitStruct(backwardCompatible = true)
 class EmitterTransform(
 

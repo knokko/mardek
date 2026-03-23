@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.content.BITSER
 
+// TODO CHAP3 Figure out how this works
 @BitStruct(backwardCompatible = true)
 class SirenSong(
 	@BitField(id = 0)

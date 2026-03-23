@@ -50,7 +50,7 @@ fun parseActiveSkills(
 	}
 
 	val soundName = parseOptionalFlashString(rawSkill["sfx"] ?: rawSkill["delayedSfx"], "skill sound effect")
-	val soundEffect = getOptionalSoundByName(content, soundName)
+	val damageSoundEffect = getOptionalSoundByName(content, soundName)
 
 	var particleName = parseOptionalFlashString(rawSkill["pfx"], "skill particle effect")
 	if (particleName == "astralform" || particleName == "enfeeble" || particleName == "delaybuster" ||
@@ -81,7 +81,7 @@ fun parseActiveSkills(
 		removeStatusEffects = parseStatusEffectList(content.stats, removeEffects),
 		revive = parseRevive(rawSkill["special"]),
 		particleEffect = particleEffect,
-		soundEffect = soundEffect,
+		damageSound = damageSoundEffect,
 		animation = parseOptionalFlashString(rawSkill["anim"], "skill animation"),
 		combatRequirement = parseCombatRequirement(rawSkill["menuse"]),
 		delay = if (rawDelay == null) 0 else parseInt(rawDelay),

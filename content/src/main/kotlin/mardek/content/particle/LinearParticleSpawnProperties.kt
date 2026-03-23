@@ -4,8 +4,13 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 
+/**
+ * For [ParticleEmitter]s whose particles have *linear* motion, this class describes the initial velocity of the
+ * spawned particles (*not* of the emitter itself).
+ */
 @BitStruct(backwardCompatible = true)
 class LinearParticleSpawnProperties(
+
 	/**
 	 * The minimum initial X velocity of the emitted particles
 	 */

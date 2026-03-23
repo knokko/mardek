@@ -4,6 +4,9 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 
+/**
+ * This class describes the initial position, velocity, and rotation of emitted particles.
+ */
 @BitStruct(backwardCompatible = true)
 class ParticleSpawnProperties(
 
@@ -98,9 +101,17 @@ class ParticleSpawnProperties(
 	@FloatField(expectMultipleOf = 1.0)
 	val rotationMultiplier: Float,
 
+	/**
+	 * Exactly 1 of `linear` and `radial` should be non-null. When `linear != null`, emitted particles should have
+	 * linear velocity described by this field (or no velocity at all).
+	 */
 	@BitField(id = 11, optional = true)
 	val linear: LinearParticleSpawnProperties?,
 
+	/**
+	 * Exactly 1 of `linear` and `radial` should be non-null. When `radial != null`, emitted particles should spawn in
+	 * some kind of cone, whose properties are described by this field.
+	 */
 	@BitField(id = 12, optional = true)
 	val radial: RadialParticleSpawnProperties?,
 ) {

@@ -21,7 +21,7 @@ sealed class TimelineVariable<T> {
 
 		@JvmStatic
 		@Suppress("unused")
-		val BITSER_HIERARCHY = arrayOf(
+		private val BITSER_HIERARCHY = arrayOf(
 			FixedTimelineVariable::class.java,
 			CustomTimelineVariable::class.java,
 		)

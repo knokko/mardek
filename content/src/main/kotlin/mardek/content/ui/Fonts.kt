@@ -3,47 +3,52 @@ package mardek.content.ui
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 
+/**
+ * All the fonts used by the game/engine
+ */
 @BitStruct(backwardCompatible = true)
 class Fonts(
 
 	/**
-	 * Myriad Condensed Web, nothing special
+	 * Myriad Condensed Web, which is a rather simple and a bit boring.
 	 */
 	@BitField(id = 0)
 	val basic1: Font,
 
 	/**
-	 * Nyala font, nothing special
+	 * Nyala font, which looks a bit more MARDEK-style than [basic1]. This is the most-used font in the game.
 	 */
 	@BitField(id = 1)
 	val basic2: Font,
 
 	/**
-	 * Trajan Pro, full uppercase font
+	 * Trajan Pro, which is a full-uppercase font. This is used on text that needs to 'stand out'.
 	 */
 	@BitField(id = 2)
 	val large1: Font,
 
 	/**
-	 * Star Wars font, full uppercase
+	 * Star Wars font, which is a full-uppercase font, and quite similar to [large1].
 	 */
 	@BitField(id = 3)
 	val large2: Font,
 
 	/**
-	 * Star Wars font with only the 'I', 'K', 'P', and 'S' characters
+	 * Star Wars font with only the 'I', 'K', 'P', and 'S' characters.
+	 * This font is currently unused in this engine, and I have no clue what vanilla MARDEK uses it for.
 	 */
 	@BitField(id = 4)
 	val ikps: Font,
 
 	/**
-	 * Other uppercase Trajan Pro font, looks nearly identical to `large1`
+	 * Other uppercase Trajan Pro font, looks nearly identical to `large1`.
+	 * This font is currently unused in this engine, and I have no clue what vanilla MARDEK uses it for.
 	 */
 	@BitField(id = 5)
 	val large3: Font,
 
 	/**
-	 * Fat Nyala font
+	 * A fat version of the Nyala font ([basic2]), which is used for text that needs to stand out.
 	 */
 	@BitField(id = 6)
 	val fat: Font,
@@ -55,43 +60,49 @@ class Fonts(
 	val gaspar: Font,
 
 	/**
-	 * The Bio-disc Thin font, which is somewhat 'square'
+	 * The Bio-disc Thin font, which is somewhat 'square'.
+	 * I don't know what it is used for in vanilla MARDEK. Maybe the spaceship?
 	 */
 	@BitField(id = 8)
 	val square: Font,
 
 	/**
-	 * The Eccentric Std font, which is full uppercase
+	 * The Eccentric Std font, which is full uppercase.
+	 * I don't know what it is used for in vanilla MARDEK. Maybe the fairies?
 	 */
 	@BitField(id = 9)
 	val eccentric: Font,
 
 	/**
-	 * The MicroMieps font, which looks somewhat weird
+	 * The MicroMieps font, which looks somewhat weird.
+	 * * I don't know what it is used for in vanilla MARDEK. Maybe the fairies?
 	 */
 	@BitField(id = 10)
 	val weird: Font,
 
 	/**
-	 * The Creedmore font, which looks somewhat 'digital', and has many diagonal lines
+	 * The Creedmore font, which looks somewhat 'digital', and has many diagonal lines.
+	 * I don't know what it is used for in vanilla MARDEK. Maybe the spaceship?
 	 */
 	@BitField(id = 11)
 	val digital: Font,
 
 	/**
-	 * The Orange LET font, which gives me a somewhat... sloppy impression
+	 * The Orange LET font, which gives me a somewhat... sloppy impression.
+	 * I don't know what this font is used for in vanilla MARDEK.
 	 */
 	@BitField(id = 12)
 	val sloppy: Font,
 
 	/**
 	 * The Chintzy CPU BRK font, which is rather fat and full uppercase
+	 * I don't know what this font is used for in vanilla MARDEK.
 	 */
 	@BitField(id = 13)
 	val fatUppercase: Font,
 
 	/**
-	 * The FairydustB font, where each glyph has a 'continued stroke' at the start and end of each glyph
+	 * The FairydustB font, where each glyph has a 'continued stroke' at the start and end of each glyph.
 	 */
 	@BitField(id = 14)
 	val fairy: Font,
@@ -104,6 +115,9 @@ class Fonts(
 		Font(), Font(), Font(), Font(), Font(),
 	)
 
+	/**
+	 * Gets an array containing all the fonts.
+	 */
 	fun all() = arrayOf(
 		basic1, basic2, large1, large2, ikps,
 		large3, fat, gaspar, square, eccentric,

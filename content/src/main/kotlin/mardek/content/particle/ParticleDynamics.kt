@@ -4,6 +4,10 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 
+/**
+ * This class describes the dynamics (e.g. acceleration and radial acceleration) of the particles emitted by a
+ * [ParticleEmitter] (but *not* the particle emitter itself)
+ */
 @BitStruct(backwardCompatible = true)
 class ParticleDynamics(
 	/**

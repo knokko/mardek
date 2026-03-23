@@ -6,12 +6,22 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 
+/**
+ * Represents a resistance (or vulnerability) for a specific element.
+ */
 @BitStruct(backwardCompatible = true)
 class ElementalResistance(
+
+	/**
+	 * The element against which the resistance works
+	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element,
 
+	/**
+	 * The damage/resistance modifier: basically `finalDamage = (1 - modifier) * originalDamage`
+	 */
 	@BitField(id = 1)
 	@FloatField(expectMultipleOf = 0.05, commonValues=[0.5, -1.0, 1.0, 2.0])
 	val modifier: Float

@@ -5,6 +5,7 @@ import mardek.content.stats.CombatStat
 import mardek.game.TestingInstance
 import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
+import mardek.game.repeatKeyEvent
 import mardek.input.InputKey
 import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
@@ -80,6 +81,7 @@ object TestSoothwoodActions {
 
 			// Claim loot
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(repeatKeyEvent(InputKey.Interact))
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(updateContext)
 

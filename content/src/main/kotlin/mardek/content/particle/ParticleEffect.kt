@@ -6,9 +6,16 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.SoundEffect
 
+/**
+ * Represents a particle effect. Every particle effect has 0 or more emitters, as well as 0 or more sounds.
+ * Every active skill has at most 1 particle effect.
+ */
 @BitStruct(backwardCompatible = true)
 class ParticleEffect(
 
+	/**
+	 * The name of the particle effect, which is only used for debugging and importing
+	 */
 	@BitField(id = 0)
 	val name: String,
 
@@ -48,9 +55,20 @@ class ParticleEffect(
 	@FloatField(expectMultipleOf = 1.0 / 30.0)
 	val extraSoundDelays: FloatArray,
 
+	/**
+	 * Some particle effects *inherit* their properties from another particle effect, but *override* 1 or more
+	 * properties. For instance, all gemsplosion variants inherit their properties from one 'parent' particle effect,
+	 * and override the texture. This avoids the need to repeat everything else (which is the same).
+	 *
+	 * When this field is `null`, the particle effect doesn't inherit anything from other particle effects.
+	 */
 	@BitField(id = 6, optional = true)
 	val inheritance: ParticleInheritance?,
 
+	/**
+	 * The particle emitters of this particle effect. Each emitter spawns one type of particle using the dynamics of
+	 * the emitter.
+	 */
 	@BitField(id = 7)
 	val emitters: ArrayList<ParticleEmitter>,
 ) {
@@ -61,11 +79,28 @@ class ParticleEffect(
 
 	override fun toString() = name
 
+	/**
+	 * Gets the emitters that this particle effect should use (either its own emitters, or the emitters inherited from
+	 * its parent).
+	 */
 	fun emitters() = inheritance?.parent?.emitters ?: emitters
 
+	/**
+	 * Gets the sound that should be played when this particle effect is spawned (either its own sound, or the sound
+	 * inherited from its parent)
+	 */
 	fun initialSound() = initialSound ?: inheritance?.parent?.initialSound
 
+	/**
+	 * Gets the sound that should be played when this particle effect deals damage to the target of the skill
+	 * (either its own sound, or the sound inherited from its parent)
+	 */
 	fun damageSound() = damageSound ?: inheritance?.parent?.damageSound
 
+	/**
+	 * Gets the time (in seconds) between the start of the particle effect, and the time at which it should deal damage
+	 * to the (first) target. This can be either the damage delay of this particle effect, or the damage delay that it
+	 * inherits from its parent.
+	 */
 	fun damageDelay() = inheritance?.parent?.damageDelay ?: damageDelay
 }

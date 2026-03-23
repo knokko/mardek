@@ -5,8 +5,12 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 
+/**
+ * This class describes the size of emitted particles, and how this size changes over time.
+ */
 @BitStruct(backwardCompatible = true)
 class ParticleSize(
+
 	/**
 	 * The 'base' initial width of the emitted particles, which will be multiplied by a random number between
 	 * `minSizeMultiplier` and `maxSizeMultiplier` to determine the initial particle width.
@@ -52,6 +56,10 @@ class ParticleSize(
 	@FloatField(expectMultipleOf = 0.1)
 	val minSizeMultiplier: Float,
 
+	/**
+	 * Whenever a particle is spawned, its width and height will be multiplied by a random number between
+	 * `minSizeMultiplier` and `maxSizeMultiplier`.
+	 */
 	@BitField(id = 5)
 	@FloatField(expectMultipleOf = 0.1)
 	val maxSizeMultiplier: Float,

@@ -6,6 +6,9 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.stats.ElementalDamageBonus
 
+/**
+ * For skills that either deal damage, or heal, this defines how powerful the attack/healing is.
+ */
 @BitStruct(backwardCompatible = true)
 class SkillDamage(
 	/**
@@ -35,9 +38,15 @@ class SkillDamage(
 	@BitField(id = 3)
 	val splitDamage: Boolean,
 
+	/**
+	 * Whether the (M)DEF of the target should be ignored (usually `false`)
+	 */
 	@BitField(id = 4)
 	val ignoresDefense: Boolean,
 
+	/**
+	 * Whether this attack/healing should ignore (M) Shields.
+	 */
 	@BitField(id = 5)
 	val ignoresShield: Boolean,
 
@@ -54,14 +63,14 @@ class SkillDamage(
 	val bonusAgainstElements: ArrayList<ElementalDamageBonus>,
 
 	/**
-	 * Add damage based on money (money attack)
+	 * Add damage based on money (money attack). TODO CHAP3 Figure out the formula
 	 */
 	@BitField(id = 8)
 	@FloatField(expectMultipleOf = 0.1)
 	val moneyModifier: Float,
 
 	/**
-	 * Attack bonus and element based on equipped gem (gemplosion)
+	 * Attack bonus and element based on equipped gem (gemplosion) TODO CHAP3 Figure out the formula
 	 */
 	@BitField(id = 9)
 	@FloatField(expectMultipleOf = 0.1)
@@ -75,14 +84,14 @@ class SkillDamage(
 	val lostHealthModifier: Float,
 
 	/**
-	 * Status effect count modifier (coup de grace), I don't know details yet
+	 * Status effect count modifier (coup de grace) TODO CHAP3 Figure out the formula
 	 */
 	@BitField(id = 11)
 	@FloatField(expectMultipleOf = 0.1)
 	val statusEffectModifier: Float,
 
 	/**
-	 * Kill count modifier (sin strike), I don't know details yet
+	 * Kill count modifier (sin strike) TODO CHAP3 Figure out the formula
 	 */
 	@BitField(id = 12)
 	@FloatField(expectMultipleOf = 0.1)
@@ -117,7 +126,7 @@ class SkillDamage(
 	val crescendoModifier: Float,
 
 	/**
-	 * Use weapon crit chance when this is null
+	 * The chance that this attack will score a critical hit, or `null` to use the critical hit chance of the weapon
 	 */
 	@BitField(id = 17, optional = true)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)

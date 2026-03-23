@@ -4,6 +4,10 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 
+/**
+ * This class describes particles that are spawned in some kind of cone or full circle. This is used by e.g.
+ * exploding/imploding particle effects like Pyromagia or Gemsplosion.
+ */
 @BitStruct(backwardCompatible = true)
 class RadialParticleSpawnProperties(
 

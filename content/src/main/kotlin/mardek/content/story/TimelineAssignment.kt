@@ -9,7 +9,7 @@ import mardek.content.expression.ExpressionUnitValue
 import mardek.content.expression.ExpressionValue
 
 /**
- * Represents the assignment of a [ExpressionValue] to a [TimelineVariable].
+ * Represents the assignment of an [ExpressionValue] to a [TimelineVariable].
  */
 @BitStruct(backwardCompatible = true)
 class TimelineAssignment<T>(

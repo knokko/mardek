@@ -5,9 +5,15 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 
+/**
+ * Describes the quake effect of a particle effect (e.g. the Earthquake skill let's the screen shake/quake)
+ */
 @BitStruct(backwardCompatible = true)
 class ParticleQuake(
 
+	/**
+	 * TODO CHAP3 Figure this out
+	 */
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val strength: Int,

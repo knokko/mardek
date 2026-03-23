@@ -8,7 +8,7 @@ import mardek.content.inventory.EquipmentSlot
 import mardek.content.skill.SkillClass
 
 /**
- * Represents an (RPG) class that playable characters can have. Currently, each playable character as a unique
+ * Represents an (RPG) class that playable characters can have. Currently, each playable character has a unique
  * `CharacterClass`, but that is not a requirement.
  */
 @BitStruct(backwardCompatible = true)

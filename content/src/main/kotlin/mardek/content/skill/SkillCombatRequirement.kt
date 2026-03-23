@@ -2,6 +2,9 @@ package mardek.content.skill
 
 import com.github.knokko.bitser.BitEnum
 
+/**
+ * Determines whether a skill can be used in combat, outside combat, or both
+ */
 @BitEnum(mode = BitEnum.Mode.Ordinal)
 enum class SkillCombatRequirement {
 	/**

@@ -8,8 +8,12 @@ import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
+/**
+ * Describes the opacity (transparency) of a particle effect, and how this opacity changes over time
+ */
 @BitStruct(backwardCompatible = true)
 class ParticleOpacity(
+
 	/**
 	 * The (initial) opacity of each emitted particle:
 	 * - 0.0 (or lower) means that the particle is invisible
@@ -38,6 +42,9 @@ class ParticleOpacity(
 ) {
 	constructor() : this(1f, 0f, null)
 
+	/**
+	 * Computes/predicts the opacity of a particle `timeSinceSpawn` seconds after it was emitted
+	 */
 	fun compute(timeSinceSpawn: Float): Float {
 		val uncappedResult = initial + grow * timeSinceSpawn
 		if (limit == null) return uncappedResult

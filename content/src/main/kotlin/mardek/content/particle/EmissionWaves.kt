@@ -7,6 +7,9 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.SoundEffect
 
+/**
+ * This class describes the 'waves' of a [ParticleEmitter]: it describes when, and how often, it will emit particles.
+ */
 @BitStruct(backwardCompatible = true)
 class EmissionWaves(
 
@@ -31,6 +34,12 @@ class EmissionWaves(
 	@FloatField(expectMultipleOf = 1.0 / 30.0)
 	val period: Float,
 
+	/**
+	 * The number of particles that the emitter will spawn at every wave.
+	 *
+	 * This is usually just 1, except for 'radial' particle emitters where it launches particles in all directions
+	 * (e.g. Frostasia and Pyromagia).
+	 */
 	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val particlesPerWave: Int,

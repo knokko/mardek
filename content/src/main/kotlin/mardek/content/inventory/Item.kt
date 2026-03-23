@@ -91,7 +91,7 @@ class Item(
 	/**
 	 * If this item is not equippable, this method returns 0.
 	 *
-	 * Otherwise, if someone were to equip this item, this method compute by how much the given `stat` of that person
+	 * Otherwise, if someone were to equip this item, this method computes by how much the given `stat` of that person
 	 * would be increased. This is mostly used in the UI, e.g. to predict how much the ATK of a player would be
 	 * increased by equipping this weapon.
 	 */

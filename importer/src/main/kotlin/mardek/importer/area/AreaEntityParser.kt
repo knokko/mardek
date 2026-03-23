@@ -113,13 +113,7 @@ internal fun importObjectSprites(
 		}
 	}
 
-	return ObjectSprites(
-			flashName = flashName,
-			frameIndex = frameIndex,
-			offsetY = offsetY,
-			numFrames = numFrames,
-			frames = images.map(::compressKimSprite3).toTypedArray()
-	)
+	return ObjectSprites(flashName = flashName, frames = images.map(::compressKimSprite3).toTypedArray())
 }
 
 private fun importSwitchColor(name: String): SwitchColor {
