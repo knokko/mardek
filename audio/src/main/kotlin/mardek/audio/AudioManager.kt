@@ -2,6 +2,7 @@ package mardek.audio
 
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.AL10.*
+import org.lwjgl.openal.AL11.AL_SEC_OFFSET
 import org.lwjgl.openal.ALC
 import org.lwjgl.openal.ALC10.*
 import org.lwjgl.openal.EXTThreadLocalContext.alcSetThreadContext
@@ -90,7 +91,9 @@ internal class AudioManager {
 		buffer
 	}
 
-	fun playMusic(audio: Int) = play(musicSource, audio) // TODO CHAP1 Audio looping
+	fun playMusic(audio: Int, loopingSeconds: Float) = play(
+		musicSource, audio, loopingSeconds
+	)
 
 	fun stopMusic() {
 		assertAlSuccess("alGetSourcei")
@@ -102,11 +105,11 @@ internal class AudioManager {
 	}
 
 	fun playSound(audio: Int) {
-		play(soundSources[nextSoundSource], audio)
+		play(soundSources[nextSoundSource], audio, 0f)
 		nextSoundSource = (nextSoundSource + 1) % soundSources.size
 	}
 
-	private fun play(source: Int, audio: Int) {
+	private fun play(source: Int, audio: Int, skippedSecondsWhenLooping: Float) {
 		val currentAudio = alGetSourcei(source, AL_BUFFER)
 		assertAlSuccess("alGetSourcei")
 		val currentState = assertAlSuccess(alGetSourcei(source, AL_SOURCE_STATE), "alGetSourcei")
@@ -116,13 +119,18 @@ internal class AudioManager {
 			assertAlSuccess("alSourceStop")
 		}
 
-		if (audio != currentAudio) {
+		if (audio == currentAudio) {
+			println("REPLAYING")
+			alSourcef(source, AL_SEC_OFFSET, skippedSecondsWhenLooping)
+			assertAlSuccess("alSourcef")
+			alSourcePlay(source)
+			assertAlSuccess("alSourcePlay")
+		} else {
 			alSourcei(source, AL_BUFFER, audio)
 			assertAlSuccess("alSourcei")
+			alSourcePlay(source)
+			assertAlSuccess("alSourcePlay")
 		}
-
-		alSourcePlay(source)
-		assertAlSuccess("alSourcePlay")
 	}
 
 	fun destroy() {

@@ -20,6 +20,7 @@ class AudioUpdater(private val stateManager: GameStateManager, private val getCo
 	private val manager = AudioManager()
 
 	private val musicMap = mutableMapOf<String, Int>()
+	private val musicLoopMap = AudioLooping.parse()
 	private val soundMap = mutableMapOf<SoundEffect, Int>()
 
 	private val titleScreen = manager.add("TitleScreen.ogg", null)
@@ -33,14 +34,19 @@ class AudioUpdater(private val stateManager: GameStateManager, private val getCo
 		val nextSound = stateManager.soundQueue.take()
 		var trackName: String? = null
 		var musicTrack: Int? = null
+		var musicLoopingSeconds = 0f
 
 		synchronized(stateManager.lock()) {
 			val state = stateManager.currentState
 
 			if (state is TitleScreenState) musicTrack = titleScreen
-			if (state is GameOverState) musicTrack = gameOver
+			if (state is GameOverState) {
+				musicTrack = gameOver
+				musicLoopingSeconds = 6.85f
+			}
 			if (state is InGameState && getContent.isDone) {
 				trackName = state.campaign.determineMusicTrack(getContent.get())
+				musicLoopingSeconds = musicLoopMap.getOrDefault(trackName, 0f)
 			}
 		}
 
@@ -49,7 +55,7 @@ class AudioUpdater(private val stateManager: GameStateManager, private val getCo
 				track -> manager.add("$track.ogg", null)
 			}
 		}
-		if (musicTrack != null) manager.playMusic(musicTrack)
+		if (musicTrack != null) manager.playMusic(musicTrack, musicLoopingSeconds)
 		else manager.stopMusic()
 
 		if (nextSound != null) {
