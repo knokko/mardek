@@ -244,7 +244,9 @@ object TestMastery {
 				state.update(updateContext)
 
 				// Make sure the forest fish dies, regardless of whether Mardek misses
-				battleState.livingOpponents()[0].currentHealth = 0
+				if (battleState.livingOpponents().isNotEmpty()) {
+					battleState.livingOpponents()[0].currentHealth = 0
+				}
 
 				val jumpBackState = battleState.state as BattleStateMachine.MeleeAttack.JumpBack
 				jumpBackState.finished = true

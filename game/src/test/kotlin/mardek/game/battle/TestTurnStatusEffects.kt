@@ -196,7 +196,7 @@ object TestTurnStatusEffects {
 			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 
 			val monster = battle.livingOpponents()[0]
-			assertEquals(1480, monster.maxHealth)
+			assertEquals(1452, monster.maxHealth)
 			assertEquals(10, monster.getLevel(battleUpdateContext(campaign)))
 
 			val sleep = content.stats.statusEffects.find { it.flashName == "SLP" }!!
@@ -215,7 +215,7 @@ object TestTurnStatusEffects {
 				assertEquals(2, effects.takeDamage.size)
 				val poisonDamage = effects.takeDamage[0]
 				assertSame(poison, poisonDamage.effect)
-				assertEquals(74, poisonDamage.amount)
+				assertEquals(73, poisonDamage.amount)
 				val regenerationHealing = effects.takeDamage[1]
 				assertSame(regeneration, regenerationHealing.effect)
 

@@ -538,7 +538,12 @@ class MonsterCombatantState(
 	override fun getNatural(stat: CombatStat) = monster.baseStats.getOrDefault(stat, 0)!!
 
 	override fun getStat(stat: CombatStat, context: BattleUpdateContext): Int {
-		return monster.baseStats.getOrDefault(stat, 0) + statModifiers.getOrDefault(stat, 0)
+		var result = monster.baseStats.getOrDefault(stat, 0)
+		result += statModifiers.getOrDefault(stat, 0)
+		if (stat == CombatStat.Attack && monster.attackPerLevelDenominator != 0) {
+			result += monster.attackPerLevelNumerator * (level / monster.attackPerLevelDenominator)
+		}
+		return result
 	}
 
 	override fun getName() = monster.name

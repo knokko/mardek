@@ -492,4 +492,11 @@ class IntegrationTests {
 	fun testPassiveSkillsMastery() {
 		TestMastery.testPassiveSkillsMastery(instance)
 	}
+
+	@Test
+	fun testMonsterStats() {
+		TestMonsterStats.testMonster(instance)
+		TestMonsterStats.testFumeratLevel1(instance)
+		TestMonsterStats.testFunGoblinLevel1(instance)
+	}
 }

@@ -325,11 +325,15 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 	val typeName = parseFlashString(mdlMap["TYPE"]!!, "monster type")!!
 	val elementName = parseFlashString(mdlMap["cElem"]!!, "monster element")!!
 
+	val hpPerLevel = parseInt(mdlMap["hpGrowth"]!!)
 	val baseStats = HashMap<CombatStat, Int>()
 	val rawBaseStats = parseActionScriptObject(mdlMap["baseStats"]!!)
 	for ((statName, statValue) in rawBaseStats) {
 		val stat = CombatStat.entries.find { it.flashName == statName }!!
 		baseStats[stat] = parseInt(statValue)
+
+		// The vanilla hpGrowth starts at level 1, whereas my hpPerLevel starts at level 0
+		if (stat == CombatStat.MaxHealth) baseStats[stat] = baseStats[stat]!! - hpPerLevel
 	}
 
 	var playerStatModifier = 0
@@ -504,7 +508,7 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 		element = content.stats.elements.find { it.rawName == elementName }!!,
 		baseStats = EnumMap(baseStats),
 		playerStatModifier = playerStatModifier,
-		hpPerLevel = parseInt(mdlMap["hpGrowth"]!!),
+		hpPerLevel = hpPerLevel,
 		attackPerLevelNumerator = attackPerLevelNumerator,
 		attackPerLevelDenominator = attackPerLevelDenominator,
 		critChance = parseInt(mdlMap["critical"]!!),

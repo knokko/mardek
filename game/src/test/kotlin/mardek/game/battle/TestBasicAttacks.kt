@@ -69,7 +69,7 @@ object TestBasicAttacks {
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			campaign.update(context(1.milliseconds))
 
-			assertEquals(1480, monster.currentHealth)
+			assertEquals(1452, monster.currentHealth)
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.MeleeAttack.MoveTo)
 				assertSame(mardek, (it as BattleStateMachine.MeleeAttack.MoveTo).attacker)

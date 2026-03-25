@@ -78,7 +78,7 @@ object TestSkills {
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			campaign.update(context(1.milliseconds))
 
-			assertEquals(1480, monsterState.currentHealth)
+			assertEquals(1452, monsterState.currentHealth)
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.MeleeAttack.MoveTo)
 				assertSame(mardek, (it as BattleStateMachine.MeleeAttack.MoveTo).attacker)
@@ -409,7 +409,7 @@ object TestSkills {
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			campaign.update(context(1.milliseconds))
 
-			assertEquals(1480, monsterState.currentHealth)
+			assertEquals(1452, monsterState.currentHealth)
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.BreathAttack.MoveTo)
 				assertSame(battleSslenck, (it as BattleStateMachine.BreathAttack.MoveTo).attacker)

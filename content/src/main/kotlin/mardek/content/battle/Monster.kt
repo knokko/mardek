@@ -72,7 +72,7 @@ class Monster(
 	 * modifiers (or stat-increasing equipment), these will be their effective stats.
 	 */
 	@BitField(id = 6)
-	@IntegerField(expectUniform = false, minValue = 0, digitSize = 2)
+	@IntegerField(expectUniform = false, digitSize = 2)
 	val baseStats: EnumMap<CombatStat, Int>,
 
 	/**
@@ -96,14 +96,17 @@ class Monster(
 	val hpPerLevel: Int,
 
 	/**
-	 * Used in the formula to calculate the ATK of some monsters TODO CHAP1 Figure this out
+	 * Used in the formula to calculate the ATK of monsters *without weapon*:
+	 * `ATK = baseStats.ATK + attackPerLevelNumerator * floor(level / attackPerLevelDenominator)`
 	 */
 	@BitField(id = 9)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val attackPerLevelNumerator: Int,
 
 	/**
-	 * Used in the formula to calculate the ATK of some monsters TODO CHAP1 Figure this out
+	 * Used in the formula to calculate the ATK of monsters *without weapon*:
+	 * `ATK = baseStats.ATK + attackPerLevelNumerator * floor(level / attackPerLevelDenominator)`
+	 * TODO CHAP2 Verify that this formula matches vanilla
 	 */
 	@BitField(id = 10)
 	@IntegerField(expectUniform = false, minValue = 0)
