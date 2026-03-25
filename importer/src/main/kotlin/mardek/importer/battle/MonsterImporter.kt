@@ -7,6 +7,7 @@ import mardek.content.animation.AnimationMatrix
 import mardek.content.animation.AnimationNode
 import mardek.content.animation.CombatantAnimations
 import mardek.content.animation.CombatantSkeleton
+import mardek.content.animation.SpecialAnimationNode
 import mardek.content.animation.StandaloneAnimation
 import mardek.content.battle.*
 import mardek.content.stats.*
@@ -231,9 +232,14 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 				continue
 			}
 
+			val earlyFlatNodes = flatNodes.filter {
+				it.hasSpecial(SpecialAnimationNode.ElementalCastingCircle) ||
+						it.hasSpecial(SpecialAnimationNode.ElementalCastingBackground)
+			}
+			val lateFlatNodes = flatNodes - earlyFlatNodes.toSet()
 			skeleton = CombatantSkeleton(
-				flatNodes.toTypedArray(), animationMap,
-				skeletonSpriteID, magicScale,
+				earlyFlatNodes.toTypedArray(), lateFlatNodes.toTypedArray(),
+				animationMap, skeletonSpriteID, magicScale,
 			)
 			content.battle.skeletons.add(skeleton)
 		}

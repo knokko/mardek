@@ -49,10 +49,13 @@ internal fun renderCutsceneAnimation(frames: AnimationFrames, context: Animation
 }
 
 internal fun renderCombatantAnimation(
-	animation: AnimationFrames, flat: Array<AnimationNode>,
+	animation: AnimationFrames, earlyFlat: Array<AnimationNode>, lateFlat: Array<AnimationNode>,
 	relativeTime: Long, context: AnimationContext
 ) {
 	context.combat!!.renderInfo.castingParticlePositions.clear()
+
+	for (node in earlyFlat) renderAnimationNode(node, context)
+
 	var remainingTime = relativeTime
 	for (frame in animation) {
 		remainingTime -= frame.duration.inWholeNanoseconds
@@ -64,7 +67,7 @@ internal fun renderCombatantAnimation(
 
 	if (remainingTime > 0L) throw Error()
 
-	for (node in flat) renderAnimationNode(node, context)
+	for (node in lateFlat) renderAnimationNode(node, context)
 }
 
 private fun renderAnimationFrame(frame: AnimationFrame, context: AnimationContext) {
@@ -148,7 +151,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 
 	if (special == SpecialAnimationNode.ElementalCastingCircle) {
 		if (combat?.magicElement == null) return
-		sprite = AnimationSprite( // TODO CHAP1 Make sure its always rendered *behind* the combatant
+		sprite = AnimationSprite(
 			199, combat.magicElement.thinSprite, -30f, -30f
 		)
 	}
@@ -162,7 +165,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		Pair(node.mask, top.matrix)
 	} else Pair(top.mask, top.maskMatrix)
 
-	if (special == SpecialAnimationNode.ElementalCastingBackground) { // TODO CHAP1 Make sure its always rendered *in font* of the combatant
+	if (special == SpecialAnimationNode.ElementalCastingBackground) {
 		val backgroundSprite = combat?.magicElement?.spellCastBackground ?: return
 		sprite = AnimationSprite(2223, backgroundSprite, 0f, 0f)
 	}

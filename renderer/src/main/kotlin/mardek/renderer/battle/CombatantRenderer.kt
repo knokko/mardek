@@ -452,7 +452,11 @@ class CombatantRenderer(
 		for (state in combatant.renderInfo.animationParticles.values) {
 			state.positions.clear()
 		}
-		renderCombatantAnimation(animation, animations.skeleton.flatNodes, modTime, animationContext)
+		renderCombatantAnimation(
+			animation, animations.skeleton.earlyFlatNodes,
+			animations.skeleton.lateFlatNodes,
+			modTime, animationContext
+		)
 		combatant.renderInfo.animationParticles.values.removeIf { it.positions.isEmpty() }
 		return
 	}

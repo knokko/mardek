@@ -13,23 +13,29 @@ import com.github.knokko.bitser.SimpleLazyBits
 class CombatantSkeleton(
 
 	/**
-	 * The 'flat' nodes that are present during all animations
+	 * The 'flat' nodes that are present during all animations, and should be rendered *before* [animations]
 	 */
 	@BitField(id = 0)
-	val flatNodes: Array<AnimationNode>,
+	val earlyFlatNodes: Array<AnimationNode>,
+
+	/**
+	 * The 'flat' nodes that are present during all animations, and should be rendered *after* [animations]
+	 */
+	@BitField(id = 1)
+	val lateFlatNodes: Array<AnimationNode>,
 
 	/**
 	 * This field should only be used during exporting! Instead, you should use the `get(animationName)` method instead
 	 * (and preferably via operator overloading).
 	 */
-	@BitField(id = 1)
+	@BitField(id = 2)
 	val animations: HashMap<String, SimpleLazyBits<StandaloneAnimation>>,
 
 	/**
 	 * The ID of the Flash DefineSpriteTag from which this skeleton was imported, or 0 if this skeleton wasn't
 	 * imported from Flash. (For now, all skeletons are imported from Flash though...)
 	 */
-	@BitField(id = 2)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 9000)
 	val defineSpriteID: Int,
 
@@ -41,11 +47,14 @@ class CombatantSkeleton(
 	 *
 	 * We need to remember this magic scale because the renderer needs it to interpret some transformations correctly.
 	 */
-	@BitField(id = 3)
+	@BitField(id = 4)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 8)
 	val magicScale: Int,
 ) {
-	constructor() : this(emptyArray(), HashMap(), -1, 1)
+	constructor() : this(
+		emptyArray(), emptyArray(),
+		HashMap(), -1, 1,
+	)
 
 	/**
 	 * Gets the animation with the given `name`. If the animation is used for the first time, it will be deserialized
