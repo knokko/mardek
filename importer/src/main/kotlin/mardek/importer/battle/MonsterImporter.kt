@@ -29,10 +29,12 @@ import mardek.importer.animation.findDependencies
 import mardek.importer.animation.getScript
 import mardek.importer.animation.importSkinnedAnimation
 import mardek.importer.area.FLASH
+import mardek.importer.area.MAGIC_PARTY_POSITION_SCALE
 import mardek.importer.area.parseFlashString
 import mardek.importer.skills.SkillParseException
 import mardek.importer.skills.parseActiveSkills
 import mardek.importer.util.*
+import org.joml.Matrix3x2f
 import java.io.File
 import java.lang.Integer.parseInt
 import java.util.EnumMap
@@ -208,6 +210,20 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 				skeletonSpriteID = animation.defineSpriteFlashID
 				skin = node.selectSkin
 				rootMatrix = node.matrix ?: throw RuntimeException("Missing root matrix for $combatantName")
+
+				val jomlMatrix = Matrix3x2f().scale(MAGIC_PARTY_POSITION_SCALE).mul(Matrix3x2f(
+					rootMatrix.scaleX, rootMatrix.rotateSkew0,
+					rootMatrix.rotateSkew1, rootMatrix.scaleY,
+					rootMatrix.translateX, rootMatrix.translateY
+				))
+				rootMatrix = AnimationMatrix(
+					translateX = jomlMatrix.m20,
+					translateY = jomlMatrix.m21,
+					rotateSkew0 = jomlMatrix.m01,
+					rotateSkew1 = jomlMatrix.m10,
+					scaleX = jomlMatrix.m00,
+					scaleY = jomlMatrix.m11,
+				)
 			} else {
 				flatNodes.add(node)
 			}

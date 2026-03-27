@@ -76,7 +76,7 @@ object TestInfoModal {
 			assertSame(battle.livingPlayers()[1], battle.openCombatantInfo)
 			testRendering(
 				state, 1600, 900, "battle-modal-deugan",
-				monsterSkinColor + balmungHandleColor +
+				balmungHandleColor +
 						redTextColor + greenTextColor + blueTextColor, emptyArray()
 			)
 

@@ -119,7 +119,7 @@ class CombatantRenderer(
 		if (showcase) {
 			choosePassiveAnimation()
 			coordinates = transformBattleCoordinates(
-				PartyLayoutPosition(12, 35), -1f, region
+				PartyLayoutPosition(0.23f, 0.51f), -1f, region
 			)
 		} else {
 			when (state) {
@@ -201,7 +201,7 @@ class CombatantRenderer(
 			// - The horizontal distance to the targets is roughly 40% of the region height
 			// - The Y-coordinate is slightly below the middle of the screen
 			val dummyTargetPosition = transformBattleCoordinates(
-				PartyLayoutPosition(75, 60), flipX * -1f, region
+				PartyLayoutPosition(0.42f, 0.59f), flipX * -1f, region
 			)
 			val breathX = dummyTargetPosition.x + 0.4f * flipX * region.height
 			CombatantRenderPosition(
@@ -417,10 +417,10 @@ class CombatantRenderer(
 					stateMachine.attacker.getWeapon(context.updateContext)?.element
 		}
 
-		val scaleX = if (combatant.isOnPlayerSide && !showcase) coordinates.scale else -coordinates.scale
 		val parentMatrix = Matrix3x2f()
 			.translate(coordinates.x, coordinates.y)
-			.scale(scaleX, coordinates.scale)
+			.scale(region.height.toFloat())
+		if (!combatant.isOnPlayerSide || showcase) parentMatrix.scale(-1f, 1f)
 		parentMatrix.mul(toJOMLMatrix(animations.rootMatrix))
 
 		val animationContext = AnimationContext(
@@ -463,7 +463,7 @@ class CombatantRenderer(
 
 	companion object {
 		fun sortByDepth(state: BattleState, combatants: List<CombatantState>): List<CombatantState> {
-			val sorted = combatants.sortedBy { it.getPosition(state).y }.toMutableList()
+			val sorted = combatants.sortedBy { it.getPosition(state).distanceY }.toMutableList()
 
 			val machine = state.state
 			if (machine is BattleStateMachine.MeleeAttack && machine.attacker !== machine.target) {

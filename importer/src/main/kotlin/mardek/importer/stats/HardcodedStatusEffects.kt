@@ -15,6 +15,7 @@ import mardek.content.sprite.BcSprite
 import mardek.content.stats.ElementalResistance
 import mardek.content.stats.Resistances
 import mardek.content.stats.StatusEffect
+import mardek.importer.area.MAGIC_PARTY_POSITION_SCALE
 import mardek.importer.util.classLoader
 import mardek.importer.util.loadBc7Sprite
 import java.awt.image.BufferedImage
@@ -97,7 +98,7 @@ fun addStatusEffects(content: Content) {
 				),
 				dynamics = ParticleDynamics(),
 				size = ParticleSize(
-					baseWidth = 4f, baseHeight = 4f,
+					baseWidth = 4f * MAGIC_PARTY_POSITION_SCALE, baseHeight = 4f * MAGIC_PARTY_POSITION_SCALE,
 					shiftWidth = 0f, shiftHeight = 0f,
 					minSizeMultiplier = 1f, maxSizeMultiplier = 9f / 4f,
 					growX = 1.3f, growY = 1.3f,
@@ -170,7 +171,7 @@ fun addStatusEffects(content: Content) {
 				),
 				dynamics = ParticleDynamics(),
 				size = ParticleSize(
-					baseWidth = 8f, baseHeight = 8f,
+					baseWidth = 8f * MAGIC_PARTY_POSITION_SCALE, baseHeight = 8f * MAGIC_PARTY_POSITION_SCALE,
 					shiftWidth = 0f, shiftHeight = 0f,
 					minSizeMultiplier = 1f, maxSizeMultiplier = 3f,
 					growX = 1f, growY = 1f,
@@ -235,7 +236,7 @@ fun addStatusEffects(content: Content) {
 				),
 				dynamics = ParticleDynamics(),
 				size = ParticleSize(
-					baseWidth = 4f, baseHeight = 4f,
+					baseWidth = 4f * MAGIC_PARTY_POSITION_SCALE, baseHeight = 4f * MAGIC_PARTY_POSITION_SCALE,
 					shiftWidth = 0f, shiftHeight = 0f,
 					minSizeMultiplier = 1f, maxSizeMultiplier = 2f,
 					growX = 1.04.pow(30).toFloat(), growY = 1.04.pow(30).toFloat(),
@@ -284,7 +285,7 @@ fun addStatusEffects(content: Content) {
 			),
 			dynamics = ParticleDynamics(),
 			size = ParticleSize(
-				baseWidth = 4f, baseHeight = 4f,
+				baseWidth = 4f * MAGIC_PARTY_POSITION_SCALE, baseHeight = 4f * MAGIC_PARTY_POSITION_SCALE,
 				shiftWidth = 0f, shiftHeight = 0f,
 				minSizeMultiplier = 1f, maxSizeMultiplier = 4f,
 				growX = 1f, growY = 1f,

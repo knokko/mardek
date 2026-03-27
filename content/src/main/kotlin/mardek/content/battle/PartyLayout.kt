@@ -2,6 +2,7 @@ package mardek.content.battle
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.StableReferenceFieldId
@@ -52,23 +53,26 @@ class PartyLayout(
 class PartyLayoutPosition(
 
 	/**
-	 * The X-coordinate, as imported from Flash TODO CHAP1 Replace Flash coordinates with more logical coordinates
+	 * The distance on the X-axis between the party position and the left/right border of the window:
+	 * - For enemies, the final X-coordinate should be `leftBorderX + this.x * windowHeight`
+	 * - For players, the final X-coordinate should be `rightBorderX - this.x * windowHeight`
 	 */
 	@BitField(id = 0)
-	@IntegerField(expectUniform = false, minValue = 0)
-	val x: Int,
+	@FloatField
+	val distanceX: Float,
 
 	/**
-	 * The Y-coordinate, as imported from Flash
+	 * The distance on the Y-axis between the party position and the top border of the window:
+	 * the final Y-coordinate should be `topBorderY + this.y * windowHeight` (assuming that positive Y goes down)
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = false, minValue = 0)
-	val y: Int,
+	@FloatField
+	val distanceY: Float,
 ) {
 	@Suppress("unused")
-	private constructor() : this(0, 0)
+	private constructor() : this(0f, 0f)
 
-	override fun toString() = "($x, $y)"
+	override fun toString() = "($distanceX, $distanceY)"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

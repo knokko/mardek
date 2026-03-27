@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Assertions.assertTrue
 
 object TestParticles {
 
+	private const val MAGIC_SCALE = 0.0032f
+
 	fun testPoison(instance: TestingInstance) {
 		instance.apply {
 			val poisonEmitters = content.stats.statusEffects.find { it.flashName == "PSN" }!!.particleEmitters
@@ -18,8 +20,8 @@ object TestParticles {
 			assertEquals(1, emitterState.particles.size)
 			val poison = emitterState.particles[0]
 
-			assertTrue(poison.initialWidth >= 4f)
-			assertTrue(poison.initialHeight >= 4f)
+			assertTrue(poison.initialWidth >= 4f * MAGIC_SCALE)
+			assertTrue(poison.initialHeight >= 4f * MAGIC_SCALE)
 
 			// Simulate 60 flash frames = 2 seconds:
 			var flashY = poison.initialY
@@ -81,8 +83,8 @@ object TestParticles {
 
 			assertTrue(sleep.initialRotation >= 0f)
 			assertTrue(sleep.initialRotation < 31f)
-			assertTrue(sleep.initialWidth >= 4f)
-			assertTrue(sleep.initialHeight >= 4f)
+			assertTrue(sleep.initialWidth >= 4f * MAGIC_SCALE)
+			assertTrue(sleep.initialHeight >= 4f * MAGIC_SCALE)
 
 			val frameLength = 33_333_333L
 			val frame1 = sleep.spawnTime + frameLength
@@ -118,8 +120,8 @@ object TestParticles {
 			assertEquals(1, emitterState.particles.size)
 			val paralysis = emitterState.particles[0]
 
-			assertTrue(paralysis.initialWidth >= 4f)
-			assertTrue(paralysis.initialHeight >= 4f)
+			assertTrue(paralysis.initialWidth >= 4f * MAGIC_SCALE)
+			assertTrue(paralysis.initialHeight >= 4f * MAGIC_SCALE)
 
 			val frameLength = 33_333_333L
 			for (frame in 0 until 50) {

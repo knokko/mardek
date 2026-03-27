@@ -1,6 +1,7 @@
 package mardek.importer.particle
 
 import mardek.content.Content
+import mardek.importer.area.MAGIC_PARTY_POSITION_SCALE
 import mardek.importer.audio.importAudioContent
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -86,8 +87,8 @@ class TestParticleEffectImporter {
 		assertEquals(-12f, emitter.opacity.grow, 0.01f)
 		assertEquals(1f, emitter.opacity.initial)
 		assertNull(emitter.spawn.radial)
-		assertEquals(80f, emitter.size.baseWidth)
-		assertEquals(80f, emitter.size.baseHeight)
+		assertEquals(80f * MAGIC_PARTY_POSITION_SCALE, emitter.size.baseWidth)
+		assertEquals(80f * MAGIC_PARTY_POSITION_SCALE, emitter.size.baseHeight)
 		assertEquals(-12f, emitter.spawn.rotation)
 		assertEquals(-240f, emitter.dynamics.spin)
 		assertEquals(1.07.pow(30), emitter.spawn.rotationMultiplier.toDouble(), 0.01)
@@ -223,8 +224,8 @@ class TestParticleEffectImporter {
 			val emitter = fire.emitters[0]
 			assertEquals(150f, emitter.spawn.shiftX)
 			assertEquals(0f, emitter.spawn.shiftY)
-			assertEquals(60f, emitter.size.shiftWidth)
-			assertEquals(75f, emitter.size.shiftHeight)
+			assertEquals(60f * MAGIC_PARTY_POSITION_SCALE, emitter.size.shiftWidth)
+			assertEquals(75f * MAGIC_PARTY_POSITION_SCALE, emitter.size.shiftHeight)
 			assertEquals(0f, emitter.dynamics.shiftAccelerationX)
 			assertEquals(-63f, emitter.dynamics.shiftAccelerationY, 0.01f)
 
@@ -239,8 +240,8 @@ class TestParticleEffectImporter {
 			val emitter = fire.emitters[2]
 			assertEquals(150f, emitter.spawn.shiftX)
 			assertEquals(0f, emitter.spawn.shiftY)
-			assertEquals(60f, emitter.size.shiftWidth)
-			assertEquals(60f, emitter.size.shiftHeight)
+			assertEquals(60f * MAGIC_PARTY_POSITION_SCALE, emitter.size.shiftWidth)
+			assertEquals(60f * MAGIC_PARTY_POSITION_SCALE, emitter.size.shiftHeight)
 		}
 	}
 

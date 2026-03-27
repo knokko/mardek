@@ -12,6 +12,8 @@ import java.lang.Integer.parseInt
 import java.util.*
 import kotlin.collections.ArrayList
 
+internal const val MAGIC_PARTY_POSITION_SCALE = 0.0032f
+
 internal fun parseLevelRange(rawPair: String): LevelRange {
 	val levelsList = parseActionScriptNestedList(rawPair)
 	if (levelsList !is ArrayList<*> || levelsList.size != 2) throw AreaParseException("Unexpected level range $rawPair")
@@ -27,7 +29,14 @@ private fun parsePositions(rawPositions: String): Array<PartyLayoutPosition> {
 		if (coordinateList !is ArrayList<*> || coordinateList.size != 2) {
 			throw AreaParseException("Unexpected foe position $coordinateList")
 		}
-		PartyLayoutPosition(parseInt(coordinateList[0].toString()), parseInt(coordinateList[1].toString()))
+		if (coordinateList == arrayListOf("0", "0")) {
+			PartyLayoutPosition(0f, 0f)
+		} else {
+			PartyLayoutPosition(
+				(parseInt(coordinateList[0].toString()) + 60) * MAGIC_PARTY_POSITION_SCALE,
+				(parseInt(coordinateList[1].toString()) + 124) * MAGIC_PARTY_POSITION_SCALE,
+			)
+		}
 	}
 }
 

@@ -120,7 +120,6 @@ internal class AudioManager {
 		}
 
 		if (audio == currentAudio) {
-			println("REPLAYING")
 			alSourcef(source, AL_SEC_OFFSET, skippedSecondsWhenLooping)
 			assertAlSuccess("alSourcef")
 			alSourcePlay(source)

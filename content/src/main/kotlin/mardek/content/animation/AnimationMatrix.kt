@@ -45,15 +45,19 @@ class AnimationMatrix(
 
 	@BitField(id = 4)
 	@FloatField(
-		expectMultipleOf = 0.002, commonValues = [1.0],
-		expectedIntegerMultiple = IntegerField(expectUniform = true, minValue = -1500, maxValue = 4500),
+		expectMultipleOf = 0.0002, errorTolerance = 0.0001, commonValues = [1.0],
+		expectedIntegerMultiple = IntegerField(
+			expectUniform = true, minValue = -15_000, maxValue = 45_000
+		),
 	)
 	val scaleX: Float,
 
 	@BitField(id = 5)
 	@FloatField(
-		expectMultipleOf = 0.002, commonValues = [1.0],
-		expectedIntegerMultiple = IntegerField(expectUniform = false, digitSize = 4, minValue = -1500, maxValue = 3000),
+		expectMultipleOf = 0.0002, errorTolerance = 0.0001, commonValues = [1.0],
+		expectedIntegerMultiple = IntegerField(
+			expectUniform = true, minValue = -15_000, maxValue = 30_000
+		),
 	)
 	val scaleY: Float,
 ) {

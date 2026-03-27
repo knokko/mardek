@@ -10,32 +10,38 @@ class ParticleSize(
 	/**
 	 * The 'base' initial width of the emitted particles, which will be multiplied by a random number between
 	 * `minSizeMultiplier` and `maxSizeMultiplier` to determine the initial particle width.
+	 *
+	 * The 'unit' is the window height, so `baseWidth = 1.0` means that the particle would span a big part of the
+	 * window width.
 	 */
 	@BitField(id = 0)
-	@FloatField(expectMultipleOf = 1.0)
+	@FloatField
 	val baseWidth: Float,
 
 	/**
 	 * The 'base' initial height of the emitted particles, which will be multiplied by a random number between
 	 * `minSizeMultiplier` and `maxSizeMultiplier` (the same random number that was multiplied by `baseWidth`)
 	 * to determine the initial particle height.
+	 *
+	 * The 'unit' is the window height, so `baseHeight = 1.0` means that the particle would span the entire window
+	 * height.
 	 */
 	@BitField(id = 1)
-	@FloatField(expectMultipleOf = 1.0)
+	@FloatField
 	val baseHeight: Float,
 
 	/**
 	 * The `baseWidth` for new particles is increased by `shiftWidth` every second (continuously)
 	 */
 	@BitField(id = 2)
-	@FloatField(expectMultipleOf = 0.1)
+	@FloatField
 	val shiftWidth: Float,
 
 	/**
 	 * The `baseHeight` for new particles is increased by `shiftHeight` every second (continuously)
 	 */
 	@BitField(id = 3)
-	@FloatField(expectMultipleOf = 0.1)
+	@FloatField
 	val shiftHeight: Float,
 
 	/**

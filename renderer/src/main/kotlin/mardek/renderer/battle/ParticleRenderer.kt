@@ -14,7 +14,7 @@ import kotlin.math.min
 
 private fun renderParticleEmitter(
 	emitter: ParticleEmitterState, emitterIndex: Int,
-	renderTime: Long, imageBatch: Vk2dImageBatch, magicScale: Float,
+	renderTime: Long, imageBatch: Vk2dImageBatch, region: Rectangle,
 	pixelX: Float, pixelY: Float,
 	particleEffect: ParticleEffect?, mirrorX: Boolean,
 ) {
@@ -31,6 +31,7 @@ private fun renderParticleEmitter(
 			.rotate(toRadians(emitter.emitter.transform.rotation))
 			.translate(relativeX, relativeY)
 			.rotate(toRadians(particle.computeRotation(renderTime)))
+			.scale(region.height.toFloat())
 
 		val fadeTransform = ColorTransform(
 			0, rgba(1f, 1f, 1f, alpha), 0
@@ -47,7 +48,7 @@ private fun renderParticleEmitter(
 				(rawCorner.second - 0.5f) * particle.computeHeight(renderTime),
 			))
 
-			Vector2f(pixelX + position.x * magicScale, pixelY+ position.y * magicScale)
+			Vector2f(pixelX + position.x, pixelY + position.y)
 		}.toTypedArray()
 		val overrideSprites = particleEffect?.inheritance?.overrideSprites
 		val sprite = if (overrideSprites != null) {
@@ -73,11 +74,9 @@ internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch:
 		}
 
 		for (particleEffect in battle.particles) {
-			val magicScale = computeMagicScale(region)
-
 			for ((index, emitter) in particleEffect.emitters.withIndex()) {
 				renderParticleEmitter(
-					emitter, index, renderTime, imageBatch, magicScale,
+					emitter, index, renderTime, imageBatch, region,
 					particleEffect.position.x, particleEffect.position.y,
 					particleEffect.particle, particleEffect.mirrorX,
 				)
@@ -88,7 +87,6 @@ internal fun renderBaseParticles(battleContext: BattleRenderContext, imageBatch:
 
 internal fun renderAnimationParticles(battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch, region: Rectangle) {
 	battleContext.run {
-		val magicScale = computeMagicScale(region)
 		val renderTime = System.nanoTime()
 
 		for (combatant in battle.livingOpponents() + battle.livingPlayers()) {
@@ -99,7 +97,7 @@ internal fun renderAnimationParticles(battleContext: BattleRenderContext, imageB
 				for (position in state.positions)	{
 					renderParticleEmitter(
 						state.emitterState, 0,
-						renderTime, imageBatch, magicScale,
+						renderTime, imageBatch, region,
 						position.x, position.y,
 						null, false,
 					)
@@ -111,7 +109,6 @@ internal fun renderAnimationParticles(battleContext: BattleRenderContext, imageB
 
 internal fun renderEffectParticles(battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch, region: Rectangle) {
 	battleContext.run {
-		val magicScale = computeMagicScale(region)
 		val renderTime = System.nanoTime()
 
 		for (combatant in battle.livingOpponents() + battle.livingPlayers()) {
@@ -125,7 +122,7 @@ internal fun renderEffectParticles(battleContext: BattleRenderContext, imageBatc
 				for (emitterState in effectParticlesState.emitterStates) {
 					renderParticleEmitter(
 						emitterState, 0,
-						renderTime, imageBatch, magicScale,
+						renderTime, imageBatch, region,
 						combatant.renderInfo.statusEffectPoint.x,
 						combatant.renderInfo.statusEffectPoint.y,
 						null, false,

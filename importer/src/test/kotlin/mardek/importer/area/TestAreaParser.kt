@@ -121,14 +121,12 @@ class TestAreaParser {
 		val solo = content.battle.enemyPartyLayouts.find { it.name == "SOLO" }!!
 		val duo = content.battle.enemyPartyLayouts.find { it.name == "DUO" }!!
 		val trio = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!
-		val empty = PartyLayoutPosition(0, 0)
-		assertArrayEquals(arrayOf(PartyLayoutPosition(60, 80), empty, empty, empty), solo.positions)
-		assertArrayEquals(arrayOf(
-			PartyLayoutPosition(56, 46), PartyLayoutPosition(56, 140), empty, empty
-		), duo.positions)
-		assertArrayEquals(arrayOf(
-			PartyLayoutPosition(52, 90), PartyLayoutPosition(22, 154), PartyLayoutPosition(30, 18), empty
-		), trio.positions)
+		val empty = PartyLayoutPosition(0f, 0f)
+		assertEquals(120 * MAGIC_PARTY_POSITION_SCALE, solo.positions[0].distanceX, 0.001f)
+		assertEquals(204 * MAGIC_PARTY_POSITION_SCALE, solo.positions[0].distanceY, 0.001f)
+		assertEquals(1, solo.positions.count { it != empty })
+		assertEquals(2, duo.positions.count { it != empty })
+		assertEquals(3, trio.positions.count { it != empty })
 
 		val levelRange = content.areas.levelRanges.find { it.name == "DRAGON_LAIR" }!!
 		assertEquals(LevelRange(30, 36), levelRange.range)

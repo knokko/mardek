@@ -12,6 +12,7 @@ import mardek.content.particle.ParticleSpawnProperties
 import mardek.content.particle.ParticleSprite
 import mardek.content.particle.RadialParticleSpawnProperties
 import mardek.content.sprite.BcSprite
+import mardek.importer.area.MAGIC_PARTY_POSITION_SCALE
 import mardek.importer.area.parseFlashString
 import mardek.importer.util.classLoader
 import mardek.importer.util.parseActionScriptNestedList
@@ -410,10 +411,10 @@ private fun parseParticleSize(rawEmitter: Map<String, String>): ParticleSize {
 	}
 
 	return ParticleSize(
-		baseWidth = parseFloat(sizeList[0].toString()),
-		baseHeight = parseFloat(sizeList[1].toString()),
-		shiftWidth = FLASH_FRAMES_PER_SECOND * shiftWidth,
-		shiftHeight = FLASH_FRAMES_PER_SECOND * shiftHeight,
+		baseWidth = parseFloat(sizeList[0].toString()) * MAGIC_PARTY_POSITION_SCALE,
+		baseHeight = parseFloat(sizeList[1].toString()) * MAGIC_PARTY_POSITION_SCALE,
+		shiftWidth = FLASH_FRAMES_PER_SECOND * shiftWidth * MAGIC_PARTY_POSITION_SCALE,
+		shiftHeight = FLASH_FRAMES_PER_SECOND * shiftHeight * MAGIC_PARTY_POSITION_SCALE,
 		minSizeMultiplier = minMultiplier,
 		maxSizeMultiplier = maxMultiplier,
 		growX = flashGrow[0].pow(FLASH_FRAMES_PER_SECOND),

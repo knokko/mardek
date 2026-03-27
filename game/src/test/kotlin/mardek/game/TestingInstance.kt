@@ -162,7 +162,7 @@ class TestingInstance {
 		(campaign.state as AreaState).suspension = AreaSuspensionBattle(BattleState(
 			battle = Battle(
 				startingEnemies = enemies,
-				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "TRIO" }!!,
+				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
 				music = "battle",
 				lootMusic = "VictoryFanfare",
 				background = content.battle.backgrounds.find { it.name == backgroundName }!!,
