@@ -13,11 +13,18 @@ import mardek.content.ui.Font
 import mardek.content.ui.TitleScreenContent
 import mardek.importer.util.classLoader
 import mardek.importer.util.projectFolder
+import org.lwjgl.system.MemoryUtil.memCalloc
+import org.lwjgl.system.MemoryUtil.memFree
+import org.lwjgl.util.zstd.Zstd.ZSTD_compress
+import org.lwjgl.util.zstd.Zstd.ZSTD_compressBound
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.lang.Math.toIntExact
 import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
 import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
@@ -122,10 +129,26 @@ private fun saveMainContent(content: Content) {
 	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))
 	output.close()
 
-	Files.write(
-		File("${Content.RESOURCES_DIRECTORY}/content.bits").toPath(),
-		BITSER.toBytes(content, WithParameter("exporting", null)),
+	val uncompressedBytes = BITSER.toBytes(
+		content, WithParameter("exporting", null)
 	)
+	val uncompressedBuffer = memCalloc(uncompressedBytes.size)
+	uncompressedBuffer.put(0, uncompressedBytes)
+
+	val compressedCapacity = ZSTD_compressBound(uncompressedBytes.size.toLong())
+	val compressedBuffer = memCalloc(toIntExact(compressedCapacity))
+	val compressedSize = ZSTD_compress(compressedBuffer, uncompressedBuffer, 22)
+	compressedBuffer.limit(toIntExact(compressedSize))
+	FileChannel.open(
+		File("${Content.RESOURCES_DIRECTORY}/content.bits").toPath(),
+		StandardOpenOption.CREATE,
+		StandardOpenOption.TRUNCATE_EXISTING,
+		StandardOpenOption.WRITE
+	).use { channel ->
+		while (compressedBuffer.position() < compressedBuffer.limit()) channel.write(compressedBuffer)
+	}
+	memFree(uncompressedBuffer)
+	memFree(compressedBuffer)
 }
 
 private fun saveTitleScreenBundle(content: Content) {

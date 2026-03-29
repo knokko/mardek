@@ -12,28 +12,39 @@ import org.lwjgl.stb.STBVorbisInfo
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.*
+import org.lwjgl.util.zstd.Zstd.ZSTD_decompress
+import org.lwjgl.util.zstd.Zstd.ZSTD_getFrameContentSize
+import java.io.File
+import java.lang.Math.toIntExact
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
+import java.nio.channels.FileChannel
 
 private fun readVorbis(fileName: String?, byteArray: ByteArray?, alBuffer: Int, stack: MemoryStack) {
-	val error = stack.callocInt(1)
-	val decoder = if (byteArray != null) {
+	val vorbisBuffer = if (byteArray != null) {
 		val buffer = memCalloc(byteArray.size)
 		buffer.put(0, byteArray)
-		val decoder = stb_vorbis_open_memory(buffer, error, null)
-		if (error[0] != VORBIS__no_error) {
-			throw AudioException("stb_vorbis_open_memory($fileName) caused error ${error[0]}")
-		}
-		decoder
+		buffer
 	} else {
-		val filePath = "${Content.RESOURCES_DIRECTORY}/music/$fileName"
-		val decoder = stb_vorbis_open_filename(filePath, error, null)
-		if (error[0] != VORBIS__no_error) {
-			throw AudioException("stb_vorbis_open_filename($filePath) caused error ${error[0]}")
+		val filePath = File("${Content.RESOURCES_DIRECTORY}/music/$fileName.zstd").toPath()
+		FileChannel.open(filePath).use { channel ->
+			val compressedBuffer = memCalloc(toIntExact(channel.size()))
+			while (compressedBuffer.position() < compressedBuffer.capacity()) channel.read(compressedBuffer)
+			compressedBuffer.position(0)
+
+			val expectedSize = ZSTD_getFrameContentSize(compressedBuffer)
+			val buffer = memCalloc(toIntExact(expectedSize))
+			val actualSize = ZSTD_decompress(buffer, compressedBuffer)
+			if (expectedSize != actualSize) throw Error("Decompressed music size mismatch for $fileName")
+			buffer
 		}
-		decoder
 	}
 
+	val error = stack.callocInt(1)
+	val decoder = stb_vorbis_open_memory(vorbisBuffer, error, null)
+	if (error[0] != VORBIS__no_error) {
+		throw AudioException("stb_vorbis_open_memory($fileName) caused error ${error[0]}")
+	}
 	if (decoder == 0L) throw Error("stb_vorbis_open_xxx failed for $fileName")
 
 	val info = STBVorbisInfo.calloc(stack)

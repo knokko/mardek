@@ -7,7 +7,7 @@ tasks.register("randomIDs", JavaExec) {
 
 tasks.register("checkIntegrationTestScreenshots", JavaExec) {
 	group = "Miscellaneous"
-	description = "GitHub Actions job to check whether the "
+	description = "GitHub Actions job to check whether the file names in game/rendering-test-results match"
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.miscellaneous.CheckIntegrationTestScreenshotsKt"
 }

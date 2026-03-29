@@ -5,10 +5,19 @@ dependencies {
 	implementation "org.lwjgl:lwjgl"
 	implementation "org.lwjgl:lwjgl-openal"
 	implementation "org.lwjgl:lwjgl-stb"
+	implementation "org.lwjgl:lwjgl-zstd"
 
 	for (natives in project.ext.lwjglNatives) {
 		runtimeOnly "org.lwjgl:lwjgl::$natives"
 		runtimeOnly "org.lwjgl:lwjgl-openal::$natives"
 		runtimeOnly "org.lwjgl:lwjgl-stb::$natives"
+		runtimeOnly "org.lwjgl:lwjgl-zstd::$natives"
 	}
+}
+
+tasks.register("compressMusic", JavaExec) {
+	group = "Audio"
+	description = "Compresses the files in resources/music"
+	classpath sourceSets.test.runtimeClasspath
+	mainClass = "mardek.audio.AudioCompressorKt"
 }

@@ -111,7 +111,7 @@ class MardekWindow(
 
 		Thread {
 			try {
-				content.complete(Content.load())
+				content.complete(loadContent())
 				println("Loaded content after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 				renderManager.content = content.get()
 			} catch (failed: Throwable) {

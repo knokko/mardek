@@ -4,7 +4,6 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceFieldTarget
-import com.github.knokko.bitser.io.BitInputStream
 import mardek.content.action.ActionContent
 import mardek.content.area.AreaContent
 import mardek.content.audio.AudioContent
@@ -18,9 +17,7 @@ import mardek.content.story.StoryContent
 import mardek.content.ui.Fonts
 import mardek.content.ui.UiSprites
 import mardek.content.world.WorldMap
-import java.io.BufferedInputStream
 import java.io.File
-import java.nio.file.Files
 
 @BitStruct(backwardCompatible = true)
 class Content {
@@ -86,14 +83,6 @@ class Content {
 				val parentDirectory = workingDirectory.absoluteFile.parentFile.parentFile!!
 				File("$parentDirectory/resources")
 			}
-		}
-
-		fun load(): Content {
-			val contentPath = File("$RESOURCES_DIRECTORY/content.bits").toPath()
-			val input = BitInputStream(BufferedInputStream(Files.newInputStream(contentPath)))
-			val content = BITSER.deserialize(Content::class.java, input)
-			input.close()
-			return content
 		}
 	}
 }

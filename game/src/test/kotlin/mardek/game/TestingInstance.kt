@@ -47,7 +47,7 @@ import java.util.Collections
 
 class TestingInstance {
 
-	val content = Content.load()
+	val content = loadContent()
 
 	val boiler: BoilerInstance
 	val pipelineContext: Vk2dPipelineContext
