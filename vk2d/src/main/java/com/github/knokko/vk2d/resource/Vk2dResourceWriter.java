@@ -28,15 +28,15 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.zip.DeflaterOutputStream;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
 import static com.github.knokko.vk2d.text.FontHelper.assertFtSuccess;
 import static java.lang.Math.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
-import static org.lwjgl.system.MemoryUtil.memAlloc;
-import static org.lwjgl.system.MemoryUtil.memFree;
+import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.freetype.FreeType.*;
+import static org.lwjgl.util.zstd.Zstd.ZSTD_compress;
+import static org.lwjgl.util.zstd.Zstd.ZSTD_compressBound;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceWriter {
@@ -508,8 +508,8 @@ public class Vk2dResourceWriter {
 	}
 
 	public void write(OutputStream rawOutput, File cacheDirectory) throws IOException {
-		DeflaterOutputStream deflate = new DeflaterOutputStream(rawOutput);
-		DataOutputStream output = new DataOutputStream(deflate);
+		var uncompressedOutput = new ByteArrayOutputStream();
+		DataOutputStream output = new DataOutputStream(uncompressedOutput);
 		output.writeInt(images.size());
 		for (Image entry : images) {
 			output.writeInt(entry.image.getWidth());
@@ -576,11 +576,25 @@ public class Vk2dResourceWriter {
 			}
 		}
 
-		deflate.finish();
 		output.flush();
 		if (ftLibrary != 0L) {
 			assertFtSuccess(FT_Done_FreeType(ftLibrary), "Done_FreeType");
 		}
+
+		var uncompressedByteArray = uncompressedOutput.toByteArray();
+		var uncompressedByteBuffer = memCalloc(uncompressedByteArray.length);
+		uncompressedByteBuffer.put(0, uncompressedByteArray);
+
+		var compressedByteBuffer = memCalloc(Math.toIntExact(ZSTD_compressBound(uncompressedByteArray.length)));
+		long startCompression = System.nanoTime();
+		int compressedSize = Math.toIntExact(ZSTD_compress(compressedByteBuffer, uncompressedByteBuffer, 17));
+		System.out.println("compression took " + (System.nanoTime() - startCompression) / 1000_000L + " ms");
+		memFree(uncompressedByteBuffer);
+		var compressedByteArray = new byte[compressedSize];
+		compressedByteBuffer.get(compressedByteArray);
+		memFree(compressedByteBuffer);
+		rawOutput.write(compressedByteArray);
+		rawOutput.flush();
 	}
 
 	private void writeUncompressedImage(DataOutputStream output, BufferedImage image) throws IOException {

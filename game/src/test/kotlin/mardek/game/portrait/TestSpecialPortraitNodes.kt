@@ -44,8 +44,8 @@ object TestSpecialPortraitNodes {
 			SpecialAnimationNode.Shield,
 			SpecialAnimationNode.PortraitRobe,
 		)) {
-			assertFalse(portraitDeugan.hasSpecialNode(unexpected))
-			assertFalse(portraitPrincess.hasSpecialNode(unexpected))
+			assertFalse(portraitDeugan.get().hasSpecialNode(unexpected))
+			assertFalse(portraitPrincess.get().hasSpecialNode(unexpected))
 		}
 
 		for (expected in arrayOf(
@@ -57,12 +57,12 @@ object TestSpecialPortraitNodes {
 			SpecialAnimationNode.PortraitEthnicity,
 			SpecialAnimationNode.PortraitArmor,
 		)){
-			assertTrue(portraitDeugan.hasSpecialNode(expected))
-			assertTrue(portraitPrincess.hasSpecialNode(expected))
+			assertTrue(portraitDeugan.get().hasSpecialNode(expected))
+			assertTrue(portraitPrincess.get().hasSpecialNode(expected))
 		}
 
 		// Mouth is only for humanoid females, and basically just for Zombie Shaman
-		assertFalse(portraitDeugan.hasSpecialNode(SpecialAnimationNode.PortraitMouth))
-		assertTrue(portraitPrincess.hasSpecialNode(SpecialAnimationNode.PortraitMouth))
+		assertFalse(portraitDeugan.get().hasSpecialNode(SpecialAnimationNode.PortraitMouth))
+		assertTrue(portraitPrincess.get().hasSpecialNode(SpecialAnimationNode.PortraitMouth))
 	}
 }

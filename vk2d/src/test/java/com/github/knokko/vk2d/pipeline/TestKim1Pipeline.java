@@ -23,7 +23,7 @@ public class TestKim1Pipeline {
 				new File("../image-benchmark-resources.bin"),
 				70, 50, tester -> {
 					Vk2dKimBatch batch = staticPipelines.kim1.addBatch(tester.stage(), 2, tester.bundle());
-					batch.simple(3, 20, 60, 45, 0);
+					batch.simple(3, 20, 60, 45, 4);
 				});
 	}
 
@@ -34,7 +34,7 @@ public class TestKim1Pipeline {
 				new File("../image-benchmark-resources.bin"),
 				70, 50, tester -> {
 					Vk2dKimBatch batch = staticPipelines.kim1.addBatch(tester.stage(), 2, tester.bundle());
-					batch.simple(5, 3, 2.5f, 0);
+					batch.simple(5, 3, 2.5f, 4);
 				});
 	}
 

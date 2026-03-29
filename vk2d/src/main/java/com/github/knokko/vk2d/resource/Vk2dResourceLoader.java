@@ -13,21 +13,40 @@ import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.text.Vk2dFont;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.InflaterInputStream;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
+import static org.lwjgl.system.MemoryUtil.memCalloc;
+import static org.lwjgl.system.MemoryUtil.memFree;
+import static org.lwjgl.util.zstd.Zstd.ZSTD_decompress;
+import static org.lwjgl.util.zstd.Zstd.ZSTD_getFrameContentSize;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceLoader {
 
+	private static ByteBuffer decompress(ByteBuffer compressed) {
+		long expectedUncompressedSize = ZSTD_getFrameContentSize(compressed);
+		var uncompressed = memCalloc(Math.toIntExact(expectedUncompressedSize)).order(ByteOrder.BIG_ENDIAN);
+		long actualUncompressedSize = ZSTD_decompress(uncompressed, compressed);
+		if (expectedUncompressedSize != actualUncompressedSize) throw new RuntimeException("Size mismatch");
+		return uncompressed;
+	}
+
+	private static ByteBuffer toByteBuffer(byte[] byteArray) {
+		return memCalloc(byteArray.length).put(0, byteArray);
+	}
+
 	private final Vk2dInstance instance;
-	private final DataInputStream input;
+	private final ByteBuffer input;
 
 	private MemoryCombiner stagingCombiner;
 	private MemoryBlock stagingMemory;
@@ -49,24 +68,44 @@ public class Vk2dResourceLoader {
 	private int[] fakeData;
 	private long fakeImageDescriptor;
 
-	public Vk2dResourceLoader(Vk2dInstance instance, InputStream rawInput) {
+	public Vk2dResourceLoader(Vk2dInstance instance, InputStream inputStream) throws IOException {
+		this(instance, toByteBuffer(inputStream.readAllBytes()));
+	}
+
+	public Vk2dResourceLoader(Vk2dInstance instance, ByteBuffer input) {
 		this.instance = instance;
-		this.input = new DataInputStream(new InflaterInputStream(rawInput));
+		this.input = decompress(input);
+		memFree(input);
+	}
+
+	public Vk2dResourceLoader(Vk2dInstance instance, Path inputFile) {
+		this.instance = instance;
+		try (var channel = FileChannel.open(inputFile, StandardOpenOption.READ)) {
+			var compressed = memCalloc(Math.toIntExact(channel.size()));
+			while (compressed.position() < compressed.limit()) {
+				channel.read(compressed);
+			}
+			compressed.position(0);
+			this.input = decompress(compressed);
+			memFree(compressed);
+		} catch (IOException failed) {
+			throw new RuntimeException(failed);
+		}
 	}
 
 	public void claimMemory(MemoryCombiner combiner) throws IOException {
 		this.stagingCombiner = new MemoryCombiner(instance.boiler, "Vk2dStaging");
 
-		int numImages = input.readInt();
+		int numImages = input.getInt();
 		this.images = new VkbImage[numImages];
 		this.pixelatedImages = new boolean[numImages];
 		this.imageStagingBuffers = new MappedVkbBuffer[numImages];
 
 		for (int index = 0; index < numImages; index++) {
-			int width = input.readInt();
-			int height = input.readInt();
-			Vk2dImageCompression compression = Vk2dImageCompression.values()[input.readByte()];
-			this.pixelatedImages[index] = input.readByte() == 1;
+			int width = input.getInt();
+			int height = input.getInt();
+			Vk2dImageCompression compression = Vk2dImageCompression.values()[input.get()];
+			this.pixelatedImages[index] = input.get() == 1;
 			this.images[index] = combiner.addImage(new ImageBuilder(
 					"Image" + index, width, height
 			).texture().format(compression.format), 0.5f);
@@ -81,12 +120,12 @@ public class Vk2dResourceLoader {
 					if (compression == Vk2dImageCompression.BC7) yield paddedWidth * paddedHeight;
 					else yield paddedWidth * paddedHeight / 2;
 			};
-			this.imageStagingBuffers[index] = stagingCombiner.addMappedBuffer(
-					size, compression.alignment, VK_BUFFER_USAGE_TRANSFER_SRC_BIT
+			this.imageStagingBuffers[index] = stagingCombiner.addMappedDeviceLocalBuffer(
+					size, compression.alignment, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 0.25f
 			);
 		}
 
-		int numFakeImages = input.readInt();
+		int numFakeImages = input.getInt();
 		this.fakeOffsets = new int[numFakeImages];
 		this.fakeWidths = new int[numFakeImages];
 		this.fakeHeights = new int[numFakeImages];
@@ -94,9 +133,9 @@ public class Vk2dResourceLoader {
 
 		int fakeOffset = 0;
 		for (int index = 0; index < numFakeImages; index++) {
-			int intSize = input.readInt();
-			fakeWidths[index] = input.readInt();
-			fakeHeights[index] = input.readInt();
+			int intSize = input.getInt();
+			fakeWidths[index] = input.getInt();
+			fakeHeights[index] = input.getInt();
 			this.fakeOffsets[index] = fakeOffset;
 			fakeOffset += intSize;
 		}
@@ -113,28 +152,28 @@ public class Vk2dResourceLoader {
 		}
 
 		long fontBufferSize = 0L;
-		int numFonts = input.readInt();
+		int numFonts = input.getInt();
 		int firstCurveIndex = 0;
 		this.fonts = new Font[numFonts];
 		for (int index = 0; index < numFonts; index++) {
-			int numCurves = input.readInt();
-			int numGlyphs = input.readInt();
+			int numCurves = input.getInt();
+			int numGlyphs = input.getInt();
 			Map<Integer, Integer> charToGlyphMap = new HashMap<>();
 			this.fonts[index] = new Font(numGlyphs, firstCurveIndex, charToGlyphMap);
 			firstCurveIndex += numCurves;
 			fontBufferSize += 8L * numCurves;
 			for (int glyph = 0; glyph < numGlyphs; glyph++) {
-				this.fonts[index].firstCurves[glyph] = input.readInt();
-				this.fonts[index].numCurves[glyph] = input.readInt();
-				this.fonts[index].glyphMinX[glyph] = input.readFloat();
-				this.fonts[index].glyphMinY[glyph] = input.readFloat();
-				this.fonts[index].glyphMaxX[glyph] = input.readFloat();
-				this.fonts[index].glyphMaxY[glyph] = input.readFloat();
-				this.fonts[index].glyphAdvance[glyph] = input.readFloat();
+				this.fonts[index].firstCurves[glyph] = input.getInt();
+				this.fonts[index].numCurves[glyph] = input.getInt();
+				this.fonts[index].glyphMinX[glyph] = input.getFloat();
+				this.fonts[index].glyphMinY[glyph] = input.getFloat();
+				this.fonts[index].glyphMaxX[glyph] = input.getFloat();
+				this.fonts[index].glyphMaxY[glyph] = input.getFloat();
+				this.fonts[index].glyphAdvance[glyph] = input.getFloat();
 			}
-			int numChars = input.readInt();
+			int numChars = input.getInt();
 			for (int counter = 0; counter < numChars; counter++) {
-				charToGlyphMap.put(input.readInt(), input.readInt());
+				charToGlyphMap.put(input.getInt(), input.getInt());
 			}
 		}
 
@@ -151,15 +190,13 @@ public class Vk2dResourceLoader {
 		this.stagingMemory = stagingCombiner.build(false);
 		this.stagingCombiner = null;
 		for (MappedVkbBuffer buffer : imageStagingBuffers) {
-			// TODO CHAP1 Try out channels instead: Channels.newChannel(input)?
-			byte[] bytes = new byte[Math.toIntExact(buffer.size)];
-			input.readFully(bytes);
-			buffer.byteBuffer().put(bytes);
+			buffer.byteBuffer().put(0, input, input.position(), Math.toIntExact(buffer.size));
+			input.position(input.position() + Math.toIntExact(buffer.size));
 		}
 
 		if (fakeStagingBuffer != null) {
 			IntBuffer fakeData = fakeStagingBuffer.intBuffer();
-			while (fakeData.hasRemaining()) fakeData.put(input.readInt());
+			while (fakeData.hasRemaining()) fakeData.put(input.getInt());
 			for (int textureIndex = 0; textureIndex < fakeOffsets.length; textureIndex++) {
 				int textureOffset = fakeOffsets[textureIndex];
 				this.fakeData[2 * textureIndex] = fakeData.get(textureOffset);
@@ -169,7 +206,7 @@ public class Vk2dResourceLoader {
 
 		if (fontStagingBuffer != null) {
 			IntBuffer curves = fontStagingBuffer.intBuffer();
-			while (curves.hasRemaining()) curves.put(input.readInt());
+			while (curves.hasRemaining()) curves.put(input.getInt());
 		}
 	}
 
@@ -245,6 +282,7 @@ public class Vk2dResourceLoader {
 			imageWidths[index] = images[index].width;
 			imageHeights[index] = images[index].height;
 		}
+		memFree(input);
 		return new Vk2dResourceBundle(
 				imageDescriptors, imageWidths, imageHeights, bundleFonts,
 				fakeImageDescriptor, fakeOffsets,

@@ -138,7 +138,7 @@ class ExpressionOptionalStringValue(
 ) : ExpressionValue<String?>() {
 
 	@Suppress("unused")
-	private constructor() : this("")
+	private constructor() : this(null)
 
 	override fun get() = value
 
@@ -162,7 +162,7 @@ class ExpressionOptionalPlayerValue(
 ) : ExpressionValue<PlayableCharacter?>() {
 
 	@Suppress("unused")
-	private constructor() : this(PlayableCharacter())
+	private constructor() : this(null)
 
 	override fun get() = value
 

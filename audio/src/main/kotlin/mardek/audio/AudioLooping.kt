@@ -1,5 +1,7 @@
 package mardek.audio
 
+import mardek.content.Content
+import java.io.File
 import java.lang.Float.parseFloat
 import java.util.Scanner
 
@@ -7,7 +9,7 @@ internal object AudioLooping {
 
 	internal fun parse(): Map<String, Float> {
 		val mapping = mutableMapOf<String, Float>()
-		val scanner = Scanner(AudioManager::class.java.getResourceAsStream("loops.txt")!!)
+		val scanner = Scanner(File("${Content.RESOURCES_DIRECTORY}/music/loops.txt"))
 		while (scanner.hasNextLine()) {
 			val pairs = scanner.nextLine().split(":")
 			if (pairs.size == 2 && pairs[1].endsWith(',')) {

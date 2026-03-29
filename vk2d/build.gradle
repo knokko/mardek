@@ -7,6 +7,7 @@ dependencies {
 	implementation "com.github.knokko:vk-boiler:$boilerVersion"
 	implementation "org.lwjgl:lwjgl"
 	implementation "org.lwjgl:lwjgl-vulkan"
+	implementation "org.lwjgl:lwjgl-zstd"
 
 	compileOnly "org.lwjgl:lwjgl-freetype"
 	compileOnly "org.lwjgl:lwjgl-harfbuzz"
@@ -28,6 +29,7 @@ dependencies {
 	}
 	for (dependency in project.ext.myRuntimeDependencies) runtimeOnly "$dependency"
 	for (natives in project.ext.lwjglNatives) {
+		runtimeOnly "org.lwjgl:lwjgl-zstd::$natives"
 		testRuntimeOnly "org.lwjgl:lwjgl-freetype::$natives"
 		testRuntimeOnly "org.lwjgl:lwjgl-vma::$natives"
 	}

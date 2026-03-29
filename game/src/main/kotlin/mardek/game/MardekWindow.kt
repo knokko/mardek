@@ -13,7 +13,6 @@ import com.github.knokko.vk2d.Vk2dWindow
 import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import mardek.audio.AudioUpdater
-import mardek.content.BITSER
 import mardek.content.Content
 import mardek.renderer.PerFrameResources
 import mardek.renderer.RenderManager
@@ -21,7 +20,8 @@ import mardek.state.VideoSettings
 import mardek.state.ExitState
 import mardek.state.GameStateManager
 import org.lwjgl.system.MemoryStack
-import java.io.InputStream
+import java.io.File
+import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -38,8 +38,8 @@ class MardekWindow(
 
 	private val fpsCounter = UpdateCounter()
 
-	override fun initialResourceBundle(): InputStream {
-		return MardekWindow::class.java.getResourceAsStream("title-screen.vk2d")!!
+	override fun initialResourceFile(): Path {
+		return File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d").toPath()
 	}
 
 	override fun setupConfig(config: Vk2dConfig) = RenderManager.initPipelinesConfig(config)
@@ -77,9 +77,10 @@ class MardekWindow(
 		swapchainImage: AcquiredImage,
 		boiler: BoilerInstance
 	) {
+		if (totalFrames < 3) println("Starting frame after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 		fpsCounter.increment()
+		if (totalFrames == 2L) launchState()
 		totalFrames += 1
-		if (totalFrames == 10L) launchState()
 
 		synchronized(gameState.lock()) {
 			val currentState = gameState.currentState
@@ -110,7 +111,7 @@ class MardekWindow(
 
 		Thread {
 			try {
-				content.complete(Content.load("mardek/game/content.bits", BITSER))
+				content.complete(Content.load())
 				println("Loaded content after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 				renderManager.content = content.get()
 			} catch (failed: Throwable) {
@@ -124,9 +125,7 @@ class MardekWindow(
 
 		Thread {
 			try {
-				renderManager.loadMainResources(
-					MardekWindow::class.java.getResourceAsStream("content.vk2d")!!
-				)
+				renderManager.loadMainResources(File("${Content.RESOURCES_DIRECTORY}/content.vk2d").toPath())
 				println("Loaded main resources after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 			} catch (failed: Throwable) {
 				synchronized(gameState.lock()) {

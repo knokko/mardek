@@ -23,7 +23,7 @@ public class TestKim3Pipeline {
 				new File("../image-benchmark-resources.bin"),
 				70, 50, tester -> {
 			Vk2dKim3Batch batch = staticPipelines.kim3.addBatch(tester.stage(), 2, tester.bundle(), tester.perFrameDescriptorSet());
-			batch.simple(3, 20, 60, 45, 1);
+			batch.simple(3, 20, 60, 45, 5);
 		});
 	}
 
@@ -34,7 +34,7 @@ public class TestKim3Pipeline {
 				new File("../image-benchmark-resources.bin"),
 				70, 50, tester -> {
 			Vk2dKim3Batch batch = staticPipelines.kim3.addBatch(tester.stage(), 2, tester.bundle(), tester.perFrameDescriptorSet());
-			batch.simple(5, 3, 2.5f, 1);
+			batch.simple(5, 3, 2.5f, 5);
 		});
 	}
 

@@ -13,7 +13,7 @@ import mardek.state.util.Rectangle
 internal fun renderCampaignActions(
 	context: RenderContext, actions: CampaignActionsState, region: Rectangle
 ): Pair<Vk2dColorBatch?, Vk2dGlyphBatch?> {
-	val colorBatch: Vk2dColorBatch? = null
+	var colorBatch: Vk2dColorBatch? = null
 	var textBatch: MardekGlyphBatch? = null
 
 	val renderTime = System.nanoTime()
@@ -24,6 +24,7 @@ internal fun renderCampaignActions(
 		val action = node.action
 		if (action is ActionShowChapterName) {
 			if (relativeTime < ActionShowChapterName.TOTAL_DURATION) {
+				colorBatch = context.addColorBatch(36)
 				textBatch = context.addFancyTextBatch(100)
 				renderChapterNameAndNumber(context, textBatch, action, relativeTime, region)
 			} else {
@@ -33,6 +34,7 @@ internal fun renderCampaignActions(
 
 		if (action is ActionPlayCutscene) {
 			renderCutscene(context, actions, action, renderTime, region) { capacity ->
+				colorBatch = context.addColorBatch(36)
 				textBatch = context.addFancyTextBatch(capacity)
 				textBatch
 			}

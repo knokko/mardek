@@ -103,10 +103,7 @@ class SavesFolderManager(
 			chapter = campaignState.story.evaluate(content.story.fixedVariables.chapter) ?: -1,
 		)
 
-		val infoBytes = BITSER.toBytes(
-			saveInfo, Bitser.BACKWARD_COMPATIBLE
-		)
-
+		val infoBytes = BITSER.toBytes(saveInfo, Bitser.BACKWARD_COMPATIBLE)
 		if (infoBytes.size >= 256) throw Error("What?! info size is ${infoBytes.size}")
 
 		try {

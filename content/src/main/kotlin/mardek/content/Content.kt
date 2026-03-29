@@ -1,7 +1,6 @@
 package mardek.content
 
 import com.github.knokko.bitser.BitStruct
-import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceFieldTarget
@@ -20,6 +19,8 @@ import mardek.content.ui.Fonts
 import mardek.content.ui.UiSprites
 import mardek.content.world.WorldMap
 import java.io.BufferedInputStream
+import java.io.File
+import java.nio.file.Files
 
 @BitStruct(backwardCompatible = true)
 class Content {
@@ -75,15 +76,24 @@ class Content {
 	val checkpoints = HashMap<String, ByteArray>()
 
 	companion object {
-		fun load(resourcePath: String, bitser: Bitser): Content {
-			val rawInput = Content::class.java.classLoader.getResourceAsStream(resourcePath)!!
-			val input = BitInputStream(BufferedInputStream(rawInput))
-			val assets = bitser.deserialize(
-				Content::class.java, input, Bitser.BACKWARD_COMPATIBLE
-			)
-			input.close()
 
-			return assets
+		val RESOURCES_DIRECTORY = run {
+			val workingDirectory = File("./")
+			var resourcesDirectory = File("$workingDirectory/resources")
+			if (resourcesDirectory.exists()) {
+				resourcesDirectory
+			} else {
+				val parentDirectory = workingDirectory.absoluteFile.parentFile.parentFile!!
+				File("$parentDirectory/resources")
+			}
+		}
+
+		fun load(): Content {
+			val contentPath = File("$RESOURCES_DIRECTORY/content.bits").toPath()
+			val input = BitInputStream(BufferedInputStream(Files.newInputStream(contentPath)))
+			val content = BITSER.deserialize(Content::class.java, input)
+			input.close()
+			return content
 		}
 	}
 }

@@ -22,7 +22,7 @@ import mardek.state.ingame.InGameState
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.VK_NULL_HANDLE
 import org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool
-import java.io.InputStream
+import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 
 class RenderManager(
@@ -44,14 +44,14 @@ class RenderManager(
 	private var shouldCancelLoading = false
 	private var isLoading: CompletableFuture<Unit>? = null
 
-	fun loadMainResources(contentInput: InputStream) {
+	fun loadMainResources(file: Path) {
 		synchronized(this) {
 			if (shouldCancelLoading) return
 			isLoading = CompletableFuture()
 		}
 
 		try {
-			val loader = Vk2dResourceLoader(vk2d, contentInput)
+			val loader = Vk2dResourceLoader(vk2d, file)
 			val combiner = MemoryCombiner(boiler, "MainContent")
 			loader.claimMemory(combiner)
 			this.mainResourceMemory = combiner.build(false)

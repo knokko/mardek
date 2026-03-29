@@ -1,11 +1,13 @@
 package mardek.state.ingame.area.discovery
 
 import com.github.knokko.bitser.Bitser
+import com.github.knokko.bitser.ReferenceLazyBits
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.area.Area
 import mardek.content.area.AreaFlags
 import mardek.content.area.AreaProperties
+import mardek.content.area.TileGrid
 import mardek.content.area.Tilesheet
 import mardek.content.area.objects.AreaObjects
 import mardek.state.ingame.area.AreaDiscovery
@@ -23,7 +25,7 @@ class TestAreaDiscoveryMap {
 		minTileX = minTileX,
 		minTileY = minTileY,
 		tilesheet = Tilesheet(),
-		tileGrid = emptyArray(),
+		tileGrid = ReferenceLazyBits(TileGrid(emptyArray())),
 		objects = AreaObjects(),
 		chests = ArrayList(),
 		randomBattles = null,

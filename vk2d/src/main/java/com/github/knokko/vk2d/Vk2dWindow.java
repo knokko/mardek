@@ -24,6 +24,7 @@ import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -82,6 +83,10 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		return null;
 	}
 
+	protected Path initialResourceFile() {
+		return null;
+	}
+
 	protected abstract void setupConfig(Vk2dConfig config);
 
 	protected boolean shouldPrintBatchSizes() {
@@ -102,8 +107,10 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
 		try {
 			InputStream resourceInput = initialResourceBundle();
+			Path resourceFile = initialResourceFile();
 			Vk2dResourceLoader loader = null;
-			if (resourceInput != null) loader = new Vk2dResourceLoader(instance, resourceInput);
+			if (resourceFile != null) loader = new Vk2dResourceLoader(instance, resourceFile);
+			if (resourceInput != null && resourceFile == null) loader = new Vk2dResourceLoader(instance, resourceInput);
 
 			MemoryCombiner combiner = new MemoryCombiner(boiler, "Vk2dPersistent");
 			DescriptorCombiner descriptors = new DescriptorCombiner(boiler);

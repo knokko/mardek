@@ -13,7 +13,6 @@ import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader
-import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.area.Area
 import mardek.content.characters.PlayableCharacter
@@ -48,7 +47,7 @@ import java.util.Collections
 
 class TestingInstance {
 
-	val content = Content.load("mardek/game/content.bits", BITSER)
+	val content = Content.load()
 
 	val boiler: BoilerInstance
 	val pipelineContext: Vk2dPipelineContext
@@ -98,7 +97,7 @@ class TestingInstance {
 		val titleScreenAllocator = MemoryCombiner(boiler, "TitleScreenMemory")
 		val titleScreenDescriptors = DescriptorCombiner(boiler)
 		val titleScreenLoader = Vk2dResourceLoader(
-			vk2d, MardekWindow::class.java.getResourceAsStream("title-screen.vk2d")!!
+			vk2d, File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d").toPath()
 		)
 		titleScreenLoader.claimMemory(titleScreenAllocator)
 		titleScreenMemory = titleScreenAllocator.build(false)
@@ -114,9 +113,7 @@ class TestingInstance {
 			boiler, VideoSettings(0, capFps = false, showFps = false, framesInFlight = 1, delayRendering = true),
 			titleScreenResources, pipelineContext, basePipelines,
 		)
-		renderManager.loadMainResources(
-			TestingInstance::class.java.getResourceAsStream("content.vk2d")!!
-		)
+		renderManager.loadMainResources(File("${Content.RESOURCES_DIRECTORY}/content.vk2d").toPath())
 		renderManager.content = content
 
 		dragonLairEntry = content.areas.areas.find { it.properties.rawName == "DL_entr" }!!

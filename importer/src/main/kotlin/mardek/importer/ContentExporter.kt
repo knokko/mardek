@@ -1,6 +1,5 @@
 package mardek.importer
 
-import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.options.WithParameter
 import com.github.knokko.boiler.utilities.ImageCoding
 import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
@@ -31,13 +30,12 @@ fun main() {
 	try {
 		val content = importVanillaContent()
 
-		val outputFolder = File("$projectFolder/game/src/main/resources/mardek/game/")
-		saveIcons(outputFolder)
+		saveIcons()
 
 		saveTitleScreenBundle(content)
 
 		println("exporting campaign...")
-		saveMainContent(content, outputFolder)
+		saveMainContent(content)
 		println("exported campaign")
 
 		succeeded = true
@@ -49,8 +47,8 @@ fun main() {
 	}
 }
 
-private fun saveIcons(outputFolder: File) {
-	val iconOutput = Files.newOutputStream(File("$outputFolder/icons.bin").toPath())
+private fun saveIcons() {
+	val iconOutput = Files.newOutputStream(File("${Content.RESOURCES_DIRECTORY}/icons.bin").toPath())
 	val imageData = ByteBuffer.allocate(4 * 16 * 16)
 
 	val itemSheet = ImageIO.read(classLoader.getResource(
@@ -106,7 +104,7 @@ private fun addFont(resourceWriter: Vk2dResourceWriter, font: Font) {
 	font.index = resourceWriter.addFont(ByteArrayInputStream(font.data))
 }
 
-private fun saveMainContent(content: Content, outputFolder: File) {
+private fun saveMainContent(content: Content) {
 	val resourceWriter = Vk2dResourceWriter()
 
 	val allKimSprites = ArrayList<KimSprite>()
@@ -120,16 +118,13 @@ private fun saveMainContent(content: Content, outputFolder: File) {
 	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
 	for (font in content.fonts.all()) addFont(resourceWriter, font)
 
-	val output = Files.newOutputStream(File("$outputFolder/content.vk2d").toPath())
+	val output = Files.newOutputStream(File("${Content.RESOURCES_DIRECTORY}/content.vk2d").toPath())
 	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))
 	output.close()
 
 	Files.write(
-		File("$outputFolder/content.bits").toPath(),
-		BITSER.toBytes(
-			content, Bitser.BACKWARD_COMPATIBLE,
-			WithParameter("exporting", null)
-		)
+		File("${Content.RESOURCES_DIRECTORY}/content.bits").toPath(),
+		BITSER.toBytes(content, WithParameter("exporting", null)),
 	)
 }
 
@@ -147,17 +142,14 @@ private fun saveTitleScreenBundle(content: Content) {
 	addFont(resourceWriter, titleScreenContent.fatFont)
 	addFont(resourceWriter, titleScreenContent.largeFont)
 
-	val output = Files.newOutputStream(File(
-		"$projectFolder/game/src/main/resources/mardek/game/title-screen.vk2d"
-	).toPath())
+	val output = Files.newOutputStream(File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d").toPath())
 	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))
 	output.close()
 
 	Files.write(
-		File("$projectFolder/game/src/main/resources/mardek/game/title-screen.bits").toPath(),
+		File("${Content.RESOURCES_DIRECTORY}/title-screen.bits").toPath(),
 		BITSER.toBytes(
-			titleScreenContent, Bitser.BACKWARD_COMPATIBLE,
-			WithParameter("exporting", null),
+			titleScreenContent, WithParameter("exporting", null),
 		)
 	)
 }

@@ -1,8 +1,10 @@
 package mardek.content.area
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.LazyReferences
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
@@ -56,12 +58,12 @@ class Area(
 
 	/**
 	 * The tile grid of the area:
-	 * - The length of this array must be `width * height`
+	 * - The length of its array must be `width * height`
 	 * - The tile at (x, y) is stored at index `x + y * width`. Please use the `getTile(x, y)` method to do this.
 	 */
 	@BitField(id = 5)
-	@ReferenceField(stable = false, label = "tiles")
-	private val tileGrid: Array<Tile>, // TODO CHAP1 Make this lazy
+	@LazyReferences(labels = ["tiles"])
+	private val tileGrid: ReferenceLazyBits<TileGrid>,
 
 	/**
 	 * The *objects* in this area: non-player characters, doors, portals, etc...
@@ -113,7 +115,7 @@ class Area(
 	val actions = ArrayList<ActionSequence>()
 
 	constructor() : this(
-		0, 0, 0, 0, Tilesheet(), emptyArray(),
+		0, 0, 0, 0, Tilesheet(), ReferenceLazyBits(TileGrid()),
 		AreaObjects(), ArrayList(), null,
 		AreaFlags(), AreaProperties(), UUID.randomUUID(),
 	)
@@ -161,6 +163,6 @@ class Area(
 	fun getTile(x: Int, y: Int): Tile {
 		val clampedX = x.coerceIn(minTileX, maxTileX)
 		val clampedY = y.coerceIn(minTileY, maxTileY)
-		return tileGrid[(clampedX - minTileX) + (clampedY - minTileY) * width]
+		return tileGrid.get().array[(clampedX - minTileX) + (clampedY - minTileY) * width]
 	}
 }

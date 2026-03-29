@@ -1,5 +1,6 @@
 package mardek.renderer.actions
 
+import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
@@ -62,7 +63,7 @@ internal fun renderCutscene(
 			combat = null,
 			portrait = null,
 		)
-		renderCutsceneAnimation(allFrames, animationContext)
+		renderCutsceneAnimation(ReferenceLazyBits(allFrames), animationContext)
 
 		if (actions.cutsceneSubtitle.second.isNotEmpty()) {
 			val font = context.bundle.getFont(context.content.fonts.large2.index)

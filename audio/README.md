@@ -22,15 +22,20 @@ global game state lock. After releasing the lock, it will play the
 actual audio.
 
 ## Resources
-Currently, the `resources` directory of this module contains several
-sound effects, and contains all the music of the game. I ripped them from
-the original game, and converted them to `.ogg` files, which are
-convenient to use from OpenAL.
+Currently, the `resources/music` directory of this repository contains
+several sound effects, and contains all the music of the game. I ripped
+them from the original game, and converted them to `.ogg` files,
+which are convenient to use from OpenAL.
 
 ### Sound effects
-I would like to stop putting the sound effects in the `audio` module:
-I would like to put them in the `importer` instead, and make them part
-of the exported content, since this will become more flexible.
+Ideally, the `resources/music` should contain only music; not sound
+effects. Whenever I need a sound effect from here, I move it to the
+`importer`, and make it part of the exported content, which is more
+flexible for later.
+
+So, whenever there is a sound effect in `resources/music`,
+I haven't used it yet, and serves as a reminder to eventually use it
+later.
 
 ### Music
 At some point, I would also like to move the music to the importer, but

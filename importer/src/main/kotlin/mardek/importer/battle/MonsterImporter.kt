@@ -148,7 +148,7 @@ private fun fumeRatParticleEmitter(particleSprite: ParticleSprite) = ParticleEmi
 	),
 	dynamics = ParticleDynamics(),
 	size = ParticleSize(
-		baseWidth = 5f, baseHeight = 4f,
+		baseWidth = 5f * MAGIC_PARTY_POSITION_SCALE, baseHeight = 4f * MAGIC_PARTY_POSITION_SCALE,
 		shiftWidth = 0f, shiftHeight = 0f,
 		minSizeMultiplier = 1f, maxSizeMultiplier = 1f,
 		growX = 3f, growY = 3.5f,
@@ -180,7 +180,7 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 	var rootMatrix: AnimationMatrix? = null
 	for ((combatantName, rawCombatantAnimations) in importedMonsters.skins) {
 		val monsterScripts = context.scriptMapping[parseInt(battleTag.uniqueId)]!![combatantName] ?: emptyList()
-		val combatantNodes = rawCombatantAnimations.frames[0].nodes
+		val combatantNodes = rawCombatantAnimations.get().frames[0].nodes
 
 		val animationMap = HashMap<String, SimpleLazyBits<StandaloneAnimation>>()
 		val flatNodes = mutableListOf<AnimationNode>()
@@ -197,13 +197,13 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 
 				for ((animationName, animationFrames) in animation.skins) {
 					val (innerSprites, innerAnimations) = findDependencies(
-						animationFrames.frames.flatMap { it.nodes.toList() }
+						animationFrames.get().frames.flatMap { it.nodes.toList() }
 					)
 					val (particleSprites, particleEmitters) = if (animation.defineSpriteFlashID == 3284) {
 						Pair(arrayOf(fumeratSmokeSprite), arrayOf(fumeratSmokeEmitter))
 					} else Pair(emptyArray(), emptyArray())
 					animationMap[animationName] = SimpleLazyBits(StandaloneAnimation(
-						animationFrames, innerSprites, innerAnimations,
+						animationFrames.get(), innerSprites, innerAnimations,
 						particleSprites, particleEmitters
 					))
 				}

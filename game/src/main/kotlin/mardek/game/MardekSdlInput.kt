@@ -2,6 +2,7 @@ package mardek.game
 
 import com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess
 import com.github.knokko.boiler.window.VkbWindow
+import mardek.content.Content
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -38,14 +39,16 @@ import org.lwjgl.sdl.SDL_TextInputEvent
 import org.lwjgl.sdl.SDL_WindowEvent
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.memCalloc
+import java.io.File
 import java.nio.ByteBuffer
+import java.nio.file.Files
 import kotlin.math.abs
 
 private const val WINDOW_ICON_SCALE = 4
 private const val CURSOR_SCALE = 2
 
 private val rawIcons = run {
-	val inputBytes = MardekSdlInput::class.java.getResource("icons.bin")!!.readBytes()
+	val inputBytes = Files.readAllBytes(File("${Content.RESOURCES_DIRECTORY}/icons.bin").toPath())
 
 	fun createScaled(startIndex: Int, scale: Int): ByteBuffer {
 		val destination = memCalloc(4 * 16 * 16 * scale * scale)

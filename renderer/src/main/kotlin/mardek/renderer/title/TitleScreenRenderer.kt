@@ -1,7 +1,6 @@
 package mardek.renderer.title
 
 import com.github.knokko.bitser.io.BitInputStream
-import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
@@ -12,6 +11,7 @@ import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.text.TextAlignment
 import com.github.knokko.vk2d.text.Vk2dFont
 import mardek.content.BITSER
+import mardek.content.Content
 import mardek.content.ui.TitleScreenContent
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
@@ -21,15 +21,16 @@ import mardek.renderer.save.renderSaveSelectionModal
 import mardek.renderer.util.renderButton
 import mardek.state.title.TitleScreenState
 import mardek.state.util.Rectangle
+import java.io.File
+import java.nio.file.Files
 import kotlin.math.roundToInt
 
 private fun loadInfo(): TitleScreenContent {
-	val input = RenderContext::class.java.classLoader.getResourceAsStream("mardek/game/title-screen.bits")!!
-	return BITSER.deserialize(
-		TitleScreenContent::class.java,
-		BitInputStream(input),
-		Bitser.BACKWARD_COMPATIBLE,
-	)
+	val inputPath = File("${Content.RESOURCES_DIRECTORY}/title-screen.bits").toPath()
+	val input = BitInputStream(Files.newInputStream(inputPath))
+	val titleScreenContent = BITSER.deserialize(TitleScreenContent::class.java, input)
+	input.close()
+	return titleScreenContent
 }
 
 internal val titleScreenInfo = loadInfo()

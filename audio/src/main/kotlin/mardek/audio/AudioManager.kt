@@ -1,5 +1,6 @@
 package mardek.audio
 
+import mardek.content.Content
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.AL10.*
 import org.lwjgl.openal.AL11.AL_SEC_OFFSET
@@ -11,31 +12,29 @@ import org.lwjgl.stb.STBVorbisInfo
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.*
-import java.lang.RuntimeException
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 
-private fun getResource(path: String): ByteBuffer {
-	val input = AudioManager::class.java.getResourceAsStream(path) ?: throw RuntimeException("Can't find resource $path")
-	val byteArray = input.readAllBytes()
-	input.close()
-
-	val buffer = memCalloc(byteArray.size)
-	buffer.put(0, byteArray)
-	return buffer
-}
-
-private fun readVorbis(path: String?, byteArray: ByteArray?, alBuffer: Int, stack: MemoryStack) {
-	val byteBuffer = if (byteArray != null) {
+private fun readVorbis(fileName: String?, byteArray: ByteArray?, alBuffer: Int, stack: MemoryStack) {
+	val error = stack.callocInt(1)
+	val decoder = if (byteArray != null) {
 		val buffer = memCalloc(byteArray.size)
 		buffer.put(0, byteArray)
-		buffer
-	} else getResource(path!!)
-	val error = stack.callocInt(1)
+		val decoder = stb_vorbis_open_memory(buffer, error, null)
+		if (error[0] != VORBIS__no_error) {
+			throw AudioException("stb_vorbis_open_memory($fileName) caused error ${error[0]}")
+		}
+		decoder
+	} else {
+		val filePath = "${Content.RESOURCES_DIRECTORY}/music/$fileName"
+		val decoder = stb_vorbis_open_filename(filePath, error, null)
+		if (error[0] != VORBIS__no_error) {
+			throw AudioException("stb_vorbis_open_filename($filePath) caused error ${error[0]}")
+		}
+		decoder
+	}
 
-	val decoder = stb_vorbis_open_memory(byteBuffer, error, null)
-	if (error[0] != VORBIS__no_error) throw AudioException("stb_vorbis_open_memory($path) caused error ${error[0]}")
-	if (decoder == 0L) throw Error("stb_vorbis_open_memory failed")
+	if (decoder == 0L) throw Error("stb_vorbis_open_xxx failed for $fileName")
 
 	val info = STBVorbisInfo.calloc(stack)
 	stb_vorbis_get_info(decoder, info)
@@ -44,8 +43,9 @@ private fun readVorbis(path: String?, byteArray: ByteArray?, alBuffer: Int, stac
 	stb_vorbis_get_samples_short_interleaved(decoder, info.channels(), decodedAudio)
 	stb_vorbis_close(decoder)
 
-	alBufferData(alBuffer, if (info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16, decodedAudio, info.sample_rate())
-	assertAlSuccess("alBufferData($path)")
+	val alFormat = if (info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
+	alBufferData(alBuffer, alFormat, decodedAudio, info.sample_rate())
+	assertAlSuccess("alBufferData($fileName)")
 	memFree(decodedAudio)
 }
 
@@ -80,13 +80,13 @@ internal class AudioManager {
 		}
 	}
 
-	fun add(path: String?, bytes: ByteArray?) = stackPush().use { stack ->
+	fun add(fileName: String?, bytes: ByteArray?) = stackPush().use { stack ->
 		val pBuffer = stack.callocInt(1)
 		alGenBuffers(pBuffer)
 		assertAlSuccess("alGenBuffers")
 
 		val buffer = pBuffer.get(0)
-		readVorbis(path, bytes, buffer, stack)
+		readVorbis(fileName, bytes, buffer, stack)
 		buffers.add(buffer)
 		buffer
 	}

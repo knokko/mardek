@@ -1,5 +1,6 @@
 package mardek.importer.area
 
+import com.github.knokko.bitser.ReferenceLazyBits
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.area.*
@@ -102,7 +103,7 @@ internal fun importAreaContent(content: Content): HardcodedActions {
 			minTileX = parsedArea.minTileX,
 			minTileY = parsedArea.minTileY,
 			tilesheet = tilesheet,
-			tileGrid = tileGrid,
+			tileGrid = ReferenceLazyBits(TileGrid(tileGrid)),
 			objects = parsedArea.objects,
 			chests = ArrayList(parsedArea.chests),
 			randomBattles = parsedArea.randomBattles,

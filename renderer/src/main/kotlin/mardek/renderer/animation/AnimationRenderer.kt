@@ -1,5 +1,6 @@
 package mardek.renderer.animation
 
+import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.boiler.utilities.ColorPacker.addColors
 import com.github.knokko.boiler.utilities.ColorPacker.multiplyColors
 import mardek.content.animation.AnimationFrames
@@ -27,14 +28,14 @@ private fun noMaskSprite(context: AnimationContext) = AnimationSprite(
 
 internal fun renderPortraitAnimation(animation: SkinnedAnimation, context: AnimationContext) {
 	val frames = animation.skins[context.portrait!!.rootSkin]!!
-	for (frame in frames) renderAnimationFrame(frame, context)
+	for (frame in frames.get()) renderAnimationFrame(frame, context)
 }
 
 internal fun renderBattleBackgroundAnimation(nodes: Array<AnimationNode>, context: AnimationContext) {
 	for (node in nodes) renderAnimationNode(node, context)
 }
 
-internal fun renderCutsceneAnimation(frames: AnimationFrames, context: AnimationContext) {
+internal fun renderCutsceneAnimation(frames: ReferenceLazyBits<AnimationFrames>, context: AnimationContext) {
 	renderAnimationNode(AnimationNode(
 		depth = 1,
 		animation = SkinnedAnimation(-12345, hashMapOf(Pair("", frames))),
@@ -252,57 +253,57 @@ private fun chooseSkin(
 
 	if (special == SpecialAnimationNode.Weapon) {
 		val weaponName = context.combat?.weaponName ?: return null
-		return skinned.skins[weaponName.lowercase(Locale.ROOT)]
+		return skinned.skins[weaponName.lowercase(Locale.ROOT)]?.get()
 	}
 
 	if (special == SpecialAnimationNode.Shield) {
 		val shieldName = context.combat?.shieldName ?: return null
-		return skinned.skins[shieldName.lowercase(Locale.ROOT)]
+		return skinned.skins[shieldName.lowercase(Locale.ROOT)]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitExpressions) {
-		return skinned.skins[context.portraitExpression!!.lowercase(Locale.ROOT)]
+		return skinned.skins[context.portraitExpression!!.lowercase(Locale.ROOT)]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitFace) {
-		return skinned.skins[context.portrait!!.faceSkin]
+		return skinned.skins[context.portrait!!.faceSkin]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitHair) {
-		return skinned.skins[context.portrait!!.hairSkin]
+		return skinned.skins[context.portrait!!.hairSkin]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitEye) {
-		return skinned.skins[context.portrait!!.eyeSkin]
+		return skinned.skins[context.portrait!!.eyeSkin]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitEyeBrow) {
-		return skinned.skins[context.portrait!!.eyeBrowSkin]
+		return skinned.skins[context.portrait!!.eyeBrowSkin]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitMouth) {
-		return skinned.skins[context.portrait!!.mouthSkin]
+		return skinned.skins[context.portrait!!.mouthSkin]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitEthnicity) {
-		return skinned.skins[context.portrait!!.ethnicitySkin]
+		return skinned.skins[context.portrait!!.ethnicitySkin]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitArmor) {
-		return skinned.skins[context.portrait!!.armorSkin]
+		return skinned.skins[context.portrait!!.armorSkin]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitRobe) {
-		return skinned.skins[context.portrait!!.robeSkin]
+		return skinned.skins[context.portrait!!.robeSkin]?.get()
 	}
 
-	var animation = skinned.skins[""]
+	var animation = skinned.skins[""]?.get()
 	val expectedSkin = node.selectSkin ?: context.stack.last().skin
-	if (expectedSkin != null) animation = skinned.skins[expectedSkin]
+	if (expectedSkin != null) animation = skinned.skins[expectedSkin]?.get()
 
-	if (animation == null) animation = skinned.skins["d"]
-	if (animation == null) animation = skinned.skins[""]
-	if (animation == null) animation = skinned.skins.values.first()
+	if (animation == null) animation = skinned.skins["d"]?.get()
+	if (animation == null) animation = skinned.skins[""]?.get()
+	if (animation == null) animation = skinned.skins.values.first().get()
 	return animation
 }
 
