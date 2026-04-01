@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
+import mardek.content.action.ActionTimelineTransition
 import mardek.content.world.WorldMap
 import mardek.content.world.WorldMapNode
 
@@ -87,6 +88,16 @@ class WorldMapTransitionDestination(
 	 * The name of the area containing this transition, which is only used during importing
 	 */
 	private val myAreaName: String,
+
+	/**
+	 * When this field is non-null, a *timeline transition* will happen once the player reaches this destination.
+	 *
+	 * This is used by e.g. the western exit of Soothwood, which performs a timeline transition to a timeline node
+	 * where the Crash Site is discovered. Note however, that for the vast majority of area transitions, this field is
+	 * `null`.
+	 */
+	@BitField(id = 2, optional = true)
+	val timelineTransition: ActionTimelineTransition?,
 ) : TransitionDestination() {
 
 	/**
@@ -106,7 +117,7 @@ class WorldMapTransitionDestination(
 		private set
 
 	@Suppress("unused")
-	private constructor() : this("")
+	private constructor() : this("", null)
 
 	override fun toString() = "(${worldMap.name})"
 

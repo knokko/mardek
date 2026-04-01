@@ -29,6 +29,11 @@ internal fun hardcodeChapter1Expressions(
 	hardcoded[""]!!.add(HardcodedExpression(
 		name = "Chapter1Day", expression = DefinedVariableStateCondition(fallenStarQuest.isActive))
 	)
+
+	@Suppress("UNCHECKED_CAST")
+	hardcoded[""]!!.add(HardcodedExpression(name = "SpawnPoshGoblin", expression = DefinedVariableStateCondition(
+		content.story.customVariables.find { it.name == "SpawnPoshGoblin" }!!
+	)))
 	hardcoded[""]!!.add(HardcodedExpression( // TODO CHAP2 Implement this
 		name = "Chapter2", expression = ConstantStateExpression(ExpressionBooleanValue(false)))
 	)

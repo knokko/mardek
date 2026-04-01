@@ -316,6 +316,8 @@ class TestAreaEntityParser {
 			sharedActionSequence = null,
 			encyclopediaPerson = null,
 			condition = null,
+			renderOffsetX = 0,
+			renderOffsetY = 0,
 		)
 		val actual = findArea("DL_area4").objects.characters.find { it.startX == 6 && it.startY == 7 }!!
 		assertEquals(expected, actual)
@@ -339,6 +341,8 @@ class TestAreaEntityParser {
 			sharedActionSequence = null,
 			encyclopediaPerson = null,
 			condition = null,
+			renderOffsetX = 0,
+			renderOffsetY = 0,
 		)
 		assertEquals(expected, actual)
 	}
@@ -361,6 +365,8 @@ class TestAreaEntityParser {
 			sharedActionSequence = null,
 			encyclopediaPerson = "Priestess Gail",
 			condition = null,
+			renderOffsetX = 0,
+			renderOffsetY = 0,
 		)
 		assertEquals(expected, actual)
 	}
@@ -435,6 +441,8 @@ class TestAreaEntityParser {
 			sharedActionSequence = null, // TODO CHAP2 Implement this
 			encyclopediaPerson = null,
 			condition = null,
+			renderOffsetX = 0,
+			renderOffsetY = 0,
 		)
 		assertEquals(expected, actual)
 	}
@@ -631,7 +639,7 @@ class TestAreaEntityParser {
 	fun testParseCanoniaWoodsTransition() {
 		val actual = findArea("canonia_woods").objects.transitions.find { it.y == 73 }!!
 		val expected = AreaTransition(x = 13, y = 73, arrow = null, destination = WorldMapTransitionDestination(
-			"canonia_woods"
+			"canonia_woods", null
 		))
 		(expected.destination as WorldMapTransitionDestination).resolve(content.areas, content.worldMaps[0])
 		assertEquals(expected, actual)

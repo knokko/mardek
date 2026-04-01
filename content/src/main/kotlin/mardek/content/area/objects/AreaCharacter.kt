@@ -147,6 +147,20 @@ class AreaCharacter(
 	@BitField(id = 13, optional = true)
 	@ClassField(root = StateExpression::class)
 	val condition: StateExpression<Boolean>?,
+
+	/**
+	 * When this character is rendered, its sprite should be shifted `renderOffsetX * scale` pixels to the right
+	 */
+	@BitField(id = 15)
+	@IntegerField(expectUniform = false, commonValues = [0])
+	val renderOffsetX: Int,
+
+	/**
+	 * When this character is rendered, its sprite should be shifted `renderOffsetY * scale` pixels down
+	 */
+	@BitField(id = 16)
+	@IntegerField(expectUniform = false, commonValues = [0])
+	val renderOffsetY: Int,
 ) {
 
 	constructor() : this(
@@ -154,6 +168,7 @@ class AreaCharacter(
 		0, 0, Direction.Down, WalkBehavior(), null,
 		null, null, null,
 		null, ConstantStateExpression(ExpressionBooleanValue(true)),
+		0, 0,
 	)
 
 	init {

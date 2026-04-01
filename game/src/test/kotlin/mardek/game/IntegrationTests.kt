@@ -6,6 +6,7 @@ import mardek.game.action.TestInventorLabActions
 import mardek.game.action.TestLocks
 import mardek.game.action.TestMardekHouseActions
 import mardek.game.action.TestShops
+import mardek.game.action.TestSoothwoodActions
 import mardek.game.area.TestDreamCircles
 import mardek.game.area.TestChestLoot
 import mardek.game.area.TestDoors
@@ -392,6 +393,16 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testGoznorToSoothwoodViaWorldMap() {
+		TestWorldMap.testGoznorToSoothwood(instance)
+	}
+
+	@Test
+	fun testCrashSiteToSoothwoodViaWorldMap() {
+		TestWorldMap.testCrashSiteToSoothwood(instance)
+	}
+
+	@Test
 	fun testSimpleLocks() {
 		TestLocks.testFakeDragonLairEntryLock(instance)
 		TestLocks.testMonasteryIsNotLockedAtNight(instance)
@@ -498,5 +509,11 @@ class IntegrationTests {
 		TestMonsterStats.testMonster(instance)
 		TestMonsterStats.testFumeratLevel1(instance)
 		TestMonsterStats.testFunGoblinLevel1(instance)
+	}
+
+	@Test
+	fun testPoshGoblin() {
+		TestSoothwoodActions.testNoPoshGoblinAtNight(instance)
+		TestSoothwoodActions.testPoshGoblin(instance)
 	}
 }

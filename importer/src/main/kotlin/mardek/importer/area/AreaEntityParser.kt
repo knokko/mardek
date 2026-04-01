@@ -6,6 +6,7 @@ import mardek.content.action.ActionSequence
 import mardek.content.action.ActionShop
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDefaultDialogueObject
+import mardek.content.action.ActionTimelineTransition
 import mardek.content.action.FixedAction
 import mardek.content.action.FixedActionNode
 import mardek.content.area.AreaTransitionDestination
@@ -173,6 +174,10 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 	val model = parseFlashString(rawEntity["model"]!!, "model")!!
 	val x = parseInt(rawEntity["x"])
 	val y = parseInt(rawEntity["y"])
+	val rawOffsetX = rawEntity["offsetX"]
+	val rawOffsetY = rawEntity["offsetY"]
+	val renderOffsetX = if (rawOffsetX == null) 0 else parseInt(rawOffsetX)
+	val renderOffsetY = if (rawOffsetY == null) 0 else parseInt(rawOffsetY)
 
 	val name = parseFlashString(rawEntity["name"]!!, "name")!!
 	if (name == "Dream Circle") return "Examine Dream Circle"
@@ -497,6 +502,8 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			sharedActionSequence = actionSequence,
 			encyclopediaPerson = null,
 			condition = timelineCondition,
+			renderOffsetX = renderOffsetX,
+			renderOffsetY = renderOffsetY,
 		)
 	}
 
@@ -530,6 +537,8 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		sharedActionSequence = actionSequence,
 		encyclopediaPerson = encyclopediaPerson,
 		condition = timelineCondition,
+		renderOffsetX = renderOffsetX,
+		renderOffsetY = renderOffsetY,
 	)
 }
 
@@ -544,8 +553,15 @@ private fun parseDestination(rawDestination: String, dir: String?, currentAreaNa
 	)
 	var areaName = parseFlashString(splitDestination[0], "transition destination")!!
 	if (areaName == "nowhere") areaName = "goznor"
-	val destination = if (areaName == "WORLDMAP") WorldMapTransitionDestination(currentAreaName)
-	else AreaTransitionDestination(
+	val destination = if (areaName == "WORLDMAP") {
+		val timelineTransition = if (splitDestination[1].startsWith('"')) {
+			ActionTimelineTransition(
+				parseFlashString(splitDestination[1], "timeline name")!!,
+				parseFlashString(splitDestination[2], "timeline node name")!!,
+			)
+		} else null
+		WorldMapTransitionDestination(currentAreaName, timelineTransition)
+	} else AreaTransitionDestination(
 		areaName = areaName,
 		x = parseInt(splitDestination[1]),
 		y = try { parseInt(splitDestination[2]) } catch (_: NumberFormatException) {

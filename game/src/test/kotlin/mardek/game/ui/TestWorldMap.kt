@@ -14,6 +14,7 @@ import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveFile
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNotNull
@@ -231,7 +232,135 @@ object TestWorldMap {
 		}
 	}
 
-	// TODO CHAP1 Test Goznor to Soothwood on world map
-	// TODO CHAP1 Test Crash site to Soothwood on world map
-	// TODO CHAP1 Test Soothwood to Soothwood on world map, from both entrances
+	fun testGoznorToSoothwood(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(simpleCampaignState(), "")
+			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			state.campaign.state = AreaState(
+				area = content.areas.areas.find { it.properties.rawName == "goznor" }!!,
+				story = state.campaign.story,
+				expressionContext = state.campaign.expressionContext(),
+				initialPlayerPosition = AreaPosition(18, 21),
+				initialPlayerDirection = Direction.Down,
+			)
+			performTimelineTransition(
+				updateContext, state.campaign,
+				"MainTimeline", "Searching for the fallen 'star'"
+			)
+
+			// Go from Goznor to the world map
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			state.update(updateContext)
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
+
+			// Await the fade-out
+			repeat(100) {
+				state.update(updateContext)
+			}
+
+			// Go to the world map node of Soothwood
+			assertInstanceOf<WorldMapState>(state.campaign.state)
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			repeat(500) {
+				state.update(updateContext)
+			}
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
+
+			// Enter the Soothwood area
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			repeat(100) {
+				state.update(updateContext)
+			}
+
+			var areaState = state.campaign.state as AreaState
+			assertEquals("Soothwood", areaState.area.properties.displayName)
+			assertEquals(AreaPosition(35, 22), areaState.getPlayerPosition(0))
+
+			// Leave the Soothwood area
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveRight))
+			state.update(updateContext)
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
+			repeat(100) {
+				state.update(updateContext)
+			}
+			assertInstanceOf<WorldMapState>(state.campaign.state)
+
+			// Go back to Soothwood, and check that we start at the east transition again
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			repeat(100) {
+				state.update(updateContext)
+			}
+
+			areaState = state.campaign.state as AreaState
+			assertEquals("Soothwood", areaState.area.properties.displayName)
+			assertEquals(AreaPosition(35, 22), areaState.getPlayerPosition(0))
+		}
+	}
+
+	fun testCrashSiteToSoothwood(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(simpleCampaignState(), "")
+			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			state.campaign.state = AreaState(
+				area = content.areas.areas.find { it.properties.rawName == "crashsite" }!!,
+				story = state.campaign.story,
+				expressionContext = state.campaign.expressionContext(),
+				initialPlayerPosition = AreaPosition(6, 21),
+				initialPlayerDirection = Direction.Down,
+			)
+			performTimelineTransition(
+				updateContext, state.campaign,
+				"MainTimeline", "Found the Crash Site"
+			)
+
+			// Go from Crash Site to the world map
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			state.update(updateContext)
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
+
+			// Await the fade-out
+			repeat(100) {
+				state.update(updateContext)
+			}
+
+			// Go to the world map node of Soothwood
+			assertInstanceOf<WorldMapState>(state.campaign.state)
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveUp))
+			repeat(500) {
+				state.update(updateContext)
+			}
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveUp))
+
+			// Enter the Soothwood area
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			repeat(100) {
+				state.update(updateContext)
+			}
+
+			var areaState = state.campaign.state as AreaState
+			assertEquals("Soothwood", areaState.area.properties.displayName)
+			assertEquals(AreaPosition(6, 4), areaState.getPlayerPosition(0))
+
+			// Leave the Soothwood area
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			state.update(updateContext)
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
+			repeat(100) {
+				state.update(updateContext)
+			}
+			assertInstanceOf<WorldMapState>(state.campaign.state)
+
+			// Go back to Soothwood, and check that we start at the west transition again
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			repeat(100) {
+				state.update(updateContext)
+			}
+
+			areaState = state.campaign.state as AreaState
+			assertEquals("Soothwood", areaState.area.properties.displayName)
+			assertEquals(AreaPosition(6, 4), areaState.getPlayerPosition(0))
+		}
+	}
 }

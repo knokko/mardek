@@ -45,8 +45,8 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			}
 
 			renderJobs.add(SpriteRenderJob(
-				x = x + offsetX,
-				y = y - 4 * scale,
+				x = x + offsetX + scale * character.renderOffsetX,
+				y = y - 4 * scale + scale * character.renderOffsetY,
 				sprite = sprite,
 				opacity = opacity,
 				blinkColor = blinkColor,

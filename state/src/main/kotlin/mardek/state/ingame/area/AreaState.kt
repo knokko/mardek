@@ -600,6 +600,13 @@ class AreaState(
 				)
 			}
 			is WorldMapTransitionDestination -> {
+				val timelineTransition = destination.timelineTransition
+				if (timelineTransition != null) {
+					context.campaign.performTimelineTransition(
+						context, timelineTransition.timeline, timelineTransition.newNode
+					)
+				}
+
 				val exitPosition = this.getPlayerPosition(0)
 				val exitPoint = AreaExitPoint(this.area, exitPosition.x, exitPosition.y)
 				context.campaign.state = WorldMapState(

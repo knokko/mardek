@@ -264,7 +264,11 @@ private fun droppedDeuganBeforeFallingStar(content: Content) = TimelineNode(
 private fun searchingFallenStar(content: Content) = TimelineNode(
 	id = UUID.fromString("388e0bde-5d6c-4b9b-b2b2-bb99bbaa2dbb"),
 	name = "Searching for the fallen 'star'",
-	children = arrayOf(),
+	children = arrayOf(
+		beforePoshGoblin(content),
+		defeatedPoshGoblin(),
+		foundCrashSite(content)
+	),
 	variables = arrayOf(
 		addWorldMapNode(content, "Soothwood"),
 		TimelineAssignment(
@@ -273,6 +277,40 @@ private fun searchingFallenStar(content: Content) = TimelineNode(
 		),
 	),
 	activatesTimelines = arrayOf(content.story.timelines.find { it.name == "LeadPipeQuestTimeline" }!!),
+	isAbstract = true,
+)
+
+@Suppress("UNCHECKED_CAST")
+private fun beforePoshGoblin(content: Content) = TimelineNode(
+	id = UUID.fromString("87d14e04-42c8-423c-9263-7bd1c5dfa5f7"),
+	name = "Before defeating PoshGoblin",
+	children = emptyArray(),
+	variables = arrayOf(
+		TimelineAssignment(
+			content.story.customVariables.find {
+				it.name == "SpawnPoshGoblin"
+			} as CustomTimelineVariable<Unit>,
+			ExpressionUnitValue(),
+		)
+	),
+	isAbstract = false,
+)
+
+private fun defeatedPoshGoblin() = TimelineNode(
+	id = UUID.fromString("4c5dc939-d23a-411f-a111-2e04a17550d9"),
+	name = "Defeated PoshGoblin",
+	children = emptyArray(),
+	variables = emptyArray(),
+	isAbstract = false,
+)
+
+private fun foundCrashSite(content: Content) = TimelineNode(
+	id = UUID.fromString("0b57f749-f83a-45d2-be7f-7c3c15bbdba1"),
+	name = "Found the Crash Site",
+	children = emptyArray(),
+	variables = arrayOf(
+		addWorldMapNode(content, "Crash Site"),
+	),
 	isAbstract = false,
 )
 
