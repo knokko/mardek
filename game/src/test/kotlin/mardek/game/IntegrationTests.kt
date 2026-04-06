@@ -2,6 +2,7 @@ package mardek.game
 
 import mardek.game.action.TestActions
 import mardek.game.action.TestChatLog
+import mardek.game.action.TestDeuganHouseActions
 import mardek.game.action.TestInventorLabActions
 import mardek.game.action.TestLocks
 import mardek.game.action.TestMardekHouseActions
@@ -16,6 +17,7 @@ import mardek.game.area.TestTalkTriggers
 import mardek.game.area.TestTimelines
 import mardek.game.area.TestWalking
 import mardek.game.battle.*
+import mardek.game.ui.TestEncyclopedia
 import mardek.game.inventory.TestCountItemOccurrences
 import mardek.game.inventory.TestValidateEquipment
 import mardek.game.portrait.TestPortraitImporting
@@ -440,6 +442,12 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testDeuganHouseActions() {
+		TestDeuganHouseActions.testAddPollyToEncyclopedia(instance)
+		TestDeuganHouseActions.testAddCrystalsToEncyclopedia(instance)
+	}
+
+	@Test
 	fun testExportingRemovesImageData() {
 		ExportingTests.testImageDataWasRemoved(instance)
 	}
@@ -515,5 +523,43 @@ class IntegrationTests {
 	fun testPoshGoblin() {
 		TestSoothwoodActions.testNoPoshGoblinAtNight(instance)
 		TestSoothwoodActions.testPoshGoblin(instance)
+	}
+
+	@Test
+	fun testEncyclopediaContent() {
+		TestEncyclopedia.testPeopleContent(instance)
+		TestEncyclopedia.testPlacesContent(instance)
+		TestEncyclopedia.testArtefactsContent(instance)
+		TestEncyclopedia.testBestiary(instance)
+	}
+
+	@Test
+	fun testSocialFoxEncyclopediaBook() {
+		TestEncyclopedia.testBookAddsSocialFoxToEncyclopedia(instance)
+	}
+
+	@Test
+	fun testEncyclopediaPeoplePage() {
+		TestEncyclopedia.testPeoplePage(instance)
+	}
+
+	@Test
+	fun testEncyclopediaPlacesPage() {
+		TestEncyclopedia.testPlacesPage(instance)
+	}
+
+	@Test
+	fun testEncyclopediaArtefactsPage() {
+		TestEncyclopedia.testArtefactsPage(instance)
+	}
+
+	@Test
+	fun testEncyclopediaBestiary() {
+		TestEncyclopedia.testBestiaryPage(instance)
+	}
+
+	@Test
+	fun testEncyclopediaRefresh() {
+		TestEncyclopedia.testRefreshAfterDiscoveringAnotherArea(instance)
 	}
 }

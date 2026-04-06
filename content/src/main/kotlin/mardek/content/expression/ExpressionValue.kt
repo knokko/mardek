@@ -9,6 +9,7 @@ import mardek.content.action.ActionNode
 import mardek.content.animation.ColorTransform
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
+import mardek.content.encyclopedia.EncyclopediaPerson
 import mardek.content.story.FixedTimelineVariables
 import mardek.content.story.TimelineVariable
 
@@ -45,6 +46,7 @@ sealed class ExpressionValue<T> {
 			ExpressionColorTransformValue::class.java,
 			ExpressionOptionalColorTransformValue::class.java,
 			ExpressionActionNodeValue::class.java,
+			ExpressionEncyclopediaPersonValue::class.java,
 		)
 	}
 }
@@ -261,4 +263,28 @@ class ExpressionActionNodeValue(
 	override fun get() = value
 
 	override fun toString() = "ActionNodeValue(...)"
+}
+
+/**
+ * An [ExpressionValue] that wraps a nullable reference to a [EncyclopediaPerson.Snapshot].
+ *
+ * Such values are used in the "People" section of the encyclopedia.
+ */
+@BitStruct(backwardCompatible = true)
+class ExpressionEncyclopediaPersonValue(
+
+	/**
+	 * The wrapped encyclopedia person snapshot, or `null`
+	 */
+	@BitField(id = 0, optional = true)
+	@ReferenceField(stable = false, label = "encyclopedia people snapshots")
+	val value: EncyclopediaPerson.Snapshot?
+) : ExpressionValue<EncyclopediaPerson.Snapshot?>() {
+
+	@Suppress("unused")
+	private constructor() : this(null)
+
+	override fun get() = value
+
+	override fun toString() = "EncyclopediaPersonValue(null=${value == null})"
 }

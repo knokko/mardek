@@ -7,6 +7,7 @@ import mardek.content.Content
 import mardek.content.animation.ColorTransform
 import mardek.content.area.*
 import mardek.content.area.objects.AreaDecoration
+import mardek.content.encyclopedia.EncyclopediaArea
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.DefinedVariableStateCondition
 import mardek.content.expression.ExpressionOrDefaultStateExpression
@@ -73,7 +74,7 @@ private fun parseArea2(
 					x = x, y = y, sprites = sprites, canWalkThrough = true, light = hexObject.light,
 					timePerFrame = 50 * hexObject.timePerFrame,
 					ownActions = null, sharedActionSequence = null,
-					signType = null, displayName = null,
+					signType = null, displayName = null, encyclopediaPerson = null,
 				))
 			}
 		}
@@ -163,15 +164,18 @@ internal fun parseAreaProperties(content: Content, areaCode: ActionScriptCode, a
 
 	val ambience = parseAmbience(content, areaCode.variableAssignments["ambience"])
 
-	var encyclopediaName: String? = null
+	var encyclopediaPlace: EncyclopediaArea? = null
 	val encyclopediaAdd = areaCode.functionCalls.filter { it.first == "EN_ADD" }.map { it.second }
 	parseAssert(encyclopediaAdd.size <= 1, "Too many EN_ADDs: ${areaCode.functionCalls}")
 
 	if (encyclopediaAdd.isNotEmpty()) {
-		val prefix = "\"Places\",\""
+		val prefix = "\"Places\","
 		parseAssert(encyclopediaAdd[0].startsWith(prefix), "Expected $encyclopediaAdd to start with $prefix")
 		parseAssert(encyclopediaAdd[0].endsWith('"'), "Expected $encyclopediaAdd to end with a double quote")
-		encyclopediaName = encyclopediaAdd[0].substring(prefix.length, encyclopediaAdd[0].length - 1)
+		val rawEncyclopediaName = encyclopediaAdd[0].substring(prefix.length)
+		val encyclopediaName = parseFlashString(rawEncyclopediaName, "area encyclopedia name")!!
+		encyclopediaPlace = content.encyclopedia.places.find { it.name == encyclopediaName } ?:
+			throw RuntimeException("Cannot find encyclopedia place $encyclopediaName")
 	}
 
 	return AreaProperties(
@@ -180,7 +184,7 @@ internal fun parseAreaProperties(content: Content, areaCode: ActionScriptCode, a
 		ambience = ambience,
 		musicTrack = musicTrack,
 		dungeon = dungeon,
-		encyclopediaName = encyclopediaName,
+		encyclopediaPlace = encyclopediaPlace,
 		dreamType = dreamType,
 		snowType = snowType,
 	)

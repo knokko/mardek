@@ -32,6 +32,7 @@ import mardek.state.UsedPartyMember
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.area.ShopsStates
+import mardek.state.ingame.encyclopedia.EncyclopediaState
 import mardek.state.ingame.story.StoryState
 import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveFile
@@ -122,6 +123,13 @@ class CampaignState : BitPostInit {
 	 */
 	@BitField(id = 13)
 	val shops = ShopsStates()
+
+	/**
+	 * The state of the encyclopedia, which tracks e.g. which places the player has discovered, and which monsters the
+	 * player has slain.
+	 */
+	@BitField(id = 14)
+	val encyclopedia = EncyclopediaState()
 
 	var shouldOpenMenu = false
 	var gameOver = false

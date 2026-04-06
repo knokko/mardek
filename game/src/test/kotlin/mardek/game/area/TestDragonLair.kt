@@ -25,9 +25,11 @@ import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.PlayerCombatantState
+import mardek.state.saves.SaveFile
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
@@ -45,6 +47,11 @@ object TestDragonLair {
 				area, state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(6, 20),
 			)
+
+			// In this case, I want to test that the 'slain monster count' can be increased from 1 to 2.
+			// Other tests already test that it can go from 0 to 1
+			val dragon = content.battle.monsters.find { it.name == "mightydragon" }!!
+			state.campaign.encyclopedia.reportMonsterAsSlain(dragon)
 
 			// Make sure Deugan has enough mana to cast Frostasia
 			val deuganState = state.campaign.characterStates[heroDeugan]!!
@@ -133,6 +140,19 @@ object TestDragonLair {
 			val deuganCombatState = battleState.livingPlayers()[1] as PlayerCombatantState
 			assertNull(mardekCombatState.experienceIndicators.getEntryToDisplay(System.nanoTime()))
 			assertNull(deuganCombatState.experienceIndicators.getEntryToDisplay(System.nanoTime()))
+
+			val oldEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
+			assertEquals(13, oldEncyclopedia.people.size)
+			assertEquals(0, oldEncyclopedia.people.count { it.entry != null })
+			assertEquals(6, oldEncyclopedia.places.size)
+			assertEquals(0, oldEncyclopedia.places.count { it.entry != null })
+			assertEquals(6, oldEncyclopedia.artefacts.size)
+			assertEquals(0, oldEncyclopedia.artefacts.count { it.entry != null })
+			assertEquals(7, oldEncyclopedia.monsters.size)
+			assertEquals(1, oldEncyclopedia.monsters.count { it.entry != null })
+			var slainEncyclopediaMonster = oldEncyclopedia.monsters.find { it.entry != null }!!
+			assertSame(dragon, slainEncyclopediaMonster.entry!!.monsters[0])
+			assertEquals(1, slainEncyclopediaMonster.amount)
 
 			assertInstanceOf<BattleStateMachine.CastSkill>(battleState.state)
 			val castState = battleState.state as BattleStateMachine.CastSkill
@@ -328,6 +348,28 @@ object TestDragonLair {
 			assertEquals(
 				AreaPosition(9, 6),
 				(state.campaign.state as AreaState).getPlayerPosition(0)
+			)
+
+			val newEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
+			assertEquals(13, newEncyclopedia.people.size)
+			assertEquals(2, newEncyclopedia.people.count { it.entry != null })
+			assertTrue(newEncyclopedia.people.find { it.entry?.firstName == "Mardek" } != null)
+			assertTrue(newEncyclopedia.people.find { it.entry?.firstName == "Deugan" } != null)
+			assertEquals(6, newEncyclopedia.places.size)
+			assertEquals(1, newEncyclopedia.places.count { it.entry != null })
+			assertTrue(newEncyclopedia.places.find { it.entry?.name == "Heroes' Den" } != null)
+			assertEquals(6, newEncyclopedia.artefacts.size)
+			assertEquals(0, newEncyclopedia.artefacts.count { it.entry != null })
+			assertEquals(7, newEncyclopedia.monsters.size)
+			assertEquals(1, newEncyclopedia.monsters.count { it.entry != null })
+			slainEncyclopediaMonster = newEncyclopedia.monsters.find { it.entry != null }!!
+			assertSame(dragon, slainEncyclopediaMonster.entry!!.monsters[0])
+			assertEquals(2, slainEncyclopediaMonster.amount)
+
+			// Test that this doesn't crash
+			context.saves.createSave(
+				context.content, state.campaign,
+				state.campaignName, SaveFile.Type.Cheat,
 			)
 		}
 	}

@@ -230,6 +230,7 @@ class TestAreaEntityParser {
 			sharedActionSequence = content.actions.global.find { it.name == "c_healingCrystal" }!!,
 			signType = null,
 			displayName = "Save Crystal",
+			encyclopediaPerson = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -363,7 +364,7 @@ class TestAreaEntityParser {
 			portrait = null, // Portraits are tested in IntegrationTests.testAreaCharacterPortraitImporting
 			ownActions = null, // TODO CHAP3 Fix this dialogue
 			sharedActionSequence = null,
-			encyclopediaPerson = "Priestess Gail",
+			encyclopediaPerson = content.encyclopedia.people.find { it.snapshots[0].firstName == "Priestess Gail" }!!,
 			condition = null,
 			renderOffsetX = 0,
 			renderOffsetY = 0,
@@ -556,6 +557,7 @@ class TestAreaEntityParser {
 			sharedActionSequence = null,
 			signType = null,
 			displayName = "Portal",
+			encyclopediaPerson = null,
 		)
 		val rootNode = actual.ownActions!!
 		assertNull((rootNode as FixedActionNode).next)
@@ -580,6 +582,7 @@ class TestAreaEntityParser {
 			sharedActionSequence = null,
 			signType = null,
 			displayName = "Portal",
+			encyclopediaPerson = null,
 		)
 		val rootNode = actual.ownActions!!
 		assertNull((rootNode as FixedActionNode).next)
@@ -615,6 +618,7 @@ class TestAreaEntityParser {
 			sharedActionSequence = null,
 			signType = null,
 			displayName = "Deities: What ARE they?",
+			encyclopediaPerson = null,
 		)
 		val rootNode = actual.ownActions!!
 		assertNotNull((rootNode as FixedActionNode).next)
@@ -665,6 +669,7 @@ class TestAreaEntityParser {
 			sharedActionSequence = null,
 			signType = null,
 			displayName = "Item Shop",
+			encyclopediaPerson = null,
 		)
 		assertEquals(expected, actual)
 	}
@@ -683,6 +688,7 @@ class TestAreaEntityParser {
 			sharedActionSequence = null,
 			signType = null,
 			displayName = "Water",
+			encyclopediaPerson = null,
 		)
 		assertEquals(expected, actual)
 	}

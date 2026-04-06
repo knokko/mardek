@@ -242,6 +242,36 @@ class UiSprites(
 	 */
 	@BitField(id = 35)
 	val worldMapBlockedArea: BcSprite,
+
+	/**
+	 * The icon for the "People" section of the encyclopedia
+	 */
+	@BitField(id = 36)
+	val encyclopediaPeople: KimSprite,
+
+	/**
+	 * The icon for the "Places" section of the encyclopedia
+	 */
+	@BitField(id = 37)
+	val encyclopediaPlaces: KimSprite,
+
+	/**
+	 * The icon for the "Artefacts" section of the encyclopedia
+	 */
+	@BitField(id = 38)
+	val encyclopediaArtefacts: KimSprite,
+
+	/**
+	 * The icon for the "Bestiary" section of the encyclopedia
+	 */
+	@BitField(id = 39)
+	val encyclopediaBestiary: KimSprite,
+
+	/**
+	 * The icon for the "Dreamstones" section of the encyclopedia
+	 */
+	@BitField(id = 40)
+	val encyclopediaDreamstones: KimSprite,
 ) {
 
 	@Suppress("unused")
@@ -260,5 +290,7 @@ class UiSprites(
 		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
 		BcSprite(), BcSprite(),
 		BcSprite(), BcSprite(),
+		KimSprite(), KimSprite(), KimSprite(),
+		KimSprite(), KimSprite(),
 	)
 }

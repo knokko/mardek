@@ -211,8 +211,9 @@ class AreaState(
 			battleLoot.processKeyPress(event.key, lootContext)
 		} else {
 			val battleContext = BattleUpdateContext(
-				context.campaign.characterStates, context.content.audio.fixedEffects,
-				context.content.stats.defaultWeaponElement, context.soundQueue
+				context.campaign.characterStates, context.campaign.encyclopedia,
+				context.content.audio.fixedEffects,
+				context.content.stats.defaultWeaponElement, context.soundQueue,
 			)
 			suspension.battle.processKeyPress(event.key, battleContext)
 		}
@@ -270,8 +271,15 @@ class AreaState(
 	 * - trigger random battles
 	 */
 	private fun update(context: UpdateContext) {
-		if (currentTime == ZERO && !area.flags.hasClearMap) {
-			context.campaign.areaDiscovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
+		if (currentTime == ZERO) {
+			if (!area.flags.hasClearMap) {
+				context.campaign.areaDiscovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
+			}
+
+			val encyclopediaPlace = area.properties.encyclopediaPlace
+			if (encyclopediaPlace != null) {
+				context.campaign.encyclopedia.discoveredPlaces.add(encyclopediaPlace)
+			}
 		}
 
 		obtainedGold?.run {
@@ -393,6 +401,11 @@ class AreaState(
 					)
 				))
 
+				val encyclopediaPerson = character.encyclopediaPerson
+				if (encyclopediaPerson != null) {
+					context.campaign.encyclopedia.encounteredPeople.add(encyclopediaPerson)
+				}
+
 				val overrideDirection = Direction.bestDelta(
 					playerPositions[0].x - x, playerPositions[0].y - y
 				)!!
@@ -408,6 +421,11 @@ class AreaState(
 
 		for (decoration in area.objects.decorations) {
 			if (decoration.x != x || decoration.y != y) continue
+
+			val encyclopediaPerson = decoration.encyclopediaPerson
+			if (encyclopediaPerson != null) {
+				context.campaign.encyclopedia.encounteredPeople.add(encyclopediaPerson)
+			}
 
 			val rootAction = decoration.sharedActionSequence?.root ?: decoration.ownActions
 			if (rootAction != null) {
@@ -541,6 +559,7 @@ class AreaState(
 				playerLayout = context.content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
 				context = BattleUpdateContext(
 					context.campaign.characterStates,
+					context.campaign.encyclopedia,
 					context.content.audio.fixedEffects,
 					context.content.stats.defaultWeaponElement,
 					context.soundQueue
@@ -551,7 +570,8 @@ class AreaState(
 
 	private fun updateActiveBattle(context: UpdateContext, suspension: AreaSuspensionBattle) {
 		val battleContext = BattleUpdateContext(
-			context.campaign.characterStates, context.content.audio.fixedEffects,
+			context.campaign.characterStates, context.campaign.encyclopedia,
+			context.content.audio.fixedEffects,
 			context.content.stats.defaultWeaponElement, context.soundQueue,
 		)
 		suspension.battle.update(battleContext)

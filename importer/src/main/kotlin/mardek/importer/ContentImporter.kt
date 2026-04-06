@@ -25,6 +25,10 @@ import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsters
 import mardek.importer.characters.importPlayableCharacters
+import mardek.importer.encyclopedia.importBestiary
+import mardek.importer.encyclopedia.importEncyclopediaArtefacts
+import mardek.importer.encyclopedia.importEncyclopediaPeople
+import mardek.importer.encyclopedia.importEncyclopediaPlaces
 import mardek.importer.inventory.hardcodeItemTypes
 import mardek.importer.stats.importClasses
 import mardek.importer.stats.importStatsContent
@@ -50,6 +54,7 @@ fun importVanillaContent(skipMonsters: Boolean = false): Content {
 		importPortraits(content)
 		importCutscenes(content)
 	} else addDummyCutscenes(content.actions)
+	importEncyclopediaArtefacts(content, skipMonsters)
 	importSkillsContent(content)
 	val fatItemTypes = hardcodeItemTypes(content)
 
@@ -57,9 +62,12 @@ fun importVanillaContent(skipMonsters: Boolean = false): Content {
 	importClasses(content, fatItemTypes)
 	importAreaSprites(content)
 	if (!skipMonsters) importMonsters(content, playerModelMapping)
+	importEncyclopediaPeople(content, skipMonsters)
 	importPlayableCharacters(content, playerModelMapping)
 	importItemsContent(content, fatItemTypes)
 	importBattleContent(content, !skipMonsters)
+	importEncyclopediaPlaces(content, skipMonsters)
+	if (!skipMonsters) importBestiary(content)
 	importSimpleStoryContent(content.story)
 	importAreaBattleContent(content)
 	val hardcodedActions = importAreaContent(content)

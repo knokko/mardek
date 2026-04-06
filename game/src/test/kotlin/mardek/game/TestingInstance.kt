@@ -149,7 +149,7 @@ class TestingInstance {
 	}
 
 	fun battleUpdateContext(campaign: CampaignState) = BattleUpdateContext(
-		campaign.characterStates, content.audio.fixedEffects,
+		campaign.characterStates, campaign.encyclopedia, content.audio.fixedEffects,
 		content.stats.elements.find { it.rawName == "NONE" }!!, SoundQueue()
 	)
 

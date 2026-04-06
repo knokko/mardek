@@ -12,7 +12,6 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.expression.AndStateCondition
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.DefinedVariableStateCondition
-import mardek.content.expression.ExpressionBooleanValue
 import mardek.content.expression.ExpressionOrDefaultStateExpression
 import mardek.content.expression.GlobalStateExpression
 import mardek.content.expression.IfElseStateExpression
@@ -20,6 +19,7 @@ import mardek.content.expression.NegateStateCondition
 import mardek.content.expression.SwitchCaseStateExpression
 import mardek.content.expression.StateExpression
 import mardek.content.expression.ExpressionValue
+import mardek.content.expression.GreaterEqualStateCondition
 import mardek.content.expression.ItemCountStateCondition
 import mardek.content.expression.VariableStateExpression
 import mardek.content.inventory.Item
@@ -251,6 +251,12 @@ class StoryState : BitPostInit {
 			if (expression.maxAmount != null && amount > expression.maxAmount!!) return false as T
 			@Suppress("UNCHECKED_CAST")
 			return true as T
+		}
+		if (expression is GreaterEqualStateCondition) {
+			val left = evaluate(expression.left, context, nodes)
+			val right = evaluate(expression.right, context, nodes)
+			@Suppress("UNCHECKED_CAST")
+			return (left >= right) as T
 		}
 		throw UnsupportedOperationException(
 			"Unsupported expression type ${expression.javaClass} : $expression"

@@ -109,7 +109,7 @@ DetermineStats();
 """
 
 const val OVERRIDE_TEMPERANCE = """
-mdlStats = {names:["Temperance"],model:"temperance",sprite:"temperance",Class:"Totem",TYPE:"CONSTRUCT",wpnType:"none",cElem:"FIRE",armrTypes:[],baseStats:{hp:800,mp:400,STR:20,VIT:10,SPR:10,AGL:10},nAtk:30,nDef:0,nMDef:0,critical:3,hpGrowth:0,atkGrowth:[0,0],equip:{weapon:["none"],shield:["none"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},resist:{FIRE:100,AIR:50,WATER:-100,PSN:100,PAR:100,CRS:100,DRK:100,NUM:100,SIL:100,SLP:100,CNF:100,ZOM:100,BSK:100,BLD:100},EXP:400};
+mdlStats = {names:["Temperance"],model:"temperance",sprite:"temperance",Class:"Totem",TYPE:"CONSTRUCT",wpnType:"none",cElem:"NONE",armrTypes:[],baseStats:{hp:800,mp:400,STR:20,VIT:10,SPR:10,AGL:10},nAtk:30,nDef:0,nMDef:0,critical:3,hpGrowth:0,atkGrowth:[0,0],equip:{weapon:["none"],shield:["none"],helmet:["none"],armour:["none"],accs:["none"],accs2:["none"]},resist:{FIRE:100,AIR:50,WATER:-100,PSN:100,PAR:100,CRS:100,DRK:100,NUM:100,SIL:100,SLP:100,CNF:100,ZOM:100,BSK:100,BLD:100},EXP:400};
 Techs = [_root.GetMONSTER_SKILL("Rage Chord"),{skill:"Flame",type:"ACT",DMG:26,MP:6,critical:0,accuracy:100,AP:0,MODE:"M",elem:"FIRE",TT:"SINGLE",pfx:"flame1",desc:"Standard elemental magic attack."}];
 Gambits = [{command:"Rage Chord",target:"ANY_PC",criteria:["random",10]},{command:"Flame",target:"ANY_PC",criteria:["random",30]},{command:"Attack",target:"ANY_PC"}];
 loot = [["BetterPotion",20]];

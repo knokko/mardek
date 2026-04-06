@@ -34,6 +34,7 @@ class InGameState(
 			campaign.update(CampaignState.UpdateContext(context, campaignName))
 			if (campaign.shouldOpenMenu) {
 				menu.shown = true
+				menu.refreshCurrentTab(context.content)
 				campaign.shouldOpenMenu = false
 			}
 			if (campaign.gameOver) return GameOverState()

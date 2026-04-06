@@ -37,6 +37,8 @@ sealed class StateExpression<T> {
 			DefinedVariableStateCondition::class.java,
 
 			ItemCountStateCondition::class.java,
+
+			GreaterEqualStateCondition::class.java,
 		)
 	}
 }
@@ -342,4 +344,37 @@ class ItemCountStateCondition(
 	private constructor() : this(Item(), 0, 0)
 
 	override fun toString() = "(has $minAmount to $maxAmount occurrences of $item)"
+}
+
+/**
+ * A state expression that evaluates to `true` if and only if [left] evaluates to a number that is at least as large
+ * as the number to which [right] evaluates.
+ */
+@BitStruct(backwardCompatible = true)
+class GreaterEqualStateCondition(
+
+	/**
+	 * The left-hand side of the inequality: this expression evaluates to `true` if this field evaluates to
+	 * something at least as large as [right].
+	 */
+	@BitField(id = 0)
+	@ClassField(root = StateExpression::class)
+	val left: StateExpression<Int>,
+
+	/**
+	 * The right-hand side of the inequality: this expression evaluates to `true` if this field evaluates to
+	 * something no larger than [left].
+	 */
+	@BitField(id = 1)
+	@ClassField(root = StateExpression::class)
+	val right: StateExpression<Int>,
+) : StateExpression<Boolean>() {
+
+	@Suppress("unused")
+	private constructor() : this(
+		ConstantStateExpression(ExpressionIntValue(0)),
+		ConstantStateExpression(ExpressionIntValue(0)),
+	)
+
+	override fun toString() = "($left >= $right)"
 }

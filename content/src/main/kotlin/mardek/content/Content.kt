@@ -9,6 +9,7 @@ import mardek.content.area.AreaContent
 import mardek.content.audio.AudioContent
 import mardek.content.battle.BattleContent
 import mardek.content.characters.PlayableCharacter
+import mardek.content.encyclopedia.EncyclopediaContent
 import mardek.content.stats.StatsContent
 import mardek.content.inventory.ItemsContent
 import mardek.content.portrait.PortraitContent
@@ -120,8 +121,17 @@ class Content {
 	@NestedFieldSetting(path = "v", writeAsBytes = true)
 	val checkpoints = HashMap<String, ByteArray>()
 
+	/**
+	 * Everything that goes into the encyclopedia
+	 */
+	@BitField(id = 14)
+	val encyclopedia = EncyclopediaContent()
+
 	companion object {
 
+		/**
+		 * The directory containing all the main assets/resources (e.g. `content.bits` and `content.vk2d`)
+		 */
 		val RESOURCES_DIRECTORY = run {
 			val workingDirectory = File("./")
 			var resourcesDirectory = File("$workingDirectory/resources")

@@ -22,7 +22,7 @@ class HardcodedActions {
 		hardcodeGoznorDialogues(content, hardcoded)
 		hardcodeGallovarDialogues(content, hardcoded)
 		hardcodeMardekHouseActions(content, hardcoded)
-		hardcodeDeuganHouseActions(hardcoded)
+		hardcodeDeuganHouseActions(content, hardcoded)
 		hardcodeGoznorHouse1Dialogues(hardcoded)
 		hardcodeGoznorInnActions(hardcoded)
 		hardcodeWeaponShopActions(hardcoded)

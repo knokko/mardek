@@ -111,19 +111,83 @@ fun addStatusEffects(content: Content) {
 		),
 		id = UUID.fromString("7dbcf062-ab1c-45bb-850d-4b4b155be2ca"),
 	))
+
+	val paralysisParticleSprite = ParticleSprite(
+		"Paralysis", passiveSprites(sheet16, intArrayOf(5))[0]
+	)
+	content.battle.particleSprites.add(paralysisParticleSprite)
 	stats.statusEffects.add(StatusEffect(
-		flashName = "CNF",
-		niceName = "Confusion",
+		flashName = "PAR",
+		niceName = "Paralysis",
+		shortName = "Stun",
 		isPositive = false,
-		disappearsAfterCombat = true,
-		disappearAfterHitChance = 100,
-		isConfusing = true,
-		icon = icon("Confusion"),
-		innerTextColor = rgb(194, 171, 228),
-		outerTextColor = rgb(162, 139, 196),
-		particleEmitters = emptyArray(),
-		id = UUID.fromString("fee0b22f-b960-4029-8508-24bbb355af3a"),
+		disappearsAfterCombat = false,
+		skipTurn = StatusEffect.SkipTurn(
+			40, rgb(255, 255, 0),
+			content.battle.particles.find { it.name == "paralysis_jolt" }!!
+		),
+		icon = icon("Paralysis"),
+		innerTextColor = rgb(255, 253, 74),
+		outerTextColor = rgb(223, 221, 42),
+		particleEmitters = arrayOf(ParticleEmitter(
+			transform = EmitterTransform(),
+			sprite = paralysisParticleSprite,
+			waves = EmissionWaves(
+				delay = 0f, delayedSound = null, period = 0.9f,
+				particlesPerWave = 1, numRounds = null,
+			),
+			spawn = ParticleSpawnProperties(
+				baseX = 0f, baseY = 4f,
+				shiftX = 0f, shiftY = 0f,
+				variationX = 32f, variationY = 32f,
+				shiftVariationX = 0f, shiftVariationY = 0f,
+				rotation = 180f, rotationVariation = 360f, rotationMultiplier = 1f,
+				linear = LinearParticleSpawnProperties(),
+				radial = null,
+			),
+			dynamics = ParticleDynamics(),
+			size = ParticleSize(
+				baseWidth = 4f * MAGIC_PARTY_POSITION_SCALE, baseHeight = 4f * MAGIC_PARTY_POSITION_SCALE,
+				shiftWidth = 0f, shiftHeight = 0f,
+				minSizeMultiplier = 1f, maxSizeMultiplier = 4f,
+				growX = 1f, growY = 1f,
+				dynamicGrowX = 0f, dynamicGrowY = 0f,
+			),
+			opacity = ParticleOpacity(),
+			lifeTime = 0.035f,
+			mirror = false,
+		)),
+		id = UUID.fromString("b041e68f-1bd5-44d1-bd3b-dd04c4ee3885"),
 	))
+
+	stats.statusEffects.add(StatusEffect(
+		flashName = "NUM",
+		niceName = "Numbness",
+		shortName = "Numb",
+		isPositive = false,
+		disappearsAfterCombat = false,
+		blocksMeleeSkills = true,
+		blocksBasicAttacks = true,
+		icon = icon("Numb"),
+		innerTextColor = rgb(219, 107, 66),
+		outerTextColor = rgb(187, 75, 34),
+		particleEmitters = emptyArray(),
+		id = UUID.fromString("ff0f0e3e-12de-4b9f-bb5c-520dbefacf26"),
+	))
+
+	stats.statusEffects.add(StatusEffect(
+		flashName = "SIL",
+		niceName = "Silence",
+		isPositive = false,
+		disappearsAfterCombat = false,
+		blocksRangedSkills = true,
+		icon = icon("Silence"),
+		innerTextColor = rgb(230, 254, 255),
+		outerTextColor = rgb(198, 222, 223),
+		particleEmitters = emptyArray(),
+		id = UUID.fromString("ad763dcd-4f09-4745-a770-96a0c25ccbe7"),
+	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "CRS",
 		niceName = "Curse",
@@ -138,63 +202,18 @@ fun addStatusEffects(content: Content) {
 		id = UUID.fromString("917c2cd1-f59d-4d85-9c21-f321feb3ad07"),
 	))
 
-	val blindParticleSprite = ParticleSprite(
-		"Blindness", passiveSprites(sheet32, intArrayOf(14))[0]
-	)
-	content.battle.particleSprites.add(blindParticleSprite)
 	stats.statusEffects.add(StatusEffect(
-		flashName = "DRK",
-		niceName = "Blindness",
-		shortName = "Blind",
+		flashName = "CNF",
+		niceName = "Confusion",
 		isPositive = false,
-		disappearsAfterCombat = false,
-		missChance = 50,
-		icon = icon("Blind"),
-		innerTextColor = rgb(57, 52, 165),
-		outerTextColor = rgb(25, 20, 133),
-		particleEmitters = arrayOf(
-			ParticleEmitter(
-				transform = EmitterTransform(),
-				sprite = blindParticleSprite,
-				waves = EmissionWaves(
-					delay = 0f, delayedSound = null, period = 0.13f,
-					particlesPerWave = 1, numRounds = null,
-				),
-				spawn = ParticleSpawnProperties(
-					baseX = 0f, baseY = 2f,
-					shiftX = 0f, shiftY = 0f,
-					variationX = 8f, variationY = 6f,
-					shiftVariationX = 0f, shiftVariationY = 0f,
-					rotation = 0f, rotationVariation = 0f, rotationMultiplier = 1f,
-					linear = LinearParticleSpawnProperties(),
-					radial = null,
-				),
-				dynamics = ParticleDynamics(),
-				size = ParticleSize(
-					baseWidth = 8f * MAGIC_PARTY_POSITION_SCALE, baseHeight = 8f * MAGIC_PARTY_POSITION_SCALE,
-					shiftWidth = 0f, shiftHeight = 0f,
-					minSizeMultiplier = 1f, maxSizeMultiplier = 3f,
-					growX = 1f, growY = 1f,
-					dynamicGrowX = 0f, dynamicGrowY = 0f,
-				),
-				opacity = ParticleOpacity(initial = 0.8f, grow = -2.4f, limit = null),
-				lifeTime = 1f,
-				mirror = false,
-			)
-		),
-		id = UUID.fromString("c3d5b0e1-2bac-4497-8762-9dbd098104cb"),
-	))
-	stats.statusEffects.add(StatusEffect(
-		flashName = "SIL",
-		niceName = "Silence",
-		isPositive = false,
-		disappearsAfterCombat = false,
-		blocksRangedSkills = true,
-		icon = icon("Silence"),
-		innerTextColor = rgb(230, 254, 255),
-		outerTextColor = rgb(198, 222, 223),
+		disappearsAfterCombat = true,
+		disappearAfterHitChance = 100,
+		isConfusing = true,
+		icon = icon("Confusion"),
+		innerTextColor = rgb(194, 171, 228),
+		outerTextColor = rgb(162, 139, 196),
 		particleEmitters = emptyArray(),
-		id = UUID.fromString("ad763dcd-4f09-4745-a770-96a0c25ccbe7"),
+		id = UUID.fromString("fee0b22f-b960-4029-8508-24bbb355af3a"),
 	))
 
 	val sleepParticleSprite = ParticleSprite(
@@ -250,67 +269,83 @@ fun addStatusEffects(content: Content) {
 		id = UUID.fromString("f2a13009-8436-486c-a2d6-72a510d0d5f7"),
 	))
 
-	val paralysisParticleSprite = ParticleSprite(
-		"Paralysis", passiveSprites(sheet16, intArrayOf(5))[0]
+	val blindParticleSprite = ParticleSprite(
+		"Blindness", passiveSprites(sheet32, intArrayOf(14))[0]
 	)
-	content.battle.particleSprites.add(paralysisParticleSprite)
+	content.battle.particleSprites.add(blindParticleSprite)
 	stats.statusEffects.add(StatusEffect(
-		flashName = "PAR",
-		niceName = "Paralysis",
-		shortName = "Stun",
+		flashName = "DRK",
+		niceName = "Blindness",
+		shortName = "Blind",
 		isPositive = false,
 		disappearsAfterCombat = false,
-		skipTurn = StatusEffect.SkipTurn(
-			40, rgb(255, 255, 0),
-			content.battle.particles.find { it.name == "paralysis_jolt" }!!
+		missChance = 50,
+		icon = icon("Blind"),
+		innerTextColor = rgb(57, 52, 165),
+		outerTextColor = rgb(25, 20, 133),
+		particleEmitters = arrayOf(
+			ParticleEmitter(
+				transform = EmitterTransform(),
+				sprite = blindParticleSprite,
+				waves = EmissionWaves(
+					delay = 0f, delayedSound = null, period = 0.13f,
+					particlesPerWave = 1, numRounds = null,
+				),
+				spawn = ParticleSpawnProperties(
+					baseX = 0f, baseY = 2f,
+					shiftX = 0f, shiftY = 0f,
+					variationX = 8f, variationY = 6f,
+					shiftVariationX = 0f, shiftVariationY = 0f,
+					rotation = 0f, rotationVariation = 0f, rotationMultiplier = 1f,
+					linear = LinearParticleSpawnProperties(),
+					radial = null,
+				),
+				dynamics = ParticleDynamics(),
+				size = ParticleSize(
+					baseWidth = 8f * MAGIC_PARTY_POSITION_SCALE, baseHeight = 8f * MAGIC_PARTY_POSITION_SCALE,
+					shiftWidth = 0f, shiftHeight = 0f,
+					minSizeMultiplier = 1f, maxSizeMultiplier = 3f,
+					growX = 1f, growY = 1f,
+					dynamicGrowX = 0f, dynamicGrowY = 0f,
+				),
+				opacity = ParticleOpacity(initial = 0.8f, grow = -2.4f, limit = null),
+				lifeTime = 1f,
+				mirror = false,
+			)
 		),
-		icon = icon("Paralysis"),
-		innerTextColor = rgb(255, 253, 74),
-		outerTextColor = rgb(223, 221, 42),
-		particleEmitters = arrayOf(ParticleEmitter(
-			transform = EmitterTransform(),
-			sprite = paralysisParticleSprite,
-			waves = EmissionWaves(
-				delay = 0f, delayedSound = null, period = 0.9f,
-				particlesPerWave = 1, numRounds = null,
-			),
-			spawn = ParticleSpawnProperties(
-				baseX = 0f, baseY = 4f,
-				shiftX = 0f, shiftY = 0f,
-				variationX = 32f, variationY = 32f,
-				shiftVariationX = 0f, shiftVariationY = 0f,
-				rotation = 180f, rotationVariation = 360f, rotationMultiplier = 1f,
-				linear = LinearParticleSpawnProperties(),
-				radial = null,
-			),
-			dynamics = ParticleDynamics(),
-			size = ParticleSize(
-				baseWidth = 4f * MAGIC_PARTY_POSITION_SCALE, baseHeight = 4f * MAGIC_PARTY_POSITION_SCALE,
-				shiftWidth = 0f, shiftHeight = 0f,
-				minSizeMultiplier = 1f, maxSizeMultiplier = 4f,
-				growX = 1f, growY = 1f,
-				dynamicGrowX = 0f, dynamicGrowY = 0f,
-			),
-			opacity = ParticleOpacity(),
-			lifeTime = 0.035f,
-			mirror = false,
-		)),
-		id = UUID.fromString("b041e68f-1bd5-44d1-bd3b-dd04c4ee3885"),
+		id = UUID.fromString("c3d5b0e1-2bac-4497-8762-9dbd098104cb"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
-		flashName = "NUM",
-		niceName = "Numbness",
-		shortName = "Numb",
+		flashName = "BLD",
+		niceName = "Bleed",
+		isPositive = false,
+		damagePerTurn = StatusEffect.TurnDamage(
+			0.1f, element("DARK"),
+			content.battle.particles.find { it.name == "bleed_oef" }!!,
+			rgb(150, 0, 0)
+		),
+		disappearsAfterCombat = false,
+		icon = icon("Bleed"),
+		innerTextColor = rgb(204, 0, 0),
+		outerTextColor = rgb(153, 0, 0),
+		particleEmitters = emptyArray(),
+		id = UUID.fromString("cbfd96f5-a4e1-43cb-855a-1576f0b5232e"),
+	))
+
+	stats.statusEffects.add(StatusEffect(
+		flashName = "ZOM",
+		niceName = "Zombie",
 		isPositive = false,
 		disappearsAfterCombat = false,
-		blocksMeleeSkills = true,
-		blocksBasicAttacks = true,
-		icon = icon("Numb"),
-		innerTextColor = rgb(219, 107, 66),
-		outerTextColor = rgb(187, 75, 34),
+		isZombie = true,
+		icon = icon("Zombie"),
+		innerTextColor = rgb(0, 136, 136),
+		outerTextColor = rgb(0, 102, 102),
 		particleEmitters = emptyArray(),
-		id = UUID.fromString("ff0f0e3e-12de-4b9f-bb5c-520dbefacf26"),
+		id = UUID.fromString("5e911a15-5ecc-450b-aaf7-622ae958f24d"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "RGN",
 		niceName = "Regeneration",
@@ -328,6 +363,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("3f52d1ef-73a2-4f92-ac07-fd6526439968"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "PSH",
 		niceName = "Shield",
@@ -340,6 +376,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("40fee21c-df5d-4f17-9c81-89cd56bb9a02"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "MSH",
 		niceName = "M.Shield",
@@ -352,6 +389,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("fb56cc76-25ff-4283-8520-45caa6d8b34d"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "BSK",
 		niceName = "Berserk",
@@ -365,6 +403,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("0dada7f4-39d1-4d7d-8e71-0f5e7c32ab40"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "HST",
 		niceName = "Haste",
@@ -377,6 +416,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("d8dfcb47-8213-45ef-af28-a95673dcf050"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "UWB",
 		niceName = "Aqualong",
@@ -389,18 +429,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("4f30fef7-4569-4a53-be6b-b5a959569a77"),
 	))
-	stats.statusEffects.add(StatusEffect(
-		flashName = "ZOM",
-		niceName = "Zombie",
-		isPositive = false,
-		disappearsAfterCombat = false,
-		isZombie = true,
-		icon = icon("Zombie"),
-		innerTextColor = rgb(0, 136, 136),
-		outerTextColor = rgb(0, 102, 102),
-		particleEmitters = emptyArray(),
-		id = UUID.fromString("5e911a15-5ecc-450b-aaf7-622ae958f24d"),
-	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "GST",
 		niceName = "Astral",
@@ -427,6 +456,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("0282808b-bb21-4ead-b5aa-17248f2ed066"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "BRK",
 		niceName = "Barskin",
@@ -438,22 +468,6 @@ fun addStatusEffects(content: Content) {
 		outerTextColor = rgb(136, 102, 68),
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("a93e2ab9-f650-4071-bea4-dae823e303b1"),
-	))
-	stats.statusEffects.add(StatusEffect(
-		flashName = "BLD",
-		niceName = "Bleed",
-		isPositive = false,
-		damagePerTurn = StatusEffect.TurnDamage(
-			0.1f, element("DARK"),
-			content.battle.particles.find { it.name == "bleed_oef" }!!,
-			rgb(150, 0, 0)
-		),
-		disappearsAfterCombat = false,
-		icon = icon("Bleed"),
-		innerTextColor = rgb(204, 0, 0),
-		outerTextColor = rgb(153, 0, 0),
-		particleEmitters = emptyArray(),
-		id = UUID.fromString("cbfd96f5-a4e1-43cb-855a-1576f0b5232e"),
 	))
 
 	val colorMap = mapOf(
@@ -496,6 +510,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("e023ca58-bfce-45b2-a005-638e5bbf07ea"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "SHW",
 		niceName = "Hydro Shell",
@@ -508,6 +523,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("29a52d0e-e8fa-41e1-860b-9eba1788a30d"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "SHE",
 		niceName = "Geo Shell",
@@ -520,6 +536,7 @@ fun addStatusEffects(content: Content) {
 		particleEmitters = emptyArray(),
 		id = UUID.fromString("7deded10-364b-4d14-9e29-16796435da8b"),
 	))
+
 	stats.statusEffects.add(StatusEffect(
 		flashName = "SHA",
 		niceName = "Aero Shell",

@@ -9,6 +9,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
+import mardek.content.encyclopedia.EncyclopediaPerson
 import mardek.content.sprite.ObjectSprites
 
 /**
@@ -85,12 +86,19 @@ class AreaDecoration(
 	 */
 	@BitField(id = 7, optional = true)
 	val displayName: String?,
+
+	/**
+	 * When non-null, this person will be added to the encyclopedia when the player interacts with this decoration
+	 */
+	@BitField(id = 9, optional = true)
+	@ReferenceField(stable = false, label = "encyclopedia people")
+	val encyclopediaPerson: EncyclopediaPerson?,
 ) : StaticAreaObject(x, y) {
 
 	@Suppress("unused")
 	private constructor() : this(
 		0, 0, null, false, null, 1,
-		null, null, null, null,
+		null, null, null, null, null,
 	)
 
 	override fun toString() = "Decoration(x=$x, y=$y, sheet=${sprites?.flashName}, name=$displayName)"

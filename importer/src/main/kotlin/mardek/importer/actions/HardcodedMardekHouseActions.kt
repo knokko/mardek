@@ -2,6 +2,7 @@ package mardek.importer.actions
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.Content
+import mardek.content.action.ActionAddEncyclopediaPerson
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionRotate
 import mardek.content.action.ActionSequence
@@ -125,7 +126,12 @@ internal fun hardcodeMardekHouseActions(
 			),
 			ActionSetMusic("Enki"),
 			ActionSetBackgroundImage(enkiBackground),
-			// TODO CHAP1 Add Enki to encyclopedia
+			ActionAddEncyclopediaPerson(content.encyclopedia.people.find {
+				it.snapshots[0].firstName == "Lilanea"
+			}!!),
+			ActionAddEncyclopediaPerson(content.encyclopedia.people.find {
+				it.snapshots[0].firstName == "Enki"
+			}!!),
 			ActionTalk(
 				speaker = targetMother,
 				expression = "norm",
@@ -202,6 +208,8 @@ internal fun hardcodeMardekHouseActions(
 			UUID.fromString("a3306860-7880-4dc1-b43e-e89c31acf244"),
 			UUID.fromString("f7e17bf0-5758-48c0-91a4-9092e67ffd60"),
 			UUID.fromString("b1d28720-39af-4399-a450-f665eab02fbf"),
+			UUID.fromString("5f6958c2-f0aa-431a-8db5-4bb15ccef33b"),
+			UUID.fromString("fe676af5-18eb-4c5b-823f-aab54494297a"),
 			UUID.fromString("5d73a564-1380-48db-b293-6d8c87d1f2f0"),
 			UUID.fromString("9bb2978b-c307-4d19-a784-693344f620cb"),
 			UUID.fromString("3e18e40f-37b1-4ed4-8d9d-4e705511f823"),
@@ -329,7 +337,6 @@ internal fun hardcodeMardekHouseActions(
 		)
 	)
 	val afterDragonLairRoot = FixedActionNode(
-		// TODO CHAP1 Add Lilanea to encyclopedia
 		id = UUID.fromString("be97dd5b-71f8-4315-8291-d57c2e753dcd"),
 		action = ActionWalk(
 			target = ActionTargetWholeParty(),

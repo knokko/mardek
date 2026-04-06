@@ -198,6 +198,17 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		condition as StateExpression<Boolean>
 	} else null
 
+	val rawPerson = rawEntity["EN"]
+	val encyclopediaPerson = if (rawPerson != null) {
+		val prefix = "[\"People\",\""
+		val suffix = "\"]"
+		parseAssert(rawPerson.startsWith(prefix), "Expected $rawPerson to start with $prefix")
+		parseAssert(rawPerson.endsWith(suffix), "Expected $rawPerson to end with $suffix")
+		val encyclopediaName = rawPerson.substring(prefix.length, rawPerson.length - suffix.length)
+		context.content.encyclopedia.people.find { it.snapshots[0].firstName == encyclopediaName } ?:
+				throw RuntimeException("Can't find encyclopedia person $encyclopediaName")
+	} else null
+
 	if (model == "object" || model == "examine") {
 		val rawType = rawEntity["type"]
 		val rawColor = rawEntity["colour"]
@@ -228,6 +239,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 				sharedActionSequence = actionSequence,
 				signType = null,
 				displayName = name,
+				encyclopediaPerson = encyclopediaPerson,
 			)
 		}
 	}
@@ -260,6 +272,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			sharedActionSequence = actionSequence,
 			signType = signType,
 			displayName = name,
+			encyclopediaPerson = encyclopediaPerson,
 		)
 	}
 
@@ -276,6 +289,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 		return AreaDecoration(
 			x = x, y = y, sprites = null, canWalkThrough = true, light = null, timePerFrame = 1,
 			ownActions = shopAction, sharedActionSequence = null, signType = null, displayName = name,
+			encyclopediaPerson = encyclopediaPerson,
 		)
 	}
 
@@ -371,6 +385,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			sharedActionSequence = actionSequence,
 			signType = null,
 			displayName = name,
+			encyclopediaPerson = encyclopediaPerson,
 		)
 	}
 
@@ -494,21 +509,12 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 				actionSequence, rawConversation, id
 			),
 			sharedActionSequence = actionSequence,
-			encyclopediaPerson = null,
+			encyclopediaPerson = encyclopediaPerson,
 			condition = timelineCondition,
 			renderOffsetX = renderOffsetX,
 			renderOffsetY = renderOffsetY,
 		)
 	}
-
-	val rawPerson = rawEntity["EN"] // TODO CHAP1 Add to 'examine' objects?
-	val encyclopediaPerson = if (rawPerson != null) {
-		val prefix = "[\"People\",\""
-		val suffix = "\"]"
-		parseAssert(rawPerson.startsWith(prefix), "Expected $rawPerson to start with $prefix")
-		parseAssert(rawPerson.endsWith(suffix), "Expected $rawPerson to end with $suffix")
-		rawPerson.substring(prefix.length, rawPerson.length - suffix.length)
-	} else null
 
 	spritesheetName = spritesheetName.replace("spritesheet_", "")
 	val sprites = context.content.areas.characterSprites.find { it.name == spritesheetName }!!

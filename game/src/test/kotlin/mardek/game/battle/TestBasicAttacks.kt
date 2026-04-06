@@ -103,6 +103,8 @@ object TestBasicAttacks {
 
 			assertEquals(0, mardekState.experienceToNextLevel)
 			assertEquals(0, deuganState.experienceToNextLevel)
+			val oldEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
+			assertEquals(0, oldEncyclopedia.monsters.count { it.entry != null })
 
 			sleep(1000)
 			testRendering(
@@ -127,6 +129,14 @@ object TestBasicAttacks {
 			// - Kills should grant half of the XP to other players
 			assertEquals((600 + 100) * 10 / 50, mardekState.experienceToNextLevel)
 			assertEquals(600 / 2 * 10 / 20, deuganState.experienceToNextLevel)
+			val newEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
+			assertEquals(1, newEncyclopedia.monsters.count { it.entry != null })
+			val slainEncyclopediaMonster = newEncyclopedia.monsters.find { it.entry != null }!!
+			assertSame(
+				content.battle.monsters.find { it.name == "monster" }!!,
+				slainEncyclopediaMonster.entry!!.monsters[0],
+			)
+			assertEquals(1, slainEncyclopediaMonster.amount)
 
 			sleep(1000)
 			testRendering(

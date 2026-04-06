@@ -70,7 +70,7 @@ internal fun renderInGame(
 					val areaRenderStage = context.pipelines.base.blur.addSourceStage(
 						context.frame, framebuffers.blur, -1
 					)
-					if (state.menu.currentTab.inside) {
+					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						context.currentStage = context.pipelines.base.blur.addSourceStage(
 							context.frame, framebuffers.sectionBlur, -1
 						)
@@ -84,11 +84,12 @@ internal fun renderInGame(
 						val ovalBatch = context.addOvalBatch(0)
 						val imageBatch = context.addImageBatch(0)
 						val spriteBatch = context.addKim3Batch(0)
+						val animationBatch = context.addAnimationPartBatch(0)
 						val lateColorBatch = context.addColorBatch(0)
 
 						val menuContext = MenuRenderContext(
-							context, colorBatch, ovalBatch, imageBatch, spriteBatch, lateColorBatch, textBatch,
-							state.menu, state.campaign
+							context, colorBatch, ovalBatch, imageBatch, spriteBatch, animationBatch,
+							lateColorBatch, textBatch, state.menu, state.campaign
 						)
 						renderInGameMenuSectionList(menuContext, Rectangle(
 							0, 0, menuRegion.width, menuRegion.height
@@ -98,7 +99,7 @@ internal fun renderInGame(
 						context.frame, context.perFrame.areaBlurDescriptors,
 						framebuffers.blur, 9, 50, -1
 					)
-					if (state.menu.currentTab.inside) {
+					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						computeStage.additional(
 							context.perFrame.sectionsBlurDescriptors,
 							framebuffers.sectionBlur, 9, 50
@@ -114,7 +115,7 @@ internal fun renderInGame(
 					titleColorBatch = batches.first
 					titleTextBatch = batches.second
 
-					if (state.menu.currentTab.inside) {
+					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						val sectionRegion = determineSectionRenderRegion(region)
 						context.pipelines.base.blur.addBatch(
 							context.frame.swapchainStage,

@@ -37,8 +37,12 @@ class InGameMenuState(private val state: CampaignState) {
 						if (currentTab is InventoryTab) currentTab = SkillsTab(state.usedPartyMembers())
 						if (currentTab is MapTab) currentTab = InventoryTab()
 						if (currentTab is QuestsTab) currentTab = MapTab()
-						if (currentTab is VideoSettingsTab) {
+						if (currentTab is EncyclopediaTab) {
 							currentTab = QuestsTab(state.story.getQuests(content.story))
+						}
+						if (currentTab is VideoSettingsTab) {
+							val snapshot = state.encyclopedia.createSnapshot(content.encyclopedia, state)
+							currentTab = EncyclopediaTab(snapshot)
 						}
 
 						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll1)
@@ -47,7 +51,11 @@ class InGameMenuState(private val state: CampaignState) {
 
 					if (event.key == InputKey.MoveDown) {
 						val oldTab = currentTab
-						if (currentTab is QuestsTab) currentTab = VideoSettingsTab()
+						if (currentTab is EncyclopediaTab) currentTab = VideoSettingsTab()
+						if (currentTab is QuestsTab) {
+							val snapshot = state.encyclopedia.createSnapshot(content.encyclopedia, state)
+							currentTab = EncyclopediaTab(snapshot)
+						}
 						if (currentTab is MapTab) currentTab = QuestsTab(state.story.getQuests(content.story))
 						if (currentTab is InventoryTab) currentTab = MapTab()
 						if (currentTab is SkillsTab) currentTab = InventoryTab()
@@ -62,6 +70,20 @@ class InGameMenuState(private val state: CampaignState) {
 			}
 
 			if (event is MouseMoveEvent) currentTab.processMouseMove(event, context)
+		}
+	}
+
+	/**
+	 * This method should be called when the player (re-)opens the in-game menu because some tabs (e.g. quests and
+	 * encyclopedia) may need to be refreshed.
+	 */
+	fun refreshCurrentTab(content: Content) {
+		if (currentTab is QuestsTab) {
+			currentTab = QuestsTab(state.story.getQuests(content.story))
+		}
+		if (currentTab is EncyclopediaTab) {
+			val snapshot = state.encyclopedia.createSnapshot(content.encyclopedia, state)
+			currentTab = EncyclopediaTab(snapshot)
 		}
 	}
 }

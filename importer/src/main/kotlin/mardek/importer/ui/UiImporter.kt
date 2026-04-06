@@ -54,4 +54,9 @@ internal fun importUiSprites() = UiSprites(
 	worldMapCurrentArea = loadBc7Sprite("mardek/importer/world/CurrentAreaNode.png"),
 	worldMapDiscoveredArea = loadBc7Sprite("mardek/importer/world/DiscoveredAreaNode.png"),
 	worldMapBlockedArea = loadBc7Sprite("mardek/importer/world/BlockedAreaNode.png"),
+	encyclopediaPeople = importKimSprite("EncyclopediaPeople"),
+	encyclopediaPlaces = importKimSprite("EncyclopediaPlaces"),
+	encyclopediaArtefacts = importKimSprite("EncyclopediaArtefacts"),
+	encyclopediaBestiary = importKimSprite("EncyclopediaBestiary"),
+	encyclopediaDreamstones = importKimSprite("EncyclopediaDreamstones"),
 )

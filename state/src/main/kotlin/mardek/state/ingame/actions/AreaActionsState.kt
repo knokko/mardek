@@ -346,6 +346,14 @@ class AreaActionsState(
 			this.backgroundImage = currentAction.newBackgroundImage
 			return true
 		}
+		if (currentAction is ActionAddEncyclopediaPerson) {
+			context.campaign.encyclopedia.encounteredPeople.add(currentAction.person)
+			return true
+		}
+		if (currentAction is ActionAddEncyclopediaArtefact) {
+			context.campaign.encyclopedia.discoveredArtefacts.add(currentAction.artefact)
+			return true
+		}
 		if (shopInteraction != null) {
 			shopInteraction!!.update(context)
 			return false

@@ -3,6 +3,7 @@
 package mardek.importer.actions
 
 import mardek.content.Content
+import mardek.content.action.ActionAddEncyclopediaPerson
 import mardek.content.action.ActionBattle
 import mardek.content.action.ActionFadeCharacter
 import mardek.content.action.ActionParallel
@@ -128,6 +129,12 @@ private fun hardcodeDragonLairRoom4Actions(
 		ActionTimelineTransition("MainTimeline", "Childhood"),
 		ActionSetMoney(10),
 		ActionTeleport(targetDeugan, 10, 7, Direction.Up),
+		ActionAddEncyclopediaPerson(content.encyclopedia.people.find {
+			it.snapshots[0].firstName == "Mardek"
+		}!!),
+		ActionAddEncyclopediaPerson(content.encyclopedia.people.find {
+			it.snapshots[0].firstName == "Deugan"
+		}!!),
 		ActionTalk(targetDeugan, "norm", "It's getting late... I suppose we should head home. I bet our parents are worried!"),
 		ActionTalk(targetMardek, "grin", "Okay. Let's go back to Goznor!"),
 	), arrayOf(
@@ -158,6 +165,8 @@ private fun hardcodeDragonLairRoom4Actions(
 		UUID.fromString("5fc6cb96-1960-48ec-b3eb-24cf8ebdcc3a"),
 		UUID.fromString("086ba95f-2ca1-4f04-8a09-3a1c9dd175d9"),
 		UUID.fromString("558ce3f5-586d-444d-8de1-bc2ec78535e9"),
+		UUID.fromString("58f71c3e-e867-4175-8ed3-a771b41351d7"),
+		UUID.fromString("6ec3a6f1-105b-40f1-9b7e-972c9c4ce137"),
 		UUID.fromString("24638873-05a6-4e51-8f2b-ba07c0f15b6b"),
 		UUID.fromString("610fe299-3b1c-49d8-9672-8f70d4573d2e"),
 	))!!

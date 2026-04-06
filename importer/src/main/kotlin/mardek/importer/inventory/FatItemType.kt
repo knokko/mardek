@@ -5,6 +5,7 @@ import mardek.content.audio.SoundEffect
 class FatItemType(
 	val flashName: String,
 	val displayName: String,
+	val niceName: String,
 	val color: Int,
 	val sheetName: String,
 	val sheetRow: Int,

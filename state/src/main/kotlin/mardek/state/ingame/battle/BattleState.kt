@@ -196,6 +196,7 @@ class BattleState(
 					if (!effects.combatant.isAlive()) {
 						state = BattleStateMachine.NextTurn(time + 1000_000_000L)
 						if (!effects.combatant.isOnPlayerSide && effects.combatant is MonsterCombatantState) {
+							context.encyclopedia.reportMonsterAsSlain(effects.combatant.monster)
 							for (player in livingPlayers()) {
 								player.gainExperience(
 									context, effects.combatant.monster.experience *
@@ -511,6 +512,7 @@ class BattleState(
 			} else {
 				if (target is MonsterCombatantState) {
 					attacker.gainExperience(context, target.monster.experience * target.getLevel(context))
+					context.encyclopedia.reportMonsterAsSlain(target.monster)
 					for (player in livingPlayers()) {
 						if (player !== attacker && target.isOnPlayerSide != player.isOnPlayerSide) {
 							player.gainExperience(

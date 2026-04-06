@@ -31,9 +31,19 @@ class CreatureType(
 	 */
 	@BitField(id = 2)
 	val revertsHealing: Boolean,
+
+	/**
+	 * The 'nice' name of the creature type, which is currently only used in the "People" section of the
+	 * encyclopedia.
+	 *
+	 * Note that this can be the empty string if this creature type is never used in the "People" section of the
+	 * encyclopedia.
+	 */
+	@BitField(id = 3)
+	val niceName: String,
 ) {
 
-	constructor() : this("", KimSprite(), false)
+	constructor() : this("", KimSprite(), false, "")
 
 	override fun toString() = flashName
 }

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import java.awt.Color
 import kotlin.time.Duration.Companion.milliseconds
@@ -49,6 +50,15 @@ object TestMardekHouseActions {
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(updateContext)
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
+
+			val oldEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
+			assertEquals(0, oldEncyclopedia.people.filter { it.entry != null }.size)
+			assertEquals(1, oldEncyclopedia.places.filter { it.entry != null }.size)
+			assertEquals("Goznor", oldEncyclopedia.places.find { it.entry != null }!!.entry!!.name)
+			assertSame(
+				content.encyclopedia.places.find { it.name == "Goznor" }!!,
+				oldEncyclopedia.places.find { it.entry != null }!!.entry!!,
+			)
 
 			// Which should automatically enter the action sequence where Mardek talks to his mum
 			// Pressing the right arrow key does *not* prevent this
@@ -140,6 +150,15 @@ object TestMardekHouseActions {
 			assertEquals(Direction.Left, areaState.getCharacterState(mother)!!.direction)
 			assertEquals(AreaPosition(3, 3), areaState.getPlayerPosition(0))
 			assertEquals(Direction.Up, areaState.getPlayerDirection(0))
+
+			val newEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
+			assertEquals(2, newEncyclopedia.people.filter { it.entry != null }.size)
+			assertTrue(newEncyclopedia.people.any { it.entry?.firstName == "Enki" })
+			assertTrue(newEncyclopedia.people.any { it.entry?.firstName == "Lilanea" })
+			assertSame(
+				content.encyclopedia.people.find { it.snapshots[0].firstName == "Enki" }!!.snapshots[0],
+				newEncyclopedia.people.find { it.entry?.firstName == "Enki" }!!.entry,
+			)
 
 			// Move back to the door, and check that the cutscene does NOT trigger again
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))

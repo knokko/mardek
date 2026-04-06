@@ -11,6 +11,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import kotlin.time.Duration.Companion.milliseconds
@@ -19,8 +20,6 @@ object TestTalkTriggers {
 
 	fun testGoznorAccessoryShop(instance: TestingInstance) {
 		instance.apply {
-			// TODO CHAP1 Test that SocialFox is added to encyclopedia
-
 			val state = InGameState(simpleCampaignState(), "talk triggers")
 			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
 			performTimelineTransition(
@@ -41,6 +40,12 @@ object TestTalkTriggers {
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(updateContext)
 			assertInstanceOf<AreaSuspensionActions>(areaState.suspension)
+
+			val encyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
+			assertSame(
+				content.encyclopedia.people.find { it.snapshots[0].firstName == "Social Fox" }!!.snapshots[0],
+				encyclopedia.people.find { it.entry != null }!!.entry,
+			)
 			// TODO CHAP2 Test that the shop opens instead of the dialogue
 		}
 	}

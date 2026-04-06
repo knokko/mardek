@@ -12,6 +12,7 @@ import mardek.content.BITSER
 import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
 import mardek.content.area.Direction
+import mardek.content.encyclopedia.EncyclopediaPerson
 import mardek.content.portrait.PortraitInfo
 import mardek.content.sprite.DirectionalSprites
 import mardek.content.sprite.ObjectSprites
@@ -132,11 +133,12 @@ class AreaCharacter(
 	val sharedActionSequence: ActionSequence?,
 
 	/**
-	 * When `encyclopediaPerson` is non-null and the player interacts with this character, the character named
-	 * `encyclopediaPerson` should be added to the encyclopedia (unless already present).
+	 * When `encyclopediaPerson` is non-null and the player interacts with this character,
+	 * this person should be added to the encyclopedia (unless already present).
 	 */
 	@BitField(id = 12, optional = true)
-	val encyclopediaPerson: String?,
+	@ReferenceField(stable = false, label = "encyclopedia people")
+	val encyclopediaPerson: EncyclopediaPerson?,
 
 	/**
 	 * The spawning condition of this character.

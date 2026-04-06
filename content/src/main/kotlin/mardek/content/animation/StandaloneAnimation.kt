@@ -49,8 +49,8 @@ class StandaloneAnimation(
 	@ReferenceFieldTarget(label = "animation particle emitters")
 	private val particleEmitters: Array<ParticleEmitter>,
 ) {
-	@Suppress("unused")
-	private constructor() : this(
+
+	constructor() : this(
 		AnimationFrames(), emptyArray(), emptyArray(),
 		emptyArray(), emptyArray(),
 	)

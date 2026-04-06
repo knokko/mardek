@@ -73,18 +73,6 @@ fun addElements(content: Content) {
 
 	content.stats.elements.addAll(listOf(fire, water, earth, air))
 
-	val dark = Element(
-		rawName = "DARK",
-		bonusStat = CombatStat.MeleeDefense,
-		primaryChar = "D",
-		color = rgb(0, 0, 0),
-		thickSprite = getBcSprite("Dark"),
-		thinSprite = getBcSprite("DarkThin"),
-		swingEffect = getBcSprite("SwingDark"),
-		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_DARK" }!!,
-		spellCastBackground = getBcSprite("CastBackgroundDark"),
-		id = UUID.fromString("e5a2760a-1264-4c0d-9ca4-f1bcba29d613"),
-	)
 	val light = Element(
 		rawName = "LIGHT",
 		bonusStat = CombatStat.RangedDefense,
@@ -97,23 +85,23 @@ fun addElements(content: Content) {
 		spellCastBackground = getBcSprite("CastBackgroundLight"),
 		id = UUID.fromString("b7f41764-8d53-4383-8bf3-6a194d01a5a0"),
 	)
+	val dark = Element(
+		rawName = "DARK",
+		bonusStat = CombatStat.MeleeDefense,
+		primaryChar = "D",
+		color = rgb(0, 0, 0),
+		thickSprite = getBcSprite("Dark"),
+		thinSprite = getBcSprite("DarkThin"),
+		swingEffect = getBcSprite("SwingDark"),
+		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_DARK" }!!,
+		spellCastBackground = getBcSprite("CastBackgroundDark"),
+		id = UUID.fromString("e5a2760a-1264-4c0d-9ca4-f1bcba29d613"),
+	)
 	dark.setWeakAgainst(light)
 	light.setWeakAgainst(dark)
 
-	content.stats.elements.addAll(listOf(dark, light))
+	content.stats.elements.addAll(listOf(light, dark))
 
-	val fig = Element(
-		rawName = "FIG",
-		bonusStat = CombatStat.MaxHealth,
-		primaryChar = "M",
-		color = rgb(191, 68, 205),
-		thickSprite = getBcSprite("Fig"),
-		thinSprite = getBcSprite("FigThin"),
-		swingEffect = getBcSprite("SwingFig"),
-		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_FIG" }!!,
-		spellCastBackground = getBcSprite("CastBackgroundFig"),
-		id = UUID.fromString("d4429d7d-3608-4faa-b2a9-0e93eaeea28b"),
-	)
 	val aether = Element(
 		rawName = "ETHER",
 		bonusStat = CombatStat.MaxMana,
@@ -127,10 +115,22 @@ fun addElements(content: Content) {
 		spellCastBackground = getBcSprite("CastBackgroundAether"),
 		id = UUID.fromString("d171c63f-0e4b-4a43-953e-4580269b4e43"),
 	)
+	val fig = Element(
+		rawName = "FIG",
+		bonusStat = CombatStat.MaxHealth,
+		primaryChar = "M",
+		color = rgb(191, 68, 205),
+		thickSprite = getBcSprite("Fig"),
+		thinSprite = getBcSprite("FigThin"),
+		swingEffect = getBcSprite("SwingFig"),
+		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_FIG" }!!,
+		spellCastBackground = getBcSprite("CastBackgroundFig"),
+		id = UUID.fromString("d4429d7d-3608-4faa-b2a9-0e93eaeea28b"),
+	)
 	fig.setWeakAgainst(aether)
 	aether.setWeakAgainst(fig)
 
-	content.stats.elements.addAll(listOf(fig, aether))
+	content.stats.elements.addAll(listOf(aether, fig))
 
 	content.stats.elements.add(Element(
 		rawName = "NONE",

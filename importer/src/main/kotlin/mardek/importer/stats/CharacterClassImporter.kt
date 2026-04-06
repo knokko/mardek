@@ -3,11 +3,14 @@ package mardek.importer.stats
 import mardek.content.Content
 import mardek.content.inventory.EquipmentSlot
 import mardek.content.inventory.ItemType
+import mardek.content.skill.SkillClass
 import mardek.content.stats.CharacterClass
 import mardek.importer.area.parseFlashString
 import mardek.importer.inventory.FatItemType
+import mardek.importer.util.compressKimSprite3
 import mardek.importer.util.parseActionScriptObject
 import mardek.importer.util.parseActionScriptResource
+import java.awt.image.BufferedImage
 import java.util.UUID
 
 internal fun importClasses(content: Content, fatItemTypes: List<FatItemType>) {
@@ -88,4 +91,128 @@ internal fun importClasses(content: Content, fatItemTypes: List<FatItemType>) {
 			),
 		))
 	}
+
+	// The next hardcoded classes are only used for the encyclopedia
+	val dummySkillClass = SkillClass(
+		key = "encyclopedia dummy",
+		name = "encyclopedia dummy",
+		description = "dummy skill class for the fake character classes used by non-player people in the encyclopedia",
+		actions = ArrayList(0),
+		icon = compressKimSprite3(BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB))
+	)
+	content.skills.classes.add(dummySkillClass)
+	content.stats.classes.add(CharacterClass(
+		rawName = "muriance",
+		displayName = "Bandit Chief",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "vennie",
+		displayName = "Thief",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "bernard",
+		displayName = "Warlock",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "elwyen_child",
+		displayName = "Youngling",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "necromancer",
+		displayName = "Necromancer",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "enki",
+		displayName = "Wanderer",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "mother",
+		displayName = "Mother",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "shop",
+		displayName = "Shopkeeper",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "mugbert",
+		displayName = "Grunt",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "jaques",
+		displayName = "Guard Captain",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "king",
+		displayName = "King",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "gallovar",
+		displayName = "Medium Priest",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "priest",
+		displayName = "High Priest",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "fox",
+		displayName = "Grand Adventurer",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "officer",
+		displayName = "First Officer",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "advisor",
+		displayName = "Trusted Advisor",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "priestess",
+		displayName = "Priestess",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "clavis",
+		displayName = "Equilibriumancer",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
+	content.stats.classes.add(CharacterClass(
+		rawName = "qualna",
+		displayName = "Diviner",
+		skillClass = dummySkillClass,
+		equipmentSlots = emptyArray(),
+	))
 }

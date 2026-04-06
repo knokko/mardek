@@ -59,6 +59,8 @@ object TestExperience {
 
 			assertEquals(0, mardekState.experienceToNextLevel)
 			assertEquals(0, deuganState.experienceToNextLevel)
+			val oldEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
+			assertEquals(0, oldEncyclopedia.monsters.count { it.entry != null })
 
 			// Wait for the bleed damage...
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
@@ -74,6 +76,14 @@ object TestExperience {
 			// These numbers are taken over from vanilla MARDEK
 			assertEquals(11200, mardekState.experienceToNextLevel)
 			assertEquals(11200, deuganState.experienceToNextLevel)
+			val newEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
+			assertEquals(1, newEncyclopedia.monsters.count { it.entry != null })
+			val slainEncyclopediaMonster = newEncyclopedia.monsters.find { it.entry != null }!!
+			assertSame(
+				content.battle.monsters.find { it.name == "mightydragon" }!!,
+				slainEncyclopediaMonster.entry!!.monsters[0],
+			)
+			assertEquals(1, slainEncyclopediaMonster.amount)
 		}
 	}
 

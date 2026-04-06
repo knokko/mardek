@@ -4,7 +4,9 @@ import com.github.knokko.bitser.BitEnum
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.animation.ColorTransform
+import mardek.content.encyclopedia.EncyclopediaArea
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.StateExpression
 
@@ -54,10 +56,13 @@ class AreaProperties(
 	val dungeon: String?,
 
 	/**
-	 * Upon visiting this area, the place with this name will be discovered in the encyclopedia
+	 * Upon visiting this area, this place will be discovered in the encyclopedia.
+	 *
+	 * (When this is `null`, nothing is added to the encyclopedia.)
 	 */
 	@BitField(id = 5, optional = true)
-	val encyclopediaName: String?,
+	@ReferenceField(stable = false, label = "encyclopedia places")
+	val encyclopediaPlace: EncyclopediaArea?,
 
 	/**
 	 * When an area is a dreamworld area, this property determines its background color.

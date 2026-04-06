@@ -12,6 +12,8 @@ import mardek.content.area.Direction
 import mardek.content.audio.SoundEffect
 import mardek.content.battle.Battle
 import mardek.content.characters.PlayableCharacter
+import mardek.content.encyclopedia.EncyclopediaArtefact
+import mardek.content.encyclopedia.EncyclopediaPerson
 import mardek.content.inventory.Item
 import mardek.content.sprite.NamedSprite
 import mardek.content.story.Timeline
@@ -54,6 +56,8 @@ sealed class FixedAction {
 			ActionTakeItem::class.java,
 			ActionGiveItem::class.java,
 			ActionShop::class.java,
+			ActionAddEncyclopediaPerson::class.java,
+			ActionAddEncyclopediaArtefact::class.java,
 		)
 	}
 }
@@ -694,4 +698,40 @@ class ActionShop(
 
 	@Suppress("unused")
 	private constructor() : this(AreaShop())
+}
+
+/**
+ * Adds a person to the encyclopedia of the player (unless it was already in the encyclopedia)
+ */
+@BitStruct(backwardCompatible = true)
+class ActionAddEncyclopediaPerson(
+
+	/**
+	 * The encyclopedia person to be added
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "encyclopedia people")
+	val person: EncyclopediaPerson
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(EncyclopediaPerson())
+}
+
+/**
+ * Adds an artefact to the encyclopedia of the player (unless it was already in the encyclopedia)
+ */
+@BitStruct(backwardCompatible = true)
+class ActionAddEncyclopediaArtefact(
+
+	/**
+	 * The encyclopedia artefact to be added
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "encyclopedia artefacts")
+	val artefact: EncyclopediaArtefact
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(EncyclopediaArtefact())
 }

@@ -11,7 +11,8 @@ import com.github.knokko.bitser.field.IntegerField
 class ItemType(
 
 	/**
-	 * The display name of the item type, as imported from Flash. It is displayed in the inventory UI.
+	 * The display name (e.g. "WEAPON: SWORD") of the item type, as imported from Flash.
+	 * It is displayed in the inventory UI.
 	 */
 	@BitField(id = 0)
 	val displayName: String,
@@ -23,9 +24,15 @@ class ItemType(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true)
 	val gridColor: Int,
+
+	/**
+	 * The 'nice name' (e.g. "Sword") of the item type, which is used in the encyclopedia.
+	 */
+	@BitField(id = 2)
+	val niceName: String,
 ) {
 
-	constructor() : this("", 0)
+	constructor() : this("", 0, "")
 
 	override fun toString() = displayName
 }

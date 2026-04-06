@@ -19,6 +19,9 @@ import mardek.importer.audio.importAudioContent
 import mardek.importer.battle.importBattleContent
 import mardek.importer.battle.importMonsterStats
 import mardek.importer.characters.importPlayableCharacters
+import mardek.importer.encyclopedia.importEncyclopediaArtefacts
+import mardek.importer.encyclopedia.importEncyclopediaPeople
+import mardek.importer.encyclopedia.importEncyclopediaPlaces
 import mardek.importer.inventory.hardcodeItemTypes
 import mardek.importer.stats.importStatsContent
 import mardek.importer.inventory.importItemsContent
@@ -69,6 +72,9 @@ class TestAreaParser {
 			name = "mightydragon", animations = CombatantAnimations(), propertiesText = MONSTER_PROPERTIES_TEXT, content
 		))
 		content.areas.enemySelections.add(SharedEnemySelections(name = "TAINTED_GROTTO", selections = ArrayList()))
+		importEncyclopediaPeople(content, true)
+		importEncyclopediaArtefacts(content, true)
+		importEncyclopediaPlaces(content, true)
 		importAreaContent(content)
 	}
 
@@ -107,7 +113,10 @@ class TestAreaParser {
 			miasma = false,
 			noStorage = false
 		), area.flags)
-		assertEquals("Aeropolis", area.properties.encyclopediaName)
+		assertSame(
+			content.encyclopedia.places.find { it.name == "Aeropolis" }!!,
+			area.properties.encyclopediaPlace,
+		)
 		assertEquals(AreaDreamType.None, area.properties.dreamType)
 		assertEquals(AreaSnowType.None, area.properties.snowType)
 
@@ -171,7 +180,7 @@ class TestAreaParser {
 			miasma = false,
 			noStorage = true
 		), area.flags)
-		assertNull(area.properties.encyclopediaName)
+		assertNull(area.properties.encyclopediaPlace)
 		assertEquals(AreaDreamType.None, area.properties.dreamType)
 		assertEquals(AreaSnowType.None, area.properties.snowType)
 		assertEquals(2, area.objects.doors.size)

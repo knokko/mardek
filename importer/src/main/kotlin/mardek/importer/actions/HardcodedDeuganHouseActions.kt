@@ -1,13 +1,16 @@
 package mardek.importer.actions
 
+import mardek.content.Content
+import mardek.content.action.ActionAddEncyclopediaArtefact
 import mardek.content.action.ActionSequence
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.ActionTargetPartyMember
+import mardek.content.action.FixedAction
 import java.util.UUID
 
 internal fun hardcodeDeuganHouseActions(
-	hardcoded: MutableMap<String, MutableList<ActionSequence>>
+	content: Content, hardcoded: MutableMap<String, MutableList<ActionSequence>>
 ) {
 	val bookContent = arrayOf(
 		"The elemental crystals were created by YALORT when He made the world, " +
@@ -34,10 +37,15 @@ internal fun hardcodeDeuganHouseActions(
 		"The location of the Dark Crystal is unknown; this is probably for the best, " +
 				"since it is the crystal most often sought by those who wish to inflict evil on the world.",
 	)
+	val crystalNames = arrayOf(
+		"Fire Crystal", "Water Crystal", "Air Crystal", "Earth Crystal", "Light Crystal", "Dark Crystal"
+	)
 	val crystalsBookRoot = fixedActionChain(
 		actions = bookContent.map {
 			ActionTalk(speaker = ActionTargetDefaultDialogueObject(), expression = "", text = it)
-		}.toTypedArray(), // TODO CHAP3 Add the 6 crystals to the encyclopedia artefacts
+		}.toTypedArray<FixedAction>() + crystalNames.map { ActionAddEncyclopediaArtefact(
+			content.encyclopedia.artefacts.find { artefact -> artefact.name == it }!!
+		) }.toTypedArray<FixedAction>(),
 		ids = arrayOf(
 			UUID.fromString("5b31f266-0d3f-44de-ac6a-f4bd539e8816"),
 			UUID.fromString("2697b313-af9c-44bf-a1f6-7a449f5b5d24"),
@@ -47,6 +55,12 @@ internal fun hardcodeDeuganHouseActions(
 			UUID.fromString("72848269-93ac-4071-b2d8-839724116367"),
 			UUID.fromString("e4d7de95-f78a-4421-8fb5-25862bb7053a"),
 			UUID.fromString("cb5ab156-1679-4845-8477-9399243abb34"),
+			UUID.fromString("f5a6a687-4c8c-4cbc-9a14-44459510d277"),
+			UUID.fromString("02c9d8ed-3709-4979-8177-590d23058965"),
+			UUID.fromString("5408ace2-853f-4fb1-92a4-f5e9d254c5ac"),
+			UUID.fromString("7f895db4-e619-48c8-974d-0174b0398d88"),
+			UUID.fromString("5bd69282-b0c5-4655-afa2-8028f07ed31b"),
+			UUID.fromString("5afd1cba-6177-4cab-89a7-6f2dfc9a6e59"),
 		),
 	)!!
 	val pollyRoot = fixedActionChain( // TODO CHAP2 Use different dialogue
