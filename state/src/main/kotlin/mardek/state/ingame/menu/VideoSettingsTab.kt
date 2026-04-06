@@ -3,9 +3,32 @@ package mardek.state.ingame.menu
 import mardek.input.InputKey
 import mardek.state.VideoSettings
 
+/**
+ * The "Video Settings" tab.
+ *
+ * This tab only exists in this MARDEK engine; not in the original game.
+ * It can be used to customize some (mostly Vulkan-related) video settings.
+ *
+ * This class tracks which video setting property the player *has selected*,
+ * but not the *values*.
+ * The actual values are stored in the `MardekWindow`, and on disk.
+ */
 class VideoSettingsTab : InGameMenuTab() {
 
+	/**
+	 * The current video settings.
+	 *
+	 * This is a late-init property that will be initialized by the renderer.
+	 */
 	lateinit var settings: VideoSettings
+
+	/**
+	 * The 'index' of the currently-selected property.
+	 *
+	 * The player can change this index by pressing [InputKey.MoveUp] or [InputKey.MoveDown].
+	 * The player can change the *value* of the selected property by pressing [InputKey.MoveLeft], [InputKey.MoveRight],
+	 * or [InputKey.Interact].
+	 */
 	var selectedProperty = 0
 
 	override fun getText() = "Video  Settings"

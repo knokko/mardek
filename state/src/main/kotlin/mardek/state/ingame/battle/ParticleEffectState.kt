@@ -73,12 +73,34 @@ class ParticleEffectState(
 	}
 }
 
+/**
+ * Represents the state of a [ParticleEmitter]. This tracks which particles it has already spawned, as well as how many
+ * waves it still needs to spawn.
+ */
 class ParticleEmitterState(
+
+	/**
+	 * The content [ParticleEmitter]. Note that multiple [ParticleEmitterState]s can have
+	 * the same `emitter.
+	 */
 	val emitter: ParticleEmitter,
 ) {
+
+	/**
+	 * The particles that were already spawned by this emitter state
+	 */
 	val particles = mutableListOf<ParticleState>()
+
+	/**
+	 * The number of waves that this emitter state has already spawned. The [update] method will spawn more waves
+	 * whenever this value is becoming too low.
+	 */
 	var numSpawnedWaves = 0
 
+	/**
+	 * Updates this emitter state, as well as all the particles that it has spawned. If needed, this method will spawn
+	 * a new wave of particles. It also removes expired particles.
+	 */
 	fun update(startTime: Long, currentTime: Long): Boolean {
 		val passedSeconds = (currentTime - startTime) / 1000_000_000f
 		val maxEmitterRounds = emitter.waves.numRounds
@@ -97,20 +119,69 @@ class ParticleEmitterState(
 	}
 }
 
+/**
+ * Represents a single particle spawned from a [ParticleEmitterState]. This class captures the position, size, and
+ * velocity when the particle was spawned, and uses this to derive the position and size in the future.
+ */
 class ParticleState(
+
+	/**
+	 * The emitter from which this particle was spawned. We need to remember this because it influences some
+	 * dynamics of this particle.
+	 */
 	val emitter: ParticleEmitter,
 	indexInWave: Int,
 	deltaTime: Float,
+
+	/**
+	 * The result of `System.nanoTime()` when this particle was spawned.
+	 */
 	val spawnTime: Long,
 ) {
+
+	/**
+	 * The X-coordinate of this particle, when it was spawned
+	 */
 	val initialX: Float
+
+	/**
+	 * The Y-coordinate of this particle, when it was spawned
+	 */
 	val initialY: Float
+
+	/**
+	 * The width of this particle, when it was spawned
+	 */
 	val initialWidth: Float
+
+	/**
+	 * The height of this particle, when it was spawned
+	 */
 	val initialHeight: Float
+
+	/**
+	 * The rotation (degrees) of this particle, when it was spawned
+	 */
 	val initialRotation: Float
+
+	/**
+	 * The X-component of the velocity (units per second) of this particle, when it was spawned
+	 */
 	val initialVelocityX: Float
+
+	/**
+	 * The Y-component of the velocity (units per second) of this particle, when it was spawned
+	 */
 	val initialVelocityY: Float
+
+	/**
+	 * The X-component of the acceleration (units per second^2) of this particle, when it was spawned
+	 */
 	val accelerationX: Float
+
+	/**
+	 * The Y-component of the acceleration (units per second^2) of this particle, when it was spawned
+	 */
 	val accelerationY: Float
 
 	init {
@@ -196,9 +267,14 @@ class ParticleState(
 		this.accelerationY = accelerationY
 	}
 
+	/**
+	 * Checks whether this particle should expire before `System.nanoTime() >= renderTime`
+	 */
 	fun hasExpired(renderTime: Long) = renderTime - spawnTime >= emitter.lifeTime * 1000_000_000L
 
 	/**
+	 * Computes the X-coordinate that this particle would have when `System.nanoTime() == renderTime`.
+	 *
 	 * The recurrence formula for the velocity is
 	 * ```
 	 * v[t] = M * (v[t-1] + A)
@@ -241,6 +317,11 @@ class ParticleState(
 				(initialVelocityX - steadyVelocity) / lnMultiplier
 	}
 
+	/**
+	 * Computes the Y-coordinate that this particle would have when `System.nanoTime() == renderTime`.
+	 *
+	 * See the doc comments of [computeX] for a derivation of the formula.
+	 */
 	fun computeY(renderTime: Long): Float {
 		val t = (renderTime - spawnTime) / 1000_000_000f
 		val velocityMultiplier = emitter.dynamics.velocityMultiplierY
@@ -253,6 +334,9 @@ class ParticleState(
 				(initialVelocityY - steadyVelocity) / lnMultiplier
 	}
 
+	/**
+	 * Computes the rotation (degrees) that the particle would have when `System.nanoTime() == renderTime`.
+	 */
 	fun computeRotation(renderTime: Long): Float {
 		val t = (renderTime - spawnTime) / 1000_000_000f
 		return initialRotation + t * emitter.dynamics.spin
@@ -288,10 +372,16 @@ class ParticleState(
 		return ((1.0 - factor) * size + factor * nextSize).toFloat()
 	}
 
+	/**
+	 * Computes the width that the particle should have when `System.nanoTime() == renderTime`.
+	 */
 	fun computeWidth(renderTime: Long) = computeSize(
 		renderTime, initialWidth, emitter.size.growX, emitter.size.dynamicGrowX
 	)
 
+	/**
+	 * Computes the height that the particle should have when `System.nanoTime() == renderTime`.
+	 */
 	fun computeHeight(renderTime: Long) = computeSize(
 		renderTime, initialHeight, emitter.size.growY, emitter.size.dynamicGrowY
 	)

@@ -1,7 +1,5 @@
 package mardek.state.title
 
-import com.github.knokko.bitser.io.BitInputStream
-import com.github.knokko.bitser.Bitser
 import mardek.content.Content
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
@@ -14,31 +12,84 @@ import mardek.state.ingame.InGameState
 import mardek.state.saves.SaveSelectionState
 import mardek.state.saves.SavesFolderManager
 import mardek.state.util.Rectangle
-import java.io.ByteArrayInputStream
 
+/**
+ * The *Title Screen* state, which is the initial game state when the game is started.
+ *
+ * From this state, the player can load an existing save/campaign, or start a new one.
+ */
 class TitleScreenState: GameState {
 
+	/**
+	 * The region where the "New Game" button was rendered, or `null` before the first frame is rendered.
+	 */
 	var newGameButton: Rectangle? = null
+
+	/**
+	 * The region where the "Load Game" button was rendered, or `null` before the first frame is rendered.
+	 */
 	var loadGameButton: Rectangle? = null
+
+	/**
+	 * The region where the "Music Player" button was rendered, or `null` before the first frame is rendered.
+	 */
 	var musicPlayerButton: Rectangle? = null
+
+	/**
+	 * The region where the "Quit" button was rendered, or `null` before the first frame is rendered.
+	 */
 	var quitButton: Rectangle? = null
 
+	/**
+	 * When the "Begin" button is visible, this is the region where the "Begin" button was rendered. Otherwise, this
+	 * will be `null`.
+	 */
 	var beginButton: Rectangle? = null
 
+	/**
+	 * The 'index' (into [buttons]) of the currently-hovered button (e.g. 0 for "New Game" or 1 for "Load Game").
+	 * When the player isn't hovering over any of these buttons, this will be -1.
+	 */
 	var selectedButton = -1
 
 	private val buttons = listOf(::newGameButton, ::loadGameButton, ::musicPlayerButton, ::quitButton, ::beginButton)
 
 	// New-game variables
+	/**
+	 * To start a new campaign, the player needs to click on the "New Game" button. After that, a text field should
+	 * appear, where the player can type the name of the campaign. This field contains the new campaign name that the
+	 * player is typing. The player can confirm the name by clicking on "Begin".
+	 */
 	var newCampaignName: String? = null
 		private set
+
 	private var lastValidatedCampaignName = ""
+
+	/**
+	 * Whether [newCampaignName] is a valid name for a campaign. The name must be a valid directory name on the OS.
+	 * Furthermore, it must *not* be an element of [availableCampaigns] (since campaign names must be unique).
+	 */
 	var isCampaignNameValid = false
 		private set
 
 	// Load-game variables
+	/**
+	 * The names of the campaigns from which the player can *probably* load a save. To determine these names,
+	 * we scan the saves folder of the game. This works most of the time, but fails when e.g. some saves are
+	 * corrupted, which we will only find out after we try to load them.
+	 *
+	 * Note that this field is initially `null`, which simply means that we haven't scanned the saves folder yet.
+	 * We should scan the saves folder during the first update.
+	 */
 	var availableCampaigns: Array<String>? = null
 		private set
+
+	/**
+	 * This field becomes non-null when the player clicks "Load Game", which opens the save file selection. This field
+	 * tracks which save file and campaign the player has currently selected.
+	 *
+	 * When the player exists/cancels the save file selection, this field becomes `null` again.
+	 */
 	var saveSelection: SaveSelectionState? = null
 
 	private var afterContentLoaded: ((content: Content, soundQueue: SoundQueue) -> GameState)? = null

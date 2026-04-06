@@ -11,9 +11,13 @@ import mardek.content.stats.Element
 import mardek.content.stats.StatusEffect
 import java.util.EnumMap
 
+/**
+ * Represents the result of a move (basic attack, skill, or item). This captures e.g. how much damage was dealt.
+ */
 class MoveResult(
 	/**
-	 * The element icon that should be displayed in the damage indicator **of the caster/attacker**
+	 * The element icon that should be displayed in the damage indicator **of the caster/attacker**.
+	 * This field is usually ignored, but it is needed for e.g. health-draining attacks.
 	 */
 	val element: Element,
 
@@ -22,6 +26,10 @@ class MoveResult(
 	 */
 	val sounds: List<SoundEffect>,
 
+	/**
+	 * This contains the damage that was dealt to each target, as well as any additional effects inflicted on these
+	 * targets.
+	 */
 	val targets: List<Entry>,
 
 	/**
@@ -48,6 +56,9 @@ class MoveResult(
 		return result.toString()
 	}
 
+	/**
+	 * Represents the damage that was dealt to a single target, as well as any additional effects against that target.
+	 */
 	@BitStruct(backwardCompatible = true)
 	class Entry(
 		/**

@@ -5,7 +5,15 @@ import mardek.content.stats.StatusEffect
 import mardek.state.util.Rectangle
 import java.util.Locale
 
+/**
+ * This is the type of [CombatantState.renderInfo]: it is used to exchange information between the state and the
+ * renderer. It is used to coordinate e.g. animations and (particle) effects.
+ */
 class CombatantRenderInfo {
+
+	/**
+	 * The status effects that this combatant recently gained and lost. The renderer needs to render these.
+	 */
 	val effectHistory = StatusEffectHistory()
 
 	/**
@@ -90,8 +98,19 @@ class CombatantRenderInfo {
 	 */
 	var statusEffectPoint = CombatantRenderPosition.DUMMY
 
+	/**
+	 * The position where the state should spawn the elemental skill-casting particle effects. This is typically at the
+	 * hand of the combatant.
+	 *
+	 * The renderer uses this field to tell the state where the hand is.
+	 */
 	val castingParticlePositions = mutableListOf<CombatantRenderPosition>()
 
+	/**
+	 * The 'core' position of the combatant (typically at the middle of the belly) *at its starting position*.
+	 *
+	 * (So when the combatant moves to another combatant for a melee attack, this *core* position will *not* move.)
+	 */
 	var core = CombatantRenderPosition.DUMMY
 
 	/**
@@ -117,14 +136,17 @@ class CombatantRenderInfo {
 	var renderedInfoBlock: Rectangle? = null
 }
 
+/**
+ * A position that is relative to the top-left corner of the area where the battle is being rendered.
+ */
 class CombatantRenderPosition(
 	/**
-	 * The X-coordinate, in pixels
+	 * The X-coordinate, in pixels (positive X goes to the right)
 	 */
 	val x: Float,
 
 	/**
-	 * The Y-coordinate, in pixels
+	 * The Y-coordinate, in pixels (positive Y goes down)
 	 */
 	val y: Float
 ) {

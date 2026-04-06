@@ -76,28 +76,71 @@ private fun determineEnemyMaxMana(
 	}
 }
 
+/**
+ * Represents the (in-battle) state of a combatant.
+ *
+ * This is a sealed class with two subclasses:
+ * - [PlayerCombatantState] for player-controlled combatants, and
+ * - [MonsterCombatantState] for computer-controlled combatants (normally enemies)
+ */
 @BitStruct(backwardCompatible = true)
 sealed class CombatantState(
+
+	/**
+	 * The maximum health of the combatant.
+	 *
+	 * This will be recomputed when e.g. the Vitality of the combatant is changed.
+	 *
+	 * For [PlayerCombatantState]s, this is usually equal to the maximum health of the player, but not always
+	 * (e.g. due to vitality changes). When the battle is finished, the maximum health of the player will be reverted.
+	 */
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var maxHealth: Int,
 
+	/**
+	 * The maximum mana of the combatant.
+	 *
+	 * This will be recomputed when e.g. the Spirit of the combatant is changed.
+	 *
+	 * For [PlayerCombatantState]s, this is usually equal to the maximum health of the player, but not always
+	 * (e.g. when the spirit is increased or decreased). When the battle is finished, the maximum mana of the player
+	 * will be reverted.
+	 */
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var maxMana: Int,
 
+	/**
+	 * The current HP of the combatant, which must always be in the range [0, [maxHealth]]. The combatant faints when
+	 * its HP reaches 0.
+	 */
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var currentHealth: Int,
 
+	/**
+	 * The current MP of the combatant, which must always be in the range [0, [maxMana]]. Mana is needed to use some
+	 * skills.
+	 */
 	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var currentMana: Int,
 
+	/**
+	 * The current status effects of the combatant.
+	 *
+	 * For [PlayerCombatantState]s, this replaces the [CharacterState.activeStatusEffects] at the end of the battle
+	 * (except for the effects with [StatusEffect.disappearsAfterCombat] = true).
+	 */
 	@BitField(id = 4)
 	@ReferenceField(stable = true, label = "status effects")
 	val statusEffects: HashSet<StatusEffect>,
 
+	/**
+	 * The current element of the combatant. This will almost always be the original element of the combatant, but some
+	 * monsters (Master Stone and Karnos) can change their own element during combat.
+	 */
 	@BitField(id = 5)
 	@ReferenceField(stable = true, label = "elements")
 	var element: Element,
@@ -105,6 +148,13 @@ sealed class CombatantState(
 	/**
 	 * True if this combatant is on the side of the player, both literally (on the right of the screen) and
 	 * figuratively (fights for the player in battle).
+	 * - This must be `true` for any combatant in [BattleState.players].
+	 * - This must be `false` for any combatant in [BattleState.opponents].
+	 *
+	 * Normally, all combatants in [BattleState.players] will be [PlayerCombatantState]s, and all
+	 * combatants in [BattleState.opponents] will be [MonsterCombatantState]s, but this is **not** required by the
+	 * engine: the engine allows [BattleState.players] to contain [MonsterCombatantState]s, but this currently
+	 * never happens.
 	 */
 	@BitField(id = 6)
 	val isOnPlayerSide: Boolean,
@@ -127,24 +177,63 @@ sealed class CombatantState(
 	@IntegerField(expectUniform = false)
 	val statModifiers = EnumMap<CombatStat, Int>(CombatStat::class.java)
 
+	/**
+	 * This information is used to coordinate information to & from the renderer. Some coordination is needed for e.g.
+	 * rendering animations.
+	 */
 	val renderInfo = CombatantRenderInfo()
 
+	/**
+	 * Gets the [mardek.content.battle.PartyLayoutPosition] of this combatant. This is the 'base' position where this
+	 * combatant should be rendered (except when it is in the middle of e.g. a melee attack).
+	 */
 	fun getPosition(battleState: BattleState) = if (isOnPlayerSide) {
 		battleState.playerLayout.positions[battleState.players.indexOf(this)]
 	} else battleState.battle.enemyLayout.positions[battleState.opponents.indexOf(this)]
 
+	/**
+	 * Computes the maximum health that this combatant should have. This can depend on e.g. the current equipment and
+	 * vitality. This should always be equal to [maxHealth].
+	 */
 	abstract fun computeMaxHealth(context: BattleUpdateContext): Int
 
+	/**
+	 * Computes the maximum mana that this combatant should have. This can depend on e.g. the current equipment and
+	 * spirit. This should always be equal to [maxMana].
+	 */
 	abstract fun computeMaxMana(context: BattleUpdateContext): Int
 
+	/**
+	 * Gets the equipment of this combatant.
+	 *
+	 * Currently, this array should always have a length of 6, but may contain `null` elements. However, this is
+	 * subject to change in the future.
+	 */
 	abstract fun getEquipment(context: BattleUpdateContext): Array<Item?>
 
+	/**
+	 * Gets the weapon of the combatant, or `null` if it is unarmed.
+	 */
 	abstract fun getWeapon(context: BattleUpdateContext): Item?
 
+	/**
+	 * Gets the base/natural [stat] value. The difference between this and [getStat] is shown with a "+" or "-" in the
+	 * combatant info pop-up.
+	 *
+	 * For instance, if `getNatural(CombatStat.Strength) == 10` and `getStat(CombatStat.Strength, context) == 15`,
+	 * the popup will show a green "15" and a "+5".
+	 */
 	abstract fun getNatural(stat: CombatStat): Int
 
+	/**
+	 * Gets the current [stat] value. This is the value used for e.g. damage calculations.
+	 */
 	abstract fun getStat(stat: CombatStat, context: BattleUpdateContext): Int
 
+	/**
+	 * Updates [maxHealth] and [maxMana], and clamps [currentHealth] and [currentMana] to them. Furthermore, this
+	 * method may activate SOS effects, and it will remove non-auto status effect when [currentHealth] is 0.
+	 */
 	fun clampHealthAndMana(context: BattleUpdateContext) {
 		this.maxHealth = computeMaxHealth(context)
 		this.maxMana = computeMaxMana(context)
@@ -166,20 +255,49 @@ sealed class CombatantState(
 		}
 	}
 
+	/**
+	 * Checks whether this combatant is 'alive' or 'not fainted': it just checks whether `currentHealth > 0`.
+	 */
 	fun isAlive() = currentHealth > 0
 
+	/**
+	 * Checks whether healing against this combatant should be reverted. This is `true` for undead combatants and
+	 * zombified combatants.
+	 */
 	fun revertsHealing() = getCreatureType().revertsHealing || statusEffects.any { it.isZombie }
 
+	/**
+	 * Gets the current level of this combatant
+	 */
 	abstract fun getLevel(context: BattleUpdateContext): Int
 
+	/**
+	 * Gets the display name of this combatant
+	 */
 	abstract fun getName(): String
 
+	/**
+	 * Gets the (RPG) class name of this combatant (e.g. `Pyromancer`, *not* `PlayerCombatantState`).
+	 *
+	 * This is displayed in the combatant info pop-up, but doesn't serve any other purpose.
+	 */
 	abstract fun getClassName(): String
 
+	/**
+	 * Gets the creature type (race) of this combatant. This is used to determine whether `QUARRY: XXX` reaction
+	 * skills apply.
+	 */
 	abstract fun getCreatureType(): CreatureType
 
+	/**
+	 * Gets the [PassiveSkill]s and [ReactionSkill]s that this combatant has toggled. Currently, this can only be
+	 * non-empty for [PlayerCombatantState]s.
+	 */
 	abstract fun getToggledSkills(context: BattleUpdateContext): Set<Skill>
 
+	/**
+	 * Gets the current resistance against [element], as a fraction (e.g. 1f means 100% resistance/complete immunity).
+	 */
 	open fun getResistance(element: Element, context: BattleUpdateContext): Float {
 		var resistance = 0f
 		for (item in getEquipment(context)) {
@@ -193,6 +311,9 @@ sealed class CombatantState(
 		return resistance
 	}
 
+	/**
+	 * Gets the current resistance against [effect], as a fraction (e.g. 1f means 100% resistance/complete immunity).
+	 */
 	open fun getResistance(effect: StatusEffect, context: BattleUpdateContext): Int {
 		var resistance = 0
 		for (item in getEquipment(context)) {
@@ -206,6 +327,10 @@ sealed class CombatantState(
 		return resistance
 	}
 
+	/**
+	 * Gets all the SOS status effects of this combatant: these status effects will be given to the combatant when its
+	 * HP drops below 20% for the first time.
+	 */
 	fun getSosEffects(context: BattleUpdateContext): Set<StatusEffect> {
 		val effects = mutableSetOf<StatusEffect>()
 		for (skill in getToggledSkills(context)) {
@@ -214,6 +339,10 @@ sealed class CombatantState(
 		return effects
 	}
 
+	/**
+	 * Gets all the auto effects of this combatant: these status effects will be given to the combatant at the start
+	 * of the battle, and can **not** be removed.
+	 */
 	fun getAutoEffects(context: BattleUpdateContext): Set<StatusEffect> {
 		val autoEffects = mutableSetOf<StatusEffect>()
 		for (item in getEquipment(context)) {
@@ -227,12 +356,26 @@ sealed class CombatantState(
 		return autoEffects
 	}
 
+	/**
+	 * Gets all the animations of this combatant, which is primarily interesting for the renderer.
+	 */
 	abstract fun getAnimations(): CombatantAnimations
 
+	/**
+	 * Gets the icon that should be rendered in the turn order bar (top of the screen) to represent a turn of this
+	 * combatant.
+	 */
 	abstract fun getTurnOrderIcon(): KimSprite
 
+	/**
+	 * Checks whether this combatant has toggled any reactions skills of type [type]
+	 */
 	abstract fun hasReactions(context: BattleUpdateContext, type: ReactionSkillType): Boolean
 
+	/**
+	 * This should be called when the battle is finished. [PlayerCombatantState]s should transfer all the status
+	 * effects to the corresponding [CharacterState]s, except those with `disappearsAfterCombat = true`.
+	 */
 	open fun transferStatusBack(context: BattleUpdateContext) {}
 
 	/**
@@ -270,15 +413,26 @@ sealed class CombatantState(
 
 		@JvmStatic
 		@Suppress("unused")
-		val BITSER_HIERARCHY = arrayOf(
+		private val BITSER_HIERARCHY = arrayOf(
 			PlayerCombatantState::class.java,
 			MonsterCombatantState::class.java,
 		)
 	}
 }
 
+/**
+ * The subclass of [CombatantState] for combatants that represent playable characters, and can be controlled by the
+ * player.
+ *
+ * These should always fight on the side of the player, although the engine doesn't require this. (It just doesn't
+ * make sense to have a player-controlled combatant on the enemy side...)
+ */
 @BitStruct(backwardCompatible = true)
 class PlayerCombatantState(
+
+	/**
+	 * The playable character that is represented
+	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "playable characters")
 	val player: PlayableCharacter,
@@ -297,6 +451,10 @@ class PlayerCombatantState(
 	isOnPlayerSide = isOnPlayerSide
 ) {
 
+	/**
+	 * The skills that [player] has mastered during *this* battle. When this is non-empty for at least one player, all
+	 * the skills mastered during the battle will be shown after the loot screen.
+	 */
 	@BitField(id = 1)
 	@ReferenceField(stable = true, label = "skills")
 	val masteredSkillsThisBattle = HashSet<Skill>()
@@ -452,9 +610,19 @@ class PlayerCombatantState(
 	}
 }
 
+/**
+ * The subclass of [CombatantState] that is used for combatants that are *not* controlled by the player. This is
+ * usually for monsters, but it can also be used for human opponents like bandits.
+ *
+ * These combatants are normally the opponents of the player, but this engine also allows them to fight on the same
+ * side as the player (but this 'feature' is currently unused).
+ */
 @BitStruct(backwardCompatible = true)
 class MonsterCombatantState(
 
+	/**
+	 * The content [Monster]. Note that multiple [MonsterCombatantState]s can have the same monster.
+	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "monsters")
 	val monster: Monster,
@@ -465,6 +633,9 @@ class MonsterCombatantState(
 
 	isOnPlayerSide: Boolean,
 
+	/**
+	 * When this is non-null, it will be used instead of `monster.displayName`.
+	 */
 	@BitField(id = 2, optional = true)
 	val overrideDisplayName: String?,
 ) : CombatantState(
@@ -578,13 +749,29 @@ class MonsterCombatantState(
 
 	companion object {
 
-		@JvmStatic
 		@Suppress("unused")
 		@ReferenceField(stable = true, label = "strategy pools")
-		val USED_STRATEGIES_KEY_PROPERTIES = false
+		private const val USED_STRATEGIES_KEY_PROPERTIES = false
 	}
 }
 
-class ForcedTurnBlink(val color: Int) {
+/**
+ * When the turn of a combatant is forcibly skipped (e.g. due to paralysis or numbness + berserk),
+ * this class remembers the time at which the turn was skipped, as well as the right blink color. This is the type of
+ * [CombatantRenderInfo.lastForcedTurn].
+ *
+ * This information is used by the renderer to show the yellow/red paralysis/numbness blink/flash.
+ */
+class ForcedTurnBlink(
+
+	/**
+	 * The blink color (use `ColorPacker` to extract the RGB)
+	 */
+	val color: Int
+) {
+
+	/**
+	 * The result of `System.nanoTime()` when the turn was skipped (and the blink started)
+	 */
 	val time = System.nanoTime()
 }

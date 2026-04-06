@@ -4,7 +4,7 @@ import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
-import mardek.state.UsedPartyMember
+import mardek.state.ingame.UsedPartyMember
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

@@ -738,6 +738,10 @@ class AreaActionsState(
 		}
 	}
 
+	/**
+	 * This method should be called for each `MouseMoveEvent` that is fired while
+	 * `areaState.suspension is AreaSuspensionActions`
+	 */
 	internal fun processMouseMove(context: UpdateContext, event: MouseMoveEvent) {
 		initInventoryInteractionStates()
 		itemStorageInteraction?.processMouseMove(context, event.newX, event.newY)
@@ -777,6 +781,10 @@ class AreaActionsState(
 	 */
 	internal class UpdateContext(
 		parent: AreaState.UpdateContext,
+
+		/**
+		 * The [AreaState] where these actions are taking place
+		 */
 		val areaState: AreaState,
 	) : AreaState.UpdateContext(parent, parent.campaign) {
 

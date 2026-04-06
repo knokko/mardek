@@ -6,6 +6,9 @@ import mardek.content.battle.StrategyPool
 import mardek.content.battle.StrategyTarget
 import kotlin.random.Random
 
+/**
+ * This class is used by monsters to decide what they will do in combat (e.g. whom to attack, and which skill to use).
+ */
 class MonsterStrategyCalculator(
 	private val state: BattleState,
 	private val myState: MonsterCombatantState,
@@ -13,6 +16,12 @@ class MonsterStrategyCalculator(
 ) {
 	private val monster = myState.monster
 
+	/**
+	 * Determines the next move of the monster.
+	 *
+	 * Note that this will never return `null`. When a monster can't do anything, this method will return
+	 * [BattleStateMachine.Wait].
+	 */
 	fun determineNextMove(): BattleStateMachine.Move {
 		val nextMove = determineNextMoveRaw()
 		myState.lastMove = nextMove

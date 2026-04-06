@@ -9,7 +9,16 @@ import mardek.state.SoundQueue
  * controls the `SaveFile` selection process: the game calls `saveSelectionState.pressKey(...)` whenever the user
  * presses a key, and the `saveSelectionState` tells the game (and the renderer) which file the user is selecting.
  */
-class SaveSelectionState(val selectableCampaigns: Array<String>) {
+class SaveSelectionState(
+
+	/**
+	 * The distinct names of all campaigns that the player can load.
+	 *
+	 * (When a player can load 5 saves from campaign "casual" and 2 saves from campaign "solo run", this field should
+	 * be `arrayOf("casual", "solo run")`.)
+	 */
+	val selectableCampaigns: Array<String>
+) {
 
 	init {
 		if (this.selectableCampaigns.isEmpty()) throw IllegalArgumentException()
@@ -116,9 +125,29 @@ class SaveSelectionState(val selectableCampaigns: Array<String>) {
 	 * This class contains all the 'parameters' of the `update` and `pressKey` methods
 	 */
 	class UpdateContext(
+
+		/**
+		 * The [SavesFolderManager], typically `SavesFolderManager(SAVES_DIRECTORY)`, but different instances can be
+		 * used in unit tests.
+		 */
 		val savesFolderManager: SavesFolderManager,
+
+		/**
+		 * The game [Content]
+		 */
 		val content: Content,
+
+		/**
+		 * The [SoundQueue] where the sounds-to-be-played should be inserted. Actually playing these sounds is the
+		 * job of the `audio` odule.
+		 */
 		val soundQueue: SoundQueue,
+
+		/**
+		 * Whether the player can create/select a new save.
+		 * - This should be `true` when the player is creating a new save.
+		 * - This should be `false` when the player is loading a save.
+		 */
 		val canSelectNewSave: Boolean,
 	)
 

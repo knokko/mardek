@@ -19,4 +19,9 @@ val SAVES_DIRECTORY = File("$STORAGE_DIRECTORY/saves")
  */
 val VIDEO_SETTINGS_FILE = File("$STORAGE_DIRECTORY/video-settings")
 
+/**
+ * The directory where all the game logs should be stored (potentially useful for debugging).
+ *
+ * Note that logs are only created when the `enable-logging` command-line argument is given.
+ */
 val LOGS_DIRECTORY = File("$STORAGE_DIRECTORY/logs")

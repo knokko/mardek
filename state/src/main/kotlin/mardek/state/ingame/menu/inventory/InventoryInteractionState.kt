@@ -40,6 +40,10 @@ class InventoryInteractionState {
 	 */
 	var hoveredSlot: ItemSlotReference? = null
 
+	/**
+	 * This method should be called whenever a key is pressed inside an inventory menu, or similar menu. This method
+	 * only responds to the `MoveLeft` and `MoveRight` keys.
+	 */
 	fun processScroll(sounds: FixedSoundEffects, soundQueue: SoundQueue, key: InputKey) {
 		if (key == InputKey.MoveLeft) {
 			descriptionIndex -= 1
@@ -53,6 +57,10 @@ class InventoryInteractionState {
 		}
 	}
 
+	/**
+	 * This method should be called whenever the mouse is moved inside an inventory menu, or similar menu. This method
+	 * will check over which slot the mouse cursor is hovering, if any.
+	 */
 	fun processMouseMove(
 		newX: Int, newY: Int, gridRenderInfo: ItemGridRenderInfo?,
 		equipmentRenderInfo: Collection<EquipmentRowRenderInfo>,

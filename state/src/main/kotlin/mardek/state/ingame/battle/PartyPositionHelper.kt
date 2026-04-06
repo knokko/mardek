@@ -5,6 +5,9 @@ import mardek.content.battle.PartyLayoutPosition
 import mardek.input.InputKey
 import kotlin.math.abs
 
+/**
+ * Finds the position in [positions] of the living combatant whose position is closest to [target]
+ */
 fun closestTarget(
 	target: PartyLayoutPosition, states: Array<CombatantState?>, positions: PartyLayout
 ) = states.withIndex().filter {
@@ -33,6 +36,13 @@ private fun nextUp(current: CombatantState, states: Array<CombatantState?>, posi
 	}.maxBy { it.value.distanceY }.index]!!
 }
 
+/**
+ * This method is used in the vertical scrolling of the target selection logic:
+ * - When `key == InputKey.MoveDown`, this finds the next living combatant *below* [currentTarget]. When [currentTarget]
+ * is already the 'lowest' living combatant on its team, the 'highest' living combatant on its team is returned instead.
+ * - When `key == InputKey.MoveUp`, this finds the next living combatant *above* [currentTarget]. When [currentTarget]
+ * is already the 'highest' living combatant on its team, the 'lowest' living combatant on its team is returned instead.
+ */
 fun nextTarget(
 	key: InputKey, currentTarget: CombatantState, state: BattleState,
 ) = if (currentTarget.isOnPlayerSide) {

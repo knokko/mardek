@@ -9,7 +9,7 @@ import mardek.renderer.menu.inventory.renderCharacterBars
 import mardek.renderer.menu.inventory.renderHoverItemProperties
 import mardek.renderer.menu.inventory.renderInventoryOverlay
 import mardek.renderer.menu.inventory.renderItemGrid
-import mardek.state.UsedPartyMember
+import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.actions.ItemStorageInteractionState
 import mardek.state.util.Rectangle
 import kotlin.math.min

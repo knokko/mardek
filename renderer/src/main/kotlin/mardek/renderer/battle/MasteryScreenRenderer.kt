@@ -14,7 +14,7 @@ import mardek.renderer.RenderContext
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderBoxButton
-import mardek.state.UsedPartyMember
+import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.util.Rectangle
 import kotlin.math.abs

@@ -92,6 +92,10 @@ class ItemStorageInteractionState {
 		} else false
 	}
 
+	/**
+	 * This method should be called whenever an `InputKeyEvent` with `didPress = true` is fired while the player is
+	 * viewing the item storage
+	 */
 	internal fun processKeyPress(context: AreaActionsState.UpdateContext, key: InputKey) {
 		val sounds = context.content.audio.fixedEffects
 		inventory.processScroll(sounds, context.soundQueue, key)
@@ -134,6 +138,10 @@ class ItemStorageInteractionState {
 		}
 	}
 
+	/**
+	 * This method should be called whenever a `MouseMoveEvent` is fired while the player is
+	 * viewing the item storage
+	 */
 	internal fun processMouseMove(context: AreaActionsState.UpdateContext, newX: Int, newY: Int) {
 		inventory.processMouseMove(
 			newX, newY, renderedCharacterInventory,

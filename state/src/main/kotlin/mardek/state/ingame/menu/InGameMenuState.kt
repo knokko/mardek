@@ -9,11 +9,32 @@ import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.inventory.InventoryTab
 
+/**
+ * Captures the state of the in-game menu. This tracks whether the in-game menu is currently open, and if so, which
+ * tab the player is interacting with. Furthermore, it tracks the 'state' of the opened tab (e.g. which section of the
+ * Encyclopedia is shown).
+ *
+ * Note that it does *not* capture e.g. the inventory state and the toggled skills,
+ * which are part of the [CampaignState].
+ */
 class InGameMenuState(private val state: CampaignState) {
 
+	/**
+	 * Whether the in-game menu is currently opened/shown
+	 */
 	var shown = false
+
+	/**
+	 * - When `shown` is `false`, this field is meaningless.
+	 * - When `shown` is `true`, this field determines which tab the player is currently viewing,
+	 * as well as the 'state' of that tab.
+	 */
 	var currentTab: InGameMenuTab = PartyTab()
 
+	/**
+	 * Updates the state of the in-game menu, and processes all keyboard/mouse events.
+	 * This should be invoked during every [mardek.state.ingame.InGameState.update] when `this.shown` is `true`.
+	 */
 	fun update(input: InputManager, soundQueue: SoundQueue, content: Content) {
 		val context = UiUpdateContext(
 			state.usedPartyMembers(), state.allPartyMembers(), soundQueue,

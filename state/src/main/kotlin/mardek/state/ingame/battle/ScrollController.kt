@@ -3,6 +3,10 @@ package mardek.state.ingame.battle
 import mardek.content.skill.SkillTargetType
 import mardek.input.InputKey
 
+/**
+ * If the player presses `InputKey.MoveLeft` or `InputKey.MoveRight` while selecting a move, this method will be called
+ * to update the selected move.
+ */
 internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, context: BattleUpdateContext) {
 	val state = battle.state as BattleStateMachine.SelectMove
 	val selectedMove = state.selectedMove
@@ -111,6 +115,10 @@ internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, contex
 	}
 }
 
+/**
+ * If the player presses `InputKey.MoveUp` or `InputKey.MoveDown` while selecting a move, this method will be called
+ * to update the selected move.
+ */
 internal fun battleScrollVertically(battle: BattleState, key: InputKey, context: BattleUpdateContext) {
 	val state = battle.state as BattleStateMachine.SelectMove
 	val selectedMove = state.selectedMove
@@ -177,6 +185,10 @@ internal fun battleScrollVertically(battle: BattleState, key: InputKey, context:
 	}
 }
 
+/**
+ * If the player presses `InputKey.Interact` while selecting a move, this method will be called
+ * to update the selected move, and potentially confirm it.
+ */
 internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
 	val state = battle.state as BattleStateMachine.SelectMove
 	val selectedMove = state.selectedMove
@@ -267,6 +279,10 @@ internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
 	if (selectedMove is BattleMoveSelectionFlee) battle.state = BattleStateMachine.RanAway()
 }
 
+/**
+ * If the player presses `InputKey.Cancel` while selecting a move, this method will be called
+ * to update the selected move, and potentially skip the turn of the player.
+ */
 internal fun battleCancel(battle: BattleState, context: BattleUpdateContext) {
 	val selectedMove = (battle.state as BattleStateMachine.SelectMove).selectedMove
 	if (selectedMove is BattleMoveSelectionAttack && selectedMove.target != null) {

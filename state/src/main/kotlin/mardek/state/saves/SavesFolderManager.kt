@@ -79,6 +79,13 @@ class SavesFolderManager(
 		}
 	}
 
+	/**
+	 * Creates a new save for the given campaign state and name. This will:
+	 * 1. Create a directory named [campaignName] in the [root] directory of this saves manager
+	 * (unless it already exists).
+	 * 2. Create a file in that directory, containing all the data of [campaignState]. The name of that file will
+	 * contain the current date/time, as well as [type].
+	 */
 	fun createSave(content: Content, campaignState: CampaignState, campaignName: String, type: SaveFile.Type): Boolean {
 		val campaignFolder = File("$root/$campaignName")
 		if (!campaignFolder.isDirectory) {
@@ -89,6 +96,12 @@ class SavesFolderManager(
 		return writeSaveTo(content, campaignState, File("$campaignFolder/$fileName"))
 	}
 
+	/**
+	 * Serializes [campaignState], and stores its data in [destinationFile].
+	 *
+	 * This method is used by [createSave], and should normally not be called directly by other methods.
+	 * This method is only public because that is convenient for unit-testing.
+	 */
 	fun writeSaveTo(content: Content, campaignState: CampaignState, destinationFile: File): Boolean {
 		val partyLevel = campaignState.usedPartyMembers().maxOf { it.state.currentLevel }
 		val areaName = when (val state = campaignState.state) {
@@ -123,6 +136,11 @@ class SavesFolderManager(
 		}
 	}
 
+	/**
+	 * Loads the [CampaignState] that is stored in [saveFile].
+	 *
+	 * This method will return `null` when this fails for some reason (and print the error to `System.err`).
+	 */
 	fun loadSave(content: Content, saveFile: SaveFile): CampaignState? {
 		try {
 			val rawInput = BufferedInputStream(Files.newInputStream(saveFile.file.toPath()))

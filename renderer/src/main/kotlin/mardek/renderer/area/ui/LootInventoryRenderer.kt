@@ -2,7 +2,7 @@ package mardek.renderer.area.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import mardek.state.UsedPartyMember
+import mardek.state.ingame.UsedPartyMember
 
 internal fun renderLootInventoryGrid(
 	colorBatch: Vk2dColorBatch, party: List<UsedPartyMember>,

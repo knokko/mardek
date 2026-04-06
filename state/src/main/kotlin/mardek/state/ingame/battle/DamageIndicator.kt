@@ -17,6 +17,7 @@ sealed class DamageIndicator(
 	/**
 	 * The amount of mana that the combatant had prior to the move/attack
 	 */
+	// TODO CHAP1 Fix the mana gained indicator of the 'Absorb Mana' skill of Hero Mardek and Hero Deugan
 	val oldMana: Int,
 ) {
 
@@ -26,6 +27,9 @@ sealed class DamageIndicator(
 	val time = System.nanoTime()
 }
 
+/**
+ * An indicator that a combatant missed an attack. The renderer will render a "Miss" text at the target location.
+ */
 class DamageIndicatorMiss(oldHealth: Int, oldMana: Int) : DamageIndicator(oldHealth, oldMana)
 
 /**

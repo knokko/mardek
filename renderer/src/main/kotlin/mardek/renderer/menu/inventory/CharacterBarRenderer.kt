@@ -13,7 +13,7 @@ import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.renderer.util.gradientWithBorder
-import mardek.state.UsedPartyMember
+import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.menu.inventory.EquipmentRowRenderInfo
 import mardek.state.ingame.menu.inventory.EquipmentSlotReference
 import mardek.state.ingame.menu.inventory.InventoryInteractionState

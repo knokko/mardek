@@ -28,7 +28,6 @@ import mardek.content.characters.CharacterState
 import mardek.content.inventory.ItemStack
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
-import mardek.state.UsedPartyMember
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.area.ShopsStates
@@ -40,6 +39,11 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * The state of a *campaign* / save. Every save file is basically a `CampaignState` that was serialized to a file.
+ *
+ * This class contains all inventories, all mastered skills, all opened chests, etc...
+ */
 @BitStruct(backwardCompatible = true)
 class CampaignState : BitPostInit {
 
@@ -61,14 +65,30 @@ class CampaignState : BitPostInit {
 	@ReferenceField(stable = true, label = "playable characters")
 	val party: Array<PlayableCharacter?> = arrayOf(null, null, null, null)
 
+	/**
+	 * The states of all playable characters that were ever in the party of the player.
+	 *
+	 * When a playable character is used for the first time, its *default state* will be derived from its
+	 * [PlayableCharacter.stateVariable], and inserted into this map.
+	 */
 	@BitField(id = 2)
 	@NestedFieldSetting(path = "k", fieldName = "CHARACTER_STATES_KEY")
 	val characterStates = HashMap<PlayableCharacter, CharacterState>()
 
+	/**
+	 * The amount of gold coins that the player has.
+	 *
+	 * This is used in e.g. shops.
+	 */
 	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var gold: Int = 0
 
+	/**
+	 * All chests that the player has opened/emptied.
+	 *
+	 * When a player opens a chest without taking its item, it will *not* be added to this set.
+	 */
 	@BitField(id = 4)
 	@ReferenceField(stable = true, label = "chests")
 	val openedChests = HashSet<Chest>()
@@ -80,9 +100,16 @@ class CampaignState : BitPostInit {
 	@BitField(id = 5)
 	val story = StoryState()
 
+	/**
+	 * This field checks which tiles of which areas the player has already discovered (put on the map).
+	 */
 	@BitField(id = 6)
 	val areaDiscovery = AreaDiscoveryMap()
 
+	/**
+	 * This field tracks which one-time-only events/trigger the player has already activated. This makes sure that
+	 * some dialogue events happen only once.
+	 */
 	@BitField(id = 7)
 	val triggers = ActivatedTriggers()
 
@@ -96,10 +123,25 @@ class CampaignState : BitPostInit {
 	@IntegerField(expectUniform = false, minValue = 0)
 	var stepsSinceLastBattle = 0
 
+	/**
+	 * The total number of steps/tiles that the player has walked voluntarily.
+	 *
+	 * This field is initially 0, and gets incremented by 1 each time the player voluntarily walks to a new tile.
+	 * Forced movement (e.g. during dialogues) does *not* increment this counter.
+	 */
 	@BitField(id = 9)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var totalSteps = 0L
 
+	/**
+	 * The total in-game time that has elapsed since the start of the campaign.
+	 *
+	 * This is not always equal to the real-world time that has elapsed:
+	 * - This `totalTime` is only increased while the player is playing the game.
+	 * - This `totalTime` is stored in the save file (just like the rest of the campaign state).
+	 * So, when the player loses a battle and loads a save that was made before the battle,
+	 * this `totalTime` will be 'reset' to the `totalTime` before the battle.
+	 */
 	@BitField(id = 10)
 	@IntegerField(expectUniform = true, minValue = 0)
 	var totalTime = 0.seconds
@@ -131,7 +173,26 @@ class CampaignState : BitPostInit {
 	@BitField(id = 14)
 	val encyclopedia = EncyclopediaState()
 
+	/**
+	 * This campaign state will set this variable to true when the player wants to open the in-game menu
+	 * (by pressing `InputKey.ToggleMenu`) while it is possible to open the in-game menu.
+	 *
+	 * When the [InGameState] sees that `shouldOpenMenu = true`, it should open the in-game menu, and set it back to `false`.
+	 *
+	 * This variable is needed as communication channel, since the campaign state itself does *not* track whether the
+	 * in-game menu is open.
+	 */
 	var shouldOpenMenu = false
+
+	/**
+	 * The campaign state will set this variable to true when the player loses a battle (or loses the game by some other means).
+	 *
+	 * When the [InGameState] sees that `gameOver = true`, it should transition the game state to
+	 * [mardek.state.title.GameOverState].
+	 *
+	 * This variable is needed as communication channel, since the campaign state does not have the power to change the
+	 * 'root' game state.
+	 */
 	var gameOver = false
 
 	override fun postInit(context: BitPostInit.Context) {
@@ -142,6 +203,11 @@ class CampaignState : BitPostInit {
 		}
 	}
 
+	/**
+	 * This method should be invoked during every [InGameState.update] while `inGameState.menu.shown` is `false`.
+	 *
+	 * This method propagates the update to [state], and sends potential events to [state].
+	 */
 	fun update(context: UpdateContext) {
 		while (true) {
 			val event = context.input.consumeEvent() ?: break
@@ -175,6 +241,10 @@ class CampaignState : BitPostInit {
 		if (it == null) null else Pair(it, characterStates[it]!!)
 	}.toTypedArray()
 
+	/**
+	 * Recomputes the maximum health and mana of all playable characters, and clamps their current health and mana.
+	 * After this method returns, the `currentHealth` of all characters should be at most their `maxHealth`.
+	 */
 	fun clampHealthAndMana() {
 		for ((playableCharacter, state) in characterStates) {
 			val maxHealth = state.determineMaxHealth(playableCharacter.baseStats, state.activeStatusEffects)
@@ -276,8 +346,19 @@ class CampaignState : BitPostInit {
 		countItemInInventory = { itemToCount -> usedPartyMembers().sumOf { it.state.countItemOccurrences(itemToCount) }}
 	)
 
+	/**
+	 * This class is used as the parameter type for [update], as well as some other methods of [CampaignState].
+	 * Furthermore, it is the parent class of e.g. [AreaState.UpdateContext].
+	 *
+	 * Using this 'parameter class' instead of adding all its fields as loose parameters makes it easier to add
+	 * 'parameters', since it is not needed to change all the method signatures.
+	 */
 	open class UpdateContext(
 		parent: GameStateUpdateContext,
+
+		/**
+		 * The [InGameState.campaignName]
+		 */
 		val campaignName: String
 	) : GameStateUpdateContext(parent)
 

@@ -1,4 +1,4 @@
-package mardek.state
+package mardek.state.ingame
 
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter

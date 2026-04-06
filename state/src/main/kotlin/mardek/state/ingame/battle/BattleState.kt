@@ -14,19 +14,39 @@ import kotlin.collections.component2
 import kotlin.collections.iterator
 import kotlin.collections.set
 
+/**
+ * The state of an ongoing battle. This class tracks e.g. the health, mana, and status effects of all combatants, as
+ * well as who is currently on turn.
+ */
 @BitStruct(backwardCompatible = true)
 class BattleState(
+
+	/**
+	 * The battle 'configuration' from which this battle state started. This configuration determines the music,
+	 * enemy layout, and the starting enemies.
+	 */
 	@BitField(id = 0)
 	val battle: Battle,
 
 	players: Array<PlayableCharacter?>,
 
+	/**
+	 * The positions of the player combatants, which is almost always the DEFAULT layout.
+	 */
 	@BitField(id = 1)
 	val playerLayout: PartyLayout,
 
 	context: BattleUpdateContext,
 ) {
 
+	/**
+	 * The combatants on the player/right side. When all these combatants are fainted, it is game over.
+	 *
+	 * This array will always have a length of 4, but it will contain `null`s when there are less than 4 players.
+	 *
+	 * Usually (always in vanilla MARDEK), this array contains only [PlayerCombatantState]s,
+	 * but this is not required by the engine. This engine allows monsters to fight alongside the player.
+	 */
 	@BitField(id = 2)
 	@ClassField(root = CombatantState::class)
 	@ReferenceFieldTarget(label = "combatants")
@@ -36,6 +56,12 @@ class BattleState(
 		if (player != null) PlayerCombatantState(player, context.characterStates[player]!!, true) else null
 	}.toTypedArray()
 
+	/**
+	 * The combatants on the enemy/left side. When all these combatants are defeated, the player wins the battle.
+	 *
+	 * This array will always have a length of 4, but it will contain `null`s when there are less than 4 opponents.
+	 * Furthermore, defeated combatants will be replaced with `null` once their fainting animation is finished.
+	 */
 	@BitField(id = 3)
 	@ClassField(root = CombatantState::class)
 	@ReferenceFieldTarget(label = "combatants")
@@ -47,6 +73,10 @@ class BattleState(
 		) else null
 	}.toTypedArray()
 
+	/**
+	 * The state (machine) of this battle state. This field tracks which combatant is currently on turn, and what that
+	 * combatant is doing.
+	 */
 	@BitField(id = 4)
 	@ClassField(root = BattleStateMachine::class)
 	var state: BattleStateMachine = BattleStateMachine.NextTurn(System.nanoTime() + 750_000_000L)
@@ -59,6 +89,12 @@ class BattleState(
 	 */
 	var startTime = System.nanoTime()
 
+	/**
+	 * The ongoing (standard) particle effects. This contains most of the particle effects, but not the ones tied to
+	 * status effects or animations.
+	 *
+	 * This field is only used by the renderer.
+	 */
 	val particles = mutableListOf<ParticleEffectState>()
 
 	/**
@@ -76,12 +112,26 @@ class BattleState(
 
 	constructor() : this(Battle(), arrayOf(null, null, null, null), PartyLayout(), BattleUpdateContext())
 
+	/**
+	 * Geta a list containing all non-null [players]
+	 */
 	fun allPlayers() = players.filterNotNull()
 
+	/**
+	 * Gets a list containing all [players] with at least 1 HP
+	 */
 	fun livingPlayers() = allPlayers().filter { it.isAlive() }
 
+	/**
+	 * Gets a list containing all non-null [opponents]
+	 */
 	fun allOpponents() = opponents.filterNotNull()
 
+	/**
+	 * Gets a list containing all opponents with at least 1 HP.
+	 *
+	 * Note that this is usually equivalent to [allOpponents], since monsters 'vanish' after they are defeated.
+	 */
 	fun livingOpponents() = allOpponents().filter { it.isAlive() }
 
 	internal fun confirmMove(context: BattleUpdateContext, newState: BattleStateMachine) {
@@ -89,6 +139,10 @@ class BattleState(
 		if (newState is BattleStateMachine.Wait) context.soundQueue.insert(context.sounds.ui.clickCancel)
 	}
 
+	/**
+	 * Gets the active/visible reaction skill challenge, or `null` if there is no active/visible reaction
+	 * skill challenge.
+	 */
 	fun getReactionChallenge(): ReactionChallenge? {
 		return when (val state = this.state) {
 			is BattleStateMachine.MeleeAttack -> state.reactionChallenge
@@ -98,6 +152,10 @@ class BattleState(
 		}
 	}
 
+	/**
+	 * This method should be called whenever an [mardek.input.InputKeyEvent] with `didPress = true` is fired during
+	 * a battle. It should be called by [mardek.state.ingame.area.AreaState.processBattleKeyEvent].
+	 */
 	fun processKeyPress(key: InputKey, context: BattleUpdateContext) {
 		val state = this.state
 		val openCombatantInfo = this.openCombatantInfo
@@ -134,6 +192,10 @@ class BattleState(
 		}
 	}
 
+	/**
+	 * This method should be called whenever a [MouseMoveEvent] is fired during a battle.
+	 * It should be invoked by [mardek.state.ingame.area.AreaState.processMouseMove].
+	 */
 	fun processMouseMove(event: MouseMoveEvent) {
 		this.lastMousePosition = Pair(event.newX, event.newY)
 	}
@@ -247,6 +309,10 @@ class BattleState(
 		if (state is BattleStateMachine.Move) state.refreshStartTime()
 	}
 
+	/**
+	 * This method should be called during every call to [mardek.state.ingame.InGameState.update] during this
+	 * battle. It should be invoked by [mardek.state.ingame.area.AreaState.updateActiveBattle].
+	 */
 	fun update(context: BattleUpdateContext) {
 		while (true) {
 			val state = this.state

@@ -2,15 +2,69 @@ package mardek.state.ingame.menu
 
 import mardek.content.skill.*
 import mardek.input.InputKey
-import mardek.state.UsedPartyMember
+import mardek.state.ingame.UsedPartyMember
 import kotlin.math.max
 
-class VisibleSkill(val skill: Skill, val mastery: Int, val canToggle: Boolean, val isToggled: Boolean)
+/**
+ * This class is used as return type for [SkillsTab.determineSkillList], and represents a skill that the player can see
+ * (because the player has at least 1 mastery point in the skill, or because the equipment allows it).
+ */
+class VisibleSkill(
+	val skill: Skill,
 
+	/**
+	 * The number of mastery points that the character has for this skill
+	 */
+	val mastery: Int,
+
+	/**
+	 * Whether the skill can be toggled *now*. This will always be `false` for [ActiveSkill]s.
+	 */
+	val canToggle: Boolean,
+
+	/**
+	 * Whether the skill is currently toggled. This will always be `false` for [ActiveSkill]s.
+	 */
+	val isToggled: Boolean,
+)
+
+/**
+ * The "Skills" tab of the in-game menu.
+ *
+ * This class tracks at which skills the player is looking (e.g. the Passive skills of Deugan).
+ *
+ * Note that this class does *not* track which skills are currently toggled: these are stored in the
+ * [mardek.content.characters.CharacterState]s.
+ */
 class SkillsTab(party: List<UsedPartyMember>): InGameMenuTab() {
 
+	/**
+	 * The index (into [mardek.state.ingame.CampaignState.party]) of the selected party member (whose skills are
+	 * being shown)
+	 */
 	var partyIndex = party[0].index
+
+	/**
+	 * The 'skill type index' of the skills that the player is viewing:
+	 * - 0 for active skills
+	 * - 1 for melee attack reaction skills
+	 * - 2 for melee defense reaction skills
+	 * - 3 for magic attack reaction skills
+	 * - 4 for magic defense reaction skills
+	 * - 5 for passive skills
+	 *
+	 * Note that the value of this field is only meaningful when `inside` is `true`.
+	 */
 	var skillTypeIndex = 0
+
+	/**
+	 * The index (into [determineSkillList]) of the currently-selected skill.
+	 *
+	 * Note that the value of this field is only meaningful when `inside` is `true`.
+	 *
+	 * **Note that this index can be out-of-bounds!** This is unavoidable, since [determineSkillList] may return an
+	 * empty list.
+	 */
 	var skillIndex = 0
 
 	override fun getText() = "Skills"
@@ -93,6 +147,12 @@ class SkillsTab(party: List<UsedPartyMember>): InGameMenuTab() {
 		super.processKeyPress(key, context)
 	}
 
+	/**
+	 * Determines which skills the player can currently see. This contains all skills of the right type such that either
+	 * - The currently-selected playable character has at least 1 mastery point in the skill
+	 * (see [mardek.content.characters.CharacterState.skillMastery]), or
+	 * - The currently-selected playable character has equipped an item that allows the skill to be learned.
+	 */
 	fun determineSkillList(context: UiUpdateContext): List<VisibleSkill> {
 		validatePartyIndex(context)
 		val (assetCharacter, characterState) = context.fullParty[partyIndex]!!

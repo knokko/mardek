@@ -13,7 +13,7 @@ import mardek.renderer.menu.determinePointerOffset
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderButton
-import mardek.state.UsedPartyMember
+import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.util.Rectangle
 import java.util.Locale

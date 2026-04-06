@@ -14,29 +14,53 @@ import mardek.input.InputKey
 import mardek.state.GameStateUpdateContext
 import mardek.content.characters.CharacterState
 import mardek.content.skill.Skill
-import mardek.state.UsedPartyMember
-import mardek.state.WholeParty
+import mardek.state.ingame.UsedPartyMember
+import mardek.state.ingame.WholeParty
 
+/**
+ * The loot that a player got after winning a battle (e.g. the amount of gold and looted items).
+ * This class also tracks the 'interaction state' of the battle loot UI (e.g. which items were already taken and
+ * which button is highlighted).
+ */
 @BitStruct(backwardCompatible = true)
 class BattleLoot(
+
+	/**
+	 * The amount of gold that the player got by winning the battle
+	 */
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val gold: Int,
 
+	/**
+	 * The items that the player can claim in the loot screen
+	 */
 	@BitField(id = 1)
 	val items: ArrayList<ItemStack>,
 
+	/**
+	 * The plot items that the player acquired by winning the battle
+	 */
 	@BitField(id = 2)
 	@ReferenceField(stable = true, label = "plot items")
 	val plotItems: ArrayList<PlotItem>,
 
+	/**
+	 * The dreamstones that the player acquired by winning the battle
+	 */
 	@BitField(id = 3)
 	@ReferenceField(stable = true, label = "dreamstones")
 	val dreamStones: ArrayList<Dreamstone>,
 
+	/**
+	 * The text that will be shown at the top-left of the screen, e.g. "You have acquired:" or "No spoils here!"
+	 */
 	@BitField(id = 4)
 	val itemText: String,
 
+	/**
+	 * The skills that the player combatants mastered during the battle. These will be shown after taking the loot.
+	 */
 	@BitField(id = 5)
 	@NestedFieldSetting(path = "k", fieldName = "MASTERED_SKILLS_KEYS")
 	@NestedFieldSetting(path = "vc", fieldName = "MASTERED_SKILLS_VALUES")
@@ -53,13 +77,30 @@ class BattleLoot(
 		listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
 	)
 
+	/**
+	 * The index of the currently-selected party member (into [mardek.state.ingame.CampaignState.party]). When the
+	 * player claims an item, it will be given to the party member with this index.
+	 */
 	@BitField(id = 6)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 3)
 	var selectedPartyIndex = party[0].index
 		private set
 
+	/**
+	 * The button or item that is currently selected/highlighted. This can be [SelectedGetAll], [SelectedFinish], or
+	 * a [SelectedItem]
+	 */
 	var selectedElement = if (items.isEmpty()) SelectedFinish else SelectedGetAll
 
+	/**
+	 * Whether the mastery screen (mastered skills) are currently being shown.
+	 * - When this is `false` (initially), the looted gold/items are shown
+	 * - When this is `true`, the skills that were mastered during the past battle are shown. During this state,
+	 *   interacting with the loot is no longer possible.
+	 *
+	 * This variable will be set to `true` after the player 'clicks' on 'Finish', and at least 1 skill was mastered
+	 * during the past battle.
+	 */
 	var showMasteryScreen = false
 		private set
 
@@ -77,6 +118,10 @@ class BattleLoot(
 		if (items.isNotEmpty()) selectedElement = SelectedGetAll
 	}
 
+	/**
+	 * This method should be called whenever an `InputKeyEvent` with `didPress = true` is received while the player is
+	 * in the battle loot screen. This should be called by [mardek.state.ingame.area.AreaState.processBattleKeyEvent].
+	 */
 	fun processKeyPress(key: InputKey, context: UpdateContext) {
 		if (finishAt != 0L) return
 		if (showMasteryScreen) {
@@ -170,21 +215,53 @@ class BattleLoot(
 		}
 	}
 
+	/**
+	 * One of the selectable buttons/elements in the battle loot screen: [SelectedGetAll], [SelectedFinish], or a
+	 * [SelectedItem]
+	 */
 	sealed class SelectedElement
 
+	/**
+	 * The 'Get All' button
+	 */
 	data object SelectedGetAll : SelectedElement()
 
+	/**
+	 * The 'Finish' button
+	 */
 	data object SelectedFinish : SelectedElement()
 
+	/**
+	 * When [selectedElement] is `SelectedItem(i)`, the player has currently
+	 * selected/highlighted the item stack with index `i` in [items]. If the player presses the interact key, that
+	 * item will be put in the inventory of the currently-selected playable character.
+	 */
 	data class SelectedItem(val index: Int) : SelectedElement()
 
+	/**
+	 * This class is used as parameter in [processKeyPress], and contains most of the inputs/data that is needed by
+	 * this method. Using update context classes like this reduces the number of parameters that would otherwise be
+	 * needed for [processKeyPress].
+	 */
 	class UpdateContext(
 		parent: GameStateUpdateContext,
+
+		/**
+		 * The result of [mardek.state.ingame.CampaignState.usedPartyMembers]
+		 */
 		val usedParty: List<UsedPartyMember>,
+
+		/**
+		 * The result of [mardek.state.ingame.CampaignState.allPartyMembers]
+		 */
 		val fullParty: WholeParty,
 	) : GameStateUpdateContext(parent)
 
 	companion object {
+
+		/**
+		 * The duration of the fade-out after the player exits the battle loot menu (in nanoseconds).
+		 */
 		const val FADE_OUT_DURATION = 500_000_000L
 
 		@Suppress("unused")

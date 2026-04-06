@@ -16,7 +16,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.generateBattleLoot
 import mardek.content.battle.Enemy
-import mardek.state.UsedPartyMember
+import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleState

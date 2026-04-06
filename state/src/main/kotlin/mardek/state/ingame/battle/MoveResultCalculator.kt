@@ -18,6 +18,9 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
+/**
+ * This class is used to compute the results of attacks/skills/items (e.g. how much damage was dealt).
+ */
 class MoveResultCalculator(private val context: BattleUpdateContext) {
 
 	private fun computeAttackResult(
@@ -236,6 +239,9 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		return map
 	}
 
+	/**
+	 * Computes the result/effects of a skill (can be either melee or magic) that was cast/used.
+	 */
 	fun computeSkillResult(
 		skill: ActiveSkill, attacker: CombatantState, targets: Array<CombatantState>, passedChallenge: Boolean
 	): MoveResult {
@@ -358,6 +364,9 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		)
 	}
 
+	/**
+	 * Computes the result/effects of a basic attack.
+	 */
 	fun computeBasicAttackResult(
 		attacker: CombatantState, target: CombatantState, passedChallenge: Boolean
 	): MoveResult {
@@ -431,6 +440,9 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		)
 	}
 
+	/**
+	 * Computes the result/effects of using an item.
+	 */
 	fun computeItemResult(item: Item, thrower: CombatantState, target: CombatantState): MoveResult {
 		val consumable = item.consumable ?: throw IllegalArgumentException("Item ${item.displayName} is not consumable")
 		var (restoreHealth, restoreMana) = if (consumable.isFullCure) {

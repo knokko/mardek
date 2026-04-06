@@ -16,6 +16,10 @@ import mardek.content.stats.Element
 import mardek.content.stats.StatusEffect
 import java.util.Objects
 
+/**
+ * The state machine that is used by [BattleState] to track which combatant is currently on turn, and what that
+ * combatant is doing.
+ */
 @BitStruct(backwardCompatible = true)
 sealed class BattleStateMachine {
 
@@ -23,7 +27,7 @@ sealed class BattleStateMachine {
 
 		@JvmStatic
 		@Suppress("unused")
-		val BITSER_HIERARCHY = arrayOf(
+		private val BITSER_HIERARCHY = arrayOf(
 			NextTurn::class.java,
 			NextTurnEffects::class.java,
 			SelectMove::class.java,
@@ -43,21 +47,43 @@ sealed class BattleStateMachine {
 	}
 
 	/**
-	 * The battle should move on to the next combatant that is on turn
+	 * The battle should move on to the next combatant that is on turn, once [System.nanoTime]() >= [startAt]
 	 */
 	@BitStruct(backwardCompatible = true)
-	class NextTurn(val startAt: Long) : BattleStateMachine() {
+	class NextTurn(
+
+		/**
+		 * The turn of the next combatant should start once the result of [System.nanoTime] is at least `startAt`.
+		 */
+		val startAt: Long
+	) : BattleStateMachine() {
 
 		@Suppress("unused")
 		private constructor() : this(0L)
 	}
 
+	/**
+	 * The turn of [combatant] should start soon, but we should first process and render some events, for instance:
+	 * - Poison/Bleed damage (if [combatant] is poisoned or bleeding)
+	 * - Displaying the status effects that [combatant] is losing (e.g. Sleep)
+	 *
+	 * Finally, when [forceMove] is non-null, the combatant will be forced to use [ForceMove.move]
+	 * (typically [BattleStateMachine.Wait] for e.g. Sleep and Paralysis).
+	 */
 	@BitStruct(backwardCompatible = true)
 	class NextTurnEffects(
+
+		/**
+		 * The combatant that will be 'on turn' soon
+		 */
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "combatants")
 		val combatant: CombatantState,
 
+		/**
+		 * - When this field is `null`, [combatant] can choose its next move normally.
+		 * - When this field is non-null, [combatant] will be forced to use [ForceMove.move]
+		 */
 		@BitField(id = 1, optional = true)
 		val forceMove: ForceMove?,
 
@@ -66,39 +92,87 @@ sealed class BattleStateMachine {
 		@Suppress("unused")
 		private constructor() : this(MonsterCombatantState(), null)
 
+		/**
+		 * The status effects that will be removed at the start of the turn
+		 */
 		@BitField(id = 2)
 		@ReferenceField(stable = true, label = "status effects")
 		val removedEffects = HashSet<StatusEffect>()
 
+		/**
+		 * The damage that the combatant will take before its turn starts.
+		 * When this is non-empty, the turn will be delayed until this list is empty.
+		 */
 		@BitField(id = 3)
 		val takeDamage = ArrayList<TakeDamage>()
 
+		/**
+		 * When [takeDamage] is non-empty, this is the time (`System.nanoTime()`) at which the combatant should
+		 * lose/gain health due to the first status effect in [takeDamage].
+		 *
+		 * When `takeDamage.size > 1`, this variable will be increased by a short delay after each element of
+		 * [takeDamage] is applied. This should ensure that each damaging/healing status effect is activated slightly
+		 * later than the previous status effect.
+		 */
 		var applyNextDamageAt = System.nanoTime()
 
+		/**
+		 * The type/class of [BattleStateMachine.NextTurnEffects.forceMove]: it defines which move is being forced,
+		 * with some associated information that is useful for rendering.
+		 */
 		@BitStruct(backwardCompatible = true)
 		class ForceMove(
+
+			/**
+			 * The move that the combatant is forced to take. For Sleep and Paralysis, this will always be
+			 * [BattleStateMachine.Wait]. For Confusion, there are many more possibilities, especially for
+			 * monsters.
+			 */
 			@BitField(id = 0)
 			@ClassField(root = BattleStateMachine::class)
 			val move: Move,
 
+			/**
+			 * The status effect that forced the combatant to use [move]
+			 */
 			@BitField(id = 1)
 			@ReferenceField(stable = true, label = "status effects")
 			val effect: StatusEffect,
 
+			/**
+			 * When this field is non-zero, the combatant should blink in this color. This is used by the
+			 * Paralysis status effect to cause the 'yellow blink' when a combatant skips a turn due to the paralysis.
+			 */
 			val blinkColor: Int,
 
+			/**
+			 * The particle effect that should be played. This is used by the Sleep status effect to display the 'Z's
+			 * when the combatant sleeps during a turn.
+			 */
 			val particleEffect: ParticleEffect?,
 		) {
 			@Suppress("unused")
 			private constructor() : this(Wait(), StatusEffect(), 0, null)
 		}
 
+		/**
+		 * This type/class is used for [BattleStateMachine.NextTurnEffects.takeDamage]: it is just a tuple
+		 * (damageAmount, statusEffect).
+		 */
 		@BitStruct(backwardCompatible = true)
 		class TakeDamage(
+
+			/**
+			 * The amount of damage that the combatant takes due to the status effect. When this is negative, the
+			 * combatant will heal instead (used by Regeneration).
+			 */
 			@BitField(id = 0)
 			@IntegerField(expectUniform = false)
 			val amount: Int,
 
+			/**
+			 * The status effect that causes the damage (or healing)
+			 */
 			@BitField(id = 1)
 			@ReferenceField(stable = true, label = "status effects")
 			val effect: StatusEffect,
@@ -108,6 +182,11 @@ sealed class BattleStateMachine {
 		}
 
 		companion object {
+
+			/**
+			 * The delay, in nanoseconds, between applying two elements of [takeDamage]. This is only relevant when
+			 * `takeDamage.size > 1`.
+			 */
 			const val DAMAGE_DELAY = 1_000_000_000L
 		}
 	}
@@ -117,10 +196,18 @@ sealed class BattleStateMachine {
 	 */
 	@BitStruct(backwardCompatible = true)
 	class SelectMove(
+
+		/**
+		 * The playable combatant that is on turn
+		 */
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "combatants")
 		val onTurn: PlayerCombatantState
 	) : BattleStateMachine() {
+
+		/**
+		 * The currently-selected (but not yet confirmed) move
+		 */
 		var selectedMove: BattleMoveSelection = BattleMoveSelectionAttack(null)
 
 		@Suppress("unused")
@@ -135,6 +222,10 @@ sealed class BattleStateMachine {
 	 */
 	@BitStruct(backwardCompatible = true)
 	class Wait : BattleStateMachine(), Move {
+
+		/**
+		 * The result of `System.nanoTime()` when the combatant decided to skip its turn.
+		 */
 		var startTime = System.nanoTime()
 
 		override fun refreshStartTime() {
@@ -143,14 +234,23 @@ sealed class BattleStateMachine {
 	}
 
 	/**
-	 * A combatant is doing either a basic attack, or a melee skill
+	 * A combatant is doing either a basic attack, or a melee skill.
+	 *
+	 * Note that this is a sealed class. The subclasses are [MoveTo], [Strike], and [JumpBack].
 	 */
 	@BitStruct(backwardCompatible = true)
 	sealed class MeleeAttack(
+
+		/**
+		 * The attacking combatant
+		 */
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "combatants")
 		val attacker: CombatantState,
 
+		/**
+		 * The combatant that is being attacked
+		 */
 		@BitField(id = 1)
 		@ReferenceField(stable = false, label = "combatants")
 		val target: CombatantState,
@@ -171,6 +271,10 @@ sealed class BattleStateMachine {
 		@BitField(id = 3, optional = true)
 		val reactionChallenge: ReactionChallenge?,
 	) : BattleStateMachine(), Move {
+
+		/**
+		 * The timestamp (result of `System.nanoTime()`) when the battle transitioned to this state.
+		 */
 		var startTime = System.nanoTime()
 
 		constructor() : this(
@@ -183,6 +287,10 @@ sealed class BattleStateMachine {
 		}
 
 		companion object {
+
+			/**
+			 * Determines the reaction challenge that the player should get, if any
+			 */
 			fun determineReactionChallenge(
 				attacker: CombatantState, target: CombatantState,
 				skill: ActiveSkill?, context: BattleUpdateContext
@@ -201,12 +309,25 @@ sealed class BattleStateMachine {
 			}
 		}
 
+		/**
+		 * The first phase of [MeleeAttack]: the attacker runs towards the target
+		 */
 		@BitStruct(backwardCompatible = true)
 		class MoveTo(
 			attacker: CombatantState, target: CombatantState,
 			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?,
 		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
+
+			/**
+			 * Whether the attacker is at least halfway to the target.
+			 * This is useful for the rendering order/depth.
+			 */
 			var halfWay = false
+
+			/**
+			 * Whether the attacker has reached the target. The renderer should set this to `true` when the move-to
+			 * animation is finished, after which the state should transition it to [Strike].
+			 */
 			var finished = false
 
 			constructor(
@@ -223,16 +344,33 @@ sealed class BattleStateMachine {
 			)
 		}
 
+		/**
+		 * The second phase of [MeleeAttack]: this is the phase where the attacker strikes/hits the target, and deals
+		 * the damage.
+		 */
 		@BitStruct(backwardCompatible = true)
 		class Strike(
 			attacker: CombatantState, target: CombatantState,
 			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?,
 		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
+
+			/**
+			 * The renderer should set this to `true` when the attacker is ~halfway the strike animation.
+			 * When this is `true`, the state should deal the damage, and set [hasDealtDamage] to `true`.
+			 */
 			var canDealDamage = false
 
+			/**
+			 * The state should set this to `true` after it has 'processed' the damage calculation, and deducted the
+			 * health from the target.
+			 */
 			@BitField(id = 0)
 			var hasDealtDamage = false
 
+			/**
+			 * The renderer should set this to `true` after it has finished rendering the strike animation of the
+			 * attacker. Once this is `true`, the state can be changed to [JumpBack].
+			 */
 			var finished = false
 
 			@Suppress("unused")
@@ -252,12 +390,27 @@ sealed class BattleStateMachine {
 			fun isReactionChallengePending() = this.reactionChallenge != null && this.reactionChallenge.isPending()
 		}
 
+		/**
+		 * The attacker has finished its attack (and has dealt damage). During this state, the attacker will walk/jump
+		 * back to its original position.
+		 */
 		@BitStruct(backwardCompatible = true)
 		class JumpBack(
 			attacker: CombatantState, target: CombatantState,
 			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?,
 		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
+
+			/**
+			 * Whether the attacker is at least halfway on its way back to its original position.
+			 * This is useful for the rendering order/depth.
+			 */
 			var halfWay = false
+
+			/**
+			 * Whether the attacker has reached its original position. The renderer should set this to `true` when
+			 * the jump-back animation is finished, after which the state should transition it to
+			 * [BattleStateMachine.NextTurn].
+			 */
 			var finished = false
 
 			@Suppress("unused")
@@ -270,13 +423,22 @@ sealed class BattleStateMachine {
 
 	/**
 	 * A combatant is doing a (fire)breath attack, either on one target, or on a whole party.
+	 *
+	 * Note that this is a sealed class. The subclasses are [MoveTo], [Attack], and [JumpBack].
 	 */
 	@BitStruct(backwardCompatible = true)
 	sealed class BreathAttack(
+
+		/**
+		 * The attacking/breathing combatant
+		 */
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "combatants")
 		val attacker: CombatantState,
 
+		/**
+		 * The targets/victims of the attack.
+		 */
 		@BitField(id = 1)
 		@ReferenceField(stable = false, label = "combatants")
 		val targets: Array<CombatantState>,
@@ -297,6 +459,10 @@ sealed class BattleStateMachine {
 		@BitField(id = 3, optional = true)
 		val reactionChallenge: ReactionChallenge?,
 	) : BattleStateMachine(), Move {
+
+		/**
+		 * The timestamp (result of `System.nanoTime()`) when the battle transitioned to this state.
+		 */
 		var startTime = System.nanoTime()
 
 		@Suppress("unused")
@@ -310,6 +476,10 @@ sealed class BattleStateMachine {
 		}
 
 		companion object {
+
+			/**
+			 * Determines the reaction challenge that the player should get, if any
+			 */
 			fun determineReactionChallenge(
 				attacker: CombatantState,
 				targets: Array<CombatantState>,
@@ -328,12 +498,29 @@ sealed class BattleStateMachine {
 			}
 		}
 
+		/**
+		 * The first phase of [BreathAttack]:
+		 * - If the breath attack is melee, the attacker runs towards the target, but keeps a bit of distance.
+		 * - If the breath attack is ranged, the attacker jumps to a position such that its mouth is near the centre
+		 * of the screen.
+		 */
 		@BitStruct(backwardCompatible = true)
 		class MoveTo(
 			attacker: CombatantState, targets: Array<CombatantState>,
 			skill: ActiveSkill, reactionChallenge: ReactionChallenge?,
 		) : BreathAttack(attacker, targets, skill, reactionChallenge) {
+
+			/**
+			 * Whether the attacker is at least halfway to the destination/breath position.
+			 * This is useful for the rendering order/depth for 'melee' breath attacks.
+			 */
 			var halfWay = false
+
+			/**
+			 * Whether the attacker has reached the destination/breath position.
+			 * The renderer should set this to `true` when the move-to animation is finished,
+			 * after which the state should transition it to [Attack].
+			 */
 			var finished = false
 
 			constructor(
@@ -350,16 +537,33 @@ sealed class BattleStateMachine {
 			)
 		}
 
+		/**
+		 * The second phase of [BreathAttack]: this is the phase where the attacker breaths fire (or something similar)
+		 * towards the target(s), and deals the damage.
+		 */
 		@BitStruct(backwardCompatible = true)
 		class Attack(
 			attacker: CombatantState, targets: Array<CombatantState>,
 			skill: ActiveSkill, reactionChallenge: ReactionChallenge?,
 		) : BreathAttack(attacker, targets, skill, reactionChallenge) {
+
+			/**
+			 * The renderer should set this to `true` when the attacker is ~halfway the breath animation.
+			 * When this is `true`, the state should deal the damage, and set [hasDealtDamage] to `true`.
+			 */
 			var canDealDamage = false
 
+			/**
+			 * The state should set this to `true` after it has 'processed' the damage calculation, and deducted the
+			 * health from the target(s).
+			 */
 			@BitField(id = 0)
 			var hasDealtDamage = false
 
+			/**
+			 * The renderer should set this to `true` after it has finished rendering the breath animation of the
+			 * attacker. Once this is `true`, the state can be changed to [JumpBack].
+			 */
 			var finished = false
 
 			@Suppress("unused")
@@ -379,12 +583,26 @@ sealed class BattleStateMachine {
 			fun isReactionChallengePending() = this.reactionChallenge != null && this.reactionChallenge.isPending()
 		}
 
+		/**
+		 * The attacker has finished its breath attack (and has dealt damage).
+		 * During this state, the attacker will walk/jump back to its original position.
+		 */
 		@BitStruct(backwardCompatible = true)
 		class JumpBack(
 			attacker: CombatantState, targets: Array<CombatantState>,
 			skill: ActiveSkill, reactionChallenge: ReactionChallenge?,
 		) : BreathAttack(attacker, targets, skill, reactionChallenge) {
+			/**
+			 * Whether the attacker is at least halfway on its way back to its original position.
+			 * This is useful for the rendering order/depth.
+			 */
 			var halfWay = false
+
+			/**
+			 * Whether the attacker has reached its original position. The renderer should set this to `true` when
+			 * the jump-back animation is finished, after which the state should transition it to
+			 * [BattleStateMachine.NextTurn].
+			 */
 			var finished = false
 
 			@Suppress("unused")
@@ -396,22 +614,36 @@ sealed class BattleStateMachine {
 	}
 
 	/**
-	 * A combatant is casting a ranged skill
+	 * A combatant is casting a ranged/magic skill
 	 */
 	@BitStruct(backwardCompatible = true)
 	class CastSkill(
+
+		/**
+		 * The combatant that is using/casting the skill
+		 */
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "combatants")
 		val caster: CombatantState,
 
+		/**
+		 * The combatants against which [caster] is using the skill
+		 */
 		@BitField(id = 1)
 		@ReferenceField(stable = false, label = "combatants")
 		val targets: Array<CombatantState>,
 
+		/**
+		 * The skill that is being used/cast
+		 */
 		@BitField(id = 2)
 		@ReferenceField(stable = true, label = "skills")
 		val skill: ActiveSkill,
 
+		/**
+		 * When this skill changes the element of the caster (Elemental Shift),
+		 * this field is the new element of the caster.
+		 */
 		@BitField(id = 3, optional = true)
 		@ReferenceField(stable = true, label = "elements")
 		val nextElement: Element?,
@@ -552,20 +784,38 @@ sealed class BattleStateMachine {
 	 */
 	@BitStruct(backwardCompatible = true)
 	class UseItem(
+
+		/**
+		 * The combatant that is throwing/using the item
+		 */
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "combatants")
 		val thrower: CombatantState,
 
+		/**
+		 * The combatant that receives/consumes the item
+		 */
 		@BitField(id = 1)
 		@ReferenceField(stable = false, label = "combatants")
 		val target: CombatantState,
 
+		/**
+		 * The item that is being thrown/used
+		 */
 		@BitField(id = 2)
 		@ReferenceField(stable = true, label = "items")
 		val item: Item
 	) : BattleStateMachine(), Move {
+
+		/**
+		 * The timestamp (result of `System.nanoTime()`) when [thrower] started throwing the item.
+		 */
 		var startTime = System.nanoTime()
 
+		/**
+		 * The renderer should set this field to `true` when the [item] has reached the [target].
+		 * When this is `true`, the item should be consumed, and the state should be transitioned to [NextTurn].
+		 */
 		var canDrinkItem = false
 
 		@Suppress("unused")
@@ -588,8 +838,16 @@ sealed class BattleStateMachine {
 	 */
 	@BitStruct(backwardCompatible = true)
 	class Victory : BattleStateMachine() {
+
+		/**
+		 * The result of `System.nanoTime()` when the battle reached this state
+		 */
 		val startTime = System.nanoTime()
 
+		/**
+		 * When this returns `true` (3 seconds after the battle reached this state),
+		 * the player should be taken to the loot menu.
+		 */
 		fun shouldGoToLootMenu() = (System.nanoTime() - startTime) >= 3000_000_000L
 	}
 
@@ -599,16 +857,44 @@ sealed class BattleStateMachine {
 	 */
 	@BitStruct(backwardCompatible = true)
 	class GameOver : BattleStateMachine() {
+
+		/**
+		 * The result of `System.nanoTime()` when the battle reached this state
+		 */
 		val startTime = System.nanoTime()
 
+		/**
+		 * When this returns `true` (5 seconds after the battle reached this state),
+		 * the player should be taken to the 'Game Over' screen.
+		 */
 		fun shouldGoToGameOverMenu() = (System.nanoTime() - startTime) >= FADE_DURATION
 
 		companion object {
+
+			/**
+			 * The fade-out time (in nanoseconds) after the battle reaches this state.
+			 * The player should be taken to the 'Game Over' menu after the fade-out finishes.
+			 */
 			const val FADE_DURATION = 5000_000_000L
 		}
 	}
 
+	/**
+	 * This interface is implemented by the [BattleStateMachine]s that are *moves*: e.g. [MeleeAttack] and [CastSkill]
+	 * are moves, whereas [NextTurn] and [Victory] are not.
+	 */
 	sealed interface Move {
+
+		/**
+		 * Sets the `startTime` of this move to `System.nanoTime()`.
+		 *
+		 * This method will be called right after the player loads an in-combat save to make sure that
+		 * the `startTime` of the current move (if applicable) is set to the time when the save is loaded.
+		 *
+		 * If this method is *not* called, the `startTime` would be set to the time at which this state was
+		 * deserialized, which is typically a bit in the past. This would cause the game to 'skip' a part of the
+		 * 'animation' of the current move.
+		 */
 		fun refreshStartTime()
 	}
 }

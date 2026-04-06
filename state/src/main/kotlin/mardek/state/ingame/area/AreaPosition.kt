@@ -4,13 +4,22 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 
+/**
+ * Represents a (tile) position into an [mardek.content.area.Area]. This class is a simple tuple `(tileX, tileY)`.
+ */
 @BitStruct(backwardCompatible = true)
 class AreaPosition(
 
+	/**
+	 * The (tile) X-coordinate
+	 */
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false)
 	val x: Int,
 
+	/**
+	 * The (tile) Y-coordinate
+	 */
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false)
 	val y: Int

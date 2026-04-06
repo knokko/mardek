@@ -18,6 +18,8 @@ import kotlin.time.Duration
 
 /**
  * Every possible area suspension (see [AreaState.suspension]) is a subclass of `AreaSuspension`.
+ * When an area is 'suspended' by any `AreaSuspension`, the normal update flow is suspended until the suspension is
+ * gone. This makes sure that e.g. the player cannot walk while engaged in a battle, or looking inside a chest.
  */
 sealed class AreaSuspension {
 
@@ -202,7 +204,13 @@ class AreaSuspensionActions(
  * it must transition the player to the destination area or world map **before** the end of its `update()` method.
  * This means that [AreaState.suspension] can only be `AreaSuspensionTransition` *during* `CampaignState.update(...)`.
  */
-class AreaSuspensionTransition(val destination: TransitionDestination) : AreaSuspension() {
+class AreaSuspensionTransition(
+
+	/**
+	 * The destination position (or world map)
+	 */
+	val destination: TransitionDestination
+) : AreaSuspension() {
 
 	override fun shouldUpdateCurrentTime() = false
 }
@@ -214,10 +222,18 @@ class AreaSuspensionTransition(val destination: TransitionDestination) : AreaSus
 @BitStruct(backwardCompatible = true)
 class AreaSuspensionOpeningDoor(
 
+	/**
+	 * The door that is being opened.
+	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "doors")
 	val door: AreaDoor,
 
+	/**
+	 * - When [AreaState.currentTime] >= [finishTime], the player is 'teleported' to `door.destination`.
+	 * - When [AreaState.currentTime] < [finishTime], the door opening animation is played, while the player walks to
+	 * the tile containing the door, and while the area is fading out.
+	 */
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true)
 	val finishTime: Duration

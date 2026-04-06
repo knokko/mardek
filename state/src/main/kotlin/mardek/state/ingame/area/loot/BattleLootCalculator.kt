@@ -9,7 +9,7 @@ import mardek.content.skill.PassiveSkill
 import mardek.content.battle.Battle
 import mardek.content.characters.PlayableCharacter
 import mardek.content.skill.Skill
-import mardek.state.UsedPartyMember
+import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.PlayerCombatantState
 import java.lang.IllegalArgumentException
@@ -30,6 +30,10 @@ private fun getModifiers(party: List<UsedPartyMember>): Pair<Int, Int> {
 	return Pair(goldModifier, extraLootChance)
 }
 
+/**
+ * Computes the loot that the player should get after winning [battle]. This method basically iterates over the
+ * defeated enemies, and collects the items that they should drop.
+ */
 fun generateBattleLoot(
 	content: Content, battle: Battle,
 	party: List<UsedPartyMember>, combatants: List<CombatantState>

@@ -6,12 +6,42 @@ import mardek.state.ingame.menu.InGameMenuTab
 import mardek.state.ingame.menu.UiUpdateContext
 import mardek.state.util.Rectangle
 
+/**
+ * The "Inventory" tab of the in-game menu.
+ *
+ * This class tracks the state of the player interaction with the inventory. It tracks e.g. over which slot the mouse
+ * cursor is hovering, and where the inventory grid and equipment bars are rendered.
+ *
+ * This class does *not* capture the actual inventory states,
+ * which are part of the [mardek.content.characters.CharacterState]s.
+ */
 class InventoryTab: InGameMenuTab() {
 
+	/**
+	 * The 'interaction state'. This tracks e.g. over which slot the mouse cursor is hovering.
+	 */
 	val interaction = InventoryInteractionState()
+
+	/**
+	 * The position where the (8x8) inventory grid was rendered, or `null` if the first frame hasn't been rendered yet.
+	 */
 	var gridRenderInfo: ItemGridRenderInfo? = null
+
+	/**
+	 * For each party member whose equipment/character bar was rendered, this list tracks in which position it was
+	 * rendered. Note that it will be empty until the first frame is rendered.
+	 */
 	var equipmentRenderInfo: Collection<EquipmentRowRenderInfo> = emptyList()
+
+	/**
+	 * The region where the thrash icon (to discard items) was rendered, or `null` before the first frame.
+	 */
 	var thrashRegion: Rectangle? = null
+
+	/**
+	 * The region where the sort icon was rendered, or `null` before it has been rendered.
+	 * TODO CHAP2 Actually render this...
+	 */
 	var sortRegion: Rectangle? = null
 
 	override fun getText() = "Inventory"
