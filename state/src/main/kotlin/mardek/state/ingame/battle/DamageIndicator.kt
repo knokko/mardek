@@ -13,12 +13,6 @@ sealed class DamageIndicator(
 	 * The amount of health that the combatant had prior to the move/attack
 	 */
 	val oldHealth: Int,
-
-	/**
-	 * The amount of mana that the combatant had prior to the move/attack
-	 */
-	// TODO CHAP1 Fix the mana gained indicator of the 'Absorb Mana' skill of Hero Mardek and Hero Deugan
-	val oldMana: Int,
 ) {
 
 	/**
@@ -30,14 +24,13 @@ sealed class DamageIndicator(
 /**
  * An indicator that a combatant missed an attack. The renderer will render a "Miss" text at the target location.
  */
-class DamageIndicatorMiss(oldHealth: Int, oldMana: Int) : DamageIndicator(oldHealth, oldMana)
+class DamageIndicatorMiss(oldHealth: Int) : DamageIndicator(oldHealth)
 
 /**
  * An indicator that shows how much health a combatant gained or last due to a move or attack
  */
 class DamageIndicatorHealth(
 	oldHealth: Int,
-	oldMana: Int,
 
 	/**
 	 * The amount of health that was gained. It will be positive when the combatant was healed, and it will be negative
@@ -54,14 +47,13 @@ class DamageIndicatorHealth(
 	 * When non-zero, this overrides the 'blink' color
 	 */
 	val overrideColor: Int,
-) : DamageIndicator(oldHealth, oldMana)
+) : DamageIndicator(oldHealth)
 
 /**
  * An indicator that shows how much mana a combatant gained or last due to a move or attack
  */
 class DamageIndicatorMana(
 	oldHealth: Int,
-	oldMana: Int,
 
 	/**
 	 * The amount of mana that was gained. It will be positive when the combatant gained mana, and it will be negative
@@ -78,4 +70,4 @@ class DamageIndicatorMana(
 	 * When non-zero, this overrides the 'blink' color
 	 */
 	val overrideColor: Int,
-) : DamageIndicator(oldHealth, oldMana)
+) : DamageIndicator(oldHealth)

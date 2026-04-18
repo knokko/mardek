@@ -29,7 +29,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		attackReactionType: ReactionSkillType, defenseReactionType: ReactionSkillType,
 		baseFlatDamage: Int, attackValue: Int, basicElementalBonus: Float,
 		basicHitChance: Int, basicCritChance: Int, applyDamageSplit: Boolean,
-		basicHealthDrain: Float, basicManaDrain: Float, attackElement: Element,
+		basicHealthDrain: Float, basicManaDrain: Float, manaCost: Int, attackElement: Element,
 		basicAddStatModifiers: EnumMap<CombatStat, Int>,
 		basicAddEffects: MutableMap<StatusEffect, Int>,
 		basicRemoveEffects: MutableMap<StatusEffect, Int>,
@@ -50,7 +50,8 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		var targetEffectBonus = 0f
 		var extraFlatDamage = baseFlatDamage
 		var hpDrain = basicHealthDrain
-		var mpAbsorption = basicManaDrain
+		var damageMpAbsorption = basicManaDrain
+		var costMpAbsorption = 0f
 		var criticalChance = basicCritChance
 		var hitChance = basicHitChance
 
@@ -81,7 +82,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 				attackElementBonus += skill.getElementalBonus(attackElement)
 				attackerCreatureBonus += skill.getCreatureTypeBonus(target.getCreatureType())
 				hpDrain += skill.drainHp
-				mpAbsorption += skill.absorbMp
+				damageMpAbsorption += skill.absorbMp
 				hitChance += skill.addAccuracy
 				for (maybeRemove in skill.removeStatusEffects) {
 					if (target.statusEffects.contains(maybeRemove.effect)) {
@@ -134,6 +135,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 				criticalChance += skill.addCritChance
 				extraDamageFractionTarget += skill.addDamageFraction
 				targetCreatureBonus += skill.getCreatureTypeBonus(attacker.getCreatureType())
+				costMpAbsorption += skill.absorbMp
 				if (skill.survivor) hasSurvivor = true
 			}
 		}
@@ -176,9 +178,11 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 
 		if (hasSurvivor && target.currentHealth > 1) damage = min(damage, target.currentHealth - 1)
 
-		var restoreAttackerMana = (mpAbsorption * damage).roundToInt()
+		var restoreAttackerMana = (damageMpAbsorption * damage).roundToInt()
 		if (restoreAttackerMana > 0) restoreAttackerMana = min(restoreAttackerMana, target.currentHealth)
 		if (restoreAttackerMana < 0) restoreAttackerMana = -min(-restoreAttackerMana, attacker.currentMana)
+
+		val damageTargetMana = (-costMpAbsorption * manaCost).roundToInt()
 
 		val removedEffects = determineRemovedEffects(removeCandidateEffects, target)
 		val addedEffects = determineAddedEffects(addCandidateEffects, target, removedEffects)
@@ -189,7 +193,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 				overrideBlinkColor = 0,
 				target = target,
 				damage = damage,
-				damageMana = 0,
+				damageMana = damageTargetMana,
 				missed = missed,
 				criticalHit = criticalHit,
 				addedEffects = addedEffects,
@@ -345,6 +349,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 				applyDamageSplit = targets.size > 1 && skillDamage != null && skillDamage.splitDamage,
 				basicHealthDrain = skill.healthDrain,
 				basicManaDrain = 0f,
+				manaCost = skill.manaCost,
 				attackElement = skill.element,
 				basicAddStatModifiers = addStatModifiers,
 				basicAddEffects = addEffects,
@@ -418,6 +423,7 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 			applyDamageSplit = false,
 			basicHealthDrain = healthDrain,
 			basicManaDrain = manaDrain,
+			manaCost = 0,
 			attackElement = attackElement,
 			basicAddStatModifiers = EnumMap(CombatStat::class.java),
 			basicAddEffects = mutableMapOf(),

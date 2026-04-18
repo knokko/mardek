@@ -996,6 +996,38 @@ object TestMoveResultCalculator {
 		}
 	}
 
+	fun testManaAbsorption(instance: TestingInstance) {
+		instance.apply {
+			val campaign = simpleCampaignState()
+			val deuganState = campaign.characterStates[heroDeugan]!!
+			deuganState.currentLevel = 50
+			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "Nullify Magic" }!!)
+			deuganState.toggledSkills.add(content.skills.reactionSkills.find { it.name == "Absorb MP" }!!)
+
+			val dragon = content.battle.monsters.find { it.name == "mightydragon" }!!
+			val thunderBolt = dragon.strategies[0].entries.find { it.chance == 21 }!!.skill!!
+
+			startSimpleBattle(campaign, enemies = arrayOf(
+				Enemy(monster = dragon, level = 50), null, null, null
+			))
+			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
+
+			repeat(1000) {
+				val result = MoveResultCalculator(
+					battleUpdateContext(campaign)
+				).computeSkillResult(
+					thunderBolt, battle.livingOpponents()[0],
+					arrayOf(battle.livingPlayers()[1]), true
+				)
+				val entry = result.targets[0]
+				assertFalse(entry.criticalHit)
+				assertEquals(0, entry.damage)
+				assertFalse(entry.missed)
+				assertEquals(-6, entry.damageMana)
+			}
+		}
+	}
+
 	fun testPotion(instance: TestingInstance) {
 		instance.apply {
 			val potion = content.items.items.find { it.displayName == "Potion" }!!

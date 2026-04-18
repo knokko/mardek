@@ -245,8 +245,8 @@ class BattleState(
 
 				if (effects.combatant.currentHealth != oldHealth) {
 					effects.combatant.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
-						oldHealth = oldHealth, oldMana = effects.combatant.currentMana,
-						gainedHealth = -takeDamage.amount, element = dpt.element, overrideColor = dpt.blinkColor
+						oldHealth = oldHealth, gainedHealth = -takeDamage.amount,
+						element = dpt.element, overrideColor = dpt.blinkColor,
 					)
 					val particle = ParticleEffectState(
 						particle = dpt.particleEffect,
@@ -537,7 +537,6 @@ class BattleState(
 			if (entry.damageMana != 0 && entry.damage == 0) {
 				target.renderInfo.lastDamageIndicator = DamageIndicatorMana(
 					oldHealth = target.currentHealth,
-					oldMana = target.currentMana,
 					gainedMana = -entry.damageMana,
 					element = entry.element,
 					overrideColor = entry.overrideBlinkColor,
@@ -554,7 +553,6 @@ class BattleState(
 				if (entry.damage != 0 || isNotSpecial) {
 					target.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
 						oldHealth = target.currentHealth,
-						oldMana = target.currentMana,
 						gainedHealth = -entry.damage,
 						element = entry.element,
 						overrideColor = entry.overrideBlinkColor,
@@ -589,7 +587,7 @@ class BattleState(
 				}
 			}
 		} else {
-			target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth, target.currentMana)
+			target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth)
 		}
 	}
 
@@ -601,7 +599,6 @@ class BattleState(
 		if (result.restoreAttackerHealth != 0) {
 			attacker.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
 				oldHealth = attacker.currentHealth,
-				oldMana = attacker.currentMana,
 				gainedHealth = result.restoreAttackerHealth,
 				element = result.element,
 				overrideColor = 0,
@@ -609,7 +606,6 @@ class BattleState(
 		} else if (result.restoreAttackerMana != 0) {
 			attacker.renderInfo.lastDamageIndicator = DamageIndicatorMana(
 				oldHealth = attacker.currentHealth,
-				oldMana = attacker.currentMana,
 				gainedMana = result.restoreAttackerMana,
 				element = result.element,
 				overrideColor = 0,

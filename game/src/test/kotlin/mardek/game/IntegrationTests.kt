@@ -159,6 +159,7 @@ class IntegrationTests {
 		TestMoveResultCalculator.testRecover(instance)
 		TestMoveResultCalculator.testMultiTargetFrostasia(instance)
 		TestMoveResultCalculator.testRageChord(instance)
+		TestMoveResultCalculator.testManaAbsorption(instance)
 	}
 
 	@Test

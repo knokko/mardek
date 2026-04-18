@@ -89,9 +89,15 @@ class ReactionSkill(
 	val drainHp: Float,
 
 	/**
-	 * When this skill is enabled and the reaction challenge is passed, the attacker regains `absortMp * finalDamage`
-	 * MP. Only `MeleeAttack` and `RangedAttack` skills should have `drainHp != 0f`; draining HP doesn't make sense
-	 * for defensive reaction skills.
+	 * The meaning of this property depends on whether this reaction skill is offensive or defensive:
+	 *
+	 * ### Offensive reaction skill meaning
+	 * When this skill is enabled and the reaction challenge is passed, the **attacker** regains
+	 * `absorbMp * finalDamage` MP.
+	 *
+	 * ### Defensive reaction skill meaning
+	 * When this skill is enabled and the reaction challenge is passed, the **target** regains `absorbMp * manaCost`
+	 * MP.
 	 */
 	@BitField(id = 8)
 	@FloatField(expectMultipleOf = 0.1)
