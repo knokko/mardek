@@ -30,6 +30,7 @@ import mardek.importer.animation.getScript
 import mardek.importer.animation.importSkinnedAnimation
 import mardek.importer.area.FLASH
 import mardek.importer.area.MAGIC_PARTY_POSITION_SCALE
+import mardek.importer.area.importObjectSprites
 import mardek.importer.area.parseFlashString
 import mardek.importer.skills.SkillParseException
 import mardek.importer.skills.parseActiveSkills
@@ -343,6 +344,7 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 
 	val hpPerLevel = parseInt(mdlMap["hpGrowth"]!!)
 	val baseStats = HashMap<CombatStat, Int>()
+	var unarmedAttack = 0
 	val rawBaseStats = parseActionScriptObject(mdlMap["baseStats"]!!)
 	for ((statName, statValue) in rawBaseStats) {
 		val stat = CombatStat.entries.find { it.flashName == statName }!!
@@ -362,12 +364,17 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 	val rawMagicDef = mdlMap["nMDef"]
 	val rawEvasion = mdlMap["evasion"]
 	for ((statName, statValue) in arrayOf(
-		Pair("ATK", rawAttack), Pair("DEF", rawMeleeDef), Pair("MDEF", rawMagicDef), Pair("evasion", rawEvasion)
+		Pair("ATK", rawAttack),
+		Pair("DEF", rawMeleeDef),
+		Pair("MDEF", rawMagicDef),
+		Pair("evasion", rawEvasion),
 	)) {
 		if (statValue == null) continue
 		val stat = if (statName == "evasion") CombatStat.Evasion
 		else CombatStat.entries.find { it.flashName == statName }!!
-		baseStats[stat] = parseInt(statValue)
+
+		if (stat == CombatStat.Attack) unarmedAttack = parseInt(statValue)
+		else baseStats[stat] = parseInt(statValue)
 	}
 
 	var attackPerLevelNumerator = 0
@@ -515,6 +522,17 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 		}
 	}
 
+	val rawTurnOrderSprite = mdlMap["unique_sprite"]
+	val (directionalTurnOrderSprite, objectTurnOrderSprite) = if (rawTurnOrderSprite != null) {
+		val spriteName = parseFlashString(rawTurnOrderSprite, "monster unique_sprite")!!
+		val directionalSprite = content.areas.characterSprites.find { it.name == spriteName }
+		if (directionalSprite == null) {
+			val objectSprite = importObjectSprites(spriteName)
+			content.areas.objectSprites.add(objectSprite)
+			Pair(null, objectSprite)
+		} else Pair(directionalSprite, null)
+	} else Pair(null, null)
+
 	return Monster(
 		name = name,
 		displayName = displayName,
@@ -549,5 +567,8 @@ internal fun importMonsterStats(name: String, animations: CombatantAnimations, p
 		meleeCounterAttacks = meleeCounterAttacks,
 		rangedCounterAttacks = rangedCounterAttacks,
 		id = UUID.nameUUIDFromBytes("MonsterImporter$name$displayName".encodeToByteArray()),
+		directionalTurnOrderSprite = directionalTurnOrderSprite,
+		objectTurnOrderSprite = objectTurnOrderSprite,
+		unarmedAttackPower = unarmedAttack,
 	)
 }

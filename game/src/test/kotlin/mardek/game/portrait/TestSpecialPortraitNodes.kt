@@ -50,6 +50,7 @@ object TestSpecialPortraitNodes {
 
 		for (expected in arrayOf(
 			SpecialAnimationNode.PortraitExpressions,
+			SpecialAnimationNode.PortraitMouthExpressions,
 			SpecialAnimationNode.PortraitFace,
 			SpecialAnimationNode.PortraitHair,
 			SpecialAnimationNode.PortraitEye,

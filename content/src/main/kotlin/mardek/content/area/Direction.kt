@@ -7,38 +7,74 @@ import kotlin.math.abs
  * The 4 basic directions: down, up, right, and left
  */
 @BitEnum(mode = BitEnum.Mode.Ordinal)
-enum class Direction(val deltaX: Int, val deltaY: Int, val abbreviation: String) {
+enum class Direction(
+
+	/**
+	 * The delta X of this direction:
+	 * - this is 1 for [Right]
+	 * - this is -1 for [Left]
+	 * - this is 0 for everything else
+	 */
+	val deltaX: Int,
+
+	/**
+	 * The delta Y of this direction:
+	 * - this is 1 for [Down]
+	 * - this is -1 for [Up]
+	 * - this is 0 for everything else
+	 */
+	val deltaY: Int,
+
+	/**
+	 * The single-letter abbreviation of this direction, which is used during flash importing.
+	 */
+	val abbreviation: String,
+
+	/**
+	 * The index of this direction into the standard character sprite sheet:
+	 * - The first 2 sprites in each sheet are the 'walking down' sprites, so `Down.baseSpriteIndex` is 0
+	 * - The third and fourth sprites in each sheet are the 'walking up' sprites, so `Up.baseSpriteIndex` is 2,
+	 * - etc...
+	 */
+	val baseSpriteIndex: Int,
+) {
 	/**
 	 * Down/south (positive Y)
 	 */
-	Down(0, 1, "s"),
+	Down(0, 1, "s", 0),
 
 	/**
 	 * Up/north (negative Y)
 	 */
-	Up(0, -1, "n"),
+	Up(0, -1, "n", 2),
 
 	/**
 	 * Right/east (positive X)
 	 */
-	Right(1, 0, "e"),
+	Right(1, 0, "e", 4),
 
 	/**
 	 * Left/west (negative X)
 	 */
-	Left(-1, 0, "w"),
+	Left(-1, 0, "w", 6),
 
 	/**
 	 * This pseudo-direction is used to tell that a character should show its sleeping animation rather than its
 	 * standing animation.
 	 */
-	Sleep(-12345, 123456, "l"),
+	Sleep(-12345, 123456, "l", 8),
+
+	/**
+	 * This pseudo-direction is used to tell that the character should look down with colored eyes.
+	 * This is used to show that Mardek is possessed by Rohoph, or that the king is possessed by Qualna.
+	 */
+	Possessed(984, -1847, "p", 9),
 
 	/**
 	 * This pseudo-direction is used to tell that an area character is supposed to
 	 * spawn with a random initial direction.
 	 */
-	Random(-4383, 82874, "r");
+	Random(-4383, 82874, "r", -1);
 
 	companion object {
 

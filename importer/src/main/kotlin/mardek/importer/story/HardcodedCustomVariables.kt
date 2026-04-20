@@ -10,6 +10,7 @@ internal fun hardcodeCustomVariables(content: StoryContent) {
 	content.customVariables.add(CustomTimelineVariable<String>("GoznorMusic"))
 	content.customVariables.add(CustomTimelineVariable<Unit>("WithDeuganBeforeFallingStar"))
 	content.customVariables.add(CustomTimelineVariable<Boolean>("SpawnPoshGoblin"))
+	content.customVariables.add(CustomTimelineVariable<Boolean>("SpawnMugbert"))
 	content.customVariables.add(CustomTimelineVariable<String>("RohophSaucerMusic"))
 	content.customVariables.add(CustomTimelineVariable<String>("CastleGoznorMusic"))
 	content.customVariables.add(CustomTimelineVariable<String>("CastleGoznorHallMusic"))

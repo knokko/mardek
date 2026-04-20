@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.action.*
+import mardek.content.animation.ColorTransform
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
 import mardek.content.inventory.Item
@@ -82,13 +83,14 @@ class AreaActionsState(
 	var overlayColor: Int = 0
 
 	/**
-	 * The value of [AreaState.currentTime] when the most recent [ActionSetOverlayColor] was encountered. This field is
-	 * used by the renderer to render overlay transitions, and by this class to determine when it should move on to the
-	 * next node.
+	 * Whenever this state switches to a new node, this variable is set to [AreaState.currentTime].
+	 *
+	 * This field is used by the renderer to render overlay/ambience transitions,
+	 * and by this class to determine when it should move on to the next node.
 	 */
 	@BitField(id = 5)
 	@IntegerField(expectUniform = false)
-	var startOverlayTransitionTime = ZERO
+	var currentNodeStartTime = (-1).seconds
 
 	/**
 	 * This map can be used to overrule the states of [AreaCharacter]s inside the area, until all actions are over.
@@ -118,6 +120,25 @@ class AreaActionsState(
 	@BitField(id = 8, optional = true)
 	@ReferenceField(stable = true, label = "action background images")
 	var backgroundImage: NamedSprite? = null
+
+	/**
+	 * - When non-null, this overrides the area ambience of the current area.
+	 * - When null, the normal area ambience is shown.
+	 *
+	 * Use [ActionChangeAmbience] to change this field.
+	 */
+	@BitField(id = 9, optional = true)
+	var overrideAmbience: ColorTransform? = null
+
+	/**
+	 * This map tracks the state (position & spawn time) of all the active
+	 * [mardek.content.action.effect.AreaActionEffect]s.
+	 *
+	 * These are updated by [ActionSpawnAreaEffect], [ActionMoveAreaEffect], and [ActionRemoveAreaEffect].
+	 */
+	@BitField(id = 10)
+	@NestedFieldSetting(path = "k", fieldName = "EFFECTS_KEY_PROPERTIES")
+	val effects = HashMap<ActionSpawnAreaEffect.Instance, AreaEffectState>()
 
 	/**
 	 * Whether the chat log should be shown during talk/dialogue actions.
@@ -336,7 +357,10 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionSetOverlayColor) {
-			return context.areaState.currentTime >= startOverlayTransitionTime + currentAction.transitionTime
+			return context.areaState.currentTime >= currentNodeStartTime + currentAction.transitionTime
+		}
+		if (currentAction is ActionChangeAmbience) {
+			return context.areaState.currentTime >= currentNodeStartTime + currentAction.transitionTime
 		}
 		if (currentAction is ActionSetMusic) {
 			this.overrideMusic = currentAction.newMusicTrack
@@ -352,6 +376,38 @@ class AreaActionsState(
 		}
 		if (currentAction is ActionAddEncyclopediaArtefact) {
 			context.campaign.encyclopedia.discoveredArtefacts.add(currentAction.artefact)
+			return true
+		}
+		if (currentAction is ActionVanish) {
+			if (currentAction.target.persistent) {
+				context.areaState.characterStates.remove(currentAction.target.character)
+			} else {
+				overrideCharacterStates[currentAction.target.character] = null
+			}
+			return true
+		}
+		if (currentAction is ActionWait) {
+			return context.areaState.currentTime >= currentNodeStartTime + currentAction.duration
+		}
+		if (currentAction is ActionShake) {
+			return context.areaState.currentTime >= currentNodeStartTime + currentAction.totalTime
+		}
+		if (currentAction is ActionSpawnAreaEffect) {
+			effects[currentAction.instance] = AreaEffectState(
+				context.areaState.currentTime, currentAction.x, currentAction.y
+			)
+			return true
+		}
+		if (currentAction is ActionMoveAreaEffect) {
+			if (context.areaState.currentTime >= currentNodeStartTime + currentAction.duration) {
+				val effectInstance = effects[currentAction.instance]!!
+				effectInstance.x = currentAction.destinationX
+				effectInstance.y = currentAction.destinationY
+				return true
+			} else return false
+		}
+		if (currentAction is ActionRemoveAreaEffect) {
+			effects.remove(currentAction.instance)
 			return true
 		}
 		if (shopInteraction != null) {
@@ -409,6 +465,7 @@ class AreaActionsState(
 	 * `areaState.actions != null && areaState.activeBattle == null`
 	 */
 	internal fun update(context: UpdateContext) {
+		if (currentNodeStartTime == (-1).seconds) currentNodeStartTime = context.areaState.currentTime
 		while (true) {
 			val currentNode = node
 			if (currentNode is ExpressionActionNode) {
@@ -753,16 +810,15 @@ class AreaActionsState(
 		if (old is FixedActionNode) {
 			val action = old.action
 			if (action is ActionSetOverlayColor) this.overlayColor = action.color
+			if (action is ActionChangeAmbience) this.overrideAmbience = action.overrideAmbience
 		}
 		this.node = next
+		this.currentNodeStartTime = currentTime
 		this.choiceOptions = emptyList()
 		this.selectedChoice = 0
 		this.shownDialogueCharacters = 0f
 		this.speedUpShowingCharacters = false
 		this.finishedTalkingAction = false
-		if (next is FixedActionNode && next.action is ActionSetOverlayColor) {
-			this.startOverlayTransitionTime = currentTime
-		}
 		this.itemStorageInteraction = null
 		this.shopInteraction = null
 		this.saveSelectionState = null
@@ -863,5 +919,9 @@ class AreaActionsState(
 		@Suppress("unused")
 		@ReferenceField(stable = true, label = "area characters")
 		private const val OVERRIDE_CHARACTER_STATES_KEYS = false
+
+		@Suppress("unused")
+		@ReferenceField(stable = true, label = "area action effect instances")
+		private const val EFFECTS_KEY_PROPERTIES = false
 	}
 }

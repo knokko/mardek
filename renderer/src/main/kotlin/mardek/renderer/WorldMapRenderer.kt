@@ -112,10 +112,10 @@ internal fun renderWorldMap(
 	val baseCharacterX = offsetX + (mapScale * rawCharacterX).roundToInt()
 	val baseCharacterY = offsetY + (mapScale * rawCharacterY).roundToInt()
 	val characterScale = max(1, (region.height / 275f).roundToInt())
-	var characterSprite = characterSprites.sprites[2 * direction.ordinal]
+	var characterSprite = characterSprites.sprites[direction.baseSpriteIndex]
 	val walkingAnimationPeriod = 750_000_000L
 	if ((mapState.currentTime.inWholeNanoseconds % walkingAnimationPeriod) >= walkingAnimationPeriod / 2) {
-		characterSprite = characterSprites.sprites[2 * direction.ordinal + 1]
+		characterSprite = characterSprites.sprites[direction.baseSpriteIndex + 1]
 	}
 	spriteBatch.simple(
 		baseCharacterX - characterScale * characterSprite.width / 2,

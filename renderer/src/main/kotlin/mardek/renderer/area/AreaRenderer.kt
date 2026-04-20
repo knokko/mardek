@@ -57,6 +57,7 @@ internal fun renderCurrentArea(
 	renderAreaAmbience(areaContext)
 	renderChestLoot(areaContext)
 	renderActionBackgroundImage(areaContext)
+	renderAreaActionEffects(areaContext)
 	renderDialogue(areaContext)
 	renderActionsItemNotification(areaContext)
 	renderActionFlash(areaContext)

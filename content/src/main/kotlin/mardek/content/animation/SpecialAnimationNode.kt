@@ -117,6 +117,12 @@ enum class SpecialAnimationNode(
 	PortraitExpressions(false),
 
 	/**
+	 * Just like [PortraitExpressions], use the facial expression ("norm", "grin", etc...) to select the skin.
+	 * But, during the first 26 frames (26/30 seconds), the special 'talk' animation should be played instead.
+	 */
+	PortraitMouthExpressions(false),
+
+	/**
 	 * Use `PortraitInfo.faceSkin` to select the skin
 	 */
 	PortraitFace(false),

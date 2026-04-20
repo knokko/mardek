@@ -260,11 +260,6 @@ private fun parseMusicTrack(content: Content, raw: String): StateExpression<Stri
 		// TODO CHAP2 Change to "EvilStirs" during zombie outbreak
 		return variableOrTimeOfDayMusic("GoznorMusic", "Goznor")
 	}
-	if (raw == "plotVars.PossessCut != 10 ? \"none\" : \"Rohoph\"") {
-		// TODO CHAP1 Delete this clause (because it's unused)
-		// , but make sure Rohoph music is played during the saucer conversation
-		return variableOrDefaultMusic("RohophSaucerMusic", "none")
-	}
 	if (raw == "!GameData.plotVars.ELWYEN_DATE ? (!GameData.plotVars.SUNSET ? \"Castle\" : \"none\") : \"SirenSong\"") {
 		// TODO CHAP3 Set to "SirenSong" during Elwyen date
 		return castleGoznorMusic("CastleGoznorMusic")

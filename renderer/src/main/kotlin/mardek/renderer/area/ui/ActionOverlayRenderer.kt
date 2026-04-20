@@ -20,7 +20,7 @@ internal fun renderActionOverlayColor(areaContext: AreaRenderContext) {
 			if (action is ActionSetOverlayColor) {
 				val progress = min(
 					1.0,
-					(state.currentTime - suspension.actions.startOverlayTransitionTime) / action.transitionTime,
+					(state.currentTime - suspension.actions.currentNodeStartTime) / action.transitionTime,
 				)
 				overlayColor = interpolateColors(overlayColor, action.color, progress.toFloat())
 			}

@@ -6,6 +6,10 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import com.github.knokko.bitser.field.ReferenceFieldTarget
+import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.action.effect.AreaActionEffect
+import mardek.content.animation.ColorTransform
 import mardek.content.area.Area
 import mardek.content.area.AreaShop
 import mardek.content.area.Direction
@@ -18,6 +22,7 @@ import mardek.content.inventory.Item
 import mardek.content.sprite.NamedSprite
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
+import java.util.UUID
 import kotlin.collections.addAll
 import kotlin.time.Duration
 
@@ -58,6 +63,13 @@ sealed class FixedAction {
 			ActionShop::class.java,
 			ActionAddEncyclopediaPerson::class.java,
 			ActionAddEncyclopediaArtefact::class.java,
+			ActionVanish::class.java,
+			ActionChangeAmbience::class.java,
+			ActionWait::class.java,
+			ActionShake::class.java,
+			ActionSpawnAreaEffect::class.java,
+			ActionMoveAreaEffect::class.java,
+			ActionRemoveAreaEffect::class.java,
 		)
 	}
 }
@@ -734,4 +746,250 @@ class ActionAddEncyclopediaArtefact(
 
 	@Suppress("unused")
 	private constructor() : this(EncyclopediaArtefact())
+}
+
+/**
+ * Makes an [mardek.content.area.objects.AreaCharacter] 'vanish'. This is typically used for characters that should
+ * 'go away' after some dialogue.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionVanish(
+
+	/**
+	 * The character that should 'vanish'.
+	 *
+	 * Note that you might want to set [ActionTargetAreaCharacter.persistent] to `true`.
+	 */
+	@BitField(id = 0)
+	val target: ActionTargetAreaCharacter
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(ActionTargetAreaCharacter())
+}
+
+/**
+ * Changes/overrides the area ambience that should be rendered for the remainder of the `AreaActionsState`,
+ * or until the next [ActionChangeAmbience] is encountered. In the meantime, the regular area ambience is *not* shown.
+ *
+ * Depending on [transitionTime], this transition can be either gradual or instantaneous.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionChangeAmbience(
+
+	/**
+	 * The new area ambience that should be shown, or `null` to start showing the regular ambience of the current area
+	 * again.
+	 */
+	@BitField(id = 0, optional = true)
+	val overrideAmbience: ColorTransform?,
+
+	/**
+	 * - When this is `Duration.ZERO`, the ambience is instantly changed to [overrideAmbience]
+	 * - When this is positive, the ambience is gradually transitioned from the old ambience to [overrideAmbience],
+	 * which takes `transitionTime` time
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val transitionTime: Duration,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(null, Duration.ZERO)
+}
+
+/**
+ * Causes the action sequence to wait for [duration] time until moving on to the next action/node.
+ * Nothing should happen in the meantime.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionWait(
+
+	/**
+	 * The amount of time to wait until the next action
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val duration: Duration
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(Duration.ZERO)
+}
+
+/**
+ * Causes [target] to randomly 'shake' in a [radius]-pixel radius for [totalTime] time. The target will 'move' every
+ * [stepTime] time.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionShake(
+
+	/**
+	 * The target that should be shaken
+	 */
+	@BitField(id = 0)
+	@ClassField(root = ActionTarget::class)
+	val target: ActionTarget,
+
+	/**
+	 * The 'shake radius', in tile pixels (e.g. radius = 16 means that [target] can move up to 1 tile from its
+	 * original position)
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false, minValue = 1)
+	val radius: Int,
+
+	/**
+	 * The amount of time that [target] stays on one position, before being randomly moved to the next position
+	 */
+	@BitField(id = 2)
+	@IntegerField(expectUniform = false, minValue = 1)
+	val stepTime: Duration,
+
+	/**
+	 * The amount of time that [target] should shake. Once this time has elapsed, the target is moved back to its
+	 * original position.
+	 */
+	@BitField(id = 3)
+	@IntegerField(expectUniform = false, minValue = 1)
+	val totalTime: Duration,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(
+		ActionTargetAreaCharacter(), 0,
+		Duration.ZERO, Duration.ZERO,
+	)
+}
+
+/**
+ * Spawns an [AreaActionEffect] at the given position.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionSpawnAreaEffect(
+
+	/**
+	 * The *instance* to spawn. This instance is needed by [ActionMoveAreaEffect] and [ActionRemoveAreaEffect] to
+	 * target the effect instance that was spawned by this action.
+	 */
+	@BitField(id = 0)
+	@ReferenceFieldTarget(label = "area action effect instances")
+	val instance: Instance,
+
+	/**
+	 * The X-coordinate of the point where the effect should be spawned, in *tile pixels*
+	 * (e.g. use `x = 16` to spawn it at the left edge of the tile with X-coordinate 1).
+	 *
+	 * This uses *tile pixel* coordinates rather than regular tile coordinates, which makes it possible to e.g. spawn
+	 * effects in the middle of a tile.
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false)
+	val x: Int,
+
+	/**
+	 * The Y-coordinate of the point where the effect should be spawned, in *tile pixels*
+	 * (e.g. use `y = 16` to spawn it at the top edge of the tile with Y-coordinate 1).
+	 *
+	 * This uses *tile pixel* coordinates rather than regular tile coordinates, which makes it possible to e.g. spawn
+	 * effects in the middle of a tile.
+	 */
+	@BitField(id = 2)
+	@IntegerField(expectUniform = false)
+	val y: Int,
+
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(Instance(), 0, 0)
+
+	/**
+	 * This class is just a wrapper around a reference to an [AreaActionEffect].
+	 *
+	 * The interesting part of this class is that it is used by [ActionSpawnAreaEffect.instance] to define an
+	 * instance of an area effect, and that it is used by [ActionMoveAreaEffect.instance] and
+	 * [ActionRemoveAreaEffect.instance] to *refer* to that instance.
+	 */
+	@BitStruct(backwardCompatible = true)
+	class Instance(
+
+		/**
+		 * The unique ID of this instance, which is used for (de)serialization
+		 */
+		@BitField(id = 0)
+		@StableReferenceFieldId
+		val id: UUID,
+
+		/**
+		 * The wrapped [AreaActionEffect] that should be spawned
+		 */
+		@BitField(id = 1)
+		@ReferenceField(stable = false, label = "area action effects")
+		val effect: AreaActionEffect
+	) {
+		internal constructor() : this(UUID(0, 0), AreaActionEffect())
+
+		override fun toString() = "AreaEffectInstance(${effect.name}, $id)"
+	}
+}
+
+/**
+ * Moves an [ActionSpawnAreaEffect.Instance] to the destination position.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionMoveAreaEffect(
+
+	/**
+	 * The effect instance to be moved.
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "area action effect instances")
+	val instance: ActionSpawnAreaEffect.Instance,
+
+	/**
+	 * The X-coordinate of the destination, using the same coordinate system as [ActionSpawnAreaEffect.x]
+	 */
+	@BitField(id = 1)
+	@IntegerField(expectUniform = false)
+	val destinationX: Int,
+
+	/**
+	 * The Y-coordinate of the destination, using the same coordinate system as [ActionSpawnAreaEffect.y]
+	 */
+	@BitField(id = 2)
+	@IntegerField(expectUniform = false)
+	val destinationY: Int,
+
+	/**
+	 * The time it takes to move the effect from the previous position to `(destinationX, destinationY)`.
+	 */
+	@BitField(id = 3)
+	@IntegerField(expectUniform = false, minValue = 1)
+	val duration: Duration,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(
+		ActionSpawnAreaEffect.Instance(),
+		0, 0, Duration.ZERO,
+	)
+}
+
+/**
+ * Removes a previously-spawned [ActionSpawnAreaEffect.Instance]
+ */
+@BitStruct(backwardCompatible = true)
+class ActionRemoveAreaEffect(
+
+	/**
+	 * The effect instance to be removed - this must have the same identity as the corresponding
+	 * [ActionSpawnAreaEffect.instance]
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "area action effect instances")
+	val instance: ActionSpawnAreaEffect.Instance
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(ActionSpawnAreaEffect.Instance())
 }

@@ -312,7 +312,7 @@ object TestMoveResultCalculator {
 				assertEquals(0, result.restoreAttackerHealth)
 				val entry = result.targets[0]
 				if (!entry.criticalHit) {
-					assertTrue(entry.damage in 450 .. 700, "Expected ${entry.damage} to be 561")
+					assertTrue(entry.damage in 160 .. 220, "Expected ${entry.damage} to be 187")
 				}
 			}
 
@@ -325,8 +325,8 @@ object TestMoveResultCalculator {
 				assertSame(dark, result.element)
 				val entry = result.targets[0]
 				if (!entry.criticalHit) {
-					assertTrue(entry.damage in 450 .. 700, "Expected ${entry.damage} to be 561")
-					assertTrue(result.restoreAttackerHealth in 45 .. 70, "Expected ${result.restoreAttackerHealth} to be 56")
+					assertTrue(entry.damage in 160 .. 220, "Expected ${entry.damage} to be 187")
+					assertTrue(result.restoreAttackerHealth in 15 .. 25, "Expected ${result.restoreAttackerHealth} to be 19")
 				}
 			}
 			attackerState.toggledSkills.remove(drainHp)
@@ -342,7 +342,7 @@ object TestMoveResultCalculator {
 				val entry = result.targets[0]
 				assertEquals(entry.damage, result.restoreAttackerHealth)
 				if (!entry.criticalHit) {
-					assertTrue(entry.damage in -700 .. -450, "Expected ${entry.damage} to be -561")
+					assertTrue(entry.damage in -220 .. -160, "Expected ${entry.damage} to be -187")
 				}
 			}
 		}
@@ -605,7 +605,7 @@ object TestMoveResultCalculator {
 				)
 				val entry = result.targets[0]
 				if (!entry.criticalHit) {
-					assertTrue(entry.damage in 265..335, "Expected ${entry.damage} to be approximately 300")
+					assertTrue(entry.damage in 245 ..315, "Expected ${entry.damage} to be approximately 279")
 				}
 			}
 
@@ -616,7 +616,7 @@ object TestMoveResultCalculator {
 				)
 				val entry = result.targets[0]
 				if (!entry.criticalHit) {
-					assertTrue(entry.damage in 535..665, "Expected ${entry.damage} to be approximately 600")
+					assertTrue(entry.damage in 490 ..625, "Expected ${entry.damage} to be approximately 558")
 				}
 			}
 
@@ -627,7 +627,7 @@ object TestMoveResultCalculator {
 				)
 				val entry = result.targets[0]
 				if (!entry.criticalHit) {
-					assertTrue(entry.damage in 1070..1330, "Expected ${entry.damage} to be approximately 1200")
+					assertTrue(entry.damage in 990..1240, "Expected ${entry.damage} to be approximately 1116")
 				}
 			}
 		}

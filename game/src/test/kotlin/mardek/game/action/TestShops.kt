@@ -286,9 +286,9 @@ object TestShops {
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
 
 			// Test that this doesn't crash
-			updateContext.saves.createSave(
-				updateContext.content, state.campaign,
-				state.campaignName, SaveFile.Type.Cheat,
+			dummySaveManager().createSave(
+				content, state.campaign,
+				"DoNotCrash", SaveFile.Type.Cheat,
 			)
 
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Escape))

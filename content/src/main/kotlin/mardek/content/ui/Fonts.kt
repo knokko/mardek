@@ -54,10 +54,10 @@ class Fonts(
 	val fat: Font,
 
 	/**
-	 * The font used for Gaspar, which is fat and hard to read
+	 * The OldCyr font, which is used by GdM members.
 	 */
 	@BitField(id = 7)
-	val gaspar: Font,
+	val gdm: Font,
 
 	/**
 	 * The Bio-disc Thin font, which is somewhat 'square'.
@@ -120,7 +120,7 @@ class Fonts(
 	 */
 	fun all() = arrayOf(
 		basic1, basic2, large1, large2, ikps,
-		large3, fat, gaspar, square, eccentric,
+		large3, fat, gdm, square, eccentric,
 		weird, digital, sloppy, fatUppercase, fairy,
 	)
 }

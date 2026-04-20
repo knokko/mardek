@@ -356,9 +356,9 @@ object TestMastery {
 				)
 
 				// Test that this doesn't crash
-				updateContext.saves.createSave(
+				dummySaveManager().createSave(
 					content, state.campaign,
-					state.campaignName, SaveFile.Type.Cheat,
+					"DoNotCrash", SaveFile.Type.Cheat,
 				)
 
 				// Close the mastery screen

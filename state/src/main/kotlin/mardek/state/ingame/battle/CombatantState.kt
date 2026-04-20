@@ -711,13 +711,22 @@ class MonsterCombatantState(
 	override fun getStat(stat: CombatStat, context: BattleUpdateContext): Int {
 		var result = monster.baseStats.getOrDefault(stat, 0)
 		result += statModifiers.getOrDefault(stat, 0)
-		if (stat == CombatStat.Attack && monster.attackPerLevelDenominator != 0) {
-			result += monster.attackPerLevelNumerator * (level / monster.attackPerLevelDenominator)
+
+		if (stat == CombatStat.Attack) {
+			val weapon = getWeapon(context)
+			if (weapon == null) {
+				result += monster.unarmedAttackPower
+				if (monster.attackPerLevelDenominator != 0) {
+					result += monster.attackPerLevelNumerator * (level / monster.attackPerLevelDenominator)
+				}
+			}
 		}
+
+		for (equippedItem in equipment) result += equippedItem?.getModifier(stat) ?: 0
 		return result
 	}
 
-	override fun getName() = monster.name
+	override fun getName() = overrideDisplayName ?: monster.displayName
 
 	override fun getClassName() = monster.className
 
@@ -743,7 +752,13 @@ class MonsterCombatantState(
 
 	override fun getAnimations() = monster.animations
 
-	override fun getTurnOrderIcon() = monster.type.icon
+	override fun getTurnOrderIcon() = when (val turnSprite = monster.directionalTurnOrderSprite) {
+		null -> when (val objectSprite = monster.objectTurnOrderSprite) {
+			null -> monster.type.icon
+			else -> objectSprite.frames[0]
+		}
+		else -> turnSprite.sprites[0]
+	}
 
 	override fun hasReactions(context: BattleUpdateContext, type: ReactionSkillType) = false
 

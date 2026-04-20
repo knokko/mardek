@@ -367,9 +367,9 @@ object TestDragonLair {
 			assertEquals(2, slainEncyclopediaMonster.amount)
 
 			// Test that this doesn't crash
-			context.saves.createSave(
-				context.content, state.campaign,
-				state.campaignName, SaveFile.Type.Cheat,
+			dummySaveManager().createSave(
+				content, state.campaign,
+				"DoNotCrash", SaveFile.Type.Cheat,
 			)
 		}
 	}

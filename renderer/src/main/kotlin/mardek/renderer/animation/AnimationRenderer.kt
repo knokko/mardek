@@ -265,6 +265,26 @@ private fun chooseSkin(
 		return skinned.skins[context.portraitExpression!!.lowercase(Locale.ROOT)]?.get()
 	}
 
+	if (special == SpecialAnimationNode.PortraitMouthExpressions) {
+		var currentCharacterIndex = context.shownDialogueCharacters.toInt()
+		val defaultValue = skinned.skins[context.portraitExpression!!.lowercase(Locale.ROOT)]?.get()
+		if (currentCharacterIndex >= 0 && currentCharacterIndex < context.dialogueLine.length) {
+			currentCharacterIndex = 4 * (currentCharacterIndex / 4)
+			val characterToFrameMapping = intArrayOf(
+				2, 3, 4, 6, 2, 5,
+				4, 2, 2, 4, 2, 6,
+				3, 2, 7, 3, 2, 4,
+				4, 4, 7, 5, 3, 4,
+				2, 4,
+			)
+			val currentCharacter = context.dialogueLine[currentCharacterIndex].lowercaseChar()
+			if (currentCharacter in 'a'..'z') {
+				return skinned.skins[(characterToFrameMapping[currentCharacter - 'a']).toString()]?.get()
+			}
+		}
+		return defaultValue
+	}
+
 	if (special == SpecialAnimationNode.PortraitFace) {
 		return skinned.skins[context.portrait!!.faceSkin]?.get()
 	}

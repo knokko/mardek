@@ -5,20 +5,25 @@ import mardek.content.action.ActionFadeCharacter
 import mardek.content.action.ActionFlashScreen
 import mardek.content.action.ActionGiveItem
 import mardek.content.action.ActionHealParty
+import mardek.content.action.ActionMoveAreaEffect
 import mardek.content.action.ActionParallel
 import mardek.content.action.ActionPlaySound
+import mardek.content.action.ActionRemoveAreaEffect
 import mardek.content.action.ActionRotate
 import mardek.content.action.ActionSetOverlayColor
+import mardek.content.action.ActionSpawnAreaEffect
 import mardek.content.action.ActionTakeItem
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetAreaCharacter
 import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionTargetWholeParty
+import mardek.content.action.ActionWait
 import mardek.content.action.ActionWalk
 import mardek.content.action.ChoiceActionNode
 import mardek.content.action.ChoiceEntry
 import mardek.content.action.FixedActionNode
 import mardek.content.action.WalkSpeed
+import mardek.content.action.effect.AreaActionEffect
 import mardek.content.area.Area
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
@@ -819,14 +824,14 @@ class TestAreaActionsState {
 
 		repeat(100) {
 			update(actions, context)
-			assertEquals(Duration.ZERO, actions.startOverlayTransitionTime)
+			assertEquals(Duration.ZERO, actions.currentNodeStartTime)
 			assertEquals(0, actions.overlayColor)
 			assertInstanceOf<ActionWalk>((actions.node as FixedActionNode).action)
 		}
 
 		repeat(30) {
 			update(actions, context)
-			assertEquals(1.seconds, actions.startOverlayTransitionTime)
+			assertEquals(1.seconds, actions.currentNodeStartTime)
 			assertEquals(0, actions.overlayColor)
 			assertInstanceOf<ActionSetOverlayColor>((actions.node as FixedActionNode).action)
 		}
@@ -839,7 +844,7 @@ class TestAreaActionsState {
 
 		repeat(100) {
 			update(actions, context)
-			assertEquals(2300.milliseconds, actions.startOverlayTransitionTime)
+			assertEquals(2300.milliseconds, actions.currentNodeStartTime)
 			assertEquals(1234, actions.overlayColor)
 			assertInstanceOf<ActionSetOverlayColor>((actions.node as FixedActionNode).action)
 		}
@@ -1103,5 +1108,79 @@ class TestAreaActionsState {
 		update(actions, context)
 		assertEquals(0, state.countItemOccurrences(reward))
 		assertEquals(listOf(ItemStack(reward, 10)), context.campaign.itemStorage)
+	}
+
+	@Test
+	fun testAreaEffects() {
+		val effect = AreaActionEffect(name = "TestEffect", emitters = emptyArray())
+		val instance1 = ActionSpawnAreaEffect.Instance(UUID(12, 34), effect)
+		val instance2 = ActionSpawnAreaEffect.Instance(UUID(56, 78), effect)
+
+		val rootNode = FixedActionNode(
+			id = UUID.randomUUID(),
+			action = ActionSpawnAreaEffect(instance1, 12, 34),
+			next = FixedActionNode(
+				id = UUID.randomUUID(),
+				action = ActionWait(123.milliseconds),
+				next = FixedActionNode(
+					id = UUID.randomUUID(),
+					action = ActionSpawnAreaEffect(instance2, 5, 10),
+					next = FixedActionNode(
+						id = UUID.randomUUID(),
+						action = ActionMoveAreaEffect(instance1, 6, 10, 500.milliseconds),
+						next = FixedActionNode(
+							id = UUID.randomUUID(),
+							action = ActionWait(10.milliseconds),
+							next = FixedActionNode(
+								id = UUID.randomUUID(),
+								action = ActionRemoveAreaEffect(instance2),
+								next = FixedActionNode(
+									id = UUID.randomUUID(),
+									action = ActionWait(1.milliseconds),
+									next = null
+								)
+							),
+						),
+					),
+				),
+			)
+		)
+
+		val actions = AreaActionsState(rootNode, null)
+		val context = createUpdateContext(10.milliseconds)
+		update(actions, context)
+		assertEquals(mapOf(
+			Pair(instance1, AreaEffectState(Duration.ZERO, 12, 34))
+		), actions.effects)
+
+		repeat(12) {
+			update(actions, context)
+			assertEquals(mapOf(
+				Pair(instance1, AreaEffectState(Duration.ZERO, 12, 34))
+			), actions.effects)
+		}
+
+		// Current time = 130 milliseconds, second effect should have spawned at 123 milliseconds,
+		// but rounded up to 130 milliseconds because we use a timestep of 10 milliseconds
+		repeat(50) {
+			update(actions, context)
+			assertEquals(mapOf(
+				Pair(instance1, AreaEffectState(Duration.ZERO, 12, 34)),
+				Pair(instance2, AreaEffectState(130.milliseconds, 5, 10))
+			), actions.effects)
+		}
+
+		// Current time = 630 milliseconds, first effect should move *after* 630 milliseconds
+		update(actions, context)
+		assertEquals(mapOf(
+			Pair(instance1, AreaEffectState(Duration.ZERO, 6, 10)),
+			Pair(instance2, AreaEffectState(130.milliseconds, 5, 10))
+		), actions.effects)
+
+		// Current time = 640 milliseconds, second effect should be removed at 650 milliseconds
+		update(actions, context)
+		assertEquals(mapOf(
+			Pair(instance1, AreaEffectState(Duration.ZERO, 6, 10)),
+		), actions.effects)
 	}
 }

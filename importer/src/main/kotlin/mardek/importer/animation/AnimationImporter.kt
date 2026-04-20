@@ -90,10 +90,9 @@ internal fun importAnimationNode(
 	if (instanceName == "eye1" || instanceName == "eye2") special = SpecialAnimationNode.PortraitEye
 	if (instanceName == "eyebrow1" || instanceName == "eyebrow2") special = SpecialAnimationNode.PortraitEyeBrow
 	if (instanceName == "hair" || childID == 1463 || childID == 1536) special = SpecialAnimationNode.PortraitHair
-	if (instanceName == "torso" || instanceName == "head" || instanceName == "mouth" ||
-		childID == 1059 || childID == 1348
-	) {
-		special = SpecialAnimationNode.PortraitExpressions
+	if (instanceName == "torso" || instanceName == "head") special = SpecialAnimationNode.PortraitExpressions
+	if (instanceName == "mouth" || childID == 1059 || childID == 1319 || childID == 1348) {
+		special = SpecialAnimationNode.PortraitMouthExpressions
 	}
 	if (childID == 947 || childID == 1273) special = SpecialAnimationNode.PortraitArmor
 	if (childID == 997 && initialSpecial != SpecialAnimationNode.PortraitMouth) {

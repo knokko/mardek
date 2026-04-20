@@ -2,6 +2,9 @@ package mardek.renderer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import mardek.content.action.ActionShake
+import mardek.content.action.ActionTargetAreaCharacter
+import mardek.content.action.FixedActionNode
 import mardek.content.area.objects.AreaCharacter
 import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaSuspensionActions
@@ -9,10 +12,11 @@ import mardek.state.ingame.area.AreaSuspensionPlayerWalking
 import mardek.state.ingame.area.NextAreaPosition
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 	areaContext.apply {
-		val animationSize = 2
 
 		fun collectCharacter(
 			character: AreaCharacter, characterState: AreaCharacterState,
@@ -33,7 +37,7 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 
 			val sprite = if (directionalSprites != null) {
 				val direction = characterState.direction
-				var spriteIndex = animationSize * direction.ordinal
+				var spriteIndex = direction.baseSpriteIndex
 				if (character.walkBehavior.showAnimationWhileStandingStill) {
 					if (state.currentTime.inWholeMilliseconds % 1000L >= 500L) spriteIndex += 1
 				} else if (useAlternativeWalkingSprite) spriteIndex += 1
@@ -42,6 +46,23 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 				val fixedSprites = character.fixedSprites!!
 				val spriteIndex = (state.currentTime.inWholeMilliseconds % (200L * fixedSprites.frames.size)) / 200L
 				fixedSprites.frames[spriteIndex.toInt()]
+			}
+
+			val suspension = state.suspension
+			if (suspension is AreaSuspensionActions) {
+				val node = suspension.actions.node
+				if (node is FixedActionNode) {
+					val action = node.action
+					if (action is ActionShake) {
+						val target = action.target
+						if (target is ActionTargetAreaCharacter && target.character === character) {
+							val movementsSoFar = (state.currentTime - suspension.actions.currentNodeStartTime) / action.stepTime
+							val rng = Random(node.id.mostSignificantBits + movementsSoFar.toLong())
+							x += scale * rng.nextInt(-action.radius .. action.radius)
+							y += scale * rng.nextInt(-action.radius .. action.radius)
+						}
+					}
+				}
 			}
 
 			renderJobs.add(SpriteRenderJob(
@@ -129,7 +150,7 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 
 			y -= 4 * scale
 
-			spriteIndex += animationSize * direction.ordinal
+			spriteIndex += direction.baseSpriteIndex
 
 			val walkDamage = characterState.lastWalkDamage
 			val walkDamageDuration = 500_000_000L

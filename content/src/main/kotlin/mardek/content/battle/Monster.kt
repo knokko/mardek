@@ -11,6 +11,8 @@ import mardek.content.animation.CombatantAnimations
 import mardek.content.stats.*
 import mardek.content.inventory.Dreamstone
 import mardek.content.skill.ActiveSkill
+import mardek.content.sprite.DirectionalSprites
+import mardek.content.sprite.ObjectSprites
 import java.util.EnumMap
 import java.util.UUID
 
@@ -275,6 +277,37 @@ class Monster(
 	@BitField(id = 30)
 	@StableReferenceFieldId
 	val id: UUID,
+
+	/**
+	 * When non-null, the first sprite of this sheet is shown in the turn order (top bar) to represent this monster.
+	 * Otherwise, `this.type.icon or this.objectTurnOrderSprite.frames[0]` is used instead.
+	 *
+	 * Note that this field is usually `null`, except for some 'human monsters' like Mugbert and the World Saviours.
+	 */
+	@BitField(id = 31, optional = true)
+	@ReferenceField(stable = false, label = "character sprites")
+	val directionalTurnOrderSprite: DirectionalSprites?,
+
+	/**
+	 * When this field is non-null and [directionalTurnOrderSprite] is `null`, the first frame of this sheet is shown
+	 * in the turn order (top bar) to represent this monster.
+	 *
+	 * Otherwise, `this.type.icon or this.directionalTurnOrderSprite.sprites[0]` is used instead.
+	 *
+	 * Note that this field is usually `null`, except for some 'special monsters' like Zombie Shaman and the king.
+	 */
+	@BitField(id = 32, optional = true)
+	@ReferenceField(stable = false, label = "object sprites")
+	val objectTurnOrderSprite: ObjectSprites?,
+
+	/**
+	 * The ATK of the monster when it is *not* holding a weapon in its first equipment slot.
+	 *
+	 * (When the monster *does* hold a weapon, the ATK of the weapon is used instead.)
+	 */
+	@BitField(id = 33)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val unarmedAttackPower: Int,
 ) {
 
 	constructor() : this(
@@ -312,6 +345,9 @@ class Monster(
 		meleeCounterAttacks = ArrayList(),
 		rangedCounterAttacks = ArrayList(),
 		id = UUID.randomUUID(),
+		directionalTurnOrderSprite = null,
+		objectTurnOrderSprite = null,
+		unarmedAttackPower = 0,
 	)
 
 	override fun toString() = name

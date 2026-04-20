@@ -12,5 +12,6 @@ enum class WalkSpeed(
 	val duration: Duration
 ) {
 	Slow(500.milliseconds),
-	Normal(200.milliseconds)
+	Normal(200.milliseconds),
+	Run(150.milliseconds),
 }

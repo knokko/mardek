@@ -6,6 +6,7 @@ import mardek.game.action.TestDeuganHouseActions
 import mardek.game.action.TestInventorLabActions
 import mardek.game.action.TestLocks
 import mardek.game.action.TestMardekHouseActions
+import mardek.game.action.TestSaucerActions
 import mardek.game.action.TestShops
 import mardek.game.action.TestSoothwoodActions
 import mardek.game.area.TestDreamCircles
@@ -562,5 +563,15 @@ class IntegrationTests {
 	@Test
 	fun testEncyclopediaRefresh() {
 		TestEncyclopedia.testRefreshAfterDiscoveringAnotherArea(instance)
+	}
+
+	@Test
+	fun testMugbertAttackRegression() {
+		TestMugbert.attackRegressionTest(instance)
+	}
+
+	@Test
+	fun testRohophSaucerPossession() {
+		TestSaucerActions.testPossession(instance)
 	}
 }

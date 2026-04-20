@@ -15,6 +15,7 @@ import mardek.content.story.TimelineNode
 import mardek.content.expression.ExpressionOptionalPlayerValue
 import mardek.content.expression.ExpressionStringValue
 import mardek.content.expression.ExpressionUnitValue
+import mardek.content.story.TimelineVariable
 import java.util.UUID
 
 internal fun hardcodeChapter1Timeline(content: Content): TimelineNode {
@@ -307,10 +308,33 @@ private fun defeatedPoshGoblin() = TimelineNode(
 private fun foundCrashSite(content: Content) = TimelineNode(
 	id = UUID.fromString("0b57f749-f83a-45d2-be7f-7c3c15bbdba1"),
 	name = "Found the Crash Site",
-	children = emptyArray(),
+	children = arrayOf(
+		shouldFightMugbert(content),
+		defeatedMugbert(),
+	),
 	variables = arrayOf(
 		addWorldMapNode(content, "Crash Site"),
 	),
+	isAbstract = true,
+)
+
+@Suppress("UNCHECKED_CAST")
+private fun shouldFightMugbert(content: Content) = TimelineNode(
+	id = UUID.fromString("fbed09d3-22af-4b5d-8571-e01b485cbb56"),
+	name = "Should fight Mugbert",
+	children = emptyArray(),
+	variables = arrayOf(TimelineAssignment(
+		variable = content.story.customVariables.find { it.name == "SpawnMugbert" }!! as TimelineVariable<Unit>,
+		value = ExpressionUnitValue()
+	)),
+	isAbstract = false,
+)
+
+private fun defeatedMugbert() = TimelineNode(
+	id = UUID.fromString("7ec6b8e1-dd01-4631-b0bd-aa5d54ae5f57"),
+	name = "Defeated Mugbert",
+	children = emptyArray(),
+	variables = emptyArray(),
 	isAbstract = false,
 )
 

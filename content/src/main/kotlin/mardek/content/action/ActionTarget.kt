@@ -50,6 +50,7 @@ sealed class ActionTarget {
 			ActionTargetDialogueObject::class.java,
 			ActionTargetAreaCharacter::class.java,
 			ActionTargetDefaultDialogueObject::class.java,
+			ActionTargetCustom::class.java,
 		)
 	}
 }
@@ -214,6 +215,29 @@ class ActionTargetDefaultDialogueObject : ActionTarget() {
 }
 
 /**
+ * An implementation of [ActionTarget] that manually specifies each field.
+ *
+ * This is used for dialogues with weird beings that are neither a player, nor a real area character.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionTargetCustom(
+
+	/**
+	 * Stores the display name, element, and portrait
+	 */
+	@BitField(id = 0)
+	val data: ActionTargetData
+) : ActionTarget() {
+
+	@Suppress("unused")
+	private constructor() : this(ActionTargetData())
+
+	override fun getDisplayName(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = data.displayName
+
+	override fun getElement(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = data.element
+}
+
+/**
  * This class stores all the data needed by [ActionTargetDefaultDialogueObject]. An instance of this class is stored
  * in `AreaActionsState`.
  */
@@ -239,6 +263,5 @@ class ActionTargetData(
 	@ReferenceField(stable = false, label = "portrait info")
 	val portraitInfo: PortraitInfo?,
 ) {
-	@Suppress("unused")
-	private constructor() : this("", null, null)
+	internal constructor() : this("", null, null)
 }

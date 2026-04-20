@@ -23,6 +23,8 @@ class AnimationContext(
 	val combat: CombatantAnimationContext?,
 	val portrait: PortraitInfo?,
 	val portraitExpression: String? = null,
+	val dialogueLine: String = "",
+	val shownDialogueCharacters: Float = 0f,
 	val referenceTime: Long = defaultReferenceTime,
 ) {
 	val stack = mutableListOf(TransformStackEntry(

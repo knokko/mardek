@@ -2,6 +2,7 @@ package mardek.game.battle
 
 import mardek.content.battle.Enemy
 import mardek.content.skill.SkillTargetType
+import mardek.content.stats.CombatStat
 import mardek.content.stats.Element
 import mardek.game.TestingInstance
 import mardek.state.ingame.area.AreaState
@@ -424,6 +425,12 @@ object TestMonsterStrategyCalculator {
 				numBreathAttacks in 2000 .. 4000,
 				"Expected $numBreathAttacks to be approximately 3000"
 			)
+
+			assertEquals(0, caster.getNatural(CombatStat.Attack))
+			assertEquals(80, caster.monster.unarmedAttackPower)
+			assertEquals(80, caster.getStat(
+				CombatStat.Attack, battleUpdateContext(campaign)
+			))
 		}
 	}
 }

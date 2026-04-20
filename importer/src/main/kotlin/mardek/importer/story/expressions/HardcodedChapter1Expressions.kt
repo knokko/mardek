@@ -31,8 +31,11 @@ internal fun hardcodeChapter1Expressions(
 	)
 
 	@Suppress("UNCHECKED_CAST")
-	hardcoded[""]!!.add(HardcodedExpression(name = "SpawnPoshGoblin", expression = DefinedVariableStateCondition(
+	hardcoded["soothwood"] = mutableListOf(HardcodedExpression(name = "SpawnPoshGoblin", expression = DefinedVariableStateCondition(
 		content.story.customVariables.find { it.name == "SpawnPoshGoblin" }!!
+	)))
+	hardcoded["crashsite"] = mutableListOf(HardcodedExpression(name = "SpawnMugbert", expression = DefinedVariableStateCondition(
+		content.story.customVariables.find { it.name == "SpawnMugbert" }!!
 	)))
 	hardcoded[""]!!.add(HardcodedExpression( // TODO CHAP2 Implement this
 		name = "Chapter2", expression = ConstantStateExpression(ExpressionBooleanValue(false)))

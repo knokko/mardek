@@ -56,6 +56,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			is ActionTargetPartyMember -> context.campaign.party[speaker.index]?.portraitInfo
 			is ActionTargetAreaCharacter -> speaker.character.portrait
 			is ActionTargetDefaultDialogueObject -> actions.defaultDialogueObject?.portraitInfo
+			is ActionTargetCustom -> speaker.data.portraitInfo
 			else -> null
 		}
 
@@ -85,8 +86,25 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				combat = null,
 				portrait = portrait,
 				portraitExpression = talkAction.expression,
+				dialogueLine = talkAction.text,
+				shownDialogueCharacters = actions.shownDialogueCharacters,
 			)
 			renderPortraitAnimation(context.content.portraits.animations, animationContext)
+
+			val background = portrait.elementalBackground
+			if (background != null) {
+
+				val radius = 0.19f * region.height
+				ovalBatch.complex(
+					region.minX, textRegion.minY - (0.3f * region.height).roundToInt(),
+					region.minX + (0.35f * region.height).roundToInt(), textRegion.minY - 1,
+					region.minX + 0.14f * region.height, textRegion.minY - 0.055f * region.height,
+					radius, radius,
+					multiplyAlpha(background.color, 0.15f),
+					0, 0, 0, 0,
+					1f, 2f, 2f, 2f,
+				)
+			}
 		}
 
 		run {
@@ -181,12 +199,12 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val cornerDistances = floatArrayOf(0.85f, 0.9f, 1.0f, 1.05f)
 
 			renderInnerBoxButton(
-				uiColorBatch, dialogueOvalBatch, textBatch, context.bundle, context.content.fonts,
+				uiColorBatch, ovalBatch, textBatch, context.bundle, context.content.fonts,
 				nameRegion.maxX - nameRegion.height * 10 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "Q", "Skip",
 			)
 			renderInnerBoxButton(
-				uiColorBatch, dialogueOvalBatch, textBatch, context.bundle, context.content.fonts,
+				uiColorBatch, ovalBatch, textBatch, context.bundle, context.content.fonts,
 				nameRegion.maxX - nameRegion.height * 5 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "L", "Log",
 			)
@@ -203,7 +221,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val boxX = textRegion.maxX - boxOffset
 			val boxY = textRegion.maxY - boxOffset
 			renderBoxButton(
-				uiColorBatch, dialogueOvalBatch, textBatch, context.bundle, context.content.fonts,
+				uiColorBatch, ovalBatch, textBatch, context.bundle, context.content.fonts,
 				minBoxSize, boxX, boxY
 			)
 		}
@@ -249,15 +267,37 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		}
 
 		run {
-			val baseFont = context.bundle.getFont(context.content.fonts.fat.index)
+			var baseFont = context.bundle.getFont(context.content.fonts.fat.index)
 			val choiceCharFont = context.bundle.getFont(context.content.fonts.basic2.index)
 			var baseTextColor = srgbToLinear(rgb(207, 192, 141))
 			var boldTextColor = srgbToLinear(rgb(253, 218, 116))
-			val strokeColor = srgbToLinear(rgb(41, 34, 20))
+			var strokeColor = srgbToLinear(rgb(41, 34, 20))
+			var strokeWidth = textRegion.height * 0.01f
 
 			if (actionNode is ChoiceActionNode) {
 				baseTextColor = srgbToLinear(rgb(68, 68, 68))
 				boldTextColor = srgbToLinear(rgb(164, 204, 253))
+			}
+
+			if (portrait != null) {
+				val voice = portrait.voiceStyle
+				if (voice != null) {
+					if (voice.startsWith("gdm_")) {
+						baseFont = context.bundle.getFont(context.content.fonts.gdm.index)
+					}
+					if (voice.contains('_')) {
+						val maybeElementName = voice.substring(1 + voice.lastIndexOf('_'))
+						val maybeElement = context.content.stats.elements.find {
+							it.rawName.equals(maybeElementName, ignoreCase = true)
+						}
+						if (maybeElement != null) {
+							baseTextColor = maybeElement.color
+							strokeColor = multiplyAlpha(baseTextColor, 0.5f)
+							strokeWidth *= 3f
+							// TODO CHAP1 Revisit after fixing text rendering
+						}
+					}
+				}
 			}
 
 			val text = talkAction.text
@@ -266,7 +306,6 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val maxTextX = textRegion.maxX - textRegion.height * 0.1f
 			val minTextY = textRegion.minY + textRegion.height * 0.2f
 			val textHeight = textRegion.height * 0.09f
-			val strokeWidth = textRegion.height * 0.01f
 
 			var shownCharacters = actions.shownDialogueCharacters
 			if (actionNode is ChoiceActionNode) shownCharacters = talkAction.text.length.toFloat()

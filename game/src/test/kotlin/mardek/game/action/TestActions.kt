@@ -260,9 +260,9 @@ object TestActions {
 			assertTrue(action.text.startsWith("It's a scrapbook containing Mardek and Deugan's"))
 
 			// Test that this doesn't crash
-			context.saves.createSave(
-				context.content, state.campaign,
-				state.campaignName, SaveFile.Type.Cheat,
+			dummySaveManager().createSave(
+				content, state.campaign,
+				"DoNotCrash", SaveFile.Type.Cheat,
 			)
 		}
 	}

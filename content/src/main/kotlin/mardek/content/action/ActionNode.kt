@@ -79,7 +79,7 @@ class FixedActionNode(
 	@ReferenceField(stable = false, label = "action nodes")
 	val next: ActionNode?,
 ) : ActionNode(id) {
-	constructor() : this(UUID(0, 0), ActionWalk(), null)
+	constructor() : this(UUID.randomUUID(), ActionWalk(), null)
 
 	override fun toString() = "FixedNode($action)"
 

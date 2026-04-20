@@ -7,9 +7,9 @@ import com.github.knokko.bitser.field.BitField
  * A group of strongly-related sprites. When rendered, the renderer will choose **one of the sprites** to render.
  * The choice of the sprite depends on the direction of the object/character that is being rendered.
  *
- * The renderer should 'know' at which index the sprite of each direction is stored..
+ * The renderer should 'know' at which index the sprite of each direction is stored...
  * For instance, for walking area characters, the walking sprites for each
- * `Direction` are at indices `2 * direction.ordinal` and `1 + 2 * direction.ordinal`.
+ * `Direction` are at indices `direction.baseSpriteIndex` and `1 + direction.baseSpriteIndex`.
  */
 @BitStruct(backwardCompatible = true)
 class DirectionalSprites(

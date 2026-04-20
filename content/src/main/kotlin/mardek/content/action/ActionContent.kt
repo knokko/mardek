@@ -3,6 +3,7 @@ package mardek.content.action
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import mardek.content.action.effect.AreaActionEffect
 import mardek.content.sprite.NamedSprite
 
 /**
@@ -41,4 +42,11 @@ class ActionContent {
     @BitField(id = 2)
     @ReferenceFieldTarget(label = "action background images")
     val backgroundImages = ArrayList<NamedSprite>()
+
+    /**
+     * The special effects that can be used during area action suspensions (e.g. soul transfers)
+     */
+    @BitField(id = 3)
+    @ReferenceFieldTarget(label = "area action effects")
+    val areaEffects = ArrayList<AreaActionEffect>()
 }

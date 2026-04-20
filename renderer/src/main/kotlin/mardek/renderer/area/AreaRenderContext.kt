@@ -47,7 +47,11 @@ internal class AreaRenderContext(
 	 * Used for rendering obtained/lost items during dialogues
 	 */
 	val itemNotificationBatch = context.addAreaSpriteBatch(2, scissor)
-	val dialogueOvalBatch = context.addOvalBatch(24)
+
+	/**
+	 * Used during dialogue rendering, and for rendering special effects like souls
+	 */
+	val ovalBatch = context.addOvalBatch(24)
 	val dialogueElementBatch = context.addImageBatch(2)
 	val textBatch = context.addFancyTextBatch(1000)
 	val portraitBatch = context.addAnimationPartBatch(200)

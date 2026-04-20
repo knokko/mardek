@@ -14,6 +14,7 @@ class HardcodedActions {
 	private val hardcoded = mutableMapOf<String, MutableList<ActionSequence>>()
 
 	internal fun hardcodeActionSequences(content: Content) {
+		hardcodeAreaActionEffects(content.actions)
 		hardcoded[""] = mutableListOf()
 		hardcoded["goznor"] = mutableListOf()
 		hardcodeSaveCrystalActions(content, hardcoded)
@@ -28,6 +29,7 @@ class HardcodedActions {
 		hardcodeWeaponShopActions(hardcoded)
 		hardcodeInventorLabActions(content, hardcoded)
 		hardcodeSoothwoodActions(content, hardcoded)
+		hardcodeCrashSiteActions(content, hardcoded)
 	}
 
 	internal fun getHardcodedAreaActions(areaName: String, sequenceName: String) = hardcoded[areaName]?.find {

@@ -336,8 +336,6 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 					context.actions.getHardcodedGlobalActionSequence(rawSequenceName)
 		} else null
 
-
-
 		return AreaTrigger(
 			name = name,
 			x = x,
@@ -477,7 +475,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 	val portrait = context.content.portraits.info.find { it.flashName.equals(model, ignoreCase = true) }
 	var spritesheetName = "spritesheet_$model"
 	if (rawEntity["Static"] == "true" || rawEntity["Static"] == "1" || rawEntity.containsKey("FRAME")) {
-		var firstFrame = 2 * direction.ordinal
+		var firstFrame = direction.baseSpriteIndex
 		var numFrames = 2
 
 		val rawFrame = rawEntity["FRAME"]
