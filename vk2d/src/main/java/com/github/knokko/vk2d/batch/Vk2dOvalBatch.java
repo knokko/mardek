@@ -16,7 +16,7 @@ public class Vk2dOvalBatch extends Vk2dBatch {
 	public final long perFrameDescriptorSet;
 
 	/**
-	 * This method is for internal use only. Use {@link com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline#addBatch}
+	 * This constructor is for internal use only. Use {@link com.github.knokko.vk2d.pipeline.Vk2dOvalPipeline#addBatch}
 	 */
 	public Vk2dOvalBatch(Vk2dOvalPipeline pipeline, Vk2dRenderStage frame, long perFrameDescriptorSet, int initialCapacity) {
 		super(pipeline, frame, initialCapacity);

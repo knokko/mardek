@@ -22,7 +22,9 @@ import org.lwjgl.vulkan.VkPushConstantRange
 import java.lang.Math.toIntExact
 import kotlin.use
 
-class SimpleWaterPipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): Vk2dPipeline(context.printBatchSizes) {
+class SimpleWaterPipeline(
+	context: Vk2dPipelineContext, instance: Vk2dInstance
+): Vk2dPipeline(false, true, context.printBatchSizes) {
 	private val vkPipelineLayout: Long
 
 	init {

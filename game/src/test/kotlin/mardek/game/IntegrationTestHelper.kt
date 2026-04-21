@@ -69,13 +69,13 @@ fun TestingInstance.testRendering(
 	)
 
 	val perFrameResources = PerFrameResources(
-		areaBlurDescriptors = renderManager.pipelines.base.blur.claimResources(
+		areaBlurDescriptors = renderManager.pipelines.blur.claimResources(
 			1, vk2d, descriptorCombiner
 		)[0],
-		sectionsBlurDescriptors = renderManager.pipelines.base.blur.claimResources(
+		sectionsBlurDescriptors = renderManager.pipelines.blur.claimResources(
 			1, vk2d, descriptorCombiner
 		)[0],
-		actionBarBlurDescriptors = renderManager.pipelines.base.blur.claimResources(
+		actionBarBlurDescriptors = renderManager.pipelines.blur.claimResources(
 			1, vk2d, descriptorCombiner
 		)[0],
 	)
@@ -90,7 +90,7 @@ fun TestingInstance.testRendering(
 		"Framebuffer($name)", targetImage.vkImageView
 	)
 	val framebuffers = MardekFramebuffers(
-		boiler, renderManager.pipelines.base.blur,
+		boiler, renderManager.pipelines.blur,
 		VK_FORMAT_R8G8B8A8_SRGB, pipelineContext.vkRenderPass, width, height
 	)
 

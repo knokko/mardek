@@ -56,7 +56,7 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 		setupConfig.accept(config);
 		vk2d = new Vk2dInstance(boiler, config);
 		staticPipelines = new Vk2dPipelines(
-				vk2d, Vk2dPipelineContext.dynamicRendering(boiler, VK_FORMAT_R8G8B8A8_SRGB), config
+				vk2d, Vk2dPipelineContext.dynamicRendering(boiler, VK_FORMAT_R8G8B8A8_SRGB)
 		);
 	}
 

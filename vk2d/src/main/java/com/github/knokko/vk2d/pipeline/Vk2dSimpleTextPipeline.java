@@ -25,7 +25,7 @@ public class Vk2dSimpleTextPipeline extends Vk2dPipeline {
 	private final long vkPipelineLayout;
 
 	public Vk2dSimpleTextPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super(context.printBatchSizes);
+		super(false, true, context.printBatchSizes);
 
 		try (MemoryStack stack = stackPush()) {
 			var pushConstants = VkPushConstantRange.calloc(1, stack);

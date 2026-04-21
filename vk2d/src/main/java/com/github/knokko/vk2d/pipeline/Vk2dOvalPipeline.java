@@ -24,7 +24,7 @@ public class Vk2dOvalPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dOvalPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super(context.printBatchSizes);
+		super(true, true, context.printBatchSizes);
 		this.vkPipelineLayout = instance.singleBufferPipelineLayout;
 
 		try (MemoryStack stack = stackPush()) {

@@ -27,7 +27,7 @@ public class Vk2dFancyTextPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dFancyTextPipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super(context.printBatchSizes);
+		super(false, true, context.printBatchSizes);
 
 		try (MemoryStack stack = stackPush()) {
 			var pushConstants = VkPushConstantRange.calloc(2, stack);

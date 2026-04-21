@@ -45,7 +45,7 @@ internal fun renderInGame(
 		))
 		fun multiplyColor() = rgba(1f - alpha, 1f - alpha, 1f - alpha, 0f)
 
-		context.pipelines.base.blur.addBatch(
+		context.pipelines.blur.addBatch(
 			context.frame.swapchainStage,
 			context.framebuffers.blur, context.perFrame.areaBlurDescriptors,
 			region.minX.toFloat(), region.minY.toFloat(),
@@ -67,11 +67,11 @@ internal fun renderInGame(
 			if (suspension !is AreaSuspensionBattle) {
 				if (state.menu.shown) {
 					val framebuffers = context.framebuffers
-					val areaRenderStage = context.pipelines.base.blur.addSourceStage(
+					val areaRenderStage = context.pipelines.blur.addSourceStage(
 						context.frame, framebuffers.blur, -1
 					)
 					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
-						context.currentStage = context.pipelines.base.blur.addSourceStage(
+						context.currentStage = context.pipelines.blur.addSourceStage(
 							context.frame, framebuffers.sectionBlur, -1
 						)
 
@@ -98,7 +98,7 @@ internal fun renderInGame(
 							0, 0, menuRegion.width, menuRegion.height
 						))
 					}
-					val computeStage = context.pipelines.base.blur.addComputeStage(
+					val computeStage = context.pipelines.blur.addComputeStage(
 						context.frame, context.perFrame.areaBlurDescriptors,
 						framebuffers.blur, 9, 50, -1
 					)
@@ -120,7 +120,7 @@ internal fun renderInGame(
 
 					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						val sectionRegion = determineSectionRenderRegion(region)
-						context.pipelines.base.blur.addBatch(
+						context.pipelines.blur.addBatch(
 							context.frame.swapchainStage,
 							framebuffers.sectionBlur, context.perFrame.sectionsBlurDescriptors,
 							sectionRegion.minX.toFloat(), sectionRegion.minY.toFloat(),
@@ -149,10 +149,10 @@ internal fun renderInGame(
 					val batches: Pair<Vk2dColorBatch, Vk2dSimpleTextBatch>
 					if (saveSelection != null) {
 						val framebuffers = context.framebuffers
-						val areaRenderStage = context.pipelines.base.blur.addSourceStage(
+						val areaRenderStage = context.pipelines.blur.addSourceStage(
 							context.frame, framebuffers.blur, -1
 						)
-						context.pipelines.base.blur.addComputeStage(
+						context.pipelines.blur.addComputeStage(
 							context.frame, context.perFrame.areaBlurDescriptors,
 							framebuffers.blur, 9, 50, -1
 						)
@@ -187,10 +187,10 @@ internal fun renderInGame(
 					titleColorBatch = batches.first
 					titleTextBatch = batches.second
 				} else {
-					context.currentStage = context.pipelines.base.blur.addSourceStage(
+					context.currentStage = context.pipelines.blur.addSourceStage(
 						context.frame, framebuffers.blur, -1
 					)
-					context.pipelines.base.blur.addComputeStage(
+					context.pipelines.blur.addComputeStage(
 						context.frame, context.perFrame.areaBlurDescriptors,
 						framebuffers.blur, 3, 50, -1
 					)
@@ -202,7 +202,7 @@ internal fun renderInGame(
 					val rightBlurColor = srgbToLinear(rgba(82, 54, 36, blurStrength))
 					val inverseBlur = 255 - blurStrength
 					val multiplyColor = rgba(inverseBlur, inverseBlur, inverseBlur, inverseBlur)
-					context.pipelines.base.blur.addBatch(
+					context.pipelines.blur.addBatch(
 						context.frame.swapchainStage,
 						framebuffers.blur, context.perFrame.areaBlurDescriptors,
 						region.minX.toFloat(), region.minY.toFloat(),

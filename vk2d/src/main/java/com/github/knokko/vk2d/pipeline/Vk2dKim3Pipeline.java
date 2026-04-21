@@ -26,7 +26,7 @@ public class Vk2dKim3Pipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dKim3Pipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super(context.printBatchSizes);
+		super(true, true, context.printBatchSizes);
 
 		this.vkPipelineLayout = instance.kim3PipelineLayout;
 		try (MemoryStack stack = stackPush()) {

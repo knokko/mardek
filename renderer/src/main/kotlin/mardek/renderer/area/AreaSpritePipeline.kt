@@ -17,7 +17,9 @@ import org.lwjgl.vulkan.VK10.*
 import org.lwjgl.vulkan.VkPushConstantRange
 import java.lang.Math.toIntExact
 
-class AreaSpritePipeline(context: Vk2dPipelineContext, instance: Vk2dInstance): Vk2dPipeline(context.printBatchSizes) {
+class AreaSpritePipeline(
+	context: Vk2dPipelineContext, instance: Vk2dInstance
+): Vk2dPipeline(false, true, context.printBatchSizes) {
 
 	private val vkPipelineLayout: Long
 

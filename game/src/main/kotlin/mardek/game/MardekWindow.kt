@@ -9,9 +9,11 @@ import com.github.knokko.boiler.window.VkbWindow
 import com.github.knokko.update.UpdateCounter
 import com.github.knokko.update.UpdateLoop
 import com.github.knokko.vk2d.Vk2dConfig
+import com.github.knokko.vk2d.Vk2dInstance
 import com.github.knokko.vk2d.Vk2dWindow
 import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
+import com.github.knokko.vk2d.pipeline.Vk2dPipelines
 import mardek.audio.AudioUpdater
 import mardek.content.Content
 import mardek.renderer.PerFrameResources
@@ -55,6 +57,11 @@ class MardekWindow(
 		}.toTypedArray()
 	}
 
+	override fun createPipelines(instance: Vk2dInstance, context: Vk2dPipelineContext): Vk2dPipelines {
+		this.renderManager = RenderManager(instance, videoSettings, context)
+		return renderManager.pipelines
+	}
+
 	// Uncomment next line to print batch sizes
 	//override fun shouldPrintBatchSizes() = true
 
@@ -62,12 +69,11 @@ class MardekWindow(
 		super.setup(boiler, stack)
 		val pipelineContext = Vk2dPipelineContext.renderPass(boiler, vkRenderPass)
 		if (shouldPrintBatchSizes()) pipelineContext.printBatchSizes = true
-		this.renderManager = RenderManager(
-			boiler, videoSettings, resources, pipelineContext, pipelines,
-		)
+
 		this.swapchainResources = MardekSwapchainResources(
 			boiler, pipelines.blur, window.properties.surfaceFormat, vkRenderPass
 		)
+		this.renderManager.titleScreenResources = resources
 	}
 
 	override fun renderFrame(

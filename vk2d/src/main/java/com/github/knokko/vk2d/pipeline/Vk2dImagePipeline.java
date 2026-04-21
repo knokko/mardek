@@ -26,7 +26,7 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	public Vk2dImagePipeline(Vk2dPipelineContext context, Vk2dInstance instance) {
-		super(context.printBatchSizes);
+		super(true, false, context.printBatchSizes);
 
 		try (MemoryStack stack = stackPush()) {
 			this.vkPipelineLayout = context.boiler.pipelines.createLayout(
@@ -72,7 +72,7 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 				recorder, perFrameBuffer, miniBatch, batch, VERTEX_SIZE,
 				quadIndex -> imageBatch.descriptorSets[quadIndex],
 				imageDescriptor -> recorder.bindGraphicsDescriptors(vkPipelineLayout, imageDescriptor)
-		);
+		);// TODO CHAP2 Use descriptor indexing when supported?
 	}
 
 	@Override

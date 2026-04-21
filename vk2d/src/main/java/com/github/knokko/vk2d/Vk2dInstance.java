@@ -8,12 +8,16 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkAllocationCallbacks;
 import org.lwjgl.vulkan.VkPushConstantRange;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dInstance {
 
 	public final BoilerInstance boiler;
+	public final Vk2dConfig config;
 
 	public final long pixelatedSampler;
 	public final long smoothSampler;
@@ -35,6 +39,7 @@ public class Vk2dInstance {
 	@SuppressWarnings("resource")
 	public Vk2dInstance(BoilerInstance boiler, Vk2dConfig config) {
 		this.boiler = boiler;
+		this.config = config;
 		try (MemoryStack stack = stackPush()) {
 			if (config.image || config.blur) {
 				this.pixelatedSampler = boiler.images.createSimpleSampler(

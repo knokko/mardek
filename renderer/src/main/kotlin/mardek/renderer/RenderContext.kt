@@ -40,23 +40,23 @@ class RenderContext(
 	val videoSettings: VideoSettings,
 	val currentFps: Long,
 ) {
-	fun addColorBatch(initialCapacity: Int) = pipelines.base.color.addBatch(currentStage, initialCapacity)!!
+	fun addColorBatch(initialCapacity: Int) = pipelines.color.addBatch(currentStage, initialCapacity)!!
 
-	fun addMultiplyBatch(initialCapacity: Int) = pipelines.base.multiply.addBatch(currentStage, initialCapacity)!!
+	fun addMultiplyBatch(initialCapacity: Int) = pipelines.multiply.addBatch(currentStage, initialCapacity)!!
 
-	fun addOvalBatch(initialCapacity: Int) = pipelines.base.oval.addBatch(
+	fun addOvalBatch(initialCapacity: Int) = pipelines.oval.addBatch(
 		currentStage, perFrameDescriptorSet, initialCapacity
 	)!!
 
-	fun addImageBatch(initialCapacity: Int) = pipelines.base.image.addBatch(currentStage, initialCapacity, bundle)!!
+	fun addImageBatch(initialCapacity: Int) = pipelines.image.addBatch(currentStage, initialCapacity, bundle)!!
 
-	fun addTextBatch(initialCapacity: Int) = pipelines.base.simpleText.addBatch(currentStage, initialCapacity, textStyleCache)!!
+	fun addTextBatch(initialCapacity: Int) = pipelines.simpleText.addBatch(currentStage, initialCapacity, textStyleCache)!!
 
-	fun addFancyTextBatch(initialCapacity: Int) = pipelines.base.fancyText.addBatch(
+	fun addFancyTextBatch(initialCapacity: Int) = pipelines.fancyText.addBatch(
 		currentStage, initialCapacity, fancyTextStyleCache
 	)!!
 
-	fun addKim3Batch(initialCapacity: Int) = pipelines.base.kim3.addBatch(currentStage, initialCapacity, bundle, perFrameDescriptorSet)!!
+	fun addKim3Batch(initialCapacity: Int) = pipelines.kim3.addBatch(currentStage, initialCapacity, bundle, perFrameDescriptorSet)!!
 
 	fun addSimpleWaterBatch(initialCapacity: Int, scissor: Rectangle, scale: Int) = pipelines.simpleWater.addBatch(
 		currentStage, initialCapacity, bundle, perFrameDescriptorSet, scissor, scale

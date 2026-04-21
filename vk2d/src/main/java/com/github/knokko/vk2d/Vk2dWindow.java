@@ -95,6 +95,10 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		return false;
 	}
 
+	protected Vk2dPipelines createPipelines(Vk2dInstance instance, Vk2dPipelineContext context) {
+		return new Vk2dPipelines(instance, context);
+	}
+
 	@Override
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
@@ -104,7 +108,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 
 		Vk2dPipelineContext pipelineContext = Vk2dPipelineContext.renderPass(boiler, window.properties.surfaceFormat());
 		if (shouldPrintBatchSizes()) pipelineContext.printBatchSizes = true;
-		this.pipelines = new Vk2dPipelines(instance, pipelineContext, config);
+		this.pipelines = createPipelines(instance, pipelineContext);
 		this.vkRenderPass = pipelineContext.vkRenderPass;
 
 		try {

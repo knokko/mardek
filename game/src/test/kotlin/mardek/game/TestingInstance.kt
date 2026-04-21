@@ -10,7 +10,6 @@ import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.vk2d.Vk2dConfig
 import com.github.knokko.vk2d.Vk2dInstance
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
-import com.github.knokko.vk2d.pipeline.Vk2dPipelines
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader
 import mardek.content.Content
@@ -92,7 +91,6 @@ class TestingInstance {
 
 		vk2d = Vk2dInstance(boiler, config)
 		pipelineContext = Vk2dPipelineContext.renderPass(boiler, VK_FORMAT_R8G8B8A8_SRGB)
-		val basePipelines = Vk2dPipelines(vk2d, pipelineContext, config)
 
 		val titleScreenAllocator = MemoryCombiner(boiler, "TitleScreenMemory")
 		val titleScreenDescriptors = DescriptorCombiner(boiler)
@@ -109,11 +107,13 @@ class TestingInstance {
 		titleScreenResources = titleScreenLoader.finish()
 
 		renderManager = RenderManager(
-			boiler, VideoSettings(0, capFps = false, showFps = false, framesInFlight = 1, delayRendering = true),
-			titleScreenResources, pipelineContext, basePipelines,
+			vk2d,
+			VideoSettings(0, capFps = false, showFps = false, framesInFlight = 1, delayRendering = true),
+			pipelineContext
 		)
 		renderManager.loadMainResources(File("${Content.RESOURCES_DIRECTORY}/content.vk2d").toPath())
 		renderManager.content = content
+		renderManager.titleScreenResources = titleScreenResources
 
 		dragonLairEntry = content.areas.areas.find { it.properties.rawName == "DL_entr" }!!
 		dragonLair2 = content.areas.areas.find { it.properties.rawName == "DL_area2" }!!
@@ -227,7 +227,7 @@ class TestingInstance {
 
 	fun destroy() {
 		for (directory in dummySavesDirectories) directory.deleteRecursively()
-		renderManager.pipelines.base.destroy()
+		renderManager.pipelines.destroy()
 		renderManager.cleanUp()
 		titleScreenMemory.destroy(boiler)
 		vkDestroyDescriptorPool(boiler.vkDevice(), titleScreenDescriptorPool, null)

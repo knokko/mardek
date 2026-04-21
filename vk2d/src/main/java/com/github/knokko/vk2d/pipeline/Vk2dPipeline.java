@@ -59,11 +59,15 @@ public abstract class Vk2dPipeline {
 	protected long vkPipeline;
 	private final int[] bytesPerTriangle;
 	private final int[] vertexAlignments;
+	protected final boolean usesVertexBuffer;
+	protected final boolean usesStorageBuffer;
 	public final boolean printBatchSizes;
 
-	public Vk2dPipeline(boolean printBatchSizes) {
+	public Vk2dPipeline(boolean usesVertexBuffer, boolean usesStorageBuffer, boolean printBatchSizes) {
 		this.bytesPerTriangle = Objects.requireNonNull(getBytesPerTriangle());
 		this.vertexAlignments = Objects.requireNonNull(getVertexAlignments());
+		this.usesVertexBuffer = usesVertexBuffer;
+		this.usesStorageBuffer = usesStorageBuffer;
 		this.printBatchSizes = printBatchSizes;
 	}
 

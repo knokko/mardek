@@ -104,10 +104,10 @@ internal fun renderBattle(
 			val framebuffers = context.framebuffers
 			val battleRenderStage = context.currentStage
 
-			context.currentStage = context.pipelines.base.blur.addSourceStage(
+			context.currentStage = context.pipelines.blur.addSourceStage(
 				context.frame, framebuffers.actionBarBlur, -1
 			)
-			context.pipelines.base.blur.addComputeStage(
+			context.pipelines.blur.addComputeStage(
 				context.frame, context.perFrame.actionBarBlurDescriptors,
 				framebuffers.actionBarBlur, 9, 50, -1
 			)
@@ -120,7 +120,7 @@ internal fun renderBattle(
 			)
 
 			context.currentStage = battleRenderStage
-			context.pipelines.base.blur.addBatch(
+			context.pipelines.blur.addBatch(
 				battleRenderStage, framebuffers.actionBarBlur,
 				context.perFrame.actionBarBlurDescriptors,
 				actionBarRegion.minX.toFloat(), actionBarRegion.minY.toFloat(),

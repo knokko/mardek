@@ -15,7 +15,7 @@ import kotlin.math.max
 internal fun renderGameOver(
 	context: RawRenderContext, state: GameOverState, region: Rectangle
 ): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
-	val ovalBatch = context.pipelines.base.oval.addBatch(
+	val ovalBatch = context.pipelines.oval.addBatch(
 		context.stage, context.perFrameDescriptorSet, 2
 	)
 	val circleColor = srgbToLinear(rgb(80, 0, 0))
@@ -28,10 +28,10 @@ internal fun renderGameOver(
 		0.1f, 1f, 1f, 1f,
 	)
 
-	val fancyTextBatch = context.pipelines.base.fancyText.addBatch(
+	val fancyTextBatch = context.pipelines.fancyText.addBatch(
 		context.stage, 30, context.fancyTextStyleCache
 	)
-	val simpleTextBatch = context.pipelines.base.simpleText.addBatch(
+	val simpleTextBatch = context.pipelines.simpleText.addBatch(
 		context.stage, 120, context.textStyleCache
 	)
 	val titleHeight = region.height / 12f
@@ -55,7 +55,7 @@ internal fun renderGameOver(
 		srgbToLinear(rgb(255, 82, 82)), TextAlignment.CENTERED,
 	)
 
-	val colorBatch = context.pipelines.base.color.addBatch(context.stage, 40)
+	val colorBatch = context.pipelines.color.addBatch(context.stage, 40)
 	val timeSinceGameOver = System.nanoTime() - state.startTime
 	val fade = max(0L, 255L - 255L * timeSinceGameOver / 5000_000_000L).toInt()
 	if (fade > 0) {

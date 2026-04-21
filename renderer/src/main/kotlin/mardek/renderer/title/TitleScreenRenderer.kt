@@ -44,10 +44,10 @@ internal fun renderTitleScreen(
 	val saveSelection = state.saveSelection
 	if (saveSelection != null && fullRenderContext != null) {
 		val framebuffers = fullRenderContext.framebuffers
-		val backgroundRenderStage = context.pipelines.base.blur.addSourceStage(
+		val backgroundRenderStage = context.pipelines.blur.addSourceStage(
 			fullRenderContext.frame, framebuffers.blur, -1
 		)
-		context.pipelines.base.blur.addComputeStage(
+		context.pipelines.blur.addComputeStage(
 			fullRenderContext.frame, fullRenderContext.perFrame.areaBlurDescriptors,
 			framebuffers.blur, 4, 50, -1
 		)
@@ -62,7 +62,7 @@ internal fun renderTitleScreen(
 		))
 		fun multiplyColor() = rgba(1f - alpha, 1f - alpha, 1f - alpha, 0f)
 
-		context.pipelines.base.blur.addBatch(
+		context.pipelines.blur.addBatch(
 			fullRenderContext.frame.swapchainStage,
 			framebuffers.blur, fullRenderContext.perFrame.areaBlurDescriptors,
 			region.minX.toFloat(), region.minY.toFloat(),
@@ -87,24 +87,24 @@ internal fun renderTitleScreen(
 private fun renderCoreTitleScreen(
 	context: RawRenderContext, stage: Vk2dRenderStage, state: TitleScreenState, region: Rectangle
 ): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
-	val imageBatch = context.pipelines.base.image.addBatch(stage, 12, context.titleScreenBundle)
+	val imageBatch = context.pipelines.image.addBatch(stage, 12, context.titleScreenBundle)
 	imageBatch.fillWithoutDistortion(
 		region.minX.toFloat(), region.minY.toFloat(),
 		region.boundX.toFloat(), region.boundY.toFloat(),
 		titleScreenInfo.background.index
 	)
 
-	val colorBatch = context.pipelines.base.color.addBatch(stage, 100)
-	val ovalBatch = context.pipelines.base.oval.addBatch(
+	val colorBatch = context.pipelines.color.addBatch(stage, 100)
+	val ovalBatch = context.pipelines.oval.addBatch(
 		stage, context.perFrameDescriptorSet, 48
 	)
 
 	val buttonFont = context.titleScreenBundle.getFont(titleScreenInfo.largeFont.index)
 	val basicFont = context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index)
-	val fancyTextBatch = context.pipelines.base.fancyText.addBatch(
+	val fancyTextBatch = context.pipelines.fancyText.addBatch(
 		stage, 300, context.fancyTextStyleCache
 	)
-	val simpleTextBatch = context.pipelines.base.simpleText.addBatch(context.stage, 100, context.textStyleCache)
+	val simpleTextBatch = context.pipelines.simpleText.addBatch(context.stage, 100, context.textStyleCache)
 
 	for (style in arrayOf(MardekTextStyles.TitleScreen.TITLE_BACK, MardekTextStyles.TitleScreen.TITLE_FRONT)) {
 		fancyTextBatch.drawString(

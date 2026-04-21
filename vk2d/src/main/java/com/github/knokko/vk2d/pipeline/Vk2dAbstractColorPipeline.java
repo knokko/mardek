@@ -21,7 +21,7 @@ abstract class Vk2dAbstractColorPipeline extends Vk2dPipeline {
 
 	@SuppressWarnings("resource")
 	Vk2dAbstractColorPipeline(Vk2dPipelineContext context, long vkPipelineLayout) {
-		super(context.printBatchSizes);
+		super(true, false, context.printBatchSizes);
 		this.vkPipelineLayout = vkPipelineLayout;
 
 		try (MemoryStack stack = stackPush()) {

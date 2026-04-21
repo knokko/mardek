@@ -1,7 +1,17 @@
 package com.github.knokko.vk2d.pipeline;
 
-import com.github.knokko.vk2d.Vk2dConfig;
 import com.github.knokko.vk2d.Vk2dInstance;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.github.knokko.boiler.utilities.BoilerMath.leastCommonMultiple;
+import static org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+import static org.lwjgl.vulkan.VK10.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 
 public class Vk2dPipelines {
 
@@ -16,8 +26,12 @@ public class Vk2dPipelines {
 	public final Vk2dFancyTextPipeline fancyText;
 	public final Vk2dBlurPipeline blur;
 
-	public Vk2dPipelines(Vk2dInstance instance, Vk2dPipelineContext context, Vk2dConfig config) {
+	private final List<Field> pipelineFields = new ArrayList<>();
+	private final List<Method> pipelineGetters = new ArrayList<>();
+
+	public Vk2dPipelines(Vk2dInstance instance, Vk2dPipelineContext context) {
 		this.instance = instance;
+		var config = instance.config;
 		this.color = config.color ? new Vk2dColorPipeline(context, instance) : null;
 		this.multiply = config.multiply ? new Vk2dMultiplyPipeline(context, instance) : null;
 		this.oval = config.oval ? new Vk2dOvalPipeline(context, instance) : null;
@@ -27,12 +41,62 @@ public class Vk2dPipelines {
 		this.simpleText = config.simpleText ? new Vk2dSimpleTextPipeline(context, instance) : null;
 		this.fancyText = config.fancyText ? new Vk2dFancyTextPipeline(context, instance) : null;
 		this.blur = config.blur ? new Vk2dBlurPipeline(context, instance) : null;
+
+		for (var field : this.getClass().getFields()) {
+			if (!Modifier.isStatic(field.getModifiers()) && Vk2dPipeline.class.isAssignableFrom(field.getType())) {
+				pipelineFields.add(field);
+			}
+		}
+
+		for (var method : this.getClass().getMethods()) {
+			if (!Modifier.isStatic(method.getModifiers()) && method.getParameterCount() == 0 &&
+					Vk2dPipeline.class.isAssignableFrom(method.getReturnType())
+			) {
+				pipelineGetters.add(method);
+			}
+		}
+	}
+
+	protected List<Vk2dPipeline> all() {
+		var pipelines = new ArrayList<Vk2dPipeline>(pipelineFields.size() + pipelineGetters.size());
+		try {
+			for (var field : pipelineFields) pipelines.add((Vk2dPipeline) field.get(this));
+			for (var getter : pipelineGetters) pipelines.add((Vk2dPipeline) getter.invoke(this));
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+		return pipelines;
+	}
+
+	public long perFrameBufferAlignment() {
+		long alignment = 1L;
+		long storageAlignment = instance.boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
+
+		for (var pipeline : all()) {
+			if (pipeline == null) continue;
+			if (pipeline.usesVertexBuffer) alignment = leastCommonMultiple(alignment, 4L);
+			if (pipeline.usesStorageBuffer) alignment = leastCommonMultiple(alignment, storageAlignment);
+		}
+
+		return alignment;
+	}
+
+	public int perFrameBufferUsage() {
+		int usage = 0;
+
+		for (var pipeline : all()) {
+			if (pipeline == null) continue;
+			if (pipeline.usesVertexBuffer) usage |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+			if (pipeline.usesStorageBuffer) usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		}
+
+		return usage;
 	}
 
 	public void destroy() {
-		Vk2dPipeline[] all = { color, multiply, oval, image, kim1, kim3, simpleText, fancyText, blur };
-		for (Vk2dPipeline pipeline : all) {
+		for (Vk2dPipeline pipeline : all()) {
 			if (pipeline != null) pipeline.destroy(instance.boiler);
 		}
 	}
 }
+
