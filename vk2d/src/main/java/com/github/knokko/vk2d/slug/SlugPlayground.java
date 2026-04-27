@@ -22,8 +22,10 @@ import org.lwjgl.util.harfbuzz.HarfBuzzGPU;
 import org.lwjgl.util.harfbuzz.hb_glyph_extents_t;
 import org.lwjgl.vulkan.*;
 
+import java.io.File;
+
 import static com.github.knokko.boiler.exceptions.VulkanFailureException.assertVkSuccess;
-import static org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_FIFO_KHR;
+import static org.lwjgl.vulkan.KHRSurface.*;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class SlugPlayground extends SimpleWindowRenderLoop {
@@ -44,8 +46,8 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 		)
 				.useSDL()
 				.doNotUseVma()
-				.validation()
-				.forbidValidationErrors()
+//				.validation()
+//				.forbidValidationErrors()
 				.enableDynamicRendering()
 				.addWindow(new WindowBuilder(
 					1000, 800, 1
@@ -66,7 +68,8 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 
 	public SlugPlayground(VkbWindow window) {
 		super(
-				window, true, VK_PRESENT_MODE_FIFO_KHR,
+				window, true,
+				window.getSupportedPresentModes().contains(VK_PRESENT_MODE_MAILBOX_KHR) ? VK_PRESENT_MODE_MAILBOX_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR,
 				ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.COLOR_ATTACHMENT_WRITE
 		);
 	}
@@ -76,8 +79,11 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 	protected void setup(BoilerInstance boiler, MemoryStack stack) {
 		super.setup(boiler, stack);
 
+		File root = new File("importer").exists() ? new File("importer").getAbsoluteFile() :
+				new File(new File(".").getAbsoluteFile().getParentFile().getParentFile() + "/importer");
+		System.out.println(root);
 		hbFontBlob = assertNonZero(HarfBuzz.hb_blob_create_from_file_or_fail(
-				"importer/src/main/resources/mardek/importer/fonts/274_Nyala.ttf"
+				root + "/src/main/resources/mardek/importer/fonts/274_Nyala.ttf"
 		), "hb_blob_create_from_file_or_fail");
 		hbFace = assertNonZero(HarfBuzz.hb_face_create_or_fail(hbFontBlob, 0), "hb_face_create_or_fail");
 		hbFont = assertNonZero(HarfBuzz.hb_font_create(hbFace), "hb_font_create");
@@ -89,10 +95,10 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 				1000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 0.5f
 		);
 		indexBuffer = combiner.addMappedDeviceLocalBuffer(
-				24L, 4L, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 0.5f
+				1000L, 4L, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 0.5f
 		);
 		glyphBuffer = combiner.addMappedDeviceLocalBuffer(
-				10_000L, 4L, VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT, 0.5f
+				100_000L, 4L, VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT, 0.5f
 		);
 		memoryBlock = combiner.build(false);
 
@@ -108,8 +114,6 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 				boiler.vkDevice(), ciBufferView, null, pBufferView
 		), "CreateBufferView", "glyph buffer");
 		glyphBufferView = pBufferView.get(0);
-
-		indexBuffer.intBuffer().put(0).put(1).put(2).put(2).put(3).put(0);
 
 		var layoutBuilder = new DescriptorSetLayoutBuilder(stack, 1);
 		layoutBuilder.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -166,11 +170,25 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 		vkUpdateDescriptorSets(boiler.vkDevice(), writes, null);
 	}
 
+	private long referenceTime = System.nanoTime();
+	private int fps = 0;
+
+	protected void printFps() {
+		long currentTime = System.nanoTime();
+		if (currentTime - referenceTime > 1000_000_000L) {
+			System.out.println("FPS is " + fps);
+			fps = 0;
+			referenceTime = currentTime;
+		}
+		fps += 1;
+	}
+
 	@Override
 	protected void recordFrame(
 			MemoryStack stack, int frameIndex, CommandRecorder recorder,
 			AcquiredImage swapchainImage, BoilerInstance boiler
 	) {
+		printFps();
 		HarfBuzz.hb_buffer_clear_contents(hbBuffer);
 
 		var testString = "ABC";
@@ -182,10 +200,15 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 		var glyphInfos = assertNonNull(HarfBuzz.hb_buffer_get_glyph_infos(hbBuffer), "hb_buffer_get_glyph_infos");
 		var glyphPositions = assertNonNull(HarfBuzz.hb_buffer_get_glyph_positions(hbBuffer), "hb_buffer_get_glyph_positions");
 
-		int cursorX = 0;
-		int cursorY = 0;
+		int cursorX = -800;
+		int cursorY = 300;
 		var glyphBounds = hb_glyph_extents_t.calloc(stack);
-		for (int index = 0; index < 1; index++) {
+		var vertexData = vertexBuffer.byteBuffer();
+		var indexData = indexBuffer.intBuffer();
+		int nextIndex = 0;
+		int glyphLoc = 0;
+
+		for (int index = glyphInfos.position(); index < glyphInfos.limit(); index++) {
 			var glyphInfo = glyphInfos.get(index);
 			var glyphPosition = glyphPositions.get(index);
 
@@ -194,10 +217,9 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 
 			var hbDrawBlob = assertNonZero(HarfBuzzGPU.hb_gpu_draw_encode(hbDraw), "hb_gpu_draw_encode");
 			var drawBuffer = assertNonNull(HarfBuzz.hb_blob_get_data(hbDrawBlob), "hb_blob_get_data");
-			glyphBuffer.byteBuffer().put(drawBuffer);
+			glyphBuffer.byteBuffer().put(glyphLoc, drawBuffer, drawBuffer.position(), drawBuffer.remaining());
 
-			float magicScale = 1f / 1000f;
-			int glyphLoc = 0;
+			float magicScale = 3.25f / 1000f;
 			float emPerPos = 123f; // TODO Hm...
 
 			int glyphBaseX = cursorX + glyphPosition.x_offset();
@@ -213,38 +235,41 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 			cursorX += glyphPosition.x_advance();
 			cursorY += glyphPosition.y_advance();
 
-			var vertexData = vertexBuffer.byteBuffer();
+			indexData.put(nextIndex).put(nextIndex + 1).put(nextIndex + 2);
+			indexData.put(nextIndex + 2).put(nextIndex + 3).put(nextIndex);
+			nextIndex += 4;
 
 			// Vertex 0 (bottom left)
 			vertexData.putFloat(glyphMinX).putFloat(glyphBoundY); // position
 			vertexData.putFloat(glyphBounds.x_bearing()).putFloat(glyphBounds.y_bearing()); // texture coordinates
 			vertexData.putFloat(-1f).putFloat(1f); // normal
 			vertexData.putFloat(emPerPos);
-			vertexData.putInt(glyphLoc);
+			vertexData.putInt(glyphLoc / 8);
 
 			// Vertex 1 (bottom right)
 			vertexData.putFloat(glyphBoundX).putFloat(glyphBoundY); // position
 			vertexData.putFloat(glyphBounds.x_bearing() + glyphBounds.width()).putFloat(glyphBounds.y_bearing()); // texture coordinates
 			vertexData.putFloat(1f).putFloat(1f); // normal
 			vertexData.putFloat(emPerPos);
-			vertexData.putInt(glyphLoc);
+			vertexData.putInt(glyphLoc / 8);
 
 			// Vertex 2 (top right)
 			vertexData.putFloat(glyphBoundX).putFloat(glyphMinY); // position
 			vertexData.putFloat(glyphBounds.x_bearing() + glyphBounds.width()).putFloat(glyphBounds.y_bearing() + glyphBounds.height()); // texture coordinates
 			vertexData.putFloat(1f).putFloat(-1f); // normal
 			vertexData.putFloat(emPerPos);
-			vertexData.putInt(glyphLoc);
+			vertexData.putInt(glyphLoc / 8);
 
 			// Vertex 3 (top left)
 			vertexData.putFloat(glyphMinX).putFloat(glyphMinY); // position
 			vertexData.putFloat(glyphBounds.x_bearing()).putFloat(glyphBounds.y_bearing() + glyphBounds.height()); // texture coordinates
 			vertexData.putFloat(-1f).putFloat(-1f); // normal
 			vertexData.putFloat(emPerPos);
-			vertexData.putInt(glyphLoc);
+			vertexData.putInt(glyphLoc / 8);
 
 			HarfBuzzGPU.hb_gpu_draw_reset(hbDraw);
 			HarfBuzzGPU.hb_gpu_draw_recycle_blob(hbDraw, hbDrawBlob);
+			glyphLoc += drawBuffer.limit();
 		}
 
 		var colorAttachments = recorder.singleColorRenderingAttachment(
@@ -268,7 +293,7 @@ public class SlugPlayground extends SimpleWindowRenderLoop {
 		recorder.bindIndexBuffer(indexBuffer, VK_INDEX_TYPE_UINT32);
 		recorder.bindVertexBuffers(0, vertexBuffer);
 
-		vkCmdDrawIndexed(recorder.commandBuffer, 6, 1, 0, 0, 0);
+		vkCmdDrawIndexed(recorder.commandBuffer, 6 * nextIndex / 4, 1, 0, 0, 0);
 		recorder.endDynamicRendering();
 	}
 

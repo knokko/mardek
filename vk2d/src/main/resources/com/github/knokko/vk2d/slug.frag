@@ -329,5 +329,5 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
 	float coverage = hb_gpu_render(inTextureCoordinates, inGlyphLoc);
-	outColor = vec4(1.0, 0.0, 0.0, coverage);
+	outColor = vec4(1.0, coverage, coverage, 1.0);
 }

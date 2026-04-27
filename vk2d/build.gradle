@@ -117,3 +117,10 @@ tasks.register("kim3Benchmark", JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = "com.github.knokko.vk2d.Kim3Benchmark"
 }
+
+tasks.register("slugPlayground", JavaExec) {
+	group = "Benchmark"
+	description = "Runs the slug benchmark/playground"
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass = "com.github.knokko.vk2d.slug.SlugPlayground"
+}
