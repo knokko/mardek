@@ -3,6 +3,7 @@ package mardek.renderer.area.ui.shop
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.RenderContext
 import mardek.renderer.menu.inventory.InventoryRenderContext
 import mardek.renderer.menu.inventory.SIMPLE_SLOT_SIZE
@@ -21,7 +22,8 @@ internal fun renderShopUi(
 	val spriteBatch = context.addAreaSpriteBatch(500, region) // Character slots, item slots, equipment slots...
 	val imageBatch = context.addImageBatch(50) // Only a couple of icons
 	val lateColorBatch = context.addColorBatch(2) // Only for equipment slot name tooltips
-	val textBatch = context.addFancyTextBatch(2000) // Item descriptions can be long
+	val simpleTextBatch = context.addTextBatch(2000) // Item descriptions can be long...
+	val fancyTextBatch = context.addFancyTextBatch(200) // Only for rendering "MASTERED'
 
 	val splitX = region.minX + 7 * region.width / 10
 	val barHeight = region.height / 12
@@ -54,7 +56,8 @@ internal fun renderShopUi(
 	val itemScale = min((splitX - region.minX) / baseSlotSize / 14, region.height / baseSlotSize / 13)
 
 	val inventoryContext = InventoryRenderContext(
-		context, colorBatch, null, spriteBatch, imageBatch, lateColorBatch, textBatch
+		context, colorBatch, null, spriteBatch,
+		imageBatch, lateColorBatch, simpleTextBatch, fancyTextBatch,
 	)
 
 	if (itemScale > 0) {
@@ -93,17 +96,17 @@ internal fun renderShopUi(
 	}
 
 	val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"Inventory", region.minX + barHeight / 4, region.minY + 3 * barHeight / 4,
 		barHeight / 2, upperFont, srgbToLinear(rgb(131, 81, 37)),
 	)
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"Shop", splitX + barHeight / 4, region.minY + 3 * barHeight / 4,
 		barHeight / 2, upperFont, srgbToLinear(rgb(238, 203, 127)),
 	)
 
 	val simpleFont = context.bundle.getFont(context.content.fonts.basic2.index)
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"Value:", splitX + region.height * 0.12f, region.boundY - region.height * 0.03f,
 		region.height * 0.025f, simpleFont,
 		srgbToLinear(rgb(207, 192, 141)),
@@ -128,12 +131,10 @@ internal fun renderShopUi(
 	}
 
 	val valueFont = context.bundle.getFont(context.content.fonts.large1.index)
-	textBatch.drawShadowedString(
+	simpleTextBatch.drawShadowedString(
 		hoveredItemValue.toString(), splitX + region.height * 0.13f,
 		region.boundY - region.height * 0.025f, region.height * 0.03f, valueFont,
-		srgbToLinear(rgb(255, 225, 124)), 0, 0f,
-		srgbToLinear(rgb(60, 40, 25)),
-		0.003f * region.height, 0.003f * region.height, TextAlignment.LEFT,
+		MardekTextStyles.ShopUI.ITEM_VALUE, TextAlignment.LEFT,
 	)
 
 	val overlayRegion = Rectangle(region.minX, barY, splitX, region.maxY)
@@ -144,5 +145,5 @@ internal fun renderShopUi(
 
 	renderShopTradeOverlay(context, this, region)
 
-	Pair(colorBatch, textBatch)
+	Pair(colorBatch, simpleTextBatch)
 }

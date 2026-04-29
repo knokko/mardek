@@ -1,6 +1,7 @@
 package mardek.importer.stats
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
+import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import mardek.content.Content
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
@@ -19,6 +20,7 @@ private fun getBcSprite(name: String): BcSprite {
 
 fun addElements(content: Content) {
 	val fire = Element(
+		id = UUID.fromString("1bfd73f6-c05c-4ae5-9257-6a8471cbdbba"),
 		rawName = "FIRE",
 		bonusStat = CombatStat.Strength,
 		primaryChar = "F",
@@ -28,9 +30,10 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingFire"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_FIRE" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundFire"),
-		id = UUID.fromString("1bfd73f6-c05c-4ae5-9257-6a8471cbdbba"),
+		chatLogColor = srgbToLinear(rgb(255, 153, 0)),
 	)
 	val water = Element(
+		id = UUID.fromString("e5ef0cd6-8e44-4c3f-8d63-7e38a0e96e95"),
 		rawName = "WATER",
 		bonusStat = CombatStat.Spirit,
 		primaryChar = "W",
@@ -40,9 +43,10 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingWater"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_WATER" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundWater"),
-		id = UUID.fromString("e5ef0cd6-8e44-4c3f-8d63-7e38a0e96e95"),
+		chatLogColor = srgbToLinear(rgb(0, 221, 255)),
 	)
 	val earth = Element(
+		id = UUID.fromString("b520c012-fcd9-4f7e-a176-1bc59ff705ad"),
 		rawName = "EARTH",
 		bonusStat = CombatStat.Vitality,
 		primaryChar = "E",
@@ -52,9 +56,10 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingEarth"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_EARTH" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundEarth"),
-		id = UUID.fromString("b520c012-fcd9-4f7e-a176-1bc59ff705ad"),
+		chatLogColor = srgbToLinear(rgb(136, 255, 0)),
 	)
 	val air = Element(
+		id = UUID.fromString("75195446-e263-485c-84c0-6a60141dcbc8"),
 		rawName = "AIR",
 		bonusStat = CombatStat.Agility,
 		primaryChar = "A",
@@ -64,7 +69,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingAir"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_AIR" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundAir"),
-		id = UUID.fromString("75195446-e263-485c-84c0-6a60141dcbc8"),
+		chatLogColor = srgbToLinear(rgb(255, 255, 102)),
 	)
 	fire.setWeakAgainst(water)
 	water.setWeakAgainst(earth)
@@ -74,6 +79,7 @@ fun addElements(content: Content) {
 	content.stats.elements.addAll(listOf(fire, water, earth, air))
 
 	val light = Element(
+		id = UUID.fromString("b7f41764-8d53-4383-8bf3-6a194d01a5a0"),
 		rawName = "LIGHT",
 		bonusStat = CombatStat.RangedDefense,
 		primaryChar = "L",
@@ -83,9 +89,10 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingLight"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_LIGHT" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundLight"),
-		id = UUID.fromString("b7f41764-8d53-4383-8bf3-6a194d01a5a0"),
+		chatLogColor = srgbToLinear(rgb(255, 255, 255)),
 	)
 	val dark = Element(
+		id = UUID.fromString("e5a2760a-1264-4c0d-9ca4-f1bcba29d613"),
 		rawName = "DARK",
 		bonusStat = CombatStat.MeleeDefense,
 		primaryChar = "D",
@@ -95,7 +102,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingDark"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_DARK" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundDark"),
-		id = UUID.fromString("e5a2760a-1264-4c0d-9ca4-f1bcba29d613"),
+		chatLogColor = srgbToLinear(rgb(112, 0, 127)),
 	)
 	dark.setWeakAgainst(light)
 	light.setWeakAgainst(dark)
@@ -103,6 +110,7 @@ fun addElements(content: Content) {
 	content.stats.elements.addAll(listOf(light, dark))
 
 	val aether = Element(
+		id = UUID.fromString("d171c63f-0e4b-4a43-953e-4580269b4e43"),
 		rawName = "ETHER",
 		bonusStat = CombatStat.MaxMana,
 		primaryChar = "S",
@@ -113,9 +121,10 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingAether"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_ETHER" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundAether"),
-		id = UUID.fromString("d171c63f-0e4b-4a43-953e-4580269b4e43"),
+		chatLogColor = srgbToLinear(rgb(102, 255, 204)),
 	)
 	val fig = Element(
+		id = UUID.fromString("d4429d7d-3608-4faa-b2a9-0e93eaeea28b"),
 		rawName = "FIG",
 		bonusStat = CombatStat.MaxHealth,
 		primaryChar = "M",
@@ -125,7 +134,7 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingFig"),
 		spellCastEffect = content.battle.particles.find { it.name == "one_sparkle_FIG" }!!,
 		spellCastBackground = getBcSprite("CastBackgroundFig"),
-		id = UUID.fromString("d4429d7d-3608-4faa-b2a9-0e93eaeea28b"),
+		chatLogColor = srgbToLinear(rgb(255, 0, 221)),
 	)
 	fig.setWeakAgainst(aether)
 	aether.setWeakAgainst(fig)
@@ -133,6 +142,7 @@ fun addElements(content: Content) {
 	content.stats.elements.addAll(listOf(aether, fig))
 
 	content.stats.elements.add(Element(
+		id = UUID.fromString("3d1dbc94-dc04-4ec3-a2b7-0269747afb2d"),
 		rawName = "NONE",
 		bonusStat = null,
 		primaryChar = "N",
@@ -143,10 +153,11 @@ fun addElements(content: Content) {
 		swingEffect = getBcSprite("SwingPhysical"),
 		spellCastEffect = null,
 		spellCastBackground = null,
-		id = UUID.fromString("3d1dbc94-dc04-4ec3-a2b7-0269747afb2d"),
+		chatLogColor = rgb(204, 204, 204),
 	))
 	content.stats.defaultWeaponElement = content.stats.elements.last()
 	content.stats.elements.add(Element(
+		id = UUID.fromString("6a859620-744c-4588-9b60-d7a643fcd4d6"),
 		rawName = "THAUMA",
 		bonusStat = null,
 		primaryChar = "T",
@@ -156,9 +167,10 @@ fun addElements(content: Content) {
 		swingEffect = null,
 		spellCastEffect = null,
 		spellCastBackground = getBcSprite("CastBackgroundThauma"),
-		id = UUID.fromString("6a859620-744c-4588-9b60-d7a643fcd4d6"),
+		chatLogColor = rgb(120, 120, 254),
 	))
 	content.stats.elements.add(Element(
+		id = UUID.fromString("da8e4ad0-5c03-4f1a-9890-d6cb4a4510f7"),
 		rawName = "DIVINE",
 		bonusStat = null,
 		primaryChar = "D",
@@ -168,6 +180,6 @@ fun addElements(content: Content) {
 		swingEffect = null,
 		spellCastEffect = null,
 		spellCastBackground = null,
-		id = UUID.fromString("da8e4ad0-5c03-4f1a-9890-d6cb4a4510f7"),
+		chatLogColor = rgb(252, 207, 207),
 	))
 }

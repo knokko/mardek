@@ -6,10 +6,13 @@ import org.apache.batik.transcoder.TranscoderException
 import org.apache.batik.transcoder.TranscoderInput
 import org.apache.batik.transcoder.TranscoderOutput
 import org.apache.batik.transcoder.image.PNGTranscoder
+import java.awt.Color
 import java.io.File
+import java.lang.Integer.parseInt
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
+import kotlin.math.min
 
 fun main() {
 	/*
@@ -70,6 +73,7 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 	val pngInputFiles = pngInputFolder.listFiles()!!
 	val numThreads = 20
 
+	val shadows = arrayOf(2312, 2463, 2538, 2618, 2736, 3021, 3103, 4371, 4717, 4744)
 	val threads = Array(numThreads) { threadIndex -> Thread {
 		for ((index, pngInputFile) in pngInputFiles.withIndex()) {
 			if (index % numThreads != threadIndex) continue
@@ -96,6 +100,21 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 
 			outputStream.flush()
 			outputStream.close()
+
+			if (shadows.contains(parseInt(pngInputFile.name.replace(".png", "")))) {
+				val shadowImage = ImageIO.read(output)
+				for (y in 0 until shadowImage.height) {
+					for (x in 0 until shadowImage.width) {
+						val inputColor = Color(shadowImage.getRGB(x, y), true)
+						val outputColor = Color(
+							inputColor.red, inputColor.green, inputColor.blue,
+							min(255, 2 * inputColor.alpha),
+						)
+						shadowImage.setRGB(x, y, outputColor.rgb)
+					}
+				}
+				ImageIO.write(shadowImage, "PNG", output)
+			}
 
 			val nextCounter = counter.incrementAndGet()
 			if (nextCounter % 100 == 0) {

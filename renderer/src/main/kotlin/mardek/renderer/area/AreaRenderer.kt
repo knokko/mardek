@@ -1,7 +1,7 @@
 package mardek.renderer.area
 
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import mardek.renderer.RenderContext
 import mardek.renderer.area.ui.renderActionBackgroundImage
 import mardek.renderer.area.ui.renderActionFlash
@@ -16,7 +16,7 @@ import kotlin.math.roundToInt
 
 internal fun renderCurrentArea(
 	context: RenderContext, state: AreaState, region: Rectangle
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 
 	val baseVisibleHorizontalTiles = region.width / 16.0
 	val baseVisibleVerticalTiles = region.height / 16.0
@@ -65,5 +65,5 @@ internal fun renderCurrentArea(
 	renderAreaFadeEffects(areaContext)
 	renderAreaIncomingBattleFlicker(areaContext)
 
-	return Pair(areaContext.uiColorBatch, areaContext.textBatch)
+	return Pair(areaContext.uiColorBatch, areaContext.simpleTextBatch)
 }

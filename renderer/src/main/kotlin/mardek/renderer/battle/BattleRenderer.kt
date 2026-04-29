@@ -4,7 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import mardek.renderer.RenderContext
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
@@ -19,12 +19,12 @@ import mardek.state.util.Rectangle
 internal fun renderBattle(
 	context: RenderContext, state: CampaignState,
 	battleState: BattleState, region: Rectangle
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 	val battleContext = BattleRenderContext(context, state, battleState)
 
 	val mainRegion = Rectangle(
-		region.minX, region.minY + region.height / 12, region.width,
-		region.height - region.height / 12 - region.height / 8,
+		region.minX, region.minY + region.height / 13, region.width,
+		region.height - region.height / 13 - region.height / 8,
 	)
 	val animationPartBatch = context.addAnimationPartBatch(1000)
 	renderBattleBackground(battleContext, animationPartBatch, mainRegion)
@@ -39,7 +39,8 @@ internal fun renderBattle(
 	val imageBatch = context.addImageBatch(1000)
 	val kimBatch = context.addKim3Batch(200)
 	val spriteBatch = context.addAreaSpriteBatch(20, region)
-	val textBatch = context.addFancyTextBatch(2000)
+	val simpleTextBatch = context.addTextBatch(1000)
+	val fancyTextBatch = context.addFancyTextBatch(100)
 
 	// The combatant info popup needs to render above everything else
 	val lateColorBatch = context.addColorBatch(100)
@@ -54,8 +55,8 @@ internal fun renderBattle(
 		battleState, battleState.allOpponents() + battleState.allPlayers()
 	)) {
 		CombatantRenderer(battleContext, animationPartBatch, combatant, mainRegion).render()
-		renderDamageIndicator(battleContext, imageBatch, textBatch, combatant)
-		renderEffectHistory(battleContext, combatant, imageBatch, textBatch, lateColorBatch)
+		renderDamageIndicator(battleContext, imageBatch, fancyTextBatch, combatant)
+		renderEffectHistory(battleContext, combatant, imageBatch, fancyTextBatch, lateColorBatch)
 	}
 
 	renderBattlePortrait(battleContext, animationPartBatch, region)
@@ -63,14 +64,16 @@ internal fun renderBattle(
 	renderAnimationParticles(battleContext, imageBatch, mainRegion)
 	renderEffectParticles(battleContext, imageBatch, mainRegion)
 
-	renderTurnOrder(battleContext, colorBatch, kimBatch, textBatch, Rectangle(
-		region.minX, region.minY + region.height / 12, region.width, region.height / 12
+	renderTurnOrder(battleContext, colorBatch, kimBatch, simpleTextBatch, Rectangle(
+		region.minX, region.minY + region.height / 13, region.width, region.height / 12
 	))
 	renderThrownItems(battleContext, kimBatch)
-	renderTargetSelection(battleContext, colorBatch, ovalBatch, imageBatch, textBatch, Rectangle(
-		minX = region.minX, minY = region.minY + region.height / 12, width = region.width,
-		height = region.height - region.height / 8 - region.height / 12
-	))
+	renderTargetSelection(
+		battleContext, colorBatch, ovalBatch, imageBatch, simpleTextBatch, fancyTextBatch, Rectangle(
+			minX = region.minX, minY = region.minY + region.height / 13, width = region.width,
+			height = region.height - region.height / 8 - region.height / 13
+		)
+	)
 
 	val actionBarRegion = Rectangle(
 		region.minX, region.boundY - region.height / 12 - region.height / 8,
@@ -95,7 +98,7 @@ internal fun renderBattle(
 		if (isChoosingSkillOrItem && !isSelectingTarget) {
 			renderActionBar(
 				ActionBarRenderMode.Background, battleContext, colorBatch, ovalBatch,
-				lateOvalBatch, spriteBatch, imageBatch, textBatch, actionBarRegion
+				lateOvalBatch, spriteBatch, imageBatch, simpleTextBatch, actionBarRegion
 			)
 
 			val framebuffers = context.framebuffers
@@ -131,29 +134,32 @@ internal fun renderBattle(
 			for (renderMode in ActionBarRenderMode.entries) {
 				renderActionBar(
 					renderMode, battleContext, colorBatch, ovalBatch, lateOvalBatch,
-					spriteBatch, imageBatch, textBatch, actionBarRegion,
+					spriteBatch, imageBatch, simpleTextBatch, actionBarRegion,
 				)
 			}
 		}
 	}
 
-	renderSkillOrItemSelection(battleContext, colorBatch, ovalBatch, kimBatch, imageBatch, textBatch, Rectangle(
+	renderSkillOrItemSelection(battleContext, colorBatch, ovalBatch, kimBatch, imageBatch, simpleTextBatch, Rectangle(
 		region.minX + region.width / 3, region.minY + region.height / 5,
 		width = region.width / 3, height = 4 * region.height / 7,
 	))
 
-	renderSkillOrItemDescription(battleContext, colorBatch, kimBatch, imageBatch, textBatch, Rectangle(
-		region.minX, region.minY + region.height / 12, region.width, region.height / 9
+	renderSkillOrItemDescription(
+		battleContext, colorBatch, kimBatch, imageBatch, simpleTextBatch, fancyTextBatch, Rectangle(
+		region.minX, region.minY + region.height / 13, region.width, region.height / 9
 	))
 
-	renderCurrentMoveBar(battleContext, colorBatch, spriteBatch, imageBatch, textBatch, Rectangle(
-		region.minX, region.minY + region.height / 12, region.width, region.height / 16
-	))
+	renderCurrentMoveBar(
+		battleContext, colorBatch, spriteBatch, imageBatch, simpleTextBatch, fancyTextBatch, Rectangle(
+			region.minX, region.minY + region.height / 13, region.width, region.height / 16
+		)
+	)
 
 	val lightBarColor = srgbToLinear(rgb(88, 74, 43))
 	val darkBarColor = srgbToLinear(rgb(37, 28, 17))
 	colorBatch.gradient(
-		region.minX, region.minY, region.maxX, region.minY + region.height / 12,
+		region.minX, region.minY, region.maxX, region.minY + region.height / 13,
 		lightBarColor, darkBarColor, lightBarColor
 	)
 	colorBatch.gradient(
@@ -164,17 +170,17 @@ internal fun renderBattle(
 		if (enemy == null) continue
 		val region = Rectangle(
 			minX = region.minX + index * region.width / 4, minY = region.minY,
-			width = region.width / 4, height = region.height / 12
+			width = region.width / 4, height = region.height / 13
 		)
 		if (enemy is MonsterCombatantState) {
 			renderMonsterBlock(
 				battleContext, enemy, colorBatch, lateColorBatch, ovalBatch,
-				imageBatch, textBatch, region,
+				imageBatch, simpleTextBatch, region,
 			)
 		} else {
 			renderPlayerBlock(
 				battleContext, enemy as PlayerCombatantState, colorBatch, lateColorBatch, ovalBatch,
-				kimBatch, imageBatch, textBatch, region,
+				kimBatch, imageBatch, simpleTextBatch, region,
 			)
 		}
 	}
@@ -189,17 +195,17 @@ internal fun renderBattle(
 		if (player is MonsterCombatantState) {
 			renderMonsterBlock(
 				battleContext, player, colorBatch, lateColorBatch, ovalBatch,
-				imageBatch, textBatch, region,
+				imageBatch, simpleTextBatch, region,
 			)
 		} else {
 			renderPlayerBlock(
 				battleContext, player as PlayerCombatantState, colorBatch, lateColorBatch, ovalBatch,
-				kimBatch, imageBatch, textBatch, region,
+				kimBatch, imageBatch, simpleTextBatch, region,
 			)
 		}
 	}
 
-	renderLevelUps(battleContext, textBatch, region)
+	renderLevelUps(battleContext, simpleTextBatch, fancyTextBatch, region)
 	renderChallengeBar(battleContext, colorBatch, imageBatch, Rectangle(
 		minX = region.minX,
 		minY = region.boundY - region.height / 16 - region.height / 8,
@@ -219,7 +225,7 @@ internal fun renderBattle(
 	renderBattleFinishEffect(battleContext, finishColorBatch, finishTextBatch, region)
 	renderBattleFadeIn(battleContext, finishColorBatch, region)
 
-	return Pair(colorBatch, textBatch)
+	return Pair(colorBatch, simpleTextBatch)
 }
 
 internal fun computeActionBarHeight(regionHeight: Int) = regionHeight / 12

@@ -24,15 +24,32 @@ allprojects {
 
 	repositories {
 		mavenCentral()
-		maven { url = "https://central.sonatype.com/repository/maven-snapshots" }
-		maven { url = "https://jitpack.io" }
+
+		maven {
+			name = "knokko-reposilite"
+			url = "https://49.12.188.159:8080/releases/"
+			content {
+				includeGroup "com.github.knokko"
+				includeGroup "com.github.knokko.vk-compressor"
+			}
+		}
+
+		// Used for LWJGL and JOML
+		maven {
+			name = "sonatype"
+			url = "https://central.sonatype.com/repository/maven-snapshots"
+			content {
+				includeGroup "org.joml"
+				includeGroup "org.lwjgl"
+			}
+		}
 	}
 
 	project.ext.jomlVersion = "1.10.8"
-	project.ext.lwjglVersion = "3.4.0"
-	project.ext.boilerVersion = "v5.2.0"
-	project.ext.compressorVersion = "v0.6.0"
-	project.ext.bitserVersion = "e6e55884eae8d136d34d670a5e0bba2cfa5c58db"
+	project.ext.lwjglVersion = "3.4.2-SNAPSHOT"
+	project.ext.boilerVersion = "5.3.1"
+	project.ext.compressorVersion = "0.7.0-pre9"
+	project.ext.bitserVersion = "0.4.1-pre1"
 	project.ext.lwjglNatives = [
 			"natives-linux", "natives-linux-arm32", "natives-linux-arm64",
 			"natives-linux-ppc64le", "natives-linux-riscv64", "natives-freebsd",
@@ -52,10 +69,12 @@ allprojects {
 			"org.joml:joml:$jomlVersion",
 			"org.lwjgl:lwjgl",
 			"org.lwjgl:lwjgl-vulkan",
+			"org.lwjgl:lwjgl-harfbuzz",
 	]
 	project.ext.vulkanRuntimeDependencies = project.ext.lwjglNatives.collectMany {
 		def result = ["org.lwjgl:lwjgl::$it", ]
 		if (it.startsWith("natives-macos")) result.add("org.lwjgl:lwjgl-vulkan::$it")
+		result.add("org.lwjgl:lwjgl-harfbuzz::$it")
 		result.add("org.lwjgl:lwjgl-zstd::$it")
 		result
 	}

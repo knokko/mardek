@@ -9,6 +9,7 @@ import mardek.state.ingame.battle.BattleMoveSelectionSkill
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
+import kotlin.time.Duration
 
 internal fun renderBattlePortrait(battleContext: BattleRenderContext, batch: AnimationPartBatch, fullRegion: Rectangle) {
 	battleContext.run {
@@ -40,6 +41,7 @@ internal fun renderBattlePortrait(battleContext: BattleRenderContext, batch: Ani
 			combat = null,
 			portrait = portraitInfo,
 			portraitExpression = "norm",
+			animationDuration = Duration.ZERO,
 		)
 		renderPortraitAnimation(context.content.portraits.animations, animationContext)
 	}

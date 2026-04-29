@@ -10,6 +10,7 @@ import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.CombatStat
 import mardek.content.stats.Element
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.CombatantAnimationContext
 import mardek.renderer.animation.renderBattleBackgroundAnimation
@@ -25,6 +26,7 @@ import org.joml.Matrix3x2f
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 
 internal fun renderEncyclopediaTab(menuContext: MenuRenderContext, partialRegion: Rectangle, fullRegion: Rectangle) {
 	val tab = menuContext.menu.currentTab as EncyclopediaTab
@@ -92,7 +94,7 @@ internal fun renderEncyclopediaTab(menuContext: MenuRenderContext, partialRegion
 
 		menuContext.apply {
 			val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				sectionName, fullRegion.maxX - 0.05f * fullRegion.height,
 				fullRegion.minY + fullRegion.height / 16f, fullRegion.height / 24f, upperFont,
 				srgbToLinear(rgb(238, 203, 127)),
@@ -121,12 +123,10 @@ private fun renderPersonDetails(menuContext: MenuRenderContext, region: Rectangl
 		val person = tab.encyclopedia.people[tab.currentEntry].entry!!
 		val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
 		val baseFont = context.bundle.getFont(context.content.fonts.basic2.index)
-		val baseTextColor = srgbToLinear(rgb(238, 203, 127))
-		val fatTextColor = srgbToLinear(rgb(255, 243, 159))
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"${person.firstName} ${person.lastName}", region.minX + 0.15f * region.height,
-			region.minY + 0.175f * region.height, 0.0375f * region.height,
-			upperFont, baseTextColor,
+			region.minY + 0.175f * region.height, 0.0375f * region.height, upperFont,
+			MardekTextStyles.Encyclopedia.DETAILS_TITLE, TextAlignment.LEFT,
 		)
 
 		imageBatch.simpleScale(
@@ -142,12 +142,9 @@ private fun renderPersonDetails(menuContext: MenuRenderContext, region: Rectangl
 		renderDescription(
 			person.description, ((maxDescriptionX - minDescriptionX) * 72.5f / region.height).roundToInt()
 		) { line ->
-			val shadowColor = srgbToLinear(rgb(90, 52, 22))
-			val shadowOffset = 0.003f * region.height
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				line, minDescriptionX, descriptionY, 0.02f * region.height, baseFont,
-				baseTextColor, 0, 0f, shadowColor,
-				shadowOffset, shadowOffset, TextAlignment.LEFT,
+				MardekTextStyles.Encyclopedia.DESCRIPTION, TextAlignment.LEFT,
 			)
 			@Suppress("AssignedValueIsNeverRead")
 			descriptionY += 0.035f * region.height
@@ -172,12 +169,13 @@ private fun renderPersonDetails(menuContext: MenuRenderContext, region: Rectangl
 
 			val textHeight = 0.025f * region.height
 			val textY = region.minY + 0.5f * region.height + propertyIndex * 0.045f * region.height
-			textBatch.drawString(
-				"$propertyName:", splitX - 0.025f * region.height, textY,
-				textHeight, baseFont, baseTextColor, TextAlignment.RIGHT,
+			simpleTextBatch.drawString(
+				"$propertyName:", splitX - 0.025f * region.height, textY, textHeight,
+				baseFont, MardekTextStyles.STRONG_TEXT_FILL.only(), TextAlignment.RIGHT,
 			)
-			textBatch.drawString(
-				propertyValue, splitX, textY, textHeight, baseFont, fatTextColor
+			simpleTextBatch.drawShadowedString(
+				propertyValue, splitX, textY, textHeight, baseFont,
+				MardekTextStyles.Encyclopedia.DETAILS_PROPERTY_PEOPLE, TextAlignment.LEFT,
 			)
 		}
 
@@ -194,7 +192,8 @@ private fun renderPersonDetails(menuContext: MenuRenderContext, region: Rectangl
 			noMask = context.content.battle.noMask,
 			combat = null,
 			portrait = person.portrait,
-			portraitExpression = person.portraitExpression
+			portraitExpression = person.portraitExpression,
+			animationDuration = Duration.ZERO,
 		)
 		renderPortraitAnimation(context.content.portraits.animations, animationContext)
 	}
@@ -214,11 +213,10 @@ private fun renderPlaceDetails(menuContext: MenuRenderContext, region: Rectangle
 
 		val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
 		val baseFont = context.bundle.getFont(context.content.fonts.basic2.index)
-		val baseTextColor = srgbToLinear(rgb(238, 203, 127))
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			place.name, imageRegion.minX - 0.01f * region.height,
 			region.minY + 0.15f * region.height, 0.041f * region.height,
-			upperFont, baseTextColor,
+			upperFont, MardekTextStyles.Encyclopedia.DETAILS_TITLE, TextAlignment.LEFT,
 		)
 
 		val minDescriptionX = imageRegion.minX + 0.01f * region.height
@@ -228,12 +226,9 @@ private fun renderPlaceDetails(menuContext: MenuRenderContext, region: Rectangle
 		renderDescription(
 			place.description, ((maxDescriptionX - minDescriptionX) * 75f / region.height).roundToInt()
 		) { line ->
-			val shadowColor = srgbToLinear(rgb(90, 52, 22))
-			val shadowOffset = 0.003f * region.height
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				line, minDescriptionX, descriptionY, 0.02f * region.height, baseFont,
-				baseTextColor, 0, 0f, shadowColor,
-				shadowOffset, shadowOffset, TextAlignment.LEFT,
+				MardekTextStyles.Encyclopedia.DESCRIPTION, TextAlignment.LEFT,
 			)
 			@Suppress("AssignedValueIsNeverRead")
 			descriptionY += 0.035f * region.height
@@ -269,6 +264,7 @@ private fun renderPlaceDetails(menuContext: MenuRenderContext, region: Rectangle
 			noMask = context.content.battle.noMask,
 			combat = null,
 			portrait = null,
+			animationDuration = Duration.ZERO,
 		)
 		renderBattleBackgroundAnimation(place.background.nodes, animationContext)
 	}
@@ -280,11 +276,10 @@ private fun renderArtefactDetails(menuContext: MenuRenderContext, region: Rectan
 		val artefact = tab.encyclopedia.artefacts[tab.currentEntry].entry!!
 		val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
 		val baseFont = context.bundle.getFont(context.content.fonts.basic2.index)
-		val baseTextColor = srgbToLinear(rgb(238, 203, 127))
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			artefact.name, region.minX + 0.045f * region.height,
 			region.minY + 0.15f * region.height, 0.04f * region.height,
-			upperFont, baseTextColor,
+			upperFont, MardekTextStyles.Encyclopedia.DETAILS_TITLE, TextAlignment.LEFT,
 		)
 
 		val minDescriptionX = region.minX + 0.6f * region.height
@@ -294,12 +289,9 @@ private fun renderArtefactDetails(menuContext: MenuRenderContext, region: Rectan
 		renderDescription(
 			artefact.description, ((maxDescriptionX - minDescriptionX) * 75f / region.height).roundToInt()
 		) { line ->
-			val shadowColor = srgbToLinear(rgb(90, 52, 22))
-			val shadowOffset = 0.003f * region.height
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				line, minDescriptionX, descriptionY, 0.02f * region.height, baseFont,
-				baseTextColor, 0, 0f, shadowColor,
-				shadowOffset, shadowOffset, TextAlignment.LEFT,
+				MardekTextStyles.Encyclopedia.DESCRIPTION, TextAlignment.LEFT,
 			)
 			@Suppress("AssignedValueIsNeverRead")
 			descriptionY += 0.035f * region.height
@@ -318,6 +310,7 @@ private fun renderArtefactDetails(menuContext: MenuRenderContext, region: Rectan
 			noMask = context.content.battle.noMask,
 			combat = null,
 			portrait = null,
+			animationDuration = Duration.ZERO,
 		)
 		renderCutsceneAnimation(ReferenceLazyBits(artefact.animation.frames), animationContext)
 	}
@@ -330,12 +323,10 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 		val monster = monsterEntry.monsters[0]
 		val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
 		val baseFont = context.bundle.getFont(context.content.fonts.basic2.index)
-		val baseTextColor = srgbToLinear(rgb(238, 203, 127))
-		val fatTextColor = srgbToLinear(rgb(255, 243, 159))
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			monster.displayName, region.minX + 0.15f * region.height,
-			region.minY + 0.175f * region.height, 0.0375f * region.height,
-			upperFont, baseTextColor,
+			region.minY + 0.175f * region.height, 0.0375f * region.height, upperFont,
+			MardekTextStyles.Encyclopedia.DETAILS_TITLE, TextAlignment.LEFT,
 		)
 
 		imageBatch.simpleScale(
@@ -348,18 +339,14 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 		val minDescriptionX = region.minX + 0.04f * region.height
 		val maxDescriptionX = splitX - 0.015f * region.height
 
-		val shadowColor = srgbToLinear(rgb(90, 52, 22))
-		val shadowOffset = 0.003f * region.height
-
 		var descriptionY = region.minY + 0.7f * region.height
 		renderDescription(
 			monsterEntry.description, ((maxDescriptionX - minDescriptionX) * 72.5f / region.height).roundToInt()
 		) { line ->
 
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				line, minDescriptionX, descriptionY, 0.02f * region.height, baseFont,
-				baseTextColor, 0, 0f, shadowColor,
-				shadowOffset, shadowOffset, TextAlignment.LEFT,
+				MardekTextStyles.Encyclopedia.DESCRIPTION, TextAlignment.LEFT,
 			)
 			@Suppress("AssignedValueIsNeverRead")
 			descriptionY += 0.035f * region.height
@@ -379,7 +366,7 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 				if (base != null && base != 0) result.append(" + ")
 				if (perLevelNumerator != 1) result.append("$perLevelNumerator x ")
 				result.append("Lv")
-				if (perLevelDenominator != 1) result.append("/ $perLevelDenominator")
+				if (perLevelDenominator != 1) result.append(" / $perLevelDenominator")
 			}
 			return result.toString()
 		}
@@ -392,7 +379,8 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 				monster.baseStats[CombatStat.MaxHealth], monster.hpPerLevel, 1
 			)),
 			Pair("ATK", describeAmountPerLevel(
-				monster.baseStats[CombatStat.Attack],
+				if (monster.weapon.entries.any { it.item != null }) monster.baseStats[CombatStat.Attack]
+				else monster.unarmedAttackPower,
 				monster.attackPerLevelNumerator,
 				monster.attackPerLevelDenominator,
 			)),
@@ -422,12 +410,14 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 
 				val textHeight = 0.025f * region.height
 				val textY = region.minY + 0.13f * region.height + propertyIndex * 0.044f * region.height
-				textBatch.drawString(
+				simpleTextBatch.drawString(
 					"$propertyName:", valueX - 0.025f * region.height, textY,
-					textHeight, baseFont, baseTextColor, TextAlignment.RIGHT,
+					textHeight, baseFont,
+					MardekTextStyles.STRONG_TEXT_FILL.only(), TextAlignment.RIGHT,
 				)
-				textBatch.drawString(
-					propertyValue, valueX, textY, textHeight, baseFont, fatTextColor
+				simpleTextBatch.drawShadowedString(
+					propertyValue, valueX, textY, textHeight, baseFont,
+					MardekTextStyles.Encyclopedia.DETAILS_PROPERTY_BESTIARY, TextAlignment.LEFT,
 				)
 			}
 		}
@@ -455,9 +445,10 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 				rootSkin = monster.animations.skin,
 				weaponName = null,
 				shieldName = null,
-				renderInfo = CombatantRenderInfo()
+				renderInfo = CombatantRenderInfo(),
 			),
 			portrait = null,
+			animationDuration = Duration.ZERO,
 		)
 
 		val animation = monster.animations["idle"]
@@ -494,15 +485,15 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 				baseY - (0.008f * region.height).roundToInt(),
 				0.0039f * region.height, loot.item!!.sprite.index,
 			)
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				loot.item!!.displayName, baseX + 0.08f * region.height, baseY + 0.033f * region.height,
-				0.022f * region.height, baseFont, baseTextColor, 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
+				0.022f * region.height, baseFont,
+				MardekTextStyles.Encyclopedia.DESCRIPTION, TextAlignment.LEFT,
 			)
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				"${loot.chance}%", baseX + 0.375f * region.height, baseY + 0.033f * region.height,
-				0.022f * region.height, baseFont, baseTextColor, 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
+				0.022f * region.height, baseFont,
+				MardekTextStyles.Encyclopedia.DESCRIPTION, TextAlignment.LEFT,
 			)
 		}
 
@@ -558,11 +549,10 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 			)
 
 			if (textColor != 0) {
-				textBatch.drawShadowedString(
+				simpleTextBatch.drawShadowedString(
 					"$displayResistance%", baseMaxX + 0.007f * region.height,
 					baseMinY + 0.0235f * region.height,  0.019f * region.height, baseFont,
-					textColor, 0, 0f, shadowColor,
-					shadowOffset, shadowOffset, TextAlignment.RIGHT,
+					MardekTextStyles.Encyclopedia.elementalResistance(textColor), TextAlignment.RIGHT,
 				)
 			}
 		}
@@ -647,14 +637,11 @@ private fun renderList(
 			val textX = baseX + 1f * sectionHeight
 			val textY = baseY + 0.85f * sectionHeight
 			val textHeight = 0.75f * sectionHeight
-			val shadowColor = changeAlpha(0, 50)
-			val shadowSize = 0f * textHeight // TODO CHAP1 Revisit after text render refactor
 
 			val nameString = "${index + 1}) ${entry.entry?.name ?: "-".repeat(entry.lengthOfName!!)}"
-			textBatch.drawString(
-				nameString, textX, textY,
-				textHeight, baseFont, textColor,
-				shadowColor, shadowSize, TextAlignment.LEFT,
+			simpleTextBatch.drawString(
+				nameString, textX, textY, textHeight, baseFont,
+				MardekTextStyles.Encyclopedia.listEntry(textColor), TextAlignment.LEFT,
 			)
 
 			if (entry.entry != null) {
@@ -667,10 +654,10 @@ private fun renderList(
 				}
 
 				if (entry.amount != null) {
-					textBatch.drawString(
-						entry.amount.toString(), baseX + 0.9f * sectionWidth, textY,
-						textHeight, baseFont, textColor,
-						shadowColor, shadowSize, TextAlignment.RIGHT,
+					simpleTextBatch.drawString(
+						entry.amount.toString(), baseX + 0.9f * sectionWidth,
+						textY, textHeight, baseFont,
+						MardekTextStyles.Encyclopedia.listEntry(textColor), TextAlignment.RIGHT,
 					)
 				}
 			}
@@ -696,9 +683,6 @@ private fun renderList(
 private fun renderOutside(tab: EncyclopediaTab, menuContext: MenuRenderContext, region: Rectangle) {
 	menuContext.apply {
 		val baseFont = context.bundle.getFont(context.content.fonts.basic2.index)
-		val baseTextColor = srgbToLinear(rgb(238, 203, 127))
-		val shadowColor = srgbToLinear(rgb(90, 52, 22))
-		val shadowOffset = 0.003f * region.height
 		var lineY = region.minY + 0.075f * region.height
 		val description = "This section contains optional reading about the world that this game takes place in. " +
 				"It doesn't really serve any purpose except for providing background information. " +
@@ -706,10 +690,10 @@ private fun renderOutside(tab: EncyclopediaTab, menuContext: MenuRenderContext, 
 				"\\nThere are several sections:"
 
 		fun drawLine(line: String) {
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				line, region.minX + 0.05f * region.height, lineY,
-				0.025f * region.height, baseFont, baseTextColor, 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
+				0.025f * region.height, baseFont,
+				MardekTextStyles.Encyclopedia.DESCRIPTION, TextAlignment.LEFT,
 			)
 			lineY += 0.045f * region.height
 		}
@@ -760,7 +744,6 @@ private fun renderOutside(tab: EncyclopediaTab, menuContext: MenuRenderContext, 
 		val arrowIcon = context.content.ui.arrowHead
 		val arrowOffset = determinePointerOffset() * region.height
 
-		val spriteBatch = context.addAreaSpriteBatch(10, region)
 		val arrowY = lineY + 0.15f * region.height
 		val arrowScale = 0.045f * region.height / arrowIcon.height
 		imageBatch.rotated(
@@ -775,7 +758,7 @@ private fun renderOutside(tab: EncyclopediaTab, menuContext: MenuRenderContext, 
 		for ((index, section) in sections.withIndex()) {
 			val iconX = region.minX + ((0.18f + 0.16f * index) * region.height).roundToInt()
 			val opacity = if (index == tab.currentSection) 1f else 0.2f
-			spriteBatch.draw(
+			areaSpriteBatch.draw(
 				section.sprite, iconX, (lineY + 0.1f * region.height).roundToInt(),
 				0.1f * region.height / section.sprite.height, opacity = opacity,
 			)
@@ -792,13 +775,10 @@ private fun renderOutside(tab: EncyclopediaTab, menuContext: MenuRenderContext, 
 
 		val section = sections[tab.currentSection]
 		val titleFont = context.bundle.getFont(context.content.fonts.large1.index)
-		val titleShadowOffset = 0.004f * region.height
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			section.title, region.minX + 0.05f * region.height, lineY + 0.3f * region.height,
 			0.04f * region.height, titleFont,
-			srgbToLinear(rgb(222, 166, 83)), 0, 0f,
-			srgbToLinear(rgb(124, 77, 35)),
-			titleShadowOffset, titleShadowOffset, TextAlignment.LEFT,
+			MardekTextStyles.Encyclopedia.SECTION_TITLE, TextAlignment.LEFT,
 		)
 
 		lineY += 0.37f * region.height

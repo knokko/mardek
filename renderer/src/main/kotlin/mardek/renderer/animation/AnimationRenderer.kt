@@ -3,6 +3,7 @@ package mardek.renderer.animation
 import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.boiler.utilities.ColorPacker.addColors
 import com.github.knokko.boiler.utilities.ColorPacker.multiplyColors
+import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.content.animation.AnimationFrames
 import mardek.content.animation.AnimationNode
 import mardek.content.animation.AnimationSprite
@@ -20,6 +21,8 @@ import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.util.Locale
+import kotlin.math.PI
+import kotlin.math.sin
 
 
 private fun noMaskSprite(context: AnimationContext) = AnimationSprite(
@@ -150,6 +153,8 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		sprite = AnimationSprite(2295, swingSprite, -15.35f, -14.5f)
 	}
 
+	if (special == SpecialAnimationNode.ElementalBash) return
+
 	if (special == SpecialAnimationNode.ElementalCastingCircle) {
 		if (combat?.magicElement == null) return
 		sprite = AnimationSprite(
@@ -174,7 +179,16 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 	var colorTransform = mergeColorTransforms(node.color, top.colors)
 
 	if (sprite != null) {
-		val leafMatrix = globalMatrix.translate(sprite.offsetX, sprite.offsetY, Matrix3x2f())
+		val leafMatrix = Matrix3x2f(globalMatrix)
+		leafMatrix.translate(0f, sprite.offsetY)
+		if (special == SpecialAnimationNode.MorphingShadow) {
+			val animationProgress = context.stack.last().animationProgress
+			val shadowScale = 0.75f * (1f - 0.15f * sin(animationProgress * 2f * PI).toFloat())
+			leafMatrix.translate(0f, 0.3f * sprite.offsetY)
+			leafMatrix.scale(shadowScale)
+		}
+		leafMatrix.translate(sprite.offsetX, 0f)
+
 		var maskSprite: AnimationSprite? = null
 		var leafMaskMatrix: Matrix3x2f? = null
 
@@ -216,6 +230,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 	val animation = chooseSkin(node, special, context)
 	if (animation != null) {
 		var deltaTime = (context.renderTime - context.referenceTime) % animation.duration.inWholeNanoseconds
+		val animationProgress = deltaTime.toFloat() / animation.duration.inWholeNanoseconds
 		for (frame in animation.frames) {
 			deltaTime -= frame.duration.inWholeNanoseconds
 			if (deltaTime < 0L) {
@@ -226,7 +241,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 				context.stack.add(TransformStackEntry(
 					globalMatrix, colorTransform,
 					special, node.selectSkin ?: context.stack.last().skin,
-					mask, maskMatrix,
+					mask, maskMatrix, animationProgress
 				))
 				renderAnimationFrame(frame, context)
 				context.stack.removeLast()

@@ -101,12 +101,11 @@ class TestingInstance {
 		)
 		titleScreenLoader.claimMemory(titleScreenAllocator)
 		titleScreenMemory = titleScreenAllocator.build(false)
-
-		titleScreenLoader.prepareStaging()
-		SingleTimeCommands.submit(boiler, "TitleScreenStaging") { recorder ->
-			titleScreenLoader.performStaging(recorder, titleScreenDescriptors)
-		}.destroy()
+		titleScreenLoader.prepareStaging(titleScreenDescriptors)
 		titleScreenDescriptorPool = titleScreenDescriptors.build("TitleScreenDescriptors")
+		SingleTimeCommands.submit(boiler, "TitleScreenStaging") { recorder ->
+			titleScreenLoader.performStaging(recorder)
+		}.destroy()
 		titleScreenResources = titleScreenLoader.finish()
 
 		renderManager = RenderManager(

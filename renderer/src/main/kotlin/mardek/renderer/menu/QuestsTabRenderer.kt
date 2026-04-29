@@ -51,7 +51,7 @@ internal fun renderQuestsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			val textColor = chooseColor(isSelected)
 
 			val font = context.bundle.getFont(context.content.fonts.large2.index)
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				text, 0.5f * (minX + maxX), maxY - 0.006f * region.height,
 				region.height * 0.03f, font, textColor, TextAlignment.CENTERED,
 			)
@@ -78,7 +78,7 @@ internal fun renderQuestsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			run {
 				val font = context.bundle.getFont(context.content.fonts.large1.index)
 				val baseY = separatorY + (index + 1) * 0.07f * region.height
-				textBatch.drawString(
+				simpleTextBatch.drawString(
 					quest.tabName, region.minX + 0.095f * region.height, baseY,
 					region.height * 0.0225f, font, chooseColor(isSelected),
 				)
@@ -99,23 +99,21 @@ internal fun renderQuestsTab(menuContext: MenuRenderContext, region: Rectangle) 
 				val font = context.bundle.getFont(context.content.fonts.basic2.index)
 				val minX = region.minX + 0.45f * region.height
 				val shadowOffset = 0.004f * region.height
-				textBatch.drawShadowedString(
+				simpleTextBatch.drawShadowedString(
 					quest.title, minX, separatorY - 0.015f * region.height,
 					region.height * 0.025f, font,
 					srgbToLinear(rgb(255, 255, 152)),
-					0, 0f, shadowColor,
-					shadowOffset, shadowOffset, TextAlignment.LEFT,
+					0, 0f, shadowColor, shadowOffset, TextAlignment.LEFT,
 				)
 
 				var lineY = separatorY + 0.045f * region.height
 				val spaceX = region.maxX - minX.roundToInt()
 				if (spaceX > 50) {
 					renderDescription(quest.description, spaceX / (region.height / 70)) { line ->
-						textBatch.drawShadowedString(
+						simpleTextBatch.drawShadowedString(
 							line, minX, lineY, 0.02f * region.height, font,
 							srgbToLinear(rgb(238, 203, 127)),
-							0, 0f, shadowColor,
-							shadowOffset, shadowOffset, TextAlignment.LEFT
+							0, 0f, shadowColor, shadowOffset, TextAlignment.LEFT,
 						)
 						lineY += 0.0375f * region.height
 					}

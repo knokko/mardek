@@ -4,7 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.changeAlpha
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.skill.ActiveSkill
 import mardek.content.skill.PassiveSkill
@@ -24,19 +24,20 @@ import kotlin.math.roundToInt
 internal fun renderMasteryScreen(
 	context: RenderContext, loot: BattleLoot,
 	party: List<UsedPartyMember>, region: Rectangle
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 	val colorBatch = context.addColorBatch(100)
 	val ovalBatch = context.addOvalBatch(20)
 	val kimBatch = context.addKim3Batch(10)
 	val imageBatch = context.addImageBatch(40)
-	val textBatch = context.addFancyTextBatch(500)
+	val simpleTextBatch = context.addTextBatch(500)
+	val fancyTextBatch = context.addFancyTextBatch(10)
 
 	val scale = max(1, (region.height / 170f).roundToInt())
 	colorBatch.fill(
 		region.minX, region.minY, region.maxX, region.minY + 11 * scale,
 		srgbToLinear(rgb(22, 13, 9)),
 	)
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"Skills Mastered", region.minX + 8f * scale, region.minY + 9f * scale,
 		7f * scale, context.bundle.getFont(context.content.fonts.large2.index),
 		srgbToLinear(rgb(128, 80, 36)), TextAlignment.LEFT,
@@ -69,15 +70,15 @@ internal fun renderMasteryScreen(
 			minX + 45 * scale, region.minY + 19 * scale, rightElementColor,
 			minX + 18 * scale, region.minY + 19 * scale, leftElementColor,
 		)
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			member.character.name, minX + 19f * scale, region.minY + 22f * scale,
 			4f * scale, font, textColor, 0, 0f, shadowColor,
-			0.5f * scale, 0.5f * scale, TextAlignment.LEFT,
+			0.5f * scale, TextAlignment.LEFT,
 		)
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			"Level ${member.state.currentLevel}", minX + 19f * scale, region.minY + 30f * scale,
 			4f * scale, font, textColor, 0, 0f, shadowColor,
-			0.5f * scale, 0.5f * scale, TextAlignment.LEFT,
+			0.5f * scale, TextAlignment.LEFT,
 		)
 
 		val bottomColor = srgbToLinear(rgb(89, 72, 42))
@@ -127,10 +128,10 @@ internal fun renderMasteryScreen(
 				minX + 2f * scale, baseY + 1f * scale,
 				8f * scale / icon.height, icon.index,
 			)
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				skill.name, minX + 12f * scale, baseY + 6.5f * scale,
 				3.5f * scale, font, textColor, 0, 0f, shadowColor,
-				0.6f * scale, 0.6f * scale, TextAlignment.LEFT,
+				0.6f * scale, TextAlignment.LEFT,
 			)
 		}
 
@@ -144,10 +145,10 @@ internal fun renderMasteryScreen(
 		val boxX = region.maxX - boxOffset
 		val boxY = region.maxY - boxOffset
 		renderBoxButton(
-			colorBatch, ovalBatch, textBatch, context.bundle, context.content.fonts,
+			colorBatch, ovalBatch, simpleTextBatch, fancyTextBatch, context.bundle, context.content.fonts,
 			minBoxSize, boxX, boxY,
 		)
 	}
 
-	return Pair(colorBatch, textBatch)
+	return Pair(colorBatch, simpleTextBatch)
 }

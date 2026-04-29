@@ -4,8 +4,10 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
+import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.menu.referenceTime
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleMoveSelectionItem
@@ -20,7 +22,7 @@ import kotlin.math.roundToInt
 
 fun renderTurnOrder(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
-	kimBatch: Vk2dKim3Batch, textBatch: Vk2dGlyphBatch, region: Rectangle
+	kimBatch: Vk2dKim3Batch, textBatch: Vk2dSimpleTextBatch, region: Rectangle
 ) {
 	battleContext.run {
 		val slotWidth = region.height
@@ -153,11 +155,13 @@ fun renderTurnOrder(
 		val font = context.bundle.getFont(context.content.fonts.basic2.index)
 		textBatch.drawString(
 			"TURN", x + slotWidth * 0.1f, region.minY + 0.4f * region.height,
-			0.2f * region.height, font, lineColor
+			0.2f * region.height, font,
+			MardekTextStyles.WEAK_TEXT_FILL.only(), TextAlignment.LEFT,
 		)
 		textBatch.drawString(
 			"ORDER", x + slotWidth * 0.1f, region.minY + 0.75f * region.height,
-			0.2f * region.height, font, lineColor
+			0.2f * region.height, font,
+			MardekTextStyles.WEAK_TEXT_FILL.only(), TextAlignment.LEFT,
 		)
 	}
 }

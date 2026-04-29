@@ -18,12 +18,19 @@ import java.util.UUID
 class Element(
 
 	/**
+	 * The unique ID of this element, which is used for (de)serialization
+	 */
+	@BitField(id = 0)
+	@StableReferenceFieldId
+	val id: UUID,
+
+	/**
 	 * The 'raw' name of the element. For all elements except AETHER, this is equal to [properName].
 	 * The raw name of AETHER is ETHER, whereas its proper name is **A**ETHER.
 	 *
 	 * The raw name is only useful during Flash importing.
 	 */
-	@BitField(id = 0, optional = true)
+	@BitField(id = 1, optional = true)
 	val rawName: String,
 
 	/**
@@ -31,7 +38,7 @@ class Element(
 	 *
 	 * This field is currently unused, and I'm not sure what it does in vanilla MARDEK.
 	 */
-	@BitField(id = 1, optional = true)
+	@BitField(id = 2, optional = true)
 	val bonusStat: CombatStat?,
 
 	/**
@@ -41,15 +48,15 @@ class Element(
 	 * This is currently only used to generate the names of the Null Element Once status effects and the names of the
 	 * Elemental Shell status effects. This field can probably be deleted when the importer is deleted.
 	 */
-	@BitField(id = 2)
+	@BitField(id = 3)
 	@StringField(length = IntegerField(expectUniform = true, minValue = 1, maxValue = 1))
 	val primaryChar: String,
 
 	/**
 	 * The display/proper name of the element. This is usually the same as [rawName], except that the proper name of
-	 * AETHER is "AETHER' whereas its raw name is "ETHER".
+	 * AETHER is "AETHER" whereas its raw name is "ETHER", and that the proper name of "NONE" is "PHYSICAL".
 	 */
-	@BitField(id = 3)
+	@BitField(id = 4)
 	val properName: String = rawName,
 
 	/**
@@ -57,7 +64,7 @@ class Element(
 	 *
 	 * This color is used in several places in the UI.
 	 */
-	@BitField(id = 4)
+	@BitField(id = 5)
 	@IntegerField(expectUniform = true)
 	val color: Int,
 
@@ -67,7 +74,7 @@ class Element(
 	 *
 	 * This sprite is typically used when we need to render the element symbol in a small area.
 	 */
-	@BitField(id = 5)
+	@BitField(id = 6)
 	val thickSprite: BcSprite,
 
 	/**
@@ -75,7 +82,7 @@ class Element(
 	 *
 	 * This sprite is typically used when we need to render the element symbol in a large area.
 	 */
-	@BitField(id = 6)
+	@BitField(id = 7)
 	val thinSprite: BcSprite,
 
 	/**
@@ -83,14 +90,14 @@ class Element(
 	 * is used. It is basically a gradient sprite of the elements color, and is rendered very close to the greatsword
 	 * during the strike animation.
 	 */
-	@BitField(id = 7, optional = true)
+	@BitField(id = 8, optional = true)
 	val swingEffect: BcSprite?,
 
 	/**
 	 * The particle effect that should be emitted at the hand of the caster whenever someone casts a magic/ranged skill
 	 * with this element.
 	 */
-	@BitField(id = 8, optional = true)
+	@BitField(id = 9, optional = true)
 	@ReferenceField(stable = false, label = "particles")
 	val spellCastEffect: ParticleEffect?,
 
@@ -98,15 +105,16 @@ class Element(
 	 * The gradient-like sprite that will be rendered behind the caster whenever someone casts a magic/ranged skill
 	 * with this element.
 	 */
-	@BitField(id = 9, optional = true)
+	@BitField(id = 10, optional = true)
 	val spellCastBackground: BcSprite?,
 
 	/**
-	 * The unique ID of this element, which is used for (de)serialization
+	 * The color that is used to render the name of speakers in the chat log. This is often very similar or identical
+	 * to [color], but not for "DARK", which has a purple chat log color, but a standard ~black color.
 	 */
-	@BitField(id = 10)
-	@StableReferenceFieldId
-	val id: UUID,
+	@BitField(id = 11)
+	@IntegerField(expectUniform = true)
+	val chatLogColor: Int,
 ) {
 
 	/**
@@ -115,15 +123,15 @@ class Element(
 	 *
 	 * Players of this element will have a 20% vulnerability against the `weakAgainst` of their own element.
 	 */
-	@BitField(id = 11, optional = true)
+	@BitField(id = 12, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	var weakAgainst: Element? = null
 		private set
 
 	constructor() : this(
-		"", null, "", "",
+		UUID.randomUUID(), "", null, "", "",
 		0, BcSprite(), BcSprite(), BcSprite(),
-		null, null, UUID.randomUUID(),
+		null, null, 0,
 	)
 
 	/**

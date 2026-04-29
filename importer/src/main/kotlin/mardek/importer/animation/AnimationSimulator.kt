@@ -57,9 +57,10 @@ private class AnimationSimulator {
 	var currentSkinName = ""
 	val skins = mutableMapOf<String, RawAnimation>()
 	var onlyOneFramePerSkin = false
+	var finishedCurrentSkin = false
 
 	fun showFrame() {
-		currentAnimation.frames.add(currentState.copy())
+		if (!finishedCurrentSkin) currentAnimation.frames.add(currentState.copy())
 		if (onlyOneFramePerSkin) {
 			skins[currentSkinName] = currentAnimation
 			currentAnimation = RawAnimation()
@@ -75,6 +76,7 @@ private class AnimationSimulator {
 			skins[currentSkinName] = currentAnimation
 			currentSkinName = name
 			currentAnimation = RawAnimation()
+			finishedCurrentSkin = false
 		}
 	}
 
@@ -96,6 +98,7 @@ private class AnimationSimulator {
 		}
 		if (script.startsWith("char2lips") || parent.characterId == 802) onlyOneFramePerSkin = true
 		if (script.trim() == "gotoAndPlay(2);") currentAnimation.frames.removeFirst()
+		if (script.startsWith("_parent.Animate(")) finishedCurrentSkin = true
 		currentState.addScript(tag)
 	}
 

@@ -2,8 +2,9 @@ package mardek.renderer.util
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.RenderContext
 import mardek.state.util.Rectangle
 
@@ -12,7 +13,7 @@ class ResourceBarRenderer(
 	private val resourceType: ResourceType,
 	val barRegion: Rectangle,
 	private val colorBatch: Vk2dColorBatch,
-	private val textBatch: Vk2dGlyphBatch,
+	private val textBatch: Vk2dSimpleTextBatch,
 ) {
 
 	fun renderBar(currentValue: Int, maxValue: Int, opacity: Float = 1f) {
@@ -63,45 +64,54 @@ class ResourceBarRenderer(
 	fun renderTextBelowBar(currentValue: Int, maxValue: Int) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
 		val font = context.bundle.getFont(context.content.fonts.large1.index)
-		val shadowOffset = 0.2f * barRegion.height
 		textBatch.drawShadowedString(
 			"$currentValue/$maxValue", (barRegion.minX + barRegion.maxX) * 0.5f,
-			barRegion.maxY + 1.8f * barRegion.height, 1.5f * barRegion.height,
-			font, entry.textColor, 0, 0f, entry.shadowColor,
-			shadowOffset, shadowOffset, TextAlignment.CENTERED
+			barRegion.maxY + 1.7f * barRegion.height, 1.3f * barRegion.height,
+			font, MardekTextStyles.resourceBarInventory(entry), TextAlignment.CENTERED,
 		)
 	}
 
-	fun renderTextOverBar(currentValue: Int, maxValue: Int, opacity: Float = 1f) {
+	fun renderTextOverBarWithoutShadow(currentValue: Int, maxValue: Int, opacity: Float = 1f) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
 		val splitX = barRegion.minX + barRegion.width * 5f / 9f
 		val marginX = barRegion.width / 30f
 		val font = context.bundle.getFont(context.content.fonts.large1.index)
-		val shadowOffset = 0.125f * barRegion.height
-		val textColor = multiplyAlpha(entry.textColor, opacity)
-		val shadowColor = multiplyAlpha(entry.shadowColor, opacity)
+		textBatch.drawString(
+			currentValue.toString(), splitX - marginX, barRegion.maxY + barRegion.height * 0.33f,
+			1.75f * barRegion.height, font,
+			MardekTextStyles.resourceBarWithoutShadow(entry, opacity), TextAlignment.RIGHT,
+		)
+		textBatch.drawString(
+			maxValue.toString(), splitX + marginX, barRegion.maxY + barRegion.height * 0.2f,
+			1.33f * barRegion.height, font,
+			MardekTextStyles.resourceBarWithoutShadow(entry, opacity), TextAlignment.LEFT,
+		)
+	}
+
+	fun renderTextOverBarWithShadow(currentValue: Int, maxValue: Int, opacity: Float = 1f) {
+		val entry = resourceType.chooseColor(currentValue, maxValue)
+		val splitX = barRegion.minX + barRegion.width * 5f / 9f
+		val marginX = barRegion.width / 30f
+		val font = context.bundle.getFont(context.content.fonts.large1.index)
 		textBatch.drawShadowedString(
 			currentValue.toString(), splitX - marginX, barRegion.maxY + barRegion.height * 0.33f,
-			1.75f * barRegion.height, font, textColor, 0, 0f,
-			shadowColor, shadowOffset, shadowOffset, TextAlignment.RIGHT
+			1.75f * barRegion.height, font,
+			MardekTextStyles.resourceBarWithShadowed(entry, opacity), TextAlignment.RIGHT,
 		)
 		textBatch.drawShadowedString(
 			maxValue.toString(), splitX + marginX, barRegion.maxY + barRegion.height * 0.2f,
-			1.33f * barRegion.height, font, textColor, 0, 0f,
-			shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
+			1.33f * barRegion.height, font,
+			MardekTextStyles.resourceBarWithShadowed(entry, opacity), TextAlignment.LEFT,
 		)
 	}
 
 	fun renderCurrentOverBar(currentValue: Int, maxValue: Int, opacity: Float = 1f) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
 		val font = context.bundle.getFont(context.content.fonts.large1.index)
-		val shadowOffset = 0.125f * barRegion.height
-		textBatch.drawShadowedString(
+		textBatch.drawString(
 			currentValue.toString(), barRegion.maxX - 0.1f * barRegion.width,
-			barRegion.maxY + barRegion.height * 0.5f, barRegion.height * 1.75f, font,
-			changeAlpha(entry.textColor, opacity), 0, 0f,
-			changeAlpha(entry.shadowColor, opacity),
-			shadowOffset, shadowOffset, TextAlignment.RIGHT,
+			barRegion.maxY + barRegion.height * 0.4f, barRegion.height * 1.75f, font,
+			MardekTextStyles.resourceBarWithoutShadow(entry, opacity), TextAlignment.RIGHT,
 		)
 	}
 
@@ -196,7 +206,19 @@ enum class ResourceType(private val entries: List<ResourceColorEntry>) {
 			topLeftColor = srgbToLinear(rgb(127, 171, 187)),
 			topRightColor = srgbToLinear(rgb(130, 204, 181)),
 			textColor = srgbToLinear(rgb(35, 247, 255)),
-			shadowColor = srgbToLinear(rgb(70, 28, 128)),
+			shadowColor = srgbToLinear(rgb(0, 102, 255)),
+		)
+	)),
+	ManaInventory(listOf(
+		ResourceColorEntry(
+			belowThreshold = 1f,
+			bottomLeftColor = srgbToLinear(rgb(20, 130, 170)),
+			bottomRightColor = srgbToLinear(rgb(23, 213, 150)),
+			topGradient = true,
+			topLeftColor = srgbToLinear(rgb(150, 205, 230)),
+			topRightColor = srgbToLinear(rgb(150, 230, 220)),
+			textColor = srgbToLinear(rgb(35, 247, 255)),
+			shadowColor = srgbToLinear(rgb(102, 0, 153)),
 		)
 	)),
 	Experience(listOf(

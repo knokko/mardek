@@ -3,10 +3,11 @@ package mardek.renderer.battle
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.area.AreaSpriteBatch
-import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.renderer.util.renderFancyMasteredText
@@ -18,8 +19,8 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 internal fun renderCurrentMoveBar(
-	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
-	spriteBatch: AreaSpriteBatch, imageBatch: Vk2dImageBatch, textBatch: MardekGlyphBatch, region: Rectangle
+	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, spriteBatch: AreaSpriteBatch,
+	imageBatch: Vk2dImageBatch, simpleTextBatch: Vk2dSimpleTextBatch, fancyTextBatch: Vk2dFancyTextBatch, region: Rectangle
 ) {
 	battleContext.run {
 		val stateMachine = battle.state
@@ -93,7 +94,7 @@ internal fun renderCurrentMoveBar(
 		val textColor = srgbToLinear(rgba(238, 203, 127, alpha))
 		val name = currentSkill?.name ?: currentItem!!.displayName
 		val font = context.bundle.getFont(context.content.fonts.fat.index)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			name, textX, region.maxY - region.height * 0.25f, 0.45f * region.height,
 			font, textColor, rgba(0f, 0f, 0f, 0.5f * opacity),
 			0.07f * region.height, TextAlignment.LEFT,
@@ -108,12 +109,14 @@ internal fun renderCurrentMoveBar(
 			if (caster is PlayerCombatantState) {
 				val currentMastery = state.characterStates[caster.player]!!.skillMastery[currentSkill] ?: 0
 				if (currentMastery < currentSkill.masteryPoints) {
-					val masteryBar = ResourceBarRenderer(context, ResourceType.SkillMastery, barRegion, colorBatch, textBatch)
+					val masteryBar = ResourceBarRenderer(
+						context, ResourceType.SkillMastery, barRegion, colorBatch, simpleTextBatch
+					)
 					masteryBar.renderBar(currentMastery, currentSkill.masteryPoints, opacity)
-					masteryBar.renderTextOverBar(currentMastery, currentSkill.masteryPoints, opacity)
+					masteryBar.renderTextOverBarWithShadow(currentMastery, currentSkill.masteryPoints, opacity)
 				} else {
 					renderFancyMasteredText(
-						context, textBatch, barRegion.minX - 1.5f * barRegion.height,
+						context, fancyTextBatch, barRegion.minX - 1.5f * barRegion.height,
 						barRegion.maxY.toFloat(), barRegion.height * 1.3f, alpha,
 					)
 				}

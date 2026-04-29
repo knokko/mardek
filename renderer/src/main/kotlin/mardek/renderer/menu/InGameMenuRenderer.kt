@@ -3,7 +3,7 @@ package mardek.renderer.menu
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
 import mardek.renderer.menu.inventory.renderInventory
@@ -19,14 +19,16 @@ import mardek.state.util.Rectangle
 
 internal fun renderInGameMenu(
 	context: RenderContext, region: Rectangle, menu: InGameMenuState, state: CampaignState
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 	val colorBatch = context.addColorBatch(10_000) // The map tab uses a lot of colors
 	val ovalBatch = context.addOvalBatch(1000) // The encyclopedia may draw a lot of ovals
 	val spriteBatch = context.addKim3Batch(1000) // The inventory tab could use a lot of sprites
+	val areaSpriteBatch = context.addAreaSpriteBatch(10, region) // Only used for encyclopedia
 	val imageBatch = context.addImageBatch(500) // The encyclopedia may draw a lot of element icons
 	val animationBatch = context.addAnimationPartBatch(100) // Only needed for the encyclopedia
 	val lateColorBatch = context.addColorBatch(20) // Only needed for inventory tooltips
-	val textBatch = context.addFancyTextBatch(2500) // The encyclopedia tab has quite some text
+	val simpleTextBatch = context.addTextBatch(2500) // The encyclopedia tab has quite some text
+	val fancyTextBatch = context.addFancyTextBatch(500) // For rendering "MASTERED"
 	val barColor = srgbToLinear(rgb(24, 14, 10))
 	val barHeight = determineBarHeight(region)
 
@@ -53,7 +55,7 @@ internal fun renderInGameMenu(
 		srgbToLinear(rgb(68, 51, 34))
 	)
 
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		menu.currentTab.getText(), region.minX + barHeight / 4, region.minY + 3 * barHeight / 4,
 		barHeight / 2, context.bundle.getFont(context.content.fonts.large2.index),
 		srgbToLinear(rgb(131, 81, 37))
@@ -69,7 +71,7 @@ internal fun renderInGameMenu(
 
 		val totalSeconds = state.totalTime.inWholeSeconds
 		fun minutesOrHours(raw: Long) = if (raw < 10) "0$raw" else raw.toString()
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"${totalSeconds / 3600}:${minutesOrHours((totalSeconds % 3600) / 60)}:${minutesOrHours(totalSeconds % 60)}",
 			region.maxX - clockSize - 4f * clockMargin, region.maxY - barHeight * 0.22f,
 			barHeight * 0.5f, context.bundle.getFont(context.content.fonts.large1.index),
@@ -78,8 +80,8 @@ internal fun renderInGameMenu(
 	}
 
 	val menuContext = MenuRenderContext(
-		context, colorBatch, ovalBatch, imageBatch, spriteBatch,
-		animationBatch, lateColorBatch, textBatch, menu, state
+		context, colorBatch, ovalBatch, areaSpriteBatch, imageBatch, spriteBatch,
+		animationBatch, lateColorBatch, simpleTextBatch, fancyTextBatch, menu, state
 	)
 	if (!menu.currentTab.inside && menu.currentTab.shouldShowSectionList()) {
 		renderInGameMenuSectionList(menuContext, Rectangle(
@@ -102,7 +104,7 @@ internal fun renderInGameMenu(
 	)
 	if (menu.currentTab is VideoSettingsTab) renderVideoSettingsTab(menuContext, submenuRectangleWithLowerBar)
 
-	return Pair(colorBatch, textBatch)
+	return Pair(colorBatch, simpleTextBatch)
 }
 
 private fun determineSelectionWidth(region: Rectangle) = region.height / 3

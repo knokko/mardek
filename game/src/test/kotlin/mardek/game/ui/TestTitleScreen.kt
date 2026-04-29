@@ -72,7 +72,7 @@ object TestTitleScreen {
 			testRendering(
 				state, 800, 450, "new-game0",
 				baseColors + titleBarColors,
-				selectedButtonColors + textInputColors + disabledButtonColors,
+				selectedButtonColors + textInputColors,
 			)
 
 			// 'Hover' over "New Game"
@@ -84,7 +84,7 @@ object TestTitleScreen {
 			testRendering(
 				state, 800, 450, "new-game1",
 				baseColors + selectedButtonColors + titleBarColors,
-				textInputColors + disabledButtonColors,
+				textInputColors
 			)
 
 			// 'Click' on "New Game"
@@ -95,7 +95,7 @@ object TestTitleScreen {
 			assertFalse(state.isCampaignNameValid)
 			testRendering(
 				state, 800, 450, "new-game2",
-				baseColors + selectedButtonColors + textInputColors + disabledButtonColors, emptyArray()
+				baseColors + selectedButtonColors + textInputColors, emptyArray()
 			)
 
 			// Change the campaign name from "" to "."
@@ -116,7 +116,7 @@ object TestTitleScreen {
 			assertTrue(state.isCampaignNameValid)
 			testRendering(
 				state, 800, 450, "new-game3",
-				baseColors + selectedButtonColors + textInputColors, disabledButtonColors
+				baseColors + selectedButtonColors + textInputColors, emptyArray(),
 			)
 
 			// Pressing the Interact key should NOT start the campaign, since that would auto-start the campaign when
@@ -147,8 +147,7 @@ object TestTitleScreen {
 			assertNull(state.saveSelection)
 			testRendering(
 				state, 800, 450, "new-game4",
-				baseColors + selectedButtonColors + titleBarColors,
-				textInputColors + disabledButtonColors,
+				baseColors + selectedButtonColors + titleBarColors, textInputColors
 			)
 
 			// Click on "New Game" again
@@ -169,7 +168,7 @@ object TestTitleScreen {
 			assertTrue(state.isCampaignNameValid)
 			testRendering(
 				state, 800, 450, "new-game6",
-				baseColors + selectedButtonColors + textInputColors, disabledButtonColors
+				baseColors + selectedButtonColors + textInputColors, emptyArray(),
 			)
 
 			state.selectedButton = 4
@@ -209,8 +208,7 @@ object TestTitleScreen {
 			)
 			testRendering(
 				newState, 800, 450, "new-game7",
-				expectedAreaColors + titleBarColors,
-				textInputColors + disabledButtonColors,
+				expectedAreaColors + titleBarColors, textInputColors
 			)
 
 			assertTrue(saveFile.delete())
@@ -376,7 +374,7 @@ object TestTitleScreen {
 			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
 			testRendering(
 				state, 800, 450, "load-game0",
-				baseColors + selectedButtonColors, textInputColors + disabledButtonColors
+				baseColors + selectedButtonColors, textInputColors
 			)
 
 			val sounds = content.audio.fixedEffects.ui

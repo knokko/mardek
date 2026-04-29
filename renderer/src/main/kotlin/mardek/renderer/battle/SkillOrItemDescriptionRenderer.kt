@@ -4,12 +4,14 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
-import mardek.renderer.glyph.MardekGlyphBatch
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.renderer.util.renderDescription
@@ -21,8 +23,8 @@ import mardek.state.util.Rectangle
 import kotlin.math.roundToInt
 
 internal fun renderSkillOrItemDescription(
-	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
-	spriteBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch, textBatch: MardekGlyphBatch, region: Rectangle,
+	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, spriteBatch: Vk2dKim3Batch,
+	imageBatch: Vk2dImageBatch, simpleTextBatch: Vk2dSimpleTextBatch, fancyTextBatch: Vk2dFancyTextBatch, region: Rectangle,
 ) {
 	battleContext.run {
 		val charsPerLine = (7f * region.width / region.height).roundToInt()
@@ -65,7 +67,7 @@ internal fun renderSkillOrItemDescription(
 		if (selectedElement.currentMastery != null && selectedElement.maxMastery != null) {
 			if (selectedElement.currentMastery >= selectedElement.maxMastery) {
 				renderFancyMasteredText(
-					context, textBatch,
+					context, fancyTextBatch,
 					region.minX + region.width * 0.02f + region.height,
 					region.minY + region.height * 0.8f, 0.25f * region.height
 				)
@@ -91,15 +93,11 @@ internal fun renderSkillOrItemDescription(
 			)
 		}
 
-		val textColor = srgbToLinear(rgb(238, 203, 127))
-		var shadowColor = rgba(0f, 0f, 0f, 0.8f)
-		val shadowOffset = 0.02f * region.height
-		val unknownFont = context.bundle.getFont(context.content.fonts.basic2.index)
-		textBatch.drawShadowedString(
+		val font = context.bundle.getFont(context.content.fonts.basic2.index)
+		simpleTextBatch.drawString(
 			selectedElement.name, region.minX + 0.01f * region.width + region.height,
-			region.minY + 0.4f * region.height, 0.2f * region.height, unknownFont, textColor,
-					rgb(0, 0, 0), 0.02f * region.height, shadowColor,
-			shadowOffset, shadowOffset, TextAlignment.LEFT,
+			region.minY + 0.4f * region.height, 0.2f * region.height, font,
+			MardekTextStyles.BattleDescription.NAME, TextAlignment.LEFT,
 		)
 		if (selectedElement.currentMastery != null && selectedElement.maxMastery != null) {
 			if (selectedElement.currentMastery < selectedElement.maxMastery) {
@@ -108,22 +106,21 @@ internal fun renderSkillOrItemDescription(
 						minX = region.minX + region.width / 100 + region.height,
 						minY = region.minY + 3 * region.height / 5,
 						width = 3 * region.height / 2, height = region.height / 6
-					), colorBatch, textBatch,
+					), colorBatch, simpleTextBatch,
 				)
 				masteryRenderer.renderBar(selectedElement.currentMastery, selectedElement.maxMastery)
-				masteryRenderer.renderTextOverBar(selectedElement.currentMastery, selectedElement.maxMastery)
+				masteryRenderer.renderTextOverBarWithShadow(selectedElement.currentMastery, selectedElement.maxMastery)
 			}
 		}
 
 		var descriptionY = region.minY + region.height * 0.33f
-		shadowColor = srgbToLinear(rgb(90, 52, 22))
 		renderDescription(selectedElement.description, charsPerLine) { line ->
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				line, region.minX + 0.3f * region.width, descriptionY,
-				0.16f * region.height, unknownFont, textColor,
-				0, 0f, shadowColor,
-				shadowOffset, shadowOffset, TextAlignment.LEFT,
+				0.16f * region.height, font,
+				MardekTextStyles.Encyclopedia.DESCRIPTION, TextAlignment.LEFT,
 			)
+			@Suppress("AssignedValueIsNeverRead")
 			descriptionY += region.height * 0.25f
 		}
 	}

@@ -25,14 +25,11 @@ public class Vk2dConfig {
 	public boolean image;
 
 	/**
-	 * Set this to {@code true} to enable the {@link com.github.knokko.vk2d.pipeline.Vk2dGlyphPipeline}
-	 */
-	public boolean text;
-
-	/**
 	 * Set these to {@code true} to enable the {@link com.github.knokko.vk2d.pipeline.Vk2dKimPipeline}s
 	 */
 	public boolean kim1, kim2, kim3;
+
+	public boolean simpleText, fancyText;
 
 	/**
 	 * Set this to {@code true} to enable the {@link Vk2dBlurPipeline}

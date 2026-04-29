@@ -30,17 +30,17 @@ internal fun renderVideoSettingsTab(menuContext: MenuRenderContext, region: Rect
 		val baseX = region.minX + region.width * 0.1f
 
 		val device = settings.availableDevices[settings.preferredDevice] as VkPhysicalDeviceProperties
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"*", baseX - 0.025f * region.height, region.minY + 0.21f * region.height,
 			textHeight, font, warningColor, TextAlignment.RIGHT,
 		)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"Graphics card ${settings.preferredDevice}: ${device.deviceNameString()}", baseX,
 			region.minY + 0.2f * region.height, textHeight, font,
 			textColor(0, settings.availableDevices.size > 1),
 		)
 
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"Cap FPS", baseX, region.minY + 0.3f * region.height,
 			textHeight, font, textColor(1, settings.canUncapFps),
 		)
@@ -51,7 +51,7 @@ internal fun renderVideoSettingsTab(menuContext: MenuRenderContext, region: Rect
 			rgba(1f, 1f, 1f, if (settings.canUncapFps) 1f else 0.05f)
 		)
 
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"Show FPS", baseX, region.minY + 0.4f * region.height,
 			textHeight, font, textColor(2, true),
 		)
@@ -61,17 +61,17 @@ internal fun renderVideoSettingsTab(menuContext: MenuRenderContext, region: Rect
 			0.04f * region.height / toggle2.height, toggle2.index,
 		)
 
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"*", baseX - 0.025f * region.height, region.minY + 0.51f * region.height,
 			textHeight, font, warningColor, TextAlignment.RIGHT,
 		)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"Frames In Flight: ${settings.framesInFlight}", baseX,
 			region.minY + 0.5f * region.height, textHeight, font,
 			textColor(3, true),
 		)
 
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"Delay rendering", baseX, region.minY + 0.6f * region.height,
 			textHeight, font, textColor(4, true),
 		)
@@ -81,11 +81,11 @@ internal fun renderVideoSettingsTab(menuContext: MenuRenderContext, region: Rect
 			0.04f * region.height / toggle3.height, toggle3.index,
 		)
 
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"*", region.minX + 0.05f * region.height, region.maxY - 0.1f * region.height,
 			textHeight, font, warningColor, TextAlignment.RIGHT,
 		)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"Requires restart", region.minX + 0.075f * region.height,
 			region.maxY - 0.11f * region.height, textHeight, font, baseTextColor,
 		)

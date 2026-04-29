@@ -62,6 +62,9 @@ private fun readVorbis(fileName: String?, byteArray: ByteArray?, alBuffer: Int, 
 
 internal class AudioManager {
 
+	// vorbis buffer size is 578807 and decoded size is 3378816
+	// vorbis buffer size is 309982 and decoded size is 2723328
+
 	private val device = alcOpenDevice(null as ByteBuffer?)
 	private val context: Long
 	private val musicSource: Int

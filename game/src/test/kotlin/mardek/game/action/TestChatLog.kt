@@ -74,7 +74,7 @@ object TestChatLog {
 			)
 			val chatLogColors = arrayOf(
 				Color(255, 255, 255), // Mardek name color
-				Color(0, 255, 0), // Deugan name color
+				Color(136, 255, 0), // Deugan name color
 				Color(186, 146, 77), // Base text color
 			) + boldChatLogColor
 			testRendering(
@@ -145,7 +145,7 @@ object TestChatLog {
 			val gallovarPortraitColor = arrayOf(Color(17, 24, 17))
 			val chatLogColors = arrayOf(
 				Color(255, 255, 255),
-				Color(0, 231, 255),
+				Color(0, 221, 255),
 			)
 			testRendering(
 				state, 1000, 800, "chat-log-off-during-choices",

@@ -5,11 +5,12 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
@@ -22,7 +23,7 @@ import kotlin.math.roundToInt
 internal fun renderPlayerBlock(
 	battleContext: BattleRenderContext, player: PlayerCombatantState,
 	colorBatch: Vk2dColorBatch, lateColorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
-	spriteBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, region: Rectangle
+	spriteBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch, textBatch: Vk2dSimpleTextBatch, region: Rectangle
 ) {
 	battleContext.run {
 		val nameX = run {
@@ -77,7 +78,7 @@ internal fun renderPlayerBlock(
 			val minY = region.minY + marginY
 			val maxX = minX + 3 * region.width / 4
 			val maxY = region.minY + region.height / 3
-			val weakColor = changeAlpha(element.color, 150)
+			val weakColor = changeAlpha(element.color, 100)
 			colorBatch.gradientUnaligned(
 				minX, maxY, weakColor,
 				maxX, maxY, 0,
@@ -85,16 +86,10 @@ internal fun renderPlayerBlock(
 				minX, minY, weakColor,
 			)
 
-			val font = context.bundle.getFont(context.content.fonts.fat.index)
-			val textColor = srgbToLinear(rgb(238, 203, 127))
-			val strokeColor = srgbToLinear(rgb(31, 27, 22))
-			val shadowColor = srgbToLinear(rgb(77, 64, 53))
-			val shadowOffset = 0.02f * region.height
+			val font = context.bundle.getFont(context.content.fonts.basic2.index)
 			textBatch.drawShadowedString(
-				player.player.name, nameX, maxY - marginY * 0.5f,
-				0.18f * region.height, font, textColor, strokeColor,
-				0.015f * region.height, shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.LEFT,
+				player.player.name, nameX, maxY - marginY * 0.5f, 0.18f * region.height,
+				font, MardekTextStyles.COMBATANT_BLOCK_NAME, TextAlignment.LEFT,
 			)
 		}
 
@@ -106,7 +101,7 @@ internal fun renderPlayerBlock(
 				), colorBatch, textBatch,
 			)
 			val displayedHealth = renderCombatantHealth(player, healthBar, System.nanoTime())
-			healthBar.renderTextOverBar(displayedHealth, player.maxHealth)
+			healthBar.renderTextOverBarWithoutShadow(displayedHealth, player.maxHealth)
 			healthBar.renderClosingBracket()
 
 			val xpBar = ResourceBarRenderer(
@@ -126,7 +121,7 @@ internal fun renderPlayerBlock(
 				"Lv${player.getLevel(updateContext)}", nameX, region.maxY - region.height * 0.12f,
 				0.2f * region.height, font,
 				srgbToLinear(rgb(251, 225, 100)), 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
+				shadowColor, shadowOffset, TextAlignment.LEFT,
 			)
 
 			val manaBar = ResourceBarRenderer(

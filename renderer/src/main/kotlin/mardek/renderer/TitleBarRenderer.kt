@@ -3,15 +3,15 @@ package mardek.renderer
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
-import com.github.knokko.vk2d.text.TextAlignment
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.Vk2dFont
+import com.github.knokko.vk2d.text.TextAlignment
 import mardek.state.GameStateManager
 import mardek.state.util.Rectangle
 
 internal fun renderTitleBar(
 	state: GameStateManager, colorBatch: Vk2dColorBatch,
-	textBatch: Vk2dGlyphBatch, font: Vk2dFont, fps: Long?,
+	textBatch: Vk2dSimpleTextBatch, font: Vk2dFont, fps: Long?,
 ) {
 	val borderColor = srgbToLinear(rgb(74, 58, 48))
 	val iconColor = srgbToLinear(rgb(132, 105, 82))

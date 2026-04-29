@@ -13,6 +13,8 @@ import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 import org.lwjgl.vulkan.VkVertexInputBindingDescription;
 
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
@@ -98,6 +100,36 @@ public abstract class Vk2dPipeline {
 		int byteOffset = Math.toIntExact(miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset);
 		int firstVertex = byteOffset / (bytesPerTriangle[0] / 3);
 		vkCmdDraw(recorder.commandBuffer, 3 * numTriangles, 1, firstVertex, 0);
+	}
+
+	public <B extends Vk2dBatch, Q> void recordDescriptorPerDrawBatch(
+			CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MiniBatch miniBatch, B batch,
+			int vertexSize, Function<Integer, Q> getQuadData, Consumer<Q> prepareQuadDraw
+	) {
+		int firstVertex = Math.toIntExact((miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset) / vertexSize);
+		int pendingVertices = 0;
+		int quadIndex = batch.countVerticesBeforeMiniBatch(miniBatch, vertexSize) / 6;
+		Q lastQuadData = null;
+
+		for (int miniIndex = 0; miniIndex < miniBatch.vertexData()[0].position(); miniIndex += 6 * vertexSize) {
+			Q nextQuadData = getQuadData.apply(quadIndex);
+			if (!Objects.equals(lastQuadData, nextQuadData)) {
+				if (pendingVertices > 0) {
+					vkCmdDraw(recorder.commandBuffer, pendingVertices, 1, firstVertex, 0);
+					firstVertex += pendingVertices;
+					pendingVertices = 0;
+				}
+
+				prepareQuadDraw.accept(nextQuadData);
+				lastQuadData = nextQuadData;
+			}
+			pendingVertices += 6;
+			quadIndex += 1;
+		}
+
+		if (pendingVertices > 0) {
+			vkCmdDraw(recorder.commandBuffer, pendingVertices, 1, firstVertex, 0);
+		}
 	}
 
 	public void destroy(BoilerInstance boiler) {

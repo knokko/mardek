@@ -3,7 +3,7 @@ package mardek.renderer
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import mardek.content.action.ActionItemStorage
 import mardek.content.action.ActionSaveCampaign
 import mardek.content.action.ActionShop
@@ -34,7 +34,7 @@ import mardek.state.util.Rectangle
 
 internal fun renderInGame(
 	context: RenderContext, state: InGameState, region: Rectangle
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 
 	fun renderBlurred() {
 		context.currentStage = context.frame.swapchainStage
@@ -59,7 +59,7 @@ internal fun renderInGame(
 	}
 
 	var titleColorBatch: Vk2dColorBatch? = null
-	var titleTextBatch: Vk2dGlyphBatch? = null
+	var titleTextBatch: Vk2dSimpleTextBatch? = null
 
 	when (val stateMachine = state.campaign.state) {
 		is AreaState -> {
@@ -77,19 +77,22 @@ internal fun renderInGame(
 
 						val menuRegion = determineSectionRenderRegion(region)
 						val colorBatch = context.addColorBatch(50)
-						val textBatch = context.addFancyTextBatch(250)
+						val fancyTextBatch = context.addFancyTextBatch(300)
 
 						// The image/sprite/oval pipelines are not needed for rendering the section list,
 						// but we still need a valid instance of MenuRenderContext
+						val simpleTextBatch = context.addTextBatch(0)
 						val ovalBatch = context.addOvalBatch(0)
+						val areaSpriteBatch = context.addAreaSpriteBatch(0, region)
 						val imageBatch = context.addImageBatch(0)
 						val spriteBatch = context.addKim3Batch(0)
 						val animationBatch = context.addAnimationPartBatch(0)
 						val lateColorBatch = context.addColorBatch(0)
 
 						val menuContext = MenuRenderContext(
-							context, colorBatch, ovalBatch, imageBatch, spriteBatch, animationBatch,
-							lateColorBatch, textBatch, state.menu, state.campaign
+							context, colorBatch, ovalBatch, areaSpriteBatch, imageBatch, spriteBatch,
+							animationBatch, lateColorBatch,
+							simpleTextBatch, fancyTextBatch, state.menu, state.campaign,
 						)
 						renderInGameMenuSectionList(menuContext, Rectangle(
 							0, 0, menuRegion.width, menuRegion.height
@@ -143,7 +146,7 @@ internal fun renderInGame(
 						}
 					}
 
-					val batches: Pair<Vk2dColorBatch, Vk2dGlyphBatch>
+					val batches: Pair<Vk2dColorBatch, Vk2dSimpleTextBatch>
 					if (saveSelection != null) {
 						val framebuffers = context.framebuffers
 						val areaRenderStage = context.pipelines.base.blur.addSourceStage(

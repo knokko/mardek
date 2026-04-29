@@ -4,9 +4,10 @@ import com.github.knokko.boiler.utilities.ColorPacker.changeAlpha
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.text.TextAlignment
-import mardek.renderer.glyph.MardekGlyphBatch
+import mardek.renderer.MardekTextStyles
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.DamageIndicatorHealth
 import mardek.state.ingame.battle.DamageIndicatorMana
@@ -20,7 +21,7 @@ private const val DURATION = 2_000_000_000L
 
 internal fun renderDamageIndicator(
 	battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch,
-	textBatch: MardekGlyphBatch, combatant: CombatantState
+	textBatch: Vk2dFancyTextBatch, combatant: CombatantState
 ) {
 	val indicator = combatant.renderInfo.lastDamageIndicator ?: return
 	val position = combatant.renderInfo.hitPoint
@@ -64,13 +65,10 @@ internal fun renderDamageIndicator(
 		midColor = changeAlpha(srgbToLinear(midColor), intOpacity)
 		edgeColor = changeAlpha(srgbToLinear(edgeColor), intOpacity)
 
-		val height = imageBatch.height / 25f
-
-		textBatch.drawFancyString(
-			textAmount.toString(), position.x, position.y + height * 0.5f, height,
-			font, edgeColor, rgb(0, 0, 0), height * 0.15f,
-			TextAlignment.CENTERED, edgeColor, midColor, midColor, edgeColor,
-			0.2f, 0.2f, 0.8f, 0.8f,
+		textBatch.drawString(
+			textAmount.toString(), position.x, position.y + imageBatch.height * 0.018f,
+			0f, imageBatch.height * 0.035f, font,
+			MardekTextStyles.BattleIndicators.base(edgeColor, midColor), TextAlignment.CENTERED,
 		)
 	}
 
@@ -92,14 +90,10 @@ internal fun renderDamageIndicator(
 		val intOpacity = (255 * opacity).roundToInt()
 		if (intOpacity <= 0) return
 
-		val textHeight = 0.04f * imageBatch.height
-		val midColor = srgbToLinear(rgba(229, 219, 208, intOpacity))
-		val edgeColor = srgbToLinear(rgba(180, 150, 104, intOpacity))
-		textBatch.drawFancyString(
-			"Miss", position.x, position.y - offsetY, textHeight,
-			font, edgeColor, rgb(0, 0, 0), textHeight * 0.15f,
-			TextAlignment.CENTERED, edgeColor, midColor, midColor, edgeColor,
-			0.2f, 0.2f, 0.8f, 0.8f,
+		textBatch.drawString(
+			"Miss", position.x, position.y - offsetY,
+			0f, 0.035f * imageBatch.height, font,
+			MardekTextStyles.BattleIndicators.miss(intOpacity), TextAlignment.CENTERED,
 		)
 	}
 }

@@ -4,9 +4,9 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.CombatStat
@@ -19,7 +19,7 @@ import kotlin.math.roundToInt
 
 internal fun renderCombatantInfoPopup(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, kimBatch: Vk2dKim3Batch,
-	imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, partBatch: AnimationPartBatch,
+	imageBatch: Vk2dImageBatch, textBatch: Vk2dSimpleTextBatch, partBatch: AnimationPartBatch,
 	region: Rectangle, fullRegion: Rectangle,
 ) {
 	battleContext.run {
@@ -112,7 +112,7 @@ internal fun renderCombatantInfoPopup(
 			)
 		}
 
-		val unknownFont = context.bundle.getFont(context.content.fonts.basic2.index)
+		val basicFont = context.bundle.getFont(context.content.fonts.basic2.index)
 
 		// Render health
 		val darkTextColor = srgbToLinear(rgb(149, 107, 62))
@@ -122,9 +122,8 @@ internal fun renderCombatantInfoPopup(
 			val shadowOffset = 0.002f * region.height
 			textBatch.drawShadowedString(
 				"HP:", x4 + 0.07f * region.height, baseY.toFloat(),
-				0.025f * region.height, unknownFont, darkTextColor,
-				0, 0f, shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.RIGHT,
+				0.025f * region.height, basicFont, darkTextColor,
+				0, 0f, shadowColor, shadowOffset, TextAlignment.RIGHT,
 			)
 			ResourceBarRenderer(
 				context, ResourceType.Health, Rectangle(
@@ -134,9 +133,8 @@ internal fun renderCombatantInfoPopup(
 			).renderBar(combatant.currentHealth, combatant.maxHealth)
 			textBatch.drawShadowedString(
 				"${combatant.currentHealth}/${combatant.maxHealth}", x4 + 0.33f * region.height,
-				baseY.toFloat(), 0.0225f * region.height, unknownFont, greenTextColor,
-				0, 0f, shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.LEFT,
+				baseY.toFloat(), 0.0225f * region.height, basicFont, greenTextColor,
+				0, 0f, shadowColor, shadowOffset, TextAlignment.LEFT,
 			)
 		}
 
@@ -147,9 +145,8 @@ internal fun renderCombatantInfoPopup(
 			val shadowOffset = 0.002f * region.height
 			textBatch.drawShadowedString(
 				"MP:", x4 + 0.07f * region.height, baseY.toFloat(),
-				0.025f * region.height, unknownFont, darkTextColor, 0, 0f,
-				shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.RIGHT,
+				0.025f * region.height, basicFont, darkTextColor, 0, 0f,
+				shadowColor, shadowOffset, TextAlignment.RIGHT,
 			)
 			ResourceBarRenderer(
 				context, ResourceType.Mana, Rectangle(
@@ -159,9 +156,8 @@ internal fun renderCombatantInfoPopup(
 			).renderBar(combatant.currentMana, combatant.maxMana)
 			textBatch.drawShadowedString(
 				"${combatant.currentMana}/${combatant.maxMana}", x4 + region.height * 0.33f,
-				baseY.toFloat(), region.height * 0.0225f, unknownFont, blueTextColor,
-				0, 0f, shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.LEFT,
+				baseY.toFloat(), region.height * 0.0225f, basicFont, blueTextColor,
+				0, 0f, shadowColor, shadowOffset, TextAlignment.LEFT,
 			)
 		}
 
@@ -174,9 +170,9 @@ internal fun renderCombatantInfoPopup(
 			val shadowOffset = region.height * 0.002f
 			val textX1 = x2 + region.height * 0.22f
 			textBatch.drawShadowedString(
-				stat.flashName.uppercase(Locale.ROOT), textX1, baseY, heightA, unknownFont,
+				stat.flashName.uppercase(Locale.ROOT), textX1, baseY, heightA, basicFont,
 				darkTextColor, 0, 0f, shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.RIGHT,
+				TextAlignment.RIGHT,
 			)
 
 			val textX2 = x2 + region.height * 0.35f
@@ -195,18 +191,16 @@ internal fun renderCombatantInfoPopup(
 
 			textBatch.drawShadowedString(
 				"${combatant.getStat(stat, updateContext)}${if (stat == CombatStat.Evasion) "%" else ""}",
-				0.5f * (textX1 + textX2), baseY, heightA, unknownFont,
+				0.5f * (textX1 + textX2), baseY, heightA, basicFont,
 				if (extra == 0) baseTextColor else strongTextColor, 0, 0f,
-				shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.CENTERED,
+				shadowColor, shadowOffset, TextAlignment.CENTERED,
 			)
 
 			if (extra != 0) {
 				textBatch.drawShadowedString(
-					"${if (extra > 0) "+" else ""}$extra", textX2, baseY, heightA, unknownFont,
+					"${if (extra > 0) "+" else ""}$extra", textX2, baseY, heightA, basicFont,
 					if (extra > 0) greenTextColor else redTextColor, 0, 0f,
-					shadowColor, shadowOffset,
-					shadowOffset, TextAlignment.LEFT,
+					shadowColor, shadowOffset, TextAlignment.LEFT,
 				)
 			}
 		}
@@ -235,11 +229,10 @@ internal fun renderCombatantInfoPopup(
 			val spriteHeight = region.height / 16f
 			val offsetY = region.height * 0.0775f
 			for ((index, item) in combatant.getEquipment(updateContext).withIndex()) {
-				val shadowOffset = 0.1f * textHeight
 				textBatch.drawShadowedString(
 					item?.displayName ?: "-", baseX + 0.09f * region.height, baseY + index * offsetY,
-					textHeight, unknownFont, baseTextColor, 0, 0f,
-					shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
+					textHeight, basicFont, baseTextColor, 0, 0f,
+					shadowColor, 0.1f * textHeight, TextAlignment.LEFT,
 				)
 				if (item != null) kimBatch.simple(
 					baseX.roundToInt(), (baseY + index * offsetY - 0.04f * region.height).roundToInt(),
@@ -258,19 +251,17 @@ internal fun renderCombatantInfoPopup(
 			textBatch.drawShadowedString(
 				combatant.getName(), baseX, baseY, textHeight,
 				context.bundle.getFont(context.content.fonts.fat.index), baseTextColor,
-				0, 0f, shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.LEFT,
+				0, 0f, shadowColor, shadowOffset, TextAlignment.LEFT,
 			)
 			textBatch.drawShadowedString(
 				"Level ${combatant.getLevel(updateContext)} ${combatant.getClassName()}",
-				baseX, baseY + lineGap, textHeight, unknownFont, baseTextColor,
-				0, 0f, shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.LEFT,
+				baseX, baseY + lineGap, textHeight, basicFont, baseTextColor,
+				0, 0f, shadowColor, shadowOffset, TextAlignment.LEFT,
 			)
 			textBatch.drawShadowedString(
 				combatant.getCreatureType().flashName, baseX, baseY + 2 * lineGap,
-				textHeight, unknownFont, baseTextColor, 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
+				textHeight, basicFont, baseTextColor, 0, 0f,
+				shadowColor, shadowOffset, TextAlignment.LEFT,
 			)
 		}
 
@@ -281,7 +272,7 @@ internal fun renderCombatantInfoPopup(
 			else Pair(blueTextColor, percentage)
 			textBatch.drawString(
 				value.toString(), x2 + region.height * 0.08f + 0.1f * column * region.height, baseY,
-				region.height * 0.02f, unknownFont, color,
+				region.height * 0.02f, basicFont, color,
 			)
 		}
 
@@ -311,9 +302,8 @@ internal fun renderCombatantInfoPopup(
 
 		textBatch.drawShadowedString(
 			"RESISTANCES", region.boundX - region.height * 0.03f, y3 + 0.008f * region.height,
-			0.02f * region.height, unknownFont, darkTextColor, 0, 0f,
-			shadowColor, 0.002f * region.height,
-			0.002f * region.height, TextAlignment.RIGHT,
+			0.02f * region.height, basicFont, darkTextColor, 0, 0f,
+			shadowColor, 0.002f * region.height, TextAlignment.RIGHT,
 		)
 
 		CombatantRenderer(battleContext, partBatch, combatant, fullRegion, true).render()

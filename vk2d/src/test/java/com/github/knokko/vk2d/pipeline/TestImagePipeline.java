@@ -106,6 +106,23 @@ public class TestImagePipeline {
 		});
 	}
 
+	@Test
+	public void testGallery() {
+		PipelineTester.runTest(
+				"image-pipeline-gallery", new File("../image-benchmark-resources.bin"),
+				160, 32, tester -> {
+					Vk2dImageBatch batch = staticPipelines.image.addBatch(tester.stage(), 3, tester.bundle());
+
+					for (int index = 0; index < 20; index++) {
+						int x = 16 * (index % 10);
+						int y = 16 * (index / 10);
+						int imageIndex = index;
+						if (imageIndex > 14 && imageIndex < 18) imageIndex = 14;
+						batch.simple(x, y, x + 16f, y + 16f, imageIndex);
+					}
+				});
+	}
+
 	@AfterAll
 	public static void cleanUpShared() {
 		PipelineTester.staticTearDown();

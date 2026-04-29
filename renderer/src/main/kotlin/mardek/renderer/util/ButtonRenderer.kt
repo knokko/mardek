@@ -5,12 +5,14 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
-import com.github.knokko.vk2d.text.TextAlignment
 import com.github.knokko.vk2d.text.Vk2dFont
+import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.ui.Fonts
-import mardek.renderer.glyph.MardekGlyphBatch
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.menu.referenceTime
 import mardek.state.util.Rectangle
 import kotlin.math.abs
@@ -18,7 +20,7 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 internal fun renderButton(
-	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: MardekGlyphBatch, font: Vk2dFont,
+	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, textBatch: Vk2dFancyTextBatch, font: Vk2dFont,
 	showTextOutline: Boolean, text: String, renderLeftBorder: Boolean, isSelected: Boolean, isDisabled: Boolean,
 	rect: Rectangle, outlineWidth: Int, textOffsetX: Int, textBaseY: Int, textHeight: Int,
 ) {
@@ -112,20 +114,17 @@ internal fun renderButton(
 		lowerTextColor = srgbToLinear(rgb(97, 68, 44))
 	}
 
-	val outlineColor = srgbToLinear(rgb(112, 64, 33))
-	val outlineWidth = if (showTextOutline) 0.03f * textHeight else 0f
-
-	glyphBatch.drawFancyString(
-		text, textOffsetX.toFloat(), textBaseY.toFloat(), textHeight.toFloat(),
-		font, lowerTextColor,
-		outlineColor, outlineWidth, TextAlignment.LEFT,
-		lowerTextColor, upperTextColor, upperTextColor, upperTextColor,
-		0.5f, 0.5f, 0.5f, 0.5f
+	textBatch.drawString(
+		text, textOffsetX.toFloat(), textBaseY.toFloat(),
+		0f, textHeight.toFloat(), font,
+		MardekTextStyles.button(lowerTextColor, upperTextColor, showTextOutline),
+		TextAlignment.LEFT,
 	)
 }
 
 internal fun renderInnerBoxButton(
-	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, textBatch: MardekGlyphBatch,
+	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
+	simpleTextBatch: Vk2dSimpleTextBatch, fancyTextBatch: Vk2dFancyTextBatch,
 	bundle: Vk2dResourceBundle, fonts: Fonts,
 	x: Int, boxY: Int, boxSize: Int, borderWidth: Int, boxRadius: Int, cornerDistances: FloatArray,
 	boxColor: Int, token: String, label: String,
@@ -207,29 +206,27 @@ internal fun renderInnerBoxButton(
 	val textY = boxY + boxSize * 0.7f
 	val textHeight = boxSize * 0.5f
 	if (label.isEmpty()) {
-		val highColor = srgbToLinear(rgb(109, 93, 81))
-		textBatch.drawFancyString(
-			token, tokenBaseX, textY + 0.1f * boxSize, textHeight, tokenFont,
-			borderColor, 0, 0f, TextAlignment.CENTERED,
-			borderColor, highColor, highColor, highColor,
-			0.5f, 0.5f, 1f, 1f,
+		fancyTextBatch.drawString(
+			token, tokenBaseX, textY + 0.1f * boxSize, 0f, textHeight, tokenFont,
+			MardekTextStyles.Dialogue.SKIP_BUTTON, TextAlignment.CENTERED,
 		)
 	} else {
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			token, tokenBaseX, textY, textHeight,
 			tokenFont, textColor, 0, 0f, shadowColor,
-			shadowOffset, shadowOffset, TextAlignment.CENTERED,
+			shadowOffset, TextAlignment.CENTERED,
 		)
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			label, x + boxSize * 1.3f, textY, textHeight,
 			labelFont, textColor, 0, 0f, shadowColor,
-			shadowOffset, shadowOffset, TextAlignment.LEFT,
+			shadowOffset, TextAlignment.LEFT,
 		)
 	}
 }
 
 internal fun renderBoxButton(
-	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, textBatch: MardekGlyphBatch,
+	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
+	simpleTextBatch: Vk2dSimpleTextBatch, fancyTextBatch: Vk2dFancyTextBatch,
 	bundle: Vk2dResourceBundle, fonts: Fonts,
 	minBoxSize: Float, boxX: Int, boxY: Int,
 ) {
@@ -245,7 +242,7 @@ internal fun renderBoxButton(
 	val borderWidth = max(1, boxSize / 15)
 
 	renderInnerBoxButton(
-		colorBatch, ovalBatch, textBatch, bundle, fonts,
+		colorBatch, ovalBatch, simpleTextBatch, fancyTextBatch, bundle, fonts,
 		boxX, boxY, boxSize, borderWidth, cornerRadius, cornerDistances,
 		darkColor, "E", "",
 	)

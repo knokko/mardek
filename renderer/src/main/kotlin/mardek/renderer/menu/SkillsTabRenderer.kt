@@ -211,7 +211,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 
 				if (skillEntry.mastery >= skill.masteryPoints) {
 					renderFancyMasteredText(
-						context, textBatch,
+						context, fancyTextBatch,
 						skillsMasteryPointsX.toFloat() + region.height / 100f,
 						baseY + region.height * 0.03f, region.height / 30f
 					)
@@ -226,7 +226,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 				5 -> "Passive Skills"
 				else -> throw IllegalStateException("Unexpected skill type index ${tab.skillTypeIndex}")
 			}
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				skillTypeDescription, region.minX + region.width / 7 + 75 * characterScale,
 				selectedCharacterY + 7 * characterScale, 4 * characterScale, basicFont2,
 				titleTextColor, TextAlignment.RIGHT
@@ -235,10 +235,10 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 
 		val selectedSkillText = if (tab.inside) selectedSkill?.skill?.name ?: "No skill"
 		else assetCharacter.characterClass.skillClass.name
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			selectedSkillText, region.minX + region.height * 0.015f, headerY + 1.33f * headerHeight,
 			headerHeight * 0.66f, basicFont2, titleTextColor, 0, 0f,
-			srgbToLinear(rgb(37, 21, 10)), headerHeight * 0.05f,
+			srgbToLinear(rgb(37, 21, 10)),
 			headerHeight * 0.05f, TextAlignment.LEFT,
 		)
 
@@ -247,7 +247,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 			Triple(skillsMinX, skillsEnablePointsX, if (tab.skillTypeIndex == 0) "MP" else "RP"),
 			Triple(skillsMasteryPointsX, region.maxX, "AP")
 		)) {
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				text, if (text.startsWith("A")) minX else maxX, headerMaxY - headerHeight / 5,
 				headerHeight * 3 / 5, basicFont2, titleTextColor,
 				if (text.startsWith("A")) TextAlignment.LEFT else TextAlignment.RIGHT,
@@ -258,11 +258,12 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 
 		fun drawDescriptionLine(line: String) {
 			val shadowOffset = region.width * 0.001f
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				line, region.minX + region.width * 0.01f, lineY, region.width * 0.015f,
-				basicFont2, srgbToLinear(rgb(200, 185, 135)), 0, 0f,
+				basicFont2, srgbToLinear(rgb(200, 185, 135)),
+				0, 0f,
 				srgbToLinear(rgb(53, 42, 27)),
-				shadowOffset, shadowOffset, TextAlignment.LEFT,
+				shadowOffset, TextAlignment.LEFT,
 			)
 			@Suppress("AssignedValueIsNeverRead")
 			lineY += region.width * 0.025f
@@ -272,7 +273,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		else assetCharacter.characterClass.skillClass.description
 		renderDescription(description, 22, ::drawDescriptionLine)
 
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			assetCharacter.name, region.minX + region.width * 0.01f,
 			region.maxY - region.height * 0.1f, region.height * 0.03f, basicFont2,
 			titleTextColor, TextAlignment.LEFT,
@@ -283,7 +284,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		val resourceMaxY = region.maxY - region.height / 30
 
 		val resourceText = if (tab.skillTypeIndex == 0) "MP" else "RP"
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			resourceText, resourceX - 2, resourceMaxY, resourceMaxY - resourceMinY,
 			basicFont2, titleTextColor, TextAlignment.RIGHT
 		)
@@ -303,11 +304,11 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 		val resourceRenderer = ResourceBarRenderer(
 			context, resourceType, Rectangle(
 				resourceX, resourceMinY, descriptionMaxX - resourceX, resourceMaxY - resourceMinY
-			), colorBatch, textBatch
+			), colorBatch, simpleTextBatch
 		)
 
 		resourceRenderer.renderBar(currentResourceValue, maxResourceValue)
-		resourceRenderer.renderTextOverBar(currentResourceValue, maxResourceValue)
+		resourceRenderer.renderTextOverBarWithShadow(currentResourceValue, maxResourceValue)
 
 		if (tab.inside) {
 			for ((row, skillEntry) in visibleSkills.withIndex()) {
@@ -345,7 +346,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 					if (skillEntry.canToggle) 1f else 0.2f
 				}
 				rowTextColor = multiplyAlpha(rowTextColor, alphaFactor)
-				textBatch.drawString(
+				simpleTextBatch.drawString(
 					skill.name, skillsMinX + region.height / 20, baseY + region.height / 33,
 					region.height / 35, basicFont2, rowTextColor
 				)
@@ -358,11 +359,11 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 
 				val shadowColor = srgbToLinear(rgb(61, 35, 18))
 				val shadowOffset = region.height * 0.002f
-				textBatch.drawShadowedString(
+				simpleTextBatch.drawShadowedString(
 					rp.toString(), skillsEnablePointsX - region.height * 0.01f,
 					baseY + region.height * 0.028f, region.height * 0.027f,
 					basicFont2, rowTextColor, 0, 0f,
-					shadowColor, shadowOffset, shadowOffset, TextAlignment.RIGHT,
+					shadowColor, shadowOffset, TextAlignment.RIGHT,
 				)
 
 				if (skillEntry.mastery < skill.masteryPoints) {
@@ -374,10 +375,10 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 					)
 					val masteryBar = ResourceBarRenderer(
 						context, ResourceType.SkillMastery, masteryRegion,
-						colorBatch, textBatch
+						colorBatch, simpleTextBatch,
 					)
 					masteryBar.renderBar(skillEntry.mastery, skill.masteryPoints, alphaFactor)
-					masteryBar.renderTextOverBar(skillEntry.mastery, skill.masteryPoints, alphaFactor)
+					masteryBar.renderTextOverBarWithShadow(skillEntry.mastery, skill.masteryPoints, alphaFactor)
 				}
 			}
 		}

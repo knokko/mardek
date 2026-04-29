@@ -2,8 +2,9 @@ package mardek.renderer.battle
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
-import mardek.renderer.glyph.MardekGlyphBatch
+import mardek.renderer.MardekTextStyles
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.util.Rectangle
 import kotlin.math.min
@@ -11,7 +12,7 @@ import kotlin.math.roundToInt
 
 internal fun renderBattleFinishEffect(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
-	textBatch: MardekGlyphBatch, region: Rectangle
+	textBatch: Vk2dFancyTextBatch, region: Rectangle
 ) {
 	battleContext.run {
 		val stateMachine = battle.state
@@ -61,13 +62,15 @@ internal fun renderBattleFinishEffect(
 				}
 
 				val victoryFont = context.bundle.getFont(context.content.fonts.large2.index)
-				textBatch.drawFancyString(
-					"VICTORY!!", region.width * 0.5f, region.height * 0.5f,
-					region.height / 12f, victoryFont, outerColor, strokeColor,
-					region.height * 0.01f, TextAlignment.CENTERED,
-					outerColor, innerColor, outerColor, outerColor,
-					0.2f, 0.5f, 0.8f, 1f,
-				)
+				for (style in arrayOf(
+					MardekTextStyles.victoryBack(strokeColor),
+					MardekTextStyles.victoryFront(innerColor, outerColor),
+				)) {
+					textBatch.drawString(
+						"VICTORY!!", region.width * 0.5f, region.height * 0.5f, 0f,
+						region.height / 12f, victoryFont, style, TextAlignment.CENTERED,
+					)
+				}
 			}
 		}
 	}

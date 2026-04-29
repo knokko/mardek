@@ -5,7 +5,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.title.titleScreenInfo
 import mardek.state.title.GameOverState
@@ -14,7 +14,7 @@ import kotlin.math.max
 
 internal fun renderGameOver(
 	context: RawRenderContext, state: GameOverState, region: Rectangle
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 	val ovalBatch = context.pipelines.base.oval.addBatch(
 		context.stage, context.perFrameDescriptorSet, 2
 	)
@@ -28,25 +28,28 @@ internal fun renderGameOver(
 		0.1f, 1f, 1f, 1f,
 	)
 
-	val textBatch = context.pipelines.fancyText.addBatch(
-		context.stage, 150, context.recorder,
-		context.textBuffer, context.perFrameDescriptorSet,
+	val fancyTextBatch = context.pipelines.base.fancyText.addBatch(
+		context.stage, 30, context.fancyTextStyleCache
+	)
+	val simpleTextBatch = context.pipelines.base.simpleText.addBatch(
+		context.stage, 120, context.textStyleCache
 	)
 	val titleHeight = region.height / 12f
-	val outerColor = srgbToLinear(rgb(153, 0, 0))
-	val innerColor = srgbToLinear(rgb(253, 53, 53))
 	val largeFont = context.titleScreenBundle.getFont(titleScreenInfo.largeFont.index)
-	val strokeColor = srgbToLinear(rgb(51, 0, 0))
-	textBatch.drawFancyString(
-		"GAME   OVER", region.minX + 0.5f * region.width,
-		region.minY + 0.5f * (region.height + titleHeight), titleHeight, largeFont,
-		outerColor, strokeColor, 0.1f * titleHeight, TextAlignment.CENTERED,
-		outerColor, innerColor, innerColor, outerColor,
-		0.2f, 0.4f, 0.6f, 0.8f,
-	)
+	for (style in arrayOf(
+		MardekTextStyles.TitleScreen.GAME_OVER_BACK1,
+		MardekTextStyles.TitleScreen.GAME_OVER_BACK2,
+		MardekTextStyles.TitleScreen.GAME_OVER_FRONT,
+	)) {
+		fancyTextBatch.drawString(
+			"GAME   OVER", region.minX + 0.5f * region.width,
+			region.minY + 0.5f * (region.height + titleHeight), 0f, titleHeight, largeFont,
+			style, TextAlignment.CENTERED,
+		)
+	}
 
 	val smallFont = context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index)
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"Press E or Q to return to the Title Screen", region.minX + 0.5f * region.width,
 		region.minY + 0.65f * region.height, 0.025f * region.height, smallFont,
 		srgbToLinear(rgb(255, 82, 82)), TextAlignment.CENTERED,
@@ -61,5 +64,5 @@ internal fun renderGameOver(
 			rgba(0, 0, 0, fade)
 		)
 	}
-	return Pair(colorBatch, textBatch)
+	return Pair(colorBatch, simpleTextBatch)
 }

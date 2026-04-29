@@ -4,10 +4,10 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
@@ -21,7 +21,7 @@ import kotlin.math.roundToInt
 
 internal fun renderSkillOrItemSelection(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
-	kimBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, region: Rectangle
+	kimBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch, textBatch: Vk2dSimpleTextBatch, region: Rectangle
 ) {
 	battleContext.run {
 		val stateMachine = battle.state
@@ -133,14 +133,14 @@ internal fun renderSkillOrItemSelection(
 			textBatch.drawShadowedString(
 				entry.name, ovalX1 + radius + 0.25f * marginX, minY + 0.8f * entryHeight,
 				0.66f * entryHeight, font, textColor, 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
+				shadowColor, shadowOffset, TextAlignment.LEFT,
 			)
 			if (entry.rightNumber != null) {
 				textBatch.drawShadowedString(
 					entry.rightNumber.toString(), region.maxX - marginX - radius,
 					minY + 0.8f * entryHeight, 0.66f * entryHeight, font,
 					textColor, 0, 0f, shadowColor,
-					shadowOffset, shadowOffset, TextAlignment.RIGHT,
+					shadowOffset, TextAlignment.RIGHT,
 				)
 			}
 			minY += region.height / 12

@@ -3,6 +3,7 @@ package com.github.knokko.vk2d.resource;
 import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.VkbBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
+import com.github.knokko.boiler.commands.SingleTimeCommands;
 import com.github.knokko.boiler.descriptors.BulkDescriptorUpdater;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
 import com.github.knokko.boiler.images.ImageBuilder;
@@ -10,6 +11,7 @@ import com.github.knokko.boiler.images.VkbImage;
 import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
+import com.github.knokko.compressor.Bc4Compressor;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.text.Vk2dFont;
 
@@ -21,17 +23,38 @@ import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
+import static com.github.knokko.vk2d.text.HarfbuzzChecks.assertHbSuccess;
 import static org.lwjgl.system.MemoryUtil.memCalloc;
 import static org.lwjgl.system.MemoryUtil.memFree;
+import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
 import static org.lwjgl.util.zstd.Zstd.ZSTD_decompress;
 import static org.lwjgl.util.zstd.Zstd.ZSTD_getFrameContentSize;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceLoader {
+
+	public static Vk2dResourceBundle loadSimpleAndPotentiallyInefficient(
+			Vk2dInstance instance, InputStream input
+	) throws IOException {
+		var loader = new Vk2dResourceLoader(instance, input);
+		var memoryCombiner = new MemoryCombiner(instance.boiler, "Vk2dResourceLoader simple");
+		loader.claimMemory(memoryCombiner);
+		var memoryBlock = memoryCombiner.build(instance.boiler.vmaAllocator() != VK_NULL_HANDLE);
+		var descriptorCombiner = new DescriptorCombiner(instance.boiler);
+		loader.prepareStaging(descriptorCombiner);
+		long descriptorPool = descriptorCombiner.build("Vk2dResourceLoader simple");
+		SingleTimeCommands.submit(
+				instance.boiler, "Vk2dResourceLoader simple", loader::performStaging
+		).destroy();
+
+		var bundle = loader.finish();
+		bundle.memory = memoryBlock;
+		bundle.vkDescriptorPool = descriptorPool;
+		return bundle;
+	}
 
 	private static ByteBuffer decompress(ByteBuffer compressed) {
 		long expectedUncompressedSize = ZSTD_getFrameContentSize(compressed);
@@ -55,10 +78,9 @@ public class Vk2dResourceLoader {
 	private long[] imageDescriptors;
 	private MappedVkbBuffer[] imageStagingBuffers;
 
-	private Font[] fonts;
-	private VkbBuffer fontBuffer;
-	private MappedVkbBuffer fontStagingBuffer;
-	private long fontDescriptor;
+	private Bc4Compressor bc4Compressor;
+	private long[] fontBlobs;
+	private Vk2dFont[] fonts;
 
 	private VkbBuffer fakeImages;
 	private MappedVkbBuffer fakeStagingBuffer;
@@ -151,42 +173,55 @@ public class Vk2dResourceLoader {
 			);
 		}
 
-		long fontBufferSize = 0L;
-		int numFonts = input.getInt();
-		int firstCurveIndex = 0;
-		this.fonts = new Font[numFonts];
-		for (int index = 0; index < numFonts; index++) {
-			int numCurves = input.getInt();
-			int numGlyphs = input.getInt();
-			Map<Integer, Integer> charToGlyphMap = new HashMap<>();
-			this.fonts[index] = new Font(numGlyphs, firstCurveIndex, charToGlyphMap);
-			firstCurveIndex += numCurves;
-			fontBufferSize += 8L * numCurves;
-			for (int glyph = 0; glyph < numGlyphs; glyph++) {
-				this.fonts[index].firstCurves[glyph] = input.getInt();
-				this.fonts[index].numCurves[glyph] = input.getInt();
-				this.fonts[index].glyphMinX[glyph] = input.getFloat();
-				this.fonts[index].glyphMinY[glyph] = input.getFloat();
-				this.fonts[index].glyphMaxX[glyph] = input.getFloat();
-				this.fonts[index].glyphMaxY[glyph] = input.getFloat();
-				this.fonts[index].glyphAdvance[glyph] = input.getFloat();
-			}
-			int numChars = input.getInt();
-			for (int counter = 0; counter < numChars; counter++) {
-				charToGlyphMap.put(input.getInt(), input.getInt());
+		int numFontBlobs = input.getInt();
+		this.fontBlobs = new long[numFontBlobs];
+		var fonts = new ArrayList<Vk2dFont>(numFontBlobs);
+
+		for (int blobIndex = 0; blobIndex < numFontBlobs; blobIndex++) {
+			int numTtfBytes = input.getInt();
+
+			var hbBlob = assertHbSuccess(hb_blob_create(
+					input.slice(input.position(), numTtfBytes), HB_MEMORY_MODE_DUPLICATE, 0L, null
+			), "blob_create");
+			input.position(input.position() + numTtfBytes);
+			this.fontBlobs[blobIndex] = hbBlob;
+
+			int numFonts = input.getInt();
+			for (int fontIndex = 0; fontIndex < numFonts; fontIndex++) {
+				int faceIndex = input.getInt();
+				long hbFace = assertHbSuccess(hb_face_create(hbBlob, faceIndex), "face_create");
+
+				var font = new Vk2dFont(hbFace, instance, combiner, stagingCombiner);
+				int numAtlases = input.getInt();
+				for (int atlasCounter = 0; atlasCounter < numAtlases; atlasCounter++) {
+					int[] supportedGlyphs = null;
+					int numSupportedGlyphs = input.getInt();
+					if (numSupportedGlyphs >= 0) {
+						supportedGlyphs = new int[numSupportedGlyphs];
+						for (int glyphIndex = 0; glyphIndex < numSupportedGlyphs; glyphIndex++) {
+							supportedGlyphs[glyphIndex] = input.getInt();
+						}
+					}
+
+					int bitsPerPixel = input.get();
+					font.addAtlas(
+							instance, bitsPerPixel, input.getFloat(), input.getFloat(), combiner, stagingCombiner,
+							input.getFloat(), input.getFloat(),
+							input.getFloat(), input.getFloat(), supportedGlyphs
+					);
+					if (bitsPerPixel == 4 && bc4Compressor == null) {
+						this.bc4Compressor = new Bc4Compressor(instance.boiler);
+					}
+				}
+
+				fonts.add(font);
 			}
 		}
 
-		if (fontBufferSize > 0L) {
-			this.fontBuffer = combiner.addBuffer(
-					fontBufferSize, instance.boiler.deviceProperties.limits().minStorageBufferOffsetAlignment(),
-					VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0.5f
-			);
-			this.fontStagingBuffer = combiner.addMappedBuffer(fontBufferSize, 4L, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-		}
+		this.fonts = fonts.toArray(Vk2dFont[]::new);
 	}
 
-	public void prepareStaging() throws IOException {
+	public void prepareStaging(DescriptorCombiner descriptors) throws IOException {
 		this.stagingMemory = stagingCombiner.build(false);
 		this.stagingCombiner = null;
 		for (MappedVkbBuffer buffer : imageStagingBuffers) {
@@ -204,17 +239,23 @@ public class Vk2dResourceLoader {
 			}
 		}
 
-		if (fontStagingBuffer != null) {
-			IntBuffer curves = fontStagingBuffer.intBuffer();
-			while (curves.hasRemaining()) curves.put(input.getInt());
+		for (var font : fonts) font.prepareStaging(instance, descriptors, bc4Compressor);
+
+		if (instance.imageDescriptorSetLayout != null) {
+			this.imageDescriptors = descriptors.addMultiple(instance.imageDescriptorSetLayout, images.length);
+		} else {
+			this.imageDescriptors = new long[0];
 		}
+
+		if (fakeImages != null && instance.bufferDescriptorSetLayout != null) descriptors.addSingle(
+				instance.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet
+		);
 	}
 
-	public void performStaging(CommandRecorder recorder, DescriptorCombiner descriptors) {
+	public void performStaging(CommandRecorder recorder) {
 		recorder.bulkTransitionLayout(null, ResourceUsage.TRANSFER_DEST, images);
 		recorder.bulkCopyBufferToImage(images, imageStagingBuffers);
 		if (fakeImages != null) recorder.copyBuffer(fakeStagingBuffer, fakeImages);
-		if (fontStagingBuffer != null) recorder.copyBuffer(fontStagingBuffer, fontBuffer);
 		recorder.bulkTransitionLayout(
 				ResourceUsage.TRANSFER_DEST,
 				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT), images
@@ -224,24 +265,16 @@ public class Vk2dResourceLoader {
 					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT
 			));
 		}
-		if (fontBuffer != null) recorder.bufferBarrier(fontBuffer, ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT
-		));
 
-		if (instance.imageDescriptorSetLayout != null) {
-			this.imageDescriptors = descriptors.addMultiple(instance.imageDescriptorSetLayout, images.length);
-		} else {
-			this.imageDescriptors = new long[0];
-		}
-		if (fakeImages != null && instance.bufferDescriptorSetLayout != null) descriptors.addSingle(
-				instance.bufferDescriptorSetLayout, descriptorSet -> this.fakeImageDescriptor = descriptorSet
-		);
-		if (fontBuffer != null && instance.textScratchDescriptorLayout1 != null) {
-			descriptors.addSingle(instance.textScratchDescriptorLayout1, descriptorSet -> fontDescriptor = descriptorSet);
-		}
+		if (fonts.length > 0) Vk2dFont.generateAtlases(instance, recorder, bc4Compressor, fonts);
 	}
 
 	public Vk2dResourceBundle finish() {
+		if (bc4Compressor != null) {
+			this.bc4Compressor.destroy();
+			this.bc4Compressor = null;
+		}
+
 		this.stagingMemory.destroy(instance.boiler);
 		this.stagingMemory = null;
 		this.imageStagingBuffers = null;
@@ -261,20 +294,7 @@ public class Vk2dResourceLoader {
 			updater.writeStorageBuffer(fakeImageDescriptor, 0, fakeImages);
 		}
 
-		if (fontDescriptor != 0L) {
-			updater.writeStorageBuffer(fontDescriptor, 0, fontBuffer);
-		}
 		updater.finish();
-
-		Vk2dFont[] bundleFonts = new Vk2dFont[fonts.length];
-		for (int index = 0; index < fonts.length; index++) {
-			Font font = fonts[index];
-			bundleFonts[index] = new Vk2dFont(
-					fontDescriptor, index, font.firstCurveIndex, font.firstCurves, font.numCurves,
-					font.glyphMinX, font.glyphMinY, font.glyphMaxX, font.glyphMaxY, font.glyphAdvance,
-					font.charToGlyphMap
-			);
-		}
 
 		int[] imageWidths = new int[images.length];
 		int[] imageHeights = new int[images.length];
@@ -284,29 +304,10 @@ public class Vk2dResourceLoader {
 		}
 		memFree(input);
 		return new Vk2dResourceBundle(
-				imageDescriptors, imageWidths, imageHeights, bundleFonts,
+				imageDescriptors, imageWidths, imageHeights,
+				fontBlobs, fonts,
 				fakeImageDescriptor, fakeOffsets,
 				fakeWidths, fakeHeights, fakeData
 		);
-	}
-
-	private static class Font {
-
-		final int firstCurveIndex;
-		final int[] firstCurves, numCurves;
-		final float[] glyphMinX, glyphMinY, glyphMaxX, glyphMaxY, glyphAdvance;
-		final Map<Integer, Integer> charToGlyphMap;
-
-		Font(int numGlyphs, int firstCurveIndex, Map<Integer, Integer> charToGlyphMap) {
-			this.firstCurveIndex = firstCurveIndex;
-			this.firstCurves = new int[numGlyphs];
-			this.numCurves = new int[numGlyphs];
-			this.glyphMinX = new float[numGlyphs];
-			this.glyphMinY = new float[numGlyphs];
-			this.glyphMaxX = new float[numGlyphs];
-			this.glyphMaxY = new float[numGlyphs];
-			this.glyphAdvance = new float[numGlyphs];
-			this.charToGlyphMap = charToGlyphMap;
-		}
 	}
 }

@@ -9,19 +9,14 @@ import com.github.knokko.boiler.memory.MemoryBlock;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.utilities.ImageCoding;
 import com.github.knokko.compressor.*;
+import com.github.knokko.vk2d.Vk2dInstance;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.CLongBuffer;
-import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.util.freetype.FT_Face;
-import org.lwjgl.util.freetype.FT_Outline_Funcs;
-import org.lwjgl.util.freetype.FT_Vector;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.*;
@@ -30,20 +25,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
-import static com.github.knokko.vk2d.text.FontHelper.assertFtSuccess;
+import static com.github.knokko.vk2d.text.HarfbuzzChecks.assertHbSuccess;
 import static java.lang.Math.*;
-import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.*;
-import static org.lwjgl.util.freetype.FreeType.*;
+import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
 import static org.lwjgl.util.zstd.Zstd.ZSTD_compress;
 import static org.lwjgl.util.zstd.Zstd.ZSTD_compressBound;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceWriter {
 
-	private long ftLibrary;
-
 	private final List<Image> images = new ArrayList<>();
+	private final List<FontBlob> fontBlobs = new ArrayList<>();
 	private final List<Font> fonts = new ArrayList<>();
 	private final List<FakeImage> fakeImages = new ArrayList<>();
 
@@ -81,177 +74,86 @@ public class Vk2dResourceWriter {
 		return images.size() - 1;
 	}
 
-	public int addFont(InputStream ttfInput) {
-		byte[] fontBytes;
+	public int addFontBlob(InputStream ttfInput) {
+		int result = fonts.size();
+		byte[] ttfBytes;
 		try {
-			fontBytes = ttfInput.readAllBytes();
+			ttfBytes = ttfInput.readAllBytes();
 			ttfInput.close();
 		} catch (IOException io) {
 			throw new RuntimeException(io);
 		}
 
-		ByteBuffer ttfBuffer = memAlloc(fontBytes.length);
-		ttfBuffer.put(0, fontBytes);
-
-		FT_Face font;
-		try (MemoryStack stack = stackPush()) {
-			if (ftLibrary == 0L) {
-				PointerBuffer pLibrary = stack.callocPointer(1);
-				assertFtSuccess(FT_Init_FreeType(pLibrary), "Init_FreeType");
-				ftLibrary = pLibrary.get(0);
-			}
-
-			PointerBuffer pFace = stack.callocPointer(1);
-			assertFtSuccess(FT_New_Memory_Face(
-					ftLibrary, ttfBuffer, 0, pFace
-			), "New_Memory_Face");
-			font = FT_Face.create(pFace.get(0));
-		}
-
-		int result = addFont(font);
-		assertFtSuccess(FT_Done_Face(font), "Done_Face");
-		memFree(ttfBuffer);
+		fontBlobs.add(new FontBlob(ttfBytes));
 		return result;
 	}
 
-	private static int transformFontCoordinate(long value, int minValue, int maxValue) {
-		int worldSize = maxValue - minValue;
-		int relativeValue = Math.toIntExact(value) - minValue;
-		if (relativeValue < 0) {
-			System.out.println("Warning: clamping font coordinate " + value + " to " + minValue);
-			return 0;
-		}
-		if (relativeValue > worldSize) {
-			System.out.println("Warning: clamping font coordinate " + value + " to " + maxValue);
-			return 1023;
-		}
-		return Math.toIntExact(relativeValue * 1023L / worldSize);
+	public int addFont(int fontBlobIndex, int faceIndex) {
+		int result = fonts.size();
+		FontBlob fontData = fontBlobs.get(fontBlobIndex);
+
+		var font = new Font(fontData, faceIndex);
+		fonts.add(font);
+		fontData.fonts.add(font);
+		return result;
 	}
 
-	public int addFont(FT_Face font) {
-		record RawCurve(long startX, long startY, long controlX, long controlY, long endX, long endY) {}
+	public void addFallbackAtlas(int fontIndex, int bitsPerPixel, float heightA, float maxRelativeDistance) {
+		addAtlas(
+				fontIndex, bitsPerPixel, heightA, maxRelativeDistance,
+				0f, Float.MAX_VALUE,
+				0f, Float.MAX_VALUE, null
+		);
+	}
 
-		record RawGlyph(int firstCurve, int numCurves, long minX, long minY, long maxX, long maxY, long advance) {}
+	public void addAtlas(
+			int fontIndex, int bitsPerPixel, float atlasHeightA, float maxRelativeDistance,
+			float minRenderHeightA, float maxRenderHeightA,
+			float minRelativeStrokeWidth, float maxRelativeStrokeWidth, String supportedCharacters
+	) {
+		var font = fonts.get(fontIndex);
+		Set<Integer> supportedGlyphs = null;
+		if (supportedCharacters != null) {
+			supportedGlyphs = new HashSet<>();
 
-		RawGlyph[] rawGlyphs = new RawGlyph[Math.toIntExact(font.num_glyphs())];
-		List<RawCurve> rawCurves = new ArrayList<>();
-		int glyphA = FT_Get_Char_Index(font, 'A');
-
-		int maxCurves = 0;
-		try (MemoryStack stack = stackPush()) {
-			var position = FT_Vector.calloc(stack);
-			var outlineFunctions = FT_Outline_Funcs.calloc(stack);
-
-			outlineFunctions.move_to((long raw, long userData) -> {
-				@SuppressWarnings("resource") var to = FT_Vector.create(raw);
-				position.x(to.x());
-				position.y(to.y());
-				return 0;
-			});
-			outlineFunctions.line_to((long raw, long userData) -> {
-				@SuppressWarnings("resource") var to = FT_Vector.create(raw);
-				rawCurves.add(new RawCurve(
-						position.x(), position.y(),
-						(position.x() + to.x()) / 2L,
-						(position.y() + to.y()) / 2L,
-						to.x(), to.y()
-				));
-				position.x(to.x());
-				position.y(to.y());
-				return 0;
-			});
-			outlineFunctions.conic_to((long rawControl, long rawTo, long userData) -> {
-				@SuppressWarnings("resource") var control = FT_Vector.create(rawControl);
-				@SuppressWarnings("resource") var to = FT_Vector.create(rawTo);
-				rawCurves.add(new RawCurve(
-						position.x(), position.y(),
-						control.x(), control.y(),
-						to.x(), to.y()
-				));
-				position.x(to.x());
-				position.y(to.y());
-				return 0;
-			});
-			outlineFunctions.cubic_to((long control1, long control2, long to, long userData) -> 1);
-			outlineFunctions.delta(0);
-			outlineFunctions.shift(0);
-
-			CLongBuffer pAdvance = stack.callocCLong(1);
-			for (int glyph = 0; glyph < font.num_glyphs(); glyph++) {
-				int curveIndex = rawCurves.size();
-				assertFtSuccess(FT_Load_Glyph(font, glyph, FT_LOAD_NO_SCALE), "Load_Glyph");
-				var outline = Objects.requireNonNull(font.glyph()).outline();
-				assertFtSuccess(FT_Outline_Decompose(outline, outlineFunctions, 0L), "Outline_Decompose");
-				int numCurves = rawCurves.size() - curveIndex;
-				maxCurves = max(maxCurves, numCurves);
-
-				long minX = Long.MAX_VALUE;
-				long minY = Long.MAX_VALUE;
-				long maxX = Long.MIN_VALUE;
-				long maxY = Long.MIN_VALUE;
-				for (int index = curveIndex; index < curveIndex + numCurves; index++) {
-					RawCurve curve = rawCurves.get(index);
-					minX = min(minX, curve.startX);
-					maxX = max(maxX, curve.startX);
-					minY = min(minY, curve.startY);
-					maxY = max(maxY, curve.startY);
-					minX = min(minX, curve.controlX);
-					maxX = max(maxX, curve.controlX);
-					minY = min(minY, curve.controlY);
-					maxY = max(maxY, curve.controlY);
-					minX = min(minX, curve.endX);
-					maxX = max(maxX, curve.endX);
-					minY = min(minY, curve.endY);
-					maxY = max(maxY, curve.endY);
-				}
-
-				assertFtSuccess(FT_Get_Advance(
-						font, glyph, FT_LOAD_NO_SCALE, pAdvance
-				), "Get_Advance");
-				rawGlyphs[glyph] = new RawGlyph(curveIndex, numCurves, minX, minY, maxX, maxY, pAdvance.get(0));
+			var data = font.fontData;
+			if (data.hbBuffer == 0) {
+				data.ttfBuffer = memCalloc(data.ttfBytes.length).put(0, data.ttfBytes);
+				data.hbBlob = assertHbSuccess(hb_blob_create(
+						data.ttfBuffer, HB_MEMORY_MODE_WRITABLE, 0L, null
+				), "blob_create");
+				data.hbBuffer = assertHbSuccess(hb_buffer_create(), "buffer_create");
 			}
-		}
 
-		int heightA = Math.toIntExact(rawGlyphs[glyphA].maxY);
-		int minY = -3 * heightA;
-		int maxY = 6 * heightA - 1;
-		FontCurve[] curves = new FontCurve[rawCurves.size()];
-		for (int index = 0; index < curves.length; index++) {
-			RawCurve raw = rawCurves.get(index);
-			int startX = transformFontCoordinate(raw.startX, minY, maxY);
-			int controlX = transformFontCoordinate(raw.controlX, minY, maxY);
-			int endX = transformFontCoordinate(raw.endX, minY, maxY);
-			int packedX = startX | (controlX << 10) | (endX << 20);
-			int startY = transformFontCoordinate(raw.startY, minY, maxY);
-			int controlY = transformFontCoordinate(raw.controlY, minY, maxY);
-			int endY = transformFontCoordinate(raw.endY, minY, maxY);
-			int packedY = startY | (controlY << 10) | (endY << 20);
-			curves[index] = new FontCurve(packedX, packedY);
-		}
+			if (font.hbFace == 0L) {
+				font.hbFace = assertHbSuccess(hb_face_create(
+						data.hbBlob, font.faceIndex
+				), "face_create");
+				font.hbFont = assertHbSuccess(hb_font_create(font.hbFace), "font_create");
+			}
 
-		FontGlyph[] glyphs = new FontGlyph[rawGlyphs.length];
-		for (int index = 0; index < glyphs.length; index++) {
-			RawGlyph raw = rawGlyphs[index];
-			glyphs[index] = new FontGlyph(
-					raw.firstCurve, raw.numCurves,
-					(float) raw.minX / heightA, (float) raw.minY / heightA,
-					(float) raw.maxX / heightA, (float) raw.maxY / heightA,
-					(float) raw.advance / heightA
+			hb_buffer_clear_contents(data.hbBuffer);
+
+			try (var stack = MemoryStack.stackPush()) {
+				var textBytes = stack.UTF8(supportedCharacters, false);
+				hb_buffer_add_utf8(data.hbBuffer, textBytes, 0, textBytes.capacity());
+			}
+
+			hb_buffer_guess_segment_properties(data.hbBuffer);
+			hb_shape(font.hbFont, data.hbBuffer, null);
+
+			var glyphInfos = assertHbSuccess(
+					hb_buffer_get_glyph_infos(data.hbBuffer),
+					"buffer_get_glyph_infos"
 			);
+			for (var glyphInfo : glyphInfos) supportedGlyphs.add(glyphInfo.codepoint());
 		}
 
-		Map<Integer, Integer> charToGlyphMap = new HashMap<>();
-		try (MemoryStack stack = stackPush()) {
-			IntBuffer pGlyph = stack.callocInt(1);
-			long charCode = FT_Get_First_Char(font, pGlyph);
-			while (charCode > 0L) {
-				charToGlyphMap.put(Math.toIntExact(charCode), pGlyph.get(0));
-				charCode = FT_Get_Next_Char(font, charCode, pGlyph);
-			}
-		}
-
-		fonts.add(new Font(font, curves, glyphs, charToGlyphMap));
-		return fonts.size() - 1;
+		font.atlases.add(new SdfAtlas(
+				bitsPerPixel, atlasHeightA, 1f / (atlasHeightA * maxRelativeDistance),
+				minRenderHeightA, maxRenderHeightA,
+				minRelativeStrokeWidth, maxRelativeStrokeWidth, supportedGlyphs
+		));
 	}
 
 	public int addFakeImage(BufferedImage image, Vk2dFakeImageCompression compression) {
@@ -374,7 +276,6 @@ public class Vk2dResourceWriter {
 		MemoryBlock memory = combiner.build(false);
 
 		Bc1Worker worker1 = hasBc1 ? new Bc1Worker(compressor1, maxDestinationImagePixels, combiner) : null;
-		Bc4Worker worker4 = hasBc4 ? new Bc4Worker(compressor4, maxDestinationImagePixels, combiner) : null;
 
 		DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
 		long[] descriptorSets1 = compressor1 != null ?
@@ -417,7 +318,7 @@ public class Vk2dResourceWriter {
 				}
 			}
 
-			if (worker4 != null) worker4.bindPipeline(recorder);
+			if (compressor4 != null) compressor4.bindPipeline(recorder);
 			for (Image entry : images) {
 				if (entry.compression == Vk2dImageCompression.BC4) {
 					MappedVkbBuffer source = sourceBuffers.get(imageIndex);
@@ -440,10 +341,10 @@ public class Vk2dResourceWriter {
 					}
 
 					MappedVkbBuffer destination = destinationBuffers.get(imageIndex);
-					assert worker4 != null && descriptorSets4 != null;
-					worker4.compress(
+					assert compressor4 != null && descriptorSets4 != null;
+					compressor4.compress(
 							recorder, descriptorSets4[imageIndex], source,
-							destination, paddedWidth, paddedHeight
+							destination, paddedWidth, paddedHeight, false
 					);
 					imageIndex += 1;
 				}
@@ -525,23 +426,42 @@ public class Vk2dResourceWriter {
 			output.writeInt(image.height);
 		}
 
-		output.writeInt(fonts.size());
-		for (Font font : fonts) {
-			output.writeInt(font.curves.length);
-			output.writeInt(font.glyphs.length);
-			for (FontGlyph glyph : font.glyphs) {
-				output.writeInt(glyph.curveIndex);
-				output.writeInt(glyph.numCurves);
-				output.writeFloat(glyph.minX);
-				output.writeFloat(glyph.minY);
-				output.writeFloat(glyph.maxX);
-				output.writeFloat(glyph.maxY);
-				output.writeFloat(glyph.advance);
+		output.writeInt(fontBlobs.size());
+		for (var data : fontBlobs) {
+			output.writeInt(data.ttfBytes.length);
+			output.write(data.ttfBytes);
+			output.writeInt(data.fonts.size());
+			for (var font : data.fonts) {
+				output.writeInt(font.faceIndex);
+				output.writeInt(font.atlases.size());
+				for (var atlas : font.atlases) {
+					if (atlas.supportedGlyphs != null) {
+						output.writeInt(atlas.supportedGlyphs.size());
+						for (int glyph : atlas.supportedGlyphs) {
+							output.writeInt(glyph);
+						}
+					} else output.writeInt(-1);
+
+					output.write(atlas.bitsPerPixel);
+					output.writeFloat(atlas.heightA);
+					output.writeFloat(atlas.distanceScale);
+					output.writeFloat(atlas.minHeightA);
+					output.writeFloat(atlas.maxHeightA);
+					output.writeFloat(atlas.minRelativeStrokeWidth);
+					output.writeFloat(atlas.maxRelativeStrokeWidth);
+				}
+
+				if (font.hbFont != 0L) {
+					hb_font_destroy(font.hbFont);
+					hb_face_destroy(font.hbFace);
+				}
 			}
-			output.writeInt(font.charToGlyphMap.size());
-			for (var entry : font.charToGlyphMap.entrySet()) {
-				output.writeInt(entry.getKey());
-				output.writeInt(entry.getValue());
+
+			if (data.ttfBuffer != null) {
+				memFree(data.ttfBuffer);
+				data.ttfBuffer = null;
+				hb_buffer_destroy(data.hbBuffer);
+				hb_blob_destroy(data.hbBlob);
 			}
 		}
 
@@ -569,17 +489,7 @@ public class Vk2dResourceWriter {
 			for (int value : image.data) output.writeInt(value);
 		}
 
-		for (Font font : fonts) {
-			for (FontCurve curve : font.curves) {
-				output.writeInt(curve.packedX);
-				output.writeInt(curve.packedY);
-			}
-		}
-
 		output.flush();
-		if (ftLibrary != 0L) {
-			assertFtSuccess(FT_Done_FreeType(ftLibrary), "Done_FreeType");
-		}
 
 		var uncompressedByteArray = uncompressedOutput.toByteArray();
 		var uncompressedByteBuffer = memCalloc(uncompressedByteArray.length);
@@ -587,7 +497,8 @@ public class Vk2dResourceWriter {
 
 		var compressedByteBuffer = memCalloc(Math.toIntExact(ZSTD_compressBound(uncompressedByteArray.length)));
 		long startCompression = System.nanoTime();
-		int compressedSize = Math.toIntExact(ZSTD_compress(compressedByteBuffer, uncompressedByteBuffer, 17));
+		// TODO CHAP3 Use a higher compression level
+		int compressedSize = Math.toIntExact(ZSTD_compress(compressedByteBuffer, uncompressedByteBuffer, 7));
 		System.out.println("compression took " + (System.nanoTime() - startCompression) / 1000_000L + " ms");
 		memFree(uncompressedByteBuffer);
 		var compressedByteArray = new byte[compressedSize];
@@ -595,6 +506,17 @@ public class Vk2dResourceWriter {
 		memFree(compressedByteBuffer);
 		rawOutput.write(compressedByteArray);
 		rawOutput.flush();
+	}
+
+	public Vk2dResourceBundle directlyCreateBundle(Vk2dInstance instance, File cacheDirectory) {
+		try {
+			var output = new ByteArrayOutputStream();
+			write(output, cacheDirectory);
+			var input = new ByteArrayInputStream(output.toByteArray());
+			return Vk2dResourceLoader.loadSimpleAndPotentiallyInefficient(instance, input);
+		} catch (IOException io) {
+			throw new RuntimeException(io);
+		}
 	}
 
 	private void writeUncompressedImage(DataOutputStream output, BufferedImage image) throws IOException {
@@ -631,9 +553,37 @@ public class Vk2dResourceWriter {
 
 	private record FakeImage(int width, int height, int[] data) {}
 
-	private record Font(FT_Face ftFace, FontCurve[] curves, FontGlyph[] glyphs, Map<Integer, Integer> charToGlyphMap) {}
+	private class FontBlob {
 
-	private record FontCurve(int packedX, int packedY) {}
+		final byte[] ttfBytes;
+		final List<Font> fonts = new ArrayList<>();
 
-	private record FontGlyph(int curveIndex, int numCurves, float minX, float minY, float maxX, float maxY, float advance) {}
+		ByteBuffer ttfBuffer;
+		long hbBlob, hbBuffer;
+
+		FontBlob(byte[] ttfBytes) {
+			this.ttfBytes = ttfBytes;
+		}
+	}
+
+	private class Font {
+
+		final FontBlob fontData;
+		final int faceIndex;
+		final List<SdfAtlas> atlases = new ArrayList<>();
+
+		long hbFace, hbFont;
+
+		Font(FontBlob fontData, int faceIndex) {
+			this.fontData = fontData;
+			this.faceIndex = faceIndex;
+		}
+	}
+
+	private record SdfAtlas(
+			int bitsPerPixel, float heightA, float distanceScale,
+			float minHeightA, float maxHeightA,
+			float minRelativeStrokeWidth, float maxRelativeStrokeWidth,
+			Set<Integer> supportedGlyphs
+	) {}
 }

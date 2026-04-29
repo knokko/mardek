@@ -1,10 +1,10 @@
 package mardek.renderer
 
-import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
-import com.github.knokko.vk2d.text.Vk2dTextBuffer
+import com.github.knokko.vk2d.text.Vk2dFancyTextStyleCache
+import com.github.knokko.vk2d.text.Vk2dTextStyleCache
 import mardek.content.Content
 import mardek.state.GameStateManager
 import mardek.state.VideoSettings
@@ -14,9 +14,9 @@ import mardek.state.util.Rectangle
 class RawRenderContext(
 	val stage: Vk2dRenderStage,
 	val pipelines: MardekPipelines,
-	val textBuffer: Vk2dTextBuffer,
+	val textStyleCache: Vk2dTextStyleCache,
+	val fancyTextStyleCache: Vk2dFancyTextStyleCache,
 	val perFrameDescriptorSet: Long,
-	val recorder: CommandRecorder,
 	val content: Content?,
 	val state: GameStateManager,
 	val titleScreenBundle: Vk2dResourceBundle,
@@ -30,9 +30,9 @@ class RenderContext(
 	val framebuffers: MardekFramebuffers,
 	val perFrame: PerFrameResources,
 	val pipelines: MardekPipelines,
-	val textBuffer: Vk2dTextBuffer,
+	val textStyleCache: Vk2dTextStyleCache,
+	val fancyTextStyleCache: Vk2dFancyTextStyleCache,
 	val perFrameDescriptorSet: Long,
-	val recorder: CommandRecorder,
 	val content: Content,
 	val state: GameStateManager,
 	val campaign: CampaignState,
@@ -50,13 +50,11 @@ class RenderContext(
 
 	fun addImageBatch(initialCapacity: Int) = pipelines.base.image.addBatch(currentStage, initialCapacity, bundle)!!
 
-	fun addTextBatch(initialCapacity: Int) = pipelines.base.text.addBatch(
-		currentStage, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
-	)!!
+	fun addTextBatch(initialCapacity: Int) = pipelines.base.simpleText.addBatch(currentStage, initialCapacity, textStyleCache)!!
 
-	fun addFancyTextBatch(initialCapacity: Int) = pipelines.fancyText.addBatch(
-		currentStage, initialCapacity, recorder, textBuffer, perFrameDescriptorSet
-	)
+	fun addFancyTextBatch(initialCapacity: Int) = pipelines.base.fancyText.addBatch(
+		currentStage, initialCapacity, fancyTextStyleCache
+	)!!
 
 	fun addKim3Batch(initialCapacity: Int) = pipelines.base.kim3.addBatch(currentStage, initialCapacity, bundle, perFrameDescriptorSet)!!
 

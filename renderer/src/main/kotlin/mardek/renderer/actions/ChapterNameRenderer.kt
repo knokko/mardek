@@ -3,15 +3,17 @@ package mardek.renderer.actions
 import com.github.knokko.boiler.utilities.ColorPacker.changeAlpha
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.action.ActionShowChapterName
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.RenderContext
-import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.util.Rectangle
 import kotlin.math.pow
 
 internal fun renderChapterNameAndNumber(
-	context: RenderContext, textBatch: MardekGlyphBatch,
+	context: RenderContext, simpleTextBatch: Vk2dSimpleTextBatch, fancyTextBatch: Vk2dFancyTextBatch,
 	action: ActionShowChapterName, relativeTime: Long, region: Rectangle,
 ) {
 	var opacity = if (relativeTime < ActionShowChapterName.FADE_DURATION) {
@@ -30,21 +32,15 @@ internal fun renderChapterNameAndNumber(
 		else -> throw IllegalArgumentException("Unexpected chapter number ${action.chapter}")
 	}
 	val numberColor = srgbToLinear(rgb(100, 66, 0))
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		chapterNumberText, region.minX + region.width * 0.5f,
 		region.minY + region.height * 0.7f, 0.35f * region.height, font,
 		changeAlpha(numberColor, opacity), TextAlignment.CENTERED,
 	)
 
-	var innerColor = srgbToLinear(rgb(241, 226, 188))
-	innerColor = changeAlpha(innerColor, opacity)
-	var outerColor = srgbToLinear(rgb(232, 198, 124))
-	outerColor = changeAlpha(outerColor, opacity)
-	textBatch.drawFancyString(
+	fancyTextBatch.drawString(
 		"Chapter ${action.chapter}: ${action.name}", region.minX + region.width * 0.5f,
-		region.minY + 0.52f * region.height, 0.038f * region.height, font,
-		outerColor, 0, 0f, TextAlignment.CENTERED,
-		outerColor, innerColor, innerColor, outerColor,
-		0.27f, 0.27f, 0.65f, 0.65f,
+		region.minY + 0.52f * region.height, 0f, 0.038f * region.height, font,
+		MardekTextStyles.Cutscenes.chapterName(opacity), TextAlignment.CENTERED,
 	)
 }

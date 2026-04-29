@@ -84,6 +84,12 @@ enum class SpecialAnimationNode(
 	ElementalSwing(true),
 
 	/**
+	 * This node is sometimes used during attack animations (e.g. that of Forest Fish).
+	 * TODO CHAP2 Figure this out
+	 */
+	ElementalBash(true),
+
+	/**
 	 * When a combatant casts a magic skill, elemental particles should be spawned at this node to indicate that a spell
 	 * is being cast.
 	 */
@@ -100,6 +106,12 @@ enum class SpecialAnimationNode(
 	 * based on the element of the skill.
 	 */
 	ElementalCastingBackground(true),
+
+	/**
+	 * This node should periodically grow and shrink, which is used for e.g. the shadows of Forest Fish,
+	 * which 'grows' when the fish is lowe.
+	 */
+	MorphingShadow(false),
 
 	/**
 	 * This node will render a weapon, so the skin should be chosen based on the name of the equipped weapon.

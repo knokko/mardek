@@ -18,7 +18,8 @@ import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader;
-import com.github.knokko.vk2d.text.Vk2dTextBuffer;
+import com.github.knokko.vk2d.text.Vk2dFancyTextStyleCache;
+import com.github.knokko.vk2d.text.Vk2dTextStyleCache;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
 
@@ -58,7 +59,8 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 	protected long vkDescriptorPool, vkRenderPass;
 	protected PerFrameBuffer perFrameBuffer;
 	protected Vk2dResourceBundle resources;
-	protected Vk2dTextBuffer textBuffer;
+	protected Vk2dTextStyleCache simpleTextStyleCache;
+	protected Vk2dFancyTextStyleCache fancyTextStyleCache;
 	protected long perFrameDescriptorSet;
 	private SwapchainResourceManager<Object, Long> framebuffers;
 
@@ -116,29 +118,31 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
 			if (loader != null) loader.claimMemory(combiner);
 			createResources(boiler, combiner, descriptors);
-			if (config.text) this.textBuffer = new Vk2dTextBuffer(instance, combiner, descriptors, numFramesInFlight);
-			if (config.oval || config.text || config.kim3) descriptors.addSingle(
+			if (config.oval || config.kim3 || config.simpleText || config.fancyText) descriptors.addSingle(
 					instance.bufferDescriptorSetLayout,
 					descriptorSet -> this.perFrameDescriptorSet = descriptorSet
 			);
 			this.memory = combiner.build(false);
 
+			if (loader != null) loader.prepareStaging(descriptors);
+
+			this.vkDescriptorPool = descriptors.build("Vk2dDescriptors");
+
 			if (loader != null) {
-				loader.prepareStaging();
 				Vk2dResourceLoader[] pLoader = { loader };
 				SingleTimeCommands.submit(boiler, "Vk2dStaging", recorder ->
-						pLoader[0].performStaging(recorder, descriptors)
+						pLoader[0].performStaging(recorder)
 				).destroy();
 			}
 
-			this.vkDescriptorPool = descriptors.build("Vk2dDescriptors");
 			if (loader != null) this.resources = loader.finish();
 			if (resourceInput != null) resourceInput.close();
 		} catch (IOException io) {
 			throw new RuntimeException(io);
 		}
 
-		if (textBuffer != null) textBuffer.initializeDescriptorSets();
+		if (config.simpleText) simpleTextStyleCache = new Vk2dTextStyleCache(perFrameBuffer, perFrameDescriptorSet);
+		if (config.fancyText) fancyTextStyleCache = new Vk2dFancyTextStyleCache(perFrameBuffer, perFrameDescriptorSet);
 		if (perFrameDescriptorSet != VK_NULL_HANDLE) {
 			DescriptorUpdater updater = new DescriptorUpdater(stack, 1);
 			updater.writeStorageBuffer(0, perFrameDescriptorSet, 0, perFrameBuffer.buffer);
@@ -183,13 +187,14 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			AcquiredImage acquiredImage, BoilerInstance boiler
 	) {
 		perFrameBuffer.startFrame(frameIndex);
+		if (simpleTextStyleCache != null) simpleTextStyleCache.reset();
+		if (fancyTextStyleCache != null) fancyTextStyleCache.reset();
 
 		Map<Long, Long> framebufferMap = new HashMap<>();
 		framebufferMap.put(acquiredImage.getImage().vkImageView, framebuffers.getImageAssociation(acquiredImage));
 		Vk2dSwapchainFrame frame = new Vk2dSwapchainFrame(
 				acquiredImage.getImage(), perFrameBuffer, vkRenderPass, framebufferMap
 		);
-		if (textBuffer != null) frame.stages.add(textBuffer);
 		renderFrame(frame, frameIndex, recorder, acquiredImage, boiler);
 
 		frame.record(recorder);
@@ -224,7 +229,10 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			);
 		}
 		memory.destroy(boiler);
+		if (resources != null) resources.destroy(boiler);
 		pipelines.destroy();
+		if (simpleTextStyleCache != null) simpleTextStyleCache.destroy();
+		if (fancyTextStyleCache != null) fancyTextStyleCache.destroy();
 		instance.destroy();
 	}
 

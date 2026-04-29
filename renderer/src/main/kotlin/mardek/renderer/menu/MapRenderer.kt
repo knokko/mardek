@@ -70,7 +70,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 			)
 			val textColor = srgbToLinear(rgb(225, 185, 93))
 			val openedChests = area.chests.count { context.campaign.openedChests.contains(it) }
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				"$openedChests/${area.chests.size}", region.maxX - region.width / 3,
 				region.minY + region.height / 20, region.height / 25,
 				context.bundle.getFont(context.content.fonts.basic2.index),
@@ -169,7 +169,7 @@ internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 		}
 
 		val font = context.bundle.getFont(context.content.fonts.basic2.index)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			area.properties.displayName, region.minX + 0.02f * region.height,
 			region.maxY + 0.075f * region.height, 0.04f * region.height,
 			font, srgbToLinear(rgb(238, 203, 127)),

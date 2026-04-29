@@ -5,10 +5,11 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
@@ -19,7 +20,7 @@ import kotlin.math.roundToInt
 internal fun renderMonsterBlock(
 	battleContext: BattleRenderContext, enemy: MonsterCombatantState,
 	colorBatch: Vk2dColorBatch, lateColorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
-	imageBatch: Vk2dImageBatch, textBatch: Vk2dGlyphBatch, region: Rectangle
+	imageBatch: Vk2dImageBatch, textBatch: Vk2dSimpleTextBatch, region: Rectangle
 ) {
 	battleContext.run {
 		val opacity = if (!enemy.isAlive()) {
@@ -33,7 +34,7 @@ internal fun renderMonsterBlock(
 		if (opacity <= 0f) return
 
 		val sprite = enemy.element.thickSprite
-		val marginY = region.height / 40
+		val marginY = region.height / 36
 		val desiredElementSize = region.height - 2 * marginY
 		val scale = desiredElementSize / sprite.height.toFloat()
 		imageBatch.coloredScale(
@@ -67,12 +68,12 @@ internal fun renderMonsterBlock(
 		}
 
 		run {
-			val marginY = region.height / 10
+			val marginY = region.height / 9
 			val minX = region.minX + region.height / 2
 			val minY = region.minY + marginY
 			val maxX = minX + 3 * region.width / 4
 			val maxY = region.minY + region.height / 2
-			val weakColor = changeAlpha(enemy.element.color, 0.6f * opacity)
+			val weakColor = changeAlpha(enemy.element.color, 0.2f * opacity)
 			colorBatch.gradientUnaligned(
 				minX, maxY, weakColor,
 				maxX, maxY, 0,
@@ -80,27 +81,24 @@ internal fun renderMonsterBlock(
 				minX, minY, weakColor,
 			)
 
-			val font = context.bundle.getFont(context.content.fonts.fat.index)
+			val font = context.bundle.getFont(context.content.fonts.basic2.index)
 			val textColor = changeAlpha(srgbToLinear(rgb(
 				238, 203, 127
 			)), opacity)
 			val shadowColor = changeAlpha(srgbToLinear(rgb(
 				77, 64, 53
 			)), opacity)
-			val shadowOffset = 0.02f * region.height
 			textBatch.drawShadowedString(
 				enemy.overrideDisplayName ?: enemy.monster.displayName,
-				nameX.toFloat(), maxY.toFloat() - marginY,
-				0.3f * region.height, font, textColor,
-				0, 0f, shadowColor,
-				shadowOffset, shadowOffset, TextAlignment.LEFT,
+				nameX.toFloat(), maxY.toFloat() - marginY, 0.3f * region.height, font,
+				MardekTextStyles.COMBATANT_BLOCK_NAME, TextAlignment.LEFT,
 			)
 		}
 
 		val healthBar = ResourceBarRenderer(
 			context, ResourceType.Health, Rectangle(
 				region.minX + region.height * 5 / 9, region.minY + 6 * region.height / 10,
-				78 * region.width / 100 - region.height * 5 / 9, 2 * region.height / 10
+				78 * region.width / 100 - region.height * 5 / 9, region.height / 4
 			), colorBatch, textBatch
 		)
 		val displayedHealth = renderCombatantHealth(enemy, healthBar, renderTime, opacity)
@@ -111,21 +109,20 @@ internal fun renderMonsterBlock(
 			val color = srgbToLinear(rgb(239, 214, 95))
 			val font = context.bundle.getFont(context.content.fonts.large1.index)
 			val shadowColor = rgba(0, 0, 0, 200)
-			val shadowOffset = 0.015f * region.height
 			textBatch.drawShadowedString(
 				"Lv${enemy.getLevel(updateContext)}",
 				minX.toFloat(), region.maxY - 0.16f * region.height,
 				0.25f * region.height, font, changeAlpha(color, opacity),
-				0, 0f, shadowColor, shadowOffset,
-				shadowOffset, TextAlignment.LEFT,
+				0, 0f, shadowColor,
+				0.015f * region.height, TextAlignment.LEFT,
 			)
 		}
 
 		run {
-			val diameter = region.height - region.height / 20
-			val minY = region.minY + region.height / 40
+			val diameter = region.height - region.height / 18
+			val minY = region.minY + region.height / 36
 			val color = srgbToLinear(rgb(86, 63, 31))
-			val margin = region.height / 10
+			val margin = region.height / 9
 			ovalBatch.simpleAntiAliased(
 				region.minX + margin, minY + margin,
 				region.minX + diameter - 1 - margin, minY + diameter - 1 - margin,

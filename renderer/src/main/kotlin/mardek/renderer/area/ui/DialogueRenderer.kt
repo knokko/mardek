@@ -1,22 +1,33 @@
 package mardek.renderer.area.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
-import com.github.knokko.vk2d.text.TextAlignment
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.Vk2dFont
+import com.github.knokko.vk2d.text.HarfbuzzChecks.assertHbSuccess
+import com.github.knokko.vk2d.text.Vk2dTextStyle
+import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.action.*
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.renderPortraitAnimation
 import mardek.renderer.area.AreaRenderContext
-import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.renderBoxButton
 import mardek.renderer.util.renderInnerBoxButton
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_utf16
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_clear_contents
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_infos
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_positions
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_guess_segment_properties
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_shape
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 
 private const val CHOICE_CHAR = '•'
 
@@ -88,6 +99,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				portraitExpression = talkAction.expression,
 				dialogueLine = talkAction.text,
 				shownDialogueCharacters = actions.shownDialogueCharacters,
+				animationDuration = Duration.ZERO,
 			)
 			renderPortraitAnimation(context.content.portraits.animations, animationContext)
 
@@ -199,12 +211,12 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val cornerDistances = floatArrayOf(0.85f, 0.9f, 1.0f, 1.05f)
 
 			renderInnerBoxButton(
-				uiColorBatch, ovalBatch, textBatch, context.bundle, context.content.fonts,
+				uiColorBatch, ovalBatch, simpleTextBatch, fancyTextBatch, context.bundle, context.content.fonts,
 				nameRegion.maxX - nameRegion.height * 10 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "Q", "Skip",
 			)
 			renderInnerBoxButton(
-				uiColorBatch, ovalBatch, textBatch, context.bundle, context.content.fonts,
+				uiColorBatch, ovalBatch, simpleTextBatch, fancyTextBatch, context.bundle, context.content.fonts,
 				nameRegion.maxX - nameRegion.height * 5 / 4, boxY,
 				boxSize, borderWidth, boxRadius, cornerDistances, boxColor, "L", "Log",
 			)
@@ -221,7 +233,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val boxX = textRegion.maxX - boxOffset
 			val boxY = textRegion.maxY - boxOffset
 			renderBoxButton(
-				uiColorBatch, ovalBatch, textBatch, context.bundle, context.content.fonts,
+				uiColorBatch, ovalBatch, simpleTextBatch, fancyTextBatch, context.bundle, context.content.fonts,
 				minBoxSize, boxX, boxY
 			)
 		}
@@ -258,32 +270,31 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				val shadowColor = srgbToLinear(rgb(90, 65, 38))
 				val font = context.bundle.getFont(context.content.fonts.basic2.index)
 				val baseX = nameRegion.minX + region.height * if (portrait == null) 0.05f else 0.325f
-				textBatch.drawShadowedString(
+				simpleTextBatch.drawShadowedString(
 					displayName, baseX, nameRegion.maxY - nameRegion.height * 0.3f,
 					nameRegion.height * 0.45f, font, textColor, 0, 0f,
-					shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
+					shadowColor, shadowOffset, TextAlignment.LEFT,
 				)
 			}
 		}
 
 		run {
-			var baseFont = context.bundle.getFont(context.content.fonts.fat.index)
-			val choiceCharFont = context.bundle.getFont(context.content.fonts.basic2.index)
-			var baseTextColor = srgbToLinear(rgb(207, 192, 141))
-			var boldTextColor = srgbToLinear(rgb(253, 218, 116))
-			var strokeColor = srgbToLinear(rgb(41, 34, 20))
-			var strokeWidth = textRegion.height * 0.01f
+			var font = context.bundle.getFont(context.content.fonts.basic2.index)
+
+			var baseStyle = MardekTextStyles.Dialogue.BASE
+			var boldStyle = MardekTextStyles.Dialogue.BOLD
+			var shadowStyle: Vk2dTextStyle? = MardekTextStyles.Dialogue.SHADOW
 
 			if (actionNode is ChoiceActionNode) {
-				baseTextColor = srgbToLinear(rgb(68, 68, 68))
-				boldTextColor = srgbToLinear(rgb(164, 204, 253))
+				baseStyle = MardekTextStyles.Dialogue.UNSELECTED
+				boldStyle = MardekTextStyles.Dialogue.SELECTED
 			}
 
 			if (portrait != null) {
 				val voice = portrait.voiceStyle
 				if (voice != null) {
 					if (voice.startsWith("gdm_")) {
-						baseFont = context.bundle.getFont(context.content.fonts.gdm.index)
+						font = context.bundle.getFont(context.content.fonts.gdm.index)
 					}
 					if (voice.contains('_')) {
 						val maybeElementName = voice.substring(1 + voice.lastIndexOf('_'))
@@ -291,10 +302,9 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 							it.rawName.equals(maybeElementName, ignoreCase = true)
 						}
 						if (maybeElement != null) {
-							baseTextColor = maybeElement.color
-							strokeColor = multiplyAlpha(baseTextColor, 0.5f)
-							strokeWidth *= 3f
-							// TODO CHAP1 Revisit after fixing text rendering
+							baseStyle = MardekTextStyles.Dialogue.colored(maybeElement.color)
+							boldStyle = baseStyle
+							shadowStyle = null
 						}
 					}
 				}
@@ -316,8 +326,8 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			renderDialogueLines(
 				text, shownCharacters, baseTextX, baseTextX, maxTextX,
 				minTextY, textRegion.maxY.toFloat(),
-				textHeight, implicitLineSpacing, explicitLineSpacing, textBatch,
-				baseFont, choiceCharFont, baseTextColor, boldTextColor, strokeColor, strokeWidth,
+				textHeight, implicitLineSpacing, explicitLineSpacing, simpleTextBatch,
+				font, baseStyle, boldStyle, shadowStyle,
 			)
 		}
 	}
@@ -327,33 +337,52 @@ internal fun renderDialogueLines(
 	text: String, shownCharacters: Float,
 	minTextX: Float, firstTextX: Float, maxTextX: Float,
 	minTextY: Float, maxLineY: Float, textHeight: Float,
-	implicitLineSpacing: Float,
-	explicitLineSpacing: Float,
-	textBatch: MardekGlyphBatch,
-	baseFont: Vk2dFont, choiceCharFont: Vk2dFont,
-	baseTextColor: Int, boldTextColor: Int,
-	strokeColor: Int, strokeWidth: Float,
+	implicitLineSpacing: Float, explicitLineSpacing: Float,
+	textBatch: Vk2dSimpleTextBatch, font: Vk2dFont,
+	baseStyle: Vk2dTextStyle, boldStyle: Vk2dTextStyle, shadowStyle: Vk2dTextStyle?,
 ) : Float {
+	hb_buffer_clear_contents(textBatch.cache.hbBuffer)
+
+	MemoryStack.stackPush().use { stack ->
+		val textBytes = stack.UTF16(text, false)
+		hb_buffer_add_utf16(textBatch.cache.hbBuffer, textBytes, 0, textBytes.capacity())
+	}
+
+	hb_buffer_guess_segment_properties(textBatch.cache.hbBuffer)
+	hb_shape(font.hbFont, textBatch.cache.hbBuffer, null)
+
+	val glyphInfos = assertHbSuccess(
+		hb_buffer_get_glyph_infos(textBatch.cache.hbBuffer),
+		"buffer_get_glyph_infos"
+	)!!
+	val glyphOffsets = assertHbSuccess(
+		hb_buffer_get_glyph_positions(textBatch.cache.hbBuffer),
+		"buffer_get_glyph_positions"
+	)!!
+
 	var textX = firstTextX
 	var textY = minTextY
 
 	var remaining = shownCharacters
-	val textChars = text.chars().toArray()
 
 	var isBold = false
-	for (charIndex in 0 until textChars.size) {
+	val shadowOffset = 0.125f * textHeight
+	val baseStyleIndex = textBatch.cache.getStyleIndex(baseStyle)
+	val boldStyleIndex = textBatch.cache.getStyleIndex(boldStyle)
+	var shadowStyleIndex = 0
+	if (shadowStyle != null) shadowStyleIndex = textBatch.cache.getStyleIndex(shadowStyle)
+	for (glyphIndex in 0 until glyphInfos.limit()) {
 		if (remaining <= 0f) break
-		val nextChar = textChars[charIndex]
-		val font = if (nextChar == CHOICE_CHAR.code) choiceCharFont else baseFont
+		val charIndex = glyphInfos[glyphIndex].cluster()
+		val nextChar = text[charIndex]
 
 		var peekX = textX
-		for (peekIndex in charIndex until textChars.size) {
-			val peekChar = textChars[peekIndex]
-			if (peekChar == ' '.code || peekChar == '\n'.code) break
-			if (peekChar == '%'.code || peekChar == '$'.code) continue
+		for (peekGlyphIndex in glyphIndex until glyphInfos.limit()) {
+			val peekChar = text[glyphInfos[peekGlyphIndex].cluster()]
+			if (peekChar == ' ' || peekChar == '\n') break
+			if (peekChar == '%' || peekChar == '$') continue
 
-			val peekGlyph = font.getGlyphForChar(peekChar)
-			peekX += textHeight * font.getGlyphAdvance(peekGlyph)
+			peekX += font.getGlyphAdvanceX(glyphOffsets[peekGlyphIndex], textHeight)
 			if (peekX > maxTextX) {
 				textX = minTextX
 				textY += implicitLineSpacing
@@ -361,31 +390,40 @@ internal fun renderDialogueLines(
 			}
 		}
 
-		if (nextChar == '\n'.code) {
+		if (nextChar == '\n') {
 			textX = minTextX
 			textY += explicitLineSpacing
 			continue
 		}
 
-		if (nextChar == '$'.code) {
+		if (nextChar == '$') {
 			isBold = true
 			continue
 		}
 
-		if (nextChar == '%'.code) {
+		if (nextChar == '%') {
 			isBold = false
 			continue
 		}
 
 		if (textY > maxLineY) break
-		val textColor = if (isBold) boldTextColor else baseTextColor
-		val glyph = font.getGlyphForChar(nextChar)
+		val (textStyle, styleIndex) = if (isBold) Pair(boldStyle, boldStyleIndex)
+		else Pair(baseStyle, baseStyleIndex)
+		val glyph = glyphInfos[glyphIndex].codepoint()
+
+		val atlas = font.chooseAtlas(textHeight, textStyle.stroke.width, glyph)
+		if (shadowStyle != null) {
+			textBatch.glyphAt(
+				textX + shadowOffset, textY + shadowOffset, glyphOffsets[glyphIndex],
+				atlas, textHeight, glyph, shadowStyleIndex,
+			)
+		}
 		textBatch.glyphAt(
-			textX, textY, font, textHeight, glyph,
-			textColor, strokeColor, strokeWidth
+			textX, textY, glyphOffsets[glyphIndex], atlas,
+			textHeight, glyph, styleIndex,
 		)
 
-		textX += textHeight * font.getGlyphAdvance(glyph)
+		textX += font.getGlyphAdvanceX(glyphOffsets[glyphIndex], textHeight)
 
 		remaining -= 1f
 	}

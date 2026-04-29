@@ -1,11 +1,13 @@
+import org.gradle.internal.os.OperatingSystem
 import proguard.gradle.ProGuardTask
 
 apply plugin: "com.gradleup.shadow"
 
 dependencies {
-	implementation "com.github.knokko.update-loop:implementation:v2.0.0"
-	implementation "com.github.knokko:sample-profiler:v1.0.0"
+	implementation "com.github.knokko:update-loop:2.0.1"
+	implementation "com.github.knokko:sample-profiler:1.0.0"
 	for (dependency in project.ext.vulkanImplementationDependencies) implementation "$dependency"
+	testImplementation "org.lwjgl:lwjgl-harfbuzz"
 	implementation "org.lwjgl:lwjgl-sdl"
 	implementation "org.lwjgl:lwjgl-zstd"
 	implementation project(":content")
@@ -14,7 +16,10 @@ dependencies {
 	implementation project(":renderer")
 	implementation project(":state")
 	implementation project(":vk2d")
-	for (natives in project.ext.lwjglNatives) runtimeOnly "org.lwjgl:lwjgl-sdl::$natives"
+	for (natives in project.ext.lwjglNatives) {
+		testRuntimeOnly "org.lwjgl:lwjgl-harfbuzz::$natives"
+		runtimeOnly "org.lwjgl:lwjgl-sdl::$natives"
+	}
 }
 
 shadowJar {
@@ -82,6 +87,12 @@ tasks.register("run", JavaExec) {
 
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.game.MardekGameKt"
+
+	if (OperatingSystem.current().isMacOsX()) {
+		jvmArgs "-XstartOnFirstThread"
+		systemProperty "org.lwjgl.librarypath", "/usr/local/lib"
+		systemProperty "org.lwjgl.vulkan.libname", "libvulkan.1.dylib"
+	}
 }
 
 tasks.register("runBasicValidation", JavaExec) {
@@ -91,6 +102,12 @@ tasks.register("runBasicValidation", JavaExec) {
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.game.MardekGameKt"
 	args "basic-validation"
+
+	if (OperatingSystem.current().isMacOsX()) {
+		jvmArgs "-XstartOnFirstThread"
+		systemProperty "org.lwjgl.librarypath", "/usr/local/lib"
+		systemProperty "org.lwjgl.vulkan.libname", "libvulkan.1.dylib"
+	}
 }
 
 tasks.register("runGpuValidation", JavaExec) {
@@ -100,4 +117,10 @@ tasks.register("runGpuValidation", JavaExec) {
 	classpath sourceSets.main.runtimeClasspath
 	mainClass = "mardek.game.MardekGameKt"
 	args "gpu-validation"
+
+	if (OperatingSystem.current().isMacOsX()) {
+		jvmArgs "-XstartOnFirstThread"
+		systemProperty "org.lwjgl.librarypath", "/usr/local/lib"
+		systemProperty "org.lwjgl.vulkan.libname", "libvulkan.1.dylib"
+	}
 }

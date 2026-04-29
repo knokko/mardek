@@ -5,7 +5,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
 import mardek.renderer.area.ui.renderLootInventoryGrid
@@ -22,12 +22,13 @@ import kotlin.math.max
 internal fun renderBattleLoot(
 	context: RenderContext, loot: BattleLoot,
 	party: List<UsedPartyMember>, region: Rectangle
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 	val colorBatch = context.addColorBatch(1000)
 	val ovalBatch = context.addOvalBatch(20)
 	val kimBatch = context.addKim3Batch(100)
 	val imageBatch = context.addImageBatch(2)
-	val textBatch = context.addFancyTextBatch(1000)
+	val simpleTextBatch = context.addTextBatch(1000)
+	val fancyTextBatch = context.addFancyTextBatch(50)
 
 	val scale = max(1, region.height / (11 * 16))
 	val partyMinX = region.boundX - 5 * scale - 18 * scale * party.size
@@ -68,18 +69,18 @@ internal fun renderBattleLoot(
 			weakColor = srgbToLinear(rgb(51, 102, 255))
 		}
 		val textY = itemY + 10 * scale
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			itemStack.item.displayName, region.minX + 33 * scale, textY,
 			textHeight * 2 / 3, basicFont, strongColor,
 		)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"x ${itemStack.amount}", region.minX + 140 * scale, textY,
 			textHeight, basicFont, strongColor,
 		)
 
 		for ((column, _, characterState) in party) {
 			val currentAmount = characterState.countItemOccurrences(itemStack.item)
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				currentAmount.toString(), partyMinX + 2 * scale + 20 * column * scale, textY,
 				textHeight, basicFont, weakColor,
 			)
@@ -165,17 +166,17 @@ internal fun renderBattleLoot(
 	val goldRadius = (maxGoldY - minGoldY) / 2
 	colorBatch.fill(region.minX, minGoldY, goldCircleX, maxGoldY, goldBackground)
 
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"INVENTORY SPACE", x4, y4, 4 * scale, basicFont,
 		srgbToLinear(rgb(131, 81, 37)),
 	)
 
 	// Render "Spoils" and the random title
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"Spoils", region.minX + region.width / 50, region.minY + 9 * scale, 6 * scale,
 		spoilsFont, srgbToLinear(rgb(131, 81, 37)),
 	)
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		loot.itemText, region.minX + region.width / 50, region.minY + 21 * scale,
 		9 * scale / 2, basicFont, srgbToLinear(rgb(207, 192, 141)),
 	)
@@ -192,16 +193,16 @@ internal fun renderBattleLoot(
 		val goldTextY = maxGoldY - 5f * scale
 		val goldTextHeight = 7f * scale
 		val goldShadowOffset = 0.08f * goldTextHeight
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			String.format(Locale.ROOT, "%,d", context.campaign.gold),
 			region.minX + 27f * scale, goldTextY, goldTextHeight,
 			goldFont, goldTextColor,0, 0f, goldShadowColor,
-			goldShadowOffset, goldShadowOffset, TextAlignment.LEFT,
+			goldShadowOffset, TextAlignment.LEFT,
 		)
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			"+ ${loot.gold}", goldCircleX.toFloat(), goldTextY, goldTextHeight,
 			goldFont, goldTextColor, 0, 0f, goldShadowColor,
-			goldShadowOffset, goldShadowOffset, TextAlignment.RIGHT,
+			goldShadowOffset, TextAlignment.RIGHT,
 		)
 	}
 
@@ -213,12 +214,12 @@ internal fun renderBattleLoot(
 		val textHeight = 5 * scale
 		val getAll = Rectangle(region.minX, region.minY + 26 * scale, 100 * scale, 10 * scale)
 		renderButton(
-			colorBatch, ovalBatch, textBatch, basicFont, false, "GET ALL",
+			colorBatch, ovalBatch, fancyTextBatch, basicFont, false, "GET ALL",
 			false, loot.selectedElement is BattleLoot.SelectedGetAll, loot.items.isEmpty(),
 			getAll, outlineWidth, textOffsetX, region.minY + 26 * scale + textOffsetY, textHeight
 		)
 		renderButton(
-			colorBatch, ovalBatch, textBatch, basicFont, false, "FINISH",
+			colorBatch, ovalBatch, fancyTextBatch, basicFont, false, "FINISH",
 			false, loot.selectedElement is BattleLoot.SelectedFinish, false,
 			Rectangle(region.minX, region.boundY - 35 * scale, 100 * scale, 10 * scale),
 			outlineWidth, textOffsetX, region.boundY - 35 * scale + textOffsetY, textHeight
@@ -241,5 +242,5 @@ internal fun renderBattleLoot(
 		colorBatch, party, partyMinX + scale, region.boundY - 22 * scale, 18 * scale, scale
 	)
 
-	return Pair(colorBatch, textBatch)
+	return Pair(colorBatch, simpleTextBatch)
 }

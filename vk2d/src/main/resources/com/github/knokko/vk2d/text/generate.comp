@@ -1,0 +1,265 @@
+#version 450
+
+layout(set = 0, binding = 0) readonly buffer OutlineBuffer {
+	int rawOutlines[];
+};
+
+layout(set = 0, binding = 1, r8_snorm) uniform restrict writeonly image2D textureAtlas8;
+layout(set = 0, binding = 2, r16_snorm) uniform restrict writeonly image2D textureAtlas16;
+
+layout(push_constant) uniform PushConstants {
+	uvec2 baseAtlasPosition;
+	uvec2 sizeOnAtlas;
+	uint firstLineOffset;
+	uint numLines;
+	uint firstCurveOffset;
+	uint numCurves;
+	float outlineScale;
+	float distanceScale;
+	uint distanceMargin;
+	uint bitsPerPixel;
+};
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+/**
+ * Converts the given X-coordinate from the font/glyph coordinate space to the atlas coordinate space such that
+ * the origin in atlas coordinate space is the position of the current pixel whose signed distance is being computed.
+ */
+float glyphXtoAtlasX(uint glyphX) {
+	return outlineScale * glyphX - gl_GlobalInvocationID.x - 0.5 + distanceMargin;
+}
+
+/**
+ * Converts the given Y-coordinate from the font/glyph coordinate space to the atlas coordinate space such that
+ * the origin in atlas coordinate space is the position of the current pixel whose signed distance is being computed.
+ */
+float glyphYtoAtlasY(uint glyphY) {
+	return outlineScale * glyphY - gl_GlobalInvocationID.y - 0.5 + distanceMargin;
+}
+
+/**
+ * Computes the X-coordinate that the current atlas pixel would have in the font/glyph coordinate space.
+ * This basically solves `glyphXtoAtlasX(x) == 0`.
+ */
+float atlasOriginToGlyphX() {
+	return int((gl_GlobalInvocationID.x + 0.5 - distanceMargin) / outlineScale);
+}
+
+/**
+ * Computes the Y-coordinate that the current atlas pixel would have in the font/glyph coordinate space.
+ * This basically solves `glyphYtoAtlasY(y) == 0`.
+ */
+float atlasOriginToGlyphY() {
+	return (gl_GlobalInvocationID.y + 0.5 - distanceMargin) / outlineScale;
+}
+
+#define MARGIN_T 0.001
+
+ivec2 extractPoint(uint outlineIndex) {
+	int raw = rawOutlines[outlineIndex];
+	return ivec2(bitfieldExtract(raw, 0, 16), bitfieldExtract(raw, 16, 16));
+}
+
+void checkLine(uint rawLineIndex, inout float unsignedDistance, inout float distanceSign) {
+	uint baseLineIndex = firstLineOffset + 2 * rawLineIndex;
+
+	// The coordinates in font/glyph space:
+	ivec2 glyphSpaceStart = extractPoint(baseLineIndex);
+	ivec2 glyphSpaceEnd = extractPoint(baseLineIndex + 1);
+
+	// The coordinates in atlas space (origin is the position of this pixel in the atlas):
+	vec2 atlasSpaceStart = vec2(
+		glyphXtoAtlasX(glyphSpaceStart.x),
+		glyphYtoAtlasY(glyphSpaceStart.y)
+	);
+	vec2 atlasSpaceEnd = vec2(
+		glyphXtoAtlasX(glyphSpaceEnd.x),
+		glyphYtoAtlasY(glyphSpaceEnd.y)
+	);
+	vec2 atlasSpaceStartToEnd = atlasSpaceEnd - atlasSpaceStart;
+
+	// Check unsigned distance
+	{
+		float t = dot(-atlasSpaceStart, atlasSpaceStartToEnd) / dot(atlasSpaceStartToEnd, atlasSpaceStartToEnd);
+    	t = clamp(t, 0.0, 1.0);
+    	vec2 closest = atlasSpaceStart + t * atlasSpaceStartToEnd;
+    	unsignedDistance = min(length(closest), unsignedDistance);
+	}
+
+	// Flip distanceSign if and only if the line segment intersects glyphZeroY at an X-coordinate < glyphZeroX
+	float glyphZeroX = atlasOriginToGlyphX();
+	float glyphZeroY = atlasOriginToGlyphY();
+
+	bool anyNegativeX = glyphSpaceStart.x < glyphZeroX || glyphSpaceEnd.x < glyphZeroX;
+	bool anyNegativeY = glyphSpaceStart.y < glyphZeroY || glyphSpaceEnd.y < glyphZeroY;
+	bool anyNonNegativeY = glyphSpaceStart.y >= glyphZeroY || glyphSpaceEnd.y >= glyphZeroY;
+	if (anyNegativeX && anyNegativeY && anyNonNegativeY) {
+
+		// Line equation: y = start.y + t * startToEnd.y = 0 ->
+		//                t * startToEnd.y = -start.y ->
+		//                t = -start.y / startToEnd.y
+
+		// I think atlas-space computation has less floating-point cancellation than glyph-space computation here
+		float t = -atlasSpaceStart.y / atlasSpaceStartToEnd.y;
+		if (t >= -MARGIN_T && t <= 1.0 + MARGIN_T) {
+			float x = atlasSpaceStart.x + t * atlasSpaceStartToEnd.x;
+			if (x < 0.0) distanceSign = -distanceSign;
+		}
+	}
+}
+
+// Solves x^3 + a*x^2 + b*x + c = 0
+// The returned vec3 will contain all the real roots.
+vec3 solveCubic(float a, float b, float c) {
+    float p = b - a * a * (1.0 / 3.0);
+    float p3 = p * p * p;
+    float q = a * ((2.0 / 27.0) * a * a - (9.0 / 27.0)  * b) + c;
+    float d = q * q + p3 * (4.0 / 27.0);
+    float offset = a * (-1.0 / 3.0);
+    if(d >= 0.0) {
+        float z = sqrt(d);
+        vec2 x = (vec2(z, -z) - q) * 0.5;
+        vec2 uv = sign(x) * pow(abs(x), vec2(1.0 / 3.0));
+        return vec3(offset + uv.x + uv.y);
+    } else {
+	    float v = acos(-sqrt(-27.0 / p3) * q * 0.5) * (1.0 / 3.0);
+	    float m = cos(v);
+	    float n = sin(v) * 1.732050808;
+	    return vec3(m * 2.0, -n - m, n - m) * sqrt(-p * (1.0 / 3.0)) + offset;
+	}
+}
+
+void checkCurve(uint rawCurveIndex, inout float unsignedDistance, inout float distanceSign) {
+	uint baseCurveIndex = firstCurveOffset + 3 * rawCurveIndex;
+
+	// The coordinates in font/glyph space:
+	ivec2 glyphSpaceStart = extractPoint(baseCurveIndex);
+	ivec2 glyphSpaceControl = extractPoint(baseCurveIndex + 1);
+	ivec2 glyphSpaceEnd = extractPoint(baseCurveIndex + 2);
+
+	// The coordinates in atlas space (origin is the position of this pixel in the atlas):
+	vec2 atlasSpaceStart = vec2(
+		glyphXtoAtlasX(glyphSpaceStart.x),
+		glyphYtoAtlasY(glyphSpaceStart.y)
+	);
+	vec2 atlasSpaceControl = vec2(
+		glyphXtoAtlasX(glyphSpaceControl.x),
+		glyphYtoAtlasY(glyphSpaceControl.y)
+	);
+	vec2 atlasSpaceEnd = vec2(
+		glyphXtoAtlasX(glyphSpaceEnd.x),
+		glyphYtoAtlasY(glyphSpaceEnd.y)
+	);
+	float glyphZeroX = atlasOriginToGlyphX();
+    float glyphZeroY = atlasOriginToGlyphY();
+
+	// Check unsigned distance
+	{
+		// Minimize length(start * (1-t)^2 + 2 * control * t * (1-t) + end * t^2) =
+		//          length(t^2 * (start - 2 * control + end) + t * (-2 * start + 2 * control) + 1 * (start))
+
+		// Minimize (t^2 * (start.x - 2 * control.x + end.x) + t * (-2 * start.x + 2 * control.x) + start.x)^2 +
+		//              (t^2 * (start.y - 2 * control.y + end.y) + t * (-2 * start.y + 2 * control.y) + start.y)^2
+
+		// To simplify, use:
+		vec2 a = vec2(glyphSpaceStart - 2.0 * glyphSpaceControl + glyphSpaceEnd);
+		vec2 b = vec2(-2.0 * glyphSpaceStart + 2.0 * glyphSpaceControl);
+		vec2 c = vec2(glyphSpaceStart) - vec2(glyphZeroX, glyphZeroY);
+
+		// Minimize (t^2 * a.x + t * b.x + c.x)^2 + (t^2 * a.y + t * b.y + c.y)^2 =
+		//          t^4 * (a.x * a.x   +   a.y * a.y) +
+		//              t^3 * (2 * a.x * b.x   +   2 * a.y * b.y) +
+		//              t^2 * (2 * a.x * c.x + b.x * b.x   +   2 * a.y * c.y + b.y * b.y) +
+		//              t * (2 * b.x * c.x   +   2 * b.y * c.y) +
+		//              1 * (c.x * c.x   +   c.y * c.y)
+
+		// Derivative is 4 * t^3 * (a.x * a.x   +   a.y * a.y) +
+		//                   3 * t^2 * (2 * a.x * b.x   +   2 * a.y * b.y) +
+		//                   2 * t * (2 * a.x * c.x + b.x * b.x   +   2 * a.y * c.y + b.y * b.y) +
+		//                   1 * (2 * b.x * c.x   +   2 * b.y * c.y)
+
+		vec4 derivative = vec4(
+			4 * (a.x * a.x   +   a.y * a.y),
+			3 * (2 * a.x * b.x   +   2 * a.y * b.y),
+			2 * (2 * a.x * c.x + b.x * b.x   +   2 * a.y * c.y + b.y * b.y),
+			1 * (2 * b.x * c.x   +   2 * b.y * c.y)
+		);
+		vec3 normalized = derivative.yzw / derivative.x;
+		vec3 t = solveCubic(normalized.x, normalized.y, normalized.z);
+		t = clamp(t, 0.0, 1.0);
+
+		vec2 closest0 = atlasSpaceStart * (1.0 - t[0]) * (1.0 - t[0]) + 2.0 * atlasSpaceControl * (1.0 - t[0]) * t[0] + atlasSpaceEnd * t[0] * t[0];
+		vec2 closest1 = atlasSpaceStart * (1.0 - t[1]) * (1.0 - t[1]) + 2.0 * atlasSpaceControl * (1.0 - t[1]) * t[1] + atlasSpaceEnd * t[1] * t[1];
+		vec2 closest2 = atlasSpaceStart * (1.0 - t[2]) * (1.0 - t[2]) + 2.0 * atlasSpaceControl * (1.0 - t[2]) * t[2] + atlasSpaceEnd * t[2] * t[2];
+
+		unsignedDistance = min(min(length(closest0), length(closest1)), min(length(closest2), unsignedDistance));
+	}
+
+	// Flip distanceSign each time the curve intersects the Y-axis at a negative X-coordinate
+	bool anyNegativeX = glyphSpaceStart.x < glyphZeroX || glyphSpaceControl.x < glyphZeroX || glyphSpaceEnd.x < glyphZeroX;
+	bool anyNegativeY = glyphSpaceStart.y < glyphZeroY || glyphSpaceControl.y < glyphZeroY || glyphSpaceEnd.y < glyphZeroY;
+	bool anyNonNegativeY = glyphSpaceStart.y >= glyphZeroY || glyphSpaceControl.y >= glyphZeroY || glyphSpaceEnd.y >= glyphZeroY;
+
+	if (anyNegativeX && anyNegativeY && anyNonNegativeY) {
+
+		// Solve start.y * (1-t)^2 + control.y * 2 * t * (1-t) + end.y * t^2 = glyphZeroY
+		//       start.y * (t^2 - 2 * t + 1) + control.y * (-2 * t^2 + 2 * t) + end.y * t^2 - glyphZeroY = 0
+		//       t^2 * (start.y - 2 * control.y + end.y) + t * (-2 * start.y + 2 * control.y) + 1 * (start.y - glyphZeroY) = 0
+
+		// Quadratic formula:
+		int a = glyphSpaceStart.y - 2 * glyphSpaceControl.y + glyphSpaceEnd.y;
+		float b = -2 * glyphSpaceStart.y + 2 * glyphSpaceControl.y;
+        float c = glyphSpaceStart.y - glyphZeroY;
+
+		float t0, t1;
+		if (a != 0) {
+			float discriminant = b * b - 4 * a * c;
+			if (discriminant > 0) {
+				float root = sqrt(discriminant);
+				t0 = (-b - root) / (2 * a);
+				t1 = (-b + root) / (2 * a);
+			} else {
+				t0 = -10.0;
+				t1 = -20.0;
+			}
+		} else {
+			// Solve b * t + c = 0 ->
+			//       t = -c / b
+			t0 = -c / b;
+			t1 = -30.0;
+		}
+
+		if (t0 >= -MARGIN_T && t0 <= 1.0 + MARGIN_T) {
+			float x = atlasSpaceStart.x * (1.0 - t0) * (1.0 - t0) + 2.0 * atlasSpaceControl.x * (1.0 - t0) * t0 + t0 * t0 * atlasSpaceEnd.x;
+			if (x < 0.0) distanceSign = -distanceSign;
+		}
+
+		if (t1 >= -MARGIN_T && t1 <= 1.0 + MARGIN_T) {
+			float x = atlasSpaceStart.x * (1.0 - t1) * (1.0 - t1) + 2 * atlasSpaceControl.x * (1.0 - t1) * t1 + atlasSpaceEnd.x * t1 * t1;
+			if (x < 0.0) distanceSign = -distanceSign;
+		}
+	}
+}
+
+void main() {
+	if (gl_GlobalInvocationID.x >= sizeOnAtlas.x || gl_GlobalInvocationID.y >= sizeOnAtlas.y) return;
+	float unsignedDistance = 1234567.89;
+	float distanceSign = -1;
+
+	for (uint rawLineIndex = 0; rawLineIndex < numLines; rawLineIndex++) {
+		checkLine(rawLineIndex, unsignedDistance, distanceSign);
+	}
+
+	for (uint rawCurveIndex = 0; rawCurveIndex < numCurves; rawCurveIndex++) {
+		checkCurve(rawCurveIndex, unsignedDistance, distanceSign);
+	}
+
+	ivec2 atlasPosition = ivec2(baseAtlasPosition + gl_GlobalInvocationID.xy);
+	if (bitsPerPixel == 4 || bitsPerPixel == 8) {
+		imageStore(textureAtlas8, atlasPosition, vec4(unsignedDistance * distanceScale * distanceSign, 0, 0, 0));
+	}
+	if (bitsPerPixel == 16) {
+		imageStore(textureAtlas16, atlasPosition, vec4(unsignedDistance * distanceScale * distanceSign, 0, 0, 0));
+	}
+}

@@ -4,6 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.MardekTextStyles
 import mardek.state.util.Rectangle
 import kotlin.math.max
 
@@ -18,11 +19,6 @@ internal fun renderInGameMenuSectionList(menuContext: MenuRenderContext, region:
 		val selectedTintColor = srgbToLinear(rgba(6, 81, 156, 182))
 
 		val font = context.bundle.getFont(context.content.fonts.large2.index)
-		val lowBaseTextColor = srgbToLinear(rgb(214, 170, 98))
-		val lowSelectedTextColor = srgbToLinear(rgb(104, 179, 252))
-		val highBaseTextColor = srgbToLinear(rgb(249, 237, 210))
-		val highSelectedTextColor = srgbToLinear(rgb(230, 255, 255))
-		val shadowColor = rgba(0, 0, 0, 100)
 
 		for ((index, section) in SECTIONS.withIndex()) {
 			val lineY = region.minY + (index + 1) * region.height / 13
@@ -30,18 +26,13 @@ internal fun renderInGameMenuSectionList(menuContext: MenuRenderContext, region:
 
 			val lineColor: Int
 			val tintColor: Int
-			val lowTextColor: Int
-			val highTextColor: Int
-			if (menu.currentTab.getText() == section) {
+			val selected = menu.currentTab.getText() == section
+			if (selected) {
 				lineColor = selectedLineColor
 				tintColor = selectedTintColor
-				lowTextColor = lowSelectedTextColor
-				highTextColor = highSelectedTextColor
 			} else {
 				lineColor = baseLineColor
 				tintColor = baseTintColor
-				lowTextColor = lowBaseTextColor
-				highTextColor = highBaseTextColor
 			}
 
 			colorBatch.fill(region.minX, lineY, region.maxX, lineY + lineWidth - 1, lineColor)
@@ -49,12 +40,10 @@ internal fun renderInGameMenuSectionList(menuContext: MenuRenderContext, region:
 				region.minX, lineY - region.height / 30, region.maxX, lineY - 1,
 				0, tintColor, 0
 			)
-			textBatch.drawFancyString(
+			fancyTextBatch.drawString(
 				section, region.maxX - region.height / 100f, lineY - region.height / 100f,
-				region.height / 25f, font, lowTextColor,
-				shadowColor, region.height / 250f, TextAlignment.RIGHT,
-				lowTextColor, highTextColor, highTextColor, highTextColor,
-				0.5f, 0.5f, 0.5f, 0.5f,
+				0f, region.height / 25f, font,
+				MardekTextStyles.menuSection(selected), TextAlignment.RIGHT,
 			)
 		}
 	}

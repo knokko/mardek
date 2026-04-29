@@ -5,17 +5,18 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.frame.Vk2dRenderStage
-import com.github.knokko.vk2d.text.TextAlignment
 import com.github.knokko.vk2d.text.Vk2dFont
+import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.ui.TitleScreenContent
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
-import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.save.renderSaveSelectionModal
 import mardek.renderer.util.renderButton
@@ -38,7 +39,7 @@ internal val titleScreenInfo = loadInfo()
 internal fun renderTitleScreen(
 	context: RawRenderContext, fullRenderContext: RenderContext?,
 	state: TitleScreenState, region: Rectangle,
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 
 	val saveSelection = state.saveSelection
 	if (saveSelection != null && fullRenderContext != null) {
@@ -85,7 +86,7 @@ internal fun renderTitleScreen(
 
 private fun renderCoreTitleScreen(
 	context: RawRenderContext, stage: Vk2dRenderStage, state: TitleScreenState, region: Rectangle
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 	val imageBatch = context.pipelines.base.image.addBatch(stage, 12, context.titleScreenBundle)
 	imageBatch.fillWithoutDistortion(
 		region.minX.toFloat(), region.minY.toFloat(),
@@ -100,76 +101,60 @@ private fun renderCoreTitleScreen(
 
 	val buttonFont = context.titleScreenBundle.getFont(titleScreenInfo.largeFont.index)
 	val basicFont = context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index)
-	val glyphBatch = context.pipelines.fancyText.addBatch(
-		stage, 300, context.recorder,
-		context.textBuffer, context.perFrameDescriptorSet
+	val fancyTextBatch = context.pipelines.base.fancyText.addBatch(
+		stage, 300, context.fancyTextStyleCache
 	)
+	val simpleTextBatch = context.pipelines.base.simpleText.addBatch(context.stage, 100, context.textStyleCache)
 
-	run {
-		val outerColor = srgbToLinear(rgb(107, 53, 4))
-		val quarterColor = srgbToLinear(rgb(185, 93, 68))
-		val middleColor = srgbToLinear(rgb(230, 187, 178))
-		val innerBorderColor = srgbToLinear(rgb(68, 51, 34))
-		val outerBorderColor = srgbToLinear(rgb(190, 144, 95))
-		val borderWidth = 0.04f * region.height
-		glyphBatch.drawFancyBorderedString(
-			"MARDEK", region.minX + region.height * 0.09f, region.minY + region.height * 0.25f,
-			region.height * 0.18f, buttonFont, outerColor,
-			innerBorderColor, borderWidth, TextAlignment.LEFT,
-			quarterColor, middleColor, quarterColor, outerColor,
-			0.3f, 0.4f, 0.5f, 1f,
-			innerBorderColor, outerBorderColor, outerBorderColor, outerBorderColor,
-			0.25f * borderWidth, 0.25f * borderWidth, 12345f, 12345f
+	for (style in arrayOf(MardekTextStyles.TitleScreen.TITLE_BACK, MardekTextStyles.TitleScreen.TITLE_FRONT)) {
+		fancyTextBatch.drawString(
+			"MARDEK", region.minX + region.height * 0.09f,
+			region.minY + region.height * 0.25f,
+			0f, region.height * 0.18f, buttonFont, style, TextAlignment.LEFT,
 		)
 	}
 
 	run {
-		val shadowColor = srgbToLinear(rgb(91, 63, 30))
-		val lowerColor = srgbToLinear(rgb(184, 130, 60))
-		val upperColor = srgbToLinear(rgb(241, 182, 113))
-		glyphBatch.drawFancyShadowedString(
-			"Kotlin Edition", region.minX + region.height * 0.14f, region.minY + region.height * 0.38f,
-			region.height * 0.07f, buttonFont, lowerColor, 0, 0f,
-			lowerColor, upperColor, upperColor, upperColor,
-			0.3f, 0.3f, 12345f, 12345f,
-			shadowColor, region.height * 0.005f, region.height * 0.005f, TextAlignment.LEFT,
+		fancyTextBatch.drawShadowedString(
+			"Kotlin Edition", region.minX + region.height * 0.14f,
+			region.minY + region.height * 0.38f, 0f, region.height * 0.07f, buttonFont,
+			MardekTextStyles.TitleScreen.SUB_TITLE, TextAlignment.LEFT,
 		)
 	}
 
 	val selectedButton = if (state.saveSelection != null) -2 else state.selectedButton
 	state.newGameButton = renderLeftButton(
-		region, colorBatch, ovalBatch, glyphBatch, buttonFont, "New Game",
+		region, colorBatch, ovalBatch, fancyTextBatch, buttonFont, "New Game",
 		0.54f, selectedButton, 0
 	)
 
 	val availableCampaigns = state.availableCampaigns
 	state.loadGameButton = renderLeftButton(
-		region, colorBatch, ovalBatch, glyphBatch, buttonFont, "Load Game",
+		region, colorBatch, ovalBatch, fancyTextBatch, buttonFont, "Load Game",
 		0.64f, selectedButton, 1,
 		availableCampaigns != null && availableCampaigns.isEmpty(),
 	)
 	state.musicPlayerButton = renderLeftButton(
-		region, colorBatch, ovalBatch, glyphBatch, buttonFont, "Music Player",
+		region, colorBatch, ovalBatch, fancyTextBatch, buttonFont, "Music Player",
 		0.74f, selectedButton,2
 	)
 	state.quitButton = renderLeftButton(
-		region, colorBatch, ovalBatch, glyphBatch, buttonFont, "Quit",
+		region, colorBatch, ovalBatch, fancyTextBatch, buttonFont, "Quit",
 		0.84f, selectedButton, 3
 	)
 
 	if (state.newCampaignName != null) {
-		glyphBatch.drawShadowedString(
-			"Game name:", region.minX + 1.16f * region.height, region.minY + 0.5f * region.height,
-			0.04f * region.height, basicFont, srgbToLinear(rgb(238, 203, 127)),
-			0, 0f, srgbToLinear(rgb(61, 35, 18)),
-			0.003f * region.height, 0.003f * region.height, TextAlignment.LEFT,
+		simpleTextBatch.drawShadowedString(
+			"Game name:", region.minX + 1.16f * region.height,
+			region.minY + 0.5f * region.height, 0.04f * region.height, basicFont,
+			MardekTextStyles.TitleScreen.GAME_NAME_LABEL, TextAlignment.LEFT,
 		)
 		val nameRectangle = renderRightButton(
-			region, colorBatch, ovalBatch, glyphBatch, buttonFont, "",
+			region, colorBatch, ovalBatch, fancyTextBatch, buttonFont, "",
 			0.62f, state.selectedButton, -2, false,
 		)
 		state.beginButton = renderRightButton(
-			region, colorBatch, ovalBatch, glyphBatch, buttonFont, "BEGIN",
+			region, colorBatch, ovalBatch, fancyTextBatch, buttonFont, "BEGIN",
 			0.73f, state.selectedButton, 4, !state.isCampaignNameValid
 		)
 
@@ -215,18 +200,19 @@ private fun renderCoreTitleScreen(
 		val blinkPeriod = 1000_000_000L
 		val relativeTime = System.nanoTime() - referenceTime
 		val showCaret = (relativeTime % blinkPeriod) >= blinkPeriod / 2
-		glyphBatch.drawString(
-			"${state.newCampaignName}${if (showCaret) "|" else ""}", innerRectangle.minX + innerRectangle.height * 0.2f,
-			innerRectangle.maxY - innerRectangle.height * 0.2f, 0.03f * region.height, basicFont,
-			srgbToLinear(rgb(255, 203, 152))
+		simpleTextBatch.drawString(
+			"${state.newCampaignName}${if (showCaret) "|" else ""}",
+			innerRectangle.minX + innerRectangle.height * 0.2f,
+			innerRectangle.maxY - innerRectangle.height * 0.25f, 0.025f * region.height,
+			basicFont, MardekTextStyles.TitleScreen.GAME_NAME, TextAlignment.LEFT,
 		)
 	} else state.beginButton = null
 
-	return Pair(colorBatch, glyphBatch)
+	return Pair(colorBatch, simpleTextBatch)
 }
 
 private fun renderLeftButton(
-	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: MardekGlyphBatch,
+	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, textBatch: Vk2dFancyTextBatch,
 	font: Vk2dFont, text: String, relativeY: Float, selectedButton: Int, buttonIndex: Int, disabled: Boolean = false
 ): Rectangle? {
 	val rect = Rectangle(
@@ -240,7 +226,7 @@ private fun renderLeftButton(
 	val textBaseY = rect.maxY - outerRegion.height / 50
 	val textHeight = outerRegion.height / 22
 	renderButton(
-		colorBatch, ovalBatch, glyphBatch, font, true, text,
+		colorBatch, ovalBatch, textBatch, font, true, text,
 		true, selectedButton == buttonIndex && !disabled, disabled,
 		rect, outlineWidth, textOffsetX, textBaseY, textHeight
 	)
@@ -248,7 +234,7 @@ private fun renderLeftButton(
 }
 
 private fun renderRightButton(
-	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, glyphBatch: MardekGlyphBatch,
+	outerRegion: Rectangle, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, textBatch: Vk2dFancyTextBatch,
 	font: Vk2dFont, text: String, relativeY: Float, selectedButton: Int, buttonIndex: Int, disabled: Boolean,
 ): Rectangle {
 	val rect = Rectangle(
@@ -262,7 +248,7 @@ private fun renderRightButton(
 	val textBaseY = rect.maxY - outerRegion.height / 50
 	val textHeight = outerRegion.height / 21
 	renderButton(
-		colorBatch, ovalBatch, glyphBatch, font, true, text,
+		colorBatch, ovalBatch, textBatch, font, true, text,
 		true, selectedButton == buttonIndex, disabled,
 		rect, outlineWidth, textOffsetX, textBaseY, textHeight
 	)

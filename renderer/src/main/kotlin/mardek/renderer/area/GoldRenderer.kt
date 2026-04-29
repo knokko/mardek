@@ -16,7 +16,7 @@ internal fun renderObtainedGold(areaContext: AreaRenderContext) {
 		)
 
 		val font = context.bundle.getFont(context.content.fonts.basic1.index)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"+${state.obtainedGold!!.amount}", baseX, baseY - 1 * scale, 6 * scale,
 			font, srgbToLinear(rgb(255, 204, 51)),
 			srgbToLinear(rgb(53, 37, 22)), 1f * scale

@@ -8,6 +8,7 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.CombatStat
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.menu.determinePointerOffset
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
@@ -179,7 +180,6 @@ private fun renderCharacterBar(
 				statsColor = selectedTextColor
 				shadowColor = selectedShadowColor
 			}
-			val shadowOffset = 0.5f * scale
 			val statsHeight = 5f * scale
 
 			var attack = characterState.computeStatValue(
@@ -193,7 +193,7 @@ private fun renderCharacterBar(
 			var rangedDefense = characterState.computeStatValue(
 				character.baseStats, characterState.activeStatusEffects, CombatStat.RangedDefense
 			)
-			var overrideRangedDefenceColor: Int? = null
+			var overrideRangedDefenseColor: Int? = null
 
 			val hoveredItem = interaction.hoveredSlot?.get()?.item
 			if (hoveredItem != null) {
@@ -248,31 +248,36 @@ private fun renderCharacterBar(
 						if (changedAttack) overrideAttackColor = chooseColor(oldAttack, attack)
 						if (changedDefense) overrideDefenseColor = chooseColor(oldDefense, defense)
 						if (changedRangedDefense) {
-							overrideRangedDefenceColor = chooseColor(oldRangedDefense, rangedDefense)
+							overrideRangedDefenseColor = chooseColor(oldRangedDefense, rangedDefense)
 						}
 					}
 				}
 			}
 
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				attack.toString(), x1 + 10f * scale, statsY, statsHeight, font,
-				overrideAttackColor ?: statsColor, 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
+				MardekTextStyles.Inventory.characterBarStats(
+					overrideAttackColor ?: statsColor, shadowColor
+				),
+				TextAlignment.LEFT,
 			)
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				defense.toString(), x2 + 10f * scale, statsY, statsHeight, font,
-				overrideDefenseColor ?: statsColor, 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
+				MardekTextStyles.Inventory.characterBarStats(
+					overrideDefenseColor ?: statsColor, shadowColor
+				),
+				TextAlignment.LEFT,
 			)
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				rangedDefense.toString(), x4 + 10f * scale, statsY, statsHeight, font,
-				overrideRangedDefenceColor ?: statsColor, 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
+				MardekTextStyles.Inventory.characterBarStats(
+					overrideRangedDefenseColor ?: statsColor, shadowColor
+				),
+				TextAlignment.LEFT,
 			)
 		}
 
-		val textHeight = 5f * scale
-		val shadowOffset = 0.5f * scale
+		val textHeight = 4.5f * scale
 		run {
 			var textColor = baseTextColor
 			var shadowColor = baseShadowColor
@@ -280,17 +285,19 @@ private fun renderCharacterBar(
 				textColor = selectedTextColor
 				shadowColor = selectedShadowColor
 			}
-			textBatch.drawShadowedString(
-				character.name, x1 + margin * 0.5f, startY + margin + 5.5f * scale, textHeight,
-				font, textColor, 0, 0f,
-				shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
+			simpleTextBatch.drawShadowedString(
+				character.name, x1 + margin * 0.5f, startY + margin + 5f * scale,
+				textHeight, font, MardekTextStyles.Inventory.characterBarStats(
+					textColor, shadowColor
+				),
+				TextAlignment.LEFT,
 			)
 		}
 
-		textBatch.drawShadowedString(
-			"Lv${characterState.currentLevel}", x3.toFloat(), startY + margin + 5.5f * scale,
-			textHeight, font, baseTextColor, 0, 0f,
-			baseShadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT
+		simpleTextBatch.drawShadowedString(
+			"Lv${characterState.currentLevel}", x3.toFloat(), startY + margin + 5f * scale,
+			textHeight, font,
+			MardekTextStyles.Inventory.CHARACTER_BAR_LEVEL, TextAlignment.LEFT,
 		)
 
 		val baseBarWidth = 40 * scale
@@ -299,15 +306,14 @@ private fun renderCharacterBar(
 		val healthRenderer = ResourceBarRenderer(
 			context, ResourceType.Health, Rectangle(
 				barX, startY + margin * 13 / 9, baseBarWidth, barsHeight
-			), colorBatch, textBatch
-		)
+			), colorBatch, simpleTextBatch)
 		val maxHealth = characterState.determineMaxHealth(character.baseStats, characterState.activeStatusEffects)
 		healthRenderer.renderBar(characterState.currentHealth, maxHealth)
 		healthRenderer.renderTextBelowBar(characterState.currentHealth, maxHealth)
 
-		val manaRenderer = ResourceBarRenderer(context, ResourceType.Mana, Rectangle(
+		val manaRenderer = ResourceBarRenderer(context, ResourceType.ManaInventory, Rectangle(
 			barX, startY + margin * 37 / 8, baseBarWidth, barsHeight
-		), colorBatch, textBatch)
+		), colorBatch,  simpleTextBatch)
 		val maxMana = characterState.determineMaxMana(character.baseStats, characterState.activeStatusEffects)
 		manaRenderer.renderBar(characterState.currentMana, maxMana)
 		manaRenderer.renderTextBelowBar(characterState.currentMana, maxMana)

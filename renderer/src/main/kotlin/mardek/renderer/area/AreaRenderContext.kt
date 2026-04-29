@@ -51,8 +51,9 @@ internal class AreaRenderContext(
 	/**
 	 * Used during dialogue rendering, and for rendering special effects like souls
 	 */
-	val ovalBatch = context.addOvalBatch(24)
+	val ovalBatch = context.addOvalBatch(40)
 	val dialogueElementBatch = context.addImageBatch(2)
-	val textBatch = context.addFancyTextBatch(1000)
+	val simpleTextBatch = context.addTextBatch(2500)
+	val fancyTextBatch = context.addFancyTextBatch(20)
 	val portraitBatch = context.addAnimationPartBatch(200)
 }

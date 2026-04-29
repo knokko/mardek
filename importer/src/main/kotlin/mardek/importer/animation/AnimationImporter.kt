@@ -73,6 +73,7 @@ internal fun importAnimationNode(
 	if (childID == 2304) special = SpecialAnimationNode.ElementalSwing
 	if (childID == 219) special = SpecialAnimationNode.ElementalCastingCircle
 	if (childID == 2232) special = SpecialAnimationNode.ElementalCastingBackground
+	if (childID == 2752) special = SpecialAnimationNode.ElementalBash
 	if (instanceName == "StfxPoint") special = SpecialAnimationNode.StatusEffectPoint
 	if (instanceName == "core") special = SpecialAnimationNode.Core
 	if (instanceName == "BreathSource") special = SpecialAnimationNode.BreathSource
@@ -112,6 +113,10 @@ internal fun importAnimationNode(
 			if (special == null) special = extractEquipmentSpecial(animation)
 		}
 		if (childTag is ShapeTag) sprite = importAnimationSprite(childTag, false, context)
+		if (childTag is MorphShapeTag && (childID == 3198 || childID == 3199)) {
+			sprite = importAnimationSprite(FLASH.getCharacter(2312) as ShapeTag, false, context)
+			special = SpecialAnimationNode.MorphingShadow
+		}
 	}
 
 	var selectSkin: String? = null

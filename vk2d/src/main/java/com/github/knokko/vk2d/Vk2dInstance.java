@@ -26,12 +26,9 @@ public class Vk2dInstance {
 	public final long singleBufferPipelineLayout;
 	public final long kim3PipelineLayout;
 
-	public final VkbDescriptorSetLayout textScratchDescriptorLayout1;
-	public final VkbDescriptorSetLayout textTransferDescriptorLayout, textIntersectionDescriptorLayout;
 	public final VkbDescriptorSetLayout blurDescriptorLayout1;
-	public final long textScratchPipeline, textScratchPipelineLayout;
-	public final long textTransferPipeline, textTransferPipelineLayout;
-	public final long textIntersectionPipelineLayout;
+	public final VkbDescriptorSetLayout sdfGenerateDescriptorLayout;
+	public final long sdfGeneratePipeline, sdfGeneratePipelineLayout;
 	public final long blurPipelineLayout1, blurPipelineLayout2, blurPipelineLayoutSample;
 	public final long blurPipeline1, blurPipeline2;
 
@@ -59,7 +56,7 @@ public class Vk2dInstance {
 				this.colorPipelineLayout = VK_NULL_HANDLE;
 			}
 
-			if (config.image) {
+			if (config.image || config.simpleText || config.fancyText) {
 				this.smoothSampler = boiler.images.createSimpleSampler(
 						VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR,
 						VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, "Vk2dSmoothSampler"
@@ -72,7 +69,7 @@ public class Vk2dInstance {
 				this.imageDescriptorSetLayout = null;
 			}
 
-			if (config.shouldCreateBufferPipelineLayout() || config.text || config.blur || config.kim3) {
+			if (config.shouldCreateBufferPipelineLayout() || config.blur || config.kim3 || config.simpleText || config.fancyText) {
 				DescriptorSetLayoutBuilder builder = new DescriptorSetLayoutBuilder(stack, 1);
 				builder.set(
 						0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
@@ -110,7 +107,7 @@ public class Vk2dInstance {
 				this.kim3PipelineLayout = VK_NULL_HANDLE;
 			}
 
-			if (config.text || config.blur) {
+			if (config.blur) {
 				DescriptorSetLayoutBuilder descriptors = new DescriptorSetLayoutBuilder(stack, 2);
 				descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
 				descriptors.set(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
@@ -121,64 +118,30 @@ public class Vk2dInstance {
 				this.doubleComputeBufferDescriptorLayout = null;
 			}
 
-			if (config.text) {
-				DescriptorSetLayoutBuilder descriptors = new DescriptorSetLayoutBuilder(stack, 1);
+			if (config.simpleText || config.fancyText) {
+				var descriptors = new DescriptorSetLayoutBuilder(stack, 3);
 				descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
-				this.textScratchDescriptorLayout1 = descriptors.build(boiler, "Vk2dTextScratchDescriptorLayout1");
+				descriptors.set(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);
+				descriptors.set(2, 2, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);
+				this.sdfGenerateDescriptorLayout = descriptors.build(boiler, "Vk2dSdfGenerateDescriptorLayout");
 
-				descriptors = new DescriptorSetLayoutBuilder(stack, 6);
-				descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
-				descriptors.set(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
-				descriptors.set(2, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
-				descriptors.set(3, 3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
-				descriptors.set(4, 4, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
-				descriptors.set(5, 5, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);
-				this.textTransferDescriptorLayout = descriptors.build(boiler, "Vk2dTextTransferDescriptorLayout");
-
-				descriptors = new DescriptorSetLayoutBuilder(stack, 2);
-				descriptors.set(0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
-				descriptors.set(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
-				this.textIntersectionDescriptorLayout = descriptors.build(boiler, "Vk2dTextIntersectionDescriptorLayout");
-
-				VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
-				pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 48);
-				this.textScratchPipelineLayout = boiler.pipelines.createLayout(
-						pushConstants, "Vk2dTextScratchPipelineLayout",
-						doubleComputeBufferDescriptorLayout.vkDescriptorSetLayout,
-						textScratchDescriptorLayout1.vkDescriptorSetLayout
-				);
-				pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 16);
-				this.textTransferPipelineLayout = boiler.pipelines.createLayout(
-						pushConstants, "Vk2dTextTransferPipelineLayout",
-						textTransferDescriptorLayout.vkDescriptorSetLayout
-				);
-				pushConstants.get(0).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 8);
-				assert bufferDescriptorSetLayout != null;
-				this.textIntersectionPipelineLayout = boiler.pipelines.createLayout(
-						pushConstants, "Vk2dIntersectionPipelineLayout",
-						textIntersectionDescriptorLayout.vkDescriptorSetLayout,
-						bufferDescriptorSetLayout.vkDescriptorSetLayout
+				var pushConstants = VkPushConstantRange.calloc(1, stack);
+				pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 12 * 4);
+				this.sdfGeneratePipelineLayout = boiler.pipelines.createLayout(
+						pushConstants, "Vk2dSdfGeneratePipelineLayout",
+						sdfGenerateDescriptorLayout.vkDescriptorSetLayout
 				);
 
-				this.textScratchPipeline = boiler.pipelines.createComputePipeline(
-						textScratchPipelineLayout,
-						"com/github/knokko/vk2d/glyph/scratch.comp.spv",
-						"Vk2dTextScratchPipeline"
-				);
-				this.textTransferPipeline = boiler.pipelines.createComputePipeline(
-						textTransferPipelineLayout,
-						"com/github/knokko/vk2d/glyph/transfer.comp.spv",
-						"Vk2dTextTransferPipeline"
+				String shaderPath = "com/github/knokko/vk2d/text/";
+				this.sdfGeneratePipeline = boiler.pipelines.createComputePipeline(
+						this.sdfGeneratePipelineLayout,
+						shaderPath + "generate.comp.spv",
+						"Vk2dSdfGeneratePipeline"
 				);
 			} else {
-				this.textScratchDescriptorLayout1 = null;
-				this.textTransferDescriptorLayout = null;
-				this.textIntersectionDescriptorLayout = null;
-				this.textScratchPipelineLayout = VK_NULL_HANDLE;
-				this.textTransferPipelineLayout = VK_NULL_HANDLE;
-				this.textIntersectionPipelineLayout = VK_NULL_HANDLE;
-				this.textScratchPipeline = VK_NULL_HANDLE;
-				this.textTransferPipeline = VK_NULL_HANDLE;
+				this.sdfGenerateDescriptorLayout = null;
+				this.sdfGeneratePipeline = VK_NULL_HANDLE;
+				this.sdfGeneratePipelineLayout = VK_NULL_HANDLE;
 			}
 
 			if (config.blur) {
@@ -192,6 +155,7 @@ public class Vk2dInstance {
 				this.blurPipelineLayout1 = boiler.pipelines.createLayout(
 						pushConstants, "BlurPipelineLayoutStage1", blurDescriptorLayout1.vkDescriptorSetLayout
 				);
+				assert doubleComputeBufferDescriptorLayout != null;
 				this.blurPipelineLayout2 = boiler.pipelines.createLayout(
 						pushConstants, "BlurPipelineLayoutStage2",
 						doubleComputeBufferDescriptorLayout.vkDescriptorSetLayout
@@ -231,12 +195,15 @@ public class Vk2dInstance {
 			vkDestroySampler(boiler.vkDevice(), smoothSampler, samplerCallbacks);
 
 			VkAllocationCallbacks pipelineCallbacks = CallbackUserData.PIPELINE.put(stack, boiler);
-			long[] pipelines = { textScratchPipeline, textTransferPipeline, blurPipeline1, blurPipeline2 };
+			long[] pipelines = {
+					sdfGeneratePipeline,
+					blurPipeline1, blurPipeline2
+			};
 			for (long pipeline : pipelines) vkDestroyPipeline(boiler.vkDevice(), pipeline, pipelineCallbacks);
 
 			VkAllocationCallbacks pipelineLayoutCallbacks = CallbackUserData.PIPELINE_LAYOUT.put(stack, boiler);
 			long[] pipelineLayouts = {
-					textScratchPipelineLayout, textTransferPipelineLayout, textIntersectionPipelineLayout,
+					sdfGeneratePipelineLayout,
 					blurPipelineLayout1, blurPipelineLayout2, blurPipelineLayoutSample,
 					colorPipelineLayout, singleBufferPipelineLayout, kim3PipelineLayout
 			};
@@ -245,7 +212,7 @@ public class Vk2dInstance {
 			VkAllocationCallbacks descriptorLayoutCallbacks = CallbackUserData.DESCRIPTOR_SET_LAYOUT.put(stack, boiler);
 			VkbDescriptorSetLayout[] descriptorLayouts = {
 					imageDescriptorSetLayout, bufferDescriptorSetLayout, doubleComputeBufferDescriptorLayout,
-					textScratchDescriptorLayout1, textTransferDescriptorLayout, textIntersectionDescriptorLayout,
+					sdfGenerateDescriptorLayout,
 					blurDescriptorLayout1
 			};
 			for (VkbDescriptorSetLayout layout : descriptorLayouts) {

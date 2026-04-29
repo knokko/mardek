@@ -4,9 +4,9 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
-import com.github.knokko.vk2d.text.TextAlignment
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.Vk2dFont
+import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
 import mardek.state.saves.SaveSelectionState
 import mardek.state.util.Rectangle
@@ -16,7 +16,7 @@ import kotlin.math.min
 internal fun renderSaveSelectionModal(
 	context: RenderContext, basicFont: Vk2dFont, fatFont: Vk2dFont, upperFont: Vk2dFont,
 	state: SaveSelectionState, isSaving: Boolean, region: Rectangle,
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 	val colorBatch = context.addColorBatch(200)
 	val partBatch = context.addAnimationPartBatch(1500)
 	val imageBatch = context.addImageBatch(50)

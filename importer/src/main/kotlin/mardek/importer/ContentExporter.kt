@@ -107,8 +107,21 @@ private fun addKimImage(resourceWriter: Vk2dResourceWriter, kim: KimSprite) {
 	kim.index = resourceWriter.addFakeImage(kim.width, kim.height, kim.data)
 }
 
-private fun addFont(resourceWriter: Vk2dResourceWriter, font: Font) {
-	font.index = resourceWriter.addFont(ByteArrayInputStream(font.data))
+private fun addFont(resourceWriter: Vk2dResourceWriter, font: Font, extraAtlases: () -> Unit = {}) {
+	val fontDataIndex = resourceWriter.addFontBlob(ByteArrayInputStream(font.data))
+	font.index = resourceWriter.addFont(fontDataIndex, 0)
+	resourceWriter.addAtlas(
+		font.index, 8, 10f, 0.3f,
+		0f, 12f, 0f,
+		Float.MAX_VALUE, null,
+	)
+	resourceWriter.addAtlas(
+		font.index, 8, 15f, 0.3f,
+		0f, 20f, 0f,
+		Float.MAX_VALUE, null,
+	)
+	extraAtlases()
+	resourceWriter.addFallbackAtlas(font.index, 8, 30f, 0.3f)
 }
 
 private fun saveMainContent(content: Content) {
@@ -163,7 +176,14 @@ private fun saveTitleScreenBundle(content: Content) {
 	addBcImage(resourceWriter, titleScreenContent.background)
 	addFont(resourceWriter, titleScreenContent.basicFont)
 	addFont(resourceWriter, titleScreenContent.fatFont)
-	addFont(resourceWriter, titleScreenContent.largeFont)
+	addFont(resourceWriter, titleScreenContent.largeFont) {
+		resourceWriter.addAtlas(
+			titleScreenContent.largeFont.index,
+			8, 200f, 0.12f,
+			0f, Float.MAX_VALUE,
+			0f, 0.12f, "MARDEK"
+		)
+	}
 
 	val output = Files.newOutputStream(File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d").toPath())
 	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))

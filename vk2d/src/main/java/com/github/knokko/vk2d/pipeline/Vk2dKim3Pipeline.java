@@ -9,7 +9,6 @@ import com.github.knokko.vk2d.batch.MiniBatch;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch;
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle;
-import com.github.knokko.vk2d.text.Vk2dTextBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 

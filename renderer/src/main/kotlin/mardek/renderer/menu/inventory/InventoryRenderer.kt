@@ -21,7 +21,7 @@ internal fun renderInventory(menuContext: MenuRenderContext, region: Rectangle) 
 		val tab = menu.currentTab as InventoryTab
 		val inventoryContext = InventoryRenderContext(
 			context, colorBatch, spriteBatch,
-			null, imageBatch, lateColorBatch, textBatch,
+			null, imageBatch, lateColorBatch, simpleTextBatch, fancyTextBatch,
 		)
 		val (_, characterState) = state.allPartyMembers()[tab.interaction.partyIndex]!!
 		tab.equipmentRenderInfo = renderCharacterBars(

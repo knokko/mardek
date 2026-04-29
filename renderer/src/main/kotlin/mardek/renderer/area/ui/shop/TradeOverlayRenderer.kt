@@ -89,7 +89,7 @@ internal fun renderShopTradeOverlay(
 		itemScale, item.sprite.index,
 	)
 
-	val textBatch = context.addFancyTextBatch(400)
+	val textBatch = context.addTextBatch(400)
 	val simpleFont = context.bundle.getFont(context.content.fonts.basic2.index)
 	val weakTextColor = srgbToLinear(rgb(207, 192, 141))
 	val highlightTextColor = srgbToLinear(rgb(255, 203, 102))
@@ -103,7 +103,7 @@ internal fun renderShopTradeOverlay(
 		item.displayName, boxRegion.minX + 30f * itemScale, boxRegion.minY + 20f * itemScale,
 		0.11f * boxRegion.height, simpleFont, strongTextColor, 0, 0f,
 		rgb(0, 0, 0), 0.01f * boxRegion.height,
-		0.01f * boxRegion.height, TextAlignment.LEFT,
+		TextAlignment.LEFT,
 	)
 	colorBatch.fill(
 		boxRegion.minX + 50 * itemScale, boxRegion.minY + 25 * itemScale,
@@ -117,8 +117,7 @@ internal fun renderShopTradeOverlay(
 		boxRegion.minY + 33f * itemScale, 0.15f * boxRegion.height,
 		numberFont, strongTextColor, 0, 0f,
 		srgbToLinear(rgb(61, 35, 18)),
-		0.025f * boxRegion.height, 0.025f * boxRegion.height,
-		TextAlignment.LEFT,
+		0.025f * boxRegion.height, TextAlignment.LEFT,
 	)
 
 	val imageBatch = context.addImageBatch(4)
@@ -145,7 +144,7 @@ internal fun renderShopTradeOverlay(
 		boxRegion.minY + 30f * itemScale, 0.15f * boxRegion.height,
 		numberFont, highlightTextColor, 0, 0f,
 		rgb(0, 0, 0), 0.02f * boxRegion.height,
-		0.02f * boxRegion.height, TextAlignment.LEFT,
+		TextAlignment.LEFT,
 	)
 	textBatch.drawString(
 		"?", boxRegion.maxX - 5f * itemScale, boxRegion.minY + 29f * itemScale,

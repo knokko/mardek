@@ -1,15 +1,15 @@
 package mardek.renderer.actions
 
 import com.github.knokko.bitser.ReferenceLazyBits
-import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
-import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.action.ActionPlayCutscene
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.RenderContext
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.renderCutsceneAnimation
-import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
@@ -17,8 +17,10 @@ import kotlin.math.max
 
 internal fun renderCutscene(
 	context: RenderContext, actions: CampaignActionsState, action: ActionPlayCutscene,
-	renderTime: Long, region: Rectangle, createTextBatch: (capacity: Int) -> MardekGlyphBatch,
-) {
+	renderTime: Long, region: Rectangle, createTextBatch: (capacity: Int) -> Vk2dFancyTextBatch,
+): Vk2dColorBatch? {
+	var colorBatch: Vk2dColorBatch? = null
+
 	val allFrames = action.cutscene.payload.get().frames
 	var remainingTime = renderTime - actions.currentNodeStartTime
 	var frameIndex = -1
@@ -62,25 +64,19 @@ internal fun renderCutscene(
 			noMask = context.content.battle.noMask,
 			combat = null,
 			portrait = null,
+			animationDuration = allFrames.duration,
 		)
 		renderCutsceneAnimation(ReferenceLazyBits(allFrames), animationContext)
 
 		if (actions.cutsceneSubtitle.second.isNotEmpty()) {
 			val font = context.bundle.getFont(context.content.fonts.large2.index)
-			val outerColor = srgbToLinear(rgb(157, 230, 252))
-			val innerColor = srgbToLinear(rgb(248, 255, 255))
-			val shadowColor = rgb(0, 0, 255)
 			val textHeight = 0.015f * region.width * magicScaleX / magicScale
-			val shadowOffset = 0.08f * textHeight
 
 			val batch = createTextBatch(300)
 			fun draw(baseX: Float, baseY: Float, alignment: TextAlignment) {
-				batch.drawFancyShadowedString(
-					actions.cutsceneSubtitle.second, baseX, baseY, textHeight, font,
-					outerColor, 0, 0f,
-					outerColor, innerColor, innerColor, outerColor,
-					0.15f, 0.15f, 0.55f, 0.55f, shadowColor,
-					shadowOffset, shadowOffset, alignment
+				batch.drawShadowedString(
+					actions.cutsceneSubtitle.second, baseX, baseY, 0f, textHeight, font,
+					MardekTextStyles.Cutscenes.CAPTION, alignment,
 				)
 			}
 			if (actions.cutsceneSubtitle.first == 0) {
@@ -110,10 +106,13 @@ internal fun renderCutscene(
 		val fadeTime = 1_000_000_000L
 		if (timeUntilFinish < 1_000_000_000L) {
 			val fade = 1f - timeUntilFinish.toFloat() / fadeTime
-			context.addColorBatch(2).fill(
+			colorBatch = context.addColorBatch(50)
+			colorBatch.fill(
 				region.minX, region.minY, region.maxX, region.maxY,
 				rgba(0f, 0f, 0f, fade),
 			)
 		}
 	}
+
+	return colorBatch
 }

@@ -140,4 +140,13 @@ public abstract class Vk2dBatch {
 	public float normalizeY(float y) {
 		return 2f * y / height - 1;
 	}
+
+	public int countVerticesBeforeMiniBatch(MiniBatch miniBatch, int vertexSize) {
+		int vertexCount = 0;
+		for (var candidate : vertices) {
+			if (candidate == miniBatch) return vertexCount;
+			vertexCount += candidate.vertexData()[0].position() / vertexSize;
+		}
+		throw new IllegalArgumentException("Unknown mini batch " + miniBatch);
+	}
 }

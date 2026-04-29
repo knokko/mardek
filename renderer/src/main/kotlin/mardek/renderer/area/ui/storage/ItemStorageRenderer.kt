@@ -21,7 +21,8 @@ internal fun renderItemStorage(
 	val spriteBatch = context.addKim3Batch(500) // Character slots, item slots, equipment slots...
 	val imageBatch = context.addImageBatch(50) // Only a couple of icons
 	val lateColorBatch = context.addColorBatch(2) // Only for equipment slot name tooltips
-	val textBatch = context.addFancyTextBatch(5000) // Item descriptions can be long
+	val simpleTextBatch = context.addTextBatch(5000) // Item descriptions can be long...
+	val fancyTextBatch = context.addFancyTextBatch(200) // For rendering "MASTERED"
 
 	val splitX = region.minX + 7 * region.width / 10
 	val barHeight = region.height / 12
@@ -54,7 +55,8 @@ internal fun renderItemStorage(
 	)
 
 	val inventoryContext = InventoryRenderContext(
-		context, colorBatch, spriteBatch, null, imageBatch, lateColorBatch, textBatch
+		context, colorBatch, spriteBatch, null,
+		imageBatch, lateColorBatch, simpleTextBatch, fancyTextBatch
 	)
 
 	if (itemScale >= 1) {
@@ -105,13 +107,13 @@ internal fun renderItemStorage(
 		renderedCharacters = renderItemStorageCharacterSlots(inventoryContext, characterScale, charactersRegion, inventory)
 	}
 
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"Item Storage", region.minX + barHeight / 4, region.minY + 3 * barHeight / 4,
 		barHeight / 2, context.bundle.getFont(context.content.fonts.large2.index),
 		srgbToLinear(rgb(131, 81, 37))
 	)
 
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"Page ${storagePage + 1}", region.minX + 0.6f * region.height, region.minY + 0.7f * barHeight,
 		0.025f * region.height, context.bundle.getFont(context.content.fonts.basic2.index),
 		srgbToLinear(rgb(207, 192, 141)),
@@ -133,7 +135,7 @@ internal fun renderItemStorage(
 		)
 	}
 
-	textBatch.drawString(
+	simpleTextBatch.drawString(
 		"Allies", region.maxX - barHeight / 4, region.minY + 3 * barHeight / 4,
 		barHeight / 2, context.bundle.getFont(context.content.fonts.large2.index),
 		srgbToLinear(rgb(131, 81, 37)), TextAlignment.RIGHT,
@@ -146,5 +148,5 @@ internal fun renderItemStorage(
 		thrashRegion,
 	)
 
-	Pair(colorBatch, textBatch)
+	Pair(colorBatch, simpleTextBatch)
 }

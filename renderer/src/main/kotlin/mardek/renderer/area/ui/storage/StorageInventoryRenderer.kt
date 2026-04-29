@@ -53,7 +53,7 @@ internal fun renderItemStorageInventory(
 			val itemX = baseX + scale
 			val itemY = baseY + scale
 			simpleSpriteBatch!!.simple(itemX, itemY, scale, itemStack.item.sprite.index)
-			renderItemStackAmount(itemStack, itemX, itemY, scale, textBatch, font)
+			renderItemStackAmount(itemStack, itemX, itemY, scale, simpleTextBatch, font)
 		}
 	}
 

@@ -193,19 +193,21 @@ object TestItemStorage {
 
 	fun testTakeTunicFromStorage(instance: TestingInstance) {
 		instance.apply {
+			val renderWidth = 1600
+			val renderHeight = 1200
 			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			val tunic = content.items.items.find { it.displayName == "Tunic" }!!
-			while (state.campaign.itemStorage.size < 20) state.campaign.itemStorage.add(null)
-			state.campaign.itemStorage[19] = ItemStack(tunic, 1)
+			while (state.campaign.itemStorage.size < 23) state.campaign.itemStorage.add(null)
+			state.campaign.itemStorage[22] = ItemStack(tunic, 1)
 
 			openItemStorage(instance, state, updateContext)
 
 			val forbiddenSlotColor = arrayOf(Color(255, 162, 162))
 			val equalStatColor = arrayOf(Color(0, 220, 255))
 			testRendering(
-				state, 900, 700, "item-storage7",
+				state, renderWidth, renderHeight, "item-storage7",
 				baseColors + tunicColors,
 				selectedSlotColors + huffPuffColors + forbiddenSlotColor + equalStatColor,
 			)
@@ -219,7 +221,7 @@ object TestItemStorage {
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Click))
 			state.update(updateContext)
 			testRendering(
-				state, 900, 700, "item-storage8",
+				state, renderWidth, renderHeight, "item-storage8",
 				baseColors + selectedSlotColors + tunicColors,
 				huffPuffColors + forbiddenSlotColor + equalStatColor,
 			)
@@ -250,7 +252,7 @@ object TestItemStorage {
 			assertSame(content.audio.fixedEffects.ui.clickReject, updateContext.soundQueue.take())
 			assertNull(updateContext.soundQueue.take())
 			testRendering(
-				state, 900, 700, "item-storage9",
+				state, renderWidth, renderHeight, "item-storage9",
 				baseColors + tunicColors + forbiddenSlotColor,
 				huffPuffColors + selectedSlotColors + equalStatColor,
 			)
@@ -279,7 +281,7 @@ object TestItemStorage {
 			assertSame(content.audio.fixedEffects.ui.clickReject, updateContext.soundQueue.take())
 			assertNull(updateContext.soundQueue.take())
 			testRendering(
-				state, 900, 700, "item-storage10",
+				state, renderWidth, renderHeight, "item-storage10",
 				baseColors + tunicColors + selectedSlotColors + equalStatColor,
 				huffPuffColors + forbiddenSlotColor,
 			)

@@ -2,15 +2,20 @@ package mardek.renderer.battle
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
-import mardek.renderer.glyph.MardekGlyphBatch
+import mardek.renderer.MardekTextStyles
 import mardek.state.ingame.battle.LevelUpIndicator
 import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.util.Rectangle
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-internal fun renderLevelUps(battleContext: BattleRenderContext, textBatch: MardekGlyphBatch, region: Rectangle) {
+internal fun renderLevelUps(
+	battleContext: BattleRenderContext, simpleTextBatch: Vk2dSimpleTextBatch,
+	fancyTextBatch: Vk2dFancyTextBatch, region: Rectangle
+) {
 	battleContext.run {
 		for (combatant in battle.allPlayers() + battle.allOpponents()) {
 			if (combatant !is PlayerCombatantState) continue
@@ -32,21 +37,18 @@ internal fun renderLevelUps(battleContext: BattleRenderContext, textBatch: Marde
 			}
 
 			if (alpha > 0) {
-				val fatFont = context.bundle.getFont(context.content.fonts.basic1.index)
+				val font = context.bundle.getFont(context.content.fonts.basic1.index)
 				val renderPoint = combatant.renderInfo.statusEffectPoint
 				val renderY = renderPoint.y - offsetY
-				val outerColor = srgbToLinear(rgba(253, 235, 154, alpha))
-				val innerColor = srgbToLinear(rgba(253, 252, 235, alpha))
-				textBatch.drawFancyString(
-					"Level Up!", renderPoint.x, renderY, 0.035f * region.height,
-					fatFont, outerColor, rgba(0, 0, 0, alpha),
-					0.005f * region.height, TextAlignment.CENTERED,
-					outerColor, innerColor, innerColor, outerColor,
-					0.2f, 0.2f, 0.8f, 0.8f,
+				fancyTextBatch.drawString(
+					"Level Up!", renderPoint.x, renderY, 0f,
+					0.035f * region.height, font,
+					MardekTextStyles.BattleIndicators.levelUp(alpha),
+					TextAlignment.CENTERED,
 				)
-				textBatch.drawString(
+				simpleTextBatch.drawString(
 					"Level ${levelUp.newLevel}", renderPoint.x, renderY + 0.035f * region.height,
-					0.03f * region.height, fatFont,
+					0.03f * region.height, font,
 					srgbToLinear(rgba(247, 216, 132, alpha)),
 					rgba(0, 0, 0, alpha), 0.004f * region.height,
 					TextAlignment.LEFT,

@@ -4,6 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.area.AreaRenderContext
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderDescription
@@ -34,16 +35,13 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 
 		run {
 			val text = if (obtainedItemStack.itemStack != null) "TREASURE!!" else "PLOT ITEM!!!"
-			val lowColor = srgbToLinear(rgb(204, 153, 0))
-			val highColor = srgbToLinear(rgb(255, 204, 102))
-			val strokeColor = srgbToLinear(rgb(132, 81, 37))
 			val font = context.bundle.getFont(context.content.fonts.basic2.index)
-			textBatch.drawFancyString(
-				text, rectMinX + 2f * scale, rectMinY - 2f * scale, 8f * scale,
-				font, lowColor, strokeColor, 2.5f * scale, TextAlignment.LEFT,
-				lowColor, highColor, highColor, highColor,
-				0.5f, 0.5f, 0.5f, 0.5f
-			)
+			for (style in arrayOf(MardekTextStyles.CHEST_TITLE_BACK, MardekTextStyles.CHEST_TITLE_FRONT)) {
+				fancyTextBatch.drawString(
+					text, rectMinX + 1f * scale, rectMinY - 4f * scale, 0f,
+					8f * scale, font, style, TextAlignment.LEFT,
+				)
+			}
 		}
 
 		if (obtainedItemStack.itemStack != null) {
@@ -104,19 +102,19 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 		} else Pair(obtainedItemStack.plotItem!!.displayName, obtainedItemStack.plotItem!!.description)
 
 		val font = context.bundle.getFont(context.content.fonts.basic2.index)
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			itemName, minTextX.toFloat(), rectMinY + 9f * scale, 5f * scale,
 			font, brightTextColor, 0, 0f, rgb(0, 0, 0),
-			0.6f * scale, 0.6f * scale, TextAlignment.LEFT
+			0.6f * scale, TextAlignment.LEFT
 		)
 
 		var textY = rectMinY + 20 * scale
 
 		fun drawLine(currentLine: String) {
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				currentLine, minTextX.toFloat(), textY.toFloat(), 4f * scale, font,
 				simpleTextColor, 0, 0f, rgb(0, 0, 0),
-				0.5f * scale, 0.5f * scale, TextAlignment.LEFT
+				0.5f * scale, TextAlignment.LEFT
 			)
 			@Suppress("AssignedValueIsNeverRead")
 			textY += 8 * scale
@@ -125,11 +123,11 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 		renderDescription(description, 42, ::drawLine)
 
 		if (obtainedItemStack.itemStack != null) {
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				"x ${obtainedItemStack.itemStack!!.amount}",
 				rectMaxX + 4f * scale, rectMaxY - scale.toFloat(), 8f * scale, font,
 				brightTextColor, 0, 0f, rgb(0, 0, 0),
-				0.8f * scale, 0.8f * scale, TextAlignment.LEFT
+				0.8f * scale, TextAlignment.LEFT
 			)
 
 			for ((column, _, characterState) in obtainedItemStack.usedParty) {
@@ -145,18 +143,18 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 				}
 
 				val alreadyHas = characterState.countItemOccurrences(obtainedItemStack.itemStack!!.item)
-				textBatch.drawShadowedString(
+				simpleTextBatch.drawShadowedString(
 					alreadyHas.toString(), minX + 9f * scale, rectMaxY + 32f * scale, 6f * scale,
 					font, brightTextColor, 0, 0f, rgb(0, 0, 0),
-					0.8f * scale, 0.8f * scale, TextAlignment.CENTERED
+					0.8f * scale, TextAlignment.CENTERED
 				)
 			}
 
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				"Already has:", rectMinX - 2 * scale, rectMaxY + 32 * scale,
 				4 * scale, font, simpleTextColor, TextAlignment.RIGHT
 			)
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				"Space:", rectMinX - 2 * scale, rectMaxY + 43 * scale,
 				4 * scale, font, simpleTextColor, TextAlignment.RIGHT
 			)

@@ -2,10 +2,10 @@ package mardek.renderer.menu.inventory
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
-import com.github.knokko.vk2d.text.TextAlignment
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.Vk2dFont
+import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.inventory.ItemStack
-import mardek.renderer.glyph.MardekGlyphBatch
 import mardek.renderer.util.gradientWithBorder
 import mardek.state.ingame.menu.inventory.InventoryInteractionState
 import mardek.state.ingame.menu.inventory.InventorySlotReference
@@ -18,7 +18,7 @@ private val DARK_SLOT_COLOR = srgbToLinear(rgb(74, 48, 30))
 
 internal fun renderItemStackAmount(
 	stack: ItemStack, itemX: Int, itemY: Int, itemScale: Int,
-	textBatch: MardekGlyphBatch, font: Vk2dFont, skipOne: Boolean = true
+	textBatch: Vk2dSimpleTextBatch, font: Vk2dFont, skipOne: Boolean = true
 ) {
 	if (stack.amount == 1 && skipOne) return
 
@@ -90,7 +90,7 @@ internal fun renderItemGrid(
 				val itemY = startY + 1 + fullSlotSize * y + scale
 				simpleSpriteBatch?.simple(itemX, itemY, scale, itemStack.item.sprite.index)
 				areaSpriteBatch?.draw(itemStack.item.sprite, itemX, itemY, scale)
-				renderItemStackAmount(itemStack, itemX, itemY, scale, textBatch, font)
+				renderItemStackAmount(itemStack, itemX, itemY, scale, simpleTextBatch, font)
 			}
 		}
 
@@ -105,7 +105,7 @@ internal fun renderItemGrid(
 			)
 			renderItemStackAmount(
 				pickedUpItem, itemX, itemY + itemScale, itemScale,
-				context.addFancyTextBatch(10), font,
+				context.addTextBatch(10), font,
 			)
 		}
 

@@ -1,7 +1,6 @@
 package mardek.renderer
 
 import com.github.knokko.boiler.BoilerInstance
-import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.memory.MemoryBlock
@@ -13,7 +12,8 @@ import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader
-import com.github.knokko.vk2d.text.Vk2dTextBuffer
+import com.github.knokko.vk2d.text.Vk2dFancyTextStyleCache
+import com.github.knokko.vk2d.text.Vk2dTextStyleCache
 import mardek.content.Content
 import mardek.state.GameStateManager
 import mardek.state.VideoSettings
@@ -56,14 +56,14 @@ class RenderManager(
 			loader.claimMemory(combiner)
 			this.mainResourceMemory = combiner.build(false)
 
-			loader.prepareStaging()
-
 			val descriptors = DescriptorCombiner(boiler)
+			loader.prepareStaging(descriptors)
+			this.mainDescriptorPool = descriptors.build("MainDescriptors")
+
 			SingleTimeCommands.submit(boiler, "Load MainContent") { recorder ->
-				loader.performStaging(recorder, descriptors)
+				loader.performStaging(recorder)
 			}.destroy()
 
-			this.mainDescriptorPool = descriptors.build("MainDescriptors")
 			this.mainResources = loader.finish()
 		} finally {
 			isLoading!!.complete(Unit)
@@ -71,16 +71,16 @@ class RenderManager(
 	}
 
 	fun renderFrame(
-		gameState: GameStateManager, frame: Vk2dSwapchainFrame, recorder: CommandRecorder,
-		textBuffer: Vk2dTextBuffer, perFrameDescriptorSet: Long,
-		framebuffers: MardekFramebuffers, perFrame: PerFrameResources, currentFps: Long,
+		gameState: GameStateManager, frame: Vk2dSwapchainFrame,
+		textStyleCache: Vk2dTextStyleCache, fancyTextStyleCache: Vk2dFancyTextStyleCache,
+		perFrameDescriptorSet: Long, framebuffers: MardekFramebuffers, perFrame: PerFrameResources, currentFps: Long,
 	) {
 		val currentState = gameState.currentState
 		val fullRenderContext = if (this::content.isInitialized && this::mainResources.isInitialized) {
 			val campaign = if (currentState is InGameState) currentState.campaign else CampaignState()
 			RenderContext(
 				frame, frame.swapchainStage, framebuffers, perFrame,
-				pipelines, textBuffer, perFrameDescriptorSet, recorder, content, gameState,
+				pipelines, textStyleCache, fancyTextStyleCache, perFrameDescriptorSet, content, gameState,
 				campaign, mainResources, videoSettings, currentFps,
 			)
 		} else null
@@ -89,7 +89,7 @@ class RenderManager(
 			renderGame(fullRenderContext)
 		} else {
 			val partialRenderContext = RawRenderContext(
-				frame.swapchainStage, pipelines, textBuffer, perFrameDescriptorSet, recorder,
+				frame.swapchainStage, pipelines, textStyleCache, fancyTextStyleCache, perFrameDescriptorSet,
 				null, gameState, titleScreenResources, videoSettings, currentFps,
 			)
 			renderGame(partialRenderContext, fullRenderContext)
@@ -109,6 +109,7 @@ class RenderManager(
 	fun cleanUp() {
 		pipelines.destroy(boiler)
 		if (this::mainResourceMemory.isInitialized) mainResourceMemory.destroy(boiler)
+		if (this::mainResources.isInitialized) mainResources.destroy(boiler)
 		if (mainDescriptorPool != VK_NULL_HANDLE) {
 			stackPush().use { stack ->
 				vkDestroyDescriptorPool(
@@ -126,7 +127,8 @@ class RenderManager(
 			config.oval = true
 			config.image = true
 			config.kim3 = true
-			config.text = true
+			config.simpleText = true
+			config.fancyText = true
 			config.blur = true
 		}
 	}

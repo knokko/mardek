@@ -211,7 +211,7 @@ object TestMastery {
 
 				val masteredColors = arrayOf(
 					Color(213, 0, 0), // Outer color
-					Color(255, 142, 45), // Inner color
+					Color(255, 147, 26), // Inner color
 				)
 				val notMasteredColors = arrayOf(
 					Color(254, 95, 95), // Text color

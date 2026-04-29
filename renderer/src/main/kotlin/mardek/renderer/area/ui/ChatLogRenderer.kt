@@ -1,19 +1,25 @@
 package mardek.renderer.area.ui
 
-import com.github.knokko.boiler.utilities.ColorPacker.rgb
-import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.vk2d.text.HarfbuzzChecks.assertHbSuccess
 import com.github.knokko.vk2d.text.TextAlignment
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.area.AreaRenderContext
 import mardek.state.ingame.actions.AreaActionsState
+import org.lwjgl.system.MemoryStack
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_utf16
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_clear_contents
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_positions
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_guess_segment_properties
+import org.lwjgl.util.harfbuzz.HarfBuzz.hb_shape
+import kotlin.use
 
 internal fun renderChatLog(areaContext: AreaRenderContext, actions: AreaActionsState) {
 	areaContext.run {
-		val baseColor = srgbToLinear(rgb(186, 146, 77))
-		val boldColor = srgbToLinear(rgb(253, 218, 116))
 		val titleFont = context.bundle.getFont(context.content.fonts.large1.index)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"Chat Log", region.maxX - region.width * 0.025f, region.minY + region.height * 0.06f,
-			region.height * 0.03f, titleFont, baseColor, TextAlignment.RIGHT,
+			region.height * 0.03f, titleFont,
+			MardekTextStyles.Dialogue.CHAT_LOG_BASE.fill.color, TextAlignment.RIGHT,
 		)
 
 		val baseFont = context.bundle.getFont(context.content.fonts.basic2.index)
@@ -26,24 +32,45 @@ internal fun renderChatLog(areaContext: AreaRenderContext, actions: AreaActionsS
 
 			val heightA = 0.0175f * region.height
 			val lineSpacing = 0.025f * region.height
-			val nameColor = entry.speakerElement?.color ?: baseColor
-			textBatch.drawString(
+			var nameStyle = MardekTextStyles.Dialogue.CHAT_LOG_BASE
+			val customNameColor = entry.speakerElement?.chatLogColor
+			if (customNameColor != null) nameStyle = nameStyle.withDifferentFillColor(customNameColor)
+			simpleTextBatch.drawString(
 				entry.speaker, minTextX, textY,
-				heightA, baseFont, nameColor
+				heightA, baseFont, nameStyle, TextAlignment.LEFT,
 			)
 
-			var textX = minTextX + 0.003f * region.height
-			for (textChar in entry.speaker) {
-				val glyph = baseFont.getGlyphForChar(textChar.code)
-				textX += heightA * baseFont.getGlyphAdvance(glyph)
+			var textX = minTextX
+			run {
+				hb_buffer_clear_contents(simpleTextBatch.cache.hbBuffer)
+
+				MemoryStack.stackPush().use { stack ->
+					val textBytes = stack.UTF16(entry.speaker, false)
+					hb_buffer_add_utf16(
+						simpleTextBatch.cache.hbBuffer, textBytes,
+						0, textBytes.capacity()
+					)
+				}
+
+				hb_buffer_guess_segment_properties(simpleTextBatch.cache.hbBuffer)
+				hb_shape(baseFont.hbFont, simpleTextBatch.cache.hbBuffer, null)
+
+				val glyphOffsets = assertHbSuccess(
+					hb_buffer_get_glyph_positions(simpleTextBatch.cache.hbBuffer),
+					"buffer_get_glyph_positions"
+				)!!
+
+				for (offset in glyphOffsets) {
+					textX += baseFont.getGlyphAdvanceX(offset, heightA)
+				}
 			}
 
 			textY = renderDialogueLines(
 				": ${entry.text}", entry.text.length.toFloat() + 2f,
 				minTextX, textX, region.maxX - 0.05f * region.height, textY, maxLineY,
 				heightA, lineSpacing, lineSpacing,
-				textBatch, baseFont, baseFont, baseColor, boldColor,
-				0, 0f
+				simpleTextBatch, baseFont, MardekTextStyles.Dialogue.CHAT_LOG_BASE,
+				MardekTextStyles.Dialogue.CHAT_LOG_BOLD, null,
 			)
 			textY += 0.05f * region.height
 		}

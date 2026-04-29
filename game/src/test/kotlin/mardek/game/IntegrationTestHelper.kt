@@ -9,7 +9,8 @@ import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.boiler.synchronization.ResourceUsage
 import com.github.knokko.boiler.utilities.BoilerMath.leastCommonMultiple
 import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
-import com.github.knokko.vk2d.text.Vk2dTextBuffer
+import com.github.knokko.vk2d.text.Vk2dFancyTextStyleCache
+import com.github.knokko.vk2d.text.Vk2dTextStyleCache
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -59,7 +60,6 @@ fun TestingInstance.testRendering(
 		2000_000L, perFrameAlignment,
 		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT or VK_BUFFER_USAGE_VERTEX_BUFFER_BIT
 	))
-	val textBuffer = Vk2dTextBuffer(vk2d, combiner, descriptorCombiner, 1)
 	val targetImage = combiner.addImage(ImageBuilder("TargetImage($name)", width, height)
 		.format(VK_FORMAT_R8G8B8A8_SRGB)
 		.setUsage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT or VK_IMAGE_USAGE_TRANSFER_SRC_BIT), 1f
@@ -82,6 +82,8 @@ fun TestingInstance.testRendering(
 
 	val memory = combiner.build(false)
 	val descriptorPool = descriptorCombiner.build("TestHelper$name")
+	val textStyleCache = Vk2dTextStyleCache(perFrameBuffer, perFrameDescriptorSet[0])
+	val fancyTextStyleCache = Vk2dFancyTextStyleCache(perFrameBuffer, perFrameDescriptorSet[0])
 
 	val mainFramebuffer = boiler.images.createFramebuffer(
 		pipelineContext.vkRenderPass, width, height,
@@ -106,16 +108,14 @@ fun TestingInstance.testRendering(
 	)
 
 	perFrameBuffer.startFrame(0)
-	textBuffer.initializeDescriptorSets()
 
 	SingleTimeCommands.submit(boiler, name) { recorder ->
 		val frame = Vk2dSwapchainFrame(
 			targetImage, perFrameBuffer, pipelineContext.vkRenderPass, imageViewToFramebuffer
 		)
-		frame.stages.add(textBuffer)
 		recorder.transitionLayout(targetImage, null, ResourceUsage.COLOR_ATTACHMENT_WRITE)
 		renderManager.renderFrame(
-			state, frame, recorder, textBuffer, perFrameDescriptorSet[0],
+			state, frame, textStyleCache, fancyTextStyleCache, perFrameDescriptorSet[0],
 			framebuffers, perFrameResources, 123
 		)
 		frame.record(recorder)
@@ -127,6 +127,8 @@ fun TestingInstance.testRendering(
 	val result = destinationBuffer.decodeBufferedImage(width, height)
 	ImageIO.write(result, "PNG", File("$actualResultsDirectory/$name.png"))
 	vkDestroyFramebuffer(boiler.vkDevice(), mainFramebuffer, null)
+	textStyleCache.destroy()
+	fancyTextStyleCache.destroy()
 	vkDestroyDescriptorPool(boiler.vkDevice(), descriptorPool, null)
 	memory.destroy(boiler)
 	framebuffers.destroy()

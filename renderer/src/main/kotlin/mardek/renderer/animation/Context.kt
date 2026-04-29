@@ -9,6 +9,7 @@ import mardek.content.stats.Element
 import mardek.state.ingame.battle.CombatantRenderInfo
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
+import kotlin.time.Duration
 
 private val defaultReferenceTime = System.nanoTime()
 
@@ -26,11 +27,15 @@ class AnimationContext(
 	val dialogueLine: String = "",
 	val shownDialogueCharacters: Float = 0f,
 	val referenceTime: Long = defaultReferenceTime,
+	animationDuration: Duration,
 ) {
 	val stack = mutableListOf(TransformStackEntry(
 		parentMatrix, parentColorTransform,
 		null, combat?.rootSkin,
 		null, Matrix3x2f(),
+		if (animationDuration == Duration.ZERO) 0f else (
+				(renderTime - referenceTime) % animationDuration.inWholeNanoseconds
+		).toFloat() / animationDuration.inWholeNanoseconds,
 	))
 }
 
@@ -53,4 +58,9 @@ class TransformStackEntry(
 	val skin: String?,
 	val mask: AnimationMask?,
 	val maskMatrix: Matrix3x2f,
+
+	/**
+	 * Should be 0f at the start of the animation, and nearly 1f at the end of the animation
+	 */
+	val animationProgress: Float,
 )

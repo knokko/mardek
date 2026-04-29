@@ -445,6 +445,7 @@ class CombatantRenderer(
 				renderInfo = combatant.renderInfo,
 			),
 			portrait = null,
+			animationDuration = animation.duration,
 		)
 
 		val modTime = relativeTime % animation.duration.inWholeNanoseconds

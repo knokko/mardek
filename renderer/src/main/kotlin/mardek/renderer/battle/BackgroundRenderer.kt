@@ -6,6 +6,7 @@ import mardek.renderer.animation.renderBattleBackgroundAnimation
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 import kotlin.math.max
+import kotlin.time.Duration
 
 internal fun renderBattleBackground(battleContext: BattleRenderContext, batch: AnimationPartBatch, region: Rectangle) {
 	val background = battleContext.battle.battle.background
@@ -30,6 +31,7 @@ internal fun renderBattleBackground(battleContext: BattleRenderContext, batch: A
 		noMask = battleContext.context.content.battle.noMask,
 		combat = null,
 		portrait = null,
+		animationDuration = Duration.ZERO,
 	)
 	renderBattleBackgroundAnimation(background.nodes, animationContext)
 }

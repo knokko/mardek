@@ -68,7 +68,7 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 			MemoryCombiner combiner = new MemoryCombiner(boiler, "TestColorMemory");
 			if (loader != null) loader.claimMemory(combiner);
 			PerFrameBuffer perFrameBuffer = new PerFrameBuffer(combiner.addMappedBuffer(
-					1000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+					10_000L, 4L, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
 			));
 			VkbImage targetImage = combiner.addImage(new ImageBuilder(
 					"TestColorTargetImage", width, height
@@ -84,13 +84,13 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 				perFrameDescriptorSet = descriptors.addMultiple(vk2d.bufferDescriptorSetLayout, 1);
 			}
 			if (loader != null) {
-				loader.prepareStaging();
-				SingleTimeCommands.submit(boiler, testCase + " ResourceBundle", recorder ->
-						loader.performStaging(recorder, descriptors)
-				).destroy();
+				loader.prepareStaging(descriptors);
+			}
+			long descriptorPool = descriptors.build(testCase + "DescriptorBundle");
+			if (loader != null) {
+				SingleTimeCommands.submit(boiler, testCase + " ResourceBundle", loader::performStaging).destroy();
 			}
 
-			long descriptorPool = descriptors.build(testCase + "DescriptorBundle");
 			if (perFrameDescriptorSet[0] != VK_NULL_HANDLE) {
 				try (MemoryStack stack = stackPush()) {
 					DescriptorUpdater updater = new DescriptorUpdater(stack, 1);

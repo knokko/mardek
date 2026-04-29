@@ -4,11 +4,13 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.stats.Element
-import mardek.renderer.glyph.MardekGlyphBatch
+import mardek.renderer.MardekTextStyles
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
@@ -21,7 +23,7 @@ import kotlin.math.roundToInt
 
 internal fun renderTargetSelection(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
-	imageBatch: Vk2dImageBatch, textBatch: MardekGlyphBatch, region: Rectangle,
+	imageBatch: Vk2dImageBatch, simpleTextBatch: Vk2dSimpleTextBatch, fancyTextBatch: Vk2dFancyTextBatch, region: Rectangle,
 ) {
 	battleContext.run {
 		val stateMachine = battle.state
@@ -77,17 +79,13 @@ internal fun renderTargetSelection(
 		val fatFont = context.bundle.getFont(context.content.fonts.fat.index)
 		val textColor = srgbToLinear(rgb(238, 203, 127))
 
-		val lowTargetingColor = srgbToLinear(rgb(126, 1, 1))
-		val highTargetingColor = srgbToLinear(rgb(175, 61, 1))
-		textBatch.drawFancyString(
-			"TARGETING MODE", region.maxX - region.height * 0.1f,
-			region.minY + region.height * 0.075f, 0.05f * region.height,
-			fatFont, lowTargetingColor,
-			srgbToLinear(rgb(180, 154, 110)),
-			0.005f * region.height, TextAlignment.RIGHT,
-			lowTargetingColor, highTargetingColor, highTargetingColor, highTargetingColor,
-			0.5f, 0.5f, 1f, 1f,
-		)
+		for (style in arrayOf(MardekTextStyles.TARGET_SELECTION_BACK, MardekTextStyles.TARGET_SELECTION_FRONT)) {
+			fancyTextBatch.drawString(
+				"TARGETTING MODE", region.maxX - region.height * 0.05f,
+				region.minY + region.height * 0.075f, 0f, 0.05f * region.height, fatFont,
+				style, TextAlignment.RIGHT,
+			)
+		}
 
 		val manaX = region.minX + region.width / 25
 		val radius = 0.5f * (maxY - minY)
@@ -109,11 +107,11 @@ internal fun renderTargetSelection(
 		val manaColor = if (action.manaCost > stateMachine.onTurn.currentMana) {
 			srgbToLinear(rgb(254, 81, 81))
 		} else srgbToLinear(rgb(50, 203, 254))
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			"MP Cost:", manaX, minY + 6 * (maxY - minY) / 7,
 			2 * (maxY - minY) / 3, fatFont, textColor,
 		)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			manaString, manaX + region.height / 4, minY + 6 * (maxY - minY) / 7,
 			maxY - minY, fatFont, manaColor,
 		)
@@ -132,7 +130,7 @@ internal fun renderTargetSelection(
 			0.1f, backgroundColor,
 		)
 
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			action.name, elementX + region.height / 15 + region.width / 50,
 			minY + 6f * (maxY - minY) / 7, 2f * (maxY - minY) / 3, fatFont, textColor,
 		)

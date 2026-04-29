@@ -67,19 +67,12 @@ public class Vk2dImagePipeline extends Vk2dPipeline {
 
 	@Override
 	public void recordBatch(CommandRecorder recorder, PerFrameBuffer perFrameBuffer, MiniBatch miniBatch, Vk2dBatch batch) {
-		int firstVertex = Math.toIntExact((miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset) / VERTEX_SIZE);
-		int descriptorIndex = 0;
-		long oldDescriptorSet = VK_NULL_HANDLE;
-		for (int index = 0; index < miniBatch.vertexData()[0].position(); index += 6 * VERTEX_SIZE) {
-			long nextDescriptorSet = ((Vk2dImageBatch) batch).descriptorSets[descriptorIndex];
-			if (oldDescriptorSet != nextDescriptorSet) {
-				recorder.bindGraphicsDescriptors(vkPipelineLayout, nextDescriptorSet);
-				oldDescriptorSet = nextDescriptorSet;
-			}
-			vkCmdDraw(recorder.commandBuffer, 6, 1, firstVertex, 0);
-			firstVertex += 6;
-			descriptorIndex += 1;
-		}
+		Vk2dImageBatch imageBatch = (Vk2dImageBatch) batch;
+		recordDescriptorPerDrawBatch(
+				recorder, perFrameBuffer, miniBatch, batch, VERTEX_SIZE,
+				quadIndex -> imageBatch.descriptorSets[quadIndex],
+				imageDescriptor -> recorder.bindGraphicsDescriptors(vkPipelineLayout, imageDescriptor)
+		);
 	}
 
 	@Override

@@ -5,10 +5,10 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
-import com.github.knokko.vk2d.text.TextAlignment
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.Vk2dFont
+import com.github.knokko.vk2d.text.TextAlignment
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -27,6 +27,7 @@ import mardek.state.saves.SaveFile
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 import kotlin.math.max
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -35,7 +36,7 @@ internal fun renderSaveFile(
 	colorBatch: Vk2dColorBatch,
 	imageBatch: Vk2dImageBatch,
 	partBatch: AnimationPartBatch,
-	textBatch: Vk2dGlyphBatch,
+	textBatch: Vk2dSimpleTextBatch,
 	font: Vk2dFont,
 	content: Content,
 	saveFile: SaveFile?,
@@ -88,6 +89,7 @@ internal fun renderSaveFile(
 				combat = null,
 				portrait = member.portraitInfo,
 				portraitExpression = "norm",
+				animationDuration = Duration.ZERO,
 			)
 			renderPortraitAnimation(content.portraits.animations, animationContext)
 		}
@@ -116,10 +118,9 @@ internal fun renderSaveFile(
 		alignment: TextAlignment = TextAlignment.LEFT,
 	) {
 		val x = region.minX + relativeX * region.width
-		val shadowOffset = 0.15f * textHeight
 		textBatch.drawShadowedString(
 			text, x, y, textHeight, font, textColor, 0, 0f,
-			shadowColor, shadowOffset, shadowOffset, alignment,
+			shadowColor, 0.15f * textHeight, alignment,
 		)
 	}
 

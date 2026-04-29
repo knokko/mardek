@@ -17,6 +17,7 @@ fun main(args: Array<String>) {
 		selfTest1()
 		return
 	}
+	if (neededToRestartProcess()) return
 	configureLogging(args)
 
 	// Starting these threads seems to reduce the start-up time slightly.

@@ -4,7 +4,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.area.Direction
 import mardek.state.ingame.worldmap.WorldMapState
@@ -18,7 +18,7 @@ import kotlin.math.sin
 
 internal fun renderWorldMap(
 	context: RenderContext, mapState: WorldMapState, region: Rectangle
-): Pair<Vk2dColorBatch, Vk2dGlyphBatch?> {
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch?> {
 	val mapSprite = mapState.map.sprite
 	val sourceAspect = mapSprite.width.toFloat() / mapSprite.height
 	val destinationAspect = region.width.toFloat() / region.height

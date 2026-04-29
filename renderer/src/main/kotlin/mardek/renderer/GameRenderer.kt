@@ -35,10 +35,7 @@ fun renderGame(context: RawRenderContext, fullContext: RenderContext?) {
 		is GameOverState -> renderGameOver(context, state, renderRegion(context.stage))
 		else -> Pair(
 			context.pipelines.base.color.addBatch(context.stage, 36),
-			context.pipelines.base.text.addBatch(
-				context.stage, 25, context.recorder,
-				context.textBuffer, context.perFrameDescriptorSet,
-			),
+			context.pipelines.base.simpleText.addBatch(context.stage, 25, context.textStyleCache),
 		)
 	}
 

@@ -64,6 +64,7 @@ object TestCutscenes {
 				startState, 800, 500, "intro-cutscene0",
 				TestTitleScreen.titleBarColors, titleScreenColors,
 			)
+			Thread.sleep(StartNewGameState.FADE_DURATION * 2 / 10 / 1000_000L)
 
 			val igState = startState.update(context) as InGameState
 

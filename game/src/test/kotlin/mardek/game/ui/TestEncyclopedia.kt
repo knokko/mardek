@@ -438,7 +438,7 @@ object TestEncyclopedia {
 			state.update(updateContext)
 
 			val expectedDetailsColors = arrayOf(
-				Color(255, 243, 159), // Bold text color
+				Color(255, 225, 127), // Bold text color
 				Color(65, 49, 83), // Dragon skin color
 				Color(133, 96, 53), // Creature type icon
 				Color(61, 61, 75), // Elemental resistance background color

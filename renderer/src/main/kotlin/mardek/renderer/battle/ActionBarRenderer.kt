@@ -6,11 +6,12 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
-import com.github.knokko.vk2d.batch.Vk2dGlyphBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.batch.Vk2dOvalBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.KimSprite
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.area.AreaSpriteBatch
 import mardek.renderer.menu.determinePointerOffset
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
@@ -25,7 +26,7 @@ import kotlin.math.max
 internal fun renderActionBar(
 	renderMode: ActionBarRenderMode, battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch?,
 	ovalBatch: Vk2dOvalBatch, lateOvalBatch: Vk2dOvalBatch,
-	spriteBatch: AreaSpriteBatch, imageBatch: Vk2dImageBatch?, textBatch: Vk2dGlyphBatch?, region: Rectangle,
+	spriteBatch: AreaSpriteBatch, imageBatch: Vk2dImageBatch?, textBatch: Vk2dSimpleTextBatch?, region: Rectangle,
 ) {
 	battleContext.run {
 		val stateMachine = battle.state
@@ -113,7 +114,6 @@ internal fun renderActionBar(
 
 		val lineWidth = max(1, region.height / 30)
 		val lineColor = srgbToLinear(rgb(208, 193, 142))
-		val textColor = srgbToLinear(rgb(238, 203, 117))
 
 		if (renderMode == ActionBarRenderMode.Background) {
 			colorBatch!!.fillUnaligned(
@@ -190,15 +190,11 @@ internal fun renderActionBar(
 				}
 
 				val font = context.bundle.getFont(context.content.fonts.large2.index)
-				val shadowColor = rgba(0, 0, 0, 200)
-				val shadowOffset = 0.02f * region.height
-				var useTextColor = textColor
-				if (disabledPositions.contains(x)) useTextColor = multiplyAlpha(useTextColor, 0.15f)
-				textBatch!!.drawShadowedString(
+				var style = MardekTextStyles.ActionBar.ACTION
+				if (disabledPositions.contains(x)) style = style.multiplyAlpha(0.15f)
+				textBatch!!.drawString(
 					text, x + region.height.toFloat(), region.maxY - 0.25f * region.height,
-					0.45f * region.height, font, useTextColor,
-					rgb(0, 0, 0), 0.02f * region.height,
-					shadowColor, shadowOffset, shadowOffset, TextAlignment.LEFT,
+					0.45f * region.height, font, style, TextAlignment.LEFT,
 				)
 			}
 
@@ -222,13 +218,10 @@ internal fun renderActionBar(
 
 		if (renderMode == ActionBarRenderMode.Background) {
 			val font = context.bundle.getFont(context.content.fonts.fat.index)
-			val shadowColor = rgba(0, 0, 0, 250)
-			val shadowOffset = 0.035f * region.height
 			textBatch!!.drawShadowedString(
 				player.player.name, region.maxX - region.height - 3f * marginX,
-				region.maxY - region.height * 0.3f, region.height * 0.5f, font, textColor,
-				rgb(0, 0, 0), 0.03f * region.height, shadowColor,
-				shadowOffset, shadowOffset, TextAlignment.RIGHT,
+				region.maxY - region.height * 0.3f, region.height * 0.5f, font,
+				MardekTextStyles.ActionBar.NAME, TextAlignment.RIGHT,
 			)
 		}
 	}

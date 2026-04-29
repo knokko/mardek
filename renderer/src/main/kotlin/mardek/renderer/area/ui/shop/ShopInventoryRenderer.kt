@@ -60,7 +60,7 @@ internal fun renderShopInventory(
 				val itemStack = context.campaign.shops.get(interaction.shop).inventory[index]
 				if (itemStack != null) {
 					areaSpriteBatch!!.draw(itemStack.item.sprite, itemX, itemY, scale)
-					renderItemStackAmount(itemStack, itemX, itemY, scale, textBatch, font, skipOne = false)
+					renderItemStackAmount(itemStack, itemX, itemY, scale, simpleTextBatch, font, skipOne = false)
 				}
 			}
 		}

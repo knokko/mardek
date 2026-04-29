@@ -83,11 +83,10 @@ internal fun renderHoverItemProperties(
 
 			val titleColor = srgbToLinear(rgb(238, 203, 127))
 			val titleHeight = 7f * scale
-			textBatch.drawShadowedString(
+			simpleTextBatch.drawShadowedString(
 				hoverItem.toString(), minX + 5f * scale, startY + 11f * scale,
 				titleHeight, basicFont, titleColor, strokeColor, titleHeight * strokeFactor,
-				shadowColor, shadowFactor * titleHeight, shadowFactor * titleHeight,
-				TextAlignment.LEFT
+				shadowColor, shadowFactor * titleHeight, TextAlignment.LEFT
 			)
 
 			val baseTextColor = srgbToLinear(rgb(207, 192, 141))
@@ -106,24 +105,22 @@ internal fun renderHoverItemProperties(
 			var textY = barY + 13 * scale
 			if (interaction.descriptionIndex == 0) {
 				val descriptionHeight = 6f * scale
-				textBatch.drawShadowedString(
+				simpleTextBatch.drawShadowedString(
 					hoverItem.type.displayName, textMinX.toFloat(), textY.toFloat(),
 					descriptionHeight, basicFont, baseTextColor,
 					strokeColor, strokeFactor * descriptionHeight,
-					shadowColor, shadowFactor * descriptionHeight,
-					shadowFactor * descriptionHeight, TextAlignment.LEFT
+					shadowColor, shadowFactor * descriptionHeight, TextAlignment.LEFT,
 				)
 				textY += 20 * scale
 
 				for (stat in baseStats) {
 					val adder = hoverItem.getModifier(stat)
 					if (adder != 0) {
-						textBatch.drawShadowedString(
+						simpleTextBatch.drawShadowedString(
 							"${stat.flashName}: $adder", textMinX.toFloat(), textY.toFloat(),
 							descriptionHeight, basicFont, baseTextColor,
 							strokeColor, strokeFactor * descriptionHeight,
-							shadowColor, shadowFactor * descriptionHeight,
-							shadowFactor * descriptionHeight, TextAlignment.LEFT
+							shadowColor, shadowFactor * descriptionHeight, TextAlignment.LEFT,
 						)
 						textY += 10 * scale
 					}
@@ -132,11 +129,10 @@ internal fun renderHoverItemProperties(
 
 				fun drawLine(currentLine: String) {
 					val lineHeight = 5f * scale
-					textBatch.drawShadowedString(
+					simpleTextBatch.drawShadowedString(
 						currentLine, textMinX.toFloat(), textY.toFloat(), lineHeight,
 						basicFont, baseTextColor, strokeColor, strokeFactor * lineHeight,
-						shadowColor, shadowFactor * lineHeight,
-						shadowFactor * lineHeight, TextAlignment.LEFT,
+						shadowColor, shadowFactor * lineHeight, TextAlignment.LEFT,
 					)
 					textY += 8 * scale
 				}
@@ -150,7 +146,7 @@ internal fun renderHoverItemProperties(
 
 					val nameColor = srgbToLinear(rgb(238, 203, 127))
 					val nameHeight = 7f * scale
-					textBatch.drawString(
+					simpleTextBatch.drawString(
 						skill.name, minX + 20f * scale, skillY + 10f * scale,
 						nameHeight, basicFont, nameColor,
 					)
@@ -160,10 +156,10 @@ internal fun renderHoverItemProperties(
 						val masteryRenderer = ResourceBarRenderer(
 							context, ResourceType.SkillMastery, Rectangle(
 								23 * scale, skillY + 17 * scale, 57 * scale, 6 * scale
-							), colorBatch, textBatch
+							), colorBatch, simpleTextBatch
 						)
 						masteryRenderer.renderBar(skillMastery, skill.masteryPoints)
-						masteryRenderer.renderTextOverBar(skillMastery, skill.masteryPoints)
+						masteryRenderer.renderTextOverBarWithShadow(skillMastery, skill.masteryPoints)
 					}
 
 					imageBatch.coloredScale(
@@ -174,7 +170,7 @@ internal fun renderHoverItemProperties(
 
 					if (skillMastery >= skill.masteryPoints) {
 						renderFancyMasteredText(
-							context, textBatch,
+							context, fancyTextBatch,
 							minX + 25f * scale,
 							skillY + 24f * scale,
 							8f * scale
@@ -214,12 +210,11 @@ internal fun renderHoverItemProperties(
 				textY = barY + 10 * scale
 				fun addLine(text: String, color: Int) {
 					val lineHeight = 5f * scale
-					textBatch.drawShadowedString(
+					simpleTextBatch.drawShadowedString(
 						"• $text", textMinX.toFloat(), textY.toFloat(),
 						lineHeight, basicFont, color,
 						strokeColor, strokeFactor * lineHeight,
-						shadowColor, shadowFactor * lineHeight,
-						shadowFactor * lineHeight, TextAlignment.LEFT,
+						shadowColor, shadowFactor * lineHeight, TextAlignment.LEFT,
 					)
 					textY += 7 * scale
 				}
@@ -324,7 +319,7 @@ internal fun renderHoverItemProperties(
 			colorBatch.fill(x, tabsY, x, maxY, lineColor)
 			colorBatch.fill(x, maxY, x + tabWidth, maxY, lineColor)
 			colorBatch.fill(x + tabWidth, tabsY, x + tabWidth, maxY, lineColor)
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				text, x + tabWidth / 2, maxY - 4 * scale, 6 * scale,
 				largeFont, textColor, TextAlignment.CENTERED
 			)

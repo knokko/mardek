@@ -56,7 +56,7 @@ internal fun renderActionsItemNotification(areaContext: AreaRenderContext) {
 		var text = notification.operation.prefix + notification.stack.item.displayName
 		if (notification.stack.amount != 1) text += " x${notification.stack.amount}"
 		val font = context.bundle.getFont(context.content.fonts.basic2.index)
-		textBatch.drawString(
+		simpleTextBatch.drawString(
 			text, region.minX + 0.13f * region.height, region.minY + 0.06f * region.height,
 			0.025f * region.height, font,
 			srgbToLinear(rgba(238, 203, 127, alpha))

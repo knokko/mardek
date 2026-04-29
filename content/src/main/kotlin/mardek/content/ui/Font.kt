@@ -24,7 +24,7 @@ class Font {
 	 * in-game; it should be -1 during editing and importing. This variable should get the right value during
 	 * exporting.
 	 */
-	@BitField(id = 1)
+	@BitField(id = 2)
 	@IntegerField(minValue = -1, expectUniform = false)
 	var index = -1
 

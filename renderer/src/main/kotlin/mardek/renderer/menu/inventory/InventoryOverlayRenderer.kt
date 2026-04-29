@@ -23,11 +23,11 @@ internal fun renderInventoryOverlay(
 			scale, context.content.ui.goldIcon.index,
 		)
 		areaSpriteBatch?.draw(context.content.ui.goldIcon, goldX, region.minY - 20 * scale, scale)
-		textBatch.drawShadowedString(
+		simpleTextBatch.drawShadowedString(
 			state.gold.toString(), goldX + 20f * scale, region.minY - 6f * scale,
 			10f * scale, context.bundle.getFont(context.content.fonts.large1.index),
 			srgbToLinear(rgb(255, 225, 124)), 0, 0f,
-			srgbToLinear(rgba(83, 66, 50, 100)), 1.5f * scale,
+			srgbToLinear(rgba(83, 66, 50, 100)),
 			1.5f * scale, TextAlignment.LEFT,
 		)
 
@@ -66,7 +66,7 @@ internal fun renderInventoryOverlay(
 
 		if (label.isNotEmpty()) {
 			val font = context.bundle.getFont(context.content.fonts.fat.index)
-			textBatch.drawString(
+			simpleTextBatch.drawString(
 				label, interaction.mouseX + 30,
 				interaction.mouseY - 6, 12,
 				font, srgbToLinear(rgb(238, 203, 127))

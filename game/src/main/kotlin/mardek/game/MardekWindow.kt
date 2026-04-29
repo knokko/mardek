@@ -86,9 +86,8 @@ class MardekWindow(
 			val currentState = gameState.currentState
 			if (currentState is ExitState) window.requestClose()
 			renderManager.renderFrame(
-				gameState, frame, recorder,
-				textBuffer, perFrameDescriptorSet,
-				swapchainResources.getSwapchainAssociation(swapchainImage),
+				gameState, frame, simpleTextStyleCache, fancyTextStyleCache,
+				perFrameDescriptorSet, swapchainResources.getSwapchainAssociation(swapchainImage),
 				perFrame[frameIndex], fpsCounter.value,
 			)
 
