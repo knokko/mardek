@@ -59,4 +59,7 @@ internal fun importUiSprites() = UiSprites(
 	encyclopediaArtefacts = importKimSprite("EncyclopediaArtefacts"),
 	encyclopediaBestiary = importKimSprite("EncyclopediaBestiary"),
 	encyclopediaDreamstones = importKimSprite("EncyclopediaDreamstones"),
+	performanceMeleeAttacks = importBcSprite("PerformanceMeleeAttacks"),
+	performanceMagicSkills = importBcSprite("PerformanceMagicSkills"),
+	performanceUsedItems = importBcSprite("PerformanceUsedItems"),
 )

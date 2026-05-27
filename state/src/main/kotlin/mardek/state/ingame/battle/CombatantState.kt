@@ -9,6 +9,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.animation.CombatantAnimations
 import mardek.content.battle.Monster
 import mardek.content.battle.StrategyPool
+import mardek.content.characters.CharacterCombatPerformance
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Item
 import mardek.content.skill.PassiveSkill
@@ -409,6 +410,15 @@ sealed class CombatantState(
 	 */
 	open fun incrementActiveSkillMastery(context: BattleUpdateContext, skill: ActiveSkill) {}
 
+	/**
+	 * - For players, this gets a reference to their [CharacterState.performance]
+	 * - For monsters, this gets a dummy instance of [CharacterCombatPerformance]
+	 *
+	 * This method is needed by [BattleState] to increment e.g. [CharacterCombatPerformance.numKills] whenever a
+	 * player combatant kills a monster.
+	 */
+	abstract fun getPerformance(context: BattleUpdateContext): CharacterCombatPerformance
+
 	companion object {
 
 		@JvmStatic
@@ -608,6 +618,8 @@ class PlayerCombatantState(
 		val playerState = context.characterStates[player]!!
 		incrementSkillMastery(context, playerState, skill)
 	}
+
+	override fun getPerformance(context: BattleUpdateContext) = context.characterStates[player]!!.performance
 }
 
 /**
@@ -761,6 +773,8 @@ class MonsterCombatantState(
 	}
 
 	override fun hasReactions(context: BattleUpdateContext, type: ReactionSkillType) = false
+
+	override fun getPerformance(context: BattleUpdateContext) = CharacterCombatPerformance()
 
 	companion object {
 

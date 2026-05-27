@@ -12,6 +12,7 @@ import mardek.state.ingame.menu.EncyclopediaTab
 import mardek.state.ingame.menu.InGameMenuState
 import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.ingame.menu.MapTab
+import mardek.state.ingame.menu.PartyTab
 import mardek.state.ingame.menu.QuestsTab
 import mardek.state.ingame.menu.SkillsTab
 import mardek.state.ingame.menu.VideoSettingsTab
@@ -25,7 +26,7 @@ internal fun renderInGameMenu(
 	val spriteBatch = context.addKim3Batch(1000) // The inventory tab could use a lot of sprites
 	val areaSpriteBatch = context.addAreaSpriteBatch(10, region) // Only used for encyclopedia
 	val imageBatch = context.addImageBatch(500) // The encyclopedia may draw a lot of element icons
-	val animationBatch = context.addAnimationPartBatch(100) // Only needed for the encyclopedia
+	val animationBatch = context.addAnimationPartBatch(200) // Only needed for the encyclopedia & party tabs
 	val lateColorBatch = context.addColorBatch(20) // Only needed for inventory tooltips
 	val simpleTextBatch = context.addTextBatch(2500) // The encyclopedia tab has quite some text
 	val fancyTextBatch = context.addFancyTextBatch(500) // For rendering "MASTERED"
@@ -95,6 +96,7 @@ internal fun renderInGameMenu(
 	val submenuRectangleWithLowerBar = Rectangle(
 		region.minX, region.minY + barHeight, region.width - selectionWidth, region.height - barHeight
 	)
+	if (menu.currentTab is PartyTab) renderPartyTab(menuContext, submenuRectangleWithoutLowerBar)
 	if (menu.currentTab is SkillsTab) renderSkillsTab(menuContext, submenuRectangleWithLowerBar)
 	if (menu.currentTab is InventoryTab) renderInventory(menuContext, submenuRectangleWithLowerBar)
 	if (menu.currentTab is MapTab) renderAreaMap(menuContext, submenuRectangleWithoutLowerBar)

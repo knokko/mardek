@@ -245,6 +245,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testPartyTabs() {
+		TestInGameMenu.testPartyTabs(instance)
+	}
+
+	@Test
 	fun testSkillsMenu() {
 		TestInGameMenu.testSkills(instance)
 	}

@@ -102,6 +102,13 @@ class CharacterState {
 	val toggledSkills = HashSet<Skill>()
 
 	/**
+	 * This field tracks the 'combat performance' of this character. For instance, it tracks how many enemies this
+	 * character has killed, and how many spells it has cast.
+	 */
+	@BitField(id = 9)
+	val performance = CharacterCombatPerformance()
+
+	/**
 	 * If this player recently took damage while walking inside an area (e.g. due to being poisoned), this field will
 	 * store some information needed to render the damage 'blink'.
 	 */

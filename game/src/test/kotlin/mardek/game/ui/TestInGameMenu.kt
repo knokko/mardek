@@ -49,6 +49,9 @@ object TestInGameMenu {
 			val partyTabColors = arrayOf(
 				Color(238, 203, 127), // Area name color
 				Color(132, 81, 38), // Party text color
+				Color(236, 197, 157), // Skin color for portraits
+				Color(71, 133, 22), // Health bar
+				Color(59, 42, 28), // Mana bar background
 			)
 			val skillsTabColors = arrayOf(
 				Color(255, 230, 145), // Powers icon
@@ -86,7 +89,7 @@ object TestInGameMenu {
 
 			testRendering(
 				stateManager, 800, 450, "in-game-menu-party-tab",
-				partyTabColors, partyColors + areaColors
+				partyTabColors, areaColors
 			)
 
 			input.postEvent(pressKeyEvent(InputKey.MoveDown))
@@ -97,7 +100,7 @@ object TestInGameMenu {
 			assertNull(soundQueue.take())
 
 			testRendering(
-				stateManager, 800, 450, "in-game-menu-skills-tab",
+				stateManager, 1200, 800, "in-game-menu-skills-tab",
 				skillsTabColors + partyColors, areaColors
 			)
 
@@ -160,6 +163,133 @@ object TestInGameMenu {
 				stateManager, 900, 450, "in-game-menu-map-tab",
 				mapColors, areaColors + partyColors
 			)
+		}
+	}
+
+	fun testPartyTabs(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(simpleCampaignState(), "test")
+			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val sounds = content.audio.fixedEffects.ui
+
+			val baseColors = arrayOf(
+				Color(217, 214, 214), // Mardek armor
+				Color(70, 117, 33), // Deugan robe
+				Color(236, 197, 157), // Skin color for portraits
+				Color(165, 205, 254), // Selection border color
+				Color(238, 203, 127), // Text color
+				Color(141, 103, 49), // Clock color
+				Color(131, 81, 38), // "PARTY" color
+			)
+
+			val tabColors0 = arrayOf(
+				Color(71, 133, 22), // Health bar
+				Color(59, 42, 28), // Mana bar background
+			)
+
+			val tabColors1 = arrayOf(
+				Color(131, 118, 85), // Sword icon color
+				Color(152, 255, 0), // Green text color
+				Color(95, 127, 141), // Spell cast background color
+			)
+
+			val tabColors2 = arrayOf(
+				Color(79, 75, 90), // Positive resistance background color
+				Color(110, 61, 38), // Negative resistance background color
+				Color(0, 255, 0), // Earth element background
+			)
+
+			val tabColors3 = arrayOf(
+				Color(110, 97, 81) // Greyed-out silence icon
+			)
+
+			val tabColors4 = arrayOf(
+				Color(59, 42, 28), // Experience bar background
+				Color(253, 221, 95), // Text color
+			)
+
+			val tabColors5 = arrayOf(
+				Color(77, 113, 120) // Skills cast icon
+			)
+
+			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
+			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
+			state.update(context)
+			assertTrue(state.menu.shown)
+			assertEquals(0, (state.menu.currentTab as PartyTab).currentTab)
+			assertSame(sounds.openMenu, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
+
+			testRendering(
+				state, 800, 500, "party-tab0",
+				baseColors + tabColors0, emptyArray(),
+			)
+
+			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			state.update(context)
+			assertEquals(6, (state.menu.currentTab as PartyTab).currentTab)
+			testRendering(
+				state, 800, 500, "party-tab6",
+				baseColors, emptyArray(),
+			)
+			assertSame(sounds.scroll2, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
+
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveLeft))
+			state.update(context)
+			assertEquals(5, (state.menu.currentTab as PartyTab).currentTab)
+			testRendering(
+				state, 800, 500, "party-tab5",
+				baseColors + tabColors5, emptyArray(),
+			)
+			assertSame(sounds.scroll2, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
+
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveLeft))
+			state.update(context)
+			assertEquals(4, (state.menu.currentTab as PartyTab).currentTab)
+			testRendering(
+				state, 800, 500, "party-tab4",
+				baseColors + tabColors4, emptyArray(),
+			)
+			assertSame(sounds.scroll2, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
+
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveRight))
+			repeat(3) {
+				context.input.postEvent(repeatKeyEvent(InputKey.MoveRight))
+			}
+			state.update(context)
+			assertEquals(1, (state.menu.currentTab as PartyTab).currentTab)
+			testRendering(
+				state, 800, 500, "party-tab1",
+				baseColors + tabColors1, emptyArray(),
+			)
+			repeat(4) {
+				assertSame(sounds.scroll2, context.soundQueue.take())
+			}
+			assertNull(context.soundQueue.take())
+
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveRight))
+			state.update(context)
+			assertEquals(2, (state.menu.currentTab as PartyTab).currentTab)
+			testRendering(
+				state, 800, 500, "party-tab2",
+				baseColors + tabColors2, emptyArray(),
+			)
+			assertSame(sounds.scroll2, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
+
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveRight))
+			state.update(context)
+			assertEquals(3, (state.menu.currentTab as PartyTab).currentTab)
+			testRendering(
+				state, 800, 500, "party-tab3",
+				baseColors + tabColors3, emptyArray(),
+			)
+			assertSame(sounds.scroll2, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 		}
 	}
 

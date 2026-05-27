@@ -84,6 +84,12 @@ object TestExperience {
 				slainEncyclopediaMonster.entry!!.monsters[0],
 			)
 			assertEquals(1, slainEncyclopediaMonster.amount)
+			assertEquals(1, mardekState.performance.numBattles)
+			assertEquals(1, deuganState.performance.numBattles)
+			assertEquals(0, mardekState.performance.damageDealt)
+			assertEquals(0, deuganState.performance.damageDealt)
+			assertEquals(0, mardekState.performance.numKills)
+			assertEquals(0, deuganState.performance.numKills)
 		}
 	}
 
@@ -136,6 +142,7 @@ object TestExperience {
 
 			assertEquals(899, mardekState.experienceToNextLevel)
 			assertEquals(0, deuganState.experienceToNextLevel)
+			assertEquals(0, mardekState.performance.damageDealt)
 
 			// Wait until Mardek is on turn
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
@@ -172,6 +179,10 @@ object TestExperience {
 			assertEquals(0, deuganState.experienceToNextLevel)
 			assertEquals(1, deuganState.currentLevel)
 			assertEquals(0, monsterState.currentHealth)
+			assertEquals(1, mardekState.performance.numMeleeAttacks)
+			assertEquals(6, mardekState.performance.damageDealt)
+			assertEquals(0, deuganState.performance.damageDealt)
+			assertEquals(0, deuganState.performance.numKills)
 
 			val levelUpColors = arrayOf(
 				Color(253, 252, 235), // Inner "Level Up!" color
@@ -272,6 +283,13 @@ object TestExperience {
 			assertEquals(0, deuganState.experienceToNextLevel)
 			assertEquals(1, deuganState.currentLevel)
 			assertEquals(0, combatDeugan.currentHealth)
+
+			assertEquals(1, mardekState.performance.numKills)
+			assertEquals(0, deuganState.performance.numKills)
+			assertEquals(0, mardekState.performance.numFaints)
+			assertEquals(1, deuganState.performance.numFaints)
+			assertEquals(45, mardekState.performance.damageDealt)
+			assertEquals(45, deuganState.performance.damageReceived)
 		}
 	}
 }

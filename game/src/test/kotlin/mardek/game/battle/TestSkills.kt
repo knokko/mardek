@@ -136,6 +136,9 @@ object TestSkills {
 			// - Kills should grant half of the XP to other players
 			assertEquals((600 + 200) * 10 / 50, mardekState.experienceToNextLevel)
 			assertEquals(600 / 2 * 10 / 5, deuganState.experienceToNextLevel)
+			assertEquals(1, mardekState.performance.numMeleeAttacks)
+			assertEquals(1452, mardekState.performance.damageDealt)
+			assertEquals(1, mardekState.performance.numKills)
 
 			sleep(1000)
 			testRendering(
@@ -207,6 +210,8 @@ object TestSkills {
 			assertEquals(80, deugan.maxHealth)
 			assertEquals(10 - 4, deugan.currentHealth)
 			assertEquals(setOf(poison), deugan.statusEffects)
+			assertEquals(4, deuganState.performance.damageReceived)
+
 			val castSkill = battle.state as BattleStateMachine.CastSkill
 			assertSame(deugan, castSkill.caster)
 			assertArrayEquals(arrayOf(deugan), castSkill.targets)
@@ -247,6 +252,12 @@ object TestSkills {
 			assertEquals(0, deugan.statusEffects.size)
 			assertEquals(deugan.maxHealth, deugan.currentHealth)
 			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
+
+			assertEquals(4, deuganState.performance.damageReceived)
+			assertEquals(1, deuganState.performance.numMagicSkills)
+
+			// Deugan should heal from (10 - 4 = 6) hp to 80 hp
+			assertEquals(74, deuganState.performance.damageDealt)
 
 			sleep(1000)
 			campaign.update(context(1.seconds))
@@ -347,6 +358,12 @@ object TestSkills {
 			assertEquals(50, mardek.currentHealth)
 			assertEquals(6, mardek.currentMana)
 			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
+
+			// Mardek healed himself from 30 hp to 40 hp
+			assertEquals(10, mardekState.performance.damageDealt)
+			assertEquals(0, mardekState.performance.damageReceived)
+			assertEquals(1, mardekState.performance.numMagicSkills)
+			assertEquals(0, mardekState.performance.numMeleeAttacks)
 		}
 	}
 
@@ -450,6 +467,11 @@ object TestSkills {
 				assertSame(fireBreath, it.skill)
 				assertFalse(it.finished)
 			}
+
+			assertEquals(1, sslenckState.performance.numKills)
+			assertEquals(1, sslenckState.performance.numMagicSkills)
+			assertEquals(1452, sslenckState.performance.damageDealt)
+			assertEquals(0, sslenckState.performance.numMeleeAttacks)
 
 			sleep(1000)
 			testRendering(

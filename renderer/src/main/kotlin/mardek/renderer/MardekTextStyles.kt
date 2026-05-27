@@ -456,6 +456,29 @@ object MardekTextStyles {
 		)
 	}
 
+	object PartyTab {
+		val POSITIVE_STAT = Vk2dTextStyle.FillStyle(srgbToLinear(rgb(
+			152, 255, 0
+		))).only()!!
+		val NEUTRAL_STAT = STRONG_TEXT_FILL.only()!!
+		val NEGATIVE_STAT = Vk2dTextStyle.FillStyle(srgbToLinear(rgb(
+			255, 169, 169
+		))).only()!!
+		val STAT_DIFFERENCE = Vk2dTextStyle.Shadowed(
+			Vk2dTextStyle.FillStyle(
+				srgbToLinear(rgb(255, 203, 51))
+			).only(), SHADOW_FILL.only(), 0.1f
+		)
+		val LOWER_STATS = Vk2dTextStyle.Shadowed(
+			STRONG_TEXT_FILL.only(), SHADOW_FILL.only(), 0.1f
+		)
+		val GROWTH_EXPERIENCE = Vk2dTextStyle.Shadowed(
+			Vk2dTextStyle.FillStyle(
+				srgbToLinear(rgb(253, 221, 95))
+			).only(), SHADOW_FILL.only(), 0.1f,
+		)
+	}
+
 	object Encyclopedia {
 		val SECTION_TITLE = Vk2dTextStyle.Shadowed(
 			Vk2dTextStyle(Vk2dTextStyle.FillStyle(

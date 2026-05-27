@@ -21,6 +21,7 @@ import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.saves.SaveFile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -107,6 +108,13 @@ object TestMastery {
 				jumpBackState.finished = true
 				state.update(updateContext)
 
+				assertEquals(1, mardekState.performance.numMeleeAttacks)
+				assertEquals(0, deuganState.performance.numMeleeAttacks)
+				// Note that mardekState.performance.damageDealt can be 0 because Mardek might miss
+				assertEquals(0, deuganState.performance.damageDealt)
+				assertEquals(0, mardekState.performance.damageReceived)
+				assertEquals(deuganState.performance.damageReceived, mardekState.performance.damageDealt)
+
 				assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
 				sleep(800)
 				state.update(updateContext)
@@ -146,6 +154,9 @@ object TestMastery {
 				assertEquals(1, deuganState.skillMastery[blockSkill])
 				assertNull(deuganState.skillMastery[insomniaSkill])
 
+				assertEquals(1, mardekState.performance.numMeleeAttacks)
+				assertEquals(1, deuganState.performance.numMeleeAttacks)
+
 				// Let the forest fish attack
 				assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
 				sleep(800)
@@ -182,6 +193,10 @@ object TestMastery {
 				assertNull(deuganState.skillMastery[increaseDamageSkill])
 				assertEquals(1, deuganState.skillMastery[blockSkill])
 				assertNull(deuganState.skillMastery[insomniaSkill])
+
+				// Running away does NOT count as victory
+				assertEquals(0, mardekState.performance.numBattles)
+				assertEquals(0, deuganState.performance.numBattles)
 			}
 		}
 	}
@@ -243,6 +258,9 @@ object TestMastery {
 				strikeState.finished = true
 				state.update(updateContext)
 
+				assertEquals(1, mardekState.performance.numMeleeAttacks)
+				assertEquals(0, mardekState.performance.numMagicSkills)
+
 				// Make sure the forest fish dies, regardless of whether Mardek misses
 				if (battleState.livingOpponents().isNotEmpty()) {
 					battleState.livingOpponents()[0].currentHealth = 0
@@ -301,6 +319,8 @@ object TestMastery {
 				state.update(updateContext)
 				assertSame(content.audio.fixedEffects.battle.masteredSkill, updateContext.soundQueue.take())
 				assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
+
+				assertEquals(1, mardekState.performance.numBattles)
 
 				// Sanity check: we should only increase the Insomnia mastery once, no matter how often we update
 				repeat(10) {

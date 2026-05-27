@@ -272,6 +272,24 @@ class UiSprites(
 	 */
 	@BitField(id = 40)
 	val encyclopediaDreamstones: KimSprite,
+
+	/**
+	 * The icon for the number of used melee attacks in the performance tab of the Party tab
+	 */
+	@BitField(id = 41)
+	val performanceMeleeAttacks: BcSprite,
+
+	/**
+	 * The icon for the number of used magic skills in the performance tab of the Party tab
+	 */
+	@BitField(id = 42)
+	val performanceMagicSkills: BcSprite,
+
+	/**
+	 * The icon for the number of used melee attacks in the performance tab of the Party tab
+	 */
+	@BitField(id = 43)
+	val performanceUsedItems: BcSprite,
 ) {
 
 	@Suppress("unused")
@@ -292,5 +310,6 @@ class UiSprites(
 		BcSprite(), BcSprite(),
 		KimSprite(), KimSprite(), KimSprite(),
 		KimSprite(), KimSprite(),
+		BcSprite(), BcSprite(), BcSprite(),
 	)
 }

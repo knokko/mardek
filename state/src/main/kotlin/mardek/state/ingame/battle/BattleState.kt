@@ -205,7 +205,10 @@ class BattleState(
 		if (combatants.none { it.isOnPlayerSide }) state = BattleStateMachine.GameOver()
 		if (combatants.none { !it.isOnPlayerSide }) {
 			state = BattleStateMachine.Victory()
-			for (combatant in combatants) combatant.incrementPassiveSkillsMastery(context)
+			for (combatant in combatants) {
+				combatant.incrementPassiveSkillsMastery(context)
+				combatant.getPerformance(context).numBattles += 1
+			}
 		}
 		if (state is BattleStateMachine.GameOver || state is BattleStateMachine.Victory) return null
 
@@ -244,6 +247,9 @@ class BattleState(
 				effects.combatant.clampHealthAndMana(context)
 
 				if (effects.combatant.currentHealth != oldHealth) {
+					if (effects.combatant.currentHealth < oldHealth) {
+						effects.combatant.getPerformance(context).damageReceived += oldHealth - effects.combatant.currentHealth
+					}
 					effects.combatant.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
 						oldHealth = oldHealth, gainedHealth = -takeDamage.amount,
 						element = dpt.element, overrideColor = dpt.blinkColor,
@@ -256,6 +262,7 @@ class BattleState(
 					particle.startTime = System.nanoTime()
 					particles.add(particle)
 					if (!effects.combatant.isAlive()) {
+						effects.combatant.getPerformance(context).numFaints += 1
 						state = BattleStateMachine.NextTurn(time + 1000_000_000L)
 						if (!effects.combatant.isOnPlayerSide && effects.combatant is MonsterCombatantState) {
 							context.encyclopedia.reportMonsterAsSlain(effects.combatant.monster)
@@ -345,6 +352,7 @@ class BattleState(
 					state.skill, state.attacker, arrayOf(state.target), passedChallenge
 				)
 
+				state.attacker.getPerformance(context).numMeleeAttacks += 1
 				if (passedChallenge) {
 					state.attacker.incrementReactionSkillsMastery(context, ReactionSkillType.MeleeAttack)
 					state.target.incrementReactionSkillsMastery(context, ReactionSkillType.MeleeDefense)
@@ -386,6 +394,7 @@ class BattleState(
 					state.skill, state.attacker, state.targets, passedChallenge
 				)
 
+				state.attacker.getPerformance(context).numMagicSkills += 1
 				if (passedChallenge) {
 					state.attacker.incrementReactionSkillsMastery(context, ReactionSkillType.RangedAttack)
 					for (target in state.targets) {
@@ -460,6 +469,7 @@ class BattleState(
 						state.skill, state.caster, state.targets, passedChallenge
 					)
 
+					state.caster.getPerformance(context).numMagicSkills += 1
 					if (passedChallenge) {
 						state.caster.incrementReactionSkillsMastery(context, ReactionSkillType.RangedAttack)
 						for (target in state.targets) {
@@ -500,6 +510,7 @@ class BattleState(
 			val result = MoveResultCalculator(context).computeItemResult(
 				state.item, state.thrower, state.target
 			)
+			state.thrower.getPerformance(context).numItems += 1
 			applyMoveResultEntirely(context, result, state.thrower, null, true)
 			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 500_000_000L)
 
@@ -560,6 +571,7 @@ class BattleState(
 				}
 			}
 
+			val oldHealth = target.currentHealth
 			target.currentHealth -= entry.damage
 			target.currentMana -= entry.damageMana
 
@@ -569,11 +581,21 @@ class BattleState(
 			}
 			target.clampHealthAndMana(context)
 
+			val realDamage = oldHealth - target.currentHealth
+			if (realDamage > 0) {
+				target.getPerformance(context).damageReceived += realDamage
+				attacker.getPerformance(context).damageDealt += realDamage
+			} else {
+				attacker.getPerformance(context).damageDealt -= realDamage
+			}
+
 			if (target.isAlive()) {
 				target.statusEffects.removeAll(entry.removedEffects)
 				for (effect in entry.removedEffects) target.renderInfo.effectHistory.remove(effect, currentTime)
 				for (effect in entry.addedEffects) target.renderInfo.effectHistory.add(effect, currentTime)
 			} else {
+				attacker.getPerformance(context).numKills += 1
+				target.getPerformance(context).numFaints += 1
 				if (target is MonsterCombatantState) {
 					attacker.gainExperience(context, target.monster.experience * target.getLevel(context))
 					context.encyclopedia.reportMonsterAsSlain(target.monster)
@@ -612,6 +634,9 @@ class BattleState(
 			)
 		}
 		attacker.currentHealth += result.restoreAttackerHealth
+		if (result.restoreAttackerHealth < 0) {
+			attacker.getPerformance(context).damageReceived -= result.restoreAttackerHealth
+		}
 		attacker.currentMana += result.restoreAttackerMana
 		attacker.clampHealthAndMana(context)
 		if (attacker.isAlive() && attacker.currentHealth <= attacker.maxHealth / 5) {

@@ -91,17 +91,27 @@ class ResourceBarRenderer(
 	fun renderTextOverBarWithShadow(currentValue: Int, maxValue: Int, opacity: Float = 1f) {
 		val entry = resourceType.chooseColor(currentValue, maxValue)
 		val splitX = barRegion.minX + barRegion.width * 5f / 9f
-		val marginX = barRegion.width / 30f
+		val marginX = barRegion.width / 50f
 		val font = context.bundle.getFont(context.content.fonts.large1.index)
 		textBatch.drawShadowedString(
 			currentValue.toString(), splitX - marginX, barRegion.maxY + barRegion.height * 0.33f,
-			1.75f * barRegion.height, font,
+			1.65f * barRegion.height, font,
 			MardekTextStyles.resourceBarWithShadowed(entry, opacity), TextAlignment.RIGHT,
 		)
 		textBatch.drawShadowedString(
 			maxValue.toString(), splitX + marginX, barRegion.maxY + barRegion.height * 0.2f,
-			1.33f * barRegion.height, font,
+			1.27f * barRegion.height, font,
 			MardekTextStyles.resourceBarWithShadowed(entry, opacity), TextAlignment.LEFT,
+		)
+	}
+
+	fun renderPercentage(currentValue: Int, maxValue: Int) {
+		val font = context.bundle.getFont(context.content.fonts.large1.index)
+		val entry = resourceType.chooseColor(currentValue, maxValue)
+		textBatch.drawShadowedString(
+			"${100 * currentValue / maxValue}%", barRegion.minX + barRegion.width * 0.65f,
+			barRegion.maxY + 0.1f * barRegion.height, 1.1f * barRegion.height, font,
+			MardekTextStyles.resourceBarWithShadowed(entry, 1f), TextAlignment.CENTERED,
 		)
 	}
 
@@ -197,6 +207,38 @@ enum class ResourceType(private val entries: List<ResourceColorEntry>) {
 			shadowColor = srgbToLinear(rgb(0, 51, 0)),
 		)
 	)),
+	HealthPartyTab(listOf(
+		ResourceColorEntry(
+			belowThreshold = 1f,
+			bottomLeftColor = srgbToLinear(rgb(70, 133, 25)),
+			bottomRightColor = srgbToLinear(rgb(44, 76, 31)),
+			topGradient = true,
+			topLeftColor = srgbToLinear(rgb(151, 191, 122)),
+			topRightColor = srgbToLinear(rgb(137, 162, 125)),
+			textColor = srgbToLinear(rgb(127, 231, 57)),
+			shadowColor = srgbToLinear(rgb(50, 100, 0)),
+		),
+		ResourceColorEntry(
+			belowThreshold = 0.4f,
+			bottomLeftColor = srgbToLinear(rgb(134, 97, 32)),
+			bottomRightColor = srgbToLinear(rgb(124, 88, 31)),
+			topGradient = true,
+			topLeftColor = srgbToLinear(rgb(172, 153, 100)),
+			topRightColor = srgbToLinear(rgb(164, 147, 100)),
+			textColor = srgbToLinear(rgb(207, 230, 57)),
+			shadowColor = srgbToLinear(rgb(100, 100, 0)),
+		),
+		ResourceColorEntry(
+			belowThreshold = 0.2f,
+			bottomLeftColor = srgbToLinear(rgb(170, 31, 21)),
+			bottomRightColor = srgbToLinear(rgb(155, 31, 21)),
+			topGradient = true,
+			topLeftColor = srgbToLinear(rgb(195, 107, 90)),
+			topRightColor = srgbToLinear(rgb(180, 92, 97)),
+			textColor = srgbToLinear(rgb(255, 102, 102)),
+			shadowColor = srgbToLinear(rgb(150, 50, 50)),
+		)
+	)),
 	Mana(listOf(
 		ResourceColorEntry(
 			belowThreshold = 1f,
@@ -207,6 +249,18 @@ enum class ResourceType(private val entries: List<ResourceColorEntry>) {
 			topRightColor = srgbToLinear(rgb(130, 204, 181)),
 			textColor = srgbToLinear(rgb(35, 247, 255)),
 			shadowColor = srgbToLinear(rgb(0, 102, 255)),
+		)
+	)),
+	ManaPartyTab(listOf(
+		ResourceColorEntry(
+			belowThreshold = 1f,
+			bottomLeftColor = srgbToLinear(rgb(39, 109, 129)),
+			bottomRightColor = srgbToLinear(rgb(45, 171, 117)),
+			topGradient = true,
+			topLeftColor = srgbToLinear(rgb(124, 171, 188)),
+			topRightColor = srgbToLinear(rgb(128, 204, 181)),
+			textColor = srgbToLinear(rgb(35, 247, 255)),
+			shadowColor = srgbToLinear(rgb(102, 51, 153)),
 		)
 	)),
 	ManaInventory(listOf(

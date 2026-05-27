@@ -91,6 +91,9 @@ object TestThrowItems {
 			assertEquals(deugan.maxMana, deugan.currentMana)
 			assertEquals(0, deuganState.countItemOccurrences(elixir))
 			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
+			assertEquals(1, deuganState.performance.numItems)
+			assertEquals(0, deuganState.performance.numMeleeAttacks)
+			assertEquals(0, deuganState.performance.numMagicSkills)
 
 			sleep(1000)
 			campaign.update(context(1.seconds))

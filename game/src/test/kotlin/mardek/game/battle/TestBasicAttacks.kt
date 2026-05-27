@@ -69,6 +69,9 @@ object TestBasicAttacks {
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			campaign.update(context(1.milliseconds))
 
+			assertEquals(0, mardekState.performance.numMeleeAttacks)
+			assertEquals(0, mardekState.performance.numKills)
+			assertEquals(0, mardekState.performance.damageDealt)
 			assertEquals(1452, monster.currentHealth)
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.MeleeAttack.MoveTo)
@@ -123,6 +126,13 @@ object TestBasicAttacks {
 				assertFalse(it.finished)
 			}
 
+			assertEquals(1, mardekState.performance.numMeleeAttacks)
+			assertEquals(0, mardekState.performance.numMagicSkills)
+			assertEquals(1, mardekState.performance.numKills)
+			assertEquals(0, mardekState.performance.numBattles)
+			assertEquals(1452, mardekState.performance.damageDealt)
+			assertEquals(0, mardekState.performance.damageReceived)
+
 			// - Base EXP of monster is 300 * 2 = 600
 			// - Monster is level 10, Deugan level 20, Mardek level 50
 			// - Basic attacks should grant 100 * monster level / player level EXP
@@ -150,6 +160,11 @@ object TestBasicAttacks {
 			sleep(1000)
 			campaign.update(context(1.seconds))
 			assertInstanceOf<BattleStateMachine.Victory>(battle.state)
+			assertEquals(1, mardekState.performance.numBattles)
+			assertEquals(1, deuganState.performance.numBattles)
+			assertEquals(0, deuganState.performance.damageDealt)
+			assertEquals(0, deuganState.performance.numKills)
+			assertEquals(0, deuganState.performance.numMeleeAttacks)
 		}
 	}
 }
