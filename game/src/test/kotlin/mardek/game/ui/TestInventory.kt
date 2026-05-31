@@ -98,7 +98,6 @@ object TestInventory {
 			state.update(context)
 			assertHasHeroArmour()
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
-			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
 
 			// Swap the Dragon Amulet with the Elixirs of Deugan
@@ -367,7 +366,6 @@ object TestInventory {
 			assertEquals(ItemStack(elixir, 2), inventory[1])
 			assertEquals(ItemStack(elixir, 1), state.campaign.cursorItemStack)
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
-			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
 
 			context.input.postEvent(pressKeyEvent(InputKey.SplitClick))
@@ -503,7 +501,6 @@ object TestInventory {
 			context.input.postEvent(MouseMoveEvent(consumeRegion.minX, consumeRegion.minY))
 			context.input.postEvent(pressKeyEvent(InputKey.Click))
 			state.update(context)
-			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
 			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
 			assertSame(content.audio.fixedEffects.ui.clickReject, context.soundQueue.take())
 			assertNull(context.soundQueue.take())

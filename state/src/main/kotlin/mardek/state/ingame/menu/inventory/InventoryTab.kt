@@ -44,6 +44,8 @@ class InventoryTab: InGameMenuTab() {
 	 */
 	var sortRegion: Rectangle? = null
 
+	private var wentInsideByClicking = false
+
 	override fun getText() = "Inventory"
 
 	override fun canGoInside() = true
@@ -55,17 +57,20 @@ class InventoryTab: InGameMenuTab() {
 	override fun processKeyPress(key: InputKey, context: UiUpdateContext) {
 		validatePartyIndex(context)
 
+		if (!inside) wentInsideByClicking = false
+
 		if ((inside && key == InputKey.Interact) || key == InputKey.Click) {
-			if (!inside) {
-				inside = true
-				context.soundQueue.insert(context.sounds.ui.clickConfirm)
-			}
 
 			val hoveringItem = interaction.hoveredSlot
 			if (hoveringItem != null) {
 				val swapResult = hoveringItem.swap(context.getCursorStack(), context.sounds)
 				if (swapResult.sound != null) context.soundQueue.insert(swapResult.sound)
 				context.setCursorStack(swapResult.newCursorStack)
+
+				if (swapResult.newCursorStack != null && !inside) {
+					inside = true
+					wentInsideByClicking = true
+				}
 			}
 
 			thrashRegion?.let {
@@ -92,14 +97,15 @@ class InventoryTab: InGameMenuTab() {
 		}
 
 		if (key == InputKey.SplitClick) {
-			if (!inside) {
-				inside = true
-				context.soundQueue.insert(context.sounds.ui.clickConfirm)
-			}
 			interaction.hoveredSlot?.let {
 				val swapResult = it.takeSingle(context.getCursorStack(), context.sounds)
 				if (swapResult.sound != null) context.soundQueue.insert(swapResult.sound)
 				context.setCursorStack(swapResult.newCursorStack)
+
+				if (swapResult.newCursorStack != null && !inside) {
+					inside = true
+					wentInsideByClicking = true
+				}
 			}
 		}
 
@@ -131,6 +137,8 @@ class InventoryTab: InGameMenuTab() {
 		interaction.processScroll(context.sounds, context.soundQueue, key)
 
 		super.processKeyPress(key, context)
+
+		if (inside && wentInsideByClicking && context.getCursorStack() == null) inside = false
 	}
 
 	override fun processMouseMove(event: MouseMoveEvent, context: UiUpdateContext) {
