@@ -5,6 +5,7 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.Element
 import mardek.state.SoundQueue
 import mardek.content.characters.CharacterState
+import mardek.state.ingame.CampaignStatistics
 import mardek.state.ingame.encyclopedia.EncyclopediaState
 
 /**
@@ -25,6 +26,11 @@ class BattleUpdateContext(
 	val encyclopedia: EncyclopediaState,
 
 	/**
+	 * The campaign statistics, from [mardek.state.ingame.CampaignState.statistics]
+	 */
+	val statistics: CampaignStatistics,
+
+	/**
 	 * The [mardek.content.audio.AudioContent.fixedEffects]
 	 */
 	val sounds: FixedSoundEffects,
@@ -40,7 +46,7 @@ class BattleUpdateContext(
 	val soundQueue: SoundQueue,
 ) {
 	internal constructor() : this(
-		emptyMap(), EncyclopediaState(),
+		emptyMap(), EncyclopediaState(), CampaignStatistics(),
 		FixedSoundEffects(), Element(), SoundQueue(),
 	)
 }

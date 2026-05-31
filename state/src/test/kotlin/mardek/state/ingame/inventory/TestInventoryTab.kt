@@ -80,7 +80,7 @@ class TestInventoryTab {
 	private val tab = InventoryTab()
 	private val context = UiUpdateContext(
 		state.usedPartyMembers(), state.allPartyMembers(),
-		soundQueue, FixedSoundEffects(), SkillsContent(),
+		soundQueue, FixedSoundEffects(), SkillsContent(), state.statistics,
 		{ state.cursorItemStack }, { newStack -> state.cursorItemStack = newStack },
 	)
 

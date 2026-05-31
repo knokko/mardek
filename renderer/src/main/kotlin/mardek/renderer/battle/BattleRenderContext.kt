@@ -15,6 +15,7 @@ class BattleRenderContext(
 	val updateContext = BattleUpdateContext(
 		state.characterStates,
 		state.encyclopedia,
+		state.statistics,
 		context.content.audio.fixedEffects,
 		context.content.stats.elements.find { it.rawName == "NONE" }!!,
 		context.state.soundQueue,

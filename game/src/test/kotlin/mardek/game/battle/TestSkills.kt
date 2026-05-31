@@ -139,6 +139,7 @@ object TestSkills {
 			assertEquals(1, mardekState.performance.numMeleeAttacks)
 			assertEquals(1452, mardekState.performance.damageDealt)
 			assertEquals(1, mardekState.performance.numKills)
+			assertEquals(1, state.campaign.statistics.numKills)
 
 			sleep(1000)
 			testRendering(

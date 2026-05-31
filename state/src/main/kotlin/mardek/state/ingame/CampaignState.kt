@@ -37,7 +37,6 @@ import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveFile
 import java.io.ByteArrayInputStream
 import java.io.InputStream
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * The state of a *campaign* / save. Every save file is basically a `CampaignState` that was serialized to a file.
@@ -124,54 +123,38 @@ class CampaignState : BitPostInit {
 	var stepsSinceLastBattle = 0
 
 	/**
-	 * The total number of steps/tiles that the player has walked voluntarily.
-	 *
-	 * This field is initially 0, and gets incremented by 1 each time the player voluntarily walks to a new tile.
-	 * Forced movement (e.g. during dialogues) does *not* increment this counter.
-	 */
-	@BitField(id = 9)
-	@IntegerField(expectUniform = false, minValue = 0)
-	var totalSteps = 0L
-
-	/**
-	 * The total in-game time that has elapsed since the start of the campaign.
-	 *
-	 * This is not always equal to the real-world time that has elapsed:
-	 * - This `totalTime` is only increased while the player is playing the game.
-	 * - This `totalTime` is stored in the save file (just like the rest of the campaign state).
-	 * So, when the player loses a battle and loads a save that was made before the battle,
-	 * this `totalTime` will be 'reset' to the `totalTime` before the battle.
-	 */
-	@BitField(id = 10)
-	@IntegerField(expectUniform = true, minValue = 0)
-	var totalTime = 0.seconds
-
-	/**
 	 * The items that are currently in the item storage, which the player can access via a save crystal. This list
 	 * starts empty, but will grow larger if needed.
 	 */
-	@BitField(id = 11)
+	@BitField(id = 9)
 	@NestedFieldSetting(path = "c", optional = true)
 	val itemStorage = ArrayList<ItemStack?>()
 
 	/**
 	 * The item stack that is currently grabbed by the cursor (e.g. in the inventory tab).
 	 */
-	@BitField(id = 12, optional = true)
+	@BitField(id = 10, optional = true)
 	var cursorItemStack: ItemStack? = null
 
 	/**
 	 * The states (inventories) of all the shops and traders.
 	 */
-	@BitField(id = 13)
+	@BitField(id = 11)
 	val shops = ShopsStates()
 
 	/**
 	 * The state of the encyclopedia, which tracks e.g. which places the player has discovered, and which monsters the
 	 * player has slain.
 	 */
-	@BitField(id = 14)
+	@BitField(id = 12)
 	val encyclopedia = EncyclopediaState()
+
+	/**
+	 * Some campaign-wide counters/statistics that are shown in the "Status" tab (e.g. how many tiles the player has
+	 * walked and how many battles the players has won).
+	 */
+	@BitField(id = 13)
+	var statistics = CampaignStatistics()
 
 	/**
 	 * This campaign state will set this variable to true when the player wants to open the in-game menu

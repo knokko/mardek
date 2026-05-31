@@ -94,6 +94,7 @@ object TestThrowItems {
 			assertEquals(1, deuganState.performance.numItems)
 			assertEquals(0, deuganState.performance.numMeleeAttacks)
 			assertEquals(0, deuganState.performance.numMagicSkills)
+			assertEquals(1, state.campaign.statistics.itemsConsumed)
 
 			sleep(1000)
 			campaign.update(context(1.seconds))

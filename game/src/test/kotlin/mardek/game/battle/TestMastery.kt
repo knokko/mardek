@@ -197,6 +197,7 @@ object TestMastery {
 				// Running away does NOT count as victory
 				assertEquals(0, mardekState.performance.numBattles)
 				assertEquals(0, deuganState.performance.numBattles)
+				assertEquals(1, state.campaign.statistics.battlesFled)
 			}
 		}
 	}

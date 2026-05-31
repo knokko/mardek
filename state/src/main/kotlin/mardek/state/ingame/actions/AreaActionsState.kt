@@ -10,12 +10,14 @@ import mardek.content.action.*
 import mardek.content.animation.ColorTransform
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
+import mardek.content.characters.CharacterCombatPerformance
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
 import mardek.content.sprite.NamedSprite
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.MouseMoveEvent
+import mardek.state.ingame.CampaignStatistics
 import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -408,6 +410,13 @@ class AreaActionsState(
 		}
 		if (currentAction is ActionRemoveAreaEffect) {
 			effects.remove(currentAction.instance)
+			return true
+		}
+		if (currentAction is ActionWipeStatus) {
+			for (state in context.campaign.characterStates.values) {
+				state.performance = CharacterCombatPerformance()
+			}
+			context.campaign.statistics = CampaignStatistics()
 			return true
 		}
 		if (shopInteraction != null) {

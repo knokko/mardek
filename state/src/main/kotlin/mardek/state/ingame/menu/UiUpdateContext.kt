@@ -4,6 +4,7 @@ import mardek.content.audio.FixedSoundEffects
 import mardek.content.inventory.ItemStack
 import mardek.content.skill.SkillsContent
 import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignStatistics
 import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.WholeParty
 
@@ -34,6 +35,11 @@ class UiUpdateContext(
 	 */
 	val sounds: FixedSoundEffects,
 	val skills: SkillsContent,
+
+	/**
+	 * The [mardek.state.ingame.CampaignState.statistics]
+	 */
+	val statistics: CampaignStatistics,
 
 	/**
 	 * Gets [mardek.state.ingame.CampaignState.cursorItemStack]

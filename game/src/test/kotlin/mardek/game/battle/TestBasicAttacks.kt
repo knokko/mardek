@@ -130,6 +130,7 @@ object TestBasicAttacks {
 			assertEquals(0, mardekState.performance.numMagicSkills)
 			assertEquals(1, mardekState.performance.numKills)
 			assertEquals(0, mardekState.performance.numBattles)
+			assertEquals(0, campaign.statistics.battlesWon)
 			assertEquals(1452, mardekState.performance.damageDealt)
 			assertEquals(0, mardekState.performance.damageReceived)
 
@@ -165,6 +166,9 @@ object TestBasicAttacks {
 			assertEquals(0, deuganState.performance.damageDealt)
 			assertEquals(0, deuganState.performance.numKills)
 			assertEquals(0, deuganState.performance.numMeleeAttacks)
+			assertEquals(1, campaign.statistics.battlesWon)
+			assertEquals(0, campaign.statistics.battlesFled)
+			assertEquals(1, campaign.statistics.numKills)
 		}
 	}
 }

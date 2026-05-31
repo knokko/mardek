@@ -102,6 +102,7 @@ object TestSaveAndLoad {
 				characterStates[heroMardek]!!.currentLevel = 5
 				this.state = areaState
 				gold = 21987
+				statistics.goldEarned = 543
 			}
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 6
 
@@ -142,6 +143,7 @@ object TestSaveAndLoad {
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			state = state.update(context)
 			assertEquals(21987, (state as InGameState).campaign.gold)
+			assertEquals(543, state.campaign.statistics.goldEarned)
 			assertEquals(5, state.campaign.characterStates[heroMardek]!!.currentLevel)
 			assertEquals(6, state.campaign.characterStates[heroDeugan]!!.currentLevel)
 			state.update(context)

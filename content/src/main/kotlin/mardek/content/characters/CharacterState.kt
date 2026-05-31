@@ -106,7 +106,7 @@ class CharacterState {
 	 * character has killed, and how many spells it has cast.
 	 */
 	@BitField(id = 9)
-	val performance = CharacterCombatPerformance()
+	var performance = CharacterCombatPerformance()
 
 	/**
 	 * If this player recently took damage while walking inside an area (e.g. due to being poisoned), this field will

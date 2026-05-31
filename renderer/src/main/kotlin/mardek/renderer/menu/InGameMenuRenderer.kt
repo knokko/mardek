@@ -15,6 +15,7 @@ import mardek.state.ingame.menu.MapTab
 import mardek.state.ingame.menu.PartyTab
 import mardek.state.ingame.menu.QuestsTab
 import mardek.state.ingame.menu.SkillsTab
+import mardek.state.ingame.menu.StatusTab
 import mardek.state.ingame.menu.VideoSettingsTab
 import mardek.state.util.Rectangle
 
@@ -70,7 +71,7 @@ internal fun renderInGameMenu(
 			region.maxX - clockMargin, region.maxY - clockMargin, context.content.ui.clock.index
 		)
 
-		val totalSeconds = state.totalTime.inWholeSeconds
+		val totalSeconds = state.statistics.totalTime.inWholeSeconds
 		fun minutesOrHours(raw: Long) = if (raw < 10) "0$raw" else raw.toString()
 		simpleTextBatch.drawString(
 			"${totalSeconds / 3600}:${minutesOrHours((totalSeconds % 3600) / 60)}:${minutesOrHours(totalSeconds % 60)}",
@@ -101,6 +102,7 @@ internal fun renderInGameMenu(
 	if (menu.currentTab is InventoryTab) renderInventory(menuContext, submenuRectangleWithLowerBar)
 	if (menu.currentTab is MapTab) renderAreaMap(menuContext, submenuRectangleWithoutLowerBar)
 	if (menu.currentTab is QuestsTab) renderQuestsTab(menuContext, submenuRectangleWithLowerBar)
+	if (menu.currentTab is StatusTab) renderStatusTab(menuContext, submenuRectangleWithLowerBar)
 	if (menu.currentTab is EncyclopediaTab) renderEncyclopediaTab(
 		menuContext, submenuRectangleWithLowerBar, region
 	)

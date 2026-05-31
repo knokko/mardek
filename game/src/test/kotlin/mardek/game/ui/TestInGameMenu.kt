@@ -16,6 +16,7 @@ import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.ingame.menu.MapTab
 import mardek.state.ingame.menu.PartyTab
 import mardek.state.ingame.menu.SkillsTab
+import mardek.state.ingame.menu.StatusTab
 import mardek.state.saves.SavesFolderManager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -162,6 +163,22 @@ object TestInGameMenu {
 			testRendering(
 				stateManager, 900, 450, "in-game-menu-map-tab",
 				mapColors, areaColors + partyColors
+			)
+
+			input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
+			input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			input.postEvent(repeatKeyEvent(InputKey.MoveDown))
+			state.update(context)
+			assertTrue(state.menu.shown)
+			assertTrue(state.menu.currentTab is StatusTab)
+
+			val statusColors = arrayOf(
+				Color(238, 203, 127),
+				Color(207, 192, 141),
+			)
+			testRendering(
+				stateManager, 900, 650, "in-game-menu-status-tab",
+				statusColors, areaColors + partyColors
 			)
 		}
 	}

@@ -47,6 +47,7 @@ object TestDragonLair {
 				area, state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(6, 20),
 			)
+			state.campaign.statistics.totalSteps = 50
 
 			// In this case, I want to test that the 'slain monster count' can be increased from 1 to 2.
 			// Other tests already test that it can go from 0 to 1
@@ -81,6 +82,7 @@ object TestDragonLair {
 				state.update(context)
 			}
 			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
+			assertEquals(50 + 8, state.campaign.statistics.totalSteps)
 
 			val baseColors = arrayOf(
 				Color(71, 117, 34), // Deugan cape
@@ -341,6 +343,9 @@ object TestDragonLair {
 				(state.campaign.state as AreaState).getPlayerPosition(0)
 			)
 
+			// The statistics should have been reset after leaving Dragon Lair
+			assertEquals(0, state.campaign.statistics.totalSteps)
+
 			fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
 			repeat(25) {
 				state.update(context)
@@ -349,6 +354,7 @@ object TestDragonLair {
 				AreaPosition(9, 6),
 				(state.campaign.state as AreaState).getPlayerPosition(0)
 			)
+			assertEquals(1, state.campaign.statistics.totalSteps)
 
 			val newEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
 			assertEquals(13, newEncyclopedia.people.size)

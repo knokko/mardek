@@ -37,6 +37,8 @@ object TestExperience {
 				AreaPosition(6, 20),
 			)
 			state.campaign.state = areaState
+			state.campaign.statistics.battlesWon = 5
+			state.campaign.statistics.battlesFled = 5
 
 			val mardekState = state.campaign.characterStates[heroMardek]!!
 			val deuganState = state.campaign.characterStates[heroDeugan]!!
@@ -86,10 +88,13 @@ object TestExperience {
 			assertEquals(1, slainEncyclopediaMonster.amount)
 			assertEquals(1, mardekState.performance.numBattles)
 			assertEquals(1, deuganState.performance.numBattles)
+			assertEquals(6, state.campaign.statistics.battlesWon)
+			assertEquals(5, state.campaign.statistics.battlesFled)
 			assertEquals(0, mardekState.performance.damageDealt)
 			assertEquals(0, deuganState.performance.damageDealt)
 			assertEquals(0, mardekState.performance.numKills)
 			assertEquals(0, deuganState.performance.numKills)
+			assertEquals(1, state.campaign.statistics.numKills)
 		}
 	}
 
@@ -290,6 +295,7 @@ object TestExperience {
 			assertEquals(1, deuganState.performance.numFaints)
 			assertEquals(45, mardekState.performance.damageDealt)
 			assertEquals(45, deuganState.performance.damageReceived)
+			assertEquals(0, state.campaign.statistics.numKills)
 		}
 	}
 }

@@ -44,7 +44,7 @@ object TestRandomBattles {
 					campaign.update(context)
 				}
 
-				assertEquals(campaign.totalSteps, 29L)
+				assertEquals(campaign.statistics.totalSteps, 29L)
 				assertEquals(campaign.stepsSinceLastBattle, 29)
 			}
 		}
@@ -120,7 +120,7 @@ object TestRandomBattles {
 				AreaPosition(7, 39),
 			)
 			campaign.stepsSinceLastBattle = 20
-			campaign.totalSteps = 100
+			campaign.statistics.totalSteps = 100
 			campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
 			val input = InputManager()
@@ -137,7 +137,7 @@ object TestRandomBattles {
 			campaign.update(context)
 
 			assertEquals(20, campaign.stepsSinceLastBattle)
-			assertEquals(100, campaign.totalSteps)
+			assertEquals(100, campaign.statistics.totalSteps)
 			assertSame(dragonLairEntry, (campaign.state as AreaState).area)
 
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
@@ -149,7 +149,7 @@ object TestRandomBattles {
 			campaign.update(context)
 
 			assertEquals(20, campaign.stepsSinceLastBattle)
-			assertEquals(100, campaign.totalSteps)
+			assertEquals(100, campaign.statistics.totalSteps)
 			assertSame(dragonLair2, (campaign.state as AreaState).area)
 		}
 	}

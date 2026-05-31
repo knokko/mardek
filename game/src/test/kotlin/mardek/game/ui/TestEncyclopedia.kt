@@ -178,7 +178,7 @@ object TestEncyclopedia {
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			state.update(updateContext)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			repeat(4) {
+			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			}
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
@@ -268,7 +268,7 @@ object TestEncyclopedia {
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			state.update(updateContext)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			repeat(4) {
+			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			}
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
@@ -337,7 +337,7 @@ object TestEncyclopedia {
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			state.update(updateContext)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			repeat(4) {
+			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			}
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
@@ -399,7 +399,7 @@ object TestEncyclopedia {
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			state.update(updateContext)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			repeat(4) {
+			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			}
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
@@ -469,7 +469,7 @@ object TestEncyclopedia {
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			state.update(updateContext)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			repeat(4) {
+			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			}
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))

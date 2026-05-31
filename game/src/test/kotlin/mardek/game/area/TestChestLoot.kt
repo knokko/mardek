@@ -183,8 +183,10 @@ object TestChestLoot {
 
 			input.postEvent(pressKeyEvent(InputKey.Interact))
 			assertEquals(123, campaign.gold)
+			campaign.statistics.goldEarned = 50
 			campaign.update(context)
 			assertEquals(123 + 56, campaign.gold)
+			assertEquals(50 + 56, campaign.statistics.goldEarned)
 			assertSame(content.audio.fixedEffects.openChest, soundQueue.take())
 			assertNull(soundQueue.take())
 			assertNull((campaign.state as AreaState).suspension)

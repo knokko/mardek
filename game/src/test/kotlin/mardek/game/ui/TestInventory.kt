@@ -511,6 +511,7 @@ object TestInventory {
 
 			// Feed elixir to Mardek with missing health
 			mardekState.currentHealth -= 123
+			assertEquals(0, state.campaign.statistics.itemsConsumed)
 			context.input.postEvent(pressKeyEvent(InputKey.Click))
 			state.update(context)
 			assertEquals(maxHealth, mardekState.currentHealth)
@@ -526,6 +527,7 @@ object TestInventory {
 			assertSame(cureSound, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
 			assertNull(state.campaign.cursorItemStack)
+			assertEquals(2, state.campaign.statistics.itemsConsumed)
 
 			// Feed an empty item stack to Mardek, which shouldn't do anything
 			context.input.postEvent(pressKeyEvent(InputKey.Click))
@@ -658,6 +660,7 @@ object TestInventory {
 			assertSame(content.audio.fixedEffects.ui.clickReject, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
 			assertEquals(ItemStack(bomb, 1), state.campaign.cursorItemStack)
+			assertEquals(9, state.campaign.statistics.itemsConsumed)
 		}
 	}
 }

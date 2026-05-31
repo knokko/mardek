@@ -6,6 +6,7 @@ package mardek.state.ingame.menu
  * This class doesn't track any other state.
  */
 class MapTab: InGameMenuTab() {
+
 	override fun getText() = "Map"
 
 	override fun canGoInside() = false

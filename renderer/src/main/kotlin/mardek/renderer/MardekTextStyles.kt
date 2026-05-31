@@ -479,6 +479,12 @@ object MardekTextStyles {
 		)
 	}
 
+	object StatusTab {
+		val VALUE_STYLE = Vk2dTextStyle(WEAK_TEXT_FILL, Vk2dTextStyle.StrokeStyle(
+			rgba(0, 0, 0, 250), 0.2f, true, 2f,
+		))
+	}
+
 	object Encyclopedia {
 		val SECTION_TITLE = Vk2dTextStyle.Shadowed(
 			Vk2dTextStyle(Vk2dTextStyle.FillStyle(

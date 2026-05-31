@@ -205,6 +205,7 @@ class BattleState(
 		if (combatants.none { it.isOnPlayerSide }) state = BattleStateMachine.GameOver()
 		if (combatants.none { !it.isOnPlayerSide }) {
 			state = BattleStateMachine.Victory()
+			context.statistics.battlesWon += 1
 			for (combatant in combatants) {
 				combatant.incrementPassiveSkillsMastery(context)
 				combatant.getPerformance(context).numBattles += 1
@@ -263,6 +264,7 @@ class BattleState(
 					particles.add(particle)
 					if (!effects.combatant.isAlive()) {
 						effects.combatant.getPerformance(context).numFaints += 1
+						if (!effects.combatant.isOnPlayerSide) context.statistics.numKills += 1
 						state = BattleStateMachine.NextTurn(time + 1000_000_000L)
 						if (!effects.combatant.isOnPlayerSide && effects.combatant is MonsterCombatantState) {
 							context.encyclopedia.reportMonsterAsSlain(effects.combatant.monster)
@@ -511,6 +513,7 @@ class BattleState(
 				state.item, state.thrower, state.target
 			)
 			state.thrower.getPerformance(context).numItems += 1
+			context.statistics.itemsConsumed += 1
 			applyMoveResultEntirely(context, result, state.thrower, null, true)
 			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 500_000_000L)
 
@@ -596,6 +599,7 @@ class BattleState(
 			} else {
 				attacker.getPerformance(context).numKills += 1
 				target.getPerformance(context).numFaints += 1
+				if (!target.isOnPlayerSide) context.statistics.numKills += 1
 				if (target is MonsterCombatantState) {
 					attacker.gainExperience(context, target.monster.experience * target.getLevel(context))
 					context.encyclopedia.reportMonsterAsSlain(target.monster)

@@ -36,7 +36,7 @@ internal class MenuRenderContext(
 	val uiContext = UiUpdateContext(
 		context.campaign.usedPartyMembers(), context.campaign.allPartyMembers(),
 		context.state.soundQueue, context.content.audio.fixedEffects, context.content.skills,
-		{ context.campaign.cursorItemStack },
+		context.campaign.statistics, { context.campaign.cursorItemStack },
 		{ newCursorStack -> context.campaign.cursorItemStack = newCursorStack },
 	)
 }

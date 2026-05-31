@@ -18,6 +18,7 @@ import mardek.content.action.ActionTeleport
 import mardek.content.action.ActionTimelineTransition
 import mardek.content.action.ActionToArea
 import mardek.content.action.ActionWalk
+import mardek.content.action.ActionWipeStatus
 import mardek.content.action.WalkSpeed
 import mardek.content.area.Direction
 import mardek.content.battle.Battle
@@ -127,6 +128,7 @@ private fun hardcodeDragonLairRoom4Actions(
 			"Now that we've beatened the dragon though, now what do we do?"),
 		ActionToArea("heroes_den", 10, 6, Direction.Down),
 		ActionTimelineTransition("MainTimeline", "Childhood"),
+		ActionWipeStatus(),
 		ActionSetMoney(10),
 		ActionTeleport(targetDeugan, 10, 7, Direction.Up),
 		ActionAddEncyclopediaPerson(content.encyclopedia.people.find {
@@ -169,6 +171,7 @@ private fun hardcodeDragonLairRoom4Actions(
 		UUID.fromString("6ec3a6f1-105b-40f1-9b7e-972c9c4ce137"),
 		UUID.fromString("24638873-05a6-4e51-8f2b-ba07c0f15b6b"),
 		UUID.fromString("610fe299-3b1c-49d8-9672-8f70d4573d2e"),
+		UUID.fromString("ea249104-d5cc-4417-99b0-fa5d8c1d7a68"),
 	))!!
 
 	hardcoded["DL_area4"] = mutableListOf(

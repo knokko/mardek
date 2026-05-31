@@ -38,7 +38,7 @@ class InGameMenuState(private val state: CampaignState) {
 	fun update(input: InputManager, soundQueue: SoundQueue, content: Content) {
 		val context = UiUpdateContext(
 			state.usedPartyMembers(), state.allPartyMembers(), soundQueue,
-			content.audio.fixedEffects, content.skills,
+			content.audio.fixedEffects, content.skills, state.statistics,
 			{ state.cursorItemStack },
 			{ newCursorStack -> state.cursorItemStack = newCursorStack },
 		)
@@ -58,9 +58,10 @@ class InGameMenuState(private val state: CampaignState) {
 						if (currentTab is InventoryTab) currentTab = SkillsTab(state.usedPartyMembers())
 						if (currentTab is MapTab) currentTab = InventoryTab()
 						if (currentTab is QuestsTab) currentTab = MapTab()
-						if (currentTab is EncyclopediaTab) {
+						if (currentTab is StatusTab) {
 							currentTab = QuestsTab(state.story.getQuests(content.story))
 						}
+						if (currentTab is EncyclopediaTab) currentTab = StatusTab()
 						if (currentTab is VideoSettingsTab) {
 							val snapshot = state.encyclopedia.createSnapshot(content.encyclopedia, state)
 							currentTab = EncyclopediaTab(snapshot)
@@ -73,10 +74,11 @@ class InGameMenuState(private val state: CampaignState) {
 					if (event.key == InputKey.MoveDown) {
 						val oldTab = currentTab
 						if (currentTab is EncyclopediaTab) currentTab = VideoSettingsTab()
-						if (currentTab is QuestsTab) {
+						if (currentTab is StatusTab) {
 							val snapshot = state.encyclopedia.createSnapshot(content.encyclopedia, state)
 							currentTab = EncyclopediaTab(snapshot)
 						}
+						if (currentTab is QuestsTab) currentTab = StatusTab()
 						if (currentTab is MapTab) currentTab = QuestsTab(state.story.getQuests(content.story))
 						if (currentTab is InventoryTab) currentTab = MapTab()
 						if (currentTab is SkillsTab) currentTab = InventoryTab()

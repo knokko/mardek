@@ -70,6 +70,7 @@ sealed class FixedAction {
 			ActionSpawnAreaEffect::class.java,
 			ActionMoveAreaEffect::class.java,
 			ActionRemoveAreaEffect::class.java,
+			ActionWipeStatus::class.java,
 		)
 	}
 }
@@ -993,3 +994,12 @@ class ActionRemoveAreaEffect(
 	@Suppress("unused")
 	private constructor() : this(ActionSpawnAreaEffect.Instance())
 }
+
+/**
+ * Resets all status/performance of the player (e.g. the number of kills and the damage dealt).
+ *
+ * This is used after the Dragon Lair boss fight to reset the potentially large "Damage Dealt" by Hero Mardek and
+ * Hero Deugan.
+ */
+@BitStruct(backwardCompatible = true)
+class ActionWipeStatus : FixedAction()

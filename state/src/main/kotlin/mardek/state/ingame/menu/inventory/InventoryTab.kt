@@ -84,6 +84,7 @@ class InventoryTab: InGameMenuTab() {
 							context.setCursorStack(cursorStack.decremented())
 							val soundEffect = consumable.particleEffect?.initialSound() ?: consumable.particleEffect?.damageSound()
 							if (soundEffect != null) context.soundQueue.insert(soundEffect)
+							context.statistics.itemsConsumed += 1
 						} else context.soundQueue.insert(context.sounds.ui.clickReject)
 					}
 				}

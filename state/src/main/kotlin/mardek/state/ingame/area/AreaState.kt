@@ -212,7 +212,7 @@ class AreaState(
 		} else {
 			val battleContext = BattleUpdateContext(
 				context.campaign.characterStates, context.campaign.encyclopedia,
-				context.content.audio.fixedEffects,
+				context.campaign.statistics, context.content.audio.fixedEffects,
 				context.content.stats.defaultWeaponElement, context.soundQueue,
 			)
 			suspension.battle.processKeyPress(event.key, battleContext)
@@ -505,7 +505,7 @@ class AreaState(
 
 	private fun updatePlayerPosition(context: UpdateContext, nextPlayerPosition: NextAreaPosition) {
 		if (nextPlayerPosition.arrivalTime <= currentTime) {
-			context.campaign.totalSteps += 1
+			context.campaign.statistics.totalSteps += 1
 
 			for (index in 1 until playerPositions.size) {
 				playerPositions[index] = playerPositions[index - 1]
@@ -529,7 +529,7 @@ class AreaState(
 				val state = context.campaign.characterStates[character]!!
 				for (effect in state.activeStatusEffects) {
 					val walkDamage = effect.damageWhileWalking ?: continue
-					if (context.campaign.totalSteps % walkDamage.period != 0L) continue
+					if (context.campaign.statistics.totalSteps % walkDamage.period != 0L) continue
 
 					val maxHealth = state.determineMaxHealth(character.baseStats, state.activeStatusEffects)
 					state.currentHealth -= max(1, (walkDamage.hpFraction * maxHealth).roundToInt())
@@ -560,6 +560,7 @@ class AreaState(
 				context = BattleUpdateContext(
 					context.campaign.characterStates,
 					context.campaign.encyclopedia,
+					context.campaign.statistics,
 					context.content.audio.fixedEffects,
 					context.content.stats.defaultWeaponElement,
 					context.soundQueue
@@ -571,13 +572,14 @@ class AreaState(
 	private fun updateActiveBattle(context: UpdateContext, suspension: AreaSuspensionBattle) {
 		val battleContext = BattleUpdateContext(
 			context.campaign.characterStates, context.campaign.encyclopedia,
-			context.content.audio.fixedEffects,
+			context.campaign.statistics, context.content.audio.fixedEffects,
 			context.content.stats.defaultWeaponElement, context.soundQueue,
 		)
 		suspension.battle.update(battleContext)
 
 		val battleState = suspension.battle.state
 		if (battleState is BattleStateMachine.RanAway) {
+			context.campaign.statistics.battlesFled += 1
 			this.suspension = null
 			context.soundQueue.insert(context.content.audio.fixedEffects.battle.flee)
 			for (combatant in suspension.battle.allPlayers()) {
@@ -603,6 +605,7 @@ class AreaState(
 		val loot = suspension.loot
 		if (loot != null && loot.finishAt != 0L && System.nanoTime() > loot.finishAt) {
 			context.campaign.gold += loot.gold
+			context.campaign.statistics.goldEarned += loot.gold
 			this.suspension = if (suspension.nextActions != null) {
 				AreaSuspensionActions(suspension.nextActions)
 			} else null
@@ -704,6 +707,7 @@ class AreaState(
 						this.currentTime + 1.seconds
 					)
 					context.campaign.gold += openedChest.gold
+					context.campaign.statistics.goldEarned += openedChest.gold
 				}
 				if (suspension.obtainedItem == null) this.suspension = null
 				// TODO CHAP3 dreamstone in chest

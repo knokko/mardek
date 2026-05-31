@@ -275,6 +275,8 @@ object TestBattleLoot {
 			val onyx = content.items.items.find { it.displayName == "Onyx" }!!
 
 			val campaign = simpleCampaignState()
+			campaign.statistics.goldEarned = 500
+			campaign.gold = 400
 			campaign.party[0] = null
 			campaign.party[1] = heroDeugan
 			campaign.party[3] = heroMardek
@@ -365,6 +367,8 @@ object TestBattleLoot {
 			sleep(600)
 			campaign.update(context)
 			assertNull(area.suspension)
+			assertEquals(400 + 123, campaign.gold)
+			assertEquals(500 + 123, campaign.statistics.goldEarned)
 		}
 	}
 

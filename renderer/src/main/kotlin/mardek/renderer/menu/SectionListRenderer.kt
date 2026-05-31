@@ -8,7 +8,11 @@ import mardek.renderer.MardekTextStyles
 import mardek.state.util.Rectangle
 import kotlin.math.max
 
-private val SECTIONS = arrayOf("Party", "Skills", "Inventory", "Map", "Quests", "Encyclopaedia", "Video  Settings")
+private val SECTIONS = arrayOf(
+	"Party", "Skills", "Inventory", "Map",
+	"Quests", "Status", "Encyclopaedia",
+	"Video  Settings",
+)
 
 internal fun renderInGameMenuSectionList(menuContext: MenuRenderContext, region: Rectangle) {
 	menuContext.run {
