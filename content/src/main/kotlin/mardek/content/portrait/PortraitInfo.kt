@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.action.DialogueTextStyle
 import mardek.content.stats.Element
 import java.util.UUID
 
@@ -86,7 +87,7 @@ class PortraitInfo(
 	 * Some characters have fancy colored text in dialogues (e.g. all guardians and GdM)
 	 */
 	@BitField(id = 11, optional = true)
-	val voiceStyle: String?,
+	val voiceStyle: DialogueTextStyle?,
 
 	/**
 	 * Not sure what this is: some elemental background?

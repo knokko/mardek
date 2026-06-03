@@ -1,6 +1,10 @@
 package mardek.renderer.area.ui
 
 import com.github.knokko.boiler.utilities.ColorPacker.*
+import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
+import com.github.knokko.vk2d.batch.Vk2dImageBatch
+import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.Vk2dFont
 import com.github.knokko.vk2d.text.HarfbuzzChecks.assertHbSuccess
@@ -8,12 +12,15 @@ import com.github.knokko.vk2d.text.Vk2dTextStyle
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.action.*
 import mardek.renderer.MardekTextStyles
+import mardek.renderer.RenderContext
 import mardek.renderer.animation.AnimationContext
+import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.animation.renderPortraitAnimation
 import mardek.renderer.area.AreaRenderContext
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.renderBoxButton
 import mardek.renderer.util.renderInnerBoxButton
+import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
@@ -31,12 +38,76 @@ import kotlin.time.Duration
 
 private const val CHOICE_CHAR = '•'
 
-internal fun renderDialogue(areaContext: AreaRenderContext) {
-	areaContext.run {
-		val suspension = state.suspension
-		val actions = if (suspension is AreaSuspensionActions) suspension.actions else return
-		val actionNode = actions.node ?: return
+internal class DialogueRenderContext(
+	val actionNode: ActionNode,
+	val choiceOptions: List<ChoiceEntry>,
+	val selectedChoice: Int,
+	val region: Rectangle,
+	val shownDialogueCharacters: Float,
+	val defaultDialogueObject: ActionTargetData?,
+	val context: RenderContext,
+	val showChatLog: Boolean,
 
+	val uiColorBatch: Vk2dColorBatch,
+	val ovalBatch: Vk2dOvalBatch,
+	val dialogueElementBatch: Vk2dImageBatch,
+	val portraitBatch: AnimationPartBatch,
+	val simpleTextBatch: Vk2dSimpleTextBatch,
+	val fancyTextBatch: Vk2dFancyTextBatch,
+)
+
+internal fun renderCampaignDialogue(
+	actions: CampaignActionsState, region: Rectangle, context: RenderContext
+): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
+	val dialogueContext = DialogueRenderContext(
+		actionNode = actions.node,
+		choiceOptions = emptyList(),
+		selectedChoice = 0,
+		region = region,
+		shownDialogueCharacters = actions.shownDialogueCharacters,
+		defaultDialogueObject = null,
+		context = context,
+		showChatLog = actions.showChatLog,
+
+		uiColorBatch = context.addColorBatch(200),
+		ovalBatch = context.addOvalBatch(40),
+		dialogueElementBatch = context.addImageBatch(2),
+		portraitBatch = context.addAnimationPartBatch(100),
+		simpleTextBatch = context.addTextBatch(5000),
+		fancyTextBatch = context.addFancyTextBatch(2),
+	)
+
+	renderDialogue(dialogueContext)
+
+	return Pair(dialogueContext.uiColorBatch, dialogueContext.simpleTextBatch)
+}
+
+internal fun renderAreaDialogue(areaContext: AreaRenderContext) {
+	val suspension = areaContext.state.suspension
+	val actions = if (suspension is AreaSuspensionActions) suspension.actions else return
+	val actionNode = actions.node ?: return
+
+	val dialogueContext = DialogueRenderContext(
+		actionNode = actionNode,
+		choiceOptions = actions.choiceOptions,
+		selectedChoice = actions.selectedChoice,
+		region = areaContext.region,
+		shownDialogueCharacters = actions.shownDialogueCharacters,
+		defaultDialogueObject = actions.defaultDialogueObject,
+		context = areaContext.context,
+		showChatLog = actions.showChatLog,
+		uiColorBatch = areaContext.uiColorBatch,
+		ovalBatch = areaContext.ovalBatch,
+		dialogueElementBatch = areaContext.dialogueElementBatch,
+		simpleTextBatch = areaContext.simpleTextBatch,
+		fancyTextBatch = areaContext.fancyTextBatch,
+		portraitBatch = areaContext.portraitBatch,
+	)
+	renderDialogue(dialogueContext)
+}
+
+private fun renderDialogue(dialogueContext: DialogueRenderContext) {
+	dialogueContext.run {
 		var talkAction: ActionTalk? = null
 
 		if (actionNode is FixedActionNode) {
@@ -50,13 +121,13 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 		}
 
 		if (actionNode is ChoiceActionNode) {
-			val combinedText = actions.choiceOptions.withIndex().joinToString("\n") {
+			val combinedText = choiceOptions.withIndex().joinToString("\n") {
 				var text = "$CHOICE_CHAR " + it.value.text
-				if (it.index == actions.selectedChoice) text = "$$text%"
+				if (it.index == selectedChoice) text = "$$text%"
 				text
 			}
 			talkAction = ActionTalk(
-				actionNode.speaker, actions.choiceOptions[actions.selectedChoice].expression, combinedText
+				actionNode.speaker, choiceOptions[selectedChoice].expression, combinedText
 			)
 		}
 
@@ -66,7 +137,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			is ActionTargetPlayer -> speaker.player.portraitInfo
 			is ActionTargetPartyMember -> context.campaign.party[speaker.index]?.portraitInfo
 			is ActionTargetAreaCharacter -> speaker.character.portrait
-			is ActionTargetDefaultDialogueObject -> actions.defaultDialogueObject?.portraitInfo
+			is ActionTargetDefaultDialogueObject -> defaultDialogueObject?.portraitInfo
 			is ActionTargetCustom -> speaker.data.portraitInfo
 			else -> null
 		}
@@ -96,9 +167,10 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				noMask = context.content.battle.noMask,
 				combat = null,
 				portrait = portrait,
+				currentChapter = context.campaign.story.evaluate(context.content.story.fixedVariables.chapter) ?: 0,
 				portraitExpression = talkAction.expression,
 				dialogueLine = talkAction.text,
-				shownDialogueCharacters = actions.shownDialogueCharacters,
+				shownDialogueCharacters = shownDialogueCharacters,
 				animationDuration = Duration.ZERO,
 			)
 			renderPortraitAnimation(context.content.portraits.animations, animationContext)
@@ -185,7 +257,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 				diagonalX2 + 1, nameRegion.minY + lineWidth - diagonalHeight, backgroundColor
 			)
 
-			if (actions.showChatLog) {
+			if (showChatLog) {
 				val weakerBackgroundColor = multiplyAlpha(backgroundColor, 0.9f)
 				uiColorBatch.fillUnaligned(
 					region.minX, nameRegion.minY,
@@ -198,7 +270,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 					region.minX, region.minY, region.maxX, nameRegion.minY - diagonalHeight - 1,
 					weakerBackgroundColor
 				)
-				renderChatLog(areaContext, actions)
+				renderChatLog(dialogueContext)
 			}
 		}
 
@@ -222,7 +294,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			)
 		}
 
-		if (actions.shownDialogueCharacters >= talkAction.text.length || actionNode is ChoiceActionNode) {
+		if (shownDialogueCharacters >= talkAction.text.length || actionNode is ChoiceActionNode) {
 			val minBoxSize = textRegion.height * 0.24f
 			val maxBoxSize = textRegion.height * 0.26f
 			val boxSizePeriod = 1_000_000_000L
@@ -240,7 +312,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 
 		run {
 			val speakerElement = talkAction.speaker.getElement(
-				actions.defaultDialogueObject, context.campaign.party
+				defaultDialogueObject, context.campaign.party
 			)
 
 			if (speakerElement != null) {
@@ -262,7 +334,7 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 
 		run {
 			val displayName = talkAction.speaker.getDisplayName(
-				actions.defaultDialogueObject, context.campaign.party
+				defaultDialogueObject, context.campaign.party
 			)
 			if (displayName != null) {
 				val shadowOffset = nameRegion.height * 0.04f
@@ -293,20 +365,10 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			if (portrait != null) {
 				val voice = portrait.voiceStyle
 				if (voice != null) {
-					if (voice.startsWith("gdm_")) {
-						font = context.bundle.getFont(context.content.fonts.gdm.index)
-					}
-					if (voice.contains('_')) {
-						val maybeElementName = voice.substring(1 + voice.lastIndexOf('_'))
-						val maybeElement = context.content.stats.elements.find {
-							it.rawName.equals(maybeElementName, ignoreCase = true)
-						}
-						if (maybeElement != null) {
-							baseStyle = MardekTextStyles.Dialogue.colored(maybeElement.color)
-							boldStyle = baseStyle
-							shadowStyle = null
-						}
-					}
+					font = context.bundle.getFont(voice.font.index)
+					baseStyle = MardekTextStyles.Dialogue.custom(voice)
+					boldStyle = baseStyle
+					shadowStyle = null
 				}
 			}
 
@@ -315,13 +377,13 @@ internal fun renderDialogue(areaContext: AreaRenderContext) {
 			val baseTextX = textRegion.minX + textRegion.height * 0.1f
 			val maxTextX = textRegion.maxX - textRegion.height * 0.1f
 			val minTextY = textRegion.minY + textRegion.height * 0.2f
-			val textHeight = textRegion.height * 0.09f
+			val textHeight = textRegion.height * 0.1f
 
-			var shownCharacters = actions.shownDialogueCharacters
+			var shownCharacters = shownDialogueCharacters
 			if (actionNode is ChoiceActionNode) shownCharacters = talkAction.text.length.toFloat()
 
-			val implicitLineSpacing = 0.14f * textRegion.height
-			val explicitLineSpacing = 0.17f * textRegion.height
+			val implicitLineSpacing = 0.18f * textRegion.height
+			val explicitLineSpacing = 0.2f * textRegion.height
 
 			renderDialogueLines(
 				text, shownCharacters, baseTextX, baseTextX, maxTextX,

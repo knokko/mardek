@@ -1,5 +1,7 @@
 package mardek.game.action
 
+import mardek.content.action.ActionEndOfChapter
+import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionTalk
 import mardek.content.action.ChoiceActionNode
 import mardek.content.action.FixedActionNode
@@ -20,11 +22,13 @@ import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.saves.SaveFile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import java.awt.Color
+import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestMardekHouseActions {
@@ -306,6 +310,143 @@ object TestMardekHouseActions {
 			assertEquals("gz_Mhouse1", areaState.area.properties.rawName)
 			assertEquals(AreaPosition(0, 5), areaState.getPlayerPosition(0))
 			assertNull(areaState.suspension)
+		}
+	}
+
+	fun testEndOfChapter1(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(simpleCampaignState(), "EndOfChapter1")
+			val updateContext = GameStateUpdateContext(
+				content, InputManager(), SoundQueue(), 10.milliseconds
+			)
+			performTimelineTransition(
+				updateContext, state.campaign,
+				"MainTimeline", "Searching for the fallen 'star'"
+			)
+			state.campaign.state = AreaState(
+				content.areas.areas.find { it.properties.rawName == "gz_Mhouse2" }!!,
+				state.campaign.story, state.campaign.expressionContext(),
+				AreaPosition(0, 1)
+			)
+
+			// Mardek cannot have this conversation Until Rohoph enters his body
+			repeat(5) {
+				state.update(updateContext)
+			}
+
+			val areaState = state.campaign.state as AreaState
+			assertNull(areaState.suspension)
+
+			performTimelineTransition(
+				updateContext, state.campaign,
+				"MainTimeline", "Dropped Deugan home before after Rohoph entered Mardeks body"
+			)
+
+			state.update(updateContext)
+			val actionsState = (areaState.suspension as AreaSuspensionActions).actions
+			assertInstanceOf<ActionTalk>((actionsState.node as FixedActionNode).action)
+
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Cancel))
+			@Suppress("unused")
+			for (counter in 0 until 1000) {
+				state.update(updateContext)
+				if (state.campaign.state !== areaState) break
+			}
+
+			val campaignActions = (state.campaign.state as CampaignActionsState)
+			assertInstanceOf<ActionPlayCutscene>((campaignActions.node as FixedActionNode).action)
+			assertEquals("GdM", state.campaign.determineMusicTrack(content))
+
+			val backgroundColors = arrayOf(
+				Color(0, 0, 0), // Lots of black
+				Color(153, 1, 255), // Violet crystal edges
+				Color(117, 17, 195), // Violet crystal glow
+				Color(38, 20, 56), // Dark purple background
+				Color(73, 59, 50), // Title bar should still be visible
+			)
+			val dialogueColors = arrayOf(
+				Color(238, 203, 127), // Strong text color
+				Color(88, 71, 46), // Button background color
+			)
+			val balthazarColors = arrayOf(
+				Color(51, 255, 255), // Eye color
+				Color(153, 204, 255), // 'Spikes' color
+				Color(160, 250, 250), // Text color
+			)
+			val gasparColors = arrayOf(
+				Color(255, 153, 0), // Eye color
+				Color(74, 49, 11), // Shadowed 'spikes' color
+				Color(250, 150, 0), // Text color
+			)
+			val melchiorColors = arrayOf(
+				Color(255, 255, 0), // Eye color
+				Color(255, 255, 200), // Text color
+			)
+			testRendering(
+				state, 900, 700, "end-of-chapter1-1", backgroundColors,
+				dialogueColors + balthazarColors + gasparColors + melchiorColors
+			)
+
+			state.update(updateContext)
+			assertEquals("GdM", state.campaign.determineMusicTrack(content))
+			sleep(2500)
+			state.update(updateContext)
+			assertEquals("GdM", state.campaign.determineMusicTrack(content))
+			testRendering(
+				state, 900, 700, "end-of-chapter1-2",
+				emptyArray(), emptyArray()
+			)
+			state.update(updateContext)
+			assertInstanceOf<ActionTalk>((campaignActions.node as FixedActionNode).action)
+			testRendering(
+				state, 900, 700, "end-of-chapter1-3",
+				backgroundColors + dialogueColors + balthazarColors,
+				gasparColors + melchiorColors,
+			)
+
+			val currentNode = campaignActions.node as FixedActionNode
+			@Suppress("unused")
+			for (counter in 0 until 100) {
+				state.update(updateContext)
+				if (currentNode !== campaignActions.node) break
+			}
+			assertNotSame(currentNode, campaignActions.node)
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Cancel))
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
+
+			repeat(500) {
+				state.update(updateContext)
+			}
+			testRendering(
+				state, 900, 700, "end-of-chapter1-4",
+				backgroundColors + dialogueColors + gasparColors,
+				balthazarColors + melchiorColors,
+			)
+
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			repeat(100) {
+				state.update(updateContext)
+			}
+			assertEquals("GdM", state.campaign.determineMusicTrack(content))
+			testRendering(
+				state, 900, 700, "end-of-chapter1-5",
+				backgroundColors + dialogueColors + melchiorColors,
+				balthazarColors + gasparColors,
+			)
+
+			// Skip until the End Of Chapter 1 screen
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Cancel))
+			repeat(1000) {
+				state.update(updateContext)
+			}
+
+			sleep(2100)
+			state.update(updateContext)
+
+			assertInstanceOf<ActionEndOfChapter>((campaignActions.node as FixedActionNode).action)
+			assertNull(state.campaign.determineMusicTrack(content))
 		}
 	}
 }

@@ -1,6 +1,5 @@
 package mardek.importer.area
 
-import com.github.knokko.bitser.Bitser
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import mardek.content.Content
 import mardek.content.area.objects.AreaCharacter

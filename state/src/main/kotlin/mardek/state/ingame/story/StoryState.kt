@@ -12,6 +12,7 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.expression.AndStateCondition
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.EqualStateCondition
 import mardek.content.expression.ExpressionOrDefaultStateExpression
 import mardek.content.expression.GlobalStateExpression
 import mardek.content.expression.IfElseStateExpression
@@ -257,6 +258,12 @@ class StoryState : BitPostInit {
 			val right = evaluate(expression.right, context, nodes)
 			@Suppress("UNCHECKED_CAST")
 			return (left >= right) as T
+		}
+		if (expression is EqualStateCondition<*>) {
+			val left = evaluate(expression.left, context, nodes)
+			val right = evaluate(expression.right, context, nodes)
+			@Suppress("UNCHECKED_CAST")
+			return (left == right) as T
 		}
 		throw UnsupportedOperationException(
 			"Unsupported expression type ${expression.javaClass} : $expression"

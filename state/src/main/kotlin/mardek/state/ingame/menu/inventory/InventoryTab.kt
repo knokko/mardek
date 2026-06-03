@@ -74,7 +74,7 @@ class InventoryTab: InGameMenuTab() {
 			}
 
 			thrashRegion?.let {
-				if (it.contains(interaction.mouseX, interaction.mouseY)) {
+				if (context.getCursorStack() != null && it.contains(interaction.mouseX, interaction.mouseY)) {
 					context.setCursorStack(null)
 					context.soundQueue.insert(context.sounds.ui.clickCancel)
 				}

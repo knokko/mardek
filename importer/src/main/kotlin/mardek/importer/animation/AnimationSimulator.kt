@@ -90,7 +90,9 @@ private class AnimationSimulator {
 			script.contains("&& isNaN(_parent._parent.stats.face)") ||
 			script.contains("!_loc3_.hair ? (!_loc3_.face ? 1 : _loc3_.face) : _loc3_.hair") ||
 			script.contains("!_parent._parent.stats.hair ?") ||
-			script.contains("gotoAndStop(!_parent.stats.armour ?")
+			script.contains("gotoAndStop(!_parent.stats.armour ?") ||
+			script.contains("this.gotoAndStop(!_parent.stats.robe ? \"none\" : _parent.stats.robe);") ||
+			script.contains("gotoAndStop(GameData.CHAPTER)")
 		) {
 			onlyOneFramePerSkin = true
 			if (currentSkinName != "") throw IllegalStateException()

@@ -4,6 +4,7 @@ import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.ItemStack
 import mardek.input.InputKey
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.inventory.EquipmentRowRenderInfo
 import mardek.state.ingame.menu.inventory.InventoryInteractionState
 import mardek.state.ingame.menu.inventory.ItemGridRenderInfo
@@ -96,34 +97,34 @@ class ItemStorageInteractionState {
 	 * This method should be called whenever an `InputKeyEvent` with `didPress = true` is fired while the player is
 	 * viewing the item storage
 	 */
-	internal fun processKeyPress(context: AreaActionsState.UpdateContext, key: InputKey) {
+	internal fun processKeyPress(context: CampaignState.UpdateContext, campaign: CampaignState, key: InputKey) {
 		val sounds = context.content.audio.fixedEffects
 		inventory.processScroll(sounds, context.soundQueue, key)
 		if (key == InputKey.MoveUp && storagePage > 0) {
 			storagePage -= 1
 			context.soundQueue.insert(sounds.ui.scroll2)
 		}
-		if (key == InputKey.MoveDown && canScrollToNextPage(context.campaign.itemStorage)) {
+		if (key == InputKey.MoveDown && canScrollToNextPage(campaign.itemStorage)) {
 			storagePage += 1
 			context.soundQueue.insert(sounds.ui.scroll2)
 		}
 
 		if (key == InputKey.Click) {
 			inventory.hoveredSlot?.let {
-				val swapResult = it.swap(context.campaign.cursorItemStack, sounds)
+				val swapResult = it.swap(campaign.cursorItemStack, sounds)
 				if (swapResult.sound != null) context.soundQueue.insert(swapResult.sound)
-				context.campaign.cursorItemStack = swapResult.newCursorStack
+				campaign.cursorItemStack = swapResult.newCursorStack
 			}
 
 			if (hoveredCharacter != null) {
 				selectedCharacter = Pair(
-					hoveredCharacter!!, context.campaign.characterStates[hoveredCharacter!!]!!
+					hoveredCharacter!!, campaign.characterStates[hoveredCharacter!!]!!
 				)
 			}
 
 			thrashRegion?.let {
-				if (it.contains(inventory.mouseX, inventory.mouseY)) {
-					context.campaign.cursorItemStack = null
+				if (campaign.cursorItemStack != null && it.contains(inventory.mouseX, inventory.mouseY)) {
+					campaign.cursorItemStack = null
 					context.soundQueue.insert(sounds.ui.clickCancel)
 				}
 			}
@@ -131,9 +132,9 @@ class ItemStorageInteractionState {
 
 		if (key == InputKey.SplitClick) {
 			inventory.hoveredSlot?.let {
-				val swapResult = it.takeSingle(context.campaign.cursorItemStack, sounds)
+				val swapResult = it.takeSingle(campaign.cursorItemStack, sounds)
 				if (swapResult.sound != null) context.soundQueue.insert(swapResult.sound)
-				context.campaign.cursorItemStack = swapResult.newCursorStack
+				campaign.cursorItemStack = swapResult.newCursorStack
 			}
 		}
 	}
@@ -142,7 +143,7 @@ class ItemStorageInteractionState {
 	 * This method should be called whenever a `MouseMoveEvent` is fired while the player is
 	 * viewing the item storage
 	 */
-	internal fun processMouseMove(context: AreaActionsState.UpdateContext, newX: Int, newY: Int) {
+	internal fun processMouseMove(campaign: CampaignState, newX: Int, newY: Int) {
 		inventory.processMouseMove(
 			newX, newY, renderedCharacterInventory,
 			if (renderedCharacterBar != null) listOf(renderedCharacterBar!!) else emptyList(),
@@ -154,7 +155,7 @@ class ItemStorageInteractionState {
 			if (potentialCharacter.region.contains(newX, newY)) hoveredCharacter = potentialCharacter.character
 		}
 
-		updateHoveredStorageSlot(context.campaign.itemStorage)
+		updateHoveredStorageSlot(campaign.itemStorage)
 	}
 
 	/**

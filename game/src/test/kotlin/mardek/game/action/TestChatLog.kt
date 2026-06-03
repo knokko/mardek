@@ -193,7 +193,7 @@ object TestChatLog {
 							"and grants priests such as myself magical power! You should know this, children!"
 				),
 				ChatLogEntry("Mardek", light, "Well, I was just being silly..."),
-			), actions.chatLog)
+			), state.campaign.chatLog)
 
 			// Test that this doesn't crash
 			dummySaveManager().createSave(

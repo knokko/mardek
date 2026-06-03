@@ -104,7 +104,7 @@ class ShopInteractionState(
 				}
 
 				thrashRegion?.let {
-					if (it.contains(inventory.mouseX, inventory.mouseY)) {
+					if (context.campaign.cursorItemStack != null && it.contains(inventory.mouseX, inventory.mouseY)) {
 						context.campaign.cursorItemStack = null
 						context.soundQueue.insert(sounds.ui.clickCancel)
 					}

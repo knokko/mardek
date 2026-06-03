@@ -3,7 +3,6 @@ package mardek.renderer.animation
 import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.boiler.utilities.ColorPacker.addColors
 import com.github.knokko.boiler.utilities.ColorPacker.multiplyColors
-import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.content.animation.AnimationFrames
 import mardek.content.animation.AnimationNode
 import mardek.content.animation.AnimationSprite
@@ -183,7 +182,7 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		leafMatrix.translate(0f, sprite.offsetY)
 		if (special == SpecialAnimationNode.MorphingShadow) {
 			val animationProgress = context.stack.last().animationProgress
-			val shadowScale = 0.75f * (1f - 0.15f * sin(animationProgress * 2f * PI).toFloat())
+			val shadowScale = 0.75f * (1f - 0.05f * sin(animationProgress * 2f * PI).toFloat())
 			leafMatrix.translate(0f, 0.3f * sprite.offsetY)
 			leafMatrix.scale(shadowScale)
 		}
@@ -274,6 +273,10 @@ private fun chooseSkin(
 	if (special == SpecialAnimationNode.Shield) {
 		val shieldName = context.combat?.shieldName ?: return null
 		return skinned.skins[shieldName.lowercase(Locale.ROOT)]?.get()
+	}
+
+	if (special == SpecialAnimationNode.CurrentChapter) {
+		return skinned.skins[context.currentChapter.toString()]?.get()
 	}
 
 	if (special == SpecialAnimationNode.PortraitExpressions) {

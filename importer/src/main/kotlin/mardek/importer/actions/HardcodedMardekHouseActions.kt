@@ -3,14 +3,18 @@ package mardek.importer.actions
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.Content
 import mardek.content.action.ActionAddEncyclopediaPerson
+import mardek.content.action.ActionEndOfChapter
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.ActionRotate
 import mardek.content.action.ActionSequence
+import mardek.content.action.ActionSetBackground
 import mardek.content.action.ActionSetBackgroundImage
 import mardek.content.action.ActionSetMusic
 import mardek.content.action.ActionSetOverlayColor
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetAreaCharacter
+import mardek.content.action.ActionTargetCustom
+import mardek.content.action.ActionTargetData
 import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionTargetWholeParty
@@ -32,6 +36,7 @@ import mardek.content.expression.IfElseStateExpression
 import mardek.content.expression.ExpressionActionNodeValue
 import mardek.importer.util.loadBc7Sprite
 import java.util.UUID
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 internal fun hardcodeMardekHouseActions(
@@ -386,7 +391,7 @@ internal fun hardcodeMardekHouseActions(
 			ActionRotate(targetMardek, Direction.Sleep),
 			ActionSetOverlayColor(color = rgb(0, 0, 0), transitionTime = 2.seconds),
 			ActionToGlobalActions(),
-			ActionPlayCutscene(content.actions.cutscenes.find { it.name == "Falling Star" }!!),
+			ActionPlayCutscene(content.actions.cutscenes.find { it.name == "Falling Star" }!!, true),
 			ActionToArea("gz_Mhouse2", 0, 1, Direction.Sleep),
 			ActionTimelineTransition("MainTimeline", "Searching for the fallen 'star'"),
 			ActionTeleport(targetDeugan, 3, 5, Direction.Up),
@@ -442,7 +447,453 @@ internal fun hardcodeMardekHouseActions(
 			UUID.fromString("1786b4b3-fb04-49b3-94c8-4360177da681"),
 		)
 	)!!
+
+	// The portrait list can be empty during unit tests
+	if (content.battle.monsters.size <= 2) {
+		hardcoded["gz_Mhouse2"] = mutableListOf(
+			ActionSequence(name = "FallingStarCutscene", root = FixedActionNode()),
+			ActionSequence(name = "TalkWithRohophInBed", root = FixedActionNode())
+		)
+		return
+	}
+
+	val childRohophPortrait = content.portraits.info.find { it.flashName == "rm_mardek_child" }!!
+	val targetChildRohoph = ActionTargetCustom(ActionTargetData(
+		displayName = "Rohoph",
+		element = content.stats.elements.find { it.rawName == "LIGHT" }!!,
+		portraitInfo = childRohophPortrait,
+	))
+
+	fun gdmTarget(name: String, elementName: String): ActionTargetCustom {
+		val portrait = content.portraits.info.find { it.flashName.equals(name, ignoreCase = true) }!!
+		return ActionTargetCustom(ActionTargetData(
+			displayName = name,
+			element = content.stats.elements.find { it.rawName == elementName }!!,
+			portraitInfo = portrait,
+		))
+	}
+
+	val targetBalthazar = gdmTarget("Balthazar", "WATER")
+	val targetGaspar = gdmTarget("Gaspar", "FIRE")
+	val targetMelchior = gdmTarget("Melchior", "AIR")
+	val targetQualna = gdmTarget("Qualna", "ETHER")
+	val targetMoric = gdmTarget("Moric", "EARTH")
+	val targetAnu = gdmTarget("Anu", "DARK")
+
+	val talkWithRohoph = fixedActionChain(arrayOf(
+		ActionRotate(target = targetMardek, newDirection = Direction.Sleep),
+		ActionTalk(
+			speaker = targetMardek,
+			expression = "zzz",
+			text = ". . ."
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Down),
+		ActionTalk(
+			speaker = targetMardek,
+			expression = "susp",
+			text = "You! You weird thing in me! Can you hear me if I talk?",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Possessed),
+		ActionSetMusic("Rohoph"),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "smile",
+			text = "Obviously. I have your ears and share your brain now, so I can detect anything that you can, " +
+					"including your *internal* monologues, might I add."
+		),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "smile",
+			text = "(But due to my incredible magical prowess and dominance in this 'relationship', " +
+					"you can know nothing of MY mental activites. Ahah.)",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Down),
+		ActionTalk(
+			speaker = targetMardek,
+			expression = "susp",
+			text = "Huh?",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Possessed),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "smile",
+			text = "Nevermind. You want to ask me something though, Host? I suppose I'll do my best to explain; " +
+					"I mean, we WILL surely be spending years together from now on, " +
+					"so it'd be best to be on good terms with one another.",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Down),
+		ActionTalk(
+			speaker = targetMardek,
+			expression = "susp",
+			text = "Well, I just want to know what you are! What are you?",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Possessed),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "deep",
+			text = "Hm... Despite its apparent simplicity, " +
+					"that's one of the most complex of queries you could've come up with...",
+		),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "norm",
+			text = "In short, I am... A Healer. Yes, that should do. I'm a magic-user of incredible skill, " +
+					"specialising in Light-elemental recovery magic and so on. Inhabiting your body as I am, " +
+					"I'll be able to lend you some of my power in any battles you may face in future. " +
+					"Keep that in mind."
+		),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "susp",
+			text = "But also, since I know that wasn't a satisfactory answer to your question, " +
+					"I am, uh... An 'Angel'? Is that what you call them here?",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Down),
+		ActionTalk(
+			speaker = targetMardek,
+			expression = "susp",
+			text = "You mean one of them things from the sky?",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Possessed),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "smile",
+			text = "Yes... I think. " +
+					"That's the word I got for what I am when I searched your brain's vocabulary lexicon, anyway. " +
+					"'A being from the sky'. Yes, that seems apt.",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Possessed),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "deep",
+			text = "I came here because... Hm, I don't know if I should tell you... I can't see what harm it'd do, " +
+					"but I also can't see what GOOD it would do, so it's better to be safe than sorry.",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Down),
+		ActionTalk(
+			speaker = targetMardek,
+			expression = "sad",
+			text = "Aww! So you won't even tell me why you're in me?",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Possessed),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "norm",
+			text = "Uh. I'm IN you, as you so nicely put it, because I had no choice. " +
+					"As I said, my body died when my, uh, (blast! no word for it!)... 'flying thing' crashed here, " +
+					"and I was so very close to having my soul wrenched from this plane of existence...",
+		),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "norm",
+			text = "O, what luck!, I thought when you entered my, uh... flying thing! I do apologise, " +
+					"but the opportunity was just too good to ignore, and when you're in pure soulform, " +
+					"you don't have much reasoning capability anyway.",
+		),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "smile",
+			text = "I still have a lot of business to attend to on this plane, though. Yes... " +
+					"Why I'm here on this planet of yours relates to that.",
+		),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "deep",
+			text = "But I need time to regenerate a bit. Dying really weakened me! Which is understandable.",
+		),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "smile",
+			text = "I'll lie low for a bit here before mentioning anything to you... " +
+					"So it's best you just accept my solemn stony silence on matters of my past, " +
+					"person or purpose for the next few years and don't ask questions!",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Down),
+		ActionTalk(
+			speaker = targetMardek,
+			expression = "blah",
+			text = "Well, you talk too much, Thing!",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Possessed),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "susp",
+			text = "My name's Rohoph, not 'Thing'. And hm... I do go on a bit, don't I? " +
+					"But I'm the only one here with knowledge enough to provide any kind of exposition! Tsk!",
+		),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "smile",
+			text = "Anyway, I'm going to probably be rather silent for the next few years. " +
+					"I'll still be in your body, but I'll keep to myself and work on regaining some of my power.",
+		),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "smile",
+			text = "During that time, I'm sure you'll get used to me though, and I to you. " +
+					"Yes, it'll be a veritable frenzy of family-friendly fun, I'm sure! " +
+					"We'll have all sorts of crazy, zany shenanigans, antics and hijinks, probably!",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Down),
+		ActionTalk(
+			speaker = targetMardek,
+			expression = "grin",
+			text = "Well, sounds fun!",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Possessed),
+		ActionTalk(
+			speaker = targetChildRohoph,
+			expression = "smile",
+			text = "Yes indeed. But now, rest, host. We can't be having us being sleepy and lethargic tomorrow... " +
+					"It's probably going to be a long day...",
+		),
+		ActionRotate(target = targetMardek, newDirection = Direction.Sleep),
+		ActionSetOverlayColor(color = rgb(0, 0, 0), transitionTime = 2.seconds),
+		ActionToGlobalActions(),
+		ActionSetMusic("GdM"),
+		ActionPlayCutscene(content.actions.cutscenes.find { it.name == "GdM intro" }!!, false),
+		ActionSetBackground(content.battle.backgrounds.find { it.name == "GdM" }!!),
+		ActionTalk(
+			speaker = targetBalthazar,
+			expression = "blah",
+			text = "Rohoph's escaped, you know. " +
+					"He flew away in one of the gallopers, myes. YALORT knows where he went.",
+		),
+		ActionTalk(
+			speaker = targetGaspar,
+			expression = "angr",
+			text = "HE NEEDS TO SANGUINARY WELL BE BURNED!! LET'S BURN HIM!!! " +
+					"BURN HIS HEMIC FACE OFF AND ALSO HIS PRATTIN' ROBE! HIS WHITE ROBE!! " +
+					"HIS DETRITAL WHITEY ROBE ROBE!! IT MUST BURN!! BUUURRRNNN!!!"
+		),
+		ActionTalk(
+			speaker = targetMelchior,
+			expression = "dreamy",
+			text = "I like white. I find it goes well with yellow, but only if you want it to. " +
+					"If you don't believe it does, then it doesn't. Just like bad smells. " +
+					"You only think they're bad if you're told they're bad. I don't like bad smells."
+		),
+		ActionTalk(
+			speaker = targetQualna,
+			expression = "susp",
+			text = "Ignoring how these caterpillars uttered what they're trying to say, I do agree; " +
+					"Rohoph needs to be perish'd. He cannot be left to roam loose with the knowledge he possesses! " +
+					"If he rallies enough of a resistance - which it seems he's trying to do - then, why sirs, " +
+					"we're well and truly buggered twice and whenceways till sundown, sunup and then some!"
+		),
+		ActionTalk(
+			speaker = targetMoric,
+			expression = "deep",
+			text = "Yes, kill him. Kill the traitor. Let his blood run free, his flesh turn cold, " +
+					"his motor functions degrade and cease and his entire being become uncertain, his body a shell, " +
+					"his soul a wanderer. Yeeess, ooohh, I do so want to see his flesh cold and crawling " +
+					"with a million maggots, slowly chewing, chewing, chewing on the rot, yeeess, yeeeeesss...",
+		),
+		ActionTalk(
+			speaker = targetGaspar,
+			expression = "angr",
+			text = "MORIC, YOU'RE A SMELTIN' CREEPY MAN!! AND YET I THINK I TOO MIGHT MONGIN' WELL DELIGHT IN THE " +
+					"SIGHT OF THE FRIGHT OF THE WHITE BLIGHT AS I FIGHT AND SMITE HIM FROM THIS PLANE!! BLOODYIN'."
+		),
+		ActionTalk(
+			speaker = targetQualna,
+			expression = "grin",
+			text = "Why Gaspar, that's awfully poetic for you! I'm amazed!",
+		),
+		ActionTalk(
+			speaker = targetGaspar,
+			expression = "glare",
+			text = "I'LL HARRY WELL SHOW *YOU* A POETIC MAZE!! I'LL TRAP YOU IN IT AND SCREAM TOFFIN' " +
+					"BLOOD-CURDLIN' SCREAMS AS YOU TRY IN VAIN TO EVADE THE PAIN YOU'D BE SURE TO GAIN!! " +
+					"YOU'D SLOWLY GO INSANE, AND I'D JUST LAUGH!! LAUGH!!! MOGGIN' LAUGH TRIPIN' HARD!!",
+		),
+		ActionTalk(
+			speaker = targetBalthazar,
+			expression = "susp",
+			text = "What ARE you talking about? Shut up anyway, it's irrelevant. " +
+					"But we DO need to address the Rohoph problem.",
+		),
+		ActionTalk(
+			speaker = targetBalthazar,
+			expression = "norm",
+			text = "Master, what think you? We should do away with him, myes? But how do we go about it?",
+		),
+		ActionTalk(
+			speaker = targetAnu,
+			expression = "glare",
+			text = "Yes, underlings. If the deserter, the traitor, Rohoph, is left to run free, " +
+					"though he alone could pose no serious threat to us, he could gain the alliance of others, " +
+					"which he's frustratingly good at doing.",
+		),
+		ActionTalk(
+			speaker = targetAnu,
+			expression = "norm",
+			text = "We have to do away with him. And quickly. He's the only one who knows, " +
+					"so with him gone we'll be safe as long as we make nothing clear until it's too late for them.",
+		),
+		ActionTalk(
+			speaker = targetBalthazar,
+			expression = "blah",
+			text = "One of us should go to stop him. But who? Any volunteers?",
+		),
+		ActionTalk(
+			speaker = targetMelchior,
+			expression = "dreamy",
+			text = "I like volunteers. They taste like cherries, but only if that's what you believe. " +
+					"If you prefer bananas, love and luck always taste a bit bananay. 'Bananay'. " +
+					"That's a weird word to say. 'Bananay'. 'Bananananany'.",
+		),
+		ActionTalk(
+			speaker = targetGaspar,
+			expression = "angr",
+			text = "I'M NOT CHARLIE WELL GOIN', 'CAUSE I BOGGIN' WELL CAN'T BE ARSED!!",
+		),
+		ActionTalk(
+			speaker = targetMoric,
+			expression = "deep",
+			text = "I'll go. Yeeess, if Rohoph is going to die, I would derive much perverse satisfaction from " +
+					"seeing the fear on his cyclopic face before he meets the Evereaper... Yeeeess, " +
+					"I'd drink up his shock, his horror, and it would FUEL me! " +
+					"It's what I live my life for, to see others end theirs!",
+		),
+		ActionTalk(
+			speaker = targetMoric,
+			expression = "grin",
+			text = "I can't have enough ends. So I'll take my chances to see this one. I hope it's slow and painful; " +
+					"the elation I get from such kills is unmatched by anything, yeeeess... " +
+					"Just thinking about it makes me... oohhh...",
+		),
+		ActionTalk(
+			speaker = targetAnu,
+			expression = "blah",
+			text = "Yes. You're creepy. I can't say we'll miss you while you're gone, so it'd be best if you did go. " +
+					"We all win that way.",
+		),
+		ActionTalk(
+			speaker = targetAnu,
+			expression = "norm",
+			text = "Take a battleship and follow Rohoph's trail. " +
+					"It should be easy enough to detect where he went and to deal with him. Now go.",
+		),
+		ActionTalk(
+			speaker = targetMoric,
+			expression = "norm",
+			text = "Yeeess, my Master...",
+		),
+		ActionTalk(
+			speaker = targetAnu,
+			expression = "glare",
+			text = "When Rohoph's gone and dealt with, there'll be nothing to stop us... No... Soon, " +
+					"THE GALAXY WILL BE OURS!!! MWAHAHAHAHAH!!!!",
+		),
+		ActionTalk(
+			speaker = targetMelchior,
+			expression = "susp",
+			text = "Don't you mean *ours*, sir? We ARE working on this together. There's not just you.",
+		),
+		ActionTalk(
+			speaker = targetAnu,
+			expression = "blah",
+			text = "Yes, that's what I SAID. Weren't you listening?",
+		),
+		ActionTalk(
+			speaker = targetMelchior,
+			expression = "grin",
+			text = "What? Eh? No, not at all. I had a nice pretty tune in my head. I was listening to that. " +
+					"It went like 'naaaah naaaah nah-nah-naaaah, naaaah naaaah naaaah naaahh...'",
+		),
+		ActionTalk(
+			speaker = targetAnu,
+			expression = "blah",
+			text = "Sigh...",
+		),
+		ActionSetOverlayColor(rgb(0, 0, 0), 2.seconds),
+		ActionSetMusic(null),
+		ActionSetBackground(null),
+		ActionSetOverlayColor(0, Duration.ZERO),
+		ActionEndOfChapter(),
+	), ids = arrayOf(
+		UUID.fromString("dabbebeb-c5ad-42cb-aa2d-c834906c85b1"),
+		UUID.fromString("fefeb29b-853f-4412-96bd-21b147daa5de"),
+		UUID.fromString("f1518291-2373-4445-9a76-470b03e0073e"),
+		UUID.fromString("23475dfa-53e1-4ce0-b62e-e5a123034213"),
+		UUID.fromString("0e9ada35-8156-46e5-bb0b-05fe702dad8b"),
+		UUID.fromString("47de6e5d-42db-4a63-a997-77624dc6c3cf"),
+		UUID.fromString("0ab1d16e-a6db-4ca5-96e6-2321cfce2a03"),
+		UUID.fromString("95fb0820-0643-4a2a-adcb-895fba93e62c"),
+		UUID.fromString("cf3e57c3-2243-4601-8ff2-5315fb2757ab"),
+		UUID.fromString("d57bb476-c7fc-4dc6-be31-c50fb35659d1"),
+		UUID.fromString("954ba9be-f943-4eb0-a0de-7d968bb4582f"),
+		UUID.fromString("3713f5d5-b3c4-4971-aaf6-b5b443b2ccc5"),
+		UUID.fromString("45d22ae2-810b-40e8-b8f1-f0acf81606dc"),
+		UUID.fromString("613fa6b0-7d7f-4594-95ea-eec4b641f77a"),
+		UUID.fromString("cf18c34b-6794-4e55-b53b-b19b7afcda00"),
+		UUID.fromString("5dc5db92-5e11-4385-bfd6-154a0263671e"),
+		UUID.fromString("04b037b1-b410-4588-aa85-c1c496ede0d5"),
+		UUID.fromString("e14cc2d7-763f-4581-babc-f480db9dbe20"),
+		UUID.fromString("622831df-4790-49fa-a71a-915fe4eb5899"),
+		UUID.fromString("2c9dac08-9d45-474c-9fd1-d19b417f44dc"),
+		UUID.fromString("ddaaca8c-f131-4c2c-bb76-83ba9f1b6fd4"),
+		UUID.fromString("31de337c-5380-46c7-bc03-7967fafee11f"),
+		UUID.fromString("b55825e0-aab1-4418-b6a1-db65f3e39a75"),
+		UUID.fromString("9947492c-70b2-4d5c-ba99-ca0280b6bd36"),
+		UUID.fromString("324cad98-287a-48b7-8a7d-6ff32e9df5d7"),
+		UUID.fromString("8e1b4b23-0924-4c6d-872e-5d27aeb0dae2"),
+		UUID.fromString("59d8e47b-c58b-4454-aebd-bdde44446d3f"),
+		UUID.fromString("a629a23c-9fb6-4b7e-a655-0bd4ea245761"),
+		UUID.fromString("45bc3f9b-e22a-4e87-b0cc-c49a43261d87"),
+		UUID.fromString("7f5ee801-8b52-4815-a0e3-445da5fbef27"),
+		UUID.fromString("fd91b7cd-a8b1-415b-a4ff-5efec039c6f5"),
+		UUID.fromString("29bc75a1-8c89-461b-89d4-4a9e5d20fb07"),
+		UUID.fromString("e8194303-3280-4d09-bcc5-4275e3dd39bd"),
+		UUID.fromString("0f4c64bb-a717-4ce5-928f-ae4fe773a7a7"),
+		UUID.fromString("5e2eba9a-6bdc-456f-a5ae-7e68cf9f99f0"),
+		UUID.fromString("d10669ea-6b42-4769-a73d-fb6cfde40785"),
+		UUID.fromString("d3f3c592-0d04-48ea-b41f-cda8f5720a4a"),
+		UUID.fromString("0f751c7d-4119-496a-8845-e801ca0cd0cd"),
+		UUID.fromString("e959485d-4b6b-4490-bc30-06724d74c13a"),
+		UUID.fromString("b0790a62-48ee-404f-b76f-e7884346d665"),
+		UUID.fromString("50a01073-db8a-4e6d-a7e5-17d2d3c75f6d"),
+		UUID.fromString("7feed041-5adc-4695-a8bc-fd4f31859ab9"),
+		UUID.fromString("0146155a-8e1d-4f67-88a8-c530960c1371"),
+		UUID.fromString("6095e713-4ad7-4c41-8658-655005ce64ed"),
+		UUID.fromString("abccf0b0-e895-4173-98c5-55a63846f02e"),
+		UUID.fromString("8e7cea3e-10c5-4e00-9260-0be817f9b42e"),
+		UUID.fromString("5cf3b505-8034-4284-85ac-75ff9eea6244"),
+		UUID.fromString("c1cdcda7-fbc5-45cb-8a88-a8091a775679"),
+		UUID.fromString("b6046e50-cbdd-4d5a-a1ca-d167581964f4"),
+		UUID.fromString("16f473d8-6e82-45f7-887d-220f2cfb1402"),
+		UUID.fromString("ce91dff0-2e41-43e3-a8b5-3d3b7945fbb6"),
+		UUID.fromString("fd400932-7b45-4993-9235-c1b20799480c"),
+		UUID.fromString("607eccd0-b1be-453c-b9a2-8471f1a43723"),
+		UUID.fromString("68a4f803-f9ee-4d0f-bd90-6c5520704340"),
+		UUID.fromString("9dd2b1a3-37af-40d9-a560-0a0d39ac5d6c"),
+		UUID.fromString("552af97b-e164-4d57-8c3b-bb691750c170"),
+		UUID.fromString("63812d12-8b17-4288-a736-f2fb8d3caacf"),
+		UUID.fromString("8bd9ea7b-c236-4ba0-a1f7-02b39bf83637"),
+		UUID.fromString("4c64cbc8-3710-4833-b7f9-df87673e468f"),
+		UUID.fromString("d35b4901-0da5-43fb-9763-b062c1b2c1a9"),
+		UUID.fromString("cde33e08-a15f-4d32-ae2b-999fe8326989"),
+		UUID.fromString("33ed0ea4-5f46-4656-a9c5-4ef78c010eac"),
+		UUID.fromString("42ad0d5c-48f2-4384-8e3b-e8c2e99bc812"),
+		UUID.fromString("2deaa806-52e4-40c1-940f-38fd4aaa8ad8"),
+		UUID.fromString("6ca07127-0466-4e15-8ae9-ecbadf1a8b88"),
+		UUID.fromString("8ca80b0c-4b41-4201-a9c3-e5d10f67b0fc"),
+		UUID.fromString("f4cd149c-a38e-407e-9aa7-87e4a0e9480b"),
+		UUID.fromString("2c9e0ce2-c2d4-4517-a4ba-6ce055bd1b3b"),
+		UUID.fromString("d555a6bb-c638-4c17-8229-e5b88c12fd16"),
+		UUID.fromString("75d0ae76-05d2-40e5-9125-94ed465f3bff"),
+		UUID.fromString("7d1eb99e-6064-40c1-8818-b184f078a36e"),
+		UUID.fromString("35b4f78f-e048-46b9-b7c0-a344ce0cadc3"),
+		UUID.fromString("07ac90b2-37cf-4256-914a-6b48d1a13843"),
+		UUID.fromString("5ad1fe5f-ccb9-4778-b881-327a0110cdc6"),
+		UUID.fromString("e952164b-a4ae-427a-9a91-b3d4505116b5"),
+		UUID.fromString("cd3493fb-5cac-41ba-8dac-3861b113a2bd"),
+		UUID.fromString("ee266199-b041-40e3-8bc9-8ba7d386587b"),
+		UUID.fromString("b44dfb3f-27db-4001-af8a-d7edd714b485"),
+	))!!
 	hardcoded["gz_Mhouse2"] = mutableListOf(
 		ActionSequence(name = "FallingStarCutscene", root = fallingStarRoot),
+		ActionSequence(name = "TalkWithRohophInBed", root = talkWithRohoph)
 	)
 }

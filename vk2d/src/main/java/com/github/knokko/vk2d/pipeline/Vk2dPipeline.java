@@ -8,9 +8,7 @@ import com.github.knokko.boiler.pipelines.GraphicsPipelineBuilder;
 import com.github.knokko.vk2d.batch.MiniBatch;
 import com.github.knokko.vk2d.batch.Vk2dBatch;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.VkPipelineVertexInputStateCreateInfo;
-import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
-import org.lwjgl.vulkan.VkVertexInputBindingDescription;
+import org.lwjgl.vulkan.*;
 
 import java.util.Objects;
 import java.util.function.Consumer;

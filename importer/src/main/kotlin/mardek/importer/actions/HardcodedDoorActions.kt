@@ -7,11 +7,18 @@ import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetDefaultDialogueObject
 import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionTimelineTransition
+import mardek.content.action.ExpressionActionNode
 import mardek.content.action.FixedActionNode
+import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.ExpressionActionNodeValue
+import mardek.content.expression.IfElseStateExpression
+import mardek.content.story.CustomTimelineVariable
+import mardek.content.story.StoryContent
 import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
-internal fun hardcodeDoorActions(hardcoded: Map<String, MutableList<ActionSequence>>) {
+internal fun hardcodeDoorActions(content: StoryContent, hardcoded: Map<String, MutableList<ActionSequence>>) {
 	hardcoded[""]!!.add(ActionSequence("lock_sealed", FixedActionNode(
 		id = UUID.fromString("38783a43-4e36-4a63-b072-08edcff511d6"),
 		action = ActionTalk(
@@ -95,29 +102,58 @@ internal fun hardcodeDoorActions(hardcoded: Map<String, MutableList<ActionSequen
 		),
 		next = null,
 	)))
-	hardcoded["goznor"]!!.add(ActionSequence("lock_mardek_house", FixedActionNode(
-		id = UUID.fromString("fc5bc415-db85-4b36-b516-2ce0df156d95"),
-		// TODO CHAP2 Change text during Zombie outbreak
-		action = ActionTalk(
+
+	val dropDeuganBeforeRohoph = fixedActionChain(arrayOf(
+		ActionTalk(
 			speaker = ActionTargetPartyMember(1),
 			expression = "norm",
 			text = "Well, I'd better get home myself... So bye for now, Mardek! " +
 					"See you tomorrow for some more heroic adventures!",
 		),
-		next = FixedActionNode(
-			id = UUID.fromString("eb7f3ff2-d772-476e-ab88-32fcca234c1c"),
-			action = ActionSetOverlayColor(color = rgb(0, 0, 0), transitionTime = 500.milliseconds),
-			next = FixedActionNode(
-				id = UUID.fromString("969d92cf-0dd1-4904-b00c-ac1417a1a907"),
-				action = ActionTimelineTransition(
-					"MainTimeline", "Dropped Deugan home before the falling 'star'"
-				),
-				next = FixedActionNode(
-					id = UUID.fromString("3f5cf8d5-9dde-4d8d-a424-615c317b7cb8"),
-					action = ActionSetOverlayColor(color = 0, transitionTime = 500.milliseconds),
-					next = null,
-				)
-			)
+		ActionSetOverlayColor(color = rgb(0, 0, 0), transitionTime = 500.milliseconds),
+		ActionTimelineTransition(
+			"MainTimeline", "Dropped Deugan home before the falling 'star'"
 		),
-	)))
+		ActionSetOverlayColor(color = 0, transitionTime = 500.milliseconds),
+	), ids = arrayOf(
+		UUID.fromString("fc5bc415-db85-4b36-b516-2ce0df156d95"),
+		UUID.fromString("eb7f3ff2-d772-476e-ab88-32fcca234c1c"),
+		UUID.fromString("969d92cf-0dd1-4904-b00c-ac1417a1a907"),
+		UUID.fromString("3f5cf8d5-9dde-4d8d-a424-615c317b7cb8"),
+	))!!
+
+	val dropDeuganAfterRohoph = fixedActionChain(arrayOf(
+		ActionTalk(
+			speaker = ActionTargetPartyMember(1),
+			expression = "norm",
+			text = "Phew, what a weird thing that was that happened... I need to go home now, so, uh... Bye Mardek. " +
+					"I hope that nothing bad happens to you because of that thing!"
+		),
+		ActionSetOverlayColor(color = rgb(0, 0, 0), transitionTime = 500.milliseconds),
+		ActionTimelineTransition(
+			"MainTimeline", "Dropped Deugan home before after Rohoph entered Mardeks body"
+		),
+		ActionSetOverlayColor(color = 0, transitionTime = 500.milliseconds),
+	), ids = arrayOf(
+		UUID.fromString("4610eae5-ebcb-460b-b89a-d9ea1699df51"),
+		UUID.fromString("19a988f6-24ab-4dc3-ad51-33d5fcd97a13"),
+		UUID.fromString("aa4aa7d8-a822-4ad5-b64e-2be4573211ff"),
+		UUID.fromString("96d9d10d-5edb-4728-84f1-992586d0c9f8"),
+	))!!
+
+	@Suppress("UNCHECKED_CAST")
+	val beforeVariable = content.customVariables.find {
+		it.name == "WithDeuganBeforeFallingStar"
+	}!! as CustomTimelineVariable<Unit>
+
+	// TODO CHAP2 Change text during Zombie outbreak
+	val droppedDeuganNode = ExpressionActionNode(
+		id = UUID.fromString("72eebef9-a953-4557-ae6f-95d6545eeb43"),
+		expression = IfElseStateExpression(
+			condition = DefinedVariableStateCondition(beforeVariable),
+			ifTrue = ConstantStateExpression(ExpressionActionNodeValue(dropDeuganBeforeRohoph)),
+			ifFalse = ConstantStateExpression(ExpressionActionNodeValue(dropDeuganAfterRohoph)),
+		)
+	)
+	hardcoded["goznor"]!!.add(ActionSequence("lock_mardek_house", droppedDeuganNode))
 }

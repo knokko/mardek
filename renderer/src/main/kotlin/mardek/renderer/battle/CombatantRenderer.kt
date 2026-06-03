@@ -445,6 +445,9 @@ class CombatantRenderer(
 				renderInfo = combatant.renderInfo,
 			),
 			portrait = null,
+			currentChapter = context.context.campaign.story.evaluate(
+				context.context.content.story.fixedVariables.chapter
+			) ?: 0,
 			animationDuration = animation.duration,
 		)
 

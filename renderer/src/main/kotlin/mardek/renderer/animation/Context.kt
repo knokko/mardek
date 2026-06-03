@@ -23,6 +23,7 @@ class AnimationContext(
 	val noMask: BcSprite,
 	val combat: CombatantAnimationContext?,
 	val portrait: PortraitInfo?,
+	val currentChapter: Int,
 	val portraitExpression: String? = null,
 	val dialogueLine: String = "",
 	val shownDialogueCharacters: Float = 0f,

@@ -40,6 +40,7 @@ internal fun renderBattlePortrait(battleContext: BattleRenderContext, batch: Ani
 			noMask = battleContext.context.content.battle.noMask,
 			combat = null,
 			portrait = portraitInfo,
+			currentChapter = context.campaign.story.evaluate(context.content.story.fixedVariables.chapter) ?: 0,
 			portraitExpression = "norm",
 			animationDuration = Duration.ZERO,
 		)

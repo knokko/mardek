@@ -384,7 +384,8 @@ private fun afterRohoph(content: Content) = TimelineNode(
 	id = UUID.fromString("d0b90774-17e8-4ef3-82cc-0af7d799184a"),
 	name = "After the conversation in Rohophs saucer is finished",
 	children = arrayOf(
-		droppedDeuganAfterRohoph(content)
+		withDeuganAfterRohoph(content),
+		droppedDeuganAfterRohoph(content),
 	),
 	variables = arrayOf(
 		TimelineAssignment(
@@ -395,6 +396,22 @@ private fun afterRohoph(content: Content) = TimelineNode(
 			content.story.quests.find { it.tabName == "The Fallen Star" }!!.wasCompleted,
 			ExpressionUnitValue(),
 			appliesToFutureNodes = true,
+		),
+	),
+	isAbstract = true,
+)
+
+@Suppress("UNCHECKED_CAST")
+private fun withDeuganAfterRohoph(content: Content) = TimelineNode(
+	UUID.fromString("adbd8833-58cd-482b-89ac-9d35decaf1ac"),
+	name = "Rohoph just entered Mardeks body, and Deugan is still in the party",
+	children = arrayOf(),
+	variables = arrayOf(
+		TimelineAssignment(
+			content.story.customVariables.find {
+				it.name == "WithDeuganAfterRohoph"
+			}!! as CustomTimelineVariable<Unit>,
+			ExpressionUnitValue(),
 		),
 	),
 	isAbstract = false,
@@ -408,6 +425,7 @@ private fun droppedDeuganAfterRohoph(content: Content) = TimelineNode(
 		TimelineAssignment(
 			content.story.fixedVariables.forcedPartyMembers[1],
 			ExpressionOptionalPlayerValue(null),
+			priority = 1,
 		),
 		TimelineAssignment(
 			content.playableCharacters.find { it.areaSprites.name == "deugan_child" }!!.isInventoryAvailable,

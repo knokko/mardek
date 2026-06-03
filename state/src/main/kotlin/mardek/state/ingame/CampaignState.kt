@@ -28,6 +28,7 @@ import mardek.content.characters.CharacterState
 import mardek.content.inventory.ItemStack
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
+import mardek.state.ingame.actions.ChatLogEntry
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.area.ShopsStates
@@ -157,6 +158,12 @@ class CampaignState : BitPostInit {
 	var statistics = CampaignStatistics()
 
 	/**
+	 * The chat log, which contains the most-recent dialogue
+	 */
+	@BitField(id = 14)
+	val chatLog = ArrayList<ChatLogEntry>()
+
+	/**
 	 * This campaign state will set this variable to true when the player wants to open the in-game menu
 	 * (by pressing `InputKey.ToggleMenu`) while it is possible to open the in-game menu.
 	 *
@@ -184,6 +191,14 @@ class CampaignState : BitPostInit {
 		for ((character, state) in characterStates) {
 			state.initialize(character, itemStorage)
 		}
+	}
+
+	/**
+	 * Adds [entry] to the chat log, and removes the oldest chat log entry if the chat log is getting too large.
+	 */
+	fun addToChatLog(entry: ChatLogEntry) {
+		chatLog.add(entry)
+		if (chatLog.size > 15) chatLog.removeAt(0)
 	}
 
 	/**
@@ -306,9 +321,10 @@ class CampaignState : BitPostInit {
 				when (val node = state.node) {
 					is FixedActionNode -> {
 						val action = node.action
-						if (action is ActionPlayCutscene) action.cutscene.payload.get().musicTrack else null
+						if (action is ActionPlayCutscene) action.cutscene.payload.get().musicTrack
+						else state.currentMusic
 					}
-					else -> null
+					else -> state.currentMusic
 				}
 			}
 

@@ -17,6 +17,7 @@ import mardek.content.animation.CombatantAnimations
 import mardek.content.area.Direction
 import mardek.importer.actions.addDummyCutscenes
 import mardek.importer.actions.fixedActionChain
+import mardek.importer.actions.hardcodeDialogueTextStyles
 import mardek.importer.actions.importCutscenes
 import mardek.importer.area.importAreaBattleContent
 import mardek.importer.area.importAreaContent
@@ -47,9 +48,11 @@ import java.util.UUID
 fun importVanillaContent(skipMonsters: Boolean = false): Content {
 
 	val content = Content()
+	content.fonts = importFonts()
 	importAudioContent(content.audio)
 	importParticleEffects(content)
 	importStatsContent(content)
+	hardcodeDialogueTextStyles(content)
 	if (!skipMonsters) {
 		importPortraits(content)
 		importCutscenes(content)
@@ -74,7 +77,6 @@ fun importVanillaContent(skipMonsters: Boolean = false): Content {
 	hardcodeTimeline(content)
 	hardcodedActions.storeHardcodedActionSequences(content)
 	content.ui = importUiSprites()
-	content.fonts = importFonts()
 
 	val startChapter1 = CampaignState()
 
@@ -86,7 +88,7 @@ fun importVanillaContent(skipMonsters: Boolean = false): Content {
 		@Suppress("CanConvertToMultiDollarString")
 		val entryRoot = fixedActionChain(arrayOf(
 			ActionShowChapterName(1, "A Fallen Star"),
-			ActionPlayCutscene(cutscene = introCutscene),
+			ActionPlayCutscene(cutscene = introCutscene, true),
 			ActionToArea("DL_entr", 5, 10, Direction.Up),
 			ActionWalk(ActionTargetWholeParty(), 5, 5, WalkSpeed.Normal),
 			ActionRotate(targetMardek, Direction.Down),

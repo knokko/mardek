@@ -7,8 +7,8 @@ import mardek.renderer.area.ui.renderActionBackgroundImage
 import mardek.renderer.area.ui.renderActionFlash
 import mardek.renderer.area.ui.renderActionOverlayColor
 import mardek.renderer.area.ui.renderActionsItemNotification
+import mardek.renderer.area.ui.renderAreaDialogue
 import mardek.renderer.area.ui.renderChestLoot
-import mardek.renderer.area.ui.renderDialogue
 import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
 import kotlin.math.max
@@ -58,7 +58,7 @@ internal fun renderCurrentArea(
 	renderChestLoot(areaContext)
 	renderActionBackgroundImage(areaContext)
 	renderAreaActionEffects(areaContext)
-	renderDialogue(areaContext)
+	renderAreaDialogue(areaContext)
 	renderActionsItemNotification(areaContext)
 	renderActionFlash(areaContext)
 	renderActionOverlayColor(areaContext)

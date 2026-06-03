@@ -81,6 +81,7 @@ private fun addBcImage(resourceWriter: Vk2dResourceWriter, bc: BcSprite) {
 	if (bc.index != -1) return
 	val compression = when (bc.version) {
 		0 -> Vk2dImageCompression.NONE
+		1 -> Vk2dImageCompression.BC1
 		4 -> Vk2dImageCompression.BC4
 		7 -> Vk2dImageCompression.BC7
 		else -> throw UnsupportedOperationException("Unexpected compression BC${bc.version}")

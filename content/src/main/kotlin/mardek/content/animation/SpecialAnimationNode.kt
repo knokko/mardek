@@ -124,6 +124,13 @@ enum class SpecialAnimationNode(
 	Shield(false),
 
 	/**
+	 * The 'skin' of this node should be the current chapter.
+	 *
+	 * For instance, skins["1"] should be used during chapter 1.
+	 */
+	CurrentChapter(false),
+
+	/**
 	 * Use the facial expression ("norm", "grin", etc...) to select the skin
 	 */
 	PortraitExpressions(false),

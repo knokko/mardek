@@ -39,19 +39,27 @@ private fun parsePortraitInfo(content: Content, key: String, rawValue: String): 
 
 	val flashName = key.substring(2).lowercase(Locale.ROOT)
 	val faceSkin = parseSkin("face") ?: flashName
+	val rawVoiceStyle = parseSkin("voice")
+
+	val voiceStyle = if (rawVoiceStyle != null) {
+		val style = content.actions.dialogueTextStyles.find { it.name == rawVoiceStyle }
+		if (style == null) println("Can't find voice style $rawVoiceStyle")
+		style
+	} else null
+
 	return PortraitInfo(
 		flashName = flashName,
 		rootSkin = parseFlashString(properties["t"]!!, "root skin")!!.lowercase(Locale.ROOT),
 		faceSkin = faceSkin,
 		hairSkin = parseSkin("hair") ?: faceSkin,
-		eyeSkin = parseSkin("eyes") ?: flashName,
+		eyeSkin = parseSkin("eyes") ?: parseSkin("eye") ?: flashName,
 		eyeBrowSkin = parseSkin("eyebrows") ?: faceSkin,
 		mouthSkin = parseSkin("mouth") ?: "",
 		armorSkin = parseSkin("armour") ?: flashName,
 		robeSkin = parseSkin("robe"),
 		faceMask = parseSkin("facemask"),
 		ethnicitySkin = parseSkin("ethnicity") ?: "1",
-		voiceStyle = parseSkin("voice"),
+		voiceStyle = voiceStyle,
 		elementalBackground = element,
 		id = UUID.nameUUIDFromBytes("portrait$key".encodeToByteArray()),
 	)

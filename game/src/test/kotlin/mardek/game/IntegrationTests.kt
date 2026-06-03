@@ -27,6 +27,7 @@ import mardek.game.save.TestListSaves
 import mardek.game.save.TestSaveAndLoad
 import mardek.game.story.TestQuests
 import mardek.game.ui.TestCutscenes
+import mardek.game.ui.TestEndOfChapter
 import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestInventory
 import mardek.game.ui.TestItemStorage
@@ -578,5 +579,15 @@ class IntegrationTests {
 	@Test
 	fun testRohophSaucerPossession() {
 		TestSaucerActions.testPossession(instance)
+	}
+
+	@Test
+	fun testEndOfChapter1Dialogues() {
+		TestMardekHouseActions.testEndOfChapter1(instance)
+	}
+
+	@Test
+	fun testEndOfChapter() {
+		TestEndOfChapter.runTest(instance)
 	}
 }

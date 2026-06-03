@@ -11,24 +11,17 @@ import com.jpexs.decompiler.flash.tags.base.ASMSource
 import com.jpexs.decompiler.flash.tags.base.MorphShapeTag
 import com.jpexs.decompiler.flash.tags.base.PlaceObjectTypeTag
 import com.jpexs.decompiler.flash.tags.base.ShapeTag
-import mardek.content.animation.AnimationFrames
-import mardek.content.animation.AnimationNode
-import mardek.content.animation.AnimationSprite
-import mardek.content.animation.AnimationFrame
-import mardek.content.animation.AnimationMask
-import mardek.content.animation.AnimationMaskFrame
-import mardek.content.animation.AnimationMatrix
-import mardek.content.animation.ColorTransform
-import mardek.content.animation.SkinnedAnimation
-import mardek.content.animation.SpecialAnimationNode
+import mardek.content.animation.*
 import mardek.content.particle.ParticleEmitter
 import mardek.content.sprite.BcSprite
 import mardek.importer.area.FLASH
 import mardek.importer.particle.FLASH_FRAMES_PER_SECOND
+import java.awt.Color
+import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 import java.lang.Integer.parseInt
-import java.util.Locale
+import java.util.*
 import javax.imageio.ImageIO
 import kotlin.time.Duration.Companion.seconds
 
@@ -88,7 +81,7 @@ internal fun importAnimationNode(
 	if (instanceName == "act_cursor") special = SpecialAnimationNode.OnTurnCursor
 
 	if (instanceName == "face") special = SpecialAnimationNode.PortraitFace
-	if (instanceName == "eye1" || instanceName == "eye2") special = SpecialAnimationNode.PortraitEye
+	if (instanceName == "eye1" || instanceName == "eye2" || childID == 1587) special = SpecialAnimationNode.PortraitEye
 	if (instanceName == "eyebrow1" || instanceName == "eyebrow2") special = SpecialAnimationNode.PortraitEyeBrow
 	if (instanceName == "hair" || childID == 1463 || childID == 1536) special = SpecialAnimationNode.PortraitHair
 	if (instanceName == "torso" || instanceName == "head") special = SpecialAnimationNode.PortraitExpressions
@@ -100,8 +93,9 @@ internal fun importAnimationNode(
 		special = SpecialAnimationNode.PortraitEthnicity
 	}
 	if (childID == 1349) special = SpecialAnimationNode.PortraitMouth
-	if (childID == 1569) special = SpecialAnimationNode.PortraitRobe
+	if (childID == 1569 || childID == 1579) special = SpecialAnimationNode.PortraitRobe
 	if (childID == 1650 || childID == 1725) special = SpecialAnimationNode.PortraitExpressions
+	if (childID == 696) special = SpecialAnimationNode.CurrentChapter
 
 	val skipSpecial = special != null && special.skipChildren
 
@@ -266,6 +260,23 @@ internal fun importSkinnedAnimation(tag: DefineSpriteTag, context: AnimationImpo
 	return result
 }
 
+internal fun preMultiplyAlpha(image: BufferedImage) {
+	for (y in 0 until image.height) {
+		for (x in 0 until image.width) {
+			val oldColor = Color(image.getRGB(x, y), true)
+			val alpha = oldColor.alpha
+			if (alpha == 0 || alpha == 255) continue
+			val newColor = Color(
+				oldColor.red * alpha / 255,
+				oldColor.green * alpha / 255,
+				oldColor.blue * alpha / 255,
+				alpha
+			)
+			image.setRGB(x, y, newColor.rgb)
+		}
+	}
+}
+
 private fun importAnimationSprite(tag: ShapeTag, isMask: Boolean, context: AnimationImportContext): AnimationSprite {
 	val shapeID = parseInt(tag.uniqueId)
 	val existing = context.shapeMapping[Pair(shapeID, isMask)]
@@ -274,9 +285,15 @@ private fun importAnimationSprite(tag: ShapeTag, isMask: Boolean, context: Anima
 	val expectedFile = File("${context.shapesDirectory}/${tag.uniqueId}.png")
 	val sprite: BcSprite
 	try {
+		val format = if (isMask) 4 else 7
 		val image = ImageIO.read(expectedFile)
-		sprite = BcSprite(image.width, image.height, if (isMask) 4 else 7)
+		sprite = BcSprite(image.width, image.height, format)
 		sprite.bufferedImage = image
+
+		// For some reason, these sprites become ugly if I don't pre-multiply them.
+		// I gave up finding out why...
+		if (tag.characterId in 1580..1586) preMultiplyAlpha(image)
+
 	} catch (failed: IOException) {
 		println(expectedFile.absoluteFile)
 		println(expectedFile.exists())

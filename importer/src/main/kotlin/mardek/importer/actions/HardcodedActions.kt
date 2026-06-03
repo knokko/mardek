@@ -18,7 +18,7 @@ class HardcodedActions {
 		hardcoded[""] = mutableListOf()
 		hardcoded["goznor"] = mutableListOf()
 		hardcodeSaveCrystalActions(content, hardcoded)
-		hardcodeDoorActions(hardcoded)
+		hardcodeDoorActions(content.story, hardcoded)
 		hardcodeDragonLairActions(content, hardcoded)
 		hardcodeGoznorDialogues(content, hardcoded)
 		hardcodeGallovarDialogues(content, hardcoded)

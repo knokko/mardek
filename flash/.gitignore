@@ -1,3 +1,7 @@
 MARDEK.swf
 bc-cache
 all-shapes-*
+
+# These two cannot be exported by all versions of JPEX because they have a height < 1.0
+!all-shapes-x1/2234.png
+!all-shapes-x1/4747.png

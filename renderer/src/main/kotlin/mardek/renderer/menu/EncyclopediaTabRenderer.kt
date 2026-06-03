@@ -193,6 +193,7 @@ private fun renderPersonDetails(menuContext: MenuRenderContext, region: Rectangl
 			combat = null,
 			portrait = person.portrait,
 			portraitExpression = person.portraitExpression,
+			currentChapter = context.campaign.story.evaluate(context.content.story.fixedVariables.chapter) ?: 0,
 			animationDuration = Duration.ZERO,
 		)
 		renderPortraitAnimation(context.content.portraits.animations, animationContext)
@@ -264,6 +265,7 @@ private fun renderPlaceDetails(menuContext: MenuRenderContext, region: Rectangle
 			noMask = context.content.battle.noMask,
 			combat = null,
 			portrait = null,
+			currentChapter = context.campaign.story.evaluate(context.content.story.fixedVariables.chapter) ?: 0,
 			animationDuration = Duration.ZERO,
 		)
 		renderBattleBackgroundAnimation(place.background.nodes, animationContext)
@@ -310,6 +312,7 @@ private fun renderArtefactDetails(menuContext: MenuRenderContext, region: Rectan
 			noMask = context.content.battle.noMask,
 			combat = null,
 			portrait = null,
+			currentChapter = context.campaign.story.evaluate(context.content.story.fixedVariables.chapter) ?: 0,
 			animationDuration = Duration.ZERO,
 		)
 		renderCutsceneAnimation(ReferenceLazyBits(artefact.animation.frames), animationContext)
@@ -448,6 +451,7 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 				renderInfo = CombatantRenderInfo(),
 			),
 			portrait = null,
+			currentChapter = context.campaign.story.evaluate(context.content.story.fixedVariables.chapter) ?: 0,
 			animationDuration = Duration.ZERO,
 		)
 

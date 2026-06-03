@@ -88,6 +88,7 @@ internal fun renderSaveFile(
 				noMask = content.battle.noMask,
 				combat = null,
 				portrait = member.portraitInfo,
+				currentChapter = saveFile.info.chapter,
 				portraitExpression = "norm",
 				animationDuration = Duration.ZERO,
 			)

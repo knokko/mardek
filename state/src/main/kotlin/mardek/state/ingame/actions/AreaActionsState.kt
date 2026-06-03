@@ -68,19 +68,13 @@ class AreaActionsState(
 	val nextPartyPositions = Array<NextAreaPosition?>(4) { null }
 
 	/**
-	 * The chat log, which contains all the previously-encountered dialogue of the current action sequence.
-	 */
-	@BitField(id = 3)
-	val chatLog = ArrayList<ChatLogEntry>()
-
-	/**
 	 * The current overlay color, which should be rendered on top of the area and potential dialogues. This is
 	 * initially 0 (fully transparent), but can be changed by [ActionSetOverlayColor].
 	 *
 	 * If the current action is an [ActionSetOverlayColor], this field will store the *old* overlay color. It will
 	 * only be updated once the action is completed.
 	 */
-	@BitField(id = 4)
+	@BitField(id = 3)
 	@IntegerField(expectUniform = true, commonValues = [0])
 	var overlayColor: Int = 0
 
@@ -90,7 +84,7 @@ class AreaActionsState(
 	 * This field is used by the renderer to render overlay/ambience transitions,
 	 * and by this class to determine when it should move on to the next node.
 	 */
-	@BitField(id = 5)
+	@BitField(id = 4)
 	@IntegerField(expectUniform = false)
 	var currentNodeStartTime = (-1).seconds
 
@@ -103,7 +97,7 @@ class AreaActionsState(
 	 * This map is convenient for adding e.g. characters that should disappear after the action sequence is over, or
 	 * for temporarily moving/rotating characters, without risking that anything persists.
 	 */
-	@BitField(id = 6)
+	@BitField(id = 5)
 	@NestedFieldSetting(path = "k", fieldName = "OVERRIDE_CHARACTER_STATES_KEYS")
 	@NestedFieldSetting(path = "v", optional = true)
 	val overrideCharacterStates = HashMap<AreaCharacter, AreaCharacterState?>()
@@ -112,14 +106,14 @@ class AreaActionsState(
 	 * When non-null, this overrides the background music track that should be played. When null, the area background
 	 * music will be played (as usual). Use [ActionSetMusic] to change this field.
 	 */
-	@BitField(id = 7, optional = true)
+	@BitField(id = 6, optional = true)
 	var overrideMusic: String? = null
 
 	/**
 	 * When non-null, this image will be rendered in front of the area and its characters, but below the dialogue.
 	 * Use [ActionSetBackgroundImage] to change this field.
 	 */
-	@BitField(id = 8, optional = true)
+	@BitField(id = 7, optional = true)
 	@ReferenceField(stable = true, label = "action background images")
 	var backgroundImage: NamedSprite? = null
 
@@ -129,7 +123,7 @@ class AreaActionsState(
 	 *
 	 * Use [ActionChangeAmbience] to change this field.
 	 */
-	@BitField(id = 9, optional = true)
+	@BitField(id = 8, optional = true)
 	var overrideAmbience: ColorTransform? = null
 
 	/**
@@ -138,7 +132,7 @@ class AreaActionsState(
 	 *
 	 * These are updated by [ActionSpawnAreaEffect], [ActionMoveAreaEffect], and [ActionRemoveAreaEffect].
 	 */
-	@BitField(id = 10)
+	@BitField(id = 9)
 	@NestedFieldSetting(path = "k", fieldName = "EFFECTS_KEY_PROPERTIES")
 	val effects = HashMap<ActionSpawnAreaEffect.Instance, AreaEffectState>()
 
@@ -252,7 +246,7 @@ class AreaActionsState(
 		if (currentAction is ActionTalk) {
 			val finishedMessage = updateTalking(context, currentAction)
 			if (finishedMessage) {
-				chatLog.add(ChatLogEntry(
+				context.campaign.addToChatLog(ChatLogEntry(
 					speaker = currentAction.speaker.getDisplayName(
 						defaultDialogueObject, context.campaign.party
 					) ?: "no-one?",
@@ -757,7 +751,7 @@ class AreaActionsState(
 			if (selectedChoice > 0 && key == InputKey.MoveUp) selectedChoice -= 1
 			if (selectedChoice < choiceOptions.size - 1 && key == InputKey.MoveDown) selectedChoice += 1
 			if (key == InputKey.Interact && !event.didRepeat) {
-				chatLog.add(ChatLogEntry(
+				context.campaign.addToChatLog(ChatLogEntry(
 					speaker = currentNode.speaker.getDisplayName(
 						defaultDialogueObject, context.campaign.party
 					) ?: "",
@@ -770,7 +764,7 @@ class AreaActionsState(
 			}
 		}
 
-		itemStorageInteraction?.processKeyPress(context, event.key)
+		itemStorageInteraction?.processKeyPress(context, context.campaign, event.key)
 		if (shopInteraction?.processKeyPress(context, event.key) == true) {
 			toNextNode(context.areaState.currentTime, (node as FixedActionNode).next)
 		}
@@ -810,7 +804,7 @@ class AreaActionsState(
 	 */
 	internal fun processMouseMove(context: UpdateContext, event: MouseMoveEvent) {
 		initInventoryInteractionStates()
-		itemStorageInteraction?.processMouseMove(context, event.newX, event.newY)
+		itemStorageInteraction?.processMouseMove(context.campaign, event.newX, event.newY)
 		shopInteraction?.processMouseMove(context, event.newX, event.newY)
 	}
 

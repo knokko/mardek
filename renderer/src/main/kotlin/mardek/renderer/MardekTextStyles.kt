@@ -3,6 +3,7 @@ package mardek.renderer
 import com.github.knokko.boiler.utilities.ColorPacker.*
 import com.github.knokko.vk2d.text.Vk2dFancyTextStyle
 import com.github.knokko.vk2d.text.Vk2dTextStyle
+import mardek.content.action.DialogueTextStyle
 import mardek.renderer.util.ResourceColorEntry
 
 object MardekTextStyles {
@@ -319,11 +320,14 @@ object MardekTextStyles {
 		), Vk2dTextStyle.StrokeStyle.NONE)
 		val CHAT_LOG_BOLD = CHAT_LOG_BASE.withDifferentFillColor(BOLD_COLOR)!!
 
-		fun colored(color: Int) = Vk2dTextStyle(Vk2dTextStyle.FillStyle(color), Vk2dTextStyle.StrokeStyle(
-			multiplyAlpha(color, 0.4f), 0.35f, true, 3f,
-		))
+		fun custom(style: DialogueTextStyle) = Vk2dTextStyle(
+			Vk2dTextStyle.FillStyle(style.fillColor),
+			Vk2dTextStyle.StrokeStyle(
+				style.strokeColor, style.strokeWidth, true, style.strokeDistancePower
+			)
+		)
 
-		val SKIP_BUTTON = run{
+		val SKIP_BUTTON = run {
 			val lowColor = srgbToLinear(rgb(73, 52, 37))
 			val highColor = srgbToLinear(rgb(109, 93, 81))
 			Vk2dFancyTextStyle(
@@ -572,5 +576,13 @@ object MardekTextStyles {
 				), 0.08f,
 			)
 		}
+	}
+
+	object EndOfChapter {
+		val TITLE = Vk2dTextStyle.FillStyle(
+			srgbToLinear(rgb(131, 81, 37))
+		).only()!!
+
+		val INFO = STRONG_TEXT_FILL.only()!!
 	}
 }

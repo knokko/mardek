@@ -14,6 +14,44 @@ import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 import kotlin.math.max
+import kotlin.time.Duration
+
+internal fun createCutsceneAnimationContext(
+	context: RenderContext, region: Rectangle,
+	renderTime: Long, referenceTime: Long,
+	magicScale: Int, duration: Duration,
+): Pair<AnimationContext, Float> {
+	val partBatch = context.addAnimationPartBatch(50)
+	val inverseScaleX = 450f
+	val inverseScaleY = 270f
+	val magicRenderScaleX = region.width / inverseScaleX
+	val magicRenderScaleY = region.height / inverseScaleY
+	val magicRenderScale = max(magicRenderScaleX, magicRenderScaleY)
+
+	val renderWidth = inverseScaleX * magicRenderScale
+	val renderHeight = inverseScaleY * magicRenderScale
+	val clippedWidth = max(0f, renderWidth - region.width)
+	val clippedHeight = max(0f, renderHeight - region.height)
+	val animationContext = AnimationContext(
+		renderRegion = region,
+		renderTime = renderTime,
+		referenceTime = referenceTime,
+		magicScale = magicScale,
+		parentMatrix = Matrix3x2f().translate(
+			region.minX + 0.5f * (renderWidth - clippedWidth),
+			region.minY + 0.5f * (renderHeight - clippedHeight),
+		).scale(magicRenderScale),
+		parentColorTransform = null,
+		partBatch = partBatch,
+		noMask = context.content.battle.noMask,
+		combat = null,
+		portrait = null,
+		currentChapter = context.campaign.story.evaluate(context.content.story.fixedVariables.chapter) ?: 0,
+		animationDuration = duration,
+	)
+
+	return Pair(animationContext, magicRenderScaleX / magicRenderScale)
+}
 
 internal fun renderCutscene(
 	context: RenderContext, actions: CampaignActionsState, action: ActionPlayCutscene,
@@ -39,40 +77,17 @@ internal fun renderCutscene(
 			if (frameIndex >= textEntry.frame) actions.cutsceneSubtitle = Pair(textEntry.index, textEntry.text)
 		}
 
-		val partBatch = context.addAnimationPartBatch(25)
-		val inverseScaleX = 450f
-		val inverseScaleY = 270f
-		val magicScaleX = region.width / inverseScaleX
-		val magicScaleY = region.height / inverseScaleY
-		val magicScale = max(magicScaleX, magicScaleY)
-
-		val renderWidth = inverseScaleX * magicScale
-		val renderHeight = inverseScaleY * magicScale
-		val clippedWidth = max(0f, renderWidth - region.width)
-		val clippedHeight = max(0f, renderHeight - region.height)
-		val animationContext = AnimationContext(
-			renderRegion = region,
-			renderTime = renderTime,
-			referenceTime = actions.currentNodeStartTime,
-			magicScale = action.cutscene.payload.get().magicScale,
-			parentMatrix = Matrix3x2f().translate(
-				region.minX + 0.5f * (renderWidth - clippedWidth),
-				region.minY + 0.5f * (renderHeight - clippedHeight),
-			).scale(magicScale),
-			parentColorTransform = null,
-			partBatch = partBatch,
-			noMask = context.content.battle.noMask,
-			combat = null,
-			portrait = null,
-			animationDuration = allFrames.duration,
+		val (animationContext, relativeScaleX) = createCutsceneAnimationContext(
+			context, region, renderTime, actions.currentNodeStartTime,
+			action.cutscene.payload.get().magicScale, allFrames.duration,
 		)
 		renderCutsceneAnimation(ReferenceLazyBits(allFrames), animationContext)
 
 		if (actions.cutsceneSubtitle.second.isNotEmpty()) {
 			val font = context.bundle.getFont(context.content.fonts.large2.index)
-			val textHeight = 0.015f * region.width * magicScaleX / magicScale
+			val textHeight = 0.015f * region.width * relativeScaleX
 
-			val batch = createTextBatch(300)
+			val batch = createTextBatch(500)
 			fun draw(baseX: Float, baseY: Float, alignment: TextAlignment) {
 				batch.drawShadowedString(
 					actions.cutsceneSubtitle.second, baseX, baseY, 0f, textHeight, font,
@@ -104,7 +119,7 @@ internal fun renderCutscene(
 
 		val timeUntilFinish = actions.currentNodeStartTime + allFrames.duration.inWholeNanoseconds - renderTime
 		val fadeTime = 1_000_000_000L
-		if (timeUntilFinish < 1_000_000_000L) {
+		if (timeUntilFinish < 1_000_000_000L && action.hasFadeOut) {
 			val fade = 1f - timeUntilFinish.toFloat() / fadeTime
 			colorBatch = context.addColorBatch(50)
 			colorBatch.fill(

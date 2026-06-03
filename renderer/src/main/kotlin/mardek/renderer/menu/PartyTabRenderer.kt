@@ -148,6 +148,7 @@ private fun renderPartyMember(
 			noMask = context.content.battle.noMask,
 			combat = null,
 			portrait = character.portraitInfo,
+			currentChapter = context.campaign.story.evaluate(context.content.story.fixedVariables.chapter) ?: 0,
 			portraitExpression = "norm",
 			animationDuration = Duration.ZERO,
 		)

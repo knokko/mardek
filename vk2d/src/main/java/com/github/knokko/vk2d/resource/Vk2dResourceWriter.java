@@ -44,11 +44,7 @@ public class Vk2dResourceWriter {
 		if (compression == Vk2dImageCompression.BC4) {
 			throw new IllegalArgumentException("You need to use addGreyscaleImage for BC4 compression");
 		}
-		if (compression == Vk2dImageCompression.BC1 && (image.getWidth() % 4 != 0 || image.getHeight() % 4 != 0)) {
-			throw new UnsupportedOperationException(
-					"We only support BC1 compression for images whose width and height are multiples of 4"
-			);
-		}
+
 		images.add(new Image(null, image, compression, null, pixelated));
 		return images.size() - 1;
 	}
@@ -244,7 +240,7 @@ public class Vk2dResourceWriter {
 
 		BoilerInstance boiler = new BoilerBuilder(
 				VK_API_VERSION_1_0, "Vk2dBc1/4Writer", 1
-		).validation().forbidValidationErrors().doNotUseVma().build();
+		).validation().forbidValidationErrors().doNotUseVma().defaultTimeout(100_000_000_000L).build();
 
 		MemoryCombiner combiner = new MemoryCombiner(boiler, "Bc1/4CompressionMemory");
 		Bc1Compressor compressor1 = hasBc1 ? new Bc1Compressor(boiler, combiner, combiner) : null;
@@ -254,25 +250,25 @@ public class Vk2dResourceWriter {
 		List<MappedVkbBuffer> sourceBuffers = new ArrayList<>();
 		List<MappedVkbBuffer> destinationBuffers = new ArrayList<>();
 		long alignment = boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
-		for (Image entry : images) {
-			if (entry.data != null) continue;
-			if (entry.compression != Vk2dImageCompression.BC1 && entry.compression != Vk2dImageCompression.BC4) {
-				continue;
+		for (var compression : new Vk2dImageCompression[] { Vk2dImageCompression.BC1, Vk2dImageCompression.BC4 }) {
+			for (Image entry : images) {
+				if (entry.compression != compression || entry.data != null) continue;
+
+				long paddedWidth = nextMultipleOf(entry.image.getWidth(), 4);
+				long paddedHeight = nextMultipleOf(entry.image.getHeight(), 4);
+				long sourceSize = paddedWidth * paddedHeight;
+				if (entry.compression == Vk2dImageCompression.BC1) sourceSize *= 4;
+
+				sourceBuffers.add(combiner.addMappedBuffer(sourceSize, alignment, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT));
+				destinationBuffers.add(combiner.addMappedBuffer(
+						paddedWidth * paddedHeight / 2L, alignment, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
+				));
+				maxDestinationImagePixels = toIntExact(max(
+						maxDestinationImagePixels, paddedWidth * paddedHeight
+				));
 			}
-
-			long paddedWidth = nextMultipleOf(entry.image.getWidth(), 4);
-			long paddedHeight = nextMultipleOf(entry.image.getHeight(), 4);
-			long sourceSize = paddedWidth * paddedHeight;
-			if (entry.compression == Vk2dImageCompression.BC1) sourceSize *= 4;
-
-			sourceBuffers.add(combiner.addMappedBuffer(sourceSize, alignment, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT));
-			destinationBuffers.add(combiner.addMappedBuffer(
-					paddedWidth * paddedHeight / 2L, alignment, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
-			));
-			maxDestinationImagePixels = toIntExact(max(
-					maxDestinationImagePixels, paddedWidth * paddedHeight
-			));
 		}
+
 		MemoryBlock memory = combiner.build(false);
 
 		Bc1Worker worker1 = hasBc1 ? new Bc1Worker(compressor1, maxDestinationImagePixels, combiner) : null;

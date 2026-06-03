@@ -15,6 +15,7 @@ import mardek.content.area.AreaShop
 import mardek.content.area.Direction
 import mardek.content.audio.SoundEffect
 import mardek.content.battle.Battle
+import mardek.content.battle.BattleBackground
 import mardek.content.characters.PlayableCharacter
 import mardek.content.encyclopedia.EncyclopediaArtefact
 import mardek.content.encyclopedia.EncyclopediaPerson
@@ -57,6 +58,7 @@ sealed class FixedAction {
 			ActionSetOverlayColor::class.java,
 			ActionSetMusic::class.java,
 			ActionSetBackgroundImage::class.java,
+			ActionSetBackground::class.java,
 			ActionToGlobalActions::class.java,
 			ActionTakeItem::class.java,
 			ActionGiveItem::class.java,
@@ -71,6 +73,7 @@ sealed class FixedAction {
 			ActionMoveAreaEffect::class.java,
 			ActionRemoveAreaEffect::class.java,
 			ActionWipeStatus::class.java,
+			ActionEndOfChapter::class.java,
 		)
 	}
 }
@@ -360,10 +363,16 @@ class ActionPlayCutscene(
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "cutscenes")
 	val cutscene: Cutscene,
+
+	/**
+	 * Whether the cutscene should fade out during the last second
+	 */
+	@BitField(id = 1)
+	val hasFadeOut: Boolean,
 ) : FixedAction() {
 
 	@Suppress("unused")
-	private constructor() : this(Cutscene())
+	private constructor() : this(Cutscene(), false)
 
 	override fun toString() = "ActionPlayCutscene($cutscene)"
 }
@@ -627,6 +636,28 @@ class ActionSetBackgroundImage(
 	@BitField(id = 0, optional = true)
 	@ReferenceField(stable = false, label = "action background images")
 	val newBackgroundImage: NamedSprite?,
+) : FixedAction() {
+
+	@Suppress("unused")
+	private constructor() : this(null)
+}
+
+/**
+ * Sets the (complex) background of the current `CampaignActionsState`. When non-null, this background will be rendered
+ * behind the dialogue. The background image of each `CampaignActionsState` is initially `null`, but should be set
+ * to something non-null before any dialogue (otherwise, the dialogue will have a fully black background).
+ */
+@BitStruct(backwardCompatible = true)
+class ActionSetBackground(
+
+	/**
+	 * The new background, or `null` to reset the background.
+	 *
+	 * Note that the type of this is [BattleBackground], just for code reuse benefits.
+	 */
+	@BitField(id = 0, optional = true)
+	@ReferenceField(stable = false, label = "battle backgrounds")
+	val newBackground: BattleBackground?,
 ) : FixedAction() {
 
 	@Suppress("unused")
@@ -1003,3 +1034,16 @@ class ActionRemoveAreaEffect(
  */
 @BitStruct(backwardCompatible = true)
 class ActionWipeStatus : FixedAction()
+
+/**
+ * This action is used during a `CampaignActionsState` at the end of each chapter (right after the GdM dialogue).
+ *
+ * When this action is encountered, the player will see the "End of Chapter X" screen after a short fade-in,
+ * and can click on one of the following buttons:
+ * - "Save" to save the progress before going to the next chapter
+ * - "Item Storage" to access the item storage
+ * (useful since some character inventories may become unavailable next chapter)
+ * - "Continue" to go to the next chapter
+ */
+@BitStruct(backwardCompatible = true)
+class ActionEndOfChapter : FixedAction()

@@ -18,35 +18,43 @@ import mardek.content.sprite.NamedSprite
 @BitStruct(backwardCompatible = true)
 class ActionContent {
 
-    /**
-     * This list contains the *global* action sequences: these typically the action sequences that span multiple areas,
-     * or none at all.
-     *
-     * Most action sequences however are strongly related to one particular area, and stored in the `actions` list of
-     * the relevant `Area`.
-     */
-    @BitField(id = 0)
-    @ReferenceFieldTarget(label = "action sequences")
-    val global = ArrayList<ActionSequence>()
+	/**
+	 * This list contains the *global* action sequences: these typically the action sequences that span multiple areas,
+	 * or none at all.
+	 *
+	 * Most action sequences however are strongly related to one particular area, and stored in the `actions` list of
+	 * the relevant `Area`.
+	 */
+	@BitField(id = 0)
+	@ReferenceFieldTarget(label = "action sequences")
+	val global = ArrayList<ActionSequence>()
 
-    /**
-     * This list contains all the cutscenes. These cutscenes can be used by action nodes.
-     */
-    @BitField(id = 1)
-    @ReferenceFieldTarget(label = "cutscenes")
-    val cutscenes = ArrayList<Cutscene>()
+	/**
+	 * This list contains all the cutscenes. These cutscenes can be used by action nodes.
+	 */
+	@BitField(id = 1)
+	@ReferenceFieldTarget(label = "cutscenes")
+	val cutscenes = ArrayList<Cutscene>()
 
-    /**
-     * This list contains all named BC images that can be used by [ActionSetBackgroundImage]s
-     */
-    @BitField(id = 2)
-    @ReferenceFieldTarget(label = "action background images")
-    val backgroundImages = ArrayList<NamedSprite>()
+	/**
+	 * This list contains all named BC images that can be used by [ActionSetBackgroundImage]s
+	 */
+	@BitField(id = 2)
+	@ReferenceFieldTarget(label = "action background images")
+	val backgroundImages = ArrayList<NamedSprite>()
 
-    /**
-     * The special effects that can be used during area action suspensions (e.g. soul transfers)
-     */
-    @BitField(id = 3)
-    @ReferenceFieldTarget(label = "area action effects")
-    val areaEffects = ArrayList<AreaActionEffect>()
+	/**
+	 * The special effects that can be used during area action suspensions (e.g. soul transfers)
+	 */
+	@BitField(id = 3)
+	@ReferenceFieldTarget(label = "area action effects")
+	val areaEffects = ArrayList<AreaActionEffect>()
+
+	/**
+	 * Special text styles that are used by the dialogue lines of some special characters (e.g. the GdM members).
+	 * Such characters can use different fonts, text colors, and stroke widths.
+	 */
+	@BitField(id = 4)
+	@ReferenceFieldTarget(label = "dialogue text styles")
+	val dialogueTextStyles = ArrayList<DialogueTextStyle>()
 }

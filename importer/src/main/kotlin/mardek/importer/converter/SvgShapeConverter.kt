@@ -62,12 +62,14 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 	 */
 	val pngInputFolder = File("$projectFolder/flash/all-shapes-x1")
 	val svgInputFolder = File("$projectFolder/flash/all-shapes-svg2")
-	val pngOutputFolder = File("$projectFolder/flash/all-shapes-x4")
+	val pngOutputFolder2 = File("$projectFolder/flash/all-shapes-x2")
+	val pngOutputFolder4 = File("$projectFolder/flash/all-shapes-x4")
 
 	if (!pngInputFolder.isDirectory || !svgInputFolder.isDirectory) {
 		throw Error("Please follow above instructions")
 	}
-	pngOutputFolder.mkdirs()
+	pngOutputFolder2.mkdirs()
+	pngOutputFolder4.mkdirs()
 
 	val counter = AtomicInteger(0)
 	val pngInputFiles = pngInputFolder.listFiles()!!
@@ -85,40 +87,46 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 			val inputImage = ImageIO.read(pngInputFile)
 			val svgFile = File("$svgInputFolder/${pngInputFile.nameWithoutExtension}.svg")
 
-			val pngTranscoder = PNGTranscoder()
-			pngTranscoder.errorHandler = SilentErrorHandler(pngInputFile.name)
-			pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, 4f * inputImage.width)
-			pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, 4f * inputImage.height)
+			val output2 = File("$pngOutputFolder2/${pngInputFile.name}")
+			val output4 = File("$pngOutputFolder4/${pngInputFile.name}")
 
-			val transcoderInput = TranscoderInput(svgFile.absolutePath)
-			val output = File("$pngOutputFolder/${pngInputFile.name}")
+			for (output in arrayOf(output2, output4)) {
+				val pngTranscoder = PNGTranscoder()
+				pngTranscoder.errorHandler = SilentErrorHandler(pngInputFile.name)
 
-			val outputStream = Files.newOutputStream(output.toPath())
-			val transcoderOutput = TranscoderOutput(outputStream)
+				val factor = if (output === output2) 2f else 4f
+				pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, factor * inputImage.width)
+				pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, factor * inputImage.height)
 
-			pngTranscoder.transcode(transcoderInput, transcoderOutput)
+				val transcoderInput = TranscoderInput(svgFile.absolutePath)
 
-			outputStream.flush()
-			outputStream.close()
+				val outputStream = Files.newOutputStream(output.toPath())
+				val transcoderOutput = TranscoderOutput(outputStream)
 
-			if (shadows.contains(parseInt(pngInputFile.name.replace(".png", "")))) {
-				val shadowImage = ImageIO.read(output)
-				for (y in 0 until shadowImage.height) {
-					for (x in 0 until shadowImage.width) {
-						val inputColor = Color(shadowImage.getRGB(x, y), true)
-						val outputColor = Color(
-							inputColor.red, inputColor.green, inputColor.blue,
-							min(255, 2 * inputColor.alpha),
-						)
-						shadowImage.setRGB(x, y, outputColor.rgb)
+				pngTranscoder.transcode(transcoderInput, transcoderOutput)
+
+				outputStream.flush()
+				outputStream.close()
+
+				if (shadows.contains(parseInt(pngInputFile.name.replace(".png", "")))) {
+					val shadowImage = ImageIO.read(output)
+					for (y in 0 until shadowImage.height) {
+						for (x in 0 until shadowImage.width) {
+							val inputColor = Color(shadowImage.getRGB(x, y), true)
+							val outputColor = Color(
+								inputColor.red, inputColor.green, inputColor.blue,
+								min(255, 2 * inputColor.alpha),
+							)
+							shadowImage.setRGB(x, y, outputColor.rgb)
+						}
 					}
+					ImageIO.write(shadowImage, "PNG", output)
 				}
-				ImageIO.write(shadowImage, "PNG", output)
-			}
 
-			val nextCounter = counter.incrementAndGet()
-			if (nextCounter % 100 == 0) {
-				println("Converted $nextCounter files already")
+				val nextCounter = counter.incrementAndGet()
+				if (nextCounter % 100 == 0) {
+					println("Converted $nextCounter files already")
+				}
 			}
 		}
 	}}

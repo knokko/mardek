@@ -39,6 +39,7 @@ sealed class StateExpression<T> {
 			ItemCountStateCondition::class.java,
 
 			GreaterEqualStateCondition::class.java,
+			EqualStateCondition::class.java,
 		)
 	}
 }
@@ -374,6 +375,37 @@ class GreaterEqualStateCondition(
 	private constructor() : this(
 		ConstantStateExpression(ExpressionIntValue(0)),
 		ConstantStateExpression(ExpressionIntValue(0)),
+	)
+
+	override fun toString() = "($left >= $right)"
+}
+
+/**
+ * A state expression that evaluates to `true` if and only if [left] evaluates to a value that is equivalent to the
+ * value to which [right] evaluates.
+ */
+@BitStruct(backwardCompatible = true)
+class EqualStateCondition<T>(
+
+	/**
+	 * The left-hand side of the equality
+	 */
+	@BitField(id = 0)
+	@ClassField(root = StateExpression::class)
+	val left: StateExpression<T>,
+
+	/**
+	 * The right-hand side of the equality
+	 */
+	@BitField(id = 1)
+	@ClassField(root = StateExpression::class)
+	val right: StateExpression<T>,
+) : StateExpression<Boolean>() {
+
+	@Suppress("unused", "UNCHECKED_CAST")
+	private constructor() : this(
+		ConstantStateExpression(ExpressionUnitValue() as ExpressionValue<T>),
+		ConstantStateExpression(ExpressionUnitValue() as ExpressionValue<T>),
 	)
 
 	override fun toString() = "($left >= $right)"

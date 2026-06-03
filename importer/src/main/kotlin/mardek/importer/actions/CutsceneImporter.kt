@@ -8,6 +8,7 @@ import mardek.content.Content
 import mardek.content.action.ActionContent
 import mardek.content.action.Cutscene
 import mardek.content.action.CutscenePayload
+import mardek.content.battle.BattleBackground
 import mardek.importer.animation.AnimationImportContext
 import mardek.importer.animation.getScript
 import mardek.importer.animation.importSkinnedAnimation
@@ -20,6 +21,7 @@ import kotlin.time.Duration.Companion.seconds
 internal fun importCutscenes(content: Content) {
 	importIntroCutscene(content.actions)
 	importFallingStarCutscene(content)
+	importGdmIntroCutscene(content)
 }
 
 private fun importIntroCutscene(content: ActionContent) {
@@ -113,6 +115,47 @@ private fun importFallingStarCutscene(content: Content) {
 	content.actions.cutscenes.add(cutscene)
 }
 
+private fun importGdmIntroCutscene(content: Content) {
+	val magicScale = 4
+
+	val context = AnimationImportContext(
+		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale/"),
+		particleEmitters = emptyMap(),
+	)
+
+	val gdmTag = FLASH.tags.find { it is DefineSpriteTag && it.exportName == "CUT_GdM" }!! as DefineSpriteTag
+	val gdmFull = importSkinnedAnimation(gdmTag, context)
+	val gdmUseful = gdmFull.skins["cut_gdm"]!!
+
+	val cutscene = Cutscene(
+		id = UUID.fromString("a54c0588-1a6f-4ab2-8bdc-3a2ff25f07fc"),
+		name = "GdM intro",
+		payload = SimpleLazyBits(CutscenePayload(
+			frames = gdmUseful.get(),
+			magicScale = magicScale,
+			musicTrack = "GdM",
+			subtitles = emptyArray(),
+		)),
+		sounds = emptyArray(),
+	)
+
+	for (sprite in context.shapeMapping.values) {
+		cutscene.payload.get().sprites.add(sprite)
+		content.battle.animationSprites.add(sprite)
+	}
+
+	for (animation in context.spriteMapping.values) {
+		cutscene.payload.get().innerAnimations.add(animation)
+		content.battle.skinnedAnimations.add(animation)
+	}
+
+	content.actions.cutscenes.add(cutscene)
+	content.battle.backgrounds.add(BattleBackground(
+		"GdM", gdmUseful.get().frames.last().nodes, magicScale,
+		UUID.fromString("4793e5e8-7848-4abe-b0f0-d32fde285c6c"),
+	))
+}
+
 internal fun addDummyCutscenes(content: ActionContent) {
 	content.cutscenes.add(Cutscene(
 		id = UUID.fromString("9fbfa37e-b304-4e94-aee8-037ca3b6b4ad"),
@@ -123,6 +166,12 @@ internal fun addDummyCutscenes(content: ActionContent) {
 	content.cutscenes.add(Cutscene(
 		id = UUID.fromString("79f85f55-5321-415d-a12e-1d58f32f3191"),
 		name = "Falling Star",
+		payload = SimpleLazyBits(CutscenePayload()),
+		sounds = emptyArray(),
+	))
+	content.cutscenes.add(Cutscene(
+		id = UUID.fromString("a54c0588-1a6f-4ab2-8bdc-3a2ff25f07fc"),
+		name = "GdM intro",
 		payload = SimpleLazyBits(CutscenePayload()),
 		sounds = emptyArray(),
 	))

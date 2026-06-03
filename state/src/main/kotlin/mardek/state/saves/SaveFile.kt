@@ -8,7 +8,6 @@ import mardek.state.ingame.CampaignState
 import java.io.File
 import java.lang.Long.parseLong
 import java.nio.file.Files
-import java.util.Locale
 
 /**
  * Each `SaveFile` contains the data about 1 campaign at 1 time instant. Players can start the game by either starting
@@ -63,6 +62,11 @@ class SaveFile private constructor(
 		 * The player used Control+S to save without save crystal
 		 */
 		Cheat,
+
+		/**
+		 * The player clicked the "Save" button on the End of Chapter X screen
+		 */
+		EndOfChapter,
 	}
 
 	/**
@@ -93,13 +97,11 @@ class SaveFile private constructor(
 
 			val splitIndex = name.indexOf('-')
 			if (splitIndex == -1) return null
-			val lowerTypeName = name.substring(0 until splitIndex).lowercase(Locale.ROOT)
-			if (lowerTypeName.isEmpty()) return null
-			val typeName = lowerTypeName.take(1).uppercase(Locale.ROOT) +
-					lowerTypeName.substring(1).lowercase(Locale.ROOT)
+			val typeName = name.substring(0 until splitIndex)
+			if (typeName.isEmpty()) return null
 			val rawTimestamp = name.substring(splitIndex + 1)
 
-			val type = try { Type.valueOf(typeName) } catch (_: IllegalArgumentException) { return null }
+			val type = Type.entries.find { it.name.equals(typeName, ignoreCase = true) } ?: return null
 			val timestamp = try { parseLong(rawTimestamp ) } catch (_: NumberFormatException) { return null }
 
 			try {

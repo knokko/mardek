@@ -4,8 +4,13 @@ import mardek.content.Content
 import mardek.content.expression.AndStateCondition
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.DefinedVariableStateCondition
+import mardek.content.expression.EqualStateCondition
 import mardek.content.expression.ExpressionBooleanValue
+import mardek.content.expression.ExpressionIntValue
+import mardek.content.expression.GreaterEqualStateCondition
 import mardek.content.expression.NegateStateCondition
+import mardek.content.expression.StateExpression
+import mardek.content.expression.VariableStateExpression
 
 internal fun hardcodeChapter1Expressions(
 	content: Content, hardcoded: MutableMap<String, MutableList<HardcodedExpression>>
@@ -28,6 +33,17 @@ internal fun hardcodeChapter1Expressions(
 	)
 	hardcoded[""]!!.add(HardcodedExpression(
 		name = "Chapter1Day", expression = DefinedVariableStateCondition(fallenStarQuest.isActive))
+	)
+
+	@Suppress("UNCHECKED_CAST")
+	hardcoded[""]!!.add(
+		HardcodedExpression(name = "Chapter1AfterRohoph", expression = AndStateCondition(arrayOf(
+			DefinedVariableStateCondition(fallenStarQuest.wasCompleted),
+			EqualStateCondition(
+				VariableStateExpression(content.story.fixedVariables.chapter) as StateExpression<Int>,
+				ConstantStateExpression(ExpressionIntValue(1)),
+			)
+		)))
 	)
 
 	@Suppress("UNCHECKED_CAST")

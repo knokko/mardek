@@ -31,6 +31,9 @@ internal fun renderBattleBackground(battleContext: BattleRenderContext, batch: A
 		noMask = battleContext.context.content.battle.noMask,
 		combat = null,
 		portrait = null,
+		currentChapter = battleContext.context.campaign.story.evaluate(
+			battleContext.context.content.story.fixedVariables.chapter
+		) ?: 0,
 		animationDuration = Duration.ZERO,
 	)
 	renderBattleBackgroundAnimation(background.nodes, animationContext)

@@ -3,8 +3,6 @@ package mardek.renderer.area.ui
 import com.github.knokko.vk2d.text.HarfbuzzChecks.assertHbSuccess
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
-import mardek.renderer.area.AreaRenderContext
-import mardek.state.ingame.actions.AreaActionsState
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_utf16
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_clear_contents
@@ -13,8 +11,8 @@ import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_guess_segment_properties
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_shape
 import kotlin.use
 
-internal fun renderChatLog(areaContext: AreaRenderContext, actions: AreaActionsState) {
-	areaContext.run {
+internal fun renderChatLog(dialogueContext: DialogueRenderContext) {
+	dialogueContext.run {
 		val titleFont = context.bundle.getFont(context.content.fonts.large1.index)
 		simpleTextBatch.drawString(
 			"Chat Log", region.maxX - region.width * 0.025f, region.minY + region.height * 0.06f,
@@ -27,7 +25,7 @@ internal fun renderChatLog(areaContext: AreaRenderContext, actions: AreaActionsS
 		val minTextX = region.minX + 0.01f * region.height
 
 		val maxLineY = region.minY + 0.65f * region.height
-		for (entry in actions.chatLog.reversed()) {
+		for (entry in context.campaign.chatLog.reversed()) {
 			if (textY > maxLineY) break
 
 			val heightA = 0.0175f * region.height

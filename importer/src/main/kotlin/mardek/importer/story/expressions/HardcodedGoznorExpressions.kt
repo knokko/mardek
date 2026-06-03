@@ -1,6 +1,7 @@
 package mardek.importer.story.expressions
 
 import mardek.content.Content
+import mardek.content.expression.AndStateCondition
 import mardek.content.story.CustomTimelineVariable
 import mardek.content.expression.DefinedVariableStateCondition
 import mardek.content.expression.NegateStateCondition
@@ -9,8 +10,11 @@ import mardek.content.expression.NegateStateCondition
 internal fun hardcodeGoznorExpressions(
 	content: Content, hardcoded: MutableMap<String, MutableList<HardcodedExpression>>
 ) {
-	val withDeugan = content.story.customVariables.find {
+	val withDeugan1 = content.story.customVariables.find {
 		it.name == "WithDeuganBeforeFallingStar"
+	}!! as CustomTimelineVariable<Unit>
+	val withDeugan2 = content.story.customVariables.find {
+		it.name == "WithDeuganAfterRohoph"
 	}!! as CustomTimelineVariable<Unit>
 	val timeOfDay = content.story.customVariables.find {
 		it.name == "TimeOfDay"
@@ -19,7 +23,10 @@ internal fun hardcodeGoznorExpressions(
 	hardcoded["goznor"] = mutableListOf(
 		HardcodedExpression(
 			name = "lock_mardek_house",
-			expression = NegateStateCondition(DefinedVariableStateCondition(withDeugan)),
+			expression = AndStateCondition(arrayOf(
+				NegateStateCondition(DefinedVariableStateCondition(withDeugan1)),
+				NegateStateCondition(DefinedVariableStateCondition(withDeugan2)),
+			)),
 		),
 		HardcodedExpression(
 			name = "lock_night",
