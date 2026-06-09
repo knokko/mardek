@@ -402,7 +402,7 @@ private fun renderStatusResistances(menuContext: MenuRenderContext, region: Rect
 	for ((index, effect) in menuContext.context.content.stats.statusEffects.withIndex()) {
 		if (index >= 10) break
 
-		var resistance = 0f
+		var resistance = 0
 		for (equipment in state.equipment.values) {
 			val properties = equipment.equipment ?: continue
 			resistance += properties.resistances.get(effect)
@@ -416,8 +416,8 @@ private fun renderStatusResistances(menuContext: MenuRenderContext, region: Rect
 			if (skill is PassiveSkill) resistance += skill.resistances.get(effect)
 		}
 
-		val percentageResistance = (100f * resistance).roundToInt()
-		renderResistance(menuContext, region, effect.icon, percentageResistance, index, true)
+		resistance = resistance.coerceIn(0 .. 100)
+		renderResistance(menuContext, region, effect.icon, resistance, index, true)
 	}
 }
 

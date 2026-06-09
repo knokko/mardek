@@ -100,6 +100,7 @@ object TestCombatantState {
 
 			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = content.items.items.find { it.displayName == "Amethyst" }!!
+			mardekState.equipment[heroMardek.characterClass.equipmentSlots[5]] = content.items.items.find { it.displayName == "Cog Necklace" }!!
 			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "Antibody" }!!)
 
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(
@@ -108,10 +109,15 @@ object TestCombatantState {
 			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			val confusion = content.stats.statusEffects.find { it.niceName == "Confusion" }!!
 			val poison = content.stats.statusEffects.find { it.niceName == "Poison" }!!
+			val sleep = content.stats.statusEffects.find { it.niceName == "Sleep" }!!
 
 			assertEquals(100, battle.allPlayers()[0].getResistance(poison, battleUpdateContext(campaign)))
 			assertEquals(30, battle.allPlayers()[0].getResistance(confusion, battleUpdateContext(campaign)))
+			assertEquals(100, battle.allPlayers()[0].getResistance(sleep, battleUpdateContext(campaign)))
 			assertEquals(100, battle.livingOpponents()[0].getResistance(poison, battleUpdateContext(campaign)))
+
+			// Test that resistance is capped to 100%
+			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "Insomnia" }!!)
 		}
 	}
 

@@ -313,7 +313,7 @@ sealed class CombatantState(
 	}
 
 	/**
-	 * Gets the current resistance against [effect], as a fraction (e.g. 1f means 100% resistance/complete immunity).
+	 * Gets the current resistance against [effect], as percentage
 	 */
 	open fun getResistance(effect: StatusEffect, context: BattleUpdateContext): Int {
 		var resistance = 0
@@ -325,7 +325,7 @@ sealed class CombatantState(
 			if (skill is PassiveSkill) resistance += skill.resistances.get(effect)
 		}
 
-		return resistance
+		return resistance.coerceIn(0 .. 100)
 	}
 
 	/**
