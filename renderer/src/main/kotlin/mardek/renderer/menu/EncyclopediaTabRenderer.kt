@@ -180,7 +180,12 @@ private fun renderPersonDetails(menuContext: MenuRenderContext, region: Rectangl
 		}
 
 		val animationContext = AnimationContext(
-			renderRegion = region,
+			renderRegion = Rectangle(
+				region.minX,
+				region.minY + region.height / 10,
+				region.width,
+				3 * region.height / 10,
+			),
 			renderTime = System.nanoTime(),
 			magicScale = context.content.portraits.magicScale,
 			parentMatrix = Matrix3x2f().translate(
