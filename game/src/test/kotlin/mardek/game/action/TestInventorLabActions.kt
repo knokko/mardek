@@ -161,7 +161,7 @@ object TestInventorLabActions {
 			)
 			testRendering(
 				state, 600, 400, "lead-pipe-quest0",
-				baseColors + mereadorPortraitColors, leadPipeColors + necklaceColors,
+				baseColors + mereadorPortraitColors, necklaceColors,
 			)
 
 			// Go to the dialogue entry that should show the 'lost lead pipes' notification
