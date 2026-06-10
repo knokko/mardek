@@ -5,7 +5,9 @@ import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
 import mardek.content.action.ActionShop
 import mardek.content.action.ActionTalk
+import mardek.content.action.ActionTarget
 import mardek.content.action.ActionTargetDefaultDialogueObject
+import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionTimelineTransition
 import mardek.content.action.FixedAction
 import mardek.content.action.FixedActionNode
@@ -145,10 +147,16 @@ private fun attemptToExtractSimpleDialogue(
 	if (conversationList is ArrayList<*>) {
 		val actions: Array<FixedAction> = conversationList.map {
 			if (it !is ArrayList<*>) return null
+			var text = parseFlashString(it[1].toString(), "dialogue text") ?: return null
+			var speaker: ActionTarget = ActionTargetDefaultDialogueObject()
+			if (text.startsWith("[[PC]]")) {
+				text = text.substring("[[PC]]".length)
+				speaker = ActionTargetPartyMember(0)
+			}
 			ActionTalk(
-				speaker = ActionTargetDefaultDialogueObject(),
+				speaker = speaker,
 				expression = parseFlashString(it[0].toString(), "dialogue expression") ?: return null,
-				text = parseFlashString(it[1].toString(), "dialogue text") ?: return null,
+				text = text,
 			)
 		}.toTypedArray()
 		val ids = actions.indices.map {

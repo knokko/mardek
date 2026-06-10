@@ -1,5 +1,6 @@
 package mardek.game
 
+import mardek.game.action.TestAccessoryShop
 import mardek.game.action.TestActions
 import mardek.game.action.TestChatLog
 import mardek.game.action.TestDeuganHouseActions
@@ -589,5 +590,10 @@ class IntegrationTests {
 	@Test
 	fun testEndOfChapter() {
 		TestEndOfChapter.runTest(instance)
+	}
+
+	@Test
+	fun testAccessoryShopDialogue() {
+		TestAccessoryShop.testReplacePCWithPlayerDialogue(instance)
 	}
 }
