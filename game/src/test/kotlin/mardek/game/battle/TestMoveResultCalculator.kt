@@ -714,6 +714,15 @@ object TestMoveResultCalculator {
 					assertEquals(setOf(content.stats.statusEffects.find { it.flashName == "PAR" }!!), entry.addedEffects)
 					stunCounter += 1
 				}
+
+				// The result should NOT contain the shock (Thunder) sound because that sound will already be played
+				// as part of its sound effect. Playing the sound twice makes them sound horrible.
+				if (entry.criticalHit) {
+					assertEquals(1, result.sounds.size)
+					assertSame(content.audio.fixedEffects.battle.critical, result.sounds[0])
+				} else {
+					assertEquals(0, result.sounds.size)
+				}
 			}
 
 			assertTrue(stunCounter in 500 .. 1500, "Expected $stunCounter to be 1000")

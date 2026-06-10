@@ -18,6 +18,7 @@ import mardek.renderer.MardekFramebuffers
 import mardek.renderer.PerFrameResources
 import mardek.state.GameState
 import mardek.state.GameStateManager
+import mardek.state.SoundQueue
 import mardek.state.saves.SavesFolderManager
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.fail
@@ -40,10 +41,18 @@ fun TestingInstance.testRendering(
 	state: GameState,
 	width: Int, height: Int, name: String,
 	expectedColors: Array<Color>, forbiddenColors: Array<Color>,
-) = testRendering(
-	GameStateManager(InputManager(), state, SavesFolderManager()),
-	 width, height, name, expectedColors, forbiddenColors
-)
+	soundQueue: SoundQueue? = null,
+) {
+	val stateManager = GameStateManager(InputManager(), state, SavesFolderManager())
+	testRendering(stateManager, width, height, name, expectedColors, forbiddenColors)
+	if (soundQueue != null) {
+		var nextSound = stateManager.soundQueue.take()
+		while (nextSound != null) {
+			soundQueue.insert(nextSound)
+			nextSound = stateManager.soundQueue.take()
+		}
+	}
+}
 
 fun TestingInstance.testRendering(
 	state: GameStateManager,

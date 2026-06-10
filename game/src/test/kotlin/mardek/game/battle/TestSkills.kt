@@ -78,6 +78,13 @@ object TestSkills {
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			campaign.update(context(1.milliseconds))
 
+			val sounds = content.audio.fixedEffects
+			assertSame(sounds.ui.scroll2, soundQueue.take())
+			assertSame(sounds.ui.scroll1, soundQueue.take())
+			assertSame(sounds.ui.clickConfirm, soundQueue.take())
+			assertSame(sounds.ui.clickConfirm, soundQueue.take())
+			assertNull(soundQueue.take())
+
 			assertEquals(1452, monsterState.currentHealth)
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.MeleeAttack.MoveTo)
@@ -98,9 +105,11 @@ object TestSkills {
 			testRendering(
 				state, 800, 450, "smite-evil1",
 				playerColors + monsterColor, emptyArray(),
+				soundQueue = soundQueue,
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.MoveTo).finished)
 			campaign.update(context(1.seconds))
+			assertNull(soundQueue.take())
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.MeleeAttack.Strike)
 				assertSame(mardek, (it as BattleStateMachine.MeleeAttack.Strike).attacker)
@@ -116,11 +125,18 @@ object TestSkills {
 			sleep(1000)
 			testRendering(
 				state, 800, 450, "smite-evil2",
-				playerColors + monsterColor, emptyArray()
+				playerColors + monsterColor, emptyArray(),
+				soundQueue = soundQueue,
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).canDealDamage)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).finished)
 			campaign.update(context(1.seconds))
+
+			// If it's a critical hit, the crit sound should be played
+			val maybeCriticalHit = soundQueue.take()
+			if (maybeCriticalHit != null) assertSame(sounds.battle.critical, maybeCriticalHit)
+			assertNull(soundQueue.take())
+
 			assertEquals(0, monsterState.currentHealth)
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.MeleeAttack.JumpBack)
@@ -145,10 +161,15 @@ object TestSkills {
 			testRendering(
 				state, 800, 450, "smite-evil3",
 				playerColors + monsterColor, emptyArray(),
+				soundQueue = soundQueue,
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.JumpBack).finished)
 			campaign.update(context(1.seconds))
 			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
+
+			// Note that the Smite Evil sound effect is the critical hit sound effect
+			assertSame(sounds.battle.critical, soundQueue.take())
+			assertNull(soundQueue.take())
 
 			sleep(1000)
 			campaign.update(context(1.seconds))
@@ -158,8 +179,11 @@ object TestSkills {
 			}
 			testRendering(
 				state, 800, 450, "smite-evil4",
-				playerColors + monsterColor, emptyArray()
+				playerColors + monsterColor, emptyArray(),
+				soundQueue = soundQueue,
 			)
+			assertSame(sounds.ui.scroll2, soundQueue.take())
+			assertNull(soundQueue.take())
 		}
 	}
 

@@ -318,9 +318,8 @@ class MoveResultCalculator(private val context: BattleUpdateContext) {
 		if (skill.changeElement) TODO("change element")
 
 		var sound = skill.damageSound ?: skill.particleEffect?.damageSound
-		if (sound == null && skill.isMelee) {
-			sound = skill.particleEffect?.initialSound
-			if (sound == null && weapon != null) sound = weapon.hitSound
+		if (sound == null && skill.isMelee && skill.particleEffect?.initialSound == null) {
+			if (weapon != null) sound = weapon.hitSound
 			if (sound == null) sound = context.sounds.battle.punch
 		}
 
