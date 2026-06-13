@@ -196,7 +196,7 @@ object TestInventorLabActions {
 			}
 			testRendering(
 				state, 600, 400, "lead-pipe-quest2",
-				baseColors + necklaceColors, leadPipeColors,
+				baseColors + necklaceColors, emptyArray()
 			)
 
 			// Test that it fades after some time

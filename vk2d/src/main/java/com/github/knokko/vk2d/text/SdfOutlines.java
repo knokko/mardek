@@ -1,11 +1,11 @@
 package com.github.knokko.vk2d.text;
 
-import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.buffers.VkbBuffer;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.vk2d.Vk2dInstance;
 import org.lwjgl.util.harfbuzz.hb_glyph_extents_t;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +25,11 @@ class SdfOutlines {
 	private List<Line> lines = new ArrayList<>();
 	private List<Curve> curves = new ArrayList<>();
 
-	MappedVkbBuffer stagingBuffer;
 	VkbBuffer persistentBuffer;
 
 	SdfOutlines(
 			long hbFont, hb_glyph_extents_t.Buffer glyphExtents, Vk2dInstance instance,
-			MemoryCombiner persistentMemory, MemoryCombiner stagingMemory
+			MemoryCombiner persistentMemory
 	) {
 		this.info = new int[2 * (glyphExtents.capacity() + 1)];
 		var drawFunctions = hb_draw_funcs_create();
@@ -113,19 +112,20 @@ class SdfOutlines {
 
 		hb_draw_funcs_destroy(drawFunctions);
 
-		this.stagingBuffer = stagingMemory.addMappedBuffer(
-				8L * lines.size() + 12L * curves.size(), 4L, VK_BUFFER_USAGE_TRANSFER_SRC_BIT
-		);
 		this.persistentBuffer = persistentMemory.addBuffer(
-				8L * lines.size() + 12L * curves.size(),
+				determineStagingBufferSize(),
 				leastCommonMultiple(4L, instance.boiler.deviceProperties.limits().minStorageBufferOffsetAlignment()),
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 				0.5f
 		);
 	}
 
-	void fillBuffer() {
-		var data = stagingBuffer.intBuffer();
+	int determineStagingBufferSize() {
+		return 8 * lines.size() + 12 * curves.size();
+	}
+
+	void fillBuffer(ByteBuffer destination) {
+		var data = destination.asIntBuffer();
 
 		for (var line : lines) {
 			data.put(line.startX | (line.startY << 16));

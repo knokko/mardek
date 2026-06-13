@@ -5,3 +5,6 @@
 **/build/
 **/mardek-stdout.txt
 **/mardek-stderr.txt
+/game/hs_err_pid*
+/imgui.ini
+

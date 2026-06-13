@@ -83,13 +83,9 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 			if (vk2d.bufferDescriptorSetLayout != null) {
 				perFrameDescriptorSet = descriptors.addMultiple(vk2d.bufferDescriptorSetLayout, 1);
 			}
-			if (loader != null) {
-				loader.prepareStaging(descriptors);
-			}
+			if (loader != null) loader.claimDescriptors(descriptors);
 			long descriptorPool = descriptors.build(testCase + "DescriptorBundle");
-			if (loader != null) {
-				SingleTimeCommands.submit(boiler, testCase + " ResourceBundle", loader::performStaging).destroy();
-			}
+			if (loader != null) loader.performStaging(null);
 
 			if (perFrameDescriptorSet[0] != VK_NULL_HANDLE) {
 				try (MemoryStack stack = stackPush()) {

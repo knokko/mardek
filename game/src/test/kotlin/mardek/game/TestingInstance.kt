@@ -3,7 +3,6 @@ package mardek.game
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.instance.ValidationFeatures
-import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.memory.MemoryBlock
 import com.github.knokko.boiler.memory.MemoryCombiner
@@ -99,11 +98,9 @@ class TestingInstance {
 		)
 		titleScreenLoader.claimMemory(titleScreenAllocator)
 		titleScreenMemory = titleScreenAllocator.build(false)
-		titleScreenLoader.prepareStaging(titleScreenDescriptors)
+		titleScreenLoader.claimDescriptors(titleScreenDescriptors)
 		titleScreenDescriptorPool = titleScreenDescriptors.build("TitleScreenDescriptors")
-		SingleTimeCommands.submit(boiler, "TitleScreenStaging") { recorder ->
-			titleScreenLoader.performStaging(recorder)
-		}.destroy()
+		titleScreenLoader.performStaging(null)
 		titleScreenResources = titleScreenLoader.finish()
 
 		renderManager = RenderManager(

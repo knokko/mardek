@@ -5,7 +5,6 @@ import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.builders.BoilerBuilder;
 import com.github.knokko.boiler.builders.WindowBuilder;
 import com.github.knokko.boiler.commands.CommandRecorder;
-import com.github.knokko.boiler.commands.SingleTimeCommands;
 import com.github.knokko.boiler.descriptors.DescriptorCombiner;
 import com.github.knokko.boiler.descriptors.DescriptorUpdater;
 import com.github.knokko.boiler.memory.MemoryBlock;
@@ -128,16 +127,11 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			);
 			this.memory = combiner.build(false);
 
-			if (loader != null) loader.prepareStaging(descriptors);
+			if (loader != null) loader.claimDescriptors(descriptors);
 
 			this.vkDescriptorPool = descriptors.build("Vk2dDescriptors");
 
-			if (loader != null) {
-				Vk2dResourceLoader[] pLoader = { loader };
-				SingleTimeCommands.submit(boiler, "Vk2dStaging", recorder ->
-						pLoader[0].performStaging(recorder)
-				).destroy();
-			}
+			if (loader != null) loader.performStaging(null);
 
 			if (loader != null) this.resources = loader.finish();
 			if (resourceInput != null) resourceInput.close();

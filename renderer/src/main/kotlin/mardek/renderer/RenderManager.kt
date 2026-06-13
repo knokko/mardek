@@ -1,6 +1,5 @@
 package mardek.renderer
 
-import com.github.knokko.boiler.commands.SingleTimeCommands
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
 import com.github.knokko.boiler.memory.MemoryBlock
 import com.github.knokko.boiler.memory.MemoryCombiner
@@ -54,12 +53,10 @@ class RenderManager(
 			this.mainResourceMemory = combiner.build(false)
 
 			val descriptors = DescriptorCombiner(vk2d.boiler)
-			loader.prepareStaging(descriptors)
+			loader.claimDescriptors(descriptors)
 			this.mainDescriptorPool = descriptors.build("MainDescriptors")
 
-			SingleTimeCommands.submit(vk2d.boiler, "Load MainContent") { recorder ->
-				loader.performStaging(recorder)
-			}.destroy()
+			loader.performStaging(null)
 
 			this.mainResources = loader.finish()
 		} finally {

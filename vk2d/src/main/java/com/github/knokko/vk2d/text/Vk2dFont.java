@@ -14,6 +14,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.harfbuzz.hb_glyph_extents_t;
 import org.lwjgl.util.harfbuzz.hb_glyph_position_t;
 
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
@@ -49,13 +50,9 @@ public class Vk2dFont {
 				)
 		).toArray(VkbBuffer[]::new);
 
-		var outlineStagingBuffers = Arrays.stream(fonts).map(
-				font -> font.outlines.stagingBuffer).toArray(MappedVkbBuffer[]::new
-		);
 		var outlineBuffers = Arrays.stream(fonts).map(
 				font -> font.outlines.persistentBuffer).toArray(VkbBuffer[]::new
 		);
-		recorder.bulkCopyBuffers(outlineStagingBuffers, outlineBuffers);
 		recorder.bulkBufferBarrier(ResourceUsage.TRANSFER_DEST, ResourceUsage.shaderRead(
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT
 		), outlineBuffers);
@@ -173,11 +170,7 @@ public class Vk2dFont {
 	private final ArrayList<SdfAtlas> atlases = new ArrayList<>();
 	final SdfOutlines outlines;
 
-	public Vk2dFont(
-			long hbFace, Vk2dInstance instance,
-			MemoryCombiner mainMemoryCombiner,
-			MemoryCombiner stagingMemoryCombiner
-	) {
+	public Vk2dFont(long hbFace, Vk2dInstance instance, MemoryCombiner mainMemoryCombiner) {
 		this.hbFace = hbFace;
 		this.hbFont = assertHbSuccess(hb_font_create(hbFace), "font_create");
 
@@ -208,7 +201,7 @@ public class Vk2dFont {
 
 		if (fontHeightA == 0) throw new RuntimeException("Cannot find the glyph extents of the 'A' glyph");
 		this.fontHeightA = fontHeightA;
-		this.outlines = new SdfOutlines(hbFont, glyphExtents, instance, mainMemoryCombiner, stagingMemoryCombiner);
+		this.outlines = new SdfOutlines(hbFont, glyphExtents, instance, mainMemoryCombiner);
 		this.whitespaceAdvance = hb_font_get_glyph_h_advance(hbFont, glyphWhitespace);
 	}
 
@@ -230,9 +223,20 @@ public class Vk2dFont {
 		));
 	}
 
-	public void prepareStaging(Vk2dInstance instance, DescriptorCombiner descriptors, Bc4Compressor compressor) {
-		outlines.fillBuffer();
+	public void claimDescriptors(Vk2dInstance instance, DescriptorCombiner descriptors, Bc4Compressor compressor) {
 		for (var atlas : atlases) atlas.claimDescriptors(instance, descriptors, compressor);
+	}
+
+	public int determineStagingBufferSize() {
+		return outlines.determineStagingBufferSize();
+	}
+
+	public void fillStagingBuffer(ByteBuffer destination) {
+		outlines.fillBuffer(destination);
+	}
+
+	public void performStagingCopy(CommandRecorder recorder, MappedVkbBuffer stagingBuffer) {
+		recorder.copyBuffer(stagingBuffer, outlines.persistentBuffer);
 	}
 
 	public SdfAtlas chooseAtlas(float heightA, float strokeWidth, int glyph) {

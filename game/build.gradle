@@ -124,3 +124,18 @@ tasks.register("runGpuValidation", JavaExec) {
 		systemProperty "org.lwjgl.vulkan.libname", "libvulkan.1.dylib"
 	}
 }
+
+tasks.register("runApiDump", JavaExec) {
+	group = "Run"
+	description = "Runs the game with Vulkan API dump and validation"
+
+	classpath sourceSets.main.runtimeClasspath
+	mainClass = "mardek.game.MardekGameKt"
+	args "api-dump", "basic-validation"
+
+	if (OperatingSystem.current().isMacOsX()) {
+		jvmArgs "-XstartOnFirstThread"
+		systemProperty "org.lwjgl.librarypath", "/usr/local/lib"
+		systemProperty "org.lwjgl.vulkan.libname", "libvulkan.1.dylib"
+	}
+}
