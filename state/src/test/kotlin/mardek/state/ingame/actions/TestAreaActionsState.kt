@@ -607,11 +607,19 @@ class TestAreaActionsState {
 
 		pressAndRelease(actions, context.input, InputKey.MoveUp)
 		update(actions, context)
+		assertEquals(1, actions.selectedChoice)
+
+		pressAndRelease(actions, context.input, InputKey.MoveUp)
+		update(actions, context)
 		assertEquals(0, actions.selectedChoice)
 
 		pressAndRelease(actions, context.input, InputKey.MoveDown)
 		update(actions, context)
 		assertEquals(1, actions.selectedChoice)
+
+		pressAndRelease(actions, context.input, InputKey.MoveDown)
+		update(actions, context)
+		assertEquals(0, actions.selectedChoice)
 
 		pressAndRelease(actions, context.input, InputKey.Interact)
 		update(actions, context)

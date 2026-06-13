@@ -54,15 +54,16 @@ class InGameMenuState(private val state: CampaignState) {
 
 					if (event.key == InputKey.MoveUp) {
 						val oldTab = currentTab
-						if (currentTab is SkillsTab) currentTab = PartyTab()
-						if (currentTab is InventoryTab) currentTab = SkillsTab(state.usedPartyMembers())
-						if (currentTab is MapTab) currentTab = InventoryTab()
-						if (currentTab is QuestsTab) currentTab = MapTab()
-						if (currentTab is StatusTab) {
+						if (oldTab is PartyTab) currentTab = VideoSettingsTab()
+						if (oldTab is SkillsTab) currentTab = PartyTab()
+						if (oldTab is InventoryTab) currentTab = SkillsTab(state.usedPartyMembers())
+						if (oldTab is MapTab) currentTab = InventoryTab()
+						if (oldTab is QuestsTab) currentTab = MapTab()
+						if (oldTab is StatusTab) {
 							currentTab = QuestsTab(state.story.getQuests(content.story))
 						}
-						if (currentTab is EncyclopediaTab) currentTab = StatusTab()
-						if (currentTab is VideoSettingsTab) {
+						if (oldTab is EncyclopediaTab) currentTab = StatusTab()
+						if (oldTab is VideoSettingsTab) {
 							val snapshot = state.encyclopedia.createSnapshot(content.encyclopedia, state)
 							currentTab = EncyclopediaTab(snapshot)
 						}
@@ -73,16 +74,17 @@ class InGameMenuState(private val state: CampaignState) {
 
 					if (event.key == InputKey.MoveDown) {
 						val oldTab = currentTab
-						if (currentTab is EncyclopediaTab) currentTab = VideoSettingsTab()
-						if (currentTab is StatusTab) {
+						if (oldTab is VideoSettingsTab) currentTab = PartyTab()
+						if (oldTab is EncyclopediaTab) currentTab = VideoSettingsTab()
+						if (oldTab is StatusTab) {
 							val snapshot = state.encyclopedia.createSnapshot(content.encyclopedia, state)
 							currentTab = EncyclopediaTab(snapshot)
 						}
-						if (currentTab is QuestsTab) currentTab = StatusTab()
-						if (currentTab is MapTab) currentTab = QuestsTab(state.story.getQuests(content.story))
-						if (currentTab is InventoryTab) currentTab = MapTab()
-						if (currentTab is SkillsTab) currentTab = InventoryTab()
-						if (currentTab is PartyTab) currentTab = SkillsTab(state.usedPartyMembers())
+						if (oldTab is QuestsTab) currentTab = StatusTab()
+						if (oldTab is MapTab) currentTab = QuestsTab(state.story.getQuests(content.story))
+						if (oldTab is InventoryTab) currentTab = MapTab()
+						if (oldTab is SkillsTab) currentTab = InventoryTab()
+						if (oldTab is PartyTab) currentTab = SkillsTab(state.usedPartyMembers())
 
 						if (oldTab !== currentTab) soundQueue.insert(content.audio.fixedEffects.ui.scroll1)
 						continue

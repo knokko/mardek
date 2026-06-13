@@ -748,8 +748,11 @@ class AreaActionsState(
 
 		if (currentNode is ChoiceActionNode) {
 			initChoices(context)
-			if (selectedChoice > 0 && key == InputKey.MoveUp) selectedChoice -= 1
-			if (selectedChoice < choiceOptions.size - 1 && key == InputKey.MoveDown) selectedChoice += 1
+			if (key == InputKey.MoveUp) {
+				selectedChoice -= 1
+				if (selectedChoice < 0) selectedChoice += choiceOptions.size
+			}
+			if (key == InputKey.MoveDown) selectedChoice = (selectedChoice + 1) % choiceOptions.size
 			if (key == InputKey.Interact && !event.didRepeat) {
 				context.campaign.addToChatLog(ChatLogEntry(
 					speaker = currentNode.speaker.getDisplayName(
