@@ -433,6 +433,8 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 		renderPropertyPairs(propertyPairs1, splitX)
 		renderPropertyPairs(propertyPairs2, splitX + 0.255f * region.height)
 
+		val mostLikelyWeapon = monster.weapon.entries.maxBy { it.chance }.item
+		val mostLikelyShield = monster.shield.entries.maxBy { it.chance }.item
 		val animationContext = AnimationContext(
 			renderRegion = region,
 			renderTime = System.nanoTime(),
@@ -451,8 +453,8 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 				magicElement = null,
 				isMoving = false,
 				rootSkin = monster.animations.skin,
-				weaponName = null,
-				shieldName = null,
+				weaponName = mostLikelyWeapon?.displayName,
+				shieldName = mostLikelyShield?.displayName,
 				renderInfo = CombatantRenderInfo(),
 			),
 			portrait = null,
