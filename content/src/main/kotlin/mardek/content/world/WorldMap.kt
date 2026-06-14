@@ -3,8 +3,10 @@ package mardek.content.world
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
+import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.encyclopedia.EncyclopediaArea
 import mardek.content.sprite.BcSprite
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.StateExpression
@@ -56,11 +58,18 @@ class WorldMap(
 	 */
 	@BitField(id = 5)
 	val edges: Array<WorldMapEdge>,
+
+	/**
+	 * The encyclopedia entry that should be discovered when this world map is visited for the first time
+	 */
+	@BitField(id = 6)
+	@ReferenceField(stable = false, label = "encyclopedia places")
+	val encyclopediaEntry: EncyclopediaArea,
 ) {
 
 	constructor() : this(
 		UUID.randomUUID(), "", BcSprite(),
 		ConstantStateExpression(ExpressionOptionalStringValue(null)),
-		arrayOf(), arrayOf(),
+		arrayOf(), arrayOf(), EncyclopediaArea(),
 	)
 }

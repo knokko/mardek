@@ -60,8 +60,7 @@ class EncyclopediaArea(
 	val shouldShowUp: StateExpression<Boolean>,
 ) {
 
-	@Suppress("unused")
-	private constructor() : this(
+	internal constructor() : this(
 		UUID(0, 0), "", "", BattleBackground(),
 		ConstantStateExpression(ExpressionBooleanValue(false)),
 	)

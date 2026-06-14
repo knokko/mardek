@@ -204,6 +204,7 @@ class WorldMapState(
 		campaignContext: CampaignState.UpdateContext,
 		campaign: CampaignState
 	) {
+		campaign.encyclopedia.discoveredPlaces.add(map.encyclopediaEntry)
 		val nextEntrance = update(
 			campaignContext.content.audio.fixedEffects,
 			campaignContext.soundQueue, campaignContext.timeStep,

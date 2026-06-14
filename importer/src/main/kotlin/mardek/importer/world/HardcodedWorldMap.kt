@@ -84,6 +84,7 @@ internal fun hardcodeWorldMap(content: Content) {
 			WorldMapEdge(goznor, goznorEntrance, heroesDen, heroesDenEntrance),
 			WorldMapEdge(goznor, goznorEntrance, soothwood, soothwoodEastEntrance),
 			WorldMapEdge(crashSite, crashSiteEntrance, soothwood, soothwoodWestEntrance),
-		)
+		),
+		encyclopediaEntry = content.encyclopedia.places.find { it.name == "Belfan" }!!,
 	))
 }

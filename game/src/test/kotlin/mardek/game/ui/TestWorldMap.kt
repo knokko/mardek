@@ -15,7 +15,9 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveFile
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
@@ -72,6 +74,8 @@ object TestWorldMap {
 
 			// Move down to exit Heroes's den, which should start the area fade-out
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			val belfan = content.encyclopedia.places.find { it.name == "Belfan" }!!
+			assertFalse(state.campaign.encyclopedia.discoveredPlaces.any { it === belfan })
 			repeat(12) {
 				state.update(updateContext)
 			}
@@ -83,6 +87,7 @@ object TestWorldMap {
 			repeat(12) {
 				state.update(updateContext)
 			}
+			assertTrue(state.campaign.encyclopedia.discoveredPlaces.any { it === belfan })
 			assertInstanceOf<WorldMapState>(state.campaign.state)
 			testRendering(
 				state, 600, 400, "world-map2",
