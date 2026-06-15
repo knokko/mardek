@@ -48,4 +48,54 @@ public class Vk2dColorBatch extends Vk2dAbstractColorBatch {
 	public void fillUnaligned(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int color) {
 		super.fillUnaligned(x1, y1, x2, y2, x3, y3, x4, y4, color);
 	}
+
+	/**
+	 * Fills the axis-aligned rectangle between (minX, minY) and (maxX, maxY) with a gradient.
+	 * All coordinates are inclusive. The gradient can be horizontal or vertical, or both.
+	 * The top-right color if derived from the other 3 colors.
+	 * @param minX The minimum (left-most) X-coordinate, inclusive
+	 * @param minY The minimum (top-most) Y-coordinate, inclusive
+	 * @param maxX The maximum (right-most) X-coordinate, inclusive
+	 * @param maxY The maximum (bottom-most) Y-coordinate, inclusive
+	 * @param colorBottomLeft The color in the bottom-left corner
+	 * @param colorBottomRight The color in the bottom-right corner. If this is equal to {@code colorBottomLeft},
+	 *                         the gradient will <b>not</b> be horizontal.
+	 * @param colorTopLeft The color in the top-left corner. If this is equal to {@code colorBottomLeft},
+	 *                     the gradient will <b>not</b> be vertical.
+	 */
+	@Override
+	public void gradient(
+			int minX, int minY, int maxX, int maxY,
+			int colorBottomLeft, int colorBottomRight, int colorTopLeft
+	) {
+		super.gradient(minX, minY, maxX, maxY, colorBottomLeft, colorBottomRight, colorTopLeft);
+	}
+
+	/**
+	 * Fills the quad with corners (x1, y1), (x2, y2), (x3, y3), and (x4, y4) with a gradient.
+	 * The corner (x1, y1) gets color1, the corner (x2, y2) gets color2, etc...
+	 * Note that the top-left of each corner pixel is used, so choosing the corners (0, 0), (1, 0), (1, 1), and (0, 1)
+	 * would cause only the pixel at (0, 0) to be included in the gradient.
+	 * @param x1 The X-coordinate of the first corner
+	 * @param y1 The Y-coordinate of the first corner
+	 * @param color1 The color of the (x1, y1) corner
+	 * @param x2 The X-coordinate of the second corner
+	 * @param y2 The Y-coordinate of the second corner
+	 * @param color2 The color of the (x2, y2) corner
+	 * @param x3 The X-coordinate of the third corner
+	 * @param y3 The Y-coordinate of the third corner
+	 * @param color3 The color of the (x3, y3) corner
+	 * @param x4 The X-coordinate of the fourth corner
+	 * @param y4 The Y-coordinate of the fourth corner
+	 * @param color4 The color of the (x4, y4) corner
+	 */
+	@Override
+	public void gradientUnaligned(
+			int x1, int y1, int color1,
+			int x2, int y2, int color2,
+			int x3, int y3, int color3,
+			int x4, int y4, int color4
+	) {
+		super.gradientUnaligned(x1, y1, color1, x2, y2, color2, x3, y3, color3, x4, y4, color4);
+	}
 }

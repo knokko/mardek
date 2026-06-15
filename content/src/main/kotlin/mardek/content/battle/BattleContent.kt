@@ -97,5 +97,5 @@ class BattleContent {
 	 * will be multiplied by 1.0).
 	 */
 	@BitField(id = 10)
-	val noMask = BcSprite(1, 1, 4)
+	val noMask = BcSprite(1, 1, 4, true)
 }

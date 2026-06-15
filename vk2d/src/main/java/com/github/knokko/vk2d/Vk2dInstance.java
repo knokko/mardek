@@ -8,9 +8,6 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkAllocationCallbacks;
 import org.lwjgl.vulkan.VkPushConstantRange;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.vulkan.VK10.*;
 
@@ -21,6 +18,8 @@ public class Vk2dInstance {
 
 	public final long pixelatedSampler;
 	public final long smoothSampler;
+	public final long pixelatedClampedSampler;
+	public final long smoothClampedSampler;
 
 	public final VkbDescriptorSetLayout imageDescriptorSetLayout;
 	public final VkbDescriptorSetLayout bufferDescriptorSetLayout;
@@ -46,8 +45,18 @@ public class Vk2dInstance {
 						VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST,
 						VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, "Vk2dPixelatedSampler"
 				);
+				this.pixelatedClampedSampler = boiler.images.createSimpleSampler(
+						VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST,
+						VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, "Vk2dPixelatedClampedSampler"
+				);
+				this.smoothClampedSampler = boiler.images.createSimpleSampler(
+						VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR,
+						VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, "Vk2dSmoothClampedSampler"
+				);
 			} else {
 				this.pixelatedSampler = VK_NULL_HANDLE;
+				this.pixelatedClampedSampler = VK_NULL_HANDLE;
+				this.smoothClampedSampler = VK_NULL_HANDLE;
 			}
 
 			if (config.shouldCreateColorPipelineLayout()) {
@@ -64,7 +73,7 @@ public class Vk2dInstance {
 			if (config.image || config.simpleText || config.fancyText) {
 				this.smoothSampler = boiler.images.createSimpleSampler(
 						VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR,
-						VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, "Vk2dSmoothSampler"
+						VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER, "Vk2dSmoothSampler"
 				);
 				DescriptorSetLayoutBuilder builder = new DescriptorSetLayoutBuilder(stack, 1);
 				builder.set(0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -198,6 +207,8 @@ public class Vk2dInstance {
 			VkAllocationCallbacks samplerCallbacks = CallbackUserData.SAMPLER.put(stack, boiler);
 			vkDestroySampler(boiler.vkDevice(), pixelatedSampler, samplerCallbacks);
 			vkDestroySampler(boiler.vkDevice(), smoothSampler, samplerCallbacks);
+			vkDestroySampler(boiler.vkDevice(), pixelatedClampedSampler, samplerCallbacks);
+			vkDestroySampler(boiler.vkDevice(), smoothClampedSampler, samplerCallbacks);
 
 			VkAllocationCallbacks pipelineCallbacks = CallbackUserData.PIPELINE.put(stack, boiler);
 			long[] pipelines = {

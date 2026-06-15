@@ -89,17 +89,18 @@ private fun addBcImage(resourceWriter: Vk2dResourceWriter, bc: BcSprite) {
 	if (bc.bufferedImage != null) {
 		if (compression == Vk2dImageCompression.BC4) {
 			bc.index = resourceWriter.addGreyscaleImage(
-				bc.bufferedImage as BufferedImage, compression, Vk2dGreyscaleChannel.ALPHA, false
+				bc.bufferedImage as BufferedImage, compression, Vk2dGreyscaleChannel.ALPHA,
+				false, bc.clamped,
 			)
 		} else {
 			bc.index = resourceWriter.addImage(
-				bc.bufferedImage as BufferedImage, compression, false
+				bc.bufferedImage as BufferedImage, compression, false, bc.clamped
 			)
 		}
 	} else {
 		bc.index = resourceWriter.addPreCompressedImage(
 			bc.data, bc.width, bc.height,
-			compression, false
+			compression, false, bc.clamped,
 		)
 	}
 }

@@ -16,11 +16,15 @@ import static java.lang.Math.*;
 public class Vk2dImageBatch extends Vk2dBatch {
 
 	private final Vk2dResourceBundle bundle;
+
+	/**
+	 * This field is for internal use only. Please don't touch it.
+	 */
 	public long[] descriptorSets;
 	private int nextDescriptorIndex;
 
 	/**
-	 * This method is for internal use only. Use {@link com.github.knokko.vk2d.pipeline.Vk2dImagePipeline#addBatch}
+	 * This constructor is for internal use only. Use {@link com.github.knokko.vk2d.pipeline.Vk2dImagePipeline#addBatch}
 	 */
 	public Vk2dImageBatch(Vk2dImagePipeline pipeline, Vk2dRenderStage stage, int initialCapacity, Vk2dResourceBundle bundle) {
 		super(pipeline, stage, initialCapacity);
@@ -28,10 +32,41 @@ public class Vk2dImageBatch extends Vk2dBatch {
 		this.descriptorSets = new long[initialCapacity];
 	}
 
+	/**
+	 * Draws the given image between the axis-aligned rectangle with the given coordinates.
+	 * Note that the image will be distorted if {@code (boundX - minX) / (boundY - minY) != image.width / image.height}.
+	 * @param minX The minimum (left-most) X-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param minY The minimum (top-most) Y-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param boundX The right-most X-coordinate of the rectangle where the image is drawn (exclusive).
+	 *               The drawn width will be {@code boundX - minX} pixels.
+	 * @param boundY The bottom-most Y-coordinate of the rectangle where the image is drawn (exclusive).
+	 *               The drawn height will be {@code boundY - minY} pixels.
+	 * @param imageIndex The index of the image to be drawn, which should be the result of the
+	 *                   {@link com.github.knokko.vk2d.resource.Vk2dResourceWriter#addImage} call where the image
+	 *                   was registered.
+	 */
 	public void simple(float minX, float minY, float boundX, float boundY, int imageIndex) {
 		colored(minX, minY, boundX, boundY, imageIndex, 0, -1);
 	}
 
+	/**
+	 * Draws the given image between the axis-aligned rectangle with the given coordinates, and transforms the
+	 * resulting colors. The final colors will be {@code addColor + multiplyColor * imageColor}.
+	 * Note that the image will be distorted if {@code (boundX - minX) / (boundY - minY) != image.width / image.height}.
+	 * @param minX The minimum (left-most) X-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param minY The minimum (top-most) Y-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param boundX The right-most X-coordinate of the rectangle where the image is drawn (exclusive).
+	 *               The drawn width will be {@code boundX - minX} pixels.
+	 * @param boundY The bottom-most Y-coordinate of the rectangle where the image is drawn (exclusive).
+	 *               The drawn height will be {@code boundY - minY} pixels.
+	 * @param imageIndex The index of the image to be drawn, which should be the result of the
+	 *                   {@link com.github.knokko.vk2d.resource.Vk2dResourceWriter#addImage} call where the image
+	 *                   was registered.
+	 * @param addColor The color that will be 'added' to the output color. If this is 0, nothing will be added to the
+	 *                 output color.
+	 * @param multiplyColor The color that will be 'multiplied' with the output color. If this is -1, nothing will be
+	 *                      multiplied with the output color.
+	 */
 	public void colored(
 			float minX, float minY, float boundX, float boundY,
 			int imageIndex, int addColor, int multiplyColor
@@ -65,16 +100,60 @@ public class Vk2dImageBatch extends Vk2dBatch {
 		nextDescriptorIndex += 1;
 	}
 
+	/**
+	 * Draws the given image at the given coordinates, with the given scale. The top-left corner of the image will
+	 * be rendered at {@code (minX, minY)} and the bottom-right corner will be rendered at
+	 * {@code (minX + scale * image.width, minY + scale * image.height}). The image will <b>not</b> be distorted.
+	 * @param minX The minimum (left-most) X-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param minY The minimum (top-most) Y-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param scale The scale with which the image should be rendered. If you e.g. render a 16x16 image with a scale
+	 *              of 2.5, the image will occupy 40x40 pixels on the screen.
+	 * @param imageIndex The index of the image to be drawn, which should be the result of the
+	 *                   {@link com.github.knokko.vk2d.resource.Vk2dResourceWriter#addImage} call where the image
+	 *                   was registered.
+	 */
 	public void simpleScale(float minX, float minY, float scale, int imageIndex) {
 		coloredScale(minX, minY, scale, imageIndex, 0, -1);
 	}
 
+	/**
+	 * Draws the given image at the given coordinates, with the given scale, and transforms the output color.
+	 * The top-left corner of the image will be rendered at {@code (minX, minY)} and the bottom-right corner  will be
+	 * rendered at {@code (minX + scale * image.width, minY + scale * image.height}).
+	 * The image will <b>not</b> be distorted.
+	 * @param minX The minimum (left-most) X-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param minY The minimum (top-most) Y-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param scale The scale with which the image should be rendered. If you e.g. render a 16x16 image with a scale
+	 *              of 2.5, the image will occupy 40x40 pixels on the screen.
+	 * @param imageIndex The index of the image to be drawn, which should be the result of the
+	 *                   {@link com.github.knokko.vk2d.resource.Vk2dResourceWriter#addImage} call where the image
+	 *                   was registered.
+	 * @param addColor The color that will be 'added' to the output color. If this is 0, nothing will be added to the
+	 *                 output color.
+	 * @param multiplyColor The color that will be 'multiplied' with the output color. If this is -1, nothing will be
+	 *                      multiplied with the output color.
+	 */
 	public void coloredScale(float minX, float minY, float scale, int imageIndex, int addColor, int multiplyColor) {
 		float width = scale * bundle.getImageWidth(imageIndex);
 		float height = scale * bundle.getImageHeight(imageIndex);
 		colored(minX, minY, minX + width, minY + height, imageIndex, addColor, multiplyColor);
 	}
 
+	/**
+	 * Draws the given image between the axis-aligned rectangle with the given coordinates.
+	 * The image will <b>not</b> be distorted, but it will be cropped if
+	 * {@code (boundX - minX) / (boundY - minY) != image.width / image.height}.
+	 * This is potentially useful for e.g. background images.
+	 * @param minX The minimum (left-most) X-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param minY The minimum (top-most) Y-coordinate of the rectangle where the image is drawn (inclusive)
+	 * @param boundX The right-most X-coordinate of the rectangle where the image is drawn (exclusive).
+	 *               The drawn width will be {@code boundX - minX} pixels.
+	 * @param boundY The bottom-most Y-coordinate of the rectangle where the image is drawn (exclusive).
+	 *               The drawn height will be {@code boundY - minY} pixels.
+	 * @param imageIndex The index of the image to be drawn, which should be the result of the
+	 *                   {@link com.github.knokko.vk2d.resource.Vk2dResourceWriter#addImage} call where the image
+	 *                   was registered.
+	 */
 	public void fillWithoutDistortion(float minX, float minY, float boundX, float boundY, int imageIndex) {
 		if (boundX <= minX || boundY <= minY) return;
 		int imageWidth = bundle.getImageWidth(imageIndex);

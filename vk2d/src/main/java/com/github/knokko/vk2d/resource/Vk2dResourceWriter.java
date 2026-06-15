@@ -40,33 +40,33 @@ public class Vk2dResourceWriter {
 	private final List<Font> fonts = new ArrayList<>();
 	private final List<FakeImage> fakeImages = new ArrayList<>();
 
-	public int addImage(BufferedImage image, Vk2dImageCompression compression, boolean pixelated) {
+	public int addImage(BufferedImage image, Vk2dImageCompression compression, boolean pixelated, boolean clamped) {
 		if (compression == Vk2dImageCompression.BC4) {
 			throw new IllegalArgumentException("You need to use addGreyscaleImage for BC4 compression");
 		}
 
-		images.add(new Image(null, image, compression, null, pixelated));
+		images.add(new Image(null, image, compression, null, pixelated, clamped));
 		return images.size() - 1;
 	}
 
 	public int addGreyscaleImage(
 			BufferedImage image, Vk2dImageCompression compression,
-			Vk2dGreyscaleChannel channel, boolean pixelated
+			Vk2dGreyscaleChannel channel, boolean pixelated, boolean clamped
 	) {
 		if (compression != Vk2dImageCompression.NONE && compression != Vk2dImageCompression.BC4) {
 			throw new IllegalArgumentException("Unexpected greyscale image compression: " + compression);
 		}
-		images.add(new Image(null, image, compression, channel, pixelated));
+		images.add(new Image(null, image, compression, channel, pixelated, clamped));
 		return images.size() - 1;
 	}
 
 	public int addPreCompressedImage(
 			byte[] imageData, int width, int height,
-			Vk2dImageCompression compression, boolean pixelated
+			Vk2dImageCompression compression, boolean pixelated, boolean clamped
 	) {
 		images.add(new Image(imageData, new BufferedImage(
 				width, height, BufferedImage.TYPE_BYTE_GRAY
-		), compression, null, pixelated));
+		), compression, null, pixelated, clamped));
 		return images.size() - 1;
 	}
 
@@ -411,8 +411,14 @@ public class Vk2dResourceWriter {
 		for (Image entry : images) {
 			output.writeInt(entry.image.getWidth());
 			output.writeInt(entry.image.getHeight());
-			output.writeByte(entry.compression.ordinal());
+
+			if (entry.compression == Vk2dImageCompression.NONE && entry.channel != null) {
+				output.writeByte((byte) -1);
+			} else {
+				output.writeByte(entry.compression.ordinal());
+			}
 			output.writeByte(entry.pixelated ? 1 : 0);
+			output.writeByte(entry.clamped ? 1 : 0);
 		}
 
 		output.writeInt(fakeImages.size());
@@ -469,7 +475,7 @@ public class Vk2dResourceWriter {
 		for (Image entry : images) {
 			switch (entry.compression) {
 				case Vk2dImageCompression.NONE:
-					writeUncompressedImage(output, entry.image);
+					writeUncompressedImage(output, entry.image, entry.channel);
 					break;
 				case Vk2dImageCompression.BC1:
 				case Vk2dImageCompression.BC4:
@@ -509,20 +515,31 @@ public class Vk2dResourceWriter {
 			var output = new ByteArrayOutputStream();
 			write(output, cacheDirectory);
 			var input = new ByteArrayInputStream(output.toByteArray());
-			return Vk2dResourceLoader.loadSimpleAndPotentiallyInefficient(instance, input);
+			return Vk2dResourceLoader.loadSimple(instance, input);
 		} catch (IOException io) {
 			throw new RuntimeException(io);
 		}
 	}
 
-	private void writeUncompressedImage(DataOutputStream output, BufferedImage image) throws IOException {
+	private void writeUncompressedImage(
+			DataOutputStream output, BufferedImage image, Vk2dGreyscaleChannel channel
+	) throws IOException {
 		for (int y = 0; y < image.getHeight(); y++) {
 			for (int x = 0; x < image.getWidth(); x++) {
 				Color color = new Color(image.getRGB(x, y), true);
-				output.writeByte(color.getRed());
-				output.writeByte(color.getGreen());
-				output.writeByte(color.getBlue());
-				output.writeByte(color.getAlpha());
+				if (channel == null) {
+					output.writeByte(color.getRed());
+					output.writeByte(color.getGreen());
+					output.writeByte(color.getBlue());
+					output.writeByte(color.getAlpha());
+				} else {
+					byte greyscale = switch (channel) {
+						case Vk2dGreyscaleChannel.RGB -> (byte) ((color.getRed() + color.getGreen() + color.getBlue()) / 3);
+						case Vk2dGreyscaleChannel.ALPHA -> (byte) color.getAlpha();
+						case Vk2dGreyscaleChannel.RED -> (byte) color.getRed();
+					};
+					output.writeByte(greyscale);
+				}
 			}
 		}
 	}
@@ -534,16 +551,18 @@ public class Vk2dResourceWriter {
 		final Vk2dImageCompression compression;
 		final Vk2dGreyscaleChannel channel;
 		final boolean pixelated;
+		final boolean clamped;
 
 		Image(
 				byte[] data, BufferedImage image, Vk2dImageCompression compression,
-				Vk2dGreyscaleChannel channel, boolean pixelated
+				Vk2dGreyscaleChannel channel, boolean pixelated, boolean clamped
 		) {
 			this.data = data;
 			this.image = image;
 			this.compression = compression;
 			this.channel = channel;
 			this.pixelated = pixelated;
+			this.clamped = clamped;
 		}
 	}
 

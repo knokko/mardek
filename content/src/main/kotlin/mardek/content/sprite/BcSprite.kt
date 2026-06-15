@@ -34,6 +34,16 @@ class BcSprite(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 7, commonValues = [7])
 	val version: Int,
+
+	/**
+	 * This field determines what happens around the edges of the image:
+	 * - When `false`, the 'pixels' beyond the image are assumed to be `rgba(0, 0, 0, 0)`. This is the most common
+	 * option.
+	 * - When `true`, the 'pixels' beyond the image are assumed to have the same color as the nearest pixel
+	 * that is *inside* the image. This is a rather niche option that we use for mask sprites.
+	 */
+	@BitField(id = 3)
+	val clamped: Boolean,
 ) {
 	var bufferedImage: Any? = null
 
@@ -41,7 +51,7 @@ class BcSprite(
 	 * The raw (compressed) data of the sprite. Note that this will be `null` while in-game, but non-null while editing
 	 * or importing.
 	 */
-	@BitField(id = 3, readsMethodResult = true)
+	@BitField(id = 4, readsMethodResult = true)
 	var data: ByteArray? = null
 
 	/**
@@ -49,13 +59,13 @@ class BcSprite(
 	 * in-game; it should be -1 during editing and importing. This variable should get the right value during
 	 * exporting.
 	 */
-	@BitField(id = 4)
+	@BitField(id = 5)
 	@IntegerField(minValue = -1, expectUniform = false, digitSize = 3)
 	var index = -1
 
-	constructor() : this(0, 0, 0)
+	constructor() : this(0, 0, 0, false)
 
-	@BitField(id = 3)
+	@BitField(id = 4)
 	@Suppress("unused")
 	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
 	private fun saveData(context: FunctionContext): ByteArray? {

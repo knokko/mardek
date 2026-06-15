@@ -43,7 +43,7 @@ fun loadBc7Sprite(path: String): BcSprite {
 	val resource = classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
 	val image = ImageIO.read(resource)
 
-	val sprite = BcSprite(image.width, image.height, 7)
+	val sprite = BcSprite(image.width, image.height, 7, false)
 	sprite.bufferedImage = image
 	return sprite
 }

@@ -3,7 +3,7 @@ The color pipeline can be used to fill quads or rectangles with a 'flat' color, 
 This is the simplest pipeline of `vk2d`.
 
 ## Setting up
-To enable the color pipelines, the `config.color` field must be set to `true`:
+To enable the color pipeline, the `config.color` field must be set to `true`:
 ```java
 @Override
 protected void setupConfig(Vk2dConfig config) {
@@ -17,22 +17,12 @@ Use `pipelines.color.createBatch(stage, batchCapacity)` to create an instance of
 - See the [README](../../README.md) for instructions on choosing the right batch size/capacity.
 All color drawing operations will occupy 2 triangles.
 
+## Defining colors
+Note that you can use e.g. `ColorPacker.rgb(red, green, blue)` to define the colors.
+If you use a color picker from e.g. Paint or GIMP to choose your colors, you should also wrap each color with
+`ColorPacker.srgbToLinear` to get the expected result.
+
 ## Drawing operations
-TODO CHAP2 Refer to doc comments of Vk2dColorBatch
 The color pipeline supports 4 drawing methods: `fill`, `gradient`, `fillUnaligned`, and `gradientUnaligned`.
-They are demonstrated below:
+Their details can be found in their doc comments, and they are demonstrated below:
 ![Showcase of the color pipeline](./color.png)
-
-### Filling a rectangle with a flat/plain color
-Use `colorBatch.fill(minX, minY, maxX, maxY, color)` to fill the rectangle `(minX, minY, maxX, maxY)`
-(all coordinates are **inclusive**) with `color`.
-For instance, use `colorBatch.fill(20, 30, 80, 45, srgbToLinear(rgb(80, 23, 71)))` to fill the rectangle between
-`(20, 30)` and `(80, 45)` with dark purple.
-
-![example drawing result](../../test-cases/expected/color-pipeline-fill.png)
-
-### Filling a rectangle with a gradient
-Use `colorBatch.gradient(minX, minY, maxX, maxY, bottomLeftColor, bottomRightColor, topLeftColor)` to fill the
-rectangle `(minX, minY, maxX, maxY)` with a gradient.
-- If `bottomLeftColor == bottomRightColor && topLeftColor != bottomLeftColor`, it will be a vertical gradient.
-- If `bottomLeftColor != bottomRightColor && topLeftColor == bottomLeftColor`, it will be a horizontal gradient.

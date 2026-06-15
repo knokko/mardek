@@ -53,7 +53,7 @@ public class ImageBenchmarkResourceWriter {
 				for (int x = 0; x < weaponSheet.getWidth(); x += 16) {
 					BufferedImage slice = weaponSheet.getSubimage(x, y, 16, 16);
 					if (hasContent(slice)) {
-						writer.addImage(slice, Vk2dImageCompression.NONE, true);
+						writer.addImage(slice, Vk2dImageCompression.NONE, true, false);
 						writer.addFakeImage(slice, Vk2dFakeImageCompression.KIM1);
 						writer.addFakeImage(slice, Vk2dFakeImageCompression.KIM3);
 					}

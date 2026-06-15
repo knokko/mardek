@@ -288,7 +288,7 @@ private fun importAnimationSprite(tag: ShapeTag, isMask: Boolean, context: Anima
 	try {
 		val format = if (isMask) 4 else 7
 		val image = ImageIO.read(expectedFile)
-		sprite = BcSprite(image.width, image.height, format)
+		sprite = BcSprite(image.width, image.height, format, isMask)
 		sprite.bufferedImage = image
 
 		// For some reason, these sprites become ugly if I don't pre-multiply them.

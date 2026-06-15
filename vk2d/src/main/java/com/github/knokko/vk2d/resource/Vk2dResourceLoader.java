@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceLoader {
 
-	public static Vk2dResourceBundle loadSimpleAndPotentiallyInefficient(
+	public static Vk2dResourceBundle loadSimple(
 			Vk2dInstance instance, InputStream input
 	) throws IOException {
 		var loader = new Vk2dResourceLoader(instance, input);
@@ -54,6 +55,12 @@ public class Vk2dResourceLoader {
 		bundle.memory = memoryBlock;
 		bundle.vkDescriptorPool = descriptorPool;
 		return bundle;
+	}
+
+	public static Vk2dResourceBundle loadSimple(
+			Vk2dInstance instance, Path inputFile
+	) throws IOException {
+		return loadSimple(instance, Files.newInputStream(inputFile));
 	}
 
 	private static ByteBuffer decompress(ByteBuffer compressed) {
@@ -76,6 +83,7 @@ public class Vk2dResourceLoader {
 	private MemoryBlock stagingMemory;
 	private VkbImage[] images;
 	private boolean[] pixelatedImages;
+	private boolean[] clampedImages;
 	private long[] imageDescriptors;
 	private StagingJob[] stagingJobs;
 	private MappedVkbBuffer sharedStagingBuffer;
@@ -191,20 +199,32 @@ public class Vk2dResourceLoader {
 		int numImages = input.readData(4).getInt();
 		this.images = new VkbImage[numImages];
 		this.pixelatedImages = new boolean[numImages];
+		this.clampedImages = new boolean[numImages];
 		var imageStagingJobs = new StagingJob[numImages];
 
-		var imageInfoBuffer = input.readData(4 + 10 * numImages);
+		var imageInfoBuffer = input.readData(4 + 11 * numImages);
 		for (int index = 0; index < numImages; index++) {
 			int width = imageInfoBuffer.getInt();
 			int height = imageInfoBuffer.getInt();
-			Vk2dImageCompression compression = Vk2dImageCompression.values()[imageInfoBuffer.get()];
+
+			int compressionOrdinal = imageInfoBuffer.get();
+			int format;
+			Vk2dImageCompression compression;
+			if (compressionOrdinal == -1) {
+				compression = Vk2dImageCompression.NONE;
+				format = VK_FORMAT_R8_UNORM;
+			} else {
+				compression = Vk2dImageCompression.values()[compressionOrdinal];
+				format = compression.format;
+			}
 			this.pixelatedImages[index] = imageInfoBuffer.get() == 1;
+			this.clampedImages[index] = imageInfoBuffer.get() == 1;
 			this.images[index] = combiner.addImage(new ImageBuilder(
 					"Image" + index, width, height
-			).texture().format(compression.format), 0.5f);
+			).texture().format(format), 0.5f);
 
 			int size = switch (compression) {
-				case NONE: yield 4 * width * height;
+				case NONE: yield (format == VK_FORMAT_R8_UNORM ? 1 : 4) * width * height;
 				case BC1:
 				case BC4:
 				case BC7:
@@ -429,7 +449,12 @@ public class Vk2dResourceLoader {
 		);
 		for (int index = 0; index < images.length; index++) {
 			if (imageDescriptors.length == 0) break;
-			long sampler = pixelatedImages[index] ? instance.pixelatedSampler : instance.smoothSampler;
+			long sampler;
+			if (pixelatedImages[index]) {
+				sampler = clampedImages[index] ? instance.pixelatedClampedSampler : instance.pixelatedSampler;
+			} else {
+				sampler = clampedImages[index] ? instance.smoothClampedSampler : instance.smoothSampler;
+			}
 			updater.writeImage(imageDescriptors[index], 0, images[index].vkImageView, sampler);
 		}
 
