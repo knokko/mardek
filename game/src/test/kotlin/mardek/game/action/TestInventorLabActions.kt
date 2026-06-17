@@ -213,6 +213,7 @@ object TestInventorLabActions {
 			repeat(50) {
 				state.update(updateContext)
 			}
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Cancel))
 
 			assertNull(areaState.suspension)
 			assertFalse(state.campaign.story.getQuests(content.story).active.contains(quest))
@@ -228,6 +229,7 @@ object TestInventorLabActions {
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(updateContext)
 			assertInstanceOf<AreaSuspensionActions>(areaState.suspension)
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Cancel))
 			repeat(50) {
 				state.update(updateContext)
 			}

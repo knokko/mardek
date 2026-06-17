@@ -161,8 +161,8 @@ class CampaignActionsState(
 
 	private fun updateTalking(currentAction: ActionTalk, context: CampaignState.UpdateContext): Boolean {
 		var speedModifier = 1f
-		if (speedUpShowingCharacters) speedModifier = 20f
-		if (context.input.isPressed(InputKey.Cancel)) speedModifier = 20f
+		if (speedUpShowingCharacters) speedModifier = 80f
+		if (context.input.isPressed(InputKey.Cancel)) speedModifier = 80f
 
 		val appearanceSpeed = context.timeStep.toDouble(DurationUnit.SECONDS).toFloat() * speedModifier * 50f
 		shownDialogueCharacters = min(
