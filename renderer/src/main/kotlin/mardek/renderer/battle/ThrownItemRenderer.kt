@@ -3,7 +3,6 @@ package mardek.renderer.battle
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import mardek.state.ingame.battle.BattleStateMachine
 import kotlin.math.pow
-import kotlin.math.roundToInt
 
 internal fun renderThrownItems(battleContext: BattleRenderContext, kimBatch: Vk2dKim3Batch) {
 	battleContext.run {
@@ -23,7 +22,7 @@ internal fun renderThrownItems(battleContext: BattleRenderContext, kimBatch: Vk2
 		itemY -= 0.2f * kimBatch.height * throwHeight
 
 		val sprite = stateMachine.item.sprite
-		val scale = kimBatch.height / 200f
+		val scale = kimBatch.height / 400f
 		kimBatch.rotated(itemX, itemY, 360f * relativeTime, scale, sprite.index)
 	}
 }
