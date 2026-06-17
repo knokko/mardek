@@ -125,7 +125,7 @@ internal fun renderEffectParticles(battleContext: BattleRenderContext, imageBatc
 						renderTime, imageBatch, region,
 						combatant.renderInfo.statusEffectPoint.x,
 						combatant.renderInfo.statusEffectPoint.y,
-						null, false,
+						null, combatant.isOnPlayerSide,
 					)
 				}
 			}

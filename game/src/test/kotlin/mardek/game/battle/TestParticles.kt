@@ -81,21 +81,21 @@ object TestParticles {
 			assertEquals(1, emitterState.particles.size)
 			val sleep = emitterState.particles[0]
 
-			assertTrue(sleep.initialRotation >= 0f)
+			assertTrue(sleep.initialRotation <= 0f)
 			assertTrue(sleep.initialRotation < 31f)
 			assertTrue(sleep.initialWidth >= 4f * MAGIC_SCALE)
 			assertTrue(sleep.initialHeight >= 4f * MAGIC_SCALE)
 
 			val frameLength = 33_333_333L
 			val frame1 = sleep.spawnTime + frameLength
-			assertEquals(sleep.initialX + 0.5f, sleep.computeX(frame1), 0.01f)
+			assertEquals(sleep.initialX - 0.5f, sleep.computeX(frame1), 0.01f)
 			assertEquals(sleep.initialY - 0.6f, sleep.computeY(frame1), 0.01f)
 			assertEquals(sleep.initialWidth * 1.04f, sleep.computeWidth(frame1), 0.01f)
 			assertEquals(sleep.initialHeight * 1.04f, sleep.computeHeight(frame1), 0.01f)
 			assertEquals(0.98f, emitter.opacity.compute(1f / 30f), 0.01f)
 
 			val frame10 = sleep.spawnTime + 10 * frameLength
-			assertEquals(sleep.initialX + 5f, sleep.computeX(frame10), 0.01f)
+			assertEquals(sleep.initialX - 5f, sleep.computeX(frame10), 0.01f)
 			assertEquals(sleep.initialY - 6f, sleep.computeY(frame10), 0.01f)
 			assertEquals(0.8f, emitter.opacity.compute(10f / 30f), 0.01f)
 

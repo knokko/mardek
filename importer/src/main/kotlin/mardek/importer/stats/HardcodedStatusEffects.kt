@@ -83,7 +83,7 @@ fun addStatusEffects(content: Content) {
 					particlesPerWave = 1, numRounds = null,
 				),
 				spawn = ParticleSpawnProperties(
-					baseX = 4f, baseY = -2f,
+					baseX = -4f, baseY = -15f,
 					shiftX = 0f, shiftY = 0f,
 					variationX = 8f, variationY = 8f,
 					shiftVariationX = 0f, shiftVariationY = 0f,
@@ -240,14 +240,14 @@ fun addStatusEffects(content: Content) {
 					particlesPerWave = 1, numRounds = null,
 				),
 				spawn = ParticleSpawnProperties(
-					baseX = 6f, baseY = -6f,
+					baseX = -6f, baseY = -6f,
 					shiftX = 0f, shiftY = 0f,
 					variationX = 4f, variationY = 4f,
 					shiftVariationX = 0f, shiftVariationY = 0f,
-					rotation = 15f, rotationVariation = 30f, rotationMultiplier = 1f,
+					rotation = -15f, rotationVariation = 30f, rotationMultiplier = 1f,
 					linear = LinearParticleSpawnProperties(
-						minVelocityX = 15f, minVelocityY = -18f,
-						maxVelocityX = 15f, maxVelocityY = -18f,
+						minVelocityX = -15f, minVelocityY = -18f,
+						maxVelocityX = -15f, maxVelocityY = -18f,
 						shiftMinVelocityX = 0f, shiftMinVelocityY = 0f,
 						shiftMaxVelocityX = 0f, shiftMaxVelocityY = 0f,
 					),
