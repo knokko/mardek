@@ -89,7 +89,10 @@ class EndOfChapterState {
 			}
 			if (outcome.finished) {
 				if (outcome.save != null) {
-					context.saves.writeSaveTo(context.content, campaign, outcome.save.file)
+					context.saves.writeSaveTo(
+						context.content, campaign,
+						outcome.save.file, outcome.save.type,
+					)
 				} else {
 					context.saves.createSave(
 						context.content, campaign,

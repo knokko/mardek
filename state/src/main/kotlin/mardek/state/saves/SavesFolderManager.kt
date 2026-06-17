@@ -93,7 +93,7 @@ class SavesFolderManager(
 		}
 
 		val fileName = "${type.name.lowercase(Locale.ROOT)}-${System.currentTimeMillis()}.bits"
-		return writeSaveTo(content, campaignState, File("$campaignFolder/$fileName"))
+		return writeSaveTo(content, campaignState, File("$campaignFolder/$fileName"), type)
 	}
 
 	/**
@@ -102,11 +102,14 @@ class SavesFolderManager(
 	 * This method is used by [createSave], and should normally not be called directly by other methods.
 	 * This method is only public because that is convenient for unit-testing.
 	 */
-	fun writeSaveTo(content: Content, campaignState: CampaignState, destinationFile: File): Boolean {
+	fun writeSaveTo(content: Content, campaignState: CampaignState, destinationFile: File, type: SaveFile.Type): Boolean {
 		val partyLevel = campaignState.usedPartyMembers().maxOf { it.state.currentLevel }
-		val areaName = when (val state = campaignState.state) {
+		var areaName = when (val state = campaignState.state) {
 			is AreaState -> state.area.properties.displayName
 			else -> ""
+		}
+		if (type == SaveFile.Type.EndOfChapter) {
+			areaName = "END OF CHAPTER ${campaignState.story.evaluate(content.story.fixedVariables.chapter)}"
 		}
 		val saveInfo = SaveInfo(
 			areaName = areaName,

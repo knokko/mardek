@@ -361,7 +361,10 @@ object TestTitleScreen {
 						val specialCampaign = simpleCampaignState()
 						specialCampaign.characterStates[heroMardek]!!.currentLevel = 123
 						specialCampaign.characterStates[heroDeugan]!!.currentLevel = 12
-						saves.writeSaveTo(content, specialCampaign, destination)
+						saves.writeSaveTo(
+							content, specialCampaign,
+							destination, SaveFile.Type.Cheat
+						)
 					} else {
 						Files.copy(manyFile.toPath(), destination.toPath())
 					}
