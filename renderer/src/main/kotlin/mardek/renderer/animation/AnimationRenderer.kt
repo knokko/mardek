@@ -3,6 +3,7 @@ package mardek.renderer.animation
 import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.boiler.utilities.ColorPacker.addColors
 import com.github.knokko.boiler.utilities.ColorPacker.multiplyColors
+import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import mardek.content.animation.AnimationFrames
 import mardek.content.animation.AnimationNode
 import mardek.content.animation.AnimationSprite
@@ -21,7 +22,10 @@ import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.util.Locale
 import kotlin.math.PI
+import kotlin.math.pow
 import kotlin.math.sin
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 
 private fun noMaskSprite(context: AnimationContext) = AnimationSprite(
@@ -226,8 +230,8 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		)
 	}
 
-	val animation = chooseSkin(node, special, context)
-	if (animation != null) {
+	val (animation, skinAlpha) = chooseSkin(node, special, context)
+	if (animation != null && skinAlpha > 0f) {
 		var deltaTime = (context.renderTime - context.referenceTime) % animation.duration.inWholeNanoseconds
 		val animationProgress = deltaTime.toFloat() / animation.duration.inWholeNanoseconds
 		for (frame in animation.frames) {
@@ -235,6 +239,20 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 			if (deltaTime < 0L) {
 				if (special == SpecialAnimationNode.OnTurnCursor || special == SpecialAnimationNode.TargetingCursor) {
 					colorTransform = node.color
+				}
+
+				if (skinAlpha < 1f) {
+					val alphaColor = rgba(1f, 1f, 1f, skinAlpha)
+					if (colorTransform != null) {
+						val newMultiplyColor = multiplyColors(colorTransform.multiplyColor, alphaColor)
+						colorTransform = ColorTransform(
+							colorTransform.addColor,
+							newMultiplyColor,
+							colorTransform.subtractColor,
+						)
+					} else {
+						colorTransform = ColorTransform(addColor = 0, multiplyColor = alphaColor, subtractColor = 0)
+					}
 				}
 
 				context.stack.add(TransformStackEntry(
@@ -262,30 +280,50 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 
 private fun chooseSkin(
 	node: AnimationNode, special: SpecialAnimationNode?, context: AnimationContext
-): AnimationFrames? {
-	val skinned = node.animation ?: return null
+): Pair<AnimationFrames?, Float> {
+	val skinned = node.animation ?: return Pair(null, 0f)
+
+	fun choose(skin: String?) = Pair(skinned.skins[skin]?.get(), 1f)
 
 	if (special == SpecialAnimationNode.Weapon) {
-		val weaponName = context.combat?.weaponName ?: return null
-		return skinned.skins[weaponName.lowercase(Locale.ROOT)]?.get()
+		val weaponName = context.combat?.weaponName ?: return Pair(null, 0f)
+		return choose(weaponName.lowercase(Locale.ROOT))
 	}
 
 	if (special == SpecialAnimationNode.Shield) {
-		val shieldName = context.combat?.shieldName ?: return null
-		return skinned.skins[shieldName.lowercase(Locale.ROOT)]?.get()
+		val shieldName = context.combat?.shieldName ?: return Pair(null, 0f)
+		return choose(shieldName.lowercase(Locale.ROOT))
+	}
+
+	if (special == SpecialAnimationNode.RandomLightningEffect) {
+		val alpha = 1f - 4.5f * 0.001f * 0.001f * 0.001f * (context.renderTime - context.lightning.lastFrameChangeAt)
+		if (alpha <= 0f || context.lightning.currentFrame == 1) {
+			val nanoSecondsSinceLastFrame = context.renderTime - context.lightning.lastRenderedAt
+			val secondsSinceLastFrame = 0.001 * 0.001 * 0.001 * nanoSecondsSinceLastFrame
+
+			// secondsSinceLastFrame == 1.0 -> chance = 0.67 -> 1 - chance = 0.33
+			// secondsSinceLastFrame == 0.5 -> 1 - chance = sqrt(0.33) = 0.57 -> chance = 0.43
+			// secondsSinceLastFrame == 2.0 -> 1 - chance = 0.33 * 0.33 = 0.11 -> chance = 0.89
+			val chance = 1.0 - 0.33.pow(secondsSinceLastFrame)
+			if (chance > Random.nextDouble()) {
+				context.lightning.currentFrame = Random.nextInt(2 .. skinned.skins.size)
+				context.lightning.lastFrameChangeAt = context.renderTime
+			}
+			return Pair(null, 0f)
+		} else return Pair(skinned.skins[context.lightning.currentFrame.toString()]?.get(), alpha)
 	}
 
 	if (special == SpecialAnimationNode.CurrentChapter) {
-		return skinned.skins[context.currentChapter.toString()]?.get()
+		return choose(context.currentChapter.toString())
 	}
 
 	if (special == SpecialAnimationNode.PortraitExpressions) {
-		return skinned.skins[context.portraitExpression!!.lowercase(Locale.ROOT)]?.get()
+		return choose(context.portraitExpression!!.lowercase(Locale.ROOT))
 	}
 
 	if (special == SpecialAnimationNode.PortraitMouthExpressions) {
 		var currentCharacterIndex = context.shownDialogueCharacters.toInt()
-		val defaultValue = skinned.skins[context.portraitExpression!!.lowercase(Locale.ROOT)]?.get()
+		val defaultValue = choose(context.portraitExpression!!.lowercase(Locale.ROOT))
 		if (currentCharacterIndex >= 0 && currentCharacterIndex < context.dialogueLine.length) {
 			currentCharacterIndex = 4 * (currentCharacterIndex / 4)
 			val characterToFrameMapping = intArrayOf(
@@ -297,42 +335,42 @@ private fun chooseSkin(
 			)
 			val currentCharacter = context.dialogueLine[currentCharacterIndex].lowercaseChar()
 			if (currentCharacter in 'a'..'z') {
-				return skinned.skins[(characterToFrameMapping[currentCharacter - 'a']).toString()]?.get()
+				return choose((characterToFrameMapping[currentCharacter - 'a']).toString())
 			}
 		}
 		return defaultValue
 	}
 
 	if (special == SpecialAnimationNode.PortraitFace) {
-		return skinned.skins[context.portrait!!.faceSkin]?.get()
+		return choose(context.portrait!!.faceSkin)
 	}
 
 	if (special == SpecialAnimationNode.PortraitHair) {
-		return skinned.skins[context.portrait!!.hairSkin]?.get()
+		return choose(context.portrait!!.hairSkin)
 	}
 
 	if (special == SpecialAnimationNode.PortraitEye) {
-		return skinned.skins[context.portrait!!.eyeSkin]?.get()
+		return choose(context.portrait!!.eyeSkin)
 	}
 
 	if (special == SpecialAnimationNode.PortraitEyeBrow) {
-		return skinned.skins[context.portrait!!.eyeBrowSkin]?.get()
+		return choose(context.portrait!!.eyeBrowSkin)
 	}
 
 	if (special == SpecialAnimationNode.PortraitMouth) {
-		return skinned.skins[context.portrait!!.mouthSkin]?.get()
+		return choose(context.portrait!!.mouthSkin)
 	}
 
 	if (special == SpecialAnimationNode.PortraitEthnicity) {
-		return skinned.skins[context.portrait!!.ethnicitySkin]?.get()
+		return choose(context.portrait!!.ethnicitySkin)
 	}
 
 	if (special == SpecialAnimationNode.PortraitArmor) {
-		return skinned.skins[context.portrait!!.armorSkin]?.get()
+		return choose(context.portrait!!.armorSkin)
 	}
 
 	if (special == SpecialAnimationNode.PortraitRobe) {
-		return skinned.skins[context.portrait!!.robeSkin]?.get()
+		return choose(context.portrait!!.robeSkin)
 	}
 
 	var animation = skinned.skins[""]?.get()
@@ -342,7 +380,7 @@ private fun chooseSkin(
 	if (animation == null) animation = skinned.skins["d"]?.get()
 	if (animation == null) animation = skinned.skins[""]?.get()
 	if (animation == null) animation = skinned.skins.values.first().get()
-	return animation
+	return Pair(animation, 1f)
 }
 
 private fun renderTransformedImage(

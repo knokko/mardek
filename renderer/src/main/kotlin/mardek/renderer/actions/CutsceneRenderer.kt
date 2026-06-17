@@ -9,6 +9,7 @@ import mardek.content.action.ActionPlayCutscene
 import mardek.renderer.MardekTextStyles
 import mardek.renderer.RenderContext
 import mardek.renderer.animation.AnimationContext
+import mardek.renderer.animation.LightningInfo
 import mardek.renderer.animation.renderCutsceneAnimation
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.util.Rectangle
@@ -17,7 +18,7 @@ import kotlin.math.max
 import kotlin.time.Duration
 
 internal fun createCutsceneAnimationContext(
-	context: RenderContext, region: Rectangle,
+	context: RenderContext, actions: CampaignActionsState, region: Rectangle,
 	renderTime: Long, referenceTime: Long,
 	magicScale: Int, duration: Duration,
 ): Pair<AnimationContext, Float> {
@@ -32,6 +33,11 @@ internal fun createCutsceneAnimationContext(
 	val renderHeight = inverseScaleY * magicRenderScale
 	val clippedWidth = max(0f, renderWidth - region.width)
 	val clippedHeight = max(0f, renderHeight - region.height)
+
+	if (actions.lightningRenderInfo !is LightningInfo) {
+		actions.lightningRenderInfo = LightningInfo()
+	}
+
 	val animationContext = AnimationContext(
 		renderRegion = region,
 		renderTime = renderTime,
@@ -47,6 +53,7 @@ internal fun createCutsceneAnimationContext(
 		combat = null,
 		portrait = null,
 		currentChapter = context.campaign.story.evaluate(context.content.story.fixedVariables.chapter) ?: 0,
+		lightning = actions.lightningRenderInfo as LightningInfo,
 		animationDuration = duration,
 	)
 
@@ -78,10 +85,11 @@ internal fun renderCutscene(
 		}
 
 		val (animationContext, relativeScaleX) = createCutsceneAnimationContext(
-			context, region, renderTime, actions.currentNodeStartTime,
+			context, actions, region, renderTime, actions.currentNodeStartTime,
 			action.cutscene.payload.get().magicScale, allFrames.duration,
 		)
 		renderCutsceneAnimation(ReferenceLazyBits(allFrames), animationContext)
+		animationContext.lightning.lastRenderedAt = animationContext.renderTime
 
 		if (actions.cutsceneSubtitle.second.isNotEmpty()) {
 			val font = context.bundle.getFont(context.content.fonts.large2.index)

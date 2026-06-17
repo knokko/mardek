@@ -93,7 +93,8 @@ private class AnimationSimulator {
 			script.contains("!_parent._parent.stats.hair ?") ||
 			script.contains("gotoAndStop(!_parent.stats.armour ?") ||
 			script.contains("this.gotoAndStop(!_parent.stats.robe ? \"none\" : _parent.stats.robe);") ||
-			script.contains("gotoAndStop(GameData.CHAPTER)")
+			script.contains("gotoAndStop(GameData.CHAPTER)") ||
+			script.contains("gotoAndStop(random(9) + 2);")
 		) {
 			onlyOneFramePerSkin = true
 			if (currentSkinName != "") throw IllegalStateException()

@@ -28,6 +28,7 @@ class AnimationContext(
 	val dialogueLine: String = "",
 	val shownDialogueCharacters: Float = 0f,
 	val referenceTime: Long = defaultReferenceTime,
+	val lightning: LightningInfo = LightningInfo(),
 	animationDuration: Duration,
 ) {
 	val stack = mutableListOf(TransformStackEntry(
@@ -65,3 +66,9 @@ class TransformStackEntry(
 	 */
 	val animationProgress: Float,
 )
+
+class LightningInfo {
+	var currentFrame = 1
+	var lastFrameChangeAt = System.nanoTime()
+	var lastRenderedAt = System.nanoTime()
+}

@@ -124,6 +124,18 @@ enum class SpecialAnimationNode(
 	Shield(false),
 
 	/**
+	 * The 'skin' of this node will randomly alternate between the available skins, except for the first skin.
+	 * When a 'skin' has been selected, the alpha is set to 100%, but it is decreased by 450% per second
+	 * (so it will fade out within 250 milliseconds).
+	 *
+	 * When the alpha has reached 0, there is a continuous chance of ~67% every second that a new 'skin' is selected,
+	 * after which the cycle continues.
+	 *
+	 * This special effect is currently only used by the violet crystal 'lightning' in the GdM conversations.
+	 */
+	RandomLightningEffect(false),
+
+	/**
 	 * The 'skin' of this node should be the current chapter.
 	 *
 	 * For instance, skins["1"] should be used during chapter 1.

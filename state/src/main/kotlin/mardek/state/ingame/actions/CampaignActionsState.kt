@@ -126,6 +126,11 @@ class CampaignActionsState(
 	var endOfChapterState: EndOfChapterState? = null
 		private set
 
+	/**
+	 * Used by the renderer to track the lightning effect renderer
+	 */
+	var lightningRenderInfo: Any = Object()
+
 	@Suppress("unused")
 	private constructor() : this(FixedActionNode())
 

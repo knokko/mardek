@@ -95,6 +95,7 @@ internal fun importAnimationNode(
 	if (childID == 1349) special = SpecialAnimationNode.PortraitMouth
 	if (childID == 1569 || childID == 1579) special = SpecialAnimationNode.PortraitRobe
 	if (childID == 1650 || childID == 1725) special = SpecialAnimationNode.PortraitExpressions
+	if (childID == 690) special = SpecialAnimationNode.RandomLightningEffect
 	if (childID == 696) special = SpecialAnimationNode.CurrentChapter
 
 	val skipSpecial = special != null && special.skipChildren

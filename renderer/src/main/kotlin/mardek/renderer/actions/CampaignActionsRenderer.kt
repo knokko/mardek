@@ -34,10 +34,11 @@ internal fun renderCampaignActions(
 		val background = actions.currentBackground
 		if (background != null) {
 			val (animationContext, _) = createCutsceneAnimationContext(
-				context, region, renderTime, referenceTime,
+				context, actions, region, renderTime, referenceTime,
 				background.magicScale, Duration.ZERO,
 			)
 			renderBattleBackgroundAnimation(background.nodes, animationContext)
+			animationContext.lightning.lastRenderedAt = animationContext.renderTime
 		}
 
 		if (action is ActionShowChapterName) {
