@@ -19,6 +19,7 @@ import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.saves.SaveFile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
@@ -210,6 +211,63 @@ object TestChatLog {
 			assertEquals(Direction.Down, gallovarState.direction)
 			assertEquals(3, gallovarState.x)
 			assertEquals(5, gallovarState.y)
+		}
+	}
+
+	fun testOutsideDialogue(instance: TestingInstance) {
+		instance.apply {
+			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds)
+			val state = InGameState(simpleCampaignState(), "test")
+			state.campaign.chatLog.add(ChatLogEntry(
+				"Deugan",
+				content.stats.elements.find { it.rawName == "EARTH" }!!,
+				"test1234"
+			))
+
+			updateContext.input.postEvent(pressKeyEvent(InputKey.ToggleChatLog))
+			state.update(updateContext)
+			assertTrue(((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions.showChatLog)
+
+			val expectedColors = arrayOf(
+				Color(73, 59, 50), // Title bar
+				Color(136, 255, 0), // Deugan name color
+				Color(186, 146, 77), // Chat log text color
+				Color(238, 203, 127), // Mardek name color
+				Color(207, 192, 141), // Dialogue text color
+				Color(39, 32, 44), // Brick color
+			)
+			testRendering(
+				state, 800, 900, "chat-log-outside-dialogue1",
+				expectedColors, emptyArray(),
+			)
+
+			// Finish it
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Cancel))
+			repeat(10) {
+				state.update(updateContext)
+			}
+			assertNull((state.campaign.state as AreaState).suspension)
+
+			updateContext.input.postEvent(repeatKeyEvent(InputKey.ToggleChatLog))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Cancel))
+			state.update(updateContext)
+			assertTrue(((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions.showChatLog)
+
+			// Re-open it
+			testRendering(
+				state, 800, 900, "chat-log-outside-dialogue2",
+				expectedColors, emptyArray(),
+			)
+
+			// Test that the dummy chat message is NOT added to the chat log
+			assertEquals(1, state.campaign.chatLog.size)
+			assertEquals("test1234", state.campaign.chatLog[0].text)
+
+			// Test that saving doesn't crash
+			dummySaveManager().createSave(
+				content, state.campaign,
+				"test", SaveFile.Type.Cheat,
+			)
 		}
 	}
 }

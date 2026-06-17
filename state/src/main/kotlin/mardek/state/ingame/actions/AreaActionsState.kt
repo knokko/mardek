@@ -245,7 +245,7 @@ class AreaActionsState(
 	private fun updateFixedNode(context: UpdateContext, currentAction: FixedAction): Boolean {
 		if (currentAction is ActionTalk) {
 			val finishedMessage = updateTalking(context, currentAction)
-			if (finishedMessage) {
+			if (finishedMessage && currentAction !== context.content.actions.chatLogNode.action) {
 				context.campaign.addToChatLog(ChatLogEntry(
 					speaker = currentAction.speaker.getDisplayName(
 						defaultDialogueObject, context.campaign.party

@@ -163,6 +163,7 @@ class AreaState(
 	var finishedBattleAt = -(1.seconds)
 
 	private var shouldInteract = false
+	private var shouldOpenChatLog = false
 
 	@Suppress("unused")
 	private constructor() : this(
@@ -235,6 +236,7 @@ class AreaState(
 		val key = event.key
 
 		if (key ==  InputKey.Interact) shouldInteract = true
+		if (key == InputKey.ToggleChatLog) shouldOpenChatLog = true
 		if (key == InputKey.ToggleMenu) {
 			context.campaign.shouldOpenMenu = true
 			context.soundQueue.insert(context.content.audio.fixedEffects.ui.openMenu)
@@ -307,6 +309,7 @@ class AreaState(
 		if (suspension !is AreaSuspensionBattle) updateNPCs(context)
 		if (suspension?.shouldUpdateCurrentTime() != false) currentTime += context.timeStep
 		shouldInteract = false
+		shouldOpenChatLog = false
 	}
 
 	/**
@@ -719,9 +722,17 @@ class AreaState(
 		checkTriggers(context)
 		if (suspension != null) return
 		processMovementInput(context.input)
-		if (suspension == null && shouldInteract) {
+		if (suspension != null) return
+		if (shouldInteract) {
 			interact(context)
 			shouldInteract = false
+		} else if (shouldOpenChatLog) {
+			val actions = AreaActionsState(
+				context.content.actions.chatLogNode, null
+			)
+			actions.showChatLog = true
+			suspension = AreaSuspensionActions(actions)
+			shouldOpenChatLog = false
 		}
 	}
 

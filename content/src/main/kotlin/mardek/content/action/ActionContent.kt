@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.action.effect.AreaActionEffect
 import mardek.content.sprite.NamedSprite
+import java.util.UUID
 
 /**
  * This is the root of the *action*-related content, where *actions* can do many things, for instance:
@@ -19,8 +20,8 @@ import mardek.content.sprite.NamedSprite
 class ActionContent {
 
 	/**
-	 * This list contains the *global* action sequences: these typically the action sequences that span multiple areas,
-	 * or none at all.
+	 * This list contains the *global* action sequences:
+	 * these are typically the action sequences that span multiple areas, or none at all.
 	 *
 	 * Most action sequences however are strongly related to one particular area, and stored in the `actions` list of
 	 * the relevant `Area`.
@@ -57,4 +58,19 @@ class ActionContent {
 	@BitField(id = 4)
 	@ReferenceFieldTarget(label = "dialogue text styles")
 	val dialogueTextStyles = ArrayList<DialogueTextStyle>()
+
+	/**
+	 * The dummy dialogue node that is used when the player opens the chat log outside a real dialogue
+	 */
+	@BitField(id = 5)
+	@ReferenceFieldTarget(label = "action nodes")
+	val chatLogNode = FixedActionNode(
+		id = UUID.fromString("3e01d801-4d4e-4a96-b156-3ef1ca4519b8"),
+		action = ActionTalk(
+			speaker = ActionTargetPartyMember(0),
+			expression = "grin",
+			text = "I am viewing my Chat Log!",
+		),
+		next = null
+	)
 }

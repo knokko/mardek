@@ -384,6 +384,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testChatLogOutsideDialogue() {
+		TestChatLog.testOutsideDialogue(instance)
+	}
+
+	@Test
 	fun testItemStoragePut() {
 		TestItemStorage.testPutTunicInStorage(instance)
 	}
