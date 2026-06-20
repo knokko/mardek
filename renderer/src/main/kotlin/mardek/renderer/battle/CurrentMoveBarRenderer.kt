@@ -106,7 +106,16 @@ internal fun renderCurrentMoveBar(
 				5 * region.height / 2, region.height / 3,
 			)
 
-			if (caster is PlayerCombatantState) {
+			val showMastery = when (val battleState = battle.state) {
+				is BattleStateMachine.MeleeAttack.Strike -> battleState.hasDealtDamage
+				is BattleStateMachine.BreathAttack.Attack -> battleState.hasDealtDamage
+				is BattleStateMachine.CastSkill -> battleState.calculatedDamage != null
+				is BattleStateMachine.MeleeAttack.JumpBack -> true
+				is BattleStateMachine.BreathAttack.JumpBack -> true
+				else -> false
+			}
+
+			if (caster is PlayerCombatantState && showMastery) {
 				val currentMastery = state.characterStates[caster.player]!!.skillMastery[currentSkill] ?: 0
 				if (currentMastery < currentSkill.masteryPoints) {
 					val masteryBar = ResourceBarRenderer(
@@ -114,7 +123,7 @@ internal fun renderCurrentMoveBar(
 					)
 					masteryBar.renderBar(currentMastery, currentSkill.masteryPoints, opacity)
 					masteryBar.renderTextOverBarWithShadow(currentMastery, currentSkill.masteryPoints, opacity)
-				} else {
+				} else if (currentMastery == currentSkill.masteryPoints) {
 					renderFancyMasteredText(
 						context, fancyTextBatch, barRegion.minX - 1.5f * barRegion.height,
 						barRegion.maxY.toFloat(), barRegion.height * 1.3f, alpha,

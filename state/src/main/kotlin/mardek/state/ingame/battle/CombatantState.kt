@@ -588,13 +588,11 @@ class PlayerCombatantState(
 
 	private fun incrementSkillMastery(context: BattleUpdateContext, playerState: CharacterState, skill: Skill) {
 		val oldMastery = playerState.skillMastery[skill] ?: 0
-		if (oldMastery < skill.masteryPoints) {
-			val newMastery = oldMastery + 1
-			playerState.skillMastery[skill] = newMastery
-			if (newMastery == skill.masteryPoints) {
-				masteredSkillsThisBattle.add(skill)
-				context.soundQueue.insert(context.sounds.battle.masteredSkill)
-			}
+		val newMastery = oldMastery + 1
+		playerState.skillMastery[skill] = newMastery
+		if (newMastery == skill.masteryPoints) {
+			masteredSkillsThisBattle.add(skill)
+			context.soundQueue.insert(context.sounds.battle.masteredSkill)
 		}
 	}
 

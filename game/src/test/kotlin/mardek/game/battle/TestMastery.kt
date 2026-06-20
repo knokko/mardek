@@ -228,33 +228,36 @@ object TestMastery {
 					Color(213, 0, 0), // Outer color
 					Color(255, 147, 26), // Inner color
 				)
-				val notMasteredColors = arrayOf(
-					Color(254, 95, 95), // Text color
-					Color(126, 0, 0), // Shadow color
-				)
+
 				sleep(500)
 				testRendering(
 					state, 1600, 1400, "strike-before-mastered",
-					notMasteredColors, masteredColors,
+					emptyArray(), masteredColors,
 				)
 
 				val moveToState = battleState.state as BattleStateMachine.MeleeAttack.MoveTo
 				moveToState.finished = true
 				moveToState.reactionChallenge!!.forciblyPass()
 
-				while (updateContext.soundQueue.take() != null) updateContext.soundQueue.take()
 				state.update(updateContext)
-				val sounds = content.audio.fixedEffects
-				assertSame(sounds.battle.masteredSkill, updateContext.soundQueue.take())
-				assertNull(updateContext.soundQueue.take())
 				testRendering(
-					state, 1600, 1400, "strike-mastered",
-					masteredColors, notMasteredColors,
+					state, 1600, 1400, "strike-almost-mastered",
+					emptyArray(), masteredColors,
 				)
 
 				val strikeState = battleState.state as BattleStateMachine.MeleeAttack.Strike
 				strikeState.canDealDamage = true
+
+				while (updateContext.soundQueue.take() != null) updateContext.soundQueue.take()
 				state.update(updateContext)
+				testRendering(
+					state, 1600, 1400, "strike-mastered",
+					masteredColors, emptyArray(),
+				)
+
+				val sounds = content.audio.fixedEffects
+				assertSame(sounds.battle.masteredSkill, updateContext.soundQueue.take())
+
 				strikeState.finished = true
 				state.update(updateContext)
 
@@ -276,7 +279,10 @@ object TestMastery {
 				assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
 
 				assertEquals(strikeSkill.masteryPoints, mardekState.skillMastery[strikeSkill])
-				assertEquals(increaseDamageSkill.masteryPoints, mardekState.skillMastery[increaseDamageSkill])
+				assertEquals(
+					increaseDamageSkill.masteryPoints + 1,
+					mardekState.skillMastery[increaseDamageSkill],
+				)
 				assertNull(mardekState.skillMastery[insomniaSkill])
 				assertEquals(
 					hashSetOf(strikeSkill),

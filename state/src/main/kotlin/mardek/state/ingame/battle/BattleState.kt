@@ -345,7 +345,6 @@ class BattleState(
 		if (state is BattleStateMachine.NextTurnEffects) prepareNextTurn(context, state)
 
 		if (state is BattleStateMachine.MeleeAttack.MoveTo && state.finished) {
-			if (state.skill != null) state.attacker.incrementActiveSkillMastery(context, state.skill)
 			this.state = BattleStateMachine.MeleeAttack.Strike(
 				state.attacker, state.target,
 				state.skill, state.reactionChallenge
@@ -353,6 +352,7 @@ class BattleState(
 		}
 		if (state is BattleStateMachine.MeleeAttack.Strike) {
 			if (state.canDealDamage && !state.hasDealtDamage && !state.isReactionChallengePending()) {
+				if (state.skill != null) state.attacker.incrementActiveSkillMastery(context, state.skill)
 				val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
 				val result = if (state.skill == null) MoveResultCalculator(context).computeBasicAttackResult(
 					state.attacker, state.target, passedChallenge
@@ -397,6 +397,7 @@ class BattleState(
 		}
 		if (state is BattleStateMachine.BreathAttack.Attack) {
 			if (state.canDealDamage && !state.hasDealtDamage && !state.isReactionChallengePending()) {
+				state.attacker.incrementActiveSkillMastery(context, state.skill)
 				val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
 				val result = MoveResultCalculator(context).computeSkillResult(
 					state.skill, state.attacker, state.targets, passedChallenge

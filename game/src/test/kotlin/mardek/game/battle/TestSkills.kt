@@ -100,6 +100,10 @@ object TestSkills {
 				Color(70, 117, 33), // Deugan coat
 			)
 			val monsterColor = arrayOf(Color(85, 56, 133))
+			val notMasteredColors = arrayOf(
+				Color(254, 95, 95), // Text color
+				Color(126, 0, 0), // Shadow color
+			)
 
 			sleep(1000)
 			testRendering(
@@ -159,8 +163,8 @@ object TestSkills {
 
 			sleep(1000)
 			testRendering(
-				state, 800, 450, "smite-evil3",
-				playerColors + monsterColor, emptyArray(),
+				state, 800, 750, "smite-evil3",
+				playerColors + monsterColor + notMasteredColors, emptyArray(),
 				soundQueue = soundQueue,
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.JumpBack).finished)
