@@ -166,7 +166,13 @@ class BattleState(
 			if (key == InputKey.MoveLeft || key == InputKey.MoveRight) battleScrollHorizontally(this, key, context)
 			if (key == InputKey.MoveUp || key == InputKey.MoveDown) battleScrollVertically(this, key, context)
 		}
-		if (key == InputKey.Interact && reactionChallenge != null) reactionChallenge.click()
+		if (key == InputKey.Interact && reactionChallenge != null) {
+			val wasPending = reactionChallenge.isPending()
+			reactionChallenge.click()
+			if (wasPending && !reactionChallenge.isPending() && !reactionChallenge.wasPassed()) {
+				context.soundQueue.insert(context.sounds.ui.clickReject)
+			}
+		}
 
 		if (key == InputKey.Click) {
 			val mouse = this.lastMousePosition

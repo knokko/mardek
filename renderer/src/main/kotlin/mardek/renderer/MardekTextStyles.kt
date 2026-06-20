@@ -460,6 +460,29 @@ object MardekTextStyles {
 		)
 	}
 
+	object ReactionBarChallenge {
+
+		fun react(alpha: Int) = Vk2dTextStyle.Shadowed(
+			Vk2dTextStyle.FillStyle(srgbToLinear(
+				rgba(255, 255, 152, alpha)
+			)).only(),
+			Vk2dTextStyle.FillStyle(srgbToLinear(
+				rgba(132, 81, 37, alpha)
+			)).only(),
+			0.1f,
+		)
+
+		fun badTiming(alpha: Int) = Vk2dTextStyle.Shadowed(
+			Vk2dTextStyle.FillStyle(srgbToLinear(
+				rgba(255, 112, 112, alpha)
+			)).only(),
+			Vk2dTextStyle.FillStyle(srgbToLinear(
+				rgba(0, 0, 0, alpha)
+			)).only(),
+			0.1f,
+		)
+	}
+
 	object PartyTab {
 		val POSITIVE_STAT = Vk2dTextStyle.FillStyle(srgbToLinear(rgb(
 			152, 255, 0

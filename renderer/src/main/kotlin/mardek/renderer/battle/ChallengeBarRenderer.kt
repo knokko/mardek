@@ -4,7 +4,10 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
+import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.skill.ReactionSkillType
+import mardek.renderer.MardekTextStyles
 import mardek.renderer.util.gradientWithBorder
 import mardek.state.ingame.battle.ReactionChallenge
 import mardek.state.util.Rectangle
@@ -13,7 +16,7 @@ import kotlin.math.roundToInt
 
 internal fun renderChallengeBar(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
-	imageBatch: Vk2dImageBatch, region: Rectangle,
+	imageBatch: Vk2dImageBatch, textBatch: Vk2dSimpleTextBatch, region: Rectangle,
 ) {
 	battleContext.run {
 		val challengeState = battle.getReactionChallenge() ?: return
@@ -135,6 +138,21 @@ internal fun renderChallengeBar(
 				context.content.ui.challengeCursor.index,
 				0, rgba(1f, 1f, 1f, opacity),
 			)
+
+			val font = context.bundle.getFont(context.content.fonts.basic2.index)
+			if (challengeState.wasPassed()) {
+				textBatch.drawShadowedString(
+					"REACT!", maxX + 0.05f * region.height, maxY + 0.005f * region.height,
+					0.35f * region.height, font,
+					MardekTextStyles.ReactionBarChallenge.react(highAlpha), TextAlignment.LEFT,
+				)
+			} else if (challengeState.clickedAfter != -1L) {
+				textBatch.drawShadowedString(
+					"Bad Timing!", region.minX + 0.1f * region.height,
+					region.minY - 0.4f * region.height, 0.35f * region.height, font,
+					MardekTextStyles.ReactionBarChallenge.badTiming(highAlpha), TextAlignment.LEFT,
+				)
+			}
 		}
 	}
 }
