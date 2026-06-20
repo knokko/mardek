@@ -69,7 +69,7 @@ fun addStatusEffects(content: Content) {
 			rgb(125, 220, 80)
 		),
 		damageWhileWalking = StatusEffect.WalkDamage(
-			5, 0.02f, rgb(128, 221, 70)
+			5, 0.02f, rgb(80, 255, 0)
 		),
 		icon = icon("Poison"),
 		innerTextColor = rgb(128, 221, 70),

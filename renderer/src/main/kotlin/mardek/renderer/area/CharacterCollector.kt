@@ -156,7 +156,8 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			val walkDamageDuration = 500_000_000L
 			val currentNanoTime = System.nanoTime()
 			val (blinkColor, blinkIntensity) = if (walkDamage != null && currentNanoTime < walkDamage.time + walkDamageDuration) {
-				val intensity = 1f - (currentNanoTime - walkDamage.time).toFloat() / walkDamageDuration
+				val progress = (currentNanoTime - walkDamage.time).toFloat() / walkDamageDuration
+				val intensity = 1f - 2f * abs(progress - 0.5f)
 				Pair(srgbToLinear(walkDamage.color), intensity)
 			} else Pair(0, 0f)
 			renderJobs.add(SpriteRenderJob(

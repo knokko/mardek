@@ -4,14 +4,14 @@ layout(location = 0) out vec2 textureCoordinates;
 layout(location = 1) out flat uint textureIndex;
 layout(location = 2) out flat uint header;
 layout(location = 3) out flat uint firstColor;
-layout(location = 4) out flat uint blinkColor;
+layout(location = 4) out flat uint blinkAddColor;
 layout(location = 5) out float opacity;
 
 struct SpriteQuad {
 	uint rawMinPosition;
 	uint rawSize;
 	uint textureIndex;
-	uint rawBlinkColor;
+	uint rawBlinkAddColor;
 	float opacity;
 };
 
@@ -39,6 +39,6 @@ void main() {
 	textureIndex = quad.textureIndex;
 	header = textureData[textureIndex];
 	firstColor = textureData[textureIndex + 1];
-	blinkColor = quad.rawBlinkColor;
+	blinkAddColor = quad.rawBlinkAddColor;
 	opacity = quad.opacity;
 }
