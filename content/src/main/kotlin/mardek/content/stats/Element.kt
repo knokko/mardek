@@ -78,11 +78,20 @@ class Element(
 	val thickSprite: BcSprite,
 
 	/**
-	 * The sprite of the element symbol, with thicker lines than the original SVG, but thinner lines than [thickSprite].
+	 * The sprite of the element symbol, with thicker lines than [thinSprite], but thinner lines than [thickSprite].
+	 *
+	 * This sprite is typically used when we need to render the element symbol in a rather small area.
+	 */
+	@BitField(id = 7)
+	val mediumSprite: BcSprite,
+
+	/**
+	 * The sprite of the element symbol, with thicker lines than the original SVG, but thinner lines than
+	 * [thickSprite] and [mediumSprite].
 	 *
 	 * This sprite is typically used when we need to render the element symbol in a large area.
 	 */
-	@BitField(id = 7)
+	@BitField(id = 8)
 	val thinSprite: BcSprite,
 
 	/**
@@ -90,14 +99,14 @@ class Element(
 	 * is used. It is basically a gradient sprite of the elements color, and is rendered very close to the greatsword
 	 * during the strike animation.
 	 */
-	@BitField(id = 8, optional = true)
+	@BitField(id = 9, optional = true)
 	val swingEffect: BcSprite?,
 
 	/**
 	 * The particle effect that should be emitted at the hand of the caster whenever someone casts a magic/ranged skill
 	 * with this element.
 	 */
-	@BitField(id = 9, optional = true)
+	@BitField(id = 10, optional = true)
 	@ReferenceField(stable = false, label = "particles")
 	val spellCastEffect: ParticleEffect?,
 
@@ -105,14 +114,14 @@ class Element(
 	 * The gradient-like sprite that will be rendered behind the caster whenever someone casts a magic/ranged skill
 	 * with this element.
 	 */
-	@BitField(id = 10, optional = true)
+	@BitField(id = 11, optional = true)
 	val spellCastBackground: BcSprite?,
 
 	/**
 	 * The color that is used to render the name of speakers in the chat log. This is often very similar or identical
 	 * to [color], but not for "DARK", which has a purple chat log color, but a standard ~black color.
 	 */
-	@BitField(id = 11)
+	@BitField(id = 12)
 	@IntegerField(expectUniform = true)
 	val chatLogColor: Int,
 ) {
@@ -123,14 +132,14 @@ class Element(
 	 *
 	 * Players of this element will have a 20% vulnerability against the `weakAgainst` of their own element.
 	 */
-	@BitField(id = 12, optional = true)
+	@BitField(id = 32, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	var weakAgainst: Element? = null
 		private set
 
 	constructor() : this(
 		UUID.randomUUID(), "", null, "", "",
-		0, BcSprite(), BcSprite(), BcSprite(),
+		0, BcSprite(), BcSprite(), BcSprite(), BcSprite(),
 		null, null, 0,
 	)
 

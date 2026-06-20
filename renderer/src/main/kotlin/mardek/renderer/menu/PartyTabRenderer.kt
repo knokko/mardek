@@ -228,7 +228,7 @@ private fun renderCondition(
 		imageBatch.colored(
 			region.maxX - 0.125f * region.width, region.minY + 0.001f * region.width,
 			region.maxX - 0.002f * region.width, region.maxY - 0.001f * region.width,
-			character.element.thinSprite.index, 0,
+			character.element.mediumSprite.index, 0,
 			rgba(255, 255, 255, 200)
 		)
 	}

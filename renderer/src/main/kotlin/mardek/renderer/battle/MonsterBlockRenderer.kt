@@ -33,7 +33,7 @@ internal fun renderMonsterBlock(
 		} else 1f
 		if (opacity <= 0f) return
 
-		val sprite = enemy.element.thickSprite
+		val sprite = enemy.element.mediumSprite
 		val marginY = region.height / 36
 		val desiredElementSize = region.height - 2 * marginY
 		val scale = desiredElementSize / sprite.height.toFloat()
@@ -82,12 +82,6 @@ internal fun renderMonsterBlock(
 			)
 
 			val font = context.bundle.getFont(context.content.fonts.basic2.index)
-			val textColor = changeAlpha(srgbToLinear(rgb(
-				238, 203, 127
-			)), opacity)
-			val shadowColor = changeAlpha(srgbToLinear(rgb(
-				77, 64, 53
-			)), opacity)
 			textBatch.drawShadowedString(
 				enemy.overrideDisplayName ?: enemy.monster.displayName,
 				nameX.toFloat(), maxY.toFloat() - marginY, 0.3f * region.height, font,

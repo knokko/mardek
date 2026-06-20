@@ -131,7 +131,7 @@ private fun renderPersonDetails(menuContext: MenuRenderContext, region: Rectangl
 
 		imageBatch.simpleScale(
 			region.minX + 0.03f * region.height, region.minY + 0.105f * region.height,
-			0.1f * region.height / person.element.thinSprite.height, person.element.thinSprite.index,
+			0.1f * region.height / person.element.mediumSprite.height, person.element.mediumSprite.index,
 		)
 
 		val splitX = region.maxX - 0.3f * region.height
@@ -339,8 +339,8 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 
 		imageBatch.simpleScale(
 			region.minX + 0.03f * region.height, region.minY + 0.105f * region.height,
-			0.1f * region.height / monster.element.thinSprite.height,
-			monster.element.thinSprite.index,
+			0.1f * region.height / monster.element.mediumSprite.height,
+			monster.element.mediumSprite.index,
 		)
 
 		val splitX = region.maxX - 0.37f * region.height

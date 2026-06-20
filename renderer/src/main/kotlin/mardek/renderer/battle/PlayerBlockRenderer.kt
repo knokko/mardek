@@ -27,7 +27,7 @@ internal fun renderPlayerBlock(
 ) {
 	battleContext.run {
 		val nameX = run {
-			val sprite = player.element.thickSprite
+			val sprite = player.element.mediumSprite
 			val marginY = region.height * 0.025f
 			val scale = (region.height - 2 * marginY) / sprite.height.toFloat()
 			val y = region.minY + marginY

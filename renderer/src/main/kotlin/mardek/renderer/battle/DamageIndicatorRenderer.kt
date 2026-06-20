@@ -42,11 +42,11 @@ internal fun renderDamageIndicator(
 			else -> null
 		}
 		if (element != null) {
-			val scale = 0.1f * imageBatch.height / element.thickSprite.height
-			val size = scale * element.thickSprite.width
+			val scale = 0.1f * imageBatch.height / element.mediumSprite.height
+			val size = scale * element.mediumSprite.width
 			imageBatch.coloredScale(
 				position.x - size * 0.5f, position.y - size * 0.5f,
-				scale, element.thickSprite.index,
+				scale, element.mediumSprite.index,
 				0, rgba(255, 255, 255, intOpacity),
 			)
 		}
