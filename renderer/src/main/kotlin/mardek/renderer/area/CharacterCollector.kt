@@ -153,7 +153,7 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			spriteIndex += direction.baseSpriteIndex
 
 			val walkDamage = characterState.lastWalkDamage
-			val walkDamageDuration = 500_000_000L
+			val walkDamageDuration = 300_000_000L
 			val currentNanoTime = System.nanoTime()
 			val (blinkColor, blinkIntensity) = if (walkDamage != null && currentNanoTime < walkDamage.time + walkDamageDuration) {
 				val progress = (currentNanoTime - walkDamage.time).toFloat() / walkDamageDuration
