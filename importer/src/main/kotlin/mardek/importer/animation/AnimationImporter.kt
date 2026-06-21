@@ -283,7 +283,7 @@ private fun importAnimationSprite(tag: ShapeTag, isMask: Boolean, context: Anima
 	val existing = context.shapeMapping[Pair(shapeID, isMask)]
 	if (existing != null) return existing
 
-	val expectedFile = File("${context.shapesDirectory}/${tag.uniqueId}.png")
+	val expectedFile = File("${context.shapesDirectory}/${tag.uniqueId}${context.shapeSuffix}.png")
 	val sprite: BcSprite
 	try {
 		val format = if (isMask) 4 else 7

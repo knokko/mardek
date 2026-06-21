@@ -19,6 +19,7 @@ fun main() {
 		Before running this code:
 		- export all shapes in JPEX using 100% zoom PNG, and put them in project-directory/flash/all-shapes-x1
 		- export all shapes in JPEX using 200% zoom SVG, and put them in project-directory/flash/all-shapes-svg2
+		- run SvgLineWidener.kt
 
 		After completing the steps above, it is time to run this `main()` method, or alternatively run the command
 		`./gradlew convertSVGs` This takes ~30 seconds on my gaming computer. It will probably take longer on (old)
@@ -86,19 +87,24 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 
 			val inputImage = ImageIO.read(pngInputFile)
 			val svgFile = File("$svgInputFolder/${pngInputFile.nameWithoutExtension}.svg")
+			val svgFileThick = File("$svgInputFolder/${pngInputFile.nameWithoutExtension}-thick.svg")
 
 			val output2 = File("$pngOutputFolder2/${pngInputFile.name}")
 			val output4 = File("$pngOutputFolder4/${pngInputFile.name}")
+			val output2Thick = File("$pngOutputFolder2/${pngInputFile.nameWithoutExtension}-thick.png")
+			val output4Thick = File("$pngOutputFolder4/${pngInputFile.nameWithoutExtension}-thick.png")
 
-			for (output in arrayOf(output2, output4)) {
+			for (output in arrayOf(output2, output4, output2Thick, output4Thick)) {
 				val pngTranscoder = PNGTranscoder()
 				pngTranscoder.errorHandler = SilentErrorHandler(pngInputFile.name)
 
-				val factor = if (output === output2) 2f else 4f
+				val factor = if (output === output2 || output === output2Thick) 2f else 4f
 				pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, factor * inputImage.width)
 				pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, factor * inputImage.height)
 
-				val transcoderInput = TranscoderInput(svgFile.absolutePath)
+				val transcoderInput = if (output === output2 || output === output4) {
+					TranscoderInput(svgFile.absolutePath)
+				} else TranscoderInput(svgFileThick.absolutePath)
 
 				val outputStream = Files.newOutputStream(output.toPath())
 				val transcoderOutput = TranscoderOutput(outputStream)

@@ -28,6 +28,7 @@ internal fun importEncyclopediaArtefacts(content: Content, skipAnimations: Boole
 			val context = AnimationImportContext(
 				shapesDirectory = File("$projectFolder/flash/all-shapes-x${magicScale}/"),
 				particleEmitters = emptyMap(),
+				shapeSuffix = "",
 			)
 			val artefactsAnimations = importSkinnedAnimation(artefactsTag, context)
 			artefactsAnimations.skins.map { (name, animation) ->

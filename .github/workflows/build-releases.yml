@@ -126,7 +126,7 @@ jobs:
       - run: curl -L -o warp-packer-windows-latest.exe https://github.com/knokko/warp/releases/download/v0.4.6/warp-packer-windows-latest.exe
       - run: ./warp-packer-windows-latest.exe --arch windows-x64 --input-dir ./mardek-windows-x64 --exec java-runtime/bin/javaw.exe --output mardek-x64.exe --use-temp-directory --exec-args "-jar %APP_DIR%/resources/mardek.jar enable-logging %ARGS%"
       - run: ./mardek-x64.exe self-test1
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: mardek-x64.exe
           path: mardek-x64.exe

@@ -18,6 +18,7 @@ internal fun importBattleBackgrounds(content: BattleContent) {
 	val context = AnimationImportContext(
 		shapesDirectory = File("$projectFolder/flash/all-shapes-x4/"),
 		particleEmitters = emptyMap(),
+		shapeSuffix = "",
 	)
 	val backgrounds1 = importSkinnedAnimation(backgroundsTag1, context)
 	val backgrounds2 = importSkinnedAnimation(backgroundsTag2, context)

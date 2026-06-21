@@ -8,7 +8,8 @@ import java.io.File
 
 class AnimationImportContext(
 	val shapesDirectory: File,
-	val particleEmitters: Map<String, ParticleEmitter>
+	val particleEmitters: Map<String, ParticleEmitter>,
+	val shapeSuffix: String,
 ) {
 	val shapeMapping = mutableMapOf<Pair<Int, Boolean>, AnimationSprite>()
 	val spriteMapping = mutableMapOf<Int, SkinnedAnimation>()
