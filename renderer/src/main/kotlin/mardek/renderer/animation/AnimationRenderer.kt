@@ -206,9 +206,13 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 						maskSprite.offsetX,
 						maskSprite.offsetY,
 					)
-					leafMaskMatrix.scale(
-						maskSprite.image.width.toFloat() / context.magicScale,
-						maskSprite.image.height.toFloat() / context.magicScale,
+
+					val originalWidthPlusLineMargin = maskSprite.image.width.toFloat() / context.magicScale
+					val originalHeightPlusLineMargin = maskSprite.image.height.toFloat() / context.magicScale
+					leafMaskMatrix.scale(originalWidthPlusLineMargin, originalHeightPlusLineMargin)
+					leafMaskMatrix.translate(
+						-maskSprite.image.artificialOffset / originalWidthPlusLineMargin,
+						-maskSprite.image.artificialOffset / originalHeightPlusLineMargin,
 					)
 					break
 				}
@@ -219,9 +223,12 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 			leafMaskMatrix = null
 		}
 
-		leafMatrix.scale(
-			sprite.image.width.toFloat() / context.magicScale,
-			sprite.image.height.toFloat() / context.magicScale,
+		val originalWidthPlusLineMargin = sprite.image.width.toFloat() / context.magicScale
+		val originalHeightPlusLineMargin = sprite.image.height.toFloat() / context.magicScale
+		leafMatrix.scale(originalWidthPlusLineMargin, originalHeightPlusLineMargin)
+		leafMatrix.translate(
+			-sprite.image.artificialOffset / originalWidthPlusLineMargin,
+			-sprite.image.artificialOffset / originalHeightPlusLineMargin,
 		)
 
 		renderTransformedImage(

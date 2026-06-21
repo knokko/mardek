@@ -190,7 +190,7 @@ object TestInGameMenu {
 			val sounds = content.audio.fixedEffects.ui
 
 			val baseColors = arrayOf(
-				Color(217, 214, 214), // Mardek armor
+				Color(116, 101, 88), // Mardek armor
 				Color(70, 117, 33), // Deugan robe
 				Color(236, 197, 157), // Skin color for portraits
 				Color(165, 205, 254), // Selection border color

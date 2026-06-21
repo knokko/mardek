@@ -116,7 +116,6 @@ object TestMardekHouseActions {
 				Color(238, 203, 127), // Title color
 			)
 			val houseColors = arrayOf(
-				Color(185, 168, 130), // Wall
 				Color(59, 104, 22), // Mother dress
 			)
 			testRendering( // The house should be hidden behind the Enki Art

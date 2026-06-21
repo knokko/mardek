@@ -39,7 +39,7 @@ fun addStatusEffects(content: Content) {
 
 	fun passiveSprites(atlas: BufferedImage, indices: IntArray) = indices.map { index ->
 		val size = if (atlas === sheet16) 16 else 32
-		val sprite = BcSprite(size, size, 0, false)
+		val sprite = BcSprite(size, size, 0, false, 0)
 		sprite.bufferedImage = atlas.getSubimage(size * (index % 10), size * (index / 10), size, size)
 		sprite
 	}.toTypedArray()

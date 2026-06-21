@@ -115,13 +115,10 @@ internal fun renderPlayerBlock(
 			xpBar.renderClosingBracket()
 
 			val font = context.bundle.getFont(context.content.fonts.large1.index)
-			val shadowColor = rgba(0, 0, 0, 200)
-			val shadowOffset = 0.015f * region.height
-			textBatch.drawShadowedString(
+			textBatch.drawString(
 				"Lv${player.getLevel(updateContext)}", nameX, region.maxY - region.height * 0.12f,
 				0.2f * region.height, font,
-				srgbToLinear(rgb(251, 225, 100)), 0, 0f,
-				shadowColor, shadowOffset, TextAlignment.LEFT,
+				MardekTextStyles.combatantBlockLevel(255), TextAlignment.LEFT,
 			)
 
 			val manaBar = ResourceBarRenderer(

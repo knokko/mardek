@@ -352,15 +352,23 @@ object MardekTextStyles {
 			Vk2dTextStyle(
 				STRONG_TEXT_FILL, Vk2dTextStyle.StrokeStyle(
 					srgbToLinear(rgb(0, 0, 0)),
-					0.05f, true, 1f
+					0.2f, true, 2.5f
 				)
 			),
 			Vk2dTextStyle(BLACK_FILL, Vk2dTextStyle.StrokeStyle(
-				srgbToLinear(rgba(0, 0, 0, 200)),
-				0.1f, true, 0.5f
+				srgbToLinear(rgb(0, 0, 0)),
+				0.3f, true, 2.5f
 			)), 0.025f,
 		)
 	}
+
+	fun combatantBlockLevel(alpha: Int) = Vk2dTextStyle(
+		Vk2dTextStyle.FillStyle(srgbToLinear(rgba(241, 216, 95, alpha))),
+		Vk2dTextStyle.StrokeStyle(
+			rgba(0, 0, 0, alpha),
+			0.15f, true, 1f
+		)
+	)
 
 	val TARGET_SELECTION_BACK = run {
 		val strokeColor = srgbToLinear(rgb(180, 154, 110))

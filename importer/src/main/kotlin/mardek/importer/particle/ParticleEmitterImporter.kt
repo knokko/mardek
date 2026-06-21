@@ -66,7 +66,7 @@ internal fun getParticleSprite(content: Content, rawEmitter: Map<String, String>
 	val y = spriteSize * (spriteElement / numColumns)
 	val image = sheet.getSubimage(x, y, spriteSize, spriteSize)
 
-	val bcSprite = BcSprite(spriteSize, spriteSize, 0, false)
+	val bcSprite = BcSprite(spriteSize, spriteSize, 0, false, 0)
 	bcSprite.bufferedImage = image
 	val sprite = ParticleSprite(spriteName, bcSprite)
 	content.battle.particleSprites.add(sprite)

@@ -58,14 +58,14 @@ object TestWorldMap {
 				Color(247, 0, 0), // Available node
 				Color(104, 88, 56), // Path borders
 			)
-			val activatedNodeColor = arrayOf(Color(242, 132, 0))
+			val activatedNodeColor = arrayOf(Color(151, 65, 1))
 			// Await fade-in
 			repeat(100) {
 				state.update(updateContext)
 			}
 			assertInstanceOf<AreaState>(state.campaign.state)
 			testRendering(
-				state, 600, 400, "world-map0",
+				state, 800, 600, "world-map0",
 				heroesDenColors + titleBarColor, worldMapColors,
 			)
 
@@ -81,7 +81,7 @@ object TestWorldMap {
 			}
 			assertInstanceOf<AreaState>(state.campaign.state)
 			testRendering(
-				state, 600, 400, "world-map1",
+				state, 800, 600, "world-map1",
 				titleBarColor, heroesDenColors + worldMapColors,
 			)
 			repeat(12) {
@@ -90,7 +90,7 @@ object TestWorldMap {
 			assertTrue(state.campaign.encyclopedia.discoveredPlaces.any { it === belfan })
 			assertInstanceOf<WorldMapState>(state.campaign.state)
 			testRendering(
-				state, 600, 400, "world-map2",
+				state, 800, 600, "world-map2",
 				titleBarColor, heroesDenColors + worldMapColors,
 			)
 
@@ -102,7 +102,7 @@ object TestWorldMap {
 				state.update(updateContext)
 			}
 			testRendering(
-				state, 600, 400, "world-map3",
+				state, 800, 600, "world-map3",
 				titleBarColor + worldMapColors + activatedNodeColor, heroesDenColors,
 			)
 
@@ -128,7 +128,7 @@ object TestWorldMap {
 			assertNotNull(mapState.nextNode)
 			assertNull(updateContext.soundQueue.take())
 			testRendering(
-				state, 600, 400, "world-map4",
+				state, 800, 600, "world-map4",
 				worldMapColors, activatedNodeColor,
 			)
 
@@ -156,7 +156,7 @@ object TestWorldMap {
 				mapState.currentNode.entrances[0].area,
 			)
 			testRendering(
-				state, 600, 400, "world-map5",
+				state, 800, 600, "world-map5",
 				worldMapColors + activatedNodeColor, emptyArray(),
 			)
 
@@ -217,7 +217,7 @@ object TestWorldMap {
 				assertNotNull(mapState.exiting)
 			}
 			testRendering(
-				state, 600, 400, "world-map6",
+				state, 800, 600, "world-map6",
 				titleBarColor, worldMapColors, // Should fade out
 			)
 
@@ -231,7 +231,7 @@ object TestWorldMap {
 				(state.campaign.state as AreaState).area,
 			)
 			testRendering(
-				state, 600, 400, "world-map7",
+				state, 800, 600, "world-map7",
 				heroesDenColors, worldMapColors,
 			)
 		}

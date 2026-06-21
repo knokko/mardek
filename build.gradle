@@ -11,7 +11,7 @@ buildscript {
 plugins {
 	id "java"
 	id "org.jetbrains.kotlin.jvm" version "2.3.0"
-	id "com.gradleup.shadow" version "8.3.6"
+	id "com.gradleup.shadow" version "9.3.1"
 }
 
 allprojects {
@@ -46,9 +46,9 @@ allprojects {
 	}
 
 	project.ext.jomlVersion = "1.10.8"
-	project.ext.lwjglVersion = "3.4.2-SNAPSHOT"
+	project.ext.lwjglVersion = "3.4.2"
 	project.ext.boilerVersion = "5.5.0"
-	project.ext.compressorVersion = "0.7.0-pre10"
+	project.ext.compressorVersion = "1.0.0"
 	project.ext.bitserVersion = "0.4.1-pre1"
 	project.ext.lwjglNatives = [
 			"natives-linux", "natives-linux-arm32", "natives-linux-arm64",

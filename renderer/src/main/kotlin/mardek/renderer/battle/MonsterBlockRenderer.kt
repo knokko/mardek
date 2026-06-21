@@ -100,15 +100,12 @@ internal fun renderMonsterBlock(
 
 		run {
 			val minX = region.minX + 80 * region.width / 100
-			val color = srgbToLinear(rgb(239, 214, 95))
 			val font = context.bundle.getFont(context.content.fonts.large1.index)
-			val shadowColor = rgba(0, 0, 0, 200)
-			textBatch.drawShadowedString(
-				"Lv${enemy.getLevel(updateContext)}",
-				minX.toFloat(), region.maxY - 0.16f * region.height,
-				0.25f * region.height, font, changeAlpha(color, opacity),
-				0, 0f, shadowColor,
-				0.015f * region.height, TextAlignment.LEFT,
+			val alpha = (255f * opacity).roundToInt()
+			textBatch.drawString(
+				"Lv${enemy.getLevel(updateContext)}", minX.toFloat(),
+				region.maxY - 0.16f * region.height, 0.25f * region.height, font,
+				MardekTextStyles.combatantBlockLevel(alpha), TextAlignment.LEFT,
 			)
 		}
 

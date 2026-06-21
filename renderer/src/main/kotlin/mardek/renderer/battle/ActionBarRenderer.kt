@@ -131,24 +131,28 @@ internal fun renderActionBar(
 			)
 
 			colorBatch.fillUnaligned(
-				lowDashX, region.maxY, region.maxX, region.maxY,
-				region.maxX, region.minY, highDashX, region.minY,
+				lowDashX, region.boundY,
+				region.boundX, region.boundY,
+				region.boundX, region.minY,
+				highDashX, region.minY,
 				srgbToLinear(rgb(82, 62, 37))
 			)
 
 			val leftElementColor = changeAlpha(player.element.color, 5)
 			val rightElementColor = changeAlpha(player.element.color, 50)
 			colorBatch.gradientUnaligned(
-				lowDashX, region.maxY - marginY, leftElementColor,
-				region.maxX, region.maxY - marginY, rightElementColor,
-				region.maxX, region.minY + marginY, rightElementColor,
-				highDashX + marginX - 2 * marginY, region.minY + marginY, leftElementColor,
+				lowDashX + marginX + marginY, region.boundY - marginY, leftElementColor,
+				region.boundX, region.boundY - marginY, rightElementColor,
+				region.boundX, region.minY + marginY, rightElementColor,
+				highDashX + marginX - marginY, region.minY + marginY, leftElementColor,
 			)
 			colorBatch.fill(region.minX, region.minY, region.maxX, region.minY + lineWidth - 1, lineColor)
 			colorBatch.fill(region.minX, 1 + region.maxY - lineWidth, region.maxX, region.maxY, lineColor)
 			colorBatch.fillUnaligned(
-				lowDashX, region.maxY, lowDashX + 3 * lineWidth - 1, region.maxY,
-				highDashX + 3 * lineWidth - 1, region.minY, highDashX, region.minY, lineColor
+				lowDashX, region.boundY,
+				lowDashX + 3 * lineWidth - 1, region.boundY,
+				highDashX + 3 * lineWidth - 1, region.minY,
+				highDashX, region.minY, lineColor
 			)
 		}
 

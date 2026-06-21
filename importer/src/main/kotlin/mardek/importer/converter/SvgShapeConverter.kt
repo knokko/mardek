@@ -19,6 +19,7 @@ fun main() {
 		Before running this code:
 		- export all shapes in JPEX using 100% zoom PNG, and put them in project-directory/flash/all-shapes-x1
 		- export all shapes in JPEX using 200% zoom SVG, and put them in project-directory/flash/all-shapes-svg2
+		- run SvgLineWidener.kt
 
 		After completing the steps above, it is time to run this `main()` method, or alternatively run the command
 		`./gradlew convertSVGs` This takes ~30 seconds on my gaming computer. It will probably take longer on (old)
@@ -85,22 +86,38 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 			}
 
 			val inputImage = ImageIO.read(pngInputFile)
-			val svgFile = File("$svgInputFolder/${pngInputFile.nameWithoutExtension}.svg")
 
-			val output2 = File("$pngOutputFolder2/${pngInputFile.name}")
-			val output4 = File("$pngOutputFolder4/${pngInputFile.name}")
+			class Job(val scale: Int, val widthFactor: Double, val inputSvgFile: File, val outputPngFile: File)
 
-			for (output in arrayOf(output2, output4)) {
+			val jobs = mutableListOf<Job>()
+			for (scale in arrayOf(2, 4)) {
+				val pngOutputFolder = if (scale == 2) pngOutputFolder2 else pngOutputFolder4
+				val baseSvgFile = File("$svgInputFolder/${pngInputFile.nameWithoutExtension}.svg")
+				val basePngFile = File("$pngOutputFolder/${pngInputFile.name}")
+				jobs.add(Job(scale, 1.0, baseSvgFile, basePngFile))
+				for (widthFactor in arrayOf(0.5, 0.75, 0.9, 1.25, 1.5, 2.0, 2.5, 3.0)) {
+					val widerSvgFile = File("$svgInputFolder/${pngInputFile.nameWithoutExtension}x$widthFactor.svg")
+					val widerPngFile = File("$pngOutputFolder/${pngInputFile.nameWithoutExtension}x$widthFactor.png")
+					jobs.add(Job(scale, widthFactor, widerSvgFile, widerPngFile))
+				}
+			}
+
+			for (job in jobs) {
 				val pngTranscoder = PNGTranscoder()
 				pngTranscoder.errorHandler = SilentErrorHandler(pngInputFile.name)
 
-				val factor = if (output === output2) 2f else 4f
-				pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, factor * inputImage.width)
-				pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, factor * inputImage.height)
+				var inputWidth = inputImage.width
+				var inputHeight = inputImage.height
+				if (job.widthFactor != 1.0) {
+					val marginForScale1 = 1
+					inputWidth += 2 * marginForScale1
+					inputHeight += 2 * marginForScale1
+				}
+				pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_WIDTH, job.scale.toFloat() * inputWidth)
+				pngTranscoder.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, job.scale.toFloat() * inputHeight)
 
-				val transcoderInput = TranscoderInput(svgFile.absolutePath)
-
-				val outputStream = Files.newOutputStream(output.toPath())
+				val transcoderInput = TranscoderInput(job.inputSvgFile.absolutePath)
+				val outputStream = Files.newOutputStream(job.outputPngFile.toPath())
 				val transcoderOutput = TranscoderOutput(outputStream)
 
 				pngTranscoder.transcode(transcoderInput, transcoderOutput)
@@ -109,7 +126,7 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 				outputStream.close()
 
 				if (shadows.contains(parseInt(pngInputFile.name.replace(".png", "")))) {
-					val shadowImage = ImageIO.read(output)
+					val shadowImage = ImageIO.read(job.outputPngFile)
 					for (y in 0 until shadowImage.height) {
 						for (x in 0 until shadowImage.width) {
 							val inputColor = Color(shadowImage.getRGB(x, y), true)
@@ -120,7 +137,7 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 							shadowImage.setRGB(x, y, outputColor.rgb)
 						}
 					}
-					ImageIO.write(shadowImage, "PNG", output)
+					ImageIO.write(shadowImage, "PNG", job.outputPngFile)
 				}
 
 				val nextCounter = counter.incrementAndGet()

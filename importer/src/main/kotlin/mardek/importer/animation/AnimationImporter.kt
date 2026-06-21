@@ -283,12 +283,15 @@ private fun importAnimationSprite(tag: ShapeTag, isMask: Boolean, context: Anima
 	val existing = context.shapeMapping[Pair(shapeID, isMask)]
 	if (existing != null) return existing
 
-	val expectedFile = File("${context.shapesDirectory}/${tag.uniqueId}.png")
+	var shapeSuffix = context.shapeSuffix(shapeID)
+	if (isMask) shapeSuffix = ""
+	val expectedFile = File("${context.shapesDirectory}/${tag.uniqueId}$shapeSuffix.png")
+	val artificialOffset = if (shapeSuffix.contains("x")) 1 else 0
 	val sprite: BcSprite
 	try {
 		val format = if (isMask) 4 else 7
 		val image = ImageIO.read(expectedFile)
-		sprite = BcSprite(image.width, image.height, format, isMask)
+		sprite = BcSprite(image.width, image.height, format, isMask, artificialOffset)
 		sprite.bufferedImage = image
 
 		// For some reason, these sprites become ugly if I don't pre-multiply them.

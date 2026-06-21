@@ -65,7 +65,7 @@ internal fun renderBattle(
 	renderEffectParticles(battleContext, imageBatch, mainRegion)
 
 	renderTurnOrder(battleContext, colorBatch, kimBatch, simpleTextBatch, Rectangle(
-		region.minX, region.minY + region.height / 13, region.width, region.height / 12
+		region.minX, region.minY + 1 + region.height / 13, region.width, region.height / 12
 	))
 	renderThrownItems(battleContext, kimBatch)
 	renderTargetSelection(

@@ -170,6 +170,7 @@ internal fun importMonsters(content: Content, playerModelMapping: MutableMap<Str
 	val context = AnimationImportContext(
 		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale"),
 		particleEmitters = mapOf(Pair("FumeRatSmoke", fumeratSmokeEmitter)),
+		shapeSuffix = { "x0.5" },
 	)
 	val importedMonsters = importSkinnedAnimation(battleTag, context)
 

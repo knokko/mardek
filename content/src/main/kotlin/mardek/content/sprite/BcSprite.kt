@@ -44,6 +44,19 @@ class BcSprite(
 	 */
 	@BitField(id = 3)
 	val clamped: Boolean,
+
+	/**
+	 * Sometimes, we increase the line width of the sprites we import, to make them look better.
+	 * However, when a line is too close to the border of the image,
+	 * the 'thickened' part of the line would be outside the image, and thus invisible.
+	 *
+	 * To work around this, we first make the image bigger by adding transparent space around all borders.
+	 * The `artificialOffset` is the width of this transparent space,
+	 * and is needed to render the image at the correct position.
+	 */
+	@BitField(id = 4)
+	@IntegerField(expectUniform = false, minValue = 0)
+	val artificialOffset: Int,
 ) {
 	var bufferedImage: Any? = null
 
@@ -51,7 +64,7 @@ class BcSprite(
 	 * The raw (compressed) data of the sprite. Note that this will be `null` while in-game, but non-null while editing
 	 * or importing.
 	 */
-	@BitField(id = 4, readsMethodResult = true)
+	@BitField(id = 5, readsMethodResult = true)
 	var data: ByteArray? = null
 
 	/**
@@ -59,13 +72,13 @@ class BcSprite(
 	 * in-game; it should be -1 during editing and importing. This variable should get the right value during
 	 * exporting.
 	 */
-	@BitField(id = 5)
+	@BitField(id = 6)
 	@IntegerField(minValue = -1, expectUniform = false, digitSize = 3)
 	var index = -1
 
-	constructor() : this(0, 0, 0, false)
+	constructor() : this(0, 0, 0, false, 0)
 
-	@BitField(id = 4)
+	@BitField(id = 5)
 	@Suppress("unused")
 	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
 	private fun saveData(context: FunctionContext): ByteArray? {

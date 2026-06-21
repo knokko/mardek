@@ -37,7 +37,7 @@ object TestActionBar {
 			battle.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
 			state.update(updateContext)
 
-			val attackColor = arrayOf(Color(255, 204, 102))
+			val attackColor = arrayOf(Color(204, 153, 102))
 			val disabledAttackColor = arrayOf(Color(94, 77, 55))
 			val powersColor = arrayOf(Color(255, 230, 145))
 			val itemsColor = arrayOf(Color(150, 255, 207))

@@ -1,12 +1,7 @@
 package com.github.knokko.vk2d.resource;
 
 import com.github.knokko.boiler.BoilerInstance;
-import com.github.knokko.boiler.buffers.MappedVkbBuffer;
 import com.github.knokko.boiler.builders.BoilerBuilder;
-import com.github.knokko.boiler.commands.SingleTimeCommands;
-import com.github.knokko.boiler.descriptors.DescriptorCombiner;
-import com.github.knokko.boiler.memory.MemoryBlock;
-import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.utilities.ImageCoding;
 import com.github.knokko.compressor.*;
 import com.github.knokko.vk2d.Vk2dInstance;
@@ -24,9 +19,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.github.knokko.boiler.utilities.BoilerMath.nextMultipleOf;
 import static com.github.knokko.vk2d.text.HarfbuzzChecks.assertHbSuccess;
-import static java.lang.Math.*;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
 import static org.lwjgl.util.zstd.Zstd.ZSTD_compress;
@@ -230,138 +223,79 @@ public class Vk2dResourceWriter {
 	}
 
 	private void compressBc1AndBc4Images() {
-		boolean hasBc1 = false;
-		boolean hasBc4 = false;
+		int numBc1Images = 0;
+		int numBc4Images = 0;
 		for (Image image : images) {
-			if (image.compression == Vk2dImageCompression.BC1) hasBc1 = true;
-			if (image.compression == Vk2dImageCompression.BC4) hasBc4 = true;
+			if (image.compression == Vk2dImageCompression.BC1) numBc1Images += 1;
+			if (image.compression == Vk2dImageCompression.BC4) numBc4Images += 1;
 		}
-		if (!hasBc1 && !hasBc4) return;
+		if (numBc1Images == 0 && numBc4Images == 0) return;
 
 		BoilerInstance boiler = new BoilerBuilder(
 				VK_API_VERSION_1_0, "Vk2dBc1/4Writer", 1
 		).validation().forbidValidationErrors().doNotUseVma().defaultTimeout(100_000_000_000L).build();
 
-		MemoryCombiner combiner = new MemoryCombiner(boiler, "Bc1/4CompressionMemory");
-		Bc1Compressor compressor1 = hasBc1 ? new Bc1Compressor(boiler, combiner, combiner) : null;
-		Bc4Compressor compressor4 = hasBc4 ? new Bc4Compressor(boiler) : null;
-
-		int maxDestinationImagePixels = 0;
-		List<MappedVkbBuffer> sourceBuffers = new ArrayList<>();
-		List<MappedVkbBuffer> destinationBuffers = new ArrayList<>();
-		long alignment = boiler.deviceProperties.limits().minStorageBufferOffsetAlignment();
-		for (var compression : new Vk2dImageCompression[] { Vk2dImageCompression.BC1, Vk2dImageCompression.BC4 }) {
-			for (Image entry : images) {
-				if (entry.compression != compression || entry.data != null) continue;
-
-				long paddedWidth = nextMultipleOf(entry.image.getWidth(), 4);
-				long paddedHeight = nextMultipleOf(entry.image.getHeight(), 4);
-				long sourceSize = paddedWidth * paddedHeight;
-				if (entry.compression == Vk2dImageCompression.BC1) sourceSize *= 4;
-
-				sourceBuffers.add(combiner.addMappedBuffer(sourceSize, alignment, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT));
-				destinationBuffers.add(combiner.addMappedBuffer(
-						paddedWidth * paddedHeight / 2L, alignment, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT
-				));
-				maxDestinationImagePixels = toIntExact(max(
-						maxDestinationImagePixels, paddedWidth * paddedHeight
-				));
-			}
-		}
-
-		MemoryBlock memory = combiner.build(false);
-
-		Bc1Worker worker1 = hasBc1 ? new Bc1Worker(compressor1, maxDestinationImagePixels, combiner) : null;
-
-		DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
-		long[] descriptorSets1 = compressor1 != null ?
-				descriptors.addMultiple(compressor1.descriptorSetLayout, destinationBuffers.size()) : null;
-		long[] descriptorSets4 = compressor4 != null ?
-				descriptors.addMultiple(compressor4.descriptorSetLayout, destinationBuffers.size()) : null;
-		long descriptorPool = descriptors.build("Vk2dBc1/4DescriptorPool");
-
-		SingleTimeCommands.submit(boiler, "Vk2dBc1/4Compression", recorder -> {
-			if (compressor1 != null) compressor1.performStagingTransfer(recorder);
-
-			int imageIndex = 0;
-			if (worker1 != null) worker1.bindPipeline(recorder);
-			for (Image entry : images) {
-				if (entry.compression == Vk2dImageCompression.BC1) {
-					MappedVkbBuffer source = sourceBuffers.get(imageIndex);
-					ByteBuffer sourceBytes = source.byteBuffer();
-					int paddedWidth = nextMultipleOf(entry.image.getWidth(), 4);
-					int paddedHeight = nextMultipleOf(entry.image.getHeight(), 4);
-					for (int y = 0; y < paddedHeight; y++) {
-						for (int x = 0; x < paddedWidth; x++) {
-							int sourceX = Math.min(x, entry.image.getWidth() - 1);
-							int sourceY = Math.min(y, entry.image.getHeight() - 1);
-							Color color = new Color(entry.image.getRGB(sourceX, sourceY), true);
-
-							sourceBytes.put((byte) color.getRed());
-							sourceBytes.put((byte) color.getGreen());
-							sourceBytes.put((byte) color.getBlue());
-							sourceBytes.put((byte) color.getAlpha());
-						}
-					}
-
-					MappedVkbBuffer destination = destinationBuffers.get(imageIndex);
-					assert worker1 != null && descriptorSets1 != null;
-					worker1.compress(
-							recorder, descriptorSets1[imageIndex], source,
-							destination, paddedWidth, paddedHeight
-					);
-					imageIndex += 1;
+		if (numBc1Images > 0) {
+			var bc1Images = new BufferedImage[numBc1Images];
+			int nextIndex = 0;
+			for (var image : images) {
+				if (image.compression == Vk2dImageCompression.BC1) {
+					bc1Images[nextIndex++] = image.image;
 				}
 			}
 
-			if (compressor4 != null) compressor4.bindPipeline(recorder);
-			for (Image entry : images) {
-				if (entry.compression == Vk2dImageCompression.BC4) {
-					MappedVkbBuffer source = sourceBuffers.get(imageIndex);
-					ByteBuffer sourceBytes = source.byteBuffer();
-					int paddedWidth = nextMultipleOf(entry.image.getWidth(), 4);
-					int paddedHeight = nextMultipleOf(entry.image.getHeight(), 4);
-					for (int y = 0; y < paddedHeight; y++) {
-						for (int x = 0; x < paddedWidth; x++) {
-							int sourceX = Math.min(x, entry.image.getWidth() - 1);
-							int sourceY = Math.min(y, entry.image.getHeight() - 1);
-							Color color = new Color(entry.image.getRGB(sourceX, sourceY), true);
-
-							byte greyscale = switch (entry.channel) {
-								case Vk2dGreyscaleChannel.RGB -> (byte) ((color.getRed() + color.getGreen() + color.getBlue()) / 3);
-								case Vk2dGreyscaleChannel.ALPHA -> (byte) color.getAlpha();
-								case Vk2dGreyscaleChannel.RED -> (byte) color.getRed();
-							};
-							sourceBytes.put(greyscale);
-						}
+			Bc1Compressor.compressBufferedImages(bc1Images, boiler, compressedBuffers -> {
+				int index = 0;
+				for (var image : images) {
+					if (image.compression == Vk2dImageCompression.BC1) {
+						image.data = new byte[compressedBuffers[index].remaining()];
+						compressedBuffers[index].get(image.data);
+						index += 1;
 					}
-
-					MappedVkbBuffer destination = destinationBuffers.get(imageIndex);
-					assert compressor4 != null && descriptorSets4 != null;
-					compressor4.compress(
-							recorder, descriptorSets4[imageIndex], source,
-							destination, paddedWidth, paddedHeight, false
-					);
-					imageIndex += 1;
 				}
-			}
-		}).destroy();
-
-		int bcIndex = 0;
-		for (Image entry : images) {
-			if (entry.compression != Vk2dImageCompression.BC1 && entry.compression != Vk2dImageCompression.BC4) {
-				continue;
-			}
-
-			MappedVkbBuffer destination = destinationBuffers.get(bcIndex);
-			entry.data = new byte[Math.toIntExact(destination.size)];
-			destination.byteBuffer().get(entry.data);
-			bcIndex += 1;
+			});
 		}
-		if (compressor1 != null) compressor1.destroy();
-		if (compressor4 != null) compressor4.destroy();
-		memory.destroy(boiler);
-		vkDestroyDescriptorPool(boiler.vkDevice(), descriptorPool, null);
+
+		if (numBc4Images > 0) {
+			var imageData = new ByteBuffer[numBc4Images];
+			var widths = new int[numBc4Images];
+			var heights = new int[numBc4Images];
+
+			int nextIndex = 0;
+			for (Image image : images) {
+				if (image.compression != Vk2dImageCompression.BC4) continue;
+
+				var data = ByteBuffer.allocate(image.image.getWidth() * image.image.getHeight());
+				for (int y = 0; y < image.image.getHeight(); y++) {
+					for (int x = 0; x < image.image.getWidth(); x++) {
+						Color color = new Color(image.image.getRGB(x, y), true);
+
+						byte greyscale = switch (image.channel) {
+							case Vk2dGreyscaleChannel.RGB -> (byte) ((color.getRed() + color.getGreen() + color.getBlue()) / 3);
+							case Vk2dGreyscaleChannel.ALPHA -> (byte) color.getAlpha();
+							case Vk2dGreyscaleChannel.RED -> (byte) color.getRed();
+						};
+						data.put(greyscale);
+					}
+				}
+				data.flip();
+				imageData[nextIndex] = data;
+				widths[nextIndex] = image.image.getWidth();
+				heights[nextIndex] = image.image.getHeight();
+				nextIndex += 1;
+			}
+
+			Bc4Compressor.compressGreyscaleImageData(imageData, widths, heights, false, boiler, compressedBuffers -> {
+				int index = 0;
+				for (var image : images) {
+					if (image.compression == Vk2dImageCompression.BC4) {
+						image.data = new byte[compressedBuffers[index].remaining()];
+						compressedBuffers[index].get(image.data);
+						index += 1;
+					}
+				}
+			});
+		}
 	}
 
 	private void compressBc7Images() {
@@ -370,7 +304,9 @@ public class Vk2dResourceWriter {
 			if (entry.compression != Vk2dImageCompression.BC7) continue;
 
 			if (entry.data == null) {
-				threadPool.submit(() -> entry.data = Bc7Compressor.compressBc7(entry.image));
+				threadPool.submit(() -> {
+					entry.data = Bc7Compressor.compressBufferedImage(Bc7Compressor.FLAGS_DEFAULT_SLOWEST, entry.image);
+				});
 			}
 		}
 		threadPool.close();

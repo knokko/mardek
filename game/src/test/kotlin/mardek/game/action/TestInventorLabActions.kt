@@ -157,7 +157,6 @@ object TestInventorLabActions {
 			)
 			val necklaceColors = arrayOf(
 				Color(173, 132, 4),
-				Color(85, 42, 4),
 			)
 			testRendering(
 				state, 600, 400, "lead-pipe-quest0",

@@ -45,7 +45,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 			Color(38, 109, 129), // mana bar color
 			Color(34, 247, 255), // mana bar text color
 			Color(168, 130, 57), // xp bar color
-			Color(251, 225, 99), // xp bar text color
+			Color(241, 216, 95), // xp bar text color
 			Color(59, 42, 28), // bar background color
 		)
 

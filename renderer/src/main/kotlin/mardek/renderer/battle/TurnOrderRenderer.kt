@@ -56,7 +56,7 @@ fun renderTurnOrder(
 		val scale = region.height / 24f
 		val spriteSize = (16 * scale).roundToInt()
 
-		val lineWidth = max(1, region.height / 20)
+		val lineWidth = max(1, region.height / 30)
 		var x = region.minX
 
 		val lineColor = srgbToLinear(rgb(208, 193, 142))
@@ -97,19 +97,32 @@ fun renderTurnOrder(
 
 			val minTriX = x + triangleWidth
 			val maxTriX = minTriX + slotWidth
+
+			val currentDarkColor = if (maxTriX <= region.maxX) darkColor else backgroundColor
 			colorBatch.fillUnaligned(
 				x, region.minY, x + slotWidth, region.minY,
-				maxTriX, midY, minTriX, midY, darkColor
+				maxTriX, midY, minTriX, midY, currentDarkColor
 			)
-			colorBatch.fillUnaligned(
-				x + 3 * lineWidth, region.minY + 2 * lineWidth,
-				x + slotWidth, region.minY + 2 * lineWidth,
-				maxTriX - lineWidth, midY, minTriX + 2 * lineWidth, midY, lightColor
-			)
+			if (currentDarkColor == darkColor) {
+				colorBatch.fillUnaligned(
+					x + 4 * lineWidth + 1, region.minY + 3 * lineWidth,
+					x + 1 + slotWidth - lineWidth, region.minY + 3 * lineWidth,
+					maxTriX - 2 * lineWidth, midY, minTriX + 3 * lineWidth, midY, lightColor
+				)
+			}
 			colorBatch.fillUnaligned(
 				x, region.maxY, x + slotWidth, region.maxY,
-				maxTriX, midY, minTriX, midY, darkColor
+				maxTriX, midY, minTriX, midY, currentDarkColor
 			)
+
+			if (currentDarkColor == darkColor) {
+				kimBatch.simple(
+					x + slotWidth - spriteSize,
+					region.minY + (region.height - spriteSize) / 2,
+					scale, combatant.getTurnOrderIcon().index
+				)
+			}
+
 			if (isFirst && onTurn != null) {
 				colorBatch.fillUnaligned(
 					x + 3 * lineWidth, region.minY + 2 * lineWidth,
@@ -122,20 +135,22 @@ fun renderTurnOrder(
 					maxTriX - lineWidth, midY, minTriX + 2 * lineWidth, midY, onTurnColor
 				)
 			}
-			colorBatch.fillUnaligned(
-				x, region.minY, x + lineWidth, region.minY,
-				minTriX + lineWidth, midY, minTriX, midY, lineColor
-			)
-			colorBatch.fillUnaligned(
-				x, region.maxY, x + lineWidth, region.maxY,
-				minTriX + lineWidth, midY, minTriX, midY, lineColor
-			)
 
-			kimBatch.simple(
-				x + slotWidth - spriteSize,
-				region.minY + (region.height - spriteSize) / 2,
-				scale, combatant.getTurnOrderIcon().index
-			)
+			if (minTriX + lineWidth > region.boundX) {
+				colorBatch.fill(
+					minTriX, region.minY + lineWidth,
+					region.maxX, region.maxY - lineWidth, backgroundColor,
+				)
+			} else {
+				colorBatch.fillUnaligned(
+					x, region.minY, x + lineWidth, region.minY,
+					minTriX + lineWidth, midY, minTriX, midY, lineColor
+				)
+				colorBatch.fillUnaligned(
+					x, region.maxY, x + lineWidth, region.maxY,
+					minTriX + lineWidth, midY, minTriX, midY, lineColor
+				)
+			}
 
 			x += slotWidth
 			isFirst = false

@@ -25,6 +25,8 @@ dependencies {
 shadowJar {
 	manifest {
 		attributes ("Main-Class": "mardek.game.MardekGameKt")
+		attributes ("Enable-Native-Access": "ALL-UNNAMED")
+		attributes ("Add-Exports": "java.base/jdk.internal.misc")
 	}
 }
 
