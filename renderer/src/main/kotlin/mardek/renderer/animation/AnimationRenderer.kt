@@ -322,10 +322,12 @@ private fun chooseSkin(
 	}
 
 	if (special == SpecialAnimationNode.PortraitMouthExpressions) {
-		var currentCharacterIndex = context.shownDialogueCharacters.toInt()
+		var currentCharacterIndex = context.shownDialogueCharacters.toInt() - 1
 		val defaultValue = choose(context.portraitExpression!!.lowercase(Locale.ROOT))
-		if (currentCharacterIndex >= 0 && currentCharacterIndex < context.dialogueLine.length) {
-			currentCharacterIndex = 4 * (currentCharacterIndex / 4)
+		if (currentCharacterIndex >= 3 && currentCharacterIndex < context.dialogueLine.length - 1) {
+			currentCharacterIndex = 3 + 6 * ((currentCharacterIndex - 3) / 6)
+			// char2lips:
+			// a:2,b:3,c:4,d:6,e:2,f:5,g:4,h:2,i:2,j:4,k:2,l:6,m:3,n:2,o:7,p:3,q:2,r:4,s:4,t:4,u:7,v:5,w:3,x:4,y:2,z:4
 			val characterToFrameMapping = intArrayOf(
 				2, 3, 4, 6, 2, 5,
 				4, 2, 2, 4, 2, 6,

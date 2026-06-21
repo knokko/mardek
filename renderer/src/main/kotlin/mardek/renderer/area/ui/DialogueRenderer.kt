@@ -434,7 +434,7 @@ internal fun renderDialogueLines(
 	var shadowStyleIndex = 0
 	if (shadowStyle != null) shadowStyleIndex = textBatch.cache.getStyleIndex(shadowStyle)
 	for (glyphIndex in 0 until glyphInfos.limit()) {
-		if (remaining <= 0f) break
+		if (remaining < 0.9f) break
 		val charIndex = glyphInfos[glyphIndex].cluster()
 		val nextChar = text[charIndex]
 
