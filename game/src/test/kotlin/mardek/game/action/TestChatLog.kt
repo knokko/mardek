@@ -67,7 +67,7 @@ object TestChatLog {
 			)
 			val dialogueColors = arrayOf(
 				Color(70, 117, 33), // Deugan cape color
-				Color(88, 71, 36), // Chat log button color
+				Color(88, 71, 46), // Chat log button color
 				Color(238, 203, 127), // Speaker name color
 			)
 			val boldChatLogColor = arrayOf(

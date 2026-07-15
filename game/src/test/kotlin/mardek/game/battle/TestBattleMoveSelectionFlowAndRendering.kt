@@ -89,6 +89,8 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 			Color(157, 195, 243),
 		)
 
+		val onTurnColors = arrayOf(Color(180, 145, 57))
+
 		fun assertSelectedMove(expected: BattleMoveSelection) {
 			assertInstanceOf(BattleStateMachine.SelectMove::class.java, battle.state)
 			assertEquals(expected, (battle.state as BattleStateMachine.SelectMove).selectedMove)
@@ -97,7 +99,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		val state = InGameState(campaign, "test")
 
 		val shallowColors = backgroundColors + barColors + monsterColors + mardekColors +
-				deuganColors + turnOrderColors + pointerColors
+				deuganColors + turnOrderColors + pointerColors + onTurnColors
 		val fakeInput = InputManager()
 		val soundQueue = SoundQueue()
 		val context = GameStateUpdateContext(content, fakeInput, soundQueue, 10.milliseconds)

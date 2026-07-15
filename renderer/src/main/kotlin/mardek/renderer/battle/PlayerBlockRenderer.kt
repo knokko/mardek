@@ -14,6 +14,7 @@ import mardek.renderer.MardekTextStyles
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
+import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.ExperienceIndicators
 import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.util.Rectangle
@@ -26,6 +27,18 @@ internal fun renderPlayerBlock(
 	spriteBatch: Vk2dKim3Batch, imageBatch: Vk2dImageBatch, textBatch: Vk2dSimpleTextBatch, region: Rectangle
 ) {
 	battleContext.run {
+		val battleState = battle.state
+		if (battleState is BattleStateMachine.SelectMove && battleState.onTurn === player) {
+			val borderColor = srgbToLinear(rgb(180, 145, 57))
+			colorBatch.fill(region.minX, region.minY, region.minX, region.maxY, borderColor)
+			colorBatch.fill(region.maxX, region.minY, region.maxX, region.maxY, borderColor)
+
+			colorBatch.fill(
+				region.minX + 1, region.minY, region.maxX - 1, region.maxY,
+				changeAlpha(borderColor, 30),
+			)
+		}
+
 		val nameX = run {
 			val sprite = player.element.mediumSprite
 			val marginY = region.height * 0.025f
