@@ -224,7 +224,7 @@ sealed class CombatantState(
 	 * For instance, if `getNatural(CombatStat.Strength) == 10` and `getStat(CombatStat.Strength, context) == 15`,
 	 * the popup will show a green "15" and a "+5".
 	 */
-	abstract fun getNatural(stat: CombatStat): Int
+	abstract fun getNatural(stat: CombatStat, context: BattleUpdateContext): Int
 
 	/**
 	 * Gets the current [stat] value. This is the value used for e.g. damage calculations.
@@ -507,7 +507,7 @@ class PlayerCombatantState(
 		it != null && it.type.displayName.contains("WEAPON")
 	}
 
-	override fun getNatural(stat: CombatStat): Int {
+	override fun getNatural(stat: CombatStat, context: BattleUpdateContext): Int {
 		var result = 0
 		for (modifier in player.baseStats) {
 			if (modifier.stat == stat) result += modifier.adder
@@ -716,7 +716,17 @@ class MonsterCombatantState(
 
 	override fun getWeapon(context: BattleUpdateContext) = equipment[0]
 
-	override fun getNatural(stat: CombatStat) = monster.baseStats.getOrDefault(stat, 0)!!
+	override fun getNatural(stat: CombatStat, context: BattleUpdateContext): Int {
+		var natural = monster.baseStats.getOrDefault(stat, 0)!!
+		if (stat == CombatStat.Attack && getWeapon(context) == null) {
+			natural += monster.unarmedAttackPower
+			if (monster.attackPerLevelDenominator != 0) {
+				natural += monster.attackPerLevelNumerator * (level / monster.attackPerLevelDenominator)
+			}
+		}
+
+		return natural
+	}
 
 	override fun getStat(stat: CombatStat, context: BattleUpdateContext): Int {
 		var result = monster.baseStats.getOrDefault(stat, 0)

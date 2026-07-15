@@ -176,7 +176,7 @@ internal fun renderCombatantInfoPopup(
 			)
 
 			val textX2 = x2 + region.height * 0.35f
-			var extra = combatant.getStat(stat, updateContext) - combatant.getNatural(stat)
+			var extra = combatant.getStat(stat, updateContext) - combatant.getNatural(stat, updateContext)
 			run {
 				val equipment = combatant.getEquipment(updateContext)
 				val weapon = combatant.getWeapon(updateContext)?.equipment

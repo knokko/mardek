@@ -40,7 +40,9 @@ object TestMugbert {
 				"Expected $numPowerAttacks to be approximately 500"
 			)
 
-			assertEquals(0, attacker.getNatural(CombatStat.Attack))
+			assertEquals(0, attacker.getNatural(
+				CombatStat.Attack, battleUpdateContext(campaign)
+			))
 			assertEquals(4, attacker.getStat(
 				CombatStat.Attack, battleUpdateContext(campaign)
 			))

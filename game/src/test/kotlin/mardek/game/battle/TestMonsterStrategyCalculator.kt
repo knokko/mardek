@@ -426,7 +426,7 @@ object TestMonsterStrategyCalculator {
 				"Expected $numBreathAttacks to be approximately 3000"
 			)
 
-			assertEquals(0, caster.getNatural(CombatStat.Attack))
+			assertEquals(80, caster.getNatural(CombatStat.Attack, battleUpdateContext(campaign)))
 			assertEquals(80, caster.monster.unarmedAttackPower)
 			assertEquals(80, caster.getStat(
 				CombatStat.Attack, battleUpdateContext(campaign)

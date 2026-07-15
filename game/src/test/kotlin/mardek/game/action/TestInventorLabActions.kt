@@ -153,7 +153,6 @@ object TestInventorLabActions {
 			)
 			val leadPipeColors = arrayOf(
 				Color(94, 126, 4),
-				Color(133, 110, 97),
 			)
 			val necklaceColors = arrayOf(
 				Color(173, 132, 4),
