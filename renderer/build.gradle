@@ -5,6 +5,4 @@ dependencies {
 	implementation project(":content")
 	implementation project(":state")
 	implementation project(":vk2d")
-
-	for (format in ["kim1", "kim2"]) testImplementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
 }

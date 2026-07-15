@@ -4,6 +4,7 @@ import mardek.content.Content
 import mardek.content.audio.SoundEffect
 import mardek.state.GameStateManager
 import mardek.state.ingame.InGameState
+import mardek.state.settings.AudioSettings
 import mardek.state.title.GameOverState
 import mardek.state.title.TitleScreenState
 import java.util.concurrent.CompletableFuture
@@ -15,7 +16,11 @@ import java.util.concurrent.CompletableFuture
  * The `MardekWindow` class will repeatedly invoke the `update()` method of this class while the game is running, and
  * invokes the `destroy()` method when the game is closed.
  */
-class AudioUpdater(private val stateManager: GameStateManager, private val getContent: CompletableFuture<Content>) {
+class AudioUpdater(
+	private val stateManager: GameStateManager,
+	private val getContent: CompletableFuture<Content>,
+	private val audioSettings: AudioSettings,
+) {
 
 	private val manager = AudioManager()
 
@@ -36,6 +41,8 @@ class AudioUpdater(private val stateManager: GameStateManager, private val getCo
 		var musicTrack: Int? = null
 		var musicLoopingSeconds = 0f
 
+		val expectedMusicVolume: Float
+		val expectedSoundsVolume: Float
 		synchronized(stateManager.lock()) {
 			val state = stateManager.currentState
 
@@ -48,7 +55,14 @@ class AudioUpdater(private val stateManager: GameStateManager, private val getCo
 				trackName = state.campaign.determineMusicTrack(getContent.get())
 				musicLoopingSeconds = musicLoopMap.getOrDefault(trackName, 0f)
 			}
+
+			val masterVolume = audioSettings.masterVolume * 0.01f
+			expectedMusicVolume = masterVolume * audioSettings.musicVolume * 0.01f
+			expectedSoundsVolume = masterVolume * audioSettings.soundEffectVolume * 0.01f
 		}
+
+		manager.useMusicVolume(expectedMusicVolume)
+		manager.useSoundsVolume(expectedSoundsVolume)
 
 		if (trackName != null) {
 			musicTrack = musicMap.computeIfAbsent(trackName) {

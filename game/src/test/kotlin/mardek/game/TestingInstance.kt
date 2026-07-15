@@ -19,7 +19,7 @@ import mardek.content.inventory.ItemStack
 import mardek.content.skill.ActiveSkill
 import mardek.renderer.RenderManager
 import mardek.state.SoundQueue
-import mardek.state.VideoSettings
+import mardek.state.settings.VideoSettings
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -33,6 +33,8 @@ import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SavesFolderManager
+import mardek.state.settings.AudioSettings
+import mardek.state.settings.UserSettings
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.lwjgl.vulkan.VK10.VK_FORMAT_R8G8B8A8_SRGB
@@ -105,7 +107,10 @@ class TestingInstance {
 
 		renderManager = RenderManager(
 			vk2d,
-			VideoSettings(0, capFps = false, showFps = false, framesInFlight = 1, delayRendering = true),
+			UserSettings(
+				VideoSettings(0, capFps = false, showFps = false, framesInFlight = 1, delayRendering = true),
+				AudioSettings(100, 100, 100),
+			),
 			pipelineContext
 		)
 		renderManager.loadMainResources(File("${Content.RESOURCES_DIRECTORY}/content.vk2d").toPath())

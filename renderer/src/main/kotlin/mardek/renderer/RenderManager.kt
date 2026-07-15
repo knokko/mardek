@@ -14,9 +14,9 @@ import com.github.knokko.vk2d.text.Vk2dFancyTextStyleCache
 import com.github.knokko.vk2d.text.Vk2dTextStyleCache
 import mardek.content.Content
 import mardek.state.GameStateManager
-import mardek.state.VideoSettings
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
+import mardek.state.settings.UserSettings
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.VK_NULL_HANDLE
 import org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool
@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture
 
 class RenderManager(
 	private val vk2d: Vk2dInstance,
-	private val videoSettings: VideoSettings,
+	private val userSettings: UserSettings,
 	pipelineContext: Vk2dPipelineContext,
 ) {
 
@@ -75,7 +75,7 @@ class RenderManager(
 			RenderContext(
 				frame, frame.swapchainStage, framebuffers, perFrame,
 				pipelines, textStyleCache, fancyTextStyleCache, perFrameDescriptorSet, content, gameState,
-				campaign, mainResources, videoSettings, currentFps,
+				campaign, mainResources, userSettings, currentFps,
 			)
 		} else null
 
@@ -83,8 +83,9 @@ class RenderManager(
 			renderGame(fullRenderContext)
 		} else {
 			val partialRenderContext = RawRenderContext(
-				frame.swapchainStage, pipelines, textStyleCache, fancyTextStyleCache, perFrameDescriptorSet,
-				null, gameState, titleScreenResources, videoSettings, currentFps,
+				frame.swapchainStage, pipelines, textStyleCache, fancyTextStyleCache,
+				perFrameDescriptorSet, null, gameState, titleScreenResources,
+				userSettings.videoSettings, currentFps,
 			)
 			renderGame(partialRenderContext, fullRenderContext)
 		}

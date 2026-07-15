@@ -19,6 +19,7 @@ import java.lang.Math.toIntExact
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import java.nio.channels.FileChannel
+import kotlin.math.abs
 
 private fun readVorbis(fileName: String?, byteArray: ByteArray?, alBuffer: Int, stack: MemoryStack) {
 	val vorbisBuffer = if (byteArray != null) {
@@ -143,6 +144,22 @@ internal class AudioManager {
 			assertAlSuccess("alSourcei")
 			alSourcePlay(source)
 			assertAlSuccess("alSourcePlay")
+		}
+	}
+
+	fun useMusicVolume(desiredVolume: Float) {
+		val actualVolume = alGetSourcef(musicSource, AL_GAIN)
+		if (abs(actualVolume - desiredVolume) > 0.001) {
+			alSourcef(musicSource, AL_GAIN, desiredVolume)
+		}
+	}
+
+	fun useSoundsVolume(desiredVolume: Float) {
+		val actualVolume = alGetSourcef(soundSources[0], AL_GAIN)
+		if (abs(actualVolume - desiredVolume) > 0.001) {
+			for (source in soundSources) {
+				alSourcef(source, AL_GAIN, desiredVolume)
+			}
 		}
 	}
 

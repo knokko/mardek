@@ -11,7 +11,7 @@ import kotlin.math.max
 private val SECTIONS = arrayOf(
 	"Party", "Skills", "Inventory", "Map",
 	"Quests", "Status", "Encyclopaedia",
-	"Video  Settings",
+	"Options",
 )
 
 internal fun renderInGameMenuSectionList(menuContext: MenuRenderContext, region: Rectangle) {

@@ -1,7 +1,7 @@
 package mardek.game
 
 import com.github.knokko.boiler.builders.device.PhysicalDeviceSelector
-import mardek.state.VideoSettings
+import mardek.state.settings.VideoSettings
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.vulkan.VK10.vkGetPhysicalDeviceProperties
 import org.lwjgl.vulkan.VkInstance

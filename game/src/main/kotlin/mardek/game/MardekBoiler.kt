@@ -4,7 +4,7 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.WindowBuilder
 import com.github.knokko.boiler.exceptions.SDLFailureException.assertSdlSuccess
-import mardek.state.VideoSettings
+import mardek.state.settings.VideoSettings
 import org.lwjgl.sdl.SDLInit.*
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.vulkan.KHRSurface.VK_PRESENT_MODE_IMMEDIATE_KHR

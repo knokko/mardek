@@ -2,9 +2,10 @@ package mardek.game
 
 import com.github.knokko.boiler.window.WindowEventLoop
 import mardek.input.InputManager
-import mardek.state.VideoSettings
+import mardek.state.settings.VideoSettings
 import mardek.state.GameStateManager
 import mardek.state.saves.SavesFolderManager
+import mardek.state.settings.UserSettings
 import mardek.state.title.TitleScreenState
 import org.lwjgl.sdl.SDL
 import org.lwjgl.util.zstd.Zstd
@@ -26,15 +27,15 @@ fun main(args: Array<String>) {
 	Thread { VK.getFunctionProvider() }.start()
 	Thread { Zstd.ZSTD_versionNumber() }.start()
 
-	val videoSettings = VideoSettings.load()
+	val userSettings = UserSettings.load()
 	println("Started with BoilerInstance after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
-	val boiler = createBoiler(args, videoSettings)
+	val boiler = createBoiler(args, userSettings.videoSettings)
 	println("Created BoilerInstance after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 
 	val input = InputManager()
 	val state = GameStateManager(input, TitleScreenState(), SavesFolderManager())
 
-	val window = MardekWindow(state, videoSettings, boiler.window())
+	val window = MardekWindow(state, userSettings, boiler.window())
 	val inputListener = MardekSdlInput(boiler.window(), state, input)
 	inputListener.register()
 

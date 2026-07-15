@@ -7,8 +7,9 @@ import com.github.knokko.vk2d.text.Vk2dFancyTextStyleCache
 import com.github.knokko.vk2d.text.Vk2dTextStyleCache
 import mardek.content.Content
 import mardek.state.GameStateManager
-import mardek.state.VideoSettings
+import mardek.state.settings.VideoSettings
 import mardek.state.ingame.CampaignState
+import mardek.state.settings.UserSettings
 import mardek.state.util.Rectangle
 
 class RawRenderContext(
@@ -37,7 +38,7 @@ class RenderContext(
 	val state: GameStateManager,
 	val campaign: CampaignState,
 	val bundle: Vk2dResourceBundle,
-	val videoSettings: VideoSettings,
+	val userSettings: UserSettings,
 	val currentFps: Long,
 ) {
 	fun addColorBatch(initialCapacity: Int) = pipelines.color.addBatch(currentStage, initialCapacity)!!

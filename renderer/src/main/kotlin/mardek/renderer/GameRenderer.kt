@@ -57,6 +57,6 @@ fun renderGame(context: RenderContext) {
 	renderTitleBar(
 		context.state, titleColorBatch, titleTextBatch,
 		context.bundle.getFont(context.content.fonts.basic1.index),
-		if (context.videoSettings.showFps) context.currentFps else null,
+		if (context.userSettings.videoSettings.showFps) context.currentFps else null,
 	)
 }

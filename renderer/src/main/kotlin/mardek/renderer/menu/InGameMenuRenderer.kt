@@ -16,7 +16,7 @@ import mardek.state.ingame.menu.PartyTab
 import mardek.state.ingame.menu.QuestsTab
 import mardek.state.ingame.menu.SkillsTab
 import mardek.state.ingame.menu.StatusTab
-import mardek.state.ingame.menu.VideoSettingsTab
+import mardek.state.ingame.menu.SettingsTab
 import mardek.state.util.Rectangle
 
 internal fun renderInGameMenu(
@@ -106,7 +106,7 @@ internal fun renderInGameMenu(
 	if (menu.currentTab is EncyclopediaTab) renderEncyclopediaTab(
 		menuContext, submenuRectangleWithLowerBar, region
 	)
-	if (menu.currentTab is VideoSettingsTab) renderVideoSettingsTab(menuContext, submenuRectangleWithLowerBar)
+	if (menu.currentTab is SettingsTab) renderSettingsTab(menuContext, submenuRectangleWithLowerBar)
 
 	return Pair(colorBatch, simpleTextBatch)
 }

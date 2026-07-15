@@ -1,19 +1,18 @@
-package mardek.state
+package mardek.state.settings
 
 import mardek.state.saves.VIDEO_SETTINGS_FILE
 import java.io.File
 import java.io.PrintWriter
-import java.lang.Integer.parseInt
 import java.util.Scanner
 
 /**
  * The (Vulkan) video settings that this engine supports.
  *
- * - The video settings are loaded from [VIDEO_SETTINGS_FILE] when the game is launched, if the file exists.
+ * - The video settings are loaded from [mardek.state.saves.VIDEO_SETTINGS_FILE] when the game is launched, if the file exists.
  * Otherwise, the default video settings are used.
- * - The loaded `VideoSettings` instance is stored in the `MardekWindow.videoSettings` field.
- * - The `VideoSettings can be edited from the "Video Settings" tab of the in-game menu. When the player makes changes,
- * the video settings will be written to [VIDEO_SETTINGS_FILE].
+ * - The loaded `VideoSettings` instance is stored in the `MardekWindow.userSettings.videoSettings` field.
+ * - The `VideoSettings can be edited from the "Settings" -> "Video" tab of the in-game menu.
+ * When the player makes changes, the video settings will be written to [mardek.state.saves.VIDEO_SETTINGS_FILE].
  */
 class VideoSettings(
 
@@ -92,7 +91,7 @@ class VideoSettings(
 	var canUncapFps = false
 
 	/**
-	 * Saves the video settings to disk (to [VIDEO_SETTINGS_FILE] by default, but some unit tests use a different
+	 * Saves the video settings to disk (to [mardek.state.saves.VIDEO_SETTINGS_FILE] by default, but some unit tests use a different
 	 * location).
 	 */
 	fun save(settingsFile: File = VIDEO_SETTINGS_FILE) {
@@ -132,7 +131,7 @@ class VideoSettings(
 					while (scanner.hasNextLine()) {
 						val nextLine = scanner.nextLine()
 						if (nextLine.startsWith("device=")) {
-							settings.preferredDevice = parseInt(nextLine.substring("device=".length))
+							settings.preferredDevice = Integer.parseInt(nextLine.substring("device=".length))
 						}
 						if (nextLine.startsWith("cap-fps=")) {
 							settings.capFps = nextLine.endsWith("true")
@@ -141,7 +140,7 @@ class VideoSettings(
 							settings.showFps = nextLine.endsWith("true")
 						}
 						if (nextLine.startsWith("frames-in-flight=")) {
-							settings.framesInFlight = parseInt(nextLine.substring("frames-in-flight=".length))
+							settings.framesInFlight = Integer.parseInt(nextLine.substring("frames-in-flight=".length))
 						}
 						if (nextLine.startsWith("delay-rendering")) {
 							settings.delayRendering = nextLine.endsWith("true")

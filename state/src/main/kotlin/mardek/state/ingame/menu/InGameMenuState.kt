@@ -54,7 +54,7 @@ class InGameMenuState(private val state: CampaignState) {
 
 					if (event.key == InputKey.MoveUp) {
 						val oldTab = currentTab
-						if (oldTab is PartyTab) currentTab = VideoSettingsTab()
+						if (oldTab is PartyTab) currentTab = SettingsTab()
 						if (oldTab is SkillsTab) currentTab = PartyTab()
 						if (oldTab is InventoryTab) currentTab = SkillsTab(state.usedPartyMembers())
 						if (oldTab is MapTab) currentTab = InventoryTab()
@@ -63,7 +63,7 @@ class InGameMenuState(private val state: CampaignState) {
 							currentTab = QuestsTab(state.story.getQuests(content.story))
 						}
 						if (oldTab is EncyclopediaTab) currentTab = StatusTab()
-						if (oldTab is VideoSettingsTab) {
+						if (oldTab is SettingsTab) {
 							val snapshot = state.encyclopedia.createSnapshot(content.encyclopedia, state)
 							currentTab = EncyclopediaTab(snapshot)
 						}
@@ -74,8 +74,8 @@ class InGameMenuState(private val state: CampaignState) {
 
 					if (event.key == InputKey.MoveDown) {
 						val oldTab = currentTab
-						if (oldTab is VideoSettingsTab) currentTab = PartyTab()
-						if (oldTab is EncyclopediaTab) currentTab = VideoSettingsTab()
+						if (oldTab is SettingsTab) currentTab = PartyTab()
+						if (oldTab is EncyclopediaTab) currentTab = SettingsTab()
 						if (oldTab is StatusTab) {
 							val snapshot = state.encyclopedia.createSnapshot(content.encyclopedia, state)
 							currentTab = EncyclopediaTab(snapshot)
