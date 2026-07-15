@@ -31,15 +31,15 @@ class AnimationMatrix(
 
 	@BitField(id = 2)
 	@FloatField(
-		expectMultipleOf = 0.01, errorTolerance = 0.005, commonValues = [0.0],
-		expectedIntegerMultiple = IntegerField(expectUniform = false, digitSize = 2, minValue = -450, maxValue = 150),
+		expectMultipleOf = 0.001, errorTolerance = 0.0005, commonValues = [0.0],
+		expectedIntegerMultiple = IntegerField(expectUniform = false, digitSize = 2, minValue = -4500, maxValue = 1500),
 	)
 	val rotateSkew0: Float,
 
 	@BitField(id = 3)
 	@FloatField(
-		expectMultipleOf = 0.01, errorTolerance = 0.005, commonValues = [0.0],
-		expectedIntegerMultiple = IntegerField(expectUniform = true, minValue = -150, maxValue = 250),
+		expectMultipleOf = 0.001, errorTolerance = 0.0005, commonValues = [0.0],
+		expectedIntegerMultiple = IntegerField(expectUniform = true, minValue = -1500, maxValue = 2500),
 	)
 	val rotateSkew1: Float,
 
