@@ -84,7 +84,7 @@ object TestItemStorage {
 
 	fun testPutTunicInStorage(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			openItemStorage(instance, state, updateContext)
@@ -195,7 +195,7 @@ object TestItemStorage {
 		instance.apply {
 			val renderWidth = 1600
 			val renderHeight = 1200
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			val tunic = content.items.items.find { it.displayName == "Tunic" }!!

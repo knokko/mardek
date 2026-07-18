@@ -1,5 +1,8 @@
 package mardek.state.title
 
+import mardek.content.Content
+import mardek.content.audio.AudioContent
+import mardek.content.audio.MusicTrack
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.state.GameState
@@ -55,6 +58,8 @@ class StartNewGameState(
 			InGameState(campaignState, campaignName)
 		} else this
 	}
+
+	override fun determineMusicTrack(content: Content?, audioContent: AudioContent) = null
 
 	companion object {
 		/**

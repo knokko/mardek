@@ -2,6 +2,7 @@ package mardek.content.ui
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import mardek.content.audio.AudioContent
 import mardek.content.sprite.BcSprite
 
 /**
@@ -35,8 +36,34 @@ class TitleScreenContent(
 	 */
 	@BitField(id = 3)
 	val largeFont: Font,
+
+	/**
+	 * The subset of the [AudioContent] that is relevant for the title screen,
+	 * currently just the music tracks and music categories.
+	 */
+	@BitField(id = 4)
+	val audio: AudioContent,
+
+	/**
+	 * The yellow/brown music note icon/image that represents music tracks from all music categories,
+	 * and is shown in the Music Player.
+	 */
+	@BitField(id = 5)
+	val neutralMusicNote: BcSprite,
 ) {
 
 	@Suppress("unused")
-	private constructor() : this(BcSprite(), Font(), Font(), Font())
+	private constructor() : this(
+		BcSprite(),
+		Font(), Font(), Font(),
+		AudioContent(), BcSprite(),
+	)
+
+	companion object {
+
+		/**
+		 * Creates a dummy [TitleScreenContent] instance for unit test purposes
+		 */
+		fun dummy() = TitleScreenContent()
+	}
 }

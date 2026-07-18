@@ -102,7 +102,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 				deuganColors + turnOrderColors + pointerColors + onTurnColors
 		val fakeInput = InputManager()
 		val soundQueue = SoundQueue()
-		val context = GameStateUpdateContext(content, fakeInput, soundQueue, 10.milliseconds)
+		val context = GameStateUpdateContext(content, titleContent, fakeInput, soundQueue, 10.milliseconds)
 		val sounds = content.audio.fixedEffects
 		battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
 		battle.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
@@ -409,7 +409,7 @@ fun testCanNotFlee(instance: TestingInstance) {
 
 		val fakeInput = InputManager()
 		val soundQueue = SoundQueue()
-		val context = GameStateUpdateContext(content, fakeInput, soundQueue, 10.milliseconds)
+		val context = GameStateUpdateContext(content, titleContent, fakeInput, soundQueue, 10.milliseconds)
 		val sounds = content.audio.fixedEffects
 		battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
 		battle.startTime = System.nanoTime() - 1000_000_000L // Skip battle fade-in

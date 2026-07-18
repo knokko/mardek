@@ -75,13 +75,15 @@ object TestDragonLair {
 			val fakeInput = InputManager()
 			fakeInput.postEvent(pressKeyEvent(InputKey.MoveUp))
 
+			val mightyHeroesTrack = content.audio.musicTracks.find { it.fileName == "MightyHeroes"}!!
+
 			// Walk to the walk trigger
-			val context = GameStateUpdateContext(content, fakeInput, dummySoundQueue, 10.milliseconds)
-			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
+			val context = GameStateUpdateContext(content, titleContent, fakeInput, dummySoundQueue, 10.milliseconds)
+			assertSame(mightyHeroesTrack, state.campaign.determineMusicTrack(content))
 			repeat(5000) {
 				state.update(context)
 			}
-			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
+			assertSame(mightyHeroesTrack, state.campaign.determineMusicTrack(content))
 			assertEquals(50 + 8, state.campaign.statistics.totalSteps)
 
 			val baseColors = arrayOf(
@@ -119,7 +121,10 @@ object TestDragonLair {
 			battleState.livingOpponents()[0].currentHealth = 1
 
 			// Wait until we can select a move
-			assertEquals("BossBattle", state.campaign.determineMusicTrack(content))
+			assertSame(
+				content.audio.musicTracks.find { it.fileName == "BossBattle" }!!,
+				state.campaign.determineMusicTrack(content)
+			)
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
 			sleep(1000)
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Cancel))
@@ -181,7 +186,10 @@ object TestDragonLair {
 
 			// Claim battle loot
 			assertNotNull(((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).loot)
-			assertEquals("VictoryFanfare2", state.campaign.determineMusicTrack(content))
+			assertSame(
+				content.audio.musicTracks.find { it.fileName == "VictoryFanfare2" }!!,
+				state.campaign.determineMusicTrack(content)
+			)
 			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(context)
@@ -190,7 +198,7 @@ object TestDragonLair {
 			sleep(600)
 			assertEquals(0, (state.campaign.state as AreaState).fadingCharacters.size)
 			state.update(context)
-			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
+			assertSame(mightyHeroesTrack, state.campaign.determineMusicTrack(content))
 
 			// Wait 1 second for the dragon to fade away
 			val actions = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions
@@ -263,7 +271,7 @@ object TestDragonLair {
 					state.campaign.expressionContext(),
 				)
 			)
-			assertEquals("MightyHeroes", state.campaign.determineMusicTrack(content))
+			assertSame(mightyHeroesTrack, state.campaign.determineMusicTrack(content))
 			repeat(200) {
 				val actionNode = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions.node as FixedActionNode
 				if (actionNode.action !is ActionToArea) {
@@ -288,7 +296,10 @@ object TestDragonLair {
 				state.update(context)
 			}
 			assertArrayEquals(arrayOf(childMardek, childDeugan, null, null), state.campaign.party)
-			assertEquals("crickets", state.campaign.determineMusicTrack(content))
+			assertSame(
+				content.audio.musicTracks.find { it.fileName == "crickets" }!!,
+				state.campaign.determineMusicTrack(content),
+			)
 			assertEquals(
 				ColorTransform(
 					0, rgb(1f, 0.01f * 80, 0.01f * 70), 0

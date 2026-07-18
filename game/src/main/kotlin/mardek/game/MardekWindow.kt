@@ -42,6 +42,8 @@ class MardekWindow(
 	lateinit var perFrame: Array<PerFrameResources>
 
 	private val fpsCounter = UpdateCounter()
+	
+	private val titleScreenInfo = loadTitleScreenContent()
 
 	override fun initialResourceFile(): Path {
 		return File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d").toPath()
@@ -61,7 +63,9 @@ class MardekWindow(
 	}
 
 	override fun createPipelines(instance: Vk2dInstance, context: Vk2dPipelineContext): Vk2dPipelines {
-		this.renderManager = RenderManager(instance, userSettings, context)
+		this.renderManager = RenderManager(
+			instance, userSettings, context, titleScreenInfo
+		)
 		return renderManager.pipelines
 	}
 
@@ -145,7 +149,7 @@ class MardekWindow(
 
 		val updateLoop = UpdateLoop({
 			synchronized(gameState.lock()) {
-				gameState.update(content, 5.milliseconds)
+				gameState.update(content, titleScreenInfo, 5.milliseconds)
 			}
 		}, 5_000_000L)
 		val updateThread = Thread(updateLoop)
@@ -155,7 +159,10 @@ class MardekWindow(
 		val mainThread = Thread.currentThread()
 
 		Thread {
-			val audioUpdater = AudioUpdater(gameState, content, userSettings.audioSettings)
+			val audioUpdater = AudioUpdater(
+				gameState, content,
+				titleScreenInfo.audio, userSettings.audioSettings
+			)
 			UpdateLoop({ loop ->
 				if (mainThread.isAlive) audioUpdater.update()
 				else loop.stop()

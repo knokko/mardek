@@ -17,6 +17,7 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.saves.SaveFile
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
@@ -29,7 +30,7 @@ object TestSaucerActions {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -97,7 +98,10 @@ object TestSaucerActions {
 			repeat(50) {
 				state.update(updateContext)
 			}
-			assertEquals("Rohoph", state.campaign.determineMusicTrack(content))
+			assertSame(
+				content.audio.musicTracks.find { it.fileName == "Rohoph" }!!,
+				state.campaign.determineMusicTrack(content),
+			)
 			sleep(800)
 
 			testRendering(
@@ -180,7 +184,10 @@ object TestSaucerActions {
 			assertNotNull(state.campaign.story.evaluate(
 				newAreaState.area.properties.ambience, state.campaign.expressionContext()
 			))
-			assertEquals("crickets", state.campaign.determineMusicTrack(content))
+			assertSame(
+				content.audio.musicTracks.find { it.fileName == "crickets" }!!,
+				state.campaign.determineMusicTrack(content),
+			)
 		}
 	}
 }

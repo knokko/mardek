@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.animation.ColorTransform
+import mardek.content.audio.MusicTrack
 import mardek.content.encyclopedia.EncyclopediaArea
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.StateExpression
@@ -43,11 +44,11 @@ class AreaProperties(
 	val ambience: StateExpression<ColorTransform>,
 
 	/**
-	 * The name of the music track that should be played while the player is in the area.
+	 * The music track that should be played while the player is in the area.
 	 */
 	@BitField(id = 3, optional = true)
 	@ClassField(root = StateExpression::class)
-	val musicTrack: StateExpression<String?>,
+	val musicTrack: StateExpression<MusicTrack?>,
 
 	/**
 	 * All areas with the same "dungeon" will share their switch gate/platform state

@@ -31,7 +31,7 @@ object TestShops {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,

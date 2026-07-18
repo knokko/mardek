@@ -3,7 +3,6 @@ package mardek.renderer
 import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import mardek.renderer.title.renderFadingTitleScreen
 import mardek.renderer.title.renderTitleScreen
-import mardek.renderer.title.titleScreenInfo
 import mardek.state.ingame.InGameState
 import mardek.state.title.GameOverState
 import mardek.state.title.StartNewGameState
@@ -41,7 +40,7 @@ fun renderGame(context: RawRenderContext, fullContext: RenderContext?) {
 
 	renderTitleBar(
 		context.state, titleBarBatch, textBatch,
-		context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index),
+		context.titleScreenBundle.getFont(context.titleContent.basicFont.index),
 		if (context.videoSettings.showFps) context.currentFps else null,
 	)
 }

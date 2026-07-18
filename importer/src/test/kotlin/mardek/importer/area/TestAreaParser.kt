@@ -5,12 +5,13 @@ import mardek.content.Content
 import mardek.content.animation.ColorTransform
 import mardek.content.animation.CombatantAnimations
 import mardek.content.area.*
+import mardek.content.audio.MusicTrack
 import mardek.content.battle.PartyLayoutPosition
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.ExpressionOrDefaultStateExpression
 import mardek.content.expression.GlobalStateExpression
 import mardek.content.expression.ExpressionColorTransformValue
-import mardek.content.expression.ExpressionOptionalStringValue
+import mardek.content.expression.ExpressionMusicTrackValue
 import mardek.content.expression.VariableStateExpression
 import mardek.content.inventory.ItemStack
 import mardek.content.story.*
@@ -62,7 +63,7 @@ class TestAreaParser {
 		importItemsContent(content, fatItemTypes)
 		importBattleContent(content, false)
 
-		importSimpleStoryContent(content.story)
+		importSimpleStoryContent(content)
 		importAreaBattleContent(content)
 
 		content.battle.monsters.add(importMonsterStats(
@@ -92,11 +93,13 @@ class TestAreaParser {
 		@Suppress("UNCHECKED_CAST")
 		val aeropolisMusic = content.story.customVariables.find {
 			it.name == "AeropolisMusic"
-		}!! as CustomTimelineVariable<String>
+		}!! as CustomTimelineVariable<MusicTrack?>
 		assertEquals(
 			ExpressionOrDefaultStateExpression(
 				VariableStateExpression(aeropolisMusic),
-				ifNull = ConstantStateExpression(ExpressionOptionalStringValue("Aeropolis"))
+				ifNull = ConstantStateExpression(ExpressionMusicTrackValue(
+					content.audio.musicTracks.find { it.fileName == "Aeropolis" }!!
+				))
 			), area.properties.musicTrack)
 		assertNull(area.properties.dungeon)
 		assertEquals(
@@ -162,7 +165,9 @@ class TestAreaParser {
 			specialBackground = null
 		), area.randomBattles)
 		assertEquals(
-			ConstantStateExpression(ExpressionOptionalStringValue("MightyHeroes")),
+			ConstantStateExpression(ExpressionMusicTrackValue(
+				content.audio.musicTracks.find { it.fileName == "MightyHeroes" }!!
+			)),
 			area.properties.musicTrack
 		)
 		assertEquals("DragonLair", area.properties.dungeon)
@@ -227,9 +232,9 @@ class TestAreaParser {
 		assertEquals(9, area.objects.decorations.size)
 		assertEquals(1, area.objects.characters.size)
 		assertEquals(
-			ConstantStateExpression(
-				ExpressionOptionalStringValue("Aeropolis")
-			), area.properties.musicTrack)
+			ConstantStateExpression(ExpressionMusicTrackValue(
+				content.audio.musicTracks.find { it.fileName == "Aeropolis" }!!
+			)), area.properties.musicTrack)
 		assertTrue(area.flags.hasClearMap)
 		// TODO CHAP3 Add error support
 	}
@@ -262,7 +267,7 @@ class TestAreaParser {
 
 		val battle = chest.battle!!
 		assertSame(content.battle.enemyPartyLayouts.find { it.name == "DRAGON" }, battle.enemyLayout)
-		assertEquals("BossBattle", battle.specialMusic)
+		assertSame(content.audio.musicTracks.find { it.fileName == "BossBattle" }!!, battle.specialMusic)
 
 		val monsters = battle.monsters
 		assertEquals(4, monsters.size)

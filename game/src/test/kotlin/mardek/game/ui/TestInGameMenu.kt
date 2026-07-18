@@ -37,7 +37,7 @@ object TestInGameMenu {
 			val input = InputManager()
 			val stateManager = GameStateManager(input, state, SavesFolderManager())
 			val soundQueue = SoundQueue()
-			val context = GameStateUpdateContext(content, input, soundQueue, 10.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds)
 			val sounds = content.audio.fixedEffects.ui
 
 			val areaColors = arrayOf(
@@ -186,7 +186,7 @@ object TestInGameMenu {
 	fun testPartyTabs(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			val sounds = content.audio.fixedEffects.ui
 
 			val baseColors = arrayOf(
@@ -326,7 +326,7 @@ object TestInGameMenu {
 			val input = InputManager()
 			val stateManager = GameStateManager(input, state, SavesFolderManager())
 			val soundQueue = SoundQueue()
-			val context = GameStateUpdateContext(content, input, soundQueue, 10.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds)
 			val sounds = content.audio.fixedEffects.ui
 
 			val baseColors = arrayOf(

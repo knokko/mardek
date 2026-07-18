@@ -6,11 +6,12 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.audio.MusicTrack
 import mardek.content.encyclopedia.EncyclopediaArea
 import mardek.content.sprite.BcSprite
 import mardek.content.expression.ConstantStateExpression
+import mardek.content.expression.ExpressionMusicTrackValue
 import mardek.content.expression.StateExpression
-import mardek.content.expression.ExpressionOptionalStringValue
 import java.util.UUID
 
 /**
@@ -40,11 +41,11 @@ class WorldMap(
 	val sprite: BcSprite,
 
 	/**
-	 * The name of the music track that should be played while the player is on this world map
+	 * The music track that should be played while the player is on this world map
 	 */
 	@BitField(id = 3)
 	@ClassField(root = StateExpression::class)
-	val music: StateExpression<String?>,
+	val music: StateExpression<MusicTrack?>,
 
 	/**
 	 * All the nodes (areas) on this world map
@@ -69,7 +70,7 @@ class WorldMap(
 
 	constructor() : this(
 		UUID.randomUUID(), "", BcSprite(),
-		ConstantStateExpression(ExpressionOptionalStringValue(null)),
+		ConstantStateExpression(ExpressionMusicTrackValue(null)),
 		arrayOf(), arrayOf(), EncyclopediaArea(),
 	)
 }

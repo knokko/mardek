@@ -19,7 +19,7 @@ object TestDreamCircles {
 	fun testDreamCircleInMagicShopChapter1(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "dream circles")
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			performTimelineTransition(
 				updateContext, state.campaign, "MainTimeline",
 				"Searching for the fallen 'star'"

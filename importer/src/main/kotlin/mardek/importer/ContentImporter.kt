@@ -71,7 +71,7 @@ fun importVanillaContent(skipMonsters: Boolean = false): Content {
 	importBattleContent(content, !skipMonsters)
 	importEncyclopediaPlaces(content, skipMonsters)
 	if (!skipMonsters) importBestiary(content)
-	importSimpleStoryContent(content.story)
+	importSimpleStoryContent(content)
 	importAreaBattleContent(content)
 	val hardcodedActions = importAreaContent(content)
 	hardcodeTimeline(content)

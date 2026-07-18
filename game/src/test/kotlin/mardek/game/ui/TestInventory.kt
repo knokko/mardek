@@ -36,7 +36,7 @@ object TestInventory {
 				)
 			}
 
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds)
 			context.input.postEvent(pressKeyEvent(InputKey.Interact)) // Skip chapter number
 			context.input.postEvent(repeatKeyEvent(InputKey.Interact)) // Skip intro cutscene
 			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
@@ -199,7 +199,7 @@ object TestInventory {
 	fun testEquipmentStatsHints(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 1.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.milliseconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
@@ -269,7 +269,7 @@ object TestInventory {
 	fun testDiscardItem(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 1.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.milliseconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
@@ -334,7 +334,7 @@ object TestInventory {
 	fun testSplitItemStack(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 1.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.milliseconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
@@ -449,7 +449,7 @@ object TestInventory {
 	fun testConsumeItems(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 1.seconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.seconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))

@@ -13,6 +13,7 @@ import mardek.content.animation.ColorTransform
 import mardek.content.area.Area
 import mardek.content.area.AreaShop
 import mardek.content.area.Direction
+import mardek.content.audio.MusicTrack
 import mardek.content.audio.SoundEffect
 import mardek.content.battle.Battle
 import mardek.content.battle.BattleBackground
@@ -615,7 +616,8 @@ class ActionSetMusic(
 	 * again.
 	 */
 	@BitField(id = 0, optional = true)
-	val newMusicTrack: String?
+	@ReferenceField(stable = false, label = "music tracks")
+	val newMusicTrack: MusicTrack?
 ) : FixedAction() {
 
 	@Suppress("unused")

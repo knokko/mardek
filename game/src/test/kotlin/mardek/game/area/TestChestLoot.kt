@@ -46,7 +46,7 @@ object TestChestLoot {
 			)
 			val soundQueue = SoundQueue()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, soundQueue, 100.milliseconds), ""
+				GameStateUpdateContext(content, titleContent, input, soundQueue, 100.milliseconds), ""
 			)
 			input.postEvent(pressKeyEvent(InputKey.MoveRight))
 			campaign.update(context)
@@ -160,7 +160,7 @@ object TestChestLoot {
 			)
 			val soundQueue = SoundQueue()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, soundQueue, 100.milliseconds), ""
+				GameStateUpdateContext(content, titleContent, input, soundQueue, 100.milliseconds), ""
 			)
 
 			val partyColors = arrayOf(

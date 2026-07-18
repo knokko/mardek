@@ -21,7 +21,7 @@ object TestTalkTriggers {
 	fun testGoznorAccessoryShop(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "talk triggers")
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			performTimelineTransition(
 				updateContext, state.campaign, "MainTimeline",
 				"Searching for the fallen 'star'",

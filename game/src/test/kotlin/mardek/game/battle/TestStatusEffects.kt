@@ -61,7 +61,7 @@ object TestStatusEffects {
 			input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+				GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
 			)
 
 			while ((campaign.state as AreaState).getPlayerPosition(0).y != 4) {

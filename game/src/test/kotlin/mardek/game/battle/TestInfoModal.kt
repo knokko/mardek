@@ -30,7 +30,7 @@ object TestInfoModal {
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
-			val context = GameStateUpdateContext(content, input, soundQueue, 10.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds)
 
 			val monsterSkinColor = arrayOf(Color(85, 56, 133))
 			val balmungHandleColor = arrayOf(Color(255, 203, 101))

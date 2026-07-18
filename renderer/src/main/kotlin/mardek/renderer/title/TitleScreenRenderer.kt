@@ -1,6 +1,5 @@
 package mardek.renderer.title
 
-import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
@@ -11,9 +10,6 @@ import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.text.Vk2dFont
 import com.github.knokko.vk2d.text.TextAlignment
-import mardek.content.BITSER
-import mardek.content.Content
-import mardek.content.ui.TitleScreenContent
 import mardek.renderer.MardekTextStyles
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
@@ -22,19 +18,7 @@ import mardek.renderer.save.renderSaveSelectionModal
 import mardek.renderer.util.renderButton
 import mardek.state.title.TitleScreenState
 import mardek.state.util.Rectangle
-import java.io.File
-import java.nio.file.Files
 import kotlin.math.roundToInt
-
-private fun loadInfo(): TitleScreenContent {
-	val inputPath = File("${Content.RESOURCES_DIRECTORY}/title-screen.bits").toPath()
-	val input = BitInputStream(Files.newInputStream(inputPath))
-	val titleScreenContent = BITSER.deserialize(TitleScreenContent::class.java, input)
-	input.close()
-	return titleScreenContent
-}
-
-internal val titleScreenInfo = loadInfo()
 
 internal fun renderTitleScreen(
 	context: RawRenderContext, fullRenderContext: RenderContext?,
@@ -69,9 +53,9 @@ internal fun renderTitleScreen(
 			(region.minX + region.width).toFloat(), (region.minY + region.height).toFloat(),
 		).fixedColorTransform(addColor(0.4f), multiplyColor())
 
-		val buttonFont = context.titleScreenBundle.getFont(titleScreenInfo.largeFont.index)
-		val basicFont = context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index)
-		val fatFont = context.titleScreenBundle.getFont(titleScreenInfo.fatFont.index)
+		val buttonFont = context.titleScreenBundle.getFont(context.titleContent.largeFont.index)
+		val basicFont = context.titleScreenBundle.getFont(context.titleContent.basicFont.index)
+		val fatFont = context.titleScreenBundle.getFont(context.titleContent.fatFont.index)
 
 		val (colorBatch, glyphBatch) = renderSaveSelectionModal(
 			fullRenderContext, basicFont, fatFont, buttonFont,
@@ -91,7 +75,7 @@ private fun renderCoreTitleScreen(
 	imageBatch.fillWithoutDistortion(
 		region.minX.toFloat(), region.minY.toFloat(),
 		region.boundX.toFloat(), region.boundY.toFloat(),
-		titleScreenInfo.background.index
+		context.titleContent.background.index
 	)
 
 	val colorBatch = context.pipelines.color.addBatch(stage, 100)
@@ -99,8 +83,8 @@ private fun renderCoreTitleScreen(
 		stage, context.perFrameDescriptorSet, 48
 	)
 
-	val buttonFont = context.titleScreenBundle.getFont(titleScreenInfo.largeFont.index)
-	val basicFont = context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index)
+	val buttonFont = context.titleScreenBundle.getFont(context.titleContent.largeFont.index)
+	val basicFont = context.titleScreenBundle.getFont(context.titleContent.basicFont.index)
 	val fancyTextBatch = context.pipelines.fancyText.addBatch(
 		stage, 300, context.fancyTextStyleCache
 	)

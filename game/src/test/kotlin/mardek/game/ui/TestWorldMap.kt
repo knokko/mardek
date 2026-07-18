@@ -30,7 +30,7 @@ object TestWorldMap {
 		instance.apply {
 			val saves = dummySaveManager()
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
 				story = state.campaign.story,
@@ -240,7 +240,7 @@ object TestWorldMap {
 	fun testGoznorToSoothwood(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "goznor" }!!,
 				story = state.campaign.story,
@@ -306,7 +306,7 @@ object TestWorldMap {
 	fun testCrashSiteToSoothwood(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "crashsite" }!!,
 				story = state.campaign.story,

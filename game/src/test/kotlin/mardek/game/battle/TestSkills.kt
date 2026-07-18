@@ -54,7 +54,7 @@ object TestSkills {
 			val input = InputManager()
 			val soundQueue = SoundQueue()
 			fun context(timeStep: Duration) = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, soundQueue, timeStep), ""
+				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
 			)
 
 			campaign.update(context(1.milliseconds))
@@ -208,7 +208,7 @@ object TestSkills {
 			val input = InputManager()
 			val soundQueue = SoundQueue()
 			fun context(timeStep: Duration) = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, soundQueue, timeStep), ""
+				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
 			)
 
 			campaign.update(context(1.milliseconds))
@@ -298,7 +298,7 @@ object TestSkills {
 
 	fun testHuffPuffFlow(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "puff")
 
 			performTimelineTransition(
@@ -419,7 +419,7 @@ object TestSkills {
 			val input = InputManager()
 			val soundQueue = SoundQueue()
 			fun context(timeStep: Duration) = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, soundQueue, timeStep), ""
+				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
 			)
 
 			campaign.update(context(1.milliseconds))

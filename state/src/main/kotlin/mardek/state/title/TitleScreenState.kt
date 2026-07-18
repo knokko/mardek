@@ -1,6 +1,8 @@
 package mardek.state.title
 
 import mardek.content.Content
+import mardek.content.audio.AudioContent
+import mardek.content.ui.TitleScreenContent
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -91,6 +93,7 @@ class TitleScreenState: GameState {
 	 * When the player exists/cancels the save file selection, this field becomes `null` again.
 	 */
 	var saveSelection: SaveSelectionState? = null
+		private set
 
 	private var afterContentLoaded: ((content: Content, soundQueue: SoundQueue) -> GameState)? = null
 
@@ -193,13 +196,18 @@ class TitleScreenState: GameState {
 		return result
 	}
 
-	override fun updateBeforeContent(input: InputManager, soundQueue: SoundQueue, saves: SavesFolderManager): GameState {
+	override fun updateBeforeContent(
+		input: InputManager, soundQueue: SoundQueue,
+		saves: SavesFolderManager, titleContent: TitleScreenContent
+	): GameState {
 		return update(input, saves, null)
 	}
 
 	override fun update(context: GameStateUpdateContext): GameState {
 		return update(context.input, context.saves, context)
 	}
+
+	override fun determineMusicTrack(content: Content?, audioContent: AudioContent) = audioContent.titleScreenTrack
 
 	private fun handleButtonClick(): GameState {
 		if (selectedButton == 0) {

@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 import mardek.content.action.ActionNode
 import mardek.content.animation.ColorTransform
+import mardek.content.audio.MusicTrack
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.encyclopedia.EncyclopediaPerson
@@ -47,6 +48,7 @@ sealed class ExpressionValue<T> {
 			ExpressionOptionalColorTransformValue::class.java,
 			ExpressionActionNodeValue::class.java,
 			ExpressionEncyclopediaPersonValue::class.java,
+			ExpressionMusicTrackValue::class.java,
 		)
 	}
 }
@@ -287,4 +289,28 @@ class ExpressionEncyclopediaPersonValue(
 	override fun get() = value
 
 	override fun toString() = "EncyclopediaPersonValue(null=${value == null})"
+}
+
+/**
+ * An [ExpressionValue] that wraps a nullable reference to a [MusicTrack].
+ *
+ * Such values are used by areas to declare which music track should be played in that area.
+ */
+@BitStruct(backwardCompatible = true)
+class ExpressionMusicTrackValue(
+
+	/**
+	 * The wrapped music track, or `null`
+	 */
+	@BitField(id = 0, optional = true)
+	@ReferenceField(stable = false, label = "music tracks")
+	val value: MusicTrack?,
+) : ExpressionValue<MusicTrack?>() {
+
+	@Suppress("unused")
+	private constructor() : this(null)
+
+	override fun get() = value
+
+	override fun toString() = "MusicTrackValue(${value?.displayName})"
 }

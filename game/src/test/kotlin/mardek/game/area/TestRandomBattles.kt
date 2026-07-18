@@ -35,7 +35,7 @@ object TestRandomBattles {
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 				val context = CampaignState.UpdateContext(
-					GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+					GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
 				)
 
 				while ((campaign.state as AreaState).getPlayerPosition(0).y != 6) {
@@ -66,7 +66,7 @@ object TestRandomBattles {
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 				val context = CampaignState.UpdateContext(
-					GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+					GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
 				)
 
 				while ((campaign.state as AreaState).getPlayerPosition(0).y != 2) {
@@ -97,7 +97,7 @@ object TestRandomBattles {
 				input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 				val context = CampaignState.UpdateContext(
-					GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+					GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
 				)
 
 				while ((campaign.state as AreaState).getPlayerPosition(0).y != 2) {
@@ -125,7 +125,7 @@ object TestRandomBattles {
 
 			val input = InputManager()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, SoundQueue(), 600.milliseconds), ""
+				GameStateUpdateContext(content, titleContent, input, SoundQueue(), 600.milliseconds), ""
 			)
 
 			input.postEvent(pressKeyEvent(InputKey.MoveDown))
@@ -165,7 +165,7 @@ object TestRandomBattles {
 
 			val input = InputManager()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, SoundQueue(), 10.milliseconds), ""
+				GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
 			)
 
 			input.postEvent(pressKeyEvent(InputKey.MoveUp))

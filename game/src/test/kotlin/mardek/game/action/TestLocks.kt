@@ -33,7 +33,7 @@ object TestLocks {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			state.campaign.state = AreaState(
 				dragonLairEntry, state.campaign.story, state.campaign.expressionContext(),
@@ -87,7 +87,7 @@ object TestLocks {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -120,7 +120,7 @@ object TestLocks {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -183,7 +183,7 @@ object TestLocks {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -227,7 +227,7 @@ object TestLocks {
 
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -308,7 +308,7 @@ object TestLocks {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,

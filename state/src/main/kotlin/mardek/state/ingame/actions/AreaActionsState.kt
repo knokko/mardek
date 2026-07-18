@@ -10,6 +10,7 @@ import mardek.content.action.*
 import mardek.content.animation.ColorTransform
 import mardek.content.area.Direction
 import mardek.content.area.objects.AreaCharacter
+import mardek.content.audio.MusicTrack
 import mardek.content.characters.CharacterCombatPerformance
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
@@ -107,7 +108,8 @@ class AreaActionsState(
 	 * music will be played (as usual). Use [ActionSetMusic] to change this field.
 	 */
 	@BitField(id = 6, optional = true)
-	var overrideMusic: String? = null
+	@ReferenceField(stable = true, label = "music tracks")
+	var overrideMusic: MusicTrack? = null
 
 	/**
 	 * When non-null, this image will be rendered in front of the area and its characters, but below the dialogue.

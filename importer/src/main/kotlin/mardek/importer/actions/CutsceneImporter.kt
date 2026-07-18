@@ -19,12 +19,12 @@ import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 
 internal fun importCutscenes(content: Content) {
-	importIntroCutscene(content.actions)
+	importIntroCutscene(content)
 	importFallingStarCutscene(content)
 	importGdmIntroCutscene(content)
 }
 
-private fun importIntroCutscene(content: ActionContent) {
+private fun importIntroCutscene(content: Content) {
 	val magicScale = 4
 
 	val context = AnimationImportContext(
@@ -63,10 +63,10 @@ private fun importIntroCutscene(content: ActionContent) {
 		payload = SimpleLazyBits(CutscenePayload(
 			frames = chapter1IntroUseful.get(),
 			magicScale = magicScale,
-			musicTrack = "Intro",
 			subtitles = chapter1IntroTexts.toTypedArray(),
 		)),
 		sounds = emptyArray(),
+		musicTrack = content.audio.musicTracks.find { it.fileName == "Intro" }!!,
 	)
 	for (sprite in context.shapeMapping.values) {
 		cutscene.payload.get().sprites.add(sprite)
@@ -76,7 +76,7 @@ private fun importIntroCutscene(content: ActionContent) {
 		cutscene.payload.get().innerAnimations.add(animation)
 	}
 
-	content.cutscenes.add(cutscene)
+	content.actions.cutscenes.add(cutscene)
 }
 
 private fun importFallingStarCutscene(content: Content) {
@@ -98,12 +98,12 @@ private fun importFallingStarCutscene(content: Content) {
 		payload = SimpleLazyBits(CutscenePayload(
 			frames = fallingStarUseful.get(),
 			magicScale = magicScale,
-			musicTrack = null,
 			subtitles = emptyArray(),
 		)),
 		sounds = arrayOf(Cutscene.SoundEntry(
 			delay = 11.seconds, sound = content.audio.effects.find { it.flashName == "boom3" }!!
-		))
+		)),
+		musicTrack = null,
 	)
 
 	for (sprite in context.shapeMapping.values) {
@@ -136,10 +136,10 @@ private fun importGdmIntroCutscene(content: Content) {
 		payload = SimpleLazyBits(CutscenePayload(
 			frames = gdmUseful.get(),
 			magicScale = magicScale,
-			musicTrack = "GdM",
 			subtitles = emptyArray(),
 		)),
 		sounds = emptyArray(),
+		musicTrack = content.audio.musicTracks.find { it.fileName == "GdM" }!!,
 	)
 
 	for (sprite in context.shapeMapping.values) {
@@ -165,17 +165,20 @@ internal fun addDummyCutscenes(content: ActionContent) {
 		name = "Chapter 1 intro",
 		payload = SimpleLazyBits(CutscenePayload()),
 		sounds = emptyArray(),
+		musicTrack = null,
 	))
 	content.cutscenes.add(Cutscene(
 		id = UUID.fromString("79f85f55-5321-415d-a12e-1d58f32f3191"),
 		name = "Falling Star",
 		payload = SimpleLazyBits(CutscenePayload()),
 		sounds = emptyArray(),
+		musicTrack = null,
 	))
 	content.cutscenes.add(Cutscene(
 		id = UUID.fromString("a54c0588-1a6f-4ab2-8bdc-3a2ff25f07fc"),
 		name = "GdM intro",
 		payload = SimpleLazyBits(CutscenePayload()),
 		sounds = emptyArray(),
+		musicTrack = null,
 	))
 }

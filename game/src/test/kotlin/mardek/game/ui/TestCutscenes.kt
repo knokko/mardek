@@ -43,7 +43,7 @@ object TestCutscenes {
 		instance.apply {
 			val titleState = TitleScreenState()
 			val context = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(),
+				content, titleContent, InputManager(), SoundQueue(),
 				10.milliseconds, dummySaveManager(),
 			)
 

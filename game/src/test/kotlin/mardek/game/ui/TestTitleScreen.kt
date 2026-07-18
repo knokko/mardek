@@ -67,7 +67,7 @@ object TestTitleScreen {
 			val saveFile = createDummySave(saves, "existing")
 
 			val state = TitleScreenState()
-			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			assertEquals(-1, state.selectedButton)
 			testRendering(
 				state, 800, 450, "new-game0",
@@ -77,7 +77,7 @@ object TestTitleScreen {
 
 			// 'Hover' over "New Game"
 			input.postEvent(pressKeyEvent(InputKey.CheatScrollDown))
-			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			assertEquals(0, state.selectedButton)
 			assertNull(state.newCampaignName)
 			assertFalse(state.isCampaignNameValid)
@@ -89,7 +89,7 @@ object TestTitleScreen {
 
 			// 'Click' on "New Game"
 			input.postEvent(pressKeyEvent(InputKey.Interact))
-			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			assertEquals(0, state.selectedButton)
 			assertEquals("", state.newCampaignName)
 			assertFalse(state.isCampaignNameValid)
@@ -100,18 +100,18 @@ object TestTitleScreen {
 
 			// Change the campaign name from "" to "."
 			input.postEvent(TextTypeEvent("."))
-			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			assertEquals(".", state.newCampaignName)
 			assertFalse(state.isCampaignNameValid)
 
 			// Clicking on "BEGIN" should have no effect since the campaign name "." is invalid
 			state.selectedButton = 4
 			input.postEvent(pressKeyEvent(InputKey.Click))
-			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 
 			// Change the campaign name from "." to ".k", which should be a valid campaign name on any desktop OS
 			input.postEvent(TextTypeEvent("k"))
-			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			assertEquals(".k", state.newCampaignName)
 			assertTrue(state.isCampaignNameValid)
 			testRendering(
@@ -122,19 +122,19 @@ object TestTitleScreen {
 			// Pressing the Interact key should NOT start the campaign, since that would auto-start the campaign when
 			// players try to put an E in the campaign name
 			input.postEvent(pressKeyEvent(InputKey.Interact))
-			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			assertEquals(".k", state.newCampaignName)
 			assertTrue(state.isCampaignNameValid)
 
 			// Click on Load Game, which should reset the campaign name
 			state.selectedButton = 1
 			input.postEvent(pressKeyEvent(InputKey.Click))
-			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			assertNull(state.newCampaignName)
 			assertNull(state.saveSelection)
 
 			// Ok, let's assume the content has finally finished loading
-			val context = GameStateUpdateContext(content, input, soundQueue, 100.milliseconds, saves)
+			val context = GameStateUpdateContext(content, titleContent, input, soundQueue, 100.milliseconds, saves)
 			assertSame(state, state.update(context))
 			assertNull(state.newCampaignName)
 			val saveSelection = state.saveSelection!!
@@ -221,7 +221,7 @@ object TestTitleScreen {
 			val saves = dummySaveManager()
 			createDummySave(saves, "test")
 			val context = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
 			)
 
 			val state = TitleScreenState()
@@ -247,7 +247,7 @@ object TestTitleScreen {
 			val saves = dummySaveManager()
 			createDummySave(saves, "test")
 			val context = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
 			)
 
 			val state = TitleScreenState()
@@ -273,7 +273,7 @@ object TestTitleScreen {
 			createDummySave(saves, "test1")
 			createDummySave(saves, "test2")
 			val context = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
 			)
 
 			val state = TitleScreenState()
@@ -308,7 +308,7 @@ object TestTitleScreen {
 			Files.copy(save1.toPath(), save2.toPath())
 
 			val context = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
 			)
 
 			val state = TitleScreenState()
@@ -374,7 +374,7 @@ object TestTitleScreen {
 
 			val state = TitleScreenState()
 			state.selectedButton = 1
-			assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			testRendering(
 				state, 800, 450, "load-game0",
 				baseColors + selectedButtonColors, textInputColors
@@ -383,7 +383,7 @@ object TestTitleScreen {
 			val sounds = content.audio.fixedEffects.ui
 			input.postEvent(pressKeyEvent(InputKey.Interact))
 			repeat(5) {
-				assertSame(state, state.updateBeforeContent(input, soundQueue, saves))
+				assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 				// saveSelection should become non-null once we call the 'real' update instead of updateBeforeContent
 				assertNull(state.saveSelection)
 			}
@@ -404,7 +404,7 @@ object TestTitleScreen {
 			val defaultBorderColors = arrayOf(Color(208, 193, 142))
 			val grayBorderColors = arrayOf(Color(180, 170, 134))
 
-			val updateContext = GameStateUpdateContext(content, input, soundQueue, 1.milliseconds, saves)
+			val updateContext = GameStateUpdateContext(content, titleContent, input, soundQueue, 1.milliseconds, saves)
 			assertSame(state, state.update(updateContext))
 			var saveSelection = state.saveSelection!!
 			assertEquals(0, saveSelection.selectedFileIndex)

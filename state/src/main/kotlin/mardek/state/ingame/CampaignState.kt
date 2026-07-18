@@ -15,6 +15,7 @@ import mardek.content.Content
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.action.FixedActionNode
 import mardek.content.area.Chest
+import mardek.content.audio.MusicTrack
 import mardek.content.characters.PlayableCharacter
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
@@ -290,11 +291,7 @@ class CampaignState : BitPostInit {
 		}
 	}
 
-	/**
-	 * Determines the name of the music track that the `AudioUpdater` should play in the current state. This is
-	 * often the background music of the current area, but not always.
-	 */
-	fun determineMusicTrack(content: Content): String? {
+	fun determineMusicTrack(content: Content): MusicTrack? {
 		return when (val state = this.state) {
 			is AreaState -> {
 				val suspension = state.suspension
@@ -321,7 +318,7 @@ class CampaignState : BitPostInit {
 				when (val node = state.node) {
 					is FixedActionNode -> {
 						val action = node.action
-						if (action is ActionPlayCutscene) action.cutscene.payload.get().musicTrack
+						if (action is ActionPlayCutscene) action.cutscene.musicTrack
 						else state.currentMusic
 					}
 					else -> state.currentMusic

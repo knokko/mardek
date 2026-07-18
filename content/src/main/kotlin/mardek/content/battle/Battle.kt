@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.audio.MusicTrack
 
 /**
  * Represents a battle that has not yet started. This class specifies the monsters that the player will fight, as well
@@ -33,17 +34,21 @@ class Battle(
 	val enemyLayout: PartyLayout,
 
 	/**
-	 * The music track that should be played during this battle, typically just "battle"
+	 * The music track that should be played during this battle, typically just the "battle" track.
+	 * When `null`, no music will be played.
 	 */
-	@BitField(id = 2)
-	val music: String,
+	@BitField(id = 2, optional = true)
+	@ReferenceField(stable = false, label = "music tracks")
+	val music: MusicTrack?,
 
 	/**
 	 * The music track that should be played during the loot screen after winning this battle,
-	 * typically "VictoryFanfare"
+	 * typically "VictoryFanfare".
+	 * When `null`, no music will be played.
 	 */
-	@BitField(id = 3)
-	val lootMusic: String,
+	@BitField(id = 3, optional = true)
+	@ReferenceField(stable = false, label = "music tracks")
+	val lootMusic: MusicTrack?,
 
 	/**
 	 * The background that will be rendered behind the combatants, typically represents the location of the battle
@@ -68,7 +73,7 @@ class Battle(
 ) {
 	constructor() : this(
 		arrayOf(null, null, null, null), PartyLayout(),
-		"", "", BattleBackground(), true, true,
+		MusicTrack(), MusicTrack(), BattleBackground(), true, true,
 	)
 }
 

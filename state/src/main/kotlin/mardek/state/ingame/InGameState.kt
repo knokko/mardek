@@ -1,5 +1,7 @@
 package mardek.state.ingame
 
+import mardek.content.Content
+import mardek.content.audio.AudioContent
 import mardek.state.GameState
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.menu.InGameMenuState
@@ -41,4 +43,7 @@ class InGameState(
 		}
 		return this
 	}
+
+	override fun determineMusicTrack(content: Content?, audioContent: AudioContent) = if (content == null) null
+			else campaign.determineMusicTrack(content)
 }

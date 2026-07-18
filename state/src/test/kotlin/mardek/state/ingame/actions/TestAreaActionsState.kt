@@ -35,6 +35,7 @@ import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
 import mardek.content.stats.CombatStat
 import mardek.content.stats.StatModifier
+import mardek.content.ui.TitleScreenContent
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -75,6 +76,7 @@ private fun createUpdateContext(
 ): AreaActionsState.UpdateContext {
 
 	val content = Content()
+	val titleContent = TitleScreenContent.dummy()
 	val areaState = AreaState(
 		Area(), null, null,
 		partyPositions[0], partyDirections[0],
@@ -92,7 +94,7 @@ private fun createUpdateContext(
 	return AreaActionsState.UpdateContext(
 		parent = AreaState.UpdateContext(
 			parent = CampaignState.UpdateContext(
-				parent = GameStateUpdateContext(content, input, soundQueue, timeStep),
+				parent = GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep),
 				campaignName = campaignName,
 			),
 			campaign = campaign,

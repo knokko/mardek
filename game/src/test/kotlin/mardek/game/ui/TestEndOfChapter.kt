@@ -32,7 +32,7 @@ object TestEndOfChapter {
 
 			val state = InGameState(simpleCampaignState(), "EndOfChapter1")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 10.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds, saves
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,

@@ -7,6 +7,7 @@ import mardek.content.Content
 import mardek.content.animation.ColorTransform
 import mardek.content.area.*
 import mardek.content.area.objects.AreaDecoration
+import mardek.content.audio.MusicTrack
 import mardek.content.encyclopedia.EncyclopediaArea
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.DefinedVariableStateCondition
@@ -17,8 +18,8 @@ import mardek.content.expression.IfElseStateExpression
 import mardek.content.expression.SwitchCaseStateExpression
 import mardek.content.expression.StateExpression
 import mardek.content.expression.ExpressionColorTransformValue
+import mardek.content.expression.ExpressionMusicTrackValue
 import mardek.content.expression.ExpressionOptionalStringValue
-import mardek.content.expression.ExpressionStringValue
 import mardek.content.expression.VariableStateExpression
 import mardek.content.story.*
 import mardek.importer.util.ActionScriptCode
@@ -194,43 +195,50 @@ internal fun parseAreaProperties(content: Content, areaCode: ActionScriptCode, a
 fun timeOfDayMusic(content: Content, dayMusic: String) = ExpressionOrDefaultStateExpression(
 	GlobalStateExpression(content.story.globalExpressions.find {
 		it.name == "TimeOfDayMusic"
-	}!! as GlobalExpression<String?>),
-	ConstantStateExpression(ExpressionOptionalStringValue(dayMusic))
+	}!! as GlobalExpression<MusicTrack?>),
+	ConstantStateExpression(ExpressionMusicTrackValue(
+		content.audio.musicTracks.find { it.fileName == dayMusic }!!
+	))
 )
 
 fun onlyDayMusic(content: Content, dayMusic: String) = IfElseStateExpression(
 	DefinedVariableStateCondition(content.story.customVariables.find { it.name == "TimeOfDay" }!!),
-	ConstantStateExpression(ExpressionOptionalStringValue(null)),
-	ConstantStateExpression(ExpressionOptionalStringValue(dayMusic)),
+	ConstantStateExpression(ExpressionMusicTrackValue(null)),
+	ConstantStateExpression(ExpressionMusicTrackValue(
+		content.audio.musicTracks.find { it.fileName == dayMusic }!!
+	)),
 )
 
 @Suppress("UNCHECKED_CAST")
-private fun parseMusicTrack(content: Content, raw: String): StateExpression<String?> {
-	if (raw == "\"none\"") return ConstantStateExpression(ExpressionOptionalStringValue(null))
+private fun parseMusicTrack(content: Content, raw: String): StateExpression<MusicTrack?> {
+	if (raw == "\"none\"") return ConstantStateExpression(ExpressionMusicTrackValue(null))
 	if (raw.startsWith('"') && raw.endsWith('"')) {
-		return ConstantStateExpression(
-			ExpressionOptionalStringValue(raw.substring(1, raw.length - 1))
+		val trackName = raw.substring(1, raw.length - 1)
+		val track = content.audio.musicTracks.find { it.fileName == trackName } ?: throw RuntimeException(
+			"Cannot find music track $trackName"
 		)
+		return ConstantStateExpression(ExpressionMusicTrackValue(track))
 	}
 
 	fun variableOrTimeOfDayMusic(variableName: String, defaultMusic: String) = ExpressionOrDefaultStateExpression(
 		VariableStateExpression(content.story.customVariables.find {
 			it.name == variableName
-		}!! as CustomTimelineVariable<String?>),
-		timeOfDayMusic(content, defaultMusic)
+		}!! as CustomTimelineVariable<MusicTrack?>), timeOfDayMusic(content, defaultMusic)
 	)
 
 	fun variableOrDefaultMusic(variableName: String, defaultMusic: String) = ExpressionOrDefaultStateExpression(
 		VariableStateExpression(content.story.customVariables.find {
 			it.name == variableName
-		}!! as CustomTimelineVariable<String?>),
-		ConstantStateExpression(ExpressionOptionalStringValue(defaultMusic))
+		}!! as CustomTimelineVariable<MusicTrack?>),
+		ConstantStateExpression(ExpressionMusicTrackValue(
+			content.audio.musicTracks.find { it.fileName == defaultMusic }!!
+		))
 	)
 
 	fun castleGoznorMusic(variableName: String) = ExpressionOrDefaultStateExpression(
 		VariableStateExpression(content.story.customVariables.find {
 			it.name == variableName
-		}!! as CustomTimelineVariable<String?>),
+		}!! as CustomTimelineVariable<MusicTrack?>),
 		SwitchCaseStateExpression(
 			input = ExpressionOrDefaultStateExpression(
 				VariableStateExpression(content.story.customVariables.find {
@@ -241,12 +249,12 @@ private fun parseMusicTrack(content: Content, raw: String): StateExpression<Stri
 			cases = arrayOf(
 				SwitchCaseStateExpression.Case(
 					inputToMatch = ConstantStateExpression(ExpressionOptionalStringValue("Day")),
-					outputWhenInputMatches = ConstantStateExpression(
-						ExpressionStringValue("Castle")
-					)
+					outputWhenInputMatches = ConstantStateExpression(ExpressionMusicTrackValue(
+						content.audio.musicTracks.find { it.fileName == "Castle" }!!
+					))
 				)
 			),
-			defaultOutput = ConstantStateExpression(ExpressionOptionalStringValue(null))
+			defaultOutput = ConstantStateExpression(ExpressionMusicTrackValue(null))
 		)
 	)
 

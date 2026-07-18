@@ -32,7 +32,7 @@ object TestDoors {
 
 			assertEquals(Direction.Up, (state.campaign.state as AreaState).getPlayerDirection(0))
 
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 2.seconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 2.seconds)
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(context)
 			state.update(context)
@@ -73,7 +73,7 @@ object TestDoors {
 			val fakeInput = InputManager()
 			fakeInput.postEvent(pressKeyEvent(InputKey.MoveUp))
 
-			val context = GameStateUpdateContext(content, fakeInput, dummySoundQueue, 10.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, fakeInput, dummySoundQueue, 10.milliseconds)
 			repeat(5000) {
 				state.update(context)
 			}
@@ -128,7 +128,7 @@ object TestDoors {
 			)
 
 			val fakeInput = InputManager()
-			val context = GameStateUpdateContext(content, fakeInput, SoundQueue(), 10.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, fakeInput, SoundQueue(), 10.milliseconds)
 
 			// Wait until area fade-in effect is over
 			repeat(100) {
@@ -192,7 +192,7 @@ object TestDoors {
 				AreaPosition(3, 5), Direction.Down, skipFadeIn = true,
 			)
 
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			val areaColors = arrayOf(
 				Color(190, 163, 128), // Light rock color
 				Color(168, 136, 95), // Dark rock color

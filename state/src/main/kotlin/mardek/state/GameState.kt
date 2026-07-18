@@ -1,6 +1,9 @@
 package mardek.state
 
 import mardek.content.Content
+import mardek.content.audio.AudioContent
+import mardek.content.audio.MusicTrack
+import mardek.content.ui.TitleScreenContent
 import mardek.input.InputManager
 import mardek.state.ingame.CampaignState
 import mardek.state.saves.SavesFolderManager
@@ -22,7 +25,10 @@ interface GameState {
 	 * title screen. Ideally, the game finishes deserializing the content before the player manages to click on
 	 * "Load Game" or "Begin". (Otherwise, the player has to wait...)
 	 */
-	fun updateBeforeContent(input: InputManager, soundQueue: SoundQueue, saves: SavesFolderManager) = this
+	fun updateBeforeContent(
+		input: InputManager, soundQueue: SoundQueue,
+		saves: SavesFolderManager, titleContent: TitleScreenContent
+	) = this
 
 	/**
 	 * This method should be called a fixed number of times per second on [GameStateManager.currentState].
@@ -31,6 +37,11 @@ interface GameState {
 	 * called instead.
 	 */
 	fun update(context: GameStateUpdateContext): GameState
+
+	/**
+	 * Determines the music track that should be played at this state
+	 */
+	fun determineMusicTrack(content: Content?, audioContent: AudioContent): MusicTrack?
 }
 
 /**
@@ -46,6 +57,11 @@ open class GameStateUpdateContext(
 	 * The game [Content], which defines e.g. all the skills, items, and monsters of the game.
 	 */
 	val content: Content,
+
+	/**
+	 * The [TitleScreenContent], which gives some texture & audio information
+	 */
+	val titleContent: TitleScreenContent,
 
 	/**
 	 * The [InputManager] that tracks all the keyboard & mouse presses.
@@ -74,7 +90,7 @@ open class GameStateUpdateContext(
 	val saves: SavesFolderManager = SavesFolderManager(),
 ) {
 	constructor(copy: GameStateUpdateContext) : this(
-		copy.content, copy.input,
+		copy.content, copy.titleContent, copy.input,
 		copy.soundQueue, copy.timeStep,
 		copy.saves,
 	)

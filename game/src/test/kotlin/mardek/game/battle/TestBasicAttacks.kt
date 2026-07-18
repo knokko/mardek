@@ -48,7 +48,7 @@ object TestBasicAttacks {
 			val input = InputManager()
 			val soundQueue = SoundQueue()
 			fun context(timeStep: Duration) = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, soundQueue, timeStep), ""
+				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
 			)
 
 			campaign.update(context(1.milliseconds))

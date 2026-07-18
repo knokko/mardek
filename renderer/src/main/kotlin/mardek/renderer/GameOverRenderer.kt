@@ -7,7 +7,6 @@ import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
-import mardek.renderer.title.titleScreenInfo
 import mardek.state.title.GameOverState
 import mardek.state.util.Rectangle
 import kotlin.math.max
@@ -35,7 +34,7 @@ internal fun renderGameOver(
 		context.stage, 120, context.textStyleCache
 	)
 	val titleHeight = region.height / 12f
-	val largeFont = context.titleScreenBundle.getFont(titleScreenInfo.largeFont.index)
+	val largeFont = context.titleScreenBundle.getFont(context.titleContent.largeFont.index)
 	for (style in arrayOf(
 		MardekTextStyles.TitleScreen.GAME_OVER_BACK1,
 		MardekTextStyles.TitleScreen.GAME_OVER_BACK2,
@@ -48,7 +47,7 @@ internal fun renderGameOver(
 		)
 	}
 
-	val smallFont = context.titleScreenBundle.getFont(titleScreenInfo.basicFont.index)
+	val smallFont = context.titleScreenBundle.getFont(context.titleContent.basicFont.index)
 	simpleTextBatch.drawString(
 		"Press E or Q to return to the Title Screen", region.minX + 0.5f * region.width,
 		region.minY + 0.65f * region.height, 0.025f * region.height, smallFont,

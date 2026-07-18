@@ -30,7 +30,7 @@ object TestChatLog {
 	fun testSequential(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(CampaignState.loadChapter(content, 1), "")
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.Interact)) // Skip chapter number
 			context.input.postEvent(repeatKeyEvent(InputKey.Interact)) // Skip intro cutscene
@@ -100,7 +100,7 @@ object TestChatLog {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -216,7 +216,7 @@ object TestChatLog {
 
 	fun testOutsideDialogue(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds)
 			val state = InGameState(simpleCampaignState(), "test")
 			state.campaign.chatLog.add(ChatLogEntry(
 				"Deugan",

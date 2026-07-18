@@ -6,6 +6,7 @@ import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.text.Vk2dFancyTextStyleCache
 import com.github.knokko.vk2d.text.Vk2dTextStyleCache
 import mardek.content.Content
+import mardek.content.ui.TitleScreenContent
 import mardek.state.GameStateManager
 import mardek.state.settings.VideoSettings
 import mardek.state.ingame.CampaignState
@@ -19,6 +20,7 @@ class RawRenderContext(
 	val fancyTextStyleCache: Vk2dFancyTextStyleCache,
 	val perFrameDescriptorSet: Long,
 	val content: Content?,
+	val titleContent: TitleScreenContent,
 	val state: GameStateManager,
 	val titleScreenBundle: Vk2dResourceBundle,
 	val videoSettings: VideoSettings,

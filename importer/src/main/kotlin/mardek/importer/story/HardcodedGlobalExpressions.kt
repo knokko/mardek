@@ -1,23 +1,24 @@
 package mardek.importer.story
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
+import mardek.content.Content
 import mardek.content.animation.ColorTransform
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.story.CustomTimelineVariable
 import mardek.content.expression.ExpressionOrDefaultStateExpression
 import mardek.content.expression.GlobalExpression
 import mardek.content.expression.GlobalStateExpression
-import mardek.content.story.StoryContent
 import mardek.content.expression.SwitchCaseStateExpression
 import mardek.content.expression.ExpressionColorTransformValue
+import mardek.content.expression.ExpressionMusicTrackValue
 import mardek.content.expression.ExpressionOptionalColorTransformValue
 import mardek.content.expression.ExpressionOptionalStringValue
 import mardek.content.expression.ExpressionStringValue
 import mardek.content.expression.VariableStateExpression
 
 @Suppress("UNCHECKED_CAST")
-internal fun hardcodeGlobalExpressions(content: StoryContent) {
-	val timeOfDay = VariableStateExpression(content.customVariables.find {
+internal fun hardcodeGlobalExpressions(content: Content) {
+	val timeOfDay = VariableStateExpression(content.story.customVariables.find {
 		it.name == "TimeOfDay"
 	}!! as CustomTimelineVariable<String?>)
 	val ambienceWithoutDefault = GlobalExpression(
@@ -51,15 +52,15 @@ internal fun hardcodeGlobalExpressions(content: StoryContent) {
 			defaultOutput = ConstantStateExpression(ExpressionOptionalColorTransformValue(null))
 		)
 	)
-	content.globalExpressions.add(ambienceWithoutDefault)
-	content.globalExpressions.add(GlobalExpression(
+	content.story.globalExpressions.add(ambienceWithoutDefault)
+	content.story.globalExpressions.add(GlobalExpression(
 		"TimeOfDayAmbienceWithDefault",
 		ExpressionOrDefaultStateExpression(
 			GlobalStateExpression(ambienceWithoutDefault),
 			ConstantStateExpression(ExpressionColorTransformValue(ColorTransform.DEFAULT)),
 		)
 	))
-	content.globalExpressions.add(GlobalExpression(
+	content.story.globalExpressions.add(GlobalExpression(
 		"TimeOfDayMusic",
 		SwitchCaseStateExpression(
 			input = ExpressionOrDefaultStateExpression(
@@ -73,7 +74,9 @@ internal fun hardcodeGlobalExpressions(content: StoryContent) {
 					)
 				)
 			),
-			defaultOutput = ConstantStateExpression(ExpressionStringValue("crickets"))
+			defaultOutput = ConstantStateExpression(ExpressionMusicTrackValue(
+				content.audio.musicTracks.find { it.fileName == "crickets" }!!
+			))
 		)
 	))
 }

@@ -7,11 +7,13 @@ import com.github.knokko.vk2d.resource.Vk2dImageCompression
 import com.github.knokko.vk2d.resource.Vk2dResourceWriter
 import mardek.content.BITSER
 import mardek.content.Content
+import mardek.content.audio.AudioContent
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
 import mardek.content.ui.Font
 import mardek.content.ui.TitleScreenContent
 import mardek.importer.util.classLoader
+import mardek.importer.util.loadBc7Sprite
 import mardek.importer.util.projectFolder
 import org.lwjgl.system.MemoryUtil.memCalloc
 import org.lwjgl.system.MemoryUtil.memFree
@@ -168,14 +170,27 @@ private fun saveMainContent(content: Content) {
 
 private fun saveTitleScreenBundle(content: Content) {
 	val resourceWriter = Vk2dResourceWriter()
+
+	val titleAudio = AudioContent()
+	titleAudio.musicTracks.addAll(content.audio.musicTracks)
+	titleAudio.musicCategories.addAll(content.audio.musicCategories)
+	titleAudio.titleScreenTrack = content.audio.titleScreenTrack
+	titleAudio.gameOverTrack = content.audio.gameOverTrack
+
 	val titleScreenContent = TitleScreenContent(
 		background = content.ui.titleScreenBackground,
 		basicFont = content.fonts.basic2.copy(),
 		fatFont = content.fonts.fat.copy(),
 		largeFont = content.fonts.large2.copy(),
+		audio = titleAudio,
+		neutralMusicNote = loadBc7Sprite("mardek/importer/audio/categories/AllMusic.png"),
 	)
 
 	addBcImage(resourceWriter, titleScreenContent.background)
+	addBcImage(resourceWriter, titleScreenContent.neutralMusicNote)
+	for (category in titleScreenContent.audio.musicCategories) {
+		addBcImage(resourceWriter, category.icon)
+	}
 	addFont(resourceWriter, titleScreenContent.basicFont)
 	addFont(resourceWriter, titleScreenContent.fatFont)
 	addFont(resourceWriter, titleScreenContent.largeFont) {

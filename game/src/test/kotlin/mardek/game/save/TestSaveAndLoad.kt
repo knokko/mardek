@@ -46,7 +46,7 @@ object TestSaveAndLoad {
 			state.campaign.characterStates[heroMardek]!!.currentLevel = 5
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 6
 
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds, saves)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds, saves)
 
 			// Interact with the crystal, and wait until the first dialogue message is fully rendered
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
@@ -106,7 +106,7 @@ object TestSaveAndLoad {
 			}
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 6
 
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds, saves)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds, saves)
 
 			// Interact with the crystal, and wait until the first dialogue message is fully rendered
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
@@ -176,7 +176,7 @@ object TestSaveAndLoad {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(Enemy(monster, 1), Enemy(monster, 1), null, null))
 
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds, saves)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves)
 			state.update(updateContext)
 
 			// Do a basic attack on the first monster
@@ -251,7 +251,7 @@ object TestSaveAndLoad {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(Enemy(monster, 1), Enemy(monster, 1), null, null))
 
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds, saves)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves)
 			state.update(updateContext)
 
 			// Ues Frostasia on the first monster
@@ -326,7 +326,7 @@ object TestSaveAndLoad {
 			val animus = content.battle.monsters.find { it.name == "kdestralan_mind" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(animus, 1)))
 
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds, saves)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves)
 			state.update(updateContext)
 
 			var battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle

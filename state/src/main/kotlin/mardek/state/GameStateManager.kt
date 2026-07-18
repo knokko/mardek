@@ -1,6 +1,7 @@
 package mardek.state
 
 import mardek.content.Content
+import mardek.content.ui.TitleScreenContent
 import mardek.input.InputManager
 import mardek.state.saves.SavesFolderManager
 import mardek.state.util.Rectangle
@@ -102,12 +103,12 @@ class GameStateManager(
 	 *
 	 * Note that [lock] should be held while calling this method.
 	 */
-	fun update(content: CompletableFuture<Content>, timeStep: Duration) {
+	fun update(content: CompletableFuture<Content>, titleContent: TitleScreenContent, timeStep: Duration) {
 		if (content.isDone) {
-			val context = GameStateUpdateContext(content.get(), input, soundQueue, timeStep, saves)
+			val context = GameStateUpdateContext(content.get(), titleContent, input, soundQueue, timeStep, saves)
 			this.currentState = this.currentState.update(context)
 		} else {
-			this.currentState = this.currentState.updateBeforeContent(input, soundQueue, saves)
+			this.currentState = this.currentState.updateBeforeContent(input, soundQueue, saves, titleContent)
 		}
 	}
 }

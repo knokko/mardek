@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.audio.MusicTrack
 import mardek.content.battle.PartyLayout
 import mardek.content.inventory.Dreamstone
 import mardek.content.inventory.ItemStack
@@ -118,18 +119,20 @@ class ChestBattle(
 	val enemyLayout: PartyLayout,
 
 	/**
-	 * When this is null, the default battle music should be played during the battle. When non-null, the music track
-	 * with the given name should be played instead.
+	 * When this is null, the default battle music should be played during the battle.
+	 * When non-null, this music track should be played instead.
 	 */
 	@BitField(id = 2, optional = true)
-	val specialMusic: String?,
+	@ReferenceField(stable = false, label = "music tracks")
+	val specialMusic: MusicTrack?,
 
 	/**
 	 * When this is null, the default victory music should be played after winning the battle.
-	 * When non-null, the music track with the given name should be played instead.
+	 * When non-null, this music track should be played instead.
 	 */
 	@BitField(id = 3, optional = true)
-	val specialLootMusic: String?,
+	@ReferenceField(stable = false, label = "music tracks")
+	val specialLootMusic: MusicTrack?,
 ) {
 	@Suppress("unused")
 	private constructor() : this(

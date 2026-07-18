@@ -21,7 +21,7 @@ object TestTimelines {
 	fun testHeroesDenTriggerTooLate(instance: TestingInstance) {
 		instance.apply {
 			val fakeInput = InputManager()
-			val updateContext = GameStateUpdateContext(content, fakeInput, SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, fakeInput, SoundQueue(), 10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			performTimelineTransition(
@@ -44,7 +44,7 @@ object TestTimelines {
 
 	fun testGeorgeBlockadeDuringChapter1Night(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			performTimelineTransition(
@@ -84,7 +84,7 @@ object TestTimelines {
 
 	fun testGeorgeIsGoneDuringChapter1Day(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			performTimelineTransition(
@@ -116,7 +116,7 @@ object TestTimelines {
 
 	fun testGeorgeBlockadeDuringLastChapter1Night(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			performTimelineTransition(

@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.animation.AnimationFrames
 import mardek.content.animation.AnimationSprite
 import mardek.content.animation.SkinnedAnimation
+import mardek.content.audio.MusicTrack
 import kotlin.longArrayOf
 
 /**
@@ -37,12 +38,6 @@ class CutscenePayload(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val magicScale: Int,
-
-	/**
-	 * The name of the music track that should be played during the cutscene, or null if no music should be played.
-	 */
-	@BitField(id = 3, optional = true)
-	val musicTrack: String?,
 ) {
 	/**
 	 * All animation sprites that are used by this cutscene
@@ -59,7 +54,7 @@ class CutscenePayload(
 	@ReferenceFieldTarget(label = "skinned animations")
 	val innerAnimations = ArrayList<SkinnedAnimation>()
 
-	constructor() : this(AnimationFrames(), emptyArray(), 0, "")
+	constructor() : this(AnimationFrames(), emptyArray(), 0)
 
 	/**
 	 * Represents a text/subtitle under a cutscene

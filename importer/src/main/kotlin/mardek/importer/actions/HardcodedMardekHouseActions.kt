@@ -129,7 +129,7 @@ internal fun hardcodeMardekHouseActions(
 				text = "Yes, that's what I feel too... " +
 						"It must be the spiritual link that we all share, as a family. Because those exist!",
 			),
-			ActionSetMusic("Enki"),
+			ActionSetMusic(content.audio.musicTracks.find { it.fileName == "Enki" }!!),
 			ActionSetBackgroundImage(enkiBackground),
 			ActionAddEncyclopediaPerson(content.encyclopedia.people.find {
 				it.snapshots[0].firstName == "Lilanea"
@@ -494,7 +494,7 @@ internal fun hardcodeMardekHouseActions(
 			text = "You! You weird thing in me! Can you hear me if I talk?",
 		),
 		ActionRotate(target = targetMardek, newDirection = Direction.Possessed),
-		ActionSetMusic("Rohoph"),
+		ActionSetMusic(content.audio.musicTracks.find { it.fileName =="Rohoph" }!!),
 		ActionTalk(
 			speaker = targetChildRohoph,
 			expression = "smile",
@@ -650,7 +650,7 @@ internal fun hardcodeMardekHouseActions(
 		ActionRotate(target = targetMardek, newDirection = Direction.Sleep),
 		ActionSetOverlayColor(color = rgb(0, 0, 0), transitionTime = 2.seconds),
 		ActionToGlobalActions(),
-		ActionSetMusic("GdM"),
+		ActionSetMusic(content.audio.musicTracks.find { it.fileName == "GdM" }!!),
 		ActionPlayCutscene(content.actions.cutscenes.find { it.name == "GdM intro" }!!, false),
 		ActionSetBackground(content.battle.backgrounds.find { it.name == "GdM" }!!),
 		ActionTalk(

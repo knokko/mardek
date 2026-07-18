@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import mardek.content.audio.MusicTrack
 import mardek.content.audio.SoundEffect
 import java.util.UUID
 import kotlin.time.Duration
@@ -39,11 +40,18 @@ class Cutscene(
 	 */
 	@BitField(id = 3)
 	val sounds: Array<SoundEntry>,
+
+	/**
+	 * The music track that should be played during the cutscene, or null if no music should be played.
+	 */
+	@BitField(id = 4, optional = true)
+	@ReferenceField(stable = false, label = "music tracks")
+	val musicTrack: MusicTrack?,
 ) {
 
 	internal constructor() : this(
 		UUID(0, 0), "",
-		SimpleLazyBits(CutscenePayload()), emptyArray(),
+		SimpleLazyBits(CutscenePayload()), emptyArray(), null,
 	)
 
 	/**

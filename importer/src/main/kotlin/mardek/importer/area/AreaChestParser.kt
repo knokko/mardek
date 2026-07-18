@@ -76,9 +76,14 @@ internal fun parseAreaChests(
 
 		val rawSpecialMusic = rawChest["specialMusic"]
 		val specialMusic = if (rawSpecialMusic == null) null
-		else parseFlashString(rawSpecialMusic, "chest battle music")!!
+		else content.audio.musicTracks.find {
+			it.fileName == parseFlashString(rawSpecialMusic, "chest battle music")!!
+		}!!
 
-		battle = ChestBattle(monsters, layout, specialMusic, "VictoryFanfare2")
+		battle = ChestBattle(
+			monsters, layout, specialMusic,
+			content.audio.musicTracks.find { it.fileName == "VictoryFanfare2" }!!,
+		)
 	}
 
 	Chest(

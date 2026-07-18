@@ -26,7 +26,7 @@ object TestActionBar {
 	fun testDisabledButtons(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 
 			val deuganState = state.campaign.characterStates[heroDeugan]!!
 			deuganState.currentHealth = 10

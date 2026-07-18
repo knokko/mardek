@@ -45,7 +45,7 @@ object TestWalking {
 
 			repeat(50) {
 				val state = InGameState(simpleCampaignState(), "test walking")
-				val updateContext = GameStateUpdateContext(content, InputManager(), SoundQueue(), 100.milliseconds)
+				val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds)
 				performTimelineTransition(
 					updateContext, state.campaign, "MainTimeline",
 					"Searching for the fallen 'star'"

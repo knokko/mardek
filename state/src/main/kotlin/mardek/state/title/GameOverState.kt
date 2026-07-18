@@ -1,5 +1,7 @@
 package mardek.state.title
 
+import mardek.content.Content
+import mardek.content.audio.AudioContent
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.state.GameState
@@ -28,4 +30,6 @@ class GameOverState: GameState {
 
 		return this
 	}
+
+	override fun determineMusicTrack(content: Content?, audioContent: AudioContent) = audioContent.gameOverTrack
 }

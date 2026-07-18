@@ -224,7 +224,7 @@ object TestBattleLoot {
 			val soundQueue = SoundQueue()
 			val input = InputManager()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, soundQueue, 10.milliseconds), ""
+				GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds), ""
 			)
 			campaign.update(context)
 			assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
@@ -300,7 +300,7 @@ object TestBattleLoot {
 			val soundQueue = SoundQueue()
 			val input = InputManager()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, soundQueue, 10.milliseconds), ""
+				GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds), ""
 			)
 
 			// Fill the inventory of Deugan with junk, except slots 10 and 20
@@ -422,7 +422,7 @@ object TestBattleLoot {
 			val input = InputManager()
 			input.postEvent(pressKeyEvent(InputKey.Interact))
 			campaign.update(CampaignState.UpdateContext(
-				GameStateUpdateContext(content, input, SoundQueue(), 1.seconds), ""
+				GameStateUpdateContext(content, titleContent, input, SoundQueue(), 1.seconds), ""
 			))
 			testRendering(
 				state, 800, 450, "loot-taken",

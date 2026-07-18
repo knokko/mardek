@@ -48,6 +48,7 @@ import java.util.Collections
 class TestingInstance {
 
 	val content = loadContent()
+	val titleContent = loadTitleScreenContent()
 
 	val boiler: BoilerInstance
 	val pipelineContext: Vk2dPipelineContext
@@ -111,7 +112,8 @@ class TestingInstance {
 				VideoSettings(0, capFps = false, showFps = false, framesInFlight = 1, delayRendering = true),
 				AudioSettings(100, 100, 100),
 			),
-			pipelineContext
+			pipelineContext,
+			titleContent,
 		)
 		renderManager.loadMainResources(File("${Content.RESOURCES_DIRECTORY}/content.vk2d").toPath())
 		renderManager.content = content
@@ -161,8 +163,8 @@ class TestingInstance {
 			battle = Battle(
 				startingEnemies = enemies,
 				enemyLayout = content.battle.enemyPartyLayouts.find { it.name == "DEFAULT" }!!,
-				music = "battle",
-				lootMusic = "VictoryFanfare",
+				music = content.audio.defaultBattleTrack,
+				lootMusic = content.audio.defaultVictoryTrack,
 				background = content.battle.backgrounds.find { it.name == backgroundName }!!,
 				canFlee = canFlee,
 				isRandom = true,

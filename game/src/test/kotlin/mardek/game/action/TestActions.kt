@@ -53,7 +53,7 @@ object TestActions {
 			)
 			state.campaign.state = areaState
 
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 
 			// Walk left towards the save crystal
 			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
@@ -171,7 +171,7 @@ object TestActions {
 			))
 
 			val context = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 10.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
 			)
 			state.update(context)
 
@@ -210,7 +210,7 @@ object TestActions {
 			))
 
 			state.update(GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 10.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
 			))
 
 			assertSame(
@@ -243,7 +243,7 @@ object TestActions {
 				initialPlayerDirection = Direction.Up,
 			)
 
-			val context = GameStateUpdateContext(content, InputManager(), SoundQueue(), 10.milliseconds)
+			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
 			state.update(context)
 			assertNull((state.campaign.state as AreaState).suspension)
 

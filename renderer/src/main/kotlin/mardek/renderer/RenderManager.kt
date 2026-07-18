@@ -13,6 +13,7 @@ import com.github.knokko.vk2d.resource.Vk2dResourceLoader
 import com.github.knokko.vk2d.text.Vk2dFancyTextStyleCache
 import com.github.knokko.vk2d.text.Vk2dTextStyleCache
 import mardek.content.Content
+import mardek.content.ui.TitleScreenContent
 import mardek.state.GameStateManager
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
@@ -27,6 +28,7 @@ class RenderManager(
 	private val vk2d: Vk2dInstance,
 	private val userSettings: UserSettings,
 	pipelineContext: Vk2dPipelineContext,
+	private val titleContent: TitleScreenContent,
 ) {
 
 	lateinit var titleScreenResources: Vk2dResourceBundle
@@ -84,7 +86,7 @@ class RenderManager(
 		} else {
 			val partialRenderContext = RawRenderContext(
 				frame.swapchainStage, pipelines, textStyleCache, fancyTextStyleCache,
-				perFrameDescriptorSet, null, gameState, titleScreenResources,
+				perFrameDescriptorSet, null, titleContent, gameState, titleScreenResources,
 				userSettings.videoSettings, currentFps,
 			)
 			renderGame(partialRenderContext, fullRenderContext)

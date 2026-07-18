@@ -1,13 +1,13 @@
 package mardek.audio
 
 import mardek.content.Content
+import mardek.content.audio.AudioContent
+import mardek.content.audio.MusicTrack
 import mardek.content.audio.SoundEffect
 import mardek.state.GameStateManager
-import mardek.state.ingame.InGameState
 import mardek.state.settings.AudioSettings
-import mardek.state.title.GameOverState
-import mardek.state.title.TitleScreenState
 import java.util.concurrent.CompletableFuture
+import kotlin.time.DurationUnit
 
 /**
  * The `AudioUpdater` makes sure that the sounds in the `SoundQueue` are actually drained & played.
@@ -19,17 +19,13 @@ import java.util.concurrent.CompletableFuture
 class AudioUpdater(
 	private val stateManager: GameStateManager,
 	private val getContent: CompletableFuture<Content>,
+	private val audioContent: AudioContent,
 	private val audioSettings: AudioSettings,
 ) {
-
 	private val manager = AudioManager()
 
 	private val musicMap = mutableMapOf<String, Int>()
-	private val musicLoopMap = AudioLooping.parse()
 	private val soundMap = mutableMapOf<SoundEffect, Int>()
-
-	private val titleScreen = manager.add("TitleScreen.ogg", null)
-	private val gameOver = manager.add("GameOver.ogg", null)
 
 	/**
 	 * This method should be called repeatedly as long as the game is running. The higher the update frequency, the
@@ -37,24 +33,15 @@ class AudioUpdater(
 	 */
 	fun update() {
 		val nextSound = stateManager.soundQueue.take()
-		var trackName: String? = null
-		var musicTrack: Int? = null
-		var musicLoopingSeconds = 0f
+		var musicTrack: MusicTrack? = null
+		var rawMusicTrack: Int? = null
 
 		val expectedMusicVolume: Float
 		val expectedSoundsVolume: Float
 		synchronized(stateManager.lock()) {
 			val state = stateManager.currentState
-
-			if (state is TitleScreenState) musicTrack = titleScreen
-			if (state is GameOverState) {
-				musicTrack = gameOver
-				musicLoopingSeconds = 6.85f
-			}
-			if (state is InGameState && getContent.isDone) {
-				trackName = state.campaign.determineMusicTrack(getContent.get())
-				musicLoopingSeconds = musicLoopMap.getOrDefault(trackName, 0f)
-			}
+			val content = if (getContent.isDone) getContent.get() else null
+			musicTrack = state.determineMusicTrack(content, audioContent)
 
 			val masterVolume = audioSettings.masterVolume * 0.01f
 			expectedMusicVolume = masterVolume * audioSettings.musicVolume * 0.01f
@@ -64,12 +51,15 @@ class AudioUpdater(
 		manager.useMusicVolume(expectedMusicVolume)
 		manager.useSoundsVolume(expectedSoundsVolume)
 
-		if (trackName != null) {
-			musicTrack = musicMap.computeIfAbsent(trackName) {
+		if (musicTrack != null) {
+			rawMusicTrack = musicMap.computeIfAbsent(musicTrack.fileName) {
 				track -> manager.add("$track.ogg", null)
 			}
 		}
-		if (musicTrack != null) manager.playMusic(musicTrack, musicLoopingSeconds)
+		if (rawMusicTrack != null) {
+			val loopSeconds = musicTrack!!.loopAfter.toDouble(DurationUnit.SECONDS)
+			manager.playMusic(rawMusicTrack, loopSeconds.toFloat())
+		}
 		else manager.stopMusic()
 
 		if (nextSound != null) {

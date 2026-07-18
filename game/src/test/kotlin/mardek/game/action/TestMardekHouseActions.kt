@@ -37,7 +37,7 @@ object TestMardekHouseActions {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 10.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -50,7 +50,10 @@ object TestMardekHouseActions {
 			)
 
 			// Enter the door
-			assertEquals("crickets", state.campaign.determineMusicTrack(content))
+			assertSame(
+				content.audio.musicTracks.find { it.fileName == "crickets" }!!,
+				state.campaign.determineMusicTrack(content)
+			)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(updateContext)
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
@@ -108,7 +111,10 @@ object TestMardekHouseActions {
 				if (actions.overrideMusic != null) break
 			}
 
-			assertEquals("Enki", state.campaign.determineMusicTrack(content))
+			assertSame(
+				content.audio.musicTracks.find { it.fileName == "Enki" }!!,
+				state.campaign.determineMusicTrack(content)
+			)
 			assertSame(content.actions.backgroundImages.find { it.name == "Enki Art" }!!, actions.backgroundImage)
 
 			val dialogueColors = arrayOf(
@@ -181,7 +187,7 @@ object TestMardekHouseActions {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 100.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -316,7 +322,7 @@ object TestMardekHouseActions {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "EndOfChapter1")
 			val updateContext = GameStateUpdateContext(
-				content, InputManager(), SoundQueue(), 10.milliseconds
+				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -352,9 +358,11 @@ object TestMardekHouseActions {
 				if (state.campaign.state !== areaState) break
 			}
 
+			val gdmTrack = content.audio.musicTracks.find { it.fileName == "GdM" }!!
+
 			val campaignActions = (state.campaign.state as CampaignActionsState)
 			assertInstanceOf<ActionPlayCutscene>((campaignActions.node as FixedActionNode).action)
-			assertEquals("GdM", state.campaign.determineMusicTrack(content))
+			assertSame(gdmTrack, state.campaign.determineMusicTrack(content))
 
 			val backgroundColors = arrayOf(
 				Color(0, 0, 0), // Lots of black
@@ -387,10 +395,10 @@ object TestMardekHouseActions {
 			)
 
 			state.update(updateContext)
-			assertEquals("GdM", state.campaign.determineMusicTrack(content))
+			assertSame(gdmTrack, state.campaign.determineMusicTrack(content))
 			sleep(2500)
 			state.update(updateContext)
-			assertEquals("GdM", state.campaign.determineMusicTrack(content))
+			assertSame(gdmTrack, state.campaign.determineMusicTrack(content))
 			testRendering(
 				state, 900, 700, "end-of-chapter1-2",
 				emptyArray(), emptyArray()
@@ -428,7 +436,7 @@ object TestMardekHouseActions {
 			repeat(100) {
 				state.update(updateContext)
 			}
-			assertEquals("GdM", state.campaign.determineMusicTrack(content))
+			assertSame(gdmTrack, state.campaign.determineMusicTrack(content))
 			testRendering(
 				state, 900, 700, "end-of-chapter1-5",
 				backgroundColors + dialogueColors + melchiorColors,

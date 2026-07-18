@@ -100,8 +100,8 @@ private fun hardcodeDragonLairRoom4Actions(
 		ActionBattle(Battle(
 			startingEnemies = arrayOf(dragonEnemy, null, null, null),
 			enemyLayout = dragonPartyLayout,
-			music = "BossBattle",
-			lootMusic = "VictoryFanfare2",
+			music = content.audio.musicTracks.find { it.fileName == "BossBattle" }!!,
+			lootMusic = content.audio.musicTracks.find { it.fileName == "VictoryFanfare2" }!!,
 			background = dragonLairBackground,
 			canFlee = false,
 			isRandom = false,

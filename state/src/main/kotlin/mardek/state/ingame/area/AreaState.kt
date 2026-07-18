@@ -664,8 +664,8 @@ class AreaState(
 								)
 							}.toTypedArray(),
 							chestBattle.enemyLayout,
-							chestBattle.specialMusic ?: "battle",
-							chestBattle.specialLootMusic ?: "VictoryFanfare",
+							chestBattle.specialMusic ?: context.content.audio.defaultBattleTrack,
+							chestBattle.specialLootMusic ?: context.content.audio.defaultVictoryTrack,
 							area.randomBattles!!.defaultBackground,
 							canFlee = false,
 							isRandom = false,
@@ -751,7 +751,8 @@ class AreaState(
 			}.toTypedArray()
 
 			val battle = Battle(
-				enemies, selection.enemyLayout, "battle", "VictoryFanfare",
+				enemies, selection.enemyLayout,
+				context.content.audio.defaultBattleTrack, context.content.audio.defaultVictoryTrack,
 				randomBattles.specialBackground ?: randomBattles.defaultBackground,
 				canFlee = true, isRandom = true,
 			)

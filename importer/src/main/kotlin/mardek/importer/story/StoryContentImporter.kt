@@ -1,9 +1,9 @@
 package mardek.importer.story
 
-import mardek.content.story.StoryContent
+import mardek.content.Content
 
-internal fun importSimpleStoryContent(content: StoryContent) {
-	importQuests(content)
-	hardcodeCustomVariables(content)
+internal fun importSimpleStoryContent(content: Content) {
+	importQuests(content.story)
+	hardcodeCustomVariables(content.story)
 	hardcodeGlobalExpressions(content)
 }

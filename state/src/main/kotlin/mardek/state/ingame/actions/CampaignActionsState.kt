@@ -15,6 +15,7 @@ import mardek.content.action.ActionTalk
 import mardek.content.action.ActionToArea
 import mardek.content.action.FixedAction
 import mardek.content.action.FixedActionNode
+import mardek.content.audio.MusicTrack
 import mardek.content.battle.BattleBackground
 import mardek.input.Event
 import mardek.input.InputKey
@@ -55,7 +56,8 @@ class CampaignActionsState(
 	 * This field is initially null, but can be changed by [ActionSetMusic].
 	 */
 	@BitField(id = 1, optional = true)
-	var currentMusic: String? = null
+	@ReferenceField(stable = true, label = "music tracks")
+	var currentMusic: MusicTrack? = null
 		private set
 
 	/**
@@ -129,7 +131,7 @@ class CampaignActionsState(
 	/**
 	 * Used by the renderer to track the lightning effect renderer
 	 */
-	var lightningRenderInfo: Any = Object()
+	var lightningRenderInfo: Any = Any()
 
 	@Suppress("unused")
 	private constructor() : this(FixedActionNode())

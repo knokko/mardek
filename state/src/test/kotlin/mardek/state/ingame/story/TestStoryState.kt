@@ -11,6 +11,7 @@ import mardek.content.expression.ExpressionIntValue
 import mardek.content.story.TimelineNode
 import mardek.content.expression.ExpressionOptionalPlayerValue
 import mardek.content.expression.ExpressionUnitValue
+import mardek.content.ui.TitleScreenContent
 import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
@@ -45,6 +46,7 @@ class TestStoryState {
 	private val simpleIntVariable = FixedTimelineVariable<Int>()
 
 	private val content = Content()
+	private val titleContent = TitleScreenContent.dummy()
 	private val mardek = PlayableCharacter()
 	private val deugan = PlayableCharacter()
 	private val emela = PlayableCharacter()
@@ -186,7 +188,7 @@ class TestStoryState {
 
 	private val state = CampaignState()
 	private val updateContext = CampaignState.UpdateContext(
-		GameStateUpdateContext(content, InputManager(), SoundQueue(), 1.seconds),
+		GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.seconds),
 		"",
 	)
 
