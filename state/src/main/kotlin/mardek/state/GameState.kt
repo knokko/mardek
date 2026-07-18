@@ -2,11 +2,11 @@ package mardek.state
 
 import mardek.content.Content
 import mardek.content.audio.AudioContent
-import mardek.content.audio.MusicTrack
 import mardek.content.ui.TitleScreenContent
 import mardek.input.InputManager
 import mardek.state.ingame.CampaignState
 import mardek.state.saves.SavesFolderManager
+import mardek.state.util.MusicPlayerJob
 import kotlin.time.Duration
 
 /**
@@ -41,7 +41,7 @@ interface GameState {
 	/**
 	 * Determines the music track that should be played at this state
 	 */
-	fun determineMusicTrack(content: Content?, audioContent: AudioContent): MusicTrack?
+	fun determineMusic(content: Content?, audioContent: AudioContent): MusicPlayerJob
 }
 
 /**

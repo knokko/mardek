@@ -20,43 +20,93 @@ class TitleScreenContent(
 	val background: BcSprite,
 
 	/**
-	 * The basic font used by the title screen
+	 * The arrow head sprite, which is used in the Music Player
 	 */
 	@BitField(id = 1)
+	val arrowHead: BcSprite,
+
+	/**
+	 * The crystal pointer sprite (used by the Music Player)
+	 */
+	@BitField(id = 2)
+	val crystalPointer: BcSprite,
+
+	/**
+	 * The basic font used by the title screen
+	 */
+	@BitField(id = 3)
 	val basicFont: Font,
 
 	/**
 	 * The fat font used by the title screen
 	 */
-	@BitField(id = 2)
+	@BitField(id = 4)
 	val fatFont: Font,
 
 	/**
 	 * The full-uppercase font used by the title screen
 	 */
-	@BitField(id = 3)
+	@BitField(id = 5)
 	val largeFont: Font,
+
+	/**
+	 * The 'boring' (Myriad) font
+	 */
+	@BitField(id = 6)
+	val boringFont: Font,
 
 	/**
 	 * The subset of the [AudioContent] that is relevant for the title screen,
 	 * currently just the music tracks and music categories.
 	 */
-	@BitField(id = 4)
+	@BitField(id = 7)
 	val audio: AudioContent,
 
 	/**
 	 * The yellow/brown music note icon/image that represents music tracks from all music categories,
 	 * and is shown in the Music Player.
 	 */
-	@BitField(id = 5)
+	@BitField(id = 8)
 	val neutralMusicNote: BcSprite,
+
+	/**
+	 * A sprite containing the shadow of a music note
+	 */
+	@BitField(id = 9)
+	val musicNoteShadow: BcSprite,
+
+	/**
+	 * The icon in the Music Player to play/unpause the current music track
+	 */
+	@BitField(id = 10)
+	val playMusicIcon: BcSprite,
+
+	/**
+	 * The icon in the Music Player to pause the current music track
+	 */
+	@BitField(id = 11)
+	val pauseMusicIcon: BcSprite,
+
+	/**
+	 * [playMusicIcon] while the mouse is hovering over it
+	 */
+	@BitField(id = 12)
+	val playMusicHoveredIcon: BcSprite,
+
+	/**
+	 * [pauseMusicIcon] while the mouse is hovering over it
+	 */
+	@BitField(id = 13)
+	val pauseMusicHoveredIcon: BcSprite,
 ) {
 
 	@Suppress("unused")
 	private constructor() : this(
-		BcSprite(),
-		Font(), Font(), Font(),
-		AudioContent(), BcSprite(),
+		BcSprite(), BcSprite(), BcSprite(),
+		Font(), Font(), Font(), Font(),
+		AudioContent(), BcSprite(), BcSprite(),
+		BcSprite(), BcSprite(),
+		BcSprite(), BcSprite(),
 	)
 
 	companion object {

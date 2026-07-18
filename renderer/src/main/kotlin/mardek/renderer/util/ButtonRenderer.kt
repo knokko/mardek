@@ -23,9 +23,8 @@ internal fun renderButton(
 	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch, textBatch: Vk2dFancyTextBatch, font: Vk2dFont,
 	showTextOutline: Boolean, text: String, renderLeftBorder: Boolean, isSelected: Boolean, isDisabled: Boolean,
 	rect: Rectangle, outlineWidth: Int, textOffsetX: Int, textBaseY: Int, textHeight: Int,
+	disabledAlpha: Float = 0.2f,
 ) {
-	val disabledAlpha = 0.2f
-
 	var borderLight = srgbToLinear(rgb(255, 204, 153))
 	val borderHoverLight = srgbToLinear(rgb(152, 190, 222))
 

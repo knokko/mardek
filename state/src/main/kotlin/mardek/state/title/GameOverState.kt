@@ -6,6 +6,7 @@ import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.state.GameState
 import mardek.state.GameStateUpdateContext
+import mardek.state.util.MusicPlayerJob
 
 /**
  * The **Game Over** state, which is reached e.g. when the player loses a battle.
@@ -31,5 +32,7 @@ class GameOverState: GameState {
 		return this
 	}
 
-	override fun determineMusicTrack(content: Content?, audioContent: AudioContent) = audioContent.gameOverTrack
+	override fun determineMusic(
+		content: Content?, audioContent: AudioContent
+	) = MusicPlayerJob(audioContent.gameOverTrack)
 }

@@ -20,8 +20,10 @@ import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import java.nio.channels.FileChannel
 import kotlin.math.abs
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
-private fun readVorbis(fileName: String?, byteArray: ByteArray?, alBuffer: Int, stack: MemoryStack) {
+private fun readVorbis(fileName: String?, byteArray: ByteArray?, alBuffer: Int, stack: MemoryStack): Float {
 	val vorbisBuffer = if (byteArray != null) {
 		val buffer = memCalloc(byteArray.size)
 		buffer.put(0, byteArray)
@@ -59,12 +61,17 @@ private fun readVorbis(fileName: String?, byteArray: ByteArray?, alBuffer: Int, 
 	alBufferData(alBuffer, alFormat, decodedAudio, info.sample_rate())
 	assertAlSuccess("alBufferData($fileName)")
 	memFree(decodedAudio)
+
+	val numBytes = alGetBufferi(alBuffer, AL_SIZE)
+	val numChannels = alGetBufferi(alBuffer, AL_CHANNELS)
+	val bitsPerChannel = alGetBufferi(alBuffer, AL_BITS)
+	val numSamples = numBytes * 8 / (numChannels * bitsPerChannel)
+	val frequency = alGetBufferi(alBuffer, AL_FREQUENCY)
+
+	return numSamples.toFloat() / frequency
 }
 
 internal class AudioManager {
-
-	// vorbis buffer size is 578807 and decoded size is 3378816
-	// vorbis buffer size is 309982 and decoded size is 2723328
 
 	private val device = alcOpenDevice(null as ByteBuffer?)
 	private val context: Long
@@ -72,7 +79,7 @@ internal class AudioManager {
 	private val soundSources = IntArray(3)
 	private var nextSoundSource = 0
 
-	private val buffers = mutableListOf<Int>()
+	private val buffers = mutableMapOf<Int, Float>()
 
 	init {
 		if (device == 0L) throw AudioException("alcOpenDevice returned 0")
@@ -101,13 +108,16 @@ internal class AudioManager {
 		assertAlSuccess("alGenBuffers")
 
 		val buffer = pBuffer.get(0)
-		readVorbis(fileName, bytes, buffer, stack)
-		buffers.add(buffer)
+		val durationInSeconds = readVorbis(fileName, bytes, buffer, stack)
+		buffers[buffer] = durationInSeconds
 		buffer
 	}
 
-	fun playMusic(audio: Int, loopingSeconds: Float) = play(
-		musicSource, audio, loopingSeconds
+	fun playMusic(
+		audio: Int, loopingSeconds: Float, shouldPause: Boolean,
+		infoCallback: (Duration, Duration) -> Unit,
+	) = play(
+		musicSource, audio, loopingSeconds, shouldPause, infoCallback
 	)
 
 	fun stopMusic() {
@@ -120,31 +130,44 @@ internal class AudioManager {
 	}
 
 	fun playSound(audio: Int) {
-		play(soundSources[nextSoundSource], audio, 0f)
+		play(soundSources[nextSoundSource], audio, 0f, false) {
+			_, _ ->
+		}
 		nextSoundSource = (nextSoundSource + 1) % soundSources.size
 	}
 
-	private fun play(source: Int, audio: Int, skippedSecondsWhenLooping: Float) {
+	private fun play(
+		source: Int, audio: Int, skippedSecondsWhenLooping: Float,
+		shouldPause: Boolean, infoCallback: (Duration, Duration) -> Unit,
+	) {
+		val secondsSinceStart = alGetSourcef(source, AL_SEC_OFFSET)
+		infoCallback(secondsSinceStart.toDouble().seconds, buffers[audio]!!.toDouble().seconds)
+
 		val currentAudio = alGetSourcei(source, AL_BUFFER)
 		assertAlSuccess("alGetSourcei")
 		val currentState = assertAlSuccess(alGetSourcei(source, AL_SOURCE_STATE), "alGetSourcei")
 		if (currentState == AL_PLAYING) {
-			if (audio == currentAudio) return
+			if (audio == currentAudio) {
+				if (shouldPause) alSourcePause(source)
+				return
+			}
 			alSourceStop(source)
 			assertAlSuccess("alSourceStop")
+		} else if (currentState == AL_PAUSED) {
+			if (!shouldPause) alSourcePlay(source)
+			return
 		}
 
 		if (audio == currentAudio) {
 			alSourcef(source, AL_SEC_OFFSET, skippedSecondsWhenLooping)
 			assertAlSuccess("alSourcef")
-			alSourcePlay(source)
-			assertAlSuccess("alSourcePlay")
 		} else {
 			alSourcei(source, AL_BUFFER, audio)
 			assertAlSuccess("alSourcei")
-			alSourcePlay(source)
-			assertAlSuccess("alSourcePlay")
 		}
+
+		alSourcePlay(source)
+		assertAlSuccess("alSourcePlay")
 	}
 
 	fun useMusicVolume(desiredVolume: Float) {
@@ -177,7 +200,7 @@ internal class AudioManager {
 			assertAlSuccess("alDeleteSources")
 
 			val pBuffers = stack.callocInt(buffers.size)
-			for (buffer in buffers) pBuffers.put(buffer)
+			for (buffer in buffers.keys) pBuffers.put(buffer)
 			pBuffers.flip()
 
 			alDeleteBuffers(pBuffers)

@@ -616,4 +616,75 @@ object MardekTextStyles {
 
 		val INFO = STRONG_TEXT_FILL.only()!!
 	}
+
+	object MusicPlayer {
+		val TITLE = EndOfChapter.TITLE
+		val CATEGORY = STRONG_TEXT_FILL.only()!!
+
+		private val SELECTED_OUTER_COLOR = srgbToLinear(rgb(164, 204, 253))
+		private val SELECTED_INNER_COLOR = srgbToLinear(rgb(221, 238, 253))
+		private val DEFAULT_OUTER_COLOR = srgbToLinear(rgb(238, 203, 127))
+		private val DEFAULT_INNER_COLOR = srgbToLinear(rgb(247, 231, 193))
+		private val STROKE_COLOR = rgba(0, 0, 0, 200)
+		private val STROKE_GRADIENT = Vk2dFancyTextStyle.Gradient(
+			STROKE_COLOR, 0, 0, 0, 0,
+			0.1f, 12345f, 12345f, 12345f,
+		)
+
+		val SELECTED_ENTRY_BOTTOM = Vk2dFancyTextStyle(
+			Vk2dFancyTextStyle.Gradient(
+				SELECTED_OUTER_COLOR, SELECTED_OUTER_COLOR, SELECTED_INNER_COLOR,
+				SELECTED_INNER_COLOR, 0,
+				0.2f, 0.2f, 0.8f, 0.8f
+			), 1f, 0f,
+			STROKE_GRADIENT, STROKE_GRADIENT, true,
+		)
+		val SELECTED_ENTRY_TOP = Vk2dFancyTextStyle.withoutStroke(
+			Vk2dFancyTextStyle.Gradient(
+				0, 0, SELECTED_OUTER_COLOR,
+				SELECTED_OUTER_COLOR, 0,
+				0.8f, 0.8f, 1234f, 1234f
+			), 1f, 0f,
+		)!!
+		val SELECTED_ENTRY = arrayOf(SELECTED_ENTRY_BOTTOM, SELECTED_ENTRY_TOP)
+
+		val DEFAULT_ENTRY_BOTTOM = Vk2dFancyTextStyle(
+			Vk2dFancyTextStyle.Gradient(
+				DEFAULT_OUTER_COLOR, DEFAULT_OUTER_COLOR, DEFAULT_INNER_COLOR,
+				DEFAULT_INNER_COLOR, 0,
+				0.2f, 0.2f, 0.8f, 0.8f
+			), 1f, 0f,
+			STROKE_GRADIENT, STROKE_GRADIENT, true,
+		)
+		val DEFAULT_ENTRY_TOP = Vk2dFancyTextStyle.withoutStroke(
+			Vk2dFancyTextStyle.Gradient(
+				0, 0, DEFAULT_OUTER_COLOR,
+				DEFAULT_OUTER_COLOR, 0,
+				0.8f, 0.8f, 1234f, 1234f
+			), 1f, 0f,
+		)!!
+		val DEFAULT_ENTRY = arrayOf(DEFAULT_ENTRY_BOTTOM, DEFAULT_ENTRY_TOP)
+
+		val PLAYING_INFO = Vk2dTextStyle(STRONG_TEXT_FILL, Vk2dTextStyle.StrokeStyle(
+			rgba(0, 0, 0, 200), 0.12f, true, 1f
+		))
+
+		private val TRACK_BOTTOM_COLOR = srgbToLinear(rgb(217, 152, 3))
+		private val TRACK_TOP_COLOR = srgbToLinear(rgb(255, 255, 203))
+		private val TRACK_SHADOW_COLOR = rgba(0, 0, 0, 250)
+		private val TRACK_SHADOW = Vk2dFancyTextStyle.Gradient(
+			TRACK_SHADOW_COLOR, multiplyAlpha(TRACK_SHADOW_COLOR, 0.4f),
+			0, 0, 0,
+			0.07f, 0.1f, 12345f, 12345f,
+		)
+
+		val TRACK_NAME = Vk2dFancyTextStyle(
+			Vk2dFancyTextStyle.Gradient(
+				TRACK_BOTTOM_COLOR, TRACK_BOTTOM_COLOR,
+				TRACK_TOP_COLOR, TRACK_TOP_COLOR, TRACK_TOP_COLOR,
+				0.4f, 0.4f, 12345f, 12345f,
+			), 1f, 0f,
+			TRACK_SHADOW, TRACK_SHADOW, true,
+		)
+	}
 }

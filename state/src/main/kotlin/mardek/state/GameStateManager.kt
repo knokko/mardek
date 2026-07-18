@@ -30,7 +30,11 @@ class GameStateManager(
 	 * Note that [lock] should be held while this state is being read or updated.
 	 */
 	var currentState: GameState,
-	private val saves: SavesFolderManager,
+
+	/**
+	 * The [SavesFolderManager], which determines where save files are stored
+	 */
+	val saves: SavesFolderManager,
 ) {
 
 	/**

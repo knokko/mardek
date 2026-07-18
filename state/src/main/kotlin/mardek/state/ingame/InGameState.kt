@@ -6,6 +6,7 @@ import mardek.state.GameState
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.menu.InGameMenuState
 import mardek.state.title.GameOverState
+import mardek.state.util.MusicPlayerJob
 
 /**
  * When the state is an `InGameState`, the player is currently playing the game, and not e.g. in the title screen.
@@ -44,6 +45,7 @@ class InGameState(
 		return this
 	}
 
-	override fun determineMusicTrack(content: Content?, audioContent: AudioContent) = if (content == null) null
-			else campaign.determineMusicTrack(content)
+	override fun determineMusic(content: Content?, audioContent: AudioContent) = if (content == null) {
+		MusicPlayerJob(null)
+	} else MusicPlayerJob(campaign.determineMusicTrack(content))
 }

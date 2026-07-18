@@ -178,28 +178,41 @@ private fun saveTitleScreenBundle(content: Content) {
 	titleAudio.gameOverTrack = content.audio.gameOverTrack
 
 	val titleScreenContent = TitleScreenContent(
-		background = content.ui.titleScreenBackground,
+		background = content.ui.titleScreenBackground.shallowCopy(),
+		arrowHead = content.ui.arrowHead.shallowCopy(),
+		crystalPointer = content.ui.pointer.shallowCopy(),
 		basicFont = content.fonts.basic2.copy(),
 		fatFont = content.fonts.fat.copy(),
 		largeFont = content.fonts.large2.copy(),
+		boringFont = content.fonts.basic1.copy(),
 		audio = titleAudio,
 		neutralMusicNote = loadBc7Sprite("mardek/importer/audio/categories/AllMusic.png"),
+		musicNoteShadow = loadBc7Sprite("mardek/importer/audio/categories/Shadow.png"),
+		playMusicIcon = loadBc7Sprite("mardek/importer/audio/PlayButton.png"),
+		pauseMusicIcon = loadBc7Sprite("mardek/importer/audio/PauseButton.png"),
+		playMusicHoveredIcon = loadBc7Sprite("mardek/importer/audio/PlayButtonHovered.png"),
+		pauseMusicHoveredIcon = loadBc7Sprite("mardek/importer/audio/PauseButtonHovered.png"),
 	)
 
-	addBcImage(resourceWriter, titleScreenContent.background)
-	addBcImage(resourceWriter, titleScreenContent.neutralMusicNote)
-	for (category in titleScreenContent.audio.musicCategories) {
-		addBcImage(resourceWriter, category.icon)
-	}
-	addFont(resourceWriter, titleScreenContent.basicFont)
-	addFont(resourceWriter, titleScreenContent.fatFont)
-	addFont(resourceWriter, titleScreenContent.largeFont) {
-		resourceWriter.addAtlas(
-			titleScreenContent.largeFont.index,
-			8, 200f, 0.12f,
-			0f, Float.MAX_VALUE,
-			0f, 0.12f, "MARDEK"
-		)
+	val allBcSprites = ArrayList<BcSprite>()
+	val allFonts = ArrayList<Font>()
+	val collectionMapping = HashMap<Class<*>, Collection<Any>>()
+	collectionMapping[BcSprite::class.java] = allBcSprites
+	collectionMapping[Font::class.java] = allFonts
+	BITSER.collectInstances(titleScreenContent, collectionMapping, hashMapOf())
+
+	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
+	for (font in allFonts) {
+		if (font === titleScreenContent.largeFont) {
+			addFont(resourceWriter, font) {
+				resourceWriter.addAtlas(
+					font.index,
+					8, 200f, 0.12f,
+					0f, Float.MAX_VALUE,
+					0f, 0.12f, "MARDEK"
+				)
+			}
+		} else addFont(resourceWriter, font)
 	}
 
 	val output = Files.newOutputStream(File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d").toPath())

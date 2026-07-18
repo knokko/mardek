@@ -42,8 +42,9 @@ fun TestingInstance.testRendering(
 	width: Int, height: Int, name: String,
 	expectedColors: Array<Color>, forbiddenColors: Array<Color>,
 	soundQueue: SoundQueue? = null,
+	saves: SavesFolderManager = SavesFolderManager(),
 ) {
-	val stateManager = GameStateManager(InputManager(), state, SavesFolderManager())
+	val stateManager = GameStateManager(InputManager(), state, saves)
 	testRendering(stateManager, width, height, name, expectedColors, forbiddenColors)
 	if (soundQueue != null) {
 		var nextSound = stateManager.soundQueue.take()

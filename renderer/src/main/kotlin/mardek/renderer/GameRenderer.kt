@@ -2,9 +2,11 @@ package mardek.renderer
 
 import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import mardek.renderer.title.renderFadingTitleScreen
+import mardek.renderer.title.renderMusicPlayer
 import mardek.renderer.title.renderTitleScreen
 import mardek.state.ingame.InGameState
 import mardek.state.title.GameOverState
+import mardek.state.title.MusicPlayerState
 import mardek.state.title.StartNewGameState
 import mardek.state.title.TitleScreenState
 import mardek.state.util.Rectangle
@@ -32,6 +34,7 @@ fun renderGame(context: RawRenderContext, fullContext: RenderContext?) {
 			renderRegion(context.stage)
 		)
 		is GameOverState -> renderGameOver(context, state, renderRegion(context.stage))
+		is MusicPlayerState -> renderMusicPlayer(context, state, renderRegion(context.stage))
 		else -> Pair(
 			context.pipelines.color.addBatch(context.stage, 36),
 			context.pipelines.simpleText.addBatch(context.stage, 25, context.textStyleCache),

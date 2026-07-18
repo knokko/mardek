@@ -5,6 +5,7 @@ import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.exceptions.BitserException
 import mardek.content.BITSER
 import mardek.content.Content
+import mardek.content.audio.MusicTrack
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaState
 import java.io.BufferedInputStream
@@ -18,13 +19,17 @@ import kotlin.io.path.deleteExisting
 /**
  * The `SavesFolderManager` keeps track of the save files in the saves folder/directory. It can list the saved
  * campaign names, as well as the saves in those campaigns.
+ *
+ * It also remembers which music tracks have been unlocked/discovered.
  */
 class SavesFolderManager(
 	/**
 	 * The location of the `saves` directory, which is `~/MARDEK/saves` or `Documents/MARDEK/saves` by default.
 	 * Different directories will be used during unit tests.
 	 */
-	val root: File = SAVES_DIRECTORY
+	val root: File = SAVES_DIRECTORY,
+
+	private val discoveredMusicDirectory: File = UNLOCKED_MUSIC_DIRECTORY,
 ) {
 
 	/**
@@ -158,4 +163,19 @@ class SavesFolderManager(
 			return null
 		}
 	}
+
+	private fun musicFile(track: MusicTrack) = File("$discoveredMusicDirectory/${track.id}")
+
+	/**
+	 * Unlocks/discovers [track], allowing it to be played in the Music Player of the title screen.
+	 */
+	fun unlockMusicTrack(track: MusicTrack) {
+		discoveredMusicDirectory.mkdirs()
+		musicFile(track).createNewFile()
+	}
+
+	/**
+	 * Checks whether [track] has been unlocked/discovered before (on this computer).
+	 */
+	fun isMusicTrackUnlocked(track: MusicTrack) = musicFile(track).exists()
 }

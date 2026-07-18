@@ -9,6 +9,7 @@ import mardek.state.GameState
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
+import mardek.state.util.MusicPlayerJob
 
 /**
  * This state is reached when the player clicks the **Begin** button on the title screen to start a new campaign.
@@ -59,7 +60,7 @@ class StartNewGameState(
 		} else this
 	}
 
-	override fun determineMusicTrack(content: Content?, audioContent: AudioContent) = null
+	override fun determineMusic(content: Content?, audioContent: AudioContent) = MusicPlayerJob(null)
 
 	companion object {
 		/**

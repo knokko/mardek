@@ -2,10 +2,10 @@ package mardek.audio
 
 import mardek.content.Content
 import mardek.content.audio.AudioContent
-import mardek.content.audio.MusicTrack
 import mardek.content.audio.SoundEffect
 import mardek.state.GameStateManager
 import mardek.state.settings.AudioSettings
+import mardek.state.util.MusicPlayerJob
 import java.util.concurrent.CompletableFuture
 import kotlin.time.DurationUnit
 
@@ -33,7 +33,7 @@ class AudioUpdater(
 	 */
 	fun update() {
 		val nextSound = stateManager.soundQueue.take()
-		var musicTrack: MusicTrack? = null
+		var musicJob: MusicPlayerJob
 		var rawMusicTrack: Int? = null
 
 		val expectedMusicVolume: Float
@@ -41,7 +41,7 @@ class AudioUpdater(
 		synchronized(stateManager.lock()) {
 			val state = stateManager.currentState
 			val content = if (getContent.isDone) getContent.get() else null
-			musicTrack = state.determineMusicTrack(content, audioContent)
+			musicJob = state.determineMusic(content, audioContent)
 
 			val masterVolume = audioSettings.masterVolume * 0.01f
 			expectedMusicVolume = masterVolume * audioSettings.musicVolume * 0.01f
@@ -51,16 +51,20 @@ class AudioUpdater(
 		manager.useMusicVolume(expectedMusicVolume)
 		manager.useSoundsVolume(expectedSoundsVolume)
 
+		val musicTrack = musicJob.track
 		if (musicTrack != null) {
+			stateManager.saves.unlockMusicTrack(musicTrack)
 			rawMusicTrack = musicMap.computeIfAbsent(musicTrack.fileName) {
 				track -> manager.add("$track.ogg", null)
 			}
 		}
 		if (rawMusicTrack != null) {
 			val loopSeconds = musicTrack!!.loopAfter.toDouble(DurationUnit.SECONDS)
-			manager.playMusic(rawMusicTrack, loopSeconds.toFloat())
-		}
-		else manager.stopMusic()
+			manager.playMusic(
+				rawMusicTrack, loopSeconds.toFloat(),
+				musicJob.shouldPause, musicJob.infoCallback,
+			)
+		} else manager.stopMusic()
 
 		if (nextSound != null) {
 			val soundHandle = soundMap.computeIfAbsent(nextSound) {

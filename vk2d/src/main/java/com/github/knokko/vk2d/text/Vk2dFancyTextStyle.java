@@ -1,5 +1,6 @@
 package com.github.knokko.vk2d.text;
 
+import static com.github.knokko.boiler.utilities.ColorPacker.multiplyColors;
 import static java.lang.Math.max;
 
 public record Vk2dFancyTextStyle(
@@ -13,6 +14,18 @@ public record Vk2dFancyTextStyle(
 		return new Vk2dFancyTextStyle(
 				fillColor, fillDistanceFactor, fillDistanceBias,
 				Gradient.plain(0), Gradient.plain(0), true
+		);
+	}
+
+	/**
+	 * Creates and returns a new <i>Vk2dFancyTextStyle</i> that is a copy of this style,
+	 * except that all colors are multiplied with {@code multiplyColor},
+	 * using {@link com.github.knokko.boiler.utilities.ColorPacker#multiplyColors}.
+	 */
+	public Vk2dFancyTextStyle multiply(int multiplyColor) {
+		return new Vk2dFancyTextStyle(
+				fillColor.multiply(multiplyColor), fillDistanceFactor, fillDistanceBias,
+				innerStrokeColor.multiply(multiplyColor), outerStrokeColor.multiply(multiplyColor), strokeBehindFill
 		);
 	}
 
@@ -33,6 +46,20 @@ public record Vk2dFancyTextStyle(
 		public static Gradient plain(int color) {
 			float t = 1234567.8f;
 			return new Gradient(color, color, 0, 0, 0, t, t, t, t);
+		}
+
+		/**
+		 * Creates and returns a <i>Gradient</i> that is a copy of this gradient,
+		 * except that all its colors are multiplied with {@code multiplyColor},
+		 * using {@link com.github.knokko.boiler.utilities.ColorPacker#multiplyColors}.
+		 */
+		public Gradient multiply(int multiplyColor) {
+			return new Gradient(
+					multiplyColors(baseColor, multiplyColor),
+					multiplyColors(color0, multiplyColor), multiplyColors(color1, multiplyColor),
+					multiplyColors(color2, multiplyColor), multiplyColors(color3, multiplyColor),
+					threshold0, threshold1, threshold2, threshold3
+			);
 		}
 	}
 

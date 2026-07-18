@@ -27,6 +27,7 @@ import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import java.io.File
+import java.lang.Thread.sleep
 import java.nio.file.Files
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -67,6 +68,7 @@ object TestTitleScreen {
 			val saveFile = createDummySave(saves, "existing")
 
 			val state = TitleScreenState()
+			sleep(500) // Await fade-in
 			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			assertEquals(-1, state.selectedButton)
 			testRendering(
@@ -373,6 +375,7 @@ object TestTitleScreen {
 			}
 
 			val state = TitleScreenState()
+			sleep(500) // Await fade-in
 			state.selectedButton = 1
 			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 			testRendering(

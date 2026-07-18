@@ -16,8 +16,10 @@ import mardek.renderer.RenderContext
 import mardek.renderer.menu.referenceTime
 import mardek.renderer.save.renderSaveSelectionModal
 import mardek.renderer.util.renderButton
+import mardek.state.title.MusicPlayerState
 import mardek.state.title.TitleScreenState
 import mardek.state.util.Rectangle
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 internal fun renderTitleScreen(
@@ -191,6 +193,24 @@ private fun renderCoreTitleScreen(
 			basicFont, MardekTextStyles.TitleScreen.GAME_NAME, TextAlignment.LEFT,
 		)
 	} else state.beginButton = null
+
+	fun renderFade(visibility: Float) {
+		val fadeAlpha = min(255, (255f * (1f - visibility)).roundToInt())
+		if (fadeAlpha > 0) {
+			context.pipelines.color.addBatch(context.stage, 2).fill(
+				region.minX, region.minY, region.maxX, region.maxY, rgba(0, 0, 0, fadeAlpha)
+			)
+		}
+	}
+
+	val renderTime = System.nanoTime()
+	if (renderTime < state.openedAt + TitleScreenState.FADE_IN_TIME) {
+		renderFade((renderTime - state.openedAt).toFloat() / MusicPlayerState.FADE_IN_TIME)
+	}
+
+	if (state.toMusicPlayerAt != 0L) {
+		renderFade((state.toMusicPlayerAt - renderTime).toFloat() / MusicPlayerState.FADE_IN_TIME)
+	}
 
 	return Pair(colorBatch, simpleTextBatch)
 }

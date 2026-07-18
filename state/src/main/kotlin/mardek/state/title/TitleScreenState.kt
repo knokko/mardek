@@ -13,6 +13,7 @@ import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.saves.SaveSelectionState
 import mardek.state.saves.SavesFolderManager
+import mardek.state.util.MusicPlayerJob
 import mardek.state.util.Rectangle
 
 /**
@@ -21,6 +22,13 @@ import mardek.state.util.Rectangle
  * From this state, the player can load an existing save/campaign, or start a new one.
  */
 class TitleScreenState: GameState {
+
+	/**
+	 * The time (from `System.nanoTime()`) at which the title screen was opened.
+	 *
+	 * This field is used to render the fade-in.
+	 */
+	val openedAt = System.nanoTime()
 
 	/**
 	 * The region where the "New Game" button was rendered, or `null` before the first frame is rendered.
@@ -97,7 +105,18 @@ class TitleScreenState: GameState {
 
 	private var afterContentLoaded: ((content: Content, soundQueue: SoundQueue) -> GameState)? = null
 
+	/**
+	 * This field is initially 0, but becomes non-zero when the player clicks on the "Music Player" button.
+	 * When that button is clicked, this field is set to `System.nanoTime() + MusicPlayerState.FADE_IN_TIME`,
+	 * after which the title screen fade-out starts.
+	 *
+	 * When `toMusicPlayerAt != 0L && System.nanoTime() > toMusicPlayerAt`, the music player is opened.
+	 */
+	var toMusicPlayerAt = 0L
+		private set
+
 	private fun update(input: InputManager, saves: SavesFolderManager, context: GameStateUpdateContext?): GameState {
+		if (toMusicPlayerAt != 0L) return if (System.nanoTime() > toMusicPlayerAt) MusicPlayerState() else this
 		while (true) {
 			val event = input.consumeEvent() ?: break
 
@@ -207,7 +226,9 @@ class TitleScreenState: GameState {
 		return update(context.input, context.saves, context)
 	}
 
-	override fun determineMusicTrack(content: Content?, audioContent: AudioContent) = audioContent.titleScreenTrack
+	override fun determineMusic(
+		content: Content?, audioContent: AudioContent
+	) = MusicPlayerJob(audioContent.titleScreenTrack)
 
 	private fun handleButtonClick(): GameState {
 		if (selectedButton == 0) {
@@ -226,6 +247,7 @@ class TitleScreenState: GameState {
 				this
 			}
 		}
+		if (selectedButton == 2) toMusicPlayerAt = System.nanoTime() + MusicPlayerState.FADE_IN_TIME
 		if (selectedButton == 3) return ExitState()
 		if (selectedButton == 4) tryToStartNewGame()
 		return this
@@ -242,5 +264,13 @@ class TitleScreenState: GameState {
 
 	private fun startNewGame(content: Content, campaignName: String): GameState {
 		return StartNewGameState(this, CampaignState.loadChapter(content, 1), campaignName)
+	}
+
+	companion object {
+
+		/**
+		 * The duration of the title screen fade-in, in nanoseconds
+		 */
+		const val FADE_IN_TIME = MusicPlayerState.FADE_IN_TIME
 	}
 }

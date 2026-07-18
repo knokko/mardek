@@ -15,6 +15,18 @@ val STORAGE_DIRECTORY = File("${System.getProperty("user.home")}/MARDEK")
 val SAVES_DIRECTORY = File("$STORAGE_DIRECTORY/saves")
 
 /**
+ * The directory that contains the IDs of the all the [mardek.content.audio.MusicTrack]s that have been 'unlocked'.
+ * Only these music tracks can be played in the Music Player.
+ *
+ * Music tracks are marked as 'unlocked' by creating an (empty) file in this directory,
+ * whose name is the id of the discovered music track.
+ *
+ * Note that unlike most other state, the discovered music tracks are *not* tied to a particular save file:
+ * players can listen to all music tracks discovered during at least one save file.
+ */
+val UNLOCKED_MUSIC_DIRECTORY = File("$STORAGE_DIRECTORY/unlocked-music")
+
+/**
  * The file where the video settings will be stored
  */
 val VIDEO_SETTINGS_FILE = File("$STORAGE_DIRECTORY/video-settings")

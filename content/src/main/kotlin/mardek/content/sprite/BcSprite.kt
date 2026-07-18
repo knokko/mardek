@@ -84,4 +84,17 @@ class BcSprite(
 	private fun saveData(context: FunctionContext): ByteArray? {
 		return if (context.withParameters.containsKey("exporting")) null else data
 	}
+
+	/**
+	 * Creates a shallow copy of this sprite, with an independent [index].
+	 *
+	 * Note that the [bufferedImage] and [data] are *not* copied: they will be shared!
+	 */
+	fun shallowCopy(): BcSprite {
+		val copied = BcSprite(width, height, version, clamped, artificialOffset)
+		copied.bufferedImage = this.bufferedImage
+		copied.data = this.data
+		copied.index = this.index
+		return copied
+	}
 }

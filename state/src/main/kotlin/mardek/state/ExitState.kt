@@ -2,6 +2,7 @@ package mardek.state
 
 import mardek.content.Content
 import mardek.content.audio.AudioContent
+import mardek.state.util.MusicPlayerJob
 
 /**
  * When the game reaches this state, it should close the window and stop the process.
@@ -13,5 +14,5 @@ class ExitState: GameState {
 
 	override fun update(context: GameStateUpdateContext) = this
 
-	override fun determineMusicTrack(content: Content?, audioContent: AudioContent) = null
+	override fun determineMusic(content: Content?, audioContent: AudioContent) = MusicPlayerJob(null)
 }

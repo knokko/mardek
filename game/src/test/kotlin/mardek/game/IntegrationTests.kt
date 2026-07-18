@@ -32,6 +32,7 @@ import mardek.game.ui.TestEndOfChapter
 import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestInventory
 import mardek.game.ui.TestItemStorage
+import mardek.game.ui.TestMusicPlayer
 import mardek.game.ui.TestTitleScreen
 import mardek.game.ui.TestWorldMap
 import org.junit.jupiter.api.*
@@ -273,6 +274,11 @@ class IntegrationTests {
 		TestTitleScreen.testLoadGameMissingCampaignEdgeCase(instance)
 		TestTitleScreen.testLoadGameMissingSaveEdgeCase(instance)
 		TestTitleScreen.testLoadGameHappyFlow(instance)
+	}
+
+	@Test
+	fun testMusicPlayer() {
+		TestMusicPlayer.runTest(instance)
 	}
 
 	@Test
