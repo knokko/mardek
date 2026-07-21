@@ -148,10 +148,7 @@ class TitleScreenState: GameState {
 						if (outcome.canceled) saveSelection = null
 						if (outcome.finished) {
 							val campaignState = context.saves.loadSave(context.content, outcome.save!!)
-							if (campaignState != null) {
-								campaignState.markSessionStart()
-								return InGameState(campaignState, outcome.save.campaignName)
-							}
+							if (campaignState != null) return InGameState(campaignState, outcome.save.campaignName)
 						}
 						if (outcome.finished || outcome.failed) {
 							context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickReject)

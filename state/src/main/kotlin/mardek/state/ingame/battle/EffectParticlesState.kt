@@ -1,6 +1,8 @@
 package mardek.state.ingame.battle
 
 import mardek.content.particle.ParticleEmitter
+import mardek.state.util.RenderTiming
+import mardek.content.util.Time
 
 /**
  * This class tracks the state of the particles and emitters for a status effect of a single combatant.
@@ -8,10 +10,10 @@ import mardek.content.particle.ParticleEmitter
 class EffectParticlesState(
 
 	/**
-	 * The time (`System.nanoTime()`) at which the particle effects of this status effect were rendered for the
-	 * first time. (Normally, this should be almost right after the status effect was given to the combatant.)
+	 * The time at which the particle effects of this status effect were rendered for the first time.
+	 * (Normally, this should be almost right after the status effect was given to the combatant.)
 	 */
-	val firstRenderTime: Long,
+	val firstRenderTime: Time,
 	emitters: Array<ParticleEmitter>,
 ) {
 
@@ -23,9 +25,9 @@ class EffectParticlesState(
 	/**
 	 * Updates each particle emitter
 	 */
-	fun update(renderTime: Long) {
+	fun update(timing: RenderTiming) {
 		for (state in emitterStates) {
-			state.update(firstRenderTime, renderTime)
+			state.update(firstRenderTime, timing)
 		}
 	}
 }

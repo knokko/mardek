@@ -27,10 +27,9 @@ import mardek.state.ingame.area.FadingCharacter
 import mardek.state.ingame.area.NextAreaPosition
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SaveSelectionState
+import mardek.content.util.Time
 import kotlin.math.min
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.ZERO
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
 
 /**
@@ -54,6 +53,11 @@ class AreaActionsState(
 	 */
 	@BitField(id = 1, optional = true)
 	val defaultDialogueObject: ActionTargetData?,
+
+	/**
+	 * The value of [AreaState.currentTime]
+	 */
+	currentAreaTime: Time,
 ) : BitPostInit {
 
 	/**
@@ -86,8 +90,8 @@ class AreaActionsState(
 	 * and by this class to determine when it should move on to the next node.
 	 */
 	@BitField(id = 4)
-	@IntegerField(expectUniform = false)
-	var currentNodeStartTime = (-1).seconds
+	var currentNodeStartTime = currentAreaTime
+		private set
 
 	/**
 	 * This map can be used to overrule the states of [AreaCharacter]s inside the area, until all actions are over.
@@ -166,10 +170,10 @@ class AreaActionsState(
 
 	/**
 	 * When the current action is `ActionSwitchArea`, the game should transition to that new area... after a small
-	 * fade-out effect. If this field is non-negative, the game should transition to that area once
-	 * `currentTime >= switchAreaAt`.
+	 * fade-out effect. If this field is non-null, the game should transition to that area once
+	 * `currentTime >= startAreaSwitch + DOOR_OPEN_DURATION`.
 	 */
-	var switchAreaAt = (-1).seconds
+	var startAreaSwitch: Time? = null
 		private set
 
 	private var speedUpShowingCharacters = false
@@ -182,10 +186,10 @@ class AreaActionsState(
 		private set
 
 	/**
-	 * The result of `System.nanoTime()` when the most recent `ActionFlashScreen` was reached, or `ZERO` if no such
-	 * action has been reached (yet).
+	 * The campaign time when the most recent `ActionFlashScreen` was reached,
+	 * or `ZERO` if no such action has been reached (yet).
 	 */
-	var lastFlashTime = 0L
+	var lastFlashTime = Time.ZERO
 		private set
 
 	/**
@@ -214,7 +218,7 @@ class AreaActionsState(
 	 */
 	var itemNotification: ItemNotification? = null
 
-	internal constructor() : this(FixedActionNode(), null)
+	internal constructor() : this(FixedActionNode(), null, Time.ZERO)
 
 	override fun postInit(context: BitPostInit.Context) {
 		val node = this.node
@@ -271,7 +275,7 @@ class AreaActionsState(
 		}
 		if (currentAction is ActionFlashScreen) {
 			lastFlashColor = currentAction.color
-			lastFlashTime = System.nanoTime()
+			lastFlashTime = context.campaign.time
 			return true
 		}
 		if (currentAction is ActionPlaySound) {
@@ -326,8 +330,8 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionToArea) {
-			if (switchAreaAt < ZERO) switchAreaAt = context.areaState.currentTime + AreaState.DOOR_OPEN_DURATION
-			if (context.areaState.currentTime >= switchAreaAt) {
+			if (startAreaSwitch == null) startAreaSwitch = context.areaState.currentTime
+			if (context.areaState.currentTime.virtualOffset(startAreaSwitch!!) >= AreaState.DOOR_OPEN_DURATION) {
 				val nextState = AreaState(
 					currentAction.area, context.campaign.story, context.campaign.expressionContext(),
 					AreaPosition(currentAction.x, currentAction.y),
@@ -337,7 +341,7 @@ class AreaActionsState(
 				val nextNode = (node as FixedActionNode).next
 				if (nextNode != null) {
 					nextState.suspension = AreaSuspensionActions(AreaActionsState(
-						nextNode, defaultDialogueObject
+						nextNode, defaultDialogueObject, context.areaState.currentTime
 					))
 				}
 			}
@@ -355,10 +359,10 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionSetOverlayColor) {
-			return context.areaState.currentTime >= currentNodeStartTime + currentAction.transitionTime
+			return context.areaState.currentTime.virtualOffset(currentNodeStartTime) >= currentAction.transitionTime
 		}
 		if (currentAction is ActionChangeAmbience) {
-			return context.areaState.currentTime >= currentNodeStartTime + currentAction.transitionTime
+			return context.areaState.currentTime.virtualOffset(currentNodeStartTime) >= currentAction.transitionTime
 		}
 		if (currentAction is ActionSetMusic) {
 			this.overrideMusic = currentAction.newMusicTrack
@@ -385,10 +389,10 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionWait) {
-			return context.areaState.currentTime >= currentNodeStartTime + currentAction.duration
+			return context.areaState.currentTime.virtualOffset(currentNodeStartTime) >= currentAction.duration
 		}
 		if (currentAction is ActionShake) {
-			return context.areaState.currentTime >= currentNodeStartTime + currentAction.totalTime
+			return context.areaState.currentTime.virtualOffset(currentNodeStartTime) >= currentAction.totalTime
 		}
 		if (currentAction is ActionSpawnAreaEffect) {
 			effects[currentAction.instance] = AreaEffectState(
@@ -397,7 +401,7 @@ class AreaActionsState(
 			return true
 		}
 		if (currentAction is ActionMoveAreaEffect) {
-			if (context.areaState.currentTime >= currentNodeStartTime + currentAction.duration) {
+			if (context.areaState.currentTime.virtualOffset(currentNodeStartTime) >= currentAction.duration) {
 				val effectInstance = effects[currentAction.instance]!!
 				effectInstance.x = currentAction.destinationX
 				effectInstance.y = currentAction.destinationY
@@ -470,7 +474,6 @@ class AreaActionsState(
 	 * `areaState.actions != null && areaState.activeBattle == null`
 	 */
 	internal fun update(context: UpdateContext) {
-		if (currentNodeStartTime == (-1).seconds) currentNodeStartTime = context.areaState.currentTime
 		while (true) {
 			val currentNode = node
 			if (currentNode is ExpressionActionNode) {
@@ -527,7 +530,7 @@ class AreaActionsState(
 
 	private fun updateWalkingWholeParty(context: UpdateContext, currentAction: ActionWalk): Boolean {
 		val next = nextPartyPositions[0]
-		if (next != null && context.areaState.currentTime >= next.arrivalTime) {
+		if (next != null && context.areaState.currentTime.virtualOffset(next.startTime) >= next.walkDuration) {
 			for (index in (1 until context.areaState.playerPositions.size).reversed()) {
 				context.areaState.playerPositions[index] = context.areaState.playerPositions[index - 1]
 				context.areaState.playerDirections[index] = context.areaState.playerDirections[index - 1]
@@ -547,12 +550,11 @@ class AreaActionsState(
 			)
 			if (nextDirection == null) return true
 
-			val arrivalTime = context.areaState.currentTime + currentAction.speed.duration
 			nextPartyPositions[0] = NextAreaPosition(
 				AreaPosition(
 					context.areaState.playerPositions[0].x + nextDirection.deltaX,
 					context.areaState.playerPositions[0].y + nextDirection.deltaY,
-				), context.areaState.currentTime, arrivalTime,
+				), context.areaState.currentTime, currentAction.speed.duration,
 				null,
 			)
 			context.areaState.playerDirections[0] = nextDirection
@@ -566,7 +568,10 @@ class AreaActionsState(
 				if (direction != null) {
 					// Expected case: party member walks to current position of the 'next' party member
 					nextPartyPositions[index] = NextAreaPosition(
-						targetPosition, context.areaState.currentTime, arrivalTime, null
+						targetPosition,
+						context.areaState.currentTime,
+						currentAction.speed.duration,
+						null,
 					)
 					context.areaState.playerDirections[index] = direction
 				} else {
@@ -590,7 +595,7 @@ class AreaActionsState(
 		)
 
 		val nextPosition = characterState.next
-		if (nextPosition != null && context.areaState.currentTime >= nextPosition.arrivalTime) {
+		if (nextPosition != null && context.areaState.currentTime.virtualOffset(nextPosition.startTime) >= nextPosition.walkDuration) {
 			characterState = AreaCharacterState(
 				x = nextPosition.position.x,
 				y = nextPosition.position.y,
@@ -615,7 +620,7 @@ class AreaActionsState(
 							y = characterState.y + bestDirection.deltaY,
 						),
 						startTime = context.areaState.currentTime,
-						arrivalTime = context.areaState.currentTime + currentAction.speed.duration,
+						walkDuration = currentAction.speed.duration,
 						transition = null,
 					)
 				)
@@ -637,7 +642,7 @@ class AreaActionsState(
 		var position = context.areaState.playerPositions[index]
 		var nextPosition = nextPartyPositions[index]
 
-		if (nextPosition != null && context.areaState.currentTime >= nextPosition.arrivalTime) {
+		if (nextPosition != null && context.areaState.currentTime.virtualOffset(nextPosition.startTime) >= nextPosition.walkDuration) {
 			position = AreaPosition(
 				x = nextPosition.position.x,
 				y = nextPosition.position.y,
@@ -658,7 +663,7 @@ class AreaActionsState(
 						y = position.y + bestDirection.deltaY,
 					),
 					startTime = context.areaState.currentTime,
-					arrivalTime = context.areaState.currentTime + currentAction.speed.duration,
+					walkDuration = currentAction.speed.duration,
 					transition = null,
 				)
 				context.areaState.playerDirections[index] = bestDirection
@@ -677,7 +682,9 @@ class AreaActionsState(
 		val characterState = context.areaState.characterStates.remove(character) ?: throw IllegalArgumentException(
 			"Can't fade character $character that is not present"
 		)
-		context.areaState.fadingCharacters.add(FadingCharacter(character, characterState))
+		context.areaState.fadingCharacters.add(FadingCharacter(
+			character, characterState, context.areaState.currentTime
+		))
 	}
 
 	private fun rotate(action: ActionRotate, context: UpdateContext) {
@@ -710,7 +717,7 @@ class AreaActionsState(
 	 * The `CampaignState` will call this method after saving has succeeded (or was canceled). This will cause this
 	 * `AreaActionsState` to move on to the next action node.
 	 */
-	fun finishSaveNode(currentTime: Duration) {
+	fun finishSaveNode(currentTime: Time) {
 		val currentNode = node as FixedActionNode
 		if (currentNode.action !is ActionSaveCampaign) {
 			throw IllegalStateException("Expected ActionSaveCampaign, but action is ${currentNode.action}")
@@ -813,7 +820,7 @@ class AreaActionsState(
 		shopInteraction?.processMouseMove(context, event.newX, event.newY)
 	}
 
-	private fun toNextNode(currentTime: Duration, next: ActionNode?) {
+	private fun toNextNode(currentTime: Time, next: ActionNode?) {
 		val old = this.node
 		if (old is FixedActionNode) {
 			val action = old.action
@@ -920,9 +927,9 @@ class AreaActionsState(
 	companion object {
 
 		/**
-		 * The duration of 'flashes' initialized by [ActionFlashScreen], in nanoseconds
+		 * The duration of 'flashes' initialized by [ActionFlashScreen]
 		 */
-		const val FLASH_DURATION = 750_000_000L
+		val FLASH_DURATION = 750.milliseconds
 
 		@Suppress("unused")
 		@ReferenceField(stable = true, label = "area characters")

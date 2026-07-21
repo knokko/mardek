@@ -85,7 +85,7 @@ private fun parseEmissionWaves(content: Content, rawEmitter: Map<String, String>
 	var period = FLASH_FRAME * flashPeriod
 	val particlesPerFrame = parseFloat(rawEmitter["ppf"]!!)
 	val particlesPerWave = if (particlesPerFrame < 1f) {
-		period /= particlesPerFrame
+		period /= particlesPerFrame.toDouble()
 		1
 	} else particlesPerFrame.roundToInt()
 	val flashDuration = parseInt(rawEmitter["dur"]!!)

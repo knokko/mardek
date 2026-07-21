@@ -42,6 +42,8 @@ import java.util.EnumMap
 import java.util.UUID
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 const val OVERRIDE_BARTHOLIO_CHAPTER2 = """
 mdlStats = {names:["Bartholio"],model:"bartholio",unique_sprite:"bartholio",Class:"Fighter",TYPE:"HUMAN",cElem:"LIGHT",wpnType:"GREATSWORD",armrTypes:[],baseStats:{hp:45,mp:30,STR:20,VIT:18,SPR:8,AGL:11},FAIR_STATS:2,nAtk:5,nDef:0,nMDef:0,critical:3,hpGrowth:18,atkGrowth:[0,0],equip:{weapon:["MythrilGreatblade"],shield:["none"],helmet:["none"],armour:["Bronze Armour"],accs:["Gauntlet"],accs2:["GreenBeads"]},resist:{ZOM:100},EXP:1000};
@@ -129,7 +131,7 @@ private fun fumeRatParticleEmitter(particleSprite: ParticleSprite) = ParticleEmi
 	transform = EmitterTransform(),
 	sprite = particleSprite,
 	waves = EmissionWaves(
-		delay = 0f, delayedSound = null, period = 12f / 30f,
+		delay = Duration.ZERO, delayedSound = null, period = 12.seconds / 30,
 		particlesPerWave = 1, numRounds = null,
 	),
 	spawn = ParticleSpawnProperties(
@@ -156,7 +158,7 @@ private fun fumeRatParticleEmitter(particleSprite: ParticleSprite) = ParticleEmi
 		dynamicGrowX = 0f, dynamicGrowY = 0f,
 	),
 	opacity = ParticleOpacity(initial = 1f, grow = -0.6f, limit = null),
-	lifeTime = 2f,
+	lifeTime = 2.seconds,
 	mirror = false,
 )
 

@@ -11,6 +11,7 @@ import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.util.Rectangle
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.time.Duration
 
 internal fun renderLevelUps(
 	battleContext: BattleRenderContext, simpleTextBatch: Vk2dSimpleTextBatch,
@@ -19,21 +20,20 @@ internal fun renderLevelUps(
 	battleContext.run {
 		for (combatant in battle.allPlayers() + battle.allOpponents()) {
 			if (combatant !is PlayerCombatantState) continue
-
 			val levelUp = combatant.lastLevelUp ?: continue
-			var passedTime = renderTime - levelUp.startTime
+			var passedTime = context.timing.elapsedTimeSince(levelUp.startTime)
 			if (passedTime >= LevelUpIndicator.TOTAL_DURATION) continue
 
 			var offsetY = 0f
 			var alpha = 255
 			if (passedTime < LevelUpIndicator.JUMP_DURATION) {
-				val relativeTime = passedTime.toFloat() / LevelUpIndicator.JUMP_DURATION
+				val relativeTime = (passedTime / LevelUpIndicator.JUMP_DURATION).toFloat()
 				val fromMidTime = 0.5f - relativeTime
 				offsetY = (0.25f - fromMidTime.pow(2)) * 0.1f * region.height
 			}
 			passedTime -= LevelUpIndicator.JUMP_DURATION + LevelUpIndicator.STABLE_DURATION
-			if (passedTime > 0) {
-				alpha = (255f * (1f - passedTime.toFloat() / LevelUpIndicator.FADE_DURATION)).roundToInt()
+			if (passedTime > Duration.ZERO) {
+				alpha = (255f * (1f - passedTime / LevelUpIndicator.FADE_DURATION)).roundToInt()
 			}
 
 			if (alpha > 0) {

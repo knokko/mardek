@@ -4,9 +4,8 @@ import mardek.content.area.AreaDreamType
 import mardek.content.area.AreaTransitionDestination
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionOpeningDoor
-import kotlin.math.PI
-import kotlin.math.min
-import kotlin.math.sin
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 	areaContext.apply {
@@ -26,9 +25,11 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 
 		for (decoration in state.area.objects.decorations) {
 			val spritesheet = decoration.sprites ?: continue
-			val spriteIndex = (state.currentTime.inWholeMilliseconds % (decoration.timePerFrame * spritesheet.frames.size)) / decoration.timePerFrame
+			val spriteIndex = areaTimings.alternateIntegers(
+				spritesheet.frames.size, decoration.timePerFrame
+			)
 
-			val sprite = spritesheet.frames[spriteIndex.toInt()]
+			val sprite = spritesheet.frames[spriteIndex]
 			var y = tileSize * decoration.y
 			if (!decoration.canWalkThrough) y -= 4 * scale // TODO CHAP2 Find less dirty way to deal with this
 
@@ -40,9 +41,10 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 			val openingDoor = suspension as? AreaSuspensionOpeningDoor
 
 			if (openingDoor != null && door == openingDoor.door) {
-				val startTime = openingDoor.finishTime - AreaState.DOOR_OPEN_DURATION
-				val progress = (state.currentTime - startTime) / AreaState.DOOR_OPEN_DURATION
-				spriteIndex = min((door.sprites.frames.size * progress).toInt(), door.sprites.frames.size - 1)
+				spriteIndex = areaTimings.interpolate(
+					openingDoor.startTime, 0,
+					AreaState.DOOR_OPEN_DURATION, door.sprites.frames.size - 1, true,
+				)
 			}
 			renderJobs.add(SpriteRenderJob(
 				x = tileSize * door.x,
@@ -63,11 +65,13 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 				continue
 			}
 
-			val spriteIndex = (state.currentTime.inWholeMilliseconds % (15000L * spritesheet.frames.size)) / 15000L
+			val spriteIndex = areaTimings.alternateIntegers(
+				spritesheet.frames.size - 1, 15.milliseconds
+			)
 			renderJobs.add(SpriteRenderJob(
 				x = tileSize * portal.x,
 				y = tileSize * portal.y,
-				sprite = spritesheet.frames[spriteIndex.toInt()]
+				sprite = spritesheet.frames[spriteIndex]
 			))
 		}
 
@@ -97,15 +101,11 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 
 		for (transition in state.area.objects.transitions) {
 			val arrow = transition.arrow ?: continue
-
-			val period = 1000
-			val relativeTime = state.currentTime.inWholeMilliseconds % period
-			val opacity = 0.5 + 0.5 * sin(2 * PI * relativeTime / period)
 			renderJobs.add(SpriteRenderJob(
 				x = tileSize * transition.x,
 				y = tileSize * transition.y,
 				sprite = arrow.sprite,
-				opacity = opacity.toFloat()
+				opacity = areaTimings.oscillate(0f, 1f, 1.seconds)
 			))
 		}
 	}

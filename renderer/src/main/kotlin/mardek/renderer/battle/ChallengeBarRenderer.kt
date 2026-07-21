@@ -20,29 +20,31 @@ internal fun renderChallengeBar(
 ) {
 	battleContext.run {
 		val challengeState = battle.getReactionChallenge() ?: return
+		val timeSinceChallengeStart = context.timing.elapsedTimeSince(challengeState.startTime)
 
-		val (opacity, resultColor) = if (challengeState.clickedAfter == -1L) {
-			val startFadeTime = challengeState.startTime + ReactionChallenge.DURATION
-			if (renderTime > startFadeTime) {
-				val stopFadeTime = startFadeTime + ReactionChallenge.FINAL_FADE_DURATION
-				if (renderTime >= stopFadeTime) {
+		val (opacity, resultColor) = if (challengeState.clickedAfter == ReactionChallenge.NOT_YET_REACTED) {
+			if (timeSinceChallengeStart > ReactionChallenge.DURATION) {
+				val timeSinceStop = timeSinceChallengeStart - ReactionChallenge.DURATION
+				if (timeSinceStop >= ReactionChallenge.FINAL_FADE_DURATION) {
 					Pair(0f, 0)
 				} else {
-					Pair(1f - (renderTime - startFadeTime).toFloat() / ReactionChallenge.FINAL_FADE_DURATION.toFloat(), 0)
+					Pair(1f - (timeSinceStop / ReactionChallenge.FINAL_FADE_DURATION).toFloat(), 0)
 				}
 			} else Pair(1f, 0)
 		} else {
-			val startResultFadeTime = challengeState.startTime + challengeState.clickedAfter
-			val stopResultFadeTime = startResultFadeTime + ReactionChallenge.RESULT_FADE_DURATION
-			if (renderTime > stopResultFadeTime) {
-				val stopFadeTime = stopResultFadeTime + ReactionChallenge.FINAL_FADE_DURATION
-				if (renderTime >= stopFadeTime) {
+
+			val timeSinceResultFadeStart = timeSinceChallengeStart - challengeState.clickedAfter
+			if (timeSinceResultFadeStart > ReactionChallenge.RESULT_FADE_DURATION) {
+
+				val timeSinceResultFadeFinish = timeSinceResultFadeStart - ReactionChallenge.RESULT_FADE_DURATION
+				if (timeSinceResultFadeFinish >= ReactionChallenge.FINAL_FADE_DURATION) {
 					Pair(0f, 0)
 				} else {
-					Pair(1f - (renderTime - stopResultFadeTime).toFloat() / ReactionChallenge.FINAL_FADE_DURATION.toFloat(), 0)
+					Pair(1f - (timeSinceResultFadeFinish / ReactionChallenge.FINAL_FADE_DURATION).toFloat(), 0)
 				}
 			} else {
-				val resultFade = 1f - (renderTime - startResultFadeTime).toFloat() / ReactionChallenge.RESULT_FADE_DURATION.toFloat()
+
+				val resultFade = 1f - (timeSinceResultFadeStart / ReactionChallenge.RESULT_FADE_DURATION).toFloat()
 				val resultAlpha = (200 * resultFade).roundToInt()
 				if (challengeState.wasPassed()) {
 					Pair(1f, rgba(0, 250, 0, resultAlpha))
@@ -111,8 +113,8 @@ internal fun renderChallengeBar(
 				borderColor, baseColor, rightColor, upColor
 			)
 
-			val innerMinX = (minX + width * ReactionChallenge.MIN_CLICK_AFTER / ReactionChallenge.DURATION).toInt()
-			val innerMaxX = (minX + width * ReactionChallenge.MAX_CLICK_AFTER / ReactionChallenge.DURATION).toInt()
+			val innerMinX = (minX + width * (ReactionChallenge.MIN_CLICK_AFTER / ReactionChallenge.DURATION)).toInt()
+			val innerMaxX = (minX + width * (ReactionChallenge.MAX_CLICK_AFTER / ReactionChallenge.DURATION)).toInt()
 			val darkColor = srgbToLinear(rgba(210, 170, 70, highAlpha))
 			val brightColor = srgbToLinear(rgba(250, 240, 140, highAlpha))
 			colorBatch.fill(innerMinX, minY, innerMaxX, minY + height / 4, darkColor)
@@ -125,10 +127,10 @@ internal fun renderChallengeBar(
 			val cursorMinY = region.minY - region.height / 3
 			val cursorMaxY = region.maxY + region.height / 3
 
-			val cursorX = if (challengeState.clickedAfter == -1L) {
-				min(maxX, minX + (width * (System.nanoTime() - challengeState.startTime) / ReactionChallenge.DURATION).toInt())
+			val cursorX = if (challengeState.clickedAfter == ReactionChallenge.NOT_YET_REACTED) {
+				min(maxX, minX + (width * (timeSinceChallengeStart / ReactionChallenge.DURATION)).toInt())
 			} else {
-				min(maxX, minX + (width * challengeState.clickedAfter / ReactionChallenge.DURATION).toInt())
+				min(maxX, minX + (width * (challengeState.clickedAfter / ReactionChallenge.DURATION)).toInt())
 			}
 			val cursorWidth = 3 * height / 2
 
@@ -146,7 +148,7 @@ internal fun renderChallengeBar(
 					0.35f * region.height, font,
 					MardekTextStyles.ReactionBarChallenge.react(highAlpha), TextAlignment.LEFT,
 				)
-			} else if (challengeState.clickedAfter != -1L) {
+			} else if (challengeState.clickedAfter != ReactionChallenge.NOT_YET_REACTED) {
 				textBatch.drawShadowedString(
 					"Bad Timing!", region.minX + 0.1f * region.height,
 					region.minY - 0.4f * region.height, 0.35f * region.height, font,

@@ -23,6 +23,9 @@ import java.util.*
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
 import kotlin.math.pow
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 private fun icon(name: String) = loadBc7Sprite("mardek/importer/stats/effects/$name.png")
 
@@ -69,7 +72,7 @@ fun addStatusEffects(content: Content) {
 				transform = EmitterTransform(),
 				sprite = poisonParticleSprite,
 				waves = EmissionWaves(
-					delay = 0f, delayedSound = null, period = 0.2f,
+					delay = Duration.ZERO, delayedSound = null, period = 200.milliseconds,
 					particlesPerWave = 1, numRounds = null,
 				),
 				spawn = ParticleSpawnProperties(
@@ -95,7 +98,7 @@ fun addStatusEffects(content: Content) {
 					dynamicGrowX = -1.5f, dynamicGrowY = -1.5f,
 				),
 				opacity = ParticleOpacity(),
-				lifeTime = 5f,
+				lifeTime = 5.seconds,
 				mirror = false,
 			)
 		),
@@ -123,7 +126,7 @@ fun addStatusEffects(content: Content) {
 			transform = EmitterTransform(),
 			sprite = paralysisParticleSprite,
 			waves = EmissionWaves(
-				delay = 0f, delayedSound = null, period = 0.9f,
+				delay = Duration.ZERO, delayedSound = null, period = 900.milliseconds,
 				particlesPerWave = 1, numRounds = null,
 			),
 			spawn = ParticleSpawnProperties(
@@ -144,7 +147,7 @@ fun addStatusEffects(content: Content) {
 				dynamicGrowX = 0f, dynamicGrowY = 0f,
 			),
 			opacity = ParticleOpacity(),
-			lifeTime = 0.035f,
+			lifeTime = 35.milliseconds,
 			mirror = false,
 		)),
 		id = UUID.fromString("b041e68f-1bd5-44d1-bd3b-dd04c4ee3885"),
@@ -226,7 +229,7 @@ fun addStatusEffects(content: Content) {
 				transform = EmitterTransform(),
 				sprite = sleepParticleSprite,
 				waves = EmissionWaves(
-					delay = 0f, delayedSound = null, period = 1f,
+					delay = Duration.ZERO, delayedSound = null, period = 1.seconds,
 					particlesPerWave = 1, numRounds = null,
 				),
 				spawn = ParticleSpawnProperties(
@@ -252,7 +255,7 @@ fun addStatusEffects(content: Content) {
 					dynamicGrowX = 0f, dynamicGrowY = 0f,
 				),
 				opacity = ParticleOpacity(initial = 1f, grow = -0.6f, limit = null),
-				lifeTime = 2f,
+				lifeTime = 2.seconds,
 				mirror = false,
 			)
 		),
@@ -278,7 +281,7 @@ fun addStatusEffects(content: Content) {
 				transform = EmitterTransform(),
 				sprite = blindParticleSprite,
 				waves = EmissionWaves(
-					delay = 0f, delayedSound = null, period = 0.13f,
+					delay = Duration.ZERO, delayedSound = null, period = 130.milliseconds,
 					particlesPerWave = 1, numRounds = null,
 				),
 				spawn = ParticleSpawnProperties(
@@ -299,7 +302,7 @@ fun addStatusEffects(content: Content) {
 					dynamicGrowX = 0f, dynamicGrowY = 0f,
 				),
 				opacity = ParticleOpacity(initial = 0.8f, grow = -2.4f, limit = null),
-				lifeTime = 1f,
+				lifeTime = 1.seconds,
 				mirror = false,
 			)
 		),

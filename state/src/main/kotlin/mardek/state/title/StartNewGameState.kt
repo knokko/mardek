@@ -2,7 +2,6 @@ package mardek.state.title
 
 import mardek.content.Content
 import mardek.content.audio.AudioContent
-import mardek.content.audio.MusicTrack
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.state.GameState
@@ -54,10 +53,7 @@ class StartNewGameState(
 			if (skipKeys.contains(event.key)) shouldStart = true
 		}
 
-		return if (shouldStart) {
-			campaignState.markSessionStart()
-			InGameState(campaignState, campaignName)
-		} else this
+		return if (shouldStart) InGameState(campaignState, campaignName) else this
 	}
 
 	override fun determineMusic(content: Content?, audioContent: AudioContent) = MusicPlayerJob(null)

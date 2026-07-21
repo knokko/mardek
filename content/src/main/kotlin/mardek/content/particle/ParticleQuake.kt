@@ -4,9 +4,10 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
+import kotlin.time.Duration
 
 /**
- * Describes the quake effect of a particle effect (e.g. the Earthquake skill let's the screen shake/quake)
+ * Describes the quake effect of a particle effect (e.g. the Earthquake skill lets the screen shake/quake)
  */
 @BitStruct(backwardCompatible = true)
 class ParticleQuake(
@@ -19,11 +20,11 @@ class ParticleQuake(
 	val strength: Int,
 
 	/**
-	 * The quake duration, in seconds
+	 * The quake duration
 	 */
 	@BitField(id = 1)
-	@FloatField(expectMultipleOf = 1.0 / 30.0)
-	val duration: Float,
+	@IntegerField(expectUniform = false, minValue = 0)
+	val duration: Duration,
 
 	/**
 	 * The decay per second
@@ -33,5 +34,5 @@ class ParticleQuake(
 	val decay: Float,
 ) {
 	@Suppress("unused")
-	private constructor() : this(0, 0f, 0f)
+	private constructor() : this(0, Duration.ZERO, 0f)
 }

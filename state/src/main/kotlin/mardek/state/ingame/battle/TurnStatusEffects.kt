@@ -41,15 +41,17 @@ fun computeStatusEffectsBeforeTurn(
 	var forceTurn: BattleStateMachine.NextTurnEffects.ForceMove? = null
 	for (effect in remainingEffects) {
 		val skipTurn = effect.skipTurn
-		if (skipTurn != null && Random.Default.nextInt(100) < skipTurn.chance) {
+		if (skipTurn != null && Random.nextInt(100) < skipTurn.chance) {
 			forceTurn = BattleStateMachine.NextTurnEffects.ForceMove(
-				BattleStateMachine.Wait(), effect,
-				skipTurn.blinkColor, skipTurn.particleEffect
+				BattleStateMachine.Wait(context.campaignTime),
+				effect, skipTurn.blinkColor, skipTurn.particleEffect,
 			)
 		}
 	}
 
-	val effects = BattleStateMachine.NextTurnEffects(combatant, forceTurn)
+	val effects = BattleStateMachine.NextTurnEffects(
+		combatant, forceTurn, context.campaignTime
+	)
 	effects.removedEffects.addAll(removedEffects)
 	effects.takeDamage.addAll(takeDamage)
 	return effects

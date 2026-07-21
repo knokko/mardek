@@ -26,6 +26,7 @@ import mardek.importer.util.ActionScriptCode
 import mardek.importer.util.parseActionScriptResource
 import java.lang.Integer.parseInt
 import java.util.UUID
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun parseArea(
 	context: AreaEntityParseContext,
@@ -73,7 +74,7 @@ private fun parseArea2(
 
 				extraDecorations.add(AreaDecoration(
 					x = x, y = y, sprites = sprites, canWalkThrough = true, light = hexObject.light,
-					timePerFrame = 50 * hexObject.timePerFrame,
+					timePerFrame = 50.milliseconds * hexObject.timePerFrame,
 					ownActions = null, sharedActionSequence = null,
 					signType = null, displayName = null, encyclopediaPerson = null,
 				))

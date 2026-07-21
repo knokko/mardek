@@ -26,9 +26,9 @@ import mardek.state.ingame.CampaignStateMachine
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
+import mardek.content.util.Time
 import kotlin.longArrayOf
 import kotlin.math.min
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
 /**
@@ -83,19 +83,11 @@ class CampaignActionsState(
 
 	/**
 	 * The time at which the current `node` was activated/started: when the state transitions to a new node, this
-	 * field is set to `System.nanoTime()`.
+	 * field is set to [CampaignState.time]..
 	 */
-	var currentNodeStartTime = System.nanoTime()
+	@BitField(id = 4)
+	var currentNodeStartTime = Time.ZERO
 		private set
-
-	/**
-	 * When the current node is an animation-based node, this field is used to track whether the renderer has finished
-	 * rendering it.
-	 *
-	 * This field will be set to `false` at the start of each node. When the node is animation-based, the renderer will
-	 * set it to `true` after it has finished rendering the entire animation.
-	 */
-	var finishedAnimationNode = false
 
 	/**
 	 * Some cutscenes (chapter 1 intro) have subtitles. This field tracks the current subtitle that should be rendered.
@@ -118,8 +110,6 @@ class CampaignActionsState(
 	var showChatLog = false
 
 	private var speedUpShowingCharacters = false
-
-	private var passedCutsceneTime = Duration.ZERO
 
 	/**
 	 * When the action of the current node is an [ActionEndOfChapter], this field will track the interaction state with
@@ -153,13 +143,11 @@ class CampaignActionsState(
 	/**
 	 * Transitions to the next node, and sets `currentNodeStartTime` to the current time
 	 */
-	private fun toNextNode(next: ActionNode) {
+	private fun toNextNode(next: ActionNode, campaignTime: Time) {
 		makeSureRenderThreadDoesNotGetBlocked(next)
 		this.node = next
-		this.currentNodeStartTime = System.nanoTime()
-		this.finishedAnimationNode = false
+		this.currentNodeStartTime = campaignTime
 		this.cutsceneSubtitle = Pair(1, "")
-		this.passedCutsceneTime = Duration.ZERO
 		this.speedUpShowingCharacters = false
 		this.shownDialogueCharacters = 0f
 	}
@@ -190,17 +178,22 @@ class CampaignActionsState(
 				val action = currentNode.action
 				var shouldGoToNextNode = false
 
-				if (isAnimationAction(action) && this.finishedAnimationNode) shouldGoToNextNode = true
+				if (action is ActionShowChapterName) {
+					val finishTime = currentNodeStartTime + ActionShowChapterName.TOTAL_DURATION
+					if (campaign.time.virtual >= finishTime.virtual) shouldGoToNextNode = true
+				}
 
 				if (action is ActionPlayCutscene) {
-					val oldPassedTime = passedCutsceneTime
-					passedCutsceneTime += campaignContext.timeStep
 
+					val passedCutsceneTime = campaign.time.virtualOffset(currentNodeStartTime)
+					val oldPassedTime = passedCutsceneTime - campaignContext.timeStep
 					for (potentialSound in action.cutscene.sounds) {
 						if (potentialSound.delay > oldPassedTime && potentialSound.delay <= passedCutsceneTime) {
 							campaignContext.soundQueue.insert(potentialSound.sound)
 						}
 					}
+
+					if (passedCutsceneTime >= action.cutscene.payload.get().frames.duration) shouldGoToNextNode = true
 				}
 
 				if (action is ActionTalk) {
@@ -225,8 +218,8 @@ class CampaignActionsState(
 				}
 
 				if (action is ActionSetOverlayColor) {
-					val finishTime = currentNodeStartTime + action.transitionTime.inWholeNanoseconds
-					shouldGoToNextNode = System.nanoTime() >= finishTime
+					val finishTime = currentNodeStartTime + action.transitionTime
+					shouldGoToNextNode = campaign.time.virtual >= finishTime.virtual
 				}
 
 				if (action is ActionEndOfChapter && endOfChapterState != null) {
@@ -238,7 +231,7 @@ class CampaignActionsState(
 					val nextNode = currentNode.next ?: throw IllegalArgumentException(
 						"${currentNode.action} must have a next node"
 					)
-					toNextNode(nextNode)
+					toNextNode(nextNode, campaign.time)
 					if (action is ActionSetOverlayColor) this.overlayColor = action.color
 					continue
 				}
@@ -253,17 +246,6 @@ class CampaignActionsState(
 		} else endOfChapterState = null
 
 		maybeGoToAreaState(campaign)
-	}
-
-	/**
-	 * This method should be called when the player enters the campaign state/session, so either:
-	 * - when the player starts a new game, or
-	 * - when the player loads a saved game
-	 *
-	 * This method will reset the `currentNodeStartTime`, as well as some minor other stuff.
-	 */
-	fun markSessionStart() {
-		toNextNode(this.node)
 	}
 
 	private fun processKeyPress(context: CampaignState.UpdateContext, campaign: CampaignState, key: InputKey) {
@@ -298,7 +280,7 @@ class CampaignActionsState(
 				val nextNode = currentNode.next ?: throw IllegalArgumentException(
 					"${currentNode.action} must have a non-null next node"
 				)
-				toNextNode(nextNode)
+				toNextNode(nextNode, campaign.time)
 			}
 		}
 	}
@@ -325,9 +307,9 @@ class CampaignActionsState(
 				)
 				campaign.state = nextState
 				if (it.next != null) {
-					nextState.suspension = AreaSuspensionActions(
-						AreaActionsState(it.next, null)
-					)
+					nextState.suspension = AreaSuspensionActions(AreaActionsState(
+						it.next, null, nextState.currentTime
+					))
 				}
 			}
 		}

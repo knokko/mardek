@@ -9,10 +9,14 @@ import mardek.content.skill.ActiveSkill
 import mardek.content.skill.ReactionSkillType
 import mardek.input.InputKey
 import mardek.input.MouseMoveEvent
+import mardek.content.util.Time
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
 import kotlin.collections.set
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * The state of an ongoing battle. This class tracks e.g. the health, mana, and status effects of all combatants, as
@@ -79,15 +83,15 @@ class BattleState(
 	 */
 	@BitField(id = 4)
 	@ClassField(root = BattleStateMachine::class)
-	var state: BattleStateMachine = BattleStateMachine.NextTurn(System.nanoTime() + 750_000_000L)
+	var state: BattleStateMachine = BattleStateMachine.NextTurn(
+		context.campaignTime, 750.milliseconds
+	)
 
 	/**
-	 * The result of `System.nanoTime()` when the battle started. This variable is used to render the fade-in effect at
-	 * the start of each battle.
-	 *
-	 * This variable is mutable, which allows unit tests to manipulate it.
+	 * The (campaign) time at which the battle started. This is currently only used to render the fade-in.
 	 */
-	var startTime = System.nanoTime()
+	@BitField(id = 5)
+	val startTime = context.campaignTime
 
 	/**
 	 * The ongoing (standard) particle effects. This contains most of the particle effects, but not the ones tied to
@@ -167,9 +171,9 @@ class BattleState(
 			if (key == InputKey.MoveUp || key == InputKey.MoveDown) battleScrollVertically(this, key, context)
 		}
 		if (key == InputKey.Interact && reactionChallenge != null) {
-			val wasPending = reactionChallenge.isPending()
-			reactionChallenge.click()
-			if (wasPending && !reactionChallenge.isPending() && !reactionChallenge.wasPassed()) {
+			val wasPending = reactionChallenge.isPending(context.campaignTime)
+			reactionChallenge.click(context.campaignTime)
+			if (wasPending && !reactionChallenge.isPending(context.campaignTime) && !reactionChallenge.wasPassed()) {
 				context.soundQueue.insert(context.sounds.ui.clickReject)
 			}
 		}
@@ -208,9 +212,9 @@ class BattleState(
 
 	private fun nextCombatantOnTurn(context: BattleUpdateContext): CombatantState? {
 		val combatants = livingPlayers() + livingOpponents()
-		if (combatants.none { it.isOnPlayerSide }) state = BattleStateMachine.GameOver()
+		if (combatants.none { it.isOnPlayerSide }) state = BattleStateMachine.GameOver(context.campaignTime)
 		if (combatants.none { !it.isOnPlayerSide }) {
-			state = BattleStateMachine.Victory()
+			state = BattleStateMachine.Victory(context.campaignTime)
 			context.statistics.battlesWon += 1
 			for (combatant in combatants) {
 				combatant.incrementPassiveSkillsMastery(context)
@@ -234,20 +238,19 @@ class BattleState(
 	}
 
 	private fun prepareNextTurn(context: BattleUpdateContext, effects: BattleStateMachine.NextTurnEffects) {
-		val time = System.nanoTime()
 		if (effects.removedEffects.isNotEmpty()) {
 			effects.combatant.statusEffects.removeAll(effects.removedEffects)
 			for (effect in effects.removedEffects) {
-				effects.combatant.renderInfo.effectHistory.remove(effect, time)
+				effects.combatant.renderInfo.effectHistory.remove(effect)
 			}
 			effects.removedEffects.clear()
 		}
 
 		if (effects.takeDamage.isNotEmpty()) {
-			if (time >= effects.applyNextDamageAt) {
+			if (context.campaignTime.virtual >= effects.applyNextDamageAt.virtual) {
 				val takeDamage = effects.takeDamage.removeFirst()
 				val dpt = takeDamage.effect.damagePerTurn!!
-				effects.applyNextDamageAt = time + BattleStateMachine.NextTurnEffects.DAMAGE_DELAY
+				effects.applyNextDamageAt = context.campaignTime + BattleStateMachine.NextTurnEffects.DAMAGE_DELAY
 
 				val oldHealth = effects.combatant.currentHealth
 				effects.combatant.currentHealth -= takeDamage.amount
@@ -258,7 +261,7 @@ class BattleState(
 						effects.combatant.getPerformance(context).damageReceived += oldHealth - effects.combatant.currentHealth
 					}
 					effects.combatant.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
-						oldHealth = oldHealth, gainedHealth = -takeDamage.amount,
+						oldHealth = oldHealth, time = context.campaignTime, gainedHealth = -takeDamage.amount,
 						element = dpt.element, overrideColor = dpt.blinkColor,
 					)
 					val particle = ParticleEffectState(
@@ -266,12 +269,11 @@ class BattleState(
 						position = effects.combatant.renderInfo.statusEffectPoint,
 						mirrorX = effects.combatant.isOnPlayerSide,
 					)
-					particle.startTime = System.nanoTime()
 					particles.add(particle)
 					if (!effects.combatant.isAlive()) {
 						effects.combatant.getPerformance(context).numFaints += 1
 						if (!effects.combatant.isOnPlayerSide) context.statistics.numKills += 1
-						state = BattleStateMachine.NextTurn(time + 1000_000_000L)
+						state = BattleStateMachine.NextTurn(context.campaignTime, 1.seconds)
 						if (!effects.combatant.isOnPlayerSide && effects.combatant is MonsterCombatantState) {
 							context.encyclopedia.reportMonsterAsSlain(effects.combatant.monster)
 							for (player in livingPlayers()) {
@@ -288,10 +290,12 @@ class BattleState(
 		}
 
 		val forceMove = effects.forceMove
-		if (forceMove != null && time < effects.applyNextDamageAt) return
+		if (forceMove != null && context.campaignTime.virtual < effects.applyNextDamageAt.virtual) return
 
 		state = if (forceMove != null) {
-			if (forceMove.blinkColor != 0) effects.combatant.renderInfo.lastForcedTurn = ForcedTurnBlink(forceMove.blinkColor)
+			if (forceMove.blinkColor != 0) {
+				effects.combatant.renderInfo.lastForcedTurn = ForcedTurnBlink(forceMove.blinkColor, context.campaignTime)
+			}
 			val particleEffect = forceMove.particleEffect
 			if (particleEffect != null) {
 				val particle = ParticleEffectState(
@@ -299,10 +303,8 @@ class BattleState(
 					position = effects.combatant.renderInfo.statusEffectPoint,
 					mirrorX = effects.combatant.isOnPlayerSide,
 				)
-				particle.startTime = System.nanoTime()
 				particles.add(particle)
 			}
-			forceMove.move.refreshStartTime()
 			forceMove.move as BattleStateMachine
 		} else if (effects.combatant is PlayerCombatantState) {
 			context.soundQueue.insert(context.sounds.ui.scroll2)
@@ -315,43 +317,33 @@ class BattleState(
 	}
 
 	/**
-	 * This method should be called when the player loads a save that was in a battle.
-	 *
-	 * This method will potentially reset the start of some animations.
-	 */
-	fun markSessionStart() {
-		val state = this.state
-		if (state is BattleStateMachine.Move) state.refreshStartTime()
-	}
-
-	/**
 	 * This method should be called during every call to [mardek.state.ingame.InGameState.update] during this
 	 * battle. It should be invoked by [mardek.state.ingame.area.AreaState.updateActiveBattle].
 	 */
 	fun update(context: BattleUpdateContext) {
 		while (true) {
 			val state = this.state
-			if (state is BattleStateMachine.NextTurn && System.nanoTime() >= state.startAt) {
+			if (state is BattleStateMachine.NextTurn && context.campaignTime.virtualOffset(state.lastFinishTime) >= state.delay) {
 				val next = nextCombatantOnTurn(context)
 				if (next != null) beginTurn(context, next)
 			} else break
 		}
 
 		val state = this.state
-		if (state is BattleStateMachine.Wait && System.nanoTime() > state.startTime + 250_000_000L) {
-			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 250_000_000L)
+		if (state is BattleStateMachine.Wait && context.campaignTime.virtualOffset(state.startTime) >= 250.milliseconds) {
+			this.state = BattleStateMachine.NextTurn(context.campaignTime, 250.milliseconds)
 		}
 
 		if (state is BattleStateMachine.NextTurnEffects) prepareNextTurn(context, state)
 
 		if (state is BattleStateMachine.MeleeAttack.MoveTo && state.finished) {
 			this.state = BattleStateMachine.MeleeAttack.Strike(
-				state.attacker, state.target,
-				state.skill, state.reactionChallenge
+				state.attacker, state.target, state.skill, state.reactionChallenge,
+				context.campaignTime,
 			)
 		}
 		if (state is BattleStateMachine.MeleeAttack.Strike) {
-			if (state.canDealDamage && !state.hasDealtDamage && !state.isReactionChallengePending()) {
+			if (state.canDealDamage && !state.hasDealtDamage && !state.isReactionChallengePending(context.campaignTime)) {
 				if (state.skill != null) state.attacker.incrementActiveSkillMastery(context, state.skill)
 				val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
 				val result = if (state.skill == null) MoveResultCalculator(context).computeBasicAttackResult(
@@ -380,23 +372,23 @@ class BattleState(
 			}
 			if (state.finished && state.hasDealtDamage) {
 				this.state = BattleStateMachine.MeleeAttack.JumpBack(
-					state.attacker, state.target,
-					state.skill, state.reactionChallenge
+					state.attacker, state.target, state.skill, state.reactionChallenge,
+					context.campaignTime,
 				)
 			}
 		}
 		if (state is BattleStateMachine.MeleeAttack.JumpBack && state.finished) {
-			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 250_000_000L)
+			this.state = BattleStateMachine.NextTurn(context.campaignTime, 250.milliseconds)
 		}
 
 		if (state is BattleStateMachine.BreathAttack.MoveTo && state.finished) {
 			this.state = BattleStateMachine.BreathAttack.Attack(
-				state.attacker, state.targets,
-				state.skill, state.reactionChallenge
+				state.attacker, state.targets, state.skill,
+				state.reactionChallenge, context.campaignTime
 			)
 		}
 		if (state is BattleStateMachine.BreathAttack.Attack) {
-			if (state.canDealDamage && !state.hasDealtDamage && !state.isReactionChallengePending()) {
+			if (state.canDealDamage && !state.hasDealtDamage && !state.isReactionChallengePending(context.campaignTime)) {
 				state.attacker.incrementActiveSkillMastery(context, state.skill)
 				val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
 				val result = MoveResultCalculator(context).computeSkillResult(
@@ -423,24 +415,24 @@ class BattleState(
 			}
 			if (state.finished && state.hasDealtDamage) {
 				this.state = BattleStateMachine.BreathAttack.JumpBack(
-					state.attacker, state.targets,
-					state.skill, state.reactionChallenge
+					state.attacker, state.targets, state.skill,
+					state.reactionChallenge, context.campaignTime,
 				)
 			}
 		}
 		if (state is BattleStateMachine.BreathAttack.JumpBack && state.finished) {
-			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 250_000_000L)
+			this.state = BattleStateMachine.NextTurn(context.campaignTime, 250.milliseconds)
 		}
 
 		if (state is BattleStateMachine.CastSkill) {
 			if (!state.hasFinishedCastingAnimation) {
 				val particlePositions = state.caster.renderInfo.castingParticlePositions
 				val particleEffect = state.skill.element.spellCastEffect
-				val particleTime = System.nanoTime()
-				if (particleTime > state.lastCastParticleSpawnTime + 1000_000_000L / 90 &&
+				val castingParticlePeriod = 1.seconds / 30
+				if (context.campaignTime.virtualOffset(state.lastCastParticleSpawnTime) >= castingParticlePeriod &&
 					particlePositions.isNotEmpty() && particleEffect != null
 				) {
-					state.lastCastParticleSpawnTime = particleTime
+					state.lastCastParticleSpawnTime = context.campaignTime
 					for (position in particlePositions) {
 						particles.add(ParticleEffectState(
 							particle = particleEffect,
@@ -451,7 +443,7 @@ class BattleState(
 				}
 			}
 
-			if (state.canSpawnTargetParticles && state.targetParticlesSpawnTime == 0L && !state.hasAppliedAllDamage()) {
+			if (state.canSpawnTargetParticles && state.targetParticlesSpawnTime == Time.ZERO && !state.hasAppliedAllDamage()) {
 				val particleEffect = state.skill.particleEffect
 				if (particleEffect != null) {
 					for ((index, target) in state.targets.withIndex()) {
@@ -460,18 +452,20 @@ class BattleState(
 							position = target.renderInfo.hitPoint,
 							mirrorX = true,
 						)
-						particle.startTime = System.nanoTime() + 250_000_000L * index
+						particle.startTime = context.campaignTime + 250.milliseconds * index
 						particles.add(particle)
 					}
 				}
 
-				state.targetParticlesSpawnTime = System.nanoTime()
+				state.targetParticlesSpawnTime = context.campaignTime
 			}
 
-			val damageDelay = state.skill.particleEffect?.damageDelay ?: 0f
-			if (state.targetParticlesSpawnTime != 0L && !state.isReactionChallengePending() && state.calculatedDamage == null) {
-				val spentSeconds = (System.nanoTime() - state.targetParticlesSpawnTime) / 1000_000_000f
-				if (spentSeconds > damageDelay) {
+			val damageDelay = state.skill.particleEffect?.damageDelay ?: Duration.ZERO
+			if (state.targetParticlesSpawnTime != Time.ZERO && !state.isReactionChallengePending(context.campaignTime) &&
+				state.calculatedDamage == null
+			) {
+				val elapsedTime = context.campaignTime.virtualOffset(state.targetParticlesSpawnTime)
+				if (elapsedTime > damageDelay) {
 					val passedChallenge = state.reactionChallenge?.wasPassed() ?: false
 
 					val result = MoveResultCalculator(context).computeSkillResult(
@@ -502,8 +496,9 @@ class BattleState(
 			if (calculatedDamage != null) {
 				for ((index, targetDamage) in calculatedDamage.withIndex()) {
 					if (targetDamage == null) continue
-					val spentSeconds = (System.nanoTime() - state.targetParticlesSpawnTime) / 1000_000_000f
-					if (spentSeconds > damageDelay + 0.25 * index) {
+
+					val elapsedTime = context.campaignTime.virtualOffset(state.targetParticlesSpawnTime)
+					if (elapsedTime > damageDelay + 250.milliseconds * index) {
 						applyMoveResultToTarget(context, targetDamage, state.caster)
 						calculatedDamage[index] = null
 					}
@@ -511,7 +506,7 @@ class BattleState(
 			}
 
 			if (state.hasFinishedCastingAnimation && state.hasAppliedAllDamage()) {
-				this.state = BattleStateMachine.NextTurn(System.nanoTime() + 500_000_000L)
+				this.state = BattleStateMachine.NextTurn(context.campaignTime, 500.milliseconds)
 			}
 		}
 
@@ -522,7 +517,7 @@ class BattleState(
 			state.thrower.getPerformance(context).numItems += 1
 			context.statistics.itemsConsumed += 1
 			applyMoveResultEntirely(context, result, state.thrower, null, true)
-			this.state = BattleStateMachine.NextTurn(System.nanoTime() + 500_000_000L)
+			this.state = BattleStateMachine.NextTurn(context.campaignTime, 500.milliseconds)
 
 			val particleEffect = state.item.consumable?.particleEffect
 			if (particleEffect != null) {
@@ -531,7 +526,6 @@ class BattleState(
 					position = state.target.renderInfo.hitPoint,
 					mirrorX = true,
 				)
-				particle.startTime = System.nanoTime()
 				particles.add(particle)
 			}
 		}
@@ -548,8 +542,6 @@ class BattleState(
 	private fun applyMoveResultToTarget(
 		context: BattleUpdateContext, entry: MoveResult.Entry, attacker: CombatantState
 	) {
-		val currentTime = System.nanoTime()
-
 		val target = entry.target
 		if (!entry.missed) {
 
@@ -558,6 +550,7 @@ class BattleState(
 			if (entry.damageMana != 0 && entry.damage == 0) {
 				target.renderInfo.lastDamageIndicator = DamageIndicatorMana(
 					oldHealth = target.currentHealth,
+					time = context.campaignTime,
 					gainedMana = -entry.damageMana,
 					element = entry.element,
 					overrideColor = entry.overrideBlinkColor,
@@ -574,6 +567,7 @@ class BattleState(
 				if (entry.damage != 0 || isNotSpecial) {
 					target.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
 						oldHealth = target.currentHealth,
+						time = context.campaignTime,
 						gainedHealth = -entry.damage,
 						element = entry.element,
 						overrideColor = entry.overrideBlinkColor,
@@ -601,8 +595,8 @@ class BattleState(
 
 			if (target.isAlive()) {
 				target.statusEffects.removeAll(entry.removedEffects)
-				for (effect in entry.removedEffects) target.renderInfo.effectHistory.remove(effect, currentTime)
-				for (effect in entry.addedEffects) target.renderInfo.effectHistory.add(effect, currentTime)
+				for (effect in entry.removedEffects) target.renderInfo.effectHistory.remove(effect)
+				for (effect in entry.addedEffects) target.renderInfo.effectHistory.add(effect)
 			} else {
 				attacker.getPerformance(context).numKills += 1
 				target.getPerformance(context).numFaints += 1
@@ -620,7 +614,9 @@ class BattleState(
 				}
 			}
 		} else {
-			target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(target.currentHealth)
+			target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(
+				target.currentHealth, context.campaignTime
+			)
 		}
 	}
 
@@ -632,6 +628,7 @@ class BattleState(
 		if (result.restoreAttackerHealth != 0) {
 			attacker.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
 				oldHealth = attacker.currentHealth,
+				time = context.campaignTime,
 				gainedHealth = result.restoreAttackerHealth,
 				element = result.element,
 				overrideColor = 0,
@@ -639,6 +636,7 @@ class BattleState(
 		} else if (result.restoreAttackerMana != 0) {
 			attacker.renderInfo.lastDamageIndicator = DamageIndicatorMana(
 				oldHealth = attacker.currentHealth,
+				time = context.campaignTime,
 				gainedMana = result.restoreAttackerMana,
 				element = result.element,
 				overrideColor = 0,

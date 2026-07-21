@@ -4,6 +4,7 @@ import mardek.content.Content
 import mardek.content.particle.ParticleEffect
 import mardek.content.particle.ParticleInheritance
 import mardek.content.particle.ParticleQuake
+import mardek.content.util.DurationArray
 import mardek.importer.area.parseFlashString
 import mardek.importer.audio.getSoundByName
 import mardek.importer.util.parseActionScriptNestedList
@@ -12,9 +13,11 @@ import mardek.importer.util.parseActionScriptObjectList
 import mardek.importer.util.parseActionScriptResource
 import java.lang.Float.parseFloat
 import java.lang.Integer.parseInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 internal const val FLASH_FRAMES_PER_SECOND = 30
-internal const val FLASH_FRAME = 1f / FLASH_FRAMES_PER_SECOND
+internal val FLASH_FRAME = 1.seconds / FLASH_FRAMES_PER_SECOND
 
 internal fun importParticleEffects(content: Content) {
 	val code = parseActionScriptResource("mardek/importer/particle/particles.txt")
@@ -39,7 +42,7 @@ private fun parseParticleEffect(content: Content, name: String, rawEffect: Strin
 	} else null
 
 	val rawDamageDelay = effectProperties["dmgdelay"]
-	val damageDelay = if (rawDamageDelay != null) FLASH_FRAME * parseInt(rawDamageDelay) else 0f
+	val damageDelay = if (rawDamageDelay != null) FLASH_FRAME * parseInt(rawDamageDelay) else Duration.ZERO
 
 	val rawDamageSound = effectProperties["delayedSfx"]
 	val damageSound = if (rawDamageSound != null) {
@@ -62,8 +65,8 @@ private fun parseParticleEffect(content: Content, name: String, rawEffect: Strin
 	val extraSoundDelays = if (rawSoundDelays != null) {
 		val rawDelayList = parseActionScriptNestedList(rawSoundDelays)
 		if (rawDelayList !is ArrayList<*>) throw IllegalArgumentException("Unexpected extra delays $rawSoundDelays")
-		rawDelayList.map { rawDelay -> FLASH_FRAME * parseInt(rawDelay.toString()) }.toFloatArray()
-	} else FloatArray(0)
+		rawDelayList.map { rawDelay -> FLASH_FRAME * parseInt(rawDelay.toString()) }.toTypedArray()
+	} else emptyArray()
 
 	val rawDerived = effectProperties["derive"]
 	val inheritance = if (rawDerived != null) {
@@ -103,7 +106,7 @@ private fun parseParticleEffect(content: Content, name: String, rawEffect: Strin
 		initialSound = initialSound,
 		damageSound = damageSound,
 		quake = quake,
-		extraSoundDelays = extraSoundDelays,
+		extraSoundDelays = DurationArray(extraSoundDelays),
 		inheritance = inheritance,
 		emitters = emitters,
 	)

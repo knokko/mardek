@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.BITSER
-import kotlin.time.Duration
+import mardek.content.util.Time
 
 /**
  * Represents the state of an [mardek.content.action.effect.AreaActionEffect] instance.
@@ -22,8 +22,7 @@ class AreaEffectState(
 	 * The value of [mardek.state.ingame.area.AreaState.currentTime] when this effect instance was spawned.
 	 */
 	@BitField(id = 0)
-	@IntegerField(expectUniform = false, minValue = 0)
-	val spawnTime: Duration,
+	val spawnTime: Time,
 
 	/**
 	 * The X-coordinate of the position, in tile pixels
@@ -41,7 +40,7 @@ class AreaEffectState(
 ) {
 
 	@Suppress("unused")
-	private constructor() : this(Duration.ZERO, 0, 0)
+	private constructor() : this(Time.ZERO, 0, 0)
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

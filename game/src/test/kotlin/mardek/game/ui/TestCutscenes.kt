@@ -1,6 +1,5 @@
 package mardek.game.ui
 
-import mardek.content.action.ActionShowChapterName
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionTargetPartyMember
 import mardek.content.action.ActionWalk
@@ -74,7 +73,10 @@ object TestCutscenes {
 				Color(232, 198, 124),
 				Color(0, 0, 0, 0),
 			)
-			Thread.sleep(ActionShowChapterName.FADE_DURATION / 1000_000L)
+
+			repeat(150) {
+				igState.update(context)
+			}
 			testRendering(
 				igState, 800, 500, "intro-cutscene1",
 				chapterNameColors + TestTitleScreen.titleBarColors,
@@ -92,7 +94,9 @@ object TestCutscenes {
 				Color(248, 255, 255), // The subtitle inner color
 				Color(157, 230, 252), // The subtitle outer color
 			)
-			Thread.sleep(100)
+			repeat(10) {
+				igState.update(context)
+			}
 			testRendering(
 				igState, 800, 500, "intro-cutscene2",
 				cutsceneColors + TestTitleScreen.titleBarColors, titleScreenColors

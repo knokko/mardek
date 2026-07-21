@@ -19,10 +19,13 @@ internal fun renderAreaAmbience(areaContext: AreaRenderContext) {
 			val defaultAmbience = ambience
 			ambience = suspension.actions.overrideAmbience ?: ambience
 			val node = suspension.actions.node
-			if (node is FixedActionNode && suspension.actions.currentNodeStartTime >= Duration.ZERO) {
+			if (node is FixedActionNode) {
 				val action = node.action
 				if (action is ActionChangeAmbience && action.transitionTime > Duration.ZERO) {
-					val mixer = ((state.currentTime - suspension.actions.currentNodeStartTime) / action.transitionTime).toFloat()
+					val mixer = areaTimings.interpolate(
+						suspension.actions.currentNodeStartTime, 0f,
+						action.transitionTime, 1f, true
+					)
 					val nextAmbience = action.overrideAmbience ?: defaultAmbience
 					ambience = ColorTransform(
 						addColor = interpolateColors(ambience.addColor, nextAmbience.addColor, mixer),

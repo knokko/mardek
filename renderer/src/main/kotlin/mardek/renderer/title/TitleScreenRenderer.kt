@@ -13,7 +13,6 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
 import mardek.renderer.RawRenderContext
 import mardek.renderer.RenderContext
-import mardek.renderer.menu.referenceTime
 import mardek.renderer.save.renderSaveSelectionModal
 import mardek.renderer.util.renderButton
 import mardek.state.title.MusicPlayerState
@@ -21,6 +20,7 @@ import mardek.state.title.TitleScreenState
 import mardek.state.util.Rectangle
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 internal fun renderTitleScreen(
 	context: RawRenderContext, fullRenderContext: RenderContext?,
@@ -61,7 +61,7 @@ internal fun renderTitleScreen(
 
 		val (colorBatch, glyphBatch) = renderSaveSelectionModal(
 			fullRenderContext, basicFont, fatFont, buttonFont,
-			saveSelection, false, region,
+			saveSelection, false, region, context.timing,
 		)
 
 		return Pair(colorBatch, glyphBatch)
@@ -183,9 +183,7 @@ private fun renderCoreTitleScreen(
 			0.75f, 0.75f, 1f, 1.1f,
 		)
 
-		val blinkPeriod = 1000_000_000L
-		val relativeTime = System.nanoTime() - referenceTime
-		val showCaret = (relativeTime % blinkPeriod) >= blinkPeriod / 2
+		val showCaret = context.timing.alternate(arrayOf(true, false), 1.seconds)
 		simpleTextBatch.drawString(
 			"${state.newCampaignName}${if (showCaret) "|" else ""}",
 			innerRectangle.minX + innerRectangle.height * 0.2f,
@@ -203,7 +201,7 @@ private fun renderCoreTitleScreen(
 		}
 	}
 
-	val renderTime = System.nanoTime()
+	val renderTime = context.timing.renderNanoTime
 	if (renderTime < state.openedAt + TitleScreenState.FADE_IN_TIME) {
 		renderFade((renderTime - state.openedAt).toFloat() / MusicPlayerState.FADE_IN_TIME)
 	}

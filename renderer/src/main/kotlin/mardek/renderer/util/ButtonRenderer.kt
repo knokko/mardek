@@ -13,9 +13,7 @@ import com.github.knokko.vk2d.text.Vk2dFont
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.ui.Fonts
 import mardek.renderer.MardekTextStyles
-import mardek.renderer.menu.referenceTime
 import mardek.state.util.Rectangle
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -227,13 +225,8 @@ internal fun renderBoxButton(
 	colorBatch: Vk2dColorBatch, ovalBatch: Vk2dOvalBatch,
 	simpleTextBatch: Vk2dSimpleTextBatch, fancyTextBatch: Vk2dFancyTextBatch,
 	bundle: Vk2dResourceBundle, fonts: Fonts,
-	minBoxSize: Float, boxX: Int, boxY: Int,
+	minBoxSize: Float, boxSize: Int, boxX: Int, boxY: Int,
 ) {
-	val boxSizePeriod = 1_000_000_000L
-	val relativeTime = ((System.nanoTime() - referenceTime) % boxSizePeriod).toFloat() / boxSizePeriod
-	val maxBoxSize = 1.083f * minBoxSize
-	val floatBoxSize = minBoxSize + (2f * abs(0.5f - relativeTime)) * (maxBoxSize - minBoxSize)
-	val boxSize = floatBoxSize.roundToInt()
 	val cornerRadius = (minBoxSize / 6f).roundToInt()
 	val darkColor = srgbToLinear(rgb(145, 137, 112))
 	val lightColor = srgbToLinear(rgb(167, 161, 141))

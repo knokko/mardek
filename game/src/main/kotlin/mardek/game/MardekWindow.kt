@@ -101,7 +101,7 @@ class MardekWindow(
 			renderManager.renderFrame(
 				gameState, frame, simpleTextStyleCache, fancyTextStyleCache,
 				perFrameDescriptorSet, swapchainResources.getSwapchainAssociation(swapchainImage),
-				perFrame[frameIndex], fpsCounter.value,
+				perFrame[frameIndex], fpsCounter.value, 30.milliseconds
 			)
 
 			presentMode = choosePresentMode(window, userSettings.videoSettings.capFps)

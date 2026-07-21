@@ -1,6 +1,7 @@
 package mardek.state.ingame.battle
 
 import mardek.content.stats.Element
+import mardek.content.util.Time
 
 /**
  * An indicator that shows how much health or many a combatant gains or loses due to a move or attack. The renderer
@@ -13,24 +14,25 @@ sealed class DamageIndicator(
 	 * The amount of health that the combatant had prior to the move/attack
 	 */
 	val oldHealth: Int,
-) {
 
 	/**
-	 * The time (`System.nanoTime()`) when this indicator was created/spawned
+	 * The value of [mardek.state.ingame.CampaignState.time] when this indicator was created/spawned
 	 */
-	val time = System.nanoTime()
+	val time: Time,
+) {
 }
 
 /**
  * An indicator that a combatant missed an attack. The renderer will render a "Miss" text at the target location.
  */
-class DamageIndicatorMiss(oldHealth: Int) : DamageIndicator(oldHealth)
+class DamageIndicatorMiss(oldHealth: Int, time: Time) : DamageIndicator(oldHealth, time)
 
 /**
  * An indicator that shows how much health a combatant gained or last due to a move or attack
  */
 class DamageIndicatorHealth(
 	oldHealth: Int,
+	time: Time,
 
 	/**
 	 * The amount of health that was gained. It will be positive when the combatant was healed, and it will be negative
@@ -47,13 +49,14 @@ class DamageIndicatorHealth(
 	 * When non-zero, this overrides the 'blink' color
 	 */
 	val overrideColor: Int,
-) : DamageIndicator(oldHealth)
+) : DamageIndicator(oldHealth, time)
 
 /**
  * An indicator that shows how much mana a combatant gained or last due to a move or attack
  */
 class DamageIndicatorMana(
 	oldHealth: Int,
+	time: Time,
 
 	/**
 	 * The amount of mana that was gained. It will be positive when the combatant gained mana, and it will be negative
@@ -70,4 +73,4 @@ class DamageIndicatorMana(
 	 * When non-zero, this overrides the 'blink' color
 	 */
 	val overrideColor: Int,
-) : DamageIndicator(oldHealth)
+) : DamageIndicator(oldHealth, time)

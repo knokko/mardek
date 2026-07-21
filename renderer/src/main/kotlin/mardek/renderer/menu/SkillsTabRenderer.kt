@@ -17,8 +17,6 @@ import mardek.state.ingame.menu.SkillsTab
 import mardek.state.util.Rectangle
 import kotlin.math.max
 
-private const val ANIMATION_PERIOD = 700_000_000L
-
 internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) {
 	menuContext.run {
 		if (region.width < 50) return
@@ -47,9 +45,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 
 		val basicFont2 = context.bundle.getFont(context.content.fonts.basic2.index)
 
-		var spriteIndex = 0
-		if ((System.nanoTime() - referenceTime) % ANIMATION_PERIOD >= ANIMATION_PERIOD / 2) spriteIndex += 1
-
+		val spriteIndex = context.timing.walkingSpriteIndex()
 		for ((column, character) in context.campaign.usedPartyMembers()) {
 			val x = region.boundX + characterScale * 18 * (column - 4)
 			val y = region.minY + 2 * characterScale
@@ -64,7 +60,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 				if (!tab.inside) {
 					imageBatch.rotated(
 						x + 8f * characterScale,
-						y - 5f * characterScale + 2f * characterScale * determinePointerOffset(),
+						y - characterScale * context.timing.oscillateCrystalPointer(4.5f, 6f),
 						270f, 0.1f * characterScale,
 						context.content.ui.pointer.index, 0, -1,
 					)
@@ -88,8 +84,8 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 
 			if (column == tab.skillTypeIndex && tab.inside) {
 				imageBatch.rotated(
-					x + 1.5f * characterScale * determinePointerOffset(),
-					iconY + 1.5f * characterScale * determinePointerOffset(),
+					x + characterScale * context.timing.oscillateCrystalPointer(0.6f, 1.2f),
+					iconY + characterScale * context.timing.oscillateCrystalPointer(0.6f, 1.2f),
 					-45f, characterScale / 16f,
 					context.content.ui.pointer.index, 0, -1
 				)
@@ -205,7 +201,7 @@ internal fun renderSkillsTab(menuContext: MenuRenderContext, region: Rectangle) 
 				)
 
 				if (tab.inside && row == tab.skillIndex) imageBatch.simpleScale(
-					skillsMinX - region.height * 0.05f + 0.01f * region.height * determinePointerOffset(),
+					skillsMinX - region.height * context.timing.oscillateCrystalPointer(0.05f, 0.042f),
 					baseY.toFloat(), region.height / 2000f, context.content.ui.pointer.index,
 				)
 

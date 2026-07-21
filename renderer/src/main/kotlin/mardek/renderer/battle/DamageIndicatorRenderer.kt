@@ -16,8 +16,8 @@ import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
-
-private const val DURATION = 2_000_000_000L
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal fun renderDamageIndicator(
 	battleContext: BattleRenderContext, imageBatch: Vk2dImageBatch,
@@ -31,8 +31,10 @@ internal fun renderDamageIndicator(
 	)
 
 	if (indicator is DamageIndicatorHealth || indicator is DamageIndicatorMana) {
-		val opacity = 1f - (System.nanoTime() - indicator.time) / DURATION.toFloat()
-		if (opacity <= 0f) return
+		val opacity = battleContext.context.timing.interpolate(
+			indicator.time, 1f,
+			2.seconds, 0f, true,
+		)
 		val intOpacity = (sqrt(opacity) * 255f).roundToInt()
 		if (intOpacity <= 0) return
 
@@ -73,17 +75,17 @@ internal fun renderDamageIndicator(
 	}
 
 	if (indicator is DamageIndicatorMiss) {
-		val jumpDuration = 250_000_000L
-		val fadeDuration = 750_000_000L
-		val passedTime = System.nanoTime() - indicator.time
+		val jumpDuration = 250.milliseconds
+		val fadeDuration = 750.milliseconds
+		val passedTime = battleContext.context.timing.elapsedTimeSince(indicator.time)
 
 		val baseOffsetY = 0.04f * imageBatch.height
 		val (opacity, offsetY) = if (passedTime <= jumpDuration) {
-			val relativeTime = passedTime.toFloat() / jumpDuration
+			val relativeTime = (passedTime / jumpDuration).toFloat()
 			val fromMidTime = 0.5f - relativeTime
 			Pair(1f, baseOffsetY + (0.25f - fromMidTime.pow(2)) * 0.05f * imageBatch.height)
 		} else {
-			Pair(1f - (passedTime - jumpDuration).toFloat() / fadeDuration, baseOffsetY)
+			Pair(1f - ((passedTime - jumpDuration) / fadeDuration).toFloat(), baseOffsetY)
 		}
 
 		if (opacity <= 0f) return

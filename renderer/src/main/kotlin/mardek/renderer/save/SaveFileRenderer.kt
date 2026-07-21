@@ -21,7 +21,7 @@ import mardek.content.Content
 import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.animation.renderPortraitAnimation
-import mardek.renderer.menu.determinePointerOffset
+import mardek.state.util.RenderTiming
 import mardek.renderer.util.gradientWithBorder
 import mardek.state.saves.SaveFile
 import mardek.state.util.Rectangle
@@ -44,6 +44,7 @@ internal fun renderSaveFile(
 	isGray: Boolean,
 	index: Int,
 	region: Rectangle,
+	timing: RenderTiming,
 ) {
 	val borderWidth = max(1, region.height / 50)
 	val borderColor = if (isSelected) srgbToLinear(rgb(165, 204, 254))
@@ -77,7 +78,7 @@ internal fun renderSaveFile(
 					region.minX - region.width / 10, region.minY - region.height,
 					region.width, 2 * region.height,
 				),
-				renderTime = 0L,
+				timing = timing,
 				magicScale = content.portraits.magicScale,
 				parentMatrix = Matrix3x2f().translate(
 					region.minX + (1f + index) * region.height,
@@ -99,12 +100,11 @@ internal fun renderSaveFile(
 	if (isSelected) {
 		val pointerY = region.minY + 0.3f * region.height
 		val pointerHeight = 0.4f * region.height
-		val pointerX = region.minX - 1.4f * pointerHeight
+		val pointerX = region.minX - 1.4f * pointerHeight - timing.oscillateCrystalPointer(0f, 0.1f * region.height)
 		val pointerImage = content.ui.pointer
 		imageBatch.simpleScale(
-			pointerX + 0.1f * region.height * determinePointerOffset(), pointerY,
-			pointerHeight / pointerImage.height,
-			pointerImage.index,
+			pointerX, pointerY,
+			pointerHeight / pointerImage.height, pointerImage.index,
 		)
 	}
 

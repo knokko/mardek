@@ -153,7 +153,7 @@ class TestingInstance {
 
 	fun battleUpdateContext(campaign: CampaignState) = BattleUpdateContext(
 		campaign.characterStates, campaign.encyclopedia, campaign.statistics, content.audio.fixedEffects,
-		content.stats.elements.find { it.rawName == "NONE" }!!, SoundQueue()
+		content.stats.elements.find { it.rawName == "NONE" }!!, SoundQueue(), campaign.time,
 	)
 
 	fun startSimpleBattle(campaign: CampaignState, enemies: Array<Enemy?> = arrayOf(

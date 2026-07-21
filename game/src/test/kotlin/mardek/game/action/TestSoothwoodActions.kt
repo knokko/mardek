@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
-import java.lang.Thread.sleep
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestSoothwoodActions {
@@ -72,11 +72,13 @@ object TestSoothwoodActions {
 			// Let's finish it quickly
 			battleState.livingOpponents()[0].currentHealth = 0
 
-			sleep(800)
-			state.update(updateContext)
+			repeat(8) {
+				state.update(updateContext)
+			}
 			assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
-			sleep(3100)
-			state.update(updateContext)
+			repeat(31) {
+				state.update(updateContext)
+			}
 			assertNotNull(suspension.loot)
 
 			// Claim loot
@@ -86,8 +88,9 @@ object TestSoothwoodActions {
 			state.update(updateContext)
 
 			// Wait until the loot screen fades
-			sleep(600)
-			state.update(updateContext)
+			repeat(6) {
+				state.update(updateContext)
+			}
 			assertNull(areaState.suspension)
 
 			// Check that PoshGoblin is gone
@@ -105,7 +108,7 @@ object TestSoothwoodActions {
 			// 'Teleport' to the right of the exit
 			areaState.suspension = AreaSuspensionPlayerWalking(NextAreaPosition(
 				AreaPosition(6, 4), areaState.currentTime,
-				areaState.currentTime, null,
+				Duration.ZERO, null,
 			))
 			state.update(updateContext)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveLeft))

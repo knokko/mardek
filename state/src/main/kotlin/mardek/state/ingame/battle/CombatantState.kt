@@ -20,6 +20,7 @@ import mardek.content.sprite.KimSprite
 import mardek.content.stats.*
 import mardek.content.characters.CharacterState
 import mardek.content.skill.ActiveSkill
+import mardek.content.util.Time
 import java.util.EnumMap
 import kotlin.math.max
 import kotlin.math.min
@@ -241,17 +242,16 @@ sealed class CombatantState(
 		this.currentHealth = max(0, min(currentHealth, maxHealth))
 		this.currentMana = max(0, min(currentMana, maxMana))
 
-		val currentTime = System.nanoTime()
 		if (isAlive()) {
 			if (currentHealth <= maxHealth / 5) {
 				val sosEffects = getSosEffects(context) - statusEffects
 				statusEffects.addAll(sosEffects)
-				for (effect in sosEffects) renderInfo.effectHistory.add(effect, currentTime)
+				for (effect in sosEffects) renderInfo.effectHistory.add(effect)
 			}
 		} else {
 			for (effect in statusEffects - getAutoEffects(context)) {
 				statusEffects.remove(effect)
-				renderInfo.effectHistory.remove(effect, currentTime)
+				renderInfo.effectHistory.remove(effect)
 			}
 		}
 	}
@@ -582,7 +582,7 @@ class PlayerCombatantState(
 			clampHealthAndMana(context)
 
 			context.soundQueue.insert(context.sounds.battle.levelUp)
-			lastLevelUp = LevelUpIndicator(System.nanoTime(), state.currentLevel)
+			lastLevelUp = LevelUpIndicator(context.campaignTime, state.currentLevel)
 		}
 	}
 
@@ -804,11 +804,10 @@ class ForcedTurnBlink(
 	/**
 	 * The blink color (use `ColorPacker` to extract the RGB)
 	 */
-	val color: Int
-) {
+	val color: Int,
 
 	/**
-	 * The result of `System.nanoTime()` when the turn was skipped (and the blink started)
+	 * The time at which the turn was skipped (and the blink started)
 	 */
-	val time = System.nanoTime()
-}
+	val time: Time,
+)

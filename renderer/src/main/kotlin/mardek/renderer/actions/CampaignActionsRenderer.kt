@@ -13,9 +13,10 @@ import mardek.content.action.FixedActionNode
 import mardek.renderer.RenderContext
 import mardek.renderer.animation.renderBattleBackgroundAnimation
 import mardek.renderer.area.ui.renderCampaignDialogue
-import mardek.renderer.menu.referenceTime
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.util.Rectangle
+import mardek.content.util.Time
+import mardek.renderer.animation.DEFAULT_ANIMATION_REFERENCE_TIME
 import kotlin.time.Duration
 
 internal fun renderCampaignActions(
@@ -24,8 +25,7 @@ internal fun renderCampaignActions(
 	var colorBatch: Vk2dColorBatch? = null
 	var simpleTextBatch: Vk2dSimpleTextBatch? = null
 
-	val renderTime = System.nanoTime()
-	val relativeTime = renderTime - actions.currentNodeStartTime
+	val timeSinceNodeStart = context.timing.elapsedTimeSince(actions.currentNodeStartTime)
 	val node = actions.node
 
 	if (node is FixedActionNode) {
@@ -34,28 +34,26 @@ internal fun renderCampaignActions(
 		val background = actions.currentBackground
 		if (background != null) {
 			val (animationContext, _) = createCutsceneAnimationContext(
-				context, actions, region, renderTime, referenceTime,
+				context, actions, region, DEFAULT_ANIMATION_REFERENCE_TIME,
 				background.magicScale, Duration.ZERO,
 			)
 			renderBattleBackgroundAnimation(background.nodes, animationContext)
-			animationContext.lightning.lastRenderedAt = animationContext.renderTime
+			animationContext.lightning.lastRenderedAt = context.timing.now()
 		}
 
 		if (action is ActionShowChapterName) {
-			if (relativeTime < ActionShowChapterName.TOTAL_DURATION) {
+			if (timeSinceNodeStart < ActionShowChapterName.TOTAL_DURATION) {
 				colorBatch = context.addColorBatch(36)
 				simpleTextBatch = context.addTextBatch(100)
 				renderChapterNameAndNumber(
 					context, simpleTextBatch,
-					context.addFancyTextBatch(100), action, relativeTime, region,
+					context.addFancyTextBatch(100), action, timeSinceNodeStart, region,
 				)
-			} else {
-				actions.finishedAnimationNode = true
 			}
 		}
 
 		if (action is ActionPlayCutscene) {
-			colorBatch = renderCutscene(context, actions, action, renderTime, region) { capacity ->
+			colorBatch = renderCutscene(context, actions, action, region) { capacity ->
 				context.addFancyTextBatch(capacity)
 			}
 		}
@@ -78,9 +76,8 @@ internal fun renderCampaignActions(
 		if (action is ActionSetOverlayColor) {
 			val oldColor = actions.overlayColor
 			val newColor = action.color
-			val factor = (System.nanoTime() - actions.currentNodeStartTime).toFloat() /
-					action.transitionTime.inWholeNanoseconds.toFloat()
-			val overlayColor = interpolateColors(oldColor, newColor, factor)
+			val factor = timeSinceNodeStart / action.transitionTime
+			val overlayColor = interpolateColors(oldColor, newColor, factor.toFloat())
 			if (alpha(overlayColor) != 0.toByte()) {
 				context.addColorBatch(2).fill(
 					region.minX, region.minY, region.maxX, region.maxY, overlayColor

@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.lang.Thread.sleep
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -31,19 +30,19 @@ object TestBasicAttacks {
 
 	fun testSimpleFlow(instance: TestingInstance) {
 		instance.apply {
-			val campaign = simpleCampaignState()
+			val state = InGameState(simpleCampaignState(), "test")
 
 			// Make sure Mardek gets on turn first, since his sword cannot miss
-			val mardekState = campaign.characterStates[heroMardek]!!
+			val mardekState = state.campaign.characterStates[heroMardek]!!
 			mardekState.currentLevel = 50
 			val ring = content.items.items.find { it.displayName == "RingOfAGL+2" }!!
 			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = ring
 			mardekState.equipment[heroMardek.characterClass.equipmentSlots[5]] = ring
 
-			val deuganState = campaign.characterStates[heroDeugan]!!
+			val deuganState = state.campaign.characterStates[heroDeugan]!!
 			deuganState.currentLevel = 20
 
-			startSimpleBattle(campaign)
+			startSimpleBattle(state.campaign)
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
@@ -51,11 +50,9 @@ object TestBasicAttacks {
 				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
 			)
 
-			campaign.update(context(1.milliseconds))
-			sleep(1000)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 
-			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
+			val battle = ((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			val mardek = battle.livingPlayers()[0]
 			val monster = battle.livingOpponents()[0]
 			battle.state.let {
@@ -67,7 +64,7 @@ object TestBasicAttacks {
 			input.postEvent(pressKeyEvent(InputKey.Interact))
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			campaign.update(context(1.milliseconds))
+			state.update(context(1.milliseconds))
 
 			assertEquals(0, mardekState.performance.numMeleeAttacks)
 			assertEquals(0, mardekState.performance.numKills)
@@ -81,20 +78,23 @@ object TestBasicAttacks {
 				assertFalse(it.finished)
 			}
 
-			val state = InGameState(campaign, "test")
 			val playerColors = arrayOf(
 				Color(129, 129, 79), // Mardek pants
 				Color(70, 117, 33), // Deugan coat
 			)
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
-			sleep(1000)
+			state.update(context(1.seconds))
+			testRendering(
+				state, 800, 450, "basic-attack0",
+				playerColors + monsterColor, emptyArray()
+			)
 			testRendering(
 				state, 800, 450, "basic-attack1",
 				playerColors + monsterColor, emptyArray()
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.MoveTo).finished)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.MeleeAttack.Strike)
 				assertSame(mardek, (it as BattleStateMachine.MeleeAttack.Strike).attacker)
@@ -109,14 +109,14 @@ object TestBasicAttacks {
 			val oldEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
 			assertEquals(0, oldEncyclopedia.monsters.count { it.entry != null })
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 450, "basic-attack2",
 				playerColors + monsterColor, emptyArray()
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).canDealDamage)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).finished)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			assertEquals(0, monster.currentHealth)
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.MeleeAttack.JumpBack)
@@ -130,7 +130,7 @@ object TestBasicAttacks {
 			assertEquals(0, mardekState.performance.numMagicSkills)
 			assertEquals(1, mardekState.performance.numKills)
 			assertEquals(0, mardekState.performance.numBattles)
-			assertEquals(0, campaign.statistics.battlesWon)
+			assertEquals(0, state.campaign.statistics.battlesWon)
 			assertEquals(1452, mardekState.performance.damageDealt)
 			assertEquals(0, mardekState.performance.damageReceived)
 
@@ -149,26 +149,25 @@ object TestBasicAttacks {
 			)
 			assertEquals(1, slainEncyclopediaMonster.amount)
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 450, "basic-attack3",
 				playerColors, monsterColor
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.JumpBack).finished)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
 
-			sleep(1000)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			assertInstanceOf<BattleStateMachine.Victory>(battle.state)
 			assertEquals(1, mardekState.performance.numBattles)
 			assertEquals(1, deuganState.performance.numBattles)
 			assertEquals(0, deuganState.performance.damageDealt)
 			assertEquals(0, deuganState.performance.numKills)
 			assertEquals(0, deuganState.performance.numMeleeAttacks)
-			assertEquals(1, campaign.statistics.battlesWon)
-			assertEquals(0, campaign.statistics.battlesFled)
-			assertEquals(1, campaign.statistics.numKills)
+			assertEquals(1, state.campaign.statistics.battlesWon)
+			assertEquals(0, state.campaign.statistics.battlesFled)
+			assertEquals(1, state.campaign.statistics.numKills)
 		}
 	}
 }

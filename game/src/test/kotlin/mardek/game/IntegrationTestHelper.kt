@@ -28,6 +28,7 @@ import java.awt.Color
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.math.abs
+import kotlin.time.Duration
 
 internal val actualResultsDirectory = File("rendering-test-results/actual")
 
@@ -126,7 +127,7 @@ fun TestingInstance.testRendering(
 		recorder.transitionLayout(targetImage, null, ResourceUsage.COLOR_ATTACHMENT_WRITE)
 		renderManager.renderFrame(
 			state, frame, textStyleCache, fancyTextStyleCache, perFrameDescriptorSet[0],
-			framebuffers, perFrameResources, 123
+			framebuffers, perFrameResources, 123, Duration.ZERO,
 		)
 		frame.record(recorder)
 		recorder.transitionLayout(targetImage, ResourceUsage.COLOR_ATTACHMENT_WRITE, ResourceUsage.TRANSFER_SOURCE)

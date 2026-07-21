@@ -9,8 +9,6 @@ import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
 import mardek.renderer.area.ui.renderLootInventoryGrid
-import mardek.renderer.menu.determinePointerOffset
-import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderButton
 import mardek.state.ingame.UsedPartyMember
@@ -34,11 +32,7 @@ internal fun renderBattleLoot(
 	val partyMinX = region.boundX - 5 * scale - 18 * scale * party.size
 
 	for ((column, character) in party) {
-		var spriteIndex = 0
-		val passedTime = System.nanoTime() - referenceTime
-		val animationPeriod = 700_000_000L
-		if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
-
+		val spriteIndex = context.timing.walkingSpriteIndex()
 		kimBatch.simple(
 			partyMinX + column * 20 * scale, region.minY + 5 * scale,
 			scale, character.areaSprites.sprites[spriteIndex].index,
@@ -48,7 +42,7 @@ internal fun renderBattleLoot(
 	val selectedElement = loot.selectedElement
 	val pointer = context.content.ui.pointer
 	val pointerScale = 6f * scale / pointer.height
-	val pointerOffset = 0.0075f * region.height * determinePointerOffset()
+	val pointerOffset = context.timing.oscillateCrystalPointer(0f, 0.0075f * region.height)
 	val rowHeight = 18 * scale
 	val itemX = region.minX + 30 * scale
 	var itemY = region.minY + 40 * scale

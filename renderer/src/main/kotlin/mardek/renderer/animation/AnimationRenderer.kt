@@ -18,6 +18,7 @@ import mardek.state.ingame.battle.AnimationEmitterState
 import mardek.state.ingame.battle.CombatantRenderInfo
 import mardek.state.ingame.battle.CombatantRenderPosition
 import mardek.state.util.Rectangle
+import mardek.content.util.rem
 import org.joml.Matrix3x2f
 import org.joml.Vector2f
 import java.util.Locale
@@ -26,6 +27,9 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.random.Random
 import kotlin.random.nextInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
 
 
 private fun noMaskSprite(context: AnimationContext) = AnimationSprite(
@@ -57,7 +61,7 @@ internal fun renderCutsceneAnimation(frames: ReferenceLazyBits<AnimationFrames>,
 
 internal fun renderCombatantAnimation(
 	animation: AnimationFrames, earlyFlat: Array<AnimationNode>, lateFlat: Array<AnimationNode>,
-	relativeTime: Long, context: AnimationContext
+	relativeTime: Duration, context: AnimationContext
 ) {
 	context.combat!!.renderInfo.castingParticlePositions.clear()
 
@@ -65,14 +69,14 @@ internal fun renderCombatantAnimation(
 
 	var remainingTime = relativeTime
 	for (frame in animation) {
-		remainingTime -= frame.duration.inWholeNanoseconds
-		if (remainingTime <= 0L) {
+		remainingTime -= frame.duration
+		if (remainingTime <= Duration.ZERO) {
 			renderAnimationFrame(frame, context)
 			break
 		}
 	}
 
-	if (remainingTime > 0L) throw Error()
+	if (remainingTime > Duration.ZERO) throw Error()
 
 	for (node in lateFlat) renderAnimationNode(node, context)
 }
@@ -196,10 +200,10 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 		var leafMaskMatrix: Matrix3x2f? = null
 
 		if (mask.frames.isNotEmpty()) {
-			var deltaTime = (context.renderTime - context.referenceTime) % mask.duration.inWholeNanoseconds
+			var deltaTime = context.timing.elapsedTimeSince(context.referenceTime) % mask.duration
 			for (frame in mask) {
-				deltaTime -= frame.duration.inWholeNanoseconds
-				if (deltaTime < 0L) {
+				deltaTime -= frame.duration
+				if (deltaTime < Duration.ZERO) {
 					maskSprite = frame.sprite
 					leafMaskMatrix = maskMatrix.mul(toJOMLMatrix(frame.matrix), Matrix3x2f())
 					leafMaskMatrix.translate(
@@ -239,11 +243,11 @@ private fun renderAnimationNode(node: AnimationNode, context: AnimationContext) 
 
 	val (animation, skinAlpha) = chooseSkin(node, special, context)
 	if (animation != null && skinAlpha > 0f) {
-		var deltaTime = (context.renderTime - context.referenceTime) % animation.duration.inWholeNanoseconds
-		val animationProgress = deltaTime.toFloat() / animation.duration.inWholeNanoseconds
+		var deltaTime = context.timing.elapsedTimeSince(context.referenceTime) % animation.duration
+		val animationProgress = (deltaTime / animation.duration).toFloat()
 		for (frame in animation.frames) {
-			deltaTime -= frame.duration.inWholeNanoseconds
-			if (deltaTime < 0L) {
+			deltaTime -= frame.duration
+			if (deltaTime < Duration.ZERO) {
 				if (special == SpecialAnimationNode.OnTurnCursor || special == SpecialAnimationNode.TargetingCursor) {
 					colorTransform = node.color
 				}
@@ -303,10 +307,14 @@ private fun chooseSkin(
 	}
 
 	if (special == SpecialAnimationNode.RandomLightningEffect) {
-		val alpha = 1f - 4.5f * 0.001f * 0.001f * 0.001f * (context.renderTime - context.lightning.lastFrameChangeAt)
+		val alpha = context.timing.interpolate(
+			context.lightning.lastFrameChangeAt, 1f,
+			222.milliseconds, 0f, true,
+		)
 		if (alpha <= 0f || context.lightning.currentFrame == 1) {
-			val nanoSecondsSinceLastFrame = context.renderTime - context.lightning.lastRenderedAt
-			val secondsSinceLastFrame = 0.001 * 0.001 * 0.001 * nanoSecondsSinceLastFrame
+			val secondsSinceLastFrame = context.timing.elapsedTimeSince(
+				context.lightning.lastRenderedAt
+			).toDouble(DurationUnit.SECONDS)
 
 			// secondsSinceLastFrame == 1.0 -> chance = 0.67 -> 1 - chance = 0.33
 			// secondsSinceLastFrame == 0.5 -> 1 - chance = sqrt(0.33) = 0.57 -> chance = 0.43
@@ -314,7 +322,7 @@ private fun chooseSkin(
 			val chance = 1.0 - 0.33.pow(secondsSinceLastFrame)
 			if (chance > Random.nextDouble()) {
 				context.lightning.currentFrame = Random.nextInt(2 .. skinned.skins.size)
-				context.lightning.lastFrameChangeAt = context.renderTime
+				context.lightning.lastFrameChangeAt = context.timing.now()
 			}
 			return Pair(null, 0f)
 		} else return Pair(skinned.skins[context.lightning.currentFrame.toString()]?.get(), alpha)

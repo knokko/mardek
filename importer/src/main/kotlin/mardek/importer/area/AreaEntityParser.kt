@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets
 import java.util.UUID
 import javax.imageio.ImageIO
 import kotlin.collections.ArrayList
+import kotlin.time.Duration.Companion.milliseconds
 
 private inline fun <reified T> extract(objectList: MutableList<Any>): ArrayList<T> {
 	val result = ArrayList<T>(objectList.count { it is T })
@@ -240,7 +241,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 				sprites = null,
 				canWalkThrough = true,
 				light = null,
-				timePerFrame = 1,
+				timePerFrame = 1.milliseconds,
 				ownActions = attemptToExtractSimpleDialogue(
 					actionSequence, rawConversation, id,
 				),
@@ -273,7 +274,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			sprites = sprites,
 			canWalkThrough = false,
 			light = null,
-			timePerFrame = 1,
+			timePerFrame = 1.milliseconds,
 			ownActions = attemptToExtractSimpleDialogue(
 				actionSequence, rawConversation, id,
 			),
@@ -295,7 +296,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			)
 		} else null
 		return AreaDecoration(
-			x = x, y = y, sprites = null, canWalkThrough = true, light = null, timePerFrame = 1,
+			x = x, y = y, sprites = null, canWalkThrough = true, light = null, timePerFrame = 1.milliseconds,
 			ownActions = shopAction, sharedActionSequence = null, signType = null, displayName = name,
 			encyclopediaPerson = encyclopediaPerson,
 		)
@@ -384,7 +385,7 @@ internal fun parseAreaEntity(context: AreaEntityParseContext, rawEntity: Map<Str
 			sprites = sprites,
 			canWalkThrough = rawEntity["walkable"] == "true",
 			light = null,
-			timePerFrame = 200,
+			timePerFrame = 200.milliseconds,
 			ownActions = attemptToExtractSimpleDialogue(
 				actionSequence, rawConversation, id,
 			),

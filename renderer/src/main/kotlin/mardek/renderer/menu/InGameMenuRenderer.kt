@@ -18,6 +18,7 @@ import mardek.state.ingame.menu.SkillsTab
 import mardek.state.ingame.menu.StatusTab
 import mardek.state.ingame.menu.SettingsTab
 import mardek.state.util.Rectangle
+import mardek.content.util.Time
 
 internal fun renderInGameMenu(
 	context: RenderContext, region: Rectangle, menu: InGameMenuState, state: CampaignState
@@ -71,7 +72,7 @@ internal fun renderInGameMenu(
 			region.maxX - clockMargin, region.maxY - clockMargin, context.content.ui.clock.index
 		)
 
-		val totalSeconds = state.statistics.totalTime.inWholeSeconds
+		val totalSeconds = context.timing.elapsedTimeSince(Time.ZERO).inWholeSeconds
 		fun minutesOrHours(raw: Long) = if (raw < 10) "0$raw" else raw.toString()
 		simpleTextBatch.drawString(
 			"${totalSeconds / 3600}:${minutesOrHours((totalSeconds % 3600) / 60)}:${minutesOrHours(totalSeconds % 60)}",

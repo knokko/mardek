@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.lang.Thread.sleep
 import java.nio.file.Files
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -176,14 +175,17 @@ object TestSaveAndLoad {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(Enemy(monster, 1), Enemy(monster, 1), null, null))
 
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves)
+			val updateContext = GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+			)
 			state.update(updateContext)
 
 			// Do a basic attack on the first monster
 			var battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 
-			sleep(750)
-			state.update(updateContext)
+			repeat(8) {
+				state.update(updateContext)
+			}
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(updateContext)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
@@ -197,7 +199,6 @@ object TestSaveAndLoad {
 			state = TitleScreenState()
 			state.selectedButton = 1
 
-			val beforeLoadTime = System.nanoTime()
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Click))
 			state = state.update(updateContext)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
@@ -212,7 +213,7 @@ object TestSaveAndLoad {
 			assertSame(battle.livingOpponents()[0], moveTo.target)
 			assertNull(moveTo.skill)
 			moveTo.finished = true
-			assertTrue(moveTo.startTime > beforeLoadTime)
+			assertEquals(campaign.time.virtual - updateContext.timeStep, moveTo.startTime.virtual)
 
 			state.update(updateContext)
 			val strike = battle.state as BattleStateMachine.MeleeAttack.Strike
@@ -228,8 +229,9 @@ object TestSaveAndLoad {
 
 			state.update(updateContext)
 			assertTrue(battle.state is BattleStateMachine.NextTurn)
-			sleep(1000)
-			state.update(updateContext)
+			repeat(10) {
+				state.update(updateContext)
+			}
 			val selectMove = battle.state as BattleStateMachine.SelectMove
 			assertSame(battle.livingPlayers()[0], selectMove.onTurn)
 
@@ -251,14 +253,17 @@ object TestSaveAndLoad {
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(Enemy(monster, 1), Enemy(monster, 1), null, null))
 
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves)
+			val updateContext = GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+			)
 			state.update(updateContext)
 
 			// Ues Frostasia on the first monster
 			var battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 
-			sleep(750)
-			state.update(updateContext)
+			repeat(8) {
+				state.update(updateContext)
+			}
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
 			state.update(updateContext)
 			println(battle.state)
@@ -284,7 +289,6 @@ object TestSaveAndLoad {
 			state = TitleScreenState()
 			state.selectedButton = 1
 
-			val beforeLoadTime = System.nanoTime()
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Click))
 			state = state.update(updateContext)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
@@ -302,12 +306,13 @@ object TestSaveAndLoad {
 			assertSame(frostasia, castSkill.skill)
 			castSkill.hasFinishedCastingAnimation = true
 			castSkill.calculatedDamage = arrayOf(null)
-			assertTrue(castSkill.startTime > beforeLoadTime)
+			assertEquals(campaign.time.virtual - updateContext.timeStep, castSkill.startTime.virtual)
 
 			state.update(updateContext)
 			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
-			sleep(750)
-			state.update(updateContext)
+			repeat(8) {
+				state.update(updateContext)
+			}
 			val selectMove = battle.state as BattleStateMachine.SelectMove
 			assertSame(battle.livingPlayers()[0], selectMove.onTurn)
 
@@ -326,18 +331,21 @@ object TestSaveAndLoad {
 			val animus = content.battle.monsters.find { it.name == "kdestralan_mind" }!!
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(animus, 1)))
 
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves)
+			val updateContext = GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+			)
 			state.update(updateContext)
 
 			var battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			battle.livingOpponents()[0].currentHealth = 0
 
-			state.update(updateContext)
-			sleep(750)
-			state.update(updateContext)
+			repeat(10) {
+				state.update(updateContext)
+			}
 			assertInstanceOf<BattleStateMachine.Victory>(battle.state)
-			sleep(3000)
-			state.update(updateContext)
+			repeat(30) {
+				state.update(updateContext)
+			}
 
 			var loot = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).loot!!
 			val sorcerer = content.items.items.find { it.displayName == "Sorcerer's Soul" }!!
@@ -384,8 +392,9 @@ object TestSaveAndLoad {
 			assertTrue((campaign.state as AreaState).suspension is AreaSuspensionBattle)
 
 			// Await fade-out
-			sleep(600)
-			state.update(updateContext)
+			repeat(6) {
+				state.update(updateContext)
+			}
 			assertFalse((campaign.state as AreaState).suspension is AreaSuspensionBattle)
 
 			saves.root.deleteRecursively()

@@ -2,10 +2,10 @@ package mardek.content.particle
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.SoundEffect
+import kotlin.time.Duration
 
 /**
  * This class describes the 'waves' of a [ParticleEmitter]: it describes when, and how often, it will emit particles.
@@ -14,11 +14,11 @@ import mardek.content.audio.SoundEffect
 class EmissionWaves(
 
 	/**
-	 * The delay (in seconds) before this emitter starts emitting particles
+	 * The delay before this emitter starts emitting particles
 	 */
 	@BitField(id = 0)
-	@FloatField(expectMultipleOf = 1.0 / 30.0)
-	val delay: Float,
+	@IntegerField(expectUniform = false, minValue = 0)
+	val delay: Duration,
 
 	/**
 	 * The sound effect to be played after the `delay` has passed (so when particles start being emitted)
@@ -28,11 +28,11 @@ class EmissionWaves(
 	val delayedSound: SoundEffect?,
 
 	/**
-	 * The time (in seconds) between spawning 2 (rounds of) particles
+	 * The time between spawning 2 (rounds of) particles
 	 */
 	@BitField(id = 2)
-	@FloatField(expectMultipleOf = 1.0 / 30.0)
-	val period: Float,
+	@IntegerField(expectUniform = false, minValue = 0)
+	val period: Duration,
 
 	/**
 	 * The number of particles that the emitter will spawn at every wave.
@@ -58,5 +58,5 @@ class EmissionWaves(
 		}
 	}
 
-	internal constructor() : this(0f, null, 0f, 1, 1)
+	internal constructor() : this(Duration.ZERO, null, Duration.ZERO, 1, 1)
 }

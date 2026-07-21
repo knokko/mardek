@@ -6,16 +6,20 @@ import mardek.content.animation.SpecialAnimationNode
 import mardek.content.portrait.PortraitInfo
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
+import mardek.content.util.Time
 import mardek.state.ingame.battle.CombatantRenderInfo
 import mardek.state.util.Rectangle
+import mardek.content.util.rem
+import mardek.state.util.RenderTiming
 import org.joml.Matrix3x2f
 import kotlin.time.Duration
 
-private val defaultReferenceTime = System.nanoTime()
+val DEFAULT_ANIMATION_REFERENCE_TIME = Time.zero()
 
 class AnimationContext(
 	val renderRegion: Rectangle,
-	val renderTime: Long,
+	val timing: RenderTiming,
+	val referenceTime: Time = DEFAULT_ANIMATION_REFERENCE_TIME,
 	val magicScale: Int,
 	parentMatrix: Matrix3x2f,
 	parentColorTransform: ColorTransform?,
@@ -27,7 +31,6 @@ class AnimationContext(
 	val portraitExpression: String? = null,
 	val dialogueLine: String = "",
 	val shownDialogueCharacters: Float = 0f,
-	val referenceTime: Long = defaultReferenceTime,
 	val lightning: LightningInfo = LightningInfo(),
 	animationDuration: Duration,
 ) {
@@ -35,9 +38,9 @@ class AnimationContext(
 		parentMatrix, parentColorTransform,
 		null, combat?.rootSkin,
 		null, Matrix3x2f(),
-		if (animationDuration == Duration.ZERO) 0f else (
-				(renderTime - referenceTime) % animationDuration.inWholeNanoseconds
-		).toFloat() / animationDuration.inWholeNanoseconds,
+		if (animationDuration == Duration.ZERO) 0f else ((
+				timing.elapsedTimeSince(referenceTime) % animationDuration
+		) / animationDuration).toFloat()
 	))
 }
 
@@ -69,6 +72,6 @@ class TransformStackEntry(
 
 class LightningInfo {
 	var currentFrame = 1
-	var lastFrameChangeAt = System.nanoTime()
-	var lastRenderedAt = System.nanoTime()
+	var lastFrameChangeAt = Time.zero()
+	var lastRenderedAt = Time.zero()
 }

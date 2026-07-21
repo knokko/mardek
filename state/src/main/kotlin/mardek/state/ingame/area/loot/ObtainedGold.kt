@@ -1,6 +1,7 @@
 package mardek.state.ingame.area.loot
 
-import kotlin.time.Duration
+import mardek.content.util.Time
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * An instance of this class will be created when the player opens a chest containing gold, and put in
@@ -25,10 +26,15 @@ class ObtainedGold(
 	val amount: Int,
 
 	/**
-	 * The gold icon should be shown as long as [mardek.state.ingame.area.AreaState.currentTime] <= [showUntil]
+	 * The gold icon should be shown as long as `areaState.currentTime <= shownSince + DURATION`
 	 */
-	val showUntil: Duration
+	val shownSince: Time,
 ) {
 
 	override fun toString() = "ObtainedGold($amount, x=$chestX, y=$chestY)"
+
+	companion object {
+
+		val DURATION = 1.seconds
+	}
 }

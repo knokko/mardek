@@ -2,7 +2,6 @@ package mardek.state.ingame.area
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.area.Chest
@@ -14,7 +13,9 @@ import mardek.state.ingame.actions.AreaActionsState
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.battle.BattleState
-import kotlin.time.Duration
+import mardek.content.util.Time
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Every possible area suspension (see [AreaState.suspension]) is a subclass of `AreaSuspension`.
@@ -80,24 +81,32 @@ class AreaSuspensionIncomingRandomBattle(
 	val battle: Battle,
 
 	/**
-	 * The time at which the battle will start. When `canAvoid` is `true`, the player can skip the battle until
-	 * `areaState.currentTime >= startAt`.
+	 * The time at which the red or blue exclamation mark appeared.
+	 * When `canAvoid` is `true`, the player can skip the battle until
+	 * `areaState.currentTime >= encounteredAt + DURATION`.
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true)
-	val startAt: Duration,
+	val encounteredAt: Time,
 
 	/**
 	 * Whether the player can avoid the random battle (by pressing Q or Z)
 	 */
-	@BitField(id = 2)
+	@BitField(id = 3)
 	val canAvoid: Boolean,
 ) : AreaSuspension() {
 
 	@Suppress("unused")
-	private constructor() : this(Battle(), Duration.ZERO, false)
+	private constructor() : this(Battle(), Time.ZERO, false)
 
 	override fun shouldUpdateCurrentTime() = true
+
+	companion object {
+
+		/**
+		 * The amount of time between the moment the exclamation mark appears, and the flickering begins.
+		 */
+		val DURATION = 1.seconds
+	}
 }
 
 /**
@@ -113,11 +122,11 @@ class AreaSuspensionIncomingBattle(
 	val battle: Battle,
 
 	/**
-	 * The time at which the battle will really start.
+	 * The time at which the 'flickering effect' before the battle started.
+	 * The battle will start when `areaState.currentTime >= startedFlickerAt + DURATION`.
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true)
-	val startAt: Duration,
+	val startedFlickerAt: Time,
 
 	/**
 	 * The players that will join the battle. This is almost always equal to the current party, but there are some
@@ -136,16 +145,18 @@ class AreaSuspensionIncomingBattle(
 	val nextActions: AreaActionsState?,
 ) : AreaSuspension() {
 
-	/**
-	 * A prediction of the value returned by `System.nanoTime()` if it were invoked at `startAt`. This field is only
-	 * used & populated by the renderer.
-	 */
-	var estimatedNanoStartAt = 0L
-
 	@Suppress("unused")
-	private constructor() : this(Battle(), Duration.ZERO, emptyArray(), null)
+	private constructor() : this(Battle(), Time.ZERO, emptyArray(), null)
 
 	override fun shouldUpdateCurrentTime() = true
+
+	companion object {
+
+		/**
+		 * The duration of the 'flickering' effect before a battle starts
+		 */
+		val DURATION = 500.milliseconds
+	}
 }
 
 /**
@@ -230,17 +241,17 @@ class AreaSuspensionOpeningDoor(
 	val door: AreaDoor,
 
 	/**
-	 * - When [AreaState.currentTime] >= [finishTime], the player is 'teleported' to `door.destination`.
-	 * - When [AreaState.currentTime] < [finishTime], the door opening animation is played, while the player walks to
-	 * the tile containing the door, and while the area is fading out.
+	 * - When `areaState.currentTime >= startTime + DOOR_OPEN_DURATION`,
+	 * the player is 'teleported' to `door.destination`.
+	 * - When `areaState.currentTime < startTime + DOOR_OPEN_DURATION`, the door opening animation is played,
+	 * while the player walks to the tile containing the door, and while the area is fading out.
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true)
-	val finishTime: Duration
+	val startTime: Time,
 ) : AreaSuspension() {
 
 	@Suppress("unused")
-	private constructor() : this(AreaDoor(), Duration.ZERO)
+	private constructor() : this(AreaDoor(), Time.ZERO)
 
 	override fun shouldUpdateCurrentTime() = true
 }

@@ -5,6 +5,7 @@ import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import mardek.content.sprite.KimSprite
 import mardek.state.util.Rectangle
+import mardek.state.util.RenderTiming
 
 class SimpleWaterBatch(
 	pipeline: SimpleWaterPipeline, frame: Vk2dRenderStage,
@@ -13,6 +14,7 @@ class SimpleWaterBatch(
 	internal val perFrameDescriptorSet: Long,
 	internal val scissor: Rectangle,
 	internal val scale: Int,
+	internal val timing: RenderTiming,
 ): Vk2dBatch(pipeline, frame, initialCapacity) {
 
 	fun draw(

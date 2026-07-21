@@ -10,10 +10,11 @@ import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionPlayerWalking
 import mardek.state.ingame.area.NextAreaPosition
-import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 	areaContext.apply {
@@ -29,7 +30,10 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			val nextPosition = characterState.next
 			var useAlternativeWalkingSprite = false
 			if (nextPosition != null) {
-				val p = (state.currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
+				val p = areaTimings.interpolate(
+					nextPosition.startTime, 0f,
+					nextPosition.walkDuration, 1f, true,
+				)
 				x = ((1 - p) * x + p * tileSize * nextPosition.position.x).roundToInt()
 				y = ((1 - p) * y + p * tileSize * nextPosition.position.y).roundToInt()
 				if (p in 0.25 ..< 0.75) useAlternativeWalkingSprite = true
@@ -39,13 +43,15 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 				val direction = characterState.direction
 				var spriteIndex = direction.baseSpriteIndex
 				if (character.walkBehavior.showAnimationWhileStandingStill) {
-					if (state.currentTime.inWholeMilliseconds % 1000L >= 500L) spriteIndex += 1
+					spriteIndex = areaTimings.walkingSpriteIndex(direction.baseSpriteIndex)
 				} else if (useAlternativeWalkingSprite) spriteIndex += 1
 				directionalSprites.sprites[spriteIndex]
 			} else {
 				val fixedSprites = character.fixedSprites!!
-				val spriteIndex = (state.currentTime.inWholeMilliseconds % (200L * fixedSprites.frames.size)) / 200L
-				fixedSprites.frames[spriteIndex.toInt()]
+				val spriteIndex = areaTimings.alternateIntegers(
+					fixedSprites.frames.size, 200.milliseconds
+				)
+				fixedSprites.frames[spriteIndex]
 			}
 
 			val suspension = state.suspension
@@ -56,7 +62,7 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 					if (action is ActionShake) {
 						val target = action.target
 						if (target is ActionTargetAreaCharacter && target.character === character) {
-							val movementsSoFar = (state.currentTime - suspension.actions.currentNodeStartTime) / action.stepTime
+							val movementsSoFar = areaTimings.elapsedTimeSince(suspension.actions.currentNodeStartTime) / action.stepTime
 							val rng = Random(node.id.mostSignificantBits + movementsSoFar.toLong())
 							x += scale * rng.nextInt(-action.radius .. action.radius)
 							y += scale * rng.nextInt(-action.radius .. action.radius)
@@ -81,26 +87,21 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 		}
 
 		state.fadingCharacters.removeIf { fading ->
-			val passedTime = System.nanoTime() - fading.startFadeTime
 
 			// The character should 'vibrate' horizontally:
 			// - after 1 flash frame, it should render at state.x + scale
 			// - after 2 flash frames, it should render at state.x - scale
 			// - after 3 flash frames, it should render at state.x + scale...
-			val vibrationPeriod = 66_666_667L // 2 flash frames, in nanoseconds
-			val vibrationMod = passedTime % vibrationPeriod
-			// vibrationMod = 0 -> offsetX = 1
-			// vibrationMod = 0.1 * period -> offsetX = 0.6
-			// vibrationMod = 0.2 * period -> offsetX = 0.2
-			// vibrationMod = 0.25 * period -> offsetX = 0
-			// vibrationMod = 0.5 * period -> offsetX = -1
-			// vibrationMod = 0.75 * period -> offsetX = 0
-			// vibrationMod ~= period -> offsetX = 1
-			val signedVibration = 4f * abs(0.5f - vibrationMod.toFloat() / vibrationPeriod) - 1f
-			val offsetX = scale * signedVibration
+			val offsetX = areaTimings.oscillate(
+				-scale.toFloat(), scale.toFloat(), 1.seconds / 15,
+				referenceTime = fading.startFadeTime,
+			)
 
-			// Fading should take 100 flash frames ~= 3.3 seconds
-			val redStrength = passedTime / 3_300_000_000f
+			// Fading should take 100 flash frames
+			val redStrength = areaTimings.interpolate(
+				fading.startFadeTime, 0f,
+				100.seconds / 30, 1f, true,
+			)
 			if (redStrength < 1f) {
 				collectCharacter(
 					fading.character, fading.lastState, offsetX.roundToInt(), 1f - redStrength,
@@ -122,7 +123,7 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 						NextAreaPosition(
 							state.getPlayerPosition(index - 1),
 							suspension.destination.startTime,
-							suspension.destination.arrivalTime,
+							suspension.destination.walkDuration,
 							suspension.destination.transition,
 						)
 					}
@@ -136,7 +137,10 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			var y = tileSize * oldPosition.y
 
 			if (nextPosition != null) {
-				val p = (state.currentTime - nextPosition.startTime) / (nextPosition.arrivalTime - nextPosition.startTime)
+				val p = areaTimings.interpolate(
+					nextPosition.startTime, 0f,
+					nextPosition.walkDuration, 1f, true,
+				)
 				x = (tileSize * ((1 - p) * oldPosition.x + p * nextPosition.position.x)).roundToInt()
 				y = (tileSize * ((1 - p) * oldPosition.y + p * nextPosition.position.y)).roundToInt()
 
@@ -153,11 +157,11 @@ internal fun collectAreaCharacters(areaContext: AreaRenderContext) {
 			spriteIndex += direction.baseSpriteIndex
 
 			val walkDamage = characterState.lastWalkDamage
-			val walkDamageDuration = 300_000_000L
-			val currentNanoTime = System.nanoTime()
-			val (blinkColor, blinkIntensity) = if (walkDamage != null && currentNanoTime < walkDamage.time + walkDamageDuration) {
-				val progress = (currentNanoTime - walkDamage.time).toFloat() / walkDamageDuration
-				val intensity = 1f - 2f * abs(progress - 0.5f)
+			val (blinkColor, blinkIntensity) = if (walkDamage != null) {
+				val intensity = context.timing.interpolate(
+					walkDamage.time, 1f,
+					300.milliseconds, 0f, true
+				)
 				Pair(srgbToLinear(walkDamage.color), intensity)
 			} else Pair(0, 0f)
 			renderJobs.add(SpriteRenderJob(

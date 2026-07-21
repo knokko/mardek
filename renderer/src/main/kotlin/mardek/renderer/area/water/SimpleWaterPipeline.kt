@@ -12,6 +12,7 @@ import com.github.knokko.vk2d.pipeline.Vk2dPipeline
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import mardek.state.util.Rectangle
+import mardek.state.util.RenderTiming
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.vulkan.VK10.VK_SHADER_STAGE_FRAGMENT_BIT
 import org.lwjgl.vulkan.VK10.VK_SHADER_STAGE_VERTEX_BIT
@@ -64,7 +65,7 @@ class SimpleWaterPipeline(
 		val waterBatch = batch as SimpleWaterBatch
 		val numQuads = miniBatch.vertexData[0].position() / QUAD_SIZE
 		val byteOffset = toIntExact(miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset)
-		val fragmentConstants = recorder.stack.ints((System.nanoTime() / 1000L).toInt())
+		val fragmentConstants = recorder.stack.ints((waterBatch.timing.renderNanoTime / 1000L).toInt())
 		vkCmdPushConstants(
 			recorder.commandBuffer, vkPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT,
 			0, fragmentConstants
@@ -92,8 +93,8 @@ class SimpleWaterPipeline(
 
 	fun addBatch(
 		frame: Vk2dRenderStage, initialCapacity: Int, bundle: Vk2dResourceBundle,
-		perFrameDescriptorSet: Long, scissor: Rectangle, scale: Int,
-	) = SimpleWaterBatch(this, frame, initialCapacity, bundle, perFrameDescriptorSet, scissor, scale)
+		perFrameDescriptorSet: Long, scissor: Rectangle, scale: Int, timing: RenderTiming,
+	) = SimpleWaterBatch(this, frame, initialCapacity, bundle, perFrameDescriptorSet, scissor, scale, timing)
 
 	override fun destroy(boiler: BoilerInstance) {
 		super.destroy(boiler)

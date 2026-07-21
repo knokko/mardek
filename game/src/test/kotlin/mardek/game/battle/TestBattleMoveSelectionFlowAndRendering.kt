@@ -15,7 +15,6 @@ import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.*
 import org.junit.jupiter.api.Assertions.*
 import java.awt.Color
-import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
 
 fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
@@ -104,9 +103,11 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		val soundQueue = SoundQueue()
 		val context = GameStateUpdateContext(content, titleContent, fakeInput, soundQueue, 10.milliseconds)
 		val sounds = content.audio.fixedEffects
-		battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
-		battle.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
-		state.update(context)
+
+		// Skip waiting & fade-in
+		repeat(100) {
+			state.update(context)
+		}
 		assertSelectedMove(BattleMoveSelectionAttack(target = null))
 		assertSame(sounds.ui.scroll2, soundQueue.take())
 		assertNull(soundQueue.take())
@@ -316,7 +317,9 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		)
 
 		// Let 'blue targeting blink' wear off
-		sleep(1000)
+		repeat(100) {
+			state.update(context)
+		}
 
 		// Choose frostasia and dive into target selection
 		fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
@@ -411,9 +414,10 @@ fun testCanNotFlee(instance: TestingInstance) {
 		val soundQueue = SoundQueue()
 		val context = GameStateUpdateContext(content, titleContent, fakeInput, soundQueue, 10.milliseconds)
 		val sounds = content.audio.fixedEffects
-		battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
-		battle.startTime = System.nanoTime() - 1000_000_000L // Skip battle fade-in
-		state.update(context)
+		// Skip waiting & fade-in
+		repeat(100) {
+			state.update(context)
+		}
 		assertSelectedMove(BattleMoveSelectionAttack(target = null))
 		assertSame(sounds.ui.scroll2, soundQueue.take())
 		assertNull(soundQueue.take())

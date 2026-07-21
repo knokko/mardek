@@ -9,8 +9,6 @@ import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.CombatStat
 import mardek.renderer.MardekTextStyles
-import mardek.renderer.menu.determinePointerOffset
-import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.renderer.util.gradientWithBorder
@@ -19,8 +17,8 @@ import mardek.state.ingame.menu.inventory.EquipmentRowRenderInfo
 import mardek.state.ingame.menu.inventory.EquipmentSlotReference
 import mardek.state.ingame.menu.inventory.InventoryInteractionState
 import mardek.state.util.Rectangle
-import java.lang.Math.toIntExact
-import kotlin.math.abs
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal const val CHARACTER_BAR_HEIGHT = 23
 internal const val EQUIPMENT_SLOT_SIZE = 20
@@ -83,24 +81,18 @@ private fun renderCharacterBar(
 		)
 		val consumable = context.campaign.cursorItemStack?.item?.consumable
 		if (consumable != null && consumable.isPositive()) {
-			val blinkPeriod = 1_250_000_000L
-			val relativeTime = (System.nanoTime() - referenceTime) % blinkPeriod
-			val blinkIntensity = (abs(blinkPeriod / 2 - relativeTime) * 2.0 / blinkPeriod).toFloat()
+			val blinkOpacity = context.timing.oscillate(0.1f, 0.5f, 1.25.seconds)
 			colorBatch.fill(
 				consumableRegion.minX, consumableRegion.minY,
 				consumableRegion.maxX, consumableRegion.maxY,
-				srgbToLinear(rgba(0.65f, 0.55f, 0.2f, 0.1f + 0.4f * blinkIntensity))
+				srgbToLinear(rgba(0.65f, 0.55f, 0.2f, blinkOpacity))
 			)
 		}
 
 		val characterX = startX + margin + margin / 2
 		val characterY = startY + margin + scale
 		run {
-			var spriteIndex = 0
-			val passedTime = System.nanoTime() - referenceTime
-			val animationPeriod = 700_000_000L
-			if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
-
+			val spriteIndex = context.timing.walkingSpriteIndex()
 			simpleSpriteBatch?.simple(
 				characterX, characterY, scale,
 				character.areaSprites.sprites[spriteIndex].index,
@@ -116,8 +108,8 @@ private fun renderCharacterBar(
 			colorBatch.fill(startX, startY, maxX, startY + barHeight - 1, selectedColor)
 			if (!forbidSelectedPointer) {
 				imageBatch.simpleScale(
-					startX - 12f * scale + 3f * scale * determinePointerOffset(), startY + 8f * scale,
-					scale * 0.15f, context.content.ui.pointer.index
+					startX - scale * context.timing.oscillateCrystalPointer(6f, 8f),
+					startY + 8f * scale, scale * 0.15f, context.content.ui.pointer.index
 				)
 			}
 		}
@@ -154,10 +146,10 @@ private fun renderCharacterBar(
 			)
 			val numEffects = characterState.activeStatusEffects.size
 			if (numEffects > 0) {
-				val passedTime = System.nanoTime() - referenceTime
-				val period = 250_000_000L
-				val index = (passedTime % (period * numEffects)) / period
-				val sprite = characterState.activeStatusEffects.toList()[toIntExact(index)].icon
+				val effectIndex = context.timing.alternateIntegers(
+					numEffects, 250.milliseconds
+				)
+				val sprite = characterState.activeStatusEffects.toList()[effectIndex].icon
 				imageBatch.simpleScale(
 					x4 + 9f * scale, startY + 2f * scale,
 					8f * scale / sprite.height, sprite.index

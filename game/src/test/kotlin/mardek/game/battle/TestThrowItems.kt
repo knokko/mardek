@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import java.awt.Color
-import java.lang.Thread.sleep
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -30,14 +29,14 @@ object TestThrowItems {
 
 	fun testElixirFlow(instance: TestingInstance) {
 		instance.apply {
-			val campaign = simpleCampaignState()
+			val state = InGameState(simpleCampaignState(), "test")
 
-			val deuganState = campaign.characterStates[heroDeugan]!!
+			val deuganState = state.campaign.characterStates[heroDeugan]!!
 			deuganState.currentHealth = 10
 			deuganState.currentMana = 20
 			assertEquals(1, deuganState.countItemOccurrences(elixir))
 
-			startSimpleBattle(campaign)
+			startSimpleBattle(state.campaign)
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
@@ -45,11 +44,10 @@ object TestThrowItems {
 				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
 			)
 
-			campaign.update(context(1.milliseconds))
-			sleep(1000)
-			campaign.update(context(1.seconds))
+			state.update(context(1.milliseconds))
+			state.update(context(1.seconds))
 
-			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
+			val battle = ((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			val deugan = battle.livingPlayers()[1]
 
 			input.postEvent(pressKeyEvent(InputKey.MoveLeft))
@@ -59,7 +57,7 @@ object TestThrowItems {
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			campaign.update(context(1.milliseconds))
+			state.campaign.update(context(1.milliseconds))
 
 			assertEquals(10, deugan.currentHealth)
 			battle.state.let {
@@ -70,7 +68,6 @@ object TestThrowItems {
 				assertFalse(it.canDrinkItem)
 			}
 
-			val state = InGameState(campaign, "test")
 			val playerColors = arrayOf(
 				Color(129, 129, 79), // Mardek pants
 				Color(70, 117, 33), // Deugan coat
@@ -78,14 +75,14 @@ object TestThrowItems {
 			val elixirColor = arrayOf(Color(247, 236, 0))
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 450, "elixir1",
 				playerColors + monsterColor + elixirColor, emptyArray(),
 			)
 			assertTrue((battle.state as BattleStateMachine.UseItem).canDrinkItem)
 
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 
 			assertEquals(deugan.maxHealth, deugan.currentHealth)
 			assertEquals(deugan.maxMana, deugan.currentMana)
@@ -96,15 +93,14 @@ object TestThrowItems {
 			assertEquals(0, deuganState.performance.numMagicSkills)
 			assertEquals(1, state.campaign.statistics.itemsConsumed)
 
-			sleep(1000)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			val selection = battle.state as BattleStateMachine.SelectMove
 			assertSame(battle.livingPlayers()[0], selection.onTurn)
 			assertEquals(BattleMoveSelectionAttack(null), selection.selectedMove)
 
 			// Consuming items shouldn't grant any experience
 			assertEquals(0, deuganState.experienceToNextLevel)
-			assertEquals(0, campaign.characterStates[heroMardek]!!.experienceToNextLevel)
+			assertEquals(0, state.campaign.characterStates[heroMardek]!!.experienceToNextLevel)
 		}
 	}
 }

@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -364,8 +363,9 @@ object TestBattleLoot {
 			assertInstanceOf<AreaSuspensionBattle>(area.suspension)
 
 			// Await fade-out
-			sleep(600)
-			campaign.update(context)
+			repeat(60) {
+				InGameState(campaign, "test").update(context)
+			}
 			assertNull(area.suspension)
 			assertEquals(400 + 123, campaign.gold)
 			assertEquals(500 + 123, campaign.statistics.goldEarned)
@@ -382,7 +382,12 @@ object TestBattleLoot {
 			val area = (campaign.state as AreaState)
 
 			// Skip fade-in
-			(area.suspension as AreaSuspensionBattle).battle.startTime = System.nanoTime() - 1000_000_000L
+			val updateContext = GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(), 1.seconds
+			)
+			repeat(2) {
+				state.update(updateContext)
+			}
 
 			testRendering(
 				state, 800, 450, "loot-before",
@@ -419,11 +424,8 @@ object TestBattleLoot {
 				arrayOf(monsterSkinColor, gemGridColor)
 			)
 
-			val input = InputManager()
-			input.postEvent(pressKeyEvent(InputKey.Interact))
-			campaign.update(CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, SoundQueue(), 1.seconds), ""
-			))
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			state.update(updateContext)
 			testRendering(
 				state, 800, 450, "loot-taken",
 				baseColors + arrayOf(buttonBlurredBorderColor, gemGridColor),

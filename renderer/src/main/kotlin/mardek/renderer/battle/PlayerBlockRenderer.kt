@@ -11,7 +11,6 @@ import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
-import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.state.ingame.battle.BattleStateMachine
@@ -20,6 +19,8 @@ import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.util.Rectangle
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun renderPlayerBlock(
 	battleContext: BattleRenderContext, player: PlayerCombatantState,
@@ -52,9 +53,8 @@ internal fun renderPlayerBlock(
 		}
 
 		run {
-			val period = 1_000_000_000L
-			val inPeriod = (System.nanoTime() - referenceTime) % period
-			val walkingSprite = player.player.areaSprites.sprites[if (inPeriod < 500_000_000L) 0 else 1]
+			val spriteIndex = context.timing.walkingSpriteIndex()
+			val walkingSprite = player.player.areaSprites.sprites[spriteIndex]
 			val scale = 0.5f * region.height / walkingSprite.height
 			spriteBatch.simple(
 				region.minX + (6.5f * scale).roundToInt(),
@@ -64,9 +64,7 @@ internal fun renderPlayerBlock(
 
 			val numEffects = player.statusEffects.size
 			if (numEffects > 0) {
-				val switchPeriod = 500_000_000L
-				val relativeTime = (System.nanoTime() - referenceTime) % (numEffects * switchPeriod)
-				val index = (relativeTime / switchPeriod).toInt()
+				val index = context.timing.alternateIntegers(numEffects, 500.milliseconds)
 				val sprite = player.statusEffects.toList()[index].icon
 				val desiredSize = region.height / 3
 				imageBatch.simpleScale(
@@ -113,7 +111,7 @@ internal fun renderPlayerBlock(
 					region.width - 5 * region.height / 6 - region.width / 20, 2 * region.height / 12
 				), colorBatch, textBatch,
 			)
-			val displayedHealth = renderCombatantHealth(player, healthBar, System.nanoTime())
+			val displayedHealth = renderCombatantHealth(player, healthBar, context.timing)
 			healthBar.renderTextOverBarWithoutShadow(displayedHealth, player.maxHealth)
 			healthBar.renderClosingBracket()
 
@@ -145,19 +143,19 @@ internal fun renderPlayerBlock(
 			manaBar.renderOpeningBracket()
 			manaBar.renderClosingBracket()
 
-			val recentExp = player.experienceIndicators.getEntryToDisplay(renderTime)
+			val recentExp = player.experienceIndicators.getEntryToDisplay(context.timing)
 			if (recentExp != null) {
-				var passedTime = renderTime - recentExp.startTime
+				var passedTime = context.timing.elapsedTimeSince(recentExp.startTime)
 				var offsetY = 0f
 				var alpha = 255
 				if (passedTime < ExperienceIndicators.JUMP_DURATION) {
-					val relativeTime = passedTime.toFloat() / ExperienceIndicators.JUMP_DURATION
+					val relativeTime = (passedTime / ExperienceIndicators.JUMP_DURATION).toFloat()
 					val fromMidTime = 0.5f - relativeTime
 					offsetY = (0.25f - fromMidTime.pow(2)) * 0.5f * region.height
 				}
 				passedTime -= ExperienceIndicators.JUMP_DURATION + ExperienceIndicators.STABLE_DURATION
-				if (passedTime > 0) {
-					alpha = (255f * (1f - passedTime.toFloat() / ExperienceIndicators.FADE_DURATION)).roundToInt()
+				if (passedTime > Duration.ZERO) {
+					alpha = (255f * (1f - passedTime / ExperienceIndicators.FADE_DURATION)).roundToInt()
 				}
 
 				if (alpha > 0) {
@@ -185,7 +183,7 @@ internal fun renderPlayerBlock(
 			)
 		}
 
-		maybeRenderSelectionBlink(player, lateColorBatch, region)
+		maybeRenderSelectionBlink(context.timing, player, lateColorBatch, region)
 
 		player.renderInfo.renderedInfoBlock = region
 	}

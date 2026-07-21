@@ -10,12 +10,13 @@ import com.github.knokko.vk2d.batch.Vk2dOvalBatch
 import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
-import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.state.ingame.battle.MonsterCombatantState
 import mardek.state.util.Rectangle
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal fun renderMonsterBlock(
 	battleContext: BattleRenderContext, enemy: MonsterCombatantState,
@@ -26,9 +27,10 @@ internal fun renderMonsterBlock(
 		val opacity = if (!enemy.isAlive()) {
 			val lastDamage = enemy.renderInfo.lastDamageIndicator
 			if (lastDamage != null) {
-				val spentTime = renderTime - lastDamage.time
-				val vanishTime = 1_500_000_000L
-				1f - spentTime.toFloat() / vanishTime.toFloat()
+				context.timing.interpolate(
+					lastDamage.time, 1f,
+					1.5.seconds, 0f, true
+				)
 			} else return
 		} else 1f
 		if (opacity <= 0f) return
@@ -46,9 +48,7 @@ internal fun renderMonsterBlock(
 
 		val numEffects = enemy.statusEffects.size
 		if (numEffects > 0) {
-			val switchPeriod = 500_000_000L
-			val relativeTime = (renderTime - referenceTime) % (numEffects * switchPeriod)
-			val index = (relativeTime / switchPeriod).toInt()
+			val index = context.timing.alternateIntegers(numEffects, 500.milliseconds)
 			val sprite = enemy.statusEffects.toList()[index].icon
 			val desiredSize = 2 * region.height / 5
 			val margin = (desiredElementSize - desiredSize) * 0.5f
@@ -95,7 +95,7 @@ internal fun renderMonsterBlock(
 				78 * region.width / 100 - region.height * 5 / 9, region.height / 4
 			), colorBatch, textBatch
 		)
-		val displayedHealth = renderCombatantHealth(enemy, healthBar, renderTime, opacity)
+		val displayedHealth = renderCombatantHealth(enemy, healthBar, context.timing, opacity)
 		healthBar.renderCurrentOverBar(displayedHealth, enemy.maxHealth, opacity)
 
 		run {
@@ -121,7 +121,7 @@ internal fun renderMonsterBlock(
 			)
 		}
 
-		maybeRenderSelectionBlink(enemy, lateColorBatch, region)
+		maybeRenderSelectionBlink(context.timing, enemy, lateColorBatch, region)
 		enemy.renderInfo.renderedInfoBlock = region
 	}
 }

@@ -22,7 +22,7 @@ internal fun renderEndOfChapter(
 		val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
 		renderSaveSelectionModal(
 			context, basicFont, fatFont, upperFont,
-			state.saveSelectionState!!, true, region,
+			state.saveSelectionState!!, true, region, context.timing,
 		)
 	} else {
 		renderEndOfChapterBase(context, region, chapter, state)

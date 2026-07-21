@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import java.awt.Color
-import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestMastery {
@@ -41,7 +40,9 @@ object TestMastery {
 		instance.apply {
 			val area = content.areas.areas.find { it.properties.rawName == "soothwood" }!!
 			val state = InGameState(simpleCampaignState(), "test")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
+			)
 			performTimelineTransition(
 				updateContext, state.campaign,
 				"MainTimeline", "Searching for the fallen 'star'"
@@ -58,9 +59,10 @@ object TestMastery {
 			)), backgroundName = "darkwood")
 
 			val battleState = (areaState.suspension as AreaSuspensionBattle).battle
-			battleState.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
-			battleState.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
-			state.update(updateContext)
+			// Skip waiting & fade-in
+			repeat(100) {
+				state.update(updateContext)
+			}
 
 			return TestContext(state, updateContext, battleState)
 		}
@@ -115,8 +117,9 @@ object TestMastery {
 				assertEquals(deuganState.performance.damageReceived, mardekState.performance.damageDealt)
 
 				assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-				sleep(800)
-				state.update(updateContext)
+				repeat(80) {
+					state.update(updateContext)
+				}
 				assertInstanceOf<BattleStateMachine.SelectMove>(battleState.state)
 
 				assertEquals(1, mardekState.skillMastery[increaseDamageSkill])
@@ -158,8 +161,9 @@ object TestMastery {
 
 				// Let the forest fish attack
 				assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-				sleep(800)
-				state.update(updateContext)
+				repeat(80) {
+					state.update(updateContext)
+				}
 
 				moveToState = battleState.state as BattleStateMachine.MeleeAttack.MoveTo
 				moveToState.finished = true
@@ -177,8 +181,9 @@ object TestMastery {
 				state.update(updateContext)
 
 				assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-				sleep(800)
-				state.update(updateContext)
+				repeat(80) {
+					state.update(updateContext)
+				}
 				assertInstanceOf<BattleStateMachine.SelectMove>(battleState.state)
 
 				// Finally run away, and check that nothing else was mastered
@@ -229,7 +234,9 @@ object TestMastery {
 					Color(255, 147, 26), // Inner color
 				)
 
-				sleep(500)
+				repeat(50) {
+					state.update(updateContext)
+				}
 				testRendering(
 					state, 1600, 1400, "strike-before-mastered",
 					emptyArray(), masteredColors,
@@ -274,8 +281,9 @@ object TestMastery {
 				state.update(updateContext)
 
 				assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-				sleep(800)
-				state.update(updateContext)
+				repeat(80) {
+					state.update(updateContext)
+				}
 				assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
 
 				assertEquals(strikeSkill.masteryPoints, mardekState.skillMastery[strikeSkill])
@@ -316,13 +324,15 @@ object TestMastery {
 				state.update(updateContext)
 
 				assertInstanceOf<BattleStateMachine.Wait>(battleState.state)
-				sleep(300)
-				state.update(updateContext)
+				repeat(30) {
+					state.update(updateContext)
+				}
 				assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-				sleep(800)
-
 				while (updateContext.soundQueue.take() != null) updateContext.soundQueue.take()
-				state.update(updateContext)
+				repeat(80) {
+					state.update(updateContext)
+				}
+
 				assertSame(content.audio.fixedEffects.battle.masteredSkill, updateContext.soundQueue.take())
 				assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
 
@@ -332,8 +342,9 @@ object TestMastery {
 				repeat(10) {
 					state.update(updateContext)
 				}
-				sleep(3050)
-				state.update(updateContext)
+				repeat(300) {
+					state.update(updateContext)
+				}
 				assertNull(updateContext.soundQueue.take())
 
 				// Take all loot items, if there are any
@@ -389,9 +400,9 @@ object TestMastery {
 
 				// Close the mastery screen
 				updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
-				state.update(updateContext)
-				sleep(550)
-				state.update(updateContext)
+				repeat(55) {
+					state.update(updateContext)
+				}
 				assertNull((state.campaign.state as AreaState).suspension)
 
 				assertEquals(insomniaSkill.masteryPoints, mardekState.skillMastery[insomniaSkill])

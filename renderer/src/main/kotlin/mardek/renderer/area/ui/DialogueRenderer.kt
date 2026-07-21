@@ -17,12 +17,12 @@ import mardek.renderer.animation.AnimationContext
 import mardek.renderer.animation.AnimationPartBatch
 import mardek.renderer.animation.renderPortraitAnimation
 import mardek.renderer.area.AreaRenderContext
-import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.renderBoxButton
 import mardek.renderer.util.renderInnerBoxButton
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.util.Rectangle
+import mardek.content.util.Time
 import org.joml.Matrix3x2f
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_utf16
@@ -31,10 +31,10 @@ import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_infos
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_get_glyph_positions
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_guess_segment_properties
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_shape
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private const val CHOICE_CHAR = '•'
 
@@ -159,7 +159,7 @@ private fun renderDialogue(dialogueContext: DialogueRenderContext) {
 
 			val animationContext = AnimationContext(
 				renderRegion = Rectangle(region.minX, region.minY, region.width, region.height - textRegionHeight),
-				renderTime = System.nanoTime(),
+				timing = context.timing,
 				magicScale = context.content.portraits.magicScale,
 				parentMatrix = Matrix3x2f().translate(renderX, renderY).scale(-magicScale, magicScale),
 				parentColorTransform = null,
@@ -297,16 +297,14 @@ private fun renderDialogue(dialogueContext: DialogueRenderContext) {
 		if (shownDialogueCharacters >= talkAction.text.length || actionNode is ChoiceActionNode) {
 			val minBoxSize = textRegion.height * 0.24f
 			val maxBoxSize = textRegion.height * 0.26f
-			val boxSizePeriod = 1_000_000_000L
-			val relativeTime = ((System.nanoTime() - referenceTime) % boxSizePeriod).toFloat() / boxSizePeriod
-			val floatBoxSize = minBoxSize + (2f * abs(0.5f - relativeTime)) * (maxBoxSize - minBoxSize)
+			val floatBoxSize = context.timing.oscillate(minBoxSize, maxBoxSize, 1.seconds)
 			val boxSize = floatBoxSize.roundToInt()
 			val boxOffset = (textRegion.height * 0.03f + minBoxSize + 0.5f * (boxSize - minBoxSize)).roundToInt()
 			val boxX = textRegion.maxX - boxOffset
 			val boxY = textRegion.maxY - boxOffset
 			renderBoxButton(
 				uiColorBatch, ovalBatch, simpleTextBatch, fancyTextBatch, context.bundle, context.content.fonts,
-				minBoxSize, boxX, boxY
+				minBoxSize, boxSize, boxX, boxY
 			)
 		}
 

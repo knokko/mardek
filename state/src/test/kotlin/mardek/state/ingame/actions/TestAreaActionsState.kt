@@ -36,6 +36,7 @@ import mardek.content.inventory.ItemStack
 import mardek.content.stats.CombatStat
 import mardek.content.stats.StatModifier
 import mardek.content.ui.TitleScreenContent
+import mardek.content.util.Time
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
 import mardek.input.InputManager
@@ -118,6 +119,7 @@ class TestAreaActionsState {
 	private fun update(actions: AreaActionsState, context: AreaActionsState.UpdateContext) {
 		actions.update(context)
 		context.areaState.currentTime += context.timeStep
+		context.campaign.time += context.timeStep
 	}
 
 	@Test
@@ -158,7 +160,7 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(rootNode, null)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		postEvent(actions, context.input, InputKeyEvent(
 			InputKey.MoveDown, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key shouldn't have any effect
@@ -189,7 +191,7 @@ class TestAreaActionsState {
 					context.areaState.playerPositions[3].x + 1,
 				)
 			}
-			assertTrue(context.areaState.currentTime < 4.seconds)
+			assertTrue(context.areaState.currentTime.virtual < 4.seconds)
 
 			update(actions, context)
 		}
@@ -244,7 +246,7 @@ class TestAreaActionsState {
 				)
 			}
 
-			assertTrue(context.areaState.currentTime < 19.seconds)
+			assertTrue(context.areaState.currentTime.virtual < 19.seconds)
 			update(actions, context)
 		}
 
@@ -271,9 +273,8 @@ class TestAreaActionsState {
 			next = null,
 		)
 
-		val actions = AreaActionsState(rootNode, null)
-
 		val context = createUpdateContext(1.milliseconds, characterStates = mutableMapOf(Pair(paladin, initialState)))
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		repeat(495) {
 			update(actions, context)
 			assertEquals(AreaCharacterState(
@@ -282,8 +283,8 @@ class TestAreaActionsState {
 				direction = Direction.Left,
 				next = NextAreaPosition(
 					position = AreaPosition(19, 10),
-					startTime = Duration.ZERO,
-					arrivalTime = 500.milliseconds,
+					startTime = Time.ZERO,
+					walkDuration = 500.milliseconds,
 					transition = null,
 				),
 			), context.areaState.characterStates[paladin]!!)
@@ -301,8 +302,8 @@ class TestAreaActionsState {
 				direction = Direction.Left,
 				next = NextAreaPosition(
 					position = AreaPosition(18, 10),
-					startTime = 500.milliseconds,
-					arrivalTime = 1000.milliseconds,
+					startTime = Time(500.milliseconds),
+					walkDuration = 500.milliseconds,
 					transition = null,
 				),
 			), context.areaState.characterStates[paladin]!!)
@@ -350,7 +351,7 @@ class TestAreaActionsState {
 			InputKey.Interact, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing this key BEFORE THE DIALOGUE shouldn't have any effect
 
-		val actions = AreaActionsState(rootNode, null)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		update(actions, context)
 
 		repeat(200) {
@@ -421,7 +422,7 @@ class TestAreaActionsState {
 			InputKey.Cancel, didPress = true, didRepeat = false, didRelease = false
 		)) // Pressing Q (cancel) should cause the dialogue to be skipped
 
-		val actions = AreaActionsState(rootNode, null)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 
 		// Holding Q for 3 seconds should be more than enough
 		repeat(300) {
@@ -456,24 +457,22 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(10.milliseconds)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 
-		assertEquals(0L, actions.lastFlashTime)
+		assertSame(Time.ZERO, actions.lastFlashTime)
 		assertEquals(0, actions.lastFlashColor)
 
-		val beforeWalking = System.nanoTime()
 		while (actions.node === rootNode) {
 			update(actions, context)
 		}
-		val rightAfterFlash = System.nanoTime()
 
-		val flashTime = actions.lastFlashTime
-		assertTrue(flashTime in beforeWalking .. rightAfterFlash)
+		assertEquals(200.milliseconds, actions.lastFlashTime.virtual)
 		assertEquals(1234, actions.lastFlashColor)
 
 		assertTrue((actions.node as FixedActionNode).action is ActionWalk)
 
+		val flashTime = actions.lastFlashTime
 		while (actions.node != null) {
 			update(actions, context)
 			assertEquals(flashTime, actions.lastFlashTime)
@@ -499,9 +498,8 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(rootNode, null)
-
 		val context = createUpdateContext(10.milliseconds)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 
 		assertNull(context.soundQueue.take())
 		repeat(5) {
@@ -531,8 +529,8 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(10.milliseconds)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 
 		assertNotEquals(0, context.campaign.party.size)
 		for (partyMember in context.campaign.party.filterNotNull()) {
@@ -571,8 +569,8 @@ class TestAreaActionsState {
 			)
 		)
 
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(10.milliseconds)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 
 		context.input.postEvent(InputKeyEvent(
 			InputKey.Cancel, didPress = true, didRepeat = false, didRelease = false
@@ -648,9 +646,8 @@ class TestAreaActionsState {
 			1.seconds, characterStates = mutableMapOf(Pair(dragon, lastDragonState))
 		)
 
-		val actions = AreaActionsState(rootNode, null)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 
-		val beforeUpdate = System.nanoTime()
 		update(actions, context)
 
 		assertEquals(0, context.areaState.characterStates.size)
@@ -658,7 +655,7 @@ class TestAreaActionsState {
 		val fading = context.areaState.fadingCharacters.iterator().next()
 		assertSame(dragon, fading.character)
 		assertSame(lastDragonState, fading.lastState)
-		assertTrue(fading.startFadeTime >= beforeUpdate)
+		assertEquals(0.seconds, fading.startFadeTime.virtual)
 	}
 
 	@Test
@@ -682,11 +679,11 @@ class TestAreaActionsState {
 			direction = Direction.Down,
 			next = null,
 		)
-		val actions = AreaActionsState(rootNode, null)
 
 		val context = createUpdateContext(
 			10.milliseconds, characterStates = mapOf(Pair(princess, initialPrincessState))
 		)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 
 		// The first update should rotate both the player and the princess
 		update(actions, context)
@@ -746,11 +743,11 @@ class TestAreaActionsState {
 			direction = Direction.Down,
 			next = null,
 		)
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(10.milliseconds, characterStates = mutableMapOf(
 			Pair(princess, initialPrincessState),
 			Pair(dragon, initialDragonState),
 		))
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 
 		// The dragon should need 6 seconds to reach its destination
 		repeat(605) {
@@ -829,19 +826,23 @@ class TestAreaActionsState {
 			),
 		)
 
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(10.milliseconds)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
+		val areaTime0 = context.areaState.currentTime
+		assertEquals(Duration.ZERO, areaTime0.virtual)
 
 		repeat(100) {
 			update(actions, context)
-			assertEquals(Duration.ZERO, actions.currentNodeStartTime)
+			assertEquals(areaTime0, actions.currentNodeStartTime)
 			assertEquals(0, actions.overlayColor)
 			assertInstanceOf<ActionWalk>((actions.node as FixedActionNode).action)
 		}
 
+		val areaTime1 = context.areaState.currentTime
+		assertEquals(1.seconds, areaTime1.virtual)
 		repeat(30) {
 			update(actions, context)
-			assertEquals(1.seconds, actions.currentNodeStartTime)
+			assertEquals(areaTime1, actions.currentNodeStartTime)
 			assertEquals(0, actions.overlayColor)
 			assertInstanceOf<ActionSetOverlayColor>((actions.node as FixedActionNode).action)
 		}
@@ -852,9 +853,11 @@ class TestAreaActionsState {
 			assertInstanceOf<ActionWalk>((actions.node as FixedActionNode).action)
 		}
 
+		val areaTime2 = context.areaState.currentTime
+		assertEquals(2300.milliseconds, areaTime2.virtual)
 		repeat(100) {
 			update(actions, context)
-			assertEquals(2300.milliseconds, actions.currentNodeStartTime)
+			assertEquals(areaTime2, actions.currentNodeStartTime)
 			assertEquals(1234, actions.overlayColor)
 			assertInstanceOf<ActionSetOverlayColor>((actions.node as FixedActionNode).action)
 		}
@@ -895,12 +898,12 @@ class TestAreaActionsState {
 		state2.equipment[slot2] = fairy
 
 		val characterStates = mapOf(Pair(member1, state1), Pair(member2, state2))
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(
 			10.milliseconds,
 			party = arrayOf(member1, null, null, member2),
 			playableCharacterStates = characterStates,
 		)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		update(actions, context)
 
 		assertEquals(ItemStack(otherItem, 2), state1.inventory[1])
@@ -930,12 +933,12 @@ class TestAreaActionsState {
 		state.inventory[0] = ItemStack(otherItem, 1)
 
 		val characterStates = mapOf(Pair(member, state))
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(
 			10.milliseconds,
 			party = arrayOf(member, null, null, null),
 			playableCharacterStates = characterStates,
 		)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		update(actions, context)
 		assertEquals(ItemStack(otherItem, 1), state.inventory[0])
 		assertEquals(ItemStack(reward, 10), state.inventory[1])
@@ -957,12 +960,12 @@ class TestAreaActionsState {
 		state.inventory[0] = ItemStack(reward, 1)
 
 		val characterStates = mapOf(Pair(member, state))
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(
 			10.milliseconds,
 			party = arrayOf(member, null, null, null),
 			playableCharacterStates = characterStates,
 		)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		update(actions, context)
 		assertEquals(ItemStack(reward, 11), state.inventory[0])
 		assertNull(state.inventory[1])
@@ -988,12 +991,12 @@ class TestAreaActionsState {
 		state1.inventory.fill(ItemStack(otherItem, 123))
 
 		val characterStates = mapOf(Pair(member1, state1), Pair(member2, state2))
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(
 			10.milliseconds,
 			party = arrayOf(member1, null, null, member2),
 			playableCharacterStates = characterStates,
 		)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		update(actions, context)
 
 		assertEquals(ItemStack(reward, 10), state2.inventory[0])
@@ -1020,12 +1023,12 @@ class TestAreaActionsState {
 		state2.inventory[0] = ItemStack(reward, 5)
 
 		val characterStates = mapOf(Pair(member1, state1), Pair(member2, state2))
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(
 			10.milliseconds,
 			party = arrayOf(member1, null, null, member2),
 			playableCharacterStates = characterStates,
 		)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		update(actions, context)
 
 		assertEquals(ItemStack(reward, 15), state2.inventory[0])
@@ -1047,12 +1050,12 @@ class TestAreaActionsState {
 		state.inventory.fill(ItemStack(otherItem, 1))
 
 		val characterStates = mapOf(Pair(member, state))
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(
 			10.milliseconds,
 			party = arrayOf(member, null, null, null),
 			playableCharacterStates = characterStates,
 		)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		context.campaign.itemStorage.add(null)
 		context.campaign.itemStorage.add(null)
 		update(actions, context)
@@ -1078,12 +1081,12 @@ class TestAreaActionsState {
 		state.inventory.fill(ItemStack(otherItem, 1))
 
 		val characterStates = mapOf(Pair(member, state))
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(
 			10.milliseconds,
 			party = arrayOf(member, null, null, null),
 			playableCharacterStates = characterStates,
 		)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		context.campaign.itemStorage.add(ItemStack(reward, 5))
 		context.campaign.itemStorage.add(null)
 		update(actions, context)
@@ -1109,12 +1112,12 @@ class TestAreaActionsState {
 		state.inventory.fill(ItemStack(otherItem, 1))
 
 		val characterStates = mapOf(Pair(member, state))
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(
 			10.milliseconds,
 			party = arrayOf(member, null, null, null),
 			playableCharacterStates = characterStates,
 		)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
 		update(actions, context)
 		assertEquals(0, state.countItemOccurrences(reward))
 		assertEquals(listOf(ItemStack(reward, 10)), context.campaign.itemStorage)
@@ -1156,41 +1159,44 @@ class TestAreaActionsState {
 			)
 		)
 
-		val actions = AreaActionsState(rootNode, null)
 		val context = createUpdateContext(10.milliseconds)
+		val actions = AreaActionsState(rootNode, null, context.areaState.currentTime)
+		val areaTime0 = context.areaState.currentTime
 		update(actions, context)
 		assertEquals(mapOf(
-			Pair(instance1, AreaEffectState(Duration.ZERO, 12, 34))
+			Pair(instance1, AreaEffectState(areaTime0, 12, 34))
 		), actions.effects)
 
 		repeat(12) {
 			update(actions, context)
 			assertEquals(mapOf(
-				Pair(instance1, AreaEffectState(Duration.ZERO, 12, 34))
+				Pair(instance1, AreaEffectState(areaTime0, 12, 34))
 			), actions.effects)
 		}
 
 		// Current time = 130 milliseconds, second effect should have spawned at 123 milliseconds,
 		// but rounded up to 130 milliseconds because we use a timestep of 10 milliseconds
+		val areaTime130 = context.areaState.currentTime
+		assertEquals(130.milliseconds, areaTime130.virtual)
 		repeat(50) {
 			update(actions, context)
 			assertEquals(mapOf(
-				Pair(instance1, AreaEffectState(Duration.ZERO, 12, 34)),
-				Pair(instance2, AreaEffectState(130.milliseconds, 5, 10))
+				Pair(instance1, AreaEffectState(areaTime0, 12, 34)),
+				Pair(instance2, AreaEffectState(areaTime130, 5, 10))
 			), actions.effects)
 		}
 
 		// Current time = 630 milliseconds, first effect should move *after* 630 milliseconds
 		update(actions, context)
 		assertEquals(mapOf(
-			Pair(instance1, AreaEffectState(Duration.ZERO, 6, 10)),
-			Pair(instance2, AreaEffectState(130.milliseconds, 5, 10))
+			Pair(instance1, AreaEffectState(areaTime0, 6, 10)),
+			Pair(instance2, AreaEffectState(areaTime130, 5, 10))
 		), actions.effects)
 
 		// Current time = 640 milliseconds, second effect should be removed at 650 milliseconds
 		update(actions, context)
 		assertEquals(mapOf(
-			Pair(instance1, AreaEffectState(Duration.ZERO, 6, 10)),
+			Pair(instance1, AreaEffectState(areaTime0, 6, 10)),
 		), actions.effects)
 	}
 }

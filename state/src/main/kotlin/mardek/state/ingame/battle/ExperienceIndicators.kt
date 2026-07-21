@@ -1,9 +1,14 @@
 package mardek.state.ingame.battle
 
+import mardek.state.util.RenderTiming
+import mardek.content.util.Time
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+
 /**
  * This class helps [PlayerCombatantState] and the renderer to show how much EXP the player recently gained.
  *
- * When a player gains e.g. 100 XP, a yellow indicator with the text "+100 XP" will be show above the combatant
+ * When a player gains e.g. 100 XP, a yellow indicator with the text "+100 XP" will be shown above the combatant
  * block of the player. This class basically tells the renderer what to show in that text indicator.
  */
 class ExperienceIndicators {
@@ -21,16 +26,16 @@ class ExperienceIndicators {
 	 * Determines the current EXP gain indicator that should be rendered above the player combatant block of this
 	 * player. This method ensures that all gained EXP is eventually shown, possibly by combining them.
 	 */
-	fun getEntryToDisplay(currentTime: Long): Entry? {
+	fun getEntryToDisplay(timing: RenderTiming): Entry? {
 		val previousEntry = currentEntry
 		if (previousEntry != null) {
-			val passedTime = currentTime - previousEntry.startTime
+			val passedTime = timing.elapsedTimeSince(previousEntry.startTime)
 			if (passedTime < TOTAL_DURATION) return previousEntry
 			else currentEntry = null
 		}
 
 		if (queuedAmount > 0) {
-			currentEntry = Entry(currentTime, queuedAmount)
+			currentEntry = Entry(timing.now(), queuedAmount)
 			queuedAmount = 0
 		}
 
@@ -42,9 +47,9 @@ class ExperienceIndicators {
 	 */
 	class Entry(
 		/**
-		 * The value of `System.nanoTime()` when this indicator was rendered for the first time
+		 * The time at which this indicator was rendered for the first time
 		 */
-		val startTime: Long,
+		val startTime: Time,
 
 		/**
 		 * The amount of gained EXP to be rendered
@@ -54,31 +59,29 @@ class ExperienceIndicators {
 		override fun equals(other: Any?) = other is Entry && this.startTime == other.startTime &&
 				this.amount == other.amount
 
-		override fun hashCode() = startTime.toInt() - 13 * amount
+		override fun hashCode() = startTime.hashCode() - 13 * amount
 	}
 
 	companion object {
 
 		/**
-		 * The amount of time (in nanoseconds) that the text indicator should spend 'jumping', before going to the
-		 * 'stable' state
+		 * The amount of time that the text indicator should spend 'jumping', before going to the 'stable' state
 		 */
-		const val JUMP_DURATION = 250_000_000L
+		val JUMP_DURATION = 250.milliseconds
 
 		/**
-		 * The amount of time (in nanoseconds) that the text indicator should stay in the 'stable' state, before
-		 * starting to fade out
+		 * The amount of time that the text indicator should stay in the 'stable' state, before starting to fade out
 		 */
-		const val STABLE_DURATION = 1_000_000_000L
+		val STABLE_DURATION = 1.seconds
 
 		/**
-		 * The amount of time (in nanoseconds) that the text indicator needs to fade out after the stable state is over
+		 * The amount of time that the text indicator needs to fade out after the stable state is over
 		 */
-		const val FADE_DURATION = 250_000_000L
+		val FADE_DURATION = 250.milliseconds
 
 		/**
-		 * The amount of time (in nanoseconds) that the text indicator is visible
+		 * The amount of time that the text indicator is visible
 		 */
-		const val TOTAL_DURATION = JUMP_DURATION + STABLE_DURATION + FADE_DURATION
+		val TOTAL_DURATION = JUMP_DURATION + STABLE_DURATION + FADE_DURATION
 	}
 }

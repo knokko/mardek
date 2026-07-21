@@ -271,11 +271,14 @@ internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
 			val playerState = context.characterStates[state.onTurn.player]!!
 			if (!playerState.removeItem(selectedMove.item)) throw IllegalStateException()
 			battle.confirmMove(context, BattleStateMachine.UseItem(
-				state.onTurn, selectedMove.target, selectedMove.item
+				state.onTurn, selectedMove.target,
+				selectedMove.item, context.campaignTime,
 			))
 		}
 	}
-	if (selectedMove is BattleMoveSelectionWait) battle.confirmMove(context, BattleStateMachine.Wait())
+	if (selectedMove is BattleMoveSelectionWait) battle.confirmMove(
+		context, BattleStateMachine.Wait(context.campaignTime)
+	)
 	if (selectedMove is BattleMoveSelectionFlee) battle.state = BattleStateMachine.RanAway()
 }
 
@@ -302,7 +305,7 @@ internal fun battleCancel(battle: BattleState, context: BattleUpdateContext) {
 			context.soundQueue.insert(context.sounds.ui.clickCancel)
 		}
 	} else {
-		battle.confirmMove(context, BattleStateMachine.Wait())
+		battle.confirmMove(context, BattleStateMachine.Wait(context.campaignTime))
 	}
 }
 
@@ -318,5 +321,5 @@ private fun changeSelectedMove(battle: BattleState, newMove: BattleMoveSelection
 	if (oldTargets.isEmpty() && newTargets.isNotEmpty()) context.soundQueue.insert(context.sounds.ui.clickConfirm)
 	if (oldTargets.isNotEmpty() && newTargets.isEmpty()) context.soundQueue.insert(context.sounds.ui.clickCancel)
 
-	for (target in newTargets) target.renderInfo.lastPointedTo = System.nanoTime()
+	for (target in newTargets) target.renderInfo.lastPointedTo = context.campaignTime
 }

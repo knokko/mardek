@@ -37,6 +37,7 @@ import mardek.state.ingame.encyclopedia.EncyclopediaState
 import mardek.state.ingame.story.StoryState
 import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveFile
+import mardek.content.util.Time
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
@@ -165,6 +166,18 @@ class CampaignState : BitPostInit {
 	val chatLog = ArrayList<ChatLogEntry>()
 
 	/**
+	 * The total in-game time that has elapsed since the start of the campaign.
+	 *
+	 * This is not always equal to the real-world time that has elapsed:
+	 * - This `time` is only increased while the player is playing the game.
+	 * - This `time` is stored in the save file (just like the rest of the campaign state).
+	 * So, when the player loses a battle and loads a save that was made before the battle,
+	 * this `time` will be 'reset' to the `time` before the battle.
+	 */
+	@BitField(id = 15)
+	var time = Time.zero()
+
+	/**
 	 * This campaign state will set this variable to true when the player wants to open the in-game menu
 	 * (by pressing `InputKey.ToggleMenu`) while it is possible to open the in-game menu.
 	 *
@@ -273,24 +286,11 @@ class CampaignState : BitPostInit {
 	}
 
 	/**
-	 * This method should be called when the player enters the campaign state/session, so either:
-	 * - when the player starts a new game, or
-	 * - when the player loads a saved game
+	 * Determines the music track that should be played at the moment.
+	 * The audio updater will call this method frequently, and switch the music when the return value changes.
 	 *
-	 * This method will reset some animation states.
+	 * (Returns `null` when no music should be played at the moment.)
 	 */
-	fun markSessionStart() {
-		when (val currentState = this.state) {
-			is CampaignActionsState -> currentState.markSessionStart()
-			is AreaState -> {
-				when (val suspension = currentState.suspension) {
-					is AreaSuspensionBattle -> suspension.battle.markSessionStart()
-					else -> {}
-				}
-			}
-		}
-	}
-
 	fun determineMusicTrack(content: Content): MusicTrack? {
 		return when (val state = this.state) {
 			is AreaState -> {

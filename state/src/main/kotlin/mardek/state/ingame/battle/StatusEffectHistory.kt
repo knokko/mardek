@@ -1,9 +1,12 @@
 package mardek.state.ingame.battle
 
 import mardek.content.stats.StatusEffect
+import mardek.state.util.RenderTiming
+import mardek.content.util.Time
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.seconds
 
-private const val DURATION = 1000_000_000L
+private val DURATION = 1.seconds
 
 /**
  * This is the type of [CombatantRenderInfo.effectHistory]. It tracks which status effects the combatant recently
@@ -14,31 +17,31 @@ class StatusEffectHistory {
 	private val entries = mutableListOf<Entry>()
 
 	/**
-	 * This method should be called when the combatant gets a new status effect when `System.nanoTime() == time`.
+	 * This method should be called when the combatant gets a new status effect
 	 */
-	fun add(effect: StatusEffect, time: Long) {
-		entries.add(Entry(time, effect, Type.Add))
+	fun add(effect: StatusEffect) {
+		entries.add(Entry(effect, Type.Add))
 	}
 
 	/**
-	 * This method should be called when the combatant loses a status effect when `System.nanoTime() == time`.
+	 * This method should be called when the combatant loses a status effect at `time`
 	 */
-	fun remove(effect: StatusEffect, time: Long) {
-		entries.add(Entry(time, effect, Type.Remove))
+	fun remove(effect: StatusEffect) {
+		entries.add(Entry(effect, Type.Remove))
 	}
 
 	/**
-	 * Gets the status effect 'mutation' that should be shown when `System.nanoTime() == time`, or `null` when the
-	 * combatant didn't gain or lose any status effects recently.
+	 * Gets the status effect 'mutation' that should be shown now,
+	 * or `null` when the combatant didn't gain or lose any status effects recently.
 	 */
-	fun get(time: Long): Current? {
+	fun get(timing: RenderTiming): Current? {
 		val iterator = entries.iterator()
 		while (iterator.hasNext()) {
 			val entry = iterator.next()
-			if (entry.startTime < entry.insertionTime) entry.startTime = time
-			val passedTime = time - entry.startTime
+			if (entry.startTime == null) entry.startTime = timing.now()
+			val passedTime = timing.elapsedTimeSince(entry.startTime!!)
 			if (passedTime < DURATION) return Current(
-				entry.effect, entry.type, passedTime.toFloat() / DURATION
+				entry.effect, entry.type, (passedTime / DURATION).toFloat()
 			)
 			iterator.remove()
 		}
@@ -79,8 +82,8 @@ class StatusEffectHistory {
 		override fun toString() = "$type $effect progress $relativeTime"
 	}
 
-	private class Entry(val insertionTime: Long, val effect: StatusEffect, val type: Type) {
-		var startTime = insertionTime - 1L
+	private class Entry(val effect: StatusEffect, val type: Type) {
+		var startTime: Time? = null
 	}
 
 	/**

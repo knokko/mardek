@@ -13,7 +13,6 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.sprite.KimSprite
 import mardek.renderer.MardekTextStyles
 import mardek.renderer.area.AreaSpriteBatch
-import mardek.renderer.menu.determinePointerOffset
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleMoveSelectionFlee
 import mardek.state.ingame.battle.BattleMoveSelectionItem
@@ -22,6 +21,7 @@ import mardek.state.ingame.battle.BattleMoveSelectionWait
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.util.Rectangle
 import kotlin.math.max
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun renderActionBar(
 	renderMode: ActionBarRenderMode, battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch?,
@@ -107,7 +107,7 @@ internal fun renderActionBar(
 		if (isPassive && renderMode == ActionBarRenderMode.Background) {
 			imageBatch!!.rotated(
 				iconPositions[selectedIndex] + iconSize * 0.5f,
-				region.minY - 0.4f * region.height + 0.1f * region.height * determinePointerOffset(),
+				region.minY - region.height * context.timing.oscillateCrystalPointer(0.3f, 0.4f),
 				270f, pointerScale, context.content.ui.pointer.index, 0, -1,
 			)
 		}
@@ -174,7 +174,7 @@ internal fun renderActionBar(
 					circleColor, circleColor, brightCircleColor, selectedLineColor, 0,
 					0.8f, 0.95f, 1f, 1.15f,
 				)
-				val outerColor = changeAlpha(brightCircleColor, 0.3f + 0.3f * determinePointerOffset())
+				val outerColor = changeAlpha(brightCircleColor, context.timing.oscillate(0.3f, 0.6f, 500.milliseconds))
 				val fadingColor = multiplyAlpha(outerColor, 0.2f)
 				lateOvalBatch.complex(
 					x - region.height, region.minY - region.height,

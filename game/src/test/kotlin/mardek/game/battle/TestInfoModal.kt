@@ -40,7 +40,10 @@ object TestInfoModal {
 			val blueTextColor = arrayOf(Color(85, 237, 255))
 
 			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
-			battle.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
+			// Skip fade-in
+			repeat(100) {
+				state.update(context)
+			}
 			val monster = battle.livingOpponents()[0]
 			battle.livingPlayers()[1].statModifiers[CombatStat.Agility] = -10
 

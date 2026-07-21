@@ -1,58 +1,53 @@
 package mardek.state.ingame.battle
 
 import mardek.content.skill.ReactionSkillType
+import mardek.content.util.Time
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import java.lang.Thread.sleep
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class TestReactionChallenge {
 
 	@Test
 	fun testMissedChallenge() {
-		val challenge = ReactionChallenge(ReactionSkillType.MeleeDefense)
+		val challenge = ReactionChallenge(ReactionSkillType.MeleeDefense, Time(5.minutes))
 		assertFalse(challenge.wasPassed())
-		assertTrue(challenge.isPending())
 
-		// Sleep until we are too late
-		sleep(ReactionChallenge.MAX_CLICK_AFTER / 1000_000L + 1L)
+		assertFalse(challenge.isPending(Time(5.minutes - 1.seconds)))
+		assertTrue(challenge.isPending(Time(5.minutes)))
+		assertTrue(challenge.isPending(Time(5.minutes + ReactionChallenge.MAX_CLICK_AFTER)))
+
 		assertFalse(challenge.wasPassed())
-		assertFalse(challenge.isPending())
+		assertFalse(challenge.isPending(Time(5.minutes + ReactionChallenge.MAX_CLICK_AFTER + 1.milliseconds)))
 
 		// Clicking late doesn't help
-		challenge.click()
+		challenge.click(Time(5.minutes + ReactionChallenge.MAX_CLICK_AFTER + 1.milliseconds))
 		assertFalse(challenge.wasPassed())
-		assertFalse(challenge.isPending())
 	}
 
 	@Test
 	fun testClickTooEarly() {
-		val challenge = ReactionChallenge(ReactionSkillType.RangedAttack)
-		challenge.click()
+		val challenge = ReactionChallenge(ReactionSkillType.RangedAttack, Time(2.minutes))
+		challenge.click(Time(2.minutes + 10.milliseconds))
 		assertFalse(challenge.wasPassed())
-		assertFalse(challenge.isPending())
+		assertFalse(challenge.isPending(Time(2.minutes + 10.milliseconds)))
+		assertFalse(challenge.isPending(Time(2.minutes + ReactionChallenge.MIN_CLICK_AFTER)))
 
 		// Clicking again doesn't help
-		sleep(ReactionChallenge.MIN_CLICK_AFTER / 1000_000L)
+		challenge.click(Time(2.minutes) + ReactionChallenge.MIN_CLICK_AFTER)
 		assertFalse(challenge.wasPassed())
-		assertFalse(challenge.isPending())
+		assertFalse(challenge.isPending(Time(2.minutes) + ReactionChallenge.MIN_CLICK_AFTER))
 	}
 
 	@Test
 	fun testPassChallenge() {
-		var passedCounter = 0
-
-		repeat(3) {
-			val challenge = ReactionChallenge(ReactionSkillType.MeleeAttack)
-			sleep(ReactionChallenge.MIN_CLICK_AFTER / 1000_000L)
-
-			challenge.click()
-			assertFalse(challenge.isPending())
-			if (challenge.wasPassed()) passedCounter += 1
-		}
-
-		// Since sleeping is not entirely deterministic, we allow 3 attempts
-		assertTrue(passedCounter > 0, "Expected $passedCounter > 0")
-		if (passedCounter < 3) println("Passed $passedCounter / 3 trials")
+		val challenge = ReactionChallenge(ReactionSkillType.MeleeAttack, Time(1.hours))
+		challenge.click(Time(1.hours + ReactionChallenge.MIN_CLICK_AFTER))
+		assertFalse(challenge.isPending(Time(1.hours + ReactionChallenge.MIN_CLICK_AFTER)))
+		assertTrue(challenge.wasPassed())
 	}
 }

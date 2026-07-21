@@ -2,9 +2,11 @@ package mardek.content.particle
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.FloatField
+import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.SoundEffect
+import mardek.content.util.DurationArray
+import kotlin.time.Duration
 
 /**
  * Represents a particle effect. Every particle effect has 0 or more emitters, as well as 0 or more sounds.
@@ -20,12 +22,12 @@ class ParticleEffect(
 	val name: String,
 
 	/**
-	 * The additional delay (in seconds) between the start of the particle effect, and the time at which the target
+	 * The additional delay between the start of the particle effect, and the time at which the target
 	 * takes damage (or gets healed/cured)
 	 */
 	@BitField(id = 1)
-	@FloatField(expectMultipleOf = 1.0 / 30.0)
-	val damageDelay: Float,
+	@IntegerField(expectUniform = false, minValue = 0)
+	val damageDelay: Duration,
 
 	/**
 	 * The sound played when the particle effect begins
@@ -49,11 +51,11 @@ class ParticleEffect(
 
 	/**
 	 * Only used for razor leaf (it's an empty array for all other skills): `initialSound` should be played again
-	 * after each duration (in seconds) in `extraSoundDelays` (since the start of the particle effect)
+	 * after each duration in `extraSoundDelays` (since the start of the particle effect)
 	 */
 	@BitField(id = 5)
-	@FloatField(expectMultipleOf = 1.0 / 30.0)
-	val extraSoundDelays: FloatArray,
+	@IntegerField(expectUniform = false, minValue = 0)
+	val extraSoundDelays: DurationArray,
 
 	/**
 	 * Some particle effects *inherit* their properties from another particle effect, but *override* 1 or more
@@ -73,8 +75,8 @@ class ParticleEffect(
 	val emitters: ArrayList<ParticleEmitter>,
 ) {
 	internal constructor() : this(
-		"", 0f, null, null, null,
-		FloatArray(0), null, ArrayList(0)
+		"", Duration.ZERO, null, null, null,
+		DurationArray(emptyArray()), null, ArrayList(0)
 	)
 
 	override fun toString() = name
@@ -98,7 +100,7 @@ class ParticleEffect(
 	fun damageSound() = damageSound ?: inheritance?.parent?.damageSound
 
 	/**
-	 * Gets the time (in seconds) between the start of the particle effect, and the time at which it should deal damage
+	 * Gets the time between the start of the particle effect, and the time at which it should deal damage
 	 * to the (first) target. This can be either the damage delay of this particle effect, or the damage delay that it
 	 * inherits from its parent.
 	 */

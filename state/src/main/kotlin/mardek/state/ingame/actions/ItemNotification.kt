@@ -1,7 +1,7 @@
 package mardek.state.ingame.actions
 
 import mardek.content.inventory.ItemStack
-import kotlin.time.Duration
+import mardek.content.util.Time
 
 /**
  * A notification in the top-left of the screen when a player gains or loses an item due to
@@ -24,7 +24,7 @@ class ItemNotification(
 	 * and the current time is needed for rendering: the notification should stop being rendered after a couple of
 	 * seconds. Furthermore, it is needed for the fade-in & fade-out.
 	 */
-	val timestamp: Duration,
+	val timestamp: Time,
 ) {
 
 	/**

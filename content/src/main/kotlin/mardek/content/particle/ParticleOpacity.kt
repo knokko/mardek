@@ -45,8 +45,8 @@ class ParticleOpacity(
 	/**
 	 * Computes/predicts the opacity of a particle `timeSinceSpawn` seconds after it was emitted
 	 */
-	fun compute(timeSinceSpawn: Float): Float {
-		val uncappedResult = initial + grow * timeSinceSpawn
+	fun compute(timeSinceSpawn: Duration): Float {
+		val uncappedResult = initial + grow * timeSinceSpawn.toDouble(DurationUnit.SECONDS).toFloat()
 		if (limit == null) return uncappedResult
 		if (grow > 0f) return min(limit, uncappedResult)
 		if (grow < 0f) return max(limit, uncappedResult)

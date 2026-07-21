@@ -3,7 +3,6 @@ package mardek.renderer.area.ui.storage
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import mardek.renderer.menu.inventory.InventoryRenderContext
-import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.gradientWithBorder
 import mardek.state.ingame.actions.ItemStorageCharacter
 import mardek.state.ingame.menu.inventory.InventoryInteractionState
@@ -52,11 +51,7 @@ internal fun renderItemStorageCharacterSlots(
 			val characterIndex = row + column * numRows
 			if (characterIndex < availableCharacters.size) {
 				val character = availableCharacters[characterIndex]
-				var spriteIndex = 0
-				val passedTime = System.nanoTime() - referenceTime
-				val animationPeriod = 700_000_000L
-				if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
-
+				val spriteIndex = context.timing.walkingSpriteIndex()
 				simpleSpriteBatch!!.simple(
 					baseX + scale, baseY + 2 * scale - 1, scale,
 					character.areaSprites.sprites[spriteIndex].index

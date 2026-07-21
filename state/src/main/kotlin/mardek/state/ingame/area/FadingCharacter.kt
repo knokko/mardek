@@ -1,6 +1,7 @@
 package mardek.state.ingame.area
 
 import mardek.content.area.objects.AreaCharacter
+import mardek.content.util.Time
 
 /**
  * Represents a character (typically a boss) that was slain very recently. A fading red variant of its sprite should be
@@ -16,10 +17,9 @@ class FadingCharacter(
 	 * The state of the character at the time it started fading
 	 */
 	val lastState: AreaCharacterState,
-) {
 
 	/**
-	 * The time (from `System.nanoTime()`) at which the character *started* fading
+	 * The area time at which the character *started* fading
 	 */
-	val startFadeTime = System.nanoTime()
-}
+	val startFadeTime: Time,
+)

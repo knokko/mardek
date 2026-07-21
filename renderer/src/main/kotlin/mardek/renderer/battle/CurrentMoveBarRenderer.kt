@@ -15,8 +15,8 @@ import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.util.Rectangle
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun renderCurrentMoveBar(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, spriteBatch: AreaSpriteBatch,
@@ -43,9 +43,10 @@ internal fun renderCurrentMoveBar(
 			else -> null
 		}
 		if (stateStartTime != null) {
-			val passedTime = renderTime - stateStartTime
-			val fadeInTime = 500_000_000L
-			opacity = min(passedTime.toFloat() / fadeInTime, 1f)
+			opacity = context.timing.interpolate(
+				stateStartTime, 0f,
+				500.milliseconds, 1f, true,
+			)
 		}
 		val alpha = (255f * opacity).roundToInt()
 

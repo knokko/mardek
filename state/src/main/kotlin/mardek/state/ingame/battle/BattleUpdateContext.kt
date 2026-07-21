@@ -7,6 +7,7 @@ import mardek.state.SoundQueue
 import mardek.content.characters.CharacterState
 import mardek.state.ingame.CampaignStatistics
 import mardek.state.ingame.encyclopedia.EncyclopediaState
+import mardek.content.util.Time
 
 /**
  * This class is used as the 'parameter type' of several methods of [BattleState]. Using this class avoids the need to
@@ -44,9 +45,14 @@ class BattleUpdateContext(
 	 * The queue where all sounds-to-be-played should be inserted
 	 */
 	val soundQueue: SoundQueue,
+
+	/**
+	 * The [mardek.state.ingame.CampaignState.time]
+	 */
+	val campaignTime: Time,
 ) {
 	internal constructor() : this(
 		emptyMap(), EncyclopediaState(), CampaignStatistics(),
-		FixedSoundEffects(), Element(), SoundQueue(),
+		FixedSoundEffects(), Element(), SoundQueue(), Time.ZERO,
 	)
 }

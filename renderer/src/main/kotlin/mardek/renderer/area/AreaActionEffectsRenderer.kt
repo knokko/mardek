@@ -22,7 +22,7 @@ internal fun renderAreaActionEffects(areaContext: AreaRenderContext) {
 			}
 		} else null
 
-		val deltaTime = state.currentTime - suspension.actions.currentNodeStartTime
+		val deltaTime = areaTimings.elapsedTimeSince(suspension.actions.currentNodeStartTime)
 		for ((instance, oldState) in suspension.actions.effects) {
 			var x = scale * oldState.x.toFloat()
 			var y = scale * oldState.y.toFloat()
@@ -37,7 +37,7 @@ internal fun renderAreaActionEffects(areaContext: AreaRenderContext) {
 			val context = EffectRenderContext(ovalBatch, renderX, renderY, scale)
 
 			for (emitter in instance.effect.emitters) {
-				renderEmitter(emitter, state.currentTime - oldState.spawnTime, context)
+				renderEmitter(emitter, areaTimings.elapsedTimeSince(oldState.spawnTime), context)
 			}
 		}
 	}

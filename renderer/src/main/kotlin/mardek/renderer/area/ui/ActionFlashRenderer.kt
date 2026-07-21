@@ -3,22 +3,23 @@ package mardek.renderer.area.ui
 import com.github.knokko.boiler.utilities.ColorPacker.alpha
 import com.github.knokko.boiler.utilities.ColorPacker.changeAlpha
 import com.github.knokko.boiler.utilities.ColorPacker.multiplyAlpha
+import mardek.content.util.Time
 import mardek.renderer.area.AreaRenderContext
 import mardek.state.ingame.actions.AreaActionsState
 import mardek.state.ingame.area.AreaSuspensionActions
-import kotlin.math.abs
-import kotlin.math.pow
+import kotlin.time.Duration
 
 internal fun renderActionFlash(areaContext: AreaRenderContext) {
 	areaContext.run {
 		val suspension = state.suspension
-		if (suspension !is AreaSuspensionActions) return
+		if (suspension !is AreaSuspensionActions || suspension.actions.lastFlashTime == Time.ZERO) return
 
-		val passedTime = System.nanoTime() - suspension.actions.lastFlashTime
-		if (passedTime <= 0L || passedTime >= AreaActionsState.FLASH_DURATION) return
-
-		val relativeTime = passedTime.toDouble() / AreaActionsState.FLASH_DURATION.toDouble()
-		val intensity = 1f - 2f * abs(0.5f - relativeTime.toFloat()).pow(1f)
+		val passedTime = context.timing.elapsedTimeSince(suspension.actions.lastFlashTime)
+		if (passedTime <= Duration.ZERO || passedTime >= AreaActionsState.FLASH_DURATION) return
+		val intensity = context.timing.oscillate(
+			0f, 1f, AreaActionsState.FLASH_DURATION,
+			referenceTime = suspension.actions.lastFlashTime
+		)
 
 		var currentColor = multiplyAlpha(suspension.actions.lastFlashColor, 0.8f * intensity)
 		if (alpha(currentColor) == 0.toByte()) currentColor = changeAlpha(currentColor, 1)

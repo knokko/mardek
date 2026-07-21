@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.lang.Thread.sleep
 import java.util.UUID
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -93,15 +92,14 @@ object TestActions {
 			mardekState.activeStatusEffects.add(content.stats.statusEffects.find { it.flashName == "PSN" }!!)
 
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
-			repeat(50) {
+			repeat(85) {
 				state.update(context)
 			}
-			sleep(1000) // Wait until the annoying blue flash is gone to prevent testRendering from getting flaky
 
 			val actions = (areaState.suspension as AreaSuspensionActions).actions
 			val talkNode1 = (actions.node as FixedActionNode).action as ActionTalk
 			assertTrue(
-				actions.shownDialogueCharacters < talkNode1.text.length * 0.4f,
+				actions.shownDialogueCharacters < talkNode1.text.length * 0.8f,
 				"Expected ${actions.shownDialogueCharacters} to be small",
 			)
 
@@ -167,7 +165,7 @@ object TestActions {
 
 			(state.campaign.state as AreaState).suspension = AreaSuspensionActions(AreaActionsState(
 				node = FixedActionNode(id = UUID.randomUUID(), action = toHeroesDen, next = null),
-				defaultDialogueObject = null,
+				defaultDialogueObject = null, (state.campaign.state as AreaState).currentTime
 			))
 
 			val context = GameStateUpdateContext(

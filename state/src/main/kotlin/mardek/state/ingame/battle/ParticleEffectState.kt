@@ -2,6 +2,8 @@ package mardek.state.ingame.battle
 
 import mardek.content.particle.ParticleEffect
 import mardek.content.particle.ParticleEmitter
+import mardek.state.util.RenderTiming
+import mardek.content.util.Time
 import java.lang.Math.toRadians
 import kotlin.math.cos
 import kotlin.math.ln
@@ -10,6 +12,7 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
+import kotlin.time.DurationUnit
 
 /**
  * Represents the state of a particle effect/emitters at a concrete position. If the `update()` method is called
@@ -34,9 +37,9 @@ class ParticleEffectState(
 ) {
 
 	/**
-	 * The time (`System.nanoTime()`) at which the `update()` method was first called
+	 * The time at which the `update()` method was first called
 	 */
-	var startTime = 0L
+	var startTime = Time.ZERO
 
 	/**
 	 * The concrete particle emitters
@@ -52,23 +55,22 @@ class ParticleEffectState(
 	 *
 	 * Returns `true` if and only if this `ParticleEffectState` can be removed
 	 */
-	fun update(context: BattleUpdateContext, currentTime: Long): Boolean {
-		if (startTime == 0L) startTime = currentTime
+	fun update(context: BattleUpdateContext, timing: RenderTiming): Boolean {
+		if (startTime == Time.ZERO) startTime = timing.now()
 
 		if (!playedInitialSound) {
 			particle.initialSound()?.let { context.soundQueue.insert(it) }
 			playedInitialSound = true
 		}
 
-		val passedSeconds = (currentTime - startTime) / 1000_000_000f
-		if (!playedDamageSound && passedSeconds >= particle.damageDelay()) {
+		if (!playedDamageSound && timing.elapsedTimeSince(startTime) >= particle.damageDelay()) {
 			particle.damageSound()?.let { context.soundQueue.insert(it) }
 			playedDamageSound = true
 		}
 
 		// TODO CHAP3 Extra sound delays
 		// TODO CHAP3 Quake
-		emitters.removeIf { it.update(startTime, currentTime) }
+		emitters.removeIf { it.update(startTime, timing) }
 		return playedInitialSound && playedDamageSound && emitters.isEmpty()
 	}
 }
@@ -101,20 +103,22 @@ class ParticleEmitterState(
 	 * Updates this emitter state, as well as all the particles that it has spawned. If needed, this method will spawn
 	 * a new wave of particles. It also removes expired particles.
 	 */
-	fun update(startTime: Long, currentTime: Long): Boolean {
-		val passedSeconds = (currentTime - startTime) / 1000_000_000f
+	fun update(startTime: Time, timing: RenderTiming): Boolean {
 		val maxEmitterRounds = emitter.waves.numRounds
-		var expectedSpawnedWaves = 1 + ((passedSeconds - emitter.waves.delay) / emitter.waves.period).toInt()
+		val timeSinceStart = timing.elapsedTimeSince(startTime)
+
+		var expectedSpawnedWaves = 1 + ((timeSinceStart - emitter.waves.delay) / emitter.waves.period).toInt()
 		if (maxEmitterRounds != null) expectedSpawnedWaves = min(maxEmitterRounds, expectedSpawnedWaves)
 		while (numSpawnedWaves < expectedSpawnedWaves) {
-			val deltaTime = emitter.waves.delay + numSpawnedWaves * emitter.waves.period
+			val deltaTime = emitter.waves.delay + emitter.waves.period * numSpawnedWaves
+			val deltaTimeSeconds = deltaTime.toDouble(DurationUnit.SECONDS).toFloat()
 			for (index in 0 until emitter.waves.particlesPerWave) {
-				particles.add(ParticleState(emitter, index, deltaTime, currentTime))
+				particles.add(ParticleState(emitter, index, deltaTimeSeconds, timing.now()))
 			}
 			numSpawnedWaves += 1
 		}
 
-		particles.removeIf { it.hasExpired(currentTime) }
+		particles.removeIf { it.hasExpired(timing) }
 		return maxEmitterRounds != null && particles.isEmpty() && numSpawnedWaves >= maxEmitterRounds
 	}
 }
@@ -134,9 +138,9 @@ class ParticleState(
 	deltaTime: Float,
 
 	/**
-	 * The result of `System.nanoTime()` when this particle was spawned.
+	 * The time at which this particle was spawned.
 	 */
-	val spawnTime: Long,
+	val spawnTime: Time,
 ) {
 
 	/**
@@ -268,12 +272,16 @@ class ParticleState(
 	}
 
 	/**
-	 * Checks whether this particle should expire before `System.nanoTime() >= renderTime`
+	 * Checks whether this particle should expire
 	 */
-	fun hasExpired(renderTime: Long) = renderTime - spawnTime >= emitter.lifeTime * 1000_000_000L
+	fun hasExpired(timing: RenderTiming) = timing.elapsedTimeSince(spawnTime) >= emitter.lifeTime
+
+	private fun elapsedSeconds(timing: RenderTiming) = timing.elapsedTimeSince(
+		spawnTime
+	).toDouble(DurationUnit.SECONDS).toFloat()
 
 	/**
-	 * Computes the X-coordinate that this particle would have when `System.nanoTime() == renderTime`.
+	 * Computes the current X-coordinate of this particle.
 	 *
 	 * The recurrence formula for the velocity is
 	 * ```
@@ -305,8 +313,8 @@ class ParticleState(
 	 * x(0) + tv* + (v[0] - v*)M^t / ln(M) - (v[0] - v*) / ln(M)
 	 * ```
 	 */
-	fun computeX(renderTime: Long): Float {
-		val t = (renderTime - spawnTime) / 1000_000_000f
+	fun computeX(timing: RenderTiming): Float {
+		val t = elapsedSeconds(timing)
 		val velocityMultiplier = emitter.dynamics.velocityMultiplierX
 		if (velocityMultiplier == 1f) return initialX + t * initialVelocityX + t * t * 0.5f * accelerationX
 
@@ -318,12 +326,12 @@ class ParticleState(
 	}
 
 	/**
-	 * Computes the Y-coordinate that this particle would have when `System.nanoTime() == renderTime`.
+	 * Computes the current Y-coordinate of this particle.
 	 *
 	 * See the doc comments of [computeX] for a derivation of the formula.
 	 */
-	fun computeY(renderTime: Long): Float {
-		val t = (renderTime - spawnTime) / 1000_000_000f
+	fun computeY(timing: RenderTiming): Float {
+		val t = elapsedSeconds(timing)
 		val velocityMultiplier = emitter.dynamics.velocityMultiplierY
 		if (velocityMultiplier == 1f) return initialY + t * initialVelocityY + t * t * 0.5f * accelerationY
 
@@ -335,17 +343,17 @@ class ParticleState(
 	}
 
 	/**
-	 * Computes the rotation (degrees) that the particle would have when `System.nanoTime() == renderTime`.
+	 * Computes the current rotation (degrees) of the particle
 	 */
-	fun computeRotation(renderTime: Long): Float {
-		val t = (renderTime - spawnTime) / 1000_000_000f
+	fun computeRotation(timing: RenderTiming): Float {
+		val t = elapsedSeconds(timing)
 		return initialRotation + t * emitter.dynamics.spin
 	}
 
-	private fun computeSize(renderTime: Long, initialSize: Float, grow: Float, dynamicGrow: Float): Float {
+	private fun computeSize(timing: RenderTiming, initialSize: Float, grow: Float, dynamicGrow: Float): Float {
 		if (grow == 1f && dynamicGrow == 0f) return initialSize
 
-		val t = (renderTime - spawnTime) / 1000_000_000.0
+		val t = elapsedSeconds(timing).toDouble()
 		if (dynamicGrow == 0f) return (initialSize * grow.toDouble().pow(t)).toFloat()
 
 		/*
@@ -373,16 +381,16 @@ class ParticleState(
 	}
 
 	/**
-	 * Computes the width that the particle should have when `System.nanoTime() == renderTime`.
+	 * Computes the current width of the particle
 	 */
-	fun computeWidth(renderTime: Long) = computeSize(
-		renderTime, initialWidth, emitter.size.growX, emitter.size.dynamicGrowX
+	fun computeWidth(timing: RenderTiming) = computeSize(
+		timing, initialWidth, emitter.size.growX, emitter.size.dynamicGrowX
 	)
 
 	/**
-	 * Computes the height that the particle should have when `System.nanoTime() == renderTime`.
+	 * Computes the current height of the particle
 	 */
-	fun computeHeight(renderTime: Long) = computeSize(
-		renderTime, initialHeight, emitter.size.growY, emitter.size.dynamicGrowY
+	fun computeHeight(timing: RenderTiming) = computeSize(
+		timing, initialHeight, emitter.size.growY, emitter.size.dynamicGrowY
 	)
 }

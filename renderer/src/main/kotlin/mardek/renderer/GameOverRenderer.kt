@@ -55,7 +55,7 @@ internal fun renderGameOver(
 	)
 
 	val colorBatch = context.pipelines.color.addBatch(context.stage, 40)
-	val timeSinceGameOver = System.nanoTime() - state.startTime
+	val timeSinceGameOver = context.timing.renderNanoTime - state.startTime
 	val fade = max(0L, 255L - 255L * timeSinceGameOver / 5000_000_000L).toInt()
 	if (fade > 0) {
 		colorBatch.fill(

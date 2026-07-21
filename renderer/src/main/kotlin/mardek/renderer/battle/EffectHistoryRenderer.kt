@@ -18,7 +18,7 @@ internal fun renderEffectHistory(
 	imageBatch: Vk2dImageBatch, textBatch: Vk2dFancyTextBatch, lateColorBatch: Vk2dColorBatch,
 ) {
 	battleContext.run {
-		val currentEntry = combatant.renderInfo.effectHistory.get(renderTime) ?: return
+		val currentEntry = combatant.renderInfo.effectHistory.get(context.timing) ?: return
 		val midX = combatant.renderInfo.core.x
 		var midY = combatant.renderInfo.core.y
 

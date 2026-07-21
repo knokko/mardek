@@ -70,12 +70,10 @@ internal fun renderSettingsTab(menuContext: MenuRenderContext, region: Rectangle
 
 			if (isSelected && !tab.inside) {
 				val scale = 0.03f * region.height / pointerSprite.height
+				val offsetY = context.timing.oscillateCrystalPointer(0.0075f, -0.0025f) * region.height
 				context.addImageBatch(2).rotated(
-					0.5f * (minX + maxX),
-					region.minY - (0.0075f - 0.01f * determinePointerOffset()) * region.height,
-					270f,
-					scale, pointerSprite.index,
-					0, -1,
+					0.5f * (minX + maxX), region.minY - offsetY, 270f,
+					scale, pointerSprite.index, 0, -1,
 				)
 			}
 		}

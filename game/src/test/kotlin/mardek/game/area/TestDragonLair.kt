@@ -26,6 +26,7 @@ import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.PlayerCombatantState
 import mardek.state.saves.SaveFile
+import mardek.state.util.RenderTiming
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
@@ -34,7 +35,7 @@ import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.lang.Thread.sleep
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestDragonLair {
@@ -125,10 +126,7 @@ object TestDragonLair {
 				content.audio.musicTracks.find { it.fileName == "BossBattle" }!!,
 				state.campaign.determineMusicTrack(content)
 			)
-			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-			sleep(1000)
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Cancel))
-			state.update(context)
 
 			// Cast Frostasia, which should kill the 1HP dragon
 			assertInstanceOf<BattleStateMachine.SelectMove>(battleState.state)
@@ -145,8 +143,12 @@ object TestDragonLair {
 			// No EXP should have been gained, yet
 			val mardekCombatState = battleState.livingPlayers()[0] as PlayerCombatantState
 			val deuganCombatState = battleState.livingPlayers()[1] as PlayerCombatantState
-			assertNull(mardekCombatState.experienceIndicators.getEntryToDisplay(System.nanoTime()))
-			assertNull(deuganCombatState.experienceIndicators.getEntryToDisplay(System.nanoTime()))
+			assertNull(mardekCombatState.experienceIndicators.getEntryToDisplay(RenderTiming(
+				state.campaign.time, System.nanoTime(), Duration.ZERO
+			)))
+			assertNull(deuganCombatState.experienceIndicators.getEntryToDisplay(RenderTiming(
+				state.campaign.time, System.nanoTime(), Duration.ZERO
+			)))
 
 			val oldEncyclopedia = state.campaign.encyclopedia.createSnapshot(content.encyclopedia, state.campaign)
 			assertEquals(13, oldEncyclopedia.people.size)
@@ -165,24 +167,22 @@ object TestDragonLair {
 			val castState = battleState.state as BattleStateMachine.CastSkill
 			castState.hasFinishedCastingAnimation = true
 			castState.canSpawnTargetParticles = true
-			castState.targetParticlesSpawnTime = System.nanoTime() - 5_000_000_000L
-			state.update(context)
+			repeat(500) {
+				state.update(context)
+			}
 
 			// Expected EXP, checked against vanilla
 			assertEquals(5600, mardekCombatState.experienceIndicators.getEntryToDisplay(
-				System.nanoTime()
+				RenderTiming(state.campaign.time, System.nanoTime(), Duration.ZERO)
 			)!!.amount)
 			assertEquals(11312, deuganCombatState.experienceIndicators.getEntryToDisplay(
-				System.nanoTime()
+				RenderTiming(state.campaign.time, System.nanoTime(), Duration.ZERO)
 			)!!.amount)
 
-			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-			sleep(1000)
-			state.update(context)
-
 			assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
-			sleep(3000)
-			state.update(context)
+			repeat(300) {
+				state.update(context)
+			}
 
 			// Claim battle loot
 			assertNotNull(((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).loot)
@@ -195,16 +195,16 @@ object TestDragonLair {
 			state.update(context)
 
 			// Await battle loot fade-out
-			sleep(600)
 			assertEquals(0, (state.campaign.state as AreaState).fadingCharacters.size)
-			state.update(context)
+			repeat(60) {
+				state.update(context)
+			}
 			assertSame(mightyHeroesTrack, state.campaign.determineMusicTrack(content))
 
 			// Wait 1 second for the dragon to fade away
 			val actions = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions
 			assertEquals(1, (state.campaign.state as AreaState).fadingCharacters.size)
 			assertInstanceOf<ActionTalk>((actions.node as FixedActionNode).action)
-			sleep(1000)
 			repeat(100) {
 				state.update(context)
 			}

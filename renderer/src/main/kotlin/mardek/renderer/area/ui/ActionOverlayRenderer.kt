@@ -6,7 +6,6 @@ import mardek.content.action.ActionSetOverlayColor
 import mardek.content.action.FixedActionNode
 import mardek.renderer.area.AreaRenderContext
 import mardek.state.ingame.area.AreaSuspensionActions
-import kotlin.math.min
 
 internal fun renderActionOverlayColor(areaContext: AreaRenderContext) {
 	areaContext.run {
@@ -18,11 +17,11 @@ internal fun renderActionOverlayColor(areaContext: AreaRenderContext) {
 		if (node is FixedActionNode) {
 			val action = node.action
 			if (action is ActionSetOverlayColor) {
-				val progress = min(
-					1.0,
-					(state.currentTime - suspension.actions.currentNodeStartTime) / action.transitionTime,
+				val progress = areaTimings.interpolate(
+					suspension.actions.currentNodeStartTime, 0f,
+					action.transitionTime, 1f, true,
 				)
-				overlayColor = interpolateColors(overlayColor, action.color, progress.toFloat())
+				overlayColor = interpolateColors(overlayColor, action.color, progress)
 			}
 		}
 

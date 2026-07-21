@@ -8,6 +8,7 @@ import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.Vk2dFont
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.RenderContext
+import mardek.state.util.RenderTiming
 import mardek.state.saves.SaveSelectionState
 import mardek.state.util.Rectangle
 import kotlin.math.max
@@ -15,7 +16,7 @@ import kotlin.math.min
 
 internal fun renderSaveSelectionModal(
 	context: RenderContext, basicFont: Vk2dFont, fatFont: Vk2dFont, upperFont: Vk2dFont,
-	state: SaveSelectionState, isSaving: Boolean, region: Rectangle,
+	state: SaveSelectionState, isSaving: Boolean, region: Rectangle, timing: RenderTiming,
 ): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 	val colorBatch = context.addColorBatch(200)
 	val partBatch = context.addAnimationPartBatch(1500)
@@ -105,12 +106,12 @@ internal fun renderSaveSelectionModal(
 			val isSelected = saveIndex == state.selectedFileIndex
 			renderSaveFile(
 				colorBatch, imageBatch, partBatch, textBatch, fatFont, context.content, saveFile,
-				isSelected = isSelected, isGray = false, saveIndex, saveRegion,
+				isSelected = isSelected, isGray = false, saveIndex, saveRegion, timing,
 			)
 		} else {
 			renderSaveFile(
 				colorBatch, imageBatch, partBatch, textBatch, fatFont, context.content, null,
-				isSelected = false, isGray = true, -1, saveRegion,
+				isSelected = false, isGray = true, -1, saveRegion, timing,
 			)
 		}
 	}

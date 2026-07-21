@@ -13,8 +13,6 @@ import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.InGameMenuState
 import mardek.state.ingame.menu.UiUpdateContext
 
-internal val referenceTime = System.nanoTime()
-
 internal class MenuRenderContext(
 	val context: RenderContext,
 	val colorBatch: Vk2dColorBatch,

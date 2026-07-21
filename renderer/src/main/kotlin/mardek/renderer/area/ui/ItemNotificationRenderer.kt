@@ -19,7 +19,7 @@ internal fun renderActionsItemNotification(areaContext: AreaRenderContext) {
 		val fadeOutDuration = 1.seconds
 
 		var opacity = 0.0
-		var passedTime = state.currentTime - notification.timestamp
+		var passedTime = areaTimings.elapsedTimeSince(notification.timestamp)
 		if (passedTime < fadeInDuration) {
 			opacity = passedTime / fadeInDuration
 		} else {

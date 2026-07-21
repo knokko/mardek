@@ -12,6 +12,17 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertNull
 import kotlin.math.pow
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.microseconds
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+
+private fun assertEquals(expected: Duration, actual: Duration, margin: Duration) = assertEquals(
+	expected.toDouble(DurationUnit.SECONDS),
+	actual.toDouble(DurationUnit.SECONDS),
+	margin.toDouble(DurationUnit.SECONDS)
+)
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestParticleEffectImporter {
@@ -28,11 +39,11 @@ class TestParticleEffectImporter {
 	fun testImportEarthQuake() {
 		val earthQuake = content.battle.particles.find { it.name == "earthquake" }!!
 		assertEquals("earthquake", earthQuake.initialSound!!.flashName)
-		assertEquals(2.6666f, earthQuake.damageDelay, 0.01f)
+		assertEquals(8.seconds / 3, earthQuake.damageDelay, 1.milliseconds)
 
 		val quakeEffect = earthQuake.quake!!
 		assertEquals(20, quakeEffect.strength)
-		assertEquals(4f, quakeEffect.duration, 0.01f)
+		assertEquals(4.seconds, quakeEffect.duration, 1.milliseconds)
 
 		// 45 flash frames (1.5 seconds) with 0.15f decay per frame
 		assertEquals(20f - 45 * 0.15f, quakeEffect.strength - 1.5f * quakeEffect.decay, 0.01f)
@@ -45,7 +56,7 @@ class TestParticleEffectImporter {
 		assertEquals(1f, emitter.dynamics.velocityMultiplierY)
 		assertEquals(0f, emitter.dynamics.accelerationX)
 		assertEquals(360f, emitter.dynamics.accelerationY, 0.01f)
-		assertEquals(38f / 30f, emitter.waves.delay, 0.001f)
+		assertEquals(38.seconds / 30, emitter.waves.delay, 1.microseconds)
 		assertEquals(8, emitter.waves.particlesPerWave)
 		assertEquals(0.5f, emitter.size.minSizeMultiplier)
 		assertEquals(1.5f, emitter.size.maxSizeMultiplier)
@@ -58,7 +69,7 @@ class TestParticleEffectImporter {
 	fun testImportExtraSoundDelays() {
 		val razorLeaf = content.battle.particles.find { it.name == "razorleaf" }!!
 		assertEquals(3, razorLeaf.extraSoundDelays.size)
-		assertEquals(8f / 30f, razorLeaf.extraSoundDelays[0], 0.001f)
+		assertEquals(8.seconds / 30, razorLeaf.extraSoundDelays[0], 1.milliseconds)
 	}
 
 	@Test
@@ -81,8 +92,8 @@ class TestParticleEffectImporter {
 
 		val emitter = haste.emitters[1]
 		assertEquals("sheet64-element9", emitter.sprite.name)
-		assertEquals(3.3333f, emitter.lifeTime, 0.01f)
-		assertEquals(0.03333f, emitter.waves.period, 0.001f)
+		assertEquals(10.seconds / 3, emitter.lifeTime, 1.milliseconds)
+		assertEquals(1.seconds / 30, emitter.waves.period)
 		assertEquals(50, emitter.waves.numRounds)
 		assertEquals(-12f, emitter.opacity.grow, 0.01f)
 		assertEquals(1f, emitter.opacity.initial)
@@ -180,7 +191,7 @@ class TestParticleEffectImporter {
 	fun testImportSunFlare() {
 		val flare = content.battle.particles.find { it.name == "sunflare" }!!
 		val emitter = flare.emitters[0]
-		assertEquals(4f / 30f, emitter.waves.period, 0.001f)
+		assertEquals(4.seconds / 30, emitter.waves.period, 1.microseconds)
 		assertEquals(8, emitter.waves.particlesPerWave)
 		assertEquals(5, emitter.waves.numRounds)
 

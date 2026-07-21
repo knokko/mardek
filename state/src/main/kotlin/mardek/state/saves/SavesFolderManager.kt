@@ -119,7 +119,7 @@ class SavesFolderManager(
 		val saveInfo = SaveInfo(
 			areaName = areaName,
 			party = campaignState.allPartyMembers().map { it?.first?.id }.toTypedArray(),
-			playTime = campaignState.statistics.totalTime,
+			playTime = campaignState.time.virtual,
 			partyLevel = partyLevel,
 			chapter = campaignState.story.evaluate(content.story.fixedVariables.chapter) ?: -1,
 		)

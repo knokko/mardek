@@ -11,15 +11,14 @@ import mardek.content.skill.PassiveSkill
 import mardek.content.skill.ReactionSkill
 import mardek.content.skill.ReactionSkillType
 import mardek.renderer.RenderContext
-import mardek.renderer.menu.referenceTime
 import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderBoxButton
 import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.util.Rectangle
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 internal fun renderMasteryScreen(
 	context: RenderContext, loot: BattleLoot,
@@ -50,12 +49,9 @@ internal fun renderMasteryScreen(
 	val font = context.bundle.getFont(context.content.fonts.basic2.index)
 	val textColor = srgbToLinear(rgb(235, 200, 130))
 	val shadowColor = srgbToLinear(rgb(85, 50, 20))
-	val relativeTime = System.nanoTime() - referenceTime
 	for (member in party) {
 		val minX = region.minX + 5 * scale + 55 * scale * member.index
-		var spriteIndex = 0
-		val animationPeriod = 1_000_000_000L
-		if ((relativeTime % animationPeriod) >= animationPeriod / 2) spriteIndex += 1
+		val spriteIndex = context.timing.walkingSpriteIndex()
 		kimBatch.simple(
 			minX + scale, region.minY + 15 * scale, scale,
 			member.character.areaSprites.sprites[spriteIndex].index,
@@ -136,17 +132,15 @@ internal fun renderMasteryScreen(
 		}
 
 		val minBoxSize = 15f * scale
-		val maxBoxSize = 1.03f * minBoxSize
-		val boxSizePeriod = 1_000_000_000L
-		val relativeTime = ((System.nanoTime() - referenceTime) % boxSizePeriod).toFloat() / boxSizePeriod
-		val floatBoxSize = minBoxSize + (2f * abs(0.5f - relativeTime)) * (maxBoxSize - minBoxSize)
+		val maxBoxSize = 1.083f * minBoxSize
+		val floatBoxSize = context.timing.oscillate(minBoxSize, maxBoxSize, 1.seconds)
 		val boxSize = floatBoxSize.roundToInt()
 		val boxOffset = (5f * scale + minBoxSize + 0.5f * (boxSize - minBoxSize)).roundToInt()
 		val boxX = region.maxX - boxOffset
 		val boxY = region.maxY - boxOffset
 		renderBoxButton(
 			colorBatch, ovalBatch, simpleTextBatch, fancyTextBatch, context.bundle, context.content.fonts,
-			minBoxSize, boxX, boxY,
+			minBoxSize, boxSize, boxX, boxY,
 		)
 	}
 

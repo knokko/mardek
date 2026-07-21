@@ -8,17 +8,15 @@ import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
-import mardek.renderer.menu.referenceTime
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.TurnOrderSimulator
 import mardek.state.util.Rectangle
-import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
 
 fun renderTurnOrder(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
@@ -77,10 +75,8 @@ fun renderTurnOrder(
 		val darkEnemyColor = srgbToLinear(rgba(131, 45, 32, 200))
 		val lightEnemyColor = srgbToLinear(rgba(155, 87, 84, 200))
 		val onTurnColor = run {
-			val period = 1_500_000_000L
-			val relative = (renderTime - referenceTime) % period
-			val intensity = cos(relative * 2 * PI / period)
-			rgba(200, 200, 50, (60 + 50 * intensity).roundToInt())
+			val alpha = context.timing.oscillate(10f, 110f, 1.5.seconds)
+			rgba(200, 200, 50, alpha.roundToInt())
 		}
 
 		var isFirst = true

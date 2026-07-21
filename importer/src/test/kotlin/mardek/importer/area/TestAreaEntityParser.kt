@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertNull
 import java.util.UUID
+import kotlin.time.Duration.Companion.milliseconds
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestAreaEntityParser {
@@ -225,7 +226,7 @@ class TestAreaEntityParser {
 			sprites = content.areas.objectSprites.find { it.flashName == "obj_Crystal" }!!,
 			canWalkThrough = false,
 			light = null,
-			timePerFrame = 200,
+			timePerFrame = 200.milliseconds,
 			ownActions = null,
 			sharedActionSequence = content.actions.global.find { it.name == "c_healingCrystal" }!!,
 			signType = null,
@@ -552,7 +553,7 @@ class TestAreaEntityParser {
 			y = 4,
 			canWalkThrough = false,
 			light = null,
-			timePerFrame = 200,
+			timePerFrame = 200.milliseconds,
 			ownActions = actual.ownActions!!,
 			sharedActionSequence = null,
 			signType = null,
@@ -577,7 +578,7 @@ class TestAreaEntityParser {
 			sprites = content.areas.objectSprites.find { it.flashName == "obj_portal" }!!,
 			canWalkThrough = true,
 			light = null,
-			timePerFrame = 200,
+			timePerFrame = 200.milliseconds,
 			ownActions = actual.ownActions!!,
 			sharedActionSequence = null,
 			signType = null,
@@ -613,7 +614,7 @@ class TestAreaEntityParser {
 			sprites = null,
 			canWalkThrough = true,
 			light = null,
-			timePerFrame = 1,
+			timePerFrame = 1.milliseconds,
 			ownActions = actual.ownActions!!,
 			sharedActionSequence = null,
 			signType = null,
@@ -664,7 +665,7 @@ class TestAreaEntityParser {
 			sprites = null,
 			canWalkThrough = true,
 			light = null,
-			timePerFrame = 1,
+			timePerFrame = 1.milliseconds,
 			ownActions = actual.ownActions,
 			sharedActionSequence = null,
 			signType = null,
@@ -683,7 +684,7 @@ class TestAreaEntityParser {
 			sprites = null,
 			canWalkThrough = true,
 			light = null,
-			timePerFrame = 1,
+			timePerFrame = 1.milliseconds,
 			ownActions = null, // TODO CHAP2 Implement this
 			sharedActionSequence = null,
 			signType = null,

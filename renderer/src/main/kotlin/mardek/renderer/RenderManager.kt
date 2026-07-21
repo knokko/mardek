@@ -23,6 +23,7 @@ import org.lwjgl.vulkan.VK10.VK_NULL_HANDLE
 import org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
+import kotlin.time.Duration
 
 class RenderManager(
 	private val vk2d: Vk2dInstance,
@@ -69,7 +70,8 @@ class RenderManager(
 	fun renderFrame(
 		gameState: GameStateManager, frame: Vk2dSwapchainFrame,
 		textStyleCache: Vk2dTextStyleCache, fancyTextStyleCache: Vk2dFancyTextStyleCache,
-		perFrameDescriptorSet: Long, framebuffers: MardekFramebuffers, perFrame: PerFrameResources, currentFps: Long,
+		perFrameDescriptorSet: Long, framebuffers: MardekFramebuffers, perFrame: PerFrameResources,
+		currentFps: Long, extrapolationLimit: Duration,
 	) {
 		val currentState = gameState.currentState
 		val fullRenderContext = if (this::content.isInitialized && this::mainResources.isInitialized) {
@@ -77,7 +79,7 @@ class RenderManager(
 			RenderContext(
 				frame, frame.swapchainStage, framebuffers, perFrame,
 				pipelines, textStyleCache, fancyTextStyleCache, perFrameDescriptorSet, content, gameState,
-				campaign, mainResources, userSettings, currentFps,
+				campaign, mainResources, userSettings, currentFps, extrapolationLimit,
 			)
 		} else null
 

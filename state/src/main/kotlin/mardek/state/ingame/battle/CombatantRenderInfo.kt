@@ -3,6 +3,7 @@ package mardek.state.ingame.battle
 import mardek.content.particle.ParticleEmitter
 import mardek.content.stats.StatusEffect
 import mardek.state.util.Rectangle
+import mardek.content.util.Time
 import java.util.Locale
 
 /**
@@ -33,11 +34,11 @@ class CombatantRenderInfo {
 	val animationParticles = mutableMapOf<ParticleEmitter, AnimationEmitterState>()
 
 	/**
-	 * The last point in time (`System.nanoTime()`) where a player pointed to this combatant as the potential target
+	 * The last point in time where a player pointed to this combatant as the potential target
 	 * for an attack, skill, or item. This is only used to determine whether the blue 'target selection blink' should
 	 * be rendered, and is not important for the course of the battle.
 	 */
-	var lastPointedTo = 0L
+	var lastPointedTo = Time.ZERO
 
 	/**
 	 * When the `AnimationRenderer` encounters the `StrikePoint` node of a combatant, it should set this `strikePoint`
@@ -181,7 +182,7 @@ class AnimationEmitterState(emitter: ParticleEmitter) {
 	val positions = mutableListOf<CombatantRenderPosition>()
 
 	/**
-	 * The first time instant (`System.nanoTime()`) where this emitter was rendered/updated.
+	 * The first time instant where this emitter was rendered/updated.
 	 */
-	var firstRenderTime = 0L
+	var firstRenderTime = Time.ZERO
 }

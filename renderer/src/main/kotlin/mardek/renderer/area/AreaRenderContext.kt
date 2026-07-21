@@ -1,6 +1,7 @@
 package mardek.renderer.area
 
 import mardek.renderer.RenderContext
+import mardek.state.util.RenderTiming
 import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
 
@@ -16,6 +17,12 @@ internal class AreaRenderContext(
 	var cameraY = 0
 	val area = state.area
 	val tileSize = 16 * scale
+
+	val areaTimings = RenderTiming(
+		state.currentTime,
+		context.timing.renderNanoTime,
+		context.timing.extrapolationLimit,
+	)
 
 	val renderJobs = mutableListOf<SpriteRenderJob>()
 

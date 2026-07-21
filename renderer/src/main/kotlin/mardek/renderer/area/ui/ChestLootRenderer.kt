@@ -10,8 +10,6 @@ import mardek.renderer.util.gradientWithBorder
 import mardek.renderer.util.renderDescription
 import mardek.state.ingame.area.AreaSuspensionOpeningChest
 
-private val referenceTime = System.nanoTime()
-
 internal fun renderChestLoot(areaContext: AreaRenderContext) {
 	areaContext.run {
 		val suspension = state.suspension
@@ -46,10 +44,7 @@ internal fun renderChestLoot(areaContext: AreaRenderContext) {
 
 		if (obtainedItemStack.itemStack != null) {
 			for ((column, character) in obtainedItemStack.usedParty) {
-				var spriteIndex = 0
-				val passedTime = System.nanoTime() - referenceTime
-				val animationPeriod = 700_000_000L
-				if (passedTime % animationPeriod >= animationPeriod / 2) spriteIndex = 1
+				val spriteIndex = context.timing.walkingSpriteIndex()
 				spriteBatch2.draw(
 					character.areaSprites.sprites[spriteIndex],
 					rectMinX + scale + column * columnWidth,

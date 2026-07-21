@@ -15,6 +15,7 @@ import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
+import mardek.content.util.Time
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.lang.Thread.sleep
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -34,22 +34,22 @@ object TestSkills {
 
 	fun testSmiteEvilFlow(instance: TestingInstance) {
 		instance.apply {
-			val campaign = simpleCampaignState()
+			val state = InGameState(simpleCampaignState(), "test")
 			val smiteEvil = heroMardek.characterClass.skillClass.actions.find { it.name == "Smite Evil" }!!
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 
 			// Make sure Mardek gets on turn first, since his sword cannot miss
-			val mardekState = campaign.characterStates[heroMardek]!!
+			val mardekState = state.campaign.characterStates[heroMardek]!!
 			mardekState.currentLevel = 50
 			mardekState.currentMana = 20
 			val ring = content.items.items.find { it.displayName == "RingOfAGL+2" }!!
 			mardekState.equipment[heroMardek.characterClass.equipmentSlots[4]] = ring
 			mardekState.equipment[heroMardek.characterClass.equipmentSlots[5]] = ring
 
-			val deuganState = campaign.characterStates[heroDeugan]!!
+			val deuganState = state.campaign.characterStates[heroDeugan]!!
 			deuganState.currentLevel = 5
 
-			startSimpleBattle(campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
+			startSimpleBattle(state.campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
@@ -57,11 +57,9 @@ object TestSkills {
 				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
 			)
 
-			campaign.update(context(1.milliseconds))
-			sleep(1000)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 
-			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
+			val battle = ((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			val mardek = battle.livingPlayers()[0]
 			val monsterState = battle.livingOpponents()[0]
 			battle.state.let {
@@ -76,7 +74,7 @@ object TestSkills {
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			campaign.update(context(1.milliseconds))
+			state.update(context(1.milliseconds))
 
 			val sounds = content.audio.fixedEffects
 			assertSame(sounds.ui.scroll2, soundQueue.take())
@@ -94,7 +92,6 @@ object TestSkills {
 				assertFalse(it.finished)
 			}
 
-			val state = InGameState(campaign, "test")
 			val playerColors = arrayOf(
 				Color(129, 129, 79), // Mardek pants
 				Color(70, 117, 33), // Deugan coat
@@ -105,14 +102,14 @@ object TestSkills {
 				Color(126, 0, 0), // Shadow color
 			)
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 450, "smite-evil1",
 				playerColors + monsterColor, emptyArray(),
 				soundQueue = soundQueue,
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.MoveTo).finished)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			assertNull(soundQueue.take())
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.MeleeAttack.Strike)
@@ -126,7 +123,7 @@ object TestSkills {
 			assertEquals(0, mardekState.experienceToNextLevel)
 			assertEquals(0, deuganState.experienceToNextLevel)
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 450, "smite-evil2",
 				playerColors + monsterColor, emptyArray(),
@@ -134,7 +131,7 @@ object TestSkills {
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).canDealDamage)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.Strike).finished)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 
 			// If it's a critical hit, the crit sound should be played
 			val maybeCriticalHit = soundQueue.take()
@@ -161,22 +158,21 @@ object TestSkills {
 			assertEquals(1, mardekState.performance.numKills)
 			assertEquals(1, state.campaign.statistics.numKills)
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 750, "smite-evil3",
 				playerColors + monsterColor + notMasteredColors, emptyArray(),
 				soundQueue = soundQueue,
 			)
 			assertTrue((battle.state as BattleStateMachine.MeleeAttack.JumpBack).finished)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
 
 			// Note that the Smite Evil sound effect is the critical hit sound effect
 			assertSame(sounds.battle.critical, soundQueue.take())
 			assertNull(soundQueue.take())
 
-			sleep(1000)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			battle.state.let {
 				assertSame(battle.livingPlayers()[1], (it as BattleStateMachine.SelectMove).onTurn)
 				assertEquals(BattleMoveSelectionAttack(null), it.selectedMove)
@@ -194,6 +190,7 @@ object TestSkills {
 	fun testRecoverFlow(instance: TestingInstance) {
 		instance.apply {
 			val campaign = simpleCampaignState()
+			val state = InGameState(campaign, "test")
 			val recover = heroDeugan.characterClass.skillClass.actions.find { it.name == "Recover" }!!
 			val poison = content.stats.statusEffects.find { it.flashName == "PSN" }!!
 
@@ -211,10 +208,9 @@ object TestSkills {
 				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
 			)
 
-			campaign.update(context(1.milliseconds))
-			sleep(1000)
-			campaign.update(context(1.seconds))
-			campaign.update(context(1.milliseconds))
+			state.update(context(1.milliseconds))
+			state.update(context(1.seconds))
+			state.update(context(1.milliseconds))
 
 			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			val deugan = battle.livingPlayers()[1]
@@ -233,7 +229,7 @@ object TestSkills {
 			input.postEvent(pressKeyEvent(InputKey.Interact))
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			campaign.update(context(1.milliseconds))
+			state.update(context(1.milliseconds))
 
 			// Deugan should take 4 damage from poison (5% of 80)
 			assertEquals(80, deugan.maxHealth)
@@ -248,32 +244,31 @@ object TestSkills {
 			assertNull(castSkill.reactionChallenge)
 			assertNull(castSkill.calculatedDamage)
 			assertFalse(castSkill.canSpawnTargetParticles)
-			assertEquals(0L, castSkill.targetParticlesSpawnTime)
+			assertEquals(Time.ZERO, castSkill.targetParticlesSpawnTime)
 
-			val state = InGameState(campaign, "test")
 			val playerColors = arrayOf(
 				Color(129, 129, 79), // Mardek pants
 				Color(70, 117, 33), // Deugan coat
 			)
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 450, "recover1",
 				playerColors + monsterColor, emptyArray(),
 			)
 			assertTrue(castSkill.canSpawnTargetParticles)
 
-			val beforeUpdateTime = System.nanoTime()
-			campaign.update(context(1.seconds))
-			assertTrue(castSkill.targetParticlesSpawnTime > beforeUpdateTime)
+			val beforeUpdateTime = campaign.time.virtual
+			state.update(context(1.seconds))
+			assertTrue(castSkill.targetParticlesSpawnTime.virtual > beforeUpdateTime)
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 450, "recover2",
 				playerColors + monsterColor, emptyArray(),
 			)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			assertArrayEquals(arrayOf(null), castSkill.calculatedDamage)
 
 			assertEquals(deugan.maxHealth, deugan.currentHealth)
@@ -288,8 +283,7 @@ object TestSkills {
 			// Deugan should heal from (10 - 4 = 6) hp to 80 hp
 			assertEquals(74, deuganState.performance.damageDealt)
 
-			sleep(1000)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			val selection = battle.state as BattleStateMachine.SelectMove
 			assertSame(battle.livingPlayers()[0], selection.onTurn)
 			assertEquals(BattleMoveSelectionAttack(null), selection.selectedMove)
@@ -321,7 +315,6 @@ object TestSkills {
 			startSimpleBattle(state.campaign)
 
 			state.update(updateContext)
-			sleep(1000)
 			repeat(101) {
 				state.update(updateContext)
 			}
@@ -353,7 +346,7 @@ object TestSkills {
 			assertNull(castSkill.reactionChallenge)
 			assertNull(castSkill.calculatedDamage)
 			assertFalse(castSkill.canSpawnTargetParticles)
-			assertEquals(0L, castSkill.targetParticlesSpawnTime)
+			assertEquals(Time.ZERO, castSkill.targetParticlesSpawnTime)
 
 			val playerColors = arrayOf(
 				Color(255, 204, 153), // Skin color
@@ -361,20 +354,24 @@ object TestSkills {
 			)
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
-			sleep(1000)
+			repeat(100) {
+				state.update(updateContext)
+			}
 			testRendering(
 				state, 800, 450, "huff-puff1",
 				playerColors + monsterColor, emptyArray(),
 			)
 			assertTrue(castSkill.canSpawnTargetParticles)
 
-			val beforeUpdateTime = System.nanoTime()
+			val beforeUpdateTime = state.campaign.time.virtual
 			repeat(100) {
 				state.update(updateContext)
 			}
-			assertTrue(castSkill.targetParticlesSpawnTime > beforeUpdateTime)
+			assertTrue(castSkill.targetParticlesSpawnTime.virtual > beforeUpdateTime)
 
-			sleep(1000)
+			repeat(100) {
+				state.update(updateContext)
+			}
 			testRendering(
 				state, 800, 450, "huff-puff2",
 				playerColors + monsterColor, emptyArray(),
@@ -386,7 +383,7 @@ object TestSkills {
 
 			assertEquals(50, mardek.currentHealth)
 			assertEquals(6, mardek.currentMana)
-			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
+			assertInstanceOf<BattleStateMachine.SelectMove>(battle.state)
 
 			// Mardek healed himself from 30 hp to 40 hp
 			assertEquals(10, mardekState.performance.damageDealt)
@@ -398,23 +395,23 @@ object TestSkills {
 
 	fun testFireBreathFlow(instance: TestingInstance) {
 		instance.apply {
-			val campaign = simpleCampaignState()
+			val state = InGameState(simpleCampaignState(), "test")
 			val sslenck = content.playableCharacters.find { it.name == "Sslen'ck" }!!
 			val fireBreath = sslenck.characterClass.skillClass.actions.find { it.name == "Fire Breath" }!!
 			val monster = content.battle.monsters.find { it.name == "monster" }!!
 
 			// Make sure Sslenck has enough mana, and one-shots the monster
 			val sslenckState = CharacterState()
-			campaign.characterStates[sslenck] = sslenckState
+			state.campaign.characterStates[sslenck] = sslenckState
 			sslenckState.currentLevel = 99
 			sslenckState.currentMana = 20
 			sslenckState.currentHealth = 100
 			sslenckState.skillMastery[fireBreath] = fireBreath.masteryPoints
 			sslenckState.equipment[sslenck.characterClass.equipmentSlots[0]] = content.items.items.find { it.displayName.contains("Axe") }!!
 
-			campaign.party[0] = sslenck
-			campaign.party[1] = null
-			startSimpleBattle(campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
+			state.campaign.party[0] = sslenck
+			state.campaign.party[1] = null
+			startSimpleBattle(state.campaign, arrayOf(Enemy(monster, 10), Enemy(monster, 10), null, null))
 
 			val input = InputManager()
 			val soundQueue = SoundQueue()
@@ -422,11 +419,10 @@ object TestSkills {
 				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
 			)
 
-			campaign.update(context(1.milliseconds))
-			sleep(1000)
-			campaign.update(context(1.seconds))
+			state.update(context(1.milliseconds))
+			state.update(context(1.seconds))
 
-			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
+			val battle = ((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			val battleSslenck = battle.livingPlayers()[0]
 			val monsterState = battle.livingOpponents()[0]
 			battle.state.let {
@@ -435,7 +431,6 @@ object TestSkills {
 				assertEquals(BattleMoveSelectionAttack(null), it.selectedMove)
 			}
 
-			val state = InGameState(campaign, "test")
 			val playerColors = arrayOf(
 				Color(90, 52, 22), // Armor color
 				Color(80, 136, 45), // Skin color
@@ -453,7 +448,7 @@ object TestSkills {
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			input.postEvent(repeatKeyEvent(InputKey.Interact))
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			campaign.update(context(1.milliseconds))
+			state.update(context(1.milliseconds))
 
 			assertEquals(1452, monsterState.currentHealth)
 			battle.state.let {
@@ -464,13 +459,13 @@ object TestSkills {
 				assertFalse(it.finished)
 			}
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 450, "fire-breath1",
 				playerColors + monsterColor, emptyArray(),
 			)
 			assertTrue((battle.state as BattleStateMachine.BreathAttack.MoveTo).finished)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.BreathAttack.Attack)
 				assertSame(battleSslenck, (it as BattleStateMachine.BreathAttack.Attack).attacker)
@@ -480,14 +475,14 @@ object TestSkills {
 				assertFalse(it.canDealDamage)
 			}
 
-			sleep(1500)
+			state.update(context(1.5.seconds))
 			testRendering(
 				state, 800, 450, "fire-breath2",
 				playerColors + monsterColor, emptyArray()
 			)
 			assertTrue((battle.state as BattleStateMachine.BreathAttack.Attack).canDealDamage)
 			assertTrue((battle.state as BattleStateMachine.BreathAttack.Attack).finished)
-			campaign.update(context(1.seconds))
+			state.update(context(1.seconds))
 			assertEquals(0, monsterState.currentHealth)
 			battle.state.let {
 				assertTrue(it is BattleStateMachine.BreathAttack.JumpBack)
@@ -502,17 +497,15 @@ object TestSkills {
 			assertEquals(1452, sslenckState.performance.damageDealt)
 			assertEquals(0, sslenckState.performance.numMeleeAttacks)
 
-			sleep(1000)
+			state.update(context(1.seconds))
 			testRendering(
 				state, 800, 450, "fire-breath3",
 				playerColors + monsterColor, emptyArray(),
 			)
 			assertTrue((battle.state as BattleStateMachine.BreathAttack.JumpBack).finished)
-			campaign.update(context(1.seconds))
-			assertInstanceOf<BattleStateMachine.NextTurn>(battle.state)
 
-			sleep(1000)
-			campaign.update(context(1.seconds))
+			state.update(context(1.milliseconds))
+			state.update(context(1.seconds))
 			assertSame(
 				battle.livingOpponents()[0],
 				(battle.state as BattleStateMachine.MeleeAttack.MoveTo).attacker,

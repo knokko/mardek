@@ -27,6 +27,7 @@ import mardek.content.story.TimelineNode
 import java.util.UUID
 import kotlin.collections.addAll
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * The *action* of a `FixedActionNode` (e.g. walking or talking)
@@ -272,24 +273,24 @@ class ActionShowChapterName(
 	companion object {
 
 		/**
-		 * The time (in nanoseconds) needed to transition from an alpha/opacity of 0% to 100%, or from 100% to 0%.
+		 * The time needed to transition from an alpha/opacity of 0% to 100%, or from 100% to 0%.
 		 */
-		const val FADE_DURATION = 1500_000_000L
+		val FADE_DURATION = 1.5.seconds
 
 		/**
-		 * The time (in nanoseconds) during which the chapter name will be shown with its full opacity
+		 * The time during which the chapter name will be shown with its full opacity
 		 */
-		const val MAIN_DURATION = 2000_000_000L
+		val MAIN_DURATION = 2.seconds
 
 		/**
-		 * The total duration (in nanoseconds):
+		 * The total duration
 		 * 1. The screen is black
 		 * 2. The chapter title appears with an alpha/opacity of ~0
 		 * 3. The alpha/opacity gradually increases to full opacity, which takes `FADE_DURATION` ns
 		 * 4. The chapter title is shown with full opacity for `MAIN_DURATION` ns
 		 * 5. The chapter title slowly fades back to alpha/opacity 0, which takes `FADE_DURATION` ns
 		 */
-		const val TOTAL_DURATION = 2 * FADE_DURATION + MAIN_DURATION
+		val TOTAL_DURATION = FADE_DURATION * 2 + MAIN_DURATION
 	}
 }
 

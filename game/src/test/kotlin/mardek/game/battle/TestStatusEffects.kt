@@ -15,6 +15,7 @@ import mardek.state.ingame.area.AreaSuspensionBattle
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.awt.Color
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 object TestStatusEffects {
 
@@ -29,7 +30,10 @@ object TestStatusEffects {
 
 			startSimpleBattle(campaign)
 			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
-			battle.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
+			// Skip fade-in
+			state.update(GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(), 1.seconds
+			))
 			val monster = battle.livingOpponents()[0]
 			monster.statusEffects.add(content.stats.statusEffects.find { it.flashName == "PAR" }!!)
 

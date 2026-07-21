@@ -14,6 +14,7 @@ import mardek.content.skill.Skill
 import mardek.content.stats.CombatStat
 import mardek.content.stats.StatModifier
 import mardek.content.stats.StatusEffect
+import mardek.content.util.Time
 import kotlin.math.max
 
 /**
@@ -350,13 +351,11 @@ class CharacterState {
 		/**
 		 * The blink color, which would be green for poison.
 		 */
-		val color: Int
-	) {
+		val color: Int,
 
 		/**
-		 * The approximate time at which the character took damage: the result of `System.nanoTime()` at that instant
-		 * in time.
+		 * The campaign time at which the character took damage
 		 */
-		val time = System.nanoTime()
-	}
+		val time: Time,
+	)
 }

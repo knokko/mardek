@@ -22,6 +22,8 @@ import mardek.state.ingame.battle.CombatantRenderInfo
 import mardek.state.ingame.encyclopedia.EncyclopediaSnapshot
 import mardek.state.ingame.menu.EncyclopediaTab
 import mardek.state.util.Rectangle
+import mardek.content.util.Time
+import mardek.content.util.rem
 import org.joml.Matrix3x2f
 import kotlin.math.max
 import kotlin.math.min
@@ -186,7 +188,7 @@ private fun renderPersonDetails(menuContext: MenuRenderContext, region: Rectangl
 				region.width,
 				3 * region.height / 10,
 			),
-			renderTime = System.nanoTime(),
+			timing = context.timing,
 			magicScale = context.content.portraits.magicScale,
 			parentMatrix = Matrix3x2f().translate(
 				splitX - 0.1f * region.height,
@@ -259,7 +261,7 @@ private fun renderPlaceDetails(menuContext: MenuRenderContext, region: Rectangle
 		)
 		val animationContext = AnimationContext(
 			renderRegion = imageRegion,
-			renderTime = System.nanoTime(),
+			timing = context.timing,
 			magicScale = place.background.magicScale,
 			parentMatrix = Matrix3x2f().translate(
 				imageRegion.minX - 0.0075f * imageWidth,
@@ -306,7 +308,7 @@ private fun renderArtefactDetails(menuContext: MenuRenderContext, region: Rectan
 
 		val animationContext = AnimationContext(
 			renderRegion = region,
-			renderTime = System.nanoTime(),
+			timing = context.timing,
 			magicScale = artefact.magicScale,
 			parentMatrix = Matrix3x2f().translate(
 				region.minX + 0.32f * region.height,
@@ -437,7 +439,7 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 		val mostLikelyShield = monster.shield.entries.maxBy { it.chance }.item
 		val animationContext = AnimationContext(
 			renderRegion = region,
-			renderTime = System.nanoTime(),
+			timing = context.timing,
 			magicScale = monster.animations.skeleton.magicScale,
 			parentMatrix = Matrix3x2f().translate(
 				region.minX + 0.44f * region.height,
@@ -463,7 +465,7 @@ private fun renderMonsterDetails(menuContext: MenuRenderContext, region: Rectang
 		)
 
 		val animation = monster.animations["idle"]
-		val relativeTime = System.nanoTime() % animation.duration.inWholeNanoseconds
+		val relativeTime = context.timing.elapsedTimeSince(Time.ZERO) % animation.duration
 		renderCombatantAnimation(
 			animation,
 			monster.animations.skeleton.earlyFlatNodes,
@@ -676,7 +678,7 @@ private fun renderList(
 			if (tab.currentEntry == index) {
 				val pointer = context.content.ui.pointer
 				imageBatch.simpleScale(
-					baseX - 4f * radius + 0.2f * sectionHeight * determinePointerOffset(),
+					baseX - 4f * radius + context.timing.oscillateCrystalPointer(0f, 0.2f * sectionHeight),
 					baseY - 0.2f * radius,
 					0.9f * sectionHeight / pointer.height, pointer.index,
 				)
@@ -753,7 +755,7 @@ private fun renderOutside(tab: EncyclopediaTab, menuContext: MenuRenderContext, 
 		sections = sections.slice(0 until 4).toTypedArray()
 
 		val arrowIcon = context.content.ui.arrowHead
-		val arrowOffset = determinePointerOffset() * region.height
+		val arrowOffset = region.height * context.timing.oscillateCrystalPointer(-0.5f, 1f)
 
 		val arrowY = lineY + 0.15f * region.height
 		val arrowScale = 0.045f * region.height / arrowIcon.height

@@ -9,7 +9,6 @@ import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
 import mardek.renderer.RawRenderContext
-import mardek.renderer.menu.determinePointerOffset
 import mardek.renderer.util.renderButton
 import mardek.state.title.MusicPlayerState
 import mardek.state.util.Rectangle
@@ -17,6 +16,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.times
 
 internal fun renderMusicPlayer(
 	context: RawRenderContext, state: MusicPlayerState, region: Rectangle
@@ -112,7 +113,7 @@ internal fun renderMusicPlayer(
 	}
 
 	run {
-		val arrowOffset = 0.003f * region.height * determinePointerOffset()
+		val arrowOffset = context.timing.oscillate(0f, 0.007f * region.height, 500.milliseconds)
 		val arrowSprite = context.titleContent.arrowHead
 		val arrowScale = 0.0375f * region.height / arrowSprite.height
 
@@ -203,7 +204,7 @@ internal fun renderMusicPlayer(
 			val pointerSprite = context.titleContent.crystalPointer
 			val pointerScale = 0.027f * region.height / pointerSprite.height
 			imageBatch.rotated(
-				scrollX + (0.035f + 0.007f * determinePointerOffset()) * region.height,
+				scrollX + region.height * context.timing.oscillateCrystalPointer(0.035f, 0.042f),
 				baseMinY + 0.016f * region.height,
 				0f, pointerScale, pointerSprite.index,
 				0, -1,
@@ -230,9 +231,8 @@ internal fun renderMusicPlayer(
 		)
 
 		if (state.playingTrackDuration > Duration.ZERO) {
-			val filledLength = (1 + barMaxX - barMinX) * state.timePlaying.inWholeNanoseconds /
-					state.playingTrackDuration.inWholeNanoseconds
-			val barFilledX = min(barMaxX, barMinX + Math.toIntExact(filledLength) - 1)
+			val filledLength = (1 + barMaxX - barMinX) * state.timePlaying / state.playingTrackDuration
+			val barFilledX = min(barMaxX, barMinX + filledLength.roundToInt() - 1)
 			colorBatch.fill(
 				barMinX, barMinY, barFilledX, barMaxY,
 				srgbToLinear(rgb(232, 187, 92))
@@ -296,7 +296,7 @@ internal fun renderMusicPlayer(
 		)
 	}
 
-	val timeSinceOpen = System.nanoTime() - state.openedAt
+	val timeSinceOpen = context.timing.renderNanoTime - state.openedAt
 	if (timeSinceOpen < MusicPlayerState.FADE_IN_TIME) {
 		val opacity = 1f - timeSinceOpen.toFloat() / MusicPlayerState.FADE_IN_TIME
 		val alpha = (255f * opacity).roundToInt()
@@ -309,7 +309,7 @@ internal fun renderMusicPlayer(
 	}
 
 	if (state.closedAt != 0L) {
-		val timeSinceClose = System.nanoTime() - state.closedAt
+		val timeSinceClose = context.timing.renderNanoTime - state.closedAt
 		val opacity = timeSinceClose.toFloat() / MusicPlayerState.FADE_OUT_TIME
 		val alpha = min(255, (255f * opacity).roundToInt())
 		if (alpha > 0) {

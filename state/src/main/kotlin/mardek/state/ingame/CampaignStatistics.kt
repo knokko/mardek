@@ -3,7 +3,6 @@ package mardek.state.ingame
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * This class is used to track some of the information that is displayed on the "Status" tab of the in-game menu,
@@ -26,19 +25,6 @@ class CampaignStatistics {
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	var totalSteps = 0L
-
-	/**
-	 * The total in-game time that has elapsed since the start of the campaign.
-	 *
-	 * This is not always equal to the real-world time that has elapsed:
-	 * - This `totalTime` is only increased while the player is playing the game.
-	 * - This `totalTime` is stored in the save file (just like the rest of the campaign state).
-	 * So, when the player loses a battle and loads a save that was made before the battle,
-	 * this `totalTime` will be 'reset' to the `totalTime` before the battle.
-	 */
-	@BitField(id = 1)
-	@IntegerField(expectUniform = true, minValue = 0)
-	var totalTime = 0.seconds
 
 	/**
 	 * The total number of gold the player has earned.

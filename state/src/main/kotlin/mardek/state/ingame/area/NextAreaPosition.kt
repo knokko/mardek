@@ -5,14 +5,15 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.area.TransitionDestination
+import mardek.content.util.Time
 import kotlin.time.Duration
 
 /**
  * When a playable character or [mardek.content.area.objects.AreaCharacter] is walking from one tile to another,
  * a `NextAreaPosition` will be used to indicate this.
  *
- * The position of the character will keep its old value until [AreaState.currentTime] >= [arrivalTime], after which
- * the position is changed to the new position, and the `NextAreaPosition` is deleted.
+ * The position of the character will keep its old value until `areaState.currentTime < startTime + walkDuration`,
+ * after which the position is changed to the new position, and the `NextAreaPosition` is deleted.
  */
 @BitStruct(backwardCompatible = true)
 class NextAreaPosition(
@@ -24,19 +25,17 @@ class NextAreaPosition(
 	val position: AreaPosition,
 
 	/**
-	 * The value of [AreaState.currentTime] when the character *started* walking. This is only used by the renderer to
-	 * render the walking animation.
+	 * The value of [AreaState.currentTime] when the character *started* walking.
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true)
-	val startTime: Duration,
+	val startTime: Time,
 
 	/**
-	 * The character reaches [position] when [AreaState.currentTime] >= [arrivalTime]
+	 * The character reaches [position] when `areaState.currentTime >= startTime + walkDuration`
 	 */
 	@BitField(id = 2)
 	@IntegerField(expectUniform = true)
-	val arrivalTime: Duration,
+	val walkDuration: Duration,
 
 	/**
 	 * When this field is non-null, the player will be teleported to this transition destination right after reaching
@@ -49,7 +48,10 @@ class NextAreaPosition(
 	val transition: TransitionDestination?,
 ) {
 
-	internal constructor() : this(AreaPosition(), Duration.ZERO, Duration.ZERO, null)
+	internal constructor() : this(
+		AreaPosition(), Time.ZERO,
+		Duration.ZERO, null
+	)
 
-	override fun toString() = "($position at $arrivalTime)"
+	override fun toString() = "($position at $startTime + $walkDuration)"
 }

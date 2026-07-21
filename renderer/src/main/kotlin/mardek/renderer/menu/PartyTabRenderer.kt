@@ -18,12 +18,14 @@ import mardek.renderer.util.ResourceType
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.menu.PartyTab
 import mardek.state.util.Rectangle
+import mardek.content.util.Time
 import org.joml.Matrix3x2f
 import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun renderPartyTab(menuContext: MenuRenderContext, region: Rectangle) {
 	menuContext.run {
@@ -55,15 +57,17 @@ internal fun renderPartyTab(menuContext: MenuRenderContext, region: Rectangle) {
 			}
 		}
 
-		val arrowOffset = 0.003f * width * determinePointerOffset()
+		val arrowPeriod = 500.milliseconds
 		val arrowSprite = context.content.ui.arrowHead
 		val arrowScale = 0.04f * width / arrowSprite.height
 		imageBatch.rotated(
-			descriptionX + 0.02f * width + arrowOffset, region.minY - 0.04f * width,
+			descriptionX + width * context.timing.oscillate(0.017f, 0.024f, arrowPeriod),
+			region.minY - 0.04f * width,
 			180f, arrowScale, arrowSprite.index, 0, -1,
 		)
 		imageBatch.rotated(
-			descriptionX + 0.085f * width - arrowOffset, region.minY - 0.04f * width,
+			descriptionX + width * context.timing.oscillate(0.088f, 0.081f, arrowPeriod),
+			region.minY - 0.04f * width,
 			0f, arrowScale, arrowSprite.index, 0, -1,
 		)
 
@@ -140,7 +144,7 @@ private fun renderPartyMember(
 
 		val animationContext = AnimationContext(
 			renderRegion = Rectangle(region.minX, region.minY - region.height / 2, region.width, 3 * region.height / 2),
-			renderTime = System.nanoTime(),
+			timing = context.timing,
 			magicScale = context.content.portraits.magicScale,
 			parentMatrix = Matrix3x2f().translate(renderX, renderY).scale(-magicScale, magicScale),
 			parentColorTransform = null,

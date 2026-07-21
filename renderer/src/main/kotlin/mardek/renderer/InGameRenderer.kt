@@ -167,7 +167,7 @@ internal fun renderInGame(
 						val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
 						batches = renderSaveSelectionModal(
 							context, basicFont, fatFont, upperFont,
-							saveSelection, true, region,
+							saveSelection, true, region, context.timing,
 						)
 					} else if (itemStorage != null) {
 						batches = renderItemStorage(context, itemStorage, region)
@@ -217,12 +217,15 @@ internal fun renderInGame(
 						renderMasteryScreen(context, loot, state.campaign.usedPartyMembers(), region)
 					} else renderBattleLoot(context, loot, state.campaign.usedPartyMembers(), region)
 
-					if (loot.finishAt != 0L) {
-						val fade = 1f - (loot.finishAt - System.nanoTime()) / BattleLoot.FADE_OUT_DURATION.toFloat()
-						if (fade > 0.001f) {
+					if (loot.startedFadeOut != null) {
+						val fadeAlpha = context.timing.interpolate(
+							loot.startedFadeOut!!, 0,
+							BattleLoot.FADE_OUT_DURATION, 255, true
+						)
+						if (fadeAlpha > 0) {
 							context.addColorBatch(2).fill(
 								region.minX, region.minY, region.maxX, region.maxY,
-								rgba(0f, 0f, 0f, fade),
+								rgba(0, 0, 0, fadeAlpha),
 							)
 						}
 					}

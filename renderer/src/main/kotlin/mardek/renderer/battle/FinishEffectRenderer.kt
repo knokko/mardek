@@ -7,8 +7,8 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.util.Rectangle
-import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun renderBattleFinishEffect(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch,
@@ -17,30 +17,32 @@ internal fun renderBattleFinishEffect(
 	battleContext.run {
 		val stateMachine = battle.state
 		if (stateMachine is BattleStateMachine.GameOver) {
-			val spentTime = System.nanoTime() - stateMachine.startTime
-			val fade = min(255L, 255L * spentTime / BattleStateMachine.GameOver.FADE_DURATION).toInt()
-			if (fade > 0) {
+			val fadeAlpha = context.timing.interpolate(
+				stateMachine.startTime, 0,
+				BattleStateMachine.GameOver.FADE_DURATION, 255, true
+			)
+			if (fadeAlpha > 0) {
 				colorBatch.fill(
 					region.minX, region.minY, region.maxX, region.maxY,
-					rgba(0, 0, 0, fade)
+					rgba(0, 0, 0, fadeAlpha)
 				)
 			}
 		}
 		if (stateMachine is BattleStateMachine.Victory) {
-			val spentTime = System.nanoTime() - stateMachine.startTime
-			val time1 = 500_000_000L
-			if (spentTime > time1 && !stateMachine.shouldGoToLootMenu()) {
+			val spentTime = context.timing.elapsedTimeSince(stateMachine.startTime)
+			val time1 = 500.milliseconds
+			if (spentTime > time1 && !stateMachine.shouldGoToLootMenu(context.campaign.time)) {
 				var strokeColor = srgbToLinear(rgb(108, 89, 43))
 
-				val appearDuration = 250_000_000L
+				val appearDuration = 250.milliseconds
 				val time2 = time1 + appearDuration
-				val fadeBackDuration = 750_000_000L
+				val fadeBackDuration = 750.milliseconds
 				val time3 = time2 + fadeBackDuration
 				val (a, b) = if (spentTime <= time2) {
-					val both = (spentTime - time1).toFloat() / appearDuration.toFloat()
+					val both = ((spentTime - time1) / appearDuration).toFloat()
 					Pair(both, both)
 				} else if (spentTime <= time3) {
-					Pair(1f, 1f - (spentTime - time2).toFloat() / fadeBackDuration.toFloat())
+					Pair(1f, 1f - ((spentTime - time2) / fadeBackDuration).toFloat())
 				} else Pair(1f, 0f)
 
 				strokeColor = rgba(

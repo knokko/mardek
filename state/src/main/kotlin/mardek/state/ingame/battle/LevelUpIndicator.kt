@@ -1,14 +1,18 @@
 package mardek.state.ingame.battle
 
+import mardek.content.util.Time
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+
 /**
  * An indicator that a player got a level-up during a battle
  */
 class LevelUpIndicator(
 
 	/**
-	 * The result of `System.nanoTime()` at the time of the level-up
+	 * The time at which the player achieved the level-up
 	 */
-	val startTime: Long,
+	val startTime: Time,
 
 	/**
 	 * The new level of the combatant
@@ -19,24 +23,24 @@ class LevelUpIndicator(
 	companion object {
 
 		/**
-		 * The duration of the initial 'jump' of the "Level Up!" indicator, in nanoseconds
+		 * The duration of the initial 'jump' of the "Level Up!" indicator
 		 */
-		const val JUMP_DURATION = 250_000_000L
+		val JUMP_DURATION = 250.milliseconds
 
 		/**
-		 * The 'stable' duration of the "Level Up!" indicator, in nanoseconds: this is the time between the end of the
+		 * The 'stable' duration of the "Level Up!" indicator: this is the time between the end of the
 		 * initial 'jump', and the beginning of the fade-out.
 		 */
-		const val STABLE_DURATION = 2_000_000_000L
+		val STABLE_DURATION = 2.seconds
 
 		/**
-		 * The duration of the 'fade out' of the "Level Up!" indicator, in nanoseconds
+		 * The duration of the 'fade out' of the "Level Up!" indicator
 		 */
-		const val FADE_DURATION = 500_000_000L
+		val FADE_DURATION = 500.milliseconds
 
 		/**
-		 * The total duration during which the "Level Up!" indicator is visible, in nanoseconds
+		 * The total duration during which the "Level Up!" indicator is visible
 		 */
-		const val TOTAL_DURATION = JUMP_DURATION + STABLE_DURATION + FADE_DURATION
+		val TOTAL_DURATION = JUMP_DURATION + STABLE_DURATION + FADE_DURATION
 	}
 }

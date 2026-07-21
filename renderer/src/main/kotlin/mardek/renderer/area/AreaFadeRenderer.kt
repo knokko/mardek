@@ -1,36 +1,47 @@
 package mardek.renderer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
-import mardek.content.action.WalkSpeed
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionOpeningDoor
 import mardek.state.ingame.area.AreaSuspensionPlayerWalking
 import mardek.state.ingame.area.loot.BattleLoot
-import kotlin.math.min
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.nanoseconds
 
 internal fun renderAreaFadeEffects(areaContext: AreaRenderContext) {
 	areaContext.apply {
-		val fadeIn = min(1.0, state.currentTime / AreaState.DOOR_OPEN_DURATION).toFloat()
-		val postBattleFadeIn = min(
-			1.0, (state.currentTime - state.finishedBattleAt) / BattleLoot.FADE_OUT_DURATION.nanoseconds
-		).toFloat()
+		val fadeIn = areaTimings.interpolate(
+			state.zeroTime, 0f,
+			AreaState.DOOR_OPEN_DURATION, 1f, true
+		)
+
+		val finishedBattleAt = state.finishedBattleAt
+		val postBattleFadeIn = if (finishedBattleAt != null) areaTimings.interpolate(
+			finishedBattleAt, 0f,
+			BattleLoot.FADE_OUT_DURATION, 1f, true,
+		) else 1f
 		var fadeOut = 1f
 
 		when (val suspension = state.suspension) {
 			is AreaSuspensionOpeningDoor -> {
-				fadeOut = ((suspension.finishTime - state.currentTime) / AreaState.DOOR_OPEN_DURATION).toFloat()
+				fadeOut = areaTimings.interpolate(
+					suspension.startTime, 1f,
+					AreaState.DOOR_OPEN_DURATION, 0f, true,
+				)
 			}
 			is AreaSuspensionActions -> {
-				if (suspension.actions.switchAreaAt >= Duration.ZERO) {
-					fadeOut = ((suspension.actions.switchAreaAt - state.currentTime) / AreaState.DOOR_OPEN_DURATION).toFloat()
+				if (suspension.actions.startAreaSwitch != null) {
+					fadeOut = areaTimings.interpolate(
+						suspension.actions.startAreaSwitch!!, 1f,
+						AreaState.DOOR_OPEN_DURATION, 0f, true,
+					)
 				}
 			}
 			is AreaSuspensionPlayerWalking -> {
 				if (suspension.destination.transition != null) {
-					fadeOut = ((suspension.destination.arrivalTime - state.currentTime) / WalkSpeed.Normal.duration).toFloat()
+					fadeOut = areaTimings.interpolate(
+						suspension.destination.startTime, 1f,
+						suspension.destination.walkDuration, 0f, true,
+					)
 				}
 			}
 			else -> {}

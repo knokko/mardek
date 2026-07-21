@@ -7,11 +7,17 @@ import com.github.knokko.vk2d.text.Vk2dFancyTextStyleCache
 import com.github.knokko.vk2d.text.Vk2dTextStyleCache
 import mardek.content.Content
 import mardek.content.ui.TitleScreenContent
+import mardek.state.util.RenderTiming
 import mardek.state.GameStateManager
 import mardek.state.settings.VideoSettings
 import mardek.state.ingame.CampaignState
 import mardek.state.settings.UserSettings
 import mardek.state.util.Rectangle
+import mardek.content.util.Time
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+
+private val rawReferenceTime = Time.zero()
 
 class RawRenderContext(
 	val stage: Vk2dRenderStage,
@@ -25,7 +31,10 @@ class RawRenderContext(
 	val titleScreenBundle: Vk2dResourceBundle,
 	val videoSettings: VideoSettings,
 	val currentFps: Long,
-)
+) {
+	// TODO CHAP2 Try to use something more accurate than System.nanoTime(), e.g. some present timing extension
+	val timing = RenderTiming(rawReferenceTime, System.nanoTime(), Duration.INFINITE)
+}
 
 class RenderContext(
 	val frame: Vk2dSwapchainFrame,
@@ -42,7 +51,12 @@ class RenderContext(
 	val bundle: Vk2dResourceBundle,
 	val userSettings: UserSettings,
 	val currentFps: Long,
+	extrapolationLimit: Duration,
 ) {
+
+	// TODO CHAP2 Try to use something more accurate than System.nanoTime(), e.g. some present timing extension
+	val timing = RenderTiming(campaign.time, System.nanoTime(), extrapolationLimit)
+
 	fun addColorBatch(initialCapacity: Int) = pipelines.color.addBatch(currentStage, initialCapacity)!!
 
 	fun addMultiplyBatch(initialCapacity: Int) = pipelines.multiply.addBatch(currentStage, initialCapacity)!!
@@ -62,7 +76,7 @@ class RenderContext(
 	fun addKim3Batch(initialCapacity: Int) = pipelines.kim3.addBatch(currentStage, initialCapacity, bundle, perFrameDescriptorSet)!!
 
 	fun addSimpleWaterBatch(initialCapacity: Int, scissor: Rectangle, scale: Int) = pipelines.simpleWater.addBatch(
-		currentStage, initialCapacity, bundle, perFrameDescriptorSet, scissor, scale
+		currentStage, initialCapacity, bundle, perFrameDescriptorSet, scissor, scale, timing,
 	)
 
 	fun addAreaSpriteBatch(initialCapacity: Int, scissor: Rectangle) = pipelines.areaSprite.addBatch(

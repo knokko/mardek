@@ -2,8 +2,9 @@ package mardek.content.particle
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
-import com.github.knokko.bitser.field.FloatField
+import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import kotlin.time.Duration
 
 /**
  * `ParticleEmitter`s spawn/emit one or more particles.
@@ -62,11 +63,11 @@ class ParticleEmitter(
 	val opacity: ParticleOpacity,
 
 	/**
-	 * The (maximum) lifetime of each emitted particle (in seconds)
+	 * The (maximum) lifetime of each emitted particle
 	 */
 	@BitField(id = 7)
-	@FloatField(expectMultipleOf = 1.0 / 30.0, commonValues=[6.666, 3.333, 1.0, 0.666])
-	val lifeTime: Float,
+	@IntegerField(expectUniform = false, minValue = 0)
+	val lifeTime: Duration,
 
 	/**
 	 * Whether the emitted particle should be mirrored (in the X direction?)
@@ -77,6 +78,6 @@ class ParticleEmitter(
 	@Suppress("unused")
 	private constructor() : this(
 		EmitterTransform(), ParticleSprite(), EmissionWaves(), ParticleSpawnProperties(),
-		ParticleDynamics(), ParticleSize(), ParticleOpacity(), 0f, false
+		ParticleDynamics(), ParticleSize(), ParticleOpacity(), Duration.ZERO, false
 	)
 }

@@ -11,6 +11,8 @@ import mardek.content.action.ActionNode
 import mardek.content.action.ActionSequence
 import mardek.content.encyclopedia.EncyclopediaPerson
 import mardek.content.sprite.ObjectSprites
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * An object in an area that does not move.
@@ -47,11 +49,11 @@ class AreaDecoration(
 	val light: AreaLight?,
 
 	/**
-	 * The duration of one animation frame, in milliseconds
+	 * The duration of one animation frame
 	 */
 	@BitField(id = 3)
-	@IntegerField(minValue = 1, expectUniform = false, commonValues = [150])
-	val timePerFrame: Int,
+	@IntegerField(minValue = 1, expectUniform = false)
+	val timePerFrame: Duration,
 
 	/**
 	 * The action that should be activated when the player interacts with this decoration, or `null` when the
@@ -97,7 +99,7 @@ class AreaDecoration(
 
 	@Suppress("unused")
 	private constructor() : this(
-		0, 0, null, false, null, 1,
+		0, 0, null, false, null, 1.seconds,
 		null, null, null, null, null,
 	)
 

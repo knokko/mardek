@@ -33,9 +33,10 @@ object TestActionBar {
 			startSimpleBattle(state.campaign)
 
 			val battle = ((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
-			battle.state = BattleStateMachine.NextTurn(System.nanoTime()) // Skip waiting
-			battle.startTime = System.nanoTime() - 1000_000_000L // Skip fade-in
-			state.update(updateContext)
+			// Skip waiting & fade-in
+			repeat(100) {
+				state.update(updateContext)
+			}
 
 			val attackColor = arrayOf(Color(204, 153, 102))
 			val disabledAttackColor = arrayOf(Color(94, 77, 55))

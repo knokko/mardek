@@ -10,8 +10,8 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.util.Rectangle
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
-private const val BLINK_PERIOD = 750_000_000L
 private val UNEXPLORED_COLOR = srgbToLinear(rgb(45, 31, 19))
 private val INACCESSIBLE_TERRAIN_COLOR = srgbToLinear(rgb(81, 54, 35))
 private val ACCESSIBLE_TERRAIN_COLOR = srgbToLinear(rgb(131, 113, 80))
@@ -24,7 +24,7 @@ private val DOOR_COLOR = srgbToLinear(rgb(0, 255, 255))
 
 internal fun renderAreaMap(menuContext: MenuRenderContext, region: Rectangle) {
 	menuContext.apply {
-		val shouldBlink = ((System.nanoTime() - referenceTime) % BLINK_PERIOD) >= BLINK_PERIOD / 2
+		val shouldBlink = context.timing.alternate(arrayOf(false, true), 750.milliseconds)
 		val scale = min(region.width, region.height) / 70
 
 		val areaState = state.state

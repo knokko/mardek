@@ -32,6 +32,7 @@ import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.story.StoryState
 import mardek.state.ingame.worldmap.AreaExitPoint
 import mardek.state.ingame.worldmap.WorldMapState
+import mardek.content.util.Time
 import java.lang.Math.clamp
 import kotlin.math.max
 import kotlin.math.min
@@ -92,9 +93,17 @@ class AreaState(
 	 * The in-game time that elapsed since the player entered the area.
 	 */
 	@BitField(id = 1)
-	@IntegerField(expectUniform = true)
-	var currentTime = if (skipFadeIn) DOOR_OPEN_DURATION else ZERO
+	var currentTime = if (skipFadeIn) Time(DOOR_OPEN_DURATION) else Time.zero()
 		internal set
+
+	/**
+	 * The 'in-game' time at time 0 of this area:
+	 * - `zeroTime.virtual` will always be `Duration.ZERO`
+	 * - `zeroTime.nanoTime` will be the result of `System.nanoTime()` when the player entered this area
+	 *
+	 * This field is only used by the renderer, to render the fade-in.
+	 */
+	val zeroTime = Time.zero()
 
 	/**
 	 * The current position of each of the party members. (`playerPositions[0]` is the position of Mardek,
@@ -158,9 +167,9 @@ class AreaState(
 	 * The value of `currentTime` when the last battle was finished. This is used to render a small fade-in right after
 	 * claiming the battle loot.
 	 *
-	 * When no battle was finished this session, it is a negative number, which should be ignored.
+	 * When no battle was finished this session, it is null
 	 */
-	var finishedBattleAt = -(1.seconds)
+	var finishedBattleAt: Time? = null
 
 	private var shouldInteract = false
 	private var shouldOpenChatLog = false
@@ -208,6 +217,7 @@ class AreaState(
 				context,
 				context.campaign.usedPartyMembers(),
 				context.campaign.allPartyMembers(),
+				context.campaign.time,
 			)
 			battleLoot.processKeyPress(event.key, lootContext)
 		} else {
@@ -215,6 +225,7 @@ class AreaState(
 				context.campaign.characterStates, context.campaign.encyclopedia,
 				context.campaign.statistics, context.content.audio.fixedEffects,
 				context.content.stats.defaultWeaponElement, context.soundQueue,
+				context.campaign.time,
 			)
 			suspension.battle.processKeyPress(event.key, battleContext)
 		}
@@ -273,7 +284,7 @@ class AreaState(
 	 * - trigger random battles
 	 */
 	private fun update(context: UpdateContext) {
-		if (currentTime == ZERO) {
+		if (currentTime.virtual == ZERO) {
 			if (!area.flags.hasClearMap) {
 				context.campaign.areaDiscovery.readWrite(area).discover(playerPositions[0].x, playerPositions[0].y)
 			}
@@ -285,7 +296,7 @@ class AreaState(
 		}
 
 		obtainedGold?.run {
-			if (currentTime >= showUntil) obtainedGold = null
+			if (currentTime.virtualOffset(shownSince) >= ObtainedGold.DURATION) obtainedGold = null
 		}
 
 		while (true) {
@@ -322,7 +333,7 @@ class AreaState(
 	) {
 		val oldSuspension = suspension
 		val nextActions = if (oldSuspension is AreaSuspensionActions) oldSuspension.actions else null
-		suspension = AreaSuspensionIncomingBattle(battle, currentTime + 500.milliseconds, players, nextActions)
+		suspension = AreaSuspensionIncomingBattle(battle, currentTime, players, nextActions)
 	}
 
 	private fun updateNPCs(context: UpdateContext) {
@@ -331,7 +342,7 @@ class AreaState(
 		val rng = Random.Default
 		for ((npc, state) in characterStates) {
 			if (state.next != null) {
-				if (state.next.arrivalTime <= currentTime) {
+				if (currentTime.virtualOffset(state.next.startTime) >= state.next.walkDuration) {
 					stateChanges[npc] = AreaCharacterState(
 						x = state.next.position.x,
 						y = state.next.position.y,
@@ -360,7 +371,7 @@ class AreaState(
 					val walkTime = WalkSpeed.Slow.duration
 					val next = NextAreaPosition(
 						destination, currentTime,
-						currentTime + walkTime, null,
+						walkTime, null,
 					)
 					stateChanges[npc] = AreaCharacterState(state.x, state.y, direction, next)
 				}
@@ -401,7 +412,7 @@ class AreaState(
 				val newSuspension = AreaSuspensionActions(AreaActionsState(
 					rootAction, ActionTargetData(
 						character.name, character.element, character.portrait
-					)
+					), currentTime
 				))
 
 				val encyclopediaPerson = character.encyclopediaPerson
@@ -435,7 +446,7 @@ class AreaState(
 				suspension = AreaSuspensionActions(AreaActionsState(
 					rootAction, ActionTargetData(
 						decoration.displayName ?: "ERROR", null, null
-					)
+					), currentTime
 				))
 				return
 			} else {
@@ -448,12 +459,12 @@ class AreaState(
 				suspension = if (context.campaign.story.evaluate(
 						door.canOpen, context.campaign.expressionContext()
 				)) {
-					AreaSuspensionOpeningDoor(door, currentTime + DOOR_OPEN_DURATION)
+					AreaSuspensionOpeningDoor(door, currentTime)
 				} else {
 					AreaSuspensionActions(AreaActionsState(
 						door.cannotOpenActions!!.root, ActionTargetData(
 							door.displayName, null, null
-						)
+						), currentTime
 					))
 				}
 				return
@@ -507,7 +518,7 @@ class AreaState(
 	}
 
 	private fun updatePlayerPosition(context: UpdateContext, nextPlayerPosition: NextAreaPosition) {
-		if (nextPlayerPosition.arrivalTime <= currentTime) {
+		if (currentTime.virtualOffset(nextPlayerPosition.startTime) >= nextPlayerPosition.walkDuration) {
 			context.campaign.statistics.totalSteps += 1
 
 			for (index in 1 until playerPositions.size) {
@@ -537,7 +548,7 @@ class AreaState(
 					val maxHealth = state.determineMaxHealth(character.baseStats, state.activeStatusEffects)
 					state.currentHealth -= max(1, (walkDamage.hpFraction * maxHealth).roundToInt())
 					state.currentHealth = clamp(state.currentHealth.toLong(), 1, maxHealth)
-					state.lastWalkDamage = CharacterState.WalkDamage(walkDamage.blinkColor)
+					state.lastWalkDamage = CharacterState.WalkDamage(walkDamage.blinkColor, context.campaign.time)
 				}
 			}
 		}
@@ -548,14 +559,14 @@ class AreaState(
 			suspension = null
 		} else if (incoming.canAvoid && context.input.isPressed(InputKey.Cancel)) {
 			suspension = null
-		} else if (currentTime >= incoming.startAt) {
+		} else if (currentTime.virtualOffset(incoming.encounteredAt) >= AreaSuspensionIncomingRandomBattle.DURATION) {
 			context.soundQueue.insert(context.content.audio.fixedEffects.battle.engage)
 			engageBattle(context, incoming.battle)
 		}
 	}
 
 	private fun updateIncomingBattle(context: UpdateContext, incomingBattle: AreaSuspensionIncomingBattle) {
-		if (currentTime >= incomingBattle.startAt) {
+		if (currentTime.virtualOffset(incomingBattle.startedFlickerAt) >= AreaSuspensionIncomingBattle.DURATION) {
 			suspension = AreaSuspensionBattle(BattleState(
 				battle = incomingBattle.battle,
 				players = incomingBattle.players,
@@ -566,7 +577,8 @@ class AreaState(
 					context.campaign.statistics,
 					context.content.audio.fixedEffects,
 					context.content.stats.defaultWeaponElement,
-					context.soundQueue
+					context.soundQueue,
+					context.campaign.time,
 				)
 			), nextActions = incomingBattle.nextActions)
 		}
@@ -577,6 +589,7 @@ class AreaState(
 			context.campaign.characterStates, context.campaign.encyclopedia,
 			context.campaign.statistics, context.content.audio.fixedEffects,
 			context.content.stats.defaultWeaponElement, context.soundQueue,
+			context.campaign.time,
 		)
 		suspension.battle.update(battleContext)
 
@@ -589,10 +602,12 @@ class AreaState(
 				combatant.transferStatusBack(battleContext)
 			}
 		}
-		if (battleState is BattleStateMachine.GameOver && battleState.shouldGoToGameOverMenu()) {
+		if (battleState is BattleStateMachine.GameOver && battleState.shouldGoToGameOverMenu(context.campaign.time)) {
 			context.campaign.gameOver = true
 		}
-		if (suspension.loot == null && battleState is BattleStateMachine.Victory && battleState.shouldGoToLootMenu()) {
+		if (suspension.loot == null && battleState is BattleStateMachine.Victory &&
+				battleState.shouldGoToLootMenu(context.campaign.time)
+		) {
 			val loot = generateBattleLoot(
 				context.content, suspension.battle.battle,
 				context.campaign.usedPartyMembers(),
@@ -606,7 +621,7 @@ class AreaState(
 		}
 
 		val loot = suspension.loot
-		if (loot != null && loot.finishAt != 0L && System.nanoTime() > loot.finishAt) {
+		if (loot != null && loot.startedFadeOut != null && context.campaign.time.virtualOffset(loot.startedFadeOut!!) >= BattleLoot.FADE_OUT_DURATION) {
 			context.campaign.gold += loot.gold
 			context.campaign.statistics.goldEarned += loot.gold
 			this.suspension = if (suspension.nextActions != null) {
@@ -643,7 +658,9 @@ class AreaState(
 	}
 
 	private fun updateOpeningDoor(opening: AreaSuspensionOpeningDoor) {
-		if (currentTime >= opening.finishTime) suspension = AreaSuspensionTransition(opening.door.destination)
+		if (currentTime.virtualOffset(opening.startTime) >= DOOR_OPEN_DURATION) {
+			suspension = AreaSuspensionTransition(opening.door.destination)
+		}
 	}
 
 	private fun updateOpeningChest(context: UpdateContext, suspension: AreaSuspensionOpeningChest) {
@@ -670,7 +687,7 @@ class AreaState(
 							canFlee = false,
 							isRandom = false,
 						),
-						this.currentTime + 1.seconds, false
+						this.currentTime, false
 					)
 					context.campaign.openedChests.add(openedChest)
 					return
@@ -706,8 +723,8 @@ class AreaState(
 				if (openedChest.gold > 0) {
 					context.campaign.openedChests.add(openedChest)
 					this.obtainedGold = ObtainedGold(
-						openedChest.x, openedChest.y, openedChest.gold,
-						this.currentTime + 1.seconds
+						openedChest.x, openedChest.y,
+						openedChest.gold, this.currentTime,
 					)
 					context.campaign.gold += openedChest.gold
 					context.campaign.statistics.goldEarned += openedChest.gold
@@ -728,7 +745,9 @@ class AreaState(
 			shouldInteract = false
 		} else if (shouldOpenChatLog) {
 			val actions = AreaActionsState(
-				context.content.actions.chatLogNode, null
+				context.content.actions.chatLogNode,
+				null,
+				currentTime,
 			)
 			actions.showChatLog = true
 			suspension = AreaSuspensionActions(actions)
@@ -763,7 +782,7 @@ class AreaState(
 			val averageMonsterLevel = enemies.filterNotNull().map { it.level }.average()
 			val canAvoid = averagePlayerLevel > 2 + averageMonsterLevel
 
-			suspension = AreaSuspensionIncomingRandomBattle(battle, currentTime + 1.seconds, canAvoid)
+			suspension = AreaSuspensionIncomingRandomBattle(battle, currentTime, canAvoid)
 			context.soundQueue.insert(context.content.audio.fixedEffects.battle.encounter)
 			context.campaign.stepsSinceLastBattle = 0
 		} else context.campaign.stepsSinceLastBattle += 1
@@ -783,6 +802,7 @@ class AreaState(
 				suspension = AreaSuspensionActions(AreaActionsState(
 					triggerActions.root,
 					ActionTargetData(trigger.name, null, null),
+					currentTime,
 				))
 			} else {
 				println("Hit flash trigger ${trigger.flashCode}")
@@ -822,7 +842,7 @@ class AreaState(
 				val next = NextAreaPosition(
 					AreaPosition(nextX, nextY),
 					currentTime,
-					currentTime + 0.2.seconds,
+					WalkSpeed.Normal.duration,
 					findTransitions(nextX, nextY),
 				)
 				suspension = AreaSuspensionPlayerWalking(next)

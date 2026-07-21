@@ -14,7 +14,10 @@ import mardek.content.skill.ReactionSkillType
 import mardek.content.skill.SkillTargetType
 import mardek.content.stats.Element
 import mardek.content.stats.StatusEffect
+import mardek.content.util.Time
 import java.util.Objects
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * The state machine that is used by [BattleState] to track which combatant is currently on turn, and what that
@@ -47,19 +50,28 @@ sealed class BattleStateMachine {
 	}
 
 	/**
-	 * The battle should move on to the next combatant that is on turn, once [System.nanoTime]() >= [startAt]
+	 * The battle should move on to the next combatant that is on turn,
+	 * once `campaignState.time >= lastFinishTime + delay`.
 	 */
 	@BitStruct(backwardCompatible = true)
 	class NextTurn(
 
 		/**
-		 * The turn of the next combatant should start once the result of [System.nanoTime] is at least `startAt`.
+		 * The time at which the previous move/turn ended (or the start of the battle when this is the first turn).
 		 */
-		val startAt: Long
+		@BitField(id = 0)
+		val lastFinishTime: Time,
+
+		/**
+		 * The delay until the next turn starts, from [lastFinishTime]
+		 */
+		@BitField(id = 1)
+		@IntegerField(expectUniform = false, minValue = 0)
+		val delay: Duration,
 	) : BattleStateMachine() {
 
 		@Suppress("unused")
-		private constructor() : this(0L)
+		private constructor() : this(Time.ZERO, Duration.ZERO)
 	}
 
 	/**
@@ -87,10 +99,14 @@ sealed class BattleStateMachine {
 		@BitField(id = 1, optional = true)
 		val forceMove: ForceMove?,
 
+		/**
+		 * The current value of [mardek.state.ingame.CampaignState.time]
+		 */
+		currentCampaignTime: Time,
 	) : BattleStateMachine() {
 
 		@Suppress("unused")
-		private constructor() : this(MonsterCombatantState(), null)
+		private constructor() : this(MonsterCombatantState(), null, Time.ZERO)
 
 		/**
 		 * The status effects that will be removed at the start of the turn
@@ -107,14 +123,15 @@ sealed class BattleStateMachine {
 		val takeDamage = ArrayList<TakeDamage>()
 
 		/**
-		 * When [takeDamage] is non-empty, this is the time (`System.nanoTime()`) at which the combatant should
+		 * When [takeDamage] is non-empty, this is the time at which the combatant should
 		 * lose/gain health due to the first status effect in [takeDamage].
 		 *
 		 * When `takeDamage.size > 1`, this variable will be increased by a short delay after each element of
 		 * [takeDamage] is applied. This should ensure that each damaging/healing status effect is activated slightly
 		 * later than the previous status effect.
 		 */
-		var applyNextDamageAt = System.nanoTime()
+		@BitField(id = 4)
+		var applyNextDamageAt = currentCampaignTime
 
 		/**
 		 * The type/class of [BattleStateMachine.NextTurnEffects.forceMove]: it defines which move is being forced,
@@ -143,16 +160,23 @@ sealed class BattleStateMachine {
 			 * When this field is non-zero, the combatant should blink in this color. This is used by the
 			 * Paralysis status effect to cause the 'yellow blink' when a combatant skips a turn due to the paralysis.
 			 */
+			@BitField(id = 2)
+			@IntegerField(expectUniform = true)
 			val blinkColor: Int,
 
 			/**
 			 * The particle effect that should be played. This is used by the Sleep status effect to display the 'Z's
 			 * when the combatant sleeps during a turn.
 			 */
+			@BitField(id = 3, optional = true)
+			@ReferenceField(stable = true, label = "particles")
 			val particleEffect: ParticleEffect?,
 		) {
 			@Suppress("unused")
-			private constructor() : this(Wait(), StatusEffect(), 0, null)
+			private constructor() : this(
+				Wait(Time.ZERO),
+				StatusEffect(), 0, null,
+			)
 		}
 
 		/**
@@ -184,10 +208,10 @@ sealed class BattleStateMachine {
 		companion object {
 
 			/**
-			 * The delay, in nanoseconds, between applying two elements of [takeDamage]. This is only relevant when
-			 * `takeDamage.size > 1`.
+			 * The delay, between applying two elements of [takeDamage].
+			 * This is only relevant when `takeDamage.size > 1`.
 			 */
-			const val DAMAGE_DELAY = 1_000_000_000L
+			val DAMAGE_DELAY = 1.seconds
 		}
 	}
 
@@ -221,16 +245,22 @@ sealed class BattleStateMachine {
 	 * after a short while
 	 */
 	@BitStruct(backwardCompatible = true)
-	class Wait : BattleStateMachine(), Move {
+	class Wait(
 
 		/**
-		 * The result of `System.nanoTime()` when the combatant decided to skip its turn.
+		 * The current value of [mardek.state.ingame.CampaignState.time]
 		 */
-		var startTime = System.nanoTime()
+		currentCampaignTime: Time,
+	) : BattleStateMachine(), Move {
 
-		override fun refreshStartTime() {
-			startTime = System.nanoTime()
-		}
+		/**
+		 * The value of [mardek.state.ingame.CampaignState.time] when the combatant decided to skip its turn.
+		 */
+		@BitField(id = 0)
+		val startTime = currentCampaignTime
+
+		@Suppress("unused")
+		private constructor() : this(Time.ZERO)
 	}
 
 	/**
@@ -270,21 +300,23 @@ sealed class BattleStateMachine {
 		 */
 		@BitField(id = 3, optional = true)
 		val reactionChallenge: ReactionChallenge?,
+
+		/**
+		 * The current value of [mardek.state.ingame.CampaignState.time]
+		 */
+		currentCampaignTime: Time,
 	) : BattleStateMachine(), Move {
 
 		/**
-		 * The timestamp (result of `System.nanoTime()`) when the battle transitioned to this state.
+		 * The value of [mardek.state.ingame.CampaignState.time] when the battle transitioned to this state.
 		 */
-		var startTime = System.nanoTime()
+		@BitField(id = 4)
+		val startTime = currentCampaignTime
 
 		constructor() : this(
 			MonsterCombatantState(), MonsterCombatantState(),
-			null, null
+			null, null, Time.ZERO,
 		)
-
-		override fun refreshStartTime() {
-			startTime = System.nanoTime()
-		}
 
 		companion object {
 
@@ -305,7 +337,7 @@ sealed class BattleStateMachine {
 					primaryType = ReactionSkillType.MeleeAttack
 				}
 
-				return if (primaryType != null) ReactionChallenge(primaryType) else null
+				return if (primaryType != null) ReactionChallenge(primaryType, context.campaignTime) else null
 			}
 		}
 
@@ -316,7 +348,8 @@ sealed class BattleStateMachine {
 		class MoveTo(
 			attacker: CombatantState, target: CombatantState,
 			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?,
-		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
+			currentCampaignTime: Time,
+		) : MeleeAttack(attacker, target, skill, reactionChallenge, currentCampaignTime) {
 
 			/**
 			 * Whether the attacker is at least halfway to the target.
@@ -333,14 +366,16 @@ sealed class BattleStateMachine {
 			constructor(
 				attacker: CombatantState, target: CombatantState,
 				skill: ActiveSkill?, context: BattleUpdateContext,
-			) : this(attacker, target, skill,
-				determineReactionChallenge(attacker, target, skill, context)
+			) : this(
+				attacker, target, skill,
+				determineReactionChallenge(attacker, target, skill, context),
+				context.campaignTime,
 			)
 
 			@Suppress("unused")
 			private constructor() : this(
 				MonsterCombatantState(), MonsterCombatantState(),
-				null, null,
+				null, null, Time.ZERO,
 			)
 		}
 
@@ -352,7 +387,8 @@ sealed class BattleStateMachine {
 		class Strike(
 			attacker: CombatantState, target: CombatantState,
 			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?,
-		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
+			currentCampaignTime: Time,
+		) : MeleeAttack(attacker, target, skill, reactionChallenge, currentCampaignTime) {
 
 			/**
 			 * The renderer should set this to `true` when the attacker is ~halfway the strike animation.
@@ -376,7 +412,7 @@ sealed class BattleStateMachine {
 			@Suppress("unused")
 			private constructor() : this(
 				MonsterCombatantState(), MonsterCombatantState(),
-				null, null,
+				null, null, Time.ZERO,
 			)
 
 			/**
@@ -387,7 +423,8 @@ sealed class BattleStateMachine {
 			 * When there is no reaction challenge (e.g. there are no relevant reactions), this method will always
 			 * return false.
 			 */
-			fun isReactionChallengePending() = this.reactionChallenge != null && this.reactionChallenge.isPending()
+			fun isReactionChallengePending(currentTime: Time) = this.reactionChallenge != null &&
+					this.reactionChallenge.isPending(currentTime)
 		}
 
 		/**
@@ -398,7 +435,8 @@ sealed class BattleStateMachine {
 		class JumpBack(
 			attacker: CombatantState, target: CombatantState,
 			skill: ActiveSkill?, reactionChallenge: ReactionChallenge?,
-		) : MeleeAttack(attacker, target, skill, reactionChallenge) {
+			currentCampaignTime: Time,
+		) : MeleeAttack(attacker, target, skill, reactionChallenge, currentCampaignTime) {
 
 			/**
 			 * Whether the attacker is at least halfway on its way back to its original position.
@@ -416,7 +454,7 @@ sealed class BattleStateMachine {
 			@Suppress("unused")
 			private constructor() : this(
 				MonsterCombatantState(), MonsterCombatantState(),
-				null, null,
+				null, null, Time.ZERO,
 			)
 		}
 	}
@@ -458,22 +496,24 @@ sealed class BattleStateMachine {
 		 */
 		@BitField(id = 3, optional = true)
 		val reactionChallenge: ReactionChallenge?,
+
+		/**
+		 * The current value of [mardek.state.ingame.CampaignState.time]
+		 */
+		currentCampaignTime: Time,
 	) : BattleStateMachine(), Move {
 
 		/**
-		 * The timestamp (result of `System.nanoTime()`) when the battle transitioned to this state.
+		 * The value of [mardek.state.ingame.CampaignState.time] when the battle transitioned to this state.
 		 */
-		var startTime = System.nanoTime()
+		@BitField(id = 4)
+		val startTime = currentCampaignTime
 
 		@Suppress("unused")
 		constructor() : this(
 			MonsterCombatantState(), emptyArray(),
-			ActiveSkill(), null
+			ActiveSkill(), null, Time.ZERO,
 		)
-
-		override fun refreshStartTime() {
-			startTime = System.nanoTime()
-		}
 
 		companion object {
 
@@ -494,7 +534,7 @@ sealed class BattleStateMachine {
 					primaryType = ReactionSkillType.RangedAttack
 				}
 
-				return if (primaryType != null) ReactionChallenge(primaryType) else null
+				return if (primaryType != null) ReactionChallenge(primaryType, context.campaignTime) else null
 			}
 		}
 
@@ -508,7 +548,8 @@ sealed class BattleStateMachine {
 		class MoveTo(
 			attacker: CombatantState, targets: Array<CombatantState>,
 			skill: ActiveSkill, reactionChallenge: ReactionChallenge?,
-		) : BreathAttack(attacker, targets, skill, reactionChallenge) {
+			currentCampaignTime: Time,
+		) : BreathAttack(attacker, targets, skill, reactionChallenge, currentCampaignTime) {
 
 			/**
 			 * Whether the attacker is at least halfway to the destination/breath position.
@@ -526,14 +567,16 @@ sealed class BattleStateMachine {
 			constructor(
 				attacker: CombatantState, targets: Array<CombatantState>,
 				skill: ActiveSkill, context: BattleUpdateContext,
-			) : this(attacker, targets, skill,
-				determineReactionChallenge(attacker, targets, context)
+			) : this(
+				attacker, targets, skill,
+				determineReactionChallenge(attacker, targets, context),
+				context.campaignTime,
 			)
 
 			@Suppress("unused")
 			private constructor() : this(
 				MonsterCombatantState(), emptyArray(),
-				ActiveSkill(), null,
+				ActiveSkill(), null, Time.ZERO,
 			)
 		}
 
@@ -545,7 +588,8 @@ sealed class BattleStateMachine {
 		class Attack(
 			attacker: CombatantState, targets: Array<CombatantState>,
 			skill: ActiveSkill, reactionChallenge: ReactionChallenge?,
-		) : BreathAttack(attacker, targets, skill, reactionChallenge) {
+			currentCampaignTime: Time,
+		) : BreathAttack(attacker, targets, skill, reactionChallenge, currentCampaignTime) {
 
 			/**
 			 * The renderer should set this to `true` when the attacker is ~halfway the breath animation.
@@ -569,7 +613,7 @@ sealed class BattleStateMachine {
 			@Suppress("unused")
 			private constructor() : this(
 				MonsterCombatantState(), emptyArray(),
-				ActiveSkill(), null,
+				ActiveSkill(), null, Time.ZERO,
 			)
 
 			/**
@@ -580,7 +624,8 @@ sealed class BattleStateMachine {
 			 * When there is no reaction challenge (e.g. there are no relevant reactions), this method will always
 			 * return false.
 			 */
-			fun isReactionChallengePending() = this.reactionChallenge != null && this.reactionChallenge.isPending()
+			fun isReactionChallengePending(currentTime: Time) = this.reactionChallenge != null &&
+					this.reactionChallenge.isPending(currentTime)
 		}
 
 		/**
@@ -591,7 +636,8 @@ sealed class BattleStateMachine {
 		class JumpBack(
 			attacker: CombatantState, targets: Array<CombatantState>,
 			skill: ActiveSkill, reactionChallenge: ReactionChallenge?,
-		) : BreathAttack(attacker, targets, skill, reactionChallenge) {
+			currentCampaignTime: Time,
+		) : BreathAttack(attacker, targets, skill, reactionChallenge, currentCampaignTime) {
 			/**
 			 * Whether the attacker is at least halfway on its way back to its original position.
 			 * This is useful for the rendering order/depth.
@@ -608,7 +654,7 @@ sealed class BattleStateMachine {
 			@Suppress("unused")
 			private constructor() : this(
 				MonsterCombatantState(), emptyArray(),
-				ActiveSkill(), null,
+				ActiveSkill(), null, Time.ZERO,
 			)
 		}
 	}
@@ -652,10 +698,10 @@ sealed class BattleStateMachine {
 	) : BattleStateMachine(), Move, BitPostInit {
 
 		/**
-		 * The time (`System.nanoTime()`) at which the caster started casting the skill
+		 * The value of [mardek.state.ingame.CampaignState.time] the caster started casting the skill
 		 */
-		var startTime = System.nanoTime()
-			private set
+		@BitField(id = 4)
+		val startTime = context.campaignTime
 
 		/**
 		 * When the caster and/or target of this skill are player characters, and they have relevant reaction skills,
@@ -663,7 +709,7 @@ sealed class BattleStateMachine {
 		 * reaction challenge is passed. Furthermore, if needed, the damage calculation will be postponed until the
 		 * outcome of the reaction challenge has been determined.
 		 */
-		@BitField(id = 4, optional = true)
+		@BitField(id = 5, optional = true)
 		var reactionChallenge: ReactionChallenge?
 			private set
 
@@ -679,7 +725,7 @@ sealed class BattleStateMachine {
 		 * Any potential effects (e.g. life steal) will be applied to the *caster* at the same time when this array is
 		 * created,
 		 */
-		@BitField(id = 5)
+		@BitField(id = 6)
 		@NestedFieldSetting(
 			path = "", optional = true,
 			sizeField = IntegerField(expectUniform = true, minValue = 1, maxValue = 4)
@@ -700,11 +746,11 @@ sealed class BattleStateMachine {
 		var hasFinishedCastingAnimation = false
 
 		/**
-		 * While casing magic skills, a small particle effect (depending on the element of the skill) is spawned
+		 * While casting magic skills, a small particle effect (depending on the element of the skill) is spawned
 		 * continuously at the main hand of the caster. This field tracks when it was last spawned, to keep the rate
 		 * at a stable 30 particles per second.
 		 */
-		var lastCastParticleSpawnTime = 0L
+		var lastCastParticleSpawnTime = Time.ZERO
 
 		/**
 		 * All magic skills have a particle effect that is displayed at the position of the target(s).
@@ -713,7 +759,7 @@ sealed class BattleStateMachine {
 		 * - the particle for the third target will be spawned 500ms later
 		 * - the particle for the fourth target will be spawned 750ms later
 		 */
-		var targetParticlesSpawnTime = 0L
+		var targetParticlesSpawnTime = Time.ZERO
 
 		init {
 			if (skill.targetType == SkillTargetType.Self || skill.targetType == SkillTargetType.Single) {
@@ -739,7 +785,7 @@ sealed class BattleStateMachine {
 			if (caster.hasReactions(context, ReactionSkillType.RangedAttack)) {
 				primaryType = ReactionSkillType.RangedAttack
 			}
-			reactionChallenge = if (primaryType != null) ReactionChallenge(primaryType) else null
+			reactionChallenge = if (primaryType != null) ReactionChallenge(primaryType, context.campaignTime) else null
 		}
 
 		@Suppress("unused")
@@ -758,10 +804,6 @@ sealed class BattleStateMachine {
 		override fun hashCode() = caster.hashCode() + 13 * targets.hashCode() - 31 * skill.hashCode() +
 				127 * Objects.hashCode(nextElement)
 
-		override fun refreshStartTime() {
-			startTime = System.nanoTime()
-		}
-
 		/**
 		 * Checks whether the reaction challenge is currently *pending*. While the reaction challenge is pending, the
 		 * damage calculation must be postponed, since the outcome of the reaction challenge can influence the damage
@@ -770,7 +812,8 @@ sealed class BattleStateMachine {
 		 * When there is no reaction challenge (e.g. there are no relevant reactions), this method will always return
 		 * false.
 		 */
-		fun isReactionChallengePending() = reactionChallenge != null && reactionChallenge!!.isPending()
+		fun isReactionChallengePending(currentTime: Time) = reactionChallenge != null &&
+				reactionChallenge!!.isPending(currentTime)
 
 		/**
 		 * Checks whether all skill damage/effects have been applied to all targets. The battle must not transition to
@@ -804,13 +847,19 @@ sealed class BattleStateMachine {
 		 */
 		@BitField(id = 2)
 		@ReferenceField(stable = true, label = "items")
-		val item: Item
+		val item: Item,
+
+		/**
+		 * The current value of [mardek.state.ingame.CampaignState.time]
+		 */
+		currentCampaignTime: Time,
 	) : BattleStateMachine(), Move {
 
 		/**
-		 * The timestamp (result of `System.nanoTime()`) when [thrower] started throwing the item.
+		 * The value of [mardek.state.ingame.CampaignState.time] when [thrower] started throwing the item.
 		 */
-		var startTime = System.nanoTime()
+		@BitField(id = 3)
+		val startTime = currentCampaignTime
 
 		/**
 		 * The renderer should set this field to `true` when the [item] has reached the [target].
@@ -819,11 +868,10 @@ sealed class BattleStateMachine {
 		var canDrinkItem = false
 
 		@Suppress("unused")
-		private constructor() : this(MonsterCombatantState(), MonsterCombatantState(), Item())
-
-		override fun refreshStartTime() {
-			startTime = System.nanoTime()
-		}
+		private constructor() : this(
+			MonsterCombatantState(), MonsterCombatantState(),
+			Item(), Time.ZERO,
+		)
 	}
 
 	/**
@@ -837,18 +885,30 @@ sealed class BattleStateMachine {
 	 * to the battle loot menu.
 	 */
 	@BitStruct(backwardCompatible = true)
-	class Victory : BattleStateMachine() {
+	class Victory(
 
 		/**
-		 * The result of `System.nanoTime()` when the battle reached this state
+		 * The current value of [mardek.state.ingame.CampaignState.time]
 		 */
-		val startTime = System.nanoTime()
+		currentCampaignTime: Time,
+	) : BattleStateMachine() {
+
+		/**
+		 * The value of [mardek.state.ingame.CampaignState.time] when the battle reached this state
+		 */
+		@BitField(id = 0)
+		val startTime = currentCampaignTime
+
+		@Suppress("unused")
+		private constructor() : this(Time.ZERO)
 
 		/**
 		 * When this returns `true` (3 seconds after the battle reached this state),
 		 * the player should be taken to the loot menu.
 		 */
-		fun shouldGoToLootMenu() = (System.nanoTime() - startTime) >= 3000_000_000L
+		fun shouldGoToLootMenu(
+			currentCampaignTime: Time
+		) = currentCampaignTime.virtualOffset(startTime) >= 3.seconds
 	}
 
 	/**
@@ -856,26 +916,30 @@ sealed class BattleStateMachine {
 	 * game-over screen.
 	 */
 	@BitStruct(backwardCompatible = true)
-	class GameOver : BattleStateMachine() {
+	class GameOver(
 
 		/**
-		 * The result of `System.nanoTime()` when the battle reached this state
+		 * The time at which the last player fainted
 		 */
-		val startTime = System.nanoTime()
+		val startTime: Time,
+	) : BattleStateMachine() {
+
+		@Suppress("unused")
+		private constructor() : this(Time.ZERO)
 
 		/**
 		 * When this returns `true` (5 seconds after the battle reached this state),
 		 * the player should be taken to the 'Game Over' screen.
 		 */
-		fun shouldGoToGameOverMenu() = (System.nanoTime() - startTime) >= FADE_DURATION
+		fun shouldGoToGameOverMenu(currentTime: Time) = currentTime.virtualOffset(startTime) >= FADE_DURATION
 
 		companion object {
 
 			/**
-			 * The fade-out time (in nanoseconds) after the battle reaches this state.
+			 * The fade-out time after the last player faints.
 			 * The player should be taken to the 'Game Over' menu after the fade-out finishes.
 			 */
-			const val FADE_DURATION = 5000_000_000L
+			val FADE_DURATION = 5.seconds
 		}
 	}
 
@@ -883,18 +947,5 @@ sealed class BattleStateMachine {
 	 * This interface is implemented by the [BattleStateMachine]s that are *moves*: e.g. [MeleeAttack] and [CastSkill]
 	 * are moves, whereas [NextTurn] and [Victory] are not.
 	 */
-	sealed interface Move {
-
-		/**
-		 * Sets the `startTime` of this move to `System.nanoTime()`.
-		 *
-		 * This method will be called right after the player loads an in-combat save to make sure that
-		 * the `startTime` of the current move (if applicable) is set to the time when the save is loaded.
-		 *
-		 * If this method is *not* called, the `startTime` would be set to the time at which this state was
-		 * deserialized, which is typically a bit in the past. This would cause the game to 'skip' a part of the
-		 * 'animation' of the current move.
-		 */
-		fun refreshStartTime()
-	}
+	sealed interface Move
 }

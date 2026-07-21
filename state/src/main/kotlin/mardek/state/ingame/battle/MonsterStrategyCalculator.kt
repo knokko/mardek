@@ -29,7 +29,7 @@ class MonsterStrategyCalculator(
 	}
 
 	private fun determineNextMoveRaw(): BattleStateMachine.Move {
-		val pool = determineNextPool() ?: return BattleStateMachine.Wait()
+		val pool = determineNextPool() ?: return BattleStateMachine.Wait(context.campaignTime)
 
 		myState.usedStrategies[pool] = myState.usedStrategies.getOrDefault(pool, 0) + 1
 
@@ -38,7 +38,7 @@ class MonsterStrategyCalculator(
 		val item = entry.item
 		if (item != null) {
 			val target = chooseSingleTarget(entry, pool.criteria, "item ${item.displayName}")
-			return BattleStateMachine.UseItem(myState, target, item)
+			return BattleStateMachine.UseItem(myState, target, item, context.campaignTime)
 		}
 
 		val skill = entry.skill

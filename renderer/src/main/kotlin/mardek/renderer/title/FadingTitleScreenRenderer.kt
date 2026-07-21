@@ -14,7 +14,7 @@ internal fun renderFadingTitleScreen(
 ): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 	val batches = renderTitleScreen(context, fullRenderContext, state.titleState, region)
 
-	val opacity = (System.nanoTime() - state.beginButtonClickTime).toFloat() / StartNewGameState.FADE_DURATION.toFloat()
+	val opacity = (context.timing.renderNanoTime - state.beginButtonClickTime).toFloat() / StartNewGameState.FADE_DURATION.toFloat()
 	context.pipelines.color.addBatch(context.stage, 2).fill(
 		region.minX, region.minY, region.maxX, region.maxY,
 		rgba(0f, 0f, 0f, opacity),

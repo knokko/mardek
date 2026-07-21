@@ -16,6 +16,8 @@ import mardek.content.characters.CharacterState
 import mardek.content.skill.Skill
 import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.WholeParty
+import mardek.content.util.Time
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * The loot that a player got after winning a battle (e.g. the amount of gold and looted items).
@@ -105,12 +107,12 @@ class BattleLoot(
 		private set
 
 	/**
-	 * The loot menu should close when `finishAt != 0L && System.nanoTime() >= finishAt`.
+	 * This field is initially `null`, which means that the player can interact with the loot.
 	 *
-	 * When `finishAt != 0L && System.nanoTime() < finishAt`, the loot menu should be frozen, while a fade-out is being
-	 * shown.
+	 * Once the player finishes, this field will be set to [mardek.state.ingame.CampaignState.time],
+	 * and the fade-out will start. Once the fade-out is finished, the player will go back to the area.
 	 */
-	var finishAt = 0L
+	var startedFadeOut: Time? = null
 
 	override fun toString() = "BattleLoot(gold=$gold, items=$items)"
 
@@ -123,12 +125,12 @@ class BattleLoot(
 	 * in the battle loot screen. This should be called by [mardek.state.ingame.area.AreaState.processBattleKeyEvent].
 	 */
 	fun processKeyPress(key: InputKey, context: UpdateContext) {
-		if (finishAt != 0L) return
+		if (startedFadeOut != null) return
 		if (showMasteryScreen) {
 			if (key == InputKey.Interact || key == InputKey.Cancel ||
 				key == InputKey.ToggleMenu || key == InputKey.Escape
 			) {
-				finishAt = System.nanoTime() + FADE_OUT_DURATION
+				startedFadeOut = context.campaignTime
 			}
 			return
 		}
@@ -209,7 +211,7 @@ class BattleLoot(
 					showMasteryScreen = true
 					context.soundQueue.insert(context.content.audio.fixedEffects.battle.masteredSkill)
 				} else {
-					finishAt = System.nanoTime() + FADE_OUT_DURATION
+					startedFadeOut = context.campaignTime
 				}
 			}
 		}
@@ -255,14 +257,19 @@ class BattleLoot(
 		 * The result of [mardek.state.ingame.CampaignState.allPartyMembers]
 		 */
 		val fullParty: WholeParty,
+
+		/**
+		 * The current value of [mardek.state.ingame.CampaignState.time]
+		 */
+		val campaignTime: Time,
 	) : GameStateUpdateContext(parent)
 
 	companion object {
 
 		/**
-		 * The duration of the fade-out after the player exits the battle loot menu (in nanoseconds).
+		 * The duration of the fade-out after the player exits the battle loot menu
 		 */
-		const val FADE_OUT_DURATION = 500_000_000L
+		val FADE_OUT_DURATION = 500.milliseconds
 
 		@Suppress("unused")
 		@ReferenceField(stable = true, label = "playable characters")

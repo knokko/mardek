@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertInstanceOf
 import java.awt.Color
-import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestMardekHouseActions {
@@ -223,7 +222,6 @@ object TestMardekHouseActions {
 			repeat(25) {
 				state.update(updateContext)
 			}
-			val campaignActions = state.campaign.state as CampaignActionsState
 
 			val roomColors = arrayOf(
 				Color(185, 168, 130), // Wall
@@ -239,10 +237,12 @@ object TestMardekHouseActions {
 				cutsceneColors, roomColors,
 			)
 
-			// Force the cutscene to end
-			campaignActions.finishedAnimationNode = true
-			assertEquals(1, state.campaign.usedPartyMembers().size)
-			state.update(updateContext)
+			// Wait until the cutscene is finished
+			@Suppress("unused")
+			for (counter in 0 until 100) {
+				state.update(updateContext)
+				if (state.campaign.state is AreaState) break
+			}
 
 			areaState = state.campaign.state as AreaState
 			assertEquals(Direction.Sleep, areaState.getPlayerDirection(0))
@@ -396,8 +396,9 @@ object TestMardekHouseActions {
 
 			state.update(updateContext)
 			assertSame(gdmTrack, state.campaign.determineMusicTrack(content))
-			sleep(2500)
-			state.update(updateContext)
+			repeat(262) {
+				state.update(updateContext)
+			}
 			assertSame(gdmTrack, state.campaign.determineMusicTrack(content))
 			testRendering(
 				state, 900, 700, "end-of-chapter1-2",
@@ -448,9 +449,6 @@ object TestMardekHouseActions {
 			repeat(1000) {
 				state.update(updateContext)
 			}
-
-			sleep(2100)
-			state.update(updateContext)
 
 			assertInstanceOf<ActionEndOfChapter>((campaignActions.node as FixedActionNode).action)
 			assertNull(state.campaign.determineMusicTrack(content))

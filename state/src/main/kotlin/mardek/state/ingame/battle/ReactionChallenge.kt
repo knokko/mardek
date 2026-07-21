@@ -4,6 +4,10 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.skill.ReactionSkillType
+import mardek.content.util.Time
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Playable characters can have `ReactionSkill`s, which can give e.g. damage bonuses/reductions. When a playable
@@ -22,31 +26,33 @@ class ReactionChallenge(
 	 * special purpose.
 	 */
 	@BitField(id = 0)
-	val primaryType: ReactionSkillType
+	val primaryType: ReactionSkillType,
+
+	/**
+	 * The campaign time when the reaction started
+	 */
+	@BitField(id = 1)
+	val startTime: Time,
 ) {
 
 	/**
-	 * The result of `System.nanoTime()` when the reaction challenge started
-	 */
-	val startTime = System.nanoTime()
-
-	/**
 	 * - When the player hasn't pressed the Interact key yet since the start of this reaction challenge,
-	 * this field will be `-1`, which means that the reaction challenge is pending. If this field is still -1
-	 * when `System.nanoTime() >= startTime + MAX_CLICK_AFTER`, the player loses the challenge due to inactivity.
+	 * this field will be [NOT_YET_REACTED], which means that the reaction challenge is pending.
+	 * If this field is still [NOT_YET_REACTED] when `campaignTime >= startTime + MAX_CLICK_AFTER`,
+	 * the player loses the challenge due to inactivity.
 	 *
 	 * - When the player presses the Interact key for the first time after the start of this reaction challenge,
-	 * this field will be set to `System.nanoTime() - startTime`. The player wins the challenge if this is between
+	 * this field will be set to `campaignTime - startTime`. The player wins the challenge if this is between
 	 * [MIN_CLICK_AFTER] and [MAX_CLICK_AFTER]. Pressing the Interact key more than once has no effect; the first
 	 * press counts.
 	 */
-	@BitField(id = 1)
-	@IntegerField(expectUniform = true, minValue = -1, maxValue = DURATION)
-	var clickedAfter = -1L
+	@BitField(id = 2)
+	@IntegerField(expectUniform = false)
+	var clickedAfter = NOT_YET_REACTED
 		private set
 
 	@Suppress("unused")
-	private constructor() : this(ReactionSkillType.MeleeDefense)
+	private constructor() : this(ReactionSkillType.MeleeDefense, Time.ZERO)
 
 	/**
 	 * Returns true if and only if the player passed the reaction challenge. Note that this will always return false
@@ -67,56 +73,60 @@ class ReactionChallenge(
 	 * will return `false`. This method should only be used during unit tests.
 	 */
 	fun forciblyFail() {
-		clickedAfter = 1L
+		clickedAfter = Duration.ZERO
 	}
 
 	/**
-	 * Return true if the challenge is pending: when the outcome of the reaction challenge is not yet known. The
-	 * challenge is pending when:
+	 * Return true if the challenge is pending: when the outcome of the reaction challenge is not yet known.
+	 * The challenge is pending when:
 	 * - the player has not clicked yet, and
-	 * - fewer than `MAX_CLICK_AFTER` nanoseconds have passed since the start of the challenge
+	 * - less than `MAX_CLICK_AFTER` time has passed since the start of the challenge
 	 */
-	fun isPending() = clickedAfter == -1L && System.nanoTime() - startTime <= MAX_CLICK_AFTER
+	fun isPending(currentTime: Time) = clickedAfter == NOT_YET_REACTED &&
+			currentTime.virtualOffset(startTime) <= MAX_CLICK_AFTER &&
+			currentTime.virtual >= startTime.virtual
 
 	/**
 	 * This method should be called right after the player pressed E.
 	 */
-	fun click() {
-		if (clickedAfter == -1L) clickedAfter = System.nanoTime() - startTime
+	fun click(currentTime: Time) {
+		if (clickedAfter == NOT_YET_REACTED) clickedAfter = currentTime.virtualOffset(startTime)
 	}
 
 	companion object {
 
+		val NOT_YET_REACTED = (-1).seconds
+
 		/**
-		 * The duration of the challenge, in nanoseconds.
-		 * - The caret/cursor starts at the left window border when `System.nanoTime() == startTime`
-		 * - The caret/cursor reaches the right window border when `System.nanoTime() == startTime + DURATION`
+		 * The duration of the reaction challenge:
+		 * - The caret/cursor starts at the left window border when `campaignTime == startTime`
+		 * - The caret/cursor reaches the right window border when `campaignTime == startTime + DURATION`
 		 */
-		const val DURATION = 1040_000_000L
+		val DURATION = 1040.milliseconds
 
 		/**
 		 * Once the player presses the Interact key (and [clickedAfter] is set), the reaction bar will 'glow' red or
 		 * green (depending on whether the player won the challenge). This red or green 'glow' will start fading
-		 * immediately, and it takes `RESULT_FADE_DURATION` nanoseconds until it is gone completely.
+		 * immediately, and it takes `RESULT_FADE_DURATION` until it is gone completely.
 		 */
-		const val RESULT_FADE_DURATION = 1000_000_000L
+		val RESULT_FADE_DURATION = 1.seconds
 
 		/**
-		 * The reaction bar will start fading out [RESULT_FADE_DURATION] nanoseconds after it was finished. This
-		 * fade-out takes `FINAL_FADE_DURATION` nanoseconds.
+		 * The reaction bar will start fading out [RESULT_FADE_DURATION] after it was finished.
+		 * This fade-out takes `FINAL_FADE_DURATION`.
 		 */
-		const val FINAL_FADE_DURATION = 500_000_000L
+		val FINAL_FADE_DURATION = 500.milliseconds
 
 		/**
-		 * To win the challenge, the player must press the Interact key at least `MIN_CLICK_AFTER` nanoseconds after
-		 * [startTime], and at most [MAX_CLICK_AFTER] nanoseconds after [startTime].
+		 * To win the challenge, the player must press the Interact key at least `MIN_CLICK_AFTER` after [startTime],
+		 * and at most [MAX_CLICK_AFTER] after [startTime].
 		 */
-		const val MIN_CLICK_AFTER = 580_000_000L
+		val MIN_CLICK_AFTER = 580.milliseconds
 
 		/**
-		 * To win the challenge, the player must press the Interact key at least [MIN_CLICK_AFTER] nanoseconds after
-		 * [startTime], and at most `MAX_CLICK_AFTER` nanoseconds after [startTime].
+		 * To win the challenge, the player must press the Interact key at least [MIN_CLICK_AFTER] after [startTime],
+		 * and at most `MAX_CLICK_AFTER` nanoseconds after [startTime].
 		 */
-		const val MAX_CLICK_AFTER = 715_000_000L
+		val MAX_CLICK_AFTER = 715.milliseconds
 	}
 }

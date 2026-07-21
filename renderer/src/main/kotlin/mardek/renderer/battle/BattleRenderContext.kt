@@ -10,8 +10,6 @@ class BattleRenderContext(
 	val state: CampaignState,
 	val battle: BattleState
 ) {
-	val renderTime = System.nanoTime()
-
 	val updateContext = BattleUpdateContext(
 		state.characterStates,
 		state.encyclopedia,
@@ -19,5 +17,6 @@ class BattleRenderContext(
 		context.content.audio.fixedEffects,
 		context.content.stats.elements.find { it.rawName == "NONE" }!!,
 		context.state.soundQueue,
+		context.campaign.time,
 	)
 }

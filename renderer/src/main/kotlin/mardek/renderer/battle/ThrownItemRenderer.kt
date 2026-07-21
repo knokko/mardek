@@ -3,15 +3,16 @@ package mardek.renderer.battle
 import com.github.knokko.vk2d.batch.Vk2dKim3Batch
 import mardek.state.ingame.battle.BattleStateMachine
 import kotlin.math.pow
+import kotlin.time.Duration.Companion.seconds
 
 internal fun renderThrownItems(battleContext: BattleRenderContext, kimBatch: Vk2dKim3Batch) {
 	battleContext.run {
 		val stateMachine = battle.state
 		if (stateMachine !is BattleStateMachine.UseItem) return
 
-		val passedTime = renderTime - stateMachine.startTime
-		val rotationPeriod = 1000_000_000L
-		val relativeTime = passedTime.toFloat() / rotationPeriod.toFloat()
+		val passedTime = context.timing.elapsedTimeSince(stateMachine.startTime)
+		val rotationPeriod = 1.seconds
+		val relativeTime = (passedTime / rotationPeriod).toFloat()
 
 		val itemX = relativeTime * stateMachine.target.renderInfo.core.x +
 				(1f - relativeTime) * stateMachine.thrower.renderInfo.core.x

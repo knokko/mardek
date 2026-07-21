@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestExperience {
@@ -31,7 +30,9 @@ object TestExperience {
 		instance.apply {
 			val area = content.areas.areas.find { it.properties.rawName == "DL_area4" }!!
 			val state = InGameState(simpleCampaignState(), "test")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
+			)
 			val areaState = AreaState(
 				area, state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(6, 20),
@@ -66,11 +67,13 @@ object TestExperience {
 
 			// Wait for the bleed damage...
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-			sleep(800)
-			state.update(updateContext)
+			repeat(80) {
+				state.update(updateContext)
+			}
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-			sleep(1100)
-			state.update(updateContext)
+			repeat(110) {
+				state.update(updateContext)
+			}
 
 			assertEquals(0, monsterState.currentHealth)
 			assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
@@ -113,7 +116,9 @@ object TestExperience {
 		instance.apply {
 			val area = content.areas.areas.find { it.properties.rawName == "soothwood" }!!
 			val state = InGameState(simpleCampaignState(), "test")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
+			)
 			performTimelineTransition(
 				updateContext, state.campaign,
 				"MainTimeline", "Searching for the fallen 'star'"
@@ -151,8 +156,9 @@ object TestExperience {
 
 			// Wait until Mardek is on turn
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-			sleep(800)
-			state.update(updateContext)
+			repeat(80) {
+				state.update(updateContext)
+			}
 			assertInstanceOf<BattleStateMachine.SelectMove>(battleState.state)
 
 			// Let Mardek attack the forest fish
@@ -250,8 +256,9 @@ object TestExperience {
 
 			// Wait until Mardek is on turn
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-			sleep(800)
-			state.update(updateContext)
+			repeat(80) {
+				state.update(updateContext)
+			}
 			assertInstanceOf<BattleStateMachine.SelectMove>(battleState.state)
 
 			val combatDeugan = battleState.livingPlayers()[1] as PlayerCombatantState
