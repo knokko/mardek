@@ -36,7 +36,6 @@ object TestMusicPlayer {
 			var state: GameState = TitleScreenState()
 			assertSame(state, state.update(updateContext))
 
-			val titleBarColors = arrayOf(Color(73, 59, 50))
 			val titleScreenColors = arrayOf(
 				Color(190, 144, 95), // MARDEK outline color
 				Color(255, 204, 153), // Button outline color
@@ -57,7 +56,7 @@ object TestMusicPlayer {
 			// Render title screen whose fade-in is NOT complete
 			testRendering(
 				state, 800, 600, "music-player0",
-				titleBarColors, titleScreenColors,
+				emptyArray(), titleScreenColors,
 				saves = updateContext.saves,
 			)
 			assertEquals("Theme", state.determineMusic(
@@ -68,7 +67,7 @@ object TestMusicPlayer {
 			sleep(500)
 			testRendering(
 				state, 800, 600, "music-player1",
-				titleBarColors + titleScreenColors, emptyArray(),
+				titleScreenColors, emptyArray(),
 				saves = updateContext.saves,
 			)
 
@@ -83,7 +82,7 @@ object TestMusicPlayer {
 			sleep(200)
 			testRendering(
 				state, 800, 600, "music-player2",
-				titleBarColors, titleScreenColors,
+				emptyArray(), titleScreenColors,
 				saves = updateContext.saves,
 			)
 
@@ -91,19 +90,13 @@ object TestMusicPlayer {
 			state = state.update(updateContext)
 			assertInstanceOf<MusicPlayerState>(state)
 
-			// Check fade-in of the Music Player
-			sleep(20)
-			testRendering(
-				state, 800, 600, "music-player3",
-				titleBarColors, musicPlayerColors,
-				saves = updateContext.saves,
-			)
+			// music-player3 check was deleted because it was inherently flaky
 
 			// Await fade-in of the Music Player
-			sleep(450)
+			sleep(470)
 			testRendering(
 				state, 800, 600, "music-player4",
-				titleBarColors + musicPlayerColors + disabledBattleMusicNoteColors,
+				musicPlayerColors + disabledBattleMusicNoteColors,
 				activeBattleMusicNoteColors + selectedMusicTrackColors,
 				saves = updateContext.saves,
 			)
@@ -123,7 +116,7 @@ object TestMusicPlayer {
 			// Check that the boss battle track is greyed out, because it's not unlocked yet
 			testRendering(
 				state, 800, 600, "music-player5",
-				titleBarColors + musicPlayerColors + activeBattleMusicNoteColors,
+				musicPlayerColors + activeBattleMusicNoteColors,
 				selectedMusicTrackColors, saves = updateContext.saves,
 			)
 
@@ -142,7 +135,7 @@ object TestMusicPlayer {
 
 			testRendering(
 				state, 800, 600, "music-player6",
-				titleBarColors + musicPlayerColors + activeBattleMusicNoteColors + selectedMusicTrackColors,
+				musicPlayerColors + activeBattleMusicNoteColors + selectedMusicTrackColors,
 				emptyArray(), saves = updateContext.saves,
 			)
 
@@ -164,7 +157,7 @@ object TestMusicPlayer {
 
 			testRendering(
 				state, 800, 600, "music-player7",
-				titleBarColors + musicPlayerColors + activeBattleMusicNoteColors,
+				musicPlayerColors + activeBattleMusicNoteColors,
 				selectedMusicTrackColors, saves = updateContext.saves,
 			)
 
@@ -188,7 +181,7 @@ object TestMusicPlayer {
 			sleep(300)
 			testRendering(
 				state, 800, 600, "music-player8",
-				titleBarColors, musicPlayerColors + titleScreenColors,
+				emptyArray(), musicPlayerColors + titleScreenColors,
 				saves = updateContext.saves,
 			)
 

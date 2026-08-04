@@ -1,0 +1,57 @@
+#version 450
+
+#define TOLERANCE (2.2 / 255.0)
+
+layout(set = 0, binding = 0) readonly buffer ImageData {
+	uint imageData[];
+};
+
+layout(set = 0, binding = 1) readonly buffer RelevantColorsBuffer {
+	uint relevantColors[];
+};
+
+layout(set = 0, binding = 2) writeonly buffer OutputBuffer {
+	int outputBuffer[];
+};
+
+layout(push_constant) uniform PushConstants {
+	uvec2 inputSize;
+	uint numRelevantColors;
+	bool bigEndian;
+};
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+#include "../../../../../../vk2d/src/main/resources/com/github/knokko/vk2d/decode.glsl"
+
+uint revertBytes(uint original) {
+	return ((original >> 24) & 255) | (((original >> 16) & 255) << 8) |
+			(((original >> 8) & 255) << 16) | ((original & 255) << 24);
+}
+
+bool almostEqual(float expected, float actual) {
+	return abs(expected - actual) <= TOLERANCE;
+}
+
+void main() {
+	int y = int(gl_GlobalInvocationID.x);
+	if (y >= inputSize.y) return;
+
+	for (int colorIndex = 0; colorIndex < numRelevantColors; colorIndex++) {
+		outputBuffer[colorIndex * inputSize.y + y] = -1;
+	}
+
+	for (int x = 0; x < inputSize.x; x++) {
+		uint rawPixelColor = imageData[x + y * inputSize.x];
+		if (bigEndian) rawPixelColor = revertBytes(rawPixelColor);
+		vec4 pixelColor = decodeColor(rawPixelColor);
+		for (int colorIndex = 0; colorIndex < numRelevantColors; colorIndex++) {
+			vec4 relevantColor = decodeColor(relevantColors[colorIndex]);
+			if (!almostEqual(relevantColor.r, pixelColor.r)) continue;
+			if (!almostEqual(relevantColor.g, pixelColor.g)) continue;
+			if (!almostEqual(relevantColor.b, pixelColor.b)) continue;
+			if (!almostEqual(relevantColor.a, pixelColor.a)) continue;
+			outputBuffer[colorIndex * inputSize.y + y] = x;
+		}
+	}
+}

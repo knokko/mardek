@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.lang.Thread.sleep
 import java.nio.file.Files
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -49,7 +48,6 @@ object TestEndOfChapter {
 			repeat(1000) {
 				state.update(updateContext)
 			}
-			sleep(3000)
 			testRendering(
 				state, 900, 700, "end-of-chapter-1",
 				arrayOf(), arrayOf(),
@@ -57,13 +55,10 @@ object TestEndOfChapter {
 			repeat(1000) {
 				state.update(updateContext)
 			}
-			sleep(2500)
 			state.update(updateContext)
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.Cancel))
 
 			val coreColors = arrayOf(
-				Color(73, 59, 50), // Title bar
-				Color(0, 0, 0, 0), // Transparent black background
 				Color(131, 81, 38), // Title text color
 				Color(238, 203, 127), // Info text color
 				Color(248, 232, 194), // Upper button text color
@@ -84,7 +79,6 @@ object TestEndOfChapter {
 			state.update(updateContext)
 
 			val itemStorageColors = arrayOf(
-				Color(73, 59, 50), // Title bar
 				Color(22, 13, 13), // Upper bar
 				Color(153, 153, 153), // Thrash icon
 				Color(195, 157, 79), // Deugan hair
@@ -146,7 +140,6 @@ object TestEndOfChapter {
 			state.update(updateContext)
 
 			val saveColors = arrayOf(
-				Color(73, 59, 50), // Title bar
 				Color(22, 13, 13), // Upper bar
 				Color(165, 204, 254), // Outline color
 				Color(51, 51, 204), // Crystal pointer

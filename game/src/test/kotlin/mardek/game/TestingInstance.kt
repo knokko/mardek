@@ -4,6 +4,8 @@ import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.instance.ValidationFeatures
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
+import com.github.knokko.boiler.descriptors.DescriptorSetLayoutBuilder
+import com.github.knokko.boiler.descriptors.VkbDescriptorSetLayout
 import com.github.knokko.boiler.memory.MemoryBlock
 import com.github.knokko.boiler.memory.MemoryCombiner
 import com.github.knokko.vk2d.Vk2dConfig
@@ -37,10 +39,17 @@ import mardek.state.settings.AudioSettings
 import mardek.state.settings.UserSettings
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.vulkan.VK10.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
 import org.lwjgl.vulkan.VK10.VK_FORMAT_R8G8B8A8_SRGB
+import org.lwjgl.vulkan.VK10.VK_SHADER_STAGE_COMPUTE_BIT
 import org.lwjgl.vulkan.VK10.vkDestroyDescriptorPool
+import org.lwjgl.vulkan.VK10.vkDestroyDescriptorSetLayout
+import org.lwjgl.vulkan.VK10.vkDestroyPipeline
+import org.lwjgl.vulkan.VK10.vkDestroyPipelineLayout
 import org.lwjgl.vulkan.VK10.vkDestroyRenderPass
 import org.lwjgl.vulkan.VK13.VK_API_VERSION_1_3
+import org.lwjgl.vulkan.VkPushConstantRange
 import java.io.File
 import java.nio.file.Files
 import java.util.Collections
@@ -57,6 +66,10 @@ class TestingInstance {
 	val titleScreenResources: Vk2dResourceBundle
 	val titleScreenMemory: MemoryBlock
 	val titleScreenDescriptorPool: Long
+
+	val checkDescriptorLayout: VkbDescriptorSetLayout
+	val checkPipelineLayout: Long
+	val checkPipeline: Long
 
 	val dragonLairEntry: Area
 	val dragonLair2: Area
@@ -93,6 +106,35 @@ class TestingInstance {
 
 		vk2d = Vk2dInstance(boiler, config)
 		pipelineContext = Vk2dPipelineContext.renderPass(boiler, VK_FORMAT_R8G8B8A8_SRGB)
+
+		stackPush().use { stack ->
+			val descriptorLayoutBuilder = DescriptorSetLayoutBuilder(stack, 3)
+			descriptorLayoutBuilder.set(
+				0, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+				VK_SHADER_STAGE_COMPUTE_BIT
+			)
+			descriptorLayoutBuilder.set(
+				1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+				VK_SHADER_STAGE_COMPUTE_BIT
+			)
+			descriptorLayoutBuilder.set(
+				2, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+				VK_SHADER_STAGE_COMPUTE_BIT
+			)
+			checkDescriptorLayout = descriptorLayoutBuilder.build(boiler, "CheckDescriptorLayout")
+
+			var pushConstants = VkPushConstantRange.calloc(1, stack)
+			pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 16)
+
+			checkPipelineLayout = boiler.pipelines.createLayout(
+				pushConstants, "CheckPipelineLayout",
+				checkDescriptorLayout.vkDescriptorSetLayout
+			)
+
+			checkPipeline = boiler.pipelines.createComputePipeline(
+				checkPipelineLayout, "mardek/test/check-pixels.comp.spv", "CheckPipeline"
+			)
+		}
 
 		val titleScreenAllocator = MemoryCombiner(boiler, "TitleScreenMemory")
 		val titleScreenDescriptors = DescriptorCombiner(boiler)
@@ -231,6 +273,9 @@ class TestingInstance {
 
 	fun destroy() {
 		for (directory in dummySavesDirectories) directory.deleteRecursively()
+		vkDestroyPipeline(boiler.vkDevice(), checkPipeline, null)
+		vkDestroyPipelineLayout(boiler.vkDevice(), checkPipelineLayout, null)
+		vkDestroyDescriptorSetLayout(boiler.vkDevice(), checkDescriptorLayout.vkDescriptorSetLayout, null)
 		renderManager.pipelines.destroy()
 		renderManager.cleanUp()
 		titleScreenMemory.destroy(boiler)

@@ -45,7 +45,6 @@ object TestWorldMap {
 				"MainTimeline", "Night before the falling 'star'"
 			)
 
-			val titleBarColor = arrayOf(Color(73, 59, 50))
 			val heroesDenColors = arrayOf(
 				Color(71, 74, 26), // Trees
 				Color(104, 103, 42), // Grass
@@ -66,7 +65,7 @@ object TestWorldMap {
 			assertInstanceOf<AreaState>(state.campaign.state)
 			testRendering(
 				state, 800, 600, "world-map0",
-				heroesDenColors + titleBarColor, worldMapColors,
+				heroesDenColors, worldMapColors,
 			)
 
 			// Saving should not crash
@@ -82,7 +81,7 @@ object TestWorldMap {
 			assertInstanceOf<AreaState>(state.campaign.state)
 			testRendering(
 				state, 800, 600, "world-map1",
-				titleBarColor, heroesDenColors + worldMapColors,
+				emptyArray(), heroesDenColors + worldMapColors,
 			)
 			repeat(12) {
 				state.update(updateContext)
@@ -91,7 +90,7 @@ object TestWorldMap {
 			assertInstanceOf<WorldMapState>(state.campaign.state)
 			testRendering(
 				state, 800, 600, "world-map2",
-				titleBarColor, heroesDenColors + worldMapColors,
+				emptyArray(), heroesDenColors + worldMapColors,
 			)
 
 			// Saving should not crash
@@ -103,7 +102,7 @@ object TestWorldMap {
 			}
 			testRendering(
 				state, 800, 600, "world-map3",
-				titleBarColor + worldMapColors + activatedNodeColor, heroesDenColors,
+				worldMapColors + activatedNodeColor, heroesDenColors,
 			)
 
 			// Walking down or left should be impossible
@@ -218,7 +217,7 @@ object TestWorldMap {
 			}
 			testRendering(
 				state, 800, 600, "world-map6",
-				titleBarColor, worldMapColors, // Should fade out
+				emptyArray(), worldMapColors, // Should fade out
 			)
 
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))

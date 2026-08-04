@@ -33,11 +33,6 @@ import kotlin.time.Duration.Companion.milliseconds
 
 object TestTitleScreen {
 
-	internal val titleBarColors = arrayOf(
-		Color(73, 59, 50),
-		Color(132, 105, 83),
-	)
-
 	internal val baseColors = arrayOf(
 		Color(190, 144, 95), // Title outer outline
 		Color(69, 50, 34), // Title inner outline
@@ -73,7 +68,7 @@ object TestTitleScreen {
 			assertEquals(-1, state.selectedButton)
 			testRendering(
 				state, 800, 450, "new-game0",
-				baseColors + titleBarColors,
+				baseColors,
 				selectedButtonColors + textInputColors,
 			)
 
@@ -85,7 +80,7 @@ object TestTitleScreen {
 			assertFalse(state.isCampaignNameValid)
 			testRendering(
 				state, 800, 450, "new-game1",
-				baseColors + selectedButtonColors + titleBarColors,
+				baseColors + selectedButtonColors,
 				textInputColors
 			)
 
@@ -149,7 +144,7 @@ object TestTitleScreen {
 			assertNull(state.saveSelection)
 			testRendering(
 				state, 800, 450, "new-game4",
-				baseColors + selectedButtonColors + titleBarColors, textInputColors
+				baseColors + selectedButtonColors, textInputColors
 			)
 
 			// Click on "New Game" again
@@ -210,7 +205,7 @@ object TestTitleScreen {
 			)
 			testRendering(
 				newState, 800, 450, "new-game7",
-				expectedAreaColors + titleBarColors, textInputColors
+				expectedAreaColors, textInputColors
 			)
 
 			assertTrue(saveFile.delete())
@@ -394,8 +389,6 @@ object TestTitleScreen {
 			val loadGameColors = arrayOf(
 				Color(131, 81, 13), // "Load" text in upper bar
 				Color(22, 13, 13), // "Upper bar"
-				Color(73, 59, 50), // Title bar
-				Color(132, 105, 83), // Title bar
 				Color(116, 101, 88), // Mardek armor
 				Color(70, 117, 33), // Deugan armor
 				Color(51, 153, 204), // Crystal pointer

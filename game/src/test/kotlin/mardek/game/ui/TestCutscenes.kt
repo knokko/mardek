@@ -61,7 +61,7 @@ object TestCutscenes {
 			Thread.sleep(StartNewGameState.FADE_DURATION * 9 / 10 / 1000_000L)
 			testRendering(
 				startState, 800, 500, "intro-cutscene0",
-				TestTitleScreen.titleBarColors, titleScreenColors,
+				emptyArray(), titleScreenColors,
 			)
 			Thread.sleep(StartNewGameState.FADE_DURATION * 2 / 10 / 1000_000L)
 
@@ -71,7 +71,6 @@ object TestCutscenes {
 				Color(100, 66, 0),
 				Color(241, 226, 188),
 				Color(232, 198, 124),
-				Color(0, 0, 0, 0),
 			)
 
 			repeat(150) {
@@ -79,8 +78,7 @@ object TestCutscenes {
 			}
 			testRendering(
 				igState, 800, 500, "intro-cutscene1",
-				chapterNameColors + TestTitleScreen.titleBarColors,
-				titleScreenColors,
+				chapterNameColors, titleScreenColors,
 			)
 
 			context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
@@ -99,7 +97,7 @@ object TestCutscenes {
 			}
 			testRendering(
 				igState, 800, 500, "intro-cutscene2",
-				cutsceneColors + TestTitleScreen.titleBarColors, titleScreenColors
+				cutsceneColors, titleScreenColors
 			)
 
 			// Skip the cutscene

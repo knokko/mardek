@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
-import java.lang.Thread.sleep
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestSaucerActions {
@@ -75,7 +74,6 @@ object TestSaucerActions {
 			repeat(20) {
 				state.update(updateContext)
 			}
-			sleep(800)
 
 			testRendering(
 				state, 600, 400, "saucer2",
@@ -102,7 +100,6 @@ object TestSaucerActions {
 				content.audio.musicTracks.find { it.fileName == "Rohoph" }!!,
 				state.campaign.determineMusicTrack(content),
 			)
-			sleep(800)
 
 			testRendering(
 				state, 600, 400, "saucer3",

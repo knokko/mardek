@@ -229,7 +229,6 @@ object TestChatLog {
 			assertTrue(((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions.showChatLog)
 
 			val expectedColors = arrayOf(
-				Color(73, 59, 50), // Title bar
 				Color(136, 255, 0), // Deugan name color
 				Color(186, 146, 77), // Chat log text color
 				Color(238, 203, 127), // Mardek name color

@@ -369,7 +369,6 @@ object TestMardekHouseActions {
 				Color(153, 1, 255), // Violet crystal edges
 				Color(117, 17, 195), // Violet crystal glow
 				Color(38, 20, 56), // Dark purple background
-				Color(73, 59, 50), // Title bar should still be visible
 			)
 			val dialogueColors = arrayOf(
 				Color(238, 203, 127), // Strong text color

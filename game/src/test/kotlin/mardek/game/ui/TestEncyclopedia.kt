@@ -160,7 +160,6 @@ object TestEncyclopedia {
 	)
 
 	private val baseEncyclopediaColors = arrayOf(
-		Color(73, 59, 50), // Title bar
 		Color(22, 13, 13), // Upper bar
 		Color(131, 81, 38), // Upper bar text color
 		Color(238, 203, 127), // Section name text color
