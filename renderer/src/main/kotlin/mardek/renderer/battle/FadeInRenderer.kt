@@ -3,7 +3,7 @@ package mardek.renderer.battle
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import mardek.state.util.Rectangle
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal fun renderBattleFadeIn(
 	battleContext: BattleRenderContext, colorBatch: Vk2dColorBatch, region: Rectangle
@@ -11,7 +11,7 @@ internal fun renderBattleFadeIn(
 	battleContext.run {
 		val fadeAlpha = context.timing.interpolate(
 			battle.startTime, 255,
-			250.milliseconds, 0, true
+			1.seconds, 0, true
 		)
 		if (fadeAlpha > 0) {
 			colorBatch.fill(

@@ -155,7 +155,7 @@ class AreaSuspensionIncomingBattle(
 		/**
 		 * The duration of the 'flickering' effect before a battle starts
 		 */
-		val DURATION = 500.milliseconds
+		val DURATION = 850.milliseconds
 	}
 }
 

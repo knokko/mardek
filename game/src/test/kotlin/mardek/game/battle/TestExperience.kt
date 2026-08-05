@@ -156,7 +156,7 @@ object TestExperience {
 
 			// Wait until Mardek is on turn
 			assertInstanceOf<BattleStateMachine.NextTurn>(battleState.state)
-			repeat(80) {
+			repeat(100) {
 				state.update(updateContext)
 			}
 			assertInstanceOf<BattleStateMachine.SelectMove>(battleState.state)
