@@ -48,6 +48,8 @@ class CampaignActionsState(
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "action nodes")
 	var node: ActionNode,
+
+	currentCampaignTime: Time,
 ) : CampaignStateMachine() {
 
 	/**
@@ -86,7 +88,7 @@ class CampaignActionsState(
 	 * field is set to [CampaignState.time]..
 	 */
 	@BitField(id = 4)
-	var currentNodeStartTime = Time.ZERO
+	var currentNodeStartTime = currentCampaignTime
 		private set
 
 	/**
@@ -124,7 +126,7 @@ class CampaignActionsState(
 	var lightningRenderInfo: Any = Any()
 
 	@Suppress("unused")
-	private constructor() : this(FixedActionNode())
+	private constructor() : this(FixedActionNode(), Time.ZERO)
 
 	override fun toString() = "CampaignActions($node)"
 

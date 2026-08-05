@@ -127,7 +127,7 @@ fun importVanillaContent(skipMonsters: Boolean = false): Content {
 		ActionSequence(name = "Chapter 1 intro", root = entryRoot)
 	}
 	content.actions.global.add(chapter1IntroSequence)
-	startChapter1.state = CampaignActionsState(chapter1IntroSequence.root)
+	startChapter1.state = CampaignActionsState(chapter1IntroSequence.root, startChapter1.time)
 
 	hardcodedActions.resolveIncompleteActions(content)
 

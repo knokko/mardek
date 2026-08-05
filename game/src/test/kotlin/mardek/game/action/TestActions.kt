@@ -205,7 +205,7 @@ object TestActions {
 			val state = InGameState(simpleCampaignState(), "")
 			state.campaign.state = CampaignActionsState(FixedActionNode(
 				id = UUID.randomUUID(), action = toHeroesDen, next = null
-			))
+			), state.campaign.time)
 
 			state.update(GameStateUpdateContext(
 				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds

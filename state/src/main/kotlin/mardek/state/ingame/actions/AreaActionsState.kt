@@ -348,7 +348,9 @@ class AreaActionsState(
 			return false
 		}
 		if (currentAction is ActionToGlobalActions) {
-			context.campaign.state = CampaignActionsState((this.node as FixedActionNode).next!!)
+			context.campaign.state = CampaignActionsState(
+				(this.node as FixedActionNode).next!!, context.campaign.time
+			)
 			return false
 		}
 		if (currentAction is ActionTimelineTransition) {

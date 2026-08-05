@@ -57,7 +57,7 @@ class CampaignState : BitPostInit {
 	 */
 	@BitField(id = 0)
 	@ClassField(root = CampaignStateMachine::class)
-	var state: CampaignStateMachine = CampaignActionsState(FixedActionNode())
+	var state: CampaignStateMachine = CampaignActionsState(FixedActionNode(), Time.ZERO)
 
 	/**
 	 * The characters currently in the party

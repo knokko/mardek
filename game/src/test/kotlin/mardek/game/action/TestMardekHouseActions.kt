@@ -239,7 +239,7 @@ object TestMardekHouseActions {
 
 			// Wait until the cutscene is finished
 			@Suppress("unused")
-			for (counter in 0 until 100) {
+			for (counter in 0 until 200) {
 				state.update(updateContext)
 				if (state.campaign.state is AreaState) break
 			}
