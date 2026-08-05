@@ -261,10 +261,26 @@ class AreaSuspensionOpeningDoor(
  */
 @BitStruct(backwardCompatible = true)
 class AreaSuspensionOpeningChest(
+
+	/**
+	 * The chest that is currently opened
+	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "chests")
-	val chest: Chest
+	val chest: Chest,
+
+	/**
+	 * The campaign time when the chest was opened, and the fade-in started
+	 */
+	@BitField(id = 1)
+	val openedAt: Time,
 ) : AreaSuspension() {
+
+	/**
+	 * The time at which the player took the item (or canceled), after which the fade-out starts
+	 */
+	@BitField(id = 2, optional = true)
+	var closedAt: Time? = null
 
 	/**
 	 * This field is initially null, but the `CampaignState` should set it to something non-null as soon as it sees
@@ -273,7 +289,15 @@ class AreaSuspensionOpeningChest(
 	var obtainedItem: ObtainedItemStack? = null
 
 	@Suppress("unused")
-	private constructor() : this(Chest())
+	private constructor() : this(Chest(), Time.ZERO)
 
 	override fun shouldUpdateCurrentTime() = false
+
+	companion object {
+
+		/**
+		 * The duration of the fade-in and the fade-out effect when opening/closing chests
+		 */
+		val FADE_DURATION = 250.milliseconds
+	}
 }

@@ -125,11 +125,12 @@ internal fun renderInnerBoxButton(
 	bundle: Vk2dResourceBundle, fonts: Fonts,
 	x: Int, boxY: Int, boxSize: Int, borderWidth: Int, boxRadius: Int, cornerDistances: FloatArray,
 	boxColor: Int, token: String, label: String,
+	alpha: Int = 255,
 ) {
 	val tokenFont = bundle.getFont(fonts.basic2.index)
 	val labelFont = bundle.getFont(fonts.large1.index)
-	val textColor = srgbToLinear(rgb(186, 146, 77))
-	val shadowColor = rgb(0, 0, 0)
+	val textColor = srgbToLinear(rgba(186, 146, 77, alpha))
+	val shadowColor = rgba(0, 0, 0, alpha)
 	val shadowOffset = boxSize * 0.08f
 
 	colorBatch.fill(
@@ -148,7 +149,7 @@ internal fun renderInnerBoxButton(
 		boxColor
 	)
 
-	val borderColor = srgbToLinear(rgba(73, 52, 37, 150))
+	val borderColor = srgbToLinear(rgba(73, 52, 37, 150 * alpha / 255))
 	colorBatch.fill(
 		x, boxY + boxRadius,
 		x + borderWidth - 1, boxY + boxSize - boxRadius - 1,
@@ -226,17 +227,18 @@ internal fun renderBoxButton(
 	simpleTextBatch: Vk2dSimpleTextBatch, fancyTextBatch: Vk2dFancyTextBatch,
 	bundle: Vk2dResourceBundle, fonts: Fonts,
 	minBoxSize: Float, boxSize: Int, boxX: Int, boxY: Int,
+	alpha: Int = 255,
 ) {
 	val cornerRadius = (minBoxSize / 6f).roundToInt()
-	val darkColor = srgbToLinear(rgb(145, 137, 112))
-	val lightColor = srgbToLinear(rgb(167, 161, 141))
+	val darkColor = srgbToLinear(rgba(145, 137, 112, alpha))
+	val lightColor = srgbToLinear(rgba(167, 161, 141, alpha))
 	val cornerDistances = floatArrayOf(0.6f, 0.65f, 1f, 1.05f)
-	val borderWidth = max(1, boxSize / 15)
+	val borderWidth = max(1, (minBoxSize / 20).roundToInt())
 
 	renderInnerBoxButton(
 		colorBatch, ovalBatch, simpleTextBatch, fancyTextBatch, bundle, fonts,
 		boxX, boxY, boxSize, borderWidth, cornerRadius, cornerDistances,
-		darkColor, "E", "",
+		darkColor, "E", "", alpha = alpha,
 	)
 	colorBatch.fill(
 		boxX + 5 * borderWidth / 2, boxY + 4 * borderWidth,

@@ -41,7 +41,6 @@ object TestMusicPlayer {
 				Color(255, 204, 153), // Button outline color
 			)
 			val musicPlayerColors = arrayOf(
-				Color(22, 13, 13), // Upper/lower bar
 				Color(131, 81, 38), // Title color
 				Color(208, 193, 142), // Arrow color and scroll bar color
 				Color(56, 53, 72), // One of the disabled category music note icons

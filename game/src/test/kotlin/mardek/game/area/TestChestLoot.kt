@@ -46,10 +46,10 @@ object TestChestLoot {
 			)
 			val soundQueue = SoundQueue()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, soundQueue, 100.milliseconds), ""
+				GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds), ""
 			)
 			input.postEvent(pressKeyEvent(InputKey.MoveRight))
-			campaign.update(context)
+			state.currentState.update(context)
 			assertNull(soundQueue.take())
 
 			val partyColors = arrayOf(
@@ -65,8 +65,10 @@ object TestChestLoot {
 				Color(203, 153, 0), // TREASURE text color
 				Color(238, 203, 127), // Other text color
 				Color(0, 90, 170), // Potion color
-				Color(99, 128, 177), // Party highlight color
+				Color(165, 205, 254), // Party highlight color
 				Color(81, 113, 217), // Inventory grid consumable color
+				Color(167, 161, 141), // Light 'E' button color
+				Color(145, 137, 112), // Dark 'E' button color
 			)
 			testRendering(
 				state, 900, 450, "chest-before-open",
@@ -75,10 +77,23 @@ object TestChestLoot {
 
 			input.postEvent(releaseKeyEvent(InputKey.MoveRight))
 			input.postEvent(pressKeyEvent(InputKey.Interact))
-			campaign.update(context)
+			state.currentState.update(context)
 			assertSame(content.audio.fixedEffects.openChest, soundQueue.take())
 			assertNull(soundQueue.take())
 
+			// Rendering during fade-in
+			repeat(5) {
+				state.currentState.update(context)
+			}
+			testRendering(
+				state, 900, 450, "chest-during-open",
+				emptyArray(), areaColors + partyColors
+			)
+
+			// Rendering after fade-in is finished
+			repeat(20) {
+				state.currentState.update(context)
+			}
 			testRendering(
 				state, 900, 450, "chest-after-open",
 				lootColors + partyColors, areaColors
@@ -89,13 +104,13 @@ object TestChestLoot {
 
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			input.postEvent(pressKeyEvent(InputKey.MoveLeft))
-			campaign.update(context)
+			state.currentState.update(context)
 			assertEquals(1, openChest.partyIndex)
 			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
-			campaign.update(context)
+			state.currentState.update(context)
 			assertEquals(1, openChest.partyIndex)
 			assertNull(soundQueue.take())
 
@@ -106,13 +121,13 @@ object TestChestLoot {
 
 			// Whoops, Deugan does not have any inventory space
 			input.postEvent(pressKeyEvent(InputKey.Interact))
-			campaign.update(context)
+			state.currentState.update(context)
 			assertSame(content.audio.fixedEffects.ui.clickReject, soundQueue.take())
 			assertNull(soundQueue.take())
 
 			input.postEvent(releaseKeyEvent(InputKey.Interact))
 			input.postEvent(pressKeyEvent(InputKey.MoveRight))
-			campaign.update(context)
+			state.currentState.update(context)
 			assertEquals(0, openChest.partyIndex)
 			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
@@ -124,10 +139,24 @@ object TestChestLoot {
 			assertEquals(0, mardekState.countItemOccurrences(potion))
 			assertSame(openChest, ((campaign.state as AreaState).suspension as AreaSuspensionOpeningChest).obtainedItem)
 			assertEquals(0, campaign.openedChests.size)
-			campaign.update(context)
+			state.currentState.update(context)
 			assertSame(content.audio.fixedEffects.ui.clickCancel, soundQueue.take())
 			assertNull(soundQueue.take())
 			assertEquals(1, mardekState.countItemOccurrences(potion))
+
+			// Rendering during fade-out
+			repeat(10) {
+				state.currentState.update(context)
+			}
+			testRendering(
+				state, 900, 450, "chest-during-close",
+				emptyArray(), areaColors + partyColors
+			)
+
+			// Await the fade-out
+			repeat(15) {
+				state.currentState.update(context)
+			}
 
 			assertEquals(1, campaign.openedChests.size)
 			assertNull((campaign.state as AreaState).suspension)

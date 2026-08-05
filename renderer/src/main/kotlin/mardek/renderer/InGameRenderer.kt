@@ -9,7 +9,9 @@ import mardek.content.action.ActionSaveCampaign
 import mardek.content.action.ActionShop
 import mardek.content.action.FixedActionNode
 import mardek.renderer.actions.renderCampaignActions
+import mardek.renderer.area.AreaRenderContext
 import mardek.renderer.area.renderCurrentArea
+import mardek.renderer.area.ui.renderChestLoot
 import mardek.renderer.area.ui.shop.renderShopUi
 import mardek.renderer.area.ui.storage.renderItemStorage
 import mardek.renderer.battle.renderBattle
@@ -27,6 +29,7 @@ import mardek.state.ingame.actions.ShopInteractionState
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
+import mardek.state.ingame.area.AreaSuspensionOpeningChest
 import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.menu.ShownState
 import mardek.state.ingame.worldmap.WorldMapState
@@ -66,6 +69,8 @@ internal fun renderInGame(
 
 	when (val stateMachine = state.campaign.state) {
 		is AreaState -> {
+			val supportedBlurFilterSizes = arrayOf(0, 1, 3, 4, 9)
+
 			val suspension = stateMachine.suspension
 			if (suspension !is AreaSuspensionBattle) {
 				if (state.menu.shown !is ShownState.FullyHidden) {
@@ -87,7 +92,6 @@ internal fun renderInGame(
 						else -> throw RuntimeException("Unexpected shown state $shown")
 					}
 
-					val supportedBlurFilterSizes = arrayOf(0, 1, 3, 4, 9)
 					val blurFilterSize = supportedBlurFilterSizes.minBy { abs(it - 9f * menuOpacity) }
 
 					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
@@ -167,28 +171,49 @@ internal fun renderInGame(
 					}
 
 					val batches: Pair<Vk2dColorBatch, Vk2dSimpleTextBatch>
-					if (saveSelection != null) {
+					if (saveSelection != null || suspension is AreaSuspensionOpeningChest) {
+						var blurStrength = 1f
+						if (suspension is AreaSuspensionOpeningChest) {
+							blurStrength = context.timing.interpolate(
+								suspension.openedAt, 0f,
+								AreaSuspensionOpeningChest.FADE_DURATION, 1f, true
+							)
+							if (suspension.closedAt != null) {
+								blurStrength *= context.timing.interpolate(
+									suspension.closedAt!!, 1f,
+									AreaSuspensionOpeningChest.FADE_DURATION, 0f, true
+								)
+							}
+						}
+						val blurFilterSize = supportedBlurFilterSizes.minBy { abs(it - 9f * blurStrength) }
+
 						val framebuffers = context.framebuffers
 						val areaRenderStage = context.pipelines.blur.addSourceStage(
 							context.frame, framebuffers.blur, -1
 						)
 						context.pipelines.blur.addComputeStage(
 							context.frame, context.perFrame.areaBlurDescriptors,
-							framebuffers.blur, 9, 50, -1
+							framebuffers.blur, blurFilterSize, 50, -1
 						)
 
 						context.currentStage = areaRenderStage
 						val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
 						renderCurrentArea(context, stateMachine, areaRenderRegion)
-						renderBlurred(1f)
+						renderBlurred(blurStrength)
 
-						val basicFont = context.bundle.getFont(context.content.fonts.basic2.index)
-						val fatFont = context.bundle.getFont(context.content.fonts.fat.index)
-						val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
-						batches = renderSaveSelectionModal(
-							context, basicFont, fatFont, upperFont,
-							saveSelection, true, region, context.timing,
-						)
+						if (saveSelection != null) {
+							val basicFont = context.bundle.getFont(context.content.fonts.basic2.index)
+							val fatFont = context.bundle.getFont(context.content.fonts.fat.index)
+							val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
+							batches = renderSaveSelectionModal(
+								context, basicFont, fatFont, upperFont,
+								saveSelection, true, region, context.timing,
+							)
+						} else {
+							val areaContext = AreaRenderContext.create(context, stateMachine, region)
+							batches = Pair(areaContext.uiColorBatch, areaContext.simpleTextBatch)
+							renderChestLoot(areaContext, blurStrength)
+						}
 					} else if (itemStorage != null) {
 						batches = renderItemStorage(context, itemStorage, region)
 					} else if (shopState != null) {

@@ -28,29 +28,76 @@ object MardekTextStyles {
 	)
 	val BLACK_FILL = Vk2dTextStyle.FillStyle(rgb(0, 0, 0))
 
-	val CHEST_TITLE_BACK = run {
-		val strokeColor = srgbToLinear(rgb(132, 81, 37))
-		Vk2dFancyTextStyle(
-			Vk2dFancyTextStyle.Gradient.plain(0), 1f, 0f,
-			Vk2dFancyTextStyle.Gradient.plain(0),
-			Vk2dFancyTextStyle.Gradient(
-				strokeColor, strokeColor, 0, 0, 0,
-				0.125f, 0.14f, 12345f, 12345f,
-			), true,
-		)
-	}
+	object ChestLoot {
+		fun titleBack(alpha: Int): Vk2dFancyTextStyle {
+			val strokeColor = srgbToLinear(rgba(132, 81, 37, alpha))
+			return Vk2dFancyTextStyle(
+				Vk2dFancyTextStyle.Gradient.plain(0), 1f, 0f,
+				Vk2dFancyTextStyle.Gradient.plain(0),
+				Vk2dFancyTextStyle.Gradient(
+					strokeColor, strokeColor, 0, 0, 0,
+					0.125f, 0.14f, 12345f, 12345f,
+				), true,
+			)
+		}
 
-	val CHEST_TITLE_FRONT = run {
-		val lowColor = srgbToLinear(rgb(204, 153, 0))
-		val highColor = srgbToLinear(rgb(255, 204, 102))
-		Vk2dFancyTextStyle(
-			Vk2dFancyTextStyle.Gradient(
-				lowColor, lowColor, highColor, highColor, highColor,
-				0.5f, 0.5f, 0.5f, 0.5f
-			), 1f, 0f,
-			Vk2dFancyTextStyle.Gradient.plain(0),
-			Vk2dFancyTextStyle.Gradient.plain(0), true,
-		)
+		fun titleFront(alpha: Int): Vk2dFancyTextStyle {
+			val lowColor = srgbToLinear(rgba(204, 153, 0, alpha))
+			val highColor = srgbToLinear(rgba(255, 204, 102, alpha))
+			return Vk2dFancyTextStyle(
+				Vk2dFancyTextStyle.Gradient(
+					lowColor, lowColor, highColor, highColor, highColor,
+					0.5f, 0.5f, 0.5f, 0.5f
+				), 1f, 0f,
+				Vk2dFancyTextStyle.Gradient.plain(0),
+				Vk2dFancyTextStyle.Gradient.plain(0), true,
+			)
+		}
+
+		fun infoLabelText(alpha: Int) = WEAK_TEXT_FILL.multiplyAlpha(alpha / 255f).only()!!
+
+		fun alreadyHasAmount(alpha: Int, isPlotItem: Boolean): Vk2dTextStyle.Shadowed {
+			var mainStyle = if (isPlotItem) Vk2dTextStyle.FillStyle(rgb(255, 204, 0))
+			else STRONG_TEXT_FILL
+			mainStyle = mainStyle.multiplyAlpha(alpha / 255f)
+			return Vk2dTextStyle.Shadowed(
+				mainStyle.only(), SHADOW_FILL.only(), 0.2f,
+			)
+		}
+
+		fun gainedAmount(alpha: Int, isPlotItem: Boolean): Vk2dTextStyle.Shadowed {
+			val alreadyHas = alreadyHasAmount(alpha, isPlotItem)
+			return Vk2dTextStyle.Shadowed(
+				alreadyHas.mainStyle(), alreadyHas.shadowStyle(), 0.1f
+			)
+		}
+
+		fun itemName(alpha: Int, isPlotItem: Boolean): Vk2dTextStyle.Shadowed {
+			val mainStyle = alreadyHasAmount(alpha, isPlotItem).mainStyle
+			val shadowStrokeStyle = Vk2dTextStyle.StrokeStyle(
+				rgb(0, 0, 0),
+				0.3f, true, 2.5f
+			)
+			val shadowStyle = Vk2dTextStyle(BLACK_FILL, shadowStrokeStyle)
+			return Vk2dTextStyle.Shadowed(mainStyle, shadowStyle, 0.1f)
+		}
+
+		fun description(alpha: Int): Vk2dTextStyle.Shadowed {
+			val mainStyle = Vk2dTextStyle.FillStyle(
+				changeAlpha(WEAK_TEXT_FILL.color, alpha),
+				1.5f, -0.1f
+			)
+			val shadowFillStyle = Vk2dTextStyle.FillStyle(
+				changeAlpha(BLACK_FILL.color, alpha),
+				1.5f, -0.1f
+			)
+			val shadowStrokeStyle = Vk2dTextStyle.StrokeStyle(
+				rgba(0, 0, 0, alpha),
+				0.3f, true, 2.5f
+			)
+			val shadowStyle = Vk2dTextStyle(shadowFillStyle, shadowStrokeStyle)
+			return Vk2dTextStyle.Shadowed(mainStyle.only(), shadowStyle, 0.15f)
+		}
 	}
 
 	fun masteredBack1(alpha: Int): Vk2dFancyTextStyle {
@@ -356,7 +403,7 @@ object MardekTextStyles {
 				)
 			),
 			Vk2dTextStyle(BLACK_FILL, Vk2dTextStyle.StrokeStyle(
-				srgbToLinear(rgb(0, 0, 0)),
+				rgb(0, 0, 0),
 				0.3f, true, 2.5f
 			)), 0.025f,
 		)

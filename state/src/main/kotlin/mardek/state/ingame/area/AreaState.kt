@@ -236,7 +236,7 @@ class AreaState(
 		suspension: AreaSuspensionOpeningChest,
 		event: InputKeyEvent
 	) {
-		if (!event.didPress) return
+		if (!event.didPress || suspension.closedAt != null) return
 		suspension.obtainedItem?.processKeyPress(
 			event.key, context.content.audio.fixedEffects, context.soundQueue
 		)
@@ -399,7 +399,7 @@ class AreaState(
 
 		for (chest in area.chests) {
 			if (x == chest.x && y == chest.y) {
-				suspension = AreaSuspensionOpeningChest(chest)
+				suspension = AreaSuspensionOpeningChest(chest, context.campaign.time)
 				return
 			}
 		}
@@ -699,7 +699,7 @@ class AreaState(
 						context.campaign.usedPartyMembers(),
 						context.campaign.allPartyMembers(),
 					) { didTake ->
-						this.suspension = null
+						suspension.closedAt = context.campaign.time
 						context.soundQueue.insert(context.content.audio.fixedEffects.ui.clickCancel)
 						if (didTake) context.campaign.openedChests.add(openedChest)
 					}
@@ -732,6 +732,11 @@ class AreaState(
 				if (suspension.obtainedItem == null) this.suspension = null
 				// TODO CHAP3 dreamstone in chest
 			} else this.suspension = null
+		}
+
+		suspension.closedAt?.let {
+			val elapsedTime = context.campaign.time.virtualOffset(suspension.closedAt!!)
+			if (elapsedTime >= AreaSuspensionOpeningChest.FADE_DURATION) this.suspension = null
 		}
 	}
 
