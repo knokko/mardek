@@ -28,18 +28,21 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.area.loot.BattleLoot
+import mardek.state.ingame.menu.ShownState
 import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveSelectionState
 import mardek.state.util.Rectangle
+import kotlin.math.abs
+import kotlin.math.pow
 
 internal fun renderInGame(
 	context: RenderContext, state: InGameState, region: Rectangle
 ): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 
-	fun renderBlurred() {
+	fun renderBlurred(blurStrength: Float) {
 		context.currentStage = context.frame.swapchainStage
 
-		val alpha = 0.9f
+		val alpha = 0.9f * blurStrength.pow(0.3f)
 		fun addColor(brown: Float) = srgbToLinear(rgba(
 			0.4f * brown * alpha, 0.25f * brown * alpha, 0.17f * brown * alpha, 1f
 		))
@@ -65,11 +68,28 @@ internal fun renderInGame(
 		is AreaState -> {
 			val suspension = stateMachine.suspension
 			if (suspension !is AreaSuspensionBattle) {
-				if (state.menu.shown) {
+				if (state.menu.shown !is ShownState.FullyHidden) {
 					val framebuffers = context.framebuffers
 					val areaRenderStage = context.pipelines.blur.addSourceStage(
 						context.frame, framebuffers.blur, -1
 					)
+
+					val menuOpacity = when (val shown = state.menu.shown) {
+						is ShownState.FullyShown -> 1f
+						is ShownState.FadingIn -> context.timing.interpolate(
+							shown.since, 0f,
+							ShownState.FADE_DURATION, 1f, true,
+						)
+						is ShownState.FadingOut -> context.timing.interpolate(
+							shown.since, 1f,
+							ShownState.FADE_DURATION, 0f, true
+						)
+						else -> throw RuntimeException("Unexpected shown state $shown")
+					}
+
+					val supportedBlurFilterSizes = arrayOf(0, 1, 3, 4, 9)
+					val blurFilterSize = supportedBlurFilterSizes.minBy { abs(it - 9f * menuOpacity) }
+
 					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						context.currentStage = context.pipelines.blur.addSourceStage(
 							context.frame, framebuffers.sectionBlur, -1
@@ -100,21 +120,21 @@ internal fun renderInGame(
 					}
 					val computeStage = context.pipelines.blur.addComputeStage(
 						context.frame, context.perFrame.areaBlurDescriptors,
-						framebuffers.blur, 9, 50, -1
+						framebuffers.blur, blurFilterSize, 50, -1
 					)
 					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						computeStage.additional(
 							context.perFrame.sectionsBlurDescriptors,
-							framebuffers.sectionBlur, 9, 50
+							framebuffers.sectionBlur, blurFilterSize, 50
 						)
 					}
 
 					context.currentStage = areaRenderStage
 					val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
 					renderCurrentArea(context, stateMachine, areaRenderRegion)
-					renderBlurred()
+					renderBlurred(menuOpacity)
 
-					val batches = renderInGameMenu(context, region, state.menu, state.campaign)
+					val batches = renderInGameMenu(context, region, 1f - menuOpacity, state.menu, state.campaign)
 					titleColorBatch = batches.first
 					titleTextBatch = batches.second
 
@@ -160,7 +180,7 @@ internal fun renderInGame(
 						context.currentStage = areaRenderStage
 						val areaRenderRegion = Rectangle(0, 0, areaRenderStage.width, areaRenderStage.height)
 						renderCurrentArea(context, stateMachine, areaRenderRegion)
-						renderBlurred()
+						renderBlurred(1f)
 
 						val basicFont = context.bundle.getFont(context.content.fonts.basic2.index)
 						val fatFont = context.bundle.getFont(context.content.fonts.fat.index)

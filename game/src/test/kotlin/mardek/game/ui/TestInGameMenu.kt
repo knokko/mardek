@@ -15,6 +15,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.ingame.menu.MapTab
 import mardek.state.ingame.menu.PartyTab
+import mardek.state.ingame.menu.ShownState
 import mardek.state.ingame.menu.SkillsTab
 import mardek.state.ingame.menu.StatusTab
 import mardek.state.saves.SavesFolderManager
@@ -77,13 +78,17 @@ object TestInGameMenu {
 			)
 
 			state.update(context)
-			assertFalse(state.menu.shown)
+			assertInstanceOf<ShownState.FullyHidden>(state.menu.shown)
 			assertNull(soundQueue.take())
 
 			input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
+			repeat(25) {
+				state.update(context)
+				assertInstanceOf<ShownState.FadingIn>(state.menu.shown)
+			}
 			state.update(context)
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is PartyTab)
 			assertSame(sounds.openMenu, soundQueue.take())
 			assertNull(soundQueue.take())
@@ -95,7 +100,7 @@ object TestInGameMenu {
 
 			input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			state.update(context)
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is SkillsTab)
 			assertSame(sounds.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
@@ -107,7 +112,7 @@ object TestInGameMenu {
 
 			input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			state.update(context)
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is InventoryTab)
 			assertSame(sounds.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
@@ -127,7 +132,7 @@ object TestInGameMenu {
 
 			input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			state.update(context)
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is MapTab)
 			assertSame(sounds.scroll1, soundQueue.take())
 			assertNull(soundQueue.take())
@@ -143,8 +148,12 @@ object TestInGameMenu {
 
 			input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
+			repeat(25) {
+				state.update(context)
+				assertInstanceOf<ShownState.FadingOut>(state.menu.shown)
+			}
 			state.update(context)
-			assertFalse(state.menu.shown)
+			assertInstanceOf<ShownState.FullyHidden>(state.menu.shown)
 			assertTrue(state.menu.currentTab is MapTab)
 			assertNull(soundQueue.take())
 
@@ -154,8 +163,10 @@ object TestInGameMenu {
 			)
 
 			input.postEvent(repeatKeyEvent(InputKey.ToggleMenu))
-			state.update(context)
-			assertTrue(state.menu.shown)
+			repeat(26) {
+				state.update(context)
+			}
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is MapTab)
 			assertSame(sounds.openMenu, soundQueue.take())
 			assertNull(soundQueue.take())
@@ -169,7 +180,7 @@ object TestInGameMenu {
 			input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			state.update(context)
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is StatusTab)
 
 			val statusColors = arrayOf(
@@ -231,8 +242,10 @@ object TestInGameMenu {
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
-			state.update(context)
-			assertTrue(state.menu.shown)
+			repeat(26) {
+				state.update(context)
+			}
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertEquals(0, (state.menu.currentTab as PartyTab).currentTab)
 			assertSame(sounds.openMenu, context.soundQueue.take())
 			assertNull(context.soundQueue.take())
@@ -344,14 +357,16 @@ object TestInGameMenu {
 
 			input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
-			state.update(context)
-			assertTrue(state.menu.shown)
+			repeat(26) {
+				state.update(context)
+			}
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			input.postEvent(pressKeyEvent(InputKey.MoveLeft))
 			input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
 			state.update(context)
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertEquals(1, (state.menu.currentTab as SkillsTab).partyIndex)
 			assertFalse(state.menu.currentTab.inside)
 			assertSame(sounds.openMenu, soundQueue.take())
@@ -418,13 +433,17 @@ object TestInGameMenu {
 
 			input.postEvent(pressKeyEvent(InputKey.Cancel))
 			state.update(context)
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertFalse(state.menu.currentTab.inside)
 			assertInstanceOf<SkillsTab>(state.menu.currentTab)
 
 			input.postEvent(repeatKeyEvent(InputKey.Cancel))
+			repeat(25) {
+				state.update(context)
+				assertInstanceOf<ShownState.FadingOut>(state.menu.shown)
+			}
 			state.update(context)
-			assertFalse(state.menu.shown)
+			assertInstanceOf<ShownState.FullyHidden>(state.menu.shown)
 		}
 	}
 }

@@ -22,7 +22,7 @@ class InGameMenuState(private val state: CampaignState) {
 	/**
 	 * Whether the in-game menu is currently opened/shown
 	 */
-	var shown = false
+	var shown: ShownState = ShownState.FullyHidden()
 
 	/**
 	 * - When `shown` is `false`, this field is meaningless.
@@ -48,7 +48,7 @@ class InGameMenuState(private val state: CampaignState) {
 			if (event is InputKeyEvent && (event.didPress || event.didRepeat)) {
 				if (!currentTab.inside) {
 					if (event.key == InputKey.ToggleMenu || event.key == InputKey.Cancel) {
-						shown = false
+						shown = ShownState.FadingOut(state.time)
 						continue
 					}
 

@@ -19,6 +19,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.menu.EncyclopediaTab
+import mardek.state.ingame.menu.ShownState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
@@ -175,7 +176,9 @@ object TestEncyclopedia {
 			)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
-			state.update(updateContext)
+			repeat(26) {
+				state.update(updateContext)
+			}
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
@@ -245,7 +248,9 @@ object TestEncyclopedia {
 			// Close the in-game menu
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Cancel))
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.Cancel))
-			state.update(updateContext)
+			repeat(26) {
+				state.update(updateContext)
+			}
 			testRendering(
 				state, 800, 400, "encyclopedia-closed",
 				forbiddenAreaColors, emptyArray(),
@@ -266,6 +271,12 @@ object TestEncyclopedia {
 			updateContext.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			state.update(updateContext)
+
+			// Await in-game menu fade-in
+			repeat(25) {
+				state.update(updateContext)
+			}
+
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
@@ -334,7 +345,9 @@ object TestEncyclopedia {
 			// Open encyclopedia
 			updateContext.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
-			state.update(updateContext)
+			repeat(26) {
+				state.update(updateContext)
+			}
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
@@ -396,7 +409,9 @@ object TestEncyclopedia {
 			// Open encyclopedia
 			updateContext.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
-			state.update(updateContext)
+			repeat(26) {
+				state.update(updateContext)
+			}
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
@@ -466,7 +481,9 @@ object TestEncyclopedia {
 			// Open encyclopedia
 			updateContext.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
-			state.update(updateContext)
+			repeat(4) {
+				state.update(updateContext)
+			}
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			repeat(5) {
 				updateContext.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
@@ -482,13 +499,16 @@ object TestEncyclopedia {
 			assertFalse((state.menu.currentTab as EncyclopediaTab).encyclopedia.places.any {
 				it.entry?.name == "Goznor Sewers"
 			})
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 
 			// Close the encyclopedia
 			updateContext.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			state.update(updateContext)
-			assertFalse(state.menu.shown)
+			assertInstanceOf<ShownState.FadingOut>(state.menu.shown)
+			repeat(3) {
+				state.update(updateContext)
+			}
 
 			// Enter the sewers
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
@@ -500,8 +520,10 @@ object TestEncyclopedia {
 
 			// Re-open the encyclopedia
 			updateContext.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
-			state.update(updateContext)
-			assertTrue(state.menu.shown)
+			repeat(4) {
+				state.update(updateContext)
+			}
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 
 			// Goznor Sewers should be discovered now
 			assertEquals(

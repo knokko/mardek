@@ -12,11 +12,13 @@ import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.menu.QuestsTab
+import mardek.state.ingame.menu.ShownState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import kotlin.time.Duration.Companion.milliseconds
@@ -52,10 +54,14 @@ object TestQuests {
 			val sounds = content.audio.fixedEffects.ui
 
 			// Open in-game menu
+			assertInstanceOf<ShownState.FullyHidden>(state.menu.shown)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
-			assertFalse(state.menu.shown)
 			state.update(updateContext)
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FadingIn>(state.menu.shown)
+			repeat(3) {
+				state.update(updateContext)
+			}
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertSame(sounds.openMenu, updateContext.soundQueue.take())
 			assertNull(updateContext.soundQueue.take())
 
@@ -70,7 +76,7 @@ object TestQuests {
 			}
 
 			// Check that the quests are correct
-			assertTrue(state.menu.shown)
+			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			val tab = state.menu.currentTab as QuestsTab
 
 			val heroQuest = content.story.quests.find { it.tabName == "Hero Quest!" }!!

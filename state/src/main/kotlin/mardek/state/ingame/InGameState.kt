@@ -5,6 +5,7 @@ import mardek.content.audio.AudioContent
 import mardek.state.GameState
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.menu.InGameMenuState
+import mardek.state.ingame.menu.ShownState
 import mardek.state.title.GameOverState
 import mardek.state.util.MusicPlayerJob
 
@@ -31,12 +32,15 @@ class InGameState(
 	override fun update(context: GameStateUpdateContext): GameState {
 		campaign.time += context.timeStep
 		campaign.clampHealthAndMana()
-		if (menu.shown) {
+		menu.shown = menu.shown.update(campaign.time)
+
+		if (menu.shown is ShownState.FullyShown) {
 			menu.update(context.input, context.soundQueue, context.content)
-		} else {
+		}
+		if (menu.shown is ShownState.FullyHidden) {
 			campaign.update(CampaignState.UpdateContext(context, campaignName))
 			if (campaign.shouldOpenMenu) {
-				menu.shown = true
+				menu.shown = ShownState.FadingIn(campaign.time)
 				menu.refreshCurrentTab(context.content)
 				campaign.shouldOpenMenu = false
 			}

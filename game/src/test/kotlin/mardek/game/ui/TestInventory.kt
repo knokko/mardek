@@ -51,7 +51,9 @@ object TestInventory {
 
 			// Open inventory
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
-			state.update(context)
+			repeat(4) {
+				state.update(context)
+			}
 			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			state.update(context)
 			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
@@ -203,7 +205,9 @@ object TestInventory {
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
-			state.update(context)
+			repeat(251) {
+				state.update(context)
+			}
 
 			repeat(2) {
 				context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
@@ -275,6 +279,11 @@ object TestInventory {
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			state.update(context)
 
+			// Await fade-in
+			repeat(250) {
+				state.update(context)
+			}
+
 			repeat(2) {
 				context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 				context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
@@ -338,7 +347,9 @@ object TestInventory {
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
-			state.update(context)
+			repeat(251) {
+				state.update(context)
+			}
 
 			repeat(2) {
 				context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
