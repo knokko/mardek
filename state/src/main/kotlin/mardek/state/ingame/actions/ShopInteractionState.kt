@@ -3,6 +3,7 @@ package mardek.state.ingame.actions
 import mardek.content.area.AreaShop
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
+import mardek.content.util.Time
 import mardek.input.InputKey
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.ShopState
@@ -12,6 +13,7 @@ import mardek.state.ingame.menu.inventory.ItemGridRenderInfo
 import mardek.state.util.Rectangle
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * When the player is interacting with a shop, this class tracks the state of the shop interaction
@@ -25,7 +27,26 @@ class ShopInteractionState(
 	 * The shop where the player is browsing/trading items
 	 */
 	val shop: AreaShop,
+
+	campaignTime: Time,
 ) {
+
+	/**
+	 * The time at which the fade-in animation started.
+	 *
+	 * The shop will be 'frozen' until `startedFadeInAt + FADE_DURATION`.
+	 */
+	val startedFadeInAt = campaignTime
+
+	/**
+	 * The time at which the fade-out animation started, or `null` if the player is still interacting with the shop.
+	 *
+	 * This field becomes non-null when the player quits the shop.
+	 * Once that happens, the shop will start fading out,
+	 * and be vanished completely at `startedFadeOutAt + FADE_DURATION`.
+	 */
+	var startedFadeOutAt: Time? = null
+		private set
 
 	/**
 	 * The interaction state with the inventory of the selected character.
@@ -68,6 +89,14 @@ class ShopInteractionState(
 
 	private var playedOpeningSound = false
 
+	/**
+	 * Checks whether the shop UI is currently fading in or fading out.
+	 *
+	 * When this returns `false`, the shop UI is completely visible.
+	 */
+	fun isFading(campaignTime: Time) = startedFadeOutAt != null ||
+			campaignTime.virtualOffset(startedFadeInAt) < FADE_DURATION
+
 	private fun validatePartyIndex(context: AreaActionsState.UpdateContext) {
 		if (context.campaign.allPartyMembers()[inventory.partyIndex] == null) {
 			inventory.partyIndex = context.campaign.usedPartyMembers()[0].index
@@ -78,7 +107,8 @@ class ShopInteractionState(
 	 * This method should be invoked during [AreaActionsState.processKeyEvent] whenever a key is pressed while
 	 * a shop action is active.
 	 */
-	internal fun processKeyPress(context: AreaActionsState.UpdateContext, key: InputKey): Boolean {
+	internal fun processKeyPress(context: AreaActionsState.UpdateContext, key: InputKey) {
+		if (isFading(context.campaign.time)) return
 		validatePartyIndex(context)
 
 		val sounds = context.content.audio.fixedEffects
@@ -144,7 +174,7 @@ class ShopInteractionState(
 				}
 			}
 
-			if (key == InputKey.Cancel || key == InputKey.Escape) return true
+			if (key == InputKey.Cancel || key == InputKey.Escape) startedFadeOutAt = context.campaign.time
 		} else {
 			if (key == InputKey.MoveLeft && pendingTrade.amount > 1) pendingTrade.amount -= 1
 			if (key == InputKey.MoveDown) pendingTrade.amount = max(1, pendingTrade.amount - 10)
@@ -172,8 +202,6 @@ class ShopInteractionState(
 				context.soundQueue.insert(sounds.ui.clickCancel)
 			}
 		}
-
-		return false
 	}
 
 	/**
@@ -181,6 +209,7 @@ class ShopInteractionState(
 	 * action.
 	 */
 	internal fun processMouseMove(context: AreaActionsState.UpdateContext, newX: Int, newY: Int) {
+		if (isFading(context.campaign.time)) return
 		validatePartyIndex(context)
 		if (pendingTrade != null) return
 
@@ -204,13 +233,26 @@ class ShopInteractionState(
 
 	/**
 	 * This method should be invoked during every [AreaActionsState.update] while the current action is a shop action.
+	 *
+	 * It returns true if and only if the player closed the shop, *and* the fade-out is finished.
 	 */
-	internal fun update(context: AreaActionsState.UpdateContext) {
+	internal fun update(context: AreaActionsState.UpdateContext): Boolean {
 		validatePartyIndex(context)
 		if (!playedOpeningSound) {
 			context.soundQueue.insert(context.content.audio.fixedEffects.ui.openMenu)
 			playedOpeningSound = true
 		}
+
+		return startedFadeOutAt != null &&
+				context.campaign.time.virtualOffset(startedFadeOutAt!!) > FADE_DURATION
+	}
+
+	companion object {
+
+		/**
+		 * The duration of the fade-in & fade-out effects of shops
+		 */
+		val FADE_DURATION = 250.milliseconds
 	}
 }
 

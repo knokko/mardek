@@ -101,7 +101,7 @@ internal fun renderHoverItemProperties(
 				} else baseStats.add(CombatStat.Attack)
 			}
 
-			val textMinX = 5 * scale
+			val textMinX = minX + 5 * scale
 			var textY = barY + 13 * scale
 			if (interaction.descriptionIndex == 0) {
 				val descriptionHeight = 6f * scale
@@ -155,7 +155,7 @@ internal fun renderHoverItemProperties(
 					if (skillMastery < skill.masteryPoints) {
 						val masteryRenderer = ResourceBarRenderer(
 							context, ResourceType.SkillMastery, Rectangle(
-								23 * scale, skillY + 17 * scale, 57 * scale, 6 * scale
+								minX + 23 * scale, skillY + 17 * scale, 57 * scale, 6 * scale
 							), colorBatch, simpleTextBatch
 						)
 						masteryRenderer.renderBar(skillMastery, skill.masteryPoints)
@@ -293,7 +293,7 @@ internal fun renderHoverItemProperties(
 		val tabWidth = width / 3 - 3 * scale
 		if (tabWidth < 3 * scale) return
 		val maxY = maxY - 2 * scale
-		val tabX1 = 4 * scale
+		val tabX1 = minX + 4 * scale
 		val tabX2 = tabX1 + tabWidth + 2 * scale
 		val tabX3 = tabX2 + tabWidth + 2 * scale
 

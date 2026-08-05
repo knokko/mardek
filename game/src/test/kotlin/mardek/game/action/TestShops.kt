@@ -56,6 +56,11 @@ object TestShops {
 			state.update(updateContext)
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
 
+			// Await fade-in
+			repeat(3) {
+				state.update(updateContext)
+			}
+
 			val nonTradeColors = arrayOf(
 				Color(153, 153, 153), // Thrash can
 				Color(204, 153, 0), // Gold icon
@@ -291,8 +296,16 @@ object TestShops {
 				"DoNotCrash", SaveFile.Type.Cheat,
 			)
 
+			// Test fade-out
+			assertNull(interaction.startedFadeOutAt)
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Escape))
 			state.update(updateContext)
+			assertNotNull(areaState.suspension)
+			assertNotNull(interaction.startedFadeOutAt)
+
+			repeat(3) {
+				state.update(updateContext)
+			}
 			assertNull(areaState.suspension)
 		}
 	}

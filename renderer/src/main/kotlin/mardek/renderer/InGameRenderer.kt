@@ -192,6 +192,9 @@ internal fun renderInGame(
 					} else if (itemStorage != null) {
 						batches = renderItemStorage(context, itemStorage, region)
 					} else if (shopState != null) {
+						if (shopState.isFading(context.timing.now())) {
+							renderCurrentArea(context, stateMachine, region)
+						}
 						batches = renderShopUi(context, shopState, region)
 					} else {
 						batches = renderCurrentArea(context, stateMachine, region)

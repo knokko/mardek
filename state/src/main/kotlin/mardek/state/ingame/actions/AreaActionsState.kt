@@ -237,13 +237,13 @@ class AreaActionsState(
 		}
 	}
 
-	private fun initInventoryInteractionStates() {
+	private fun initInventoryInteractionStates(campaignTime: Time) {
 		node?.let { node ->
 			if (node is FixedActionNode && node.action is ActionItemStorage && itemStorageInteraction == null) {
 				itemStorageInteraction = ItemStorageInteractionState()
 			}
 			if (node is FixedActionNode && node.action is ActionShop && shopInteraction == null) {
-				shopInteraction = ShopInteractionState((node.action as ActionShop).shop)
+				shopInteraction = ShopInteractionState((node.action as ActionShop).shop, campaignTime)
 			}
 		}
 	}
@@ -422,8 +422,7 @@ class AreaActionsState(
 			return true
 		}
 		if (shopInteraction != null) {
-			shopInteraction!!.update(context)
-			return false
+			return shopInteraction!!.update(context)
 		}
 		if (currentAction is ActionParallel) {
 			// Note that we should ALWAYS update all parallel actions, so we can NOT use something like
@@ -498,7 +497,7 @@ class AreaActionsState(
 		}
 
 		initChoices(context)
-		initInventoryInteractionStates()
+		initInventoryInteractionStates(context.campaign.time)
 
 		if (node == null) context.areaState.suspension = null
 	}
@@ -753,7 +752,7 @@ class AreaActionsState(
 		if (key == InputKey.ToggleChatLog) showChatLog = !showChatLog
 
 		if (currentNode is FixedActionNode) {
-			initInventoryInteractionStates()
+			initInventoryInteractionStates(context.campaign.time)
 			processFixedActionKeyEvent(context, currentNode.action, event)
 		}
 
@@ -779,9 +778,7 @@ class AreaActionsState(
 		}
 
 		itemStorageInteraction?.processKeyPress(context, context.campaign, event.key)
-		if (shopInteraction?.processKeyPress(context, event.key) == true) {
-			toNextNode(context.areaState.currentTime, (node as FixedActionNode).next)
-		}
+		shopInteraction?.processKeyPress(context, event.key)
 
 		saveSelectionState?.let {
 			val outcome = it.pressKey(SaveSelectionState.UpdateContext(
@@ -817,7 +814,7 @@ class AreaActionsState(
 	 * `areaState.suspension is AreaSuspensionActions`
 	 */
 	internal fun processMouseMove(context: UpdateContext, event: MouseMoveEvent) {
-		initInventoryInteractionStates()
+		initInventoryInteractionStates(context.campaign.time)
 		itemStorageInteraction?.processMouseMove(context.campaign, event.newX, event.newY)
 		shopInteraction?.processMouseMove(context, event.newX, event.newY)
 	}
