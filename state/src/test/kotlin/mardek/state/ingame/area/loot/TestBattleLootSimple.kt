@@ -4,6 +4,7 @@ import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
+import mardek.content.util.Time
 import mardek.state.ingame.UsedPartyMember
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -20,6 +21,7 @@ class TestBattleLootSimple {
 			"hi",
 			HashMap(),
 			listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
+			Time.ZERO,
 		)
 		assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
 	}
@@ -34,6 +36,7 @@ class TestBattleLootSimple {
 			"hi",
 			HashMap(),
 			listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
+			Time.ZERO,
 		)
 		assertEquals(BattleLoot.SelectedFinish, loot.selectedElement)
 	}

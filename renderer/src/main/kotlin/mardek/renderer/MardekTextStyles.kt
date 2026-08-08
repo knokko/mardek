@@ -484,28 +484,6 @@ object MardekTextStyles {
 		)
 	}
 
-	fun victoryBack(strokeColor: Int) : Vk2dFancyTextStyle {
-		return Vk2dFancyTextStyle(
-			Vk2dFancyTextStyle.Gradient.plain(0), 1f, 0.01f,
-			Vk2dFancyTextStyle.Gradient.plain(0),
-			Vk2dFancyTextStyle.Gradient(
-				strokeColor, strokeColor, 0, 0, 0,
-				0.05f, 0.075f, 12345f, 12345f,
-			), true,
-		)
-	}
-
-	fun victoryFront(innerColor: Int, outerColor: Int) : Vk2dFancyTextStyle {
-		return Vk2dFancyTextStyle(
-			Vk2dFancyTextStyle.Gradient(
-				outerColor, outerColor, innerColor, outerColor, outerColor,
-				0.2f, 0.5f, 0.8f, 1f,
-			), 1f, 0.01f,
-			Vk2dFancyTextStyle.Gradient.plain(0),
-			Vk2dFancyTextStyle.Gradient.plain(0), true,
-		)
-	}
-
 	object BattleDescription {
 		val NAME = Vk2dTextStyle(
 			STRONG_TEXT_FILL, Vk2dTextStyle.StrokeStyle(
@@ -513,6 +491,51 @@ object MardekTextStyles {
 				0.2f, true, 1f,
 			)
 		)
+	}
+
+	object Victory {
+		private val BASE_STROKE_COLOR = srgbToLinear(rgb(112, 90, 50))
+		private val BASE_INNER_COLOR = srgbToLinear(rgb(254, 241, 178))
+		private val BASE_QUARTER_COLOR = srgbToLinear(rgb(230, 185, 80))
+		private val BASE_OUTER_COLOR = srgbToLinear(rgb(201, 139, 34))
+
+		private val BRIGHT_STROKE_COLOR = srgbToLinear(rgb(154, 141, 112))
+		private val BRIGHT_INNER_COLOR = srgbToLinear(rgb(252, 242, 201))
+		private val BRIGHT_QUARTER_COLOR = srgbToLinear(rgb(240, 210, 140))
+		private val BRIGHT_OUTER_COLOR = srgbToLinear(rgb(210, 173, 110))
+
+		fun styles(alpha: Int, brightness: Float): Array<Vk2dFancyTextStyle> {
+			var innerColor = interpolateColors(BASE_INNER_COLOR, BRIGHT_INNER_COLOR, brightness)
+			var quarterColor = interpolateColors(BASE_QUARTER_COLOR, BRIGHT_QUARTER_COLOR, brightness)
+			var outerColor = interpolateColors(BASE_OUTER_COLOR, BRIGHT_OUTER_COLOR, brightness)
+			var strokeColor = interpolateColors(BASE_STROKE_COLOR, BRIGHT_STROKE_COLOR, brightness)
+
+			innerColor = changeAlpha(innerColor, alpha)
+			quarterColor = changeAlpha(quarterColor, alpha)
+			outerColor = changeAlpha(outerColor, alpha)
+			strokeColor = changeAlpha(strokeColor, alpha)
+
+			val fillGradient = Vk2dFancyTextStyle.Gradient(
+				outerColor, quarterColor, innerColor, quarterColor, outerColor,
+				0.25f, 0.5f, 0.75f, 1f
+			)
+			val strokeGradient = Vk2dFancyTextStyle.Gradient(
+				strokeColor, strokeColor, 0, 0, 0,
+				0.05f, 0.055f, 12345f, 12345f,
+			)
+
+			val strokeStyle = Vk2dFancyTextStyle(
+				Vk2dFancyTextStyle.Gradient.plain(0), 1f, 0.01f,
+				strokeGradient,
+				strokeGradient, true,
+			)
+			val fillStyle = Vk2dFancyTextStyle(
+				fillGradient, 1f, 0.01f,
+				Vk2dFancyTextStyle.Gradient.plain(0),
+				Vk2dFancyTextStyle.Gradient.plain(0), true,
+			)
+			return arrayOf(strokeStyle, fillStyle)
+		}
 	}
 
 	object ReactionBarChallenge {

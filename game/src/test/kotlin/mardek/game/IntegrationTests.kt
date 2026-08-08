@@ -320,6 +320,7 @@ class IntegrationTests {
 	fun testStatusEffects() {
 		TestStatusEffects.testBattleRendering(instance)
 		TestStatusEffects.testPoisonAfterWalking(instance)
+		TestStatusEffects.testRemoveEffectsAfterWinning(instance)
 	}
 
 	@Test

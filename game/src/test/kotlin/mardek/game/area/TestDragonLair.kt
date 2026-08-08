@@ -122,10 +122,8 @@ object TestDragonLair {
 			battleState.livingOpponents()[0].currentHealth = 1
 
 			// Wait until we can select a move
-			assertSame(
-				content.audio.musicTracks.find { it.fileName == "BossBattle" }!!,
-				state.campaign.determineMusicTrack(content)
-			)
+			val bossBattleTrack = content.audio.musicTracks.find { it.fileName == "BossBattle" }!!
+			assertSame(bossBattleTrack, state.campaign.determineMusicTrack(content))
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Cancel))
 
 			// Cast Frostasia, which should kill the 1HP dragon
@@ -167,7 +165,7 @@ object TestDragonLair {
 			val castState = battleState.state as BattleStateMachine.CastSkill
 			castState.hasFinishedCastingAnimation = true
 			castState.canSpawnTargetParticles = true
-			repeat(500) {
+			repeat(250) {
 				state.update(context)
 			}
 
@@ -180,16 +178,25 @@ object TestDragonLair {
 			)!!.amount)
 
 			assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
+			assertSame(bossBattleTrack, state.campaign.determineMusicTrack(content))
+			repeat(50) {
+				state.update(context)
+			}
+			assertSame(bossBattleTrack, state.campaign.determineMusicTrack(content))
+			repeat(50) {
+				state.update(context)
+			}
+			val victoryTrack = content.audio.musicTracks.find { it.fileName == "VictoryFanfare2" }!!
+			assertSame(victoryTrack, state.campaign.determineMusicTrack(content))
+			assertNull(((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).loot)
 			repeat(300) {
 				state.update(context)
 			}
+			assertSame(victoryTrack, state.campaign.determineMusicTrack(content))
 
 			// Claim battle loot
 			assertNotNull(((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).loot)
-			assertSame(
-				content.audio.musicTracks.find { it.fileName == "VictoryFanfare2" }!!,
-				state.campaign.determineMusicTrack(content)
-			)
+			assertSame(victoryTrack, state.campaign.determineMusicTrack(content))
 			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(context)

@@ -605,18 +605,20 @@ class AreaState(
 		if (battleState is BattleStateMachine.GameOver && battleState.shouldGoToGameOverMenu(context.campaign.time)) {
 			context.campaign.gameOver = true
 		}
-		if (suspension.loot == null && battleState is BattleStateMachine.Victory &&
-				battleState.shouldGoToLootMenu(context.campaign.time)
-		) {
-			val loot = generateBattleLoot(
-				context.content, suspension.battle.battle,
-				context.campaign.usedPartyMembers(),
-				suspension.battle.allPlayers()
-			)
-			// TODO CHAP2 Handle plot items via timeline transitions: loot.plotItems
-			suspension.loot = loot
-			for (combatant in suspension.battle.allPlayers()) {
-				combatant.transferStatusBack(battleContext)
+		if (suspension.loot == null && battleState is BattleStateMachine.Victory) {
+			val elapsedTime = context.campaign.time.virtualOffset(battleState.startTime)
+			if (elapsedTime >= BattleStateMachine.Victory.DELAY_UNTIL_LOOT_FADE_IN) {
+				val loot = generateBattleLoot(
+					context.content, suspension.battle.battle,
+					context.campaign.usedPartyMembers(),
+					suspension.battle.allPlayers(),
+					context.campaign.time,
+				)
+				// TODO CHAP2 Handle plot items via timeline transitions: loot.plotItems
+				suspension.loot = loot
+				for (combatant in suspension.battle.allPlayers()) {
+					combatant.transferStatusBack(battleContext)
+				}
 			}
 		}
 

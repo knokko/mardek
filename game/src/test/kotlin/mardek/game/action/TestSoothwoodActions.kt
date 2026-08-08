@@ -76,7 +76,7 @@ object TestSoothwoodActions {
 				state.update(updateContext)
 			}
 			assertInstanceOf<BattleStateMachine.Victory>(battleState.state)
-			repeat(31) {
+			repeat(50) {
 				state.update(updateContext)
 			}
 			assertNotNull(suspension.loot)

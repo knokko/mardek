@@ -69,6 +69,7 @@ class BattleLoot(
 	val masteredSkills: HashMap<PlayableCharacter, HashSet<Skill>>,
 
 	party: List<UsedPartyMember>,
+	currentTime: Time,
 ) : BitPostInit {
 
 	@Suppress("unused")
@@ -77,6 +78,7 @@ class BattleLoot(
 		ArrayList(0), ArrayList(0),
 		"", HashMap(),
 		listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
+		Time.ZERO,
 	)
 
 	/**
@@ -87,6 +89,12 @@ class BattleLoot(
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 3)
 	var selectedPartyIndex = party[0].index
 		private set
+
+	/**
+	 * The campaign time when the loot screen started fading in
+	 */
+	@BitField(id = 7)
+	val startTime = currentTime
 
 	/**
 	 * The button or item that is currently selected/highlighted. This can be [SelectedGetAll], [SelectedFinish], or

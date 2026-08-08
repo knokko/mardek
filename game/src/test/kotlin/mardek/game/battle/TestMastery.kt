@@ -342,7 +342,7 @@ object TestMastery {
 				repeat(10) {
 					state.update(updateContext)
 				}
-				repeat(300) {
+				repeat(500) {
 					state.update(updateContext)
 				}
 				assertNull(updateContext.soundQueue.take())

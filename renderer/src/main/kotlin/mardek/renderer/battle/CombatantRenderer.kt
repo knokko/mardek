@@ -23,7 +23,6 @@ import mardek.content.util.Time
 import mardek.content.util.min
 import mardek.content.util.rem
 import org.joml.Matrix3x2f
-import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -387,12 +386,15 @@ class CombatantRenderer(
 		}
 
 		if (combatant.isAlive() && state is BattleStateMachine.Victory) {
-			val victoryAnimation = animations["victory"]
-			animation = victoryAnimation
-			relativeTime = min(
-				context.context.timing.elapsedTimeSince(state.startTime),
-				(FRAME_LENGTH * victoryAnimation.frames.size) - 1.milliseconds,
-			)
+			val elapsedTime = context.context.timing.elapsedTimeSince(state.startTime)
+			if (elapsedTime >= BattleStateMachine.Victory.DELAY_UNTIL_ANIMATION) {
+				val victoryAnimation = animations["victory"]
+				animation = victoryAnimation
+				relativeTime = min(
+					elapsedTime - BattleStateMachine.Victory.DELAY_UNTIL_ANIMATION,
+					(FRAME_LENGTH * victoryAnimation.frames.size) - 1.milliseconds,
+				)
+			}
 		}
 	}
 

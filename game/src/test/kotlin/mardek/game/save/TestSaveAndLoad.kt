@@ -343,7 +343,7 @@ object TestSaveAndLoad {
 				state.update(updateContext)
 			}
 			assertInstanceOf<BattleStateMachine.Victory>(battle.state)
-			repeat(30) {
+			repeat(50) {
 				state.update(updateContext)
 			}
 

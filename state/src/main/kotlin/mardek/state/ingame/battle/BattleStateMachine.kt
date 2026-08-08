@@ -17,6 +17,7 @@ import mardek.content.stats.StatusEffect
 import mardek.content.util.Time
 import java.util.Objects
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -902,13 +903,59 @@ sealed class BattleStateMachine {
 		@Suppress("unused")
 		private constructor() : this(Time.ZERO)
 
-		/**
-		 * When this returns `true` (3 seconds after the battle reached this state),
-		 * the player should be taken to the loot menu.
-		 */
-		fun shouldGoToLootMenu(
-			currentCampaignTime: Time
-		) = currentCampaignTime.virtualOffset(startTime) >= 3.seconds
+		companion object {
+
+			/**
+			 * The delay between [startTime] and the time at which the victory animation of the players starts.
+			 *
+			 * At this point, the game should also start playing the victory music.
+			 */
+			val DELAY_UNTIL_ANIMATION = 1500.milliseconds
+
+			/**
+			 * The delay between [startTime] and the time at which the "VICTORY!!" text starts fading in.
+			 *
+			 * At this point, the game should also remove the non-persistent status effects.
+			 */
+			val DELAY_UNTIL_TEXT = DELAY_UNTIL_ANIMATION + 500.milliseconds
+
+			/**
+			 * The duration of the "VICTORY!!" text fade-in, after [DELAY_UNTIL_TEXT]
+			 */
+			val VICTORY_TEXT_FADE_IN = 500.milliseconds
+
+			/**
+			 * The delay of the "VICTORY!!" text 'blink-out', after it is faded in
+			 */
+			val VICTORY_TEXT_BLINK_OUT = 250.milliseconds
+
+			/**
+			 * The amount of time between the end of the [VICTORY_TEXT_BLINK_OUT],
+			 * and the start of the "VICTORY!!" text fade-out
+			 */
+			val VICTORY_TEXT_STABLE = 2000.milliseconds
+
+			/**
+			 * The duration of the "VICTORY!!" text fade-out, as well as the loot screen fade-in,
+			 * starting after [VICTORY_TEXT_STABLE]
+			 */
+			val VICTORY_TEXT_FADE_OUT = 150.milliseconds
+
+			/**
+			 * The delay between [startTime], and the moment where the victory text starts losing its blink/right color
+			 */
+			val DELAY_UNTIL_TEXT_BLINK_OUT = DELAY_UNTIL_TEXT + VICTORY_TEXT_FADE_IN
+
+			/**
+			 * The delay between [startTime], and the moment where the loot screen fade-in starts
+			 */
+			val DELAY_UNTIL_LOOT_FADE_IN = DELAY_UNTIL_TEXT_BLINK_OUT + VICTORY_TEXT_BLINK_OUT + VICTORY_TEXT_STABLE
+
+			/**
+			 * The delay between [startTime], and the moment where the "VICTORY!!" text starts fading out
+			 */
+			val DELAY_UNTIL_TEXT_FADE_OUT = DELAY_UNTIL_LOOT_FADE_IN
+		}
 	}
 
 	/**

@@ -529,6 +529,21 @@ class BattleState(
 				particles.add(particle)
 			}
 		}
+
+		if (state is BattleStateMachine.Victory) {
+			val elapsedTime = context.campaignTime.virtualOffset(state.startTime)
+			if (elapsedTime >= BattleStateMachine.Victory.DELAY_UNTIL_TEXT) {
+				for (combatant in livingPlayers()) {
+					val removeStatusEffects = combatant.statusEffects.filter { it.disappearsAfterCombat }.toMutableSet()
+					removeStatusEffects.removeAll(combatant.getAutoEffects(context))
+
+					for (effect in removeStatusEffects) {
+						combatant.statusEffects.remove(effect)
+						combatant.renderInfo.effectHistory.remove(effect)
+					}
+				}
+			}
+		}
 	}
 
 	private fun applyMoveResultEntirely(

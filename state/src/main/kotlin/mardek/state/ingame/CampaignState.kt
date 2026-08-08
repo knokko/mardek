@@ -301,8 +301,12 @@ class CampaignState : BitPostInit {
 						!battleState.battle.isRandom ||
 						story.evaluate(content.story.fixedVariables.blockRandomBattleMusic) == null
 					) {
-						return if (battleState.state is BattleStateMachine.Victory) battleState.battle.lootMusic
-						else battleState.battle.music
+						val stateMachine = battleState.state
+						return if (stateMachine is BattleStateMachine.Victory) {
+							val elapsedTime = time.virtualOffset(stateMachine.startTime)
+							if (elapsedTime >= BattleStateMachine.Victory.DELAY_UNTIL_ANIMATION) battleState.battle.lootMusic
+							else battleState.battle.music
+						} else battleState.battle.music
 					}
 				}
 

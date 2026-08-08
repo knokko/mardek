@@ -9,6 +9,7 @@ import mardek.content.skill.PassiveSkill
 import mardek.content.battle.Battle
 import mardek.content.characters.PlayableCharacter
 import mardek.content.skill.Skill
+import mardek.content.util.Time
 import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.battle.CombatantState
 import mardek.state.ingame.battle.PlayerCombatantState
@@ -36,7 +37,7 @@ private fun getModifiers(party: List<UsedPartyMember>): Pair<Int, Int> {
  */
 fun generateBattleLoot(
 	content: Content, battle: Battle,
-	party: List<UsedPartyMember>, combatants: List<CombatantState>
+	party: List<UsedPartyMember>, combatants: List<CombatantState>, campaignTime: Time,
 ): BattleLoot {
 	val (goldModifier, extraLootChance) = getModifiers(party)
 
@@ -80,6 +81,7 @@ fun generateBattleLoot(
 
 	return BattleLoot(
 		gold, ArrayList(items.entries.map { ItemStack(it.key, it.value) }),
-		ArrayList(plotItems), ArrayList(dreamStones), itemText, mastery, party
+		ArrayList(plotItems), ArrayList(dreamStones),
+		itemText, mastery, party, campaignTime,
 	)
 }

@@ -31,6 +31,7 @@ import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.area.AreaSuspensionOpeningChest
 import mardek.state.ingame.area.loot.BattleLoot
+import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.menu.ShownState
 import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveSelectionState
@@ -245,22 +246,12 @@ internal fun renderInGame(
 					renderBattle(context, state.campaign, suspension.battle, region)
 
 					context.currentStage = context.frame.swapchainStage
-					val blurStrength = 240
-					val leftBlurColor = srgbToLinear(rgba(39, 26, 18, blurStrength))
-					val rightBlurColor = srgbToLinear(rgba(82, 54, 36, blurStrength))
-					val inverseBlur = 255 - blurStrength
-					val multiplyColor = rgba(inverseBlur, inverseBlur, inverseBlur, inverseBlur)
-					context.pipelines.blur.addBatch(
-						context.frame.swapchainStage,
-						framebuffers.blur, context.perFrame.areaBlurDescriptors,
-						region.minX.toFloat(), region.minY.toFloat(),
-						region.boundX.toFloat(), region.boundY.toFloat(),
-					).gradientColorTransform(
-						leftBlurColor, multiplyColor,
-						leftBlurColor, multiplyColor,
-						rightBlurColor, multiplyColor,
-						rightBlurColor, multiplyColor,
+
+					val blurStrength = context.timing.interpolate(
+						loot.startTime, 0f,
+						BattleStateMachine.Victory.VICTORY_TEXT_FADE_OUT, 1f, true
 					)
+					renderBlurred(blurStrength)
 					val batches = if (loot.showMasteryScreen) {
 						renderMasteryScreen(context, loot, state.campaign.usedPartyMembers(), region)
 					} else renderBattleLoot(context, loot, state.campaign.usedPartyMembers(), region)
