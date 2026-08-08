@@ -250,7 +250,7 @@ class BattleState(
 			if (context.campaignTime.virtual >= effects.applyNextDamageAt.virtual) {
 				val takeDamage = effects.takeDamage.removeFirst()
 				val dpt = takeDamage.effect.damagePerTurn!!
-				effects.applyNextDamageAt = context.campaignTime + BattleStateMachine.NextTurnEffects.DAMAGE_DELAY
+				effects.applyNextDamageAt = context.campaignTime.virtualAdd(BattleStateMachine.NextTurnEffects.DAMAGE_DELAY)
 
 				val oldHealth = effects.combatant.currentHealth
 				effects.combatant.currentHealth -= takeDamage.amount
@@ -452,7 +452,7 @@ class BattleState(
 							position = target.renderInfo.hitPoint,
 							mirrorX = true,
 						)
-						particle.startTime = context.campaignTime + 250.milliseconds * index
+						particle.startTime = context.campaignTime.virtualAdd(250.milliseconds * index)
 						particles.add(particle)
 					}
 				}

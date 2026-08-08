@@ -2,8 +2,10 @@ package mardek.state.ingame.area
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.area.AreaTransitionDestination
 import mardek.content.area.Chest
 import mardek.content.area.TransitionDestination
 import mardek.content.area.objects.AreaDoor
@@ -38,9 +40,9 @@ sealed class AreaSuspension {
 			AreaSuspensionIncomingBattle::class.java,
 			AreaSuspensionBattle::class.java,
 			AreaSuspensionActions::class.java,
-			// The state should never be AreaSuspensionTransition outside CampaignState.update()
 			AreaSuspensionOpeningDoor::class.java,
 			AreaSuspensionOpeningChest::class.java,
+			AreaSuspensionTransition::class.java,
 		)
 	}
 }
@@ -211,24 +213,43 @@ class AreaSuspensionActions(
 }
 
 /**
- * The area state is suspended because the player activated an area transition. When the `CampaignState` sees this,
- * it must transition the player to the destination area or world map **before** the end of its `update()` method.
- * This means that [AreaState.suspension] can only be `AreaSuspensionTransition` *during* `CampaignState.update(...)`.
+ * The area state is suspended because the player activated an area transition.
+ * The player should go to the destination area once `area.currentTime >= startTime + FADE_DURATION`.
  */
+@BitStruct(backwardCompatible = true)
 class AreaSuspensionTransition(
 
 	/**
 	 * The destination position (or world map)
 	 */
-	val destination: TransitionDestination
+	@BitField(id = 0)
+	@ClassField(root = TransitionDestination::class)
+	val destination: TransitionDestination,
+
+	/**
+	 * The area time when this transition (its fade-out) was started
+	 */
+	@BitField(id = 1)
+	val startTime: Time,
 ) : AreaSuspension() {
 
-	override fun shouldUpdateCurrentTime() = false
+	@Suppress("unused")
+	private constructor() : this(AreaTransitionDestination(), Time.ZERO)
+
+	override fun shouldUpdateCurrentTime() = true
+
+	companion object {
+
+		/**
+		 * The fade-out duration of area transitions, which starts when the player reaches the destination tile.
+		 */
+		val FADE_DURATION = 250.milliseconds
+	}
 }
 
 /**
- * The area state is suspended because the player is currently opening a door. The suspension will be changed to
- * `AreaSuspensionTransition` after the door open animation is finished.
+ * The area state is suspended because the player is currently opening a door.
+ * The player should go to the destination area once `area.currentTime >= startTime + FADE_OUT_DURATION`.
  */
 @BitStruct(backwardCompatible = true)
 class AreaSuspensionOpeningDoor(
@@ -254,6 +275,21 @@ class AreaSuspensionOpeningDoor(
 	private constructor() : this(AreaDoor(), Time.ZERO)
 
 	override fun shouldUpdateCurrentTime() = true
+
+	companion object {
+
+		/**
+		 * The time it takes to open a door in an area
+		 */
+		val DOOR_OPEN_DURATION = 200.milliseconds
+
+		/**
+		 * The duration of the area fade-out that starts when the door starts opening.
+		 * It is slightly longer than [DOOR_OPEN_DURATION], which means that the door fill be fully open before the
+		 * area is fully faded out.
+		 */
+		val FADE_OUT_DURATION = 250.milliseconds
+	}
 }
 
 /**

@@ -146,8 +146,8 @@ object TestDoors {
 
 			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
 
-			// Update 450ms, which is almost the DOOR_OPEN_DURATION of 500ms
-			repeat(45) {
+			// Update 240ms, which is almost the AreaSuspensionOpeningDoor.FADE_OUT_DURATION (250ms)
+			repeat(24) {
 				state.update(context)
 				assertEquals(
 					AreaPosition(5, 2),
@@ -197,17 +197,23 @@ object TestDoors {
 				Color(190, 163, 128), // Light rock color
 				Color(168, 136, 95), // Dark rock color
 			)
+
+
+			// Let the player start walking to the transition tile, and *almost* start the fade-out
+			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			repeat(19) {
+				state.update(context)
+			}
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			testRendering(
 				state, 500, 400, "transition-fade0",
 				areaColors, emptyArray(),
 			)
 
-			// Almost finish fade-out
-			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			repeat(17) {
+			// Wait until the fade-out is almost finished
+			repeat(25) {
 				state.update(context)
 			}
-			context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			assertSame(
 				content.areas.areas.find { it.properties.rawName == "tv_house2" },
 				(state.campaign.state as AreaState).area,
@@ -218,7 +224,7 @@ object TestDoors {
 			)
 
 			// Finish fade-out and start fade-in
-			repeat(8) {
+			repeat(2) {
 				state.update(context)
 			}
 			testRendering(

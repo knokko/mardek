@@ -118,6 +118,7 @@ object TestRandomBattles {
 			campaign.state = AreaState(
 				dragonLair2, campaign.story, campaign.expressionContext(),
 				AreaPosition(7, 39),
+				skipFadeIn = true,
 			)
 			campaign.stepsSinceLastBattle = 20
 			campaign.statistics.totalSteps = 100
@@ -160,6 +161,7 @@ object TestRandomBattles {
 			campaign.state = AreaState(
 				dragonLair2, campaign.story, campaign.expressionContext(),
 				AreaPosition(7, 3),
+				skipFadeIn = true,
 			)
 			campaign.stepsSinceLastBattle = 500
 

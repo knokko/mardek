@@ -510,6 +510,11 @@ object TestEncyclopedia {
 				state.update(updateContext)
 			}
 
+			// Await area fade-in
+			repeat(3) {
+				state.update(updateContext)
+			}
+
 			// Enter the sewers
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
 			state.update(updateContext)

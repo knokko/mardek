@@ -66,7 +66,7 @@ class AreaTransitionDestination(
 	var area = Area()
 		private set
 
-	internal constructor() : this("", 0, 0, null)
+	constructor() : this("", 0, 0, null)
 
 	override fun toString() = "(${area.properties.displayName}, x=$x, y=$y, direction=$direction)"
 

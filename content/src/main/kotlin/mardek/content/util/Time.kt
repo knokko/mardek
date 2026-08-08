@@ -71,6 +71,11 @@ class Time(
 	fun virtualOffset(referenceTime: Time) = this.virtual - referenceTime.virtual
 
 	/**
+	 * Returns a `Time` instance whose *virtual* time is `this.virtual + right`, and whose `nanoTime` is `this.nanoTime`
+	 */
+	fun virtualAdd(right: Duration) = Time(this.virtual + right, this.nanoTime)
+
+	/**
 	 * Assuming that `currentNanoTime == System.nanoTime()`,
 	 * computes the amount of time that has elapsed between the current time and `this` time,
 	 * taking both the virtual time and real time into account.

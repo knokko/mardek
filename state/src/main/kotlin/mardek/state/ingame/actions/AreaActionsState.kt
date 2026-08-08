@@ -331,7 +331,7 @@ class AreaActionsState(
 		}
 		if (currentAction is ActionToArea) {
 			if (startAreaSwitch == null) startAreaSwitch = context.areaState.currentTime
-			if (context.areaState.currentTime.virtualOffset(startAreaSwitch!!) >= AreaState.DOOR_OPEN_DURATION) {
+			if (context.areaState.currentTime.virtualOffset(startAreaSwitch!!) >= ActionToArea.FADE_OUT_DURATION) {
 				val nextState = AreaState(
 					currentAction.area, context.campaign.story, context.campaign.expressionContext(),
 					AreaPosition(currentAction.x, currentAction.y),

@@ -128,7 +128,7 @@ internal fun renderCutscene(
 
 	if (action.hasFadeOut) {
 		val fadeAlpha = context.timing.interpolate(
-			actions.currentNodeStartTime + (allFrames.duration - 1.seconds), 0,
+			actions.currentNodeStartTime.virtualAdd(allFrames.duration - 1.seconds), 0,
 			1.seconds, 255, true
 		)
 		if (fadeAlpha > 0) {

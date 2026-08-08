@@ -2,7 +2,6 @@ package mardek.renderer.area
 
 import mardek.content.area.AreaDreamType
 import mardek.content.area.AreaTransitionDestination
-import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionOpeningDoor
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -43,7 +42,7 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 			if (openingDoor != null && door == openingDoor.door) {
 				spriteIndex = areaTimings.interpolate(
 					openingDoor.startTime, 0,
-					AreaState.DOOR_OPEN_DURATION, door.sprites.frames.size - 1, true,
+					AreaSuspensionOpeningDoor.DOOR_OPEN_DURATION, door.sprites.frames.size - 1, true,
 				)
 			}
 			renderJobs.add(SpriteRenderJob(
@@ -101,11 +100,13 @@ internal fun collectAreaObjects(areaContext: AreaRenderContext) {
 
 		for (transition in state.area.objects.transitions) {
 			val arrow = transition.arrow ?: continue
+			val y = tileSize * transition.y
 			renderJobs.add(SpriteRenderJob(
 				x = tileSize * transition.x,
-				y = tileSize * transition.y,
+				y = y,
 				sprite = arrow.sprite,
-				opacity = areaTimings.oscillate(0f, 1f, 1.seconds)
+				opacity = areaTimings.oscillate(0f, 1f, 1.seconds),
+				sortY = y - 5 * scale,
 			))
 		}
 	}

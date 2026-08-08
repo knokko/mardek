@@ -71,7 +71,7 @@ object TestWorldMap {
 			// Saving should not crash
 			saves.createSave(content, state.campaign, "test", SaveFile.Type.Cheat)
 
-			// Move down to exit Heroes's den, which should start the area fade-out
+			// Move down to exit Heroes's den
 			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			val belfan = content.encyclopedia.places.find { it.name == "Belfan" }!!
 			assertFalse(state.campaign.encyclopedia.discoveredPlaces.any { it === belfan })
@@ -81,9 +81,9 @@ object TestWorldMap {
 			assertInstanceOf<AreaState>(state.campaign.state)
 			testRendering(
 				state, 800, 600, "world-map1",
-				emptyArray(), heroesDenColors + worldMapColors,
+				heroesDenColors, worldMapColors,
 			)
-			repeat(12) {
+			repeat(34) {
 				state.update(updateContext)
 			}
 			assertTrue(state.campaign.encyclopedia.discoveredPlaces.any { it === belfan })
@@ -246,6 +246,7 @@ object TestWorldMap {
 				expressionContext = state.campaign.expressionContext(),
 				initialPlayerPosition = AreaPosition(18, 21),
 				initialPlayerDirection = Direction.Down,
+				skipFadeIn = true,
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,
@@ -312,6 +313,7 @@ object TestWorldMap {
 				expressionContext = state.campaign.expressionContext(),
 				initialPlayerPosition = AreaPosition(6, 21),
 				initialPlayerDirection = Direction.Down,
+				skipFadeIn = true,
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,

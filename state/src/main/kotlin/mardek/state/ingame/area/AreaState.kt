@@ -93,7 +93,7 @@ class AreaState(
 	 * The in-game time that elapsed since the player entered the area.
 	 */
 	@BitField(id = 1)
-	var currentTime = if (skipFadeIn) Time(DOOR_OPEN_DURATION) else Time.zero()
+	var currentTime = if (skipFadeIn) Time(FADE_IN_DELAY + FADE_IN_DURATION) else Time.zero()
 		internal set
 
 	/**
@@ -310,7 +310,7 @@ class AreaState(
 					AreaActionsState.UpdateContext(context, this)
 				)
 				is AreaSuspensionTransition -> updateTransition(context, suspension)
-				is AreaSuspensionOpeningDoor -> updateOpeningDoor(suspension)
+				is AreaSuspensionOpeningDoor -> updateOpeningDoor(context, suspension)
 				is AreaSuspensionOpeningChest -> updateOpeningChest(context, suspension)
 				null -> updateWithoutSuspension(context)
 			}
@@ -532,7 +532,7 @@ class AreaState(
 			}
 
 			if (nextPlayerPosition.transition != null) {
-				suspension = AreaSuspensionTransition(nextPlayerPosition.transition)
+				suspension = AreaSuspensionTransition(nextPlayerPosition.transition, currentTime)
 				return
 			} else suspension = null
 
@@ -633,8 +633,8 @@ class AreaState(
 		}
 	}
 
-	private fun updateTransition(context: UpdateContext, suspension: AreaSuspensionTransition) {
-		when (val destination = suspension.destination) {
+	private fun goToTransitionDestination(context: UpdateContext, destination: TransitionDestination) {
+		when (destination) {
 			is AreaTransitionDestination -> {
 				context.campaign.state = AreaState(
 					destination.area, context.campaign.story, context.campaign.expressionContext(),
@@ -659,9 +659,15 @@ class AreaState(
 		}
 	}
 
-	private fun updateOpeningDoor(opening: AreaSuspensionOpeningDoor) {
-		if (currentTime.virtualOffset(opening.startTime) >= DOOR_OPEN_DURATION) {
-			suspension = AreaSuspensionTransition(opening.door.destination)
+	private fun updateTransition(context: UpdateContext, suspension: AreaSuspensionTransition) {
+		if (currentTime.virtualOffset(suspension.startTime) >= AreaSuspensionTransition.FADE_DURATION) {
+			goToTransitionDestination(context, suspension.destination)
+		}
+	}
+
+	private fun updateOpeningDoor(context: UpdateContext, opening: AreaSuspensionOpeningDoor) {
+		if (currentTime.virtualOffset(opening.startTime) >= AreaSuspensionOpeningDoor.FADE_OUT_DURATION) {
+			goToTransitionDestination(context, opening.door.destination)
 		}
 	}
 
@@ -831,6 +837,11 @@ class AreaState(
 	}
 
 	private fun processMovementInput(input: InputManager) {
+
+		// Don't allow player movement until the fade-in is almost finished
+		val timeSinceStart = currentTime.virtualOffset(zeroTime)
+		if (timeSinceStart < FADE_IN_DELAY + FADE_IN_DURATION / 2) return
+
 		val lastPressed = input.mostRecentlyPressed(arrayOf(
 			InputKey.MoveLeft, InputKey.MoveDown, InputKey.MoveRight, InputKey.MoveUp
 		))
@@ -938,9 +949,15 @@ class AreaState(
 	companion object {
 
 		/**
-		 * The time it takes to open a door in an area
+		 * The delay between the moment the player enters the area, and the moment the fade-in starts.
+		 * The screen is completely black before the fade-in starts.
 		 */
-		val DOOR_OPEN_DURATION = 500.milliseconds
+		val FADE_IN_DELAY = 100.milliseconds
+
+		/**
+		 * The duration of the fade-in, starting after the [FADE_IN_DELAY]
+		 */
+		val FADE_IN_DURATION = 400.milliseconds
 
 		@Suppress("unused")
 		@ReferenceField(stable = true, label = "area characters")

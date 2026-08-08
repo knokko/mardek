@@ -1,17 +1,18 @@
 package mardek.renderer.area
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
+import mardek.content.action.ActionToArea
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionOpeningDoor
-import mardek.state.ingame.area.AreaSuspensionPlayerWalking
+import mardek.state.ingame.area.AreaSuspensionTransition
 import mardek.state.ingame.area.loot.BattleLoot
 
 internal fun renderAreaFadeEffects(areaContext: AreaRenderContext) {
 	areaContext.apply {
 		val fadeIn = areaTimings.interpolate(
-			state.zeroTime, 0f,
-			AreaState.DOOR_OPEN_DURATION, 1f, true
+			state.zeroTime.virtualAdd(AreaState.FADE_IN_DELAY), 0f,
+			AreaState.FADE_IN_DURATION, 1f, true
 		)
 
 		val finishedBattleAt = state.finishedBattleAt
@@ -25,24 +26,22 @@ internal fun renderAreaFadeEffects(areaContext: AreaRenderContext) {
 			is AreaSuspensionOpeningDoor -> {
 				fadeOut = areaTimings.interpolate(
 					suspension.startTime, 1f,
-					AreaState.DOOR_OPEN_DURATION, 0f, true,
+					AreaSuspensionOpeningDoor.FADE_OUT_DURATION, 0f, true,
 				)
 			}
 			is AreaSuspensionActions -> {
 				if (suspension.actions.startAreaSwitch != null) {
 					fadeOut = areaTimings.interpolate(
 						suspension.actions.startAreaSwitch!!, 1f,
-						AreaState.DOOR_OPEN_DURATION, 0f, true,
+						ActionToArea.FADE_OUT_DURATION, 0f, true,
 					)
 				}
 			}
-			is AreaSuspensionPlayerWalking -> {
-				if (suspension.destination.transition != null) {
-					fadeOut = areaTimings.interpolate(
-						suspension.destination.startTime, 1f,
-						suspension.destination.walkDuration, 0f, true,
-					)
-				}
+			is AreaSuspensionTransition -> {
+				fadeOut = areaTimings.interpolate(
+					suspension.startTime, 1f,
+					AreaSuspensionTransition.FADE_DURATION, 0f, true,
+				)
 			}
 			else -> {}
 		}

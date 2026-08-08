@@ -27,6 +27,7 @@ import mardek.content.story.TimelineNode
 import java.util.UUID
 import kotlin.collections.addAll
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -350,6 +351,14 @@ class ActionToArea(
 		this.area = areas.find { it.properties.rawName == areaName } ?: throw IllegalArgumentException(
 			"Can't find area with raw name $areaName: options are ${areas.map { it.properties.rawName }}"
 		)
+	}
+
+	companion object {
+
+		/**
+		 * The duration of the fade-out of the old area
+		 */
+		val FADE_OUT_DURATION = 500.milliseconds
 	}
 }
 

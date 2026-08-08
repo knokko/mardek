@@ -181,8 +181,8 @@ class CampaignActionsState(
 				var shouldGoToNextNode = false
 
 				if (action is ActionShowChapterName) {
-					val finishTime = currentNodeStartTime + ActionShowChapterName.TOTAL_DURATION
-					if (campaign.time.virtual >= finishTime.virtual) shouldGoToNextNode = true
+					val elapsedTime = campaign.time.virtualOffset(currentNodeStartTime)
+					if (elapsedTime >= ActionShowChapterName.TOTAL_DURATION) shouldGoToNextNode = true
 				}
 
 				if (action is ActionPlayCutscene) {
@@ -220,8 +220,8 @@ class CampaignActionsState(
 				}
 
 				if (action is ActionSetOverlayColor) {
-					val finishTime = currentNodeStartTime + action.transitionTime
-					shouldGoToNextNode = campaign.time.virtual >= finishTime.virtual
+					val elapsedTime = campaign.time.virtualOffset(currentNodeStartTime)
+					shouldGoToNextNode = elapsedTime >= action.transitionTime
 				}
 
 				if (action is ActionEndOfChapter && endOfChapterState != null) {

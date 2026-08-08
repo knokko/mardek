@@ -237,6 +237,7 @@ object TestLocks {
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
 				state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(5, 22), Direction.Up,
+				skipFadeIn = true,
 			)
 			state.campaign.state = areaState
 

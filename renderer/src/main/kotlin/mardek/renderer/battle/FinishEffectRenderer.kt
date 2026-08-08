@@ -32,24 +32,24 @@ internal fun renderBattleFinishEffect(
 
 				val alpha = if (elapsedTime >= BattleStateMachine.Victory.DELAY_UNTIL_TEXT_FADE_OUT) {
 					context.timing.interpolate(
-						stateMachine.startTime + BattleStateMachine.Victory.DELAY_UNTIL_TEXT_FADE_OUT, 255,
+						stateMachine.startTime.virtualAdd(BattleStateMachine.Victory.DELAY_UNTIL_TEXT_FADE_OUT), 255,
 						BattleStateMachine.Victory.VICTORY_TEXT_FADE_OUT, 0, true,
 					)
 				} else {
 					context.timing.interpolate(
-						stateMachine.startTime + BattleStateMachine.Victory.DELAY_UNTIL_TEXT, 0,
+						stateMachine.startTime.virtualAdd(BattleStateMachine.Victory.DELAY_UNTIL_TEXT), 0,
 						BattleStateMachine.Victory.VICTORY_TEXT_FADE_IN, 255, true
 					)
 				}
 
 				val brightness = if (elapsedTime >= BattleStateMachine.Victory.DELAY_UNTIL_TEXT_BLINK_OUT) {
 					context.timing.interpolate(
-						stateMachine.startTime + BattleStateMachine.Victory.DELAY_UNTIL_TEXT_BLINK_OUT, 1f,
+						stateMachine.startTime.virtualAdd(BattleStateMachine.Victory.DELAY_UNTIL_TEXT_BLINK_OUT), 1f,
 						BattleStateMachine.Victory.VICTORY_TEXT_BLINK_OUT, 0f, true,
 					)
 				} else {
 					context.timing.interpolate(
-						stateMachine.startTime + BattleStateMachine.Victory.DELAY_UNTIL_TEXT, 0f,
+						stateMachine.startTime.virtualAdd(BattleStateMachine.Victory.DELAY_UNTIL_TEXT), 0f,
 						BattleStateMachine.Victory.VICTORY_TEXT_FADE_IN, 1f, true,
 					)
 				}
