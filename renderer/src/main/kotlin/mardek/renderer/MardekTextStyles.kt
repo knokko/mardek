@@ -493,6 +493,13 @@ object MardekTextStyles {
 		)
 	}
 
+	fun chestGold(alpha: Int) = Vk2dTextStyle(
+		Vk2dTextStyle.FillStyle(srgbToLinear(rgba(255, 204, 51, alpha))),
+		Vk2dTextStyle.StrokeStyle(
+			rgba(0, 0, 0, alpha), 0.1f, true, 0.6f
+		)
+	)
+
 	object Victory {
 		private val BASE_STROKE_COLOR = srgbToLinear(rgb(112, 90, 50))
 		private val BASE_INNER_COLOR = srgbToLinear(rgb(254, 241, 178))

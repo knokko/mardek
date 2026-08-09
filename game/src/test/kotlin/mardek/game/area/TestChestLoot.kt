@@ -203,10 +203,11 @@ object TestChestLoot {
 			)
 			val goldColors = arrayOf(
 				Color(255, 255, 0), // Gold icon
-				Color(187, 149, 38), // Gold text
+				Color(204, 153, 0), // Gold icon
+				Color(255, 204, 50), // Gold text
 			)
 			testRendering(
-				state, 900, 450, "chest-gold-before-open",
+				state, 1200, 800, "chest-gold-before-open",
 				areaColors + partyColors, goldColors
 			)
 
@@ -221,7 +222,7 @@ object TestChestLoot {
 			assertNull((campaign.state as AreaState).suspension)
 
 			testRendering(
-				state, 900, 450, "chest-gold-after-open",
+				state, 1200, 800, "chest-gold-after-open",
 				goldColors + partyColors + areaColors, emptyArray(),
 			)
 

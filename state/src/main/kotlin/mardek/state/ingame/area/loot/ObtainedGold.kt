@@ -1,7 +1,7 @@
 package mardek.state.ingame.area.loot
 
 import mardek.content.util.Time
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * An instance of this class will be created when the player opens a chest containing gold, and put in
@@ -35,6 +35,9 @@ class ObtainedGold(
 
 	companion object {
 
-		val DURATION = 1.seconds
+		/**
+		 * The amount time that the +gold indicator remains visible after opening the chest
+		 */
+		val DURATION = 1150.milliseconds
 	}
 }
