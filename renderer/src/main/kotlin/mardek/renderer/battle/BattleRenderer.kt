@@ -13,8 +13,8 @@ import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleStateMachine
-import mardek.state.ingame.battle.MonsterCombatantState
-import mardek.state.ingame.battle.PlayerCombatantState
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
+import mardek.state.ingame.battle.combatant.PlayerCombatantState
 import mardek.state.util.Rectangle
 
 internal fun renderBattle(

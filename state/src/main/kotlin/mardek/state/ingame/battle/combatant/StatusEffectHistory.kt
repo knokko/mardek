@@ -1,4 +1,4 @@
-package mardek.state.ingame.battle
+package mardek.state.ingame.battle.combatant
 
 import mardek.content.stats.StatusEffect
 import mardek.state.util.RenderTiming

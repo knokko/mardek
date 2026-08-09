@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
+import mardek.state.ingame.battle.combatant.CombatantState
 import java.util.*
 
 /**

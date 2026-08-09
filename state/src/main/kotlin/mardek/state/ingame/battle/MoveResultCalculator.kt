@@ -11,6 +11,8 @@ import mardek.content.stats.Element
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.StatModifierRange
 import mardek.content.stats.StatusEffect
+import mardek.state.ingame.battle.combatant.CombatantState
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import java.util.EnumMap
 import kotlin.collections.set
 import kotlin.math.max

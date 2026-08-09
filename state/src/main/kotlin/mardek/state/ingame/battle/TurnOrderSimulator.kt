@@ -1,11 +1,12 @@
 package mardek.state.ingame.battle
 
 import mardek.content.stats.CombatStat
+import mardek.state.ingame.battle.combatant.CombatantState
 
 /**
  * This class is used to compute and predict the turn order of the combatants (during a battle). To use this class:
  * 1. Create an instance: `val simulator = TurnOrderSimulator(battleState, context)`
- * 2. Reset [CombatantState.spentTurnsThisRound] if needed:
+ * 2. Reset [mardek.state.ingame.battle.combatant.CombatantState.spentTurnsThisRound] if needed:
  * `if (simulator.checkReset()) components.forEach { it.spentTurnsThisRound = 0 }`
  * If you only want to *predict* the turn order, you should *not* reset all the `spentTurnsThisRound`, but you still
  * need to call `simulator.checkReset()`.

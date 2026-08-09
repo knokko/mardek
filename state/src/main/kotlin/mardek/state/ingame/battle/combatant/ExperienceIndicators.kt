@@ -1,7 +1,7 @@
-package mardek.state.ingame.battle
+package mardek.state.ingame.battle.combatant
 
-import mardek.state.util.RenderTiming
 import mardek.content.util.Time
+import mardek.state.util.RenderTiming
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 

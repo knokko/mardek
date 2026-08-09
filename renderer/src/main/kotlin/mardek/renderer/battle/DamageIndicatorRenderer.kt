@@ -8,10 +8,10 @@ import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.batch.Vk2dImageBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
-import mardek.state.ingame.battle.CombatantState
-import mardek.state.ingame.battle.DamageIndicatorHealth
-import mardek.state.ingame.battle.DamageIndicatorMana
-import mardek.state.ingame.battle.DamageIndicatorMiss
+import mardek.state.ingame.battle.combatant.CombatantState
+import mardek.state.ingame.battle.combatant.DamageIndicatorHealth
+import mardek.state.ingame.battle.combatant.DamageIndicatorMana
+import mardek.state.ingame.battle.combatant.DamageIndicatorMiss
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt

@@ -2,7 +2,7 @@ package mardek.game.battle
 
 import mardek.content.stats.CombatStat
 import mardek.game.TestingInstance
-import mardek.state.ingame.battle.MonsterCombatantState
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import org.junit.jupiter.api.Assertions.assertEquals
 
 object TestMonsterStats {

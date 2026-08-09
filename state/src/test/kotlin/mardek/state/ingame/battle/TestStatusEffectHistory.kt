@@ -2,6 +2,7 @@ package mardek.state.ingame.battle
 
 import mardek.content.stats.StatusEffect
 import mardek.content.util.Time
+import mardek.state.ingame.battle.combatant.StatusEffectHistory
 import mardek.state.util.RenderTiming
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -132,16 +133,20 @@ class TestStatusEffectHistory {
 			123456789L, Duration.ZERO
 		)
 
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			sleep, StatusEffectHistory.Type.Add, 0f
 		), history.get(createTiming(100.nanoseconds)))
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			sleep, StatusEffectHistory.Type.Add, 1f
 		), history.get(createTiming(1.seconds + 99.nanoseconds)))
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			poison, StatusEffectHistory.Type.Add, 0f
 		), history.get(createTiming(1.seconds + 100.nanoseconds)))
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			poison, StatusEffectHistory.Type.Add, 1f
 		), history.get(createTiming(2.seconds + 99.nanoseconds)))
 		assertNull(history.get(createTiming(2.seconds + 100.nanoseconds)))
@@ -149,41 +154,51 @@ class TestStatusEffectHistory {
 		history.remove(sleep)
 		history.add(sleep)
 
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			sleep, StatusEffectHistory.Type.Remove, 0f
 		), history.get(createTiming(6.seconds)))
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			sleep, StatusEffectHistory.Type.Remove, 1f
 		), history.get(createTiming(7.seconds - 1.nanoseconds)))
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			sleep, StatusEffectHistory.Type.Add, 0f
 		), history.get(createTiming(8.seconds)))
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			sleep, StatusEffectHistory.Type.Add, 1f
 		), history.get(createTiming(9.seconds - 1.nanoseconds)))
 		assertNull(history.get(createTiming(9.seconds)))
 
 		history.remove(sleep)
 		history.remove(poison)
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			sleep, StatusEffectHistory.Type.Remove, 0f
 		), history.get(createTiming(10.seconds)))
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			sleep, StatusEffectHistory.Type.Remove, 1f
 		), history.get(createTiming(11.seconds - 1.nanoseconds)))
 
 		history.add(poison)
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			poison, StatusEffectHistory.Type.Remove, 0f
 		), history.get(createTiming(12.seconds)))
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			poison, StatusEffectHistory.Type.Remove, 1f
 		), history.get(createTiming(13.seconds - 1.nanoseconds)))
 
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			poison, StatusEffectHistory.Type.Add, 0f
 		), history.get(createTiming(14.seconds)))
-		assertEquals(StatusEffectHistory.Current(
+		assertEquals(
+			StatusEffectHistory.Current(
 			poison, StatusEffectHistory.Type.Add, 1f
 		), history.get(createTiming(15.seconds - 1.nanoseconds)))
 		assertNull(history.get(createTiming(15.seconds)))

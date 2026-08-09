@@ -2,11 +2,12 @@ package mardek.game.battle
 
 import mardek.content.battle.Enemy
 import mardek.content.stats.CombatStat
+import mardek.content.util.Time
 import mardek.game.TestingInstance
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleStateMachine
-import mardek.state.ingame.battle.MonsterCombatantState
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import mardek.state.ingame.battle.MonsterStrategyCalculator
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -27,7 +28,9 @@ object TestMugbert {
 
 			var numPowerAttacks = 0
 			repeat(1000) {
-				val move = MonsterStrategyCalculator(battle, attacker, context).determineNextMove()
+				val move = MonsterStrategyCalculator(
+					battle, attacker, context
+				).determineNextMove(Time.ZERO)
 				val meleeMove = move as BattleStateMachine.MeleeAttack
 				if (meleeMove.skill != null) {
 					numPowerAttacks += 1

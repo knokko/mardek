@@ -17,7 +17,7 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleStateMachine
-import mardek.state.ingame.battle.PlayerCombatantState
+import mardek.state.ingame.battle.combatant.PlayerCombatantState
 import mardek.state.saves.SaveFile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

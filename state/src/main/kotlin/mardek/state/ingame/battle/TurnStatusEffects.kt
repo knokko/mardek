@@ -1,5 +1,7 @@
 package mardek.state.ingame.battle
 
+import mardek.state.ingame.battle.combatant.CombatantState
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt

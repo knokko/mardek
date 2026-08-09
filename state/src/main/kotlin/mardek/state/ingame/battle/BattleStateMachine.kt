@@ -15,6 +15,9 @@ import mardek.content.skill.SkillTargetType
 import mardek.content.stats.Element
 import mardek.content.stats.StatusEffect
 import mardek.content.util.Time
+import mardek.state.ingame.battle.combatant.CombatantState
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
+import mardek.state.ingame.battle.combatant.PlayerCombatantState
 import java.util.Objects
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds

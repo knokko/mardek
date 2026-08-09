@@ -1,9 +1,11 @@
-package mardek.state.ingame.battle
+package mardek.state.ingame.battle.combatant
 
 import mardek.content.particle.ParticleEmitter
 import mardek.content.stats.StatusEffect
 import mardek.state.util.Rectangle
 import mardek.content.util.Time
+import mardek.state.ingame.battle.EffectParticlesState
+import mardek.state.ingame.battle.ParticleEmitterState
 import java.util.Locale
 
 /**
@@ -16,6 +18,18 @@ class CombatantRenderInfo {
 	 * The status effects that this combatant recently gained and lost. The renderer needs to render these.
 	 */
 	val effectHistory = StatusEffectHistory()
+
+	/**
+	 * The health that this combatant recently gained and lost.
+	 * This is used to gradually move the health bar after taking damage (or healing).
+	 */
+	val healthHistory = ResourceBarHistory()
+
+	/**
+	 * The mana that this combatant recently gained and lost.
+	 * This is used to gradually move the mana bar after spending or regaining mana
+	 */
+	val manaHistory = ResourceBarHistory()
 
 	/**
 	 * For each status effect that this combatant currently has, this mapping tracks the state of its particle emitters.

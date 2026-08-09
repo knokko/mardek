@@ -7,7 +7,7 @@ import mardek.content.portrait.PortraitInfo
 import mardek.content.sprite.BcSprite
 import mardek.content.stats.Element
 import mardek.content.util.Time
-import mardek.state.ingame.battle.CombatantRenderInfo
+import mardek.state.ingame.battle.combatant.CombatantRenderInfo
 import mardek.state.util.Rectangle
 import mardek.content.util.rem
 import mardek.state.util.RenderTiming

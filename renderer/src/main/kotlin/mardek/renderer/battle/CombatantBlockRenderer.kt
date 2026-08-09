@@ -4,51 +4,40 @@ import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import mardek.state.util.RenderTiming
 import mardek.renderer.util.ResourceBarRenderer
-import mardek.state.ingame.battle.CombatantState
-import mardek.state.ingame.battle.DamageIndicatorHealth
+import mardek.state.ingame.battle.combatant.CombatantState
 import mardek.state.util.Rectangle
 import mardek.content.util.Time
-import mardek.content.util.min
-import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 internal fun renderCombatantHealth(
 	combatant: CombatantState, healthBar: ResourceBarRenderer,
 	timing: RenderTiming, opacity: Float = 1f
 ): Int {
-	var displayedHealth = combatant.currentHealth
-	val lastDamage = combatant.renderInfo.lastDamageIndicator
+	val health = combatant.renderInfo.healthHistory.get(
+		combatant.currentHealth, timing
+	)
+	healthBar.renderBar(health.displayedValue, combatant.maxHealth, opacity)
 
-	fun healthChangeDuration(
-		lastDamage: DamageIndicatorHealth
-	) = min(2.seconds, 50.milliseconds * lastDamage.gainedHealth.absoluteValue)
-
-	if (lastDamage is DamageIndicatorHealth) {
-		val changeDuration = healthChangeDuration(lastDamage)
-		displayedHealth = timing.interpolate(
-			lastDamage.time, lastDamage.oldHealth,
-			changeDuration, lastDamage.oldHealth + lastDamage.gainedHealth, true
-		).coerceIn(0 .. combatant.maxHealth)
+	val redBar = health.bar
+	if (redBar != null) {
+		healthBar.renderLost(
+			redBar.minValue, redBar.maxValue,
+			combatant.maxHealth, (redBar.alpha * opacity).roundToInt(),
+		)
 	}
-	healthBar.renderBar(displayedHealth, combatant.maxHealth, opacity)
-	if (lastDamage is DamageIndicatorHealth) {
-		val changeDuration = healthChangeDuration(lastDamage)
-		val fadeDuration = min(2.seconds, 100.milliseconds * lastDamage.gainedHealth.absoluteValue)
-		val passedTime = timing.elapsedTimeSince(lastDamage.time)
-		var lostOpacity = if (passedTime <= changeDuration) 1f
-		else if (passedTime <= changeDuration + fadeDuration) 1f - ((passedTime - changeDuration) / fadeDuration).toFloat()
-		else 0f
+	return health.displayedValue
+}
 
-		lostOpacity *= opacity
-		if (lostOpacity > 0) {
-			healthBar.renderLost(
-				displayedHealth, lastDamage.oldHealth,
-				combatant.maxHealth, lostOpacity
-			)
-		}
-	}
-	return displayedHealth
+internal fun renderCombatantMana(
+	combatant: CombatantState, manaBar: ResourceBarRenderer,
+	timing: RenderTiming, opacity: Float = 1f
+): Int {
+	val mana = combatant.renderInfo.manaHistory.get(
+		combatant.currentMana, timing
+	)
+	manaBar.renderBar(mana.displayedValue, combatant.maxMana, opacity)
+	return mana.displayedValue
 }
 
 internal fun maybeRenderSelectionBlink(

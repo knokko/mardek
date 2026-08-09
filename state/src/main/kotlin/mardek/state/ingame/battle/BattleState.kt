@@ -10,6 +10,13 @@ import mardek.content.skill.ReactionSkillType
 import mardek.input.InputKey
 import mardek.input.MouseMoveEvent
 import mardek.content.util.Time
+import mardek.state.ingame.battle.combatant.CombatantState
+import mardek.state.ingame.battle.combatant.DamageIndicatorHealth
+import mardek.state.ingame.battle.combatant.DamageIndicatorMana
+import mardek.state.ingame.battle.combatant.DamageIndicatorMiss
+import mardek.state.ingame.battle.combatant.ForcedTurnBlink
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
+import mardek.state.ingame.battle.combatant.PlayerCombatantState
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
@@ -48,7 +55,7 @@ class BattleState(
 	 *
 	 * This array will always have a length of 4, but it will contain `null`s when there are less than 4 players.
 	 *
-	 * Usually (always in vanilla MARDEK), this array contains only [PlayerCombatantState]s,
+	 * Usually (always in vanilla MARDEK), this array contains only [mardek.state.ingame.battle.combatant.PlayerCombatantState]s,
 	 * but this is not required by the engine. This engine allows monsters to fight alongside the player.
 	 */
 	@BitField(id = 2)
@@ -264,6 +271,10 @@ class BattleState(
 						oldHealth = oldHealth, time = context.campaignTime, gainedHealth = -takeDamage.amount,
 						element = dpt.element, overrideColor = dpt.blinkColor,
 					)
+					effects.combatant.renderInfo.healthHistory.insert(
+						oldHealth, effects.combatant.currentHealth,
+						context.campaignTime, dpt.element
+					)
 					val particle = ParticleEffectState(
 						particle = dpt.particleEffect,
 						position = effects.combatant.renderInfo.statusEffectPoint,
@@ -294,7 +305,8 @@ class BattleState(
 
 		state = if (forceMove != null) {
 			if (forceMove.blinkColor != 0) {
-				effects.combatant.renderInfo.lastForcedTurn = ForcedTurnBlink(forceMove.blinkColor, context.campaignTime)
+				effects.combatant.renderInfo.lastForcedTurn =
+					ForcedTurnBlink(forceMove.blinkColor, context.campaignTime)
 			}
 			val particleEffect = forceMove.particleEffect
 			if (particleEffect != null) {
@@ -312,7 +324,7 @@ class BattleState(
 		} else {
 			MonsterStrategyCalculator(
 				this, effects.combatant as MonsterCombatantState, context
-			).determineNextMove() as BattleStateMachine
+			).determineNextMove(context.campaignTime) as BattleStateMachine
 		}
 	}
 
@@ -591,6 +603,7 @@ class BattleState(
 			}
 
 			val oldHealth = target.currentHealth
+			val oldMana = target.currentMana
 			target.currentHealth -= entry.damage
 			target.currentMana -= entry.damageMana
 
@@ -599,6 +612,15 @@ class BattleState(
 				target.statModifiers[stat] = target.statModifiers.getOrDefault(stat, 0) + modifier
 			}
 			target.clampHealthAndMana(context)
+
+			target.renderInfo.manaHistory.insert(
+				oldMana, target.currentMana,
+				context.campaignTime, entry.element
+			)
+			target.renderInfo.healthHistory.insert(
+				oldHealth, target.currentHealth,
+				context.campaignTime, entry.element
+			)
 
 			val realDamage = oldHealth - target.currentHealth
 			if (realDamage > 0) {
@@ -657,6 +679,9 @@ class BattleState(
 				overrideColor = 0,
 			)
 		}
+
+		val oldHealth = attacker.currentHealth
+		val oldMana = attacker.currentMana
 		attacker.currentHealth += result.restoreAttackerHealth
 		if (result.restoreAttackerHealth < 0) {
 			attacker.getPerformance(context).damageReceived -= result.restoreAttackerHealth
@@ -666,6 +691,16 @@ class BattleState(
 		if (attacker.isAlive() && attacker.currentHealth <= attacker.maxHealth / 5) {
 			attacker.statusEffects.addAll(attacker.getSosEffects(context))
 		}
+
+		attacker.renderInfo.healthHistory.insert(
+			oldHealth, attacker.currentHealth,
+			context.campaignTime, result.element
+		)
+
+		attacker.renderInfo.manaHistory.insert(
+			oldMana, attacker.currentMana,
+			context.campaignTime, result.element
+		)
 
 		val notMissedTargets = result.targets.filter { !it.missed }
 		if (!isConsumable && notMissedTargets.isNotEmpty()) {

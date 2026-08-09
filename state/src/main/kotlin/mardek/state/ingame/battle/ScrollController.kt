@@ -238,7 +238,12 @@ internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
 			}
 
 			if (manaCost <= state.onTurn.currentMana) {
+				val oldMana = state.onTurn.currentMana
 				state.onTurn.currentMana -= manaCost
+				state.onTurn.renderInfo.manaHistory.insert(
+					oldMana, state.onTurn.currentMana,
+					context.campaignTime, selectedMove.skill.element,
+				)
 				val nextMove = if (selectedMove.skill.isMelee) BattleStateMachine.MeleeAttack.MoveTo(
 					state.onTurn, (selectedMove.target as BattleSkillTargetSingle).target,
 					selectedMove.skill, context
