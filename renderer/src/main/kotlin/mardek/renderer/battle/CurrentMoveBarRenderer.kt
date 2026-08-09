@@ -12,7 +12,7 @@ import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.renderer.util.renderFancyMasteredText
 import mardek.state.ingame.battle.BattleStateMachine
-import mardek.state.ingame.battle.PlayerCombatantState
+import mardek.state.ingame.battle.combatant.PlayerCombatantState
 import mardek.state.util.Rectangle
 import kotlin.math.max
 import kotlin.math.roundToInt

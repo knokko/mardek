@@ -13,11 +13,11 @@ import mardek.renderer.animation.renderCombatantAnimation
 import mardek.renderer.animation.toJOMLMatrix
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleStateMachine
-import mardek.state.ingame.battle.CombatantRenderPosition
-import mardek.state.ingame.battle.CombatantState
-import mardek.state.ingame.battle.DamageIndicatorHealth
-import mardek.state.ingame.battle.DamageIndicatorMana
-import mardek.state.ingame.battle.MonsterCombatantState
+import mardek.state.ingame.battle.combatant.CombatantRenderPosition
+import mardek.state.ingame.battle.combatant.CombatantState
+import mardek.state.ingame.battle.combatant.DamageIndicatorHealth
+import mardek.state.ingame.battle.combatant.DamageIndicatorMana
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import mardek.state.util.Rectangle
 import mardek.content.util.Time
 import mardek.content.util.min

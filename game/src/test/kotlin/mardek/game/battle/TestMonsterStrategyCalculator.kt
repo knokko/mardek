@@ -4,10 +4,12 @@ import mardek.content.battle.Enemy
 import mardek.content.skill.SkillTargetType
 import mardek.content.stats.CombatStat
 import mardek.content.stats.Element
+import mardek.content.util.Time
 import mardek.game.TestingInstance
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.*
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import org.junit.jupiter.api.Assertions.*
 
 object TestMonsterStrategyCalculator {
@@ -25,12 +27,16 @@ object TestMonsterStrategyCalculator {
 			val caster = battle.livingOpponents()[0] as MonsterCombatantState
 			val context = battleUpdateContext(campaign)
 
-			val firstMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+			val firstMove = MonsterStrategyCalculator(
+				battle, caster, context
+			).determineNextMove(Time.ZERO)
 			assertEquals(BattleStateMachine.CastSkill(
 				caster, arrayOf(battle.livingOpponents()[0]), darkGift, null, context
 			), firstMove)
 
-			val secondMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+			val secondMove = MonsterStrategyCalculator(
+				battle, caster, context
+			).determineNextMove(Time.ZERO)
 			assertNotEquals(firstMove, secondMove)
 		}
 	}
@@ -56,7 +62,9 @@ object TestMonsterStrategyCalculator {
 
 			fun countSoulStorms() {
 				repeat(10_000) {
-					val nextMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+					val nextMove = MonsterStrategyCalculator(
+						battle, caster, context
+					).determineNextMove(Time.ZERO)
 					assertTrue(nextMove is BattleStateMachine.CastSkill)
 					val skill = (nextMove as BattleStateMachine.CastSkill).skill
 					if (skill === alpha) alphaCounter += 1
@@ -100,14 +108,18 @@ object TestMonsterStrategyCalculator {
 
 			val encounteredElements = mutableSetOf<Element>()
 			repeat(100) {
-				val rawShiftMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+				val rawShiftMove = MonsterStrategyCalculator(
+					battle, caster, context
+				).determineNextMove(Time.ZERO)
 				val shiftMove = rawShiftMove as BattleStateMachine.CastSkill
 				assertTrue(shiftMove.skill.changeElement)
 				encounteredElements.add(shiftMove.nextElement!!)
 				battle.livingOpponents()[0].element = shiftMove.nextElement!!
 				assertArrayEquals(arrayOf(battle.livingOpponents()[0]), shiftMove.targets)
 
-				val rawGemsplosion = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+				val rawGemsplosion = MonsterStrategyCalculator(
+					battle, caster, context
+				).determineNextMove(Time.ZERO)
 				val gemsplosionMove = rawGemsplosion as BattleStateMachine.CastSkill
 				assertFalse(gemsplosionMove.skill.changeElement)
 				assertSame(shiftMove.nextElement!!, gemsplosionMove.skill.element)
@@ -149,7 +161,9 @@ object TestMonsterStrategyCalculator {
 			fun countMoves() {
 				var expectEven = true
 				repeat(10_000) {
-					val nextMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+					val nextMove = MonsterStrategyCalculator(
+						battle, caster, context
+					).determineNextMove(Time.ZERO)
 					assertTrue(nextMove is BattleStateMachine.CastSkill)
 					val skill = (nextMove as BattleStateMachine.CastSkill).skill
 					if (skill === fireVortex) {
@@ -226,28 +240,38 @@ object TestMonsterStrategyCalculator {
 			val caster = battle.livingOpponents()[1] as MonsterCombatantState
 			val context = battleUpdateContext(campaign)
 
-			val firstMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove() as BattleStateMachine.CastSkill
+			val firstMove = MonsterStrategyCalculator(
+				battle, caster, context
+			).determineNextMove(Time.ZERO) as BattleStateMachine.CastSkill
 			assertSame(massMeleeShield, firstMove.skill)
 			assertArrayEquals(battle.livingOpponents().toTypedArray(), firstMove.targets)
 			for (enemy in battle.livingOpponents()) enemy.statusEffects.add(meleeShield)
 
 			battle.livingOpponents()[0].currentHealth /= 2
-			val secondMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove() as BattleStateMachine.CastSkill
+			val secondMove = MonsterStrategyCalculator(
+				battle, caster, context
+			).determineNextMove(Time.ZERO) as BattleStateMachine.CastSkill
 			assertSame(cura, secondMove.skill)
 			assertArrayEquals(battle.livingOpponents().toTypedArray(), secondMove.targets)
 			battle.livingOpponents()[0].currentHealth *= 2
 
-			val thirdMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove() as BattleStateMachine.CastSkill
+			val thirdMove = MonsterStrategyCalculator(
+				battle, caster, context
+			).determineNextMove(Time.ZERO) as BattleStateMachine.CastSkill
 			assertSame(massMagicShield, thirdMove.skill)
 			assertArrayEquals(battle.livingOpponents().toTypedArray(), thirdMove.targets)
 			for (enemy in battle.livingOpponents()) enemy.statusEffects.add(magicShield)
 
-			val fourthMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove() as BattleStateMachine.CastSkill
+			val fourthMove = MonsterStrategyCalculator(
+				battle, caster, context
+			).determineNextMove(Time.ZERO) as BattleStateMachine.CastSkill
 			assertSame(massRegen, fourthMove.skill)
 			assertArrayEquals(battle.livingOpponents().toTypedArray(), fourthMove.targets)
 			for (enemy in battle.livingOpponents()) enemy.statusEffects.add(regen)
 
-			val lastMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove() as BattleStateMachine.MeleeAttack
+			val lastMove = MonsterStrategyCalculator(
+				battle, caster, context
+			).determineNextMove(Time.ZERO) as BattleStateMachine.MeleeAttack
 			assertTrue(battle.livingPlayers().contains(lastMove.target), "Unexpected target ${lastMove.target}")
 		}
 	}
@@ -269,14 +293,18 @@ object TestMonsterStrategyCalculator {
 
 			battle.livingPlayers()[0].currentHealth = 0
 			run {
-				val move = MonsterStrategyCalculator(battle, caster, context).determineNextMove() as BattleStateMachine.CastSkill
+				val move = MonsterStrategyCalculator(
+					battle, caster, context
+				).determineNextMove(Time.ZERO) as BattleStateMachine.CastSkill
 				assertSame(zombify, move.skill)
 				assertArrayEquals(arrayOf(battle.allPlayers()[0]), move.targets)
 				battle.allPlayers()[0].currentHealth = 100
 			}
 
 			run {
-				val move = MonsterStrategyCalculator(battle, caster, context).determineNextMove() as BattleStateMachine.CastSkill
+				val move = MonsterStrategyCalculator(
+					battle, caster, context
+				).determineNextMove(Time.ZERO) as BattleStateMachine.CastSkill
 				assertSame(animateDead, move.skill)
 				assertArrayEquals(battle.livingOpponents().toTypedArray(), move.targets)
 			}
@@ -285,7 +313,9 @@ object TestMonsterStrategyCalculator {
 				var counter = 0
 				repeat(10_000) {
 					caster.currentMana = 50
-					val move = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+					val move = MonsterStrategyCalculator(
+						battle, caster, context
+					).determineNextMove(Time.ZERO)
 					if (move is BattleStateMachine.CastSkill && move.skill === animateDead) counter += 1
 				}
 				return counter
@@ -317,7 +347,9 @@ object TestMonsterStrategyCalculator {
 				simpleEnemy.monster, simpleEnemy.level, false, null
 			)
 			repeat(10_000) {
-				val nextMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+				val nextMove = MonsterStrategyCalculator(
+					battle, caster, context
+				).determineNextMove(Time.ZERO)
 				if (nextMove is BattleStateMachine.CastSkill) {
 					assertNotSame(animateDead, nextMove.skill)
 					assertNotSame(zombify, nextMove.skill)
@@ -351,7 +383,9 @@ object TestMonsterStrategyCalculator {
 			fun countMoves() {
 				repeat(10_000) {
 					val oldMana = caster.currentMana
-					val nextMove = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+					val nextMove = MonsterStrategyCalculator(
+						battle, caster, context
+					).determineNextMove(Time.ZERO)
 					val nextSkill = nextMove as BattleStateMachine.CastSkill
 					if (nextSkill.skill === thunderstorm) thunderCounter += 1
 					if (nextSkill.skill === immolate) immolateCounter += 1
@@ -408,7 +442,9 @@ object TestMonsterStrategyCalculator {
 			var numBreathAttacks = 0
 			repeat(10_000) {
 				battle.livingOpponents()[0].currentMana = 100
-				val move = MonsterStrategyCalculator(battle, caster, context).determineNextMove()
+				val move = MonsterStrategyCalculator(
+					battle, caster, context
+				).determineNextMove(Time.ZERO)
 				if (move is BattleStateMachine.BreathAttack) {
 					assertSame(battle.livingOpponents()[0], move.attacker)
 					assertTrue(move.skill.isBreath)

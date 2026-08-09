@@ -6,8 +6,8 @@ import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
 import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
-import mardek.state.ingame.battle.LevelUpIndicator
-import mardek.state.ingame.battle.PlayerCombatantState
+import mardek.state.ingame.battle.combatant.LevelUpIndicator
+import mardek.state.ingame.battle.combatant.PlayerCombatantState
 import mardek.state.util.Rectangle
 import kotlin.math.pow
 import kotlin.math.roundToInt

@@ -18,7 +18,7 @@ import mardek.renderer.animation.renderCombatantAnimation
 import mardek.renderer.animation.renderCutsceneAnimation
 import mardek.renderer.animation.renderPortraitAnimation
 import mardek.renderer.util.renderDescription
-import mardek.state.ingame.battle.CombatantRenderInfo
+import mardek.state.ingame.battle.combatant.CombatantRenderInfo
 import mardek.state.ingame.encyclopedia.EncyclopediaSnapshot
 import mardek.state.ingame.menu.EncyclopediaTab
 import mardek.state.util.Rectangle

@@ -9,6 +9,8 @@ import mardek.content.audio.SoundEffect
 import mardek.content.stats.CombatStat
 import mardek.content.stats.Element
 import mardek.content.stats.StatusEffect
+import mardek.state.ingame.battle.combatant.CombatantState
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import java.util.EnumMap
 
 /**

@@ -11,8 +11,8 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.skill.Skill
 import mardek.content.util.Time
 import mardek.state.ingame.UsedPartyMember
-import mardek.state.ingame.battle.CombatantState
-import mardek.state.ingame.battle.PlayerCombatantState
+import mardek.state.ingame.battle.combatant.CombatantState
+import mardek.state.ingame.battle.combatant.PlayerCombatantState
 import java.lang.IllegalArgumentException
 import kotlin.math.roundToInt
 import kotlin.random.Random

@@ -12,7 +12,7 @@ import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
-import mardek.state.ingame.battle.MonsterCombatantState
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import mardek.state.util.Rectangle
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds

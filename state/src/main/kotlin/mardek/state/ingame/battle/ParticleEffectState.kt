@@ -4,6 +4,7 @@ import mardek.content.particle.ParticleEffect
 import mardek.content.particle.ParticleEmitter
 import mardek.state.util.RenderTiming
 import mardek.content.util.Time
+import mardek.state.ingame.battle.combatant.CombatantRenderPosition
 import java.lang.Math.toRadians
 import kotlin.math.cos
 import kotlin.math.ln

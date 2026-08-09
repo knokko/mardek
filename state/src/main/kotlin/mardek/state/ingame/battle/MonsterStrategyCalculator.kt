@@ -4,6 +4,9 @@ import mardek.content.battle.StrategyCriteria
 import mardek.content.battle.StrategyEntry
 import mardek.content.battle.StrategyPool
 import mardek.content.battle.StrategyTarget
+import mardek.content.util.Time
+import mardek.state.ingame.battle.combatant.CombatantState
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import kotlin.random.Random
 
 /**
@@ -22,13 +25,13 @@ class MonsterStrategyCalculator(
 	 * Note that this will never return `null`. When a monster can't do anything, this method will return
 	 * [BattleStateMachine.Wait].
 	 */
-	fun determineNextMove(): BattleStateMachine.Move {
-		val nextMove = determineNextMoveRaw()
+	fun determineNextMove(currentTime: Time): BattleStateMachine.Move {
+		val nextMove = determineNextMoveRaw(currentTime)
 		myState.lastMove = nextMove
 		return nextMove
 	}
 
-	private fun determineNextMoveRaw(): BattleStateMachine.Move {
+	private fun determineNextMoveRaw(currentTime: Time): BattleStateMachine.Move {
 		val pool = determineNextPool() ?: return BattleStateMachine.Wait(context.campaignTime)
 
 		myState.usedStrategies[pool] = myState.usedStrategies.getOrDefault(pool, 0) + 1
@@ -50,7 +53,12 @@ class MonsterStrategyCalculator(
 				else -> BattleSkillTargetSingle(chooseSingleTarget(entry, pool.criteria, "skill ${skill.name}"))
 			}
 			val nextElement = if (skill.changeElement) monster.elementalShiftResistances.keys.random() else null
+			val oldMana = myState.currentMana
 			myState.currentMana -= skill.manaCost
+			myState.renderInfo.manaHistory.insert(
+				oldMana, myState.currentMana,
+				currentTime, skill.element
+			)
 			return if (skill.isMelee) BattleStateMachine.MeleeAttack.MoveTo(
 				myState, (skillTarget as BattleSkillTargetSingle).target, skill, context
 			) else if (skill.isBreath) BattleStateMachine.BreathAttack.MoveTo(

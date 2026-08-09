@@ -1,4 +1,4 @@
-package mardek.state.ingame.battle
+package mardek.state.ingame.battle.combatant
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
@@ -21,6 +21,11 @@ import mardek.content.stats.*
 import mardek.content.characters.CharacterState
 import mardek.content.skill.ActiveSkill
 import mardek.content.util.Time
+import mardek.state.ingame.battle.BattleState
+import mardek.state.ingame.battle.BattleStateMachine
+import mardek.state.ingame.battle.BattleUpdateContext
+import mardek.state.ingame.battle.combatant.ExperienceIndicators
+import mardek.state.ingame.battle.combatant.LevelUpIndicator
 import java.util.EnumMap
 import kotlin.math.max
 import kotlin.math.min
@@ -150,12 +155,12 @@ sealed class CombatantState(
 	/**
 	 * True if this combatant is on the side of the player, both literally (on the right of the screen) and
 	 * figuratively (fights for the player in battle).
-	 * - This must be `true` for any combatant in [BattleState.players].
-	 * - This must be `false` for any combatant in [BattleState.opponents].
+	 * - This must be `true` for any combatant in [mardek.state.ingame.battle.BattleState.players].
+	 * - This must be `false` for any combatant in [mardek.state.ingame.battle.BattleState.opponents].
 	 *
-	 * Normally, all combatants in [BattleState.players] will be [PlayerCombatantState]s, and all
-	 * combatants in [BattleState.opponents] will be [MonsterCombatantState]s, but this is **not** required by the
-	 * engine: the engine allows [BattleState.players] to contain [MonsterCombatantState]s, but this currently
+	 * Normally, all combatants in [mardek.state.ingame.battle.BattleState.players] will be [PlayerCombatantState]s, and all
+	 * combatants in [mardek.state.ingame.battle.BattleState.opponents] will be [MonsterCombatantState]s, but this is **not** required by the
+	 * engine: the engine allows [mardek.state.ingame.battle.BattleState.players] to contain [MonsterCombatantState]s, but this currently
 	 * never happens.
 	 */
 	@BitField(id = 6)

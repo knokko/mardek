@@ -51,14 +51,12 @@ class ResourceBarRenderer(
 		}
 	}
 
-	fun renderLost(currentValue: Int, oldValue: Int, maxValue: Int, opacity: Float) {
-		if (oldValue > currentValue) {
-			colorBatch.fill(
-				barRegion.minX + currentValue * (barRegion.width - 1) / maxValue, barRegion.minY,
-				barRegion.minX + oldValue * (barRegion.width - 1) / maxValue,
-				barRegion.maxY, rgba(1f, 0f, 0f, opacity)
-			)
-		}
+	fun renderLost(currentValue: Int, oldValue: Int, maxValue: Int, alpha: Int) {
+		colorBatch.fill(
+			barRegion.minX + currentValue * (barRegion.width - 1) / maxValue, barRegion.minY,
+			barRegion.minX + oldValue * (barRegion.width - 1) / maxValue,
+			barRegion.maxY, rgba(255, 0, 0, alpha)
+		)
 	}
 
 	fun renderTextBelowBar(currentValue: Int, maxValue: Int) {

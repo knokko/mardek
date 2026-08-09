@@ -1,5 +1,6 @@
 package mardek.state.ingame.battle
 
+import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

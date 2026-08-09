@@ -1,6 +1,7 @@
 package mardek.state.ingame.battle
 
 import mardek.content.util.Time
+import mardek.state.ingame.battle.combatant.ExperienceIndicators
 import mardek.state.util.RenderTiming
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

@@ -3,6 +3,7 @@ package mardek.state.ingame.battle
 import mardek.content.battle.PartyLayout
 import mardek.content.battle.PartyLayoutPosition
 import mardek.input.InputKey
+import mardek.state.ingame.battle.combatant.CombatantState
 import kotlin.math.abs
 
 /**

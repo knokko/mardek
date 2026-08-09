@@ -14,8 +14,8 @@ import mardek.renderer.MardekTextStyles
 import mardek.renderer.util.ResourceBarRenderer
 import mardek.renderer.util.ResourceType
 import mardek.state.ingame.battle.BattleStateMachine
-import mardek.state.ingame.battle.ExperienceIndicators
-import mardek.state.ingame.battle.PlayerCombatantState
+import mardek.state.ingame.battle.combatant.ExperienceIndicators
+import mardek.state.ingame.battle.combatant.PlayerCombatantState
 import mardek.state.util.Rectangle
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -138,8 +138,8 @@ internal fun renderPlayerBlock(
 					region.width / 3, region.height / 6
 				), colorBatch, textBatch,
 			)
-			manaBar.renderBar(player.currentMana, player.maxMana)
-			manaBar.renderCurrentOverBar(player.currentMana, player.maxMana)
+			val displayedMana = renderCombatantMana(player, manaBar, context.timing)
+			manaBar.renderCurrentOverBar(displayedMana, player.maxMana)
 			manaBar.renderOpeningBracket()
 			manaBar.renderClosingBracket()
 

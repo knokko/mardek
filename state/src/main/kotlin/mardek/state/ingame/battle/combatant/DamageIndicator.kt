@@ -1,4 +1,4 @@
-package mardek.state.ingame.battle
+package mardek.state.ingame.battle.combatant
 
 import mardek.content.stats.Element
 import mardek.content.util.Time

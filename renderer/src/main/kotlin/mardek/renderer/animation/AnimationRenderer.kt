@@ -14,9 +14,9 @@ import mardek.content.animation.AnimationMatrix
 import mardek.content.animation.ColorTransform
 import mardek.content.animation.SkinnedAnimation
 import mardek.content.sprite.BcSprite
-import mardek.state.ingame.battle.AnimationEmitterState
-import mardek.state.ingame.battle.CombatantRenderInfo
-import mardek.state.ingame.battle.CombatantRenderPosition
+import mardek.state.ingame.battle.combatant.AnimationEmitterState
+import mardek.state.ingame.battle.combatant.CombatantRenderInfo
+import mardek.state.ingame.battle.combatant.CombatantRenderPosition
 import mardek.state.util.Rectangle
 import mardek.content.util.rem
 import org.joml.Matrix3x2f

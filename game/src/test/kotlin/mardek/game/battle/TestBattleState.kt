@@ -3,7 +3,7 @@ package mardek.game.battle
 import mardek.game.TestingInstance
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
-import mardek.state.ingame.battle.CombatantState
+import mardek.state.ingame.battle.combatant.CombatantState
 import org.junit.jupiter.api.Assertions.assertEquals
 
 object TestBattleState {
