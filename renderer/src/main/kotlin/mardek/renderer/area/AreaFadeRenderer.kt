@@ -6,7 +6,6 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionOpeningDoor
 import mardek.state.ingame.area.AreaSuspensionTransition
-import mardek.state.ingame.area.loot.BattleLoot
 
 internal fun renderAreaFadeEffects(areaContext: AreaRenderContext) {
 	areaContext.apply {
@@ -17,8 +16,8 @@ internal fun renderAreaFadeEffects(areaContext: AreaRenderContext) {
 
 		val finishedBattleAt = state.finishedBattleAt
 		val postBattleFadeIn = if (finishedBattleAt != null) areaTimings.interpolate(
-			finishedBattleAt, 0f,
-			BattleLoot.FADE_OUT_DURATION, 1f, true,
+			finishedBattleAt.virtualAdd(AreaState.FADE_IN_DELAY), 0f,
+			AreaState.FADE_IN_DURATION, 1f, true,
 		) else 1f
 		var fadeOut = 1f
 

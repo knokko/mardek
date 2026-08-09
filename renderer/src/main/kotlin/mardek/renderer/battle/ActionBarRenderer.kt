@@ -29,7 +29,11 @@ internal fun renderActionBar(
 	spriteBatch: AreaSpriteBatch, imageBatch: Vk2dImageBatch?, textBatch: Vk2dSimpleTextBatch?, region: Rectangle,
 ) {
 	battleContext.run {
-		val stateMachine = battle.state
+		var stateMachine = battle.state
+		if (stateMachine is BattleStateMachine.RanAway) {
+			stateMachine = BattleStateMachine.SelectMove(stateMachine.runningPlayer)
+			stateMachine.selectedMove = BattleMoveSelectionFlee
+		}
 
 		val marginY = region.height / 15
 		val marginX = 3 * marginY

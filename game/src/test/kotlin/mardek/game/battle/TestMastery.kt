@@ -186,10 +186,42 @@ object TestMastery {
 				}
 				assertInstanceOf<BattleStateMachine.SelectMove>(battleState.state)
 
+				val battleColor = arrayOf(Color(169, 255, 164)) // Forest Fish eye
+				val areaColor = arrayOf(Color(102, 102, 153)) // Mushroom color
+				testRendering(
+					state, 800, 600, "flee0",
+					battleColor, areaColor
+				)
+
 				// Finally run away, and check that nothing else was mastered
 				updateContext.input.postEvent(pressKeyEvent(InputKey.MoveRight))
 				updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
-				state.update(updateContext)
+				repeat(20) {
+					state.update(updateContext)
+					assertInstanceOf<BattleStateMachine.RanAway>(battleState.state)
+				}
+				testRendering(
+					state, 800, 600, "flee1",
+					emptyArray(), battleColor + areaColor
+				)
+
+				repeat(30) {
+					state.update(updateContext)
+					assertInstanceOf<BattleStateMachine.RanAway>(battleState.state)
+				}
+				testRendering(
+					state, 800, 600, "flee2",
+					emptyArray(), battleColor + areaColor
+				)
+
+				repeat(60) {
+					state.update(updateContext)
+					assertInstanceOf<BattleStateMachine.RanAway>(battleState.state)
+				}
+				testRendering(
+					state, 800, 600, "flee3",
+					areaColor, battleColor
+				)
 				assertNull((state.campaign.state as AreaState).suspension)
 
 				assertEquals(1, mardekState.skillMastery[increaseDamageSkill])

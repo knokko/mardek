@@ -8,6 +8,7 @@ import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import mardek.renderer.RenderContext
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
+import mardek.state.ingame.battle.BattleMoveSelectionFlee
 import mardek.state.ingame.battle.BattleMoveSelectionItem
 import mardek.state.ingame.battle.BattleMoveSelectionSkill
 import mardek.state.ingame.battle.BattleState
@@ -80,7 +81,19 @@ internal fun renderBattle(
 		region.width, computeActionBarHeight(region.height),
 	)
 
-	val stateMachine = battleContext.battle.state
+	var stateMachine = battleContext.battle.state
+	if (stateMachine is BattleStateMachine.RanAway) {
+		val fadeAlpha = context.timing.interpolate(
+			stateMachine.startedAt, 0,
+			BattleStateMachine.RanAway.FADE_OUT_DURATION, 255, true
+		)
+		context.addColorBatch(2).fill(
+			region.minX, region.minY, region.maxX, region.maxY,
+			rgba(0, 0, 0, fadeAlpha)
+		)
+		stateMachine = BattleStateMachine.SelectMove(stateMachine.runningPlayer)
+		stateMachine.selectedMove = BattleMoveSelectionFlee
+	}
 	if (stateMachine is BattleStateMachine.SelectMove) {
 		val selectedMove = stateMachine.selectedMove
 		val isChoosingSkillOrItem = when (selectedMove) {

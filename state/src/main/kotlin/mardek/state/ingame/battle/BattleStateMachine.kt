@@ -879,7 +879,35 @@ sealed class BattleStateMachine {
 	 * The player ran away from the battle, so the game state should go back to the area state
 	 */
 	@BitStruct(backwardCompatible = true)
-	class RanAway : BattleStateMachine()
+	class RanAway(
+
+		/**
+		 * The time at which the player decided to run away. This is also the moment where the fade-out starts.
+		 *
+		 * The player will exit the battle at `startedAt + FADE_OUT_DURATION`.
+		 */
+		@BitField(id = 0)
+		val startedAt: Time,
+
+		/**
+		 * The player that ran away
+		 */
+		@BitField(id = 1)
+		@ReferenceField(stable = false, label = "combatants")
+		val runningPlayer: PlayerCombatantState,
+	) : BattleStateMachine() {
+
+		@Suppress("unused")
+		private constructor() : this(Time.ZERO, PlayerCombatantState())
+
+		companion object {
+
+			/**
+			 * The duration of the flee/run-away fade-out
+			 */
+			val FADE_OUT_DURATION = 250.milliseconds
+		}
+	}
 
 	/**
 	 * All enemies have been slain, so the victory 'dance' should be shown. After a short while, the game should go

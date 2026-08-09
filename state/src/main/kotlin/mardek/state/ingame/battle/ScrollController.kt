@@ -279,7 +279,10 @@ internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
 	if (selectedMove is BattleMoveSelectionWait) battle.confirmMove(
 		context, BattleStateMachine.Wait(context.campaignTime)
 	)
-	if (selectedMove is BattleMoveSelectionFlee) battle.state = BattleStateMachine.RanAway()
+	if (selectedMove is BattleMoveSelectionFlee) {
+		context.soundQueue.insert(context.sounds.battle.flee)
+		battle.state = BattleStateMachine.RanAway(context.campaignTime, state.onTurn)
+	}
 }
 
 /**

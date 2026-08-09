@@ -595,11 +595,14 @@ class AreaState(
 
 		val battleState = suspension.battle.state
 		if (battleState is BattleStateMachine.RanAway) {
-			context.campaign.statistics.battlesFled += 1
-			this.suspension = null
-			context.soundQueue.insert(context.content.audio.fixedEffects.battle.flee)
-			for (combatant in suspension.battle.allPlayers()) {
-				combatant.transferStatusBack(battleContext)
+			val elapsedTime = context.campaign.time.virtualOffset(battleState.startedAt)
+			if (elapsedTime >= BattleStateMachine.RanAway.FADE_OUT_DURATION) {
+				context.campaign.statistics.battlesFled += 1
+				this.suspension = null
+				for (combatant in suspension.battle.allPlayers()) {
+					combatant.transferStatusBack(battleContext)
+				}
+				this.finishedBattleAt = this.currentTime
 			}
 		}
 		if (battleState is BattleStateMachine.GameOver && battleState.shouldGoToGameOverMenu(context.campaign.time)) {
