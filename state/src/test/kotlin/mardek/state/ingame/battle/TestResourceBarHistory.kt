@@ -1,6 +1,5 @@
 package mardek.state.ingame.battle
 
-import mardek.content.stats.Element
 import mardek.content.util.Time
 import mardek.state.ingame.battle.combatant.ResourceBarHistory
 import mardek.state.util.RenderTiming
@@ -88,7 +87,7 @@ class TestResourceBarHistory {
 	@Test
 	fun testSingleEntryHistory() {
 		val history = ResourceBarHistory()
-		history.insert(10, 2, Time(5.seconds), Element())
+		history.insert(10, 2, Time(5.seconds))
 		assertEquals(
 			ResourceBarHistory.Result(10, null),
 			history.get(2, timing(1.seconds))
@@ -105,8 +104,8 @@ class TestResourceBarHistory {
 	@Test
 	fun testIndependentTwoEntryHistory() {
 		val history = ResourceBarHistory()
-		history.insert(2, 10, Time(1.seconds), Element())
-		history.insert(10, 12, Time(5.seconds), Element())
+		history.insert(2, 10, Time(1.seconds))
+		history.insert(10, 12, Time(5.seconds))
 		assertEquals(
 			ResourceBarHistory.Result(2, null),
 			history.get(12, timing(0.seconds))

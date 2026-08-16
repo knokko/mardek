@@ -251,16 +251,16 @@ public class Vk2dFont {
 		return null;
 	}
 
-	public float getGlyphAdvanceX(hb_glyph_position_t glyphOffset, float heightA) {
-		return glyphOffset.x_advance() * heightA / fontHeightA;
+	public float getGlyphAdvanceX(hb_glyph_position_t glyphOffset, float heightA, float scaleX) {
+		return glyphOffset.x_advance() * scaleX * heightA / fontHeightA;
 	}
 
-	public float getWhitespaceAdvance(float heightA) {
-		return whitespaceAdvance * heightA / fontHeightA;
+	public float getWhitespaceAdvance(float heightA, float scaleX) {
+		return whitespaceAdvance * scaleX * heightA / fontHeightA;
 	}
 
-	public float getGlyphAdvanceY(hb_glyph_position_t glyphOffset, float heightA) {
-		return glyphOffset.y_advance() * heightA / fontHeightA;
+	public float getGlyphAdvanceY(hb_glyph_position_t glyphOffset, float heightA, float scaleX) {
+		return glyphOffset.y_advance() * scaleX * heightA / fontHeightA;
 	}
 
 	public void destroy() {

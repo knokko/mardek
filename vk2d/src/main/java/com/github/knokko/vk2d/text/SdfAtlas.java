@@ -228,11 +228,11 @@ public class SdfAtlas {
 		return roundSize(glyphExtents.get(glyph).height(), outlineScale) + 2 * distanceMargin;
 	}
 
-	public float getRenderMinX(int glyph, float baseX, hb_glyph_position_t glyphOffset, float heightA) {
+	public float getRenderMinX(int glyph, float baseX, hb_glyph_position_t glyphOffset, float heightA, float scaleX) {
 		var extents = glyphExtents.get(glyph);
 		int unscaledOffsetX = glyphOffset.x_offset() + extents.x_bearing();
-		float desiredMinX = baseX + heightA * unscaledOffsetX / fontHeightA;
-		float desiredWidth = heightA * extents.width() / fontHeightA;
+		float desiredMinX = baseX + scaleX * heightA * unscaledOffsetX / fontHeightA;
+		float desiredWidth = scaleX * heightA * extents.width() / fontHeightA;
 		float desiredAtlasWidth = abs(glyphExtents.get(glyph).width()) * outlineScale;
 		float atlasWidthWithMargin = desiredAtlasWidth + 2 * distanceMargin;
 		float widthWithMargin = desiredWidth * atlasWidthWithMargin / desiredAtlasWidth;
@@ -252,11 +252,11 @@ public class SdfAtlas {
 		return desiredMinY - topMargin;
 	}
 
-	public float getRenderMaxX(int glyph, float baseX, hb_glyph_position_t glyphOffset, float heightA) {
+	public float getRenderMaxX(int glyph, float baseX, hb_glyph_position_t glyphOffset, float heightA, float scaleX) {
 		var extents = glyphExtents.get(glyph);
 		int unscaledOffsetX = glyphOffset.x_offset() + extents.x_bearing() + extents.width();
-		float desiredMaxX = baseX + heightA * unscaledOffsetX / fontHeightA;
-		float desiredWidth = heightA * extents.width() / fontHeightA;
+		float desiredMaxX = baseX + scaleX * heightA * unscaledOffsetX / fontHeightA;
+		float desiredWidth = scaleX * heightA * extents.width() / fontHeightA;
 		float desiredAtlasWidth = abs(glyphExtents.get(glyph).width()) * outlineScale;
 		float atlasWidthWithMargin = desiredAtlasWidth + 2 * distanceMargin;
 		float widthWithMargin = desiredWidth * atlasWidthWithMargin / desiredAtlasWidth;
@@ -274,14 +274,6 @@ public class SdfAtlas {
 		float heightsWithMargin = desiredHeight * atlasHeightWithMargin / desiredAtlasHeight;
 		float bottomMargin = 0.5f * (heightsWithMargin - desiredHeight);
 		return desiredMaxY + bottomMargin;
-	}
-
-	public float getMinU(int glyph) {
-		return getMinX(glyph) / (float) image.width;
-	}
-
-	public float getMinV(int glyph) {
-		return getMinY(glyph) / (float) image.height;
 	}
 
 	public float getMaxU(int glyph) {

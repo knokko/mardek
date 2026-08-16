@@ -455,8 +455,8 @@ object MardekTextStyles {
 	)
 
 	object BattleIndicators {
-		fun base(outerColor: Int, innerColor: Int): Vk2dFancyTextStyle {
-			val strokeColor = rgb(0, 0, 0)
+		fun base(outerColor: Int, innerColor: Int, opacity: Float): Vk2dFancyTextStyle {
+			val strokeColor = rgba(0f, 0f, 0f, opacity)
 			return Vk2dFancyTextStyle(
 				Vk2dFancyTextStyle.Gradient(
 					outerColor, outerColor, innerColor, innerColor, outerColor,
@@ -473,14 +473,10 @@ object MardekTextStyles {
 			)
 		}
 
-		fun miss(alpha: Int) = base(
-			srgbToLinear(rgba(180, 150, 104, alpha)),
-			srgbToLinear(rgba(229, 219, 208, alpha)),
-		)
-
 		fun levelUp(alpha: Int) = base(
 			srgbToLinear(rgba(253, 235, 154, alpha)),
 			srgbToLinear(rgba(253, 252, 235, alpha)),
+			alpha / 255f
 		)
 	}
 

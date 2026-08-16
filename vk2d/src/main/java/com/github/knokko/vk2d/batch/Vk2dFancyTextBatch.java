@@ -57,6 +57,13 @@ public class Vk2dFancyTextBatch extends Vk2dBatch {
 			String text, float baseX, float baseY, float rotation, float heightA,
 			Vk2dFont font, Vk2dFancyTextStyle style, TextAlignment alignment
 	) {
+		drawString(text, baseX, baseY, rotation, heightA, font, style, alignment, 1f);
+	}
+
+	public void drawString(
+			String text, float baseX, float baseY, float rotation, float heightA,
+			Vk2dFont font, Vk2dFancyTextStyle style, TextAlignment alignment, float scaleX
+	) {
 		double radiansRotation = toRadians(rotation);
 		hb_buffer_clear_contents(cache.hbBuffer);
 
@@ -82,9 +89,9 @@ public class Vk2dFancyTextBatch extends Vk2dBatch {
 			var glyphInfo = glyphInfos.get(index);
 			int charIndex = glyphInfo.cluster();
 			if (charIndex < text.length() && text.charAt(charIndex) == '\t') {
-				testX += 4 * font.getWhitespaceAdvance(heightA);
+				testX += 4 * font.getWhitespaceAdvance(heightA, scaleX);
 			} else {
-				testX += font.getGlyphAdvanceX(glyphOffsets.get(index), heightA);
+				testX += font.getGlyphAdvanceX(glyphOffsets.get(index), heightA, scaleX);
 			}
 		}
 
@@ -127,7 +134,7 @@ public class Vk2dFancyTextBatch extends Vk2dBatch {
 			var glyphInfo = glyphInfos.get(index);
 			int charIndex = glyphInfo.cluster();
 			if (charIndex < text.length() && text.charAt(charIndex) == '\t') {
-				baseX += 4 * font.getWhitespaceAdvance(heightA);
+				baseX += 4 * font.getWhitespaceAdvance(heightA, scaleX);
 				continue;
 			}
 
@@ -135,9 +142,9 @@ public class Vk2dFancyTextBatch extends Vk2dBatch {
 			var atlas = font.chooseAtlas(heightA, style.getEffectiveStrokeWidth(), glyphInfo.codepoint());
 
 			int glyph = glyphInfo.codepoint();
-			float minX = atlas.getRenderMinX(glyph, baseX, glyphOffset, heightA);
+			float minX = atlas.getRenderMinX(glyph, baseX, glyphOffset, heightA, scaleX);
 			float minY = atlas.getRenderMinY(glyph, baseY, glyphOffset, heightA);
-			float maxX = atlas.getRenderMaxX(glyph, baseX, glyphOffset, heightA);
+			float maxX = atlas.getRenderMaxX(glyph, baseX, glyphOffset, heightA, scaleX);
 			float maxY = atlas.getRenderMaxY(glyph, baseY, glyphOffset, heightA);
 
 			putGlyph(
@@ -156,8 +163,10 @@ public class Vk2dFancyTextBatch extends Vk2dBatch {
 					baseX, baseY, atlas, heightA, glyph, styleIndex
 			);
 
-			baseX += cosRotation * font.getGlyphAdvanceX(glyphOffset, heightA) - sinRotation * font.getGlyphAdvanceY(glyphOffset, heightA);
-			baseY += -sinRotation * font.getGlyphAdvanceX(glyphOffset, heightA) + cosRotation * font.getGlyphAdvanceY(glyphOffset, heightA);
+			baseX += cosRotation * font.getGlyphAdvanceX(glyphOffset, heightA, scaleX) -
+					sinRotation * font.getGlyphAdvanceY(glyphOffset, heightA, scaleX);
+			baseY += -sinRotation * font.getGlyphAdvanceX(glyphOffset, heightA, scaleX) +
+					cosRotation * font.getGlyphAdvanceY(glyphOffset, heightA, scaleX);
 		}
 	}
 
@@ -165,10 +174,17 @@ public class Vk2dFancyTextBatch extends Vk2dBatch {
 			String text, float baseX, float baseY, float rotation, float heightA, Vk2dFont font,
 			Vk2dFancyTextStyle.Shadowed style, TextAlignment alignment
 	) {
+		drawShadowedString(text, baseX, baseY, rotation, heightA, font, style, alignment, 1f);
+	}
+
+	public void drawShadowedString(
+			String text, float baseX, float baseY, float rotation, float heightA, Vk2dFont font,
+			Vk2dFancyTextStyle.Shadowed style, TextAlignment alignment, float scaleX
+	) {
 		float offset = style.shadowOffset() * heightA;
 		float shadowX = baseX + offset;
 		float shadowY = baseY + offset;
-		drawString(text, shadowX, shadowY, rotation, heightA, font, style.shadowStyle(), alignment);
-		drawString(text, baseX, baseY, rotation, heightA, font, style.mainStyle(), alignment);
+		drawString(text, shadowX, shadowY, rotation, heightA, font, style.shadowStyle(), alignment, scaleX);
+		drawString(text, baseX, baseY, rotation, heightA, font, style.mainStyle(), alignment, scaleX);
 	}
 }

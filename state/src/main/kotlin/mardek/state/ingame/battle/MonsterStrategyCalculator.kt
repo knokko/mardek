@@ -55,10 +55,7 @@ class MonsterStrategyCalculator(
 			val nextElement = if (skill.changeElement) monster.elementalShiftResistances.keys.random() else null
 			val oldMana = myState.currentMana
 			myState.currentMana -= skill.manaCost
-			myState.renderInfo.manaHistory.insert(
-				oldMana, myState.currentMana,
-				currentTime, skill.element
-			)
+			myState.renderInfo.manaHistory.insert(oldMana, myState.currentMana, currentTime)
 			return if (skill.isMelee) BattleStateMachine.MeleeAttack.MoveTo(
 				myState, (skillTarget as BattleSkillTargetSingle).target, skill, context
 			) else if (skill.isBreath) BattleStateMachine.BreathAttack.MoveTo(

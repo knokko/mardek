@@ -69,7 +69,7 @@ internal fun renderEffectHistory(
 			textBatch.drawString(
 				currentEntry.effect.shortName, midX, midY,
 				0f, imageBatch.height * 0.035f, effectFont,
-				MardekTextStyles.BattleIndicators.base(outerColor, innerColor),
+				MardekTextStyles.BattleIndicators.base(outerColor, innerColor, alpha / 255f),
 				TextAlignment.CENTERED,
 			)
 		}

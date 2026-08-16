@@ -15,8 +15,6 @@ import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.combatant.CombatantRenderPosition
 import mardek.state.ingame.battle.combatant.CombatantState
-import mardek.state.ingame.battle.combatant.DamageIndicatorHealth
-import mardek.state.ingame.battle.combatant.DamageIndicatorMana
 import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import mardek.state.util.Rectangle
 import mardek.content.util.Time
@@ -88,26 +86,15 @@ class CombatantRenderer(
 	)
 
 	private fun damageColorTransform(): ColorTransform? {
-		val damageIndicator = combatant.renderInfo.lastDamageIndicator
-		val (element, overrideColor) = when (damageIndicator) {
-			is DamageIndicatorHealth -> if (damageIndicator.gainedHealth == 0) return null else Pair(
-				damageIndicator.element, damageIndicator.overrideColor
-			)
-			is DamageIndicatorMana -> Pair(damageIndicator.element, damageIndicator.overrideColor)
-			else -> return null
+		var transform: ColorTransform? = null
+		for (indicator in combatant.renderInfo.indicatorHistory.get(context.context.timing)) {
+			if (indicator.blinkColor != 0 && indicator.blinkIntensity > 0f) {
+				val addedTransform = damageColorTransform(srgbToLinear(indicator.blinkColor), indicator.blinkIntensity)
+				transform = mergeColorTransforms(transform, addedTransform)
+			}
 		}
 
-		val blinkIntensity = context.context.timing.interpolate(
-			damageIndicator.time, 1f,
-			1.seconds, 0f, true,
-		)
-		if (blinkIntensity <= 0f) return null
-
-		val color = if (overrideColor != 0) overrideColor
-		else if (element === context.updateContext.physicalElement) rgb(250, 20, 20)
-		else element.color
-
-		return damageColorTransform(srgbToLinear(color), blinkIntensity)
+		return transform
 	}
 
 	private fun mergeColorTransforms(base: ColorTransform?, top: ColorTransform?): ColorTransform? {
@@ -357,10 +344,10 @@ class CombatantRenderer(
 	}
 
 	private fun choosePassiveAnimation() {
-		val lastDamage = combatant.renderInfo.lastDamageIndicator
-		if (combatant.isAlive() && lastDamage != null && lastDamage is DamageIndicatorHealth && lastDamage.gainedHealth < 0) {
+		val lastDamage = combatant.renderInfo.indicatorHistory.mostRecentDamageTakenAt(context.context.timing)
+		if (combatant.isAlive() && lastDamage != null) {
 			val hurtAnimation = animations["hit"]
-			val sinceDamage = context.context.timing.elapsedTimeSince(lastDamage.time)
+			val sinceDamage = context.context.timing.elapsedTimeSince(lastDamage)
 			val hurtFrame = sinceDamage / FRAME_LENGTH
 			if (hurtFrame < hurtAnimation.frames.size) {
 				animation = hurtAnimation
@@ -372,7 +359,7 @@ class CombatantRenderer(
 		if (!combatant.isAlive()) {
 			if (lastDamage != null) {
 				val dieAnimation = animations["die"]
-				val sinceDeath = context.context.timing.elapsedTimeSince(lastDamage.time)
+				val sinceDeath = context.context.timing.elapsedTimeSince(lastDamage)
 				val dieFrame = sinceDeath / FRAME_LENGTH
 				if (dieFrame < dieAnimation.frames.size) {
 					animation = dieAnimation

@@ -69,12 +69,22 @@ class Element(
 	val color: Int,
 
 	/**
+	 * The 'blink color' when combatants take damage from an attack with this element.
+	 *
+	 * This is usually the same as [color], but not always.
+	 * In particular, the [color] of PHYSICAL is grey, whereas its [damageColor] is red.
+	 */
+	@BitField(id = 6)
+	@IntegerField(expectUniform = true)
+	val damageColor: Int = color,
+
+	/**
 	 * The sprite of the element symbol, with extra thick lines (because the lines are ridiculously small in the
 	 * SVG).
 	 *
 	 * This sprite is typically used when we need to render the element symbol in a small area.
 	 */
-	@BitField(id = 6)
+	@BitField(id = 7)
 	val thickSprite: BcSprite,
 
 	/**
@@ -82,7 +92,7 @@ class Element(
 	 *
 	 * This sprite is typically used when we need to render the element symbol in a rather small area.
 	 */
-	@BitField(id = 7)
+	@BitField(id = 8)
 	val mediumSprite: BcSprite,
 
 	/**
@@ -91,7 +101,7 @@ class Element(
 	 *
 	 * This sprite is typically used when we need to render the element symbol in a large area.
 	 */
-	@BitField(id = 8)
+	@BitField(id = 9)
 	val thinSprite: BcSprite,
 
 	/**
@@ -99,14 +109,14 @@ class Element(
 	 * is used. It is basically a gradient sprite of the elements color, and is rendered very close to the greatsword
 	 * during the strike animation.
 	 */
-	@BitField(id = 9, optional = true)
+	@BitField(id = 10, optional = true)
 	val swingEffect: BcSprite?,
 
 	/**
 	 * The particle effect that should be emitted at the hand of the caster whenever someone casts a magic/ranged skill
 	 * with this element.
 	 */
-	@BitField(id = 10, optional = true)
+	@BitField(id = 11, optional = true)
 	@ReferenceField(stable = false, label = "particles")
 	val spellCastEffect: ParticleEffect?,
 
@@ -114,14 +124,14 @@ class Element(
 	 * The gradient-like sprite that will be rendered behind the caster whenever someone casts a magic/ranged skill
 	 * with this element.
 	 */
-	@BitField(id = 11, optional = true)
+	@BitField(id = 12, optional = true)
 	val spellCastBackground: BcSprite?,
 
 	/**
 	 * The color that is used to render the name of speakers in the chat log. This is often very similar or identical
 	 * to [color], but not for "DARK", which has a purple chat log color, but a standard ~black color.
 	 */
-	@BitField(id = 12)
+	@BitField(id = 13)
 	@IntegerField(expectUniform = true)
 	val chatLogColor: Int,
 ) {
@@ -132,15 +142,15 @@ class Element(
 	 *
 	 * Players of this element will have a 20% vulnerability against the `weakAgainst` of their own element.
 	 */
-	@BitField(id = 32, optional = true)
+	@BitField(id = 14, optional = true)
 	@ReferenceField(stable = false, label = "elements")
 	var weakAgainst: Element? = null
 		private set
 
 	constructor() : this(
-		UUID.randomUUID(), "", null, "", "",
-		0, BcSprite(), BcSprite(), BcSprite(), BcSprite(),
-		null, null, 0,
+		UUID.randomUUID(), "", null, "", "", 0,
+		0, BcSprite(), BcSprite(), BcSprite(),
+		BcSprite(), null, null, 0,
 	)
 
 	/**

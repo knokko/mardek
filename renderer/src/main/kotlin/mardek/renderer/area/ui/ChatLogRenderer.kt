@@ -59,7 +59,7 @@ internal fun renderChatLog(dialogueContext: DialogueRenderContext) {
 				)!!
 
 				for (offset in glyphOffsets) {
-					textX += baseFont.getGlyphAdvanceX(offset, heightA)
+					textX += baseFont.getGlyphAdvanceX(offset, heightA, 1f)
 				}
 			}
 

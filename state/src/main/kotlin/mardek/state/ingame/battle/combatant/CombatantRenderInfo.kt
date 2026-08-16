@@ -32,6 +32,11 @@ class CombatantRenderInfo {
 	val manaHistory = ResourceBarHistory()
 
 	/**
+	 * The recent damage indicators that should potentially be shown for this combatant
+	 */
+	val indicatorHistory = DamageIndicatorHistory()
+
+	/**
 	 * For each status effect that this combatant currently has, this mapping tracks the state of its particle emitters.
 	 * Entries are inserted during the first frame where the combatant has the corresponding status effect, and are
 	 * deleted during the first frame where the combatant no longer has the status effect.
@@ -127,12 +132,6 @@ class CombatantRenderInfo {
 	 * (So when the combatant moves to another combatant for a melee attack, this *core* position will *not* move.)
 	 */
 	var core = CombatantRenderPosition.DUMMY
-
-	/**
-	 * This contains information that is used to render the damage indicator whenever combatants are attacked or
-	 * gain/lose health or mana.
-	 */
-	var lastDamageIndicator: DamageIndicator? = null
 
 	/**
 	 * When the turn of this combatant is forcibly skipped (e.g. due to paralysis or numbness + berserk),

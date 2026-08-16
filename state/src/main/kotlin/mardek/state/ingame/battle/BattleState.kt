@@ -5,15 +5,13 @@ import com.github.knokko.bitser.field.*
 import mardek.content.battle.Battle
 import mardek.content.battle.PartyLayout
 import mardek.content.characters.PlayableCharacter
+import mardek.content.inventory.ConsumableProperties
 import mardek.content.skill.ActiveSkill
 import mardek.content.skill.ReactionSkillType
 import mardek.input.InputKey
 import mardek.input.MouseMoveEvent
 import mardek.content.util.Time
 import mardek.state.ingame.battle.combatant.CombatantState
-import mardek.state.ingame.battle.combatant.DamageIndicatorHealth
-import mardek.state.ingame.battle.combatant.DamageIndicatorMana
-import mardek.state.ingame.battle.combatant.DamageIndicatorMiss
 import mardek.state.ingame.battle.combatant.ForcedTurnBlink
 import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import mardek.state.ingame.battle.combatant.PlayerCombatantState
@@ -267,13 +265,12 @@ class BattleState(
 					if (effects.combatant.currentHealth < oldHealth) {
 						effects.combatant.getPerformance(context).damageReceived += oldHealth - effects.combatant.currentHealth
 					}
-					effects.combatant.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
-						oldHealth = oldHealth, time = context.campaignTime, gainedHealth = -takeDamage.amount,
-						element = dpt.element, overrideColor = dpt.blinkColor,
+					effects.combatant.renderInfo.indicatorHistory.addOnTurnIndicator(
+						dpt, takeDamage.amount, context.campaignTime
 					)
 					effects.combatant.renderInfo.healthHistory.insert(
 						oldHealth, effects.combatant.currentHealth,
-						context.campaignTime, dpt.element
+						context.campaignTime,
 					)
 					val particle = ParticleEffectState(
 						particle = dpt.particleEffect,
@@ -370,7 +367,7 @@ class BattleState(
 					state.target.incrementReactionSkillsMastery(context, ReactionSkillType.MeleeDefense)
 				}
 
-				applyMoveResultEntirely(context, result, state.attacker, state.skill, false)
+				applyMoveResultEntirely(context, result, state.attacker, state.skill, null)
 				for (entry in result.targets) {
 					if (!entry.missed && state.skill != null) {
 						state.skill.particleEffect?.let { particles.add(ParticleEffectState(
@@ -415,7 +412,7 @@ class BattleState(
 					}
 				}
 
-				applyMoveResultEntirely(context, result, state.attacker, state.skill, false)
+				applyMoveResultEntirely(context, result, state.attacker, state.skill, null)
 				state.skill.particleEffect?.let {
 					particles.add(ParticleEffectState(
 						particle = it,
@@ -511,7 +508,10 @@ class BattleState(
 
 					val elapsedTime = context.campaignTime.virtualOffset(state.targetParticlesSpawnTime)
 					if (elapsedTime > damageDelay + 250.milliseconds * index) {
-						applyMoveResultToTarget(context, targetDamage, state.caster)
+						applyMoveResultToTarget(
+							context, targetDamage, state.caster,
+							state.skill.damage != null,
+						)
 						calculatedDamage[index] = null
 					}
 				}
@@ -528,7 +528,7 @@ class BattleState(
 			)
 			state.thrower.getPerformance(context).numItems += 1
 			context.statistics.itemsConsumed += 1
-			applyMoveResultEntirely(context, result, state.thrower, null, true)
+			applyMoveResultEntirely(context, result, state.thrower, null, state.item.consumable)
 			this.state = BattleStateMachine.NextTurn(context.campaignTime, 500.milliseconds)
 
 			val particleEffect = state.item.consumable?.particleEffect
@@ -560,48 +560,28 @@ class BattleState(
 
 	private fun applyMoveResultEntirely(
 		context: BattleUpdateContext, result: MoveResult,
-		attacker: CombatantState, skill: ActiveSkill?, isConsumable: Boolean,
+		attacker: CombatantState, skill: ActiveSkill?, consumable: ConsumableProperties?,
 	) {
-		applyMoveResultToAttacker(context, result, attacker, skill, isConsumable)
-		for (targetEntry in result.targets) applyMoveResultToTarget(context, targetEntry, attacker)
+		attacker.renderInfo.indicatorHistory.addAttackerIndicator(result, context.campaignTime)
+		applyMoveResultToAttacker(context, result, attacker, skill, consumable != null)
+
+		val shouldShowHealth = if (consumable != null) {
+			consumable.damage != null && consumable.isFullCure ||
+					consumable.restoreHealth != 0 || consumable.revive != 0f
+		} else if (skill != null) skill.damage != null else true
+		for (targetEntry in result.targets) {
+			applyMoveResultToTarget(context, targetEntry, attacker, shouldShowHealth)
+		}
 	}
 
 	private fun applyMoveResultToTarget(
-		context: BattleUpdateContext, entry: MoveResult.Entry, attacker: CombatantState
+		context: BattleUpdateContext, entry: MoveResult.Entry, attacker: CombatantState, shouldShowHealth: Boolean
 	) {
 		val target = entry.target
+		target.renderInfo.indicatorHistory.addTargetIndicator(
+			entry, shouldShowHealth, context.campaignTime
+		)
 		if (!entry.missed) {
-
-			// We can only show 1 damage indicator (otherwise, they overlap), so we should choose the best one
-			// 1. If mana damage was dealt, but no health damage, we show the mana damage
-			if (entry.damageMana != 0 && entry.damage == 0) {
-				target.renderInfo.lastDamageIndicator = DamageIndicatorMana(
-					oldHealth = target.currentHealth,
-					time = context.campaignTime,
-					gainedMana = -entry.damageMana,
-					element = entry.element,
-					overrideColor = entry.overrideBlinkColor,
-				)
-			} else {
-				val isNotSpecial = entry.addedEffects.isEmpty() && entry.removedEffects.isEmpty() &&
-						entry.addedStatModifiers.isEmpty()
-
-				// 2. If health damage was dealt, we always show the health damage
-				// 3. If no health damage was dealt, but something else *did* happen, we show nothing here.
-				//    In such cases, this other effect will be visualized by another part of the renderer.
-				// 4. If no health damage was dealt, but nothing else happened either, it was probably an attack that
-				//    was too weak to deal any damage. In such cases, we explicitly show that it did 0 damage.
-				if (entry.damage != 0 || isNotSpecial) {
-					target.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
-						oldHealth = target.currentHealth,
-						time = context.campaignTime,
-						gainedHealth = -entry.damage,
-						element = entry.element,
-						overrideColor = entry.overrideBlinkColor,
-					)
-				}
-			}
-
 			val oldHealth = target.currentHealth
 			val oldMana = target.currentMana
 			target.currentHealth -= entry.damage
@@ -615,11 +595,11 @@ class BattleState(
 
 			target.renderInfo.manaHistory.insert(
 				oldMana, target.currentMana,
-				context.campaignTime, entry.element
+				context.campaignTime,
 			)
 			target.renderInfo.healthHistory.insert(
 				oldHealth, target.currentHealth,
-				context.campaignTime, entry.element
+				context.campaignTime
 			)
 
 			val realDamage = oldHealth - target.currentHealth
@@ -650,10 +630,6 @@ class BattleState(
 					}
 				}
 			}
-		} else {
-			target.renderInfo.lastDamageIndicator = DamageIndicatorMiss(
-				target.currentHealth, context.campaignTime
-			)
 		}
 	}
 
@@ -662,23 +638,6 @@ class BattleState(
 		attacker: CombatantState, skill: ActiveSkill?, isConsumable: Boolean,
 	) {
 		for (sound in result.sounds) context.soundQueue.insert(sound)
-		if (result.restoreAttackerHealth != 0) {
-			attacker.renderInfo.lastDamageIndicator = DamageIndicatorHealth(
-				oldHealth = attacker.currentHealth,
-				time = context.campaignTime,
-				gainedHealth = result.restoreAttackerHealth,
-				element = result.element,
-				overrideColor = 0,
-			)
-		} else if (result.restoreAttackerMana != 0) {
-			attacker.renderInfo.lastDamageIndicator = DamageIndicatorMana(
-				oldHealth = attacker.currentHealth,
-				time = context.campaignTime,
-				gainedMana = result.restoreAttackerMana,
-				element = result.element,
-				overrideColor = 0,
-			)
-		}
 
 		val oldHealth = attacker.currentHealth
 		val oldMana = attacker.currentMana
@@ -694,12 +653,12 @@ class BattleState(
 
 		attacker.renderInfo.healthHistory.insert(
 			oldHealth, attacker.currentHealth,
-			context.campaignTime, result.element
+			context.campaignTime
 		)
 
 		attacker.renderInfo.manaHistory.insert(
 			oldMana, attacker.currentMana,
-			context.campaignTime, result.element
+			context.campaignTime
 		)
 
 		val notMissedTargets = result.targets.filter { !it.missed }

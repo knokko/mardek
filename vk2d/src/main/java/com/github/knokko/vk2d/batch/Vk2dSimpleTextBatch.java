@@ -33,11 +33,11 @@ public class Vk2dSimpleTextBatch extends Vk2dBatch {
 
 	public void glyphAt(
 			float baseX, float baseY, hb_glyph_position_t glyphOffset, SdfAtlas atlas,
-			float heightA, int glyph, int styleIndex
+			float heightA, float scaleX, int glyph, int styleIndex
 	) {
-		float minX = normalizeX(atlas.getRenderMinX(glyph, baseX, glyphOffset, heightA));
+		float minX = normalizeX(atlas.getRenderMinX(glyph, baseX, glyphOffset, heightA, scaleX));
 		float minY = normalizeY(atlas.getRenderMinY(glyph, baseY, glyphOffset, heightA));
-		float maxX = normalizeX(atlas.getRenderMaxX(glyph, baseX, glyphOffset, heightA));
+		float maxX = normalizeX(atlas.getRenderMaxX(glyph, baseX, glyphOffset, heightA, scaleX));
 		float maxY = normalizeY(atlas.getRenderMaxY(glyph, baseY, glyphOffset, heightA));
 
 		int minU = atlas.getMinX(glyph);
@@ -131,6 +131,13 @@ public class Vk2dSimpleTextBatch extends Vk2dBatch {
 			String text, float baseX, float baseY, float heightA,
 			Vk2dFont font, Vk2dTextStyle style, TextAlignment alignment
 	) {
+		drawString(text, baseX, baseY, heightA, font, style, alignment, 1f);
+	}
+
+	public void drawString(
+			String text, float baseX, float baseY, float heightA,
+			Vk2dFont font, Vk2dTextStyle style, TextAlignment alignment, float scaleX
+	) {
 		hb_buffer_clear_contents(cache.hbBuffer);
 
 		try (var stack = MemoryStack.stackPush()) {
@@ -155,9 +162,9 @@ public class Vk2dSimpleTextBatch extends Vk2dBatch {
 			var glyphInfo = glyphInfos.get(index);
 			int charIndex = glyphInfo.cluster();
 			if (charIndex < text.length() && text.charAt(charIndex) == '\t') {
-				testX += 4 * font.getWhitespaceAdvance(heightA);
+				testX += 4 * font.getWhitespaceAdvance(heightA, scaleX);
 			} else {
-				testX += font.getGlyphAdvanceX(glyphOffsets.get(index), heightA);
+				testX += font.getGlyphAdvanceX(glyphOffsets.get(index), heightA, scaleX);
 			}
 		}
 
@@ -185,16 +192,16 @@ public class Vk2dSimpleTextBatch extends Vk2dBatch {
 			var glyphInfo = glyphInfos.get(index);
 			int charIndex = glyphInfo.cluster();
 			if (charIndex < text.length() && text.charAt(charIndex) == '\t') {
-				baseX += 4 * font.getWhitespaceAdvance(heightA);
+				baseX += 4 * font.getWhitespaceAdvance(heightA, scaleX);
 				continue;
 			}
 
 			var glyphOffset = glyphOffsets.get(index);
 			var atlas = font.chooseAtlas(heightA, style.stroke().width(), glyphInfo.codepoint());
-			glyphAt(baseX, baseY, glyphOffset, atlas, heightA, glyphInfo.codepoint(), styleIndex);
+			glyphAt(baseX, baseY, glyphOffset, atlas, heightA, scaleX, glyphInfo.codepoint(), styleIndex);
 
-			baseX += font.getGlyphAdvanceX(glyphOffset, heightA);
-			baseY += font.getGlyphAdvanceY(glyphOffset, heightA);
+			baseX += font.getGlyphAdvanceX(glyphOffset, heightA, scaleX);
+			baseY += font.getGlyphAdvanceY(glyphOffset, heightA, scaleX);
 		}
 	}
 }

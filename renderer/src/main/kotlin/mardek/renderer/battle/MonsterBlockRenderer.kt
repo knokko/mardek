@@ -25,10 +25,10 @@ internal fun renderMonsterBlock(
 ) {
 	battleContext.run {
 		val opacity = if (!enemy.isAlive()) {
-			val lastDamage = enemy.renderInfo.lastDamageIndicator
+			val lastDamage = enemy.renderInfo.indicatorHistory.mostRecentDamageTakenAt(context.timing)
 			if (lastDamage != null) {
 				context.timing.interpolate(
-					lastDamage.time, 1f,
+					lastDamage, 1f,
 					1.5.seconds, 0f, true
 				)
 			} else return

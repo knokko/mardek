@@ -74,7 +74,7 @@ class ParticleEffect(
 	@BitField(id = 7)
 	val emitters: ArrayList<ParticleEmitter>,
 ) {
-	internal constructor() : this(
+	constructor() : this(
 		"", Duration.ZERO, null, null, null,
 		DurationArray(emptyArray()), null, ArrayList(0)
 	)

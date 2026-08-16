@@ -156,6 +156,7 @@ fun addElements(content: Content) {
 		primaryChar = "N",
 		properName = "PHYSICAL",
 		color = rgb(204, 204, 204),
+		damageColor = rgb(250, 50, 0),
 		thickSprite = getBcSprite("Physical8x"),
 		mediumSprite = getBcSprite("Physical4x"),
 		thinSprite = getBcSprite("Physical2x"),

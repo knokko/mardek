@@ -22,7 +22,6 @@ import mardek.renderer.util.renderInnerBoxButton
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.util.Rectangle
-import mardek.content.util.Time
 import org.joml.Matrix3x2f
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.harfbuzz.HarfBuzz.hb_buffer_add_utf16
@@ -442,7 +441,7 @@ internal fun renderDialogueLines(
 			if (peekChar == ' ' || peekChar == '\n') break
 			if (peekChar == '%' || peekChar == '$') continue
 
-			peekX += font.getGlyphAdvanceX(glyphOffsets[peekGlyphIndex], textHeight)
+			peekX += font.getGlyphAdvanceX(glyphOffsets[peekGlyphIndex], textHeight, 1f)
 			if (peekX > maxTextX) {
 				textX = minTextX
 				textY += implicitLineSpacing
@@ -475,15 +474,15 @@ internal fun renderDialogueLines(
 		if (shadowStyle != null) {
 			textBatch.glyphAt(
 				textX + shadowOffset, textY + shadowOffset, glyphOffsets[glyphIndex],
-				atlas, textHeight, glyph, shadowStyleIndex,
+				atlas, textHeight, 1f, glyph, shadowStyleIndex,
 			)
 		}
 		textBatch.glyphAt(
 			textX, textY, glyphOffsets[glyphIndex], atlas,
-			textHeight, glyph, styleIndex,
+			textHeight, 1f, glyph, styleIndex,
 		)
 
-		textX += font.getGlyphAdvanceX(glyphOffsets[glyphIndex], textHeight)
+		textX += font.getGlyphAdvanceX(glyphOffsets[glyphIndex], textHeight, 1f)
 
 		remaining -= 1f
 	}

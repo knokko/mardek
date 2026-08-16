@@ -1,6 +1,5 @@
 package mardek.state.ingame.battle.combatant
 
-import mardek.content.stats.Element
 import mardek.content.util.Time
 import mardek.state.util.RenderTiming
 import java.util.Objects
@@ -16,7 +15,7 @@ import kotlin.time.DurationUnit
 /**
  * Tracks the HP or MP history of a combatant (e.g. how much damage it took recently).
  *
- * This information is used to render e.g. damage indicators and to animate losing health/mana in the health/mana bar.
+ * This information is used to animate losing health/mana in the health/mana bar gradually.
  */
 class ResourceBarHistory {
 
@@ -25,9 +24,9 @@ class ResourceBarHistory {
 	/**
 	 * Notifies this history that the tracked value changed from [previousValue] to [nextValue] at [currentTime].
 	 */
-	fun insert(previousValue: Int, nextValue: Int, currentTime: Time, element: Element) {
+	fun insert(previousValue: Int, nextValue: Int, currentTime: Time) {
 		if (previousValue != nextValue) {
-			this.entries.add(Entry(previousValue, nextValue, currentTime, element))
+			this.entries.add(Entry(previousValue, nextValue, currentTime))
 		}
 	}
 
@@ -99,7 +98,6 @@ class ResourceBarHistory {
 		val oldValue: Int,
 		val newValue: Int,
 		val changedAt: Time,
-		val element: Element,
 	)
 
 	/**
