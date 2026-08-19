@@ -37,7 +37,7 @@ class CombatantRenderer(
 	private val flipX = if (combatant.isOnPlayerSide && !showcase) 1f else -1f
 	private val effectColorTransform = mergeColorTransforms(
 		mergeColorTransforms(selectedColorTransform(), damageColorTransform()),
-		skipTurnTransform()
+		mergeColorTransforms(skipTurnTransform(), levelUpColorTransform()),
 	)
 
 	private val animations = combatant.getAnimations()
@@ -82,7 +82,7 @@ class CombatantRenderer(
 	}
 
 	private fun damageColorTransform(blinkColor: Int, intensity: Float) = colorCombineTransform(
-		1f, intensity, blinkColor
+		0.8f, intensity, blinkColor
 	)
 
 	private fun damageColorTransform(): ColorTransform? {
@@ -90,6 +90,19 @@ class CombatantRenderer(
 		for (indicator in combatant.renderInfo.indicatorHistory.get(context.context.timing)) {
 			if (indicator.blinkColor != 0 && indicator.blinkIntensity > 0f) {
 				val addedTransform = damageColorTransform(srgbToLinear(indicator.blinkColor), indicator.blinkIntensity)
+				transform = mergeColorTransforms(transform, addedTransform)
+			}
+		}
+
+		return transform
+	}
+
+	private fun levelUpColorTransform(): ColorTransform? {
+		var transform: ColorTransform? = null
+		for (indicator in combatant.renderInfo.levelUpHistory.get(context.context.timing)) {
+			if (indicator.blinkIntensity > 0f) {
+				val blinkColor = srgbToLinear(rgb(250, 250, 80))
+				val addedTransform = damageColorTransform(blinkColor, indicator.blinkIntensity)
 				transform = mergeColorTransforms(transform, addedTransform)
 			}
 		}

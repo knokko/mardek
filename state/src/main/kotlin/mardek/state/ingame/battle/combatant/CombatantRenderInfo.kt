@@ -37,6 +37,13 @@ class CombatantRenderInfo {
 	val indicatorHistory = DamageIndicatorHistory()
 
 	/**
+	 * This 'indicator history' is used to track the most recent level-up.
+	 *
+	 * If this was sufficiently recent, a "Level Up!" will be displayed at the player, as well as its new level.
+	 */
+	val levelUpHistory = DamageIndicatorHistory()
+
+	/**
 	 * For each status effect that this combatant currently has, this mapping tracks the state of its particle emitters.
 	 * Entries are inserted during the first frame where the combatant has the corresponding status effect, and are
 	 * deleted during the first frame where the combatant no longer has the status effect.

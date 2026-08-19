@@ -16,12 +16,14 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.combatant.PlayerCombatantState
+import mardek.state.util.RenderTiming
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestExperience {
@@ -143,6 +145,12 @@ object TestExperience {
 				level = 1,
 			)))
 
+			// Invoke the renderer, simply to set the `renderInfo.hitPoint`s
+			testRendering(
+				state, 900, 700, "level-up-before",
+				arrayOf(), arrayOf(),
+			)
+
 			val battleState = (areaState.suspension as AreaSuspensionBattle).battle
 			val monsterState = battleState.livingOpponents()[0]
 
@@ -168,7 +176,9 @@ object TestExperience {
 			state.update(updateContext)
 
 			val combatMardek = battleState.livingPlayers()[0] as PlayerCombatantState
-			assertNull(combatMardek.lastLevelUp)
+			assertEquals(0, combatMardek.renderInfo.levelUpHistory.get(RenderTiming(
+				state.campaign.time, 0L, Duration.ZERO
+			)).size)
 
 			val moveToState = battleState.state as BattleStateMachine.MeleeAttack.MoveTo
 			moveToState.finished = true
@@ -181,8 +191,14 @@ object TestExperience {
 				updateContext.soundQueue.take()
 			}
 			state.update(updateContext)
-			assertEquals(2, combatMardek.lastLevelUp!!.newLevel)
-			assertNull(combatDeugan.lastLevelUp)
+
+			val timing = RenderTiming(
+				state.campaign.time, 0L, Duration.ZERO
+			)
+			val mardekEntries = combatMardek.renderInfo.levelUpHistory.get(timing)
+			assertEquals(1, mardekEntries.size)
+			assertEquals(2, mardekEntries[0].amount)
+			assertEquals(0, combatDeugan.renderInfo.levelUpHistory.get(timing).size)
 
 			// The base EXP of forest fish is 100 * 2, and Mardek should also get 100 EXP for just attacking
 			assertEquals(199, mardekState.experienceToNextLevel)
@@ -201,6 +217,10 @@ object TestExperience {
 				Color(246, 215, 132), // "Level 2" color
 			)
 
+			// Await the level-up fade-in
+			repeat(10) {
+				state.update(updateContext)
+			}
 			testRendering(
 				state, 900, 700, "level-up",
 				levelUpColors, arrayOf(),
@@ -286,8 +306,12 @@ object TestExperience {
 				updateContext.soundQueue.take()
 			}
 			state.update(updateContext)
-			assertNull(combatMardek.lastLevelUp)
-			assertNull(combatDeugan.lastLevelUp)
+
+			val timing = RenderTiming(
+				state.campaign.time, 0L, Duration.ZERO
+			)
+			assertNull(combatMardek.renderInfo.levelUpHistory.mostRecentDamageTakenAt(timing))
+			assertEquals(0, combatDeugan.renderInfo.levelUpHistory.get(timing).size)
 
 			// Mardek gets 100 EXP for landing a hit, but nothing more
 			assertEquals(100, mardekState.experienceToNextLevel)

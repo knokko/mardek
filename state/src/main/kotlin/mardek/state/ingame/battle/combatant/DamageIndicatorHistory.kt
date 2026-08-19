@@ -89,6 +89,19 @@ class DamageIndicatorHistory {
 	}
 
 	/**
+	 * This method should be called on the `renderInfo.levelUpHistory` when a player levels-up
+	 */
+	fun addLevelUp(newLevel: Int, time: Time) {
+		entries.add(Entry(
+			element = null,
+			amount = newLevel,
+			type = ResultType.LevelUp,
+			insertionTime = time,
+			overrideColor = 0,
+		))
+	}
+
+	/**
 	 * Gets the most recent time instant where the combatant took damage.
 	 *
 	 * This is used for playing/timing e.g. the death & hurt animations
@@ -235,11 +248,11 @@ class DamageIndicatorHistory {
 		val opacity: Float,
 	) {
 		init {
-			if (element == null && type != ResultType.Miss) {
-				throw IllegalArgumentException("Element is required for any type except Miss")
+			if (element == null && type != ResultType.Miss && type != ResultType.LevelUp) {
+				throw IllegalArgumentException("Element is required for any type except Miss and LevelUp")
 			}
-			if (element != null && type == ResultType.Miss) {
-				throw IllegalArgumentException("Element must be null for type Miss")
+			if (element != null && (type == ResultType.Miss || type == ResultType.LevelUp)) {
+				throw IllegalArgumentException("Element must be null for type Miss and LevelUp")
 			}
 		}
 	}
@@ -253,6 +266,11 @@ class DamageIndicatorHistory {
 		 * An attack against this combatant missed
 		 */
 		Miss,
+
+		/**
+		 * A player just leveled-up
+		 */
+		LevelUp,
 
 		/**
 		 * This combatant recently lost health

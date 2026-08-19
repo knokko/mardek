@@ -1,57 +1,31 @@
 package mardek.renderer.battle
 
-import com.github.knokko.boiler.utilities.ColorPacker.rgba
-import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
 import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
-import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.renderer.MardekTextStyles
-import mardek.state.ingame.battle.combatant.LevelUpIndicator
-import mardek.state.ingame.battle.combatant.PlayerCombatantState
 import mardek.state.util.Rectangle
-import kotlin.math.pow
 import kotlin.math.roundToInt
-import kotlin.time.Duration
 
-internal fun renderLevelUps(
-	battleContext: BattleRenderContext, simpleTextBatch: Vk2dSimpleTextBatch,
-	fancyTextBatch: Vk2dFancyTextBatch, region: Rectangle
-) {
+internal fun renderLevelUps(battleContext: BattleRenderContext, textBatch: Vk2dFancyTextBatch, region: Rectangle) {
 	battleContext.run {
 		for (combatant in battle.allPlayers() + battle.allOpponents()) {
-			if (combatant !is PlayerCombatantState) continue
-			val levelUp = combatant.lastLevelUp ?: continue
-			var passedTime = context.timing.elapsedTimeSince(levelUp.startTime)
-			if (passedTime >= LevelUpIndicator.TOTAL_DURATION) continue
-
-			var offsetY = 0f
-			var alpha = 255
-			if (passedTime < LevelUpIndicator.JUMP_DURATION) {
-				val relativeTime = (passedTime / LevelUpIndicator.JUMP_DURATION).toFloat()
-				val fromMidTime = 0.5f - relativeTime
-				offsetY = (0.25f - fromMidTime.pow(2)) * 0.1f * region.height
-			}
-			passedTime -= LevelUpIndicator.JUMP_DURATION + LevelUpIndicator.STABLE_DURATION
-			if (passedTime > Duration.ZERO) {
-				alpha = (255f * (1f - passedTime / LevelUpIndicator.FADE_DURATION)).roundToInt()
-			}
-
-			if (alpha > 0) {
+			for (indicator in combatant.renderInfo.levelUpHistory.get(battleContext.context.timing)) {
+				val alpha = (indicator.opacity * 255f).roundToInt()
 				val font = context.bundle.getFont(context.content.fonts.basic1.index)
-				val renderPoint = combatant.renderInfo.statusEffectPoint
-				val renderY = renderPoint.y - offsetY
-				fancyTextBatch.drawString(
+				val renderPoint = combatant.renderInfo.hitPoint
+				val renderY = renderPoint.y - 0.01f * region.height - 0.03f * region.height * indicator.relativeY
+				val textScaleX = 1f + 2.5f * (1f - indicator.heightFactor)
+				textBatch.drawString(
 					"Level Up!", renderPoint.x, renderY, 0f,
-					0.035f * region.height, font,
+					0.03f * region.height * indicator.heightFactor, font,
 					MardekTextStyles.BattleIndicators.levelUp(alpha),
-					TextAlignment.CENTERED,
+					TextAlignment.CENTERED, textScaleX,
 				)
-				simpleTextBatch.drawString(
-					"Level ${levelUp.newLevel}", renderPoint.x, renderY + 0.035f * region.height,
-					0.03f * region.height, font,
-					srgbToLinear(rgba(247, 216, 132, alpha)),
-					rgba(0, 0, 0, alpha), 0.004f * region.height,
-					TextAlignment.LEFT,
+				textBatch.drawString(
+					"Level ${indicator.amount}", renderPoint.x, renderY + 0.035f * region.height,
+					0f, 0.025f * region.height * indicator.heightFactor, font,
+					MardekTextStyles.BattleIndicators.newLevel(alpha),
+					TextAlignment.LEFT, textScaleX,
 				)
 			}
 		}

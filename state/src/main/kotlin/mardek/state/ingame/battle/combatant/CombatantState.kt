@@ -24,8 +24,6 @@ import mardek.content.util.Time
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.BattleUpdateContext
-import mardek.state.ingame.battle.combatant.ExperienceIndicators
-import mardek.state.ingame.battle.combatant.LevelUpIndicator
 import java.util.EnumMap
 import kotlin.math.max
 import kotlin.math.min
@@ -480,13 +478,6 @@ class PlayerCombatantState(
 	 */
 	val experienceIndicators = ExperienceIndicators()
 
-	/**
-	 * The most recent level-up that happened during this battle, or `null` if no level-up has happened yet.
-	 * When this is non-null and not too long ago, the renderer should display a "Level up" indicator at the character
-	 */
-	var lastLevelUp: LevelUpIndicator? = null
-		private set
-
 	constructor() : this(PlayableCharacter(), CharacterState(), true)
 
 	override fun toString() = player.name
@@ -587,7 +578,7 @@ class PlayerCombatantState(
 			clampHealthAndMana(context)
 
 			context.soundQueue.insert(context.sounds.battle.levelUp)
-			lastLevelUp = LevelUpIndicator(context.campaignTime, state.currentLevel)
+			renderInfo.levelUpHistory.addLevelUp(state.currentLevel, context.campaignTime)
 		}
 	}
 

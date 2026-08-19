@@ -478,6 +478,12 @@ object MardekTextStyles {
 			srgbToLinear(rgba(253, 252, 235, alpha)),
 			alpha / 255f
 		)
+
+		fun newLevel(alpha: Int) = base(
+			srgbToLinear(rgba(247, 216, 132, alpha)),
+			srgbToLinear(rgba(247, 216, 132, alpha)),
+			alpha / 255f,
+		)
 	}
 
 	object BattleDescription {
