@@ -38,7 +38,13 @@ object TestInventory {
 
 			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds)
 			context.input.postEvent(pressKeyEvent(InputKey.Interact)) // Skip chapter number
-			context.input.postEvent(repeatKeyEvent(InputKey.Interact)) // Skip intro cutscene
+
+			// Skip intro cutscene
+			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
+			repeat(50) {
+				state.update(context)
+			}
+			context.input.postEvent(releaseKeyEvent(InputKey.Cancel))
 			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(context)
 

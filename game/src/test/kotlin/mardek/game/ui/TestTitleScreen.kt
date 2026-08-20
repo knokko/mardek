@@ -5,6 +5,7 @@ import mardek.content.action.ActionShowChapterName
 import mardek.content.action.FixedActionNode
 import mardek.game.TestingInstance
 import mardek.game.pressKeyEvent
+import mardek.game.releaseKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
@@ -188,7 +189,10 @@ object TestTitleScreen {
 			// Skip intro cutscene
 			assertInstanceOf<ActionPlayCutscene>(((newState.campaign.state as CampaignActionsState).node as FixedActionNode).action)
 			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
-			newState.update(context)
+			repeat(50) {
+				newState.update(context)
+			}
+			context.input.postEvent(releaseKeyEvent(InputKey.Cancel))
 
 			// Finally go in-game
 			assertInstanceOf<AreaState>(newState.campaign.state)

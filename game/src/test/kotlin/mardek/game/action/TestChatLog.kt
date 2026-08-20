@@ -33,13 +33,10 @@ object TestChatLog {
 			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.Interact)) // Skip chapter number
-			context.input.postEvent(repeatKeyEvent(InputKey.Interact)) // Skip intro cutscene
-			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
-
-			// Skip walking & area fade-in
-			repeat(10) {
+			repeat(160) {
 				state.update(context)
 			}
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 
 			// Skip dialogue nodes until we reach the last one
 			repeat(11) {

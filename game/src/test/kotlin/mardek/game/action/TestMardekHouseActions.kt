@@ -395,7 +395,7 @@ object TestMardekHouseActions {
 
 			state.update(updateContext)
 			assertSame(gdmTrack, state.campaign.determineMusicTrack(content))
-			repeat(262) {
+			repeat(14) {
 				state.update(updateContext)
 			}
 			assertSame(gdmTrack, state.campaign.determineMusicTrack(content))

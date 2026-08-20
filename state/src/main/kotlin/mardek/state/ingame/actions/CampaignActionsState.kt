@@ -13,7 +13,6 @@ import mardek.content.action.ActionSetOverlayColor
 import mardek.content.action.ActionShowChapterName
 import mardek.content.action.ActionTalk
 import mardek.content.action.ActionToArea
-import mardek.content.action.FixedAction
 import mardek.content.action.FixedActionNode
 import mardek.content.audio.MusicTrack
 import mardek.content.battle.BattleBackground
@@ -154,8 +153,6 @@ class CampaignActionsState(
 		this.shownDialogueCharacters = 0f
 	}
 
-	private fun isAnimationAction(action: FixedAction) = action is ActionShowChapterName || action is ActionPlayCutscene
-
 	private fun updateTalking(currentAction: ActionTalk, context: CampaignState.UpdateContext): Boolean {
 		var speedModifier = 1f
 		if (speedUpShowingCharacters) speedModifier = 80f
@@ -186,6 +183,14 @@ class CampaignActionsState(
 				}
 
 				if (action is ActionPlayCutscene) {
+
+					// Allow players to speed up cutscenes by holding E or Q
+					if (campaignContext.input.isPressed(InputKey.Interact)) {
+						campaign.time += campaignContext.timeStep * 3
+					}
+					if (campaignContext.input.isPressed(InputKey.Cancel)) {
+						campaign.time += campaignContext.timeStep * 15
+					}
 
 					val passedCutsceneTime = campaign.time.virtualOffset(currentNodeStartTime)
 					val oldPassedTime = passedCutsceneTime - campaignContext.timeStep
@@ -258,7 +263,7 @@ class CampaignActionsState(
 					key == InputKey.ToggleMenu
 
 			var goToNextNode = false
-			if (isSkipKey && isAnimationAction(currentAction)) goToNextNode = true
+			if (isSkipKey && currentAction is ActionShowChapterName) goToNextNode = true
 
 			if (currentAction is ActionTalk) {
 				if (key == InputKey.Interact) {

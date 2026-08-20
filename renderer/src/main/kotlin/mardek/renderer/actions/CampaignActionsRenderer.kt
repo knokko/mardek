@@ -15,7 +15,6 @@ import mardek.renderer.animation.renderBattleBackgroundAnimation
 import mardek.renderer.area.ui.renderCampaignDialogue
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.util.Rectangle
-import mardek.content.util.Time
 import mardek.renderer.animation.DEFAULT_ANIMATION_REFERENCE_TIME
 import kotlin.time.Duration
 
@@ -53,9 +52,13 @@ internal fun renderCampaignActions(
 		}
 
 		if (action is ActionPlayCutscene) {
-			colorBatch = renderCutscene(context, actions, action, region) { capacity ->
-				context.addFancyTextBatch(capacity)
-			}
+			val batches = renderCutscene(
+				context, actions, action, region,
+				context::addTextBatch,
+				context::addFancyTextBatch,
+			)
+			colorBatch = batches.first
+			simpleTextBatch = batches.second
 		}
 
 		if (action is ActionTalk) {

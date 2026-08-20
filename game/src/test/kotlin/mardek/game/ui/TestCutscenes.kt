@@ -102,6 +102,10 @@ object TestCutscenes {
 
 			// Skip the cutscene
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
+			repeat(1646) {
+				igState.update(context)
+			}
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 
 			val dragonLairColors = arrayOf(
 				Color(13, 0, 22), // background color

@@ -686,6 +686,8 @@ object MardekTextStyles {
 				), 0.08f,
 			)
 		}
+
+		fun skipHint(opacity: Float) = BRIGHT_TEXT_FILL.only().multiplyAlpha(opacity)!!
 	}
 
 	object EndOfChapter {

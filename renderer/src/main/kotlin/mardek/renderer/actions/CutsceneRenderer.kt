@@ -4,6 +4,7 @@ import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.boiler.utilities.ColorPacker.rgba
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dFancyTextBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.TextAlignment
 import mardek.content.action.ActionPlayCutscene
 import mardek.content.util.Time
@@ -17,6 +18,7 @@ import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 import kotlin.math.max
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 internal fun createCutsceneAnimationContext(
@@ -62,9 +64,10 @@ internal fun createCutsceneAnimationContext(
 }
 
 internal fun renderCutscene(
-	context: RenderContext, actions: CampaignActionsState, action: ActionPlayCutscene,
-	region: Rectangle, createTextBatch: (capacity: Int) -> Vk2dFancyTextBatch,
-): Vk2dColorBatch? {
+	context: RenderContext, actions: CampaignActionsState, action: ActionPlayCutscene, region: Rectangle,
+	createSimpleTextBatch: (capacity: Int) -> Vk2dSimpleTextBatch,
+	createFancyTextBatch: (capacity: Int) -> Vk2dFancyTextBatch,
+): Pair<Vk2dColorBatch?, Vk2dSimpleTextBatch?> {
 	var colorBatch: Vk2dColorBatch? = null
 
 	val allFrames = action.cutscene.payload.get().frames
@@ -79,7 +82,8 @@ internal fun renderCutscene(
 		}
 	}
 
-	if (frameIndex == -1) return null
+	if (frameIndex == -1) return Pair(null, null)
+	var simpleTextBatch: Vk2dSimpleTextBatch? = null
 
 	for (textEntry in action.cutscene.payload.get().subtitles) {
 		if (frameIndex >= textEntry.frame) actions.cutsceneSubtitle = Pair(textEntry.index, textEntry.text)
@@ -92,11 +96,24 @@ internal fun renderCutscene(
 	renderCutsceneAnimation(ReferenceLazyBits(allFrames), animationContext)
 	animationContext.lightning.lastRenderedAt = context.timing.now()
 
+	if (allFrames.duration > 10.seconds && timeSinceStart < 2.seconds) {
+		simpleTextBatch = createSimpleTextBatch(100)
+		val font = context.bundle.getFont(context.content.fonts.basic1.index)
+		val opacity = if (timeSinceStart < 1500.milliseconds) 1f
+		else 1f - ((timeSinceStart - 1500.milliseconds) / 500.milliseconds).toFloat()
+		simpleTextBatch.drawString(
+			"(Hold E or Q to skip)",
+			region.minX + 0.5f * region.width, region.minY + 0.5f * region.height,
+			0.05f * region.height, font,
+			MardekTextStyles.Cutscenes.skipHint(opacity), TextAlignment.CENTERED,
+		)
+	}
+
 	if (actions.cutsceneSubtitle.second.isNotEmpty()) {
 		val font = context.bundle.getFont(context.content.fonts.large2.index)
 		val textHeight = 0.015f * region.width * relativeScaleX
 
-		val batch = createTextBatch(500)
+		val batch = createFancyTextBatch(500)
 		fun draw(baseX: Float, baseY: Float, alignment: TextAlignment) {
 			batch.drawShadowedString(
 				actions.cutsceneSubtitle.second, baseX, baseY, 0f, textHeight, font,
@@ -140,5 +157,5 @@ internal fun renderCutscene(
 		}
 	}
 
-	return colorBatch
+	return Pair(colorBatch, simpleTextBatch)
 }

@@ -37,6 +37,7 @@ import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 object TestDragonLair {
 
@@ -336,7 +337,7 @@ object TestDragonLair {
 				baseColors + princessPortraitColors + dragonColors + heroesDenColors,
 			)
 
-			// Wait until the fade-out is over
+			// Wait until the fade-in is over
 			repeat(50) {
 				state.update(context)
 			}
@@ -361,8 +362,9 @@ object TestDragonLair {
 				(state.campaign.state as AreaState).getPlayerPosition(0)
 			)
 
-			// The statistics should have been reset after leaving Dragon Lair
+			// The statistics should have been reset after leaving Dragon Lair, but not the campaign time
 			assertEquals(0, state.campaign.statistics.totalSteps)
+			assertTrue(state.campaign.time.virtual > 110.seconds)
 
 			fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
 			repeat(25) {
