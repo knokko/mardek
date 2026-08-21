@@ -29,6 +29,7 @@ import mardek.game.save.TestSaveAndLoad
 import mardek.game.story.TestQuests
 import mardek.game.ui.TestCutscenes
 import mardek.game.ui.TestEndOfChapter
+import mardek.game.ui.TestExitModal
 import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestInventory
 import mardek.game.ui.TestItemStorage
@@ -607,5 +608,10 @@ class IntegrationTests {
 	@Test
 	fun testAccessoryShopDialogue() {
 		TestAccessoryShop.testReplacePCWithPlayerDialogue(instance)
+	}
+
+	@Test
+	fun testExitConfirmationModal() {
+		TestExitModal.runTest(instance)
 	}
 }

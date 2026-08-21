@@ -22,6 +22,7 @@ import mardek.renderer.menu.determineSectionRenderRegion
 import mardek.renderer.menu.renderInGameMenu
 import mardek.renderer.menu.renderInGameMenuSectionList
 import mardek.renderer.save.renderSaveSelectionModal
+import mardek.state.ingame.ConsiderCampaignExit
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.actions.ItemStorageInteractionState
@@ -74,28 +75,44 @@ internal fun renderInGame(
 
 			val suspension = stateMachine.suspension
 			if (suspension !is AreaSuspensionBattle) {
-				if (state.menu.shown !is ShownState.FullyHidden) {
+				val considerExit = state.considerExit
+				if (state.menu.shown !is ShownState.FullyHidden || considerExit != null) {
 					val framebuffers = context.framebuffers
 					val areaRenderStage = context.pipelines.blur.addSourceStage(
 						context.frame, framebuffers.blur, -1
 					)
 
-					val menuOpacity = when (val shown = state.menu.shown) {
-						is ShownState.FullyShown -> 1f
-						is ShownState.FadingIn -> context.timing.interpolate(
-							shown.since, 0f,
-							ShownState.FADE_DURATION, 1f, true,
-						)
-						is ShownState.FadingOut -> context.timing.interpolate(
-							shown.since, 1f,
-							ShownState.FADE_DURATION, 0f, true
-						)
-						else -> throw RuntimeException("Unexpected shown state $shown")
+					val menuOpacity = if (considerExit == null) {
+						when (val shown = state.menu.shown) {
+							is ShownState.FullyShown -> 1f
+							is ShownState.FadingIn -> context.timing.interpolate(
+								shown.since, 0f,
+								ShownState.FADE_DURATION, 1f, true,
+							)
+							is ShownState.FadingOut -> context.timing.interpolate(
+								shown.since, 1f,
+								ShownState.FADE_DURATION, 0f, true
+							)
+							else -> throw RuntimeException("Unexpected shown state $shown")
+						}
+					} else {
+						val cancelTime = considerExit.cancelledAt
+						if (cancelTime != null) {
+							context.timing.interpolate(
+								cancelTime, 1f,
+								ConsiderCampaignExit.CANCEL_FADE_OUT, 0f, true
+							)
+						} else {
+							context.timing.interpolate(
+								considerExit.consideredAt, 0f,
+								ConsiderCampaignExit.FADE_IN, 1f, true
+							)
+						}
 					}
 
 					val blurFilterSize = supportedBlurFilterSizes.minBy { abs(it - 9f * menuOpacity) }
 
-					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
+					if (considerExit == null && state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						context.currentStage = context.pipelines.blur.addSourceStage(
 							context.frame, framebuffers.sectionBlur, -1
 						)
@@ -127,7 +144,7 @@ internal fun renderInGame(
 						context.frame, context.perFrame.areaBlurDescriptors,
 						framebuffers.blur, blurFilterSize, 50, -1
 					)
-					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
+					if (considerExit == null && state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						computeStage.additional(
 							context.perFrame.sectionsBlurDescriptors,
 							framebuffers.sectionBlur, blurFilterSize, 50
@@ -139,18 +156,24 @@ internal fun renderInGame(
 					renderCurrentArea(context, stateMachine, areaRenderRegion)
 					renderBlurred(menuOpacity)
 
-					val batches = renderInGameMenu(context, region, 1f - menuOpacity, state.menu, state.campaign)
-					titleColorBatch = batches.first
-					titleTextBatch = batches.second
+					if (considerExit == null) {
+						val batches = renderInGameMenu(context, region, 1f - menuOpacity, state.menu, state.campaign)
+						titleColorBatch = batches.first
+						titleTextBatch = batches.second
 
-					if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
-						val sectionRegion = determineSectionRenderRegion(region)
-						context.pipelines.blur.addBatch(
-							context.frame.swapchainStage,
-							framebuffers.sectionBlur, context.perFrame.sectionsBlurDescriptors,
-							sectionRegion.minX.toFloat(), sectionRegion.minY.toFloat(),
-							sectionRegion.maxX + 1f, sectionRegion.maxY + 1f
-						).noColorTransform()
+						if (state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
+							val sectionRegion = determineSectionRenderRegion(region)
+							context.pipelines.blur.addBatch(
+								context.frame.swapchainStage,
+								framebuffers.sectionBlur, context.perFrame.sectionsBlurDescriptors,
+								sectionRegion.minX.toFloat(), sectionRegion.minY.toFloat(),
+								sectionRegion.maxX + 1f, sectionRegion.maxY + 1f
+							).noColorTransform()
+						}
+					} else {
+						val batches = renderCampaignExitModal(considerExit, menuOpacity, context, region)
+						titleColorBatch = batches.first
+						titleTextBatch = batches.second
 					}
 				} else {
 					var saveSelection: SaveSelectionState? = null

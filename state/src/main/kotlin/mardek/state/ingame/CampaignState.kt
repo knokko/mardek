@@ -199,6 +199,17 @@ class CampaignState : BitPostInit {
 	 */
 	var gameOver = false
 
+	/**
+	 * The campaign state will set this variable to true when the player presses Escape while in an unsuspended
+	 * [AreaState].
+	 *
+	 * When the [InGameState] sees that `considerExit = true`, it should open an exit confirmation modal.
+	 *
+	 * This variable is needed as communication channel, since the campaign state does not have the power to change the
+	 * 'root' game state.
+	 */
+	var considerExit = false
+
 	override fun postInit(context: BitPostInit.Context) {
 		val content = context.withParameters["content"] as Content
 		story.validatePartyMembers(content, party, characterStates)
@@ -216,15 +227,26 @@ class CampaignState : BitPostInit {
 	}
 
 	/**
-	 * This method should be invoked during every [InGameState.update] while `inGameState.menu.shown` is `false`.
+	 * This method should be invoked during every [InGameState.update] while the in-game menu is closed
 	 *
 	 * This method propagates the update to [state], and sends potential events to [state].
 	 */
 	fun update(context: UpdateContext) {
 		while (true) {
 			val event = context.input.consumeEvent() ?: break
-			if (event is InputKeyEvent && event.didPress && event.key == InputKey.CheatSave) {
-				context.saves.createSave(context.content, this, context.campaignName, SaveFile.Type.Cheat)
+			if (event is InputKeyEvent && event.didPress) {
+				if (event.key == InputKey.CheatSave) {
+					context.saves.createSave(
+						context.content, this,
+						context.campaignName, SaveFile.Type.Cheat,
+					)
+				}
+				if (event.key == InputKey.Escape) {
+					val currentState = state
+					if (currentState is AreaState && currentState.suspension == null) {
+						this.considerExit = true
+					}
+				}
 			}
 
 			state.processEvent(event, context, this)

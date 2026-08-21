@@ -31,6 +31,7 @@ import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
 import mardek.content.story.TimelineNode
+import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.saves.SaveFile
@@ -53,6 +54,7 @@ import org.lwjgl.vulkan.VkPushConstantRange
 import java.io.File
 import java.nio.file.Files
 import java.util.Collections
+import kotlin.time.Duration
 
 class TestingInstance {
 
@@ -216,6 +218,10 @@ class TestingInstance {
 			context = battleUpdateContext(campaign)
 		))
 	}
+
+	fun createUpdateContext(timeStep: Duration) = GameStateUpdateContext(
+		content, titleContent, InputManager(), SoundQueue(), timeStep, saves = dummySaveManager()
+	)
 
 	fun simpleCampaignState(): CampaignState {
 		val campaignState = CampaignState()

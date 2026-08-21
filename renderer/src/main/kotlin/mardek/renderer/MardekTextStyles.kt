@@ -690,6 +690,23 @@ object MardekTextStyles {
 		fun skipHint(opacity: Float) = BRIGHT_TEXT_FILL.only().multiplyAlpha(opacity)!!
 	}
 
+	object ExitCampaign {
+
+		fun shadow(alpha: Int) = Vk2dTextStyle(
+			Vk2dTextStyle.FillStyle(srgbToLinear(rgba(90, 52, 22, alpha))),
+			Vk2dTextStyle.StrokeStyle(
+				rgba(0, 0, 0, alpha),
+				0.15f, true, 0.5f
+			)
+		)
+
+		fun base(alpha: Int) = STRONG_TEXT_FILL.only().multiplyAlpha(alpha / 255f)!!
+
+		fun bold(alpha: Int) = Vk2dTextStyle.FillStyle(
+			srgbToLinear(rgba(255, 255, 152, alpha))
+		).only()!!
+	}
+
 	object EndOfChapter {
 		val TITLE = Vk2dTextStyle.FillStyle(
 			srgbToLinear(rgb(131, 81, 37))

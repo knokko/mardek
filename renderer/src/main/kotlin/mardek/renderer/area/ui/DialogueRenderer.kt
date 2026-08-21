@@ -35,7 +35,7 @@ import kotlin.math.roundToInt
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-private const val CHOICE_CHAR = '•'
+internal const val CHOICE_CHAR = '•'
 
 internal class DialogueRenderContext(
 	val actionNode: ActionNode,
