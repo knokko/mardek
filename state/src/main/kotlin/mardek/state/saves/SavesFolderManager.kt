@@ -164,6 +164,25 @@ class SavesFolderManager(
 		}
 	}
 
+	fun deleteIncompatibleSaves(content: Content) {
+		val campaigns = getCampaignNames()
+		for (campaignName in campaigns) {
+			val savesFolder = File("$root/$campaignName")
+			val rawSavesFiles = savesFolder.listFiles() ?: continue
+
+			for (rawSaveFile in rawSavesFiles) {
+				if (rawSaveFile.extension != "bits") continue
+				val saveFile = SaveFile.scan(rawSaveFile)
+				if (saveFile != null) {
+					if (saveFile.load(content) == null) rawSaveFile.delete()
+				} else rawSaveFile.delete()
+			}
+
+			val remainingFiles = savesFolder.listFiles()
+			if (remainingFiles != null && remainingFiles.isEmpty()) savesFolder.delete()
+		}
+	}
+
 	private fun musicFile(track: MusicTrack) = File("$discoveredMusicDirectory/${track.id}")
 
 	/**

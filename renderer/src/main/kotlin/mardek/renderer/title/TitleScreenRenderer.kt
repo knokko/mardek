@@ -128,6 +128,10 @@ private fun renderCoreTitleScreen(
 		region, colorBatch, ovalBatch, fancyTextBatch, buttonFont, "Quit",
 		0.84f, selectedButton, 3
 	)
+	state.deleteIncompatibleSavesButton = renderLeftButton(
+		region, colorBatch, ovalBatch, fancyTextBatch, buttonFont, "Delete Old Saves",
+		0.94f, selectedButton, 4
+	)
 
 	if (state.newCampaignName != null) {
 		simpleTextBatch.drawShadowedString(
@@ -141,7 +145,7 @@ private fun renderCoreTitleScreen(
 		)
 		state.beginButton = renderRightButton(
 			region, colorBatch, ovalBatch, fancyTextBatch, buttonFont, "BEGIN",
-			0.73f, state.selectedButton, 4, !state.isCampaignNameValid
+			0.73f, state.selectedButton, 5, !state.isCampaignNameValid
 		)
 
 		val nameMargin = 22 * nameRectangle.height / 100

@@ -103,7 +103,7 @@ object TestTitleScreen {
 			assertFalse(state.isCampaignNameValid)
 
 			// Clicking on "BEGIN" should have no effect since the campaign name "." is invalid
-			state.selectedButton = 4
+			state.selectedButton = 5
 			input.postEvent(pressKeyEvent(InputKey.Click))
 			assertSame(state, state.updateBeforeContent(input, soundQueue, saves, titleContent))
 
@@ -169,7 +169,7 @@ object TestTitleScreen {
 				baseColors + selectedButtonColors + textInputColors, emptyArray(),
 			)
 
-			state.selectedButton = 4
+			state.selectedButton = 5
 			val beforeClickTime = System.nanoTime()
 			input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 

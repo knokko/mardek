@@ -50,6 +50,8 @@ class TitleScreenState: GameState {
 	 */
 	var quitButton: Rectangle? = null
 
+	var deleteIncompatibleSavesButton: Rectangle? = null
+
 	/**
 	 * When the "Begin" button is visible, this is the region where the "Begin" button was rendered. Otherwise, this
 	 * will be `null`.
@@ -62,7 +64,7 @@ class TitleScreenState: GameState {
 	 */
 	var selectedButton = -1
 
-	private val buttons = listOf(::newGameButton, ::loadGameButton, ::musicPlayerButton, ::quitButton, ::beginButton)
+	private val buttons = listOf(::newGameButton, ::loadGameButton, ::musicPlayerButton, ::quitButton, ::deleteIncompatibleSavesButton, ::beginButton)
 
 	// New-game variables
 	/**
@@ -176,7 +178,7 @@ class TitleScreenState: GameState {
 					didClick = didClick || event.key == InputKey.ToggleMenu
 				}
 				if (event.didPress && didClick && saveSelection == null) {
-					val nextMenu = handleButtonClick()
+					val nextMenu = handleButtonClick(saves)
 					if (nextMenu != this) return nextMenu
 				}
 
@@ -227,7 +229,7 @@ class TitleScreenState: GameState {
 		content: Content?, audioContent: AudioContent
 	) = MusicPlayerJob(audioContent.titleScreenTrack)
 
-	private fun handleButtonClick(): GameState {
+	private fun handleButtonClick(saves: SavesFolderManager): GameState {
 		if (selectedButton == 0) {
 			newCampaignName = ""
 			saveSelection = null
@@ -239,14 +241,24 @@ class TitleScreenState: GameState {
 			afterContentLoaded = { _, _ ->
 				if (availableCampaigns!!.isNotEmpty()) {
 					saveSelection = SaveSelectionState(availableCampaigns!!)
-					afterContentLoaded = null
 				}
+				afterContentLoaded = null
 				this
 			}
 		}
 		if (selectedButton == 2) toMusicPlayerAt = System.nanoTime() + MusicPlayerState.FADE_IN_TIME
 		if (selectedButton == 3) return ExitState()
-		if (selectedButton == 4) tryToStartNewGame()
+		if (selectedButton == 4) {
+			newCampaignName = null
+			saveSelection = null
+			afterContentLoaded = { content, _ ->
+				saves.deleteIncompatibleSaves(content)
+				availableCampaigns = saves.getCampaignNames()
+				afterContentLoaded = null
+				this
+			}
+		}
+		if (selectedButton == 5) tryToStartNewGame()
 		return this
 	}
 
