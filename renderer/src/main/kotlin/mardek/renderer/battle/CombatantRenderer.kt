@@ -21,6 +21,7 @@ import mardek.content.util.Time
 import mardek.content.util.min
 import mardek.content.util.rem
 import org.joml.Matrix3x2f
+import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -276,9 +277,11 @@ class CombatantRenderer(
 			relativeTime = moveTime - 1.milliseconds
 		}
 
-		val movementProgress = (relativeTime / moveTime).toFloat()
-		coordinates.x = movementProgress * attackPosition.x + (1f - movementProgress) * coordinates.x
-		coordinates.y = movementProgress * attackPosition.y + (1f - movementProgress) * coordinates.y
+		val t = (relativeTime / moveTime)
+		val acceleratedProgress = (3.0 * (1.0 - t).pow(2) * t * -0.2 + 3.0 * (1.0 - t) * t.pow(2) * 1.2 + t.pow(3)).toFloat()
+		//val acceleratedProgress = t.toFloat()
+		coordinates.x = acceleratedProgress * attackPosition.x + (1f - acceleratedProgress) * coordinates.x
+		coordinates.y = acceleratedProgress * attackPosition.y + (1f - acceleratedProgress) * coordinates.y
 	}
 
 	private fun chooseAttackAnimation(
