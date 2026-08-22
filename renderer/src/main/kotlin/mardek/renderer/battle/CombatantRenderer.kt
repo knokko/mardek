@@ -21,6 +21,7 @@ import mardek.content.util.Time
 import mardek.content.util.min
 import mardek.content.util.rem
 import org.joml.Matrix3x2f
+import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -173,6 +174,7 @@ class CombatantRenderer(
 				state.startTime,
 				{ state.halfWay = true },
 				{ state.finished = true },
+				false,
 			)
 		}
 
@@ -187,11 +189,12 @@ class CombatantRenderer(
 		}
 
 		if (state is BattleStateMachine.MeleeAttack.JumpBack) {
-			chooseJumpBackAnimation(
+			chooseMoveToAnimation(
 				strikePosition,
 				state.startTime,
 				{ state.halfWay = true },
 				{ state.finished = true },
+				true,
 			)
 		}
 	}
@@ -237,6 +240,7 @@ class CombatantRenderer(
 				state.startTime,
 				{ state.halfWay = true },
 				{ state.finished = true },
+				false,
 			)
 		}
 
@@ -251,11 +255,12 @@ class CombatantRenderer(
 		}
 
 		if (state is BattleStateMachine.BreathAttack.JumpBack) {
-			chooseJumpBackAnimation(
+			chooseMoveToAnimation(
 				breathPosition,
 				state.startTime,
 				{ state.halfWay = true },
 				{ state.finished = true },
+				true,
 			)
 		}
 	}
@@ -265,20 +270,32 @@ class CombatantRenderer(
 		startMoveTime: Time,
 		setHalfway: () -> Unit,
 		setFinished: () -> Unit,
+		isJumpingBack: Boolean,
 	) {
-		val moveAnimation = animations["moveto"]
+		val moveAnimation = animations[if (isJumpingBack) "jumpback" else "moveto"]
 		val moveTime = FRAME_LENGTH * moveAnimation.frames.size
+		val stage = context.context.currentStage
+		val aspectRatio = stage.width.toDouble() / stage.height
 		animation = moveAnimation
-		relativeTime = context.context.timing.elapsedTimeSince(startMoveTime)
+
+		relativeTime = context.context.timing.elapsedTimeSince(startMoveTime) / aspectRatio
+
+		// Jumping back is quicker
+		if (isJumpingBack) relativeTime *= 1.5
+
 		if (relativeTime >= moveTime / 2) setHalfway()
 		if (relativeTime >= moveTime) {
 			setFinished()
 			relativeTime = moveTime - 1.milliseconds
 		}
 
-		val movementProgress = (relativeTime / moveTime).toFloat()
-		coordinates.x = movementProgress * attackPosition.x + (1f - movementProgress) * coordinates.x
-		coordinates.y = movementProgress * attackPosition.y + (1f - movementProgress) * coordinates.y
+		val t = relativeTime / moveTime
+		var acceleratedProgress = (3.0 * (1.0 - t).pow(2) * t * -0.2 + 3.0 * (1.0 - t) * t.pow(2) * 1.2 + t.pow(3)).toFloat()
+		acceleratedProgress = acceleratedProgress.coerceIn(0f, 1f)
+		if (isJumpingBack) acceleratedProgress = 1f - acceleratedProgress
+
+		coordinates.x = acceleratedProgress * attackPosition.x + (1f - acceleratedProgress) * coordinates.x
+		coordinates.y = acceleratedProgress * attackPosition.y + (1f - acceleratedProgress) * coordinates.y
 	}
 
 	private fun chooseAttackAnimation(
@@ -301,33 +318,6 @@ class CombatantRenderer(
 
 		coordinates.x = attackPosition.x
 		coordinates.y = attackPosition.y
-	}
-
-	private fun chooseJumpBackAnimation(
-		strikePosition: CombatantRenderPosition,
-		startJumpTime: Time,
-		setHalfway: () -> Unit,
-		setFinished: () -> Unit,
-	) {
-		val jumpAnimation = animations["jumpback"]
-		val jumpTime = FRAME_LENGTH * jumpAnimation.frames.size
-
-		val relativeJumpTime = context.context.timing.elapsedTimeSince(startJumpTime)
-		if (relativeJumpTime >= jumpTime / 2) setHalfway()
-		if (relativeJumpTime >= jumpTime) {
-			relativeTime = jumpTime - 1.milliseconds
-			setFinished()
-		} else {
-			animation = jumpAnimation
-			relativeTime = relativeJumpTime
-
-			var movementProgress = (relativeTime / jumpTime).toFloat()
-			movementProgress = if (movementProgress < 0.2f) 0f
-			else (movementProgress - 0.2f) / 0.5f
-			if (movementProgress > 1f) movementProgress = 1f
-			coordinates.x = (1f - movementProgress) * strikePosition.x + movementProgress * coordinates.x
-			coordinates.y = (1f - movementProgress) * strikePosition.y + movementProgress * coordinates.y
-		}
 	}
 
 	private fun chooseCastingAnimation() {
