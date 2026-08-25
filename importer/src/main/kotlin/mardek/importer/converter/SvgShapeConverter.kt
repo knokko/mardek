@@ -7,6 +7,7 @@ import org.apache.batik.transcoder.TranscoderInput
 import org.apache.batik.transcoder.TranscoderOutput
 import org.apache.batik.transcoder.image.PNGTranscoder
 import java.awt.Color
+import java.awt.image.BufferedImage
 import java.io.File
 import java.lang.Integer.parseInt
 import java.nio.file.Files
@@ -18,12 +19,12 @@ fun main() {
 	/*
 		Before running this code:
 		- export all shapes in JPEX using 100% zoom PNG, and put them in project-directory/flash/all-shapes-x1
+		  You will probably get 2 errors that the width and height must be > 0, which you can ignore.
 		- export all shapes in JPEX using 200% zoom SVG, and put them in project-directory/flash/all-shapes-svg2
 		- run SvgLineWidener.kt
 
 		After completing the steps above, it is time to run this `main()` method, or alternatively run the command
-		`./gradlew convertSVGs` This takes ~30 seconds on my gaming computer. It will probably take longer on (old)
-		laptops. Changing numThreads from 20 to something else may help.
+		`./gradlew convertSVGs` This takes ~15 minutes on my work laptop.
 
 		Note that this job will probably spam the following error, which you can ignore:
 		```
@@ -73,8 +74,23 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 	pngOutputFolder4.mkdirs()
 
 	val counter = AtomicInteger(0)
-	val pngInputFiles = pngInputFolder.listFiles()!!
 	val numThreads = 20
+
+	// 2234.png and 4747.png are typically missing because JPEX can't export them (because their width or height is 0)
+	// We work around this by creating them manually.
+	val png2234 = File("$pngInputFolder/2234.png")
+	if (!png2234.exists()) {
+		val image = BufferedImage(103, 1, BufferedImage.TYPE_INT_RGB)
+		ImageIO.write(image, "PNG", png2234)
+	}
+
+	val png4747 = File("$pngInputFolder/4747.png")
+	if (!png4747.exists()) {
+		val image = BufferedImage(78, 1, BufferedImage.TYPE_INT_RGB)
+		ImageIO.write(image, "PNG", png4747)
+	}
+
+	val pngInputFiles = pngInputFolder.listFiles()!!
 
 	val shadows = arrayOf(2312, 2463, 2538, 2618, 2736, 3021, 3103, 4371, 4717, 4744)
 	val threads = Array(numThreads) { threadIndex -> Thread {
@@ -103,6 +119,7 @@ The "pixelated" identifier is not a valid value for the "image-rendering" proper
 			}
 
 			for (job in jobs) {
+				if (job.outputPngFile.exists()) continue
 				val pngTranscoder = PNGTranscoder()
 				pngTranscoder.errorHandler = SilentErrorHandler(pngInputFile.name)
 

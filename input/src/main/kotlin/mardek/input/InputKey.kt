@@ -30,6 +30,12 @@ enum class InputKey {
 	 * The button to toggle the in-game menu (Tab or Enter)
 	 */
 	ToggleMenu,
+
+	/**
+	 * The button to open the P-dialogue (traditionally the P button)
+	 */
+	PartyDialogue,
+
 	Escape,
 
 	/**

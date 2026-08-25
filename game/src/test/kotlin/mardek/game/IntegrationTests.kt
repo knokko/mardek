@@ -7,6 +7,7 @@ import mardek.game.action.TestDeuganHouseActions
 import mardek.game.action.TestInventorLabActions
 import mardek.game.action.TestLocks
 import mardek.game.action.TestMardekHouseActions
+import mardek.game.action.TestPartyDialogue
 import mardek.game.action.TestSaucerActions
 import mardek.game.action.TestShops
 import mardek.game.action.TestSoothwoodActions
@@ -613,6 +614,11 @@ class IntegrationTests {
 	@Test
 	fun testAccessoryShopDialogue() {
 		TestAccessoryShop.testReplacePCWithPlayerDialogue(instance)
+	}
+
+	@Test
+	fun testPartyDialogue() {
+		TestPartyDialogue.runTest(instance)
 	}
 
 	@Test

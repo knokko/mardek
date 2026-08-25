@@ -30,6 +30,7 @@ class HardcodedActions {
 		hardcodeInventorLabActions(content, hardcoded)
 		hardcodeSoothwoodActions(content, hardcoded)
 		hardcodeCrashSiteActions(content, hardcoded)
+		hardcodePartyDialogue(content)
 	}
 
 	internal fun getHardcodedAreaActions(areaName: String, sequenceName: String) = hardcoded[areaName]?.find {

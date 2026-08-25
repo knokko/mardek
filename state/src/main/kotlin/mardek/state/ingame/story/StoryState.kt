@@ -22,6 +22,7 @@ import mardek.content.expression.StateExpression
 import mardek.content.expression.ExpressionValue
 import mardek.content.expression.GreaterEqualStateCondition
 import mardek.content.expression.ItemCountStateCondition
+import mardek.content.expression.PartyMemberStateCondition
 import mardek.content.expression.VariableStateExpression
 import mardek.content.inventory.Item
 import mardek.content.story.*
@@ -253,6 +254,15 @@ class StoryState : BitPostInit {
 			@Suppress("UNCHECKED_CAST")
 			return true as T
 		}
+		if (expression is PartyMemberStateCondition) {
+			if (context.partyMembers.contains(expression.player)) {
+				@Suppress("UNCHECKED_CAST")
+				return true as T
+			} else {
+				@Suppress("UNCHECKED_CAST")
+				return false as T
+			}
+		}
 		if (expression is GreaterEqualStateCondition) {
 			val left = evaluate(expression.left, context, nodes)
 			val right = evaluate(expression.right, context, nodes)
@@ -354,5 +364,12 @@ class StoryState : BitPostInit {
 		 * - This *does* count equipped items.
 		 */
 		val countItemInInventory: (item: Item) -> Int,
+
+		/**
+		 * The party members that are currently in the party.
+		 *
+		 * The length of this array is expected to always be 4, and the first element is expected to always be Mardek.
+		 */
+		val partyMembers: Array<PlayableCharacter?>,
 	)
 }

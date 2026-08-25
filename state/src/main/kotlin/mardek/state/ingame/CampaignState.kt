@@ -365,7 +365,10 @@ class CampaignState : BitPostInit {
 	 * Generates a [StoryState.ExpressionContext] that is needed for [StoryState.evaluate]
 	 */
 	fun expressionContext() = StoryState.ExpressionContext(
-		countItemInInventory = { itemToCount -> usedPartyMembers().sumOf { it.state.countItemOccurrences(itemToCount) }}
+		countItemInInventory = { itemToCount -> usedPartyMembers().sumOf {
+			it.state.countItemOccurrences(itemToCount)
+		}},
+		partyMembers = party,
 	)
 
 	/**

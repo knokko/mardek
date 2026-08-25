@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
+import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Item
 import mardek.content.story.FixedTimelineVariable
 import mardek.content.story.TimelineVariable
@@ -37,6 +38,7 @@ sealed class StateExpression<T> {
 			DefinedVariableStateCondition::class.java,
 
 			ItemCountStateCondition::class.java,
+			PartyMemberStateCondition::class.java,
 
 			GreaterEqualStateCondition::class.java,
 			EqualStateCondition::class.java,
@@ -345,6 +347,25 @@ class ItemCountStateCondition(
 	private constructor() : this(Item(), 0, 0)
 
 	override fun toString() = "(has $minAmount to $maxAmount occurrences of $item)"
+}
+
+/**
+ * A state expression that evaluates to true if and only if [player] is in the current party
+ */
+@BitStruct(backwardCompatible = true)
+class PartyMemberStateCondition(
+
+	/**
+	 * The playable character that needs to be in the current party
+	 */
+	@BitField(id = 0)
+	@ReferenceField(stable = false, label = "playable characters")
+	val player: PlayableCharacter
+): StateExpression<Boolean>() {
+	@Suppress("unused")
+	private constructor() : this(PlayableCharacter())
+
+	override fun toString() = "$player in party"
 }
 
 /**

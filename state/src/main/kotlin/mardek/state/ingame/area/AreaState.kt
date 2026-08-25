@@ -173,6 +173,7 @@ class AreaState(
 
 	private var shouldInteract = false
 	private var shouldOpenChatLog = false
+	private var shouldOpenPartyDialogue = false
 
 	@Suppress("unused")
 	private constructor() : this(
@@ -246,8 +247,9 @@ class AreaState(
 		if (!event.didPress) return
 		val key = event.key
 
-		if (key ==  InputKey.Interact) shouldInteract = true
+		if (key == InputKey.Interact) shouldInteract = true
 		if (key == InputKey.ToggleChatLog) shouldOpenChatLog = true
+		if (key == InputKey.PartyDialogue) shouldOpenPartyDialogue = true
 		if (key == InputKey.ToggleMenu) {
 			context.campaign.shouldOpenMenu = true
 			context.soundQueue.insert(context.content.audio.fixedEffects.ui.openMenu)
@@ -321,6 +323,7 @@ class AreaState(
 		if (suspension?.shouldUpdateCurrentTime() != false) currentTime += context.timeStep
 		shouldInteract = false
 		shouldOpenChatLog = false
+		shouldOpenPartyDialogue = false
 	}
 
 	/**
@@ -768,6 +771,13 @@ class AreaState(
 			actions.showChatLog = true
 			suspension = AreaSuspensionActions(actions)
 			shouldOpenChatLog = false
+		} else if (shouldOpenPartyDialogue) {
+			suspension = AreaSuspensionActions(AreaActionsState(
+				context.content.actions.partyDialogueNode,
+				null,
+				currentTime
+			))
+			shouldOpenPartyDialogue = false
 		}
 	}
 

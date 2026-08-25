@@ -2,6 +2,9 @@ package mardek.content.action
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import com.github.knokko.bitser.field.ClassField
+import com.github.knokko.bitser.field.NestedFieldSetting
+import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.action.effect.AreaActionEffect
 import mardek.content.sprite.NamedSprite
@@ -73,4 +76,22 @@ class ActionContent {
 		),
 		next = null
 	)
+
+	/**
+	 * The (quite complex) root dialogue node of all the P-dialogue.
+	 * It should have one choice entry for each playable character that is currently in the party.
+	 */
+	@BitField(id = 6)
+	@ClassField(root = ActionNode::class)
+	@ReferenceField(stable = false, label = "action nodes")
+	lateinit var partyDialogueNode: ActionNode
+
+	@BitField(id = 7)
+	@Suppress("unused")
+	@ClassField(root = ActionNode::class)
+	@ReferenceFieldTarget(label = "action nodes")
+	@NestedFieldSetting(path = "", optional = true)
+	private fun getAllPartyActionNodes() = if (this::partyDialogueNode.isInitialized) {
+		partyDialogueNode.getAllChildNodes()
+	} else HashSet()
 }

@@ -210,6 +210,7 @@ class MardekSdlInput(
 						SDLK_KP_ENTER -> InputKey.ToggleMenu
 						SDLK_RETURN -> InputKey.ToggleMenu
 						SDLK_TAB -> InputKey.ToggleMenu
+						SDLK_P -> InputKey.PartyDialogue
 						SDLK_ESCAPE -> InputKey.Escape
 						SDLK_L -> InputKey.ToggleChatLog
 						SDLK_SPACE -> InputKey.CheatMove
