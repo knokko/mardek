@@ -10,13 +10,17 @@ import mardek.game.action.TestActions.dialogueBoxColors
 import mardek.game.action.TestActions.eButtonColors
 import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
+import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
 import mardek.input.InputManager
+import mardek.input.MouseMoveEvent
 import mardek.input.TextTypeEvent
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
+import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
+import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
@@ -24,6 +28,7 @@ import mardek.state.title.StartNewGameState
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertNull
 import java.awt.Color
 import kotlin.arrayOf
@@ -36,6 +41,19 @@ object TestCutscenes {
 			Color(242, 183, 113), // Subtitle upper color
 			Color(184, 130, 61), // Subtitle lower color
 			Color(255, 204, 153), // Button border color
+	)
+
+	private val cutsceneColors = arrayOf(
+		Color(248, 248, 255), // The sun
+		Color(0, 0, 0), // The castle
+		Color(10, 245, 245), // The castle windows
+		Color(248, 255, 255), // The subtitle inner color
+		Color(157, 230, 252), // The subtitle outer color
+	)
+
+	private val dragonLairColors = arrayOf(
+		Color(13, 0, 22), // background color
+		Color(77, 69, 95), // brick color
 	)
 
 	fun testChapter1Intro(instance: TestingInstance) {
@@ -85,13 +103,6 @@ object TestCutscenes {
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			igState.update(context)
 
-			val cutsceneColors = arrayOf(
-				Color(248, 248, 255), // The sun
-				Color(0, 0, 0), // The castle
-				Color(10, 245, 245), // The castle windows
-				Color(248, 255, 255), // The subtitle inner color
-				Color(157, 230, 252), // The subtitle outer color
-			)
 			repeat(10) {
 				igState.update(context)
 			}
@@ -106,11 +117,6 @@ object TestCutscenes {
 				igState.update(context)
 			}
 			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
-
-			val dragonLairColors = arrayOf(
-				Color(13, 0, 22), // background color
-				Color(77, 69, 95), // brick color
-			)
 
 			// Check fade-in
 			repeat(2) {
@@ -203,6 +209,39 @@ object TestCutscenes {
 			}
 
 			assertEquals(AreaPosition(10, 5), areaState.getPlayerPosition(0))
+		}
+	}
+
+	fun testSkipButton(instance: TestingInstance) {
+		instance.apply {
+			val updateContext = createUpdateContext(100.milliseconds)
+			val state = InGameState(CampaignState.loadChapter(content, 1), "test")
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(repeatKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			repeat(5) {
+				state.update(updateContext)
+			}
+
+			testRendering(
+				state, 800, 600, "cutscene-skip0",
+				cutsceneColors, emptyArray(),
+			)
+
+			val info = (state.campaign.state as CampaignActionsState).cutsceneRendering
+			updateContext.input.postEvent(MouseMoveEvent(
+				info.skipButton.minX, info.skipButton.maxY
+			))
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Click))
+			repeat(10) {
+				state.update(updateContext)
+			}
+
+			assertInstanceOf<AreaState>(state.campaign.state)
+			testRendering(
+				state, 800, 600, "cutscene-skip1",
+				dragonLairColors, emptyArray(),
+			)
 		}
 	}
 }

@@ -17,8 +17,8 @@ import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.util.Rectangle
 import org.joml.Matrix3x2f
 import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 internal fun createCutsceneAnimationContext(
@@ -64,7 +64,7 @@ internal fun createCutsceneAnimationContext(
 }
 
 internal fun renderCutscene(
-	context: RenderContext, actions: CampaignActionsState, action: ActionPlayCutscene, region: Rectangle,
+	context: RenderContext, actions: CampaignActionsState, action: ActionPlayCutscene, fullRegion: Rectangle,
 	createSimpleTextBatch: (capacity: Int) -> Vk2dSimpleTextBatch,
 	createFancyTextBatch: (capacity: Int) -> Vk2dFancyTextBatch,
 ): Pair<Vk2dColorBatch?, Vk2dSimpleTextBatch?> {
@@ -82,62 +82,91 @@ internal fun renderCutscene(
 		}
 	}
 
+	val showSkipButton = allFrames.duration > 5.seconds
+	val skipBarHeight = if (showSkipButton) fullRegion.height / 10 else 0
+	val contentRegion = Rectangle(
+		fullRegion.minX, fullRegion.minY + skipBarHeight,
+		fullRegion.width, fullRegion.height - skipBarHeight
+	)
+
 	if (frameIndex == -1) return Pair(null, null)
 	var simpleTextBatch: Vk2dSimpleTextBatch? = null
 
 	for (textEntry in action.cutscene.payload.get().subtitles) {
-		if (frameIndex >= textEntry.frame) actions.cutsceneSubtitle = Pair(textEntry.index, textEntry.text)
+		if (frameIndex >= textEntry.frame) {
+			actions.cutsceneRendering.subtitle = Pair(textEntry.index, textEntry.text)
+		}
 	}
 
 	val (animationContext, relativeScaleX) = createCutsceneAnimationContext(
-		context, actions, region, actions.currentNodeStartTime,
+		context, actions, contentRegion, actions.currentNodeStartTime,
 		action.cutscene.payload.get().magicScale, allFrames.duration,
 	)
 	renderCutsceneAnimation(ReferenceLazyBits(allFrames), animationContext)
 	animationContext.lightning.lastRenderedAt = context.timing.now()
 
-	if (allFrames.duration > 10.seconds && timeSinceStart < 2.seconds) {
+	if (showSkipButton) {
+		val font = context.bundle.getFont(context.content.fonts.basic2.index)
 		simpleTextBatch = createSimpleTextBatch(100)
-		val font = context.bundle.getFont(context.content.fonts.basic1.index)
-		val opacity = if (timeSinceStart < 1500.milliseconds) 1f
-		else 1f - ((timeSinceStart - 1500.milliseconds) / 500.milliseconds).toFloat()
 		simpleTextBatch.drawString(
-			"(Hold E or Q to skip)",
-			region.minX + 0.5f * region.width, region.minY + 0.5f * region.height,
-			0.05f * region.height, font,
-			MardekTextStyles.Cutscenes.skipHint(opacity), TextAlignment.CENTERED,
+			"(Hold E or Q to speed up)",
+			fullRegion.minX + 0.02f * fullRegion.width, fullRegion.minY + 0.06f * fullRegion.height,
+			0.02f * fullRegion.height, font,
+			MardekTextStyles.Cutscenes.SKIP_HINT, TextAlignment.LEFT,
 		)
+
+		simpleTextBatch.drawString(
+			"SKIP", fullRegion.maxX - 0.08f * fullRegion.height, fullRegion.minY + 0.065f * fullRegion.height,
+			0.03f * fullRegion.height, font,
+			MardekTextStyles.Cutscenes.SKIP_LABEL, TextAlignment.RIGHT
+		)
+
+		val arrow = context.content.ui.arrowHead
+		val arrowMinX = (fullRegion.maxX - 0.06f * fullRegion.height).roundToInt()
+		val arrowMinY = (fullRegion.minY + 0.025f * fullRegion.height).roundToInt()
+		val (addColor, multiplyColor) = if (actions.cutsceneRendering.isOnSkipButton(actions.mouseX, actions.mouseY)) Pair(
+			rgba(0f, 0f, 0.3f, 0f),
+			rgba(0.0f, 0.1f, 0.5f, 1f),
+		) else Pair(0, -1)
+		context.addImageBatch(2).coloredScale(
+			arrowMinX.toFloat(), arrowMinY.toFloat(), 0.05f * fullRegion.height / arrow.height,
+			arrow.index, addColor, multiplyColor,
+		)
+		val arrowHeight = fullRegion.height / 20
+		val arrowWidth = arrow.width * arrowHeight / arrow.height
+		actions.cutsceneRendering.skipButton = Rectangle(arrowMinX, arrowMinY, arrowWidth, arrowHeight)
 	}
 
-	if (actions.cutsceneSubtitle.second.isNotEmpty()) {
+	if (actions.cutsceneRendering.subtitle.second.isNotEmpty()) {
+
 		val font = context.bundle.getFont(context.content.fonts.large2.index)
-		val textHeight = 0.015f * region.width * relativeScaleX
+		val textHeight = 0.015f * contentRegion.width * relativeScaleX
 
 		val batch = createFancyTextBatch(500)
 		fun draw(baseX: Float, baseY: Float, alignment: TextAlignment) {
 			batch.drawShadowedString(
-				actions.cutsceneSubtitle.second, baseX, baseY, 0f, textHeight, font,
+				actions.cutsceneRendering.subtitle.second, baseX, baseY, 0f, textHeight, font,
 				MardekTextStyles.Cutscenes.CAPTION, alignment,
 			)
 		}
-		if (actions.cutsceneSubtitle.first == 0) {
+		if (actions.cutsceneRendering.subtitle.first == 0) {
 			draw(
-				region.minX + 0.01f * region.width,
-				region.maxY - 0.015f * region.height,
+				contentRegion.minX + 0.01f * contentRegion.width,
+				contentRegion.maxY - 0.015f * contentRegion.height,
 				TextAlignment.LEFT,
 			)
 		}
-		if (actions.cutsceneSubtitle.first == 1) {
+		if (actions.cutsceneRendering.subtitle.first == 1) {
 			draw(
-				region.minX + 0.5f * region.width,
-				region.maxY - 0.033f * region.height,
+				contentRegion.minX + 0.5f * contentRegion.width,
+				contentRegion.maxY - 0.033f * contentRegion.height,
 				TextAlignment.CENTERED,
 			)
 		}
-		if (actions.cutsceneSubtitle.first == 2) {
+		if (actions.cutsceneRendering.subtitle.first == 2) {
 			draw(
-				region.maxX - 0.01f * region.width,
-				region.maxY - 0.033f * region.height,
+				contentRegion.maxX - 0.01f * contentRegion.width,
+				contentRegion.maxY - 0.033f * contentRegion.height,
 				TextAlignment.RIGHT,
 			)
 		}
@@ -151,7 +180,7 @@ internal fun renderCutscene(
 		if (fadeAlpha > 0) {
 			colorBatch = context.addColorBatch(50)
 			colorBatch.fill(
-				region.minX, region.minY, region.maxX, region.maxY,
+				fullRegion.minX, fullRegion.minY, fullRegion.maxX, fullRegion.maxY,
 				rgba(0, 0, 0, fadeAlpha),
 			)
 		}

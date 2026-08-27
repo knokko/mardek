@@ -91,12 +91,6 @@ class CampaignActionsState(
 		private set
 
 	/**
-	 * Some cutscenes (chapter 1 intro) have subtitles. This field tracks the current subtitle that should be rendered.
-	 * The renderer is responsible for writing to this field.
-	 */
-	var cutsceneSubtitle = Pair(1, "")
-
-	/**
 	 * When inside a dialogue, this is the number of characters (glyphs) that should be rendered in the box. When a
 	 * dialogue node is reached, `shownDialogueCharacters` starts at 0, and slowly increases. Pressing 'E' or 'Q' speeds
 	 * it up dramatically.
@@ -124,6 +118,26 @@ class CampaignActionsState(
 	 */
 	var lightningRenderInfo: Any = Any()
 
+	/**
+	 * - During cutscenes, this field is used to track some cutscene rendering information
+	 * (e.g. the position of the skip button).
+	 * - Outside cutscenes, this field is meaningless.
+	 */
+	var cutsceneRendering = CutsceneRenderingInfo()
+		private set
+
+	/**
+	 * The X-coordinate of the last-known mouse position
+	 */
+	var mouseX = -123
+		private set
+
+	/**
+	 * The Y-coordinate of the last-known mouse position
+	 */
+	var mouseY = -123
+		private set
+
 	@Suppress("unused")
 	private constructor() : this(FixedActionNode(), Time.ZERO)
 
@@ -148,7 +162,7 @@ class CampaignActionsState(
 		makeSureRenderThreadDoesNotGetBlocked(next)
 		this.node = next
 		this.currentNodeStartTime = campaignTime
-		this.cutsceneSubtitle = Pair(1, "")
+		this.cutsceneRendering = CutsceneRenderingInfo()
 		this.speedUpShowingCharacters = false
 		this.shownDialogueCharacters = 0f
 	}
@@ -259,11 +273,13 @@ class CampaignActionsState(
 		val currentNode = this.node
 		if (currentNode is FixedActionNode) {
 			val currentAction = currentNode.action
-			val isSkipKey = key == InputKey.Interact || key == InputKey.Cancel || key == InputKey.Escape ||
-					key == InputKey.ToggleMenu
 
 			var goToNextNode = false
-			if (isSkipKey && currentAction is ActionShowChapterName) goToNextNode = true
+			if (currentAction is ActionShowChapterName) {
+				val isSkipKey = key == InputKey.Interact || key == InputKey.Cancel || key == InputKey.Escape ||
+						key == InputKey.ToggleMenu
+				if (isSkipKey) goToNextNode = true
+			}
 
 			if (currentAction is ActionTalk) {
 				if (key == InputKey.Interact) {
@@ -281,6 +297,10 @@ class CampaignActionsState(
 
 			if (currentAction is ActionEndOfChapter && endOfChapterState != null) {
 				endOfChapterState!!.processKeyPress(context, campaign, key)
+			}
+
+			if (currentAction is ActionPlayCutscene) {
+				if (key == InputKey.Click && cutsceneRendering.isOnSkipButton(mouseX, mouseY)) goToNextNode = true
 			}
 
 			if (goToNextNode) {
@@ -301,6 +321,9 @@ class CampaignActionsState(
 				endOfChapterState!!.processMouseMove(campaign, event)
 			}
 		}
+
+		this.mouseX = event.newX
+		this.mouseY = event.newY
 	}
 
 	private fun maybeGoToAreaState(campaign: CampaignState) {

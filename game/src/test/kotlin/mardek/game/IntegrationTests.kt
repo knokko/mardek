@@ -269,6 +269,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testCutsceneSkipButton() {
+		TestCutscenes.testSkipButton(instance)
+	}
+
+	@Test
 	fun testLoadGameFlow() {
 		TestTitleScreen.testLoadGameWithoutCampaignsEdgeCase1(instance)
 		TestTitleScreen.testLoadGameWithoutCampaignsEdgeCase2(instance)

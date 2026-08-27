@@ -687,7 +687,11 @@ object MardekTextStyles {
 			)
 		}
 
-		fun skipHint(opacity: Float) = BRIGHT_TEXT_FILL.only().multiplyAlpha(opacity)!!
+		val SKIP_HINT = BRIGHT_TEXT_FILL.only()!!
+
+		val SKIP_LABEL = Vk2dTextStyle.FillStyle(
+			srgbToLinear(rgb(135, 98, 70))
+		).only()!!
 	}
 
 	object ExitCampaign {
