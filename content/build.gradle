@@ -1,3 +1,7 @@
+plugins {
+	alias(libs.plugins.kotlinJvm)
+}
+
 dependencies {
 	api "com.github.knokko:bitser:$bitserVersion"
 	compileOnly project(":vk2d")

@@ -10,13 +10,10 @@ buildscript {
 
 plugins {
 	id "java"
-	alias(libs.plugins.kotlinJvm) apply false
-	alias(libs.plugins.shadow) apply false
 }
 
 allprojects {
 	apply plugin: "java"
-	apply plugin: "org.jetbrains.kotlin.jvm"
 
 	java {
 		withSourcesJar()
