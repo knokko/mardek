@@ -1,7 +1,9 @@
 import org.gradle.internal.os.OperatingSystem
 import proguard.gradle.ProGuardTask
 
-apply plugin: "com.gradleup.shadow"
+plugins {
+	alias(libs.plugins.shadow)
+}
 
 dependencies {
 	implementation "com.github.knokko:update-loop:2.0.1"
