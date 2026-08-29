@@ -6,6 +6,11 @@ kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
 material3 = "1.11.0-alpha07"
 shadow = "9.3.1"
+joml = "1.10.8"
+lwjgl = "3.4.2"
+vk-boiler = "5.5.1"
+vk-compressor = "1.0.0"
+bitser = "0.4.1-pre1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

@@ -6,7 +6,7 @@ dependencies {
 		runtimeOnly "org.lwjgl:lwjgl-zstd::$natives"
 	}
 	for (format in ["kim1", "kim2", "kim3", "bc1", "bc4", "bc7"]) {
-		implementation "com.github.knokko.vk-compressor:$format:$compressorVersion"
+		implementation "com.github.knokko.vk-compressor:$format:${libs.versions.vk.compressor.get()}"
 	}
 	implementation files("../flash/ffdec_lib.jar")
 	implementation project(":content")

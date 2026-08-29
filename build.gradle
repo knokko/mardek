@@ -10,6 +10,7 @@ buildscript {
 
 plugins {
 	id "java"
+	alias(libs.plugins.kotlinJvm) apply false
 }
 
 allprojects {
@@ -42,11 +43,6 @@ allprojects {
 		}
 	}
 
-	project.ext.jomlVersion = "1.10.8"
-	project.ext.lwjglVersion = "3.4.2"
-	project.ext.boilerVersion = "5.5.1"
-	project.ext.compressorVersion = "1.0.0"
-	project.ext.bitserVersion = "0.4.1-pre1"
 	project.ext.lwjglNatives = [
 			"natives-linux", "natives-linux-arm32", "natives-linux-arm64",
 			"natives-linux-ppc64le", "natives-linux-riscv64", "natives-freebsd",
@@ -55,15 +51,15 @@ allprojects {
 	]
 
 	dependencies {
-		implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
+		implementation platform("org.lwjgl:lwjgl-bom:${libs.versions.lwjgl.get()}")
 		testImplementation platform("org.junit:junit-bom:5.12.2")
 		testImplementation "org.junit.jupiter:junit-jupiter:5.12.2"
 		testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 	}
 
 	project.ext.vulkanImplementationDependencies = [
-			"com.github.knokko:vk-boiler:$boilerVersion",
-			"org.joml:joml:$jomlVersion",
+			"com.github.knokko:vk-boiler:${libs.versions.vk.boiler.get()}",
+			"org.joml:joml:${libs.versions.joml.get()}",
 			"org.lwjgl:lwjgl",
 			"org.lwjgl:lwjgl-vulkan",
 			"org.lwjgl:lwjgl-harfbuzz",
