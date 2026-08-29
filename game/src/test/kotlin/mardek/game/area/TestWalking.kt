@@ -18,7 +18,7 @@ object TestWalking {
 			val goznor = content.areas.areas.find { it.properties.rawName == "goznor" }!!
 
 			// The NPCs should NOT move to any of the forbidden points
-			val forbiddenPoints = mutableListOf(
+			val forbiddenPoints = mutableSetOf(
 				// Bridge to the houses of Mardek and Deugan
 				AreaPosition(2, 17), AreaPosition(2, 21),
 
@@ -59,13 +59,17 @@ object TestWalking {
 				val uniqueCharacterPositions = mutableSetOf<AreaPosition>()
 				repeat(200) {
 					state.update(updateContext)
-					uniqueCharacterPositions.addAll(goznor.objects.characters.mapNotNull(
+					val characterPositions = goznor.objects.characters.mapNotNull(
 						areaState::getCharacterState
-					).map { AreaPosition(it.x, it.y ) })
+					).map { AreaPosition(it.x, it.y ) }
+					if (characterPositions.toSet().intersect(forbiddenPoints).isNotEmpty()) {
+						throw RuntimeException("character positions are $characterPositions")
+					}
+					uniqueCharacterPositions.addAll(characterPositions)
 				}
 				assertEquals(
 					emptySet<AreaPosition>(),
-					uniqueCharacterPositions.intersect(forbiddenPoints.toSet()),
+					uniqueCharacterPositions.intersect(forbiddenPoints),
 				)
 				assertTrue(uniqueCharacterPositions.size > 25)
 			}

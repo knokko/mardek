@@ -7,7 +7,6 @@ import com.github.knokko.bitser.field.IntegerField
 import mardek.content.area.TransitionDestination
 import mardek.content.util.Time
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * When a playable character or [mardek.content.area.objects.AreaCharacter] is walking from one tile to another,
@@ -39,7 +38,7 @@ class NextAreaPosition(
 	val walkDuration: Duration,
 
 	/**
-	 * When this field is non-null, the player will be teleported to this transition destination [FADE_DURATION] time
+	 * When this field is non-null, the player will be teleported to this transition destination
 	 * after reaching [position]. This is used by area transitions.
 	 *
 	 * Most of the time though, this field is `null`.
@@ -55,6 +54,4 @@ class NextAreaPosition(
 	)
 
 	override fun toString() = "($position at $startTime + $walkDuration)"
-
-
 }
