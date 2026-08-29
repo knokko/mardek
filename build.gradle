@@ -10,8 +10,12 @@ buildscript {
 
 plugins {
 	id "java"
-	id "org.jetbrains.kotlin.jvm" version "2.3.0"
 	id "com.gradleup.shadow" version "9.3.1"
+
+	alias(libs.plugins.composeMultiplatform) apply false
+	alias(libs.plugins.composeCompiler) apply false
+	alias(libs.plugins.kotlinJvm) apply false
+	alias(libs.plugins.kotlinMultiplatform) apply false
 }
 
 allprojects {

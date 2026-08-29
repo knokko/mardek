@@ -1,3 +1,0 @@
-rootProject.name = "mardek"
-
-include "audio", "content", "game", "importer", "input", "miscellaneous", "renderer", "state", "vk2d"
