@@ -1,3 +1,7 @@
+plugins {
+	alias(libs.plugins.kotlinJvm)
+}
+
 tasks.register("randomIDs", JavaExec) {
 	group = "Miscellaneous"
 	description = "Print some random UUIDs"
