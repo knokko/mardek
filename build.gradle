@@ -58,14 +58,14 @@ allprojects {
 	}
 
 	project.ext.vulkanImplementationDependencies = [
-			"com.github.knokko:vk-boiler:${libs.versions.vk.boiler.get()}",
-			"org.joml:joml:${libs.versions.joml.get()}",
-			"org.lwjgl:lwjgl",
-			"org.lwjgl:lwjgl-vulkan",
-			"org.lwjgl:lwjgl-harfbuzz",
+			libs.vk.boiler,
+			libs.joml,
+			libs.lwjgl,
+			libs.lwjgl.vulkan,
+			libs.lwjgl.harfbuzz,
 	]
 	project.ext.vulkanRuntimeDependencies = project.ext.lwjglNatives.collectMany {
-		def result = ["org.lwjgl:lwjgl::$it", ]
+		def result = ["org.lwjgl:lwjgl::$it"]
 		if (it.startsWith("natives-macos")) result.add("org.lwjgl:lwjgl-vulkan::$it")
 		result.add("org.lwjgl:lwjgl-harfbuzz::$it")
 		result.add("org.lwjgl:lwjgl-zstd::$it")

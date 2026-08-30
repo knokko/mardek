@@ -1,19 +1,19 @@
 dependencies {
-	implementation "org.lwjgl:lwjgl-sdl"
-	implementation "com.github.knokko:vk-boiler:${libs.versions.vk.boiler.get()}"
-	implementation "org.lwjgl:lwjgl"
-	implementation "org.lwjgl:lwjgl-harfbuzz"
-	implementation "org.lwjgl:lwjgl-vulkan"
-	implementation "org.lwjgl:lwjgl-zstd"
+	implementation(libs.vk.boiler)
+	implementation(libs.lwjgl)
+	implementation(libs.lwjgl.harfbuzz)
+	implementation(libs.lwjgl.sdl)
+	implementation(libs.lwjgl.vulkan)
+	implementation(libs.lwjgl.zstd)
 
-	compileOnly "org.lwjgl:lwjgl-harfbuzz"
+	compileOnly(libs.lwjgl.harfbuzz)
 	implementation "com.github.knokko.vk-compressor:bc4:${libs.versions.vk.compressor.get()}"
 	for (format in ["kim1", "kim2", "kim3", "bc1", "bc7"]) {
 		compileOnly "com.github.knokko.vk-compressor:$format:${libs.versions.vk.compressor.get()}"
 	}
 
-	testImplementation "org.lwjgl:lwjgl-harfbuzz"
-	testImplementation "org.lwjgl:lwjgl-vma"
+	testImplementation(libs.lwjgl.harfbuzz)
+	testImplementation(libs.lwjgl.vma)
 	for (format in ["kim1", "kim2", "kim3", "bc1", "bc4", "bc7"]) {
 		testImplementation "com.github.knokko.vk-compressor:$format:${libs.versions.vk.compressor.get()}"
 	}
