@@ -1,6 +1,6 @@
-plugins {
-	alias(libs.plugins.kotlinJvm)
-}
+//applyJvmModuleSettings(this)
+
+
 
 // The audio module doesn't have unit tests; its test sources only contain a bunch of main() methods
 // that are occasionally needed in development.

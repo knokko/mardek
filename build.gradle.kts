@@ -13,12 +13,15 @@ buildscript {
 plugins {
 	java
 	alias(libs.plugins.kotlinJvm) apply false
+	alias(libs.plugins.kotlinMultiplatform) apply false
+	alias(libs.plugins.composeMultiplatform) apply false
+	alias(libs.plugins.composeCompiler) apply false
 }
 
-allprojects {
-
+fun applyJvmModuleSettings(project: Project) = project.apply {
 	apply {
 		plugin(JavaPlugin::class)
+		libs.plugins.kotlinJvm
 	}
 
 	java {
@@ -49,10 +52,10 @@ allprojects {
 	}
 
 	project.ext.set("lwjglNatives", arrayListOf(
-			"natives-linux", "natives-linux-arm32", "natives-linux-arm64",
-			"natives-linux-ppc64le", "natives-linux-riscv64", "natives-freebsd",
-			"natives-windows", "natives-windows-x86", "natives-windows-arm64",
-			"natives-macos", "natives-macos-arm64"
+		"natives-linux", "natives-linux-arm32", "natives-linux-arm64",
+		"natives-linux-ppc64le", "natives-linux-riscv64", "natives-freebsd",
+		"natives-windows", "natives-windows-x86", "natives-windows-arm64",
+		"natives-macos", "natives-macos-arm64"
 	))
 
 	dependencies {
@@ -63,11 +66,11 @@ allprojects {
 	}
 
 	project.ext.set("vulkanImplementationDependencies", arrayListOf(
-			rootProject.libs.vk.boiler,
-			rootProject.libs.joml,
-			rootProject.libs.lwjgl,
-			rootProject.libs.lwjgl.vulkan,
-			rootProject.libs.lwjgl.harfbuzz,
+		rootProject.libs.vk.boiler,
+		rootProject.libs.joml,
+		rootProject.libs.lwjgl,
+		rootProject.libs.lwjgl.vulkan,
+		rootProject.libs.lwjgl.harfbuzz,
 	))
 
 	@Suppress("UNCHECKED_CAST")
@@ -85,4 +88,8 @@ allprojects {
 		minHeapSize = "512m"
 		maxHeapSize = "2g"
 	}
+}
+
+allprojects {
+	applyJvmModuleSettings(this)
 }

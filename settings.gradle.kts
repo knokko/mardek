@@ -2,7 +2,6 @@ rootProject.name = "mardek"
 
 include("audio")
 include("content")
-//include("editor-client")
 //include("editor-client:shared")
 include("game")
 include("importer")
