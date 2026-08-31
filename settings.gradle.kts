@@ -2,14 +2,17 @@ rootProject.name = "mardek"
 
 include("audio")
 include("content")
-//include("editor-client:shared")
 include("game")
 include("importer")
 include("input")
 include("miscellaneous")
 include("renderer")
 include("state")
+
 include("vk2d")
+
+include("editor-client:desktopApp")
+include("editor-client:shared")
 
 pluginManagement {
 	repositories {
