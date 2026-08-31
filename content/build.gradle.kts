@@ -1,4 +1,6 @@
 plugins {
+	id("shared-game-configuration")
+	id("java-library")
 	alias(libs.plugins.kotlinJvm)
 }
 

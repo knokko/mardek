@@ -1,6 +1,7 @@
-//applyJvmModuleSettings(this)
-
-
+plugins {
+	id("shared-game-configuration")
+	alias(libs.plugins.kotlinJvm)
+}
 
 // The audio module doesn't have unit tests; its test sources only contain a bunch of main() methods
 // that are occasionally needed in development.

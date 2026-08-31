@@ -1,3 +1,7 @@
+plugins {
+	id("shared-game-configuration")
+}
+
 dependencies {
 	implementation(libs.vk.boiler)
 	implementation(libs.lwjgl)

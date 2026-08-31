@@ -1,3 +1,8 @@
+plugins {
+	id("shared-game-configuration")
+	alias(libs.plugins.kotlinJvm)
+}
+
 dependencies {
 	for (dependency in (project.ext.get("vulkanImplementationDependencies") as ArrayList<*>)) {
 		implementation(dependency)

@@ -2,6 +2,7 @@ import org.gradle.internal.os.OperatingSystem
 import proguard.gradle.ProGuardTask
 
 plugins {
+	id("shared-game-configuration")
 	alias(libs.plugins.kotlinJvm)
 	alias(libs.plugins.shadow)
 }
