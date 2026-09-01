@@ -17,7 +17,7 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "mardek.editor.client.MainKt"
+        mainClass = "mardek.editor.client.EditorClientMainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
