@@ -12,5 +12,6 @@ fun App() {
     var currentTab by remember { mutableStateOf(NavbarTab.Settings) }
     Column {
         EditorClientNavbar(currentTab) { currentTab = it }
+        if (currentTab == NavbarTab.ItemTypes) ItemTypeOverview()
     }
 }
