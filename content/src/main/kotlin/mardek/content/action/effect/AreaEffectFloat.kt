@@ -3,6 +3,7 @@ package mardek.content.action.effect
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
+import java.io.Serializable
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
@@ -45,7 +46,7 @@ class AreaEffectFloat(
 	@BitField(id = 3)
 	@FloatField(commonValues = [Float.MAX_VALUE.toDouble()])
 	val max: Float = Float.MAX_VALUE,
-) {
+) : Serializable {
 
 	/**
 	 * Gets the return value of this function at time `t = timeSinceStart`. The return value will be clamped to the

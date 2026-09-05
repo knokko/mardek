@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.inventory.EquipmentSlot
 import mardek.content.skill.SkillClass
+import java.io.Serializable
 
 /**
  * Represents an (RPG) class that playable characters can have. Currently, each playable character has a unique
@@ -41,7 +42,7 @@ class CharacterClass(
 	@BitField(id = 3)
 	@ReferenceFieldTarget(label = "equipment slots")
 	val equipmentSlots: Array<EquipmentSlot>,
-) {
+) : Serializable {
 
 	constructor() : this("", "", SkillClass(), emptyArray())
 

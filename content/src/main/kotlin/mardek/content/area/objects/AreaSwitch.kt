@@ -29,30 +29,18 @@ sealed class AreaSwitch(
  * same color as the switch orb.
  */
 @BitStruct(backwardCompatible = true)
-class AreaSwitchOrb(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
-
-	@Suppress("unused")
-	private constructor() : this(SwitchColor(), 0, 0)
-}
+class AreaSwitchOrb(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y)
 
 /**
  * Represents a switch gate. Switch gates will prevent the player from walking on its tile if and only if the
  * corresponding switch orb is disabled.
  */
 @BitStruct(backwardCompatible = true)
-class AreaSwitchGate(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
-
-	@Suppress("unused")
-	private constructor() : this(SwitchColor(), 0, 0)
-}
+class AreaSwitchGate(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y)
 
 /**
  * Represents a switch platform. Switch platforms are built on inaccessible tiles, but a switch platform will allow
  * the player to walk over that tile if and only if the corresponding switch orb is disabled.
  */
 @BitStruct(backwardCompatible = true)
-class AreaSwitchPlatform(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y) {
-
-	@Suppress("unused")
-	private constructor() : this(SwitchColor(), 0, 0)
-}
+class AreaSwitchPlatform(color: SwitchColor, x: Int, y: Int): AreaSwitch(color, x, y)

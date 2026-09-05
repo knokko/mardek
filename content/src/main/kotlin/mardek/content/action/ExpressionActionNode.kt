@@ -4,9 +4,8 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import mardek.content.BITSER
-import mardek.content.expression.ConstantStateExpression
-import mardek.content.expression.ExpressionActionNodeValue
 import mardek.content.expression.StateExpression
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -23,13 +22,7 @@ class ExpressionActionNode(
 	@BitField(id = 0)
 	@ClassField(root = StateExpression::class)
 	val expression: StateExpression<ActionNode?>
-): ActionNode(id) {
-
-	@Suppress("unused")
-	private constructor() : this(
-		UUID(0, 0),
-		ConstantStateExpression(ExpressionActionNodeValue(null)),
-	)
+): ActionNode(id), Serializable {
 
 	override fun getDirectChildNodes(): Collection<ActionNode> {
 		val destination = mutableMapOf<Class<*>, Collection<Any>>()

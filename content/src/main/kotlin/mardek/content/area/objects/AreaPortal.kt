@@ -39,9 +39,6 @@ class AreaPortal(
 	@ReferenceField(stable = false, label = "object sprites")
 	var sprites: ObjectSprites? = null
 
-	@Suppress("unused")
-	private constructor() : this(0, 0, AreaTransitionDestination())
-
 	override fun toString() = "Portal(x=$x, y=$y, destination=$destination)"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)

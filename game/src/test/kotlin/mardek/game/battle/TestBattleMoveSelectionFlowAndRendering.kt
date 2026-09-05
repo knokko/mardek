@@ -359,7 +359,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		context.input.postEvent(pressKeyEvent(InputKey.MoveRight))
 		context.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
 		state.update(context)
-		assertSelectedMove(BattleMoveSelectionSkill(skill = frostasia, target = BattleSkillTargetAllAllies))
+		assertSelectedMove(BattleMoveSelectionSkill(skill = frostasia, target = BattleSkillTargetAllAllies()))
 		assertSame(sounds.ui.scroll1, context.soundQueue.take())
 		assertNull(context.soundQueue.take())
 
@@ -372,7 +372,7 @@ fun testBattleMoveSelectionFlowAndRendering(instance: TestingInstance) {
 		context.input.postEvent(pressKeyEvent(InputKey.Interact))
 		context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 		state.update(context)
-		assertSelectedMove(BattleMoveSelectionSkill(skill = frostasia, target = BattleSkillTargetAllAllies))
+		assertSelectedMove(BattleMoveSelectionSkill(skill = frostasia, target = BattleSkillTargetAllAllies()))
 		assertSame(sounds.ui.clickReject, context.soundQueue.take())
 		assertNull(context.soundQueue.take())
 

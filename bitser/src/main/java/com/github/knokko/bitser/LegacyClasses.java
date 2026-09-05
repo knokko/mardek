@@ -3,13 +3,14 @@ package com.github.knokko.bitser;
 import com.github.knokko.bitser.exceptions.UnexpectedBitserException;
 import com.github.knokko.bitser.field.ReferenceFieldTarget;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 // Ironically, I don't think I can make this backward-compatible
 @BitStruct(backwardCompatible = false)
-class LegacyClasses {
+class LegacyClasses implements Serializable {
 
 	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 	@ReferenceFieldTarget(label = "classes")

@@ -9,6 +9,7 @@ import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -20,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TestMapField {
 
 	@BitStruct(backwardCompatible = false)
-	static class StringMap {
+	static class StringMap implements Serializable {
 
 		@BitField
 		final ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
@@ -120,7 +121,7 @@ public class TestMapField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class KeyFieldMap {
+	static class KeyFieldMap implements Serializable {
 
 		@SuppressWarnings("unused")
 		@IntegerField(expectUniform = false, minValue = 100)
@@ -143,7 +144,7 @@ public class TestMapField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class ImplicitValueFieldMap {
+	static class ImplicitValueFieldMap implements Serializable {
 
 		@IntegerField(expectUniform = true, minValue = 10, maxValue = 11)
 		final HashMap<String, Integer> map = new HashMap<>();
@@ -162,7 +163,7 @@ public class TestMapField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class ExplicitValueFieldMap {
+	static class ExplicitValueFieldMap implements Serializable {
 
 		@SuppressWarnings("unused")
 		@IntegerField(expectUniform = true, minValue = 10, maxValue = 11)
@@ -198,7 +199,7 @@ public class TestMapField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class ReferenceMaps {
+	static class ReferenceMaps implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceFieldTarget(label = "test")
@@ -257,7 +258,7 @@ public class TestMapField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class WriteAsBytesMap {
+	static class WriteAsBytesMap implements Serializable {
 
 		@SuppressWarnings("unused")
 		@NestedFieldSetting(path = "", writeAsBytes = true)
@@ -333,7 +334,7 @@ public class TestMapField {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferenceToStructMap {
+	private static class ReferenceToStructMap implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceField(stable = false, label = "names")

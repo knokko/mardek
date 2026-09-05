@@ -3,9 +3,10 @@ package com.github.knokko.bitser;
 import com.github.knokko.bitser.exceptions.InvalidBitFieldException;
 import com.github.knokko.bitser.field.BitField;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-abstract class BitFieldWrapper {
+abstract class BitFieldWrapper implements Serializable {
 
 	@SuppressWarnings("unused")
 	private static final Class<?>[] BITSER_HIERARCHY = {

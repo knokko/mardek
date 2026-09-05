@@ -4,12 +4,13 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import java.io.Serializable
 
 /**
  * The audio-related part of the `Content`
  */
 @BitStruct(backwardCompatible = true)
-class AudioContent {
+class AudioContent : Serializable {
 
 	/**
 	 * This is the list of sound effects that can be used by e.g. skills, but are not needed by the hardcoded actions

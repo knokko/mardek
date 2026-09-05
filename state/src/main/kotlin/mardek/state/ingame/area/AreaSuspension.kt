@@ -16,6 +16,7 @@ import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.battle.BattleState
 import mardek.content.util.Time
+import java.io.Serializable
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -24,7 +25,7 @@ import kotlin.time.Duration.Companion.seconds
  * When an area is 'suspended' by any `AreaSuspension`, the normal update flow is suspended until the suspension is
  * gone. This makes sure that e.g. the player cannot walk while engaged in a battle, or looking inside a chest.
  */
-sealed class AreaSuspension {
+sealed class AreaSuspension : Serializable {
 
 	/**
 	 * Whether [AreaState.currentTime] should keep increasing during this suspension
@@ -60,10 +61,6 @@ class AreaSuspensionPlayerWalking(
 	@BitField(id = 0)
 	val destination: NextAreaPosition
 ) : AreaSuspension() {
-
-	@Suppress("unused")
-	private constructor() : this(NextAreaPosition())
-
 	override fun shouldUpdateCurrentTime() = true
 }
 
@@ -96,9 +93,6 @@ class AreaSuspensionIncomingRandomBattle(
 	@BitField(id = 3)
 	val canAvoid: Boolean,
 ) : AreaSuspension() {
-
-	@Suppress("unused")
-	private constructor() : this(Battle(), Time.ZERO, false)
 
 	override fun shouldUpdateCurrentTime() = true
 
@@ -147,9 +141,6 @@ class AreaSuspensionIncomingBattle(
 	val nextActions: AreaActionsState?,
 ) : AreaSuspension() {
 
-	@Suppress("unused")
-	private constructor() : this(Battle(), Time.ZERO, emptyArray(), null)
-
 	override fun shouldUpdateCurrentTime() = true
 
 	companion object {
@@ -187,9 +178,6 @@ class AreaSuspensionBattle(
 	@BitField(id = 2, optional = true)
 	var loot: BattleLoot? = null
 
-	@Suppress("unused")
-	private constructor() : this(BattleState())
-
 	override fun shouldUpdateCurrentTime() = false
 }
 
@@ -205,9 +193,6 @@ class AreaSuspensionActions(
 	@BitField(id = 0)
 	val actions: AreaActionsState
 ) : AreaSuspension() {
-
-	@Suppress("unused")
-	private constructor() : this(AreaActionsState())
 
 	override fun shouldUpdateCurrentTime() = true
 }
@@ -232,9 +217,6 @@ class AreaSuspensionTransition(
 	@BitField(id = 1)
 	val startTime: Time,
 ) : AreaSuspension() {
-
-	@Suppress("unused")
-	private constructor() : this(AreaTransitionDestination(), Time.ZERO)
 
 	override fun shouldUpdateCurrentTime() = true
 
@@ -270,9 +252,6 @@ class AreaSuspensionOpeningDoor(
 	@BitField(id = 1)
 	val startTime: Time,
 ) : AreaSuspension() {
-
-	@Suppress("unused")
-	private constructor() : this(AreaDoor(), Time.ZERO)
 
 	override fun shouldUpdateCurrentTime() = true
 
@@ -323,9 +302,6 @@ class AreaSuspensionOpeningChest(
 	 * this.
 	 */
 	var obtainedItem: ObtainedItemStack? = null
-
-	@Suppress("unused")
-	private constructor() : this(Chest(), Time.ZERO)
 
 	override fun shouldUpdateCurrentTime() = false
 

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.sprite.BcSprite
+import java.io.Serializable
 
 /**
  * Represents a sprite (leaf) of an animation node/tree.
@@ -42,7 +43,7 @@ class AnimationSprite(
 		expectUniform = false, digitSize = 0, minValue = -6000, maxValue = 4000
 	))
 	val offsetY: Float,
-) {
+) : Serializable {
 	internal constructor() : this(-1, BcSprite(), 0f, 0f)
 
 	override fun toString() = "AnimationSprite(flash shape ID = $defineShapeFlashID)"

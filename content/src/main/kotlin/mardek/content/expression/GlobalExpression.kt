@@ -3,6 +3,7 @@ package mardek.content.expression
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
+import java.io.Serializable
 
 /**
  * Represents a named global (state) expression, which is potentially good for 'code' reuse, even after the hardcoded
@@ -23,7 +24,7 @@ class GlobalExpression<T>(
 	@BitField(id = 1)
 	@ClassField(root = StateExpression::class)
 	val expression: StateExpression<T>,
-) {
+) : Serializable {
 
 	internal constructor() : this("", ConstantStateExpression())
 }

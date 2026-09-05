@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.FloatField;
 import com.github.knokko.bitser.distributions.FloatDistributionTracker;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.List;
 
 import static com.github.knokko.bitser.test.wrapper.TestHelper.assertContains;
@@ -23,7 +24,7 @@ public class TestLazyFloatDistributionTracker {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class OuterStruct {
+	private static class OuterStruct implements Serializable {
 
 		final SimpleLazyBits<InnerStruct> lazy = new SimpleLazyBits<>(new InnerStruct());
 	}

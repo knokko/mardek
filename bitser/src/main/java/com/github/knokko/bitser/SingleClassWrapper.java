@@ -36,6 +36,7 @@ class SingleClassWrapper {
 	};
 
 	final Class<?> myClass;
+	final SingleClassMutator mutator;
 	final List<FieldWrapper> fields = new ArrayList<>();
 	final List<FieldWrapper> fieldsSortedById;
 	final List<FunctionWrapper> functions = new ArrayList<>();
@@ -177,6 +178,7 @@ class SingleClassWrapper {
 		fields.sort(Comparator.comparing(a -> a.classField.getName()));
 		this.fieldsSortedById = new ArrayList<>(fields);
 		fieldsSortedById.sort(Comparator.comparingInt(a -> a.id));
+		this.mutator = new SingleClassMutator(myClass, fields);
 	}
 
 	List<FieldWrapper> getFields(boolean backwardCompatible) {

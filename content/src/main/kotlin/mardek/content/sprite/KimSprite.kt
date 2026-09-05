@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.compressor.Kim1Decompressor
 import com.github.knokko.compressor.Kim2Decompressor
 import com.github.knokko.compressor.Kim3Compressor
+import java.io.Serializable
 
 /**
  * Represents a compressed sprite that uses the kim1 or kim3 image format (see github.com/knokko/vk-compressor).
@@ -29,7 +30,7 @@ class KimSprite(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 3, commonValues = [3])
 	val version: Int,
-) {
+) : Serializable {
 
 	/**
 	 * The index of this sprite into the kim sprite/fake image list of the renderer. The value of this is only

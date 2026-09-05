@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -67,7 +68,7 @@ public class TestBitPostInit {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class LegacyConversionBefore {
+	private static class LegacyConversionBefore implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 4)
@@ -80,7 +81,7 @@ public class TestBitPostInit {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class BeforeParent extends LegacyConversionBefore {
+	private static class BeforeParent extends LegacyConversionBefore implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 4)
@@ -451,7 +452,7 @@ public class TestBitPostInit {
 	private static class OuterWithoutPostInit {}
 
 	@BitStruct(backwardCompatible = true)
-	private static class OuterWithPostInit {
+	private static class OuterWithPostInit implements Serializable {
 
 		@BitField(id = 0)
 		final WithPostInit inner = new WithPostInit();

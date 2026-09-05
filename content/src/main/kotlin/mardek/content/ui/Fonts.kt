@@ -3,6 +3,7 @@ package mardek.content.ui
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import java.io.Serializable
 
 /**
  * All the fonts used by the game/engine
@@ -122,14 +123,7 @@ class Fonts(
 	@BitField(id = 14)
 	@ReferenceFieldTarget(label = "fonts")
 	val fairy: Font,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(
-		Font(), Font(), Font(), Font(), Font(),
-		Font(), Font(), Font(), Font(), Font(),
-		Font(), Font(), Font(), Font(), Font(),
-	)
+) : Serializable {
 
 	/**
 	 * Gets an array containing all the fonts.

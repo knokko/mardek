@@ -5,12 +5,13 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.area.AreaShop
+import java.io.Serializable
 
 /**
  * Tracks the states of all the shops/traders
  */
 @BitStruct(backwardCompatible = true)
-class ShopsStates {
+class ShopsStates : Serializable {
 
 	@BitField(id = 0, readsMethodResult = true)
 	private val mapping = HashMap<AreaShop, ShopState>()

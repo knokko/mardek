@@ -2,6 +2,7 @@ package com.github.knokko.bitser.field;
 
 import com.github.knokko.bitser.BitStruct;
 
+import java.io.Serializable;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -156,7 +157,7 @@ public @interface IntegerField {
 	long[] commonValues() default {};
 
 	@BitStruct(backwardCompatible = false)
-	class Properties {
+	class Properties implements Serializable {
 
 		@IntegerField(expectUniform = false, commonValues = {
 				0L, -1L, Byte.MIN_VALUE, Short.MIN_VALUE, Integer.MIN_VALUE, Long.MIN_VALUE

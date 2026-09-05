@@ -110,7 +110,7 @@ class StructFieldWrapper extends BitFieldWrapper {
 		} else allowedClassIndex = 0;
 
 		BitStructWrapper<?> structInfo = deserializer.cache.getWrapper(allowed[allowedClassIndex]);
-		Object structObject = structInfo.createEmptyInstance();
+		Object structObject = structInfo.mutator.createEmptyInstance.get();
 		deserializer.structJobs.add(
 				new ReadStructJob(structObject, structInfo, new RecursionNode(parentNode, fieldName))
 		);
@@ -166,7 +166,7 @@ class StructFieldWrapper extends BitFieldWrapper {
 					"Encountered unknown subclass while loading " + field
 			);
 			BitStructWrapper<?> modernInfo = deserializer.bitser.cache.getWrapper(allowed[legacyObject.allowedClassIndex]);
-			Object modernObject = modernInfo.createEmptyInstance();
+			Object modernObject = modernInfo.mutator.createEmptyInstance.get();
 			legacyObject.modernObject = modernObject;
 			deserializer.convertStructJobs.add(new BackConvertStructJob(
 					modernInfo, legacyObject,
@@ -185,7 +185,7 @@ class StructFieldWrapper extends BitFieldWrapper {
 			RecursionNode parentNode, String fieldName
 	) {
 		var wrapper = machine.bitser.cache.getWrapper(original.getClass());
-		Object copied = wrapper.createEmptyInstance();
+		Object copied = wrapper.mutator.createEmptyInstance.get();
 		var childNode = new RecursionNode(parentNode, fieldName);
 		machine.structJobs.add(new DeepCopyStructJob(wrapper, original, copied, childNode));
 		return copied;

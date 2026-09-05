@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.skill.ReactionSkillType
 import mardek.content.util.Time
+import java.io.Serializable
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -33,7 +34,7 @@ class ReactionChallenge(
 	 */
 	@BitField(id = 1)
 	val startTime: Time,
-) {
+) : Serializable {
 
 	/**
 	 * - When the player hasn't pressed the Interact key yet since the start of this reaction challenge,
@@ -50,9 +51,6 @@ class ReactionChallenge(
 	@IntegerField(expectUniform = false)
 	var clickedAfter = NOT_YET_REACTED
 		private set
-
-	@Suppress("unused")
-	private constructor() : this(ReactionSkillType.MeleeDefense, Time.ZERO)
 
 	/**
 	 * Returns true if and only if the player passed the reaction challenge. Note that this will always return false

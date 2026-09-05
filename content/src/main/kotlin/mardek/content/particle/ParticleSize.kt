@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 
 /**
  * This class describes the size of emitted particles, and how this size changes over time.
@@ -97,7 +98,7 @@ class ParticleSize(
 	@BitField(id = 9)
 	@FloatField(expectMultipleOf = 0.1, commonValues = [1.0])
 	val dynamicGrowY: Float,
-) {
+) : Serializable {
 	internal constructor() : this(
 		0f, 0f, 0f, 0f,
 		0f, 0f, 0f, 0f,

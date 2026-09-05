@@ -12,13 +12,14 @@ import mardek.content.encyclopedia.EncyclopediaContent
 import mardek.content.encyclopedia.EncyclopediaMonster
 import mardek.content.encyclopedia.EncyclopediaPerson
 import mardek.state.ingame.CampaignState
+import java.io.Serializable
 
 /**
  * The state of the encyclopedia: this tracks which people the player has met, which areas the player has visited,
  * etc...
  */
 @BitStruct(backwardCompatible = true)
-class EncyclopediaState {
+class EncyclopediaState : Serializable {
 
 	/**
 	 * The people that the player has talked to, or otherwise learned/read about. These people are shown in the

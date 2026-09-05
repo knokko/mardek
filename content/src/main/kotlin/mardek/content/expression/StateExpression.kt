@@ -10,12 +10,13 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Item
 import mardek.content.story.FixedTimelineVariable
 import mardek.content.story.TimelineVariable
+import java.io.Serializable
 
 /**
  * An expression that, given the `CampaignState`, evaluates to a [ExpressionValue]. The simplest subclass is
  * [ConstantStateExpression], which always evaluates to the same value, regardless of the state.
  */
-sealed class StateExpression<T> {
+sealed class StateExpression<T> : Serializable {
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
@@ -82,9 +83,6 @@ class GlobalStateExpression<T>(
 	val global: GlobalExpression<T>
 ) : StateExpression<T>() {
 
-	@Suppress("unused")
-	private constructor() : this(GlobalExpression())
-
 	override fun toString() = "GlobalTimelineExpression(${global.name})"
 }
 
@@ -101,9 +99,6 @@ class VariableStateExpression<T>(
 	@ReferenceField(stable = false, label = "timeline variables")
 	val variable: TimelineVariable<T>
 ) : StateExpression<T?>() {
-
-	@Suppress("unused")
-	private constructor() : this(FixedTimelineVariable())
 
 	override fun toString() = variable.toString()
 }
@@ -129,9 +124,6 @@ class ExpressionOrDefaultStateExpression<T>(
 	@ClassField(root = StateExpression::class)
 	val ifNull: StateExpression<T>,
 ) : StateExpression<T>() {
-
-	@Suppress("unused")
-	private constructor() : this(ConstantStateExpression(), ConstantStateExpression())
 
 	override fun toString() = "(($expression) ?: ($ifNull))"
 }
@@ -168,13 +160,6 @@ class SwitchCaseStateExpression<I, O>(
 	val defaultOutput: StateExpression<out O>,
 ) : StateExpression<O>() {
 
-	@Suppress("unused")
-	private constructor() : this(
-		ConstantStateExpression<I>(),
-		emptyArray<Case<I, out O>>(),
-		ConstantStateExpression<O>(),
-	)
-
 	override fun toString() = "SwitchTimelineExpression(input=$input, cases=$cases, default=$defaultOutput)"
 
 	/**
@@ -196,14 +181,7 @@ class SwitchCaseStateExpression<I, O>(
 		@BitField(id = 1)
 		@ClassField(root = StateExpression::class)
 		val outputWhenInputMatches: StateExpression<O>,
-	) {
-
-		@Suppress("unused")
-		private constructor() : this(
-			ConstantStateExpression<I>(),
-			ConstantStateExpression<O>()
-		)
-
+	) : Serializable {
 		override fun toString() = "$inputToMatch -> $outputWhenInputMatches"
 	}
 }
@@ -237,13 +215,6 @@ class IfElseStateExpression<T>(
 	val ifFalse: StateExpression<T>,
 ) : StateExpression<T>() {
 
-	@Suppress("unused", "UNCHECKED_CAST")
-	private constructor() : this(
-		ConstantStateExpression(ExpressionBooleanValue(false)),
-		ConstantStateExpression(ExpressionUnitValue()) as StateExpression<T>,
-		ConstantStateExpression(ExpressionUnitValue()) as StateExpression<T>,
-	)
-
 	override fun toString() = "if($condition) { $ifTrue } else { $ifFalse }"
 }
 
@@ -261,9 +232,6 @@ class NegateStateCondition(
 	@ClassField(root = StateExpression::class)
 	val operand: StateExpression<Boolean>,
 ) : StateExpression<Boolean>() {
-
-	@Suppress("unused")
-	private constructor() : this(ConstantStateExpression(ExpressionBooleanValue(false)))
 
 	override fun toString() = "!($operand)"
 }
@@ -283,9 +251,6 @@ class AndStateCondition(
 
 ) : StateExpression<Boolean>() {
 
-	@Suppress("unused")
-	private constructor() : this(emptyArray())
-
 	override fun toString() = "(${operands.joinToString(" && ")})"
 }
 
@@ -303,9 +268,6 @@ class DefinedVariableStateCondition(
 	@ReferenceField(stable = false, label = "timeline variables")
 	val variable: TimelineVariable<*>,
 ) : StateExpression<Boolean>() {
-
-	@Suppress("unused")
-	private constructor() : this(FixedTimelineVariable<Unit>())
 
 	override fun toString() = "($variable is defined)"
 }
@@ -343,9 +305,6 @@ class ItemCountStateCondition(
 	val maxAmount: Int?,
 ) : StateExpression<Boolean>() {
 
-	@Suppress("unused")
-	private constructor() : this(Item(), 0, 0)
-
 	override fun toString() = "(has $minAmount to $maxAmount occurrences of $item)"
 }
 
@@ -362,8 +321,6 @@ class PartyMemberStateCondition(
 	@ReferenceField(stable = false, label = "playable characters")
 	val player: PlayableCharacter
 ): StateExpression<Boolean>() {
-	@Suppress("unused")
-	private constructor() : this(PlayableCharacter())
 
 	override fun toString() = "$player in party"
 }
@@ -392,12 +349,6 @@ class GreaterEqualStateCondition(
 	val right: StateExpression<Int>,
 ) : StateExpression<Boolean>() {
 
-	@Suppress("unused")
-	private constructor() : this(
-		ConstantStateExpression(ExpressionIntValue(0)),
-		ConstantStateExpression(ExpressionIntValue(0)),
-	)
-
 	override fun toString() = "($left >= $right)"
 }
 
@@ -422,12 +373,6 @@ class EqualStateCondition<T>(
 	@ClassField(root = StateExpression::class)
 	val right: StateExpression<T>,
 ) : StateExpression<Boolean>() {
-
-	@Suppress("unused", "UNCHECKED_CAST")
-	private constructor() : this(
-		ConstantStateExpression(ExpressionUnitValue() as ExpressionValue<T>),
-		ConstantStateExpression(ExpressionUnitValue() as ExpressionValue<T>),
-	)
 
 	override fun toString() = "($left >= $right)"
 }

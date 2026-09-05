@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.*;
 import com.github.knokko.bitser.options.WithParameter;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,7 +54,7 @@ public class TestCollectInstances {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class RootStruct {
+	static class RootStruct implements Serializable {
 
 		@BitField
 		SimpleLazyBits<ParentStruct> simpleLazy;

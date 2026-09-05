@@ -10,6 +10,7 @@ import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.area.Area
 import mardek.content.area.Direction
 import mardek.content.story.FixedTimelineVariable
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -114,7 +115,7 @@ class WorldMapNode(
 		 */
 		@BitField(id = 4)
 		val direction: Direction,
-	) {
+	) : Serializable {
 
 		constructor() : this(UUID.randomUUID(), Area(), 0, 0, Direction.Up)
 

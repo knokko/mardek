@@ -9,12 +9,13 @@ import mardek.content.animation.SkinnedAnimation
 import mardek.content.particle.ParticleEffect
 import mardek.content.particle.ParticleSprite
 import mardek.content.sprite.BcSprite
+import java.io.Serializable
 
 /**
  * The battle-related part of the `Content`
  */
 @BitStruct(backwardCompatible = true)
-class BattleContent {
+class BattleContent : Serializable {
 
 	/**
 	 * All sprites used by non-skeleton animations are stored in this list. Most skeleton animations however have

@@ -12,6 +12,7 @@ import com.github.knokko.bitser.legacy.LegacyReference;
 import com.github.knokko.bitser.options.WithParameter;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TestUnstableReferences {
 
 	@BitStruct(backwardCompatible = true)
-	private static class ItemType {
+	private static class ItemType implements Serializable {
 
 		@BitField(id = 0)
 		final String name;
@@ -38,7 +39,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class Item {
+	private static class Item implements Serializable {
 
 		@StringField
 		final String name;
@@ -58,7 +59,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class ItemRoot {
+	private static class ItemRoot implements Serializable {
 
 		@BitField
 		final ArrayList<Item> items = new ArrayList<>();
@@ -96,7 +97,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class Node {
+	static class Node implements Serializable {
 
 		@IntegerField(minValue = 1, expectUniform = false)
 		final int score;
@@ -118,7 +119,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class DeepNodeReference {
+	static class DeepNodeReference implements Serializable {
 
 		@ReferenceField(stable = false, label = "nodes")
 		final Node node;
@@ -134,7 +135,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class DeepNodeTarget {
+	static class DeepNodeTarget implements Serializable {
 
 		@ReferenceFieldTarget(label = "nodes")
 		final Node node;
@@ -150,7 +151,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class Graph {
+	static class Graph implements Serializable {
 
 		@ReferenceFieldTarget(label = "nodes")
 		final ArrayList<Node> mostNodes = new ArrayList<>();
@@ -220,7 +221,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class NonStructReferences {
+	static class NonStructReferences implements Serializable {
 
 		@ReferenceFieldTarget(label = "no struct")
 		final String hello;
@@ -262,7 +263,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class MissingTargetLabel {
+	static class MissingTargetLabel implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceField(stable = false, label = "nope")
@@ -280,7 +281,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class BothReferenceAndTarget {
+	static class BothReferenceAndTarget implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceField(stable = false, label = "test")
@@ -289,7 +290,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class JustAnId {
+	static class JustAnId implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField
@@ -306,7 +307,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class WithPrimitiveTarget {
+	static class WithPrimitiveTarget implements Serializable {
 
 		@SuppressWarnings("unused")
 		@IntegerField(expectUniform = false)
@@ -339,7 +340,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class StableTarget {
+	static class StableTarget implements Serializable {
 
 		@SuppressWarnings("unused")
 		@StableReferenceFieldId
@@ -432,7 +433,7 @@ public class TestUnstableReferences {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class RequiredReferenceList {
+	private static class RequiredReferenceList implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "label")

@@ -78,11 +78,5 @@ class AreaTrigger(
 		}
 	}
 
-	@Suppress("unused")
-	private constructor() : this(
-		"", 0, 0, "", false, false,
-		null, null, null, UUID.randomUUID(),
-	)
-
 	override fun toString() = "Trigger(x=$x, y=$y, once=$oneTimeOnly, walkOn=$walkOn, code=$flashCode)"
 }

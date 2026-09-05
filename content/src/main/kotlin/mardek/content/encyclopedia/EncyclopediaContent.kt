@@ -3,12 +3,13 @@ package mardek.content.encyclopedia
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import java.io.Serializable
 
 /**
  * Everything that goes into the encyclopedia (which can be found in the "Encyclopedia" tab of the in-game menu).
  */
 @BitStruct(backwardCompatible = true)
-class EncyclopediaContent {
+class EncyclopediaContent : Serializable {
 
 	/**
 	 * All the people that can be shown in the "People" section of the encyclopedia.

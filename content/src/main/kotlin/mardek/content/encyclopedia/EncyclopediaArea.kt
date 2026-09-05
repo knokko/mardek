@@ -9,6 +9,7 @@ import mardek.content.battle.BattleBackground
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.ExpressionBooleanValue
 import mardek.content.expression.StateExpression
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -58,7 +59,7 @@ class EncyclopediaArea(
 	@BitField(id = 4)
 	@ClassField(root = StateExpression::class)
 	val shouldShowUp: StateExpression<Boolean>,
-) {
+) : Serializable {
 
 	internal constructor() : this(
 		UUID(0, 0), "", "", BattleBackground(),

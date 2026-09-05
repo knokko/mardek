@@ -10,6 +10,7 @@ import com.github.knokko.bitser.io.BitCountStream;
 import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.EnumMap;
 
 import static com.github.knokko.bitser.test.wrapper.TestHelper.assertContains;
@@ -110,7 +111,7 @@ public class TestBitEnum {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class SeasonStruct {
+	private static class SeasonStruct implements Serializable {
 
 		@BitField
 		@SuppressWarnings("unused")
@@ -146,7 +147,7 @@ public class TestBitEnum {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class DirectionStruct {
+	private static class DirectionStruct implements Serializable {
 
 		@BitField
 		@SuppressWarnings("unused")
@@ -229,7 +230,7 @@ public class TestBitEnum {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ContainsEnumMap {
+	private static class ContainsEnumMap implements Serializable {
 
 		@BitField(id = 0)
 		final EnumMap<Season, String> nicerNames = new EnumMap<>(Season.class);

@@ -13,6 +13,7 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.encyclopedia.EncyclopediaPerson
 import mardek.content.story.FixedTimelineVariables
 import mardek.content.story.TimelineVariable
+import java.io.Serializable
 
 /**
  * Represents the value of a [StateExpression] or [TimelineVariable]. All possible values (except `null`) must be a
@@ -20,7 +21,7 @@ import mardek.content.story.TimelineVariable
  *
  * Each `ExpressionValue<T>` wraps a value of type `T`.
  */
-sealed class ExpressionValue<T> {
+sealed class ExpressionValue<T> : Serializable {
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
@@ -77,9 +78,6 @@ class ExpressionBooleanValue(
 	val value: Boolean
 ) : ExpressionValue<Boolean>() {
 
-	@Suppress("unused")
-	private constructor() : this(false)
-
 	override fun get() = value
 
 	override fun toString() = "BooleanValue($value)"
@@ -99,9 +97,6 @@ class ExpressionIntValue(
 	val value: Int
 ) : ExpressionValue<Int>() {
 
-	@Suppress("unused")
-	private constructor() : this(0)
-
 	override fun get() = value
 
 	override fun toString() = "IntValue($value)"
@@ -120,9 +115,6 @@ class ExpressionStringValue(
 	val value: String
 ) : ExpressionValue<String>() {
 
-	@Suppress("unused")
-	private constructor() : this("")
-
 	override fun get() = value
 
 	override fun toString() = "StringValue($value)"
@@ -140,9 +132,6 @@ class ExpressionOptionalStringValue(
 	@BitField(id = 0, optional = true)
 	val value: String?
 ) : ExpressionValue<String?>() {
-
-	@Suppress("unused")
-	private constructor() : this(null)
 
 	override fun get() = value
 
@@ -165,9 +154,6 @@ class ExpressionOptionalPlayerValue(
 	val value: PlayableCharacter?
 ) : ExpressionValue<PlayableCharacter?>() {
 
-	@Suppress("unused")
-	private constructor() : this(null)
-
 	override fun get() = value
 
 	override fun toString() = "PlayerValue?($value)"
@@ -187,9 +173,6 @@ class ExpressionCharacterStateValue(
 	@BitField(id = 0)
 	val value: CharacterState,
 ) : ExpressionValue<CharacterState>() {
-
-	@Suppress("unused")
-	private constructor() : this(CharacterState())
 
 	override fun get() = value
 
@@ -211,9 +194,6 @@ class ExpressionColorTransformValue(
 	val value: ColorTransform
 ) : ExpressionValue<ColorTransform>() {
 
-	@Suppress("unused")
-	private constructor() : this(ColorTransform())
-
 	override fun get() = value
 
 	override fun toString() = "ColorTransformValue($value)"
@@ -233,9 +213,6 @@ class ExpressionOptionalColorTransformValue(
 	@BitField(id = 0, optional = true)
 	val value: ColorTransform?
 ) : ExpressionValue<ColorTransform?>() {
-
-	@Suppress("unused")
-	private constructor() : this(null)
 
 	override fun get() = value
 
@@ -259,9 +236,6 @@ class ExpressionActionNodeValue(
 	val value: ActionNode?
 ) : ExpressionValue<ActionNode?>() {
 
-	@Suppress("unused")
-	private constructor() : this(null)
-
 	override fun get() = value
 
 	override fun toString() = "ActionNodeValue(...)"
@@ -283,9 +257,6 @@ class ExpressionEncyclopediaPersonValue(
 	val value: EncyclopediaPerson.Snapshot?
 ) : ExpressionValue<EncyclopediaPerson.Snapshot?>() {
 
-	@Suppress("unused")
-	private constructor() : this(null)
-
 	override fun get() = value
 
 	override fun toString() = "EncyclopediaPersonValue(null=${value == null})"
@@ -306,9 +277,6 @@ class ExpressionMusicTrackValue(
 	@ReferenceField(stable = false, label = "music tracks")
 	val value: MusicTrack?,
 ) : ExpressionValue<MusicTrack?>() {
-
-	@Suppress("unused")
-	private constructor() : this(null)
 
 	override fun get() = value
 
