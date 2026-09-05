@@ -10,7 +10,6 @@ joml = "1.10.8"
 lwjgl = "3.4.2"
 vk-boiler = "5.5.1"
 vk-compressor = "1.0.0"
-bitser = "0.4.1-pre1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

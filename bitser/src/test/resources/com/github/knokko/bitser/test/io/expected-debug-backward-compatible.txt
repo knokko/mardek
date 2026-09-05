@@ -1,0 +1,1633 @@
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Prepare legacy classes >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 1: struct jobs & array jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+begin LegacyClasses
+begin LegacyClasses -> classes
+collection-size: 011100
+end LegacyClasses -> classes
+begin LegacyClasses -> structs
+collection-size: 011010
+end LegacyClasses -> structs
+end LegacyClasses
+begin LegacyClasses -> structs
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+end LegacyClasses -> structs
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> classes
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+end LegacyClasses -> classes
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 10
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 1100
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 10
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0100
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> isFloat
+boolean-value: 1
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> isFloat
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> errorTolerance
+float-common: 1
+float-common-index: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> errorTolerance
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectMultipleOf
+float-common: 1
+float-common-index: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectMultipleOf
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> maxValue
+int-value: 111
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> minValue
+int-value: 1101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 10
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 011010
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+boolean-value: 1
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+int-value: 111
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+int-value: 1101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 10
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 010100
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+allowed-class-index: 0010
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> isStableReferenceId
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> isStableReferenceId
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 00
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 011010
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 011000
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+int-value: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 010110
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 010100
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+int-value: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0110
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+optional: 0
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0110
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+optional: 0
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 2: with jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 3: map stable IDs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 4: reference jobs & lazy reference jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 101
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+optional: 1
+unstable-id: 010
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+optional: 1
+unstable-id: 100
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+optional: 1
+unstable-id: 010
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+optional: 1
+unstable-id: 110
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+optional: 1
+unstable-id: 001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 001
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 110
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 010
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 000
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Prepare main content >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 1: struct jobs & array jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+begin RootStruct
+begin RootStruct -> list
+collection-size: 010100
+end RootStruct -> list
+begin RootStruct -> array
+array-length: 010100
+end RootStruct -> array
+begin RootStruct -> example
+int-value: 01001110010000
+end RootStruct -> example
+begin RootStruct -> map
+map-size: 010100
+end RootStruct -> map
+begin RootStruct -> padding
+int-value: 01001101000100
+end RootStruct -> padding
+end RootStruct
+begin RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+end RootStruct -> map
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+map-size: 10
+end RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+uuid: 11111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+map-size: 00
+end RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+begin RootStruct -> map -> elements -> nestedMap -> elements -> address
+int-value: 0011101000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> nestedMap -> elements -> address
+end RootStruct -> map -> elements -> nestedMap -> elements
+begin RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+end RootStruct -> map
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> address
+int-value: 0011101000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> address
+end RootStruct -> map -> elements
+begin RootStruct -> array
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+end RootStruct -> array
+begin RootStruct -> array -> elements
+begin RootStruct -> array -> elements -> weight
+float-value: 00000000000000000000010100000011
+end RootStruct -> array -> elements -> weight
+end RootStruct -> array -> elements
+begin RootStruct -> list
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+end RootStruct -> list
+begin RootStruct -> list -> elements
+begin RootStruct -> list -> elements -> description
+string-length: 011100
+string-char: 11001111
+string-char: 10100111
+string-char: 11000111
+string-char: 11110111
+string-char: 01110111
+string-char: 00100111
+end RootStruct -> list -> elements -> description
+end RootStruct -> list -> elements
+begin RootStruct -> list -> elements
+begin RootStruct -> list -> elements -> description
+string-length: 011010
+string-char: 01100111
+string-char: 10010111
+string-char: 01001111
+string-char: 11001111
+string-char: 00101111
+end RootStruct -> list -> elements -> description
+end RootStruct -> list -> elements
+begin RootStruct -> array -> elements
+begin RootStruct -> array -> elements -> weight
+float-value: 00000000000000000000001000000010
+end RootStruct -> array -> elements -> weight
+end RootStruct -> array -> elements
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> address
+int-value: 0100110000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> address
+end RootStruct -> map -> elements
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 2: with jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 3: map stable IDs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 4: reference jobs & lazy reference jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+---------------------------------------------------------------------------------------------
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Prepare legacy classes >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 1: struct jobs & array jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+begin LegacyClasses
+begin LegacyClasses -> classes
+collection-size: 011100
+end LegacyClasses -> classes
+begin LegacyClasses -> structs
+collection-size: 011010
+end LegacyClasses -> structs
+end LegacyClasses
+begin LegacyClasses -> structs
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+end LegacyClasses -> structs -> elements
+end LegacyClasses -> structs
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> classes
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+end LegacyClasses -> classes -> elements
+end LegacyClasses -> classes
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 10
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 1100
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> lengthField
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 10
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0100
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> isFloat
+boolean-value: 1
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> isFloat
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> errorTolerance
+float-common: 1
+float-common-index: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> errorTolerance
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectMultipleOf
+float-common: 1
+float-common-index: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectMultipleOf
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> maxValue
+int-value: 111
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> minValue
+int-value: 1101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> floatField -> expectedIntegerMultiple
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 10
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 011010
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+boolean-value: 1
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+int-value: 111
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+int-value: 1101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 10
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 010100
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+allowed-class-index: 0010
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> isStableReferenceId
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> isStableReferenceId
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 00
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+collection-size: 011010
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> functions
+collection-size: 00
+end LegacyClasses -> classes -> elements -> functions
+end LegacyClasses -> classes -> elements
+begin LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields -> elements
+end LegacyClasses -> classes -> elements -> fields
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 011000
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+int-value: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 010110
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 010100
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+int-value: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> intField
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0110
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+optional: 0
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+allowed-class-index: 0110
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> id
+int-value: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> id
+begin LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> readsMethodResult
+end LegacyClasses -> classes -> elements -> fields -> elements
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+allowed-class-index: 1001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+optional: 0
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+array-length: 00
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> commonValues
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+int-value: 000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> digitSize
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> expectUniform
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+int-value: 101
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> maxValue
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+int-value: 1000
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField -> minValue
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> sizeField
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+array-length: 10
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+boolean-value: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field -> optional
+optional: 0
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> field
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements
+begin LegacyClasses -> structs -> elements -> classHierarchy
+collection-size: 010100
+end LegacyClasses -> structs -> elements -> classHierarchy
+end LegacyClasses -> structs -> elements
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 2: with jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 3: map stable IDs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 4: reference jobs & lazy reference jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 101
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+optional: 1
+unstable-id: 010
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+optional: 1
+unstable-id: 100
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+optional: 1
+unstable-id: 010
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> keysWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+optional: 1
+unstable-id: 110
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+optional: 1
+unstable-id: 001
+end LegacyClasses -> classes -> elements -> fields -> elements -> bitField -> valuesWrapper -> legacyStructs
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 001
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 110
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 010
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+begin LegacyClasses -> structs -> elements -> classHierarchy
+unstable-id: 000
+unstable-id: 100
+end LegacyClasses -> structs -> elements -> classHierarchy
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 7: populate struct jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 9 to 11: collection population & post init >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Prepare main content >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 1: struct jobs & array jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+begin RootStruct
+begin RootStruct -> list
+legacy-array-length: 010100
+end RootStruct -> list
+begin RootStruct -> array
+legacy-array-length: 010100
+end RootStruct -> array
+begin RootStruct -> example
+int-value: 01001110010000
+end RootStruct -> example
+begin RootStruct -> map
+map-size: 010100
+end RootStruct -> map
+begin RootStruct -> padding
+int-value: 01001101000100
+end RootStruct -> padding
+end RootStruct
+begin RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+end RootStruct -> map
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+map-size: 10
+end RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+uuid: 11111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+map-size: 00
+end RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+begin RootStruct -> map -> elements -> nestedMap -> elements -> address
+int-value: 0011101000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> nestedMap -> elements -> address
+end RootStruct -> map -> elements -> nestedMap -> elements
+begin RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+end RootStruct -> map
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> address
+int-value: 0011101000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> address
+end RootStruct -> map -> elements
+begin RootStruct -> array
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+end RootStruct -> array
+begin RootStruct -> array -> elements
+begin RootStruct -> array -> elements -> weight
+float-value: 00000000000000000000010100000011
+end RootStruct -> array -> elements -> weight
+end RootStruct -> array -> elements
+begin RootStruct -> list
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+end RootStruct -> list
+begin RootStruct -> list -> elements
+begin RootStruct -> list -> elements -> description
+string-length: 011100
+string-char: 11001111
+string-char: 10100111
+string-char: 11000111
+string-char: 11110111
+string-char: 01110111
+string-char: 00100111
+end RootStruct -> list -> elements -> description
+end RootStruct -> list -> elements
+begin RootStruct -> list -> elements
+begin RootStruct -> list -> elements -> description
+string-length: 011010
+string-char: 01100111
+string-char: 10010111
+string-char: 01001111
+string-char: 11001111
+string-char: 00101111
+end RootStruct -> list -> elements -> description
+end RootStruct -> list -> elements
+begin RootStruct -> array -> elements
+begin RootStruct -> array -> elements -> weight
+float-value: 00000000000000000000001000000010
+end RootStruct -> array -> elements -> weight
+end RootStruct -> array -> elements
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> address
+int-value: 0100110000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> address
+end RootStruct -> map -> elements
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 2: with jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 3: map stable IDs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 4: reference jobs & lazy reference jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 5: convert struct & array jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+begin RootStruct
+end RootStruct
+begin RootStruct -> map
+end RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap -> elements
+begin RootStruct -> map
+end RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> list
+end RootStruct -> list
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+begin RootStruct -> array
+end RootStruct -> array
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 6: convert reference jobs & convert lazy jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 7: populate struct jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 8: evaluate lazy jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 9 to 11: collection population & post init >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+---------------------------------------------------------------------------------------------

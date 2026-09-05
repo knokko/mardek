@@ -9,6 +9,7 @@ include("miscellaneous")
 include("renderer")
 include("state")
 
+include("bitser")
 include("vk2d")
 
 include("editor-client:desktopApp")

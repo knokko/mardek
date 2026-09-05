@@ -1,5 +1,9 @@
 import java.net.URI
 
+plugins {
+	id("knokko-reposilite")
+}
+
 repositories {
 	mavenCentral()
 	maven {
