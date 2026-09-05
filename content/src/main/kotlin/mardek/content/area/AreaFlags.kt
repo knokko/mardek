@@ -3,6 +3,7 @@ package mardek.content.area
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import mardek.content.BITSER
+import java.io.Serializable
 
 /**
  * Special properties/flags that areas can have.
@@ -60,7 +61,7 @@ class AreaFlags(
 	 */
 	@BitField(id = 7)
 	val noStorage: Boolean,
-) {
+) : Serializable {
 
 	constructor() : this(
 		false, false, false, false,

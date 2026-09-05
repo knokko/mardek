@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.SoundEffect
+import java.io.Serializable
 import kotlin.time.Duration
 
 /**
@@ -50,7 +51,7 @@ class EmissionWaves(
 	@BitField(id = 4, optional = true)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val numRounds: Int?,
-) {
+) : Serializable {
 
 	init {
 		if (particlesPerWave < 1) {

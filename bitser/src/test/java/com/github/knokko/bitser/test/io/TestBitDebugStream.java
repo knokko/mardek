@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class TestBitDebugStream {
 
 	@BitStruct(backwardCompatible = true)
-	private static class RootStruct {
+	private static class RootStruct implements Serializable {
 
 		@BitField(id = 0)
 		final ArrayList<ListElement> list = new ArrayList<>();
@@ -74,7 +75,7 @@ public class TestBitDebugStream {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class MapValue {
+	private static class MapValue implements Serializable {
 
 		@BitField(id = 2)
 		final ConcurrentHashMap<MapKey, UUID> nestedMap = new ConcurrentHashMap<>();

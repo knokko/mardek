@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -74,7 +75,7 @@ public class TestBitStreams {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class SmallStruct {
+	private static class SmallStruct implements Serializable {
 
 		@BitField
 		@SuppressWarnings("unused")
@@ -83,7 +84,7 @@ public class TestBitStreams {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class LargerStruct {
+	private static class LargerStruct implements Serializable {
 
 		@BitField(id = 5)
 		@SuppressWarnings("unused")

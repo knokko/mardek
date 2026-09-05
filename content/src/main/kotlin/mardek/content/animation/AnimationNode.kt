@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.particle.ParticleEmitter
+import java.io.Serializable
 
 /**
  * Represents a node in an animation graph, which is typically a PlaceObject2 tag in Flash. An animation node will
@@ -78,12 +79,7 @@ class AnimationNode(
 	@BitField(id = 7)
 	@ReferenceField(stable = false, label = "animation particle emitters")
 	val particleEmitters: Array<ParticleEmitter>,
-) {
-	@Suppress("unused")
-	private constructor() : this(
-		0, null, null, null,
-		null, null, null, AnimationMask(), emptyArray(),
-	)
+) : Serializable {
 
 	override fun toString(): String {
 		val result = StringBuilder("AnimationNode(depth=$depth")

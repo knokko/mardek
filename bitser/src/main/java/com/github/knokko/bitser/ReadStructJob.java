@@ -15,18 +15,22 @@ record ReadStructJob(Object structObject, BitStructWrapper<?> structInfo, Recurs
 			else functionValues = new Object[structClass.functions.get(structClass.functions.size() - 1).id() + 1];
 			var wereReferenceFunctions = new boolean[functionValues.length];
 
+			SingleClassMutator.Session mutateSession = structClass.mutator.createSession.apply(structObject);
+
 			for (var field : structClass.getFields(false)) {
 				String fieldName = field.classField().getName();
 				try {
 					if (field.readsMethodResult()) continue;
 					if (ReadHelper.readOptional(deserializer.input, field.bitField().field.optional)) {
-						field.classField().set(structObject, null);
+						mutateSession.set(field.classField(), null);
 						continue;
 					}
 
 					if (field.bitField() instanceof ReferenceFieldWrapper) {
 						deserializer.structReferenceJobs.add(new ReadStructReferenceJob(
-								structObject, field.classField(), (ReferenceFieldWrapper) field.bitField(),
+								structClass.mutator.createSession.apply(structObject),
+								field.classField(),
+								(ReferenceFieldWrapper) field.bitField(),
 								new RecursionNode(node, fieldName))
 						);
 					} else {
@@ -34,7 +38,7 @@ record ReadStructJob(Object structObject, BitStructWrapper<?> structInfo, Recurs
 						Object value = field.bitField().read(deserializer, node, fieldName);
 						deserializer.input.popContext(node, fieldName);
 
-						field.classField().set(structObject, value);
+						mutateSession.set(field.classField(), value);
 						if (field.bitField().field.referenceTargetLabel != null) {
 							deserializer.references.registerTarget(field.bitField().field.referenceTargetLabel, value);
 						}
@@ -81,11 +85,17 @@ record ReadStructJob(Object structObject, BitStructWrapper<?> structInfo, Recurs
 								new RecursionNode(node, fieldName)
 						));
 					} else {
-						field.classField().set(structObject, functionValues[field.id()]);
+						mutateSession.set(field.classField(), functionValues[field.id()]);
 					}
 				} catch (Throwable failed) {
 					throw new RecursionException(node.generateTrace(fieldName), failed);
 				}
+			}
+
+			try {
+				mutateSession.finish();
+			} catch (Throwable failed) {
+				throw new RecursionException(node.generateTrace(null), failed);
 			}
 
 			if (structObject instanceof BitPostInit) {

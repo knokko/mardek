@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
+import java.io.Serializable
 import java.util.UUID
 import kotlin.time.Duration
 
@@ -48,11 +49,4 @@ class SaveInfo(
 	@BitField(id = 4)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val chapter: Int,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(
-		"", arrayOf(null, null, null, null),
-		Duration.ZERO, 0, 0,
-	)
-}
+) : Serializable

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.stats.ElementalDamageBonus
+import java.io.Serializable
 
 /**
  * For skills that either deal damage, or heal, this defines how powerful the attack/healing is.
@@ -131,12 +132,4 @@ class SkillDamage(
 	@BitField(id = 17, optional = true)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val critChance: Int? = null,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(
-		0, 0f, 0, false, false, false,
-		SkillSpiritModifier.SpiritBlade, ArrayList(), 0f, 0f, 0f, 0f,
-		0f, 0, 0f, 0f, 0f, null
-	)
-}
+) : Serializable

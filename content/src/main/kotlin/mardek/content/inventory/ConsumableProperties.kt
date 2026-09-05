@@ -10,6 +10,7 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.particle.ParticleEffect
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.StatModifierRange
+import java.io.Serializable
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -95,13 +96,7 @@ class ConsumableProperties(
 	 */
 	@BitField(id = 10, optional = true)
 	val damage: ConsumableDamage?,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(
-			null, 0, false, 0, 0, 0f, ArrayList(0),
-			ArrayList(0), false, ArrayList(0), null
-	)
+) : Serializable {
 
 	/**
 	 * Checks whether this item is classified as positive (beneficial to the consumer).

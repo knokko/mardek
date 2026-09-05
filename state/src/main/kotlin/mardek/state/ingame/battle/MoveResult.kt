@@ -10,7 +10,7 @@ import mardek.content.stats.CombatStat
 import mardek.content.stats.Element
 import mardek.content.stats.StatusEffect
 import mardek.state.ingame.battle.combatant.CombatantState
-import mardek.state.ingame.battle.combatant.MonsterCombatantState
+import java.io.Serializable
 import java.util.EnumMap
 
 /**
@@ -136,14 +136,7 @@ class MoveResult(
 		@BitField(id = 9)
 		@NestedFieldSetting(path = "v", fieldName = "ADDED_STAT_MODIFIER_VALUES")
 		val addedStatModifiers: EnumMap<CombatStat, Int>,
-	) {
-
-		@Suppress("unused")
-		private constructor() : this(
-			Element(), 0, MonsterCombatantState(), 0, 0, false,
-			false, HashSet(), HashSet(),
-			EnumMap(CombatStat::class.java),
-		)
+	) : Serializable {
 
 		override fun toString(): String {
 			if (missed) return "MISSED"

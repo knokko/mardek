@@ -2,6 +2,7 @@ package mardek.content.action.effect
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import java.io.Serializable
 
 /**
  * An effect that can be played during an area actions suspension (e.g. souls of Rohoph or Moric)
@@ -20,7 +21,7 @@ class AreaActionEffect(
 	 */
 	@BitField(id = 1)
 	val emitters: Array<AreaEffectsEmitter>,
-) {
+) : Serializable {
 
 	internal constructor() : this("", emptyArray())
 }

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.content.area.Area
+import java.io.Serializable
 import kotlin.math.max
 import kotlin.math.min
 
@@ -19,7 +20,7 @@ import kotlin.math.min
  * areas (using 1 `AreaDiscovery` per area).
  */
 @BitStruct(backwardCompatible = true)
-class AreaDiscovery(area: Area) {
+class AreaDiscovery(area: Area) : Serializable {
 
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false)
@@ -36,9 +37,6 @@ class AreaDiscovery(area: Area) {
 	@BitField(id = 3)
 	@NestedFieldSetting(path = "", writeAsBytes = true)
 	private var raw = BooleanArray(width * (1 + area.height))
-
-	@Suppress("unused")
-	private constructor() : this(Area())
 
 	/**
 	 * This method must be called whenever a save is loaded. It will check whether the size and offset of the area are

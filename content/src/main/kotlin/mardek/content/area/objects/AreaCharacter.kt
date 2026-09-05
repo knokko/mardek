@@ -20,6 +20,7 @@ import mardek.content.stats.Element
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.ExpressionBooleanValue
 import mardek.content.expression.StateExpression
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -163,7 +164,7 @@ class AreaCharacter(
 	@BitField(id = 16)
 	@IntegerField(expectUniform = false, commonValues = [0])
 	val renderOffsetY: Int,
-) {
+) : Serializable {
 
 	constructor() : this(
 		UUID(0, 0), "", DirectionalSprites(), null,

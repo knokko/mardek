@@ -9,6 +9,7 @@ import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 import static com.github.knokko.bitser.test.wrapper.TestHelper.assertContains;
@@ -148,7 +149,7 @@ public class TestNestedFieldSetting {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class WithCustomSizes {
+	static class WithCustomSizes implements Serializable {
 
 		@NestedFieldSetting(path = "", sizeField = @IntegerField(expectUniform = true, minValue = 1, maxValue = 2))
 		@NestedFieldSetting(path = "c", sizeField = @IntegerField(expectUniform = true, minValue = 0, maxValue = 15))
@@ -179,7 +180,7 @@ public class TestNestedFieldSetting {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class ReferenceLists1 {
+	static class ReferenceLists1 implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceFieldTarget(label = "test")
@@ -219,7 +220,7 @@ public class TestNestedFieldSetting {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class ReferenceLists2 {
+	static class ReferenceLists2 implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceFieldTarget(label = "test")
@@ -251,7 +252,7 @@ public class TestNestedFieldSetting {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class ReferenceLists3 {
+	static class ReferenceLists3 implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceFieldTarget(label = "test")
@@ -300,7 +301,7 @@ public class TestNestedFieldSetting {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class DuplicateNestedFieldSettings1 {
+	static class DuplicateNestedFieldSettings1 implements Serializable {
 
 		@SuppressWarnings("unused")
 		@NestedFieldSetting(path = "")
@@ -318,7 +319,7 @@ public class TestNestedFieldSetting {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class DuplicateNestedFieldSettings2 {
+	static class DuplicateNestedFieldSettings2 implements Serializable {
 
 		@SuppressWarnings("unused")
 		@NestedFieldSetting(path = "c", writeAsBytes = true)
@@ -337,7 +338,7 @@ public class TestNestedFieldSetting {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class OptionalBitField {
+	static class OptionalBitField implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(optional = true)
@@ -416,7 +417,7 @@ public class TestNestedFieldSetting {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class MonsterCollection {
+	private static class MonsterCollection implements Serializable {
 
 		@SuppressWarnings("unused")
 		@IntegerField(expectUniform = true)

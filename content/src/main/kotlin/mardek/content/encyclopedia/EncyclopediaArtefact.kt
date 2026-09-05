@@ -11,6 +11,7 @@ import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.ExpressionBooleanValue
 import mardek.content.expression.StateExpression
 import mardek.content.stats.Element
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -80,7 +81,7 @@ class EncyclopediaArtefact(
 	@BitField(id = 6)
 	@ClassField(root = StateExpression::class)
 	val shouldShowUp: StateExpression<Boolean>,
-) {
+) : Serializable {
 
 	internal constructor() : this(
 		UUID(0, 0), "", "", Element(), StandaloneAnimation(),

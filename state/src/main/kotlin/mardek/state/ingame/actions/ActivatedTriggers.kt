@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.area.objects.AreaTrigger
+import java.io.Serializable
 
 /**
  * This class keeps track of the action triggers (e.g. events when the player enters an area for the first time) have
@@ -11,7 +12,7 @@ import mardek.content.area.objects.AreaTrigger
  * visit.
  */
 @BitStruct(backwardCompatible = true)
-class ActivatedTriggers {
+class ActivatedTriggers : Serializable {
 
 	@BitField(id = 0)
 	@ReferenceField(stable = true, label = "area triggers")
@@ -24,7 +25,7 @@ class ActivatedTriggers {
 	/**
 	 * This method should be called whenever the current area is changed
 	 */
-	fun onAreaSwitch() {
+	fun onAreaSwitch() { // TODO CHAP1 Why is this never used?
 		oncePerAreaLoad.clear()
 	}
 

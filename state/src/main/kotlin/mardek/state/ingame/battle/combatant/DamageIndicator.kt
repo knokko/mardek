@@ -25,7 +25,7 @@ sealed class DamageIndicator(
 /**
  * An indicator that a combatant missed an attack. The renderer will render a "Miss" text at the target location.
  */
-class DamageIndicatorMiss(oldHealth: Int, time: Time) : DamageIndicator(oldHealth, time)
+class DamageIndicatorMiss(oldHealth: Int, time: Time) : DamageIndicator(oldHealth, time) // TODO CHAP1 Remove?
 
 /**
  * An indicator that shows how much health a combatant gained or last due to a move or attack

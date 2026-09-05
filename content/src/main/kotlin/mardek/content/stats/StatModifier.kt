@@ -3,6 +3,7 @@ package mardek.content.stats
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 
 /**
  * Increases the [stat] of a combatant by a fixed amount ([adder])
@@ -22,10 +23,7 @@ class StatModifier(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, digitSize = 2)
 	val adder: Int,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(CombatStat.Attack, 0)
+) : Serializable {
 
 	override fun toString() = "$stat+$adder"
 }

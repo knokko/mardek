@@ -12,6 +12,7 @@ import mardek.content.sprite.BcSprite
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.ExpressionMusicTrackValue
 import mardek.content.expression.StateExpression
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -66,7 +67,7 @@ class WorldMap(
 	@BitField(id = 6)
 	@ReferenceField(stable = false, label = "encyclopedia places")
 	val encyclopediaEntry: EncyclopediaArea,
-) {
+) : Serializable {
 
 	constructor() : this(
 		UUID.randomUUID(), "", BcSprite(),

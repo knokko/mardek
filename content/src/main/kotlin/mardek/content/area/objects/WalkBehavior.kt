@@ -3,6 +3,7 @@ package mardek.content.area.objects
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
+import java.io.Serializable
 
 /**
  * The walking behavior of an [AreaCharacter]. This determines whether a character randomly walks around, or stays at
@@ -30,7 +31,7 @@ class WalkBehavior(
 	 */
 	@BitField(id = 1)
 	val showAnimationWhileStandingStill: Boolean,
-) {
+) : Serializable {
 
 	internal constructor() : this(0f, false)
 }

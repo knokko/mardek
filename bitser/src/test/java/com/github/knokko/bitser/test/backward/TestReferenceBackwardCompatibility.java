@@ -9,6 +9,7 @@ import com.github.knokko.bitser.field.*;
 import com.github.knokko.bitser.options.WithParameter;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static com.github.knokko.bitser.test.wrapper.TestHelper.assertContains;
@@ -17,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TestReferenceBackwardCompatibility {
 
 	@BitStruct(backwardCompatible = true)
-	private static class Dummy {
+	private static class Dummy implements Serializable {
 
 		@BitField(id = 2)
 		@IntegerField(expectUniform = false)
@@ -158,7 +159,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferenceMethodOld {
+	private static class ReferenceMethodOld implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "dummy")
@@ -173,7 +174,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferenceMethodOldCorrupted {
+	private static class ReferenceMethodOldCorrupted implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "dummy")
@@ -284,7 +285,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class StableDummy {
+	private static class StableDummy implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -306,7 +307,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class OldMixedReferenceList {
+	private static class OldMixedReferenceList implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "dummies")
@@ -323,7 +324,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class NewMixedReferenceList {
+	private static class NewMixedReferenceList implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "dummies")
@@ -380,7 +381,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class OldTargetWrapper {
+	private static class OldTargetWrapper implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "dummies")
@@ -402,7 +403,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class NewTargetWrapper {
+	private static class NewTargetWrapper implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "dummies")
@@ -429,7 +430,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class FriendWrapper {
+	private static class FriendWrapper implements Serializable {
 
 		@BitField(id = 5)
 		@ReferenceFieldTarget(label = "friends")
@@ -451,7 +452,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class OldNestedRoot {
+	private static class OldNestedRoot implements Serializable {
 
 		@BitField(id = 4)
 		@ReferenceFieldTarget(label = "dummies")
@@ -855,7 +856,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class LotsOfReferences {
+	private static class LotsOfReferences implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceField(stable = false, label = "zones")
@@ -907,7 +908,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferenceWrapper1 {
+	private static class ReferenceWrapper1 implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "a")
@@ -924,7 +925,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferenceWrapper2 {
+	private static class ReferenceWrapper2 implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "b")
@@ -941,7 +942,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferenceTarget1 {
+	private static class ReferenceTarget1 implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "a")
@@ -958,7 +959,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferenceTarget2 {
+	private static class ReferenceTarget2 implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "b")
@@ -975,7 +976,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class MapOfStructs {
+	private static class MapOfStructs implements Serializable {
 
 		@BitField(id = 0)
 		final HashMap<String, ReferenceTarget1> target1 = new HashMap<>();
@@ -1008,7 +1009,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class BeforeRename {
+	private static class BeforeRename implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "old")
@@ -1126,7 +1127,7 @@ public class TestReferenceBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class OptionalReferenceArray {
+	private static class OptionalReferenceArray implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "optional")

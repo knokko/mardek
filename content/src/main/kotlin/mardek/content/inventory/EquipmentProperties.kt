@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.characters.PlayableCharacter
 import mardek.content.stats.*
 import mardek.content.skill.Skill
+import java.io.Serializable
 
 /**
  * The properties that only equippable items (weapons, shields, etc...) have.
@@ -78,14 +79,7 @@ class EquipmentProperties(
 	@BitField(id = 8)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val charismaticPerformanceChance: Int,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(
-		ArrayList(0), ArrayList(0),
-		ArrayList(0), Resistances(), ArrayList(0),
-		null, null, null, 0,
-	)
+) : Serializable {
 
 	/**
 	 * If someone were to equip this item, this method compute by how much the given `stat` of that person would be

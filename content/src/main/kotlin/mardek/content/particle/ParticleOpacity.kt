@@ -3,6 +3,7 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
+import java.io.Serializable
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
@@ -39,7 +40,7 @@ class ParticleOpacity(
 	@BitField(id = 3, optional = true)
 	@FloatField(expectMultipleOf = 0.1)
 	val limit: Float?,
-) {
+) : Serializable {
 	constructor() : this(1f, 0f, null)
 
 	/**

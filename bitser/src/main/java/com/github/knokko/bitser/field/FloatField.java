@@ -2,6 +2,7 @@ package com.github.knokko.bitser.field;
 
 import com.github.knokko.bitser.BitStruct;
 
+import java.io.Serializable;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -119,7 +120,7 @@ public @interface FloatField {
 	double[] commonValues() default {};
 
 	@BitStruct(backwardCompatible = false)
-	class Properties {
+	class Properties implements Serializable {
 
 		@FloatField(errorTolerance = 0.0, commonValues = { 0.0, 0.01, 0.05, 0.1, 0.5, 1.0 })
 		public final double expectMultipleOf;
