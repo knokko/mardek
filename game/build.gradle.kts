@@ -98,6 +98,9 @@ tasks.register("run", JavaExec::class) {
 	classpath(sourceSets.main.get().runtimeClasspath)
 	mainClass = "mardek.game.MardekGameKt"
 
+	jvmArgs("--add-exports", "java.base/jdk.internal.misc=ALL-UNNAMED")
+	jvmArgs("--enable-native-access", "ALL-UNNAMED")
+
 	if (OperatingSystem.current().isMacOsX()) {
 		jvmArgs("-XstartOnFirstThread")
 		systemProperty("org.lwjgl.librarypath", "/usr/local/lib")
