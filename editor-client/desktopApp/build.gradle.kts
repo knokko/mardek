@@ -16,14 +16,14 @@ dependencies {
     implementation(libs.compose.uiToolingPreview)
 }
 
-compose.desktop {
-    application {
-        mainClass = "mardek.editor.client.EditorClientMainKt"
-
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "mardek.editor.client"
-            packageVersion = "1.0.0"
-        }
-    }
-}
+//compose.desktop {
+//    application {
+//        mainClass = "mardek.editor.client.EditorClientMainKt"
+//
+//        nativeDistributions {
+//            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+//            packageName = "mardek.editor.client"
+//            packageVersion = "1.0.0"
+//        }
+//    }
+//}
