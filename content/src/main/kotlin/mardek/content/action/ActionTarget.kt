@@ -9,6 +9,7 @@ import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
 import mardek.content.portrait.PortraitInfo
 import mardek.content.stats.Element
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -17,7 +18,7 @@ import java.util.UUID
  * - In a walk action, the target is the (playable) character that is supposed to walk
  */
 @BitStruct(backwardCompatible = true)
-sealed class ActionTarget {
+sealed class ActionTarget : Serializable {
 
 	/**
 	 * Gets the display name of this action target, which should be used when the target is used in a dialogue/talk
@@ -262,6 +263,6 @@ class ActionTargetData(
 	@BitField(id = 2, optional = true)
 	@ReferenceField(stable = false, label = "portrait info")
 	val portraitInfo: PortraitInfo?,
-) {
+) : Serializable {
 	internal constructor() : this("", null, null)
 }

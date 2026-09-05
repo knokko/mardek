@@ -15,6 +15,7 @@ import mardek.content.stats.CombatStat
 import mardek.content.stats.StatModifier
 import mardek.content.stats.StatusEffect
 import mardek.content.util.Time
+import java.io.Serializable
 import kotlin.math.max
 
 /**
@@ -22,7 +23,7 @@ import kotlin.math.max
  * because we need it to define default states of playable characters in the content.
  */
 @BitStruct(backwardCompatible = true)
-class CharacterState {
+class CharacterState : Serializable {
 
 	/**
 	 * The current health of the player, *outside of combat*, which should be somewhere between 1 and the maximum

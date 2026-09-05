@@ -49,7 +49,7 @@ internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, contex
 				selectedMove.skill.targetType == SkillTargetType.Any && battle.livingOpponents().size > 1
 			) {
 				changeSelectedMove(battle, BattleMoveSelectionSkill(
-					selectedMove.skill, BattleSkillTargetAllEnemies
+					selectedMove.skill, BattleSkillTargetAllEnemies()
 				), context)
 			}
 			if (key == InputKey.MoveRight && !selectedMove.target.target.isOnPlayerSide) {
@@ -64,7 +64,7 @@ internal fun battleScrollHorizontally(battle: BattleState, key: InputKey, contex
 				selectedMove.skill.targetType == SkillTargetType.Any && battle.livingPlayers().size > 1
 			) {
 				changeSelectedMove(battle, BattleMoveSelectionSkill(
-					selectedMove.skill, BattleSkillTargetAllAllies
+					selectedMove.skill, BattleSkillTargetAllAllies()
 				), context)
 			}
 		}
@@ -224,8 +224,8 @@ internal fun battleClick(battle: BattleState, context: BattleUpdateContext) {
 		if (selectedMove.target == null) {
 			val firstTarget = when (selectedMove.skill.targetType) {
 				SkillTargetType.Self -> BattleSkillTargetSingle(state.onTurn)
-				SkillTargetType.AllEnemies -> BattleSkillTargetAllEnemies
-				SkillTargetType.AllAllies -> BattleSkillTargetAllAllies
+				SkillTargetType.AllEnemies -> BattleSkillTargetAllEnemies()
+				SkillTargetType.AllAllies -> BattleSkillTargetAllAllies()
 				else -> BattleSkillTargetSingle(
 					if (selectedMove.skill.isPositive()) state.onTurn else firstEnemyTarget
 				)

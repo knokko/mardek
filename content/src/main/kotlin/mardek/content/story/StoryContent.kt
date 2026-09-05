@@ -4,12 +4,13 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.expression.GlobalExpression
+import java.io.Serializable
 
 /**
  * The story-related part of the `Content`
  */
 @BitStruct(backwardCompatible = true)
-class StoryContent {
+class StoryContent : Serializable {
 
 	/**
 	 * The root node of the timeline

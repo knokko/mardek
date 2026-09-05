@@ -3,6 +3,7 @@ package mardek.content.world
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
+import java.io.Serializable
 
 /**
  * Represents an edge on a world map. While on the world map, the player can walk over such edges to travel from one
@@ -41,13 +42,13 @@ class WorldMapEdge(
 	@BitField(id = 3)
 	@ReferenceField(stable = false, label = "world map entrances")
 	val entrance2: WorldMapNode.Entrance,
-) {
+) : Serializable {
 
 	init {
 		if (node1 === node2) throw IllegalArgumentException("Nodes must be unique, but both are $node1")
 	}
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(
 		WorldMapNode(), WorldMapNode.Entrance(),
 		WorldMapNode(), WorldMapNode.Entrance(),

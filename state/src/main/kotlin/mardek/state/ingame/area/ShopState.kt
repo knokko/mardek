@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.content.area.AreaShop
+import java.io.Serializable
 
 /**
  * Represents the state of a shop.
@@ -12,7 +13,7 @@ import mardek.content.area.AreaShop
  * Currently, this is just the inventory of the shop, but it might be expanded later.
  */
 @BitStruct(backwardCompatible = true)
-class ShopState(shop: AreaShop) {
+class ShopState(shop: AreaShop) : Serializable {
 
 	/**
 	 * The current inventory of the shop. This changes whenever the player sells an item, or buys an item with a
@@ -25,6 +26,6 @@ class ShopState(shop: AreaShop) {
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 60, maxValue = 60))
 	val inventory = shop.initialInventory.copyOf()
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(AreaShop())
 }

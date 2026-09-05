@@ -16,6 +16,7 @@ import mardek.state.ingame.area.loot.BattleLoot
 import mardek.state.ingame.area.loot.ObtainedItemStack
 import mardek.state.ingame.battle.BattleState
 import mardek.content.util.Time
+import java.io.Serializable
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -24,7 +25,7 @@ import kotlin.time.Duration.Companion.seconds
  * When an area is 'suspended' by any `AreaSuspension`, the normal update flow is suspended until the suspension is
  * gone. This makes sure that e.g. the player cannot walk while engaged in a battle, or looking inside a chest.
  */
-sealed class AreaSuspension {
+sealed class AreaSuspension : Serializable {
 
 	/**
 	 * Whether [AreaState.currentTime] should keep increasing during this suspension

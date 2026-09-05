@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
+import java.io.Serializable
 import kotlin.time.Duration
 
 /**
@@ -28,7 +29,7 @@ class AnimationFrame(
 		minValue = 0, expectUniform = false, digitSize = 2, commonValues = [1]
 	))
 	val nodes: Array<AnimationNode>,
-): Iterable<AnimationNode> {
+): Iterable<AnimationNode>, Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(Duration.ZERO, emptyArray())

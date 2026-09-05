@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
+import java.io.Serializable
 
 /**
  * When a particle effect uses inheritance, this class specifies the parent particle effect, as well as the
@@ -26,7 +27,7 @@ class ParticleInheritance(
 	@NestedFieldSetting(path = "", optional = true)
 	@ReferenceField(stable = false, label = "particle sprites")
 	val overrideSprites: Array<ParticleSprite>?,
-) {
+) : Serializable {
 	@Suppress("unused")
 	private constructor() : this(ParticleEffect(), null)
 }

@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import java.io.Serializable
 import kotlin.time.Duration
 
 /**
@@ -33,7 +34,7 @@ class AnimationMaskFrame(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 1, digitSize = 4, commonValues = [66666666])
 	val duration: Duration,
-) {
+) : Serializable {
 	@Suppress("unused")
 	private constructor() : this(AnimationSprite(), AnimationMatrix(), Duration.ZERO)
 }

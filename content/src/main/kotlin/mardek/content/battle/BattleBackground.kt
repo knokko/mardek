@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.animation.AnimationNode
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -44,7 +45,7 @@ class BattleBackground(
 	@BitField(id = 3)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	constructor() : this("", emptyArray<AnimationNode>(), 1, UUID.randomUUID())
 

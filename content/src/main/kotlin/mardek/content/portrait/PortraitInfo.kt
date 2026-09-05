@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.action.DialogueTextStyle
 import mardek.content.stats.Element
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -103,7 +104,7 @@ class PortraitInfo(
 	@BitField(id = 13)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	constructor() : this(
 		"", "", "", "", "", "", "",

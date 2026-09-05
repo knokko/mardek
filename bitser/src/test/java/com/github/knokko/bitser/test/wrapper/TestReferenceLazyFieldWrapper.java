@@ -12,6 +12,7 @@ import com.github.knokko.bitser.field.*;
 import com.github.knokko.bitser.options.WithParameter;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -24,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class TestReferenceLazyFieldWrapper {
 
 	@BitStruct(backwardCompatible = true)
-	private static class SimpleInnerStruct {
+	private static class SimpleInnerStruct implements Serializable {
 
 		@BitField(id = 0)
 		final ArrayList<String> words = new ArrayList<>();
@@ -35,7 +36,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferencingInnerStruct {
+	private static class ReferencingInnerStruct implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "unstable")
@@ -71,7 +72,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferencingOuterStruct {
+	private static class ReferencingOuterStruct implements Serializable {
 
 		@BitField(id = 0)
 		@IntegerField(expectUniform = false)
@@ -158,7 +159,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class NestedStruct {
+	private static class NestedStruct implements Serializable {
 
 		@BitField(id = 0, optional = true)
 		@LazyReferences(labels = { "nested", "ids" })
@@ -187,7 +188,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class WithStruct {
+	private static class WithStruct implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "ids")
@@ -288,7 +289,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class RainbowReferences {
+	private static class RainbowReferences implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceField(stable = false, label = "int array")
@@ -353,7 +354,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class RainbowTargets {
+	private static class RainbowTargets implements Serializable {
 
 		@SuppressWarnings("unused")
 		@ReferenceFieldTarget(label = "int array")
@@ -454,7 +455,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ConversionReferences {
+	private static class ConversionReferences implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "unstable")
@@ -470,7 +471,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ConversionSimple {
+	private static class ConversionSimple implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "unstable")
@@ -485,7 +486,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ConversionEager {
+	private static class ConversionEager implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "unstable")
@@ -652,7 +653,7 @@ public class TestReferenceLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class LazyCollections {
+	private static class LazyCollections implements Serializable {
 
 		@SuppressWarnings("unused")
 		@LazyReferences(labels = { "stable", "unstable" })

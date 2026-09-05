@@ -8,6 +8,7 @@ import mardek.content.animation.AnimationFrames
 import mardek.content.animation.AnimationSprite
 import mardek.content.animation.SkinnedAnimation
 import mardek.content.audio.MusicTrack
+import java.io.Serializable
 import kotlin.longArrayOf
 
 /**
@@ -38,7 +39,7 @@ class CutscenePayload(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val magicScale: Int,
-) {
+) : Serializable {
 	/**
 	 * All animation sprites that are used by this cutscene
 	 */
@@ -85,7 +86,7 @@ class CutscenePayload(
 		@BitField(id = 2)
 		@IntegerField(expectUniform = true, minValue = 0, maxValue = 2, commonValues = [1])
 		val index: Int,
-	) {
+	) : Serializable {
 
 		@Suppress("unused")
 		private constructor() : this(0, "", 0)

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.characters.PlayableCharacter
+import java.io.Serializable
 
 /**
  * Represents a 'variable' whose value is always *derived* from the state of the story/[Timeline]s.
@@ -15,7 +16,7 @@ import mardek.content.characters.PlayableCharacter
  * The values of timeline variables are 'assigned' by [TimelineNode.variables], when that timeline node is *active*,
  * which depends on the story/timeline state.
  */
-sealed class TimelineVariable<T> {
+sealed class TimelineVariable<T> : Serializable {
 
 	companion object {
 
@@ -36,7 +37,7 @@ sealed class TimelineVariable<T> {
  * (e.g. in Dragon's Lair).
  */
 @BitStruct(backwardCompatible = true)
-class FixedTimelineVariable<T>() : TimelineVariable<T>() {
+class FixedTimelineVariable<T> : TimelineVariable<T>() {
 
 	internal var debugName = ""
 

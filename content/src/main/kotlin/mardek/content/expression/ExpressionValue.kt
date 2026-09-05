@@ -13,6 +13,7 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.encyclopedia.EncyclopediaPerson
 import mardek.content.story.FixedTimelineVariables
 import mardek.content.story.TimelineVariable
+import java.io.Serializable
 
 /**
  * Represents the value of a [StateExpression] or [TimelineVariable]. All possible values (except `null`) must be a
@@ -20,7 +21,7 @@ import mardek.content.story.TimelineVariable
  *
  * Each `ExpressionValue<T>` wraps a value of type `T`.
  */
-sealed class ExpressionValue<T> {
+sealed class ExpressionValue<T> : Serializable {
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

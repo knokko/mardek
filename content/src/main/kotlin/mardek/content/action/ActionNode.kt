@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -23,7 +24,7 @@ sealed class ActionNode(
 	@BitField(id = 0)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	override fun equals(other: Any?) = other is ActionNode && this.id == other.id
 

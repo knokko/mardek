@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
+import java.io.Serializable
 
 /**
  * The fixed/standard sprites that the engine requires to render the in-game UI.
@@ -290,9 +291,9 @@ class UiSprites(
 	 */
 	@BitField(id = 43)
 	val performanceUsedItems: BcSprite,
-) {
+) : Serializable {
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(
 		BcSprite(), BcSprite(), BcSprite(),
 		BcSprite(), BcSprite(), BcSprite(),

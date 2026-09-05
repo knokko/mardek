@@ -9,6 +9,7 @@ import mardek.content.BITSER
 import mardek.content.battle.BattleBackground
 import mardek.content.battle.Monster
 import mardek.content.battle.PartyLayout
+import java.io.Serializable
 
 /**
  * Describes the random battles that an area can have.
@@ -83,7 +84,7 @@ class RandomAreaBattles(
 	@BitField(id = 7, optional = true)
 	@ReferenceField(stable = true, label = "battle backgrounds")
 	val specialBackground: BattleBackground?
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(
@@ -146,8 +147,8 @@ class BattleEnemySelection(
 	@BitField(id = 1)
 	@ReferenceField(stable = false, label = "enemy party layouts")
 	val enemyLayout: PartyLayout,
-) {
-	@Suppress("unused")
+) : Serializable {
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(arrayListOf(null, null, null, null), PartyLayout())
 
 	init {
@@ -180,7 +181,7 @@ class LevelRange(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val max: Int
-) {
+) : Serializable {
 	internal constructor() : this(0, 0)
 
 	override fun toString() = "LevelRange($min, $max)"
@@ -208,8 +209,8 @@ class SharedLevelRange(
 	 */
 	@BitField(id = 1)
 	val range: LevelRange,
-) {
-	@Suppress("unused")
+) : Serializable {
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this("", LevelRange())
 
 	override fun toString() = "$range($name)"
@@ -233,7 +234,7 @@ class SharedEnemySelections(
 	 */
 	@BitField(id = 1)
 	val selections: ArrayList<BattleEnemySelection>,
-) {
+) : Serializable {
 	constructor() : this("", ArrayList(0))
 
 	override fun toString() = "Monsters($name)"

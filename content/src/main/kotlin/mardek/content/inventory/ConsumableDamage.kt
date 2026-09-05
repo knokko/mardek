@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.stats.Element
+import java.io.Serializable
 
 /**
  * For consumable items that deal damage (e.g. Liquid Lightning), this class describes their damage and element.
@@ -33,7 +34,7 @@ class ConsumableDamage(
 	@BitField(id = 2)
 	@ReferenceField(stable = false, label = "elements")
 	val element: Element,
-) {
+) : Serializable {
 
 	init {
 		if (power == 0 || spirit == 0) throw IllegalArgumentException("Invalid damage $this")

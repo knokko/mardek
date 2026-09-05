@@ -93,7 +93,7 @@ class WorldMapState(
 	@IntegerField(expectUniform = false, minValue = 0)
 	var currentTime = Duration.ZERO
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(WorldMap(), WorldMapNode(), AreaExitPoint())
 
 	/**

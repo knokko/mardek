@@ -2,6 +2,7 @@ package mardek.content.sprite
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import java.io.Serializable
 
 /**
  * A group of strongly-related sprites. When rendered, the renderer will choose **one of the sprites** to render.
@@ -27,7 +28,7 @@ class ObjectSprites(
 	 */
 	@BitField(id = 1)
 	val frames: Array<KimSprite>,
-) {
+) : Serializable {
 
 	internal constructor() : this("", emptyArray())
 }

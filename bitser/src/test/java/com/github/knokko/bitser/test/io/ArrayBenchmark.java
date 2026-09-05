@@ -64,7 +64,7 @@ public class ArrayBenchmark {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class SlowBooleanArray {
+	private static class SlowBooleanArray implements Serializable {
 
 		@BitField
 		final boolean[] data = new boolean[8_000_000];
@@ -79,7 +79,7 @@ public class ArrayBenchmark {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class FastBooleanArray {
+	private static class FastBooleanArray implements Serializable {
 
 		@NestedFieldSetting(path = "", writeAsBytes = true)
 		final boolean[] data = new boolean[8_000_000];
@@ -94,7 +94,7 @@ public class ArrayBenchmark {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class SlowByteArray {
+	private static class SlowByteArray implements Serializable {
 
 		@IntegerField(expectUniform = true)
 		@NestedFieldSetting(path = "", sizeField = @IntegerField(minValue = 1_000_000, maxValue = 1_000_000, expectUniform = true))
@@ -109,7 +109,7 @@ public class ArrayBenchmark {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class FastByteArray {
+	private static class FastByteArray implements Serializable {
 
 		@NestedFieldSetting(path = "", writeAsBytes = true)
 		final byte[] data = new byte[1_000_000];
@@ -123,7 +123,7 @@ public class ArrayBenchmark {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class SlowIntArray {
+	private static class SlowIntArray implements Serializable {
 
 		@IntegerField(expectUniform = true)
 		@NestedFieldSetting(path = "", sizeField = @IntegerField(minValue = 2_500_000, maxValue = 2_500_000, expectUniform = true))
@@ -139,7 +139,7 @@ public class ArrayBenchmark {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class FastIntArray {
+	private static class FastIntArray implements Serializable {
 
 		@NestedFieldSetting(path = "", writeAsBytes = true)
 		final int[] data = new int[2_500_000];

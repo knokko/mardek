@@ -6,9 +6,9 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
-import mardek.content.area.objects.StaticAreaObject
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemStack
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -58,7 +58,7 @@ class AreaShop(
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 60, maxValue = 60))
 	val initialInventory: Array<ItemStack?>,
-) {
+) : Serializable {
 
 	constructor() : this(
 		UUID(0, 0), "",

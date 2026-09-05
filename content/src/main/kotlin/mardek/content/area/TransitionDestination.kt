@@ -8,12 +8,13 @@ import mardek.content.BITSER
 import mardek.content.action.ActionTimelineTransition
 import mardek.content.world.WorldMap
 import mardek.content.world.WorldMapNode
+import java.io.Serializable
 
 /**
  * Represents the destination of a door, portal, or area transition. It can either be a location in an area, or the
  * world map.
  */
-sealed class TransitionDestination {
+sealed class TransitionDestination : Serializable {
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

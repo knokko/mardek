@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.*;
 import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -77,7 +78,7 @@ public class TestBitClass {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class World {
+	private static class World implements Serializable {
 
 		@ClassField(root = Entity.class)
 		@ReferenceFieldTarget(label = "entities")

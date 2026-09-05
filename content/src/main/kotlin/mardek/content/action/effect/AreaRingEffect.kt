@@ -2,6 +2,7 @@ package mardek.content.action.effect
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import java.io.Serializable
 
 /**
  * A sub-effect that can be emitted by [AreaEffectsEmitter]s.
@@ -24,7 +25,7 @@ class AreaRingEffect(
 	 */
 	@BitField(id = 1)
 	val outerBorder: Border,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(Border(), Border())
@@ -64,7 +65,7 @@ class AreaRingEffect(
 		 */
 		@BitField(id = 4)
 		val alpha: AreaEffectFloat,
-	) {
+	) : Serializable {
 
 		internal constructor() : this(
 			AreaEffectFloat(), AreaEffectFloat(), AreaEffectFloat(),

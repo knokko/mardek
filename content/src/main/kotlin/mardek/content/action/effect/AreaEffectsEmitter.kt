@@ -3,6 +3,7 @@ package mardek.content.action.effect
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 import kotlin.time.Duration
 
 /**
@@ -57,7 +58,7 @@ class AreaEffectsEmitter(
 	 */
 	@BitField(id = 4)
 	val rings: Array<AreaRingEffect>,
-) {
+) : Serializable {
 
 	init {
 		if (maxDispatches > 1 && period == Duration.ZERO) {

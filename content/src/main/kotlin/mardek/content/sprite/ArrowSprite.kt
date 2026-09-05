@@ -2,6 +2,7 @@ package mardek.content.sprite
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import java.io.Serializable
 
 /**
  * The sprite of a 'transition arrow' at an area transition (e.g. the exit/entrance of Heroes' Den or Goznor). The
@@ -23,7 +24,7 @@ class ArrowSprite(
 	 */
 	@BitField(id = 1)
 	val sprite: KimSprite,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this("", KimSprite())

@@ -24,6 +24,7 @@ import mardek.content.util.Time
 import mardek.state.ingame.battle.BattleState
 import mardek.state.ingame.battle.BattleStateMachine
 import mardek.state.ingame.battle.BattleUpdateContext
+import java.io.Serializable
 import java.util.EnumMap
 import kotlin.math.max
 import kotlin.math.min
@@ -163,7 +164,7 @@ sealed class CombatantState(
 	 */
 	@BitField(id = 6)
 	val isOnPlayerSide: Boolean,
-) {
+) : Serializable {
 
 	/**
 	 * Incremented whenever the combatant spends a turn (e.g. by casting a spell), and reset at the end of every

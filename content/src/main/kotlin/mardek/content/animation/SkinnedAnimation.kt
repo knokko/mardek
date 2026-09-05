@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.LazyReferences
 import com.github.knokko.bitser.field.NestedFieldSetting
+import java.io.Serializable
 
 /**
  * Represents an animation that is possibly *skinned*. When a skinned animation is being rendered, the renderer will
@@ -30,7 +31,7 @@ class SkinnedAnimation(
 	@BitField(id = 1)
 	@NestedFieldSetting(path = "v", fieldName = "SKINS_VALUES_PROPERTIES")
 	val skins: HashMap<String, ReferenceLazyBits<AnimationFrames>>,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(0, HashMap())

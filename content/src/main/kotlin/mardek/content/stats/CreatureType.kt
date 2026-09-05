@@ -3,6 +3,7 @@ package mardek.content.stats
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import mardek.content.sprite.KimSprite
+import java.io.Serializable
 
 /**
  * Represents the creature type/race of a combatant.
@@ -41,7 +42,7 @@ class CreatureType(
 	 */
 	@BitField(id = 3)
 	val niceName: String,
-) {
+) : Serializable {
 
 	constructor() : this("", KimSprite(), false, "")
 

@@ -3,6 +3,7 @@ package com.github.knokko.bitser;
 import com.github.knokko.bitser.field.BitField;
 import com.github.knokko.bitser.field.ReferenceFieldTarget;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -10,7 +11,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @BitStruct(backwardCompatible = false)
-class VirtualField {
+class VirtualField implements Serializable {
 
 	private final String source;
 	final Class<?> type;

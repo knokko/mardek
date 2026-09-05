@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 import mardek.content.inventory.Item
 import mardek.content.inventory.PlotItem
+import java.io.Serializable
 import kotlin.collections.ArrayList
 import kotlin.random.Random
 
@@ -31,7 +32,7 @@ class PotentialItem(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 100, commonValues = [100])
 	val chance: Int,
-) {
+) : Serializable {
 
 	constructor() : this(null, 100)
 
@@ -53,7 +54,7 @@ class PotentialEquipment(
 	 */
 	@BitField(id = 0)
 	val entries: ArrayList<PotentialItem>
-) {
+) : Serializable {
 
 	init {
 		if (entries.sumOf { it.chance } != 100) throw IllegalArgumentException("Sum of chances must be 100 $this")
@@ -114,7 +115,7 @@ class PotentialPlotItem(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val chance: Int,
-) {
+) : Serializable {
 	@Suppress("unused")
 	private constructor() : this(PlotItem(), 0)
 

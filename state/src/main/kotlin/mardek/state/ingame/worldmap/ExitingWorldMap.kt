@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.world.WorldMapNode
+import java.io.Serializable
 import kotlin.time.Duration
 
 /**
@@ -26,8 +27,8 @@ class ExitingWorldMap(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false)
 	val exitAt: Duration,
-) {
+) : Serializable {
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(WorldMapNode.Entrance(), Duration.ZERO)
 }

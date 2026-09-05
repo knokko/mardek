@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.BITSER
 import mardek.content.area.Direction
+import java.io.Serializable
 
 /**
  * The state of an `AreaCharacter`. This contains their position, their rotation, and a potential next position (when
@@ -36,13 +37,13 @@ class AreaCharacterState(
 	/**
 	 * - When this character is standing still, `next` will be null.
 	 * - When this character is walking, `next` is the tile/position to which this character is walking. This must be a
-	 *   neighbouring tile.
+	 *   neighboring tile.
 	 */
 	@BitField(id = 3, optional = true)
 	val next: NextAreaPosition?,
-) {
+) : Serializable {
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(0, 0, Direction.Down, null)
 
 	override fun hashCode() = BITSER.hashCode(this)

@@ -19,6 +19,7 @@ import mardek.content.ui.Fonts
 import mardek.content.ui.UiSprites
 import mardek.content.world.WorldMap
 import java.io.File
+import java.io.Serializable
 
 /**
  * The root class of the `content` module of this repository. The content defines all areas, items, characters,
@@ -28,7 +29,7 @@ import java.io.File
  * game.
  */
 @BitStruct(backwardCompatible = true)
-class Content {
+class Content : Serializable {
 
 	/**
 	 * The audio-related part of the content, like the sound effects

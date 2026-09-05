@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
 import mardek.state.ingame.battle.combatant.CombatantState
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -14,7 +15,7 @@ import java.util.*
  * - all players, or
  * - all enemies
  */
-sealed class BattleSkillTarget {
+sealed class BattleSkillTarget : Serializable {
 
 	/**
 	 * Gets all the target combatants
@@ -62,7 +63,7 @@ class BattleSkillTargetSingle(
  * - when the caster is a player, it targets all monsters
  */
 @BitStruct(backwardCompatible = true)
-data object BattleSkillTargetAllEnemies : BattleSkillTarget() {
+class BattleSkillTargetAllEnemies : BattleSkillTarget() {
 	override fun getTargets(
 		caster: CombatantState,
 		battle: BattleState
@@ -76,7 +77,7 @@ data object BattleSkillTargetAllEnemies : BattleSkillTarget() {
  * - when the caster is a player, it targets all players
  */
 @BitStruct(backwardCompatible = true)
-data object BattleSkillTargetAllAllies : BattleSkillTarget() {
+class BattleSkillTargetAllAllies : BattleSkillTarget() {
 	override fun getTargets(
 		caster: CombatantState,
 		battle: BattleState

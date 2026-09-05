@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
+import java.io.Serializable
 
 /**
  * Represents a damage bonus (or damage loss) against combatants of a specific element.
@@ -25,7 +26,7 @@ class ElementalDamageBonus(
 	@BitField(id = 1)
 	@FloatField(expectMultipleOf = 0.05)
 	val modifier: Float,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(Element(), 0f)

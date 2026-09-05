@@ -9,6 +9,7 @@ import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -71,7 +72,7 @@ public class TestIntegerField {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class DigitSizes {
+	private static class DigitSizes implements Serializable {
 
 		@BitField(id = 0)
 		@IntegerField(expectUniform = false, digitSize = 2)
@@ -115,7 +116,7 @@ public class TestIntegerField {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class CommonValues {
+	private static class CommonValues implements Serializable {
 
 		@BitField(id = 1234)
 		@IntegerField(expectUniform = false, commonValues = { 1000L, -2000L, 3000L })

@@ -3,6 +3,7 @@ package mardek.content.area.objects
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 
 /**
  * Describes a source of light in an area.
@@ -26,7 +27,7 @@ class AreaLight(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, commonValues = [5])
 	val offsetY: Int
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(0, 0)

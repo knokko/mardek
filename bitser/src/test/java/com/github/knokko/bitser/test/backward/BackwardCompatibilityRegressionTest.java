@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.*;
 import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BackwardCompatibilityRegressionTest {
 
 	@BitStruct(backwardCompatible = true)
-	private static class ContentRoot {
+	private static class ContentRoot implements Serializable {
 
 		@BitField(id = 0)
 		private final ItemStuff itemStuff;
@@ -33,7 +34,7 @@ public class BackwardCompatibilityRegressionTest {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ItemStuff {
+	private static class ItemStuff implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "plot items")
@@ -45,7 +46,7 @@ public class BackwardCompatibilityRegressionTest {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class BattleStuff {
+	private static class BattleStuff implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "monsters")
@@ -53,7 +54,7 @@ public class BackwardCompatibilityRegressionTest {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class PlotItem {
+	private static class PlotItem implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -74,7 +75,7 @@ public class BackwardCompatibilityRegressionTest {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class DreamStone {
+	private static class DreamStone implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -96,7 +97,7 @@ public class BackwardCompatibilityRegressionTest {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class PotentialPlotItem {
+	private static class PotentialPlotItem implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "plot items")
@@ -118,7 +119,7 @@ public class BackwardCompatibilityRegressionTest {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class Monster {
+	private static class Monster implements Serializable {
 
 		@BitField(id = 0)
 		final ArrayList<PotentialPlotItem> plotLoot = new ArrayList<>();
@@ -197,7 +198,7 @@ public class BackwardCompatibilityRegressionTest {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	static class OptionalClass {
+	static class OptionalClass implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceFieldTarget(label = "combatants")

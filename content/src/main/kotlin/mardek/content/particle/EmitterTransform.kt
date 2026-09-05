@@ -3,6 +3,7 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
+import java.io.Serializable
 
 /**
  * This class describes the position and orientation of its [ParticleEmitter], which is the base for the positions and
@@ -40,6 +41,6 @@ class EmitterTransform(
 	@BitField(id = 2)
 	@FloatField(expectMultipleOf = 1.0)
 	val rotation: Float,
-) {
+) : Serializable {
 	constructor() : this(0f, 0f, 0f)
 }

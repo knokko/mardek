@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import java.io.Serializable
 
 /**
  * A resistance against a specific [StatusEffect]
@@ -24,7 +25,7 @@ class EffectResistance(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100, commonValues = [100])
 	val percentage: Int,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(StatusEffect(), 0)

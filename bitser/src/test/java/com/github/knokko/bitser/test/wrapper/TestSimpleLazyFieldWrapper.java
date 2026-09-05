@@ -10,6 +10,7 @@ import com.github.knokko.bitser.exceptions.ReferenceBitserException;
 import com.github.knokko.bitser.field.*;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TestSimpleLazyFieldWrapper {
 
 	@BitStruct(backwardCompatible = true)
-	private static class SimpleInnerStruct {
+	private static class SimpleInnerStruct implements Serializable {
 
 		@SuppressWarnings("unused")
 		private static final Class<?>[] BITSER_HIERARCHY = { SimpleInnerStruct.class };
@@ -29,7 +30,7 @@ public class TestSimpleLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class DifferentInnerStruct {
+	private static class DifferentInnerStruct implements Serializable {
 
 		@BitField(id = 0)
 		@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
@@ -361,7 +362,7 @@ public class TestSimpleLazyFieldWrapper {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class LazyList {
+	private static class LazyList implements Serializable {
 
 		@BitField(id = 0)
 		final ArrayList<SimpleLazyBits<SimpleInnerStruct>> lazyList = new ArrayList<>();

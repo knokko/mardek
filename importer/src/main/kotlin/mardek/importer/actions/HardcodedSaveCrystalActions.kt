@@ -10,7 +10,7 @@ import java.util.UUID
 internal fun hardcodeSaveCrystalActions(content: Content, hardcoded: Map<String, MutableList<ActionSequence>>) {
 	val entryRoot = FixedActionNode(
 		id = UUID.fromString("c9af39f3-f5a3-4db8-9c06-17a9f1d97a78"),
-		action = ActionHealParty(),
+		action = ActionHealParty,
 		next = FixedActionNode(
 			id = UUID.fromString("15a6b7b7-ddd6-4d65-9122-616f43f7e9ac"),
 			action = ActionPlaySound(content.audio.fixedEffects.saveCrystal),

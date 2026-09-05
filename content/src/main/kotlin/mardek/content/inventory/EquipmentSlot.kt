@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.characters.PlayableCharacter
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -45,7 +46,7 @@ class EquipmentSlot(
 	 */
 	@BitField(id = 3)
 	val canBeEmpty: Boolean,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(UUID.randomUUID(), "", emptyArray(), false)

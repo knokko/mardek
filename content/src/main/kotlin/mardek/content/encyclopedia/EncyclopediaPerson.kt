@@ -16,6 +16,7 @@ import mardek.content.portrait.PortraitInfo
 import mardek.content.stats.CharacterClass
 import mardek.content.stats.CreatureType
 import mardek.content.stats.Element
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -51,7 +52,7 @@ class EncyclopediaPerson(
 	@BitField(id = 2)
 	@ClassField(root = StateExpression::class)
 	val chooseSnapshot: StateExpression<Snapshot?>,
-) {
+) : Serializable {
 
 	internal constructor() : this(
 		UUID(0, 0), emptyArray(),
@@ -168,10 +169,10 @@ class EncyclopediaPerson(
 		 */
 		@BitField(id = 13)
 		val description: String,
-	) {
+	) : Serializable {
 
 		@Suppress("unused")
-		private constructor() : this(
+		private constructor() : this( // TODO BITSER remove
 			"", "", PortraitInfo(), "", CreatureType(),
 			Gender.None, 0, null, "", ItemType(), Element(),
 			CharacterClass(), Alignment.TrueNeutral, "",

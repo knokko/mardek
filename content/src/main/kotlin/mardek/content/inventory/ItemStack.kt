@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
+import java.io.Serializable
 
 /**
  * Represents a stack of an `Item`, which is a tuple `(Item, amount)`, e.g. 4 potions.
@@ -25,7 +26,7 @@ class ItemStack(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val amount: Int
-) {
+) : Serializable {
 	init {
 		if (amount <= 0) throw IllegalArgumentException("Amount $amount must be positive")
 	}

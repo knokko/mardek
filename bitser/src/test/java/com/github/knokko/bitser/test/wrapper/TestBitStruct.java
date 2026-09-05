@@ -10,9 +10,11 @@ import com.github.knokko.bitser.io.BitCountStream;
 import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
+import java.io.*;
 import java.util.UUID;
 
 import static com.github.knokko.bitser.test.wrapper.TestHelper.assertContains;
+import static java.lang.Integer.parseInt;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestBitStruct {
@@ -285,5 +287,60 @@ public class TestBitStruct {
 		var copy3b = bitser.stupidDeepCopy(original, Bitser.BACKWARD_COMPATIBLE);
 		assertNull(copy3b.simple);
 		assertNull(copy3b.reference);
+	}
+
+	@BitStruct(backwardCompatible = false)
+	private static class NotSerializable {
+
+		@SuppressWarnings("unused")
+		@IntegerField(expectUniform = false)
+		final int x = 5;
+	}
+
+	private boolean isJava24OrLater() {
+		String version = System.getProperty("java.version");
+		int indexDot = version.indexOf(".");
+		if (indexDot == -1) throw new RuntimeException("Unexpected Java version " + version);
+		return parseInt(version.substring(0, indexDot)) >= 24;
+	}
+
+	@Test
+	public void testFinalFieldOfClassThatIsNotSerializable() {
+		if (isJava24OrLater()) {
+			String errorMessage = assertThrows(InvalidBitFieldException.class,
+					() -> new Bitser().deepCopy(new NotSerializable())
+			).getMessage();
+			assertContains(errorMessage, "TestBitStruct$NotSerializable must implement Serializable in Java 26+");
+		} else {
+			assertEquals(5, new Bitser().deepCopy(new NotSerializable()).x);
+		}
+	}
+
+	@BitStruct(backwardCompatible = false)
+	private static class FinalExternalizable implements Serializable, Externalizable {
+
+		@SuppressWarnings("unused")
+		@IntegerField(expectUniform = false)
+		final int x = 5;
+
+		public FinalExternalizable() {}
+
+		@Override
+		public void writeExternal(ObjectOutput out) {}
+
+		@Override
+		public void readExternal(ObjectInput in) {}
+	}
+
+	@Test
+	public void testFinalFieldOfClassThatIsExternalizable() {
+		if (isJava24OrLater()) {
+			String errorMessage = assertThrows(InvalidBitFieldException.class,
+					() -> new Bitser().deepCopy(new FinalExternalizable())
+			).getMessage();
+			assertContains(errorMessage, "TestBitStruct$FinalExternalizable must NOT implement Externalizable");
+		} else {
+			assertEquals(5, new Bitser().deepCopy(new FinalExternalizable()).x);
+		}
 	}
 }

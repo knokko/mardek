@@ -33,7 +33,7 @@ internal fun hardcodeGallovarDialogues(
 			options = arrayOf(
 				ChoiceEntry("susp", "Well, I need healing...", next = fixedActionChain(
 					actions = arrayOf(
-						ActionHealParty(),
+						ActionHealParty,
 						ActionPlaySound(content.audio.fixedEffects.saveCrystal),
 						ActionFlashScreen(rgb(10, 250, 255)),
 						ActionTalk(

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FunctionContext
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
+import java.io.Serializable
 
 /**
  * Represents a sprite that is usually compressed using a BC texture format. This is a lossy compression format that
@@ -57,7 +58,7 @@ class BcSprite(
 	@BitField(id = 4)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val artificialOffset: Int,
-) {
+) : Serializable {
 	var bufferedImage: Any? = null
 
 	/**

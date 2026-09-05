@@ -8,6 +8,8 @@ import com.github.knokko.bitser.field.NestedFieldSetting;
 import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
+
 import static com.github.knokko.bitser.test.wrapper.TestHelper.assertContains;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -84,7 +86,7 @@ public class TestByteCollectionField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class IntArray {
+	private static class IntArray implements Serializable {
 
 		@NestedFieldSetting(path = "", writeAsBytes = true)
 		final int[] data;

@@ -24,6 +24,7 @@ import mardek.content.inventory.Item
 import mardek.content.sprite.NamedSprite
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
+import java.io.Serializable
 import java.util.UUID
 import kotlin.collections.addAll
 import kotlin.time.Duration
@@ -34,7 +35,7 @@ import kotlin.time.Duration.Companion.seconds
  * The *action* of a `FixedActionNode` (e.g. walking or talking)
  */
 @BitStruct(backwardCompatible = true)
-sealed class FixedAction {
+sealed class FixedAction : Serializable {
 
 	companion object {
 
@@ -970,7 +971,7 @@ class ActionSpawnAreaEffect(
 		@BitField(id = 1)
 		@ReferenceField(stable = false, label = "area action effects")
 		val effect: AreaActionEffect
-	) {
+	) : Serializable {
 		internal constructor() : this(UUID(0, 0), AreaActionEffect())
 
 		override fun toString() = "AreaEffectInstance(${effect.name}, $id)"
@@ -1012,7 +1013,7 @@ class ActionMoveAreaEffect(
 	val duration: Duration,
 ) : FixedAction() {
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(
 		ActionSpawnAreaEffect.Instance(),
 		0, 0, Duration.ZERO,
@@ -1034,7 +1035,7 @@ class ActionRemoveAreaEffect(
 	val instance: ActionSpawnAreaEffect.Instance
 ) : FixedAction() {
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(ActionSpawnAreaEffect.Instance())
 }
 

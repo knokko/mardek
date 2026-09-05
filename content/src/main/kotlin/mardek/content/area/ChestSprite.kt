@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.sprite.KimSprite
+import java.io.Serializable
 
 /**
  * Represents a pair of sprites for a chest: it contains a base/closed chest sprite and an opened chest sprite.
@@ -29,7 +30,7 @@ class ChestSprite(
 	 */
 	@BitField(id = 2)
 	val openedSprite: KimSprite,
-) {
+) : Serializable {
 
 	constructor() : this(0, KimSprite(), KimSprite())
 }

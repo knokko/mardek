@@ -18,6 +18,7 @@ import mardek.content.util.Time
 import mardek.state.ingame.battle.combatant.CombatantState
 import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import mardek.state.ingame.battle.combatant.PlayerCombatantState
+import java.io.Serializable
 import java.util.Objects
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -28,7 +29,7 @@ import kotlin.time.Duration.Companion.seconds
  * combatant is doing.
  */
 @BitStruct(backwardCompatible = true)
-sealed class BattleStateMachine {
+sealed class BattleStateMachine : Serializable {
 
 	companion object {
 
@@ -768,7 +769,7 @@ sealed class BattleStateMachine {
 		init {
 			if (skill.targetType == SkillTargetType.Self || skill.targetType == SkillTargetType.Single) {
 				if (targets.size > 1) throw IllegalArgumentException(
-					"Illegal multi-target ${targets }for single-target skill ${skill.name}"
+					"Illegal multi-target ${targets.contentToString()}for single-target skill ${skill.name}"
 				)
 			}
 			if (skill.changeElement && nextElement == null) {
@@ -805,7 +806,7 @@ sealed class BattleStateMachine {
 		override fun equals(other: Any?) = other is CastSkill && caster === other.caster &&
 				targets.contentEquals(other.targets) && skill === other.skill && nextElement === other.nextElement
 
-		override fun hashCode() = caster.hashCode() + 13 * targets.hashCode() - 31 * skill.hashCode() +
+		override fun hashCode() = caster.hashCode() + 13 * targets.contentHashCode() - 31 * skill.hashCode() +
 				127 * Objects.hashCode(nextElement)
 
 		/**

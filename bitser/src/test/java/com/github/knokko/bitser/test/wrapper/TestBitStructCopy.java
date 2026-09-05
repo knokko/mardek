@@ -5,12 +5,14 @@ import com.github.knokko.bitser.field.*;
 import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestBitStructCopy {
 
 	@BitStruct(backwardCompatible = false)
-	private static class ChildStruct {
+	private static class ChildStruct implements Serializable {
 
 		@IntegerField(expectUniform = false)
 		final int x;

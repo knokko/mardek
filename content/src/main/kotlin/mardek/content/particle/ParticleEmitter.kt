@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
+import java.io.Serializable
 import kotlin.time.Duration
 
 /**
@@ -74,7 +75,7 @@ class ParticleEmitter(
 	 */
 	@BitField(id = 8)
 	val mirror: Boolean,
-) {
+) : Serializable {
 	@Suppress("unused")
 	private constructor() : this(
 		EmitterTransform(), ParticleSprite(), EmissionWaves(), ParticleSpawnProperties(),

@@ -10,12 +10,13 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.Item
 import mardek.content.story.FixedTimelineVariable
 import mardek.content.story.TimelineVariable
+import java.io.Serializable
 
 /**
  * An expression that, given the `CampaignState`, evaluates to a [ExpressionValue]. The simplest subclass is
  * [ConstantStateExpression], which always evaluates to the same value, regardless of the state.
  */
-sealed class StateExpression<T> {
+sealed class StateExpression<T> : Serializable {
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
@@ -196,9 +197,9 @@ class SwitchCaseStateExpression<I, O>(
 		@BitField(id = 1)
 		@ClassField(root = StateExpression::class)
 		val outputWhenInputMatches: StateExpression<O>,
-	) {
+	) : Serializable {
 
-		@Suppress("unused")
+		@Suppress("unused") // TODO BITSER remove
 		private constructor() : this(
 			ConstantStateExpression<I>(),
 			ConstantStateExpression<O>()

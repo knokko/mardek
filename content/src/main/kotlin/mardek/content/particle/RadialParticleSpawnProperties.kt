@@ -3,6 +3,7 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
+import java.io.Serializable
 
 /**
  * This class describes particles that are spawned in some kind of cone or full circle. This is used by e.g.
@@ -78,8 +79,8 @@ class RadialParticleSpawnProperties(
 	@BitField(id = 8)
 	@FloatField(expectMultipleOf = 1.0)
 	val maxVelocity: Float,
-) {
-	@Suppress("unused")
+) : Serializable {
+	@Suppress("unused") // TODO BITSER Remove
 	private constructor() : this(
 		0f, 0f, 0f, 0f, null,
 		0f, false, 0f, 0f

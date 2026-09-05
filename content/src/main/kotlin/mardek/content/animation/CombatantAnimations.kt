@@ -3,6 +3,7 @@ package mardek.content.animation
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
+import java.io.Serializable
 
 /**
  * Represents the skeleton + animations + skin of a combatant, which is pretty much all the information that is needed
@@ -32,7 +33,7 @@ class CombatantAnimations(
 
 	@BitField(id = 2)
 	val rootMatrix: AnimationMatrix,
-) {
+) : Serializable {
 	constructor() : this(CombatantSkeleton(), "", AnimationMatrix.DEFAULT)
 
 	operator fun get(name: String) = skeleton[name]

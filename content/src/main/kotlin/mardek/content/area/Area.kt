@@ -10,6 +10,7 @@ import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.action.ActionSequence
 import mardek.content.area.objects.AreaObjects
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -104,7 +105,7 @@ class Area(
 	@BitField(id = 11)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	/**
 	 * The action sequences that can happen in this area. Each action sequence can be referenced by e.g. walk triggers

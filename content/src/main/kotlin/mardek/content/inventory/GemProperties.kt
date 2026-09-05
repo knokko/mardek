@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.stats.PossibleStatusEffect
+import java.io.Serializable
 
 /**
  * The item properties that only gemstones have. They basically determine the power & element of Legions gemsplosion
@@ -39,7 +40,7 @@ class GemProperties(
 	@BitField(id = 3)
 	@FloatField(expectMultipleOf = 0.25)
 	val drainHp: Float,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(0, "", ArrayList(0), 0f)

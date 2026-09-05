@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -86,7 +87,7 @@ class TimelineNode(
 	 */
 	@BitField(id = 6)
 	val ignoresTimelineActivation: Boolean = false,
-) {
+) : Serializable {
 
 	internal constructor() : this(
 		UUID(0, 0), "", emptyArray(),

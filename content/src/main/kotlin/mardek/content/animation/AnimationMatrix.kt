@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 
 /**
  * Represents a transformation matrix that is used in animations. It contains the same data as a `Matrix3x2f` from
@@ -60,7 +61,7 @@ class AnimationMatrix(
 		),
 	)
 	val scaleY: Float,
-) {
+) : Serializable {
 	constructor() : this(0f, 0f, 0f, 0f, 0f, 0f)
 
 	companion object {

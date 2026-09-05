@@ -3,6 +3,7 @@ package mardek.state.ingame.area
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 
 /**
  * Represents a (tile) position into an [mardek.content.area.Area]. This class is a simple tuple `(tileX, tileY)`.
@@ -23,7 +24,7 @@ class AreaPosition(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false)
 	val y: Int
-) {
+) : Serializable {
 
 	internal constructor() : this(0, 0)
 

@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.StableReferenceFieldId
 import com.github.knokko.bitser.field.StringField
 import mardek.content.particle.ParticleEffect
 import mardek.content.sprite.BcSprite
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -134,7 +135,7 @@ class Element(
 	@BitField(id = 13)
 	@IntegerField(expectUniform = true)
 	val chatLogColor: Int,
-) {
+) : Serializable {
 
 	/**
 	 * The element against which this element is usually weak (e.g. `FIRE.weakAgainst == WATER`)., or `null` if this

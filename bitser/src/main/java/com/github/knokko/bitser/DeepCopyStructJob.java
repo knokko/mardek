@@ -10,6 +10,7 @@ record DeepCopyStructJob(BitStructWrapper<?> wrapper, Object source, Object dest
 
 	void copy(DeepCopyMachine machine) {
 		for (var classWrapper : wrapper.classHierarchy) {
+			SingleClassMutator.Session mutateSession = classWrapper.mutator.createSession.apply(destination);
 			for (var field : classWrapper.fields) {
 				try {
 					Object sourceValue = field.classField().get(source);
@@ -20,7 +21,7 @@ record DeepCopyStructJob(BitStructWrapper<?> wrapper, Object source, Object dest
 						));
 					} else {
 						Object destinationValue = field.bitField().deepCopy(sourceValue, machine, node, field.classField().getName());
-						field.classField().set(destination, destinationValue);
+						mutateSession.set(field.classField(), destinationValue);
 						if (field.bitField().field.referenceTargetLabel != null) {
 							machine.references.register(sourceValue, destinationValue);
 						}
@@ -28,6 +29,12 @@ record DeepCopyStructJob(BitStructWrapper<?> wrapper, Object source, Object dest
 				} catch (Throwable failed) {
 					throw new RecursionException(node.generateTrace(field.classField().getName()), failed);
 				}
+			}
+
+			try {
+				mutateSession.finish();
+			} catch (Throwable failed) {
+				throw new RecursionException(node.generateTrace(null), failed);
 			}
 		}
 

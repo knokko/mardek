@@ -9,6 +9,7 @@ import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.particle.ParticleEffect
 import mardek.content.particle.ParticleEmitter
 import mardek.content.sprite.BcSprite
+import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -250,7 +251,7 @@ class StatusEffect(
 	@BitField(id = 32)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	constructor() : this(
 		"", null, false, false,
@@ -305,8 +306,8 @@ class StatusEffect(
 		@BitField(id = 3)
 		@IntegerField(expectUniform = true)
 		val blinkColor: Int,
-	) {
-		@Suppress("unused")
+	) : Serializable {
+		@Suppress("unused") // TODO BITSER remove
 		private constructor() : this(0f, Element(), ParticleEffect(), 0)
 	}
 
@@ -338,8 +339,8 @@ class StatusEffect(
 		@BitField(id = 2)
 		@IntegerField(expectUniform = true)
 		val blinkColor: Int,
-	) {
-		@Suppress("unused")
+	) : Serializable {
+		@Suppress("unused") // TODO BITSER remove
 		private constructor() : this(0, 0f, 0)
 	}
 
@@ -371,8 +372,8 @@ class StatusEffect(
 		@BitField(id = 2, optional = true)
 		@ReferenceField(stable = false, label = "particles")
 		val particleEffect: ParticleEffect?,
-	) {
-		@Suppress("unused")
+	) : Serializable {
+		@Suppress("unused") // TODO BITSER remove
 		private constructor() : this(0, 0, null)
 	}
 }

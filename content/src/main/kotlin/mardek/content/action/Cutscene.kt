@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.audio.MusicTrack
 import mardek.content.audio.SoundEffect
+import java.io.Serializable
 import java.util.UUID
 import kotlin.time.Duration
 
@@ -47,7 +48,7 @@ class Cutscene(
 	@BitField(id = 4, optional = true)
 	@ReferenceField(stable = false, label = "music tracks")
 	val musicTrack: MusicTrack?,
-) {
+) : Serializable {
 
 	internal constructor() : this(
 		UUID(0, 0), "",
@@ -73,7 +74,7 @@ class Cutscene(
 		@BitField(id = 1)
 		@ReferenceField(stable = false, label = "sound effects")
 		val sound: SoundEffect,
-	) {
+	) : Serializable {
 
 		@Suppress("unused")
 		private constructor() : this(Duration.ZERO, SoundEffect())

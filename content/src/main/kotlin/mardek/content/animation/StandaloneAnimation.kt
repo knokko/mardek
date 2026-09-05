@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.particle.ParticleEmitter
 import mardek.content.particle.ParticleSprite
+import java.io.Serializable
 
 /**
  * Represents an animation that can be (de)serialized independently. This is basically an instance of `AnimationFrames`,
@@ -48,7 +49,7 @@ class StandaloneAnimation(
 	@Suppress("unused")
 	@ReferenceFieldTarget(label = "animation particle emitters")
 	private val particleEmitters: Array<ParticleEmitter>,
-) {
+) : Serializable {
 
 	constructor() : this(
 		AnimationFrames(), emptyArray(), emptyArray(),

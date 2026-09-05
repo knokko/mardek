@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.BITSER
 import mardek.content.util.Time
+import java.io.Serializable
 
 /**
  * Represents the state of an [mardek.content.action.effect.AreaActionEffect] instance.
@@ -37,9 +38,9 @@ class AreaEffectState(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false)
 	var y: Int,
-) {
+) : Serializable {
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(Time.ZERO, 0, 0)
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)

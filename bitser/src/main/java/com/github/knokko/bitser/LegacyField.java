@@ -4,8 +4,10 @@ import com.github.knokko.bitser.field.BitField;
 import com.github.knokko.bitser.field.ClassField;
 import com.github.knokko.bitser.field.IntegerField;
 
+import java.io.Serializable;
+
 @BitStruct(backwardCompatible = false)
-class LegacyField {
+class LegacyField implements Serializable {
 
 	@IntegerField(expectUniform = false, minValue = 0)
 	final int id;

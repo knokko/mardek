@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import mardek.content.audio.AudioContent
 import mardek.content.sprite.BcSprite
+import java.io.Serializable
 
 /**
  * This is a minified version of [mardek.content.Content] that is needed by the title screen. This content must be
@@ -98,9 +99,9 @@ class TitleScreenContent(
 	 */
 	@BitField(id = 13)
 	val pauseMusicHoveredIcon: BcSprite,
-) {
+) : Serializable {
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(
 		BcSprite(), BcSprite(), BcSprite(),
 		Font(), Font(), Font(), Font(),

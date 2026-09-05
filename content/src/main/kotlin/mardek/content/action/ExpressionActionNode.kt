@@ -7,6 +7,7 @@ import mardek.content.BITSER
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.ExpressionActionNodeValue
 import mardek.content.expression.StateExpression
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -23,7 +24,7 @@ class ExpressionActionNode(
 	@BitField(id = 0)
 	@ClassField(root = StateExpression::class)
 	val expression: StateExpression<ActionNode?>
-): ActionNode(id) {
+): ActionNode(id), Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(

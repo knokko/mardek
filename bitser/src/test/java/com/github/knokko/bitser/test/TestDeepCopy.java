@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.*;
 import com.github.knokko.bitser.options.WithParameter;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -23,7 +24,7 @@ public class TestDeepCopy {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class References {
+	private static class References implements Serializable {
 
 		@ReferenceFieldTarget(label = "IDs")
 		final ElementStruct myTarget = new ElementStruct(123);
@@ -65,7 +66,7 @@ public class TestDeepCopy {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class Collections {
+	private static class Collections implements Serializable {
 
 		@BitField
 		@NestedFieldSetting(path = "c", optional = true)
@@ -98,7 +99,7 @@ public class TestDeepCopy {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class RootClass {
+	private static class RootClass implements Serializable {
 
 		@BitField
 		final References references = new References();

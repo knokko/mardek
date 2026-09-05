@@ -3,6 +3,7 @@ package mardek.content.stats
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 
 /**
  * Increases the [stat] of a combatant by a random amount between [minAdder] and [maxAdder] (both inclusive).
@@ -33,7 +34,7 @@ class StatModifierRange(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false)
 	val maxAdder: Int
-) {
+) : Serializable {
 
 	init {
 		if (maxAdder < minAdder) throw IllegalArgumentException("Invalid adder range [$minAdder, $maxAdder")

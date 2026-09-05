@@ -10,6 +10,7 @@ import mardek.content.characters.PlayableCharacter
 import mardek.content.particle.ParticleEffect
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.StatModifierRange
+import java.io.Serializable
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -95,7 +96,7 @@ class ConsumableProperties(
 	 */
 	@BitField(id = 10, optional = true)
 	val damage: ConsumableDamage?,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(

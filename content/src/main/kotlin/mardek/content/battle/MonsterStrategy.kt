@@ -12,6 +12,7 @@ import mardek.content.stats.StatusEffect
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
 import mardek.content.stats.ElementalResistance
+import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -42,7 +43,7 @@ class StrategyPool(
 	@Suppress("unused")
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(
@@ -94,7 +95,7 @@ class StrategyEntry(
 	@BitField(id = 3)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100, commonValues = [100, 30])
 	val chance: Int,
-) {
+) : Serializable {
 	init {
 		if (skill != null && item != null) throw IllegalArgumentException("Skill ($skill) or item ($item) must be null")
 		if (item != null && item.consumable == null) throw IllegalArgumentException("Item ($item) must be consumable")
@@ -284,7 +285,7 @@ class StrategyCriteria(
 	 */
 	@BitField(id = 14)
 	val canRepeat: Boolean = true,
-) {
+) : Serializable {
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

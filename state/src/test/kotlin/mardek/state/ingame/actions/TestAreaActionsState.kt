@@ -516,7 +516,7 @@ class TestAreaActionsState {
 	fun testHealParty() {
 		val rootNode = FixedActionNode(
 			id = UUID.randomUUID(),
-			action = ActionHealParty(),
+			action = ActionHealParty,
 			next = FixedActionNode(
 				id = UUID.randomUUID(),
 				action = ActionWalk(

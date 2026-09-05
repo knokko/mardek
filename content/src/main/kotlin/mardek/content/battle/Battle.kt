@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.MusicTrack
+import java.io.Serializable
 
 /**
  * Represents a battle that has not yet started. This class specifies the monsters that the player will fight, as well
@@ -70,7 +71,7 @@ class Battle(
 	 */
 	@BitField(id = 6)
 	val isRandom: Boolean,
-) {
+) : Serializable {
 	constructor() : this(
 		arrayOf(null, null, null, null), PartyLayout(),
 		MusicTrack(), MusicTrack(), BattleBackground(), true, true,
@@ -107,7 +108,7 @@ class Enemy(
 	 */
 	@BitField(id = 2, optional = true)
 	val overrideDisplayName: String? = null,
-) {
+) : Serializable {
 	@Suppress("unused")
 	private constructor() : this(Monster(), 0)
 }

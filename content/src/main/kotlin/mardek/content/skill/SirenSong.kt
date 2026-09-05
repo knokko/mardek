@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.content.BITSER
+import java.io.Serializable
 
 // TODO CHAP3 Figure out how this works
 @BitStruct(backwardCompatible = true)
@@ -23,7 +24,7 @@ class SirenSong(
 	@BitField(id = 3)
 	@NestedFieldSetting(path = "c", optional = true)
 	val notes: ArrayList<SirenNote?>,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this("", 0, 0, ArrayList(0))
@@ -38,7 +39,7 @@ class SirenNote(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 16)
 	val value2: Int,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(0, 0)

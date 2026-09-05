@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.BITSER
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -39,7 +40,7 @@ class PartyLayout(
 	@BitField(id = 2)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	constructor() : this("", emptyArray(), UUID.randomUUID())
 
@@ -68,8 +69,8 @@ class PartyLayoutPosition(
 	@BitField(id = 1)
 	@FloatField
 	val distanceY: Float,
-) {
-	@Suppress("unused")
+) : Serializable {
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(0f, 0f)
 
 	override fun toString() = "($distanceX, $distanceY)"

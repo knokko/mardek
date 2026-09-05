@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 import mardek.content.stats.Element
+import java.io.Serializable
 
 /**
  * Represents an entry of [AreaActionsState.chatLog].
@@ -31,9 +32,9 @@ class ChatLogEntry(
 	 */
 	@BitField(id = 2)
 	val text: String
-) {
+) : Serializable {
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this("", null, "")
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)

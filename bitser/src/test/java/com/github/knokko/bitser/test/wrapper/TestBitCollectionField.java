@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 import static com.github.knokko.bitser.test.wrapper.TestHelper.assertContains;
@@ -127,7 +128,7 @@ public class TestBitCollectionField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class Bytes {
+	private static class Bytes implements Serializable {
 
 		@IntegerField(expectUniform = true)
 		@NestedFieldSetting(path = "", sizeField = @IntegerField(minValue = 2, maxValue = 2, expectUniform = true))
@@ -310,7 +311,7 @@ public class TestBitCollectionField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class ReferenceList {
+	private static class ReferenceList implements Serializable {
 
 		@ReferenceField(stable = false, label = "refs")
 		@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
@@ -352,7 +353,7 @@ public class TestBitCollectionField {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class StructWithWeirdCollection {
+	private static class StructWithWeirdCollection implements Serializable {
 
 		@BitField(id = 0)
 		@SuppressWarnings("unused")
@@ -383,7 +384,7 @@ public class TestBitCollectionField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class StructWithAggressiveCollection {
+	private static class StructWithAggressiveCollection implements Serializable {
 
 		@BitField
 		@SuppressWarnings("unused")
@@ -403,7 +404,7 @@ public class TestBitCollectionField {
 	private static class NotGenericCollection extends LinkedList<String> {}
 
 	@BitStruct(backwardCompatible = false)
-	private static class StructWithNotGenericCollection {
+	private static class StructWithNotGenericCollection implements Serializable {
 
 		@BitField
 		@SuppressWarnings("unused")
@@ -421,7 +422,7 @@ public class TestBitCollectionField {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class StringList {
+	private static class StringList implements Serializable {
 
 		@BitField
 		@SuppressWarnings("unused")

@@ -41,10 +41,10 @@ class Deserializer {
 		this.input = input;
 		this.sizeLimit = sizeLimit;
 		this.withParameters = withParameters;
-		this.rootStruct = rootStructInfo.createEmptyInstance();
+		this.rootStruct = rootStructInfo.mutator.createEmptyInstance.get();
 		this.structJobs.add(new ReadStructJob(
 				rootStruct, rootStructInfo,
-				new RecursionNode(rootStructInfo.constructor.getDeclaringClass().getSimpleName())
+				new RecursionNode(rootStructInfo.mutator.objectClass.getSimpleName())
 		));
 		this.references = new ReferenceTracker(cache);
 	}

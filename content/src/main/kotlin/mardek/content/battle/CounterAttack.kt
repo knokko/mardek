@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
 import mardek.content.skill.ActiveSkill
+import java.io.Serializable
 
 /**
  * Some (mostly boss) enemies will perform a counter-attack whenever they are attacked. This class models such a
@@ -37,7 +38,7 @@ class CounterAttack(
 	 */
 	@BitField(id = 2)
 	val target: StrategyTarget,
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(ActiveSkill(), 0, StrategyTarget.Self)

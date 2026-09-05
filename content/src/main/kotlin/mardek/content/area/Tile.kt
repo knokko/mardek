@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.content.sprite.KimSprite
+import java.io.Serializable
 
 /**
  * Represents a tile that can appear in the tile grid of an `Area`. Note that the same `Tile` can appear multiple times
@@ -36,7 +37,7 @@ class Tile(
 	 */
 	@BitField(id = 2)
 	val waterType: WaterType
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this(ArrayList(0), false, WaterType.None)

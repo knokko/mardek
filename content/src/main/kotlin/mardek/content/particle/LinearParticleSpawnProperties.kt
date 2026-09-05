@@ -3,6 +3,7 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
+import java.io.Serializable
 
 /**
  * For [ParticleEmitter]s whose particles have *linear* motion, this class describes the initial velocity of the
@@ -66,7 +67,7 @@ class LinearParticleSpawnProperties(
 	@BitField(id = 7)
 	@FloatField(expectMultipleOf = 0.1)
 	val shiftMaxVelocityY: Float,
-) {
+) : Serializable {
 	constructor() : this(
 		0f, 0f, 0f, 0f,
 		0f, 0f, 0f, 0f

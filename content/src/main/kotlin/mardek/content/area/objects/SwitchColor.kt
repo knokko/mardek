@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.sprite.KimSprite
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -51,7 +52,7 @@ class SwitchColor(
 	@BitField(id = 5)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	internal constructor() : this(
 		"", KimSprite(), KimSprite(),

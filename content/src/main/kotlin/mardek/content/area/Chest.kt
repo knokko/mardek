@@ -11,6 +11,7 @@ import mardek.content.battle.PartyLayout
 import mardek.content.inventory.Dreamstone
 import mardek.content.inventory.ItemStack
 import mardek.content.inventory.PlotItem
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -86,7 +87,7 @@ class Chest(
 	@BitField(id = 9)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	constructor() : this(
 		0, 0, ChestSprite(), 0, null,
@@ -133,14 +134,14 @@ class ChestBattle(
 	@BitField(id = 3, optional = true)
 	@ReferenceField(stable = false, label = "music tracks")
 	val specialLootMusic: MusicTrack?,
-) {
-	@Suppress("unused")
+) : Serializable {
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(
 		arrayOf(null, null, null, null), PartyLayout(),
 		null, null,
 	)
 
-	override fun toString() = "ChestBattle$monsters"
+	override fun toString() = "ChestBattle${monsters.contentToString()}"
 }
 
 /**
@@ -167,9 +168,9 @@ class ChestMonster(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val level: Int,
-) {
+) : Serializable {
 
-	@Suppress("unused")
+	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this("", null, 0)
 
 	override fun toString() = "($name1, level=$level)"

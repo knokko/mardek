@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 import kotlin.time.Duration
 
 /**
@@ -32,7 +33,7 @@ class ParticleQuake(
 	@BitField(id = 2)
 	@FloatField
 	val decay: Float,
-) {
+) : Serializable {
 	@Suppress("unused")
 	private constructor() : this(0, Duration.ZERO, 0f)
 }

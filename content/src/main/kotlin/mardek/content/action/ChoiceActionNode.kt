@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.ExpressionBooleanValue
 import mardek.content.expression.StateExpression
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -74,7 +75,7 @@ class ChoiceEntry(
 	val condition: StateExpression<Boolean> = ConstantStateExpression(
 		ExpressionBooleanValue(true)
 	),
-) {
+) : Serializable {
 
 	@Suppress("unused")
 	private constructor() : this("", "", null)
