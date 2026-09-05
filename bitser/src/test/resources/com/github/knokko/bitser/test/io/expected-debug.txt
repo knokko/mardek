@@ -1,0 +1,244 @@
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 1: struct jobs & array jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+begin RootStruct
+begin RootStruct -> array
+array-length: 010100
+end RootStruct -> array
+begin RootStruct -> example
+int-value: 01001110010000
+end RootStruct -> example
+begin RootStruct -> list
+collection-size: 010100
+end RootStruct -> list
+begin RootStruct -> map
+map-size: 010100
+end RootStruct -> map
+begin RootStruct -> padding
+int-value: 01001101000100
+end RootStruct -> padding
+end RootStruct
+begin RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+end RootStruct -> map
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+map-size: 10
+end RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+uuid: 11111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+map-size: 00
+end RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+begin RootStruct -> map -> elements -> nestedMap -> elements -> address
+int-value: 0011101000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> nestedMap -> elements -> address
+end RootStruct -> map -> elements -> nestedMap -> elements
+begin RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+end RootStruct -> map
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> address
+int-value: 0011101000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> address
+end RootStruct -> map -> elements
+begin RootStruct -> list
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+end RootStruct -> list
+begin RootStruct -> list -> elements
+begin RootStruct -> list -> elements -> description
+string-length: 011100
+string-char: 11001111
+string-char: 10100111
+string-char: 11000111
+string-char: 11110111
+string-char: 01110111
+string-char: 00100111
+end RootStruct -> list -> elements -> description
+end RootStruct -> list -> elements
+begin RootStruct -> array
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+end RootStruct -> array
+begin RootStruct -> array -> elements
+begin RootStruct -> array -> elements -> weight
+float-value: 00000000000000000000010100000011
+end RootStruct -> array -> elements -> weight
+end RootStruct -> array -> elements
+begin RootStruct -> array -> elements
+begin RootStruct -> array -> elements -> weight
+float-value: 00000000000000000000001000000010
+end RootStruct -> array -> elements -> weight
+end RootStruct -> array -> elements
+begin RootStruct -> list -> elements
+begin RootStruct -> list -> elements -> description
+string-length: 011010
+string-char: 01100111
+string-char: 10010111
+string-char: 01001111
+string-char: 11001111
+string-char: 00101111
+end RootStruct -> list -> elements -> description
+end RootStruct -> list -> elements
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> address
+int-value: 0100110000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> address
+end RootStruct -> map -> elements
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 2: with jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 3: map stable IDs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 4: reference jobs & lazy reference jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+---------------------------------------------------------------------------------------------
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 1: struct jobs & array jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+begin RootStruct
+begin RootStruct -> array
+array-length: 010100
+end RootStruct -> array
+begin RootStruct -> example
+int-value: 01001110010000
+end RootStruct -> example
+begin RootStruct -> list
+collection-size: 010100
+end RootStruct -> list
+begin RootStruct -> map
+map-size: 010100
+end RootStruct -> map
+begin RootStruct -> padding
+int-value: 01001101000100
+end RootStruct -> padding
+end RootStruct
+begin RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+end RootStruct -> map
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+map-size: 10
+end RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+uuid: 11111111111111111111111111111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+map-size: 00
+end RootStruct -> map -> elements -> nestedMap
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap -> elements
+end RootStruct -> map -> elements -> nestedMap
+begin RootStruct -> map -> elements -> nestedMap -> elements
+begin RootStruct -> map -> elements -> nestedMap -> elements -> address
+int-value: 0011101000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> nestedMap -> elements -> address
+end RootStruct -> map -> elements -> nestedMap -> elements
+begin RootStruct -> map
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+begin RootStruct -> map -> elements
+end RootStruct -> map -> elements
+end RootStruct -> map
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> address
+int-value: 0011101000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> address
+end RootStruct -> map -> elements
+begin RootStruct -> list
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+begin RootStruct -> list -> elements
+end RootStruct -> list -> elements
+end RootStruct -> list
+begin RootStruct -> list -> elements
+begin RootStruct -> list -> elements -> description
+string-length: 011100
+string-char: 11001111
+string-char: 10100111
+string-char: 11000111
+string-char: 11110111
+string-char: 01110111
+string-char: 00100111
+end RootStruct -> list -> elements -> description
+end RootStruct -> list -> elements
+begin RootStruct -> array
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+begin RootStruct -> array -> elements
+end RootStruct -> array -> elements
+end RootStruct -> array
+begin RootStruct -> array -> elements
+begin RootStruct -> array -> elements -> weight
+float-value: 00000000000000000000010100000011
+end RootStruct -> array -> elements -> weight
+end RootStruct -> array -> elements
+begin RootStruct -> array -> elements
+begin RootStruct -> array -> elements -> weight
+float-value: 00000000000000000000001000000010
+end RootStruct -> array -> elements -> weight
+end RootStruct -> array -> elements
+begin RootStruct -> list -> elements
+begin RootStruct -> list -> elements -> description
+string-length: 011010
+string-char: 01100111
+string-char: 10010111
+string-char: 01001111
+string-char: 11001111
+string-char: 00101111
+end RootStruct -> list -> elements -> description
+end RootStruct -> list -> elements
+begin RootStruct -> map -> elements
+begin RootStruct -> map -> elements -> address
+int-value: 0100110000000000000000000000000000000000000000000000000000000000
+end RootStruct -> map -> elements -> address
+end RootStruct -> map -> elements
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 2: with jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 3: map stable IDs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 4: reference jobs & lazy reference jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 7: populate struct jobs >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< stage 9 to 11: collection population & post init >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+---------------------------------------------------------------------------------------------

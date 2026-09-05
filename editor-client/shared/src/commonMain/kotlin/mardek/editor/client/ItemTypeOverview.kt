@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,13 +27,24 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
+import mardek.content.BITSER
 import mardek.content.inventory.ItemType
+import java.lang.Thread.sleep
 
-val itemTypes = mutableListOf(
+val itemTypes = mutableStateListOf(
 	ItemType("WEAPON: SWORD", rgb(200, 0, 0), "Sword"),
 	ItemType("WEAPON: GREATAXE", rgb(200, 0, 0), "Greataxe"),
 	ItemType("HELMET: FULL", rgb(0, 0, 200), "Full Helmet"),
 )
+
+val test = Thread {
+	sleep(3000)
+	repeat(100) {
+		if (Math.random() < 0.5) sleep(it.toLong())
+		itemTypes.add(ItemType("TEST", rgb(200, 200, 0), "Test"))
+	}
+}.start()
+
 val fontSize = 1.1.em
 
 val baseModifiers = arrayOf(300.dp, 300.dp, 300.dp).map { Modifier.width(it) }
@@ -55,6 +68,10 @@ fun ItemTypeOverview() {
 							textStyle = TextStyle(fontSize = fontSize),
 							contentPadding = PaddingValues(5.dp),
 							lineLimits = TextFieldLineLimits.SingleLine,
+							inputTransformation = {
+								val newText = this.toString()
+								println("new text is $newText")
+							}
 						)
 					}
 
