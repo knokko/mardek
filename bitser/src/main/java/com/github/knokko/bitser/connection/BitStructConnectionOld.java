@@ -13,7 +13,7 @@ package com.github.knokko.bitser.connection;
 //
 //import static com.github.knokko.bitser.IntegerBitser.*;
 
-public class BitStructConnection<T> extends BitConnection {
+public class BitStructConnectionOld<T> extends BitConnection {
 
 //	private final Bitser bitser;
 //	private final List<BitFieldWrapper> fields;
