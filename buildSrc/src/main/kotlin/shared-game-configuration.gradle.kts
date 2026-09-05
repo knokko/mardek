@@ -4,6 +4,7 @@ val libs = extensions.getByType(VersionCatalogsExtension::class.java).named("lib
 
 plugins {
 	java
+	id("knokko-reposilite")
 }
 
 java {
@@ -12,15 +13,6 @@ java {
 
 repositories {
 	mavenCentral()
-
-	maven {
-		name = "knokko-reposilite"
-		url = URI("https://49.12.188.159:8080/releases/")
-		content {
-			includeGroup("com.github.knokko")
-			includeGroup("com.github.knokko.vk-compressor")
-		}
-	}
 
 	// Used for LWJGL and JOML
 	maven {
