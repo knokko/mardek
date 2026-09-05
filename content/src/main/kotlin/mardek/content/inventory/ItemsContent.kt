@@ -3,6 +3,7 @@ package mardek.content.inventory
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import java.io.Serializable
 
 /**
  * The item-related part of the `Content`
@@ -37,7 +38,7 @@ class ItemsContent(
 	@BitField(id = 3)
 	@ReferenceFieldTarget(label = "dreamstones")
 	val dreamstones: ArrayList<Dreamstone>,
-) {
+) : Serializable {
 	constructor() : this(
 		ArrayList(0), ArrayList(0),
 		ArrayList(0), ArrayList(0)

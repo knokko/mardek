@@ -3,6 +3,7 @@ package mardek.content.audio
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import mardek.content.sprite.BcSprite
+import java.io.Serializable
 
 /**
  * Represents a music category (e.g. Area Music) in the Music Player.
@@ -21,7 +22,7 @@ class MusicCategory(
 	 */
 	@BitField(id = 1)
 	val icon: BcSprite,
-) {
+) : Serializable {
 
 	internal constructor() : this("", BcSprite())
 }

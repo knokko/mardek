@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.action.effect.AreaActionEffect
 import mardek.content.sprite.NamedSprite
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -20,7 +21,7 @@ import java.util.UUID
  * So *actions* are basically anything dialogue-related in the game.
  */
 @BitStruct(backwardCompatible = true)
-class ActionContent {
+class ActionContent : Serializable {
 
 	/**
 	 * This list contains the *global* action sequences:

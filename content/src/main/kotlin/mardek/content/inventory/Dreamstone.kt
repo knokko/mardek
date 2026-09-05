@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -27,10 +28,7 @@ class Dreamstone(
 	@BitField(id = 1)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(-1, UUID.randomUUID())
+) : Serializable {
 
 	override fun toString() = "DreamStone $index"
 }

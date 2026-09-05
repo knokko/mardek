@@ -31,6 +31,9 @@ tasks.register("exportContent", JavaExec::class) {
 
 	classpath(sourceSets.main.get().runtimeClasspath)
 	mainClass = "mardek.importer.ContentExporterKt"
+
+	jvmArgs("--add-exports", "java.base/jdk.internal.misc=ALL-UNNAMED")
+	jvmArgs("--enable-native-access", "ALL-UNNAMED")
 }
 
 tasks.register("convertSVGs", JavaExec::class) {

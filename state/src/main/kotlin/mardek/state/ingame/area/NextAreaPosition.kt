@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.area.TransitionDestination
 import mardek.content.util.Time
+import java.io.Serializable
 import kotlin.time.Duration
 
 /**
@@ -46,7 +47,7 @@ class NextAreaPosition(
 	@BitField(id = 3, optional = true)
 	@ClassField(root = TransitionDestination::class)
 	val transition: TransitionDestination?,
-) {
+) : Serializable {
 
 	internal constructor() : this(
 		AreaPosition(), Time.ZERO,

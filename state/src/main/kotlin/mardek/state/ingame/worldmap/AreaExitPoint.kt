@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.area.Area
+import java.io.Serializable
 
 /**
  * Represents the position where the player exited an area (either through an exit, or by warping out),
@@ -33,6 +34,6 @@ class AreaExitPoint(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false)
 	val y: Int,
-) {
+) : Serializable {
 	internal constructor() : this(Area(), 0, 0)
 }

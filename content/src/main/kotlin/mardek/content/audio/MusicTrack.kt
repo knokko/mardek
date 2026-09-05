@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import java.io.Serializable
 import java.util.UUID
 import kotlin.time.Duration
 
@@ -46,7 +47,7 @@ class MusicTrack(
 	@BitField(id = 4)
 	@ReferenceField(stable = false, label = "music categories")
 	val category: MusicCategory,
-) {
+) : Serializable {
 
 	internal constructor() : this(
 		UUID(0, 0),

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.characters.PlayableCharacter
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -45,10 +46,7 @@ class EquipmentSlot(
 	 */
 	@BitField(id = 3)
 	val canBeEmpty: Boolean,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(UUID.randomUUID(), "", emptyArray(), false)
+) : Serializable {
 
 	override fun equals(other: Any?) = other is EquipmentSlot && this.id == other.id
 

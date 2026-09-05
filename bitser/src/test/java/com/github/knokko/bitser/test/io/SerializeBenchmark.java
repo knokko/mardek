@@ -29,7 +29,7 @@ public class SerializeBenchmark {
 	);
 
 	@BitStruct(backwardCompatible = true)
-	static class RootStruct {
+	static class RootStruct implements Serializable {
 
 		@BitField(id = 0)
 		@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
@@ -123,7 +123,7 @@ public class SerializeBenchmark {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	static class BigStruct {
+	static class BigStruct implements Serializable {
 
 		@BitField(id = 0)
 		@StableReferenceFieldId

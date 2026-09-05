@@ -13,6 +13,7 @@ import mardek.content.inventory.Dreamstone
 import mardek.content.skill.ActiveSkill
 import mardek.content.sprite.DirectionalSprites
 import mardek.content.sprite.ObjectSprites
+import java.io.Serializable
 import java.util.EnumMap
 import java.util.UUID
 
@@ -308,7 +309,7 @@ class Monster(
 	@BitField(id = 33)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val unarmedAttackPower: Int,
-) {
+) : Serializable {
 
 	constructor() : this(
 		name = "",

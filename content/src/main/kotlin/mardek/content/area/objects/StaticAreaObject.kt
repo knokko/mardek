@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import mardek.content.BITSER
+import java.io.Serializable
 
 /**
  * This is the parent class of the unmovable area object types (e.g. doors & shops). It's primary purpose is some
@@ -24,7 +25,7 @@ abstract class StaticAreaObject(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, digitSize = 2)
 	val y: Int,
-) {
+) : Serializable {
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
 	override fun hashCode() = BITSER.hashCode(this)

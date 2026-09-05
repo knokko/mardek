@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import java.io.Serializable
 
 /**
  * All the 'stats'-related content of the game: elements, status effects, creature types, etc...
@@ -47,7 +48,7 @@ class StatsContent(
 	@BitField(id = 4)
 	@ReferenceField(stable = false, label = "elements")
 	var defaultWeaponElement: Element,
-) {
+) : Serializable {
 
 	constructor() : this(
 		ArrayList(0), ArrayList(0),

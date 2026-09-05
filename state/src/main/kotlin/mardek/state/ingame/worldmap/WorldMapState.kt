@@ -93,9 +93,6 @@ class WorldMapState(
 	@IntegerField(expectUniform = false, minValue = 0)
 	var currentTime = Duration.ZERO
 
-	@Suppress("unused")
-	private constructor() : this(WorldMap(), WorldMapNode(), AreaExitPoint())
-
 	/**
 	 * This method should be called during each invocation of [mardek.state.ingame.CampaignState.update], when the
 	 * player is currently on the world map.

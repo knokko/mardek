@@ -24,7 +24,7 @@ class DeepCopyMachine {
 		this.bitser = bitser;
 		this.withParameters = withParameters;
 		var rootWrapper = bitser.cache.getWrapper(sourceRoot.getClass());
-		this.destinationRoot = rootWrapper.createEmptyInstance();
+		this.destinationRoot = rootWrapper.mutator.createEmptyInstance.get();
 		structJobs.add(new DeepCopyStructJob(
 				rootWrapper, sourceRoot, destinationRoot, new RecursionNode("(root)")
 		));

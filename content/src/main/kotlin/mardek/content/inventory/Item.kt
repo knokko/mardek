@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.stats.CombatStat
 import mardek.content.stats.Element
 import mardek.content.sprite.KimSprite
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -79,7 +80,7 @@ class Item(
 	 */
 	@BitField(id = 8, optional = true)
 	val consumable: ConsumableProperties?,
-) {
+) : Serializable {
 
 	constructor() : this(
 		UUID.randomUUID(), "", KimSprite(), "",

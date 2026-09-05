@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.ui.Font
+import java.io.Serializable
 
 @BitStruct(backwardCompatible = true)
 class DialogueTextStyle(
@@ -32,11 +33,4 @@ class DialogueTextStyle(
 	@BitField(id = 5)
 	@FloatField(expectMultipleOf = 0.01, errorTolerance = 0.005)
 	val strokeDistancePower: Float,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(
-		"", Font(), 0,
-		0, 0f, 0f,
-	)
-}
+) : Serializable

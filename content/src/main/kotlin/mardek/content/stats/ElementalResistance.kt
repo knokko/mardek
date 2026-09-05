@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
+import java.io.Serializable
 
 /**
  * Represents a resistance (or vulnerability) for a specific element.
@@ -25,10 +26,7 @@ class ElementalResistance(
 	@BitField(id = 1)
 	@FloatField(expectMultipleOf = 0.05, commonValues=[0.5, -1.0, 1.0, 2.0])
 	val modifier: Float
-) {
-
-	@Suppress("unused")
-	private constructor() : this(Element(), 0f)
+) : Serializable {
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

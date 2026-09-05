@@ -12,6 +12,7 @@ import mardek.content.stats.StatusEffect
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
 import mardek.content.stats.ElementalResistance
+import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -42,14 +43,7 @@ class StrategyPool(
 	@Suppress("unused")
 	@StableReferenceFieldId
 	val id: UUID,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(
-		StrategyCriteria.NONE,
-		ArrayList(0),
-		UUID.randomUUID(),
-	)
+) : Serializable {
 
 	override fun toString() = "StrategyPool(if $criteria $entries)"
 }
@@ -94,14 +88,11 @@ class StrategyEntry(
 	@BitField(id = 3)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100, commonValues = [100, 30])
 	val chance: Int,
-) {
+) : Serializable {
 	init {
 		if (skill != null && item != null) throw IllegalArgumentException("Skill ($skill) or item ($item) must be null")
 		if (item != null && item.consumable == null) throw IllegalArgumentException("Item ($item) must be consumable")
 	}
-
-	@Suppress("unused")
-	private constructor() : this(null, null, StrategyTarget.Self, 0)
 
 	override fun toString() = "$chance% ${skill?.name ?: item?.displayName ?: "Attack"}"
 
@@ -284,7 +275,7 @@ class StrategyCriteria(
 	 */
 	@BitField(id = 14)
 	val canRepeat: Boolean = true,
-) {
+) : Serializable {
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

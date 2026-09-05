@@ -12,7 +12,6 @@ import mardek.content.action.ActionSequence
 import mardek.content.encyclopedia.EncyclopediaPerson
 import mardek.content.sprite.ObjectSprites
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * An object in an area that does not move.
@@ -96,12 +95,6 @@ class AreaDecoration(
 	@ReferenceField(stable = false, label = "encyclopedia people")
 	val encyclopediaPerson: EncyclopediaPerson?,
 ) : StaticAreaObject(x, y) {
-
-	@Suppress("unused")
-	private constructor() : this(
-		0, 0, null, false, null, 1.seconds,
-		null, null, null, null, null,
-	)
 
 	override fun toString() = "Decoration(x=$x, y=$y, sheet=${sprites?.flashName}, name=$displayName)"
 

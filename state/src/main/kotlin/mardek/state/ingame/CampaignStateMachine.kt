@@ -4,11 +4,12 @@ import mardek.input.Event
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.worldmap.WorldMapState
+import java.io.Serializable
 
 /**
  * The possible states of a campaign: `AreaState`, `CampaignActionsState`, or `WorldMapState`
  */
-abstract class CampaignStateMachine {
+abstract class CampaignStateMachine : Serializable {
 
 	/**
 	 * This method should be invoked whenever the campaign receives an event, while this is the state of the campaign

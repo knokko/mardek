@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.sprite.KimSprite
+import java.io.Serializable
 
 /**
  * A `Tilesheet` is a named collection of (usually related) `Tile`s. All tiles in the game belong to a sheet.
@@ -20,7 +21,7 @@ class Tilesheet(
 	 */
 	@BitField(id = 0)
 	val name: String
-) {
+) : Serializable {
 
 	/**
 	 * The tiles in this sheet.

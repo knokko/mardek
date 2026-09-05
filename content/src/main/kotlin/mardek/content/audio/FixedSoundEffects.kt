@@ -3,6 +3,7 @@ package mardek.content.audio
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import java.io.Serializable
 
 /**
  * Contains the sound effects needed by hardcoded actions like the UI
@@ -34,7 +35,7 @@ class FixedSoundEffects(
 	@BitField(id = 3)
 	@ReferenceFieldTarget(label = "sound effects")
 	val saveCrystal: SoundEffect,
-) {
+) : Serializable {
 	constructor() : this(UiSoundEffects(), BattleSoundEffects(), SoundEffect(), SoundEffect())
 }
 
@@ -95,7 +96,7 @@ class UiSoundEffects(
 	@BitField(id = 7)
 	@ReferenceFieldTarget(label = "sound effects")
 	val trade: SoundEffect,
-) {
+) : Serializable {
 	internal constructor() : this(
 		SoundEffect(), SoundEffect(), SoundEffect(),
 		SoundEffect(), SoundEffect(),
@@ -160,7 +161,7 @@ class BattleSoundEffects(
 	 */
 	@BitField(id = 7)
 	val masteredSkill: SoundEffect,
-) {
+) : Serializable {
 	internal constructor() : this(
 		SoundEffect(), SoundEffect(), SoundEffect(), SoundEffect(),
 		SoundEffect(), SoundEffect(), SoundEffect(), SoundEffect(),

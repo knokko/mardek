@@ -51,9 +51,6 @@ class Quest(
 		assignDebugNames()
 	}
 
-	@Suppress("unused")
-	private constructor() : this("", "", "")
-
 	private fun assignDebugNames() {
 		isActive.debugName = "quest $tabName is active"
 		wasCompleted.debugName = "quest $tabName was completed"

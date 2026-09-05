@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.*;
 import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.*;
 
 import static com.github.knokko.bitser.test.wrapper.TestHelper.assertContains;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class TestCollectionBackwardCompatibility {
 
 	@BitStruct(backwardCompatible = true)
-	private static class ShallowBefore {
+	private static class ShallowBefore implements Serializable {
 
 		@SuppressWarnings("unused")
 		@IntegerField(expectUniform = false)
@@ -40,7 +41,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ShallowAfter {
+	private static class ShallowAfter implements Serializable {
 
 		@SuppressWarnings("unused")
 		@IntegerField(expectUniform = true)
@@ -101,7 +102,7 @@ public class TestCollectionBackwardCompatibility {
 
 	@SuppressWarnings("SpellCheckingInspection")
 	@BitStruct(backwardCompatible = true)
-	private static class WriteBytesBefore {
+	private static class WriteBytesBefore implements Serializable {
 
 		@BitField(id = 4)
 		@NestedFieldSetting(path = "", writeAsBytes = true)
@@ -173,7 +174,7 @@ public class TestCollectionBackwardCompatibility {
 
 	@SuppressWarnings({"SpellCheckingInspection", "MismatchedQueryAndUpdateOfCollection"})
 	@BitStruct(backwardCompatible = true)
-	private static class WriteBytesAfter {
+	private static class WriteBytesAfter implements Serializable {
 
 		@BitField(id = 4)
 		@NestedFieldSetting(path = "", writeAsBytes = true, optional = true)
@@ -317,7 +318,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class BooleanArray {
+	private static class BooleanArray implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -325,7 +326,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class IntArray {
+	private static class IntArray implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -334,7 +335,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class BooleanList {
+	private static class BooleanList implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -342,7 +343,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class IntSet {
+	private static class IntSet implements Serializable {
 
 		@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 		@BitField(id = 0)
@@ -352,7 +353,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class IntList {
+	private static class IntList implements Serializable {
 
 		@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 		@BitField(id = 0)
@@ -469,7 +470,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class OldMap {
+	private static class OldMap implements Serializable {
 
 		@SuppressWarnings("unused")
 		@IntegerField(expectUniform = true)
@@ -482,7 +483,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class NewMap {
+	private static class NewMap implements Serializable {
 
 		@SuppressWarnings("unused")
 		@IntegerField(expectUniform = false)
@@ -520,7 +521,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class StringList {
+	private static class StringList implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -546,7 +547,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class JustID {
+	private static class JustID implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -569,7 +570,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class StructList {
+	private static class StructList implements Serializable {
 
 		@BitField(id = 0)
 		@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
@@ -577,7 +578,7 @@ public class TestCollectionBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ReferenceList {
+	private static class ReferenceList implements Serializable {
 
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "references")

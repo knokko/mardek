@@ -7,6 +7,7 @@ import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.ExpressionBooleanValue
 import mardek.content.expression.StateExpression
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -31,12 +32,6 @@ class ChoiceActionNode(
 	@BitField(id = 1)
 	val options: Array<ChoiceEntry>,
 ) : ActionNode(id) {
-
-	@Suppress("unused")
-	private constructor() : this(
-		UUID(0, 0),
-		ActionTargetPartyMember(), emptyArray(),
-	)
 
 	override fun getDirectChildNodes() = options.mapNotNull { it.next }
 }
@@ -74,10 +69,7 @@ class ChoiceEntry(
 	val condition: StateExpression<Boolean> = ConstantStateExpression(
 		ExpressionBooleanValue(true)
 	),
-) {
-
-	@Suppress("unused")
-	private constructor() : this("", "", null)
+) : Serializable {
 
 	override fun toString() = "Choice($text)"
 }

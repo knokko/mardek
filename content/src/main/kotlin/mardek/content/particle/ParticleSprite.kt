@@ -3,6 +3,7 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import mardek.content.sprite.BcSprite
+import java.io.Serializable
 
 /**
  * The (possibly shared) sprite of a particle. It is just a sprite with an associated name.
@@ -21,7 +22,7 @@ class ParticleSprite(
 	 */
 	@BitField(id = 1)
 	val sprite: BcSprite,
-) {
+) : Serializable {
 	internal constructor() : this("", BcSprite())
 
 	override fun toString() = name

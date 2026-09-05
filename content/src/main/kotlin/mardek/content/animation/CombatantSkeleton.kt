@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.SimpleLazyBits
+import java.io.Serializable
 
 /**
  * Represents the skeleton of a combatant. This contains all the animations of the combatant, as well as some 'flat'
@@ -50,7 +51,7 @@ class CombatantSkeleton(
 	@BitField(id = 4)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 8)
 	val magicScale: Int,
-) {
+) : Serializable {
 	constructor() : this(
 		emptyArray(), emptyArray(),
 		HashMap(), -1, 1,

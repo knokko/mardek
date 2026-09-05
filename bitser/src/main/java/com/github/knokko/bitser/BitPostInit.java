@@ -1,5 +1,6 @@
 package com.github.knokko.bitser;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
@@ -8,7 +9,7 @@ import java.util.Objects;
  * instance is deserialized. (So it will be invoked exactly once per instance.) This can be used to add custom
  * deserialization logic to the struct, or simply to run some code on start-up.
  */
-public interface BitPostInit {
+public interface BitPostInit extends Serializable {
 
 	/**
 	 * This method will be called after each field has been deserialized.

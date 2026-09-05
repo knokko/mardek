@@ -3,6 +3,7 @@ package mardek.content.skill
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import java.io.Serializable
 
 /**
  * The section/part of the `Content` that is related to [Skill]s
@@ -37,7 +38,7 @@ class SkillsContent(
 	@BitField(id = 3)
 	@ReferenceFieldTarget(label = "skills")
 	val passiveSkills: ArrayList<PassiveSkill>,
-) {
+) : Serializable {
 
 	constructor() : this(ArrayList(), ArrayList(), ArrayList(), ArrayList())
 }

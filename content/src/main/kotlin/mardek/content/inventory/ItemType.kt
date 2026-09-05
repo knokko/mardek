@@ -3,6 +3,7 @@ package mardek.content.inventory
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 
 /**
  * Represents a type of item, e.g. `WEAPON: GREATSWORD` and `MISCELLANEOUS`
@@ -30,7 +31,7 @@ class ItemType(
 	 */
 	@BitField(id = 2)
 	val niceName: String,
-) {
+) : Serializable {
 
 	constructor() : this("", 0, "")
 

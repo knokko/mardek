@@ -8,6 +8,7 @@ import com.github.knokko.bitser.field.*;
 import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 import static com.github.knokko.bitser.test.wrapper.TestHelper.assertContains;
@@ -63,7 +64,7 @@ public class TestSimpleBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class SimpleAfter {
+	private static class SimpleAfter implements Serializable {
 
 		@BitField(id = 0)
 		@IntegerField(expectUniform = false, minValue = -1)
@@ -114,7 +115,7 @@ public class TestSimpleBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class NestedBefore {
+	private static class NestedBefore implements Serializable {
 
 		@BitField(id = 2)
 		final SimpleBefore nested = new SimpleBefore();
@@ -132,7 +133,7 @@ public class TestSimpleBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class NestedAfter {
+	private static class NestedAfter implements Serializable {
 
 		@BitField(id = 2)
 		final SimpleAfter nested = new SimpleAfter();
@@ -146,7 +147,7 @@ public class TestSimpleBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class NonBackwardNestedAfter {
+	private static class NonBackwardNestedAfter implements Serializable {
 
 		@BitField(id = 2)
 		final SimpleAfter nested = new SimpleAfter();
@@ -349,7 +350,7 @@ public class TestSimpleBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class StringWrapper {
+	private static class StringWrapper implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -357,7 +358,7 @@ public class TestSimpleBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class IdWrapper {
+	private static class IdWrapper implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -375,7 +376,7 @@ public class TestSimpleBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ParentWithIncompatibleChild {
+	private static class ParentWithIncompatibleChild implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)
@@ -417,7 +418,7 @@ public class TestSimpleBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	private static class MissesID {
+	private static class MissesID implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField
@@ -425,7 +426,7 @@ public class TestSimpleBackwardCompatibility {
 	}
 
 	@BitStruct(backwardCompatible = true)
-	private static class ParentWithMissingIdChild {
+	private static class ParentWithMissingIdChild implements Serializable {
 
 		@SuppressWarnings("unused")
 		@BitField(id = 0)

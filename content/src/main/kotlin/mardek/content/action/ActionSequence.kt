@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import java.io.Serializable
 
 /**
  * An action sequence is quite literally a sequence of actions (e.g. dialogues). It is currently just a tuple
@@ -26,7 +27,7 @@ class ActionSequence(
 	@BitField(id = 1)
 	@ReferenceField(stable = false, label = "action nodes")
 	val root: ActionNode,
-) {
+) : Serializable {
 	internal constructor() : this("", FixedActionNode())
 
 	@BitField(id = 2)

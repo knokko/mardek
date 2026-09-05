@@ -10,6 +10,7 @@ import mardek.content.audio.MusicTrack
 import mardek.content.encyclopedia.EncyclopediaArea
 import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.StateExpression
+import java.io.Serializable
 
 /**
  * The basic properties that all areas have.
@@ -77,7 +78,7 @@ class AreaProperties(
 	@BitField(id = 7)
 	val snowType: AreaSnowType,
 	// TODO CHAP3 Dreamshrine Entrance has some GlowTiles stuff
-) {
+) : Serializable {
 
 	constructor() : this(
 		"", "", ConstantStateExpression(), ConstantStateExpression(),

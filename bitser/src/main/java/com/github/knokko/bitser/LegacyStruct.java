@@ -4,10 +4,11 @@ import com.github.knokko.bitser.legacy.LegacyClassValues;
 import com.github.knokko.bitser.legacy.LegacyStructInstance;
 import com.github.knokko.bitser.field.ReferenceField;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 @BitStruct(backwardCompatible = false)
-class LegacyStruct {
+class LegacyStruct implements Serializable {
 
 	@ReferenceField(stable = false, label = "classes")
 	final ArrayList<LegacyClass> classHierarchy = new ArrayList<>();

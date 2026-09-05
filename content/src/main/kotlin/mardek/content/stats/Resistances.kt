@@ -2,6 +2,7 @@ package mardek.content.stats
 
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
+import java.io.Serializable
 
 /**
  * The resistances against elements and status effects of a combatant, skill, or piece of equipment
@@ -22,7 +23,7 @@ class Resistances(
 	 */
 	@BitField(id = 1)
 	val effects: ArrayList<EffectResistance>
-) {
+) : Serializable {
 
 	constructor() : this(ArrayList(0), ArrayList(0))
 

@@ -9,6 +9,7 @@ import mardek.content.audio.SoundEffect
 import mardek.content.stats.PossibleStatusEffect
 import mardek.content.stats.ElementalDamageBonus
 import mardek.content.stats.CreatureTypeBonus
+import java.io.Serializable
 
 /**
  * The item properties that only weapons have
@@ -81,13 +82,4 @@ class WeaponProperties(
 	@BitField(id = 7, optional = true)
 	@ReferenceField(stable = false, label = "sound effects")
 	val hitSound: SoundEffect?,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(
-			0, 0, 0f, 0f,
-		ArrayList(0),
-		ArrayList(0),
-		ArrayList(0), null,
-	)
-}
+) : Serializable

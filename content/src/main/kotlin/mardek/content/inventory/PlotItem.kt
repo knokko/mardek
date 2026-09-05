@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.stats.Element
 import mardek.content.sprite.KimSprite
+import java.io.Serializable
 
 /**
  * Represents a plot item: a special item that is somehow relevant for the plot/story. When players obtain plot items,
@@ -48,7 +49,7 @@ class PlotItem(
 	@BitField(id = 4, optional = true)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val cost: Int?,
-) {
+) : Serializable {
 
 	constructor() : this("", KimSprite(), "", null, null)
 

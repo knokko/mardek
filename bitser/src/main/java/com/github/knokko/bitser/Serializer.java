@@ -46,7 +46,7 @@ class Serializer {
 		BitStructWrapper<?> rootStructInfo = cache.getWrapper(rootStruct.getClass());
 		this.structJobs.add(new WriteStructJob(
 				rootStruct, rootStructInfo,
-				new RecursionNode(rootStructInfo.constructor.getDeclaringClass().getSimpleName())
+				new RecursionNode(rootStructInfo.mutator.objectClass.getSimpleName())
 		));
 		this.references = new ReferenceTracker(cache);
 

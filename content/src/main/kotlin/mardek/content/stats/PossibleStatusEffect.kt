@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.BITSER
+import java.io.Serializable
 
 /**
  * A tuple (status effect, chance). This is typically used by skills that may or may not inflict status effects.
@@ -29,10 +30,7 @@ class PossibleStatusEffect(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val chance: Int
-) {
-
-	@Suppress("unused")
-	private constructor() : this(StatusEffect(), 0)
+) : Serializable {
 
 	override fun toString() = "$chance% $effect"
 

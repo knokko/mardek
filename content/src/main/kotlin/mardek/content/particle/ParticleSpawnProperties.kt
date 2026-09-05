@@ -3,6 +3,7 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
+import java.io.Serializable
 
 /**
  * This class describes the initial position, velocity, and rotation of emitted particles.
@@ -114,7 +115,7 @@ class ParticleSpawnProperties(
 	 */
 	@BitField(id = 12, optional = true)
 	val radial: RadialParticleSpawnProperties?,
-) {
+) : Serializable {
 	internal constructor() : this(
 		0f, 0f, 0f, 0f,
 		0f, 0f, 0f, 0f,

@@ -47,17 +47,17 @@ class BackDeserializer {
 		this.legacy = legacy;
 		this.sizeLimit = sizeLimit;
 		this.withParameters = withParameters;
-		this.rootStruct = rootStructInfo.createEmptyInstance();
+		this.rootStruct = rootStructInfo.mutator.createEmptyInstance.get();
 
 		LegacyStructInstance legacyRootStruct = legacy.getRoot().constructEmptyInstance(0);
 		this.structJobs.add(new BackReadStructJob(
-				legacyRootStruct, legacy.getRoot(), rootStructInfo.constructor.getDeclaringClass(),
-				new RecursionNode(rootStructInfo.constructor.getDeclaringClass().getSimpleName())
+				legacyRootStruct, legacy.getRoot(), rootStructInfo.mutator.objectClass,
+				new RecursionNode(rootStructInfo.mutator.objectClass.getSimpleName())
 		));
 		legacyRootStruct.modernObject = rootStruct;
 		this.convertStructJobs.add(new BackConvertStructJob(
 				rootStructInfo, legacyRootStruct,
-				new RecursionNode(rootStructInfo.constructor.getDeclaringClass().getSimpleName())
+				new RecursionNode(rootStructInfo.mutator.objectClass.getSimpleName())
 		));
 
 		this.references = new BackReferenceTracker(cache);

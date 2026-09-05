@@ -3,6 +3,7 @@ package mardek.content.animation
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import java.io.Serializable
 import java.util.Locale
 
 /**
@@ -41,7 +42,7 @@ class ColorTransform(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, digitSize = 3, commonValues=[0, 23007])
 	val subtractColor: Int,
-) {
+) : Serializable {
 
 	internal constructor() : this(0, 0, 0)
 

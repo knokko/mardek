@@ -8,13 +8,14 @@ import mardek.content.area.objects.SwitchColor
 import mardek.content.sprite.ArrowSprite
 import mardek.content.sprite.DirectionalSprites
 import mardek.content.sprite.ObjectSprites
+import java.io.Serializable
 
 /**
  * The part of the `Content` that contains all the area-related content: it contains all tiles, areas, and area-related
  * sprites.
  */
 @BitStruct(backwardCompatible = true)
-class AreaContent {
+class AreaContent : Serializable {
 
 	/**
 	 * All the tilesheets: these contain all the tiles that areas can have

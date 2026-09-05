@@ -9,6 +9,7 @@ import mardek.content.area.objects.AreaCharacter
 import mardek.content.characters.PlayableCharacter
 import mardek.content.portrait.PortraitInfo
 import mardek.content.stats.Element
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -17,7 +18,7 @@ import java.util.UUID
  * - In a walk action, the target is the (playable) character that is supposed to walk
  */
 @BitStruct(backwardCompatible = true)
-sealed class ActionTarget {
+sealed class ActionTarget : Serializable {
 
 	/**
 	 * Gets the display name of this action target, which should be used when the target is used in a dialogue/talk
@@ -94,9 +95,6 @@ class ActionTargetPlayer(
 	val player: PlayableCharacter
 ) : ActionTarget() {
 
-	@Suppress("unused")
-	private constructor() : this(PlayableCharacter())
-
 	override fun toString() = "Player($player)"
 
 	override fun getDisplayName(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = player.name
@@ -130,9 +128,6 @@ class ActionTargetDialogueObject(
 	@BitField(id = 0)
 	val displayName: String
 ) : ActionTarget() {
-
-	@Suppress("unused")
-	private constructor() : this("")
 
 	override fun toString() = "DialogueObject($displayName)"
 
@@ -229,9 +224,6 @@ class ActionTargetCustom(
 	val data: ActionTargetData
 ) : ActionTarget() {
 
-	@Suppress("unused")
-	private constructor() : this(ActionTargetData())
-
 	override fun getDisplayName(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = data.displayName
 
 	override fun getElement(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = data.element
@@ -262,6 +254,4 @@ class ActionTargetData(
 	@BitField(id = 2, optional = true)
 	@ReferenceField(stable = false, label = "portrait info")
 	val portraitInfo: PortraitInfo?,
-) {
-	internal constructor() : this("", null, null)
-}
+) : Serializable

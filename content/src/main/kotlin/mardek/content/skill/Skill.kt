@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.stats.Element
+import java.io.Serializable
 import java.util.*
 
 /**
@@ -61,7 +62,7 @@ abstract class Skill(
 	@BitField(id = 4)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	override fun toString() = name
 

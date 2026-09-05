@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.ReferenceField
+import java.io.Serializable
 
 /**
  * Bonus damage against a specific [CreatureType]. Weapons and skills can have this.
@@ -26,10 +27,7 @@ class CreatureTypeBonus(
 	@BitField(id = 1)
 	@FloatField(expectMultipleOf = 0.1)
 	val modifier: Float,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(CreatureType(), 0f)
+) : Serializable {
 
 	override fun toString() = "+ $modifier * damage against $type"
 }

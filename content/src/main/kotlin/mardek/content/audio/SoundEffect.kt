@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import com.github.knokko.bitser.field.StableReferenceFieldId
+import java.io.Serializable
 import java.util.UUID
 
 /**
@@ -32,7 +33,7 @@ class SoundEffect(
 	@BitField(id = 2)
 	@StableReferenceFieldId
 	val id: UUID,
-) {
+) : Serializable {
 
 	constructor() : this("", ByteArray(0), UUID.randomUUID())
 

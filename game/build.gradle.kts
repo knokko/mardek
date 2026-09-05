@@ -89,6 +89,9 @@ tasks.register("proguard", ProGuardTask::class) {
 
 	// We don't need all serializers
 	dontwarn("kotlinx.serialization.**")
+
+	// Looks like proguard doesn't like the varargs in MethodHandle.invoke
+	dontwarn("java.lang.invoke.MethodHandle")
 }
 
 tasks.register("run", JavaExec::class) {
@@ -97,6 +100,9 @@ tasks.register("run", JavaExec::class) {
 
 	classpath(sourceSets.main.get().runtimeClasspath)
 	mainClass = "mardek.game.MardekGameKt"
+
+	jvmArgs("--add-exports", "java.base/jdk.internal.misc=ALL-UNNAMED")
+	jvmArgs("--enable-native-access", "ALL-UNNAMED")
 
 	if (OperatingSystem.current().isMacOsX()) {
 		jvmArgs("-XstartOnFirstThread")

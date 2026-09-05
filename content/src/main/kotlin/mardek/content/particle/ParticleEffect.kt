@@ -6,6 +6,7 @@ import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.audio.SoundEffect
 import mardek.content.util.DurationArray
+import java.io.Serializable
 import kotlin.time.Duration
 
 /**
@@ -73,7 +74,7 @@ class ParticleEffect(
 	 */
 	@BitField(id = 7)
 	val emitters: ArrayList<ParticleEmitter>,
-) {
+) : Serializable {
 	constructor() : this(
 		"", Duration.ZERO, null, null, null,
 		DurationArray(emptyArray()), null, ArrayList(0)

@@ -5,8 +5,8 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.ReferenceField
-import mardek.content.expression.ExpressionUnitValue
 import mardek.content.expression.ExpressionValue
+import java.io.Serializable
 
 /**
  * Represents the assignment of an [ExpressionValue] to a [TimelineVariable].
@@ -54,10 +54,7 @@ class TimelineAssignment<T>(
 	@BitField(id = 3)
 	@IntegerField(expectUniform = false, commonValues = [0])
 	val priority: Int = 0,
-) {
-
-	@Suppress("UNCHECKED_CAST", "unused")
-	private constructor() : this(CustomTimelineVariable<T>(), ExpressionUnitValue() as ExpressionValue<T>)
+) : Serializable {
 
 	override fun toString() = "$variable := $value"
 }

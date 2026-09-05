@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
 import mardek.content.sprite.KimSprite
+import java.io.Serializable
 
 /**
  * The part of a [mardek.content.stats.CharacterClass] that determines which [ActiveSkill]s the character
@@ -44,7 +45,7 @@ class SkillClass(
 	 */
 	@BitField(id = 4)
 	val icon: KimSprite,
-) {
+) : Serializable {
 
 	constructor() : this("", "", "", ArrayList(0), KimSprite())
 

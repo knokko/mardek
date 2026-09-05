@@ -70,7 +70,7 @@ class ReferenceLazyFieldWrapper extends BitFieldWrapper {
 		}
 		if (legacyValue instanceof LegacyStructInstance legacyObject) {
 			BitStructWrapper<?> modernInfo = deserializer.bitser.cache.getWrapper(valueClass);
-			Object modernObject = modernInfo.createEmptyInstance();
+			Object modernObject = modernInfo.mutator.createEmptyInstance.get();
 			legacyObject.modernObject = modernObject;
 			deserializer.convertStructJobs.add(new BackConvertStructJob(
 					modernInfo, legacyObject,

@@ -105,7 +105,7 @@ class InventorySlotReference(
 	override fun equals(other: Any?) = other is InventorySlotReference && this.inventory === other.inventory &&
 			this.index == other.index
 
-	override fun hashCode() = inventory.hashCode() + index
+	override fun hashCode() = inventory.contentHashCode() + index
 }
 
 /**

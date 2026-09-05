@@ -7,6 +7,7 @@ import com.github.knokko.bitser.Bitser;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 public class TestSerializeWith {
 
 	@BitStruct(backwardCompatible = false)
-	static class StableStruct {
+	static class StableStruct implements Serializable {
 
 		@SuppressWarnings("unused")
 		@StableReferenceFieldId
@@ -36,7 +37,7 @@ public class TestSerializeWith {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class TargetStruct {
+	static class TargetStruct implements Serializable {
 
 		@ReferenceFieldTarget(label = "stable")
 		final ArrayList<StableStruct> stable = new ArrayList<>();
@@ -46,7 +47,7 @@ public class TestSerializeWith {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class ReferenceStruct {
+	static class ReferenceStruct implements Serializable {
 
 		@ReferenceField(stable = true, label = "stable")
 		@NestedFieldSetting(path = "", sizeField = @IntegerField(expectUniform = true, minValue = 0, maxValue = 3))
@@ -104,7 +105,7 @@ public class TestSerializeWith {
 	}
 
 	@BitStruct(backwardCompatible = false)
-	static class Web {
+	static class Web implements Serializable {
 
 		@BitField
 		final TargetStruct ownTargets = new TargetStruct();

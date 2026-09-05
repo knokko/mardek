@@ -3,6 +3,7 @@ package mardek.content.particle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
+import java.io.Serializable
 
 /**
  * This class describes the dynamics (e.g. acceleration and radial acceleration) of the particles emitted by a
@@ -69,7 +70,7 @@ class ParticleDynamics(
 	@BitField(id = 7)
 	@FloatField(expectMultipleOf = 1.0, commonValues = [1.0, 0.05])
 	val spin: Float,
-) {
+) : Serializable {
 	constructor() : this(
 		0f, 0f, 0f, 0f,
 		0f, 1f, 1f, 0f

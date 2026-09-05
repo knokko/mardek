@@ -24,6 +24,7 @@ import mardek.content.inventory.Item
 import mardek.content.sprite.NamedSprite
 import mardek.content.story.Timeline
 import mardek.content.story.TimelineNode
+import java.io.Serializable
 import java.util.UUID
 import kotlin.collections.addAll
 import kotlin.time.Duration
@@ -34,7 +35,7 @@ import kotlin.time.Duration.Companion.seconds
  * The *action* of a `FixedActionNode` (e.g. walking or talking)
  */
 @BitStruct(backwardCompatible = true)
-sealed class FixedAction {
+sealed class FixedAction : Serializable {
 
 	companion object {
 
@@ -149,9 +150,6 @@ class ActionTalk(
 	val text: String,
 ) : FixedAction() {
 
-	@Suppress("unused")
-	private constructor() : this(ActionTargetPartyMember(), "", "")
-
 	override fun toString() = "ActionTalk($speaker, $expression, $text)"
 }
 
@@ -182,9 +180,6 @@ class ActionBattle(
 	val overridePlayers: Array<PlayableCharacter?>?,
 ) : FixedAction() {
 
-	@Suppress("unused")
-	private constructor() : this(Battle(), null)
-
 	override fun toString() = "ActionBattle($battle)"
 }
 
@@ -202,9 +197,6 @@ class ActionFlashScreen(
 	val color: Int
 ) : FixedAction() {
 
-	@Suppress("unused")
-	private constructor() : this(0)
-
 	override fun toString() = "ActionFlashScreen($color)"
 }
 
@@ -220,9 +212,6 @@ class ActionPlaySound(
 	@ReferenceField(stable = false, label = "sound effects")
 	val sound: SoundEffect
 ) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(SoundEffect())
 
 	override fun toString() = "ActionPlaySound($sound)"
 }
@@ -265,9 +254,6 @@ class ActionShowChapterName(
 	@BitField(id = 1)
 	val name: String,
 ) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(0, "")
 
 	override fun toString() = "ActionShowChapterName($chapter, $name)"
 
@@ -338,9 +324,6 @@ class ActionToArea(
 	var area: Area = Area()
 		private set
 
-	@Suppress("unused")
-	private constructor() : this("", 0, 0, Direction.Up)
-
 	override fun toString() = "ActionToArea($area, $x, $y)"
 
 	/**
@@ -382,9 +365,6 @@ class ActionPlayCutscene(
 	val hasFadeOut: Boolean,
 ) : FixedAction() {
 
-	@Suppress("unused")
-	private constructor() : this(Cutscene(), false)
-
 	override fun toString() = "ActionPlayCutscene($cutscene)"
 }
 
@@ -404,9 +384,6 @@ class ActionFadeCharacter(
 	@ClassField(root = ActionTarget::class)
 	val target: ActionTargetAreaCharacter
 ) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(ActionTargetAreaCharacter())
 
 	override fun toString() = "ActionFadeCharacter($target)"
 }
@@ -432,9 +409,6 @@ class ActionRotate(
 	val newDirection: Direction,
 ) : FixedAction() {
 
-	@Suppress("unused")
-	private constructor() : this(ActionTargetPartyMember(0), Direction.Down)
-
 	override fun toString() = "ActionRotate($target, $newDirection)"
 }
 
@@ -452,9 +426,6 @@ class ActionParallel(
 	@ClassField(root = FixedAction::class)
 	val actions: Array<FixedAction>
 ) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(emptyArray())
 
 	override fun toString() = "ActionParallel(${actions.contentToString()})"
 }
@@ -493,9 +464,6 @@ class ActionTimelineTransition(
 	@ReferenceField(stable = false, label = "timeline nodes")
 	var newNode: TimelineNode = TimelineNode()
 		private set
-
-	@Suppress("unused")
-	private constructor() : this("", "")
 
 	override fun toString() = "ActionTimelineTransition($timeline -> $newNode)"
 
@@ -556,9 +524,6 @@ class ActionTeleport(
 	val direction: Direction,
 ) : FixedAction() {
 
-	@Suppress("unused")
-	private constructor() : this(ActionTargetPartyMember(), 0, 0, Direction.Down)
-
 	override fun toString() = "ActionTeleport($target, $x, $y, $direction)"
 }
 
@@ -574,11 +539,7 @@ class ActionSetMoney(
 	@BitField(id = 0)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val amount: Int
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(0)
-}
+) : FixedAction()
 
 /**
  * Opens the item storage: a large inventory that the player can only access at save crystals. It is typically used
@@ -608,11 +569,7 @@ class ActionSetOverlayColor(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val transitionTime: Duration,
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(0, Duration.ZERO)
-}
+) : FixedAction()
 
 /**
  * Overrides the music truck that should be played for the remainder of the `AreaActionsState`, or until the next
@@ -628,11 +585,7 @@ class ActionSetMusic(
 	@BitField(id = 0, optional = true)
 	@ReferenceField(stable = false, label = "music tracks")
 	val newMusicTrack: MusicTrack?
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(null)
-}
+) : FixedAction()
 
 /**
  * Sets the background image of the current `AreaActionsState`. When non-null, this background image will be rendered
@@ -648,11 +601,7 @@ class ActionSetBackgroundImage(
 	@BitField(id = 0, optional = true)
 	@ReferenceField(stable = false, label = "action background images")
 	val newBackgroundImage: NamedSprite?,
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(null)
-}
+) : FixedAction()
 
 /**
  * Sets the (complex) background of the current `CampaignActionsState`. When non-null, this background will be rendered
@@ -670,11 +619,7 @@ class ActionSetBackground(
 	@BitField(id = 0, optional = true)
 	@ReferenceField(stable = false, label = "battle backgrounds")
 	val newBackground: BattleBackground?,
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(null)
-}
+) : FixedAction()
 
 /**
  * When this action is encountered during an `AreaActionsState`, the campaign state will leave the current area, and it
@@ -705,11 +650,7 @@ class ActionTakeItem(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val amount: Int,
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(Item(), 0)
-}
+) : FixedAction()
 
 /**
  * Gives [amount] occurrences of [item] to the player. An attempt will be made to put the item in the inventories of the
@@ -732,11 +673,7 @@ class ActionGiveItem(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val amount: Int,
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(Item(), 0)
-}
+) : FixedAction()
 
 /**
  * Lets the player open a shop UI/inventory. This action is typically used by shopkeeper NPCs.
@@ -750,11 +687,7 @@ class ActionShop(
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "shops")
 	val shop: AreaShop
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(AreaShop())
-}
+) : FixedAction()
 
 /**
  * Adds a person to the encyclopedia of the player (unless it was already in the encyclopedia)
@@ -768,29 +701,21 @@ class ActionAddEncyclopediaPerson(
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "encyclopedia people")
 	val person: EncyclopediaPerson
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(EncyclopediaPerson())
-}
+) : FixedAction()
 
 /**
- * Adds an artefact to the encyclopedia of the player (unless it was already in the encyclopedia)
+ * Adds an artifact to the encyclopedia of the player (unless it was already in the encyclopedia)
  */
 @BitStruct(backwardCompatible = true)
 class ActionAddEncyclopediaArtefact(
 
 	/**
-	 * The encyclopedia artefact to be added
+	 * The encyclopedia artifact to be added
 	 */
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "encyclopedia artefacts")
 	val artefact: EncyclopediaArtefact
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(EncyclopediaArtefact())
-}
+) : FixedAction()
 
 /**
  * Makes an [mardek.content.area.objects.AreaCharacter] 'vanish'. This is typically used for characters that should
@@ -806,11 +731,7 @@ class ActionVanish(
 	 */
 	@BitField(id = 0)
 	val target: ActionTargetAreaCharacter
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(ActionTargetAreaCharacter())
-}
+) : FixedAction()
 
 /**
  * Changes/overrides the area ambience that should be rendered for the remainder of the `AreaActionsState`,
@@ -836,11 +757,7 @@ class ActionChangeAmbience(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val transitionTime: Duration,
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(null, Duration.ZERO)
-}
+) : FixedAction()
 
 /**
  * Causes the action sequence to wait for [duration] time until moving on to the next action/node.
@@ -855,11 +772,7 @@ class ActionWait(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val duration: Duration
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(Duration.ZERO)
-}
+) : FixedAction()
 
 /**
  * Causes [target] to randomly 'shake' in a [radius]-pixel radius for [totalTime] time. The target will 'move' every
@@ -897,14 +810,7 @@ class ActionShake(
 	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val totalTime: Duration,
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(
-		ActionTargetAreaCharacter(), 0,
-		Duration.ZERO, Duration.ZERO,
-	)
-}
+) : FixedAction()
 
 /**
  * Spawns an [AreaActionEffect] at the given position.
@@ -944,9 +850,6 @@ class ActionSpawnAreaEffect(
 
 ) : FixedAction() {
 
-	@Suppress("unused")
-	private constructor() : this(Instance(), 0, 0)
-
 	/**
 	 * This class is just a wrapper around a reference to an [AreaActionEffect].
 	 *
@@ -970,9 +873,7 @@ class ActionSpawnAreaEffect(
 		@BitField(id = 1)
 		@ReferenceField(stable = false, label = "area action effects")
 		val effect: AreaActionEffect
-	) {
-		internal constructor() : this(UUID(0, 0), AreaActionEffect())
-
+	) : Serializable {
 		override fun toString() = "AreaEffectInstance(${effect.name}, $id)"
 	}
 }
@@ -1010,14 +911,7 @@ class ActionMoveAreaEffect(
 	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val duration: Duration,
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(
-		ActionSpawnAreaEffect.Instance(),
-		0, 0, Duration.ZERO,
-	)
-}
+) : FixedAction()
 
 /**
  * Removes a previously-spawned [ActionSpawnAreaEffect.Instance]
@@ -1032,11 +926,7 @@ class ActionRemoveAreaEffect(
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "area action effect instances")
 	val instance: ActionSpawnAreaEffect.Instance
-) : FixedAction() {
-
-	@Suppress("unused")
-	private constructor() : this(ActionSpawnAreaEffect.Instance())
-}
+) : FixedAction()
 
 /**
  * Resets all status/performance of the player (e.g. the number of kills and the damage dealt).

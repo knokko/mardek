@@ -15,6 +15,7 @@ import mardek.state.ingame.battle.combatant.CombatantState
 import mardek.state.ingame.battle.combatant.ForcedTurnBlink
 import mardek.state.ingame.battle.combatant.MonsterCombatantState
 import mardek.state.ingame.battle.combatant.PlayerCombatantState
+import java.io.Serializable
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.iterator
@@ -46,7 +47,7 @@ class BattleState(
 	val playerLayout: PartyLayout,
 
 	context: BattleUpdateContext,
-) {
+) : Serializable {
 
 	/**
 	 * The combatants on the player/right side. When all these combatants are fainted, it is game over.

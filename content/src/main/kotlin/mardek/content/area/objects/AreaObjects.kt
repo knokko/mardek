@@ -3,6 +3,7 @@ package mardek.content.area.objects
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
+import java.io.Serializable
 
 /**
  * This class captures all decorations, objects, characters, etc... that an `Area` can have.
@@ -82,7 +83,7 @@ class AreaObjects(
 	@BitField(id = 9)
 	@ReferenceFieldTarget(label = "area triggers")
 	val walkTriggers: ArrayList<AreaTrigger>,
-) {
+) : Serializable {
 	constructor() : this(
 		ArrayList(), ArrayList(), ArrayList(), ArrayList(),
 		ArrayList(), ArrayList(), ArrayList(),

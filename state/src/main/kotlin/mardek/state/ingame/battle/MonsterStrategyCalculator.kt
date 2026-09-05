@@ -48,8 +48,8 @@ class MonsterStrategyCalculator(
 		if (skill != null) {
 			val skillTarget = when (entry.target) {
 				StrategyTarget.Self -> BattleSkillTargetSingle(myState)
-				StrategyTarget.AllEnemies -> BattleSkillTargetAllEnemies
-				StrategyTarget.AllAllies -> BattleSkillTargetAllAllies
+				StrategyTarget.AllEnemies -> BattleSkillTargetAllEnemies()
+				StrategyTarget.AllAllies -> BattleSkillTargetAllAllies()
 				else -> BattleSkillTargetSingle(chooseSingleTarget(entry, pool.criteria, "skill ${skill.name}"))
 			}
 			val nextElement = if (skill.changeElement) monster.elementalShiftResistances.keys.random() else null

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
 import com.github.knokko.bitser.field.NestedFieldSetting
 import mardek.content.BITSER
+import java.io.Serializable
 
 // TODO CHAP3 Figure out how this works
 @BitStruct(backwardCompatible = true)
@@ -23,11 +24,7 @@ class SirenSong(
 	@BitField(id = 3)
 	@NestedFieldSetting(path = "c", optional = true)
 	val notes: ArrayList<SirenNote?>,
-) {
-
-	@Suppress("unused")
-	private constructor() : this("", 0, 0, ArrayList(0))
-}
+) : Serializable
 
 @BitStruct(backwardCompatible = true)
 class SirenNote(
@@ -38,11 +35,7 @@ class SirenNote(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 16)
 	val value2: Int,
-) {
-
-	@Suppress("unused")
-	private constructor() : this(0, 0)
-
+) : Serializable {
 	override fun toString() = if (value1 == value2) value1.toString() else "[$value1, $value2]"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
