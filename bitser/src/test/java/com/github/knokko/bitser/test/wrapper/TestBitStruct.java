@@ -310,7 +310,7 @@ public class TestBitStruct {
 			String errorMessage = assertThrows(InvalidBitFieldException.class,
 					() -> new Bitser().deepCopy(new NotSerializable())
 			).getMessage();
-			assertContains(errorMessage, "TestBitStruct$NotSerializable must implement Serializable in Java 26+");
+			assertContains(errorMessage, "TestBitStruct$NotSerializable must implement Serializable in Java 24+");
 		} else {
 			assertEquals(5, new Bitser().deepCopy(new NotSerializable()).x);
 		}

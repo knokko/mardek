@@ -117,9 +117,6 @@ class WorldMapTransitionDestination(
 	var node = WorldMapNode()
 		private set
 
-	@Suppress("unused")
-	private constructor() : this("", null)
-
 	override fun toString() = "(${worldMap.name})"
 
 	/**

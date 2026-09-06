@@ -135,12 +135,6 @@ class ChestBattle(
 	@ReferenceField(stable = false, label = "music tracks")
 	val specialLootMusic: MusicTrack?,
 ) : Serializable {
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(
-		arrayOf(null, null, null, null), PartyLayout(),
-		null, null,
-	)
-
 	override fun toString() = "ChestBattle${monsters.contentToString()}"
 }
 
@@ -169,9 +163,5 @@ class ChestMonster(
 	@IntegerField(expectUniform = false, minValue = 1)
 	val level: Int,
 ) : Serializable {
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this("", null, 0)
-
 	override fun toString() = "($name1, level=$level)"
 }

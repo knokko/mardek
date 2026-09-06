@@ -306,10 +306,7 @@ class StatusEffect(
 		@BitField(id = 3)
 		@IntegerField(expectUniform = true)
 		val blinkColor: Int,
-	) : Serializable {
-		@Suppress("unused") // TODO BITSER remove
-		private constructor() : this(0f, Element(), ParticleEffect(), 0)
-	}
+	) : Serializable
 
 	/**
 	 * Describes how much damage the character takes while walking through an area, and how often.
@@ -339,10 +336,7 @@ class StatusEffect(
 		@BitField(id = 2)
 		@IntegerField(expectUniform = true)
 		val blinkColor: Int,
-	) : Serializable {
-		@Suppress("unused") // TODO BITSER remove
-		private constructor() : this(0, 0f, 0)
-	}
+	) : Serializable
 
 	/**
 	 * When a combatant starts a turn while having this status effect, this class describes the probability that the
@@ -372,8 +366,5 @@ class StatusEffect(
 		@BitField(id = 2, optional = true)
 		@ReferenceField(stable = false, label = "particles")
 		val particleEffect: ParticleEffect?,
-	) : Serializable {
-		@Suppress("unused") // TODO BITSER remove
-		private constructor() : this(0, 0, null)
-	}
+	) : Serializable
 }

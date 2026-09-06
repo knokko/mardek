@@ -27,8 +27,4 @@ class AreaLight(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false, commonValues = [5])
 	val offsetY: Int
-) : Serializable {
-
-	@Suppress("unused")
-	private constructor() : this(0, 0)
-}
+) : Serializable

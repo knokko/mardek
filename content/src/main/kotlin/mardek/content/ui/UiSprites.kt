@@ -291,26 +291,4 @@ class UiSprites(
 	 */
 	@BitField(id = 43)
 	val performanceUsedItems: BcSprite,
-) : Serializable {
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(
-		BcSprite(), BcSprite(), BcSprite(),
-		BcSprite(), BcSprite(), BcSprite(),
-		BcSprite(), BcSprite(), BcSprite(),
-		KimSprite(), KimSprite(),
-		BcSprite(), BcSprite(),
-		BcSprite(), BcSprite(), BcSprite(),
-		BcSprite(),
-		KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(), KimSprite(), BcSprite(),
-		KimSprite(), BcSprite(), BcSprite(),
-		BcSprite(), BcSprite(),
-		KimSprite(), KimSprite(), KimSprite(), KimSprite(),
-		BcSprite(), BcSprite(),
-		BcSprite(), BcSprite(),
-		KimSprite(), KimSprite(), KimSprite(),
-		KimSprite(), KimSprite(),
-		BcSprite(), BcSprite(), BcSprite(),
-	)
-}
+) : Serializable

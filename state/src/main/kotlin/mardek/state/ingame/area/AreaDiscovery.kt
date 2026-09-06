@@ -38,9 +38,6 @@ class AreaDiscovery(area: Area) : Serializable {
 	@NestedFieldSetting(path = "", writeAsBytes = true)
 	private var raw = BooleanArray(width * (1 + area.height))
 
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(Area())
-
 	/**
 	 * This method must be called whenever a save is loaded. It will check whether the size and offset of the area are
 	 * the same as when the save was created.

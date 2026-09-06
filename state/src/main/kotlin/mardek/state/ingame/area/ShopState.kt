@@ -25,7 +25,4 @@ class ShopState(shop: AreaShop) : Serializable {
 	@NestedFieldSetting(path = "c", optional = true)
 	@NestedFieldSetting(path = "", sizeField = IntegerField(expectUniform = true, minValue = 60, maxValue = 60))
 	val inventory = shop.initialInventory.copyOf()
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(AreaShop())
 }

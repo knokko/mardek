@@ -73,11 +73,7 @@ sealed class BattleStateMachine : Serializable {
 		@BitField(id = 1)
 		@IntegerField(expectUniform = false, minValue = 0)
 		val delay: Duration,
-	) : BattleStateMachine() {
-
-		@Suppress("unused")
-		private constructor() : this(Time.ZERO, Duration.ZERO)
-	}
+	) : BattleStateMachine()
 
 	/**
 	 * The turn of [combatant] should start soon, but we should first process and render some events, for instance:
@@ -109,9 +105,6 @@ sealed class BattleStateMachine : Serializable {
 		 */
 		currentCampaignTime: Time,
 	) : BattleStateMachine() {
-
-		@Suppress("unused")
-		private constructor() : this(MonsterCombatantState(), null, Time.ZERO)
 
 		/**
 		 * The status effects that will be removed at the start of the turn
@@ -176,13 +169,7 @@ sealed class BattleStateMachine : Serializable {
 			@BitField(id = 3, optional = true)
 			@ReferenceField(stable = true, label = "particles")
 			val particleEffect: ParticleEffect?,
-		) {
-			@Suppress("unused")
-			private constructor() : this(
-				Wait(Time.ZERO),
-				StatusEffect(), 0, null,
-			)
-		}
+		) : Serializable
 
 		/**
 		 * This type/class is used for [BattleStateMachine.NextTurnEffects.takeDamage]: it is just a tuple
@@ -205,10 +192,7 @@ sealed class BattleStateMachine : Serializable {
 			@BitField(id = 1)
 			@ReferenceField(stable = true, label = "status effects")
 			val effect: StatusEffect,
-		) {
-			@Suppress("unused")
-			private constructor() : this(0, StatusEffect())
-		}
+		) : Serializable
 
 		companion object {
 
@@ -239,9 +223,6 @@ sealed class BattleStateMachine : Serializable {
 		 */
 		var selectedMove: BattleMoveSelection = BattleMoveSelectionAttack(null)
 
-		@Suppress("unused")
-		private constructor() : this(PlayerCombatantState())
-
 		override fun toString() = "$onTurn considers $selectedMove"
 	}
 
@@ -263,9 +244,6 @@ sealed class BattleStateMachine : Serializable {
 		 */
 		@BitField(id = 0)
 		val startTime = currentCampaignTime
-
-		@Suppress("unused")
-		private constructor() : this(Time.ZERO)
 	}
 
 	/**
@@ -376,12 +354,6 @@ sealed class BattleStateMachine : Serializable {
 				determineReactionChallenge(attacker, target, skill, context),
 				context.campaignTime,
 			)
-
-			@Suppress("unused")
-			private constructor() : this(
-				MonsterCombatantState(), MonsterCombatantState(),
-				null, null, Time.ZERO,
-			)
 		}
 
 		/**
@@ -413,12 +385,6 @@ sealed class BattleStateMachine : Serializable {
 			 * attacker. Once this is `true`, the state can be changed to [JumpBack].
 			 */
 			var finished = false
-
-			@Suppress("unused")
-			private constructor() : this(
-				MonsterCombatantState(), MonsterCombatantState(),
-				null, null, Time.ZERO,
-			)
 
 			/**
 			 * Checks whether the reaction challenge is currently *pending*. While the reaction challenge is pending,
@@ -455,12 +421,6 @@ sealed class BattleStateMachine : Serializable {
 			 * [BattleStateMachine.NextTurn].
 			 */
 			var finished = false
-
-			@Suppress("unused")
-			private constructor() : this(
-				MonsterCombatantState(), MonsterCombatantState(),
-				null, null, Time.ZERO,
-			)
 		}
 	}
 
@@ -513,12 +473,6 @@ sealed class BattleStateMachine : Serializable {
 		 */
 		@BitField(id = 4)
 		val startTime = currentCampaignTime
-
-		@Suppress("unused")
-		constructor() : this(
-			MonsterCombatantState(), emptyArray(),
-			ActiveSkill(), null, Time.ZERO,
-		)
 
 		companion object {
 
@@ -577,12 +531,6 @@ sealed class BattleStateMachine : Serializable {
 				determineReactionChallenge(attacker, targets, context),
 				context.campaignTime,
 			)
-
-			@Suppress("unused")
-			private constructor() : this(
-				MonsterCombatantState(), emptyArray(),
-				ActiveSkill(), null, Time.ZERO,
-			)
 		}
 
 		/**
@@ -614,12 +562,6 @@ sealed class BattleStateMachine : Serializable {
 			 * attacker. Once this is `true`, the state can be changed to [JumpBack].
 			 */
 			var finished = false
-
-			@Suppress("unused")
-			private constructor() : this(
-				MonsterCombatantState(), emptyArray(),
-				ActiveSkill(), null, Time.ZERO,
-			)
 
 			/**
 			 * Checks whether the reaction challenge is currently *pending*. While the reaction challenge is pending,
@@ -655,12 +597,6 @@ sealed class BattleStateMachine : Serializable {
 			 * [BattleStateMachine.NextTurn].
 			 */
 			var finished = false
-
-			@Suppress("unused")
-			private constructor() : this(
-				MonsterCombatantState(), emptyArray(),
-				ActiveSkill(), null, Time.ZERO,
-			)
 		}
 	}
 
@@ -793,12 +729,6 @@ sealed class BattleStateMachine : Serializable {
 			reactionChallenge = if (primaryType != null) ReactionChallenge(primaryType, context.campaignTime) else null
 		}
 
-		@Suppress("unused")
-		private constructor() : this(
-			MonsterCombatantState(), emptyArray<CombatantState>(),
-			ActiveSkill(), null, BattleUpdateContext()
-		)
-
 		override fun postInit(context: BitPostInit.Context) {
 			if (calculatedDamage != null) reactionChallenge = null
 		}
@@ -871,12 +801,6 @@ sealed class BattleStateMachine : Serializable {
 		 * When this is `true`, the item should be consumed, and the state should be transitioned to [NextTurn].
 		 */
 		var canDrinkItem = false
-
-		@Suppress("unused")
-		private constructor() : this(
-			MonsterCombatantState(), MonsterCombatantState(),
-			Item(), Time.ZERO,
-		)
 	}
 
 	/**
@@ -900,9 +824,6 @@ sealed class BattleStateMachine : Serializable {
 		@ReferenceField(stable = false, label = "combatants")
 		val runningPlayer: PlayerCombatantState,
 	) : BattleStateMachine() {
-
-		@Suppress("unused")
-		private constructor() : this(Time.ZERO, PlayerCombatantState())
 
 		companion object {
 
@@ -931,9 +852,6 @@ sealed class BattleStateMachine : Serializable {
 		 */
 		@BitField(id = 0)
 		val startTime = currentCampaignTime
-
-		@Suppress("unused")
-		private constructor() : this(Time.ZERO)
 
 		companion object {
 
@@ -1002,9 +920,6 @@ sealed class BattleStateMachine : Serializable {
 		 */
 		val startTime: Time,
 	) : BattleStateMachine() {
-
-		@Suppress("unused")
-		private constructor() : this(Time.ZERO)
 
 		/**
 		 * When this returns `true` (5 seconds after the battle reached this state),

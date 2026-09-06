@@ -34,8 +34,4 @@ class NextWorldMapNode(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val arrivalTime: Duration,
-) : Serializable {
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(WorldMapNode(), Duration.ZERO, Duration.ZERO)
-}
+) : Serializable

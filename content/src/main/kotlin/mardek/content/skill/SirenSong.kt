@@ -24,11 +24,7 @@ class SirenSong(
 	@BitField(id = 3)
 	@NestedFieldSetting(path = "c", optional = true)
 	val notes: ArrayList<SirenNote?>,
-) : Serializable {
-
-	@Suppress("unused")
-	private constructor() : this("", 0, 0, ArrayList(0))
-}
+) : Serializable
 
 @BitStruct(backwardCompatible = true)
 class SirenNote(
@@ -40,10 +36,6 @@ class SirenNote(
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 16)
 	val value2: Int,
 ) : Serializable {
-
-	@Suppress("unused")
-	private constructor() : this(0, 0)
-
 	override fun toString() = if (value1 == value2) value1.toString() else "[$value1, $value2]"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)

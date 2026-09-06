@@ -3,6 +3,7 @@ package mardek.state.ingame.battle
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceField
+import mardek.content.BITSER
 import mardek.content.inventory.Item
 import mardek.content.skill.ActiveSkill
 import mardek.state.ingame.battle.combatant.CombatantState
@@ -21,6 +22,10 @@ sealed class BattleSkillTarget : Serializable {
 	 * Gets all the target combatants
 	 */
 	abstract fun getTargets(caster: CombatantState, battle: BattleState): Array<CombatantState>
+
+	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
+
+	override fun hashCode() = BITSER.hashCode(this)
 
 	companion object {
 

@@ -5,7 +5,6 @@ import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ClassField
 import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.battle.Monster
-import mardek.content.expression.ConstantStateExpression
 import mardek.content.expression.StateExpression
 import java.io.Serializable
 
@@ -50,8 +49,4 @@ class EncyclopediaMonster(
 	@BitField(id = 2)
 	@ClassField(root = StateExpression::class)
 	val shouldShowUp: StateExpression<Boolean>,
-) : Serializable {
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(emptyArray(), "", ConstantStateExpression())
-}
+) : Serializable

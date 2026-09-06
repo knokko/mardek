@@ -59,6 +59,9 @@ project.ext.set("vulkanRuntimeDependencies", (project.ext.get("lwjglNatives") as
 tasks.named<Test>("test") {
 	useJUnitPlatform()
 
+	jvmArgs("--add-exports", "java.base/jdk.internal.misc=ALL-UNNAMED")
+	jvmArgs("--enable-native-access", "ALL-UNNAMED")
+
 	minHeapSize = "512m"
 	maxHeapSize = "2g"
 }

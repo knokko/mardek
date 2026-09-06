@@ -171,13 +171,6 @@ class EncyclopediaPerson(
 		val description: String,
 	) : Serializable {
 
-		@Suppress("unused")
-		private constructor() : this( // TODO BITSER remove
-			"", "", PortraitInfo(), "", CreatureType(),
-			Gender.None, 0, null, "", ItemType(), Element(),
-			CharacterClass(), Alignment.TrueNeutral, "",
-		)
-
 		init {
 			if ((initialAge == null) == (overrideAge == null)) {
 				throw RuntimeException(

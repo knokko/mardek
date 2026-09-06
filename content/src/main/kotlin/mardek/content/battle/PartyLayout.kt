@@ -70,8 +70,6 @@ class PartyLayoutPosition(
 	@FloatField
 	val distanceY: Float,
 ) : Serializable {
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(0f, 0f)
 
 	override fun toString() = "($distanceX, $distanceY)"
 

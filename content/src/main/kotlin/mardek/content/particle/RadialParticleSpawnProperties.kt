@@ -79,10 +79,4 @@ class RadialParticleSpawnProperties(
 	@BitField(id = 8)
 	@FloatField(expectMultipleOf = 1.0)
 	val maxVelocity: Float,
-) : Serializable {
-	@Suppress("unused") // TODO BITSER Remove
-	private constructor() : this(
-		0f, 0f, 0f, 0f, null,
-		0f, false, 0f, 0f
-	)
-}
+) : Serializable

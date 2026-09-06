@@ -101,7 +101,6 @@ class TitleScreenContent(
 	val pauseMusicHoveredIcon: BcSprite,
 ) : Serializable {
 
-	@Suppress("unused") // TODO BITSER remove
 	private constructor() : this(
 		BcSprite(), BcSprite(), BcSprite(),
 		Font(), Font(), Font(), Font(),

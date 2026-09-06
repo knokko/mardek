@@ -37,8 +37,4 @@ class Tile(
 	 */
 	@BitField(id = 2)
 	val waterType: WaterType
-) : Serializable {
-
-	@Suppress("unused")
-	private constructor() : this(ArrayList(0), false, WaterType.None)
-}
+) : Serializable

@@ -138,9 +138,6 @@ class CampaignActionsState(
 	var mouseY = -123
 		private set
 
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(FixedActionNode(), Time.ZERO)
-
 	override fun toString() = "CampaignActions($node)"
 
 	/**

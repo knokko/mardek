@@ -47,10 +47,4 @@ class WorldMapEdge(
 	init {
 		if (node1 === node2) throw IllegalArgumentException("Nodes must be unique, but both are $node1")
 	}
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(
-		WorldMapNode(), WorldMapNode.Entrance(),
-		WorldMapNode(), WorldMapNode.Entrance(),
-	)
 }

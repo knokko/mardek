@@ -1011,14 +1011,7 @@ class ActionMoveAreaEffect(
 	@BitField(id = 3)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val duration: Duration,
-) : FixedAction() {
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(
-		ActionSpawnAreaEffect.Instance(),
-		0, 0, Duration.ZERO,
-	)
-}
+) : FixedAction()
 
 /**
  * Removes a previously-spawned [ActionSpawnAreaEffect.Instance]
@@ -1033,11 +1026,7 @@ class ActionRemoveAreaEffect(
 	@BitField(id = 0)
 	@ReferenceField(stable = false, label = "area action effect instances")
 	val instance: ActionSpawnAreaEffect.Instance
-) : FixedAction() {
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(ActionSpawnAreaEffect.Instance())
-}
+) : FixedAction()
 
 /**
  * Resets all status/performance of the player (e.g. the number of kills and the damage dealt).

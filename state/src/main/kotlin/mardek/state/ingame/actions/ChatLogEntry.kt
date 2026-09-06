@@ -8,7 +8,7 @@ import mardek.content.stats.Element
 import java.io.Serializable
 
 /**
- * Represents an entry of [AreaActionsState.chatLog].
+ * Represents an entry of [mardek.state.ingame.CampaignState.chatLog].
  */
 @BitStruct(backwardCompatible = true)
 class ChatLogEntry(
@@ -33,9 +33,6 @@ class ChatLogEntry(
 	@BitField(id = 2)
 	val text: String
 ) : Serializable {
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this("", null, "")
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

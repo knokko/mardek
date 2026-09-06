@@ -27,8 +27,4 @@ class ExitingWorldMap(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = false)
 	val exitAt: Duration,
-) : Serializable {
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(WorldMapNode.Entrance(), Duration.ZERO)
-}
+) : Serializable

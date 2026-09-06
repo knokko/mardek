@@ -49,11 +49,4 @@ class SaveInfo(
 	@BitField(id = 4)
 	@IntegerField(expectUniform = false, minValue = 1)
 	val chapter: Int,
-) : Serializable {
-
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(
-		"", arrayOf(null, null, null, null),
-		Duration.ZERO, 0, 0,
-	)
-}
+) : Serializable

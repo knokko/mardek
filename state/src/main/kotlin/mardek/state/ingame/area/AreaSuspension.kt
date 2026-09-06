@@ -61,10 +61,6 @@ class AreaSuspensionPlayerWalking(
 	@BitField(id = 0)
 	val destination: NextAreaPosition
 ) : AreaSuspension() {
-
-	@Suppress("unused")
-	private constructor() : this(NextAreaPosition())
-
 	override fun shouldUpdateCurrentTime() = true
 }
 

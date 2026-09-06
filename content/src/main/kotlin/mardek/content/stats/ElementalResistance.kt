@@ -28,9 +28,6 @@ class ElementalResistance(
 	val modifier: Float
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(Element(), 0f)
-
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 
 	override fun hashCode() = BITSER.hashCode(this)

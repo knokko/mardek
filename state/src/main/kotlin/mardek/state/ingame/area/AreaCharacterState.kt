@@ -43,9 +43,6 @@ class AreaCharacterState(
 	val next: NextAreaPosition?,
 ) : Serializable {
 
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(0, 0, Direction.Down, null)
-
 	override fun hashCode() = BITSER.hashCode(this)
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)

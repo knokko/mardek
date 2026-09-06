@@ -86,12 +86,6 @@ class RandomAreaBattles(
 	val specialBackground: BattleBackground?
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(
-		ArrayList(0), null, LevelRange(), null,
-		0, 0, BattleBackground(), null
-	)
-
 	init {
 		if ((ownEnemies == null) == (sharedEnemies == null)) {
 			throw IllegalArgumentException("Exactly 1 of ownEnemies and monstersTableName must be null")
@@ -148,8 +142,6 @@ class BattleEnemySelection(
 	@ReferenceField(stable = false, label = "enemy party layouts")
 	val enemyLayout: PartyLayout,
 ) : Serializable {
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(arrayListOf(null, null, null, null), PartyLayout())
 
 	init {
 		if (enemies.size != 4) throw IllegalArgumentException("There must be exactly 4 enemy names")
@@ -182,8 +174,6 @@ class LevelRange(
 	@IntegerField(expectUniform = false, minValue = 1)
 	val max: Int
 ) : Serializable {
-	internal constructor() : this(0, 0)
-
 	override fun toString() = "LevelRange($min, $max)"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
@@ -210,9 +200,6 @@ class SharedLevelRange(
 	@BitField(id = 1)
 	val range: LevelRange,
 ) : Serializable {
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this("", LevelRange())
-
 	override fun toString() = "$range($name)"
 }
 

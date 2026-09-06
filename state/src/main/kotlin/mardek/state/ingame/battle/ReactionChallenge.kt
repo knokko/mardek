@@ -52,9 +52,6 @@ class ReactionChallenge(
 	var clickedAfter = NOT_YET_REACTED
 		private set
 
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(ReactionSkillType.MeleeDefense, Time.ZERO)
-
 	/**
 	 * Returns true if and only if the player passed the reaction challenge. Note that this will always return false
 	 * while `isPending()` is true.

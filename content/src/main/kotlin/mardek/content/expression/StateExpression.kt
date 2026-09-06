@@ -198,13 +198,6 @@ class SwitchCaseStateExpression<I, O>(
 		@ClassField(root = StateExpression::class)
 		val outputWhenInputMatches: StateExpression<O>,
 	) : Serializable {
-
-		@Suppress("unused") // TODO BITSER remove
-		private constructor() : this(
-			ConstantStateExpression<I>(),
-			ConstantStateExpression<O>()
-		)
-
 		override fun toString() = "$inputToMatch -> $outputWhenInputMatches"
 	}
 }

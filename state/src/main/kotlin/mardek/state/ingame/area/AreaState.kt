@@ -175,7 +175,7 @@ class AreaState(
 	private var shouldOpenChatLog = false
 	private var shouldOpenPartyDialogue = false
 
-	@Suppress("unused") // TODO BITSER remove
+	@Suppress("unused")
 	private constructor() : this(
 		Area(), null, null,
 		AreaPosition(), Direction.Up,

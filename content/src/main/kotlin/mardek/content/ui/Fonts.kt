@@ -125,13 +125,6 @@ class Fonts(
 	val fairy: Font,
 ) : Serializable {
 
-	@Suppress("unused") // TODO BITSER remove
-	private constructor() : this(
-		Font(), Font(), Font(), Font(), Font(),
-		Font(), Font(), Font(), Font(), Font(),
-		Font(), Font(), Font(), Font(), Font(),
-	)
-
 	/**
 	 * Gets an array containing all the fonts.
 	 */

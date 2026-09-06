@@ -12,7 +12,6 @@ import mardek.content.inventory.ItemStack
 import mardek.content.inventory.PlotItem
 import mardek.input.InputKey
 import mardek.state.GameStateUpdateContext
-import mardek.content.characters.CharacterState
 import mardek.content.skill.Skill
 import mardek.state.ingame.UsedPartyMember
 import mardek.state.ingame.WholeParty
@@ -71,15 +70,6 @@ class BattleLoot(
 	party: List<UsedPartyMember>,
 	currentTime: Time,
 ) : BitPostInit {
-
-	@Suppress("unused")
-	private constructor() : this(
-		0, ArrayList(0),
-		ArrayList(0), ArrayList(0),
-		"", HashMap(),
-		listOf(UsedPartyMember(0, PlayableCharacter(), CharacterState())),
-		Time.ZERO,
-	)
 
 	/**
 	 * The index of the currently-selected party member (into [mardek.state.ingame.CampaignState.party]). When the
