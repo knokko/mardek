@@ -108,7 +108,4 @@ class Enemy(
 	 */
 	@BitField(id = 2, optional = true)
 	val overrideDisplayName: String? = null,
-) : Serializable {
-	@Suppress("unused")
-	private constructor() : this(Monster(), 0)
-}
+) : Serializable

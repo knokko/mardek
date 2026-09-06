@@ -82,13 +82,4 @@ class WeaponProperties(
 	@BitField(id = 7, optional = true)
 	@ReferenceField(stable = false, label = "sound effects")
 	val hitSound: SoundEffect?,
-) : Serializable {
-
-	@Suppress("unused")
-	private constructor() : this(
-			0, 0, 0f, 0f,
-		ArrayList(0),
-		ArrayList(0),
-		ArrayList(0), null,
-	)
-}
+) : Serializable

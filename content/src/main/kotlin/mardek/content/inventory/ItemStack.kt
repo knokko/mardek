@@ -31,9 +31,6 @@ class ItemStack(
 		if (amount <= 0) throw IllegalArgumentException("Amount $amount must be positive")
 	}
 
-	@Suppress("unused")
-	private constructor() : this(Item(), 1)
-
 	override fun toString() = if (amount == 1) item.toString() else "$item x$amount"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)

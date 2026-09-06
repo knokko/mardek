@@ -98,12 +98,6 @@ class ConsumableProperties(
 	val damage: ConsumableDamage?,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(
-			null, 0, false, 0, 0, 0f, ArrayList(0),
-			ArrayList(0), false, ArrayList(0), null
-	)
-
 	/**
 	 * Checks whether this item is classified as positive (beneficial to the consumer).
 	 * - When a player selects a positive consumable, the target selection will initially target an ally.

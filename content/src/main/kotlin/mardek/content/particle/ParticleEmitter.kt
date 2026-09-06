@@ -75,10 +75,4 @@ class ParticleEmitter(
 	 */
 	@BitField(id = 8)
 	val mirror: Boolean,
-) : Serializable {
-	@Suppress("unused")
-	private constructor() : this(
-		EmitterTransform(), ParticleSprite(), EmissionWaves(), ParticleSpawnProperties(),
-		ParticleDynamics(), ParticleSize(), ParticleOpacity(), Duration.ZERO, false
-	)
-}
+) : Serializable

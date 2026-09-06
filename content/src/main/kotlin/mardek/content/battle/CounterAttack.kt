@@ -40,9 +40,6 @@ class CounterAttack(
 	val target: StrategyTarget,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(ActiveSkill(), 0, StrategyTarget.Self)
-
 	override fun toString() = "Counter($chance% $action at $target)"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)

@@ -32,8 +32,5 @@ class NamedSprite(
 	val sprite: BcSprite,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(UUID(0, 0), "", BcSprite())
-
 	override fun toString() = "NamedSprite($name)"
 }

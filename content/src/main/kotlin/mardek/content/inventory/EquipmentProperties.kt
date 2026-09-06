@@ -81,13 +81,6 @@ class EquipmentProperties(
 	val charismaticPerformanceChance: Int,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(
-		ArrayList(0), ArrayList(0),
-		ArrayList(0), Resistances(), ArrayList(0),
-		null, null, null, 0,
-	)
-
 	/**
 	 * If someone were to equip this item, this method compute by how much the given `stat` of that person would be
 	 * increased. This is mostly used in the UI, e.g. to predict how much the ATK of a player would be increased by

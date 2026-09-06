@@ -30,8 +30,5 @@ class Dreamstone(
 	val id: UUID,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(-1, UUID.randomUUID())
-
 	override fun toString() = "DreamStone $index"
 }

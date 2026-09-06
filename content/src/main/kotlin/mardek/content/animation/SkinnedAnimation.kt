@@ -33,9 +33,6 @@ class SkinnedAnimation(
 	val skins: HashMap<String, ReferenceLazyBits<AnimationFrames>>,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(0, HashMap())
-
 	override fun toString() = "SkinnedAnimation(flash sprite ID = $defineSpriteFlashID, #skins=${skins.size})"
 
 	/**

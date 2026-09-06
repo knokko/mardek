@@ -33,7 +33,4 @@ class ParticleQuake(
 	@BitField(id = 2)
 	@FloatField
 	val decay: Float,
-) : Serializable {
-	@Suppress("unused")
-	private constructor() : this(0, Duration.ZERO, 0f)
-}
+) : Serializable

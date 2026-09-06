@@ -80,11 +80,6 @@ class AnimationNode(
 	@ReferenceField(stable = false, label = "animation particle emitters")
 	val particleEmitters: Array<ParticleEmitter>,
 ) : Serializable {
-	@Suppress("unused")
-	private constructor() : this(
-		0, null, null, null,
-		null, null, null, AnimationMask(), emptyArray(),
-	)
 
 	override fun toString(): String {
 		val result = StringBuilder("AnimationNode(depth=$depth")

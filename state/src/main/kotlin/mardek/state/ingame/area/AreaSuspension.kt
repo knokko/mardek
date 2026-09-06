@@ -194,9 +194,6 @@ class AreaSuspensionActions(
 	val actions: AreaActionsState
 ) : AreaSuspension() {
 
-	@Suppress("unused")
-	private constructor() : this(AreaActionsState())
-
 	override fun shouldUpdateCurrentTime() = true
 }
 
@@ -220,9 +217,6 @@ class AreaSuspensionTransition(
 	@BitField(id = 1)
 	val startTime: Time,
 ) : AreaSuspension() {
-
-	@Suppress("unused")
-	private constructor() : this(AreaTransitionDestination(), Time.ZERO)
 
 	override fun shouldUpdateCurrentTime() = true
 
@@ -258,9 +252,6 @@ class AreaSuspensionOpeningDoor(
 	@BitField(id = 1)
 	val startTime: Time,
 ) : AreaSuspension() {
-
-	@Suppress("unused")
-	private constructor() : this(AreaDoor(), Time.ZERO)
 
 	override fun shouldUpdateCurrentTime() = true
 
@@ -311,9 +302,6 @@ class AreaSuspensionOpeningChest(
 	 * this.
 	 */
 	var obtainedItem: ObtainedItemStack? = null
-
-	@Suppress("unused")
-	private constructor() : this(Chest(), Time.ZERO)
 
 	override fun shouldUpdateCurrentTime() = false
 

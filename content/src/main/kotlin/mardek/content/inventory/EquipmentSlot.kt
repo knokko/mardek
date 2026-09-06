@@ -48,9 +48,6 @@ class EquipmentSlot(
 	val canBeEmpty: Boolean,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(UUID.randomUUID(), "", emptyArray(), false)
-
 	override fun equals(other: Any?) = other is EquipmentSlot && this.id == other.id
 
 	override fun hashCode() = id.hashCode()

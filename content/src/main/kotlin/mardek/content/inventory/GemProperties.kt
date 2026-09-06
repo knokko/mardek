@@ -42,8 +42,5 @@ class GemProperties(
 	val drainHp: Float,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(0, "", ArrayList(0), 0f)
-
 	override fun toString() = "Gem($power, $drainHp)"
 }
