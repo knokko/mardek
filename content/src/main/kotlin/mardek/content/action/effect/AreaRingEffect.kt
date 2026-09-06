@@ -27,9 +27,6 @@ class AreaRingEffect(
 	val outerBorder: Border,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(Border(), Border())
-
 	/**
 	 * Represents the radius and color of either the [innerBorder] or [outerBorder].
 	 */
@@ -65,11 +62,5 @@ class AreaRingEffect(
 		 */
 		@BitField(id = 4)
 		val alpha: AreaEffectFloat,
-	) : Serializable {
-
-		internal constructor() : this(
-			AreaEffectFloat(), AreaEffectFloat(), AreaEffectFloat(),
-			AreaEffectFloat(), AreaEffectFloat(),
-		)
-	}
+	) : Serializable
 }

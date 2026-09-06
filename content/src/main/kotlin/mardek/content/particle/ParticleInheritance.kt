@@ -27,7 +27,4 @@ class ParticleInheritance(
 	@NestedFieldSetting(path = "", optional = true)
 	@ReferenceField(stable = false, label = "particle sprites")
 	val overrideSprites: Array<ParticleSprite>?,
-) : Serializable {
-	@Suppress("unused")
-	private constructor() : this(ParticleEffect(), null)
-}
+) : Serializable

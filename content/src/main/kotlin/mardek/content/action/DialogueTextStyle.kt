@@ -33,11 +33,4 @@ class DialogueTextStyle(
 	@BitField(id = 5)
 	@FloatField(expectMultipleOf = 0.01, errorTolerance = 0.005)
 	val strokeDistancePower: Float,
-) : Serializable {
-
-	@Suppress("unused")
-	private constructor() : this(
-		"", Font(), 0,
-		0, 0f, 0f,
-	)
-}
+) : Serializable

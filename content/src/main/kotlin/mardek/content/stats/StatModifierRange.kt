@@ -40,9 +40,6 @@ class StatModifierRange(
 		if (maxAdder < minAdder) throw IllegalArgumentException("Invalid adder range [$minAdder, $maxAdder")
 	}
 
-	@Suppress("unused")
-	private constructor() : this(CombatStat.Attack, 0, 0)
-
 	override fun toString() = "[$minAdder, $maxAdder] $stat"
 
 	operator fun unaryMinus() = StatModifierRange(stat, -maxAdder, -minAdder)

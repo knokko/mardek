@@ -31,9 +31,6 @@ class AnimationFrame(
 	val nodes: Array<AnimationNode>,
 ): Iterable<AnimationNode>, Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(Duration.ZERO, emptyArray())
-
 	override fun iterator() = nodes.iterator()
 
 	/**

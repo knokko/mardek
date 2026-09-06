@@ -34,7 +34,4 @@ class AnimationMaskFrame(
 	@BitField(id = 2)
 	@IntegerField(expectUniform = false, minValue = 1, digitSize = 4, commonValues = [66666666])
 	val duration: Duration,
-) : Serializable {
-	@Suppress("unused")
-	private constructor() : this(AnimationSprite(), AnimationMatrix(), Duration.ZERO)
-}
+) : Serializable

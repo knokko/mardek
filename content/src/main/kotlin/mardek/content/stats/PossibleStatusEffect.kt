@@ -32,9 +32,6 @@ class PossibleStatusEffect(
 	val chance: Int
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(StatusEffect(), 0)
-
 	override fun toString() = "$chance% $effect"
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)

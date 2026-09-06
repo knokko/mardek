@@ -45,13 +45,6 @@ class StrategyPool(
 	val id: UUID,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(
-		StrategyCriteria.NONE,
-		ArrayList(0),
-		UUID.randomUUID(),
-	)
-
 	override fun toString() = "StrategyPool(if $criteria $entries)"
 }
 
@@ -100,9 +93,6 @@ class StrategyEntry(
 		if (skill != null && item != null) throw IllegalArgumentException("Skill ($skill) or item ($item) must be null")
 		if (item != null && item.consumable == null) throw IllegalArgumentException("Item ($item) must be consumable")
 	}
-
-	@Suppress("unused")
-	private constructor() : this(null, null, StrategyTarget.Self, 0)
 
 	override fun toString() = "$chance% ${skill?.name ?: item?.displayName ?: "Attack"}"
 

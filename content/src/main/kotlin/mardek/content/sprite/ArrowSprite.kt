@@ -25,9 +25,5 @@ class ArrowSprite(
 	@BitField(id = 1)
 	val sprite: KimSprite,
 ) : Serializable {
-
-	@Suppress("unused")
-	private constructor() : this("", KimSprite())
-
 	override fun toString() = "ArrowSprite($flashName)"
 }

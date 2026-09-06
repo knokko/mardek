@@ -116,8 +116,6 @@ class PotentialPlotItem(
 	@IntegerField(expectUniform = false, minValue = 0, maxValue = 100)
 	val chance: Int,
 ) : Serializable {
-	@Suppress("unused")
-	private constructor() : this(PlotItem(), 0)
 
 	override fun equals(other: Any?) = BITSER.deepEquals(this, other)
 

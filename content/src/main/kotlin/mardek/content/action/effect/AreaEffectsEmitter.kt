@@ -66,12 +66,6 @@ class AreaEffectsEmitter(
 		}
 	}
 
-	@Suppress("unused")
-	private constructor() : this(
-		Duration.ZERO, Duration.ZERO,
-		0, Duration.ZERO, emptyArray(),
-	)
-
 	/**
 	 * Gets the dispatch indices that are potentially relevant at `spawnTime + timeSinceSpawn`.
 	 * All the sub-effects of any dispatch *outside* this range are *certainly* invisible.
