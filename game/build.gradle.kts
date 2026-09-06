@@ -89,6 +89,9 @@ tasks.register("proguard", ProGuardTask::class) {
 
 	// We don't need all serializers
 	dontwarn("kotlinx.serialization.**")
+
+	// Looks like proguard doesn't like the varargs in MethodHandle.invoke
+	dontwarn("java.lang.invoke.MethodHandle")
 }
 
 tasks.register("run", JavaExec::class) {
