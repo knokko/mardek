@@ -156,16 +156,6 @@ class ReactionSkill(
 	val survivor: Boolean,
 ): Skill(name, description, element, masteryPoints, id) {
 
-	@Suppress("unused")
-	private constructor() : this(
-		"", "", Element(), 0, UUID.randomUUID(),
-		ReactionSkillType.RangedDefense, 0, null, 0,
-		0f, 0, 0, 0f, 0f,
-		ArrayList(0), ArrayList(0),
-		ArrayList(0), ArrayList(0),
-		false, false, false,
-	)
-
 	/**
 	 * Gets the sum of all bonuses (or resistances, which are negative) against the given element
 	 */

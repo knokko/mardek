@@ -27,9 +27,6 @@ class EffectResistance(
 	val percentage: Int,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(StatusEffect(), 0)
-
 	override fun equals(other: Any?) = other is EffectResistance && effect === other.effect && percentage == other.percentage
 
 	override fun hashCode() = effect.hashCode() - 13 * percentage

@@ -25,8 +25,5 @@ class StatModifier(
 	val adder: Int,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(CombatStat.Attack, 0)
-
 	override fun toString() = "$stat+$adder"
 }

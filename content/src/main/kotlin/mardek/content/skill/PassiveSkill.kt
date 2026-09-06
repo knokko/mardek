@@ -116,13 +116,6 @@ class PassiveSkill(
 	val skillClass: SkillClass?,
 ): Skill(name, description, element, masteryPoints, id) {
 
-	@Suppress("unused")
-	private constructor() : this(
-		"", "", Element(), 0, UUID.randomUUID(), 0, 0f,
-		0f, ArrayList(), Resistances(), HashSet(), HashSet(),
-		0f, 0, 0, 0, null,
-	)
-
 	/**
 	 * Gets the modifier for [stat]. This simply iterates over [statModifiers].
 	 */

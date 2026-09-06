@@ -74,9 +74,5 @@ class Cutscene(
 		@BitField(id = 1)
 		@ReferenceField(stable = false, label = "sound effects")
 		val sound: SoundEffect,
-	) : Serializable {
-
-		@Suppress("unused")
-		private constructor() : this(Duration.ZERO, SoundEffect())
-	}
+	) : Serializable
 }

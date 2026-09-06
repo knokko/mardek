@@ -95,9 +95,6 @@ class ActionTargetPlayer(
 	val player: PlayableCharacter
 ) : ActionTarget() {
 
-	@Suppress("unused")
-	private constructor() : this(PlayableCharacter())
-
 	override fun toString() = "Player($player)"
 
 	override fun getDisplayName(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = player.name
@@ -131,9 +128,6 @@ class ActionTargetDialogueObject(
 	@BitField(id = 0)
 	val displayName: String
 ) : ActionTarget() {
-
-	@Suppress("unused")
-	private constructor() : this("")
 
 	override fun toString() = "DialogueObject($displayName)"
 
@@ -230,9 +224,6 @@ class ActionTargetCustom(
 	val data: ActionTargetData
 ) : ActionTarget() {
 
-	@Suppress("unused")
-	private constructor() : this(ActionTargetData())
-
 	override fun getDisplayName(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = data.displayName
 
 	override fun getElement(defaultObject: ActionTargetData?, party: Array<PlayableCharacter?>) = data.element
@@ -263,6 +254,4 @@ class ActionTargetData(
 	@BitField(id = 2, optional = true)
 	@ReferenceField(stable = false, label = "portrait info")
 	val portraitInfo: PortraitInfo?,
-) : Serializable {
-	internal constructor() : this("", null, null)
-}
+) : Serializable

@@ -132,12 +132,4 @@ class SkillDamage(
 	@BitField(id = 17, optional = true)
 	@IntegerField(expectUniform = true, minValue = 0, maxValue = 100)
 	val critChance: Int? = null,
-) : Serializable {
-
-	@Suppress("unused")
-	private constructor() : this(
-		0, 0f, 0, false, false, false,
-		SkillSpiritModifier.SpiritBlade, ArrayList(), 0f, 0f, 0f, 0f,
-		0f, 0, 0f, 0f, 0f, null
-	)
-}
+) : Serializable

@@ -33,12 +33,6 @@ class ChoiceActionNode(
 	val options: Array<ChoiceEntry>,
 ) : ActionNode(id) {
 
-	@Suppress("unused")
-	private constructor() : this(
-		UUID(0, 0),
-		ActionTargetPartyMember(), emptyArray(),
-	)
-
 	override fun getDirectChildNodes() = options.mapNotNull { it.next }
 }
 
@@ -76,9 +70,6 @@ class ChoiceEntry(
 		ExpressionBooleanValue(true)
 	),
 ) : Serializable {
-
-	@Suppress("unused")
-	private constructor() : this("", "", null)
 
 	override fun toString() = "Choice($text)"
 }

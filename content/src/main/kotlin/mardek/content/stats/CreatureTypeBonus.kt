@@ -29,8 +29,5 @@ class CreatureTypeBonus(
 	val modifier: Float,
 ) : Serializable {
 
-	@Suppress("unused")
-	private constructor() : this(CreatureType(), 0f)
-
 	override fun toString() = "+ $modifier * damage against $type"
 }

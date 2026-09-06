@@ -94,9 +94,6 @@ class AreaSuspensionIncomingRandomBattle(
 	val canAvoid: Boolean,
 ) : AreaSuspension() {
 
-	@Suppress("unused")
-	private constructor() : this(Battle(), Time.ZERO, false)
-
 	override fun shouldUpdateCurrentTime() = true
 
 	companion object {
@@ -144,9 +141,6 @@ class AreaSuspensionIncomingBattle(
 	val nextActions: AreaActionsState?,
 ) : AreaSuspension() {
 
-	@Suppress("unused")
-	private constructor() : this(Battle(), Time.ZERO, emptyArray(), null)
-
 	override fun shouldUpdateCurrentTime() = true
 
 	companion object {
@@ -183,9 +177,6 @@ class AreaSuspensionBattle(
 	 */
 	@BitField(id = 2, optional = true)
 	var loot: BattleLoot? = null
-
-	@Suppress("unused")
-	private constructor() : this(BattleState())
 
 	override fun shouldUpdateCurrentTime() = false
 }

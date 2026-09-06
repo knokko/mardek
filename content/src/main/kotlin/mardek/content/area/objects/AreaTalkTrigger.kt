@@ -47,9 +47,5 @@ class AreaTalkTrigger(
 	@ClassField(root = StateExpression::class)
 	val condition: StateExpression<Boolean>?,
 ) : StaticAreaObject(x, y) {
-
-	@Suppress("unused")
-	private constructor() : this("", 0, 0, 0, 0, null)
-
 	override fun toString() = "TalkTrigger($name, x=$x, y=$y, talkTo=($talkX, $talkY))"
 }
