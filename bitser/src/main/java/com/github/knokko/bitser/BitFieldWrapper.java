@@ -2,6 +2,8 @@ package com.github.knokko.bitser;
 
 import com.github.knokko.bitser.exceptions.InvalidBitFieldException;
 import com.github.knokko.bitser.field.BitField;
+import com.github.knokko.bitser.io.BitInputStream;
+import com.github.knokko.bitser.io.BitOutputStream;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -43,9 +45,19 @@ abstract class BitFieldWrapper implements Serializable {
 			RecursionNode parentNode, String fieldName
 	) throws Throwable;
 
+	void writeFlat(Bitser bitser, BitOutputStream output, Object value) throws Throwable {
+		var serializer = new Serializer(bitser, output);
+		write(serializer, value, null, null);
+	}
+
 	abstract Object read(Deserializer deserializer, RecursionNode parentNode, String fieldName) throws Throwable;
 
 	abstract Object read(BackReadParameters parameters) throws Throwable;
+
+	Object readFlat(Bitser bitser, BitInputStream input) throws Throwable {
+		var deserializer = new Deserializer(bitser, input);
+		return read(deserializer, null, null);
+	}
 
 	abstract Object convert(BackDeserializer deserializer, Object legacyValue, RecursionNode parentNode, String fieldName);
 
