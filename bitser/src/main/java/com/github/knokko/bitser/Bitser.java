@@ -1,5 +1,6 @@
 package com.github.knokko.bitser;
 
+import com.github.knokko.bitser.connection.BitStructProtocol;
 import com.github.knokko.bitser.io.*;
 import com.github.knokko.bitser.exceptions.*;
 import com.github.knokko.bitser.options.AnalyzePerformance;
@@ -572,5 +573,9 @@ public class Bitser {
 			optionList.add(candidateOption);
 		}
 		return optionList;
+	}
+
+	public BitStructProtocol getProtocol(Class<?> structClass) {
+		return cache.getProtocol(this, structClass);
 	}
 }

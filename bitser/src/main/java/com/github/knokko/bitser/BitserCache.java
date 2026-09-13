@@ -1,5 +1,6 @@
 package com.github.knokko.bitser;
 
+import com.github.knokko.bitser.connection.BitStructProtocol;
 import com.github.knokko.bitser.exceptions.InvalidBitFieldException;
 import com.github.knokko.bitser.field.StableReferenceFieldId;
 
@@ -11,10 +12,12 @@ import java.util.concurrent.ConcurrentHashMap;
 class BitserCache {
 
 	private final Map<Class<?>, BitStructWrapper<?>> wrappers;
+	private final Map<Class<?>, BitStructProtocol> protocols;
 	private final Map<Class<?>, Boolean> hasStableIdMap;
 
 	BitserCache() {
 		wrappers = new ConcurrentHashMap<>();
+		protocols = new ConcurrentHashMap<>();
 		hasStableIdMap = new ConcurrentHashMap<>();
 	}
 
@@ -24,6 +27,11 @@ class BitserCache {
 			throw new InvalidBitFieldException(objectClass + " is not a BitStruct");
 		}
 		return result;
+	}
+
+	BitStructProtocol getProtocol(Bitser bitser, Class<?> objectClass) {
+		var wrapper = getWrapper(objectClass);
+		return protocols.computeIfAbsent(objectClass, _ -> ProtocolFactory.createProtocol(bitser, wrapper));
 	}
 
 	void requireStableID(Class<?> objectClass) {

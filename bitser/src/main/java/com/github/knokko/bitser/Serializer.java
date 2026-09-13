@@ -55,6 +55,19 @@ class Serializer {
 		this.floatDistribution = floatDistribution;
 	}
 
+	Serializer(Bitser bitser, BitOutputStream output) {
+		this.bitser = bitser;
+		this.cache = bitser.cache;
+		this.withAndOptions = null;
+		this.withParameters = null;
+		this.output = output;
+		this.backwardCompatible = false;
+		this.references = null;
+		this.forbidLazySaving = true;
+		this.intDistribution = new IntegerDistributionTracker();
+		this.floatDistribution = new FloatDistributionTracker();
+	}
+
 	void run() {
 		// Stage 1
 		output.setMarker("stage 1: struct jobs & array jobs");
