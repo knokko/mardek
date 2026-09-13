@@ -49,6 +49,16 @@ class Deserializer {
 		this.references = new ReferenceTracker(cache);
 	}
 
+	Deserializer(Bitser bitser, BitInputStream input) {
+		this.bitser = bitser;
+		this.cache = bitser.cache;
+		this.input = input;
+		this.sizeLimit = null;
+		this.withParameters = null;
+		this.rootStruct = null;
+		this.references = null;
+	}
+
 	void run() {
 		input.setMarker("stage 1: struct jobs & array jobs");
 		while (!structJobs.isEmpty() || !arrayJobs.isEmpty()) {

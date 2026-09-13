@@ -83,7 +83,7 @@ public class BitInputStream {
 	 * IOException.
 	 */
 	public void read(byte[] destination) throws IOException {
-		boolIndex = 8;
+		discardCurrentByte();
 
 		int numReadBytes = min(bufferLimit - bufferIndex, destination.length);
 		System.arraycopy(myBuffer, bufferIndex, destination, 0, numReadBytes);
@@ -95,6 +95,13 @@ public class BitInputStream {
 			numReadBytes += justReadBytes;
 			if (numReadBytes > destination.length) throw new UnexpectedBitserException("Too many bytes read?");
 		}
+	}
+
+	/**
+	 * Discards the remaining bits of the last-read byte, wasting at most 7 bits of data.
+	 */
+	public void discardCurrentByte() {
+		boolIndex = 8;
 	}
 
 	/**

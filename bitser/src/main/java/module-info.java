@@ -1,6 +1,7 @@
 module bitser {
 	requires static jdk.unsupported;
 
+	exports com.github.knokko.bitser.connection;
 	exports com.github.knokko.bitser.distributions;
 	exports com.github.knokko.bitser.exceptions;
 	exports com.github.knokko.bitser.field;
