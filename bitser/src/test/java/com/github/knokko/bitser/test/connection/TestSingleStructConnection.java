@@ -7,6 +7,7 @@ import com.github.knokko.bitser.connection.BitServer;
 import com.github.knokko.bitser.connection.StructConnectionView;
 import com.github.knokko.bitser.field.IntegerField;
 import com.github.knokko.bitser.io.BitInputStream;
+import com.github.knokko.bitser.io.BitOutputStream;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -58,19 +59,28 @@ public class TestSingleStructConnection {
 
 			int x, y, z;
 			int numUpdates;
+
+			void setX(int newX) {
+				this.x = newX;
+				this.numUpdates += 1;
+			}
+
+			void setY(int newY) {
+				this.y = newY;
+				this.numUpdates += 1;
+			}
+
+			void setZ(int newZ) {
+				this.z = newZ;
+				this.numUpdates += 1;
+			}
 		}
 
 		var readOnlyClientVector = new ClientVector();
 
 		var readOnlyClientConnection = new BitClient.ReadOnlyStruct(view, 0L);
-		readOnlyClientConnection.<Integer>subscribeValue(Vector3.class, "x", x -> {
-			readOnlyClientVector.x = x;
-			readOnlyClientVector.numUpdates += 1;
-		});
-		readOnlyClientConnection.<Integer>subscribeValue(null, "y", y -> {
-			readOnlyClientVector.y = y;
-			readOnlyClientVector.numUpdates += 1;
-		});
+		readOnlyClientConnection.subscribeValue(Vector3.class, "x", readOnlyClientVector::setX);
+		readOnlyClientConnection.subscribeValue(null, "y", readOnlyClientVector::setY);
 		readOnlyClientConnection.subscribeValue(null, "z", z -> fail("Tried to update z to " + z));
 
 		var serverToReadOnlyClientOutput = new PipedOutputStream();
@@ -93,7 +103,7 @@ public class TestSingleStructConnection {
 		var controller = new BitServer.StructController<>(123L, serverVector, view);
 		controller.addClient(serverToReadOnlyClientOutput, readOnlyClientToServerInput);
 
-		Thread.sleep(500);
+		Thread.sleep(300);
 		assertEquals(5, readOnlyClientVector.x);
 		assertEquals(106, readOnlyClientVector.y);
 		assertEquals(0, readOnlyClientVector.z); // Write-only
@@ -104,7 +114,54 @@ public class TestSingleStructConnection {
 		var readWriteClientToServerOutput = new PipedOutputStream();
 		var readWriteClientToServerInput = new PipedInputStream(readWriteClientToServerOutput);
 
-		controller.addClient(serverToReadWriteClientOutput, serverToReadWriteClientInput);
-		Thread.sleep(100);
+		controller.addClient(serverToReadWriteClientOutput, readWriteClientToServerInput);
+		Thread.sleep(300);
+
+		var readWriteClientConnection = new BitClient.ReadWriteStruct(
+				view, new BitOutputStream(readWriteClientToServerOutput), 1L
+		);
+
+		var readWriteClientVector = new ClientVector();
+		readWriteClientConnection.subscribeValue(null, "x", false, readWriteClientVector::setX);
+		readWriteClientConnection.subscribeValue(null, "y", true, readWriteClientVector::setY);
+		readWriteClientConnection.subscribeValue(null, "z", false, z -> fail("Tried to update z to " + z));
+		readWriteClientConnection.subscribeValue(null, "z", true, readWriteClientVector::setZ);
+
+		// TODO Subscribe change states
+
+		var readWriteClientThread = new Thread(() -> {
+			try {
+				readWriteClientConnection.readFromServer(new BitInputStream(serverToReadWriteClientInput));
+			} catch (Throwable failed) {
+				throw new RuntimeException(failed);
+			}
+		});
+		readWriteClientThread.setDaemon(true);
+		readWriteClientThread.start();
+
+		Thread.sleep(300);
+		assertEquals(5, readWriteClientVector.x);
+		assertEquals(106, readWriteClientVector.y);
+		assertEquals(0, readWriteClientVector.z); // Write-only
+
+		readWriteClientConnection.setValue(null, "x", 21);
+		readWriteClientConnection.setValue(null, "y", 121);
+		readWriteClientConnection.setValue(null, "z", 60);
+
+		assertEquals(5, readWriteClientVector.x); // server-only
+		assertEquals(121, readWriteClientVector.y);
+		assertEquals(60, readWriteClientVector.z);
+
+		readWriteClientConnection.saveValue(null, "x");
+		readWriteClientConnection.saveValue(Vector3.class, "z");
+
+		Thread.sleep(300);
+		assertEquals(21, readWriteClientVector.x);
+		assertEquals(121, readWriteClientVector.y);
+		assertEquals(60, readWriteClientVector.z);
+
+		assertEquals(21, readOnlyClientVector.x);
+		assertEquals(106, readOnlyClientVector.y);
+		assertEquals(0, readOnlyClientVector.z); // write-only
 	}
 }

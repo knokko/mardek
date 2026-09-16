@@ -96,6 +96,7 @@ public class BitServer<T> {
 						);
 						int fieldID = view.mapUploadableFieldID(uploadableFieldID);
 						Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, fromClient);
+						fromClient.discardCurrentByte();
 
 						if (view.canDownloadFlat(fieldID)) {
 							int downloadableFieldID = view.mapToDownloadableFieldID(fieldID);
@@ -108,7 +109,13 @@ public class BitServer<T> {
 							});
 							synchronized (StructController.this) {
 								view.protocol.setFieldValue(structInstance, fieldID, newValue);
+								System.out.println("Server: set & propagate " + fieldID + " to " + newValue);
 								for (var connection : connections) connection.toClientQueue.add(packet);
+							}
+						} else {
+							synchronized (StructController.this) {
+								System.out.println("Server: set " + fieldID + " to " + newValue);
+								view.protocol.setFieldValue(structInstance, fieldID, newValue);
 							}
 						}
 					}
