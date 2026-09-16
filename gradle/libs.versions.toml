@@ -4,6 +4,7 @@ composeMultiplatform = "1.11.1"
 junit = "4.13.2"
 kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
+kwik = "0.11"
 material3 = "1.11.0-alpha07"
 shadow = "9.3.1"
 joml = "1.10.9"
@@ -26,6 +27,7 @@ compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-previ
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 vk-boiler = { module = "com.github.knokko:vk-boiler", version.ref = "vk-boiler" }
 joml = { module = "org.joml:joml", version.ref = "joml" }
+kwik = { module = "tech.kwik:kwik", version.ref = "kwik" }
 lwjgl = { module = "org.lwjgl:lwjgl", version.ref = "lwjgl" }
 lwjgl-harfbuzz = { module = "org.lwjgl:lwjgl-harfbuzz", version.ref = "lwjgl" }
 lwjgl-openal = { module = "org.lwjgl:lwjgl-openal", version.ref = "lwjgl" }
