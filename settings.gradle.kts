@@ -14,6 +14,8 @@ include("vk2d")
 
 include("editor-client:desktopApp")
 include("editor-client:shared")
+include("editor-protocol")
+include("editor-server")
 
 pluginManagement {
 	repositories {

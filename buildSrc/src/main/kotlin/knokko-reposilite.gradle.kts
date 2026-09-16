@@ -1,6 +1,8 @@
 import java.net.URI
 
 repositories {
+	mavenCentral()
+
 	maven {
 		name = "knokko-reposilite"
 		url = URI("https://49.12.188.159:8080/releases/")
