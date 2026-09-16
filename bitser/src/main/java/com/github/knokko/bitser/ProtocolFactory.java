@@ -11,7 +11,7 @@ class ProtocolFactory {
 	};
 
 	static BitStructProtocol createProtocol(Bitser bitser, BitStructWrapper<?> bitStruct) {
-		var protocol = new BitStructProtocol();
+		var protocol = new BitStructProtocol(bitser);
 
 		for (var bitClass : bitStruct.classHierarchy) {
 			for (var field : bitClass.fields) {

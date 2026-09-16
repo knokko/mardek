@@ -72,6 +72,15 @@ public class BitOutputStream {
 		}
 	}
 
+	/**
+	 * Writes all not-yet-written bytes to the underlying output stream, and flushes it.
+	 * This method will also write the potentially-unfinished most-recent byte, wasting at most 7 bits of data.
+	 */
+	public void flush() throws IOException {
+		flushBuffer();
+		byteStream.flush();
+	}
+
 	private void flushBuffer() throws IOException {
 		if (boolIndex != 0) flushCurrentByte();
 		if (bufferIndex != 0) byteStream.write(buffer, 0, bufferIndex);

@@ -14,12 +14,15 @@ public class StructConnectionView {
 	private int[] downloadableFieldsMapping;
 	private final int[] reverseDownloadableFieldMapping;
 	private int[] uploadableFieldsMapping;
+	private final int[] reverseUploadableFieldMapping;
 
 	public StructConnectionView(BitStructProtocol protocol) {
 		this.protocol = protocol;
 		this.canDownloadFlat = new boolean[protocol.getNumFields()];
 		this.reverseDownloadableFieldMapping = new int[protocol.getNumFields()];
 		Arrays.fill(reverseDownloadableFieldMapping, -1);
+		this.reverseUploadableFieldMapping = new int[protocol.getNumFields()];
+		Arrays.fill(reverseUploadableFieldMapping, -1);
 		this.canUploadFlat = new boolean[protocol.getNumFields()];
 		this.isConstant = new boolean[protocol.getNumFields()];
 		this.flatStructs = new boolean[protocol.getNumFields()];
@@ -82,7 +85,7 @@ public class StructConnectionView {
 		uploadableFieldsMapping = new int[numWritableFields];
 
 		int downloadableFieldID = 0;
-		int writableFieldID = 0;
+		int uploadableFieldID = 0;
 		for (int fieldID = 0; fieldID < protocol.getNumFields(); fieldID++) {
 			if (canDownloadFlat[fieldID] && !isConstant[fieldID]) {
 				reverseDownloadableFieldMapping[fieldID] = downloadableFieldID;
@@ -90,7 +93,9 @@ public class StructConnectionView {
 				downloadableFieldID += 1;
 			}
 			if (canUploadFlat[fieldID]) {
-				uploadableFieldsMapping[writableFieldID++] = fieldID;
+				reverseUploadableFieldMapping[fieldID] = uploadableFieldID;
+				uploadableFieldsMapping[uploadableFieldID] = fieldID;
+				uploadableFieldID += 1;
 			}
 		}
 	}
@@ -137,5 +142,9 @@ public class StructConnectionView {
 
 	int mapUploadableFieldID(int uploadableFieldID) {
 		return uploadableFieldsMapping[uploadableFieldID];
+	}
+
+	int mapToUploadableFieldID(int fieldID) {
+		return reverseUploadableFieldMapping[fieldID];
 	}
 }

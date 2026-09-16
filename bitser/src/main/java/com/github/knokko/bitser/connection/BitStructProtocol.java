@@ -1,11 +1,13 @@
 package com.github.knokko.bitser.connection;
 
+import com.github.knokko.bitser.Bitser;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -37,11 +39,16 @@ public class BitStructProtocol {
 			BiConsumer<Object, Object> setFieldValue
 	) {}
 
+	private final Bitser bitser;
 	private final Map<FieldKey, FieldInfo> mapping = new HashMap<>();
 	private FieldInfo[] idToInfo;
 
 	private int numFields;
 	private boolean finishedRegistration;
+
+	public BitStructProtocol(Bitser bitser) {
+		this.bitser = bitser;
+	}
 
 	public void addField(Field field, FieldType type, Serializer flatSerializer, Deserializer flatDeserializer) {
 		if (finishedRegistration) throw new IllegalStateException("Registration is finished");
@@ -121,5 +128,13 @@ public class BitStructProtocol {
 
 	Object deserializeFlatFieldValue(int fieldID, BitInputStream input) throws Throwable {
 		return idToInfo[fieldID].flatDeserializer.deserialize(input);
+	}
+
+	boolean areFlatValuesEqual(int fieldID, Object a, Object b) {
+		var fieldInfo = idToInfo[fieldID];
+		return switch (fieldInfo.type) {
+			case SIMPLE -> Objects.equals(a, b);
+			case STRUCT -> bitser.deepEquals(a, b);
+		};
 	}
 }

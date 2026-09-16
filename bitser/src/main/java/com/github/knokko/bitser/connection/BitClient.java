@@ -2,8 +2,10 @@ package com.github.knokko.bitser.connection;
 
 import com.github.knokko.bitser.IntegerBitser;
 import com.github.knokko.bitser.io.BitInputStream;
+import com.github.knokko.bitser.io.BitOutputStream;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -75,27 +77,42 @@ public class BitClient {
 
 	public static class ReadWriteStruct {
 
-		private record Subscription(int fieldID, Consumer<Object> updateValue) {}
+		private record Subscription(int fieldID, Consumer<Object> updateValue, boolean considerLocalValue) {}
+
+		private record ChangeStateSubscription(int fieldID, Consumer<ChangeState> updateChangeState) {}
+
+		public enum ChangeState {
+
+			UNINITIALIZED,
+			UP_TO_DATE,
+			MODIFIED,
+			SAVING
+		}
 
 		private final StructConnectionView view;
+		private final BitOutputStream toServer;
 		private final long reference;
 		private final Object[] serverValues;
 		private final Object[] localValues;
-		private final List<ReadOnlyStruct.Subscription> subscriptions = new ArrayList<>();
+		private final ChangeState[] changeStates;
+		private final List<Subscription> subscriptions = new ArrayList<>();
+		private final List<ChangeStateSubscription> changeStateSubscriptions = new ArrayList<>();
 
-		private boolean didInitialize;
-
-		public ReadWriteStruct(StructConnectionView view, long reference) {
+		public ReadWriteStruct(StructConnectionView view, BitOutputStream toServer, long reference) {
 			this.view = view;
+			this.toServer = toServer;
 			this.reference = reference;
 			this.serverValues = new Object[view.protocol.getNumFields()];
 			this.localValues = new Object[view.protocol.getNumFields()];
+			this.changeStates = new ChangeState[view.protocol.getNumFields()];
+			Arrays.fill(changeStates, ChangeState.UNINITIALIZED);
 		}
 
 		public void readFromServer(BitInputStream input) throws Throwable {
 			for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
 				if (view.shouldDownloadDuringInitialization(fieldID)) {
 					serverValues[fieldID] = view.protocol.deserializeFlatFieldValue(fieldID, input);
+					changeStates[fieldID] = ChangeState.UP_TO_DATE;
 				}
 			}
 			input.discardCurrentByte();
@@ -106,7 +123,11 @@ public class BitClient {
 						subscription.updateValue.accept(serverValues[subscription.fieldID]);
 					}
 				}
-				didInitialize = true;
+				for (var subscription: changeStateSubscriptions) {
+					if (view.shouldDownloadDuringInitialization(subscription.fieldID)) {
+						subscription.updateChangeState.accept(ChangeState.UP_TO_DATE);
+					}
+				}
 			}
 
 			long maxDownloadableFieldID = view.getNumLateDownloadableFields() - 1L;
@@ -118,12 +139,104 @@ public class BitClient {
 				);
 				int fieldID = view.mapDownloadableFieldID(downloadableFieldID);
 				Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, input);
+				System.out.println("Client: receive " + newValue + " for field " + fieldID);
 				input.discardCurrentByte();
 				synchronized (this) {
-					fieldValues[fieldID] = newValue;
-					for (var subscription : subscriptions) {
-						if (subscription.fieldID == fieldID) subscription.updateValue.accept(newValue);
+					Object oldValue = serverValues[fieldID];
+					serverValues[fieldID] = newValue;
+					if (changeStates[fieldID] != ChangeState.UP_TO_DATE) {
+						if (view.protocol.areFlatValuesEqual(fieldID, oldValue, newValue)) {
+							changeStates[fieldID] = ChangeState.UP_TO_DATE;
+							localValues[fieldID] = null;
+
+							for (var subscription : changeStateSubscriptions) {
+								if (subscription.fieldID == fieldID) {
+									subscription.updateChangeState.accept(ChangeState.UP_TO_DATE);
+								}
+							}
+						}
 					}
+
+					for (var subscription : subscriptions) {
+						if (subscription.fieldID == fieldID && !subscription.considerLocalValue) {
+							subscription.updateValue.accept(newValue);
+						}
+					}
+				}
+			}
+		}
+
+		public synchronized <T> void subscribeValue(
+				Class<?> declaringClass, String fieldName,
+				boolean considerLocalValue, Consumer<T> updateValue
+		) {
+			int fieldId = view.protocol.getFieldId(declaringClass, fieldName);
+
+			@SuppressWarnings("unchecked")
+			var subscription = new Subscription(fieldId, (Consumer<Object>) updateValue, considerLocalValue);
+			subscriptions.add(subscription);
+
+			if (changeStates[fieldId] != ChangeState.UNINITIALIZED) {
+				if (considerLocalValue && changeStates[fieldId] != ChangeState.UP_TO_DATE) {
+					subscription.updateValue.accept(localValues[fieldId]);
+				} else {
+					subscription.updateValue.accept(serverValues[fieldId]);
+				}
+			}
+		}
+
+		public synchronized void subscribeChangeState(
+				Class<?> declaringClass, String fieldName, Consumer<ChangeState> updateChangeState
+		) {
+			int fieldId = view.protocol.getFieldId(declaringClass, fieldName);
+			var subscription = new ChangeStateSubscription(fieldId, updateChangeState);
+			changeStateSubscriptions.add(subscription);
+
+			subscription.updateChangeState.accept(changeStates[fieldId]);
+		}
+
+		public synchronized void setValue(Class<?> declaringClass, String fieldName, Object newValue) {
+			int fieldId = view.protocol.getFieldId(declaringClass, fieldName);
+			Object serverValue = serverValues[fieldId];
+
+			if (view.protocol.areFlatValuesEqual(fieldId, serverValue, newValue)) {
+				changeStates[fieldId] = ChangeState.UP_TO_DATE;
+				localValues[fieldId] = null;
+			} else {
+				changeStates[fieldId] = ChangeState.MODIFIED;
+				localValues[fieldId] = newValue;
+			}
+
+			for (var subscription : subscriptions) {
+				if (subscription.fieldID == fieldId && subscription.considerLocalValue) {
+					subscription.updateValue.accept(newValue);
+				}
+			}
+
+			for (var subscription : changeStateSubscriptions) {
+				if (subscription.fieldID == fieldId) {
+					subscription.updateChangeState.accept(changeStates[fieldId]);
+				}
+			}
+		}
+
+		public synchronized void saveValue(Class<?> declaringClass, String fieldName) {
+			int fieldID = view.protocol.getFieldId(declaringClass, fieldName);
+			System.out.println("Client: save value " + localValues[fieldID] + " for field " + fieldID);
+			int uploadableFieldID = view.mapToUploadableFieldID(fieldID);
+			int maxUploadableFieldID = view.getNumUploadableFields() - 1;
+			try {
+				IntegerBitser.encodeUniformInteger(uploadableFieldID, 0L, maxUploadableFieldID, toServer);
+				view.protocol.serializeFlatFieldValue(fieldID, toServer, localValues[fieldID]);
+				toServer.flush();
+			} catch (Throwable failed) {
+				throw new RuntimeException(failed);
+			}
+			changeStates[fieldID] = ChangeState.SAVING;
+
+			for (var subscription : changeStateSubscriptions) {
+				if (subscription.fieldID == fieldID) {
+					subscription.updateChangeState.accept(ChangeState.SAVING);
 				}
 			}
 		}
