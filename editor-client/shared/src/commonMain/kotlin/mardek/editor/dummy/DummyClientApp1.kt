@@ -51,8 +51,6 @@ fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitCl
 	val connectionThread = Thread {
 		var isFirst = true
 		connection.setPeerInitiatedStreamCallback { stream ->
-			// TODO Figure out why this is never invoked
-			println("Stream was opened: $isFirst")
 			stream.inputStream.read() // Skip the first (dummy) byte
 
 			if (isFirst) {
@@ -67,7 +65,6 @@ fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitCl
 				)
 
 				val mainReadThread = Thread {
-					println("Start reading main connection...")
 					getRootStruct.complete(rootConnection)
 					rootConnection.readFromServer(BitInputStream(stream.inputStream))
 				}
@@ -78,7 +75,6 @@ fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitCl
 			}
 		}
 		connection.connect()
-		println("connected")
 	}
 	connectionThread.isDaemon = true
 	connectionThread.start()

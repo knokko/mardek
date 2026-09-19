@@ -22,19 +22,13 @@ private class ProtocolConnection(
 
 	init {
 		val thread = Thread {
-			println("creating stream...")
 			val mainStream = clientConnection.createStream(true)
-			println("created stream")
 
 			// It looks like the client cannot see the stream until the server writes the first byte
 			mainStream.outputStream.write(0)
 			mainStream.outputStream.flush()
-			//mainStream.outputStream.write("hello world\n".toByteArray())
 
 			val authToken = mainStream.inputStream.readNBytes(AUTH_TOKEN_LENGTH)
-			mainStream.outputStream.write(100)
-			mainStream.outputStream.flush()
-			println("got auth token ${authToken.contentToString()}")
 			if (!authToken.contentEquals(TEST_AUTH_TOKEN)) {
 				clientConnection.close()
 				return@Thread
@@ -44,15 +38,6 @@ private class ProtocolConnection(
 		}
 		thread.isDaemon = true
 		thread.start()
-	}
-
-	override fun acceptPeerInitiatedStream(stream: QuicStream) {
-		super.acceptPeerInitiatedStream(stream)
-		println("hey, a client connected")
-		println("trying to read something ${stream.inputStream.read()}")
-		stream.outputStream.write(78)
-		stream.outputStream.flush()
-		println("tried to write something")
 	}
 }
 
@@ -70,25 +55,17 @@ private class ProtocolFactory(
 		}
 		return ProtocolConnection(rootController, quicConnection)
 	}
-
-	override fun maxConcurrentPeerInitiatedUnidirectionalStreams(): Int {
-		return 100
-	}
-
-	override fun maxConcurrentPeerInitiatedBidirectionalStreams(): Int {
-		return 100
-	}
 }
 
 fun main() {
 	val config = ServerConnectionConfig.builder()
-		.maxTotalPeerInitiatedBidirectionalStreams(10)
-		.maxTotalPeerInitiatedUnidirectionalStreams(10)
-		.maxOpenPeerInitiatedBidirectionalStreams(10)
-		.maxOpenPeerInitiatedUnidirectionalStreams(10)
-//		.maxConnectionBufferSize(100_000L)
-//		.maxUnidirectionalStreamBufferSize(1000L)
-//		.maxBidirectionalStreamBufferSize(1000L)
+		.maxTotalPeerInitiatedBidirectionalStreams(0)
+		.maxTotalPeerInitiatedUnidirectionalStreams(0)
+		.maxOpenPeerInitiatedBidirectionalStreams(0)
+		.maxOpenPeerInitiatedUnidirectionalStreams(0)
+		.maxConnectionBufferSize(100_000L)
+		.maxUnidirectionalStreamBufferSize(1000L)
+		.maxBidirectionalStreamBufferSize(1000L)
 		.build()
 
 	val keyStore = KeyStore.getInstance(
@@ -97,9 +74,6 @@ fun main() {
 	)
 
 	val logger = SysOutLogger()
-//	logger.logInfo(true)
-//	logger.logPackets(true)
-//	logger.logDebug(true)
 
 	val connector = ServerConnector.builder()
 		.withPort(EDITOR_PORT)

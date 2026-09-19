@@ -26,7 +26,10 @@ fun main() {
         println("Changed displayName to $it")
     }
     Thread.sleep(3000)
+    println("set value...")
     rootStruct.setValue(null, "displayName", "hello")
+    rootStruct.saveValue(null, "displayName")
+    println("saved value")
     Thread.sleep(3000)
-    connection.closeAndWait()
+    //connection.closeAndWait()
 }
