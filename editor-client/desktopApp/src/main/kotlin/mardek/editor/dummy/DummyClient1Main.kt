@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
+import java.util.concurrent.TimeUnit
 
 //fun main() = application {
 //    val connection = launchDummyConnection1()
@@ -19,6 +20,13 @@ import androidx.compose.ui.window.application
 //}
 
 fun main() {
-    launchDummyConnection1()
-    Thread.sleep(15000)
+    val (connection, getRootStruct) = launchDummyConnection1()
+    val rootStruct = getRootStruct.get(10, TimeUnit.MINUTES)
+    rootStruct.subscribeValue<String>(null, "displayName", true) {
+        println("Changed displayName to $it")
+    }
+    Thread.sleep(3000)
+    rootStruct.setValue(null, "displayName", "hello")
+    Thread.sleep(3000)
+    connection.closeAndWait()
 }
