@@ -14,12 +14,14 @@ import mardek.editor.SERVER_CERTIFICATE_FOLDER
 import mardek.editor.TEST_AUTH_TOKEN
 import mardek.editor.client.inventory.ItemTypeComponent
 import mardek.editor.view.generateDummyView1
+import mardek.editor_client.shared.generated.resources.Res
 import tech.kwik.core.QuicClientConnection
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
 import java.security.KeyStore
 import java.security.cert.CertificateFactory
+import java.time.Duration
 import java.util.concurrent.CompletableFuture
 
 @Composable
@@ -43,41 +45,43 @@ fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitCl
 		.uri(URI("https://localhost:$EDITOR_PORT"))
 		.applicationProtocol(EDITOR_APPLICATION_PROTOCOL_NAME)
 		.customTrustStore(trustStore)
-		.maxOpenPeerInitiatedUnidirectionalStreams(100)
-		.maxOpenPeerInitiatedBidirectionalStreams(100)
 		.build()
 
-	val connectionThread = Thread {
-		var isFirst = true
-		connection.setPeerInitiatedStreamCallback { stream ->
-			stream.inputStream.read() // Skip the first (dummy) byte
+	var streamCounter = 0
+	connection.setPeerInitiatedStreamCallback { stream ->
+		stream.inputStream.read() // Skip the first (dummy) byte
 
-			if (isFirst) {
-				isFirst = false
-				stream.outputStream.write(TEST_AUTH_TOKEN)
-				stream.outputStream.flush()
+		if (streamCounter == 0) {
+			stream.outputStream.write(TEST_AUTH_TOKEN)
+			stream.outputStream.flush()
 
-				val rootConnection = BitClient.ReadWriteStruct(
-					generateDummyView1(),
-					BitOutputStream(stream.outputStream),
-					{ stream.resetStream(0L) },
-					0L
-				)
+			val rootConnection = BitClient.ReadWriteStruct(
+				generateDummyView1(),
+				BitOutputStream(stream.outputStream),
+				{ stream.resetStream(0L) },
+				0L
+			)
 
-				val mainReadThread = Thread {
-					getRootStruct.complete(rootConnection)
-					rootConnection.readFromServer(BitInputStream(stream.inputStream))
-				}
-				mainReadThread.isDaemon = true
-				mainReadThread.start()
-			} else {
-				throw RuntimeException("Not yet")
+			val mainReadThread = Thread {
+				getRootStruct.complete(rootConnection)
+				rootConnection.readFromServer(BitInputStream(stream.inputStream))
 			}
+			mainReadThread.isDaemon = true
+			mainReadThread.start()
+		} else if (streamCounter == 1) {
+			while (true) {
+				if (stream.inputStream.read() != 123) {
+					connection.close()
+					throw RuntimeException("Keep-alive stream sent unexpected byte")
+				}
+			}
+		} else {
+			throw RuntimeException("Not yet")
 		}
-		connection.connect()
+
+		streamCounter += 1
 	}
-	connectionThread.isDaemon = true
-	connectionThread.start()
+	connection.connect()
 
 	return Pair(connection, getRootStruct)
 }

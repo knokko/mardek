@@ -12,6 +12,7 @@ import tech.kwik.core.server.ApplicationProtocolConnectionFactory
 import tech.kwik.core.server.ServerConnectionConfig
 import tech.kwik.core.server.ServerConnector
 import java.io.File
+import java.lang.Thread.sleep
 import java.security.KeyStore
 
 private class ProtocolConnection(
@@ -33,7 +34,22 @@ private class ProtocolConnection(
 				return@Thread
 			}
 
+			val keepAliveStream = clientConnection.createStream(false)
+			keepAliveStream.outputStream.write(123)
+			keepAliveStream.outputStream.flush()
+
+			val keepAliveThread = Thread {
+				while (true) {
+					keepAliveStream.outputStream.write(123)
+					keepAliveStream.outputStream.flush()
+					sleep(10_000L)
+				}
+			}
+			keepAliveThread.isDaemon = true
+			keepAliveThread.start()
+
 			rootController.addClient(mainStream.outputStream, mainStream.inputStream) {
+				println("RESET MAIN STREAM")
 				mainStream.resetStream(0L)
 			}
 		}
