@@ -12,6 +12,7 @@ import mardek.editor.EDITOR_KEY_ALIAS
 import mardek.editor.EDITOR_PORT
 import mardek.editor.SERVER_CERTIFICATE_FOLDER
 import mardek.editor.TEST_AUTH_TOKEN
+import mardek.editor.client.inventory.ItemTypeComponent
 import mardek.editor.view.generateDummyView1
 import tech.kwik.core.QuicClientConnection
 import java.io.File
@@ -22,10 +23,8 @@ import java.security.cert.CertificateFactory
 import java.util.concurrent.CompletableFuture
 
 @Composable
-fun DummyApp1(connection: QuicClientConnection) {
-	Column {
-		Text("DummyApp1")
-	}
+fun DummyApp1(connection: QuicClientConnection, rootStruct: BitClient.ReadWriteStruct) {
+	ItemTypeComponent(rootStruct)
 }
 
 fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitClient.ReadWriteStruct>> {
@@ -61,6 +60,7 @@ fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitCl
 				val rootConnection = BitClient.ReadWriteStruct(
 					generateDummyView1(),
 					BitOutputStream(stream.outputStream),
+					{ stream.resetStream(0L) },
 					0L
 				)
 

@@ -96,6 +96,7 @@ public class BitClient {
 
 		private final StructConnectionView view;
 		private final BitOutputStream toServer;
+		private final Runnable closeStream;
 		private final long reference;
 		private final Object[] serverValues;
 		private final Object[] localValues;
@@ -103,9 +104,10 @@ public class BitClient {
 		private final List<Subscription> subscriptions = new ArrayList<>();
 		private final List<ChangeStateSubscription> changeStateSubscriptions = new ArrayList<>();
 
-		public ReadWriteStruct(StructConnectionView view, BitOutputStream toServer, long reference) {
+		public ReadWriteStruct(StructConnectionView view, BitOutputStream toServer, Runnable closeStream, long reference) {
 			this.view = view;
 			this.toServer = toServer;
+			this.closeStream = closeStream;
 			this.reference = reference;
 			this.serverValues = new Object[view.protocol.getNumFields()];
 			this.localValues = new Object[view.protocol.getNumFields()];
@@ -114,67 +116,71 @@ public class BitClient {
 		}
 
 		public void readFromServer(BitInputStream input) throws Throwable {
-			for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
-				if (view.shouldDownloadDuringInitialization(fieldID)) {
-					serverValues[fieldID] = view.protocol.deserializeFlatFieldValue(fieldID, input);
-				}
-			}
-			input.discardCurrentByte();
-
-			synchronized (this) {
+			try {
 				for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
 					if (view.shouldDownloadDuringInitialization(fieldID)) {
-						changeStates[fieldID] = ChangeState.UP_TO_DATE;
+						serverValues[fieldID] = view.protocol.deserializeFlatFieldValue(fieldID, input);
 					}
 				}
-
-				for (var subscription : subscriptions) {
-					if (view.shouldDownloadDuringInitialization(subscription.fieldID)) {
-						System.out.println("Client: subscribe update during initialization");
-						subscription.updateValue.accept(serverValues[subscription.fieldID]);
-					}
-				}
-				for (var subscription: changeStateSubscriptions) {
-					if (view.shouldDownloadDuringInitialization(subscription.fieldID)) {
-						subscription.updateChangeState.accept(ChangeState.UP_TO_DATE);
-					}
-				}
-			}
-
-			long maxDownloadableFieldID = view.getNumLateDownloadableFields() - 1L;
-
-			//noinspection InfiniteLoopStatement
-			while (true) {
-				int downloadableFieldID = (int) IntegerBitser.decodeUniformInteger(
-						0L, maxDownloadableFieldID, input
-				);
-				int fieldID = view.mapDownloadableFieldID(downloadableFieldID);
-				Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, input);
-				System.out.println("Client: receive " + newValue + " for field " + fieldID);
 				input.discardCurrentByte();
-				synchronized (this) {
-					Object oldValue = serverValues[fieldID];
-					serverValues[fieldID] = newValue;
-					if (changeStates[fieldID] != ChangeState.UP_TO_DATE) {
-						if (view.protocol.areFlatValuesEqual(fieldID, oldValue, newValue)) {
-							changeStates[fieldID] = ChangeState.UP_TO_DATE;
-							localValues[fieldID] = null;
 
-							for (var subscription : changeStateSubscriptions) {
-								if (subscription.fieldID == fieldID) {
-									subscription.updateChangeState.accept(ChangeState.UP_TO_DATE);
-								}
-							}
+				synchronized (this) {
+					for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
+						if (view.shouldDownloadDuringInitialization(fieldID)) {
+							changeStates[fieldID] = ChangeState.UP_TO_DATE;
 						}
 					}
 
 					for (var subscription : subscriptions) {
-						if (subscription.fieldID == fieldID && !subscription.considerLocalValue) {
-							System.out.println("Client: subscribe for initial");
-							subscription.updateValue.accept(newValue);
+						if (view.shouldDownloadDuringInitialization(subscription.fieldID)) {
+							System.out.println("Client: subscribe update during initialization");
+							subscription.updateValue.accept(serverValues[subscription.fieldID]);
+						}
+					}
+					for (var subscription: changeStateSubscriptions) {
+						if (view.shouldDownloadDuringInitialization(subscription.fieldID)) {
+							subscription.updateChangeState.accept(ChangeState.UP_TO_DATE);
 						}
 					}
 				}
+
+				long maxDownloadableFieldID = view.getNumLateDownloadableFields() - 1L;
+
+				//noinspection InfiniteLoopStatement
+				while (true) {
+					int downloadableFieldID = (int) IntegerBitser.decodeUniformInteger(
+							0L, maxDownloadableFieldID, input
+					);
+					int fieldID = view.mapDownloadableFieldID(downloadableFieldID);
+					Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, input);
+					System.out.println("Client: receive " + newValue + " for field " + fieldID);
+					input.discardCurrentByte();
+					synchronized (this) {
+						Object oldValue = serverValues[fieldID];
+						serverValues[fieldID] = newValue;
+						if (changeStates[fieldID] != ChangeState.UP_TO_DATE) {
+							if (view.protocol.areFlatValuesEqual(fieldID, oldValue, newValue)) {
+								changeStates[fieldID] = ChangeState.UP_TO_DATE;
+								localValues[fieldID] = null;
+
+								for (var subscription : changeStateSubscriptions) {
+									if (subscription.fieldID == fieldID) {
+										subscription.updateChangeState.accept(ChangeState.UP_TO_DATE);
+									}
+								}
+							}
+						}
+
+						for (var subscription : subscriptions) {
+							if (subscription.fieldID == fieldID && !subscription.considerLocalValue) {
+								System.out.println("Client: subscribe for initial");
+								subscription.updateValue.accept(newValue);
+							}
+						}
+					}
+				}
+			} finally {
+				closeStream.run();
 			}
 		}
 
@@ -260,6 +266,10 @@ public class BitClient {
 					subscription.updateChangeState.accept(ChangeState.SAVING);
 				}
 			}
+		}
+
+		public void close() {
+			closeStream.run();
 		}
 	}
 }

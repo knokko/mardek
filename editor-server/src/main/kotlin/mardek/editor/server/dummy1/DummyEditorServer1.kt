@@ -6,7 +6,6 @@ import mardek.editor.*
 import mardek.editor.server.EDITOR_KEY_PASSWORD
 import mardek.editor.view.generateDummyView1
 import tech.kwik.core.QuicConnection
-import tech.kwik.core.QuicStream
 import tech.kwik.core.log.SysOutLogger
 import tech.kwik.core.server.ApplicationProtocolConnection
 import tech.kwik.core.server.ApplicationProtocolConnectionFactory
@@ -34,7 +33,9 @@ private class ProtocolConnection(
 				return@Thread
 			}
 
-			rootController.addClient(mainStream.outputStream, mainStream.inputStream)
+			rootController.addClient(mainStream.outputStream, mainStream.inputStream) {
+				mainStream.resetStream(0L)
+			}
 		}
 		thread.isDaemon = true
 		thread.start()
