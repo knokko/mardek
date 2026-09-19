@@ -39,6 +39,7 @@ public class BitClient {
 			synchronized (this) {
 				for (var subscription : subscriptions) {
 					if (view.shouldDownloadDuringInitialization(subscription.fieldID)) {
+						System.out.println("Client: subscribe initial");
 						subscription.updateValue.accept(fieldValues[subscription.fieldID]);
 					}
 				}
@@ -58,6 +59,7 @@ public class BitClient {
 				synchronized (this) {
 					fieldValues[fieldID] = newValue;
 					for (var subscription : subscriptions) {
+						System.out.println("Client: subscribe late");
 						if (subscription.fieldID == fieldID) subscription.updateValue.accept(newValue);
 					}
 				}
@@ -71,7 +73,10 @@ public class BitClient {
 			var subscription = new Subscription(fieldId, (Consumer<Object>) updateValue);
 			subscriptions.add(subscription);
 
-			if (didInitialize) subscription.updateValue.accept(fieldValues[fieldId]);
+			if (didInitialize) {
+				System.out.println("Client: subscribe: already initialized");
+				subscription.updateValue.accept(fieldValues[fieldId]);
+			}
 		}
 	}
 
@@ -112,14 +117,20 @@ public class BitClient {
 			for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
 				if (view.shouldDownloadDuringInitialization(fieldID)) {
 					serverValues[fieldID] = view.protocol.deserializeFlatFieldValue(fieldID, input);
-					changeStates[fieldID] = ChangeState.UP_TO_DATE;
 				}
 			}
 			input.discardCurrentByte();
 
 			synchronized (this) {
+				for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
+					if (view.shouldDownloadDuringInitialization(fieldID)) {
+						changeStates[fieldID] = ChangeState.UP_TO_DATE;
+					}
+				}
+
 				for (var subscription : subscriptions) {
 					if (view.shouldDownloadDuringInitialization(subscription.fieldID)) {
+						System.out.println("Client: subscribe update during initialization");
 						subscription.updateValue.accept(serverValues[subscription.fieldID]);
 					}
 				}
@@ -159,6 +170,7 @@ public class BitClient {
 
 					for (var subscription : subscriptions) {
 						if (subscription.fieldID == fieldID && !subscription.considerLocalValue) {
+							System.out.println("Client: subscribe for initial");
 							subscription.updateValue.accept(newValue);
 						}
 					}
@@ -176,6 +188,7 @@ public class BitClient {
 			var subscription = new Subscription(fieldId, (Consumer<Object>) updateValue, considerLocalValue);
 			subscriptions.add(subscription);
 
+			System.out.println("Client: subscribe: change state is " + changeStates[fieldId]);
 			if (changeStates[fieldId] != ChangeState.UNINITIALIZED) {
 				if (considerLocalValue && changeStates[fieldId] != ChangeState.UP_TO_DATE) {
 					subscription.updateValue.accept(localValues[fieldId]);
@@ -202,13 +215,16 @@ public class BitClient {
 			if (view.protocol.areFlatValuesEqual(fieldId, serverValue, newValue)) {
 				changeStates[fieldId] = ChangeState.UP_TO_DATE;
 				localValues[fieldId] = null;
+				System.out.println("Client: Marked as up-to-date");
 			} else {
 				changeStates[fieldId] = ChangeState.MODIFIED;
 				localValues[fieldId] = newValue;
+				System.out.println("Client: Marked as modified");
 			}
 
 			for (var subscription : subscriptions) {
 				if (subscription.fieldID == fieldId && subscription.considerLocalValue) {
+					System.out.println("Client: setValue: update value");
 					subscription.updateValue.accept(newValue);
 				}
 			}
@@ -222,7 +238,12 @@ public class BitClient {
 
 		public synchronized void saveValue(Class<?> declaringClass, String fieldName) {
 			int fieldID = view.protocol.getFieldId(declaringClass, fieldName);
+			if (changeStates[fieldID] != ChangeState.MODIFIED && changeStates[fieldID] != ChangeState.SAVING) {
+				return;
+			}
+
 			System.out.println("Client: save value " + localValues[fieldID] + " for field " + fieldID);
+			System.out.println("server values are " + Arrays.toString(serverValues) + " and local are " + Arrays.toString(localValues) + " and changes are " + Arrays.toString(changeStates));
 			int uploadableFieldID = view.mapToUploadableFieldID(fieldID);
 			int maxUploadableFieldID = view.getNumUploadableFields() - 1;
 			try {
