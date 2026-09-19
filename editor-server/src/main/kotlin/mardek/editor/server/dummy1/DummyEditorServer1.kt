@@ -26,7 +26,10 @@ private class ProtocolConnection(
 			val mainStream = clientConnection.createStream(true)
 			println("created stream")
 
-			mainStream.outputStream.write("hello world\n".toByteArray())
+			// It looks like the client cannot see the stream until the server writes the first byte
+			mainStream.outputStream.write(0)
+			mainStream.outputStream.flush()
+			//mainStream.outputStream.write("hello world\n".toByteArray())
 
 			val authToken = mainStream.inputStream.readNBytes(AUTH_TOKEN_LENGTH)
 			mainStream.outputStream.write(100)
