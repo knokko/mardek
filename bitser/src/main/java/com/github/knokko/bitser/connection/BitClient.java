@@ -156,9 +156,10 @@ public class BitClient {
 					System.out.println("Client: receive " + newValue + " for field " + fieldID);
 					input.discardCurrentByte();
 					synchronized (this) {
-						Object oldValue = serverValues[fieldID];
 						serverValues[fieldID] = newValue;
 						if (changeStates[fieldID] != ChangeState.UP_TO_DATE) {
+							Object oldValue = localValues[fieldID];
+							System.out.println("Client: changing " + oldValue + " to " + newValue + " with change state " + changeStates[fieldID]);
 							if (view.protocol.areFlatValuesEqual(fieldID, oldValue, newValue)) {
 								changeStates[fieldID] = ChangeState.UP_TO_DATE;
 								localValues[fieldID] = null;
@@ -172,9 +173,11 @@ public class BitClient {
 						}
 
 						for (var subscription : subscriptions) {
-							if (subscription.fieldID == fieldID && !subscription.considerLocalValue) {
-								System.out.println("Client: subscribe for initial");
-								subscription.updateValue.accept(newValue);
+							if (subscription.fieldID == fieldID) {
+								System.out.println("Client: subscribe for change");
+								if (!subscription.considerLocalValue || changeStates[fieldID] == ChangeState.UP_TO_DATE) {
+									subscription.updateValue.accept(newValue);
+								}
 							}
 						}
 					}
