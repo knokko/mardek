@@ -29,8 +29,8 @@ public class BitServer<T> {
 			this.view = view;
 		}
 
-		public synchronized void addClient(OutputStream toClient, InputStream fromClient) {
-			var connection = new StructConnection(toClient, new BitInputStream(fromClient));
+		public synchronized void addClient(OutputStream toClient, InputStream fromClient, Runnable closeStream) {
+			var connection = new StructConnection(toClient, new BitInputStream(fromClient), closeStream);
 			connections.add(connection);
 
 			if (view.getNumUploadableFields() > 0) {
@@ -44,13 +44,17 @@ public class BitServer<T> {
 
 		private class StructConnection {
 
+			private static final byte[] CANCEL_TOKEN = new byte[0];
+
 			final OutputStream toClient;
 			final BitInputStream fromClient;
+			final Runnable closeStream;
 			final BlockingQueue<byte[]> toClientQueue = new LinkedBlockingQueue<>();
 
-			StructConnection(OutputStream toClient, BitInputStream fromClient) {
+			StructConnection(OutputStream toClient, BitInputStream fromClient, Runnable closeStream) {
 				this.toClient = toClient;
 				this.fromClient = fromClient;
+				this.closeStream = closeStream;
 			}
 
 			void writeToClient() {
@@ -75,6 +79,7 @@ public class BitServer<T> {
 
 						while (true) {
 							var nextPacket = toClientQueue.take();
+							if (nextPacket == CANCEL_TOKEN) return;
 							toClient.write(nextPacket);
 							toClient.flush();
 						}
@@ -128,6 +133,8 @@ public class BitServer<T> {
 
 			void close() {
 				try {
+					toClientQueue.add(CANCEL_TOKEN);
+					closeStream.run();
 					fromClient.close();
 					toClient.close();
 				} catch (IOException alreadyClosed) {
