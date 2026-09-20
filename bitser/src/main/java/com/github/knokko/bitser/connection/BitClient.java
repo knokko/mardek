@@ -22,12 +22,10 @@ public class BitClient {
 
 		final StructConnectionView view;
 		final int fieldID;
-		final BitOutputStream toServer;
 
-		AbstractField(StructConnectionView view, int fieldID, BitOutputStream toServer) {
+		AbstractField(StructConnectionView view, int fieldID) {
 			this.view = view;
 			this.fieldID = fieldID;
-			this.toServer = toServer;
 		}
 
 		abstract void readFromServerInitial(BitInputStream input) throws Throwable;
@@ -35,6 +33,8 @@ public class BitClient {
 		abstract void postReadFromServerInitial();
 
 		abstract void setFromServer(Object newServerValue);
+
+		abstract void save(BitOutputStream output) throws Throwable;
 	}
 
 	public static class SimpleFlatField<T> extends AbstractField {
@@ -46,8 +46,8 @@ public class BitClient {
 		private final List<Consumer<T>> localListeners = new ArrayList<>();
 		private final List<Consumer<ChangeState>> changeStateListeners = new ArrayList<>();
 
-		public SimpleFlatField(StructConnectionView view, int fieldID, BitOutputStream toServer) {
-			super(view, fieldID, toServer);
+		public SimpleFlatField(StructConnectionView view, int fieldID) {
+			super(view, fieldID);
 			this.changeState = ChangeState.UNINITIALIZED;
 		}
 
@@ -92,7 +92,7 @@ public class BitClient {
 			}
 		}
 
-		public synchronized void subscribe(boolean considerLocalValue, Consumer<T> updateValue) {
+		public synchronized Object subscribe(boolean considerLocalValue, Consumer<T> updateValue) {
 			if (considerLocalValue) localListeners.add(updateValue);
 			else serverListeners.add(updateValue);
 
@@ -103,11 +103,22 @@ public class BitClient {
 					updateValue.accept(serverValue);
 				}
 			}
+
+			return updateValue;
 		}
 
-		public synchronized void subscribeChangeState(Consumer<ChangeState> updateChangeState) {
+		public synchronized Object subscribeChangeState(Consumer<ChangeState> updateChangeState) {
 			changeStateListeners.add(updateChangeState);
 			if (changeState != ChangeState.UNINITIALIZED) updateChangeState.accept(changeState);
+			return updateChangeState;
+		}
+
+		@SuppressWarnings("SuspiciousMethodCalls")
+		public synchronized void cancelSubscription(Object subscription) {
+			if (changeStateListeners.remove(subscription)) return;
+			if (serverListeners.remove(subscription)) return;
+			if (localListeners.remove(subscription)) return;
+			System.err.println("Warning: attempted to cancel missing subscription for field " + fieldID + " of " + view);
 		}
 
 		public synchronized void set(T newValue) {
@@ -127,21 +138,16 @@ public class BitClient {
 			}
 		}
 
-		public synchronized void save() {
-			if (changeState != ChangeState.MODIFIED && changeState != ChangeState.SAVING) return;
-
-			int uploadableFieldID = view.mapToUploadableFieldID(fieldID);
-			int maxUploadableFieldID = view.getNumUploadableFields() - 1;
-
-			synchronized (toServer) {
-				try {
-					IntegerBitser.encodeUniformInteger(uploadableFieldID, 0L, maxUploadableFieldID, toServer);
-					view.protocol.serializeFlatFieldValue(fieldID, toServer, localValue);
-					toServer.flush();
-				} catch (Throwable failed) {
-					throw new RuntimeException(failed);
-				}
+		@Override
+		synchronized void save(BitOutputStream output) throws Throwable {
+			if (!view.canUploadFlat(fieldID)) return;
+			if (changeState != ChangeState.MODIFIED) {
+				output.write(false);
+				return;
 			}
+
+			output.write(true);
+			view.protocol.serializeFlatFieldValue(fieldID, output, localValue);
 
 			changeState = ChangeState.SAVING;
 
@@ -149,23 +155,31 @@ public class BitClient {
 		}
 	}
 
-	public static class ReadWriteStruct {
+	public static class Struct {
 
 		private final StructConnectionView view;
 		private final BitOutputStream toServer;
 		private final Runnable closeStream;
 		private final long reference;
 		private final AbstractField[] fields;
+		private final List<Consumer<Boolean>> canSaveListeners = new ArrayList<>();
+		private final boolean[] canSaveArray;
+		private boolean lastCanSave;
 
-		public ReadWriteStruct(StructConnectionView view, BitOutputStream toServer, Runnable closeStream, long reference) {
+		public Struct(StructConnectionView view, BitOutputStream toServer, Runnable closeStream, long reference) {
 			this.view = view;
 			this.toServer = toServer;
 			this.closeStream = closeStream;
 			this.reference = reference;
 			this.fields = new AbstractField[view.protocol.getNumFields()];
+			this.canSaveArray = new boolean[fields.length];
 			for (int fieldID = 0; fieldID < fields.length; fieldID++) {
 				if (view.protocol.getFieldType(fieldID) == BitStructProtocol.FieldType.SIMPLE) {
-					this.fields[fieldID] = new SimpleFlatField<>(view, fieldID, toServer);
+					var flatField = new SimpleFlatField<>(view, fieldID);
+					this.fields[fieldID] = flatField;
+					flatField.subscribeChangeState(newChangeState ->
+						this.updateCanSave(flatField.fieldID, newChangeState == ChangeState.MODIFIED)
+					);
 				}
 			}
 		}
@@ -177,18 +191,16 @@ public class BitClient {
 
 				for (var field : fields) field.postReadFromServerInitial();
 
-				long maxDownloadableFieldID = view.getNumLateDownloadableFields() - 1L;
-
 				//noinspection InfiniteLoopStatement
 				while (true) {
-					int downloadableFieldID = (int) IntegerBitser.decodeUniformInteger(
-							0L, maxDownloadableFieldID, input
-					);
-					int fieldID = view.mapDownloadableFieldID(downloadableFieldID);
-					Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, input);
-					System.out.println("Client: receive " + newValue + " for field " + fieldID);
+					for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
+						if (!view.canDownloadFlat(fieldID)) continue;
+						if (input.read()) {
+							Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, input);
+							fields[fieldID].setFromServer(newValue);
+						}
+					}
 					input.discardCurrentByte();
-					fields[fieldID].setFromServer(newValue);
 				}
 			} finally {
 				closeStream.run();
@@ -199,6 +211,53 @@ public class BitClient {
 			int fieldID = view.protocol.getFieldId(declaringClass, fieldName);
 			//noinspection unchecked
 			return (SimpleFlatField<T>) fields[fieldID];
+		}
+
+		private void updateCanSave(int fieldID, boolean canSaveField) {
+			synchronized (canSaveListeners) {
+				boolean previousCanSave = lastCanSave;
+				canSaveArray[fieldID] = canSaveField;
+				boolean newCanSave = false;
+				for (boolean canSave : canSaveArray) {
+					if (canSave) {
+						newCanSave = true;
+						break;
+					}
+				}
+
+				if (previousCanSave != newCanSave) {
+					lastCanSave = newCanSave;
+					for (var listener : canSaveListeners) listener.accept(newCanSave);
+				}
+			}
+		}
+
+		public Object subscribeCanSave(Consumer<Boolean> updateCanSave) {
+			synchronized (canSaveListeners) {
+				if (lastCanSave) updateCanSave.accept(true);
+				canSaveListeners.add(updateCanSave);
+				return updateCanSave; // TODO Allow subscription to be cancelled
+			}
+		}
+
+		public synchronized void cancelSubscription(Object subscription) {
+			synchronized (canSaveListeners) {
+				//noinspection SuspiciousMethodCalls
+				if (!canSaveListeners.remove(subscription)) {
+					System.err.println("Warning: cancelled missing subscription from " + view);
+				}
+			}
+		}
+
+		public void save() {
+			try {
+				synchronized (toServer) {
+					for (var field : fields) field.save(toServer);
+					toServer.flush();
+				}
+			} catch (Throwable failed) {
+				throw new RuntimeException(failed);
+			}
 		}
 
 		public void close() {
