@@ -25,6 +25,7 @@ fun ItemTypeComponent(itemType: BitClient.Struct) {
 	}
 
 	DisposableEffect(itemType) {
+		itemType.start()
 		val subscription = itemType.subscribeCanSave { mutateScope.launch { canSave = it } }
 		onDispose {
 			itemType.cancelSubscription(subscription)
