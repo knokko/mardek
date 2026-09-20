@@ -1,16 +1,13 @@
 package com.github.knokko.bitser.connection;
 
-import com.github.knokko.bitser.IntegerBitser;
 import com.github.knokko.bitser.io.BitInputStream;
-import com.github.knokko.bitser.io.BitOutputStream;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -93,34 +90,43 @@ public class BitServer<T> {
 
 			void readFromClient() {
 				try {
-					long maxUploadableFieldID = view.getNumUploadableFields() - 1L;
+					int numFields = view.protocol.getNumFields();
+					Object[] newValues = new Object[numFields];
+					boolean[] hasChanges = new boolean[numFields];
+
+					Arrays.fill(newValues, null);
+					Arrays.fill(hasChanges, false);
+
 					//noinspection InfiniteLoopStatement
 					while (true) {
-						int uploadableFieldID = (int) IntegerBitser.decodeUniformInteger(
-								0L, maxUploadableFieldID, fromClient
-						);
-						int fieldID = view.mapUploadableFieldID(uploadableFieldID);
-						Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, fromClient);
+						for (int fieldID = 0; fieldID < numFields; fieldID++) {
+							if (!view.canUploadFlat(fieldID)) continue;
+							if (!fromClient.read()) continue;
+
+							newValues[fieldID] = view.protocol.deserializeFlatFieldValue(fieldID, fromClient);
+							hasChanges[fieldID] = true;
+						}
 						fromClient.discardCurrentByte();
 
-						if (view.canDownloadFlat(fieldID)) {
-							int downloadableFieldID = view.mapToDownloadableFieldID(fieldID);
-							int maxDownloadableFieldID = view.getNumLateDownloadableFields() - 1;
-							byte[] packet = ConnectionHelper.capture(toClients -> {
-								IntegerBitser.encodeUniformInteger(
-										downloadableFieldID, 0L, maxDownloadableFieldID, toClients
-								);
-								view.protocol.serializeFlatFieldValue(fieldID, toClients, newValue);
-							});
-							synchronized (StructController.this) {
-								view.protocol.setFieldValue(structInstance, fieldID, newValue);
-								System.out.println("Server: set & propagate " + fieldID + " to " + newValue);
-								for (var connection : connections) connection.toClientQueue.add(packet);
+						byte[] packet = ConnectionHelper.capture(toClients -> {
+							for (int fieldID = 0; fieldID < numFields; fieldID++) {
+								if (!view.canDownloadFlat(fieldID)) continue;
+								toClients.write(hasChanges[fieldID]);
+								if (hasChanges[fieldID]) {
+									view.protocol.serializeFlatFieldValue(fieldID, toClients, newValues[fieldID]);
+								}
 							}
-						} else {
-							synchronized (StructController.this) {
-								System.out.println("Server: set " + fieldID + " to " + newValue);
-								view.protocol.setFieldValue(structInstance, fieldID, newValue);
+						});
+
+						synchronized (StructController.this) {
+							for (int fieldID = 0; fieldID < numFields; fieldID++) {
+								if (hasChanges[fieldID]) {
+									view.protocol.setFieldValue(structInstance, fieldID, newValues[fieldID]);
+								}
+							}
+
+							if (packet.length > 0) {
+								for (var connection : connections) connection.toClientQueue.add(packet);
 							}
 						}
 					}

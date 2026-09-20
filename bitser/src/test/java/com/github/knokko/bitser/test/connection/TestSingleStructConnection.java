@@ -117,7 +117,7 @@ public class TestSingleStructConnection {
 		controller.addClient(serverToReadWriteClientOutput, readWriteClientToServerInput);
 		Thread.sleep(300);
 
-		var readWriteClientConnection = new BitClient.ReadWriteStruct(
+		var readWriteClientConnection = new BitClient.Struct(
 				view, new BitOutputStream(readWriteClientToServerOutput), 1L
 		);
 
