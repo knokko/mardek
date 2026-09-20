@@ -2,6 +2,7 @@ package mardek.editor.dummy
 
 import androidx.compose.runtime.*
 import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.ClientStream
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.io.BitOutputStream
 import mardek.editor.EDITOR_APPLICATION_PROTOCOL_NAME
@@ -12,6 +13,9 @@ import mardek.editor.TEST_AUTH_TOKEN
 import mardek.editor.client.inventory.ItemTypeComponent
 import mardek.editor.view.generateDummyView1
 import tech.kwik.core.QuicClientConnection
+import tech.kwik.core.QuicStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
@@ -22,6 +26,79 @@ import java.util.concurrent.CompletableFuture
 @Composable
 fun DummyApp1(connection: QuicClientConnection, rootStruct: BitClient.Struct) {
 	ItemTypeComponent(rootStruct)
+}
+
+class DummyStreamFactory1(private val mainOutput: DataOutputStream) : ClientStream.Factory {
+
+	private val nextStreamMapping = mutableMapOf<Int, CompletableFuture<QuicStream>>()
+	private var nextStreamID = 0
+
+	override fun createStream(controllerID: Int) = DummyStream1 { requestActualStream(controllerID) }
+
+	private fun requestActualStream(controllerID: Int): CompletableFuture<QuicStream> {
+		val future = CompletableFuture<QuicStream>()
+		synchronized(mainOutput) {
+			nextStreamMapping[nextStreamID] = future
+			mainOutput.writeInt(nextStreamID)
+			mainOutput.writeInt(controllerID)
+			mainOutput.flush()
+			println("requested stream $nextStreamID for controller $controllerID")
+			nextStreamID += 1
+		}
+		return future
+	}
+
+	fun addStream(newStream: QuicStream) {
+		val dataInput = DataInputStream(newStream.inputStream)
+		val streamID = dataInput.readInt()
+
+		val future = nextStreamMapping.remove(streamID) ?: throw IllegalStateException("Unexpected stream ID $streamID")
+
+		println("complete future for stream $streamID...")
+		future.complete(newStream)
+		println("completed future for stream $streamID")
+	}
+}
+
+class DummyStream1(private val requestStream: () -> CompletableFuture<QuicStream>) : ClientStream {
+
+	private val sendLock = Any()
+	private var stream: CompletableFuture<QuicStream>? = null
+
+	override fun start(processInput: ClientStream.InputReader) {
+		synchronized(this) {
+			if (stream != null) throw IllegalStateException("Already started")
+			stream = requestStream()
+			stream!!.whenComplete { quicStream, _ ->
+				println("received stream $quicStream")
+				if (quicStream == null) return@whenComplete
+
+				val readThread = Thread {
+					try {
+						processInput.read(BitInputStream(quicStream.inputStream))
+					} finally {
+						quicStream.resetStream(0L)
+					}
+				}
+				readThread.isDaemon = true
+				readThread.start()
+			}
+		}
+	}
+
+	override fun send(sendFrame: ClientStream.OutputWriter) {
+		if (stream == null) throw IllegalStateException("Not yet started")
+
+		synchronized(sendLock) {
+			val output = BitOutputStream(stream!!.get().outputStream)
+			sendFrame.write(output)
+			output.flush()
+		}
+	}
+
+	override fun close() {
+		if (stream != null) stream!!.get().resetStream(0L)
+	}
 }
 
 fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitClient.Struct>> {
@@ -40,41 +117,37 @@ fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitCl
 		.uri(URI("https://localhost:$EDITOR_PORT"))
 		.applicationProtocol(EDITOR_APPLICATION_PROTOCOL_NAME)
 		.customTrustStore(trustStore)
+		.maxOpenPeerInitiatedUnidirectionalStreams(0)
 		.build()
 
-	var streamCounter = 0
-	connection.setPeerInitiatedStreamCallback { stream ->
-		stream.inputStream.read() // Skip the first (dummy) byte
+	var streamFactory: DummyStreamFactory1? = null
 
-		if (streamCounter == 0) {
+	connection.setPeerInitiatedStreamCallback { stream ->
+
+		println("server created stream $stream while factory is $streamFactory")
+		if (streamFactory == null) {
+			stream.inputStream.read() // Skip the first (dummy) byte
 			stream.outputStream.write(TEST_AUTH_TOKEN)
 			stream.outputStream.flush()
 
-			val rootConnection = BitClient.Struct(
-				generateDummyView1(),
-				BitOutputStream(stream.outputStream),
-				{ stream.resetStream(0L) },
-				0L
-			)
+			streamFactory = DummyStreamFactory1(DataOutputStream(stream.outputStream))
 
-			val mainReadThread = Thread {
-				getRootStruct.complete(rootConnection)
-				rootConnection.readFromServer(BitInputStream(stream.inputStream))
-			}
-			mainReadThread.isDaemon = true
-			mainReadThread.start()
-		} else if (streamCounter == 1) {
-			while (true) {
-				if (stream.inputStream.read() != 123) {
-					connection.close()
-					throw RuntimeException("Keep-alive stream sent unexpected byte")
+			val rootConnection = BitClient.Struct(generateDummyView1(), streamFactory.createStream(0))
+			getRootStruct.complete(rootConnection)
+
+			val keepAliveThread = Thread {
+				while (true) {
+					if (stream.inputStream.read() != 123) {
+						connection.close()
+						throw RuntimeException("Keep-alive stream sent unexpected byte")
+					}
 				}
 			}
+			keepAliveThread.isDaemon = true
+			keepAliveThread.start()
 		} else {
-			throw RuntimeException("Not yet")
+			streamFactory.addStream(stream)
 		}
-
-		streamCounter += 1
 	}
 	connection.connect()
 

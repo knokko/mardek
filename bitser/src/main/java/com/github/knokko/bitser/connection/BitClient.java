@@ -1,6 +1,5 @@
 package com.github.knokko.bitser.connection;
 
-import com.github.knokko.bitser.IntegerBitser;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 
@@ -46,7 +45,7 @@ public class BitClient {
 		private final List<Consumer<T>> localListeners = new ArrayList<>();
 		private final List<Consumer<ChangeState>> changeStateListeners = new ArrayList<>();
 
-		public SimpleFlatField(StructConnectionView view, int fieldID) {
+		SimpleFlatField(StructConnectionView view, int fieldID) {
 			super(view, fieldID);
 			this.changeState = ChangeState.UNINITIALIZED;
 		}
@@ -155,22 +154,39 @@ public class BitClient {
 		}
 	}
 
+	public static class ChildStructField extends AbstractField {
+
+		ChildStructField(StructConnectionView view, int fieldID) {
+			super(view, fieldID);
+		}
+
+		@Override
+		void readFromServerInitial(BitInputStream input) {}
+
+		@Override
+		void postReadFromServerInitial() {}
+
+		@Override
+		void setFromServer(Object newServerValue) {}
+
+		@Override
+		void save(BitOutputStream output) {}
+	}
+
 	public static class Struct {
 
 		private final StructConnectionView view;
-		private final BitOutputStream toServer;
-		private final Runnable closeStream;
-		private final long reference;
+		private final ClientStream stream;
+
 		private final AbstractField[] fields;
 		private final List<Consumer<Boolean>> canSaveListeners = new ArrayList<>();
 		private final boolean[] canSaveArray;
 		private boolean lastCanSave;
 
-		public Struct(StructConnectionView view, BitOutputStream toServer, Runnable closeStream, long reference) {
+		public Struct(StructConnectionView view, ClientStream stream) {
 			this.view = view;
-			this.toServer = toServer;
-			this.closeStream = closeStream;
-			this.reference = reference;
+			this.stream = stream;
+
 			this.fields = new AbstractField[view.protocol.getNumFields()];
 			this.canSaveArray = new boolean[fields.length];
 			for (int fieldID = 0; fieldID < fields.length; fieldID++) {
@@ -184,10 +200,14 @@ public class BitClient {
 			}
 		}
 
-		public void readFromServer(BitInputStream input) throws Throwable {
+		public void start() {
+			stream.start(this::processInput);
+		}
+
+		private void processInput(BitInputStream fromServer) throws Throwable {
 			try {
-				for (var field : fields) field.readFromServerInitial(input);
-				input.discardCurrentByte();
+				for (var field : fields) field.readFromServerInitial(fromServer);
+				fromServer.discardCurrentByte();
 
 				for (var field : fields) field.postReadFromServerInitial();
 
@@ -195,15 +215,15 @@ public class BitClient {
 				while (true) {
 					for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
 						if (!view.canDownloadFlat(fieldID)) continue;
-						if (input.read()) {
-							Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, input);
+						if (fromServer.read()) {
+							Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, fromServer);
 							fields[fieldID].setFromServer(newValue);
 						}
 					}
-					input.discardCurrentByte();
+					fromServer.discardCurrentByte();
 				}
 			} finally {
-				closeStream.run();
+				stream.close();
 			}
 		}
 
@@ -250,18 +270,15 @@ public class BitClient {
 		}
 
 		public void save() {
-			try {
-				synchronized (toServer) {
-					for (var field : fields) field.save(toServer);
-					toServer.flush();
-				}
-			} catch (Throwable failed) {
-				throw new RuntimeException(failed);
-			}
+			stream.send(this::save);
+		}
+
+		private void save(BitOutputStream toServer) throws Throwable {
+			for (var field : fields) field.save(toServer);
 		}
 
 		public void close() {
-			closeStream.run();
+			stream.close();
 		}
 	}
 }

@@ -11,12 +11,14 @@ import tech.kwik.core.server.ApplicationProtocolConnection
 import tech.kwik.core.server.ApplicationProtocolConnectionFactory
 import tech.kwik.core.server.ServerConnectionConfig
 import tech.kwik.core.server.ServerConnector
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.File
 import java.lang.Thread.sleep
 import java.security.KeyStore
 
 private class ProtocolConnection(
-	private val rootController: BitServer.StructController<*>,
+	private val controllers: Map<Int, BitServer.StructController<*>>,
 	private val clientConnection: QuicConnection
 ) : ApplicationProtocolConnection {
 
@@ -34,23 +36,30 @@ private class ProtocolConnection(
 				return@Thread
 			}
 
-			val keepAliveStream = clientConnection.createStream(false)
-			keepAliveStream.outputStream.write(123)
-			keepAliveStream.outputStream.flush()
-
 			val keepAliveThread = Thread {
 				while (true) {
-					keepAliveStream.outputStream.write(123)
-					keepAliveStream.outputStream.flush()
+					mainStream.outputStream.write(123)
+					mainStream.outputStream.flush()
 					sleep(10_000L)
 				}
 			}
 			keepAliveThread.isDaemon = true
 			keepAliveThread.start()
 
-			rootController.addClient(mainStream.outputStream, mainStream.inputStream) {
-				println("RESET MAIN STREAM")
-				mainStream.resetStream(0L)
+			val dataInput = DataInputStream(mainStream.inputStream)
+			while (true) {
+				val requestedStreamID = dataInput.readInt()
+				val controllerID = dataInput.readInt()
+				println("creating stream $requestedStreamID for controller $controllerID")
+				val nextStream = clientConnection.createStream(true)
+				val dataOutput = DataOutputStream(nextStream.outputStream)
+				dataOutput.writeInt(requestedStreamID)
+				dataOutput.flush()
+
+				controllers[controllerID]!!.addClient(nextStream.outputStream, nextStream.inputStream) {
+					nextStream.resetStream(0L)
+				}
+				println("added client to the controller")
 			}
 		}
 		thread.isDaemon = true
@@ -59,7 +68,7 @@ private class ProtocolConnection(
 }
 
 private class ProtocolFactory(
-	private val rootController: BitServer.StructController<*>
+	private val controllers: Map<Int, BitServer.StructController<*>>
 ) : ApplicationProtocolConnectionFactory {
 
 	override fun createConnection(
@@ -70,7 +79,7 @@ private class ProtocolFactory(
 			quicConnection.close()
 			return null
 		}
-		return ProtocolConnection(rootController, quicConnection)
+		return ProtocolConnection(controllers, quicConnection)
 	}
 }
 
@@ -81,7 +90,7 @@ fun main() {
 		.maxOpenPeerInitiatedBidirectionalStreams(0)
 		.maxOpenPeerInitiatedUnidirectionalStreams(0)
 		.maxConnectionBufferSize(100_000L)
-		.maxUnidirectionalStreamBufferSize(1000L)
+		.maxUnidirectionalStreamBufferSize(0L)
 		.maxBidirectionalStreamBufferSize(1000L)
 		.build()
 
@@ -104,9 +113,10 @@ fun main() {
 		0L, rootStruct, generateDummyView1()
 	)
 
+	val controllers = mapOf(Pair(0, rootController))
 	connector.registerApplicationProtocol(
 		EDITOR_APPLICATION_PROTOCOL_NAME,
-		ProtocolFactory(rootController)
+		ProtocolFactory(controllers)
 	)
 	connector.start()
 	println("Press ENTER to exit...")
