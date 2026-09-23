@@ -10,6 +10,7 @@ include("renderer")
 include("state")
 
 include("bitser")
+include("bitser-kwik")
 include("vk2d")
 
 include("editor-client:desktopApp")
