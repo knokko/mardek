@@ -18,24 +18,33 @@ import mardek.editor_client.shared.generated.resources.save_24px
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun EquipmentPropertiesComponent(equipment: BitClient.Struct) {
+fun WeaponPropertiesComponent(weaponField: BitClient.ChildStructField) {
 	val mutateScope = rememberCoroutineScope()
+	var weapon by remember { mutableStateOf<BitClient.Struct?>(null) }
+
+	DisposableEffect(weaponField) {
+		val subscription = weaponField.subscribe { weapon = it }
+		onDispose { weaponField.cancelSubscription(subscription) }
+	}
+
+	if (weapon == null) return
+
 	var canSave by remember { mutableStateOf(false) }
 
 	Row {
-		WeaponPropertiesComponent(equipment.getChildStructField(null, "weapon"))
-		BitserIntField(equipment.getSimpleField(null, "charismaticPerformanceChance"))
-		Button(onClick = { equipment.save() }, enabled = canSave) {
+		BitserIntField(weapon!!.getSimpleField(null, "hitChance"))
+		BitserIntField(weapon!!.getSimpleField(null, "critChance"))
+		Button(onClick = { weapon!!.save() }, enabled = canSave) {
 			Icon(painterResource(Res.drawable.save_24px), contentDescription = null)
 		}
 	}
 
-	DisposableEffect(equipment) {
-		equipment.start()
-		val subscription = equipment.subscribeCanSave { mutateScope.launch { canSave = it } }
+	DisposableEffect(weapon) {
+		weapon!!.start()
+		val subscription = weapon!!.subscribeCanSave { mutateScope.launch { canSave = it } }
 		onDispose {
-			equipment.cancelSubscription(subscription)
-			equipment.close()
+			weapon!!.cancelSubscription(subscription)
+			weapon!!.close()
 		}
 	}
 }
