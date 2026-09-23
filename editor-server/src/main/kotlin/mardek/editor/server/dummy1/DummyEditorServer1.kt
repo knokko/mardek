@@ -18,7 +18,7 @@ import java.lang.Thread.sleep
 import java.security.KeyStore
 
 private class ProtocolConnection(
-	private val controllers: Map<Int, BitServer.StructController<*>>,
+	private val controllers: Map<Long, BitServer.StructController<*>>,
 	private val clientConnection: QuicConnection
 ) : ApplicationProtocolConnection {
 
@@ -49,7 +49,7 @@ private class ProtocolConnection(
 			val dataInput = DataInputStream(mainStream.inputStream)
 			while (true) {
 				val requestedStreamID = dataInput.readInt()
-				val controllerID = dataInput.readInt()
+				val controllerID = dataInput.readLong()
 				println("creating stream $requestedStreamID for controller $controllerID")
 				val nextStream = clientConnection.createStream(true)
 				val dataOutput = DataOutputStream(nextStream.outputStream)
@@ -68,7 +68,7 @@ private class ProtocolConnection(
 }
 
 private class ProtocolFactory(
-	private val controllers: Map<Int, BitServer.StructController<*>>
+	private val controllers: Map<Long, BitServer.StructController<*>>
 ) : ApplicationProtocolConnectionFactory {
 
 	override fun createConnection(
@@ -108,12 +108,14 @@ fun main() {
 		.withLogger(logger)
 		.build()
 
+	val controllerMapping = BitServer.ControllerMapping()
 	val rootStruct = ItemType("WEAPON: SWORD", 200, "Sword")
 	val rootController = BitServer.StructController(
-		0L, rootStruct, generateDummyView1()
+		controllerMapping, rootStruct, generateDummyView1()
 	)
+	controllerMapping.add(rootController)
 
-	val controllers = mapOf(Pair(0, rootController))
+	val controllers = mapOf(Pair(0L, rootController))
 	connector.registerApplicationProtocol(
 		EDITOR_APPLICATION_PROTOCOL_NAME,
 		ProtocolFactory(controllers)
