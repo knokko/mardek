@@ -13,7 +13,7 @@ public interface ClientStream {
 
 	interface Factory {
 
-		ClientStream createStream(int controllerID);
+		ClientStream createStream(long controllerID);
 	}
 
 	interface InputReader {

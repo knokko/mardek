@@ -205,25 +205,23 @@ public class BitClient {
 		}
 
 		private void processInput(BitInputStream fromServer) throws Throwable {
-			try {
-				for (var field : fields) field.readFromServerInitial(fromServer);
-				fromServer.discardCurrentByte();
+			for (var field : fields) field.readFromServerInitial(fromServer);
+			fromServer.discardCurrentByte();
 
-				for (var field : fields) field.postReadFromServerInitial();
+			for (var field : fields) field.postReadFromServerInitial();
 
-				//noinspection InfiniteLoopStatement
-				while (true) {
-					for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
-						if (!view.canDownloadFlat(fieldID)) continue;
-						if (fromServer.read()) {
-							Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, fromServer);
-							fields[fieldID].setFromServer(newValue);
-						}
+			if (!view.hasAtLeastOneDownloadableField()) return;
+
+			//noinspection InfiniteLoopStatement
+			while (true) {
+				for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
+					if (!view.canDownloadFlat(fieldID)) continue;
+					if (fromServer.read()) {
+						Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, fromServer);
+						fields[fieldID].setFromServer(newValue);
 					}
-					fromServer.discardCurrentByte();
 				}
-			} finally {
-				stream.close();
+				fromServer.discardCurrentByte();
 			}
 		}
 

@@ -33,14 +33,14 @@ class DummyStreamFactory1(private val mainOutput: DataOutputStream) : ClientStre
 	private val nextStreamMapping = mutableMapOf<Int, CompletableFuture<QuicStream>>()
 	private var nextStreamID = 0
 
-	override fun createStream(controllerID: Int) = DummyStream1 { requestActualStream(controllerID) }
+	override fun createStream(controllerID: Long) = DummyStream1 { requestActualStream(controllerID) }
 
-	private fun requestActualStream(controllerID: Int): CompletableFuture<QuicStream> {
+	private fun requestActualStream(controllerID: Long): CompletableFuture<QuicStream> {
 		val future = CompletableFuture<QuicStream>()
 		synchronized(mainOutput) {
 			nextStreamMapping[nextStreamID] = future
 			mainOutput.writeInt(nextStreamID)
-			mainOutput.writeInt(controllerID)
+			mainOutput.writeLong(controllerID)
 			mainOutput.flush()
 			println("requested stream $nextStreamID for controller $controllerID")
 			nextStreamID += 1
