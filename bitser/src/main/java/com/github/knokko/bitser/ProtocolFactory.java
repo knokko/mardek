@@ -25,6 +25,14 @@ class ProtocolFactory {
 					}
 				}
 
+				if (field.bitField() instanceof BitCollectionFieldWrapper) {
+					fieldType = BitStructProtocol.FieldType.COLLECTION;
+				}
+
+				if (field.bitField() instanceof ReferenceFieldWrapper) {
+					fieldType = BitStructProtocol.FieldType.REFERENCE;
+				}
+
 				protocol.addField(
 						field.classField(), fieldType,
 						(output, value) -> field.bitField().writeFlat(bitser, output, value),
