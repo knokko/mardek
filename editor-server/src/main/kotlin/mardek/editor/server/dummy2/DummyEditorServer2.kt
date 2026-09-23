@@ -53,7 +53,6 @@ private class ProtocolConnection(
 			while (true) {
 				val requestedStreamID = dataInput.readInt()
 				val controllerID = dataInput.readLong()
-				println("creating stream $requestedStreamID for controller $controllerID")
 				val nextStream = clientConnection.createStream(true)
 				val dataOutput = DataOutputStream(nextStream.outputStream)
 				dataOutput.writeInt(requestedStreamID)
@@ -63,7 +62,6 @@ private class ProtocolConnection(
 				controller.addClient(nextStream.outputStream, nextStream.inputStream) {
 					nextStream.resetStream(0L)
 				}
-				println("added client to the controller")
 			}
 		}
 		thread.isDaemon = true

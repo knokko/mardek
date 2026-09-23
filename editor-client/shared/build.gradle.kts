@@ -19,6 +19,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             api(project(":editor-protocol"))
+            implementation(project(":bitser-kwik"))
             implementation(libs.vk.boiler)
         }
         commonTest.dependencies {

@@ -12,6 +12,8 @@ repositories {
 }
 
 dependencies {
+	api(project(":bitser"))
+	implementation(libs.kwik)
 	testImplementation("com.github.knokko:sample-profiler:1.0.0")
 	testImplementation(platform("org.junit:junit-bom:5.12.2"))
 	testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
