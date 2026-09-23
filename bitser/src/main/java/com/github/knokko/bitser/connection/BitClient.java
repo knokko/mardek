@@ -1,10 +1,12 @@
 package com.github.knokko.bitser.connection;
 
+import com.github.knokko.bitser.IntegerBitser;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class BitClient {
@@ -53,8 +55,10 @@ public class BitClient {
 		@Override
 		void readFromServerInitial(BitInputStream input) throws Throwable {
 			if (view.shouldDownloadDuringInitialization(fieldID)) {
+				System.out.println("reading " + fieldID + "...");
 				//noinspection unchecked
 				serverValue = (T) view.protocol.deserializeFlatFieldValue(fieldID, input);
+				System.out.println("finished reading " + fieldID);
 			}
 		}
 
@@ -146,6 +150,7 @@ public class BitClient {
 			}
 
 			output.write(true);
+			System.out.println("Saving " + localValue);
 			view.protocol.serializeFlatFieldValue(fieldID, output, localValue);
 
 			changeState = ChangeState.SAVING;
@@ -156,21 +161,72 @@ public class BitClient {
 
 	public static class ChildStructField extends AbstractField {
 
-		ChildStructField(StructConnectionView view, int fieldID) {
+		private long serverControllerID = -1L;
+		private final ClientStream.Factory streamFactory;
+		private final List<Consumer<Struct>> listeners = new ArrayList<>();
+
+		ChildStructField(ClientStream.Factory streamFactory, StructConnectionView view, int fieldID) {
 			super(view, fieldID);
+			this.streamFactory = streamFactory;
 		}
 
 		@Override
-		void readFromServerInitial(BitInputStream input) {}
+		void readFromServerInitial(BitInputStream input) throws Throwable {
+			if (view.shouldDownloadDuringInitialization(fieldID)) {
+				serverControllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+						0L, Long.MAX_VALUE, input
+				);
+			}
+		}
 
 		@Override
-		void postReadFromServerInitial() {}
+		synchronized void postReadFromServerInitial() {
+			if (view.shouldDownloadDuringInitialization(fieldID)) {
+				var childView = Objects.requireNonNull(view.getChildStructViewOrNull(fieldID));
+				for (var listener : listeners) {
+					var childStream = streamFactory.createStream(serverControllerID);
+					listener.accept(new Struct(childView, childStream, streamFactory));
+				}
+			}
+		}
 
 		@Override
-		void setFromServer(Object newServerValue) {}
+		synchronized void setFromServer(Object newServerValue) {
+			long oldControllerID = serverControllerID;
+			this.serverControllerID = (Long) newServerValue;
+
+			if (oldControllerID != serverControllerID) {
+				var childView = Objects.requireNonNull(view.getChildStructViewOrNull(fieldID));
+				for (var listener : listeners) {
+					var childStream = streamFactory.createStream(serverControllerID);
+					listener.accept(new Struct(childView, childStream, streamFactory));
+				}
+			}
+		}
 
 		@Override
-		void save(BitOutputStream output) {}
+		void save(BitOutputStream output) {
+			// ClientStructField's cannot be saved; save their BitClient.Struct instead"
+		}
+
+		public synchronized Object subscribe(Consumer<Struct> updateChildStruct) {
+			listeners.add(updateChildStruct);
+
+			if (serverControllerID != -1L) {
+				var childView = Objects.requireNonNull(view.getChildStructViewOrNull(fieldID));
+				var childStream = streamFactory.createStream(serverControllerID);
+				updateChildStruct.accept(new Struct(childView, childStream, streamFactory));
+			}
+
+			return updateChildStruct;
+		}
+
+		public synchronized void cancelSubscription(Object subscription) {
+			//noinspection SuspiciousMethodCalls
+			if (!listeners.remove(subscription)) {
+				System.err.println("Warning: attempted to cancel missing subscription for field " + fieldID + " of " + view);
+			}
+		}
 	}
 
 	public static class Struct {
@@ -183,19 +239,24 @@ public class BitClient {
 		private final boolean[] canSaveArray;
 		private boolean lastCanSave;
 
-		public Struct(StructConnectionView view, ClientStream stream) {
+		public Struct(StructConnectionView view, ClientStream stream, ClientStream.Factory streamFactory) {
 			this.view = view;
 			this.stream = stream;
 
 			this.fields = new AbstractField[view.protocol.getNumFields()];
 			this.canSaveArray = new boolean[fields.length];
 			for (int fieldID = 0; fieldID < fields.length; fieldID++) {
-				if (view.protocol.getFieldType(fieldID) == BitStructProtocol.FieldType.SIMPLE) {
+				var fieldType = view.protocol.getFieldType(fieldID);
+				if (fieldType == BitStructProtocol.FieldType.SIMPLE) {
 					var flatField = new SimpleFlatField<>(view, fieldID);
 					this.fields[fieldID] = flatField;
 					flatField.subscribeChangeState(newChangeState ->
 						this.updateCanSave(flatField.fieldID, newChangeState == ChangeState.MODIFIED)
 					);
+				}
+
+				if (fieldType == BitStructProtocol.FieldType.STRUCT) {
+					this.fields[fieldID] = new ChildStructField(streamFactory, view, fieldID);
 				}
 			}
 		}
@@ -205,10 +266,14 @@ public class BitClient {
 		}
 
 		private void processInput(BitInputStream fromServer) throws Throwable {
-			for (var field : fields) field.readFromServerInitial(fromServer);
+			for (var field : fields) {
+				if (field != null) field.readFromServerInitial(fromServer);
+			}
 			fromServer.discardCurrentByte();
 
-			for (var field : fields) field.postReadFromServerInitial();
+			for (var field : fields) {
+				if (field != null) field.postReadFromServerInitial();
+			}
 
 			if (!view.hasAtLeastOneDownloadableField()) return;
 
@@ -254,7 +319,7 @@ public class BitClient {
 			synchronized (canSaveListeners) {
 				if (lastCanSave) updateCanSave.accept(true);
 				canSaveListeners.add(updateCanSave);
-				return updateCanSave; // TODO Allow subscription to be cancelled
+				return updateCanSave;
 			}
 		}
 
@@ -272,7 +337,9 @@ public class BitClient {
 		}
 
 		private void save(BitOutputStream toServer) throws Throwable {
-			for (var field : fields) field.save(toServer);
+			for (var field : fields) {
+				if (field != null) field.save(toServer);
+			}
 		}
 
 		public void close() {

@@ -10,8 +10,8 @@ import mardek.editor.EDITOR_KEY_ALIAS
 import mardek.editor.EDITOR_PORT
 import mardek.editor.SERVER_CERTIFICATE_FOLDER
 import mardek.editor.TEST_AUTH_TOKEN
-import mardek.editor.client.inventory.ItemTypeComponent
-import mardek.editor.view.generateDummyView1
+import mardek.editor.client.inventory.EquipmentPropertiesComponent
+import mardek.editor.view.generateDummyView2
 import tech.kwik.core.QuicClientConnection
 import tech.kwik.core.QuicStream
 import java.io.DataInputStream
@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture
 
 @Composable
 fun DummyApp2(connection: QuicClientConnection, rootStruct: BitClient.Struct) {
-	ItemTypeComponent(rootStruct)
+	EquipmentPropertiesComponent(rootStruct)
 }
 
 class DummyStreamFactory2(private val mainOutput: DataOutputStream) : ClientStream.Factory {
@@ -33,7 +33,7 @@ class DummyStreamFactory2(private val mainOutput: DataOutputStream) : ClientStre
 	private val nextStreamMapping = mutableMapOf<Int, CompletableFuture<QuicStream>>()
 	private var nextStreamID = 0
 
-	override fun createStream(controllerID: Long) = DummyStream1 { requestActualStream(controllerID) }
+	override fun createStream(controllerID: Long) = DummyStream2 { requestActualStream(controllerID) }
 
 	private fun requestActualStream(controllerID: Long): CompletableFuture<QuicStream> {
 		val future = CompletableFuture<QuicStream>()
@@ -120,7 +120,7 @@ fun launchDummyConnection2(): Pair<QuicClientConnection, CompletableFuture<BitCl
 		.maxOpenPeerInitiatedUnidirectionalStreams(0)
 		.build()
 
-	var streamFactory: DummyStreamFactory1? = null
+	var streamFactory: DummyStreamFactory2? = null
 
 	connection.setPeerInitiatedStreamCallback { stream ->
 
@@ -130,9 +130,13 @@ fun launchDummyConnection2(): Pair<QuicClientConnection, CompletableFuture<BitCl
 			stream.outputStream.write(TEST_AUTH_TOKEN)
 			stream.outputStream.flush()
 
-			streamFactory = DummyStreamFactory1(DataOutputStream(stream.outputStream))
+			streamFactory = DummyStreamFactory2(DataOutputStream(stream.outputStream))
 
-			val rootConnection = BitClient.Struct(generateDummyView1(), streamFactory.createStream(0))
+			val rootConnection = BitClient.Struct(
+				generateDummyView2(),
+				streamFactory.createStream(0),
+				streamFactory
+			)
 			getRootStruct.complete(rootConnection)
 
 			val keepAliveThread = Thread {
