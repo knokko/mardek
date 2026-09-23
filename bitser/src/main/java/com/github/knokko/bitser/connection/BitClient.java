@@ -296,6 +296,11 @@ public class BitClient {
 			return (SimpleFlatField<T>) fields[fieldID];
 		}
 
+		public ChildStructField getChildStructField(Class<?> declaringClass, String fieldName) {
+			int fieldID = view.protocol.getFieldId(declaringClass, fieldName);
+			return (ChildStructField) fields[fieldID];
+		}
+
 		private void updateCanSave(int fieldID, boolean canSaveField) {
 			synchronized (canSaveListeners) {
 				boolean previousCanSave = lastCanSave;

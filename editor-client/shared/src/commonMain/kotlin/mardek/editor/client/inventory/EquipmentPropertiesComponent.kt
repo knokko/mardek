@@ -13,7 +13,6 @@ import androidx.compose.runtime.setValue
 import com.github.knokko.bitser.connection.BitClient
 import kotlinx.coroutines.launch
 import mardek.editor.client.component.BitserIntField
-import mardek.editor.client.component.BitserTextField
 import mardek.editor_client.shared.generated.resources.Res
 import mardek.editor_client.shared.generated.resources.save_24px
 import org.jetbrains.compose.resources.painterResource
@@ -24,9 +23,8 @@ fun EquipmentPropertiesComponent(equipment: BitClient.Struct) {
 	var canSave by remember { mutableStateOf(false) }
 
 	Row {
+		WeaponPropertiesComponent(equipment.getChildStructField(null, "weapon"))
 		BitserIntField(equipment.getSimpleField(null, "charismaticPerformanceChance"))
-//		BitserTextField(itemType.getSimpleField(null, "displayName"))
-//		BitserTextField(itemType.getSimpleField(null, "niceName"))
 		Button(onClick = { equipment.save() }, enabled = canSave) {
 			Icon(painterResource(Res.drawable.save_24px), contentDescription = null)
 		}
