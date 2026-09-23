@@ -21,20 +21,37 @@ import org.jetbrains.compose.resources.painterResource
 fun EquipmentPropertiesComponent(equipment: BitClient.Struct) {
 	val mutateScope = rememberCoroutineScope()
 	var canSave by remember { mutableStateOf(false) }
+	var canSaveWeapon by remember { mutableStateOf(false) }
+	var nullableWeapon by remember { mutableStateOf<BitClient.Struct?>(null)}
 
 	Row {
-		WeaponPropertiesComponent(equipment.getChildStructField(null, "weapon"))
+		nullableWeapon?.let { weapon ->
+			WeaponPropertiesComponent(weapon)
+			DisposableEffect(weapon) {
+				val subscription = weapon.subscribeCanSave { mutateScope.launch { canSaveWeapon = it } }
+				onDispose {
+					weapon.cancelSubscription(subscription)
+				}
+			}
+		}
 		BitserIntField(equipment.getSimpleField(null, "charismaticPerformanceChance"))
-		Button(onClick = { equipment.save() }, enabled = canSave) {
+		Button(onClick = {
+			equipment.save()
+			nullableWeapon?.save()
+		}, enabled = canSave || canSaveWeapon) {
 			Icon(painterResource(Res.drawable.save_24px), contentDescription = null)
 		}
 	}
 
 	DisposableEffect(equipment) {
 		equipment.start()
-		val subscription = equipment.subscribeCanSave { mutateScope.launch { canSave = it } }
+		val weaponSubscription = equipment.subscribeChildStruct(null, "weapon") {
+			mutateScope.launch { nullableWeapon = it }
+		}
+		val canSaveSubscription = equipment.subscribeCanSave { mutateScope.launch { canSave = it } }
 		onDispose {
-			equipment.cancelSubscription(subscription)
+			equipment.cancelChildStructSubscription(null, "weapon", weaponSubscription)
+			equipment.cancelSubscription(canSaveSubscription)
 			equipment.close()
 		}
 	}
