@@ -1,36 +1,52 @@
 package com.github.knokko.bitser.connection;
 
+import com.github.knokko.bitser.IntegerBitser;
 import com.github.knokko.bitser.io.BitInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class BitServer<T> {
 
-	public static class StructController<T> {
+	public static abstract class Controller {
 
-		final long reference;
+		final ControllerMapping controllerMapping;
+
+		Controller(ControllerMapping controllerMapping) {
+			this.controllerMapping = controllerMapping;
+		}
+
+		abstract Object getTargetObject();
+	}
+
+	public static class StructController<T> extends Controller {
+
 		final T structInstance;
 		final StructConnectionView view;
 		final List<StructConnection> connections = new ArrayList<>();
 
-		public StructController(long reference, T structInstance, StructConnectionView view) {
-			this.reference = reference;
+		public StructController(ControllerMapping controllerMapping, T structInstance, StructConnectionView view) {
+			super(controllerMapping);
 			this.structInstance = structInstance;
 			this.view = view;
+		}
+
+		@Override
+		Object getTargetObject() {
+			return structInstance;
 		}
 
 		public synchronized void addClient(OutputStream toClient, InputStream fromClient, Runnable closeStream) {
 			var connection = new StructConnection(toClient, new BitInputStream(fromClient), closeStream);
 			connections.add(connection);
 
-			if (view.getNumUploadableFields() > 0) {
+			if (view.hasAtLeastOneUploadableField()) {
 				var fromClientThread = new Thread(connection::readFromClient);
 				fromClientThread.setDaemon(true);
 				fromClientThread.start();
@@ -61,7 +77,16 @@ public class BitServer<T> {
 						for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
 							if (view.shouldDownloadDuringInitialization(fieldID)) {
 								var value = view.protocol.getFieldValue(structInstance, fieldID);
-								view.protocol.serializeFlatFieldValue(fieldID, initialOutput, value);
+								var childStructView = view.getChildStructViewOrNull(fieldID);
+								if (childStructView == null) {
+									view.protocol.serializeFlatFieldValue(fieldID, initialOutput, value);
+								} else {
+									Controller childController = controllerMapping.getControllerByTarget(value);
+									long childID = controllerMapping.getIdForController(childController);
+									IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
+											childID, 0L, Long.MAX_VALUE, initialOutput
+									);
+								}
 							}
 						}
 					});
@@ -146,6 +171,57 @@ public class BitServer<T> {
 				} catch (IOException alreadyClosed) {
 					// Do nothing when the connections were already dead/closed
 				}
+			}
+		}
+	}
+
+	public static class ControllerMapping {
+
+		private final Map<Controller, Long> controllerToID = new IdentityHashMap<>();
+		private final Map<Long, Controller> idToController = new HashMap<>();
+		private final Map<Object, Controller> targetToController = new IdentityHashMap<>();
+		private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+		private long nextID = 0L;
+
+		public ControllerMapping() {}
+
+		public void add(Controller controller) {
+			lock.writeLock().lock();
+			try {
+				controllerToID.put(controller, nextID);
+				idToController.put(nextID, controller);
+				targetToController.put(controller.getTargetObject(), controller);
+				nextID += 1;
+			} finally {
+				lock.writeLock().unlock();
+			}
+		}
+
+		public long getIdForController(Controller controller) {
+			lock.readLock().lock();
+			try {
+				return controllerToID.get(controller);
+			} finally {
+				lock.readLock().unlock();
+			}
+		}
+
+		public Controller getControllerById(long id) {
+			lock.readLock().lock();
+			try {
+				return Objects.requireNonNull(idToController.get(id));
+			} finally {
+				lock.readLock().unlock();
+			}
+		}
+
+		public Controller getControllerByTarget(Object target) {
+			lock.readLock().lock();
+			try {
+				return Objects.requireNonNull(targetToController.get(target));
+			} finally {
+				lock.readLock().unlock();
 			}
 		}
 	}

@@ -1,10 +1,13 @@
-package mardek.editor.server.dummy1
+package mardek.editor.server.dummy2
+
 
 import com.github.knokko.bitser.connection.BitServer
-import mardek.content.inventory.ItemType
+import mardek.content.inventory.EquipmentProperties
+import mardek.content.inventory.WeaponProperties
+import mardek.content.stats.Resistances
 import mardek.editor.*
 import mardek.editor.server.EDITOR_KEY_PASSWORD
-import mardek.editor.view.generateDummyView1
+import mardek.editor.view.generateDummyView2
 import tech.kwik.core.QuicConnection
 import tech.kwik.core.log.SysOutLogger
 import tech.kwik.core.server.ApplicationProtocolConnection
@@ -18,7 +21,7 @@ import java.lang.Thread.sleep
 import java.security.KeyStore
 
 private class ProtocolConnection(
-	private val controllers: Map<Long, BitServer.StructController<*>>,
+	private val controllers: BitServer.ControllerMapping,
 	private val clientConnection: QuicConnection
 ) : ApplicationProtocolConnection {
 
@@ -56,7 +59,8 @@ private class ProtocolConnection(
 				dataOutput.writeInt(requestedStreamID)
 				dataOutput.flush()
 
-				controllers[controllerID]!!.addClient(nextStream.outputStream, nextStream.inputStream) {
+				val controller = controllers.getControllerById(controllerID) as BitServer.StructController<*>
+				controller.addClient(nextStream.outputStream, nextStream.inputStream) {
 					nextStream.resetStream(0L)
 				}
 				println("added client to the controller")
@@ -68,7 +72,7 @@ private class ProtocolConnection(
 }
 
 private class ProtocolFactory(
-	private val controllers: Map<Long, BitServer.StructController<*>>
+	private val controllers: BitServer.ControllerMapping
 ) : ApplicationProtocolConnectionFactory {
 
 	override fun createConnection(
@@ -108,17 +112,41 @@ fun main() {
 		.withLogger(logger)
 		.build()
 
-	val controllerMapping = BitServer.ControllerMapping()
-	val rootStruct = ItemType("WEAPON: SWORD", 200, "Sword")
-	val rootController = BitServer.StructController(
-		controllerMapping, rootStruct, generateDummyView1()
+	val weaponProperties = WeaponProperties(
+		hitChance = 100,
+		critChance = 5,
+		hpDrain = 0f,
+		mpDrain = 0f,
+		effectiveAgainstCreatureTypes = ArrayList(0),
+		effectiveAgainstElements = ArrayList(0),
+		addEffects = ArrayList(0),
+		hitSound = null,
 	)
-	controllerMapping.add(rootController)
+	val rootStruct = EquipmentProperties(
+		skills = ArrayList(0),
+		stats = ArrayList(0),
+		elementalBonuses = ArrayList(0),
+		resistances = Resistances(),
+		autoEffects = ArrayList(0),
+		weapon = weaponProperties,
+		gem = null,
+		onlyUser = null,
+		charismaticPerformanceChance = 0,
+	)
 
-	val controllers = mapOf(Pair(0L, rootController))
+	val controllerMapping = BitServer.ControllerMapping()
+
+	val rootView = generateDummyView2()
+	val weaponView = rootView.getChildStructView(null, "weapon")
+	val rootController = BitServer.StructController(controllerMapping, rootStruct, rootView)
+	val weaponController = BitServer.StructController(controllerMapping, weaponProperties, weaponView)
+
+	controllerMapping.add(rootController)
+	controllerMapping.add(weaponController)
+
 	connector.registerApplicationProtocol(
 		EDITOR_APPLICATION_PROTOCOL_NAME,
-		ProtocolFactory(controllers)
+		ProtocolFactory(controllerMapping)
 	)
 	connector.start()
 	println("Press ENTER to exit...")

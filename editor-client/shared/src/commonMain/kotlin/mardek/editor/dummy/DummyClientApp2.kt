@@ -24,11 +24,11 @@ import java.security.cert.CertificateFactory
 import java.util.concurrent.CompletableFuture
 
 @Composable
-fun DummyApp1(connection: QuicClientConnection, rootStruct: BitClient.Struct) {
+fun DummyApp2(connection: QuicClientConnection, rootStruct: BitClient.Struct) {
 	ItemTypeComponent(rootStruct)
 }
 
-class DummyStreamFactory1(private val mainOutput: DataOutputStream) : ClientStream.Factory {
+class DummyStreamFactory2(private val mainOutput: DataOutputStream) : ClientStream.Factory {
 
 	private val nextStreamMapping = mutableMapOf<Int, CompletableFuture<QuicStream>>()
 	private var nextStreamID = 0
@@ -60,7 +60,7 @@ class DummyStreamFactory1(private val mainOutput: DataOutputStream) : ClientStre
 	}
 }
 
-class DummyStream1(private val requestStream: () -> CompletableFuture<QuicStream>) : ClientStream {
+class DummyStream2(private val requestStream: () -> CompletableFuture<QuicStream>) : ClientStream {
 
 	private val sendLock = Any()
 	private var stream: CompletableFuture<QuicStream>? = null
@@ -101,7 +101,7 @@ class DummyStream1(private val requestStream: () -> CompletableFuture<QuicStream
 	}
 }
 
-fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitClient.Struct>> {
+fun launchDummyConnection2(): Pair<QuicClientConnection, CompletableFuture<BitClient.Struct>> {
 	val getRootStruct = CompletableFuture<BitClient.Struct>()
 
 	val certificateInput = Files.newInputStream(File("$SERVER_CERTIFICATE_FOLDER/public-certificate.pem").toPath())

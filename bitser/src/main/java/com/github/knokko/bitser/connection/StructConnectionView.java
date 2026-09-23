@@ -1,7 +1,5 @@
 package com.github.knokko.bitser.connection;
 
-import java.util.Arrays;
-
 public class StructConnectionView {
 
 	final BitStructProtocol protocol;
@@ -11,18 +9,13 @@ public class StructConnectionView {
 	private final boolean[] flatStructs;
 	private final StructConnectionView[] childStructs;
 
-	private int[] downloadableFieldsMapping;
-	private final int[] reverseDownloadableFieldMapping;
-	private int[] uploadableFieldsMapping;
-	private final int[] reverseUploadableFieldMapping;
+	private boolean finishedRegistration;
+	private boolean hasDownloadableFields;
+	private boolean hasUploadableFields;
 
 	public StructConnectionView(BitStructProtocol protocol) {
 		this.protocol = protocol;
 		this.canDownloadFlat = new boolean[protocol.getNumFields()];
-		this.reverseDownloadableFieldMapping = new int[protocol.getNumFields()];
-		Arrays.fill(reverseDownloadableFieldMapping, -1);
-		this.reverseUploadableFieldMapping = new int[protocol.getNumFields()];
-		Arrays.fill(reverseUploadableFieldMapping, -1);
 		this.canUploadFlat = new boolean[protocol.getNumFields()];
 		this.isConstant = new boolean[protocol.getNumFields()];
 		this.flatStructs = new boolean[protocol.getNumFields()];
@@ -30,17 +23,36 @@ public class StructConnectionView {
 	}
 
 	private void assertRegistrationIsOpen() {
-		if (downloadableFieldsMapping != null) throw new IllegalStateException("Registration is already closed");
+		if (finishedRegistration) throw new IllegalStateException("Registration is already closed");
 	}
 
-	public void markStructFieldAsFlat(Class<?> declaringClass, String fieldName, boolean canRead, boolean canWrite) {
+	private int getUnclaimedStructField(Class<?> declaringClass, String fieldName) {
 		assertRegistrationIsOpen();
 
 		int fieldID = protocol.getFieldId(declaringClass, fieldName);
+		var fieldType = protocol.getFieldType(fieldID);
+		if (fieldType != BitStructProtocol.FieldType.STRUCT) {
+			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a struct field");
+		}
 		if (flatStructs[fieldID]) throw new IllegalStateException("Field " + fieldName + " is already flat");
 		if (childStructs[fieldID] != null) {
 			throw new IllegalStateException("Field " + fieldName + " is already a child");
 		}
+		return fieldID;
+	}
+
+	public void markChildStructField(
+			Class<?> declaringClass, String fieldName,
+			StructConnectionView childView, boolean constant
+	) {
+		int fieldID = getUnclaimedStructField(declaringClass, fieldName);
+		childStructs[fieldID] = childView;
+		canDownloadFlat[fieldID] = true;
+		isConstant[fieldID] = constant;
+	}
+
+	public void markStructFieldAsFlat(Class<?> declaringClass, String fieldName, boolean canRead, boolean canWrite) {
+		int fieldID = getUnclaimedStructField(declaringClass, fieldName);
 		flatStructs[fieldID] = true;
 		canDownloadFlat[fieldID] = canRead;
 		canUploadFlat[fieldID] = canWrite;
@@ -71,37 +83,19 @@ public class StructConnectionView {
 	public void finishRegistration() {
 		assertRegistrationIsOpen();
 
-		int numReadableFields = 0;
-		int numWritableFields = 0;
+		finishedRegistration = true;
+
 		for (int fieldID = 0; fieldID < protocol.getNumFields(); fieldID++) {
-			if (canDownloadFlat[fieldID] && !isConstant[fieldID]) numReadableFields += 1;
+			if (canDownloadFlat[fieldID] && !isConstant[fieldID]) hasDownloadableFields = true;
 			if (canUploadFlat[fieldID]) {
 				if (isConstant[fieldID]) throw new IllegalStateException("Writable fields must NOT be constant");
-				numWritableFields += 1;
-			}
-		}
-
-		downloadableFieldsMapping = new int[numReadableFields];
-		uploadableFieldsMapping = new int[numWritableFields];
-
-		int downloadableFieldID = 0;
-		int uploadableFieldID = 0;
-		for (int fieldID = 0; fieldID < protocol.getNumFields(); fieldID++) {
-			if (canDownloadFlat[fieldID] && !isConstant[fieldID]) {
-				reverseDownloadableFieldMapping[fieldID] = downloadableFieldID;
-				downloadableFieldsMapping[downloadableFieldID] = fieldID;
-				downloadableFieldID += 1;
-			}
-			if (canUploadFlat[fieldID]) {
-				reverseUploadableFieldMapping[fieldID] = uploadableFieldID;
-				uploadableFieldsMapping[uploadableFieldID] = fieldID;
-				uploadableFieldID += 1;
+				hasUploadableFields = true;
 			}
 		}
 	}
 
 	private void assertRegistrationIsClosed() {
-		if (downloadableFieldsMapping == null) throw new IllegalStateException("Registration is still open");
+		if (!finishedRegistration) throw new IllegalStateException("Registration is still open");
 	}
 
 	boolean isStructFlat(int fieldID) {
@@ -124,27 +118,26 @@ public class StructConnectionView {
 		return canUploadFlat[fieldID];
 	}
 
-	int getNumLateDownloadableFields() {
-		return downloadableFieldsMapping.length;
+	StructConnectionView getChildStructViewOrNull(int fieldID) {
+		assertRegistrationIsClosed();
+		return childStructs[fieldID];
 	}
 
-	int mapDownloadableFieldID(int downloadableFieldID) {
-		return downloadableFieldsMapping[downloadableFieldID];
+	public StructConnectionView getChildStructView(Class<?> declaringClass, String fieldName) {
+		assertRegistrationIsClosed();
+
+		var childView = childStructs[protocol.getFieldId(declaringClass, fieldName)];
+		if (childView == null) {
+			throw new IllegalArgumentException("Field " + fieldName + " has no registered child view");
+		}
+		return childView;
 	}
 
-	int mapToDownloadableFieldID(int fieldID) {
-		return reverseDownloadableFieldMapping[fieldID];
+	boolean hasAtLeastOneDownloadableField() {
+		return hasDownloadableFields;
 	}
 
-	int getNumUploadableFields() {
-		return uploadableFieldsMapping.length;
-	}
-
-	int mapUploadableFieldID(int uploadableFieldID) {
-		return uploadableFieldsMapping[uploadableFieldID];
-	}
-
-	int mapToUploadableFieldID(int fieldID) {
-		return reverseUploadableFieldMapping[fieldID];
+	boolean hasAtLeastOneUploadableField() {
+		return hasUploadableFields;
 	}
 }
