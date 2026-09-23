@@ -42,7 +42,6 @@ class DummyStreamFactory1(private val mainOutput: DataOutputStream) : ClientStre
 			mainOutput.writeInt(nextStreamID)
 			mainOutput.writeLong(controllerID)
 			mainOutput.flush()
-			println("requested stream $nextStreamID for controller $controllerID")
 			nextStreamID += 1
 		}
 		return future
@@ -70,7 +69,6 @@ class DummyStream1(private val requestStream: () -> CompletableFuture<QuicStream
 			if (stream != null) throw IllegalStateException("Already started")
 			stream = requestStream()
 			stream!!.whenComplete { quicStream, _ ->
-				println("received stream $quicStream")
 				if (quicStream == null) return@whenComplete
 
 				val readThread = Thread {
@@ -124,7 +122,6 @@ fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitCl
 
 	connection.setPeerInitiatedStreamCallback { stream ->
 
-		println("server created stream $stream while factory is $streamFactory")
 		if (streamFactory == null) {
 			stream.inputStream.read() // Skip the first (dummy) byte
 			stream.outputStream.write(TEST_AUTH_TOKEN)
