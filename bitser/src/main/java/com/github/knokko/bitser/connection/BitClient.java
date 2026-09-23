@@ -296,9 +296,19 @@ public class BitClient {
 			return (SimpleFlatField<T>) fields[fieldID];
 		}
 
-		public ChildStructField getChildStructField(Class<?> declaringClass, String fieldName) {
+		private ChildStructField getChildStructField(Class<?> declaringClass, String fieldName) {
 			int fieldID = view.protocol.getFieldId(declaringClass, fieldName);
 			return (ChildStructField) fields[fieldID];
+		}
+
+		public Object subscribeChildStruct(
+				Class<?> declaringClass, String fieldName, Consumer<Struct> updateChildStruct
+		) {
+			return getChildStructField(declaringClass, fieldName).subscribe(updateChildStruct);
+		}
+
+		public void cancelChildStructSubscription(Class<?> declaringClass, String fieldName, Object subscription) {
+			getChildStructField(declaringClass, fieldName).cancelSubscription(subscription);
 		}
 
 		private void updateCanSave(int fieldID, boolean canSaveField) {
