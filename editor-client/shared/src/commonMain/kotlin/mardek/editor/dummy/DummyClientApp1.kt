@@ -132,7 +132,11 @@ fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitCl
 
 			streamFactory = DummyStreamFactory1(DataOutputStream(stream.outputStream))
 
-			val rootConnection = BitClient.Struct(generateDummyView1(), streamFactory.createStream(0))
+			val rootConnection = BitClient.Struct(
+				generateDummyView1(),
+				streamFactory.createStream(0),
+				streamFactory
+			)
 			getRootStruct.complete(rootConnection)
 
 			val keepAliveThread = Thread {

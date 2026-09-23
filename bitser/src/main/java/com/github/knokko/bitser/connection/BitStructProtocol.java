@@ -15,7 +15,9 @@ public class BitStructProtocol {
 
 	public enum FieldType {
 		SIMPLE,
-		STRUCT
+		STRUCT,
+		COLLECTION,
+		REFERENCE
 	}
 
 	@FunctionalInterface
@@ -135,6 +137,7 @@ public class BitStructProtocol {
 		return switch (fieldInfo.type) {
 			case SIMPLE -> Objects.equals(a, b);
 			case STRUCT -> bitser.deepEquals(a, b);
+			default -> throw new IllegalArgumentException("Can't compare 'flat' " + a + " with " + b);
 		};
 	}
 }

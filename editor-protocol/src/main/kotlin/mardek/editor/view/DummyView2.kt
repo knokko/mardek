@@ -14,6 +14,7 @@ fun generateDummyView2(): StructConnectionView {
 
 	val equipmentView = StructConnectionView(BITSER.getProtocol(EquipmentProperties::class.java))
 	equipmentView.markChildStructField(null, "weapon", weaponView, true)
+	equipmentView.markAllSimpleFields(true, true)
 	equipmentView.finishRegistration()
 
 	return equipmentView
