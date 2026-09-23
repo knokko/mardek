@@ -55,10 +55,8 @@ public class BitClient {
 		@Override
 		void readFromServerInitial(BitInputStream input) throws Throwable {
 			if (view.shouldDownloadDuringInitialization(fieldID)) {
-				System.out.println("reading " + fieldID + "...");
 				//noinspection unchecked
 				serverValue = (T) view.protocol.deserializeFlatFieldValue(fieldID, input);
-				System.out.println("finished reading " + fieldID);
 			}
 		}
 
@@ -150,7 +148,6 @@ public class BitClient {
 			}
 
 			output.write(true);
-			System.out.println("Saving " + localValue);
 			view.protocol.serializeFlatFieldValue(fieldID, output, localValue);
 
 			changeState = ChangeState.SAVING;
