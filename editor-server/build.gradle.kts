@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
 	implementation(project(":editor-protocol"))
+	implementation(project(":bitser-kwik"))
 }
 
 tasks.register("dummy-editor-server1", JavaExec::class) {
