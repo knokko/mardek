@@ -23,6 +23,8 @@ public class BitServer<T> {
 		}
 
 		abstract Object getTargetObject();
+
+		abstract void getChildControllers(Collection<Controller> destination);
 	}
 
 	public static class StructController<T> extends Controller {
@@ -40,6 +42,17 @@ public class BitServer<T> {
 		@Override
 		Object getTargetObject() {
 			return structInstance;
+		}
+
+		@Override
+		void getChildControllers(Collection<Controller> destination) {
+			for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
+				var childView = view.getChildStructViewOrNull(fieldID);
+				if (childView == null) continue;
+
+				var childStruct = view.protocol.getFieldValue(structInstance, fieldID);
+				destination.add(new StructController<>(controllerMapping, childStruct, childView));
+			}
 		}
 
 		public synchronized void addClient(OutputStream toClient, InputStream fromClient, Runnable closeStream) {
@@ -186,13 +199,34 @@ public class BitServer<T> {
 
 		public ControllerMapping() {}
 
+		private void addSingle(Controller controller) {
+			controllerToID.put(controller, nextID);
+			idToController.put(nextID, controller);
+			targetToController.put(controller.getTargetObject(), controller);
+			nextID += 1;
+		}
+
+		public void addWithChildren(Controller rootController) {
+			lock.writeLock().lock();
+			try {
+				var remainingControllers = new ArrayList<Controller>();
+				remainingControllers.add(rootController);
+
+				while (!remainingControllers.isEmpty()) {
+					var nextController = remainingControllers.remove(remainingControllers.size() - 1);
+					addSingle(nextController);
+
+					nextController.getChildControllers(remainingControllers);
+				}
+			} finally {
+				lock.writeLock().unlock();
+			}
+		}
+
 		public void add(Controller controller) {
 			lock.writeLock().lock();
 			try {
-				controllerToID.put(controller, nextID);
-				idToController.put(nextID, controller);
-				targetToController.put(controller.getTargetObject(), controller);
-				nextID += 1;
+				addSingle(controller);
 			} finally {
 				lock.writeLock().unlock();
 			}

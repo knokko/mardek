@@ -1,7 +1,7 @@
 package mardek.editor.server.dummy2
 
-
-import com.github.knokko.bitser.connection.BitServer
+import com.github.knokko.bitser.kwik.BikServer
+import com.github.knokko.bitser.kwik.BikServerProtocol
 import mardek.content.inventory.EquipmentProperties
 import mardek.content.inventory.WeaponProperties
 import mardek.content.stats.Resistances
@@ -9,107 +9,48 @@ import mardek.editor.*
 import mardek.editor.server.EDITOR_KEY_PASSWORD
 import mardek.editor.view.generateDummyView2
 import tech.kwik.core.QuicConnection
+import tech.kwik.core.QuicStream
 import tech.kwik.core.log.SysOutLogger
-import tech.kwik.core.server.ApplicationProtocolConnection
-import tech.kwik.core.server.ApplicationProtocolConnectionFactory
 import tech.kwik.core.server.ServerConnectionConfig
 import tech.kwik.core.server.ServerConnector
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.io.File
-import java.lang.Thread.sleep
 import java.security.KeyStore
 
-private class ProtocolConnection(
-	private val controllers: BitServer.ControllerMapping,
-	private val clientConnection: QuicConnection
-) : ApplicationProtocolConnection {
+private class DummyEditorServerProtocol2 : BikServerProtocol {
 
-	init {
-		val thread = Thread {
-			val mainStream = clientConnection.createStream(true)
-
-			// It looks like the client cannot see the stream until the server writes the first byte
-			mainStream.outputStream.write(0)
-			mainStream.outputStream.flush()
-
-			val authToken = mainStream.inputStream.readNBytes(AUTH_TOKEN_LENGTH)
-			if (!authToken.contentEquals(TEST_AUTH_TOKEN)) {
-				clientConnection.close()
-				return@Thread
-			}
-
-			val keepAliveThread = Thread {
-				while (true) {
-					mainStream.outputStream.write(123)
-					mainStream.outputStream.flush()
-					sleep(10_000L)
-				}
-			}
-			keepAliveThread.isDaemon = true
-			keepAliveThread.start()
-
-			val dataInput = DataInputStream(mainStream.inputStream)
-			while (true) {
-				val requestedStreamID = dataInput.readInt()
-				val controllerID = dataInput.readLong()
-				val nextStream = clientConnection.createStream(true)
-				val dataOutput = DataOutputStream(nextStream.outputStream)
-				dataOutput.writeInt(requestedStreamID)
-				dataOutput.flush()
-
-				val controller = controllers.getControllerById(controllerID) as BitServer.StructController<*>
-				controller.addClient(nextStream.outputStream, nextStream.inputStream) {
-					nextStream.resetStream(0L)
-				}
-			}
-		}
-		thread.isDaemon = true
-		thread.start()
+	override fun configureConfig(builder: ServerConnectionConfig.Builder) {
+		builder.maxConnectionBufferSize(10_000_000L)
 	}
-}
 
-private class ProtocolFactory(
-	private val controllers: BitServer.ControllerMapping
-) : ApplicationProtocolConnectionFactory {
+	override fun configureConnector(builder: ServerConnector.Builder) {
+		val keyStore = KeyStore.getInstance(
+			File("$SERVER_CERTIFICATE_FOLDER/key-store.p12"),
+			EDITOR_KEY_PASSWORD.toCharArray()
+		)
 
-	override fun createConnection(
-		protocol: String,
-		quicConnection: QuicConnection
-	): ApplicationProtocolConnection? {
-		if (protocol != EDITOR_APPLICATION_PROTOCOL_NAME) {
-			quicConnection.close()
-			return null
-		}
-		return ProtocolConnection(controllers, quicConnection)
+		val logger = SysOutLogger()
+
+		builder.withPort(EDITOR_PORT)
+		builder.withKeyStore(keyStore, EDITOR_KEY_ALIAS, EDITOR_KEY_PASSWORD.toCharArray())
+		builder.withLogger(logger)
+	}
+
+	override fun runHandshake(clientConnection: QuicConnection, mainStream: QuicStream): Boolean {
+		mainStream.outputStream.write(0)
+		mainStream.outputStream.flush()
+
+		val authToken = mainStream.inputStream.readNBytes(AUTH_TOKEN_LENGTH)
+		return authToken.contentEquals(TEST_AUTH_TOKEN)
+	}
+
+	override fun waitUntilServerShouldStop() {
+		println("Press ENTER to exit...")
+		readln()
+		println("Exiting...")
 	}
 }
 
 fun main() {
-	val config = ServerConnectionConfig.builder()
-		.maxTotalPeerInitiatedBidirectionalStreams(0)
-		.maxTotalPeerInitiatedUnidirectionalStreams(0)
-		.maxOpenPeerInitiatedBidirectionalStreams(0)
-		.maxOpenPeerInitiatedUnidirectionalStreams(0)
-		.maxConnectionBufferSize(100_000L)
-		.maxUnidirectionalStreamBufferSize(0L)
-		.maxBidirectionalStreamBufferSize(1000L)
-		.build()
-
-	val keyStore = KeyStore.getInstance(
-		File("$SERVER_CERTIFICATE_FOLDER/key-store.p12"),
-		EDITOR_KEY_PASSWORD.toCharArray()
-	)
-
-	val logger = SysOutLogger()
-
-	val connector = ServerConnector.builder()
-		.withPort(EDITOR_PORT)
-		.withConfiguration(config)
-		.withKeyStore(keyStore, EDITOR_KEY_ALIAS, EDITOR_KEY_PASSWORD.toCharArray())
-		.withLogger(logger)
-		.build()
-
 	val weaponProperties = WeaponProperties(
 		hitChance = 100,
 		critChance = 5,
@@ -132,24 +73,10 @@ fun main() {
 		charismaticPerformanceChance = 0,
 	)
 
-	val controllerMapping = BitServer.ControllerMapping()
-
-	val rootView = generateDummyView2()
-	val weaponView = rootView.getChildStructView(null, "weapon")
-	val rootController = BitServer.StructController(controllerMapping, rootStruct, rootView)
-	val weaponController = BitServer.StructController(controllerMapping, weaponProperties, weaponView)
-
-	controllerMapping.add(rootController)
-	controllerMapping.add(weaponController)
-
-	connector.registerApplicationProtocol(
+	BikServer.run(
+		DummyEditorServerProtocol2(),
 		EDITOR_APPLICATION_PROTOCOL_NAME,
-		ProtocolFactory(controllerMapping)
+		rootStruct,
+		generateDummyView2(),
 	)
-	connector.start()
-	println("Press ENTER to exit...")
-	readln()
-	println("Exiting...")
-	connector.close()
-	println("Stopped the server")
 }
