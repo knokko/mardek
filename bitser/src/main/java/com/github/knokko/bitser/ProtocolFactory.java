@@ -2,6 +2,8 @@ package com.github.knokko.bitser;
 
 import com.github.knokko.bitser.connection.BitStructProtocol;
 
+import java.util.List;
+
 class ProtocolFactory {
 
 	private static final Class<?>[] STRUCT_FIELD_CLASSES = {
@@ -27,6 +29,13 @@ class ProtocolFactory {
 
 				if (field.bitField() instanceof BitCollectionFieldWrapper) {
 					fieldType = BitStructProtocol.FieldType.COLLECTION;
+
+					if (List.class.isAssignableFrom(field.classField().getType())) {
+						var elementsWrapper = ((BitCollectionFieldWrapper) field.bitField()).valuesWrapper;
+						if (elementsWrapper instanceof StructFieldWrapper) {
+							fieldType = BitStructProtocol.FieldType.STRUCT_LIST;
+						}
+					}
 				}
 
 				if (field.bitField() instanceof ReferenceFieldWrapper) {

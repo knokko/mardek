@@ -12,7 +12,7 @@ import java.util.*;
 class BitCollectionFieldWrapper extends AbstractCollectionFieldWrapper {
 
 	@ClassField(root = BitFieldWrapper.class)
-	private final BitFieldWrapper valuesWrapper;
+	final BitFieldWrapper valuesWrapper;
 
 	BitCollectionFieldWrapper(VirtualField field, IntegerField sizeField, BitFieldWrapper valuesWrapper) {
 		super(field, sizeField);

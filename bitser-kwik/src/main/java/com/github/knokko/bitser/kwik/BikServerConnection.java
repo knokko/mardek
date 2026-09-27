@@ -54,7 +54,7 @@ class BikServerConnection implements ApplicationProtocolConnection {
 				dataOutput.writeInt(requestedStreamID);
 				dataOutput.flush();
 
-				var controller = (BitServer.StructController<?>) controllers.getControllerById(controllerID);
+				var controller = controllers.getControllerById(controllerID);
 				controller.addClient(
 						nextStream.getOutputStream(),
 						nextStream.getInputStream(),
