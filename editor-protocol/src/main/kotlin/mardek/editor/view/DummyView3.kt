@@ -6,19 +6,27 @@ import mardek.content.BITSER
 import mardek.content.inventory.ItemType
 import mardek.content.inventory.ItemsContent
 
-fun generateDummyView3(): StructConnectionView {
+object DummyView3 {
 
-	val itemTypeView = StructConnectionView(BITSER.getProtocol(ItemType::class.java))
-	itemTypeView.markAllSimpleFields(true, true)
-	itemTypeView.finishRegistration()
+	val root: StructConnectionView
+	val operationAddItemType: Int
 
-	val itemTypesView = StructListConnectionView(itemTypeView)
-	itemTypesView.allowOperation(StructListConnectionView.Operation.Add)
-	itemTypesView.finishRegistration()
+	init {
+		val itemTypeView = StructConnectionView(BITSER.getProtocol(ItemType::class.java))
+		itemTypeView.markAllSimpleFields(true, true)
+		itemTypeView.finishRegistration()
 
-	val contentView = StructConnectionView(BITSER.getProtocol(ItemsContent::class.java))
-	contentView.markStructListField(null, "itemTypes", itemTypesView, false) // TODO BITSER Change to true, once we support it
-	contentView.finishRegistration()
+		val itemTypesView = StructListConnectionView<ItemType>(itemTypeView)
+		this.operationAddItemType = itemTypesView.addSimpleOperation { structList ->
+			structList.add(ItemType("ITEM TYPE: NEW", -1, "New item type"))
+			true
+		}
+		itemTypesView.finishRegistration()
 
-	return contentView
+		val contentView = StructConnectionView(BITSER.getProtocol(ItemsContent::class.java))
+		contentView.markStructListField(null, "itemTypes", itemTypesView, false) // TODO BITSER Change to true, once we support it
+		contentView.finishRegistration()
+
+		this.root = contentView
+	}
 }
