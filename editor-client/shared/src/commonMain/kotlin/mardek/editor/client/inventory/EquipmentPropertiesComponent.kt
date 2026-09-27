@@ -10,13 +10,13 @@ import androidx.compose.runtime.setValue
 import com.github.knokko.bitser.connection.BitClient
 import mardek.editor.client.component.BitserIntField
 import mardek.editor.client.component.ChildStruct
-import mardek.editor.client.component.ReadWriteStruct
+import mardek.editor.client.component.TrackStruct
 import mardek.editor.client.component.StructsSaveButton
 
 @Composable
 fun EquipmentPropertiesComponent(equipment: BitClient.Struct) {
 	val mutateScope = rememberCoroutineScope()
-	var weapon by remember { mutableStateOf<BitClient.Struct?>(null)}
+	var weapon by remember { mutableStateOf<BitClient.Struct?>(null) }
 
 	Row {
 		weapon?.let { WeaponPropertiesComponent(it) }
@@ -24,6 +24,6 @@ fun EquipmentPropertiesComponent(equipment: BitClient.Struct) {
 		StructsSaveButton(arrayOf(equipment, weapon))
 	}
 
-	ReadWriteStruct(equipment)
+	TrackStruct(equipment)
 	ChildStruct(mutateScope, equipment, null, "weapon") { weapon = it }
 }

@@ -8,6 +8,7 @@ public class StructConnectionView {
 	private final boolean[] isConstant;
 	private final boolean[] flatStructs;
 	private final StructConnectionView[] childStructs;
+	private final StructListConnectionView[] structLists;
 
 	private boolean finishedRegistration;
 	private boolean hasDownloadableFields;
@@ -15,11 +16,14 @@ public class StructConnectionView {
 
 	public StructConnectionView(BitStructProtocol protocol) {
 		this.protocol = protocol;
-		this.canDownloadFlat = new boolean[protocol.getNumFields()];
-		this.canUploadFlat = new boolean[protocol.getNumFields()];
-		this.isConstant = new boolean[protocol.getNumFields()];
-		this.flatStructs = new boolean[protocol.getNumFields()];
-		this.childStructs = new StructConnectionView[protocol.getNumFields()];
+
+		int numFields = protocol.getNumFields();
+		this.canDownloadFlat = new boolean[numFields];
+		this.canUploadFlat = new boolean[numFields];
+		this.isConstant = new boolean[numFields];
+		this.flatStructs = new boolean[numFields];
+		this.childStructs = new StructConnectionView[numFields];
+		this.structLists = new StructListConnectionView[numFields];
 	}
 
 	private void assertRegistrationIsOpen() {
@@ -41,6 +45,20 @@ public class StructConnectionView {
 		return fieldID;
 	}
 
+	private int getUnclaimedStructListField(Class<?> declaringClass, String fieldName) {
+		assertRegistrationIsOpen();
+
+		int fieldID = protocol.getFieldId(declaringClass, fieldName);
+		var fieldType = protocol.getFieldType(fieldID);
+		if (fieldType != BitStructProtocol.FieldType.STRUCT_LIST) {
+			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a struct list field");
+		}
+		if (structLists[fieldID] != null) {
+			throw new IllegalStateException("Field " + fieldName + " is already a struct list");
+		}
+		return fieldID;
+	}
+
 	public void markChildStructField(
 			Class<?> declaringClass, String fieldName,
 			StructConnectionView childView, boolean constant
@@ -56,6 +74,16 @@ public class StructConnectionView {
 		flatStructs[fieldID] = true;
 		canDownloadFlat[fieldID] = canRead;
 		canUploadFlat[fieldID] = canWrite;
+	}
+
+	public void markStructListField(
+			Class<?> declaringClass, String fieldName,
+			StructListConnectionView elementView, boolean constant
+	) {
+		int fieldID = getUnclaimedStructListField(declaringClass, fieldName);
+		structLists[fieldID] = elementView;
+		canDownloadFlat[fieldID] = true;
+		isConstant[fieldID] = constant;
 	}
 
 	public void markAllSimpleFields(boolean canRead, boolean canWrite) {
@@ -121,6 +149,11 @@ public class StructConnectionView {
 	StructConnectionView getChildStructViewOrNull(int fieldID) {
 		assertRegistrationIsClosed();
 		return childStructs[fieldID];
+	}
+
+	StructListConnectionView getStructListViewOrNull(int fieldID) {
+		assertRegistrationIsClosed();
+		return structLists[fieldID];
 	}
 
 	public StructConnectionView getChildStructView(Class<?> declaringClass, String fieldName) {

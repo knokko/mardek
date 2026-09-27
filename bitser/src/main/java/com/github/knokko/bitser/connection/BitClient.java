@@ -203,7 +203,7 @@ public class BitClient {
 
 		@Override
 		void save(BitOutputStream output) {
-			// ClientStructField's cannot be saved; save their BitClient.Struct instead"
+			// ClientStructField's cannot be saved; save their BitClient.Struct instead
 		}
 
 		public synchronized Object subscribe(Consumer<Struct> updateChildStruct) {
@@ -222,6 +222,77 @@ public class BitClient {
 			//noinspection SuspiciousMethodCalls
 			if (!listeners.remove(subscription)) {
 				System.err.println("Warning: attempted to cancel missing subscription for field " + fieldID + " of " + view);
+			}
+		}
+	}
+
+	public static class StructListField extends AbstractField {
+
+		private long serverControllerID = -1L;
+		private final ClientStream.Factory streamFactory;
+		private final List<Consumer<StructList>> listeners = new ArrayList<>();
+
+		StructListField(ClientStream.Factory streamFactory, StructConnectionView view, int fieldID) {
+			super(view, fieldID);
+			this.streamFactory = streamFactory;
+		}
+
+		@Override
+		void readFromServerInitial(BitInputStream input) throws Throwable {
+			if (view.shouldDownloadDuringInitialization(fieldID)) {
+				serverControllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+						0L, Long.MAX_VALUE, input
+				);
+			}
+		}
+
+		@Override
+		void postReadFromServerInitial() {
+			if (view.shouldDownloadDuringInitialization(fieldID)) {
+				var childView = Objects.requireNonNull(view.getStructListViewOrNull(fieldID));
+				for (var listener : listeners) {
+					var childStream = streamFactory.createStream(serverControllerID);
+					listener.accept(new StructList(childView, childStream, streamFactory));
+				}
+			}
+		}
+
+		@Override
+		void setFromServer(Object newServerValue) {
+			long oldControllerID = serverControllerID;
+			this.serverControllerID = (Long) newServerValue;
+
+			if (oldControllerID != serverControllerID) {
+				var childView = Objects.requireNonNull(view.getStructListViewOrNull(fieldID));
+				for (var listener : listeners) {
+					var childStream = streamFactory.createStream(serverControllerID);
+					listener.accept(new StructList(childView, childStream, streamFactory));
+				}
+			}
+		}
+
+		@Override
+		void save(BitOutputStream output) {
+			// Struct list fields cannot be reassigned; only modified
+		}
+
+		public synchronized Object subscribe(Consumer<StructList> updateStructList) {
+			listeners.add(updateStructList);
+
+			if (serverControllerID != -1L) {
+				var childView = Objects.requireNonNull(view.getStructListViewOrNull(fieldID));
+				var childStream = streamFactory.createStream(serverControllerID);
+				updateStructList.accept(new StructList(childView, childStream, streamFactory));
+			}
+
+			return updateStructList;
+		}
+
+		public synchronized void cancelSubscription(Object subscription) {
+			//noinspection SuspiciousMethodCalls
+			if (!listeners.remove(subscription)) {
+				System.err.println("Warning: attempted to cancel missing StructListField subscription " +
+						"for field " + fieldID + " of " + view);
 			}
 		}
 	}
@@ -254,6 +325,10 @@ public class BitClient {
 
 				if (fieldType == BitStructProtocol.FieldType.STRUCT) {
 					this.fields[fieldID] = new ChildStructField(streamFactory, view, fieldID);
+				}
+
+				if (fieldType == BitStructProtocol.FieldType.STRUCT_LIST) {
+					this.fields[fieldID] = new StructListField(streamFactory, view, fieldID);
 				}
 			}
 		}
@@ -298,14 +373,29 @@ public class BitClient {
 			return (ChildStructField) fields[fieldID];
 		}
 
+		private StructListField getStructListField(Class<?> declaringClass, String fieldName) {
+			int fieldID = view.protocol.getFieldId(declaringClass, fieldName);
+			return (StructListField) fields[fieldID];
+		}
+
 		public Object subscribeChildStruct(
 				Class<?> declaringClass, String fieldName, Consumer<Struct> updateChildStruct
 		) {
 			return getChildStructField(declaringClass, fieldName).subscribe(updateChildStruct);
 		}
 
+		public Object subscribeStructList(
+				Class<?> declaringClass, String fieldName, Consumer<StructList> updateStructList
+		) {
+			return getStructListField(declaringClass, fieldName).subscribe(updateStructList);
+		}
+
 		public void cancelChildStructSubscription(Class<?> declaringClass, String fieldName, Object subscription) {
 			getChildStructField(declaringClass, fieldName).cancelSubscription(subscription);
+		}
+
+		public void cancelStructListSubscription(Class<?> declaringClass, String fieldName, Object subscription) {
+			getStructListField(declaringClass, fieldName).cancelSubscription(subscription);
 		}
 
 		private void updateCanSave(int fieldID, boolean canSaveField) {
@@ -351,6 +441,100 @@ public class BitClient {
 		private void save(BitOutputStream toServer) throws Throwable {
 			for (var field : fields) {
 				if (field != null) field.save(toServer);
+			}
+		}
+
+		public void close() {
+			stream.close();
+		}
+	}
+
+	public static class StructList {
+
+		private final StructListConnectionView view;
+		private final ClientStream stream;
+		private final ClientStream.Factory streamFactory;
+
+		private final List<Struct> elements = new ArrayList<>();
+		private final List<Consumer<Struct[]>> listeners = new ArrayList<>();
+
+		public StructList(StructListConnectionView view, ClientStream stream, ClientStream.Factory streamFactory) {
+			this.view = view;
+			this.stream = stream;
+			this.streamFactory = streamFactory;
+		}
+
+		public void start() {
+			stream.start(this::processInput);
+		}
+
+		private void processInput(BitInputStream fromServer) throws Throwable {
+			{
+				int length = IntegerBitser.decodeUnknownLength(null, "BitClient.StructList", fromServer);
+				long[] controllerIDs = new long[length];
+				for (int index = 0; index < length; index++) {
+					controllerIDs[index] = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+							0L, Long.MAX_VALUE, fromServer
+					);
+				}
+
+				fromServer.discardCurrentByte();
+
+				synchronized (listeners) {
+					for (long controllerID : controllerIDs) {
+						elements.add(new Struct(view.elementsView, streamFactory.createStream(controllerID), streamFactory));
+					}
+
+					for (var listener : listeners) listener.accept(elements.toArray(new Struct[0]));
+				}
+			}
+
+			if (view.getNumAllowedOperations() == 0) return;
+
+			//noinspection InfiniteLoopStatement
+			while (true) {
+				int operationIndex = (int) IntegerBitser.decodeUniformInteger(
+						0L, view.getNumAllowedOperations(), fromServer
+				);
+				var operation = view.getAllowedOperation(operationIndex);
+				if (operation == StructListConnectionView.Operation.Add) {
+					// Don't decode as uniform integer, since the number of elements on the client may get
+					// out of sync with the number of elements on the server
+					int insertionIndex = (int) IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+							0L, Integer.MAX_VALUE, fromServer
+					);
+					long controllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+							0L, Long.MAX_VALUE, fromServer
+					);
+					var element = new Struct(view.elementsView, streamFactory.createStream(controllerID), streamFactory);
+
+					synchronized (listeners) {
+						elements.add(insertionIndex, element);
+						for (var listener : listeners) listener.accept(elements.toArray(new Struct[0]));
+					}
+				} else {
+					throw new UnsupportedOperationException(operation + " is not implemented yet");
+				}
+
+				fromServer.discardCurrentByte();
+			}
+		}
+
+		public Object subscribe(Consumer<Struct[]> callback) {
+			synchronized (listeners) {
+				callback.accept(elements.toArray(new Struct[0]));
+				listeners.add(callback);
+			}
+
+			return callback;
+		}
+
+		public void cancelSubscription(Object subscription) {
+			synchronized (listeners) {
+				//noinspection SuspiciousMethodCalls
+				if (!listeners.remove(subscription)) {
+					System.err.println("Attempted to remove missing subscription in BitClient.StructList");
+				}
 			}
 		}
 

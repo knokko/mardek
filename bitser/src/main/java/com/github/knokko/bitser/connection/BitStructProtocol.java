@@ -16,6 +16,7 @@ public class BitStructProtocol {
 	public enum FieldType {
 		SIMPLE,
 		STRUCT,
+		STRUCT_LIST,
 		COLLECTION,
 		REFERENCE
 	}
