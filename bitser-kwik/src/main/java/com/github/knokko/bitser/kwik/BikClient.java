@@ -43,7 +43,7 @@ public class BikClient {
 					streamFactory[0] = new BikClientStreamFactory(new DataOutputStream(stream.getOutputStream()));
 
 					var rootConnection = new BitClient.Struct(
-							rootView, streamFactory[0].createStream(0), streamFactory[0]
+							rootView, streamFactory[0].createStream(0), streamFactory[0], 0
 					);
 					rootStructFuture.complete(rootConnection);
 				} catch (Throwable failed) {

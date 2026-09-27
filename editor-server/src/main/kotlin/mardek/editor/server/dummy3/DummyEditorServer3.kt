@@ -6,7 +6,7 @@ import mardek.content.inventory.ItemType
 import mardek.content.inventory.ItemsContent
 import mardek.editor.*
 import mardek.editor.server.EDITOR_KEY_PASSWORD
-import mardek.editor.view.generateDummyView3
+import mardek.editor.view.DummyView3
 import tech.kwik.core.QuicConnection
 import tech.kwik.core.QuicStream
 import tech.kwik.core.log.SysOutLogger
@@ -58,6 +58,6 @@ fun main() {
 		DummyEditorServerProtocol3(),
 		EDITOR_APPLICATION_PROTOCOL_NAME,
 		rootStruct,
-		generateDummyView3(),
+		DummyView3.root,
 	)
 }

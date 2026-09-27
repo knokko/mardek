@@ -4,10 +4,14 @@ import com.github.knokko.bitser.IntegerBitser;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import static java.lang.Math.max;
 
 public class BitClient {
 
@@ -182,7 +186,7 @@ public class BitClient {
 				var childView = Objects.requireNonNull(view.getChildStructViewOrNull(fieldID));
 				for (var listener : listeners) {
 					var childStream = streamFactory.createStream(serverControllerID);
-					listener.accept(new Struct(childView, childStream, streamFactory));
+					listener.accept(new Struct(childView, childStream, streamFactory, serverControllerID));
 				}
 			}
 		}
@@ -196,7 +200,7 @@ public class BitClient {
 				var childView = Objects.requireNonNull(view.getChildStructViewOrNull(fieldID));
 				for (var listener : listeners) {
 					var childStream = streamFactory.createStream(serverControllerID);
-					listener.accept(new Struct(childView, childStream, streamFactory));
+					listener.accept(new Struct(childView, childStream, streamFactory, serverControllerID));
 				}
 			}
 		}
@@ -212,7 +216,7 @@ public class BitClient {
 			if (serverControllerID != -1L) {
 				var childView = Objects.requireNonNull(view.getChildStructViewOrNull(fieldID));
 				var childStream = streamFactory.createStream(serverControllerID);
-				updateChildStruct.accept(new Struct(childView, childStream, streamFactory));
+				updateChildStruct.accept(new Struct(childView, childStream, streamFactory, serverControllerID));
 			}
 
 			return updateChildStruct;
@@ -301,15 +305,20 @@ public class BitClient {
 
 		private final StructConnectionView view;
 		private final ClientStream stream;
+		private final long controllerID;
 
 		private final AbstractField[] fields;
 		private final List<Consumer<Boolean>> canSaveListeners = new ArrayList<>();
 		private final boolean[] canSaveArray;
 		private boolean lastCanSave;
 
-		public Struct(StructConnectionView view, ClientStream stream, ClientStream.Factory streamFactory) {
+		public Struct(
+				StructConnectionView view, ClientStream stream,
+				ClientStream.Factory streamFactory, long controllerID
+		) {
 			this.view = view;
 			this.stream = stream;
+			this.controllerID = controllerID;
 
 			this.fields = new AbstractField[view.protocol.getNumFields()];
 			this.canSaveArray = new boolean[fields.length];
@@ -451,14 +460,14 @@ public class BitClient {
 
 	public static class StructList {
 
-		private final StructListConnectionView view;
+		private final StructListConnectionView<?> view;
 		private final ClientStream stream;
 		private final ClientStream.Factory streamFactory;
 
 		private final List<Struct> elements = new ArrayList<>();
 		private final List<Consumer<Struct[]>> listeners = new ArrayList<>();
 
-		public StructList(StructListConnectionView view, ClientStream stream, ClientStream.Factory streamFactory) {
+		public StructList(StructListConnectionView<?> view, ClientStream stream, ClientStream.Factory streamFactory) {
 			this.view = view;
 			this.stream = stream;
 			this.streamFactory = streamFactory;
@@ -468,55 +477,44 @@ public class BitClient {
 			stream.start(this::processInput);
 		}
 
-		private void processInput(BitInputStream fromServer) throws Throwable {
-			{
-				int length = IntegerBitser.decodeUnknownLength(null, "BitClient.StructList", fromServer);
-				long[] controllerIDs = new long[length];
-				for (int index = 0; index < length; index++) {
-					controllerIDs[index] = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
-							0L, Long.MAX_VALUE, fromServer
-					);
-				}
-
-				fromServer.discardCurrentByte();
-
-				synchronized (listeners) {
-					for (long controllerID : controllerIDs) {
-						elements.add(new Struct(view.elementsView, streamFactory.createStream(controllerID), streamFactory));
-					}
-
-					for (var listener : listeners) listener.accept(elements.toArray(new Struct[0]));
-				}
+		private void refreshListFromServer(BitInputStream fromServer) throws IOException {
+			int length = IntegerBitser.decodeUnknownLength(null, "BitClient.StructList", fromServer);
+			long[] controllerIDs = new long[length];
+			for (int index = 0; index < length; index++) {
+				controllerIDs[index] = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+						0L, Long.MAX_VALUE, fromServer
+				);
 			}
 
-			if (view.getNumAllowedOperations() == 0) return;
+			fromServer.discardCurrentByte();
+
+			synchronized (listeners) {
+				var existingMapping = new HashMap<Long, Struct>();
+				for (var structConnection : elements) {
+					existingMapping.put(structConnection.controllerID, structConnection);
+				}
+
+				elements.clear();
+				for (long controllerID : controllerIDs) {
+					var existingController = existingMapping.get(controllerID);
+					if (existingController == null) {
+						elements.add(new Struct(view.elementsView, streamFactory.createStream(controllerID), streamFactory, controllerID));
+					} else {
+						elements.add(existingController);
+					}
+				}
+
+				for (var listener : listeners) listener.accept(elements.toArray(new Struct[0]));
+			}
+		}
+
+		private void processInput(BitInputStream fromServer) throws Throwable {
+			refreshListFromServer(fromServer);
 
 			//noinspection InfiniteLoopStatement
 			while (true) {
-				int operationIndex = (int) IntegerBitser.decodeUniformInteger(
-						0L, view.getNumAllowedOperations(), fromServer
-				);
-				var operation = view.getAllowedOperation(operationIndex);
-				if (operation == StructListConnectionView.Operation.Add) {
-					// Don't decode as uniform integer, since the number of elements on the client may get
-					// out of sync with the number of elements on the server
-					int insertionIndex = (int) IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
-							0L, Integer.MAX_VALUE, fromServer
-					);
-					long controllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
-							0L, Long.MAX_VALUE, fromServer
-					);
-					var element = new Struct(view.elementsView, streamFactory.createStream(controllerID), streamFactory);
-
-					synchronized (listeners) {
-						elements.add(insertionIndex, element);
-						for (var listener : listeners) listener.accept(elements.toArray(new Struct[0]));
-					}
-				} else {
-					throw new UnsupportedOperationException(operation + " is not implemented yet");
-				}
-
-				fromServer.discardCurrentByte();
+				// TODO BITSER Process operation feedback
+				refreshListFromServer(fromServer);
 			}
 		}
 
@@ -536,6 +534,15 @@ public class BitClient {
 					System.err.println("Attempted to remove missing subscription in BitClient.StructList");
 				}
 			}
+		}
+
+		public void executeSimpleOperation(int operation) {
+			stream.send(toServer -> {
+				IntegerBitser.encodeUniformInteger(
+						operation, 0L, max(1L, view.getNumOperations() - 1), toServer
+				);
+			});
+			// TODO BITSER Add support for operations with input & output
 		}
 
 		public void close() {
