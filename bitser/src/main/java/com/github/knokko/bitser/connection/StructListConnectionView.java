@@ -1,69 +1,86 @@
 package com.github.knokko.bitser.connection;
 
-public class StructListConnectionView {
+import com.github.knokko.bitser.io.BitInputStream;
+import com.github.knokko.bitser.io.BitOutputStream;
 
-	public enum Operation {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-		Add,
-		Swap,
-		Replace,
-		Remove
-	}
+public class StructListConnectionView<T> {
 
 	public final StructConnectionView elementsView;
-	private final boolean[] allowedOperationsMask = new boolean[Operation.values().length];
+	private final List<Supplier<Operation<T>>> operations = new ArrayList<>();
 
-	private Operation[] allowedOperations;
+	private boolean closedRegistration;
 
 	public StructListConnectionView(StructConnectionView elementsView) {
 		this.elementsView = elementsView;
 	}
 
 	private void assertRegistrationIsOpen() {
-		if (allowedOperations != null) throw new IllegalStateException("Registration is already closed");
+		if (closedRegistration) throw new IllegalStateException("Registration is already closed");
 	}
 
-	public void allowOperation(Operation operation) {
-		allowedOperationsMask[operation.ordinal()] = true;
+	public int addOperation(Supplier<Operation<T>> operation) {
+		assertRegistrationIsOpen();
+
+		int index = operations.size();
+		operations.add(operation);
+		return index;
+	}
+
+	public int addSimpleOperation(Function<List<T>, Boolean> operation) {
+		var simpleOperation = new SimpleOperation<>(operation);
+		return addOperation(() -> simpleOperation);
 	}
 
 	public void finishRegistration() {
 		assertRegistrationIsOpen();
-
-		int operationIndex = 0;
-		for (var maybe : allowedOperationsMask) {
-			if (maybe) operationIndex += 1;
-		}
-
-		allowedOperations = new Operation[operationIndex];
-		operationIndex = 0;
-		for (int enumIndex = 0; enumIndex < allowedOperationsMask.length; enumIndex++) {
-			if (allowedOperationsMask[enumIndex]) {
-				allowedOperations[operationIndex] = Operation.values()[enumIndex];
-				operationIndex += 1;
-			}
-		}
+		closedRegistration = true;
 	}
 
 	private void assertRegistrationIsClosed() {
-		if (allowedOperations == null) throw new IllegalStateException("Registration is still open");
+		if (!closedRegistration) throw new IllegalStateException("Registration is still open");
 	}
 
-	public int getAllowedOperationIndex(Operation operation) {
+	public int getNumOperations() {
 		assertRegistrationIsClosed();
+		return operations.size();
+	}
 
-		for (int index = 0; index < allowedOperations.length; index++) {
-			if (operation == allowedOperations[index]) return index;
+	public Operation<T> getOperation(int index) {
+		assertRegistrationIsClosed();
+		return operations.get(index).get();
+	}
+
+	public static abstract class Operation<T> {
+
+		public abstract void readFromClient(BitInputStream fromClient) throws Throwable;
+
+		public abstract boolean execute(List<T> structList);
+
+		public abstract void respondToClient(BitOutputStream toClient) throws Throwable;
+	}
+
+	private static class SimpleOperation<T> extends Operation<T> {
+
+		private final Function<List<T>, Boolean> operation;
+
+		SimpleOperation(Function<List<T>, Boolean> operation) {
+			this.operation = operation;
 		}
 
-		throw new UnsupportedOperationException(operation + " is not allowed");
-	}
+		@Override
+		public void readFromClient(BitInputStream fromClient) {}
 
-	public Operation getAllowedOperation(int index) {
-		return allowedOperations[index];
-	}
+		@Override
+		public boolean execute(List<T> structList) {
+			return operation.apply(structList);
+		}
 
-	public int getNumAllowedOperations() {
-		return allowedOperations.length;
+		@Override
+		public void respondToClient(BitOutputStream toClient) {}
 	}
 }

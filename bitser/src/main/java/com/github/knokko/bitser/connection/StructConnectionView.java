@@ -151,7 +151,7 @@ public class StructConnectionView {
 		return childStructs[fieldID];
 	}
 
-	StructListConnectionView getStructListViewOrNull(int fieldID) {
+	StructListConnectionView<?> getStructListViewOrNull(int fieldID) {
 		assertRegistrationIsClosed();
 		return structLists[fieldID];
 	}

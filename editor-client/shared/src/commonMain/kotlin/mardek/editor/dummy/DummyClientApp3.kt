@@ -10,7 +10,7 @@ import mardek.editor.client.EditorClientProtocol
 import mardek.editor.client.component.ChildStructList
 import mardek.editor.client.component.TrackStruct
 import mardek.editor.client.inventory.ItemTypeListComponent
-import mardek.editor.view.generateDummyView3
+import mardek.editor.view.DummyView3
 import java.net.URI
 
 @Composable
@@ -32,7 +32,7 @@ fun ItemsContentComponent(itemsContent: BitClient.Struct) {
 fun launchDummyConnection3() = BikClient.connect(
 	URI("https://localhost:$EDITOR_PORT"),
 	EDITOR_APPLICATION_PROTOCOL_NAME,
-	generateDummyView3(),
+	DummyView3.root,
 	EditorClientProtocol(
 		EditorClientProtocol.createDevelopmentTrustStore(), TEST_AUTH_TOKEN
 	)
