@@ -1,6 +1,7 @@
 package mardek.editor.client.inventory
 
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,12 +16,12 @@ import mardek.editor.view.DummyView3
 
 @Composable
 fun ItemTypeListComponent(list: BitClient.StructList) {
-	var nullableElements by remember { mutableStateOf<Array<BitClient.Struct>?>(null) }
+	var controllerIDs by remember { mutableStateOf<LongArray?>(null) }
 
-	nullableElements?.let { elements ->
+	controllerIDs?.let { ids ->
 		LazyColumn {
-			items(elements.size, key = { elements[it] }) {
-				ItemTypeComponent(elements[it])
+			items(ids.toTypedArray(), key = { it }) { controllerID ->
+				ItemTypeComponent(list.createElementConnectionFromControllerID(controllerID))
 			}
 		}
 	}
@@ -30,5 +31,5 @@ fun ItemTypeListComponent(list: BitClient.StructList) {
 	}
 
 	TrackStructList(list)
-	TrackStructListElements(list) { nullableElements = it }
+	TrackStructListElements(list) { controllerIDs = it }
 }

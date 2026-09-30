@@ -8,7 +8,7 @@ public class StructConnectionView {
 	private final boolean[] isConstant;
 	private final boolean[] flatStructs;
 	private final StructConnectionView[] childStructs;
-	private final StructListConnectionView[] structLists;
+	private final StructListConnectionView<?>[] structLists;
 
 	private boolean finishedRegistration;
 	private boolean hasDownloadableFields;
@@ -24,6 +24,11 @@ public class StructConnectionView {
 		this.flatStructs = new boolean[numFields];
 		this.childStructs = new StructConnectionView[numFields];
 		this.structLists = new StructListConnectionView[numFields];
+	}
+
+	@Override
+	public String toString() {
+		return "StructConnectionView(" + protocol + ")";
 	}
 
 	private void assertRegistrationIsOpen() {
@@ -78,7 +83,7 @@ public class StructConnectionView {
 
 	public void markStructListField(
 			Class<?> declaringClass, String fieldName,
-			StructListConnectionView elementView, boolean constant
+			StructListConnectionView<?> elementView, boolean constant
 	) {
 		int fieldID = getUnclaimedStructListField(declaringClass, fieldName);
 		structLists[fieldID] = elementView;

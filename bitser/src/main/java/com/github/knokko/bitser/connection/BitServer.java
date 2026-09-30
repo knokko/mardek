@@ -185,7 +185,7 @@ public class BitServer<T> {
 						}
 					}
 				} catch (Throwable failed) {
-					throw new RuntimeException(failed);
+					System.err.println("StructController.readFromClient thread died: " + failed.getMessage());
 				} finally {
 					close();
 				}
@@ -324,7 +324,7 @@ public class BitServer<T> {
 						toClient.flush();
 					}
 				} catch (Throwable failed) {
-					throw new RuntimeException(failed);
+					System.err.println("StructListConnection.readFromClient thread died: " + failed.getMessage());
 				} finally {
 					close();
 				}
