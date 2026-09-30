@@ -132,7 +132,8 @@ fun launchDummyConnection1(): Pair<QuicClientConnection, CompletableFuture<BitCl
 			val rootConnection = BitClient.Struct(
 				generateDummyView1(),
 				streamFactory.createStream(0),
-				streamFactory
+				streamFactory,
+				0L
 			)
 			getRootStruct.complete(rootConnection)
 

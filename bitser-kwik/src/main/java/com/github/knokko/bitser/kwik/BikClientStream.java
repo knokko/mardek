@@ -28,8 +28,8 @@ class BikClientStream implements ClientStream {
 			var readThread = new Thread(() -> {
 				try {
 					processInput.read(new BitInputStream(quicStream.getInputStream()));
-				} catch (Throwable e) {
-					throw new RuntimeException(e);
+				} catch (Throwable closed) {
+					System.err.println("BikClientStream.start: read thread died: " + closed.getMessage());
 				} finally {
 					quicStream.resetStream(0L);
 				}

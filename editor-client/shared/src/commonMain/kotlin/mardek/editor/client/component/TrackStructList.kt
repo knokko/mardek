@@ -13,7 +13,7 @@ fun TrackStructList(structList: BitClient.StructList) {
 }
 
 @Composable
-fun TrackStructListElements(structList: BitClient.StructList, callback: (Array<BitClient.Struct>) -> Unit) {
+fun TrackStructListElements(structList: BitClient.StructList, callback: (LongArray) -> Unit) {
 	DisposableEffect(structList) {
 		val subscription = structList.subscribe(callback)
 		onDispose { structList.cancelSubscription(subscription) }
