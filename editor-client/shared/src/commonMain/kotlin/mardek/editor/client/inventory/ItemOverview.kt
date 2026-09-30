@@ -1,4 +1,4 @@
-package mardek.editor.client
+package mardek.editor.client.inventory
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -25,81 +24,58 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import com.github.knokko.bitser.connection.BitClient
 import mardek.editor.EditorView
 import mardek.editor.client.component.TrackStructList
 import mardek.editor.client.component.TrackStructListElements
-import mardek.editor.client.inventory.ItemTypeComponent
-
-val fontSize = 1.1.em
-
-val baseModifiers = arrayOf(300.dp, 300.dp, 300.dp).map { Modifier.width(it) }
 
 @Composable
-private fun ItemTypeRow(list: BitClient.StructList, controllerID: Long, scrollState: ScrollState) {
-	println("ItemTypeRow($controllerID)")
+private fun ItemRow(list: BitClient.StructList, controllerID: Long, scrollState: ScrollState) {
+	println("ItemRow($controllerID)")
 	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
-		ItemTypeComponent(list.createElementConnectionFromControllerID(controllerID))
-//						Box(modifier = baseModifiers[0]) {
-//							TextField(
-//								state = rememberTextFieldState(initialText = itemType.displayName),
-//								modifier = Modifier.padding(start = 10.dp, bottom = 10.dp, top = 10.dp, end = 30.dp),
-//								textStyle = TextStyle(fontSize = fontSize),
-//								contentPadding = PaddingValues(5.dp),
-//								lineLimits = TextFieldLineLimits.SingleLine,
-//								inputTransformation = {
-//									val newText = this.toString()
-//									println("new text is $newText")
-//								}
-//							)
-//						}
-//
-//						Text(itemType.gridColor.toString(), modifier = baseModifiers[1], fontSize = fontSize)
-//						Text(itemType.niceName, modifier = baseModifiers[2], fontSize = fontSize)
+		ItemComponent(list.createElementConnectionFromControllerID(controllerID))
 	}
 }
 
 @Composable
-private fun InnerItemTypeList(list: BitClient.StructList, controllerIDs: List<Long>) {
-	println("InnerItemTypeList")
+private fun InnerItemList(list: BitClient.StructList, controllerIDs: List<Long>) {
+	println("InnerItemList")
 	val scrollState = rememberScrollState()
 
 	Column(modifier = Modifier.fillMaxSize()) {
 		println("Column")
 		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
-			Text("Upper name", modifier = baseModifiers[0], fontSize = fontSize)
-			Text("Grid color", modifier = baseModifiers[2], fontSize = fontSize)
-			Text("Nice name", modifier = baseModifiers[1], fontSize = fontSize)
+			Text("Display name", modifier = baseModifiers[0], fontSize = fontSize)
+			Text("Item type", modifier = baseModifiers[2], fontSize = fontSize)
 		}
 		Box(Modifier.weight(1f)) {
 			println("Box")
 			LazyColumn(modifier = Modifier.fillMaxHeight().background(Color.Cyan)) {
 				println("LazyColumn ${System.identityHashCode(controllerIDs)}")
 				items(controllerIDs, key = { it }) { controllerID ->
-					ItemTypeRow(list, controllerID, scrollState)
+					ItemRow(list, controllerID, scrollState)
 				}
 			}
 		}
 
 		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
-			Button(onClick = { list.executeSimpleOperation(EditorView.operationAddItemType) }) {
-				Text("Add new")
+			Button(onClick = { list.executeSimpleOperation(EditorView.operationAddWeapon) }) {
+				Text("Add weapon")
 			}
 		}
 	}
 }
 
 @Composable
-fun ItemTypeOverview(list: BitClient.StructList) {
-	println("ItemTypeOverview")
+fun ItemOverview(list: BitClient.StructList) {
+	println("ItemOverview")
 	val controllerIDs = remember { mutableStateListOf<Long>() }
 	var isLoading by remember { mutableStateOf(true) }
 
 	if (isLoading) {
 		Text("Loading...")
 	} else {
-		InnerItemTypeList(list, controllerIDs)
+		InnerItemList(list, controllerIDs)
 	}
 
 	TrackStructList(list)
