@@ -33,8 +33,16 @@ object EditorView {
 		}
 		itemTypesView.finishRegistration()
 
+		val nameOnlyItemTypeView = StructConnectionView(BITSER.getProtocol(ItemType::class.java))
+		nameOnlyItemTypeView.markSimpleField(null, "displayName", true, false)
+		nameOnlyItemTypeView.finishRegistration()
+
 		val itemView = StructConnectionView(BITSER.getProtocol(Item::class.java))
 		itemView.markAllSimpleFields(true, true)
+		itemView.markStructReferenceField(
+			null, "type",
+			nameOnlyItemTypeView, true, true
+		)
 		itemView.finishRegistration()
 
 		val itemsView = StructListConnectionView<Item>(itemView)

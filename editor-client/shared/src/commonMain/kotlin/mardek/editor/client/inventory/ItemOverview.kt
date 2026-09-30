@@ -33,7 +33,7 @@ import mardek.editor.client.component.TrackStructListElements
 private fun ItemRow(list: BitClient.StructList, controllerID: Long, scrollState: ScrollState) {
 	println("ItemRow($controllerID)")
 	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
-		ItemComponent(list.createElementConnectionFromControllerID(controllerID))
+		ItemComponent(list.createConnectionToElement(controllerID))
 	}
 }
 

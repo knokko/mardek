@@ -21,7 +21,7 @@ fun ItemTypeListComponent(list: BitClient.StructList) {
 	controllerIDs?.let { ids ->
 		LazyColumn {
 			items(ids.toTypedArray(), key = { it }) { controllerID ->
-				ItemTypeComponent(list.createElementConnectionFromControllerID(controllerID))
+				ItemTypeComponent(list.createConnectionToElement(controllerID))
 			}
 		}
 	}

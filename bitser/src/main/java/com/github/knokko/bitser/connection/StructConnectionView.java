@@ -9,6 +9,7 @@ public class StructConnectionView {
 	private final boolean[] flatStructs;
 	private final StructConnectionView[] childStructs;
 	private final StructListConnectionView<?>[] structLists;
+	private final StructConnectionView[] referenceStructs;
 
 	private boolean finishedRegistration;
 	private boolean hasDownloadableFields;
@@ -24,6 +25,7 @@ public class StructConnectionView {
 		this.flatStructs = new boolean[numFields];
 		this.childStructs = new StructConnectionView[numFields];
 		this.structLists = new StructListConnectionView[numFields];
+		this.referenceStructs = new StructConnectionView[numFields];
 	}
 
 	@Override
@@ -50,6 +52,20 @@ public class StructConnectionView {
 		return fieldID;
 	}
 
+	private int getUnclaimedStructReferenceField(Class<?> declaringClass, String fieldName) {
+		assertRegistrationIsOpen();
+
+		int fieldID = protocol.getFieldId(declaringClass, fieldName);
+		var fieldType = protocol.getFieldType(fieldID);
+		if (fieldType != BitStructProtocol.FieldType.REFERENCE) {
+			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a reference field");
+		}
+		if (referenceStructs[fieldID] != null) {
+			throw new IllegalStateException("Field " + fieldName + " is already a reference");
+		}
+		return fieldID;
+	}
+
 	private int getUnclaimedStructListField(Class<?> declaringClass, String fieldName) {
 		assertRegistrationIsOpen();
 
@@ -72,6 +88,17 @@ public class StructConnectionView {
 		childStructs[fieldID] = childView;
 		canDownloadFlat[fieldID] = true;
 		isConstant[fieldID] = constant;
+	}
+
+	public void markStructReferenceField(
+			Class<?> declaringClass, String fieldName,
+			StructConnectionView referencedObjectView,
+			boolean canRead, boolean canReassign
+	) {
+		int fieldID = getUnclaimedStructReferenceField(declaringClass, fieldName);
+		referenceStructs[fieldID] = referencedObjectView;
+		canDownloadFlat[fieldID] = canRead;
+		canUploadFlat[fieldID] = canReassign;
 	}
 
 	public void markStructFieldAsFlat(Class<?> declaringClass, String fieldName, boolean canRead, boolean canWrite) {
@@ -148,6 +175,17 @@ public class StructConnectionView {
 
 	boolean canUploadFlat(int fieldID) {
 		assertRegistrationIsClosed();
+		if (referenceStructs[fieldID] != null) {
+			throw new UnsupportedOperationException("This is a reference field; use canUploadReference instead");
+		}
+		return canUploadFlat[fieldID];
+	}
+
+	boolean canUploadReference(int fieldID) {
+		assertRegistrationIsClosed();
+		if (referenceStructs[fieldID] == null) {
+			throw new UnsupportedOperationException("This is not a reference field");
+		}
 		return canUploadFlat[fieldID];
 	}
 
@@ -159,6 +197,11 @@ public class StructConnectionView {
 	StructListConnectionView<?> getStructListViewOrNull(int fieldID) {
 		assertRegistrationIsClosed();
 		return structLists[fieldID];
+	}
+
+	StructConnectionView getStructReferenceViewOrNull(int fieldID) {
+		assertRegistrationIsClosed();
+		return referenceStructs[fieldID];
 	}
 
 	public StructConnectionView getChildStructView(Class<?> declaringClass, String fieldName) {

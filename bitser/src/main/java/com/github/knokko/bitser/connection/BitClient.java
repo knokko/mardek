@@ -7,7 +7,7 @@ import com.github.knokko.bitser.io.BitOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.LongConsumer;
 
 import static java.lang.Math.max;
 
@@ -44,14 +44,13 @@ public class BitClient {
 
 		private T serverValue;
 		private T localValue;
-		private ChangeState changeState;
+		private ChangeState changeState = ChangeState.UNINITIALIZED;
 		private final List<Consumer<T>> serverListeners = new ArrayList<>();
 		private final List<Consumer<T>> localListeners = new ArrayList<>();
 		private final List<Consumer<ChangeState>> changeStateListeners = new ArrayList<>();
 
 		SimpleFlatField(StructConnectionView view, int fieldID) {
 			super(view, fieldID);
-			this.changeState = ChangeState.UNINITIALIZED;
 		}
 
 		@Override
@@ -158,7 +157,7 @@ public class BitClient {
 		}
 	}
 
-	public static class ChildStructField extends AbstractField {
+	private static class ChildStructField extends AbstractField {
 
 		private long serverControllerID = -1L;
 		private final ClientStream.Factory streamFactory;
@@ -224,6 +223,137 @@ public class BitClient {
 			//noinspection SuspiciousMethodCalls
 			if (!listeners.remove(subscription)) {
 				System.err.println("Warning: attempted to cancel missing subscription for field " + fieldID + " of " + view);
+			}
+		}
+	}
+
+	public static class StructReferenceField extends AbstractField {
+
+		private long serverControllerID = -1L;
+		private long localControllerID = -1L;
+		private ChangeState changeState = ChangeState.UNINITIALIZED;
+		private final List<LongConsumer> serverListeners = new ArrayList<>();
+		private final List<LongConsumer> localListeners = new ArrayList<>();
+		private final List<Consumer<ChangeState>> changeStateListeners = new ArrayList<>();
+		private final ClientStream.Factory streamFactory;
+
+		StructReferenceField(ClientStream.Factory streamFactory, StructConnectionView view, int fieldID) {
+			super(view, fieldID);
+			this.streamFactory = streamFactory;
+		}
+
+		@Override
+		void readFromServerInitial(BitInputStream input) throws Throwable {
+			if (view.shouldDownloadDuringInitialization(fieldID)) {
+				serverControllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+						0L, Long.MAX_VALUE, input
+				);
+			}
+		}
+
+		@Override
+		synchronized void postReadFromServerInitial() {
+			if (view.shouldDownloadDuringInitialization(fieldID)) {
+				changeState = ChangeState.UP_TO_DATE;
+
+				for (var listener : serverListeners) listener.accept(serverControllerID);
+
+				for (var listener : localListeners) listener.accept(serverControllerID);
+
+				for (var listener : changeStateListeners) listener.accept(ChangeState.UP_TO_DATE);
+			}
+		}
+
+		@Override
+		synchronized void setFromServer(Object newServerValue) {
+			serverControllerID = (Long) newServerValue;
+			if (changeState != ChangeState.UP_TO_DATE) {
+				if (serverControllerID == localControllerID) {
+					changeState = ChangeState.UP_TO_DATE;
+					localControllerID = -1L;
+
+					for (var listener : changeStateListeners) listener.accept(ChangeState.UP_TO_DATE);
+				}
+			}
+
+			for (var listener : serverListeners) listener.accept(serverControllerID);
+
+			if (changeState == ChangeState.UP_TO_DATE) {
+				for (var listener : localListeners) listener.accept(serverControllerID);
+			}
+		}
+
+		@Override
+		synchronized void save(BitOutputStream output) throws Throwable {
+			if (!view.canUploadReference(fieldID)) return;
+
+			if (changeState != ChangeState.MODIFIED) {
+				output.write(false);
+				return;
+			}
+
+			output.write(true);
+			IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
+					localControllerID, 0L, Long.MAX_VALUE, output
+			);
+
+			changeState = ChangeState.SAVING;
+
+			for (var listener : changeStateListeners) listener.accept(ChangeState.SAVING);
+		}
+
+		public synchronized Object subscribe(boolean considerLocalValue, LongConsumer updateReference) {
+			if (considerLocalValue) localListeners.add(updateReference);
+			else serverListeners.add(updateReference);
+
+			if (changeState != ChangeState.UNINITIALIZED) {
+				if (considerLocalValue && changeState != ChangeState.UP_TO_DATE) {
+					updateReference.accept(localControllerID);
+				} else {
+					updateReference.accept(serverControllerID);
+				}
+			}
+
+			return updateReference;
+		}
+
+		public Struct createConnectionToReference(long controllerID) {
+			return new Struct(
+					view.getStructReferenceViewOrNull(fieldID),
+					streamFactory.createStream(controllerID),
+					streamFactory,
+					controllerID
+			);
+		}
+
+		public synchronized Object subscribeChangeState(Consumer<ChangeState> updateChangeState) {
+			changeStateListeners.add(updateChangeState);
+			if (changeState != ChangeState.UNINITIALIZED) updateChangeState.accept(changeState);
+			return updateChangeState;
+		}
+
+		@SuppressWarnings("SuspiciousMethodCalls")
+		public synchronized void cancelSubscription(Object subscription) {
+			if (changeStateListeners.remove(subscription)) return;
+			if (serverListeners.remove(subscription)) return;
+			if (localListeners.remove(subscription)) return;
+			System.err.println("Warning: attempted to cancel missing subscription for reference field " + fieldID + " of " + view);
+		}
+
+		public synchronized void set(long newControllerID) {
+			var oldChangeState = changeState;
+			if (serverControllerID == newControllerID) {
+				changeState = ChangeState.UP_TO_DATE;
+				localControllerID = -1L;
+			} else {
+				changeState = ChangeState.MODIFIED;
+				localControllerID = newControllerID;
+			}
+
+			for (var listener : localListeners) listener.accept(newControllerID);
+
+			if (changeState != oldChangeState) {
+				for (var listener : changeStateListeners) listener.accept(changeState);
 			}
 		}
 	}
@@ -380,6 +510,11 @@ public class BitClient {
 			return (SimpleFlatField<T>) fields[fieldID];
 		}
 
+		public StructReferenceField getStructReferenceField(Class<?> declaringClass, String fieldName) {
+			int fieldID = view.protocol.getFieldId(declaringClass, fieldName);
+			return (StructReferenceField) fields[fieldID];
+		}
+
 		private ChildStructField getChildStructField(Class<?> declaringClass, String fieldName) {
 			int fieldID = view.protocol.getFieldId(declaringClass, fieldName);
 			return (ChildStructField) fields[fieldID];
@@ -509,7 +644,7 @@ public class BitClient {
 			}
 		}
 
-		public Struct createElementConnectionFromControllerID(long controllerID) {
+		public Struct createConnectionToElement(long controllerID) {
 			return new Struct(view.elementsView, streamFactory.createStream(controllerID), streamFactory, controllerID);
 		}
 
@@ -532,11 +667,11 @@ public class BitClient {
 		}
 
 		public void executeSimpleOperation(int operation) {
-			stream.send(toServer -> {
+			stream.send(toServer ->
 				IntegerBitser.encodeUniformInteger(
 						operation, 0L, max(1L, view.getNumOperations() - 1), toServer
-				);
-			});
+				)
+			);
 			// TODO BITSER Add support for operations with input & output
 		}
 
