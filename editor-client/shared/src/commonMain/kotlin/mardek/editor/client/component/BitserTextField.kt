@@ -18,7 +18,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.github.knokko.bitser.connection.BitClient
 import kotlinx.coroutines.launch
-import mardek.editor.client.fontSize
+import mardek.editor.client.inventory.fontSize
 
 @Composable
 fun BitserTextField(field: BitClient.SimpleFlatField<String>) {
