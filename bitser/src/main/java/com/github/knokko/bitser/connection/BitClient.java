@@ -5,11 +5,9 @@ import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static java.lang.Math.max;
 
@@ -342,6 +340,11 @@ public class BitClient {
 			}
 		}
 
+		@Override
+		public String toString() {
+			return "BitClient.Struct(view=" + view + ", controller=" + controllerID + ")";
+		}
+
 		public void start() {
 			stream.start(this::processInput);
 		}
@@ -464,8 +467,8 @@ public class BitClient {
 		private final ClientStream stream;
 		private final ClientStream.Factory streamFactory;
 
-		private final List<Struct> elements = new ArrayList<>();
-		private final List<Consumer<Struct[]>> listeners = new ArrayList<>();
+		private long[] controllerIDs = new long[0];
+		private final List<Consumer<long[]>> listeners = new ArrayList<>();
 
 		public StructList(StructListConnectionView<?> view, ClientStream stream, ClientStream.Factory streamFactory) {
 			this.view = view;
@@ -479,9 +482,9 @@ public class BitClient {
 
 		private void refreshListFromServer(BitInputStream fromServer) throws IOException {
 			int length = IntegerBitser.decodeUnknownLength(null, "BitClient.StructList", fromServer);
-			long[] controllerIDs = new long[length];
+			long[] newControllerIDs = new long[length];
 			for (int index = 0; index < length; index++) {
-				controllerIDs[index] = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+				newControllerIDs[index] = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
 						0L, Long.MAX_VALUE, fromServer
 				);
 			}
@@ -489,22 +492,10 @@ public class BitClient {
 			fromServer.discardCurrentByte();
 
 			synchronized (listeners) {
-				var existingMapping = new HashMap<Long, Struct>();
-				for (var structConnection : elements) {
-					existingMapping.put(structConnection.controllerID, structConnection);
+				this.controllerIDs = newControllerIDs;
+				for (var listener : listeners) {
+					listener.accept(Arrays.copyOf(controllerIDs, controllerIDs.length));
 				}
-
-				elements.clear();
-				for (long controllerID : controllerIDs) {
-					var existingController = existingMapping.get(controllerID);
-					if (existingController == null) {
-						elements.add(new Struct(view.elementsView, streamFactory.createStream(controllerID), streamFactory, controllerID));
-					} else {
-						elements.add(existingController);
-					}
-				}
-
-				for (var listener : listeners) listener.accept(elements.toArray(new Struct[0]));
 			}
 		}
 
@@ -518,9 +509,13 @@ public class BitClient {
 			}
 		}
 
-		public Object subscribe(Consumer<Struct[]> callback) {
+		public Struct createElementConnectionFromControllerID(long controllerID) {
+			return new Struct(view.elementsView, streamFactory.createStream(controllerID), streamFactory, controllerID);
+		}
+
+		public Object subscribe(Consumer<long[]> callback) {
 			synchronized (listeners) {
-				callback.accept(elements.toArray(new Struct[0]));
+				callback.accept(Arrays.copyOf(controllerIDs, controllerIDs.length));
 				listeners.add(callback);
 			}
 

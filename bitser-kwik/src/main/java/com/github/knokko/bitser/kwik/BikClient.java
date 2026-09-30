@@ -68,7 +68,7 @@ public class BikClient {
 		var keepAliveThread = new Thread(() -> {
 			try {
 				while (true) {
-					if (stream.getInputStream().read() != 123) { // TODO Make it client-to-server instead?
+					if (stream.getInputStream().read() != 123) { // TODO BITSER Make it client-to-server instead?
 						System.err.println("Keep-alive stream sent unexpected byte");
 						return;
 					}

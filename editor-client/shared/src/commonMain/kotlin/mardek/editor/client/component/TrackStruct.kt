@@ -7,7 +7,12 @@ import com.github.knokko.bitser.connection.BitClient
 @Composable
 fun TrackStruct(bitStruct: BitClient.Struct) {
 	DisposableEffect(bitStruct) {
-		bitStruct.start()
+		try {
+			bitStruct.start()
+		} catch (failed: Throwable) {
+			println("Failed to start $bitStruct")
+			throw failed
+		}
 		onDispose { bitStruct.close() }
 	}
 }

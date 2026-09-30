@@ -42,6 +42,7 @@ public class BitStructProtocol {
 			BiConsumer<Object, Object> setFieldValue
 	) {}
 
+	private final Class<?> objectClass;
 	private final Bitser bitser;
 	private final Map<FieldKey, FieldInfo> mapping = new HashMap<>();
 	private FieldInfo[] idToInfo;
@@ -49,10 +50,15 @@ public class BitStructProtocol {
 	private int numFields;
 	private boolean finishedRegistration;
 
-	public BitStructProtocol(Bitser bitser) {
+	public BitStructProtocol(Class<?> objectClass, Bitser bitser) {
+		this.objectClass = objectClass;
 		this.bitser = bitser;
 	}
 
+	@Override
+	public String toString() {
+		return "BitStructProtocol(" + objectClass + ")";
+	}
 	public void addField(Field field, FieldType type, Serializer flatSerializer, Deserializer flatDeserializer) {
 		if (finishedRegistration) throw new IllegalStateException("Registration is finished");
 
