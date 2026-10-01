@@ -32,7 +32,7 @@ class BitserCache {
 	BitStructProtocol getProtocol(Bitser bitser, Class<?> objectClass) {
 		var wrapper = getWrapper(objectClass);
 		return protocols.computeIfAbsent(
-				objectClass, _ -> ProtocolFactory.createProtocol(bitser, wrapper, objectClass)
+				objectClass, theSameClass -> ProtocolFactory.createProtocol(bitser, wrapper, objectClass)
 		);
 	}
 
