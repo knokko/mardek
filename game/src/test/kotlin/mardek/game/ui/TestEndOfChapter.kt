@@ -15,6 +15,7 @@ import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.saves.SavesFolderManager
+import mardek.state.settings.UserSettings
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertNull
@@ -31,7 +32,8 @@ object TestEndOfChapter {
 
 			val state = InGameState(simpleCampaignState(), "EndOfChapter1")
 			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(),
+				10.milliseconds, UserSettings.defaultSettings(), saves,
 			)
 			performTimelineTransition(
 				updateContext, state.campaign,

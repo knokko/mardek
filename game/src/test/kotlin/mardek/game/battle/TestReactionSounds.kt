@@ -5,15 +5,20 @@ import mardek.game.TestingInstance
 import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
 import mardek.game.repeatKeyEvent
+import mardek.game.testRendering
 import mardek.input.InputKey
+import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleStateMachine
+import mardek.state.ingame.battle.ReactionChallenge
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertNotNull
+import kotlin.collections.set
 import kotlin.time.Duration.Companion.milliseconds
 
 object TestReactionSounds {
@@ -159,6 +164,93 @@ object TestReactionSounds {
 
 			assertNull(updateContext.soundQueue.take())
 			assertTrue(reactionChallenge.wasPassed())
+		}
+	}
+
+	private fun prepareReactionMasterySound(
+		instance: TestingInstance, state: InGameState,
+		reactionChallenge: ReactionChallenge, updateContext: GameStateUpdateContext, renderName: String
+	) {
+		instance.apply {
+			val increaseDamageSkill = content.skills.reactionSkills.find { it.name == "DMG+1" }!!
+
+			val deuganState = state.campaign.characterStates[heroDeugan]!!
+			deuganState.equipment[heroDeugan.characterClass.equipmentSlots[0]] = content.items.items.find {
+				it.equipment?.skills?.contains(increaseDamageSkill) == true
+			}!!
+			deuganState.toggledSkills.add(increaseDamageSkill)
+			deuganState.skillMastery[increaseDamageSkill] = increaseDamageSkill.masteryPoints - 1
+
+			assertTrue(reactionChallenge.isPending(state.campaign.time))
+
+			testRendering(
+				state, 800, 500, "reaction-sounds-${renderName}0",
+				emptyArray(), emptyArray(),
+			)
+
+			// Wait until we should click
+			repeat(60) {
+				state.update(updateContext)
+			}
+
+			testRendering(
+				state, 800, 500, "reaction-sounds-${renderName}1",
+				emptyArray(), emptyArray(),
+			)
+
+			assertTrue(reactionChallenge.isPending(state.campaign.time))
+
+			while (updateContext.soundQueue.take() != null) {
+				updateContext.soundQueue.take()
+			}
+
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			state.update(updateContext)
+
+			repeat(40) {
+				state.update(updateContext)
+			}
+
+			testRendering(
+				state, 800, 500, "reaction-sounds-${renderName}2",
+				emptyArray(), emptyArray(),
+			)
+
+			repeat(40) {
+				state.update(updateContext)
+			}
+
+			testRendering(
+				state, 800, 500, "reaction-sounds-${renderName}3",
+				emptyArray(), emptyArray(),
+			)
+
+			state.update(updateContext)
+		}
+	}
+
+	fun testReactionMasteryDisabled(instance: TestingInstance) {
+		instance.apply {
+			val (state, updateContext, reactionChallenge) = setUp(instance)
+
+			prepareReactionMasterySound(instance, state, reactionChallenge, updateContext, "disabled")
+
+			assertNotNull(updateContext.soundQueue.take()) // either "punch" or "miss"
+			assertNull(updateContext.soundQueue.take())
+		}
+	}
+
+	fun testReactionMasteryEnabled(instance: TestingInstance) {
+		instance.apply {
+			val (state, updateContext, reactionChallenge) = setUp(instance)
+			updateContext.settings.audioSettings.playReactionMasteryJingle = true
+
+			prepareReactionMasterySound(instance, state, reactionChallenge, updateContext, "enabled")
+
+			assertSame(content.audio.fixedEffects.battle.masteredSkill, updateContext.soundQueue.take())
+			assertNotNull(updateContext.soundQueue.take()) // either "punch" or "miss"
+			assertNull(updateContext.soundQueue.take())
 		}
 	}
 }

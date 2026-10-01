@@ -112,18 +112,20 @@ class VideoSettings(
 
 	companion object {
 
+		internal fun defaultSettings() = VideoSettings(
+			preferredDevice = 0,
+			capFps = true,
+			showFps = false,
+			framesInFlight = 1,
+			delayRendering = true,
+		)
+
 		/**
 		 * Loads the video settings from disk (from [VIDEO_SETTINGS_FILE] by default, but some unit tests use a
 		 * different file).
 		 */
 		fun load(settingsFile: File = VIDEO_SETTINGS_FILE): VideoSettings {
-			val settings = VideoSettings(
-				preferredDevice = 0,
-				capFps = true,
-				showFps = false,
-				framesInFlight = 1,
-				delayRendering = true,
-			)
+			val settings = defaultSettings()
 
 			if (settingsFile.exists()) {
 				try {

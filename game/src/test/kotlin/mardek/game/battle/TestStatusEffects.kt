@@ -4,9 +4,6 @@ import mardek.game.TestingInstance
 import mardek.game.pressKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
@@ -32,9 +29,7 @@ object TestStatusEffects {
 			startSimpleBattle(campaign)
 			val battle = ((campaign.state as AreaState).suspension as AreaSuspensionBattle).battle
 			// Skip fade-in
-			state.update(GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 1.seconds
-			))
+			state.update(createUpdateContext(1.seconds))
 			val monster = battle.livingOpponents()[0]
 			monster.statusEffects.add(content.stats.statusEffects.find { it.flashName == "PAR" }!!)
 
@@ -53,9 +48,7 @@ object TestStatusEffects {
 	fun testRemoveEffectsAfterWinning(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
-			)
+			val updateContext = createUpdateContext(10.milliseconds)
 			performTimelineTransition(updateContext, state.campaign, "MainTimeline", "Childhood")
 			val mardekState = state.campaign.characterStates[childMardek]!!
 			mardekState.toggledSkills.add(content.skills.passiveSkills.find { it.name == "Auto-Regen" }!!)
@@ -192,12 +185,12 @@ object TestStatusEffects {
 			assertEquals(90, mardekState.currentHealth)
 			mardekState.activeStatusEffects.add(content.stats.statusEffects.find { it.flashName == "PSN" }!!)
 
-			val input = InputManager()
-			input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
+				createUpdateContext(10.milliseconds), ""
 			)
+
+			context.input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 			while ((campaign.state as AreaState).getPlayerPosition(0).y != 4) {
 				campaign.update(context)

@@ -40,5 +40,10 @@ class UserSettings(
 			videoSettings = VideoSettings.load(),
 			audioSettings = AudioSettings.load(),
 		)
+
+		/**
+		 * Creates a new `UserSettings` instance whose fields are initialized with the default settings
+		 */
+		fun defaultSettings() = UserSettings(VideoSettings.defaultSettings(), AudioSettings.defaultSettings())
 	}
 }

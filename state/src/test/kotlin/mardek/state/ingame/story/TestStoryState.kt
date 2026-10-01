@@ -16,6 +16,7 @@ import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
+import mardek.state.settings.UserSettings
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -188,7 +189,10 @@ class TestStoryState {
 
 	private val state = CampaignState()
 	private val updateContext = CampaignState.UpdateContext(
-		GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.seconds),
+		GameStateUpdateContext(
+			content, titleContent, InputManager(), SoundQueue(),
+			1.seconds, UserSettings.defaultSettings()
+		),
 		"",
 	)
 

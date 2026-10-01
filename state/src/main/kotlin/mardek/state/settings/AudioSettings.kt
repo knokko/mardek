@@ -3,6 +3,7 @@ package mardek.state.settings
 import mardek.state.saves.AUDIO_SETTINGS_FILE
 import java.io.File
 import java.io.PrintWriter
+import java.lang.Boolean.parseBoolean
 import java.lang.Integer.parseInt
 import java.util.Scanner
 
@@ -31,6 +32,18 @@ class AudioSettings(
 	 * The volume% for the *sound* effects (e.g. attack sounds and click sounds), but *not* the music.
 	 */
 	var soundEffectVolume: Int,
+
+	/**
+	 * When a playable character masters an active skill or a passive skill,
+	 * the game will play the mastery jingle sound effect.
+	 *
+	 * This field determines whether we also play the mastery jingle when
+	 * a playable character masters a *reaction* skill.
+	 *
+	 * This is `false` by default, since vanilla MARDEK doesn't do this.
+	 * However, I added this setting because I personally find it convenient, but not everyone agrees.
+	 */
+	var playReactionMasteryJingle: Boolean,
 ) {
 
 	/**
@@ -41,9 +54,10 @@ class AudioSettings(
 		try {
 			settingsFile.parentFile.mkdirs()
 			val writer = PrintWriter(settingsFile)
-			writer.println("master=$masterVolume")
-			writer.println("music=$musicVolume")
-			writer.println("sounds=$soundEffectVolume")
+			writer.println("${Keys.MASTER}$masterVolume")
+			writer.println("${Keys.MUSIC}$musicVolume")
+			writer.println("${Keys.SOUNDS}$soundEffectVolume")
+			writer.println("${Keys.MASTERY_REACTION_JINGLE}$playReactionMasteryJingle")
 			writer.flush()
 			writer.close()
 		} catch (failed: Throwable) {
@@ -53,30 +67,46 @@ class AudioSettings(
 
 	companion object {
 
+		internal fun defaultSettings() = AudioSettings(
+			masterVolume = 50,
+			musicVolume = 100,
+			soundEffectVolume = 100,
+			playReactionMasteryJingle = false,
+		)
+
+		private object Keys {
+
+			const val MASTER = "master="
+			const val MUSIC = "music="
+			const val SOUNDS = "sounds="
+			const val MASTERY_REACTION_JINGLE = "play-reaction-mastery-jingle="
+		}
+
 		/**
 		 * Loads the audio settings from disk (from [AUDIO_SETTINGS_FILE] by default, but some unit tests use a
 		 * different file).
 		 */
 		fun load(settingsFile: File = AUDIO_SETTINGS_FILE): AudioSettings {
-			val settings = AudioSettings(
-				masterVolume = 50,
-				musicVolume = 100,
-				soundEffectVolume = 100,
-			)
+			val settings = defaultSettings()
 
 			if (settingsFile.exists()) {
 				try {
 					val scanner = Scanner(settingsFile)
 					while (scanner.hasNextLine()) {
 						val nextLine = scanner.nextLine()
-						if (nextLine.startsWith("master=")) {
-							settings.masterVolume = parseInt(nextLine.substring("master=".length))
+						if (nextLine.startsWith(Keys.MASTER)) {
+							settings.masterVolume = parseInt(nextLine.substring(Keys.MASTER.length))
 						}
-						if (nextLine.startsWith("music=")) {
-							settings.musicVolume = parseInt(nextLine.substring("music=".length))
+						if (nextLine.startsWith(Keys.MUSIC)) {
+							settings.musicVolume = parseInt(nextLine.substring(Keys.MUSIC.length))
 						}
-						if (nextLine.startsWith("sounds=")) {
-							settings.soundEffectVolume = parseInt(nextLine.substring("sounds=".length))
+						if (nextLine.startsWith(Keys.SOUNDS)) {
+							settings.soundEffectVolume = parseInt(nextLine.substring(Keys.SOUNDS.length))
+						}
+						if (nextLine.startsWith(Keys.MASTERY_REACTION_JINGLE)) {
+							settings.playReactionMasteryJingle = parseBoolean(
+								nextLine.substring(Keys.MASTERY_REACTION_JINGLE.length)
+							)
 						}
 					}
 					scanner.close()

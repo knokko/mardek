@@ -21,7 +21,6 @@ import mardek.content.inventory.ItemStack
 import mardek.content.skill.ActiveSkill
 import mardek.renderer.RenderManager
 import mardek.state.SoundQueue
-import mardek.state.settings.VideoSettings
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -36,7 +35,6 @@ import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.saves.SaveFile
 import mardek.state.saves.SavesFolderManager
-import mardek.state.settings.AudioSettings
 import mardek.state.settings.UserSettings
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -152,10 +150,7 @@ class TestingInstance {
 
 		renderManager = RenderManager(
 			vk2d,
-			UserSettings(
-				VideoSettings(0, capFps = false, showFps = false, framesInFlight = 1, delayRendering = true),
-				AudioSettings(100, 100, 100),
-			),
+			UserSettings.defaultSettings(),
 			pipelineContext,
 			titleContent,
 		)
@@ -196,8 +191,10 @@ class TestingInstance {
 	}
 
 	fun battleUpdateContext(campaign: CampaignState) = BattleUpdateContext(
-		campaign.characterStates, campaign.encyclopedia, campaign.statistics, content.audio.fixedEffects,
-		content.stats.elements.find { it.rawName == "NONE" }!!, SoundQueue(), campaign.time,
+		campaign.characterStates, campaign.encyclopedia, campaign.statistics,
+		UserSettings.defaultSettings(), content.audio.fixedEffects,
+		content.stats.elements.find { it.rawName == "NONE" }!!,
+		SoundQueue(), campaign.time,
 	)
 
 	fun startSimpleBattle(campaign: CampaignState, enemies: Array<Enemy?> = arrayOf(
@@ -220,7 +217,8 @@ class TestingInstance {
 	}
 
 	fun createUpdateContext(timeStep: Duration) = GameStateUpdateContext(
-		content, titleContent, InputManager(), SoundQueue(), timeStep, saves = dummySaveManager()
+		content, titleContent, InputManager(), SoundQueue(), timeStep,
+		UserSettings.defaultSettings(), saves = dummySaveManager()
 	)
 
 	fun simpleCampaignState(): CampaignState {

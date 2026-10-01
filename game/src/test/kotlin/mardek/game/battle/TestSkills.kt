@@ -18,6 +18,7 @@ import mardek.content.characters.CharacterState
 import mardek.content.util.Time
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
+import mardek.state.settings.UserSettings
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -54,7 +55,10 @@ object TestSkills {
 			val input = InputManager()
 			val soundQueue = SoundQueue()
 			fun context(timeStep: Duration) = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
+				GameStateUpdateContext(
+					content, titleContent, input, soundQueue,
+					timeStep, UserSettings.defaultSettings()
+				), ""
 			)
 
 			state.update(context(1.seconds))
@@ -205,7 +209,10 @@ object TestSkills {
 			val input = InputManager()
 			val soundQueue = SoundQueue()
 			fun context(timeStep: Duration) = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
+				GameStateUpdateContext(
+					content, titleContent, input, soundQueue,
+					timeStep, UserSettings.defaultSettings()
+				), ""
 			)
 
 			state.update(context(1.milliseconds))
@@ -292,7 +299,7 @@ object TestSkills {
 
 	fun testHuffPuffFlow(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "puff")
 
 			performTimelineTransition(
@@ -416,7 +423,10 @@ object TestSkills {
 			val input = InputManager()
 			val soundQueue = SoundQueue()
 			fun context(timeStep: Duration) = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
+				GameStateUpdateContext(
+					content, titleContent, input, soundQueue,
+					timeStep,UserSettings.defaultSettings()
+				), ""
 			)
 
 			state.update(context(1.milliseconds))

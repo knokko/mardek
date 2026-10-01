@@ -5,9 +5,6 @@ import mardek.content.action.FixedActionNode
 import mardek.game.TestingInstance
 import mardek.game.pressKeyEvent
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -20,8 +17,7 @@ object TestTimelines {
 
 	fun testHeroesDenTriggerTooLate(instance: TestingInstance) {
 		instance.apply {
-			val fakeInput = InputManager()
-			val updateContext = GameStateUpdateContext(content, titleContent, fakeInput, SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			performTimelineTransition(
@@ -44,7 +40,7 @@ object TestTimelines {
 
 	fun testGeorgeBlockadeDuringChapter1Night(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			performTimelineTransition(
@@ -84,7 +80,7 @@ object TestTimelines {
 
 	fun testGeorgeIsGoneDuringChapter1Day(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			performTimelineTransition(
@@ -116,7 +112,7 @@ object TestTimelines {
 
 	fun testGeorgeBlockadeDuringLastChapter1Night(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 			val state = InGameState(simpleCampaignState(), "")
 
 			performTimelineTransition(

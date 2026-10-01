@@ -6,6 +6,7 @@ import mardek.content.ui.TitleScreenContent
 import mardek.input.InputManager
 import mardek.state.ingame.CampaignState
 import mardek.state.saves.SavesFolderManager
+import mardek.state.settings.UserSettings
 import mardek.state.util.MusicPlayerJob
 import kotlin.time.Duration
 
@@ -82,6 +83,11 @@ open class GameStateUpdateContext(
 	val timeStep: Duration,
 
 	/**
+	 * The user settings that the player can configure in the "Options" section of the in-game menu
+	 */
+	val settings: UserSettings,
+
+	/**
 	 * The [SavesFolderManager]
 	 *
 	 * - During real game sessions, this should use the real [mardek.state.saves.SAVES_DIRECTORY].
@@ -92,6 +98,6 @@ open class GameStateUpdateContext(
 	constructor(copy: GameStateUpdateContext) : this(
 		copy.content, copy.titleContent, copy.input,
 		copy.soundQueue, copy.timeStep,
-		copy.saves,
+		copy.settings, copy.saves,
 	)
 }

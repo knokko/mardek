@@ -5,13 +5,9 @@ import mardek.content.inventory.ItemStack
 import mardek.game.TestingInstance
 import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
-import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.menu.inventory.InventoryTab
@@ -36,7 +32,7 @@ object TestInventory {
 				)
 			}
 
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds)
+			val context = createUpdateContext(100.milliseconds)
 			context.input.postEvent(pressKeyEvent(InputKey.Interact)) // Skip chapter number
 
 			// Skip intro cutscene
@@ -207,7 +203,7 @@ object TestInventory {
 	fun testEquipmentStatsHints(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.milliseconds)
+			val context = createUpdateContext(1.milliseconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
@@ -279,7 +275,7 @@ object TestInventory {
 	fun testDiscardItem(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.milliseconds)
+			val context = createUpdateContext(1.milliseconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
@@ -349,7 +345,7 @@ object TestInventory {
 	fun testSplitItemStack(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.milliseconds)
+			val context = createUpdateContext(1.milliseconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
@@ -466,7 +462,7 @@ object TestInventory {
 	fun testConsumeItems(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 1.seconds)
+			val context = createUpdateContext(1.seconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))

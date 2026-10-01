@@ -588,7 +588,10 @@ class PlayerCombatantState(
 		playerState.skillMastery[skill] = newMastery
 		if (newMastery == skill.masteryPoints) {
 			masteredSkillsThisBattle.add(skill)
-			context.soundQueue.insert(context.sounds.battle.masteredSkill)
+
+			if (skill is ActiveSkill || skill is PassiveSkill || context.settings.audioSettings.playReactionMasteryJingle) {
+				context.soundQueue.insert(context.sounds.battle.masteredSkill)
+			}
 		}
 	}
 

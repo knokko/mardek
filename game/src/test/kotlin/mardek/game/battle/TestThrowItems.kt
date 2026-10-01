@@ -15,6 +15,7 @@ import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.ingame.battle.BattleMoveSelectionAttack
 import mardek.state.ingame.battle.BattleStateMachine
+import mardek.state.settings.UserSettings
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
@@ -41,7 +42,10 @@ object TestThrowItems {
 			val input = InputManager()
 			val soundQueue = SoundQueue()
 			fun context(timeStep: Duration) = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep), ""
+				GameStateUpdateContext(
+					content, titleContent, input, soundQueue,
+					timeStep, UserSettings.defaultSettings(),
+				), ""
 			)
 
 			state.update(context(1.milliseconds))

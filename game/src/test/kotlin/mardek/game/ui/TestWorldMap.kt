@@ -6,9 +6,6 @@ import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -30,7 +27,7 @@ object TestWorldMap {
 		instance.apply {
 			val saves = dummySaveManager()
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
 				story = state.campaign.story,
@@ -239,7 +236,7 @@ object TestWorldMap {
 	fun testGoznorToSoothwood(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "goznor" }!!,
 				story = state.campaign.story,
@@ -306,7 +303,7 @@ object TestWorldMap {
 	fun testCrashSiteToSoothwood(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 			state.campaign.state = AreaState(
 				area = content.areas.areas.find { it.properties.rawName == "crashsite" }!!,
 				story = state.campaign.story,

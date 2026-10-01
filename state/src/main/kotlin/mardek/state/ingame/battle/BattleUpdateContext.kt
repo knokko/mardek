@@ -8,6 +8,7 @@ import mardek.content.characters.CharacterState
 import mardek.state.ingame.CampaignStatistics
 import mardek.state.ingame.encyclopedia.EncyclopediaState
 import mardek.content.util.Time
+import mardek.state.settings.UserSettings
 
 /**
  * This class is used as the 'parameter type' of several methods of [BattleState]. Using this class avoids the need to
@@ -32,6 +33,11 @@ class BattleUpdateContext(
 	val statistics: CampaignStatistics,
 
 	/**
+	 * The user settings (the ones that can be configured in the "Options" section of the in-game menu)
+	 */
+	val settings: UserSettings,
+
+	/**
 	 * The [mardek.content.audio.AudioContent.fixedEffects]
 	 */
 	val sounds: FixedSoundEffects,
@@ -53,6 +59,7 @@ class BattleUpdateContext(
 ) {
 	internal constructor() : this(
 		emptyMap(), EncyclopediaState(), CampaignStatistics(),
-		FixedSoundEffects(), Element(), SoundQueue(), Time.ZERO,
+		UserSettings.defaultSettings(), FixedSoundEffects(),
+		Element(), SoundQueue(), Time.ZERO,
 	)
 }

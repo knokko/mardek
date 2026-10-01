@@ -4,9 +4,6 @@ import mardek.game.TestingInstance
 import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -31,12 +28,11 @@ object TestRandomBattles {
 				)
 				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
-				val input = InputManager()
-				input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 				val context = CampaignState.UpdateContext(
-					GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
+					createUpdateContext(10.milliseconds), ""
 				)
+				context.input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 				while ((campaign.state as AreaState).getPlayerPosition(0).y != 6) {
 					assertFalse((campaign.state as AreaState).suspension is AreaSuspensionIncomingRandomBattle)
@@ -44,8 +40,8 @@ object TestRandomBattles {
 					campaign.update(context)
 				}
 
-				assertEquals(campaign.statistics.totalSteps, 29L)
-				assertEquals(campaign.stepsSinceLastBattle, 29)
+				assertEquals(29L, campaign.statistics.totalSteps)
+				assertEquals(29, campaign.stepsSinceLastBattle)
 			}
 		}
 	}
@@ -62,12 +58,10 @@ object TestRandomBattles {
 				campaign.stepsSinceLastBattle = 30
 				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
-				val input = InputManager()
-				input.postEvent(pressKeyEvent(InputKey.MoveUp))
-
 				val context = CampaignState.UpdateContext(
-					GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
+					createUpdateContext(10.milliseconds), ""
 				)
+				context.input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 				while ((campaign.state as AreaState).getPlayerPosition(0).y != 2) {
 					campaign.update(context)
@@ -93,12 +87,10 @@ object TestRandomBattles {
 				campaign.stepsSinceLastBattle = 60
 				campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
-				val input = InputManager()
-				input.postEvent(pressKeyEvent(InputKey.MoveUp))
-
 				val context = CampaignState.UpdateContext(
-					GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
+					createUpdateContext(10.milliseconds), ""
 				)
+				context.input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 				while ((campaign.state as AreaState).getPlayerPosition(0).y != 2) {
 					campaign.update(context)
@@ -124,16 +116,15 @@ object TestRandomBattles {
 			campaign.statistics.totalSteps = 100
 			campaign.triggers.activateTrigger(dragonLair2.objects.walkTriggers[0])
 
-			val input = InputManager()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, SoundQueue(), 600.milliseconds), ""
+				createUpdateContext(600.milliseconds), ""
 			)
 
-			input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			campaign.update(context)
 
-			input.postEvent(releaseKeyEvent(InputKey.MoveDown))
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			campaign.update(context)
 			campaign.update(context)
 
@@ -141,11 +132,11 @@ object TestRandomBattles {
 			assertEquals(100, campaign.statistics.totalSteps)
 			assertSame(dragonLairEntry, (campaign.state as AreaState).area)
 
-			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			input.postEvent(pressKeyEvent(InputKey.MoveUp))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveUp))
 			campaign.update(context)
 
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			campaign.update(context)
 			campaign.update(context)
 
@@ -165,19 +156,18 @@ object TestRandomBattles {
 			)
 			campaign.stepsSinceLastBattle = 500
 
-			val input = InputManager()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, SoundQueue(), 10.milliseconds), ""
+				createUpdateContext(10.milliseconds), ""
 			)
 
-			input.postEvent(pressKeyEvent(InputKey.MoveUp))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 			repeat(25) {
 				campaign.update(context)
 			}
 
 			assertInstanceOf<AreaSuspensionIncomingRandomBattle>((campaign.state as AreaState).suspension)
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 
 			repeat(500) {
 				campaign.update(context)

@@ -7,10 +7,7 @@ import mardek.game.releaseKeyEvent
 import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
 import mardek.state.GameStateManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.menu.inventory.InventoryTab
 import mardek.state.ingame.menu.MapTab
@@ -35,10 +32,8 @@ object TestInGameMenu {
 			val campaign = simpleCampaignState()
 
 			val state = InGameState(campaign, "test")
-			val input = InputManager()
-			val stateManager = GameStateManager(input, state, SavesFolderManager())
-			val soundQueue = SoundQueue()
-			val context = GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
+			val stateManager = GameStateManager(context.input, state, SavesFolderManager())
 			val sounds = content.audio.fixedEffects.ui
 
 			val areaColors = arrayOf(
@@ -79,10 +74,10 @@ object TestInGameMenu {
 
 			state.update(context)
 			assertInstanceOf<ShownState.FullyHidden>(state.menu.shown)
-			assertNull(soundQueue.take())
+			assertNull(context.soundQueue.take())
 
-			input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
-			input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
+			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
+			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			repeat(25) {
 				state.update(context)
 				assertInstanceOf<ShownState.FadingIn>(state.menu.shown)
@@ -90,32 +85,32 @@ object TestInGameMenu {
 			state.update(context)
 			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is PartyTab)
-			assertSame(sounds.openMenu, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(sounds.openMenu, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			testRendering(
 				stateManager, 800, 450, "in-game-menu-party-tab",
 				partyTabColors, areaColors
 			)
 
-			input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			state.update(context)
 			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is SkillsTab)
-			assertSame(sounds.scroll1, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(sounds.scroll1, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			testRendering(
 				stateManager, 1200, 800, "in-game-menu-skills-tab",
 				skillsTabColors + partyColors, areaColors
 			)
 
-			input.postEvent(repeatKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			state.update(context)
 			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is InventoryTab)
-			assertSame(sounds.scroll1, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(sounds.scroll1, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			val mardekState = campaign.characterStates[heroMardek]!!
 			mardekState.inventory[5] = ItemStack(content.items.items.find { it.displayName == "Potion" }!!, 1)
@@ -130,12 +125,12 @@ object TestInGameMenu {
 				inventoryTabColors + partyColors, areaColors + mugwortJuiceColor
 			)
 
-			input.postEvent(repeatKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			state.update(context)
 			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is MapTab)
-			assertSame(sounds.scroll1, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(sounds.scroll1, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			val mapColors = arrayOf(
 				Color(131, 113, 80), // Walkable color
@@ -146,8 +141,8 @@ object TestInGameMenu {
 				mapColors, areaColors + partyColors
 			)
 
-			input.postEvent(releaseKeyEvent(InputKey.MoveDown))
-			input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
 			repeat(25) {
 				state.update(context)
 				assertInstanceOf<ShownState.FadingOut>(state.menu.shown)
@@ -155,30 +150,30 @@ object TestInGameMenu {
 			state.update(context)
 			assertInstanceOf<ShownState.FullyHidden>(state.menu.shown)
 			assertTrue(state.menu.currentTab is MapTab)
-			assertNull(soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			testRendering(
 				stateManager, 800, 450, "in-game-menu-before-open",
 				areaColors + partyColors, partyTabColors
 			)
 
-			input.postEvent(repeatKeyEvent(InputKey.ToggleMenu))
+			context.input.postEvent(repeatKeyEvent(InputKey.ToggleMenu))
 			repeat(26) {
 				state.update(context)
 			}
 			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is MapTab)
-			assertSame(sounds.openMenu, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(sounds.openMenu, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			testRendering(
 				stateManager, 900, 450, "in-game-menu-map-tab",
 				mapColors, areaColors + partyColors
 			)
 
-			input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
-			input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			input.postEvent(repeatKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
 			state.update(context)
 			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertTrue(state.menu.currentTab is StatusTab)
@@ -197,7 +192,7 @@ object TestInGameMenu {
 	fun testPartyTabs(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
 			val sounds = content.audio.fixedEffects.ui
 
 			val baseColors = arrayOf(
@@ -336,10 +331,8 @@ object TestInGameMenu {
 			deugan.toggledSkills.add(snakeBite)
 
 			val state = InGameState(campaign, "test")
-			val input = InputManager()
-			val stateManager = GameStateManager(input, state, SavesFolderManager())
-			val soundQueue = SoundQueue()
-			val context = GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
+			val stateManager = GameStateManager(context.input, state, SavesFolderManager())
 			val sounds = content.audio.fixedEffects.ui
 
 			val baseColors = arrayOf(
@@ -355,31 +348,31 @@ object TestInGameMenu {
 				Color(238, 203, 127), // Text color
 			)
 
-			input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
-			input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
+			context.input.postEvent(pressKeyEvent(InputKey.ToggleMenu))
+			context.input.postEvent(releaseKeyEvent(InputKey.ToggleMenu))
 			repeat(26) {
 				state.update(context)
 			}
 			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
-			input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			input.postEvent(releaseKeyEvent(InputKey.MoveDown))
-			input.postEvent(pressKeyEvent(InputKey.MoveLeft))
-			input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
 			state.update(context)
 			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertEquals(1, (state.menu.currentTab as SkillsTab).partyIndex)
 			assertFalse(state.menu.currentTab.inside)
-			assertSame(sounds.openMenu, soundQueue.take())
-			assertSame(sounds.scroll1, soundQueue.take())
-			assertSame(sounds.scroll1, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(sounds.openMenu, context.soundQueue.take())
+			assertSame(sounds.scroll1, context.soundQueue.take())
+			assertSame(sounds.scroll1, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
-			input.postEvent(pressKeyEvent(InputKey.Interact))
-			input.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(context)
 			assertTrue(state.menu.currentTab.inside)
-			assertSame(sounds.clickConfirm, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(sounds.clickConfirm, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			val actionColors = arrayOf(
 				Color(219, 218, 177), // Slightly translucent air element icon
@@ -401,13 +394,13 @@ object TestInGameMenu {
 				baseColors + actionColors + disabledColors, reactionColors + rpColor
 			)
 
-			input.postEvent(pressKeyEvent(InputKey.MoveDown))
-			input.postEvent(releaseKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			state.update(context)
 			assertTrue(state.menu.currentTab.inside)
 			assertEquals(1, (state.menu.currentTab as SkillsTab).skillIndex)
 
-			input.postEvent(pressKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveRight))
 			state.update(context)
 
 			assertTrue(state.menu.currentTab.inside)
@@ -418,11 +411,11 @@ object TestInGameMenu {
 				baseColors + reactionColors + rpColor + disabledColors, actionColors
 			)
 
-			input.postEvent(repeatKeyEvent(InputKey.MoveRight))
-			input.postEvent(repeatKeyEvent(InputKey.MoveRight))
-			input.postEvent(repeatKeyEvent(InputKey.MoveRight))
-			input.postEvent(repeatKeyEvent(InputKey.MoveRight))
-			input.postEvent(releaseKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
 			state.update(context)
 			assertEquals(5, (state.menu.currentTab as SkillsTab).skillTypeIndex)
 			assertEquals(0, (state.menu.currentTab as SkillsTab).skillIndex)
@@ -431,13 +424,13 @@ object TestInGameMenu {
 				baseColors + rpColor, actionColors + reactionColors + disabledColors
 			)
 
-			input.postEvent(pressKeyEvent(InputKey.Cancel))
+			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
 			state.update(context)
 			assertInstanceOf<ShownState.FullyShown>(state.menu.shown)
 			assertFalse(state.menu.currentTab.inside)
 			assertInstanceOf<SkillsTab>(state.menu.currentTab)
 
-			input.postEvent(repeatKeyEvent(InputKey.Cancel))
+			context.input.postEvent(repeatKeyEvent(InputKey.Cancel))
 			repeat(25) {
 				state.update(context)
 				assertInstanceOf<ShownState.FadingOut>(state.menu.shown)

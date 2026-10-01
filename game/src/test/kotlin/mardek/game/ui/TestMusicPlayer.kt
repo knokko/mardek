@@ -12,6 +12,7 @@ import mardek.state.GameState
 import mardek.state.GameStateUpdateContext
 import mardek.state.SoundQueue
 import mardek.state.saves.SavesFolderManager
+import mardek.state.settings.UserSettings
 import mardek.state.title.MusicPlayerState
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -31,6 +32,7 @@ object TestMusicPlayer {
 		instance.apply {
 			val updateContext = GameStateUpdateContext(
 				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds,
+				settings = UserSettings.defaultSettings(),
 				saves = SavesFolderManager(discoveredMusicDirectory = Files.createTempDirectory("").toFile())
 			)
 			var state: GameState = TitleScreenState()

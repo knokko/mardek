@@ -203,6 +203,18 @@ internal fun renderSettingsTab(menuContext: MenuRenderContext, region: Rectangle
 				"Sounds", region.minY + 4 * region.height / 10,
 				2, settings.soundEffectVolume,
 			)
+
+			simpleTextBatch.drawString(
+				"Play mastery jingle for reaction skills", baseX, region.minY + 0.5f * region.height,
+				textHeight, font, textColor(3, true),
+			)
+			val toggle3 = if (settings.playReactionMasteryJingle) {
+				context.content.ui.skillToggled
+			} else context.content.ui.skillNotToggled
+			imageBatch.simpleScale(
+				baseX + region.height * 0.82f, region.minY + 0.46f * region.height,
+				0.04f * region.height / toggle3.height, toggle3.index,
+			)
 		}
 	}
 }

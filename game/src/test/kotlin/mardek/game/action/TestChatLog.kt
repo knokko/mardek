@@ -7,9 +7,6 @@ import mardek.game.releaseKeyEvent
 import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.actions.ChatLogEntry
@@ -30,7 +27,7 @@ object TestChatLog {
 	fun testSequential(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(CampaignState.loadChapter(content, 1), "")
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds)
+			val context = createUpdateContext(100.milliseconds)
 
 			context.input.postEvent(pressKeyEvent(InputKey.Interact)) // Skip chapter number
 			repeat(160) {
@@ -96,9 +93,7 @@ object TestChatLog {
 	fun testGallovarChoiceChapter1(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
-			)
+			val updateContext = createUpdateContext(100.milliseconds)
 			performTimelineTransition(
 				updateContext, state.campaign,
 				"MainTimeline", "Night before the falling 'star'"
@@ -213,7 +208,7 @@ object TestChatLog {
 
 	fun testOutsideDialogue(instance: TestingInstance) {
 		instance.apply {
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 100.milliseconds)
+			val updateContext = createUpdateContext(100.milliseconds)
 			val state = InGameState(simpleCampaignState(), "test")
 			state.campaign.chatLog.add(ChatLogEntry(
 				"Deugan",

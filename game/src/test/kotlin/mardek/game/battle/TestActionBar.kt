@@ -5,9 +5,6 @@ import mardek.game.pressKeyEvent
 import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
@@ -26,7 +23,7 @@ object TestActionBar {
 	fun testDisabledButtons(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 
 			val deuganState = state.campaign.characterStates[heroDeugan]!!
 			deuganState.currentHealth = 10

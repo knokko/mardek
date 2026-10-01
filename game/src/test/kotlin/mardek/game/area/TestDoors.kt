@@ -6,9 +6,6 @@ import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
@@ -32,7 +29,7 @@ object TestDoors {
 
 			assertEquals(Direction.Up, (state.campaign.state as AreaState).getPlayerDirection(0))
 
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 2.seconds)
+			val context = createUpdateContext(2.seconds)
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(context)
 			state.update(context)
@@ -69,11 +66,9 @@ object TestDoors {
 				expectedEntryColors + doorColor, arrayOf(hairColorDeugan)
 			)
 
-			val dummySoundQueue = SoundQueue()
-			val fakeInput = InputManager()
-			fakeInput.postEvent(pressKeyEvent(InputKey.MoveUp))
 
-			val context = GameStateUpdateContext(content, titleContent, fakeInput, dummySoundQueue, 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
+			context.input.postEvent(pressKeyEvent(InputKey.MoveUp))
 			repeat(5000) {
 				state.update(context)
 			}
@@ -84,14 +79,14 @@ object TestDoors {
 			)
 
 			// Start opening the door
-			fakeInput.postEvent(releaseKeyEvent(InputKey.MoveUp))
-			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveUp))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(context)
 
 			// Once the door is being opened, pressing the left arrow key should NOT do anything,
 			// since the player is not allowed to walk while opening a door
-			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
-			fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
 
 			repeat(2000) {
 				val areaState = (state.campaign.state as AreaState)
@@ -127,8 +122,7 @@ object TestDoors {
 				AreaPosition(5, 2), Direction.Up
 			)
 
-			val fakeInput = InputManager()
-			val context = GameStateUpdateContext(content, titleContent, fakeInput, SoundQueue(), 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
 
 			// Wait until area fade-in effect is over
 			repeat(100) {
@@ -144,7 +138,7 @@ object TestDoors {
 				originalColors, emptyArray(),
 			)
 
-			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 
 			// Update 240ms, which is almost the AreaSuspensionOpeningDoor.FADE_OUT_DURATION (250ms)
 			repeat(24) {
@@ -154,7 +148,7 @@ object TestDoors {
 					(state.campaign.state as AreaState).getPlayerPosition(0),
 				)
 			}
-			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 
 			testRendering(
 				state, 1000, 800, "door-fade1",
@@ -192,7 +186,7 @@ object TestDoors {
 				AreaPosition(3, 5), Direction.Down, skipFadeIn = true,
 			)
 
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
 			val areaColors = arrayOf(
 				Color(190, 163, 128), // Light rock color
 				Color(168, 136, 95), // Dark rock color

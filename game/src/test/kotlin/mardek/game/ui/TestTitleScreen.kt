@@ -16,6 +16,7 @@ import mardek.state.ingame.InGameState
 import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaState
 import mardek.state.saves.SaveFile
+import mardek.state.settings.UserSettings
 import mardek.state.title.StartNewGameState
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertArrayEquals
@@ -132,7 +133,10 @@ object TestTitleScreen {
 			assertNull(state.saveSelection)
 
 			// Ok, let's assume the content has finally finished loading
-			val context = GameStateUpdateContext(content, titleContent, input, soundQueue, 100.milliseconds, saves)
+			val context = GameStateUpdateContext(
+				content, titleContent, input, soundQueue, 100.milliseconds,
+				UserSettings.defaultSettings(), saves,
+			)
 			assertSame(state, state.update(context))
 			assertNull(state.newCampaignName)
 			val saveSelection = state.saveSelection!!
@@ -222,7 +226,8 @@ object TestTitleScreen {
 			val saves = dummySaveManager()
 			createDummySave(saves, "test")
 			val context = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds,
+				UserSettings.defaultSettings(), saves,
 			)
 
 			val state = TitleScreenState()
@@ -248,7 +253,8 @@ object TestTitleScreen {
 			val saves = dummySaveManager()
 			createDummySave(saves, "test")
 			val context = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds,
+				UserSettings.defaultSettings(), saves,
 			)
 
 			val state = TitleScreenState()
@@ -274,7 +280,8 @@ object TestTitleScreen {
 			createDummySave(saves, "test1")
 			createDummySave(saves, "test2")
 			val context = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds,
+				UserSettings.defaultSettings(), saves,
 			)
 
 			val state = TitleScreenState()
@@ -309,7 +316,8 @@ object TestTitleScreen {
 			Files.copy(save1.toPath(), save2.toPath())
 
 			val context = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds,
+				UserSettings.defaultSettings(), saves,
 			)
 
 			val state = TitleScreenState()
@@ -404,7 +412,10 @@ object TestTitleScreen {
 			val defaultBorderColors = arrayOf(Color(208, 193, 142))
 			val grayBorderColors = arrayOf(Color(180, 170, 134))
 
-			val updateContext = GameStateUpdateContext(content, titleContent, input, soundQueue, 1.milliseconds, saves)
+			val updateContext = GameStateUpdateContext(
+				content, titleContent, input, soundQueue, 1.milliseconds,
+				UserSettings.defaultSettings(), saves,
+			)
 			assertSame(state, state.update(updateContext))
 			var saveSelection = state.saveSelection!!
 			assertEquals(0, saveSelection.selectedFileIndex)

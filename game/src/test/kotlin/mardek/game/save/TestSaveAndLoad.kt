@@ -17,6 +17,7 @@ import mardek.content.battle.Enemy
 import mardek.state.ingame.area.AreaSuspensionActions
 import mardek.state.ingame.area.AreaSuspensionBattle
 import mardek.state.saves.SavesFolderManager
+import mardek.state.settings.UserSettings
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -45,7 +46,10 @@ object TestSaveAndLoad {
 			state.campaign.characterStates[heroMardek]!!.currentLevel = 5
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 6
 
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds, saves)
+			val context = GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(),
+				10.milliseconds, UserSettings.defaultSettings(), saves,
+			)
 
 			// Interact with the crystal, and wait until the first dialogue message is fully rendered
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
@@ -105,7 +109,10 @@ object TestSaveAndLoad {
 			}
 			state.campaign.characterStates[heroDeugan]!!.currentLevel = 6
 
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds, saves)
+			val context = GameStateUpdateContext(
+				content, titleContent, InputManager(), SoundQueue(),
+				10.milliseconds, UserSettings.defaultSettings(),saves,
+			)
 
 			// Interact with the crystal, and wait until the first dialogue message is fully rendered
 			context.input.postEvent(pressKeyEvent(InputKey.Interact))
@@ -176,7 +183,8 @@ object TestSaveAndLoad {
 			startSimpleBattle(campaign, enemies = arrayOf(Enemy(monster, 1), Enemy(monster, 1), null, null))
 
 			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds,
+				UserSettings.defaultSettings(),saves
 			)
 			state.update(updateContext)
 
@@ -254,7 +262,8 @@ object TestSaveAndLoad {
 			startSimpleBattle(campaign, enemies = arrayOf(Enemy(monster, 1), Enemy(monster, 1), null, null))
 
 			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(),
+				100.milliseconds, UserSettings.defaultSettings(), saves,
 			)
 			state.update(updateContext)
 
@@ -332,7 +341,8 @@ object TestSaveAndLoad {
 			startSimpleBattle(campaign, enemies = arrayOf(null, null, null, Enemy(animus, 1)))
 
 			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds, saves
+				content, titleContent, InputManager(), SoundQueue(),
+				100.milliseconds, UserSettings.defaultSettings(), saves,
 			)
 			state.update(updateContext)
 

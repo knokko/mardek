@@ -6,10 +6,7 @@ import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionBattle
@@ -28,9 +25,7 @@ object TestInfoModal {
 			startSimpleBattle(campaign)
 			val state = InGameState(campaign, "test")
 
-			val input = InputManager()
-			val soundQueue = SoundQueue()
-			val context = GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
 
 			val monsterSkinColor = arrayOf(Color(85, 56, 133))
 			val balmungHandleColor = arrayOf(Color(255, 203, 101))
@@ -54,11 +49,11 @@ object TestInfoModal {
 			)
 
 			var infoBlock = monster.renderInfo.renderedInfoBlock!!
-			input.postEvent(MouseMoveEvent(
+			context.input.postEvent(MouseMoveEvent(
 				infoBlock.minX + infoBlock.width / 2, infoBlock.minY + infoBlock.height / 2
 			))
-			input.postEvent(pressKeyEvent(InputKey.Click))
-			input.postEvent(releaseKeyEvent(InputKey.Click))
+			context.input.postEvent(pressKeyEvent(InputKey.Click))
+			context.input.postEvent(releaseKeyEvent(InputKey.Click))
 			state.update(context)
 
 			assertSame(monster, battle.openCombatantInfo)
@@ -69,11 +64,11 @@ object TestInfoModal {
 			)
 
 			infoBlock = battle.livingPlayers()[1].renderInfo.renderedInfoBlock!!
-			input.postEvent(MouseMoveEvent(
+			context.input.postEvent(MouseMoveEvent(
 				infoBlock.minX + infoBlock.width / 2, infoBlock.minY + infoBlock.height / 2
 			))
-			input.postEvent(pressKeyEvent(InputKey.Click))
-			input.postEvent(releaseKeyEvent(InputKey.Click))
+			context.input.postEvent(pressKeyEvent(InputKey.Click))
+			context.input.postEvent(releaseKeyEvent(InputKey.Click))
 			state.update(context)
 
 			assertSame(battle.livingPlayers()[1], battle.openCombatantInfo)
@@ -83,8 +78,8 @@ object TestInfoModal {
 						redTextColor + greenTextColor + blueTextColor, emptyArray()
 			)
 
-			input.postEvent(pressKeyEvent(InputKey.Click))
-			input.postEvent(releaseKeyEvent(InputKey.Click))
+			context.input.postEvent(pressKeyEvent(InputKey.Click))
+			context.input.postEvent(releaseKeyEvent(InputKey.Click))
 			state.update(context)
 			assertNull(battle.openCombatantInfo)
 		}

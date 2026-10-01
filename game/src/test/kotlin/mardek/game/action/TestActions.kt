@@ -12,9 +12,6 @@ import mardek.game.releaseKeyEvent
 import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.actions.AreaActionsState
 import mardek.state.ingame.actions.CampaignActionsState
@@ -52,7 +49,7 @@ object TestActions {
 			)
 			state.campaign.state = areaState
 
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
 
 			// Walk left towards the save crystal
 			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
@@ -168,9 +165,7 @@ object TestActions {
 				defaultDialogueObject = null, (state.campaign.state as AreaState).currentTime
 			))
 
-			val context = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
-			)
+			val context = createUpdateContext(10.milliseconds)
 			state.update(context)
 
 			// Wait until the fade is over
@@ -207,9 +202,7 @@ object TestActions {
 				id = UUID.randomUUID(), action = toHeroesDen, next = null
 			), state.campaign.time)
 
-			state.update(GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 10.milliseconds
-			))
+			state.update(createUpdateContext(10.milliseconds))
 
 			assertSame(
 				content.areas.areas.find { it.properties.rawName == "heroes_den" }!!,
@@ -241,7 +234,7 @@ object TestActions {
 				initialPlayerDirection = Direction.Up,
 			)
 
-			val context = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
 			state.update(context)
 			assertNull((state.campaign.state as AreaState).suspension)
 

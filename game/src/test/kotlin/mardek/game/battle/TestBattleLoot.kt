@@ -8,9 +8,6 @@ import mardek.game.releaseKeyEvent
 import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.loot.BattleLoot
@@ -237,26 +234,24 @@ object TestBattleLoot {
 			assertEquals(1, loot.selectedPartyIndex)
 			assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
 
-			val soundQueue = SoundQueue()
-			val input = InputManager()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds), ""
+				createUpdateContext(10.milliseconds), ""
 			)
 			campaign.update(context)
 			assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
 
-			input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))
 			campaign.update(context)
 			assertEquals(BattleLoot.SelectedItem(0), loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
-			input.postEvent(repeatKeyEvent(InputKey.MoveDown))
-			input.postEvent(releaseKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(repeatKeyEvent(InputKey.MoveDown))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			campaign.update(context)
 			assertEquals(BattleLoot.SelectedItem(1), loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			// Fill inventory with junk, except slot 10
 			val deuganState = campaign.characterStates[heroDeugan]!!
@@ -265,20 +260,20 @@ object TestBattleLoot {
 			}
 			deuganState.inventory[10] = null
 
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			campaign.update(context)
 			assertEquals(arrayListOf(ItemStack(ruby, 1)), loot.items)
 			assertEquals(BattleLoot.SelectedItem(0), loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.clickConfirm, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 			assertEquals(ItemStack(emerald, 2), deuganState.inventory[10])
 
-			input.postEvent(repeatKeyEvent(InputKey.Interact))
+			context.input.postEvent(repeatKeyEvent(InputKey.Interact))
 			campaign.update(context)
 			assertEquals(arrayListOf(ItemStack(ruby, 1)), loot.items)
 			assertEquals(BattleLoot.SelectedItem(0), loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.clickReject, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.clickReject, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 			assertEquals(0, deuganState.countItemOccurrences(ruby))
 		}
 	}
@@ -314,10 +309,8 @@ object TestBattleLoot {
 			assertEquals(1, loot.selectedPartyIndex)
 			assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
 
-			val soundQueue = SoundQueue()
-			val input = InputManager()
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds), ""
+				createUpdateContext(10.milliseconds), ""
 			)
 
 			// Fill the inventory of Deugan with junk, except slots 10 and 20
@@ -337,7 +330,7 @@ object TestBattleLoot {
 			mardekState.inventory[20] = ItemStack(emerald, 15)
 
 			// Try to give everything to Deugan, although there is not enough space:
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			campaign.update(context)
 			assertEquals(ItemStack(ruby, 1), deuganState.inventory[10])
 			assertEquals(ItemStack(topaz, 18), deuganState.inventory[20])
@@ -345,11 +338,11 @@ object TestBattleLoot {
 				ItemStack(emerald, 2), ItemStack(onyx, 2)
 			), loot.items)
 			assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.clickReject, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.clickReject, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			// Inventory is full, so retrying won't help
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			campaign.update(context)
 			assertEquals(ItemStack(ruby, 1), deuganState.inventory[10])
 			assertEquals(ItemStack(topaz, 18), deuganState.inventory[20])
@@ -357,25 +350,25 @@ object TestBattleLoot {
 				ItemStack(emerald, 2), ItemStack(onyx, 2)
 			), loot.items)
 			assertEquals(BattleLoot.SelectedGetAll, loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.clickReject, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.clickReject, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			// But Mardek still has just enough space left
-			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			input.postEvent(pressKeyEvent(InputKey.MoveRight))
-			input.postEvent(releaseKeyEvent(InputKey.MoveRight))
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			campaign.update(context)
 			assertEquals(ItemStack(onyx, 2), mardekState.inventory[10])
 			assertEquals(ItemStack(emerald, 17), mardekState.inventory[20])
 			assertEquals(0, loot.items.size)
 			assertEquals(BattleLoot.SelectedFinish, loot.selectedElement)
-			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
-			assertSame(content.audio.fixedEffects.ui.clickConfirm, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, context.soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.clickConfirm, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			// Finish
-			input.postEvent(repeatKeyEvent(InputKey.Interact))
+			context.input.postEvent(repeatKeyEvent(InputKey.Interact))
 			assertSame(loot, (area.suspension as AreaSuspensionBattle).loot)
 			campaign.update(context)
 			assertInstanceOf<AreaSuspensionBattle>(area.suspension)
@@ -400,9 +393,7 @@ object TestBattleLoot {
 			val area = (campaign.state as AreaState)
 
 			// Skip fade-in
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 1.seconds
-			)
+			val updateContext = createUpdateContext(1.seconds)
 			repeat(2) {
 				state.update(updateContext)
 			}

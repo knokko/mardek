@@ -8,9 +8,6 @@ import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -32,9 +29,7 @@ object TestLocks {
 	fun testFakeDragonLairEntryLock(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
-			)
+			val updateContext = createUpdateContext(100.milliseconds)
 			state.campaign.state = AreaState(
 				dragonLairEntry, state.campaign.story, state.campaign.expressionContext(),
 				AreaPosition(5, 10), Direction.Down,
@@ -86,9 +81,7 @@ object TestLocks {
 	fun testMonasteryIsNotLockedAtNight(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
-			)
+			val updateContext = createUpdateContext(100.milliseconds)
 			performTimelineTransition(
 				updateContext, state.campaign,
 				"MainTimeline", "Night before the falling 'star'"
@@ -119,9 +112,7 @@ object TestLocks {
 	fun testShopsAreLockedAtNight(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
-			)
+			val updateContext = createUpdateContext(100.milliseconds)
 			performTimelineTransition(
 				updateContext, state.campaign,
 				"MainTimeline", "Night before the falling 'star'"
@@ -182,9 +173,7 @@ object TestLocks {
 	fun testSewerDoorIsLockedDuringChapter1(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
-			)
+			val updateContext = createUpdateContext(100.milliseconds)
 			performTimelineTransition(
 				updateContext, state.campaign,
 				"MainTimeline", "Searching for the fallen 'star'"
@@ -226,9 +215,7 @@ object TestLocks {
 			val allColors = goznorColors + mardekHairColor + deuganHairColor + deuganPortraitColor
 
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
-			)
+			val updateContext = createUpdateContext(100.milliseconds)
 			performTimelineTransition(
 				updateContext, state.campaign,
 				"MainTimeline", "Night before the falling 'star'"
@@ -308,9 +295,7 @@ object TestLocks {
 	fun testWeaponShopIsOpenDuringTheDay(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
-			)
+			val updateContext = createUpdateContext(100.milliseconds)
 			performTimelineTransition(
 				updateContext, state.campaign,
 				"MainTimeline", "Searching for the fallen 'star'"

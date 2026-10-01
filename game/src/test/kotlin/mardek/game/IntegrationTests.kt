@@ -538,6 +538,12 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testReactionMasterySounds() {
+		TestReactionSounds.testReactionMasteryDisabled(instance)
+		TestReactionSounds.testReactionMasteryEnabled(instance)
+	}
+
+	@Test
 	fun testBasicAttackReactionSkillsMastery() {
 		TestMastery.testReactionSkillsMasteryBasicAttack(instance)
 	}

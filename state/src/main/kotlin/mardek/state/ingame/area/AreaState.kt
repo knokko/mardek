@@ -224,7 +224,7 @@ class AreaState(
 		} else {
 			val battleContext = BattleUpdateContext(
 				context.campaign.characterStates, context.campaign.encyclopedia,
-				context.campaign.statistics, context.content.audio.fixedEffects,
+				context.campaign.statistics, context.settings, context.content.audio.fixedEffects,
 				context.content.stats.defaultWeaponElement, context.soundQueue,
 				context.campaign.time,
 			)
@@ -578,6 +578,7 @@ class AreaState(
 					context.campaign.characterStates,
 					context.campaign.encyclopedia,
 					context.campaign.statistics,
+					context.settings,
 					context.content.audio.fixedEffects,
 					context.content.stats.defaultWeaponElement,
 					context.soundQueue,
@@ -590,7 +591,7 @@ class AreaState(
 	private fun updateActiveBattle(context: UpdateContext, suspension: AreaSuspensionBattle) {
 		val battleContext = BattleUpdateContext(
 			context.campaign.characterStates, context.campaign.encyclopedia,
-			context.campaign.statistics, context.content.audio.fixedEffects,
+			context.campaign.statistics, context.settings, context.content.audio.fixedEffects,
 			context.content.stats.defaultWeaponElement, context.soundQueue,
 			context.campaign.time,
 		)

@@ -24,6 +24,7 @@ import mardek.state.ingame.actions.CampaignActionsState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.AreaSuspensionActions
+import mardek.state.settings.UserSettings
 import mardek.state.title.StartNewGameState
 import mardek.state.title.TitleScreenState
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -61,7 +62,7 @@ object TestCutscenes {
 			val titleState = TitleScreenState()
 			val context = GameStateUpdateContext(
 				content, titleContent, InputManager(), SoundQueue(),
-				10.milliseconds, dummySaveManager(),
+				10.milliseconds, UserSettings.defaultSettings(), dummySaveManager(),
 			)
 
 			context.input.postEvent(pressKeyEvent(InputKey.MoveDown))

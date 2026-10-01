@@ -149,7 +149,7 @@ class MardekWindow(
 
 		val updateLoop = UpdateLoop({
 			synchronized(gameState.lock()) {
-				gameState.update(content, titleScreenInfo, 5.milliseconds)
+				gameState.update(content, titleScreenInfo, userSettings, 5.milliseconds)
 			}
 		}, 5_000_000L)
 		val updateThread = Thread(updateLoop)

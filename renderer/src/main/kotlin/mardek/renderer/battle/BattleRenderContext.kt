@@ -14,6 +14,7 @@ class BattleRenderContext(
 		state.characterStates,
 		state.encyclopedia,
 		state.statistics,
+		context.userSettings,
 		context.content.audio.fixedEffects,
 		context.content.stats.elements.find { it.rawName == "NONE" }!!,
 		context.state.soundQueue,

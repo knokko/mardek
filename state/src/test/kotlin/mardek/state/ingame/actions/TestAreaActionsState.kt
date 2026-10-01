@@ -48,6 +48,7 @@ import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
 import mardek.state.ingame.area.FadingCharacter
 import mardek.state.ingame.area.NextAreaPosition
+import mardek.state.settings.UserSettings
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -95,7 +96,9 @@ private fun createUpdateContext(
 	return AreaActionsState.UpdateContext(
 		parent = AreaState.UpdateContext(
 			parent = CampaignState.UpdateContext(
-				parent = GameStateUpdateContext(content, titleContent, input, soundQueue, timeStep),
+				parent = GameStateUpdateContext(
+					content, titleContent, input, soundQueue, timeStep, UserSettings.defaultSettings()
+				),
 				campaignName = campaignName,
 			),
 			campaign = campaign,

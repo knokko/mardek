@@ -4,6 +4,7 @@ import mardek.content.Content
 import mardek.content.ui.TitleScreenContent
 import mardek.input.InputManager
 import mardek.state.saves.SavesFolderManager
+import mardek.state.settings.UserSettings
 import mardek.state.util.Rectangle
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
@@ -107,9 +108,14 @@ class GameStateManager(
 	 *
 	 * Note that [lock] should be held while calling this method.
 	 */
-	fun update(content: CompletableFuture<Content>, titleContent: TitleScreenContent, timeStep: Duration) {
+	fun update(
+		content: CompletableFuture<Content>, titleContent: TitleScreenContent,
+		settings: UserSettings, timeStep: Duration
+	) {
 		if (content.isDone) {
-			val context = GameStateUpdateContext(content.get(), titleContent, input, soundQueue, timeStep, saves)
+			val context = GameStateUpdateContext(
+				content.get(), titleContent, input, soundQueue, timeStep, settings, saves
+			)
 			this.currentState = this.currentState.update(context)
 		} else {
 			this.currentState = this.currentState.updateBeforeContent(input, soundQueue, saves, titleContent)

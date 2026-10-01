@@ -12,9 +12,6 @@ import mardek.game.releaseKeyEvent
 import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -122,9 +119,7 @@ object TestEncyclopedia {
 	fun testBookAddsSocialFoxToEncyclopedia(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
-			)
+			val updateContext = createUpdateContext(100.milliseconds)
 			performTimelineTransition(
 				updateContext, state.campaign,
 				"MainTimeline", "Searching for the fallen 'star'"
@@ -169,7 +164,7 @@ object TestEncyclopedia {
 	fun testPeoplePage(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 
 			state.campaign.encyclopedia.encounteredPeople.add(
 				content.encyclopedia.people.find { it.snapshots[0].firstName == "Mardek" }!!
@@ -261,7 +256,7 @@ object TestEncyclopedia {
 	fun testPlacesPage(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 
 			state.campaign.encyclopedia.discoveredPlaces.add(
 				content.encyclopedia.places.find { it.name == "Goznor" }!!
@@ -333,7 +328,7 @@ object TestEncyclopedia {
 	fun testArtefactsPage(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 
 			state.campaign.encyclopedia.discoveredArtefacts.add(
 				content.encyclopedia.artefacts.find { it.name == "Water Crystal" }!!
@@ -400,7 +395,7 @@ object TestEncyclopedia {
 	fun testBestiaryPage(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "test")
-			val updateContext = GameStateUpdateContext(content, titleContent, InputManager(), SoundQueue(), 10.milliseconds)
+			val updateContext = createUpdateContext(10.milliseconds)
 
 			state.campaign.encyclopedia.reportMonsterAsSlain(
 				content.battle.monsters.find { it.name == "mightydragon" }!!
@@ -469,9 +464,7 @@ object TestEncyclopedia {
 	fun testRefreshAfterDiscoveringAnotherArea(instance: TestingInstance) {
 		instance.apply {
 			val state = InGameState(simpleCampaignState(), "")
-			val updateContext = GameStateUpdateContext(
-				content, titleContent, InputManager(), SoundQueue(), 100.milliseconds
-			)
+			val updateContext = createUpdateContext(100.milliseconds)
 			state.campaign.state = AreaState(
 				content.areas.areas.find { it.properties.rawName == "goznor" }!!,
 				state.campaign.story, state.campaign.expressionContext(),

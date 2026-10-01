@@ -14,9 +14,6 @@ import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaCharacterState
 import mardek.state.ingame.area.AreaPosition
@@ -73,14 +70,12 @@ object TestDragonLair {
 			mardekState.toggledSkills.add(expSkill)
 			deuganState.toggledSkills.add(expSkill)
 
-			val dummySoundQueue = SoundQueue()
-			val fakeInput = InputManager()
-			fakeInput.postEvent(pressKeyEvent(InputKey.MoveUp))
 
 			val mightyHeroesTrack = content.audio.musicTracks.find { it.fileName == "MightyHeroes"}!!
 
 			// Walk to the walk trigger
-			val context = GameStateUpdateContext(content, titleContent, fakeInput, dummySoundQueue, 10.milliseconds)
+			val context = createUpdateContext(10.milliseconds)
+			context.input.postEvent(pressKeyEvent(InputKey.MoveUp))
 			assertSame(mightyHeroesTrack, state.campaign.determineMusicTrack(content))
 			repeat(5000) {
 				state.update(context)
@@ -108,8 +103,8 @@ object TestDragonLair {
 			)
 
 			// Skip dialogue
-			fakeInput.postEvent(releaseKeyEvent(InputKey.MoveUp))
-			fakeInput.postEvent(pressKeyEvent(InputKey.Cancel))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveUp))
+			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
 			repeat(5000) {
 				state.update(context)
 			}
@@ -125,7 +120,7 @@ object TestDragonLair {
 			// Wait until we can select a move
 			val bossBattleTrack = content.audio.musicTracks.find { it.fileName == "BossBattle" }!!
 			assertSame(bossBattleTrack, state.campaign.determineMusicTrack(content))
-			fakeInput.postEvent(releaseKeyEvent(InputKey.Cancel))
+			context.input.postEvent(releaseKeyEvent(InputKey.Cancel))
 
 			// Cast Frostasia, which should kill the 1HP dragon
 			assertInstanceOf<BattleStateMachine.SelectMove>(battleState.state)
@@ -134,9 +129,9 @@ object TestDragonLair {
 				InputKey.MoveDown, InputKey.MoveDown,
 				InputKey.Interact, InputKey.Interact,
 			)) {
-				fakeInput.postEvent(pressKeyEvent(key))
+				context.input.postEvent(pressKeyEvent(key))
 				state.update(context)
-				fakeInput.postEvent(releaseKeyEvent(key))
+				context.input.postEvent(releaseKeyEvent(key))
 			}
 
 			// No EXP should have been gained, yet
@@ -198,8 +193,8 @@ object TestDragonLair {
 			// Claim battle loot
 			assertNotNull(((state.campaign.state as AreaState).suspension as AreaSuspensionBattle).loot)
 			assertSame(victoryTrack, state.campaign.determineMusicTrack(content))
-			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
-			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(context)
 
 			// Await battle loot fade-out
@@ -222,8 +217,8 @@ object TestDragonLair {
 			)
 
 			// Move on to the next dialogue node: a parallel node
-			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
-			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(context)
 
 			// The princess should walk towards Mardek while Mardek is speaking.
@@ -232,15 +227,15 @@ object TestDragonLair {
 			val parallelActions = (actions.node as FixedActionNode).action as ActionParallel
 			assertInstanceOf<ActionWalk>(parallelActions.actions[0])
 			assertInstanceOf<ActionTalk>(parallelActions.actions[1])
-			fakeInput.postEvent(pressKeyEvent(InputKey.Cancel))
+			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
 			repeat(50) {
 				state.update(context)
 			}
-			fakeInput.postEvent(releaseKeyEvent(InputKey.Cancel))
+			context.input.postEvent(releaseKeyEvent(InputKey.Cancel))
 			state.update(context)
-			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(context)
-			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
 			state.update(context)
 			assertSame(parallelActions, (actions.node as FixedActionNode).action)
 
@@ -259,7 +254,7 @@ object TestDragonLair {
 			assertSame(parallelActions, (actions.node as FixedActionNode).action)
 
 			// Now, press E again to finish this dialogue node
-			fakeInput.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(context)
 
 			assertInstanceOf<ActionTalk>((actions.node as FixedActionNode).action)
@@ -269,8 +264,8 @@ object TestDragonLair {
 			)
 
 			// Hold Q until we go to Heroes' Den
-			fakeInput.postEvent(releaseKeyEvent(InputKey.Interact))
-			fakeInput.postEvent(pressKeyEvent(InputKey.Cancel))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Cancel))
 			assertArrayEquals(arrayOf(heroMardek, heroDeugan, null, null), state.campaign.party)
 			assertEquals(
 				ColorTransform(0, -1, 0),
@@ -286,7 +281,7 @@ object TestDragonLair {
 					state.update(context)
 				}
 			}
-			fakeInput.postEvent(releaseKeyEvent(InputKey.Cancel))
+			context.input.postEvent(releaseKeyEvent(InputKey.Cancel))
 
 			// Wait until the Dragon's Lair fade-out is almost over
 			repeat(45) {
@@ -366,7 +361,7 @@ object TestDragonLair {
 			assertEquals(0, state.campaign.statistics.totalSteps)
 			assertTrue(state.campaign.time.virtual > 110.seconds)
 
-			fakeInput.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
 			repeat(25) {
 				state.update(context)
 			}

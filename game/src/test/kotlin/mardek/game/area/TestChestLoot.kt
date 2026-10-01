@@ -9,10 +9,7 @@ import mardek.game.releaseKeyEvent
 import mardek.game.repeatKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
 import mardek.state.GameStateManager
-import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
@@ -39,18 +36,16 @@ object TestChestLoot {
 				AreaPosition(28, 6), skipFadeIn = true,
 			)
 
-			val input = InputManager()
+			val context = CampaignState.UpdateContext(
+				createUpdateContext(10.milliseconds), ""
+			)
 			val state = GameStateManager(
-				input, InGameState(campaign, "test"),
+				context.input, InGameState(campaign, "test"),
 				SavesFolderManager(),
 			)
-			val soundQueue = SoundQueue()
-			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, soundQueue, 10.milliseconds), ""
-			)
-			input.postEvent(pressKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveRight))
 			state.currentState.update(context)
-			assertNull(soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			val partyColors = arrayOf(
 				Color(217, 214, 214), // Mardek armor
@@ -75,11 +70,11 @@ object TestChestLoot {
 				areaColors + partyColors, lootColors
 			)
 
-			input.postEvent(releaseKeyEvent(InputKey.MoveRight))
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.currentState.update(context)
-			assertSame(content.audio.fixedEffects.openChest, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.openChest, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			// Rendering during fade-in
 			repeat(5) {
@@ -102,17 +97,17 @@ object TestChestLoot {
 			val openChest = ((campaign.state as AreaState).suspension as AreaSuspensionOpeningChest).obtainedItem!!
 			assertEquals(0, openChest.partyIndex)
 
-			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			input.postEvent(pressKeyEvent(InputKey.MoveLeft))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveLeft))
 			state.currentState.update(context)
 			assertEquals(1, openChest.partyIndex)
-			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
-			input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveLeft))
 			state.currentState.update(context)
 			assertEquals(1, openChest.partyIndex)
-			assertNull(soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			val deuganState = campaign.characterStates[heroDeugan]!!
 			for (index in deuganState.inventory.indices) {
@@ -120,28 +115,28 @@ object TestChestLoot {
 			}
 
 			// Whoops, Deugan does not have any inventory space
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.currentState.update(context)
-			assertSame(content.audio.fixedEffects.ui.clickReject, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.clickReject, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
-			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			input.postEvent(pressKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.MoveRight))
 			state.currentState.update(context)
 			assertEquals(0, openChest.partyIndex)
-			assertSame(content.audio.fixedEffects.ui.scroll1, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.scroll1, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 
 			// Luckily, Mardek has plenty of space
 			val mardekState = campaign.characterStates[heroMardek]!!
-			input.postEvent(releaseKeyEvent(InputKey.MoveRight))
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			assertEquals(0, mardekState.countItemOccurrences(potion))
 			assertSame(openChest, ((campaign.state as AreaState).suspension as AreaSuspensionOpeningChest).obtainedItem)
 			assertEquals(0, campaign.openedChests.size)
 			state.currentState.update(context)
-			assertSame(content.audio.fixedEffects.ui.clickCancel, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.ui.clickCancel, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 			assertEquals(1, mardekState.countItemOccurrences(potion))
 
 			// Rendering during fade-out
@@ -166,10 +161,10 @@ object TestChestLoot {
 			)
 
 			// Check that the chest can't be opened again
-			input.postEvent(repeatKeyEvent(InputKey.Interact))
+			context.input.postEvent(repeatKeyEvent(InputKey.Interact))
 			campaign.update(context)
 			assertFalse((campaign.state as AreaState).suspension is AreaSuspensionOpeningChest)
-			assertNull(soundQueue.take())
+			assertNull(context.soundQueue.take())
 		}
 	}
 
@@ -182,14 +177,13 @@ object TestChestLoot {
 				AreaPosition(5, 48), Direction.Down, skipFadeIn = true
 			)
 
-			val input = InputManager()
-			val state = GameStateManager(
-				input, InGameState(campaign, "test"),
-				SavesFolderManager(),
-			)
-			val soundQueue = SoundQueue()
+
 			val context = CampaignState.UpdateContext(
-				GameStateUpdateContext(content, titleContent, input, soundQueue, 100.milliseconds), ""
+				createUpdateContext(100.milliseconds), ""
+			)
+			val state = GameStateManager(
+				context.input, InGameState(campaign, "test"),
+				SavesFolderManager(),
 			)
 
 			val partyColors = arrayOf(
@@ -211,14 +205,14 @@ object TestChestLoot {
 				areaColors + partyColors, goldColors
 			)
 
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			assertEquals(123, campaign.gold)
 			campaign.statistics.goldEarned = 50
 			campaign.update(context)
 			assertEquals(123 + 56, campaign.gold)
 			assertEquals(50 + 56, campaign.statistics.goldEarned)
-			assertSame(content.audio.fixedEffects.openChest, soundQueue.take())
-			assertNull(soundQueue.take())
+			assertSame(content.audio.fixedEffects.openChest, context.soundQueue.take())
+			assertNull(context.soundQueue.take())
 			assertNull((campaign.state as AreaState).suspension)
 
 			testRendering(
@@ -227,11 +221,11 @@ object TestChestLoot {
 			)
 
 			// Test that the chest cannot be opened again
-			input.postEvent(releaseKeyEvent(InputKey.Interact))
-			input.postEvent(pressKeyEvent(InputKey.Interact))
+			context.input.postEvent(releaseKeyEvent(InputKey.Interact))
+			context.input.postEvent(pressKeyEvent(InputKey.Interact))
 			campaign.update(context)
 			assertEquals(123 + 56, campaign.gold)
-			assertNull(soundQueue.take())
+			assertNull(context.soundQueue.take())
 			assertNull((campaign.state as AreaState).suspension)
 		}
 	}

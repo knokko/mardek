@@ -50,7 +50,7 @@ class SettingsTab : InGameMenuTab() {
 		if (inside) {
 			val numProperties = when (selectedType) {
 				0 -> 5
-				1 -> 3
+				1 -> 4
 				else -> throw RuntimeException("Unexpected settings type $selectedType")
 			}
 
@@ -114,7 +114,7 @@ class SettingsTab : InGameMenuTab() {
 
 			if (selectedType == 1) {
 				val audioSettings = settings.audioSettings
-				if (selectedProperty in 0..3) {
+				if (selectedProperty in 0 until 3) {
 					val oldValue = when (selectedProperty) {
 						0 -> audioSettings.masterVolume
 						1 -> audioSettings.musicVolume
@@ -131,6 +131,10 @@ class SettingsTab : InGameMenuTab() {
 						1 -> audioSettings.musicVolume = newValue
 						2 -> audioSettings.soundEffectVolume = newValue
 					}
+				}
+
+				if (selectedProperty == 3 && isToggle) {
+					audioSettings.playReactionMasteryJingle = !audioSettings.playReactionMasteryJingle
 				}
 			}
 		} else {
