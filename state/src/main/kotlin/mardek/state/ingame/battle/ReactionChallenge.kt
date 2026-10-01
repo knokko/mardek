@@ -89,8 +89,13 @@ class ReactionChallenge(
 	/**
 	 * This method should be called right after the player pressed E.
 	 */
-	fun click(currentTime: Time) {
-		if (clickedAfter == NOT_YET_REACTED) clickedAfter = currentTime.virtualOffset(startTime)
+	fun click(currentTime: Time): Boolean {
+		if (clickedAfter == NOT_YET_REACTED) {
+			clickedAfter = currentTime.virtualOffset(startTime)
+			return clickedAfter !in MIN_CLICK_AFTER..MAX_CLICK_AFTER
+		}
+
+		return false
 	}
 
 	companion object {

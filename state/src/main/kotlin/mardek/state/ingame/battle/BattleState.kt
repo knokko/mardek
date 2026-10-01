@@ -176,9 +176,7 @@ class BattleState(
 			if (key == InputKey.MoveUp || key == InputKey.MoveDown) battleScrollVertically(this, key, context)
 		}
 		if (key == InputKey.Interact && reactionChallenge != null) {
-			val wasPending = reactionChallenge.isPending(context.campaignTime)
-			reactionChallenge.click(context.campaignTime)
-			if (wasPending && !reactionChallenge.isPending(context.campaignTime) && !reactionChallenge.wasPassed()) {
+			if (reactionChallenge.click(context.campaignTime)) {
 				context.soundQueue.insert(context.sounds.ui.clickReject)
 			}
 		}

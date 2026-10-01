@@ -531,6 +531,13 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testReactionFailureSounds() {
+		TestReactionSounds.testEarlyFailSound(instance)
+		TestReactionSounds.testLateFailSound(instance)
+		TestReactionSounds.testNoFailSoundUponSuccess(instance)
+	}
+
+	@Test
 	fun testBasicAttackReactionSkillsMastery() {
 		TestMastery.testReactionSkillsMasteryBasicAttack(instance)
 	}
