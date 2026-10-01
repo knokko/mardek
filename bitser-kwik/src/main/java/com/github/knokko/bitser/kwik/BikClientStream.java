@@ -23,7 +23,7 @@ class BikClientStream implements ClientStream {
 	public synchronized void start(InputReader processInput) {
 		if (stream != null) throw new IllegalStateException("Already started");
 		stream = requestStream.get();
-		stream.whenComplete((quicStream, _) -> {
+		stream.whenComplete((quicStream, failed) -> {
 			if (quicStream == null) return ;
 			var readThread = new Thread(() -> {
 				try {
