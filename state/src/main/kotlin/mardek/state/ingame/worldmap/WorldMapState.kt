@@ -10,6 +10,7 @@ import mardek.content.world.WorldMapNode
 import mardek.input.Event
 import mardek.input.InputKey
 import mardek.input.InputKeyEvent
+import mardek.input.InputManager
 import mardek.state.SoundQueue
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.CampaignStateMachine
@@ -103,7 +104,10 @@ class WorldMapState(
 	 * If this method returns `null`, the player stays on the world map. If this method returns a non-null entrance,
 	 * the player should leave the world map, and enter an area through that entrance.
 	 */
-	private fun update(sounds: FixedSoundEffects, soundQueue: SoundQueue, timeStep: Duration): WorldMapNode.Entrance? {
+	private fun update(
+		story: StoryState, sounds: FixedSoundEffects, soundQueue: SoundQueue,
+		input: InputManager, timeStep: Duration
+	): WorldMapNode.Entrance? {
 		exiting?.run {
 			if (currentTime >= exitAt) return entrance
 		}
@@ -114,6 +118,51 @@ class WorldMapState(
 				nextNode = null
 			}
 		}
+
+		for ((key, angle) in arrayOf(
+			Pair(InputKey.MoveRight, 0),
+			Pair(InputKey.MoveDown, 90),
+			Pair(InputKey.MoveLeft, 180),
+			Pair(InputKey.MoveUp, 270),
+		)) {
+			if (nextNode != null || exiting != null || !input.isPressed(key)) continue
+
+			val edges = (map.edges.filter { it.node1 === currentNode }.map {
+				Pair(it.node2, it.entrance2)
+			} + map.edges.filter { it.node2 === currentNode }.map {
+				Pair(it.node1, it.entrance1)
+			}).filter { story.evaluate(it.first.wasDiscovered) != null }
+
+			var bestNode = currentNode
+			var bestAngle = 80.0
+			for ((candidateNode, candidateEntrance) in edges) {
+				val candidateAngle = toDegrees(atan2(
+					(candidateNode.y - currentNode.y).toDouble(),
+					(candidateNode.x - currentNode.x).toDouble(),
+				))
+				var relativeAngle = angle - candidateAngle
+				while (relativeAngle < -180) relativeAngle += 360
+				while (relativeAngle > 180) relativeAngle -= 360
+				relativeAngle = abs(relativeAngle)
+
+				if (relativeAngle < bestAngle) {
+					bestAngle = relativeAngle
+					bestNode = candidateNode
+					nextEntrance = candidateEntrance
+				}
+			}
+
+			if (bestNode !== currentNode) {
+				val dx = bestNode.x.toDouble() - currentNode.x
+				val dy = bestNode.y.toDouble() - currentNode.y
+				val distance = sqrt(dx * dx + dy * dy)
+				nextNode = NextWorldMapNode(
+					bestNode, currentTime,
+					currentTime + distance * 5.milliseconds,
+				)
+			}
+		}
+
 		currentTime += timeStep
 		return null
 	}
@@ -121,7 +170,7 @@ class WorldMapState(
 	/**
 	 * This method should be called whenever the player presses a key, while the player is on the world map.
 	 */
-	private fun pressKey(storyState: StoryState, key: InputKey) {
+	private fun pressKey(key: InputKey) {
 		if (nextNode != null || exiting != null) return
 
 		if (key == InputKey.Interact) {
@@ -145,51 +194,6 @@ class WorldMapState(
 
 			this.exiting = ExitingWorldMap(bestEntrance, currentTime + FADE_DURATION)
 		}
-
-		val keyAngle = when (key) {
-			InputKey.MoveRight -> 0
-			InputKey.MoveDown -> 90
-			InputKey.MoveLeft -> 180
-			InputKey.MoveUp -> 270
-			else -> return
-		}
-
-		val edges = (map.edges.filter { it.node1 === currentNode }.map {
-			Pair(it.node2, it.entrance2)
-		} + map.edges.filter { it.node2 === currentNode }.map {
-			Pair(it.node1, it.entrance1)
-		}).filter { storyState.evaluate(it.first.wasDiscovered) != null }
-
-		var bestNode = currentNode
-		var bestAngle = 80.0
-		for ((candidateNode, candidateEntrance) in edges) {
-			val candidateAngle = toDegrees(atan2(
-				(candidateNode.y - currentNode.y).toDouble(),
-				(candidateNode.x - currentNode.x).toDouble(),
-			))
-			var relativeAngle = keyAngle - candidateAngle
-			while (relativeAngle < -180) relativeAngle += 360
-			while (relativeAngle > 180) relativeAngle -= 360
-			relativeAngle = abs(relativeAngle)
-
-			if (relativeAngle < bestAngle) {
-				bestAngle = relativeAngle
-				bestNode = candidateNode
-				nextEntrance = candidateEntrance
-			}
-		}
-
-		if (bestNode !== currentNode) {
-			val dx = bestNode.x.toDouble() - currentNode.x
-			val dy = bestNode.y.toDouble() - currentNode.y
-			val distance = sqrt(dx * dx + dy * dy)
-			nextNode = NextWorldMapNode(
-				bestNode, currentTime,
-				currentTime + distance * 5.milliseconds,
-			)
-		}
-
-		return
 	}
 
 	override fun processEvent(
@@ -197,7 +201,7 @@ class WorldMapState(
 		campaignContext: CampaignState.UpdateContext,
 		campaign: CampaignState
 	) {
-		if (event is InputKeyEvent && event.didPress && !event.didRepeat) pressKey(campaign.story, event.key)
+		if (event is InputKeyEvent && event.didPress && !event.didRepeat) pressKey(event.key)
 	}
 
 	override fun update(
@@ -206,8 +210,8 @@ class WorldMapState(
 	) {
 		campaign.encyclopedia.discoveredPlaces.add(map.encyclopediaEntry)
 		val nextEntrance = update(
-			campaignContext.content.audio.fixedEffects,
-			campaignContext.soundQueue, campaignContext.timeStep,
+			campaign.story, campaignContext.content.audio.fixedEffects, campaignContext.soundQueue,
+			campaignContext.input, campaignContext.timeStep,
 		)
 		if (nextEntrance != null) {
 			campaign.state = AreaState(
@@ -217,6 +221,8 @@ class WorldMapState(
 				nextEntrance.direction,
 			)
 		}
+
+
 	}
 
 	companion object {

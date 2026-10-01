@@ -369,4 +369,50 @@ object TestWorldMap {
 			assertEquals(AreaPosition(6, 4), areaState.getPlayerPosition(0))
 		}
 	}
+
+	fun testHoldKey(instance: TestingInstance) {
+		instance.apply {
+			val state = InGameState(simpleCampaignState(), "")
+			val updateContext = createUpdateContext(100.milliseconds)
+			state.campaign.state = AreaState(
+				area = content.areas.areas.find { it.properties.rawName == "crashsite" }!!,
+				story = state.campaign.story,
+				expressionContext = state.campaign.expressionContext(),
+				initialPlayerPosition = AreaPosition(6, 21),
+				initialPlayerDirection = Direction.Down,
+				skipFadeIn = true,
+			)
+			performTimelineTransition(
+				updateContext, state.campaign,
+				"MainTimeline", "Found the Crash Site"
+			)
+
+			// Go from Crash Site to the world map
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveDown))
+			state.update(updateContext)
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
+
+			// Await the fade-out
+			repeat(10) {
+				state.update(updateContext)
+			}
+
+			// Check that we end up in the world map node of Goznor if we keep holding the right arrow key
+			assertInstanceOf<WorldMapState>(state.campaign.state)
+			updateContext.input.postEvent(pressKeyEvent(InputKey.MoveRight))
+			repeat(50) {
+				state.update(updateContext)
+			}
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveRight))
+
+			// Enter Goznor
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
+			repeat(100) {
+				state.update(updateContext)
+			}
+
+			val areaState = state.campaign.state as AreaState
+			assertEquals("Goznor", areaState.area.properties.displayName)
+		}
+	}
 }

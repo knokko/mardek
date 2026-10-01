@@ -433,6 +433,11 @@ class IntegrationTests {
 	}
 
 	@Test
+	fun testHoldKeyOnWorldMap() {
+		TestWorldMap.testHoldKey(instance)
+	}
+
+	@Test
 	fun testSimpleLocks() {
 		TestLocks.testFakeDragonLairEntryLock(instance)
 		TestLocks.testMonasteryIsNotLockedAtNight(instance)
