@@ -21,6 +21,9 @@ import mardek.renderer.RenderManager
 import mardek.state.ExitState
 import mardek.state.GameStateManager
 import mardek.state.settings.UserSettings
+import org.lwjgl.sdl.SDLVideo.SDL_GetWindowFlags
+import org.lwjgl.sdl.SDLVideo.SDL_SetWindowFullscreen
+import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_FULLSCREEN
 import org.lwjgl.system.MemoryStack
 import java.io.File
 import java.nio.file.Path
@@ -96,6 +99,12 @@ class MardekWindow(
 		totalFrames += 1
 
 		synchronized(gameState.lock()) {
+			val windowFlags = SDL_GetWindowFlags(window.properties.handle)
+			val isFullscreen = (windowFlags and SDL_WINDOW_FULLSCREEN) != 0L
+			if (userSettings.videoSettings.fullscreen  != isFullscreen) {
+				SDL_SetWindowFullscreen(window.properties.handle, userSettings.videoSettings.fullscreen)
+			}
+
 			val currentState = gameState.currentState
 			if (currentState is ExitState) window.requestClose()
 			renderManager.renderFrame(

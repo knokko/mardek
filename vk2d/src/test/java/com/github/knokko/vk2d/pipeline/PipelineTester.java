@@ -104,7 +104,7 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 			perFrameBuffer.startFrame(0);
 			render.accept(new PipelineTester(frame, stage, loader != null ? loader.finish() : null, perFrameDescriptorSet[0]));
 			SingleTimeCommands.submit(boiler, testCase, recorder -> {
-				frame.record(recorder);
+				frame.record(boiler, recorder);
 				recorder.copyImageToBuffer(targetImage, destinationBuffer);
 				recorder.bufferBarrier(destinationBuffer, ResourceUsage.TRANSFER_DEST, ResourceUsage.HOST_READ);
 			}).destroy();

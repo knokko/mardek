@@ -1,6 +1,7 @@
 package com.github.knokko.vk2d.batch;
 
 import com.github.knokko.vk2d.frame.Vk2dRenderStage;
+import com.github.knokko.vk2d.pipeline.Vk2dBlurPipeline;
 import com.github.knokko.vk2d.pipeline.Vk2dPipeline;
 
 import java.nio.ByteBuffer;
@@ -11,7 +12,7 @@ import java.nio.ByteBuffer;
  */
 public class Vk2dBlurBatch extends Vk2dBatch {
 
-	public final int textureWidth, textureHeight;
+	public final Vk2dBlurPipeline.Framebuffer source;
 	public final float minX, minY, boundX, boundY;
 	public final long descriptorSet;
 
@@ -20,13 +21,12 @@ public class Vk2dBlurBatch extends Vk2dBatch {
 	 */
 	public Vk2dBlurBatch(
 			Vk2dPipeline pipeline, Vk2dRenderStage frame,
-			int textureWidth, int textureHeight,
+			Vk2dBlurPipeline.Framebuffer source,
 			float minX, float minY, float boundX, float boundY,
 			long descriptorSet
 	) {
 		super(pipeline, frame, 2);
-		this.textureWidth = textureWidth;
-		this.textureHeight = textureHeight;
+		this.source = source;
 		this.minX = normalizeX(minX);
 		this.minY = normalizeY(minY);
 		this.boundX = normalizeX(boundX);

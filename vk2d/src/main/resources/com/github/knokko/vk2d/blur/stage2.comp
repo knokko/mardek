@@ -8,7 +8,11 @@ layout(set = 0, binding = 1) writeonly buffer OutputBuffer {
 };
 
 layout(push_constant) uniform PushConstants {
-	uvec2 inputSize;
+	uvec2 bufferSize;
+	uvec2 usedInputOffset;
+	uvec2 usedInputSize;
+	uvec2 fullInputSize;
+	uint bufferOffset;
 	uint pushFilterSize;
 	uint sectionLength;
 };
@@ -19,29 +23,31 @@ layout(push_constant) uniform PushConstants {
 
 uint fetchColor(uint y) {
 	uint x = 64 * gl_WorkGroupID.x + gl_LocalInvocationIndex;
-	return inputBuffer[y * inputSize.x + x];
+	return inputBuffer[y * bufferSize.x + x];
 }
 
 uint getInputSize() {
-	return inputSize.y;
+	//return usedInputOffset.y + usedInputSize.y;
+	// TODO CHAP2 Handle usedInputOffset properly
+	return bufferSize.y;
 }
 
 layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 
 #define supportFilterSize(supportedFilterSize, filterFunction, unroll) if (pushFilterSize == supportedFilterSize) {\
 		initializeFilterWindow(baseY, supportedFilterSize, unroll);\
-		uint limit = min(inputSize.y, baseY + sectionLength);\
+		uint limit = min(getInputSize(), baseY + sectionLength);\
 		for (uint y = baseY; y < limit; y += unroll) {\
-			applyFilter(y, inputSize.x, supportedFilterSize, filterFunction, DEFAULT_UNROLL);\
+			applyFilter(y, bufferSize.x, supportedFilterSize, filterFunction, DEFAULT_UNROLL);\
 		}\
 	}
 
 void main() {
-	uint x = 64 * gl_WorkGroupID.x + gl_LocalInvocationIndex;
-	if (x >= inputSize.x) return;
+	uint x = usedInputOffset.x + 64 * gl_WorkGroupID.x + gl_LocalInvocationIndex;
+	if (x >= usedInputOffset.x + bufferSize.x) return;
 
-	int baseY = int(sectionLength * gl_WorkGroupID.y);
-	if (baseY >= inputSize.y) return;
+	int baseY = int(usedInputOffset.y) + int(sectionLength * gl_WorkGroupID.y);
+	if (baseY >= usedInputOffset.y + bufferSize.y) return;
 
 	supportFilterSize(0, applySingleFilter0, DEFAULT_UNROLL);
 	supportFilterSize(1, applySingleFilter1, DEFAULT_UNROLL);

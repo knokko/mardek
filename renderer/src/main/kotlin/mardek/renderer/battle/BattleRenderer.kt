@@ -116,13 +116,14 @@ internal fun renderBattle(
 
 			val framebuffers = context.framebuffers
 			val battleRenderStage = context.currentStage
+			val fullscreen = context.userSettings.videoSettings.fullscreen
 
 			context.currentStage = context.pipelines.blur.addSourceStage(
-				context.frame, framebuffers.actionBarBlur, -1
+				context.frame, framebuffers.getActionBarBlur(fullscreen), -1
 			)
 			context.pipelines.blur.addComputeStage(
 				context.frame, context.perFrame.actionBarBlurDescriptors,
-				framebuffers.actionBarBlur, 9, 50, -1
+				framebuffers.getActionBarBlur(fullscreen), 9, 50, -1
 			)
 			val blurOvalBatch = context.addOvalBatch(50)
 			val blurSpriteBatch = context.addAreaSpriteBatch(50, region)
@@ -134,7 +135,7 @@ internal fun renderBattle(
 
 			context.currentStage = battleRenderStage
 			context.pipelines.blur.addBatch(
-				battleRenderStage, framebuffers.actionBarBlur,
+				battleRenderStage, framebuffers.getActionBarBlur(fullscreen),
 				context.perFrame.actionBarBlurDescriptors,
 				actionBarRegion.minX.toFloat(), actionBarRegion.minY.toFloat(),
 				actionBarRegion.boundX.toFloat(), actionBarRegion.boundY.toFloat(),

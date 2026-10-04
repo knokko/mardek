@@ -9,7 +9,8 @@ layout(set = 0, binding = 0) readonly buffer InputBuffer {
 };
 
 layout(push_constant) uniform PushConstants {
-	uvec2 textureSize;
+	layout(offset = 16) uvec2 textureSize;
+	uint textureOffset;
 };
 
 layout(location = 0) out vec4 outColor;
@@ -19,6 +20,6 @@ layout(location = 0) out vec4 outColor;
 void main() {
 	uint x = clamp(int(textureCoordinates.x * textureSize.x), 0, textureSize.x - 1);
 	uint y = clamp(int(textureCoordinates.y * textureSize.y), 0, textureSize.y - 1);
-	vec4 textureColor = decodeColor(inputBuffer[y * textureSize.x + x]);
+	vec4 textureColor = decodeColor(inputBuffer[textureOffset + y * textureSize.x + x]);
 	outColor = addColor + multiplyColor * textureColor;
 }

@@ -195,7 +195,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		);
 		renderFrame(frame, frameIndex, recorder, acquiredImage, boiler);
 
-		frame.record(recorder);
+		frame.record(instance.boiler, recorder);
 	}
 
 	protected void printFps() {

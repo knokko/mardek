@@ -7,7 +7,6 @@ import com.github.knokko.boiler.images.ImageBuilder;
 import com.github.knokko.boiler.memory.MemoryCombiner;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.boiler.utilities.ImageCoding;
-import com.github.knokko.vk2d.batch.Vk2dColorBatch;
 import com.github.knokko.vk2d.frame.Vk2dFrame;
 import com.github.knokko.vk2d.frame.Vk2dRenderStage;
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext;
@@ -66,7 +65,7 @@ public class HeadlessPlayground {
 
 		// Record & run render commands + copy image data to the host + await completion
 		SingleTimeCommands.submit(boiler, "HeadlessCommands", recorder -> {
-			frame.record(recorder);
+			frame.record(boiler, recorder);
 			recorder.copyImageToBuffer(targetImage, resultImageDataBuffer);
 			recorder.bufferBarrier(resultImageDataBuffer, ResourceUsage.TRANSFER_DEST, ResourceUsage.HOST_READ);
 		}).destroy();

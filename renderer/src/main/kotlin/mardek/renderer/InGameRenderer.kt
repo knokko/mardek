@@ -44,6 +44,8 @@ internal fun renderInGame(
 	context: RenderContext, state: InGameState, region: Rectangle
 ): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 
+	val fullscreen = context.userSettings.videoSettings.fullscreen
+
 	fun renderBlurred(blurStrength: Float) {
 		context.currentStage = context.frame.swapchainStage
 
@@ -55,7 +57,7 @@ internal fun renderInGame(
 
 		context.pipelines.blur.addBatch(
 			context.frame.swapchainStage,
-			context.framebuffers.blur, context.perFrame.areaBlurDescriptors,
+			context.framebuffers.getMainBlur(fullscreen), context.perFrame.areaBlurDescriptors,
 			region.minX.toFloat(), region.minY.toFloat(),
 			(region.minX + region.width).toFloat(), (region.minY + region.height).toFloat(),
 		).gradientColorTransform(
@@ -79,7 +81,7 @@ internal fun renderInGame(
 				if (state.menu.shown !is ShownState.FullyHidden || considerExit != null) {
 					val framebuffers = context.framebuffers
 					val areaRenderStage = context.pipelines.blur.addSourceStage(
-						context.frame, framebuffers.blur, -1
+						context.frame, framebuffers.getMainBlur(fullscreen), -1
 					)
 
 					val menuOpacity = if (considerExit == null) {
@@ -114,7 +116,7 @@ internal fun renderInGame(
 
 					if (considerExit == null && state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						context.currentStage = context.pipelines.blur.addSourceStage(
-							context.frame, framebuffers.sectionBlur, -1
+							context.frame, framebuffers.getSectionBlur(fullscreen), -1
 						)
 
 						val menuRegion = determineSectionRenderRegion(region)
@@ -142,12 +144,12 @@ internal fun renderInGame(
 					}
 					val computeStage = context.pipelines.blur.addComputeStage(
 						context.frame, context.perFrame.areaBlurDescriptors,
-						framebuffers.blur, blurFilterSize, 50, -1
+						framebuffers.getMainBlur(fullscreen), blurFilterSize, 50, -1
 					)
 					if (considerExit == null && state.menu.currentTab.inside && state.menu.currentTab.shouldShowSectionList()) {
 						computeStage.additional(
 							context.perFrame.sectionsBlurDescriptors,
-							framebuffers.sectionBlur, blurFilterSize, 50
+							framebuffers.getSectionBlur(fullscreen), blurFilterSize, 50
 						)
 					}
 
@@ -165,7 +167,7 @@ internal fun renderInGame(
 							val sectionRegion = determineSectionRenderRegion(region)
 							context.pipelines.blur.addBatch(
 								context.frame.swapchainStage,
-								framebuffers.sectionBlur, context.perFrame.sectionsBlurDescriptors,
+								framebuffers.getSectionBlur(fullscreen), context.perFrame.sectionsBlurDescriptors,
 								sectionRegion.minX.toFloat(), sectionRegion.minY.toFloat(),
 								sectionRegion.maxX + 1f, sectionRegion.maxY + 1f
 							).noColorTransform()
@@ -213,11 +215,11 @@ internal fun renderInGame(
 
 						val framebuffers = context.framebuffers
 						val areaRenderStage = context.pipelines.blur.addSourceStage(
-							context.frame, framebuffers.blur, -1
+							context.frame, framebuffers.getMainBlur(fullscreen), -1
 						)
 						context.pipelines.blur.addComputeStage(
 							context.frame, context.perFrame.areaBlurDescriptors,
-							framebuffers.blur, blurFilterSize, 50, -1
+							framebuffers.getMainBlur(fullscreen), blurFilterSize, 50, -1
 						)
 
 						context.currentStage = areaRenderStage
@@ -260,11 +262,11 @@ internal fun renderInGame(
 					titleTextBatch = batches.second
 				} else {
 					context.currentStage = context.pipelines.blur.addSourceStage(
-						context.frame, framebuffers.blur, -1
+						context.frame, framebuffers.getMainBlur(fullscreen), -1
 					)
 					context.pipelines.blur.addComputeStage(
 						context.frame, context.perFrame.areaBlurDescriptors,
-						framebuffers.blur, 3, 50, -1
+						framebuffers.getMainBlur(fullscreen), 3, 50, -1
 					)
 					renderBattle(context, state.campaign, suspension.battle, region)
 

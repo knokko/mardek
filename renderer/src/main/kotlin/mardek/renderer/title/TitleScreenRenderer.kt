@@ -28,14 +28,15 @@ internal fun renderTitleScreen(
 ): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
 
 	val saveSelection = state.saveSelection
+	val fullscreen = context.videoSettings.fullscreen
 	if (saveSelection != null && fullRenderContext != null) {
 		val framebuffers = fullRenderContext.framebuffers
 		val backgroundRenderStage = context.pipelines.blur.addSourceStage(
-			fullRenderContext.frame, framebuffers.blur, -1
+			fullRenderContext.frame, framebuffers.getMainBlur(fullscreen), -1
 		)
 		context.pipelines.blur.addComputeStage(
 			fullRenderContext.frame, fullRenderContext.perFrame.areaBlurDescriptors,
-			framebuffers.blur, 4, 50, -1
+			framebuffers.getMainBlur(fullscreen), 4, 50, -1
 		)
 		val coreRegion = Rectangle(0, 0, backgroundRenderStage.width, backgroundRenderStage.height)
 		renderCoreTitleScreen(context, backgroundRenderStage, state, coreRegion)
@@ -50,7 +51,7 @@ internal fun renderTitleScreen(
 
 		context.pipelines.blur.addBatch(
 			fullRenderContext.frame.swapchainStage,
-			framebuffers.blur, fullRenderContext.perFrame.areaBlurDescriptors,
+			framebuffers.getMainBlur(fullscreen), fullRenderContext.perFrame.areaBlurDescriptors,
 			region.minX.toFloat(), region.minY.toFloat(),
 			(region.minX + region.width).toFloat(), (region.minY + region.height).toFloat(),
 		).fixedColorTransform(addColor(0.4f), multiplyColor())

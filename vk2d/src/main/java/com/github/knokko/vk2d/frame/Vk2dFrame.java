@@ -1,17 +1,19 @@
 package com.github.knokko.vk2d.frame;
 
+import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.synchronization.ResourceUsage;
-import org.lwjgl.vulkan.VkClearValue;
-import org.lwjgl.vulkan.VkRenderPassBeginInfo;
-import org.lwjgl.vulkan.VkRenderingAttachmentInfo;
+import org.lwjgl.vulkan.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.lwjgl.vulkan.KHRDynamicRendering.vkCmdBeginRenderingKHR;
 import static org.lwjgl.vulkan.VK10.*;
+import static org.lwjgl.vulkan.VK13.VK_API_VERSION_1_3;
+import static org.lwjgl.vulkan.VK13.vkCmdBeginRendering;
 
 public class Vk2dFrame {
 
@@ -29,7 +31,24 @@ public class Vk2dFrame {
 		this.imageViewToFramebuffer = imageViewToFramebuffer;
 	}
 
-	public void record(CommandRecorder recorder) {
+	private void setViewportAndScissor(CommandRecorder recorder, Vk2dRenderStage renderStage) {
+		var pViewport = VkViewport.calloc(1, recorder.stack);
+		pViewport.x(renderStage.offsetX);
+		pViewport.y(renderStage.offsetY);
+		pViewport.width(renderStage.width);
+		pViewport.height(renderStage.height);
+		pViewport.minDepth(0f);
+		pViewport.maxDepth(1f);
+
+		var pScissor = VkRect2D.calloc(1, recorder.stack);
+		pScissor.offset().set(renderStage.offsetX, renderStage.offsetY);
+		pScissor.extent().set(renderStage.width, renderStage.height);
+
+		vkCmdSetViewport(recorder.commandBuffer, 0, pViewport);
+		vkCmdSetScissor(recorder.commandBuffer, 0, pScissor);
+	}
+
+	public void record(BoilerInstance boiler, CommandRecorder recorder) {
 		VkRenderPassBeginInfo biRenderPass = VkRenderPassBeginInfo.calloc(recorder.stack);
 		biRenderPass.sType$Default();
 		biRenderPass.renderPass(renderPass);
@@ -60,10 +79,13 @@ public class Vk2dFrame {
 						);
 					}
 					biRenderPass.framebuffer(framebuffer);
+					biRenderPass.renderArea().offset().set(renderStage.offsetX, renderStage.offsetY);
 					biRenderPass.renderArea().extent().set(renderStage.width, renderStage.height);
 
 					vkCmdBeginRenderPass(recorder.commandBuffer, biRenderPass, VK_SUBPASS_CONTENTS_INLINE);
-					recorder.dynamicViewportAndScissor(renderStage.width, renderStage.height);
+
+					setViewportAndScissor(recorder, renderStage);
+
 					renderStage.record(recorder);
 					vkCmdEndRenderPass(recorder.commandBuffer);
 				} else {
@@ -72,13 +94,28 @@ public class Vk2dFrame {
 							VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE,
 							0f, 0f, 0f, 0f
 					);
-					recorder.beginSimpleDynamicRendering(
-							renderStage.width, renderStage.height,
-							dynamicColorAttachments, null, null
-					);
-					recorder.dynamicViewportAndScissor(renderStage.width, renderStage.height);
+
+					var renderingInfo = VkRenderingInfo.calloc(recorder.stack);
+					renderingInfo.sType$Default();
+					renderingInfo.flags(0);
+					renderingInfo.renderArea().offset().set(renderStage.offsetX, renderStage.offsetY);
+					renderingInfo.renderArea().extent().set(renderStage.width, renderStage.height);
+					renderingInfo.layerCount(1);
+					renderingInfo.viewMask(0);
+					renderingInfo.pColorAttachments(dynamicColorAttachments);
+					//noinspection DataFlowIssue
+					renderingInfo.pDepthAttachment(null);
+					//noinspection DataFlowIssue
+					renderingInfo.pStencilAttachment(null);
+
+					if (boiler.apiVersion >= VK_API_VERSION_1_3) {
+						vkCmdBeginRendering(recorder.commandBuffer, renderingInfo);
+					} else vkCmdBeginRenderingKHR(recorder.commandBuffer, renderingInfo);
+
+					setViewportAndScissor(recorder, renderStage);
 					renderStage.record(recorder);
 					recorder.endDynamicRendering();
+					// TODO CHAP2 Test partially-used render targets
 				}
 
 				if (renderStage.nextUsage != null && !renderStage.nextUsage.equals(ResourceUsage.COLOR_ATTACHMENT_WRITE)) {

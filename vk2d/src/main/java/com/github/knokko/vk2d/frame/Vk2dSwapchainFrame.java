@@ -1,5 +1,6 @@
 package com.github.knokko.vk2d.frame;
 
+import com.github.knokko.boiler.BoilerInstance;
 import com.github.knokko.boiler.buffers.PerFrameBuffer;
 import com.github.knokko.boiler.commands.CommandRecorder;
 import com.github.knokko.boiler.images.VkbImage;
@@ -19,8 +20,8 @@ public class Vk2dSwapchainFrame extends Vk2dFrame {
 	}
 
 	@Override
-	public void record(CommandRecorder recorder) {
+	public void record(BoilerInstance boiler, CommandRecorder recorder) {
 		if (!stages.contains(swapchainStage)) stages.add(swapchainStage);
-		super.record(recorder);
+		super.record(boiler, recorder);
 	}
 }

@@ -127,7 +127,7 @@ fun TestingInstance.testRendering(
 
 	stackPush().use { stack ->
 		val updater = DescriptorUpdater(stack, 4)
-		updater.writeStorageBuffer(0, perFrameDescriptorSet[0], 0, perFrameBuffer.buffer,)
+		updater.writeStorageBuffer(0, perFrameDescriptorSet[0], 0, perFrameBuffer.buffer)
 		updater.writeStorageBuffer(1, checkDescriptorSet[0], 0, checkImageBuffer)
 		updater.writeStorageBuffer(2, checkDescriptorSet[0], 1, colorsBuffer)
 		updater.writeStorageBuffer(3, checkDescriptorSet[0], 2, colorPositionsBuffer)
@@ -152,7 +152,7 @@ fun TestingInstance.testRendering(
 			state, frame, textStyleCache, fancyTextStyleCache, perFrameDescriptorSet[0],
 			framebuffers, perFrameResources, 123, Duration.ZERO,
 		)
-		frame.record(recorder)
+		frame.record(boiler, recorder)
 
 		recorder.transitionLayout(
 			targetImage, ResourceUsage.COLOR_ATTACHMENT_WRITE,

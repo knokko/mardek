@@ -136,6 +136,16 @@ internal fun renderSettingsTab(menuContext: MenuRenderContext, region: Rectangle
 			)
 
 			simpleTextBatch.drawString(
+				"Fullscreen", baseX, region.minY + 0.7f * region.height,
+				textHeight, font, textColor(5, true),
+			)
+			val toggle4 = if (settings.fullscreen) context.content.ui.skillToggled else context.content.ui.skillNotToggled
+			imageBatch.simpleScale(
+				baseX + region.height * 0.4f, region.minY + 0.66f * region.height,
+				0.04f * region.height / toggle4.height, toggle4.index,
+			)
+
+			simpleTextBatch.drawString(
 				"*", region.minX + 0.05f * region.height, region.maxY - 0.1f * region.height,
 				textHeight, font, warningColor, TextAlignment.RIGHT,
 			)

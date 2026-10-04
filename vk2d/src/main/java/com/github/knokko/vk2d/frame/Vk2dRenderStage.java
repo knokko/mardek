@@ -16,10 +16,11 @@ public class Vk2dRenderStage extends Vk2dStage {
 
 	public final VkbImage targetImage;
 	public final ResourceUsage priorUsage, nextUsage;
-	public final int width, height;
+	public final int offsetX, offsetY, width, height;
 
 	/**
 	 * @param targetImage The image/color attachment onto which this stage will render
+	 * @param perFrameBuffer The per-frame buffer that should be used for all short-lived draw/compute memory
 	 * @param priorUsage The previous/src usage before starting the rendering, but it will be ignored when
 	 *                   {@code nextUsage == null}
 	 * @param nextUsage The next/dst usage after ending the rendering, or {@code null} to skip the
@@ -33,8 +34,33 @@ public class Vk2dRenderStage extends Vk2dStage {
 		this.perFrameBuffer = perFrameBuffer;
 		this.priorUsage = priorUsage;
 		this.nextUsage = nextUsage;
+		this.offsetX = 0;
+		this.offsetY = 0;
 		this.width = targetImage.width;
 		this.height = targetImage.height;
+	}
+
+	/**
+	 * @param targetImage The image/color attachment onto which this stage will render
+	 * @param perFrameBuffer The per-frame buffer that should be used for all short-lived draw/compute memory
+	 * @param priorUsage The previous/src usage before starting the rendering, but it will be ignored when
+	 *                   {@code nextUsage == null}
+	 * @param nextUsage The next/dst usage after ending the rendering, or {@code null} to skip the
+	 *                  barriers before/after the rendering
+	 */
+	public Vk2dRenderStage(
+			VkbImage targetImage, PerFrameBuffer perFrameBuffer,
+			ResourceUsage priorUsage, ResourceUsage nextUsage,
+			int offsetX, int offsetY, int width, int height
+	) {
+		this.targetImage = targetImage;
+		this.perFrameBuffer = perFrameBuffer;
+		this.priorUsage = priorUsage;
+		this.nextUsage = nextUsage;
+		this.offsetX = offsetX;
+		this.offsetY = offsetY;
+		this.width = width;
+		this.height = height;
 	}
 
 	public void record(CommandRecorder recorder) {

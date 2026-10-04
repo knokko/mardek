@@ -3,7 +3,6 @@
 layout(location = 0) in uvec2 colorTransform;
 
 layout(push_constant) uniform PushConstants {
-	uvec2 textureSize;
 	vec2 minPosition;
 	vec2 boundPosition;
 };

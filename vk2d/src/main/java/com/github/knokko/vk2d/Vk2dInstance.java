@@ -165,7 +165,7 @@ public class Vk2dInstance {
 				this.blurDescriptorLayout1 = descriptors.build(boiler, "BlurDescriptorLayoutStage1");
 
 				VkPushConstantRange.Buffer pushConstants = VkPushConstantRange.calloc(1, stack);
-				pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 16);
+				pushConstants.get(0).set(VK_SHADER_STAGE_COMPUTE_BIT, 0, 44);
 				this.blurPipelineLayout1 = boiler.pipelines.createLayout(
 						pushConstants, "BlurPipelineLayoutStage1", blurDescriptorLayout1.vkDescriptorSetLayout
 				);
@@ -176,8 +176,8 @@ public class Vk2dInstance {
 				);
 
 				pushConstants = VkPushConstantRange.calloc(2, stack);
-				pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 0, 8);
-				pushConstants.get(1).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 24);
+				pushConstants.get(0).set(VK_SHADER_STAGE_FRAGMENT_BIT, 16, 12);
+				pushConstants.get(1).set(VK_SHADER_STAGE_VERTEX_BIT, 0, 16);
 				assert bufferDescriptorSetLayout != null;
 				this.blurPipelineLayoutSample = boiler.pipelines.createLayout(
 						pushConstants, "BlurPipelineLayoutSample",

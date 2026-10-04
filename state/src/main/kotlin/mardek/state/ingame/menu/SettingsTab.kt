@@ -49,7 +49,7 @@ class SettingsTab : InGameMenuTab() {
 
 		if (inside) {
 			val numProperties = when (selectedType) {
-				0 -> 5
+				0 -> 6
 				1 -> 4
 				else -> throw RuntimeException("Unexpected settings type $selectedType")
 			}
@@ -109,6 +109,10 @@ class SettingsTab : InGameMenuTab() {
 
 				if (selectedProperty == 4 && isToggle) {
 					videoSettings.delayRendering = !videoSettings.delayRendering
+				}
+
+				if (selectedProperty == 5 && isToggle) {
+					videoSettings.fullscreen = !videoSettings.fullscreen
 				}
 			}
 

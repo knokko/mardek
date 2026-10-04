@@ -72,7 +72,8 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 		Vk2dRenderStage sourceStage = new Vk2dRenderStage(
 				framebuffer.sourceImage, frame.perFrameBuffer,
 				new ResourceUsage(VK_IMAGE_LAYOUT_UNDEFINED, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT),
-				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT)
+				ResourceUsage.shaderRead(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT),
+				framebuffer.offsetX, framebuffer.offsetY, framebuffer.width, framebuffer.height
 		);
 		if (insertionIndex < 0) frame.stages.add(sourceStage);
 		else frame.stages.add(insertionIndex, sourceStage);
@@ -99,9 +100,7 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 			float minX, float minY, float boundX, float boundY
 	) {
 		return new Vk2dBlurBatch(
-				this, destinationStage,
-				framebuffer.bufferWidth,
-				framebuffer.bufferHeight,
+				this, destinationStage, framebuffer,
 				minX, minY, boundX, boundY,
 				descriptors.sampleDescriptorSet
 		);
@@ -122,9 +121,10 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 		Vk2dBlurBatch blur = (Vk2dBlurBatch) batch;
 		recorder.bindGraphicsDescriptors(instance.blurPipelineLayoutSample, blur.descriptorSet);
 
-		IntBuffer sharedPushConstants = recorder.stack.callocInt(2);
-		sharedPushConstants.put(0, blur.textureWidth);
-		sharedPushConstants.put(1, blur.textureHeight);
+		IntBuffer fragmentPushConstants = recorder.stack.callocInt(3);
+		fragmentPushConstants.put(0, blur.source.bufferWidth);
+		fragmentPushConstants.put(1, blur.source.bufferHeight);
+		fragmentPushConstants.put(2, blur.source.bufferOffset);
 
 		FloatBuffer vertexPushConstants = recorder.stack.callocFloat(4);
 		vertexPushConstants.put(0, blur.minX);
@@ -134,12 +134,12 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 
 		vkCmdPushConstants(
 				recorder.commandBuffer, instance.blurPipelineLayoutSample,
-				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-				0, sharedPushConstants
+				VK_SHADER_STAGE_VERTEX_BIT, 0, vertexPushConstants
 		);
+
 		vkCmdPushConstants(
 				recorder.commandBuffer, instance.blurPipelineLayoutSample,
-				VK_SHADER_STAGE_VERTEX_BIT, 8, vertexPushConstants
+				VK_SHADER_STAGE_FRAGMENT_BIT, 16, fragmentPushConstants
 		);
 
 		int firstVertex = Math.toIntExact((miniBatch.vertexBuffers()[0].offset - perFrameBuffer.buffer.offset) / VERTEX_SIZE);
@@ -174,7 +174,9 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 
 		public final VkbImage sourceImage;
 		public final VkbBuffer stage1, stage2;
-		public final int bufferWidth, bufferHeight;
+		public final int bufferOffset, bufferWidth, bufferHeight;
+
+		public final int offsetX, offsetY, width, height;
 
 		public long sourceFramebuffer;
 
@@ -182,8 +184,38 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 			this.sourceImage = sourceImage;
 			this.stage1 = stage1;
 			this.stage2 = stage2;
+
+			this.bufferOffset = 0;
 			this.bufferWidth = bufferWidth;
 			this.bufferHeight = bufferHeight;
+
+			this.offsetX = 0;
+			this.offsetY = 0;
+			this.width = sourceImage.width;
+			this.height = sourceImage.height;
+		}
+
+		public Framebuffer(
+				Framebuffer parent, int offsetX, int offsetY, int width, int height,
+				int bufferOffset, int bufferWidth, int bufferHeight
+		) {
+			this.sourceImage = parent.sourceImage;
+			this.stage1 = parent.stage1;
+			this.stage2 = parent.stage2;
+			this.bufferOffset = bufferOffset;
+			this.bufferWidth = bufferWidth;
+			this.bufferHeight = bufferHeight;
+
+			this.offsetX = offsetX;
+			this.offsetY = offsetY;
+			this.width = width;
+			this.height = height;
+
+			this.sourceFramebuffer = parent.sourceFramebuffer;
+			if (this.sourceFramebuffer == 0L) {
+				throw new IllegalArgumentException("Create parent framebuffer first");
+			}
+			// TODO CHAP2 Test child/shared framebuffers in vk2d
 		}
 
 		public void createFramebuffer(BoilerInstance boiler, long vkRenderPass) {
@@ -195,7 +227,7 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 	}
 
 	private record ComputeJob(
-			Descriptors descriptors, int bufferWidth, int bufferHeight,
+			Descriptors descriptors, Framebuffer framebuffer,
 			int filterSize, int sectionLength
 	) {}
 
@@ -215,10 +247,25 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 			try (MemoryStack stack = stackPush()) {
 				descriptors.update(vk2d, stack);
 			}
-			this.jobs.add(new ComputeJob(
-					descriptors, framebuffer.bufferWidth, framebuffer.bufferHeight,
-					filterSize, sectionLength
-			));
+			this.jobs.add(new ComputeJob(descriptors, framebuffer, filterSize, sectionLength));
+		}
+
+		private void pushComputeConstants(CommandRecorder recorder, IntBuffer computePushConstants, ComputeJob job) {
+			computePushConstants.put(0, job.framebuffer.bufferWidth);
+			computePushConstants.put(1, job.framebuffer.bufferHeight);
+			computePushConstants.put(2, job.framebuffer.offsetX);
+			computePushConstants.put(3, job.framebuffer.offsetY);
+			computePushConstants.put(4, job.framebuffer.width);
+			computePushConstants.put(5, job.framebuffer.height);
+			computePushConstants.put(6, job.framebuffer.sourceImage.width);
+			computePushConstants.put(7, job.framebuffer.sourceImage.height);
+			computePushConstants.put(8, job.framebuffer.bufferOffset);
+			computePushConstants.put(9, job.filterSize);
+			computePushConstants.put(10, job.sectionLength);
+			vkCmdPushConstants(
+					recorder.commandBuffer, vk2d.blurPipelineLayout1,
+					VK_SHADER_STAGE_COMPUTE_BIT, 0, computePushConstants
+			);
 		}
 
 		@Override
@@ -238,20 +285,13 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 			);
 			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, vk2d.blurPipeline1);
 
-			IntBuffer computePushConstants = recorder.stack.callocInt(4);
+			IntBuffer computePushConstants = recorder.stack.callocInt(11);
 			for (ComputeJob job : jobs) {
 				recorder.bindComputeDescriptors(vk2d.blurPipelineLayout1, job.descriptors.stage1DescriptorSet);
-				computePushConstants.put(0, job.bufferWidth);
-				computePushConstants.put(1, job.bufferHeight);
-				computePushConstants.put(2, job.filterSize);
-				computePushConstants.put(3, job.sectionLength);
-				vkCmdPushConstants(
-						recorder.commandBuffer, vk2d.blurPipelineLayout1,
-						VK_SHADER_STAGE_COMPUTE_BIT, 0, computePushConstants
-				);
+				pushComputeConstants(recorder, computePushConstants, job);
 				vkCmdDispatch(
-						recorder.commandBuffer, nextMultipleOf(job.bufferHeight, 64) / 64,
-						nextMultipleOf(job.bufferWidth, job.sectionLength) / job.sectionLength, 1
+						recorder.commandBuffer, nextMultipleOf(job.framebuffer.bufferHeight, 64) / 64,
+						nextMultipleOf(job.framebuffer.bufferWidth, job.sectionLength) / job.sectionLength, 1
 				);
 			}
 
@@ -269,17 +309,10 @@ public class Vk2dBlurPipeline extends Vk2dPipeline {
 			vkCmdBindPipeline(recorder.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, vk2d.blurPipeline2);
 			for (ComputeJob job : jobs) {
 				recorder.bindComputeDescriptors(vk2d.blurPipelineLayout2, job.descriptors.stage2DescriptorSet);
-				computePushConstants.put(0, job.bufferWidth);
-				computePushConstants.put(1, job.bufferHeight);
-				computePushConstants.put(2, job.filterSize);
-				computePushConstants.put(3, job.sectionLength);
-				vkCmdPushConstants(
-						recorder.commandBuffer, vk2d.blurPipelineLayout2,
-						VK_SHADER_STAGE_COMPUTE_BIT, 0, computePushConstants
-				);
+				pushComputeConstants(recorder, computePushConstants, job);
 				vkCmdDispatch(
-						recorder.commandBuffer, nextMultipleOf(job.bufferWidth, 64) / 64,
-						nextMultipleOf(job.bufferHeight, job.sectionLength) / job.sectionLength, 1
+						recorder.commandBuffer, nextMultipleOf(job.framebuffer.bufferWidth, 64) / 64,
+						nextMultipleOf(job.framebuffer.bufferHeight, job.sectionLength) / job.sectionLength, 1
 				);
 			}
 

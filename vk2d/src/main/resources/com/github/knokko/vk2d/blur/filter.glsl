@@ -57,6 +57,6 @@
 	}\
 	for (uint unrollIndex = 0; unrollIndex < unroll && v + unrollIndex < limit; unrollIndex++) {\
 		vec4 textureColor = applySingleFilter(unrollIndex);\
-		outputBuffer[y * inputSize.x + x + stride * unrollIndex] = encodeColor(textureColor);\
+		outputBuffer[bufferOffset + y * bufferSize.x + x + stride * unrollIndex] = encodeColor(textureColor);\
 	}\
 	for (uint index = 0; index <= 2 * filterSize; index++) colors[index] = colors[index + unroll]

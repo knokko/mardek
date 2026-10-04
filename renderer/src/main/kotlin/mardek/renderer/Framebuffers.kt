@@ -11,47 +11,77 @@ import org.lwjgl.vulkan.VK10.vkDestroyFramebuffer
 
 class MardekFramebuffers(
 	private val boiler: BoilerInstance, blurPipeline: Vk2dBlurPipeline,
-	format: Int, renderPass: Long, width: Int, height: Int
+	format: Int, renderPass: Long, fullWidth: Int, fullHeight: Int
 ) {
-	val blur: Vk2dBlurPipeline.Framebuffer
-	val sectionBlur: Vk2dBlurPipeline.Framebuffer
-	val actionBarBlur: Vk2dBlurPipeline.Framebuffer
+	private val fullscreenBlur: Vk2dBlurPipeline.Framebuffer
+	private val windowedBlur: Vk2dBlurPipeline.Framebuffer
+
+	private val fullSectionBlur: Vk2dBlurPipeline.Framebuffer
+	private val windowedSectionBlur: Vk2dBlurPipeline.Framebuffer
+
+	private val fullActionBarBlur: Vk2dBlurPipeline.Framebuffer
+	private val windowedActionBarBlur: Vk2dBlurPipeline.Framebuffer
+
 	val memoryBlock: MemoryBlock
 
 	init {
 		val combiner = MemoryCombiner(boiler, "ExtraFramebuffers")
-		val blurWidth = width - 2 * BORDER_WIDTH
-		val blurHeight = height - BORDER_WIDTH - FULL_BORDER_HEIGHT
-		val bufferWidth = blurWidth / 4
-		val bufferHeight = blurHeight / 4
 
-		this.blur = blurPipeline.createFramebuffer(
+		val windowedWidth = fullWidth - 2 * BORDER_WIDTH
+		val windowedHeight = fullHeight - BORDER_WIDTH - FULL_BORDER_HEIGHT
+
+		this.fullscreenBlur = blurPipeline.createFramebuffer(
 			combiner, format,
-			blurWidth, blurHeight, bufferWidth, bufferHeight
+			fullWidth, fullHeight, fullWidth / 4, fullHeight / 4
 		)
 
-		val sectionRegion = determineSectionRenderRegion(Rectangle(0, 0, blurWidth, blurHeight))
-		this.sectionBlur = blurPipeline.createFramebuffer(
+		val fullSectionRegion = determineSectionRenderRegion(Rectangle(0, 0, fullWidth, fullHeight))
+		this.fullSectionBlur = blurPipeline.createFramebuffer(
 			combiner, format,
-			sectionRegion.width, sectionRegion.height,
-			sectionRegion.width, sectionRegion.height
+			fullSectionRegion.width, fullSectionRegion.height,
+			fullSectionRegion.width, fullSectionRegion.height
 		)
-		val actionRegion = Rectangle(0, 0, blurWidth, computeActionBarHeight(blurHeight))
-		this.actionBarBlur = blurPipeline.createFramebuffer(
+		val windowedSectionRegion = determineSectionRenderRegion(
+			Rectangle(0, 0, windowedWidth, windowedHeight)
+		)
+
+		this.fullActionBarBlur = blurPipeline.createFramebuffer(
 			combiner, format,
-			actionRegion.width, actionRegion.height,
-			actionRegion.width, actionRegion.height,
+			fullWidth, computeActionBarHeight(fullHeight),
+			fullWidth, computeActionBarHeight(fullHeight),
 		)
+
 		this.memoryBlock = combiner.build(false)
-		this.blur.createFramebuffer(boiler, renderPass)
-		this.sectionBlur.createFramebuffer(boiler, renderPass)
-		this.actionBarBlur.createFramebuffer(boiler, renderPass)
+		this.fullscreenBlur.createFramebuffer(boiler, renderPass)
+		this.fullSectionBlur.createFramebuffer(boiler, renderPass)
+		this.fullActionBarBlur.createFramebuffer(boiler, renderPass)
+
+		this.windowedBlur = Vk2dBlurPipeline.Framebuffer(
+			fullscreenBlur, 0, 0, windowedWidth, windowedHeight,
+			0, windowedWidth / 4, windowedHeight / 4
+		)
+		this.windowedSectionBlur = Vk2dBlurPipeline.Framebuffer(
+			fullSectionBlur, 0, 0, windowedSectionRegion.width, windowedSectionRegion.height,
+			0, windowedSectionRegion.width, windowedSectionRegion.height
+		)
+		this.windowedActionBarBlur = Vk2dBlurPipeline.Framebuffer(
+			fullActionBarBlur, 0, 0,
+			windowedWidth, computeActionBarHeight(windowedHeight),
+			0,
+			windowedWidth, computeActionBarHeight(windowedHeight)
+		)
 	}
 
+	fun getMainBlur(fullscreen: Boolean) = if (fullscreen) fullscreenBlur else windowedBlur
+
+	fun getSectionBlur(fullscreen: Boolean) = if (fullscreen) fullSectionBlur else windowedSectionBlur
+
+	fun getActionBarBlur(fullscreen: Boolean) = if (fullscreen) fullActionBarBlur else windowedActionBarBlur
+
 	fun destroy() {
-		vkDestroyFramebuffer(boiler.vkDevice(), blur.sourceFramebuffer, null)
-		vkDestroyFramebuffer(boiler.vkDevice(), sectionBlur.sourceFramebuffer, null)
-		vkDestroyFramebuffer(boiler.vkDevice(), actionBarBlur.sourceFramebuffer, null)
+		vkDestroyFramebuffer(boiler.vkDevice(), fullscreenBlur.sourceFramebuffer, null)
+		vkDestroyFramebuffer(boiler.vkDevice(), fullSectionBlur.sourceFramebuffer, null)
+		vkDestroyFramebuffer(boiler.vkDevice(), fullActionBarBlur.sourceFramebuffer, null)
 		memoryBlock.destroy(boiler)
 	}
 }

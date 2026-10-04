@@ -3,6 +3,8 @@ package mardek.state.settings
 import mardek.state.saves.VIDEO_SETTINGS_FILE
 import java.io.File
 import java.io.PrintWriter
+import java.lang.Boolean.parseBoolean
+import java.lang.Integer.parseInt
 import java.util.Scanner
 
 /**
@@ -68,6 +70,13 @@ class VideoSettings(
 	 * When the rendering takes so long that it misses frames, setting this field to `false` may help.
 	 */
 	var delayRendering: Boolean,
+
+	/**
+	 * Whether the game should be in borderless/fake full-screen. When true:
+	 * - The window will be maximized, and
+	 * - No window decorations will be rendered
+	 */
+	var fullscreen: Boolean,
 ) {
 
 	/**
@@ -98,11 +107,12 @@ class VideoSettings(
 		try {
 			settingsFile.parentFile.mkdirs()
 			val writer = PrintWriter(settingsFile)
-			writer.println("device=$preferredDevice")
-			writer.println("cap-fps=$capFps")
-			writer.println("show-fps=$showFps")
-			writer.println("frames-in-flight=$framesInFlight")
-			writer.println("delay-rendering=$delayRendering")
+			writer.println("${Keys.DEVICE}$preferredDevice")
+			writer.println("${Keys.CAP_FPS}$capFps")
+			writer.println("${Keys.SHOW_FPS}$showFps")
+			writer.println("${Keys.FRAMES_IN_FLIGHT}$framesInFlight")
+			writer.println("${Keys.DELAY_RENDERING}$delayRendering")
+			writer.println("${Keys.FULLSCREEN}$fullscreen")
 			writer.flush()
 			writer.close()
 		} catch (failed: Throwable) {
@@ -112,12 +122,23 @@ class VideoSettings(
 
 	companion object {
 
+		private object Keys {
+
+			const val DEVICE = "device="
+			const val CAP_FPS = "cap-fps="
+			const val SHOW_FPS = "show-fps="
+			const val FRAMES_IN_FLIGHT = "frames-in-flight="
+			const val DELAY_RENDERING = "delay-rendering="
+			const val FULLSCREEN = "fullscreen"
+		}
+
 		internal fun defaultSettings() = VideoSettings(
 			preferredDevice = 0,
 			capFps = true,
 			showFps = false,
 			framesInFlight = 1,
 			delayRendering = true,
+			fullscreen = false,
 		)
 
 		/**
@@ -132,20 +153,23 @@ class VideoSettings(
 					val scanner = Scanner(settingsFile)
 					while (scanner.hasNextLine()) {
 						val nextLine = scanner.nextLine()
-						if (nextLine.startsWith("device=")) {
-							settings.preferredDevice = Integer.parseInt(nextLine.substring("device=".length))
+						if (nextLine.startsWith(Keys.DEVICE)) {
+							settings.preferredDevice = parseInt(nextLine.substring(Keys.DEVICE.length))
 						}
-						if (nextLine.startsWith("cap-fps=")) {
-							settings.capFps = nextLine.endsWith("true")
+						if (nextLine.startsWith(Keys.CAP_FPS)) {
+							settings.capFps = parseBoolean(nextLine.substring(Keys.CAP_FPS.length))
 						}
-						if (nextLine.startsWith("show-fps=")) {
-							settings.showFps = nextLine.endsWith("true")
+						if (nextLine.startsWith(Keys.SHOW_FPS)) {
+							settings.showFps = parseBoolean(nextLine.substring(Keys.SHOW_FPS.length))
 						}
-						if (nextLine.startsWith("frames-in-flight=")) {
-							settings.framesInFlight = Integer.parseInt(nextLine.substring("frames-in-flight=".length))
+						if (nextLine.startsWith(Keys.FRAMES_IN_FLIGHT)) {
+							settings.framesInFlight = parseInt(nextLine.substring(Keys.FRAMES_IN_FLIGHT.length))
 						}
-						if (nextLine.startsWith("delay-rendering")) {
-							settings.delayRendering = nextLine.endsWith("true")
+						if (nextLine.startsWith(Keys.DELAY_RENDERING)) {
+							settings.delayRendering = parseBoolean(nextLine.substring(Keys.DELAY_RENDERING.length))
+						}
+						if (nextLine.startsWith(Keys.FULLSCREEN)) {
+							settings.fullscreen = parseBoolean(nextLine.substring(Keys.FULLSCREEN.length))
 						}
 					}
 					scanner.close()
