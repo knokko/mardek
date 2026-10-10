@@ -24,6 +24,7 @@ internal fun importFixedSoundEffects(audio: AudioContent) {
 		battle = BattleSoundEffects(
 			flee = importFixed("sfx_Escape"),
 			punch = importFixed("5412_sfx_punch"),
+			chargeSpell = importFixed("5421_sfx_spellcharge"),
 			miss = importFixed("5423_sfx_Miss"),
 			critical = importFixed("5420_sfx_Slam"),
 			encounter = importFixed("5428_sfx_bading1"),

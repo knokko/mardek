@@ -432,6 +432,15 @@ class BattleState(
 		}
 
 		if (state is BattleStateMachine.CastSkill) {
+
+			if (!state.hasPlayedChargeSoundEffect && state.skill.animation == null) {
+				val elapsedTime = context.campaignTime.virtualOffset(state.startTime)
+				if (elapsedTime >= BattleStateMachine.CastSkill.CHARGE_SOUND_DELAY) {
+					state.hasPlayedChargeSoundEffect = true
+					context.soundQueue.insert(context.sounds.battle.chargeSpell)
+				}
+			}
+
 			if (!state.hasFinishedCastingAnimation) {
 				val particlePositions = state.caster.renderInfo.castingParticlePositions
 				val particleEffect = state.skill.element.spellCastEffect

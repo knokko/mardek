@@ -252,6 +252,7 @@ object TestSkills {
 			assertNull(castSkill.calculatedDamage)
 			assertFalse(castSkill.canSpawnTargetParticles)
 			assertEquals(Time.ZERO, castSkill.targetParticlesSpawnTime)
+			assertFalse(castSkill.hasPlayedChargeSoundEffect)
 
 			val playerColors = arrayOf(
 				Color(129, 129, 79), // Mardek pants
@@ -259,7 +260,13 @@ object TestSkills {
 			)
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
-			state.update(context(1.seconds))
+			while (soundQueue.take() != null) soundQueue.take()
+			repeat(100) {
+				state.update(context(10.milliseconds))
+			}
+			assertSame(content.audio.fixedEffects.battle.chargeSpell, soundQueue.take())
+			assertNull(soundQueue.take())
+			assertTrue(castSkill.hasPlayedChargeSoundEffect)
 			testRendering(
 				state, 800, 450, "recover1",
 				playerColors + monsterColor, emptyArray(),
@@ -361,14 +368,17 @@ object TestSkills {
 			)
 			val monsterColor = arrayOf(Color(85, 56, 133))
 
+			while (updateContext.soundQueue.take() != null) updateContext.soundQueue.take()
 			repeat(100) {
 				state.update(updateContext)
 			}
+			assertNull(updateContext.soundQueue.take())
 			testRendering(
 				state, 800, 450, "huff-puff1",
 				playerColors + monsterColor, emptyArray(),
 			)
 			assertTrue(castSkill.canSpawnTargetParticles)
+			assertFalse(castSkill.hasPlayedChargeSoundEffect) // No charge-up for huff-puff
 
 			val beforeUpdateTime = state.campaign.time.virtual
 			repeat(100) {

@@ -738,6 +738,12 @@ sealed class BattleStateMachine {
 		var calculatedDamage: Array<MoveResult.Entry?>? = null
 
 		/**
+		 * Whether the game already started playing the spell charge-up sound effect
+		 */
+		@BitField(id = 7)
+		var hasPlayedChargeSoundEffect = false
+
+		/**
 		 * The renderer will set this field to true once the casting animation has progressed far enough to start
 		 * spawning the particles at the position of the (first) target.
 		 */
@@ -768,7 +774,7 @@ sealed class BattleStateMachine {
 		init {
 			if (skill.targetType == SkillTargetType.Self || skill.targetType == SkillTargetType.Single) {
 				if (targets.size > 1) throw IllegalArgumentException(
-					"Illegal multi-target ${targets }for single-target skill ${skill.name}"
+					"Illegal multi-target ${targets.contentToString()}for single-target skill ${skill.name}"
 				)
 			}
 			if (skill.changeElement && nextElement == null) {
@@ -805,7 +811,7 @@ sealed class BattleStateMachine {
 		override fun equals(other: Any?) = other is CastSkill && caster === other.caster &&
 				targets.contentEquals(other.targets) && skill === other.skill && nextElement === other.nextElement
 
-		override fun hashCode() = caster.hashCode() + 13 * targets.hashCode() - 31 * skill.hashCode() +
+		override fun hashCode() = caster.hashCode() + 13 * targets.contentHashCode() - 31 * skill.hashCode() +
 				127 * Objects.hashCode(nextElement)
 
 		/**
@@ -824,6 +830,14 @@ sealed class BattleStateMachine {
 		 * the next state until this has happened.
 		 */
 		fun hasAppliedAllDamage() = calculatedDamage != null && calculatedDamage!!.all { it == null }
+
+		companion object {
+
+			/**
+			 * The game should play the spell charge-up sound effect `CHARGE_SOUND_DELAY` after [startTime]
+			 */
+			val CHARGE_SOUND_DELAY = 250.milliseconds
+		}
 	}
 
 	/**

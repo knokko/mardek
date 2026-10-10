@@ -122,17 +122,20 @@ class BattleSoundEffects(
 	@ReferenceFieldTarget(label = "sound effects")
 	val punch: SoundEffect,
 
+	@BitField(id = 2)
+	val chargeSpell: SoundEffect,
+
 	/**
 	 * The sound effect that is played when someone misses an attack
 	 */
-	@BitField(id = 2)
+	@BitField(id = 3)
 	val miss: SoundEffect,
 
 	/**
 	 * The sound effect that is played when someone scores a critical hit. Some skills (e.g. Smite Evil) always use this
 	 * sound effect, even when they don't crit.
 	 */
-	@BitField(id = 3)
+	@BitField(id = 4)
 	@ReferenceFieldTarget(label = "sound effects")
 	val critical: SoundEffect,
 
@@ -140,29 +143,30 @@ class BattleSoundEffects(
 	 * The sound effect that is played when a random battle has been encountered: when the blue or red exclamation mark
 	 * above the player head pops up.
 	 */
-	@BitField(id = 4)
+	@BitField(id = 5)
 	val encounter: SoundEffect,
 
 	/**
 	 * The sound effect when a (random) battle begins
 	 */
-	@BitField(id = 5)
+	@BitField(id = 6)
 	val engage: SoundEffect,
 
 	/**
 	 * The sound effect when a player gets a level-up
 	 */
-	@BitField(id = 6)
+	@BitField(id = 7)
 	val levelUp: SoundEffect,
 
 	/**
 	 * The sound effect when a player masters a skill
 	 */
-	@BitField(id = 7)
+	@BitField(id = 8)
 	val masteredSkill: SoundEffect,
 ) {
 	internal constructor() : this(
-		SoundEffect(), SoundEffect(), SoundEffect(), SoundEffect(),
-		SoundEffect(), SoundEffect(), SoundEffect(), SoundEffect(),
+		SoundEffect(), SoundEffect(), SoundEffect(),
+		SoundEffect(), SoundEffect(), SoundEffect(),
+		SoundEffect(), SoundEffect(), SoundEffect(),
 	)
 }
