@@ -38,6 +38,7 @@ import mardek.state.ingame.story.StoryState
 import mardek.state.ingame.worldmap.WorldMapState
 import mardek.state.saves.SaveFile
 import mardek.content.util.Time
+import mardek.state.ingame.area.AreaSuspensionIncomingBattle
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 
@@ -329,6 +330,16 @@ class CampaignState : BitPostInit {
 							if (elapsedTime >= BattleStateMachine.Victory.DELAY_UNTIL_ANIMATION) battleState.battle.lootMusic
 							else battleState.battle.music
 						} else battleState.battle.music
+					}
+				}
+
+				if (suspension is AreaSuspensionIncomingBattle) {
+					val battle = suspension.battle
+					if (
+						battle.isRandom ||
+						story.evaluate(content.story.fixedVariables.blockRandomBattleMusic) == null
+					) {
+						return battle.music
 					}
 				}
 
