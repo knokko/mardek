@@ -114,7 +114,7 @@ internal fun renderItemStorage(
 	)
 
 	simpleTextBatch.drawString(
-		"Page ${storagePage + 1}", region.minX + 0.6f * region.height, region.minY + 0.7f * barHeight,
+		"Page ${storagePage + 1}", region.minX + 0.7f * region.height, region.minY + 0.7f * barHeight,
 		0.025f * region.height, context.bundle.getFont(context.content.fonts.basic2.index),
 		srgbToLinear(rgb(207, 192, 141)),
 	)
@@ -123,14 +123,14 @@ internal fun renderItemStorage(
 	val arrowScale = 0.03f * region.height / arrow.height
 	if (storagePage > 0) {
 		imageBatch.rotated(
-			region.minX + 0.575f * region.height, region.minY + 0.3f * barHeight,
+			region.minX + 0.675f * region.height, region.minY + 0.3f * barHeight,
 			90f, arrowScale, arrow.index, 0, -1,
 		)
 	}
 
 	if (canScrollToNextPage(context.campaign.itemStorage)) {
 		imageBatch.rotated(
-			region.minX + 0.575f * region.height, region.minY + 0.7f * barHeight,
+			region.minX + 0.675f * region.height, region.minY + 0.7f * barHeight,
 			270f, arrowScale, arrow.index, 0, -1,
 		)
 	}
@@ -141,12 +141,15 @@ internal fun renderItemStorage(
 		srgbToLinear(rgb(131, 81, 37)), TextAlignment.RIGHT,
 	)
 
-	val overlayRegion = Rectangle(region.minX, barY, region.maxX, region.maxY)
-	thrashRegion = renderInventoryOverlay(
+	val overlayRegion = Rectangle(region.minX, barY, region.maxX, region.maxY - barY)
+	val (newSortRegion, newThrashRegion) = renderInventoryOverlay(
 		inventoryContext, overlayRegion, itemScale, context.campaign, inventory,
 		if (renderedCharacterBar != null) listOf(renderedCharacterBar!!) else emptyList(),
-		thrashRegion,
+		sortRegion, thrashRegion,
 	)
+
+	sortRegion = newSortRegion
+	thrashRegion = newThrashRegion
 
 	Pair(colorBatch, simpleTextBatch)
 }

@@ -6,10 +6,8 @@ import mardek.game.pressKeyEvent
 import mardek.game.releaseKeyEvent
 import mardek.game.testRendering
 import mardek.input.InputKey
-import mardek.input.InputManager
 import mardek.input.MouseMoveEvent
 import mardek.state.GameStateUpdateContext
-import mardek.state.SoundQueue
 import mardek.state.ingame.InGameState
 import mardek.state.ingame.area.AreaPosition
 import mardek.state.ingame.area.AreaState
@@ -79,6 +77,53 @@ object TestItemStorage {
 			updateContext.input.postEvent(releaseKeyEvent(InputKey.MoveDown))
 			updateContext.input.postEvent(pressKeyEvent(InputKey.Interact))
 			state.update(updateContext)
+		}
+	}
+
+	fun testSort(instance: TestingInstance) {
+		instance.apply {
+			val updateContext = createUpdateContext(10.milliseconds)
+			val state = InGameState(simpleCampaignState(), "")
+
+			openItemStorage(instance, state, updateContext)
+
+			val banditLeather = content.items.items.find { it.displayName == "Bandit Leather" }!!
+			val angryJuice = content.items.items.find { it.displayName == "Angry Juice" }!!
+			val phoenixDown= content.items.items.find { it.displayName == "PhoenixDown" }!!
+
+			repeat(85) { state.campaign.itemStorage.add(null) }
+			state.campaign.itemStorage[4] = ItemStack(banditLeather, 1)
+			state.campaign.itemStorage[6] = ItemStack(phoenixDown, 1)
+			state.campaign.itemStorage[80] = ItemStack(angryJuice, 3)
+			state.campaign.itemStorage[81] = ItemStack(phoenixDown, 3)
+
+			testRendering(
+				state, 900, 700, "item-storage-sort",
+				baseColors,
+				selectedSlotColors + tunicColors + huffPuffColors,
+			)
+
+			// Click on the sort icon/button
+			val actions = ((state.campaign.state as AreaState).suspension as AreaSuspensionActions).actions
+			val sortRegion = actions.itemStorageInteraction!!.sortRegion!!
+			updateContext.input.postEvent(MouseMoveEvent(sortRegion.maxX, sortRegion.maxY))
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Click))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Click))
+			state.update(updateContext)
+
+			val expectedItemStorage = Array<ItemStack?>(85) { null }.toMutableList()
+			expectedItemStorage[0] = ItemStack(banditLeather, 1)
+			expectedItemStorage[1] = ItemStack(phoenixDown, 4)
+			expectedItemStorage[2] = ItemStack(angryJuice, 3)
+
+			assertEquals(expectedItemStorage, state.campaign.itemStorage)
+
+			// Clicking sort *again* shouldn't have any effect
+			updateContext.input.postEvent(pressKeyEvent(InputKey.Click))
+			updateContext.input.postEvent(releaseKeyEvent(InputKey.Click))
+			state.update(updateContext)
+
+			assertEquals(expectedItemStorage, state.campaign.itemStorage)
 		}
 	}
 

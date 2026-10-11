@@ -14,8 +14,8 @@ import kotlin.math.roundToInt
 internal fun renderInventoryOverlay(
 	inventoryContext: InventoryRenderContext, region: Rectangle,
 	scale: Int, state: CampaignState, interaction: InventoryInteractionState,
-	equipmentRenderInfo: Collection<EquipmentRowRenderInfo>, oldThrashRegion: Rectangle?,
-): Rectangle {
+	equipmentRenderInfo: Collection<EquipmentRowRenderInfo>, oldSortRegion: Rectangle?, oldThrashRegion: Rectangle?,
+): Pair<Rectangle, Rectangle> {
 	inventoryContext.apply {
 		val goldX = (region.minX + region.maxX) * 3 / 4
 		simpleSpriteBatch?.simple(
@@ -31,6 +31,7 @@ internal fun renderInventoryOverlay(
 			1.5f * scale, TextAlignment.LEFT,
 		)
 
+		var sortIcon = context.content.ui.sortIcon1
 		var thrashIcon = context.content.ui.closedThrashIcon
 		val iconHeight = region.height * 0.075f
 
@@ -46,6 +47,13 @@ internal fun renderInventoryOverlay(
 			}
 		}
 
+		oldSortRegion?.let {
+			if (it.contains(interaction.mouseX, interaction.mouseY)) {
+				sortIcon = context.content.ui.sortIcon2
+				label = "Sort"
+			}
+		}
+
 		oldThrashRegion?.let {
 			if (it.contains(interaction.mouseX, interaction.mouseY)) {
 				if (state.cursorItemStack != null) thrashIcon = context.content.ui.openThrashIcon
@@ -53,16 +61,17 @@ internal fun renderInventoryOverlay(
 			}
 		}
 
-		fun renderIcon(icon: KimSprite, offsetX: Int): Rectangle {
+		fun renderIcon(icon: KimSprite, offsetX: Int, offsetY: Int): Rectangle {
 			val minX = region.minX + region.height * 2 / 5 + offsetX
 			val minY = region.minY - region.height / 12
 			val scale = iconHeight / icon.height
-			simpleSpriteBatch?.simple(minX, minY, scale, icon.index)
-			areaSpriteBatch?.draw(icon, minX, minY, scale)
+			simpleSpriteBatch?.simple(minX, minY + offsetY, scale, icon.index)
+			areaSpriteBatch?.draw(icon, minX, minY + offsetY, scale)
 			return Rectangle(minX, minY, (scale * icon.width).roundToInt(), (scale * icon.height).roundToInt())
 		}
-		val newThrashRegion = renderIcon(thrashIcon, 0)
-		// TODO CHAP2 tab.sortRegion = renderIcon(sortIcon, region.height)
+
+		val newSortRegion = renderIcon(sortIcon, 0, (iconHeight * 0.025f).roundToInt())
+		val newThrashRegion = renderIcon(thrashIcon, (iconHeight * 1.2f).roundToInt(), 0)
 
 		if (label.isNotEmpty()) {
 			val font = context.bundle.getFont(context.content.fonts.fat.index)
@@ -83,6 +92,6 @@ internal fun renderInventoryOverlay(
 				minX, minY, rgba(0f, 0f, 0f, 0.9f),
 			)
 		}
-		return newThrashRegion
+		return Pair(newSortRegion, newThrashRegion)
 	}
 }

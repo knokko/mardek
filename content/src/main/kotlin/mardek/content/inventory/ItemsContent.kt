@@ -1,5 +1,6 @@
 package mardek.content.inventory
 
+import com.github.knokko.bitser.BitPostInit
 import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.ReferenceFieldTarget
@@ -37,9 +38,16 @@ class ItemsContent(
 	@BitField(id = 3)
 	@ReferenceFieldTarget(label = "dreamstones")
 	val dreamstones: ArrayList<Dreamstone>,
-) {
+) : BitPostInit {
+
 	constructor() : this(
 		ArrayList(0), ArrayList(0),
 		ArrayList(0), ArrayList(0)
 	)
+
+	override fun postInit(context: BitPostInit.Context) {
+		for ((index, item) in items.withIndex()) {
+			item.sortIndex = index
+		}
+	}
 }

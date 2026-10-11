@@ -77,6 +77,11 @@ class ShopInteractionState(
 	var pendingTrade: PendingTrade? = null
 
 	/**
+	 * The rendering position of the sort icon/button
+	 */
+	var sortRegion: Rectangle? = null
+
+	/**
 	 * The rendering position of the thrash/discard item icon/button
 	 */
 	var thrashRegion: Rectangle? = null
@@ -133,6 +138,13 @@ class ShopInteractionState(
 					)
 				}
 
+				sortRegion?.let {
+					if (it.contains(inventory.mouseX, inventory.mouseY)) {
+						context.campaign.allPartyMembers()[inventory.partyIndex]!!.second.sortInventory()
+						context.soundQueue.insert(sounds.ui.scroll2)
+					}
+				}
+
 				thrashRegion?.let {
 					if (context.campaign.cursorItemStack != null && it.contains(inventory.mouseX, inventory.mouseY)) {
 						context.campaign.cursorItemStack = null
@@ -167,7 +179,7 @@ class ShopInteractionState(
 					context.soundQueue.insert(sounds.ui.scroll2)
 					inventory.processMouseMove(
 						inventory.mouseX, inventory.mouseY,
-						renderedCharacterInventory!!,
+						renderedCharacterInventory,
 						renderedCharacterBars.toList(),
 						partyMembers.find { it.index == inventory.partyIndex }!!.state,
 					)

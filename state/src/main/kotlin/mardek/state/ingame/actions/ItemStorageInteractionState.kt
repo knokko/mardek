@@ -3,6 +3,7 @@ package mardek.state.ingame.actions
 import mardek.content.characters.CharacterState
 import mardek.content.characters.PlayableCharacter
 import mardek.content.inventory.ItemStack
+import mardek.content.util.getSortedInventory
 import mardek.input.InputKey
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.menu.inventory.EquipmentRowRenderInfo
@@ -10,6 +11,7 @@ import mardek.state.ingame.menu.inventory.InventoryInteractionState
 import mardek.state.ingame.menu.inventory.ItemGridRenderInfo
 import mardek.state.ingame.menu.inventory.ItemStorageSlotReference
 import mardek.state.util.Rectangle
+import kotlin.collections.fill
 
 /**
  * When the player is using the item storage, this class tracks the state of the item storage interaction
@@ -74,6 +76,11 @@ class ItemStorageInteractionState {
 	var renderedStorageInventory: ItemStorageRenderInfo? = null
 
 	/**
+	 * The rendering position of the sort icon/button
+	 */
+	var sortRegion: Rectangle? = null
+
+	/**
 	 * The rendering position of the thrash/discard item icon/button
 	 */
 	var thrashRegion: Rectangle? = null
@@ -120,6 +127,17 @@ class ItemStorageInteractionState {
 				selectedCharacter = Pair(
 					hoveredCharacter!!, campaign.characterStates[hoveredCharacter!!]!!
 				)
+			}
+
+			sortRegion?.let {
+				if (it.contains(inventory.mouseX, inventory.mouseY)) {
+					val sortedItems = getSortedInventory(campaign.itemStorage.toTypedArray())
+					campaign.itemStorage.fill(null)
+					for (index in sortedItems.indices) {
+						campaign.itemStorage[index] = sortedItems[index]
+					}
+					context.soundQueue.insert(sounds.ui.scroll2)
+				}
 			}
 
 			thrashRegion?.let {

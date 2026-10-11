@@ -15,6 +15,7 @@ import mardek.content.stats.CombatStat
 import mardek.content.stats.StatModifier
 import mardek.content.stats.StatusEffect
 import mardek.content.util.Time
+import mardek.content.util.getSortedInventory
 import kotlin.math.max
 
 /**
@@ -305,6 +306,17 @@ class CharacterState {
 		while (experienceToNextLevel >= experienceForNextLevel()) {
 			experienceToNextLevel -= experienceForNextLevel()
 			currentLevel += 1
+		}
+	}
+
+	/**
+	 * Sorts the inventory of this character (sorting by [Item.sortIndex])
+	 */
+	fun sortInventory() {
+		val sortedItems = getSortedInventory(inventory)
+		inventory.fill(null)
+		for (index in sortedItems.indices) {
+			inventory[index] = sortedItems[index]
 		}
 	}
 

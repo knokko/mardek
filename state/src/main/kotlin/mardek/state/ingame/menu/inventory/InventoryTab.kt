@@ -34,15 +34,14 @@ class InventoryTab: InGameMenuTab() {
 	var equipmentRenderInfo: Collection<EquipmentRowRenderInfo> = emptyList()
 
 	/**
+	 * The region where the sort icon was rendered, or `null` before the first frame.
+	 */
+	var sortRegion: Rectangle? = null
+
+	/**
 	 * The region where the thrash icon (to discard items) was rendered, or `null` before the first frame.
 	 */
 	var thrashRegion: Rectangle? = null
-
-	/**
-	 * The region where the sort icon was rendered, or `null` before it has been rendered.
-	 * TODO CHAP2 Actually render this...
-	 */
-	var sortRegion: Rectangle? = null
 
 	private var wentInsideByClicking = false
 
@@ -70,6 +69,13 @@ class InventoryTab: InGameMenuTab() {
 				if (swapResult.newCursorStack != null && !inside) {
 					inside = true
 					wentInsideByClicking = true
+				}
+			}
+
+			sortRegion?.let {
+				if (it.contains(interaction.mouseX, interaction.mouseY)) {
+					context.fullParty[interaction.partyIndex]!!.second.sortInventory()
+					context.soundQueue.insert(context.sounds.ui.scroll2)
 				}
 			}
 
@@ -150,7 +156,7 @@ class InventoryTab: InGameMenuTab() {
 	private fun processInteractionMouseMove(newX: Int, newY: Int, context: UiUpdateContext) {
 		val (_, currentCharacter) = context.fullParty[interaction.partyIndex]!!
 		interaction.processMouseMove(
-			newX, newY, gridRenderInfo!!,
+			newX, newY, gridRenderInfo,
 			equipmentRenderInfo, currentCharacter,
 		)
 	}

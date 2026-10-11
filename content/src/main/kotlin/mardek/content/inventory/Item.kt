@@ -81,6 +81,12 @@ class Item(
 	val consumable: ConsumableProperties?,
 ) {
 
+	/**
+	 * The index of this item, into [ItemsContent.items], which is used for inventory sorting
+	 */
+	var sortIndex = -1
+		internal set
+
 	constructor() : this(
 		UUID.randomUUID(), "", KimSprite(), "",
 		ItemType(), null, 0, null, null,

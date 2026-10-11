@@ -160,10 +160,13 @@ internal fun renderShopUi(
 	)
 
 	val overlayRegion = Rectangle(playerMinX, barY, playerMaxX - playerMinX, rawRegion.maxY)
-	thrashRegion = renderInventoryOverlay(
+	val (newSortRegion, newThrashRegion) = renderInventoryOverlay(
 		inventoryContext, overlayRegion, itemScale, context.campaign, inventory,
-		renderedCharacterBars.toList(), thrashRegion,
+		renderedCharacterBars.toList(), sortRegion, thrashRegion,
 	)
+
+	sortRegion = newSortRegion
+	thrashRegion = newThrashRegion
 
 	renderShopTradeOverlay(context, this, rawRegion)
 

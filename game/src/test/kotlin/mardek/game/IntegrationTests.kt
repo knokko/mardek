@@ -35,6 +35,7 @@ import mardek.game.ui.TestInGameMenu
 import mardek.game.ui.TestInventory
 import mardek.game.ui.TestItemStorage
 import mardek.game.ui.TestMusicPlayer
+import mardek.game.ui.TestSorting
 import mardek.game.ui.TestTitleScreen
 import mardek.game.ui.TestWorldMap
 import org.junit.jupiter.api.*
@@ -226,6 +227,21 @@ class IntegrationTests {
 	@Test
 	fun testEquipmentStatsHints() {
 		TestInventory.testEquipmentStatsHints(instance)
+	}
+
+	@Test
+	fun testSortInventory() {
+		TestSorting.testInventoryInMenu(instance)
+	}
+
+	@Test
+	fun testSortInventoryInShop() {
+		TestSorting.testInventoryInShop(instance)
+	}
+
+	@Test
+	fun testSortItemStorage() {
+		TestItemStorage.testSort(instance)
 	}
 
 	@Test
