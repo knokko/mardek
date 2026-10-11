@@ -210,7 +210,7 @@ internal fun renderSettingsTab(menuContext: MenuRenderContext, region: Rectangle
 				1, settings.musicVolume,
 			)
 			renderVolumeSetting(
-				"Sounds", region.minY + 4 * region.height / 10,
+				"SFX", region.minY + 4 * region.height / 10,
 				2, settings.soundEffectVolume,
 			)
 
