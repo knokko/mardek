@@ -9,10 +9,10 @@ dependencies {
 	implementation(project(":bitser-kwik"))
 }
 
-tasks.register("dummy-editor-server1", JavaExec::class) {
+tasks.register("runEditorServer", JavaExec::class) {
 	group = "Editor"
-	description = "Runs dummy editor server 1"
+	description = "Runs the editor server"
 	classpath(sourceSets.main.get().runtimeClasspath)
-	mainClass = "mardek.editor.server.dummy1.DummyEditorServer1Kt"
+	mainClass = "mardek.editor.server.EditorServerKt"
 	standardInput = System.`in`
 }

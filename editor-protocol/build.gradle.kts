@@ -8,4 +8,5 @@ dependencies {
 	api(project(":bitser"))
 	api(project(":content"))
 	api(libs.kwik)
+	api(libs.vk.boiler)
 }

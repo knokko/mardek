@@ -12,16 +12,16 @@ import java.io.IOException;
 class BikServerConnection implements ApplicationProtocolConnection {
 
 	private final BikServerProtocol bikProtocol;
-	private final BitServer.ControllerMapping controllers;
+	private final BitServer.ControllerContext controllerContext;
 	private final QuicConnection clientConnection;
 
 	BikServerConnection(
 			BikServerProtocol bikProtocol,
-			BitServer.ControllerMapping controllers,
+			BitServer.ControllerContext controllerContext,
 			QuicConnection clientConnection
 	) {
 		this.bikProtocol = bikProtocol;
-		this.controllers = controllers;
+		this.controllerContext = controllerContext;
 		this.clientConnection = clientConnection;
 	}
 
@@ -54,7 +54,7 @@ class BikServerConnection implements ApplicationProtocolConnection {
 				dataOutput.writeInt(requestedStreamID);
 				dataOutput.flush();
 
-				var controller = controllers.getControllerById(controllerID);
+				var controller = controllerContext.controllerMapping().getControllerById(controllerID);
 				controller.addClient(
 						nextStream.getOutputStream(),
 						nextStream.getInputStream(),

@@ -17,12 +17,25 @@ import static java.lang.Math.max;
 
 public class BitServer<T> {
 
+	public record ControllerContext(
+			Object rootStruct,
+			ControllerMapping controllerMapping,
+			ReadWriteLock globalLock,
+			Queue<GlobalRunnable> globalQueue
+	) {}
+
+	@FunctionalInterface
+	public interface GlobalRunnable {
+
+		void run() throws Throwable;
+	}
+
 	public static abstract class Controller {
 
-		final ControllerMapping controllerMapping;
+		final ControllerContext context;
 
-		Controller(ControllerMapping controllerMapping) {
-			this.controllerMapping = controllerMapping;
+		Controller(ControllerContext context) {
+			this.context = context;
 		}
 
 		abstract Object getTargetObject();
@@ -38,8 +51,8 @@ public class BitServer<T> {
 		final StructConnectionView view;
 		final List<StructConnection> connections = new ArrayList<>();
 
-		public StructController(ControllerMapping controllerMapping, T structInstance, StructConnectionView view) {
-			super(controllerMapping);
+		public StructController(ControllerContext context, T structInstance, StructConnectionView view) {
+			super(context);
 			this.structInstance = structInstance;
 			this.view = view;
 		}
@@ -55,7 +68,7 @@ public class BitServer<T> {
 				var childStructView = view.getChildStructViewOrNull(fieldID);
 				if (childStructView != null) {
 					var childStruct = view.protocol.getFieldValue(structInstance, fieldID);
-					destination.add(new StructController<>(controllerMapping, childStruct, childStructView));
+					destination.add(new StructController<>(context, childStruct, childStructView));
 				}
 
 				@SuppressWarnings("unchecked")
@@ -63,23 +76,29 @@ public class BitServer<T> {
 				if (structListView != null) {
 					@SuppressWarnings("unchecked")
 					var structList = (List<T>) view.protocol.getFieldValue(structInstance, fieldID);
-					destination.add(new StructListController<>(controllerMapping, structList, structListView));
+					destination.add(new StructListController<>(context, structList, structListView));
 				}
 			}
 		}
 
 		@Override
-		public synchronized void addClient(OutputStream toClient, InputStream fromClient, Runnable closeStream) {
+		public void addClient(OutputStream toClient, InputStream fromClient, Runnable closeStream) {
 			var connection = new StructConnection(toClient, new BitInputStream(fromClient), closeStream);
-			connections.add(connection);
 
-			if (view.hasAtLeastOneUploadableField()) {
-				var fromClientThread = new Thread(connection::readFromClient);
-				fromClientThread.setDaemon(true);
-				fromClientThread.start();
+			context.globalLock.readLock().lock();
+			try {
+				connections.add(connection);
+
+				if (view.hasAtLeastOneUploadableField()) {
+					var fromClientThread = new Thread(connection::readFromClient);
+					fromClientThread.setDaemon(true);
+					fromClientThread.start();
+				}
+
+				connection.writeToClient();
+			} finally {
+				context.globalLock.readLock().unlock();
 			}
-
-			connection.writeToClient();
 		}
 
 		private class StructConnection {
@@ -106,12 +125,13 @@ public class BitServer<T> {
 								var value = view.protocol.getFieldValue(structInstance, fieldID);
 								var childStructView = view.getChildStructViewOrNull(fieldID);
 								var structListView = view.getStructListViewOrNull(fieldID);
+								var structReferenceView = view.getStructReferenceViewOrNull(fieldID);
 
-								if (childStructView == null && structListView == null) {
+								if (childStructView == null && structListView == null && structReferenceView == null) {
 									view.protocol.serializeFlatFieldValue(fieldID, initialOutput, value);
 								} else {
-									Controller childController = controllerMapping.getControllerByTarget(value);
-									long childID = controllerMapping.getIdForController(childController);
+									Controller childController = context.controllerMapping.getControllerByTarget(value);
+									long childID = context.controllerMapping.getIdForController(childController);
 									IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
 											childID, 0L, Long.MAX_VALUE, initialOutput
 									);
@@ -172,16 +192,21 @@ public class BitServer<T> {
 							}
 						});
 
-						synchronized (StructController.this) {
-							for (int fieldID = 0; fieldID < numFields; fieldID++) {
-								if (hasChanges[fieldID]) {
-									view.protocol.setFieldValue(structInstance, fieldID, newValues[fieldID]);
+						context.globalLock.readLock().lock();
+						try {
+							synchronized (StructController.this) {
+								for (int fieldID = 0; fieldID < numFields; fieldID++) {
+									if (hasChanges[fieldID]) {
+										view.protocol.setFieldValue(structInstance, fieldID, newValues[fieldID]);
+									}
+								}
+
+								if (packet.length > 0) {
+									for (var connection : connections) connection.toClientQueue.add(packet);
 								}
 							}
-
-							if (packet.length > 0) {
-								for (var connection : connections) connection.toClientQueue.add(packet);
-							}
+						} finally {
+							context.globalLock.readLock().unlock();
 						}
 					}
 				} catch (Throwable failed) {
@@ -210,8 +235,8 @@ public class BitServer<T> {
 		final StructListConnectionView<T> view;
 		final List<StructListConnection> connections = new ArrayList<>();
 
-		public StructListController(ControllerMapping controllerMapping, List<T> structList, StructListConnectionView<T> view) {
-			super(controllerMapping);
+		public StructListController(ControllerContext context, List<T> structList, StructListConnectionView<T> view) {
+			super(context);
 			this.structList = structList;
 			this.view = view;
 		}
@@ -224,24 +249,55 @@ public class BitServer<T> {
 		@Override
 		void getChildControllers(Collection<Controller> destination) {
 			for (var element : structList) {
-				destination.add(new StructController<>(controllerMapping, element, view.elementsView));
+				destination.add(new StructController<>(context, element, view.elementsView));
 			}
 		}
 
 		@Override
-		public synchronized void addClient(OutputStream toClient, InputStream fromClient, Runnable closeStream) {
+		public void addClient(OutputStream toClient, InputStream fromClient, Runnable closeStream) {
 			var connection = new StructListConnection(
 					new BitOutputStream(toClient), new BitInputStream(fromClient), closeStream
 			);
-			connections.add(connection);
 
-			if (view.getNumOperations() > 0) {
-				var fromClientThread = new Thread(connection::readFromClient);
-				fromClientThread.setDaemon(true);
-				fromClientThread.start();
+			context.globalLock.readLock().lock();
+			try {
+				connections.add(connection);
+
+				if (view.getNumOperations() > 0) {
+					var fromClientThread = new Thread(connection::readFromClient);
+					fromClientThread.setDaemon(true);
+					fromClientThread.start();
+				}
+
+				connection.writeToClient();
+			} finally {
+				context.globalLock.readLock().unlock();
 			}
+		}
 
-			connection.writeToClient();
+		private byte[] generatePacketForClients() throws Throwable {
+			return ConnectionHelper.capture(toClients -> {
+				IntegerBitser.encodeUnknownLength(structList.size(), toClients);
+				for (var element : structList) {
+					var childController = context.controllerMapping.getControllerByTarget(element);
+					long controllerID = context.controllerMapping.getIdForController(childController);
+					IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
+							controllerID, 0L, Long.MAX_VALUE, toClients
+					);
+				}
+			});
+		}
+
+		public void refreshClientConnections() throws Throwable {
+			context.globalLock.readLock().lock();
+			try {
+				context.controllerMapping.addAbsentStructs(context, structList, view.elementsView);
+
+				var packet = generatePacketForClients();
+				for (var connection : connections) connection.toClientQueue.add(packet);
+			} finally {
+				context.globalLock.readLock().unlock();
+			}
 		}
 
 		private class StructListConnection {
@@ -259,23 +315,10 @@ public class BitServer<T> {
 				this.closeStream = closeStream;
 			}
 
-			private byte[] generatePacket() throws Throwable {
-				return ConnectionHelper.capture(toClients -> {
-					IntegerBitser.encodeUnknownLength(structList.size(), toClients);
-					for (var element : structList) {
-						var childController = controllerMapping.getControllerByTarget(element);
-						long controllerID = controllerMapping.getIdForController(childController);
-						IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
-								controllerID, 0L, Long.MAX_VALUE, toClients
-						);
-					}
-				});
-			}
-
 			void writeToClient() {
 				byte[] initialBytes;
 				try {
-					initialBytes = generatePacket();
+					initialBytes = generatePacketForClients();
 				} catch (Throwable failed) {
 					throw new RuntimeException(failed);
 				}
@@ -311,17 +354,41 @@ public class BitServer<T> {
 						operation.readFromClient(fromClient);
 						fromClient.discardCurrentByte();
 
-						synchronized (StructListController.this) {
-							if (operation.execute(structList)) {
-								controllerMapping.addAbsentStructs(structList, view.elementsView);
-
-								var packet = generatePacket();
-								for (var connection : connections) connection.toClientQueue.add(packet);
-							}
+						boolean[] isGlobal = { false };
+						if (operation instanceof StructListConnectionView.GlobalOperation<?,?>) {
+							//noinspection unchecked
+							((StructListConnectionView.GlobalOperation<T, Object>) operation).considerGlobalState(() -> {
+								isGlobal[0] = true;
+								return new StructListConnectionView.GlobalContext<>(
+										context.rootStruct, structList, context.controllerMapping
+								);
+							});
 						}
 
-						operation.respondToClient(toClient);
-						toClient.flush();
+						if (isGlobal[0]) {
+							boolean didQueue = context.globalQueue.offer(() -> {
+								operation.execute(structList);
+								operation.respondToClient(toClient);
+								toClient.flush();
+							});
+							if (!didQueue) {
+								System.err.println("Failed to put operation " + operationIndex + " in the global queue");
+								// TODO BITSER Communicate this to the client somehow
+							}
+						} else {
+							context.globalLock.readLock().lock();
+							try {
+								synchronized (StructListController.this) {
+									if (operation.execute(structList)) {
+										refreshClientConnections();
+									}
+								}
+							} finally {
+								context.globalLock.readLock().unlock();
+							}
+							operation.respondToClient(toClient);
+							toClient.flush();
+						}
 					}
 				} catch (Throwable failed) {
 					System.err.println("StructListConnection.readFromClient thread died: " + failed.getMessage());
@@ -387,13 +454,15 @@ public class BitServer<T> {
 			}
 		}
 
-		public void addAbsentStructs(Collection<?> structs, StructConnectionView elementsView) {
+		public void addAbsentStructs(
+				ControllerContext context, Collection<?> structs, StructConnectionView elementsView
+		) {
 			lock.writeLock().lock();
 			try {
 				for (var structElement : structs) {
 					if (targetToController.containsKey(structElement)) continue;
 
-					var controller = new StructController<>(this, structElement, elementsView);
+					var controller = new StructController<>(context, structElement, elementsView);
 					addSingle(controller);
 				}
 			} finally {
@@ -426,6 +495,11 @@ public class BitServer<T> {
 			} finally {
 				lock.readLock().unlock();
 			}
+		}
+
+		public <T> StructListController<T> getListController(List<T> target) {
+			//noinspection unchecked
+			return (StructListController<T>) getControllerByTarget(target);
 		}
 	}
 

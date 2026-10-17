@@ -2,6 +2,7 @@ package mardek.editor
 
 import com.github.knokko.bitser.connection.StructConnectionView
 import com.github.knokko.bitser.connection.StructListConnectionView
+import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.inventory.EquipmentProperties
@@ -46,14 +47,23 @@ object EditorView {
 		itemView.finishRegistration()
 
 		val itemsView = StructListConnectionView<Item>(itemView)
-		this.operationAddWeapon = itemsView.addSimpleOperation { itemList ->
-			val firstItemType = ItemType() // TODO BITSER Choose a real item type
-			itemList.add(Item(
+		this.operationAddWeapon = itemsView.addSimpleGlobalOperation<Content> { context ->
+			val itemTypes = context.rootStruct.items.itemTypes
+			if (itemTypes.isEmpty()) {
+				itemTypes.add(ItemType(
+					"ITEM: FIRST",
+					rgb(200, 0, 0),
+					"First item type",
+				))
+				context.controllerMapping.getListController(itemTypes).refreshClientConnections()
+			}
+
+			context.thisList.add(Item(
 				id = UUID.randomUUID(),
 				displayName = "New weapon",
 				sprite = KimSprite(),
 				description = "",
-				type = firstItemType,
+				type = itemTypes[0],
 				element = null,
 				cost = 123,
 				equipment = EquipmentProperties(
@@ -78,7 +88,7 @@ object EditorView {
 				),
 				consumable = null,
 			))
-			true
+			context.controllerMapping.getListController(context.thisList).refreshClientConnections()
 		}
 		itemsView.finishRegistration()
 

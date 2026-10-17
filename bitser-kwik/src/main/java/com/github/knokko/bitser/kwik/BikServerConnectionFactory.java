@@ -8,16 +8,16 @@ import tech.kwik.core.server.ApplicationProtocolConnectionFactory;
 class BikServerConnectionFactory implements ApplicationProtocolConnectionFactory {
 
 	private final BikServerProtocol bikProtocol;
-	private final BitServer.ControllerMapping controllers;
+	private final BitServer.ControllerContext controllerContext;
 
-	BikServerConnectionFactory(BikServerProtocol bikProtocol, BitServer.ControllerMapping controllers) {
+	BikServerConnectionFactory(BikServerProtocol bikProtocol, BitServer.ControllerContext controllerContext) {
 		this.bikProtocol = bikProtocol;
-		this.controllers = controllers;
+		this.controllerContext = controllerContext;
 	}
 
 	@Override
 	public ApplicationProtocolConnection createConnection(String protocol, QuicConnection quicConnection) {
-		var nextConnection = new BikServerConnection(bikProtocol, controllers, quicConnection);
+		var nextConnection = new BikServerConnection(bikProtocol, controllerContext, quicConnection);
 		nextConnection.start();
 		return nextConnection;
 	}

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.io.BitOutputStream;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -32,8 +33,11 @@ public class StructListConnectionView<T> {
 	}
 
 	public int addSimpleOperation(Function<List<T>, Boolean> operation) {
-		var simpleOperation = new SimpleOperation<>(operation);
-		return addOperation(() -> simpleOperation);
+		return addOperation(() -> new SimpleOperation<>(operation));
+	}
+
+	public <R> int addSimpleGlobalOperation(Consumer<GlobalContext<T, R>> operation) {
+		return addOperation(() -> new SimpleGlobalOperation<>(operation));
 	}
 
 	public void finishRegistration() {
@@ -64,6 +68,11 @@ public class StructListConnectionView<T> {
 		public abstract void respondToClient(BitOutputStream toClient) throws Throwable;
 	}
 
+	public interface GlobalOperation<T, R> {
+
+		void considerGlobalState(Supplier<GlobalContext<T, R>> getRootStructAndAcquireGlobalLock);
+	}
+
 	private static class SimpleOperation<T> extends Operation<T> {
 
 		private final Function<List<T>, Boolean> operation;
@@ -82,5 +91,34 @@ public class StructListConnectionView<T> {
 
 		@Override
 		public void respondToClient(BitOutputStream toClient) {}
+	}
+
+	public record GlobalContext<T, R>(R rootStruct, List<T> thisList, BitServer.ControllerMapping controllerMapping) {}
+
+	private static class SimpleGlobalOperation<T, R> extends Operation<T> implements GlobalOperation<T, R> {
+
+		private final Consumer<GlobalContext<T, R>> operation;
+		private GlobalContext<T, R> context;
+
+		SimpleGlobalOperation(Consumer<GlobalContext<T, R>> operation) {
+			this.operation = operation;
+		}
+
+		@Override
+		public void readFromClient(BitInputStream fromClient) {}
+
+		@Override
+		public boolean execute(List<T> structList) {
+			operation.accept(context);
+			return false;
+		}
+
+		@Override
+		public void respondToClient(BitOutputStream toClient) {}
+
+		@Override
+		public void considerGlobalState(Supplier<GlobalContext<T, R>> getRootStructAndAcquireGlobalLock) {
+			this.context = getRootStructAndAcquireGlobalLock.get();
+		}
 	}
 }

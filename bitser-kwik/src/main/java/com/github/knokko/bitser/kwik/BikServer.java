@@ -7,8 +7,14 @@ import tech.kwik.core.server.ServerConnector;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class BikServer {
+
+	private static final BitServer.GlobalRunnable SERVER_STOPPED = () -> {};
 
 	public static <T> void run(
 			BikServerProtocol bikProtocol, String protocolName,
@@ -28,16 +34,60 @@ public class BikServer {
 
 		bikProtocol.configureConnector(connectorBuilder);
 
+		var globalLock = new ReentrantReadWriteLock();
+		var globalQueue = createGlobalQueueWithDrainingThread(globalLock);
+
 		try (var connector = connectorBuilder.build()) {
 			var controllerMapping = new BitServer.ControllerMapping();
-			var rootController = new BitServer.StructController<>(controllerMapping, rootStruct, rootView);
+			var controllerContext = new BitServer.ControllerContext(
+					rootStruct, controllerMapping, globalLock, globalQueue
+			);
+			var rootController = new BitServer.StructController<>(controllerContext, rootStruct, rootView);
 			controllerMapping.addWithChildren(rootController);
 
 			connector.registerApplicationProtocol(
-					protocolName, new BikServerConnectionFactory(bikProtocol, controllerMapping)
+					protocolName, new BikServerConnectionFactory(bikProtocol, controllerContext)
 			);
 			connector.start();
 			bikProtocol.waitUntilServerShouldStop();
+		} finally {
+			try {
+				globalQueue.put(SERVER_STOPPED);
+			} catch (InterruptedException e) {
+				System.err.println("Interrupted during SERVER_STOPPED insertion");
+			}
 		}
+	}
+
+	private static BlockingQueue<BitServer.GlobalRunnable> createGlobalQueueWithDrainingThread(ReadWriteLock lock) {
+		// TODO BITSER Move this logic to BitServer?
+		var queue = new ArrayBlockingQueue<BitServer.GlobalRunnable>(100);
+
+		var thread = new Thread(() -> {
+			while (true) {
+				BitServer.GlobalRunnable nextTask;
+				try {
+					nextTask = queue.take();
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+				if (nextTask == SERVER_STOPPED) return;
+
+				lock.writeLock().lock();
+				try {
+					nextTask.run();
+				} catch (Throwable taskFailed) {
+					System.err.println("Global task failed:");
+					//noinspection CallToPrintStackTrace
+					taskFailed.printStackTrace();
+				} finally {
+					lock.writeLock().unlock();
+				}
+			}
+		});
+		thread.setDaemon(true);
+		thread.start();
+
+		return queue;
 	}
 }
