@@ -336,7 +336,7 @@ class CampaignState : BitPostInit {
 				if (suspension is AreaSuspensionIncomingBattle) {
 					val battle = suspension.battle
 					if (
-						battle.isRandom ||
+						!battle.isRandom ||
 						story.evaluate(content.story.fixedVariables.blockRandomBattleMusic) == null
 					) {
 						return battle.music

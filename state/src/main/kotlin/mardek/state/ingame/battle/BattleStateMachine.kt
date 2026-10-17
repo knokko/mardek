@@ -231,7 +231,7 @@ sealed class BattleStateMachine {
 		@BitField(id = 0)
 		@ReferenceField(stable = false, label = "combatants")
 		val onTurn: PlayerCombatantState
-	) : BattleStateMachine() {
+	) : BattleStateMachine(), BitPostInit {
 
 		/**
 		 * The currently-selected (but not yet confirmed) move
@@ -242,6 +242,10 @@ sealed class BattleStateMachine {
 		private constructor() : this(PlayerCombatantState())
 
 		override fun toString() = "$onTurn considers $selectedMove"
+
+		override fun postInit(context: BitPostInit.Context) {
+			selectedMove = BattleMoveSelectionAttack(null)
+		}
 	}
 
 	/**
