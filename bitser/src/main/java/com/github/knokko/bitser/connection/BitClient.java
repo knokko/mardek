@@ -467,6 +467,10 @@ public class BitClient {
 				if (fieldType == BitStructProtocol.FieldType.STRUCT_LIST) {
 					this.fields[fieldID] = new StructListField(streamFactory, view, fieldID);
 				}
+
+				if (fieldType == BitStructProtocol.FieldType.REFERENCE) {
+					this.fields[fieldID] = new StructReferenceField(streamFactory, view, fieldID);
+				}
 			}
 		}
 

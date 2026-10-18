@@ -16,6 +16,14 @@ dependencies {
     implementation(libs.compose.uiToolingPreview)
 }
 
+tasks.register("runEditorClient", JavaExec::class) {
+    group = "Editor"
+    description = "Runs the editor client"
+    classpath(sourceSets.main.get().runtimeClasspath)
+    mainClass = "mardek.editor.client.EditorClientMainKt"
+    standardInput = System.`in`
+}
+
 //compose.desktop {
 //    application {
 //        mainClass = "mardek.editor.client.EditorClientMainKt"

@@ -134,13 +134,13 @@ class Content : Serializable {
 		 * The directory containing all the main assets/resources (e.g. `content.bits` and `content.vk2d`)
 		 */
 		val RESOURCES_DIRECTORY = run {
-			val workingDirectory = File("./")
-			var resourcesDirectory = File("$workingDirectory/resources")
-			if (resourcesDirectory.exists()) {
-				resourcesDirectory
-			} else {
-				val parentDirectory = workingDirectory.absoluteFile.parentFile.parentFile!!
-				File("$parentDirectory/resources")
+			var projectDirectory = File("./")
+
+			repeat(4) {
+				var resourcesDirectory = File("$projectDirectory/resources")
+				if (resourcesDirectory.exists()) return@run resourcesDirectory
+
+				projectDirectory = projectDirectory.absoluteFile.parentFile!!
 			}
 		}
 	}

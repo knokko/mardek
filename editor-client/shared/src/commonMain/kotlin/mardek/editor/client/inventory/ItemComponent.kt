@@ -1,18 +1,44 @@
 package mardek.editor.client.inventory
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import com.github.knokko.bitser.connection.BitClient
-import mardek.editor.client.component.BitserText
-import mardek.editor.client.component.TrackStruct
+import mardek.editor.client.component.*
+import mardek.editor_client.shared.generated.resources.Res
+import mardek.editor_client.shared.generated.resources.save_24px
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ItemComponent(item: BitClient.Struct) {
+	val mutateScope = rememberCoroutineScope()
+	var itemType by remember { mutableStateOf<BitClient.Struct?>(null) }
+
 	Row {
 		BitserText(item.getSimpleField(null, "displayName"))
-		// TODO BITSER item type name
-		// TODO BITSER edit button
+		if (itemType == null) Text("Loading...")
+		itemType?.let { ItemTypeNameComponent(it) }
+		BitserInt(item.getSimpleField(null, "cost"))
+		Button(onClick = {
+			println("EDIT!!")
+		}) {
+			Icon(painterResource(Res.drawable.save_24px), contentDescription = null)
+		}
 	}
 
 	TrackStruct(item)
+	StructReference(mutateScope, item, null, "type") { itemType = it }
+}
+
+@Composable
+private fun ItemTypeNameComponent(itemType: BitClient.Struct) {
+	BitserText(itemType.getSimpleField(null, "displayName"))
+	TrackStruct(itemType)
 }
