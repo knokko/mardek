@@ -13,7 +13,7 @@ import androidx.compose.runtime.setValue
 import com.github.knokko.bitser.connection.BitClient
 import mardek.editor.client.component.*
 import mardek.editor_client.shared.generated.resources.Res
-import mardek.editor_client.shared.generated.resources.save_24px
+import mardek.editor_client.shared.generated.resources.edit_24px
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -30,7 +30,7 @@ fun ItemComponent(item: BitClient.Struct, editItem: (Long) -> Unit) {
 			editItem(item.controllerID)
 			println("EDIT!!")
 		}) {
-			Icon(painterResource(Res.drawable.save_24px), contentDescription = null)
+			Icon(painterResource(Res.drawable.edit_24px), contentDescription = null)
 		}
 	}
 
