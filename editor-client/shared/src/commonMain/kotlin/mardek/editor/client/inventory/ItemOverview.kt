@@ -19,26 +19,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.github.knokko.bitser.connection.BitClient
+import kotlinx.coroutines.launch
 import mardek.editor.EditorView
 import mardek.editor.client.component.TrackStructList
 import mardek.editor.client.component.TrackStructListElements
 
 @Composable
-private fun ItemRow(list: BitClient.StructList, controllerID: Long, scrollState: ScrollState) {
+private fun ItemRow(list: BitClient.StructList, controllerID: Long, scrollState: ScrollState, editItem: (Long) -> Unit) {
 	println("ItemRow($controllerID)")
 	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
-		ItemComponent(list.createConnectionToElement(controllerID))
+		ItemComponent(list.createConnectionToElement(controllerID), editItem)
 	}
 }
 
 @Composable
-private fun InnerItemList(list: BitClient.StructList, controllerIDs: List<Long>) {
+private fun InnerItemList(list: BitClient.StructList, controllerIDs: List<Long>, editItem: (Long) -> Unit) {
 	println("InnerItemList")
 	val scrollState = rememberScrollState()
 
@@ -53,7 +55,7 @@ private fun InnerItemList(list: BitClient.StructList, controllerIDs: List<Long>)
 			LazyColumn(modifier = Modifier.fillMaxHeight().background(Color.Cyan)) {
 				println("LazyColumn ${System.identityHashCode(controllerIDs)}")
 				items(controllerIDs, key = { it }) { controllerID ->
-					ItemRow(list, controllerID, scrollState)
+					ItemRow(list, controllerID, scrollState, editItem)
 				}
 			}
 		}
@@ -69,13 +71,23 @@ private fun InnerItemList(list: BitClient.StructList, controllerIDs: List<Long>)
 @Composable
 fun ItemOverview(list: BitClient.StructList) {
 	println("ItemOverview")
+	val mutateScope = rememberCoroutineScope()
 	val controllerIDs = remember { mutableStateListOf<Long>() }
+	var itemControllerToEdit by remember { mutableStateOf<Long?>(null) }
 	var isLoading by remember { mutableStateOf(true) }
 
 	if (isLoading) {
 		Text("Loading...")
 	} else {
-		InnerItemList(list, controllerIDs)
+		if (controllerIDs.contains(itemControllerToEdit)) {
+			EditItemComponent(list.createConnectionToElement(itemControllerToEdit!!)) {
+				mutateScope.launch { itemControllerToEdit = null }
+			}
+		} else {
+			InnerItemList(list, controllerIDs) {
+				mutateScope.launch { itemControllerToEdit = it }
+			}
+		}
 	}
 
 	TrackStructList(list)

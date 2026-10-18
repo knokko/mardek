@@ -17,7 +17,7 @@ import mardek.editor_client.shared.generated.resources.save_24px
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun ItemComponent(item: BitClient.Struct) {
+fun ItemComponent(item: BitClient.Struct, editItem: (Long) -> Unit) {
 	val mutateScope = rememberCoroutineScope()
 	var itemType by remember { mutableStateOf<BitClient.Struct?>(null) }
 
@@ -27,6 +27,7 @@ fun ItemComponent(item: BitClient.Struct) {
 		itemType?.let { ItemTypeNameComponent(it) }
 		BitserInt(item.getSimpleField(null, "cost"))
 		Button(onClick = {
+			editItem(item.controllerID)
 			println("EDIT!!")
 		}) {
 			Icon(painterResource(Res.drawable.save_24px), contentDescription = null)

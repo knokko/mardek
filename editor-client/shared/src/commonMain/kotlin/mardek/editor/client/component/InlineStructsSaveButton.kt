@@ -14,7 +14,7 @@ import mardek.editor_client.shared.generated.resources.save_24px
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun StructsSaveButton(structs: Array<BitClient.Struct?>) {
+fun InlineStructsSaveButton(structs: Array<BitClient.Struct?>) {
 	val mutateScope = rememberCoroutineScope()
 	val properStructs = structs.filterNotNull()
 	val canSave = properStructs.map { remember { mutableStateOf(false) } }

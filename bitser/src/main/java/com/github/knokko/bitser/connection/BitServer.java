@@ -174,20 +174,43 @@ public class BitServer<T> {
 					//noinspection InfiniteLoopStatement
 					while (true) {
 						for (int fieldID = 0; fieldID < numFields; fieldID++) {
-							if (!view.canUploadFlat(fieldID)) continue;
-							if (!fromClient.read()) continue;
+							var referenceView = view.getStructReferenceViewOrNull(fieldID);
+							if (referenceView == null) {
+								if (!view.canUploadFlat(fieldID)) continue;
+								if (!fromClient.read()) continue;
 
-							newValues[fieldID] = view.protocol.deserializeFlatFieldValue(fieldID, fromClient);
-							hasChanges[fieldID] = true;
+								newValues[fieldID] = view.protocol.deserializeFlatFieldValue(fieldID, fromClient);
+								hasChanges[fieldID] = true;
+							} else {
+								if (!view.canUploadReference(fieldID)) continue;
+								if (!fromClient.read()) continue;
+
+								long newControllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+										0L, Long.MAX_VALUE, fromClient
+								);
+								newValues[fieldID] = newControllerID;
+								hasChanges[fieldID] = true;
+							}
 						}
 						fromClient.discardCurrentByte();
 
 						byte[] packet = ConnectionHelper.capture(toClients -> {
 							for (int fieldID = 0; fieldID < numFields; fieldID++) {
-								if (!view.canDownloadFlat(fieldID)) continue;
-								toClients.write(hasChanges[fieldID]);
-								if (hasChanges[fieldID]) {
-									view.protocol.serializeFlatFieldValue(fieldID, toClients, newValues[fieldID]);
+								var referenceView = view.getStructReferenceViewOrNull(fieldID);
+								if (referenceView == null) {
+									if (!view.canDownloadFlat(fieldID)) continue;
+									toClients.write(hasChanges[fieldID]);
+									if (hasChanges[fieldID]) {
+										view.protocol.serializeFlatFieldValue(fieldID, toClients, newValues[fieldID]);
+									}
+								} else {
+									if (!view.canUploadReference(fieldID)) continue;
+									toClients.write(hasChanges[fieldID]);
+									if (hasChanges[fieldID]) {
+										IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
+												(Long) newValues[fieldID], 0L, Long.MAX_VALUE, toClients
+										);
+									}
 								}
 							}
 						});
@@ -197,7 +220,16 @@ public class BitServer<T> {
 							synchronized (StructController.this) {
 								for (int fieldID = 0; fieldID < numFields; fieldID++) {
 									if (hasChanges[fieldID]) {
-										view.protocol.setFieldValue(structInstance, fieldID, newValues[fieldID]);
+										var referenceView = view.getStructReferenceViewOrNull(fieldID);
+										if (referenceView == null) {
+											view.protocol.setFieldValue(structInstance, fieldID, newValues[fieldID]);
+										} else {
+											long newControllerID = (Long) newValues[fieldID];
+											var newController = context.controllerMapping.getControllerById(newControllerID);
+											var newValue = ((StructController<?>) newController).structInstance;
+											// TODO BITSER Validate this
+											view.protocol.setFieldValue(structInstance, fieldID, newValue);
+										}
 									}
 								}
 

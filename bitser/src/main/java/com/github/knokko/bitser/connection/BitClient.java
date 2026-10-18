@@ -285,6 +285,7 @@ public class BitClient {
 
 		@Override
 		synchronized void save(BitOutputStream output) throws Throwable {
+			if (view.getStructReferenceViewOrNull(fieldID) == null) return;
 			if (!view.canUploadReference(fieldID)) return;
 
 			if (changeState != ChangeState.MODIFIED) {
@@ -433,7 +434,7 @@ public class BitClient {
 
 		private final StructConnectionView view;
 		private final ClientStream stream;
-		private final long controllerID;
+		public final long controllerID;
 
 		private final AbstractField[] fields;
 		private final List<Consumer<Boolean>> canSaveListeners = new ArrayList<>();

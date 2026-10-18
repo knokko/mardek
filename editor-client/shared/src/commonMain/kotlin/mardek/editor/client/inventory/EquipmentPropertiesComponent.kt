@@ -11,7 +11,7 @@ import com.github.knokko.bitser.connection.BitClient
 import mardek.editor.client.component.BitserIntField
 import mardek.editor.client.component.ChildStruct
 import mardek.editor.client.component.TrackStruct
-import mardek.editor.client.component.StructsSaveButton
+import mardek.editor.client.component.InlineStructsSaveButton
 
 @Composable
 fun EquipmentPropertiesComponent(equipment: BitClient.Struct) {
@@ -21,7 +21,7 @@ fun EquipmentPropertiesComponent(equipment: BitClient.Struct) {
 	Row {
 		weapon?.let { WeaponPropertiesComponent(it) }
 		BitserIntField(equipment.getSimpleField(null, "charismaticPerformanceChance"))
-		StructsSaveButton(arrayOf(equipment, weapon))
+		InlineStructsSaveButton(arrayOf(equipment, weapon))
 	}
 
 	TrackStruct(equipment)

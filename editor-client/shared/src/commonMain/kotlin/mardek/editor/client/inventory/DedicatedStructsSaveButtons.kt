@@ -1,0 +1,44 @@
+package mardek.editor.client.inventory
+
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import com.github.knokko.bitser.connection.BitClient
+import kotlinx.coroutines.launch
+import mardek.editor_client.shared.generated.resources.Res
+import mardek.editor_client.shared.generated.resources.save_24px
+import org.jetbrains.compose.resources.painterResource
+
+@Composable
+fun DedicatedStructsSaveButtons(structs: Array<BitClient.Struct?>, goBack: () -> Unit) {
+	val mutateScope = rememberCoroutineScope()
+	val properStructs = structs.filterNotNull()
+	val canSave = properStructs.map { remember { mutableStateOf(false) } }
+	val canSaveAny = canSave.any { it.value }
+
+	Button(onClick = goBack) {
+		if (canSaveAny) Text("Cancel")
+		else Text("Back")
+	}
+
+	Button(onClick = {
+		properStructs.forEach { it.save() }
+	}, enabled = canSaveAny) {
+		Text("Save")
+		Icon(painterResource(Res.drawable.save_24px), contentDescription = null)
+	}
+
+	for ((index, bitStruct) in properStructs.withIndex()) {
+		DisposableEffect(bitStruct) {
+			val subscription = bitStruct.subscribeCanSave { mutateScope.launch { canSave[index].value = it } }
+			onDispose {
+				bitStruct.cancelSubscription(subscription)
+			}
+		}
+	}
+}
