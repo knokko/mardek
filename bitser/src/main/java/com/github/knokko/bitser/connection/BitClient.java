@@ -23,10 +23,10 @@ public class BitClient {
 
 	private static abstract class AbstractField {
 
-		final StructConnectionView view;
+		final BitStructConnectionView view;
 		final int fieldID;
 
-		AbstractField(StructConnectionView view, int fieldID) {
+		AbstractField(BitStructConnectionView view, int fieldID) {
 			this.view = view;
 			this.fieldID = fieldID;
 		}
@@ -49,7 +49,7 @@ public class BitClient {
 		private final List<Consumer<T>> localListeners = new ArrayList<>();
 		private final List<Consumer<ChangeState>> changeStateListeners = new ArrayList<>();
 
-		SimpleFlatField(StructConnectionView view, int fieldID) {
+		SimpleFlatField(BitStructConnectionView view, int fieldID) {
 			super(view, fieldID);
 		}
 
@@ -159,11 +159,13 @@ public class BitClient {
 
 	private static class ChildStructField extends AbstractField {
 
-		private long serverControllerID = -1L;
-		private final ClientStream.Factory streamFactory;
-		private final List<Consumer<Struct>> listeners = new ArrayList<>();
+		private record Listener(Consumer<Struct> callback, int viewIndex) {}
 
-		ChildStructField(ClientStream.Factory streamFactory, StructConnectionView view, int fieldID) {
+		private long serverControllerID = -1L;
+		private final BitClientStream.Factory streamFactory;
+		private final List<Listener> listeners = new ArrayList<>();
+
+		ChildStructField(BitClientStream.Factory streamFactory, BitStructConnectionView view, int fieldID) {
 			super(view, fieldID);
 			this.streamFactory = streamFactory;
 		}
@@ -180,10 +182,15 @@ public class BitClient {
 		@Override
 		synchronized void postReadFromServerInitial() {
 			if (view.shouldDownloadDuringInitialization(fieldID)) {
-				var childView = Objects.requireNonNull(view.getChildStructViewOrNull(fieldID));
+				var childViews = Objects.requireNonNull(view.getChildStructViewsOrNull(fieldID));
 				for (var listener : listeners) {
-					var childStream = streamFactory.createStream(serverControllerID);
-					listener.accept(new Struct(childView, childStream, streamFactory, serverControllerID));
+					var childStream = streamFactory.createStream(serverControllerID, listener.viewIndex);
+					listener.callback.accept(new Struct(
+							childViews.get(listener.viewIndex),
+							childStream,
+							streamFactory,
+							serverControllerID
+					));
 				}
 			}
 		}
@@ -194,10 +201,12 @@ public class BitClient {
 			this.serverControllerID = (Long) newServerValue;
 
 			if (oldControllerID != serverControllerID) {
-				var childView = Objects.requireNonNull(view.getChildStructViewOrNull(fieldID));
+				var childViews = Objects.requireNonNull(view.getChildStructViewsOrNull(fieldID));
 				for (var listener : listeners) {
-					var childStream = streamFactory.createStream(serverControllerID);
-					listener.accept(new Struct(childView, childStream, streamFactory, serverControllerID));
+					var childStream = streamFactory.createStream(serverControllerID, listener.viewIndex);
+					listener.callback.accept(new Struct(
+							childViews.get(listener.viewIndex), childStream, streamFactory, serverControllerID
+					));
 				}
 			}
 		}
@@ -207,16 +216,19 @@ public class BitClient {
 			// ClientStructField's cannot be saved; save their BitClient.Struct instead
 		}
 
-		public synchronized Object subscribe(Consumer<Struct> updateChildStruct) {
-			listeners.add(updateChildStruct);
+		public synchronized Object subscribe(Consumer<Struct> updateChildStruct, int viewIndex) {
+			var listener = new Listener(updateChildStruct, viewIndex);
+			listeners.add(listener);
 
 			if (serverControllerID != -1L) {
-				var childView = Objects.requireNonNull(view.getChildStructViewOrNull(fieldID));
-				var childStream = streamFactory.createStream(serverControllerID);
-				updateChildStruct.accept(new Struct(childView, childStream, streamFactory, serverControllerID));
+				var childViews = Objects.requireNonNull(view.getChildStructViewsOrNull(fieldID));
+				var childStream = streamFactory.createStream(serverControllerID, viewIndex);
+				updateChildStruct.accept(new Struct(
+						childViews.get(viewIndex), childStream, streamFactory, serverControllerID
+				));
 			}
 
-			return updateChildStruct;
+			return listener;
 		}
 
 		public synchronized void cancelSubscription(Object subscription) {
@@ -235,9 +247,9 @@ public class BitClient {
 		private final List<LongConsumer> serverListeners = new ArrayList<>();
 		private final List<LongConsumer> localListeners = new ArrayList<>();
 		private final List<Consumer<ChangeState>> changeStateListeners = new ArrayList<>();
-		private final ClientStream.Factory streamFactory;
+		private final BitClientStream.Factory streamFactory;
 
-		StructReferenceField(ClientStream.Factory streamFactory, StructConnectionView view, int fieldID) {
+		StructReferenceField(BitClientStream.Factory streamFactory, BitStructConnectionView view, int fieldID) {
 			super(view, fieldID);
 			this.streamFactory = streamFactory;
 		}
@@ -285,7 +297,7 @@ public class BitClient {
 
 		@Override
 		synchronized void save(BitOutputStream output) throws Throwable {
-			if (view.getStructReferenceViewOrNull(fieldID) == null) return;
+			if (view.getStructReferenceViewsOrNull(fieldID) == null) return;
 			if (!view.canUploadReference(fieldID)) return;
 
 			if (changeState != ChangeState.MODIFIED) {
@@ -318,10 +330,10 @@ public class BitClient {
 			return updateReference;
 		}
 
-		public Struct createConnectionToReference(long controllerID) {
+		public Struct createConnectionToReference(long controllerID, int viewIndex) {
 			return new Struct(
-					view.getStructReferenceViewOrNull(fieldID),
-					streamFactory.createStream(controllerID),
+					view.getStructReferenceViewsOrNull(fieldID).get(viewIndex),
+					streamFactory.createStream(controllerID, viewIndex),
 					streamFactory,
 					controllerID
 			);
@@ -361,11 +373,13 @@ public class BitClient {
 
 	public static class StructListField extends AbstractField {
 
-		private long serverControllerID = -1L;
-		private final ClientStream.Factory streamFactory;
-		private final List<Consumer<StructList>> listeners = new ArrayList<>();
+		private record Listener(Consumer<StructList> callback, int viewIndex) {}
 
-		StructListField(ClientStream.Factory streamFactory, StructConnectionView view, int fieldID) {
+		private long serverControllerID = -1L;
+		private final BitClientStream.Factory streamFactory;
+		private final List<Listener> listeners = new ArrayList<>();
+
+		StructListField(BitClientStream.Factory streamFactory, BitStructConnectionView view, int fieldID) {
 			super(view, fieldID);
 			this.streamFactory = streamFactory;
 		}
@@ -382,10 +396,12 @@ public class BitClient {
 		@Override
 		void postReadFromServerInitial() {
 			if (view.shouldDownloadDuringInitialization(fieldID)) {
-				var childView = Objects.requireNonNull(view.getStructListViewOrNull(fieldID));
+				var childViews = Objects.requireNonNull(view.getStructListViewsOrNull(fieldID));
 				for (var listener : listeners) {
-					var childStream = streamFactory.createStream(serverControllerID);
-					listener.accept(new StructList(childView, childStream, streamFactory));
+					var childStream = streamFactory.createStream(serverControllerID, listener.viewIndex);
+					listener.callback.accept(new StructList(
+							childViews.get(listener.viewIndex), childStream, streamFactory
+					));
 				}
 			}
 		}
@@ -396,10 +412,12 @@ public class BitClient {
 			this.serverControllerID = (Long) newServerValue;
 
 			if (oldControllerID != serverControllerID) {
-				var childView = Objects.requireNonNull(view.getStructListViewOrNull(fieldID));
+				var childViews = Objects.requireNonNull(view.getStructListViewsOrNull(fieldID));
 				for (var listener : listeners) {
-					var childStream = streamFactory.createStream(serverControllerID);
-					listener.accept(new StructList(childView, childStream, streamFactory));
+					var childStream = streamFactory.createStream(serverControllerID, listener.viewIndex);
+					listener.callback.accept(new StructList(
+							childViews.get(listener.viewIndex), childStream, streamFactory
+					));
 				}
 			}
 		}
@@ -409,16 +427,17 @@ public class BitClient {
 			// Struct list fields cannot be reassigned; only modified
 		}
 
-		public synchronized Object subscribe(Consumer<StructList> updateStructList) {
-			listeners.add(updateStructList);
+		public synchronized Object subscribe(Consumer<StructList> updateStructList, int viewIndex) {
+			var listener = new Listener(updateStructList, viewIndex);
+			listeners.add(listener);
 
 			if (serverControllerID != -1L) {
-				var childView = Objects.requireNonNull(view.getStructListViewOrNull(fieldID));
-				var childStream = streamFactory.createStream(serverControllerID);
-				updateStructList.accept(new StructList(childView, childStream, streamFactory));
+				var childViews = Objects.requireNonNull(view.getStructListViewsOrNull(fieldID));
+				var childStream = streamFactory.createStream(serverControllerID, viewIndex);
+				updateStructList.accept(new StructList(childViews.get(viewIndex), childStream, streamFactory));
 			}
 
-			return updateStructList;
+			return listener;
 		}
 
 		public synchronized void cancelSubscription(Object subscription) {
@@ -432,8 +451,8 @@ public class BitClient {
 
 	public static class Struct {
 
-		private final StructConnectionView view;
-		private final ClientStream stream;
+		private final BitStructConnectionView view;
+		private final BitClientStream stream;
 		public final long controllerID;
 
 		private final AbstractField[] fields;
@@ -442,8 +461,8 @@ public class BitClient {
 		private boolean lastCanSave;
 
 		public Struct(
-				StructConnectionView view, ClientStream stream,
-				ClientStream.Factory streamFactory, long controllerID
+				BitStructConnectionView view, BitClientStream stream,
+				BitClientStream.Factory streamFactory, long controllerID
 		) {
 			this.view = view;
 			this.stream = stream;
@@ -531,15 +550,15 @@ public class BitClient {
 		}
 
 		public Object subscribeChildStruct(
-				Class<?> declaringClass, String fieldName, Consumer<Struct> updateChildStruct
+				Class<?> declaringClass, String fieldName, int viewIndex, Consumer<Struct> updateChildStruct
 		) {
-			return getChildStructField(declaringClass, fieldName).subscribe(updateChildStruct);
+			return getChildStructField(declaringClass, fieldName).subscribe(updateChildStruct, viewIndex);
 		}
 
 		public Object subscribeStructList(
-				Class<?> declaringClass, String fieldName, Consumer<StructList> updateStructList
+				Class<?> declaringClass, String fieldName, int viewIndex, Consumer<StructList> updateStructList
 		) {
-			return getStructListField(declaringClass, fieldName).subscribe(updateStructList);
+			return getStructListField(declaringClass, fieldName).subscribe(updateStructList, viewIndex);
 		}
 
 		public void cancelChildStructSubscription(Class<?> declaringClass, String fieldName, Object subscription) {
@@ -603,14 +622,14 @@ public class BitClient {
 
 	public static class StructList {
 
-		private final StructListConnectionView<?> view;
-		private final ClientStream stream;
-		private final ClientStream.Factory streamFactory;
+		private final BitStructListConnectionView<?> view;
+		private final BitClientStream stream;
+		private final BitClientStream.Factory streamFactory;
 
 		private long[] controllerIDs = new long[0];
 		private final List<Consumer<long[]>> listeners = new ArrayList<>();
 
-		public StructList(StructListConnectionView<?> view, ClientStream stream, ClientStream.Factory streamFactory) {
+		public StructList(BitStructListConnectionView<?> view, BitClientStream stream, BitClientStream.Factory streamFactory) {
 			this.view = view;
 			this.stream = stream;
 			this.streamFactory = streamFactory;
@@ -649,8 +668,13 @@ public class BitClient {
 			}
 		}
 
-		public Struct createConnectionToElement(long controllerID) {
-			return new Struct(view.elementsView, streamFactory.createStream(controllerID), streamFactory, controllerID);
+		public Struct createConnectionToElement(long controllerID, int viewIndex) {
+			return new Struct(
+					view.getElementsViews().get(viewIndex),
+					streamFactory.createStream(controllerID, viewIndex),
+					streamFactory,
+					controllerID
+			);
 		}
 
 		public Object subscribe(Consumer<long[]> callback) {

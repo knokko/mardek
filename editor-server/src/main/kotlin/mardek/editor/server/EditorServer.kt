@@ -59,6 +59,6 @@ fun main() {
 		EditorServerProtocol(),
 		EDITOR_APPLICATION_PROTOCOL_NAME,
 		content,
-		EditorView.root,
+		listOf(EditorView.root),
 	)
 }

@@ -26,7 +26,7 @@ private fun OuterItemTypeOverview(itemsContent: BitClient.Struct) {
 
 	itemTypes?.let { ItemTypeOverview(it) }
 
-	ChildStructList(mutateScope, itemsContent, null, "itemTypes") { itemTypes = it }
+	ChildStructList(mutateScope, itemsContent, null, "itemTypes", 0) { itemTypes = it }
 }
 
 @Composable
@@ -36,5 +36,5 @@ private fun OuterItemOverview(itemsContent: BitClient.Struct) {
 
 	items?.let { ItemOverview(it) }
 
-	ChildStructList(mutateScope, itemsContent, null, "items") { items = it }
+	ChildStructList(mutateScope, itemsContent, null, "items", 0) { items = it }
 }

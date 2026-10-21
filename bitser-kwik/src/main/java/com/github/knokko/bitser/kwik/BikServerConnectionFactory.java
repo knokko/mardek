@@ -1,6 +1,6 @@
 package com.github.knokko.bitser.kwik;
 
-import com.github.knokko.bitser.connection.BitServer;
+import com.github.knokko.bitser.connection.BitServerContext;
 import tech.kwik.core.QuicConnection;
 import tech.kwik.core.server.ApplicationProtocolConnection;
 import tech.kwik.core.server.ApplicationProtocolConnectionFactory;
@@ -8,16 +8,16 @@ import tech.kwik.core.server.ApplicationProtocolConnectionFactory;
 class BikServerConnectionFactory implements ApplicationProtocolConnectionFactory {
 
 	private final BikServerProtocol bikProtocol;
-	private final BitServer.ControllerContext controllerContext;
+	private final BitServerContext context;
 
-	BikServerConnectionFactory(BikServerProtocol bikProtocol, BitServer.ControllerContext controllerContext) {
+	BikServerConnectionFactory(BikServerProtocol bikProtocol, BitServerContext context) {
 		this.bikProtocol = bikProtocol;
-		this.controllerContext = controllerContext;
+		this.context = context;
 	}
 
 	@Override
 	public ApplicationProtocolConnection createConnection(String protocol, QuicConnection quicConnection) {
-		var nextConnection = new BikServerConnection(bikProtocol, controllerContext, quicConnection);
+		var nextConnection = new BikServerConnection(bikProtocol, context, quicConnection);
 		nextConnection.start();
 		return nextConnection;
 	}

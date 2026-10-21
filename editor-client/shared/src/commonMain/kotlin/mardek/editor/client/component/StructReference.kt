@@ -10,12 +10,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun StructReference(
 	mutateScope: CoroutineScope, parentStruct: BitClient.Struct,
-	declaringClass: Class<*>?, fieldName: String, callback: (BitClient.Struct) -> Unit
+	declaringClass: Class<*>?, fieldName: String, viewIndex: Int, callback: (BitClient.Struct) -> Unit
 ) {
 	DisposableEffect(parentStruct) {
 		val referenceField = parentStruct.getStructReferenceField(declaringClass, fieldName)
 		val childSubscription = referenceField.subscribe(false) {
-			mutateScope.launch { callback(referenceField.createConnectionToReference(it)) }
+			mutateScope.launch { callback(referenceField.createConnectionToReference(it, viewIndex)) }
 		}
 		onDispose {
 			referenceField.cancelSubscription(childSubscription)

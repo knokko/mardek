@@ -39,7 +39,7 @@ val baseModifiers = arrayOf(300.dp, 300.dp, 300.dp).map { Modifier.width(it) }
 private fun ItemTypeRow(list: BitClient.StructList, controllerID: Long, scrollState: ScrollState) {
 	println("ItemTypeRow($controllerID)")
 	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
-		ItemTypeComponent(list.createConnectionToElement(controllerID))
+		ItemTypeComponent(list.createConnectionToElement(controllerID, 0))
 //						Box(modifier = baseModifiers[0]) {
 //							TextField(
 //								state = rememberTextFieldState(initialText = itemType.displayName),

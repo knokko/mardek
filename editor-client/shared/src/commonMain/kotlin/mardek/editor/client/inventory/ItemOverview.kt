@@ -35,7 +35,7 @@ import mardek.editor.client.component.TrackStructListElements
 private fun ItemRow(list: BitClient.StructList, controllerID: Long, scrollState: ScrollState, editItem: (Long) -> Unit) {
 	println("ItemRow($controllerID)")
 	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
-		ItemComponent(list.createConnectionToElement(controllerID), editItem)
+		ItemComponent(list.createConnectionToElement(controllerID, 0), editItem)
 	}
 }
 
@@ -80,7 +80,7 @@ fun ItemOverview(list: BitClient.StructList) {
 		Text("Loading...")
 	} else {
 		if (controllerIDs.contains(itemControllerToEdit)) {
-			EditItemComponent(list.createConnectionToElement(itemControllerToEdit!!)) {
+			EditItemComponent(list.createConnectionToElement(itemControllerToEdit!!, 0)) {
 				mutateScope.launch { itemControllerToEdit = null }
 			}
 		} else {

@@ -3,7 +3,7 @@ package com.github.knokko.bitser.connection;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 
-public interface ClientStream {
+public interface BitClientStream {
 
 	void start(InputReader processInput);
 
@@ -13,7 +13,7 @@ public interface ClientStream {
 
 	interface Factory {
 
-		ClientStream createStream(long controllerID);
+		BitClientStream createStream(long controllerID, int viewIndex);
 	}
 
 	interface InputReader {

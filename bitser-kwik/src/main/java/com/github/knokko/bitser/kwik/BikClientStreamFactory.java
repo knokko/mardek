@@ -1,6 +1,6 @@
 package com.github.knokko.bitser.kwik;
 
-import com.github.knokko.bitser.connection.ClientStream;
+import com.github.knokko.bitser.connection.BitClientStream;
 import tech.kwik.core.QuicStream;
 
 import java.io.DataInputStream;
@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-class BikClientStreamFactory implements ClientStream.Factory {
+class BikClientStreamFactory implements BitClientStream.Factory {
 
 	private final DataOutputStream mainOutput;
 	private final Map<Integer, CompletableFuture<QuicStream>> nextStreamMapping = new HashMap<>();
@@ -22,16 +22,17 @@ class BikClientStreamFactory implements ClientStream.Factory {
 	}
 
 	@Override
-	public ClientStream createStream(long controllerID) {
-		return new BikClientStream(() -> requestActualStream(controllerID));
+	public BitClientStream createStream(long controllerID, int viewIndex) {
+		return new BikClientStream(() -> requestActualStream(controllerID, viewIndex));
 	}
 
-	private CompletableFuture<QuicStream> requestActualStream(long controllerID) {
+	private CompletableFuture<QuicStream> requestActualStream(long controllerID, int viewIndex) {
 		var future = new CompletableFuture<QuicStream>();
 		synchronized (mainOutput) {
 			try {
 				mainOutput.writeInt(nextStreamID);
 				mainOutput.writeLong(controllerID);
+				mainOutput.writeInt(viewIndex);
 				mainOutput.flush();
 			} catch (IOException failed) {
 				throw new RuntimeException(failed);

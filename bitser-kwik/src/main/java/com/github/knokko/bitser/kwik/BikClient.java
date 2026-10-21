@@ -1,7 +1,7 @@
 package com.github.knokko.bitser.kwik;
 
 import com.github.knokko.bitser.connection.BitClient;
-import com.github.knokko.bitser.connection.StructConnectionView;
+import com.github.knokko.bitser.connection.BitStructConnectionView;
 import tech.kwik.core.QuicClientConnection;
 import tech.kwik.core.QuicConnection;
 import tech.kwik.core.QuicStream;
@@ -15,7 +15,9 @@ import java.util.concurrent.TimeUnit;
 public class BikClient {
 
 	public static BitClient.Struct connect(
-			URI uri, String protocol, StructConnectionView rootView, BikClientProtocol bikProtocol
+			URI uri, String protocol,
+			BitStructConnectionView rootView, int rootViewIndex,
+			BikClientProtocol bikProtocol
 	) throws IOException {
 		var builder = QuicClientConnection.newBuilder()
 				.uri(uri)
@@ -43,7 +45,10 @@ public class BikClient {
 					streamFactory[0] = new BikClientStreamFactory(new DataOutputStream(stream.getOutputStream()));
 
 					var rootConnection = new BitClient.Struct(
-							rootView, streamFactory[0].createStream(0), streamFactory[0], 0
+							rootView,
+							streamFactory[0].createStream(0, rootViewIndex),
+							streamFactory[0],
+							0
 					);
 					rootStructFuture.complete(rootConnection);
 				} catch (Throwable failed) {

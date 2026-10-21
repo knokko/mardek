@@ -4,7 +4,7 @@ import com.github.knokko.bitser.BitStruct;
 import com.github.knokko.bitser.Bitser;
 import com.github.knokko.bitser.connection.BitClient;
 import com.github.knokko.bitser.connection.BitServer;
-import com.github.knokko.bitser.connection.StructConnectionView;
+import com.github.knokko.bitser.connection.BitStructConnectionView;
 import com.github.knokko.bitser.field.IntegerField;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
@@ -49,7 +49,7 @@ public class TestSingleStructConnection {
 		var bitser = new Bitser();
 		var protocol = bitser.getProtocol(Vector3.class);
 
-		var view = new StructConnectionView(protocol);
+		var view = new BitStructConnectionView(protocol);
 		view.markAllSimpleFields(true, true);
 		view.markSimpleField(null, "y", true, false);
 		view.markSimpleField(Vector3.class, "z", false, true);

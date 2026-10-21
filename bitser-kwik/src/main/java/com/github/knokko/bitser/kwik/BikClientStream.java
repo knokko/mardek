@@ -1,6 +1,6 @@
 package com.github.knokko.bitser.kwik;
 
-import com.github.knokko.bitser.connection.ClientStream;
+import com.github.knokko.bitser.connection.BitClientStream;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 import tech.kwik.core.QuicStream;
@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-class BikClientStream implements ClientStream {
+class BikClientStream implements BitClientStream {
 
 	private final Supplier<CompletableFuture<QuicStream>> requestStream;
 	private final Object sendLock = new Object();

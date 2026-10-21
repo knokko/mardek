@@ -1,21 +1,23 @@
 package com.github.knokko.bitser.connection;
 
-public class StructConnectionView {
+import java.util.List;
 
-	final BitStructProtocol protocol;
+public class BitStructConnectionView extends BitConnectionView {
+
+	public final BitStructProtocol protocol;
 	private final boolean[] canDownloadFlat;
 	private final boolean[] canUploadFlat;
 	private final boolean[] isConstant;
 	private final boolean[] flatStructs;
-	private final StructConnectionView[] childStructs;
-	private final StructListConnectionView<?>[] structLists;
-	private final StructConnectionView[] referenceStructs;
+	private final BitStructConnectionView[][] childStructs;
+	private final BitStructListConnectionView<?>[][] structLists;
+	private final BitStructConnectionView[][] referenceStructs;
 
 	private boolean finishedRegistration;
 	private boolean hasDownloadableFields;
 	private boolean hasUploadableFields;
 
-	public StructConnectionView(BitStructProtocol protocol) {
+	public BitStructConnectionView(BitStructProtocol protocol) {
 		this.protocol = protocol;
 
 		int numFields = protocol.getNumFields();
@@ -23,9 +25,9 @@ public class StructConnectionView {
 		this.canUploadFlat = new boolean[numFields];
 		this.isConstant = new boolean[numFields];
 		this.flatStructs = new boolean[numFields];
-		this.childStructs = new StructConnectionView[numFields];
-		this.structLists = new StructListConnectionView[numFields];
-		this.referenceStructs = new StructConnectionView[numFields];
+		this.childStructs = new BitStructConnectionView[numFields][];
+		this.structLists = new BitStructListConnectionView[numFields][];
+		this.referenceStructs = new BitStructConnectionView[numFields][];
 	}
 
 	@Override
@@ -82,21 +84,21 @@ public class StructConnectionView {
 
 	public void markChildStructField(
 			Class<?> declaringClass, String fieldName,
-			StructConnectionView childView, boolean constant
+			List<BitStructConnectionView> childViews, boolean constant
 	) {
 		int fieldID = getUnclaimedStructField(declaringClass, fieldName);
-		childStructs[fieldID] = childView;
+		childStructs[fieldID] = childViews.toArray(new BitStructConnectionView[0]);
 		canDownloadFlat[fieldID] = true;
 		isConstant[fieldID] = constant;
 	}
 
 	public void markStructReferenceField(
 			Class<?> declaringClass, String fieldName,
-			StructConnectionView referencedObjectView,
+			List<BitStructConnectionView> referencedObjectViews,
 			boolean canRead, boolean canReassign
 	) {
 		int fieldID = getUnclaimedStructReferenceField(declaringClass, fieldName);
-		referenceStructs[fieldID] = referencedObjectView;
+		referenceStructs[fieldID] = referencedObjectViews.toArray(new BitStructConnectionView[0]);
 		canDownloadFlat[fieldID] = canRead;
 		canUploadFlat[fieldID] = canReassign;
 	}
@@ -110,10 +112,10 @@ public class StructConnectionView {
 
 	public void markStructListField(
 			Class<?> declaringClass, String fieldName,
-			StructListConnectionView<?> elementView, boolean constant
+			List<BitStructListConnectionView<?>> listViews, boolean constant
 	) {
 		int fieldID = getUnclaimedStructListField(declaringClass, fieldName);
-		structLists[fieldID] = elementView;
+		structLists[fieldID] = listViews.toArray(new BitStructListConnectionView<?>[0]);
 		canDownloadFlat[fieldID] = true;
 		isConstant[fieldID] = constant;
 	}
@@ -189,29 +191,22 @@ public class StructConnectionView {
 		return canUploadFlat[fieldID];
 	}
 
-	StructConnectionView getChildStructViewOrNull(int fieldID) {
+	List<BitStructConnectionView> getChildStructViewsOrNull(int fieldID) {
 		assertRegistrationIsClosed();
-		return childStructs[fieldID];
+		if (childStructs[fieldID] == null) return null;
+		return List.of(childStructs[fieldID]);
 	}
 
-	StructListConnectionView<?> getStructListViewOrNull(int fieldID) {
+	List<BitStructListConnectionView<?>> getStructListViewsOrNull(int fieldID) {
 		assertRegistrationIsClosed();
-		return structLists[fieldID];
+		if (structLists[fieldID] == null) return null;
+		return List.of(structLists[fieldID]);
 	}
 
-	StructConnectionView getStructReferenceViewOrNull(int fieldID) {
+	List<BitStructConnectionView> getStructReferenceViewsOrNull(int fieldID) {
 		assertRegistrationIsClosed();
-		return referenceStructs[fieldID];
-	}
-
-	public StructConnectionView getChildStructView(Class<?> declaringClass, String fieldName) {
-		assertRegistrationIsClosed();
-
-		var childView = childStructs[protocol.getFieldId(declaringClass, fieldName)];
-		if (childView == null) {
-			throw new IllegalArgumentException("Field " + fieldName + " has no registered child view");
-		}
-		return childView;
+		if (referenceStructs[fieldID] == null) return null;
+		return List.of(referenceStructs[fieldID]);
 	}
 
 	boolean hasAtLeastOneDownloadableField() {
@@ -220,5 +215,10 @@ public class StructConnectionView {
 
 	boolean hasAtLeastOneUploadableField() {
 		return hasUploadableFields;
+	}
+
+	@Override
+	public BitServerController initializeController(BitServerContext context, Object targetObject) {
+		return new BitServerStructController<>(context, targetObject, protocol);
 	}
 }

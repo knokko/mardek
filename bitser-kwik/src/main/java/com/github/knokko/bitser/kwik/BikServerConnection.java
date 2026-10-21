@@ -1,6 +1,6 @@
 package com.github.knokko.bitser.kwik;
 
-import com.github.knokko.bitser.connection.BitServer;
+import com.github.knokko.bitser.connection.BitServerContext;
 import tech.kwik.core.QuicConnection;
 import tech.kwik.core.QuicStream;
 import tech.kwik.core.server.ApplicationProtocolConnection;
@@ -12,16 +12,16 @@ import java.io.IOException;
 class BikServerConnection implements ApplicationProtocolConnection {
 
 	private final BikServerProtocol bikProtocol;
-	private final BitServer.ControllerContext controllerContext;
+	private final BitServerContext context;
 	private final QuicConnection clientConnection;
 
 	BikServerConnection(
 			BikServerProtocol bikProtocol,
-			BitServer.ControllerContext controllerContext,
+			BitServerContext context,
 			QuicConnection clientConnection
 	) {
 		this.bikProtocol = bikProtocol;
-		this.controllerContext = controllerContext;
+		this.context = context;
 		this.clientConnection = clientConnection;
 	}
 
@@ -49,16 +49,18 @@ class BikServerConnection implements ApplicationProtocolConnection {
 			while (true) {
 				int requestedStreamID = dataInput.readInt();
 				long controllerID = dataInput.readLong();
+				int viewIndex = dataInput.readInt();
 				var nextStream = clientConnection.createStream(true);
 				var dataOutput = new DataOutputStream(nextStream.getOutputStream());
 				dataOutput.writeInt(requestedStreamID);
 				dataOutput.flush();
 
-				var controller = controllerContext.controllerMapping().getControllerById(controllerID);
+				var controller = context.controllerMapping().getControllerById(controllerID);
 				controller.addClient(
 						nextStream.getOutputStream(),
 						nextStream.getInputStream(),
-						() -> nextStream.resetStream(0L)
+						() -> nextStream.resetStream(0L),
+						viewIndex
 				);
 			}
 		} catch (IOException disconnected) {

@@ -9,19 +9,25 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class StructListConnectionView<T> {
+public class BitStructListConnectionView<T> extends BitConnectionView {
 
-	public final StructConnectionView elementsView;
+	public final BitStructProtocol elementsProtocol;
+	private final List<BitStructConnectionView> elementsViews = new ArrayList<>();
 	private final List<Supplier<Operation<T>>> operations = new ArrayList<>();
 
 	private boolean closedRegistration;
 
-	public StructListConnectionView(StructConnectionView elementsView) {
-		this.elementsView = elementsView;
+	public BitStructListConnectionView(BitStructProtocol elementsProtocol) {
+		this.elementsProtocol = elementsProtocol;
 	}
 
 	private void assertRegistrationIsOpen() {
 		if (closedRegistration) throw new IllegalStateException("Registration is already closed");
+	}
+
+	public void addElementsView(BitStructConnectionView elementsView) {
+		assertRegistrationIsOpen();
+		this.elementsViews.add(elementsView);
 	}
 
 	public int addOperation(Supplier<Operation<T>> operation) {
@@ -54,9 +60,19 @@ public class StructListConnectionView<T> {
 		return operations.size();
 	}
 
+	public List<BitStructConnectionView> getElementsViews() {
+		assertRegistrationIsClosed();
+		return new ArrayList<>(elementsViews);
+	}
+
 	public Operation<T> getOperation(int index) {
 		assertRegistrationIsClosed();
 		return operations.get(index).get();
+	}
+
+	@Override
+	public BitServerController initializeController(BitServerContext context, Object targetObject) {
+		return new BitServerStructListController<>(context, (List<?>) targetObject, elementsProtocol);
 	}
 
 	public static abstract class Operation<T> {
@@ -93,7 +109,7 @@ public class StructListConnectionView<T> {
 		public void respondToClient(BitOutputStream toClient) {}
 	}
 
-	public record GlobalContext<T, R>(R rootStruct, List<T> thisList, BitServer.ControllerMapping controllerMapping) {}
+	public record GlobalContext<T, R>(R rootStruct, List<T> thisList, BitServerControllerMapping controllerMapping) {}
 
 	private static class SimpleGlobalOperation<T, R> extends Operation<T> implements GlobalOperation<T, R> {
 

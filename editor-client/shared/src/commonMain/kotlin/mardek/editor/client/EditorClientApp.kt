@@ -27,13 +27,14 @@ fun App(content: BitClient.Struct) {
     }
 
     TrackStruct(content)
-    ChildStruct(mutateScope, content, null, "items") { itemsContent = it }
+    ChildStruct(mutateScope, content, null, "items", 0) { itemsContent = it }
 }
 
 fun launchEditorClientConnection() = BikClient.connect(
     URI("https://localhost:$EDITOR_PORT"),
     EDITOR_APPLICATION_PROTOCOL_NAME,
     EditorView.root,
+    0,
     EditorClientProtocol(
         EditorClientProtocol.createDevelopmentTrustStore(), TEST_AUTH_TOKEN
     )

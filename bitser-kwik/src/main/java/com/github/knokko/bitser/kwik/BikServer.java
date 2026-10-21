@@ -1,12 +1,12 @@
 package com.github.knokko.bitser.kwik;
 
-import com.github.knokko.bitser.connection.BitServer;
-import com.github.knokko.bitser.connection.StructConnectionView;
+import com.github.knokko.bitser.connection.*;
 import tech.kwik.core.server.ServerConnectionConfig;
 import tech.kwik.core.server.ServerConnector;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -14,11 +14,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class BikServer {
 
-	private static final BitServer.GlobalRunnable SERVER_STOPPED = () -> {};
+	private static final BitServerContext.GlobalRunnable SERVER_STOPPED = () -> {};
 
 	public static <T> void run(
 			BikServerProtocol bikProtocol, String protocolName,
-			T rootStruct, StructConnectionView rootView
+			T rootStruct, List<BitStructConnectionView> rootViews
 	) throws CertificateException, IOException {
 		var configBuilder = ServerConnectionConfig.builder()
 				.maxTotalPeerInitiatedBidirectionalStreams(0)
@@ -38,15 +38,14 @@ public class BikServer {
 		var globalQueue = createGlobalQueueWithDrainingThread(globalLock);
 
 		try (var connector = connectorBuilder.build()) {
-			var controllerMapping = new BitServer.ControllerMapping();
-			var controllerContext = new BitServer.ControllerContext(
+			var controllerMapping = new BitServerControllerMapping();
+			var serverContext = new BitServerContext(
 					rootStruct, controllerMapping, globalLock, globalQueue
 			);
-			var rootController = new BitServer.StructController<>(controllerContext, rootStruct, rootView);
-			controllerMapping.addWithChildren(rootController);
+			controllerMapping.addIfNotPresent(serverContext, List.of(rootStruct), rootViews);
 
 			connector.registerApplicationProtocol(
-					protocolName, new BikServerConnectionFactory(bikProtocol, controllerContext)
+					protocolName, new BikServerConnectionFactory(bikProtocol, serverContext)
 			);
 			connector.start();
 			bikProtocol.waitUntilServerShouldStop();
@@ -59,13 +58,13 @@ public class BikServer {
 		}
 	}
 
-	private static BlockingQueue<BitServer.GlobalRunnable> createGlobalQueueWithDrainingThread(ReadWriteLock lock) {
+	private static BlockingQueue<BitServerContext.GlobalRunnable> createGlobalQueueWithDrainingThread(ReadWriteLock lock) {
 		// TODO BITSER Move this logic to BitServer?
-		var queue = new ArrayBlockingQueue<BitServer.GlobalRunnable>(100);
+		var queue = new ArrayBlockingQueue<BitServerContext.GlobalRunnable>(100);
 
 		var thread = new Thread(() -> {
 			while (true) {
-				BitServer.GlobalRunnable nextTask;
+				BitServerContext.GlobalRunnable nextTask;
 				try {
 					nextTask = queue.take();
 				} catch (InterruptedException e) {
