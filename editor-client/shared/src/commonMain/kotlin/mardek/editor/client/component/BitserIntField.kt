@@ -16,23 +16,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientChangeState
+import com.github.knokko.bitser.connection.BitClientSimpleFlatField
 import kotlinx.coroutines.launch
 import mardek.editor.client.inventory.fontSize
 import java.lang.Integer.parseInt
 
 @Composable
-fun BitserIntField(field: BitClient.SimpleFlatField<Int>) {
+fun BitserIntField(field: BitClientSimpleFlatField<Int>) {
 	val mutateScope = rememberCoroutineScope()
 	val textFieldState = rememberTextFieldState()
-	var changeState by remember { mutableStateOf(BitClient.ChangeState.UNINITIALIZED) }
+	var changeState by remember { mutableStateOf(BitClientChangeState.UNINITIALIZED) }
 
 	TextField(
 		state = textFieldState,
 		modifier = Modifier.padding(start = 10.dp, bottom = 10.dp, top = 10.dp, end = 30.dp),
 		textStyle = TextStyle(
 			fontSize = fontSize,
-			color = if (changeState == BitClient.ChangeState.MODIFIED) Color.Blue else Color.Unspecified
+			color = if (changeState == BitClientChangeState.MODIFIED) Color.Blue else Color.Unspecified
 		),
 		contentPadding = PaddingValues(5.dp),
 		lineLimits = TextFieldLineLimits.SingleLine,
@@ -44,7 +45,7 @@ fun BitserIntField(field: BitClient.SimpleFlatField<Int>) {
 				println("Invalid $this")
 			}
 		},
-		enabled = changeState != BitClient.ChangeState.UNINITIALIZED,
+		enabled = changeState != BitClientChangeState.UNINITIALIZED,
 	)
 
 	DisposableEffect(field) {

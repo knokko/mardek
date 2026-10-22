@@ -10,16 +10,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientStruct
 import mardek.editor.client.component.*
 import mardek.editor_client.shared.generated.resources.Res
 import mardek.editor_client.shared.generated.resources.edit_24px
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun ItemComponent(item: BitClient.Struct, editItem: (Long) -> Unit) {
+fun ItemComponent(item: BitClientStruct, editItem: (Long) -> Unit) {
 	val mutateScope = rememberCoroutineScope()
-	var itemType by remember { mutableStateOf<BitClient.Struct?>(null) }
+	var itemType by remember { mutableStateOf<BitClientStruct?>(null) }
 
 	Row {
 		BitserText(item.getSimpleField(null, "displayName"))
@@ -39,7 +39,7 @@ fun ItemComponent(item: BitClient.Struct, editItem: (Long) -> Unit) {
 }
 
 @Composable
-private fun ItemTypeNameComponent(itemType: BitClient.Struct) {
+private fun ItemTypeNameComponent(itemType: BitClientStruct) {
 	BitserText(itemType.getSimpleField(null, "displayName"))
 	TrackStruct(itemType)
 }

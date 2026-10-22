@@ -8,11 +8,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientSimpleFlatField
 import kotlinx.coroutines.launch
 
 @Composable
-fun BitserText(field: BitClient.SimpleFlatField<String>) {
+fun BitserText(field: BitClientSimpleFlatField<String>) {
 	val mutateScope = rememberCoroutineScope()
 	var value by remember { mutableStateOf("") }
 

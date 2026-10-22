@@ -2,7 +2,7 @@ package mardek.editor.client
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.*
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.kwik.BikClient
 import mardek.editor.EDITOR_APPLICATION_PROTOCOL_NAME
 import mardek.editor.EDITOR_PORT
@@ -16,9 +16,9 @@ import mardek.editor.client.navbar.NavbarTab
 import java.net.URI
 
 @Composable
-fun App(content: BitClient.Struct) {
+fun App(content: BitClientStruct) {
     val mutateScope = rememberCoroutineScope()
-    var itemsContent by remember { mutableStateOf<BitClient.Struct?>(null) }
+    var itemsContent by remember { mutableStateOf<BitClientStruct?>(null) }
 
     var currentTab by remember { mutableStateOf(NavbarTab.Settings) }
     Column {

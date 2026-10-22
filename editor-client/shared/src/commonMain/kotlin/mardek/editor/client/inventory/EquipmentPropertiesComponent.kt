@@ -7,16 +7,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientStruct
 import mardek.editor.client.component.BitserIntField
 import mardek.editor.client.component.ChildStruct
 import mardek.editor.client.component.TrackStruct
 import mardek.editor.client.component.InlineStructsSaveButton
 
 @Composable
-fun EquipmentPropertiesComponent(equipment: BitClient.Struct) {
+fun EquipmentPropertiesComponent(equipment: BitClientStruct) {
 	val mutateScope = rememberCoroutineScope()
-	var weapon by remember { mutableStateOf<BitClient.Struct?>(null) }
+	var weapon by remember { mutableStateOf<BitClientStruct?>(null) }
 
 	Row {
 		weapon?.let { WeaponPropertiesComponent(it) }

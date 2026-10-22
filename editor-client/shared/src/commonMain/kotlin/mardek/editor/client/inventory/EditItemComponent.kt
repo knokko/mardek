@@ -10,11 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientStruct
 import mardek.editor.client.component.*
 
 @Composable
-fun EditItemComponent(item: BitClient.Struct, goBack: () -> Unit) {
+fun EditItemComponent(item: BitClientStruct, goBack: () -> Unit) {
 	Column {
 		Row {
 			Text("General properties", style = LocalTextStyle.current.copy(fontSize = 1.5.em, fontWeight = FontWeight.Bold))

@@ -1,6 +1,6 @@
 package com.github.knokko.bitser.kwik;
 
-import com.github.knokko.bitser.connection.BitClient;
+import com.github.knokko.bitser.connection.BitClientStruct;
 import com.github.knokko.bitser.connection.BitStructConnectionView;
 import tech.kwik.core.QuicClientConnection;
 import tech.kwik.core.QuicConnection;
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BikClient {
 
-	public static BitClient.Struct connect(
+	public static BitClientStruct connect(
 			URI uri, String protocol,
 			BitStructConnectionView rootView, int rootViewIndex,
 			BikClientProtocol bikProtocol
@@ -29,7 +29,7 @@ public class BikClient {
 
 		var connection = builder.build();
 
-		var rootStructFuture = new CompletableFuture<BitClient.Struct>();
+		var rootStructFuture = new CompletableFuture<BitClientStruct>();
 
 		BikClientStreamFactory[] streamFactory = { null };
 
@@ -44,7 +44,7 @@ public class BikClient {
 
 					streamFactory[0] = new BikClientStreamFactory(new DataOutputStream(stream.getOutputStream()));
 
-					var rootConnection = new BitClient.Struct(
+					var rootConnection = new BitClientStruct(
 							rootView,
 							streamFactory[0].createStream(0, rootViewIndex),
 							streamFactory[0],

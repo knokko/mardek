@@ -6,13 +6,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientStruct
+import com.github.knokko.bitser.connection.BitClientStructList
 import mardek.editor.client.component.ChildStructList
 import mardek.editor.client.component.TrackStruct
 import mardek.editor.client.navbar.NavbarTab
 
 @Composable
-fun ItemsContentTabs(itemsContent: BitClient.Struct, currentTab: NavbarTab) {
+fun ItemsContentTabs(itemsContent: BitClientStruct, currentTab: NavbarTab) {
 	if (currentTab == NavbarTab.ItemTypes) OuterItemTypeOverview(itemsContent)
 	if (currentTab == NavbarTab.Items) OuterItemOverview(itemsContent)
 
@@ -20,9 +21,9 @@ fun ItemsContentTabs(itemsContent: BitClient.Struct, currentTab: NavbarTab) {
 }
 
 @Composable
-private fun OuterItemTypeOverview(itemsContent: BitClient.Struct) {
+private fun OuterItemTypeOverview(itemsContent: BitClientStruct) {
 	val mutateScope = rememberCoroutineScope()
-	var itemTypes by remember { mutableStateOf<BitClient.StructList?>(null)}
+	var itemTypes by remember { mutableStateOf<BitClientStructList?>(null)}
 
 	itemTypes?.let { ItemTypeOverview(it) }
 
@@ -30,9 +31,9 @@ private fun OuterItemTypeOverview(itemsContent: BitClient.Struct) {
 }
 
 @Composable
-private fun OuterItemOverview(itemsContent: BitClient.Struct) {
+private fun OuterItemOverview(itemsContent: BitClientStruct) {
 	val mutateScope = rememberCoroutineScope()
-	var items by remember { mutableStateOf<BitClient.StructList?>(null)}
+	var items by remember { mutableStateOf<BitClientStructList?>(null)}
 
 	items?.let { ItemOverview(it) }
 

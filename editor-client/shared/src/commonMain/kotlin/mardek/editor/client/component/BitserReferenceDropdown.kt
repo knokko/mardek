@@ -15,11 +15,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientChangeState
+import com.github.knokko.bitser.connection.BitClientStructReferenceField
 import kotlinx.coroutines.launch
 
 @Composable
-fun BitserReferenceDropdown(field: BitClient.StructReferenceField) {
+fun BitserReferenceDropdown(field: BitClientStructReferenceField) {
 	val mutateScope = rememberCoroutineScope()
 	val selectableControllerIDs = remember { mutableStateListOf<Long>() }
 
@@ -33,10 +34,10 @@ fun BitserReferenceDropdown(field: BitClient.StructReferenceField) {
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun InnerBitserReferenceDropdown(field: BitClient.StructReferenceField, selectableControllerIDs: List<Long>) {
+private fun InnerBitserReferenceDropdown(field: BitClientStructReferenceField, selectableControllerIDs: List<Long>) {
 	val mutateScope = rememberCoroutineScope()
 	var controllerID by remember { mutableStateOf<Long?>(null) }
-	var changeState by remember { mutableStateOf(BitClient.ChangeState.UNINITIALIZED) }
+	var changeState by remember { mutableStateOf(BitClientChangeState.UNINITIALIZED) }
 	var expanded by remember { mutableStateOf(false) }
 
 	ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
@@ -70,10 +71,10 @@ private fun InnerBitserReferenceDropdown(field: BitClient.StructReferenceField, 
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun OuterBitserReferenceDropdown(field: BitClient.StructReferenceField, selectableControllerIDs: List<Long>) {
+private fun OuterBitserReferenceDropdown(field: BitClientStructReferenceField, selectableControllerIDs: List<Long>) {
 	val mutateScope = rememberCoroutineScope()
 	var controllerID by remember { mutableStateOf<Long?>(null) }
-	var changeState by remember { mutableStateOf(BitClient.ChangeState.UNINITIALIZED) }
+	var changeState by remember { mutableStateOf(BitClientChangeState.UNINITIALIZED) }
 	var expanded by remember { mutableStateOf(false) }
 
 	ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {

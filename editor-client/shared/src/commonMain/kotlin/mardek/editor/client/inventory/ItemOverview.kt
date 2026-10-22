@@ -25,14 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientStructList
 import kotlinx.coroutines.launch
 import mardek.editor.EditorView
 import mardek.editor.client.component.TrackStructList
 import mardek.editor.client.component.TrackStructListElements
 
 @Composable
-private fun ItemRow(list: BitClient.StructList, controllerID: Long, scrollState: ScrollState, editItem: (Long) -> Unit) {
+private fun ItemRow(list: BitClientStructList, controllerID: Long, scrollState: ScrollState, editItem: (Long) -> Unit) {
 	println("ItemRow($controllerID)")
 	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
 		ItemComponent(list.createConnectionToElement(controllerID, 0), editItem)
@@ -40,7 +40,7 @@ private fun ItemRow(list: BitClient.StructList, controllerID: Long, scrollState:
 }
 
 @Composable
-private fun InnerItemList(list: BitClient.StructList, controllerIDs: List<Long>, editItem: (Long) -> Unit) {
+private fun InnerItemList(list: BitClientStructList, controllerIDs: List<Long>, editItem: (Long) -> Unit) {
 	println("InnerItemList")
 	val scrollState = rememberScrollState()
 
@@ -69,7 +69,7 @@ private fun InnerItemList(list: BitClient.StructList, controllerIDs: List<Long>,
 }
 
 @Composable
-fun ItemOverview(list: BitClient.StructList) {
+fun ItemOverview(list: BitClientStructList) {
 	println("ItemOverview")
 	val mutateScope = rememberCoroutineScope()
 	val controllerIDs = remember { mutableStateListOf<Long>() }

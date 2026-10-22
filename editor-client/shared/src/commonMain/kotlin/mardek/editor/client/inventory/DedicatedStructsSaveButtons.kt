@@ -8,14 +8,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientStruct
 import kotlinx.coroutines.launch
 import mardek.editor_client.shared.generated.resources.Res
 import mardek.editor_client.shared.generated.resources.save_24px
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun DedicatedStructsSaveButtons(structs: Array<BitClient.Struct?>, goBack: () -> Unit) {
+fun DedicatedStructsSaveButtons(structs: Array<BitClientStruct?>, goBack: () -> Unit) {
 	val mutateScope = rememberCoroutineScope()
 	val properStructs = structs.filterNotNull()
 	val canSave = properStructs.map { remember { mutableStateOf(false) } }

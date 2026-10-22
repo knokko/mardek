@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import com.github.knokko.bitser.connection.BitClient
+import com.github.knokko.bitser.connection.BitClientStructList
 import mardek.editor.EditorView
 import mardek.editor.client.component.TrackStructList
 import mardek.editor.client.component.TrackStructListElements
@@ -36,7 +36,7 @@ val fontSize = 1.1.em
 val baseModifiers = arrayOf(300.dp, 300.dp, 300.dp).map { Modifier.width(it) }
 
 @Composable
-private fun ItemTypeRow(list: BitClient.StructList, controllerID: Long, scrollState: ScrollState) {
+private fun ItemTypeRow(list: BitClientStructList, controllerID: Long, scrollState: ScrollState) {
 	println("ItemTypeRow($controllerID)")
 	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
 		ItemTypeComponent(list.createConnectionToElement(controllerID, 0))
@@ -60,7 +60,7 @@ private fun ItemTypeRow(list: BitClient.StructList, controllerID: Long, scrollSt
 }
 
 @Composable
-private fun InnerItemTypeList(list: BitClient.StructList, controllerIDs: List<Long>) {
+private fun InnerItemTypeList(list: BitClientStructList, controllerIDs: List<Long>) {
 	println("InnerItemTypeList")
 	val scrollState = rememberScrollState()
 
@@ -90,7 +90,7 @@ private fun InnerItemTypeList(list: BitClient.StructList, controllerIDs: List<Lo
 }
 
 @Composable
-fun ItemTypeOverview(list: BitClient.StructList) {
+fun ItemTypeOverview(list: BitClientStructList) {
 	println("ItemTypeOverview")
 	val controllerIDs = remember { mutableStateListOf<Long>() }
 	var isLoading by remember { mutableStateOf(true) }
