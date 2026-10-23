@@ -11,10 +11,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import com.github.knokko.bitser.connection.BitClientStruct
+import mardek.content.inventory.ItemType
 import mardek.editor.client.component.*
 
 @Composable
-fun EditItemComponent(item: BitClientStruct, goBack: () -> Unit) {
+fun EditItemComponent(item: BitClientStruct, itemsContent: BitClientStruct, goBack: () -> Unit) {
 	Column {
 		Row {
 			Text("General properties", style = LocalTextStyle.current.copy(fontSize = 1.5.em, fontWeight = FontWeight.Bold))
@@ -28,7 +29,10 @@ fun EditItemComponent(item: BitClientStruct, goBack: () -> Unit) {
 		Row { BitserBigTextField(item.getSimpleField(null, "description")) }
 		Row {
 			Text("Type:")
-			BitserReferenceDropdown(item.getStructReferenceField(null, "type"))
+			BitserReferenceDropdown<ItemType>(
+				item.getStructReferenceField(null, "type"),
+				itemsContent, null, "itemTypes", 0
+			) { it.displayName }
 		}
 		// TODO BITSER Element
 		Row {

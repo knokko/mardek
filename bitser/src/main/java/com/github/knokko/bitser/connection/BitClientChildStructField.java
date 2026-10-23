@@ -13,6 +13,7 @@ public class BitClientChildStructField extends BitClientField {
 
 	private record Listener(Consumer<BitClientStruct> callback, int viewIndex) {}
 
+	private boolean finishedInitialization = false;
 	private long serverControllerID = -1L;
 	private final BitClientStream.Factory streamFactory;
 	private final List<Listener> listeners = new ArrayList<>();
@@ -33,6 +34,7 @@ public class BitClientChildStructField extends BitClientField {
 
 	@Override
 	synchronized void postReadFromServerInitial() {
+		finishedInitialization = true;
 		if (view.shouldDownloadDuringInitialization(fieldID)) {
 			var childViews = Objects.requireNonNull(view.getChildStructViewsOrNull(fieldID));
 			for (var listener : listeners) {
@@ -72,7 +74,7 @@ public class BitClientChildStructField extends BitClientField {
 		var listener = new Listener(updateChildStruct, viewIndex);
 		listeners.add(listener);
 
-		if (serverControllerID != -1L) {
+		if (finishedInitialization) {
 			var childViews = Objects.requireNonNull(view.getChildStructViewsOrNull(fieldID));
 			var childStream = streamFactory.createStream(serverControllerID, viewIndex);
 			updateChildStruct.accept(new BitClientStruct(

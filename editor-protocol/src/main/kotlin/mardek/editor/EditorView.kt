@@ -1,5 +1,7 @@
 package mardek.editor
 
+import com.github.knokko.bitser.connection.BitFlatStructListConnectionView
+import com.github.knokko.bitser.connection.BitFlatStructView
 import com.github.knokko.bitser.connection.BitStructConnectionView
 import com.github.knokko.bitser.connection.BitStructListConnectionView
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
@@ -35,19 +37,27 @@ object EditorView {
 		}
 		fullItemTypesView.finishRegistration()
 
-		val nameOnlyItemTypeView = BitStructConnectionView(BITSER.getProtocol(ItemType::class.java))
-		nameOnlyItemTypeView.markSimpleField(null, "displayName", true, false)
+		val nameOnlyItemTypeView = BitFlatStructView(BITSER.getProtocol(ItemType::class.java))
+		nameOnlyItemTypeView.markSimpleField(null, "displayName")
 		nameOnlyItemTypeView.finishRegistration()
 
-		val nameOnlyItemTypesView = BitStructListConnectionView<ItemType>(nameOnlyItemTypeView.protocol)
-		nameOnlyItemTypesView.addElementsView(nameOnlyItemTypeView)
-		nameOnlyItemTypesView.finishRegistration()
+		val nameOnlyItemTypesView = BitFlatStructListConnectionView<ItemType>(nameOnlyItemTypeView)
+
+		val nameOnlyItemTypeReferenceView = BitStructConnectionView(BITSER.getProtocol(ItemType::class.java))
+		nameOnlyItemTypeReferenceView.markSimpleField(null, "displayName", true, true) // TODO BITSER Set canWrite to false
+		nameOnlyItemTypeReferenceView.finishRegistration()
+
+		val nameOnlyItemTypesReferenceView = BitStructListConnectionView<ItemType>(
+			nameOnlyItemTypeReferenceView.protocol
+		)
+		nameOnlyItemTypesReferenceView.addElementsView(nameOnlyItemTypeReferenceView)
+		nameOnlyItemTypesReferenceView.finishRegistration()
 
 		val itemView = BitStructConnectionView(BITSER.getProtocol(Item::class.java))
 		itemView.markAllSimpleFields(true, true)
 		itemView.markStructReferenceField(
 			null, "type",
-			listOf(nameOnlyItemTypeView), true, true
+			listOf(nameOnlyItemTypeReferenceView), true, true
 		)
 		itemView.finishRegistration()
 
@@ -99,13 +109,9 @@ object EditorView {
 		itemsView.finishRegistration()
 
 		val itemsContentView = BitStructConnectionView(BITSER.getProtocol(ItemsContent::class.java))
-		itemsContentView.markStructListField(
-			null,
-			"itemTypes",
-			listOf(fullItemTypesView, nameOnlyItemTypesView),
-			false, // TODO BITSER Change to true, once we support it
-		)
-		itemsContentView.markStructListField(null, "items", listOf(itemsView), true)
+		itemsContentView.markStructListField(null, "itemTypes", fullItemTypesView, false) // TODO BITSER Change to true, once we support it
+		itemsContentView.markFlatStructListField(null, "itemTypes", nameOnlyItemTypesView, true)
+		itemsContentView.markStructListField(null, "items", itemsView, true)
 		itemsContentView.finishRegistration()
 
 		val contentView = BitStructConnectionView(BITSER.getProtocol(Content::class.java))

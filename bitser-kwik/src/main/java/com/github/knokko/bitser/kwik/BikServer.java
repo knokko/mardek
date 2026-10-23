@@ -6,6 +6,7 @@ import tech.kwik.core.server.ServerConnector;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -42,7 +43,7 @@ public class BikServer {
 			var serverContext = new BitServerContext(
 					rootStruct, controllerMapping, globalLock, globalQueue
 			);
-			controllerMapping.addIfNotPresent(serverContext, List.of(rootStruct), rootViews);
+			controllerMapping.addIfNotPresent(serverContext, List.of(rootStruct), rootViews, new ArrayList<>());
 
 			connector.registerApplicationProtocol(
 					protocolName, new BikServerConnectionFactory(bikProtocol, serverContext)

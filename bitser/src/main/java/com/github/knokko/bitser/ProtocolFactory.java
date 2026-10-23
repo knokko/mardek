@@ -13,7 +13,20 @@ class ProtocolFactory {
 	};
 
 	static BitStructProtocol createProtocol(Bitser bitser, BitStructWrapper<?> bitStruct, Class<?> objectClass) {
-		var protocol = new BitStructProtocol(objectClass, bitser);
+		var protocol = new BitStructProtocol(objectClass, bitser, fieldValues -> {
+			var structInstance = bitStruct.mutator.createEmptyInstance.get();
+			for (var structClass : bitStruct.classHierarchy) {
+				var session = structClass.mutator.createSession.apply(structInstance);
+				for (var entry : fieldValues.entrySet()) {
+					var field = entry.getKey();
+					if (field.getDeclaringClass() == structClass.myClass) {
+						session.set(field, entry.getValue());
+					}
+				}
+				session.finish();
+			}
+			return structInstance;
+		});
 
 		for (var bitClass : bitStruct.classHierarchy) {
 			for (var field : bitClass.fields) {

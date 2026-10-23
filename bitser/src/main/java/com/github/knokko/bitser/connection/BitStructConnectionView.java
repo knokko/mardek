@@ -1,5 +1,6 @@
 package com.github.knokko.bitser.connection;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BitStructConnectionView extends BitConnectionView {
@@ -10,7 +11,8 @@ public class BitStructConnectionView extends BitConnectionView {
 	private final boolean[] isConstant;
 	private final boolean[] flatStructs;
 	private final BitStructConnectionView[][] childStructs;
-	private final BitStructListConnectionView<?>[][] structLists;
+	private final List<BitStructListConnectionView<?>>[] structLists;
+	private final List<BitFlatStructListConnectionView<?>>[] flatStructLists;
 	private final BitStructConnectionView[][] referenceStructs;
 
 	private boolean finishedRegistration;
@@ -26,7 +28,10 @@ public class BitStructConnectionView extends BitConnectionView {
 		this.isConstant = new boolean[numFields];
 		this.flatStructs = new boolean[numFields];
 		this.childStructs = new BitStructConnectionView[numFields][];
-		this.structLists = new BitStructListConnectionView[numFields][];
+		//noinspection unchecked
+		this.structLists = new List[numFields];
+		//noinspection unchecked
+		this.flatStructLists = new List[numFields];
 		this.referenceStructs = new BitStructConnectionView[numFields][];
 	}
 
@@ -68,20 +73,6 @@ public class BitStructConnectionView extends BitConnectionView {
 		return fieldID;
 	}
 
-	private int getUnclaimedStructListField(Class<?> declaringClass, String fieldName) {
-		assertRegistrationIsOpen();
-
-		int fieldID = protocol.getFieldId(declaringClass, fieldName);
-		var fieldType = protocol.getFieldType(fieldID);
-		if (fieldType != BitStructProtocol.FieldType.STRUCT_LIST) {
-			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a struct list field");
-		}
-		if (structLists[fieldID] != null) {
-			throw new IllegalStateException("Field " + fieldName + " is already a struct list");
-		}
-		return fieldID;
-	}
-
 	public void markChildStructField(
 			Class<?> declaringClass, String fieldName,
 			List<BitStructConnectionView> childViews, boolean constant
@@ -112,10 +103,34 @@ public class BitStructConnectionView extends BitConnectionView {
 
 	public void markStructListField(
 			Class<?> declaringClass, String fieldName,
-			List<BitStructListConnectionView<?>> listViews, boolean constant
+			BitStructListConnectionView<?> listView, boolean constant
 	) {
-		int fieldID = getUnclaimedStructListField(declaringClass, fieldName);
-		structLists[fieldID] = listViews.toArray(new BitStructListConnectionView<?>[0]);
+		assertRegistrationIsOpen();
+
+		int fieldID = protocol.getFieldId(declaringClass, fieldName);
+		var fieldType = protocol.getFieldType(fieldID);
+		if (fieldType != BitStructProtocol.FieldType.STRUCT_LIST) {
+			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a struct list field");
+		}
+		if (structLists[fieldID] == null) structLists[fieldID] = new ArrayList<>();
+		structLists[fieldID].add(listView);
+		canDownloadFlat[fieldID] = true;
+		isConstant[fieldID] = constant;
+	}
+
+	public void markFlatStructListField(
+			Class<?> declaringClass, String fieldName,
+			BitFlatStructListConnectionView<?> listView, boolean constant
+	) {
+		assertRegistrationIsOpen();
+
+		int fieldID = protocol.getFieldId(declaringClass, fieldName);
+		var fieldType = protocol.getFieldType(fieldID);
+		if (fieldType != BitStructProtocol.FieldType.STRUCT_LIST) {
+			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a struct list field");
+		}
+		if (flatStructLists[fieldID] == null) flatStructLists[fieldID] = new ArrayList<>();
+		flatStructLists[fieldID].add(listView);
 		canDownloadFlat[fieldID] = true;
 		isConstant[fieldID] = constant;
 	}
@@ -200,7 +215,13 @@ public class BitStructConnectionView extends BitConnectionView {
 	List<BitStructListConnectionView<?>> getStructListViewsOrNull(int fieldID) {
 		assertRegistrationIsClosed();
 		if (structLists[fieldID] == null) return null;
-		return List.of(structLists[fieldID]);
+		return new ArrayList<>(structLists[fieldID]);
+	}
+
+	List<BitFlatStructListConnectionView<?>> getFlatStructListViewsOrNull(int fieldID) {
+		assertRegistrationIsClosed();
+		if (flatStructLists[fieldID] == null) return null;
+		return new ArrayList<>(flatStructLists[fieldID]);
 	}
 
 	List<BitStructConnectionView> getStructReferenceViewsOrNull(int fieldID) {

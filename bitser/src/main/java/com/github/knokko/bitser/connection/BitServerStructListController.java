@@ -8,20 +8,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 
 import static java.lang.Math.max;
 
 public class BitServerStructListController<T> extends BitServerController {
 
+	private static final byte[] CANCEL_TOKEN = new byte[0];
+
 	final List<T> structList;
 	final BitStructProtocol elementsProtocol;
-	final List<BitStructListConnectionView<T>> views = new ArrayList<>();
-	final List<BitStructConnectionView> elementsViews = new ArrayList<>(); // TODO BITSER Hm... how do I insert them?
-	final List<StructListConnection> connections = new ArrayList<>();
+	final List<BitStructListConnectionView<T>> nestedViews = new ArrayList<>();
+	final List<BitFlatStructListConnectionView<T>> flatViews = new ArrayList<>();
+	final List<BitStructConnectionView> elementsViews = new ArrayList<>();
+	final List<NestedConnection> nestedConnections = new ArrayList<>();
+	final List<FlatConnection> flatConnections = new ArrayList<>();
+	private final Semaphore hasFlatUpdatesSemaphore = new Semaphore(0);
 
 	public BitServerStructListController(
 			BitServerContext context, List<T> structList, BitStructProtocol elementsProtocol
@@ -29,6 +36,10 @@ public class BitServerStructListController<T> extends BitServerController {
 		super(context);
 		this.structList = structList;
 		this.elementsProtocol = elementsProtocol;
+
+		var flatUpdateThread = new Thread(this::runFlatUpdateThread);
+		flatUpdateThread.setDaemon(true);
+		flatUpdateThread.start(); // TODO BITSER Stop the thread after this controller is closed
 	}
 
 	@Override
@@ -36,59 +47,129 @@ public class BitServerStructListController<T> extends BitServerController {
 		return structList;
 	}
 
+	private void runFlatUpdateThread() {
+		while (true) {
+			hasFlatUpdatesSemaphore.acquireUninterruptibly();
+			hasFlatUpdatesSemaphore.drainPermits();
+			System.out.println("Received a flat update");
+
+			context.globalLock().readLock().lock();
+			try {
+				synchronized (this) {
+					for (var connection : flatConnections) {
+						try {
+							connection.toClientQueue.add(connection.generatePacketForClient());
+						} catch (Throwable failed) {
+							throw new RuntimeException(failed);
+						}
+					}
+				}
+			} finally {
+				context.globalLock().readLock().unlock();
+			}
+		}
+	}
+
 	@Override
 	public void addClient(
 			OutputStream toClient, InputStream fromClient, Runnable closeStream,
 			int viewIndex
 	) {
-		var connection = new StructListConnection(
-				new BitOutputStream(toClient), new BitInputStream(fromClient), closeStream,
-				views.get(viewIndex)
-		);
+		if (viewIndex < nestedViews.size()) {
+			var connection = new NestedConnection(
+					new BitOutputStream(toClient), new BitInputStream(fromClient), closeStream,
+					nestedViews.get(viewIndex)
+			);
 
-		context.globalLock().readLock().lock();
-		try {
-			connections.add(connection);
+			context.globalLock().readLock().lock();
+			try {
+				synchronized (this) {
+					nestedConnections.add(connection);
 
-			if (connection.view.getNumOperations() > 0) {
-				var fromClientThread = new Thread(connection::readFromClient);
-				fromClientThread.setDaemon(true);
-				fromClientThread.start();
+					if (connection.view.getNumOperations() > 0) {
+						var fromClientThread = new Thread(connection::readFromClient);
+						fromClientThread.setDaemon(true);
+						fromClientThread.start();
+					}
+
+					connection.writeToClient();
+				}
+			} finally {
+				context.globalLock().readLock().unlock();
 			}
+		} else {
+			var connection = new FlatConnection(
+					new BitOutputStream(toClient), new BitInputStream(fromClient), closeStream,
+					flatViews.get(viewIndex - nestedViews.size())
+			);
 
-			connection.writeToClient();
-		} finally {
-			context.globalLock().readLock().unlock();
+			context.globalLock().readLock().lock();
+			try {
+				synchronized (this) {
+					flatConnections.add(connection);
+
+					if (true) { // TODO BITSER Find a way to not need this
+						var fromClientThread = new Thread(connection::readFromClient);
+						fromClientThread.setDaemon(true);
+						fromClientThread.start();
+					}
+
+					connection.writeToClient();
+				}
+			} finally {
+				context.globalLock().readLock().unlock();
+			}
 		}
 	}
 
 	@Override
 	boolean addViewIfNotPresent(BitConnectionView view) {
-		@SuppressWarnings("unchecked")
-		var listView = (BitStructListConnectionView<T>) view;
-		if (listView.elementsProtocol != elementsProtocol) {
-			throw new IllegalArgumentException("Protocol mismatch: " + elementsProtocol + " vs " + listView.elementsProtocol);
+		if (view instanceof BitStructListConnectionView) {
+			@SuppressWarnings("unchecked")
+			var listView = (BitStructListConnectionView<T>) view;
+			if (listView.elementsProtocol != elementsProtocol) {
+				throw new IllegalArgumentException("Protocol mismatch: " + elementsProtocol + " vs " + listView.elementsProtocol);
+			}
+
+			if (nestedViews.contains(listView)) return false;
+			nestedViews.add(listView);
+
+			for (var elementsView : listView.getElementsViews()) {
+				if (!elementsViews.contains(elementsView)) elementsViews.add(elementsView);
+			}
+		} else {
+			@SuppressWarnings("unchecked")
+			var listView = (BitFlatStructListConnectionView<T>) view;
+			if (listView.elementsView.protocol != elementsProtocol) {
+				throw new IllegalArgumentException("Protocol mismatch: " + elementsProtocol + " vs " + listView.elementsView.protocol);
+			}
+
+			if (flatViews.contains(listView)) return false;
+			flatViews.add(listView);
 		}
 
-		if (views.contains(listView)) return false;
-		views.add(listView);
-
-		for (var elementsView : listView.getElementsViews()) {
-			if (!elementsViews.contains(elementsView)) elementsViews.add(elementsView);
-		}
 		return true;
 	}
 
 	@Override
-	void getChildViews(Deque<BitServerControllerMapping.ViewPair> destination) {
+	void addOnChangeSemaphoreIfNotPresent(Semaphore semaphore) {
+		throw new UnsupportedOperationException("Change semaphores are only supported by struct controllers");
+	}
+
+	@Override
+	void getChildViews(
+			Deque<BitServerControllerMapping.ViewPair> destination,
+			Collection<BitServerControllerMapping.SemaphorePair> destinationSemaphores
+	) {
 		for (var element : structList) {
 			for (var view : elementsViews) {
 				destination.add(new BitServerControllerMapping.ViewPair(element, view));
 			}
+			destinationSemaphores.add(new BitServerControllerMapping.SemaphorePair(element, hasFlatUpdatesSemaphore));
 		}
 	}
 
-	private byte[] generatePacketForClients() throws Throwable {
+	private byte[] generatePacketForNestedClients() throws Throwable {
 		return ConnectionHelper.capture(toClients -> {
 			IntegerBitser.encodeUnknownLength(structList.size(), toClients);
 			for (var element : structList) {
@@ -104,18 +185,19 @@ public class BitServerStructListController<T> extends BitServerController {
 	public void refreshClientConnections() throws Throwable {
 		context.globalLock().readLock().lock();
 		try {
-			context.controllerMapping().addIfNotPresent(context, structList, elementsViews);
+			context.controllerMapping().addIfNotPresent(
+					context, structList, elementsViews, List.of(hasFlatUpdatesSemaphore)
+			);
 
-			var packet = generatePacketForClients();
-			for (var connection : connections) connection.toClientQueue.add(packet);
+			var packet = generatePacketForNestedClients();
+			for (var connection : nestedConnections) connection.toClientQueue.add(packet);
+			hasFlatUpdatesSemaphore.release();
 		} finally {
 			context.globalLock().readLock().unlock();
 		}
 	}
 
-	private class StructListConnection {
-
-		private static final byte[] CANCEL_TOKEN = new byte[0];
+	private class NestedConnection {
 
 		final BitOutputStream toClient;
 		final BitInputStream fromClient;
@@ -123,7 +205,7 @@ public class BitServerStructListController<T> extends BitServerController {
 		final BitStructListConnectionView<T> view;
 		final BlockingQueue<byte[]> toClientQueue = new LinkedBlockingQueue<>();
 
-		StructListConnection(
+		NestedConnection(
 				BitOutputStream toClient, BitInputStream fromClient, Runnable closeStream,
 				BitStructListConnectionView<T> view
 		) {
@@ -136,7 +218,7 @@ public class BitServerStructListController<T> extends BitServerController {
 		void writeToClient() {
 			byte[] initialBytes;
 			try {
-				initialBytes = generatePacketForClients();
+				initialBytes = generatePacketForNestedClients();
 			} catch (Throwable failed) {
 				throw new RuntimeException(failed);
 			}
@@ -209,7 +291,105 @@ public class BitServerStructListController<T> extends BitServerController {
 					}
 				}
 			} catch (Throwable failed) {
-				System.err.println("StructListConnection.readFromClient thread died: " + failed.getMessage());
+				System.err.println("StructListController.NestedConnection.readFromClient thread died: " + failed.getMessage());
+			} finally {
+				close();
+			}
+		}
+
+		void close() {
+			try {
+				toClientQueue.add(CANCEL_TOKEN);
+				closeStream.run();
+				fromClient.close();
+				toClient.finish();
+			} catch (IOException alreadyClosed) {
+				// Do nothing when the connections were already dead/closed
+			}
+		}
+	}
+
+	private class FlatConnection {
+
+		final BitOutputStream toClient;
+		final BitInputStream fromClient;
+		final Runnable closeStream;
+		final BitFlatStructListConnectionView<T> view;
+		final BlockingQueue<byte[]> toClientQueue = new LinkedBlockingQueue<>();
+
+		FlatConnection(
+				BitOutputStream toClient, BitInputStream fromClient, Runnable closeStream,
+				BitFlatStructListConnectionView<T> view
+		) {
+			this.toClient = toClient;
+			this.fromClient = fromClient;
+			this.closeStream = closeStream;
+			this.view = view;
+		}
+
+		private byte[] generatePacketForClient() throws Throwable {
+			return ConnectionHelper.capture(toClient -> {
+				IntegerBitser.encodeUnknownLength(structList.size(), toClient);
+				for (var element : structList) {
+					var childController = (BitServerStructController<?>) context.controllerMapping().getControllerByTarget(element);
+					long controllerID = context.controllerMapping().getIdForController(childController);
+					IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
+							controllerID, 0L, Long.MAX_VALUE, toClient
+					);
+
+					for (int fieldID = 0; fieldID < elementsProtocol.getNumFields(); fieldID++) {
+						if (view.elementsView.shouldDownloadSimpleField(fieldID)) {
+							Object fieldValue;
+							childController.lock.readLock().lock();
+							try {
+								fieldValue = elementsProtocol.getFieldValue(element, fieldID);
+							} finally {
+								childController.lock.readLock().unlock();
+							}
+							elementsProtocol.serializeFlatFieldValue(fieldID, toClient, fieldValue);
+						}
+
+						var childStruct = view.elementsView.getChildStructOrNull(fieldID);
+						if (childStruct != null) {
+							throw new UnsupportedOperationException("TODO BITSER: nested structs in flat lists");
+						}
+					}
+				}
+			});
+		}
+
+		void writeToClient() {
+			byte[] initialBytes;
+			try {
+				initialBytes = generatePacketForClient();
+			} catch (Throwable failed) {
+				throw new RuntimeException(failed);
+			}
+
+			var toClientThread = new Thread(() -> {
+				try {
+					toClient.write(initialBytes);
+					toClient.flush();
+
+					while (true) {
+						var nextPacket = toClientQueue.take();
+						if (nextPacket == CANCEL_TOKEN) return;
+						toClient.write(nextPacket);
+						toClient.flush();
+					}
+				} catch (Throwable failed) {
+					throw new RuntimeException(failed);
+				}
+			});
+			toClientThread.setDaemon(true);
+			toClientThread.start();
+		}
+
+		void readFromClient() {
+			try {
+				fromClient.read();
+			} catch (Throwable failed) {
+				System.err.println("StructListController.FlatConnection.readFromClient thread died: " + failed.getMessage());
 			} finally {
 				close();
 			}

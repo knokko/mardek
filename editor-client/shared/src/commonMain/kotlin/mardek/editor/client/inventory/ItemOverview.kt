@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.connection.BitClientStructList
 import kotlinx.coroutines.launch
 import mardek.editor.EditorView
@@ -33,7 +34,6 @@ import mardek.editor.client.component.TrackStructListElements
 
 @Composable
 private fun ItemRow(list: BitClientStructList, controllerID: Long, scrollState: ScrollState, editItem: (Long) -> Unit) {
-	println("ItemRow($controllerID)")
 	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
 		ItemComponent(list.createConnectionToElement(controllerID, 0), editItem)
 	}
@@ -41,19 +41,15 @@ private fun ItemRow(list: BitClientStructList, controllerID: Long, scrollState: 
 
 @Composable
 private fun InnerItemList(list: BitClientStructList, controllerIDs: List<Long>, editItem: (Long) -> Unit) {
-	println("InnerItemList")
 	val scrollState = rememberScrollState()
 
 	Column(modifier = Modifier.fillMaxSize()) {
-		println("Column")
 		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
 			Text("Display name", modifier = baseModifiers[0], fontSize = fontSize)
 			Text("Item type", modifier = baseModifiers[2], fontSize = fontSize)
 		}
 		Box(Modifier.weight(1f)) {
-			println("Box")
 			LazyColumn(modifier = Modifier.fillMaxHeight().background(Color.Cyan)) {
-				println("LazyColumn ${System.identityHashCode(controllerIDs)}")
 				items(controllerIDs, key = { it }) { controllerID ->
 					ItemRow(list, controllerID, scrollState, editItem)
 				}
@@ -69,8 +65,7 @@ private fun InnerItemList(list: BitClientStructList, controllerIDs: List<Long>, 
 }
 
 @Composable
-fun ItemOverview(list: BitClientStructList) {
-	println("ItemOverview")
+fun ItemOverview(list: BitClientStructList, itemsContent: BitClientStruct) {
 	val mutateScope = rememberCoroutineScope()
 	val controllerIDs = remember { mutableStateListOf<Long>() }
 	var itemControllerToEdit by remember { mutableStateOf<Long?>(null) }
@@ -80,7 +75,8 @@ fun ItemOverview(list: BitClientStructList) {
 		Text("Loading...")
 	} else {
 		if (controllerIDs.contains(itemControllerToEdit)) {
-			EditItemComponent(list.createConnectionToElement(itemControllerToEdit!!, 0)) {
+			val item = list.createConnectionToElement(itemControllerToEdit!!, 0)
+			EditItemComponent(item, itemsContent) {
 				mutateScope.launch { itemControllerToEdit = null }
 			}
 		} else {

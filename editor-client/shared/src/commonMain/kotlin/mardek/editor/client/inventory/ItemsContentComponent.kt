@@ -35,7 +35,7 @@ private fun OuterItemOverview(itemsContent: BitClientStruct) {
 	val mutateScope = rememberCoroutineScope()
 	var items by remember { mutableStateOf<BitClientStructList?>(null)}
 
-	items?.let { ItemOverview(it) }
+	items?.let { ItemOverview(it, itemsContent) }
 
 	ChildStructList(mutateScope, itemsContent, null, "items", 0) { items = it }
 }

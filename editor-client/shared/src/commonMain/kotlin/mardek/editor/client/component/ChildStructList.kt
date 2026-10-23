@@ -13,7 +13,7 @@ fun ChildStructList(
 	declaringClass: Class<*>?, fieldName: String, viewIndex: Int, callback: (BitClientStructList) -> Unit
 ) {
 	DisposableEffect(parentStruct) {
-		val listSubscription = parentStruct.subscribeStructList(declaringClass, fieldName, viewIndex) {
+		val listSubscription = parentStruct.subscribeNestedStructList(declaringClass, fieldName, viewIndex) {
 			mutateScope.launch { callback(it) }
 		}
 		onDispose {

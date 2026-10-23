@@ -2,7 +2,9 @@ package com.github.knokko.bitser.connection;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.Deque;
+import java.util.concurrent.Semaphore;
 
 public abstract class BitServerController {
 
@@ -21,5 +23,10 @@ public abstract class BitServerController {
 
 	abstract boolean addViewIfNotPresent(BitConnectionView view);
 
-	abstract void getChildViews(Deque<BitServerControllerMapping.ViewPair> destination);
+	abstract void addOnChangeSemaphoreIfNotPresent(Semaphore semaphore);
+
+	abstract void getChildViews(
+			Deque<BitServerControllerMapping.ViewPair> destination,
+			Collection<BitServerControllerMapping.SemaphorePair> destinationSemaphores
+	);
 }

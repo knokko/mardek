@@ -33,10 +33,17 @@ public class BitStructProtocol {
 		Object deserialize(BitInputStream input) throws Throwable;
 	}
 
+	@FunctionalInterface
+	public interface PartialObjectFactory {
+
+		Object createPartialInstance(Map<Field, Object> fieldValues) throws Throwable;
+	}
+
 	private record FieldKey(Class<?> declaringClass, String fieldName) {}
 
 	private record FieldInfo(
 			int id, FieldType type,
+			Field classField,
 			Serializer flatSerializer, Deserializer flatDeserializer,
 			Function<Object, Object> getFieldValue,
 			BiConsumer<Object, Object> setFieldValue
@@ -45,14 +52,16 @@ public class BitStructProtocol {
 	private final Class<?> objectClass;
 	private final Bitser bitser;
 	private final Map<FieldKey, FieldInfo> mapping = new HashMap<>();
+	final PartialObjectFactory createPartialInstance;
 	private FieldInfo[] idToInfo;
 
 	private int numFields;
 	private boolean finishedRegistration;
 
-	public BitStructProtocol(Class<?> objectClass, Bitser bitser) {
+	public BitStructProtocol(Class<?> objectClass, Bitser bitser, PartialObjectFactory createPartialInstance) {
 		this.objectClass = objectClass;
 		this.bitser = bitser;
+		this.createPartialInstance = createPartialInstance;
 	}
 
 	@Override
@@ -64,7 +73,7 @@ public class BitStructProtocol {
 
 		int fieldID = numFields;
 		FieldInfo fieldInfo = new FieldInfo(
-				fieldID, type, flatSerializer, flatDeserializer,
+				fieldID, type, field, flatSerializer, flatDeserializer,
 				structInstance -> {
 					try {
 						return field.get(structInstance);
@@ -117,6 +126,10 @@ public class BitStructProtocol {
 		} else {
 			throw new IllegalArgumentException("Unknown field " + fieldName);
 		}
+	}
+
+	public Field getFieldByID(int fieldID) {
+		return idToInfo[fieldID].classField;
 	}
 
 	public Object getFieldValue(Object structInstance, int fieldID) {

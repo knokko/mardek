@@ -1,12 +1,15 @@
 package com.github.knokko.bitser.connection;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class BitServerControllerMapping {
 
 	record ViewPair(Object targetObject, BitConnectionView view) {}
+
+	record SemaphorePair(Object targetObject, Semaphore semaphore) {}
 
 	private final Map<BitServerController, Long> controllerToID = new IdentityHashMap<>();
 	private final Map<Long, BitServerController> idToController = new HashMap<>();
@@ -18,14 +21,17 @@ public class BitServerControllerMapping {
 	public void addIfNotPresent(
 			BitServerContext context,
 			Collection<?> objects,
-			List<? extends BitConnectionView> views
+			List<? extends BitConnectionView> views,
+			List<Semaphore> semaphores
 	) {
 		lock.writeLock().lock();
 		try {
 			var remainingViews = new ArrayDeque<ViewPair>();
+			var semaphorePairs = new ArrayList<SemaphorePair>();
 
 			for (var object : objects) {
 				for (var view : views.reversed()) remainingViews.push(new ViewPair(object, view));
+				for (var semaphore : semaphores) semaphorePairs.add(new SemaphorePair(object, semaphore));
 			}
 
 			while (!remainingViews.isEmpty()) {
@@ -42,8 +48,12 @@ public class BitServerControllerMapping {
 
 				boolean didModify = controller.addViewIfNotPresent(nextViewPair.view);
 				if (didModify) {
-					controller.getChildViews(remainingViews);
+					controller.getChildViews(remainingViews, semaphorePairs);
 				}
+			}
+
+			for (var pair : semaphorePairs) {
+				targetToController.get(pair.targetObject).addOnChangeSemaphoreIfNotPresent(pair.semaphore);
 			}
 		} finally {
 			lock.writeLock().unlock();

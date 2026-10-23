@@ -1,5 +1,6 @@
 package com.github.knokko.bitser.connection;
 
+import com.github.knokko.bitser.IntegerBitser;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 
@@ -47,7 +48,11 @@ public class BitClientStruct {
 			}
 
 			if (fieldType == BitStructProtocol.FieldType.REFERENCE) {
-				this.fields[fieldID] = new BitClientStructReferenceField(streamFactory, view, fieldID);
+				var referenceField = new BitClientStructReferenceField(streamFactory, view, fieldID);
+				this.fields[fieldID] = referenceField;
+				referenceField.subscribeChangeState(newChangeState -> this.updateCanSave(
+						referenceField.fieldID, newChangeState == BitClientChangeState.MODIFIED
+				));
 			}
 		}
 	}
@@ -78,8 +83,16 @@ public class BitClientStruct {
 			for (int fieldID = 0; fieldID < view.protocol.getNumFields(); fieldID++) {
 				if (!view.canDownloadFlat(fieldID)) continue;
 				if (fromServer.read()) {
-					Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, fromServer);
-					fields[fieldID].setFromServer(newValue);
+					if (view.getStructReferenceViewsOrNull(fieldID) == null) {
+						Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, fromServer);
+						fields[fieldID].setFromServer(newValue);
+					} else {
+						long controllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+								0L, Long.MAX_VALUE, fromServer
+						);
+						fields[fieldID].setFromServer(controllerID);
+					}
+
 				}
 			}
 			fromServer.discardCurrentByte();
@@ -113,10 +126,17 @@ public class BitClientStruct {
 		return getChildStructField(declaringClass, fieldName).subscribe(updateChildStruct, viewIndex);
 	}
 
-	public Object subscribeStructList(
+	public Object subscribeNestedStructList(
 			Class<?> declaringClass, String fieldName, int viewIndex, Consumer<BitClientStructList> updateStructList
 	) {
-		return getStructListField(declaringClass, fieldName).subscribe(updateStructList, viewIndex);
+		return getStructListField(declaringClass, fieldName).subscribeNested(viewIndex, updateStructList);
+	}
+
+	public <T> Object subscribeFlatStructList(
+			Class<?> declaringClass, String fieldName, int viewIndex,
+			Consumer<BitClientFlatStructList<T>> updateStructList
+	) {
+		return getStructListField(declaringClass, fieldName).subscribeFlat(viewIndex, updateStructList);
 	}
 
 	public void cancelChildStructSubscription(Class<?> declaringClass, String fieldName, Object subscription) {

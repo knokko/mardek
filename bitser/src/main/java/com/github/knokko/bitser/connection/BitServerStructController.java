@@ -9,6 +9,9 @@ import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class BitServerStructController<T> extends BitServerController {
 
@@ -16,6 +19,8 @@ public class BitServerStructController<T> extends BitServerController {
 	final BitStructProtocol protocol;
 	final List<BitStructConnectionView> views = new ArrayList<>();
 	final List<Connection> connections = new ArrayList<>();
+	final ReadWriteLock lock = new ReentrantReadWriteLock();
+	final List<Semaphore> onChangeSemaphores = new ArrayList<>();
 
 	public BitServerStructController(BitServerContext context, T structInstance, BitStructProtocol protocol) {
 		super(context);
@@ -40,7 +45,8 @@ public class BitServerStructController<T> extends BitServerController {
 
 		context.globalLock().readLock().lock();
 		try {
-			synchronized (this) {
+			lock.writeLock().lock();
+			try {
 				connections.add(connection);
 
 				if (connection.view.hasAtLeastOneUploadableField()) {
@@ -50,6 +56,8 @@ public class BitServerStructController<T> extends BitServerController {
 				}
 
 				connection.writeToClient();
+			} finally {
+				lock.writeLock().unlock();
 			}
 		} finally {
 			context.globalLock().readLock().unlock();
@@ -69,7 +77,15 @@ public class BitServerStructController<T> extends BitServerController {
 	}
 
 	@Override
-	void getChildViews(Deque<BitServerControllerMapping.ViewPair> destination) {
+	void addOnChangeSemaphoreIfNotPresent(Semaphore semaphore) {
+		if (!onChangeSemaphores.contains(semaphore)) onChangeSemaphores.add(semaphore);
+	}
+
+	@Override
+	void getChildViews(
+			Deque<BitServerControllerMapping.ViewPair> destination,
+			Collection<BitServerControllerMapping.SemaphorePair> destinationSemaphores
+	) {
 		for (int fieldID = 0; fieldID < protocol.getNumFields(); fieldID++) {
 			for (var view : views) {
 
@@ -86,6 +102,15 @@ public class BitServerStructController<T> extends BitServerController {
 					@SuppressWarnings("unchecked")
 					var structList = (List<T>) protocol.getFieldValue(structInstance, fieldID);
 					for (var structListView : structListViews) {
+						destination.add(new BitServerControllerMapping.ViewPair(structList, structListView));
+					}
+				}
+
+				var flatStructListViews = view.getFlatStructListViewsOrNull(fieldID);
+				if (flatStructListViews != null) {
+					@SuppressWarnings("unchecked")
+					var structList = (List<T>) protocol.getFieldValue(structInstance, fieldID);
+					for (var structListView : flatStructListViews) {
 						destination.add(new BitServerControllerMapping.ViewPair(structList, structListView));
 					}
 				}
@@ -211,7 +236,8 @@ public class BitServerStructController<T> extends BitServerController {
 
 					context.globalLock().readLock().lock();
 					try {
-						synchronized (BitServerStructController.this) {
+						lock.writeLock().lock();
+						try {
 							for (int fieldID = 0; fieldID < numFields; fieldID++) {
 								if (hasChanges[fieldID]) {
 									var referenceViews = view.getStructReferenceViewsOrNull(fieldID);
@@ -229,7 +255,11 @@ public class BitServerStructController<T> extends BitServerController {
 
 							if (packet.length > 0) {
 								for (var connection : connections) connection.toClientQueue.add(packet);
+								System.out.println("Release " + onChangeSemaphores.size() + " change semaphores");
+								for (var semaphore : onChangeSemaphores) semaphore.release();
 							}
+						} finally {
+							lock.writeLock().unlock();
 						}
 					} finally {
 						context.globalLock().readLock().unlock();

@@ -37,7 +37,6 @@ val baseModifiers = arrayOf(300.dp, 300.dp, 300.dp).map { Modifier.width(it) }
 
 @Composable
 private fun ItemTypeRow(list: BitClientStructList, controllerID: Long, scrollState: ScrollState) {
-	println("ItemTypeRow($controllerID)")
 	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
 		ItemTypeComponent(list.createConnectionToElement(controllerID, 0))
 //						Box(modifier = baseModifiers[0]) {
@@ -61,20 +60,16 @@ private fun ItemTypeRow(list: BitClientStructList, controllerID: Long, scrollSta
 
 @Composable
 private fun InnerItemTypeList(list: BitClientStructList, controllerIDs: List<Long>) {
-	println("InnerItemTypeList")
 	val scrollState = rememberScrollState()
 
 	Column(modifier = Modifier.fillMaxSize()) {
-		println("Column")
 		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
 			Text("Upper name", modifier = baseModifiers[0], fontSize = fontSize)
 			Text("Grid color", modifier = baseModifiers[2], fontSize = fontSize)
 			Text("Nice name", modifier = baseModifiers[1], fontSize = fontSize)
 		}
 		Box(Modifier.weight(1f)) {
-			println("Box")
 			LazyColumn(modifier = Modifier.fillMaxHeight().background(Color.Cyan)) {
-				println("LazyColumn ${System.identityHashCode(controllerIDs)}")
 				items(controllerIDs, key = { it }) { controllerID ->
 					ItemTypeRow(list, controllerID, scrollState)
 				}
@@ -91,7 +86,6 @@ private fun InnerItemTypeList(list: BitClientStructList, controllerIDs: List<Lon
 
 @Composable
 fun ItemTypeOverview(list: BitClientStructList) {
-	println("ItemTypeOverview")
 	val controllerIDs = remember { mutableStateListOf<Long>() }
 	var isLoading by remember { mutableStateOf(true) }
 
