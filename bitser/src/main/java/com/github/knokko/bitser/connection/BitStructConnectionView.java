@@ -1,5 +1,6 @@
 package com.github.knokko.bitser.connection;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class BitStructConnectionView extends BitConnectionView {
@@ -11,6 +12,7 @@ public class BitStructConnectionView extends BitConnectionView {
 	private final boolean[] flatStructs;
 	private final BitStructConnectionView[][] childStructs;
 	private final BitStructListConnectionView<?>[][] structLists;
+	private final BitFlatStructListConnectionView<?>[][] flatStructLists;
 	private final BitStructConnectionView[][] referenceStructs;
 
 	private boolean finishedRegistration;
@@ -27,6 +29,7 @@ public class BitStructConnectionView extends BitConnectionView {
 		this.flatStructs = new boolean[numFields];
 		this.childStructs = new BitStructConnectionView[numFields][];
 		this.structLists = new BitStructListConnectionView[numFields][];
+		this.flatStructLists = new BitFlatStructListConnectionView[numFields][];
 		this.referenceStructs = new BitStructConnectionView[numFields][];
 	}
 
@@ -69,16 +72,7 @@ public class BitStructConnectionView extends BitConnectionView {
 	}
 
 	private int getUnclaimedStructListField(Class<?> declaringClass, String fieldName) {
-		assertRegistrationIsOpen();
 
-		int fieldID = protocol.getFieldId(declaringClass, fieldName);
-		var fieldType = protocol.getFieldType(fieldID);
-		if (fieldType != BitStructProtocol.FieldType.STRUCT_LIST) {
-			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a struct list field");
-		}
-		if (structLists[fieldID] != null) {
-			throw new IllegalStateException("Field " + fieldName + " is already a struct list");
-		}
 		return fieldID;
 	}
 
@@ -112,10 +106,19 @@ public class BitStructConnectionView extends BitConnectionView {
 
 	public void markStructListField(
 			Class<?> declaringClass, String fieldName,
-			List<BitStructListConnectionView<?>> listViews, boolean constant
+			BitStructListConnectionView<?> listView, boolean constant
 	) {
-		int fieldID = getUnclaimedStructListField(declaringClass, fieldName);
-		structLists[fieldID] = listViews.toArray(new BitStructListConnectionView<?>[0]);
+		assertRegistrationIsOpen();
+
+		int fieldID = protocol.getFieldId(declaringClass, fieldName);
+		var fieldType = protocol.getFieldType(fieldID);
+		if (fieldType != BitStructProtocol.FieldType.STRUCT_LIST) {
+			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a struct list field");
+		}
+		if (structLists[fieldID] == null) {
+			structLists[fieldID] = new BitStructListConnectionView<?>[0];
+		}
+		structLists[fieldID] = Arrays.copyOf(); // TODO Change from array to list?
 		canDownloadFlat[fieldID] = true;
 		isConstant[fieldID] = constant;
 	}
