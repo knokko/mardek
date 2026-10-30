@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 public class BitClientChildStructField extends BitClientField {
 
-	private record Listener(Consumer<BitClientStruct> callback, int viewIndex) {}
+	private record Listener(Consumer<BitClientStruct> callback, int viewID) {}
 
 	private boolean finishedInitialization = false;
 	private long serverControllerID = -1L;
@@ -32,15 +32,25 @@ public class BitClientChildStructField extends BitClientField {
 		}
 	}
 
+	private BitStructConnectionView getChildViewByID(int viewID) {
+		var childViews = Objects.requireNonNull(view.getChildStructViewsOrNull(fieldID));
+		var childView = childViews.stream().filter(
+				candidate -> candidate.localId == viewID
+		).findAny();
+		if (childView.isEmpty()) {
+			throw new IllegalArgumentException("No child struct has local ID " + viewID);
+		}
+		return childView.get();
+	}
+
 	@Override
 	synchronized void postReadFromServerInitial() {
 		finishedInitialization = true;
 		if (view.shouldDownloadDuringInitialization(fieldID)) {
-			var childViews = Objects.requireNonNull(view.getChildStructViewsOrNull(fieldID));
 			for (var listener : listeners) {
-				var childStream = streamFactory.createStream(serverControllerID, listener.viewIndex);
+				var childStream = streamFactory.createStream(serverControllerID, listener.viewID);
 				listener.callback.accept(new BitClientStruct(
-						childViews.get(listener.viewIndex),
+						getChildViewByID(listener.viewID),
 						childStream,
 						streamFactory,
 						serverControllerID
@@ -55,11 +65,10 @@ public class BitClientChildStructField extends BitClientField {
 		this.serverControllerID = (Long) newServerValue;
 
 		if (oldControllerID != serverControllerID) {
-			var childViews = Objects.requireNonNull(view.getChildStructViewsOrNull(fieldID));
 			for (var listener : listeners) {
-				var childStream = streamFactory.createStream(serverControllerID, listener.viewIndex);
+				var childStream = streamFactory.createStream(serverControllerID, listener.viewID);
 				listener.callback.accept(new BitClientStruct(
-						childViews.get(listener.viewIndex), childStream, streamFactory, serverControllerID
+						getChildViewByID(listener.viewID), childStream, streamFactory, serverControllerID
 				));
 			}
 		}
@@ -70,15 +79,14 @@ public class BitClientChildStructField extends BitClientField {
 		// ClientStructField's cannot be saved; save their BitClient.Struct instead
 	}
 
-	public synchronized Object subscribe(Consumer<BitClientStruct> updateChildStruct, int viewIndex) {
-		var listener = new Listener(updateChildStruct, viewIndex);
+	public synchronized Object subscribe(Consumer<BitClientStruct> updateChildStruct, int viewID) {
+		var listener = new Listener(updateChildStruct, viewID);
 		listeners.add(listener);
 
 		if (finishedInitialization) {
-			var childViews = Objects.requireNonNull(view.getChildStructViewsOrNull(fieldID));
-			var childStream = streamFactory.createStream(serverControllerID, viewIndex);
+			var childStream = streamFactory.createStream(serverControllerID, viewID);
 			updateChildStruct.accept(new BitClientStruct(
-					childViews.get(viewIndex), childStream, streamFactory, serverControllerID
+					getChildViewByID(listener.viewID), childStream, streamFactory, serverControllerID
 			));
 		}
 

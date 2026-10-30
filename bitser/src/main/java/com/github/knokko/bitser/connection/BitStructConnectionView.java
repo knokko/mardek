@@ -1,6 +1,8 @@
 package com.github.knokko.bitser.connection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class BitStructConnectionView extends BitConnectionView {
@@ -19,7 +21,8 @@ public class BitStructConnectionView extends BitConnectionView {
 	private boolean hasDownloadableFields;
 	private boolean hasUploadableFields;
 
-	public BitStructConnectionView(BitStructProtocol protocol) {
+	public BitStructConnectionView(int viewID, BitStructProtocol protocol) {
+		super(viewID);
 		this.protocol = protocol;
 
 		int numFields = protocol.getNumFields();
@@ -79,6 +82,10 @@ public class BitStructConnectionView extends BitConnectionView {
 	) {
 		int fieldID = getUnclaimedStructField(declaringClass, fieldName);
 		childStructs[fieldID] = childViews.toArray(new BitStructConnectionView[0]);
+		var childViewIDs = childViews.stream().map(view -> view.localId).toList();
+		if (new HashSet<>(childViewIDs).size() != childViewIDs.size()) {
+			throw new IllegalArgumentException("There are duplicate local IDs");
+		}
 		canDownloadFlat[fieldID] = true;
 		isConstant[fieldID] = constant;
 	}
@@ -90,6 +97,10 @@ public class BitStructConnectionView extends BitConnectionView {
 	) {
 		int fieldID = getUnclaimedStructReferenceField(declaringClass, fieldName);
 		referenceStructs[fieldID] = referencedObjectViews.toArray(new BitStructConnectionView[0]);
+		var childViewIDs = referencedObjectViews.stream().map(view -> view.localId).toList();
+		if (new HashSet<>(childViewIDs).size() != childViewIDs.size()) {
+			throw new IllegalArgumentException("There are duplicate local IDs");
+		}
 		canDownloadFlat[fieldID] = canRead;
 		canUploadFlat[fieldID] = canReassign;
 	}
@@ -113,6 +124,9 @@ public class BitStructConnectionView extends BitConnectionView {
 			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a struct list field");
 		}
 		if (structLists[fieldID] == null) structLists[fieldID] = new ArrayList<>();
+		if (structLists[fieldID].stream().anyMatch(
+				otherView -> otherView.localId == listView.localId
+		)) throw new IllegalArgumentException("Duplicate local ID " + listView.localId);
 		structLists[fieldID].add(listView);
 		canDownloadFlat[fieldID] = true;
 		isConstant[fieldID] = constant;
@@ -130,6 +144,9 @@ public class BitStructConnectionView extends BitConnectionView {
 			throw new IllegalArgumentException(fieldName + " of " + declaringClass + " is not a struct list field");
 		}
 		if (flatStructLists[fieldID] == null) flatStructLists[fieldID] = new ArrayList<>();
+		if (flatStructLists[fieldID].stream().anyMatch(
+				otherView -> otherView.localId == listView.localId
+		)) throw new IllegalArgumentException("Duplicate local ID " + listView.localId);
 		flatStructLists[fieldID].add(listView);
 		canDownloadFlat[fieldID] = true;
 		isConstant[fieldID] = constant;

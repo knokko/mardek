@@ -22,17 +22,17 @@ class BikClientStreamFactory implements BitClientStream.Factory {
 	}
 
 	@Override
-	public BitClientStream createStream(long controllerID, int viewIndex) {
-		return new BikClientStream(() -> requestActualStream(controllerID, viewIndex));
+	public BitClientStream createStream(long controllerID, int viewID) {
+		return new BikClientStream(() -> requestActualStream(controllerID, viewID));
 	}
 
-	private CompletableFuture<QuicStream> requestActualStream(long controllerID, int viewIndex) {
+	private CompletableFuture<QuicStream> requestActualStream(long controllerID, int viewID) {
 		var future = new CompletableFuture<QuicStream>();
 		synchronized (mainOutput) {
 			try {
 				mainOutput.writeInt(nextStreamID);
 				mainOutput.writeLong(controllerID);
-				mainOutput.writeInt(viewIndex);
+				mainOutput.writeInt(viewID);
 				mainOutput.flush();
 			} catch (IOException failed) {
 				throw new RuntimeException(failed);

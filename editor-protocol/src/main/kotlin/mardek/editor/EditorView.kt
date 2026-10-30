@@ -25,35 +25,45 @@ object EditorView {
 	val operationAddWeapon: Int
 
 	init {
-		val fullItemTypeView = BitStructConnectionView(BITSER.getProtocol(ItemType::class.java))
-		fullItemTypeView.markAllSimpleFields(true, true)
-		fullItemTypeView.finishRegistration()
-
-		val fullItemTypesView = BitStructListConnectionView<ItemType>(fullItemTypeView.protocol)
-		fullItemTypesView.addElementsView(fullItemTypeView)
-		this.operationAddItemType = fullItemTypesView.addSimpleOperation { itemTypeList ->
-			itemTypeList.add(ItemType("ITEM TYPE: NEW", -1, "New item type"))
-			true
-		}
-		fullItemTypesView.finishRegistration()
-
 		val nameOnlyItemTypeView = BitFlatStructView(BITSER.getProtocol(ItemType::class.java))
 		nameOnlyItemTypeView.markSimpleField(null, "displayName")
 		nameOnlyItemTypeView.finishRegistration()
 
-		val nameOnlyItemTypesView = BitFlatStructListConnectionView<ItemType>(nameOnlyItemTypeView)
+		val flatItemTypesView = BitFlatStructListConnectionView<ItemType>(
+			2, nameOnlyItemTypeView
+		)
 
-		val nameOnlyItemTypeReferenceView = BitStructConnectionView(BITSER.getProtocol(ItemType::class.java))
+		val fullItemTypeView = BitStructConnectionView(
+			1, BITSER.getProtocol(ItemType::class.java)
+		)
+		fullItemTypeView.markAllSimpleFields(true, true)
+		fullItemTypeView.finishRegistration()
+
+		val nestedItemTypesView = BitStructListConnectionView<ItemType>(
+			1, fullItemTypeView.protocol
+		)
+		nestedItemTypesView.addElementsView(fullItemTypeView)
+		nestedItemTypesView.addElementsView(nameOnlyItemTypeView.toRegularView(2))
+
+		this.operationAddItemType = nestedItemTypesView.addSimpleOperation { itemTypeList ->
+			itemTypeList.add(ItemType("ITEM TYPE: NEW", -1, "New item type"))
+			true
+		}
+		nestedItemTypesView.finishRegistration()
+
+		val nameOnlyItemTypeReferenceView = BitStructConnectionView(
+			2, BITSER.getProtocol(ItemType::class.java)
+		)
 		nameOnlyItemTypeReferenceView.markSimpleField(null, "displayName", true, true) // TODO BITSER Set canWrite to false
 		nameOnlyItemTypeReferenceView.finishRegistration()
 
 		val nameOnlyItemTypesReferenceView = BitStructListConnectionView<ItemType>(
-			nameOnlyItemTypeReferenceView.protocol
+			2, nameOnlyItemTypeReferenceView.protocol
 		)
 		nameOnlyItemTypesReferenceView.addElementsView(nameOnlyItemTypeReferenceView)
 		nameOnlyItemTypesReferenceView.finishRegistration()
 
-		val itemView = BitStructConnectionView(BITSER.getProtocol(Item::class.java))
+		val itemView = BitStructConnectionView(1, BITSER.getProtocol(Item::class.java))
 		itemView.markAllSimpleFields(true, true)
 		itemView.markStructReferenceField(
 			null, "type",
@@ -61,7 +71,7 @@ object EditorView {
 		)
 		itemView.finishRegistration()
 
-		val itemsView = BitStructListConnectionView<Item>(itemView.protocol)
+		val itemsView = BitStructListConnectionView<Item>(1, itemView.protocol)
 		itemsView.addElementsView(itemView)
 		this.operationAddWeapon = itemsView.addSimpleGlobalOperation<Content> { context ->
 			val itemTypes = context.rootStruct.items.itemTypes
@@ -108,13 +118,17 @@ object EditorView {
 		}
 		itemsView.finishRegistration()
 
-		val itemsContentView = BitStructConnectionView(BITSER.getProtocol(ItemsContent::class.java))
-		itemsContentView.markStructListField(null, "itemTypes", fullItemTypesView, false) // TODO BITSER Change to true, once we support it
-		itemsContentView.markFlatStructListField(null, "itemTypes", nameOnlyItemTypesView, true)
+		val itemsContentView = BitStructConnectionView(
+			1, BITSER.getProtocol(ItemsContent::class.java)
+		)
+		itemsContentView.markStructListField(null, "itemTypes", nestedItemTypesView, false) // TODO BITSER Change to true, once we support it
+		itemsContentView.markFlatStructListField(null, "itemTypes", flatItemTypesView, true)
 		itemsContentView.markStructListField(null, "items", itemsView, true)
 		itemsContentView.finishRegistration()
 
-		val contentView = BitStructConnectionView(BITSER.getProtocol(Content::class.java))
+		val contentView = BitStructConnectionView(
+			1, BITSER.getProtocol(Content::class.java)
+		)
 		contentView.markChildStructField(null, "items", listOf(itemsContentView), false) // TODO BITSER Change to true once we support it
 		contentView.finishRegistration()
 

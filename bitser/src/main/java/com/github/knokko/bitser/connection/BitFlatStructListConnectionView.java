@@ -6,7 +6,8 @@ public class BitFlatStructListConnectionView<T> extends BitConnectionView {
 
 	public final BitFlatStructView elementsView;
 
-	public BitFlatStructListConnectionView(BitFlatStructView elementsView) {
+	public BitFlatStructListConnectionView(int viewID, BitFlatStructView elementsView) {
+		super(viewID);
 		this.elementsView = elementsView;
 	}
 

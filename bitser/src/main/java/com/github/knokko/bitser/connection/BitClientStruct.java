@@ -121,22 +121,22 @@ public class BitClientStruct {
 	}
 
 	public Object subscribeChildStruct(
-			Class<?> declaringClass, String fieldName, int viewIndex, Consumer<BitClientStruct> updateChildStruct
+			Class<?> declaringClass, String fieldName, int viewID, Consumer<BitClientStruct> updateChildStruct
 	) {
-		return getChildStructField(declaringClass, fieldName).subscribe(updateChildStruct, viewIndex);
+		return getChildStructField(declaringClass, fieldName).subscribe(updateChildStruct, viewID);
 	}
 
 	public Object subscribeNestedStructList(
-			Class<?> declaringClass, String fieldName, int viewIndex, Consumer<BitClientStructList> updateStructList
+			Class<?> declaringClass, String fieldName, int viewID, Consumer<BitClientStructList> updateStructList
 	) {
-		return getStructListField(declaringClass, fieldName).subscribeNested(viewIndex, updateStructList);
+		return getStructListField(declaringClass, fieldName).subscribeNested(viewID, updateStructList);
 	}
 
 	public <T> Object subscribeFlatStructList(
-			Class<?> declaringClass, String fieldName, int viewIndex,
+			Class<?> declaringClass, String fieldName, int viewID,
 			Consumer<BitClientFlatStructList<T>> updateStructList
 	) {
-		return getStructListField(declaringClass, fieldName).subscribeFlat(viewIndex, updateStructList);
+		return getStructListField(declaringClass, fieldName).subscribeFlat(viewID, updateStructList);
 	}
 
 	public void cancelChildStructSubscription(Class<?> declaringClass, String fieldName, Object subscription) {

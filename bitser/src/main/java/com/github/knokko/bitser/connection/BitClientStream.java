@@ -13,7 +13,7 @@ public interface BitClientStream {
 
 	interface Factory {
 
-		BitClientStream createStream(long controllerID, int viewIndex);
+		BitClientStream createStream(long controllerID, int viewID);
 	}
 
 	interface InputReader {

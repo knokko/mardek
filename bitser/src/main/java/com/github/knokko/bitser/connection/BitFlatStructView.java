@@ -74,4 +74,22 @@ public class BitFlatStructView {
 		assertRegistrationIsClosed();
 		return structFields[fieldID];
 	}
+
+	public BitStructConnectionView toRegularView(int viewID) {
+		assertRegistrationIsClosed();
+		var view = new BitStructConnectionView(viewID, protocol);
+		for (int fieldID = 0; fieldID < protocol.getNumFields(); fieldID++) {
+			if (simpleFields[fieldID]) {
+				var field = protocol.getFieldByID(fieldID);
+				view.markSimpleField(field.getDeclaringClass(), field.getName(), true, false);
+			}
+			if (structFields[fieldID] != null) {
+				var field = protocol.getFieldByID(fieldID);
+				// TODO BITSER Not quite right: this will include ALL child struct fields
+				view.markStructFieldAsFlat(field.getDeclaringClass(), field.getName(), true, false);
+			}
+		}
+		view.finishRegistration();
+		return view;
+	}
 }

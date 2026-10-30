@@ -9,10 +9,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun ChildStruct(
 	mutateScope: CoroutineScope, parentStruct: BitClientStruct,
-	declaringClass: Class<*>?, fieldName: String, viewIndex: Int, callback: (BitClientStruct) -> Unit
+	declaringClass: Class<*>?, fieldName: String, viewID: Int, callback: (BitClientStruct) -> Unit
 ) {
 	DisposableEffect(parentStruct) {
-		val childSubscription = parentStruct.subscribeChildStruct(declaringClass, fieldName, viewIndex) {
+		val childSubscription = parentStruct.subscribeChildStruct(declaringClass, fieldName, viewID) {
 			mutateScope.launch { callback(it) }
 		}
 		onDispose {

@@ -17,7 +17,8 @@ public class BitStructListConnectionView<T> extends BitConnectionView {
 
 	private boolean closedRegistration;
 
-	public BitStructListConnectionView(BitStructProtocol elementsProtocol) {
+	public BitStructListConnectionView(int viewID, BitStructProtocol elementsProtocol) {
+		super(viewID);
 		this.elementsProtocol = elementsProtocol;
 	}
 
@@ -27,6 +28,9 @@ public class BitStructListConnectionView<T> extends BitConnectionView {
 
 	public void addElementsView(BitStructConnectionView elementsView) {
 		assertRegistrationIsOpen();
+		if (elementsViews.stream().anyMatch(otherView -> otherView.localId == elementsView.localId)) {
+			throw new IllegalArgumentException("Duplicate local ID " + elementsView.localId);
+		}
 		this.elementsViews.add(elementsView);
 	}
 

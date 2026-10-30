@@ -73,12 +73,13 @@ public class BitServerStructListController<T> extends BitServerController {
 	@Override
 	public void addClient(
 			OutputStream toClient, InputStream fromClient, Runnable closeStream,
-			int viewIndex
+			int viewID
 	) {
-		if (viewIndex < nestedViews.size()) {
+		var nestedView = nestedViews.stream().filter(view -> view.localId == viewID).findAny();
+		if (nestedView.isPresent()) {
 			var connection = new NestedConnection(
 					new BitOutputStream(toClient), new BitInputStream(fromClient), closeStream,
-					nestedViews.get(viewIndex)
+					nestedView.get()
 			);
 
 			context.globalLock().readLock().lock();
@@ -98,9 +99,11 @@ public class BitServerStructListController<T> extends BitServerController {
 				context.globalLock().readLock().unlock();
 			}
 		} else {
+			var flatView = flatViews.stream().filter(view -> view.localId == viewID).findAny();
+			if (flatView.isEmpty()) throw new UnsupportedOperationException("No view has local ID " + viewID);
 			var connection = new FlatConnection(
 					new BitOutputStream(toClient), new BitInputStream(fromClient), closeStream,
-					flatViews.get(viewIndex - nestedViews.size())
+					flatView.get()
 			);
 
 			context.globalLock().readLock().lock();
@@ -122,6 +125,16 @@ public class BitServerStructListController<T> extends BitServerController {
 		}
 	}
 
+	private void checkNoDuplicateLocalIDs(int newViewID) {
+		if (nestedViews.stream().anyMatch(
+				otherView -> otherView.localId == newViewID
+		) || flatViews.stream().anyMatch(
+				otherView -> otherView.localId == newViewID
+		)) {
+			throw new RuntimeException("Duplicate local view ID " + newViewID);
+		}
+	}
+
 	@Override
 	boolean addViewIfNotPresent(BitConnectionView view) {
 		if (view instanceof BitStructListConnectionView) {
@@ -132,6 +145,7 @@ public class BitServerStructListController<T> extends BitServerController {
 			}
 
 			if (nestedViews.contains(listView)) return false;
+			checkNoDuplicateLocalIDs(listView.localId);
 			nestedViews.add(listView);
 
 			for (var elementsView : listView.getElementsViews()) {
@@ -145,6 +159,7 @@ public class BitServerStructListController<T> extends BitServerController {
 			}
 
 			if (flatViews.contains(listView)) return false;
+			checkNoDuplicateLocalIDs(listView.localId);
 			flatViews.add(listView);
 		}
 

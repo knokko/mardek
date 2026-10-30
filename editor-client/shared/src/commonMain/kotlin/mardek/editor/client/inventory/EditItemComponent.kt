@@ -31,7 +31,7 @@ fun EditItemComponent(item: BitClientStruct, itemsContent: BitClientStruct, goBa
 			Text("Type:")
 			BitserReferenceDropdown<ItemType>(
 				item.getStructReferenceField(null, "type"),
-				itemsContent, null, "itemTypes", 0
+				itemsContent, null, "itemTypes", 2
 			) { it.displayName }
 		}
 		// TODO BITSER Element

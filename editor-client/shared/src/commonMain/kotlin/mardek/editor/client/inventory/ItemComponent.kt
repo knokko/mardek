@@ -35,7 +35,7 @@ fun ItemComponent(item: BitClientStruct, editItem: (Long) -> Unit) {
 	}
 
 	TrackStruct(item)
-	StructReference(mutateScope, item, null, "type", 0) { itemType = it }
+	StructReference(mutateScope, item, null, "type", 2) { itemType = it }
 }
 
 @Composable

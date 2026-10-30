@@ -36,12 +36,11 @@ public class BitServerStructController<T> extends BitServerController {
 	@Override
 	public void addClient(
 			OutputStream toClient, InputStream fromClient, Runnable closeStream,
-			int viewIndex
+			int viewID
 	) {
-		var connection = new Connection(
-				views.get(viewIndex),
-				toClient, new BitInputStream(fromClient), closeStream
-		);
+		var view = views.stream().filter(candidate -> candidate.localId == viewID).findAny();
+		if (view.isEmpty()) throw new IllegalArgumentException("No view has local ID " + viewID);
+		var connection = new Connection(view.get(), toClient, new BitInputStream(fromClient), closeStream);
 
 		context.globalLock().readLock().lock();
 		try {
@@ -72,6 +71,9 @@ public class BitServerStructController<T> extends BitServerController {
 		}
 
 		if (views.contains(structView)) return false;
+		if (views.stream().anyMatch(otherView -> otherView.localId == view.localId)) {
+			throw new IllegalArgumentException("Multiple local views have local ID " + view.localId);
+		}
 		views.add(structView);
 		return true;
 	}

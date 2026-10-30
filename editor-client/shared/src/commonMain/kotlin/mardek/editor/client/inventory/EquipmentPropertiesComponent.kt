@@ -25,5 +25,5 @@ fun EquipmentPropertiesComponent(equipment: BitClientStruct) {
 	}
 
 	TrackStruct(equipment)
-	ChildStruct(mutateScope, equipment, null, "weapon", 0) { weapon = it }
+	ChildStruct(mutateScope, equipment, null, "weapon", 1) { weapon = it }
 }

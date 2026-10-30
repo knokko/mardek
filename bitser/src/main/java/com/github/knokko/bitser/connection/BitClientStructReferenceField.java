@@ -100,10 +100,14 @@ public class BitClientStructReferenceField extends BitClientField {
 		return updateReference;
 	}
 
-	public BitClientStruct createConnectionToReference(long controllerID, int viewIndex) {
+	public BitClientStruct createConnectionToReference(long controllerID, int viewID) {
+		var childView = view.getStructReferenceViewsOrNull(fieldID).stream().filter(
+				candidate -> candidate.localId == viewID
+		).findAny();
+		if (childView.isEmpty()) throw new IllegalArgumentException("No local view has local ID " + viewID);
 		return new BitClientStruct(
-				view.getStructReferenceViewsOrNull(fieldID).get(viewIndex),
-				streamFactory.createStream(controllerID, viewIndex),
+				childView.get(),
+				streamFactory.createStream(controllerID, viewID),
 				streamFactory,
 				controllerID
 		);

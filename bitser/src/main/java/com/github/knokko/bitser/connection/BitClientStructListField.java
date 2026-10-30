@@ -11,8 +11,8 @@ import java.util.function.Consumer;
 
 public class BitClientStructListField extends BitClientField {
 
-	private record NestedListener(Consumer<BitClientStructList> callback, int viewIndex) {}
-	private record FlatListener<T>(Consumer<BitClientFlatStructList<T>> callback, int viewIndex) {}
+	private record NestedListener(Consumer<BitClientStructList> callback, int viewID) {}
+	private record FlatListener<T>(Consumer<BitClientFlatStructList<T>> callback, int viewID) {}
 
 	private boolean finishedInitialization = false;
 	private long serverControllerID = -1L;
@@ -20,15 +20,9 @@ public class BitClientStructListField extends BitClientField {
 	private final List<NestedListener> nestedListeners = new ArrayList<>();
 	private final List<FlatListener<?>> flatListeners = new ArrayList<>();
 
-	private int numNestedViews;
-
 	BitClientStructListField(BitClientStream.Factory streamFactory, BitStructConnectionView view, int fieldID) {
 		super(view, fieldID);
 		this.streamFactory = streamFactory;
-		this.numNestedViews = 0;
-
-		var nestedChildViews = view.getStructListViewsOrNull(fieldID);
-		if (nestedChildViews != null) numNestedViews += nestedChildViews.size(); // TODO BITSER Hm... the viewIndex is not always right... maybe every view should get a unique ID, instead of this mess?
 	}
 
 	@Override
@@ -43,19 +37,24 @@ public class BitClientStructListField extends BitClientField {
 	private void notifyListeners() {
 		var nestedChildViews = view.getStructListViewsOrNull(fieldID);
 		for (var listener : nestedListeners) {
-			var childStream = streamFactory.createStream(serverControllerID, listener.viewIndex);
+			var childStream = streamFactory.createStream(serverControllerID, listener.viewID);
 			assert nestedChildViews != null;
-			listener.callback.accept(new BitClientStructList(
-					nestedChildViews.get(listener.viewIndex), childStream, streamFactory
-			));
+
+			var nestedView = nestedChildViews.stream().filter(
+					candidate -> candidate.localId == listener.viewID
+			).findAny();
+			if (nestedView.isEmpty()) throw new IllegalArgumentException("No nested view has ID " + listener.viewID);
+			listener.callback.accept(new BitClientStructList(nestedView.get(), childStream, streamFactory));
 		}
 
 		var flatChildViews = view.getFlatStructListViewsOrNull(fieldID);
 		for (var listener : flatListeners) {
-			var childStream = streamFactory.createStream(serverControllerID, listener.viewIndex + numNestedViews);
-			listener.callback.accept(new BitClientFlatStructList<>(
-					flatChildViews.get(listener.viewIndex), childStream
-			));
+			var flatView = flatChildViews.stream().filter(
+					candidate -> candidate.localId == listener.viewID
+			).findAny();
+			if (flatView.isEmpty()) throw new IllegalArgumentException("No flat view has ID " + listener.viewID);
+			var childStream = streamFactory.createStream(serverControllerID, listener.viewID);
+			listener.callback.accept(new BitClientFlatStructList<>(flatView.get(), childStream));
 		}
 	}
 
@@ -77,27 +76,35 @@ public class BitClientStructListField extends BitClientField {
 		// Struct list fields cannot be reassigned; only modified
 	}
 
-	public synchronized Object subscribeNested(int viewIndex, Consumer<BitClientStructList> updateStructList) {
-		var listener = new NestedListener(updateStructList, viewIndex);
+	public synchronized Object subscribeNested(int viewID, Consumer<BitClientStructList> updateStructList) {
+		var listener = new NestedListener(updateStructList, viewID);
 		nestedListeners.add(listener);
 
 		if (finishedInitialization) {
 			var childViews = Objects.requireNonNull(view.getStructListViewsOrNull(fieldID));
-			var childStream = streamFactory.createStream(serverControllerID, viewIndex);
-			updateStructList.accept(new BitClientStructList(childViews.get(viewIndex), childStream, streamFactory));
+			var childStream = streamFactory.createStream(serverControllerID, viewID);
+			var childView = childViews.stream().filter(
+					candidate -> candidate.localId == viewID
+			).findAny();
+			if (childView.isEmpty()) throw new IllegalArgumentException("No nested view has local ID " + viewID);
+			updateStructList.accept(new BitClientStructList(childView.get(), childStream, streamFactory));
 		}
 
 		return listener;
 	}
 
-	public synchronized <T> Object subscribeFlat(int viewIndex, Consumer<BitClientFlatStructList<T>> updateStructList) {
-		var listener = new FlatListener<>(updateStructList, viewIndex);
+	public synchronized <T> Object subscribeFlat(int viewID, Consumer<BitClientFlatStructList<T>> updateStructList) {
+		var listener = new FlatListener<>(updateStructList, viewID);
 		flatListeners.add(listener);
 
 		if (finishedInitialization) {
 			var childViews = Objects.requireNonNull(view.getFlatStructListViewsOrNull(fieldID));
-			var childStream = streamFactory.createStream(serverControllerID, viewIndex + numNestedViews);
-			updateStructList.accept(new BitClientFlatStructList<>(childViews.get(viewIndex), childStream));
+			var childView = childViews.stream().filter(
+					candidate -> candidate.localId == viewID
+			).findAny();
+			if (childView.isEmpty()) throw new IllegalArgumentException("No flat child view has local ID " + viewID);
+			var childStream = streamFactory.createStream(serverControllerID, viewID);
+			updateStructList.accept(new BitClientFlatStructList<>(childView.get(), childStream));
 		}
 
 		return listener;

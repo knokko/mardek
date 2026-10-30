@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun <T> BitserReferenceDropdown(
 	field: BitClientStructReferenceField,
-	sourceStruct: BitClientStruct, sourceClass: Class<*>?, sourceFieldName: String, sourceViewIndex: Int,
+	sourceStruct: BitClientStruct, sourceClass: Class<*>?, sourceFieldName: String, sourceViewID: Int,
 	createText: (T) -> String,
 ) {
 	val mutateScope = rememberCoroutineScope()
@@ -35,7 +35,7 @@ fun <T> BitserReferenceDropdown(
 
 	DisposableEffect(field) {
 		val optionsSubscription = sourceStruct.subscribeFlatStructList(
-			sourceClass, sourceFieldName, sourceViewIndex
+			sourceClass, sourceFieldName, sourceViewID
 		) { mutateScope.launch { options = it } }
 
 		onDispose {

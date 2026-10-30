@@ -16,7 +16,7 @@ public class BikClient {
 
 	public static BitClientStruct connect(
 			URI uri, String protocol,
-			BitStructConnectionView rootView, int rootViewIndex,
+			BitStructConnectionView rootView, int rootViewID,
 			BikClientProtocol bikProtocol
 	) throws IOException {
 		var builder = QuicClientConnection.newBuilder()
@@ -46,7 +46,7 @@ public class BikClient {
 
 					var rootConnection = new BitClientStruct(
 							rootView,
-							streamFactory[0].createStream(0, rootViewIndex),
+							streamFactory[0].createStream(0, rootViewID),
 							streamFactory[0],
 							0
 					);

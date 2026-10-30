@@ -18,7 +18,7 @@ public abstract class BitServerController {
 
 	public abstract void addClient(
 			OutputStream toClient, InputStream fromClient, Runnable closeStream,
-			int viewIndex
+			int viewID
 	);
 
 	abstract boolean addViewIfNotPresent(BitConnectionView view);

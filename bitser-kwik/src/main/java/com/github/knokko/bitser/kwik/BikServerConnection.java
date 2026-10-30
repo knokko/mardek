@@ -49,7 +49,7 @@ class BikServerConnection implements ApplicationProtocolConnection {
 			while (true) {
 				int requestedStreamID = dataInput.readInt();
 				long controllerID = dataInput.readLong();
-				int viewIndex = dataInput.readInt();
+				int viewID = dataInput.readInt();
 				var nextStream = clientConnection.createStream(true);
 				var dataOutput = new DataOutputStream(nextStream.getOutputStream());
 				dataOutput.writeInt(requestedStreamID);
@@ -60,7 +60,7 @@ class BikServerConnection implements ApplicationProtocolConnection {
 						nextStream.getOutputStream(),
 						nextStream.getInputStream(),
 						() -> nextStream.resetStream(0L),
-						viewIndex
+						viewID
 				);
 			}
 		} catch (IOException disconnected) {

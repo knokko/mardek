@@ -63,10 +63,14 @@ public class BitClientStructList {
 		}
 	}
 
-	public BitClientStruct createConnectionToElement(long controllerID, int viewIndex) {
+	public BitClientStruct createConnectionToElement(long controllerID, int viewID) {
+		var elementView = view.getElementsViews().stream().filter(
+				candidate -> candidate.localId == viewID
+		).findAny();
+		if (elementView.isEmpty()) throw new IllegalArgumentException("No element view has local ID " + viewID);
 		return new BitClientStruct(
-				view.getElementsViews().get(viewIndex),
-				streamFactory.createStream(controllerID, viewIndex),
+				elementView.get(),
+				streamFactory.createStream(controllerID, viewID),
 				streamFactory,
 				controllerID
 		);
