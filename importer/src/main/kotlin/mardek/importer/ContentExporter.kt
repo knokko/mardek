@@ -1,5 +1,6 @@
 package mardek.importer
 
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.options.WithParameter
 import com.github.knokko.boiler.utilities.ImageCoding
 import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
@@ -39,6 +40,8 @@ fun main() {
 	try {
 		val content = importVanillaContent()
 
+		saveEditorContent(content)
+
 		saveIcons()
 
 		saveTitleScreenBundle(content)
@@ -54,6 +57,12 @@ fun main() {
 		// For some reason, the process is not terminated by default
 		exitProcess(if (succeeded) 0 else -1)
 	}
+}
+
+private fun saveEditorContent(content: Content) {
+	val contentBytes = BITSER.toBytes(content, Bitser.BACKWARD_COMPATIBLE)
+	val destinationFile = File("$projectFolder/editor-server/content.bits").toPath()
+	Files.write(destinationFile, contentBytes)
 }
 
 private fun saveIcons() {

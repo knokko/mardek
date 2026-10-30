@@ -142,6 +142,8 @@ class Content : Serializable {
 
 				projectDirectory = projectDirectory.absoluteFile.parentFile!!
 			}
+
+			throw RuntimeException("Can't find resources directory from ${File("./").absolutePath}")
 		}
 	}
 }

@@ -1,7 +1,9 @@
 package mardek.editor.server
 
+import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.kwik.BikServer
 import com.github.knokko.bitser.kwik.BikServerProtocol
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.editor.AUTH_TOKEN_LENGTH
 import mardek.editor.EDITOR_APPLICATION_PROTOCOL_NAME
@@ -16,6 +18,7 @@ import tech.kwik.core.log.SysOutLogger
 import tech.kwik.core.server.ServerConnectionConfig
 import tech.kwik.core.server.ServerConnector
 import java.io.File
+import java.nio.file.Files
 import java.security.KeyStore
 
 private class EditorServerProtocol : BikServerProtocol {
@@ -53,7 +56,12 @@ private class EditorServerProtocol : BikServerProtocol {
 }
 
 fun main() {
-	val content = Content() // TODO BITSER Load from disk
+	val contentFile = File("${Content.RESOURCES_DIRECTORY}/../editor-server/content.bits").toPath()
+	val content = BITSER.fromBytes(
+		Content::class.java,
+		Files.readAllBytes(contentFile),
+		Bitser.BACKWARD_COMPATIBLE,
+	)
 
 	BikServer.run(
 		EditorServerProtocol(),
