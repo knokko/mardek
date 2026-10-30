@@ -1,6 +1,7 @@
 package mardek.editor.server
 
 import com.github.knokko.bitser.Bitser
+import com.github.knokko.bitser.connection.BitServerContext
 import com.github.knokko.bitser.kwik.BikServer
 import com.github.knokko.bitser.kwik.BikServerProtocol
 import mardek.content.BITSER
@@ -18,10 +19,13 @@ import tech.kwik.core.log.SysOutLogger
 import tech.kwik.core.server.ServerConnectionConfig
 import tech.kwik.core.server.ServerConnector
 import java.io.File
+import java.lang.Thread.sleep
 import java.nio.file.Files
 import java.security.KeyStore
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.system.measureNanoTime
 
-private class EditorServerProtocol : BikServerProtocol {
+private class EditorServerProtocol(private val saveContent: () -> Unit) : BikServerProtocol {
 
 	override fun configureConfig(builder: ServerConnectionConfig.Builder) {
 		builder.maxConnectionBufferSize(10_000_000L)
@@ -48,10 +52,22 @@ private class EditorServerProtocol : BikServerProtocol {
 		return authToken.contentEquals(TEST_AUTH_TOKEN)
 	}
 
-	override fun waitUntilServerShouldStop() {
+	override fun waitUntilServerShouldStop(context: BitServerContext) {
 		println("Press ENTER to exit...")
+		val didStop = AtomicBoolean(false)
+
+		val backupThread = Thread {
+			while (!didStop.get()) {
+				sleep(60_000)
+				context.globalQueue.add(saveContent)
+			}
+		}
+		backupThread.isDaemon = true
+		backupThread.start()
+
 		readln()
 		println("Exiting...")
+		didStop.set(true)
 	}
 }
 
@@ -63,10 +79,21 @@ fun main() {
 		Bitser.BACKWARD_COMPATIBLE,
 	)
 
+	fun saveContent() {
+		// TODO BITSER Put back-ups in a different file
+		val duration = measureNanoTime {
+			val contentBytes = BITSER.toBytes(content, Bitser.BACKWARD_COMPATIBLE)
+			Files.write(contentFile, contentBytes)
+		}
+		println("Saving content took ${duration / 1_000_000} ms")
+	}
+
 	BikServer.run(
-		EditorServerProtocol(),
+		EditorServerProtocol(::saveContent),
 		EDITOR_APPLICATION_PROTOCOL_NAME,
 		content,
 		listOf(EditorView.root),
 	)
+
+	saveContent()
 }

@@ -65,7 +65,7 @@ private fun InnerItemTypeList(list: BitClientStructList, controllerIDs: List<Lon
 	Column(modifier = Modifier.fillMaxSize()) {
 		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
 			Text("Upper name", modifier = baseModifiers[0], fontSize = fontSize)
-			Text("Grid color", modifier = baseModifiers[2], fontSize = fontSize)
+			// TODO BITSER Text("Grid color", modifier = baseModifiers[2], fontSize = fontSize)
 			Text("Nice name", modifier = baseModifiers[1], fontSize = fontSize)
 		}
 		Box(Modifier.weight(1f)) {

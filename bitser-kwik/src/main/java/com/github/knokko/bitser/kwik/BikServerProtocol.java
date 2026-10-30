@@ -1,5 +1,6 @@
 package com.github.knokko.bitser.kwik;
 
+import com.github.knokko.bitser.connection.BitServerContext;
 import tech.kwik.core.QuicConnection;
 import tech.kwik.core.QuicStream;
 import tech.kwik.core.server.ServerConnectionConfig;
@@ -13,5 +14,5 @@ public interface BikServerProtocol {
 
 	boolean runHandshake(QuicConnection clientConnection, QuicStream mainStream);
 
-	void waitUntilServerShouldStop();
+	void waitUntilServerShouldStop(BitServerContext context);
 }

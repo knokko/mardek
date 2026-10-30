@@ -49,7 +49,7 @@ public class BikServer {
 					protocolName, new BikServerConnectionFactory(bikProtocol, serverContext)
 			);
 			connector.start();
-			bikProtocol.waitUntilServerShouldStop();
+			bikProtocol.waitUntilServerShouldStop(serverContext);
 		} finally {
 			try {
 				globalQueue.put(SERVER_STOPPED);
