@@ -9,6 +9,9 @@ include("miscellaneous")
 include("renderer")
 include("state")
 
+include("export-helper")
+include("client-export-helper")
+
 include("bitser")
 include("bitser-kwik")
 include("vk2d")

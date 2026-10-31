@@ -1,33 +1,18 @@
 package mardek.importer
 
 import com.github.knokko.bitser.Bitser
-import com.github.knokko.bitser.options.WithParameter
-import com.github.knokko.boiler.utilities.ImageCoding
-import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
-import com.github.knokko.vk2d.resource.Vk2dImageCompression
-import com.github.knokko.vk2d.resource.Vk2dResourceWriter
 import mardek.content.BITSER
 import mardek.content.Content
-import mardek.content.audio.AudioContent
-import mardek.content.sprite.BcSprite
-import mardek.content.sprite.KimSprite
-import mardek.content.ui.Font
-import mardek.content.ui.TitleScreenContent
+import mardek.exporting.ContentWrapper
+import mardek.exporting.exportAndPrepareVk2d
+import mardek.exporting.exportIcons
+import mardek.exporting.exportTitleScreen
 import mardek.importer.util.classLoader
+import mardek.importer.util.compressKimSprite1
 import mardek.importer.util.loadBc7Sprite
 import mardek.importer.util.projectFolder
-import org.lwjgl.system.MemoryUtil.memCalloc
-import org.lwjgl.system.MemoryUtil.memFree
-import org.lwjgl.util.zstd.Zstd.ZSTD_compress
-import org.lwjgl.util.zstd.Zstd.ZSTD_compressBound
-import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
 import java.io.File
-import java.lang.Math.toIntExact
-import java.nio.ByteBuffer
-import java.nio.channels.FileChannel
 import java.nio.file.Files
-import java.nio.file.StandardOpenOption
 import javax.imageio.ImageIO
 import kotlin.system.exitProcess
 
@@ -39,16 +24,46 @@ fun main() {
 	var succeeded = false
 	try {
 		val content = importVanillaContent()
+		val wrappedContent = wrapContent(content)
 
-		saveEditorContent(content)
+		println("exporting content...")
+		val contentBytes = exportAndPrepareVk2d(
+			vk2dOutput = Files.newOutputStream(File(
+				"${Content.RESOURCES_DIRECTORY}/content.vk2d"
+			).toPath()),
+			closeOutput = true,
+			cacheDirectory = File("$projectFolder/flash/bc-cache"),
+			target = content,
+		)
+		Files.write(
+			File("${Content.RESOURCES_DIRECTORY}/content.bits").toPath(),
+			ContentWrapper.compress(contentBytes, 22),
+		)
+		println("exported content")
 
-		saveIcons()
+		exportIcons(wrappedContent, Files.newOutputStream(File(
+			"${Content.RESOURCES_DIRECTORY}/icons.bin"
+		).toPath()), true)
 
-		saveTitleScreenBundle(content)
+		val titleScreenBytes = exportTitleScreen(
+			wrapped = wrappedContent,
+			vk2dOutput = Files.newOutputStream(File(
+				"${Content.RESOURCES_DIRECTORY}/title-screen.vk2d"
+			).toPath()),
+			closeOutput = true,
+		)
+		Files.write(
+			File("${Content.RESOURCES_DIRECTORY}/title-screen.bits").toPath(),
+			titleScreenBytes,
+		)
 
-		println("exporting campaign...")
-		saveMainContent(content)
-		println("exported campaign")
+		println("preparing editor server content....")
+		val fatContentBytes = BITSER.toBytes(wrappedContent, Bitser.BACKWARD_COMPATIBLE)
+		Files.write(
+			File("$projectFolder/editor-server/content.bits").toPath(),
+			ContentWrapper.compress(fatContentBytes, 10),
+		)
+		println("prepared editor server content")
 
 		succeeded = true
 	} catch (failure: Throwable) {
@@ -59,179 +74,22 @@ fun main() {
 	}
 }
 
-private fun saveEditorContent(content: Content) {
-	val contentBytes = BITSER.toBytes(content, Bitser.BACKWARD_COMPATIBLE)
-	val destinationFile = File("$projectFolder/editor-server/content.bits").toPath()
-	Files.write(destinationFile, contentBytes)
-}
+private fun cursorSprite(cursor: String) = compressKimSprite1(ImageIO.read(classLoader.getResource(
+	"mardek/importer/cursors/$cursor.png"
+)))
 
-private fun saveIcons() {
-	val iconOutput = Files.newOutputStream(File("${Content.RESOURCES_DIRECTORY}/icons.bin").toPath())
-	val imageData = ByteBuffer.allocate(4 * 16 * 16)
-
-	val itemSheet = ImageIO.read(classLoader.getResource(
+private fun wrapContent(content: Content) = ContentWrapper(
+	content = content,
+	neutralMusicNote = loadBc7Sprite("mardek/importer/audio/categories/AllMusic.png"),
+	musicNoteShadow = loadBc7Sprite("mardek/importer/audio/categories/Shadow.png"),
+	playMusicIcon = loadBc7Sprite("mardek/importer/audio/PlayButton.png"),
+	pauseMusicIcon = loadBc7Sprite("mardek/importer/audio/PauseButton.png"),
+	playMusicHoveredIcon = loadBc7Sprite("mardek/importer/audio/PlayButtonHovered.png"),
+	pauseMusicHoveredIcon = loadBc7Sprite("mardek/importer/audio/PauseButtonHovered.png"),
+	applicationIcon = compressKimSprite1(ImageIO.read(classLoader.getResource(
 		"mardek/importer/inventory/itemsheet_misc.png"
-	))
-	ImageCoding.encodeBufferedImage(imageData, itemSheet.getSubimage(288, 32, 16, 16))
-	iconOutput.write(imageData.array())
-
-	for (cursor in arrayOf("inventory", "pointer", "grab")) {
-		val image = ImageIO.read(classLoader.getResource(
-			"mardek/importer/cursors/$cursor.png"
-		))
-		imageData.position(0)
-		ImageCoding.encodeBufferedImage(imageData, image)
-		iconOutput.write(imageData.array())
-	}
-
-	iconOutput.flush()
-	iconOutput.close()
-}
-
-private fun addBcImage(resourceWriter: Vk2dResourceWriter, bc: BcSprite) {
-	if (bc.index != -1) return
-	val compression = when (bc.version) {
-		0 -> Vk2dImageCompression.NONE
-		1 -> Vk2dImageCompression.BC1
-		4 -> Vk2dImageCompression.BC4
-		7 -> Vk2dImageCompression.BC7
-		else -> throw UnsupportedOperationException("Unexpected compression BC${bc.version}")
-	}
-	if (bc.bufferedImage != null) {
-		if (compression == Vk2dImageCompression.BC4) {
-			bc.index = resourceWriter.addGreyscaleImage(
-				bc.bufferedImage as BufferedImage, compression, Vk2dGreyscaleChannel.ALPHA,
-				false, bc.clamped,
-			)
-		} else {
-			bc.index = resourceWriter.addImage(
-				bc.bufferedImage as BufferedImage, compression, false, bc.clamped
-			)
-		}
-	} else {
-		bc.index = resourceWriter.addPreCompressedImage(
-			bc.data, bc.width, bc.height,
-			compression, false, bc.clamped,
-		)
-	}
-}
-
-private fun addKimImage(resourceWriter: Vk2dResourceWriter, kim: KimSprite) {
-	kim.index = resourceWriter.addFakeImage(kim.width, kim.height, kim.data)
-}
-
-private fun addFont(resourceWriter: Vk2dResourceWriter, font: Font, extraAtlases: () -> Unit = {}) {
-	val fontDataIndex = resourceWriter.addFontBlob(ByteArrayInputStream(font.data))
-	font.index = resourceWriter.addFont(fontDataIndex, 0)
-	resourceWriter.addAtlas(
-		font.index, 8, 10f, 0.3f,
-		0f, 12f, 0f,
-		Float.MAX_VALUE, null,
-	)
-	resourceWriter.addAtlas(
-		font.index, 8, 15f, 0.3f,
-		0f, 20f, 0f,
-		Float.MAX_VALUE, null,
-	)
-	extraAtlases()
-	resourceWriter.addFallbackAtlas(font.index, 8, 30f, 0.3f)
-}
-
-private fun saveMainContent(content: Content) {
-	val resourceWriter = Vk2dResourceWriter()
-
-	val allKimSprites = ArrayList<KimSprite>()
-	val allBcSprites = ArrayList<BcSprite>()
-	val collectionMapping = HashMap<Class<*>, Collection<Any>>()
-	collectionMapping[KimSprite::class.java] = allKimSprites
-	collectionMapping[BcSprite::class.java] = allBcSprites
-	BITSER.collectInstances(content, collectionMapping, hashMapOf())
-
-	for (sprite in allKimSprites) addKimImage(resourceWriter, sprite)
-	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
-	for (font in content.fonts.all()) addFont(resourceWriter, font)
-
-	val output = Files.newOutputStream(File("${Content.RESOURCES_DIRECTORY}/content.vk2d").toPath())
-	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))
-	output.close()
-
-	val uncompressedBytes = BITSER.toBytes(
-		content, WithParameter("exporting", null)
-	)
-	val uncompressedBuffer = memCalloc(uncompressedBytes.size)
-	uncompressedBuffer.put(0, uncompressedBytes)
-
-	val compressedCapacity = ZSTD_compressBound(uncompressedBytes.size.toLong())
-	val compressedBuffer = memCalloc(toIntExact(compressedCapacity))
-	val compressedSize = ZSTD_compress(compressedBuffer, uncompressedBuffer, 22)
-	compressedBuffer.limit(toIntExact(compressedSize))
-	FileChannel.open(
-		File("${Content.RESOURCES_DIRECTORY}/content.bits").toPath(),
-		StandardOpenOption.CREATE,
-		StandardOpenOption.TRUNCATE_EXISTING,
-		StandardOpenOption.WRITE
-	).use { channel ->
-		while (compressedBuffer.position() < compressedBuffer.limit()) channel.write(compressedBuffer)
-	}
-	memFree(uncompressedBuffer)
-	memFree(compressedBuffer)
-}
-
-private fun saveTitleScreenBundle(content: Content) {
-	val resourceWriter = Vk2dResourceWriter()
-
-	val titleAudio = AudioContent()
-	titleAudio.musicTracks.addAll(content.audio.musicTracks)
-	titleAudio.musicCategories.addAll(content.audio.musicCategories)
-	titleAudio.titleScreenTrack = content.audio.titleScreenTrack
-	titleAudio.gameOverTrack = content.audio.gameOverTrack
-
-	val titleScreenContent = TitleScreenContent(
-		background = content.ui.titleScreenBackground.shallowCopy(),
-		arrowHead = content.ui.arrowHead.shallowCopy(),
-		crystalPointer = content.ui.pointer.shallowCopy(),
-		basicFont = content.fonts.basic2.copy(),
-		fatFont = content.fonts.fat.copy(),
-		largeFont = content.fonts.large2.copy(),
-		boringFont = content.fonts.basic1.copy(),
-		audio = titleAudio,
-		neutralMusicNote = loadBc7Sprite("mardek/importer/audio/categories/AllMusic.png"),
-		musicNoteShadow = loadBc7Sprite("mardek/importer/audio/categories/Shadow.png"),
-		playMusicIcon = loadBc7Sprite("mardek/importer/audio/PlayButton.png"),
-		pauseMusicIcon = loadBc7Sprite("mardek/importer/audio/PauseButton.png"),
-		playMusicHoveredIcon = loadBc7Sprite("mardek/importer/audio/PlayButtonHovered.png"),
-		pauseMusicHoveredIcon = loadBc7Sprite("mardek/importer/audio/PauseButtonHovered.png"),
-	)
-
-	val allBcSprites = ArrayList<BcSprite>()
-	val allFonts = ArrayList<Font>()
-	val collectionMapping = HashMap<Class<*>, Collection<Any>>()
-	collectionMapping[BcSprite::class.java] = allBcSprites
-	collectionMapping[Font::class.java] = allFonts
-	BITSER.collectInstances(titleScreenContent, collectionMapping, hashMapOf())
-
-	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
-	for (font in allFonts) {
-		if (font === titleScreenContent.largeFont) {
-			addFont(resourceWriter, font) {
-				resourceWriter.addAtlas(
-					font.index,
-					8, 200f, 0.12f,
-					0f, Float.MAX_VALUE,
-					0f, 0.12f, "MARDEK"
-				)
-			}
-		} else addFont(resourceWriter, font)
-	}
-
-	val output = Files.newOutputStream(File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d").toPath())
-	resourceWriter.write(output, File("$projectFolder/flash/bc-cache"))
-	output.close()
-
-	Files.write(
-		File("${Content.RESOURCES_DIRECTORY}/title-screen.bits").toPath(),
-		BITSER.toBytes(
-			titleScreenContent, WithParameter("exporting", null),
-		)
-	)
-}
+	)).getSubimage(288, 32, 16, 16)),
+	inventoryCursor = cursorSprite("inventory"),
+	pointerCursor = cursorSprite("pointer"),
+	grabCursor = cursorSprite("grab"),
+)

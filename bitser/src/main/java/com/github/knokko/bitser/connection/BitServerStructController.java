@@ -257,7 +257,6 @@ public class BitServerStructController<T> extends BitServerController {
 
 							if (packet.length > 0) {
 								for (var connection : connections) connection.toClientQueue.add(packet);
-								System.out.println("Release " + onChangeSemaphores.size() + " change semaphores");
 								for (var semaphore : onChangeSemaphores) semaphore.release();
 							}
 						} finally {

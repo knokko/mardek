@@ -63,6 +63,10 @@ public class Vk2dResourceWriter {
 		return images.size() - 1;
 	}
 
+	public byte[] getImageData(int imageIndex) {
+		return images.get(imageIndex).data;
+	}
+
 	public int addFontBlob(InputStream ttfInput) {
 		int result = fonts.size();
 		byte[] ttfBytes;

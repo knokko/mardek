@@ -4,16 +4,6 @@ plugins {
 }
 
 dependencies {
-	for (dependency in (project.ext.get("vulkanImplementationDependencies") as ArrayList<*>)) {
-		implementation(dependency)
-	}
-	implementation(libs.lwjgl.zstd)
-	for (dependency in (project.ext.get("vulkanRuntimeDependencies") as ArrayList<*>)) {
-		runtimeOnly(dependency)
-	}
-	for (natives in (project.ext.get("lwjglNatives") as ArrayList<*>)) {
-		runtimeOnly("org.lwjgl:lwjgl-zstd::$natives")
-	}
 	for (format in arrayOf("kim1", "kim2", "kim3", "bc1", "bc4", "bc7")) {
 		implementation("com.github.knokko.vk-compressor:$format:${libs.versions.vk.compressor.get()}")
 	}
@@ -21,8 +11,12 @@ dependencies {
 	implementation(project(":content"))
 	implementation(project(":state"))
 	implementation(project(":vk2d"))
+	implementation(project(":client-export-helper"))
 	implementation("org.apache.xmlgraphics:batik-all:1.19")
 	implementation("com.github.knokko:sample-profiler:1.0.0")
+	implementation(libs.lwjgl)
+	implementation(libs.vk.boiler)
+	implementation(libs.joml)
 }
 
 tasks.register("exportContent", JavaExec::class) {

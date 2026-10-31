@@ -10,13 +10,25 @@ import mardek.editor.EditorView
 import mardek.editor.TEST_AUTH_TOKEN
 import mardek.editor.client.component.ChildStruct
 import mardek.editor.client.component.TrackStruct
+import mardek.editor.client.file.FileTabs
 import mardek.editor.client.inventory.ItemsContentTabs
 import mardek.editor.client.navbar.EditorClientNavbar
 import mardek.editor.client.navbar.NavbarTab
 import java.net.URI
 
 @Composable
-fun App(content: BitClientStruct) {
+fun App(wrappedContent: BitClientStruct) {
+    val mutateScope = rememberCoroutineScope()
+    var content by remember { mutableStateOf<BitClientStruct?>(null) }
+
+    content?.let { InnerApp(wrappedContent, it) }
+
+    TrackStruct(wrappedContent)
+    ChildStruct(mutateScope, wrappedContent, null, "content", 1) { content = it }
+}
+
+@Composable
+private fun InnerApp(wrappedContent: BitClientStruct, content: BitClientStruct) {
     val mutateScope = rememberCoroutineScope()
     var itemsContent by remember { mutableStateOf<BitClientStruct?>(null) }
 
@@ -24,6 +36,7 @@ fun App(content: BitClientStruct) {
     Column {
         EditorClientNavbar(currentTab) { currentTab = it }
         itemsContent?.let { ItemsContentTabs(it, currentTab) }
+        FileTabs(wrappedContent, currentTab)
     }
 
     TrackStruct(content)

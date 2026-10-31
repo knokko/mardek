@@ -14,6 +14,7 @@ import mardek.content.inventory.ItemsContent
 import mardek.content.inventory.WeaponProperties
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.Resistances
+import mardek.exporting.ContentWrapper
 import java.util.UUID
 
 object EditorView {
@@ -132,6 +133,12 @@ object EditorView {
 		contentView.markChildStructField(null, "items", listOf(itemsContentView), false) // TODO BITSER Change to true once we support it
 		contentView.finishRegistration()
 
-		this.root = contentView
+		val wrappedContentView = BitStructConnectionView(
+			1, BITSER.getProtocol(ContentWrapper::class.java)
+		)
+		wrappedContentView.markChildStructField(null, "content", listOf(contentView), false) // TODO BITSER Change to true once we support it
+		wrappedContentView.finishRegistration()
+
+		this.root = wrappedContentView
 	}
 }

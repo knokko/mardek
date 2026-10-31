@@ -2,6 +2,7 @@ package mardek.editor.server
 
 import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.connection.BitServerContext
+import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.kwik.BikServer
 import com.github.knokko.bitser.kwik.BikServerProtocol
 import mardek.content.BITSER
@@ -13,16 +14,21 @@ import mardek.editor.EDITOR_PORT
 import mardek.editor.EditorView
 import mardek.editor.SERVER_CERTIFICATE_FOLDER
 import mardek.editor.TEST_AUTH_TOKEN
+import mardek.exporting.ContentWrapper
 import tech.kwik.core.QuicConnection
 import tech.kwik.core.QuicStream
 import tech.kwik.core.log.SysOutLogger
 import tech.kwik.core.server.ServerConnectionConfig
 import tech.kwik.core.server.ServerConnector
+import java.io.BufferedOutputStream
 import java.io.File
 import java.lang.Thread.sleep
 import java.nio.file.Files
 import java.security.KeyStore
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.zip.DeflaterOutputStream
+import java.util.zip.InflaterOutputStream
+import kotlin.jvm.java
 import kotlin.system.measureNanoTime
 
 private class EditorServerProtocol(private val saveContent: () -> Unit) : BikServerProtocol {
@@ -73,25 +79,45 @@ private class EditorServerProtocol(private val saveContent: () -> Unit) : BikSer
 
 fun main() {
 	val contentFile = File("${Content.RESOURCES_DIRECTORY}/../editor-server/content.bits").toPath()
-	val content = BITSER.fromBytes(
-		Content::class.java,
-		Files.readAllBytes(contentFile),
+	val wrappedContent = BITSER.fromBytes(
+		ContentWrapper::class.java,
+		ContentWrapper.decompress(Files.readAllBytes(contentFile)),
 		Bitser.BACKWARD_COMPATIBLE,
 	)
 
+	val saveFileLock = Any()
+
 	fun saveContent() {
 		// TODO BITSER Put back-ups in a different file
+		println("start saving content...")
 		val duration = measureNanoTime {
-			val contentBytes = BITSER.toBytes(content, Bitser.BACKWARD_COMPATIBLE)
-			Files.write(contentFile, contentBytes)
+			val output = BitOutputStream(BufferedOutputStream(
+				Files.newOutputStream(File("test1.bits").toPath())
+			))
+			BITSER.serialize(wrappedContent, output, Bitser.BACKWARD_COMPATIBLE)
+			output.finish()
+
 		}
-		println("Saving content took ${duration / 1_000_000} ms")
+		println("saving took ${duration / 1_000_000} ms")
+//		val rawContentBytes: ByteArray
+//		val duration1 = measureNanoTime {
+//			rawContentBytes = BITSER.toBytes(wrappedContent, Bitser.BACKWARD_COMPATIBLE)
+//		}
+//		println("finished serializing raw content (took ${duration1 / 1000_000} ms)")
+//		Thread {
+//			val duration2 = measureNanoTime {
+//				synchronized(saveFileLock) {
+//					Files.write(contentFile, ContentWrapper.compress(rawContentBytes, 10))
+//				}
+//			}
+//			println("finished saving content (took ${duration2 / 1000_000} ms)")
+//		}.start()
 	}
 
 	BikServer.run(
 		EditorServerProtocol(::saveContent),
 		EDITOR_APPLICATION_PROTOCOL_NAME,
-		content,
+		wrappedContent,
 		listOf(EditorView.root),
 	)
 

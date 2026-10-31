@@ -51,7 +51,6 @@ public class BitServerStructListController<T> extends BitServerController {
 		while (true) {
 			hasFlatUpdatesSemaphore.acquireUninterruptibly();
 			hasFlatUpdatesSemaphore.drainPermits();
-			System.out.println("Received a flat update");
 
 			context.globalLock().readLock().lock();
 			try {
