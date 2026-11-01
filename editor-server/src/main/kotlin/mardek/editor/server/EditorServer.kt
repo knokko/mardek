@@ -2,9 +2,11 @@ package mardek.editor.server
 
 import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.connection.BitServerContext
+import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.kwik.BikServer
 import com.github.knokko.bitser.kwik.BikServerProtocol
+import com.github.knokko.memory.MemorySnapshot
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.editor.AUTH_TOKEN_LENGTH
@@ -15,6 +17,7 @@ import mardek.editor.EditorView
 import mardek.editor.SERVER_CERTIFICATE_FOLDER
 import mardek.editor.TEST_AUTH_TOKEN
 import mardek.exporting.ContentWrapper
+import mardek.exporting.DecompressingInputStream
 import tech.kwik.core.QuicConnection
 import tech.kwik.core.QuicStream
 import tech.kwik.core.log.SysOutLogger
@@ -59,7 +62,7 @@ private class EditorServerProtocol(private val saveContent: () -> Unit) : BikSer
 	}
 
 	override fun waitUntilServerShouldStop(context: BitServerContext) {
-		println("Press ENTER to exit...")
+		println("Run 'stop' to stop")
 		val didStop = AtomicBoolean(false)
 
 		val backupThread = Thread {
@@ -71,7 +74,13 @@ private class EditorServerProtocol(private val saveContent: () -> Unit) : BikSer
 		backupThread.isDaemon = true
 		backupThread.start()
 
-		readln()
+		while (true) {
+			val command = readln()
+			if (command == "stop") break
+			if (command == "memory") MemorySnapshot.take().debugDump()
+			if (command == "save") saveContent()
+			if (command == "gc") System.gc()
+		}
 		println("Exiting...")
 		didStop.set(true)
 	}
@@ -79,39 +88,42 @@ private class EditorServerProtocol(private val saveContent: () -> Unit) : BikSer
 
 fun main() {
 	val contentFile = File("${Content.RESOURCES_DIRECTORY}/../editor-server/content.bits").toPath()
-	val wrappedContent = BITSER.fromBytes(
-		ContentWrapper::class.java,
-		ContentWrapper.decompress(Files.readAllBytes(contentFile)),
-		Bitser.BACKWARD_COMPATIBLE,
+	val contentInput = BitInputStream(DecompressingInputStream(contentFile.toFile()))
+	val contentFile2 = File("${Content.RESOURCES_DIRECTORY}/../editor-server/content2.bits").toPath()
+	val wrappedContent = BITSER.deserialize(
+		ContentWrapper::class.java, contentInput, Bitser.BACKWARD_COMPATIBLE,
 	)
+	System.gc()
 
 	val saveFileLock = Any()
 
 	fun saveContent() {
 		// TODO BITSER Put back-ups in a different file
 		println("start saving content...")
-		val duration = measureNanoTime {
-			val output = BitOutputStream(BufferedOutputStream(
-				Files.newOutputStream(File("test1.bits").toPath())
-			))
-			BITSER.serialize(wrappedContent, output, Bitser.BACKWARD_COMPATIBLE)
-			output.finish()
-
-		}
-		println("saving took ${duration / 1_000_000} ms")
-//		val rawContentBytes: ByteArray
-//		val duration1 = measureNanoTime {
-//			rawContentBytes = BITSER.toBytes(wrappedContent, Bitser.BACKWARD_COMPATIBLE)
+//		val duration = measureNanoTime {
+//			val output = BitOutputStream(BufferedOutputStream(
+//				Files.newOutputStream(File("test1.bits").toPath())
+//			))
+//			BITSER.serialize(wrappedContent, output, Bitser.BACKWARD_COMPATIBLE)
+//			output.finish()
+//			System.gc()
 //		}
-//		println("finished serializing raw content (took ${duration1 / 1000_000} ms)")
-//		Thread {
-//			val duration2 = measureNanoTime {
-//				synchronized(saveFileLock) {
-//					Files.write(contentFile, ContentWrapper.compress(rawContentBytes, 10))
-//				}
-//			}
-//			println("finished saving content (took ${duration2 / 1000_000} ms)")
-//		}.start()
+//		println("saving took ${duration / 1_000_000} ms")
+		val rawContentBytes: ByteArray
+		val duration1 = measureNanoTime {
+			rawContentBytes = BITSER.toBytes(wrappedContent, Bitser.BACKWARD_COMPATIBLE)
+		}
+		println("finished serializing raw content (took ${duration1 / 1000_000} ms)")
+		Thread {
+			val duration2 = measureNanoTime {
+				synchronized(saveFileLock) {
+					//Files.write(contentFile, ContentWrapper.compress(rawContentBytes, 10))
+					Files.write(contentFile2, rawContentBytes)
+				}
+			}
+			System.gc()
+			println("finished saving content (took ${duration2 / 1000_000} ms)")
+		}.start()
 	}
 
 	BikServer.run(

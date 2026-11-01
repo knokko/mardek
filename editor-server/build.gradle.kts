@@ -8,6 +8,7 @@ plugins {
 dependencies {
 	implementation(project(":editor-protocol"))
 	implementation(project(":bitser-kwik"))
+	implementation(libs.memory.query)
 }
 
 tasks.shadowJar {

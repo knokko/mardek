@@ -6,6 +6,7 @@ kotlin = "2.4.10"
 kotlinx-coroutines = "1.11.0"
 kwik = "0.11"
 material3 = "1.11.0-alpha07"
+memory-query = "1.1.0"
 shadow = "9.3.1"
 joml = "1.10.9"
 lwjgl = "3.4.2"
@@ -25,6 +26,7 @@ compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMul
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+memory-query = { module = "com.github.knokko:memory-query", version.ref = "memory-query" }
 vk-boiler = { module = "com.github.knokko:vk-boiler", version.ref = "vk-boiler" }
 joml = { module = "org.joml:joml", version.ref = "joml" }
 kwik = { module = "tech.kwik:kwik", version.ref = "kwik" }

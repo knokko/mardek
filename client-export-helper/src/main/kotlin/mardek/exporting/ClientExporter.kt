@@ -89,6 +89,7 @@ fun exportAndPrepareVk2d(
 	collectionMapping[Font::class.java] = allFonts
 	BITSER.collectInstances(target, collectionMapping, hashMapOf())
 
+	// TODO BITSER Sort them by something
 	for (sprite in allKimSprites) addKimImage(resourceWriter, sprite)
 	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
 	for (font in allFonts) {
