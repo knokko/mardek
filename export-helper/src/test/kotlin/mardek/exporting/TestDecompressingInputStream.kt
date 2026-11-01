@@ -3,6 +3,7 @@ package mardek.exporting
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Test
 import java.nio.file.Files
+import kotlin.io.path.deleteIfExists
 import kotlin.random.Random
 
 class TestDecompressingInputStream {
@@ -21,6 +22,7 @@ class TestDecompressingInputStream {
 		val decompressed = input.readAllBytes()
 		input.close()
 
+		testFile.deleteIfExists()
 		assertArrayEquals(payload, decompressed)
 	}
 

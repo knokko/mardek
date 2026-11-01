@@ -100,30 +100,30 @@ fun main() {
 	fun saveContent() {
 		// TODO BITSER Put back-ups in a different file
 		println("start saving content...")
-//		val duration = measureNanoTime {
-//			val output = BitOutputStream(BufferedOutputStream(
-//				Files.newOutputStream(File("test1.bits").toPath())
-//			))
-//			BITSER.serialize(wrappedContent, output, Bitser.BACKWARD_COMPATIBLE)
-//			output.finish()
-//			System.gc()
-//		}
-//		println("saving took ${duration / 1_000_000} ms")
-		val rawContentBytes: ByteArray
-		val duration1 = measureNanoTime {
-			rawContentBytes = BITSER.toBytes(wrappedContent, Bitser.BACKWARD_COMPATIBLE)
-		}
-		println("finished serializing raw content (took ${duration1 / 1000_000} ms)")
-		Thread {
-			val duration2 = measureNanoTime {
-				synchronized(saveFileLock) {
-					//Files.write(contentFile, ContentWrapper.compress(rawContentBytes, 10))
-					Files.write(contentFile2, rawContentBytes)
-				}
-			}
+		val duration = measureNanoTime {
+			val output = BitOutputStream(BufferedOutputStream(
+				Files.newOutputStream(File("test1.bits").toPath())
+			))
+			BITSER.serialize(wrappedContent, output, Bitser.BACKWARD_COMPATIBLE)
+			output.finish()
 			System.gc()
-			println("finished saving content (took ${duration2 / 1000_000} ms)")
-		}.start()
+		}
+		println("saving took ${duration / 1_000_000} ms")
+//		val rawContentBytes: ByteArray
+//		val duration1 = measureNanoTime {
+//			rawContentBytes = BITSER.toBytes(wrappedContent, Bitser.BACKWARD_COMPATIBLE)
+//		}
+//		println("finished serializing raw content (took ${duration1 / 1000_000} ms)")
+//		Thread {
+//			val duration2 = measureNanoTime {
+//				synchronized(saveFileLock) {
+//					//Files.write(contentFile, ContentWrapper.compress(rawContentBytes, 10))
+//					Files.write(contentFile2, rawContentBytes)
+//				}
+//			}
+//			System.gc()
+//			println("finished saving content (took ${duration2 / 1000_000} ms)")
+//		}.start()
 	}
 
 	BikServer.run(

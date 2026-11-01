@@ -10,7 +10,9 @@ import org.lwjgl.system.MemoryUtil.memFree
 import org.lwjgl.util.zstd.Zstd.ZSTD_compress
 import org.lwjgl.util.zstd.Zstd.ZSTD_compressBound
 import org.lwjgl.util.zstd.Zstd.ZSTD_decompress
+import org.lwjgl.util.zstd.Zstd.ZSTD_getErrorName
 import org.lwjgl.util.zstd.Zstd.ZSTD_getFrameContentSize
+import org.lwjgl.util.zstd.Zstd.ZSTD_isError
 import java.io.Serializable
 import java.lang.Math.toIntExact
 
@@ -72,13 +74,24 @@ class ContentWrapper(
 		}
 
 		fun decompress(compressed: ByteArray): ByteArray {
+			if (compressed.isEmpty()) throw IllegalArgumentException("compressed array can't be empty")
+
 			val compressedBuffer = memCalloc(compressed.size)
 			compressedBuffer.put(0, compressed)
 
 			val expectedDecompressedSize = ZSTD_getFrameContentSize(compressedBuffer)
+			if (ZSTD_isError(expectedDecompressedSize)) {
+				throw IllegalArgumentException("Invalid compressed array ${ZSTD_getErrorName(expectedDecompressedSize)}")
+			}
+
 			val decompressedBuffer = memCalloc(toIntExact(expectedDecompressedSize))
 			val actualDecompressedSize = ZSTD_decompress(decompressedBuffer, compressedBuffer)
-			if (expectedDecompressedSize != actualDecompressedSize) throw RuntimeException("Size mismatch")
+			if (ZSTD_isError(actualDecompressedSize)) {
+				throw IllegalArgumentException("Invalid compressed array ${ZSTD_getErrorName(actualDecompressedSize)}")
+			}
+			if (expectedDecompressedSize != actualDecompressedSize) {
+				throw RuntimeException("Size mismatch: expected $expectedDecompressedSize, but got $actualDecompressedSize")
+			}
 
 			val decompressed = ByteArray(toIntExact(actualDecompressedSize))
 			decompressedBuffer.get(decompressed)
