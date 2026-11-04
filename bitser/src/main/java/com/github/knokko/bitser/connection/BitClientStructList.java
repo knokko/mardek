@@ -94,13 +94,14 @@ public class BitClientStructList {
 		}
 	}
 
-	public void executeSimpleOperation(int operation) {
-		stream.send(toServer ->
-				IntegerBitser.encodeUniformInteger(
-						operation, 0L, max(1L, view.getNumOperations() - 1), toServer
-				)
-		);
-		// TODO BITSER Add support for operations with input & output
+	public void executeOperation(BitStructListOperation<?> operation, ConnectionHelper.BitWriter writeRequestData) {
+		stream.send(toServer -> {
+			toServer.write(false);
+			IntegerBitser.encodeUniformInteger(
+					operation.operationID(), 0L, max(1L, view.getNumOperations() - 1), toServer
+			);
+			writeRequestData.write(toServer);
+		});
 	}
 
 	public void close() {

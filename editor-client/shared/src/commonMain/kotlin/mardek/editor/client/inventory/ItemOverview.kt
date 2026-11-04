@@ -57,7 +57,7 @@ private fun InnerItemList(list: BitClientStructList, controllerIDs: List<Long>, 
 		}
 
 		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
-			Button(onClick = { list.executeSimpleOperation(EditorView.operationAddWeapon) }) {
+			Button(onClick = { list.executeOperation(EditorView.operationAddWeapon) {} }) {
 				Text("Add weapon")
 			}
 		}

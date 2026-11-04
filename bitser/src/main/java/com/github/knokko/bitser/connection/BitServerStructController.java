@@ -10,16 +10,17 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static java.lang.Math.toIntExact;
 
 public class BitServerStructController<T> extends BitServerController {
 
-	final T structInstance;
+	public final T structInstance;
 	final BitStructProtocol protocol;
 	final List<BitStructConnectionView> views = new ArrayList<>();
 	final List<Connection> connections = new ArrayList<>();
-	final ReadWriteLock lock = new ReentrantReadWriteLock();
+	public final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	final List<Semaphore> onChangeSemaphores = new ArrayList<>();
 
 	public BitServerStructController(BitServerContext context, T structInstance, BitStructProtocol protocol) {
@@ -48,7 +49,7 @@ public class BitServerStructController<T> extends BitServerController {
 			try {
 				connections.add(connection);
 
-				if (connection.view.hasAtLeastOneUploadableField()) {
+				if (connection.view.hasAtLeastOneUploadableField() || connection.view.getNumOperations() > 0) {
 					var fromClientThread = new Thread(connection::readFromClient);
 					fromClientThread.setDaemon(true);
 					fromClientThread.start();
@@ -120,6 +121,19 @@ public class BitServerStructController<T> extends BitServerController {
 		}
 	}
 
+	public void refreshClients(boolean[] hasChanges) {
+		if (!context.globalLock().isWriteLockedByCurrentThread() && context.globalLock().getReadHoldCount() == 0) {
+			throw new IllegalStateException("The global read lock or global write lock must be held while modifying objects");
+		}
+		if (!lock.isWriteLockedByCurrentThread()) {
+			throw new IllegalStateException("The write lock of this controller must be held while modifying this object");
+		}
+		if (hasChanges == null) hasChanges = new boolean[protocol.getNumFields()];
+		Arrays.fill(hasChanges, true);
+		for (var connection : connections) connection.refreshClient(hasChanges);
+		for (var semaphore : onChangeSemaphores) semaphore.release();
+	}
+
 	private class Connection {
 
 		private static final byte[] CANCEL_TOKEN = new byte[0];
@@ -183,9 +197,40 @@ public class BitServerStructController<T> extends BitServerController {
 			toClientThread.start();
 		}
 
+		private void refreshClient(boolean[] hasChanges) {
+			try {
+				byte[] packet = ConnectionHelper.capture(toClients -> {
+					for (int fieldID = 0; fieldID < protocol.getNumFields(); fieldID++) {
+						var referenceViews = view.getStructReferenceViewsOrNull(fieldID);
+						if (referenceViews == null) {
+							if (!view.canDownloadFlat(fieldID)) continue;
+							toClients.write(hasChanges[fieldID]);
+							if (hasChanges[fieldID]) {
+								Object newValue = view.protocol.getFieldValue(structInstance, fieldID);
+								view.protocol.serializeFlatFieldValue(fieldID, toClients, newValue);
+							}
+						} else {
+							if (!view.canUploadReference(fieldID)) continue;
+							toClients.write(hasChanges[fieldID]);
+							if (hasChanges[fieldID]) {
+								Object newValue = view.protocol.getFieldValue(structInstance, fieldID);
+								IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
+										(Long) newValue, 0L, Long.MAX_VALUE, toClients
+								);
+							}
+						}
+					}
+				});
+				toClientQueue.add(packet);
+			} catch (Throwable shouldNotFail) {
+				throw new RuntimeException(shouldNotFail);
+			}
+		}
+
 		void readFromClient() {
 			try {
 				int numFields = view.protocol.getNumFields();
+				int numOperations = view.getNumOperations();
 				Object[] newValues = new Object[numFields];
 				boolean[] hasChanges = new boolean[numFields];
 
@@ -194,76 +239,69 @@ public class BitServerStructController<T> extends BitServerController {
 
 				//noinspection InfiniteLoopStatement
 				while (true) {
-					for (int fieldID = 0; fieldID < numFields; fieldID++) {
-						var referenceViews = view.getStructReferenceViewsOrNull(fieldID);
-						if (referenceViews == null) {
-							if (!view.canUploadFlat(fieldID)) continue;
-							if (!fromClient.read()) continue;
-
-							newValues[fieldID] = view.protocol.deserializeFlatFieldValue(fieldID, fromClient);
-							hasChanges[fieldID] = true;
-						} else {
-							if (!view.canUploadReference(fieldID)) continue;
-							if (!fromClient.read()) continue;
-
-							long newControllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
-									0L, Long.MAX_VALUE, fromClient
-							);
-							newValues[fieldID] = newControllerID;
-							hasChanges[fieldID] = true;
-						}
-					}
-					fromClient.discardCurrentByte();
-
-					byte[] packet = ConnectionHelper.capture(toClients -> {
+					if (fromClient.read()) {
 						for (int fieldID = 0; fieldID < numFields; fieldID++) {
 							var referenceViews = view.getStructReferenceViewsOrNull(fieldID);
 							if (referenceViews == null) {
-								if (!view.canDownloadFlat(fieldID)) continue;
-								toClients.write(hasChanges[fieldID]);
-								if (hasChanges[fieldID]) {
-									view.protocol.serializeFlatFieldValue(fieldID, toClients, newValues[fieldID]);
-								}
+								if (!view.canUploadFlat(fieldID)) continue;
+								if (!fromClient.read()) continue;
+
+								newValues[fieldID] = view.protocol.deserializeFlatFieldValue(fieldID, fromClient);
+								hasChanges[fieldID] = true;
 							} else {
 								if (!view.canUploadReference(fieldID)) continue;
-								toClients.write(hasChanges[fieldID]);
-								if (hasChanges[fieldID]) {
-									IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
-											(Long) newValues[fieldID], 0L, Long.MAX_VALUE, toClients
-									);
-								}
+								if (!fromClient.read()) continue;
+
+								long newControllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+										0L, Long.MAX_VALUE, fromClient
+								);
+								newValues[fieldID] = newControllerID;
+								hasChanges[fieldID] = true;
 							}
 						}
-					});
+						fromClient.discardCurrentByte();
 
-					context.globalLock().readLock().lock();
-					try {
-						lock.writeLock().lock();
+						context.globalLock().readLock().lock();
 						try {
-							for (int fieldID = 0; fieldID < numFields; fieldID++) {
-								if (hasChanges[fieldID]) {
-									var referenceViews = view.getStructReferenceViewsOrNull(fieldID);
-									if (referenceViews == null) {
-										view.protocol.setFieldValue(structInstance, fieldID, newValues[fieldID]);
-									} else {
-										long newControllerID = (Long) newValues[fieldID];
-										var newController = context.controllerMapping().getControllerById(newControllerID);
-										var newValue = ((BitServerStructController<?>) newController).structInstance;
-										// TODO BITSER Validate this
-										view.protocol.setFieldValue(structInstance, fieldID, newValue);
+							lock.writeLock().lock();
+							try {
+								for (int fieldID = 0; fieldID < numFields; fieldID++) {
+									if (hasChanges[fieldID]) {
+										var referenceViews = view.getStructReferenceViewsOrNull(fieldID);
+										if (referenceViews == null) {
+											view.protocol.setFieldValue(structInstance, fieldID, newValues[fieldID]);
+										} else {
+											long newControllerID = (Long) newValues[fieldID];
+											var newController = context.controllerMapping().getControllerById(newControllerID);
+											var newValue = ((BitServerStructController<?>) newController).structInstance;
+											// TODO BITSER Validate this
+											view.protocol.setFieldValue(structInstance, fieldID, newValue);
+										}
 									}
 								}
-							}
 
-							if (packet.length > 0) {
-								for (var connection : connections) connection.toClientQueue.add(packet);
-								for (var semaphore : onChangeSemaphores) semaphore.release();
+								refreshClients(hasChanges);
+							} finally {
+								lock.writeLock().unlock();
 							}
 						} finally {
-							lock.writeLock().unlock();
+							context.globalLock().readLock().unlock();
 						}
-					} finally {
-						context.globalLock().readLock().unlock();
+					} else {
+						int operationID = toIntExact(IntegerBitser.decodeUniformInteger(
+								0L, numOperations - 1L, fromClient
+						));
+						@SuppressWarnings("unchecked")
+						var operation = (BitServerStructOperation<T>) context.operationRegistry().getImplementation(view, operationID);
+						operation.readRequestData(fromClient);
+						fromClient.discardCurrentByte();
+
+						context.globalLock().readLock().lock();
+						try {
+							operation.execute(BitServerStructController.this, context);
+						} finally {
+							context.globalLock().readLock().unlock();
+						}
 					}
 				}
 			} catch (Throwable failed) {

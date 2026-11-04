@@ -1,7 +1,6 @@
 package com.github.knokko.bitser.connection;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -16,6 +15,7 @@ public class BitStructConnectionView extends BitConnectionView {
 	private final List<BitStructListConnectionView<?>>[] structLists;
 	private final List<BitFlatStructListConnectionView<?>>[] flatStructLists;
 	private final BitStructConnectionView[][] referenceStructs;
+	private int numOperations;
 
 	private boolean finishedRegistration;
 	private boolean hasDownloadableFields;
@@ -174,6 +174,13 @@ public class BitStructConnectionView extends BitConnectionView {
 		canUploadFlat[fieldID] = canWrite;
 	}
 
+	public BitStructOperation addOperation() {
+		assertRegistrationIsOpen();
+		var operation = new BitStructOperation(this, numOperations);
+		numOperations += 1;
+		return operation;
+	}
+
 	public void finishRegistration() {
 		assertRegistrationIsOpen();
 
@@ -253,6 +260,10 @@ public class BitStructConnectionView extends BitConnectionView {
 
 	boolean hasAtLeastOneUploadableField() {
 		return hasUploadableFields;
+	}
+
+	int getNumOperations() {
+		return numOperations;
 	}
 
 	@Override

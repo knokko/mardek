@@ -7,10 +7,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-class ConnectionHelper {
+public class ConnectionHelper {
 
 	@FunctionalInterface
-	interface BitWriter {
+	public interface BitWriter {
 
 		void write(BitOutputStream output) throws Throwable;
 	}

@@ -19,7 +19,7 @@ public class BikServer {
 
 	public static <T> void run(
 			BikServerProtocol bikProtocol, String protocolName,
-			T rootStruct, List<BitStructConnectionView> rootViews
+			T rootStruct, List<BitStructConnectionView> rootViews, BitServerOperationRegistry operationRegistry
 	) throws CertificateException, IOException {
 		var configBuilder = ServerConnectionConfig.builder()
 				.maxTotalPeerInitiatedBidirectionalStreams(0)
@@ -41,7 +41,7 @@ public class BikServer {
 		try (var connector = connectorBuilder.build()) {
 			var controllerMapping = new BitServerControllerMapping();
 			var serverContext = new BitServerContext(
-					rootStruct, controllerMapping, globalLock, globalQueue
+					rootStruct, controllerMapping, operationRegistry, globalLock, globalQueue
 			);
 			controllerMapping.addIfNotPresent(serverContext, List.of(rootStruct), rootViews, new ArrayList<>());
 

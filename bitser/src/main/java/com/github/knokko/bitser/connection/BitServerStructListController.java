@@ -21,7 +21,7 @@ public class BitServerStructListController<T> extends BitServerController {
 
 	private static final byte[] CANCEL_TOKEN = new byte[0];
 
-	final List<T> structList;
+	public final List<T> structList;
 	final BitStructProtocol elementsProtocol;
 	final List<BitStructListConnectionView<T>> nestedViews = new ArrayList<>();
 	final List<BitFlatStructListConnectionView<T>> flatViews = new ArrayList<>();
@@ -260,48 +260,20 @@ public class BitServerStructListController<T> extends BitServerController {
 			try {
 				//noinspection InfiniteLoopStatement
 				while (true) {
+					fromClient.read();
 					int operationIndex = (int) IntegerBitser.decodeUniformInteger(
 							0L, max(1L, view.getNumOperations() - 1L), fromClient
 					);
-					var operation = view.getOperation(operationIndex);
-
-					operation.readFromClient(fromClient);
+					@SuppressWarnings("unchecked")
+					var operation = (BitServerStructListOperation<T>) context.operationRegistry().getImplementation(view, operationIndex);
+					operation.readRequestData(fromClient);
 					fromClient.discardCurrentByte();
 
-					boolean[] isGlobal = { false };
-					if (operation instanceof BitStructListConnectionView.GlobalOperation<?,?>) {
-						//noinspection unchecked
-						((BitStructListConnectionView.GlobalOperation<T, Object>) operation).considerGlobalState(() -> {
-							isGlobal[0] = true;
-							return new BitStructListConnectionView.GlobalContext<>(
-									context.rootStruct(), structList, context.controllerMapping()
-							);
-						});
-					}
-
-					if (isGlobal[0]) {
-						boolean didQueue = context.globalQueue().offer(() -> {
-							operation.execute(structList);
-							operation.respondToClient(toClient);
-							toClient.flush();
-						});
-						if (!didQueue) {
-							System.err.println("Failed to put operation " + operationIndex + " in the global queue");
-							// TODO BITSER Communicate this to the client somehow
-						}
-					} else {
-						context.globalLock().readLock().lock();
-						try {
-							synchronized (BitServerStructListController.this) {
-								if (operation.execute(structList)) {
-									refreshClientConnections();
-								}
-							}
-						} finally {
-							context.globalLock().readLock().unlock();
-						}
-						operation.respondToClient(toClient);
-						toClient.flush();
+					context.globalLock().readLock().lock();
+					try {
+						operation.execute(BitServerStructListController.this, context);
+					} finally {
+						context.globalLock().readLock().unlock();
 					}
 				}
 			} catch (Throwable failed) {

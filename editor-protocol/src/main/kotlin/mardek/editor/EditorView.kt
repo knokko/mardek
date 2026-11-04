@@ -4,26 +4,24 @@ import com.github.knokko.bitser.connection.BitFlatStructListConnectionView
 import com.github.knokko.bitser.connection.BitFlatStructView
 import com.github.knokko.bitser.connection.BitStructConnectionView
 import com.github.knokko.bitser.connection.BitStructListConnectionView
-import com.github.knokko.boiler.utilities.ColorPacker.rgb
+import com.github.knokko.bitser.connection.BitStructListOperation
+import com.github.knokko.bitser.connection.BitStructOperation
 import mardek.content.BITSER
 import mardek.content.Content
-import mardek.content.inventory.EquipmentProperties
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemType
 import mardek.content.inventory.ItemsContent
-import mardek.content.inventory.WeaponProperties
-import mardek.content.sprite.KimSprite
-import mardek.content.stats.Resistances
 import mardek.exporting.ContentWrapper
-import java.util.UUID
 
 object EditorView {
 
 	val root: BitStructConnectionView
+	val mainItemTypesView: BitStructListConnectionView<ItemType>
+	val mainItemsView: BitStructListConnectionView<Item>
 
-	val operationAddItemType: Int
-
-	val operationAddWeapon: Int
+	val operationSyncForExport: BitStructOperation
+	val operationAddItemType: BitStructListOperation<ItemType>
+	val operationAddWeapon: BitStructListOperation<Item>
 
 	init {
 		val nameOnlyItemTypeView = BitFlatStructView(BITSER.getProtocol(ItemType::class.java))
@@ -40,17 +38,14 @@ object EditorView {
 		fullItemTypeView.markAllSimpleFields(true, true)
 		fullItemTypeView.finishRegistration()
 
-		val nestedItemTypesView = BitStructListConnectionView<ItemType>(
+		this.mainItemTypesView = BitStructListConnectionView<ItemType>(
 			1, fullItemTypeView.protocol
 		)
-		nestedItemTypesView.addElementsView(fullItemTypeView)
-		nestedItemTypesView.addElementsView(nameOnlyItemTypeView.toRegularView(2))
+		mainItemTypesView.addElementsView(fullItemTypeView)
+		mainItemTypesView.addElementsView(nameOnlyItemTypeView.toRegularView(2))
 
-		this.operationAddItemType = nestedItemTypesView.addSimpleOperation { itemTypeList ->
-			itemTypeList.add(ItemType("ITEM TYPE: NEW", -1, "New item type"))
-			true
-		}
-		nestedItemTypesView.finishRegistration()
+		this.operationAddItemType = mainItemTypesView.addOperation()
+		mainItemTypesView.finishRegistration()
 
 		val nameOnlyItemTypeReferenceView = BitStructConnectionView(
 			2, BITSER.getProtocol(ItemType::class.java)
@@ -72,59 +67,17 @@ object EditorView {
 		)
 		itemView.finishRegistration()
 
-		val itemsView = BitStructListConnectionView<Item>(1, itemView.protocol)
-		itemsView.addElementsView(itemView)
-		this.operationAddWeapon = itemsView.addSimpleGlobalOperation<Content> { context ->
-			val itemTypes = context.rootStruct.items.itemTypes
-			if (itemTypes.isEmpty()) {
-				itemTypes.add(ItemType(
-					"ITEM: FIRST",
-					rgb(200, 0, 0),
-					"First item type",
-				))
-				context.controllerMapping.getListController(itemTypes).refreshClientConnections()
-			}
-
-			context.thisList.add(Item(
-				id = UUID.randomUUID(),
-				displayName = "New weapon",
-				sprite = KimSprite(),
-				description = "",
-				type = itemTypes[0],
-				element = null,
-				cost = 123,
-				equipment = EquipmentProperties(
-					skills = ArrayList(0),
-					stats = ArrayList(0),
-					elementalBonuses = ArrayList(0),
-					resistances = Resistances(),
-					autoEffects = ArrayList(0),
-					weapon = WeaponProperties(
-						hitChance = 100,
-						critChance = 10,
-						hpDrain = 0f,
-						mpDrain = 0f,
-						effectiveAgainstCreatureTypes = ArrayList(0),
-						effectiveAgainstElements = ArrayList(0),
-						addEffects = ArrayList(0),
-						hitSound = null,
-					),
-					gem = null,
-					onlyUser = null,
-					charismaticPerformanceChance = 0,
-				),
-				consumable = null,
-			))
-			context.controllerMapping.getListController(context.thisList).refreshClientConnections()
-		}
-		itemsView.finishRegistration()
+		this.mainItemsView = BitStructListConnectionView<Item>(1, itemView.protocol)
+		mainItemsView.addElementsView(itemView)
+		this.operationAddWeapon = mainItemsView.addOperation()
+		mainItemsView.finishRegistration()
 
 		val itemsContentView = BitStructConnectionView(
 			1, BITSER.getProtocol(ItemsContent::class.java)
 		)
-		itemsContentView.markStructListField(null, "itemTypes", nestedItemTypesView, false) // TODO BITSER Change to true, once we support it
+		itemsContentView.markStructListField(null, "itemTypes", mainItemTypesView, false) // TODO BITSER Change to true, once we support it
 		itemsContentView.markFlatStructListField(null, "itemTypes", flatItemTypesView, true)
-		itemsContentView.markStructListField(null, "items", itemsView, true)
+		itemsContentView.markStructListField(null, "items", mainItemsView, true)
 		itemsContentView.finishRegistration()
 
 		val contentView = BitStructConnectionView(
@@ -137,6 +90,7 @@ object EditorView {
 			1, BITSER.getProtocol(ContentWrapper::class.java)
 		)
 		wrappedContentView.markChildStructField(null, "content", listOf(contentView), false) // TODO BITSER Change to true once we support it
+		this.operationSyncForExport = wrappedContentView.addOperation()
 		wrappedContentView.finishRegistration()
 
 		this.root = wrappedContentView

@@ -77,7 +77,7 @@ private fun InnerItemTypeList(list: BitClientStructList, controllerIDs: List<Lon
 		}
 
 		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
-			Button(onClick = { list.executeSimpleOperation(EditorView.operationAddItemType) }) {
+			Button(onClick = { list.executeOperation(EditorView.operationAddItemType) {} }) {
 				Text("Add new")
 			}
 		}

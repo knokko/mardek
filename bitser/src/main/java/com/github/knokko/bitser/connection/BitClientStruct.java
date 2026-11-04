@@ -188,6 +188,7 @@ public class BitClientStruct {
 	}
 
 	private void save(BitOutputStream toServer) throws Throwable {
+		toServer.write(true);
 		for (var field : fields) {
 			if (field != null) field.save(toServer);
 		}

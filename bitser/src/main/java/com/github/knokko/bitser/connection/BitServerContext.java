@@ -1,12 +1,13 @@
 package com.github.knokko.bitser.connection;
 
 import java.util.Queue;
-import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public record BitServerContext(
 		Object rootStruct,
 		BitServerControllerMapping controllerMapping,
-		ReadWriteLock globalLock,
+		BitServerOperationRegistry operationRegistry,
+		ReentrantReadWriteLock globalLock,
 		Queue<GlobalRunnable> globalQueue
 ) {
 
