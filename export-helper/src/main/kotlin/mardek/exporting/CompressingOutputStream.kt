@@ -14,7 +14,13 @@ import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 import kotlin.math.min
 
-class CompressingOutputStream(outputFile: File, compressionLevel: Int) : OutputStream() {
+/**
+ * ## This class is currently completely broken!
+ * I couldn't figure out how to use ZSTD stream compression, in particular the OP codes.
+ *
+ * TODO CHAP3 Fix this
+ */
+private class CompressingOutputStream(outputFile: File, compressionLevel: Int) : OutputStream() {
 
 	private val channel = FileChannel.open(
 		outputFile.toPath(),

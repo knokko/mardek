@@ -9,7 +9,6 @@ import mardek.content.audio.MusicTrack
 import mardek.state.ingame.CampaignState
 import mardek.state.ingame.area.AreaState
 import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -128,7 +127,7 @@ class SavesFolderManager(
 		if (infoBytes.size >= 256) throw Error("What?! info size is ${infoBytes.size}")
 
 		try {
-			val rawOutput = BufferedOutputStream(Files.newOutputStream(destinationFile.toPath()))
+			val rawOutput = Files.newOutputStream(destinationFile.toPath())
 			rawOutput.write(infoBytes.size)
 			rawOutput.write(infoBytes)
 

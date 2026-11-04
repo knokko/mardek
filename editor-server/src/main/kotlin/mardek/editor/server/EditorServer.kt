@@ -23,14 +23,13 @@ import tech.kwik.core.QuicStream
 import tech.kwik.core.log.SysOutLogger
 import tech.kwik.core.server.ServerConnectionConfig
 import tech.kwik.core.server.ServerConnector
-import java.io.BufferedOutputStream
 import java.io.File
 import java.lang.Thread.sleep
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.security.KeyStore
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.zip.DeflaterOutputStream
-import java.util.zip.InflaterOutputStream
 import kotlin.jvm.java
 import kotlin.system.measureNanoTime
 
@@ -87,43 +86,65 @@ private class EditorServerProtocol(private val saveContent: () -> Unit) : BikSer
 }
 
 fun main() {
-	val contentFile = File("${Content.RESOURCES_DIRECTORY}/../editor-server/content.bits").toPath()
-	val contentInput = BitInputStream(DecompressingInputStream(contentFile.toFile()))
-	val contentFile2 = File("${Content.RESOURCES_DIRECTORY}/../editor-server/content2.bits").toPath()
+	val contentFile = File("${Content.RESOURCES_DIRECTORY}/../editor-server/content.bits")
+	val compressedContentFile = File("${Content.RESOURCES_DIRECTORY}/../editor-server/content-compressed.bits.tmp")
+	val contentInput = BitInputStream(DecompressingInputStream(contentFile))
 	val wrappedContent = BITSER.deserialize(
 		ContentWrapper::class.java, contentInput, Bitser.BACKWARD_COMPATIBLE,
 	)
 	System.gc()
 
-	val saveFileLock = Any()
-
 	fun saveContent() {
 		// TODO BITSER Put back-ups in a different file
 		println("start saving content...")
-		val duration = measureNanoTime {
-			val output = BitOutputStream(BufferedOutputStream(
-				Files.newOutputStream(File("test1.bits").toPath())
-			))
-			BITSER.serialize(wrappedContent, output, Bitser.BACKWARD_COMPATIBLE)
-			output.finish()
+		val saveDuration = measureNanoTime {
+			synchronized(compressedContentFile) {
+				val output = BitOutputStream(Files.newOutputStream(compressedContentFile.toPath()))
+				BITSER.serialize(wrappedContent, output, Bitser.BACKWARD_COMPATIBLE)
+				output.finish()
+			}
 			System.gc()
 		}
-		println("saving took ${duration / 1_000_000} ms")
-//		val rawContentBytes: ByteArray
-//		val duration1 = measureNanoTime {
-//			rawContentBytes = BITSER.toBytes(wrappedContent, Bitser.BACKWARD_COMPATIBLE)
-//		}
-//		println("finished serializing raw content (took ${duration1 / 1000_000} ms)")
-//		Thread {
-//			val duration2 = measureNanoTime {
-//				synchronized(saveFileLock) {
-//					//Files.write(contentFile, ContentWrapper.compress(rawContentBytes, 10))
-//					Files.write(contentFile2, rawContentBytes)
-//				}
-//			}
-//			System.gc()
-//			println("finished saving content (took ${duration2 / 1000_000} ms)")
-//		}.start()
+		println("saving took ${saveDuration / 1_000_000} ms")
+
+		Thread {
+			val compressDuration = measureNanoTime {
+				val tempContentFile = Files.createTempFile("", ".bits").toFile()
+				tempContentFile.deleteOnExit()
+
+				val compressionProcessBuilder = ProcessBuilder(
+					"zstd",
+					compressedContentFile.absolutePath,
+					"-o",
+					tempContentFile.absolutePath,
+					"-10",
+					"--force",
+					"--rm",
+					"--no-progress",
+					"--quiet",
+				)
+				compressionProcessBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
+				compressionProcessBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+
+				synchronized(compressedContentFile) {
+					val compressionProcess = compressionProcessBuilder.start()
+					compressionProcess.waitFor(1, TimeUnit.MINUTES)
+					if (compressionProcess.exitValue() != 0) {
+						throw RuntimeException("Compression failed")
+					}
+				}
+
+				synchronized(contentFile) {
+					Files.move(
+						tempContentFile.toPath(),
+						contentFile.toPath(),
+						StandardCopyOption.REPLACE_EXISTING,
+					)
+				}
+				System.gc()
+			}
+			println("Compression after save took ${compressDuration / 1_000_000} ms")
+		}.start()
 	}
 
 	BikServer.run(
