@@ -23,7 +23,7 @@ public class BikClient {
 				.uri(uri)
 				.applicationProtocol(protocol)
 				.defaultStreamReceiveBufferSize(2500L) // Bitser packets are normally very small
-				.maxOpenPeerInitiatedUnidirectionalStreams(0) // Bitser streams are always bidirectional
+				.maxOpenPeerInitiatedUnidirectionalStreams(10_000)
 				.maxOpenPeerInitiatedBidirectionalStreams(10_000);
 		bikProtocol.configureConnection(builder);
 

@@ -291,6 +291,7 @@ public class BitServerStructController<T> extends BitServerController {
 						int operationID = toIntExact(IntegerBitser.decodeUniformInteger(
 								0L, numOperations - 1L, fromClient
 						));
+						System.out.println("Operation ID is " + operationID);
 						@SuppressWarnings("unchecked")
 						var operation = (BitServerStructOperation<T>) context.operationRegistry().getImplementation(view, operationID);
 						operation.readRequestData(fromClient);

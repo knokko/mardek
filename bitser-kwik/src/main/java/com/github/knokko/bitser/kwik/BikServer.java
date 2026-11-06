@@ -1,9 +1,12 @@
 package com.github.knokko.bitser.kwik;
 
 import com.github.knokko.bitser.connection.*;
+import com.github.knokko.bitser.io.BitOutputStream;
+import tech.kwik.core.QuicConnection;
 import tech.kwik.core.server.ServerConnectionConfig;
 import tech.kwik.core.server.ServerConnector;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
@@ -16,6 +19,26 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class BikServer {
 
 	private static final BitServerContext.GlobalRunnable SERVER_STOPPED = () -> {};
+
+	private static void respondToClient(
+			Object connectionHandle, int responseID, ConnectionHelper.BitWriter writeResponse
+	) {
+		new Thread(() -> {
+			var connection = (QuicConnection) connectionHandle;
+
+			try {
+				var stream = connection.createStream(false);
+				var rawOutput = stream.getOutputStream();
+				var dataOutput = new DataOutputStream(rawOutput);
+				dataOutput.writeInt(responseID);
+				var output = new BitOutputStream(rawOutput);
+				writeResponse.write(output);
+				output.flush();
+			} catch (Throwable failed) {
+				System.err.println("Failed to send response to client: " + failed.getMessage());
+			}
+		}).start();
+	}
 
 	public static <T> void run(
 			BikServerProtocol bikProtocol, String protocolName,
@@ -41,7 +64,8 @@ public class BikServer {
 		try (var connector = connectorBuilder.build()) {
 			var controllerMapping = new BitServerControllerMapping();
 			var serverContext = new BitServerContext(
-					rootStruct, controllerMapping, operationRegistry, globalLock, globalQueue
+					rootStruct, controllerMapping, operationRegistry,
+					globalLock, globalQueue, BikServer::respondToClient
 			);
 			controllerMapping.addIfNotPresent(serverContext, List.of(rootStruct), rootViews, new ArrayList<>());
 

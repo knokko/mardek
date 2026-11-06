@@ -6,5 +6,5 @@ public interface BitServerStructOperation<T> {
 
 	void readRequestData(BitInputStream fromClient);
 
-	void execute(BitServerStructController<T> controller, BitServerContext context);
+	void execute(BitServerStructController<T> controller, BitServerContext context, Object connectionHandle);
 }

@@ -262,7 +262,7 @@ public class BitServerStructListController<T> extends BitServerController {
 				while (true) {
 					fromClient.read();
 					int operationIndex = (int) IntegerBitser.decodeUniformInteger(
-							0L, max(1L, view.getNumOperations() - 1L), fromClient
+							0L, view.getNumOperations() - 1L, fromClient
 					);
 					@SuppressWarnings("unchecked")
 					var operation = (BitServerStructListOperation<T>) context.operationRegistry().getImplementation(view, operationIndex);

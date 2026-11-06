@@ -8,12 +8,19 @@ public record BitServerContext(
 		BitServerControllerMapping controllerMapping,
 		BitServerOperationRegistry operationRegistry,
 		ReentrantReadWriteLock globalLock,
-		Queue<GlobalRunnable> globalQueue
+		Queue<GlobalRunnable> globalQueue,
+		RespondToClient respondToClient
 ) {
 
 	@FunctionalInterface
 	public interface GlobalRunnable {
 
 		void run() throws Throwable;
+	}
+
+	@FunctionalInterface
+	public interface RespondToClient {
+
+		void send(Object connectionHandle, int responseID, ConnectionHelper.BitWriter writeData);
 	}
 }

@@ -9,8 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static java.lang.Math.max;
-
 public class BitClientStructList {
 
 	private final BitStructListConnectionView<?> view;
@@ -58,7 +56,6 @@ public class BitClientStructList {
 
 		//noinspection InfiniteLoopStatement
 		while (true) {
-			// TODO BITSER Process operation feedback
 			refreshListFromServer(fromServer);
 		}
 	}
@@ -98,7 +95,7 @@ public class BitClientStructList {
 		stream.send(toServer -> {
 			toServer.write(false);
 			IntegerBitser.encodeUniformInteger(
-					operation.operationID(), 0L, max(1L, view.getNumOperations() - 1), toServer
+					operation.operationID(), 0L, view.getNumOperations() - 1L, toServer
 			);
 			writeRequestData.write(toServer);
 		});

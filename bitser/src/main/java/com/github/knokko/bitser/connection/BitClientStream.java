@@ -1,28 +1,17 @@
 package com.github.knokko.bitser.connection;
 
-import com.github.knokko.bitser.io.BitInputStream;
-import com.github.knokko.bitser.io.BitOutputStream;
-
 public interface BitClientStream {
 
-	void start(InputReader processInput);
+	void start(ConnectionHelper.BitReader processInput);
 
-	void send(OutputWriter sendFrame);
+	void send(ConnectionHelper.BitWriter sendFrame);
 
 	void close();
 
 	interface Factory {
 
 		BitClientStream createStream(long controllerID, int viewID);
-	}
 
-	interface InputReader {
-
-		void read(BitInputStream fromServer) throws Throwable;
-	}
-
-	interface OutputWriter {
-
-		void write(BitOutputStream toServer) throws Throwable;
+		// TODO BITSER Add method to register callback
 	}
 }

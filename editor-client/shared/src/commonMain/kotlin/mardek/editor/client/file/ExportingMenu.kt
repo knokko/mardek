@@ -12,8 +12,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
+import com.github.knokko.bitser.IntegerBitser
 import com.github.knokko.bitser.connection.BitClientStruct
 import kotlinx.coroutines.launch
+import mardek.editor.EditorView
 import mardek.exporting.ContentWrapper
 
 @Composable
@@ -29,7 +31,12 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct) {
 	Row {
 		Button(
 			onClick = { mutateScope.launch {
-				lastSync = System.nanoTime()
+				wrappedContentStruct.executeOperation(EditorView.operationSyncForExport) {
+					println("Writing 1234")
+					IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
+						1234L, 0L, Long.MAX_VALUE, it
+					)
+				} // TODO BITSER Chain response handler
 			} },
 			content = { Text("Synchronize") }
 		)
