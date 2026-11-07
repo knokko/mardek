@@ -47,8 +47,8 @@ import kotlin.math.abs
 private const val WINDOW_ICON_SCALE = 4
 private const val CURSOR_SCALE = 2
 
-private val rawIcons = run {
-	val inputBytes = Files.readAllBytes(File("${Content.RESOURCES_DIRECTORY}/icons.bin").toPath())
+private fun loadIcons(file: File): Array<ByteBuffer> {
+	val inputBytes = Files.readAllBytes(file.toPath())
 
 	fun createScaled(startIndex: Int, scale: Int): ByteBuffer {
 		val destination = memCalloc(4 * 16 * 16 * scale * scale)
@@ -77,9 +77,8 @@ private val rawIcons = run {
 		createScaled(baseByteSize * (1 + it.ordinal), CURSOR_SCALE)
 	}
 
-	arrayOf(windowIcon) + cursorIcons
+	return arrayOf(windowIcon) + cursorIcons
 }
-
 
 private const val TRIGGER_THRESHOLD = 10_000
 private const val JOYSTICK_THRESHOLD = 10_000
@@ -87,7 +86,8 @@ private const val JOYSTICK_THRESHOLD = 10_000
 class MardekSdlInput(
 	private val window: VkbWindow,
 	private val state: GameStateManager,
-	private val input: InputManager
+	private val input: InputManager,
+	iconsFile: File = File("${Content.RESOURCES_DIRECTORY}/icons.bin"),
 ) {
 
 	private var leftTrigger = 0
@@ -102,6 +102,7 @@ class MardekSdlInput(
 	private var isTextInputEnabled = false
 
 	private val cursors = LongArray(MardekCursor.entries.size)
+	private val rawIcons = loadIcons(iconsFile)
 
 	private fun shouldShowCursor() = desiredCursor == MardekCursor.Grab ||
 			System.nanoTime() - lastCursorAction <= 2000_000_000L

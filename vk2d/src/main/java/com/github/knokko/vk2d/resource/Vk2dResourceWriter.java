@@ -230,6 +230,7 @@ public class Vk2dResourceWriter {
 		int numBc1Images = 0;
 		int numBc4Images = 0;
 		for (Image image : images) {
+			if (image.data != null) continue;
 			if (image.compression == Vk2dImageCompression.BC1) numBc1Images += 1;
 			if (image.compression == Vk2dImageCompression.BC4) numBc4Images += 1;
 		}
@@ -243,7 +244,7 @@ public class Vk2dResourceWriter {
 			var bc1Images = new BufferedImage[numBc1Images];
 			int nextIndex = 0;
 			for (var image : images) {
-				if (image.compression == Vk2dImageCompression.BC1) {
+				if (image.data == null && image.compression == Vk2dImageCompression.BC1) {
 					bc1Images[nextIndex++] = image.image;
 				}
 			}
@@ -268,6 +269,7 @@ public class Vk2dResourceWriter {
 			int nextIndex = 0;
 			for (Image image : images) {
 				if (image.compression != Vk2dImageCompression.BC4) continue;
+				if (image.data != null) continue;
 
 				var data = ByteBuffer.allocate(image.image.getWidth() * image.image.getHeight());
 				for (int y = 0; y < image.image.getHeight(); y++) {
@@ -292,7 +294,7 @@ public class Vk2dResourceWriter {
 			Bc4Compressor.compressGreyscaleImageData(imageData, widths, heights, false, boiler, compressedBuffers -> {
 				int index = 0;
 				for (var image : images) {
-					if (image.compression == Vk2dImageCompression.BC4) {
+					if (image.compression == Vk2dImageCompression.BC4 && image.data == null) {
 						image.data = new byte[compressedBuffers[index].remaining()];
 						compressedBuffers[index].get(image.data);
 						index += 1;

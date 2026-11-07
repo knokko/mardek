@@ -87,7 +87,9 @@ fun exportAndPrepareVk2d(
 	collectionMapping[KimSprite::class.java] = allKimSprites
 	collectionMapping[BcSprite::class.java] = allBcSprites
 	collectionMapping[Font::class.java] = allFonts
+	println("collecting instances...")
 	BITSER.collectInstances(target, collectionMapping, hashMapOf())
+	println("collected instances")
 
 	// TODO BITSER Sort them by something
 	for (sprite in allKimSprites) addKimImage(resourceWriter, sprite)

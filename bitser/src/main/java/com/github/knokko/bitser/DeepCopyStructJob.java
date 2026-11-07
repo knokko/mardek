@@ -14,7 +14,10 @@ record DeepCopyStructJob(BitStructWrapper<?> wrapper, Object source, Object dest
 			for (var field : classWrapper.fields) {
 				try {
 					Object sourceValue = field.classField().get(source);
-					if (sourceValue == null) continue;
+					if (sourceValue == null) {
+						mutateSession.set(field.classField(), null);
+						continue;
+					}
 					if (field.bitField() instanceof ReferenceFieldWrapper) {
 						machine.structReferenceJobs.add(new DeepCopyStructReferenceJob(
 								destination, field.classField(), sourceValue, node

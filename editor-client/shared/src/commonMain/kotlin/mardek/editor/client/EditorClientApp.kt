@@ -14,21 +14,27 @@ import mardek.editor.client.file.FileTabs
 import mardek.editor.client.inventory.ItemsContentTabs
 import mardek.editor.client.navbar.EditorClientNavbar
 import mardek.editor.client.navbar.NavbarTab
+import mardek.exporting.ContentWrapper
 import java.net.URI
+import java.util.concurrent.BlockingQueue
 
 @Composable
-fun App(wrappedContent: BitClientStruct) {
+fun App(wrappedContent: BitClientStruct, testRunQueue: BlockingQueue<ContentWrapper>) {
     val mutateScope = rememberCoroutineScope()
     var content by remember { mutableStateOf<BitClientStruct?>(null) }
 
-    content?.let { InnerApp(wrappedContent, it) }
+    content?.let { InnerApp(wrappedContent, it, testRunQueue) }
 
     TrackStruct(wrappedContent)
     ChildStruct(mutateScope, wrappedContent, null, "content", 1) { content = it }
 }
 
 @Composable
-private fun InnerApp(wrappedContent: BitClientStruct, content: BitClientStruct) {
+private fun InnerApp(
+    wrappedContent: BitClientStruct,
+    content: BitClientStruct,
+    testRunQueue: BlockingQueue<ContentWrapper>,
+) {
     val mutateScope = rememberCoroutineScope()
     var itemsContent by remember { mutableStateOf<BitClientStruct?>(null) }
 
@@ -36,7 +42,7 @@ private fun InnerApp(wrappedContent: BitClientStruct, content: BitClientStruct) 
     Column {
         EditorClientNavbar(currentTab) { currentTab = it }
         itemsContent?.let { ItemsContentTabs(it, currentTab) }
-        FileTabs(wrappedContent, currentTab)
+        FileTabs(wrappedContent, currentTab, testRunQueue)
     }
 
     TrackStruct(content)

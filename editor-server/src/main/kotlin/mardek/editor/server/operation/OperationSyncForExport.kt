@@ -5,6 +5,7 @@ import com.github.knokko.bitser.connection.BitServerContext
 import com.github.knokko.bitser.connection.BitServerStructController
 import com.github.knokko.bitser.connection.BitServerStructOperation
 import com.github.knokko.bitser.io.BitInputStream
+import mardek.editor.server.saveContent
 import mardek.exporting.ContentWrapper
 import java.lang.Math.toIntExact
 
@@ -25,9 +26,19 @@ class OperationSyncForExport : BitServerStructOperation<ContentWrapper> {
 		connectionHandle: Any,
 	) {
 		println("Execute export")
-		context.respondToClient.send(connectionHandle, responseID) {
-			IntegerBitser.encodeFullInt(123, it)
-			println("Responded 123")
+		context.globalQueue.add {
+			println("global")
+			saveContent(context.rootStruct as ContentWrapper) { contentBytes ->
+				println("save callback")
+				context.respondToClient.send(connectionHandle, responseID) {
+					println("Start writing...")
+					IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
+						contentBytes.size.toLong(), 0L, Long.MAX_VALUE, it
+					)
+					it.write(contentBytes)
+					println("Finished writing")
+				}
+			}
 		}
 	}
 }

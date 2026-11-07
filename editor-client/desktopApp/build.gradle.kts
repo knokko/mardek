@@ -9,6 +9,11 @@ plugins {
 
 dependencies {
     implementation(project(":editor-client:shared"))
+    implementation(project(":client-export-helper"))
+    implementation(project(":state"))
+    implementation(project(":input"))
+    implementation(project(":game"))
+    implementation(project(":vk2d"))
 
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutinesSwing)

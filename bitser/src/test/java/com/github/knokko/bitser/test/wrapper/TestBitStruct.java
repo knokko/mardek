@@ -343,4 +343,46 @@ public class TestBitStruct {
 			assertEquals(5, new Bitser().deepCopy(new FinalExternalizable()).x);
 		}
 	}
+
+	@BitStruct(backwardCompatible = true)
+	private static class MiniSprite implements Serializable {
+
+		@BitField(id = 1)
+		@IntegerField(expectUniform = false, minValue = 1, digitSize = 2)
+		final int height;
+
+		MiniSprite(int height) {
+			this.height = height;
+		}
+
+		MiniSprite() {
+			this.height = 0;
+		}
+	}
+
+	@BitStruct(backwardCompatible = true)
+	private static class OptionalMiniSprite implements Serializable {
+
+		@BitField(id = 0, optional = true)
+		final MiniSprite miniSprite;
+
+		OptionalMiniSprite(MiniSprite miniSprite) {
+			this.miniSprite = miniSprite;
+		}
+
+		OptionalMiniSprite() {
+			this.miniSprite = new MiniSprite();
+		}
+	}
+
+	@Test
+	public void testNullFieldRemainsNullRegression() {
+		var bitser = new Bitser();
+		var original = new OptionalMiniSprite(null);
+		assertNull(original.miniSprite);
+		var copied = bitser.deepCopy(original);
+		assertNull(copied.miniSprite);
+		assertNull(bitser.stupidDeepCopy(original).miniSprite);
+		assertNull(bitser.stupidDeepCopy(original, Bitser.BACKWARD_COMPATIBLE).miniSprite);
+	}
 }

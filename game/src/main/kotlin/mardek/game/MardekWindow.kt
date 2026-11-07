@@ -15,7 +15,9 @@ import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines
 import mardek.audio.AudioUpdater
+import mardek.content.BITSER
 import mardek.content.Content
+import mardek.content.ui.TitleScreenContent
 import mardek.renderer.PerFrameResources
 import mardek.renderer.RenderManager
 import mardek.state.ExitState
@@ -26,6 +28,7 @@ import org.lwjgl.sdl.SDLVideo.SDL_SetWindowFullscreen
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_FULLSCREEN
 import org.lwjgl.system.MemoryStack
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
@@ -34,6 +37,10 @@ class MardekWindow(
 	private val gameState: GameStateManager,
 	private val userSettings: UserSettings,
 	window: VkbWindow,
+	titleScreenContentFile: File = File("${Content.RESOURCES_DIRECTORY}/title-screen.bits"),
+	private val titleScreenVk2dFile: File = File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d"),
+	private val mainContentFile: File = File("${Content.RESOURCES_DIRECTORY}/content.bits"),
+	private val mainVk2dFile: File = File("${Content.RESOURCES_DIRECTORY}/content.vk2d"),
 ) : Vk2dWindow(
 	window, userSettings.videoSettings.capFps,
 	userSettings.videoSettings.delayRendering
@@ -46,10 +53,13 @@ class MardekWindow(
 
 	private val fpsCounter = UpdateCounter()
 	
-	private val titleScreenInfo = loadTitleScreenContent()
+	private val titleScreenInfo = BITSER.fromBytes(
+		TitleScreenContent::class.java,
+		Files.readAllBytes(titleScreenContentFile.toPath())
+	)
 
 	override fun initialResourceFile(): Path {
-		return File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d").toPath()
+		return titleScreenVk2dFile.toPath()
 	}
 
 	override fun setupConfig(config: Vk2dConfig) = RenderManager.initPipelinesConfig(config)
@@ -132,7 +142,7 @@ class MardekWindow(
 
 		Thread {
 			try {
-				content.complete(loadContent())
+				content.complete(loadContent(mainContentFile))
 				println("Loaded content after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 				renderManager.content = content.get()
 			} catch (failed: Throwable) {
@@ -146,7 +156,7 @@ class MardekWindow(
 
 		Thread {
 			try {
-				renderManager.loadMainResources(File("${Content.RESOURCES_DIRECTORY}/content.vk2d").toPath())
+				renderManager.loadMainResources(mainVk2dFile.toPath())
 				println("Loaded main resources after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 			} catch (failed: Throwable) {
 				synchronized(gameState.lock()) {
