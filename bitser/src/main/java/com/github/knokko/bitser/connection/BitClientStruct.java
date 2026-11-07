@@ -194,18 +194,23 @@ public class BitClientStruct {
 		}
 	}
 
-	public void executeOperation(BitStructOperation operation, ConnectionHelper.BitWriter writeRequestData) {
-		this.ehm(); // TODO BITSER Register response callback
+	public void executeOperation(BitStructOperation operation, WriteOperationRequestData writeRequestData) {
 		stream.send(toServer -> {
 			toServer.write(false);
 			IntegerBitser.encodeUniformInteger(
 					operation.operationID(), 0L, view.getNumOperations() - 1L, toServer
 			);
-			writeRequestData.write(toServer);
+			writeRequestData.write(toServer, stream.getFactory());
 		});
 	}
 
 	public void close() {
 		stream.close();
+	}
+
+	@FunctionalInterface
+	public interface WriteOperationRequestData {
+
+		void write(BitOutputStream output, BitClientStream.Factory streamFactory) throws Throwable;
 	}
 }

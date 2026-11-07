@@ -72,7 +72,7 @@ public class BitServerStructListController<T> extends BitServerController {
 	@Override
 	public void addClient(
 			OutputStream toClient, InputStream fromClient, Runnable closeStream,
-			int viewID
+			Object connectionHandle, int viewID
 	) {
 		var nestedView = nestedViews.stream().filter(view -> view.localId == viewID).findAny();
 		if (nestedView.isPresent()) {

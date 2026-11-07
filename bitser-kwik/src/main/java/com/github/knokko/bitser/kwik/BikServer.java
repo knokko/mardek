@@ -34,6 +34,7 @@ public class BikServer {
 				var output = new BitOutputStream(rawOutput);
 				writeResponse.write(output);
 				output.flush();
+				System.out.println("Flushed output to client");
 			} catch (Throwable failed) {
 				System.err.println("Failed to send response to client: " + failed.getMessage());
 			}

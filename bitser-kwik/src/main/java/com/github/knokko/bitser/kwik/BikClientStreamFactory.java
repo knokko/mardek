@@ -26,14 +26,16 @@ class BikClientStreamFactory implements BitClientStream.Factory {
 
 	@Override
 	public BitClientStream createStream(long controllerID, int viewID) {
-		return new BikClientStream(() -> requestActualStream(controllerID, viewID));
+		return new BikClientStream(() -> requestActualStream(controllerID, viewID), this);
 	}
 
+	@Override
 	public int addResponseCallback(ConnectionHelper.BitReader readResponse) {
 		var future = new CompletableFuture<QuicStream>();
 		int responseID = nextStreamID.incrementAndGet();
-		nextStreamMapping.put(responseID, future.whenComplete((stream, failure) -> {
-			if (failure != null) return;
+		System.out.println("Chose response ID " + responseID);
+		future.thenAccept(stream -> {
+			System.out.println("Running future...");
 
 			new Thread(() -> {
 				System.out.println("Processing response...");
@@ -46,7 +48,10 @@ class BikClientStreamFactory implements BitClientStream.Factory {
 				stream.resetStream(0L);
 				System.out.println("Processed response");
 			}).start();
-		}));
+			System.out.println("Started future thread");
+
+		});
+		nextStreamMapping.put(responseID, future);
 		return responseID;
 	}
 
@@ -76,9 +81,13 @@ class BikClientStreamFactory implements BitClientStream.Factory {
 			throw new RuntimeException(failed);
 		}
 
+		System.out.println("The stream ID is " + streamID);
 		var future = nextStreamMapping.remove(streamID);
+		System.out.println("The future is " + future);
 		if (future == null) throw new IllegalStateException("Unexpected stream ID " + streamID);
 
+		System.out.println("Completing the future...");
 		future.complete(newStream);
+		System.out.println("Completed the future " + future);
 	}
 }

@@ -60,6 +60,7 @@ class BikServerConnection implements ApplicationProtocolConnection {
 						nextStream.getOutputStream(),
 						nextStream.getInputStream(),
 						() -> nextStream.resetStream(0L),
+						clientConnection,
 						viewID
 				);
 			}

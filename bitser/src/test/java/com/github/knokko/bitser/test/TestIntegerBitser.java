@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 import static com.github.knokko.bitser.IntegerBitser.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -381,5 +382,14 @@ public class TestIntegerBitser {
 		assertEquals(value, decodeDigitInteger(minValue, maxValue, 6, bitInput));
 		assertEquals(value, decodeDigitInteger(minValue, maxValue, 7, bitInput));
 		bitInput.close();
+	}
+
+	@Test
+	public void testMySanity() {
+		var future = new CompletableFuture<String>();
+		future.thenAccept((string) -> {
+			System.out.println("Got " + string);
+		});
+		future.complete("hello2");
 	}
 }

@@ -5,6 +5,7 @@ import com.github.knokko.bitser.io.BitInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -37,11 +38,11 @@ public class BitServerStructController<T> extends BitServerController {
 	@Override
 	public void addClient(
 			OutputStream toClient, InputStream fromClient, Runnable closeStream,
-			int viewID
+			Object connectionHandle, int viewID
 	) {
 		var view = views.stream().filter(candidate -> candidate.localId == viewID).findAny();
 		if (view.isEmpty()) throw new IllegalArgumentException("No view has local ID " + viewID);
-		var connection = new Connection(view.get(), toClient, new BitInputStream(fromClient), closeStream);
+		var connection = new Connection(view.get(), toClient, new BitInputStream(fromClient), closeStream, connectionHandle);
 
 		context.globalLock().readLock().lock();
 		try {
@@ -142,13 +143,18 @@ public class BitServerStructController<T> extends BitServerController {
 		final OutputStream toClient;
 		final BitInputStream fromClient;
 		final Runnable closeStream;
+		final Object connectionHandle;
 		final BlockingQueue<byte[]> toClientQueue = new LinkedBlockingQueue<>();
 
-		Connection(BitStructConnectionView view, OutputStream toClient, BitInputStream fromClient, Runnable closeStream) {
+		Connection(
+				BitStructConnectionView view, OutputStream toClient, BitInputStream fromClient,
+				Runnable closeStream, Object connectionHandle
+		) {
 			this.view = view;
 			this.toClient = toClient;
 			this.fromClient = fromClient;
 			this.closeStream = closeStream;
+			this.connectionHandle = connectionHandle;
 		}
 
 		void writeToClient() {
@@ -299,7 +305,7 @@ public class BitServerStructController<T> extends BitServerController {
 
 						context.globalLock().readLock().lock();
 						try {
-							operation.execute(BitServerStructController.this, context);
+							operation.execute(BitServerStructController.this, context, connectionHandle);
 						} finally {
 							context.globalLock().readLock().unlock();
 						}

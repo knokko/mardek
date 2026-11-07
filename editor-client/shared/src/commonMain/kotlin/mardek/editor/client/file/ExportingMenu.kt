@@ -31,12 +31,16 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct) {
 	Row {
 		Button(
 			onClick = { mutateScope.launch {
-				wrappedContentStruct.executeOperation(EditorView.operationSyncForExport) {
-					println("Writing 1234")
+				wrappedContentStruct.executeOperation(EditorView.operationSyncForExport) { output, streamFactory ->
+					val responseID = streamFactory.addResponseCallback { response ->
+						println("Received a response")
+						println(IntegerBitser.decodeFullInt(response))
+					}
+					println("writing response ID $responseID")
 					IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
-						1234L, 0L, Long.MAX_VALUE, it
+						responseID.toLong(), 0L, Long.MAX_VALUE, output
 					)
-				} // TODO BITSER Chain response handler
+				}
 			} },
 			content = { Text("Synchronize") }
 		)

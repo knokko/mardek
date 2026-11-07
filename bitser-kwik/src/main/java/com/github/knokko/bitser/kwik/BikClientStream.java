@@ -1,6 +1,7 @@
 package com.github.knokko.bitser.kwik;
 
 import com.github.knokko.bitser.connection.BitClientStream;
+import com.github.knokko.bitser.connection.ConnectionHelper;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 import tech.kwik.core.QuicStream;
@@ -12,15 +13,22 @@ import java.util.function.Supplier;
 class BikClientStream implements BitClientStream {
 
 	private final Supplier<CompletableFuture<QuicStream>> requestStream;
+	final Factory factory;
 	private final Object sendLock = new Object();
 	private CompletableFuture<QuicStream> stream;
 
-	BikClientStream(Supplier<CompletableFuture<QuicStream>> requestStream) {
+	BikClientStream(Supplier<CompletableFuture<QuicStream>> requestStream, Factory factory) {
 		this.requestStream = requestStream;
+		this.factory = factory;
 	}
 
 	@Override
-	public synchronized void start(InputReader processInput) {
+	public Factory getFactory() {
+		return factory;
+	}
+
+	@Override
+	public synchronized void start(ConnectionHelper.BitReader processInput) {
 		if (stream != null) throw new IllegalStateException("Already started");
 		stream = requestStream.get();
 		stream.whenComplete((quicStream, failed) -> {
@@ -40,7 +48,7 @@ class BikClientStream implements BitClientStream {
 	}
 
 	@Override
-	public void send(OutputWriter sendFrame) {
+	public void send(ConnectionHelper.BitWriter sendFrame) {
 		if (stream == null) throw new IllegalStateException("Not yet started");
 
 		synchronized(sendLock) {
