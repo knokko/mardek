@@ -59,7 +59,7 @@ public final class SimpleLazyBits<T> {
 
 	private Class<? extends T> valueClass;
 	private Bitser bitser;
-	private boolean backwardCompatible;
+	final boolean backwardCompatible;
 
 	private T value;
 	byte[] bytes;
@@ -69,6 +69,7 @@ public final class SimpleLazyBits<T> {
 	 */
 	public SimpleLazyBits(T value) {
 		this.value = Objects.requireNonNull(value);
+		this.backwardCompatible = false;
 	}
 
 	SimpleLazyBits(byte[] bytes, Bitser bitser, boolean backwardCompatible, Class<? extends T> valueClass) {

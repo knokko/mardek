@@ -23,7 +23,7 @@ class AnimationSprite(
 	/**
 	 * The image/sprite to be rendered
 	 */
-	@BitField(id = 2)
+	@BitField(id = 2) // (3) TODO BITSER This is it!
 	val image: BcSprite,
 
 	/**

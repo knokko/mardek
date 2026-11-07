@@ -476,4 +476,19 @@ public class TestSimpleLazyFieldWrapper {
 		assertUnexpectedAnnotation(new UnexpectedAnnotation2());
 		assertUnexpectedAnnotation(new UnexpectedAnnotation3());
 	}
+
+	@Test
+	public void testMixedBackwardCompatibility() {
+		var bitser = new Bitser();
+
+		var original = new SimpleOuterStruct();
+		original.lazy = new SimpleLazyBits<>(new SimpleInnerStruct());
+		original.lazy.get().words.add("hello");
+
+		var copied1 = bitser.stupidDeepCopy(original);
+		assertEquals("hello", copied1.lazy.get().words.get(0));
+
+		var copied2 = bitser.stupidDeepCopy(copied1, Bitser.BACKWARD_COMPATIBLE);
+		assertEquals("hello", copied2.lazy.get().words.get(0));
+	}
 }

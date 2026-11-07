@@ -11,6 +11,7 @@ import com.github.knokko.bitser.field.StableReferenceFieldId
 import com.github.knokko.bitser.field.StringField
 import com.github.knokko.bitser.io.BitInputStream
 import mardek.content.BITSER
+import mardek.content.Content
 import mardek.content.particle.ParticleEffect
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
@@ -26,16 +27,7 @@ import java.util.HashMap
 import java.util.IdentityHashMap
 import java.util.UUID
 
-fun main() {
-	val input1 = File("/home/knokko/mardek/editor-server/content.bits")
-	val fatContent = BITSER.deserialize(
-		ContentWrapper::class.java,
-		BitInputStream( DecompressingInputStream(input1)),
-		Bitser.BACKWARD_COMPATIBLE,
-	)
-
-	val fatContent2 = BITSER.stupidDeepCopy(fatContent, Bitser.BACKWARD_COMPATIBLE)
-
+private fun measure(target: Any) {
 	val allKimSprites = Collections.newSetFromMap(IdentityHashMap<KimSprite, Boolean>())
 	val allBcSprites = Collections.newSetFromMap(IdentityHashMap<BcSprite, Boolean>())
 	val allFonts = Collections.newSetFromMap(IdentityHashMap<Font, Boolean>())
@@ -43,8 +35,28 @@ fun main() {
 	collectionMapping[KimSprite::class.java] = allKimSprites
 	collectionMapping[BcSprite::class.java] = allBcSprites
 	collectionMapping[Font::class.java] = allFonts
-	BITSER.collectInstances(fatContent2.content, collectionMapping, hashMapOf())
+	BITSER.collectInstances(target, collectionMapping, hashMapOf())
 	println("sizes are ${allKimSprites.size}, ${allBcSprites.size}, ${allFonts.size}")
+}
+
+fun main() {
+	val input1 = File("/home/knokko/mardek/resources/content.bits")
+	val fatContent = BITSER.deserialize(
+		Content::class.java,
+		BitInputStream( DecompressingInputStream(input1)),
+		//Bitser.BACKWARD_COMPATIBLE,
+	)
+
+	measure(fatContent)
+
+	val fatContent2 = BITSER.stupidDeepCopy(fatContent, Bitser.BACKWARD_COMPATIBLE)
+	measure(fatContent2)
+
+	// attempt 1: 3733, 24619, 15
+	// attempt 2: 3733, 24568, 15
+	// attempt 3: 3733, 271, 15
+
+	// attempt 4: 3733, 24620, 15
 }
 
 @BitStruct(backwardCompatible = true)

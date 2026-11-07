@@ -58,7 +58,7 @@ class Serializer {
 	Serializer(Bitser bitser, BitOutputStream output) {
 		this.bitser = bitser;
 		this.cache = bitser.cache;
-		this.withAndOptions = null;
+		this.withAndOptions = new Object[0];
 		this.withParameters = null;
 		this.output = output;
 		this.backwardCompatible = false;
