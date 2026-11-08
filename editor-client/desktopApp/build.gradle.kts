@@ -33,6 +33,9 @@ tasks.register("runEditorClient", JavaExec::class) {
     jvmArgs("-XX:SoftMaxHeapSize=1500m")
 }
 
+tasks.test {
+    failOnNoDiscoveredTests = false
+}
 //compose.desktop {
 //    application {
 //        mainClass = "mardek.editor.client.EditorClientMainKt"

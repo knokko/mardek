@@ -13,6 +13,7 @@ import com.github.knokko.vk2d.Vk2dInstance
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader
+import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.area.Area
 import mardek.content.characters.PlayableCharacter
@@ -30,6 +31,7 @@ import mardek.state.ingame.battle.BattleUpdateContext
 import mardek.content.battle.Enemy
 import mardek.content.characters.CharacterState
 import mardek.content.story.TimelineNode
+import mardek.content.ui.TitleScreenContent
 import mardek.input.InputManager
 import mardek.state.GameStateUpdateContext
 import mardek.state.ingame.area.AreaSuspensionBattle
@@ -57,8 +59,10 @@ import kotlin.time.Duration
 class TestingInstance {
 
 	val content = loadContent()
-	val titleContent = loadTitleScreenContent()
-
+	val titleContent = BITSER.fromBytes(
+		TitleScreenContent::class.java,
+		Files.readAllBytes(DEFAULT_TITLE_SCREEN_CONTENT_FILE.toPath())
+	)!!
 	val boiler: BoilerInstance
 	val pipelineContext: Vk2dPipelineContext
 	val vk2d: Vk2dInstance

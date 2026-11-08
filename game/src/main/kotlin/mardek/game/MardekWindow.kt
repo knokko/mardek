@@ -33,11 +33,13 @@ import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
 
+val DEFAULT_TITLE_SCREEN_CONTENT_FILE = File("${Content.RESOURCES_DIRECTORY}/title-screen.bits")
+
 class MardekWindow(
 	private val gameState: GameStateManager,
 	private val userSettings: UserSettings,
 	window: VkbWindow,
-	titleScreenContentFile: File = File("${Content.RESOURCES_DIRECTORY}/title-screen.bits"),
+	titleScreenContentFile: File = DEFAULT_TITLE_SCREEN_CONTENT_FILE,
 	private val titleScreenVk2dFile: File = File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d"),
 	private val mainContentFile: File = File("${Content.RESOURCES_DIRECTORY}/content.bits"),
 	private val mainVk2dFile: File = File("${Content.RESOURCES_DIRECTORY}/content.vk2d"),
