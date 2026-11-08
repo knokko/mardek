@@ -5,7 +5,6 @@ import org.lwjgl.system.MemoryUtil.memFree
 import org.lwjgl.util.zstd.ZSTDInBuffer
 import org.lwjgl.util.zstd.ZSTDOutBuffer
 import org.lwjgl.util.zstd.Zstd.*
-import org.lwjgl.util.zstd.ZstdX
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
@@ -14,13 +13,7 @@ import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 import kotlin.math.min
 
-/**
- * ## This class is currently completely broken!
- * I couldn't figure out how to use ZSTD stream compression, in particular the OP codes.
- *
- * TODO CHAP3 Fix this
- */
-private class CompressingOutputStream(outputFile: File, compressionLevel: Int) : OutputStream() {
+class CompressingOutputStream(outputFile: File, compressionLevel: Int) : OutputStream() {
 
 	private val channel = FileChannel.open(
 		outputFile.toPath(),
@@ -57,8 +50,7 @@ private class CompressingOutputStream(outputFile: File, compressionLevel: Int) :
 
 			while (zInput.pos() < batchSize) {
 				zOutput.pos(0)
-				// TODO BITSER Choose the endOp carefully!
-				val compressionResult = ZSTD_compressStream2(zStream, zOutput, zInput, ZSTD_e_end)
+				val compressionResult = ZSTD_compressStream2(zStream, zOutput, zInput, ZSTD_e_continue)
 				if (ZSTD_isError(compressionResult)) {
 					throw IOException("Compression failed with $compressionResult (${ZSTD_getErrorName(compressionResult)})")
 				}
