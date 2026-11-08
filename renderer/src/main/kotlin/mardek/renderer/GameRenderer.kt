@@ -1,9 +1,12 @@
 package mardek.renderer
 
+import com.github.knokko.vk2d.batch.Vk2dColorBatch
+import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.frame.Vk2dRenderStage
 import mardek.renderer.title.renderFadingTitleScreen
 import mardek.renderer.title.renderMusicPlayer
 import mardek.renderer.title.renderTitleScreen
+import mardek.renderer.util.MemoryTracker
 import mardek.state.ingame.InGameState
 import mardek.state.title.GameOverState
 import mardek.state.title.MusicPlayerState
@@ -34,7 +37,7 @@ fun renderGame(context: RawRenderContext, fullContext: RenderContext?) {
 		is MusicPlayerState -> renderMusicPlayer(context, state, renderRegion)
 		else -> Pair(
 			context.pipelines.color.addBatch(context.stage, 36),
-			context.pipelines.simpleText.addBatch(context.stage, 25, context.textStyleCache),
+			context.pipelines.simpleText.addBatch(context.stage, 100, context.textStyleCache),
 		)
 	}
 
@@ -43,6 +46,7 @@ fun renderGame(context: RawRenderContext, fullContext: RenderContext?) {
 			context.state, titleBarBatch, textBatch,
 			context.titleScreenBundle.getFont(context.titleContent.basicFont.index),
 			if (context.videoSettings.showFps) context.currentFps else null,
+			if (context.videoSettings.showFps) MemoryTracker.lastSnapshot else null,
 		)
 	}
 }
@@ -51,16 +55,24 @@ fun renderGame(context: RenderContext) {
 	val state = context.state.currentState
 	val renderRegion = renderRegion(context.frame.swapchainStage, context.userSettings.videoSettings.fullscreen)
 
-	val (titleColorBatch, titleTextBatch) = when (state) {
-		is InGameState -> renderInGame(context, state, renderRegion)
-		else -> Pair(context.addColorBatch(36), context.addTextBatch(25))
+	var titleColorBatch: Vk2dColorBatch? = null
+	var titleTextBatch: Vk2dSimpleTextBatch? = null
+
+	if (state is InGameState) {
+		val (newColorBatch, newTextBatch) = renderInGame(context, state, renderRegion)
+		titleColorBatch = newColorBatch
+		titleTextBatch = newTextBatch
 	}
+
+	if (titleColorBatch == null) titleColorBatch = context.addColorBatch(36)
+	if (titleTextBatch == null) titleTextBatch = context.addTextBatch(100)
 
 	if (!context.userSettings.videoSettings.fullscreen) {
 		renderTitleBar(
 			context.state, titleColorBatch, titleTextBatch,
 			context.bundle.getFont(context.content.fonts.basic1.index),
 			if (context.userSettings.videoSettings.showFps) context.currentFps else null,
+			if (context.userSettings.videoSettings.showFps) MemoryTracker.lastSnapshot else null,
 		)
 	}
 }

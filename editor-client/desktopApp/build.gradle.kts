@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":game"))
     implementation(project(":vk2d"))
 
+    implementation(libs.memory.query)
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutinesSwing)
 
@@ -27,6 +28,9 @@ tasks.register("runEditorClient", JavaExec::class) {
     classpath(sourceSets.main.get().runtimeClasspath)
     mainClass = "mardek.editor.client.EditorClientMainKt"
     standardInput = System.`in`
+    jvmArgs("-XX:+UseZGC")
+    jvmArgs("-XX:ZUncommitDelay=1")
+    jvmArgs("-XX:SoftMaxHeapSize=1500m")
 }
 
 //compose.desktop {

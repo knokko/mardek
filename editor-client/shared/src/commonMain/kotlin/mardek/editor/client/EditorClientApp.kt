@@ -19,11 +19,11 @@ import java.net.URI
 import java.util.concurrent.BlockingQueue
 
 @Composable
-fun App(wrappedContent: BitClientStruct, testRunQueue: BlockingQueue<ContentWrapper>) {
+fun App(wrappedContent: BitClientStruct, testRunState: TestRunState) {
     val mutateScope = rememberCoroutineScope()
     var content by remember { mutableStateOf<BitClientStruct?>(null) }
 
-    content?.let { InnerApp(wrappedContent, it, testRunQueue) }
+    content?.let { InnerApp(wrappedContent, it, testRunState) }
 
     TrackStruct(wrappedContent)
     ChildStruct(mutateScope, wrappedContent, null, "content", 1) { content = it }
@@ -33,7 +33,7 @@ fun App(wrappedContent: BitClientStruct, testRunQueue: BlockingQueue<ContentWrap
 private fun InnerApp(
     wrappedContent: BitClientStruct,
     content: BitClientStruct,
-    testRunQueue: BlockingQueue<ContentWrapper>,
+    testRunState: TestRunState,
 ) {
     val mutateScope = rememberCoroutineScope()
     var itemsContent by remember { mutableStateOf<BitClientStruct?>(null) }
@@ -42,7 +42,7 @@ private fun InnerApp(
     Column {
         EditorClientNavbar(currentTab) { currentTab = it }
         itemsContent?.let { ItemsContentTabs(it, currentTab) }
-        FileTabs(wrappedContent, currentTab, testRunQueue)
+        FileTabs(wrappedContent, currentTab, testRunState)
     }
 
     TrackStruct(content)

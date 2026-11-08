@@ -6,11 +6,12 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import mardek.exporting.ContentWrapper
+import java.lang.Thread.sleep
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 
 fun main() {
-    val contentQueue = ArrayBlockingQueue<ContentWrapper>(1)
+    val testRunState = TestRunState()
 
     val composeThread = Thread {
         application {
@@ -20,17 +21,17 @@ fun main() {
                 title = "MARDEK Editor",
                 state = WindowState(size = DpSize(1500.dp, 800.dp))
             ) {
-                App(content, contentQueue)
+                App(content, testRunState)
             }
         }
     }
     composeThread.start()
 
     while (composeThread.isAlive) {
-        val contentWrapper = contentQueue.poll(1, TimeUnit.SECONDS) ?: continue
-        runEditorClientTest(contentWrapper)
-
-        // Ignore any attempts to re-start before the current test run is finished
-        contentQueue.poll(0, TimeUnit.SECONDS)
+        sleep(2500)
+        if (testRunState.content == null) continue
+        testRunState.reportProgress()
+        runEditorClientTest(testRunState)
+        testRunState.reset()
     }
 }

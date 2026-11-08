@@ -19,6 +19,7 @@ import com.github.knokko.bitser.io.BitInputStream
 import kotlinx.coroutines.launch
 import mardek.content.BITSER
 import mardek.editor.EditorView
+import mardek.editor.client.TestRunState
 import mardek.exporting.ContentWrapper
 import mardek.exporting.DecompressingInputStream
 import java.lang.Math.toIntExact
@@ -26,7 +27,7 @@ import java.nio.file.Files
 import java.util.concurrent.BlockingQueue
 
 @Composable
-fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunQueue: BlockingQueue<ContentWrapper>) {
+fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunState) {
 	Row {
 		Text("Export/test the game...", style = LocalTextStyle.current.copy(fontSize = 1.5.em, fontWeight = FontWeight.Bold))
 	}
@@ -87,13 +88,23 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunQueue: BlockingQ
 		Row { Text("Synchronization progress: $exportState / 5") }
 	}
 
-	wrappedContent?.let { ExportMenuBody(it, testRunQueue) }
+	wrappedContent?.let { ExportMenuBody(it, testRunState) }
 }
 
 @Composable
-private fun ExportMenuBody(wrappedContent: ContentWrapper, testRunQueue: BlockingQueue<ContentWrapper>) {
+private fun ExportMenuBody(wrappedContent: ContentWrapper, testRunState: TestRunState) {
+	var runState by remember { mutableStateOf(0) }
+	val mutateScope = rememberCoroutineScope()
+
 	Row {
-		Button(onClick = { testRunQueue.offer(wrappedContent) }, content = { Text("Launch test run") })
+		Button(
+			onClick = { testRunState.requestStart(wrappedContent) { mutateScope.launch { runState = it } } },
+			enabled = runState == 0,
+			content = { Text("Launch test run") },
+		)
+		if (runState > 0) {
+			Text("Progress: $runState / 7")
+		}
 	}
 	// TODO BITSER Export buttons
 }

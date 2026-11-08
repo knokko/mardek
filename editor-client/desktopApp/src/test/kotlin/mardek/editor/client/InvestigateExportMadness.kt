@@ -40,17 +40,20 @@ private fun measure(target: Any) {
 }
 
 fun main() {
-	val input1 = File("/home/knokko/mardek/resources/content.bits")
+	val input1 = File("/home/knokko/mardek/editor-server/content.bits")
 	val fatContent = BITSER.deserialize(
-		Content::class.java,
-		BitInputStream( DecompressingInputStream(input1)),
-		//Bitser.BACKWARD_COMPATIBLE,
+		ContentWrapper::class.java,
+		BitInputStream(DecompressingInputStream(input1)),
+		Bitser.BACKWARD_COMPATIBLE,
 	)
 
 	measure(fatContent)
 
 	val fatContent2 = BITSER.stupidDeepCopy(fatContent, Bitser.BACKWARD_COMPATIBLE)
 	measure(fatContent2)
+
+	val content3 = BITSER.stupidDeepCopy(fatContent2.content)
+	measure(content3)
 
 	// attempt 1: 3733, 24619, 15
 	// attempt 2: 3733, 24568, 15

@@ -21,6 +21,7 @@ kotlin {
             api(project(":editor-protocol"))
             implementation(project(":bitser-kwik"))
             implementation(libs.vk.boiler)
+            implementation(libs.memory.query)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

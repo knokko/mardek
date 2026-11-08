@@ -25,4 +25,7 @@ tasks.register("runEditorServer", JavaExec::class) {
 	classpath(sourceSets.main.get().runtimeClasspath)
 	mainClass = "mardek.editor.server.EditorServerKt"
 	standardInput = System.`in`
+	jvmArgs("-XX:+UseZGC")
+	jvmArgs("-XX:ZUncommitDelay=1")
+	jvmArgs("-XX:SoftMaxHeapSize=600m")
 }

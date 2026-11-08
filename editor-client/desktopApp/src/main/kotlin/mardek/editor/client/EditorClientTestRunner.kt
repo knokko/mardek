@@ -8,7 +8,6 @@ import mardek.exporting.exportTitleScreen
 import mardek.game.MardekSdlInput
 import mardek.game.MardekWindow
 import mardek.game.createBoiler
-import mardek.game.mainStartTime
 import mardek.input.InputManager
 import mardek.state.GameStateManager
 import mardek.state.saves.SavesFolderManager
@@ -18,21 +17,25 @@ import java.io.BufferedOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
+import kotlin.io.path.fileSize
 
 private fun exportToTempFiles(
-	contentWrapper: ContentWrapper,
+	testRunState: TestRunState,
 	titleScreenVk2dFile: Path,
 	titleScreenContentFile: Path,
 	mainVk2dFile: Path,
 	mainContentFile: Path,
 	iconsFile: Path,
 ) {
+	val contentWrapper = testRunState.content!!
 	val titleScreenContentBytes = exportTitleScreen(
 		contentWrapper,
 		Files.newOutputStream(titleScreenVk2dFile),
 		true,
 	)
 	Files.write(titleScreenContentFile, titleScreenContentBytes)
+	println("after title screen")
+	testRunState.reportProgress()
 
 	val mainContentBytes = exportAndPrepareVk2d(
 		BufferedOutputStream(Files.newOutputStream(mainVk2dFile)),
@@ -40,37 +43,40 @@ private fun exportToTempFiles(
 		null,
 		contentWrapper.content,
 	)
+	println("main 1")
+	testRunState.reportProgress()
 	Files.write(mainContentFile, ContentWrapper.compress(mainContentBytes, 5))
+	println("main 2")
+	testRunState.reportProgress()
 
 	exportIcons(contentWrapper, Files.newOutputStream(iconsFile), true)
-	println("Exported client content")
+	println("Exported client content: sizes are ${mainContentFile.fileSize()} and ${mainVk2dFile.fileSize()}")
 
 	for (file in arrayOf(titleScreenVk2dFile, titleScreenContentFile, mainContentFile, mainVk2dFile, iconsFile)) {
 		file.toFile().deleteOnExit()
 	}
 }
 
-fun runEditorClientTest(contentWrapper: ContentWrapper) {
-	println("Export client content...")
+fun runEditorClientTest(testRunState: TestRunState) {
 	val titleScreenVk2dFile = Files.createTempFile("title-", ".vk2d")
 	val titleScreenContentFile = Files.createTempFile("title-", ".bits")
 	val mainVk2dFile = Files.createTempFile("content-", ".vk2d")
 	val mainContentFile = Files.createTempFile("content-", ".bits")
 	val iconsFile = Files.createTempFile("icons-", ".bin")
 
-	exportToTempFiles(contentWrapper, titleScreenVk2dFile, titleScreenContentFile, mainVk2dFile, mainContentFile, iconsFile)
+	testRunState.reportProgress()
+	exportToTempFiles(testRunState, titleScreenVk2dFile, titleScreenContentFile, mainVk2dFile, mainContentFile, iconsFile)
 	System.gc()
+	println("main suspect")
+	testRunState.reportProgress()
 
 	val userSettings = UserSettings.load()
-	println("Started with BoilerInstance after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
-
 	val fakeMainArgs = arrayOf<String>()
-
 	val boiler = createBoiler(fakeMainArgs, userSettings.videoSettings)
-	println("Created BoilerInstance after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 
 	val input = InputManager()
 	val state = GameStateManager(input, TitleScreenState(), SavesFolderManager())
+	testRunState.reportProgress()
 
 	val window = MardekWindow(
 		state, userSettings, boiler.window(),
@@ -84,8 +90,9 @@ fun runEditorClientTest(contentWrapper: ContentWrapper) {
 
 	val eventLoop = WindowEventLoop(0.01, inputListener::update)
 	eventLoop.addWindow(window)
-	println("Started event loop after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
+	testRunState.reportProgress()
 	eventLoop.runMain()
+	testRunState.reportProgress()
 
 	boiler.destroyInitialObjects()
 	for (file in arrayOf(titleScreenVk2dFile, titleScreenContentFile, mainContentFile, mainVk2dFile, iconsFile)) {

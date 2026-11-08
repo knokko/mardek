@@ -129,7 +129,7 @@ internal fun renderWorldMap(
 			areaNameScroll.index,
 		)
 
-		val textBatch = context.addTextBatch(100)
+		val textBatch = context.addTextBatch(150)
 		val font = context.bundle.getFont(context.content.fonts.basic2.index)
 		val textColor = srgbToLinear(rgb(90, 77, 54))
 		textBatch.drawString(

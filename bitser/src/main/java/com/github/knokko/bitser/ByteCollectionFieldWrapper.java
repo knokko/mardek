@@ -380,6 +380,8 @@ class ByteCollectionFieldWrapper extends AbstractCollectionFieldWrapper {
 
 	@Override
 	void collectInstances(InstanceCollector collector, Object value, RecursionNode parentNode, String fieldName) {
+		if (!collector.destination.containsKey(field.type)) return;
+
 		if (value instanceof Collection<?> collection) {
 			for (Object element : collection) {
 				if (element != null) collector.register(element);

@@ -2,6 +2,7 @@ package mardek.renderer
 
 import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear
+import com.github.knokko.memory.MemorySnapshot
 import com.github.knokko.vk2d.batch.Vk2dColorBatch
 import com.github.knokko.vk2d.batch.Vk2dSimpleTextBatch
 import com.github.knokko.vk2d.text.Vk2dFont
@@ -11,7 +12,8 @@ import mardek.state.util.Rectangle
 
 internal fun renderTitleBar(
 	state: GameStateManager, colorBatch: Vk2dColorBatch,
-	textBatch: Vk2dSimpleTextBatch, font: Vk2dFont, fps: Long?,
+	textBatch: Vk2dSimpleTextBatch, font: Vk2dFont,
+	fps: Long?, memoryUsage: MemorySnapshot?,
 ) {
 	val borderColor = srgbToLinear(rgb(74, 58, 48))
 	val iconColor = srgbToLinear(rgb(132, 105, 82))
@@ -32,7 +34,7 @@ internal fun renderTitleBar(
 	colorBatch.fillUnaligned(
 		crossX + crossWidth, crossY,
 		crossX, crossY + crossWidth,
-		crossX + crossLength - crossWidth, crossY+ crossLength,
+		crossX + crossLength - crossWidth, crossY + crossLength,
 		crossX + crossLength, crossY + crossLength - crossWidth,
 		crossColor
 	)
@@ -72,6 +74,21 @@ internal fun renderTitleBar(
 		textBatch.drawString(
 			"$fps FPS", minusX - 20f, 0.75f * FULL_BORDER_HEIGHT,
 			0.5f * FULL_BORDER_HEIGHT, font, hoverColor, TextAlignment.RIGHT,
+		)
+	}
+
+	if (memoryUsage != null) {
+		textBatch.drawString(
+			"${memoryUsage.processMemory / 1_000_000}MB", 50f, 0.75f * FULL_BORDER_HEIGHT,
+			0.5f * FULL_BORDER_HEIGHT, font, hoverColor, TextAlignment.LEFT,
+		)
+		textBatch.drawString(
+			"${memoryUsage.heapMemory.used / 1_000_000}MB", 150f, 0.75f * FULL_BORDER_HEIGHT,
+			0.4f * FULL_BORDER_HEIGHT, font, hoverColor, TextAlignment.LEFT,
+		)
+		textBatch.drawString(
+			"+${memoryUsage.nonHeapMemory.used / 1_000_000}MB", 200f, 0.75f * FULL_BORDER_HEIGHT,
+			0.4f * FULL_BORDER_HEIGHT, font, hoverColor, TextAlignment.LEFT,
 		)
 	}
 }

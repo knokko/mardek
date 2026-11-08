@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.7.1")
+	implementation(libs.memory.query)
 	for (dependency in (project.ext.get("vulkanImplementationDependencies") as ArrayList<*>)) {
 		implementation(dependency)
 	}

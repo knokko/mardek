@@ -15,7 +15,6 @@ import mardek.state.settings.UserSettings
 import mardek.state.util.Rectangle
 import mardek.content.util.Time
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 private val rawReferenceTime = Time.zero()
 

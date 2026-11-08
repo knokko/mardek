@@ -41,7 +41,7 @@ private fun renderEndOfChapterBase(
 	)
 
 	val upperFont = context.bundle.getFont(context.content.fonts.large2.index)
-	val simpleTextBatch = context.addTextBatch(250)
+	val simpleTextBatch = context.addTextBatch(300)
 	simpleTextBatch.drawString(
 		"End of Chapter $chapter", region.minX + 0.2f * region.width,
 		region.minY + 0.17f * region.height, 0.038f * region.height, upperFont,

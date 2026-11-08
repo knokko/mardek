@@ -27,7 +27,7 @@ internal fun renderMusicPlayer(
 	val ovalBatch = context.pipelines.oval.addBatch(context.stage, context.perFrameDescriptorSet, 50)
 	val imageBatch = context.pipelines.image.addBatch(context.stage, 100, context.titleScreenBundle)
 
-	val textBatch = context.pipelines.simpleText.addBatch(context.stage, 200, context.textStyleCache)
+	val textBatch = context.pipelines.simpleText.addBatch(context.stage, 250, context.textStyleCache)
 	val fancyTextBatch = context.pipelines.fancyText.addBatch(context.stage, 750, context.fancyTextStyleCache)
 
 	val upperLowerBarColor = srgbToLinear(rgb(24, 14, 10))

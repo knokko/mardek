@@ -31,7 +31,7 @@ internal fun renderGameOver(
 		context.stage, 30, context.fancyTextStyleCache
 	)
 	val simpleTextBatch = context.pipelines.simpleText.addBatch(
-		context.stage, 120, context.textStyleCache
+		context.stage, 200, context.textStyleCache
 	)
 	val titleHeight = region.height / 12f
 	val largeFont = context.titleScreenBundle.getFont(context.titleContent.largeFont.index)

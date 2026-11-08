@@ -7,6 +7,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.green
 import com.github.knokko.boiler.utilities.ColorPacker.red
 import com.github.knokko.compressor.Kim1Decompressor
 import com.github.knokko.compressor.Kim3Decompressor
+import com.github.knokko.memory.MemorySnapshot
 import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
 import com.github.knokko.vk2d.resource.Vk2dImageCompression
 import com.github.knokko.vk2d.resource.Vk2dResourceWriter
@@ -19,6 +20,7 @@ import mardek.content.ui.TitleScreenContent
 import org.lwjgl.BufferUtils
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
+import java.io.DataOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -91,6 +93,9 @@ fun exportAndPrepareVk2d(
 	BITSER.collectInstances(target, collectionMapping, hashMapOf())
 	println("collected instances")
 
+	println("After collecting:")
+	MemorySnapshot.take().debugDump()
+
 	// TODO BITSER Sort them by something
 	for (sprite in allKimSprites) addKimImage(resourceWriter, sprite)
 	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
@@ -107,7 +112,16 @@ fun exportAndPrepareVk2d(
 		} else addFont(resourceWriter, font)
 	}
 
-	resourceWriter.write(vk2dOutput, cacheDirectory)
+	println("After adding resources:")
+	MemorySnapshot.take().debugDump()
+
+	println("GC before writing:")
+	System.gc()
+	MemorySnapshot.take().debugDump()
+
+	resourceWriter.write(DataOutputStream(vk2dOutput), cacheDirectory)
+	println("After writing:")
+	MemorySnapshot.take().debugDump()
 
 	if (closeOutput) vk2dOutput.close()
 
@@ -115,7 +129,13 @@ fun exportAndPrepareVk2d(
 		if (sprite.data == null) sprite.data = resourceWriter.getImageData(sprite.index)
 	}
 
-	return BITSER.toBytes(target, WithParameter("exporting", null))
+	println("Before toBytes:")
+	MemorySnapshot.take().debugDump()
+	val result = BITSER.toBytes(target, WithParameter("exporting", null))
+	println("After toBytes:")
+	System.gc()
+	MemorySnapshot.take().debugDump()
+	return result
 }
 
 fun exportIcons(wrapped: ContentWrapper, iconOutput: OutputStream, close: Boolean) {

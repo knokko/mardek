@@ -91,7 +91,7 @@ private fun renderCoreTitleScreen(
 	val fancyTextBatch = context.pipelines.fancyText.addBatch(
 		stage, 300, context.fancyTextStyleCache
 	)
-	val simpleTextBatch = context.pipelines.simpleText.addBatch(context.stage, 100, context.textStyleCache)
+	val simpleTextBatch = context.pipelines.simpleText.addBatch(context.stage, 150, context.textStyleCache)
 
 	for (style in arrayOf(MardekTextStyles.TitleScreen.TITLE_BACK, MardekTextStyles.TitleScreen.TITLE_FRONT)) {
 		fancyTextBatch.drawString(

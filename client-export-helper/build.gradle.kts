@@ -12,6 +12,7 @@ dependencies {
 	api(project(":export-helper"))
 	implementation(libs.vk.boiler)
 	implementation(libs.lwjgl.zstd)
+	implementation(libs.memory.query)
 
 	for (format in arrayOf("kim1", "kim3")) {
 		compileOnly("com.github.knokko.vk-compressor:$format:${libs.versions.vk.compressor.get()}")

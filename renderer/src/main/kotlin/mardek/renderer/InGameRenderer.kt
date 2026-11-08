@@ -42,7 +42,7 @@ import kotlin.math.pow
 
 internal fun renderInGame(
 	context: RenderContext, state: InGameState, region: Rectangle
-): Pair<Vk2dColorBatch, Vk2dSimpleTextBatch> {
+): Pair<Vk2dColorBatch?, Vk2dSimpleTextBatch?> {
 
 	val fullscreen = context.userSettings.videoSettings.fullscreen
 
@@ -311,7 +311,5 @@ internal fun renderInGame(
 		}
 	}
 
-	if (titleColorBatch == null) titleColorBatch = context.addColorBatch(36)
-	if (titleTextBatch == null) titleTextBatch = context.addTextBatch(25)
 	return Pair(titleColorBatch, titleTextBatch)
 }

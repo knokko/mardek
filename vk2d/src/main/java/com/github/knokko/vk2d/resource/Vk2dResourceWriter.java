@@ -346,9 +346,7 @@ public class Vk2dResourceWriter {
 		}
 	}
 
-	public void write(OutputStream rawOutput, File cacheDirectory) throws IOException {
-		var uncompressedOutput = new ByteArrayOutputStream();
-		DataOutputStream output = new DataOutputStream(uncompressedOutput);
+	public void writeUncompressed(DataOutputStream output, File cacheDirectory) throws IOException {
 		output.writeInt(images.size());
 		for (Image entry : images) {
 			output.writeInt(entry.image.getWidth());
@@ -434,6 +432,11 @@ public class Vk2dResourceWriter {
 		}
 
 		output.flush();
+	}
+
+	public void write(OutputStream rawOutput, File cacheDirectory) throws IOException {
+		var uncompressedOutput = new ByteArrayOutputStream();
+		writeUncompressed(new DataOutputStream(uncompressedOutput), cacheDirectory);
 
 		var uncompressedByteArray = uncompressedOutput.toByteArray();
 		var uncompressedByteBuffer = memCalloc(uncompressedByteArray.length);
@@ -450,6 +453,7 @@ public class Vk2dResourceWriter {
 		memFree(compressedByteBuffer);
 		rawOutput.write(compressedByteArray);
 		rawOutput.flush();
+		System.out.println("compressed size is " + compressedByteArray.length + " and uncompressed length is " + uncompressedByteArray.length);
 	}
 
 	public Vk2dResourceBundle directlyCreateBundle(Vk2dInstance instance, File cacheDirectory) {
