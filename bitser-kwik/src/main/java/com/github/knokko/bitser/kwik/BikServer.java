@@ -23,7 +23,7 @@ public class BikServer {
 	private static void respondToClient(
 			Object connectionHandle, int responseID, ConnectionHelper.BitWriter writeResponse
 	) {
-		new Thread(() -> {
+		var responseThread = new Thread(() -> {
 			var connection = (QuicConnection) connectionHandle;
 
 			try {
@@ -38,7 +38,9 @@ public class BikServer {
 			} catch (Throwable failed) {
 				System.err.println("Failed to send response to client: " + failed.getMessage());
 			}
-		}).start();
+		});
+		responseThread.setName("BikServer.respondToClient");
+		responseThread.start();
 	}
 
 	public static <T> void run(
@@ -110,6 +112,7 @@ public class BikServer {
 				}
 			}
 		});
+		thread.setName("BikServer.globalQueue");
 		thread.setDaemon(true);
 		thread.start();
 

@@ -12,7 +12,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
-import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.IntegerBitser
 import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.io.BitInputStream
@@ -22,9 +21,7 @@ import mardek.editor.EditorView
 import mardek.editor.client.TestRunState
 import mardek.exporting.ContentWrapper
 import mardek.exporting.DecompressingInputStream
-import java.lang.Math.toIntExact
 import java.nio.file.Files
-import java.util.concurrent.BlockingQueue
 
 @Composable
 fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunState) {
@@ -44,9 +41,7 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunSt
 				wrappedContentStruct.executeOperation(EditorView.operationSyncForExport) { output, streamFactory ->
 					val responseID = streamFactory.addResponseCallback { response ->
 						mutateScope.launch { exportState = 3 }
-						val compressedSize = toIntExact(IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
-							0L, Long.MAX_VALUE, response
-						))
+						val compressedSize = IntegerBitser.decodeFullInt(response)
 						val compressedContent = ByteArray(compressedSize)
 						response.read(compressedContent)
 						mutateScope.launch { exportState = 4 }
@@ -57,7 +52,6 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunSt
 						val parsedContent = BITSER.deserialize(
 							ContentWrapper::class.java,
 							BitInputStream(DecompressingInputStream(compressedFile)),
-							Bitser.BACKWARD_COMPATIBLE
 						)
 						mutateScope.launch {
 							wrappedContent = parsedContent

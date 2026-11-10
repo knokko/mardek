@@ -37,7 +37,7 @@ class BikClientStreamFactory implements BitClientStream.Factory {
 		future.thenAccept(stream -> {
 			System.out.println("Running future...");
 
-			new Thread(() -> {
+			var processResponseThread = new Thread(() -> {
 				System.out.println("Processing response...");
 				var input = new BitInputStream(stream.getInputStream());
 				try {
@@ -47,7 +47,9 @@ class BikClientStreamFactory implements BitClientStream.Factory {
 				}
 				stream.resetStream(0L);
 				System.out.println("Processed response");
-			}).start();
+			});
+			processResponseThread.setName("BikClientStreamFactory.addResponseCallback.processResponse");
+			processResponseThread.start();
 			System.out.println("Started future thread");
 
 		});

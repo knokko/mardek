@@ -52,6 +52,7 @@ public class BitServerStructController<T> extends BitServerController {
 
 				if (connection.view.hasAtLeastOneUploadableField() || connection.view.getNumOperations() > 0) {
 					var fromClientThread = new Thread(connection::readFromClient);
+					fromClientThread.setName("BitServerStructController.fromClient");
 					fromClientThread.setDaemon(true);
 					fromClientThread.start();
 				}
@@ -199,6 +200,7 @@ public class BitServerStructController<T> extends BitServerController {
 					throw new RuntimeException(failed);
 				}
 			});
+			toClientThread.setName("BitServerStructController.writeToClient");
 			toClientThread.setDaemon(true);
 			toClientThread.start();
 		}

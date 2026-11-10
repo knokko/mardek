@@ -42,6 +42,7 @@ class BikClientStream implements BitClientStream {
 					quicStream.resetStream(0L);
 				}
 			});
+			readThread.setName("BikClientStream.start.processInput");
 			readThread.setDaemon(true);
 			readThread.start();
 		});

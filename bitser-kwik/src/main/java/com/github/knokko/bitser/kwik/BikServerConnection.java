@@ -27,6 +27,7 @@ class BikServerConnection implements ApplicationProtocolConnection {
 
 	void start() {
 		var thread = new Thread(this::run);
+		thread.setName("BikServerConnection");
 		thread.setDaemon(true);
 		thread.start();
 	}
@@ -42,6 +43,7 @@ class BikServerConnection implements ApplicationProtocolConnection {
 			}
 
 			var keepAliveThread = new Thread(() -> this.runKeepAlive(mainStream));
+			keepAliveThread.setName("BikServerConnection.keepAlive");
 			keepAliveThread.setDaemon(true);
 			keepAliveThread.start();
 

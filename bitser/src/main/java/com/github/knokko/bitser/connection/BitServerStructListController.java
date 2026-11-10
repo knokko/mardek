@@ -38,6 +38,7 @@ public class BitServerStructListController<T> extends BitServerController {
 		this.elementsProtocol = elementsProtocol;
 
 		var flatUpdateThread = new Thread(this::runFlatUpdateThread);
+		flatUpdateThread.setName("BitServerStructListController.runFlatUpdateThread");
 		flatUpdateThread.setDaemon(true);
 		flatUpdateThread.start(); // TODO BITSER Stop the thread after this controller is closed
 	}
@@ -88,6 +89,7 @@ public class BitServerStructListController<T> extends BitServerController {
 
 					if (connection.view.getNumOperations() > 0) {
 						var fromClientThread = new Thread(connection::readFromClient);
+						fromClientThread.setName("BitServerStructListController.fromNestedClient");
 						fromClientThread.setDaemon(true);
 						fromClientThread.start();
 					}
@@ -112,6 +114,7 @@ public class BitServerStructListController<T> extends BitServerController {
 
 					if (true) { // TODO BITSER Find a way to not need this
 						var fromClientThread = new Thread(connection::readFromClient);
+						fromClientThread.setName("BitServerStructListController.fromFlatClient");
 						fromClientThread.setDaemon(true);
 						fromClientThread.start();
 					}
@@ -252,6 +255,7 @@ public class BitServerStructListController<T> extends BitServerController {
 					throw new RuntimeException(failed);
 				}
 			});
+			toClientThread.setName("BitServerStructListController.toNestedClient");
 			toClientThread.setDaemon(true);
 			toClientThread.start();
 		}
@@ -367,6 +371,7 @@ public class BitServerStructListController<T> extends BitServerController {
 					throw new RuntimeException(failed);
 				}
 			});
+			toClientThread.setName("BitServerStructListController.toFlatClient");
 			toClientThread.setDaemon(true);
 			toClientThread.start();
 		}

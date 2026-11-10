@@ -85,6 +85,7 @@ public class BikClient {
 				connection.close();
 			}
 		});
+		keepAliveThread.setName("BikClient.keepAlive");
 		keepAliveThread.setDaemon(true);
 		keepAliveThread.start();
 	}

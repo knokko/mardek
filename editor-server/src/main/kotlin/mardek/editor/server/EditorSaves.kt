@@ -1,6 +1,7 @@
 package mardek.editor.server
 
 import com.github.knokko.bitser.Bitser
+import com.github.knokko.bitser.io.BitCountStream
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.io.BitOutputStream
 import mardek.content.BITSER
@@ -25,6 +26,13 @@ fun loadContent(): ContentWrapper {
 	val wrappedContent = BITSER.deserialize(
 		ContentWrapper::class.java, contentInput, Bitser.BACKWARD_COMPATIBLE,
 	)
+
+	println("Start warming up...")
+	val warmupTime = measureNanoTime {
+		BITSER.serialize(wrappedContent, BitCountStream())
+	}
+	println("Warming up took ${warmupTime / 1000_000} ms")
+
 	System.gc()
 	return wrappedContent
 }
