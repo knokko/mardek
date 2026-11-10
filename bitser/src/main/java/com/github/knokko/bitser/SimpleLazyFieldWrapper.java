@@ -50,10 +50,18 @@ class SimpleLazyFieldWrapper extends BitFieldWrapper {
 		if (value instanceof SimpleLazyBits<?> lazy) {
 			var optionList = Bitser.getOptionsWithoutWithObjects(serializer.withAndOptions);
 
-			byte[] bytes = lazy.bytes;
-			if (bytes == null || serializer.forbidLazySaving || lazy.backwardCompatible != serializer.backwardCompatible) {
-				bytes = serializer.bitser.toBytes(lazy.get(), optionList.toArray());
+			byte[] bytes = null;
+			if (!serializer.forbidLazySaving) {
+				if (serializer.backwardCompatible) bytes = lazy.backwardCompatibleBytes;
+				else bytes = lazy.simpleBytes;
 			}
+
+			if (bytes == null) {
+				bytes = serializer.bitser.toBytes(lazy.get(), optionList.toArray());
+				if (serializer.backwardCompatible) lazy.backwardCompatibleBytes = bytes;
+				else lazy.simpleBytes = bytes;
+			}
+
 			serializer.output.prepareProperty("lazy-bytes-length");
 			encodeUnknownLength(bytes.length, serializer.output);
 			serializer.output.finishProperty();

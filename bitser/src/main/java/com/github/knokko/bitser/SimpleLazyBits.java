@@ -54,29 +54,25 @@ import java.util.Objects;
  */
 public final class SimpleLazyBits<T> {
 
-	private static final Object[] NOT_BACKWARD_COMPATIBLE = new Object[0];
-	private static final Object[] BACKWARD_COMPATIBLE = { Bitser.BACKWARD_COMPATIBLE };
-
 	private Class<? extends T> valueClass;
 	private Bitser bitser;
-	final boolean backwardCompatible;
 
 	private T value;
-	byte[] bytes;
+	byte[] simpleBytes;
+	byte[] backwardCompatibleBytes;
 
 	/**
 	 * Creates a new {@link SimpleLazyBits} that wraps {@code value}. You can access it later by calling {@link #get()}.
 	 */
 	public SimpleLazyBits(T value) {
 		this.value = Objects.requireNonNull(value);
-		this.backwardCompatible = false;
 	}
 
 	SimpleLazyBits(byte[] bytes, Bitser bitser, boolean backwardCompatible, Class<? extends T> valueClass) {
 		this.value = null;
-		this.bytes = Objects.requireNonNull(bytes);
+		if (backwardCompatible) this.backwardCompatibleBytes = Objects.requireNonNull(bytes);
+		else this.simpleBytes = Objects.requireNonNull(bytes);
 		this.bitser = Objects.requireNonNull(bitser);
-		this.backwardCompatible = backwardCompatible;
 		this.valueClass = Objects.requireNonNull(valueClass);
 	}
 
@@ -90,8 +86,8 @@ public final class SimpleLazyBits<T> {
 			value = (T) referenceLazy.get();
 		}
 		if (value == null) {
-			Object[] options = backwardCompatible ? BACKWARD_COMPATIBLE : NOT_BACKWARD_COMPATIBLE;
-			value = bitser.fromBytes(valueClass, bytes, options);
+			if (simpleBytes != null) value = bitser.fromBytes(valueClass, simpleBytes);
+			else value = bitser.fromBytes(valueClass, backwardCompatibleBytes, Bitser.BACKWARD_COMPATIBLE);
 		}
 		return value;
 	}
