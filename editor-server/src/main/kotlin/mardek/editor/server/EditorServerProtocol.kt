@@ -56,6 +56,7 @@ class EditorServerProtocol : BikServerProtocol {
 				context.globalQueue.add { saveContent(context.rootStruct as ContentWrapper, null)}
 			}
 		}
+		backupThread.name = "EditorServerBackup"
 		backupThread.isDaemon = true
 		backupThread.start()
 

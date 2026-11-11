@@ -142,7 +142,7 @@ class MardekWindow(
 		println("Start loading content after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 		val content = CompletableFuture<Content>()
 
-		Thread {
+		val loadContentThread = Thread {
 			try {
 				content.complete(loadContent(mainContentFile))
 				println("Loaded content after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
@@ -154,7 +154,9 @@ class MardekWindow(
 				}
 				throw failed
 			}
-		}.start()
+		}
+		loadContentThread.name = "LoadContent"
+		loadContentThread.start()
 
 		Thread {
 			try {

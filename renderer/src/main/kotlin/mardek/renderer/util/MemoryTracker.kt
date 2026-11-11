@@ -16,6 +16,7 @@ object MemoryTracker {
 				sleep(1000)
 			}
 		}
+		memoryThread.name = "MemoryTracker"
 		memoryThread.isDaemon = true
 		memoryThread.start()
 	}

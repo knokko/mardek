@@ -25,6 +25,7 @@ fun main() {
             }
         }
     }
+    composeThread.name = "EditorClientCompose"
     composeThread.start()
 
     while (composeThread.isAlive) {
