@@ -23,7 +23,6 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VkPhysicalDeviceFeatures;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -80,11 +79,7 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		);
 	}
 
-	protected InputStream initialResourceBundle() throws IOException {
-		return null;
-	}
-
-	protected Path initialResourceFile() {
+	protected Path initialResourceFile() throws IOException {
 		return null;
 	}
 
@@ -111,11 +106,9 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 		this.vkRenderPass = pipelineContext.vkRenderPass;
 
 		try {
-			InputStream resourceInput = initialResourceBundle();
 			Path resourceFile = initialResourceFile();
 			Vk2dResourceLoader loader = null;
 			if (resourceFile != null) loader = new Vk2dResourceLoader(instance, resourceFile);
-			if (resourceInput != null && resourceFile == null) loader = new Vk2dResourceLoader(instance, resourceInput);
 
 			MemoryCombiner combiner = new MemoryCombiner(boiler, "Vk2dPersistent");
 			DescriptorCombiner descriptors = new DescriptorCombiner(boiler);
@@ -134,7 +127,6 @@ public abstract class Vk2dWindow extends SimpleWindowRenderLoop {
 			if (loader != null) loader.performStaging(null);
 
 			if (loader != null) this.resources = loader.finish();
-			if (resourceInput != null) resourceInput.close();
 		} catch (IOException io) {
 			throw new RuntimeException(io);
 		}

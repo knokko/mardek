@@ -99,4 +99,12 @@ class BattleContent : Serializable {
 	 */
 	@BitField(id = 10)
 	val noMask = BcSprite(1, 1, 4, true, 0)
+
+	/**
+	 * All the sprites that can be used by [AnimationSprite]s.
+	 * Note that many sprites are used by multiple [AnimationSprite]s.
+	 */
+	@BitField(id = 11)
+	@ReferenceFieldTarget(label = "animation bc sprites")
+	val sharedAnimationSprites = ArrayList<BcSprite>()
 }

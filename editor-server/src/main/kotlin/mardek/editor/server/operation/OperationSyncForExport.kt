@@ -1,20 +1,17 @@
 package mardek.editor.server.operation
 
-import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.IntegerBitser
 import com.github.knokko.bitser.connection.BitServerContext
 import com.github.knokko.bitser.connection.BitServerStructController
 import com.github.knokko.bitser.connection.BitServerStructOperation
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.io.BitOutputStream
+import com.github.knokko.vk2d.resource.CompressingOutputStream
 import mardek.content.BITSER
-import mardek.editor.server.saveContent
-import mardek.exporting.CompressingOutputStream
 import mardek.exporting.ContentWrapper
-import mardek.exporting.DecompressingInputStream
 import java.lang.Math.toIntExact
 import java.nio.file.Files
-import kotlin.io.path.deleteIfExists
+import kotlin.io.path.fileSize
 import kotlin.system.measureNanoTime
 
 class OperationSyncForExport : BitServerStructOperation<ContentWrapper> {
@@ -37,23 +34,34 @@ class OperationSyncForExport : BitServerStructOperation<ContentWrapper> {
 
 		context.globalQueue.add {
 			val compressionTime = measureNanoTime {
-				val output = CompressingOutputStream(tempFile.toFile(), 2)
+				val output = CompressingOutputStream(tempFile, 5)
 				val bitOutput = BitOutputStream(output)
 				BITSER.serialize(context.rootStruct, bitOutput)
 				bitOutput.finish()
 			}
-			println("Compression took ${compressionTime / 1_000_000} ms")
+			println("Saving & compressing took ${compressionTime / 1_000_000} ms")
 
 			println("respond to client...")
 			context.respondToClient.send(connectionHandle, responseID) { toClient ->
-				// TODO BITSER Stream this properly
 				println("RESPOND TO CLIENT?")
 				val transmissionTime = measureNanoTime {
-					val compressedBytes = Files.readAllBytes(tempFile)
-					tempFile.deleteIfExists()
-					IntegerBitser.encodeFullInt(compressedBytes.size, toClient)
-					toClient.write(compressedBytes)
-					println("RESPONDED TO CLIENT (${compressedBytes.size} bytes)")
+					val fileSize = toIntExact(tempFile.fileSize())
+					IntegerBitser.encodeFullInt(fileSize, toClient)
+					val tempInput = Files.newInputStream(tempFile)
+					val sendBuffer = ByteArray(1024 * 1024)
+					var remaining = fileSize
+					while (remaining > 0) {
+						if (remaining < sendBuffer.size) {
+							tempInput.readNBytes(sendBuffer, 0, remaining)
+							toClient.write(sendBuffer.sliceArray(0 until remaining))
+							break
+						} else {
+							tempInput.readNBytes(sendBuffer, 0, sendBuffer.size)
+							toClient.write(sendBuffer)
+							remaining -= sendBuffer.size
+						}
+					}
+					println("RESPONDED TO CLIENT ($fileSize bytes)")
 				}
 				println("Transmission took ${transmissionTime / 1_000_000} ms")
 			}

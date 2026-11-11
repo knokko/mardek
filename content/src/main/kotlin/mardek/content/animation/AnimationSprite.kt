@@ -4,6 +4,7 @@ import com.github.knokko.bitser.BitStruct
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.FloatField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.ReferenceField
 import mardek.content.sprite.BcSprite
 import java.io.Serializable
 
@@ -24,6 +25,7 @@ class AnimationSprite(
 	 * The image/sprite to be rendered
 	 */
 	@BitField(id = 2)
+	@ReferenceField(stable = false, label = "animation bc sprites")
 	val image: BcSprite,
 
 	/**

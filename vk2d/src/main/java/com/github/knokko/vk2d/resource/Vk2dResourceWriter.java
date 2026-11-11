@@ -13,6 +13,7 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.List;
@@ -22,8 +23,6 @@ import java.util.concurrent.Executors;
 import static com.github.knokko.vk2d.text.HarfbuzzChecks.assertHbSuccess;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
-import static org.lwjgl.util.zstd.Zstd.ZSTD_compress;
-import static org.lwjgl.util.zstd.Zstd.ZSTD_compressBound;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceWriter {
@@ -346,7 +345,16 @@ public class Vk2dResourceWriter {
 		}
 	}
 
-	public void writeUncompressed(DataOutputStream output, File cacheDirectory) throws IOException {
+	public Path writeToTempFile(File cacheDirectory) throws IOException {
+		var tempFile = Files.createTempFile("", ".vk2d");
+		write(tempFile.toFile(), cacheDirectory);
+		tempFile.toFile().deleteOnExit();
+		return tempFile;
+	}
+
+	public void write(File outputFile, File cacheDirectory) throws IOException {
+		var rawOutput = new CompressingOutputStream(outputFile.toPath(), 5); // TODO Specify
+		var output = new DataOutputStream(rawOutput);
 		output.writeInt(images.size());
 		for (Image entry : images) {
 			output.writeInt(entry.image.getWidth());
@@ -432,35 +440,12 @@ public class Vk2dResourceWriter {
 		}
 
 		output.flush();
-	}
-
-	public void write(OutputStream rawOutput, File cacheDirectory) throws IOException {
-		var uncompressedOutput = new ByteArrayOutputStream();
-		writeUncompressed(new DataOutputStream(uncompressedOutput), cacheDirectory);
-
-		var uncompressedByteArray = uncompressedOutput.toByteArray();
-		var uncompressedByteBuffer = memCalloc(uncompressedByteArray.length);
-		uncompressedByteBuffer.put(0, uncompressedByteArray);
-
-		var compressedByteBuffer = memCalloc(Math.toIntExact(ZSTD_compressBound(uncompressedByteArray.length)));
-		long startCompression = System.nanoTime();
-		// TODO CHAP3 Use a higher compression level
-		int compressedSize = Math.toIntExact(ZSTD_compress(compressedByteBuffer, uncompressedByteBuffer, 7));
-		System.out.println("compression took " + (System.nanoTime() - startCompression) / 1000_000L + " ms");
-		memFree(uncompressedByteBuffer);
-		var compressedByteArray = new byte[compressedSize];
-		compressedByteBuffer.get(compressedByteArray);
-		memFree(compressedByteBuffer);
-		rawOutput.write(compressedByteArray);
-		rawOutput.flush();
-		System.out.println("compressed size is " + compressedByteArray.length + " and uncompressed length is " + uncompressedByteArray.length);
+		output.close();
 	}
 
 	public Vk2dResourceBundle directlyCreateBundle(Vk2dInstance instance, File cacheDirectory) {
 		try {
-			var output = new ByteArrayOutputStream();
-			write(output, cacheDirectory);
-			var input = new ByteArrayInputStream(output.toByteArray());
+			var input = writeToTempFile(cacheDirectory);
 			return Vk2dResourceLoader.loadSimple(instance, input);
 		} catch (IOException io) {
 			throw new RuntimeException(io);

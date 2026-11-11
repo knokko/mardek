@@ -1,9 +1,10 @@
 package mardek.content.action
 
 import com.github.knokko.bitser.BitStruct
-import com.github.knokko.bitser.SimpleLazyBits
+import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
+import com.github.knokko.bitser.field.LazyReferences
 import com.github.knokko.bitser.field.ReferenceField
 import com.github.knokko.bitser.field.StableReferenceFieldId
 import mardek.content.audio.MusicTrack
@@ -34,7 +35,8 @@ class Cutscene(
 	 * The payload/content of this cutscene, which is *lazy* to reduce the loading time of the game
 	 */
 	@BitField(id = 2)
-	val payload: SimpleLazyBits<CutscenePayload>,
+	@LazyReferences(labels = ["animation bc sprites"])
+	val payload: ReferenceLazyBits<CutscenePayload>,
 
 	/**
 	 * The sounds that should be played during this cutscene
@@ -49,11 +51,6 @@ class Cutscene(
 	@ReferenceField(stable = false, label = "music tracks")
 	val musicTrack: MusicTrack?,
 ) : Serializable {
-
-	internal constructor() : this(
-		UUID(0, 0), "",
-		SimpleLazyBits(CutscenePayload()), emptyArray(), null,
-	)
 
 	/**
 	 * A sound effect that should be played after a fixed amount of time, since the start of the cutscene

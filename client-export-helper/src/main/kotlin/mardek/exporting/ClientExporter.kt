@@ -1,5 +1,7 @@
 package mardek.exporting
 
+import com.github.knokko.bitser.Bitser
+import com.github.knokko.bitser.io.BitOutputStream
 import com.github.knokko.bitser.options.WithParameter
 import com.github.knokko.boiler.utilities.ColorPacker.alpha
 import com.github.knokko.boiler.utilities.ColorPacker.blue
@@ -7,7 +9,7 @@ import com.github.knokko.boiler.utilities.ColorPacker.green
 import com.github.knokko.boiler.utilities.ColorPacker.red
 import com.github.knokko.compressor.Kim1Decompressor
 import com.github.knokko.compressor.Kim3Decompressor
-import com.github.knokko.memory.MemorySnapshot
+import com.github.knokko.vk2d.resource.CompressingOutputStream
 import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
 import com.github.knokko.vk2d.resource.Vk2dImageCompression
 import com.github.knokko.vk2d.resource.Vk2dResourceWriter
@@ -20,7 +22,6 @@ import mardek.content.ui.TitleScreenContent
 import org.lwjgl.BufferUtils
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
-import java.io.DataOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -77,11 +78,9 @@ private fun addFont(resourceWriter: Vk2dResourceWriter, font: Font, extraAtlases
 }
 
 fun exportAndPrepareVk2d(
-	vk2dOutput: OutputStream, closeOutput: Boolean,
+	dataFile: File, vk2dFile: File, compressionLevel: Int,
 	cacheDirectory: File?, target: Any
-) : ByteArray {
-	val resourceWriter = Vk2dResourceWriter()
-
+) {
 	val allKimSprites = Collections.newSetFromMap(IdentityHashMap<KimSprite, Boolean>())
 	val allBcSprites = Collections.newSetFromMap(IdentityHashMap<BcSprite, Boolean>())
 	val allFonts = Collections.newSetFromMap(IdentityHashMap<Font, Boolean>())
@@ -89,14 +88,10 @@ fun exportAndPrepareVk2d(
 	collectionMapping[KimSprite::class.java] = allKimSprites
 	collectionMapping[BcSprite::class.java] = allBcSprites
 	collectionMapping[Font::class.java] = allFonts
-	println("collecting instances...")
 	BITSER.collectInstances(target, collectionMapping, hashMapOf())
-	println("collected instances")
-
-	println("After collecting:")
-	MemorySnapshot.take().debugDump()
 
 	// TODO BITSER Sort them by something
+	val resourceWriter = Vk2dResourceWriter()
 	for (sprite in allKimSprites) addKimImage(resourceWriter, sprite)
 	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
 	for (font in allFonts) {
@@ -112,30 +107,15 @@ fun exportAndPrepareVk2d(
 		} else addFont(resourceWriter, font)
 	}
 
-	println("After adding resources:")
-	MemorySnapshot.take().debugDump()
-
-	println("GC before writing:")
-	System.gc()
-	MemorySnapshot.take().debugDump()
-
-	resourceWriter.write(DataOutputStream(vk2dOutput), cacheDirectory)
-	println("After writing:")
-	MemorySnapshot.take().debugDump()
-
-	if (closeOutput) vk2dOutput.close()
+	resourceWriter.write(vk2dFile, cacheDirectory)
 
 	for (sprite in allBcSprites) {
 		if (sprite.data == null) sprite.data = resourceWriter.getImageData(sprite.index)
 	}
 
-	println("Before toBytes:")
-	MemorySnapshot.take().debugDump()
-	val result = BITSER.toBytes(target, WithParameter("exporting", null))
-	println("After toBytes:")
-	System.gc()
-	MemorySnapshot.take().debugDump()
-	return result
+	val bitOutput = BitOutputStream(CompressingOutputStream(dataFile.toPath(), compressionLevel))
+	BITSER.serialize(target, bitOutput, WithParameter("exporting", null), Bitser.FORBID_LAZY_SAVING)
+	bitOutput.finish()
 }
 
 fun exportIcons(wrapped: ContentWrapper, iconOutput: OutputStream, close: Boolean) {
@@ -189,7 +169,7 @@ fun exportIcons(wrapped: ContentWrapper, iconOutput: OutputStream, close: Boolea
 	if (close) iconOutput.close()
 }
 
-fun exportTitleScreen(wrapped: ContentWrapper, vk2dOutput: OutputStream, closeOutput: Boolean) : ByteArray {
+fun exportTitleScreen(dataFile: File, vk2dFile: File, wrapped: ContentWrapper) {
 	val titleAudio = AudioContent()
 	titleAudio.musicTracks.addAll(wrapped.content.audio.musicTracks)
 	titleAudio.musicCategories.addAll(wrapped.content.audio.musicCategories)
@@ -213,5 +193,5 @@ fun exportTitleScreen(wrapped: ContentWrapper, vk2dOutput: OutputStream, closeOu
 		pauseMusicHoveredIcon = wrapped.pauseMusicHoveredIcon,
 	)
 
-	return exportAndPrepareVk2d(vk2dOutput, closeOutput, null, titleContent)
+	exportAndPrepareVk2d(dataFile, vk2dFile, 22, null, titleContent)
 }

@@ -7,9 +7,7 @@ import com.github.knokko.boiler.window.VkbWindow;
 import com.github.knokko.vk2d.batch.Vk2dImageBatch;
 import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Random;
 
 import static com.github.knokko.vk2d.ImageBenchmarkResourceWriter.FILE;
@@ -22,8 +20,8 @@ public class ChaosImageBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected InputStream initialResourceBundle() throws IOException {
-		return Files.newInputStream(FILE.toPath());
+	protected Path initialResourceFile() {
+		return FILE.toPath();
 	}
 
 	@Override

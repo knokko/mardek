@@ -17,9 +17,7 @@ import com.github.knokko.vk2d.pipeline.Vk2dBlurPipeline;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
 import static org.lwjgl.vulkan.VK10.*;
@@ -34,8 +32,8 @@ public class BlurBenchmark extends Vk2dWindow {
 	}
 
 	@Override
-	protected InputStream initialResourceBundle() throws IOException {
-		return Files.newInputStream(new File("image-benchmark-resources.bin").toPath());
+	protected Path initialResourceFile() {
+		return new File("image-benchmark-resources.bin").toPath();
 	}
 
 	@Override

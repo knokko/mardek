@@ -1,6 +1,8 @@
 package mardek.importer
 
 import com.github.knokko.bitser.Bitser
+import com.github.knokko.bitser.io.BitOutputStream
+import com.github.knokko.vk2d.resource.CompressingOutputStream
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.exporting.ContentWrapper
@@ -15,6 +17,7 @@ import java.io.File
 import java.nio.file.Files
 import javax.imageio.ImageIO
 import kotlin.system.exitProcess
+import kotlin.time.measureTime
 
 fun main() {
 	if (!File("$projectFolder/flash/all-shapes-x4").exists()) {
@@ -27,43 +30,37 @@ fun main() {
 		val wrappedContent = wrapContent(content)
 
 		println("exporting content...")
-		val contentBytes = exportAndPrepareVk2d(
-			vk2dOutput = Files.newOutputStream(File(
-				"${Content.RESOURCES_DIRECTORY}/content.vk2d"
-			).toPath()),
-			closeOutput = true,
-			cacheDirectory = File("$projectFolder/flash/bc-cache"),
-			target = content,
-		)
-		Files.write(
-			File("${Content.RESOURCES_DIRECTORY}/content.bits").toPath(),
-			ContentWrapper.compress(contentBytes, 22),
-		)
-		println("exported content")
+		val mainExportTime = measureTime {
+			exportAndPrepareVk2d(
+				dataFile = File("${Content.RESOURCES_DIRECTORY}/content.bits"),
+				vk2dFile = File("${Content.RESOURCES_DIRECTORY}/content.vk2d"),
+				compressionLevel = 15,
+				cacheDirectory = File("$projectFolder/flash/bc-cache"),
+				target = content,
+			)
+		}
+
+		println("exporting content took $mainExportTime")
 
 		exportIcons(wrappedContent, Files.newOutputStream(File(
 			"${Content.RESOURCES_DIRECTORY}/icons.bin"
 		).toPath()), true)
 
-		val titleScreenBytes = exportTitleScreen(
+		exportTitleScreen(
+			dataFile = File("${Content.RESOURCES_DIRECTORY}/title-screen.bits"),
+			vk2dFile = File("${Content.RESOURCES_DIRECTORY}/title-screen.vk2d"),
 			wrapped = wrappedContent,
-			vk2dOutput = Files.newOutputStream(File(
-				"${Content.RESOURCES_DIRECTORY}/title-screen.vk2d"
-			).toPath()),
-			closeOutput = true,
-		)
-		Files.write(
-			File("${Content.RESOURCES_DIRECTORY}/title-screen.bits").toPath(),
-			titleScreenBytes,
 		)
 
 		println("preparing editor server content....")
-		val fatContentBytes = BITSER.toBytes(wrappedContent, Bitser.BACKWARD_COMPATIBLE)
-		Files.write(
-			File("$projectFolder/editor-server/content.bits").toPath(),
-			ContentWrapper.compress(fatContentBytes, 10),
-		)
-		println("prepared editor server content")
+		val preparationTime = measureTime {
+			val fatOutput = BitOutputStream(CompressingOutputStream(
+				File("$projectFolder/editor-server/content.bits").toPath(), 1
+			))
+			BITSER.serialize(wrappedContent, fatOutput, Bitser.BACKWARD_COMPATIBLE)
+			fatOutput.finish()
+		}
+		println("preparing editor server content took $preparationTime")
 
 		succeeded = true
 	} catch (failure: Throwable) {

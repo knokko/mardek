@@ -15,12 +15,12 @@ import androidx.compose.ui.unit.em
 import com.github.knokko.bitser.IntegerBitser
 import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.io.BitInputStream
+import com.github.knokko.vk2d.resource.DecompressingInputStream
 import kotlinx.coroutines.launch
 import mardek.content.BITSER
 import mardek.editor.EditorView
 import mardek.editor.client.TestRunState
 import mardek.exporting.ContentWrapper
-import mardek.exporting.DecompressingInputStream
 import java.nio.file.Files
 
 @Composable
@@ -41,18 +41,35 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunSt
 				wrappedContentStruct.executeOperation(EditorView.operationSyncForExport) { output, streamFactory ->
 					val responseID = streamFactory.addResponseCallback { response ->
 						mutateScope.launch { exportState = 3 }
+
+						val compressedFile = Files.createTempFile("", ".bits")
+						val compressedOutput = Files.newOutputStream(compressedFile)
+
 						val compressedSize = IntegerBitser.decodeFullInt(response)
-						val compressedContent = ByteArray(compressedSize)
-						response.read(compressedContent)
+
+						val receiveBuffer = ByteArray(1024 * 1024)
+						var remaining = compressedSize
+						while (remaining > 0) {
+							if (remaining < receiveBuffer.size) {
+								val lastBuffer = ByteArray(remaining)
+								response.read(lastBuffer)
+								compressedOutput.write(lastBuffer)
+								break
+							} else {
+								response.read(receiveBuffer)
+								compressedOutput.write(receiveBuffer)
+								remaining -= receiveBuffer.size
+							}
+						}
+						compressedOutput.flush()
+						compressedOutput.close()
+
 						mutateScope.launch { exportState = 4 }
 
-						val compressedFile = Files.createTempFile("", ".bits").toFile()
-						Files.write(compressedFile.toPath(), compressedContent)
+						val bitInput = BitInputStream(DecompressingInputStream(compressedFile))
+						val parsedContent = BITSER.deserialize(ContentWrapper::class.java, bitInput)
+						bitInput.close()
 
-						val parsedContent = BITSER.deserialize(
-							ContentWrapper::class.java,
-							BitInputStream(DecompressingInputStream(compressedFile)),
-						)
 						mutateScope.launch {
 							wrappedContent = parsedContent
 							exportState = 0

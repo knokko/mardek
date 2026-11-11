@@ -25,5 +25,5 @@ fun main() {
 		operationRegistry
 	)
 
-	saveContent(wrappedContent, null)
+	saveContent(wrappedContent)
 }

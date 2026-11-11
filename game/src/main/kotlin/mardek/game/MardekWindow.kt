@@ -1,5 +1,6 @@
 package mardek.game
 
+import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.commands.CommandRecorder
 import com.github.knokko.boiler.descriptors.DescriptorCombiner
@@ -14,6 +15,7 @@ import com.github.knokko.vk2d.Vk2dWindow
 import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines
+import com.github.knokko.vk2d.resource.DecompressingInputStream
 import mardek.audio.AudioUpdater
 import mardek.content.BITSER
 import mardek.content.Content
@@ -28,7 +30,6 @@ import org.lwjgl.sdl.SDLVideo.SDL_SetWindowFullscreen
 import org.lwjgl.sdl.SDLVideo.SDL_WINDOW_FULLSCREEN
 import org.lwjgl.system.MemoryStack
 import java.io.File
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration.Companion.milliseconds
@@ -54,11 +55,14 @@ class MardekWindow(
 	lateinit var perFrame: Array<PerFrameResources>
 
 	private val fpsCounter = UpdateCounter()
-	
-	private val titleScreenInfo = BITSER.fromBytes(
-		TitleScreenContent::class.java,
-		Files.readAllBytes(titleScreenContentFile.toPath())
-	)
+
+	private val titleScreenInfo: TitleScreenContent
+
+	init {
+		val titleInput = BitInputStream(DecompressingInputStream(titleScreenContentFile.toPath()))
+		titleScreenInfo = BITSER.deserialize(TitleScreenContent::class.java, titleInput)
+		titleInput.close()
+	}
 
 	override fun initialResourceFile(): Path {
 		return titleScreenVk2dFile.toPath()
@@ -113,7 +117,7 @@ class MardekWindow(
 		synchronized(gameState.lock()) {
 			val windowFlags = SDL_GetWindowFlags(window.properties.handle)
 			val isFullscreen = (windowFlags and SDL_WINDOW_FULLSCREEN) != 0L
-			if (userSettings.videoSettings.fullscreen  != isFullscreen) {
+			if (userSettings.videoSettings.fullscreen != isFullscreen) {
 				SDL_SetWindowFullscreen(window.properties.handle, userSettings.videoSettings.fullscreen)
 			}
 
@@ -158,7 +162,7 @@ class MardekWindow(
 		loadContentThread.name = "LoadContent"
 		loadContentThread.start()
 
-		Thread {
+		val loadMainResourcesThread = Thread {
 			try {
 				renderManager.loadMainResources(mainVk2dFile.toPath())
 				println("Loaded main resources after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
@@ -168,29 +172,36 @@ class MardekWindow(
 				}
 				throw failed
 			}
-		}.start()
+		}
+		loadMainResourcesThread.name = "RenderManager.loadMainResources"
+		loadMainResourcesThread.start()
+
+		val mainThread = Thread.currentThread()
 
 		val updateLoop = UpdateLoop({
 			synchronized(gameState.lock()) {
 				gameState.update(content, titleScreenInfo, userSettings, 5.milliseconds)
+				if (gameState.currentState is ExitState || !mainThread.isAlive) it.stop()
 			}
 		}, 5_000_000L)
 		val updateThread = Thread(updateLoop)
+		updateThread.name = "GameStateUpdateThread"
 		updateThread.isDaemon = true
 		updateThread.start()
 
-		val mainThread = Thread.currentThread()
-
-		Thread {
+		val audioThread = Thread {
 			val audioUpdater = AudioUpdater(
 				gameState, content,
 				titleScreenInfo.audio, userSettings.audioSettings
 			)
 			UpdateLoop({ loop ->
-				if (mainThread.isAlive) audioUpdater.update()
+				if (mainThread.isAlive && gameState.currentState !is ExitState) audioUpdater.update()
 				else loop.stop()
 			}, 10_000_000L).run()
 			audioUpdater.destroy()
-		}.start()
+		}
+		audioThread.name = "AudioThread"
+		audioThread.isDaemon = true
+		audioThread.start()
 	}
 }

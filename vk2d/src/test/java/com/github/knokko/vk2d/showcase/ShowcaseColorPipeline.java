@@ -13,10 +13,9 @@ import com.github.knokko.vk2d.text.TestFontCollection;
 import com.github.knokko.vk2d.text.TextAlignment;
 import com.github.knokko.vk2d.text.Vk2dTextStyle;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
 import static com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear;
@@ -28,16 +27,14 @@ public class ShowcaseColorPipeline extends Vk2dWindow {
 	}
 
 	@Override
-	protected InputStream initialResourceBundle() throws IOException {
+	protected Path initialResourceFile() throws IOException {
 		var writer = new Vk2dResourceWriter();
 		int fontDataThaana = writer.addFontBlob(TestFontCollection.thaanaFont());
 
 		int fontThaana = writer.addFont(fontDataThaana, 0);
 		writer.addFallbackAtlas(fontThaana, 8, 20f, 0.1f);
 
-		var output = new ByteArrayOutputStream();
-		writer.write(output, null);
-		return new ByteArrayInputStream(output.toByteArray());
+		return writer.writeToTempFile(null);
 	}
 
 	@Override

@@ -8,8 +8,8 @@ import mardek.content.particle.ParticleSprite
 import java.io.Serializable
 
 /**
- * Represents an animation that can be (de)serialized independently. This is basically an instance of `AnimationFrames`,
- * plus the sprites and inner animations used by that `AnimationFrames`.
+ * Represents an animation that can be (de)serialized independently, except for its sprites.
+ * This is basically an instance of `AnimationFrames`, plus the inner animations used by that `AnimationFrames`.
  *
  * This independent deserialization is important for the lazy loading of combatant animations, since we must be able to
  * render any animation, regardless of which other animations are deserialized already. Lazy loading of combatant

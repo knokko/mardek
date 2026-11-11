@@ -16,10 +16,8 @@ import com.github.knokko.vk2d.text.TextAlignment;
 import com.github.knokko.vk2d.text.Vk2dTextStyle;
 
 import javax.imageio.ImageIO;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Objects;
 
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
@@ -51,7 +49,7 @@ public class ShowcaseImagePipeline extends Vk2dWindow {
 	}
 
 	@Override
-	protected InputStream initialResourceBundle() throws IOException {
+	protected Path initialResourceFile() throws IOException {
 		var writer = new Vk2dResourceWriter();
 		var originalImage = ImageIO.read(Objects.requireNonNull(
 				getClass().getClassLoader().getResourceAsStream(
@@ -102,9 +100,7 @@ public class ShowcaseImagePipeline extends Vk2dWindow {
 		);
 
 		// Replay the output
-		var output = new ByteArrayOutputStream();
-		writer.write(output, null);
-		return new ByteArrayInputStream(output.toByteArray());
+		return writer.writeToTempFile(null);
 	}
 
 	@Override

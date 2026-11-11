@@ -1,6 +1,5 @@
 package mardek.editor.client
 
-import com.github.knokko.memory.MemorySnapshot
 import mardek.exporting.ContentWrapper
 
 class TestRunState {
@@ -24,7 +23,6 @@ class TestRunState {
 			this.state += 1
 		}
 		stateCallback!!.invoke(state)
-		MemorySnapshot.take().debugDump()
 	}
 
 	fun reset() {

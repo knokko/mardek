@@ -1,7 +1,6 @@
 package mardek.editor.client
 
 import com.github.knokko.boiler.window.WindowEventLoop
-import mardek.exporting.ContentWrapper
 import mardek.exporting.exportAndPrepareVk2d
 import mardek.exporting.exportIcons
 import mardek.exporting.exportTitleScreen
@@ -13,7 +12,6 @@ import mardek.state.GameStateManager
 import mardek.state.saves.SavesFolderManager
 import mardek.state.settings.UserSettings
 import mardek.state.title.TitleScreenState
-import java.io.BufferedOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
@@ -28,25 +26,22 @@ private fun exportToTempFiles(
 	iconsFile: Path,
 ) {
 	val contentWrapper = testRunState.content!!
-	val titleScreenContentBytes = exportTitleScreen(
-		contentWrapper,
-		Files.newOutputStream(titleScreenVk2dFile),
-		true,
+	exportTitleScreen(
+		dataFile = titleScreenContentFile.toFile(),
+		vk2dFile = titleScreenVk2dFile.toFile(),
+		wrapped = testRunState.content!!,
 	)
-	Files.write(titleScreenContentFile, titleScreenContentBytes)
 	println("after title screen")
 	testRunState.reportProgress()
 
-	val mainContentBytes = exportAndPrepareVk2d(
-		BufferedOutputStream(Files.newOutputStream(mainVk2dFile)),
-		true,
-		null,
-		contentWrapper.content,
+	exportAndPrepareVk2d(
+		dataFile = mainContentFile.toFile(),
+		vk2dFile = mainVk2dFile.toFile(),
+		compressionLevel = 15,
+		cacheDirectory = null,
+		target = contentWrapper.content,
 	)
 	println("main 1")
-	testRunState.reportProgress()
-	Files.write(mainContentFile, ContentWrapper.compress(mainContentBytes, 5))
-	println("main 2")
 	testRunState.reportProgress()
 
 	exportIcons(contentWrapper, Files.newOutputStream(iconsFile), true)
@@ -94,6 +89,7 @@ fun runEditorClientTest(testRunState: TestRunState) {
 	eventLoop.runMain()
 	testRunState.reportProgress()
 
+	inputListener.destroy()
 	boiler.destroyInitialObjects()
 	for (file in arrayOf(titleScreenVk2dFile, titleScreenContentFile, mainContentFile, mainVk2dFile, iconsFile)) {
 		file.deleteIfExists()

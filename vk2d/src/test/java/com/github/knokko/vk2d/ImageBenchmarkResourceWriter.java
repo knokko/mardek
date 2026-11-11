@@ -8,8 +8,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
 import java.util.Objects;
 
 public class ImageBenchmarkResourceWriter {
@@ -63,8 +61,6 @@ public class ImageBenchmarkResourceWriter {
 			throw new RuntimeException(e);
 		}
 
-		OutputStream output = Files.newOutputStream(FILE.toPath());
-		writer.write(output, null);
-		output.close();
+		writer.write(FILE, null);
 	}
 }

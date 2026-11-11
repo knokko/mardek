@@ -2,7 +2,6 @@ package mardek.game
 
 import com.github.knokko.boiler.window.WindowEventLoop
 import mardek.input.InputManager
-import mardek.state.settings.VideoSettings
 import mardek.state.GameStateManager
 import mardek.state.saves.SavesFolderManager
 import mardek.state.settings.UserSettings
@@ -44,5 +43,6 @@ fun main(args: Array<String>) {
 	println("Started event loop after ${(System.nanoTime() - mainStartTime) / 1000_000L}ms")
 	eventLoop.runMain()
 
+	inputListener.destroy()
 	boiler.destroyInitialObjects()
 }

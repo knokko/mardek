@@ -1,5 +1,7 @@
 package com.github.knokko.bitser;
 
+import com.github.knokko.bitser.exceptions.RecursionException;
+
 import java.lang.reflect.Array;
 
 record WithArrayJob(Object array, BitFieldWrapper elementsWrapper, RecursionNode node) {
@@ -12,7 +14,11 @@ record WithArrayJob(Object array, BitFieldWrapper elementsWrapper, RecursionNode
 
 			elementsWrapper.registerReferenceTargets(references, element, node, "elements");
 			if (elementsWrapper.field.referenceTargetLabel != null) {
-				references.registerTarget(elementsWrapper.field.referenceTargetLabel, element);
+				try {
+					references.registerTarget(elementsWrapper.field.referenceTargetLabel, element);
+				} catch (Throwable failed) {
+					throw new RecursionException(node.generateTrace("elements"), failed);
+				}
 			}
 		}
 	}

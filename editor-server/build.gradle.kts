@@ -8,6 +8,7 @@ plugins {
 dependencies {
 	implementation(project(":editor-protocol"))
 	implementation(project(":bitser-kwik"))
+	implementation(project(":vk2d"))
 	implementation(libs.memory.query)
 }
 
@@ -27,5 +28,5 @@ tasks.register("runEditorServer", JavaExec::class) {
 	standardInput = System.`in`
 	jvmArgs("-XX:+UseZGC")
 	jvmArgs("-XX:ZUncommitDelay=1")
-	jvmArgs("-XX:SoftMaxHeapSize=600m")
+	jvmArgs("-XX:SoftMaxHeapSize=500m")
 }

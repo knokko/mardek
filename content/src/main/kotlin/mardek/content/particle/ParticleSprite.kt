@@ -23,7 +23,5 @@ class ParticleSprite(
 	@BitField(id = 1)
 	val sprite: BcSprite,
 ) : Serializable {
-	internal constructor() : this("", BcSprite())
-
 	override fun toString() = name
 }

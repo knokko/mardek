@@ -1,9 +1,11 @@
 package mardek.content.animation
 
 import com.github.knokko.bitser.BitStruct
+import com.github.knokko.bitser.ReferenceLazyBits
 import com.github.knokko.bitser.field.BitField
 import com.github.knokko.bitser.field.IntegerField
-import com.github.knokko.bitser.SimpleLazyBits
+import com.github.knokko.bitser.field.LazyReferences
+import com.github.knokko.bitser.field.NestedFieldSetting
 import java.io.Serializable
 
 /**
@@ -30,7 +32,8 @@ class CombatantSkeleton(
 	 * (and preferably via operator overloading).
 	 */
 	@BitField(id = 2)
-	val animations: HashMap<String, SimpleLazyBits<StandaloneAnimation>>,
+	@NestedFieldSetting(path = "v", fieldName = "ANIMATIONS_VALUE_PROPERTIES")
+	val animations: HashMap<String, ReferenceLazyBits<StandaloneAnimation>>,
 
 	/**
 	 * The ID of the Flash DefineSpriteTag from which this skeleton was imported, or 0 if this skeleton wasn't
@@ -62,4 +65,11 @@ class CombatantSkeleton(
 	 * first. An exception will be thrown if no animation with the given name exists.
 	 */
 	operator fun get(name: String) = animations[name]!!.get()!!.frames
+
+	companion object {
+
+		@Suppress("unused")
+		@LazyReferences(labels = ["animation bc sprites"])
+		private const val ANIMATIONS_VALUE_PROPERTIES = false
+	}
 }

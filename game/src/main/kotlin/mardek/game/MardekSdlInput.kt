@@ -28,9 +28,11 @@ import org.lwjgl.sdl.SDLPixels.SDL_PIXELFORMAT_RGBA32
 import org.lwjgl.sdl.SDLSurface.SDL_CreateSurface
 import org.lwjgl.sdl.SDLVideo.*
 import org.lwjgl.sdl.SDL_Event
+import org.lwjgl.sdl.SDL_EventFilter
 import org.lwjgl.sdl.SDL_GamepadAxisEvent
 import org.lwjgl.sdl.SDL_GamepadButtonEvent
 import org.lwjgl.sdl.SDL_GamepadDeviceEvent
+import org.lwjgl.sdl.SDL_HitTest
 import org.lwjgl.sdl.SDL_KeyboardEvent
 import org.lwjgl.sdl.SDL_MouseButtonEvent
 import org.lwjgl.sdl.SDL_MouseMotionEvent
@@ -103,6 +105,9 @@ class MardekSdlInput(
 
 	private val cursors = LongArray(MardekCursor.entries.size)
 	private val rawIcons = loadIcons(iconsFile)
+
+	private var eventWatch: SDL_EventFilter? = null
+	private var hitTest: SDL_HitTest? = null
 
 	private fun shouldShowCursor() = desiredCursor == MardekCursor.Grab ||
 			System.nanoTime() - lastCursorAction <= 2000_000_000L
@@ -181,7 +186,7 @@ class MardekSdlInput(
 			cursors[cursorType.ordinal] = cursor
 		}
 
-		assertSdlSuccess(SDL_AddEventWatch({ _, rawEvent ->
+		this.eventWatch = SDL_EventFilter.create { _, rawEvent ->
 			val type = SDL_Event.ntype(rawEvent)
 			if (type == SDL_EVENT_KEY_DOWN || type == SDL_EVENT_KEY_UP) {
 				val modifierKey = SDL_KeyboardEvent.nmod(rawEvent).toInt()
@@ -375,40 +380,45 @@ class MardekSdlInput(
 			}
 
 			false
-		}, 0L), "AddEventWatch")
+		}
 
-		assertSdlSuccess(SDL_SetWindowHitTest(window.properties.handle, { _, rawPoint, _ ->
+		assertSdlSuccess(SDL_AddEventWatch(eventWatch!!, 0L), "AddEventWatch")
+
+		this.hitTest = SDL_HitTest.create { _, rawPoint, _ ->
 			val x = SDL_Point.nx(rawPoint)
 			val y = SDL_Point.ny(rawPoint)
 
 			val resizeWidth = 5
 			if (y >= window.height - resizeWidth) {
-				if (x < resizeWidth) return@SDL_SetWindowHitTest SDL_HITTEST_RESIZE_BOTTOMLEFT
-				if (x >= window.width - resizeWidth) return@SDL_SetWindowHitTest SDL_HITTEST_RESIZE_BOTTOMRIGHT
-				return@SDL_SetWindowHitTest SDL_HITTEST_RESIZE_BOTTOM
+				if (x < resizeWidth) return@create SDL_HITTEST_RESIZE_BOTTOMLEFT
+				if (x >= window.width - resizeWidth) return@create SDL_HITTEST_RESIZE_BOTTOMRIGHT
+				return@create SDL_HITTEST_RESIZE_BOTTOM
 			}
 
 			if (y < 3) {
-				if (x < resizeWidth) return@SDL_SetWindowHitTest SDL_HITTEST_RESIZE_TOPLEFT
-				if (x >= window.width - resizeWidth) return@SDL_SetWindowHitTest SDL_HITTEST_RESIZE_TOPRIGHT
-				return@SDL_SetWindowHitTest SDL_HITTEST_RESIZE_TOP
+				if (x < resizeWidth) return@create SDL_HITTEST_RESIZE_TOPLEFT
+				if (x >= window.width - resizeWidth) return@create SDL_HITTEST_RESIZE_TOPRIGHT
+				return@create SDL_HITTEST_RESIZE_TOP
 			}
 
-			if (x < resizeWidth) return@SDL_SetWindowHitTest SDL_HITTEST_RESIZE_LEFT
-			if (x >= window.width - resizeWidth) return@SDL_SetWindowHitTest SDL_HITTEST_RESIZE_RIGHT
+			if (x < resizeWidth) return@create SDL_HITTEST_RESIZE_LEFT
+			if (x >= window.width - resizeWidth) return@create SDL_HITTEST_RESIZE_RIGHT
 
 			if (y < FULL_BORDER_HEIGHT) {
 				for (icon in arrayOf(state.crossLocation, state.maximizeLocation, state.minusLocation)) {
 					if (icon != null && icon.contains(x, y)) {
-						return@SDL_SetWindowHitTest SDL_HITTEST_NORMAL
+						return@create SDL_HITTEST_NORMAL
 					}
 				}
 
-				return@SDL_SetWindowHitTest SDL_HITTEST_DRAGGABLE
+				return@create SDL_HITTEST_DRAGGABLE
 			}
 
 			SDL_HITTEST_NORMAL
-		}, 0L), "SetWindowHintTest")
+		}
+		assertSdlSuccess(SDL_SetWindowHitTest(
+			window.properties.handle, hitTest, 0L
+		), "SetWindowHintTest")
 	}
 
 	fun update() {
@@ -434,5 +444,11 @@ class MardekSdlInput(
 		}
 
 		updateCursor(newCursor)
+	}
+
+	fun destroy() {
+		hitTest!!.free()
+		SDL_RemoveEventWatch(eventWatch!!, 0L)
+		eventWatch!!.free()
 	}
 }

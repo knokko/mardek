@@ -28,6 +28,10 @@ tasks.register("exportContent", JavaExec::class) {
 
 	jvmArgs("--add-exports", "java.base/jdk.internal.misc=ALL-UNNAMED")
 	jvmArgs("--enable-native-access", "ALL-UNNAMED")
+	jvmArgs("-XX:+UseZGC")
+	jvmArgs("-XX:ZUncommitDelay=1")
+	jvmArgs("-XX:SoftMaxHeapSize=1500m")
+
 }
 
 tasks.register("convertSVGs", JavaExec::class) {

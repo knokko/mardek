@@ -13,10 +13,8 @@ import org.lwjgl.sdl.SDL_Event;
 import org.lwjgl.sdl.SDL_KeyboardEvent;
 import org.lwjgl.system.MemoryStack;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Path;
 
 import static com.github.knokko.boiler.utilities.ColorPacker.rgb;
 import static com.github.knokko.boiler.utilities.ColorPacker.srgbToLinear;
@@ -34,16 +32,14 @@ public class TextPlayground extends Vk2dWindow {
 	private float rotation;
 
 	@Override
-	protected InputStream initialResourceBundle() throws IOException {
+	protected Path initialResourceFile() throws IOException {
 		var writer = new Vk2dResourceWriter();
 		int fontDataThaana = writer.addFontBlob(TestFontCollection.thaanaFont());
 
 		int fontThaana = writer.addFont(fontDataThaana, 0);
 		writer.addFallbackAtlas(fontThaana, 8, 200f, 0.1f);
 
-		var output = new ByteArrayOutputStream();
-		writer.write(output, null);
-		return new ByteArrayInputStream(output.toByteArray());
+		return writer.writeToTempFile(null);
 	}
 
 	@Override

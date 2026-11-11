@@ -19,6 +19,7 @@ import mardek.importer.actions.addDummyCutscenes
 import mardek.importer.actions.fixedActionChain
 import mardek.importer.actions.hardcodeDialogueTextStyles
 import mardek.importer.actions.importCutscenes
+import mardek.importer.animation.collectAnimationSpriteReferences
 import mardek.importer.area.importAreaBattleContent
 import mardek.importer.area.importAreaContent
 import mardek.importer.area.importAreaSprites
@@ -77,6 +78,7 @@ fun importVanillaContent(skipMonsters: Boolean = false): Content {
 	hardcodeTimeline(content)
 	hardcodedActions.storeHardcodedActionSequences(content)
 	content.ui = importUiSprites()
+	collectAnimationSpriteReferences(content)
 
 	val startChapter1 = CampaignState()
 

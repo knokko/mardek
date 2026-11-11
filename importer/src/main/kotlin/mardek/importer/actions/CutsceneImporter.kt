@@ -1,6 +1,6 @@
 package mardek.importer.actions
 
-import com.github.knokko.bitser.SimpleLazyBits
+import com.github.knokko.bitser.ReferenceLazyBits
 import com.jpexs.decompiler.flash.tags.DefineSpriteTag
 import com.jpexs.decompiler.flash.tags.DoActionTag
 import com.jpexs.decompiler.flash.tags.ShowFrameTag
@@ -60,11 +60,10 @@ private fun importIntroCutscene(content: Content) {
 	val cutscene = Cutscene(
 		id = UUID.fromString("9fbfa37e-b304-4e94-aee8-037ca3b6b4ad"),
 		name = "Chapter 1 intro",
-		payload = SimpleLazyBits(CutscenePayload(
+		payload = ReferenceLazyBits(CutscenePayload(
 			frames = chapter1IntroUseful.get(),
 			magicScale = magicScale,
-			subtitles = chapter1IntroTexts.toTypedArray(),
-		)),
+			subtitles = chapter1IntroTexts.toTypedArray(),)),
 		sounds = emptyArray(),
 		musicTrack = content.audio.musicTracks.find { it.fileName == "Intro" }!!,
 	)
@@ -95,7 +94,7 @@ private fun importFallingStarCutscene(content: Content) {
 	val cutscene = Cutscene(
 		id = UUID.fromString("79f85f55-5321-415d-a12e-1d58f32f3191"),
 		name = "Falling Star",
-		payload = SimpleLazyBits(CutscenePayload(
+		payload = ReferenceLazyBits(CutscenePayload(
 			frames = fallingStarUseful.get(),
 			magicScale = magicScale,
 			subtitles = emptyArray(),
@@ -133,7 +132,7 @@ private fun importGdmIntroCutscene(content: Content) {
 	val cutscene = Cutscene(
 		id = UUID.fromString("a54c0588-1a6f-4ab2-8bdc-3a2ff25f07fc"),
 		name = "GdM intro",
-		payload = SimpleLazyBits(CutscenePayload(
+		payload = ReferenceLazyBits(CutscenePayload(
 			frames = gdmUseful.get(),
 			magicScale = magicScale,
 			subtitles = emptyArray(),
@@ -163,21 +162,21 @@ internal fun addDummyCutscenes(content: ActionContent) {
 	content.cutscenes.add(Cutscene(
 		id = UUID.fromString("9fbfa37e-b304-4e94-aee8-037ca3b6b4ad"),
 		name = "Chapter 1 intro",
-		payload = SimpleLazyBits(CutscenePayload()),
+		payload = ReferenceLazyBits(CutscenePayload()),
 		sounds = emptyArray(),
 		musicTrack = null,
 	))
 	content.cutscenes.add(Cutscene(
 		id = UUID.fromString("79f85f55-5321-415d-a12e-1d58f32f3191"),
 		name = "Falling Star",
-		payload = SimpleLazyBits(CutscenePayload()),
+		payload = ReferenceLazyBits(CutscenePayload()),
 		sounds = emptyArray(),
 		musicTrack = null,
 	))
 	content.cutscenes.add(Cutscene(
 		id = UUID.fromString("a54c0588-1a6f-4ab2-8bdc-3a2ff25f07fc"),
 		name = "GdM intro",
-		payload = SimpleLazyBits(CutscenePayload()),
+		payload = ReferenceLazyBits(CutscenePayload()),
 		sounds = emptyArray(),
 		musicTrack = null,
 	))

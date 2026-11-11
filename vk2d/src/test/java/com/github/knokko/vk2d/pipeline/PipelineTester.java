@@ -26,7 +26,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.function.Consumer;
 
 import static java.lang.Math.abs;
@@ -63,7 +62,7 @@ record PipelineTester(Vk2dFrame frame, Vk2dRenderStage stage, Vk2dResourceBundle
 	static void runTest(String testCase, File resourceBundle, int width, int height, Consumer<PipelineTester> render) {
 		try {
 			Vk2dResourceLoader loader = resourceBundle != null ?
-					new Vk2dResourceLoader(vk2d, Files.newInputStream(resourceBundle.toPath())) : null;
+					new Vk2dResourceLoader(vk2d, resourceBundle.toPath()) : null;
 
 			MemoryCombiner combiner = new MemoryCombiner(boiler, "TestColorMemory");
 			if (loader != null) loader.claimMemory(combiner);

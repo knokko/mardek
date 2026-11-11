@@ -17,6 +17,7 @@ import com.github.knokko.vk2d.text.Vk2dFont;
 import org.lwjgl.util.zstd.ZSTDInBuffer;
 import org.lwjgl.util.zstd.ZSTDOutBuffer;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -40,9 +41,9 @@ import static org.lwjgl.vulkan.VK10.*;
 public class Vk2dResourceLoader {
 
 	public static Vk2dResourceBundle loadSimple(
-			Vk2dInstance instance, InputStream input
+			Vk2dInstance instance, Path inputFile
 	) throws IOException {
-		var loader = new Vk2dResourceLoader(instance, input);
+		var loader = new Vk2dResourceLoader(instance, inputFile);
 		var memoryCombiner = new MemoryCombiner(instance.boiler, "Vk2dResourceLoader simple");
 		loader.claimMemory(memoryCombiner);
 		var memoryBlock = memoryCombiner.build(instance.boiler.vmaAllocator() != VK_NULL_HANDLE);
@@ -57,27 +58,8 @@ public class Vk2dResourceLoader {
 		return bundle;
 	}
 
-	public static Vk2dResourceBundle loadSimple(
-			Vk2dInstance instance, Path inputFile
-	) throws IOException {
-		return loadSimple(instance, Files.newInputStream(inputFile));
-	}
-
-	private static ByteBuffer decompress(ByteBuffer compressed) {
-		long expectedUncompressedSize = ZSTD_getFrameContentSize(compressed);
-		var uncompressed = memCalloc(Math.toIntExact(expectedUncompressedSize)).order(ByteOrder.BIG_ENDIAN);
-		long actualUncompressedSize = ZSTD_decompress(uncompressed, compressed);
-		if (expectedUncompressedSize != actualUncompressedSize) throw new RuntimeException("Size mismatch");
-		return uncompressed;
-	}
-
-	private static ByteBuffer toByteBuffer(byte[] byteArray) {
-		return memCalloc(byteArray.length).put(0, byteArray);
-	}
-
 	private final Vk2dInstance instance;
-	private final DataReader input;
-	private final Runnable destroyInput;
+	private final DataInputStream input;
 
 	private MemoryCombiner stagingCombiner;
 	private MemoryBlock stagingMemory;
@@ -99,115 +81,29 @@ public class Vk2dResourceLoader {
 	private int[] fakeData;
 	private long fakeImageDescriptor;
 
-	public Vk2dResourceLoader(Vk2dInstance instance, InputStream inputStream) throws IOException {
-		this(instance, toByteBuffer(inputStream.readAllBytes()));
-	}
-
-	public Vk2dResourceLoader(Vk2dInstance instance, ByteBuffer input) {
+	public Vk2dResourceLoader(Vk2dInstance instance, Path inputFile) throws IOException {
 		this.instance = instance;
-		var allBytes = decompress(input);
-		this.input = numBytes -> {
-			ByteBuffer result = allBytes.slice(allBytes.position(), numBytes);
-			allBytes.position(allBytes.position() + numBytes);
-			return result;
-		};
-		this.destroyInput = () -> {
-			memFree(input);
-			memFree(allBytes);
-		};
-	}
-
-	@SuppressWarnings("resource")
-	public Vk2dResourceLoader(Vk2dInstance instance, Path inputFile) {
-		this.instance = instance;
-
-		long stream = ZSTD_createDStream();
-		var streamedData = new ByteBuffer[] { memCalloc(1_000_000) };
-		var compressedData = memCalloc(5_000_000);
-		compressedData.limit(0);
-
-		var streamInput = ZSTDInBuffer.calloc();
-		streamInput.set(compressedData, 0);
-		var streamOutput = ZSTDOutBuffer.calloc();
-		FileChannel channel;
-		try {
-			channel = FileChannel.open(inputFile, StandardOpenOption.READ);
-		} catch (IOException channelFailed) {
-			throw new RuntimeException("Failed to open channel for " + inputFile, channelFailed);
-		}
-
-		this.input = numBytes -> {
-			int oldCapacity = streamedData[0].capacity();
-			if (numBytes > oldCapacity) {
-				streamedData[0] = memRealloc(streamedData[0], max(numBytes, 2 * oldCapacity));
-			}
-
-			streamedData[0].position(0);
-			streamedData[0].limit(numBytes);
-			streamOutput.set(streamedData[0], 0L);
-
-			while (streamOutput.pos() < numBytes) {
-
-				long decompressResult = ZSTD_decompressStream(stream, streamOutput, streamInput);
-				if (ZSTD_isError(decompressResult)) {
-					throw new RuntimeException("ZSTD_decompressStream failed with " + decompressResult +
-							" (" + ZSTD_getErrorName(decompressResult) + ") for " + inputFile
-					);
-				}
-
-				if (streamOutput.pos() == numBytes) break;
-
-				compressedData.position(0);
-				compressedData.limit(compressedData.capacity());
-				try {
-					channel.read(compressedData);
-				} catch (IOException channelFailed) {
-					throw new RuntimeException(channelFailed);
-				}
-				compressedData.flip();
-
-				streamInput.set(compressedData, 0);
-			}
-
-			if (streamOutput.pos() != numBytes) {
-				throw new RuntimeException("Not all bytes were read: " + streamOutput.pos() + " / " + numBytes);
-			}
-			streamedData[0].order(ByteOrder.BIG_ENDIAN);
-			return streamedData[0];
-		};
-		this.destroyInput = () -> {
-			ZSTD_freeDStream(stream);
-			memFree(streamedData[0]);
-			memFree(compressedData);
-			streamInput.free();
-			streamOutput.free();
-			try {
-				channel.close();
-			} catch (IOException channelFailed) {
-				throw new RuntimeException("Failed to close channel for " + inputFile, channelFailed);
-			}
-		};
+		this.input = new DataInputStream(new DecompressingInputStream(inputFile));
 	}
 
 	public void claimMemory(MemoryCombiner combiner) throws IOException {
 		claimMemory(combiner, 20_000_000L);
 	}
 
-	public void claimMemory(MemoryCombiner combiner, long desiredStagingBufferSize) {
+	public void claimMemory(MemoryCombiner combiner, long desiredStagingBufferSize) throws IOException {
 		this.stagingCombiner = new MemoryCombiner(instance.boiler, "Vk2dStaging");
 
-		int numImages = input.readData(4).getInt();
+		int numImages = input.readInt();
 		this.images = new VkbImage[numImages];
 		this.pixelatedImages = new boolean[numImages];
 		this.clampedImages = new boolean[numImages];
 		var imageStagingJobs = new StagingJob[numImages];
 
-		var imageInfoBuffer = input.readData(4 + 11 * numImages);
 		for (int index = 0; index < numImages; index++) {
-			int width = imageInfoBuffer.getInt();
-			int height = imageInfoBuffer.getInt();
+			int width = input.readInt();
+			int height = input.readInt();
 
-			int compressionOrdinal = imageInfoBuffer.get();
+			int compressionOrdinal = input.read();
 			int format;
 			Vk2dImageCompression compression;
 			if (compressionOrdinal == -1) {
@@ -217,8 +113,8 @@ public class Vk2dResourceLoader {
 				compression = Vk2dImageCompression.values()[compressionOrdinal];
 				format = compression.format;
 			}
-			this.pixelatedImages[index] = imageInfoBuffer.get() == 1;
-			this.clampedImages[index] = imageInfoBuffer.get() == 1;
+			this.pixelatedImages[index] = input.read() == 1;
+			this.clampedImages[index] = input.read() == 1;
 			this.images[index] = combiner.addImage(new ImageBuilder(
 					"Image" + index, width, height
 			).texture().format(format), 0.5f);
@@ -236,13 +132,12 @@ public class Vk2dResourceLoader {
 			var finalImage = images[index];
 			imageStagingJobs[index] = new StagingJob(
 					size, compression.alignment,
-					destination -> destination.put(destination.position(), input.readData(size), 0, size),
+					destination -> destination.put(destination.position(), input.readNBytes(size), 0, size),
 					(recorder, stagingBuffer) -> recorder.copyBufferToImage(finalImage, stagingBuffer)
 			);
 		}
 
-		int numFakeImages = imageInfoBuffer.getInt();
-		var fakeImageInfoBuffer = input.readData(4 + 12 * numFakeImages);
+		int numFakeImages = input.readInt();
 		this.fakeOffsets = new int[numFakeImages];
 		this.fakeWidths = new int[numFakeImages];
 		this.fakeHeights = new int[numFakeImages];
@@ -250,9 +145,9 @@ public class Vk2dResourceLoader {
 
 		int fakeOffset = 0;
 		for (int index = 0; index < numFakeImages; index++) {
-			int intSize = fakeImageInfoBuffer.getInt();
-			fakeWidths[index] = fakeImageInfoBuffer.getInt();
-			fakeHeights[index] = fakeImageInfoBuffer.getInt();
+			int intSize = input.readInt();
+			fakeWidths[index] = input.readInt();
+			fakeHeights[index] = input.readInt();
 			this.fakeOffsets[index] = fakeOffset;
 			fakeOffset += intSize;
 		}
@@ -268,8 +163,7 @@ public class Vk2dResourceLoader {
 					fakeImageSize, 4,
 					destination -> {
 						IntBuffer fakeData = destination.asIntBuffer();
-						var getFakeData = input.readData(fakeImageSize);
-						for (int counter = 0; counter < fakeImageSize / 4; counter++) fakeData.put(getFakeData.getInt());
+						for (int counter = 0; counter < fakeImageSize / 4; counter++) fakeData.put(input.readInt());
 						for (int textureIndex = 0; textureIndex < fakeOffsets.length; textureIndex++) {
 							int textureOffset = fakeOffsets[textureIndex];
 							this.fakeData[2 * textureIndex] = fakeData.get(textureOffset);
@@ -280,43 +174,43 @@ public class Vk2dResourceLoader {
 			);
 		}
 
-		int numFontBlobs = fakeImageInfoBuffer.getInt();
+		int numFontBlobs = input.readInt();
 		this.fontBlobs = new long[numFontBlobs];
 		var fonts = new ArrayList<Vk2dFont>(numFontBlobs);
 
 		for (int blobIndex = 0; blobIndex < numFontBlobs; blobIndex++) {
-			int numTtfBytes = input.readData(4).getInt();
-			var blobData = input.readData(4 + numTtfBytes);
+			int numTtfBytes = input.readInt();
+			var ttfBytes = memCalloc(numTtfBytes);
+			ttfBytes.put(0, input.readNBytes(numTtfBytes));
 
 			var hbBlob = assertHbSuccess(hb_blob_create(
-					blobData.slice(0, numTtfBytes), HB_MEMORY_MODE_DUPLICATE, 0L, null
+					ttfBytes, HB_MEMORY_MODE_DUPLICATE, 0L, null
 			), "blob_create");
+			memFree(ttfBytes);
 			this.fontBlobs[blobIndex] = hbBlob;
 
-			int numFonts = blobData.getInt(numTtfBytes);
+			int numFonts = input.readInt();
 			for (int fontIndex = 0; fontIndex < numFonts; fontIndex++) {
-				var fontInfo = input.readData(8);
-				int faceIndex = fontInfo.getInt();
+				int faceIndex = input.readInt();
 				long hbFace = assertHbSuccess(hb_face_create(hbBlob, faceIndex), "face_create");
 
 				var font = new Vk2dFont(hbFace, instance, combiner);
-				int numAtlases = fontInfo.getInt();
+				int numAtlases = input.readInt();
 				for (int atlasCounter = 0; atlasCounter < numAtlases; atlasCounter++) {
 					int[] supportedGlyphs = null;
-					int numSupportedGlyphs = input.readData(4).getInt();
-					var atlasData = input.readData(25 + 4 * max(0, numSupportedGlyphs));
+					int numSupportedGlyphs = input.readInt();
 					if (numSupportedGlyphs >= 0) {
 						supportedGlyphs = new int[numSupportedGlyphs];
 						for (int glyphIndex = 0; glyphIndex < numSupportedGlyphs; glyphIndex++) {
-							supportedGlyphs[glyphIndex] = atlasData.getInt();
+							supportedGlyphs[glyphIndex] = input.readInt();
 						}
 					}
 
-					int bitsPerPixel = atlasData.get();
+					int bitsPerPixel = input.read();
 					font.addAtlas(
-							instance, bitsPerPixel, atlasData.getFloat(), atlasData.getFloat(), combiner,
-							stagingCombiner, atlasData.getFloat(), atlasData.getFloat(),
-							atlasData.getFloat(), atlasData.getFloat(), supportedGlyphs
+							instance, bitsPerPixel, input.readFloat(), input.readFloat(), combiner,
+							stagingCombiner, input.readFloat(), input.readFloat(),
+							input.readFloat(), input.readFloat(), supportedGlyphs
 					);
 					if (bitsPerPixel == 4 && bc4Compressor == null) {
 						this.bc4Compressor = new Bc4Compressor(instance.boiler);
@@ -373,7 +267,7 @@ public class Vk2dResourceLoader {
 		);
 	}
 
-	public void performStaging(SingleTimeCommands commands) {
+	public void performStaging(SingleTimeCommands commands) throws IOException {
 		long longTimeout = 30_000_000_000L;
 		boolean shouldDestroyCommands = commands == null;
 		if (commands == null) commands = new SingleTimeCommands(instance.boiler);
@@ -430,7 +324,7 @@ public class Vk2dResourceLoader {
 		}
 
 		if (shouldDestroyCommands) commands.destroy(longTimeout);
-		destroyInput.run();
+		input.close();
 	}
 
 	public Vk2dResourceBundle finish() {
@@ -485,18 +379,12 @@ public class Vk2dResourceLoader {
 	@FunctionalInterface
 	private interface PutStagingData {
 
-		void put(ByteBuffer destination);
+		void put(ByteBuffer destination) throws IOException;
 	}
 
 	@FunctionalInterface
 	private interface TransferStagingData {
 
 		void transfer(CommandRecorder recorder, MappedVkbBuffer buffer);
-	}
-
-	@FunctionalInterface
-	private interface DataReader {
-
-		ByteBuffer readData(int numBytes);
 	}
 }

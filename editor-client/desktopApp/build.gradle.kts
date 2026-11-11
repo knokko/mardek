@@ -1,5 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-
 plugins {
     id("compose-repositories")
     alias(libs.plugins.kotlinJvm)
@@ -30,20 +28,9 @@ tasks.register("runEditorClient", JavaExec::class) {
     standardInput = System.`in`
     jvmArgs("-XX:+UseZGC")
     jvmArgs("-XX:ZUncommitDelay=1")
-    jvmArgs("-XX:SoftMaxHeapSize=1500m")
+    jvmArgs("-XX:SoftMaxHeapSize=500m")
 }
 
 tasks.test {
     failOnNoDiscoveredTests = false
 }
-//compose.desktop {
-//    application {
-//        mainClass = "mardek.editor.client.EditorClientMainKt"
-//
-//        nativeDistributions {
-//            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-//            packageName = "mardek.editor.client"
-//            packageVersion = "1.0.0"
-//        }
-//    }
-//}

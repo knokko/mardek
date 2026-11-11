@@ -53,7 +53,7 @@ class EditorServerProtocol : BikServerProtocol {
 		val backupThread = Thread {
 			while (!didStop.get()) {
 				sleep(60_000)
-				context.globalQueue.add { saveContent(context.rootStruct as ContentWrapper, null)}
+				context.globalQueue.offer { saveContent(context.rootStruct as ContentWrapper) }
 			}
 		}
 		backupThread.name = "EditorServerBackup"
@@ -64,7 +64,11 @@ class EditorServerProtocol : BikServerProtocol {
 			val command = readln()
 			if (command == "stop") break
 			if (command == "memory") MemorySnapshot.take().debugDump()
-			if (command == "save") saveContent(context.rootStruct as ContentWrapper, null)
+			if (command == "save") {
+				if (!context.globalQueue.offer { saveContent(context.rootStruct as ContentWrapper) }) {
+					println("Global queue is full!")
+				}
+			}
 			if (command == "gc") System.gc()
 		}
 		println("Exiting...")

@@ -20,6 +20,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             api(project(":editor-protocol"))
             implementation(project(":bitser-kwik"))
+            implementation(project(":vk2d"))
             implementation(libs.vk.boiler)
             implementation(libs.memory.query)
         }

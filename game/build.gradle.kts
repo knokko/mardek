@@ -105,7 +105,7 @@ tasks.register("run", JavaExec::class) {
 	jvmArgs("--enable-native-access", "ALL-UNNAMED")
 	jvmArgs("-XX:+UseZGC")
 	jvmArgs("-XX:ZUncommitDelay=1")
-	jvmArgs("-XX:SoftMaxHeapSize=64m")
+	jvmArgs("-XX:SoftMaxHeapSize=50m")
 
 	if (OperatingSystem.current().isMacOsX()) {
 		jvmArgs("-XstartOnFirstThread")
