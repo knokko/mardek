@@ -225,6 +225,36 @@ public class Vk2dResourceWriter {
 		threadPool.close();
 	}
 
+	private void encodeUncompressedImages() {
+		for (var entry : images) {
+			if (entry.data != null || entry.compression != Vk2dImageCompression.NONE) continue;
+
+			var image = entry.image;
+			if (entry.channel == null) entry.data = new byte[4 * image.getWidth() * image.getHeight()];
+			else entry.data = new byte[image.getWidth() * image.getHeight()];
+
+			int index = 0;
+			for (int y = 0; y < image.getHeight(); y++) {
+				for (int x = 0; x < image.getWidth(); x++) {
+					Color color = new Color(image.getRGB(x, y), true);
+					if (entry.channel == null) {
+						entry.data[index++] = (byte) color.getRed();
+						entry.data[index++] = (byte) color.getGreen();
+						entry.data[index++] = (byte) color.getBlue();
+						entry.data[index++] = (byte) color.getAlpha();
+					} else {
+						byte greyscale = switch (entry.channel) {
+							case Vk2dGreyscaleChannel.RGB -> (byte) ((color.getRed() + color.getGreen() + color.getBlue()) / 3);
+							case Vk2dGreyscaleChannel.ALPHA -> (byte) color.getAlpha();
+							case Vk2dGreyscaleChannel.RED -> (byte) color.getRed();
+						};
+						entry.data[index++] = greyscale;
+					}
+				}
+			}
+		}
+	}
+
 	private void compressBc1AndBc4Images() {
 		int numBc1Images = 0;
 		int numBc4Images = 0;
@@ -416,24 +446,12 @@ public class Vk2dResourceWriter {
 		}
 
 		loadBcImagesFromCache(cacheDirectory);
+		encodeUncompressedImages();
 		compressBc1AndBc4Images();
 		compressBc7Images();
 		saveBcImagesToCache(cacheDirectory);
 
-		for (Image entry : images) {
-			switch (entry.compression) {
-				case Vk2dImageCompression.NONE:
-					writeUncompressedImage(output, entry.image, entry.channel);
-					break;
-				case Vk2dImageCompression.BC1:
-				case Vk2dImageCompression.BC4:
-				case Vk2dImageCompression.BC7:
-					output.write(entry.data);
-					break;
-				default:
-					throw new UnsupportedOperationException("Unexpected compression " + entry.compression);
-			}
-		}
+		for (Image entry : images) output.write(entry.data);
 
 		for (FakeImage image : fakeImages) {
 			for (int value : image.data) output.writeInt(value);
@@ -449,29 +467,6 @@ public class Vk2dResourceWriter {
 			return Vk2dResourceLoader.loadSimple(instance, input);
 		} catch (IOException io) {
 			throw new RuntimeException(io);
-		}
-	}
-
-	private void writeUncompressedImage(
-			DataOutputStream output, BufferedImage image, Vk2dGreyscaleChannel channel
-	) throws IOException {
-		for (int y = 0; y < image.getHeight(); y++) {
-			for (int x = 0; x < image.getWidth(); x++) {
-				Color color = new Color(image.getRGB(x, y), true);
-				if (channel == null) {
-					output.writeByte(color.getRed());
-					output.writeByte(color.getGreen());
-					output.writeByte(color.getBlue());
-					output.writeByte(color.getAlpha());
-				} else {
-					byte greyscale = switch (channel) {
-						case Vk2dGreyscaleChannel.RGB -> (byte) ((color.getRed() + color.getGreen() + color.getBlue()) / 3);
-						case Vk2dGreyscaleChannel.ALPHA -> (byte) color.getAlpha();
-						case Vk2dGreyscaleChannel.RED -> (byte) color.getRed();
-					};
-					output.writeByte(greyscale);
-				}
-			}
 		}
 	}
 

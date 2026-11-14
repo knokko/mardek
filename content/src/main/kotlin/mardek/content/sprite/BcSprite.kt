@@ -59,6 +59,10 @@ class BcSprite(
 	@IntegerField(expectUniform = false, minValue = 0)
 	val artificialOffset: Int,
 ) : Serializable {
+
+	/**
+	 * This field is only used during importing
+	 */
 	var bufferedImage: Any? = null
 
 	/**
