@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.shadow)
 }
 
 dependencies {
@@ -13,6 +14,7 @@ dependencies {
     implementation(project(":game"))
     implementation(project(":vk2d"))
 
+    implementation(libs.vk.boiler)
     implementation(libs.memory.query)
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutinesSwing)
@@ -33,4 +35,27 @@ tasks.register("runEditorClient", JavaExec::class) {
 
 tasks.test {
     failOnNoDiscoveredTests = false
+}
+
+tasks.shadowJar {
+    exclude("windows/**")
+    exclude("linux/**")
+    exclude("macos/**")
+    exclude("freebsd/**")
+    exclude("org/lwjgl/vulkan/**")
+    exclude("org/lwjgl/system/**")
+    exclude("org/joml/**")
+    exclude("mardek/audio/**")
+    exclude("mardek/content/**")
+    exclude("mardek/game/**")
+    exclude("mardek/input/**")
+    exclude("mardek/renderer/**")
+    exclude("mardek/state/**")
+    exclude("com/github/knokko/boiler/**")
+    manifest {
+        attributes["Main-Class"] = "mardek.editor.client.EditorClientMainKt"
+        attributes["Enable-Native-Access"] = "ALL-UNNAMED"
+        attributes["Add-Exports"] = "java.base/jdk.internal.misc"
+        attributes["Class-Path"] = "mardek.jar"
+    }
 }

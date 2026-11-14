@@ -5,10 +5,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
-import mardek.exporting.ContentWrapper
 import java.lang.Thread.sleep
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.TimeUnit
 
 fun main() {
     val testRunState = TestRunState()

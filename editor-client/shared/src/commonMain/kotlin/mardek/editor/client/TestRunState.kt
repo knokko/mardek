@@ -1,6 +1,6 @@
 package mardek.editor.client
 
-import mardek.exporting.ContentWrapper
+import mardek.content.ContentWrapper
 
 class TestRunState {
 

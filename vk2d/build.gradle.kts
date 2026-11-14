@@ -9,16 +9,15 @@ dependencies {
 	implementation(libs.lwjgl.sdl)
 	implementation(libs.lwjgl.vulkan)
 	implementation(libs.lwjgl.zstd)
+	implementation(project(":zstd-streams"))
 
-	compileOnly(libs.lwjgl.harfbuzz)
 	implementation("com.github.knokko.vk-compressor:bc4:${libs.versions.vk.compressor.get()}")
 	for (format in arrayOf("kim1", "kim2", "kim3", "bc1", "bc7")) {
 		compileOnly("com.github.knokko.vk-compressor:$format:${libs.versions.vk.compressor.get()}")
 	}
 
-	testImplementation(libs.lwjgl.harfbuzz)
 	testImplementation(libs.lwjgl.vma)
-	for (format in arrayOf("kim1", "kim2", "kim3", "bc1", "bc4", "bc7")) {
+	for (format in arrayOf("kim1", "kim2", "kim3", "bc1", "bc7")) {
 		testImplementation("com.github.knokko.vk-compressor:$format:${libs.versions.vk.compressor.get()}")
 	}
 

@@ -1,7 +1,7 @@
 package mardek.game
 
 import com.github.knokko.bitser.io.BitInputStream
-import com.github.knokko.vk2d.resource.DecompressingInputStream
+import com.github.knokko.zstd.DecompressingInputStream
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.Content.Companion.RESOURCES_DIRECTORY

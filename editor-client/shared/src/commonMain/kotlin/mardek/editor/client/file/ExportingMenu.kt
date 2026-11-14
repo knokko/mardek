@@ -15,12 +15,12 @@ import androidx.compose.ui.unit.em
 import com.github.knokko.bitser.IntegerBitser
 import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.io.BitInputStream
-import com.github.knokko.vk2d.resource.DecompressingInputStream
+import com.github.knokko.zstd.DecompressingInputStream
 import kotlinx.coroutines.launch
 import mardek.content.BITSER
+import mardek.content.ContentWrapper
 import mardek.editor.EditorView
 import mardek.editor.client.TestRunState
-import mardek.exporting.ContentWrapper
 import java.nio.file.Files
 
 @Composable

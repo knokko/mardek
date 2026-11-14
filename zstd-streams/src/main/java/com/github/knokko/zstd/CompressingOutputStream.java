@@ -1,4 +1,4 @@
-package com.github.knokko.vk2d.resource;
+package com.github.knokko.zstd;
 
 import org.lwjgl.util.zstd.ZSTDInBuffer;
 import org.lwjgl.util.zstd.ZSTDOutBuffer;

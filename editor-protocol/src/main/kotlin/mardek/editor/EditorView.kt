@@ -11,7 +11,7 @@ import mardek.content.Content
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemType
 import mardek.content.inventory.ItemsContent
-import mardek.exporting.ContentWrapper
+import mardek.content.ContentWrapper
 
 object EditorView {
 

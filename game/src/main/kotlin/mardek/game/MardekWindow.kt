@@ -15,7 +15,7 @@ import com.github.knokko.vk2d.Vk2dWindow
 import com.github.knokko.vk2d.frame.Vk2dSwapchainFrame
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.pipeline.Vk2dPipelines
-import com.github.knokko.vk2d.resource.DecompressingInputStream
+import com.github.knokko.zstd.DecompressingInputStream
 import mardek.audio.AudioUpdater
 import mardek.content.BITSER
 import mardek.content.Content

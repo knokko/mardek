@@ -23,6 +23,7 @@ dependencies {
 	implementation(project(":renderer"))
 	implementation(project(":state"))
 	implementation(project(":vk2d"))
+	implementation(project(":zstd-streams"))
 	for (natives in (project.ext.get("lwjglNatives") as ArrayList<*>)) {
 		testRuntimeOnly("org.lwjgl:lwjgl-harfbuzz::$natives")
 		testRuntimeOnly("org.lwjgl:lwjgl-stb::$natives")
@@ -43,8 +44,9 @@ tasks.register("proguard", ProGuardTask::class) {
 	injars("build/libs/game-all.jar")
 	outjars("build/libs/mardek.jar")
 
-	// I need java.base, and LWJGL needs jdk.unsupported (Unsafe)
+	// I need java.base and java.management, and LWJGL needs jdk.unsupported (Unsafe)
 	libraryjars("${System.getProperty("java.home")}/jmods/java.base.jmod")
+	libraryjars("${System.getProperty("java.home")}/jmods/java.management.jmod")
 	libraryjars("${System.getProperty("java.home")}/jmods/jdk.unsupported.jmod")
 
 	// I just want to remove unused LWJGL classes and Kotlin std classes;

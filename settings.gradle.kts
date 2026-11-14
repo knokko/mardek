@@ -9,13 +9,12 @@ include("miscellaneous")
 include("renderer")
 include("state")
 
-include("export-helper")
-include("client-export-helper")
-
 include("bitser")
 include("bitser-kwik")
 include("vk2d")
 
+include("zstd-streams")
+include("client-export-helper")
 include("editor-client:desktopApp")
 include("editor-client:shared")
 include("editor-protocol")

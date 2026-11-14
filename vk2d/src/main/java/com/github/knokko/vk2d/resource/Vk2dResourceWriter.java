@@ -5,6 +5,7 @@ import com.github.knokko.boiler.builders.BoilerBuilder;
 import com.github.knokko.boiler.utilities.ImageCoding;
 import com.github.knokko.compressor.*;
 import com.github.knokko.vk2d.Vk2dInstance;
+import com.github.knokko.zstd.CompressingOutputStream;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 

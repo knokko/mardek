@@ -8,8 +8,9 @@ plugins {
 dependencies {
 	implementation(project(":editor-protocol"))
 	implementation(project(":bitser-kwik"))
-	implementation(project(":vk2d"))
+	implementation(project(":zstd-streams"))
 	implementation(libs.memory.query)
+	implementation(libs.kwik)
 }
 
 tasks.shadowJar {

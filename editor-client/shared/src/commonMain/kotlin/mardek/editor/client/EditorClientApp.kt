@@ -14,9 +14,7 @@ import mardek.editor.client.file.FileTabs
 import mardek.editor.client.inventory.ItemsContentTabs
 import mardek.editor.client.navbar.EditorClientNavbar
 import mardek.editor.client.navbar.NavbarTab
-import mardek.exporting.ContentWrapper
 import java.net.URI
-import java.util.concurrent.BlockingQueue
 
 @Composable
 fun App(wrappedContent: BitClientStruct, testRunState: TestRunState) {

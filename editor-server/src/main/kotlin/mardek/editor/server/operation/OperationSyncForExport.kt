@@ -6,9 +6,9 @@ import com.github.knokko.bitser.connection.BitServerStructController
 import com.github.knokko.bitser.connection.BitServerStructOperation
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.io.BitOutputStream
-import com.github.knokko.vk2d.resource.CompressingOutputStream
+import com.github.knokko.zstd.CompressingOutputStream
 import mardek.content.BITSER
-import mardek.exporting.ContentWrapper
+import mardek.content.ContentWrapper
 import java.lang.Math.toIntExact
 import java.nio.file.Files
 import kotlin.io.path.fileSize

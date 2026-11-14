@@ -1,4 +1,4 @@
-package com.github.knokko.vk2d.resource;
+package com.github.knokko.zstd;
 
 import org.junit.jupiter.api.Test;
 
@@ -6,24 +6,48 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Random;
 
+import static java.lang.Math.toIntExact;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.lwjgl.system.MemoryUtil.memCalloc;
+import static org.lwjgl.system.MemoryUtil.memFree;
+import static org.lwjgl.util.zstd.Zstd.ZSTD_compress;
+import static org.lwjgl.util.zstd.Zstd.ZSTD_compressBound;
 
-public class TestCompressingOutputStream {
+public class TestDecompressingInputStream {
+
+	private static byte[] compress(byte[] original) {
+		var uncompressedBuffer = memCalloc(original.length);
+		uncompressedBuffer.put(0, original);
+
+		var compressedCapacity = ZSTD_compressBound(original.length);
+		var compressedBuffer = memCalloc(toIntExact(compressedCapacity));
+		var compressedSize = ZSTD_compress(compressedBuffer, uncompressedBuffer, 5);
+		compressedBuffer.limit(toIntExact(compressedSize));
+
+		var compressedBytes = new byte[toIntExact(compressedSize)];
+		compressedBuffer.get(compressedBytes);
+
+		memFree(uncompressedBuffer);
+		memFree(compressedBuffer);
+
+		return compressedBytes;
+	}
 
 	private void runTest(byte[] payload) throws IOException {
 		var testFile = Files.createTempFile("", "");
 		testFile.toFile().deleteOnExit();
 
-		var output = new CompressingOutputStream(testFile, 5);
-		output.write(payload);
-		output.flush();
-		output.close();
+		byte[] compressed = compress(payload);
+
+		// Sanity check
+		Files.write(testFile, compressed);
 
 		var input = new DecompressingInputStream(testFile);
-		assertArrayEquals(payload, input.readAllBytes());
+		var decompressed = input.readAllBytes();
 		input.close();
-		assertTrue(testFile.toFile().delete());
+
+		Files.deleteIfExists(testFile);
+		assertArrayEquals(payload, decompressed);
 	}
 
 	@Test

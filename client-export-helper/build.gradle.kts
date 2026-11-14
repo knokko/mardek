@@ -9,7 +9,7 @@ dependencies {
 	implementation(project(":content"))
 	implementation(project(":state"))
 	implementation(project(":vk2d"))
-	api(project(":export-helper"))
+	api(project(":zstd-streams"))
 	implementation(libs.vk.boiler)
 	implementation(libs.lwjgl.zstd)
 	implementation(libs.memory.query)

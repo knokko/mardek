@@ -9,11 +9,12 @@ import com.github.knokko.boiler.utilities.ColorPacker.green
 import com.github.knokko.boiler.utilities.ColorPacker.red
 import com.github.knokko.compressor.Kim1Decompressor
 import com.github.knokko.compressor.Kim3Decompressor
-import com.github.knokko.vk2d.resource.CompressingOutputStream
 import com.github.knokko.vk2d.resource.Vk2dGreyscaleChannel
 import com.github.knokko.vk2d.resource.Vk2dImageCompression
 import com.github.knokko.vk2d.resource.Vk2dResourceWriter
+import com.github.knokko.zstd.CompressingOutputStream
 import mardek.content.BITSER
+import mardek.content.ContentWrapper
 import mardek.content.audio.AudioContent
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite

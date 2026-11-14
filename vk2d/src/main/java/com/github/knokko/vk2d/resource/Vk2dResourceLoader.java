@@ -14,19 +14,12 @@ import com.github.knokko.boiler.synchronization.ResourceUsage;
 import com.github.knokko.compressor.Bc4Compressor;
 import com.github.knokko.vk2d.Vk2dInstance;
 import com.github.knokko.vk2d.text.Vk2dFont;
-import org.lwjgl.util.zstd.ZSTDInBuffer;
-import org.lwjgl.util.zstd.ZSTDOutBuffer;
-
+import com.github.knokko.zstd.DecompressingInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.IntBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 
 import static com.github.knokko.boiler.utilities.BoilerMath.leastCommonMultiple;
@@ -35,7 +28,6 @@ import static com.github.knokko.vk2d.text.HarfbuzzChecks.assertHbSuccess;
 import static java.lang.Math.*;
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.util.harfbuzz.HarfBuzz.*;
-import static org.lwjgl.util.zstd.Zstd.*;
 import static org.lwjgl.vulkan.VK10.*;
 
 public class Vk2dResourceLoader {

@@ -4,14 +4,13 @@ import com.github.knokko.bitser.connection.BitServerContext
 import com.github.knokko.bitser.connection.BitServerStructListController
 import com.github.knokko.bitser.connection.BitServerStructListOperation
 import com.github.knokko.bitser.io.BitInputStream
-import com.github.knokko.boiler.utilities.ColorPacker.rgb
 import mardek.content.inventory.EquipmentProperties
 import mardek.content.inventory.Item
 import mardek.content.inventory.ItemType
 import mardek.content.inventory.WeaponProperties
 import mardek.content.sprite.KimSprite
 import mardek.content.stats.Resistances
-import mardek.exporting.ContentWrapper
+import mardek.content.ContentWrapper
 import java.util.UUID
 
 class OperationCreateWeapon : BitServerStructListOperation<Item> {
@@ -28,7 +27,7 @@ class OperationCreateWeapon : BitServerStructListOperation<Item> {
 			if (itemTypes.isEmpty()) {
 				itemTypes.add(ItemType(
 					"ITEM: FIRST",
-					rgb(200, 0, 0),
+					-1, // Solid white
 					"First item type",
 				))
 				context.controllerMapping.getListController(itemTypes).refreshClientConnections()

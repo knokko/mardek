@@ -8,7 +8,7 @@ import mardek.editor.EDITOR_KEY_ALIAS
 import mardek.editor.EDITOR_PORT
 import mardek.editor.SERVER_CERTIFICATE_FOLDER
 import mardek.editor.TEST_AUTH_TOKEN
-import mardek.exporting.ContentWrapper
+import mardek.content.ContentWrapper
 import tech.kwik.core.QuicConnection
 import tech.kwik.core.QuicStream
 import tech.kwik.core.log.SysOutLogger

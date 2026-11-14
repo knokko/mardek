@@ -2,10 +2,10 @@ package mardek.importer
 
 import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.io.BitOutputStream
-import com.github.knokko.vk2d.resource.CompressingOutputStream
+import com.github.knokko.zstd.CompressingOutputStream
 import mardek.content.BITSER
 import mardek.content.Content
-import mardek.exporting.ContentWrapper
+import mardek.content.ContentWrapper
 import mardek.exporting.exportAndPrepareVk2d
 import mardek.exporting.exportIcons
 import mardek.exporting.exportTitleScreen

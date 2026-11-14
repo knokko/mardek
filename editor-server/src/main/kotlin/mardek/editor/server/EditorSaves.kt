@@ -4,11 +4,11 @@ import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.io.BitCountStream
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.bitser.io.BitOutputStream
-import com.github.knokko.vk2d.resource.CompressingOutputStream
-import com.github.knokko.vk2d.resource.DecompressingInputStream
+import com.github.knokko.zstd.CompressingOutputStream
+import com.github.knokko.zstd.DecompressingInputStream
 import mardek.content.BITSER
 import mardek.content.Content
-import mardek.exporting.ContentWrapper
+import mardek.content.ContentWrapper
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
