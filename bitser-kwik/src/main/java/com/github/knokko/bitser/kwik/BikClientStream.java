@@ -32,7 +32,7 @@ class BikClientStream implements BitClientStream {
 		if (stream != null) throw new IllegalStateException("Already started");
 		stream = requestStream.get();
 		stream.whenComplete((quicStream, failed) -> {
-			if (quicStream == null) return ;
+			if (quicStream == null) return;
 			var readThread = new Thread(() -> {
 				try {
 					processInput.read(new BitInputStream(quicStream.getInputStream()));
@@ -67,7 +67,7 @@ class BikClientStream implements BitClientStream {
 	public void close() {
 		if (stream != null) {
 			try {
-				stream.get(5, TimeUnit.SECONDS).resetStream(0L);
+				stream.get(1, TimeUnit.MINUTES).resetStream(0L);
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
 			}

@@ -7,13 +7,14 @@ import tech.kwik.core.QuicClientConnection
 import tech.kwik.core.QuicStream
 import java.io.File
 import java.io.InputStream
+import java.io.OutputStream
 import java.nio.file.Files
 import java.security.KeyStore
 import java.security.cert.CertificateFactory
 
 class EditorClientProtocol(
 	private val trustStore: KeyStore,
-	private val authToken: ByteArray,
+	private val writeAuthToken: (OutputStream) -> Unit,
 ) : BikClientProtocol {
 
 	override fun configureConnection(builder: QuicClientConnection.Builder) {
@@ -21,7 +22,7 @@ class EditorClientProtocol(
 	}
 
 	override fun runHandshake(stream: QuicStream) {
-		stream.outputStream.write(authToken)
+		writeAuthToken(stream.outputStream)
 		stream.outputStream.flush()
 	}
 

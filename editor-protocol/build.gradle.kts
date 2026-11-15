@@ -7,4 +7,5 @@ plugins {
 dependencies {
 	api(project(":bitser"))
 	api(project(":content"))
+	api(libs.apache.commons.compress)
 }

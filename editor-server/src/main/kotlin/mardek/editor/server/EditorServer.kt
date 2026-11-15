@@ -8,8 +8,11 @@ import mardek.editor.server.operation.OperationCreateItemType
 import mardek.editor.server.operation.OperationCreateWeapon
 import mardek.editor.server.operation.OperationSyncForExport
 
-fun main() {
+fun main(args: Array<String>) {
 	val wrappedContent = loadContent()
+	val properties = EditorServerProperties.load()
+	val accounts = EditorServerAccounts.load()
+	if (args.contains("do-not-save-accounts")) accounts.shouldSkipSaving = true
 
 	val operationRegistry = BitServerOperationRegistry()
 	operationRegistry.implement(EditorView.operationSyncForExport, ::OperationSyncForExport)
@@ -18,7 +21,7 @@ fun main() {
 	operationRegistry.finishRegistration()
 
 	BikServer.run(
-		EditorServerProtocol(),
+		EditorServerProtocol(properties, accounts),
 		EDITOR_APPLICATION_PROTOCOL_NAME,
 		wrappedContent,
 		listOf(EditorView.root),
@@ -26,4 +29,5 @@ fun main() {
 	)
 
 	saveContent(wrappedContent)
+	accounts.save()
 }

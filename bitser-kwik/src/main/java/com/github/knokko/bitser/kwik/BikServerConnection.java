@@ -36,7 +36,8 @@ class BikServerConnection implements ApplicationProtocolConnection {
 		try {
 			var mainStream = clientConnection.createStream(true);
 
-			if (!bikProtocol.runHandshake(clientConnection, mainStream)) {
+			var account = bikProtocol.runHandshake(clientConnection, mainStream);
+			if (account == null) {
 				System.err.println("Closed connection because handshake failed");
 				clientConnection.close();
 				return;

@@ -12,6 +12,7 @@ joml = "1.10.9"
 lwjgl = "3.4.2"
 vk-boiler = "5.5.2"
 vk-compressor = "1.0.0"
+apache-commons-compress = "1.28.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -26,6 +27,7 @@ compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMul
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+apache-commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "apache-commons-compress" }
 memory-query = { module = "com.github.knokko:memory-query", version.ref = "memory-query" }
 vk-boiler = { module = "com.github.knokko:vk-boiler", version.ref = "vk-boiler" }
 joml = { module = "org.joml:joml", version.ref = "joml" }

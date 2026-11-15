@@ -12,7 +12,7 @@ public interface BikServerProtocol {
 
 	void configureConnector(ServerConnector.Builder builder);
 
-	boolean runHandshake(QuicConnection clientConnection, QuicStream mainStream);
+	Object runHandshake(QuicConnection clientConnection, QuicStream mainStream);
 
 	void waitUntilServerShouldStop(BitServerContext context);
 }

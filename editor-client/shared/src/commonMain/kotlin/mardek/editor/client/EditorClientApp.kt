@@ -5,15 +5,14 @@ import androidx.compose.runtime.*
 import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.kwik.BikClient
 import mardek.editor.EDITOR_APPLICATION_PROTOCOL_NAME
-import mardek.editor.EDITOR_PORT
 import mardek.editor.EditorView
-import mardek.editor.TEST_AUTH_TOKEN
 import mardek.editor.client.component.ChildStruct
 import mardek.editor.client.component.TrackStruct
 import mardek.editor.client.file.FileTabs
 import mardek.editor.client.inventory.ItemsContentTabs
 import mardek.editor.client.navbar.EditorClientNavbar
 import mardek.editor.client.navbar.NavbarTab
+import java.io.DataOutputStream
 import java.net.URI
 
 @Composable
@@ -47,12 +46,14 @@ private fun InnerApp(
     ChildStruct(mutateScope, content, null, "items", 1) { itemsContent = it }
 }
 
-fun launchEditorClientConnection() = BikClient.connect(
-    URI("https://localhost:$EDITOR_PORT"),
+fun launchEditorClientConnection(properties: EditorClientProperties = EditorClientProperties.load()) = BikClient.connect(
+    URI("https://${properties.serverIp}:${properties.serverPort}"),
     EDITOR_APPLICATION_PROTOCOL_NAME,
     EditorView.root,
     1,
-    EditorClientProtocol(
-        EditorClientProtocol.createDevelopmentTrustStore(), TEST_AUTH_TOKEN
-    )
+    EditorClientProtocol(EditorClientProtocol.createDevelopmentTrustStore()) {
+        val dataOutput = DataOutputStream(it)
+        dataOutput.writeLong(properties.password.mostSignificantBits)
+        dataOutput.writeLong(properties.password.leastSignificantBits)
+    }
 )!!

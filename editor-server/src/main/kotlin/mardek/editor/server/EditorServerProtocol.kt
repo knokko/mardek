@@ -3,23 +3,25 @@ package mardek.editor.server
 import com.github.knokko.bitser.connection.BitServerContext
 import com.github.knokko.bitser.kwik.BikServerProtocol
 import com.github.knokko.memory.MemorySnapshot
-import mardek.editor.AUTH_TOKEN_LENGTH
 import mardek.editor.EDITOR_KEY_ALIAS
-import mardek.editor.EDITOR_PORT
 import mardek.editor.SERVER_CERTIFICATE_FOLDER
-import mardek.editor.TEST_AUTH_TOKEN
 import mardek.content.ContentWrapper
 import tech.kwik.core.QuicConnection
 import tech.kwik.core.QuicStream
 import tech.kwik.core.log.SysOutLogger
 import tech.kwik.core.server.ServerConnectionConfig
 import tech.kwik.core.server.ServerConnector
+import java.io.DataInputStream
 import java.io.File
 import java.lang.Thread.sleep
 import java.security.KeyStore
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
-class EditorServerProtocol : BikServerProtocol {
+class EditorServerProtocol(
+	private val properties: EditorServerProperties,
+	private val accounts: EditorServerAccounts,
+) : BikServerProtocol {
 
 	override fun configureConfig(builder: ServerConnectionConfig.Builder) {
 		builder.maxConnectionBufferSize(10_000_000L)
@@ -28,22 +30,23 @@ class EditorServerProtocol : BikServerProtocol {
 	override fun configureConnector(builder: ServerConnector.Builder) {
 		val keyStore = KeyStore.getInstance(
 			File("$SERVER_CERTIFICATE_FOLDER/key-store.p12"),
-			EDITOR_KEY_PASSWORD.toCharArray()
+			properties.password.toCharArray()
 		)
 
 		val logger = SysOutLogger()
 
-		builder.withPort(EDITOR_PORT)
-		builder.withKeyStore(keyStore, EDITOR_KEY_ALIAS, EDITOR_KEY_PASSWORD.toCharArray())
+		builder.withPort(properties.port)
+		builder.withKeyStore(keyStore, EDITOR_KEY_ALIAS, properties.password.toCharArray())
 		builder.withLogger(logger)
 	}
 
-	override fun runHandshake(clientConnection: QuicConnection, mainStream: QuicStream): Boolean {
+	override fun runHandshake(clientConnection: QuicConnection, mainStream: QuicStream): Any? {
 		mainStream.outputStream.write(0)
 		mainStream.outputStream.flush()
 
-		val authToken = mainStream.inputStream.readNBytes(AUTH_TOKEN_LENGTH)
-		return authToken.contentEquals(TEST_AUTH_TOKEN)
+		val dataInput = DataInputStream(mainStream.inputStream)
+		val password = UUID(dataInput.readLong(), dataInput.readLong())
+		return accounts.getByPassword(password)
 	}
 
 	override fun waitUntilServerShouldStop(context: BitServerContext) {
@@ -53,7 +56,10 @@ class EditorServerProtocol : BikServerProtocol {
 		val backupThread = Thread {
 			while (!didStop.get()) {
 				sleep(60_000)
-				context.globalQueue.offer { saveContent(context.rootStruct as ContentWrapper) }
+				context.globalQueue.offer {
+					saveContent(context.rootStruct as ContentWrapper)
+				}
+				accounts.save()
 			}
 		}
 		backupThread.name = "EditorServerBackup"
@@ -65,11 +71,17 @@ class EditorServerProtocol : BikServerProtocol {
 			if (command == "stop") break
 			if (command == "memory") MemorySnapshot.take().debugDump()
 			if (command == "save") {
-				if (!context.globalQueue.offer { saveContent(context.rootStruct as ContentWrapper) }) {
+				if (!context.globalQueue.offer {
+						saveContent(context.rootStruct as ContentWrapper)
+				}) {
 					println("Global queue is full!")
 				}
+				accounts.save()
 			}
 			if (command == "gc") System.gc()
+			if (command.startsWith("accounts ")) {
+				accounts.executeCommand(command.substringAfter("accounts "), properties)
+			}
 		}
 		println("Exiting...")
 		didStop.set(true)

@@ -78,8 +78,12 @@ internal fun renderTitleBar(
 	}
 
 	if (memoryUsage != null) {
+		val processMemoryString = if (memoryUsage.processMemory == null) {
+			"???MB"
+		} else "${memoryUsage.processMemory / 1_000_000}MB"
+
 		textBatch.drawString(
-			"${memoryUsage.processMemory / 1_000_000}MB", 50f, 0.75f * FULL_BORDER_HEIGHT,
+			processMemoryString, 50f, 0.75f * FULL_BORDER_HEIGHT,
 			0.5f * FULL_BORDER_HEIGHT, font, hoverColor, TextAlignment.LEFT,
 		)
 		textBatch.drawString(

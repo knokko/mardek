@@ -11,8 +11,13 @@ object MemoryTracker {
 
 	init {
 		val memoryThread = Thread {
+			var hasSeenError = false
 			while (true) {
 				lastSnapshot = MemorySnapshot.take()
+				if (!hasSeenError && lastSnapshot.processMemoryFailedException != null) {
+					lastSnapshot.processMemoryFailedException.printStackTrace()
+					hasSeenError = true
+				}
 				sleep(1000)
 			}
 		}
