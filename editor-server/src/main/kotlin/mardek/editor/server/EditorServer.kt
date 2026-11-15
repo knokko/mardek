@@ -10,6 +10,7 @@ import mardek.editor.server.operation.OperationSyncForExport
 
 fun main() {
 	val wrappedContent = loadContent()
+	val properties = EditorServerProperties.load()
 
 	val operationRegistry = BitServerOperationRegistry()
 	operationRegistry.implement(EditorView.operationSyncForExport, ::OperationSyncForExport)
@@ -18,7 +19,7 @@ fun main() {
 	operationRegistry.finishRegistration()
 
 	BikServer.run(
-		EditorServerProtocol(),
+		EditorServerProtocol(properties),
 		EDITOR_APPLICATION_PROTOCOL_NAME,
 		wrappedContent,
 		listOf(EditorView.root),

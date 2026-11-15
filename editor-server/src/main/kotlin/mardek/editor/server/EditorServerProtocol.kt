@@ -5,7 +5,6 @@ import com.github.knokko.bitser.kwik.BikServerProtocol
 import com.github.knokko.memory.MemorySnapshot
 import mardek.editor.AUTH_TOKEN_LENGTH
 import mardek.editor.EDITOR_KEY_ALIAS
-import mardek.editor.EDITOR_PORT
 import mardek.editor.SERVER_CERTIFICATE_FOLDER
 import mardek.editor.TEST_AUTH_TOKEN
 import mardek.content.ContentWrapper
@@ -19,7 +18,7 @@ import java.lang.Thread.sleep
 import java.security.KeyStore
 import java.util.concurrent.atomic.AtomicBoolean
 
-class EditorServerProtocol : BikServerProtocol {
+class EditorServerProtocol(private val properties: EditorServerProperties) : BikServerProtocol {
 
 	override fun configureConfig(builder: ServerConnectionConfig.Builder) {
 		builder.maxConnectionBufferSize(10_000_000L)
@@ -28,13 +27,13 @@ class EditorServerProtocol : BikServerProtocol {
 	override fun configureConnector(builder: ServerConnector.Builder) {
 		val keyStore = KeyStore.getInstance(
 			File("$SERVER_CERTIFICATE_FOLDER/key-store.p12"),
-			EDITOR_KEY_PASSWORD.toCharArray()
+			properties.password.toCharArray()
 		)
 
 		val logger = SysOutLogger()
 
-		builder.withPort(EDITOR_PORT)
-		builder.withKeyStore(keyStore, EDITOR_KEY_ALIAS, EDITOR_KEY_PASSWORD.toCharArray())
+		builder.withPort(properties.port)
+		builder.withKeyStore(keyStore, EDITOR_KEY_ALIAS, properties.password.toCharArray())
 		builder.withLogger(logger)
 	}
 
