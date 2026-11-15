@@ -1,0 +1,32 @@
+name: Generate Java runtimes for Windows x64 and Linux x64
+
+on: push
+
+jobs:
+  build-native-releases:
+    runs-on: ${{ matrix.os.name }}
+    strategy:
+      matrix:
+        os:
+          - name: windows-latest
+            architecture: "windows-x64"
+            java: "javaw.exe"
+          - name: ubuntu-latest
+            architecture: "linux-x64"
+            java: "java"
+    steps:
+      - name: Set up JDK 26
+        uses: actions/setup-java@v5
+        with:
+          java-version: 26
+          distribution: "zulu"
+      - run: jlink --module-path "%JAVA_HOME%/jmods" --add-modules java.base,java.management,jdk.unsupported --output ./game-java-runtime
+      - run: jlink --module-path "%JAVA_HOME%/jmods" --add-modules java.base,java.desktop,java.management,java.naming,jdk.unsupported --output ./editor-java-runtime
+      - uses: actions/upload-artifact@v7
+        with:
+          name: game-java-runtime-${{ matrix.os.architecture }}
+          path: ./game-java-runtime
+      - uses: actions/upload-artifact@v7
+        with:
+          name: editor-java-runtime-${{ matrix.os.architecture }}
+          path: ./editor-java-runtime
