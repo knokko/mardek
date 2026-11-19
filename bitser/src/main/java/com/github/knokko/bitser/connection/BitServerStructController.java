@@ -314,7 +314,9 @@ public class BitServerStructController<T> extends BitServerController {
 					}
 				}
 			} catch (Throwable failed) {
-				System.err.println("StructController.readFromClient thread died: " + failed.getMessage());
+				if (!(failed instanceof IOException)) {
+					System.err.println("StructController.readFromClient thread died: " + failed.getMessage());
+				}
 			} finally {
 				close();
 			}

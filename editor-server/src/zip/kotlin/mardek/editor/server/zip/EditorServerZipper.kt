@@ -8,7 +8,6 @@ import mardek.editor.EDITOR_KEY_ALIAS
 import mardek.editor.util.includeDirectory
 import mardek.editor.util.includeFile
 import mardek.editor.util.writeTextFile
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import java.util.UUID
 import java.util.stream.Collectors
@@ -32,15 +31,15 @@ fun main(args: Array<String>) {
 	val outputFile = File("./editor-server.zip")
 	val zipOutput = ZipArchiveOutputStream(BufferedOutputStream(Files.newOutputStream(outputFile.toPath())))
 
-	includeFile(zipOutput, serverJar, "/editor-server.jar")
-	includeFile(zipOutput, gameJar, "/mardek.jar")
-	includeFile(zipOutput, clientJar, "/editor-client.jar")
-	includeFile(zipOutput, contentBits, "/editor-server/content.bits")
-	includeFile(zipOutput, gameWindowsRuntime, "/resources/game-java-runtime-windows-x64.zip")
-	includeFile(zipOutput, gameLinuxRuntime, "/resources/game-java-runtime-linux-x64.zip")
-	includeFile(zipOutput, editorWindowsRuntime, "/resources/editor-java-runtime-windows-x64.zip")
-	includeFile(zipOutput, editorLinuxRuntime, "/resources/editor-java-runtime-linux-x64.zip")
-	includeDirectory(zipOutput, musicFolder, "/resources/music/")
+	includeFile(zipOutput, serverJar, "/mardek-editor-server/resources/editor-server.jar")
+	includeFile(zipOutput, gameJar, "/mardek-editor-server/resources/mardek.jar")
+	includeFile(zipOutput, clientJar, "/mardek-editor-server/resources/editor-client.jar")
+	includeFile(zipOutput, contentBits, "/mardek-editor-server/editor-server/content.bits")
+	includeFile(zipOutput, gameWindowsRuntime, "/mardek-editor-server/resources/game-java-runtime-windows-x64.zip")
+	includeFile(zipOutput, gameLinuxRuntime, "/mardek-editor-server/resources/game-java-runtime-linux-x64.zip")
+	includeFile(zipOutput, editorWindowsRuntime, "/mardek-editor-server/resources/editor-java-runtime-windows-x64.zip")
+	includeFile(zipOutput, editorLinuxRuntime, "/mardek-editor-server/resources/editor-java-runtime-linux-x64.zip")
+	includeDirectory(zipOutput, musicFolder, "/mardek-editor-server/resources/music/")
 
 	val keyStoreFile = Files.createTempFile("keystore", ".p12").toFile()
 	keyStoreFile.delete()
@@ -70,22 +69,20 @@ fun main(args: Array<String>) {
 		throw RuntimeException("keytool (public key) failed with $generatePublicKeyResult")
 	}
 
-	includeFile(zipOutput, keyStoreFile, "/editor-server/certificate/key-store.p12")
-	includeFile(zipOutput, publicKeyFile, "/editor-server/certificate/public-certificate.pem")
+	includeFile(zipOutput, keyStoreFile, "/mardek-editor-server/editor-server/certificate/key-store.p12")
+	includeFile(zipOutput, publicKeyFile, "/mardek-editor-server/editor-server/certificate/public-certificate.pem")
 	keyStoreFile.delete()
 	publicKeyFile.delete()
 
 	writeTextFile(
 		zipOutput,
-		"/editor-server/server.properties",
+		"/mardek-editor-server/editor-server/server.properties",
 		arrayOf("ip=$serverIp", "port=39657", "password=$password")
 	)
-	writeTextFile(zipOutput, "/run.sh", arrayOf(
-		"java -XX:+UseZGC -XX:ZUncommitDelay=10 -XX:SoftMaxHeapSize=500m -jar editor-server.jar"
+	writeTextFile(zipOutput, "/mardek-editor-server/run", arrayOf(
+		"#!/usr/bin/env bash",
+		"java -XX:+UseZGC -XX:ZUncommitDelay=10 -XX:SoftMaxHeapSize=500m -jar ./resources/editor-server.jar"
 	), makeExecutable = true)
-
-	zipOutput.putArchiveEntry(ZipArchiveEntry("/resources/"))
-	zipOutput.closeArchiveEntry()
 
 	zipOutput.finish()
 	zipOutput.flush()

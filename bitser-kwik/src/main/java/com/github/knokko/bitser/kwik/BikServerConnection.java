@@ -68,7 +68,7 @@ class BikServerConnection implements ApplicationProtocolConnection {
 				);
 			}
 		} catch (IOException disconnected) {
-			System.err.println("BikServerConnection disconnected: " + disconnected.getMessage());
+			System.out.println("BikServerConnection disconnected: " + disconnected.getMessage());
 		} finally {
 			clientConnection.close();
 		}
@@ -83,7 +83,9 @@ class BikServerConnection implements ApplicationProtocolConnection {
 				Thread.sleep(10_000L);
 			}
 		} catch (Throwable died) {
-			System.err.println("BikServerConnection keep-alive died: " + died.getMessage());
+			if (!(died instanceof IOException)) {
+				System.err.println("BikServerConnection keep-alive died unexpectedly: " + died.getMessage());
+			}
 		} finally {
 			clientConnection.close();
 		}

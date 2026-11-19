@@ -15,8 +15,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import static java.lang.Math.max;
-
 public class BitServerStructListController<T> extends BitServerController {
 
 	private static final byte[] CANCEL_TOKEN = new byte[0];
@@ -281,7 +279,9 @@ public class BitServerStructListController<T> extends BitServerController {
 					}
 				}
 			} catch (Throwable failed) {
-				System.err.println("StructListController.NestedConnection.readFromClient thread died: " + failed.getMessage());
+				if (!(failed instanceof IOException)) {
+					System.err.println("StructListController.NestedConnection.readFromClient thread died: " + failed.getMessage());
+				}
 			} finally {
 				close();
 			}
@@ -380,7 +380,9 @@ public class BitServerStructListController<T> extends BitServerController {
 			try {
 				fromClient.read();
 			} catch (Throwable failed) {
-				System.err.println("StructListController.FlatConnection.readFromClient thread died: " + failed.getMessage());
+				if (!(failed instanceof IOException)) {
+					System.err.println("StructListController.FlatConnection.readFromClient thread died: " + failed.getMessage());
+				}
 			} finally {
 				close();
 			}

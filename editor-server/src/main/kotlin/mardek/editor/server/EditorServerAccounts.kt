@@ -64,7 +64,7 @@ class EditorServerAccounts : Serializable {
 
 	fun save() {
 		if (shouldSkipSaving) {
-			println("Skipping save")
+			println("Skip saving accounts")
 			return
 		}
 

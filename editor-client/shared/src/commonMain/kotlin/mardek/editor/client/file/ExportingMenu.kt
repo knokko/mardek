@@ -1,5 +1,6 @@
 package mardek.editor.client.file
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import androidx.compose.material3.LocalTextStyle
@@ -17,11 +18,21 @@ import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.zstd.DecompressingInputStream
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
 import mardek.content.BITSER
 import mardek.content.ContentWrapper
 import mardek.editor.EditorView
 import mardek.editor.client.TestRunState
 import java.nio.file.Files
+import kotlin.time.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.DayOfWeekNames
+import kotlinx.datetime.format.Padding
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
+import mardek.editor.MardekOS
+import mardek.editor.client.navbar.NavbarCategory
 
 @Composable
 fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunState) {
@@ -30,22 +41,41 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunSt
 	}
 
 	var wrappedContent by remember { mutableStateOf<ContentWrapper?>(null) }
-	var exportState by remember { mutableStateOf(0) }
+	var syncState by remember { mutableStateOf(0) }
+	var syncCompressedSize by remember { mutableStateOf(0) }
+	var syncDownloadedSoFar by remember { mutableStateOf(0) }
 	var lastSync by remember { mutableStateOf<Long?>(null) }
 
 	val mutateScope = rememberCoroutineScope()
+
+	if (wrappedContent == null && syncState == 0) {
+		Row { Text("You need to synchronize before you can export or test") }
+	}
+
+	lastSync?.let {
+		val syncTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.currentSystemDefault())
+		val syncTimeString = syncTime.format(LocalDateTime.Format {
+			amPmHour(Padding.NONE)
+			char(':')
+			minute()
+			amPmMarker("am", "pm")
+		})
+		Text("Last synchronization was at $syncTimeString")
+	}
+
 	Row {
 		Button(
 			onClick = {
-				mutateScope.launch { exportState = 1 }
+				mutateScope.launch { syncState = 1 }
 				wrappedContentStruct.executeOperation(EditorView.operationSyncForExport) { output, streamFactory ->
 					val responseID = streamFactory.addResponseCallback { response ->
-						mutateScope.launch { exportState = 3 }
+						mutateScope.launch { syncState = 3 }
 
 						val compressedFile = Files.createTempFile("", ".bits")
 						val compressedOutput = Files.newOutputStream(compressedFile)
 
 						val compressedSize = IntegerBitser.decodeFullInt(response)
+						mutateScope.launch { syncCompressedSize = compressedSize }
 
 						val receiveBuffer = ByteArray(1024 * 1024)
 						var remaining = compressedSize
@@ -60,11 +90,12 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunSt
 								compressedOutput.write(receiveBuffer)
 								remaining -= receiveBuffer.size
 							}
+							mutateScope.launch { syncDownloadedSoFar = compressedSize - remaining }
 						}
 						compressedOutput.flush()
 						compressedOutput.close()
 
-						mutateScope.launch { exportState = 4 }
+						mutateScope.launch { syncState = 4 }
 
 						val bitInput = BitInputStream(DecompressingInputStream(compressedFile))
 						val parsedContent = BITSER.deserialize(ContentWrapper::class.java, bitInput)
@@ -72,7 +103,7 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunSt
 
 						mutateScope.launch {
 							wrappedContent = parsedContent
-							exportState = 0
+							syncState = 0
 							lastSync = System.currentTimeMillis()
 						}
 						System.gc()
@@ -81,22 +112,27 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunSt
 						responseID.toLong(), 0L, Long.MAX_VALUE, output
 					)
 
-					mutateScope.launch { exportState = 2 }
+					mutateScope.launch { syncState = 2 }
 				}
 			},
-			enabled = exportState == 0,
+			enabled = syncState == 0,
 			content = { Text("Synchronize${ if (lastSync == null) "" else " again"}") }
 		)
 
-		lastSync?.let { Text("Last sync: $it") }
 	}
 
-	if (wrappedContent == null) {
-		Row { Text("You need to synchronize before you can export or test") }
-	}
-
-	if (exportState != 0) {
-		Row { Text("Synchronization progress: $exportState / 5") }
+	if (syncState != 0) {
+		val syncStateName = when (syncState) {
+			1 -> "sending sync request..."
+			2 -> "awaiting sync response..."
+			3 -> "downloading sync response..."
+			4 -> "parsing sync response..."
+			else -> "????"
+		}
+		Row { Text("Synchronization progress: $syncState / 4: $syncStateName") }
+		if (syncState == 3) {
+			Row { Text("Downloaded ${(syncDownloadedSoFar / 1000_000)} / ${syncCompressedSize / 1000_000} MB") }
+		}
 	}
 
 	wrappedContent?.let { ExportMenuBody(it, testRunState) }
@@ -113,9 +149,31 @@ private fun ExportMenuBody(wrappedContent: ContentWrapper, testRunState: TestRun
 			enabled = runState == 0,
 			content = { Text("Launch test run") },
 		)
-		if (runState > 0) {
-			Text("Progress: $runState / 7")
+	}
+
+	if (runState > 0) {
+		Row {
+			val runStateName = when (runState) {
+				1 -> "preparation"
+				2 -> "exporting game files"
+				3 -> "initializing game"
+				4 -> "running game"
+				else -> "???"
+			}
+			Text("Progress: $runState / 4: $runStateName")
 		}
 	}
-	// TODO BITSER Export buttons
+
+	Row {
+		for (os in MardekOS.entries) {
+			Column {
+				Button(
+					onClick = {
+						val outputFile = java.io.File("mardek-$os.zip")
+						zipGame(wrappedContent, outputFile, os)
+					}
+				) { Text("Export for $os") }
+			}
+		}
+	}
 }

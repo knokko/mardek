@@ -10,6 +10,7 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.7.1")
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -19,9 +20,13 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             api(project(":editor-protocol"))
+            implementation(project(":client-export-helper"))
             implementation(project(":bitser-kwik"))
             implementation(project(":vk2d"))
             implementation(project(":zstd-streams"))
+            implementation(project(":state"))
+            implementation(project(":input"))
+            implementation(project(":game"))
             implementation(libs.vk.boiler)
             implementation(libs.memory.query)
             implementation(libs.kwik)

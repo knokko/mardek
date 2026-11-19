@@ -55,7 +55,8 @@ class EditorServerProtocol(
 
 		val backupThread = Thread {
 			while (!didStop.get()) {
-				sleep(60_000)
+				// Save every 10 minutes
+				sleep(10 * 60_000)
 				context.globalQueue.offer {
 					saveContent(context.rootStruct as ContentWrapper)
 				}

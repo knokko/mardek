@@ -1,5 +1,7 @@
 package mardek.editor
 
+import java.util.Locale
+
 enum class MardekOS {
 
 	/**
@@ -12,5 +14,6 @@ enum class MardekOS {
 	 */
 	Linux;
 
+	override fun toString() = name.lowercase(Locale.ROOT)
 	// TODO BITSER Jar
 }

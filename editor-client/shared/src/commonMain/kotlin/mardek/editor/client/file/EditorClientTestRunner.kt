@@ -1,6 +1,7 @@
-package mardek.editor.client
+package mardek.editor.client.file
 
 import com.github.knokko.boiler.window.WindowEventLoop
+import mardek.editor.client.TestRunState
 import mardek.exporting.exportAndPrepareVk2d
 import mardek.exporting.exportIcons
 import mardek.exporting.exportTitleScreen
@@ -15,7 +16,6 @@ import mardek.state.title.TitleScreenState
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
-import kotlin.io.path.fileSize
 
 private fun exportToTempFiles(
 	testRunState: TestRunState,
@@ -31,21 +31,18 @@ private fun exportToTempFiles(
 		vk2dFile = titleScreenVk2dFile.toFile(),
 		wrapped = testRunState.content!!,
 	)
-	println("after title screen")
 	testRunState.reportProgress()
 
 	exportAndPrepareVk2d(
 		dataFile = mainContentFile.toFile(),
 		vk2dFile = mainVk2dFile.toFile(),
-		compressionLevel = 15,
+		compressionLevel = 1,
 		cacheDirectory = null,
 		target = contentWrapper.content,
 	)
-	println("main 1")
 	testRunState.reportProgress()
 
 	exportIcons(contentWrapper, Files.newOutputStream(iconsFile), true)
-	println("Exported client content: sizes are ${mainContentFile.fileSize()} and ${mainVk2dFile.fileSize()}")
 
 	for (file in arrayOf(titleScreenVk2dFile, titleScreenContentFile, mainContentFile, mainVk2dFile, iconsFile)) {
 		file.toFile().deleteOnExit()
@@ -59,11 +56,7 @@ fun runEditorClientTest(testRunState: TestRunState) {
 	val mainContentFile = Files.createTempFile("content-", ".bits")
 	val iconsFile = Files.createTempFile("icons-", ".bin")
 
-	testRunState.reportProgress()
 	exportToTempFiles(testRunState, titleScreenVk2dFile, titleScreenContentFile, mainVk2dFile, mainContentFile, iconsFile)
-	System.gc()
-	println("main suspect")
-	testRunState.reportProgress()
 
 	val userSettings = UserSettings.load()
 	val fakeMainArgs = arrayOf<String>()
@@ -71,7 +64,6 @@ fun runEditorClientTest(testRunState: TestRunState) {
 
 	val input = InputManager()
 	val state = GameStateManager(input, TitleScreenState(), SavesFolderManager())
-	testRunState.reportProgress()
 
 	val window = MardekWindow(
 		state, userSettings, boiler.window(),
@@ -87,7 +79,6 @@ fun runEditorClientTest(testRunState: TestRunState) {
 	eventLoop.addWindow(window)
 	testRunState.reportProgress()
 	eventLoop.runMain()
-	testRunState.reportProgress()
 
 	inputListener.destroy()
 	boiler.destroyInitialObjects()

@@ -57,7 +57,6 @@ public class BikClient {
 
 				runKeepAliveThread(connection, stream);
 			} else {
-				System.out.println("Add secundary stream...");
 				streamFactory[0].addStream(stream);
 			}
 		});

@@ -6,6 +6,7 @@ import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 import tech.kwik.core.QuicStream;
 
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -36,8 +37,10 @@ class BikClientStream implements BitClientStream {
 			var readThread = new Thread(() -> {
 				try {
 					processInput.read(new BitInputStream(quicStream.getInputStream()));
-				} catch (Throwable closed) {
-					System.err.println("BikClientStream.start: read thread died: " + closed.getMessage());
+				} catch(Throwable closed) {
+					if (!(closed instanceof IOException)) {
+						System.err.println("BikClientStream.start: read thread died: " + closed.getMessage());
+					}
 				} finally {
 					quicStream.resetStream(0L);
 				}
