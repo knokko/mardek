@@ -9,7 +9,6 @@ plugins {
 dependencies {
     implementation(project(":editor-client:shared"))
 
-
     implementation(libs.vk.boiler)
     implementation(libs.memory.query)
     implementation(compose.desktop.currentOs)
@@ -52,6 +51,6 @@ tasks.shadowJar {
         attributes["Main-Class"] = "mardek.editor.client.EditorClientMainKt"
         attributes["Enable-Native-Access"] = "ALL-UNNAMED"
         attributes["Add-Exports"] = "java.base/jdk.internal.misc"
-        attributes["Class-Path"] = "mardek.jar"
+        attributes["Class-Path"] = "../game/build/libs/mardek.jar"
     }
 }

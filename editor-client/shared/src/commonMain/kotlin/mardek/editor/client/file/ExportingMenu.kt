@@ -27,12 +27,10 @@ import java.nio.file.Files
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
-import kotlinx.datetime.format.DayOfWeekNames
 import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import mardek.editor.MardekOS
-import mardek.editor.client.navbar.NavbarCategory
 
 @Composable
 fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunState) {
@@ -141,6 +139,8 @@ fun ExportingMenu(wrappedContentStruct: BitClientStruct, testRunState: TestRunSt
 @Composable
 private fun ExportMenuBody(wrappedContent: ContentWrapper, testRunState: TestRunState) {
 	var runState by remember { mutableStateOf(0) }
+	var exportState by remember { mutableStateOf("") }
+	var exportLocation by remember { mutableStateOf("") }
 	val mutateScope = rememberCoroutineScope()
 
 	Row {
@@ -169,11 +169,23 @@ private fun ExportMenuBody(wrappedContent: ContentWrapper, testRunState: TestRun
 			Column {
 				Button(
 					onClick = {
+						exportState = "step 1 / 4: Bundling code"
 						val outputFile = java.io.File("mardek-$os.zip")
-						zipGame(wrappedContent, outputFile, os)
-					}
+						exportLocation = outputFile.absolutePath
+						Thread {
+							zipGame(wrappedContent, outputFile, os) {
+								mutateScope.launch { exportState = it }
+							}
+						}.start()
+					},
+					enabled = exportState == "",
 				) { Text("Export for $os") }
 			}
 		}
+	}
+
+	if (exportState != "") {
+		Row { Text("Exporting to $exportLocation...") }
+		Row { Text("Progress: $exportState") }
 	}
 }

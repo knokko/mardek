@@ -17,6 +17,7 @@ include("zstd-streams")
 include("client-export-helper")
 include("editor-client:desktopApp")
 include("editor-client:shared")
+include("editor-client-zipper")
 include("editor-protocol")
 include("editor-server")
 

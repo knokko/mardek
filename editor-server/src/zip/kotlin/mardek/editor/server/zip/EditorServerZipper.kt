@@ -19,26 +19,14 @@ fun main(args: Array<String>) {
 	val serverIp = args[0]
 
 	val serverJar = File("${Content.RESOURCES_DIRECTORY}/../editor-server/build/libs/editor-server-all.jar")
-	val gameJar = File("${Content.RESOURCES_DIRECTORY}/../game/build/libs/mardek.jar")
-	val clientJar = File("${Content.RESOURCES_DIRECTORY}/../editor-client/desktopApp/build/libs/desktopApp-all.jar")
 	val contentBits = File("${Content.RESOURCES_DIRECTORY}/../editor-server/content.bits")
 	val musicFolder = File("${Content.RESOURCES_DIRECTORY}/music")
-	val gameWindowsRuntime = File("${Content.RESOURCES_DIRECTORY}/game-java-runtime-windows-x64.zip")
-	val gameLinuxRuntime = File("${Content.RESOURCES_DIRECTORY}/game-java-runtime-linux-x64.zip")
-	val editorWindowsRuntime = File("${Content.RESOURCES_DIRECTORY}/editor-java-runtime-windows-x64.zip")
-	val editorLinuxRuntime = File("${Content.RESOURCES_DIRECTORY}/editor-java-runtime-linux-x64.zip")
-
 	val outputFile = File("./editor-server.zip")
+	println("Writing to ${outputFile.absolutePath}...")
 	val zipOutput = ZipArchiveOutputStream(BufferedOutputStream(Files.newOutputStream(outputFile.toPath())))
 
 	includeFile(zipOutput, serverJar, "/mardek-editor-server/resources/editor-server.jar")
-	includeFile(zipOutput, gameJar, "/mardek-editor-server/resources/mardek.jar")
-	includeFile(zipOutput, clientJar, "/mardek-editor-server/resources/editor-client.jar")
 	includeFile(zipOutput, contentBits, "/mardek-editor-server/editor-server/content.bits")
-	includeFile(zipOutput, gameWindowsRuntime, "/mardek-editor-server/resources/game-java-runtime-windows-x64.zip")
-	includeFile(zipOutput, gameLinuxRuntime, "/mardek-editor-server/resources/game-java-runtime-linux-x64.zip")
-	includeFile(zipOutput, editorWindowsRuntime, "/mardek-editor-server/resources/editor-java-runtime-windows-x64.zip")
-	includeFile(zipOutput, editorLinuxRuntime, "/mardek-editor-server/resources/editor-java-runtime-linux-x64.zip")
 	includeDirectory(zipOutput, musicFolder, "/mardek-editor-server/resources/music/")
 
 	val keyStoreFile = Files.createTempFile("keystore", ".p12").toFile()

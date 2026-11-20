@@ -2,14 +2,28 @@ package mardek.editor.client
 
 import mardek.content.Content
 import java.io.File
+import java.io.PrintWriter
 import java.util.Scanner
 import java.util.UUID
 
-class EditorClientProperties(val serverIp: String, val serverPort: Int, val password: UUID) {
+class EditorClientProperties(val serverIp: String, val serverPort: Int, var password: UUID) {
+
+	fun save(file: File) {
+		file.parentFile.mkdirs()
+		val writer = PrintWriter(file)
+		writer.println("server-ip=$serverIp")
+		writer.println("server-port=$serverPort")
+		writer.println("password=$password")
+		writer.flush()
+		writer.close()
+	}
 
 	companion object {
-		fun load(): EditorClientProperties {
-			val scanner = Scanner(File("${Content.RESOURCES_DIRECTORY}/../editor-client/client.properties"))
+
+		val FILE = File("${Content.RESOURCES_DIRECTORY}/../editor-client/client.properties")
+
+		fun load(file: File): EditorClientProperties {
+			val scanner = Scanner(file)
 			var serverIp = ""
 			var serverPort = 0
 			var password: UUID? = null

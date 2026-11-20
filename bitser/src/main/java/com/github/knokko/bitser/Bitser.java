@@ -352,7 +352,7 @@ public class Bitser {
 			bitInput.close();
 			return result;
 		} catch (IOException shouldNotHappen) {
-			throw new IllegalArgumentException("bytes is too short or invalid/corrupted", shouldNotHappen);
+			throw new UnexpectedBitserException("bytes is too short or invalid/corrupted");
 		}
 	}
 

@@ -5,12 +5,13 @@ import com.github.knokko.bitser.Bitser
 import com.github.knokko.bitser.field.BitField
 import mardek.content.BITSER
 import mardek.content.Content
-import mardek.editor.MardekOS
+import mardek.editor.InitialClientConfig
+import java.io.DataOutputStream
 import java.io.File
+import java.io.OutputStream
 import java.io.Serializable
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-import java.util.Locale
 import java.util.UUID
 import kotlin.io.path.writeBytes
 import kotlin.time.measureTime
@@ -30,21 +31,7 @@ class EditorServerAccounts : Serializable {
 		}
 
 		if (command.startsWith("add ")) {
-			val addCommand = command.substringAfter("add ")
-			val indexSpace = addCommand.indexOf(' ')
-			if (indexSpace == -1) {
-				println("Use: accounts add <os> <username>")
-				return
-			}
-
-			val rawOS = addCommand.substring(0, indexSpace)
-			val os = MardekOS.entries.find { it.name.equals(rawOS, ignoreCase = true) }
-			if (os == null) {
-				println("Invalid OS $rawOS: use one of ${MardekOS.entries.map { it.name.lowercase(Locale.ROOT) }}")
-				return
-			}
-
-			val username = addCommand.substring(indexSpace + 1)
+			val username = command.substringAfter("add ")
 
 			val newAccount = synchronized(this) {
 				if (entries.any { it.username == username }) {
@@ -57,8 +44,18 @@ class EditorServerAccounts : Serializable {
 				newAccount
 			}
 
-			val outputFile = File("editor-client-${newAccount.username}.zip")
-			zipEditorClient(outputFile, properties, newAccount.password, os)
+			val certificateFile = File(
+				"${Content.RESOURCES_DIRECTORY}/../editor-server/certificate/public-certificate.pem"
+			)
+			val clientConfig = InitialClientConfig(
+				serverIp = properties.ip,
+				serverPort = properties.port,
+				serverCertificate = Files.readAllBytes(certificateFile.toPath()),
+				initialPassword = newAccount.password,
+			)
+			val configBytes = BITSER.toBytes(clientConfig)
+			val configHex = configBytes.toHexString()
+			println("Copy & paste the following client config: $configHex")
 		}
 	}
 
@@ -77,8 +74,10 @@ class EditorServerAccounts : Serializable {
 		}
 	}
 
-	fun getByPassword(password: UUID): Any? {
-		return entries.find { it.password == password }
+	fun getByPassword(password: UUID, output: OutputStream): Any? {
+		val entry = entries.find { it.password == password }
+		if (entry != null) entry.claimIfNew(output)
+		return entry
 	}
 
 	companion object {
@@ -104,6 +103,21 @@ class EditorServerAccounts : Serializable {
 	) : Serializable {
 
 		@BitField(id = 1)
-		val password = UUID.randomUUID()!!
+		var password = UUID.randomUUID()!!
+			private set
+
+		@BitField(id = 2)
+		private var isClaimed = false
+
+		fun claimIfNew(output: OutputStream) {
+			if (!isClaimed) {
+				password = UUID.randomUUID()
+				val dataOutput = DataOutputStream(output)
+				dataOutput.writeLong(password.mostSignificantBits)
+				dataOutput.writeLong(password.leastSignificantBits)
+				dataOutput.flush()
+				isClaimed = true
+			}
+		}
 	}
 }

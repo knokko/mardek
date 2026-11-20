@@ -10,25 +10,54 @@ import mardek.editor.util.writeTextFile
 import mardek.exporting.exportAndPrepareVk2d
 import mardek.exporting.exportIcons
 import mardek.exporting.exportTitleScreen
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
+import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.nio.file.Files
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
-fun zipGame(contentWrapper: ContentWrapper, outputFile: File, os: MardekOS) {
+fun zipGame(contentWrapper: ContentWrapper, outputFile: File, os: MardekOS, reportProgress: (String) -> Unit) {
 	println("Zipping game executable to ${outputFile.absolutePath}")
 
-	val gameJar = File("${Content.RESOURCES_DIRECTORY}/mardek.jar")
+	val gameJar = File("${Content.RESOURCES_DIRECTORY}/../game/build/libs/mardek.jar")
 	val musicFolder = File("${Content.RESOURCES_DIRECTORY}/music")
-	val gameWindowsRuntime = File("${Content.RESOURCES_DIRECTORY}/java-runtime-windows-x64.zip")
-	val gameLinuxRuntime = File("${Content.RESOURCES_DIRECTORY}/java-runtime-linux-x64.zip")
+	val gameWindowsRuntime = File("${Content.RESOURCES_DIRECTORY}/game-java-runtime-windows-x64.zip")
+	val gameLinuxRuntime = File("${Content.RESOURCES_DIRECTORY}/game-java-runtime-linux-x64.zip")
 
 	val zipOutput = ZipArchiveOutputStream(BufferedOutputStream(Files.newOutputStream(outputFile.toPath())))
 
 	val prefix = "/mardek-$os"
-	includeFile(zipOutput, gameJar, "$prefix/resources/mardek.jar")
+	run {
+		zipOutput.putArchiveEntry(ZipArchiveEntry("$prefix/resources/mardek.jar"))
+		val gameInput = ZipInputStream(BufferedInputStream(FileInputStream(gameJar)))
+		val gameOutput = ZipOutputStream(zipOutput)
+
+		while (true) {
+			val gameEntry = gameInput.nextEntry ?: break
+
+			val osPrefixes = arrayOf("windows", "linux", "macos", "freebsd")
+			if (osPrefixes.any { gameEntry.name.startsWith("$it/") }) {
+				if (os == MardekOS.Windows && !gameEntry.name.startsWith("windows/x64/")) continue
+				if (os == MardekOS.Linux && !gameEntry.name.startsWith("linux/x64/")) continue
+			}
+
+			gameOutput.putNextEntry(gameEntry)
+			gameOutput.write(gameInput.readBytes())
+			gameOutput.closeEntry()
+		}
+		gameOutput.finish()
+		zipOutput.closeArchiveEntry()
+	}
+
+	val numSteps = 4
+	reportProgress("step 2 / $numSteps: bundling music")
 	includeDirectory(zipOutput, musicFolder, "$prefix/resources/music/")
 
+	reportProgress("step 3 / $numSteps: bundling java runtime")
 	if (os == MardekOS.Windows) {
 		includeExtractedZipFile(zipOutput, gameWindowsRuntime, "$prefix/java-runtime/")
 		writeTextFile(zipOutput, "$prefix/run.bat", arrayOf(
@@ -58,6 +87,7 @@ fun zipGame(contentWrapper: ContentWrapper, outputFile: File, os: MardekOS) {
 	includeFile(zipOutput, tempContentFile, "$prefix/resources/title-screen.bits")
 	includeFile(zipOutput, tempVk2dFile, "$prefix/resources/title-screen.vk2d")
 
+	reportProgress("step 4 / $numSteps: exporting content")
 	exportAndPrepareVk2d(
 		dataFile = tempContentFile,
 		vk2dFile = tempVk2dFile,
@@ -75,4 +105,5 @@ fun zipGame(contentWrapper: ContentWrapper, outputFile: File, os: MardekOS) {
 	zipOutput.flush()
 	zipOutput.close()
 	println("Finished generating ${outputFile.absolutePath}")
+	reportProgress("")
 }
