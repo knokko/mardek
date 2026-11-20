@@ -15,5 +15,9 @@ enum class MardekOS {
 	Linux;
 
 	override fun toString() = name.lowercase(Locale.ROOT)
+
+	companion object {
+		fun getByName(name: String) = entries.firstOrNull { it.name.equals(name, ignoreCase = true) }
+	}
 	// TODO BITSER Jar
 }

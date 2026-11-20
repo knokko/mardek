@@ -6,7 +6,9 @@ import com.github.knokko.bitser.field.BitField
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.editor.MardekOS
+import java.io.DataOutputStream
 import java.io.File
+import java.io.OutputStream
 import java.io.Serializable
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -38,7 +40,7 @@ class EditorServerAccounts : Serializable {
 			}
 
 			val rawOS = addCommand.substring(0, indexSpace)
-			val os = MardekOS.entries.find { it.name.equals(rawOS, ignoreCase = true) }
+			val os = MardekOS.getByName(rawOS)
 			if (os == null) {
 				println("Invalid OS $rawOS: use one of ${MardekOS.entries.map { it.name.lowercase(Locale.ROOT) }}")
 				return
@@ -77,8 +79,10 @@ class EditorServerAccounts : Serializable {
 		}
 	}
 
-	fun getByPassword(password: UUID): Any? {
-		return entries.find { it.password == password }
+	fun getByPassword(password: UUID, output: OutputStream): Any? {
+		val entry = entries.find { it.password == password }
+		if (entry != null) entry.claimIfNew(output)
+		return entry
 	}
 
 	companion object {
@@ -104,6 +108,21 @@ class EditorServerAccounts : Serializable {
 	) : Serializable {
 
 		@BitField(id = 1)
-		val password = UUID.randomUUID()!!
+		var password = UUID.randomUUID()!!
+			private set
+
+		@BitField(id = 2)
+		private var isClaimed = false
+
+		fun claimIfNew(output: OutputStream) {
+			if (!isClaimed) {
+				password = UUID.randomUUID()
+				val dataOutput = DataOutputStream(output)
+				dataOutput.writeLong(password.mostSignificantBits)
+				dataOutput.writeLong(password.leastSignificantBits)
+				dataOutput.flush()
+				isClaimed = true
+			}
+		}
 	}
 }

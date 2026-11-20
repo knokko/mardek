@@ -14,7 +14,7 @@ import java.security.cert.CertificateFactory
 
 class EditorClientProtocol(
 	private val trustStore: KeyStore,
-	private val writeAuthToken: (OutputStream) -> Unit,
+	private val performAuthentication: (OutputStream, InputStream) -> Unit,
 ) : BikClientProtocol {
 
 	override fun configureConnection(builder: QuicClientConnection.Builder) {
@@ -22,8 +22,7 @@ class EditorClientProtocol(
 	}
 
 	override fun runHandshake(stream: QuicStream) {
-		writeAuthToken(stream.outputStream)
-		stream.outputStream.flush()
+		performAuthentication(stream.outputStream, stream.inputStream)
 	}
 
 	companion object {
@@ -39,7 +38,7 @@ class EditorClientProtocol(
 			return trustStore
 		}
 
-		fun createDevelopmentTrustStore() = createTrustStore(Files.newInputStream(
+		fun createDefaultTrustStore() = createTrustStore(Files.newInputStream(
 			File("$SERVER_CERTIFICATE_FOLDER/public-certificate.pem").toPath()
 		))
 	}

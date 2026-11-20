@@ -12,8 +12,21 @@ fun main() {
     val testRunState = TestRunState()
 
     val composeThread = Thread {
+        var isFirstTime = false
+
+        if (true || !EditorClientProperties.FILE.exists()) {
+            isFirstTime = true
+            application {
+                Window(
+                    onCloseRequest = ::exitApplication,
+                    title = "Paste MARDEK editor settings",
+                    state = WindowState(size = DpSize(500.dp, 150.dp))
+                ) { PasteSettingsApp() }
+            }
+            return@Thread
+        }
         application {
-            val content = launchEditorClientConnection()
+            val content = launchEditorClientConnection(isFirstTime)
             Window(
                 onCloseRequest = ::exitApplication,
                 title = "MARDEK Editor",

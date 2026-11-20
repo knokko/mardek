@@ -46,7 +46,7 @@ class EditorServerProtocol(
 
 		val dataInput = DataInputStream(mainStream.inputStream)
 		val password = UUID(dataInput.readLong(), dataInput.readLong())
-		return accounts.getByPassword(password)
+		return accounts.getByPassword(password, mainStream.outputStream)
 	}
 
 	override fun waitUntilServerShouldStop(context: BitServerContext) {
