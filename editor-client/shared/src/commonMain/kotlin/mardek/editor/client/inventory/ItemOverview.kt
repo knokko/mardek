@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -45,8 +46,8 @@ private fun InnerItemList(list: BitClientStructList, controllerIDs: List<Long>, 
 
 	Column(modifier = Modifier.fillMaxSize()) {
 		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
-			Text("Display name", modifier = baseModifiers[0], fontSize = fontSize)
-			Text("Item type", modifier = baseModifiers[2], fontSize = fontSize)
+			Text("Display name", modifier = Modifier.width(300.dp), fontSize = fontSize)
+			Text("Item type", modifier = Modifier.width(300.dp), fontSize = fontSize)
 		}
 		Box(Modifier.weight(1f)) {
 			LazyColumn(modifier = Modifier.fillMaxHeight().background(Color.Cyan)) {

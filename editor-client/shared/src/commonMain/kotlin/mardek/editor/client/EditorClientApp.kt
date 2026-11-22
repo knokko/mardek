@@ -1,7 +1,9 @@
 package mardek.editor.client
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.kwik.BikClient
 import mardek.editor.EDITOR_APPLICATION_PROTOCOL_NAME
@@ -39,7 +41,7 @@ private fun InnerApp(
     var itemsContent by remember { mutableStateOf<BitClientStruct?>(null) }
 
     var currentTab by remember { mutableStateOf(NavbarTab.Settings) }
-    Column {
+    Column(modifier = Modifier.fillMaxWidth()) {
         EditorClientNavbar(currentTab) { currentTab = it }
         itemsContent?.let { ItemsContentTabs(it, currentTab) }
         FileTabs(wrappedContent, currentTab, testRunState)

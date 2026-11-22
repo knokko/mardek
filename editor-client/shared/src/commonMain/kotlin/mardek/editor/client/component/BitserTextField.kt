@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material3.TextField
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import com.github.knokko.bitser.connection.BitClientChangeState
 import com.github.knokko.bitser.connection.BitClientSimpleFlatField
 import kotlinx.coroutines.launch
@@ -27,14 +28,14 @@ fun BitserTextField(field: BitClientSimpleFlatField<String>) {
 	val textFieldState = rememberTextFieldState()
 	var changeState by remember { mutableStateOf(BitClientChangeState.UNINITIALIZED) }
 
-	TextField(
+	OutlinedTextField(
 		state = textFieldState,
-		modifier = Modifier.padding(start = 10.dp, bottom = 10.dp, top = 10.dp, end = 30.dp),
+		modifier = Modifier.padding(start = 0.dp, bottom = 5.dp, top = 5.dp, end = 0.dp),
 		textStyle = TextStyle(
-			fontSize = fontSize,
+			fontSize = 1.05.em,
 			color = if (changeState == BitClientChangeState.MODIFIED) Color.Blue else Color.Unspecified
 		),
-		contentPadding = PaddingValues(5.dp),
+		contentPadding = PaddingValues(5.dp, 0.dp, 5.dp, 6.dp),
 		lineLimits = TextFieldLineLimits.SingleLine,
 		inputTransformation = { field.set(this.toString()) },
 		enabled = changeState != BitClientChangeState.UNINITIALIZED,

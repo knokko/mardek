@@ -11,23 +11,16 @@ import com.github.knokko.bitser.connection.BitClientStructList
 import mardek.editor.client.component.ChildStructList
 import mardek.editor.client.component.TrackStruct
 import mardek.editor.client.navbar.NavbarTab
+import mardek.editor.client.template.StructListOverview
 
 @Composable
 fun ItemsContentTabs(itemsContent: BitClientStruct, currentTab: NavbarTab) {
-	if (currentTab == NavbarTab.ItemTypes) OuterItemTypeOverview(itemsContent)
+	if (currentTab == NavbarTab.ItemTypes) StructListOverview.ComposeFromParent(
+		itemsContent, "itemTypes", 1, ::ItemTypeOverview
+	)
 	if (currentTab == NavbarTab.Items) OuterItemOverview(itemsContent)
 
 	TrackStruct(itemsContent)
-}
-
-@Composable
-private fun OuterItemTypeOverview(itemsContent: BitClientStruct) {
-	val mutateScope = rememberCoroutineScope()
-	var itemTypes by remember { mutableStateOf<BitClientStructList?>(null)}
-
-	itemTypes?.let { ItemTypeOverview(it) }
-
-	ChildStructList(mutateScope, itemsContent, null, "itemTypes", 1) { itemTypes = it }
 }
 
 @Composable
