@@ -130,8 +130,10 @@ public class BitServerStructController<T> extends BitServerController {
 		if (!lock.isWriteLockedByCurrentThread()) {
 			throw new IllegalStateException("The write lock of this controller must be held while modifying this object");
 		}
-		if (hasChanges == null) hasChanges = new boolean[protocol.getNumFields()];
-		Arrays.fill(hasChanges, true);
+		if (hasChanges == null) {
+			hasChanges = new boolean[protocol.getNumFields()];
+			Arrays.fill(hasChanges, true);
+		}
 		for (var connection : connections) connection.refreshClient(hasChanges);
 		for (var semaphore : onChangeSemaphores) semaphore.release();
 	}
@@ -222,8 +224,10 @@ public class BitServerStructController<T> extends BitServerController {
 							toClients.write(hasChanges[fieldID]);
 							if (hasChanges[fieldID]) {
 								Object newValue = view.protocol.getFieldValue(structInstance, fieldID);
+								var controller = context.controllerMapping().getControllerByTarget(newValue);
+								var controllerID = context.controllerMapping().getIdForController(controller);
 								IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
-										(Long) newValue, 0L, Long.MAX_VALUE, toClients
+										controllerID, 0L, Long.MAX_VALUE, toClients
 								);
 							}
 						}
@@ -299,7 +303,6 @@ public class BitServerStructController<T> extends BitServerController {
 						int operationID = toIntExact(IntegerBitser.decodeUniformInteger(
 								0L, numOperations - 1L, fromClient
 						));
-						System.out.println("Operation ID is " + operationID);
 						@SuppressWarnings("unchecked")
 						var operation = (BitServerStructOperation<T>) context.operationRegistry().getImplementation(view, operationID);
 						operation.readRequestData(fromClient);
