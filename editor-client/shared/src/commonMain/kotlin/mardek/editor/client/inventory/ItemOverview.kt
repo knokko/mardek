@@ -1,96 +1,105 @@
 package mardek.editor.client.inventory
 
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.connection.BitClientStructList
-import kotlinx.coroutines.launch
 import mardek.editor.EditorView
-import mardek.editor.client.component.TrackStructList
-import mardek.editor.client.component.TrackStructListElements
+import mardek.editor.client.component.BitserInt
+import mardek.editor.client.component.BitserText
+import mardek.editor.client.component.StructReference
+import mardek.editor.client.component.TrackStruct
+import mardek.editor.client.template.StructListOverview
+import mardek.editor_client.shared.generated.resources.Res
+import mardek.editor_client.shared.generated.resources.edit_24px
+import org.jetbrains.compose.resources.painterResource
 
-@Composable
-private fun ItemRow(list: BitClientStructList, controllerID: Long, scrollState: ScrollState, editItem: (Long) -> Unit) {
-	Row(modifier = Modifier.horizontalScroll(scrollState).height(50.dp), verticalAlignment = Alignment.CenterVertically) {
-		ItemComponent(list.createConnectionToElement(controllerID, 1), editItem)
-	}
-}
+class ItemOverview(
+	list: BitClientStructList,
+	private val itemsContent: BitClientStruct,
+) : StructListOverview(list) {
 
-@Composable
-private fun InnerItemList(list: BitClientStructList, controllerIDs: List<Long>, editItem: (Long) -> Unit) {
-	val scrollState = rememberScrollState()
+	private lateinit var itemControllerToEdit: MutableState<Long?>
 
-	Column(modifier = Modifier.fillMaxSize()) {
-		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
-			Text("Display name", modifier = Modifier.width(300.dp), fontSize = fontSize)
-			Text("Item type", modifier = Modifier.width(300.dp), fontSize = fontSize)
-		}
-		Box(Modifier.weight(1f)) {
-			LazyColumn(modifier = Modifier.fillMaxHeight().background(Color.Cyan)) {
-				items(controllerIDs, key = { it }) { controllerID ->
-					ItemRow(list, controllerID, scrollState, editItem)
-				}
+	init {
+		columns.add(Column(
+			title = "Display name",
+			modifier = Modifier.width(250.dp),
+		) {
+			BitserText(it.getSimpleField(null, "displayName"))
+		})
+		columns.add(Column(
+			title = "Item type",
+			modifier = Modifier.width(250.dp),
+		) {
+			val mutateScope = rememberCoroutineScope()
+			var itemType by remember { mutableStateOf<BitClientStruct?>(null) }
+
+			Row {
+				if (itemType == null) Text("Loading...")
+				itemType?.let { itemType -> ItemTypeNameComponent(itemType) }
 			}
-		}
 
-		Row(modifier = Modifier.background(Color.Yellow).horizontalScroll(scrollState)) {
+			StructReference(mutateScope, it, null, "type", 2) { newType -> itemType = newType }
+		})
+		columns.add(Column(
+			title = "Cost",
+			modifier = Modifier.width(100.dp),
+		) {
+			BitserInt(it.getSimpleField(null, "cost"))
+		})
+
+		rightButtons.add(RightButton(
+			modifier = Modifier.width(100.dp)
+		) {
+			Button(onClick = {
+				itemControllerToEdit.value = it.controllerID
+			}) {
+				Icon(painterResource(Res.drawable.edit_24px), contentDescription = null)
+			}
+		})
+
+		bottomButtons.add {
 			Button(onClick = { list.executeOperation(EditorView.operationAddWeapon) {} }) {
 				Text("Add weapon")
 			}
 		}
 	}
+
+	@Composable
+	override fun initializeState() {
+		super.initializeState()
+		itemControllerToEdit = remember { mutableStateOf(null) }
+	}
+
+	override fun getViewId() = 1
+
+	@Composable
+	override fun RenderListOrChildScreen(controllerIDs: List<Long>) {
+		val controllerToEdit = this.itemControllerToEdit.value
+		if (controllerToEdit == null) {
+			super.RenderListOrChildScreen(controllerIDs)
+		} else {
+			val item = list.createConnectionToElement(controllerToEdit, 1)
+			EditItemComponent(item, itemsContent) { itemControllerToEdit.value = null }
+		}
+	}
 }
 
 @Composable
-fun ItemOverview(list: BitClientStructList, itemsContent: BitClientStruct) {
-	val mutateScope = rememberCoroutineScope()
-	val controllerIDs = remember { mutableStateListOf<Long>() }
-	var itemControllerToEdit by remember { mutableStateOf<Long?>(null) }
-	var isLoading by remember { mutableStateOf(true) }
-
-	if (isLoading) {
-		Text("Loading...")
-	} else {
-		if (controllerIDs.contains(itemControllerToEdit)) {
-			val item = list.createConnectionToElement(itemControllerToEdit!!, 1)
-			EditItemComponent(item, itemsContent) {
-				mutateScope.launch { itemControllerToEdit = null }
-			}
-		} else {
-			InnerItemList(list, controllerIDs) {
-				mutateScope.launch { itemControllerToEdit = it }
-			}
-		}
-	}
-
-	TrackStructList(list)
-	TrackStructListElements(list) {
-		controllerIDs.clear()
-		controllerIDs.addAll(it.toList())
-		isLoading = false
-	}
+private fun ItemTypeNameComponent(itemType: BitClientStruct) {
+	BitserText(itemType.getSimpleField(null, "displayName"))
+	TrackStruct(itemType)
 }

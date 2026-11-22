@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,10 +34,9 @@ import mardek.editor.client.component.ChildStructList
 import mardek.editor.client.component.TrackStruct
 import mardek.editor.client.component.TrackStructList
 import mardek.editor.client.component.TrackStructListElements
-import mardek.editor.client.inventory.ItemTypeOverview
 
 abstract class StructListOverview(
-	private val list: BitClientStructList
+	protected val list: BitClientStructList
 ) {
 
 	protected val columns = mutableListOf<Column>()
@@ -46,14 +44,19 @@ abstract class StructListOverview(
 	protected val bottomButtons = mutableListOf<BottomButton>()
 
 	@Composable
+	protected open fun initializeState() {}
+
+	@Composable
 	fun Compose() {
+		initializeState()
 		val controllerIDs = remember { mutableStateListOf<Long>() }
 		var isLoading by remember { mutableStateOf(true) }
 
 		if (isLoading) {
 			Text("Loading...")
 		} else {
-			RenderList(controllerIDs)
+			// TODO BITSER Somehow handle edit button
+			RenderListOrChildScreen(controllerIDs)
 		}
 
 		TrackStructList(list)
@@ -62,6 +65,11 @@ abstract class StructListOverview(
 			controllerIDs.addAll(it.toList())
 			isLoading = false
 		}
+	}
+
+	@Composable
+	protected open fun RenderListOrChildScreen(controllerIDs: List<Long>) {
+		RenderList(controllerIDs)
 	}
 
 	@Composable
@@ -100,10 +108,7 @@ abstract class StructListOverview(
 
 	@Composable
 	private fun RenderOuterRow(controllerID: Long, scrollState: ScrollState) {
-		Row(
-			modifier = Modifier.horizontalScroll(scrollState).height(50.dp),
-			verticalAlignment = Alignment.CenterVertically
-		) {
+		Row(modifier = Modifier.horizontalScroll(scrollState)) {
 			RenderInnerRow(list.createConnectionToElement(controllerID, getViewId()))
 		}
 	}
@@ -112,10 +117,14 @@ abstract class StructListOverview(
 	private fun RenderInnerRow(element: BitClientStruct) {
 		Row {
 			for (column in columns) {
-				Column(modifier = column.modifier) { column.content(this, element) }
+				Column(modifier = column.modifier.align(alignment = Alignment.CenterVertically)) {
+					column.content(this, element)
+				}
 			}
 			for (button in rightButtons) {
-				Column(modifier = button.modifier) { button.content(this, element) }
+				Column(modifier = button.modifier.align(alignment = Alignment.CenterVertically)) {
+					button.content(this, element)
+				}
 			}
 		}
 
