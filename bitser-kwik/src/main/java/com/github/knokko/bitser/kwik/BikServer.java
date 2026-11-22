@@ -34,7 +34,6 @@ public class BikServer {
 				var output = new BitOutputStream(rawOutput);
 				writeResponse.write(output);
 				output.flush();
-				System.out.println("Flushed output to client");
 			} catch (Throwable failed) {
 				System.err.println("Failed to send response to client: " + failed.getMessage());
 			}
@@ -51,8 +50,7 @@ public class BikServer {
 				.maxTotalPeerInitiatedBidirectionalStreams(0)
 				.maxTotalPeerInitiatedUnidirectionalStreams(0)
 				.maxOpenPeerInitiatedBidirectionalStreams(0)
-				.maxOpenPeerInitiatedUnidirectionalStreams(0)
-				.maxUnidirectionalStreamBufferSize(0L);
+				.maxOpenPeerInitiatedUnidirectionalStreams(0);
 
 		bikProtocol.configureConfig(configBuilder);
 		var config = configBuilder.build();

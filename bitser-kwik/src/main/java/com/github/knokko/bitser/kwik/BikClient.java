@@ -22,7 +22,6 @@ public class BikClient {
 		var builder = QuicClientConnection.newBuilder()
 				.uri(uri)
 				.applicationProtocol(protocol)
-				.defaultStreamReceiveBufferSize(2500L) // Bitser packets are normally very small
 				.maxOpenPeerInitiatedUnidirectionalStreams(10_000)
 				.maxOpenPeerInitiatedBidirectionalStreams(10_000);
 		bikProtocol.configureConnection(builder);
