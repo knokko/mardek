@@ -5,7 +5,6 @@ import com.github.knokko.bitser.io.BitInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -97,8 +96,10 @@ public class BitServerStructController<T> extends BitServerController {
 				var childStructViews = view.getChildStructViewsOrNull(fieldID);
 				if (childStructViews != null) {
 					var childStruct = protocol.getFieldValue(structInstance, fieldID);
-					for (var childView : childStructViews) {
-						destination.add(new BitServerControllerMapping.ViewPair(childStruct, childView));
+					if (childStruct != null) {
+						for (var childView : childStructViews) {
+							destination.add(new BitServerControllerMapping.ViewPair(childStruct, childView));
+						}
 					}
 				}
 

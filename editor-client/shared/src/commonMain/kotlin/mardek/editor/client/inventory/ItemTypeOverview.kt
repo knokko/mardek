@@ -6,14 +6,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
 import com.github.knokko.bitser.connection.BitClientStructList
 import mardek.editor.EditorView
-import mardek.editor.client.component.BitserTextField
-import mardek.editor.client.component.InlineStructsSaveButton
+import mardek.editor.client.component.input.BitserTextField
+import mardek.editor.client.component.tracking.InlineStructsSaveButton
 import mardek.editor.client.template.StructListOverview
-
-val fontSize = 1.1.em
 
 class ItemTypeOverview(list: BitClientStructList) : StructListOverview(list) {
 
@@ -31,9 +28,7 @@ class ItemTypeOverview(list: BitClientStructList) : StructListOverview(list) {
 			BitserTextField(it.getSimpleField(null, "niceName"))
 		})
 
-		rightButtons.add(RightButton(
-			modifier = Modifier.width(100.dp)
-		) {
+		rightButtons.add(RightButton(modifier = Modifier.width(100.dp)) {
 			InlineStructsSaveButton(arrayOf(it))
 		})
 

@@ -1,4 +1,4 @@
-package mardek.editor.client.component
+package mardek.editor.client.component.tracking
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect

@@ -1,4 +1,4 @@
-package mardek.editor.client.component
+package mardek.editor.client.component.input
 
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +21,7 @@ import com.github.knokko.bitser.connection.BitClientFlatStructList
 import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.connection.BitClientStructReferenceField
 import kotlinx.coroutines.launch
+import mardek.editor.client.component.tracking.TrackFlatStructList
 
 @Composable
 fun <T> BitserReferenceDropdown(

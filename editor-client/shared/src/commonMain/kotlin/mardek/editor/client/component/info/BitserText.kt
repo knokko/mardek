@@ -1,4 +1,4 @@
-package mardek.editor.client.component
+package mardek.editor.client.component.info
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -16,11 +16,11 @@ import com.github.knokko.bitser.connection.BitClientSimpleFlatField
 import kotlinx.coroutines.launch
 
 @Composable
-fun BitserInt(field: BitClientSimpleFlatField<Int>) {
+fun BitserText(field: BitClientSimpleFlatField<String>) {
 	val mutateScope = rememberCoroutineScope()
-	var value by remember { mutableStateOf<Int?>(null) }
+	var value by remember { mutableStateOf("") }
 
-	Text(value?.toString() ?: "", modifier = Modifier.padding(2.dp), fontSize = 1.05.em)
+	Text(value, modifier = Modifier.padding(2.dp), fontSize = 1.05.em)
 
 	DisposableEffect(field) {
 		val valueSubscription = field.subscribe(true) {

@@ -30,10 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.connection.BitClientStructList
-import mardek.editor.client.component.ChildStructList
-import mardek.editor.client.component.TrackStruct
-import mardek.editor.client.component.TrackStructList
-import mardek.editor.client.component.TrackStructListElements
+import mardek.editor.client.component.tracking.ChildStructList
+import mardek.editor.client.component.tracking.TrackStruct
+import mardek.editor.client.component.tracking.TrackStructList
+import mardek.editor.client.component.tracking.TrackStructListElements
 
 abstract class StructListOverview(
 	protected val list: BitClientStructList

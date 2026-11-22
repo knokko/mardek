@@ -1,6 +1,7 @@
 package mardek.editor.client.inventory
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -17,10 +18,10 @@ import androidx.compose.ui.unit.dp
 import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.connection.BitClientStructList
 import mardek.editor.EditorView
-import mardek.editor.client.component.BitserInt
-import mardek.editor.client.component.BitserText
-import mardek.editor.client.component.StructReference
-import mardek.editor.client.component.TrackStruct
+import mardek.editor.client.component.info.BitserInt
+import mardek.editor.client.component.info.BitserText
+import mardek.editor.client.component.tracking.StructReference
+import mardek.editor.client.component.tracking.TrackStruct
 import mardek.editor.client.template.StructListOverview
 import mardek.editor_client.shared.generated.resources.Res
 import mardek.editor_client.shared.generated.resources.edit_24px
@@ -36,7 +37,7 @@ class ItemOverview(
 	init {
 		columns.add(Column(
 			title = "Display name",
-			modifier = Modifier.width(250.dp),
+			modifier = Modifier.width(250.dp).padding(start = 10.dp),
 		) {
 			BitserText(it.getSimpleField(null, "displayName"))
 		})

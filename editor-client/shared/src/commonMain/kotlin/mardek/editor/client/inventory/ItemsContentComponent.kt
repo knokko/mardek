@@ -2,7 +2,7 @@ package mardek.editor.client.inventory
 
 import androidx.compose.runtime.Composable
 import com.github.knokko.bitser.connection.BitClientStruct
-import mardek.editor.client.component.TrackStruct
+import mardek.editor.client.component.tracking.TrackStruct
 import mardek.editor.client.navbar.NavbarTab
 import mardek.editor.client.template.StructListOverview
 

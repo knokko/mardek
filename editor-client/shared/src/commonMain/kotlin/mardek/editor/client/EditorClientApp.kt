@@ -8,8 +8,8 @@ import com.github.knokko.bitser.connection.BitClientStruct
 import com.github.knokko.bitser.kwik.BikClient
 import mardek.editor.EDITOR_APPLICATION_PROTOCOL_NAME
 import mardek.editor.EditorView
-import mardek.editor.client.component.ChildStruct
-import mardek.editor.client.component.TrackStruct
+import mardek.editor.client.component.tracking.ChildStruct
+import mardek.editor.client.component.tracking.TrackStruct
 import mardek.editor.client.file.FileTabs
 import mardek.editor.client.inventory.ItemsContentTabs
 import mardek.editor.client.navbar.EditorClientNavbar

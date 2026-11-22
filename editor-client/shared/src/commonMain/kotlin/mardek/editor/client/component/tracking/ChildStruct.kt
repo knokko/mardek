@@ -1,5 +1,4 @@
-package mardek.editor.client.component
-
+package mardek.editor.client.component.tracking
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -8,17 +7,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun StructReference(
+fun ChildStruct(
 	mutateScope: CoroutineScope, parentStruct: BitClientStruct,
 	declaringClass: Class<*>?, fieldName: String, viewID: Int, callback: (BitClientStruct) -> Unit
 ) {
 	DisposableEffect(parentStruct) {
-		val referenceField = parentStruct.getStructReferenceField(declaringClass, fieldName)
-		val childSubscription = referenceField.subscribe(false) {
-			mutateScope.launch { callback(referenceField.createConnectionToReference(it, viewID)) }
+		val childSubscription = parentStruct.subscribeChildStruct(declaringClass, fieldName, viewID) {
+			mutateScope.launch { callback(it) }
 		}
 		onDispose {
-			referenceField.cancelSubscription(childSubscription)
+			parentStruct.cancelChildStructSubscription(declaringClass, fieldName, childSubscription)
 		}
 	}
 }

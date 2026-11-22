@@ -12,6 +12,8 @@ import mardek.content.inventory.Item
 import mardek.content.inventory.ItemType
 import mardek.content.inventory.ItemsContent
 import mardek.content.ContentWrapper
+import mardek.content.inventory.EquipmentProperties
+import mardek.content.inventory.WeaponProperties
 
 object EditorView {
 
@@ -59,11 +61,25 @@ object EditorView {
 		nameOnlyItemTypesReferenceView.addElementsView(nameOnlyItemTypeReferenceView)
 		nameOnlyItemTypesReferenceView.finishRegistration()
 
+		val itemWeaponView = BitStructConnectionView(1, BITSER.getProtocol(WeaponProperties::class.java))
+		itemWeaponView.markAllSimpleFields(true, true)
+		itemWeaponView.finishRegistration()
+
+		val itemEquipmentView = BitStructConnectionView(1, BITSER.getProtocol(EquipmentProperties::class.java))
+		itemEquipmentView.markAllSimpleFields(true, true)
+		itemEquipmentView.markChildStructField(
+			null, "weapon", listOf(itemWeaponView), false // TODO BITSER Make constant
+		)
+		itemEquipmentView.finishRegistration()
+
 		val itemView = BitStructConnectionView(1, BITSER.getProtocol(Item::class.java))
 		itemView.markAllSimpleFields(true, true)
 		itemView.markStructReferenceField(
 			null, "type",
 			listOf(nameOnlyItemTypeReferenceView), true, true
+		)
+		itemView.markChildStructField(
+			null, "equipment", listOf(itemEquipmentView), false // TODO BITSER Make constant, once we support it
 		)
 		itemView.finishRegistration()
 

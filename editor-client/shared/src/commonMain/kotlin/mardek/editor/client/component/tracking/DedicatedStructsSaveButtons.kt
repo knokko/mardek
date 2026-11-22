@@ -1,7 +1,8 @@
-package mardek.editor.client.component
+package mardek.editor.client.component.tracking
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
@@ -14,14 +15,21 @@ import mardek.editor_client.shared.generated.resources.save_24px
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun InlineStructsSaveButton(structs: Array<BitClientStruct?>) {
+fun DedicatedStructsSaveButtons(structs: Array<BitClientStruct?>, goBack: () -> Unit) {
 	val mutateScope = rememberCoroutineScope()
 	val properStructs = structs.filterNotNull()
 	val canSave = properStructs.map { remember { mutableStateOf(false) } }
+	val canSaveAny = canSave.any { it.value }
+
+	Button(onClick = goBack) {
+		if (canSaveAny) Text("Cancel")
+		else Text("Back")
+	}
 
 	Button(onClick = {
 		properStructs.forEach { it.save() }
-	}, enabled = canSave.any { it.value }) {
+	}, enabled = canSaveAny) {
+		Text("Save")
 		Icon(painterResource(Res.drawable.save_24px), contentDescription = null)
 	}
 
