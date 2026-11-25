@@ -1,13 +1,20 @@
 package mardek.editor.client.component.input
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,6 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import com.github.knokko.bitser.connection.BitClientChangeState
 import com.github.knokko.bitser.connection.BitClientFlatStructList
 import com.github.knokko.bitser.connection.BitClientStruct
@@ -27,12 +37,13 @@ import mardek.editor.client.component.tracking.TrackFlatStructList
 fun <T> BitserReferenceDropdown(
 	field: BitClientStructReferenceField,
 	sourceStruct: BitClientStruct, sourceClass: Class<*>?, sourceFieldName: String, sourceViewID: Int,
+	width: Dp,
 	createText: (T) -> String,
 ) {
 	val mutateScope = rememberCoroutineScope()
 	var options by remember { mutableStateOf<BitClientFlatStructList<T>?>(null) }
 
-	options?.let { InnerBitserReferenceDropdown(field, it, createText) }
+	options?.let { InnerBitserReferenceDropdown(field, it, width, createText) }
 
 	DisposableEffect(field) {
 		val optionsSubscription = sourceStruct.subscribeFlatStructList(
@@ -50,6 +61,7 @@ fun <T> BitserReferenceDropdown(
 private fun <T> InnerBitserReferenceDropdown(
 	field: BitClientStructReferenceField,
 	options: BitClientFlatStructList<T>,
+	width: Dp,
 	createText: (T) -> String,
 ) {
 	val mutateScope = rememberCoroutineScope()
@@ -64,27 +76,41 @@ private fun <T> InnerBitserReferenceDropdown(
 		mutableStateOf<Array<T>>(emptyArray<Any>() as Array<T>)
 	}
 
-	ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { mutateScope.launch {
+	val selectedIndex = selectableControllerIDs.indexOfFirst { it == selectedControllerID }
+	val textFieldState = rememberTextFieldState()
+
+	LaunchedEffect(selectedControllerID) {
+		if (selectedIndex != -1) {
+			textFieldState.edit { replace(0, length, createText(selectableOptions[selectedIndex])) }
+		}
+	}
+
+	ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = {
 		expanded = it
 		if (!expanded) filter = ""
-	}}) {
-		val selectedIndex = selectableControllerIDs.indexOfFirst { it == selectedControllerID }
-		TextField(
-			value = filter.ifEmpty {
-				if (selectedIndex == -1) "" else createText(selectableOptions[selectedIndex])
-			},
-			onValueChange = { mutateScope.launch { filter = it } },
+	}, modifier = Modifier.padding(5.dp)) {
+		OutlinedTextField(
+			state = textFieldState,
 			readOnly = false,
-			modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true),
-			textStyle = TextStyle.Default.copy(
+			lineLimits = TextFieldLineLimits.SingleLine,
+			contentPadding = PaddingValues(horizontal = 5.dp),
+			modifier = Modifier.menuAnchor(
+				ExposedDropdownMenuAnchorType.PrimaryEditable, true
+			).width(width).height(35.dp),
+			textStyle = TextStyle(
+				fontSize = 1.05.em,
 				color = if (changeState == BitClientChangeState.MODIFIED) Color.Blue else Color.Unspecified
 			),
+			inputTransformation = {
+				filter = this.toString()
+				expanded = true
+			},
 		)
 
-		ExposedDropdownMenu(expanded = expanded, onDismissRequest = { mutateScope.launch {
+		ExposedDropdownMenu(expanded = expanded, onDismissRequest = {
 			expanded = false
 			filter = ""
-		}}) {
+		}) {
 			for (index in selectableOptions.indices) {
 				val item = selectableOptions[index]
 				val itemText = createText(item)
@@ -92,11 +118,11 @@ private fun <T> InnerBitserReferenceDropdown(
 				val controllerID = selectableControllerIDs[index]
 				DropdownMenuItem(
 					text = { Text(itemText) },
-					onClick = { mutateScope.launch {
-						field.set(controllerID)
+					onClick = {
 						expanded = false
 						filter = ""
-					} },
+						field.set(controllerID)
+					},
 				)
 			}
 		}
@@ -105,7 +131,10 @@ private fun <T> InnerBitserReferenceDropdown(
 	TrackFlatStructList(options)
 
 	DisposableEffect(field) {
-		val selectedOptionSubscription = field.subscribe(true) { selectedControllerID = it }
+		val selectedOptionSubscription = field.subscribe(true) { mutateScope.launch {
+			selectedControllerID = it
+			expanded = false
+		} }
 		val changeStateSubscription = field.subscribeChangeState { mutateScope.launch { changeState = it } }
 		val selectableOptionsSubscription = options.subscribe { newOptions, newControllerIDs -> mutateScope.launch {
 			selectableOptions = newOptions

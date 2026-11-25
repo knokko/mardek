@@ -14,13 +14,14 @@ import androidx.compose.ui.unit.em
 import com.github.knokko.bitser.connection.BitClientStruct
 import mardek.editor.client.component.input.BitserBigTextField
 import mardek.editor.client.component.input.BitserIntField
+import mardek.editor.client.component.input.BitserReferenceDropdown
 import mardek.editor.client.component.input.BitserTextField
 
 object EditComponents {
 
 	@Composable
 	fun HeaderRow(header: String) {
-		Row(modifier = Modifier.padding(top = 15.dp)) { Text(header, fontWeight = FontWeight.Bold, fontSize = 1.4.em) }
+		Row(modifier = Modifier.padding(top = 25.dp)) { Text(header, fontWeight = FontWeight.Bold, fontSize = 1.4.em) }
 	}
 
 	@Composable
@@ -45,5 +46,17 @@ object EditComponents {
 	fun TextAreaRows(structInstance: BitClientStruct, fieldName: String, label: String, width: Dp, height: Dp) {
 		Row { Text("$label:", fontSize = 1.05.em) }
 		Row { BitserBigTextField(structInstance.getSimpleField(null, fieldName), width, height) }
+	}
+
+	@Composable
+	fun <T> ReferenceDropdownRow(
+		structInstance: BitClientStruct, fieldName: String, label: String, width: Dp,
+		sourceStruct: BitClientStruct, sourceFieldName: String, sourceViewID: Int,
+		createText: (T) -> String,
+	) = FieldRow(label) {
+		BitserReferenceDropdown(
+			structInstance.getStructReferenceField(null, fieldName),
+			sourceStruct, null, sourceFieldName, sourceViewID, width, createText,
+		)
 	}
 }

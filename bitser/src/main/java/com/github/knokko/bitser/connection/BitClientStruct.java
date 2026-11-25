@@ -87,12 +87,16 @@ public class BitClientStruct {
 						Object newValue = view.protocol.deserializeFlatFieldValue(fieldID, fromServer);
 						fields[fieldID].setFromServer(newValue);
 					} else {
-						long controllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
-								0L, Long.MAX_VALUE, fromServer
-						);
-						fields[fieldID].setFromServer(controllerID);
+						long newControllerId;
+						if (view.protocol.isFieldOptional(fieldID) && !fromServer.read()) {
+							newControllerId = -1;
+						} else {
+							newControllerId = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+									0L, Long.MAX_VALUE, fromServer
+							);
+						}
+						fields[fieldID].setFromServer(newControllerId);
 					}
-
 				}
 			}
 			fromServer.discardCurrentByte();

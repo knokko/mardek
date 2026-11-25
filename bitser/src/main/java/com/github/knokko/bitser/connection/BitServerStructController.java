@@ -175,6 +175,10 @@ public class BitServerStructController<T> extends BitServerController {
 							if (childStructViews == null && structListViews == null && structReferenceViews == null) {
 								view.protocol.serializeFlatFieldValue(fieldID, initialOutput, value);
 							} else {
+								if (view.protocol.isFieldOptional(fieldID)) {
+									initialOutput.write(value != null);
+									if (value == null) continue;
+								}
 								var childController = context.controllerMapping().getControllerByTarget(value);
 								long childID = context.controllerMapping().getIdForController(childController);
 								IntegerBitser.encodeVariableIntegerUsingTerminatorBits(
@@ -225,6 +229,12 @@ public class BitServerStructController<T> extends BitServerController {
 							toClients.write(hasChanges[fieldID]);
 							if (hasChanges[fieldID]) {
 								Object newValue = view.protocol.getFieldValue(structInstance, fieldID);
+
+								if (view.protocol.isFieldOptional(fieldID)) {
+									toClients.write(newValue != null);
+									if (newValue == null) continue;
+								}
+
 								var controller = context.controllerMapping().getControllerByTarget(newValue);
 								var controllerID = context.controllerMapping().getIdForController(controller);
 								IntegerBitser.encodeVariableIntegerUsingTerminatorBits(

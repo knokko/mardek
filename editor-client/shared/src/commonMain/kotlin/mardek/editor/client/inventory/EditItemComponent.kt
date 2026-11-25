@@ -2,7 +2,6 @@ package mardek.editor.client.inventory
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,7 +13,6 @@ import com.github.knokko.bitser.connection.BitClientStruct
 import kotlinx.coroutines.CoroutineScope
 import mardek.content.inventory.ItemType
 import mardek.editor.client.component.EditComponents
-import mardek.editor.client.component.input.BitserReferenceDropdown
 import mardek.editor.client.component.tracking.ChildStruct
 import mardek.editor.client.component.tracking.DedicatedStructsSaveButtons
 import mardek.editor.client.component.tracking.TrackStruct
@@ -31,13 +29,10 @@ fun EditItemComponent(item: BitClientStruct, itemsContent: BitClientStruct, goBa
 		// TODO BITSER Sprite
 		EditComponents.TextAreaRows(item, "description", "Description", 900.dp, 100.dp)
 		EditComponents.IntFieldRow(item, "cost", "Cost (price)", 100.dp)
-		Row {
-			Text("Type:")
-			BitserReferenceDropdown<ItemType>(
-				item.getStructReferenceField(null, "type"),
-				itemsContent, null, "itemTypes", 2
-			) { it.displayName }
-		}
+		EditComponents.ReferenceDropdownRow<ItemType>(
+			item, "type", "Type", 200.dp,
+			itemsContent, "itemTypes", 2
+		) { it.displayName }
 		// TODO BITSER Element
 		equipment?.let { EquipmentPropertiesComponent(it, mutateScope) { newWeapon -> weapon = newWeapon } }
 		weapon?.let { WeaponPropertiesComponent(it) }

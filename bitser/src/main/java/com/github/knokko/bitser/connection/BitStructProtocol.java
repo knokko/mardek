@@ -42,7 +42,9 @@ public class BitStructProtocol {
 	private record FieldKey(Class<?> declaringClass, String fieldName) {}
 
 	private record FieldInfo(
-			int id, FieldType type,
+			int id,
+			boolean isOptional,
+			FieldType type,
 			Field classField,
 			Serializer flatSerializer, Deserializer flatDeserializer,
 			Function<Object, Object> getFieldValue,
@@ -68,12 +70,16 @@ public class BitStructProtocol {
 	public String toString() {
 		return "BitStructProtocol(" + objectClass + ")";
 	}
-	public void addField(Field field, FieldType type, Serializer flatSerializer, Deserializer flatDeserializer) {
+
+	public void addField(
+			Field field, boolean isOptional, FieldType type,
+			Serializer flatSerializer, Deserializer flatDeserializer
+	) {
 		if (finishedRegistration) throw new IllegalStateException("Registration is finished");
 
 		int fieldID = numFields;
 		FieldInfo fieldInfo = new FieldInfo(
-				fieldID, type, field, flatSerializer, flatDeserializer,
+				fieldID, isOptional, type, field, flatSerializer, flatDeserializer,
 				structInstance -> {
 					try {
 						return field.get(structInstance);
@@ -142,6 +148,10 @@ public class BitStructProtocol {
 
 	FieldType getFieldType(int fieldID) {
 		return idToInfo[fieldID].type;
+	}
+
+	boolean isFieldOptional(int fieldID) {
+		return idToInfo[fieldID].isOptional;
 	}
 
 	void serializeFlatFieldValue(int fieldID, BitOutputStream output, Object value) throws Throwable {

@@ -26,9 +26,13 @@ public class BitClientChildStructField extends BitClientField {
 	@Override
 	void readFromServerInitial(BitInputStream input) throws Throwable {
 		if (view.shouldDownloadDuringInitialization(fieldID)) {
-			serverControllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
-					0L, Long.MAX_VALUE, input
-			);
+			if (view.protocol.isFieldOptional(fieldID) && !input.read()) {
+				serverControllerID = -1;
+			} else {
+				serverControllerID = IntegerBitser.decodeVariableIntegerUsingTerminatorBits(
+						0L, Long.MAX_VALUE, input
+				);
+			}
 		}
 	}
 
@@ -48,13 +52,17 @@ public class BitClientChildStructField extends BitClientField {
 		finishedInitialization = true;
 		if (view.shouldDownloadDuringInitialization(fieldID)) {
 			for (var listener : listeners) {
-				var childStream = streamFactory.createStream(serverControllerID, listener.viewID);
-				listener.callback.accept(new BitClientStruct(
-						getChildViewByID(listener.viewID),
-						childStream,
-						streamFactory,
-						serverControllerID
-				));
+				if (serverControllerID == -1) {
+					listener.callback.accept(null);
+				} else {
+					var childStream = streamFactory.createStream(serverControllerID, listener.viewID);
+					listener.callback.accept(new BitClientStruct(
+							getChildViewByID(listener.viewID),
+							childStream,
+							streamFactory,
+							serverControllerID
+					));
+				}
 			}
 		}
 	}
@@ -66,10 +74,14 @@ public class BitClientChildStructField extends BitClientField {
 
 		if (oldControllerID != serverControllerID) {
 			for (var listener : listeners) {
-				var childStream = streamFactory.createStream(serverControllerID, listener.viewID);
-				listener.callback.accept(new BitClientStruct(
-						getChildViewByID(listener.viewID), childStream, streamFactory, serverControllerID
-				));
+				if (serverControllerID == -1) {
+					listener.callback.accept(null);
+				} else {
+					var childStream = streamFactory.createStream(serverControllerID, listener.viewID);
+					listener.callback.accept(new BitClientStruct(
+							getChildViewByID(listener.viewID), childStream, streamFactory, serverControllerID
+					));
+				}
 			}
 		}
 	}
@@ -84,10 +96,14 @@ public class BitClientChildStructField extends BitClientField {
 		listeners.add(listener);
 
 		if (finishedInitialization) {
-			var childStream = streamFactory.createStream(serverControllerID, viewID);
-			updateChildStruct.accept(new BitClientStruct(
-					getChildViewByID(listener.viewID), childStream, streamFactory, serverControllerID
-			));
+			if (serverControllerID == -1) {
+				updateChildStruct.accept(null);
+			} else {
+				var childStream = streamFactory.createStream(serverControllerID, viewID);
+				updateChildStruct.accept(new BitClientStruct(
+						getChildViewByID(listener.viewID), childStream, streamFactory, serverControllerID
+				));
+			}
 		}
 
 		return listener;

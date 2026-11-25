@@ -56,7 +56,7 @@ class ProtocolFactory {
 				}
 
 				protocol.addField(
-						field.classField(), fieldType,
+						field.classField(), field.bitField().field.optional, fieldType,
 						(output, value) -> field.bitField().writeFlat(bitser, output, value),
 						input -> field.bitField().readFlat(bitser, input)
 				);
