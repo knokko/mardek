@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +44,7 @@ abstract class StructListOverview(
 	protected val columns = mutableListOf<Column>()
 	protected val rightButtons = mutableListOf<RightButton>()
 	protected val bottomButtons = mutableListOf<BottomButton>()
+	private lateinit var lazyListState: LazyListState
 
 	@Composable
 	protected open fun initializeState() {}
@@ -49,13 +52,13 @@ abstract class StructListOverview(
 	@Composable
 	fun Compose() {
 		initializeState()
+		lazyListState = rememberLazyListState()
 		val controllerIDs = remember { mutableStateListOf<Long>() }
 		var isLoading by remember { mutableStateOf(true) }
 
 		if (isLoading) {
 			Text("Loading...")
 		} else {
-			// TODO BITSER Somehow handle edit button
 			RenderListOrChildScreen(controllerIDs)
 		}
 
@@ -91,7 +94,7 @@ abstract class StructListOverview(
 			}
 
 			Box(Modifier.weight(1f)) {
-				LazyColumn(modifier = Modifier.fillMaxHeight()) {
+				LazyColumn(modifier = Modifier.fillMaxHeight(), state = lazyListState) {
 					items(controllerIDs, key = { it }) { controllerID ->
 						RenderOuterRow(controllerID, scrollState)
 					}
