@@ -79,7 +79,7 @@ private fun <T> InnerBitserReferenceDropdown(
 	val selectedIndex = selectableControllerIDs.indexOfFirst { it == selectedControllerID }
 	val textFieldState = rememberTextFieldState()
 
-	LaunchedEffect(selectedControllerID) {
+	LaunchedEffect(selectedIndex) {
 		if (selectedIndex != -1) {
 			textFieldState.edit { replace(0, length, createText(selectableOptions[selectedIndex])) }
 		}
