@@ -12,7 +12,7 @@ private fun importKimSprite(name: String): KimSprite {
 	val resource = classLoader.getResource(path) ?: throw IllegalArgumentException("Can't load $path")
 	val image = ImageIO.read(resource)
 
-	return compressKimSprite3(image)
+	return compressKimSprite3(image, "ui $name")
 }
 
 private fun importBcSprite(name: String) = loadBc7Sprite("mardek/importer/ui/$name.png")

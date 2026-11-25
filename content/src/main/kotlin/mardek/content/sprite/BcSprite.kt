@@ -58,7 +58,12 @@ class BcSprite(
 	@BitField(id = 4)
 	@IntegerField(expectUniform = false, minValue = 0)
 	val artificialOffset: Int,
-) : Serializable {
+
+	/**
+	 * This field is only used during importing
+	 */
+	val importName: String,
+) : Serializable, Comparable<BcSprite> {
 
 	/**
 	 * This field is only used during importing
@@ -81,7 +86,7 @@ class BcSprite(
 	@IntegerField(minValue = -1, expectUniform = false, digitSize = 3)
 	var index = -1
 
-	constructor() : this(0, 0, 0, false, 0)
+	constructor() : this(0, 0, 0, false, 0, "default")
 
 	@BitField(id = 5)
 	@Suppress("unused")
@@ -96,10 +101,17 @@ class BcSprite(
 	 * Note that the [bufferedImage] and [data] are *not* copied: they will be shared!
 	 */
 	fun shallowCopy(): BcSprite {
-		val copied = BcSprite(width, height, version, clamped, artificialOffset)
+		val copied = BcSprite(width, height, version, clamped, artificialOffset, importName)
 		copied.bufferedImage = this.bufferedImage
 		copied.data = this.data
 		copied.index = this.index
 		return copied
 	}
+
+	override fun compareTo(other: BcSprite): Int {
+		if (data == null && bufferedImage == null) return index.compareTo(other.index)
+		return importName.compareTo(other.importName)
+	}
+
+	override fun toString() = "BcSprite($importName)"
 }

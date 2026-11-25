@@ -2,7 +2,6 @@ package mardek.importer.animation
 
 import mardek.content.BITSER
 import mardek.content.Content
-import mardek.content.battle.BattleContent
 import mardek.content.sprite.BcSprite
 import java.util.Collections
 import java.util.IdentityHashMap
@@ -14,5 +13,6 @@ fun collectAnimationSpriteReferences(content: Content) {
 	BITSER.collectInstances(content, emptyMap(), referenceMap)
 
 	content.battle.sharedAnimationSprites.addAll(animationBcSprites)
+	content.battle.sharedAnimationSprites.sort()
 	println("Got ${content.battle.sharedAnimationSprites.size} animation sprites")
 }

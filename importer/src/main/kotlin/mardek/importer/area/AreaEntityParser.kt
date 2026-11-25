@@ -96,12 +96,13 @@ internal fun importObjectSprites(
 	} else 16
 
 	val images = ((0 until (numFrames ?: (sheetImage.width / spriteWidth)))).map {
-		sheetImage.getSubimage(spriteWidth * (frameIndex + it), offsetY, spriteWidth, spriteHeight)
+		val offsetX = spriteWidth * (frameIndex + it)
+		Pair(sheetImage.getSubimage(offsetX, offsetY, spriteWidth, spriteHeight), offsetX)
 	}.toMutableList()
 
 	if (skipTransparentFrames) {
 		while (images.size > 1) {
-			val lastImage = images.last()
+			val lastImage = images.last().first
 			var isEmpty = true
 			for (y in 0 until lastImage.height) {
 				for (x in 0 until lastImage.width) {
@@ -116,7 +117,10 @@ internal fun importObjectSprites(
 		}
 	}
 
-	return ObjectSprites(flashName = flashName, frames = images.map(::compressKimSprite3).toTypedArray())
+	return ObjectSprites(flashName = flashName, frames = images.map {
+		val (image, offsetX) = it
+		compressKimSprite3(image, "$imageName $offsetX $offsetY")
+	}.toTypedArray())
 }
 
 private fun importSwitchColor(name: String): SwitchColor {

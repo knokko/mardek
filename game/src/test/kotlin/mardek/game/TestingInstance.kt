@@ -1,5 +1,6 @@
 package mardek.game
 
+import com.github.knokko.bitser.io.BitInputStream
 import com.github.knokko.boiler.BoilerInstance
 import com.github.knokko.boiler.builders.BoilerBuilder
 import com.github.knokko.boiler.builders.instance.ValidationFeatures
@@ -13,6 +14,7 @@ import com.github.knokko.vk2d.Vk2dInstance
 import com.github.knokko.vk2d.pipeline.Vk2dPipelineContext
 import com.github.knokko.vk2d.resource.Vk2dResourceBundle
 import com.github.knokko.vk2d.resource.Vk2dResourceLoader
+import com.github.knokko.zstd.DecompressingInputStream
 import mardek.content.BITSER
 import mardek.content.Content
 import mardek.content.area.Area
@@ -59,10 +61,7 @@ import kotlin.time.Duration
 class TestingInstance {
 
 	val content = loadContent()
-	val titleContent = BITSER.fromBytes(
-		TitleScreenContent::class.java,
-		Files.readAllBytes(DEFAULT_TITLE_SCREEN_CONTENT_FILE.toPath())
-	)!!
+	val titleContent: TitleScreenContent
 	val boiler: BoilerInstance
 	val pipelineContext: Vk2dPipelineContext
 	val vk2d: Vk2dInstance
@@ -88,6 +87,10 @@ class TestingInstance {
 	val dummySavesDirectories: MutableList<File> = Collections.synchronizedList(ArrayList<File>())
 
 	init {
+		val titleInput = BitInputStream(DecompressingInputStream(DEFAULT_TITLE_SCREEN_CONTENT_FILE.toPath()))
+		titleContent = BITSER.deserialize(TitleScreenContent::class.java, titleInput)
+		titleInput.close()
+
 		val builder = BoilerBuilder(
 			VK_API_VERSION_1_3, "IntegrationTests", 1
 		)

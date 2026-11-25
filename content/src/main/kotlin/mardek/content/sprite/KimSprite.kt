@@ -30,7 +30,12 @@ class KimSprite(
 	@BitField(id = 1)
 	@IntegerField(expectUniform = true, minValue = 1, maxValue = 3, commonValues = [3])
 	val version: Int,
-) : Serializable {
+
+	/**
+	 * Only used during importing
+	 */
+	val importName: String,
+) : Serializable, Comparable<KimSprite> {
 
 	/**
 	 * The index of this sprite into the kim sprite/fake image list of the renderer. The value of this is only
@@ -76,7 +81,12 @@ class KimSprite(
 		if (version != 1 && version != 2 && version != 3) throw IllegalArgumentException("Unknown KIM version $version")
 	}
 
-	constructor() : this(null, 1)
+	constructor() : this(null, 1, "default")
+
+	override fun compareTo(other: KimSprite): Int {
+		if (data == null) return index.compareTo(other.index)
+		return importName.compareTo(other.importName)
+	}
 
 	@BitField(id = 0)
 	@Suppress("unused")

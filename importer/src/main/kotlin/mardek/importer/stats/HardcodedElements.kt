@@ -11,9 +11,9 @@ import java.util.UUID
 import javax.imageio.ImageIO
 
 private fun getBcSprite(name: String): BcSprite {
-	val resource = classLoader.getResource("mardek/importer/stats/elements/${name}.png")!!
+	val resource = classLoader.getResource("mardek/importer/stats/elements/$name.png")!!
 	val image = ImageIO.read(resource)
-	val sprite = BcSprite(image.width, image.height, 7, false, 0)
+	val sprite = BcSprite(image.width, image.height, 7, false, 0, "element $name")
 	sprite.bufferedImage = image
 	return sprite
 }

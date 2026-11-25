@@ -10,7 +10,7 @@ import com.github.knokko.bitser.field.NestedFieldSetting
  * Represents a TrueType font (which we need for text rendering)
  */
 @BitStruct(backwardCompatible = true)
-class Font {
+class Font : Comparable<Font> {
 
 	/**
 	 * The raw TTF data of the font. Note that this will be `null` while in-game, but non-null while editing
@@ -43,5 +43,17 @@ class Font {
 	@NestedFieldSetting(path = "", optional = true, writeAsBytes = true)
 	private fun saveData(context: FunctionContext): ByteArray? {
 		return if (context.withParameters.containsKey("exporting")) null else data
+	}
+
+	override fun compareTo(other: Font): Int {
+		if (data == null) return index.compareTo(other.index)
+
+		val myData = data!!
+		val otherData = other.data!!
+		if (myData.size != otherData.size) return myData.size.compareTo(otherData.size)
+		for (index in myData.indices) {
+			if (myData[index] != otherData[index]) return myData[index].compareTo(otherData[index])
+		}
+		return 0
 	}
 }

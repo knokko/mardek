@@ -28,7 +28,7 @@ internal fun importCreatureTypes(statsContent: StatsContent) {
 		if (typeName == "CONSTRUCT") niceName = "Construct"
 		statsContent.creatureTypes.add(CreatureType(
 			flashName = typeName,
-			icon = compressKimSprite3(spriteSheet.getSubimage(16 * index, 0, 16, spriteSheet.height)),
+			icon = compressKimSprite3(spriteSheet.getSubimage(16 * index, 0, 16, spriteSheet.height), "creature $typeName"),
 			revertsHealing = typeName == "UNDEAD",
 			niceName = niceName,
 		))
@@ -38,7 +38,7 @@ internal fun importCreatureTypes(statsContent: StatsContent) {
 	// TODO CHAP3 Make sure Slenck, Solaar, and Legion get the right creature type (not HUMAN)
 	statsContent.creatureTypes.add(CreatureType(
 		flashName = "ARUAN",
-		icon = compressKimSprite3(BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB)),
+		icon = compressKimSprite3(BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB), "creature ARUAN"),
 		revertsHealing = false,
 		niceName = "Aruan"
 	))

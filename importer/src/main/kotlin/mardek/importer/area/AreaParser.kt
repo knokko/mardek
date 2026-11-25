@@ -441,7 +441,10 @@ fun parseFlashString(flashString: String, description: String): String? {
 		println("Failed to parse $description $flashString")
 		return null
 	}
-	return flashString.substring(1, flashString.length - 1).replace("\\'", "'")
+	return flashString.substring(1, flashString.length - 1)
+		.replace("\\'", "'")
+		.replace("\\n", "\n")
+		.replace("\\t", "\t")
 }
 
 fun parseOptionalFlashString(flashString: String?, description: String): String? {

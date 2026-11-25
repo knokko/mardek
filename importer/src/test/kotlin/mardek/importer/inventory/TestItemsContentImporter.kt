@@ -392,6 +392,13 @@ class TestItemsContentImporter {
 	}
 
 	@Test
+	fun testFigJuice() {
+		val figJuice = getItem("FigJuice")
+		assertFalse(figJuice.description.contains("\\n"))
+		assertTrue(figJuice.description.contains("\n"))
+	}
+
+	@Test
 	fun testAlchemistsFire() {
 		val alchemistsFire = getItem("Alchemist's Fire")
 		assertEquals("EXPENDABLE ITEM", alchemistsFire.type.displayName)

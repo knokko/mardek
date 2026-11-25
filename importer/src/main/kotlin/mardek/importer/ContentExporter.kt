@@ -73,7 +73,7 @@ fun main() {
 
 private fun cursorSprite(cursor: String) = compressKimSprite1(ImageIO.read(classLoader.getResource(
 	"mardek/importer/cursors/$cursor.png"
-)))
+)), "cursor $cursor")
 
 private fun wrapContent(content: Content) = ContentWrapper(
 	content = content,
@@ -85,7 +85,7 @@ private fun wrapContent(content: Content) = ContentWrapper(
 	pauseMusicHoveredIcon = loadBc7Sprite("mardek/importer/audio/PauseButtonHovered.png"),
 	applicationIcon = compressKimSprite1(ImageIO.read(classLoader.getResource(
 		"mardek/importer/inventory/itemsheet_misc.png"
-	)).getSubimage(288, 32, 16, 16)),
+	)).getSubimage(288, 32, 16, 16), "application icon"),
 	inventoryCursor = cursorSprite("inventory"),
 	pointerCursor = cursorSprite("pointer"),
 	grabCursor = cursorSprite("grab"),

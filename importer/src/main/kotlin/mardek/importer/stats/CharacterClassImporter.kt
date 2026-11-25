@@ -98,7 +98,7 @@ internal fun importClasses(content: Content, fatItemTypes: List<FatItemType>) {
 		name = "encyclopedia dummy",
 		description = "dummy skill class for the fake character classes used by non-player people in the encyclopedia",
 		actions = ArrayList(0),
-		icon = compressKimSprite3(BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB))
+		icon = compressKimSprite3(BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB), "class dummy")
 	)
 	content.skills.classes.add(dummySkillClass)
 	content.stats.classes.add(CharacterClass(

@@ -11,6 +11,7 @@ import com.jpexs.decompiler.flash.tags.base.ASMSource
 import com.jpexs.decompiler.flash.tags.base.MorphShapeTag
 import com.jpexs.decompiler.flash.tags.base.PlaceObjectTypeTag
 import com.jpexs.decompiler.flash.tags.base.ShapeTag
+import mardek.content.Content
 import mardek.content.animation.*
 import mardek.content.particle.ParticleEmitter
 import mardek.content.sprite.BcSprite
@@ -291,7 +292,10 @@ private fun importAnimationSprite(tag: ShapeTag, isMask: Boolean, context: Anima
 	try {
 		val format = if (isMask) 4 else 7
 		val image = ImageIO.read(expectedFile)
-		sprite = BcSprite(image.width, image.height, format, isMask, artificialOffset)
+		sprite = BcSprite(
+			image.width, image.height, format, isMask, artificialOffset,
+			"animation shape${tag.uniqueId} $shapeSuffix ${context.shapesDirectory.relativeTo(Content.RESOURCES_DIRECTORY.parentFile)}${context.importNameSuffix}"
+		)
 		sprite.bufferedImage = image
 
 		// For some reason, these sprites become ugly if I don't pre-multiply them.

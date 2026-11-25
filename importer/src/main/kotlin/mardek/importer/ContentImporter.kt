@@ -139,5 +139,6 @@ fun importVanillaContent(skipMonsters: Boolean = false): Content {
 
 	addCheckpoint("chapter1", startChapter1)
 
+	content.battle.animationSprites.sortBy { it.image }
 	return content
 }

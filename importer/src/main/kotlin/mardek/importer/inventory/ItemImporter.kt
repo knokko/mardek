@@ -39,7 +39,7 @@ internal fun importItems(content: Content, rawItems: String, fatItemTypes: List<
 		if (typeName == "plot") {
 			content.items.plotItems.add(PlotItem(
 				displayName = flashName,
-				sprite = compressKimSprite3(sheets.mapping["misc"]!!.getNext(4)),
+				sprite = compressKimSprite3(sheets.mapping["misc"]!!.getNext(4), "item $flashName"),
 				description = description,
 				element = element,
 				cost = if (cost >= 0) cost else null,
@@ -54,7 +54,7 @@ internal fun importItems(content: Content, rawItems: String, fatItemTypes: List<
 		content.items.items.add(Item(
 			id = UUID.nameUUIDFromBytes("ItemImporter$flashName$description".encodeToByteArray()),
 			displayName = flashName,
-			sprite = compressKimSprite3(bufferedSprite),
+			sprite = compressKimSprite3(bufferedSprite, "item $flashName"),
 			description = description,
 			type = content.items.itemTypes.find { it.displayName == fatType.displayName }!!,
 			element = element,

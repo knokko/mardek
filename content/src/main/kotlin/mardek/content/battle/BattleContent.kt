@@ -98,7 +98,7 @@ class BattleContent : Serializable {
 	 * will be multiplied by 1.0).
 	 */
 	@BitField(id = 10)
-	val noMask = BcSprite(1, 1, 4, true, 0)
+	val noMask = BcSprite(1, 1, 4, true, 0, "no-mask")
 
 	/**
 	 * All the sprites that can be used by [AnimationSprite]s.

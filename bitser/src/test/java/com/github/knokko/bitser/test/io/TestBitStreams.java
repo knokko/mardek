@@ -1,6 +1,7 @@
 package com.github.knokko.bitser.test.io;
 
 import com.github.knokko.bitser.BitStruct;
+import com.github.knokko.bitser.exceptions.UnexpectedBitserException;
 import com.github.knokko.bitser.field.BitField;
 import com.github.knokko.bitser.field.IntegerField;
 import com.github.knokko.bitser.Bitser;
@@ -97,7 +98,7 @@ public class TestBitStreams {
 		Bitser bitser = new Bitser();
 		byte[] bytes = bitser.toBytes(new SmallStruct());
 		String errorMessage = assertThrows(
-				IllegalArgumentException.class, () -> bitser.fromBytes(LargerStruct.class, bytes)
+				UnexpectedBitserException.class, () -> bitser.fromBytes(LargerStruct.class, bytes)
 		).getMessage();
 		assertContains(errorMessage, "too short");
 	}

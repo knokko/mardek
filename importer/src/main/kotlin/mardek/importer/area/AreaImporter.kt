@@ -45,7 +45,10 @@ internal fun importAreaSprites(content: Content) {
 		val numSprites = sheetImage.width / 16
 
 		val sheet = DirectionalSprites(name.dropLast(4), (0 until numSprites).map {
-			compressKimSprite3(sheetImage.getSubimage(it * 16, 0, 16, sheetImage.height))
+			compressKimSprite3(
+				sheetImage.getSubimage(it * 16, 0, 16, sheetImage.height),
+				"$name $it"
+			)
 		}.toTypedArray())
 		content.areas.characterSprites.add(sheet)
 	}
@@ -70,7 +73,9 @@ internal fun importAreaContent(content: Content): HardcodedActions {
 
 	for (parsed in parsedTilesheets) {
 		val tilesheet = Tilesheet(parsed.name)
-		tilesheet.waterSprites.addAll(parsed.waterSprites.map(::compressKimSprite3))
+		tilesheet.waterSprites.addAll(parsed.waterSprites.mapIndexed { index, image ->
+			compressKimSprite3(image, "water ${parsed.name} $index")
+		})
 		content.areas.tilesheets.add(tilesheet)
 
 		val usedTiles = HashSet<Int>()
@@ -83,7 +88,9 @@ internal fun importAreaContent(content: Content): HardcodedActions {
 		for (tileID in usedTiles) {
 			val parsedTile = parsed.tiles[tileID]!!
 			val tile = Tile(
-					sprites = ArrayList(parsedTile.sprites.map(::compressKimSprite3)),
+					sprites = ArrayList(parsedTile.sprites.mapIndexed { index, image ->
+						compressKimSprite3(image, "tile ${parsed.name} $tileID $index")
+					}),
 					canWalkOn = parsedTile.canWalkOn,
 					waterType = parsedTile.waterType
 			)

@@ -123,6 +123,7 @@ private fun importGdmIntroCutscene(content: Content) {
 		shapesDirectory = File("$projectFolder/flash/all-shapes-x$magicScale/"),
 		particleEmitters = emptyMap(),
 		shapeSuffix = { "" },
+		importNameSuffix = "gdm_cut",
 	)
 
 	val gdmTag = FLASH.tags.find { it is DefineSpriteTag && it.exportName == "CUT_GdM" }!! as DefineSpriteTag

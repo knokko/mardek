@@ -39,7 +39,7 @@ fun parseSkillClasses(
 				parseActionScriptObjectList(rawSkills),
 				false,
 			)),
-			icon = compressKimSprite3(icon)
+			icon = compressKimSprite3(icon, "skill ${entry.key}")
 		)
 	}
 }

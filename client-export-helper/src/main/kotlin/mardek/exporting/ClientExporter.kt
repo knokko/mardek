@@ -14,7 +14,9 @@ import com.github.knokko.vk2d.resource.Vk2dImageCompression
 import com.github.knokko.vk2d.resource.Vk2dResourceWriter
 import com.github.knokko.zstd.CompressingOutputStream
 import mardek.content.BITSER
+import mardek.content.Content
 import mardek.content.ContentWrapper
+import mardek.content.animation.AnimationSprite
 import mardek.content.audio.AudioContent
 import mardek.content.sprite.BcSprite
 import mardek.content.sprite.KimSprite
@@ -91,11 +93,43 @@ fun exportAndPrepareVk2d(
 	collectionMapping[Font::class.java] = allFonts
 	BITSER.collectInstances(target, collectionMapping, hashMapOf())
 
-	// TODO BITSER Sort them by something
 	val resourceWriter = Vk2dResourceWriter()
-	for (sprite in allKimSprites) addKimImage(resourceWriter, sprite)
-	for (sprite in allBcSprites) addBcImage(resourceWriter, sprite)
-	for (font in allFonts) {
+	val kimNameMapping = mutableMapOf<String, KimSprite>()
+	val hasImportNames = allKimSprites.any { it.importName != "default" }
+
+	for (sprite in allKimSprites.sorted()) {
+		val existingSprite = if (hasImportNames) kimNameMapping[sprite.importName] else null
+		if (existingSprite == null) {
+			addKimImage(resourceWriter, sprite)
+			kimNameMapping[sprite.importName] = sprite
+		} else {
+			sprite.index = existingSprite.index
+			println("Reusing KIM sprite index ${sprite.index} for ${sprite.importName}")
+		}
+	}
+
+	val bcImportNameMapping = mutableMapOf<String, BcSprite>()
+	for (sprite in allBcSprites.sorted()) {
+		val existingSprite = if (hasImportNames) bcImportNameMapping[sprite.importName] else null
+		if (existingSprite == null) {
+			addBcImage(resourceWriter, sprite)
+			bcImportNameMapping[sprite.importName] = sprite
+		} else {
+			sprite.index = existingSprite.index
+			println("Reusing BC sprite index ${sprite.index} for ${sprite.importName}")
+		}
+	}
+
+	if (target is Content && hasImportNames) {
+		val animationSpriteMapping = mutableMapOf<String, AnimationSprite>()
+		for (anim in target.battle.animationSprites) {
+			if (animationSpriteMapping.put(anim.image.importName, anim) != null) {
+				throw RuntimeException("Duplicate anim $anim with ${anim.image} with index ${anim.image.index}")
+			}
+		}
+	}
+
+	for (font in allFonts.sorted()) {
 		if (target is TitleScreenContent && font === target.largeFont) {
 			addFont(resourceWriter, font) {
 				resourceWriter.addAtlas(

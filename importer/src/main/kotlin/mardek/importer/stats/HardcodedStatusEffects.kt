@@ -42,7 +42,7 @@ fun addStatusEffects(content: Content) {
 
 	fun passiveSprites(atlas: BufferedImage, indices: IntArray) = indices.map { index ->
 		val size = if (atlas === sheet16) 16 else 32
-		val sprite = BcSprite(size, size, 0, false, 0)
+		val sprite = BcSprite(size, size, 0, false, 0, "status effect ${atlas.width} $index")
 		sprite.bufferedImage = atlas.getSubimage(size * (index % 10), size * (index / 10), size, size)
 		sprite
 	}.toTypedArray()
@@ -510,7 +510,7 @@ fun addStatusEffects(content: Content) {
 		isPositive = true,
 		disappearsAfterCombat = true,
 		elementShell = element("WATER"),
-		icon = icon("shell/Aero"),
+		icon = icon("shell/Hydro"),
 		innerTextColor = rgb(0, 221, 255),
 		outerTextColor = rgb(0, 170, 204),
 		particleEmitters = emptyArray(),
@@ -523,7 +523,7 @@ fun addStatusEffects(content: Content) {
 		isPositive = true,
 		disappearsAfterCombat = true,
 		elementShell = element("EARTH"),
-		icon = icon("shell/Aero"),
+		icon = icon("shell/Geo"),
 		innerTextColor = rgb(102, 255, 0),
 		outerTextColor = rgb(51, 204, 0),
 		particleEmitters = emptyArray(),

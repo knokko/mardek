@@ -10,6 +10,7 @@ class AnimationImportContext(
 	val shapesDirectory: File,
 	val particleEmitters: Map<String, ParticleEmitter>,
 	val shapeSuffix: (Int) -> String,
+	val importNameSuffix: String = "",
 ) {
 	val shapeMapping = mutableMapOf<Pair<Int, Boolean>, AnimationSprite>()
 	val spriteMapping = mutableMapOf<Int, SkinnedAnimation>()
