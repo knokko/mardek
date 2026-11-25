@@ -90,12 +90,13 @@ public class BitClientSimpleFlatField<T> extends BitClientField {
 		System.err.println("Warning: attempted to cancel missing subscription for field " + fieldID + " of " + view);
 	}
 
-	public synchronized void set(T newValue) {
+	public synchronized boolean set(T newValue) {
 		var oldChangeState = changeState;
 		if (view.protocol.areFlatValuesEqual(fieldID, serverValue, newValue)) {
 			changeState = BitClientChangeState.UP_TO_DATE;
 			localValue = null;
 		} else {
+			if (!view.protocol.isFieldValueValid(fieldID, newValue)) return false;
 			changeState = BitClientChangeState.MODIFIED;
 			localValue = newValue;
 		}
@@ -105,6 +106,8 @@ public class BitClientSimpleFlatField<T> extends BitClientField {
 		if (changeState != oldChangeState) {
 			for (var listener : changeStateListeners) listener.accept(changeState);
 		}
+
+		return true;
 	}
 
 	@Override

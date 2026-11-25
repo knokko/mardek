@@ -4,12 +4,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.TextFieldBuffer
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,22 +33,25 @@ private fun <T> BitserEditField(
 	modifier: Modifier,
 	contentPadding: PaddingValues = PaddingValues(horizontal = 5.dp),
 	isMultiline: Boolean = false,
-	inputTransformation: InputTransformation,
+	onChange: TextFieldBuffer.(MutableState<Boolean>) -> Unit,
 ) {
 	val mutateScope = rememberCoroutineScope()
 	val textFieldState = rememberTextFieldState()
 	var changeState by remember { mutableStateOf(BitClientChangeState.UNINITIALIZED) }
+	val isValid = remember { mutableStateOf(true) }
 
 	OutlinedTextField(
 		state = textFieldState,
 		modifier = modifier,
 		textStyle = TextStyle(
 			fontSize = 1.05.em,
-			color = if (changeState == BitClientChangeState.MODIFIED) Color.Blue else Color.Unspecified
+			color = if (changeState == BitClientChangeState.MODIFIED) {
+				if (isValid.value) Color.Blue else Color.Red
+			} else Color.Unspecified
 		),
 		contentPadding = contentPadding,
 		lineLimits = if (isMultiline) TextFieldLineLimits.MultiLine() else TextFieldLineLimits.SingleLine,
-		inputTransformation = inputTransformation,
+		inputTransformation = { onChange(this, isValid) },
 		enabled = changeState != BitClientChangeState.UNINITIALIZED,
 	)
 
@@ -79,20 +83,19 @@ private fun baseModifier(width: Dp? = null): Modifier {
 fun BitserTextField(field: BitClientSimpleFlatField<String>, width: Dp? = null) = BitserEditField(
 	field = field,
 	modifier = baseModifier(width),
-	inputTransformation = { field.set(this.toString()) },
+	onChange = { isValid -> isValid.value = field.set(this.toString()) },
 )
 
 @Composable
 fun BitserIntField(field: BitClientSimpleFlatField<Int>, width: Dp? = null) = BitserEditField(
 	field = field,
 	modifier = baseModifier(width),
-	inputTransformation = {
+	onChange = { isValid ->
 		try {
 			val intValue = parseInt(this.toString())
-			field.set(intValue)
+			isValid.value = field.set(intValue)
 		} catch (_: NumberFormatException) {
-			// TODO BITSER Clearly mark it in the UI
-			println("Invalid $this")
+			isValid.value = false
 		}
 	},
 )
@@ -103,5 +106,5 @@ fun BitserBigTextField(field: BitClientSimpleFlatField<String>, width: Dp, heigh
 	modifier = Modifier.padding(start = 10.dp, bottom = 10.dp, top = 10.dp, end = 30.dp).width(width).height(height),
 	contentPadding = PaddingValues(5.dp),
 	isMultiline = true,
-	inputTransformation = { field.set(this.toString()) },
+	onChange = { isValid -> isValid.value = field.set(this.toString()) },
 )

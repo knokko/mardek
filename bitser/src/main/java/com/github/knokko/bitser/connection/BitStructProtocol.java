@@ -1,6 +1,7 @@
 package com.github.knokko.bitser.connection;
 
 import com.github.knokko.bitser.Bitser;
+import com.github.knokko.bitser.io.BitCountStream;
 import com.github.knokko.bitser.io.BitInputStream;
 import com.github.knokko.bitser.io.BitOutputStream;
 
@@ -169,5 +170,15 @@ public class BitStructProtocol {
 			case STRUCT -> bitser.deepEquals(a, b);
 			default -> throw new IllegalArgumentException("Can't compare 'flat' " + a + " with " + b);
 		};
+	}
+
+	boolean isFieldValueValid(int fieldID, Object value) {
+		var fieldInfo = idToInfo[fieldID];
+		try {
+			fieldInfo.flatSerializer.serialize(new BitCountStream(), value);
+			return true;
+		} catch (Throwable invalid) {
+			return false;
+		}
 	}
 }

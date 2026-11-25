@@ -56,8 +56,6 @@ fun EquipmentPropertiesComponent(equipment: BitClientStruct, mutateScope: Corout
 		50.dp,
 	)
 
-	// TODO BITSER Save button InlineStructsSaveButton(arrayOf(equipment, weapon))
-
 	TrackStruct(equipment)
 	ChildStruct(mutateScope, equipment, null, "weapon", 1, setWeapon)
 }
