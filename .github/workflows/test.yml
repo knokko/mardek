@@ -48,7 +48,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ windows-2022, ubuntu-latest ]
+        os: [ windows-2022, ubuntu-24.04 ]
     steps:
       - uses: actions/checkout@v6
       - uses: NcStudios/VulkanCI@v1.2
